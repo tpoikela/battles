@@ -7,12 +7,14 @@ var chai = require("chai");
 var expect = chai.expect;
 var RG = require("../battles.js");
 
+//RG.Map = require("../src/map.js");
+
 var Actor = RG.RogueActor;
 var Action = RG.RogueAction;
-var Level = RG.RogueLevel;
+var Level = RG.Map.Level;
 var Element = RG.RogueElement;
-var Cell = RG.MapCell;
-var Item = RG.Item;
+var Cell = RG.Map.Cell;
+var Item = RG.Item.Base;
 var Container = RG.Item.Container;
 var InvAndEquip = RG.RogueInvAndEquip;
 var Factory = RG.FACT;
@@ -254,12 +256,12 @@ describe('Tests to check that basic operations for map work', function() {
 
 describe('Moving actors around in the game', function() {
 
-    var movSystem = new RG.MovementSystem("Movement", ["Movement"]);
+    var movSystem = new RG.System.Movement("Movement", ["Movement"]);
 
     it('Moves but is blocked by walls.', function() {
         var actor = new Actor(true);
         var level = new Level(10, 10);
-        var mapgen = new RG.RogueMapGen();
+        var mapgen = new RG.Map.Generator();
         mapgen.setGen("arena", 10, 10);
         var map = mapgen.getMap();
         level.setMap(map);
@@ -268,7 +270,7 @@ describe('Moving actors around in the game', function() {
         expect(actor.getY()).to.equal(2);
 
         // Actors x,y changes due to move
-        var movComp = new RG.MovementComponent(2, 3, level);
+        var movComp = new RG.Component.Movement(2, 3, level);
         actor.add("Movement", movComp);
         movSystem.update();
         expect(actor.getX()).to.equal(2);
@@ -278,7 +280,7 @@ describe('Moving actors around in the game', function() {
         var wall = new Element("wall");
         level.getMap().setBaseElemXY(4, 4, wall);
         //expect(level.moveActorTo(actor, 4, 4)).to.equal(false);
-        var movComp = new RG.MovementComponent(4, 4, level);
+        var movComp = new RG.Component.Movement(4, 4, level);
         movSystem.update();
         expect(actor.getX(), "X didn't change due to wall").to.equal(2);
         expect(actor.getY()).to.equal(3);
@@ -335,7 +337,7 @@ describe('Moving actors around in the game', function() {
         stairsDown23.setTargetStairs(stairsUp32);
         stairsUp32.setTargetStairs(stairsDown23);
 
-        var movComp = new RG.MovementComponent(12, 13, level2);
+        var movComp = new RG.Component.Movement(12, 13, level2);
         player.add("Movement", movComp);
         movSystem.update();
         level2.useStairs(player);

@@ -346,6 +346,7 @@ if (typeof exports !== 'undefined' ) {
     if( typeof RG.Game !== 'undefined' && module.exports ) {
         exports = module.exports = RG.Game;
     }
+    exports.RG = RG;
     exports.RG.Game = RG.Game;
 }
 else {

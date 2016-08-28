@@ -483,6 +483,7 @@ if (typeof exports !== 'undefined' ) {
     if( typeof RG.Item !== 'undefined' && module.exports ) {
         exports = module.exports = RG.Item;
     }
+    exports.RG = RG;
     exports.RG.Item = RG.Item;
 }
 else {

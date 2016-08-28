@@ -461,6 +461,7 @@ if (typeof exports !== 'undefined' ) {
     if( typeof RG.System !== 'undefined' && module.exports ) {
         exports = module.exports = RG.System;
     }
+    exports.RG = RG;
     exports.RG.System = RG.System;
 }
 else {

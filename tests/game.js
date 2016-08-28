@@ -11,7 +11,7 @@ var RGTest = require("./roguetest.js");
 
 var checkXY = RGTest.checkActorXY;
 
-var Game = RG.RogueGame;
+var Game = require("../src/game.js");
 var Actor = RG.RogueActor;
 
 // Takes turns instead of real-player
@@ -31,8 +31,8 @@ function checkMap(map, cols, rows) {
 }
 
 function getNewLevel(cols, rows) {
-    var level = new RG.RogueLevel(cols, rows);
-    var mapGen = new RG.RogueMapGen();
+    var level = new RG.Map.Level(cols, rows);
+    var mapGen = new RG.Map.Generator();
     mapGen.setGen("arena", cols, rows);
     var map = mapGen.getMap();
     level.setMap(map);
@@ -55,7 +55,7 @@ function getLevelWithNActors(cols, rows, nactors) {
 describe('How game should proceed', function() {
 
 
-    var movSystem = new RG.MovementSystem("Movement", ["Movement"]);
+    var movSystem = new RG.System.Movement("Movement", ["Movement"]);
 
     it('Initializes the game and adds player', function() {
         var cols = 50;
@@ -76,7 +76,7 @@ describe('How game should proceed', function() {
         var newMap = level.getMap();
         checkMap(newMap, cols, rows);
 
-        var movComp = new RG.MovementComponent(12, 13, level);
+        var movComp = new RG.Component.Movement(12, 13, level);
         actor.add("Movement", movComp);
         movSystem.update();
         expect(actor.getX()).to.equal(12);
@@ -109,8 +109,8 @@ var KillListener = function(actor) {
 
 describe('How combat should evolve', function() {
 
-    var comSystem = new RG.AttackSystem("Attack", ["Attack"]);
-    var dmgSystem = new RG.DamageSystem("Damage", ["Damage"]);
+    var comSystem = new RG.System.Attack("Attack", ["Attack"]);
+    var dmgSystem = new RG.System.Damage("Damage", ["Damage"]);
 
     it('Deals damage from attacker to defender', function() {
         var cols = 50;
@@ -131,7 +131,7 @@ describe('How combat should evolve', function() {
         level.addActor(attacker, 1, 1);
         level.addActor(defender, 2, 2);
 
-        var attackComp = new RG.AttackComponent(defender);
+        var attackComp = new RG.Component.Attack(defender);
         attacker.add("Attack", attackComp);
         comSystem.update();
         expect(defender.has("Damage")).to.equal(true);
@@ -144,7 +144,7 @@ describe('How combat should evolve', function() {
         var def2 = new Actor("defender2");
         level.addActor(def2, 2, 2);
 
-        var attComp2 = new RG.AttackComponent(def2);
+        var attComp2 = new RG.Component.Attack(def2);
         attacker.add("Attack", attComp2);
 
         def2.get("Health").setHP(20);
@@ -193,7 +193,7 @@ describe('How AI brain works', function() {
         var map = level.getMap();
         expect(map.isPassable(2,3)).to.equal(true);
 
-        var brain = new RG.RogueBrain(mons1);
+        var brain = new RG.Brain.Rogue(mons1);
         var seenCells = level.getMap().getVisibleCells(mons1);
         expect(seenCells.length).to.not.equal(0);
         var playerCell = brain.findEnemyCell(seenCells);
@@ -204,7 +204,7 @@ describe('How AI brain works', function() {
         expect(pathCells.length).to.not.equal(0);
     });
 
-    var movSystem = new RG.MovementSystem("Movement", ["Movement"]);
+    var movSystem = new RG.System.Movement("Movement", ["Movement"]);
 
     it('Moves towards player when seen.', function() {
         expect(level.addActor(player, 2, 2)).to.equal(true);

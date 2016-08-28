@@ -12,9 +12,9 @@ var updateSystems = function(systems) {
 
 describe('How hunger system works', function() {
     it('description', function() {
-        var system = new RG.HungerSystem("Hunger", ["Hunger", "Action"]);
-        var hunger = new RG.HungerComponent(2000);
-        var action = new RG.ActionComponent();
+        var system = new RG.System.Hunger("Hunger", ["Hunger", "Action"]);
+        var hunger = new RG.Component.Hunger(2000);
+        var action = new RG.Component.Action();
         var player = RG.FACT.createPlayer("Player", {});
         player.add("Hunger", hunger);
         player.add("Action", action);
@@ -29,7 +29,7 @@ describe('How hunger system works', function() {
 
     it('Has combat components', function() {
         var player = RG.FACT.createPlayer("Player", {});
-        var combatComp = new RG.CombatComponent();
+        var combatComp = new RG.Component.Combat();
         player.add("Combat", combatComp);
         expect(player.get("Combat").getDamage() >= 1).to.equal(true);
         expect(player.get("Combat").getDamage() <= 4).to.equal(true);
@@ -41,14 +41,14 @@ describe('How loot is dropped by monsters', function() {
     var monster = RG.FACT.createMonster("TestMonster", {hp: 5, att: 1, def: 1, prot: 1});
     var human = RG.FACT.createMonster("Human", {hp: 5, att: 1, def: 1, prot: 1});
 
-    var dSystem = new RG.DamageSystem("Damage", ["Damage"]);
+    var dSystem = new RG.System.Damage("Damage", ["Damage"]);
     var systems = [dSystem];
 
     it('Drops loot when lethal damage is dealt', function() {
-        var lootItem = new RG.Item("Loot item");
-        var loot = new RG.LootComponent(lootItem);
+        var lootItem = new RG.Item.Base("Loot item");
+        var loot = new RG.Component.Loot(lootItem);
         monster.add("Loot", loot);
-        var dmgComp = new RG.DamageComponent(6, "fire");
+        var dmgComp = new RG.Component.Damage(6, "fire");
         dmgComp.setSource(human);
         monster.add("Damage", dmgComp);
         var lootCell = level.getMap().getCell(3, 6);

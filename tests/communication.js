@@ -3,8 +3,8 @@ var chai = require("chai");
 var expect = chai.expect;
 var RG = require("../battles.js");
 
-var Memory = RG.RogueBrainMemory;
-var Brain = RG.RogueBrain;
+var Memory = RG.Brain.Memory;
+var Brain = RG.Brain.Rogue;
 
 /** Updates given systems in given order.*/
 var updateSystems = function(systems) {
@@ -45,7 +45,7 @@ describe('How AI brain memory performs basic functions', function() {
 
 
 describe('How actors communicate with each other', function() {
-    var comSys = new RG.CommunicationSystem("Communication", ["Communication"]);
+    var comSys = new RG.System.Communication("Communication", ["Communication"]);
     var systems = [comSys];
 
     var hunter1 = RG.FACT.createMonster("hunter1");
@@ -63,7 +63,7 @@ describe('How actors communicate with each other', function() {
         hunter1.addEnemy(animal);
         var mem1 = brain1.getMemory();
 
-        var comComp = new RG.CommunicationComponent();
+        var comComp = new RG.Component.Communication();
         comComp.addMsg({type: "Enemies", enemies: mem1.getEnemies()});
         hunter2.add("Communication", comComp);
 

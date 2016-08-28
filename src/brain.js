@@ -1,5 +1,7 @@
 
 var GS = require("../getsource.js");
+
+var ROT = GS.getSource("ROT", "./lib/rot.js");
 var RG = GS.getSource("RG", "./src/rg.js");
 
 //---------------------------------------------------------------------------
@@ -552,6 +554,7 @@ if (typeof exports !== 'undefined' ) {
     if( typeof RG.Brain !== 'undefined' && module.exports ) {
         exports = module.exports = RG.Brain;
     }
+    exports.RG = RG;
     exports.RG.Brain = RG.Brain;
 }
 else {

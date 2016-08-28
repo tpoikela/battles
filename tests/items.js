@@ -3,15 +3,15 @@ var chai = require("chai");
 var expect = chai.expect;
 var RG = require("../battles.js");
 
-var Item = RG.Item;
+RG.Item = require("../src/item.js");
 
 var Slot = RG.RogueEquipSlot;
 
 describe('How items are stacked', function() {
     it('Adds two items to create a count of 2', function() {
-        var item1 = new RG.Item("Test item");
+        var item1 = new RG.Item.Base("Test item");
         item1.setType("test");
-        var item2 = new RG.Item("Test item");
+        var item2 = new RG.Item.Base("Test item");
         item2.setType("test");
         expect(RG.addStackedItems(item1, item2)).to.equal(true);
         expect(item1.count).to.equal(2);
@@ -33,17 +33,17 @@ describe('How items are stacked', function() {
 
 describe('How stacked are broken into multiple items', function() {
     it('Splits item stack into two items', function() {
-        var itemStack = new RG.Item("Arrow");
+        var itemStack = new RG.Item.Base("Arrow");
         itemStack.setType("missile");
         itemStack.count = 2;
         var arrow = RG.removeStackedItems(itemStack, 1);
         itemStack.setType("missile");
         expect(arrow.getName()).to.equal("Arrow");
 
-        var hugeStack = new RG.Item("Gold coin");
+        var hugeStack = new RG.Item.Base("Gold coin");
         hugeStack.setType("gold");
         hugeStack.count = 10000;
-        var newStack = new RG.Item("Gold coin");
+        var newStack = new RG.Item.Base("Gold coin");
         newStack.setType("gold");
         newStack.count = 100;
 
@@ -57,12 +57,12 @@ describe('How stacked are broken into multiple items', function() {
         expect(newStack.count).to.equal(1100);
         expect(hugeStack.count).to.equal(9000);
 
-        var testStack = new RG.Item("test item");
+        var testStack = new RG.Item.Base("test item");
         testStack.setType("test");
         var stack = RG.removeStackedItems(testStack, 1);
         expect(testStack.count).to.equal(0);
 
-        var two = new RG.Item("test item");
+        var two = new RG.Item.Base("test item");
         two.setType("test");
         two.count = 5;
         var rmvTwo = RG.removeStackedItems(two, 5);

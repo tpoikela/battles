@@ -34,8 +34,8 @@ describe('How dice are cast and what values they give', function() {
 describe('How missile is fired and hits a wall', function() {
 
 
-    var mSystem = new RG.MissileSystem("Missile", ["Missile"]);
-    var dSystem = new RG.DamageSystem("Damage", ["Damage"]);
+    var mSystem = new RG.System.Missile("Missile", ["Missile"]);
+    var dSystem = new RG.System.Damage("Damage", ["Damage"]);
 
     var systems = [mSystem, dSystem];
 
@@ -47,7 +47,7 @@ describe('How missile is fired and hits a wall', function() {
         level.addActor(srcEnt, 1, 1);
 
         var mEnt = new RG.Item.Missile("missile");
-        var mComp = new RG.MissileComponent(srcEnt);
+        var mComp = new RG.Component.Missile(srcEnt);
         mEnt.add("Missile", mComp);
 
         expect(mComp.getX()).to.equal(1);
@@ -78,7 +78,7 @@ describe('How missile is fired and hits a wall', function() {
         cell.setProp("elements", wall);
 
         var mEnt = new RG.Item.Missile("missile");
-        var mComp = new RG.MissileComponent(srcEnt);
+        var mComp = new RG.Component.Missile(srcEnt);
         mEnt.add("Missile", mComp);
         mComp.setTargetXY(1, 4);
         mComp.setRange(3);
@@ -106,7 +106,7 @@ describe('How missile is fired and hits a wall', function() {
         level.addActor(targetEnt, 1, 6);
 
         var mEnt = new RG.Item.Missile("missile");
-        var mComp = new RG.MissileComponent(srcEnt);
+        var mComp = new RG.Component.Missile(srcEnt);
         mComp.setAttack(1);
         mComp.setDamage(5);
         mEnt.add("Missile", mComp);
@@ -136,7 +136,7 @@ describe('How missile is fired and hits a wall', function() {
         level.addActor(srcEnt, 1, 1);
 
         var mEnt = new RG.Item.Missile("missile");
-        var mComp = new RG.MissileComponent(srcEnt);
+        var mComp = new RG.Component.Missile(srcEnt);
         mComp.setDamage(5);
         mEnt.add("Missile", mComp);
         mComp.setTargetXY(1, 6);

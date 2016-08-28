@@ -500,6 +500,7 @@ if (typeof exports !== 'undefined' ) {
     if( typeof RG.Component !== 'undefined' && module.exports ) {
         exports = module.exports = RG.Component;
     }
+    exports.RG = RG;
     exports.RG.Component = RG.Component;
 }
 else {

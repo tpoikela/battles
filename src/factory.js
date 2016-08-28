@@ -3,6 +3,7 @@ var GS = require("../getsource.js");
 var RG = GS.getSource("RG", "./src/rg.js");
 RG.Component = GS.getSource(["RG", "Component"], "./src/component.js");
 RG.Brain = GS.getSource(["RG", "Brain"], "./src/brain.js");
+RG.Map = GS.getSource(["RG", "Map"], "./src/map.js");
 
 //---------------------------------------------------------------------------
 // FACTORY OBJECTS
@@ -1029,6 +1030,7 @@ if (typeof exports !== 'undefined' ) {
     if( typeof RG.Factory !== 'undefined' && module.exports ) {
         exports = module.exports = RG.Factory;
     }
+    exports.RG = RG;
     exports.RG.Factory = RG.Factory;
 }
 else {

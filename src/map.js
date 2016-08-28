@@ -1,7 +1,7 @@
 
 var GS = require("../getsource.js");
-var ROT = getSource("ROT", "./lib/rot.js");
-var RG = getSource("RG", "./src/rg.js");
+var ROT = GS.getSource("ROT", "./lib/rot.js");
+var RG = GS.getSource("RG", "./src/rg.js");
 
 RG.Map = {};
 
@@ -726,3 +726,15 @@ RG.Map.Level = function(cols, rows) { // {{{2
 
 }; // }}} Level
 RG.Map.Level.prototype.idCount = 0;
+
+// Exports for node/vars for window
+if (typeof exports !== 'undefined' ) {
+    if( typeof RG.Map !== 'undefined' && module.exports ) {
+        exports = module.exports = RG.Map;
+    }
+    exports.RG = RG;
+    exports.RG.Map = RG.Map;
+}
+else {
+    window.RG.Map = RG.Map;
+}
