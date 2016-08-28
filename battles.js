@@ -1340,7 +1340,7 @@ RG.extend2(RG.CommunicationSystem, RG.System);
 
 /** Models an item. Each item is ownable by someone. During game, there are no
  * items with null owners. Ownership shouldn't be ever set to null. */
-RG.RogueItem = function(name) {
+RG.Item = function(name) {
     RG.Ownable.call(this, null);
     RG.Entity.call(this);
     this.setPropType(RG.TYPE_ITEM);
@@ -1374,7 +1374,7 @@ RG.RogueItem = function(name) {
     this.getValue = function() {return _value;};
 
 };
-RG.RogueItem.prototype.toString = function() {
+RG.Item.prototype.toString = function() {
     var txt = this.getName() + ", " + this.getType() + ", ";
     txt += this.getWeight() + "kg";
     if (this.hasOwnProperty("count")) {
@@ -1383,31 +1383,31 @@ RG.RogueItem.prototype.toString = function() {
     return txt;
 };
 
-RG.RogueItem.prototype.equals = function(item) {
+RG.Item.prototype.equals = function(item) {
     var res = this.getName() === item.getName();
     res = res && (this.getType() === item.getType());
     return res;
 };
 
 
-RG.RogueItem.prototype.copy = function(rhs) {
+RG.Item.prototype.copy = function(rhs) {
     this.setName(rhs.getName());
     this.setType(rhs.getType());
     this.setWeight(rhs.getWeight());
     this.setValue(rhs.getValue());
 };
 
-RG.RogueItem.prototype.clone = function() {
-    var newItem = new RG.RogueItem(this.getName());
+RG.Item.prototype.clone = function() {
+    var newItem = new RG.Item(this.getName());
     newItem.copy(this);
     return newItem;
 };
 
-RG.extend2(RG.RogueItem, RG.Ownable);
+RG.extend2(RG.Item, RG.Ownable);
 
 /** Object representing food items in the game.*/
-RG.RogueItemFood = function(name) {
-    RG.RogueItem.call(this, name);
+RG.Item.Food = function(name) {
+    RG.Item.call(this, name);
     this.setType("food");
 
     var _energy = 0;
@@ -1436,54 +1436,54 @@ RG.RogueItemFood = function(name) {
     };
 
 };
-RG.extend2(RG.RogueItemFood, RG.RogueItem);
+RG.extend2(RG.Item.Food, RG.Item);
 
 /** Corpse object dropped by killed actors.*/
-RG.RogueItemCorpse = function(name) {
-    RG.RogueItem.call(this, name);
+RG.Item.Corpse = function(name) {
+    RG.Item.call(this, name);
     this.setType("corpse");
 };
-RG.extend2(RG.RogueItemCorpse, RG.RogueItem);
+RG.extend2(RG.Item.Corpse, RG.Item);
 
 /** Base object for all weapons.*/
-RG.RogueItemWeapon = function(name) {
-    RG.RogueItem.call(this, name);
+RG.Item.Weapon = function(name) {
+    RG.Item.call(this, name);
     RG.DamageObject.call(this);
     this.setType("weapon");
 };
 
-RG.RogueItemWeapon.prototype.toString = function() {
-    var msg = RG.RogueItem.prototype.toString.call(this);
+RG.Item.Weapon.prototype.toString = function() {
+    var msg = RG.Item.prototype.toString.call(this);
     msg += RG.DamageObject.prototype.toString.call(this);
     return msg;
 
 };
 
-RG.RogueItemWeapon.prototype.clone = function() {
-    var weapon = new RG.RogueItemWeapon(this.getName());
+RG.Item.Weapon.prototype.clone = function() {
+    var weapon = new RG.Item.Weapon(this.getName());
     weapon.copy(this);
     return weapon;
 };
 
-RG.RogueItemWeapon.prototype.copy = function(rhs) {
-    RG.RogueItem.prototype.copy.call(this, rhs);
+RG.Item.Weapon.prototype.copy = function(rhs) {
+    RG.Item.prototype.copy.call(this, rhs);
     RG.DamageObject.prototype.copy.call(this, rhs);
 
 };
 
-RG.RogueItemWeapon.prototype.equals = function(rhs) {
-    var res = RG.RogueItem.prototype.equals.call(this, rhs);
+RG.Item.Weapon.prototype.equals = function(rhs) {
+    var res = RG.Item.prototype.equals.call(this, rhs);
     res = res && RG.DamageObject.prototype.equals.call(this, rhs);
     return res;
 
 };
 
-RG.extend2(RG.RogueItemWeapon, RG.RogueItem);
-RG.extend2(RG.RogueItemWeapon, RG.DamageObject);
+RG.extend2(RG.Item.Weapon, RG.Item);
+RG.extend2(RG.Item.Weapon, RG.DamageObject);
 
 /** Base object for armour.*/
-RG.RogueItemArmour = function(name) {
-    RG.RogueItem.call(this, name);
+RG.Item.Armour = function(name) {
+    RG.Item.call(this, name);
     RG.DefenseObject.call(this);
     this.setType("armour");
 
@@ -1494,30 +1494,30 @@ RG.RogueItemArmour = function(name) {
 
 };
 
-RG.RogueItemArmour.prototype.clone = function() {
-    var armour = new RG.RogueItemArmour(this.getName());
+RG.Item.Armour.prototype.clone = function() {
+    var armour = new RG.Item.Armour(this.getName());
     armour.copy(this);
     return armour;
 };
 
-RG.RogueItemArmour.prototype.copy = function(rhs) {
-    RG.RogueItem.prototype.copy.call(this, rhs);
+RG.Item.Armour.prototype.copy = function(rhs) {
+    RG.Item.prototype.copy.call(this, rhs);
     RG.DefenseObject.prototype.copy.call(this, rhs);
     this.setArmourType(rhs.getArmourType());
 };
 
-RG.RogueItemArmour.prototype.equals = function(rhs) {
-    var res = RG.RogueItem.prototype.equals.call(this, rhs);
+RG.Item.Armour.prototype.equals = function(rhs) {
+    var res = RG.Item.prototype.equals.call(this, rhs);
     res = res && RG.DefenseObject.prototype.equals.call(this, rhs);
     return res;
 };
 
-RG.extend2(RG.RogueItemArmour, RG.RogueItem);
-RG.extend2(RG.RogueItemArmour, RG.DefenseObject);
+RG.extend2(RG.Item.Armour, RG.Item);
+RG.extend2(RG.Item.Armour, RG.DefenseObject);
 
 /** Potion object which restores hit points .*/
-RG.RogueItemPotion = function(name) {
-    RG.RogueItem.call(this, name);
+RG.Item.Potion = function(name) {
+    RG.Item.call(this, name);
     this.setType("potion");
 
     this.useItem = function(obj) {
@@ -1542,42 +1542,42 @@ RG.RogueItemPotion = function(name) {
     };
 
 };
-RG.extend2(RG.RogueItemPotion, RG.RogueItem);
+RG.extend2(RG.Item.Potion, RG.Item);
 
 /** Models an object which is used as a missile.*/
-RG.RogueItemMissile = function(name) {
-    RG.RogueItem.call(this, name);
+RG.Item.Missile = function(name) {
+    RG.Item.call(this, name);
     RG.DamageObject.call(this);
     this.setType("missile");
 
 };
 
-RG.RogueItemMissile.prototype.clone = function() {
-    var weapon = new RG.RogueItemMissile(this.getName());
+RG.Item.Missile.prototype.clone = function() {
+    var weapon = new RG.Item.Missile(this.getName());
     weapon.copy(this);
     return weapon;
 };
 
-RG.RogueItemMissile.prototype.copy = function(rhs) {
-    RG.RogueItem.prototype.copy.call(this, rhs);
+RG.Item.Missile.prototype.copy = function(rhs) {
+    RG.Item.prototype.copy.call(this, rhs);
     RG.DamageObject.prototype.copy.call(this, rhs);
 
 };
 
-RG.RogueItemMissile.prototype.equals = function(rhs) {
-    var res = RG.RogueItem.prototype.equals.call(this, rhs);
+RG.Item.Missile.prototype.equals = function(rhs) {
+    var res = RG.Item.prototype.equals.call(this, rhs);
     res = res && RG.DamageObject.prototype.equals.call(this, rhs);
     return res;
 
 };
 
-RG.extend2(RG.RogueItemMissile, RG.RogueItem);
-RG.extend2(RG.RogueItemMissile, RG.DamageObject);
-RG.extend2(RG.RogueItemMissile, RG.Entity);
+RG.extend2(RG.Item.Missile, RG.Item);
+RG.extend2(RG.Item.Missile, RG.DamageObject);
+RG.extend2(RG.Item.Missile, RG.Entity);
 
 /** Models an item container. Can hold a number of items.*/
-RG.RogueItemContainer = function(owner) {
-    RG.RogueItem.call(this, "container");
+RG.Item.Container = function(owner) {
+    RG.Item.call(this, "container");
     this.setOwner(owner);
 
     var _items = [];
@@ -1745,11 +1745,11 @@ RG.RogueItemContainer = function(owner) {
     };
 
 };
-RG.extend2(RG.RogueItemContainer, RG.RogueItem);
+RG.extend2(RG.Item.Container, RG.Item);
 
 /** Spirit items are wearables which can have powerful use abilities as well.*/
-RG.RogueItemSpirit = function(name) {
-    RG.RogueItem.call(this, name);
+RG.Item.Spirit = function(name) {
+    RG.Item.call(this, name);
     this.setType("spirit");
 
     this.getArmourType = function() {return "spirit";};
@@ -1781,29 +1781,29 @@ RG.RogueItemSpirit = function(name) {
 
 };
 
-RG.RogueItemSpirit.prototype.toString = function() {
+RG.Item.Spirit.prototype.toString = function() {
     var txt = this.getName() + ", " + this.getType() + ", ";
     txt = this.get("Stats").toString();
     return txt;
 };
 
-RG.RogueItemSpirit.prototype.equals = function(item) {
-    var res = RG.RogueItem.prototype.equals.call(this, item);
+RG.Item.Spirit.prototype.equals = function(item) {
+    var res = RG.Item.prototype.equals.call(this, item);
     res = res && (this.getType() === item.getType());
     return res;
 };
 
-RG.RogueItemSpirit.prototype.copy = function(rhs) {
+RG.Item.Spirit.prototype.copy = function(rhs) {
     this.get("Stats").copy(rhs.get("Stats"));
 };
 
-RG.RogueItemSpirit.prototype.clone = function() {
-    var newSpirit = new RG.RogueItemSpirit(this.getName());
+RG.Item.Spirit.prototype.clone = function() {
+    var newSpirit = new RG.Item.Spirit(this.getName());
     newSpirit.copy(this);
     return newSpirit;
 };
 
-RG.extend2(RG.RogueItemSpirit, RG.RogueItem);
+RG.extend2(RG.Item.Spirit, RG.Item);
 
 //---------------------------------------------------------------------------
 // EQUIPMENT AND INVENTORY
@@ -2060,7 +2060,7 @@ RG.RogueInvAndEquip = function(actor) {
     RG.Ownable.call(this, actor);
     var _actor = actor;
 
-    var _inv = new RG.RogueItemContainer(actor);
+    var _inv = new RG.Item.Container(actor);
     var _eq  = new RG.RogueEquipment(actor);
 
     // Wrappers for container methods
@@ -3949,7 +3949,7 @@ RG.FCCGame = function() {
             var monstersPerLevel = Math.round(numFree / sqrPerMonster);
             var itemsPerLevel = Math.round(numFree / sqrPerItem);
 
-            var potion = new RG.RogueItemPotion("Healing potion");
+            var potion = new RG.Item.Potion("Healing potion");
             level.addItem(potion);
             var missile = _parser.createActualObj("items", "Shuriken");
             missile.count = 20;
@@ -4041,7 +4041,7 @@ RG.FCCGame = function() {
         var sqrPerItem = obj.sqrPerItem;
         var level = this.createLastBattle(game, obj);
 
-        var spirit = new RG.RogueItemSpirit("Wolf spirit");
+        var spirit = new RG.Item.Spirit("Wolf spirit");
         spirit.get("Stats").setStrength(500);
         level.addItem(spirit, 2, 1);
         //spirit.get("Action").enable();
@@ -4415,14 +4415,14 @@ RG.RogueObjectStubParser = function() {
             case RG.TYPE_ITEM:
                 var subtype = obj.type;
                 switch(subtype) {
-                    case "armour": return new RG.RogueItemArmour(obj.name);
-                    case "weapon": return new RG.RogueItemWeapon(obj.name);
-                    case "food": return new RG.RogueItemFood(obj.name);
-                    case "missile": return new RG.RogueItemMissile(obj.name);
-                    case "spirit": return new RG.RogueItemSpirit(obj.name);
+                    case "armour": return new RG.Item.Armour(obj.name);
+                    case "weapon": return new RG.Item.Weapon(obj.name);
+                    case "food": return new RG.Item.Food(obj.name);
+                    case "missile": return new RG.Item.Missile(obj.name);
+                    case "spirit": return new RG.Item.Spirit(obj.name);
                     case "tool": break;
                 }
-                return new RG.RogueItem(obj.name); // generic, useless
+                return new RG.Item(obj.name); // generic, useless
                 break;
             case "levels":
                 return RG.FACT.createLevel(obj.type, obj.cols, obj.rows);
