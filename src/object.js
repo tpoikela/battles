@@ -164,8 +164,6 @@ RG.Object.Locatable = function() { // {{{2
         return true;
     };
 
-
-
 }; // }}} Object.Locatable
 RG.extend2(RG.Object.Locatable, RG.Object.Typed);
 
@@ -181,7 +179,7 @@ RG.Object.Ownable = function(owner) {
 
     this.setOwner = function(owner) {
         if (RG.isNullOrUndef([owner])) {
-            RG.err("Item", "setOwner", "Owner cannot be null.");
+            RG.err("Ownable", "setOwner", "Owner cannot be null.");
         }
         else {
             _owner = owner;
@@ -206,8 +204,6 @@ RG.Object.Ownable = function(owner) {
 
 };
 RG.extend2(RG.Object.Ownable, RG.Object.Typed);
-
-//GS.exportSource(["RG", "Object"]);
 
 // Exports for node/vars for window
 if (typeof exports !== 'undefined' ) {
