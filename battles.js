@@ -2,18 +2,28 @@
  * Contains the main object "RoguelikeGame", the top-level game object.
  */
 
-function getSource(key, fname) {
+function getSource(keys, fname) {
     var has_require = typeof require !== 'undefined';
 
     if (typeof window !== 'undefined') {
-        var src = window[key];
+        if (typeof keys === "object") {
+            if (keys.length === 1)
+                var src = window[keys[0]];
+            else if (keys.length === 2)
+                var src = window[keys[0]][keys[1]];
+            else if (keys.length === 3)
+                var src = window[keys[0]][keys[1]][keys[2]];
+        }
+        else {
+            var src = window[keys];
+        }
     }
 
     if (typeof src === 'undefined' ) {
         if (has_require) {
           src = require(fname);
         }
-        else throw new Error('Module ' + key + ' not found');
+        else throw new Error('Module ' + keys + ' not found');
     }
 
     return src;
@@ -21,6 +31,9 @@ function getSource(key, fname) {
 
 var ROT = getSource("ROT", "./lib/rot.js");
 var RG  = getSource("RG", "./src/rg.js");
+RG.Object = getSource(["RG", "Object"], "./src/object.js");
+RG.Item = getSource(["RG","Item"], "./src/item.js");
+RG.Component = getSource(["RG", "Component"], "./src/component.js");
 
 /** Object for the game levels. Contains map, actors and items.  */
 RG.RogueLevel = function(cols, rows) { // {{{2
@@ -261,626 +274,6 @@ RG.RogueLevel = function(cols, rows) { // {{{2
 }; // }}} Level
 RG.RogueLevel.prototype.idCount = 0;
 
-RG.DefenseObject = function() {
-
-    var _attack   = 1;
-    var _defense  = 1;
-    var _protection = 0;
-
-    this.getAttack = function() {return _attack;};
-    this.setAttack = function(attack) { _attack = attack; };
-
-    /** Defense related methods.*/
-    this.getDefense = function() { return _defense; };
-    this.setDefense = function(defense) { _defense = defense; };
-
-    this.getProtection = function() {return _protection;};
-    this.setProtection = function(prot) {return _protection;};
-
-};
-
-RG.DefenseObject.prototype.copy = function(rhs) {
-    this.setAttack(rhs.getAttack());
-    this.setDefense(rhs.getDefense());
-    this.setProtection(rhs.getProtection());
-};
-
-RG.DefenseObject.prototype.equals = function(rhs) {
-    var res = this.getAttack() === rhs.getAttack() &&
-        this.getDefense() === rhs.getDefense() &&
-        this.getProtection() === rhs.getProtection();
-    return res;
-};
-
-RG.DamageObject = function() {
-    RG.DefenseObject.call(this);
-
-    var _damage   = new RG.Die(1, 4, 0);
-    var _range    = 1;
-
-    /** Attack methods. */
-    this.setAttackRange = function(range) {_range = range;};
-    this.getAttackRange = function() {return _range; };
-
-    this.setDamage = function(dStr) {
-        if (typeof dStr === "string") {
-            _damage = RG.FACT.createDie(dStr);
-        }
-        else if (typeof dStr === "object") {
-            _damage = dStr;
-        }
-    };
-
-    this.getDamage = function() {
-        if (this.hasOwnProperty("getWeapon")) {
-            var weapon = this.getWeapon();
-            if (!RG.isNullOrUndef([weapon])) {
-                return weapon.getDamage();
-            }
-        }
-        return _damage.roll();
-    };
-
-    this.getDamageDie = function() {
-        return _damage;
-    };
-
-};
-
-RG.DamageObject.prototype.copy = function(rhs) {
-    RG.DefenseObject.prototype.copy.call(this, rhs);
-    this.setAttackRange(rhs.getAttackRange());
-    var die = new RG.Die();
-    die.copy(rhs.getDamageDie());
-    this.setDamage(die);
-};
-
-RG.DamageObject.prototype.equals = function(rhs) {
-    var res = RG.DefenseObject.prototype.equals.call(this, rhs);
-    if (res) {
-        res = this.getDamageDie().equals(rhs.getDamageDie());
-        res = res && this.getAttackRange() === rhs.getAttackRange();
-    }
-    return res;
-};
-
-RG.DamageObject.prototype.toString = function() {
-    var msg = " A: " + this.getAttack() + ", D: " + this.getDefense() + ", ";
-    msg += "Dmg: " + this.getDamageDie().toString();
-    msg += ",R:" + this.getAttackRange();
-    return msg;
-};
-RG.extend2(RG.DamageObject, RG.DefenseObject);
-
-//---------------------------------------------------------------------------
-// ECS ENTITY
-//---------------------------------------------------------------------------
-
-RG.Entity = function() {
-
-    var _id = RG.Entity.prototype.idCount++;
-
-    var _comps = {};
-
-    this.getID = function() {return _id;};
-
-    this.get = function(name) {
-        if (_comps.hasOwnProperty(name)) return _comps[name];
-        return null;
-    };
-
-    this.add = function(name, comp) {
-        _comps[name] = comp;
-        comp.addCallback(this);
-        RG.POOL.emitEvent(name, {entity: this, add: true});
-    };
-
-    this.has = function(name) {
-        return _comps.hasOwnProperty(name);
-    };
-
-    this.remove = function(name) {
-        if (_comps.hasOwnProperty(name)) {
-            var comp = _comps[name];
-            comp.removeCallback(this);
-            delete _comps[name];
-            RG.POOL.emitEvent(name, {entity: this, remove: true});
-        }
-    };
-
-};
-RG.Entity.prototype.idCount = 0;
-
-//---------------------------------------------------------------------------
-// ECS COMPONENTS
-//---------------------------------------------------------------------------
-
-RG.Component = function(type) {
-
-    var _type = type;
-    var _entity = null;
-
-    this.getType = function() {return _type;};
-    this.setType = function(type) {_type = type;};
-
-    this.getEntity = function() {return _entity;};
-    this.setEntity = function(entity) {
-        if (_entity === null && entity !== null) {
-            _entity = entity;
-        }
-        else if (entity === null) {
-            _entity = null;
-        }
-        else {
-            RG.err("Component", "setEntity", "Entity already set.");
-        }
-    };
-
-};
-// Called when a component is added to the entity
-RG.Component.prototype.addCallback = function(entity) {
-    this.setEntity(entity);
-    RG.POOL.emitEvent(this.getType(), {add:true, entity: entity});
-};
-
-// Called when a component is removed from the entity
-RG.Component.prototype.removeCallback = function(entity) {
-    this.setEntity(null);
-    RG.POOL.emitEvent(this.getType(), {remove:true, entity: entity});
-};
-
-RG.Component.prototype.clone = function() {
-    var comp = new RG.Component(this.getType());
-    return comp;
-};
-
-RG.Component.prototype.copy = function(rhs) {
-    this.setType(rhs.getType());
-};
-
-RG.Component.prototype.equals = function(rhs) {
-    return this.getType() === rhs.getType();
-};
-
-RG.Component.prototype.toString = function() {
-    return "Component: " + this.getType();
-};
-
-/** Action component is added to all schedulable acting entities.*/
-RG.ActionComponent = function() {
-    RG.Component.call(this, "Action");
-
-    var _energy = 0;
-    var _active = false;
-    this.getEnergy = function() {return _energy;};
-
-    this.addEnergy = function(energy) {
-        _energy += energy;
-    };
-
-    this.resetEnergy = function() {_energy = 0;};
-
-    this.enable = function() {
-        if (_active === false) {
-            RG.POOL.emitEvent(RG.EVT_ACT_COMP_ENABLED,
-                {actor: this.getEntity()});
-            _active = true;
-        }
-    };
-
-    this.disable = function() {
-        if (_active === true) {
-            RG.POOL.emitEvent(RG.EVT_ACT_COMP_DISABLED,
-                {actor: this.getEntity()});
-            _active = false;
-        }
-    };
-
-};
-RG.extend2(RG.ActionComponent, RG.Component);
-
-RG.ActionComponent.prototype.addCallback = function(entity) {
-    RG.Component.prototype.addCallback.call(this, entity);
-    //RG.POOL.emitEvent(RG.EVT_ACT_COMP_ADDED, {actor: entity});
-};
-
-RG.ActionComponent.prototype.removeCallback = function(entity) {
-    RG.Component.prototype.removeCallback.call(this, entity);
-    //RG.POOL.emitEvent(RG.EVT_ACT_COMP_REMOVED, {actor: entity});
-};
-
-/** Component which takes care of hunger and satiation. */
-RG.HungerComponent = function(energy) {
-    RG.Component.call(this, "Hunger");
-
-    var _currEnergy = 2000;
-    var _maxEnergy = 2000;
-
-    this.getEnergy = function() {return _currEnergy;};
-    this.getMaxEnergy = function() {return _maxEnergy;};
-
-    this.setEnergy = function(energy) {_currEnergy = energy;};
-    this.setMaxEnergy = function(energy) {_maxEnergy = energy;};
-
-    if (!RG.isNullOrUndef([energy])) {
-        _currEnergy = energy;
-        _maxEnergy = energy;
-    }
-
-    this.addEnergy = function(energy) {
-        _currEnergy += energy;
-        if (_currEnergy > _maxEnergy) _currEnergy = _maxEnergy;
-    };
-
-    this.decrEnergy = function(energy) {
-        _currEnergy -= energy;
-    };
-
-    this.isStarving = function() {
-        return _currEnergy < 100;
-    };
-
-    this.isFull = function() {return _currEnergy === _maxEnergy;};
-
-};
-RG.extend2(RG.HungerComponent, RG.Component);
-
-/** Health component takes care of HP and such. */
-RG.HealthComponent = function(hp) {
-    RG.Component.call(this, "Health");
-
-    var _hp = hp;
-    var _maxHP = hp;
-
-    /** Hit points getters and setters.*/
-    this.getHP = function() {return _hp;};
-    this.setHP = function(hp) {_hp = hp;};
-    this.getMaxHP = function() {return _maxHP;};
-    this.setMaxHP = function(hp) {_maxHP = hp;};
-
-    this.addHP = function(hp) {
-        _hp += hp;
-        if (_hp > _maxHP) _hp = _maxHP;
-    };
-
-    this.decrHP = function(hp) {_hp -= hp;};
-
-    this.isAlive = function() {return _hp > 0;};
-    this.isDead = function() {return _hp <= 0;};
-
-};
-RG.extend2(RG.HealthComponent, RG.Component);
-
-/** Component which is used to deal damage.*/
-RG.DamageComponent = function(dmg, type) {
-    RG.Component.call(this, "Damage");
-
-    var _dmg = dmg;
-    var _type = type;
-    var _src = null;
-
-    this.getDamage = function() {return _dmg;};
-    this.setDamage = function(dmg) {_dmg = dmg;};
-
-    this.getDamageType = function() {return _type;};
-    this.setDamageType = function(type) {_type = type;};
-
-    this.getSource = function() {return _src;};
-    this.setSource = function(src) {_src = src;};
-
-};
-RG.extend2(RG.DamageComponent, RG.Component);
-
-/** Component used in entities gaining experience.*/
-RG.ExperienceComponent = function() {
-    RG.Component.call(this, "Experience");
-
-    var _exp      = 0;
-    var _expLevel = 1;
-
-    var _danger = 1;
-
-    /** Experience-level methods.*/
-    this.setExp = function(exp) {_exp = exp;};
-    this.getExp = function() {return _exp;};
-    this.addExp = function(nExp) {_exp += nExp;};
-    this.setExpLevel = function(expLevel) {_expLevel = expLevel;};
-    this.getExpLevel = function() {return _expLevel;};
-
-    this.setDanger = function(danger) {_danger = danger;};
-    this.getDanger = function() {return _danger;};
-
-};
-RG.extend2(RG.ExperienceComponent, RG.Component);
-
-/** This component is added when entity gains experience.*/
-RG.ExpPointsComponent = function(expPoints) {
-    RG.Component.call(this, "ExpPoints");
-
-    var _expPoints = expPoints;
-    var _skills = {};
-
-    this.setSkillPoints = function(skill, pts) {
-        _skills[skill] = pts;
-    };
-    this.getSkillPoints = function() {return _skills;};
-
-    this.setExpPoints = function(exp) {_expPoints = exp;};
-    this.getExpPoints = function() {return _expPoints;};
-    this.addExpPoints = function(exp) { _expPoints += exp;};
-
-};
-RG.extend2(RG.ExpPointsComponent, RG.Component);
-
-/** This component is added when entity gains experience.*/
-RG.CombatComponent = function() {
-    RG.Component.call(this, "Combat");
-
-    var _attack   = 1;
-    var _defense  = 1;
-    var _protection = 0;
-    var _damage = RG.FACT.createDie("1d4");
-    var _range    = 1;
-
-    this.getAttack = function() {return _attack;};
-    this.setAttack = function(attack) { _attack = attack; };
-
-    /** Defense related methods.*/
-    this.getDefense = function() { return _defense; };
-    this.setDefense = function(defense) { _defense = defense; };
-
-    this.getProtection = function() {return _protection;};
-    this.setProtection = function(prot) {_protection = prot;};
-
-    this.getDamage = function() {
-        // TODO add weapon effects
-        if (this.getEntity().hasOwnProperty("getWeapon")) {
-            var weapon = this.getEntity().getWeapon();
-            if (weapon !== null)
-                return weapon.getDamage();
-        }
-        return _damage.roll();
-    };
-
-    this.setDamage = function(strOrArray) {
-        _damage = RG.FACT.createDie(strOrArray);
-    };
-
-    /** Attack methods. */
-    this.setAttackRange = function() {_range = range;};
-    this.getAttackRange = function() {return _range; };
-
-};
-RG.extend2(RG.CombatComponent, RG.Component);
-
-/** This component stores entity stats like speed, agility etc.*/
-RG.StatsComponent = function() {
-    RG.Component.call(this, "Stats");
-
-    var _accuracy  = 5;
-    var _agility   = 5;
-    var _strength  = 5;
-    var _willpower = 5;
-    var _speed     = 100;
-
-    /** These determine the chance of hitting. */
-    this.setAccuracy = function(accu) {_accuracy = accu;};
-    this.getAccuracy = function() {return _accuracy;};
-    this.setAgility = function(agil) {_agility = agil;};
-    this.getAgility = function() {return _agility;};
-    this.setStrength = function(str) {_strength = str;};
-    this.getStrength = function() {return _strength;};
-    this.setWillpower = function(wp) {_willpower = wp;};
-    this.getWillpower = function() {return _willpower;};
-
-    this.setSpeed = function(speed) {_speed = speed;};
-    this.getSpeed = function() {return _speed;};
-
-};
-
-RG.StatsComponent.prototype.clone = function() {
-    var comp = new RG.StatsComponent();
-    comp.copy(this);
-    return comp;
-};
-
-RG.StatsComponent.prototype.copy = function(rhs) {
-    RG.Component.prototype.copy.call(this, rhs);
-    this.setAccuracy(rhs.getAccuracy());
-    this.setAgility(rhs.getAgility());
-    this.setStrength(rhs.getStrength());
-    this.setWillpower(rhs.getWillpower());
-    this.setSpeed(rhs.getSpeed());
-};
-
-RG.StatsComponent.prototype.equals = function(rhs) {
-    var res = this.getType() === rhs.getType();
-    res = res && this
-    res = res && this.getAccuracy() === rhs.getAccuracy();
-    res = res && this.getAgility() === rhs.getAgility();
-    res = res && this.getStrength() === rhs.getStrength();
-    res = res && this.getWillpower() === rhs.getWillpower();
-    res = res && this.getSpeed() === rhs.getSpeed();
-    return res;
-};
-
-RG.StatsComponent.prototype.toString = function() {
-    var txt = "";
-    if (this.getAccuracy()) txt += "Acc: " + this.getAccuracy();
-    if (this.getAgility()) txt += " ,Agi: " + this.getAgility();
-    if (this.getStrength()) txt += " ,Str: " + this.getStrength();
-    if (this.getWillpower()) txt += " ,Wil: " + this.getWillpower();
-    return txt;
-};
-
-RG.extend2(RG.StatsComponent, RG.Component);
-
-
-/** Attack component is added to the actor when it attacks.*/
-RG.AttackComponent = function(target) {
-    RG.Component.call(this, "Attack");
-
-    var _target = target;
-
-    this.setTarget = function(t) {_target = t;};
-    this.getTarget = function() {return _target;};
-
-};
-RG.extend2(RG.AttackComponent, RG.Component);
-
-/** Transient component added to a moving entity.*/
-RG.MovementComponent = function(x, y, level) {
-    RG.Locatable.call(this);
-    RG.Component.call(this, "Movement");
-
-    this.setXY(x, y);
-    this.setLevel(level);
-
-};
-RG.extend2(RG.MovementComponent, RG.Locatable);
-RG.extend2(RG.MovementComponent, RG.Component);
-
-/** Added to entities which must act as missiles flying through cells.*/
-RG.MissileComponent = function(source) {
-    RG.Component.call(this, "Missile");
-
-    var _x = source.getX();
-    var _y = source.getY();
-    var _source = source;
-    var _level = source.getLevel();
-    var _isFlying = true;
-
-    var _targetX = null;
-    var _targetY = null;
-
-    var _range = 0;
-    var _attack = 0;
-    var _dmg = 0;
-
-    var _path = []; // Flying path for the missile
-    var _path_iter = -1;
-
-    this.getX = function() {return _x;};
-    this.getY = function() {return _y;};
-    this.getSource = function() {return _source;};
-    this.getLevel = function() {return _level;};
-
-    this.setRange = function(range) {_range = range;};
-    this.hasRange = function() {return _range > 0;};
-    this.isFlying = function() {return _isFlying;};
-    this.stopMissile = function() {_isFlying = false;};
-
-    this.getAttack = function() {return _attack;};
-    this.setAttack = function(att) {_attack = att;};
-    this.getDamage = function() {return _dmg;};
-    this.setDamage = function(dmg) {_dmg = dmg;};
-
-    this.setTargetXY = function(x, y) {
-        _path = RG.getShortestPath(_x, _y, x, y);
-        _targetX = x;
-        _targetY = y;
-        if (_path.length > 0) _path_iter = 0;
-    };
-
-    this.getTargetX = function() {return _targetX;};
-    this.getTargetY = function() {return _targetY;};
-
-    /** Returns true if missile has reached its target map cell.*/
-    this.inTarget = function() {
-        return _x === _targetX && _y === _targetY;
-    };
-
-    var iteratorValid = function() {
-        return _path_iter >= 0 && _path_iter < _path.length;
-    };
-
-    var setValuesFromIterator = function() {
-        var coord = _path[_path_iter];
-        _x = coord.x;
-        _y = coord.y;
-    };
-
-    this.first = function() {
-        if (iteratorValid()) {
-            _path_iter = 0;
-            setValuesFromIterator();
-        }
-        return null;
-    };
-
-    /** Returns the next cell in missile's path. Moves iterator forward. */
-    this.next = function() {
-        if (iteratorValid()) {
-            --_range;
-            ++_path_iter;
-            setValuesFromIterator();
-            return true;
-        }
-        return null;
-    };
-
-    /** Returns the prev cell in missile's path. Moves iterator backward. */
-    this.prev = function() {
-        if (iteratorValid()) {
-            ++_range;
-            --_path_iter;
-            setValuesFromIterator();
-            return true;
-        }
-        return null;
-    };
-
-};
-RG.extend2(RG.MissileComponent, RG.Component);
-
-/** This component holds loot that is dropped when given entity is destroyed.*/
-RG.LootComponent = function(lootEntity) {
-    RG.Component.call(this, "Loot");
-
-    var _lootEntity = lootEntity;
-
-    /** Drops the loot to the given cell.*/
-    this.dropLoot = function(cell) {
-        if (_lootEntity.hasOwnProperty("getPropType")) {
-            var propType = _lootEntity.getPropType();
-            if (propType === "elements") {
-                this.setElemToCell(cell);
-            }
-            else {
-                cell.setProp(propType, _lootEntity);
-            }
-        }
-        else {
-            RG.err("LootComponent", "dropLoot", "Loot has no propType!");
-        }
-    };
-
-    this.setElemToCell = function(cell) {
-        var entLevel = this.getEntity().getLevel();
-        if (_lootEntity.hasOwnProperty("useStairs")) {
-            RG.debug(this, "Added stairs to " + cell.getX() + ", " + cell.getY());
-            entLevel.addStairs(_lootEntity, cell.getX(), cell.getY());
-        }
-    };
-
-};
-RG.extend2(RG.LootComponent, RG.Component);
-
-/** This component is added to entities receiving communication. Communication
- * is used to point out enemies and locations of items, for example.*/
-RG.CommunicationComponent = function() {
-    RG.Component.call(this, "Communication");
-
-    var _messages = [];
-
-    this.getMsg = function() {return _messages;};
-
-    this.addMsg = function(obj) {
-        _messages.push(obj);
-    };
-
-};
-RG.extend2(RG.CommunicationComponent, RG.Component);
 
 //---------------------------------------------------------------------------
 // ECS SYSTEMS {{{1
@@ -986,7 +379,7 @@ RG.AttackSystem = function(type, compTypes) {
     }
 
     this.doDamage = function(att, def, dmg) {
-        var dmgComp = new RG.DamageComponent(dmg, "cut");
+        var dmgComp = new RG.Component.Damage(dmg, "cut");
         dmgComp.setSource(att);
         def.add("Damage", dmgComp);
         RG.gameWarn(att.getName() + " hits " + def.getName());
@@ -1036,7 +429,7 @@ RG.MissileSystem = function(type, compTypes) {
                     if (this.targetHit(actor, mComp)) {
                         this.finishMissileFlight(ent, mComp, currCell);
                         var dmg = mComp.getDamage();
-                        var damageComp = new RG.DamageComponent(dmg, "thrust");
+                        var damageComp = new RG.Component.Damage(dmg, "thrust");
                         damageComp.setSource(mComp.getSource());
                         damageComp.setDamage(mComp.getDamage());
                         actor.add("Damage", damageComp);
@@ -1151,7 +544,7 @@ RG.DamageSystem = function(type, compTypes) {
     this.giveExpToSource = function(att, def) {
         var defLevel = def.get("Experience").getExpLevel();
         var defDanger = def.get("Experience").getDanger();
-        var expPoints = new RG.ExpPointsComponent(defLevel + defDanger);
+        var expPoints = new RG.Component.ExpPoints(defLevel + defDanger);
         att.add("ExpPoints", expPoints);
     };
 
@@ -1335,483 +728,12 @@ RG.extend2(RG.CommunicationSystem, RG.System);
 // }}} SYSTEMS
 
 //---------------------------------------------------------------------------
-// ITEMS
-//---------------------------------------------------------------------------
-
-/** Models an item. Each item is ownable by someone. During game, there are no
- * items with null owners. Ownership shouldn't be ever set to null. */
-RG.Item = function(name) {
-    RG.Ownable.call(this, null);
-    RG.Entity.call(this);
-    this.setPropType(RG.TYPE_ITEM);
-
-    var _name = name;
-    var _weight = 1;
-    var _value = 1;
-    var _p = {}; // Stores all extra properties
-
-    this.count = 1; // Number of items
-
-    this.setName = function(name) {_name = name;};
-    this.getName = function() {return _name;};
-
-    this.hasProp = function(propName) {
-        return _p.hasOwnProperty(propName);
-    };
-
-    this.getProp = function(propName) {
-        if (_p.hasOwnProperty(propName)) {
-            return _p[propName];
-        }
-        else {
-            return null;
-        }
-    };
-
-    this.setWeight = function(weight) {_weight = weight;};
-    this.getWeight = function() {return _weight;};
-    this.setValue = function(value) {_value = value;};
-    this.getValue = function() {return _value;};
-
-};
-RG.Item.prototype.toString = function() {
-    var txt = this.getName() + ", " + this.getType() + ", ";
-    txt += this.getWeight() + "kg";
-    if (this.hasOwnProperty("count")) {
-        txt = this.count + " x " + txt;
-    }
-    return txt;
-};
-
-RG.Item.prototype.equals = function(item) {
-    var res = this.getName() === item.getName();
-    res = res && (this.getType() === item.getType());
-    return res;
-};
-
-
-RG.Item.prototype.copy = function(rhs) {
-    this.setName(rhs.getName());
-    this.setType(rhs.getType());
-    this.setWeight(rhs.getWeight());
-    this.setValue(rhs.getValue());
-};
-
-RG.Item.prototype.clone = function() {
-    var newItem = new RG.Item(this.getName());
-    newItem.copy(this);
-    return newItem;
-};
-
-RG.extend2(RG.Item, RG.Ownable);
-
-/** Object representing food items in the game.*/
-RG.Item.Food = function(name) {
-    RG.Item.call(this, name);
-    this.setType("food");
-
-    var _energy = 0;
-
-    this.setEnergy = function(energy) {_energy = energy;};
-    this.getEnergy = function() {return _energy;};
-
-    /** Uses (eats) the food item.*/
-    this.useItem = function(obj) {
-        if (obj.hasOwnProperty("target")) {
-            var target = obj.target;
-            if (target.has("Hunger")) {
-                target.get("Hunger").addEnergy(_energy);
-                if (this.count === 1) {
-                    var msg = {item: this};
-                    RG.POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
-                }
-                else {
-                    this.count -= 1;
-                }
-            }
-        }
-        else {
-            RG.err("ItemFood", "useItem", "No target given in obj.");
-        }
-    };
-
-};
-RG.extend2(RG.Item.Food, RG.Item);
-
-/** Corpse object dropped by killed actors.*/
-RG.Item.Corpse = function(name) {
-    RG.Item.call(this, name);
-    this.setType("corpse");
-};
-RG.extend2(RG.Item.Corpse, RG.Item);
-
-/** Base object for all weapons.*/
-RG.Item.Weapon = function(name) {
-    RG.Item.call(this, name);
-    RG.DamageObject.call(this);
-    this.setType("weapon");
-};
-
-RG.Item.Weapon.prototype.toString = function() {
-    var msg = RG.Item.prototype.toString.call(this);
-    msg += RG.DamageObject.prototype.toString.call(this);
-    return msg;
-
-};
-
-RG.Item.Weapon.prototype.clone = function() {
-    var weapon = new RG.Item.Weapon(this.getName());
-    weapon.copy(this);
-    return weapon;
-};
-
-RG.Item.Weapon.prototype.copy = function(rhs) {
-    RG.Item.prototype.copy.call(this, rhs);
-    RG.DamageObject.prototype.copy.call(this, rhs);
-
-};
-
-RG.Item.Weapon.prototype.equals = function(rhs) {
-    var res = RG.Item.prototype.equals.call(this, rhs);
-    res = res && RG.DamageObject.prototype.equals.call(this, rhs);
-    return res;
-
-};
-
-RG.extend2(RG.Item.Weapon, RG.Item);
-RG.extend2(RG.Item.Weapon, RG.DamageObject);
-
-/** Base object for armour.*/
-RG.Item.Armour = function(name) {
-    RG.Item.call(this, name);
-    RG.DefenseObject.call(this);
-    this.setType("armour");
-
-    var _armourType = null;
-
-    this.setArmourType = function(type) {_armourType = type;};
-    this.getArmourType = function() {return _armourType;};
-
-};
-
-RG.Item.Armour.prototype.clone = function() {
-    var armour = new RG.Item.Armour(this.getName());
-    armour.copy(this);
-    return armour;
-};
-
-RG.Item.Armour.prototype.copy = function(rhs) {
-    RG.Item.prototype.copy.call(this, rhs);
-    RG.DefenseObject.prototype.copy.call(this, rhs);
-    this.setArmourType(rhs.getArmourType());
-};
-
-RG.Item.Armour.prototype.equals = function(rhs) {
-    var res = RG.Item.prototype.equals.call(this, rhs);
-    res = res && RG.DefenseObject.prototype.equals.call(this, rhs);
-    return res;
-};
-
-RG.extend2(RG.Item.Armour, RG.Item);
-RG.extend2(RG.Item.Armour, RG.DefenseObject);
-
-/** Potion object which restores hit points .*/
-RG.Item.Potion = function(name) {
-    RG.Item.call(this, name);
-    this.setType("potion");
-
-    this.useItem = function(obj) {
-        if (obj.hasOwnProperty("target")) {
-            var target = obj.target;
-            var die = new RG.Die(1, 10, 2);
-            var pt = die.roll();
-            if (target.has("Health")) {
-                target.get("Health").addHP(pt);
-                if (this.count === 1) {
-                    var msg = {item: this};
-                    RG.POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
-                }
-                else {
-                    this.count -= 1;
-                }
-            }
-        }
-        else {
-            RG.err("ItemPotion", "useItem", "No target given in obj.");
-        }
-    };
-
-};
-RG.extend2(RG.Item.Potion, RG.Item);
-
-/** Models an object which is used as a missile.*/
-RG.Item.Missile = function(name) {
-    RG.Item.call(this, name);
-    RG.DamageObject.call(this);
-    this.setType("missile");
-
-};
-
-RG.Item.Missile.prototype.clone = function() {
-    var weapon = new RG.Item.Missile(this.getName());
-    weapon.copy(this);
-    return weapon;
-};
-
-RG.Item.Missile.prototype.copy = function(rhs) {
-    RG.Item.prototype.copy.call(this, rhs);
-    RG.DamageObject.prototype.copy.call(this, rhs);
-
-};
-
-RG.Item.Missile.prototype.equals = function(rhs) {
-    var res = RG.Item.prototype.equals.call(this, rhs);
-    res = res && RG.DamageObject.prototype.equals.call(this, rhs);
-    return res;
-
-};
-
-RG.extend2(RG.Item.Missile, RG.Item);
-RG.extend2(RG.Item.Missile, RG.DamageObject);
-RG.extend2(RG.Item.Missile, RG.Entity);
-
-/** Models an item container. Can hold a number of items.*/
-RG.Item.Container = function(owner) {
-    RG.Item.call(this, "container");
-    this.setOwner(owner);
-
-    var _items = [];
-    var _iter  = 0;
-
-    var _removedItem = null; // Last removed item
-
-    this._addItem = function(item) {
-        var matchFound = false;
-        for (var i = 0; i < _items.length; i++) {
-            if (_items[i].equals(item)) {
-                if (_items[i].hasOwnProperty("count")) {
-                    if (item.hasOwnProperty("count")) {
-                        _items[i].count += item.count;
-                    }
-                    else {
-                        _items[i].count += 1;
-                    }
-                }
-                else {
-                    if (item.hasOwnProperty("count")) {
-                        _items[i].count = 1 + item.count;
-                    }
-                    else {
-                        _items[i].count = 2;
-                    }
-                }
-                matchFound = true;
-                break;
-            }
-        }
-
-        if (!matchFound) {
-            item.setOwner(this);
-            _items.push(item);
-        }
-    };
-
-    /** Returns the total weight of the container.*/
-    this.getWeight = function() {
-        var sum = 0;
-        for (var i = 0; i < _items.length; i++) {
-            sum += _items[i].getWeight();
-        }
-        return sum;
-    };
-
-    /** Adds an item. Container becomes item's owner.*/
-    this.addItem = function(item) {
-        if (item.getType() === "container") {
-            if (this.getOwner() !== item) {
-                this._addItem(item);
-            }
-            else {
-                RG.err("Item", "addItem", "Added item is container's owner. Impossible.");
-            }
-        }
-        else {
-            this._addItem(item);
-        }
-    };
-
-    this.getItems = function() {return _items;};
-
-    /** Check by pure obj ref. Returns true if contains item ref.*/
-    this.hasItemRef = function(item) {
-        var index = _items.indexOf(item);
-        if (index !== -1) return true;
-        return false;
-    };
-
-    /** Used for stacking/equip purposes only.*/
-    this.hasItem = function(item) {
-        if (this.hasItemRef(item)) return true;
-        var index = _getMatchingItemIndex(item);
-        return index >= 0;
-    };
-
-    /** Tries to remove an item. Returns true on success, false otherwise.*/
-    this.removeItem = function(item) {
-        if (this.hasItem(item)) {
-            return _removeItem(item);
-        }
-        _removedItem = null;
-        return false;
-    };
-
-    var _getMatchingItemIndex = function(item) {
-        for (var i = 0; i < _items.length; i++) {
-            if (item.equals(_items[i])) return i;
-        }
-        return -1;
-    };
-
-    var _removeItem = function(item) {
-        var i = _getMatchingItemIndex(item);
-
-        if (i === -1) {
-            RG.err("ItemContainer", "_removeItem", 
-                "Negative index found. Horribly wrong.") 
-            return false;
-        }
-
-        if (_items[i].hasOwnProperty("count")) {
-            _removedItem = RG.removeStackedItems(_items[i], 1);
-            if (_items[i].count === 0) _items.splice(i, 1);
-        }
-        else {
-            _removedItem = item;
-            _items.splice(i, 1);
-        }
-        return true;
-    };
-
-    /** Returns last removed item if removeItem returned true.*/
-    this.getRemovedItem = function() {
-        return _removedItem;
-    };
-
-    /** Removes N items from the inventory of given type.*/
-    this.removeNItems = function(item, n) {
-        var count = 0;
-        while ((count < n) && this.removeItem(item)) {
-            ++count;
-        }
-
-        if (_removedItem !== null) {
-            _removedItem.count = count;
-        }
-        else {
-            RG.err("ItemContainer", "removeNItems",
-                "_removedItem was null. It should be a valid item.");
-            return false;
-        }
-
-        if (count > 0) return true;
-        return false;
-    };
-
-    /** Returns first item or null for empty container.*/
-    this.first = function() {
-        if (_items.length > 0) {
-            _iter = 1;
-            return _items[0];
-        }
-        return null;
-    };
-
-    /** Returns next item from container or null if there are no more items.*/
-    this.next = function() {
-        if (_iter < _items.length) {
-            return _items[_iter++];
-        }
-        return null;
-    };
-
-    this.last = function() {
-        return _items[_items.length - 1];
-
-    };
-
-    /** Returns true for empty container.*/
-    this.isEmpty = function() {
-        return _items.length === 0;
-    };
-
-};
-RG.extend2(RG.Item.Container, RG.Item);
-
-/** Spirit items are wearables which can have powerful use abilities as well.*/
-RG.Item.Spirit = function(name) {
-    RG.Item.call(this, name);
-    this.setType("spirit");
-
-    this.getArmourType = function() {return "spirit";};
-
-    var stats = new RG.StatsComponent();
-    this.add("Stats", stats);
-
-    var _brain = new RG.SpiritBrain(this);
-
-    this.add("Action", new RG.ActionComponent());
-
-    this.isPlayer = function() {return false;};
-
-    /** Get next action for this spirit.*/
-    this.nextAction = function(obj) {
-        var cb = _brain.decideNextAction(obj);
-        var action = null;
-
-        if (cb !== null) {
-            var speed = this.get("Stats").getSpeed();
-            var duration = parseInt(RG.BASE_SPEED/speed * RG.ACTION_DUR);
-            action = new RG.RogueAction(duration, cb, {});
-        }
-        else {
-            action = new RG.RogueAction(0, function(){}, {});
-        }
-        return action;
-    };
-
-};
-
-RG.Item.Spirit.prototype.toString = function() {
-    var txt = this.getName() + ", " + this.getType() + ", ";
-    txt = this.get("Stats").toString();
-    return txt;
-};
-
-RG.Item.Spirit.prototype.equals = function(item) {
-    var res = RG.Item.prototype.equals.call(this, item);
-    res = res && (this.getType() === item.getType());
-    return res;
-};
-
-RG.Item.Spirit.prototype.copy = function(rhs) {
-    this.get("Stats").copy(rhs.get("Stats"));
-};
-
-RG.Item.Spirit.prototype.clone = function() {
-    var newSpirit = new RG.Item.Spirit(this.getName());
-    newSpirit.copy(this);
-    return newSpirit;
-};
-
-RG.extend2(RG.Item.Spirit, RG.Item);
-
-//---------------------------------------------------------------------------
 // EQUIPMENT AND INVENTORY
 //---------------------------------------------------------------------------
 
 /** Models one slot in the inventory. */
 RG.RogueEquipSlot = function(eq, type, stacked) {
-    RG.Ownable.call(this, eq);
+    RG.Object.Ownable.call(this, eq);
     var _eq = eq;
     var _type = type;
     var _item = null;
@@ -1884,11 +806,11 @@ RG.RogueEquipSlot = function(eq, type, stacked) {
     };
 
 };
-RG.extend2(RG.RogueEquipSlot, RG.Ownable);
+RG.extend2(RG.RogueEquipSlot, RG.Object.Ownable);
 
 /** Models equipment on an actor.*/
 RG.RogueEquipment = function(actor) {
-    RG.Ownable.call(this, actor);
+    RG.Object.Ownable.call(this, actor);
 
     var _equipped = [];
 
@@ -2052,12 +974,12 @@ RG.RogueEquipment = function(actor) {
     }
 
 };
-RG.extend2(RG.RogueEquipment, RG.Ownable);
+RG.extend2(RG.RogueEquipment, RG.Object.Ownable);
 
 /** Object models inventory items and equipment on actor. This object handles
  * movement of items between inventory and equipment. */
 RG.RogueInvAndEquip = function(actor) {
-    RG.Ownable.call(this, actor);
+    RG.Object.Ownable.call(this, actor);
     var _actor = actor;
 
     var _inv = new RG.Item.Container(actor);
@@ -2192,11 +1114,11 @@ RG.RogueInvAndEquip = function(actor) {
 
 
 };
-RG.extend2(RG.RogueInvAndEquip, RG.Ownable);
+RG.extend2(RG.RogueInvAndEquip, RG.Object.Ownable);
 
 /** Object representing a game actor who takes actions.  */
 RG.RogueActor = function(name) { // {{{2
-    RG.Locatable.call(this);
+    RG.Object.Locatable.call(this);
     RG.Entity.call(this);
     this.setPropType("actors");
 
@@ -2209,11 +1131,11 @@ RG.RogueActor = function(name) { // {{{2
     var _name = name;
     var _invEq = new RG.RogueInvAndEquip(this);
 
-    this.add("Action", new RG.ActionComponent());
-    this.add("Experience", new RG.ExperienceComponent());
-    this.add("Combat", new RG.CombatComponent());
-    this.add("Stats", new RG.StatsComponent());
-    this.add("Health", new RG.HealthComponent(50));
+    this.add("Action", new RG.Component.Action());
+    this.add("Experience", new RG.Component.Experience());
+    this.add("Combat", new RG.Component.Combat());
+    this.add("Stats", new RG.Component.Stats());
+    this.add("Health", new RG.Component.Health(50));
 
     this.setName = function(name) {_name = name;};
     this.getName = function() {return _name;};
@@ -2289,7 +1211,7 @@ RG.RogueActor = function(name) { // {{{2
     };
 
 };
-RG.extend2(RG.RogueActor, RG.Locatable);
+RG.extend2(RG.RogueActor, RG.Object.Locatable);
 RG.extend2(RG.RogueActor, RG.Entity);
 
 // }}} Actor
@@ -2297,7 +1219,7 @@ RG.extend2(RG.RogueActor, RG.Entity);
 /** Element is a wall or other obstacle or a feature in the map. It's not
  * necessarily blocking movement.  */
 RG.RogueElement = function(elemType) { // {{{2
-    RG.Locatable.call(this);
+    RG.Object.Locatable.call(this);
     this.setPropType("elements");
     this.setType(elemType);
 
@@ -2315,7 +1237,7 @@ RG.RogueElement = function(elemType) { // {{{2
     };
 
 };
-RG.extend2(RG.RogueElement, RG.Locatable);
+RG.extend2(RG.RogueElement, RG.Object.Locatable);
 // }}} Element
 
 /** Object models stairs connecting two levels. Stairs are one-way, thus
@@ -2468,14 +1390,14 @@ RG.PlayerBrain = function(actor) { // {{{2
             if (level.getMap().hasXY(x, y)) {
                 if (level.getMap().isPassable(x, y)) {
                     return function() {
-                        var movComp = new RG.MovementComponent(x, y, level);
+                        var movComp = new RG.Component.Movement(x, y, level);
                         _actor.add("Movement", movComp);
                     };
                 }
                 else if (level.getMap().getCell(x,y).hasProp("actors")) {
                     var target = level.getMap().getCell(x, y).getProp("actors")[0];
                     var callback = function() {
-                        var attackComp = new RG.AttackComponent(target);
+                        var attackComp = new RG.Component.Attack(target);
                         _actor.add("Attack", attackComp);
                     };
 
@@ -2604,7 +1526,7 @@ RG.RogueBrain = function(actor) { // {{{2
             return function() {
                 var cell = level.getMap().getCell(playX, playY);
                 var target = cell.getProp("actors")[0];
-                var attackComp = new RG.AttackComponent(target);
+                var attackComp = new RG.Component.Attack(target);
                 _actor.add("Attack", attackComp);
             };
         }
@@ -2614,7 +1536,7 @@ RG.RogueBrain = function(actor) { // {{{2
                 var pathX = pathCells[1].getX();
                 var pathY = pathCells[1].getY();
                 return function() {
-                    var movComp = new RG.MovementComponent(pathX, pathY, level);
+                    var movComp = new RG.Component.Movement(pathX, pathY, level);
                     _actor.add("Movement", movComp);
                 };
             }
@@ -2645,7 +1567,7 @@ RG.RogueBrain = function(actor) { // {{{2
         return function() {
             var x = seenCells[index].getX();
             var y = seenCells[index].getY();
-            var movComp = new RG.MovementComponent(x, y, level);
+            var movComp = new RG.Component.Movement(x, y, level);
             _actor.add("Movement", movComp);
         };
 
@@ -2867,7 +1789,7 @@ RG.HumanBrain = function(actor) {
         else {
             if (friendActor !== null) { // Communicate enemies
                 if (!memory.hasCommunicatedWith(friendActor)) {
-                    var comComp = new RG.CommunicationComponent();
+                    var comComp = new RG.Component.Communication();
                     var enemies = memory.getEnemies();
                     var msg = {type: "Enemies", enemies: enemies};
                     comComp.addMsg(msg);
@@ -3601,9 +2523,9 @@ RG.Factory = function() { // {{{2
         var prot = obj.prot;
 
         if (!RG.isNullOrUndef([hp])) {
-            comb.add("Health", new RG.HealthComponent(hp));
+            comb.add("Health", new RG.Component.Health(hp));
         }
-        var combatComp = new RG.CombatComponent();
+        var combatComp = new RG.Component.Combat();
 
         if (!RG.isNullOrUndef([att])) combatComp.setAttack(att);
         if (!RG.isNullOrUndef([def])) combatComp.setDefense(def);
@@ -3826,7 +2748,7 @@ RG.FCCGame = function() {
         });
 
         player.setType("player");
-        player.add("Health", new RG.HealthComponent(pConf.hp));
+        player.add("Health", new RG.Component.Health(pConf.hp));
         var startingWeapon = _parser.createActualObj("items", pConf.Weapon);
         player.getInvEq().addItem(startingWeapon);
         player.getInvEq().equipItem(startingWeapon);
@@ -3940,7 +2862,7 @@ RG.FCCGame = function() {
 
             game.addLevel(level);
             if (nl === 0) {
-                var hunger = new RG.HungerComponent(2000);
+                var hunger = new RG.Component.Hunger(2000);
                 player.add("Hunger", hunger);
                 game.addPlayer(player);
             }
@@ -3987,7 +2909,7 @@ RG.FCCGame = function() {
             }
             else {
                 var finalStairs = new RG.RogueStairsElement(true, src, extraLevel);
-                var stairsLoot = new RG.LootComponent(finalStairs);
+                var stairsLoot = new RG.Component.Loot(finalStairs);
                 summoner.add("Loot", stairsLoot);
                 allStairsDown.push(finalStairs);
             }
@@ -4303,9 +3225,9 @@ RG.RogueObjectStubParser = function() {
     /** Creates a component of specified type.*/
     this.createComponent = function(type, val) {
         switch(type) {
-            case "Combat": return new RG.CombatComponent();
-            case "Health": return new RG.HealthComponent(val);
-            case "Stats": return new RG.StatsComponent();
+            case "Combat": return new RG.Component.Combat();
+            case "Health": return new RG.Component.Health(val);
+            case "Stats": return new RG.Component.Stats();
             default: RG.err("ObjectParser", "createComponent",
                 "Unknown component " + type + " for the factory method.");
         }

@@ -1,22 +1,35 @@
 
-function getSource(key, fname) {
+function getSource(keys, fname) {
     var has_require = typeof require !== 'undefined';
 
     if (typeof window !== 'undefined') {
-        var src = window[key];
+        if (typeof keys === "object") {
+            if (keys.length === 1)
+                var src = window[keys[0]];
+            else if (keys.length === 2)
+                var src = window[keys[0]][keys[1]];
+            else if (keys.length === 3)
+                var src = window[keys[0]][keys[1]][keys[2]];
+            else if (keys > 3) {
+                throw new Error("Too many nested names. Cannot import.");
+            }
+        }
+        else {
+            var src = window[keys];
+        }
     }
 
     if (typeof src === 'undefined' ) {
         if (has_require) {
           src = require(fname);
         }
-        else throw new Error('Module ' + key + ' not found');
+        else throw new Error('Module ' + keys + ' not found');
     }
 
     return src;
 };
 
-var ROT = getSource("ROT", "../lib/rot.js");
+var ROT = getSource(["ROT"], "../lib/rot.js");
 
 /** Main object of the package for encapsulating all other objects. */
 var RG = { // {{{2
@@ -438,117 +451,7 @@ RG.Die = function(num, dice, mod) {
     };
 };
 
-/** Typed objects should inherit from this. */
-RG.TypedObject = function(propType, type) {
 
-    var _type = type;
-    var _propType = propType;
-
-    this.setPropType = function(propType) {
-        var index = this.types.indexOf(propType);
-        if (index >= 0) {
-            _propType = propType;
-        }
-        else {
-            RG.err("TypedObject", "setPropType", "Unknown prop type: " + propType);
-        }
-    };
-
-    this.getPropType = function() {return _propType;};
-
-    this.setType = function(type) {
-        _type = type;
-        RG.nullOrUndefError(this, "arg |type|", type);
-    };
-
-    this.getType = function() {return _type;};
-
-};
-
-RG.TypedObject.prototype.types = ["actors", "items", "traps", "elements"];
-
-/** This object is used by all locatable objects in the game.  */
-RG.Locatable = function() { // {{{2
-    RG.TypedObject.call(this, null);
-    var _x = null;
-    var _y = null;
-    var _level = null;
-
-    /** Simple getters/setters for coordinates.*/
-    this.setX = function(x) {_x = x; };
-    this.setY = function(y) {_y = y; };
-    this.getX = function() {return _x;};
-    this.getY = function() {return _y;};
-    this.getXY = function() { return [_x, _y];};
-    this.setXY = function(x,y) {
-        _x = x;
-        _y = y;
-    };
-    /** Sets the level of this locatable object.*/
-    this.setLevel = function(level) {
-        _level = level;
-        RG.nullOrUndefError(this, "arg |level|", level);
-    };
-
-    this.getLevel = function() {
-        return _level;
-    };
-
-    /** Returns true if object is located at a position on a level.*/
-    this.isLocated = function() {
-        return (_x !== null) && (_y !== null) && (_level !== null);
-    };
-
-    /** Returns true if locatables are in same position.*/
-    this.isSamePos = function(obj) {
-        if (_x !== obj.getX()) return false;
-        if (_y !== obj.getY()) return false;
-        if (_level !== obj.getLevel()) return false;
-        return true;
-    };
-
-
-
-}; // }}} Locatable
-RG.extend2(RG.Locatable, RG.TypedObject);
-
-/** Ownable is sort of Locatable but it moves with its owner. This ensures that
- * for example item coordinates are up-to-date with the carrier.*/
-RG.Ownable = function(owner) {
-    RG.TypedObject.call(this, null);
-    var _owner = owner;
-
-    this.isSamePos = function(obj) {return _owner.isSamePos(obj);};
-
-    this.getLevel = function() {return _owner.getLevel();};
-
-    this.setOwner = function(owner) {
-        if (RG.isNullOrUndef([owner])) {
-            RG.err("Item", "setOwner", "Owner cannot be null.");
-        }
-        else {
-            _owner = owner;
-        }
-    };
-    this.getOwner = function() {return _owner;};
-
-    this.getX = function() {
-        if (_owner !== null) return _owner.getX();
-        return null;
-    };
-
-    this.getY = function() {
-        if (_owner !== null) return _owner.getY();
-        return null;
-    };
-
-    this.getLevel = function() {
-        if (_owner !== null) return _owner.getLevel();
-        return null;
-    };
-
-};
-RG.extend2(RG.Ownable, RG.TypedObject);
 
 /** Event pool can be used to emit events and register callbacks for listeners.
  * This decouples the emitter and listener from each other.  */
@@ -975,6 +878,44 @@ RG.RogueGame = function() { // {{{2
     RG.POOL.listenEvent(RG.EVT_LEVEL_PROP_ADDED, this);
 }; // }}} Game
 
+//---------------------------------------------------------------------------
+// ECS ENTITY
+//---------------------------------------------------------------------------
+
+RG.Entity = function() {
+
+    var _id = RG.Entity.prototype.idCount++;
+
+    var _comps = {};
+
+    this.getID = function() {return _id;};
+
+    this.get = function(name) {
+        if (_comps.hasOwnProperty(name)) return _comps[name];
+        return null;
+    };
+
+    this.add = function(name, comp) {
+        _comps[name] = comp;
+        comp.addCallback(this);
+        RG.POOL.emitEvent(name, {entity: this, add: true});
+    };
+
+    this.has = function(name) {
+        return _comps.hasOwnProperty(name);
+    };
+
+    this.remove = function(name) {
+        if (_comps.hasOwnProperty(name)) {
+            var comp = _comps[name];
+            comp.removeCallback(this);
+            delete _comps[name];
+            RG.POOL.emitEvent(name, {entity: this, remove: true});
+        }
+    };
+
+};
+RG.Entity.prototype.idCount = 0;
 
 if ( typeof exports !== 'undefined' ) {
     if( typeof RG !== 'undefined' && module.exports ) {
