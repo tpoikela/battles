@@ -1,35 +1,6 @@
 
-function getSource(keys, fname) {
-    var has_require = typeof require !== 'undefined';
-
-    if (typeof window !== 'undefined') {
-        if (typeof keys === "object") {
-            if (keys.length === 1)
-                var src = window[keys[0]];
-            else if (keys.length === 2)
-                var src = window[keys[0]][keys[1]];
-            else if (keys.length === 3)
-                var src = window[keys[0]][keys[1]][keys[2]];
-            else if (keys > 3) {
-                throw new Error("Too many nested names. Cannot import.");
-            }
-        }
-        else {
-            var src = window[keys];
-        }
-    }
-
-    if (typeof src === 'undefined' ) {
-        if (has_require) {
-          src = require(fname);
-        }
-        else throw new Error('Module ' + keys + ' not found');
-    }
-
-    return src;
-};
-
-var RG = getSource("RG", "./rg.js");
+var GS = require("../getsource.js");
+var RG = GS.getSource("RG", "./src/rg.js");
 
 //---------------------------------------------------------------------------
 // ECS COMPONENTS

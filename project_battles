@@ -1,14 +1,21 @@
-roguelike=/home/tpoikela/git/freecodecamp/RogueLike/ /home/tpoikela/git/freecodecamp/RogueLike/ filter="*.js *.jsx *.html *.scss *.txt *.md" {
- roguelike.js
- rogueobjects.js
- rot.js
- rot.min.js
- rogue_ide.jsx
+roguelike=/home/tpoikela/git/battles/ /home/tpoikela/git/battles/ filter="*.js *.jsx *.html *.scss *.txt *.md" {
+ battles.js
+ eval_test.js
+ getsource.js
+ battles_gui.jsx
  index.html
  style.scss
- notes.md
+ README.md
  src=src {
+  brain.js
+  component.js
+  factory.js
+  game.js
+  item.js
+  map.js
+  object.js
   rg.js
+  system.js
  }
  tests=tests {
   communication.js
@@ -16,8 +23,10 @@ roguelike=/home/tpoikela/git/freecodecamp/RogueLike/ /home/tpoikela/git/freecode
   events.js
   game.js
   gameobjects.js
+  items.js
   map.js
   missiles.js
+  object.js
   roguetest.js
   scheduler.js
  }

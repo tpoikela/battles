@@ -125,9 +125,9 @@ var RoguelikeTop = React.createClass({
             var missile = invEq.unequipAndGetItem("missile", 1);
 
             if (!RG.isNullOrUndef([missile])) {
-                var mComp = new RG.MissileComponent(player);
+                var mComp = new RG.Component.Missile(player);
                 mComp.setTargetXY(x, y);
-                mComp.setDamage(RG.getMissileDamage());
+                mComp.setDamage(RG.getMissileDamage(player, missile));
                 mComp.setAttack(RG.getMissileAttack(player, missile));
                 mComp.setRange(missile.getAttackRange());
                 missile.add("Missile", mComp);

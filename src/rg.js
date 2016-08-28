@@ -356,8 +356,9 @@ var RG = { // {{{2
     //--------------------------------------------------------------
 
     getMissileDamage: function(att, miss) {
-        var dmg = missile.getDamage();
+        var dmg = miss.getDamage();
         dmg += Math.round(att.get("Stats").getAgility() / 3);
+        return dmg;
     },
 
     getMissileAttack: function(att, miss) {
