@@ -37,7 +37,7 @@ var RG = getSource("RG", "./rg.js");
 
 RG.Component = {};
 
-RG.Component.Base= function(type) {
+RG.Component.Base = function(type) {
 
     var _type = type;
     var _entity = null;
