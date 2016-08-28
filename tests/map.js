@@ -12,8 +12,8 @@ var Action = RG.RogueAction;
 var Level = RG.RogueLevel;
 var Element = RG.RogueElement;
 var Cell = RG.MapCell;
-var Item = RG.RogueItem;
-var Container = RG.RogueItemContainer;
+var Item = RG.Item;
+var Container = RG.Item.Container;
 var InvAndEquip = RG.RogueInvAndEquip;
 var Factory = RG.FACT;
 var Stairs = RG.RogueStairsElement;
@@ -182,7 +182,7 @@ describe('Items in map cells', function() {
     });
 
     it('Equips armour into correct slots', function() {
-        var helmet = new RG.RogueItemArmour("Helmet");
+        var helmet = new RG.Item.Armour("Helmet");
         helmet.setArmourType("head");
 
         var actor = Factory.createPlayer("Player", 50);

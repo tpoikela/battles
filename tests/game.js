@@ -231,7 +231,7 @@ var ItemDestroyer = function() {
 
 describe('How one-shot items are removed after their use', function() {
     it('Player uses a potion and it is destroyed after this.', function() {
-        var potion = new RG.RogueItemPotion("potion");
+        var potion = new RG.Item.Potion("potion");
         var player = new Actor("Player");
         var invEq = player.getInvEq();
         var itemDestroy = new ItemDestroyer();

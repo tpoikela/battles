@@ -3,24 +3,24 @@ var chai = require("chai");
 var expect = chai.expect;
 var RG = require("../battles.js");
 
-var Item = RG.RogueItem;
+var Item = RG.Item;
 
 var Slot = RG.RogueEquipSlot;
 
 describe('How items are stacked', function() {
     it('Adds two items to create a count of 2', function() {
-        var item1 = new RG.RogueItem("Test item");
+        var item1 = new RG.Item("Test item");
         item1.setType("test");
-        var item2 = new RG.RogueItem("Test item");
+        var item2 = new RG.Item("Test item");
         item2.setType("test");
         expect(RG.addStackedItems(item1, item2)).to.equal(true);
         expect(item1.count).to.equal(2);
     });
 
     it('Stacks weapons correctly', function() {
-        var weapon1 = new RG.RogueItemWeapon("Short sword");
+        var weapon1 = new RG.Item.Weapon("Short sword");
         weapon1.setAttack(3);
-        var weapon2 = new RG.RogueItemWeapon("Short sword");
+        var weapon2 = new RG.Item.Weapon("Short sword");
         weapon2.setAttack(3);
         expect(weapon1.equals(weapon2)).to.equal(true);
 
@@ -33,17 +33,17 @@ describe('How items are stacked', function() {
 
 describe('How stacked are broken into multiple items', function() {
     it('Splits item stack into two items', function() {
-        var itemStack = new RG.RogueItem("Arrow");
+        var itemStack = new RG.Item("Arrow");
         itemStack.setType("missile");
         itemStack.count = 2;
         var arrow = RG.removeStackedItems(itemStack, 1);
         itemStack.setType("missile");
         expect(arrow.getName()).to.equal("Arrow");
 
-        var hugeStack = new RG.RogueItem("Gold coin");
+        var hugeStack = new RG.Item("Gold coin");
         hugeStack.setType("gold");
         hugeStack.count = 10000;
-        var newStack = new RG.RogueItem("Gold coin");
+        var newStack = new RG.Item("Gold coin");
         newStack.setType("gold");
         newStack.count = 100;
 
@@ -57,12 +57,12 @@ describe('How stacked are broken into multiple items', function() {
         expect(newStack.count).to.equal(1100);
         expect(hugeStack.count).to.equal(9000);
 
-        var testStack = new RG.RogueItem("test item");
+        var testStack = new RG.Item("test item");
         testStack.setType("test");
         var stack = RG.removeStackedItems(testStack, 1);
         expect(testStack.count).to.equal(0);
 
-        var two = new RG.RogueItem("test item");
+        var two = new RG.Item("test item");
         two.setType("test");
         two.count = 5;
         var rmvTwo = RG.removeStackedItems(two, 5);
@@ -73,14 +73,14 @@ describe('How stacked are broken into multiple items', function() {
     });
 
     it('Manages missile items correctly', function() {
-        var arrow = new RG.RogueItemMissile("arrow");
+        var arrow = new RG.Item.Missile("arrow");
         arrow.setAttack(3);
-        var arrow2 = new RG.RogueItemMissile("arrow");
+        var arrow2 = new RG.Item.Missile("arrow");
         arrow2.setAttack(3);
         expect(RG.addStackedItems(arrow, arrow2)).to.equal(true);
         expect(arrow.count).to.equal(2);
 
-        var arrow3 = new RG.RogueItemMissile("arrow");
+        var arrow3 = new RG.Item.Missile("arrow");
         arrow3.setAttack(10);
         expect(RG.addStackedItems(arrow, arrow3)).to.equal(false);
         expect(arrow.count).to.equal(2);
@@ -96,8 +96,8 @@ describe('How inventory container works', function() {
     var inv = invEq.getInventory();
 
     it('Checks items by reference for existence', function() {
-        var arrow = new RG.RogueItemMissile("arrow");
-        var arrow2 = new RG.RogueItemMissile("arrow");
+        var arrow = new RG.Item.Missile("arrow");
+        var arrow2 = new RG.Item.Missile("arrow");
         expect(inv.hasItem(arrow)).to.equal(false);
         inv.addItem(arrow);
         expect(inv.hasItem(arrow)).to.equal(true);
@@ -108,24 +108,24 @@ describe('How inventory container works', function() {
         expect(inv.first().count).to.equal(2);
 
         // 2. Add count and non-count items
-        var steelArrow4 = new RG.RogueItemMissile("Steel arrow");
-        var steelArrow1 = new RG.RogueItemMissile("Steel arrow");
+        var steelArrow4 = new RG.Item.Missile("Steel arrow");
+        var steelArrow1 = new RG.Item.Missile("Steel arrow");
         steelArrow4.count = 4;
         inv.addItem(steelArrow4);
         inv.addItem(steelArrow1);
         expect(inv.last().count).to.equal(5);
 
         // 3. Add non-count and count item
-        var rubyArrow1 = new RG.RogueItemMissile("Ruby arrow");
-        var rubyArrow6 = new RG.RogueItemMissile("Ruby arrow");
+        var rubyArrow1 = new RG.Item.Missile("Ruby arrow");
+        var rubyArrow6 = new RG.Item.Missile("Ruby arrow");
         rubyArrow6.count = 6;
         inv.addItem(rubyArrow1);
         inv.addItem(rubyArrow6);
         expect(inv.last().count).to.equal(7);
 
         // 4. Add two count items
-        var ebonyArrow3 = new RG.RogueItemMissile("Ebony arrow");
-        var ebonyArrow5 = new RG.RogueItemMissile("Ebony arrow");
+        var ebonyArrow3 = new RG.Item.Missile("Ebony arrow");
+        var ebonyArrow5 = new RG.Item.Missile("Ebony arrow");
         ebonyArrow3.count = 3;
         ebonyArrow5.count = 5;
         inv.addItem(ebonyArrow3);
@@ -156,7 +156,7 @@ describe('How item equipment slots work', function() {
         var eqSlot = new Slot(eq, "hand", false);
         var missSlot = new Slot(eq, "missile", true);
 
-        var arrow = new RG.RogueItemMissile("arrow");
+        var arrow = new RG.Item.Missile("arrow");
         arrow.count = 10;
         expect(missSlot.equipItem(arrow)).to.equal(true);
         expect(missSlot.unequipItem(5)).to.equal(true);
@@ -179,18 +179,18 @@ describe('How item stacks work with equipped missiles', function() {
 
     it('description', function() {
         for (var i = 0; i < 10; i++) {
-            var arrow = new RG.RogueItemMissile("arrow");
+            var arrow = new RG.Item.Missile("arrow");
             invEq.addItem(arrow);
         }
         var newArrow = inv.first();
         expect(newArrow.count).to.equal(10);
 
-        var sword = new RG.RogueItemWeapon("sword");
+        var sword = new RG.Item.Weapon("sword");
         invEq.addItem(sword);
         expect(invEq.equipItem(sword)).to.equal(true);
 
         // Add some arrows and test they're seen in inv
-        var testArrow = new RG.RogueItemMissile("Steel arrow");
+        var testArrow = new RG.Item.Missile("Steel arrow");
         testArrow.count = 12;
         invEq.addItem(testArrow);
         expect(invEq.hasItem(testArrow)).to.equal(true);
@@ -220,7 +220,7 @@ describe('How item stacks work with equipped missiles', function() {
         expect(oneArrow.count).to.equal(1);
 
         // Try to equip non-inv items
-        var sixArrows = new RG.RogueItemMissile("Steel arrow");
+        var sixArrows = new RG.Item.Missile("Steel arrow");
         sixArrows.count = 6;
         expect(invEq.equipNItems(sixArrows, 6)).to.equal(true);
         expect(sixArrows.count).to.equal(6);
@@ -229,7 +229,7 @@ describe('How item stacks work with equipped missiles', function() {
         var sevenArrows = invEq.getEquipped("missile");
         expect(sevenArrows.count).to.equal(7);
 
-        var anotherSix = new RG.RogueItemMissile("Steel arrow");
+        var anotherSix = new RG.Item.Missile("Steel arrow");
         anotherSix.count = 6;
         invEq.addItem(anotherSix);
         expect(invEq.equipNItems(anotherSix, 6)).to.equal(true);
@@ -248,17 +248,17 @@ describe('How item stacks work with equipped missiles', function() {
     });
 
     it('Equips armour correctly', function() {
-        var collar = new RG.RogueItemArmour("Collar");
+        var collar = new RG.Item.Armour("Collar");
         collar.setArmourType("neck");
         inv.addItem(collar);
         expect(invEq.equipItem(collar)).to.equal(true);
 
-        var plate = new RG.RogueItemArmour("Plate mail");
+        var plate = new RG.Item.Armour("Plate mail");
         plate.setArmourType("chest");
         inv.addItem(plate);
         expect(invEq.equipItem(plate)).to.equal(true);
 
-        var wolfSpirit = new RG.RogueItemSpirit("Wolf spirit");
+        var wolfSpirit = new RG.Item.Spirit("Wolf spirit");
         wolfSpirit.get("Stats").setStrength(9);
         inv.addItem(wolfSpirit);
         expect(invEq.equipItem(wolfSpirit)).to.equal(true);

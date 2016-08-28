@@ -45,7 +45,7 @@ describe('How loot is dropped by monsters', function() {
     var systems = [dSystem];
 
     it('Drops loot when lethal damage is dealt', function() {
-        var lootItem = new RG.RogueItem("Loot item");
+        var lootItem = new RG.Item("Loot item");
         var loot = new RG.LootComponent(lootItem);
         monster.add("Loot", loot);
         var dmgComp = new RG.DamageComponent(6, "fire");

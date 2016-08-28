@@ -46,7 +46,7 @@ describe('How missile is fired and hits a wall', function() {
 
         level.addActor(srcEnt, 1, 1);
 
-        var mEnt = new RG.RogueItemMissile("missile");
+        var mEnt = new RG.Item.Missile("missile");
         var mComp = new RG.MissileComponent(srcEnt);
         mEnt.add("Missile", mComp);
 
@@ -77,7 +77,7 @@ describe('How missile is fired and hits a wall', function() {
         var cell = map.getCell(1, 3);
         cell.setProp("elements", wall);
 
-        var mEnt = new RG.RogueItemMissile("missile");
+        var mEnt = new RG.Item.Missile("missile");
         var mComp = new RG.MissileComponent(srcEnt);
         mEnt.add("Missile", mComp);
         mComp.setTargetXY(1, 4);
@@ -105,7 +105,7 @@ describe('How missile is fired and hits a wall', function() {
         targetEnt.get("Combat").setDefense(0);
         level.addActor(targetEnt, 1, 6);
 
-        var mEnt = new RG.RogueItemMissile("missile");
+        var mEnt = new RG.Item.Missile("missile");
         var mComp = new RG.MissileComponent(srcEnt);
         mComp.setAttack(1);
         mComp.setDamage(5);
@@ -135,7 +135,7 @@ describe('How missile is fired and hits a wall', function() {
         var srcEnt = new Actor("archer");
         level.addActor(srcEnt, 1, 1);
 
-        var mEnt = new RG.RogueItemMissile("missile");
+        var mEnt = new RG.Item.Missile("missile");
         var mComp = new RG.MissileComponent(srcEnt);
         mComp.setDamage(5);
         mEnt.add("Missile", mComp);
