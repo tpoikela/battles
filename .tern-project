@@ -1,0 +1,22 @@
+{
+  "libs": [
+    "browser",
+    "jquery",
+    "react",
+    "react-dom",
+    "chai"
+  ],
+  "loadEagerly": [
+    "rot.js",
+    "/lib/node_modules/react/lib/*.js",
+    "roguelike.js",
+    "rogue_ide.jsx"
+  ],
+  "plugins": {
+    "node": {},
+    "requirejs": {
+      "baseURL": "./",
+      "paths": {}
+    }
+  }
+}

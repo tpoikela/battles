@@ -1,0 +1,292 @@
+/**
+ * Style sheet (.scss) for Game of Life.
+ */
+
+$cell-width: 17px;
+$cell-height: 17px;
+
+$main-color: darken(white, 10%);
+$main-color-2: darken($main-color, 15%);
+$main-color-3: darken($main-color-2, 15%);
+
+$ctrl-top-color: darken($main-color, 10%);
+
+$ruby-white: #111111;
+$ruby-red: #EE1111;
+
+@mixin fonts {
+    font-family: 'Josefin Sans', sans-serif;
+}
+
+@mixin cell-font {
+    //font-family: 'VT323', monospace;
+    font-family: monospace;
+    font-size: 16px;
+}
+
+@mixin cell-font-map {
+    //font-family: 'VT323', monospace;
+    font-family: monospace;
+    font-size: 8px;
+}
+
+// Control panel theme
+@mixin ctrl-panel {
+    border: 1px solid black;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: $ctrl-top-color;
+}
+
+// Defines the main gradient for the background
+@mixin gray-gradient {
+    background: $main-color;
+    background: -o-radial-gradient($main-color, $main-color-2, $main-color-3);
+    background: -webkit-radial-gradient($main-color, $main-color-2, $main-color-3);
+    background: -moz-radial-gradient($main-color, $main-color-2, $main-color-3);
+    background: radial-gradient($main-color, $main-color-2, $main-color-3);
+}
+
+/** Elements, classes and IDs.*/
+
+body {
+    @include fonts;
+};
+
+.container {
+    margin: 0;
+};
+
+#game-table {
+    td {
+        width: $cell-width;
+        height: $cell-height;
+        border: 1px solid black;
+        padding: 0;
+    }
+};
+
+#mov-buttons-table {
+    border: 1px solid black;
+    font-size: 16px;
+    padding: 5px;
+
+};
+
+.select-label {
+    width: 100px;
+};
+
+//------------------------------------------------------------------
+// CELL StyleS
+//------------------------------------------------------------------
+
+
+//--------
+// ACTORS
+//--------
+
+.cell-actor-default {
+    background-color: blue;
+    color: yellow;
+}
+
+.cell-actor-animal {
+    background-color: brown;
+    color: white;
+}
+
+.cell-actor-player {
+    background-color: green;
+    color: white;
+}
+
+.cell-actor-monster {
+    background-color: purple;
+    color: white;
+};
+
+.cell-actor-summoner {
+    background-color: yellow;
+    color: black;
+};
+
+.cell-actor-winter {
+    background-color: white;
+    color: blue;
+};
+
+//----------
+// ELEMENTS
+//----------
+
+.cell-elements {
+    color: white;
+    background-color: purple;
+}
+
+.cell-element-wall {
+    background-color: red;
+}
+
+.cell-element-floor {
+    background-color: gray;
+}
+
+.cell-dark {
+    background-color: #101010;
+}
+
+.cell-not-explored {
+    background-color: black;
+    color: black;
+};
+
+.cell-element-water {
+    background-color: white;
+    color: blue;
+};
+
+.cell-element-ice-wall {
+    background-color: blue;
+    color: white;
+};
+
+//----------
+// ITEMS
+//----------
+.cell-item-default {
+    background-color: brown;
+}
+
+.cell-item-potion {
+    background-color: white;
+    color: purple;
+};
+
+.cell-item-armour {
+    background-color: green;
+    color: white;
+};
+
+.cell-item-food {
+    background-color: yellow;
+    color: black;
+};
+
+.cell-item-melee-weapon {
+    background-color: blue;
+    color: white;
+};
+
+.cell-item-missile {
+    background-color: white;
+    color: red;
+};
+
+.cell-item-leather {
+    background-color: brown;
+    color: white;
+};
+
+.cell-item-iron {
+    background-color: Silver;
+    color: white;
+};
+
+.cell-item-ruby-glass {
+    background-color: $ruby-white;
+    color: $ruby-red;
+};
+
+.cell-item-ice {
+    background-color: white;
+    color: blue;
+};
+
+.cell-item-magic {
+    background-color: purple;
+    color: white;
+};
+
+.cell-item-spirit {
+    background-color: purple;
+    color: white;
+};
+
+//---------------------------------------------------------------------
+// MENUS
+//---------------------------------------------------------------------
+
+#mount-point {
+    margin-top: 10px;
+}
+
+.game-messages {
+    margin-bottom: 10px;
+    height: 30px;
+    border: 1px solid black;
+    border-radius: 5px;
+    background-color: $ctrl-top-color;
+    font-size: 18px;
+    padding-top: 2px;
+    padding-left: 5px;
+    overflow: auto;
+}
+
+.game-stats {
+    @include ctrl-panel;
+}
+
+.game-board-char-view {
+    @include cell-font;
+};
+
+.cell-row-div-char-view {
+    margin-bottom: -4px;
+}
+
+.game-board-map-view {
+    @include cell-font-map;
+};
+
+.cell-row-div-map-view {
+    margin-bottom: 0;
+}
+
+#game-board {
+    margin-left: 10px;
+    margin-right: 10px;
+    cursor: crosshair;
+
+    span:hover {
+        color: black;
+        background-color: rgba(255, 255, 255, 0.5);
+    };
+}
+
+.ctrl-bottom {
+    margin-top: 10px;
+    @include ctrl-panel;
+}
+
+.inv-item-slot {
+    border: 1px solid black;
+    border-radius: 5px;
+    margin-bottom: 2px;
+    padding: 2px;
+};
+
+.inv-equip-slot {
+    border: 1px solid black;
+    border-radius: 5px;
+    margin-bottom: 2px;
+    padding: 2px;
+};
+
+#items-box {
+    height: 400px;
+    overflow: auto;
+
+};
+

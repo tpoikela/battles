@@ -1,0 +1,11 @@
+{
+  "devDependencies": {
+    "chai": "~3.5.0",
+    "babel-cli": "~6.10.1"
+  },
+
+  "scripts": {
+      "test": "mocha --recursive tests"
+  }
+
+}
