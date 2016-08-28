@@ -245,7 +245,6 @@ if (typeof exports !== 'undefined' ) {
     exports.RG.Object = RG.Object;
 }
 else {
-    console.log("Assing to window RG.Object");
     window.RG.Object = RG.Object;
 }
 

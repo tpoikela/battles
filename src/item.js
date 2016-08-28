@@ -514,7 +514,6 @@ if (typeof exports !== 'undefined' ) {
     exports.RG.Item = RG.Item;
 }
 else {
-    console.log("Assing to window RG.Item");
     window.RG.Item = RG.Item;
 }
 

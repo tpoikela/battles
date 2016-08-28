@@ -30,8 +30,8 @@ function getSource(keys, fname) {
 };
 
 var RG = getSource("RG", "./rg.js");
-
 RG.System = getSource(["RG", "System"], "./system.js");
+RG.Map = getSource(["RG", "Map"], "./map.js");
 
 /** Top-level object for the game.  */
 RG.Game = function() { // {{{2
@@ -46,7 +46,7 @@ RG.Game = function() { // {{{2
     var _time         = "";
     var _gameOver     = false;
 
-    var _mapGen = new RG.RogueMapGen();
+    var _mapGen = new RG.Map.Generator();
     var _scheduler = new RG.RogueScheduler();
     var _msg = new RG.MessageHandler();
 
