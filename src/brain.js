@@ -22,12 +22,13 @@ RG.Brain.Player = function(actor) { // {{{2
         _guiCallbacks[code] = callback;
     };
 
-    this.energy = 1;
+    this.energy = 1; // Consumed energy per action
 
     var _confirmCallback = null;
     var _wantConfirm = false;
 
     this.decideNextAction = function(obj) {
+        this.energy = 1;
         if (obj.hasOwnProperty("cmd")) {
             return function() {};
         }
@@ -38,7 +39,6 @@ RG.Brain.Player = function(actor) { // {{{2
             // Want y/n answer
             _wantConfirm = false;
             if (code === ROT.VK_Y) return _confirmCallback;
-            else return null;
         }
 
         // Invoke GUI callback with given code
@@ -70,9 +70,16 @@ RG.Brain.Player = function(actor) { // {{{2
 
         if (code === ROT.VK_PERIOD) {
             type = "PICKUP";
-            return function() {
-                level.pickupItem(_actor, x, y);
-            };
+            if (currCell.hasProp("items")) {
+                return function() {
+                    level.pickupItem(_actor, x, y);
+                };
+            }
+            else {
+                this.energy = 0;
+                RG.gameWarn("There are no items to pick up.");
+                return null;
+            }
         }
 
         if (code === ROT.VK_COMMA) {
@@ -81,6 +88,8 @@ RG.Brain.Player = function(actor) { // {{{2
                 return function() {level.useStairs(_actor);};
             }
             else {
+                this.energy = 0;
+                RG.gameWarn("There are no stairs here.");
                 return null;
             }
         }
@@ -104,9 +113,14 @@ RG.Brain.Player = function(actor) { // {{{2
                     else {
                         _wantConfirm = true;
                         _confirmCallback = callback;
-                        RG.gameMsg("Press y to attack non-hostile actor.");
+                        RG.gameMsg("Press 'y' to attack non-hostile actor.");
                         return null;
                     }
+                }
+                else {
+                    this.energy = 0;
+                    RG.gameMsg("You cannot move that way.");
+                    return null;
                 }
             }
         }

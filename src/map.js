@@ -584,9 +584,6 @@ RG.Map.Level = function(cols, rows) { // {{{2
             cell.removeProp(RG.TYPE_ITEM, item);
             RG.gameMsg(actor.getName() + " picked up " + item.getName());
         }
-        else {
-            RG.gameMsg("Nothing to pickup");
-        }
     };
 
     //---------------------------------------------------------------------
