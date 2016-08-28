@@ -458,7 +458,7 @@ RG.Item.Spirit = function(name) {
     var stats = new RG.Component.Stats();
     this.add("Stats", stats);
 
-    var _brain = new RG.SpiritBrain(this);
+    var _brain = new RG.Brain.Spirit(this);
 
     this.add("Action", new RG.Component.Stats());
 

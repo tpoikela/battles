@@ -408,6 +408,26 @@ var RG = { // {{{2
 }; /// }}} RG
 RG.cellRenderArray = RG.cellRenderVisible;
 
+/** Contains generic 2D geometric functions for square/rectangle/etc
+ * generation.*/
+RG.Geometry = {
+
+    /** Given start x,y and end x,y coordinates, returns all x,y coordinates in
+     * the border of the rectangle.*/
+    getHollowBox: function(x0, y0, maxX, maxY) {
+        var res = [];
+        for (var x = x0; x <= maxX; x++) {
+            for (var y = y0; y <= maxY; y++) {
+                if ((y === y0 || y === maxY || x === x0 || x === maxX) ) {
+                    res.push([x, y]);
+                }
+            }
+        }
+        return res;
+    },
+
+};
+
 /** Each die has number of throws, type of dice (d6, d20, d200...) and modifier
  * which is +/- X. */
 RG.Die = function(num, dice, mod) {
