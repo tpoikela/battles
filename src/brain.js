@@ -27,6 +27,14 @@ RG.Brain.Player = function(actor) { // {{{2
     var _confirmCallback = null;
     var _wantConfirm = false;
 
+    var _runModeEnabled = false;
+    var _baseSpeed = _actor.get("Stats").getSpeed();
+
+    var _restoreBaseSpeed = function() {
+        this.energy = 1;
+        _actor.get("Stats").setSpeed(_baseSpeed);
+    };
+
     this.decideNextAction = function(obj) {
         this.energy = 1;
         if (obj.hasOwnProperty("cmd")) {
@@ -47,6 +55,20 @@ RG.Brain.Player = function(actor) { // {{{2
             return null;
         }
 
+        if (code === ROT.VK_R) {
+            if (_runModeEnabled) {
+                _restoreBaseSpeed();
+                return null;
+            }
+            else {
+                this.energy = 4;
+                _baseSpeed = _actor.get("Stats").getSpeed();
+                var newSpeed = Math.floor( 1.5 * _baseSpeed);
+                _actor.get("Stats").setSpeed(newSpeed);
+                return null;
+            }
+        }
+
         // Need existing position
         var x = _actor.getX();
         var y = _actor.getY();
@@ -63,10 +85,8 @@ RG.Brain.Player = function(actor) { // {{{2
         if (code === ROT.VK_E) {--y; ++x; type = "MOVE";}
         if (code === ROT.VK_C) {++y; ++x; type = "MOVE";}
         if (code === ROT.VK_Z) {++y; --x; type = "MOVE";}
-        if (code === ROT.VK_S) {
-            // IDLE action
-            type = "IDLE";
-        }
+        if (code === ROT.VK_S) {type = "REST";}
+        if (type !== "MOVE") _restoreBaseSpeed();
 
         if (code === ROT.VK_PERIOD) {
             type = "PICKUP";
@@ -103,6 +123,7 @@ RG.Brain.Player = function(actor) { // {{{2
                     };
                 }
                 else if (level.getMap().getCell(x,y).hasProp("actors")) {
+                    _restoreBaseSpeed();
                     var target = level.getMap().getCell(x, y).getProp("actors")[0];
                     var callback = function() {
                         var attackComp = new RG.Component.Attack(target);
@@ -124,7 +145,7 @@ RG.Brain.Player = function(actor) { // {{{2
                 }
             }
         }
-        else if (type === "IDLE") {
+        else if (type === "REST") {
             return function() {};
         }
 
