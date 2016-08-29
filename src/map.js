@@ -594,9 +594,14 @@ RG.Map.Level = function(cols, rows) { // {{{2
         var cell = _map.getCell(x, y);
         if (cell.hasProp(RG.TYPE_ITEM)) {
             var item = cell.getProp(RG.TYPE_ITEM)[0];
-            actor.getInvEq().addItem(item);
-            cell.removeProp(RG.TYPE_ITEM, item);
-            RG.gameMsg(actor.getName() + " picked up " + item.getName());
+            if (actor.getInvEq().canCarryItem(item)) {
+                actor.getInvEq().addItem(item);
+                cell.removeProp(RG.TYPE_ITEM, item);
+                RG.gameMsg(actor.getName() + " picked up " + item.getName());
+            }
+            else {
+                RG.gameMsg(actor.getName() + " cannot carry more weight");
+            }
         }
     };
 
