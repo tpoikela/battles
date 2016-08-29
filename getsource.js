@@ -1,3 +1,22 @@
+/**
+ * A custom module for importing/exporting modules in CommonJS style. Should
+ * work with both Node and browsers (Tested only FF 38.0.5)
+ *
+ * For browser, you must include <script src="/path/to/getsource.js"></script>
+ * as first js-file.
+ *
+ * In your source file, you can do:
+ *
+ * var GS = require("./path/to/getsource.js");
+ *
+ * // To import
+ * var Stuff = GS.getSource("Stuff", "./path/to/Stuff.js");
+ * Stuff.SubMod = GS.getSource(["Stuff", "SubMod"], "./path/to/StuffSubMod.js");
+ *
+ * // To export
+ * GS.exportSource(module, exports, ["Stuff"], [Stuff]);
+ * GS.exportSource(module, exports, ["Stuff", "SubMod"], [Stuff, Stuff.SubMod]);
+ */
 
 var GS = {};
 
@@ -46,8 +65,6 @@ var exportSource = function(module, exports, keys, objs) {
             fullVar += keys[i];
             if (/[a-zA-Z_0-9.]+/.test(fullVar)) {
                 var cmd = "exports." + fullVar + " = objs[i]";
-                console.log("Full var is now " + fullVar);
-                console.log("Evalling: " + cmd);
                 eval(cmd);
                 fullVar += ".";
             }
@@ -92,15 +109,13 @@ else {
 
 var sourceRe = new RegExp("getsource");
 
-// Redefine require(...) but for browser only
+// Redefine require(...), but for the browser only. After this file is included
+// using <script src=...>, it can be required in any file.
 if (typeof window !== 'undefined') {
-    console.log("XXX got here");
     var has_require = typeof require !== 'undefined';
 
     if (!has_require) {
-        console.log("Oh no. Has no require");
         var require = function(modName) {
-            console.log("Called fake require. Oh no!");
             if (sourceRe.test(modName)) {
                 return GS;
             }

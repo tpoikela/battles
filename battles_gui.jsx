@@ -306,7 +306,7 @@ var RoguelikeTop = React.createClass({
             case "Small": this.gameConf.cols = 40; this.gameConf.rows = 20; break;
             case "Medium": this.gameConf.cols = 60; this.gameConf.rows = 30; break;
             case "Large": this.gameConf.cols = 80; this.gameConf.rows = 40; break;
-            case "Huge": this.gameConf.cols = 100; this.gameConf.rows = 60; break;
+            case "Huge": this.gameConf.cols = 140; this.gameConf.rows = 60; break;
         }
     },
 
