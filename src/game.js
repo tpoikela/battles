@@ -18,6 +18,8 @@ RG.Game = function() {
     var _scheduler = new RG.RogueScheduler();
     var _msg = new RG.MessageHandler();
 
+    this.simIntervalID = null;
+
     // These systems updated after each action
     this.systemOrder = ["Attack", "Missile", "Movement", "Damage", "ExpPoints", "Communication"];
     this.systems = {};
@@ -204,7 +206,9 @@ RG.Game = function() {
         else {
             this.clearMessages();
             RG.POOL.emitEvent(RG.EVT_MSG, {msg: "GAME OVER!"});
-
+            if (this.simIntervalID === null) {
+                this.simIntervalID = setInterval(this.simulateGameWithoutPlayer.bind(this), 1);
+            }
         }
 
     };
@@ -234,6 +238,19 @@ RG.Game = function() {
 
         for (var s in this.loopSystems) this.loopSystems[s].update();
 
+    };
+
+    /** Simulates the game without player.*/
+    this.simulateGameWithoutPlayer = function() {
+        this.nextActor = this.getNextActor();
+        if (!this.nextActor.isPlayer()) {
+            var action = this.nextActor.nextAction();
+            this.doAction(action);
+            for (var i = 0; i < this.systemOrder.length; i++) {
+                var sysName = this.systemOrder[i];
+                this.systems[sysName].update();
+            }
+        }
     };
 
     this.playerCommand = function(obj) {
