@@ -18,6 +18,7 @@ roguelike=/home/tpoikela/git/battles/ /home/tpoikela/git/battles/ filter="*.js *
   system.js
  }
  tests=tests {
+  brain.js
   communication.js
   ecs.js
   events.js
