@@ -177,7 +177,12 @@ var RoguelikeTop = React.createClass({
     handleKeyDown: function(evt) {
         this.game.update({evt: evt});
         this.visibleCells = this.game.visibleCells;
-        this.setState({render: true, renderFullScreen: false});
+        if (this.game.isGameOver()) {
+            this.setState({render: true, renderFullScreen: true});
+        }
+        else {
+            this.setState({render: true, renderFullScreen: false});
+        }
     },
 
     render: function() {
@@ -699,6 +704,8 @@ var GameInventory = React.createClass({
         var player = this.props.player;
         var inv = player.getInvEq().getInventory();
         var eq = player.getInvEq().getEquipment();
+        var maxWeight = player.getMaxWeight();
+        var eqWeight = eq.getWeight();
         return (
             <div className="modal fade" role="dialog" id="inventoryModal" tabIndex="-1" role="dialog" aria-labelledby="inventory-modal-label" aria-hidden="true">
                 <div className="modal-dialog modal-lg">
@@ -711,7 +718,7 @@ var GameInventory = React.createClass({
                         </div>
                         <div className="modal-body row">
                             <div id="items-box" className="col-md-6">
-                                <GameItems setSelectedItem={this.setSelectedItem} inv={inv} />
+                                <GameItems eqWeight={eqWeight} maxWeight={maxWeight} setSelectedItem={this.setSelectedItem} inv={inv} />
                             </div>
                             <div id="equipment-box" className="col-md-6">
                                 <GameEquipment setEquipSelected={this.setEquipSelected} eq={eq} />
@@ -745,6 +752,9 @@ var GameItems = React.createClass({
         var item = inv.first();
         var items = [];
         var setSelectedItem = this.props.setSelectedItem;
+        var totalWeight = inv.getWeight() + this.props.eqWeight;
+        totalWeight = totalWeight.toFixed(2);
+        var maxWeight = this.props.maxWeight;
 
         while (item !== null && typeof item !== "undefined") {
             var type = item.getType();
@@ -754,7 +764,7 @@ var GameItems = React.createClass({
         }
         return (
             <div>
-                <p>Items</p>
+                <p>Items: {totalWeight} kg (max {maxWeight} kg)</p>
                 {items}
             </div>
         );
