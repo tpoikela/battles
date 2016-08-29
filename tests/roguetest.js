@@ -10,6 +10,23 @@ var RGTest = {
 
 };
 
+RGTest.createMockLevel = function(cols, rows) {
+    var level = {cols: cols, rows: rows,
+        map: {
+            getCell: function(x, y) {return {};},
+            hasXY: function(x, y) {return true;},
+            isPassable: function(x, y) {return true;},
+        },
+        getMap: function() {return this.map;},
+
+        addActor: function(actor, x, y) {
+            actor.setXY(x, y);
+            actor.setLevel(this);
+        },
+    };
+    return level;
+};
+
 /** Wraps an object into a cell for later use. Some functions require a map cell instead of taking the object directly. */
 RGTest.wrapObjWithCell = function(obj) {
     var cell = RG.FACT.createFloorCell();
