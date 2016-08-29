@@ -429,8 +429,9 @@ RG.Map.Generator = function() { // {{{2
         var possibleRoom = [];
         var wallXY = RG.Geometry.getHollowBox(x0, y0, maxX, maxY);
 
+        var i;
         // Store x,y for house until failed
-        for (var i = 0; i < wallXY.length; i++) {
+        for (i = 0; i < wallXY.length; i++) {
             var x = wallXY[i][0];
             var y = wallXY[i][1];
             if (map.hasXY(x, y)) {
@@ -450,7 +451,7 @@ RG.Map.Generator = function() { // {{{2
         // House generation has succeeded at this point, true will be returned
 
         // Didn't fail, now we can build the actual walls
-        for (var i = 0; i < possibleRoom.length; i++) {
+        for (i = 0; i < possibleRoom.length; i++) {
             var roomX = possibleRoom[i][0];
             var roomY = possibleRoom[i][1];
             map.setBaseElemXY(roomX, roomY, new RG.RogueElement("wall"));
@@ -462,7 +463,7 @@ RG.Map.Generator = function() { // {{{2
         var haloMaxX = maxX + 1;
         var haloMaxY = maxY + 1;
         var haloBox = RG.Geometry.getHollowBox(haloX0, haloY0, haloMaxX, haloMaxY);
-        for (var i = 0; i < haloBox.length; i++) {
+        for (i = 0; i < haloBox.length; i++) {
             var haloX = haloBox[i][0];
             var haloY = haloBox[i][1];
             wallsHalos[haloX + "," + haloY] = true;
@@ -478,10 +479,10 @@ RG.Map.Generator = function() { // {{{2
         map.setBaseElemXY(doorX, doorY, new RG.RogueElement("floor"));
         doors[doorX + "," + doorY] = true;
 
-        for (var i = 0; i < wallCoords.length; i++) {
-            var x = wallCoords[i][0];
-            var y = wallCoords[i][1];
-            wallsHalos[x + "," + y] = true;
+        for (i = 0; i < wallCoords.length; i++) {
+            var xHalo = wallCoords[i][0];
+            var yHalo = wallCoords[i][1];
+            wallsHalos[xHalo + "," + yHalo] = true;
         }
         return true;
     };
@@ -724,14 +725,9 @@ RG.Map.Level = function(cols, rows) { // {{{2
 }; // }}} Level
 RG.Map.Level.prototype.idCount = 0;
 
-// Exports for node/vars for window
-if (typeof exports !== 'undefined' ) {
-    if( typeof RG.Map !== 'undefined' && module.exports ) {
-        exports = module.exports = RG.Map;
-    }
-    exports.RG = RG;
-    exports.RG.Map = RG.Map;
+if (typeof module !== "undefined" && typeof exports !== "undefined") {
+    GS.exportSource(module, exports, ["RG", "Map"], [RG, RG.Map]);
 }
 else {
-    window.RG.Map = RG.Map;
+    GS.exportSource(undefined, undefined, ["RG", "Map"], [RG, RG.Map]);
 }

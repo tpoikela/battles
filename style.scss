@@ -236,7 +236,11 @@ body {
 
 .game-stats {
     @include ctrl-panel;
-}
+};
+
+.game-stats-list {
+    list-style-type: none;
+};
 
 .game-board-char-view {
     @include cell-font;
@@ -244,7 +248,7 @@ body {
 
 .cell-row-div-char-view {
     margin-bottom: -4px;
-}
+};
 
 .game-board-map-view {
     @include cell-font-map;

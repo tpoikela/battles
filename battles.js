@@ -1,6 +1,3 @@
-/*
- * Contains the main object "RoguelikeGame", the top-level game object.
- */
 
 var GS = require("./getsource.js");
 
@@ -141,7 +138,6 @@ RG.RogueEquipment = function(actor) {
      * ones.*/
     this.equipItem = function(item) {
         if (item.hasOwnProperty("getArmourType")) {
-            console.log("Equipping armour " + item.getArmourType());
             if (_slots[item.getArmourType()].equipItem(item)) {
                 _equipped.push(item);
                 return true;
@@ -241,7 +237,7 @@ RG.RogueEquipment = function(actor) {
         return result;
     };
 
-    // Dynamically generated accessors for different stats
+    // Dynamically generate accessors for different stats
     var _mods = ["getDefense", "getAttack", "getProtection", "getSpeed", "getWillpower",
         "getAccuracy", "getAgility", "getStrength"];
 

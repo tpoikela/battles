@@ -1,35 +1,7 @@
 
-function getSource(keys, fname) {
-    var has_require = typeof require !== 'undefined';
 
-    if (typeof window !== 'undefined') {
-        if (typeof keys === "object") {
-            if (keys.length === 1)
-                var src = window[keys[0]];
-            else if (keys.length === 2)
-                var src = window[keys[0]][keys[1]];
-            else if (keys.length === 3)
-                var src = window[keys[0]][keys[1]][keys[2]];
-            else if (keys > 3) {
-                throw new Error("Too many nested names. Cannot import.");
-            }
-        }
-        else {
-            var src = window[keys];
-        }
-    }
-
-    if (typeof src === 'undefined' ) {
-        if (has_require) {
-          src = require(fname);
-        }
-        else throw new Error('Module ' + keys + ' not found');
-    }
-
-    return src;
-};
-
-var ROT = getSource(["ROT"], "../lib/rot.js");
+var GS = require("../getsource.js");
+var ROT = GS.getSource(["ROT"], "./lib/rot.js");
 
 /** Main object of the package for encapsulating all other objects. */
 var RG = { // {{{2
@@ -258,7 +230,6 @@ var RG = { // {{{2
         return false;
     },
 
-
     gameDanger: function(msg) {
         msg = msg[0].toUpperCase() + msg.substring(1);
         this.POOL.emitEvent(this.EVT_MSG, {msg: msg, style: "danger"});
@@ -279,30 +250,6 @@ var RG = { // {{{2
         this.POOL.emitEvent(this.EVT_MSG, {msg: msg, style: "warn"});
     },
 
-    /** Checks if actor's experience level can be increased.*/
-    checkExp: function(actor) {
-        var expLevel = actor.getExpLevel();
-        var exp = actor.getExp();
-        var nextLevel = expLevel + 1;
-        var reqExp = 0;
-        for (var i = 1; i <= nextLevel; i++) {
-            reqExp += i * 10;
-        }
-        if (exp >= reqExp) {
-            var hComp = actor.get("Health");
-            actor.setExpLevel(nextLevel);
-
-            hComp.setMaxHP(hComp.getMaxHP() + 5);
-            hComp.setHP(hComp.getHP() + 5);
-
-            actor.setAttack(actor.getAttack() + 1);
-            actor.setDefense(actor.getDefense() + 1);
-            RG.gameMsg(actor.getName() + " advanced to level " + nextLevel);
-        }
-
-    },
-
-
     /** Tries to add item2 to item1 stack. Returns true on success.*/
     addStackedItems: function(item1, item2) {
         if (item1.equals(item2)) {
@@ -316,7 +263,7 @@ var RG = { // {{{2
                 item1.count += countToAdd;
             }
             else {
-                item1["count"] = 1 + countToAdd;
+                item1.count = 1 + countToAdd;
             }
             return true;
         }
@@ -327,15 +274,16 @@ var RG = { // {{{2
      * stack is not changed.*/
     removeStackedItems: function(itemStack, n) {
         if (n > 0) {
+            var rmvItem = null;
             if (itemStack.hasOwnProperty("count")) {
                 if (n <= itemStack.count) {
                     itemStack.count -= n;
-                    var rmvItem = itemStack.clone();
+                    rmvItem = itemStack.clone();
                     rmvItem.count = n;
                     return rmvItem;
                 }
                 else {
-                    var rmvItem = itemStack.clone();
+                    rmvItem = itemStack.clone();
                     rmvItem.count = itemStack.count;
                     itemStack.count = 0;
                     return rmvItem;
@@ -343,7 +291,7 @@ var RG = { // {{{2
             }
             else { // Remove all
                 itemStack.count = 0;
-                var rmvItem = itemStack.clone();
+                rmvItem = itemStack.clone();
                 rmvItem.count = 1;
                 return rmvItem;
             }
@@ -601,13 +549,9 @@ RG.Entity = function() {
 };
 RG.Entity.prototype.idCount = 0;
 
-if ( typeof exports !== 'undefined' ) {
-    if( typeof RG !== 'undefined' && module.exports ) {
-        exports = module.exports = RG;
-    }
-    exports.RG = RG;
+if (typeof module !== "undefined" && typeof exports !== "undefined") {
+    GS.exportSource(module, exports, ["RG"], [RG]);
 }
 else {
-    window.RG = RG;
+    GS.exportSource(undefined, undefined, ["RG"], [RG]);
 }
-

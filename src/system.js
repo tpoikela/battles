@@ -34,6 +34,7 @@ RG.System.Base = function(type, compTypes) {
     };
 
     this.validateNotify = function(obj) {
+        if (!obj.hasOwnProperty("entity")) return false;
         if (obj.hasOwnProperty("remove")) return true;
         if (obj.hasOwnProperty("add")) return true;
         return false;
@@ -84,14 +85,12 @@ RG.System.Attack = function(type, compTypes) {
             strength += _att.getInvEq().getEquipment().getStrength();
             agility += _def.getInvEq().getEquipment().getAgility();
 
-            if (_att.isPlayer()) console.log("Pure Str is " + strength);
             // Actual hit change calculation
             var totalAttack = attackPoints + accuracy/2 + attEquip;
             var totalDefense = defPoints + agility/2 + defEquip;
             var hitChange = totalAttack / (totalAttack + totalDefense);
             if (hitChange > Math.random()) {
                 var strDamage = RG.strengthToDamage(strength);
-                if (_att.isPlayer()) console.log("Str damage is " + strDamage);
                 var totalDamage = damage + strDamage;
                 if (totalDamage > 0)
                     this.doDamage(_att, _def, totalDamage);
@@ -104,7 +103,7 @@ RG.System.Attack = function(type, compTypes) {
             _def.addEnemy(_att);
             ent.remove("Attack");
         }
-    }
+    };
 
     this.doDamage = function(att, def, dmg) {
         var dmgComp = new RG.Component.Damage(dmg, "cut");
@@ -261,6 +260,7 @@ RG.System.Damage = function(type, compTypes) {
                 this.giveExpToSource(src, actor);
             }
             RG.gameDanger(actor.getName() + " was killed");
+            console.log("Emitting KILLED for actor " + actor.getName());
             RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: actor});
         }
         else {
@@ -451,22 +451,14 @@ RG.System.Communication = function(type, compTypes) {
         Enemies: this.processEnemies,
     };
 
-}
+};
 RG.extend2(RG.System.Communication, RG.System.Base);
 
 // }}} SYSTEMS
 
-// Exports for node/vars for window
-if (typeof exports !== 'undefined' ) {
-    if( typeof RG.System !== 'undefined' && module.exports ) {
-        exports = module.exports = RG.System;
-    }
-    exports.RG = RG;
-    exports.RG.System = RG.System;
+if (typeof module !== "undefined" && typeof exports !== "undefined") {
+    GS.exportSource(module, exports, ["RG", "System"], [RG, RG.System]);
 }
 else {
-    window.RG.System = RG.System;
+    GS.exportSource(undefined, undefined, ["RG", "System"], [RG, RG.System]);
 }
-
-
-// vim: set foldmethod=marker

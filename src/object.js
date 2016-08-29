@@ -205,15 +205,9 @@ RG.Object.Ownable = function(owner) {
 };
 RG.extend2(RG.Object.Ownable, RG.Object.Typed);
 
-// Exports for node/vars for window
-if (typeof exports !== 'undefined' ) {
-    if( typeof RG.Object !== 'undefined' && module.exports ) {
-        exports = module.exports = RG.Object;
-    }
-    exports.RG = RG;
-    exports.RG.Object = RG.Object;
+if (typeof module !== "undefined" && typeof exports !== "undefined") {
+    GS.exportSource(module, exports, ["RG", "Object"], [RG, RG.Object]);
 }
 else {
-    window.RG.Object = RG.Object;
+    GS.exportSource(undefined, undefined, ["RG", "Object"], [RG, RG.Object]);
 }
-
