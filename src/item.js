@@ -49,7 +49,7 @@ RG.Item.Base = function(name) {
 };
 RG.Item.Base.prototype.toString = function() {
     var txt = this.getName() + ", " + this.getType() + ", ";
-    txt += this.getWeight() + "kg";
+    txt += this.getWeight() * this.count + "kg";
     if (this.hasOwnProperty("count")) {
         txt = this.count + " x " + txt;
     }
@@ -83,7 +83,7 @@ RG.Item.Food = function(name) {
     RG.Item.Base.call(this, name);
     this.setType("food");
 
-    var _energy = 0;
+    var _energy = 0; // per 0.1 kg
 
     this.setEnergy = function(energy) {_energy = energy;};
     this.getEnergy = function() {return _energy;};
@@ -93,7 +93,8 @@ RG.Item.Food = function(name) {
         if (obj.hasOwnProperty("target")) {
             var target = obj.target;
             if (target.has("Hunger")) {
-                target.get("Hunger").addEnergy(_energy);
+                var totalEnergy = Math.round(this.getWeight() * _energy);
+                target.get("Hunger").addEnergy(totalEnergy);
                 if (this.count === 1) {
                     var msg = {item: this};
                     RG.POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
@@ -293,7 +294,7 @@ RG.Item.Container = function(owner) {
     this.getWeight = function() {
         var sum = 0;
         for (var i = 0; i < _items.length; i++) {
-            sum += _items[i].getWeight();
+            sum += _items[i].getWeight() * _items[i].count;
         }
         return sum;
     };
