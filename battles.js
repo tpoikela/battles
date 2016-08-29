@@ -100,6 +100,7 @@ RG.RogueEquipment = function(actor) {
 
     var _slots = {
         hand: new RG.RogueEquipSlot(this, "hand"),
+        shield: new RG.RogueEquipSlot(this, "shield"),
         head: new RG.RogueEquipSlot(this, "head"),
         chest: new RG.RogueEquipSlot(this, "chest"),
         neck: new RG.RogueEquipSlot(this, "neck"),
@@ -110,6 +111,14 @@ RG.RogueEquipment = function(actor) {
 
     var _hasSlot = function(slotType) {
         return _slots.hasOwnProperty(slotType);
+    };
+
+    this.getWeight = function() {
+        var total = 0;
+        for (var i = 0; i < _equipped.length; i++) {
+            total += _equipped[i].getWeight() * _equipped[i].count;
+        }
+        return total;
     };
 
     this.getSlotTypes = function() {return Object.keys(_slots);};
@@ -292,6 +301,15 @@ RG.RogueInvAndEquip = function(actor) {
         return false;
     };
 
+    /** Returns true if given item can be carried.*/
+    this.canCarryItem = function(item) {
+        var eqWeight = _eq.getWeight();
+        var invWeight = _eq.getWeight();
+        var newWeight = eqWeight + invWeight + item.getWeight();
+        if (newWeight > _actor.getMaxWeight()) return false;
+        return true;
+    };
+
     /** Drops selected item to the actor's current location.*/
     this.dropItem = function(item) {
         if (_inv.removeItem(item)) {
@@ -412,7 +430,9 @@ RG.RogueActor = function(name) { // {{{2
     var _isPlayer = false;
     var _fovRange = RG.FOV_RANGE;
     var _name = name;
+
     var _invEq = new RG.RogueInvAndEquip(this);
+    var _maxWeight = 10.0;
 
     this.add("Action", new RG.Component.Action());
     this.add("Experience", new RG.Component.Experience());
@@ -428,6 +448,12 @@ RG.RogueActor = function(name) { // {{{2
         if (isPlayer) {
             _brain = new RG.Brain.Player(this);
         }
+    };
+
+    /** Returns carrying capacity of the actor.*/
+    this.getMaxWeight = function() {
+        return 2*this.get("Stats").getStrength() + _invEq.getEquipment().getStrength() +
+            _maxWeight;
     };
 
     this.addEnemy = function(actor) {_brain.addEnemy(actor);};
