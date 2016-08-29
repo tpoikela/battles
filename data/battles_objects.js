@@ -193,31 +193,64 @@ var RGObjects = {
             name: "Saber", base: "MeleeWeaponBase",
             material: "iron",
             damage: "2d4 + 1", attack: 2, attack: 1,
-            weight: 0.6, value: 20,
+            weight: 0.6, value: 30,
         },
         {
             name: "Spear", base: "MeleeWeaponBase",
             damage: "1d8", attack: 1, defense: 3,
-            weight: 1.2, value: 30,
+            weight: 1.2, value: 50,
         },
         {
             name: "Tomahawk", base: "MeleeWeaponBase",
             material: ["wood", "stone", "leather"],
             damage: "1d9 + 2", attack: 2, defense: 1,
-            weight: 0.7, value: 40,
+            weight: 0.7, value: 60,
         },
-        // ICE WEAPONS
+
+        // ICE WEAPONS (not easy to attack, do lots of damage)
         {
             name: "IceWeaponBase", base: "MeleeWeaponBase",
             className: "cell-item-ice",
-            material: "permaice", dontCreate: true,
+            material: "permaice", dontCreate: true, 
+            attack: 1,
+        },
+        {
+            name: "Permaice Dagger", base: "IceWeaponBase",
+            damage: "1d4 + 6", defense: 3, weight: 0.6, value: 100,
+        },
+        {
+            name: "Permaice short sword", base: "IceWeaponBase",
+            damage: "2d5 + 6", defense: 6, weight: 1.5, value: 300
+        },
+        {
+            name: "Permaice long sword", base: "IceWeaponBase",
+            damage: "4d5 + 6", defense: 8, weight: 3.0, value: 500
+        },
+        {
+            name: "Permaice katana", base: "IceWeaponBase",
+            damage: "10d3 + 6", defense: 10, weight: 4.0, value: 750
         },
 
         // RUBY GLASS WEAPONS
         {
-            name: "RubyGlassWeaponBase", base: "MeleeWeaponBase",
+            name: "RubyWeaponBase", base: "MeleeWeaponBase",
             className: "cell-item-ruby-glass",
-            material: "permaice", dontCreate: true,
+            material: "ruby glass", dontCreate: true,
+        },
+        {
+            name: "Ruby glass dagger", base: "RubyWeaponBase",
+            damage: "2d5 + 2",
+            attack: 4, defense: 1, weight: 0.1, value: 100,
+        },
+        {
+            name: "Ruby glass short sword", base: "RubyWeaponBase",
+            damage: "3d5 + 2",
+            attack: 3, defense: 2, weight: 0.2, value: 200
+        },
+        {
+            name: "Ruby glass sword", base: "RubyWeaponBase",
+            damage: "4d5 + 2",
+            attack: 5, defense: 2, weight: 0.3, value: 350,
         },
 
         // MAGIC WEAPONS
@@ -228,23 +261,23 @@ var RGObjects = {
         },
         {
             name: "Magic dagger", base: "MagicWeaponBase",
-            damage: "2d5 + 3",
-            attack: 2, defense: 1, weight: 0.7, value: 100,
+            damage: "2d5 + 2",
+            attack: 2, defense: 1, weight: 0.2, value: 100,
         },
         {
             name: "Magic short sword", base: "MagicWeaponBase",
-            damage: "3d5 + 3",
-            attack: 3, defense: 2, weight: 0.7, value: 300
+            damage: "3d5 + 2",
+            attack: 3, defense: 2, weight: 0.5, value: 300
         },
         {
             name: "Magic sword", base: "MagicWeaponBase",
-            damage: "5d5 + 3",
+            damage: "5d5 + 2",
             attack: 5, defense: 2, weight: 1.0, value: 500
         },
         {
             name: "Magic runesword", base: "MagicWeaponBase",
-            damage: "3d10 + 1",
-            attack: 5, defense: 5, weight: 0.5, value: 750,
+            damage: "3d10 + 2",
+            attack: 5, defense: 5, weight: 0.8, value: 750,
         },
         {
             name: "Wintersbane", base: "MagicWeaponBase",
@@ -279,6 +312,11 @@ var RGObjects = {
             weight: 2.0, defense: 2, protection: 2,
             armourType: "chest", value: 30,
         },
+        {
+            name: "Leather shield", base: "LeatherArmourBase",
+            weight: 1.0, defense: 2, attack: -1,
+            armourType: "shield", value: 15,
+        },
         // ARMOUR IRON
         {
             name: "IronArmourBase", base: "ArmourBase", dontCreate: true,
@@ -291,7 +329,7 @@ var RGObjects = {
         },
         {
             name: "Iron collar", base: "IronArmourBase",
-            weight: 0.6, protection: 2,
+            weight: 0.4, protection: 2,
             armourType: "neck", value: 45,
         },
         {
@@ -304,6 +342,11 @@ var RGObjects = {
             weight: 4.0, defense: 1, protection: 3,
             armourType: "chest", value: 90,
         },
+        {
+            name: "Iron shield", base: "IronArmourBase",
+            weight: 2.0, defense: 3, attack: -2,
+            armourType: "shield", value: 40,
+        },
 
         // ARMOUR ICE
         {
@@ -311,9 +354,60 @@ var RGObjects = {
             material: "permaice", className: "cell-item-ice",
         },
         {
-            name: "Ice helmet", base: "IceArmourBase",
-            weight: 1.0, defense: 1, protection: 3,
+            name: "Permaice helmet", base: "IceArmourBase",
+            weight: 1.8, defense: 0, protection: 3,
             armourType: "head", value: 200,
+        },
+        {
+            name: "Permaice collar", base: "IceArmourBase",
+            weight: 1.8, defense: 0, protection: 4,
+            armourType: "neck", value: 200,
+        },
+        {
+            name: "Permaice boots", base: "IceArmourBase",
+            weight: 3.6, defense: 0, protection: 3,
+            armourType: "feet", value: 200,
+        },
+        {
+            name: "Permaice armour", base: "IceArmourBase",
+            weight: 12.0, defense: 0, protection: 8,
+            armourType: "chest", value: 400,
+        },
+        {
+            name: "Permaice shield", base: "IceArmourBase",
+            weight: 6.0, defense: 4, attack: -3, protection: 2,
+            armourType: "shield", value: 120,
+        },
+
+        // ARMOUR RUBY GLASS (light, flexible)
+        {
+            name: "RubyArmourBase", base: "ArmourBase", dontCreate: true,
+            material: "ruby glass", className: "cell-item-ruby-glass",
+        },
+        {
+            name: "Ruby glass helmet", base: "RubyArmourBase",
+            weight: 0.1, defense: 2, protection: 2,
+            armourType: "head", value: 100,
+        },
+        {
+            name: "Ruby glass collar", base: "RubyArmourBase",
+            weight: 0.1, defense: 2, protection: 2,
+            armourType: "neck", value: 100,
+        },
+        {
+            name: "Ruby glass boots", base: "RubyArmourBase",
+            weight: 0.2, defense: 3, protection: 2,
+            armourType: "feet", value: 200,
+        },
+        {
+            name: "Ruby glass armour", base: "RubyArmourBase",
+            weight: 1.0, defense: 6, protection: 6,
+            armourType: "chest", value: 500,
+        },
+        {
+            name: "Ruby glass shield", base: "RubyArmourBase",
+            weight: 0.4, defense: 5,
+            armourType: "shield", value: 250,
         },
 
         // ARMOUR MAGIC
@@ -323,23 +417,28 @@ var RGObjects = {
         },
         {
             name: "Magic helmet", base: "MagicArmourBase",
-            weight: 0.3, defense: 3, protection: 4,
+            weight: 0.6, defense: 3, protection: 4,
             armourType: "head", value: 200,
         },
         {
             name: "Magic collar", base: "MagicArmourBase",
-            weight: 0.1, defense: 3, protection: 2,
+            weight: 0.4, defense: 3, protection: 2,
             armourType: "neck", value: 200,
         },
         {
             name: "Magic boots", base: "MagicArmourBase",
-            weight: 0.5, defense: 3, protection: 2,
+            weight: 1.2, defense: 3, protection: 2,
             armourType: "feet", value: 200,
         },
         {
             name: "Magic armour", base: "MagicArmourBase",
-            weight: 2.0, defense: 10, protection: 10,
+            weight: 4.0, defense: 10, protection: 10,
             armourType: "chest", value: 500,
+        },
+        {
+            name: "Magic shield", base: "MagicArmourBase",
+            weight: 2.0, defense: 5, attack: -2,
+            armourType: "shield", value: 200,
         },
 
         // MISSILES
@@ -358,7 +457,7 @@ var RGObjects = {
         },
         {
             name: "Magic Shuriken", base: "MissileBase",
-            attack: 3,
+            attack: 3, className: "cell-item-magic", material: "forium",
             damage: "3d4 + 2", range: 5, value: 100, weight: 0.1
         },
         {
@@ -386,6 +485,12 @@ var RGObjects = {
         },
         {
             name: "Corn", base: "FoodBase", energy: 160, value: 3,
+        },
+        {
+            name: "Beef", base: "FoodBase", energy: 100, value: 20, weight: 0.4
+        },
+        {
+            name: "Dried fruit", base: "FoodBase", energy: 350, value: 50,
         },
         {
             name: "Habanero", base: "FoodBase", energy: 10, value: 50,
