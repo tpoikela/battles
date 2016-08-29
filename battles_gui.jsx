@@ -905,6 +905,13 @@ var GameStats = React.createClass({
             stats.E = player.get("Hunger").getEnergy();
         }
 
+        var moveStatus = "Walking";
+        var moveClassName = "text-info";
+        if (player.getBrain().isRunModeEnabled()) {
+            moveStatus = "Running";
+            moveClassName = "text-danger";
+        }
+
         var statsHTML = [];
         var index = 0;
         for (var key in stats) {
@@ -916,6 +923,7 @@ var GameStats = React.createClass({
         return (
             <div className="game-stats">
                 <ul className="game-stats-list">{statsHTML}</ul>
+                <p className={moveClassName}>{moveStatus}</p>
                 <button id="inventory-button" className="btn btn-info" data-toggle="modal" data-target="#inventoryModal">Inventory</button>
                 <button id="map-char-button" className="btn btn-info" onClick={this.changeMapView}>Map View</button>
             </div>
