@@ -8,10 +8,14 @@ The unit tests are being run on Node V4.2.1, using mocha and chai.expect mostly.
 ## How to play
 
 Clone it:
+```code
     git clone https://github.com/tpoikela/battles.git
+```
 
 Compile .scss to .css:
+```code
     sass style.scss style.css
+```
 
 Open 'index.html' with your favourite browser. The game should start with a
 pop-up screen.
