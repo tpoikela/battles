@@ -130,7 +130,7 @@ RG.Component.Hunger = function(energy) {
     };
 
     this.isStarving = function() {
-        return _currEnergy < 100;
+        return _currEnergy === 0;
     };
 
     this.isFull = function() {return _currEnergy === _maxEnergy;};
