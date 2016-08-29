@@ -26,6 +26,7 @@ RG.Brain.Player = function(actor) { // {{{2
 
     var _confirmCallback = null;
     var _wantConfirm = false;
+    var _confirmEnergy = 1;
 
     this.decideNextAction = function(obj) {
         this.energy = 1;
@@ -38,7 +39,10 @@ RG.Brain.Player = function(actor) { // {{{2
         if (_wantConfirm && _confirmCallback !== null) {
             // Want y/n answer
             _wantConfirm = false;
-            if (code === ROT.VK_Y) return _confirmCallback;
+            if (code === ROT.VK_Y) {
+                this.energy = _confirmEnergy;
+                return _confirmCallback;
+            }
         }
 
         // Invoke GUI callback with given code
@@ -97,6 +101,7 @@ RG.Brain.Player = function(actor) { // {{{2
         if (type === "MOVE") {
             if (level.getMap().hasXY(x, y)) {
                 if (level.getMap().isPassable(x, y)) {
+                    this.energy = 2;
                     return function() {
                         var movComp = new RG.Component.Movement(x, y, level);
                         _actor.add("Movement", movComp);
@@ -109,8 +114,12 @@ RG.Brain.Player = function(actor) { // {{{2
                         _actor.add("Attack", attackComp);
                     };
 
-                    if (target.isEnemy(_actor)) return callback;
+                    if (target.isEnemy(_actor)) {
+                        this.energy = 3;
+                        return callback;
+                    }
                     else {
+                        _confirmEnergy = 3;
                         _wantConfirm = true;
                         _confirmCallback = callback;
                         RG.gameMsg("Press 'y' to attack non-hostile actor.");
