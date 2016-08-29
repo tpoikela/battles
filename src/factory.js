@@ -493,9 +493,10 @@ RG.FCCGame = function() {
         level.addItem(spirit, 2, 1);
         //spirit.get("Action").enable();
 
-        //var numFree = level.getMap().getFree().length;
+        var numFree = level.getMap().getFree().length;
         //var monstersPerLevel = Math.round(numFree / sqrPerMonster);
-        //var itemsPerLevel = Math.round(numFree / sqrPerItem);
+        var itemsPerLevel = Math.round(numFree / sqrPerItem);
+        this.addNRandItems(_parser, itemsPerLevel, level, 2000);
         game.addPlayer(player);
         //player.setFOVRange(50);
         return game;
