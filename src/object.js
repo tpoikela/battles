@@ -205,7 +205,10 @@ RG.Object.Ownable = function(owner) {
 };
 RG.extend2(RG.Object.Ownable, RG.Object.Typed);
 
+GS.exportSource(module, exports, ["RG", "Object"], [RG, RG.Object]);
+
 // Exports for node/vars for window
+/*
 if (typeof exports !== 'undefined' ) {
     if( typeof RG.Object !== 'undefined' && module.exports ) {
         exports = module.exports = RG.Object;
@@ -216,4 +219,4 @@ if (typeof exports !== 'undefined' ) {
 else {
     window.RG.Object = RG.Object;
 }
-
+*/
