@@ -111,13 +111,15 @@ RG.Factory.Base = function() { // {{{2
     };
 
     this.createFloorCell = function(x, y) {
-        var cell = new RG.Map.Cell(x, y, new RG.RogueElement("floor"));
-        return cell;
+        return new RG.Map.Cell(x, y, new RG.RogueElement("floor"));
     };
 
     this.createWallCell = function(x, y) {
-        var cell = new RG.Map.Cell(x, y, new RG.RogueElement("wall"));
-        return cell;
+        return new RG.Map.Cell(x, y, new RG.RogueElement("wall"));
+    };
+
+    this.createSnowCell = function(x, y) {
+        return new RG.Map.Cell(x, y, new RG.RogueElement("snow"));
     };
 
     /** Factory method for creating levels.*/
@@ -310,12 +312,19 @@ RG.FCCGame = function() {
         RG.POOL.listenEvent(RG.EVT_ACTOR_CREATED, this);
         RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
 
+        this.addSnow = function(level, ratio) {
+            var map = level.getMap();
+            RG.Map.Generator.prototype.addRandomSnow(map, 0.2);
+        };
+
         /** Called after all winter demons have been slain.*/
         this.allDemonsKilled = function() {
             RG.gameMsg("Humans have vanquished all demons! But it's not over..");
 
-            var windsEvent = new RG.RogueOneShotEvent( function(){}, 20*100,
-                "Winds are blowing stronger. You feel it's getting colder");
+            var map = _level.getMap();
+            var windsEvent = new RG.RogueOneShotEvent( 
+                this.addSnow.bind(this, _level, 0.1),
+                20*100, "Winds are blowing stronger. You feel it's getting colder");
             _game.addEvent(windsEvent);
             var stormEvent = new RG.RogueOneShotEvent( function(){}, 35 * 100,
                 "You see an eye of the storm approaching. Brace yourself now..");
