@@ -35,68 +35,49 @@ GS.getSource = getSource;
 
 /** At the moment, a bit of a hack. Max. names hardcoded to 3 hierarchicals, ie.
  * A.B.C will still work, but A.B.C.D is too much.*/
-var exportSource = function(keys) {
+var exportSource = function(module, exports, keys, objs) {
 
-    console.log("RG" + RG);
+    var nLast = objs.length - 1;
+    var lastObj = objs[nLast];
 
-    var evalVar = function (keys) {
-        var varName = "";
-        for (var i = 0; i < keys.length; i++) {
-            varName += keys[i] + ".";
-        }
-
-        varName = varName.replace(/\.$/, "");
-        return eval(varName);
-    };
-
-    var assignToExports = function(keys) {
+    var assignToExports = function(keys, objs) {
         var fullVar = "";
         for (var i = 0; i < keys.length; i++) {
             fullVar += keys[i];
-            console.log("Full var is now " + fullVar);
-            eval("exports." + fullVar) = eval(fullVar);
-            fullVar += ".";
+            if (/[a-zA-Z_0-9.]+/.test(fullVar)) {
+                var cmd = "exports." + fullVar + " = objs[i]";
+                console.log("Full var is now " + fullVar);
+                console.log("Evalling: " + cmd);
+                eval(cmd);
+                fullVar += ".";
+            }
+            else {
+                throw new Error("Illegal var name. Must contain only [a-zA-Z0-9_].");
+            }
         }
     };
 
-
-    var evaledVar = evalVar(keys);
     if (typeof exports !== 'undefined' ) {
-        if (keys.length === 1) {
-            if (typeof evaledVar !== 'undefined' && module.exports ) {
-                exports = module.exports = evaledVar;
-            }
-            assignToExports(keys);
+        if (typeof lastObj !== 'undefined' && module.exports ) {
+            exports = module.exports = lastObj;
         }
-        else if (keys.length === 2) {
-            if (typeof evaledVar !== 'undefined' && module.exports ) {
-                exports = module.exports = evaledVar;
-            }
-            assignToExports(keys);
-
-        }
-        else if (keys.length === 3) {
-            if (typeof evaledVar !== 'undefined' && module.exports ) {
-                exports = module.exports = evaledVar;
-            }
-            assignToExports(keys);
-        }
+        assignToExports(keys, objs);
     }
     else {
         if (keys.length == 1) {
-            window[keys[0]] = evaledVar;
+            window[keys[0]] = lastObj;
         }
         else if (keys.length == 2) {
-            window[keys[0]][keys[1]] = evaledVar;
+            window[keys[0]][keys[1]] = lastObj;
         }
         else if (keys.length == 3) {
-            window[keys[0]][keys[1]][keys[2]] = evaledVar;
+            window[keys[0]][keys[1]][keys[2]] = lastObj;
         }
         else {
             throw new Error("Too many names. Only up to 3 are supported.");
         }
     }
-}
+};
 
 GS.exportSource = exportSource;
 
@@ -127,5 +108,5 @@ if (typeof window !== 'undefined') {
         };
     }
 
-};
+}
 
