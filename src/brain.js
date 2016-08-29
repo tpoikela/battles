@@ -18,6 +18,8 @@ RG.Brain.Player = function(actor) { // {{{2
 
     var _guiCallbacks = {}; // For attaching GUI callbacks
 
+    /** For given code, adds a GUI callback. When this keycode is given, a GUI
+     * callback is called instead. */
     this.addGUICallback = function(code, callback) {
         _guiCallbacks[code] = callback;
     };
@@ -39,6 +41,7 @@ RG.Brain.Player = function(actor) { // {{{2
     var _runModeEnabled = false;
     var _baseSpeed = _actor.get("Stats").getSpeed();
 
+    /** Restores the base speed after run-mode.*/
     var _restoreBaseSpeed = function() {
         _runModeEnabled = false;
         this.energy = 1;
@@ -49,7 +52,11 @@ RG.Brain.Player = function(actor) { // {{{2
 
     this.decideNextAction = function(obj) {
         this.energy = 1;
+
+        // Workaround at the moment, because missile attacks are GUI-driven
         if (obj.hasOwnProperty("cmd")) {
+            _restoreBaseSpeed();
+            if (obj.cmd === "missile") this.energy = 2;
             return function() {};
         }
 
