@@ -433,6 +433,8 @@ RG.RogueActor = function(name) { // {{{2
     this.addEnemy = function(actor) {_brain.addEnemy(actor);};
     this.isEnemy = function(actor) {return _brain.getMemory().isEnemy(actor);};
 
+    this.getBrain = function() {return _brain;};
+
     this.setBrain = function(brain) {
         _brain = brain;
         _brain.setActor(this);
