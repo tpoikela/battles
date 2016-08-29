@@ -109,8 +109,12 @@ var RoguelikeTop = React.createClass({
 
     createNewGame: function() {
         var fccGame = new RG.FCCGame();
+        if (this.game !== null) {
+            delete this.game;
+            RG.POOL = new RG.EventPool();
+            RG.FACT = new RG.Factory.Base();
+        }
         this.game = fccGame.createFCCGame(this.gameConf);
-        RG.game = this.game;
         this.game.doGUICommand = this.doGUICommand;
         this.game.isGUICommand = this.isGUICommand;
         var player = this.game.getPlayer();
@@ -421,15 +425,15 @@ var GameStartScreen = React.createClass({
                                 </p>
 
                                 <p>
-                                    From all heroes, you have been chosen to
-                                    defeat the Summoner lurking in his Fortress
-                                    of Ice, under the pale light of the
-                                    wintermoon. You must fight freezing battles in
+                                    You have come a long way from your homelands seeking
+                                    the thrill of the adventure. Now, you must fight freezing 
+                                    battles in
                                     the north against hordes of winter demons
                                     and blizzard beasts. Will you bring back the peace
-                                    to the grim and frostbitten kingdom. Or will you 
+                                    to the grim and frostbitten kingdoms. Or will you 
                                     bring the Winter of Ages upon its lands, reigning 
-                                    your kingdom cold?
+                                    your kingdom cold for all eternity? Or will you perish 
+                                    nameless and forgotten on the icy wastes?
                                 </p>
 
                         </div>
@@ -865,12 +869,19 @@ var GameStats = React.createClass({
     },
 
     render: function() {
+
         var player = this.props.player;
+        var eq = player.getInvEq().getEquipment();
         var dungeonLevel = player.getLevel().getLevelNumber();
 
         var eqAtt = player.getEquipAttack();
         var eqDef = player.getEquipDefense();
         var eqProt = player.getEquipProtection();
+
+        var eqStr = eq.getStrength();
+        var eqAgi = eq.getAgility();
+        var eqAcc = eq.getAccuracy();
+        var eqWil = eq.getWillpower();
 
         var stats = {
             HP: player.get("Health").getHP() + "/" + player.get("Health").getMaxHP(),
@@ -879,10 +890,10 @@ var GameStats = React.createClass({
             Def: player.get("Combat").getDefense() + eqDef,
             Pro: player.get("Combat").getProtection() + eqProt,
 
-            Str: player.get("Stats").getStrength(),
-            Agi: player.get("Stats").getAgility(),
-            Acc: player.get("Stats").getAccuracy(),
-            Wil: player.get("Stats").getWillpower(),
+            Str: player.get("Stats").getStrength() + eqStr,
+            Agi: player.get("Stats").getAgility() + eqAgi,
+            Acc: player.get("Stats").getAccuracy() + eqAcc,
+            Wil: player.get("Stats").getWillpower() + eqWil,
 
             Speed: player.get("Stats").getSpeed(),
             XP: player.get("Experience").getExp(),
@@ -904,7 +915,7 @@ var GameStats = React.createClass({
 
         return (
             <div className="game-stats">
-                <ul>{statsHTML}</ul>
+                <ul className="game-stats-list">{statsHTML}</ul>
                 <button id="inventory-button" className="btn btn-info" data-toggle="modal" data-target="#inventoryModal">Inventory</button>
                 <button id="map-char-button" className="btn btn-info" onClick={this.changeMapView}>Map View</button>
             </div>
