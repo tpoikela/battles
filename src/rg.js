@@ -54,15 +54,10 @@ var RG = { // {{{2
 
         if (propObj.hasOwnProperty("getName")) {
             var name = propObj.getName();
-            //console.log("getPropClassOrChar XXX Name is |" + name + "|");
             if (styles.hasOwnProperty(name)) {
                 return styles[name];
             }
-            //console.log("getPropClassOrChar No name found for obj type " + objType);
-            //for (var n in styles) console.log("\t\t===> " + n);
         }
-
-        //console.log("getPropClassOrChar AFTER No name found for obj type " + objType);
 
         if (styles.hasOwnProperty(objType)) {
             return styles[objType];
@@ -90,26 +85,26 @@ var RG = { // {{{2
         return this.charStyles.elements[baseType];
     },
 
-    /** Returns shortest path between two points.*/
+    /** Returns shortest path (array of x,y pairs) between two points.*/
     getShortestPath: function(x0, y0, x1, y1) {
         var coords = [];
-        var result = 0;
         var passableCallback = function(x, y) {return true;};
         var finder = new ROT.Path.Dijkstra(x1, y1, passableCallback);
         finder.compute(x0, y0, function(x, y) {
             coords.push({x: x, y: y});
-            //console.log("PATH: " + x + ", " + y);
         });
-        //console.log("Path is " + coords);
         return coords;
     },
 
-    /** Returns shortest distance between two points.*/
+    /** Returns shortest distance (in cells) between two points.*/
     shortestDist: function(x0, y0, x1, y1) {
         var coords = this.getShortestPath(x0, y0, x1, y1);
         return coords.length - 1; // Subtract one because starting cell included
     },
 
+    /** Adds a CSS class for given prop and type. For example, "actors", "wolf",
+     * "cell-actor-wolf" uses CSS class .cell-actor-wolf to style cells with
+     * wolves in them. */
     addCellStyle: function(prop, type, className) {
         if (this.cellStyles.hasOwnProperty(prop)) {
             this.cellStyles[prop][type] = className;
@@ -119,9 +114,10 @@ var RG = { // {{{2
         }
     },
 
+    /** Adds a char to render for given prop and type. Example: "actors",
+     * "wolf", "w" renders 'w' for cells containing wolves.*/
     addCharStyle: function(prop, type, charName) {
         if (this.charStyles.hasOwnProperty(prop)) {
-            //console.log("Adding char for [" + prop + "][" + type + "] =" + charName);
             this.charStyles[prop][type] = charName;
         }
         else {
@@ -129,13 +125,14 @@ var RG = { // {{{2
         }
     },
 
-    // These are used to select characters for map cells.
+    // These are used to select rendered characters for map cells.
     charStyles: {
         elements: {
             "default": ".",
             "wall": "#",
             "ice wall": "#",
             "floor": ".",
+            "snow": ".",
             "stairsUp": "<",
             "stairsDown": ">",
             "water": "~",
@@ -156,13 +153,14 @@ var RG = { // {{{2
         traps: {},
     },
 
-    // These are used to select background and text color for map cells
+    // These are used to select the CSS class for map cells.
     cellStyles: {
         elements: {
             "default": "cell-element-default",
             wall: "cell-element-wall",
             floor: "cell-element-floor",
             "ice wall": "cell-element-ice-wall",
+            snow: "cell-element-snow",
         },
         actors: {
             "default": "cell-actor-default",
