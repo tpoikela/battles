@@ -517,7 +517,7 @@ RG.RogueElement = function(elemType) { // {{{2
         default: _allowMove = true; break;
     }
 
-    this.canMove = function() {
+    this.isPassable = function() {
         return _allowMove;
     };
 
