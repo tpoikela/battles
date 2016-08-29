@@ -5,6 +5,9 @@ roguelike=/home/tpoikela/git/battles/ /home/tpoikela/git/battles/ filter="*.js *
  index.html
  style.scss
  README.md
+ data=data {
+  battles_objects.js
+ }
  src=src {
   brain.js
   component.js
