@@ -31,7 +31,7 @@ RG.Map.Cell = function(x, y, elem) { // {{{2
 
     /** Returns true if it's possible to move to this cell.*/
     this.isFree = function() {
-        return _baseElem.getType() !== "wall" &&
+        return _baseElem.isPassable() &&
             !this.hasProp("actors");
     };
 
@@ -347,6 +347,7 @@ RG.Map.Generator = function() { // {{{2
         return map;
     };
 
+
     /** Creates "ruins" type level with open outer edges and inner fortress with
      * some tunnels. */
     this.createRuins = function(cols, rows) {
@@ -488,6 +489,18 @@ RG.Map.Generator = function() { // {{{2
     };
 
 }; // }}} Map.Generator
+
+/** Decorates given map with snow.*/
+RG.Map.Generator.prototype.addRandomSnow = function(map, ratio) {
+    var freeCells = map.getFree();
+    for (var i = 0; i < freeCells.length; i++) {
+        var addSnow = Math.random();
+        if (addSnow <= ratio) {
+            freeCells[i].setBaseElem(new RG.RogueElement("snow"));
+        }
+    }
+};
+
 
 /** Object for the game levels. Contains map, actors and items.  */
 RG.Map.Level = function(cols, rows) { // {{{2
