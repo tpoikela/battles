@@ -24,6 +24,14 @@ RG.Brain.Player = function(actor) { // {{{2
 
     this.energy = 1; // Consumed energy per action
 
+    var _energyPerAction = {
+        REST: 1,
+        PICKUP: 1,
+        MOVE: 2,
+        ATTACK: 3,
+        RUN: 4,
+    };
+
     var _confirmCallback = null;
     var _wantConfirm = false;
     var _confirmEnergy = 1;
@@ -32,9 +40,12 @@ RG.Brain.Player = function(actor) { // {{{2
     var _baseSpeed = _actor.get("Stats").getSpeed();
 
     var _restoreBaseSpeed = function() {
+        _runModeEnabled = false;
         this.energy = 1;
         _actor.get("Stats").setSpeed(_baseSpeed);
     };
+
+    this.isRunModeEnabled = function() {return _runModeEnabled;};
 
     this.decideNextAction = function(obj) {
         this.energy = 1;
@@ -43,7 +54,6 @@ RG.Brain.Player = function(actor) { // {{{2
         }
 
         var code = obj.code;
-        var level = _actor.getLevel();
         if (_wantConfirm && _confirmCallback !== null) {
             // Want y/n answer
             _wantConfirm = false;
@@ -65,6 +75,7 @@ RG.Brain.Player = function(actor) { // {{{2
                 return null;
             }
             else {
+                _runModeEnabled = true;
                 this.energy = 4;
                 _baseSpeed = _actor.get("Stats").getSpeed();
                 var newSpeed = Math.floor( 1.5 * _baseSpeed);
@@ -74,11 +85,13 @@ RG.Brain.Player = function(actor) { // {{{2
         }
 
         // Need existing position
+        var level = _actor.getLevel();
         var x = _actor.getX();
         var y = _actor.getY();
         var xOld = x;
         var yOld = y;
-        var currCell = level.getMap().getCell(x, y);
+        var currMap = level.getMap();
+        var currCell = currMap.getCell(x, y);
 
         var type = "NULL";
         if (code === ROT.VK_D) { ++x; type = "MOVE";}
@@ -119,28 +132,28 @@ RG.Brain.Player = function(actor) { // {{{2
         }
 
         if (type === "MOVE") {
-            if (level.getMap().hasXY(x, y)) {
-                if (level.getMap().isPassable(x, y)) {
-                    this.energy = 2;
+            if (currMap.hasXY(x, y)) {
+                if (currMap.isPassable(x, y)) {
+                    this.energy = _energyPerAction.MOVE;
                     return function() {
                         var movComp = new RG.Component.Movement(x, y, level);
                         _actor.add("Movement", movComp);
                     };
                 }
-                else if (level.getMap().getCell(x,y).hasProp("actors")) {
+                else if (currMap.getCell(x,y).hasProp("actors")) {
                     _restoreBaseSpeed();
-                    var target = level.getMap().getCell(x, y).getProp("actors")[0];
+                    var target = currMap.getCell(x, y).getProp("actors")[0];
                     var callback = function() {
                         var attackComp = new RG.Component.Attack(target);
                         _actor.add("Attack", attackComp);
                     };
 
                     if (target.isEnemy(_actor)) {
-                        this.energy = 3;
+                        this.energy = _energyPerAction.ATTACK;
                         return callback;
                     }
                     else {
-                        _confirmEnergy = 3;
+                        _confirmEnergy = _energyPerAction.ATTACK;
                         _wantConfirm = true;
                         _confirmCallback = callback;
                         RG.gameMsg("Press 'y' to attack non-hostile actor.");
@@ -155,6 +168,7 @@ RG.Brain.Player = function(actor) { // {{{2
             }
         }
         else if (type === "REST") {
+            this.energy = _energyPerAction.REST;
             return function() {};
         }
 
