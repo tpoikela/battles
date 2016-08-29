@@ -561,16 +561,10 @@ RG.Brain.Spirit = function(actor) {
 RG.extend2(RG.Brain.Spirit, RG.Brain.Rogue);
 
 // }}} BRAINS
-//
 
-// Exports for node/vars for window
-if (typeof exports !== 'undefined' ) {
-    if( typeof RG.Brain !== 'undefined' && module.exports ) {
-        exports = module.exports = RG.Brain;
-    }
-    exports.RG = RG;
-    exports.RG.Brain = RG.Brain;
+if (typeof module !== "undefined" && typeof exports !== "undefined") {
+    GS.exportSource(module, exports, ["RG", "Brain"], [RG, RG.Brain]);
 }
 else {
-    window.RG.Brain = RG.Brain;
+    GS.exportSource(undefined, undefined, ["RG", "Brain"], [RG, RG.Brain]);
 }

@@ -350,7 +350,7 @@ RG.Item.Container = function(owner) {
 
         if (i === -1) {
             RG.err("ItemContainer", "_removeItem", 
-                "Negative index found. Horribly wrong.") 
+                "Negative index found. Horribly wrong.");
             return false;
         }
 
@@ -456,7 +456,7 @@ RG.Item.Spirit = function(name) {
 
 RG.Item.Spirit.prototype.toString = function() {
     var txt = this.getName() + ", " + this.getType() + ", ";
-    txt = this.get("Stats").toString();
+    txt += this.get("Stats").toString();
     return txt;
 };
 
@@ -478,15 +478,9 @@ RG.Item.Spirit.prototype.clone = function() {
 
 RG.extend2(RG.Item.Spirit, RG.Item.Base);
 
-// Exports for node/vars for window
-if (typeof exports !== 'undefined' ) {
-    if( typeof RG.Item !== 'undefined' && module.exports ) {
-        exports = module.exports = RG.Item;
-    }
-    exports.RG = RG;
-    exports.RG.Item = RG.Item;
+if (typeof module !== "undefined" && typeof exports !== "undefined") {
+    GS.exportSource(module, exports, ["RG", "Item"], [RG, RG.Item]);
 }
 else {
-    window.RG.Item = RG.Item;
+    GS.exportSource(undefined, undefined, ["RG", "Item"], [RG, RG.Item]);
 }
-

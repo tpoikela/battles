@@ -5,10 +5,7 @@ RG.System = GS.getSource(["RG", "System"], "./src/system.js");
 RG.Map = GS.getSource(["RG", "Map"], "./src/map.js");
 
 /** Top-level object for the game.  */
-RG.Game = function() { // {{{2
-
-    var _cols = RG.COLS;
-    var _rows = RG.ROWS;
+RG.Game = function() {
 
     var _players      = [];
     var _levels       = [];
@@ -24,18 +21,18 @@ RG.Game = function() { // {{{2
     // These systems updated after each action
     this.systemOrder = ["Attack", "Missile", "Movement", "Damage", "ExpPoints", "Communication"];
     this.systems = {};
-    this.systems["Attack"] = new RG.System.Attack("Attack", ["Attack"]);
-    this.systems["Missile"] = new RG.System.Missile("Missile", ["Missile"]);
-    this.systems["Movement"] = new RG.System.Movement("Movement", ["Movement"]);
-    this.systems["Damage"] = new RG.System.Damage("Damage", ["Damage", "Health"]);
-    this.systems["ExpPoints"] = new RG.ExpPointsSystem("ExpPoints", 
+    this.systems.Attack = new RG.System.Attack("Attack", ["Attack"]);
+    this.systems.Missile = new RG.System.Missile("Missile", ["Missile"]);
+    this.systems.Movement = new RG.System.Movement("Movement", ["Movement"]);
+    this.systems.Damage = new RG.System.Damage("Damage", ["Damage", "Health"]);
+    this.systems.ExpPoints = new RG.ExpPointsSystem("ExpPoints", 
         ["ExpPoints", "Experience"]);
-    this.systems["Communication"] = new RG.System.Communication("Communication",
+    this.systems.Communication = new RG.System.Communication("Communication",
         ["Communication"]);
 
     // Systems updated once each game loop
     this.loopSystems = {};
-    this.loopSystems["Hunger"] = new RG.System.Hunger("Hunger", ["Action", "Hunger"]);
+    this.loopSystems.Hunger = new RG.System.Hunger("Hunger", ["Action", "Hunger"]);
 
     this.getMessages = function() {
         return _msg.getMessages();
@@ -324,8 +321,8 @@ RG.Game = function() { // {{{2
         else if (evtName === RG.EVT_LEVEL_PROP_ADDED) {
             if (args.propType === "actors") {
                 if (this.isActiveLevel(args.level)) {
-                    var actor = args.obj;
-                    actor.get("Action").enable();
+                    // args.obj is actor
+                    args.obj.get("Action").enable();
                 }
             }
         }
@@ -341,14 +338,10 @@ RG.Game = function() { // {{{2
     RG.POOL.listenEvent(RG.EVT_LEVEL_PROP_ADDED, this);
 }; // }}} Game
 
-// Exports for node/vars for window
-if (typeof exports !== 'undefined' ) {
-    if( typeof RG.Game !== 'undefined' && module.exports ) {
-        exports = module.exports = RG.Game;
-    }
-    exports.RG = RG;
-    exports.RG.Game = RG.Game;
+if (typeof module !== "undefined" && typeof exports !== "undefined") {
+    GS.exportSource(module, exports, ["RG", "Game"], [RG, RG.Game]);
 }
 else {
-    window.RG.Game = RG.Game;
+    GS.exportSource(undefined, undefined, ["RG", "Game"], [RG, RG.Game]);
 }
+

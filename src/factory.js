@@ -153,7 +153,7 @@ RG.Factory.Base = function() { // {{{2
         Medium: {att: 2, def: 4, prot: 2, hp: 25, Weapon: "Short sword"},
         Strong: {att: 5, def: 6, prot: 3, hp: 40, Weapon: "Tomahawk"},
         Inhuman: {att: 10, def: 10, prot: 4, hp: 80, Weapon: "Magic sword"},
-    },
+    };
 
 
     /** Return random free cell on a given level.*/
@@ -284,33 +284,42 @@ RG.FCCGame = function() {
         this.notify = function(evtName, obj) {
             if (evtName === RG.EVT_ACTOR_CREATED) {
                 if (obj.hasOwnProperty("msg") && obj.msg === "DemonSpawn") {
-                    var actor = obj.actor;
-                    if (actor.getName() === "Winter demon") ++_maxDemons;
-                    if (actor.getName() === "Blizzard beast") ++_maxBeasts;
+                    var actorCreated = obj.actor;
+                    if (actorCreated.getName() === "Winter demon") ++_maxDemons;
+                    if (actorCreated.getName() === "Blizzard beast") ++_maxBeasts;
                 }
             }
             else if (evtName === RG.EVT_ACTOR_KILLED) {
                 var actor = obj.actor;
                 if (actor.getName() === "Winter demon") {
                     ++_demonsKilled;
-                    if (_demonsKilled === _maxDemons) this.allDemonsKilled();
+                    if (_demonsKilled === _maxDemons) {
+                        this.allDemonsKilled();
+                    }
                     RG.debug(this, "A winter demon was slain! Count:" + _demonsKilled);
                     RG.debug(this, "Max demons: " + _maxDemons);
                 }
                 else if (actor.getName() === "Blizzard beast") {
                     ++_beastsKilled;
-                    if (_beastsKilled === _maxBeasts) this.allBeastsKilled();
+                    if (_beastsKilled === _maxBeasts) {
+                        this.allBeastsKilled();
+                    }
                 }
             }
         };
         RG.POOL.listenEvent(RG.EVT_ACTOR_CREATED, this);
         RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
 
+        /** Called after all winter demons have been slain.*/
         this.allDemonsKilled = function() {
-            RG.gameMsg("Humans have vanquished all demons! But it's not over...");
+            RG.gameMsg("Humans have vanquished all demons! But it's not over..");
 
             var windsEvent = new RG.RogueOneShotEvent( function(){}, 20*100,
-                "Winds are blowing stronger. You feel it's getting freezing.");
+                "Winds are blowing stronger. You feel it's getting colder");
+            _game.addEvent(windsEvent);
+            var stormEvent = new RG.RogueOneShotEvent( function(){}, 35 * 100,
+                "You see an eye of the storm approaching. Brace yourself now..");
+            _game.addEvent(stormEvent);
             var beastEvent = new RG.RogueOneShotEvent(
                 that.spawnBeastArmy.bind(that,_level, _parser), 50*100,
                 "Winter spread by Blizzard Beasts! Hell seems to freeze.");
@@ -319,7 +328,7 @@ RG.FCCGame = function() {
 
 
         this.allBeastsKilled = function() {
-            RG.gameMsg("All beasts have been slain. The blizzard seems to calm down.");
+            RG.gameMsg("All beasts have been slain. The blizzard seems to calm down");
             // DO a final message of game over
             // Add random people to celebrate
             var msgEvent = new RG.RogueOneShotEvent(function() {}, 10*100,
@@ -398,7 +407,8 @@ RG.FCCGame = function() {
         summoner.setBrain(new RG.Brain.Summoner(summoner));
         lastLevel.addActor(summoner, bossCell.getX(), bossCell.getY());
 
-        var extraLevel = this.createLastBattle(game, {cols: 80, rows: 60});
+        //var extraLevel = this.createLastBattle(game, {cols: 80, rows: 60});
+        var extraLevel = this.createLevel("arena", 80, 80);
         extraLevel.setLevelNumber(levelCount);
 
         // Connect levels with stairs
@@ -851,7 +861,6 @@ RG.RogueObjectStubParser = function() {
                     case "tool": break;
                 }
                 return new RG.Item(obj.name); // generic, useless
-                break;
             case "levels":
                 return RG.FACT.createLevel(obj.type, obj.cols, obj.rows);
             case "dungeons": break;
@@ -1025,14 +1034,9 @@ RG.RogueObjectStubParser = function() {
 
 };
 
-// Exports for node/vars for window
-if (typeof exports !== 'undefined' ) {
-    if( typeof RG.Factory !== 'undefined' && module.exports ) {
-        exports = module.exports = RG.Factory;
-    }
-    exports.RG = RG;
-    exports.RG.Factory = RG.Factory;
+if (typeof module !== "undefined" && typeof exports !== "undefined") {
+    GS.exportSource(module, exports, ["RG", "Factory"], [RG, RG.Factory]);
 }
 else {
-    window.RG.Factory = RG.Factory;
+    GS.exportSource(undefined, undefined, ["RG", "Factory"], [RG, RG.Factory]);
 }

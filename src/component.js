@@ -308,7 +308,6 @@ RG.Component.Stats.prototype.copy = function(rhs) {
 
 RG.Component.Stats.prototype.equals = function(rhs) {
     var res = this.getType() === rhs.getType();
-    res = res && this
     res = res && this.getAccuracy() === rhs.getAccuracy();
     res = res && this.getAgility() === rhs.getAgility();
     res = res && this.getStrength() === rhs.getStrength();
@@ -495,14 +494,9 @@ RG.Component.Communication = function() {
 };
 RG.extend2(RG.Component.Communication, RG.Component.Base);
 
-// Exports for node/vars for window
-if (typeof exports !== 'undefined' ) {
-    if( typeof RG.Component !== 'undefined' && module.exports ) {
-        exports = module.exports = RG.Component;
-    }
-    exports.RG = RG;
-    exports.RG.Component = RG.Component;
+if (typeof module !== "undefined" && typeof exports !== "undefined") {
+    GS.exportSource(module, exports, ["RG", "Component"], [RG, RG.Component]);
 }
 else {
-    window.RG.Component = RG.Component;
+    GS.exportSource(undefined, undefined, ["RG", "Component"], [RG, RG.Component]);
 }
