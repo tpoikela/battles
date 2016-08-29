@@ -1,6 +1,5 @@
 roguelike=/home/tpoikela/git/battles/ /home/tpoikela/git/battles/ filter="*.js *.jsx *.html *.scss *.txt *.md" {
  battles.js
- eval_test.js
  getsource.js
  battles_gui.jsx
  index.html
