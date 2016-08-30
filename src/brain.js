@@ -12,28 +12,26 @@ RG.Brain = {};
 
 RG.Brain.KeyMap = function() {
 
-    var keyMap = {};
+    var moveKeyMap = {};
 
     // Start from W, go clock wise on keyboard
-    keyMap[ROT.VK_W] = 0;
-    keyMap[ROT.VK_E] = 1;
-    keyMap[ROT.VK_D] = 2;
-    keyMap[ROT.VK_C] = 3;
-    keyMap[ROT.VK_X] = 4;
-    keyMap[ROT.VK_Z] = 5;
-    keyMap[ROT.VK_A] = 6;
-    keyMap[ROT.VK_Q] = 7;
+    moveKeyMap[ROT.VK_W] = 0;
+    moveKeyMap[ROT.VK_E] = 1;
+    moveKeyMap[ROT.VK_D] = 2;
+    moveKeyMap[ROT.VK_C] = 3;
+    moveKeyMap[ROT.VK_X] = 4;
+    moveKeyMap[ROT.VK_Z] = 5;
+    moveKeyMap[ROT.VK_A] = 6;
+    moveKeyMap[ROT.VK_Q] = 7;
 
-    this.inCodeMap = function(code) {
-        return keyMap.hasOwnProperty(code);
+    this.inMoveCodeMap = function(code) {
+        return moveKeyMap.hasOwnProperty(code);
     };
 
     this.getDiff = function(code, x, y) {
-        var diff = ROT.DIRS[8][keyMap[code]];
+        var diff = ROT.DIRS[8][moveKeyMap[code]];
         var newX = x + diff[0];
         var newY = y + diff[1];
-        console.log("X: " + x + " -> " + newX);
-        console.log("Y: " + y + " -> " + newY);
         return [newX, newY];
     };
 
@@ -80,6 +78,12 @@ RG.Brain.Player = function(actor) { // {{{2
     };
 
     this.isRunModeEnabled = function() {return _runModeEnabled;};
+
+    this.cmdNotPossible = function(msg) {
+        this.energy = 0;
+        RG.gameWarn(msg);
+        return null;
+    };
 
     this.decideNextAction = function(obj) {
         this.energy = 1;
@@ -132,7 +136,7 @@ RG.Brain.Player = function(actor) { // {{{2
         var currCell = currMap.getCell(x, y);
 
         var type = "NULL";
-        if (_keymap.inCodeMap(code)) {
+        if (_keymap.inMoveCodeMap(code)) {
             var diff = _keymap.getDiff(code, x, y);
             x = diff[0];
             y = diff[1];
@@ -154,9 +158,7 @@ RG.Brain.Player = function(actor) { // {{{2
                     };
                 }
                 else {
-                    this.energy = 0;
-                    RG.gameWarn("There are no items to pick up.");
-                    return null;
+                    return this.cmdNotPossible("There are no items to pick up.");
                 }
             }
 
@@ -166,9 +168,7 @@ RG.Brain.Player = function(actor) { // {{{2
                     return function() {level.useStairs(_actor);};
                 }
                 else {
-                    this.energy = 0;
-                    RG.gameWarn("There are no stairs here.");
-                    return null;
+                    return this.cmdNotPossible("There are no stairs here.");
                 }
             }
         }
@@ -203,9 +203,7 @@ RG.Brain.Player = function(actor) { // {{{2
                     }
                 }
                 else {
-                    this.energy = 0;
-                    RG.gameMsg("You cannot move that way.");
-                    return null;
+                    return this.cmdNotPossible("You cannot move that way.");
                 }
             }
         }
