@@ -12,7 +12,7 @@ var Brain = RG.Brain;
 describe('Brain.Player', function() {
     var level = RGTest.createMockLevel(10, 10);
     it('Accepts key commands', function() {
-        var player = new RG.RogueActor("Player");
+        var player = new RG.Actor.Rogue("Player");
         player.setIsPlayer(true);
         level.addActor(player, 1, 1);
         var brain = new Brain.Player(player);

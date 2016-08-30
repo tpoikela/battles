@@ -7,7 +7,7 @@ var chai = require("chai");
 var expect = chai.expect;
 var RG = require("../battles.js");
 
-var Actor = RG.RogueActor;
+var Actor = RG.Actor.Rogue;
 var Action = RG.RogueAction;
 var Level = RG.RogueLevel;
 var Element = RG.RogueElement;
@@ -98,7 +98,7 @@ describe('Canceling events and actor actions', function() {
     var act = new MockAction(100);
 
     it('Removes the event like it never happened', function() {
-        var testActor = new RG.RogueActor("actor");
+        var testActor = new RG.Actor.Rogue("actor");
         var notZero = 555;
         var changeEvent = new RG.RogueOneShotEvent(testCB, 200, "This happened");
         sch.add(testActor, true, 100);

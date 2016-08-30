@@ -9,7 +9,7 @@ var expect = chai.expect;
 
 var Parser = RG.RogueObjectStubParser;
 var Db = RG.RogueObjectDatabase;
-var Actor = RG.RogueActor;
+var Actor = RG.Actor.Rogue;
 
 RG.cellRenderArray = RG.cellRenderVisible;
 

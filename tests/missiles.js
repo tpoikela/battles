@@ -4,7 +4,7 @@ var chai = require("chai");
 var expect = chai.expect;
 var RG = require("../battles.js");
 
-var Actor = RG.RogueActor;
+var Actor = RG.Actor.Rogue;
 var Level = RG.RogueLevel;
 
 var updateSystems = function(systems) {
@@ -72,7 +72,7 @@ describe('How missile is fired and hits a wall', function() {
         var srcEnt = new Actor("archer");
         level.addActor(srcEnt, 1, 1);
 
-        var wall = new RG.RogueElement("wall");
+        var wall = new RG.Element.Base("wall");
         var map = level.getMap();
         var cell = map.getCell(1, 3);
         cell.setProp("elements", wall);

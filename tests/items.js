@@ -1,11 +1,9 @@
 
 var chai = require("chai");
 var expect = chai.expect;
+
 var RG = require("../battles.js");
-
-RG.Item = require("../src/item.js");
-
-var Slot = RG.RogueEquipSlot;
+var Slot = RG.Inv.EquipSlot;
 
 describe('How items are stacked', function() {
     it('Adds two items to create a count of 2', function() {
@@ -52,8 +50,8 @@ describe('How stacked are broken into multiple items', function() {
             var coin = RG.removeStackedItems(hugeStack, 100);
             rm_ok = RG.addStackedItems(newStack, coin);
             expect(rm_ok).to.equal(true);
+            expect(coin.count).to.equal(100);
         }
-        expect(coin.count).to.equal(100);
         expect(newStack.count).to.equal(1100);
         expect(hugeStack.count).to.equal(9000);
 
@@ -91,8 +89,8 @@ describe('How stacked are broken into multiple items', function() {
 });
 
 describe('How inventory container works', function() {
-    var player = new RG.RogueActor("player");
-    var invEq = new RG.RogueInvAndEquip(player);
+    var player = new RG.Actor.Rogue("player");
+    var invEq = new RG.Inv.Inventory(player);
     var inv = invEq.getInventory();
 
     it('Checks items by reference for existence', function() {
@@ -147,8 +145,8 @@ describe('How inventory container works', function() {
 });
 
 describe('How item equipment slots work', function() {
-    var player = new RG.RogueActor("player");
-    var invEq = new RG.RogueInvAndEquip(player);
+    var player = new RG.Actor.Rogue("player");
+    var invEq = new RG.Inv.Inventory(player);
     var eq = invEq.getEquipment();
     var inv = invEq.getInventory();
 
@@ -171,8 +169,8 @@ describe('How item equipment slots work', function() {
 });
 
 describe('How item stacks work with equipped missiles', function() {
-    var player = new RG.RogueActor("player");
-    var invEq = new RG.RogueInvAndEquip(player);
+    var player = new RG.Actor.Rogue("player");
+    var invEq = new RG.Inv.Inventory(player);
     var inv = invEq.getInventory();
     var eq = invEq.getEquipment();
 

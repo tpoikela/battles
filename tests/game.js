@@ -12,7 +12,7 @@ var RGTest = require("./roguetest.js");
 var checkXY = RGTest.checkActorXY;
 
 var Game = require("../src/game.js");
-var Actor = RG.RogueActor;
+var Actor = RG.Actor.Rogue;
 
 // Takes turns instead of real-player
 var SurrogatePlayer = function() {

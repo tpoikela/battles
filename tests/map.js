@@ -7,18 +7,16 @@ var chai = require("chai");
 var expect = chai.expect;
 var RG = require("../battles.js");
 
-//RG.Map = require("../src/map.js");
-
-var Actor = RG.RogueActor;
+var Actor = RG.Actor.Rogue;
 var Action = RG.RogueAction;
 var Level = RG.Map.Level;
-var Element = RG.RogueElement;
+var Element = RG.Element.Base;
 var Cell = RG.Map.Cell;
 var Item = RG.Item.Base;
 var Container = RG.Item.Container;
-var InvAndEquip = RG.RogueInvAndEquip;
+var InvAndEquip = RG.Inv.Inventory;
 var Factory = RG.FACT;
-var Stairs = RG.RogueStairsElement;
+var Stairs = RG.Element.Stairs;
 
 RG.cellRenderArray = RG.cellRenderVisible;
 
