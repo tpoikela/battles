@@ -118,7 +118,7 @@ RG.Brain.Player = function(actor) { // {{{2
             }
             else {
                 _runModeEnabled = true;
-                this.energy = 4;
+                this.energy = _energyPerAction.RUN;
                 _baseSpeed = _actor.get("Stats").getSpeed();
                 var newSpeed = Math.floor( 1.5 * _baseSpeed);
                 _actor.get("Stats").setSpeed(newSpeed);
@@ -176,7 +176,12 @@ RG.Brain.Player = function(actor) { // {{{2
         if (type === "MOVE") {
             if (currMap.hasXY(x, y)) {
                 if (currMap.isPassable(x, y)) {
-                    this.energy = _energyPerAction.MOVE;
+
+                    if (_runModeEnabled)
+                        this.energy = _energyPerAction.RUN;
+                    else
+                        this.energy = _energyPerAction.MOVE;
+
                     return function() {
                         var movComp = new RG.Component.Movement(x, y, level);
                         _actor.add("Movement", movComp);
