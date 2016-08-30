@@ -3,6 +3,8 @@ var GS = require("../getsource.js");
 var ROT = GS.getSource("ROT", "./lib/rot.js");
 var RG = GS.getSource("RG", "./src/rg.js");
 
+RG.Element = GS.getSource(["RG", "Element"], "./src/element.js");
+
 RG.Map = {};
 
 /** Object representing one game cell. It can hold actors, items, traps or
@@ -166,7 +168,7 @@ RG.Map.CellList = function(cols, rows) { //{{{2
     for (var x = 0; x < this.cols; x++) {
         map.push([]);
         for (var y = 0; y < this.rows; y++) {
-            var elem = new RG.RogueElement("floor");
+            var elem = new RG.Element.Base("floor");
             map[x].push(new RG.Map.Cell(x, y, elem));
         }
     }
@@ -338,10 +340,10 @@ RG.Map.Generator = function() { // {{{2
         var map = new RG.Map.CellList(this.cols, this.rows);
         _mapGen.create(function(x, y, val) {
             if (val === _wall) {
-                map.setBaseElemXY(x, y, new RG.RogueElement("wall"));
+                map.setBaseElemXY(x, y, new RG.Element.Base("wall"));
             }
             else {
-                map.setBaseElemXY(x, y, new RG.RogueElement("floor"));
+                map.setBaseElemXY(x, y, new RG.Element.Base("floor"));
             }
         });
         return map;
@@ -455,7 +457,7 @@ RG.Map.Generator = function() { // {{{2
         for (i = 0; i < possibleRoom.length; i++) {
             var roomX = possibleRoom[i][0];
             var roomY = possibleRoom[i][1];
-            map.setBaseElemXY(roomX, roomY, new RG.RogueElement("wall"));
+            map.setBaseElemXY(roomX, roomY, new RG.Element.Base("wall"));
         }
 
         // Create the halo, prevents houses being too close to each other
@@ -477,7 +479,7 @@ RG.Map.Generator = function() { // {{{2
         var doorY = wallCoords[doorIndex][1];
 
         // At the moment, "door" is a hole in the wall
-        map.setBaseElemXY(doorX, doorY, new RG.RogueElement("floor"));
+        map.setBaseElemXY(doorX, doorY, new RG.Element.Base("floor"));
         doors[doorX + "," + doorY] = true;
 
         for (i = 0; i < wallCoords.length; i++) {
@@ -496,7 +498,7 @@ RG.Map.Generator.prototype.addRandomSnow = function(map, ratio) {
     for (var i = 0; i < freeCells.length; i++) {
         var addSnow = Math.random();
         if (addSnow <= ratio) {
-            freeCells[i].setBaseElem(new RG.RogueElement("snow"));
+            freeCells[i].setBaseElem(new RG.Element.Base("snow"));
         }
     }
 };

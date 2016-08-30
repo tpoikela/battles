@@ -73,7 +73,7 @@ RG.Factory.Base = function() { // {{{2
 
     /** Factory method for players.*/
     this.createPlayer = function(name, obj) {
-        var player = new RG.RogueActor(name);
+        var player = new RG.Actor.Rogue(name);
         player.setIsPlayer(true);
         _initCombatant(player, obj);
         return player;
@@ -81,7 +81,7 @@ RG.Factory.Base = function() { // {{{2
 
     /** Factory method for monsters.*/
     this.createMonster = function(name, obj) {
-        var monster = new RG.RogueActor(name);
+        var monster = new RG.Actor.Rogue(name);
         if (RG.isNullOrUndef([obj])) obj = {};
 
         var brain = obj.brain;
@@ -111,15 +111,15 @@ RG.Factory.Base = function() { // {{{2
     };
 
     this.createFloorCell = function(x, y) {
-        return new RG.Map.Cell(x, y, new RG.RogueElement("floor"));
+        return new RG.Map.Cell(x, y, new RG.Element.Base("floor"));
     };
 
     this.createWallCell = function(x, y) {
-        return new RG.Map.Cell(x, y, new RG.RogueElement("wall"));
+        return new RG.Map.Cell(x, y, new RG.Element.Base("wall"));
     };
 
     this.createSnowCell = function(x, y) {
-        return new RG.Map.Cell(x, y, new RG.RogueElement("snow"));
+        return new RG.Map.Cell(x, y, new RG.Element.Base("snow"));
     };
 
     /** Factory method for creating levels.*/
@@ -416,9 +416,9 @@ RG.FCCGame = function() {
         summoner.setBrain(new RG.Brain.Summoner(summoner));
         lastLevel.addActor(summoner, bossCell.getX(), bossCell.getY());
 
-        //var extraLevel = this.createLastBattle(game, {cols: 80, rows: 60});
-        var extraLevel = this.createLevel("arena", 80, 80);
-        extraLevel.setLevelNumber(levelCount);
+        var extraLevel = this.createLastBattle(game, {cols: 80, rows: 60});
+        //var extraLevel = this.createLevel("arena", 80, 80);
+        extraLevel.setLevelNumber(levelCount++);
 
         // Connect levels with stairs
         for (nl = 0; nl < nLevels; nl++) {
@@ -427,13 +427,13 @@ RG.FCCGame = function() {
             var stairCell = null;
             if (nl < nLevels-1) {
                 var targetDown = allLevels[nl+1];
-                var stairsDown = new RG.RogueStairsElement(true, src, targetDown);
+                var stairsDown = new RG.Element.Stairs(true, src, targetDown);
                 stairCell = this.getFreeRandCell(src);
                 src.addStairs(stairsDown, stairCell.getX(), stairCell.getY());
                 allStairsDown.push(stairsDown);
             }
             else {
-                var finalStairs = new RG.RogueStairsElement(true, src, extraLevel);
+                var finalStairs = new RG.Element.Stairs(true, src, extraLevel);
                 var stairsLoot = new RG.Component.Loot(finalStairs);
                 summoner.add("Loot", stairsLoot);
                 allStairsDown.push(finalStairs);
@@ -441,7 +441,7 @@ RG.FCCGame = function() {
 
             if (nl > 0) {
                 var targetUp = allLevels[nl-1];
-                var stairsUp = new RG.RogueStairsElement(false, src, targetUp);
+                var stairsUp = new RG.Element.Stairs(false, src, targetUp);
                 stairCell = this.getFreeRandCell(src);
                 src.addStairs(stairsUp, stairCell.getX(), stairCell.getY());
                 allStairsUp.push(stairsUp);
@@ -452,14 +452,14 @@ RG.FCCGame = function() {
         }
 
         var lastStairsDown = allStairsDown.slice(-1)[0];
-        var extraStairsUp = new RG.RogueStairsElement(false, extraLevel, lastLevel);
+        var extraStairsUp = new RG.Element.Stairs(false, extraLevel, lastLevel);
         var rStairCell = this.getFreeRandCell(extraLevel);
         extraLevel.addStairs(extraStairsUp, rStairCell.getX(), rStairCell.getY());
         extraStairsUp.setTargetStairs(lastStairsDown);
         lastStairsDown.setTargetStairs(extraStairsUp);
 
-        // Create NPCs for the extra level
-        var humansPerLevel = 2 * monstersPerLevel;
+        // Create townsfolk for the extra level
+        var humansPerLevel = 50;
         for (var i = 0; i < 10; i++) {
             var name = "Townsman";
             var human = this.createMonster(name, {brain: "Human"});
@@ -859,7 +859,7 @@ RG.RogueObjectStubParser = function() {
     /** Factory-method for creating the actual objects.*/
     this.createNewObject = function(categ, obj) {
         switch(categ) {
-            case "actors": return new RG.RogueActor(obj.name);
+            case "actors": return new RG.Actor.Rogue(obj.name);
             case RG.TYPE_ITEM:
                 var subtype = obj.type;
                 switch(subtype) {
@@ -1006,9 +1006,10 @@ RG.RogueObjectStubParser = function() {
 
     /** Creates a random actor based on danger value or a filter function.*/
     this.createRandomActor = function(obj) {
+        var randObj = null;
         if (obj.hasOwnProperty("danger")) {
             var danger = obj.danger;
-            var randObj = this.dbGetRand({danger: danger, categ: "actors"});
+            randObj = this.dbGetRand({danger: danger, categ: "actors"});
             if (randObj !== null) {
                 return this.createFromStub("actors", randObj);
             }
@@ -1018,7 +1019,7 @@ RG.RogueObjectStubParser = function() {
         }
         else if (obj.hasOwnProperty("func")) {
             var res = this.filterCategWithFunc("actors", obj.func);
-            var randObj = this.arrayGetRand(res);
+            randObj = this.arrayGetRand(res);
             return this.createFromStub("actors", randObj);
         }
     };
