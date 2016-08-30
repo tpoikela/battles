@@ -249,11 +249,11 @@ body {
     list-style-type: none;
 };
 
-.game-board-char-view {
+.game-board-player-view {
     @include cell-font;
 };
 
-.cell-row-div-char-view {
+.cell-row-div-player-view {
     margin-bottom: -4px;
 };
 
