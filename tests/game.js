@@ -217,35 +217,4 @@ describe('How AI brain works', function() {
 
 });
 
-var ItemDestroyer = function() {
 
-    this.notify = function(evtName, obj) {
-        if (evtName === RG.EVT_DESTROY_ITEM) {
-            var item = obj.item;
-            var owner = item.getOwner().getOwner();
-            owner.getInvEq().removeItem(item);
-        }
-    };
-    RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this);
-};
-
-describe('How one-shot items are removed after their use', function() {
-    it('Player uses a potion and it is destroyed after this.', function() {
-        var potion = new RG.Item.Potion("potion");
-        var player = new Actor("Player");
-        var invEq = player.getInvEq();
-        var itemDestroy = new ItemDestroyer();
-        invEq.addItem(potion);
-
-        // Do some damage
-        var hp = player.get("Health").getHP();
-        player.get("Health").setHP(hp - 5);
-        var currHP = player.get("Health").getHP();
-
-        expect(invEq.hasItem(potion)).to.equal(true);
-        expect(player.getInvEq().useItem(potion, {target: player})).to.equal(true);
-        expect(player.get("Health").getHP() != currHP).to.equal(true);
-        expect(invEq.hasItem(potion)).to.equal(false);
-
-    });
-});

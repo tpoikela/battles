@@ -4,6 +4,25 @@ var expect = chai.expect;
 
 var RG = require("../battles.js");
 var Slot = RG.Inv.EquipSlot;
+var Actor = RG.Actor.Rogue;
+
+var Item = RG.Item.Base;
+
+describe('How items are physical entities', function() {
+    it('Has weight and size', function() {
+        var item = new Item("TestItem");
+        expect(item.has("Physical")).to.equal(true);
+
+        item.setWeight(3.0);
+        expect(item.get("Physical").getWeight()).to.equal(3.0);
+        expect(item.getWeight()).to.equal(3.0);
+
+        var clonedItem = item.clone();
+        expect(item.equals(clonedItem)).to.equal(true);
+        expect(clonedItem.equals(item)).to.equal(true);
+
+    });
+});
 
 describe('How items are stacked', function() {
     it('Adds two items to create a count of 2', function() {
@@ -29,7 +48,7 @@ describe('How items are stacked', function() {
     });
 });
 
-describe('How stacked are broken into multiple items', function() {
+describe('How stackes are broken into multiple items', function() {
     it('Splits item stack into two items', function() {
         var itemStack = new RG.Item.Base("Arrow");
         itemStack.setType("missile");
@@ -265,3 +284,40 @@ describe('How item stacks work with equipped missiles', function() {
     });
 
 });
+
+var ItemDestroyer = function() {
+
+    this.notify = function(evtName, obj) {
+        if (evtName === RG.EVT_DESTROY_ITEM) {
+            var item = obj.item;
+            var owner = item.getOwner().getOwner();
+            owner.getInvEq().removeItem(item);
+        }
+    };
+    RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this);
+};
+
+describe('How one-shot items are removed after their use', function() {
+    it('Player uses a potion and it is destroyed after this.', function() {
+        var potion = new RG.Item.Potion("potion")
+        var player = new Actor("Player");
+        var cell = RG.FACT.createFloorCell();
+        cell.setProp("actors", player);
+        expect(cell.hasProp("actors")).to.equal(true);
+        var invEq = player.getInvEq();
+        var itemDestroy = new ItemDestroyer();
+        invEq.addItem(potion);
+
+        // Do some damage
+        var hp = player.get("Health").getHP();
+        player.get("Health").setHP(hp - 5);
+        var currHP = player.get("Health").getHP();
+
+        expect(invEq.hasItem(potion)).to.equal(true);
+        expect(player.getInvEq().useItem(potion, {target: cell})).to.equal(true);
+        expect(player.get("Health").getHP() != currHP).to.equal(true);
+        expect(invEq.hasItem(potion)).to.equal(false);
+
+    });
+});
+
