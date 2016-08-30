@@ -24,6 +24,8 @@ RG.System.Base = function(type, compTypes) {
     };
 
     this.notify = function(evtName, obj) {
+        if (evtName === "Communication") console.log("notify Communication XXX");
+        if (evtName === "Damage") console.log("notify Damage XXX");
         if (obj.hasOwnProperty("add")) {
             if (this.hasCompTypes(obj.entity))
                 this.addEntity(obj.entity);
@@ -253,6 +255,7 @@ RG.System.Damage = function(type, compTypes) {
         }
     };
 
+    /** Removes actor from current level and emits Actor killed event.*/
     this.killActor = function(src, actor) {
         var level = actor.getLevel();
         if (level.removeActor(actor)) {
@@ -260,11 +263,10 @@ RG.System.Damage = function(type, compTypes) {
                 this.giveExpToSource(src, actor);
             }
             RG.gameDanger(actor.getName() + " was killed");
-            console.log("Emitting KILLED for actor " + actor.getName());
             RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: actor});
         }
         else {
-            RG.err("Combat", "killActor", "Couldn't kill actor");
+            RG.err("Combat", "killActor", "Couldn't remove actor");
         }
     };
 
@@ -420,6 +422,7 @@ RG.System.Communication = function(type, compTypes) {
     this.update = function() {
         for (var e in this.entities) {
             var ent = this.entities[e];
+            console.log("COMM XXX");
             var comComp = ent.get("Communication");
             var messages = comComp.getMsg();
             for (var i = 0; i < messages.length; i++) {
