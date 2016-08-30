@@ -10,6 +10,35 @@ var RG = GS.getSource("RG", "./src/rg.js");
 
 RG.Brain = {};
 
+RG.Brain.KeyMap = function() {
+
+    var keyMap = {};
+
+    // Start from W, go clock wise on keyboard
+    keyMap[ROT.VK_W] = 0;
+    keyMap[ROT.VK_E] = 1;
+    keyMap[ROT.VK_D] = 2;
+    keyMap[ROT.VK_C] = 3;
+    keyMap[ROT.VK_X] = 4;
+    keyMap[ROT.VK_Z] = 5;
+    keyMap[ROT.VK_A] = 6;
+    keyMap[ROT.VK_Q] = 7;
+
+    this.inCodeMap = function(code) {
+        return keyMap.hasOwnProperty(code);
+    };
+
+    this.getDiff = function(code, x, y) {
+        var diff = ROT.DIRS[8][keyMap[code]];
+        var newX = x + diff[0];
+        var newY = y + diff[1];
+        console.log("X: " + x + " -> " + newX);
+        console.log("Y: " + y + " -> " + newY);
+        return [newX, newY];
+    };
+
+};
+
 /** This brain is used by the player actor. It simply handles the player input
  * but by having brain, player actor looks like other actors.  */
 RG.Brain.Player = function(actor) { // {{{2
@@ -33,6 +62,8 @@ RG.Brain.Player = function(actor) { // {{{2
         ATTACK: 3,
         RUN: 4,
     };
+
+    var _keymap = new RG.Brain.KeyMap();
 
     var _confirmCallback = null;
     var _wantConfirm = false;
@@ -101,40 +132,44 @@ RG.Brain.Player = function(actor) { // {{{2
         var currCell = currMap.getCell(x, y);
 
         var type = "NULL";
-        if (code === ROT.VK_D) { ++x; type = "MOVE";}
-        if (code === ROT.VK_A) { --x; type = "MOVE";}
-        if (code === ROT.VK_W) { --y; type = "MOVE";}
-        if (code === ROT.VK_X) { ++y; type = "MOVE";}
-        if (code === ROT.VK_Q) {--y; --x; type = "MOVE";}
-        if (code === ROT.VK_E) {--y; ++x; type = "MOVE";}
-        if (code === ROT.VK_C) {++y; ++x; type = "MOVE";}
-        if (code === ROT.VK_Z) {++y; --x; type = "MOVE";}
-        if (code === ROT.VK_S) {type = "REST";}
-        if (type !== "MOVE") _restoreBaseSpeed();
-
-        if (code === ROT.VK_PERIOD) {
-            type = "PICKUP";
-            if (currCell.hasProp("items")) {
-                return function() {
-                    level.pickupItem(_actor, x, y);
-                };
-            }
-            else {
-                this.energy = 0;
-                RG.gameWarn("There are no items to pick up.");
-                return null;
-            }
+        if (_keymap.inCodeMap(code)) {
+            var diff = _keymap.getDiff(code, x, y);
+            x = diff[0];
+            y = diff[1];
+            type = "MOVE";
+        }
+        else {
+            _restoreBaseSpeed(); // Speedup only during move
         }
 
-        if (code === ROT.VK_COMMA) {
-            type = "STAIRS";
-            if (currCell.hasStairs()) {
-                return function() {level.useStairs(_actor);};
+        if (type === "NULL") { // Not a move command
+
+            if (code === ROT.VK_S) {type = "REST";}
+
+            if (code === ROT.VK_PERIOD) {
+                type = "PICKUP";
+                if (currCell.hasProp("items")) {
+                    return function() {
+                        level.pickupItem(_actor, x, y);
+                    };
+                }
+                else {
+                    this.energy = 0;
+                    RG.gameWarn("There are no items to pick up.");
+                    return null;
+                }
             }
-            else {
-                this.energy = 0;
-                RG.gameWarn("There are no stairs here.");
-                return null;
+
+            if (code === ROT.VK_COMMA) {
+                type = "STAIRS";
+                if (currCell.hasStairs()) {
+                    return function() {level.useStairs(_actor);};
+                }
+                else {
+                    this.energy = 0;
+                    RG.gameWarn("There are no stairs here.");
+                    return null;
+                }
             }
         }
 
