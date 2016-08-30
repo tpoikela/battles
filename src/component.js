@@ -449,6 +449,7 @@ RG.extend2(RG.Component.Missile, RG.Component.Base);
 RG.Component.Loot = function(lootEntity) {
     RG.Component.Base.call(this, "Loot");
 
+    // This will be dropped as loot
     var _lootEntity = lootEntity;
 
     /** Drops the loot to the given cell.*/
@@ -487,12 +488,33 @@ RG.Component.Communication = function() {
 
     this.getMsg = function() {return _messages;};
 
+    /** Adds one message to the communication.*/
     this.addMsg = function(obj) {
         _messages.push(obj);
     };
 
 };
 RG.extend2(RG.Component.Communication, RG.Component.Base);
+
+/** Entities with physical components have weight and size.*/
+RG.Component.Physical = function() {
+    RG.Component.Base.call(this, "Physical");
+
+    var _weight = 1; // in kg
+    var _size   = 1; // abstract unit
+
+    this.setWeight = function(weight) {
+        _weight = weight;
+        console.log("Physical setW to " + _weight);
+    };
+
+    this.getWeight = function() {return _weight;};
+    this.setSize = function(size) {_size = size;};
+    this.getSize = function() {return _size;};
+
+};
+RG.extend2(RG.Component.Physical, RG.Component.Base);
+
 
 if (typeof module !== "undefined" && typeof exports !== "undefined") {
     GS.exportSource(module, exports, ["RG", "Component"], [RG, RG.Component]);
