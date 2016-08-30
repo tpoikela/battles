@@ -189,7 +189,7 @@ var RoguelikeTop = React.createClass({
         var player = this.game.getPlayer();
         var message = this.game.getMessages();
         var fullScreen = this.state.renderFullScreen;
-        //var numTurns = this.state.numTurns;
+
         return (
             <div id="main-div" className="container main-div">
 
