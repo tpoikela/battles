@@ -429,8 +429,8 @@ RG.Item.SpiritGem = function(name) {
 
     var _spirit = null;
 
-    this.setSpirit = function(spirit) {};
-    this.getSpirit = function() {_return spirit;};
+    this.setSpirit = function(spirit) {_spirit = spirit;};
+    this.getSpirit = function() {return spirit;};
 
     /** Used for capturing the spirits inside the gem.*/
     this.useItem = function(obj) {
