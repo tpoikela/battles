@@ -92,7 +92,7 @@ describe('How actors are created from file', function() {
 
 describe('How food items are created from objects', function() {
    var parser = new Parser();
-    it('description', function() {
+    it('Creates food objects items from stubs', function() {
         var foodBase = parser.parseObjStub("items", {type: "food", name: "foodBase",
             weight: 0.1, misc: "XXX", dontCreate: true, "char": "%",
             className: "cell-item-food"});
@@ -165,12 +165,20 @@ describe('It contains all game content info', function() {
 
     });
 
-
     it('Should parse all items properly', function() {
         var bayStub = parser.get("items", "Bayonette");
         expect(bayStub.base).to.equal("MeleeWeaponBase");
         var bayon = parser.createActualObj("items", "Bayonette");
+        expect(bayon.has("Physical")).to.equal(true);
         RGTest.checkCSSClassName(bayon, "cell-item-melee-weapon");
+    });
+
+    it('Should parse weapons properly', function() {
+        var rubySwordStub = parser.get("items", "Ruby glass sword");
+        var rubySwordObj = parser.createActualObj("items", "Ruby glass sword");
+
+        expect(rubySwordStub.attack).to.equal(rubySwordObj.getAttack());
+
     });
 
 
@@ -182,6 +190,7 @@ describe('It contains all game content info', function() {
         expect(armObj.getArmourType()).to.equal("chest");
         expect(armObj.getAttack()).to.equal(0);
         expect(armObj.getDefense()).to.equal(2);
+        expect(armObj.getWeight()).to.equal(2.0);
 
     });
 
