@@ -6,6 +6,8 @@ var RG = require("../battles.js");
 var Memory = RG.Brain.Memory;
 var Brain = RG.Brain.Rogue;
 
+RG.Game = require("../src/game.js");
+
 /** Updates given systems in given order.*/
 var updateSystems = function(systems) {
     for (var i = 0; i < systems.length; i++) {
@@ -45,6 +47,8 @@ describe('How AI brain memory performs basic functions', function() {
 
 
 describe('How actors communicate with each other', function() {
+    //var game = new RG.Game.Main();
+    RG.POOL = new RG.EventPool();
     var comSys = new RG.System.Communication("Communication", ["Communication"]);
     var systems = [comSys];
 
@@ -65,11 +69,15 @@ describe('How actors communicate with each other', function() {
 
         var comComp = new RG.Component.Communication();
         comComp.addMsg({type: "Enemies", enemies: mem1.getEnemies()});
+        expect(comSys.entities.hasOwnProperty(hunter2.getID())).to.equal(false);
         hunter2.add("Communication", comComp);
+        expect(comSys.entities.hasOwnProperty(hunter2.getID())).to.equal(true);
+
+        var mem2 = brain2.getMemory();
+        expect(mem2.isEnemy(animal)).to.equal(false);
 
         updateSystems(systems);
 
-        var mem2 = brain2.getMemory();
         expect(mem2.isEnemy(animal)).to.equal(true);
     });
 });
