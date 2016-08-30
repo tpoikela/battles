@@ -321,6 +321,32 @@ var RG = { // {{{2
         return Math.round(str / 4);
     },
 
+    // Event pool -related stuff
+
+    eventPools: [],
+    POOL: null,
+
+    resetEventPools: function() {
+        this.eventPools = [];
+        this.POOL = null;
+    },
+
+    // Event pool controls
+    pushEventPool: function(pool) {
+        this.eventPools.push(pool);
+        this.POOL = pool;
+    },
+
+    popEventPool: function() {
+        this.eventPools.pop();
+        var nlen = this.eventPools.length;
+        if (nlen > 0) {
+            this.POOL = this.eventPools[nlen - 1];
+        }
+        else {
+            RG.err("RG", "popEventPool", "No event pools left.");
+        }
+    },
 
     // Default FOV range for actors
     FOV_RANGE: 4,
@@ -524,7 +550,7 @@ RG.EventPool = function() { // {{{2
         }
     };
 };
-RG.POOL = new RG.EventPool(); // Global event pool for the game }}}
+RG.POOL = new RG.EventPool();
 
 /** Handle the game message listening and storing of the messages.  */
 RG.MessageHandler = function() { // {{{2
