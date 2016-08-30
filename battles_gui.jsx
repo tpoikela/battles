@@ -2,16 +2,6 @@
 // Set to 1 for some debug information
 var $DEBUG = 0;
 
-// Titles for the buttons
-var titles = {
-    Next: "You can advance game by one state by pressing 'Next'.",
-    Clear: "Clears the game board completely.",
-    Random: "Generate a new starting pattern for the board.",
-    Pause: "Pauses the game. You can push 'Next' or 'Start' for a paused game.",
-};
-
-var Actor = RG.RogueActor;
-
 /** Top-level component which renders all other components. Keeps also track
  * of the current game state.
  */
