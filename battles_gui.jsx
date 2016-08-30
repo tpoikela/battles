@@ -26,14 +26,12 @@ var RoguelikeTop = React.createClass({
 
     },
 
-    nextActor : null,
     visibleCells: [],
     game: null,
     isTargeting: false,
 
     selectedItem: null,
     useModeEnabled: false,
-    closeInvOnClick: false,
 
     viewportPlayerX: 35, // * 2
     viewportPlayerY: 12, // * 2
@@ -104,16 +102,14 @@ var RoguelikeTop = React.createClass({
         var fccGame = new RG.FCCGame();
         if (this.game !== null) {
             delete this.game;
-            RG.POOL = new RG.EventPool();
             RG.FACT = new RG.Factory.Base();
-            RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this);
-            RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this);
         }
         this.game = fccGame.createFCCGame(this.gameConf);
-        this.game.doGUICommand = this.doGUICommand;
-        this.game.isGUICommand = this.isGUICommand;
+        this.game.setGUICallbacks(this.isGUICommand, this.doGUICommand);
         var player = this.game.getPlayer();
         this.visibleCells = player.getLevel().exploreCells(player);
+        RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this);
+        RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this);
     },
 
     selectItemTop: function(item) {
@@ -329,7 +325,6 @@ var RoguelikeTop = React.createClass({
     GUIUseItem: function() {
         if (!this.useModeEnabled) {
             this.useModeEnabled = true;
-            this.closeInvOnClick = true;
             if (this.selectedItem === null) 
                 $("#inventory-button").trigger("click");
             RG.gameMsg("Select direction for using the item.");
@@ -382,6 +377,7 @@ var RoguelikeTop = React.createClass({
         switch(mode) {
             case "Off": this.gameConf.debugMode = false; break;
             case "Arena": this.gameConf.debugMode = "Arena"; break;
+            case "Battle": this.gameConf.debugMode = "Battle"; break;
         }
     },
 
@@ -497,7 +493,7 @@ var GameStartScreen = React.createClass({
                                 <RadioButtons buttons={["Sparse", "Medium", "Abundant"]} callback={setMonsters} titleName="Monsters" />
                                 <RadioButtons buttons={["Small", "Medium", "Large", "Huge"]} callback={setLevelSize} titleName="Levels" />
                                 <RadioButtons buttons={["Weak", "Medium", "Strong", "Inhuman"]} callback={setPlayerLevel} titleName="Player" />
-                                <RadioButtons buttons={["Off", "Arena"]} callback={setDebugMode} titleName="Debug" />
+                                <RadioButtons buttons={["Off", "Arena", "Battle"]} callback={setDebugMode} titleName="Debug" />
                             </div>
                         </div>
 
@@ -745,7 +741,7 @@ var GameInventory = React.createClass({
     setEquipSelected: function(selection) {
         this.equipSelected = selection;
         var msg = "Equipment Selected: " + selection.item.toString();
-        this.props.selectItemTop(item);
+        this.props.selectItemTop(selection.item);
         this.setState({invMsg: msg, msgStyle: "text-info"});
     },
 
