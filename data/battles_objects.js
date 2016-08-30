@@ -7,7 +7,7 @@
  */
 
 // Some info on attributes:
-//      dontCreate: true - Use with base classes
+//      dontCreate: true - Use with base classes, prevents object creation
 //      base: xxx        - Use xxx as a base for the object
 //      danger           - Used for rand generation, higher values means less often
 //      cssClass         - Used for rendering purposes.
