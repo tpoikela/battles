@@ -62,6 +62,7 @@ RG.Map.Cell = function(x, y, elem) { // {{{2
         return false;
     };
 
+    /** Returns true if the cell has props of given type.*/
     this.hasProp = function(prop) {
         if (_p.hasOwnProperty(prop)) {
             return _p[prop].length > 0;
@@ -69,13 +70,19 @@ RG.Map.Cell = function(x, y, elem) { // {{{2
         return false;
     };
 
+    /** Returns true if cell has any actors.*/
+    this.hasActors = function() {return this.hasProp("actors");};
+
+    /** Returns true if cell has stairs.*/
     this.hasStairs = function() {
         return this.hasPropType("stairsUp") || this.hasPropType("stairsDown");
     };
 
+    /** Return stairs in this cell, or null if there are none.*/
     this.getStairs = function() {
         if (this.hasPropType("stairsUp")) return this.getPropType("stairsUp")[0];
         if (this.hasPropType("stairsDown")) return this.getPropType("stairsDown")[0];
+        return null;
     };
 
     /** Returns true if any cell property has the given type. Ie.
