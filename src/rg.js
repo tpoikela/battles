@@ -355,6 +355,49 @@ var RG = { // {{{2
 }; /// }}} RG
 RG.cellRenderArray = RG.cellRenderVisible;
 
+/** Lookup table object for movement and actions keys.*/
+RG.KeyMap = {
+
+    moveKeyMap: { },
+
+    // Start from W, go clock wise on keyboard
+    initMap: function() {
+        this.moveKeyMap[ROT.VK_W] = 0;
+        this.moveKeyMap[ROT.VK_E] = 1;
+        this.moveKeyMap[ROT.VK_D] = 2;
+        this.moveKeyMap[ROT.VK_C] = 3;
+        this.moveKeyMap[ROT.VK_X] = 4;
+        this.moveKeyMap[ROT.VK_Z] = 5;
+        this.moveKeyMap[ROT.VK_A] = 6;
+        this.moveKeyMap[ROT.VK_Q] = 7;
+    },
+
+    inMoveCodeMap: function(code) {
+        return this.moveKeyMap.hasOwnProperty(code);
+    },
+
+    /** Based on keycode, computes and returns a new x,y pair. If code is
+     * invalid, returns null. */
+    getDiff: function(code, x, y) {
+        if (this.moveKeyMap.hasOwnProperty(code)) {
+            var diff = ROT.DIRS[8][this.moveKeyMap[code]];
+            var newX = x + diff[0];
+            var newY = y + diff[1];
+            return [newX, newY];
+        }
+        else if (code === ROT.VK_S) {
+            return [x, y];
+        }
+        else {
+            return null;
+        }
+    },
+
+};
+RG.KeyMap.initMap();
+
+
+
 /** Contains generic 2D geometric functions for square/rectangle/etc
  * generation.*/
 RG.Geometry = {
