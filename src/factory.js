@@ -589,7 +589,7 @@ RG.RogueObjectStubParser = function() {
         items: {
             // Generic item functions
             value: "setValue",
-            weight: "setWeight",
+            weight: {comp: "Physical", func: "setWeight"},
 
             armour: {
                 attack: "setAttack",
@@ -838,11 +838,11 @@ RG.RogueObjectStubParser = function() {
             var fname = compData.func;
             var compName = compData.comp;
             if (newObj.has(compName)) {
-                newObj.get(compName)[fname](val);
+                newObj.get(compName)[fname](val); // Call comp with setter (fname)
             }
             else { // Have to create new component
                 var comp = this.createComponent(compName);
-                comp[fname](val);
+                comp[fname](val); // Then call comp setter
             }
         }
         else {
