@@ -19,30 +19,18 @@ RG.Item.Base = function(name) {
     this.setPropType(RG.TYPE_ITEM);
 
     var _name = name;
-    var _weight = 1;
     var _value = 1;
-    var _p = {}; // Stores all extra properties
+
+    this.add("Physical", new RG.Component.Physical());
 
     this.count = 1; // Number of items
 
     this.setName = function(name) {_name = name;};
     this.getName = function() {return _name;};
 
-    this.hasProp = function(propName) {
-        return _p.hasOwnProperty(propName);
-    };
+    this.setWeight = function(weight) {this.get("Physical").setWeight(weight);};
+    this.getWeight = function() {return this.get("Physical").getWeight();};
 
-    this.getProp = function(propName) {
-        if (_p.hasOwnProperty(propName)) {
-            return _p[propName];
-        }
-        else {
-            return null;
-        }
-    };
-
-    this.setWeight = function(weight) {_weight = weight;};
-    this.getWeight = function() {return _weight;};
     this.setValue = function(value) {_value = value;};
     this.getValue = function() {return _value;};
 
@@ -61,7 +49,6 @@ RG.Item.Base.prototype.equals = function(item) {
     res = res && (this.getType() === item.getType());
     return res;
 };
-
 
 RG.Item.Base.prototype.copy = function(rhs) {
     this.setName(rhs.getName());
@@ -91,17 +78,27 @@ RG.Item.Food = function(name) {
     /** Uses (eats) the food item.*/
     this.useItem = function(obj) {
         if (obj.hasOwnProperty("target")) {
-            var target = obj.target;
-            if (target.has("Hunger")) {
-                var totalEnergy = Math.round(this.getWeight() * _energy);
-                target.get("Hunger").addEnergy(totalEnergy);
-                if (this.count === 1) {
-                    var msg = {item: this};
-                    RG.POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
+            var cell = obj.target;
+            if (cell.hasActors()) {
+                var target = cell.getProp("actors")[0];
+                if (target.has("Hunger")) {
+                    var totalEnergy = Math.round(this.getWeight() * _energy);
+                    target.get("Hunger").addEnergy(totalEnergy);
+                    if (this.count === 1) {
+                        var msg = {item: this};
+                        RG.POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
+                        RG.gameMsg(target.getName() + " + consumes " + this.getName());
+                    }
+                    else {
+                        this.count -= 1;
+                    }
                 }
                 else {
-                    this.count -= 1;
+                    RG.gameWarn(target.getName() + " is not interested in eating.");
                 }
+            }
+            else {
+                RG.gameWarn("There's no one to give food to.");
             }
         }
         else {
@@ -130,7 +127,6 @@ RG.Item.Weapon.prototype.toString = function() {
     var msg = RG.Item.Base.prototype.toString.call(this);
     msg += RG.Object.Damage.prototype.toString.call(this);
     return msg;
-
 };
 
 RG.Item.Weapon.prototype.clone = function() {
@@ -142,14 +138,12 @@ RG.Item.Weapon.prototype.clone = function() {
 RG.Item.Weapon.prototype.copy = function(rhs) {
     RG.Item.Base.prototype.copy.call(this, rhs);
     RG.Object.Damage.prototype.copy.call(this, rhs);
-
 };
 
 RG.Item.Weapon.prototype.equals = function(rhs) {
     var res = RG.Item.Base.prototype.equals.call(this, rhs);
     res = res && RG.Object.Damage.prototype.equals.call(this, rhs);
     return res;
-
 };
 
 RG.extend2(RG.Item.Weapon, RG.Item.Base);
@@ -196,18 +190,25 @@ RG.Item.Potion = function(name) {
 
     this.useItem = function(obj) {
         if (obj.hasOwnProperty("target")) {
-            var target = obj.target;
-            var die = new RG.Die(1, 10, 2);
-            var pt = die.roll();
-            if (target.has("Health")) {
-                target.get("Health").addHP(pt);
-                if (this.count === 1) {
-                    var msg = {item: this};
-                    RG.POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
+            var cell = obj.target;
+            if (cell.hasActors()) {
+                var target = cell.getProp("actors")[0];
+                var die = new RG.Die(1, 10, 2);
+                var pt = die.roll();
+                if (target.has("Health")) {
+                    target.get("Health").addHP(pt);
+                    if (this.count === 1) {
+                        var msg = {item: this};
+                        RG.POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
+                        RG.gameMsg(target.getName() + " drinks " + this.getName());
+                    }
+                    else {
+                        this.count -= 1;
+                    }
                 }
-                else {
-                    this.count -= 1;
-                }
+            }
+            else {
+                RG.gameWarn("Cannot see anyone there for using the potion.");
             }
         }
         else {
@@ -420,6 +421,29 @@ RG.Item.Container = function(owner) {
 
 };
 RG.extend2(RG.Item.Container, RG.Item.Base);
+
+/** Spirit gems can capture spirits inside them.*/
+RG.Item.SpiritGem = function(name) {
+    RG.Item.Base.call(this, name);
+    this.setType("spiritgem");
+
+    var _spirit = null;
+
+    this.setSpirit = function(spirit) {};
+    this.getSpirit = function() {_return spirit;};
+
+    /** Used for capturing the spirits inside the gem.*/
+    this.useItem = function(obj) {
+        if (_spirit === null) {
+
+        }
+        else {
+
+        }
+    };
+
+};
+RG.extend2(RG.Item.SpiritGem, RG.Item.Base);
 
 /** Spirit items are wearables which can have powerful use abilities as well.*/
 RG.Item.Spirit = function(name) {
