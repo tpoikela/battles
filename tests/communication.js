@@ -47,23 +47,22 @@ describe('How AI brain memory performs basic functions', function() {
 
 
 describe('How actors communicate with each other', function() {
-    //var game = new RG.Game.Main();
-    RG.POOL = new RG.EventPool();
-    var comSys = new RG.System.Communication("Communication", ["Communication"]);
-    var systems = [comSys];
-
-    var hunter1 = RG.FACT.createMonster("hunter1");
-    var hunter2 = RG.FACT.createMonster("hunter2");
-
-    var brain1 = new Brain(hunter1);
-    hunter1.setBrain(brain1);
-
-    var brain2 = new Brain(hunter2);
-    hunter2.setBrain(brain2);
-
-    var animal = RG.FACT.createMonster("animal");
 
     it('Passes info between actors via comm components', function() {
+        var comSys = new RG.System.Communication("Communication", ["Communication"]);
+        var systems = [comSys];
+
+        var hunter1 = RG.FACT.createMonster("hunter1");
+        var hunter2 = RG.FACT.createMonster("hunter2");
+
+        var brain1 = new Brain(hunter1);
+        hunter1.setBrain(brain1);
+
+        var brain2 = new Brain(hunter2);
+        hunter2.setBrain(brain2);
+
+        var animal = RG.FACT.createMonster("animal");
+
         hunter1.addEnemy(animal);
         var mem1 = brain1.getMemory();
 

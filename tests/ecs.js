@@ -37,20 +37,24 @@ describe('How hunger system works', function() {
 });
 
 describe('How loot is dropped by monsters', function() {
-    var level = RG.FACT.createLevel("arena", 20, 20);
-    var monster = RG.FACT.createMonster("TestMonster", {hp: 5, att: 1, def: 1, prot: 1});
-    var human = RG.FACT.createMonster("Human", {hp: 5, att: 1, def: 1, prot: 1});
-
-    var dSystem = new RG.System.Damage("Damage", ["Damage"]);
-    var systems = [dSystem];
 
     it('Drops loot when lethal damage is dealt', function() {
+        var level = RG.FACT.createLevel("arena", 20, 20);
+        var monster = RG.FACT.createMonster("TestMonster", {hp: 5, att: 1, def: 1, prot: 1});
+        var human = RG.FACT.createMonster("Human", {hp: 5, att: 1, def: 1, prot: 1});
+
+        var dSystem = new RG.System.Damage("Damage", ["Damage"]);
+        var systems = [dSystem];
+
         var lootItem = new RG.Item.Base("Loot item");
         var loot = new RG.Component.Loot(lootItem);
+
         monster.add("Loot", loot);
         var dmgComp = new RG.Component.Damage(6, "fire");
         dmgComp.setSource(human);
         monster.add("Damage", dmgComp);
+        expect(dSystem.entities.hasOwnProperty(monster.getID())).to.equal(true);
+
         var lootCell = level.getMap().getCell(3, 6);
         level.addActor(monster, 3, 6);
         expect(lootItem.getOwner()).to.equal(null);
