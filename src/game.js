@@ -4,21 +4,29 @@ var RG = GS.getSource("RG", "./src/rg.js");
 RG.System = GS.getSource(["RG", "System"], "./src/system.js");
 RG.Map = GS.getSource(["RG", "Map"], "./src/map.js");
 
-/** Top-level object for the game.  */
-RG.Game = function() {
+RG.Game = {};
 
-    var _players      = [];
-    var _levels       = [];
-    var _activeLevels = [];
-    var _shownLevel   = null;
-    var _time         = "";
-    var _gameOver     = false;
+/** Game engine which handles turn scheduling and systems updates.*/
+RG.Game.Engine = function() {
 
-    var _mapGen = new RG.Map.Generator();
-    var _scheduler = new RG.RogueScheduler();
-    var _msg = new RG.MessageHandler();
+    // Ignore GUI commands by default
+    this.isGUICommand  = function() {return false;};
+    this.doGUICommand  = null;
 
+    this.nextActor     = null;
     this.simIntervalID = null;
+
+    var _activeLevels = []; // Only these levels are simulated
+
+    var _scheduler = new RG.RogueScheduler();
+
+    var _msg = new RG.MessageHandler();
+    this.getMessages = function() {return _msg.getMessages();};
+    this.clearMessages = function() { _msg.clear();};
+
+    //--------------------------------------------------------------
+    // ECS SYSTEMS
+    //--------------------------------------------------------------
 
     // These systems updated after each action
     this.systemOrder = ["Attack", "Missile", "Movement", "Damage", "ExpPoints", "Communication"];
@@ -36,69 +44,27 @@ RG.Game = function() {
     this.loopSystems = {};
     this.loopSystems.Hunger = new RG.System.Hunger("Hunger", ["Action", "Hunger"]);
 
-    this.getMessages = function() {
-        return _msg.getMessages();
+    this.updateSystems = function() {
+        for (var i = 0; i < this.systemOrder.length; i++) {
+            var sysName = this.systemOrder[i];
+            this.systems[sysName].update();
+        }
     };
 
-    this.clearMessages = function() {
-        _msg.clear();
+    this.updateLoopSystems = function() {
+        for (var s in this.loopSystems) this.loopSystems[s].update();
     };
 
-    this.shownLevel = function() {return _shownLevel;};
-    this.setShownLevel = function(level) {_shownLevel = level;};
-
-    this.doGUICommand = null;
-    this.isGUICommand = null;
-    this.nextActor = null;
+    //--------------------------------------------------------------
+    // SCHEDULING/ACTIONS
+    //--------------------------------------------------------------
 
     /** Returns next actor from the scheduling queue.*/
     this.getNextActor = function() {
         return _scheduler.next();
     };
 
-    this.isGameOver = function() {
-        return _gameOver;
-    };
-
-    /** Returns player(s) of the game.*/
-    this.getPlayer = function() {
-        if (_players.length === 1) {
-            return _players[0];
-        }
-        else if (_players.length > 1) {
-            return _players;
-        }
-        else {
-            RG.err("Game", "getPlayer", "There are no players in the game.");
-        }
-    };
-
-    /** Adds player to the game. By default, it's added to the first level.*/
-    this.addPlayer = function(player) {
-        if (_levels.length > 0) {
-            if (_levels[0].addActorToFreeCell(player)) {
-                _players.push(player);
-                if (_shownLevel === null) {
-                    _shownLevel = _levels[0];
-                }
-                RG.debug(this, "Added a player to the Game.");
-                if (this.nextActor === null) this.nextActor = player;
-                _levels[0].onEnter();
-                _levels[0].onFirstEnter();
-                return true;
-            }
-            else {
-                RG.err("Game", "addPlayer", "Failed to add the player.");
-                return false;
-            }
-        }
-        else {
-            RG.err("Game", "addPlayer", "No levels exist. Cannot add player.");
-        }
-        return false;
-    };
-
-    /** Adds an actor to scheduler.*/
+    /** Adds an actor to the scheduler.*/
     this.addActor = function(actor) {
         _scheduler.add(actor, true, 0);
     };
@@ -128,17 +94,93 @@ RG.Game = function() {
         }
     };
 
-    var _levelMap = {};
-    /** Adds one level to the game.*/
-    this.addLevel = function(level) {
-        _levels.push(level);
-        if (!_levelMap.hasOwnProperty(level.getID())) {
-            _levelMap[level.getID()] = level;
+    //--------------------------------------------------------------
+    // GAME LOOPS
+    //--------------------------------------------------------------
+
+    /** GUI should only call this method.*/
+    this.update = function(obj) {
+        if (!this.isGameOver()) {
+            this.clearMessages();
+
+            if (this.nextActor !== null) {
+                if (obj.hasOwnProperty("evt")) {
+                    var code = obj.evt.keyCode;
+                    if (this.isGUICommand(code)) {
+                        this.doGUICommand(code);
+                    }
+                    else {
+                        this.updateGameLoop({code: code});
+                    }
+                }
+                else {
+                    this.updateGameLoop(obj);
+                }
+            }
+
         }
         else {
-            RG.err("Game", "addLevel", "Duplicate level ID " + level.getID());
+            this.clearMessages();
+            RG.POOL.emitEvent(RG.EVT_MSG, {msg: "GAME OVER!"});
+            if (this.simIntervalID === null) {
+                this.simIntervalID = setInterval(this.simulateGame.bind(this), 1);
+            }
         }
-        if (_activeLevels.length === 0) this.addActiveLevel(level);
+    };
+
+    this.updateGameLoop = function(obj) {
+        this.playerCommand(obj);
+        this.nextActor = this.getNextActor();
+
+        // Next/act until player found, then go back waiting for key...
+        while (!this.nextActor.isPlayer() && !this.isGameOver()) {
+            var action = this.nextActor.nextAction();
+            this.doAction(action);
+
+            this.updateSystems();
+
+            this.nextActor = this.getNextActor();
+            if (RG.isNullOrUndef([this.nextActor])) {
+                console.error("Game loop out of events! This is bad!");
+                break;
+            }
+        }
+
+        this.updateLoopSystems();
+
+    };
+
+    /** Simulates the game without a player.*/
+    this.simulateGame = function() {
+        this.nextActor = this.getNextActor();
+        if (!this.nextActor.isPlayer()) {
+            var action = this.nextActor.nextAction();
+            this.doAction(action);
+            this.updateSystems();
+        }
+    };
+
+    this.playerCommand = function(obj) {
+        var action = this.nextActor.nextAction(obj);
+        this.doAction(action);
+        this.updateSystems();
+        this.playerCommandCallback(this.nextActor);
+    };
+
+    //--------------------------------------------------------------
+    // MANAGING ACTIVE LEVELS
+    //--------------------------------------------------------------
+
+    this.numActiveLevels = function() {return _activeLevels.length;};
+
+    var _levelMap = {};
+
+    this.hasLevel = function(level) {
+        return _levelMap.hasOwnProperty(level.getID())
+    };
+
+    this.addLevel = function(level) {
+        _levelMap[level.getID()] = level;
     };
 
     /** Sets which levels are actively simulated.*/
@@ -174,124 +216,20 @@ RG.Game = function() {
         }
     };
 
-    /* Returns the visible map to be rendered by GUI. */
-    this.getVisibleMap = function() {
-        var player = this.getPlayer();
-        var map = player.getLevel().getMap();
-        return map;
-    };
+    this.isGameOver = function() {return false;};
 
-    /** Must be called to advance the game by one player action. Non-player
-     * actions are executed after the player action.*/
-    this.update = function(obj) {
-        if (!this.isGameOver()) {
-            this.clearMessages();
-
-            if (this.nextActor !== null) {
-                if (obj.hasOwnProperty("evt")) {
-                    var code = obj.evt.keyCode;
-                    if (this.isGUICommand(code)) {
-                        this.doGUICommand(code);
-                    }
-                    else {
-                        this.updateGameLoop({code: code});
-                    }
-                }
-                else {
-                    this.updateGameLoop(obj);
-                }
-            }
-
-        }
-        else {
-            this.clearMessages();
-            RG.POOL.emitEvent(RG.EVT_MSG, {msg: "GAME OVER!"});
-            if (this.simIntervalID === null) {
-                this.simIntervalID = setInterval(this.simulateGameWithoutPlayer.bind(this), 1);
-            }
-        }
-
-    };
-
-    /** Updates game for one player command, and a number of AI commands until
-     * next player command.*/
-    this.updateGameLoop = function(obj) {
-        this.playerCommand(obj);
-        this.nextActor = this.getNextActor();
-
-        // Next/act until player found, then go back waiting for key...
-        while (!this.nextActor.isPlayer() && !this.isGameOver()) {
-            var action = this.nextActor.nextAction();
-            this.doAction(action);
-
-            for (var i = 0; i < this.systemOrder.length; i++) {
-                var sysName = this.systemOrder[i];
-                this.systems[sysName].update();
-            }
-
-            this.nextActor = this.getNextActor();
-            if (RG.isNullOrUndef([this.nextActor])) {
-                console.error("Game loop out of events! This is bad!");
-                break;
-            }
-        }
-
-        for (var s in this.loopSystems) this.loopSystems[s].update();
-
-    };
-
-    /** Simulates the game without player.*/
-    this.simulateGameWithoutPlayer = function() {
-        this.nextActor = this.getNextActor();
-        if (!this.nextActor.isPlayer()) {
-            var action = this.nextActor.nextAction();
-            this.doAction(action);
-            for (var i = 0; i < this.systemOrder.length; i++) {
-                var sysName = this.systemOrder[i];
-                this.systems[sysName].update();
-            }
-        }
-    };
-
-    this.playerCommand = function(obj) {
-        var action = this.nextActor.nextAction(obj);
-        this.doAction(action);
-        for (var i = 0; i < this.systemOrder.length; i++) {
-            var sysName = this.systemOrder[i];
-            this.systems[sysName].update();
-        }
-        this.visibleCells = this.shownLevel().exploreCells(this.nextActor);
-    };
 
     this.isActiveLevel = function(level) {
         var index = _activeLevels.indexOf(level.getID());
         return index >= 0;
-
     };
 
-    /** Used by the event pool. Game receives notifications about different
-     * game events from child components. */
+    //--------------------------------------------------------------
+    // EVENT LISTENING
+    //--------------------------------------------------------------
+
     this.notify = function(evtName, args) {
-        if (evtName === RG.EVT_ACTOR_KILLED) {
-            if (args.actor.isPlayer()) {
-                if (_players.length === 1) {
-                    _gameOver = true;
-                    RG.gameMsg("GAME OVER!");
-                }
-            }
-        }
-        else if (evtName === RG.EVT_LEVEL_CHANGED) {
-            var actor = args.actor;
-            if (actor.isPlayer()) {
-                _shownLevel = actor.getLevel();
-                this.addActiveLevel(_shownLevel);
-                args.src.onExit();
-                args.src.onFirstExit();
-                args.target.onEnter();
-                args.target.onFirstEnter();
-            }
-        }
-        else if (evtName === RG.EVT_DESTROY_ITEM) {
+        if (evtName === RG.EVT_DESTROY_ITEM) {
             var item = args.item;
             var owner = item.getOwner().getOwner(); // chaining due to inventory container
             if (!owner.getInvEq().removeItem(item)) {
@@ -343,17 +281,167 @@ RG.Game = function() {
                 }
             }
         }
+        else if (evtName === RG.EVT_LEVEL_CHANGED) {
+            var actor = args.actor;
+            if (actor.isPlayer()) {
+                this.addActiveLevel(actor.getLevel());
+                args.src.onExit();
+                args.src.onFirstExit();
+                args.target.onEnter();
+                args.target.onFirstEnter();
+            }
+        }
     };
-    RG.POOL.listenEvent(RG.EVT_ACTOR_CREATED, this);
-    RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
-    RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this);
     RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this);
     RG.POOL.listenEvent(RG.EVT_ACT_COMP_ADDED, this);
     RG.POOL.listenEvent(RG.EVT_ACT_COMP_REMOVED, this);
     RG.POOL.listenEvent(RG.EVT_ACT_COMP_ENABLED, this);
     RG.POOL.listenEvent(RG.EVT_ACT_COMP_DISABLED, this);
     RG.POOL.listenEvent(RG.EVT_LEVEL_PROP_ADDED, this);
+    RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this);
+
+};
+
+/** Top-level main object for the game.  */
+RG.Game.Main = function() {
+
+    var _players      = [];
+    var _levels       = [];
+    var _shownLevel   = null; // One per game only
+    var _gameOver     = false;
+
+    var _eventPool = new RG.EventPool();
+    RG.resetEventPools();
+    RG.pushEventPool(_eventPool);
+
+    var _engine = new RG.Game.Engine();
+
+
+    this.shownLevel = function() {return _shownLevel;};
+    this.setShownLevel = function(level) {_shownLevel = level;};
+
+    // GUI commands needed for some functions
+    this.setGUICallbacks = function(isGUICmd, doGUICmd) {
+        _engine.isGUICommand = isGUICmd;
+        _engine.doGUICommand = doGUICmd;
+    };
+
+    this.playerCommandCallback = function(actor) {
+        this.visibleCells = this.shownLevel().exploreCells(actor);
+    };
+    _engine.playerCommandCallback = this.playerCommandCallback;
+
+    this.isGameOver = function() {
+        return _gameOver;
+    };
+    _engine.isGameOver = this.isGameOver;
+
+    /** Returns player(s) of the game.*/
+    this.getPlayer = function() {
+        if (_players.length === 1) {
+            return _players[0];
+        }
+        else if (_players.length > 1) {
+            return _players;
+        }
+        else {
+            RG.err("Engine", "getPlayer", "There are no players in the game.");
+            return null;
+        }
+    };
+
+    /** Adds player to the game. By default, it's added to the first level.*/
+    this.addPlayer = function(player) {
+        if (_levels.length > 0) {
+            if (_levels[0].addActorToFreeCell(player)) {
+                _players.push(player);
+                if (_shownLevel === null) {
+                    _shownLevel = _levels[0];
+                }
+                RG.debug(this, "Added a player to the Game.");
+                if (this.nextActor === null) this.nextActor = player;
+                _levels[0].onEnter();
+                _levels[0].onFirstEnter();
+                return true;
+            }
+            else {
+                RG.err("Game", "addPlayer", "Failed to add the player.");
+                return false;
+            }
+        }
+        else {
+            RG.err("Game", "addPlayer", "No levels exist. Cannot add player.");
+        }
+        return false;
+    };
+
+    this.getMessages = function() {return _engine.getMessages();};
+    this.clearMessages = function() { _engine.clearMessages();};
+
+    /** Adds an actor to scheduler.*/
+    this.addActor = function(actor) {_engine.addActor(actor);};
+
+    /** Removes an actor from a scheduler.*/
+    this.removeActor = function(actor) {_engine.removeActor(actor);};
+
+    /** Adds an event to the scheduler.*/
+    this.addEvent = function(gameEvent) {_engine.addEvent(gameEvent);};
+
+    this.addActiveLevel = function(level) {_engine.addActiveLevel(level);};
+
+    /** Adds one level to the game.*/
+    this.addLevel = function(level) {
+        _levels.push(level);
+        if (!_engine.hasLevel(level)) {
+            _engine.addLevel(level);
+        }
+        else {
+            RG.err("Game", "addLevel", "Duplicate level ID " + level.getID());
+        }
+        if (_engine.numActiveLevels() === 0) this.addActiveLevel(level);
+    };
+
+    /* Returns the visible map to be rendered by GUI. */
+    this.getVisibleMap = function() {
+        var player = this.getPlayer();
+        var map = player.getLevel().getMap();
+        return map;
+    };
+
+    /** Must be called to advance the game by one player action. Non-player
+     * actions are executed after the player action.*/
+    this.update = function(obj) {_engine.update(obj);};
+
+    /** Used by the event pool. Game receives notifications about different
+     * game events from child components. */
+    this.notify = function(evtName, args) {
+        if (evtName === RG.EVT_ACTOR_KILLED) {
+            if (args.actor.isPlayer()) {
+                if (_players.length === 1) {
+                    _gameOver = true;
+                    RG.gameMsg("GAME OVER!");
+                }
+            }
+        }
+        else if (evtName === RG.EVT_LEVEL_CHANGED) {
+            var actor = args.actor;
+            if (actor.isPlayer()) {
+                _shownLevel = actor.getLevel();
+            }
+        }
+    };
+    RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
+    RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this);
 }; // }}} Game
+
+/** Battle is "mini-game" which uses its own scheduling and engine.*/
+RG.Game.Battle = function(game) {
+
+    var _game = game;
+
+    var _engine = new RG.Game.Engine();
+
+};
 
 if (typeof module !== "undefined" && typeof exports !== "undefined") {
     GS.exportSource(module, exports, ["RG", "Game"], [RG, RG.Game]);

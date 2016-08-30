@@ -19,7 +19,7 @@ var SurrogatePlayer = function() {
 
 };
 
-var game = new Game();
+var game = new Game.Main();
 
 function checkMap(map, cols, rows) {
     for (var x = 0; x < cols; x++) {
@@ -61,8 +61,6 @@ describe('How game should proceed', function() {
         var cols = 50;
         var rows = 30;
         var level = getNewLevel(cols, rows);
-
-        //checkMap(map, cols, rows);
 
         var actor = new Actor("Player"); // player
         actor.setIsPlayer(true);

@@ -360,11 +360,14 @@ RG.FCCGame = function() {
 
         var levelCount = 1;
 
-        var game = new RG.Game();
+        var game = new RG.Game.Main();
         var player = this.createFCCPlayer(game, obj);
 
         if (obj.debugMode === "Arena") {
             return this.createFCCDebugGame(obj, game, player);
+        }
+        else if (obj.debugMode === "Battle") {
+            return this.createDebugBattle(obj, game, player);
         }
 
         var levels = ["rooms", "rogue", "digger"];
@@ -500,6 +503,10 @@ RG.FCCGame = function() {
         game.addPlayer(player);
         //player.setFOVRange(50);
         return game;
+    };
+
+    this.createDebugBattle = function(obj, game, player) {
+        // TODO
     };
 
     var _listener = null;
