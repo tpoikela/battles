@@ -352,6 +352,17 @@ var RG = { // {{{2
     // Different types
     TYPE_ITEM: "items",
 
+    // Energy per action
+    energy: {
+        REST: 1,
+        USE: 1,
+        PICKUP: 1,
+        MISSILE: 2,
+        MOVE: 2,
+        ATTACK: 3,
+        RUN: 4,
+    },
+
 }; /// }}} RG
 RG.cellRenderArray = RG.cellRenderVisible;
 

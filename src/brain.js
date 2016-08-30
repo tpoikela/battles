@@ -26,14 +26,6 @@ RG.Brain.Player = function(actor) { // {{{2
 
     this.energy = 1; // Consumed energy per action
 
-    var _energyPerAction = {
-        REST: 1,
-        PICKUP: 1,
-        MOVE: 2,
-        ATTACK: 3,
-        RUN: 4,
-    };
-
     var _confirmCallback = null;
     var _wantConfirm = false;
     var _confirmEnergy = 1;
@@ -77,8 +69,7 @@ RG.Brain.Player = function(actor) { // {{{2
 
         // Invoke GUI callback with given code
         if (_guiCallbacks.hasOwnProperty(code)) {
-            _guiCallbacks[code](code);
-            return null;
+            return _guiCallbacks[code](code);
         }
 
         if (code === ROT.VK_R) {
@@ -88,7 +79,7 @@ RG.Brain.Player = function(actor) { // {{{2
             }
             else {
                 _runModeEnabled = true;
-                this.energy = _energyPerAction.RUN;
+                this.energy = RG.energy.RUN;
                 _baseSpeed = _actor.get("Stats").getSpeed();
                 var newSpeed = Math.floor( 1.5 * _baseSpeed);
                 _actor.get("Stats").setSpeed(newSpeed);
@@ -148,9 +139,9 @@ RG.Brain.Player = function(actor) { // {{{2
                 if (currMap.isPassable(x, y)) {
 
                     if (_runModeEnabled)
-                        this.energy = _energyPerAction.RUN;
+                        this.energy = RG.energy.RUN;
                     else
-                        this.energy = _energyPerAction.MOVE;
+                        this.energy = RG.energy.MOVE;
 
                     return function() {
                         var movComp = new RG.Component.Movement(x, y, level);
@@ -166,11 +157,11 @@ RG.Brain.Player = function(actor) { // {{{2
                     };
 
                     if (target.isEnemy(_actor)) {
-                        this.energy = _energyPerAction.ATTACK;
+                        this.energy = RG.energy.ATTACK;
                         return attackCallback;
                     }
                     else {
-                        _confirmEnergy = _energyPerAction.ATTACK;
+                        _confirmEnergy = RG.energy.ATTACK;
                         _wantConfirm = true;
                         _confirmCallback = attackCallback;
                         RG.gameMsg("Press 'y' to attack non-hostile actor.");
@@ -187,7 +178,7 @@ RG.Brain.Player = function(actor) { // {{{2
             }
         }
         else if (type === "REST") {
-            this.energy = _energyPerAction.REST;
+            this.energy = RG.energy.REST;
             return function() {};
         }
 
@@ -197,16 +188,16 @@ RG.Brain.Player = function(actor) { // {{{2
     /** Handles a command given from GUI.*/
     this.handleCommand = function(obj) {
         _restoreBaseSpeed();
-        if (obj.cmd === "missile") this.energy = 2;
+        if (obj.cmd === "missile") this.energy = RG.energy.MISSILE;
         else if (obj.cmd === "use") {
             if (obj.hasOwnProperty("item")) {
                 var item = obj.item;
                 if (item.hasOwnProperty("useItem")) {
-                    this.energy = 1;
+                    this.energy = RG.energy.USE;
                     item.useItem({target: obj.target});
                 }
                 else {
-                    return this.cmdNotPossible("You cannot move that way.");
+                    return this.cmdNotPossible("You use that item.");
                 }
             }
             else {
