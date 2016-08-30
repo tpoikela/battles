@@ -10,33 +10,6 @@ var RG = GS.getSource("RG", "./src/rg.js");
 
 RG.Brain = {};
 
-RG.Brain.KeyMap = function() {
-
-    var moveKeyMap = {};
-
-    // Start from W, go clock wise on keyboard
-    moveKeyMap[ROT.VK_W] = 0;
-    moveKeyMap[ROT.VK_E] = 1;
-    moveKeyMap[ROT.VK_D] = 2;
-    moveKeyMap[ROT.VK_C] = 3;
-    moveKeyMap[ROT.VK_X] = 4;
-    moveKeyMap[ROT.VK_Z] = 5;
-    moveKeyMap[ROT.VK_A] = 6;
-    moveKeyMap[ROT.VK_Q] = 7;
-
-    this.inMoveCodeMap = function(code) {
-        return moveKeyMap.hasOwnProperty(code);
-    };
-
-    this.getDiff = function(code, x, y) {
-        var diff = ROT.DIRS[8][moveKeyMap[code]];
-        var newX = x + diff[0];
-        var newY = y + diff[1];
-        return [newX, newY];
-    };
-
-};
-
 /** This brain is used by the player actor. It simply handles the player input
  * but by having brain, player actor looks like other actors.  */
 RG.Brain.Player = function(actor) { // {{{2
@@ -61,8 +34,6 @@ RG.Brain.Player = function(actor) { // {{{2
         RUN: 4,
     };
 
-    var _keymap = new RG.Brain.KeyMap();
-
     var _confirmCallback = null;
     var _wantConfirm = false;
     var _confirmEnergy = 1;
@@ -85,14 +56,13 @@ RG.Brain.Player = function(actor) { // {{{2
         return null;
     };
 
+    /** Main function which returns next action as function.*/
     this.decideNextAction = function(obj) {
         this.energy = 1;
 
         // Workaround at the moment, because missile attacks are GUI-driven
         if (obj.hasOwnProperty("cmd")) {
-            _restoreBaseSpeed();
-            if (obj.cmd === "missile") this.energy = 2;
-            return function() {};
+            return this.handleCommand(obj);
         }
 
         var code = obj.code;
@@ -136,8 +106,8 @@ RG.Brain.Player = function(actor) { // {{{2
         var currCell = currMap.getCell(x, y);
 
         var type = "NULL";
-        if (_keymap.inMoveCodeMap(code)) {
-            var diff = _keymap.getDiff(code, x, y);
+        if (RG.KeyMap.inMoveCodeMap(code)) {
+            var diff = RG.KeyMap.getDiff(code, x, y);
             x = diff[0];
             y = diff[1];
             type = "MOVE";
@@ -190,26 +160,30 @@ RG.Brain.Player = function(actor) { // {{{2
                 else if (currMap.getCell(x,y).hasProp("actors")) {
                     _restoreBaseSpeed();
                     var target = currMap.getCell(x, y).getProp("actors")[0];
-                    var callback = function() {
+                    var attackCallback = function() {
                         var attackComp = new RG.Component.Attack(target);
                         _actor.add("Attack", attackComp);
                     };
 
                     if (target.isEnemy(_actor)) {
                         this.energy = _energyPerAction.ATTACK;
-                        return callback;
+                        return attackCallback;
                     }
                     else {
                         _confirmEnergy = _energyPerAction.ATTACK;
                         _wantConfirm = true;
-                        _confirmCallback = callback;
+                        _confirmCallback = attackCallback;
                         RG.gameMsg("Press 'y' to attack non-hostile actor.");
                         return null;
                     }
                 }
                 else {
-                    return this.cmdNotPossible("You cannot move that way.");
+                    return this.cmdNotPossible("You cannot venture there.");
                 }
+            }
+            else {
+                //TODO add moving out of the map
+                return this.cmdNotPossible("You cannot move that way.");
             }
         }
         else if (type === "REST") {
@@ -219,6 +193,29 @@ RG.Brain.Player = function(actor) { // {{{2
 
         return null; // Null action
     };
+
+    /** Handles a command given from GUI.*/
+    this.handleCommand = function(obj) {
+        _restoreBaseSpeed();
+        if (obj.cmd === "missile") this.energy = 2;
+        else if (obj.cmd === "use") {
+            if (obj.hasOwnProperty("item")) {
+                var item = obj.item;
+                if (item.hasOwnProperty("useItem")) {
+                    this.energy = 1;
+                    item.useItem({target: obj.target});
+                }
+                else {
+                    return this.cmdNotPossible("You cannot move that way.");
+                }
+            }
+            else {
+                RG.err("Brain.Player", "handleCommand", "obj has no item");
+            }
+        }
+        return function() {};
+    };
+
 
     this.addEnemy = function(actor) {};
 

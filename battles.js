@@ -14,7 +14,6 @@ RG.Element = GS.getSource(["RG", "Element"], "./src/element.js");
 RG.Map = GS.getSource(["RG", "Map"], "./src/map.js");
 RG.Factory = GS.getSource(["RG", "Factory"], "./src/factory.js");
 
-
 /** Models an action. Each action has a duration and a callback.  */
 RG.RogueAction = function(dur, cb, obj) { // {{{2
 

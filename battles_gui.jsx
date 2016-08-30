@@ -31,6 +31,10 @@ var RoguelikeTop = React.createClass({
     game: null,
     isTargeting: false,
 
+    selectedItem: null,
+    useModeEnabled: false,
+    closeInvOnClick: false,
+
     viewportPlayerX: 35, // * 2
     viewportPlayerY: 12, // * 2
     viewportX: 35, // * 2
@@ -88,7 +92,6 @@ var RoguelikeTop = React.createClass({
     getInitialState: function() {
         this.initGUICommandTable();
         this.createNewGame();
-        RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this);
         return {
             render: true,
             renderFullScreen: false,
@@ -103,12 +106,18 @@ var RoguelikeTop = React.createClass({
             delete this.game;
             RG.POOL = new RG.EventPool();
             RG.FACT = new RG.Factory.Base();
+            RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this);
+            RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this);
         }
         this.game = fccGame.createFCCGame(this.gameConf);
         this.game.doGUICommand = this.doGUICommand;
         this.game.isGUICommand = this.isGUICommand;
         var player = this.game.getPlayer();
         this.visibleCells = player.getLevel().exploreCells(player);
+    },
+
+    selectItemTop: function(item) {
+        this.selectedItem = item;
     },
 
     /** When a cell is clicked, shows some debug info. */
@@ -147,10 +156,14 @@ var RoguelikeTop = React.createClass({
         this.setState({render: true, renderFullScreen: true});
     },
 
+    /** When listening events, component gets notification via this
+     * method.*/
     notify: function(evtName, obj) {
-        var actor = obj.actor;
-        if (actor.isPlayer()) {
-            this.setState({render: true, renderFullScreen: true});
+        if (evtName === RG.EVT_LEVEL_CHANGED) {
+            var actor = obj.actor;
+            if (actor.isPlayer()) {
+                this.setState({render: true, renderFullScreen: true});
+            }
         }
     },
 
@@ -194,7 +207,8 @@ var RoguelikeTop = React.createClass({
                 />
                 <GameHelpScreen />
 
-                <GameInventory forceRender={this.forceRender} player={player}/>
+                <GameInventory selectItemTop={this.selectItemTop} 
+                    forceRender={this.forceRender} player={player}/>
 
                 <div className="row">
                     <div className="col-md-2">
@@ -206,7 +220,9 @@ var RoguelikeTop = React.createClass({
                 </div>
                 <div className="row">
                     <div className="text-left col-md-2">
-                        <GameStats player={player} setViewType={this.setViewType}/>
+                        <GameStats player={player} setViewType={this.setViewType}
+                            selectedItem={this.selectedItem}
+                        />
                     </div>
                     <div className="col-md-10">
                         <GameBoard player={player} map={map}
@@ -225,6 +241,19 @@ var RoguelikeTop = React.createClass({
         );
     },
 
+    getAdjacentCell: function(code) {
+        var player = this.game.getPlayer();
+        var x = player.getX();
+        var y = player.getY();
+        console.log("X,Y is " + x + ", " + y);
+        var diffXY = RG.KeyMap.getDiff(code, x, y);
+        console.log("New X,Y is " + diffXY[0] + ", " + diffXY[1]);
+        if (diffXY !== null) {
+            return player.getLevel().getMap().getCell(diffXY[0], diffXY[1]);
+        }
+        return null;
+    },
+
     //-------------------------------------------------------------
     // GUI-RELATED COMMANDS
     //-------------------------------------------------------------
@@ -235,11 +264,15 @@ var RoguelikeTop = React.createClass({
         this.guiCommands[ROT.VK_I] = this.GUIInventory;
         this.guiCommands[ROT.VK_M] = this.GUIMap;
         this.guiCommands[ROT.VK_T] = this.GUITarget;
+        this.guiCommands[ROT.VK_U] = this.GUIUseItem;
     },
 
     isGUICommand: function(code) {
         if (this.isTargeting) {
 
+        }
+        else if (this.useModeEnabled) {
+            return true;
         }
         else {
             return this.guiCommands.hasOwnProperty(code);
@@ -249,7 +282,21 @@ var RoguelikeTop = React.createClass({
 
     /** Calls a GUI command corresponding to the code.*/
     doGUICommand: function(code) {
-        if (this.guiCommands.hasOwnProperty(code)) {
+         if (this.useModeEnabled) {
+             console.log("Disabling useMode now");
+            this.useModeEnabled = false;
+            var cell = this.getAdjacentCell(code);
+            if (cell !== null) {
+                this.game.update({
+                    cmd: "use", target: cell, item: this.selectedItem
+                });
+                this.selectedItem = null;
+            }
+            else {
+                RG.gameWarn("There are no targets there.");
+            }
+        }
+        else if (this.guiCommands.hasOwnProperty(code)) {
             this.guiCommands[code]();
         }
         else {
@@ -277,6 +324,16 @@ var RoguelikeTop = React.createClass({
             this.isTargeting = true;
         }
         this.setState({render: true});
+    },
+
+    GUIUseItem: function() {
+        if (!this.useModeEnabled) {
+            this.useModeEnabled = true;
+            this.closeInvOnClick = true;
+            if (this.selectedItem === null) 
+                $("#inventory-button").trigger("click");
+            RG.gameMsg("Select direction for using the item.");
+        }
     },
 
     //---------------------------------------------------------------------------
@@ -654,7 +711,7 @@ var GameInventory = React.createClass({
         if (this.selectedItem !== null) {
             if (this.selectedItem.hasOwnProperty("useItem")) {
                 var invEq = this.props.player.getInvEq();
-                var target = this.props.player;
+                var target = this.getAdjacentCell(ROT.VK_S);
                 if (invEq.useItem(this.selectedItem, {target: target})) {
                     var itemName = this.selectedItem.getName();
                     this.setState({invMsg: "You used the " + itemName + ".",
@@ -681,12 +738,14 @@ var GameInventory = React.createClass({
     setSelectedItem: function(item) {
         this.selectedItem = item;
         var msg = "Inventory Selected: " + item.toString();
+        this.props.selectItemTop(item);
         this.setState({invMsg: msg, msgStyle: "text-info"});
     },
 
     setEquipSelected: function(selection) {
         this.equipSelected = selection;
         var msg = "Equipment Selected: " + selection.item.toString();
+        this.props.selectItemTop(item);
         this.setState({invMsg: msg, msgStyle: "text-info"});
     },
 
@@ -873,6 +932,9 @@ var GameStats = React.createClass({
         var player = this.props.player;
         var eq = player.getInvEq().getEquipment();
         var dungeonLevel = player.getLevel().getLevelNumber();
+        var selectedItem = this.props.selectedItem;
+        var selItemName = "";
+        if (selectedItem !== null) selItemName = "Selected: " + selectedItem.getName();
 
         var eqAtt = player.getEquipAttack();
         var eqDef = player.getEquipDefense();
@@ -924,6 +986,7 @@ var GameStats = React.createClass({
             <div className="game-stats">
                 <ul className="game-stats-list">{statsHTML}</ul>
                 <p className={moveClassName}>{moveStatus}</p>
+                <p className="text-primary">{selItemName}</p>
                 <button id="inventory-button" className="btn btn-info" data-toggle="modal" data-target="#inventoryModal">Inventory</button>
                 <button id="map-player-button" className="btn btn-info" onClick={this.changeMapView}>Map View</button>
             </div>
