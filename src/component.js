@@ -505,7 +505,6 @@ RG.Component.Physical = function() {
 
     this.setWeight = function(weight) {
         _weight = weight;
-        console.log("Physical setW to " + _weight);
     };
 
     this.getWeight = function() {return _weight;};
