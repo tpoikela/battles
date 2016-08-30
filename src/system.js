@@ -24,8 +24,6 @@ RG.System.Base = function(type, compTypes) {
     };
 
     this.notify = function(evtName, obj) {
-        if (evtName === "Communication") console.log("notify Communication XXX");
-        if (evtName === "Damage") console.log("notify Damage XXX");
         if (obj.hasOwnProperty("add")) {
             if (this.hasCompTypes(obj.entity))
                 this.addEntity(obj.entity);
@@ -422,7 +420,6 @@ RG.System.Communication = function(type, compTypes) {
     this.update = function() {
         for (var e in this.entities) {
             var ent = this.entities[e];
-            console.log("COMM XXX");
             var comComp = ent.get("Communication");
             var messages = comComp.getMsg();
             for (var i = 0; i < messages.length; i++) {
