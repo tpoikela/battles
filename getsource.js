@@ -18,7 +18,15 @@
  * GS.exportSource(module, exports, ["Stuff", "SubMod"], [Stuff, Stuff.SubMod]);
  */
 
-var GS = {};
+var GS = {
+    errorIfNullOrUndef: function(keys, objs) {
+        for (var i = 0; i < objs.length; i++) {
+            if (objs[i] === null || typeof objs[i] === "undefined") {
+                throw new Error("Object not well-defined: " + keys[i]);
+            }
+        }
+    },
+};
 
 var getSource = function(keys, fname) {
     var has_require = typeof require !== 'undefined';
@@ -55,6 +63,7 @@ GS.getSource = getSource;
 /** At the moment, a bit of a hack. Max. names hardcoded to 3 hierarchicals, ie.
  * A.B.C will still work, but A.B.C.D is too much.*/
 var exportSource = function(module, exports, keys, objs) {
+    GS.errorIfNullOrUndef(keys, objs);
 
     var nLast = objs.length - 1;
     var lastObj = objs[nLast];
@@ -119,7 +128,7 @@ if (typeof window !== 'undefined') {
             if (sourceRe.test(modName)) {
                 return GS;
             }
-            else throw new Error("Only ../getsource.js is supported for browsers.");
+            else throw new Error("Only ../getsource.js is supported for browsers. Got " + modName);
         };
     }
 
