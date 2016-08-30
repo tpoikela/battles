@@ -316,7 +316,6 @@ RG.Game.Main = function() {
 
     var _engine = new RG.Game.Engine();
 
-
     this.shownLevel = function() {return _shownLevel;};
     this.setShownLevel = function(level) {_shownLevel = level;};
 
@@ -327,9 +326,10 @@ RG.Game.Main = function() {
     };
 
     this.playerCommandCallback = function(actor) {
+        console.log("Called callbackk XXXX");
         this.visibleCells = this.shownLevel().exploreCells(actor);
     };
-    _engine.playerCommandCallback = this.playerCommandCallback;
+    _engine.playerCommandCallback = this.playerCommandCallback.bind(this);
 
     this.isGameOver = function() {
         return _gameOver;
@@ -359,7 +359,7 @@ RG.Game.Main = function() {
                     _shownLevel = _levels[0];
                 }
                 RG.debug(this, "Added a player to the Game.");
-                if (this.nextActor === null) this.nextActor = player;
+                if (_engine.nextActor === null) _engine.nextActor = player;
                 _levels[0].onEnter();
                 _levels[0].onFirstEnter();
                 return true;
