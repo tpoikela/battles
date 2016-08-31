@@ -5,7 +5,7 @@ var $DEBUG = 0;
 /** Top-level component which renders all other components. Keeps also track
  * of the current game state.
  */
-var RoguelikeTop = React.createClass({
+var BattlesTop = React.createClass({
 
     /** Styles to change the cell size.*/
     cellSize: {
@@ -30,6 +30,8 @@ var RoguelikeTop = React.createClass({
     game: null,
     isTargeting: false,
 
+    gameSave: new RG.Game.Save(),
+
     selectedItem: null,
     useModeEnabled: false,
 
@@ -47,6 +49,8 @@ var RoguelikeTop = React.createClass({
         sqrPerMonster: 40,
         sqrPerItem: 100,
         debugMode: false,
+        loadedPlayer: null,
+        loadedLevel: null,
     },
 
     forceRender: function() {
@@ -88,6 +92,8 @@ var RoguelikeTop = React.createClass({
     },
 
     getInitialState: function() {
+        this.gameSave.setStorage(window.localStorage),
+        this.savedPlayerList = this.gameSave.getPlayersAsList();
         this.initGUICommandTable();
         this.createNewGame();
         return {
@@ -98,6 +104,35 @@ var RoguelikeTop = React.createClass({
         };
     },
 
+    /** Called when "Start" button is clicked to create a new game.*/
+    newGame: function(evt) {
+        this.createNewGame();
+        this.setState({render: true, renderFullScreen: true});
+    },
+
+    /** Saves the game position.*/
+    saveGame: function() {
+        var player = this.game.getPlayer();
+        this.gameSave.savePlayer(player);
+        RG.gameMsg("Your progress has been saved.");
+        console.log("saveGame was called with name " + player.getName());
+        this.setState({render: true, renderFullScreen: true});
+    },
+
+    /** Loads a saved game.*/
+    loadGame: function(name) {
+        var player = this.gameSave.restorePlayer(name);
+        if (player !== null) {
+            console.log("Loading game for player |" + name);
+            this.gameConf.loadedPlayer = player;
+            this.gameConf.loadedLevel = this.gameSave.getDungeonLevel();
+            this.newGame();
+            //this.gameConf.loadedPlayer = null;
+            //this.gameConf.loadedLevel = null;
+        }
+    },
+
+    /** Creates a new game instance.*/
     createNewGame: function() {
         var fccGame = new RG.FCCGame();
         if (this.game !== null) {
@@ -111,6 +146,7 @@ var RoguelikeTop = React.createClass({
         RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this);
         RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this);
     },
+
 
     selectItemTop: function(item) {
         this.selectedItem = item;
@@ -146,11 +182,6 @@ var RoguelikeTop = React.createClass({
         }
     },
 
-    /** Called when "Start" button is clicked to create a new game.*/
-    newGame: function(evt) {
-        this.createNewGame();
-        this.setState({render: true, renderFullScreen: true});
-    },
 
     /** When listening events, component gets notification via this
      * method.*/
@@ -194,6 +225,8 @@ var RoguelikeTop = React.createClass({
             <div id="main-div" className="container main-div">
 
                 <GameStartScreen newGame={this.newGame}
+                    savedPlayerList={this.savedPlayerList}
+                    loadGame={this.loadGame}
                     setGameLength={this.setGameLength}
                     setLoot={this.setLoot}
                     setMonsters={this.setMonsters}
@@ -208,7 +241,7 @@ var RoguelikeTop = React.createClass({
 
                 <div className="row">
                     <div className="col-md-2">
-                        <GamePanel  setViewSize={this.setViewSize}/>
+                        <GamePanel  setViewSize={this.setViewSize} saveGame={this.saveGame}/>
                     </div>
                     <div className="col-md-10">
                         <GameMessages message={message}/>
@@ -383,6 +416,7 @@ var RoguelikeTop = React.createClass({
 
 });
 
+/** This component contains short info on keys and how to play the game.*/
 var GameHelpScreen = React.createClass({
 
     render: function() {
@@ -401,7 +435,7 @@ var GameHelpScreen = React.createClass({
                             <div className="col-md-6">
                                 <p>To move around, use:</p>
                                 <table id="mov-buttons-table" className="table">
-                                    <theader></theader>
+                                    <thead></thead>
                                     <tbody>
                                         <tr><td>Move NW: q</td><td> Move N: w</td><td>Move NE: e</td></tr>
                                         <tr><td>Move W: a</td><td>Rest: s</td><td>Move E: d</td></tr>
@@ -438,6 +472,21 @@ var GameHelpScreen = React.createClass({
  */
 var GameStartScreen = React.createClass({
 
+    getInitialState: function() {
+        return {
+            selectedGame: null
+        };
+    },
+
+    /** Loads a saved game.*/
+    loadGame: function() {
+        this.props.loadGame(this.state.selectedGame);
+    },
+
+    selectGame: function(name) {
+        this.setState({selectedGame:name});
+    },
+
     render: function() {
         var setLoot = this.props.setLoot;
         var setMonsters = this.props.setMonsters;
@@ -446,8 +495,39 @@ var GameStartScreen = React.createClass({
         var setGameLength = this.props.setGameLength;
         var setDebugMode = this.props.setDebugMode;
 
+        var that = this;
+        var savedPlayerList = this.props.savedPlayerList;
+        var playerListHTML = savedPlayerList.map(function(val, index) {
+            return (<button className="player-list" key={index} onClick={that.selectGame.bind(that, val.name)}>Name: {val.name}, Level: {val.L}</button>);
+        });
+
         var newGame = this.props.newGame;
         return (
+            <div id="game-start-screen">
+
+            <div className="modal fade" role="dialog" id="gameLoadModal" tabIndex="-1" role="dialog" aria-labelledby="game-load-modal-label" aria-hidden="true">
+                <div className="modal-dialog modal-lg">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <h4 className="modal-title" id="game-load-modal-label">{RG.gameTitle} Load a game</h4>
+                        </div>
+
+                        <div className="modal-body row">
+                            {playerListHTML}
+                            <p>Selected game: {this.state.selectedGame}</p>
+                        </div>
+                        <div className="modal-footer row">
+                            <button type="button" data-dismiss="modal" onClick={this.loadGame} className="btn btn-secondary btn-warning">
+                                Load
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div className="modal fade" role="dialog" id="gameStartModal" tabIndex="-1" role="dialog" aria-labelledby="game-start-modal-label" aria-hidden="true">
                 <div className="modal-dialog modal-lg">
                     <div className="modal-content">
@@ -500,10 +580,15 @@ var GameStartScreen = React.createClass({
                         <div className="modal-footer row">
                             <div className="col-md-6">
                                 <button type="button" onClick={newGame} className="btn btn-secondary" data-dismiss="modal">Embark!</button>
+                                <button type="button" data-toggle="modal" data-target="#gameLoadModal" data-dismiss="modal" className="btn btn-secondary btn-warning">
+                                    Load
+                                </button>
+
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
             </div>
         );
     }
@@ -573,6 +658,8 @@ var GamePanel = React.createClass({
         return (
             <div>
                 <button id="start-button" className="btn btn-info" data-toggle="modal" data-target="#gameStartModal">Start</button>
+                <button id="load-button" className="btn btn-info" data-toggle="modal" data-target="#gameLoadModal">Load</button>
+                <button id="save-button" className="btn btn-info" onClick={this.props.saveGame}>Save</button>
                 <button id="help-button" className="btn btn-info" data-toggle="modal" data-target="#gameHelpModal">Help</button>
                 <button onClick={this.setViewSizeXPlus}>+X</button>
                 <button onClick={this.setViewSizeXNeg}>-X</button>
@@ -850,9 +937,10 @@ var GameEquipment = React.createClass({
             var items = [];
             if (item !== null) items.push(item);
 
+            var key = i;
             if (items.length > 0) {
                 for (var j = 0; j < items.length; j++) {
-                    var key = i + "," + j;
+                    key += "," + j;
                     equipped.push(
                         <GameEquipSlot setEquipSelected={setEquip} key={key} slotName={slots[i]} slotNumber={j} item={items[j]} />
                     );
@@ -860,7 +948,7 @@ var GameEquipment = React.createClass({
             }
             else {
                 equipped.push(
-                    <GameEquipSlot setEquipSelected={setEquip} slotName={slots[i]} slotNumber={j} item={null} />
+                    <GameEquipSlot setEquipSelected={setEquip} key={key} slotName={slots[i]} slotNumber={j} item={null} />
                 );
             }
         }
@@ -1108,6 +1196,10 @@ var GameBoard = React.createClass({
 /** A row component which holds a number of cells. {{{2 */
 var GameRow = React.createClass({
 
+    onCellClick: function(x, y, cell) {
+
+    },
+
     render: function() {
         var onCellClick = this.props.onCellClick;
         var y = this.props.y;
@@ -1116,6 +1208,7 @@ var GameRow = React.createClass({
         var rowClass = "cell-row-div-player-view";
         if (mapShown) rowClass = "cell-row-div-map-view";
 
+        var that = this;
         var rowCells = this.props.rowCellData.map( function(cell, index) {
             var cellIndex = visibleCells.indexOf(cell);
             var visibleToPlayer = cellIndex < 0 ? false: true;
@@ -1123,7 +1216,7 @@ var GameRow = React.createClass({
             var cellChar  = RG.getChar(cell, visibleToPlayer);
             var cellX = cell.getX();
 
-            return (<span key={index} onClick={onCellClick.bind(cellX, y, cell)} className={cellClass}>
+            return (<span key={index} onClick={that.onCellClick.bind(that, cellX, y, cell)} className={cellClass}>
                 {cellChar}
             </span>
             );
@@ -1140,10 +1233,9 @@ var GameRow = React.createClass({
 }); // }}} GameRow
 
 ReactDOM.render(
-    <RoguelikeTop />,
+    <BattlesTop />,
     document.getElementById("mount-point")
 );
-
 
 function debug(msg) {
     if ($DEBUG) {

@@ -14,6 +14,9 @@ var checkXY = RGTest.checkActorXY;
 var Game = require("../src/game.js");
 var Actor = RG.Actor.Rogue;
 
+var LocalStorage = require('node-localstorage').LocalStorage,
+localStorage = new LocalStorage('./battles_local_storage');
+
 // Takes turns instead of real-player
 var SurrogatePlayer = function() {
 
@@ -215,4 +218,32 @@ describe('How AI brain works', function() {
 
 });
 
+describe('Game.Save how saving works', function() {
+    it('Saves/restores player properly', function() {
+        var level = RG.FACT.createLevel("arena", 10, 10);
+        level.setLevelNumber(3);
+
+        var gameSave = new RG.Game.Save();
+        gameSave.setStorage(localStorage);
+        var player = new RG.Actor.Rogue("Player1");
+        player.setIsPlayer(true);
+        player.get("Experience").setExpLevel(5);
+        level.addActor(player, 3, 3);
+        gameSave.savePlayer(player);
+
+        var rest = gameSave.restorePlayer("Player1");
+        expect(rest.getName()).to.equal(player.getName());
+        expect(rest.get("Experience").getExpLevel()).to.equal(5);
+
+        var playerList = gameSave.getPlayersAsObj();
+        expect(playerList.hasOwnProperty("Player1")).to.equal(true);
+
+        var die = rest.get("Combat").getDamageDie();
+        expect(die !== null).to.equal(true);
+        expect(typeof die !== "undefined").to.equal(true);
+
+
+
+    });
+});
 

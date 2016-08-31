@@ -326,7 +326,6 @@ RG.Game.Main = function() {
     };
 
     this.playerCommandCallback = function(actor) {
-        console.log("Called callbackk XXXX");
         this.visibleCells = this.shownLevel().exploreCells(actor);
     };
     _engine.playerCommandCallback = this.playerCommandCallback.bind(this);
@@ -440,6 +439,94 @@ RG.Game.Battle = function(game) {
     var _game = game;
 
     var _engine = new RG.Game.Engine();
+
+};
+
+RG.Game.Save = function() {
+
+    var _storageRef = null;
+    var _dungeonLevel = 1;
+    var _db
+
+    // Contains names of players for restore selection
+    var _playerList = "_battles_player_data_";
+
+    this.setStorage = function(stor) {_storageRef = stor;};
+
+    this.getDungeonLevel = function() {return _dungeonLevel;};
+
+    /** Returns a list of saved players.*/
+    this.getPlayersAsList = function() {
+        var dbObj = this.getPlayersAsObj();
+        if (dbObj !== null) {
+            return Object.keys(dbObj).map(function(val) {
+                return dbObj[val];
+            });
+        }
+        else {
+            return [];
+        }
+    };
+
+    /** Returns an object containing the saved players.*/
+    this.getPlayersAsObj = function() {
+        var dbString = _storageRef.getItem(_playerList);
+        return JSON.parse(dbString);
+    };
+
+    /** Saves a player object. */
+    this.savePlayer = function(player) {
+        var name = player.getName();
+        var storedObj = player.objectify();
+        storedObj.dungeonLevel = player.getLevel().getLevelNumber();
+        var dbObj = {player: storedObj};
+        var dbString = JSON.stringify(dbObj);
+        _storageRef.setItem("_battles_player_" + name, dbString);
+        _savePlayerInfo(name, storedObj);
+    };
+
+    /** Restores a player with given name. */
+    this.restorePlayer = function(name) {
+        var playersObj = this.getPlayersAsObj();
+        if (playersObj.hasOwnProperty(name)) {
+            var dbString = _storageRef.getItem("_battles_player_" + name);
+            var dbObj = JSON.parse(dbString);
+            var player = _createPlayerObj(dbObj.player);
+            return player;
+        }
+        else {
+            RG.err("No player " + name + " found from the list.");
+            return null;
+        }
+    };
+
+    /** Saves name and level of the player into a list.*/
+    var _savePlayerInfo = function(name, obj) {
+        var dbString = _storageRef.getItem(_playerList);
+        var dbObj = JSON.parse(dbString);
+        if (dbObj === null) dbObj = {};
+        dbObj[name] = {name: name, L: obj.components.setExpLevel};
+        dbString = JSON.stringify(dbObj);
+        _storageRef.setItem(_playerList, dbString);
+    };
+
+    /** Handles creation of restored player from JSON.*/
+    var _createPlayerObj = function(obj) {
+        var player = new RG.Actor.Rogue(obj.name);
+        player.setIsPlayer(true);
+        player.setType("player");
+        var storedComps = obj.components;
+        for (var name in storedComps) {
+            var comp = storedComps[name];
+            var newCompObj = new RG.Component[name]();
+            for (var fname in comp) {
+                newCompObj[fname](comp[fname]);
+            }
+            player.add(name, newCompObj);
+        }
+        _dungeonLevel = obj.dungeonLevel;
+        return player;
+    };
 
 };
 
