@@ -166,9 +166,6 @@ RG.Inv.Equipment = function(actor) {
         var matchFound = false;
         for (var i = 0; i < _equipped.length; i++) {
             if (_equipped[i].equals(item)) {
-                console.log("_addStackedItem1 " + _equipped[i].count);
-                console.log("_addStackedItem2 " + item.count);
-                //RG.addStackedItems(_equipped[i], item);
                 matchFound = true;
                 break;
             }
