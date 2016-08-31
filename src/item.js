@@ -87,7 +87,7 @@ RG.Item.Food = function(name) {
                     if (this.count === 1) {
                         var msg = {item: this};
                         RG.POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
-                        RG.gameMsg(target.getName() + " + consumes " + this.getName());
+                        RG.gameMsg(target.getName() + " consumes " + this.getName());
                     }
                     else {
                         this.count -= 1;
