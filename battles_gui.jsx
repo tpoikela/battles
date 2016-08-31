@@ -888,11 +888,13 @@ var GameItems = React.createClass({
         totalWeight = totalWeight.toFixed(2);
         var maxWeight = this.props.maxWeight;
 
+        var key = 0;
         while (item !== null && typeof item !== "undefined") {
             var type = item.getType();
             var we = item.getWeight();
-            items.push(<GameItemSlot setSelectedItem={setSelectedItem} item={item} />);
+            items.push(<GameItemSlot key={key} setSelectedItem={setSelectedItem} item={item} />);
             item = inv.next();
+            ++key;
         }
         return (
             <div>
