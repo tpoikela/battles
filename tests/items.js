@@ -194,7 +194,7 @@ describe('How item stacks work with equipped missiles', function() {
     var eq = invEq.getEquipment();
 
 
-    it('description', function() {
+    it('Stacks item in inv when added individually', function() {
         for (var i = 0; i < 10; i++) {
             var arrow = new RG.Item.Missile("arrow");
             invEq.addItem(arrow);

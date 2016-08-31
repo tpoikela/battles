@@ -57,7 +57,7 @@ describe('Brain.Player', function() {
 });
 
 describe('Basic functions of Rogue Brain', function() {
-    it('description', function() {
+    it('Has 1st priority for enemies', function() {
         var brain = new Brain.Rogue();
     });
 });

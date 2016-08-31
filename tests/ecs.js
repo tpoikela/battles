@@ -10,8 +10,18 @@ var updateSystems = function(systems) {
     }
 };
 
+describe('Combat using ECS', function() {
+    it('Has combat components', function() {
+        var player = RG.FACT.createPlayer("Player", {});
+        var combatComp = new RG.Component.Combat();
+        player.add("Combat", combatComp);
+        expect(player.get("Combat").getDamage() >= 1).to.equal(true);
+        expect(player.get("Combat").getDamage() <= 4).to.equal(true);
+    });
+});
+
 describe('How hunger system works', function() {
-    it('description', function() {
+    it('Subtracts energy from actors with hunger', function() {
         var system = new RG.System.Hunger("Hunger", ["Hunger", "Action"]);
         var hunger = new RG.Component.Hunger(2000);
         var action = new RG.Component.Action();
@@ -27,13 +37,6 @@ describe('How hunger system works', function() {
 
     });
 
-    it('Has combat components', function() {
-        var player = RG.FACT.createPlayer("Player", {});
-        var combatComp = new RG.Component.Combat();
-        player.add("Combat", combatComp);
-        expect(player.get("Combat").getDamage() >= 1).to.equal(true);
-        expect(player.get("Combat").getDamage() <= 4).to.equal(true);
-    });
 });
 
 describe('How loot is dropped by monsters', function() {
@@ -66,3 +69,4 @@ describe('How loot is dropped by monsters', function() {
 
     });
 });
+

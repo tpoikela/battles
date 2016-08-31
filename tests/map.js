@@ -60,7 +60,7 @@ describe('Basic properties of map cell', function() {
 });
 
 describe('Retrieving styling classes for cells', function() {
-    it('description', function() {
+    it('Returns correct CSS class and char', function() {
         var cell = new Cell(0, 0, new Element("wall"));
         cell.setExplored();
         expect(RG.getStyleClassForCell(cell)).to.equal("cell-element-wall");
@@ -89,6 +89,7 @@ describe('Items in map cells', function() {
         var cell = new Cell(0, 1, new Element("floor"));
         cell.setExplored();
         var item = new Item("food");
+        item.setType("food");
         cell.setProp("items", item);
         expect(cell.hasProp("items")).to.equal(true);
 
@@ -115,8 +116,11 @@ describe('Items in map cells', function() {
         expect(container.next()).to.equal(null);
 
         // Test adding items.
-        var food = new Item("food");
-        var weapon = new Item("weapon");
+        var food = new Item("Corn");
+        food.setType("food");
+        var weapon = new Item("Spear");
+        weapon.setType("weapon");
+
         expect(food.getOwner()).to.equal(null);
         container.addItem(food);
         expect(food.getOwner()).to.equal(container);
@@ -143,8 +147,10 @@ describe('Items in map cells', function() {
     });
 
     it("Actor inventory has a container and equipped items", function() {
-        var food = new Item("food");
-        var sword = new Item("weapon");
+        var food = new Item("Bagel");
+        food.setType("food");
+        var sword = new Item("Sword");
+        sword.setType("weapon");
         var actor = Factory.createPlayer("Player", 50);
 
         var invEq = new InvAndEquip(actor);
@@ -166,6 +172,8 @@ describe('Items in map cells', function() {
         var actor = Factory.createPlayer("Player", {});
         var inv   = actor.getInvEq().getInventory();
         var weapon = new Item("weapon");
+        weapon.setType("weapon");
+
         expect(level.addItem(weapon, 2, 4)).to.equal(true);
         expect(level.addActor(actor, 2, 4)).to.equal(true);
 
