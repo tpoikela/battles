@@ -51,6 +51,13 @@ var BattlesTop = React.createClass({
         debugMode: false,
         loadedPlayer: null,
         loadedLevel: null,
+        playerName: "Player",
+    },
+
+
+    setPlayerName: function(name) {
+        this.gameConf.playerName = name;
+
     },
 
     forceRender: function() {
@@ -113,7 +120,7 @@ var BattlesTop = React.createClass({
     /** Saves the game position.*/
     saveGame: function() {
         var player = this.game.getPlayer();
-        this.gameSave.savePlayer(player);
+        this.gameSave.save(this.game, this.gameConf);
         RG.gameMsg("Your progress has been saved.");
         console.log("saveGame was called with name " + player.getName());
         this.setState({render: true, renderFullScreen: true});
@@ -126,9 +133,19 @@ var BattlesTop = React.createClass({
             console.log("Loading game for player |" + name);
             this.gameConf.loadedPlayer = player;
             this.gameConf.loadedLevel = this.gameSave.getDungeonLevel();
+            var confObj = this.gameSave.getPlayersAsObj()[name];
+            this.restoreConf(confObj);
+
             this.newGame();
             //this.gameConf.loadedPlayer = null;
             //this.gameConf.loadedLevel = null;
+        }
+    },
+
+    restoreConf: function(obj) {
+        var props = ["cols", "rows", "sqrPerMonster", "sqrPerItem", "levels"];
+        for (var i = 0; i < props.length; i++) {
+            this.gameConf[props[i]] = obj[props[i]];
         }
     },
 
@@ -225,6 +242,7 @@ var BattlesTop = React.createClass({
             <div id="main-div" className="container main-div">
 
                 <GameStartScreen newGame={this.newGame}
+                    setPlayerName={this.setPlayerName}
                     savedPlayerList={this.savedPlayerList}
                     loadGame={this.loadGame}
                     setGameLength={this.setGameLength}
@@ -474,8 +492,15 @@ var GameStartScreen = React.createClass({
 
     getInitialState: function() {
         return {
-            selectedGame: null
+            selectedGame: null,
+            playerName: "Player",
         };
+    },
+
+    onNameChange: function(evt) {
+        var name = evt.target.value;
+        this.props.setPlayerName(name);
+        this.setState({playerName: evt.target.value});
     },
 
     /** Loads a saved game.*/
@@ -498,7 +523,7 @@ var GameStartScreen = React.createClass({
         var that = this;
         var savedPlayerList = this.props.savedPlayerList;
         var playerListHTML = savedPlayerList.map(function(val, index) {
-            return (<button className="player-list" key={index} onClick={that.selectGame.bind(that, val.name)}>Name: {val.name}, Level: {val.L}</button>);
+            return (<div className="player-list-item" key={index} onClick={that.selectGame.bind(that, val.name)}>Name: {val.name}, L: {val.expLevel} DL: {val.dungeonLevel}</div>);
         });
 
         var newGame = this.props.newGame;
@@ -563,6 +588,10 @@ var GameStartScreen = React.createClass({
                                     your kingdom cold for all eternity? Or will you perish 
                                     nameless and forgotten on the icy wastes?
                                 </p>
+
+                                <label>You'll be remembered as:
+                                    <input type="text" value={this.state.playerName} onChange={this.onNameChange} />
+                                </label>
 
                         </div>
 
