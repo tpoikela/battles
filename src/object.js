@@ -115,7 +115,7 @@ RG.Object.Typed = function(propType, type) {
 
     this.setType = function(type) {
         _type = type;
-        RG.nullOrUndefError(this, "arg |type|", type);
+        RG.nullOrUndefError("Object.Typed: setType", "arg |type|", type);
     };
 
     this.getType = function() {return _type;};
@@ -144,7 +144,7 @@ RG.Object.Locatable = function() { // {{{2
     /** Sets the level of this locatable object.*/
     this.setLevel = function(level) {
         _level = level;
-        RG.nullOrUndefError(this, "arg |level|", level);
+        RG.nullOrUndefError("Object.Locatable: setLevel", "arg |level|", level);
     };
 
     this.getLevel = function() {
