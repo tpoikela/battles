@@ -635,8 +635,8 @@ RG.Map.Level = function(cols, rows) { // {{{2
             }
         }
         else {
-            RG.nullOrUndefError(this, "arg |x|", x);
-            RG.nullOrUndefError(this, "arg |y|", y);
+            RG.nullOrUndefError("Map.Level: addActor", "arg |x|", x);
+            RG.nullOrUndefError("Map.Level: addActor", "arg |y|", y);
             return false;
         }
     };
