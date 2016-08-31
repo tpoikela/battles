@@ -219,16 +219,24 @@ describe('How AI brain works', function() {
 });
 
 describe('Game.Save how saving works', function() {
-    it('Saves/restores player properly', function() {
+
+    // TODO add to RGTest
+    var setupPlayer = function(name) {
         var level = RG.FACT.createLevel("arena", 10, 10);
         level.setLevelNumber(3);
+        var player = new RG.Actor.Rogue(name);
+        player.setType("player");
+        player.setIsPlayer(true);
+        level.addActor(player, 3, 3);
+        return player;
+    }
 
+    it('Saves/restores player properly', function() {
         var gameSave = new RG.Game.Save();
         gameSave.setStorage(localStorage);
-        var player = new RG.Actor.Rogue("Player1");
-        player.setIsPlayer(true);
+        var player = setupPlayer("Player1");
+
         player.get("Experience").setExpLevel(5);
-        level.addActor(player, 3, 3);
         gameSave.savePlayer(player);
 
         var rest = gameSave.restorePlayer("Player1");
@@ -241,9 +249,76 @@ describe('Game.Save how saving works', function() {
         var die = rest.get("Combat").getDamageDie();
         expect(die !== null).to.equal(true);
         expect(typeof die !== "undefined").to.equal(true);
-
-
+        expect(gameSave.getDungeonLevel()).to.equal(3);
 
     });
+
+    it('Saves/restores inventory properly', function() {
+        var gameSave = new RG.Game.Save();
+        gameSave.setStorage(localStorage);
+        var player = setupPlayer("Player1");
+        var invEq = player.getInvEq();
+
+        // Test first with simple food
+        var food = new RG.Item.Food("Habanero");
+        invEq.addItem(food);
+
+        gameSave.savePlayer(player);
+        var rest = gameSave.restorePlayer("Player1");
+        var invItems = rest.getInvEq().getInventory().getItems();
+        expect(invItems.length).to.equal(1);
+        expect(invItems[0].equals(food)).to.equal(true);
+
+        // Create a new weapon
+        var weapon = new RG.Item.Weapon("Sword");
+        weapon.setAttack(10);
+        weapon.setDamage("3d3+5");
+        weapon.count = 2;
+
+        // Add it, save player and then restore
+        invEq.addItem(weapon);
+        gameSave.savePlayer(player);
+        rest = gameSave.restorePlayer("Player1");
+        invItems = rest.getInvEq().getInventory().getItems();
+        expect(invItems.length).to.equal(2);
+
+        var sword = invItems[1];
+        expect(sword.equals(weapon)).to.equal(true);
+        expect(sword.count).to.equal(2);
+
+        var armour = new RG.Item.Armour("Plate mail");
+        armour.setDefense(11);
+        invEq.addItem(armour);
+        gameSave.savePlayer(player);
+        rest = gameSave.restorePlayer("Player1");
+        invItems = rest.getInvEq().getInventory().getItems();
+        expect(invItems.length).to.equal(3);
+
+        var plateMail = invItems[2];
+        expect(armour.equals(plateMail)).to.equal(true);
+
+    });
+
+    it('Saves/restores and equips equipment correctly', function() {
+        var gameSave = new RG.Game.Save();
+        gameSave.setStorage(localStorage);
+        var player = setupPlayer("HeroPlayer");
+        var invEq = player.getInvEq();
+
+        var weapon = new RG.Item.Weapon("Sword");
+        weapon.setDefense(15);
+        weapon.setAttack(1);
+        weapon.setWeight(2.5);
+
+        invEq.addItem(weapon);
+        expect(invEq.equipItem(weapon)).to.equal(true);
+
+        gameSave.savePlayer(player);
+        var rest = gameSave.restorePlayer("HeroPlayer");
+        var restWeapon = rest.getWeapon();
+        expect(restWeapon.equals(weapon)).to.equal(true);
+
+    });
+
 });
 

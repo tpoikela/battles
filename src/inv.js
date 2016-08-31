@@ -33,7 +33,6 @@ RG.Inv.EquipSlot = function(eq, type, stacked) {
     /** Returns the equipped item for this slot.*/
     this.getItem = function() {
         if (_hasItem) return _item;
-        //console.log("Slot: " + _type + " Returning null");
         return null;
     };
 
@@ -238,6 +237,14 @@ RG.Inv.Equipment = function(actor) {
         return result;
     };
 
+    this.toJSON = function() {
+        var json = [];
+        for (var i = 0; i < _equipped.length; i++) {
+            json.push(_equipped[i].toJSON());
+        }
+        return json;
+    };
+
     // Dynamically generate accessors for different stats
     var _mods = ["getDefense", "getAttack", "getProtection", "getSpeed", "getWillpower",
         "getAccuracy", "getAgility", "getStrength"];
@@ -258,6 +265,7 @@ RG.Inv.Equipment = function(actor) {
 
 };
 RG.extend2(RG.Inv.Equipment, RG.Object.Ownable);
+
 
 /** Object models inventory items and equipment on actor. This object handles
  * movement of items between inventory and equipment. */

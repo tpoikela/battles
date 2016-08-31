@@ -525,6 +525,7 @@ RG.Game.Save = function() {
             player.add(name, newCompObj);
         }
         _createInventory(obj, player);
+        _createEquipment(obj, player);
         _dungeonLevel = obj.dungeonLevel;
         return player;
     };
@@ -533,17 +534,34 @@ RG.Game.Save = function() {
         if (obj.hasOwnProperty("inventory")) {
             var itemObjs = obj.inventory;
             for (var i = 0; i < itemObjs.length; i++) {
-                var item = itemObjs[i];
-                var typeCap = item.setType.capitalize();
-                console.log("Type caps: " + typeCap);
-                var newObj = new RG.Item[typeCap]();
-                for (var func in item) {
-                    newObj[func](item[func]); // Use setter
-                }
+                var newObj = _createItem(itemObjs[i]);
                 player.getInvEq().addItem(newObj);
             }
 
         }
+    };
+
+    var _createEquipment = function(obj, player) {
+        if (obj.hasOwnProperty("equipment")) {
+            var equipObjs = obj.equipment;
+            for (var i = 0; i < equipObjs.length; i++) {
+                var newObj = _createItem(equipObjs[i]);
+                player.getInvEq().addItem(newObj);
+                player.getInvEq().equipItem(newObj);
+            }
+
+        }
+    };
+
+    var _createItem = function(obj) {
+        var item = obj;
+        var typeCap = item.setType.capitalize();
+        var newObj = new RG.Item[typeCap]();
+        for (var func in item) {
+            newObj[func](item[func]); // Use setter
+        }
+        return newObj;
+
     };
 
 };
