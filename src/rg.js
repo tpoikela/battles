@@ -210,10 +210,9 @@ var RG = { // {{{2
     },
 
     /** Prints an error into console if 'val' is null or undefined.*/
-    nullOrUndefError: function(obj, msg, val) {
+    nullOrUndefError: function(name, msg, val) {
         if (this.isNullOrUndef([val])) {
-            var type = typeof obj;
-            console.error("nullOrUndefError: " + type + ": " + msg);
+            console.error("nullOrUndefError: " + name + ": " + msg);
         }
     },
 
@@ -498,8 +497,6 @@ RG.Die = function(num, dice, mod) {
     };
 };
 
-
-
 /** Event pool can be used to emit events and register callbacks for listeners.
  * This decouples the emitter and listener from each other.  */
 RG.EventPool = function() { // {{{2
@@ -522,7 +519,7 @@ RG.EventPool = function() { // {{{2
             }
         }
         else {
-            RG.nullOrUndefError(this, "Event name must be given.", evtName);
+            RG.nullOrUndefError("EventPool: emitEvent", "Event name must be given.", evtName);
         }
     };
 
@@ -550,9 +547,9 @@ RG.EventPool = function() { // {{{2
         }
     };
 };
-RG.POOL = new RG.EventPool();
+RG.POOL = new RG.EventPool(); // Dangerous, global objects
 
-/** Handle the game message listening and storing of the messages.  */
+/** Handles the game message listening and storing of the messages.  */
 RG.MessageHandler = function() { // {{{2
 
     var _message = [];
