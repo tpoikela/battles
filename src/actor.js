@@ -113,7 +113,6 @@ RG.Actor.Rogue = function(name) { // {{{2
         return _invEq.getEquipment().getProtection();
     };
 
-
     this.toJSON = function() {
         var obj = {
             name: this.getName(),
@@ -123,6 +122,8 @@ RG.Actor.Rogue = function(name) { // {{{2
                 Health: this.get("Health").toJSON(),
                 Stats: this.get("Stats").toJSON(),
             },
+            inventory: _invEq.getInventory().toJSON(),
+            equipment: {},
         };
 
         if (this.has("Hunger")) {
