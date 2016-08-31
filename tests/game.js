@@ -243,13 +243,19 @@ describe('Game.Save how saving works', function() {
         expect(rest.getName()).to.equal(player.getName());
         expect(rest.get("Experience").getExpLevel()).to.equal(5);
 
-        var playerList = gameSave.getPlayersAsObj();
-        expect(playerList.hasOwnProperty("Player1")).to.equal(true);
+        var playersAsObj = gameSave.getPlayersAsObj();
+        expect(playersAsObj.hasOwnProperty("Player1")).to.equal(true);
 
         var die = rest.get("Combat").getDamageDie();
         expect(die !== null).to.equal(true);
         expect(typeof die !== "undefined").to.equal(true);
         expect(gameSave.getDungeonLevel()).to.equal(3);
+
+        var playerList = gameSave.getPlayersAsList();
+        var playerObj = playerList[0];
+        expect(playerObj.hasOwnProperty("name")).to.equal(true);
+        expect(playerObj.hasOwnProperty("expLevel")).to.equal(true);
+        expect(playerObj.hasOwnProperty("dungeonLevel")).to.equal(true);
 
     });
 
