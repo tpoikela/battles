@@ -29,6 +29,7 @@ RG.Component.Base = function(type) {
         }
     };
 
+
 };
 // Called when a component is added to the entity
 RG.Component.Base.prototype.addCallback = function(entity) {
@@ -57,6 +58,22 @@ RG.Component.Base.prototype.equals = function(rhs) {
 
 RG.Component.Base.prototype.toString = function() {
     return "Component: " + this.getType();
+};
+
+/** Creates a simple JSON representation of the component. NOTE: This relies on
+ * getters and setters being named identically! Don't rely on this function if
+ * you need something more sophisticated. */
+RG.Component.Base.prototype.toJSON = function() {
+    var obj = {};
+    for (var p in this) {
+        if (/^get/.test(p)) {
+            if (p !== "getEntity" && p !== "getType") {
+                var setter = p.replace("get", "set");
+                obj[setter] = this[p]();
+            }
+        }
+    }
+    return obj;
 };
 
 /** Action component is added to all schedulable acting entities.*/
@@ -203,6 +220,16 @@ RG.Component.Experience = function() {
     this.setDanger = function(danger) {_danger = danger;};
     this.getDanger = function() {return _danger;};
 
+    /*
+    this.toJSON = function() {
+        return {
+            setExp: _exp,
+            setExpLevel: _expLevel,
+            setDanger: _danger,
+        };
+    };
+   */
+
 };
 RG.extend2(RG.Component.Experience, RG.Component.Base);
 
@@ -260,11 +287,26 @@ RG.Component.Combat = function() {
     };
 
     /** Attack methods. */
-    this.setAttackRange = function() {_range = range;};
+    this.setAttackRange = function(range) {_range = range;};
     this.getAttackRange = function() {return _range; };
+
+    this.getDamageDie = function() {
+        return _damage;
+    };
+
+    this.setDamageDie = function(str) {
+        this.setDamage(str);
+    };
 
 };
 RG.extend2(RG.Component.Combat, RG.Component.Base);
+
+RG.Component.Combat.prototype.toJSON = function() {
+    var obj = RG.Component.Base.prototype.toJSON.call(this);
+    delete obj.setDamageDie; // Clean up setter
+    obj.setDamage = this.getDamageDie().toString();
+    return obj;
+};
 
 /** This component stores entity stats like speed, agility etc.*/
 RG.Component.Stats = function() {

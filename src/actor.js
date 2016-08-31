@@ -113,6 +113,24 @@ RG.Actor.Rogue = function(name) { // {{{2
         return _invEq.getEquipment().getProtection();
     };
 
+
+    this.toJSON = function() {
+        var obj = {
+            name: this.getName(),
+            components: {
+                Combat: this.get("Combat").toJSON(),
+                Experience: this.get("Experience").toJSON(),
+                Health: this.get("Health").toJSON(),
+                Stats: this.get("Stats").toJSON(),
+            },
+        };
+
+        if (this.has("Hunger")) {
+            obj.components.Hunger = this.get("Hunger").toJSON();
+        }
+
+        return obj;
+    };
 };
 RG.extend2(RG.Actor.Rogue, RG.Object.Locatable);
 RG.extend2(RG.Actor.Rogue, RG.Entity);
