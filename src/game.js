@@ -134,6 +134,7 @@ RG.Game.Engine = function() {
 
         // Next/act until player found, then go back waiting for key...
         while (!this.nextActor.isPlayer() && !this.isGameOver()) {
+            console.log("LOOPING. NO PLAYER.");
             var action = this.nextActor.nextAction();
             this.doAction(action);
 
@@ -349,29 +350,36 @@ RG.Game.Main = function() {
         }
     };
 
-    /** Adds player to the game. By default, it's added to the first level.*/
+    /** Adds player to the game. By default, it's added to the first level if
+     * player has no level yet.*/
     this.addPlayer = function(player) {
-        if (_levels.length > 0) {
-            if (_levels[0].addActorToFreeCell(player)) {
-                _players.push(player);
-                if (_shownLevel === null) {
-                    _shownLevel = _levels[0];
-                }
-                RG.debug(this, "Added a player to the Game.");
-                if (_engine.nextActor === null) _engine.nextActor = player;
-                _levels[0].onEnter();
-                _levels[0].onFirstEnter();
-                return true;
-            }
-            else {
-                RG.err("Game", "addPlayer", "Failed to add the player.");
-                return false;
-            }
+        var levelOK = false;
+        if (!RG.isNullOrUndef([player.getLevel()])) {
+            levelOK = true;
         }
         else {
-            RG.err("Game", "addPlayer", "No levels exist. Cannot add player.");
+            if (_levels.length > 0) {
+                levelOK =_levels[0].addActorToFreeCell(player);
+                if (!levelOK)
+                    RG.err("Game", "addPlayer", "Failed to add the player.");
+            }
+            else {
+                RG.err("Game", "addPlayer", "No levels exist. Cannot add player.");
+            }
         }
-        return false;
+
+        if (levelOK) {
+            //if (_engine.nextActor === null) _engine.nextActor = player;
+            _engine.nextActor = player;
+            if (_shownLevel === null) _shownLevel = player.getLevel();
+            _players.push(player);
+            RG.debug(this, "Added a player to the Game.");
+            _engine.addActiveLevel(player.getLevel());
+            player.getLevel().onEnter();
+            player.getLevel().onFirstEnter();
+        }
+
+        return levelOK;
     };
 
     this.getMessages = function() {return _engine.getMessages();};
@@ -397,7 +405,7 @@ RG.Game.Main = function() {
         else {
             RG.err("Game", "addLevel", "Duplicate level ID " + level.getID());
         }
-        if (_engine.numActiveLevels() === 0) this.addActiveLevel(level);
+        //if (_engine.numActiveLevels() === 0) this.addActiveLevel(level);
     };
 
     /* Returns the visible map to be rendered by GUI. */
@@ -455,6 +463,12 @@ RG.Game.Save = function() {
 
     this.getDungeonLevel = function() {return _dungeonLevel;};
 
+    /** Main function which saves the full game.*/
+    this.save = function(game, conf) {
+        var player = game.getPlayer();
+        this.savePlayer(player, conf);
+    };
+
     /** Returns a list of saved players.*/
     this.getPlayersAsList = function() {
         var dbObj = this.getPlayersAsObj();
@@ -475,14 +489,14 @@ RG.Game.Save = function() {
     };
 
     /** Saves a player object. */
-    this.savePlayer = function(player) {
+    this.savePlayer = function(player, conf) {
         var name = player.getName();
         var storedObj = player.toJSON();
         storedObj.dungeonLevel = player.getLevel().getLevelNumber();
         var dbObj = {player: storedObj};
         var dbString = JSON.stringify(dbObj);
         _storageRef.setItem("_battles_player_" + name, dbString);
-        _savePlayerInfo(name, storedObj);
+        _savePlayerInfo(name, storedObj, conf);
     };
 
     /** Restores a player with given name. */
@@ -501,13 +515,22 @@ RG.Game.Save = function() {
     };
 
     /** Saves name and level of the player into a list.*/
-    var _savePlayerInfo = function(name, obj) {
+    var _savePlayerInfo = function(name, obj, conf) {
         var dbString = _storageRef.getItem(_playerList);
         var dbObj = JSON.parse(dbString);
         if (dbObj === null) dbObj = {};
-        dbObj[name] = {name: name, L: obj.components.setExpLevel};
+        dbObj[name] = {
+            name: name,
+            expLevel: obj.components.Experience.setExpLevel,
+            dungeonLevel: obj.dungeonLevel,
+        };
+        for (var p in conf) {
+            dbObj[name][p] = conf[p];
+        }
         dbString = JSON.stringify(dbObj);
+        console.log("dbString " + dbString);
         _storageRef.setItem(_playerList, dbString);
+
     };
 
     /** Handles creation of restored player from JSON.*/

@@ -253,7 +253,7 @@ RG.FCCGame = function() {
             var expLevel = obj.playerLevel;
             var pConf = this.playerStats[expLevel];
 
-            player = this.createPlayer("Player", {
+            player = this.createPlayer(obj.playerName, {
                 att: pConf.att, def: pConf.def, prot: pConf.prot
             });
 
@@ -263,12 +263,15 @@ RG.FCCGame = function() {
             player.getInvEq().addItem(startingWeapon);
             player.getInvEq().equipItem(startingWeapon);
         }
-        else {
-            console.log("Player was loaded from storage!");
-        }
 
         if (!player.has("Hunger")) {
             var hunger = new RG.Component.Hunger(2000);
+            player.add("Hunger", hunger);
+        }
+        else {
+            // Notify Hunger system only
+            var hunger = player.get("Hunger");
+            player.remove("Hunger");
             player.add("Hunger", hunger);
         }
         var regenPlayer = new RG.RogueRegenEvent(player, 20 * RG.ACTION_DUR);
@@ -370,7 +373,6 @@ RG.FCCGame = function() {
 
         var levelCount = 1;
 
-        console.log("XXX GOT HERE!");
 
         var game = new RG.Game.Main();
         var player = this.createFCCPlayer(game, obj);
@@ -486,10 +488,18 @@ RG.FCCGame = function() {
                 allStairsUp[nl].setTargetStairs(allStairsDown[nl-1]);
         }
 
-        // Either restore player position or start from loaded position
-        //if (obj.loadedLevel  === null) {
+        // Restore player position or start from beginning
+        if (obj.loadedLevel  !== null) {
+            var loadLevel = obj.loadedLevel;
+            console.log("Adding player to level " + loadLevel);
+            if (loadLevel <= nLevels) {
+                allLevels[loadLevel-1].addActorToFreeCell(player);
+            }
+            else {
+                allLevels[0].addActorToFreeCell(player);
+            }
+        }
         game.addPlayer(player);
-        //}
 
         return game;
 
