@@ -477,7 +477,7 @@ RG.Game.Save = function() {
     /** Saves a player object. */
     this.savePlayer = function(player) {
         var name = player.getName();
-        var storedObj = player.objectify();
+        var storedObj = player.toJSON();
         storedObj.dungeonLevel = player.getLevel().getLevelNumber();
         var dbObj = {player: storedObj};
         var dbString = JSON.stringify(dbObj);
