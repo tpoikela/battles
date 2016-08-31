@@ -34,7 +34,11 @@ RG.Item.Base = function(name) {
     this.setValue = function(value) {_value = value;};
     this.getValue = function() {return _value;};
 
+    this.setCount = function(count) {this.count = count;};
+
 };
+RG.extend2(RG.Item.Base, RG.Object.Ownable);
+
 RG.Item.Base.prototype.toString = function() {
     var txt = this.getName() + ", " + this.getType() + ", ";
     txt += this.getWeight() * this.count + "kg";
@@ -63,7 +67,18 @@ RG.Item.Base.prototype.clone = function() {
     return newItem;
 };
 
-RG.extend2(RG.Item.Base, RG.Object.Ownable);
+RG.Item.Base.prototype.toJSON = function() {
+    var json = {
+        setName: this.getName(),
+        setValue: this.getValue(),
+        setWeight: this.getWeight(),
+        setPropType: RG.TYPE_ITEM,
+        setType: this.getType(),
+        setCount: this.count,
+    };
+    return json;
+};
+
 
 /** Object representing food items in the game.*/
 RG.Item.Food = function(name) {
@@ -109,6 +124,13 @@ RG.Item.Food = function(name) {
 };
 RG.extend2(RG.Item.Food, RG.Item.Base);
 
+RG.Item.Food.prototype.toJSON = function() {
+    var json = RG.Item.Base.prototype.toJSON.call(this);
+    json.setEnergy = this.getEnergy();
+    return json;
+};
+
+
 /** Corpse object dropped by killed actors.*/
 RG.Item.Corpse = function(name) {
     RG.Item.Base.call(this, name);
@@ -122,6 +144,8 @@ RG.Item.Weapon = function(name) {
     RG.Object.Damage.call(this);
     this.setType("weapon");
 };
+RG.extend2(RG.Item.Weapon, RG.Item.Base);
+RG.extend2(RG.Item.Weapon, RG.Object.Damage);
 
 RG.Item.Weapon.prototype.toString = function() {
     var msg = RG.Item.Base.prototype.toString.call(this);
@@ -146,8 +170,16 @@ RG.Item.Weapon.prototype.equals = function(rhs) {
     return res;
 };
 
-RG.extend2(RG.Item.Weapon, RG.Item.Base);
-RG.extend2(RG.Item.Weapon, RG.Object.Damage);
+
+RG.Item.Weapon.prototype.toJSON = function() {
+    var json = RG.Item.Base.prototype.toJSON.call(this);
+    var json2 = RG.Object.Damage.prototype.toJSON.call(this);
+    for (var p in json2) {
+        json[p] = json2[p];
+    }
+    return json;
+};
+
 
 /** Base object for armour.*/
 RG.Item.Armour = function(name) {
@@ -161,6 +193,8 @@ RG.Item.Armour = function(name) {
     this.getArmourType = function() {return _armourType;};
 
 };
+RG.extend2(RG.Item.Armour, RG.Item.Base);
+RG.extend2(RG.Item.Armour, RG.Object.Defense);
 
 RG.Item.Armour.prototype.clone = function() {
     var armour = new RG.Item.Armour(this.getName());
@@ -180,8 +214,15 @@ RG.Item.Armour.prototype.equals = function(rhs) {
     return res;
 };
 
-RG.extend2(RG.Item.Armour, RG.Item.Base);
-RG.extend2(RG.Item.Armour, RG.Object.Defense);
+RG.Item.Armour.prototype.toJSON = function() {
+    var json = RG.Item.Base.prototype.toJSON.call(this);
+    var json2 = RG.Object.Defense.prototype.toJSON.call(this);
+    for (var p in json2) {
+        json[p] = json2[p];
+    }
+    json.setArmourType = this.getArmourType();
+    return json;
+};
 
 /** Potion object which restores hit points .*/
 RG.Item.Potion = function(name) {
@@ -226,6 +267,8 @@ RG.Item.Missile = function(name) {
     this.setType("missile");
 
 };
+RG.extend2(RG.Item.Missile, RG.Item.Base);
+RG.extend2(RG.Item.Missile, RG.Object.Damage);
 
 RG.Item.Missile.prototype.clone = function() {
     var weapon = new RG.Item.Missile(this.getName());
@@ -246,9 +289,15 @@ RG.Item.Missile.prototype.equals = function(rhs) {
 
 };
 
-RG.extend2(RG.Item.Missile, RG.Item.Base);
-RG.extend2(RG.Item.Missile, RG.Object.Damage);
-RG.extend2(RG.Item.Missile, RG.Entity);
+RG.Item.Missile.prototype.toJSON = function() {
+    var json = RG.Item.Base.prototype.toJSON.call(this);
+    var json2 = RG.Object.Damage.prototype.toJSON.call(this);
+    for (var p in json2) {
+        json[p] = json2[p];
+    }
+    return json;
+};
+
 
 /** Models an item container. Can hold a number of items.*/
 RG.Item.Container = function(owner) {
@@ -419,8 +468,19 @@ RG.Item.Container = function(owner) {
         return _items.length === 0;
     };
 
+
 };
 RG.extend2(RG.Item.Container, RG.Item.Base);
+
+RG.Item.Container.prototype.toJSON = function() {
+    var json = [];
+    var items = this.getItems();
+    for (var i = 0; i < items.length; i++) {
+        json.push(items[i].toJSON());
+    }
+    return json;
+};
+
 
 /** Spirit gems can capture spirits inside them.*/
 RG.Item.SpiritGem = function(name) {

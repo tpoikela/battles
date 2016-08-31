@@ -123,7 +123,7 @@ RG.Actor.Rogue = function(name) { // {{{2
                 Stats: this.get("Stats").toJSON(),
             },
             inventory: _invEq.getInventory().toJSON(),
-            equipment: {},
+            equipment: _invEq.getEquipment().toJSON(),
         };
 
         if (this.has("Hunger")) {
