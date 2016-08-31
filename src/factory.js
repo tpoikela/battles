@@ -248,19 +248,29 @@ RG.FCCGame = function() {
 
     /** Creates a player actor and starting inventory.*/
     this.createFCCPlayer = function(game, obj) {
-        var pLevel = obj.playerLevel;
-        var pConf = this.playerStats[pLevel];
+        var player = obj.loadedPlayer;
+        if (player === null) {
+            var expLevel = obj.playerLevel;
+            var pConf = this.playerStats[expLevel];
 
-        var player = this.createPlayer("Player", {
-            att: pConf.att, def: pConf.def, prot: pConf.prot
-        });
+            player = this.createPlayer("Player", {
+                att: pConf.att, def: pConf.def, prot: pConf.prot
+            });
 
-        player.setType("player");
-        player.add("Health", new RG.Component.Health(pConf.hp));
-        var startingWeapon = _parser.createActualObj("items", pConf.Weapon);
-        player.getInvEq().addItem(startingWeapon);
-        player.getInvEq().equipItem(startingWeapon);
+            player.setType("player");
+            player.add("Health", new RG.Component.Health(pConf.hp));
+            var startingWeapon = _parser.createActualObj("items", pConf.Weapon);
+            player.getInvEq().addItem(startingWeapon);
+            player.getInvEq().equipItem(startingWeapon);
+        }
+        else {
+            console.log("Player was loaded from storage!");
+        }
 
+        if (!player.has("Hunger")) {
+            var hunger = new RG.Component.Hunger(2000);
+            player.add("Hunger", hunger);
+        }
         var regenPlayer = new RG.RogueRegenEvent(player, 20 * RG.ACTION_DUR);
         game.addEvent(regenPlayer);
         return player;
@@ -360,6 +370,8 @@ RG.FCCGame = function() {
 
         var levelCount = 1;
 
+        console.log("XXX GOT HERE!");
+
         var game = new RG.Game.Main();
         var player = this.createFCCPlayer(game, obj);
 
@@ -388,11 +400,6 @@ RG.FCCGame = function() {
             level.setLevelNumber(levelCount++);
 
             game.addLevel(level);
-            if (nl === 0) {
-                var hunger = new RG.Component.Hunger(2000);
-                player.add("Hunger", hunger);
-                game.addPlayer(player);
-            }
 
             var numFree = level.getMap().getFree().length;
             var monstersPerLevel = Math.round(numFree / sqrPerMonster);
@@ -478,6 +485,11 @@ RG.FCCGame = function() {
             if (nl > 0)
                 allStairsUp[nl].setTargetStairs(allStairsDown[nl-1]);
         }
+
+        // Either restore player position or start from loaded position
+        //if (obj.loadedLevel  === null) {
+        game.addPlayer(player);
+        //}
 
         return game;
 
@@ -759,10 +771,10 @@ RG.RogueObjectStubParser = function() {
     this.createComponent = function(type, val) {
         switch(type) {
             case "Combat": return new RG.Component.Combat();
+            case "Experience": return new RG.Component.Experience();
             case "Health": return new RG.Component.Health(val);
             case "Stats": return new RG.Component.Stats();
-            default: RG.err("ObjectParser", "createComponent",
-                "Unknown component " + type + " for the factory method.");
+            default: return RG.Component[type]();
         }
     };
 
