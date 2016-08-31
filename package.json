@@ -1,10 +1,13 @@
 {
   "devDependencies": {
     "chai": "~3.5.0",
-    "babel-cli": "~6.10.1"
+    "babel-cli": "~6.10.1",
+    "node-localstorage" : "~0.1.0"
   },
 
   "scripts": {
+      "build": "make build",
+      "clean": "make clean",
       "test": "mocha --recursive tests"
   }
 
