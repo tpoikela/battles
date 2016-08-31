@@ -40,6 +40,13 @@ $ruby-red: #EE1111;
     background-color: $ctrl-top-color;
 }
 
+@mixin menu-list-item {
+    border: 1px solid black;
+    border-radius: 5px;
+    margin-bottom: 2px;
+    padding: 2px;
+}
+
 // Defines the main gradient for the background
 @mixin gray-gradient {
     background: $main-color;
@@ -290,10 +297,8 @@ body {
 
 };
 
-.player-list {
-    border: 1px solid black;
-    background-color: gray;
-
+.player-list-item {
+    @include menu-list-item;
 };
 
 //---------------------------------------------------------------------
@@ -309,22 +314,15 @@ body {
 //---------------------------------------------------------------------
 
 .inv-item-slot {
-    border: 1px solid black;
-    border-radius: 5px;
-    margin-bottom: 2px;
-    padding: 2px;
+    @include menu-list-item;
 };
 
 .inv-equip-slot {
-    border: 1px solid black;
-    border-radius: 5px;
-    margin-bottom: 2px;
-    padding: 2px;
+    @include menu-list-item;
 };
 
 #items-box {
     height: 400px;
     overflow: auto;
-
 };
 
