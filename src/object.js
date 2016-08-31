@@ -35,6 +35,16 @@ RG.Object.Defense.prototype.equals = function(rhs) {
     return res;
 };
 
+RG.Object.Defense.prototype.toJSON = function() {
+    var json = {
+        setAttack: this.getAttack(),
+        setDefense: this.getDefense(),
+        setProtection: this.getProtection(),
+    };
+    return json;
+};
+
+
 RG.Object.Damage = function() {
     RG.Object.Defense.call(this);
 
@@ -68,7 +78,12 @@ RG.Object.Damage = function() {
         return _damage;
     };
 
+    this.setDamageDie = function(str) {
+        this.setDamage(str);
+    };
+
 };
+RG.extend2(RG.Object.Damage, RG.Object.Defense);
 
 RG.Object.Damage.prototype.copy = function(rhs) {
     RG.Object.Defense.prototype.copy.call(this, rhs);
@@ -93,7 +108,14 @@ RG.Object.Damage.prototype.toString = function() {
     msg += ",R:" + this.getAttackRange();
     return msg;
 };
-RG.extend2(RG.Object.Damage, RG.Object.Defense);
+
+RG.Object.Damage.prototype.toJSON = function() {
+    var json = RG.Object.Defense.prototype.toJSON.call(this);
+    json.setAttackRange = this.getAttackRange();
+    json.setDamage = this.getDamageDie().toString();
+    return json;
+};
+
 
 /** Typed objects should inherit from this. */
 RG.Object.Typed = function(propType, type) {
