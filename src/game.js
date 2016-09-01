@@ -472,11 +472,16 @@ RG.Game.Save = function() {
 
     /** Restores game/player with the given name.*/
     this.restore = function(name) {
-        var player = this.restorePlayer();
-        var obj = {
-            player: player
-        };
-        return player;
+        if (!RG.isNullOrUndef([name])) {
+            var player = this.restorePlayer(name);
+            var obj = {
+                player: player
+            };
+            return obj;
+        }
+        else {
+            RG.err("Game.Save", "restore", "No name given (or null/undef).");
+        }
     };
 
     /** Returns a list of saved players.*/
@@ -494,12 +499,14 @@ RG.Game.Save = function() {
 
     /** Returns an object containing the saved players.*/
     this.getPlayersAsObj = function() {
+        _checkStorageValid();
         var dbString = _storageRef.getItem(_playerList);
         return JSON.parse(dbString);
     };
 
     /** Saves a player object. */
     this.savePlayer = function(player, conf) {
+        _checkStorageValid();
         var name = player.getName();
         var storedObj = player.toJSON();
         storedObj.dungeonLevel = player.getLevel().getLevelNumber();
@@ -511,6 +518,7 @@ RG.Game.Save = function() {
 
     /** Restores a player with given name. */
     this.restorePlayer = function(name) {
+        _checkStorageValid();
         var playersObj = this.getPlayersAsObj();
         if (playersObj.hasOwnProperty(name)) {
             var dbString = _storageRef.getItem("_battles_player_" + name);
@@ -519,7 +527,8 @@ RG.Game.Save = function() {
             return player;
         }
         else {
-            RG.err("No player " + name + " found from the list.");
+            RG.err("Game.Save", "restorePlayer", 
+                "No player |" + name + "| found from the list.");
             return null;
         }
     };
@@ -595,6 +604,12 @@ RG.Game.Save = function() {
         }
         return newObj;
 
+    };
+
+    var _checkStorageValid = function() {
+        if (RG.isNullOrUndef([_storageRef])) {
+            throw new Error("Game.Save you must setStorage() first.");
+        }
     };
 
 };
