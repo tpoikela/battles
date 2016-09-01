@@ -297,6 +297,7 @@ var BattlesTop = React.createClass({
     },
 
     isGUICommand: function(code) {
+        console.log("Checking key code for GUI command.");
         if (this.isTargeting) {
 
         }
@@ -312,17 +313,23 @@ var BattlesTop = React.createClass({
     /** Calls a GUI command corresponding to the code.*/
     doGUICommand: function(code) {
          if (this.useModeEnabled) {
-            console.log("Disabling useMode now");
             this.useModeEnabled = false;
-            var cell = this.getAdjacentCell(code);
-            if (cell !== null) {
-                this.game.update({
-                    cmd: "use", target: cell, item: this.selectedItem
-                });
-                this.selectedItem = null;
+            if (this.selectedItem !== null) {
+
+                console.log("Disabling useMode now");
+                var cell = this.getAdjacentCell(code);
+                if (cell !== null) {
+                    this.game.update({
+                        cmd: "use", target: cell, item: this.selectedItem
+                    });
+                    this.selectedItem = null;
+                }
+                else {
+                    RG.gameWarn("There are no targets there.");
+                }
             }
             else {
-                RG.gameWarn("There are no targets there.");
+                RG.gameWarn("No item was selected for use!");
             }
         }
         else if (this.guiCommands.hasOwnProperty(code)) {
