@@ -185,6 +185,7 @@ describe('How AI brain works', function() {
     var level = getNewLevel(cols, rows);
     var mons1 = new Actor("Monster");
     var player = new Actor("Player");
+    player.setType("player");
     player.setIsPlayer(true);
 
     it('Brain should find player cell', function() {
@@ -194,14 +195,14 @@ describe('How AI brain works', function() {
         var map = level.getMap();
         expect(map.isPassable(2,3)).to.equal(true);
 
-        var brain = new RG.Brain.Rogue(mons1);
+        var brain = mons1.getBrain();
         var seenCells = level.getMap().getVisibleCells(mons1);
         expect(seenCells.length).to.not.equal(0);
         var playerCell = brain.findEnemyCell(seenCells);
         expect(playerCell.hasProp("actors")).to.equal(true);
 
         var pathCells = brain.getShortestPathTo(playerCell);
-        expect(pathCells).to.be.a('array');
+        expect(pathCells).to.be.an('array');
         expect(pathCells.length).to.not.equal(0);
     });
 
