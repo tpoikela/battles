@@ -27,6 +27,12 @@ RGTest.createMockLevel = function(cols, rows) {
     return level;
 };
 
+RGTest.equipItem = function(actor, item) {
+    var invEq = actor.getInvEq();
+    invEq.addItem(item);
+    expect(invEq.equipItem(item)).to.equal(true);
+};
+
 /** Wraps an object into a cell for later use. Some functions require a map cell instead of taking the object directly. */
 RGTest.wrapObjWithCell = function(obj) {
     var cell = RG.FACT.createFloorCell();
