@@ -124,12 +124,13 @@ RG.Object.Typed = function(propType, type) {
     var _propType = propType;
 
     this.setPropType = function(propType) {
-        var index = this.types.indexOf(propType);
+        var index = RG.PROP_TYPES.indexOf(propType);
         if (index >= 0) {
             _propType = propType;
         }
         else {
-            RG.err("Object.Typed", "setPropType", "Unknown prop type: " + propType);
+            RG.err("Object.Typed", "setPropType",
+                "Unknown prop type: |" + propType + "|");
         }
     };
 
@@ -144,7 +145,6 @@ RG.Object.Typed = function(propType, type) {
 
 };
 
-RG.Object.Typed.prototype.types = ["actors", "items", "traps", "elements"];
 
 /** This object is used by all locatable objects in the game.  */
 RG.Object.Locatable = function() { // {{{2
