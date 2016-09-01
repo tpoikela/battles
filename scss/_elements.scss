@@ -1,0 +1,41 @@
+//----------------------
+// Battles in the North
+// ELEMENTS CSS
+//----------------------
+
+.cell-elements {
+    color: white;
+    background-color: purple;
+}
+
+.cell-element-wall {
+    background-color: red;
+}
+
+.cell-element-floor {
+    background-color: gray;
+}
+
+.cell-dark {
+    background-color: #101010;
+}
+
+.cell-not-explored {
+    background-color: black;
+    color: black;
+};
+
+.cell-element-water {
+    background-color: white;
+    color: blue;
+};
+
+.cell-element-ice-wall {
+    background-color: blue;
+    color: white;
+};
+
+.cell-element-snow {
+    background-color: $snow-white;
+    color: black;
+};

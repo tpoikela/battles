@@ -1,0 +1,36 @@
+
+//--------
+// ACTORS
+//--------
+
+.cell-actor-default {
+    background-color: blue;
+    color: yellow;
+}
+
+.cell-actor-animal {
+    background-color: brown;
+    color: white;
+}
+
+.cell-actor-player {
+    background-color: green;
+    color: white;
+}
+
+.cell-actor-monster {
+    background-color: purple;
+    color: white;
+};
+
+.cell-actor-summoner {
+    background-color: yellow;
+    color: black;
+};
+
+.cell-actor-winter {
+    background-color: darken($snow-white, 10%);
+    color: blue;
+};
+
+
