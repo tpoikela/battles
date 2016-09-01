@@ -90,6 +90,10 @@ RG.Item.Food = function(name) {
     this.setEnergy = function(energy) {_energy = energy;};
     this.getEnergy = function() {return _energy;};
 
+    this.getConsumedEnergy = function() {
+        return Math.round( (this.getWeight() * _energy) / 0.1);
+    };
+
     /** Uses (eats) the food item.*/
     this.useItem = function(obj) {
         if (obj.hasOwnProperty("target")) {
@@ -97,7 +101,7 @@ RG.Item.Food = function(name) {
             if (cell.hasActors()) {
                 var target = cell.getProp("actors")[0];
                 if (target.has("Hunger")) {
-                    var totalEnergy = Math.round(this.getWeight() * _energy);
+                    var totalEnergy = this.getConsumedEnergy();
                     target.get("Hunger").addEnergy(totalEnergy);
                     if (this.count === 1) {
                         var msg = {item: this};
