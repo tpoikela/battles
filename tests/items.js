@@ -275,11 +275,11 @@ describe('How item stacks work with equipped missiles', function() {
         inv.addItem(plate);
         expect(invEq.equipItem(plate)).to.equal(true);
 
-        var wolfSpirit = new RG.Item.Spirit("Wolf spirit");
-        wolfSpirit.get("Stats").setStrength(9);
-        inv.addItem(wolfSpirit);
-        expect(invEq.equipItem(wolfSpirit)).to.equal(true);
-        expect(eq.getStrength()).to.equal(9);
+        var gem = new RG.Item.SpiritGem("Lesser gem");
+        expect(gem.hasOwnProperty("getArmourType")).to.equal(true);
+        inv.addItem(gem);
+        expect(invEq.equipItem(gem)).to.equal(true);
+        expect(eq.getStrength()).to.equal(0);
 
     });
 
