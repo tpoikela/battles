@@ -177,8 +177,38 @@ var BattlesTop = React.createClass({
             this.isTargeting = false;
         }
         else {
-            debug("<Top> onCellClick with x: " + x + " y: " + y + " cell: " + cell);
+            this.describeCell(cell);
         }
+    },
+
+    describeCell: function(cell) {
+        var index = this.visibleCells.indexOf(cell);
+        if (index !== -1) {
+            if (cell.hasActors()) {
+                var actor = cell.getProp("actors")[0];
+                var msg = "You see " + actor.getName();
+                RG.gameMsg(msg);
+            }
+            else {
+                if (cell.hasProp("items")) {
+                    var items = cell.getProp("items");
+                    if (items.length > 1) {
+                        RG.gameMsg("There are several items there");
+                        RG.gameMsg("You see " + items[0].getName() + " on top");
+                    }
+                    else {
+                        RG.gameMsg("You see " + items[0].getName() + " lying there.");
+                    }
+                }
+                else {
+                    RG.gameMsg("There is nothing there.");
+                }
+            }
+        }
+        else {
+            RG.gameWarn("You cannot see there.");
+        }
+        this.setState({render: true, renderFullScreen: true});
     },
 
 
