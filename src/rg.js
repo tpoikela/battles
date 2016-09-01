@@ -412,6 +412,10 @@ RG.KeyMap = {
         return this.moveKeyMap.hasOwnProperty(code);
     },
 
+    isRest: function(code) {
+        return code === ROT.VK_S;
+    },
+
     /** Based on keycode, computes and returns a new x,y pair. If code is
      * invalid, returns null. */
     getDiff: function(code, x, y) {
