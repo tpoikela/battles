@@ -896,9 +896,9 @@ RG.RogueObjectStubParser = function() {
     /** Factory-method for creating the actual objects.*/
     this.createNewObject = function(categ, obj) {
         switch(categ) {
-            case "actors": 
+            case RG.TYPE_ACTOR:
                 var type = obj.type;
-                if (type === "spirit") return RG.Actor.Spirit(obj.name);
+                if (type === "spirit") return new RG.Actor.Spirit(obj.name);
                 return new RG.Actor.Rogue(obj.name);
             case RG.TYPE_ITEM:
                 var subtype = obj.type;
