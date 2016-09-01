@@ -265,7 +265,7 @@ describe('Moving actors around in the game', function() {
     var movSystem = new RG.System.Movement("Movement", ["Movement"]);
 
     it('Moves but is blocked by walls.', function() {
-        var actor = new Actor(true);
+        var actor = new Actor("TestActor");
         var level = new Level(10, 10);
         var mapgen = new RG.Map.Generator();
         mapgen.setGen("arena", 10, 10);
