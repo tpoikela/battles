@@ -8,6 +8,15 @@ roguelike=/home/tpoikela/git/battles/ /home/tpoikela/git/battles/ filter="*.js *
  data=data {
   battles_objects.js
  }
+ gui=gui {
+  gui.jsx
+  top.jsx
+ }
+ scss=scss {
+  _actors.scss
+  _elements.scss
+  _items.scss
+ }
  src=src {
   brain.js
   component.js
