@@ -556,6 +556,14 @@ RG.Component.Physical = function() {
 };
 RG.extend2(RG.Component.Physical, RG.Component.Base);
 
+/** Ethereal entities are visible but don't have normal interaction with
+ * matter. */
+RG.Component.Ethereal = function() {
+    RG.Component.Base.call(this, "Ethereal");
+
+};
+RG.extend2(RG.Component.Ethereal, RG.Component.Base);
+
 
 if (typeof module !== "undefined" && typeof exports !== "undefined") {
     GS.exportSource(module, exports, ["RG", "Component"], [RG, RG.Component]);
