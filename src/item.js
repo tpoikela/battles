@@ -485,87 +485,110 @@ RG.Item.Container.prototype.toJSON = function() {
     return json;
 };
 
-
 /** Spirit gems can capture spirits inside them.*/
 RG.Item.SpiritGem = function(name) {
     RG.Item.Base.call(this, name);
     this.setType("spiritgem");
 
     var _spirit = null;
+    var _hasSpirit = false;
+    this.getArmourType = function() {return "spiritgem";};
 
-    this.setSpirit = function(spirit) {_spirit = spirit;};
-    this.getSpirit = function() {return spirit;};
+    this.hasSpirit = function() {return _hasSpirit;};
+    this.getSpirit = function() {return _spirit;};
+
+    this.setSpirit = function(spirit) {
+        if (!_hasSpirit) {
+            _hasSpirit = true;
+            _spirit = spirit;
+        }
+        else {
+            RG.err("Item.Spirit", "setSpirit", "Tried to overwrite spirit");
+        }
+    };
 
     /** Used for capturing the spirits inside the gem.*/
     this.useItem = function(obj) {
-        if (_spirit === null) {
-
+        if (!_hasSpirit) {
+            var cell = obj.target;
+            var spirits = cell.getPropType("spirit");
+            if (spirits.length > 0) {
+                var spirit = spirits[0];
+                spirit.remove("Action"); // Trapped spirit cannot act
+                var level = spirit.getLevel();
+                level.removeActor(spirit);
+                _spirit = spirit;
+                _hasSpirit = true;
+            }
+            else {
+                if (cell.hasActors()) {
+                    RG.gameWarn("That thing there is something else than spirit.");
+                }
+                else {
+                    RG.gameWarn("There are no spirits there to be trapped");
+                }
+            }
         }
         else {
-
+            RG.gameWarn(this.getName() + " already traps a spirit");
         }
     };
+
+    // Generate getters which access spirit's Stats component
+    var _getters = ["getStrength", "getWillpower", "getAccuracy", "getAgility"];
+
+    for (var i = 0; i < _getters.length; i++) {
+        var getFunc = function() {
+            var funcName = _getters[i];
+            return function() {
+                if (!_hasSpirit) return 0;
+                return _spirit.get("Stats")[funcName]();
+            };
+        };
+        this[_getters[i]] = getFunc();
+    }
 
 };
 RG.extend2(RG.Item.SpiritGem, RG.Item.Base);
 
-/** Spirit items are wearables which can have powerful use abilities as well.*/
-RG.Item.Spirit = function(name) {
-    RG.Item.Base.call(this, name);
-    this.setType("spirit");
-
-    this.getArmourType = function() {return "spirit";};
-
-    var stats = new RG.Component.Stats();
-    this.add("Stats", stats);
-
-    var _brain = new RG.Brain.Spirit(this);
-
-    this.add("Action", new RG.Component.Stats());
-
-    this.isPlayer = function() {return false;};
-
-    /** Get next action for this spirit.*/
-    this.nextAction = function(obj) {
-        var cb = _brain.decideNextAction(obj);
-        var action = null;
-
-        if (cb !== null) {
-            var speed = this.get("Stats").getSpeed();
-            var duration = parseInt(RG.BASE_SPEED/speed * RG.ACTION_DUR);
-            action = new RG.RogueAction(duration, cb, {});
-        }
-        else {
-            action = new RG.RogueAction(0, function(){}, {});
-        }
-        return action;
-    };
-
+RG.Item.SpiritGem.prototype.clone = function() {
+    var gem = new RG.Item.SpiritGem(this.getName());
+    gem.copy(this);
+    return gem;
 };
 
-RG.Item.Spirit.prototype.toString = function() {
-    var txt = this.getName() + ", " + this.getType() + ", ";
-    txt += this.get("Stats").toString();
-    return txt;
+RG.Item.SpiritGem.prototype.copy = function(rhs) {
+    RG.Item.Base.prototype.copy.call(this, rhs);
+    if (rhs.hasSpirit()) this.setSpirit(rhs.getSpirit());
 };
 
-RG.Item.Spirit.prototype.equals = function(item) {
-    var res = RG.Item.Base.prototype.equals.call(this, item);
-    res = res && (this.getType() === item.getType());
+RG.Item.SpiritGem.prototype.equals = function(rhs) {
+    var res = RG.Item.Base.prototype.equals.call(this, rhs);
+    res = res && (this.getSpirit() === rhs.getSpirit());
     return res;
 };
 
-RG.Item.Spirit.prototype.copy = function(rhs) {
-    this.get("Stats").copy(rhs.get("Stats"));
+RG.Item.SpiritGem.prototype.toString = function() {
+    var txt = RG.Item.Base.prototype.toString.call(this);
+    if (this.hasSpirit()) {
+        var stats = this.getSpirit().get("Stats");
+        txt += "(" + this.getSpirit().getName() + ")";
+        txt += " Str: " + stats.getStrength();
+        txt += " Agi: " + stats.getAgility();
+        txt += " Acc: " + getAccuracy();
+        txt += " Wil: " + getWillpower();
+    }
+    else txt += "(Empty)";
+    return txt;
 };
 
-RG.Item.Spirit.prototype.clone = function() {
-    var newSpirit = new RG.Item.Spirit(this.getName());
-    newSpirit.copy(this);
-    return newSpirit;
-};
 
-RG.extend2(RG.Item.Spirit, RG.Item.Base);
+RG.Item.SpiritGem.prototype.toJSON = function() {
+    var json = RG.Item.Base.prototype.toJSON.call(this);
+    json.hasSpirit = this.hasSpirit();
+    if (json.hasSpirit) json.spirit = this.getSpirit().toJSON();
+    return json;
+};
 
 if (typeof module !== "undefined" && typeof exports !== "undefined") {
     GS.exportSource(module, exports, ["RG", "Item"], [RG, RG.Item]);
