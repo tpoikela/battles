@@ -18,9 +18,9 @@ RG.cellRenderArray = RG.cellRenderVisible;
 //---------------------------------------------------------------------------
 
 describe('How actors are created from file', function() {
-    var parser = new Parser();
 
     it('Returns base objects and supports also base', function() {
+        var parser = new Parser();
         var wolfNew = parser.parseObjStub("actors", {
             name: "wolf", attack: 15, defense: 10, damage: "1d6 + 2",
             hp: 9
@@ -87,6 +87,28 @@ describe('How actors are created from file', function() {
         expect(punyWolfCreated.get("Combat").getDefense()).to.equal(50);
         expect(punyWolfCreated.get("Combat").getAttack()).to.equal(1);
 
+    });
+
+    it('Parses Spirits/Gems and creates them correctly', function() {
+        var parser = new Parser();
+        var spiritStub = {
+            name: "Wolf spirit", type: "spirit",
+            strength: 0, accuracy: 0, agility: 1, willpower: 0, power: 1,
+            danger: 1,
+        };
+        var spiritNew = parser.parseObjStub("actors", spiritStub);
+        expect(spiritNew.strength).to.equal(0);
+        expect(spiritNew.agility).to.equal(1);
+
+        var spiritObj = parser.createActualObj("actors", "Wolf spirit");
+        expect(spiritObj.has("Ethereal")).to.equal(true);
+        expect(spiritObj.has("Stats")).to.equal(true);
+
+        var gemStub = {name: "Lesser gem", value: 40, type: "spiritgem"};
+        var newGem = parser.parseObjStub("items", gemStub);
+        expect(newGem.name).to.equal("Lesser gem");
+        var gemObj = parser.createActualObj("items", "Lesser gem");
+        expect(gemObj.getValue()).to.equal(40);
     });
 });
 
@@ -200,5 +222,14 @@ describe('It contains all game content info', function() {
         expect(missObj.getWeight()).to.equal(0.1);
 
     });
+
+    it('Parses/creates spirits/gems properly', function() {
+        var demonSpirit = parser.createActualObj("actors", "Winter demon spirit");
+        expect(demonSpirit.has("Stats")).to.equal(true);
+        expect(demonSpirit.get("Stats").getStrength()).to.equal(3);
+
+        //var spiritGem =
+    });
+
 });
 
