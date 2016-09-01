@@ -8,8 +8,6 @@ var RG = { // {{{2
 
     gameTitle: "Battles in the North (BitN)",
 
-    IdCount: 0,
-
     cellRenderVisible: ['actors', 'items', 'traps', 'elements'],
     cellRenderAlways: ['items', 'traps', 'elements'],
     cellRenderArray: this.cellRenderVisible,
@@ -377,7 +375,11 @@ var RG = { // {{{2
     EVT_ACT_COMP_DISABLED: "EVT_ACT_COMP_DISABLED",
 
     // Different types
+    TYPE_ACTOR: "actors",
+    TYPE_ELEM: "elements",
     TYPE_ITEM: "items",
+    TYPE_TRAP: "traps",
+
 
     // Energy per action
     energy: {
@@ -390,7 +392,11 @@ var RG = { // {{{2
         RUN: 4,
     },
 
+    TEST: "XXX TEST VAR",
+
 }; /// }}} RG
+
+RG.PROP_TYPES = [RG.TYPE_ACTOR, RG.TYPE_ELEM, RG.TYPE_ITEM, RG.TYPE_TRAP];
 RG.cellRenderArray = RG.cellRenderVisible;
 
 /** Lookup table object for movement and actions keys.*/
