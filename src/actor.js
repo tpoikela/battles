@@ -35,10 +35,16 @@ RG.Actor.Rogue = function(name) { // {{{2
     this.setName = function(name) {_name = name;};
     this.getName = function() {return _name;};
 
+    /** Marks actor as player. Cannot unset player.*/
     this.setIsPlayer = function(isPlayer) {
-        _isPlayer = isPlayer;
         if (isPlayer) {
+            _isPlayer = isPlayer;
             _brain = new RG.Brain.Player(this);
+            this.setType("player");
+        }
+        else {
+            RG.err("Actor.Rogue", "setIsPlayer",
+                "Actor cannot be changed from player to mob.");
         }
     };
 
@@ -113,29 +119,43 @@ RG.Actor.Rogue = function(name) { // {{{2
         return _invEq.getEquipment().getProtection();
     };
 
-    this.toJSON = function() {
-        var obj = {
-            name: this.getName(),
-            components: {
-                Combat: this.get("Combat").toJSON(),
-                Experience: this.get("Experience").toJSON(),
-                Health: this.get("Health").toJSON(),
-                Stats: this.get("Stats").toJSON(),
-            },
-            inventory: _invEq.getInventory().toJSON(),
-            equipment: _invEq.getEquipment().toJSON(),
-        };
-
-        if (this.has("Hunger")) {
-            obj.components.Hunger = this.get("Hunger").toJSON();
-        }
-
-        return obj;
-    };
-};
+}
 RG.extend2(RG.Actor.Rogue, RG.Object.Locatable);
 RG.extend2(RG.Actor.Rogue, RG.Entity);
 
+RG.Actor.Rogue.prototype.toJSON = function() {
+    var obj = {
+        name: this.getName(),
+        type: this.getType(),
+        components: {
+            Combat: this.get("Combat").toJSON(),
+            Experience: this.get("Experience").toJSON(),
+            Health: this.get("Health").toJSON(),
+            Stats: this.get("Stats").toJSON(),
+        },
+        inventory: this.getInvEq().getInventory().toJSON(),
+        equipment: this.getInvEq().getEquipment().toJSON(),
+    };
+
+    if (this.has("Hunger")) {
+        obj.components.Hunger = this.get("Hunger").toJSON();
+    }
+
+    return obj;
+};
+
+/** Spirit actors.*/
+RG.Actor.Spirit = function(name) {
+    RG.Actor.Rogue.call(this, name);
+    this.setType("spirit");
+
+    this.add("Ethereal", new RG.Component.Ethereal());
+
+    var spiritBrain = new RG.Brain.Spirit(this);
+    this.setBrain(spiritBrain);
+
+};
+RG.extend2(RG.Actor.Spirit, RG.Actor.Rogue);
 
 if (typeof module !== "undefined" && typeof exports !== "undefined") {
     GS.exportSource(module, exports, ["RG", "Actor"], [RG, RG.Actor]);
