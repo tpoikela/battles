@@ -47,8 +47,15 @@ describe('Brain.Player', function() {
         brain.decideNextAction({code: ROT.VK_S});
         expect(brain.energy).to.equal(RG.energy.REST);
 
+        // No missile equipped
         brain.decideNextAction({cmd: "missile"});
+        expect(brain.energy).to.equal(0);
+
+        // Equip a missile
+        RGTest.equipItem(player, new RG.Item.Missile("Arrow"));
+        brain.decideNextAction({cmd: "missile", x: 1, y: 2});
         expect(brain.energy).to.equal(RG.energy.MISSILE);
+
 
         brain.decideNextAction({cmd: "use", item: {}});
         expect(brain.energy).to.equal(0);
