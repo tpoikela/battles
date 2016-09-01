@@ -145,7 +145,7 @@ var RGObjects = {
             attack: 6, defense: 3, damage: "1d10", hp: 25, danger: 5
         },
 
-        // Spirits
+        // SPIRITS
         {
             name: "SpiritBase", "char": "Q", className: "cell-actor-spirit",
             type: "spirit", dontCreate: true
@@ -164,6 +164,11 @@ var RGObjects = {
             name: "Bear spirit", base: "SpiritBase",
             strength: 2, accuracy: 0, agility: 1, willpower: 0, power: 3,
             danger: 3,
+        },
+        {
+            name: "Fighter spirit", base: "SpiritBase",
+            strength: 2, accuracy: 2, agility: 1, willpower: 0, power: 4,
+            danger: 4,
         },
         {
             name: "Winter demon spirit", base: "SpiritBase",
