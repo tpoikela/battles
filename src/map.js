@@ -33,8 +33,13 @@ RG.Map.Cell = function(x, y, elem) { // {{{2
 
     /** Returns true if it's possible to move to this cell.*/
     this.isFree = function() {
-        return _baseElem.isPassable() &&
-            !this.hasProp("actors");
+        if (this.hasProp("actors")) {
+            for (var i = 0; i < _p.actors.length; i++) {
+                if (!_p.actors[i].has("Ethereal")) return false;
+            }
+            return true;
+        }
+        return _baseElem.isPassable();
     };
 
     /** Add given obj has specified property.*/
@@ -111,6 +116,7 @@ RG.Map.Cell = function(x, y, elem) { // {{{2
             var arrProps = _p[prop];
             for (var i = 0; i < arrProps.length; i++) {
                 if (arrProps[i].getType() === propType) {
+                    console.log("Type found: " + propType);
                     props.push(arrProps[i]);
                 }
             }
