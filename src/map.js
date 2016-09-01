@@ -116,7 +116,6 @@ RG.Map.Cell = function(x, y, elem) { // {{{2
             var arrProps = _p[prop];
             for (var i = 0; i < arrProps.length; i++) {
                 if (arrProps[i].getType() === propType) {
-                    console.log("Type found: " + propType);
                     props.push(arrProps[i]);
                 }
             }
