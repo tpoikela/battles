@@ -100,7 +100,7 @@ RG.Inv.Equipment = function(actor) {
         neck: new RG.Inv.EquipSlot(this, "neck"),
         feet: new RG.Inv.EquipSlot(this, "feet"),
         missile: new RG.Inv.EquipSlot(this, "missile", true),
-        spirit: new RG.Inv.EquipSlot(this, "spirit"),
+        spiritgem: new RG.Inv.EquipSlot(this, "spiritgem"),
     };
 
     var _hasSlot = function(slotType) {
