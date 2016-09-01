@@ -128,13 +128,14 @@ RG.Game.Engine = function() {
         }
     };
 
+    /** Updates the loop by executing one player command, then looping until
+     * next player command.*/
     this.updateGameLoop = function(obj) {
         this.playerCommand(obj);
         this.nextActor = this.getNextActor();
 
         // Next/act until player found, then go back waiting for key...
         while (!this.nextActor.isPlayer() && !this.isGameOver()) {
-            console.log("LOOPING. NO PLAYER.");
             var action = this.nextActor.nextAction();
             this.doAction(action);
 
@@ -469,6 +470,15 @@ RG.Game.Save = function() {
         this.savePlayer(player, conf);
     };
 
+    /** Restores game/player with the given name.*/
+    this.restore = function(name) {
+        var player = this.restorePlayer();
+        var obj = {
+            player: player
+        };
+        return player;
+    };
+
     /** Returns a list of saved players.*/
     this.getPlayersAsList = function() {
         var dbObj = this.getPlayersAsObj();
@@ -524,11 +534,11 @@ RG.Game.Save = function() {
             expLevel: obj.components.Experience.setExpLevel,
             dungeonLevel: obj.dungeonLevel,
         };
+        // Capture also game config settings (cols,rows,loot etc)
         for (var p in conf) {
             dbObj[name][p] = conf[p];
         }
         dbString = JSON.stringify(dbObj);
-        console.log("dbString " + dbString);
         _storageRef.setItem(_playerList, dbString);
 
     };

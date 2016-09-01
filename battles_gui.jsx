@@ -128,7 +128,8 @@ var BattlesTop = React.createClass({
 
     /** Loads a saved game.*/
     loadGame: function(name) {
-        var player = this.gameSave.restorePlayer(name);
+        var restoreObj = this.gameSave.restore(name);
+        var player = restoreObj.player;
         if (player !== null) {
             console.log("Loading game for player |" + name);
             this.gameConf.loadedPlayer = player;
