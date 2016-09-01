@@ -76,7 +76,7 @@ describe('Retrieving styling classes for cells', function() {
         floorCell.setExplored();
         expect(RG.getStyleClassForCell(floorCell)).to.equal("cell-element-floor");
         floorCell.setProp("actors", actor);
-        expect(RG.getStyleClassForCell(floorCell)).to.equal("cell-actor-default");
+        expect(RG.getStyleClassForCell(floorCell)).to.equal("cell-actor-player");
     });
 });
 
