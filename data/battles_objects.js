@@ -145,6 +145,32 @@ var RGObjects = {
             attack: 6, defense: 3, damage: "1d10", hp: 25, danger: 5
         },
 
+        // Spirits
+        {
+            name: "SpiritBase", "char": "Q", className: "cell-actor-spirit",
+            type: "spirit", dontCreate: true
+        },
+        {
+            name: "Rat spirit", base: "SpiritBase",
+            strength: 0, accuracy: 0, agility: 1, willpower: 0, power: 1,
+            danger: 1,
+        },
+        {
+            name: "Wolf spirit", base: "SpiritBase",
+            strength: 1, accuracy: 0, agility: 1, willpower: 0, power: 2,
+            danger: 2,
+        },
+        {
+            name: "Bear spirit", base: "SpiritBase",
+            strength: 2, accuracy: 0, agility: 1, willpower: 0, power: 3,
+            danger: 3,
+        },
+        {
+            name: "Winter demon spirit", base: "SpiritBase",
+            strength: 3, accuracy: 3, agility: 3, willpower: 3, power: 7,
+            danger: 7,
+        },
+
     ],
 
     items: [
@@ -506,6 +532,19 @@ var RGObjects = {
         },
 
         // SPIRIT GEMS
+        {
+            name: "SpiritGemBase", className: "cell-item-spiritgem", "char": "*",
+            weight: 0.1, type: "spiritgem", dontCreate: true,
+        },
+        {
+            name: "Lesser gem", base: "SpiritGemBase", value: 30, weight: 3.0,
+        },
+        {
+            name: "Normal gem", base: "SpiritGemBase", value: 60, weight: 1.5,
+        },
+        {
+            name: "Greater gem", base: "SpiritGemBase", value: 100, weight: 0.2,
+        },
 
     ],
 
