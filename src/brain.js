@@ -185,10 +185,30 @@ RG.Brain.Player = function(actor) { // {{{2
         return null; // Null action
     };
 
-    /** Handles a command given from GUI.*/
+    /** Handles a complex command. TODO remove if/else and use a dispatch table.*/
     this.handleCommand = function(obj) {
         _restoreBaseSpeed();
-        if (obj.cmd === "missile") this.energy = RG.energy.MISSILE;
+        if (obj.cmd === "missile") {
+            var invEq = _actor.getInvEq();
+            var missile = invEq.unequipAndGetItem("missile", 1);
+            if (!RG.isNullOrUndef([missile])) {
+                if (!RG.isNullOrUndef([obj.x, obj.y])) {
+                    var mComp = new RG.Component.Missile(_actor);
+                    mComp.setTargetXY(obj.x, obj.y);
+                    mComp.setDamage(RG.getMissileDamage(_actor, missile));
+                    mComp.setAttack(RG.getMissileAttack(_actor, missile));
+                    mComp.setRange(missile.getAttackRange());
+                    missile.add("Missile", mComp);
+                    this.energy = RG.energy.MISSILE;
+                }
+                else {
+                    RG.err("Brain.Player", "handleCommand", "No x,y given for missile.");
+                }
+            }
+            else {
+                return this.cmdNotPossible("No missile equipped.");
+            }
+        }
         else if (obj.cmd === "use") {
             if (obj.hasOwnProperty("item")) {
                 var item = obj.item;
