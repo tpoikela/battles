@@ -513,10 +513,12 @@ RG.FCCGame = function() {
         var sqrPerItem = obj.sqrPerItem;
         var level = this.createLastBattle(game, obj);
 
-        var spirit = new RG.Item.Spirit("Wolf spirit");
+        var spirit = new RG.Actor.Spirit("Wolf spirit");
         spirit.get("Stats").setStrength(500);
-        level.addItem(spirit, 2, 1);
-        //spirit.get("Action").enable();
+        level.addActor(spirit, 2, 1);
+
+        var gem = new RG.Item.SpiritGem("Lesser gem");
+        level.addItem(gem);
 
         var numFree = level.getMap().getFree().length;
         //var monstersPerLevel = Math.round(numFree / sqrPerMonster);
@@ -611,6 +613,12 @@ RG.RogueObjectStubParser = function() {
             defense: {comp: "Combat", func:"setDefense"},
             damage: {comp: "Combat", func:"setDamage"},
             speed: {comp: "Stats", func: "setSpeed"},
+
+            strength: {comp: "Stats", func: "setStrength"},
+            accuracy: {comp: "Stats", func: "setAccuracy"},
+            agility: {comp: "Stats", func: "setAgility"},
+            willpower: {comp: "Stats", func: "setWillpower"},
+
             hp: {comp: "Health"},
             danger: {comp: "Experience", func: "setDanger"},
             brain: {func: "setBrain", factory: RG.FACT.createBrain},
@@ -888,7 +896,10 @@ RG.RogueObjectStubParser = function() {
     /** Factory-method for creating the actual objects.*/
     this.createNewObject = function(categ, obj) {
         switch(categ) {
-            case "actors": return new RG.Actor.Rogue(obj.name);
+            case "actors": 
+                var type = obj.type;
+                if (type === "spirit") return RG.Actor.Spirit(obj.name);
+                return new RG.Actor.Rogue(obj.name);
             case RG.TYPE_ITEM:
                 var subtype = obj.type;
                 switch(subtype) {
@@ -896,7 +907,7 @@ RG.RogueObjectStubParser = function() {
                     case "weapon": return new RG.Item.Weapon(obj.name);
                     case "food": return new RG.Item.Food(obj.name);
                     case "missile": return new RG.Item.Missile(obj.name);
-                    case "spirit": return new RG.Item.Spirit(obj.name);
+                    case "spiritgem": return new RG.Item.SpiritGem(obj.name);
                     case "tool": break;
                 }
                 return new RG.Item(obj.name); // generic, useless
