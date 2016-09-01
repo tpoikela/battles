@@ -175,6 +175,24 @@ var GameBoard = React.createClass({
 }); //}}} Gameboard
 window.GameBoard = GameBoard;
 
+
+var ModalHeader = React.createClass({
+
+    render: function() {
+        var id = this.props.id;
+        var text = this.props.text;
+        return (
+            <div className="modal-header">
+                <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 className="modal-title" id={id}>{text}</h4>
+            </div>
+        );
+    }
+
+});
+
 /** This component contains short info on keys and how to play the game.*/
 var GameHelpScreen = React.createClass({
 
@@ -183,13 +201,7 @@ var GameHelpScreen = React.createClass({
             <div className="modal fade" role="dialog" id="gameHelpModal" tabIndex="-1" role="dialog" aria-labelledby="game-help-modal-label" aria-hidden="true">
                 <div className="modal-dialog modal-lg">
                     <div className="modal-content">
-                        <div className="modal-header">
-                            <button type="button" className="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                            <h4 className="modal-title" id="game-help-modal-label">{RG.gameTitle}</h4>
-                        </div>
-
+                        <ModalHeader id="game-help-modal-label" text={RG.gameTitle + "Help"}/>
                         <div className="modal-body row">
                             <div className="col-md-6">
                                 <p>To move around, use:</p>
@@ -226,6 +238,7 @@ var GameHelpScreen = React.createClass({
 
 });
 window.GameHelpScreen = GameHelpScreen;
+
 
 /** Component for the game startup screen Prints game title and gives some
  * customisation options for the game.
@@ -269,19 +282,14 @@ var GameStartScreen = React.createClass({
         });
 
         var newGame = this.props.newGame;
+        var titleTextLoad = RG.gameTitle + " Load a game";
         return (
             <div id="game-start-screen">
 
             <div className="modal fade" role="dialog" id="gameLoadModal" tabIndex="-1" role="dialog" aria-labelledby="game-load-modal-label" aria-hidden="true">
                 <div className="modal-dialog modal-lg">
                     <div className="modal-content">
-                        <div className="modal-header">
-                            <button type="button" className="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                            <h4 className="modal-title" id="game-load-modal-label">{RG.gameTitle} Load a game</h4>
-                        </div>
-
+                        <ModalHeader id="game-load-modal-label" text={titleTextLoad}/>
                         <div className="modal-body row">
                             {playerListHTML}
                             <p>Selected game: {this.state.selectedGame}</p>
@@ -298,13 +306,7 @@ var GameStartScreen = React.createClass({
             <div className="modal fade" role="dialog" id="gameStartModal" tabIndex="-1" role="dialog" aria-labelledby="game-start-modal-label" aria-hidden="true">
                 <div className="modal-dialog modal-lg">
                     <div className="modal-content">
-                        <div className="modal-header">
-                            <button type="button" className="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                            <h4 className="modal-title" id="game-start-modal-label">{RG.gameTitle}</h4>
-                        </div>
-
+                        <ModalHeader id="game-start-modal-label" text={RG.gameTitle}/>
                         <div className="modal-body row">
                             <div id="prologue-box" className="col-md-6">
 
@@ -331,7 +333,7 @@ var GameStartScreen = React.createClass({
                                     nameless and forgotten on the icy wastes?
                                 </p>
 
-                                <label>You'll be remembered as:
+                                <label>You'll be forgotten as:
                                     <input type="text" value={this.state.playerName} onChange={this.onNameChange} />
                                 </label>
 
@@ -350,7 +352,7 @@ var GameStartScreen = React.createClass({
 
                         <div className="modal-footer row">
                             <div className="col-md-6">
-                                <button type="button" onClick={newGame} className="btn btn-secondary" data-dismiss="modal">Embark!</button>
+                                <button type="button" onClick={newGame} className="btn btn-success" data-dismiss="modal">Embark!</button>
                                 <button type="button" data-toggle="modal" data-target="#gameLoadModal" data-dismiss="modal" className="btn btn-secondary btn-warning">
                                     Load
                                 </button>
@@ -624,12 +626,7 @@ var GameInventory = React.createClass({
             <div className="modal fade" role="dialog" id="inventoryModal" tabIndex="-1" role="dialog" aria-labelledby="inventory-modal-label" aria-hidden="true">
                 <div className="modal-dialog modal-lg">
                     <div className="modal-content">
-                        <div className="modal-header">
-                            <button type="button" className="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                            <h4 className="modal-title" id="inventory-modal-label">Inventory</h4>
-                        </div>
+                        <ModalHeader id="inventory-modal-label" text="Inventory"/>
                         <div className="modal-body row">
                             <div id="items-box" className="col-md-6">
                                 <GameItems eqWeight={eqWeight} maxWeight={maxWeight} setSelectedItem={this.setSelectedItem} inv={inv} />
