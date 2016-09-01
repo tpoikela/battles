@@ -340,23 +340,11 @@ RG.Brain.Rogue = function(actor) { // {{{2
             };
         }
         else { // Move closer
-            var pathCells = this.getShortestPathTo(enemyCell);
-            if (pathCells.length > 1) {
-                var pathX = pathCells[1].getX();
-                var pathY = pathCells[1].getY();
-                return function() {
-                    var movComp = new RG.Component.Movement(pathX, pathY, level);
-                    _actor.add("Movement", movComp);
-                };
-            }
-            else { // Cannot move anywhere, no action
-                return function() {};
-            }
+            return this.tryToMoveTowardsCell(enemyCell);
         }
     };
 
     this.exploreLevel = function(seenCells) {
-        var level = _actor.getLevel();
         // Wander around exploring
         var index = -1;
         for (var i = 0, ll = seenCells.length; i < ll; i++) {
@@ -373,13 +361,24 @@ RG.Brain.Rogue = function(actor) { // {{{2
         if (index === -1) { // Everything explored, choose random cell
             index = Math.floor(Math.random() * (seenCells.length));
         }
-        return function() {
-            var x = seenCells[index].getX();
-            var y = seenCells[index].getY();
-            var movComp = new RG.Component.Movement(x, y, level);
-            _actor.add("Movement", movComp);
-        };
+        return this.tryToMoveTowardsCell(seenCells[index]);
 
+    };
+
+    this.tryToMoveTowardsCell = function(cell) {
+        var pathCells = this.getShortestPathTo(cell);
+        if (pathCells.length > 1) {
+            var level = _actor.getLevel();
+            var x = pathCells[1].getX();
+            var y = pathCells[1].getY();
+            return function() {
+                var movComp = new RG.Component.Movement(x, y, level);
+                _actor.add("Movement", movComp);
+            };
+        }
+        else {
+            return function() {}; // Don't move, rest
+        }
     };
 
     /** Checks if the actor can attack given x,y coordinate.*/
@@ -397,8 +396,21 @@ RG.Brain.Rogue = function(actor) { // {{{2
         for (var i = 0, iMax=seenCells.length; i < iMax; i++) {
             if (seenCells[i].hasProp("actors")) {
                 var actors = seenCells[i].getProp("actors");
-                if (actors[0].isPlayer()) return seenCells[i];
-                else if (_memory.isEnemy(actors[0])) return seenCells[i];
+                if (_memory.isEnemy(actors[0])) return seenCells[i];
+            }
+        }
+        return null;
+    };
+
+    /** Finds a friend cell among seen cells.*/
+    this.findFriendCell = function(seenCells) {
+        var memory = this.getMemory();
+        for (var i = 0, iMax=seenCells.length; i < iMax; i++) {
+            if (seenCells[i].hasProp("actors")) {
+                var actors = seenCells[i].getProp("actors");
+                if (actors[0] !== _actor) { // Exclude itself
+                    if (!memory.isEnemy(actors[0])) return seenCells[i];
+                }
             }
         }
         return null;
@@ -580,6 +592,7 @@ RG.Brain.Human = function(actor) {
         var friendActor = null;
         var memory = this.getMemory();
 
+        // If actor cannot communicate, always attack if possible
         var comOrAttack = Math.random();
         if (RG.isNullOrUndef([friendCell])) {
             comOrAttack = 1.0;
@@ -610,38 +623,13 @@ RG.Brain.Human = function(actor) {
                 }
             }
         }
+        console.log("Human exploring the level.");
         return this.exploreLevel(seenCells);
 
     };
 
-    this.findEnemyCell = function(seenCells) {
-        var memory = this.getMemory();
-        for (var i = 0, iMax=seenCells.length; i < iMax; i++) {
-            if (seenCells[i].hasProp("actors")) {
-                var actors = seenCells[i].getProp("actors");
-                if (memory.isEnemy(actors[0]))
-                    return seenCells[i];
-            }
-        }
-        return null;
-    };
-
-    /** Finds a friend cell among seen cells.*/
-    this.findFriendCell = function(seenCells) {
-        var memory = this.getMemory();
-        for (var i = 0, iMax=seenCells.length; i < iMax; i++) {
-            if (seenCells[i].hasProp("actors")) {
-                var actors = seenCells[i].getProp("actors");
-                if (actors[0] !== _actor) { // Exclude itself
-                    if (!memory.isEnemy(actors[0])) return seenCells[i];
-                }
-            }
-        }
-        return null;
-    };
 
 };
-
 RG.extend2(RG.Brain.Human, RG.Brain.Rogue);
 
 /** Brain object used by Spirit objects.*/
