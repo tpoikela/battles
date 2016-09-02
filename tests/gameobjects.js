@@ -7,7 +7,7 @@ var RGTest = require("./roguetest.js");
 var chai = require("chai");
 var expect = chai.expect;
 
-var Parser = RG.RogueObjectStubParser;
+var Parser = RG.ObjectShellParser;
 var Db = RG.RogueObjectDatabase;
 var Actor = RG.Actor.Rogue;
 
@@ -21,7 +21,7 @@ describe('How actors are created from file', function() {
 
     it('Returns base objects and supports also base', function() {
         var parser = new Parser();
-        var wolfNew = parser.parseObjStub("actors", {
+        var wolfNew = parser.parseObjShell("actors", {
             name: "wolf", attack: 15, defense: 10, damage: "1d6 + 2",
             hp: 9
         });
@@ -31,7 +31,7 @@ describe('How actors are created from file', function() {
         var wolves = parser.dbGet({categ: "actors", danger: 3});
         expect(wolves.hasOwnProperty("superwolf")).to.equal(false);
 
-        var superWolf = parser.parseObjStub("actors", {
+        var superWolf = parser.parseObjShell("actors", {
             name: "superwolf", base: "wolf", defense: 20, 
             damage: "2d6 + 3", danger: 3
         });
@@ -55,7 +55,7 @@ describe('How actors are created from file', function() {
         wolfObj.get("Health").setHP(9);
         var wolfComp = wolfObj.get("Combat");
 
-        // Create actor using parsed stub data
+        // Create actor using parsed shell data
         var createdWolf = parser.createActualObj("actors", "wolf");
         var cWolfComp = createdWolf.get("Combat");
         expect(cWolfComp.getAttack()).to.equal(wolfComp.getAttack());
@@ -77,7 +77,7 @@ describe('How actors are created from file', function() {
         expect(randWolf !== null).to.equal(true);
         expect(randWolf.get("Combat").getAttack()).to.equal(superWolf.attack);
 
-        var punyWolf = parser.parseObjStub("actors", {name: "Puny wolf",
+        var punyWolf = parser.parseObjShell("actors", {name: "Puny wolf",
             base: "wolf", attack: 1, defense: 50}
         );
 
@@ -91,12 +91,12 @@ describe('How actors are created from file', function() {
 
     it('Parses Spirits/Gems and creates them correctly', function() {
         var parser = new Parser();
-        var spiritStub = {
+        var spiritShell = {
             name: "Wolf spirit", type: "spirit",
             strength: 0, accuracy: 0, agility: 1, willpower: 0, power: 1,
             danger: 1,
         };
-        var spiritNew = parser.parseObjStub("actors", spiritStub);
+        var spiritNew = parser.parseObjShell("actors", spiritShell);
         expect(spiritNew.strength).to.equal(0);
         expect(spiritNew.agility).to.equal(1);
 
@@ -104,8 +104,8 @@ describe('How actors are created from file', function() {
         expect(spiritObj.has("Ethereal")).to.equal(true);
         expect(spiritObj.has("Stats")).to.equal(true);
 
-        var gemStub = {name: "Lesser gem", value: 40, type: "spiritgem"};
-        var newGem = parser.parseObjStub("items", gemStub);
+        var gemShell = {name: "Lesser gem", value: 40, type: "spiritgem"};
+        var newGem = parser.parseObjShell("items", gemShell);
         expect(newGem.name).to.equal("Lesser gem");
         var gemObj = parser.createActualObj("items", "Lesser gem");
         expect(gemObj.getValue()).to.equal(40);
@@ -114,12 +114,12 @@ describe('How actors are created from file', function() {
 
 describe('How food items are created from objects', function() {
    var parser = new Parser();
-    it('Creates food objects items from stubs', function() {
-        var foodBase = parser.parseObjStub("items", {type: "food", name: "foodBase",
+    it('Creates food objects items from shells', function() {
+        var foodBase = parser.parseObjShell("items", {type: "food", name: "foodBase",
             weight: 0.1, misc: "XXX", dontCreate: true, "char": "%",
             className: "cell-item-food"});
 
-        var food = parser.parseObjStub("items", {base: "foodBase", name: "Dried meat",
+        var food = parser.parseObjShell("items", {base: "foodBase", name: "Dried meat",
             energy: 100, value: 5
         });
         expect(food.name).to.equal("Dried meat");
@@ -130,7 +130,7 @@ describe('How food items are created from objects', function() {
         expect(food.char).to.equal("%");
         expect(food.className).to.equal("cell-item-food");
 
-        var expFood = parser.parseObjStub("items", {name: "Gelee", energy: 500, 
+        var expFood = parser.parseObjShell("items", {name: "Gelee", energy: 500, 
             weight: 0.2, value: 100, base: "foodBase"});
 
         var geleeObj = parser.dbGet({name: "Gelee"})[0];
@@ -164,7 +164,7 @@ describe('How food items are created from objects', function() {
 
 describe('It contains all game content info', function() {
     var parser = new Parser();
-    parser.parseStubData(Obs);
+    parser.parseShellData(Obs);
 
     it('Should parse all actors properly', function() {
         var rsnake = parser.get("actors", "rattlesnake");
@@ -188,18 +188,18 @@ describe('It contains all game content info', function() {
     });
 
     it('Should parse all items properly', function() {
-        var bayStub = parser.get("items", "Bayonette");
-        expect(bayStub.base).to.equal("MeleeWeaponBase");
+        var bayShell = parser.get("items", "Bayonette");
+        expect(bayShell.base).to.equal("MeleeWeaponBase");
         var bayon = parser.createActualObj("items", "Bayonette");
         expect(bayon.has("Physical")).to.equal(true);
         RGTest.checkCSSClassName(bayon, "cell-item-melee-weapon");
     });
 
     it('Should parse weapons properly', function() {
-        var rubySwordStub = parser.get("items", "Ruby glass sword");
+        var rubySwordShell = parser.get("items", "Ruby glass sword");
         var rubySwordObj = parser.createActualObj("items", "Ruby glass sword");
 
-        expect(rubySwordStub.attack).to.equal(rubySwordObj.getAttack());
+        expect(rubySwordShell.attack).to.equal(rubySwordObj.getAttack());
 
     });
 
@@ -229,6 +229,14 @@ describe('It contains all game content info', function() {
         expect(demonSpirit.get("Stats").getStrength()).to.equal(3);
 
         //var spiritGem =
+    });
+
+    it('Can generate actors using weighted algorithms', function() {
+        var newActor = parser.createRandomActorWeighted(1, 1);
+        expect(RG.isNullOrUndef([newActor])).to.equal(false);
+
+        newActor = parser.createRandomActorWeighted(1000);
+        //expect(RG.isNullOrUndef([newActor])).to.equal(false);
     });
 
 });
