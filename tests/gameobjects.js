@@ -4,6 +4,8 @@ var RG = require("../battles.js");
 var Obs = require("../data/battles_objects.js");
 var RGTest = require("./roguetest.js");
 
+var Effects = require("../data/effects.js");
+
 var chai = require("chai");
 var expect = chai.expect;
 
@@ -164,6 +166,7 @@ describe('How food items are created from objects', function() {
 
 describe('It contains all game content info', function() {
     var parser = new Parser();
+    parser.parseShellData(Effects);
     parser.parseShellData(Obs);
 
     it('Should parse all actors properly', function() {
@@ -237,6 +240,35 @@ describe('It contains all game content info', function() {
 
         newActor = parser.createRandomActorWeighted(1000);
         //expect(RG.isNullOrUndef([newActor])).to.equal(false);
+    });
+
+    it('Creates healing potion correctly with useItem attribute', function() {
+        var healPotion = parser.createActualObj("items", "Healing potion");
+        expect(healPotion.hasOwnProperty("useFuncs")).to.equal(true);
+        expect(healPotion.hasOwnProperty("useItem")).to.equal(true);
+        expect(healPotion.hasOwnProperty("useArgs")).to.equal(true);
+        expect(healPotion.useArgs.hasOwnProperty("hp")).to.equal(true);
+        expect(healPotion.useArgs.hp).to.equal("3d4");
+
+        healPotion.useItem({});
+
+        var venom = parser.createActualObj("items", "Potion of venom");
+        expect(venom).to.have.property("useItem");
+        expect(venom).to.have.property("useArgs");
+
+    });
+
+    it('Creates a proper pickaxe with digger capability', function() {
+        var cell = new RG.FACT.createWallCell();
+        var pickaxe = parser.createActualObj("items", "Pick-axe");
+        expect(pickaxe).to.have.property("useItem");
+
+        var digger = new RG.Actor.Rogue("Dwarf");
+        digger.getInvEq().addItem(pickaxe);
+        expect(cell.getBaseElem().getType()).to.equal("wall");
+        pickaxe.useItem({target: cell});
+        expect(cell.getBaseElem().getType()).to.equal("floor");
+
     });
 
 });
