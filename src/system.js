@@ -348,7 +348,9 @@ RG.System.Movement = function(type, compTypes) {
                 return true;
             }
             else {
-                RG.err("MovementSystem", "moveActorTo", "Couldn't remove ent.");
+                var coord = xOld + ", " + yOld;
+                RG.err("MovementSystem", "moveActorTo", 
+                    "Couldn't remove ent |" + ent.getName() + "| @ " + coord);
             }
         }
         else {
