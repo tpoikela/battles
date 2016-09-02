@@ -301,26 +301,7 @@ RG.ExpPointsSystem = function(type, compTypes) {
             }
 
             if (exp >= reqExp) { // Required exp points exceeded
-
-                expComp.setExpLevel(nextLevel);
-
-                // Increase max HP
-                if (ent.has("Health")) {
-                    var hComp = ent.get("Health");
-                    hComp.setMaxHP(hComp.getMaxHP() + 5);
-                    hComp.setHP(hComp.getHP() + 5);
-                }
-
-                if (ent.has("Combat")) {
-                    var combatComp = ent.get("Combat");
-                    combatComp.setAttack(combatComp.getAttack() + 1);
-                    combatComp.setDefense(combatComp.getDefense() + 1);
-                    if (nextLevel % 3 === 0) {
-                        var prot = combatComp.getProtection();
-                        combatComp.setProtection(prot + 1);
-                    }
-                    // TODO add something to damage roll
-                }
+                RG.levelUpActor(ent, nextLevel);
                 RG.gameSuccess(ent.getName() + " advanced to level " + nextLevel);
             }
             ent.remove("ExpPoints");
