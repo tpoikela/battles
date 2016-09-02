@@ -478,6 +478,39 @@ RG.levelUpActor = function(actor, newLevel) {
     }
 };
 
+// Regexp for parsing dice expressions '2d4' or '1d6 + 1' etc.
+RG.DIE_RE = /\s*(\d+)d(\d+)\s*(\+|-)?\s*(\d+)?/;
+
+/** Parses die expression like '2d4' or '3d5 + 4' and returns it as an array [2,
+ * 4, 0] or [3, 5, 4]. Returns empty array for invalid expressions.*/
+RG.parseDieSpec = function(strOrArray) {
+    if (typeof strOrArray === "object") {
+        if (strOrArray.length >= 3) {
+            return [strOrArray[0], strOrArray[1], strOrArray[2]];
+        }
+    }
+    else {
+        var match = RG.DIE_RE.exec(strOrArray);
+        if (match !== null) {
+            var num = match[1];
+            var dType = match[2];
+            var mod;
+            if (!RG.isNullOrUndef([match[3], match[4]])) {
+                if (match[3] === "+") mod = match[4];
+                else mod = -match[4];
+            }
+            else {
+                mod = 0;
+            }
+            return [num, dType, mod];
+        }
+        else {
+            RG.err("RG", "parseDieSpec", "Cannot parse: " + strOrArray);
+        }
+    }
+    return [];
+};
+
 
 /** Lookup table object for movement and actions keys.*/
 RG.KeyMap = {
