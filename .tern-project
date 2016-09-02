@@ -7,10 +7,11 @@
     "chai"
   ],
   "loadEagerly": [
-    "rot.js",
+    "./lib/rot.js",
     "/lib/node_modules/react/lib/*.js",
-    "roguelike.js",
-    "rogue_ide.jsx"
+    "./battles.js",
+    "./gui/*.jsx",
+    "./src/*.js"
   ],
   "plugins": {
     "node": {},
