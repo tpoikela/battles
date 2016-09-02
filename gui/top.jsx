@@ -108,10 +108,11 @@ var BattlesTop = React.createClass({
         this.initGUICommandTable();
         this.createNewGame();
         return {
-            render: true,
-            renderFullScreen: false,
             boardClassName: "game-board-player-view",
             mapShown: false,
+            selectedItem: null,
+            render: true,
+            renderFullScreen: false,
         };
     },
 
@@ -170,7 +171,8 @@ var BattlesTop = React.createClass({
 
 
     selectItemTop: function(item) {
-        this.gameState.selectedItem = item;
+        //this.state.selectedItem = item;
+        this.setState({selectedItem: item});
     },
 
     /** When a cell is clicked, perform a command/show debug info. */
@@ -285,7 +287,7 @@ var BattlesTop = React.createClass({
                 <div className="row">
                     <div className="text-left col-md-2">
                         <GameStats player={player} setViewType={this.setViewType}
-                            selectedItem={this.gameState.selectedItem}
+                            selectedItem={this.state.selectedItem}
                         />
                     </div>
                     <div className="col-md-10">
@@ -348,14 +350,15 @@ var BattlesTop = React.createClass({
     doGUICommand: function(code) {
          if (this.gameState.useModeEnabled) {
             this.gameState.useModeEnabled = false;
-            if (this.gameState.selectedItem !== null) {
+            if (this.state.selectedItem !== null) {
 
                 var cell = this.getAdjacentCell(code);
                 if (cell !== null) {
                     this.game.update({
-                        cmd: "use", target: cell, item: this.gameState.selectedItem
+                        cmd: "use", target: cell, item: this.state.selectedItem
                     });
-                    this.gameState.selectedItem = null;
+                    this.setState({selectedItem: null});
+                    //this.state.selectedItem = null;
                 }
                 else {
                     RG.gameWarn("There are no targets there.");
@@ -405,7 +408,7 @@ var BattlesTop = React.createClass({
     GUIUseItem: function() {
         if (!this.gameState.useModeEnabled) {
             this.gameState.useModeEnabled = true;
-            if (this.gameState.selectedItem === null) 
+            if (this.state.selectedItem === null) 
                 $("#inventory-button").trigger("click");
             RG.gameMsg("Select direction for using the item.");
         }
