@@ -669,7 +669,6 @@ RG.ObjectShellParser = function() {
     this.parseShellData = function(obj) {
         var keys = Object.keys(obj);
         for (var i = 0; i < keys.length; i++) {
-            console.log("Parsing now " + keys[i]);
             this.parseShellCateg(keys[i], obj[keys[i]]);
         }
     };
@@ -882,7 +881,6 @@ RG.ObjectShellParser = function() {
     this.addUseEffects = function(shell, newObj) {
         newObj.useFuncs = [];
         newObj.useItem = _db.effects.use.func.bind(newObj);
-        var useEffects = Object.keys(shell.use);
         if (typeof shell.use === "object" && shell.use.hasOwnProperty("length")) {
             for (var i = 0; i < shell.use.length; i++) {
                 _addUseEffectToItem(shell, newObj, shell.use[i]);
@@ -900,7 +898,6 @@ RG.ObjectShellParser = function() {
 
     var _addUseEffectToItem = function(shell, item, useName) {
         var useFuncName = useName;
-        console.log("useName is " + useName);
         if (_db.effects.hasOwnProperty(useFuncName)) {
             var useEffectShell = _db.effects[useFuncName];
             var useFuncVar = useEffectShell.func;
