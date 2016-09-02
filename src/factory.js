@@ -1,6 +1,8 @@
 
 var GS = require("../getsource.js");
 var RG = GS.getSource("RG", "./src/rg.js");
+var ROT = GS.getSource(["ROT"], "./lib/rot.js");
+
 RG.Component = GS.getSource(["RG", "Component"], "./src/component.js");
 RG.Brain = GS.getSource(["RG", "Brain"], "./src/brain.js");
 RG.Map = GS.getSource(["RG", "Map"], "./src/map.js");
@@ -187,10 +189,17 @@ RG.Factory.Base = function() { // {{{2
         // Generate the monsters randomly for this level
         for (var i = 0; i < monstersPerLevel; i++) {
             var cell = this.getFreeRandCell(level);
-            var monster = parser.createRandomActor({
+            /*var monster = parser.createRandomActor({
                 func: function(actor){return actor.danger <= maxDanger;}
-            });
-            monster.get("Experience").setExpLevel(maxDanger);
+            });*/
+            var monster = parser.createRandomActorWeighted(1, maxDanger, 
+                {func: function(actor) {return actor.danger <= maxDanger;}}
+            );
+            var objShell = parser.dbGet("actors", monster.getName());
+            var expLevel = maxDanger - objShell.danger;
+            if (expLevel > 1) {
+                RG.levelUpActor(monster, expLevel);
+            }
             level.addActor(monster, cell.getX(), cell.getY());
         }
     };
@@ -244,7 +253,7 @@ RG.FACT = new RG.Factory.Base();
 RG.FCCGame = function() {
     RG.Factory.Base.call(this);
 
-    var _parser = new RG.RogueObjectStubParser();
+    var _parser = new RG.ObjectShellParser();
 
     /** Creates a player actor and starting inventory.*/
     this.createFCCPlayer = function(game, obj) {
@@ -335,7 +344,7 @@ RG.FCCGame = function() {
             RG.gameMsg("Humans have vanquished all demons! But it's not over..");
 
             var map = _level.getMap();
-            var windsEvent = new RG.RogueOneShotEvent( 
+            var windsEvent = new RG.RogueOneShotEvent(
                 this.addSnow.bind(this, _level, 0.1),
                 20*100, "Winds are blowing stronger. You feel it's getting colder");
             _game.addEvent(windsEvent);
@@ -364,7 +373,7 @@ RG.FCCGame = function() {
 
     /** Creates the game for the FCC project.*/
     this.createFCCGame = function(obj) {
-        _parser.parseStubData(RGObjects);
+        _parser.parseShellData(RGObjects);
         var cols = obj.cols;
         var rows = obj.rows;
         var nLevels = obj.levels;
@@ -564,13 +573,21 @@ RG.FCCGame = function() {
 };
 RG.extend2(RG.FCCGame, RG.Factory.Base);
 
-/** Object parser for reading game data. Game data is contained within stubs
- * which are simply object literals without functions etc. */
-RG.RogueObjectStubParser = function() {
+/** Object parser for reading game data. Game data is contained within shell
+ * objects which are simply object literals without functions etc. */
+RG.ObjectShellParser = function() {
+
+    // NOTE: 'SHELL' means vanilla JS object, which has not been
+    // created with new:
+    //      SHELL:   var rat = {name: "Rat", type: "animal"};
+    //      OBJECT: var ratObj = new RG.Actor.Rogue("rat"); ratObj.setType("animal");
+    //
+    // Shells are used in external data file to describe game objects in a more
+    // concise way. Game objects are created from shells.
 
     var categ = ['actors', 'items', 'levels', 'dungeons'];
 
-    // Stores the base objects
+    // Stores the base shells
     var _base = {
         actors: {},
         items: {},
@@ -592,19 +609,19 @@ RG.RogueObjectStubParser = function() {
      * to different names. Following formats supported:
      *
      * 1. {factory: funcObj, func: "setter"}
-     *  Call obj["setter"]( funcObj(stub.field) )
+     *  Call obj["setter"]( funcObj(shell.field) )
      *
      * 2. {comp: "CompName", func: "setter"}
      *  Create component comp of type "CompName".
-     *  Call comp["setter"]( stub.field)
+     *  Call comp["setter"]( shell.field)
      *  Call obj.add("CompName", comp)
      *
      * 3. {comp: "CompName"}
-     *  Create component comp of type "CompName" with new CompName(stub.field)
+     *  Create component comp of type "CompName" with new CompName(shell.field)
      *  Call obj.add("CompName", comp)
      *
      * 4. "setter"
-     *   Call setter obj["setter"](stub.field)
+     *   Call setter obj["setter"](shell.field)
      * */
     var _propToCall = {
         actors: {
@@ -653,29 +670,35 @@ RG.RogueObjectStubParser = function() {
         dungeons: {}
     };
 
+    // Internal cache for proc generation
+    var _cache = {
+        actorWeights: {},
+
+    };
+
     //---------------------------------------------------------------------------
     // "PARSING" METHODS
     //---------------------------------------------------------------------------
 
-    /** Parses all stub data, items, monsters, level etc.*/
-    this.parseStubData = function(obj) {
+    /** Parses all shell data, items, monsters, level etc.*/
+    this.parseShellData = function(obj) {
         var keys = Object.keys(obj);
         for (var i = 0; i < keys.length; i++) {
-            this.parseStubCateg(keys[i], obj[keys[i]]);
+            this.parseShellCateg(keys[i], obj[keys[i]]);
         }
     };
 
-    /** Parses one specific stub category, ie items or monsters.*/
-    this.parseStubCateg = function(categ, objsArray) {
+    /** Parses one specific shell category, ie items or monsters.*/
+    this.parseShellCateg = function(categ, objsArray) {
         for (var i = 0; i < objsArray.length; i++) {
-            this.parseObjStub(categ, objsArray[i]);
+            this.parseObjShell(categ, objsArray[i]);
         }
     };
 
-    /** Parses an object stub. Returns null for base objects, and
+    /** Parses an object shell. Returns null for base objects, and
      * corresponding object for actual actors.*/
-    this.parseObjStub = function(categ, obj) {
-        if (this.validStubGiven(obj)) {
+    this.parseObjShell = function(categ, obj) {
+        if (this.validShellGiven(obj)) {
             // Get properties from base class
             if (obj.hasOwnProperty("base")) {
                 var baseName = obj.base;
@@ -683,7 +706,7 @@ RG.RogueObjectStubParser = function() {
                     obj = this.extendObj(obj, this.getBase(categ, baseName));
                 }
                 else {
-                    RG.err("ObjectParser", "parseObjStub",
+                    RG.err("ObjectParser", "parseObjShell",
                         "Unknown base " + baseName + " specified for " + obj);
                 }
             }
@@ -698,14 +721,14 @@ RG.RogueObjectStubParser = function() {
         }
     };
 
-    /** Checks that the object stub given is correctly formed.*/
-    this.validStubGiven = function(obj) {
+    /** Checks that the object shell given is correctly formed.*/
+    this.validShellGiven = function(obj) {
         if (!obj.hasOwnProperty("name")) {
-            RG.err("ObjectStubParser", "validStubGiven",
-                "Stub doesn't have a name.");
+            RG.err("ObjectShellParser", "validShellGiven",
+                "shell doesn't have a name.");
             return false;
         }
-        //console.log("validStub ==> " + obj.name);
+        //console.log("validShell ==> " + obj.name);
         return true;
     };
 
@@ -716,12 +739,12 @@ RG.RogueObjectStubParser = function() {
         }
     };
 
-    /** Returns an object stub given category and name.*/
+    /** Returns an object shell given category and name.*/
     this.get = function(categ, name) {
         return _db[categ][name];
     };
 
-    /** Return specified base stub.*/
+    /** Return specified base shell.*/
     this.getBase = function(categ, name) {
         return _base[categ][name];
     };
@@ -806,25 +829,24 @@ RG.RogueObjectStubParser = function() {
             return null;
         }
 
-        var stub = this.get(categ, name);
+        var shell = this.get(categ, name);
         var propCalls = _propToCall[categ];
-        var newObj = this.createNewObject(categ, stub);
+        var newObj = this.createNewObject(categ, shell);
 
-        // If propToCall table has the same key as stub property, call corresponding
+        // If propToCall table has the same key as shell property, call corresponding
         // function in _propToCall using the newly created object.
-        for (var p in stub) {
+        for (var p in shell) {
 
             // Called for basic type: actors, items...
             if (propCalls.hasOwnProperty(p)) {
                 var funcName = propCalls[p];
                 if (typeof funcName === "object") {
                     if (funcName.hasOwnProperty("comp")) {
-                        this.addCompToObj(newObj, funcName, stub[p]);
+                        this.addCompToObj(newObj, funcName, shell[p]);
                     }
                     else if (funcName.hasOwnProperty("factory")) {
                         if (p === "brain") {
-                            var createdObj = funcName.factory(newObj, stub[p]);
-                            //console.log("Creatin brain: " + stub[p]);
+                            var createdObj = funcName.factory(newObj, shell[p]);
                             newObj[funcName.func](createdObj);
                         }
                     }
@@ -832,31 +854,31 @@ RG.RogueObjectStubParser = function() {
                         for (var f in funcName) {
                             var fName = funcName[f];
                             if (newObj.hasOwnProperty(fName)) {
-                                newObj[fName](stub[p]);
+                                newObj[fName](shell[p]);
                             }
                         }
                     }
                 }
                 else {
-                    newObj[funcName](stub[p]);
+                    newObj[funcName](shell[p]);
                 }
             }
             else { // Check for subtypes
-                if (stub.hasOwnProperty("type")) {
-                    if (propCalls.hasOwnProperty(stub.type)) {
-                        var propTypeCalls = propCalls[stub.type];
+                if (shell.hasOwnProperty("type")) {
+                    if (propCalls.hasOwnProperty(shell.type)) {
+                        var propTypeCalls = propCalls[shell.type];
                         if (propTypeCalls.hasOwnProperty(p)) {
                             var funcName2 = propTypeCalls[p];
                             if (typeof funcName2 === "object") {
                                 for (var f2 in funcName2) {
                                     var fName2 = funcName2[f2];
                                     if (newObj.hasOwnProperty(fName)) {
-                                        newObj[funcName2[f2]](stub[p]);
+                                        newObj[funcName2[f2]](shell[p]);
                                     }
                                 }
                             }
                             else {
-                                newObj[funcName2](stub[p]);
+                                newObj[funcName2](shell[p]);
                             }
                         }
                     }
@@ -889,11 +911,12 @@ RG.RogueObjectStubParser = function() {
 
     };
 
-    this.createFromStub = function(categ, obj) {
+    /** Creates actual game object from obj shell in given category.*/
+    this.CreateFromShell = function(categ, obj) {
         return this.createActualObj(categ, obj.name);
     };
 
-    /** Factory-method for creating the actual objects.*/
+    /** Factory-method for creating the actual game objects.*/
     this.createNewObject = function(categ, obj) {
         switch(categ) {
             case RG.TYPE_ACTOR:
@@ -919,7 +942,7 @@ RG.RogueObjectStubParser = function() {
         return null;
     };
 
-    /** Returns true if base exists.*/
+    /** Returns true if shell base exists.*/
     this.baseExists = function(categ, baseName) {
         if (_base.hasOwnProperty(categ)) {
             return _base[categ].hasOwnProperty(baseName);
@@ -927,7 +950,7 @@ RG.RogueObjectStubParser = function() {
         return false;
     };
 
-    /** Extends the given object stub with given base object.*/
+    /** Extends the given object shell with a given base shell.*/
     this.extendObj = function(obj, baseObj) {
         for (var prop in baseObj) {
             if (!obj.hasOwnProperty(prop)) {
@@ -1008,8 +1031,10 @@ RG.RogueObjectStubParser = function() {
         var categ  = query.categ;
         if (typeof danger !== "undefined") {
             if (typeof categ !== "undefined") {
-                var entries = _db_danger[danger][categ];
-                return this.getRandFromObj(entries);
+                if (_db_danger.hasOwnProperty(danger)) {
+                    var entries = _db_danger[danger][categ];
+                    return this.getRandFromObj(entries);
+                }
             }
         }
         return null;
@@ -1046,12 +1071,12 @@ RG.RogueObjectStubParser = function() {
 
     /** Creates a random actor based on danger value or a filter function.*/
     this.createRandomActor = function(obj) {
-        var randObj = null;
+        var randShell = null;
         if (obj.hasOwnProperty("danger")) {
             var danger = obj.danger;
-            randObj = this.dbGetRand({danger: danger, categ: "actors"});
-            if (randObj !== null) {
-                return this.createFromStub("actors", randObj);
+            randShell = this.dbGetRand({danger: danger, categ: "actors"});
+            if (randShell !== null) {
+                return this.CreateFromShell("actors", randShell);
             }
             else {
                 return null;
@@ -1059,17 +1084,41 @@ RG.RogueObjectStubParser = function() {
         }
         else if (obj.hasOwnProperty("func")) {
             var res = this.filterCategWithFunc("actors", obj.func);
-            randObj = this.arrayGetRand(res);
-            return this.createFromStub("actors", randObj);
+            randShell = this.arrayGetRand(res);
+            return this.CreateFromShell("actors", randShell);
         }
     };
 
-    /** Creates a random item based on selection function.*/
+    // Uses engine's internal weighting algorithm when givel a level number.
+    // Note that this method can return null, if no correct danger level is
+    // found. You can supply {func: ...} as a fallback solution.
+    this.createRandomActorWeighted = function(min, max, obj) {
+        var key = min + "," + max;
+        if (!_cache.actorWeights.hasOwnProperty(key)) {
+            _cache.actorWeights[key] =  RG.getDangerProb(min, max);
+        }
+        var danger = ROT.RNG.getWeightedValue(_cache.actorWeights[key]);
+        var actor = this.createRandomActor({danger: danger});
+        if (RG.isNullOrUndef([actor])) {
+            if (!RG.isNullOrUndef([obj])) {
+                return this.createRandomActor(obj);
+            }
+        }
+        return actor;
+    };
+
+    /** Creates a random item based on a selection function.
+     *
+     * Example:
+     *  var funcValueSel = function(item) {return item.value >= 100;}
+     *  var item = createRandomItem({func: funcValueSel}); // Returns item with
+     *  value > 100.
+     *  */
     this.createRandomItem = function(obj) {
         if (obj.hasOwnProperty("func")) {
             var res = this.filterCategWithFunc("items", obj.func);
-            var randObj = this.arrayGetRand(res);
-            return this.createFromStub("items", randObj);
+            var randShell = this.arrayGetRand(res);
+            return this.CreateFromShell("items", randShell);
         }
         else {
             RG.err("ObjectParser", "createRandomItem", "No function given.");

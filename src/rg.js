@@ -392,12 +392,92 @@ var RG = { // {{{2
         RUN: 4,
     },
 
-    TEST: "XXX TEST VAR",
+    // 0.0 = uniform dist, higher number assigns more weight to median values
+    DANGER_ADJ_FACTOR: 1.4,
 
 }; /// }}} RG
 
 RG.PROP_TYPES = [RG.TYPE_ACTOR, RG.TYPE_ELEM, RG.TYPE_ITEM, RG.TYPE_TRAP];
 RG.cellRenderArray = RG.cellRenderVisible;
+
+var ADJ_FACTOR = 0.0;
+
+/** Returns danger probabilites for given level.*/
+RG.getDangerProb = function(min, max) {
+    if (min > max) return {};
+    var level = max + 1;
+    var arr = [];
+    var sum = 0;
+    for (var j = min; j <= level; j++) {
+        arr.push(j);
+        sum += j;
+    }
+
+    var last = arr.length - 1;
+    var max  = arr[last];
+
+    var highPoint = (max % 2 === 0) ? max / 2 : (max+1) / 2;
+    var obj = {};
+
+    arr.forEach( function(val) {
+        var prob = max - Math.floor(RG.DANGER_ADJ_FACTOR*Math.abs(val - highPoint));
+        prob = (prob === 0) ? prob + 1 : prob;
+        obj[val] = prob;
+
+    });
+
+    return obj;
+};
+
+/** Given an actor, scales its attributes based on new experience level.*/
+RG.levelUpActor = function(actor, newLevel) {
+    if (actor.has("Experience")) {
+        var currLevel = actor.get("Experience").getExpLevel();
+        if (currLevel < newLevel) {
+            while (currLevel < newLevel) {
+                var nextLevel = currLevel + 1;
+
+                // Level up the Combat component
+                if (actor.has("Combat")) {
+                    var combatComp = actor.get("Combat");
+                    combatComp.setAttack(combatComp.getAttack() + 1);
+                    combatComp.setDefense(combatComp.getDefense() + 1);
+                    if (nextLevel % 3 === 0) {
+                        var prot = combatComp.getProtection();
+                        combatComp.setProtection(prot + 1);
+                    }
+
+                    // Upgrade damage die was well
+                    var dmgDie = combatComp.getDamageDie();
+                    dmgDie.setDice( dmgDie.getDice() + 1);
+                    if (nextLevel % 3 === 0) {
+                        dmgDie.setMod( dmgDie.getMod() + 1);
+                    }
+                }
+
+                // Level up the Health
+                if (actor.has("Health")) {
+                    var hComp = actor.get("Health");
+                    var incr = 2;
+                    if (actor.isPlayer()) incr = 5;
+                    hComp.setMaxHP(hComp.getMaxHP() + incr);
+                    hComp.setHP(hComp.getHP() + incr);
+                }
+                ++currLevel;
+
+            }
+            actor.get("Experience").setExpLevel(newLevel);
+        }
+        else {
+            RG.err("RG", "levelUpActor" , "New level must be > current level.");
+        }
+    }
+    else {
+        RG.err("RG", "levelUpActor" , "No exp. component found.");
+
+    }
+};
+
 
 /** Lookup table object for movement and actions keys.*/
 RG.KeyMap = {
