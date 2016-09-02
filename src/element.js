@@ -17,15 +17,9 @@ RG.Element.Base = function(elemType) { // {{{2
     this.setPropType("elements");
     this.setType(elemType);
 
-    var _elemType = elemType.toLowerCase();
-    var _allowMove;
-
-    switch(elemType) {
-        case "wall": _allowMove = false; break;
-        default: _allowMove = true; break;
-    }
-
-    this.isPassable = function() {return _allowMove;};
+    this.isPassable = function() {
+        return this.getType() !== "wall";
+    };
 };
 RG.extend2(RG.Element.Base, RG.Object.Locatable);
 // }}} Element
