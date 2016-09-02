@@ -316,6 +316,23 @@ var RG = { // {{{2
         return attack;
     },
 
+    /** Given actor and cells it sees, returns first enemy cell found.*/
+    findEnemyCellForPlayer: function(actor, seenCells) {
+        for (var i = 0; i < seenCells.length; i++) {
+            if (seenCells[i].hasActors()) {
+                var actors = seenCells[i].getProp("actors");
+                for (var j = 0; j < actors.length; j++) {
+                    if (actor !== actors[j]) {
+                        if (actors[j].isEnemy(actor)) {
+                            return seenCells[i];
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    },
+
     strengthToDamage: function(str) {
         return Math.round(str / 4);
     },
