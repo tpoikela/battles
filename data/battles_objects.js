@@ -14,14 +14,6 @@
 
 var RGObjects = {
 
-    // Can be used in items freely
-    /*effects: {
-        poison: function() {
-
-        },
-        healing: function() {
-        },
-    },*/
 
     actors: [
 
@@ -218,7 +210,7 @@ var RGObjects = {
         {
             name: "Pick-axe", base: "MeleeWeaponBase",
             damage: "1d8", attack: 1, defense: 2,
-            weight: 2.3, value: 15,
+            weight: 2.3, value: 15, use: "digger",
         },
         {
             name: "Saber", base: "MeleeWeaponBase",
@@ -501,6 +493,13 @@ var RGObjects = {
         {
             name: "PotionBase", className: "cell-item-potion", "char": "!",
             type: "potion", dontCreate: true,
+        },
+        {
+            name: "Healing potion", base: "PotionBase", use: {heal: {hp: "3d4"}},
+        },
+        {
+            name: "Potion of venom", base: "PotionBase", 
+            use: {poison: {duration: "4d4 + 5"}}
         },
 
         // FOOD

@@ -4,6 +4,7 @@ var RG = GS.getSource("RG", "./src/rg.js");
 var ROT = GS.getSource(["ROT"], "./lib/rot.js");
 
 RG.Component = GS.getSource(["RG", "Component"], "./src/component.js");
+//RG.Effects = GS.getSource(["RG", "Effects"], "./data/effects.js");
 RG.Brain = GS.getSource(["RG", "Brain"], "./src/brain.js");
 RG.Map = GS.getSource(["RG", "Map"], "./src/map.js");
 
@@ -42,33 +43,11 @@ RG.Factory.Base = function() { // {{{2
         comb.add("Combat", combatComp);
     };
 
-    // Regexp for parsing dice like "3d3 + 2".
-    var _dmgRe = /\s*(\d+)d(\d+)\s*(\+|-)?\s*(\d+)?/;
-
+    /** Creates a new die object from array or die expression '2d4 + 3' etc.*/
     this.createDie = function(strOrArray) {
-        if (typeof strOrArray === "object") {
-            if (strOrArray.length >= 3) {
-                return new RG.Die(strOrArray[0]. strOrArray[1], strOrArray[2]);
-            }
-        }
-        else {
-            var match = _dmgRe.exec(strOrArray);
-            if (match !== null) {
-                var num = match[1];
-                var dType = match[2];
-                var mod;
-                if (!RG.isNullOrUndef([match[3], match[4]])) {
-                    if (match[3] === "+") mod = match[4];
-                    else mod = -match[4];
-                }
-                else {
-                    mod = 0;
-                }
-                return new RG.Die(num, dType, mod);
-            }
-            else {
-                RG.err("DamageObject", "setDamage", "Cannot parse: " + strOrArray);
-            }
+        var numDiceMod = RG.parseDieSpec(strOrArray);
+        if (numDiceMod.length === 3) {
+            return new RG.Die(numDiceMod[0], numDiceMod[1], numDiceMod[2]);
         }
         return null;
     };
@@ -373,6 +352,7 @@ RG.FCCGame = function() {
 
     /** Creates the game for the FCC project.*/
     this.createFCCGame = function(obj) {
+        _parser.parseShellData(RG.Effects);
         _parser.parseShellData(RGObjects);
         var cols = obj.cols;
         var rows = obj.rows;
@@ -529,6 +509,9 @@ RG.FCCGame = function() {
         var gem = new RG.Item.SpiritGem("Lesser gem");
         level.addItem(gem);
 
+        var pickaxe = _parser.createActualObj("items", "Pick-axe");
+        level.addItem(pickaxe, 2, 2);
+
         var numFree = level.getMap().getFree().length;
         //var monstersPerLevel = Math.round(numFree / sqrPerMonster);
         var itemsPerLevel = Math.round(numFree / sqrPerItem);
@@ -585,11 +568,12 @@ RG.ObjectShellParser = function() {
     // Shells are used in external data file to describe game objects in a more
     // concise way. Game objects are created from shells.
 
-    var categ = ['actors', 'items', 'levels', 'dungeons'];
+    var categ = ['actors', 'effects', 'items', 'levels', 'dungeons'];
 
     // Stores the base shells
     var _base = {
         actors: {},
+        effects: {},
         items: {},
         levels: {},
         dungeons: {}
@@ -597,6 +581,7 @@ RG.ObjectShellParser = function() {
 
     var _db = {
         actors: {},
+        effects: {},
         items: {},
         levels: {},
         dungeons: {}
@@ -684,6 +669,7 @@ RG.ObjectShellParser = function() {
     this.parseShellData = function(obj) {
         var keys = Object.keys(obj);
         for (var i = 0; i < keys.length; i++) {
+            console.log("Parsing now " + keys[i]);
             this.parseShellCateg(keys[i], obj[keys[i]]);
         }
     };
@@ -886,8 +872,74 @@ RG.ObjectShellParser = function() {
             }
         }
 
+        if (shell.hasOwnProperty("use")) this.addUseEffects(shell, newObj);
+
         // TODO map different props to function calls
         return newObj;
+    };
+
+    /** If shell has 'use', this adds specific use effect to the item.*/
+    this.addUseEffects = function(shell, newObj) {
+        newObj.useFuncs = [];
+        newObj.useItem = _db.effects.use.func.bind(newObj);
+        var useEffects = Object.keys(shell.use);
+        if (typeof shell.use === "object" && shell.use.hasOwnProperty("length")) {
+            for (var i = 0; i < shell.use.length; i++) {
+                _addUseEffectToItem(shell, newObj, shell.use[i]);
+            }
+        }
+        else if (typeof shell.use === "object") {
+            for (var p in shell.use) {
+                _addUseEffectToItem(shell, newObj, p);
+            }
+        }
+        else {
+            _addUseEffectToItem(shell, newObj, shell.use);
+        }
+    };
+
+    var _addUseEffectToItem = function(shell, item, useName) {
+        var useFuncName = useName;
+        console.log("useName is " + useName);
+        if (_db.effects.hasOwnProperty(useFuncName)) {
+            var useEffectShell = _db.effects[useFuncName];
+            var useFuncVar = useEffectShell.func;
+            item.useFuncs.push(useFuncVar);
+
+            if (useEffectShell.hasOwnProperty("requires")) {
+                if (shell.use.hasOwnProperty(useName)) {
+                    item.useArgs = {};
+                    var reqs = useEffectShell.requires;
+                    if (typeof reqs === "object") {
+                        for (var i = 0; i < reqs.length; i++) {
+                            _verifyAndAddReq(shell.use[useName], item, reqs[i]);
+                        }
+                    }
+                    else {
+                        _verifyAndAddReq(shell.use[useName], item, reqs);
+                    }
+                }
+                else {
+                    RG.err("ObjectParser", "addUseEffects", 
+                        "useEffect shell has 'requires'. Item shell 'use' must be an object.");
+                }
+            }
+        }
+        else {
+            RG.err("ObjectParser", "addUseEffects", "Unknown effect: |" + useFuncName + "|");
+        }
+    };
+
+    /** Verifies that the shell has all requirements, and adds them to the
+     * object, into useArgs.reqName. */
+    var _verifyAndAddReq = function(obj, item, reqName) {
+        if (obj.hasOwnProperty(reqName)) {
+            item.useArgs[reqName] = obj[reqName];
+        }
+        else {
+            RG.err("ObjectParser", "_verifyAndAddReq", 
+                "Req |" + reqName + "| not specified in item shell. Item: " + item);
+        }
     };
 
     /** Adds a component to the newly created object, or updates existing
@@ -927,13 +979,14 @@ RG.ObjectShellParser = function() {
                 var subtype = obj.type;
                 switch(subtype) {
                     case "armour": return new RG.Item.Armour(obj.name);
-                    case "weapon": return new RG.Item.Weapon(obj.name);
                     case "food": return new RG.Item.Food(obj.name);
                     case "missile": return new RG.Item.Missile(obj.name);
+                    //case "potion": return new RG.Item.SpiritGem(obj.name);
                     case "spiritgem": return new RG.Item.SpiritGem(obj.name);
+                    case "weapon": return new RG.Item.Weapon(obj.name);
                     case "tool": break;
                 }
-                return new RG.Item(obj.name); // generic, useless
+                return new RG.Item.Base(obj.name); // generic, useless
             case "levels":
                 return RG.FACT.createLevel(obj.type, obj.cols, obj.rows);
             case "dungeons": break;
