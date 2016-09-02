@@ -515,6 +515,7 @@ RG.Item.SpiritGem = function(name) {
             if (spirits.length > 0) {
                 var spirit = spirits[0];
                 spirit.remove("Action"); // Trapped spirit cannot act
+                if (spirit.has("Movement")) spirit.remove("Movement");
                 var level = spirit.getLevel();
                 level.removeActor(spirit);
                 _spirit = spirit;
@@ -575,8 +576,8 @@ RG.Item.SpiritGem.prototype.toString = function() {
         txt += "(" + this.getSpirit().getName() + ")";
         txt += " Str: " + stats.getStrength();
         txt += " Agi: " + stats.getAgility();
-        txt += " Acc: " + getAccuracy();
-        txt += " Wil: " + getWillpower();
+        txt += " Acc: " + stats.getAccuracy();
+        txt += " Wil: " + stats.getWillpower();
     }
     else txt += "(Empty)";
     return txt;
