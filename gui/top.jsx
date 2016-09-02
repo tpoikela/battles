@@ -332,7 +332,6 @@ var BattlesTop = React.createClass({
     },
 
     isGUICommand: function(code) {
-        console.log("Checking key code for GUI command.");
         if (this.gameState.isTargeting) {
 
         }

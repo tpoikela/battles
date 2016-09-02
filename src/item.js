@@ -514,8 +514,9 @@ RG.Item.SpiritGem = function(name) {
             var spirits = cell.getPropType("spirit");
             if (spirits.length > 0) {
                 var spirit = spirits[0];
-                spirit.remove("Action"); // Trapped spirit cannot act
-                if (spirit.has("Movement")) spirit.remove("Movement");
+                //spirit.remove("Action"); // Trapped spirit cannot act
+                spirit.get("Action").disable(); // Trapped spirit cannot act
+                //if (spirit.has("Movement")) spirit.remove("Movement");
                 var level = spirit.getLevel();
                 level.removeActor(spirit);
                 _spirit = spirit;

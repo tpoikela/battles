@@ -623,7 +623,6 @@ RG.Brain.Human = function(actor) {
                 }
             }
         }
-        console.log("Human exploring the level.");
         return this.exploreLevel(seenCells);
 
     };
