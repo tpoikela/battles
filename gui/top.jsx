@@ -51,8 +51,10 @@ var BattlesTop = React.createClass({
     /** Resets the GUI game state.*/
     resetGameState: function() {
         this.gameState = {
+            autoTarget: false,
             visibleCells: [],
             selectedItem: null,
+            selectedCell: null,
             useModeEnabled: false,
             isTargeting: false,
         };
@@ -176,7 +178,7 @@ var BattlesTop = React.createClass({
     /** When a cell is clicked, perform a command/show debug info. */
     onCellClick: function(x, y, cell) {
         if (this.gameState.isTargeting) {
-            this.game.update({cmd: "missile", x: x, y: y});
+            this.game.update({cmd: "missile", target: cell});
             this.gameState.visibleCells = this.game.visibleCells;
             this.setState({render: true, renderFullScreen: false});
             this.gameState.isTargeting = false;
@@ -332,10 +334,10 @@ var BattlesTop = React.createClass({
     },
 
     isGUICommand: function(code) {
-        if (this.gameState.isTargeting) {
-
+        if (this.gameState.autoTarget) {
+            return false;
         }
-        else if (this.gameState.useModeEnabled) {
+        if (this.gameState.useModeEnabled) {
             return true;
         }
         else {
@@ -385,11 +387,18 @@ var BattlesTop = React.createClass({
 
     GUITarget: function() {
         if (this.gameState.isTargeting) {
+            var seenCells = this.gameState.visibleCells;
+            var cell = RG.findEnemyCellForPlayer(this.game.getPlayer(), seenCells);
+            if (cell !== null) {
+                this.gameState.autoTarget = true;
+                this.game.update({cmd: "missile", target: cell});
+                this.gameState.visibleCells = this.game.visibleCells;
+            }
+            this.gameState.autoTarget = false;
+            this.setState({render: true, renderFullScreen: false});
             this.gameState.isTargeting = false;
-            console.log("Targeting cancelled...");
         }
         else {
-            console.log("Targeting now...");
             RG.gameWarn("Click on a square to attack with missile weapon.");
             this.gameState.isTargeting = true;
         }
@@ -403,6 +412,11 @@ var BattlesTop = React.createClass({
                 $("#inventory-button").trigger("click");
             RG.gameMsg("Select direction for using the item.");
         }
+    },
+
+    /** Selects next target when 'n' is pressed.*/
+    GUINextTarget: function() {
+        // TODO
     },
 
     //---------------------------------------------------------------------------
