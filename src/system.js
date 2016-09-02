@@ -193,7 +193,6 @@ RG.System.Missile = function(type, compTypes) {
         mComp.stopMissile(); // Target reached, stop missile
         ent.remove("Missile");
         var level = mComp.getLevel();
-        //currCell.setProp(ent.getPropType(), ent);
         level.addItem(ent, currCell.getX(), currCell.getY());
     };
 
@@ -205,10 +204,6 @@ RG.System.Missile = function(type, compTypes) {
         var hitRand = Math.random();
         if (hitProp > hitRand) return true;
         return false;
-    };
-
-    this.getDamage = function(target, mComp) {
-
     };
 
 };
