@@ -126,7 +126,6 @@ var BattlesTop = React.createClass({
         var player = this.game.getPlayer();
         this.gameSave.save(this.game, this.gameConf);
         RG.gameMsg("Your progress has been saved.");
-        console.log("saveGame was called with name " + player.getName());
         this.setState({render: true, renderFullScreen: true});
     },
 
@@ -135,7 +134,6 @@ var BattlesTop = React.createClass({
         var restoreObj = this.gameSave.restore(name);
         var player = restoreObj.player;
         if (player !== null) {
-            console.log("Loading game for player |" + name);
             this.gameConf.loadedPlayer = player;
             this.gameConf.loadedLevel = this.gameSave.getDungeonLevel();
             var confObj = this.gameSave.getPlayersAsObj()[name];
@@ -352,7 +350,6 @@ var BattlesTop = React.createClass({
             this.gameState.useModeEnabled = false;
             if (this.gameState.selectedItem !== null) {
 
-                console.log("Disabling useMode now");
                 var cell = this.getAdjacentCell(code);
                 if (cell !== null) {
                     this.game.update({
