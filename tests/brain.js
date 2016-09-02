@@ -52,8 +52,9 @@ describe('Brain.Player', function() {
         expect(brain.energy).to.equal(0);
 
         // Equip a missile
+        var cell = RG.FACT.createFloorCell();
         RGTest.equipItem(player, new RG.Item.Missile("Arrow"));
-        brain.decideNextAction({cmd: "missile", x: 1, y: 2});
+        brain.decideNextAction({cmd: "missile", target: cell});
         expect(brain.energy).to.equal(RG.energy.MISSILE);
 
 
