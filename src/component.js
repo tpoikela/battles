@@ -565,6 +565,23 @@ RG.Component.Ethereal = function() {
 RG.extend2(RG.Component.Ethereal, RG.Component.Base);
 
 
+/** Poison component which damages the entity.*/
+RG.Component.Poison = function() {
+    RG.Component.Base.call(this, "Poison");
+
+    var _duration = 0;
+    var _src = null;
+
+    this.getDuration = function() {return _duration;};
+    this.setDuration = function(duration) {_duration = duration;};
+
+    this.getSource = function() {return _src;};
+    this.setSource = function(src) {_src = src;};
+
+};
+RG.extend2(RG.Component.Poison, RG.Component.Base);
+
+
 if (typeof module !== "undefined" && typeof exports !== "undefined") {
     GS.exportSource(module, exports, ["RG", "Component"], [RG, RG.Component]);
 }
