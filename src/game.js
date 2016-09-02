@@ -163,6 +163,11 @@ RG.Game.Engine = function() {
     };
 
     this.playerCommand = function(obj) {
+        if (this.nextActor.isPlayer() === false) {
+            RG.err("Engine", "playerCommand",
+                "nextActor should be player but: " + this.nextActor.getName()
+            );
+        }
         var action = this.nextActor.nextAction(obj);
         this.doAction(action);
         this.updateSystems();
