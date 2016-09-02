@@ -23,14 +23,11 @@ var BattlesTop = React.createClass({
 
     },
 
-    visibleCells: [],
     game: null,
-    isTargeting: false,
-
     gameSave: new RG.Game.Save(),
 
-    selectedItem: null,
-    useModeEnabled: false,
+    // Holds game-state specific info for GUI (see resetGameState)
+    gameState: {},
 
     viewportPlayerX: 35, // * 2
     viewportPlayerY: 12, // * 2
@@ -51,10 +48,18 @@ var BattlesTop = React.createClass({
         playerName: "Player",
     },
 
+    /** Resets the GUI game state.*/
+    resetGameState: function() {
+        this.gameState = {
+            visibleCells: [],
+            selectedItem: null,
+            useModeEnabled: false,
+            isTargeting: false,
+        };
+    },
 
     setPlayerName: function(name) {
         this.gameConf.playerName = name;
-
     },
 
     forceRender: function() {
@@ -149,6 +154,7 @@ var BattlesTop = React.createClass({
 
     /** Creates a new game instance.*/
     createNewGame: function() {
+        this.resetGameState();
         var fccGame = new RG.FCCGame();
         if (this.game !== null) {
             delete this.game;
@@ -157,24 +163,23 @@ var BattlesTop = React.createClass({
         this.game = fccGame.createFCCGame(this.gameConf);
         this.game.setGUICallbacks(this.isGUICommand, this.doGUICommand);
         var player = this.game.getPlayer();
-        this.visibleCells = player.getLevel().exploreCells(player);
+        this.gameState.visibleCells = player.getLevel().exploreCells(player);
         RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this);
         RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this);
     },
 
 
     selectItemTop: function(item) {
-        this.selectedItem = item;
+        this.gameState.selectedItem = item;
     },
 
     /** When a cell is clicked, perform a command/show debug info. */
     onCellClick: function(x, y, cell) {
-        if (this.isTargeting) {
+        if (this.gameState.isTargeting) {
             this.game.update({cmd: "missile", x: x, y: y});
-            this.visibleCells = this.game.visibleCells;
+            this.gameState.visibleCells = this.game.visibleCells;
             this.setState({render: true, renderFullScreen: false});
-            debug("<Top> Ranged attack to x: " + x + ", y:" + y);
-            this.isTargeting = false;
+            this.gameState.isTargeting = false;
         }
         else {
             this.describeCell(cell);
@@ -182,7 +187,7 @@ var BattlesTop = React.createClass({
     },
 
     describeCell: function(cell) {
-        var index = this.visibleCells.indexOf(cell);
+        var index = this.gameState.visibleCells.indexOf(cell);
         if (index !== -1) {
             if (cell.hasActors()) {
                 var actor = cell.getProp("actors")[0];
@@ -235,7 +240,7 @@ var BattlesTop = React.createClass({
     /** Listens for player key presses and handles them.*/
     handleKeyDown: function(evt) {
         this.game.update({evt: evt});
-        this.visibleCells = this.game.visibleCells;
+        this.gameState.visibleCells = this.game.visibleCells;
         if (this.game.isGameOver()) {
             this.setState({render: true, renderFullScreen: true});
         }
@@ -280,12 +285,12 @@ var BattlesTop = React.createClass({
                 <div className="row">
                     <div className="text-left col-md-2">
                         <GameStats player={player} setViewType={this.setViewType}
-                            selectedItem={this.selectedItem}
+                            selectedItem={this.gameState.selectedItem}
                         />
                     </div>
                     <div className="col-md-10">
                         <GameBoard player={player} map={map}
-                            visibleCells={this.visibleCells}
+                            visibleCells={this.gameState.visibleCells}
                             onCellClick={this.onCellClick}
                             renderFullScreen={fullScreen}
                             viewportX={this.viewportX}
@@ -328,10 +333,10 @@ var BattlesTop = React.createClass({
 
     isGUICommand: function(code) {
         console.log("Checking key code for GUI command.");
-        if (this.isTargeting) {
+        if (this.gameState.isTargeting) {
 
         }
-        else if (this.useModeEnabled) {
+        else if (this.gameState.useModeEnabled) {
             return true;
         }
         else {
@@ -342,17 +347,17 @@ var BattlesTop = React.createClass({
 
     /** Calls a GUI command corresponding to the code.*/
     doGUICommand: function(code) {
-         if (this.useModeEnabled) {
-            this.useModeEnabled = false;
-            if (this.selectedItem !== null) {
+         if (this.gameState.useModeEnabled) {
+            this.gameState.useModeEnabled = false;
+            if (this.gameState.selectedItem !== null) {
 
                 console.log("Disabling useMode now");
                 var cell = this.getAdjacentCell(code);
                 if (cell !== null) {
                     this.game.update({
-                        cmd: "use", target: cell, item: this.selectedItem
+                        cmd: "use", target: cell, item: this.gameState.selectedItem
                     });
-                    this.selectedItem = null;
+                    this.gameState.selectedItem = null;
                 }
                 else {
                     RG.gameWarn("There are no targets there.");
@@ -380,22 +385,22 @@ var BattlesTop = React.createClass({
     },
 
     GUITarget: function() {
-        if (this.isTargeting) {
-            this.isTargeting = false;
+        if (this.gameState.isTargeting) {
+            this.gameState.isTargeting = false;
             console.log("Targeting cancelled...");
         }
         else {
             console.log("Targeting now...");
             RG.gameWarn("Click on a square to attack with missile weapon.");
-            this.isTargeting = true;
+            this.gameState.isTargeting = true;
         }
         this.setState({render: true});
     },
 
     GUIUseItem: function() {
-        if (!this.useModeEnabled) {
-            this.useModeEnabled = true;
-            if (this.selectedItem === null) 
+        if (!this.gameState.useModeEnabled) {
+            this.gameState.useModeEnabled = true;
+            if (this.gameState.selectedItem === null) 
                 $("#inventory-button").trigger("click");
             RG.gameMsg("Select direction for using the item.");
         }
