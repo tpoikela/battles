@@ -192,9 +192,11 @@ RG.Brain.Player = function(actor) { // {{{2
             var invEq = _actor.getInvEq();
             var missile = invEq.unequipAndGetItem("missile", 1);
             if (!RG.isNullOrUndef([missile])) {
-                if (!RG.isNullOrUndef([obj.x, obj.y])) {
+                if (!RG.isNullOrUndef([obj.target])) {
+                    var x = obj.target.getX();
+                    var y = obj.target.getY();
                     var mComp = new RG.Component.Missile(_actor);
-                    mComp.setTargetXY(obj.x, obj.y);
+                    mComp.setTargetXY(x, y);
                     mComp.setDamage(RG.getMissileDamage(_actor, missile));
                     mComp.setAttack(RG.getMissileAttack(_actor, missile));
                     mComp.setRange(missile.getAttackRange());
