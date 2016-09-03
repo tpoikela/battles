@@ -816,8 +816,19 @@ var GameStats = React.createClass({
         var eq = player.getInvEq().getEquipment();
         var dungeonLevel = player.getLevel().getLevelNumber();
         var selectedItem = this.props.selectedItem;
+        var selectedCell = this.props.selectedCell;
+
         var selItemName = "";
-        if (selectedItem !== null) selItemName = "Selected: " + selectedItem.getName();
+        if (selectedItem !== null) 
+            selItemName = "Selected: " + selectedItem.getName();
+
+        var selCellDescr = "";
+        if (selectedCell !== null) {
+            if (selectedCell.hasActors()) {
+                var actorName = selectedCell.getProp("actors")[0].getName();
+                selCellDescr = "Cell: " + actorName;
+            }
+        }
 
         var eqAtt = player.getEquipAttack();
         var eqDef = player.getEquipDefense();
@@ -870,6 +881,7 @@ var GameStats = React.createClass({
                 <ul className="game-stats-list">{statsHTML}</ul>
                 <p className={moveClassName}>{moveStatus}</p>
                 <p className="text-primary">{selItemName}</p>
+                <p className="text-primary">{selCellDescr}</p>
                 <button id="inventory-button" className="btn btn-info" data-toggle="modal" data-target="#inventoryModal">Inventory</button>
                 <button id="map-player-button" className="btn btn-info" onClick={this.changeMapView}>Map View</button>
             </div>

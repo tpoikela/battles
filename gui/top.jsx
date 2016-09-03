@@ -287,6 +287,7 @@ var BattlesTop = React.createClass({
                     <div className="text-left col-md-2">
                         <GameStats player={player} setViewType={this.setViewType}
                             selectedItem={this.state.selectedItem}
+                            selectedCell={this.state.selectedCell}
                         />
                     </div>
                     <div className="col-md-10">
@@ -398,7 +399,6 @@ var BattlesTop = React.createClass({
             }
             else {
                 console.log("SEL NULL");
-
             }
             this.gameState.autoTarget = false;
             this.gameState.isTargeting = false;
