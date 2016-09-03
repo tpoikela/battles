@@ -2,27 +2,58 @@
 /** Top-level component which renders all other components. Keeps also track
  * of the current game state.
  */
+
+/** Contains logic that is not tightly coupled to the GUI.*/
+var TopLogic = function() {
+
+    this.describeCell = function(cell, seenCells) {
+        var index = seenCells.indexOf(cell);
+        if (index !== -1) {
+            if (cell.hasActors()) {
+                var actor = cell.getProp("actors")[0];
+                var msg = "You see " + actor.getName();
+                RG.gameMsg(msg);
+            }
+            else {
+                if (cell.hasProp("items")) {
+                    var items = cell.getProp("items");
+                    if (items.length > 1) {
+                        RG.gameMsg("There are several items there");
+                        RG.gameMsg("You see " + items[0].getName() + " on top");
+                    }
+                    else {
+                        RG.gameMsg("You see " + items[0].getName() + " lying there.");
+                    }
+                }
+                else {
+                    RG.gameMsg("There is nothing there.");
+                }
+            }
+        }
+        else {
+            RG.gameWarn("You cannot see there.");
+        }
+    };
+
+
+    this.getAdjacentCell = function(player, code) {
+        if (RG.KeyMap.inMoveCodeMap(code) || RG.KeyMap.isRest(code)) {
+            var x = player.getX();
+            var y = player.getY();
+            var diffXY = RG.KeyMap.getDiff(code, x, y);
+            if (diffXY !== null) {
+                return player.getLevel().getMap().getCell(diffXY[0], diffXY[1]);
+            }
+        }
+        return null;
+    };
+
+};
+
+/** Top-level Component for the Battles GUI.*/
 var BattlesTop = React.createClass({
 
-    /** Styles to change the cell size.*/
-    cellSize: {
-        small: {
-            "font-size": "16px",
-            "margin-bottom": "-7px",
-        },
-
-        medium: {
-            "font-size": "20px",
-            "margin-bottom": "-9px",
-        },
-
-        large: {
-            "font-size": "24px",
-            "margin-bottom": "-11px",
-        },
-
-    },
-
+    logic: new TopLogic(),
     game: null,
     gameSave: new RG.Game.Save(),
 
@@ -170,12 +201,12 @@ var BattlesTop = React.createClass({
 
 
     selectItemTop: function(item) {
-        //this.state.selectedItem = item;
         this.setState({selectedItem: item});
     },
 
     /** When a cell is clicked, perform a command/show debug info. */
-    onCellClick: function(x, y, cell) {
+    onCellClick: function(x, y) {
+        var cell = this.game.getPlayer().getLevel().getMap().getCell(x, y);
         if (this.gameState.isTargeting) {
             this.game.update({cmd: "missile", target: cell});
             this.gameState.visibleCells = this.game.visibleCells;
@@ -183,39 +214,11 @@ var BattlesTop = React.createClass({
             this.gameState.isTargeting = false;
         }
         else {
-            this.describeCell(cell);
+            this.logic.describeCell(cell, this.gameState.visibleCells);
+            this.setState({render: true, renderFullScreen: true});
         }
     },
 
-    describeCell: function(cell) {
-        var index = this.gameState.visibleCells.indexOf(cell);
-        if (index !== -1) {
-            if (cell.hasActors()) {
-                var actor = cell.getProp("actors")[0];
-                var msg = "You see " + actor.getName();
-                RG.gameMsg(msg);
-            }
-            else {
-                if (cell.hasProp("items")) {
-                    var items = cell.getProp("items");
-                    if (items.length > 1) {
-                        RG.gameMsg("There are several items there");
-                        RG.gameMsg("You see " + items[0].getName() + " on top");
-                    }
-                    else {
-                        RG.gameMsg("You see " + items[0].getName() + " lying there.");
-                    }
-                }
-                else {
-                    RG.gameMsg("There is nothing there.");
-                }
-            }
-        }
-        else {
-            RG.gameWarn("You cannot see there.");
-        }
-        this.setState({render: true, renderFullScreen: true});
-    },
 
 
     /** When listening events, component gets notification via this
@@ -275,22 +278,22 @@ var BattlesTop = React.createClass({
                 <GameInventory selectItemTop={this.selectItemTop} 
                     forceRender={this.forceRender} player={player}/>
 
-                <div className="row">
+                <div className="row game-panel-div">
                     <div className="col-md-2">
                         <GamePanel  setViewSize={this.setViewSize} saveGame={this.saveGame}/>
                     </div>
-                    <div className="col-md-10">
+                    <div className="col-md-10 game-messages-div">
                         <GameMessages message={message}/>
                     </div>
                 </div>
-                <div className="row">
-                    <div className="text-left col-md-2">
+                <div className="row main-contents-div">
+                    <div className="text-left col-md-2 game-stats-div">
                         <GameStats player={player} setViewType={this.setViewType}
                             selectedItem={this.state.selectedItem}
                             selectedCell={this.state.selectedCell}
                         />
                     </div>
-                    <div className="col-md-10">
+                    <div className="col-md-10 game-board-div">
                         <GameBoard player={player} map={map}
                             visibleCells={this.gameState.visibleCells}
                             onCellClick={this.onCellClick}
@@ -308,18 +311,6 @@ var BattlesTop = React.createClass({
         );
     },
 
-    getAdjacentCell: function(code) {
-        if (RG.KeyMap.inMoveCodeMap(code) || RG.KeyMap.isRest(code)) {
-            var player = this.game.getPlayer();
-            var x = player.getX();
-            var y = player.getY();
-            var diffXY = RG.KeyMap.getDiff(code, x, y);
-            if (diffXY !== null) {
-                return player.getLevel().getMap().getCell(diffXY[0], diffXY[1]);
-            }
-        }
-        return null;
-    },
 
     //-------------------------------------------------------------
     // GUI-RELATED COMMANDS
@@ -355,13 +346,13 @@ var BattlesTop = React.createClass({
             this.gameState.useModeEnabled = false;
             if (this.state.selectedItem !== null) {
 
-                var cell = this.getAdjacentCell(code);
+                var player = this.game.getPlayer();
+                var cell = this.logic.getAdjacentCell(player, code);
                 if (cell !== null) {
                     this.game.update({
                         cmd: "use", target: cell, item: this.state.selectedItem
                     });
                     this.setState({selectedItem: null});
-                    //this.state.selectedItem = null;
                 }
                 else {
                     RG.gameWarn("There are no targets there.");
@@ -396,9 +387,6 @@ var BattlesTop = React.createClass({
                 this.game.update({cmd: "missile", target: cell});
                 this.gameState.visibleCells = this.game.visibleCells;
                 this.setState({selectedCell: null});
-            }
-            else {
-                console.log("SEL NULL");
             }
             this.gameState.autoTarget = false;
             this.gameState.isTargeting = false;

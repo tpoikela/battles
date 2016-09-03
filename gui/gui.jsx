@@ -79,36 +79,44 @@ GUI.Viewport = function(viewportX, viewportY, map) {
 /** A row component which holds a number of cells. {{{2 */
 var GameRow = React.createClass({
 
-    onCellClick: function(x, y, cell) {
-        this.props.onCellClick(x, y, cell);
+    shouldComponentUpdate: function(nextProps, nextState) {
+        if (this.props.rowClasses.length === nextProps.rowClasses.length) {
+            if (this.props.rowChars.length === nextProps.rowChars.length) {
+
+                for (var i = 0; i < this.props.rowClasses.length; i++) {
+                    if (this.props.rowClasses[i] !== nextProps.rowClasses[i])
+                        return true;
+                }
+
+                for (var j = 0; j < this.props.rowChars.length; j++) {
+                    if (this.props.rowChars[j] !== nextProps.rowChars[j])
+                        return true;
+                }
+
+            }
+            return false;
+        }
+        return true;
+    },
+
+    onCellClick: function(x, y) {
+        this.props.onCellClick(x, y);
     },
 
     render: function() {
         var y = this.props.y;
-        var visibleCells = this.props.visibleCells;
-        var mapShown = this.props.mapShown;
-        var rowClass = "cell-row-div-player-view";
-        if (mapShown) rowClass = "cell-row-div-map-view";
-
         var that = this;
+        var startX = this.props.startX;
+        var rowClass = this.props.rowClass;
 
-        var selX = -1;
-        var selCell = this.props.selectedCell;
-        if (selCell !== null) selX = selCell.getX();
-
-        var rowCells = this.props.rowCellData.map( function(cell, index) {
-            var cellIndex = visibleCells.indexOf(cell);
-            var visibleToPlayer = cellIndex < 0 ? false: true;
-            var cellClass = RG.getClassName(cell, visibleToPlayer);
-            var cellChar  = RG.getChar(cell, visibleToPlayer);
-            var cellX = cell.getX();
-
-            if (selX === cellX) cellClass += " cell-target-selected";
+        var rowCells = this.props.rowClasses.map( function(className, index) {
+            var cellChar  = that.props.rowChars[index];
+            var cellX = startX + index;
 
             return (
                 <span key={index}
-                    className={cellClass}
-                    onClick={that.onCellClick.bind(that, cellX, y, cell)}>
+                    className={className}
+                    onClick={that.onCellClick.bind(that, cellX, y)}>
                     {cellChar}
                 </span>
             );
@@ -128,14 +136,15 @@ window.GameRow = GameRow;
 /** Component which renders the game rows. {{{2 */
 var GameBoard = React.createClass({
 
-    tableClasses: "",
-
     viewportX: 35, // * 2
     viewportY: 12, // * 2
 
     render: function() {
 
         var mapShown = this.props.mapShown;
+        var rowClass = "cell-row-div-player-view";
+        if (mapShown) rowClass = "cell-row-div-map-view";
+
         this.viewportX = this.props.viewportX;
         this.viewportY = this.props.viewportY;
 
@@ -147,7 +156,7 @@ var GameBoard = React.createClass({
         var shownCells = map;
 
         if (!mapShown) {
-            var shownCells = new GUI.Viewport(this.viewportX, this.viewportY, map);
+            shownCells = new GUI.Viewport(this.viewportX, this.viewportY, map);
             shownCells.getCellsInViewPort(playX, playY, map);
         }
 
@@ -156,34 +165,64 @@ var GameBoard = React.createClass({
         var renderFullScreen = this.props.renderFullScreen;
 
         var rowsHTML = [];
-
-        var selectedCell = this.props.selectedCell;
-        var selY = -1;
-        if (selectedCell !== null) selY = selectedCell.getY();
+        var selCell = this.props.selectedCell;
 
         // Build the separate cell rows
         for (var y = shownCells.startY; y <= shownCells.endY; ++y) {
+
             var rowCellData = shownCells.getCellRow(y);
-            var selCell = y === selY ? selectedCell : null;
+            var startX = rowCellData[0].getX();
+            var classesChars = this.getClassesAndChars(visibleCells, rowCellData, selCell);
+
             rowsHTML.push(
                 <GameRow
+                    startX={startX}
                     y={y} onCellClick={onCellClick}
-                    visibleCells={visibleCells} 
-                    rowCellData={rowCellData} key={y}
-                    mapShown={mapShown}
-                    selectedCell={selCell}
+                    rowClasses={classesChars[0]}
+                    rowChars={classesChars[1]}
+                    rowClass={rowClass}
+                    key={y}
                 />);
         }
 
         // Finally return the full rendered board
         return (
             <div id="game-board" className={this.props.boardClassName}>
-                <div id="game-table" className={this.tableClasses}>
+                <div id="game-table">
                     {rowsHTML}
                 </div>
             </div>
         );
-    }
+    },
+
+    getClassesAndChars: function(seen, cells, selCell) {
+        var classes = [];
+        var chars = [];
+
+        var selX = -1; 
+        var selY = -1;
+
+        if (selCell !== null) {
+            selX = selCell.getX();
+            selY = selCell.getY();
+        }
+
+        for (var i = 0; i < cells.length; i++) {
+            var cell = cells[i];
+            var cellIndex = seen.indexOf(cell);
+            var visibleToPlayer = cellIndex < 0 ? false: true;
+            var cellClass = RG.getClassName(cell, visibleToPlayer);
+            var cellChar  = RG.getChar(cell, visibleToPlayer);
+
+            if (selX === cell.getX() && selY === cell.getY())
+                cellClass = "cell-target-selected";
+
+            classes.push(cellClass);
+            chars.push(cellChar);
+        }
+
+        return [classes, chars];
+    },
 
 }); //}}} Gameboard
 window.GameBoard = GameBoard;
