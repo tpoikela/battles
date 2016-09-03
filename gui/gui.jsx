@@ -91,12 +91,19 @@ var GameRow = React.createClass({
         if (mapShown) rowClass = "cell-row-div-map-view";
 
         var that = this;
+
+        var selX = -1;
+        var selCell = this.props.selectedCell;
+        if (selCell !== null) selX = selCell.getX();
+
         var rowCells = this.props.rowCellData.map( function(cell, index) {
             var cellIndex = visibleCells.indexOf(cell);
             var visibleToPlayer = cellIndex < 0 ? false: true;
             var cellClass = RG.getClassName(cell, visibleToPlayer);
             var cellChar  = RG.getChar(cell, visibleToPlayer);
             var cellX = cell.getX();
+
+            if (selX === cellX) cellClass += " cell-target-selected";
 
             return (
                 <span key={index}
@@ -150,15 +157,21 @@ var GameBoard = React.createClass({
 
         var rowsHTML = [];
 
+        var selectedCell = this.props.selectedCell;
+        var selY = -1;
+        if (selectedCell !== null) selY = selectedCell.getY();
+
         // Build the separate cell rows
         for (var y = shownCells.startY; y <= shownCells.endY; ++y) {
             var rowCellData = shownCells.getCellRow(y);
+            var selCell = y === selY ? selectedCell : null;
             rowsHTML.push(
                 <GameRow
                     y={y} onCellClick={onCellClick}
                     visibleCells={visibleCells} 
                     rowCellData={rowCellData} key={y}
                     mapShown={mapShown}
+                    selectedCell={selCell}
                 />);
         }
 

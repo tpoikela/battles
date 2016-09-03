@@ -53,8 +53,6 @@ var BattlesTop = React.createClass({
         this.gameState = {
             autoTarget: false,
             visibleCells: [],
-            selectedItem: null,
-            selectedCell: null,
             useModeEnabled: false,
             isTargeting: false,
         };
@@ -110,6 +108,7 @@ var BattlesTop = React.createClass({
         return {
             boardClassName: "game-board-player-view",
             mapShown: false,
+            selectedCell: null,
             selectedItem: null,
             render: true,
             renderFullScreen: false,
@@ -299,6 +298,7 @@ var BattlesTop = React.createClass({
                             viewportY={this.viewportY}
                             boardClassName={this.state.boardClassName}
                             mapShown={this.mapShown}
+                            selectedCell={this.state.selectedCell}
                         />
                     </div>
                 </div>
@@ -329,12 +329,14 @@ var BattlesTop = React.createClass({
         this.guiCommands = {};
         this.guiCommands[ROT.VK_I] = this.GUIInventory;
         this.guiCommands[ROT.VK_M] = this.GUIMap;
+        this.guiCommands[ROT.VK_N] = this.GUINextTarget;
         this.guiCommands[ROT.VK_T] = this.GUITarget;
         this.guiCommands[ROT.VK_U] = this.GUIUseItem;
+
     },
 
     isGUICommand: function(code) {
-        if (this.gameState.autoTarget) {
+        if (this.gameState.autoTarget && code === ROT.VK_T) {
             return false;
         }
         if (this.gameState.useModeEnabled) {
@@ -387,20 +389,31 @@ var BattlesTop = React.createClass({
 
     GUITarget: function() {
         if (this.gameState.isTargeting) {
-            var seenCells = this.gameState.visibleCells;
-            var cell = RG.findEnemyCellForPlayer(this.game.getPlayer(), seenCells);
-            if (cell !== null) {
+            if (this.state.selectedCell !== null) {
+                var cell =this.state.selectedCell;
                 this.gameState.autoTarget = true;
                 this.game.update({cmd: "missile", target: cell});
                 this.gameState.visibleCells = this.game.visibleCells;
+                this.setState({selectedCell: null});
+            }
+            else {
+                console.log("SEL NULL");
+
             }
             this.gameState.autoTarget = false;
-            this.setState({render: true, renderFullScreen: false});
             this.gameState.isTargeting = false;
         }
         else {
-            RG.gameWarn("Click on a square to attack with missile weapon.");
+            RG.gameWarn("Click on a cell to attack or press 't'");
             this.gameState.isTargeting = true;
+            this.gameState.enemyCells = RG.findEnemyCellForPlayer(
+                this.game.getPlayer(), this.gameState.visibleCells);
+            this.gameState.numCurrCell = 0;
+            if (this.gameState.enemyCells.length > 0) {
+                var cell = this.gameState.enemyCells[0];
+                this.setState({selectedCell: cell});
+                console.log("GUITarget found selected cell");
+            }
         }
         this.setState({render: true});
     },
@@ -416,7 +429,19 @@ var BattlesTop = React.createClass({
 
     /** Selects next target when 'n' is pressed.*/
     GUINextTarget: function() {
-        // TODO
+        if (this.gameState.isTargeting) {
+            var numCells = this.gameState.enemyCells.length;
+            if (numCells > 0) {
+                var numNextCell = this.gameState.numCurrCell + 1;
+                if (numNextCell >= numCells) {
+                    numNextCell = 0;
+                }
+
+                var nextCell = this.gameState.enemyCells[numNextCell];
+                this.setState({selectedCell: nextCell});
+                this.gameState.numCurrCell = numNextCell;
+            }
+        }
     },
 
     //---------------------------------------------------------------------------
