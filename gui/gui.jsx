@@ -195,11 +195,13 @@ var GameBoard = React.createClass({
         );
     },
 
+    /** Builds and returns two arrays. First contains all CSS classNames of
+     * cells to be rendered, and the second one all characters to be rendered.*/
     getClassesAndChars: function(seen, cells, selCell) {
         var classes = [];
         var chars = [];
 
-        var selX = -1; 
+        var selX = -1;
         var selY = -1;
 
         if (selCell !== null) {
