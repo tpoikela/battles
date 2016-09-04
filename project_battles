@@ -7,6 +7,7 @@ roguelike=/home/tpoikela/git/battles/ /home/tpoikela/git/battles/ filter="*.js *
  README.md
  data=data {
   battles_objects.js
+  effects.js
  }
  gui=gui {
   gui.jsx
@@ -18,10 +19,13 @@ roguelike=/home/tpoikela/git/battles/ /home/tpoikela/git/battles/ filter="*.js *
   _items.scss
  }
  src=src {
+  actor.js
   brain.js
   component.js
+  element.js
   factory.js
   game.js
+  inv.js
   item.js
   map.js
   object.js
@@ -32,6 +36,7 @@ roguelike=/home/tpoikela/git/battles/ /home/tpoikela/git/battles/ filter="*.js *
   brain.js
   communication.js
   ecs.js
+  engine.js
   events.js
   game.js
   gameobjects.js
@@ -41,5 +46,6 @@ roguelike=/home/tpoikela/git/battles/ /home/tpoikela/git/battles/ filter="*.js *
   object.js
   roguetest.js
   scheduler.js
+  spirits.js
  }
 }

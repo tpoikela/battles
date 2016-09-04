@@ -572,11 +572,20 @@ RG.Component.Poison = function() {
     var _duration = 0;
     var _src = null;
 
+    var _die = null;
+    var _prob = 0.05;
+
+    this.getProb = function() {return _prob;};
+    this.setProb = function(prob) {_prob = prob;};
+
     this.getDuration = function() {return _duration;};
     this.setDuration = function(duration) {_duration = duration;};
 
     this.getSource = function() {return _src;};
     this.setSource = function(src) {_src = src;};
+
+    this.setDamage = function(die) {_die = die;};
+    this.getDamage = function() {return _die.roll();};
 
 };
 RG.extend2(RG.Component.Poison, RG.Component.Base);

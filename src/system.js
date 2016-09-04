@@ -15,6 +15,8 @@ RG.System.Base = function(type, compTypes) {
     this.compTypes = compTypes; // Required comps in entity
     this.entities = {};
 
+    this.compTypesAny = false;
+
     this.addEntity = function(entity) {
         this.entities[entity.getID()] = entity;
     };
@@ -23,6 +25,7 @@ RG.System.Base = function(type, compTypes) {
         delete this.entities[entity.getID()];
     };
 
+    /** Listens to add/removes for each component type in compTypes.*/
     this.notify = function(evtName, obj) {
         if (obj.hasOwnProperty("add")) {
             if (this.hasCompTypes(obj.entity))
@@ -40,14 +43,24 @@ RG.System.Base = function(type, compTypes) {
         return false;
     };
 
-    /** Returns true if entity has all required component types.*/
+    /** Returns true if entity has all required component types, or if
+     * compTypesAny if set, if entity has any required component.*/
     this.hasCompTypes = function(entity) {
-        for (var i = 0; i < compTypes.length; i++) {
-            if (! entity.has(compTypes[i])) return false;
+        if (this.compTypesAny === false) {
+            for (var i = 0; i < compTypes.length; i++) {
+                if (! entity.has(compTypes[i])) return false;
+            }
+            return true;
         }
-        return true;
+        else {
+            for (var j = 0; j < compTypes.length; j++) {
+                if (entity.has(compTypes[j])) return true;
+            }
+            return false;
+        }
     };
 
+    // Add a listener for each specified component type
     for (var i = 0; i < this.compTypes.length; i++) {
         RG.POOL.listenEvent(this.compTypes[i], this);
     }
@@ -428,6 +441,60 @@ RG.System.Communication = function(type, compTypes) {
     var _msgFunc = {
         Enemies: this.processEnemies,
     };
+
+};
+RG.extend2(RG.System.Communication, RG.System.Base);
+
+RG.System.TimeEffects = function(type, compTypes) {
+    RG.System.Base.call(this, type, compTypes);
+    this.compTypesAny = true;
+
+    // Dispatch table used to call a handler function for each component
+    var _dtable = {};
+    var _removes = [];
+
+    this.update = function() {
+        for (var e in this.entities) {
+            var ent = this.entities[e];
+
+            for (var i = 0; i < compTypes.length; i++) {
+                if (ent.has(compTypes[i])) _dtable[compTypes[i]](ent);
+            }
+        }
+
+        // Remove expired effects
+        for (var j = 0; j < _removes.length; j++) {
+            var compName = _removes[j][0];
+            var entRem  = _removes[j][1];
+            entRem.remove(compName);
+        }
+    };
+
+    this.printMatchedType = function(ent) {
+        for (var i = 0; i < this.compTypes.length; i++) {
+            if (ent.has(this.compTypes[i])) {
+                console.log("Has component: " + this.compTypes[i]);
+            }
+        }
+    };
+
+    /** Applies the poison effect to the entity.*/
+    this.applyPoison = function(ent) {
+        var poison = ent.get("Poison");
+
+        if (Math.random() < poison.getProb()) {
+            var poisonDmg = poison.getDamage();
+            var dmg = new RG.Component.Damage(poisonDmg, "poison");
+            dmg.setSource(poison.getSource());
+            ent.add("Damage", dmg);
+        }
+
+        var dur = poison.getDuration();
+        if (dur == 1) _removes.push({Poison: ent});
+        else poison.setDuration(dur - 1);
+    };
+
+    _dtable.Poison = this.applyPoison;
 
 };
 RG.extend2(RG.System.Communication, RG.System.Base);

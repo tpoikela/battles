@@ -764,6 +764,8 @@ RG.Entity = function() {
         }
     };
 
+    this.getComponents = function() {return _comps;};
+
 };
 RG.Entity.prototype.idCount = 0;
 

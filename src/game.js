@@ -44,6 +44,12 @@ RG.Game.Engine = function() {
     this.loopSystems = {};
     this.loopSystems.Hunger = new RG.System.Hunger("Hunger", ["Action", "Hunger"]);
 
+    // Time-based systems are added to the scheduler
+    this.timeSystems = {};
+
+    var effects = new RG.System.TimeEffects("TimeEffects",
+        ["Poison"]);
+
     this.updateSystems = function() {
         for (var i = 0; i < this.systemOrder.length; i++) {
             var sysName = this.systemOrder[i];
@@ -55,6 +61,7 @@ RG.Game.Engine = function() {
         for (var s in this.loopSystems) this.loopSystems[s].update();
     };
 
+
     //--------------------------------------------------------------
     // SCHEDULING/ACTIONS
     //--------------------------------------------------------------
@@ -64,7 +71,7 @@ RG.Game.Engine = function() {
         return _scheduler.next();
     };
 
-    /** Adds an actor to the scheduler.*/
+    /** Adds an actor to the scheduler. */
     this.addActor = function(actor) {
         _scheduler.add(actor, true, 0);
     };
@@ -160,6 +167,9 @@ RG.Game.Engine = function() {
             this.doAction(action);
             this.updateSystems();
         }
+        else {
+            RG.err("Engine", "simulateGame", "Doesn't work with player.");
+        }
     };
 
     this.playerCommand = function(obj) {
@@ -230,6 +240,14 @@ RG.Game.Engine = function() {
         var index = _activeLevels.indexOf(level.getID());
         return index >= 0;
     };
+
+    this.addTimeSystem = function(name, obj) {
+        this.timeSystems[name] = obj;
+        // Must schedule the system
+        var updateEvent = new RG.RogueGameEvent(100, obj.update, true, 0);
+        this.addEvent(updateEvent);
+    };
+    this.addTimeSystem("TimeEffects", effects);
 
     //--------------------------------------------------------------
     // EVENT LISTENING
@@ -375,7 +393,6 @@ RG.Game.Main = function() {
         }
 
         if (levelOK) {
-            //if (_engine.nextActor === null) _engine.nextActor = player;
             _engine.nextActor = player;
             if (_shownLevel === null) _shownLevel = player.getLevel();
             _players.push(player);
