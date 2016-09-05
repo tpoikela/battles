@@ -13,6 +13,10 @@ var checkXY = RGTest.checkActorXY;
 
 var Game = require("../src/game.js");
 var Actor = RG.Actor.Rogue;
+var Fact = RG.FACT;
+
+var RGObjects = require("../data/battles_objects.js");
+RG.Effects = require("../data/effects.js");
 
 var LocalStorage = require('node-localstorage').LocalStorage,
 localStorage = new LocalStorage('./battles_local_storage');
@@ -23,6 +27,10 @@ var SurrogatePlayer = function() {
 };
 
 var game = new Game.Main();
+
+var globalParser = new RG.ObjectShellParser();
+globalParser.parseShellData(RG.Effects);
+globalParser.parseShellData(RGObjects);
 
 function checkMap(map, cols, rows) {
     for (var x = 0; x < cols; x++) {
@@ -110,10 +118,11 @@ var KillListener = function(actor) {
 
 describe('How combat should evolve', function() {
 
-    var comSystem = new RG.System.Attack("Attack", ["Attack"]);
-    var dmgSystem = new RG.System.Damage("Damage", ["Damage"]);
 
     it('Deals damage from attacker to defender', function() {
+        var comSystem = new RG.System.Attack("Attack", ["Attack"]);
+        var dmgSystem = new RG.System.Damage("Damage", ["Damage"]);
+
         var cols = 50;
         var rows = 30;
         var level = getNewLevel(cols, rows);
@@ -327,5 +336,34 @@ describe('Game.Save how saving works', function() {
 
     });
 
+});
+
+describe('How poison item is used, and experience propagates', function() {
+    it('Kills an actor after some time', function() {
+
+        var game = new RG.Game.Main();
+        var level = RG.FACT.createLevel("arena", 20, 20);
+        var assassin = new Actor("assassin");
+        var poison = globalParser.createActualObj("items", "Potion of frost poison");
+        assassin.getInvEq().addItem(poison);
+
+        var victim = new Actor("victim");
+        victim.get("Health").setHP(5);
+
+        level.addActor(assassin, 3, 5);
+        level.addActor(victim, 6, 6);
+        poison.useItem({target: level.getMap().getCell(6, 6)});
+
+        var startExp = assassin.get("Experience").getExp();
+
+        var count = 0;
+        while (victim.get("Health").isAlive() && count < 100) {
+            game.simulateGame();
+            ++count;
+        }
+        var endExp = assassin.get("Experience").getExp();
+        expect(endExp > startExp, "Exp. points given from poison").to.equal(true);
+
+    });
 });
 
