@@ -272,7 +272,7 @@ RG.System.Damage = function(type, compTypes) {
             RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: actor});
         }
         else {
-            RG.err("Combat", "killActor", "Couldn't remove actor");
+            RG.err("System.Combat", "killActor", "Couldn't remove actor");
         }
     };
 
@@ -445,6 +445,7 @@ RG.System.Communication = function(type, compTypes) {
 };
 RG.extend2(RG.System.Communication, RG.System.Base);
 
+/** System which handles time-based effects like poisoning etc.*/
 RG.System.TimeEffects = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
     this.compTypesAny = true;
@@ -454,11 +455,16 @@ RG.System.TimeEffects = function(type, compTypes) {
     var _removes = [];
 
     this.update = function() {
+        //console.log("Updating TimeEffects system...");
         for (var e in this.entities) {
             var ent = this.entities[e];
+            //console.log("TimeEffects found entity: " + ent.getName());
 
             for (var i = 0; i < compTypes.length; i++) {
-                if (ent.has(compTypes[i])) _dtable[compTypes[i]](ent);
+                if (ent.has(compTypes[i])) {
+                    _dtable[compTypes[i]](ent);
+                    this.decreaseDuration(ent.get(compTypes[i]));
+                }
             }
         }
 
@@ -467,9 +473,49 @@ RG.System.TimeEffects = function(type, compTypes) {
             var compName = _removes[j][0];
             var entRem  = _removes[j][1];
             entRem.remove(compName);
+            console.log("Removed comp " + compName + " from " + entRem.getName());
+        }
+        _removes = [];
+    };
+
+    /** Decreases the remaining duration in the component by one.*/
+    this.decreaseDuration = function(comp) {
+        if (comp.hasOwnProperty("getDuration")) {
+            var dur = comp.getDuration();
+            comp.setDuration(dur - 1);
+            if (comp.getDuration() == 0) {
+                _removes.push([comp.getType(), ent])
+            }
+        }
+        else {
+            RG.err("System.TimeEffects", "decreaseDuration",
+                "No getDuration found from component" + comp.getType());
         }
     };
 
+
+    /** Applies the poison effect to the entity.*/
+    this.applyPoison = function(ent) {
+        var poison = ent.get("Poison");
+        console.log("Applying poison...");
+
+        if (ent.get("Health").isDead()) {
+            _removes.push(["Poison", ent])
+        }
+        else {
+
+            if (Math.random() < poison.getProb()) {
+                var poisonDmg = poison.getDamage();
+                var dmg = new RG.Component.Damage(poisonDmg, "poison");
+                dmg.setSource(poison.getSource());
+                ent.add("Damage", dmg);
+            }
+        }
+    };
+
+    _dtable.Poison = this.applyPoison;
+
+    /** Used for debug printing.*/
     this.printMatchedType = function(ent) {
         for (var i = 0; i < this.compTypes.length; i++) {
             if (ent.has(this.compTypes[i])) {
@@ -477,24 +523,6 @@ RG.System.TimeEffects = function(type, compTypes) {
             }
         }
     };
-
-    /** Applies the poison effect to the entity.*/
-    this.applyPoison = function(ent) {
-        var poison = ent.get("Poison");
-
-        if (Math.random() < poison.getProb()) {
-            var poisonDmg = poison.getDamage();
-            var dmg = new RG.Component.Damage(poisonDmg, "poison");
-            dmg.setSource(poison.getSource());
-            ent.add("Damage", dmg);
-        }
-
-        var dur = poison.getDuration();
-        if (dur == 1) _removes.push({Poison: ent});
-        else poison.setDuration(dur - 1);
-    };
-
-    _dtable.Poison = this.applyPoison;
 
 };
 RG.extend2(RG.System.Communication, RG.System.Base);
