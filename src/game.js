@@ -464,14 +464,135 @@ RG.Game.Main = function() {
     };
     RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
     RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this);
+
+    /** Adds one battle to the game. */
+    this.addBattle = function(battle) {
+        var level = battle.getLevel();
+        _engine.addActiveLevel(level);
+    };
+
 }; // }}} Game
 
+/** Army is a collection of actors.*/
+RG.Game.Army = function(name) {
+
+    var _name = name;
+
+    var _actors = []; // All actors inside this army
+
+    var _battle = null;
+    var _casualties = 0;
+
+    this.getName = function() {return _name;};
+
+    /** Default defeat is when all actors have been eliminated.*/
+    this.isDefeated = function() {
+        if (_actors.length < 50) {
+            console.log("Army " + this.getName() + " is defeated");
+            return true;
+        }
+        return false;
+    };
+
+    this.getActors = function() {return _actors;};
+
+    this.hasActor = function(actor) {
+        var index = _actors.indexOf(actor);
+        return index >= 0;
+    };
+
+    /** Tries to add an actor and returns true if success.*/
+    this.addActor = function(actor) {
+        if (!this.hasActor(actor)) {
+            _actors.push(actor);
+            return true;
+        }
+        else {
+            RG.err("Game.Army", "addActor", "Actor already in army " + this.getName());
+        }
+        return false;
+    };
+
+    /** Removes an actor from the army.*/
+    this.removeActor = function(actor) {
+        var index = _actors.indexOf(actor);
+        if (index >= 0) {
+            _actors.splice(index, 1);
+            return true;
+        }
+        else {
+
+        }
+        return false;
+    };
+
+    /** Monitor killed actors and remove them from the army.*/
+    this.notify = function(evtName, msg) {
+        if (evtName === RG.EVT_ACTOR_KILLED) {
+            var actor = msg.actor;
+            if (this.hasActor(actor)) {
+                if (!this.removeActor(actor)) {
+                    RG.err("Game.Army", "notify", "Couldn't remove the actor " + actor.getName());
+                }
+                else {
+                    ++_casualties;
+                    console.log(this.getName() + " has now " + _casualties + " dead");
+                }
+            }
+        }
+    };
+    RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
+
+};
+
 /** Battle is "mini-game" which uses its own scheduling and engine.*/
-RG.Game.Battle = function(game) {
+RG.Game.Battle = function(name) {
 
-    var _game = game;
+    var _name = name;
 
-    var _engine = new RG.Game.Engine();
+    var _armies = [];
+
+    var _level = null;
+
+    // Keeps track of battles statistics
+    var _stats = {
+        duration: 0,
+        casualties: 0,
+        survivors: 0,
+    };
+
+    this.setLevel = function(level) {_level = level;};
+    this.getLevel = function() {return _level;};
+
+    this.getName = function() {return _name;};
+
+    /** Adds an army to given x,y location.*/
+    this.addArmy = function(army, x, y) {
+        if (!RG.isNullOrUndef([_level])) {
+            _armies.push(army);
+            var actors = army.getActors();
+            for (var i = 0; i < actors.length; i++) {
+                _level.addActor(actors[i], x + i, y);
+            }
+        }
+        else {
+            RG.err("Game.Battle", "addArmy", "Level must exist before adding army.");
+        }
+    };
+
+    /** Returns true if the battle is over.*/
+    this.isOver = function() {
+        if (_armies.length > 1) {
+            if (_armies[0].isDefeated()) return true;
+            if (_armies[1].isDefeated()) return true;
+        }
+        else {
+            RG.err("Game.Battle", "isOver", "Battle should have >= 2 armies.");
+        }
+        return false;
+    };
+
+
 
 };
 
