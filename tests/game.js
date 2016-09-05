@@ -66,9 +66,9 @@ function getLevelWithNActors(cols, rows, nactors) {
 describe('How game should proceed', function() {
 
 
-    var movSystem = new RG.System.Movement("Movement", ["Movement"]);
 
     it('Initializes the game and adds player', function() {
+        var movSystem = new RG.System.Movement("Movement", ["Movement"]);
         var cols = 50;
         var rows = 30;
         var level = getNewLevel(cols, rows);
@@ -215,9 +215,9 @@ describe('How AI brain works', function() {
         expect(pathCells.length).to.not.equal(0);
     });
 
-    var movSystem = new RG.System.Movement("Movement", ["Movement"]);
 
     it('Moves towards player when seen.', function() {
+        var movSystem = new RG.System.Movement("Movement", ["Movement"]);
         expect(level.addActor(player, 2, 2)).to.equal(true);
         expect(level.addActor(mons1, 2, 4)).to.equal(true);
         var action = mons1.nextAction();
@@ -363,6 +363,21 @@ describe('How poison item is used, and experience propagates', function() {
         }
         var endExp = assassin.get("Experience").getExp();
         expect(endExp > startExp, "Exp. points given from poison").to.equal(true);
+
+        var curePoison = globalParser.createActualObj("items", "Potion of cure poison");
+        var frostPoison = globalParser.createActualObj("items", "Potion of frost poison");
+        assassin.getInvEq().addItem(frostPoison);
+        var curedVictim = new Actor("Cured victim");
+
+        level.addActor(curedVictim, 4, 4);
+        expect(frostPoison.useItem({target: level.getMap().getCell(4, 4)})).to.equal(true);
+        expect(curedVictim.has("Poison")).to.equal(true);
+        curedVictim.getInvEq().addItem(curePoison);
+        game.simulateGame();
+        expect(curePoison.useItem({target: level.getMap().getCell(4, 4)})).to.equal(true);
+        expect(curedVictim.has("Poison")).to.equal(false);
+        expect(curedVictim.get("Health").isAlive()).to.equal(true);
+
 
     });
 });
