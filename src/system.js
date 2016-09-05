@@ -303,7 +303,6 @@ RG.System.Damage = function(type, compTypes) {
         var defDanger = def.get("Experience").getDanger();
         var expPoints = new RG.Component.ExpPoints(defLevel + defDanger);
         att.add("ExpPoints", expPoints);
-        console.log("Att is " + att.getName());
     };
 
 };
