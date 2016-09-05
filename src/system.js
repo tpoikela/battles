@@ -229,21 +229,19 @@ RG.System.Damage = function(type, compTypes) {
     this.update = function() {
         for (var e in this.entities) {
             var ent = this.entities[e];
-            if (ent.has("Health")) { // Redundant ??
+            if (ent.has("Health")) {
                 var health = ent.get("Health");
-                var dmg = ent.get("Damage").getDamage();
+                var dmgComp = ent.get("Damage");
+                var totalDmg = _getDamageReduced(ent);
 
-                // Take defs protection value into account
-                var protEquip = ent.getEquipProtection();
-                var protStats = ent.get("Combat").getProtection();
-                var protTotal = protEquip + protStats;
-                var totalDmg = dmg - protTotal;
-
+                // Check if any damage was done at all
                 if (totalDmg <= 0) {
                     totalDmg = 0;
                     RG.gameMsg("Attack doesn't penetrate protection of " + ent.getName());
                 }
-                health.decrHP(totalDmg);
+                else {
+                    health.decrHP(totalDmg);
+                }
 
                 if (health.isDead()) {
                     if (ent.has("Loot")) {
@@ -259,6 +257,23 @@ RG.System.Damage = function(type, compTypes) {
                 ent.remove("Damage"); // After dealing damage, remove comp
             }
         }
+    };
+
+    var _getDamageReduced = function(ent) {
+        var dmgComp = ent.get("Damage");
+        var dmg = dmgComp.getDamage();
+
+        if (dmgComp.getDamageType() === "poison") {
+            RG.gameDanger("Poison is gnawing inside " + ent.getName());
+            return dmg;
+        }
+
+        // Take defs protection value into account
+        var protEquip = ent.getEquipProtection();
+        var protStats = ent.get("Combat").getProtection();
+        var protTotal = protEquip + protStats;
+        var totalDmg = dmg - protTotal;
+        return totalDmg;
     };
 
     /** Removes actor from current level and emits Actor killed event.*/
