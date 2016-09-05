@@ -34,9 +34,36 @@ RG.Effects = {
             name: "use",
             func: function(obj) {
                 for (var i = 0; i < this.useFuncs.length; i++) {
-                    if (this.useFuncs[i].call(this,obj)) break;
+                    if (this.useFuncs[i].call(this, obj)) return true;
                 }
+                return false;
             },
+        },
+
+        // Cures an effect specified in use: {cure: {effect: Poison}}
+        {
+            name: "cure",
+            requires: ["effect"],
+            func: function(obj) {
+                if (obj.hasOwnProperty("target")) {
+                    var cell = obj.target;
+                    if (cell.hasActors()) {
+                        var actor = cell.getProp("actors")[0];
+                        var effectName = this.useArgs.effect.capitalize();
+                        if (actor.has(effectName)) {
+                            actor.remove(effectName);
+                            RG.gameMsg(actor.getName() + " seems to be cured of " + effectName);
+                        }
+                        else {
+                            RG.gameMsg(this.getName() + " was wasted");
+                        }
+                        RG.destroyItemIfNeeded(this);
+                        return true;
+                    }
+                }
+                return false;
+            },
+
         },
 
         // Digger effect can be used to dig into stones and rocks
@@ -73,13 +100,7 @@ RG.Effects = {
                         var pt = die.roll();
                         if (target.has("Health")) {
                             target.get("Health").addHP(pt);
-                            if (this.count === 1) {
-                                var msg = {item: this};
-                                RG.POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
-                            }
-                            else {
-                                this.count -= 1;
-                            }
+                            RG.destroyItemIfNeeded(this);
                             RG.gameMsg(target.getName() + " drinks " + this.getName());
                             return true;
                         }
@@ -95,6 +116,8 @@ RG.Effects = {
             },
         }, // heal
 
+        // Poison effect which deals damage for a period of time bypassing any
+        // protection
         {
             name: "poison",
             requires: ["duration", "damage", "prob"],
@@ -121,6 +144,7 @@ RG.Effects = {
                         poisonComp.setProb(this.useArgs.prob);
                         poisonComp.setSource(itemOwner);
                         target.add("Poison", poisonComp);
+                        RG.destroyItemIfNeeded(this);
                         return true;
                     }
                 }
@@ -128,6 +152,28 @@ RG.Effects = {
             },
         }, // poison
 
+        // Stun effect
+        {
+            name: "stun",
+            requires: ["duration"],
+            func: function(obj) {
+                if (obj.hasOwnProperty("target")) {
+                    var cell = obj.target;
+                    if (cell.hasActors()) {
+                        var target = cell.getProp("actors")[0];
+                        var arr = RG.parseDieSpec(this.useArgs.duration);
+                        var durDie = new RG.Die(arr[0], arr[1], arr[2]);
+                        var stunDur = durDie.roll();
+                        var stunComp = new RG.Component.Stun();
+                        stunComp.setDuration(durDie);
+                        target.add("Stun", stunComp);
+                        RG.destroyItemIfNeeded(this);
+                        return true;
+                    }
+                }
+                return false;
+            },
+        }, // stun
 
 
     ],

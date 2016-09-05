@@ -492,7 +492,7 @@ var RGObjects = {
         // Note: Each potion should define useItem method. See examples below.
         {
             name: "PotionBase", className: "cell-item-potion", "char": "!",
-            type: "potion", dontCreate: true,
+            type: "potion", dontCreate: true, weight: 0.1,
         },
         {
             name: "Healing potion", base: "PotionBase", use: {heal: {hp: "3d4"}},
@@ -502,6 +502,10 @@ var RGObjects = {
             name: "Potion of venom", base: "PotionBase", 
             use: {poison: {duration: "4d4 + 5", damage: "1d6", prob: "0.1"}},
             value: 30
+        },
+        {
+            name: "Potion of cure poison", base: "PotionBase",
+            use: {cure: {effect: "poison"}}, value: 80,
         },
         {
             name: "Potion of frost poison", base: "PotionBase", 
@@ -531,6 +535,7 @@ var RGObjects = {
         },
         {
             name: "Habanero", base: "FoodBase", energy: 10, value: 50,
+            use: {stun: {duration: "3d3"}},
         },
 
         // TOOLS
