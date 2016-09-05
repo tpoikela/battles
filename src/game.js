@@ -438,6 +438,8 @@ RG.Game.Main = function() {
         return map;
     };
 
+    this.simulateGame = function() {_engine.simulateGame();};
+
     /** Must be called to advance the game by one player action. Non-player
      * actions are executed after the player action.*/
     this.update = function(obj) {_engine.update(obj);};
