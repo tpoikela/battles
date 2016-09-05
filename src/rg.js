@@ -529,6 +529,28 @@ RG.parseDieSpec = function(strOrArray) {
     return [];
 };
 
+RG.ONE_SHOT_ITEMS = ["potion"];
+
+/** Returns true if given item is one-shot use item by its type.*/
+RG.isOneShotItem = function(item) {
+    var itemType = item.getType();
+    var index = RG.ONE_SHOT_ITEMS.indexOf(itemType);
+    return index >= 0;
+};
+
+/** Destroys item (typically after use). */
+RG.destroyItemIfNeeded = function(item) {
+    if (RG.isOneShotItem(item)) {
+        if (item.count === 1) {
+            var msg = {item: item};
+            RG.POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
+        }
+        else {
+            item.count -= 1;
+        }
+    }
+};
+
 
 /** Lookup table object for movement and actions keys.*/
 RG.KeyMap = {
