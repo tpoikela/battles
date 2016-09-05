@@ -514,6 +514,8 @@ RG.FCCGame = function() {
 
         var poison = _parser.createActualObj("items", "Potion of frost poison");
         level.addItem(poison, 2, 2);
+        var curePoison = _parser.createActualObj("items", "Potion of cure poison");
+        level.addItem(curePoison, 3, 2);
 
         var numFree = level.getMap().getFree().length;
         //var monstersPerLevel = Math.round(numFree / sqrPerMonster);
@@ -981,7 +983,7 @@ RG.ObjectShellParser = function() {
                     case "armour": return new RG.Item.Armour(obj.name);
                     case "food": return new RG.Item.Food(obj.name);
                     case "missile": return new RG.Item.Missile(obj.name);
-                    //case "potion": return new RG.Item.SpiritGem(obj.name);
+                    case "potion": return new RG.Item.Potion(obj.name);
                     case "spiritgem": return new RG.Item.SpiritGem(obj.name);
                     case "weapon": return new RG.Item.Weapon(obj.name);
                     case "tool": break;
