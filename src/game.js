@@ -482,13 +482,17 @@ RG.Game.Army = function(name) {
 
     var _battle = null;
     var _casualties = 0;
+    var _defeatThreshold = 0;
 
     this.getName = function() {return _name;};
 
+    this.setDefeatThreshold = function(numActors) {
+        _defeatThreshold = numActors;
+    };
+
     /** Default defeat is when all actors have been eliminated.*/
     this.isDefeated = function() {
-        if (_actors.length < 50) {
-            console.log("Army " + this.getName() + " is defeated");
+        if (_actors.length <= _defeatThreshold) {
             return true;
         }
         return false;
@@ -536,7 +540,6 @@ RG.Game.Army = function(name) {
                 }
                 else {
                     ++_casualties;
-                    console.log(this.getName() + " has now " + _casualties + " dead");
                 }
             }
         }
