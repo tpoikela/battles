@@ -512,6 +512,9 @@ RG.FCCGame = function() {
         var pickaxe = _parser.createActualObj("items", "Pick-axe");
         level.addItem(pickaxe, 2, 2);
 
+        var poison = _parser.createActualObj("items", "Potion of frost poison");
+        level.addItem(poison, 2, 2);
+
         var numFree = level.getMap().getFree().length;
         //var monstersPerLevel = Math.round(numFree / sqrPerMonster);
         var itemsPerLevel = Math.round(numFree / sqrPerItem);
