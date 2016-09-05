@@ -34,23 +34,25 @@ describe('Game.Battle', function() {
         var army1 = new Game.Army("Blue army");
         var army2 = new Game.Army("Red army");
 
-        addActors(army1, 1000, "warlord");
-        addActors(army2, 1000, "Winter demon");
+        addActors(army1, 10, "warlord");
+        addActors(army2, 10, "Winter demon");
 
-        var battleLevel = RG.FACT.createLevel("arena", 1005, 4);
+        var battleLevel = RG.FACT.createLevel("arena", 12, 4);
         battle.setLevel(battleLevel);
         battle.addArmy(army1, 1, 1);
         battle.addArmy(army2, 1, 2);
 
         game.addBattle(battle);
 
+        expect(battle.isOver()).to.equal(false);
+
         var count = 0;
-        while (!battle.isOver() && count < 100000) {
+        while (!battle.isOver() && count < 1000) {
             game.simulateGame();
             ++count;
         }
+        expect(battle.isOver()).to.equal(true);
 
-        console.log("Battle ended after " + count + " turns.");
 
     });
 });
