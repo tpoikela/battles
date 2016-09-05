@@ -262,9 +262,9 @@ describe('Tests to check that basic operations for map work', function() {
 
 describe('Moving actors around in the game', function() {
 
-    var movSystem = new RG.System.Movement("Movement", ["Movement"]);
 
     it('Moves but is blocked by walls.', function() {
+        var movSystem = new RG.System.Movement("Movement", ["Movement"]);
         var actor = new Actor("TestActor");
         var level = new Level(10, 10);
         var mapgen = new RG.Map.Generator();
@@ -294,6 +294,7 @@ describe('Moving actors around in the game', function() {
     });
 
     it('Moves actors between levels using stairs', function() {
+        var movSystem = new RG.System.Movement("Movement", ["Movement"]);
         var level1 = Factory.createLevel("arena", 20, 20);
         var level2 = Factory.createLevel("arena", 20, 20);
         var player = Factory.createPlayer("Player", {});
