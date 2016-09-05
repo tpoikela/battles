@@ -244,7 +244,7 @@ RG.Game.Engine = function() {
     this.addTimeSystem = function(name, obj) {
         this.timeSystems[name] = obj;
         // Must schedule the system
-        var updateEvent = new RG.RogueGameEvent(100, obj.update, true, 0);
+        var updateEvent = new RG.RogueGameEvent(100, obj.update.bind(obj), true, 0);
         this.addEvent(updateEvent);
     };
     this.addTimeSystem("TimeEffects", effects);
