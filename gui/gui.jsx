@@ -917,12 +917,16 @@ var GameStats = React.createClass({
             ++index;
         }
 
+        var otherStatus = [];
+        if (player.has("Poison")) otherStatus.push(<p className="text-danger">Poisoned</p>);
+
         return (
             <div className="game-stats">
                 <ul className="game-stats-list">{statsHTML}</ul>
                 <p className={moveClassName}>{moveStatus}</p>
                 <p className="text-primary">{selItemName}</p>
                 <p className="text-primary">{selCellDescr}</p>
+                {otherStatus}
                 <button id="inventory-button" className="btn btn-info" data-toggle="modal" data-target="#inventoryModal">Inventory</button>
                 <button id="map-player-button" className="btn btn-info" onClick={this.changeMapView}>Map View</button>
             </div>
