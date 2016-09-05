@@ -49,11 +49,13 @@ RG.Effects = {
                         var owner = this.getOwner();
                         cell.getBaseElem().setType("floor");
                         RG.gameMsg(owner.getName() + " digs through stone with " + this.getName());
+                        return true;
                     }
                 }
                 else {
                     RG.err(this.getName(), "useItem.digger", "No target given in obj.");
                 }
+                return false;
             },
         },
 
@@ -79,6 +81,7 @@ RG.Effects = {
                                 this.count -= 1;
                             }
                             RG.gameMsg(target.getName() + " drinks " + this.getName());
+                            return true;
                         }
                     }
                     else {
@@ -88,28 +91,45 @@ RG.Effects = {
                 else {
                     RG.err(this.getName(), "useItem.heal", "No target given in obj.");
                 }
+                return false;
             },
-        },
+        }, // heal
 
-        { // TODO
+        {
             name: "poison",
-            requires: ["duration"],
+            requires: ["duration", "damage", "prob"],
             func: function(obj) {
                 if (obj.hasOwnProperty("target")) {
                     var cell = obj.target;
                     if (cell.hasActors()) {
                         var target = cell.getProp("actors")[0];
                         var arr = RG.parseDieSpec(this.useArgs.duration);
-                        var die = new RG.Die(arr[0], arr[1], arr[2]);
-                        var poisonDur = die.roll();
+                        var durDie = new RG.Die(arr[0], arr[1], arr[2]);
+                        var poisonDur = durDie.roll();
+
+                        arr = RG.parseDieSpec(this.useArgs.damage);
+                        var dmgDie = new RG.Die(arr[0], arr[1], arr[2]);
+
                         var poisonComp = new RG.Component.Poison();
                         poisonComp.setDuration(poisonDur);
-                        poisonComp.setSource(this.getOwner());
+                        poisonComp.setDamage(dmgDie);
+
+                        var itemOwner = this.getOwner();
+                        while (itemOwner.hasOwnProperty("getOwner")) {
+                            itemOwner = itemOwner.getOwner();
+                        }
+                        poisonComp.setProb(this.useArgs.prob);
+                        poisonComp.setSource(itemOwner);
                         target.add("Poison", poisonComp);
+                        return true;
                     }
                 }
+                return false;
             },
-        },
+        }, // poison
+
+
+
     ],
 
 };
