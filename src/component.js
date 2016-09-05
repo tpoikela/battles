@@ -125,6 +125,7 @@ RG.Component.Hunger = function(energy) {
 
     var _currEnergy = 2000;
     var _maxEnergy = 2000;
+    var _minEnergy = -500;
 
     this.getEnergy = function() {return _currEnergy;};
     this.getMaxEnergy = function() {return _maxEnergy;};
@@ -144,10 +145,11 @@ RG.Component.Hunger = function(energy) {
 
     this.decrEnergy = function(energy) {
         _currEnergy -= energy;
+        if (_currEnergy < _minEnergy) _currEnergy = _minEnergy;
     };
 
     this.isStarving = function() {
-        return _currEnergy === 0;
+        return _currEnergy <= 0;
     };
 
     this.isFull = function() {return _currEnergy === _maxEnergy;};

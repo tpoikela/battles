@@ -263,6 +263,8 @@ RG.System.Damage = function(type, compTypes) {
         var dmgComp = ent.get("Damage");
         var dmg = dmgComp.getDamage();
 
+        ent.addEnemy(dmgComp.getSource());
+
         if (dmgComp.getDamageType() === "poison") {
             RG.gameDanger("Poison is gnawing inside " + ent.getName());
             return dmg;
