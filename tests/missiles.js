@@ -58,12 +58,13 @@ describe('How dice are cast and what values they give', function() {
 describe('How missile is fired and hits a wall', function() {
 
 
-    var mSystem = new RG.System.Missile("Missile", ["Missile"]);
-    var dSystem = new RG.System.Damage("Damage", ["Damage"]);
-
-    var systems = [mSystem, dSystem];
 
     it('Starts from source and flies to target', function() {
+        var mSystem = new RG.System.Missile("Missile", ["Missile"]);
+        var dSystem = new RG.System.Damage("Damage", ["Damage"]);
+
+        var systems = [mSystem, dSystem];
+
         var level = RG.FACT.createLevel("arena", 30, 30);
         // Archer to fire the missiles
         var srcEnt = new Actor("archer");
@@ -91,6 +92,10 @@ describe('How missile is fired and hits a wall', function() {
     });
 
     it('Stops and hits a wall', function() {
+        var mSystem = new RG.System.Missile("Missile", ["Missile"]);
+        var dSystem = new RG.System.Damage("Damage", ["Damage"]);
+        var systems = [mSystem, dSystem];
+
         var level = RG.FACT.createLevel("arena", 30, 30);
         // Archer to fire the missiles
         var srcEnt = new Actor("archer");
@@ -119,6 +124,10 @@ describe('How missile is fired and hits a wall', function() {
     });
 
     it('Stops and hits an entity (actor)', function() {
+        var mSystem = new RG.System.Missile("Missile", ["Missile"]);
+        var dSystem = new RG.System.Damage("Damage", ["Damage"]);
+        var systems = [mSystem, dSystem];
+
         var level = RG.FACT.createLevel("arena", 30, 30);
         // Archer to fire the missiles
         var srcEnt = new Actor("archer");
@@ -154,6 +163,9 @@ describe('How missile is fired and hits a wall', function() {
     });
 
     it('Stops after reaching maximum range', function() {
+        var mSystem = new RG.System.Missile("Missile", ["Missile"]);
+        var dSystem = new RG.System.Damage("Damage", ["Damage"]);
+        var systems = [mSystem, dSystem];
         var level = RG.FACT.createLevel("arena", 30, 30);
         // Archer to fire the missiles
         var srcEnt = new Actor("archer");
