@@ -38,13 +38,33 @@ describe('Game.Engine', function() {
         var timeSystem = engine.timeSystems.TimeEffects;
 
         var poison = new RG.Component.Poison();
-        eng.actor.add("Poison", poison);
-        expect(timeSystem.entities).to.have.property(eng.actor.getID());
-        eng.actor.remove("Poison");
-        expect(timeSystem.entities).to.not.have.property(eng.actor.getID());
+        poison.setDuration(20);
+        poison.setProb(1.0);
+        poison.setDamage(new RG.Die(1, 1, 10));
+        poison.setSource(eng.actor2);
+
+        var currHP = eng.actor.get("Health").getHP();
 
         eng.actor.add("Poison", poison);
         expect(timeSystem.entities).to.have.property(eng.actor.getID());
+
+        engine.simulateGame();
+        var remHP = eng.actor.get("Health").getHP();
+        expect(remHP < currHP).to.equal(true);
+
+        var expActor2 = eng.actor2.get("Experience").getExp();
+        while (eng.actor.get("Health").isAlive()) {
+            engine.simulateGame();
+        }
+
+        for (var i = 0; i < 20; i++) engine.simulateGame();
+
+        expect(timeSystem.entities).to.not.have.property(eng.actor.getID());
+
+        // Check that actor2 was given exp for using poison to kill actor2
+        var newExpActor2 = eng.actor2.get("Experience").getExp();
+        console.log("Old exp: " + expActor2 + " new " + newExpActor2);
+        expect(newExpActor2 > expActor2).to.equal(true);
 
     });
 });
