@@ -82,13 +82,7 @@ RG.RogueRegenEvent = function(actor, dur) {
     var _dur = dur; // Duration between events
 
     var _regenerate = function() {
-        var maxHP = actor.get("Health").getMaxHP();
-        var hp = actor.get("Health").getHP();
-        hp += 1;
-        if (hp <= maxHP) {
-            actor.get("Health").setHP(hp);
-            RG.gameSuccess(actor.getName() + " regenerates 1 HP");
-        }
+        maxHP = actor.get("Health").addHP(1);
     };
 
     RG.RogueGameEvent.call(this, _dur, _regenerate, true);
