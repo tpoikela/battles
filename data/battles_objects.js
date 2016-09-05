@@ -496,10 +496,17 @@ var RGObjects = {
         },
         {
             name: "Healing potion", base: "PotionBase", use: {heal: {hp: "3d4"}},
+            value: 10,
         },
         {
             name: "Potion of venom", base: "PotionBase", 
-            use: {poison: {duration: "4d4 + 5"}}
+            use: {poison: {duration: "4d4 + 5", damage: "1d6", prob: "0.1"}},
+            value: 30
+        },
+        {
+            name: "Potion of frost poison", base: "PotionBase", 
+            use: {poison: {duration: "5d20", damage: "1d6 + 1", prob: "0.2"}},
+            value: 100
         },
 
         // FOOD
