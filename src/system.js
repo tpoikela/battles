@@ -254,7 +254,7 @@ RG.System.Damage = function(type, compTypes) {
                     }
 
                     var src = ent.get("Damage").getSource();
-                    this.killActor(src, ent);
+                    _killActor(src, ent);
                 }
                 ent.remove("Damage"); // After dealing damage, remove comp
             }
@@ -262,13 +262,19 @@ RG.System.Damage = function(type, compTypes) {
     };
 
     /** Removes actor from current level and emits Actor killed event.*/
-    this.killActor = function(src, actor) {
+    var _killActor = function(src, actor) {
+        var dmgComp = actor.get("Damage");
         var level = actor.getLevel();
         if (level.removeActor(actor)) {
             if (actor.has("Experience")) {
-                this.giveExpToSource(src, actor);
+                _giveExpToSource(src, actor);
             }
-            RG.gameDanger(actor.getName() + " was killed");
+            var dmgType = dmgComp.getDamageType();
+            if (dmgType === "poison")
+                RG.gameDanger(actor.getName() + " dies horribly of poisoning!");
+
+
+            RG.gameDanger(actor.getName() + " was killed by " + src.getName());
             RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: actor});
         }
         else {
@@ -277,11 +283,12 @@ RG.System.Damage = function(type, compTypes) {
     };
 
     /** When an actor is killed, gives experience to damage's source.*/
-    this.giveExpToSource = function(att, def) {
+    var _giveExpToSource = function(att, def) {
         var defLevel = def.get("Experience").getExpLevel();
         var defDanger = def.get("Experience").getDanger();
         var expPoints = new RG.Component.ExpPoints(defLevel + defDanger);
         att.add("ExpPoints", expPoints);
+        console.log("Att is " + att.getName());
     };
 
 };
@@ -452,7 +459,7 @@ RG.System.TimeEffects = function(type, compTypes) {
 
     // Dispatch table used to call a handler function for each component
     var _dtable = {};
-    var _removes = [];
+    var _expiredEffects = [];
 
     this.update = function() {
         //console.log("Updating TimeEffects system...");
@@ -462,29 +469,28 @@ RG.System.TimeEffects = function(type, compTypes) {
 
             for (var i = 0; i < compTypes.length; i++) {
                 if (ent.has(compTypes[i])) {
-                    _dtable[compTypes[i]](ent);
-                    this.decreaseDuration(ent.get(compTypes[i]));
+                    _dtable[compTypes[i]](ent); // Call dispatch table function
+                    _decreaseDuration(ent, ent.get(compTypes[i]));
                 }
             }
         }
 
-        // Remove expired effects
-        for (var j = 0; j < _removes.length; j++) {
-            var compName = _removes[j][0];
-            var entRem  = _removes[j][1];
+        // Remove expired effects (mutates this.entities, so done outside for...)
+        for (var j = 0; j < _expiredEffects.length; j++) {
+            var compName = _expiredEffects[j][0];
+            var entRem  = _expiredEffects[j][1];
             entRem.remove(compName);
-            console.log("Removed comp " + compName + " from " + entRem.getName());
         }
-        _removes = [];
+        _expiredEffects = [];
     };
 
     /** Decreases the remaining duration in the component by one.*/
-    this.decreaseDuration = function(comp) {
+    var _decreaseDuration = function(ent, comp) {
         if (comp.hasOwnProperty("getDuration")) {
             var dur = comp.getDuration();
             comp.setDuration(dur - 1);
             if (comp.getDuration() == 0) {
-                _removes.push([comp.getType(), ent])
+                _expiredEffects.push([comp.getType(), ent])
             }
         }
         else {
@@ -495,15 +501,13 @@ RG.System.TimeEffects = function(type, compTypes) {
 
 
     /** Applies the poison effect to the entity.*/
-    this.applyPoison = function(ent) {
+    var _applyPoison = function(ent) {
         var poison = ent.get("Poison");
-        console.log("Applying poison...");
 
         if (ent.get("Health").isDead()) {
-            _removes.push(["Poison", ent])
+            _expiredEffects.push(["Poison", ent])
         }
         else {
-
             if (Math.random() < poison.getProb()) {
                 var poisonDmg = poison.getDamage();
                 var dmg = new RG.Component.Damage(poisonDmg, "poison");
@@ -513,7 +517,7 @@ RG.System.TimeEffects = function(type, compTypes) {
         }
     };
 
-    _dtable.Poison = this.applyPoison;
+    _dtable.Poison = _applyPoison;
 
     /** Used for debug printing.*/
     this.printMatchedType = function(ent) {

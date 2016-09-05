@@ -201,12 +201,14 @@ RG.Object.Ownable = function(owner) {
 
     this.setOwner = function(owner) {
         if (RG.isNullOrUndef([owner])) {
-            RG.err("Ownable", "setOwner", "Owner cannot be null.");
+            RG.err("Object.Ownable", "setOwner", "Owner cannot be null.");
         }
         else {
             _owner = owner;
         }
     };
+
+    /** Returns the owner of this object.*/
     this.getOwner = function() {return _owner;};
 
     this.getX = function() {
