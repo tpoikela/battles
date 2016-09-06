@@ -418,7 +418,6 @@ RG.FCCGame = function() {
         lastLevel.addActor(summoner, bossCell.getX(), bossCell.getY());
 
         var extraLevel = this.createLastBattle(game, {cols: 80, rows: 60});
-        //var extraLevel = this.createLevel("arena", 80, 80);
         extraLevel.setLevelNumber(levelCount++);
 
         // Connect levels with stairs
@@ -571,7 +570,7 @@ RG.ObjectShellParser = function() {
     //      OBJECT: var ratObj = new RG.Actor.Rogue("rat"); ratObj.setType("animal");
     //
     // Shells are used in external data file to describe game objects in a more
-    // concise way. Game objects are created from shells.
+    // concise way. Game objects are created from shells by this object.
 
     var categ = ['actors', 'effects', 'items', 'levels', 'dungeons'];
 
