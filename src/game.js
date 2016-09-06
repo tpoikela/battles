@@ -552,9 +552,7 @@ RG.Game.Army = function(name) {
 RG.Game.Battle = function(name) {
 
     var _name = name;
-
     var _armies = [];
-
     var _level = null;
 
     // Keeps track of battles statistics
@@ -564,10 +562,13 @@ RG.Game.Battle = function(name) {
         survivors: 0,
     };
 
+    this.getName = function() {return _name;};
+
     this.setLevel = function(level) {_level = level;};
     this.getLevel = function() {return _level;};
 
-    this.getName = function() {return _name;};
+    this.getStats = function() {return _stats;};
+
 
     /** Adds an army to given x,y location.*/
     this.addArmy = function(army, x, y) {
