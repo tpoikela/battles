@@ -754,6 +754,18 @@ RG.Map.Level = function(cols, rows) { // {{{2
         }
     };
 
+    /** Return random free cell on a given level.*/
+    this.getFreeRandCell = function() {
+        var freeCells = this.getMap().getFree();
+        if (freeCells.length > 0) {
+            var maxFree = freeCells.length;
+            var randCell = Math.floor(Math.random() * maxFree);
+            var cell = freeCells[randCell];
+            return cell;
+        }
+        return null;
+    };
+
 }; // }}} Level
 RG.Map.Level.prototype.idCount = 0;
 

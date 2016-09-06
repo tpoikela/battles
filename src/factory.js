@@ -139,17 +139,6 @@ RG.Factory.Base = function() { // {{{2
     };
 
 
-    /** Return random free cell on a given level.*/
-    this.getFreeRandCell = function(level) {
-        var freeCells = level.getMap().getFree();
-        if (freeCells.length > 0) {
-            var maxFree = freeCells.length;
-            var randCell = Math.floor(Math.random() * maxFree);
-            var cell = freeCells[randCell];
-            return cell;
-        }
-        return null;
-    };
 
     /** Adds N random items to the level based on maximum value.*/
     this.addNRandItems = function(parser, itemsPerLevel, level, maxVal) {
@@ -158,7 +147,7 @@ RG.Factory.Base = function() { // {{{2
             var item = parser.createRandomItem({
                 func: function(item) {return item.value <= maxVal;}
             });
-            var itemCell = this.getFreeRandCell(level);
+            var itemCell = level.getFreeRandCell();
             level.addItem(item, itemCell.getX(), itemCell.getY());
         }
     };
@@ -167,7 +156,7 @@ RG.Factory.Base = function() { // {{{2
     this.addNRandMonsters = function(parser, monstersPerLevel, level, maxDanger) {
         // Generate the monsters randomly for this level
         for (var i = 0; i < monstersPerLevel; i++) {
-            var cell = this.getFreeRandCell(level);
+            var cell = level.getFreeRandCell();
             /*var monster = parser.createRandomActor({
                 func: function(actor){return actor.danger <= maxDanger;}
             });*/
@@ -410,7 +399,7 @@ RG.FCCGame = function() {
 
         // Create the final boss
         var lastLevel = allLevels.slice(-1)[0];
-        var bossCell = this.getFreeRandCell(lastLevel);
+        var bossCell = lastLevel.getFreeRandCell();
         var summoner = this.createMonster("Summoner", {hp: 100, att: 10, def: 10});
         summoner.setType("summoner");
         summoner.get("Experience").setExpLevel(10);
@@ -428,7 +417,7 @@ RG.FCCGame = function() {
             if (nl < nLevels-1) {
                 var targetDown = allLevels[nl+1];
                 var stairsDown = new RG.Element.Stairs(true, src, targetDown);
-                stairCell = this.getFreeRandCell(src);
+                stairCell = src.getFreeRandCell();
                 src.addStairs(stairsDown, stairCell.getX(), stairCell.getY());
                 allStairsDown.push(stairsDown);
             }
@@ -442,7 +431,7 @@ RG.FCCGame = function() {
             if (nl > 0) {
                 var targetUp = allLevels[nl-1];
                 var stairsUp = new RG.Element.Stairs(false, src, targetUp);
-                stairCell = this.getFreeRandCell(src);
+                stairCell = src.getFreeRandCell();
                 src.addStairs(stairsUp, stairCell.getX(), stairCell.getY());
                 allStairsUp.push(stairsUp);
             }
@@ -453,7 +442,7 @@ RG.FCCGame = function() {
 
         var lastStairsDown = allStairsDown.slice(-1)[0];
         var extraStairsUp = new RG.Element.Stairs(false, extraLevel, lastLevel);
-        var rStairCell = this.getFreeRandCell(extraLevel);
+        var rStairCell = extraLevel.getFreeRandCell();
         extraLevel.addStairs(extraStairsUp, rStairCell.getX(), rStairCell.getY());
         extraStairsUp.setTargetStairs(lastStairsDown);
         lastStairsDown.setTargetStairs(extraStairsUp);
@@ -464,7 +453,7 @@ RG.FCCGame = function() {
             var name = "Townsman";
             var human = this.createMonster(name, {brain: "Human"});
             human.setType("human");
-            var cell = this.getFreeRandCell(extraLevel);
+            var cell = extraLevel.getFreeRandCell();
             extraLevel.addActor(human, cell.getX(), cell.getY());
         }
 
@@ -555,6 +544,11 @@ RG.FCCGame = function() {
 
         game.addLevel(level);
         return level;
+    };
+
+    this.createDebugWorld = function(obj, game, player) {
+        var world = new RG.World.World();
+
     };
 
 };
