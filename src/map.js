@@ -362,7 +362,7 @@ RG.Map.Generator = function() { // {{{2
     };
 
 
-    /** Creates "ruins" type level with open outer edges and inner fortress with
+    /** Creates "ruins" type level with open outer edges and inner "fortress" with
      * some tunnels. */
     this.createRuins = function(cols, rows) {
         var conf = {born: [4, 5, 6, 7, 8],
@@ -756,6 +756,31 @@ RG.Map.Level = function(cols, rows) { // {{{2
 
 }; // }}} Level
 RG.Map.Level.prototype.idCount = 0;
+
+/** Dungeon is a collection of levels.*/
+RG.Map.Dungeon = function() {
+
+    var _levels = [];
+    var _stairs = [];
+
+    var _conf = {
+        cols: 80,
+        rows: 60,
+        levels: 10,
+        levelTypes: ["rooms", "rogue", "digger"],
+    };
+
+    /** Given level number, returns the danger level.*/
+    this.dangerFunction = function(nlevel) {
+
+    };
+
+    /** Givel level number, returns the value for that level.*/
+    this.valueFunction = function(nlevel) {
+
+    };
+
+};
 
 if (typeof module !== "undefined" && typeof exports !== "undefined") {
     GS.exportSource(module, exports, ["RG", "Map"], [RG, RG.Map]);
