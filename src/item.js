@@ -41,7 +41,8 @@ RG.extend2(RG.Item.Base, RG.Object.Ownable);
 
 RG.Item.Base.prototype.toString = function() {
     var txt = this.getName() + ", " + this.getType() + ", ";
-    txt += this.getWeight() * this.count + "kg";
+    var totalWeight = this.getWeight() * this.count;
+    txt += totalWeight.toFixed(2) + "kg";
     if (this.hasOwnProperty("count")) {
         txt = this.count + " x " + txt;
     }
