@@ -329,10 +329,33 @@ describe('Game.Save how saving works', function() {
         invEq.addItem(weapon);
         expect(invEq.equipItem(weapon)).to.equal(true);
 
+        // Empty spirit gem
+        var emptygem = new RG.Item.SpiritGem("Wolf gem");
+        invEq.addItem(emptygem);
+
+        var gemWithSpirit = new RG.Item.SpiritGem("Used gem");
+        var spirit = new RG.Actor.Spirit("Wolf spirit");
+        spirit.get("Stats").setStrength(11);
+        gemWithSpirit.setSpirit(spirit);
+        invEq.addItem(gemWithSpirit);
+
         gameSave.savePlayer(player);
         var rest = gameSave.restorePlayer("HeroPlayer");
         var restWeapon = rest.getWeapon();
         expect(restWeapon.equals(weapon)).to.equal(true);
+
+        var inv = rest.getInvEq().getInventory();
+        var emptyGemRest = inv.getItems()[0];
+        expect(emptyGemRest.equals(emptygem)).to.equal(true);
+
+        var gemWithSpirit = inv.getItems()[1];
+        var spiritRest = gemWithSpirit.getSpirit();
+        var statsRest = spiritRest.get("Stats");
+        var statsOrig = spirit.get("Stats");
+        expect(statsRest.getStrength()).to.equal(statsOrig.getStrength());
+
+
+
 
     });
 
