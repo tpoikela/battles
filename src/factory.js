@@ -370,6 +370,8 @@ RG.FCCGame = function() {
         var allStairsDown = [];
         var allLevels     = [];
 
+        var branch = new RG.World.Branch();
+
         // Generate all game levels
         for (var nl = 0; nl < nLevels; nl++) {
 
@@ -377,7 +379,7 @@ RG.FCCGame = function() {
             var levelType = levels[nLevelType];
             if (nl === 0) levelType = "ruins";
             var level = this.createLevel(levelType, cols, rows);
-            level.setLevelNumber(levelCount++);
+            branch.addLevel(level);
 
             game.addLevel(level);
 
@@ -406,46 +408,22 @@ RG.FCCGame = function() {
         summoner.setBrain(new RG.Brain.Summoner(summoner));
         lastLevel.addActor(summoner, bossCell.getX(), bossCell.getY());
 
-        var extraLevel = this.createLastBattle(game, {cols: 80, rows: 60});
-        extraLevel.setLevelNumber(levelCount++);
+        var townLevel = this.createLastBattle(game, {cols: 80, rows: 60});
+        townLevel.setLevelNumber(levelCount++);
 
-        // Connect levels with stairs
-        for (nl = 0; nl < nLevels; nl++) {
-            var src = allLevels[nl];
+        branch.connectLevels();
 
-            var stairCell = null;
-            if (nl < nLevels-1) {
-                var targetDown = allLevels[nl+1];
-                var stairsDown = new RG.Element.Stairs(true, src, targetDown);
-                stairCell = src.getFreeRandCell();
-                src.addStairs(stairsDown, stairCell.getX(), stairCell.getY());
-                allStairsDown.push(stairsDown);
-            }
-            else {
-                var finalStairs = new RG.Element.Stairs(true, src, extraLevel);
-                var stairsLoot = new RG.Component.Loot(finalStairs);
-                summoner.add("Loot", stairsLoot);
-                allStairsDown.push(finalStairs);
-            }
-
-            if (nl > 0) {
-                var targetUp = allLevels[nl-1];
-                var stairsUp = new RG.Element.Stairs(false, src, targetUp);
-                stairCell = src.getFreeRandCell();
-                src.addStairs(stairsUp, stairCell.getX(), stairCell.getY());
-                allStairsUp.push(stairsUp);
-            }
-            else {
-                allStairsUp.push(null);
-            }
-        }
+        var finalStairs = new RG.Element.Stairs(true, allLevels[nLevels-1], townLevel);
+        var stairsLoot = new RG.Component.Loot(finalStairs);
+        summoner.add("Loot", stairsLoot);
+        allStairsDown.push(finalStairs);
 
         var lastStairsDown = allStairsDown.slice(-1)[0];
-        var extraStairsUp = new RG.Element.Stairs(false, extraLevel, lastLevel);
-        var rStairCell = extraLevel.getFreeRandCell();
-        extraLevel.addStairs(extraStairsUp, rStairCell.getX(), rStairCell.getY());
-        extraStairsUp.setTargetStairs(lastStairsDown);
-        lastStairsDown.setTargetStairs(extraStairsUp);
+        var townStairsUp = new RG.Element.Stairs(false, townLevel, lastLevel);
+        var rStairCell = townLevel.getFreeRandCell();
+        townLevel.addStairs(townStairsUp, rStairCell.getX(), rStairCell.getY());
+        townStairsUp.setTargetStairs(lastStairsDown);
+        lastStairsDown.setTargetStairs(townStairsUp);
 
         // Create townsfolk for the extra level
         var humansPerLevel = 50;
@@ -453,16 +431,8 @@ RG.FCCGame = function() {
             var name = "Townsman";
             var human = this.createMonster(name, {brain: "Human"});
             human.setType("human");
-            var cell = extraLevel.getFreeRandCell();
-            extraLevel.addActor(human, cell.getX(), cell.getY());
-        }
-
-        // Finally connect the stairs together
-        for (nl = 0; nl < nLevels; nl++) {
-            if (nl < nLevels-1)
-                allStairsDown[nl].setTargetStairs(allStairsUp[nl+1]);
-            if (nl > 0)
-                allStairsUp[nl].setTargetStairs(allStairsDown[nl-1]);
+            var cell = townLevel.getFreeRandCell();
+            townLevel.addActor(human, cell.getX(), cell.getY());
         }
 
         // Restore player position or start from beginning
