@@ -549,6 +549,7 @@ RG.Map.Level = function(cols, rows) { // {{{2
                 return _p.stairs[i];
             }
         }
+        return null;
     };
 
     //---------------------------------------------------------------------
