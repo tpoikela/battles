@@ -72,7 +72,7 @@ RG.World.Branch = function() {
         }
         else {
             RG.err("World.Branch", "addLevel", 
-                "Trying to add existing level (in index " + index + " already));
+                "Trying to add existing level (in index " + index + " already)");
 
         }
     };
@@ -127,17 +127,60 @@ RG.World.Dungeon = function() {
 };
 
 /** Area-tile is a level which has entry/exit points on a number of edges.*/
-RG.World.AreaTile = function() {
+RG.World.AreaTile = function(x, y, area) {
 
+    var _tileX = x;
+    var _tileY = y;
+    var _area  = area;
+
+    this.cols = null;
+    this.rows = null;
+
+    var _level = null;
+
+    /** Sets the level for this tile.*/
+    this.setLevel = function(level) {
+        _level = level;
+        this.cols = _level.getMap().cols;
+        this.rows = _level.getMap().rows;
+    };
+
+    this.getLevel = function() {return _level;};
+    this.getTileX = function() {return _x;};
+    this.getTileY = function() {return _y;};
+
+    /** Returns true for edge tiles.*/
+    this.isEdge = function() {
+        if (this.isNorthEdge()) return true;
+        if (this.isSouthEdge()) return true;
+        if (this.isWestEdge ()) return true;
+        if (this.isEastEdge ()) return true;
+        return false;
+    };
+
+    this.isNorthEdge = function() {return _tileY === 0;};
+    this.isSouthEdge = function() {return _tileY === (_area.getMaxY() - 1);};
+    this.isWestEdge = function() {return _tileX === 0;};
+    this.isEastEdge = function() {return _tileY === (_area.getMaxY() - 1);};
+
+    /* Connect this tile to east and south tiles */
+    this.connect = function(eastTile, southTile) {
+
+    };
 };
 
 /** Area is N x M area of tiles, with no linear progression like in dungeons.
  * Moving between tiles of areas happens by travelling to the edges of a tile.
  * Each tile is a level with special edge tiles.
  * */
-RG.World.Area = function() {
+RG.World.Area = function(maxX, maxY) {
 
+    var _maxX = maxX;
+    var _maxY = maxY;
     var _tiles = [];
+
+    this.getMaxX = function() {return _maxX;};
+    this.getMaxY = function() {return _maxY;};
 
 };
 
