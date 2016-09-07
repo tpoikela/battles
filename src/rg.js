@@ -87,7 +87,8 @@ var RG = { // {{{2
     getShortestPath: function(x0, y0, x1, y1) {
         var coords = [];
         var passableCallback = function(x, y) {return true;};
-        var finder = new ROT.Path.Dijkstra(x1, y1, passableCallback);
+        //var finder = new ROT.Path.Dijkstra(x1, y1, passableCallback);
+        var finder = new ROT.Path.AStar(x1, y1, passableCallback);
         finder.compute(x0, y0, function(x, y) {
             coords.push({x: x, y: y});
         });
@@ -248,6 +249,7 @@ var RG = { // {{{2
         if (typeof msg === "object") {
             var cell = msg.cell;
             newMsg = msg.msg;
+            newMsg = newMsg[0].toUpperCase() + newMsg.substring(1);
             this.POOL.emitEvent(this.EVT_MSG, {cell: cell, msg: newMsg, style: style});
         }
         else {
