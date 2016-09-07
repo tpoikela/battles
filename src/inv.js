@@ -303,7 +303,7 @@ RG.Inv.Inventory = function(actor) {
     /** Returns true if given item can be carried.*/
     this.canCarryItem = function(item) {
         var eqWeight = _eq.getWeight();
-        var invWeight = _eq.getWeight();
+        var invWeight = _inv.getWeight();
         var newWeight = eqWeight + invWeight + item.getWeight();
         if (newWeight > _actor.getMaxWeight()) return false;
         return true;
