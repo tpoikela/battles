@@ -522,8 +522,9 @@ var GameMessages = React.createClass({
             var index = 1;
             if (val.hasOwnProperty("cell")) {
                 index = seenCells.indexOf(val.cell);
+                if (index >= 0) val.seen = true;
             }
-            if (index >= 0) {
+            if (index >= 0 || val.seen) {
                 return (<span key={index} className={className}>{val.msg}.</span>);
             }
         });
