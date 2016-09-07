@@ -35,6 +35,13 @@ RG.Actor.Rogue = function(name) { // {{{2
     this.setName = function(name) {_name = name;};
     this.getName = function() {return _name;};
 
+    /** Returns the cell where this actor is located at.*/
+    this.getCell = function() {
+        var x = this.getX();
+        var y = this.getY();
+        return this.getLevel().getMap().getCell(x, y);
+    };
+
     /** Marks actor as player. Cannot unset player.*/
     this.setIsPlayer = function(isPlayer) {
         if (isPlayer) {
