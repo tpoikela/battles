@@ -228,23 +228,33 @@ var RG = { // {{{2
     },
 
     gameDanger: function(msg) {
-        msg = msg[0].toUpperCase() + msg.substring(1);
-        this.POOL.emitEvent(this.EVT_MSG, {msg: msg, style: "danger"});
+        this.emitMsgEvent("danger", msg);
     },
 
     gameMsg: function(msg) {
-        msg = msg[0].toUpperCase() + msg.substring(1);
-        this.POOL.emitEvent(this.EVT_MSG, {msg: msg, style: "prim"});
+        this.emitMsgEvent("prim", msg);
     },
 
     gameSuccess: function(msg) {
-        msg = msg[0].toUpperCase() + msg.substring(1);
-        this.POOL.emitEvent(this.EVT_MSG, {msg: msg, style: "success"});
+        this.emitMsgEvent("success", msg);
     },
 
     gameWarn: function(msg) {
-        msg = msg[0].toUpperCase() + msg.substring(1);
-        this.POOL.emitEvent(this.EVT_MSG, {msg: msg, style: "warn"});
+        this.emitMsgEvent("warn", msg);
+    },
+
+    emitMsgEvent: function(style, msg) {
+        var newMsg = "";
+        if (typeof msg === "object") {
+            var cell = msg.cell;
+            newMsg = msg.msg;
+            this.POOL.emitEvent(this.EVT_MSG, {cell: cell, msg: newMsg, style: style});
+        }
+        else {
+            newMsg = msg[0].toUpperCase() + msg.substring(1);
+            this.POOL.emitEvent(this.EVT_MSG, {msg: newMsg, style: style});
+        }
+
     },
 
     /** Tries to add item2 to item1 stack. Returns true on success.*/
@@ -723,12 +733,17 @@ RG.MessageHandler = function() { // {{{2
     this.notify = function(evtName, msg) {
         if (evtName === RG.EVT_MSG) {
             if (msg.hasOwnProperty("msg")) {
+                var msgObj = {msg: msg.msg, style: "prim"};
+
+                if (msg.hasOwnProperty("cell")) {
+                    msgObj.cell = msg.cell;
+                }
+
                 if (msg.hasOwnProperty("style")) {
-                    _message.push({msg: msg.msg, style: msg.style});
+                    msgObj.style = msg.style;
                 }
-                else {
-                    _message.push({msg: msg.msg, style: "prim"});
-                }
+
+                _message.push(msgObj);
             }
         }
     };

@@ -283,7 +283,9 @@ var BattlesTop = React.createClass({
                         <GamePanel  setViewSize={this.setViewSize} saveGame={this.saveGame}/>
                     </div>
                     <div className="col-md-10 game-messages-div">
-                        <GameMessages message={message}/>
+                        <GameMessages message={message}
+                            visibleCells={this.gameState.visibleCells}
+                        />
                     </div>
                 </div>
                 <div className="row main-contents-div">

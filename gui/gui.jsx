@@ -515,10 +515,17 @@ var GameMessages = React.createClass({
     render: function() {
         var message = this.props.message;
         var styles = this.styleToClassName;
+        var seenCells = this.props.visibleCells;
 
         var msgList = message.map( function(val, index) {
             var className = styles[val.style];
-            return (<span key={index} className={className}>{val.msg}.</span>);
+            var index = 1;
+            if (val.hasOwnProperty("cell")) {
+                index = seenCells.indexOf(val.cell);
+            }
+            if (index >= 0) {
+                return (<span key={index} className={className}>{val.msg}.</span>);
+            }
         });
 
         return (

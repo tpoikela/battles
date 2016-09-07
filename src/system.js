@@ -108,10 +108,12 @@ RG.System.Attack = function(type, compTypes) {
                 if (totalDamage > 0)
                     this.doDamage(_att, _def, totalDamage);
                 else
-                    RG.gameMsg(_att.getName() + " fails to hurt " + _def.getName());
+                    RG.gameMsg({cell: _att.getCell,
+                        msg: _att.getName() + " fails to hurt " + _def.getName()});
             }
             else {
-                RG.gameMsg(_att.getName() + " misses " + _def.getName());
+                RG.gameMsg({cell: _att.getCell(), 
+                    msg: _att.getName() + " misses " + _def.getName()});
             }
             _def.addEnemy(_att);
             ent.remove("Attack");
@@ -122,7 +124,7 @@ RG.System.Attack = function(type, compTypes) {
         var dmgComp = new RG.Component.Damage(dmg, "cut");
         dmgComp.setSource(att);
         def.add("Damage", dmgComp);
-        RG.gameWarn(att.getName() + " hits " + def.getName());
+        RG.gameWarn({cell: att.getCell(), msg: att.getName() + " hits " + def.getName()});
     };
 };
 RG.extend2(RG.System.Attack, RG.System.Base);
