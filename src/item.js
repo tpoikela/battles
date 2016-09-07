@@ -589,7 +589,7 @@ RG.Item.SpiritGem.prototype.toString = function() {
 RG.Item.SpiritGem.prototype.toJSON = function() {
     var json = RG.Item.Base.prototype.toJSON.call(this);
     json.hasSpirit = this.hasSpirit();
-    if (json.hasSpirit) json.spirit = this.getSpirit().toJSON();
+    if (json.hasSpirit) json.setSpirit = this.getSpirit().toJSON();
     return json;
 };
 

@@ -23,6 +23,7 @@ RG.Game.Engine = function() {
     var _msg = new RG.MessageHandler();
     this.getMessages = function() {return _msg.getMessages();};
     this.clearMessages = function() { _msg.clear();};
+    //this.setSeenCells = function(cells) {_msg.setSeenCells(cells);};
 
     //--------------------------------------------------------------
     // ECS SYSTEMS
@@ -706,19 +707,22 @@ RG.Game.Save = function() {
         var player = new RG.Actor.Rogue(obj.name);
         player.setIsPlayer(true);
         player.setType("player");
-        var storedComps = obj.components;
-        for (var name in storedComps) {
-            var comp = storedComps[name];
-            var newCompObj = new RG.Component[name]();
-            for (var fname in comp) {
-                newCompObj[fname](comp[fname]);
-            }
-            player.add(name, newCompObj);
-        }
+        _addCompsToEntity(player, obj.components);
         _createInventory(obj, player);
         _createEquipment(obj, player);
         _dungeonLevel = obj.dungeonLevel;
         return player;
+    };
+
+    var _addCompsToEntity = function(ent, comps) {
+        for (var name in comps) {
+            var comp = comps[name];
+            var newCompObj = new RG.Component[name]();
+            for (var fname in comp) {
+                newCompObj[fname](comp[fname]);
+            }
+            ent.add(name, newCompObj);
+        }
     };
 
     var _createInventory = function(obj, player) {
@@ -746,19 +750,36 @@ RG.Game.Save = function() {
 
     var _createItem = function(obj) {
         var item = obj;
-        var typeCap = item.setType.capitalize();
-        var newObj = new RG.Item[typeCap]();
+        var typeCapitalized = _getItemObjectType(item);
+        var newObj = new RG.Item[typeCapitalized]();
         for (var func in item) {
-            newObj[func](item[func]); // Use setter
+            if (func === "setSpirit") {
+                newObj[func](_createSpirit(item[func]));
+            }
+            else {
+                newObj[func](item[func]); // Use setter
+            }
         }
         return newObj;
 
     };
 
+    var _createSpirit = function(obj) {
+        var newObj = new RG.Actor.Spirit(obj.name);
+        _addCompsToEntity(newObj, obj.components);
+        return newObj;
+    };
+
+
     var _checkStorageValid = function() {
         if (RG.isNullOrUndef([_storageRef])) {
             throw new Error("Game.Save you must setStorage() first.");
         }
+    };
+
+    var _getItemObjectType = function(item) {
+        if (item.setType === "spiritgem") return "SpiritGem";
+        return item.setType.capitalize();
     };
 
 };
