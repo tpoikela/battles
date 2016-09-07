@@ -30,6 +30,8 @@ RG.World.Branch = function() {
     this.getLevels = function() {return _levels;};
     this.getStairsUp = function() {return _stairs;};
     this.getStairsDown = function() {return _stairsDown;};
+
+    /** Stairs leading to other branches.*/
     this.getStairsOther = function() {return _stairsOther;};
 
     /** Returns entrance/exit for the branch.*/
@@ -86,7 +88,7 @@ RG.World.Branch = function() {
 
             // Create stairs down
             if (nl < nLevels-1) {
-                var targetDown = allLevels[nl+1];
+                var targetDown = _levels[nl+1];
                 var stairsDown = new RG.Element.Stairs(true, src, targetDown);
                 stairCell = src.getFreeRandCell();
                 src.addStairs(stairsDown, stairCell.getX(), stairCell.getY());
@@ -95,7 +97,7 @@ RG.World.Branch = function() {
 
             // Create stairs up
             if (nl >= 0) {
-                var targetUp = allLevels[nl-1];
+                var targetUp = _levels[nl-1];
                 var stairsUp = new RG.Element.Stairs(false, src, targetUp);
                 stairCell = src.getFreeRandCell();
                 src.addStairs(stairsUp, stairCell.getX(), stairCell.getY());
@@ -106,9 +108,9 @@ RG.World.Branch = function() {
         // Finally connect the stairs together
         for (nl = 0; nl < nLevels; nl++) {
             if (nl < nLevels-1)
-                allStairsDown[nl].setTargetStairs(allStairsUp[nl+1]);
+                _stairsDown[nl].setTargetStairs(_stairsUp[nl+1]);
             if (nl > 0) // Don't connect first stairs up
-                allStairsUp[nl].setTargetStairs(allStairsDown[nl-1]);
+                _stairsUp[nl].setTargetStairs(_stairsDown[nl-1]);
         }
     };
 
