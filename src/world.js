@@ -57,10 +57,10 @@ RG.World.Branch = function(name) {
      * branch.*/
     this.connectLevelToStairs = function(nLevel, stairs) {
         var level = _levels[nLevel];
-        var srcLevel = stairs.getSrcLevel();
-        if (!RG.isNullOrUndef([srcLevel])) {
+        var otherBranchLevel = stairs.getSrcLevel();
+        if (!RG.isNullOrUndef([otherBranchLevel])) {
             var down = !stairs.isDown();
-            var newStairs = new RG.Element.Stairs(down, level, srcLevel);
+            var newStairs = new RG.Element.Stairs(down, level, otherBranchLevel);
             var cell = level.getFreeRandCell();
             level.addStairs(newStairs, cell.getX(), cell.getY());
             newStairs.setTargetStairs(stairs);
@@ -233,11 +233,47 @@ RG.World.AreaTile = function(x, y, area) {
 
     /* Connect this tile to east and south tiles */
     this.connect = function(eastTile, southTile) {
+        var lastX = this.cols - 1;
+        var lastY = this.rows - 1;
+
+        // Connect to east tile
         if (!RG.isNullOrUndef([eastTile])) {
 
-        }
-        if (!RG.isNullOrUndef([southTile])) {
+            var levelEast = eastTile.getLevel();
+            var map = _level.getMap();
+            var mapEast = levelEast.getMap();
 
+            for (var y = 1; y <= lastY-1; y++) {
+                var cell = map.getCell(lastX, y);
+                var cellEast = mapEast.getCell(0, y);
+
+                if (cell.isFree() && cellEast.isFree()) {
+                    var stairs = new RG.Element.Stairs(true, _level, levelEast);
+                    var stairsEast = new RG.Element.Stairs(false, levelEast, _level);
+                    _level.addStairs(stairs, lastX, y);
+                    levelEast.addStairs(stairsEast, 0, y);
+                }
+            }
+
+        }
+
+        // Connect to south tile
+        if (!RG.isNullOrUndef([southTile])) {
+            var levelSouth = southTile.getLevel();
+            var map = _level.getMap();
+            var mapSouth = levelSouth.getMap();
+
+            for (var x = 1; x <= lastX-1; x++) {
+                var cell = map.getCell(x, lastY);
+                var cellSouth = mapSouth.getCell(x, 0);
+
+                if (cell.isFree() && cellSouth.isFree()) {
+                    var stairs = new RG.Element.Stairs(true, _level, levelSouth);
+                    var stairsSouth = new RG.Element.Stairs(false, levelSouth, _level);
+                    _level.addStairs(stairs, x, lastY);
+                    levelSouth.addStairs(stairsSouth, x, 0);
+                }
+            }
         }
     };
 };
