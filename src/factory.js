@@ -370,7 +370,7 @@ RG.FCCGame = function() {
         var allStairsDown = [];
         var allLevels     = [];
 
-        var branch = new RG.World.Branch();
+        var branch = new RG.World.Branch("StartBranch");
 
         // Generate all game levels
         for (var nl = 0; nl < nLevels; nl++) {
@@ -380,8 +380,6 @@ RG.FCCGame = function() {
             if (nl === 0) levelType = "ruins";
             var level = this.createLevel(levelType, cols, rows);
             branch.addLevel(level);
-
-            game.addLevel(level);
 
             var numFree = level.getMap().getFree().length;
             var monstersPerLevel = Math.round(numFree / sqrPerMonster);
@@ -412,6 +410,7 @@ RG.FCCGame = function() {
         townLevel.setLevelNumber(levelCount++);
 
         branch.connectLevels();
+        game.addPlace(branch);
 
         var finalStairs = new RG.Element.Stairs(true, allLevels[nLevels-1], townLevel);
         var stairsLoot = new RG.Component.Loot(finalStairs);
@@ -446,7 +445,7 @@ RG.FCCGame = function() {
                 allLevels[0].addActorToFreeCell(player);
             }
         }
-        game.addPlayer(player);
+        game.addPlayer(player, {place: "StartBranch"});
 
         return game;
 
