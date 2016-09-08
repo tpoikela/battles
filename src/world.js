@@ -12,7 +12,10 @@ RG.World = {};
 /** Branch, as name suggests, is a branch of dungeon. A branch is linear
  * progression of connected levels (usually with increasing difficulty). Branch can have
  * entry points to other branches (or out of the dungeon). */
-RG.World.Branch = function() {
+RG.World.Branch = function(name) {
+
+    var _name = name;
+    this.getName = function() {return _name;};
 
     var _levels = [];
 
@@ -117,13 +120,42 @@ RG.World.Branch = function() {
 };
 
 /** Dungeons is a collection of branches.*/
-RG.World.Dungeon = function() {
+RG.World.Dungeon = function(name) {
+
+    var _name = name;
+    this.getName = function() {return _name;};
 
     var _branches = [];
 
+    /** Returns true if the dungeon has given branch.*/
+    this.hasBranch = function(branch) {
+        var index = _branches.indexOf(branch);
+        return index >= 0;
+    };
+
+    this.addBranch = function(branch) {
+        if (!this.hasBranch(branch)) {
+            _branches.push(branch);
+            return true;
+        }
+        return false;
+    };
+
+    this.getLevels = function() {
+        var res = [];
+        for (var i = 0; i < _branches.length; i++) {
+            res = res.concat(_branches[i].getLevels());
+        }
+        return res;
+    };
+
     /** Returns all entrances/exits for the dungeon.*/
     this.getEntrances = function() {
-
+        var res = [];
+        for (var i = 0; i < _branches.length; i++) {
+            res.push(_branches[i].getEntrance());
+        }
+        return res;
     };
 
 };
@@ -175,7 +207,10 @@ RG.World.AreaTile = function(x, y, area) {
  * Moving between tiles of areas happens by travelling to the edges of a tile.
  * Each tile is a level with special edge tiles.
  * */
-RG.World.Area = function(maxX, maxY) {
+RG.World.Area = function(name, maxX, maxY) {
+
+    var _name = name;
+    this.getName = function() {return _name;};
 
     var _maxX = maxX;
     var _maxY = maxY;
@@ -184,12 +219,32 @@ RG.World.Area = function(maxX, maxY) {
     this.getMaxX = function() {return _maxX;};
     this.getMaxY = function() {return _maxY;};
 
+    this.getLevels = function() {
+        var res = [];
+        for (var x = 0; x < _tiles.length; x++) {
+            for (var y = 0; y < _tiles[y].length; y++) {
+                res.push(_tiles[x][y].getLevels());
+            }
+        }
+        return res;
+    };
+
 };
 
+/** Factory object for creating worlds and features. */
 RG.World.Factory = function() {
 
+    this.createArea = function(conf) {
+
+    };
+
+    this.createDungeon = function(conf) {
+
+    };
+
 };
 
+/** Largest place structure. Contains a number of area and dungeons. */
 RG.World.World = function(conf) {
 
     var _fact = new RG.World.Factory();
@@ -208,6 +263,7 @@ RG.World.World = function(conf) {
     }
 
 };
+
 
 
 if (typeof module !== "undefined" && typeof exports !== "undefined") {
