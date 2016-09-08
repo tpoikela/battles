@@ -32,10 +32,29 @@ describe('World.Branch', function() {
     });
 });
 
+var addLevelsToBranch = function(br, nLevels) {
+    for (var i = 0; i < nLevels; i++) {
+        var level = RG.FACT.createLevel("arena", 20, 20);
+        br.addLevel(level);
+    }
+    br.connectLevels();
+};
 
 describe('World.Dungeon', function() {
     it('Contains a number of connected branches', function() {
         var dungeon = new World.Dungeon("DarkDungeon");
+
+        var branches = [];
+        for (var i = 0; i < 4; i++) {
+            var branch = new World.Branch("branch" + i);
+            addLevelsToBranch(branch, i+2);
+            dungeon.addBranch(branch);
+            branches.push(branch);
+        }
+        expect(branches[0].getDungeon()).to.equal(dungeon);
+
+        dungeon.connectBranches(branches[0], branches[1], 1, 2);
+
     });
 });
 
