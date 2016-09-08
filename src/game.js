@@ -197,9 +197,18 @@ RG.Game.Engine = function() {
         return _levelMap.hasOwnProperty(level.getID())
     };
 
+    /** Adds one level to the game database.*/
     this.addLevel = function(level) {
-        _levelMap[level.getID()] = level;
+        var id = level.getID();
+        if (!_levelMap.hasOwnProperty(id)) {
+            _levelMap[level.getID()] = level;
+        }
+        else {
+            RG.err("Game.Main", "addLevel", 
+                "Level ID " + id + " already exists!");
+        }
     };
+
 
     /** Sets which levels are actively simulated.*/
     this.addActiveLevel = function(level) {
@@ -331,10 +340,11 @@ RG.Game.Engine = function() {
 /** Top-level main object for the game.  */
 RG.Game.Main = function() {
 
-    var _players      = [];
-    var _levels       = [];
-    var _shownLevel   = null; // One per game only
-    var _gameOver     = false;
+    var _players    = [];   // List of players
+    var _levels     = [];   // List of all levels
+    var _places     = {};   // List of all places
+    var _shownLevel = null; // One per game only
+    var _gameOver   = false;
 
     var _eventPool = new RG.EventPool();
     RG.resetEventPools();
@@ -370,26 +380,24 @@ RG.Game.Main = function() {
             return _players;
         }
         else {
-            RG.err("Engine", "getPlayer", "There are no players in the game.");
+            RG.err("Game.Main", "getPlayer", "There are no players in the game.");
             return null;
         }
     };
 
     /** Adds player to the game. By default, it's added to the first level if
      * player has no level yet.*/
-    this.addPlayer = function(player) {
+    this.addPlayer = function(player, obj) {
         var levelOK = false;
         if (!RG.isNullOrUndef([player.getLevel()])) {
             levelOK = true;
         }
         else {
-            if (_levels.length > 0) {
-                levelOK =_levels[0].addActorToFreeCell(player);
-                if (!levelOK)
-                    RG.err("Game", "addPlayer", "Failed to add the player.");
+            if (RG.isNullOrUndef([obj])) {
+                levelOK = _addPlayerToFirstLevel(player, _levels);
             }
             else {
-                RG.err("Game", "addPlayer", "No levels exist. Cannot add player.");
+                levelOK = _addPlayerToPlace(player, obj);
             }
         }
 
@@ -404,6 +412,39 @@ RG.Game.Main = function() {
         }
 
         return levelOK;
+    };
+
+    var _addPlayerToFirstLevel = function(player, levels) {
+        var levelOK = false;
+        if (levels.length > 0) {
+            levelOK = levels[0].addActorToFreeCell(player);
+            if (!levelOK)
+                RG.err("Game", "addPlayer", "Failed to add the player.");
+        }
+        else {
+            RG.err("Game", "addPlayer", "No levels exist. Cannot add player.");
+        }
+        return levelOK;
+    };
+
+    /** Adds player to the first found level of given place. Name of place must be
+     * specified as obj.place */
+    var _addPlayerToPlace = function(player, obj) {
+        if (obj.hasOwnProperty("place")) {
+            var place = obj.place;
+            if (_places.hasOwnProperty(place)) {
+                var levels = _places[place];
+                return _addPlayerToFirstLevel(player, levels);
+            }
+            else {
+                RG.err("Game.Main", "_addPlayerToPlace", 
+                    "No place |" + place + "| found.");
+            }
+        }
+        else {
+            RG.err("Game.Main", "_addPlayerToPlace", "obj.place must exist.");
+        }
+        return false;
     };
 
     this.getMessages = function() {return _engine.getMessages();};
@@ -422,15 +463,36 @@ RG.Game.Main = function() {
 
     /** Adds one level to the game.*/
     this.addLevel = function(level) {
-        _levels.push(level);
         if (!_engine.hasLevel(level)) {
+            _levels.push(level);
             _engine.addLevel(level);
         }
         else {
             RG.err("Game", "addLevel", "Duplicate level ID " + level.getID());
         }
-        //if (_engine.numActiveLevels() === 0) this.addActiveLevel(level);
     };
+
+    /** Adds a place (dungeon/area) containing several levels.*/
+    this.addPlace = function(place) {
+        if (place.hasOwnProperty("getLevels")) {
+            var name = place.getName();
+            if (!_places.hasOwnProperty(name) ) {
+                var levels = place.getLevels();
+                for (var i = 0; i < levels.length; i++) {
+                    this.addLevel(levels[i]);
+                }
+                _places[name] = levels;
+            }
+            else {
+                RG.err("Game.Main", "addPlace", "A place |" + name + "| exists.");
+            }
+        }
+        else {
+            RG.err("Game.Main", "addPlace", 
+                "Added place must have getLevels()");
+        }
+    };
+
 
     /* Returns the visible map to be rendered by GUI. */
     this.getVisibleMap = function() {
