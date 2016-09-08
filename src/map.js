@@ -303,6 +303,22 @@ RG.Map.CellList = function(cols, rows) { //{{{2
         return false;
     };
 
+    this.debugPrintInASCII = function() {
+        var mapInASCII = "";
+        for (var y = 0; y < this.rows; y++) {
+            var row = "";
+            for (var x = 0; x < this.cols; x++) {
+                var cell = map[x][y];
+                if (cell.getStairs() !== null) row += ">";
+                else if (cell.getBaseElem().getType()  === "floor") row += ".";
+                else row += "#";
+            }
+            mapInASCII += row + "\n";
+        }
+        console.log(mapInASCII);
+    };
+
+
 }; // }}} Map
 
 /** Map generator for the roguelike game.  */
@@ -544,6 +560,10 @@ RG.Map.Level = function(cols, rows) { // {{{2
 
     /** Given a level, returns stairs which lead to that level.*/
     this.getStairs = function(level) {
+        if (RG.isNullOrUndef([level])) {
+            RG.err("Map.Level", "getStairs", "arg |level| required.");
+        }
+
         for (var i = 0; i < _p.stairs.length; i++) {
             if (_p.stairs[i].getTargetLevel() === level) {
                 return _p.stairs[i];
