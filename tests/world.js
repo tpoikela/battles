@@ -35,22 +35,30 @@ describe('World.Branch', function() {
 
 describe('World.Dungeon', function() {
     it('Contains a number of connected branches', function() {
+        var dungeon = new World.Dungeon("DarkDungeon");
     });
 });
 
 describe('World.AreaTile', function() {
     it('Contains a level and connects from sides to other tiles', function() {
+        var areaTile = new World.AreaTile();
     });
 });
 
 
 describe('World.Area', function() {
     it('Contains a number of connected tiles', function() {
+        var area = new World.Area();
     });
 });
 
 
 describe('World.World', function() {
     it('Contains a number of dungeon and areas', function() {
+        var conf = {
+            nAreas: 2,
+            nDungeons: 3,
+        };
+        var world = new World.World(conf);
     });
 });
