@@ -60,7 +60,37 @@ describe('World.Dungeon', function() {
 
 describe('World.AreaTile', function() {
     it('Contains a level and connects from sides to other tiles', function() {
-        var areaTile = new World.AreaTile();
+        var testArea = new World.Area("TestArea", 1, 1);
+        var areaTile = new World.AreaTile(0, 0, testArea);
+        var tileLevel = RG.FACT.createLevel("arena", 20, 20);
+        areaTile.setLevel(tileLevel);
+        expect(areaTile.isNorthEdge()).to.equal(true);
+        expect(areaTile.isSouthEdge()).to.equal(true);
+        expect(areaTile.isEastEdge()).to.equal(true);
+        expect(areaTile.isWestEdge()).to.equal(true);
+        expect(areaTile.cols).to.equal(20);
+
+        testArea = new World.Area("TestArea", 3, 3);
+        var t1_1 = new World.AreaTile(1, 1, testArea);
+        var l1_1 = RG.FACT.createLevel("arena", 20, 20);
+        t1_1.setLevel(l1_1);
+        expect(t1_1.isNorthEdge()).to.equal(false);
+        expect(t1_1.isSouthEdge()).to.equal(false);
+        expect(t1_1.isWestEdge()).to.equal(false);
+        expect(t1_1.isEastEdge()).to.equal(false);
+
+        // Create 2 more tiles, and test connect()
+        var t2_1 = new World.AreaTile(2, 1, testArea);
+        var l2_1 = RG.FACT.createLevel("arena", 20, 20);
+        t2_1.setLevel(l2_1);
+        var t1_2 = new World.AreaTile(1, 2, testArea);
+        var l1_2 = RG.FACT.createLevel("arena", 20, 20);
+        t1_2.setLevel(l1_2);
+        t1_1.connect(t2_1, t1_2);
+        var levels = [l1_1, l1_2, l2_1];
+        for (var i = 0; i < levels.length; i++) {
+            expect(levels[i].getStairs() === null).to.equal(false);
+        }
     });
 });
 
