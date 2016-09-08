@@ -212,6 +212,8 @@ RG.World.AreaTile = function(x, y, area) {
     };
 
     this.getLevel = function() {return _level;};
+
+    this.getLevel = function() {return _level;};
     this.getTileX = function() {return _x;};
     this.getTileY = function() {return _y;};
 
@@ -231,7 +233,12 @@ RG.World.AreaTile = function(x, y, area) {
 
     /* Connect this tile to east and south tiles */
     this.connect = function(eastTile, southTile) {
+        if (!RG.isNullOrUndef([eastTile])) {
 
+        }
+        if (!RG.isNullOrUndef([southTile])) {
+
+        }
     };
 };
 
@@ -255,7 +262,7 @@ RG.World.Area = function(name, maxX, maxY) {
         var res = [];
         for (var x = 0; x < _tiles.length; x++) {
             for (var y = 0; y < _tiles[y].length; y++) {
-                res.push(_tiles[x][y].getLevels());
+                res.push(_tiles[x][y].getLevel());
             }
         }
         return res;
