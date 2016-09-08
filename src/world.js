@@ -57,12 +57,19 @@ RG.World.Branch = function(name) {
      * branch.*/
     this.connectLevelToStairs = function(nLevel, stairs) {
         var level = _levels[nLevel];
-        var down = !stairs.isDown();
-        var newStairs = new RG.Element.Stairs(down, src, targetDown);
-        var cell = level.getFreeRandCell();
-        level.addStairs(newStairs, cell.getX(), cell.getY());
-        newStairs.setTargetStairs(stairs);
-        _stairsOther.push(newStairs);
+        var srcLevel = stairs.getSrcLevel();
+        if (!RG.isNullOrUndef([srcLevel])) {
+            var down = !stairs.isDown();
+            var newStairs = new RG.Element.Stairs(down, level, srcLevel);
+            var cell = level.getFreeRandCell();
+            level.addStairs(newStairs, cell.getX(), cell.getY());
+            newStairs.setTargetStairs(stairs);
+            _stairsOther.push(newStairs);
+        }
+        else {
+            RG.err("World.Branch", "connectLevelToStairs",
+                "Stairs must be first connected to other level.");
+        }
     };
 
     this.hasLevel = function(level) {
@@ -136,6 +143,7 @@ RG.World.Dungeon = function(name) {
     this.addBranch = function(branch) {
         if (!this.hasBranch(branch)) {
             _branches.push(branch);
+            branch.setDungeon(this);
             return true;
         }
         return false;
@@ -156,6 +164,30 @@ RG.World.Dungeon = function(name) {
             res.push(_branches[i].getEntrance());
         }
         return res;
+    };
+
+    /** Connects two branches b1 and b2 together from specified levels l1 and l2.
+     * */
+    this.connectBranches = function(b1, b2, l1, l2) {
+        if (this.hasBranch(b1) && this.hasBranch(b2)) {
+            var down = true;
+            if (l1 > l2) down = false;
+            var stairs = new RG.Element.Stairs(down);
+            var b2Levels = b2.getLevels();
+            if (l2 < b2Levels.length) {
+                var cell = b2Levels[l2].getFreeRandCell();
+                b2Levels[l2].addStairs(stairs, cell.getX(), cell.getY());
+                b1.connectLevelToStairs(l1, stairs);
+            }
+            else {
+                RG.err("World.Dungeon", "connectBranches",
+                    "Level " + l2 + " doesn't exist in branch " + b2.getName());
+            }
+        }
+        else {
+            RG.err("World.Dungeon", "connectBranches",
+                "Branches must be added to dungeon before connection.");
+        }
     };
 
 };
@@ -247,20 +279,31 @@ RG.World.Factory = function() {
 /** Largest place structure. Contains a number of area and dungeons. */
 RG.World.World = function(conf) {
 
+    if (RG.isNullOrUndef([conf])) {
+        RG.err("World.World", "", "No configuration given.");
+        return;
+    }
+
     var _fact = new RG.World.Factory();
 
     var _areas = [];
     var _dungeons = [];
+
+
+    var nAreas = conf.nAreas;
+    var nDungeons = conf.nDungeons;
 
     for (var i = 0; i < nAreas; i++) {
         var area = _fact.createArea(conf);
         _areas.push(area);
     }
 
-    for (var j = 0; j < nAreas; j++) {
+    for (var j = 0; j < nDungeons; j++) {
         var dungeon = _fact.createDungeon(conf);
-        _dungeons.push(area);
+        _dungeons.push(dungeon);
     }
+
+    // Connect areas and dungeons
 
 };
 
