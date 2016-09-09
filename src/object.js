@@ -152,11 +152,6 @@ RG.Object.Locatable = function() { // {{{2
     this._y = null;
     this._level = null;
 
-    /** Simple getters/setters for coordinates.*/
-    this.setXY = function(x,y) {
-        this._x = x;
-        this._y = y;
-    };
 
 }; // }}} Object.Locatable
 RG.extend2(RG.Object.Locatable, RG.Object.Typed);
@@ -171,6 +166,11 @@ RG.extend2(RG.Object.Locatable, RG.Object.Typed);
     RG.Object.Locatable.prototype.getXY = function() { return [this._x, this._y];};
 
 
+    /** Simple getters/setters for coordinates.*/
+    RG.Object.Locatable.prototype.setXY = function(x,y) {
+        this._x = x;
+        this._y = y;
+    };
 
 /** Sets the level of this locatable object.*/
 RG.Object.Locatable.prototype.setLevel = function(level) {

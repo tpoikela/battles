@@ -681,7 +681,7 @@ RG.Map.Level = function(cols, rows) { // {{{2
     this._addPropToLevelXY = function(propType, obj, x, y) {
         if (_p.hasOwnProperty(propType)) {
             _p[propType].push(obj);
-            if (obj.hasOwnProperty("setXY")) {
+            if (!obj.hasOwnProperty("getOwner")) {
                 obj.setXY(x,y);
                 obj.setLevel(this);
             }
