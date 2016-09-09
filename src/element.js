@@ -16,12 +16,13 @@ RG.Element.Base = function(elemType) { // {{{2
     RG.Object.Locatable.call(this);
     this.setPropType("elements");
     this.setType(elemType);
-
-    this.isPassable = function() {
-        return this.getType() !== "wall";
-    };
 };
 RG.extend2(RG.Element.Base, RG.Object.Locatable);
+
+RG.Element.Base.prototype.isPassable = function() {
+    return this.getType() !== "wall";
+};
+
 // }}} Element
 
 /** Object models stairs connecting two levels. Stairs are one-way, thus

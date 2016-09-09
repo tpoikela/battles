@@ -11,160 +11,161 @@ RG.Map = {};
  * elements. */
 RG.Map.Cell = function(x, y, elem) { // {{{2
 
-    var _baseElem = elem;
-    var _x   = x;
-    var _y   = y;
-    var _explored = false;
+    this._baseElem = elem;
+    this._x   = x;
+    this._y   = y;
+    this._explored = false;
 
     // Cell can have different properties
-    var _p = {
+    this._p = {
         items: [],
         actors   : [],
         elements : [],
         traps    : [],
     };
 
-    this.getX = function() {return _x;};
-    this.getY = function() {return _y;};
+
+
+}; // }}} Map.Cell
+
+RG.Map.Cell.prototype.getX = function() {return this._x;};
+RG.Map.Cell.prototype.getY = function() {return this._y;};
 
     /** Sets/gets the base element for this cell. There can be only one element.*/
-    this.setBaseElem = function(elem) { _baseElem = elem; };
-    this.getBaseElem = function() { return _baseElem; };
-
-    /** Returns true if it's possible to move to this cell.*/
-    this.isFree = function() {
-        if (this.hasProp("actors")) {
-            for (var i = 0; i < _p.actors.length; i++) {
-                if (!_p.actors[i].has("Ethereal")) return false;
-            }
-            return true;
-        }
-        return _baseElem.isPassable();
-    };
-
-    /** Add given obj has specified property.*/
-    this.setProp = function(prop, obj) {
-        if (_p.hasOwnProperty(prop)) {
-            _p[prop].push(obj);
-            if (obj.hasOwnProperty("setOwner")) {
-                obj.setOwner(this);
-            }
-        }
-        else {
-            RG.err("Map.Cell", "setProp", "No property " + prop);
-        }
-    };
-
-    /** Removes the given object from cell properties.*/
-    this.removeProp = function(prop, obj) {
-        if (this.hasProp(prop)) {
-            var props = _p[prop];
-            var index = props.indexOf(obj);
-            if (index === -1) return false;
-            _p[prop].splice(index, 1);
-            return true;
-        }
-        return false;
-    };
-
-    /** Returns true if the cell has props of given type.*/
-    this.hasProp = function(prop) {
-        if (_p.hasOwnProperty(prop)) {
-            return _p[prop].length > 0;
-        }
-        return false;
-    };
+RG.Map.Cell.prototype.setBaseElem = function(elem) { this._baseElem = elem; };
+RG.Map.Cell.prototype.getBaseElem = function() { return this._baseElem; };
 
     /** Returns true if cell has any actors.*/
-    this.hasActors = function() {return this.hasProp("actors");};
+RG.Map.Cell.prototype.hasActors = function() {return this.hasProp("actors");};
 
     /** Returns true if cell has stairs.*/
-    this.hasStairs = function() {
+RG.Map.Cell.prototype.hasStairs = function() {
         return this.hasPropType("stairsUp") || this.hasPropType("stairsDown");
     };
 
     /** Return stairs in this cell, or null if there are none.*/
-    this.getStairs = function() {
+RG.Map.Cell.prototype.getStairs = function() {
         if (this.hasPropType("stairsUp")) return this.getPropType("stairsUp")[0];
         if (this.hasPropType("stairsDown")) return this.getPropType("stairsDown")[0];
         return null;
     };
 
-    /** Returns true if any cell property has the given type. Ie.
-     * myCell.hasPropType("wall"). Doesn't check for basic props like "actors",
-     * RG.TYPE_ITEM etc.
-     */
-    this.hasPropType = function(propType) {
-        if (_baseElem.getType() === propType) return true;
-
-        for (var prop in _p) {
-            var arrProps = _p[prop];
-            for (var i = 0; i < arrProps.length; i++) {
-                if (arrProps[i].getType() === propType) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    };
-
-    /** Returns all props with given type in the cell.*/
-    this.getPropType = function(propType) {
-        var props = [];
-        if (_baseElem.getType() === propType) return [_baseElem];
-        for (var prop in _p) {
-            var arrProps = _p[prop];
-            for (var i = 0; i < arrProps.length; i++) {
-                if (arrProps[i].getType() === propType) {
-                    props.push(arrProps[i]);
-                }
-            }
-        }
-        return props;
-    };
-
-    this.getProp = function(prop) {
-        if (_p.hasOwnProperty(prop)) {
-            return _p[prop];
-        }
-        return null;
-    };
 
     /** Returns true if light passes through this map cell.*/
-    this.lightPasses = function() {
-        if (_baseElem.getType() === "wall") return false;
+RG.Map.Cell.prototype.lightPasses = function() {
+    if (this._baseElem.getType() === "wall") return false;
+    return true;
+};
+
+RG.Map.Cell.prototype.isPassable = function() {return this.isFree();};
+
+RG.Map.Cell.prototype.setExplored = function() {this._explored = true;};
+
+RG.Map.Cell.prototype.isExplored = function() {return this._explored;};
+
+/** Returns true if it's possible to move to this cell.*/
+RG.Map.Cell.prototype.isFree = function() {
+    if (this.hasProp("actors")) {
+        for (var i = 0; i < this._p.actors.length; i++) {
+            if (!this._p.actors[i].has("Ethereal")) return false;
+        }
         return true;
-    };
+    }
+    return this._baseElem.isPassable();
+};
 
-    this.isPassable = function() {
-        return this.isFree();
-    };
+/** Add given obj has specified property.*/
+RG.Map.Cell.prototype.setProp = function(prop, obj) {
+    //if (!this._p.hasOwnProperty(prop)) this._p[prop] = [];
+    if (this._p.hasOwnProperty(prop)) {
+        this._p[prop].push(obj);
+        if (obj.hasOwnProperty("setOwner")) {
+            obj.setOwner(this);
+        }
+    }
+    else {
+        RG.err("Map.Cell", "setProp", "No property " + prop);
+    }
+};
 
-    this.setExplored = function() {
-        _explored = true;
-    };
+/** Removes the given object from cell properties.*/
+RG.Map.Cell.prototype.removeProp = function(prop, obj) {
+    if (this.hasProp(prop)) {
+        var props = this._p[prop];
+        var index = props.indexOf(obj);
+        if (index === -1) return false;
+        this._p[prop].splice(index, 1);
+        //if (this._p[prop].length === 0) {
+            //delete this._p[prop];
+        //}
+        return true;
+    }
+    return false;
+};
 
-    this.isExplored = function() {
-        return _explored;
-    };
+/** Returns true if the cell has props of given type.*/
+RG.Map.Cell.prototype.hasProp = function(prop) {
+    if (this._p.hasOwnProperty(prop)) {
+        return this._p[prop].length > 0;
+    }
+    return false;
+};
 
-    /** Returns string representation of the cell.*/
-    this.toString = function() {
-        var str = "Map.Cell " + _x + ", " + _y;
-        str += " explored: " + _explored;
-        str += " passes light: " + this.lightPasses();
-        for (var prop in _p) {
-            var arrProps = _p[prop];
-            for (var i = 0; i < arrProps.length; i++) {
-                if (arrProps[i].hasOwnProperty("toString")) {
-                    str += arrProps[i].toString();
-                }
+/** Returns string representation of the cell.*/
+RG.Map.Cell.prototype.toString = function() {
+    var str = "Map.Cell " + this._x + ", " + this._y;
+    str += " explored: " + this._explored;
+    str += " passes light: " + this.lightPasses();
+    for (var prop in this._p) {
+        var arrProps = this._p[prop];
+        for (var i = 0; i < arrProps.length; i++) {
+            if (arrProps[i].hasOwnProperty("toString")) {
+                str += arrProps[i].toString();
             }
         }
-        return str;
-    };
+    }
+    return str;
+};
 
-}; // }}} Map.Cell
+/** Returns true if any cell property has the given type. Ie.
+ * myCell.hasPropType("wall"). Doesn't check for basic props like "actors",
+ * RG.TYPE_ITEM etc.
+ */
+RG.Map.Cell.prototype.hasPropType = function(propType) {
+    if (this._baseElem.getType() === propType) return true;
+
+    for (var prop in this._p) {
+        var arrProps = this._p[prop];
+        for (var i = 0; i < arrProps.length; i++) {
+            if (arrProps[i].getType() === propType) {
+                return true;
+            }
+        }
+    }
+    return false;
+};
+
+/** Returns all props with given type in the cell.*/
+RG.Map.Cell.prototype.getPropType = function(propType) {
+    var props = [];
+    if (this._baseElem.getType() === propType) return [this._baseElem];
+    for (var prop in this._p) {
+        var arrProps = this._p[prop];
+        for (var i = 0; i < arrProps.length; i++) {
+            if (arrProps[i].getType() === propType) {
+                props.push(arrProps[i]);
+            }
+        }
+    }
+    return props;
+};
+
+RG.Map.Cell.prototype.getProp = function(prop) {
+    if (this._p.hasOwnProperty(prop)) {
+        return this._p[prop];
+    }
+    return null;
+};
 
 /** Map object which contains a number of cells. A map is used for rendering
  * while the level contains actual information about game elements such as

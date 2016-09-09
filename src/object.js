@@ -119,30 +119,29 @@ RG.Object.Damage.prototype.toJSON = function() {
 
 /** Typed objects should inherit from this. */
 RG.Object.Typed = function(propType, type) {
+    this.type = type;
+    this._propType = propType;
 
-    var _type = type;
-    var _propType = propType;
+    this.getPropType = function() {return this._propType;};
+};
 
-    this.setPropType = function(propType) {
-        var index = RG.PROP_TYPES.indexOf(propType);
-        if (index >= 0) {
-            _propType = propType;
-        }
-        else {
-            RG.err("Object.Typed", "setPropType",
-                "Unknown prop type: |" + propType + "|");
-        }
-    };
+RG.Object.Typed.prototype.getType = function() {return this.type;};
 
-    this.getPropType = function() {return _propType;};
+RG.Object.Typed.prototype.setPropType = function(propType) {
+    var index = RG.PROP_TYPES.indexOf(propType);
+    if (index >= 0) {
+        this._propType = propType;
+    }
+    else {
+        RG.err("Object.Typed", "setPropType",
+            "Unknown prop type: |" + propType + "|");
+    }
+};
 
-    this.setType = function(type) {
-        _type = type;
-        RG.nullOrUndefError("Object.Typed: setType", "arg |type|", type);
-    };
 
-    this.getType = function() {return _type;};
-
+RG.Object.Typed.prototype.setType = function(type) {
+    this.type = type;
+    RG.nullOrUndefError("Object.Typed: setType", "arg |type|", type);
 };
 
 
