@@ -498,7 +498,7 @@ RG.Component.Loot = function(lootEntity) {
 
     /** Drops the loot to the given cell.*/
     this.dropLoot = function(cell) {
-        if (_lootEntity.hasOwnProperty("getPropType")) {
+        if (_lootEntity.hasOwnProperty("_propType")) {
             var propType = _lootEntity.getPropType();
             if (propType === "elements") {
                 this.setElemToCell(cell);
