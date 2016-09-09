@@ -122,9 +122,9 @@ RG.Object.Typed = function(propType, type) {
     this.type = type;
     this._propType = propType;
 
-    this.getPropType = function() {return this._propType;};
 };
 
+    RG.Object.Typed.prototype.getPropType = function() {return this._propType;};
 RG.Object.Typed.prototype.getType = function() {return this.type;};
 
 RG.Object.Typed.prototype.setPropType = function(propType) {
