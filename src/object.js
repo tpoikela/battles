@@ -148,40 +148,40 @@ RG.Object.Typed.prototype.setType = function(type) {
 /** This object is used by all locatable objects in the game.  */
 RG.Object.Locatable = function() { // {{{2
     RG.Object.Typed.call(this, null);
-    var _x = null;
-    var _y = null;
-    var _level = null;
+    this._x = null;
+    this._y = null;
+    this._level = null;
 
     /** Simple getters/setters for coordinates.*/
-    this.setX = function(x) {_x = x; };
-    this.setY = function(y) {_y = y; };
-    this.getX = function() {return _x;};
-    this.getY = function() {return _y;};
-    this.getXY = function() { return [_x, _y];};
+    this.setX = function(x) {this._x = x; };
+    this.setY = function(y) {this._y = y; };
+    this.getX = function() {return this._x;};
+    this.getY = function() {return this._y;};
+    this.getXY = function() { return [this._x, this._y];};
     this.setXY = function(x,y) {
-        _x = x;
-        _y = y;
+        this._x = x;
+        this._y = y;
     };
     /** Sets the level of this locatable object.*/
     this.setLevel = function(level) {
-        _level = level;
+        this._level = level;
         RG.nullOrUndefError("Object.Locatable: setLevel", "arg |level|", level);
     };
 
     this.getLevel = function() {
-        return _level;
+        return this._level;
     };
 
     /** Returns true if object is located at a position on a level.*/
     this.isLocated = function() {
-        return (_x !== null) && (_y !== null) && (_level !== null);
+        return (this._x !== null) && (this._y !== null) && (this._level !== null);
     };
 
     /** Returns true if locatables are in same position.*/
     this.isSamePos = function(obj) {
-        if (_x !== obj.getX()) return false;
-        if (_y !== obj.getY()) return false;
-        if (_level !== obj.getLevel()) return false;
+        if (this._x !== obj.getX()) return false;
+        if (this._y !== obj.getY()) return false;
+        if (this._level !== obj.getLevel()) return false;
         return true;
     };
 
