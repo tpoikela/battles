@@ -16,34 +16,26 @@ RG.Map.Cell = function(x, y, elem) { // {{{2
     this._y   = y;
     this._explored = false;
 
-    // Cell can have different properties
-    this._p = {
-        items: [],
-        actors   : [],
-        elements : [],
-        traps    : [],
-    };
-
-
+    this._p = {}; // Cell properties are assigned here
 
 }; // }}} Map.Cell
 
 RG.Map.Cell.prototype.getX = function() {return this._x;};
 RG.Map.Cell.prototype.getY = function() {return this._y;};
 
-    /** Sets/gets the base element for this cell. There can be only one element.*/
+/** Sets/gets the base element for this cell. There can be only one element.*/
 RG.Map.Cell.prototype.setBaseElem = function(elem) { this._baseElem = elem; };
 RG.Map.Cell.prototype.getBaseElem = function() { return this._baseElem; };
 
-    /** Returns true if cell has any actors.*/
+/** Returns true if cell has any actors.*/
 RG.Map.Cell.prototype.hasActors = function() {return this.hasProp("actors");};
 
-    /** Returns true if cell has stairs.*/
+/** Returns true if cell has stairs.*/
 RG.Map.Cell.prototype.hasStairs = function() {
         return this.hasPropType("stairsUp") || this.hasPropType("stairsDown");
     };
 
-    /** Return stairs in this cell, or null if there are none.*/
+/** Return stairs in this cell, or null if there are none.*/
 RG.Map.Cell.prototype.getStairs = function() {
         if (this.hasPropType("stairsUp")) return this.getPropType("stairsUp")[0];
         if (this.hasPropType("stairsDown")) return this.getPropType("stairsDown")[0];
@@ -51,7 +43,7 @@ RG.Map.Cell.prototype.getStairs = function() {
     };
 
 
-    /** Returns true if light passes through this map cell.*/
+/** Returns true if light passes through this map cell.*/
 RG.Map.Cell.prototype.lightPasses = function() {
     if (this._baseElem.getType() === "wall") return false;
     return true;
@@ -76,7 +68,7 @@ RG.Map.Cell.prototype.isFree = function() {
 
 /** Add given obj has specified property.*/
 RG.Map.Cell.prototype.setProp = function(prop, obj) {
-    //if (!this._p.hasOwnProperty(prop)) this._p[prop] = [];
+    if (!this._p.hasOwnProperty(prop)) this._p[prop] = [];
     if (this._p.hasOwnProperty(prop)) {
         this._p[prop].push(obj);
         if (obj.hasOwnProperty("setOwner")) {
@@ -95,9 +87,9 @@ RG.Map.Cell.prototype.removeProp = function(prop, obj) {
         var index = props.indexOf(obj);
         if (index === -1) return false;
         this._p[prop].splice(index, 1);
-        //if (this._p[prop].length === 0) {
-            //delete this._p[prop];
-        //}
+        if (this._p[prop].length === 0) {
+            delete this._p[prop];
+        }
         return true;
     }
     return false;
@@ -105,10 +97,7 @@ RG.Map.Cell.prototype.removeProp = function(prop, obj) {
 
 /** Returns true if the cell has props of given type.*/
 RG.Map.Cell.prototype.hasProp = function(prop) {
-    if (this._p.hasOwnProperty(prop)) {
-        return this._p[prop].length > 0;
-    }
-    return false;
+    return this._p.hasOwnProperty(prop);
 };
 
 /** Returns string representation of the cell.*/
