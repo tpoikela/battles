@@ -153,40 +153,47 @@ RG.Object.Locatable = function() { // {{{2
     this._level = null;
 
     /** Simple getters/setters for coordinates.*/
-    this.setX = function(x) {this._x = x; };
-    this.setY = function(y) {this._y = y; };
-    this.getX = function() {return this._x;};
-    this.getY = function() {return this._y;};
-    this.getXY = function() { return [this._x, this._y];};
     this.setXY = function(x,y) {
         this._x = x;
         this._y = y;
     };
-    /** Sets the level of this locatable object.*/
-    this.setLevel = function(level) {
-        this._level = level;
-        RG.nullOrUndefError("Object.Locatable: setLevel", "arg |level|", level);
-    };
-
-    this.getLevel = function() {
-        return this._level;
-    };
-
-    /** Returns true if object is located at a position on a level.*/
-    this.isLocated = function() {
-        return (this._x !== null) && (this._y !== null) && (this._level !== null);
-    };
-
-    /** Returns true if locatables are in same position.*/
-    this.isSamePos = function(obj) {
-        if (this._x !== obj.getX()) return false;
-        if (this._y !== obj.getY()) return false;
-        if (this._level !== obj.getLevel()) return false;
-        return true;
-    };
 
 }; // }}} Object.Locatable
 RG.extend2(RG.Object.Locatable, RG.Object.Typed);
+
+    RG.Object.Locatable.prototype.setX = function(x) {this._x = x; };
+    RG.Object.Locatable.prototype.setY = function(y) {this._y = y; };
+
+    RG.Object.Locatable.prototype.getX = function() {return this._x;};
+    RG.Object.Locatable.prototype.getY = function() {return this._y;};
+
+
+    RG.Object.Locatable.prototype.getXY = function() { return [this._x, this._y];};
+
+
+
+/** Sets the level of this locatable object.*/
+RG.Object.Locatable.prototype.setLevel = function(level) {
+    this._level = level;
+    RG.nullOrUndefError("Object.Locatable: setLevel", "arg |level|", level);
+};
+
+RG.Object.Locatable.prototype.getLevel = function() {
+    return this._level;
+};
+
+/** Returns true if object is located at a position on a level.*/
+RG.Object.Locatable.prototype.isLocated = function() {
+    return (this._x !== null) && (this._y !== null) && (this._level !== null);
+};
+
+/** Returns true if locatables are in same position.*/
+RG.Object.Locatable.prototype.isSamePos = function(obj) {
+    if (this._x !== obj.getX()) return false;
+    if (this._y !== obj.getY()) return false;
+    if (this._level !== obj.getLevel()) return false;
+    return true;
+};
 
 /** Object.Ownable is sort of Object.Locatable but it moves with its owner. This ensures that
  * for example item coordinates are up-to-date with the carrier.*/
