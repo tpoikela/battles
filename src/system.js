@@ -290,10 +290,12 @@ RG.System.Damage = function(type, compTypes) {
             }
             var dmgType = dmgComp.getDamageType();
             if (dmgType === "poison")
-                RG.gameDanger(actor.getName() + " dies horribly of poisoning!");
+                RG.gameDanger({cell: actor.getCell(), 
+                    msg:actor.getName() + " dies horribly of poisoning!"});
 
 
-            RG.gameDanger(actor.getName() + " was killed by " + src.getName());
+            RG.gameDanger({cell: actor.getCell(),
+                msg:actor.getName() + " was killed by " + src.getName()});
             RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: actor});
         }
         else {
@@ -330,7 +332,7 @@ RG.ExpPointsSystem = function(type, compTypes) {
             var nextLevel = expLevel + 1;
             var reqExp = 0;
             for (var i = 1; i <= nextLevel; i++) {
-                reqExp += i * 10;
+                reqExp += (i-1) * 10;
             }
 
             if (exp >= reqExp) { // Required exp points exceeded
