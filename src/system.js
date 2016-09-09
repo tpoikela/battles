@@ -284,17 +284,17 @@ RG.System.Damage = function(type, compTypes) {
     var _killActor = function(src, actor) {
         var dmgComp = actor.get("Damage");
         var level = actor.getLevel();
+        var cell = actor.getCell();
         if (level.removeActor(actor)) {
             if (actor.has("Experience")) {
                 _giveExpToSource(src, actor);
             }
             var dmgType = dmgComp.getDamageType();
             if (dmgType === "poison")
-                RG.gameDanger({cell: actor.getCell(), 
+                RG.gameDanger({cell: cell, 
                     msg:actor.getName() + " dies horribly of poisoning!"});
 
-
-            RG.gameDanger({cell: actor.getCell(),
+            RG.gameDanger({cell: cell,
                 msg:actor.getName() + " was killed by " + src.getName()});
             RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: actor});
         }
