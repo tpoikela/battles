@@ -716,6 +716,18 @@ RG.Game.Save = function() {
         return JSON.parse(dbString);
     };
 
+    /** Deletes given player from the list of save games.*/
+    this.deletePlayer = function(name) {
+        _checkStorageValid();
+        var dbString = _storageRef.getItem(_playerList);
+        var dbObj = JSON.parse(dbString);
+        if (dbObj.hasOwnProperty(name)) {
+            delete dbObj[name];
+        }
+        dbString = JSON.stringify(dbObj);
+        _storageRef.setItem(_playerList, dbString);
+    };
+
     /** Saves a player object. */
     this.savePlayer = function(player, conf) {
         _checkStorageValid();
@@ -761,7 +773,6 @@ RG.Game.Save = function() {
         }
         dbString = JSON.stringify(dbObj);
         _storageRef.setItem(_playerList, dbString);
-
     };
 
     /** Handles creation of restored player from JSON.*/

@@ -317,6 +317,10 @@ var GameStartScreen = React.createClass({
         this.props.loadGame(this.state.selectedGame);
     },
 
+    deleteGame: function() {
+        this.props.deleteGame(this.state.selectedGame);
+    },
+
     selectGame: function(name) {
         this.setState({selectedGame:name});
     },
@@ -349,9 +353,14 @@ var GameStartScreen = React.createClass({
                             <p>Selected game: {this.state.selectedGame}</p>
                         </div>
                         <div className="modal-footer row">
-                            <button type="button" data-dismiss="modal" onClick={this.loadGame} className="btn btn-secondary btn-warning">
-                                Load
-                            </button>
+                            <div className="col-md-6">
+                                <button type="button" data-dismiss="modal" onClick={this.loadGame} className="btn btn-secondary btn-warning">
+                                    Load
+                                </button>
+                                <button type="button" onClick={this.deleteGame} className="btn btn-secondary btn-danger">
+                                    Delete
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

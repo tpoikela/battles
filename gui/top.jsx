@@ -156,6 +156,7 @@ var BattlesTop = React.createClass({
     saveGame: function() {
         var player = this.game.getPlayer();
         this.gameSave.save(this.game, this.gameConf);
+        this.savedPlayerList = this.gameSave.getPlayersAsList();
         RG.gameMsg("Your progress has been saved.");
         this.setState({render: true, renderFullScreen: true});
     },
@@ -174,6 +175,12 @@ var BattlesTop = React.createClass({
             //this.gameConf.loadedPlayer = null;
             //this.gameConf.loadedLevel = null;
         }
+    },
+
+    deleteGame: function(name) {
+        this.gameSave.deletePlayer(name);
+        this.savedPlayerList = this.gameSave.getPlayersAsList();
+        this.setState({render: true, renderFullScreen: true});
     },
 
     restoreConf: function(obj) {
@@ -266,6 +273,7 @@ var BattlesTop = React.createClass({
                     setPlayerName={this.setPlayerName}
                     savedPlayerList={this.savedPlayerList}
                     loadGame={this.loadGame}
+                    deleteGame={this.deleteGame}
                     setGameLength={this.setGameLength}
                     setLoot={this.setLoot}
                     setMonsters={this.setMonsters}
