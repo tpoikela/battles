@@ -422,12 +422,19 @@ var RG = { // {{{2
         RUN: 4,
     },
 
+    // Different fighting modes
+    FMODE_NORMAL: 0,
+    FMODE_FAST: 1,
+    FMODE_SLOW: 2,
+
     // 0.0 = uniform dist, higher number assigns more weight to median values
     DANGER_ADJ_FACTOR: 1.4,
 
 }; /// }}} RG
 
 RG.PROP_TYPES = [RG.TYPE_ACTOR, RG.TYPE_ELEM, RG.TYPE_ITEM, RG.TYPE_TRAP];
+RG.FMODES = [RG.FMODE_NORMAL, RG.FMODE_FAST, RG.FMODE_SLOW];
+
 RG.cellRenderArray = RG.cellRenderVisible;
 
 var ADJ_FACTOR = 0.0;
