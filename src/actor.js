@@ -16,16 +16,17 @@ RG.Actor.Rogue = function(name) { // {{{2
     this.setPropType("actors");
 
     // Member vars
-    var _brain = new RG.Brain.Rogue(this);
-    _brain.getMemory().addEnemyType("player");
+    this._brain = new RG.Brain.Rogue(this);
+    this._brain.getMemory().addEnemyType("player");
 
-    var _isPlayer = false;
-    var _fovRange = RG.FOV_RANGE;
     var _name = name;
+    this._isPlayer = false;
+    var _fovRange = RG.FOV_RANGE;
 
     var _invEq = new RG.Inv.Inventory(this);
     var _maxWeight = 10.0;
 
+    // Components for this entity
     this.add("Action", new RG.Component.Action());
     this.add("Experience", new RG.Component.Experience());
     this.add("Combat", new RG.Component.Combat());
@@ -35,25 +36,6 @@ RG.Actor.Rogue = function(name) { // {{{2
     this.setName = function(name) {_name = name;};
     this.getName = function() {return _name;};
 
-    /** Returns the cell where this actor is located at.*/
-    this.getCell = function() {
-        var x = this.getX();
-        var y = this.getY();
-        return this.getLevel().getMap().getCell(x, y);
-    };
-
-    /** Marks actor as player. Cannot unset player.*/
-    this.setIsPlayer = function(isPlayer) {
-        if (isPlayer) {
-            _isPlayer = isPlayer;
-            _brain = new RG.Brain.Player(this);
-            this.setType("player");
-        }
-        else {
-            RG.err("Actor.Rogue", "setIsPlayer",
-                "Actor cannot be changed from player to mob.");
-        }
-    };
 
     /** Returns carrying capacity of the actor.*/
     this.getMaxWeight = function() {
@@ -61,74 +43,92 @@ RG.Actor.Rogue = function(name) { // {{{2
             _maxWeight;
     };
 
-    this.addEnemy = function(actor) {_brain.addEnemy(actor);};
-    this.isEnemy = function(actor) {return _brain.getMemory().isEnemy(actor);};
+    /** Returns true if actor is a player.*/
+    this.isPlayer = function() {return this._isPlayer;};
 
-    this.getBrain = function() {return _brain;};
+    this.getFOVRange = function() { return _fovRange;};
+    this.setFOVRange = function(range) {_fovRange = range;};
+
+    //---------------------------------
+    // Brain-relatd methods
+    //---------------------------------
+
+    this.addEnemy = function(actor) {this._brain.addEnemy(actor);};
+    this.isEnemy = function(actor) {return this._brain.getMemory().isEnemy(actor);};
+
+    this.getBrain = function() {return this._brain;};
 
     this.setBrain = function(brain) {
-        _brain = brain;
-        _brain.setActor(this);
+        this._brain = brain;
+        this._brain.setActor(this);
     };
 
-    /** Returns true if actor is a player.*/
-    this.isPlayer = function() {
-        return _isPlayer;
-    };
 
-    this.getWeapon = function() {
-        return _invEq.getWeapon();
-    };
+    //---------------------------------
+    // Equipment related methods
+    //---------------------------------
+
+    this.getInvEq = function() { return _invEq; };
+
+    /** Returns weapon that is wielded by the actor.*/
+    this.getWeapon = function() {return _invEq.getWeapon();};
 
     /** Returns missile equipped by the player.*/
     this.getMissile = function() {
         return _invEq.getEquipment().getItem("missile");
     };
 
-    /** Returns the next action for this actor.*/
-    this.nextAction = function(obj) {
-        // Use actor brain to determine the action
-        var cb = _brain.decideNextAction(obj);
-        var action = null;
+    this.getEquipAttack = function() {return _invEq.getEquipment().getAttack();};
 
-        if (cb !== null) {
-            var speed = this.get("Stats").getSpeed();
-            var duration = parseInt(RG.BASE_SPEED/speed * RG.ACTION_DUR);
-            action = new RG.RogueAction(duration, cb, {});
-        }
-        else {
-            action = new RG.RogueAction(0, function(){}, {});
-        }
+    this.getEquipDefense = function() {return _invEq.getEquipment().getDefense();};
 
-        if (action !== null) {
-            if (_brain.hasOwnProperty("energy")) action.energy = _brain.energy;
-            action.actor = this;
-        }
-        return action;
-    };
-
-    this.getFOVRange = function() { return _fovRange;};
-    this.setFOVRange = function(range) {_fovRange = range;};
-
-    this.getInvEq = function() {
-        return _invEq;
-    };
-
-    this.getEquipAttack = function() {
-        return _invEq.getEquipment().getAttack();
-    };
-
-    this.getEquipDefense = function() {
-        return _invEq.getEquipment().getDefense();
-    };
-
-    this.getEquipProtection = function() {
-        return _invEq.getEquipment().getProtection();
-    };
+    this.getEquipProtection = function() {return _invEq.getEquipment().getProtection();};
 
 }
 RG.extend2(RG.Actor.Rogue, RG.Object.Locatable);
 RG.extend2(RG.Actor.Rogue, RG.Entity);
+
+/** Marks actor as player. Cannot unset player.*/
+RG.Actor.Rogue.prototype.setIsPlayer = function(isPlayer) {
+    if (isPlayer) {
+        this._isPlayer = isPlayer;
+        this._brain = new RG.Brain.Player(this);
+        this.setType("player");
+    }
+    else {
+        RG.err("Actor.Rogue", "setIsPlayer",
+            "Actor cannot be changed from player to mob.");
+    }
+};
+
+/** Returns the next action for this actor.*/
+RG.Actor.Rogue.prototype.nextAction = function(obj) {
+    // Use actor brain to determine the action
+    var cb = this._brain.decideNextAction(obj);
+    var action = null;
+
+    if (cb !== null) {
+        var speed = this.get("Stats").getSpeed();
+        var duration = parseInt(RG.BASE_SPEED/speed * RG.ACTION_DUR);
+        action = new RG.RogueAction(duration, cb, {});
+    }
+    else {
+        action = new RG.RogueAction(0, function(){}, {});
+    }
+
+    if (action !== null) {
+        if (this._brain.hasOwnProperty("energy")) action.energy = this._brain.energy;
+        action.actor = this;
+    }
+    return action;
+};
+
+/** Returns the cell where this actor is located at.*/
+RG.Actor.Rogue.prototype.getCell = function() {
+    var x = this.getX();
+    var y = this.getY();
+    return this.getLevel().getMap().getCell(x, y);
+};
 
 RG.Actor.Rogue.prototype.toJSON = function() {
     var obj = {
