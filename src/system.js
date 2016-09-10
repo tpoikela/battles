@@ -261,14 +261,21 @@ RG.System.Damage = function(type, compTypes) {
         }
     };
 
+    /** Checks if protection checks can be applied to the damage caused. For
+     * damage like hunger and poison, no protection helps.*/
     var _getDamageReduced = function(ent) {
         var dmgComp = ent.get("Damage");
         var dmg = dmgComp.getDamage();
+        var src = dmgComp.getSource();
 
-        ent.addEnemy(dmgComp.getSource());
+        if (src !== null) ent.addEnemy();
 
+        // Deal with "internal" damage bypassing protection here
         if (dmgComp.getDamageType() === "poison") {
             RG.gameDanger("Poison is gnawing inside " + ent.getName());
+            return dmg;
+        }
+        else if (dmgComp.getDamageType() === "hunger") {
             return dmg;
         }
 
@@ -294,8 +301,10 @@ RG.System.Damage = function(type, compTypes) {
                 RG.gameDanger({cell: cell, 
                     msg:actor.getName() + " dies horribly of poisoning!"});
 
-            RG.gameDanger({cell: cell,
-                msg:actor.getName() + " was killed by " + src.getName()});
+            var killMsg = actor.getName() + " was killed";
+            if (src !== null) killMsg +=  " by " + src.getName();
+
+            RG.gameDanger({cell: cell, msg: killMsg});
             RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: actor});
         }
         else {
@@ -305,10 +314,12 @@ RG.System.Damage = function(type, compTypes) {
 
     /** When an actor is killed, gives experience to damage's source.*/
     var _giveExpToSource = function(att, def) {
-        var defLevel = def.get("Experience").getExpLevel();
-        var defDanger = def.get("Experience").getDanger();
-        var expPoints = new RG.Component.ExpPoints(defLevel + defDanger);
-        att.add("ExpPoints", expPoints);
+        if (att !== null) {
+            var defLevel = def.get("Experience").getExpLevel();
+            var defDanger = def.get("Experience").getDanger();
+            var expPoints = new RG.Component.ExpPoints(defLevel + defDanger);
+            att.add("ExpPoints", expPoints);
+        }
     };
 
 };
@@ -420,8 +431,11 @@ RG.System.Hunger = function(type, compTypes) {
             hungerComp.decrEnergy(actionComp.getEnergy());
             actionComp.resetEnergy();
             if (hungerComp.isStarving()) {
-                if (ent.has("Health")) ent.get("Health").decrHP(1);
-                RG.gameWarn(ent.getName() + " is starving!");
+                if (ent.has("Health")) {
+                    var dmg = new RG.Component.Damage(1, "hunger");
+                    ent.add("Damage", dmg);
+                    RG.gameWarn(ent.getName() + " is starving!");
+                }
             }
         }
     };
