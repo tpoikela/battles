@@ -31,14 +31,25 @@ RG.Brain.Player = function(actor) { // {{{2
     var _confirmEnergy = 1;
 
     var _runModeEnabled = false;
-    var _baseSpeed = _actor.get("Stats").getSpeed();
+
+    var _fightMode = RG.FMODE_NORMAL;
+
+    /** These are used in different moving/fighting modes.*/
+    var _baseStats = {
+        speed: _actor.get("Stats").getSpeed(),
+        agility: _actor.get("Stats").getAgility(),
+        accuracy: _actor.get("Stats").getAccuracy(),
+        strength: _actor.get("Stats").getStrength(),
+        willpower: _actor.get("Stats").getWillpower(),
+    };
 
     /** Restores the base speed after run-mode.*/
     var _restoreBaseSpeed = function() {
         _runModeEnabled = false;
         this.energy = 1;
-        _actor.get("Stats").setSpeed(_baseSpeed);
+        _actor.get("Stats").setSpeed(_baseStats.speed);
     };
+
 
     this.isRunModeEnabled = function() {return _runModeEnabled;};
 
@@ -50,7 +61,7 @@ RG.Brain.Player = function(actor) { // {{{2
 
     /** Main function which returns next action as function.*/
     this.decideNextAction = function(obj) {
-        this.energy = 1;
+        this.normalizeStats(obj);
 
         // Workaround at the moment, because missile attacks are GUI-driven
         if (obj.hasOwnProperty("cmd")) {
@@ -72,6 +83,7 @@ RG.Brain.Player = function(actor) { // {{{2
             return _guiCallbacks[code](code);
         }
 
+        // Enable/disable run mode
         if (code === ROT.VK_R) {
             if (_runModeEnabled) {
                 _restoreBaseSpeed();
@@ -80,8 +92,8 @@ RG.Brain.Player = function(actor) { // {{{2
             else {
                 _runModeEnabled = true;
                 this.energy = RG.energy.RUN;
-                _baseSpeed = _actor.get("Stats").getSpeed();
-                var newSpeed = Math.floor( 1.5 * _baseSpeed);
+                _baseStats.speed = _actor.get("Stats").getSpeed();
+                var newSpeed = Math.floor( 1.5 * _baseStats.speed);
                 _actor.get("Stats").setSpeed(newSpeed);
                 return null;
             }
@@ -182,6 +194,7 @@ RG.Brain.Player = function(actor) { // {{{2
             return function() {};
         }
 
+        this.energy = 0;
         return null; // Null action
     };
 
@@ -227,6 +240,12 @@ RG.Brain.Player = function(actor) { // {{{2
             }
         }
         return function() {};
+    };
+
+    /** Returns all stats to their nominal values.*/
+    this.normalizeStats = function(obj) {
+        this.energy = 1;
+
     };
 
 
