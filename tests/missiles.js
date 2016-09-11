@@ -55,15 +55,28 @@ describe('How dice are cast and what values they give', function() {
     });
 });
 
+var createSystems = function() {
+    var mSystem = new RG.System.Missile("Missile", ["Missile"]);
+    var dSystem = new RG.System.Damage("Damage", ["Damage"]);
+    return [mSystem, dSystem];
+};
+
+var createMissile = function(obj) {
+    var mEnt = new RG.Item.Missile("missile");
+    var mComp = new RG.Component.Missile(obj.src);
+    mComp.setDamage(obj.d);
+    mEnt.add("Missile", mComp);
+    mComp.setTargetXY(obj.x, obj.y);
+    mComp.setRange(obj.r);
+    return mComp;
+};
+
 describe('How missile is fired and hits a wall', function() {
 
 
 
     it('Starts from source and flies to target', function() {
-        var mSystem = new RG.System.Missile("Missile", ["Missile"]);
-        var dSystem = new RG.System.Damage("Damage", ["Damage"]);
-
-        var systems = [mSystem, dSystem];
+        var systems = createSystems();
 
         var level = RG.FACT.createLevel("arena", 30, 30);
         // Archer to fire the missiles
@@ -92,9 +105,7 @@ describe('How missile is fired and hits a wall', function() {
     });
 
     it('Stops and hits a wall', function() {
-        var mSystem = new RG.System.Missile("Missile", ["Missile"]);
-        var dSystem = new RG.System.Damage("Damage", ["Damage"]);
-        var systems = [mSystem, dSystem];
+        var systems = createSystems();
 
         var level = RG.FACT.createLevel("arena", 30, 30);
         // Archer to fire the missiles
@@ -124,9 +135,7 @@ describe('How missile is fired and hits a wall', function() {
     });
 
     it('Stops and hits an entity (actor)', function() {
-        var mSystem = new RG.System.Missile("Missile", ["Missile"]);
-        var dSystem = new RG.System.Damage("Damage", ["Damage"]);
-        var systems = [mSystem, dSystem];
+        var systems = createSystems();
 
         var level = RG.FACT.createLevel("arena", 30, 30);
         // Archer to fire the missiles
@@ -139,12 +148,8 @@ describe('How missile is fired and hits a wall', function() {
         level.addActor(targetEnt, 1, 6);
 
         var mEnt = new RG.Item.Missile("missile");
-        var mComp = new RG.Component.Missile(srcEnt);
+        var mComp = createMissile({src: srcEnt, x: 1, y: 6, r: 10, d: 5});
         mComp.setAttack(1);
-        mComp.setDamage(5);
-        mEnt.add("Missile", mComp);
-        mComp.setTargetXY(1, 6);
-        mComp.setRange(10);
 
         updateSystems(systems);
         expect(mComp.getX()).to.equal(1);
@@ -163,20 +168,13 @@ describe('How missile is fired and hits a wall', function() {
     });
 
     it('Stops after reaching maximum range', function() {
-        var mSystem = new RG.System.Missile("Missile", ["Missile"]);
-        var dSystem = new RG.System.Damage("Damage", ["Damage"]);
-        var systems = [mSystem, dSystem];
+        var systems = createSystems();
         var level = RG.FACT.createLevel("arena", 30, 30);
         // Archer to fire the missiles
         var srcEnt = new Actor("archer");
         level.addActor(srcEnt, 1, 1);
 
-        var mEnt = new RG.Item.Missile("missile");
-        var mComp = new RG.Component.Missile(srcEnt);
-        mComp.setDamage(5);
-        mEnt.add("Missile", mComp);
-        mComp.setTargetXY(1, 6);
-        mComp.setRange(4);
+        var mComp = createMissile({src: srcEnt, x: 1, y: 6, r: 4, d: 5});
 
         updateSystems(systems);
         expect(mComp.getX()).to.equal(1);
@@ -188,4 +186,19 @@ describe('How missile is fired and hits a wall', function() {
         expect(targetCell.hasProp("items")).to.equal(true);
         expect(targetCell.hasPropType("missile")).to.equal(true);
     });
+
+    it('Passes through ethereal beings', function() {
+        var systems = createSystems();
+        var level = RG.FACT.createLevel("arena", 30, 30);
+        var srcEnt = new Actor("archer");
+        level.addActor(srcEnt, 1, 1);
+
+        var mComp = createMissile({src: srcEnt, x: 1, y: 6, r: 4, d: 5});
+
+        // Create a spirit and normal actor
+        // TODO
+
+
+    });
+
 });
