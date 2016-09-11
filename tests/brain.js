@@ -27,7 +27,7 @@ describe('Brain.Player', function() {
         var brain = new Brain.Player(player);
 
         brain.decideNextAction({code: ROT.VK_R});
-        expect(player.get("Stats").getSpeed()).to.equal(150);
+        expect(player.getSpeed()).to.equal(150);
         expect(brain.isRunModeEnabled()).to.equal(true);
         expect(brain.energy).to.equal(0);
         brain.decideNextAction({code: ROT.VK_S});
@@ -69,8 +69,12 @@ describe('Brain.Player', function() {
 
     it('Has different fighting modes', function() {
         var brain = new Brain.Player(player);
+        //brain.resetBoosts();
         brain.toggleFightMode();
-        brain.normalizeStats();
+
+        brain.decideNextAction({code: ROT.VK_X});
+        expect(brain.energy).to.equal(RG.energy.ATTACK);
+        expect(player.getSpeed()).to.equal(120);
     });
 });
 
