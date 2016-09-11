@@ -34,30 +34,11 @@ RG.Brain.Player = function(actor) { // {{{2
 
     var _fightMode = RG.FMODE_NORMAL;
 
-    /** These are used in different moving/fighting modes.*/
-    var _baseStats = {
-        Combat: {
-            setAttack: _actor.get("Combat").getAttack(),
-            setDefense: _actor.get("Combat").getDefense(),
-            setProtection: _actor.get("Combat").getProtection(),
-        },
-
-        Stats: {
-            setSpeed: _actor.get("Stats").getSpeed(),
-            setAgility: _actor.get("Stats").getAgility(),
-            setAccuracy: _actor.get("Stats").getAccuracy(),
-            setStrength: _actor.get("Stats").getStrength(),
-            setWillpower: _actor.get("Stats").getWillpower(),
-        },
-    };
-
-    console.log("Speed initialized to " + _baseStats.Stats.setSpeed);
-
     /** Restores the base speed after run-mode.*/
     var _restoreBaseSpeed = function() {
         _runModeEnabled = false;
         this.energy = 1;
-        _actor.get("Stats").setSpeed(_baseStats.Stats.setSpeed);
+        _actor.get("StatsMods").setSpeed(0);
     };
 
     this.isRunModeEnabled = function() {return _runModeEnabled;};
@@ -73,7 +54,7 @@ RG.Brain.Player = function(actor) { // {{{2
 
         // Workaround at the moment, because missile attacks are GUI-driven
         if (obj.hasOwnProperty("cmd")) {
-            this.normalizeStats(obj);
+            this.resetBoosts(obj);
             return this.handleCommand(obj);
         }
 
@@ -124,7 +105,7 @@ RG.Brain.Player = function(actor) { // {{{2
         }
 
         if (type === "NULL") { // Not a move command
-            this.normalizeStats(obj);
+            this.resetBoosts(obj);
 
             if (RG.KeyMap.isRest(code)) {type = "REST";}
 
@@ -157,8 +138,10 @@ RG.Brain.Player = function(actor) { // {{{2
 
                     if (_runModeEnabled)
                         this.energy = RG.energy.RUN;
-                    else
+                    else {
+                        this.resetBoosts();
                         this.energy = RG.energy.MOVE;
+                    }
 
                     return function() {
                         var movComp = new RG.Component.Movement(x, y, level);
@@ -219,9 +202,9 @@ RG.Brain.Player = function(actor) { // {{{2
         }
         else {
             _runModeEnabled = true;
-            _baseStats.Stats.setSpeed = _actor.get("Stats").getSpeed();
-            var newSpeed = Math.floor( 1.5 * _baseStats.Stats.setSpeed);
-            _actor.get("Stats").setSpeed(newSpeed);
+            var baseSpeed = _actor.get("Stats").getSpeed();
+            var speedBoost = Math.floor( 0.5 * baseSpeed);
+            _actor.get("StatsMods").setSpeed(speedBoost);
         }
     };
 
@@ -231,16 +214,27 @@ RG.Brain.Player = function(actor) { // {{{2
         if (_fightMode >= RG.FMODES.length) _fightMode = RG.FMODE_NORMAL;
     };
 
+    /** Sets the stats for attack for special modes.*/
     var _setAttackStats = function() {
-        if (_fightMode === RG.FMODE_FAST) {
-            var stats = _actor.get("Stats");
-            var speed = Math.round(1.2 * _baseStats.Stats.setSpeed);
-            stats.setSpeed(speed);
+        var stats = _actor.get("Stats");
+        var combat = _actor.get("Combat");
+        var speedBoost = 0;
+        var attackBoost = 0;
+        var damageBoost = 0;
 
+        if (_fightMode === RG.FMODE_FAST) {
+            speedBoost = Math.round(0.2 * stats.getSpeed());
+            attackBoost = -Math.round(0.1 * combat.getAttack());
+            damageBoost = -1;
         }
         else if (_fightMode == RG.FMODE_SLOW) {
-
+            speedBoost = -Math.round(0.2 * stats.getSpeed());
+            attackBoost = Math.round(0.1 * combat.getAttack());
+            damageBoost = 2;
         }
+        _actor.get("StatsMods").setSpeed(speedBoost);
+        _actor.get("CombatMods").setAttack(attackBoost);
+        _actor.get("CombatMods").setDamage(damageBoost);
     };
 
     /** Handles a complex command. TODO remove if/else and use a dispatch table.*/
@@ -287,11 +281,27 @@ RG.Brain.Player = function(actor) { // {{{2
         return function() {};
     };
 
+    var _statBoosts = {
+        CombatMods: {
+            setAttack: 0,
+            setDefense: 0,
+            setProtection: 0,
+        },
+        StatsMods: {
+            setSpeed: 0,
+            setAccuracy: 0,
+            setWillpower: 0,
+            setStrength: 0,
+            setAgility: 0,
+        },
+
+    };
+
     /** Returns all stats to their nominal values.*/
-    this.normalizeStats = function(obj) {
+    this.resetBoosts = function(obj) {
         this.energy = 1;
-        for (var compName in _baseStats) {
-            var setters = _baseStats[compName];
+        for (var compName in _statBoosts) {
+            var setters = _statBoosts[compName];
             for (var setFunc in setters) {
                 var baseStatVal = setters[setFunc];
                 _actor.get(compName)[setFunc](baseStatVal);
@@ -365,7 +375,7 @@ RG.Brain.Rogue = function(actor) { // {{{2
 
     this.addEnemy = function(actor) {_memory.addEnemy(actor);};
 
-    var passableCallback = function(x, y) {
+    var _passableCallback = function(x, y) {
         var map = _actor.getLevel().getMap();
         if (!RG.isNullOrUndef([map])) {
             var res = map.isPassable(x, y);
@@ -375,7 +385,7 @@ RG.Brain.Rogue = function(actor) { // {{{2
             return res;
         }
         else {
-            RG.err("Brain", "passableCallback", "_map not well defined.");
+            RG.err("Brain.Rogue", "_passableCallback", "map not well defined.");
         }
         return false;
     };
@@ -492,14 +502,14 @@ RG.Brain.Rogue = function(actor) { // {{{2
      * returned in order: closest to the actor first. Thus moving to next cell
      * can be done by taking the first returned cell.*/
     this.getShortestPathTo = function(cell) {
-        var path = [];
-        var toX = cell.getX();
-        var toY = cell.getY();
-        //var pathFinder = new ROT.Path.Dijkstra(toX, toY, passableCallback);
-        var pathFinder = new ROT.Path.AStar(toX, toY, passableCallback);
-        var map = _actor.getLevel().getMap();
-        var sourceX = _actor.getX();
-        var sourceY = _actor.getY();
+
+        var path       = [];
+        var toX        = cell.getX();
+        var toY        = cell.getY();
+        var pathFinder = new ROT.Path.AStar(toX, toY, _passableCallback);
+        var map        = _actor.getLevel().getMap();
+        var sourceX    = _actor.getX();
+        var sourceY    = _actor.getY();
 
         if (RG.isNullOrUndef([toX, toY, sourceX, sourceY])) {
             RG.err("Brain", "getShortestPathTo", "Null/undef coords.");
