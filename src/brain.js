@@ -72,7 +72,7 @@ RG.Brain.Player = function(actor) { // {{{2
         if (_wantConfirm && _confirmCallback !== null) {
             // Want y/n answer
             _wantConfirm = false;
-            if (code === ROT.VK_Y) {
+            if (RG.KeyMap.isConfirmYes(code)) {
                 this.energy = _confirmEnergy;
                 return _confirmCallback;
             }
@@ -84,7 +84,7 @@ RG.Brain.Player = function(actor) { // {{{2
         }
 
         // Enable/disable run mode
-        if (code === ROT.VK_R) {
+        if (RG.KeyMap.isRunMode(code)) {
             if (_runModeEnabled) {
                 _restoreBaseSpeed();
                 return null;
@@ -121,9 +121,9 @@ RG.Brain.Player = function(actor) { // {{{2
 
         if (type === "NULL") { // Not a move command
 
-            if (code === ROT.VK_S) {type = "REST";}
+            if (RG.KeyMap.isRest(code)) {type = "REST";}
 
-            if (code === ROT.VK_PERIOD) {
+            if (RG.KeyMap.isPickup(code)) {
                 type = "PICKUP";
                 if (currCell.hasProp("items")) {
                     return function() {
@@ -135,7 +135,7 @@ RG.Brain.Player = function(actor) { // {{{2
                 }
             }
 
-            if (code === ROT.VK_COMMA) {
+            if (RG.KeyMap.isUseStairs(code)) {
                 type = "STAIRS";
                 if (currCell.hasStairs()) {
                     return function() {level.useStairs(_actor);};
@@ -232,7 +232,7 @@ RG.Brain.Player = function(actor) { // {{{2
                     item.useItem({target: obj.target});
                 }
                 else {
-                    return this.cmdNotPossible("You use that item.");
+                    return this.cmdNotPossible("You cannot use that item.");
                 }
             }
             else {
