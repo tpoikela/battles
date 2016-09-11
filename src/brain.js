@@ -150,7 +150,13 @@ RG.Brain.Player = function(actor) { // {{{2
                 }
                 else if (currMap.getCell(x,y).hasProp("actors")) {
                     _restoreBaseSpeed();
-                    var target = currMap.getCell(x, y).getProp("actors")[0];
+                    var target = _getAttackTarget(currMap, x, y);
+
+                    if (target === null) {
+                        RG.err("Brain.Player", "decideNextAction",
+                            "Null target for attack x,y: " + x + "," + y);
+                    }
+
                     var attackCallback = function() {
                         _setAttackStats();
                         var attackComp = new RG.Component.Attack(target);
@@ -309,6 +315,13 @@ RG.Brain.Player = function(actor) { // {{{2
         }
     };
 
+    var _getAttackTarget = function(map, x, y) {
+        var targets = map.getCell(x, y).getProp("actors");
+        for (var i = 0; i < targets.length; i++) {
+            if (!targets[i].has("Ethereal")) return targets[i];
+        }
+        return null;
+    };
 
     this.addEnemy = function(actor) {};
 
