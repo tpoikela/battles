@@ -592,9 +592,12 @@ RG.KeyMap = {
         return this.moveKeyMap.hasOwnProperty(code);
     },
 
-    isRest: function(code) {
-        return code === ROT.VK_S;
-    },
+    isRest: function(code) {return code === ROT.VK_S || ROT.VK_PERIOD;},
+    isPickup: function(code) {return code === ROT.VK_COMMA;},
+    isUseStairs: function(code) {return code === ROT.VK_M;},
+    isRunMode: function(code) {return code === ROT.VK_R;},
+    isFightMode: function(code) {return code === ROT.VK_F;},
+    isConfirmYes: function(code) {return code === ROT.VK_Y;},
 
     /** Based on keycode, computes and returns a new x,y pair. If code is
      * invalid, returns null. */
