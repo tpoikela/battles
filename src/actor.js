@@ -84,6 +84,8 @@ RG.Actor.Rogue = function(name) { // {{{2
 
     this.getEquipProtection = function() {return _invEq.getEquipment().getProtection();};
 
+
+
 }
 RG.extend2(RG.Actor.Rogue, RG.Object.Locatable);
 RG.extend2(RG.Actor.Rogue, RG.Entity);
@@ -94,6 +96,8 @@ RG.Actor.Rogue.prototype.setIsPlayer = function(isPlayer) {
         this._isPlayer = isPlayer;
         this._brain = new RG.Brain.Player(this);
         this.setType("player");
+        this.add("StatsMods", new RG.Component.StatsMods());
+        this.add("CombatMods", new RG.Component.CombatMods());
     }
     else {
         RG.err("Actor.Rogue", "setIsPlayer",
@@ -108,7 +112,7 @@ RG.Actor.Rogue.prototype.nextAction = function(obj) {
     var action = null;
 
     if (cb !== null) {
-        var speed = this.get("Stats").getSpeed();
+        var speed = this.getSpeed();
         var duration = parseInt(RG.BASE_SPEED/speed * RG.ACTION_DUR);
         action = new RG.RogueAction(duration, cb, {});
     }
@@ -151,7 +155,85 @@ RG.Actor.Rogue.prototype.toJSON = function() {
     return obj;
 };
 
-/** Spirit actors.*/
+//---------------------------------
+// Combat-related methods
+//---------------------------------
+
+RG.Actor.Rogue.prototype.getAttack = function() {
+    var attack = this.get("Combat").getAttack();
+    attack += this.getEquipAttack();
+    if (this.has("CombatMods")) attack += this.get("CombatMods").getAttack();
+    attack += Math.floor(this.getAccuracy() / 2);
+    return attack;
+};
+
+RG.Actor.Rogue.prototype.getDefense = function() {
+    var defense = this.get("Combat").getDefense();
+    defense += this.getEquipDefense();
+    if (this.has("CombatMods")) defense += this.get("CombatMods").getDefense();
+    defense += Math.floor(this.getAgility() / 2);
+    return defense;
+};
+
+RG.Actor.Rogue.prototype.getProtection = function() {
+    var protection = this.get("Combat").getProtection();
+    protection += this.getEquipProtection();
+    if (this.has("CombatMods")) protection += this.get("CombatMods").getProtection();
+    return protection ;
+};
+
+RG.Actor.Rogue.prototype.getDamage = function() {
+    var damage = this.get("Combat").getDamage();
+    var strength = this.getStrength();
+    strength += this.getInvEq().getEquipment().getStrength();
+    damage += RG.strengthToDamage(strength);
+    if (this.has("CombatMods")) damage += this.get("CombatMods").getDamage();
+    return damage;
+
+};
+
+//-------------------------------------------------------------
+// Stats-related methods (these take eq and boosts into account
+//-------------------------------------------------------------
+
+RG.Actor.Rogue.prototype.getAccuracy = function() {
+    var acc = this.get("Stats").getAccuracy();
+    acc += this.getInvEq().getEquipment().getAccuracy();
+    if (this.has("StatsMods")) acc += this.get("StatsMods").getAccuracy();
+    return acc;
+};
+
+RG.Actor.Rogue.prototype.getAgility = function() {
+    var agi = this.get("Stats").getAgility();
+    agi += this.getInvEq().getEquipment().getAgility();
+    if (this.has("StatsMods")) agi += this.get("StatsMods").getAgility();
+    return agi ;
+};
+
+RG.Actor.Rogue.prototype.getStrength = function() {
+    var str = this.get("Stats").getStrength();
+    str += this.getInvEq().getEquipment().getStrength();
+    if (this.has("StatsMods")) str += this.get("StatsMods").getStrength();
+    return str;
+};
+
+RG.Actor.Rogue.prototype.getWillpower = function() {
+    var wil = this.get("Stats").getWillpower();
+    wil += this.getInvEq().getEquipment().getWillpower();
+    if (this.has("StatsMods")) wil += this.get("StatsMods").getWillpower();
+    return wil;
+};
+
+RG.Actor.Rogue.prototype.getSpeed = function() {
+    var speed = this.get("Stats").getSpeed();
+    speed += this.getInvEq().getEquipment().getSpeed();
+    if (this.has("StatsMods")) speed += this.get("StatsMods").getSpeed();
+    return speed;
+
+};
+
+/** Spirit actors. They have Ethereal component and cannot be attacked, but they
+ * can be captured by SpiritGem-objects.*/
 RG.Actor.Spirit = function(name) {
     RG.Actor.Rogue.call(this, name);
     this.setType("spirit");
