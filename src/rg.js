@@ -594,7 +594,7 @@ RG.KeyMap = {
 
     isRest: function(code) {return code === ROT.VK_S || ROT.VK_PERIOD;},
     isPickup: function(code) {return code === ROT.VK_COMMA;},
-    isUseStairs: function(code) {return code === ROT.VK_M;},
+    isUseStairs: function(code) {return code === ROT.VK_B;},
     isRunMode: function(code) {return code === ROT.VK_R;},
     isFightMode: function(code) {return code === ROT.VK_F;},
     isConfirmYes: function(code) {return code === ROT.VK_Y;},
