@@ -901,6 +901,7 @@ var GameStats = React.createClass({
         var eqAcc = eq.getAccuracy();
         var eqWil = eq.getWillpower();
 
+        // Compile final stats information
         var stats = {
             HP: player.get("Health").getHP() + "/" + player.get("Health").getMaxHP(),
 
@@ -923,13 +924,7 @@ var GameStats = React.createClass({
             stats.E = player.get("Hunger").getEnergy();
         }
 
-        var moveStatus = "Walking";
-        var moveClassName = "text-info";
-        if (player.getBrain().isRunModeEnabled()) {
-            moveStatus = "Running";
-            moveClassName = "text-danger";
-        }
-
+        // Create HTML for showing stats
         var statsHTML = [];
         var index = 0;
         for (var key in stats) {
@@ -938,13 +933,32 @@ var GameStats = React.createClass({
             ++index;
         }
 
+        // Create HTML for showing movement mode
+        var moveStatus = "Walking";
+        var moveClassName = "text-info";
+        if (player.getBrain().isRunModeEnabled()) {
+            moveStatus = "Running";
+            moveClassName = "text-danger";
+        }
+
+        // Create HTML for showing fighting mode
+        var fightMode = player.getBrain().getFightMode();
+        var fightModeStatus = "Fight: ";
+        if (fightMode === RG.FMODE_NORMAL) fightModeStatus += "Normal";
+        else if (fightMode === RG.FMODE_SLOW) fightModeStatus += "Slow";
+        else if (fightMode === RG.FMODE_FAST) fightModeStatus += "Fast";
+
+        // Other status like poisoning, stun, cold, etc.
         var otherStatus = [];
-        if (player.has("Poison")) otherStatus.push(<p className="text-danger">Poisoned</p>);
+        if (player.has("Poison")) {
+            otherStatus.push(<p className="text-danger">Poisoned</p>);
+        }
 
         return (
             <div className="game-stats">
                 <ul className="game-stats-list">{statsHTML}</ul>
                 <p className={moveClassName}>{moveStatus}</p>
+                <p className="text-primary">{fightModeStatus}</p>
                 <p className="text-primary">{selItemName}</p>
                 <p className="text-primary">{selCellDescr}</p>
                 {otherStatus}
