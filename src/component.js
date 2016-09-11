@@ -310,6 +310,23 @@ RG.Component.Combat.prototype.toJSON = function() {
     return obj;
 };
 
+/** Modifiers for the Combat component.*/
+RG.Component.CombatMods = function() {
+    RG.Component.Combat.call(this);
+
+    var _damage = 0;
+
+    this.setType("CombatMods");
+    this.setAttackRange = function(range) {_range = range;};
+    this.setAttack = function(attack) { _attack = attack; };
+    this.setDefense = function(defense) { _defense = defense; };
+    this.setProtection = function(prot) {_protection = prot;};
+
+    this.setDamage = function(dmg) {_damage = dmg;};
+    this.getDamage = function() {return _damage;};
+};
+RG.extend2(RG.Component.CombatMods, RG.Component.Combat);
+
 /** This component stores entity stats like speed, agility etc.*/
 RG.Component.Stats = function() {
     RG.Component.Base.call(this, "Stats");
@@ -371,8 +388,21 @@ RG.Component.Stats.prototype.toString = function() {
 
 RG.extend2(RG.Component.Stats, RG.Component.Base);
 
+/** Stats modifier component. */
+RG.Component.StatsMods = function() {
+    RG.Component.Stats.call(this);
+    this.setType("StatsMods");
+    this.setAccuracy(0);
+    this.setAgility(0);
+    this.setStrength(0);
+    this.setWillpower(0);
+    this.setSpeed(0);
+};
+RG.extend2(RG.Component.StatsMods, RG.Component.Stats);
 
-/** Attack component is added to the actor when it attacks.*/
+
+/** Attack component is added to the actor when it attacks. Thus, source of the
+ * attack is the entity having Attack component. */
 RG.Component.Attack = function(target) {
     RG.Component.Base.call(this, "Attack");
 
