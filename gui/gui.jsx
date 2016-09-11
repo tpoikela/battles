@@ -892,29 +892,20 @@ var GameStats = React.createClass({
             }
         }
 
-        var eqAtt = player.getEquipAttack();
-        var eqDef = player.getEquipDefense();
-        var eqProt = player.getEquipProtection();
-
-        var eqStr = eq.getStrength();
-        var eqAgi = eq.getAgility();
-        var eqAcc = eq.getAccuracy();
-        var eqWil = eq.getWillpower();
-
         // Compile final stats information
         var stats = {
             HP: player.get("Health").getHP() + "/" + player.get("Health").getMaxHP(),
 
-            Att: player.get("Combat").getAttack() + eqAtt,
-            Def: player.get("Combat").getDefense() + eqDef,
-            Pro: player.get("Combat").getProtection() + eqProt,
+            Att: player.getAttack(),
+            Def: player.getDefense(),
+            Pro: player.getProtection(),
 
-            Str: player.get("Stats").getStrength() + eqStr,
-            Agi: player.get("Stats").getAgility() + eqAgi,
-            Acc: player.get("Stats").getAccuracy() + eqAcc,
-            Wil: player.get("Stats").getWillpower() + eqWil,
+            Str: player.getStrength(),
+            Agi: player.getAgility(),
+            Acc: player.getAccuracy(),
+            Wil: player.getWillpower(),
 
-            Speed: player.get("Stats").getSpeed(),
+            Speed: player.getSpeed(),
             XP: player.get("Experience").getExp(),
             XL: player.get("Experience").getExpLevel(),
             DL: dungeonLevel,
