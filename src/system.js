@@ -268,7 +268,7 @@ RG.System.Damage = function(type, compTypes) {
         var dmg = dmgComp.getDamage();
         var src = dmgComp.getSource();
 
-        if (src !== null) ent.addEnemy();
+        if (src !== null) ent.addEnemy(src);
 
         // Deal with "internal" damage bypassing protection here
         if (dmgComp.getDamageType() === "poison") {
