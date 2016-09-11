@@ -36,20 +36,29 @@ RG.Brain.Player = function(actor) { // {{{2
 
     /** These are used in different moving/fighting modes.*/
     var _baseStats = {
-        speed: _actor.get("Stats").getSpeed(),
-        agility: _actor.get("Stats").getAgility(),
-        accuracy: _actor.get("Stats").getAccuracy(),
-        strength: _actor.get("Stats").getStrength(),
-        willpower: _actor.get("Stats").getWillpower(),
+        Combat: {
+            setAttack: _actor.get("Combat").getAttack(),
+            setDefense: _actor.get("Combat").getDefense(),
+            setProtection: _actor.get("Combat").getProtection(),
+        },
+
+        Stats: {
+            setSpeed: _actor.get("Stats").getSpeed(),
+            setAgility: _actor.get("Stats").getAgility(),
+            setAccuracy: _actor.get("Stats").getAccuracy(),
+            setStrength: _actor.get("Stats").getStrength(),
+            setWillpower: _actor.get("Stats").getWillpower(),
+        },
     };
+
+    console.log("Speed initialized to " + _baseStats.Stats.setSpeed);
 
     /** Restores the base speed after run-mode.*/
     var _restoreBaseSpeed = function() {
         _runModeEnabled = false;
         this.energy = 1;
-        _actor.get("Stats").setSpeed(_baseStats.speed);
+        _actor.get("Stats").setSpeed(_baseStats.Stats.setSpeed);
     };
-
 
     this.isRunModeEnabled = function() {return _runModeEnabled;};
 
@@ -61,10 +70,10 @@ RG.Brain.Player = function(actor) { // {{{2
 
     /** Main function which returns next action as function.*/
     this.decideNextAction = function(obj) {
-        this.normalizeStats(obj);
 
         // Workaround at the moment, because missile attacks are GUI-driven
         if (obj.hasOwnProperty("cmd")) {
+            this.normalizeStats(obj);
             return this.handleCommand(obj);
         }
 
@@ -85,18 +94,13 @@ RG.Brain.Player = function(actor) { // {{{2
 
         // Enable/disable run mode
         if (RG.KeyMap.isRunMode(code)) {
-            if (_runModeEnabled) {
-                _restoreBaseSpeed();
-                return null;
-            }
-            else {
-                _runModeEnabled = true;
-                this.energy = RG.energy.RUN;
-                _baseStats.speed = _actor.get("Stats").getSpeed();
-                var newSpeed = Math.floor( 1.5 * _baseStats.speed);
-                _actor.get("Stats").setSpeed(newSpeed);
-                return null;
-            }
+            this.toggleRunMode();
+            return this.noAction();
+        }
+
+        if (RG.KeyMap.isFightMode(code)) {
+            this.toggleFightMode();
+            return this.noAction();
         }
 
         // Need existing position
@@ -120,6 +124,7 @@ RG.Brain.Player = function(actor) { // {{{2
         }
 
         if (type === "NULL") { // Not a move command
+            this.normalizeStats(obj);
 
             if (RG.KeyMap.isRest(code)) {type = "REST";}
 
@@ -164,6 +169,7 @@ RG.Brain.Player = function(actor) { // {{{2
                     _restoreBaseSpeed();
                     var target = currMap.getCell(x, y).getProp("actors")[0];
                     var attackCallback = function() {
+                        _setAttackStats();
                         var attackComp = new RG.Component.Attack(target);
                         _actor.add("Attack", attackComp);
                     };
@@ -177,7 +183,7 @@ RG.Brain.Player = function(actor) { // {{{2
                         _wantConfirm = true;
                         _confirmCallback = attackCallback;
                         RG.gameMsg("Press 'y' to attack non-hostile actor.");
-                        return null;
+                        return this.noAction();
                     }
                 }
                 else {
@@ -194,8 +200,47 @@ RG.Brain.Player = function(actor) { // {{{2
             return function() {};
         }
 
+        return this.noAction();
+    };
+
+    /** Returned for keypresses when no action is taken.*/
+    this.noAction = function() {
         this.energy = 0;
         return null; // Null action
+    };
+
+    /** Returns current fighting mode.*/
+    this.getFightMode = function() {return _fightMode;};
+
+    /** Toggle between walking/running modes.*/
+    this.toggleRunMode = function() {
+        if (_runModeEnabled) {
+            _restoreBaseSpeed();
+        }
+        else {
+            _runModeEnabled = true;
+            _baseStats.Stats.setSpeed = _actor.get("Stats").getSpeed();
+            var newSpeed = Math.floor( 1.5 * _baseStats.Stats.setSpeed);
+            _actor.get("Stats").setSpeed(newSpeed);
+        }
+    };
+
+    /** Toggles between different fighting modes.*/
+    this.toggleFightMode = function() {
+        _fightMode += 1;
+        if (_fightMode >= RG.FMODES.length) _fightMode = RG.FMODE_NORMAL;
+    };
+
+    var _setAttackStats = function() {
+        if (_fightMode === RG.FMODE_FAST) {
+            var stats = _actor.get("Stats");
+            var speed = Math.round(1.2 * _baseStats.Stats.setSpeed);
+            stats.setSpeed(speed);
+
+        }
+        else if (_fightMode == RG.FMODE_SLOW) {
+
+        }
     };
 
     /** Handles a complex command. TODO remove if/else and use a dispatch table.*/
@@ -245,7 +290,13 @@ RG.Brain.Player = function(actor) { // {{{2
     /** Returns all stats to their nominal values.*/
     this.normalizeStats = function(obj) {
         this.energy = 1;
-
+        for (var compName in _baseStats) {
+            var setters = _baseStats[compName];
+            for (var setFunc in setters) {
+                var baseStatVal = setters[setFunc];
+                _actor.get(compName)[setFunc](baseStatVal);
+            }
+        }
     };
 
 
