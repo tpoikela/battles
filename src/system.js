@@ -78,33 +78,13 @@ RG.System.Attack = function(type, compTypes) {
             var _att = ent;
             var _def = ent.get("Attack").getTarget();
 
-            var attEquip  = _att.getEquipAttack();
-            var defEquip  = _def.getEquipDefense();
-            var attWeapon = _att.getWeapon();
-
-            var attComp = _att.get("Combat");
-            var defComp = _def.get("Combat");
-
-            var attackPoints = attComp.getAttack();
-            var defPoints    = defComp.getDefense();
-            var damage       = attComp.getDamage();
-
-            var accuracy = _att.get("Stats").getAccuracy();
-            var strength = _att.get("Stats").getStrength();
-
-            var agility = _def.get("Stats").getAgility();
-
-            accuracy += _att.getInvEq().getEquipment().getAccuracy();
-            strength += _att.getInvEq().getEquipment().getStrength();
-            agility += _def.getInvEq().getEquipment().getAgility();
-
             // Actual hit change calculation
-            var totalAttack = attackPoints + accuracy/2 + attEquip;
-            var totalDefense = defPoints + agility/2 + defEquip;
+            var totalAttack = _att.getAttack();
+            var totalDefense = _def.getDefense();
             var hitChange = totalAttack / (totalAttack + totalDefense);
+
             if (hitChange > Math.random()) {
-                var strDamage = RG.strengthToDamage(strength);
-                var totalDamage = damage + strDamage;
+                var totalDamage = _att.getDamage();
                 if (totalDamage > 0)
                     this.doDamage(_att, _def, totalDamage);
                 else
