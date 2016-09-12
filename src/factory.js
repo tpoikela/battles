@@ -14,8 +14,40 @@ RG.Map = GS.getSource(["RG", "Map"], "./src/map.js");
 
 RG.Factory = {};
 
+
+/** This object is used to randomize item properties during procedural
+ * generation.*/
+RG.Factory.ItemRandomizer = function() {
+
+    /** Only public function. All logic is deferred to private functions.
+     * Adjusts the properties of given item, based also on maxValue.*/
+    this.adjustItem = function(item, val) {
+        var itemType = item.getType();
+        if (_adjustFunctions.hasOwnProperty(itemType)) {
+            _adjustFunctions[itemType](item, val);
+        }
+    };
+
+    /** Distr. of food weights.*/
+    var _foodWeights = RG.getFoodWeightDistr();
+
+
+    var _adjustFoodItem = function(food, val) {
+        var weight = ROT.RNG.getWeightedValue(_foodWeights);
+        food.setWeight(weight);
+    };
+
+    /* LUT for functions to call on specific items.*/
+    var _adjustFunctions = {
+        food: _adjustFoodItem,
+    };
+
+};
+
 /** Factory object for creating some commonly used objects.*/
 RG.Factory.Base = function() { // {{{2
+
+    var _itemRandomizer = new RG.Factory.ItemRandomizer();
 
     /** Return zero int if given value is null or undef.*/
     var zeroIfNull = function(val) {
@@ -141,15 +173,22 @@ RG.Factory.Base = function() { // {{{2
 
 
     /** Adds N random items to the level based on maximum value.*/
-    this.addNRandItems = function(parser, itemsPerLevel, level, maxVal) {
+    this.addNRandItems = function(parser, itemsPerLevel, level, maxVal, func) {
         // Generate the items randomly for this level
         for (var j = 0; j < itemsPerLevel; j++) {
             var item = parser.createRandomItem({
-                func: function(item) {return item.value <= maxVal;}
+                func: func,
             });
+            _doItemSpecificAdjustments(item, maxVal);
             var itemCell = level.getFreeRandCell();
             level.addItem(item, itemCell.getX(), itemCell.getY());
         }
+        var food = parser.createRandomItem({func: function(item) {
+            return item.type === "food";
+        }});
+        var foodCell = level.getFreeRandCell();
+        _doItemSpecificAdjustments(item, maxVal);
+        level.addItem(food, foodCell.getX(), foodCell.getY());
     };
 
     /** Adds N random monsters to the level based on given danger level.*/
@@ -160,7 +199,7 @@ RG.Factory.Base = function() { // {{{2
             /*var monster = parser.createRandomActor({
                 func: function(actor){return actor.danger <= maxDanger;}
             });*/
-            var monster = parser.createRandomActorWeighted(1, maxDanger, 
+            var monster = parser.createRandomActorWeighted(1, maxDanger,
                 {func: function(actor) {return actor.danger <= maxDanger;}}
             );
             var objShell = parser.dbGet("actors", monster.getName());
@@ -173,6 +212,10 @@ RG.Factory.Base = function() { // {{{2
     };
 
 
+    /** Called for random items. Adjusts some of their attributes randomly.*/
+    var _doItemSpecificAdjustments = function(item, val) {
+        _itemRandomizer.adjustItem(item, val);
+    };
 
 
     this.createHumanArmy = function(level, parser) {
@@ -391,7 +434,10 @@ RG.FCCGame = function() {
             missile.count = 20;
             level.addItem(missile);
 
-            this.addNRandItems(_parser, itemsPerLevel, level, 20*(nl +1));
+            var maxVal = 20*(nl +1);
+            this.addNRandItems(_parser, itemsPerLevel, level, maxVal,
+                function(item) {return item.value <= maxVal;}
+            );
             this.addNRandMonsters(_parser, monstersPerLevel, level, nl + 1);
 
             allLevels.push(level);
@@ -477,7 +523,8 @@ RG.FCCGame = function() {
         var numFree = level.getMap().getFree().length;
         //var monstersPerLevel = Math.round(numFree / sqrPerMonster);
         var itemsPerLevel = Math.round(numFree / sqrPerItem);
-        this.addNRandItems(_parser, itemsPerLevel, level, 2000);
+        this.addNRandItems(_parser, itemsPerLevel, level, 2000,
+            function(item) {return item.value <= 2000;});
         game.addPlayer(player);
         //player.setFOVRange(50);
         return game;
@@ -884,7 +931,7 @@ RG.ObjectShellParser = function() {
                     }
                 }
                 else {
-                    RG.err("ObjectParser", "addUseEffects", 
+                    RG.err("ObjectParser", "addUseEffects",
                         "useEffect shell has 'requires'. Item shell 'use' must be an object.");
                 }
             }
@@ -901,7 +948,7 @@ RG.ObjectShellParser = function() {
             item.useArgs[reqName] = obj[reqName];
         }
         else {
-            RG.err("ObjectParser", "_verifyAndAddReq", 
+            RG.err("ObjectParser", "_verifyAndAddReq",
                 "Req |" + reqName + "| not specified in item shell. Item: " + item);
         }
     };
