@@ -71,6 +71,96 @@ RG.Element.Stairs = function(down, srcLevel, targetLevel) {
 };
 RG.extend2(RG.Element.Stairs, RG.Element.Base);
 
+/** A shop element is added to each cell inside a shop.*/
+RG.Element.Shop = function() {
+    RG.Element.Base.call(this, "shop");
+
+    this._shopkeeper = null;
+    this._costFactor = 1.0;
+
+};
+RG.extend2(RG.Element.Shop, RG.Element.Base);
+
+RG.Element.Shop.prototype.hasEnoughGold = function(actor, gold) {
+    var items = actor.getInvEq().getInventory().getItems();
+    for (var i = 0; i < items.length; i++) {
+        if (items[i].getType() === "gold") {
+            var weight = items[i].getWeight();
+            if (weight >= gold) {
+                items[i].setWeight(weight - gold);
+                return true;
+            }
+        }
+    }
+    return false;
+};
+
+/** Function for buying an item.*/
+RG.Element.Shop.prototype.buyItem = function(item, buyer) {
+    var value = item.getValue() * this._costFactor;
+    var goldWeight = RG.valueToGoldWeight(value);
+    if (this.hasEnoughGold(buyer, goldWeight)) {
+        var gold = new RG.Item.Gold();
+        gold.setWeight(goldWeight);
+        this._shopkeeper.getInvEq().addItem(gold);
+        item.getOwner().removeProp("items", item);
+        buyer.getInvEq().addItem(item);
+        item.remove("Unpaid");
+        return true;
+    }
+    return false;
+};
+
+/** Function for selling an item.*/
+RG.Element.Shop.prototype.sellItem = function(item, seller) {
+    var value = item.getValue() / this._costFactor;
+    var goldWeight = RG.valueToGoldWeight(value);
+    if (this.hasEnoughGold(this._shopkeeper, goldWeight)) {
+        if (seller.getInvEq().dropItem(item)) {
+            var gold = new RG.Item.Gold();
+            gold.setWeight(goldWeight);
+            seller.getInvEq().addItem(gold);
+            item.add("Unpaid", new RG.Component.Unpaid());
+            return true;
+        }
+        else {
+            console.log("NO DROP XXX");
+
+        }
+    }
+    else {
+        console.log("NO GOLD XXX");
+
+    }
+    return false;
+};
+
+RG.Element.Shop.prototype.doTransaction = function(item, buyer, seller, gw) {
+
+};
+
+/** Sets the shopkeeper.*/
+RG.Element.Shop.prototype.setShopkeeper = function(keeper) {
+    this._shopkeeper = keeper;
+};
+
+/** Returns the shopkeeper.*/
+RG.Element.Shop.prototype.getShopkeeper = function(keeper) {
+    return this._shopkeeper;
+};
+
+/** Sets the shopkeeper.*/
+RG.Element.Shop.prototype.setCostFactor = function(factor) {
+    this._costFactor = factor;
+};
+
+/** Returns the shopkeeper.*/
+RG.Element.Shop.prototype.getShopkeeper = function(keeper) {
+    return this._costFactor;
+};
+
+
+
 if (typeof module !== "undefined" && typeof exports !== "undefined") {
     GS.exportSource(module, exports, ["RG", "Element"], [RG, RG.Element]);
 }
