@@ -472,6 +472,18 @@ RG.getFoodWeightDistr = function() {
     return {0.1: 20, 0.2: 10, 0.3: 5, 0.4: 3, 0.5: 1};
 };
 
+/** Converts abstract value into gold weight. */
+RG.valueToGoldWeight = function(value) {
+    var currVal = value;
+    var slope = 1;
+    while (currVal >= 100) {
+        currVal -= 100;
+        ++slope;
+    }
+    var adjValue = slope * value + 10;
+    return adjValue / 1000;
+};
+
 /** Given an actor, scales its attributes based on new experience level.*/
 RG.levelUpActor = function(actor, newLevel) {
     if (actor.has("Experience")) {
