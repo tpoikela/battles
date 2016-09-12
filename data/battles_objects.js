@@ -75,9 +75,14 @@ var RGObjects = {
             danger: 3,
         },
         {
+            name: "Frost viper", "char": "s", base: "WinterBeingBase",
+            attack: 3, defense: 3, protection: 3, damage: "1d7", hp: 18,
+            danger: 4,
+        },
+        {
             name: "Glacial golem", "char": "G", base: "WinterBeingBase",
             attack: 4, defense: 4, protection: 3, damage: "2d4", speed: 90,
-            danger: 4,
+            danger: 5, hp: 30,
         },
         {
             name: "Mighty raven", base: "WinterBeingBase", "char": "R",
