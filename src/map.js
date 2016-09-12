@@ -37,11 +37,14 @@ RG.Map.Cell.prototype.hasStairs = function() {
 
 /** Return stairs in this cell, or null if there are none.*/
 RG.Map.Cell.prototype.getStairs = function() {
-        if (this.hasPropType("stairsUp")) return this.getPropType("stairsUp")[0];
-        if (this.hasPropType("stairsDown")) return this.getPropType("stairsDown")[0];
-        return null;
-    };
+    if (this.hasPropType("stairsUp")) return this.getPropType("stairsUp")[0];
+    if (this.hasPropType("stairsDown")) return this.getPropType("stairsDown")[0];
+    return null;
+};
 
+RG.Map.Cell.prototype.hasShop = function() {
+    return this.hasPropType("shop");
+};
 
 /** Returns true if light passes through this map cell.*/
 RG.Map.Cell.prototype.lightPasses = function() {
@@ -66,7 +69,7 @@ RG.Map.Cell.prototype.isFree = function() {
     return this._baseElem.isPassable();
 };
 
-/** Add given obj has specified property.*/
+/** Add given obj with specified property type.*/
 RG.Map.Cell.prototype.setProp = function(prop, obj) {
     if (!this._p.hasOwnProperty(prop)) this._p[prop] = [];
     if (this._p.hasOwnProperty(prop)) {
