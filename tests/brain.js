@@ -69,12 +69,22 @@ describe('Brain.Player', function() {
 
     it('Has different fighting modes', function() {
         var brain = new Brain.Player(player);
-        //brain.resetBoosts();
         brain.toggleFightMode();
 
-        brain.decideNextAction({code: ROT.VK_X});
+        var attack = player.getAttack();
+        var speed = player.getSpeed();
+
+        expect(brain.energy).to.equal(1);
+        var attackCallback = brain.decideNextAction({code: ROT.VK_X});
         expect(brain.energy).to.equal(RG.energy.ATTACK);
+        attackCallback();
+        expect(player.get("StatsMods").getSpeed()).to.equal(20);
         expect(player.getSpeed()).to.equal(120);
+
+        brain.toggleFightMode();
+        attackCallback = brain.decideNextAction({code: ROT.VK_X});
+        attackCallback();
+        expect(player.getSpeed()).to.equal(80);
     });
 });
 
