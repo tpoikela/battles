@@ -355,3 +355,50 @@ describe('Moving actors around in the game', function() {
     });
 });
 
+//--------------------------------------------------------------------------
+// SHOPS
+//--------------------------------------------------------------------------
+
+describe('How shops in the game work', function() {
+    it('Has special Shop elements', function() {
+        var level = RG.FACT.createLevel("arena", 30, 30);
+        var map = level.getMap();
+        var shopkeeper = new RG.Actor.Rogue("Shopkeeper");
+
+        var adventurer = new RG.Actor.Rogue("Buyer");
+        level.addActor(adventurer, 1, 1);
+        var someGold = new RG.Item.Gold();
+        someGold.setWeight(2.0);
+        adventurer.getInvEq().addItem(someGold);
+
+        var shopElem = new RG.Element.Shop();
+        var shopCell = map.getCell(1, 1);
+        shopElem.setShopkeeper(shopkeeper);
+        shopCell.setProp("elements", shopElem);
+        expect(shopCell.hasShop()).to.equal(true);
+
+        var soldItem = new RG.Item.Weapon("Fancy Sword");
+        soldItem.setValue(300);
+        soldItem.add("Unpaid", new RG.Component.Unpaid());
+        level.addItem(soldItem, 1, 1);
+        expect(shopCell.hasProp("items")).to.equal(true);
+        expect(soldItem.has("Unpaid")).to.equal(true);
+
+        expect(shopElem.buyItem(soldItem, adventurer)).to.equal(true);
+        expect(shopCell.hasProp("items")).to.equal(false);
+        expect(soldItem.has("Unpaid")).to.equal(false);
+        expect(someGold.getWeight() < 2.0).to.equal(true);
+
+        var goldAfterBuy = someGold.getWeight();
+
+        var soldShield = new RG.Item.Armour("Gleaming shield");
+        soldShield.setValue(100);
+        adventurer.getInvEq().addItem(soldShield);
+        expect(shopElem.sellItem(soldShield, adventurer)).to.equal(true);
+
+        var goldAfterSale = someGold.getWeight();
+        expect(shopCell.hasProp("items")).to.equal(true);
+        expect(goldAfterSale > goldAfterBuy).to.equal(true);
+
+    });
+});
