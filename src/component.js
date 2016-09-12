@@ -622,6 +622,18 @@ RG.Component.Poison = function() {
 };
 RG.extend2(RG.Component.Poison, RG.Component.Base);
 
+/** For branding stolen goods.*/
+RG.Component.Stolen = function() {
+    RG.Component.Base.call(this, "Stolen");
+};
+RG.extend2(RG.Component.Stolen, RG.Component.Base);
+
+/** Added to unpaid items in shops. Removed once the purchase is done.*/
+RG.Component.Unpaid = function() {
+    RG.Component.Base.call(this, "Unpaid");
+};
+RG.extend2(RG.Component.Unpaid, RG.Component.Base);
+
 
 if (typeof module !== "undefined" && typeof exports !== "undefined") {
     GS.exportSource(module, exports, ["RG", "Component"], [RG, RG.Component]);
