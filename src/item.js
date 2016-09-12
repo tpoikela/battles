@@ -487,6 +487,13 @@ RG.Item.Container.prototype.toJSON = function() {
 };
 
 /** Spirit gems can capture spirits inside them.*/
+RG.Item.Gold = function() {
+    RG.Item.Base.call(this, "Gold");
+    this.setType("gold");
+};
+RG.extend2(RG.Item.Gold, RG.Item.Base);
+
+/** Spirit gems can capture spirits inside them.*/
 RG.Item.SpiritGem = function(name) {
     RG.Item.Base.call(this, name);
     this.setType("spiritgem");
