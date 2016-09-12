@@ -466,6 +466,12 @@ RG.getDangerProb = function(min, max) {
     return obj;
 };
 
+/** Returns the weight distribution for foods. This is something like
+ * {0.1: 10, 0.2: 7, 0.3: 5, 0.5: 1} etc.*/
+RG.getFoodWeightDistr = function() {
+    return {0.1: 20, 0.2: 10, 0.3: 5, 0.4: 3, 0.5: 1};
+};
+
 /** Given an actor, scales its attributes based on new experience level.*/
 RG.levelUpActor = function(actor, newLevel) {
     if (actor.has("Experience")) {
