@@ -59,13 +59,17 @@ RG.Brain.Player = function(actor) { // {{{2
         }
 
         var code = obj.code;
+
+        // Stop here, if action must be confirmed
         if (_wantConfirm && _confirmCallback !== null) {
             // Want y/n answer
             _wantConfirm = false;
             if (RG.KeyMap.isConfirmYes(code)) {
                 this.energy = _confirmEnergy;
-                return _confirmCallback;
+                return _confirmCallback; // If confirmed, return action to be done
             }
+            RG.gameMsg("You cancel the action.");
+            return this.noAction();
         }
 
         // Invoke GUI callback with given code
@@ -84,7 +88,7 @@ RG.Brain.Player = function(actor) { // {{{2
             return this.noAction();
         }
 
-        // Need existing position
+        // Need existing position for move/attack commands
         var level = _actor.getLevel();
         var x = _actor.getX();
         var y = _actor.getY();
@@ -95,9 +99,9 @@ RG.Brain.Player = function(actor) { // {{{2
 
         var type = "NULL";
         if (RG.KeyMap.inMoveCodeMap(code)) {
-            var diff = RG.KeyMap.getDiff(code, x, y);
-            x = diff[0];
-            y = diff[1];
+            var diffXY = RG.KeyMap.getDiff(code, x, y);
+            x = diffXY[0];
+            y = diffXY[1];
             type = "MOVE";
         }
         else {
@@ -230,12 +234,14 @@ RG.Brain.Player = function(actor) { // {{{2
 
         if (_fightMode === RG.FMODE_FAST) {
             speedBoost = Math.round(0.2 * stats.getSpeed());
-            attackBoost = -Math.round(0.1 * combat.getAttack());
+            attackBoost = -Math.round(0.2 * combat.getAttack());
+            attackBoost = attackBoost <= 0 ? -1 : attackBoost;
             damageBoost = -1;
         }
         else if (_fightMode == RG.FMODE_SLOW) {
             speedBoost = -Math.round(0.2 * stats.getSpeed());
-            attackBoost = Math.round(0.1 * combat.getAttack());
+            attackBoost = Math.round(0.2 * combat.getAttack());
+            attackBoost = attackBoost === 0 ? 1 : attackBoost;
             damageBoost = 2;
         }
         _actor.get("StatsMods").setSpeed(speedBoost);
