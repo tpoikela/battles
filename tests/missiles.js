@@ -187,7 +187,7 @@ describe('How missile is fired and hits a wall', function() {
         expect(targetCell.hasPropType("missile")).to.equal(true);
     });
 
-    it('Passes through ethereal beings', function() {
+    it('Missile passes through ethereal beings', function() {
         var systems = createSystems();
         var level = RG.FACT.createLevel("arena", 30, 30);
         var srcEnt = new Actor("archer");

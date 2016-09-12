@@ -321,3 +321,11 @@ describe('How one-shot items are removed after their use', function() {
     });
 });
 
+describe('Gold coins and other valuables', function() {
+    it('Has weight and stacks normally', function() {
+        var gold = new RG.Item.Gold("Gold coin");
+        gold.count = 3;
+        gold.setWeight(0.1);
+    });
+});
+
