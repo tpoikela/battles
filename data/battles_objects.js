@@ -26,6 +26,7 @@ var RGObjects = {
         },
         {
             name: "bat", type: "bat", "char": "b", base: "animal",
+            defense: 2,
         },
         {
             name: "rat", type: "rat", "char": "r", base: "animal",
@@ -45,6 +46,11 @@ var RGObjects = {
             name: "wolf", "char": "w", base: "animal",
             attack: 4, defense: 2, damage: "1d6",
             hp: 15, danger: 3,
+        },
+        {
+            name: "bear", "char": "B", base: "animal",
+            attack: 4, defense: 4, damage: "1d9",
+            hp: 25, danger: 5,
         },
 
         // HUMANOIDS
@@ -215,12 +221,12 @@ var RGObjects = {
         {
             name: "Pick-axe", base: "MeleeWeaponBase",
             damage: "1d8", attack: 1, defense: 2,
-            weight: 2.3, value: 15, use: "digger",
+            weight: 2.3, value: 50, use: "digger",
         },
         {
             name: "Saber", base: "MeleeWeaponBase",
             material: "iron",
-            damage: "2d4 + 1", attack: 2, attack: 1,
+            damage: "2d4 + 1", attack: 2, defense: 1,
             weight: 0.6, value: 30,
         },
         {
@@ -231,8 +237,8 @@ var RGObjects = {
         {
             name: "Tomahawk", base: "MeleeWeaponBase",
             material: ["wood", "stone", "leather"],
-            damage: "1d9 + 2", attack: 2, defense: 1,
-            weight: 0.7, value: 60,
+            damage: "1d9 + 2", attack: 2, defense: 3,
+            weight: 0.7, value: 75,
         },
 
         // ICE WEAPONS (not easy to attack, do lots of damage)
@@ -516,6 +522,10 @@ var RGObjects = {
             name: "Potion of frost poison", base: "PotionBase", 
             use: {poison: {duration: "5d20", damage: "1d6 + 1", prob: "0.2"}},
             value: 100
+        },
+        {
+            name: "Healing elixir", base: "PotionBase", use: {heal: {hp: "10d5"}},
+            value: 100,
         },
 
         // FOOD
