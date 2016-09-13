@@ -42,13 +42,7 @@ function checkMap(map, cols, rows) {
 }
 
 function getNewLevel(cols, rows) {
-    var level = new RG.Map.Level(cols, rows);
-    var mapGen = new RG.Map.Generator();
-    mapGen.setGen("arena", cols, rows);
-    var map = mapGen.getMap();
-    level.setMap(map);
-    return level;
-
+    return RG.FACT.createLevel("arena", cols, rows);
 }
 
 /** Returns a level with initialized with given actors.*/
