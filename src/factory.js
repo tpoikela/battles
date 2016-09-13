@@ -93,7 +93,7 @@ RG.Factory.Base = function() { // {{{2
     };
 
     /** Factory method for monsters.*/
-    this.createMonster = function(name, obj) {
+    this.createActor = function(name, obj) {
         var monster = new RG.Actor.Rogue(name);
         if (RG.isNullOrUndef([obj])) obj = {};
 
@@ -446,7 +446,7 @@ RG.FCCGame = function() {
         // Create the final boss
         var lastLevel = allLevels.slice(-1)[0];
         var bossCell = lastLevel.getFreeRandCell();
-        var summoner = this.createMonster("Summoner", {hp: 100, att: 10, def: 10});
+        var summoner = this.createActor("Summoner", {hp: 100, att: 10, def: 10});
         summoner.setType("summoner");
         summoner.get("Experience").setExpLevel(10);
         summoner.setBrain(new RG.Brain.Summoner(summoner));
@@ -474,7 +474,7 @@ RG.FCCGame = function() {
         var humansPerLevel = 50;
         for (var i = 0; i < 10; i++) {
             var name = "Townsman";
-            var human = this.createMonster(name, {brain: "Human"});
+            var human = this.createActor(name, {brain: "Human"});
             human.setType("human");
             var cell = townLevel.getFreeRandCell();
             townLevel.addActor(human, cell.getX(), cell.getY());
@@ -519,6 +519,17 @@ RG.FCCGame = function() {
         level.addItem(poison, 2, 2);
         var curePoison = _parser.createActualObj("items", "Potion of cure poison");
         level.addItem(curePoison, 3, 2);
+
+        // Test for shops
+        var keeper = _parser.createActualObj("actors", "shopkeeper");
+        level.addActor(keeper, 2, 2);
+        var shopElem = new RG.Element.Shop();
+        var shopCell = level.getMap().getCell(3, 3);
+        shopCell.setProp("elements", shopElem);
+        var soldItem = _parser.createActualObj("items", "Ruby glass sword");
+        soldItem.add("Unpaid", new RG.Component.Unpaid());
+        shopCell.setProp("items", soldItem);
+        shopElem.setShopkeeper(keeper);
 
         var numFree = level.getMap().getFree().length;
         //var monstersPerLevel = Math.round(numFree / sqrPerMonster);
