@@ -131,6 +131,7 @@ var RG = { // {{{2
             "wall": "#",
             "ice wall": "#",
             "floor": ".",
+            "shop": ":",
             "snow": ".",
             "stairsUp": "<",
             "stairsDown": ">",
@@ -161,6 +162,7 @@ var RG = { // {{{2
             floor: "cell-element-floor",
             "ice wall": "cell-element-ice-wall",
             snow: "cell-element-snow",
+            shop: "cell-element-shop",
         },
         actors: {
             "default": "cell-actor-default",
@@ -624,6 +626,7 @@ RG.KeyMap = {
     isRunMode: function(code) {return code === ROT.VK_R;},
     isFightMode: function(code) {return code === ROT.VK_F;},
     isConfirmYes: function(code) {return code === ROT.VK_Y;},
+    isNextItem: function(code) {return code === ROT.VK_H;},
 
     /** Based on keycode, computes and returns a new x,y pair. If code is
      * invalid, returns null. */
