@@ -123,19 +123,7 @@ RG.Brain.Player = function(actor) { // {{{2
                 type = "PICKUP";
                 if (currCell.hasProp("items")) {
                     if (currCell.hasShop()) {
-                        var topItem = currCell.getProp("items")[0];
-                        var shopElem = currCell.getPropType("shop")[0];
-                        var nCoins = shopElem.getItemPriceForBuying(topItem);
-
-                        var buyItemCallback = function() {
-                            shopElem.buyItem(topItem, _actor);
-                        };
-
-                        _confirmEnergy = 0;
-                        _wantConfirm = true;
-                        _confirmCallback = buyItemCallback;
-                        RG.gameMsg("Press 'y' to buy " + topItem.getName() + " for " +
-                            nCoins + " gold coins");
+                        _createBuyConfirmCallback(currCell);
                         return this.noAction();
                     }
                     else {
@@ -250,12 +238,39 @@ RG.Brain.Player = function(actor) { // {{{2
 
     /** If there are multiple items per cell, digs next item to the top.*/
     this.getNextItemOnTop = function(cell) {
-        var items = cell.getProp("items");
-        if (items.length > 1) {
-            var firstItem = items.shift();
-            items.push(firstItem);
-            RG.gameMsg("You see now " + items[0].getName() + " on top of the heap.");
+        if (cell.hasProp("items")) {
+            var items = cell.getProp("items");
+            if (items.length > 1) {
+                var firstItem = items.shift();
+                items.push(firstItem);
+                RG.gameMsg("You see now " + items[0].getName() + " on top of the heap.");
+            }
+            else {
+                RG.gameMsg("You see only " + items[0].getName() + " here");
+            }
         }
+        else {
+            RG.gameMsg("There are no items here to look through");
+        }
+    };
+
+
+    /** Creates the callback for buying an item, and sets up the confirmation
+     * request from player.*/
+    var _createBuyConfirmCallback = function(currCell) {
+        var topItem = currCell.getProp("items")[0];
+        var shopElem = currCell.getPropType("shop")[0];
+        var nCoins = shopElem.getItemPriceForBuying(topItem);
+
+        var buyItemCallback = function() {
+            shopElem.buyItem(topItem, _actor);
+        };
+
+        _confirmEnergy = 0;
+        _wantConfirm = true;
+        _confirmCallback = buyItemCallback;
+        RG.gameMsg("Press 'y' to buy " + topItem.getName() + " for " +
+            nCoins + " gold coins");
     };
 
     /** Sets the stats for attack for special modes.*/
@@ -327,6 +342,7 @@ RG.Brain.Player = function(actor) { // {{{2
         return function() {};
     };
 
+    // Not used to store anything, used only to map setters to components
     var _statBoosts = {
         CombatMods: {
             setAttack: 0,
@@ -340,7 +356,6 @@ RG.Brain.Player = function(actor) { // {{{2
             setStrength: 0,
             setAgility: 0,
         },
-
     };
 
     /** Returns all stats to their nominal values.*/
@@ -355,6 +370,7 @@ RG.Brain.Player = function(actor) { // {{{2
         }
     };
 
+    /** Returns possible target for attack, or null if none are found.*/
     var _getAttackTarget = function(map, x, y) {
         var targets = map.getCell(x, y).getProp("actors");
         for (var i = 0; i < targets.length; i++) {
@@ -363,6 +379,7 @@ RG.Brain.Player = function(actor) { // {{{2
         return null;
     };
 
+    /** Required for damage dealing. Does nothing for the player.*/
     this.addEnemy = function(actor) {};
 
 }; // }}} Brain.Player
