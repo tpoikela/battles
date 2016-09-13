@@ -477,6 +477,15 @@ RG.Item.Container = function(owner) {
 };
 RG.extend2(RG.Item.Container, RG.Item.Base);
 
+RG.Item.Container.prototype.toString = function() {
+    var str = "Container: " + this.getName() + "\n";
+    var items = this.getItems();
+    for (var i = 0; i < items.length; i++) {
+        str += items[i].toString() + "\n";
+    }
+    return str;
+};
+
 RG.Item.Container.prototype.toJSON = function() {
     var json = [];
     var items = this.getItems();
@@ -486,12 +495,32 @@ RG.Item.Container.prototype.toJSON = function() {
     return json;
 };
 
-/** Spirit gems can capture spirits inside them.*/
-RG.Item.Gold = function() {
-    RG.Item.Base.call(this, "Gold");
+/** Gold items. */
+RG.Item.Gold = function(name) {
+    RG.Item.Base.call(this, name);
     this.setType("gold");
+    this._purity = 1.0;
 };
 RG.extend2(RG.Item.Gold, RG.Item.Base);
+
+RG.Item.Gold.prototype.getPurity = function() {
+    return this._purity;
+};
+
+RG.Item.Gold.prototype.setPurity = function(purity) {
+    this._purity = purity;
+};
+
+
+/** Gold coins have standard weight and are (usually) made of pure gold.*/
+RG.Item.GoldCoin = function() {
+    RG.Item.Gold.call(this, RG.GOLD_COIN_NAME);
+    this.setType("goldcoin");
+    this._purity = 1.0;
+    this.setWeight(0.03);
+};
+RG.extend2(RG.Item.GoldCoin, RG.Item.Gold);
+
 
 /** Spirit gems can capture spirits inside them.*/
 RG.Item.SpiritGem = function(name) {
