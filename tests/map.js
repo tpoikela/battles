@@ -269,8 +269,8 @@ describe('Moving actors around in the game', function() {
         var level = new Level(10, 10);
         var mapgen = new RG.Map.Generator();
         mapgen.setGen("arena", 10, 10);
-        var map = mapgen.getMap();
-        level.setMap(map);
+        var mapObj = mapgen.getMap();
+        level.setMap(mapObj.map);
         level.addActor(actor, 1, 2);
         expect(actor.getX()).to.equal(1);
         expect(actor.getY()).to.equal(2);
