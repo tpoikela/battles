@@ -16,12 +16,12 @@ var updateSystems = function(systems) {
 };
 
 describe('How AI brain memory performs basic functions', function() {
-    var hunter = RG.FACT.createMonster("hunter");
+    var hunter = RG.FACT.createActor("hunter");
     var brain = new Brain(hunter);
     hunter.setBrain(brain);
 
-    var animal = RG.FACT.createMonster("animal");
-    var beast = RG.FACT.createMonster("beast");
+    var animal = RG.FACT.createActor("animal");
+    var beast = RG.FACT.createActor("beast");
 
     it('Keeps track of enemies', function() {
         var memory = new Memory(brain);
@@ -52,8 +52,8 @@ describe('How actors communicate with each other', function() {
         var comSys = new RG.System.Communication("Communication", ["Communication"]);
         var systems = [comSys];
 
-        var hunter1 = RG.FACT.createMonster("hunter1");
-        var hunter2 = RG.FACT.createMonster("hunter2");
+        var hunter1 = RG.FACT.createActor("hunter1");
+        var hunter2 = RG.FACT.createActor("hunter2");
 
         var brain1 = new Brain(hunter1);
         hunter1.setBrain(brain1);
@@ -61,7 +61,7 @@ describe('How actors communicate with each other', function() {
         var brain2 = new Brain(hunter2);
         hunter2.setBrain(brain2);
 
-        var animal = RG.FACT.createMonster("animal");
+        var animal = RG.FACT.createActor("animal");
 
         hunter1.addEnemy(animal);
         var mem1 = brain1.getMemory();

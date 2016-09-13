@@ -43,8 +43,8 @@ describe('How loot is dropped by monsters', function() {
 
     it('Drops loot when lethal damage is dealt', function() {
         var level = RG.FACT.createLevel("arena", 20, 20);
-        var monster = RG.FACT.createMonster("TestMonster", {hp: 5, att: 1, def: 1, prot: 1});
-        var human = RG.FACT.createMonster("Human", {hp: 5, att: 1, def: 1, prot: 1});
+        var monster = RG.FACT.createActor("TestMonster", {hp: 5, att: 1, def: 1, prot: 1});
+        var human = RG.FACT.createActor("Human", {hp: 5, att: 1, def: 1, prot: 1});
 
         var dSystem = new RG.System.Damage("Damage", ["Damage"]);
         var systems = [dSystem];
