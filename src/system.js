@@ -391,8 +391,11 @@ RG.System.Movement = function(type, compTypes) {
         if (cell.hasStairs()) RG.gameMsg("You see stairs here");
         if (cell.hasProp("items")) {
             var items = cell.getProp("items");
-            if (items.length > 1) RG.gameMsg("There are several items here");
-            else RG.gameMsg(items[0].getName() + " is on the floor");
+            var topItemName = items[0].getName();
+            if (items.length > 1) {
+                RG.gameMsg("There are several items here. You see " + topItemName + " on top");
+            }
+            else RG.gameMsg(topItemName + " is on the floor");
         }
     };
 
