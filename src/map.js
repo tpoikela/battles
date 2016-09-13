@@ -427,12 +427,14 @@ RG.Map.Generator = function() { // {{{2
             var xSize = Math.floor(Math.random() * (maxX - minX)) + minX;
             var ySize = Math.floor(Math.random() * (maxY - minY)) + minY;
 
+            // Select random starting point, try to build house there
             while (!houseCreated && tries < maxTriesHouse) {
                 var x0 = Math.floor(Math.random() * cols);
                 var y0 = Math.floor(Math.random() * rows);
                 houseCreated = this.createHouse(map, x0, y0, xSize, ySize, doors, wallsHalos);
                 ++tries;
             }
+            //if (houseCreated) houses.push(houseCreated);
 
         }
         return map;
@@ -508,7 +510,22 @@ RG.Map.Generator = function() { // {{{2
             var yHalo = wallCoords[i][1];
             wallsHalos[xHalo + "," + yHalo] = true;
         }
+
+        var floorCoords = [];
+        for (var x = x0 + 1; x < maxX; x++) {
+            for (var y = y0 + 1; y < maxY; y++) {
+                floorCoords.push([x, y]);
+            }
+        }
+
+        // Return room object
         return true;
+        return {
+            llx: x0, lly: y0, urx: maxX, ury: maxY,
+            walls: wallCoords,
+            floor: floorCoords,
+            door: [doorX, doorY],
+        };
     };
 
 }; // }}} Map.Generator
