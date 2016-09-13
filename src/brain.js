@@ -77,6 +77,7 @@ RG.Brain.Player = function(actor) { // {{{2
             return _guiCallbacks[code](code);
         }
 
+
         // Enable/disable run mode
         if (RG.KeyMap.isRunMode(code)) {
             this.toggleRunMode();
@@ -97,6 +98,11 @@ RG.Brain.Player = function(actor) { // {{{2
         var currMap = level.getMap();
         var currCell = currMap.getCell(x, y);
 
+        if (RG.KeyMap.isNextItem(code)) {
+            this.getNextItemOnTop(currCell);
+            return this.noAction();
+        }
+
         var type = "NULL";
         if (RG.KeyMap.inMoveCodeMap(code)) {
             var diffXY = RG.KeyMap.getDiff(code, x, y);
@@ -116,9 +122,27 @@ RG.Brain.Player = function(actor) { // {{{2
             if (RG.KeyMap.isPickup(code)) {
                 type = "PICKUP";
                 if (currCell.hasProp("items")) {
-                    return function() {
-                        level.pickupItem(_actor, x, y);
-                    };
+                    if (currCell.hasShop()) {
+                        var topItem = currCell.getProp("items")[0];
+                        var shopElem = currCell.getPropType("shop")[0];
+                        var nCoins = shopElem.getItemPriceForBuying(topItem);
+
+                        var buyItemCallback = function() {
+                            shopElem.buyItem(topItem, _actor);
+                        };
+
+                        _confirmEnergy = 0;
+                        _wantConfirm = true;
+                        _confirmCallback = buyItemCallback;
+                        RG.gameMsg("Press 'y' to buy " + topItem.getName() + " for " +
+                            nCoins + " gold coins");
+                        return this.noAction();
+                    }
+                    else {
+                        return function() {
+                            level.pickupItem(_actor, x, y);
+                        };
+                    }
                 }
                 else {
                     return this.cmdNotPossible("There are no items to pick up.");
@@ -222,6 +246,16 @@ RG.Brain.Player = function(actor) { // {{{2
     this.toggleFightMode = function() {
         _fightMode += 1;
         if (_fightMode >= RG.FMODES.length) _fightMode = RG.FMODE_NORMAL;
+    };
+
+    /** If there are multiple items per cell, digs next item to the top.*/
+    this.getNextItemOnTop = function(cell) {
+        var items = cell.getProp("items");
+        if (items.length > 1) {
+            var firstItem = items.shift();
+            items.push(firstItem);
+            RG.gameMsg("You see now " + items[0].getName() + " on top of the heap.");
+        }
     };
 
     /** Sets the stats for attack for special modes.*/
