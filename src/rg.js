@@ -430,6 +430,9 @@ var RG = { // {{{2
     // 0.0 = uniform dist, higher number assigns more weight to median values
     DANGER_ADJ_FACTOR: 1.4,
 
+    GOLD_COIN_WEIGHT: 0.03, //kg
+    GOLD_COIN_NAME: "Gold coins",
+
 }; /// }}} RG
 
 RG.PROP_TYPES = [RG.TYPE_ACTOR, RG.TYPE_ELEM, RG.TYPE_ITEM, RG.TYPE_TRAP];
@@ -586,6 +589,11 @@ RG.destroyItemIfNeeded = function(item) {
             item.count -= 1;
         }
     }
+};
+
+/** Given gold weight, returns the equivalent in coins.*/
+RG.getGoldInCoins = function(weight) {
+    return Math.floor(weight / RG.GOLD_COIN_WEIGHT);
 };
 
 
