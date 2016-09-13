@@ -686,7 +686,7 @@ RG.Brain.Summoner = function(actor) {
             if (cellsAround.length > 0) {
                 var freeX = cellsAround[0].getX();
                 var freeY = cellsAround[0].getY();
-                var summoned = RG.FACT.createMonster("Summoned",
+                var summoned = RG.FACT.createActor("Summoned",
                     {hp: 15, att: 7, def: 7});
                 summoned.get("Experience").setExpLevel(5);
                 level.addActor(summoned, freeX, freeY);
