@@ -367,9 +367,17 @@ describe('How shops in the game work', function() {
 
         var adventurer = new RG.Actor.Rogue("Buyer");
         level.addActor(adventurer, 1, 1);
-        var someGold = new RG.Item.Gold();
+        var someGold = new RG.Item.Gold("Gold nuggets");
         someGold.setWeight(2.0);
         adventurer.getInvEq().addItem(someGold);
+
+        for (var i = 0; i < 10; i++) {
+            var goldCoin = new RG.Item.GoldCoin();
+            adventurer.getInvEq().addItem(goldCoin);
+        }
+        var hundredCoins = new RG.Item.GoldCoin();
+        hundredCoins.count = 100;
+        adventurer.getInvEq().addItem(hundredCoins);
 
         var shopElem = new RG.Element.Shop();
         var shopCell = map.getCell(1, 1);
@@ -387,18 +395,24 @@ describe('How shops in the game work', function() {
         expect(shopElem.buyItem(soldItem, adventurer)).to.equal(true);
         expect(shopCell.hasProp("items")).to.equal(false);
         expect(soldItem.has("Unpaid")).to.equal(false);
-        expect(someGold.getWeight() < 2.0).to.equal(true);
 
-        var goldAfterBuy = someGold.getWeight();
+        var advItems = adventurer.getInvEq().getInventory().getItems();
+        var coinsAfterBuy = advItems[1];
+        var ncoinsAfterBuy = coinsAfterBuy.count;
 
         var soldShield = new RG.Item.Armour("Gleaming shield");
         soldShield.setValue(100);
         adventurer.getInvEq().addItem(soldShield);
+        console.log("Shopkeeper: " + shopkeeper.getInvEq().getInventory().toString());
         expect(shopElem.sellItem(soldShield, adventurer)).to.equal(true);
 
-        var goldAfterSale = someGold.getWeight();
+        var advItems = adventurer.getInvEq().getInventory().getItems();
+        var coinsAfterSale = advItems[1];
+        var ncoinsAfterSale = coinsAfterSale.count;
+
         expect(shopCell.hasProp("items")).to.equal(true);
-        expect(goldAfterSale > goldAfterBuy).to.equal(true);
+        expect(ncoinsAfterSale > ncoinsAfterBuy).to.equal(true);
+
 
     });
 });

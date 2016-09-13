@@ -81,13 +81,15 @@ RG.Element.Shop = function() {
 };
 RG.extend2(RG.Element.Shop, RG.Element.Base);
 
-RG.Element.Shop.prototype.hasEnoughGold = function(actor, gold) {
+RG.Element.Shop.prototype.hasEnoughGold = function(actor, goldWeight) {
+    var ncoins = RG.getGoldInCoins(goldWeight);
+    console.log("Needed " + ncoins);
     var items = actor.getInvEq().getInventory().getItems();
     for (var i = 0; i < items.length; i++) {
-        if (items[i].getType() === "gold") {
-            var weight = items[i].getWeight();
-            if (weight >= gold) {
-                items[i].setWeight(weight - gold);
+        if (items[i].getType() === "goldcoin") {
+            console.log("Found gold coins: " + items[i].count);
+            if (items[i].count >= ncoins) {
+                items[i].count -= ncoins;
                 return true;
             }
         }
@@ -97,15 +99,18 @@ RG.Element.Shop.prototype.hasEnoughGold = function(actor, gold) {
 
 /** Function for buying an item.*/
 RG.Element.Shop.prototype.buyItem = function(item, buyer) {
+    var buyerCell = buyer.getCell();
     var value = item.getValue() * this._costFactor;
     var goldWeight = RG.valueToGoldWeight(value);
     if (this.hasEnoughGold(buyer, goldWeight)) {
-        var gold = new RG.Item.Gold();
-        gold.setWeight(goldWeight);
-        this._shopkeeper.getInvEq().addItem(gold);
+        var coins = new RG.Item.GoldCoin();
+        coins.count = RG.getGoldInCoins(goldWeight);
+        this._shopkeeper.getInvEq().addItem(coins);
         item.getOwner().removeProp("items", item);
         buyer.getInvEq().addItem(item);
         item.remove("Unpaid");
+        RG.gameMsg({cell: buyerCell, msg: buyer.getName + 
+            " bought " + item.getName() + " for " + coins.count + " coins."});
         return true;
     }
     return false;
@@ -113,30 +118,26 @@ RG.Element.Shop.prototype.buyItem = function(item, buyer) {
 
 /** Function for selling an item.*/
 RG.Element.Shop.prototype.sellItem = function(item, seller) {
+    var sellerCell = seller.getCell();
     var value = item.getValue() / this._costFactor;
     var goldWeight = RG.valueToGoldWeight(value);
     if (this.hasEnoughGold(this._shopkeeper, goldWeight)) {
         if (seller.getInvEq().dropItem(item)) {
-            var gold = new RG.Item.Gold();
-            gold.setWeight(goldWeight);
-            seller.getInvEq().addItem(gold);
+            var coins = new RG.Item.GoldCoin();
+            coins.count = RG.getGoldInCoins(goldWeight);
+            seller.getInvEq().addItem(coins);
             item.add("Unpaid", new RG.Component.Unpaid());
+            RG.gameMsg({cell: sellerCell, msg: seller.getName + 
+                " sold " + item.getName() + " for " + coins.count + " coins."});
             return true;
-        }
-        else {
-            console.log("NO DROP XXX");
-
         }
     }
     else {
-        console.log("NO GOLD XXX");
-
+        var name = this._shopkeeper.getName();
+        RG.gameMsg({cell: this._shopkeeper.getCell(), 
+            msg: "Shopkeeper " + name + " doesn't have enough gold to buy it."});
     }
     return false;
-};
-
-RG.Element.Shop.prototype.doTransaction = function(item, buyer, seller, gw) {
-
 };
 
 /** Sets the shopkeeper.*/
