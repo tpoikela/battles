@@ -391,6 +391,7 @@ describe('How shops in the game work', function() {
         level.addItem(soldItem, 1, 1);
         expect(shopCell.hasProp("items")).to.equal(true);
         expect(soldItem.has("Unpaid")).to.equal(true);
+        expect(shopElem.getItemPriceForBuying(soldItem)).to.equal(40);
 
         expect(shopElem.buyItem(soldItem, adventurer)).to.equal(true);
         expect(shopCell.hasProp("items")).to.equal(false);
