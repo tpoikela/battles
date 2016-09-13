@@ -138,17 +138,51 @@ RG.Factory.Base = function() { // {{{2
     /** Factory method for creating levels.*/
     this.createLevel = function(levelType, cols, rows, conf) {
         var mapgen = new RG.Map.Generator();
-        var map = null;
-
-        if (levelType === "town") map = mapgen.createTown(cols, rows, conf);
-        else {
-            mapgen.setGen(levelType, cols, rows);
-            map = mapgen.getMap();
-        }
+        var mapObj = null;
 
         var level = new RG.Map.Level(cols, rows);
-        level.setMap(map);
+        if (levelType === "town") {
+            mapObj = mapgen.createTown(cols, rows, conf);
+            level.setMap(mapObj.map);
+            this.createShop(level, mapObj, conf);
+        }
+        else {
+            mapgen.setGen(levelType, cols, rows);
+            mapObj = mapgen.getMap();
+            level.setMap(mapObj.map);
+        }
+
         return level;
+    };
+
+    /* Creates a shop and a shopkeeper into a random house in the given level.*/
+    this.createShop = function(level, mapObj, conf) {
+        var map = mapObj.map;
+        if (mapObj.hasOwnProperty("houses")) {
+            var houses = mapObj.houses;
+            var nlength = houses.length;
+            var index = Math.floor(nlength * Math.random());
+            var house = mapObj.houses[index];
+            var floor = house.floor;
+
+            var keeper = this.createActor("Shopkeeper", {brain: "Human"});
+            for (var i = 0; i < floor.length; i++) {
+                var xy = floor[i];
+                if (i === 0) level.addActor(keeper, xy[0], xy[1]);
+                var cell = map.getCell(xy[0], xy[1]);
+                var shopElem = new RG.Element.Shop();
+                shopElem.setShopkeeper(keeper);
+                cell.setProp("elements", shopElem);
+                var item = conf.parser.createRandomItem({
+                    func: conf.func,
+                });
+                item.add("Unpaid", new RG.Component.Unpaid());
+                level.addItem(item, xy[0], xy[1]);
+            }
+        }
+        else {
+            RG.err("Factory", "createShop", "No houses in mapObj.");
+        }
     };
 
     /** Creates a randomized level for the game. Danger level controls how the
@@ -549,7 +583,9 @@ RG.FCCGame = function() {
 
     this.createLastBattle = function(game, obj) {
         var level = this.createLevel("town", obj.cols, obj.rows,
-            {nHouses: 10, minHouseX: 5, maxHouseX: 10, minHouseY: 5, maxHouseY: 10});
+            {nHouses: 10, minHouseX: 5, maxHouseX: 10, minHouseY: 5, maxHouseY: 10,
+                parser: _parser, func: function(item) {return item.type === "armour";}}
+        );
         _listener = new DemonKillListener(game, level);
 
         this.createHumanArmy(level, _parser);
