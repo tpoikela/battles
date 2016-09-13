@@ -320,6 +320,7 @@ RG.Map.Generator = function() { // {{{2
     this.cols = 50;
     this.rows = 30;
     var _mapGen = new ROT.Map.Arena(50, 30);
+    var _mapType = null;
 
     var _types = ["arena", "cellular", "digger", "divided", "dungeon",
         "eller", "icey", "uniform", "rogue", "ruins", "rooms"];
@@ -340,12 +341,12 @@ RG.Map.Generator = function() { // {{{2
         this.cols = cols;
         this.rows = rows;
         type = type.toLowerCase();
+        _mapType = type;
         switch(type) {
             case "arena":  _mapGen = new ROT.Map.Arena(cols, rows); break;
             case "cellular":  _mapGen = this.createCellular(cols, rows); break;
             case "digger":  _mapGen = new ROT.Map.Digger(cols, rows); break;
             case "divided":  _mapGen = new ROT.Map.DividedMaze(cols, rows); break;
-            case "dungeon":  _mapGen = new ROT.Map.Dungeon(cols, rows); break;
             case "eller":  _mapGen = new ROT.Map.EllerMaze(cols, rows); break;
             case "icey":  _mapGen = new ROT.Map.IceyMaze(cols, rows); break;
             case "rogue":  _mapGen = new ROT.Map.Rogue(cols, rows); break;
@@ -356,7 +357,8 @@ RG.Map.Generator = function() { // {{{2
         }
     };
 
-    /** Returns a randomized map based on initialized generator settings.*/
+    /** Returns an object containing randomized map + all special features
+     * based on initialized generator settings. */
     this.getMap = function() {
         var map = new RG.Map.CellList(this.cols, this.rows);
         _mapGen.create(function(x, y, val) {
@@ -367,7 +369,13 @@ RG.Map.Generator = function() { // {{{2
                 map.setBaseElemXY(x, y, new RG.Element.Base("floor"));
             }
         });
-        return map;
+        var obj = {map: map};
+        if (_mapType === "uniform" || _mapType === "digger") {
+            obj.rooms = _mapGen.getRooms(); // ROT.Map.Feature.Room
+            obj.corridors = _mapGen.getCorridors(); // ROT.Map.Feature.Corridor
+        }
+
+        return obj;
     };
 
 
@@ -418,8 +426,11 @@ RG.Map.Generator = function() { // {{{2
         if (conf.hasOwnProperty("maxHouseX")) maxX = conf.maxHouseX;
         if (conf.hasOwnProperty("maxHouseY")) maxY = conf.maxHouseY;
 
+        var houses = [];
         this.setGen("arena", cols, rows);
-        var map = this.getMap();
+        var mapObj = this.getMap();
+        var map = mapObj.map;
+
         for (var i = 0; i < nHouses; i++) {
 
             var houseCreated = false;
@@ -433,11 +444,12 @@ RG.Map.Generator = function() { // {{{2
                 var y0 = Math.floor(Math.random() * rows);
                 houseCreated = this.createHouse(map, x0, y0, xSize, ySize, doors, wallsHalos);
                 ++tries;
+                if (typeof houseCreatd === "object") break;
             }
-            //if (houseCreated) houses.push(houseCreated);
+            if (houseCreated) houses.push(houseCreated);
 
         }
-        return map;
+        return {map: map, houses: houses};
     };
 
     /** Creates a house into a given map to a location x0,y0 with given
@@ -500,6 +512,7 @@ RG.Map.Generator = function() { // {{{2
         var doorIndex = Math.floor(Math.random() * coordLength);
         var doorX = wallCoords[doorIndex][0];
         var doorY = wallCoords[doorIndex][1];
+        wallCoords.slice(doorIndex, 1);
 
         // At the moment, "door" is a hole in the wall
         map.setBaseElemXY(doorX, doorY, new RG.Element.Base("floor"));
@@ -519,7 +532,6 @@ RG.Map.Generator = function() { // {{{2
         }
 
         // Return room object
-        return true;
         return {
             llx: x0, lly: y0, urx: maxX, ury: maxY,
             walls: wallCoords,
