@@ -135,6 +135,11 @@ var RGObjects = {
             attack: 5, defense: 6, damage: "3d3",
             danger: 6
         },
+        {
+            name: "shopkeeper", "char": "@", base: "human", hp: 50,
+            attack: 10, defense: 10, damage: "3d3",
+            danger: 6
+        },
 
         // WILDLINGS
         {
