@@ -10,6 +10,22 @@ var RG = GS.getSource("RG", "./src/rg.js");
 
 RG.Brain = {};
 
+
+/** Returns a list of cells in 3x3 around the actor with the brain.*/
+RG.Brain.getCellsAround = function(actor) {
+    var map = actor.getLevel().getMap();
+    var x = actor.getX();
+    var y = actor.getY();
+    var cells = [];
+    for (var xx = x-1; xx <= x+1; xx++) {
+        for (var yy = y-1; yy <= y+1; yy++) {
+            if (map.hasXY(xx, yy))
+                cells.push(map.getCell(xx, yy));
+        }
+    }
+    return cells;
+};
+
 /** This brain is used by the player actor. It simply handles the player input
  * but by having brain, player actor looks like other actors.  */
 RG.Brain.Player = function(actor) { // {{{2
@@ -145,6 +161,10 @@ RG.Brain.Player = function(actor) { // {{{2
                 else {
                     return this.cmdNotPossible("There are no stairs here.");
                 }
+            }
+
+            if (RG.KeyMap.isToggleDoor(code)) {
+                return this.tryToToggleDoor();
             }
         }
 
@@ -377,6 +397,26 @@ RG.Brain.Player = function(actor) { // {{{2
             if (!targets[i].has("Ethereal")) return targets[i];
         }
         return null;
+    };
+
+
+    /** Tries to open/close a door nearby the player.*/
+    this.tryToToggleDoor = function() {
+        var cellsAround = RG.Brain.getCellsAround(_actor);
+        for (var i = 0; i < cellsAround.length; i++) {
+            if (cellsAround[i].hasDoor()) {
+                var door = cellsAround[i].getPropType("door")[0];
+                if (door.isOpen()) {
+                    door.closeDoor();
+                }
+                else {
+                    door.openDoor();
+                }
+                return function() {};
+            }
+        }
+        return this.cmdNotPossible("There are no doors close by");
+
     };
 
     /** Required for damage dealing. Does nothing for the player.*/
@@ -703,23 +743,9 @@ RG.Brain.Summoner = function(actor) {
 
     };
 
-    /** Returns a list of cells in 3x3 around the actor with the brain.*/
-    this.getCellsAround = function() {
-        var map = _actor.getLevel().getMap();
-        var x = _actor.getX();
-        var y = _actor.getY();
-        var cells = [];
-        for (var xx = x-1; xx <= x+1; xx++) {
-            for (var yy = y-1; yy <= y+1; yy++) {
-                if (map.hasXY(xx, yy))
-                    cells.push(map.getCell(xx, yy));
-            }
-        }
-        return cells;
-    };
 
     this.getFreeCellsAround = function() {
-        var cellAround = this.getCellsAround();
+        var cellAround = RG.Brain.getCellsAround(_actor);
         var freeCells = [];
         for (var i = 0; i < cellAround.length; i++) {
             if (cellAround[i].isFree()) freeCells.push(cellAround[i]);
