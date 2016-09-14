@@ -925,11 +925,14 @@ var GameStats = React.createClass({
         }
 
         // Create HTML for showing movement mode
-        var moveStatus = "Walking";
+        var moveStatus = "Move: ";
         var moveClassName = "text-info";
         if (player.getBrain().isRunModeEnabled()) {
-            moveStatus = "Running";
+            moveStatus += " Running";
             moveClassName = "text-danger";
+        }
+        else {
+            moveStatus += " Walking";
         }
 
         // Create HTML for showing fighting mode
