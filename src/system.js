@@ -418,7 +418,8 @@ RG.System.Hunger = function(type, compTypes) {
             hungerComp.decrEnergy(actionComp.getEnergy());
             actionComp.resetEnergy();
             if (hungerComp.isStarving()) {
-                if (ent.has("Health")) {
+                var takeDmg = Math.random(); // Don't make hunger damage too obvious
+                if (ent.has("Health") && takeDmg < 0.10) {
                     var dmg = new RG.Component.Damage(1, "hunger");
                     ent.add("Damage", dmg);
                     RG.gameWarn(ent.getName() + " is starving!");
