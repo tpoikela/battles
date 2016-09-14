@@ -206,6 +206,13 @@ describe('Items in map cells', function() {
 
     });
 
+    it('Can contain open/closed doors', function() {
+        var openDoor = new RG.Element.Door(true);
+        openDoor.openDoor();
+        var doorCell = new RG.Element.Cell();
+
+    });
+
 });
 
 

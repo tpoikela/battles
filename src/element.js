@@ -71,6 +71,29 @@ RG.Element.Stairs = function(down, srcLevel, targetLevel) {
 };
 RG.extend2(RG.Element.Stairs, RG.Element.Base);
 
+/** Name says it all, be it open or closed.*/
+RG.Element.Door = function(closed) {
+    RG.Element.Base.call(this, "door");
+    this._closed = closed || true;
+
+};
+
+RG.Element.Door.prototype.isClosed = function() {
+    return this._closed;
+};
+
+RG.Element.Door.prototype.openDoor = function() {
+    this._closed = false;
+};
+
+RG.Element.Door.prototype.closeDoor = function() {
+    this._closed = true;
+};
+
+RG.Element.Door.prototype.isPassable = function() {
+    return !this._closed;
+};
+
 /** A shop element is added to each cell inside a shop.*/
 RG.Element.Shop = function() {
     RG.Element.Base.call(this, "shop");

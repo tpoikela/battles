@@ -50,6 +50,7 @@ var RG = { // {{{2
     getPropClassOrChar: function(styles, propObj) {
         var objType = propObj.getType();
 
+        // Return by name, this is for object shells generally
         if (propObj.hasOwnProperty("getName")) {
             var name = propObj.getName();
             if (styles.hasOwnProperty(name)) {
@@ -57,7 +58,21 @@ var RG = { // {{{2
             }
         }
 
+        // By type is usually for basic elements
         if (styles.hasOwnProperty(objType)) {
+            if (typeof styles[objType] === "object") {
+                // Invoke a state querying function
+                for (var p in styles[objType]) {
+                    if (p !== "default") {
+                        var funcToCall = p;
+                        if (propObj[funcToCall]()) {
+                            return styles[objType][p];
+                        }
+                    }
+                }
+                return styles[objType]["default"];
+
+            }
             return styles[objType];
         }
         else {
@@ -136,6 +151,9 @@ var RG = { // {{{2
             "stairsUp": "<",
             "stairsDown": ">",
             "water": "~",
+            "door": {isClosed: "+",
+                     "default": "/",
+            },
         },
         actors: {
             "default": "X",
@@ -158,11 +176,12 @@ var RG = { // {{{2
     cellStyles: {
         elements: {
             "default": "cell-element-default",
-            wall: "cell-element-wall",
+            door: "cell-element-door",
             floor: "cell-element-floor",
             "ice wall": "cell-element-ice-wall",
-            snow: "cell-element-snow",
             shop: "cell-element-shop",
+            snow: "cell-element-snow",
+            wall: "cell-element-wall",
         },
         actors: {
             "default": "cell-actor-default",
