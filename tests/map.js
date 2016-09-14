@@ -214,9 +214,13 @@ describe('Items in map cells', function() {
         doorCell.setProp("elements", openDoor);
         expect(doorCell.hasDoor()).to.equal(true);
         RGTest.checkChar(openDoor, "/");
+        expect(doorCell.lightPasses()).to.equal(true);
+        expect(doorCell.isPassable()).to.equal(true);
         openDoor.closeDoor();
         RGTest.checkChar(openDoor, "+");
         RGTest.checkCSSClassName(openDoor, "cell-element-door");
+        expect(doorCell.lightPasses()).to.equal(false);
+        expect(doorCell.isPassable()).to.equal(false);
     });
 
 });
