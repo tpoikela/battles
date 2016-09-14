@@ -144,6 +144,7 @@ RG.Factory.Base = function() { // {{{2
         if (levelType === "town") {
             mapObj = mapgen.createTown(cols, rows, conf);
             level.setMap(mapObj.map);
+            this.createHouseElements(level, mapObj, conf);
             this.createShop(level, mapObj, conf);
         }
         else {
@@ -155,6 +156,17 @@ RG.Factory.Base = function() { // {{{2
         return level;
     };
 
+    this.createHouseElements = function(level, mapObj, conf) {
+        if (!mapObj.hasOwnProperty("houses")) return;
+        var map = mapObj.map;
+        var houses = mapObj.houses;
+        for (var i = 0; i < houses.length; i++) {
+            var doorXY  = houses[i].door;
+            var door = new RG.Element.Door(true);
+            map.getCell(doorXY[0], doorXY[1]).setProp("elements", door);
+        }
+    };
+
     /* Creates a shop and a shopkeeper into a random house in the given level.*/
     this.createShop = function(level, mapObj, conf) {
         var map = mapObj.map;
@@ -164,6 +176,10 @@ RG.Factory.Base = function() { // {{{2
             var index = Math.floor(nlength * Math.random());
             var house = mapObj.houses[index];
             var floor = house.floor;
+
+            var doorXY = house.door;
+            var door = new RG.Element.Door(true);
+            map.getCell(doorXY[0], doorXY[1]).setProp("elements", door);
 
             var keeper = this.createActor("Shopkeeper", {brain: "Human"});
             for (var i = 0; i < floor.length; i++) {
@@ -319,7 +335,7 @@ RG.FCCGame = function() {
         }
 
         if (!player.has("Hunger")) {
-            var hunger = new RG.Component.Hunger(2000);
+            var hunger = new RG.Component.Hunger(20000);
             player.add("Hunger", hunger);
         }
         else {
@@ -568,8 +584,8 @@ RG.FCCGame = function() {
         var numFree = level.getMap().getFree().length;
         //var monstersPerLevel = Math.round(numFree / sqrPerMonster);
         var itemsPerLevel = Math.round(numFree / sqrPerItem);
-        this.addNRandItems(_parser, itemsPerLevel, level, 2000,
-            function(item) {return item.value <= 2000;});
+        this.addNRandItems(_parser, itemsPerLevel, level, 2500,
+            function(item) {return item.value <= 2500;});
         game.addPlayer(player);
         //player.setFOVRange(50);
         return game;
