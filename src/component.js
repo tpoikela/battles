@@ -123,9 +123,9 @@ RG.Component.Action.prototype.removeCallback = function(entity) {
 RG.Component.Hunger = function(energy) {
     RG.Component.Base.call(this, "Hunger");
 
-    var _currEnergy = 2000;
-    var _maxEnergy = 2000;
-    var _minEnergy = -500;
+    var _currEnergy = 20000;
+    var _maxEnergy = 20000;
+    var _minEnergy = -5000;
 
     this.getEnergy = function() {return _currEnergy;};
     this.getMaxEnergy = function() {return _maxEnergy;};
