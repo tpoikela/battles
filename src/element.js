@@ -77,6 +77,7 @@ RG.Element.Door = function(closed) {
     this._closed = closed || true;
 
 };
+RG.extend2(RG.Element.Door, RG.Element.Base);
 
 RG.Element.Door.prototype.isClosed = function() {
     return this._closed;
