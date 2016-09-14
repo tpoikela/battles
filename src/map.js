@@ -32,8 +32,17 @@ RG.Map.Cell.prototype.hasActors = function() {return this.hasProp("actors");};
 
 /** Returns true if cell has stairs.*/
 RG.Map.Cell.prototype.hasStairs = function() {
-        return this.hasPropType("stairsUp") || this.hasPropType("stairsDown");
-    };
+    return this.hasPropType("stairsUp") || this.hasPropType("stairsDown");
+};
+
+RG.Map.Cell.prototype.hasShop = function() {
+    return this.hasPropType("shop");
+};
+
+RG.Map.Cell.prototype.hasDoor = function() {
+    return this.hasPropType("door");
+};
+
 
 /** Return stairs in this cell, or null if there are none.*/
 RG.Map.Cell.prototype.getStairs = function() {
@@ -42,9 +51,6 @@ RG.Map.Cell.prototype.getStairs = function() {
     return null;
 };
 
-RG.Map.Cell.prototype.hasShop = function() {
-    return this.hasPropType("shop");
-};
 
 /** Returns true if light passes through this map cell.*/
 RG.Map.Cell.prototype.lightPasses = function() {

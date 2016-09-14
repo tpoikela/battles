@@ -6,6 +6,7 @@
 var chai = require("chai");
 var expect = chai.expect;
 var RG = require("../battles.js");
+var RGTest = require("./roguetest.js");
 
 var Actor = RG.Actor.Rogue;
 var Action = RG.RogueAction;
@@ -209,8 +210,13 @@ describe('Items in map cells', function() {
     it('Can contain open/closed doors', function() {
         var openDoor = new RG.Element.Door(true);
         openDoor.openDoor();
-        var doorCell = new RG.Element.Cell();
-
+        var doorCell = new RG.Map.Cell(0, 1, new RG.Element.Base("floor"));
+        doorCell.setProp("elements", openDoor);
+        expect(doorCell.hasDoor()).to.equal(true);
+        RGTest.checkChar(openDoor, "/");
+        openDoor.closeDoor();
+        RGTest.checkChar(openDoor, "+");
+        RGTest.checkCSSClassName(openDoor, "cell-element-door");
     });
 
 });
