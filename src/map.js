@@ -55,6 +55,9 @@ RG.Map.Cell.prototype.getStairs = function() {
 /** Returns true if light passes through this map cell.*/
 RG.Map.Cell.prototype.lightPasses = function() {
     if (this._baseElem.getType() === "wall") return false;
+    else if (this.hasPropType("door")) {
+        return this.getPropType("door")[0].isOpen();
+    }
     return true;
 };
 
@@ -71,6 +74,9 @@ RG.Map.Cell.prototype.isFree = function() {
             if (!this._p.actors[i].has("Ethereal")) return false;
         }
         return true;
+    }
+    else if (this.hasPropType("door")) {
+        return this.getPropType("door")[0].isOpen();
     }
     return this._baseElem.isPassable();
 };
