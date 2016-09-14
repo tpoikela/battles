@@ -398,6 +398,10 @@ var RG = { // {{{2
         }
     },
 
+    //--------------------------------------------------------------
+    // CONSTANTS
+    //--------------------------------------------------------------
+
     // Default FOV range for actors
     FOV_RANGE: 4,
     ROWS: 30,
@@ -431,16 +435,19 @@ var RG = { // {{{2
     TYPE_ITEM: "items",
     TYPE_TRAP: "traps",
 
+    ITEM_TYPES: ["armour", "food", "gold", "goldcoin", "missile", "potion", "spiritgem", "weapon"],
+
 
     // Energy per action
     energy: {
-        REST: 1,
-        USE: 1,
-        PICKUP: 1,
-        MISSILE: 2,
-        MOVE: 2,
-        ATTACK: 3,
-        RUN: 4,
+        DEFAULT: 10,
+        REST: 10,
+        USE: 10,
+        PICKUP: 10,
+        MISSILE: 20,
+        MOVE: 20,
+        ATTACK: 30,
+        RUN: 40,
     },
 
     // Different fighting modes
@@ -646,6 +653,7 @@ RG.KeyMap = {
     isFightMode: function(code) {return code === ROT.VK_F;},
     isConfirmYes: function(code) {return code === ROT.VK_Y;},
     isNextItem: function(code) {return code === ROT.VK_H;},
+    isToggleDoor: function(code) {return code === ROT.VK_O;},
 
     /** Based on keycode, computes and returns a new x,y pair. If code is
      * invalid, returns null. */
