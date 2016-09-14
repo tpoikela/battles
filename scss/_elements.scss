@@ -8,13 +8,6 @@
     background-color: purple;
 }
 
-.cell-element-wall {
-    background-color: red;
-}
-
-.cell-element-floor {
-    background-color: gray;
-}
 
 .cell-dark {
     background-color: #101010;
@@ -25,10 +18,15 @@
     color: black;
 };
 
-.cell-element-water {
+
+.cell-element-door {
+    color: brown;
     background-color: white;
-    color: blue;
-};
+}
+
+.cell-element-floor {
+    background-color: gray;
+}
 
 .cell-element-ice-wall {
     background-color: blue;
@@ -43,4 +41,13 @@
 .cell-element-snow {
     background-color: $snow-white;
     color: black;
+};
+
+.cell-element-wall {
+    background-color: red;
+}
+
+.cell-element-water {
+    background-color: white;
+    color: blue;
 };
