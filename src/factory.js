@@ -587,6 +587,10 @@ RG.FCCGame = function() {
         this.addNRandItems(_parser, itemsPerLevel, level, 2500,
             function(item) {return item.value <= 2500;});
         game.addPlayer(player);
+
+        var habanero = _parser.createActualObj("items", "Habanero");
+        player.getInvEq().addItem(habanero);
+
         //player.setFOVRange(50);
         return game;
     };

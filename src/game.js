@@ -30,8 +30,9 @@ RG.Game.Engine = function() {
     //--------------------------------------------------------------
 
     // These systems updated after each action
-    this.systemOrder = ["Attack", "Missile", "Movement", "Damage", "ExpPoints", "Communication"];
+    this.systemOrder = ["Stun", "Attack", "Missile", "Movement", "Damage", "ExpPoints", "Communication"];
     this.systems = {};
+    this.systems.Stun = new RG.System.Stun("Stun", ["Stun"]);
     this.systems.Attack = new RG.System.Attack("Attack", ["Attack"]);
     this.systems.Missile = new RG.System.Missile("Missile", ["Missile"]);
     this.systems.Movement = new RG.System.Movement("Movement", ["Movement"]);
