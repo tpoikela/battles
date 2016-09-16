@@ -953,6 +953,9 @@ var GameStats = React.createClass({
         if (player.has("Poison")) {
             otherStatus.push(<p className="text-danger">Poisoned</p>);
         }
+        if (player.has("Stun")) {
+            otherStatus.push(<p className="text-danger">Stunned</p>);
+        }
 
         return (
             <div className="game-stats">
