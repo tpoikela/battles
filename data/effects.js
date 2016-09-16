@@ -141,8 +141,9 @@ RG.Effects = {
                         while (itemOwner.hasOwnProperty("getOwner")) {
                             itemOwner = itemOwner.getOwner();
                         }
-                        poisonComp.setProb(this.useArgs.prob);
                         poisonComp.setSource(itemOwner);
+
+                        poisonComp.setProb(this.useArgs.prob);
                         target.add("Poison", poisonComp);
                         RG.destroyItemIfNeeded(this);
                         return true;
@@ -166,8 +167,10 @@ RG.Effects = {
                         var stunDur = durDie.roll();
                         var stunComp = new RG.Component.Stun();
                         stunComp.setDuration(durDie);
+                        //RG.Effects.setSource(this, stunComp);
                         target.add("Stun", stunComp);
                         RG.destroyItemIfNeeded(this);
+                        RG.gameMsg(target.getName() + " is stunned by " + this.getName());
                         return true;
                     }
                 }
@@ -179,6 +182,16 @@ RG.Effects = {
     ],
 
 };
+
+/*
+RG.Effects.setSource = function(item, comp) {
+    var itemOwner = item.getOwner();
+    while (itemOwner.hasOwnProperty("getOwner")) {
+        itemOwner = itemOwner.getOwner();
+    }
+    comp.setSource(itemOwner);
+};
+*/
 
 if (typeof module !== "undefined" && typeof exports !== "undefined") {
     GS.exportSource(module, exports, ["RG", "Effects"], [RG, RG.Effects]);
