@@ -534,7 +534,7 @@ var RGObjects = {
         },
 
         // FOOD
-        // Note: Food has energy X kcal/100g. Food items can have weight, but if
+        // Note: Food has energy X kcal/100g * 10. Food items can have weight, but if
         // they don't, weight is then generated randomly. Value is also per
         // 100g.
         {
@@ -542,19 +542,19 @@ var RGObjects = {
             weight: 0.1, type: "food", dontCreate: true,
         },
         {
-            name: "Dried meat", base: "FoodBase", energy: 130, value: 2,
+            name: "Dried meat", base: "FoodBase", energy: 1300, value: 2,
         },
         {
-            name: "Corn", base: "FoodBase", energy: 160, value: 3,
+            name: "Corn", base: "FoodBase", energy: 1600, value: 3,
         },
         {
-            name: "Beef", base: "FoodBase", energy: 100, value: 20, weight: 0.4
+            name: "Beef", base: "FoodBase", energy: 1000, value: 20, weight: 0.4
         },
         {
-            name: "Dried fruit", base: "FoodBase", energy: 350, value: 50,
+            name: "Dried fruit", base: "FoodBase", energy: 3500, value: 50,
         },
         {
-            name: "Habanero", base: "FoodBase", energy: 10, value: 50,
+            name: "Habanero", base: "FoodBase", energy: 100, value: 50,
             use: {stun: {duration: "3d3"}},
         },
 
