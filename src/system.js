@@ -406,6 +406,35 @@ RG.System.Movement = function(type, compTypes) {
 };
 RG.extend2(RG.System.Movement, RG.System.Base);
 
+
+/** Stun system removes actors with Movement or Attack components.*/
+RG.System.Stun = function(type, compTypes) {
+    RG.System.Base.call(this, type, compTypes);
+
+    this.update = function() {
+        for (var e in this.entities) {
+            var ent = this.entities[e];
+            if (ent.has("Attack")) {
+                ent.remove("Attack");
+                RG.gameMsg({cell: ent.getCell(), 
+                    msg: ent.getName() + " is too stunned to attack."});
+            }
+            else if (ent.has("Movement")) {
+                ent.remove("Movement");
+                RG.gameMsg({cell: ent.getCell(), 
+                    msg: ent.getName() + " is too stunned to move."});
+            }
+            var dur = ent.get("Stun").getDuration();
+            --dur;
+            console.log("Duration is now " + dur);
+            if (dur === 0) ent.remove("Stun");
+            else ent.get("Stun").setDuration(dur);
+        }
+    };
+
+};
+RG.extend2(RG.System.Stun, RG.System.Base);
+
 /** Processes entities with hunger component.*/
 RG.System.Hunger = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
