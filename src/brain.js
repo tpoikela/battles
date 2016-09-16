@@ -432,6 +432,8 @@ RG.Brain.Memory = function(brain) {
     var _enemyTypes = []; // List of enemy types for this actor
     var _communications = [];
 
+    //TODO add memory of player closing a door/using stairs
+
     this.addEnemyType = function(type) {_enemyTypes.push(type);};
 
     /** Checks if given actor is an enemy. */
@@ -536,17 +538,29 @@ RG.Brain.Rogue = function(actor) { // {{{2
         }
     };
 
+    /** Based on seenCells, AI explores the unexplored free cells, or picks on
+     * cell randomly, if everything's explored.*/
     this.exploreLevel = function(seenCells) {
         // Wander around exploring
         var index = -1;
-        for (var i = 0, ll = seenCells.length; i < ll; i++) {
-            if (seenCells[i].isFree()) {
-                var xy = seenCells[i].getX() + "," + seenCells[i].getY();
+        var perms = [];
+        for (var j = 0; j < seenCells.length; j++) perms.push(j);
+        perms = perms.randomize();
+
+        for (var i = 0, ll = perms.length; i < ll; i++) {
+            var ci = perms[i];
+            var cell = seenCells[ci];
+            if (cell.isFree()) {
+                var xy = cell.getX() + "," + cell.getY();
                 if (!_explored.hasOwnProperty(xy)) {
                     _explored[xy] = true;
-                    index = i;
+                    index = ci;
                     break;
                 }
+            }
+            else if (cell.hasDoor()) {
+                var door = cell.getPropType("door")[0];
+                if (door.isClosed) door.openDoor();
             }
         }
 
