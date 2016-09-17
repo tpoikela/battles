@@ -515,16 +515,21 @@ var RGObjects = {
             value: 10,
         },
         {
-            name: "Potion of venom", base: "PotionBase", 
+            name: "Potion of venom", base: "PotionBase",
             use: {poison: {duration: "4d4 + 5", damage: "1d6", prob: "0.1"}},
             value: 30
+        },
+        {
+            name: "Potion of stunning", base: "PotionBase",
+            use: {stun: {duration: "2d4 + 1"}},
+            value: 50
         },
         {
             name: "Potion of cure poison", base: "PotionBase",
             use: {cure: {effect: "poison"}}, value: 80,
         },
         {
-            name: "Potion of frost poison", base: "PotionBase", 
+            name: "Potion of frost poison", base: "PotionBase",
             use: {poison: {duration: "5d20", damage: "1d6 + 1", prob: "0.2"}},
             value: 100
         },
@@ -533,7 +538,7 @@ var RGObjects = {
             value: 100,
         },
         {
-            name: "Potion of spirit form", base: "PotionBase", 
+            name: "Potion of spirit form", base: "PotionBase",
             use: {addComp: {name: "Ethereal", duration: "2d10"}},
             value: 100,
         },
