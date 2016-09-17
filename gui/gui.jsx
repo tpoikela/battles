@@ -219,6 +219,10 @@ var GameBoard = React.createClass({
             if (selX === cell.getX() && selY === cell.getY())
                 cellClass = "cell-target-selected";
 
+            if (!visibleToPlayer) {
+                if (cell.isExplored())
+                    cellClass += " cell-not-seen";
+            }
             classes.push(cellClass);
             chars.push(cellChar);
         }
