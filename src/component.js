@@ -596,16 +596,12 @@ RG.Component.Ethereal = function() {
 };
 RG.extend2(RG.Component.Ethereal, RG.Component.Base);
 
-
+/** Stun component prevents actor from taking many actions like moving and
+ * attacking. */
 RG.Component.Stun = function() {
     RG.Component.Base.call(this, "Stun");
 
-    var _duration = 0;
     var _src = null;
-
-    this.getDuration = function() {return _duration;};
-    this.setDuration = function(duration) {_duration = duration;};
-
     this.getSource = function() {return _src;};
     this.setSource = function(src) {_src = src;};
 
@@ -620,7 +616,7 @@ RG.Component.Poison = function() {
     var _src = null;
 
     var _die = null;
-    var _prob = 0.05;
+    var _prob = 0.05; // Prob. of poison kicking in
 
     this.getProb = function() {return _prob;};
     this.setProb = function(prob) {_prob = prob;};
