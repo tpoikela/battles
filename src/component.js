@@ -617,7 +617,6 @@ RG.extend2(RG.Component.Stun, RG.Component.Base);
 RG.Component.Poison = function() {
     RG.Component.Base.call(this, "Poison");
 
-    var _duration = 0;
     var _src = null;
 
     var _die = null;
@@ -625,9 +624,6 @@ RG.Component.Poison = function() {
 
     this.getProb = function() {return _prob;};
     this.setProb = function(prob) {_prob = prob;};
-
-    this.getDuration = function() {return _duration;};
-    this.setDuration = function(duration) {_duration = duration;};
 
     this.getSource = function() {return _src;};
     this.setSource = function(src) {_src = src;};
@@ -650,17 +646,23 @@ RG.Component.Unpaid = function() {
 };
 RG.extend2(RG.Component.Unpaid, RG.Component.Base);
 
-/** Time effect component handles expiration of time-based effects.*/
-RG.Component.TimeEffect = function() {
-    RG.Component.Base.call(this, "TimeEffect");
+
+/** Expiration component handles expiration of time-based effects. Any component
+ * can be made transient by using this Expiration component. For example, to
+ * have transient, non-persistent Ethereal, you can use this component. */
+RG.Component.Expiration = function() {
+    RG.Component.Base.call(this, "Expiration");
 
     this._duration = {};
 
     /** Adds one effect to time-based components.*/
     this.addEffect = function(comp, dur) {
         var type = comp.getType();
-        if (this._duration.hasOwnProperty(type)) {
+        if (!this._duration.hasOwnProperty(type)) {
             this._duration[type] = dur;
+        }
+        else { // increase existing duration
+            this._duration[type] += dur;
         }
     };
 
@@ -668,15 +670,38 @@ RG.Component.TimeEffect = function() {
     this.decrDuration = function() {
         for (var compType in this._duration) {
             this._duration[compType] -= 1;
+            console.log("Decreased duration of " + compType);
             if (this._duration[compType] === 0) {
                 var ent = this.getEntity();
                 ent.remove(compType);
+                delete this._duration[compType];
+                console.log("Deleted compType " + compType);
             }
         }
     };
 
+    /* Returns true if component has any time-effects with non-zero duration.*/
+    this.hasEffects = function() {
+        return Object.keys(this._duration).length > 0;
+    };
+
+    this.hasEffect = function(comp) {
+        var compType = comp.getType();
+        return this._duration.hasOwnProperty(compType);
+    };
+
+    /** SHould be called to remove a specific effect, for example upon death of
+     * an actor. */
+    this.removeEffect = function(comp) {
+        var compType = comp.getType();
+        if (this._duration.hasOwnProperty(compType)) {
+            delete this._duration[compType];
+        }
+
+    };
+
 };
-RG.extend2(RG.Component.TimeEffect, RG.Component.Base);
+RG.extend2(RG.Component.Expiration, RG.Component.Base);
 
 
 if (typeof module !== "undefined" && typeof exports !== "undefined") {

@@ -38,13 +38,18 @@ describe('Game.Engine', function() {
         var timeSystem = engine.timeSystems.TimeEffects;
 
         var poison = new RG.Component.Poison();
-        poison.setDuration(20);
+        var expiration = new RG.Component.Expiration();
+        expiration.addEffect(poison, 20);
+        expect(expiration.hasEffects()).to.equal(true);
+        expect(expiration.hasEffect(poison)).to.equal(true);
+        //poison.setDuration(20);
         poison.setProb(1.0);
         poison.setDamage(new RG.Die(1, 1, 10));
         poison.setSource(eng.actor2);
 
         var currHP = eng.actor.get("Health").getHP();
 
+        eng.actor.add("Expiration", expiration);
         eng.actor.add("Poison", poison);
         expect(timeSystem.entities).to.have.property(eng.actor.getID());
 
@@ -57,7 +62,11 @@ describe('Game.Engine', function() {
             engine.simulateGame();
         }
 
-        for (var i = 0; i < 20; i++) engine.simulateGame();
+        for (var i = 0; i < 10; i++) engine.simulateGame();
+
+        expect(eng.actor.has("Poison")).to.equal(false);
+        expect(expiration.hasEffect(poison)).to.equal(false);
+        expect(expiration.hasEffects()).to.equal(false);
 
         expect(timeSystem.entities).to.not.have.property(eng.actor.getID());
 

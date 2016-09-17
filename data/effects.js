@@ -134,8 +134,10 @@ RG.Effects = {
                         var dmgDie = new RG.Die(arr[0], arr[1], arr[2]);
 
                         var poisonComp = new RG.Component.Poison();
-                        poisonComp.setDuration(poisonDur);
                         poisonComp.setDamage(dmgDie);
+
+                        var expiration = new RG.Component.Expiration();
+                        expiration.addEffect(poisonComp, poisonDur);
 
                         var itemOwner = this.getOwner();
                         while (itemOwner.hasOwnProperty("getOwner")) {
@@ -145,6 +147,7 @@ RG.Effects = {
 
                         poisonComp.setProb(this.useArgs.prob);
                         target.add("Poison", poisonComp);
+                        target.add("Expiration", expiration);
                         RG.destroyItemIfNeeded(this);
                         return true;
                     }

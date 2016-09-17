@@ -50,7 +50,7 @@ RG.Game.Engine = function() {
     this.timeSystems = {};
 
     var effects = new RG.System.TimeEffects("TimeEffects",
-        ["TimeEffect", "Poison"]);
+        ["Expiration", "Poison"]);
 
     this.updateSystems = function() {
         for (var i = 0; i < this.systemOrder.length; i++) {

@@ -518,15 +518,21 @@ RG.System.TimeEffects = function(type, compTypes) {
             var ent = this.entities[e];
             //console.log("TimeEffects found entity: " + ent.getName());
 
+            // Process timed effects like poison etc.
             for (var i = 0; i < compTypes.length; i++) {
-                if (ent.has(compTypes[i])) {
-                    _dtable[compTypes[i]](ent); // Call dispatch table function
-                    _decreaseDuration(ent, ent.get(compTypes[i]));
+                if (compTypes[i] !== "Expiration") {
+                    if (ent.has(compTypes[i])) {
+                        _dtable[compTypes[i]](ent); // Call dispatch table function
+                    }
                 }
             }
+            // Process expiration effects/duration of Expiration itself
+            if (ent.has("Expiration")) _decreaseDuration(ent);
         }
 
+
         // Remove expired effects (mutates this.entities, so done outside for...)
+        // Removes Expiration as well as comps like Poison/Stun/Disease etc.
         for (var j = 0; j < _expiredEffects.length; j++) {
             var compName = _expiredEffects[j][0];
             var entRem  = _expiredEffects[j][1];
@@ -536,17 +542,13 @@ RG.System.TimeEffects = function(type, compTypes) {
     };
 
     /** Decreases the remaining duration in the component by one.*/
-    var _decreaseDuration = function(ent, comp) {
-        if (comp.hasOwnProperty("getDuration")) {
-            var dur = comp.getDuration();
-            comp.setDuration(dur - 1);
-            if (comp.getDuration() == 0) {
-                _expiredEffects.push([comp.getType(), ent])
-            }
-        }
-        else {
-            RG.err("System.TimeEffects", "decreaseDuration",
-                "No getDuration found from component" + comp.getType());
+    var _decreaseDuration = function(ent) {
+        var tEff = ent.get("Expiration");
+        tEff.decrDuration();
+
+        // Remove Expiration only if other components are removed
+        if (!tEff.hasEffects()) {
+            _expiredEffects.push(["Expiration", ent]);
         }
     };
 
@@ -556,7 +558,13 @@ RG.System.TimeEffects = function(type, compTypes) {
         var poison = ent.get("Poison");
 
         if (ent.get("Health").isDead()) {
-            _expiredEffects.push(["Poison", ent])
+            _expiredEffects.push(["Poison", ent]);
+            if (ent.has("Expiration")) {
+                var te = ent.get("Expiration");
+                if (te.hasEffect(poison)) {
+                    te.removeEffect(poison);
+                }
+            }
         }
         else {
             if (Math.random() < poison.getProb()) {
