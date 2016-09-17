@@ -25,6 +25,9 @@ var TopLogic = function() {
                         RG.gameMsg("You see " + items[0].getName() + " lying there.");
                     }
                 }
+                else if (cell.hasPropType("door")) {
+                    RG.gameMsg("You see a door there.");
+                }
                 else {
                     RG.gameMsg("There is nothing there.");
                 }
@@ -225,7 +228,6 @@ var BattlesTop = React.createClass({
             this.setState({render: true, renderFullScreen: true});
         }
     },
-
 
 
     /** When listening events, component gets notification via this
