@@ -650,6 +650,34 @@ RG.Component.Unpaid = function() {
 };
 RG.extend2(RG.Component.Unpaid, RG.Component.Base);
 
+/** Time effect component handles expiration of time-based effects.*/
+RG.Component.TimeEffect = function() {
+    RG.Component.Base.call(this, "TimeEffect");
+
+    this._duration = {};
+
+    /** Adds one effect to time-based components.*/
+    this.addEffect = function(comp, dur) {
+        var type = comp.getType();
+        if (this._duration.hasOwnProperty(type)) {
+            this._duration[type] = dur;
+        }
+    };
+
+    /** Decreases duration of all time-based effects.*/
+    this.decrDuration = function() {
+        for (var compType in this._duration) {
+            this._duration[compType] -= 1;
+            if (this._duration[compType] === 0) {
+                var ent = this.getEntity();
+                ent.remove(compType);
+            }
+        }
+    };
+
+};
+RG.extend2(RG.Component.TimeEffect, RG.Component.Base);
+
 
 if (typeof module !== "undefined" && typeof exports !== "undefined") {
     GS.exportSource(module, exports, ["RG", "Component"], [RG, RG.Component]);

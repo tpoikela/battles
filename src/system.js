@@ -407,7 +407,7 @@ RG.System.Movement = function(type, compTypes) {
 RG.extend2(RG.System.Movement, RG.System.Base);
 
 
-/** Stun system removes actors with Movement or Attack components.*/
+/** Stun system removes Movement/Attack components from actors to prevent. */
 RG.System.Stun = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
 
