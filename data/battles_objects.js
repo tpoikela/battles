@@ -107,7 +107,7 @@ var RGObjects = {
         },
         {
             name: "Frostburn monarch", type: "demon", "char": "M",
-            attack: 7, defense: 6, protection: 4, damage: "3d4", range: 1, hp: 70,
+            attack: 7, defense: 6, protection: 6, damage: "3d4", range: 1, hp: 70,
             danger: 10, brain: "Demon", base: "WinterBeingBase",
         },
 
@@ -149,8 +149,12 @@ var RGObjects = {
             hp: 15, danger: 3
         },
         {
-            name: "wildling warrior", base: "wildling",
+            name: "wildling fighter", base: "wildling", "char": "F",
             attack: 6, defense: 3, damage: "1d10", hp: 25, danger: 5
+        },
+        {
+            name: "wildling warlord", base: "wildling", "char": "W",
+            attack: 8, defense: 4, damage: "1d13", hp: 40, danger: 7
         },
 
         // SPIRITS
@@ -179,11 +183,15 @@ var RGObjects = {
             danger: 4,
         },
         {
+            name: "Shaman spirit", base: "SpiritBase",
+            strength: 0, accuracy: 0, agility: 0, willpower: 6, power: 5,
+            danger: 5,
+        },
+        {
             name: "Winter demon spirit", base: "SpiritBase",
             strength: 3, accuracy: 3, agility: 3, willpower: 3, power: 7,
             danger: 7,
         },
-
     ],
 
     items: [
@@ -245,6 +253,12 @@ var RGObjects = {
             damage: "1d9 + 2", attack: 2, defense: 3,
             weight: 0.7, value: 75,
         },
+        {
+            name: "Battle axe", base: "MeleeWeaponBase",
+            material: "iron",
+            damage: "2d6 + 2", attack: 2, defense: 1,
+            weight: 1.5, value: 85,
+        },
 
         // ICE WEAPONS (not easy to attack, do lots of damage)
         {
@@ -291,6 +305,11 @@ var RGObjects = {
             damage: "4d5 + 2",
             attack: 5, defense: 2, weight: 0.3, value: 350,
         },
+        {
+            name: "Ruby glass spear", base: "RubyWeaponBase",
+            damage: "3d5 + 2",
+            attack: 3, defense: 6, weight: 0.4, value: 400,
+        },
 
         // MAGIC WEAPONS
         {
@@ -323,6 +342,7 @@ var RGObjects = {
             damage: "3d8 + 4",
             attack: 6, defense: 3, weight: 1.0, value: 1000,
         },
+
         // ARMOUR
         {
             name: "ArmourBase", type: "armour", className: "cell-item-armour",
@@ -387,7 +407,7 @@ var RGObjects = {
             armourType: "shield", value: 40,
         },
 
-        // ARMOUR ICE
+        // ARMOUR ICE (protective but heavy)
         {
             name: "IceArmourBase", base: "ArmourBase", dontCreate: true,
             material: "permaice", className: "cell-item-ice",
@@ -449,7 +469,7 @@ var RGObjects = {
             armourType: "shield", value: 250,
         },
 
-        // ARMOUR MAGIC
+        // ARMOUR MAGIC (excellent D/P, very well rounded)
         {
             name: "MagicArmourBase", base: "ArmourBase", dontCreate: true,
             material: "forium", className: "cell-item-magic",
@@ -493,6 +513,14 @@ var RGObjects = {
         {
             name: "Dart", base: "MissileBase",
             damage: "1d6 + 1", range: 4, value: 40,
+        },
+        {
+            name: "Throwing axe", base: "MissileBase",
+            attack: 2, damage: "1d8 + 1", range: 3, value: 60, weight: 0.3,
+        },
+        {
+            name: "Ruby glass throwing knife", className: "cell-item-ruby-glass",
+            attack: 3, damage: "1d10", range: 5, value: 80, weight: 0.1,
         },
         {
             name: "Magic Shuriken", base: "MissileBase",
