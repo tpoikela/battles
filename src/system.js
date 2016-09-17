@@ -75,27 +75,35 @@ RG.System.Attack = function(type, compTypes) {
         for (var e in this.entities) {
             var ent = this.entities[e];
 
-            var _att = ent;
-            var _def = ent.get("Attack").getTarget();
+            var att = ent;
+            var def = ent.get("Attack").getTarget();
+            var aName = att.getName();
+            var dName = def.getName();
 
-            // Actual hit change calculation
-            var totalAttack = _att.getAttack();
-            var totalDefense = _def.getDefense();
-            var hitChange = totalAttack / (totalAttack + totalDefense);
-
-            if (hitChange > Math.random()) {
-                var totalDamage = _att.getDamage();
-                if (totalDamage > 0)
-                    this.doDamage(_att, _def, totalDamage);
-                else
-                    RG.gameMsg({cell: _att.getCell,
-                        msg: _att.getName() + " fails to hurt " + _def.getName()});
+            if (def.has("Ethereal")) {
+                RG.gameMsg({cell: att.getCell(), 
+                    msg: "Attack of " + aName + " passes through " + dName});
             }
             else {
-                RG.gameMsg({cell: _att.getCell(), 
-                    msg: _att.getName() + " misses " + _def.getName()});
+                // Actual hit change calculation
+                var totalAttack = att.getAttack();
+                var totalDefense = def.getDefense();
+                var hitChange = totalAttack / (totalAttack + totalDefense);
+
+                if (hitChange > Math.random()) {
+                    var totalDamage = att.getDamage();
+                    if (totalDamage > 0)
+                        this.doDamage(att, def, totalDamage);
+                    else
+                        RG.gameMsg({cell: att.getCell,
+                            msg: aName + " fails to hurt " + dName});
+                }
+                else {
+                    RG.gameMsg({cell: att.getCell(), 
+                        msg: aName + " misses " + dName});
+                }
+                def.addEnemy(att);
             }
-            _def.addEnemy(_att);
             ent.remove("Attack");
         }
     };
