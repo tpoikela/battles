@@ -424,11 +424,6 @@ RG.System.Stun = function(type, compTypes) {
                 RG.gameMsg({cell: ent.getCell(), 
                     msg: ent.getName() + " is too stunned to move."});
             }
-            var dur = ent.get("Stun").getDuration();
-            --dur;
-            console.log("Duration is now " + dur);
-            if (dur === 0) ent.remove("Stun");
-            else ent.get("Stun").setDuration(dur);
         }
     };
 
@@ -503,7 +498,9 @@ RG.System.Communication = function(type, compTypes) {
 };
 RG.extend2(RG.System.Communication, RG.System.Base);
 
-/** System which handles time-based effects like poisoning etc.*/
+/** System which handles time-based effects like poisoning etc. It also handles
+ * expiration of effects. This is a special system because its updates are
+ * scheduled by the scheduler to guarantee a specific execution interval. */
 RG.System.TimeEffects = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
     this.compTypesAny = true;
