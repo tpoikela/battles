@@ -532,6 +532,11 @@ var RGObjects = {
             name: "Healing elixir", base: "PotionBase", use: {heal: {hp: "10d5"}},
             value: 100,
         },
+        {
+            name: "Potion of spirit form", base: "PotionBase", 
+            use: {addComp: {name: "Ethereal", duration: "2d10"}},
+            value: 100,
+        },
 
         // FOOD
         // Note: Food has energy X kcal/100g * 10. Food items can have weight, but if
