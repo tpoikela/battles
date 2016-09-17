@@ -554,7 +554,7 @@ var RGObjects = {
             name: "Dried fruit", base: "FoodBase", energy: 3500, value: 50,
         },
         {
-            name: "Habanero", base: "FoodBase", energy: 100, value: 50,
+            name: "Ghost pepper", base: "FoodBase", energy: 100, value: 50,
             use: {stun: {duration: "3d3"}},
         },
 
