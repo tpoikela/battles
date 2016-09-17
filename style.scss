@@ -96,11 +96,15 @@ body {
 
 @import 'scss/items';
 
-
 .cell-target-selected {
     color: black;
     background-color: yellow;
 };
+
+.cell-not-seen {
+    //filter: brightness(75%);
+    opacity: 0.8;
+}
 
 //---------------------------------------------------------------------
 // MENUS
