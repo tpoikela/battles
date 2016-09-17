@@ -566,6 +566,7 @@ RG.FCCGame = function() {
         level.addItem(pickaxe, 2, 2);
 
         var poison = _parser.createActualObj("items", "Potion of frost poison");
+        poison.count = 5;
         level.addItem(poison, 2, 2);
         var curePoison = _parser.createActualObj("items", "Potion of cure poison");
         level.addItem(curePoison, 3, 2);
