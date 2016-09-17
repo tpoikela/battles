@@ -40,6 +40,47 @@ RG.Effects = {
             },
         },
 
+        // Adds an effect (via Component) for specified duration
+        // Example: {addComp: {name: "Ethereal", duration: "3d3"}}
+        // In fact, addComp: {name: "Stun", duration: "1d6"} is identical to
+        // 'stun' effect.
+        {
+            name: "addComp",
+            requires: ["name", "duration"],
+            func: function(obj) {
+                if (obj.hasOwnProperty("target")) {
+                    var cell = obj.target;
+                    if (cell.hasActors()) {
+                        var actor = cell.getProp("actors")[0];
+                        var name = this.useArgs.name.capitalize();
+                        var dur = this.useArgs.duration;
+                        if (RG.Component.hasOwnProperty(name)) {
+                            var comp = new RG.Component[name];
+
+                            var arr = RG.parseDieSpec(this.useArgs.duration);
+                            var durDie = new RG.Die(arr[0], arr[1], arr[2]);
+                            var poisonDur = durDie.roll();
+
+                            var expiration = new RG.Component.Expiration();
+                            expiration.addEffect(comp, dur);
+
+                            actor.add(comp.getType(), comp);
+                            actor.add("Expiration", expiration);
+
+                            RG.destroyItemIfNeeded(this);
+                            return true;
+                        }
+                        else {
+                            RG.err("useEffect", "addComp", "Item: " + this.getName() +
+                                " invalid comp type " + name);
+                        }
+                    }
+                }
+                return false;
+
+            },
+        },
+
         // Cures an effect specified in use: {cure: {effect: Poison}}
         {
             name: "cure",
@@ -169,9 +210,17 @@ RG.Effects = {
                         var durDie = new RG.Die(arr[0], arr[1], arr[2]);
                         var stunDur = durDie.roll();
                         var stunComp = new RG.Component.Stun();
-                        stunComp.setDuration(durDie);
-                        //RG.Effects.setSource(this, stunComp);
+                        var expiration = new RG.Component.Expiration();
+                        expiration.addEffect(stunComp, stunDur);
+
+                        var itemOwner = this.getOwner();
+                        while (itemOwner.hasOwnProperty("getOwner")) {
+                            itemOwner = itemOwner.getOwner();
+                        }
+                        stunComp.setSource(itemOwner);
+
                         target.add("Stun", stunComp);
+                        target.add("Expiration", expiration);
                         RG.destroyItemIfNeeded(this);
                         RG.gameMsg(target.getName() + " is stunned by " + this.getName());
                         return true;
