@@ -949,13 +949,7 @@ var GameStats = React.createClass({
         else if (fightMode === RG.FMODE_FAST) fightModeStatus += "Fast";
 
         // Other status like poisoning, stun, cold, etc.
-        var otherStatus = [];
-        if (player.has("Poison")) {
-            otherStatus.push(<p className="text-danger">Poisoned</p>);
-        }
-        if (player.has("Stun")) {
-            otherStatus.push(<p className="text-danger">Stunned</p>);
-        }
+        var otherStatus = this.getPlayerStatus(player);
 
         return (
             <div className="game-stats">
@@ -969,7 +963,21 @@ var GameStats = React.createClass({
                 <button id="map-player-button" className="btn btn-info" onClick={this.changeMapView}>Map View</button>
             </div>
         );
-    }
+    },
+
+    getPlayerStatus: function(player) {
+        var stat = [];
+        if (player.has("Poison")) {
+            stat.push(<p className="text-danger">Poisoned</p>);
+        }
+        if (player.has("Stun")) {
+            stat.push(<p className="text-danger">Stunned</p>);
+        }
+        if (player.has("Ethereal")) {
+            stat.push(<p className="text-danger">Ethereal</p>);
+        }
+        return stat;
+    },
 
 });
 window.GameStats = GameStats;
