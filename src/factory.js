@@ -588,8 +588,10 @@ RG.FCCGame = function() {
             function(item) {return item.value <= 2500;});
         game.addPlayer(player);
 
-        var habanero = _parser.createActualObj("items", "Habanero");
-        player.getInvEq().addItem(habanero);
+        var pepper = _parser.createActualObj("items", "Ghost pepper");
+        player.getInvEq().addItem(pepper);
+        var spiritPot = _parser.createActualObj("items", "Potion of spirit form");
+        player.getInvEq().addItem(spiritPot);
 
         //player.setFOVRange(50);
         return game;
@@ -881,7 +883,14 @@ RG.ObjectShellParser = function() {
             case "Experience": return new RG.Component.Experience();
             case "Health": return new RG.Component.Health(val);
             case "Stats": return new RG.Component.Stats();
-            default: return RG.Component[type]();
+            default: 
+                if (RG.Component.hasOwnProperty(type)) {
+                    return RG.Component[type]();
+                }
+                else {
+                    RG.err("Factory", "createComponent",
+                        "Component |" + type + "| doesn't exist.");
+                }
         }
     };
 
