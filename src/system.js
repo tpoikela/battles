@@ -518,10 +518,8 @@ RG.System.TimeEffects = function(type, compTypes) {
     var _expiredEffects = [];
 
     this.update = function() {
-        //console.log("Updating TimeEffects system...");
         for (var e in this.entities) {
             var ent = this.entities[e];
-            //console.log("TimeEffects found entity: " + ent.getName());
 
             // Process timed effects like poison etc.
             for (var i = 0; i < compTypes.length; i++) {
