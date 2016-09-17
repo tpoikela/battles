@@ -59,7 +59,7 @@ RG.Effects = {
 
                             var arr = RG.parseDieSpec(this.useArgs.duration);
                             var durDie = new RG.Die(arr[0], arr[1], arr[2]);
-                            var poisonDur = durDie.roll();
+                            var dur = durDie.roll();
 
                             var expiration = new RG.Component.Expiration();
                             expiration.addEffect(comp, dur);
