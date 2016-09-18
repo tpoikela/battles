@@ -108,11 +108,43 @@ describe('How stackes are broken into multiple items', function() {
 });
 
 describe('How inventory container works', function() {
-    var player = new RG.Actor.Rogue("player");
-    var invEq = new RG.Inv.Inventory(player);
-    var inv = invEq.getInventory();
+
+    it('Checks maximum weight allowed', function() {
+        var player = new RG.Actor.Rogue("player");
+        var invEq = player.getInvEq();
+        var inv = invEq.getInventory();
+        var eq = invEq.getEquipment();
+
+        var maxW = player.getMaxWeight();
+        console.log("MW: " + maxW);
+
+        var heavyItem = new RG.Item.Weapon("Sword");
+        heavyItem.setWeight(21.0);
+        expect(invEq.canCarryItem(heavyItem)).to.equal(false);
+
+        var sword = new RG.Item.Weapon("Light sword");
+        sword.setWeight(5.0);
+        sword.count = 2;
+        expect(invEq.canCarryItem(sword)).to.equal(true);
+        invEq.addItem(sword);
+        invEq.equipItem(sword);
+        expect(eq.getWeight()).to.equal(5.0);
+        expect(inv.getWeight()).to.equal(5.0);
+
+        var shuriken = new RG.Item.Missile("Shuriken");
+        shuriken.count = 20;
+        shuriken.setWeight(0.1);
+        invEq.addItem(shuriken);
+        expect(inv.getWeight()).to.equal(7.0);
+
+
+    });
 
     it('Checks items by reference for existence', function() {
+        var player = new RG.Actor.Rogue("player");
+        var invEq = new RG.Inv.Inventory(player);
+        var inv = invEq.getInventory();
+
         var arrow = new RG.Item.Missile("arrow");
         var arrow2 = new RG.Item.Missile("arrow");
         expect(inv.hasItem(arrow)).to.equal(false);
