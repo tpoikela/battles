@@ -386,14 +386,21 @@ describe('How poison item is used, and experience propagates', function() {
         assassin.getInvEq().addItem(frostPoison);
         var curedVictim = new Actor("Cured victim");
 
+        expect(curedVictim.has("Expiration")).to.equal(false);
+        expect(curedVictim.has("Poison")).to.equal(false);
         level.addActor(curedVictim, 4, 4);
         expect(frostPoison.useItem({target: level.getMap().getCell(4, 4)})).to.equal(true);
+        expect(curedVictim.has("Expiration")).to.equal(true);
         expect(curedVictim.has("Poison")).to.equal(true);
+
         curedVictim.getInvEq().addItem(curePoison);
         game.simulateGame();
         expect(curePoison.useItem({target: level.getMap().getCell(4, 4)})).to.equal(true);
+        console.log("Used curePoison now");
         expect(curedVictim.has("Poison")).to.equal(false);
         expect(curedVictim.get("Health").isAlive()).to.equal(true);
+        for (var i = 0; i < 20; i++) game.simulateGame();
+        expect(curedVictim.has("Expiration")).to.equal(false);
 
 
     });

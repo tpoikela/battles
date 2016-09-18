@@ -11,10 +11,12 @@ RG.System = {};
 /** Base class for all systems in ECS framework.*/
 RG.System.Base = function(type, compTypes) {
 
-    this.type = type;
+    this.type = type;           // Type of the system
     this.compTypes = compTypes; // Required comps in entity
-    this.entities = {};
+    this.entities = {};         // Entities requiring processing
 
+    // If set to true, only one comp has to match the compTypes, otherwise all
+    // components in compTypes must be present
     this.compTypesAny = false;
 
     this.addEntity = function(entity) {
@@ -32,27 +34,24 @@ RG.System.Base = function(type, compTypes) {
                 this.addEntity(obj.entity);
         }
         else if (obj.hasOwnProperty("remove")) {
-            this.removeEntity(obj.entity);
+            // Must check if any needed comps are still present, before removing
+            // the entity
+            if (!this.hasCompTypes(obj.entity)) {
+                this.removeEntity(obj.entity);
+            }
         }
-    };
-
-    this.validateNotify = function(obj) {
-        if (!obj.hasOwnProperty("entity")) return false;
-        if (obj.hasOwnProperty("remove")) return true;
-        if (obj.hasOwnProperty("add")) return true;
-        return false;
     };
 
     /** Returns true if entity has all required component types, or if
      * compTypesAny if set, if entity has any required component.*/
     this.hasCompTypes = function(entity) {
-        if (this.compTypesAny === false) {
+        if (this.compTypesAny === false) { // All types must be present
             for (var i = 0; i < compTypes.length; i++) {
                 if (! entity.has(compTypes[i])) return false;
             }
             return true;
         }
-        else {
+        else { // Only one compType has to be present
             for (var j = 0; j < compTypes.length; j++) {
                 if (entity.has(compTypes[j])) return true;
             }
@@ -520,6 +519,7 @@ RG.System.TimeEffects = function(type, compTypes) {
     this.update = function() {
         for (var e in this.entities) {
             var ent = this.entities[e];
+            console.log("System.TimeEffects entity " + ent.getName());
 
             // Process timed effects like poison etc.
             for (var i = 0; i < compTypes.length; i++) {
@@ -535,11 +535,12 @@ RG.System.TimeEffects = function(type, compTypes) {
 
 
         // Remove expired effects (mutates this.entities, so done outside for...)
-        // Removes Expiration as well as comps like Poison/Stun/Disease etc.
+        // Removes Expiration, as well as comps like Poison/Stun/Disease etc.
         for (var j = 0; j < _expiredEffects.length; j++) {
             var compName = _expiredEffects[j][0];
             var entRem  = _expiredEffects[j][1];
             entRem.remove(compName);
+            console.log("Component " + compName + " expired.");
         }
         _expiredEffects = [];
     };
@@ -548,6 +549,7 @@ RG.System.TimeEffects = function(type, compTypes) {
     var _decreaseDuration = function(ent) {
         var tEff = ent.get("Expiration");
         tEff.decrDuration();
+        console.log("_decreaseDuration XXX");
 
         // Remove Expiration only if other components are removed
         if (!tEff.hasEffects()) {
