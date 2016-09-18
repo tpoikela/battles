@@ -93,12 +93,6 @@ RG.Effects = {
                         var effectName = this.useArgs.effect.capitalize();
                         if (actor.has(effectName)) {
                             var rmvComp = actor.get(effectName);
-                            if (actor.has("Expiration")) {
-                                var exprComp = actor.get("Expiration");
-                                if (exprComp.hasEffect(rmvComp)) {
-                                    exprComp.removeEffect(rmvComp);
-                                }
-                            }
                             actor.remove(effectName);
                             RG.gameMsg(actor.getName() + " seems to be cured of " + effectName);
                         }
