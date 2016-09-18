@@ -852,7 +852,7 @@ RG.Entity = function() {
 
     this.add = function(name, comp) {
         _comps[name] = comp;
-        comp.addCallback(this);
+        comp.entityAddCallback(this);
         RG.POOL.emitEvent(name, {entity: this, add: true});
     };
 
@@ -863,7 +863,7 @@ RG.Entity = function() {
     this.remove = function(name) {
         if (_comps.hasOwnProperty(name)) {
             var comp = _comps[name];
-            comp.removeCallback(this);
+            comp.entityRemoveCallback(this);
             delete _comps[name];
             RG.POOL.emitEvent(name, {entity: this, remove: true});
         }

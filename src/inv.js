@@ -305,7 +305,9 @@ RG.Inv.Inventory = function(actor) {
         var eqWeight = _eq.getWeight();
         var invWeight = _inv.getWeight();
         var newWeight = eqWeight + invWeight + item.getWeight();
-        if (newWeight > _actor.getMaxWeight()) return false;
+        var maxWeight = _actor.getMaxWeight();
+        console.log("Inv.Inventory canCarryItem MW : " + maxWeight + " new" + newWeight);
+        if (newWeight > maxWeight) return false;
         return true;
     };
 
