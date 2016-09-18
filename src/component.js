@@ -13,6 +13,9 @@ RG.Component.Base = function(type) {
     var _type = type;
     var _entity = null;
 
+    this._onAddCallbacks = [];
+    this._onRemoveCallbacks = [];
+
     this.getType = function() {return _type;};
     this.setType = function(type) {_type = type;};
 
@@ -32,15 +35,28 @@ RG.Component.Base = function(type) {
 
 };
 // Called when a component is added to the entity
-RG.Component.Base.prototype.addCallback = function(entity) {
+RG.Component.Base.prototype.entityAddCallback = function(entity) {
     this.setEntity(entity);
-    RG.POOL.emitEvent(this.getType(), {add:true, entity: entity});
+    //RG.POOL.emitEvent(this.getType(), {add:true, entity: entity});
+    for (var i = 0; i < this._onAddCallbacks.length; i++) {
+        this._onAddCallbacks[i]();
+    }
 };
 
 // Called when a component is removed from the entity
-RG.Component.Base.prototype.removeCallback = function(entity) {
+RG.Component.Base.prototype.entityRemoveCallback = function(entity) {
     this.setEntity(null);
-    RG.POOL.emitEvent(this.getType(), {remove:true, entity: entity});
+    //RG.POOL.emitEvent(this.getType(), {remove:true, entity: entity});
+    for (var i = 0; i < this._onRemoveCallbacks.length; i++) {
+        this._onRemoveCallbacks[i]();
+    }
+};
+
+
+RG.Component.Base.prototype.addCallback = function(name, cb) {
+    if (name === "onAdd") this._onAddCallbacks.push(cb);
+    else if (name === "onRemove") this._onRemoveCallbacks.push(cb);
+    else RG.err("Component.Base", "addCallback", "CB name " + name + " invalid.");
 };
 
 RG.Component.Base.prototype.clone = function() {
@@ -109,13 +125,13 @@ RG.Component.Action = function() {
 };
 RG.extend2(RG.Component.Action, RG.Component.Base);
 
-RG.Component.Action.prototype.addCallback = function(entity) {
-    RG.Component.Base.prototype.addCallback.call(this, entity);
+RG.Component.Action.prototype.entityAddCallback = function(entity) {
+    RG.Component.Base.prototype.entityAddCallback.call(this, entity);
     //RG.POOL.emitEvent(RG.EVT_ACT_COMP_ADDED, {actor: entity});
 };
 
-RG.Component.Action.prototype.removeCallback = function(entity) {
-    RG.Component.Base.prototype.removeCallback.call(this, entity);
+RG.Component.Action.prototype.entityRemoveCallback = function(entity) {
+    RG.Component.Base.prototype.entityRemoveCallback.call(this, entity);
     //RG.POOL.emitEvent(RG.EVT_ACT_COMP_REMOVED, {actor: entity});
 };
 
@@ -656,6 +672,11 @@ RG.Component.Expiration = function() {
         var type = comp.getType();
         if (!this._duration.hasOwnProperty(type)) {
             this._duration[type] = dur;
+
+            var that = this;
+            comp.addCallback("onRemove", function() {
+                that.removeEffect(comp);
+            });
         }
         else { // increase existing duration
             this._duration[type] += dur;
