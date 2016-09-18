@@ -39,7 +39,7 @@ RG.Actor.Rogue = function(name) { // {{{2
 
     /** Returns carrying capacity of the actor.*/
     this.getMaxWeight = function() {
-        return 2*this.get("Stats").getStrength() + _invEq.getEquipment().getStrength() +
+        return 2*this.get("Stats").getStrength() + 2* _invEq.getEquipment().getStrength() +
             _maxWeight;
     };
 
