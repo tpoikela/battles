@@ -117,6 +117,8 @@ RG.Inv.Equipment = function(actor) {
 
     this.getSlotTypes = function() {return Object.keys(_slots);};
 
+    this.getItems = function() {return _equipped;};
+
     /** Returns last unequipped item for the slot.*/
     this.getUnequipped = function(slotType) {
         if (_hasSlot(slotType)) {

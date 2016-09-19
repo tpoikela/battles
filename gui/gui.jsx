@@ -335,7 +335,17 @@ var GameStartScreen = React.createClass({
         this.setState({selectedGame:name});
     },
 
+
+    shouldComponentUpdate: function(nextProps, nextState) {
+        if (nextProps.savedPlayerList !== this.props.savedPlayerList) {
+            return true;
+        }
+        if (nextState.playerName !== this.state.playerName) return true;
+        return false;
+    },
+
     render: function() {
+        console.log("render() GameStartScreen");
         var setLoot = this.props.setLoot;
         var setMonsters = this.props.setMonsters;
         var setLevelSize = this.props.setLevelSize;
