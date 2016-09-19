@@ -639,6 +639,7 @@ RG.Map.Level = function(cols, rows) { // {{{2
     // ITEM RELATED FUNCTIONS
     //---------------------------------------------------------------------
 
+    /** Adds one item to the given location on the level.*/
     this.addItem = function(item, x, y) {
         if (!RG.isNullOrUndef([x, y])) {
             return this._addPropToLevelXY(RG.TYPE_ITEM, item, x, y);
@@ -655,6 +656,7 @@ RG.Map.Level = function(cols, rows) { // {{{2
         return false;
     };
 
+    /** Removes an item from the level in x,y position.*/
     this.removeItem = function(item, x, y) {
         return _map.removeProp(x, y, RG.TYPE_ITEM, item);
     };

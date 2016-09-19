@@ -193,8 +193,12 @@ var BattlesTop = React.createClass({
         }
     },
 
+    intID: null,
+
     /** Creates a new game instance.*/
     createNewGame: function() {
+        if (this.intID !== null) clearInterval(this.intID);
+
         this.resetGameState();
         var fccGame = new RG.FCCGame();
         if (this.game !== null) {
@@ -207,6 +211,7 @@ var BattlesTop = React.createClass({
         this.gameState.visibleCells = player.getLevel().exploreCells(player);
         RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this);
         RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this);
+        this.intID = setInterval(this.mainLoop, 1000.0 / 60);
     },
 
 
@@ -250,15 +255,30 @@ var BattlesTop = React.createClass({
       $(document.body).off('keydown', this.handleKeyDown);
     },
 
+
+    lastPress: 0,
+    fps: 1000.0 / 20,
+
     /** Listens for player key presses and handles them.*/
     handleKeyDown: function(evt) {
-        this.game.update({evt: evt});
-        this.gameState.visibleCells = this.game.visibleCells;
-        if (this.game.isGameOver()) {
-            this.setState({render: true, renderFullScreen: true});
+        if (!this.keyPending) {
+            this.keyPending = true;
+            this.nextCode = evt.keyCode;
         }
-        else {
-            this.setState({render: true, renderFullScreen: false});
+    },
+
+    mainLoop: function() {
+        if (this.keyPending) {
+            var code = this.nextCode;
+            this.game.update({code: code});
+            this.gameState.visibleCells = this.game.visibleCells;
+            if (this.game.isGameOver()) {
+                this.setState({render: true, renderFullScreen: true});
+            }
+            else {
+                this.setState({render: true, renderFullScreen: false});
+            }
+            this.keyPending = false;
         }
     },
 

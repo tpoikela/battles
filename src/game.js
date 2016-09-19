@@ -113,8 +113,8 @@ RG.Game.Engine = function() {
             this.clearMessages();
 
             if (this.nextActor !== null) {
-                if (obj.hasOwnProperty("evt")) {
-                    var code = obj.evt.keyCode;
+                if (obj.hasOwnProperty("code")) {
+                    var code = obj.code;
                     if (this.isGUICommand(code)) {
                         this.doGUICommand(code);
                     }
