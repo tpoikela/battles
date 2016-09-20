@@ -286,13 +286,15 @@ var BattlesTop = React.createClass({
     render: function() {
         var map = this.game.getVisibleMap();
         var player = this.game.getPlayer();
+        var inv = player.getInvEq().getInventory();
+        var eq = player.getInvEq().getEquipment();
         var fullScreen = this.state.renderFullScreen;
+        var maxWeight = player.getMaxWeight();
 
         var message = [];
         if (this.game.hasNewMessages()) {
             message = this.game.getMessages();
         }
-
 
         return (
             <div id="main-div" className="container main-div">
@@ -312,8 +314,10 @@ var BattlesTop = React.createClass({
                 <GameHelpScreen />
 
                 <GameInventory selectItemTop={this.selectItemTop} 
-                    forceRender={this.forceRender} player={player}/>
-
+                    forceRender={this.forceRender} 
+                    inv={inv} eq={eq} maxWeight={maxWeight}
+                    player={player}
+                />
 
                 <div className="row game-panel-div">
                     <div className="col-md-2">

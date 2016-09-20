@@ -408,13 +408,13 @@ var GameStartScreen = React.createClass({
 
                                 <p>
                                     You have come a long way from your homelands seeking
-                                    the thrill of the adventure. Now, you must fight freezing 
+                                    the thrill of the adventure. Now, you must fight freezing
                                     battles in
                                     the north against hordes of winter demons
                                     and blizzard beasts. Will you bring back the peace
-                                    to the grim and frostbitten kingdoms. Or will you 
-                                    bring the Winter of Ages upon its lands, reigning 
-                                    your kingdom cold for all eternity? Or will you perish 
+                                    to the grim and frostbitten kingdoms. Or will you
+                                    bring the Winter of Ages upon its lands, reigning
+                                    your kingdom cold for all eternity? Or will you perish
                                     nameless and forgotten on the icy wastes?
                                 </p>
 
@@ -497,6 +497,10 @@ window.RadioButtons = RadioButtons;
 /** This component contains non-game instance specific controls like starting
  * new game and changing screen size.*/
 var GamePanel = React.createClass({
+
+    shouldComponentUpdate: function(nextProps, nextState) {
+        return false;
+    },
 
     setViewSizeXPlus: function(evt) {
         this.props.setViewSize(evt, "+", "X");
@@ -589,6 +593,35 @@ var GameInventory = React.createClass({
         };
     },
 
+    invLastRenderLen: 0,
+    eqLastRenderLen: 0,
+    eqMissCount: 0,
+
+    /*
+    shouldComponentUpdate: function(nextProps, nextState) {
+        var thisLen = this.invLastRenderLen;
+        var nextLen = nextProps.inv.getItems().length;
+        var eqNextLen = nextProps.eq.getItems().length;
+
+        console.log("thisLen: " + thisLen + " nextLen " + nextLen);
+
+        if (this.state.invMsg !== nextState.invMsg) return true;
+        if (thisLen !== nextLen) return true;
+        if (this.eqLastRenderLen !== eqNextLen) {
+            return true;
+        }
+        else { // Check missile status
+            var eqMiss = nextProps.eq.getItem("missile");
+            if (eqMiss !== null) {
+                return eqMiss.count != this.eqMissCount;
+
+            }
+        }
+
+        return false;
+    },
+    */
+
     /** Called when "Drop" is clicked. Drops item to the ground.*/
     dropItem: function(evt) {
         if (this.selectedItem !== null) {
@@ -647,7 +680,7 @@ var GameInventory = React.createClass({
                 }
 
                 if (!ok) {
-                    this.setState({invMsg: 
+                    this.setState({invMsg:
                         "Failed to remove the item from slot '" + name + "'!",
                         msgStyle: "text-danger"});
                 }
@@ -657,7 +690,7 @@ var GameInventory = React.createClass({
                     msgStyle: "text-success"});
             }
             else {
-                this.setState({invMsg: 
+                this.setState({invMsg:
                     "Failed to remove the item from slot '" + name + "'!",
                     msgStyle: "text-danger"});
             }
@@ -668,18 +701,11 @@ var GameInventory = React.createClass({
         }
     },
 
-    getCurrentPlayerCell: function() {
-        var player = this.props.player;
-        var x = player.getX();
-        var y = player.getY();
-        return player.getLevel().getMap().getCell(x, y);
-    },
-
     useItem: function(evt) {
         if (this.selectedItem !== null) {
             if (this.selectedItem.hasOwnProperty("useItem")) {
                 var invEq = this.props.player.getInvEq();
-                var target = this.getCurrentPlayerCell();
+                var target = this.props.player.getCell();
                 if (invEq.useItem(this.selectedItem, {target: target})) {
                     var itemName = this.selectedItem.getName();
                     this.setState({invMsg: "You used the " + itemName + ".",
@@ -718,11 +744,18 @@ var GameInventory = React.createClass({
     },
 
     render: function() {
-        var player = this.props.player;
-        var inv = player.getInvEq().getInventory();
-        var eq = player.getInvEq().getEquipment();
-        var maxWeight = player.getMaxWeight();
+        var inv = this.props.inv;
+        var eq = this.props.eq;
+        var maxWeight = this.props.maxWeight;
         var eqWeight = eq.getWeight();
+
+        this.invLastRenderLen = inv.getItems().length;
+        this.eqLastRenderLen = eq.getItems().length;
+        var missile = eq.getItem("missile");
+
+        if (missile !== null)
+            this.eqMissCount = missile.count;
+
         return (
             <div className="modal fade" role="dialog" id="inventoryModal" tabIndex="-1" role="dialog" aria-labelledby="inventory-modal-label" aria-hidden="true">
                 <div className="modal-dialog modal-lg">
@@ -907,7 +940,7 @@ var GameStats = React.createClass({
         var selectedCell = this.props.selectedCell;
 
         var selItemName = "";
-        if (selectedItem !== null) 
+        if (selectedItem !== null)
             selItemName = "Selected: " + selectedItem.getName();
 
         var selCellDescr = "";
