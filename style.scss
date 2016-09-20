@@ -66,15 +66,6 @@ body {
     margin: 0;
 };
 
-#game-table {
-    td {
-        width: $cell-width;
-        height: $cell-height;
-        border: 1px solid black;
-        padding: 0;
-    }
-};
-
 #mov-buttons-table {
     border: 1px solid black;
     font-size: 16px;
