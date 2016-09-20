@@ -188,9 +188,7 @@ var GameBoard = React.createClass({
         // Finally return the full rendered board
         return (
             <div id="game-board" className={this.props.boardClassName}>
-                <div id="game-table">
-                    {rowsHTML}
-                </div>
+                {rowsHTML}
             </div>
         );
     },
@@ -543,6 +541,10 @@ var GameMessages = React.createClass({
         warn: "text-warning",
         danger: "text-danger",
         success: "text-success",
+    },
+
+    shouldComponentUpdate: function(nextProps, nextState) {
+        return nextProps.message.length > 0;
     },
 
     render: function() {

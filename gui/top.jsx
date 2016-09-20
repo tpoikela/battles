@@ -258,6 +258,7 @@ var BattlesTop = React.createClass({
 
     lastPress: 0,
     fps: 1000.0 / 20,
+    keyPending: false,
 
     /** Listens for player key presses and handles them.*/
     handleKeyDown: function(evt) {
@@ -285,8 +286,13 @@ var BattlesTop = React.createClass({
     render: function() {
         var map = this.game.getVisibleMap();
         var player = this.game.getPlayer();
-        var message = this.game.getMessages();
         var fullScreen = this.state.renderFullScreen;
+
+        var message = [];
+        if (this.game.hasNewMessages()) {
+            message = this.game.getMessages();
+        }
+
 
         return (
             <div id="main-div" className="container main-div">
@@ -307,6 +313,7 @@ var BattlesTop = React.createClass({
 
                 <GameInventory selectItemTop={this.selectItemTop} 
                     forceRender={this.forceRender} player={player}/>
+
 
                 <div className="row game-panel-div">
                     <div className="col-md-2">
