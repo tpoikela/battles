@@ -22,6 +22,7 @@ RG.Game.Engine = function() {
 
     var _msg = new RG.MessageHandler();
     this.getMessages = function() {return _msg.getMessages();};
+    this.hasNewMessages = function() {return _msg.hasNew();};
     this.clearMessages = function() { _msg.clear();};
     //this.setSeenCells = function(cells) {_msg.setSeenCells(cells);};
 
@@ -450,6 +451,7 @@ RG.Game.Main = function() {
 
     this.getMessages = function() {return _engine.getMessages();};
     this.clearMessages = function() { _engine.clearMessages();};
+    this.hasNewMessages = function() {return _engine.hasNewMessages();};
 
     /** Adds an actor to scheduler.*/
     this.addActor = function(actor) {_engine.addActor(actor);};

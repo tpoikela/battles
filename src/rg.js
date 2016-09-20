@@ -797,6 +797,7 @@ RG.MessageHandler = function() { // {{{2
 
     var _message = [];
     var _prevMessage = [];
+    var _hasNew = false;
 
     this.notify = function(evtName, msg) {
         if (evtName === RG.EVT_MSG) {
@@ -812,12 +813,16 @@ RG.MessageHandler = function() { // {{{2
                 }
 
                 _message.push(msgObj);
+                _hasNew = true;
             }
         }
     };
     RG.POOL.listenEvent(RG.EVT_MSG, this);
 
+    this.hasNew = function() {return _hasNew;};
+
     this.getMessages = function() {
+        _hasNew = false;
         if (_message.length > 0)
             return _message;
         else if (_prevMessage.length > 0)
