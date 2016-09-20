@@ -254,7 +254,12 @@ var ModalHeader = React.createClass({
 /** This component contains short info on keys and how to play the game.*/
 var GameHelpScreen = React.createClass({
 
+    shouldComponentUpdate: function(nextProps, nextState) {
+        return false;
+    },
+
     render: function() {
+        console.log("render() GameHelpScreen");
         return (
             <div className="modal fade" role="dialog" id="gameHelpModal" tabIndex="-1" role="dialog" aria-labelledby="game-help-modal-label" aria-hidden="true">
                 <div className="modal-dialog modal-lg">
@@ -345,7 +350,6 @@ var GameStartScreen = React.createClass({
     },
 
     render: function() {
-        console.log("render() GameStartScreen");
         var setLoot = this.props.setLoot;
         var setMonsters = this.props.setMonsters;
         var setLevelSize = this.props.setLevelSize;
