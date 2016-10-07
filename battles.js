@@ -14,6 +14,7 @@ RG.Element = GS.getSource(["RG", "Element"], "./src/element.js");
 RG.Map = GS.getSource(["RG", "Map"], "./src/map.js");
 RG.World = GS.getSource(["RG", "World"], "./src/world.js");
 
+// Just a test
 RG.Effects = GS.getSource(["RG", "Effects"], "./data/effects.js");
 RG.Factory = GS.getSource(["RG", "Factory"], "./src/factory.js");
 
