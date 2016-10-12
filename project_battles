@@ -1,10 +1,11 @@
-roguelike=/home/tpoikela/git/battles/ /home/tpoikela/git/battles/ filter="*.js *.jsx *.html *.scss *.txt *.md" {
+roguelike=/home/tpoikela/git/battles/ /home/tpoikela/git/battles/ filter="*.js *.jsx *.html *.scss *.txt *.md *.json" {
  battles.js
  getsource.js
  battles_gui.jsx
  index.html
  style.scss
  README.md
+ package.json
  data=data {
   battles_objects.js
   effects.js
