@@ -186,6 +186,14 @@ RG.Item.Weapon.prototype.toJSON = function() {
 };
 
 
+RG.Item.MissileWeapon = function(name) {
+    RG.Item.Weapon.call(this, name);
+    this.setType("missile_weapon");
+
+};
+RG.extend2(RG.Item.MissileWeapon, RG.Item.Weapon);
+
+
 /** Base object for armour.*/
 RG.Item.Armour = function(name) {
     RG.Item.Base.call(this, name);
