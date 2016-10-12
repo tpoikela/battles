@@ -355,9 +355,20 @@ describe('How one-shot items are removed after their use', function() {
 
 describe('Gold coins and other valuables', function() {
     it('Has weight and stacks normally', function() {
-        var gold = new RG.Item.Gold("Gold coin");
+        var gold = new RG.Item.Gold("Gold nugget");
         gold.count = 3;
         gold.setWeight(0.1);
+
+        var coin = new RG.Item.GoldCoin();
+        expect(coin.getPurity()).to.equal(1.0);
+
+    });
+});
+
+describe('RG.Item.MissileWeapon', function() {
+    it('Shoots arrows or bolts', function() {
+        var bow = new RG.Item.MissileWeapon("bow");
+        expect(bow).to.have.property("getAttackRange");
     });
 });
 
