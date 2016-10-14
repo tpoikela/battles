@@ -49,14 +49,6 @@ RG.Factory.Base = function() { // {{{2
 
     var _itemRandomizer = new RG.Factory.ItemRandomizer();
 
-    /** Return zero int if given value is null or undef.*/
-    var zeroIfNull = function(val) {
-        if (!RG.isNullOrUndef[val]) {
-            return val;
-        }
-        return 0;
-    };
-
     var _initCombatant = function(comb, obj) {
         var hp = obj.hp;
         var att = obj.att;
@@ -189,11 +181,14 @@ RG.Factory.Base = function() { // {{{2
                 var shopElem = new RG.Element.Shop();
                 shopElem.setShopkeeper(keeper);
                 cell.setProp("elements", shopElem);
-                var item = conf.parser.createRandomItem({
-                    func: conf.func,
-                });
-                item.add("Unpaid", new RG.Component.Unpaid());
-                level.addItem(item, xy[0], xy[1]);
+
+                if (conf.hasOwnProperty("parser")) {
+                    var item = conf.parser.createRandomItem({
+                        func: conf.func,
+                    });
+                    item.add("Unpaid", new RG.Component.Unpaid());
+                    level.addItem(item, xy[0], xy[1]);
+                }
             }
         }
         else {
