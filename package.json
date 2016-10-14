@@ -20,7 +20,7 @@
   "scripts": {
       "build": "make build",
       "clean": "make clean",
-      "coverage": "make coverage",
+      "coverage": "perl cov_test.pl",
       "test": "mocha --recursive tests"
   },
 
