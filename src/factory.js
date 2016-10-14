@@ -344,7 +344,7 @@ RG.FCCGame = function() {
             player.remove("Hunger");
             player.add("Hunger", hunger);
         }
-        var regenPlayer = new RG.RogueRegenEvent(player, 20 * RG.ACTION_DUR);
+        var regenPlayer = new RG.Time.RogueRegenEvent(player, 20 * RG.ACTION_DUR);
         game.addEvent(regenPlayer);
         return player;
     };
@@ -405,14 +405,14 @@ RG.FCCGame = function() {
             RG.gameMsg("Humans have vanquished all demons! But it's not over..");
 
             var map = _level.getMap();
-            var windsEvent = new RG.RogueOneShotEvent(
+            var windsEvent = new RG.Time.RogueOneShotEvent(
                 this.addSnow.bind(this, _level, 0.1),
                 20*100, "Winds are blowing stronger. You feel it's getting colder");
             _game.addEvent(windsEvent);
-            var stormEvent = new RG.RogueOneShotEvent( function(){}, 35 * 100,
+            var stormEvent = new RG.Time.RogueOneShotEvent( function(){}, 35 * 100,
                 "You see an eye of the storm approaching. Brace yourself now..");
             _game.addEvent(stormEvent);
-            var beastEvent = new RG.RogueOneShotEvent(
+            var beastEvent = new RG.Time.RogueOneShotEvent(
                 that.spawnBeastArmy.bind(that,_level, _parser), 50*100,
                 "Winter spread by Blizzard Beasts! Hell seems to freeze.");
             _game.addEvent(beastEvent);
@@ -423,10 +423,10 @@ RG.FCCGame = function() {
             RG.gameMsg("All beasts have been slain. The blizzard seems to calm down");
             // DO a final message of game over
             // Add random people to celebrate
-            var msgEvent = new RG.RogueOneShotEvent(function() {}, 10*100,
+            var msgEvent = new RG.Time.RogueOneShotEvent(function() {}, 10*100,
                 "All enemies are dead! You emerge victorious. Congratulations!");
             _game.addEvent(msgEvent);
-            var msgEvent2 = new RG.RogueOneShotEvent(function() {}, 20*100,
+            var msgEvent2 = new RG.Time.RogueOneShotEvent(function() {}, 20*100,
                 "But Battles in North will continue soon in larger scale...");
             _game.addEvent(msgEvent2);
         };
@@ -614,7 +614,7 @@ RG.FCCGame = function() {
         this.createHumanArmy(level, _parser);
 
         level.setOnFirstEnter(function() {
-            var demonEvent = new RG.RogueOneShotEvent(
+            var demonEvent = new RG.Time.RogueOneShotEvent(
                 that.spawnDemonArmy.bind(that, level, _parser), 100 * 20,
                 "Demon hordes are unleashed from the unsilent abyss!");
             game.addEvent(demonEvent);

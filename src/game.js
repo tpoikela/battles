@@ -3,6 +3,7 @@ var GS = require("../getsource.js");
 var RG = GS.getSource("RG", "./src/rg.js");
 RG.System = GS.getSource(["RG", "System"], "./src/system.js");
 RG.Map = GS.getSource(["RG", "Map"], "./src/map.js");
+RG.Time = GS.getSource(["RG", "Time"], "./src/time.js");
 
 RG.Game = {};
 
@@ -18,7 +19,7 @@ RG.Game.Engine = function() {
 
     var _activeLevels = []; // Only these levels are simulated
 
-    var _scheduler = new RG.RogueScheduler();
+    var _scheduler = new RG.Time.Scheduler();
 
     var _msg = new RG.MessageHandler();
     this.getMessages = function() {return _msg.getMessages();};
@@ -256,7 +257,7 @@ RG.Game.Engine = function() {
     this.addTimeSystem = function(name, obj) {
         this.timeSystems[name] = obj;
         // Must schedule the system
-        var updateEvent = new RG.RogueGameEvent(100, obj.update.bind(obj), true, 0);
+        var updateEvent = new RG.Time.GameEvent(100, obj.update.bind(obj), true, 0);
         this.addEvent(updateEvent);
     };
     this.addTimeSystem("TimeEffects", effects);

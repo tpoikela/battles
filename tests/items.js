@@ -2,8 +2,6 @@
 var chai = require("chai");
 var expect = chai.expect;
 
-var blanket = require("blanket");
-
 var RG = require("../battles.js");
 var Slot = RG.Inv.EquipSlot;
 var Actor = RG.Actor.Rogue;

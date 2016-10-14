@@ -114,10 +114,10 @@ RG.Actor.Rogue.prototype.nextAction = function(obj) {
     if (cb !== null) {
         var speed = this.getSpeed();
         var duration = parseInt(RG.BASE_SPEED/speed * RG.ACTION_DUR);
-        action = new RG.RogueAction(duration, cb, {});
+        action = new RG.Time.RogueAction(duration, cb, {});
     }
     else {
-        action = new RG.RogueAction(0, function(){}, {});
+        action = new RG.Time.RogueAction(0, function(){}, {});
     }
 
     if (action !== null) {

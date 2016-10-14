@@ -8,7 +8,7 @@ var expect = chai.expect;
 var RG = require("../battles.js");
 
 var Actor = RG.Actor.Rogue;
-var Action = RG.RogueAction;
+var Action = RG.Time.RogueAction;
 var Level = RG.RogueLevel;
 var Element = RG.RogueElement;
 
@@ -24,7 +24,7 @@ describe('Basic functions for actors', function() {
 
 describe('Scheduling one action', function() {
     it('Repeats the same actor indefinetely', function() {
-        var sch = new RG.RogueScheduler();
+        var sch = new RG.Time.Scheduler();
         var actor = new Actor("actor");
         var actorID = actor.id;
 
@@ -94,13 +94,13 @@ var MockAction = function(dur) {
 };
 
 describe('Canceling events and actor actions', function() {
-    var sch = new RG.RogueScheduler();
+    var sch = new RG.Time.Scheduler();
     var act = new MockAction(100);
 
     it('Removes the event like it never happened', function() {
         var testActor = new RG.Actor.Rogue("actor");
         var notZero = 555;
-        var changeEvent = new RG.RogueOneShotEvent(testCB, 200, "This happened");
+        var changeEvent = new RG.Time.RogueOneShotEvent(testCB, 200, "This happened");
         sch.add(testActor, true, 100);
         sch.add(changeEvent, true, 190);
 
