@@ -278,7 +278,6 @@ RG.Item.Missile = function(name) {
     RG.Item.Base.call(this, name);
     RG.Object.Damage.call(this);
     this.setType("missile");
-
 };
 RG.extend2(RG.Item.Missile, RG.Item.Base);
 RG.extend2(RG.Item.Missile, RG.Object.Damage);
