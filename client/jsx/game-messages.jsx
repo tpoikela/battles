@@ -5,11 +5,11 @@ const React = require('react');
 var GameMessages = React.createClass({
 
     styleToClassName: {
-        prim: "text-primary",
-        info: "text-info",
-        warn: "text-warning",
-        danger: "text-danger",
-        success: "text-success",
+        prim: 'text-primary',
+        info: 'text-info',
+        warn: 'text-warning',
+        danger: 'text-danger',
+        success: 'text-success'
     },
 
     shouldComponentUpdate: function(nextProps, nextState) {
@@ -25,10 +25,10 @@ var GameMessages = React.createClass({
             var className = styles[val.style];
             var index = 1;
 
-            if (!val.hasOwnProperty("seen")) {
-                if (val.hasOwnProperty("cell")) {
+            if (!val.hasOwnProperty('seen')) {
+                if (val.hasOwnProperty('cell')) {
                     index = seenCells.indexOf(val.cell);
-                    if (index >= 0) val.seen = true;
+                    if (index >= 0) {val.seen = true;}
                 }
             }
 
@@ -38,9 +38,9 @@ var GameMessages = React.createClass({
         });
 
         return (
-            <div className="game-messages">{msgList}</div>
+            <div className='game-messages'>{msgList}</div>
         );
-    },
+    }
 
 });
 

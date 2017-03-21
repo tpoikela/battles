@@ -21,7 +21,7 @@ class GameStartScreen extends React.Component {
 
         this.onNameChange = this.onNameChange.bind(this);
         this.deleteGame = this.deleteGame.bind(this);
-        this.selectGame= this.selectGame.bind(this);
+        this.selectGame = this.selectGame.bind(this);
         this.loadGame = this.loadGame.bind(this);
 
     }

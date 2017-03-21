@@ -16,12 +16,12 @@ var GameEquipment = React.createClass({
         for (var i = 0; i < slots.length; i++) {
             var item = eq.getEquipped(slots[i]);
             var items = [];
-            if (item !== null) items.push(item);
+            if (item !== null) {items.push(item);}
 
             var key = i;
             if (items.length > 0) {
                 for (var j = 0; j < items.length; j++) {
-                    key += "," + j;
+                    key += ',' + j;
                     equipped.push(
                         <GameEquipSlot setEquipSelected={setEquip} key={key} slotName={slots[i]} slotNumber={j} item={items[j]} />
                     );

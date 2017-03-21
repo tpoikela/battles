@@ -13,7 +13,7 @@ var GameItemSlot = React.createClass({
         var item = this.props.item;
         var itemString = item.toString();
         return (
-            <div className="inv-item-slot" onClick={this.setSelectedItem}>{itemString}</div>
+            <div className='inv-item-slot' onClick={this.setSelectedItem}>{itemString}</div>
         );
     }
 

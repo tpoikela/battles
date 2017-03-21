@@ -18,10 +18,10 @@ var GameEquipSlot = React.createClass({
     render: function() {
         var slotName = this.props.slotName;
         var item = this.props.item;
-        var msg = "Empty";
-        if (item !== null) msg = item.toString();
+        var msg = 'Empty';
+        if (item !== null) {msg = item.toString();}
         return (
-            <div onClick={this.setEquipSelected} className="inv-equip-slot">{slotName} {msg}</div>
+            <div onClick={this.setEquipSelected} className='inv-equip-slot'>{slotName} {msg}</div>
         );
     }
 

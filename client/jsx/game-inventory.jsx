@@ -14,8 +14,8 @@ var GameInventory = React.createClass({
 
     getInitialState: function() {
         return {
-            invMsg: "",
-            msgStyle: ""
+            invMsg: '',
+            msgStyle: ''
         };
     },
 
@@ -53,14 +53,14 @@ var GameInventory = React.createClass({
         if (this.selectedItem !== null) {
             var invEq = this.props.player.getInvEq();
             if (invEq.dropItem(this.selectedItem)) {
-                this.setState({invMsg:  "Item dropped!",
-                    msgStyle: "text-success"});
+                this.setState({invMsg: 'Item dropped!',
+                    msgStyle: 'text-success'});
             }
 
         }
         else {
-            this.setState({invMsg:  "No item selected!",
-                msgStyle: "text-danger"});
+            this.setState({invMsg: 'No item selected!',
+                msgStyle: 'text-danger'});
         }
     },
 
@@ -71,20 +71,20 @@ var GameInventory = React.createClass({
         if (item !== null) {
             var invEq = this.props.player.getInvEq();
 
-            if (item.getType() === "missile") {
+            if (item.getType() === 'missile') {
                 if (invEq.equipNItems(item, item.count)) {
-                    this.setState({invMsg:  "Equipping succeeded!",
-                        msgStyle: "text-success"});
+                    this.setState({invMsg: 'Equipping succeeded!',
+                        msgStyle: 'text-success'});
                 }
             }
             else if (invEq.equipItem(item)) {
-                this.setState({invMsg:  "Equipping succeeded!",
-                    msgStyle: "text-success"});
+                this.setState({invMsg: 'Equipping succeeded!',
+                    msgStyle: 'text-success'});
             }
         }
         else {
-            this.setState({invMsg:  "No item selected!",
-                msgStyle: "text-danger"});
+            this.setState({invMsg: 'No item selected!',
+                msgStyle: 'text-danger'});
         }
     },
 
@@ -93,14 +93,14 @@ var GameInventory = React.createClass({
         if (this.equipSelected !== null) {
             var invEq = this.props.player.getInvEq();
             var name = this.equipSelected.slotName;
-            if (name === "missile") {
-                var eqItem = invEq.getEquipment().getItem("missile");
+            if (name === 'missile') {
+                var eqItem = invEq.getEquipment().getItem('missile');
                 var ok = false;
 
                 if (eqItem !== null) {
                     if (invEq.unequipItem(name, eqItem.count)) {
-                        this.setState({invMsg: "Removing succeeded!",
-                            msgStyle: "text-success"});
+                        this.setState({invMsg: 'Removing succeeded!',
+                            msgStyle: 'text-success'});
                         ok = true;
                     }
                 }
@@ -108,65 +108,65 @@ var GameInventory = React.createClass({
                 if (!ok) {
                     this.setState({invMsg:
                         "Failed to remove the item from slot '" + name + "'!",
-                        msgStyle: "text-danger"});
+                        msgStyle: 'text-danger'});
                 }
             }
             else if (invEq.unequipItem(name)) {
-                this.setState({invMsg:  "Removing succeeded!",
-                    msgStyle: "text-success"});
+                this.setState({invMsg: 'Removing succeeded!',
+                    msgStyle: 'text-success'});
             }
             else {
                 this.setState({invMsg:
                     "Failed to remove the item from slot '" + name + "'!",
-                    msgStyle: "text-danger"});
+                    msgStyle: 'text-danger'});
             }
         }
         else {
-            this.setState({invMsg:  "No equipment selected!",
-                msgStyle: "text-danger"});
+            this.setState({invMsg: 'No equipment selected!',
+                msgStyle: 'text-danger'});
         }
     },
 
     useItem: function(evt) {
         if (this.selectedItem !== null) {
-            if (this.selectedItem.hasOwnProperty("useItem")) {
+            if (this.selectedItem.hasOwnProperty('useItem')) {
                 var invEq = this.props.player.getInvEq();
                 var target = this.props.player.getCell();
                 if (invEq.useItem(this.selectedItem, {target: target})) {
                     var itemName = this.selectedItem.getName();
-                    this.setState({invMsg: "You used the " + itemName + ".",
-                        msgStyle: "text-success"});
+                    this.setState({invMsg: 'You used the ' + itemName + '.',
+                        msgStyle: 'text-success'});
                     this.props.forceRender();
                 }
                 else {
-                    this.setState({invMsg: "You failed to use the " + itemName + ".",
-                        msgStyle: "text-danger"});
+                    this.setState({invMsg: 'You failed to use the ' + itemName + '.',
+                        msgStyle: 'text-danger'});
                 }
             }
             else {
-                this.setState({invMsg:  "Cannot use the chosen item!",
-                    msgStyle: "text-danger"});
+                this.setState({invMsg: 'Cannot use the chosen item!',
+                    msgStyle: 'text-danger'});
             }
         }
         else {
-            this.setState({invMsg:  "You must choose item to use!",
-                msgStyle: "text-danger"});
+            this.setState({invMsg: 'You must choose item to use!',
+                msgStyle: 'text-danger'});
         }
 
     },
 
     setSelectedItem: function(item) {
         this.selectedItem = item;
-        var msg = "Inventory Selected: " + item.toString();
+        var msg = 'Inventory Selected: ' + item.toString();
         this.props.selectItemTop(item);
-        this.setState({invMsg: msg, msgStyle: "text-info"});
+        this.setState({invMsg: msg, msgStyle: 'text-info'});
     },
 
     setEquipSelected: function(selection) {
         this.equipSelected = selection;
-        var msg = "Equipment Selected: " + selection.item.toString();
+        var msg = 'Equipment Selected: ' + selection.item.toString();
         this.props.selectItemTop(selection.item);
-        this.setState({invMsg: msg, msgStyle: "text-info"});
+        this.setState({invMsg: msg, msgStyle: 'text-info'});
     },
 
     render: function() {
@@ -177,34 +177,33 @@ var GameInventory = React.createClass({
 
         this.invLastRenderLen = inv.getItems().length;
         this.eqLastRenderLen = eq.getItems().length;
-        var missile = eq.getItem("missile");
+        var missile = eq.getItem('missile');
 
-        if (missile !== null)
-            this.eqMissCount = missile.count;
+        if (missile !== null) {this.eqMissCount = missile.count;}
 
         return (
-            <div className="modal fade" role="dialog" id="inventoryModal" tabIndex="-1" role="dialog" aria-labelledby="inventory-modal-label" aria-hidden="true">
-                <div className="modal-dialog modal-lg">
-                    <div className="modal-content">
-                        <ModalHeader id="inventory-modal-label" text="Inventory"/>
-                        <div className="modal-body row">
-                            <div id="items-box" className="col-md-6">
+            <div className='modal fade' role='dialog' id='inventoryModal' tabIndex='-1' role='dialog' aria-labelledby='inventory-modal-label' aria-hidden='true'>
+                <div className='modal-dialog modal-lg'>
+                    <div className='modal-content'>
+                        <ModalHeader id='inventory-modal-label' text='Inventory'/>
+                        <div className='modal-body row'>
+                            <div id='items-box' className='col-md-6'>
                                 <GameItems eqWeight={eqWeight} maxWeight={maxWeight} setSelectedItem={this.setSelectedItem} inv={inv} />
                             </div>
-                            <div id="equipment-box" className="col-md-6">
+                            <div id='equipment-box' className='col-md-6'>
                                 <GameEquipment setEquipSelected={this.setEquipSelected} eq={eq} />
                             </div>
                         </div>
-                        <div className="modal-footer row">
-                            <div className="col-md-6">
+                        <div className='modal-footer row'>
+                            <div className='col-md-6'>
                                 <p className={this.state.msgStyle}>{this.state.invMsg}</p>
                             </div>
-                            <div className="col-md-6">
-                                <button type="button" className="btn btn-secondary" onClick={this.dropItem}>Drop</button>
-                                <button type="button" className="btn btn-secondary" onClick={this.equipItem}>Equip</button>
-                                <button type="button" className="btn btn-secondary" onClick={this.unequipItem}>Remove</button>
-                                <button type="button" className="btn btn-secondary" onClick={this.useItem}>Use</button>
-                                <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <div className='col-md-6'>
+                                <button type='button' className='btn btn-secondary' onClick={this.dropItem}>Drop</button>
+                                <button type='button' className='btn btn-secondary' onClick={this.equipItem}>Equip</button>
+                                <button type='button' className='btn btn-secondary' onClick={this.unequipItem}>Remove</button>
+                                <button type='button' className='btn btn-secondary' onClick={this.useItem}>Use</button>
+                                <button type='button' className='btn btn-secondary' data-dismiss='modal'>Close</button>
                             </div>
                         </div>
                     </div>

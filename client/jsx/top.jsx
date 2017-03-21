@@ -70,11 +70,11 @@ class TopLogic {
 
 }
 
-var ProxyListener = function(cb_notify) {
+var ProxyListener = function(cbNotify) {
     this.hasNotify = true;
 
     this.notify = function(evtName, obj) {
-        cb_notify(evtName, obj);
+        cbNotify(evtName, obj);
     };
 
 };
@@ -286,14 +286,14 @@ class BattlesTop extends React.Component {
     }
 
     componentDidMount() {
-      //$(document.body).on('keydown', this.handleKeyDown);
+      // $(document.body).on('keydown', this.handleKeyDown);
       document.addEventListener('keydown', this.handleKeyDown, true);
       $('#start-button').trigger('click');
     }
 
     componentWillUnMount() {
       document.removeEventListener('keydown', this.handleKeyDown);
-        //$(document.body).off('keydown', this.handleKeyDown);
+        // $(document.body).off('keydown', this.handleKeyDown);
     }
 
 
@@ -337,9 +337,10 @@ class BattlesTop extends React.Component {
         return (
             <div className='container main-div' id='main-div' >
 
-                <GameStartScreen newGame={this.newGame}
+                <GameStartScreen
                     deleteGame={this.deleteGame}
                     loadGame={this.loadGame}
+                    newGame={this.newGame}
                     savedPlayerList={this.savedPlayerList}
                     setDebugMode={this.setDebugMode}
                     setGameLength={this.setGameLength}
@@ -351,9 +352,10 @@ class BattlesTop extends React.Component {
                 />
                 <GameHelpScreen />
 
-                <GameInventory 
+                <GameInventory
+                    eq={eq}
                     forceRender={this.forceRender}
-                    inv={inv} eq={eq} 
+                    inv={inv}
                     maxWeight={maxWeight}
                     player={player}
                     selectItemTop={this.selectItemTop}
@@ -361,7 +363,10 @@ class BattlesTop extends React.Component {
 
                 <div className='row game-panel-div'>
                     <div className='col-md-2'>
-                        <GamePanel setViewSize={this.setViewSize} saveGame={this.saveGame}/>
+                        <GamePanel
+                            saveGame={this.saveGame}
+                            setViewSize={this.setViewSize}
+                        />
                     </div>
                     <div className='col-md-10 game-messages-div'>
                         <GameMessages message={message}
@@ -371,21 +376,25 @@ class BattlesTop extends React.Component {
                 </div>
                 <div className='row main-contents-div'>
                     <div className='text-left col-md-2 game-stats-div'>
-                        <GameStats player={player} setViewType={this.setViewType}
-                            selectedItem={this.state.selectedItem}
+                        <GameStats
+                            player={player}
                             selectedCell={this.state.selectedCell}
+                            selectedItem={this.state.selectedItem}
+                            setViewType={this.setViewType}
                         />
                     </div>
                     <div className='col-md-10 game-board-div'>
-                        <GameBoard player={player} map={map}
-                            visibleCells={this.gameState.visibleCells}
+                        <GameBoard
+                            boardClassName={this.state.boardClassName}
+                            map={map}
+                            mapShown={this.mapShown}
                             onCellClick={this.onCellClick}
+                            player={player}
                             renderFullScreen={fullScreen}
+                            selectedCell={this.state.selectedCell}
                             viewportX={this.viewportX}
                             viewportY={this.viewportY}
-                            boardClassName={this.state.boardClassName}
-                            mapShown={this.mapShown}
-                            selectedCell={this.state.selectedCell}
+                            visibleCells={this.gameState.visibleCells}
                         />
                     </div>
                 </div>
@@ -420,7 +429,6 @@ class BattlesTop extends React.Component {
         else {
             return this.guiCommands.hasOwnProperty(code);
         }
-        return false;
     }
 
     /* Calls a GUI command corresponding to the code.*/
@@ -465,7 +473,7 @@ class BattlesTop extends React.Component {
     GUITarget() {
         if (this.gameState.isTargeting) {
             if (this.state.selectedCell !== null) {
-                var cell = this.state.selectedCell;
+                let cell = this.state.selectedCell;
                 this.gameState.autoTarget = true;
                 this.game.update({cmd: 'missile', target: cell});
                 this.gameState.visibleCells = this.game.visibleCells;
@@ -480,11 +488,13 @@ class BattlesTop extends React.Component {
             this.gameState.enemyCells = RG.findEnemyCellForPlayer(
                 this.game.getPlayer(), this.gameState.visibleCells);
             this.gameState.numCurrCell = 0;
+
             if (this.gameState.enemyCells.length > 0) {
-                var cell = this.gameState.enemyCells[0];
+                let cell = this.gameState.enemyCells[0];
                 this.setState({selectedCell: cell});
                 console.log('GUITarget found selected cell');
             }
+
         }
         this.setState({render: true});
     }
@@ -492,7 +502,9 @@ class BattlesTop extends React.Component {
     GUIUseItem() {
         if (!this.gameState.useModeEnabled) {
             this.gameState.useModeEnabled = true;
-            if (this.state.selectedItem === null) {$('#inventory-button').trigger('click');}
+            if (this.state.selectedItem === null) {
+                $('#inventory-button').trigger('click');
+            }
             RG.gameMsg('Select direction for using the item.');
         }
     }
@@ -514,15 +526,16 @@ class BattlesTop extends React.Component {
         }
     }
 
-    //---------------------------------------------------------------------------
+    //--------------------------------
     // GAME CONFIG RELATED FUNCTIONS
-    //---------------------------------------------------------------------------
+    //-------------------------------
 
     setLoot(lootType) {
         switch (lootType) {
             case 'Sparse': this.gameConf.sqrPerItem = 200; break;
             case 'Medium': this.gameConf.sqrPerItem = 120; break;
             case 'Abundant': this.gameConf.sqrPerItem = 50; break;
+            default: console.error('setLoot illegal lootType ' + lootType);
         }
     }
 
@@ -531,15 +544,22 @@ class BattlesTop extends React.Component {
             case 'Sparse': this.gameConf.sqrPerMonster = 200; break;
             case 'Medium': this.gameConf.sqrPerMonster = 120; break;
             case 'Abundant': this.gameConf.sqrPerMonster = 50; break;
+            default:
+                console.error('setMonsters illegal monstType ' + monstType);
         }
     }
 
     setLevelSize(levelSize) {
         switch (levelSize) {
-            case 'Small': this.gameConf.cols = 40; this.gameConf.rows = 20; break;
-            case 'Medium': this.gameConf.cols = 60; this.gameConf.rows = 30; break;
-            case 'Large': this.gameConf.cols = 80; this.gameConf.rows = 40; break;
-            case 'Huge': this.gameConf.cols = 140; this.gameConf.rows = 60; break;
+            case 'Small': this.gameConf.cols = 40;
+                this.gameConf.rows = 20; break;
+            case 'Medium': this.gameConf.cols = 60;
+                this.gameConf.rows = 30; break;
+            case 'Large': this.gameConf.cols = 80;
+                this.gameConf.rows = 40; break;
+            case 'Huge': this.gameConf.cols = 140;
+                this.gameConf.rows = 60; break;
+            default: console.error('setLeveSize illegal size ' + levelSize);
         }
     }
 
@@ -553,6 +573,7 @@ class BattlesTop extends React.Component {
             case 'Medium': this.gameConf.levels = 10; break;
             case 'Long': this.gameConf.levels = 15; break;
             case 'Epic': this.gameConf.levels = 30; break;
+            default: console.error('setGameLength illegal length ' + length);
         }
     }
 
@@ -561,27 +582,29 @@ class BattlesTop extends React.Component {
             case 'Off': this.gameConf.debugMode = false; break;
             case 'Arena': this.gameConf.debugMode = 'Arena'; break;
             case 'Battle': this.gameConf.debugMode = 'Battle'; break;
+            default: console.error('setDebugMode illegal mode ' + mode);
         }
     }
 
     bindCallbacks() {
-        this.newGame=this.newGame.bind(this);
-        this.deleteGame=this.deleteGame.bind(this);
-        this.loadGame=this.loadGame.bind(this);
-        this.setDebugMode=this.setDebugMode.bind(this);
-        this.setGameLength=this.setGameLength.bind(this);
-        this.setLevelSize=this.setLevelSize.bind(this);
-        this.setLoot=this.setLoot.bind(this);
-        this.setMonsters=this.setMonsters.bind(this);
-        this.setPlayerLevel=this.setPlayerLevel.bind(this);
-        this.setPlayerName=this.setPlayerName.bind(this);
-        this.onCellClick= this.onCellClick.bind(this);
+        this.newGame = this.newGame.bind(this);
+        this.deleteGame = this.deleteGame.bind(this);
+        this.loadGame = this.loadGame.bind(this);
+        this.setDebugMode = this.setDebugMode.bind(this);
+        this.setGameLength = this.setGameLength.bind(this);
+        this.setLevelSize = this.setLevelSize.bind(this);
+        this.setLoot = this.setLoot.bind(this);
+        this.setMonsters = this.setMonsters.bind(this);
+        this.setPlayerLevel = this.setPlayerLevel.bind(this);
+        this.setPlayerName = this.setPlayerName.bind(this);
+        this.onCellClick = this.onCellClick.bind(this);
 
         this.handleKeyDown = this.handleKeyDown.bind(this);
 
         this.mainLoop = this.mainLoop.bind(this);
         this.isGUICommand = this.isGUICommand.bind(this);
         this.doGUICommand = this.doGUICommand.bind(this);
+        this.setViewType = this.setViewType.bind(this);
     }
 
 }

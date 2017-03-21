@@ -15,8 +15,8 @@ var GameBoard = React.createClass({
     render: function() {
 
         var mapShown = this.props.mapShown;
-        var rowClass = "cell-row-div-player-view";
-        if (mapShown) rowClass = "cell-row-div-map-view";
+        var rowClass = 'cell-row-div-player-view';
+        if (mapShown) {rowClass = 'cell-row-div-map-view';}
 
         this.viewportX = this.props.viewportX;
         this.viewportY = this.props.viewportY;
@@ -35,7 +35,6 @@ var GameBoard = React.createClass({
 
         var onCellClick = this.props.onCellClick;
         var visibleCells = this.props.visibleCells;
-        var renderFullScreen = this.props.renderFullScreen;
 
         var rowsHTML = [];
         var selCell = this.props.selectedCell;
@@ -49,24 +48,28 @@ var GameBoard = React.createClass({
 
             rowsHTML.push(
                 <GameRow
-                    startX={startX}
-                    y={y} onCellClick={onCellClick}
-                    rowClasses={classesChars[0]}
+                    key={y}
+                    onCellClick={onCellClick}
                     rowChars={classesChars[1]}
                     rowClass={rowClass}
-                    key={y}
+                    rowClasses={classesChars[0]}
+                    startX={startX}
+                    y={y}
                 />);
         }
 
         // Finally return the full rendered board
         return (
-            <div id="game-board" className={this.props.boardClassName}>
+            <div
+                className={this.props.boardClassName}
+                id='game-board'
+                >
                 {rowsHTML}
             </div>
         );
     },
 
-    /** Builds and returns two arrays. First contains all CSS classNames of
+    /* Builds and returns two arrays. First contains all CSS classNames of
      * cells to be rendered, and the second one all characters to be rendered.*/
     getClassesAndChars: function(seen, cells, selCell) {
         var classes = [];
@@ -83,24 +86,31 @@ var GameBoard = React.createClass({
         for (var i = 0; i < cells.length; i++) {
             var cell = cells[i];
             var cellIndex = seen.indexOf(cell);
-            var visibleToPlayer = cellIndex < 0 ? false: true;
+            var visibleToPlayer = cellIndex < 0 ? false : true;
             var cellClass = RG.getClassName(cell, visibleToPlayer);
-            var cellChar  = RG.getChar(cell, visibleToPlayer);
+            var cellChar = RG.getChar(cell, visibleToPlayer);
 
-            if (selX === cell.getX() && selY === cell.getY())
-                cellClass = "cell-target-selected";
+            if (selX === cell.getX() && selY === cell.getY()) {
+                cellClass = 'cell-target-selected';
+            }
 
             if (!visibleToPlayer) {
-                if (cell.isExplored())
-                    cellClass += " cell-not-seen";
+                if (cell.isExplored()) {cellClass += ' cell-not-seen';}
             }
             classes.push(cellClass);
             chars.push(cellChar);
         }
 
         return [classes, chars];
-    },
+    }
 
-}); //}}} Gameboard
+}); // }}} Gameboard
+
+GameBoard.propTypes = {
+    mapShown: React.PropTypes.bool,
+    viewportX: React.PropTypes.number,
+    viewportY: React.PropTypes.number,
+    player: React.PropTypes.object
+};
 
 module.exports = GameBoard;
