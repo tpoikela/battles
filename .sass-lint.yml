@@ -1,0 +1,8 @@
+rules:
+    indentation:
+        - 2
+        -
+            size: 4
+    no-empty-rulesets: 0
+    no-css-comments: 0
+    brace-style: 0
