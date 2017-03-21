@@ -1,6 +1,10 @@
 'use strict';
 
 const React = require('react');
+const ModalHeader = require('./modal-header');
+
+const GameItems = require('./game-items');
+const GameEquipment = require('./game-equipment');
 
 /** Component renders the player inventory.*/
 var GameInventory = React.createClass({

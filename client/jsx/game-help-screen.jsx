@@ -2,6 +2,7 @@
 
 const React = require('react');
 const RG = require('../src/rg.js');
+const ModalHeader = require('./modal-header');
 
 /** This component contains short info on keys and how to play the game.*/
 var GameHelpScreen = React.createClass({

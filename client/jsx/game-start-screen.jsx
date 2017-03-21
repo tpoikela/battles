@@ -11,11 +11,14 @@ const RadioButtons = require('./radio-buttons');
  */
 class GameStartScreen extends React.Component {
 
-    getInitialState() {
-        return {
+    constructor(props) {
+        super(props);
+
+        this.state = {
             selectedGame: null,
             playerName: 'Player'
         };
+
     }
 
     onNameChange(evt) {

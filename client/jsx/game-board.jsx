@@ -4,6 +4,8 @@ const RG = require('../src/rg.js');
 
 const GameRow = require('./game-row');
 
+const GUI = require('../gui/gui');
+
 /** Component which renders the game rows. {{{2 */
 var GameBoard = React.createClass({
 

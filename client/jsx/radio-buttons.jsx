@@ -22,7 +22,7 @@ class RadioButtons extends React.Component {
         var buttons = this.props.buttons;
 
         // Generate buttons using map
-        var buttonList = buttons.map(function(name, index) {
+        var buttonList = buttons.map( (name, index) => {
 
             var classes = 'btn btn-primary';
             if (this.state.activeButton === name) {

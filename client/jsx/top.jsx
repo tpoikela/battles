@@ -1,6 +1,7 @@
 'use strict';
 const React = require('react');
 
+const ROT = require('../../lib/rot');
 const RG = require('../src/rg.js');
 RG.Game = require('../src/game.js');
 
@@ -69,6 +70,16 @@ class TopLogic {
 
 }
 
+var ProxyListener = function(cb_notify) {
+    this.hasNotify = true;
+
+    this.notify = function(evtName, obj) {
+        cb_notify(evtName, obj);
+    };
+
+};
+
+
 /* Top-level Component for the Battles GUI.*/
 class BattlesTop extends React.Component {
 
@@ -105,10 +116,15 @@ class BattlesTop extends React.Component {
         this.fps = 1000.0 / 20;
         this.keyPending = false;
 
+        this.hasNotify = true;
+        this.notify = this.notify.bind(this);
+        this.listener = new ProxyListener(this.notify);
+
         this.gameSave.setStorage(window.localStorage);
         this.savedPlayerList = this.gameSave.getPlayersAsList();
         this.initGUICommandTable();
         this.createNewGame();
+
         this.state = {
             boardClassName: 'game-board-player-view',
             mapShown: false,
@@ -118,7 +134,8 @@ class BattlesTop extends React.Component {
             renderFullScreen: false
         };
 
-        this.hasNotify = true;
+        // Binding of callbacks
+        this.bindCallbacks();
     }
 
     /* Resets the GUI game state.*/
@@ -233,8 +250,8 @@ class BattlesTop extends React.Component {
         this.game.setGUICallbacks(this.isGUICommand, this.doGUICommand);
         var player = this.game.getPlayer();
         this.gameState.visibleCells = player.getLevel().exploreCells(player);
-        RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this);
-        RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this);
+        RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this.listener);
+        RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this.listener);
         this.intID = setInterval(this.mainLoop, 1000.0 / 60);
     }
 
@@ -542,6 +559,20 @@ class BattlesTop extends React.Component {
             case 'Arena': this.gameConf.debugMode = 'Arena'; break;
             case 'Battle': this.gameConf.debugMode = 'Battle'; break;
         }
+    }
+
+    bindCallbacks() {
+        this.newGame=this.newGame.bind(this);
+        this.deleteGame=this.deleteGame.bind(this);
+        this.loadGame=this.loadGame.bind(this);
+        this.savedPlayerList=this.savedPlayerList.bind(this);
+        this.setDebugMode=this.setDebugMode.bind(this);
+        this.setGameLength=this.setGameLength.bind(this);
+        this.setLevelSize=this.setLevelSize.bind(this);
+        this.setLoot=this.setLoot.bind(this);
+        this.setMonsters=this.setMonsters.bind(this);
+        this.setPlayerLevel=this.setPlayerLevel.bind(this);
+        this.setPlayerName=this.setPlayerName.bind(this);
     }
 
 }
