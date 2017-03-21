@@ -6,6 +6,16 @@ roguelike=/home/tpoikela/git/battles/ /home/tpoikela/git/battles/ filter="*.js *
  style.scss
  README.md
  package.json
+ client=client {
+  data=data {
+  }
+  gui=gui {
+  }
+  jsx=jsx {
+  }
+  src=src {
+  }
+ }
  data=data {
   battles_objects.js
   effects.js

@@ -110,7 +110,8 @@ GameBoard.propTypes = {
     mapShown: React.PropTypes.bool,
     viewportX: React.PropTypes.number,
     viewportY: React.PropTypes.number,
-    player: React.PropTypes.object
+    player: React.PropTypes.object,
+    visibleCells: React.PropTypes.array
 };
 
 module.exports = GameBoard;
