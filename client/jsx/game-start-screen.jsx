@@ -19,6 +19,11 @@ class GameStartScreen extends React.Component {
             playerName: 'Player'
         };
 
+        this.onNameChange = this.onNameChange.bind(this);
+        this.deleteGame = this.deleteGame.bind(this);
+        this.selectGame= this.selectGame.bind(this);
+        this.loadGame = this.loadGame.bind(this);
+
     }
 
     onNameChange(evt) {
@@ -57,13 +62,12 @@ class GameStartScreen extends React.Component {
         var setGameLength = this.props.setGameLength;
         var setDebugMode = this.props.setDebugMode;
 
-        var that = this;
         var savedPlayerList = this.props.savedPlayerList;
-        var playerListHTML = savedPlayerList.map(function(val, index) {
+        var playerListHTML = savedPlayerList.map( (val, index) => {
             return (
                 <div
                     className='player-list-item' key={index}
-                    onClick={that.selectGame.bind(that, val.name)}
+                    onClick={this.selectGame.bind(this, val.name)}
                     >
                     Name: {val.name}, L: {val.expLevel} DL: {val.dungeonLevel}
                 </div>);

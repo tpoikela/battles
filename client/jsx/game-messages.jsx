@@ -21,7 +21,7 @@ var GameMessages = React.createClass({
         var styles = this.styleToClassName;
         var seenCells = this.props.visibleCells;
 
-        var msgList = message.map( function(val, index) {
+        var msgList = message.map( function(val, itemIndex) {
             var className = styles[val.style];
             var index = 1;
 
@@ -33,7 +33,7 @@ var GameMessages = React.createClass({
             }
 
             if (index >= 0 || val.seen) {
-                return (<span key={index} className={className}>{val.msg}.</span>);
+                return (<span key={itemIndex} className={className}>{val.msg}.</span>);
             }
         });
 

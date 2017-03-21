@@ -330,6 +330,10 @@ RG.Component.CombatMods = function() {
     RG.Component.Combat.call(this);
 
     var _damage = 0;
+    var _range = 0;
+    var _attack = 0;
+    var _defense = 0;
+    var _protection = 0;
 
     this.setType("CombatMods");
     this.setAttackRange = function(range) {_range = range;};

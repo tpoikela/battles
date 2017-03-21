@@ -52,7 +52,7 @@ RG.Brain.Player = function(actor) { // {{{2
     /** Restores the base speed after run-mode.*/
     var _restoreBaseSpeed = function() {
         _runModeEnabled = false;
-        this.energy = 1;
+        // this.energy = 1;
         _actor.get("StatsMods").setSpeed(0);
     };
 

@@ -286,25 +286,28 @@ class BattlesTop extends React.Component {
     }
 
     componentDidMount() {
-      $(document.body).on('keydown', this.handleKeyDown);
+      //$(document.body).on('keydown', this.handleKeyDown);
+      document.addEventListener('keydown', this.handleKeyDown, true);
       $('#start-button').trigger('click');
     }
 
     componentWillUnMount() {
-      $(document.body).off('keydown', this.handleKeyDown);
+      document.removeEventListener('keydown', this.handleKeyDown);
+        //$(document.body).off('keydown', this.handleKeyDown);
     }
 
 
     /* Listens for player key presses and handles them.*/
     handleKeyDown(evt) {
-        if (!this.keyPending) {
+        console.log('handleKeydown with ' + evt.keyCode);
+        if (this.keyPending === false) {
             this.keyPending = true;
             this.nextCode = evt.keyCode;
         }
     }
 
     mainLoop() {
-        if (this.keyPending) {
+        if (this.keyPending === true) {
             var code = this.nextCode;
             this.game.update({code: code});
             this.gameState.visibleCells = this.game.visibleCells;
@@ -565,7 +568,6 @@ class BattlesTop extends React.Component {
         this.newGame=this.newGame.bind(this);
         this.deleteGame=this.deleteGame.bind(this);
         this.loadGame=this.loadGame.bind(this);
-        this.savedPlayerList=this.savedPlayerList.bind(this);
         this.setDebugMode=this.setDebugMode.bind(this);
         this.setGameLength=this.setGameLength.bind(this);
         this.setLevelSize=this.setLevelSize.bind(this);
@@ -573,6 +575,13 @@ class BattlesTop extends React.Component {
         this.setMonsters=this.setMonsters.bind(this);
         this.setPlayerLevel=this.setPlayerLevel.bind(this);
         this.setPlayerName=this.setPlayerName.bind(this);
+        this.onCellClick= this.onCellClick.bind(this);
+
+        this.handleKeyDown = this.handleKeyDown.bind(this);
+
+        this.mainLoop = this.mainLoop.bind(this);
+        this.isGUICommand = this.isGUICommand.bind(this);
+        this.doGUICommand = this.doGUICommand.bind(this);
     }
 
 }

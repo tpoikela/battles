@@ -11,6 +11,8 @@ class RadioButtons extends React.Component {
             activeButton: ''
         };
 
+        this.onButtonClick = this.onButtonClick.bind(this);
+
     }
 
     onButtonClick(name) {
