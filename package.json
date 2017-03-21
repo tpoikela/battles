@@ -1,29 +1,58 @@
 {
+  "name": "battles",
+  "version": "1.0.0",
+  "description": "Roguelike game situated in cold north",
+  "dependencies": {
+    "babel-preset-es2015": "^6.22.0",
+    "babel-preset-react": "^6.22.0",
+    "babelify": "^7.3.0",
+    "browserify": "^14.0.0",
+    "gulp": "^3.9.1",
+    "gulp-nodemon": "^2.2.1",
+    "gulp-sass": "^3.1.0",
+    "jquery": "^3.2.1",
+    "react": "^15.4.2",
+    "react-dom": "^15.4.2",
+    "vinyl-source-stream": "^1.1.0"
+  },
   "devDependencies": {
-    "chai": "~3.5.0",
+    "babel-eslint": "^7.1.1",
     "babel-cli": "~6.10.1",
-    "node-localstorage" : "~1.3.0",
+    "babelify": "^7.3.0",
+    "browserify": "^14.1.0",
+    "chai": "~3.5.0",
+    "ctags": "^3.0.0",
+    "eslint": "^3.14.1",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-prefer-object-spread": "^1.1.0",
+    "eslint-plugin-react": "^6.9.0",
+    "gulp-ctags": "^0.1.0",
+    "jsctags": "git://github.com/ramitos/jsctags.git",
+    "mocha": "~3.1",
+    "sass-lint": "^1.10.2",
+    "gulp": "^3.9.1",
+    "gulp-nodemon": "^2.2.1",
+    "gulp-sass": "^3.1.0",
     "istanbul": "~0.4.5",
     "mocha-istanbul": "*",
-    "mocha": "~3.1"
+    "node-localstorage": "~1.3.0",
+    "vinyl-source-stream": "^1.1.0"
   },
-
   "contributors": [
     "Tuomas Poikela <tuomas.sakari.poikela@gmail.com>"
   ],
-
   "repository": {
-      "type": "git",
-      "url": "git://github.com/tpoikela/battles.git"
+    "type": "git",
+    "url": "git://github.com/tpoikela/battles.git"
   },
-
   "scripts": {
-      "build": "make build",
-      "clean": "make clean",
-      "coverage": "perl cov_test.pl",
-      "test": "mocha --recursive tests"
+    "build": "make build",
+    "clean": "make clean",
+    "coverage": "perl cov_test.pl",
+    "test": "mocha --recursive tests"
   },
-
-  "license": "MIT"
-
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tpoikela/battles/issues"
+  }
 }
