@@ -4,13 +4,16 @@ var sass = require('gulp-sass');
 
 var babelify = require('babelify');
 var browserify = require('browserify');
+var browserifyInc = require('browserify-incremental');
+
+var cached = require('gulp-cached');
 var source = require('vinyl-source-stream');
 
 var nodemon = require('gulp-nodemon');
 
 var ctags = require('gulp-ctags');
 
-var spawn = require('child_process').spawn;
+// var spawn = require('child_process').spawn;
 
 var jsxDir = './client/jsx';
 
@@ -29,13 +32,33 @@ var paths = {
 
 };
 
+var browserifyOpts = {
+    entries: jsxDir + '/app.jsx',
+    extensions: ['.jsx'],
+    debug: true
+};
+
 gulp.task('build-js', function() {
-    return browserify({entries: jsxDir + '/app.jsx',
-        extensions: ['.jsx'], debug: true})
+    return browserify(browserifyOpts)
         .transform(babelify)
         .bundle()
         .pipe(source('./bundle.js'))
         .pipe(gulp.dest('build'));
+});
+
+// Incrementally building the js
+gulp.task('build-js-inc', function() {
+	var b = browserify(Object.assign({}, browserifyInc.args,
+		browserifyOpts
+	));
+
+	browserifyInc(b, {cacheFile: './browserify-cache.json'});
+
+	b.transform(babelify)
+		.bundle()
+        .pipe(source('./bundle.js'))
+        .pipe(gulp.dest('build'));
+
 });
 
 gulp.task('build-test', function() {
@@ -88,7 +111,7 @@ gulp.task('serve', function(cb) {
     });
 });
 
-// Bit unusual task. Builds ctags-file for easier src navigation in Vim
+// Builds ctags-file for easier src navigation in Vim
 /* gulp.task('tags', function() {
     console.log('Building ctags for the project.');
     spawn('ctags', ['-R'].concat(paths.tags));
@@ -96,6 +119,7 @@ gulp.task('serve', function(cb) {
 
 gulp.task('tags', function() {
   return gulp.src(paths.tags)
+	.pipe(cached('ctags'))
     .pipe(ctags({name: 'tags'}))
     .pipe(gulp.dest('./'));
 });
@@ -107,7 +131,7 @@ var watchDependents = [
 ];
 
 gulp.task('watch-cli', watchDependents, function() {
-    gulp.watch(paths.client, ['build-js']);
+    gulp.watch(paths.client, ['build-js-inc']);
     gulp.watch(paths.sass, ['build-sass']);
     gulp.watch(paths.tags, ['tags']);
 });
