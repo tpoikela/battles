@@ -6,7 +6,6 @@ var babelify = require('babelify');
 var browserify = require('browserify');
 var browserifyInc = require('browserify-incremental');
 
-var cached = require('gulp-cached');
 var source = require('vinyl-source-stream');
 
 var nodemon = require('gulp-nodemon');
@@ -119,13 +118,12 @@ gulp.task('serve', function(cb) {
 
 gulp.task('tags', function() {
   return gulp.src(paths.tags)
-	.pipe(cached('ctags'))
     .pipe(ctags({name: 'tags'}))
     .pipe(gulp.dest('./'));
 });
 
 var watchDependents = [
-  'build-js',
+  'build-js-inc',
   'tags',
   'build-sass'
 ];
