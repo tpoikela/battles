@@ -139,6 +139,9 @@ describe('Brain.Player', function() {
         brain.decideNextAction({code: RG.K_NEXT_ITEM});
         expect(brain.energy).to.equal(0);
 
+        brain.decideNextAction({code: RG.K_PICKUP});
+        expect(brain.energy).to.equal(RG.energy.PICKUP);
+
     });
 });
 
