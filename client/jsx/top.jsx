@@ -122,7 +122,6 @@ class BattlesTop extends React.Component {
 
         this.gameSave.setStorage(window.localStorage);
         this.savedPlayerList = this.gameSave.getPlayersAsList();
-        this.initGUICommandTable();
         this.createNewGame();
 
         this.state = {
@@ -136,6 +135,7 @@ class BattlesTop extends React.Component {
 
         // Binding of callbacks
         this.bindCallbacks();
+        this.initGUICommandTable();
     }
 
     /* Resets the GUI game state.*/
@@ -309,6 +309,7 @@ class BattlesTop extends React.Component {
     mainLoop() {
         if (this.keyPending === true) {
             var code = this.nextCode;
+            console.log('mainLoop evaluating key ' + code);
             this.game.update({code: code});
             this.gameState.visibleCells = this.game.visibleCells;
             if (this.game.isGameOver()) {
@@ -419,11 +420,12 @@ class BattlesTop extends React.Component {
 
     }
 
+    /* Returns true if given command is a GUI command. */
     isGUICommand(code) {
         if (this.gameState.autoTarget && code === ROT.VK_T) {
             return false;
         }
-        if (this.gameState.useModeEnabled) {
+        else if (this.gameState.useModeEnabled) {
             return true;
         }
         else {
@@ -588,6 +590,8 @@ class BattlesTop extends React.Component {
 
     bindCallbacks() {
         this.newGame = this.newGame.bind(this);
+
+        // GameStartScreen callbacks
         this.deleteGame = this.deleteGame.bind(this);
         this.loadGame = this.loadGame.bind(this);
         this.setDebugMode = this.setDebugMode.bind(this);
@@ -597,7 +601,11 @@ class BattlesTop extends React.Component {
         this.setMonsters = this.setMonsters.bind(this);
         this.setPlayerLevel = this.setPlayerLevel.bind(this);
         this.setPlayerName = this.setPlayerName.bind(this);
-        this.onCellClick = this.onCellClick.bind(this);
+
+
+        // GamePanel callbacks
+        this.setViewSize = this.setViewSize.bind(this);
+        this.saveGame = this.saveGame.bind(this);
 
         this.handleKeyDown = this.handleKeyDown.bind(this);
 
@@ -605,6 +613,18 @@ class BattlesTop extends React.Component {
         this.isGUICommand = this.isGUICommand.bind(this);
         this.doGUICommand = this.doGUICommand.bind(this);
         this.setViewType = this.setViewType.bind(this);
+
+        this.selectItemTop = this.selectItemTop.bind(this);
+
+        // GameBoard callbacks
+        this.onCellClick = this.onCellClick.bind(this);
+
+        this.GUIInventory = this.GUIInventory.bind(this);
+        this.GUIMap = this.GUIMap.bind(this);
+        this.GUINextTarget = this.GUINextTarget.bind(this);
+        this.GUITarget = this.GUITarget.bind(this);
+        this.GUIUseItem = this.GUIUseItem.bind(this);
+        this.forceRender = this.forceRender.bind(this);
     }
 
 }
