@@ -37,4 +37,28 @@ describe('Component.Base', function() {
         expect(comp.toString()).to.match(/Base/);
 
     });
+
+    it('has onAdd/Remove callback mechanism', function() {
+        var comp = new RG.Component.Base('Base');
+        var entity = new RG.Entity();
+
+        var calledAdd = false;
+        var callbackAdd = function() {calledAdd = true;};
+
+        var calledRemove = false;
+        var callbackRemove = function() {calledRemove = true;};
+
+        comp.addCallback('onAdd', callbackAdd);
+        comp.addCallback('onRemove', callbackRemove);
+        comp.addCallback('onIllegal', callbackRemove);
+
+        expect(calledAdd).to.be.false;
+        entity.add('Base', comp);
+        expect(calledAdd).to.be.true;
+
+        expect(calledRemove).to.be.false;
+        entity.remove('Base');
+        expect(calledRemove).to.be.true;
+
+    });
 });
