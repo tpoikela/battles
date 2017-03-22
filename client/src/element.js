@@ -1,54 +1,51 @@
-/**
+/*
  * File containing map elements. These are either terrain or interactive
  * elements like stairs.
  */
 
-var RG  = require("./rg.js");
+var RG = require('./rg.js');
 
-RG.Object = require("./object.js");
+RG.Object = require('./object.js');
 
 RG.Element = {};
 
-/** Element is a wall or other obstacle or a feature in the map. It's not
+/* Element is a wall or other obstacle or a feature in the map. It's not
  * necessarily blocking movement.  */
 RG.Element.Base = function(elemType) { // {{{2
     RG.Object.Locatable.call(this);
-    this.setPropType("elements");
+    this.setPropType('elements');
     this.setType(elemType);
 };
 RG.extend2(RG.Element.Base, RG.Object.Locatable);
 
 RG.Element.Base.prototype.isPassable = function() {
-    return this.getType() !== "wall";
+    return this.getType() !== 'wall';
 };
 
 // }}} Element
 
-/** Object models stairs connecting two levels. Stairs are one-way, thus
+/* Object models stairs connecting two levels. Stairs are one-way, thus
  * connecting 2 levels requires two stair objects. */
 RG.Element.Stairs = function(down, srcLevel, targetLevel) {
-    if (down)
-        RG.Element.Base.call(this, "stairsDown");
-    else
-        RG.Element.Base.call(this, "stairsUp");
+    if (down) {RG.Element.Base.call(this, 'stairsDown');}
+    else {RG.Element.Base.call(this, 'stairsUp');}
 
     var _down = down;
     var _srcLevel = srcLevel;
     var _targetLevel = targetLevel;
     var _targetStairs = null;
 
-    /** Target actor uses the stairs.*/
+    /* Target actor uses the stairs.*/
     this.useStairs = function(actor) {
         if (!RG.isNullOrUndef([_targetStairs, _targetLevel])) {
-            var newLevel = _targetLevel;
             var newX = _targetStairs.getX();
             var newY = _targetStairs.getY();
             if (_srcLevel.removeActor(actor)) {
                 if (_targetLevel.addActor(actor, newX, newY)) {
                     RG.POOL.emitEvent(RG.EVT_LEVEL_CHANGED,
                         {target: _targetLevel, src: _srcLevel, actor: actor});
-                    RG.POOL.emitEvent(RG.EVT_LEVEL_ENTERED, {actor: actor, target:
-                        targetLevel});
+                    RG.POOL.emitEvent(RG.EVT_LEVEL_ENTERED,
+                        {actor: actor, target: targetLevel});
                     return true;
                 }
             }
@@ -70,9 +67,9 @@ RG.Element.Stairs = function(down, srcLevel, targetLevel) {
 };
 RG.extend2(RG.Element.Stairs, RG.Element.Base);
 
-/** Name says it all, be it open or closed.*/
+/* Name says it all, be it open or closed.*/
 RG.Element.Door = function(closed) {
-    RG.Element.Base.call(this, "door");
+    RG.Element.Base.call(this, 'door');
     this._closed = closed || true;
 
 };
@@ -98,9 +95,9 @@ RG.Element.Door.prototype.isPassable = function() {
     return !this._closed;
 };
 
-/** A shop element is added to each cell inside a shop.*/
+/* A shop element is added to each cell inside a shop.*/
 RG.Element.Shop = function() {
-    RG.Element.Base.call(this, "shop");
+    RG.Element.Base.call(this, 'shop');
 
     this._shopkeeper = null;
     this._costFactor = 1.0;
@@ -108,27 +105,28 @@ RG.Element.Shop = function() {
 };
 RG.extend2(RG.Element.Shop, RG.Element.Base);
 
-/** Returns the price in gold coins for item in the cell.*/
+/* Returns the price in gold coins for item in the cell.*/
 RG.Element.Shop.prototype.getItemPriceForBuying = function(item) {
-    if (item.has("Unpaid")) {
+    if (item.has('Unpaid')) {
         var value = item.getValue() * this._costFactor;
         var goldWeight = RG.valueToGoldWeight(value);
         var ncoins = RG.getGoldInCoins(goldWeight);
         return ncoins;
     }
     else {
-        RG.err("Element.Shop", "getItemPriceForBuying",
-            "Item " + item.getName() + " is not Unpaid item");
+        RG.err('Element.Shop', 'getItemPriceForBuying',
+            'Item ' + item.getName() + ' is not Unpaid item');
     }
+    return null;
 };
 
 RG.Element.Shop.prototype.hasEnoughGold = function(actor, goldWeight) {
     var ncoins = RG.getGoldInCoins(goldWeight);
-    console.log("Needed " + ncoins);
+    console.log('Needed ' + ncoins);
     var items = actor.getInvEq().getInventory().getItems();
     for (var i = 0; i < items.length; i++) {
-        if (items[i].getType() === "goldcoin") {
-            console.log("Found gold coins: " + items[i].count);
+        if (items[i].getType() === 'goldcoin') {
+            console.log('Found gold coins: ' + items[i].count);
             if (items[i].count >= ncoins) {
                 items[i].count -= ncoins;
                 return true;
@@ -138,7 +136,7 @@ RG.Element.Shop.prototype.hasEnoughGold = function(actor, goldWeight) {
     return false;
 };
 
-/** Function for buying an item.*/
+/* Function for buying an item.*/
 RG.Element.Shop.prototype.buyItem = function(item, buyer) {
     var buyerCell = buyer.getCell();
     var value = item.getValue() * this._costFactor;
@@ -148,22 +146,22 @@ RG.Element.Shop.prototype.buyItem = function(item, buyer) {
         var coins = new RG.Item.GoldCoin();
         coins.count = nCoins;
         this._shopkeeper.getInvEq().addItem(coins);
-        item.getOwner().removeProp("items", item);
+        item.getOwner().removeProp('items', item);
         buyer.getInvEq().addItem(item);
-        item.remove("Unpaid");
-        RG.gameMsg({cell: buyerCell, msg: buyer.getName() + 
-            " bought " + item.getName() + " for " + nCoins + " coins."});
+        item.remove('Unpaid');
+        RG.gameMsg({cell: buyerCell, msg: buyer.getName() +
+            ' bought ' + item.getName() + ' for ' + nCoins + ' coins.'});
         return true;
     }
     else {
-        RG.gameMsg({cell: buyerCell, msg: buyer.getName() + 
-            " doesn't have enough money to buy " + item.getName() + " for " 
-            + nCoins + " coins."});
+        RG.gameMsg({cell: buyerCell, msg: buyer.getName() +
+            " doesn't have enough money to buy " + item.getName() + ' for '
+            + nCoins + ' coins.'});
     }
     return false;
 };
 
-/** Function for selling an item.*/
+/* Function for selling an item.*/
 RG.Element.Shop.prototype.sellItem = function(item, seller) {
     var sellerCell = seller.getCell();
     var value = item.getValue() / this._costFactor;
@@ -174,37 +172,37 @@ RG.Element.Shop.prototype.sellItem = function(item, seller) {
             var coins = new RG.Item.GoldCoin();
             coins.count = nCoins;
             seller.getInvEq().addItem(coins);
-            item.add("Unpaid", new RG.Component.Unpaid());
-            RG.gameMsg({cell: sellerCell, msg: seller.getName + 
-                " sold " + item.getName() + " for " + nCoins + " coins."});
+            item.add('Unpaid', new RG.Component.Unpaid());
+            RG.gameMsg({cell: sellerCell, msg: seller.getName +
+                ' sold ' + item.getName() + ' for ' + nCoins + ' coins.'});
             return true;
         }
     }
     else {
         var name = this._shopkeeper.getName();
-        RG.gameMsg({cell: this._shopkeeper.getCell(), 
-            msg: "Shopkeeper " + name + " doesn't have enough gold to buy it."});
+        RG.gameMsg({cell: this._shopkeeper.getCell(),
+            msg: 'Keeper ' + name + " doesn't have enough gold to buy it."});
     }
     return false;
 };
 
-/** Sets the shopkeeper.*/
+/* Sets the shopkeeper.*/
 RG.Element.Shop.prototype.setShopkeeper = function(keeper) {
     this._shopkeeper = keeper;
 };
 
-/** Returns the shopkeeper.*/
-RG.Element.Shop.prototype.getShopkeeper = function(keeper) {
+/* Returns the shopkeeper.*/
+RG.Element.Shop.prototype.getShopkeeper = function() {
     return this._shopkeeper;
 };
 
-/** Sets the shopkeeper.*/
+/* Sets the shopkeeper.*/
 RG.Element.Shop.prototype.setCostFactor = function(factor) {
     this._costFactor = factor;
 };
 
-/** Returns the shopkeeper.*/
-RG.Element.Shop.prototype.getShopkeeper = function(keeper) {
+/* Returns the shopkeeper.*/
+RG.Element.Shop.prototype.getShopkeeper = function() {
     return this._costFactor;
 };
 
