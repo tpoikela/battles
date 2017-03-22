@@ -14,6 +14,21 @@ roguelike=/home/tpoikela/git/battles/ /home/tpoikela/git/battles/ filter="*.js *
   jsx=jsx {
   }
   src=src {
+   actor.js
+   battles.js
+   brain.js
+   component.js
+   element.js
+   factory.js
+   game.js
+   inv.js
+   item.js
+   map.js
+   object.js
+   rg.js
+   system.js
+   time.js
+   world.js
   }
  }
  data=data {
