@@ -18,12 +18,6 @@ RG.Effects = require('../client/data/effects.js');
 var LocalStorage = require('node-localstorage').LocalStorage,
 localStorage = new LocalStorage('./battles_local_storage');
 
-// Takes turns instead of real-player
-var SurrogatePlayer = function() {
-
-};
-
-var game = new Game.Main();
 
 var globalParser = new RG.ObjectShellParser();
 globalParser.parseShellData(RG.Effects);
@@ -54,7 +48,12 @@ function getLevelWithNActors(cols, rows, nactors) {
     return [level, actors];
 }
 
-describe('How game should proceed', function() {
+describe('Game.Main', function() {
+
+    var game = null;
+    beforeEach( () => {
+        game = new Game.Main();
+    });
 
 
     it('Initializes the game and adds player', function() {
@@ -398,7 +397,6 @@ describe('How poison item is used, and experience propagates', function() {
 
         var cureTarget = level.getMap().getCell(4, 4);
         expect(curePoison.useItem({target: cureTarget})).to.equal(true);
-        console.log('Used curePoison now');
         expect(curedVictim.has('Poison')).to.equal(false);
         expect(curedVictim.get('Health').isAlive()).to.equal(true);
         for (var i = 0; i < 20; i++) {game.simulateGame();}
