@@ -12,6 +12,22 @@ roguelike=/home/tpoikela/git/battles/ CD=/home/tpoikela/git/battles/ filter="*.j
   gui=gui {
   }
   jsx=jsx {
+   app.jsx
+   game-board.jsx
+   game-equip-slot.jsx
+   game-equipment.jsx
+   game-help-screen.jsx
+   game-inventory.jsx
+   game-item-slot.jsx
+   game-items.jsx
+   game-messages.jsx
+   game-panel.jsx
+   game-row.jsx
+   game-start-screen.jsx
+   game-stats.jsx
+   modal-header.jsx
+   radio-buttons.jsx
+   top.jsx
   }
   src=src {
    actor.js
