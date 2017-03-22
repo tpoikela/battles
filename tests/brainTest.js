@@ -143,6 +143,22 @@ describe('Brain.Player', function() {
         expect(brain.energy).to.equal(RG.energy.PICKUP);
 
     });
+
+    it('can have GUI callbacks added to it', function() {
+        var cbCode = ROT.VK_ADD;
+        var called = false;
+        var callback = function(code) {
+            called = true;
+            return code;
+        };
+        var brain = new Brain.Player(player);
+        brain.addGUICallback(cbCode, callback);
+
+        expect(called).to.be.false;
+        brain.decideNextAction({code: cbCode});
+        expect(called).to.be.true;
+
+    });
 });
 
 describe('RG.Brain.Rogue', function() {
@@ -150,16 +166,21 @@ describe('RG.Brain.Rogue', function() {
     var level = null;
     var player = null;
     var demon = null;
+    var human = null;
 
     beforeEach( () => {
 
         level = RG.FACT.createLevel('arena', 10, 10);
         player = new RG.Actor.Rogue('Player');
         demon = new RG.Actor.Rogue('Demon');
+        human = new RG.Actor.Rogue('Human friend');
 
         demon.setType('demon');
         demon.setBrain(new RG.Brain.Demon(demon));
         demon.addEnemy(player);
+
+        human.setType('human');
+        human.setBrain(new RG.Brain.Human(human));
 
         player.setIsPlayer(true);
         level.addActor(player, 1, 1);
@@ -172,6 +193,9 @@ describe('RG.Brain.Rogue', function() {
         var cells = RG.Brain.getCellsAround(demon);
         expect(cells).to.have.length(9);
 
+        level.addActor(human, 0, 0);
+        cells = RG.Brain.getCellsAround(human);
+        expect(cells).to.have.length(4);
     });
 
 });
