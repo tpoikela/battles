@@ -17,8 +17,7 @@ describe('RG.Factory.ItemRandomizer', function() {
 });
 
 var MockParser = function() {
-
-    this.createRandomItem = function(obj) {
+    this.createRandomItem = function() {
         return new RG.Item.Food('testFood');
     };
 
@@ -40,6 +39,34 @@ describe('RG.Factory.Base', function() {
         expect(actors.length).to.equal(1);
         expect(keeper.getName()).to.equal('Shopkeeper');
 
+
+    });
+});
+
+describe('ObjectShellParser', function() {
+    it('It is used for parsing object shells', function() {
+        var parser = new RG.ObjectShellParser();
+        var noObj = parser.createActualObj('items', 'Void Item');
+        expect(noObj).to.be.null;
+
+        var invalidShell = {xxx: 'xxx', noname: 'noname'};
+        expect(parser.validShellGiven(invalidShell)).to.be.false;
+
+    });
+});
+
+describe('RG.FCCGame', function() {
+    it('can be created', function() {
+        var game = new RG.FCCGame();
+        var conf = {
+            cols: 10,
+            rows: 10,
+            nLevels: 10,
+            sqrPerMonster: 10,
+            sqrPerItem: 10,
+            playerLevel: 'Strong'
+        };
+        // game.createFCCGame(conf);
 
     });
 });
