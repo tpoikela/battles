@@ -314,7 +314,7 @@ RG.FCCGame = function() {
     /* Creates a player actor and starting inventory.*/
     this.createFCCPlayer = function(game, obj) {
         var player = obj.loadedPlayer;
-        if (player === null) {
+        if (RG.isNullOrUndef([player])) {
             var expLevel = obj.playerLevel;
             var pConf = this.playerStats[expLevel];
 
@@ -330,16 +330,17 @@ RG.FCCGame = function() {
         }
 
         if (!player.has('Hunger')) {
-            var hunger = new RG.Component.Hunger(20000);
+            let hunger = new RG.Component.Hunger(20000);
             player.add('Hunger', hunger);
         }
         else {
             // Notify Hunger system only
-            var hunger = player.get('Hunger');
+            let hunger = player.get('Hunger');
             player.remove('Hunger');
             player.add('Hunger', hunger);
         }
-        var regenPlayer = new RG.Time.RogueRegenEvent(player, 20 * RG.ACTION_DUR);
+        var regenPlayer = new RG.Time.RogueRegenEvent(player,
+            20 * RG.ACTION_DUR);
         game.addEvent(regenPlayer);
         return player;
     };
@@ -439,8 +440,6 @@ RG.FCCGame = function() {
         var sqrPerItem = obj.sqrPerItem;
 
         var levelCount = 1;
-
-
         var game = new RG.Game.Main();
         var player = this.createFCCPlayer(game, obj);
 
@@ -491,8 +490,10 @@ RG.FCCGame = function() {
 
         // Create the final boss
         var lastLevel = allLevels.slice(-1)[0];
+        console.log(JSON.stringify(allLevels));
         var bossCell = lastLevel.getFreeRandCell();
-        var summoner = this.createActor('Summoner', {hp: 100, att: 10, def: 10});
+        var summoner = this.createActor('Summoner',
+            {hp: 100, att: 10, def: 10});
         summoner.setType('summoner');
         summoner.get('Experience').setExpLevel(10);
         summoner.setBrain(new RG.Brain.Summoner(summoner));
@@ -667,8 +668,8 @@ RG.ObjectShellParser = function() {
         dungeons: {}
     };
 
-    var _db_danger = {}; // All entries indexed by danger
-    var _db_by_name = {}; // All entries indexed by name
+    var dbDanger = {}; // All entries indexed by danger
+    var _dbByName = {}; // All entries indexed by name
 
     /* Maps obj props to function calls. Essentially this maps bunch of setters
      * to different names. Following formats supported:
@@ -825,23 +826,23 @@ RG.ObjectShellParser = function() {
 
             if (!obj.hasOwnProperty('dontCreate')) {
                 _db[categ][obj.name] = obj;
-                if (_db_by_name.hasOwnProperty(obj.name)) {
-                    _db_by_name[obj.name].push(obj);
+                if (_dbByName.hasOwnProperty(obj.name)) {
+                    _dbByName[obj.name].push(obj);
                 }
                 else {
                     var newArr = [];
                     newArr.push(obj);
-                    _db_by_name[obj.name] = newArr;
+                    _dbByName[obj.name] = newArr;
                 }
                 if (obj.hasOwnProperty('danger')) {
                     var danger = obj.danger;
-                    if (!_db_danger.hasOwnProperty(danger)) {
-                        _db_danger[danger] = {};
+                    if (!dbDanger.hasOwnProperty(danger)) {
+                        dbDanger[danger] = {};
                     }
-                    if (!_db_danger[danger].hasOwnProperty(categ)) {
-                        _db_danger[danger][categ] = {};
+                    if (!dbDanger[danger].hasOwnProperty(categ)) {
+                        dbDanger[danger][categ] = {};
                     }
-                    _db_danger[danger][categ][obj.name] = obj;
+                    dbDanger[danger][categ][obj.name] = obj;
                 }
             } // dontCreate
         }
@@ -1069,6 +1070,7 @@ RG.ObjectShellParser = function() {
                     case 'spiritgem': return new RG.Item.SpiritGem(obj.name);
                     case 'weapon': return new RG.Item.Weapon(obj.name);
                     case 'tool': break;
+                    default: console.error(`Warning. Unknown subtype ${subtype}`);
                 }
                 return new RG.Item.Base(obj.name); // generic, useless
             case 'levels':
@@ -1100,9 +1102,9 @@ RG.ObjectShellParser = function() {
         return obj;
     };
 
-    //---------------------------------------------------------------------------
+    //--------------------------------------------------------------------
     // Database get-methods
-    //---------------------------------------------------------------------------
+    //--------------------------------------------------------------------
 
     this.dbExists = function(categ, name) {
         if (_db.hasOwnProperty(categ)) {
@@ -1122,13 +1124,13 @@ RG.ObjectShellParser = function() {
 
         // Specifying name returns an array
         if (typeof name !== 'undefined') {
-            if (_db_by_name.hasOwnProperty(name)) {return _db_by_name[name];}
+            if (_dbByName.hasOwnProperty(name)) {return _dbByName[name];}
             else {return [];}
         }
 
         if (typeof danger !== 'undefined') {
-            if (_db_danger.hasOwnProperty(danger)) {
-                var entries = _db_danger[danger];
+            if (dbDanger.hasOwnProperty(danger)) {
+                var entries = dbDanger[danger];
                 if (typeof categ !== 'undefined') {
                     if (entries.hasOwnProperty(categ)) {
                         return entries[categ];
@@ -1136,7 +1138,7 @@ RG.ObjectShellParser = function() {
                     else {return {};}
                 }
                 else {
-                    return _db_danger[danger];
+                    return dbDanger[danger];
                 }
             }
             else {
@@ -1154,9 +1156,9 @@ RG.ObjectShellParser = function() {
 
     };
 
-    //---------------------------------------------------------------------------
+    //----------------------------------------------------------------------
     // RANDOMIZED METHODS for procedural generation
-    //---------------------------------------------------------------------------
+    //----------------------------------------------------------------------
 
     /* Returns stuff randomly from db. For example, {categ: "actors", num: 2}
      * returns two random actors (can be the same). Ex2: {danger: 3, num:1}
@@ -1166,8 +1168,8 @@ RG.ObjectShellParser = function() {
         var categ = query.categ;
         if (typeof danger !== 'undefined') {
             if (typeof categ !== 'undefined') {
-                if (_db_danger.hasOwnProperty(danger)) {
-                    var entries = _db_danger[danger][categ];
+                if (dbDanger.hasOwnProperty(danger)) {
+                    var entries = dbDanger[danger][categ];
                     return this.getRandFromObj(entries);
                 }
             }
@@ -1176,8 +1178,8 @@ RG.ObjectShellParser = function() {
     };
 
     /* Returns a property from an object, selected randomly. For example,
-     * given object {a: 1, b: 2, c: 3}, may return 1,2 or 3 with equal probability.
-     * */
+     * given object {a: 1, b: 2, c: 3}, may return 1,2 or 3 with equal
+     * probability.*/
     this.getRandFromObj = function(obj) {
         var keys = Object.keys(obj);
         var len = keys.length;
@@ -1258,6 +1260,7 @@ RG.ObjectShellParser = function() {
         else {
             RG.err('ObjectParser', 'createRandomItem', 'No function given.');
         }
+        return null;
     };
 
     /* Returns a random entry from the array.*/

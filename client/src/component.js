@@ -250,7 +250,8 @@ RG.Component.Experience = function() {
 };
 RG.extend2(RG.Component.Experience, RG.Component.Base);
 
-/* This component is added when entity gains experience.*/
+/* This component is added when entity gains experience. It is removed after
+* system evaluation and added to Experience component. */
 RG.Component.ExpPoints = function(expPoints) {
     RG.Component.Base.call(this, 'ExpPoints');
 
