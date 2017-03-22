@@ -71,6 +71,7 @@ RG.System.Attack = function(type, compTypes) {
 
     this.update = function() {
         for (var e in this.entities) {
+            if (!e) {continue;}
             var ent = this.entities[e];
 
             var att = ent;
@@ -110,7 +111,8 @@ RG.gameMsg({cell: att.getCell,
         var dmgComp = new RG.Component.Damage(dmg, 'cut');
         dmgComp.setSource(att);
         def.add('Damage', dmgComp);
-        RG.gameWarn({cell: att.getCell(), msg: att.getName() + ' hits ' + def.getName()});
+        RG.gameWarn({cell: att.getCell(),
+            msg: att.getName() + ' hits ' + def.getName()});
     };
 };
 RG.extend2(RG.System.Attack, RG.System.Base);
@@ -125,12 +127,12 @@ RG.System.Missile = function(type, compTypes) {
 
     this.update = function() {
         for (var e in this.entities) {
+            if (!e) {continue;}
 
             var ent = this.entities[e];
             var mComp = ent.get('Missile');
             var level = mComp.getLevel();
             var map = level.getMap();
-            var mSrc = mComp.getSource();
 
             while (mComp.isFlying() && !mComp.inTarget() && mComp.hasRange()) {
 
@@ -548,7 +550,6 @@ RG.System.TimeEffects = function(type, compTypes) {
     var _decreaseDuration = function(ent) {
         var tEff = ent.get('Expiration');
         tEff.decrDuration();
-        console.log('_decreaseDuration XXX');
 
         // Remove Expiration only if other components are removed
         if (!tEff.hasEffects()) {
