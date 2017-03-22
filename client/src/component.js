@@ -55,11 +55,14 @@ RG.Component.Base.prototype.entityRemoveCallback = function(entity) {
 RG.Component.Base.prototype.addCallback = function(name, cb) {
     if (name === 'onAdd') {this._onAddCallbacks.push(cb);}
     else if (name === 'onRemove') {this._onRemoveCallbacks.push(cb);}
-    else {RG.err('Component.Base', 'addCallback', 'CB name ' + name + ' invalid.');}
+    else {
+        RG.err('Component.Base',
+            'addCallback', 'CB name ' + name + ' invalid.');
+    }
 };
 
 RG.Component.Base.prototype.clone = function() {
-    var comp = new RG.Component(this.getType());
+    var comp = new RG.Component.Base(this.getType());
     return comp;
 };
 
