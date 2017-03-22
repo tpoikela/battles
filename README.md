@@ -18,12 +18,15 @@ Clone it:
     git clone https://github.com/tpoikela/battles.git
 ```
 
-Compile .scss to .css:
+Install dependencies:
 ```code
-    sass style.scss style.css
+    npm install
 ```
 
-Once I have some time, a proper makefile will be added.
+Build the project using gulp:
+```code
+    gulp build-js
+```
 
 Open 'index.html' with your browser. The game should start with a pop-up screen.
 
@@ -34,4 +37,3 @@ To run the game in Chrome, first start a HTTP server in the project folder:
 ```
 
 After this, you should be able to access the game on address 0.0.0.0:8000.
-
