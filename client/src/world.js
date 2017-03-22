@@ -3,13 +3,13 @@
  * dungeons, dungeon branches etc.
  */
 
-var ROT = require("../../lib/rot.js");
-var RG = require("./rg.js");
+var RG = require('./rg.js');
 
 RG.World = {};
 
-/** Branch, as name suggests, is a branch of dungeon. A branch is linear
- * progression of connected levels (usually with increasing difficulty). Branch can have
+/* Branch, as name suggests, is a branch of dungeon. A branch is linear
+ * progression of connected levels (usually with increasing difficulty).
+ * Branch can have
  * entry points to other branches (or out of the dungeon). */
 RG.World.Branch = function(name) {
 
@@ -30,33 +30,34 @@ RG.World.Branch = function(name) {
     this.getDungeon = function() {return _dungeon;};
 
     this.getLevels = function() {return _levels;};
-    this.getStairsUp = function() {return _stairs;};
+    this.getStairsUp = function() {return _stairsUp;};
     this.getStairsDown = function() {return _stairsDown;};
 
-    /** Stairs leading to other branches.*/
+    /* Stairs leading to other branches.*/
     this.getStairsOther = function() {return _stairsOther;};
 
-    /** Returns entrance/exit for the branch.*/
+    /* Returns entrance/exit for the branch.*/
     this.getEntrance = function() {
         return _stairsUp[0];
     };
 
-    /** Connects entrance to a stairs.*/
+    /* Connects entrance to a stairs.*/
     this.connectEntrance = function(stairs) {
         if (_stairsUp.length > 0) {
             _stairsUp[0].setTargetStairs(stairs);
         }
         else {
-            RG.err("World.Branch", "connectEntrance", 
-                "No stairs for connection exist. Call connectLevels() first.");
+            RG.err('World.Branch', 'connectEntrance',
+                'No stairs for connection exist. Call connectLevels() first.');
         }
     };
 
-    /** Connects specified level to the given stairs (Usually external to this
+    /* Connects specified level to the given stairs (Usually external to this
      * branch.*/
     this.connectLevelToStairs = function(nLevel, stairs) {
         var level = _levels[nLevel];
         var otherBranchLevel = stairs.getSrcLevel();
+
         if (!RG.isNullOrUndef([otherBranchLevel])) {
             var down = !stairs.isDown();
             var newStairs = new RG.Element.Stairs(down, level, otherBranchLevel);
@@ -66,8 +67,8 @@ RG.World.Branch = function(name) {
             _stairsOther.push(newStairs);
         }
         else {
-            RG.err("World.Branch", "connectLevelToStairs",
-                "Stairs must be first connected to other level.");
+            RG.err('World.Branch', 'connectLevelToStairs',
+                'Stairs must be first connected to other level.');
         }
     };
 
@@ -82,13 +83,13 @@ RG.World.Branch = function(name) {
             _levels.push(level);
         }
         else {
-            RG.err("World.Branch", "addLevel", 
-                "Trying to add existing level (in index " + index + " already)");
+            RG.err('World.Branch', 'addLevel',
+                'Trying to add existing level (in index ' + index + ' already)');
 
         }
     };
 
-    /** Connects the added levels together.*/
+    /* Connects the added levels together.*/
     this.connectLevels = function() {
         var nLevels = _levels.length;
         for (let nl = 0; nl < nLevels; nl++) {
@@ -96,8 +97,8 @@ RG.World.Branch = function(name) {
             var stairCell = null;
 
             // Create stairs down
-            if (nl < nLevels-1) {
-                var targetDown = _levels[nl+1];
+            if (nl < nLevels - 1) {
+                var targetDown = _levels[nl + 1];
                 var stairsDown = new RG.Element.Stairs(true, src, targetDown);
                 stairCell = src.getFreeRandCell();
                 src.addStairs(stairsDown, stairCell.getX(), stairCell.getY());
@@ -106,7 +107,7 @@ RG.World.Branch = function(name) {
 
             // Create stairs up
             if (nl >= 0) {
-                var targetUp = _levels[nl-1];
+                var targetUp = _levels[nl - 1];
                 var stairsUp = new RG.Element.Stairs(false, src, targetUp);
                 stairCell = src.getFreeRandCell();
                 src.addStairs(stairsUp, stairCell.getX(), stairCell.getY());
@@ -116,16 +117,15 @@ RG.World.Branch = function(name) {
 
         // Finally connect the stairs together
         for (let nl = 0; nl < nLevels; nl++) {
-            if (nl < nLevels-1)
-                _stairsDown[nl].setTargetStairs(_stairsUp[nl+1]);
+            if (nl < nLevels - 1) {_stairsDown[nl].setTargetStairs(_stairsUp[nl + 1]);}
             if (nl > 0) // Don't connect first stairs up
-                _stairsUp[nl].setTargetStairs(_stairsDown[nl-1]);
+                {_stairsUp[nl].setTargetStairs(_stairsDown[nl - 1]);}
         }
     };
 
 };
 
-/** Dungeons is a collection of branches.*/
+/* Dungeons is a collection of branches.*/
 RG.World.Dungeon = function(name) {
 
     var _name = name;
@@ -133,7 +133,7 @@ RG.World.Dungeon = function(name) {
 
     var _branches = [];
 
-    /** Returns true if the dungeon has given branch.*/
+    /* Returns true if the dungeon has given branch.*/
     this.hasBranch = function(branch) {
         var index = _branches.indexOf(branch);
         return index >= 0;
@@ -156,7 +156,7 @@ RG.World.Dungeon = function(name) {
         return res;
     };
 
-    /** Returns all entrances/exits for the dungeon.*/
+    /* Returns all entrances/exits for the dungeon.*/
     this.getEntrances = function() {
         var res = [];
         for (var i = 0; i < _branches.length; i++) {
@@ -165,12 +165,12 @@ RG.World.Dungeon = function(name) {
         return res;
     };
 
-    /** Connects two branches b1 and b2 together from specified levels l1 and l2.
+    /* Connects two branches b1 and b2 together from specified levels l1 and l2.
      * */
     this.connectBranches = function(b1, b2, l1, l2) {
         if (this.hasBranch(b1) && this.hasBranch(b2)) {
             var down = true;
-            if (l1 > l2) down = false;
+            if (l1 > l2) {down = false;}
             var stairs = new RG.Element.Stairs(down);
             var b2Levels = b2.getLevels();
             if (l2 < b2Levels.length) {
@@ -179,31 +179,31 @@ RG.World.Dungeon = function(name) {
                 b1.connectLevelToStairs(l1, stairs);
             }
             else {
-                RG.err("World.Dungeon", "connectBranches",
-                    "Level " + l2 + " doesn't exist in branch " + b2.getName());
+                RG.err('World.Dungeon', 'connectBranches',
+                    'Level ' + l2 + " doesn't exist in branch " + b2.getName());
             }
         }
         else {
-            RG.err("World.Dungeon", "connectBranches",
-                "Branches must be added to dungeon before connection.");
+            RG.err('World.Dungeon', 'connectBranches',
+                'Branches must be added to dungeon before connection.');
         }
     };
 
 };
 
-/** Area-tile is a level which has entry/exit points on a number of edges.*/
+/* Area-tile is a level which has entry/exit points on a number of edges.*/
 RG.World.AreaTile = function(x, y, area) {
 
     var _tileX = x;
     var _tileY = y;
-    var _area  = area;
+    var _area = area;
 
     this.cols = null;
     this.rows = null;
 
     var _level = null;
 
-    /** Sets the level for this tile.*/
+    /* Sets the level for this tile.*/
     this.setLevel = function(level) {
         _level = level;
         this.cols = _level.getMap().cols;
@@ -216,12 +216,12 @@ RG.World.AreaTile = function(x, y, area) {
     this.getTileX = function() {return _x;};
     this.getTileY = function() {return _y;};
 
-    /** Returns true for edge tiles.*/
+    /* Returns true for edge tiles.*/
     this.isEdge = function() {
-        if (this.isNorthEdge()) return true;
-        if (this.isSouthEdge()) return true;
-        if (this.isWestEdge ()) return true;
-        if (this.isEastEdge ()) return true;
+        if (this.isNorthEdge()) {return true;}
+        if (this.isSouthEdge()) {return true;}
+        if (this.isWestEdge()) {return true;}
+        if (this.isEastEdge()) {return true;}
         return false;
     };
 
@@ -242,7 +242,7 @@ RG.World.AreaTile = function(x, y, area) {
             var map = _level.getMap();
             var mapEast = levelEast.getMap();
 
-            for (var y = 1; y <= lastY-1; y++) {
+            for (var y = 1; y <= lastY - 1; y++) {
                 var cell = map.getCell(lastX, y);
                 var cellEast = mapEast.getCell(0, y);
 
@@ -262,7 +262,7 @@ RG.World.AreaTile = function(x, y, area) {
             var map = _level.getMap();
             var mapSouth = levelSouth.getMap();
 
-            for (var x = 1; x <= lastX-1; x++) {
+            for (var x = 1; x <= lastX - 1; x++) {
                 var cell = map.getCell(x, lastY);
                 var cellSouth = mapSouth.getCell(x, 0);
 
@@ -277,7 +277,7 @@ RG.World.AreaTile = function(x, y, area) {
     };
 };
 
-/** Area is N x M area of tiles, with no linear progression like in dungeons.
+/* Area is N x M area of tiles, with no linear progression like in dungeons.
  * Moving between tiles of areas happens by travelling to the edges of a tile.
  * Each tile is a level with special edge tiles.
  * */
@@ -305,7 +305,7 @@ RG.World.Area = function(name, maxX, maxY) {
 
 };
 
-/** Factory object for creating worlds and features. */
+/* Factory object for creating worlds and features. */
 RG.World.Factory = function() {
 
     this.createArea = function(conf) {
@@ -318,11 +318,11 @@ RG.World.Factory = function() {
 
 };
 
-/** Largest place structure. Contains a number of area and dungeons. */
+/* Largest place structure. Contains a number of area and dungeons. */
 RG.World.World = function(conf) {
 
     if (RG.isNullOrUndef([conf])) {
-        RG.err("World.World", "", "No configuration given.");
+        RG.err('World.World', '', 'No configuration given.');
         return;
     }
 
@@ -348,7 +348,6 @@ RG.World.World = function(conf) {
     // Connect areas and dungeons
 
 };
-
 
 
 module.exports = RG.World;
