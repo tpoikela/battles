@@ -3,9 +3,9 @@
  *
  */
 
-var chai = require("chai");
+var chai = require('chai');
 var expect = chai.expect;
-var RG = require("../battles.js");
+var RG = require('../battles.js');
 
 var Actor = RG.Actor.Rogue;
 var Action = RG.Time.RogueAction;
@@ -25,12 +25,12 @@ describe('Basic functions for actors', function() {
 describe('Scheduling one action', function() {
     it('Repeats the same actor indefinetely', function() {
         var sch = new RG.Time.Scheduler();
-        var actor = new Actor("actor");
+        var actor = new Actor('actor');
         var actorID = actor.id;
 
-        var player = new Actor("player");
+        var player = new Actor('player');
         var playerID = player.id;
-        var falseActor = new Actor("falseActor");
+        var falseActor = new Actor('falseActor');
 
         var playerAction = new Action(15, function() {});
         var action = new Action(20, function() {});
@@ -98,9 +98,9 @@ describe('Canceling events and actor actions', function() {
     var act = new MockAction(100);
 
     it('Removes the event like it never happened', function() {
-        var testActor = new RG.Actor.Rogue("actor");
+        var testActor = new RG.Actor.Rogue('actor');
         var notZero = 555;
-        var changeEvent = new RG.Time.RogueOneShotEvent(testCB, 200, "This happened");
+        var changeEvent = new RG.Time.RogueOneShotEvent(testCB, 200, 'This happened');
         sch.add(testActor, true, 100);
         sch.add(changeEvent, true, 190);
 

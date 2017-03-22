@@ -1,15 +1,15 @@
 
-var chai = require("chai");
+var chai = require('chai');
 var expect = chai.expect;
 
-var Obj = require("../src/object.js");
+var Obj = require('../src/object.js');
 
 var TypedObj = Obj.Typed;
 
 describe('Defense Object', function() {
     it('Holds information related to attack/defense', function() {
         var defObj = new Obj.Defense();
-        var defObj2 = new Obj.Defense()
+        var defObj2 = new Obj.Defense();
         expect(defObj.equals(defObj2)).to.equal(true);
         defObj.setAttack(3);
         expect(defObj.equals(defObj2)).to.equal(false);
@@ -29,9 +29,9 @@ describe('Damage Object', function() {
 
 describe('TypedObject', function() {
     it('Stores type info about the objects', function() {
-        var obj = new TypedObj("actors", "xxx");
-        expect(obj.getPropType()).to.equal("actors");
-        expect(obj.getType()).to.equal("xxx");
+        var obj = new TypedObj('actors', 'xxx');
+        expect(obj.getPropType()).to.equal('actors');
+        expect(obj.getType()).to.equal('xxx');
     });
 });
 
@@ -62,7 +62,7 @@ describe('Ownable Object', function() {
         expect(owner.getX()).to.equal(1);
         expect(owner.getY()).to.equal(2);
 
-        var level = {id: "ABCD"};
+        var level = {id: 'ABCD'};
         owner.setLevel(level);
         expect(owner.getLevel()).to.equal(level);
 

@@ -4,23 +4,23 @@
  * ECS system ordering and actor scheduling.
  */
 
-var chai = require("chai");
+var chai = require('chai');
 var expect = chai.expect;
-var RG = require("../battles.js");
+var RG = require('../battles.js');
 
-var Game = require("../src/game.js");
-var Actor = require("../src/actor");
+var Game = require('../src/game.js');
+var Actor = require('../src/actor');
 
 var setupEngineWithActors = function() {
     this.engine = new Game.Engine();
-    this.actor = new Actor.Rogue("TestActor");
-    this.actor2 = new Actor.Rogue("TestActor2");
+    this.actor = new Actor.Rogue('TestActor');
+    this.actor2 = new Actor.Rogue('TestActor2');
 
-    var level = RG.FACT.createLevel("arena", 30, 30);
+    var level = RG.FACT.createLevel('arena', 30, 30);
     level.addActor(this.actor, 1, 1);
     level.addActor(this.actor2, 2, 2);
-    this.actor.get("Action").enable();
-    this.actor2.get("Action").enable();
+    this.actor.get('Action').enable();
+    this.actor2.get('Action').enable();
 };
 
 describe('Game.Engine', function() {
@@ -42,37 +42,37 @@ describe('Game.Engine', function() {
         expiration.addEffect(poison, 20);
         expect(expiration.hasEffects()).to.equal(true);
         expect(expiration.hasEffect(poison)).to.equal(true);
-        //poison.setDuration(20);
+        // poison.setDuration(20);
         poison.setProb(1.0);
         poison.setDamage(new RG.Die(1, 1, 10));
         poison.setSource(eng.actor2);
 
-        var currHP = eng.actor.get("Health").getHP();
+        var currHP = eng.actor.get('Health').getHP();
 
-        eng.actor.add("Expiration", expiration);
-        eng.actor.add("Poison", poison);
+        eng.actor.add('Expiration', expiration);
+        eng.actor.add('Poison', poison);
         expect(timeSystem.entities).to.have.property(eng.actor.getID());
 
         engine.simulateGame();
-        var remHP = eng.actor.get("Health").getHP();
+        var remHP = eng.actor.get('Health').getHP();
         expect(remHP < currHP).to.equal(true);
 
-        var expActor2 = eng.actor2.get("Experience").getExp();
-        while (eng.actor.get("Health").isAlive()) {
+        var expActor2 = eng.actor2.get('Experience').getExp();
+        while (eng.actor.get('Health').isAlive()) {
             engine.simulateGame();
         }
 
-        for (var i = 0; i < 10; i++) engine.simulateGame();
+        for (var i = 0; i < 10; i++) {engine.simulateGame();}
 
-        expect(eng.actor.has("Poison")).to.equal(false);
+        expect(eng.actor.has('Poison')).to.equal(false);
         expect(expiration.hasEffect(poison)).to.equal(false);
         expect(expiration.hasEffects()).to.equal(false);
 
         expect(timeSystem.entities).to.not.have.property(eng.actor.getID());
 
         // Check that actor2 was given exp for using poison to kill actor2
-        var newExpActor2 = eng.actor2.get("Experience").getExp();
-        console.log("Old exp: " + expActor2 + " new " + newExpActor2);
+        var newExpActor2 = eng.actor2.get('Experience').getExp();
+        console.log('Old exp: ' + expActor2 + ' new ' + newExpActor2);
         expect(newExpActor2 > expActor2).to.equal(true);
 
     });

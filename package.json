@@ -51,7 +51,7 @@
     "build": "make build",
     "clean": "make clean",
     "coverage": "perl cov_test.pl",
-    "test": "mocha --recursive tests"
+    "test": "mocha tests/*.js"
   },
   "license": "MIT",
   "bugs": {

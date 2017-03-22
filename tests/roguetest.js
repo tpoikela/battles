@@ -2,8 +2,8 @@
 /** Note: This file doesn't contain any unit tests. It has some architecture for
  * performing common test function.*/
 
-var RG = require("../battles.js");
-var chai = require("chai");
+var RG = require('../battles.js');
+var chai = require('chai');
 var expect = chai.expect;
 
 var RGTest = {
@@ -15,14 +15,14 @@ RGTest.createMockLevel = function(cols, rows) {
         map: {
             getCell: function(x, y) {return {};},
             hasXY: function(x, y) {return true;},
-            isPassable: function(x, y) {return true;},
+            isPassable: function(x, y) {return true;}
         },
         getMap: function() {return this.map;},
 
         addActor: function(actor, x, y) {
             actor.setXY(x, y);
             actor.setLevel(this);
-        },
+        }
     };
     return level;
 };
@@ -59,7 +59,7 @@ RGTest.checkCSSClassName = function(obj, expClass) {
 };
 
 if (typeof exports !== 'undefined' ) {
-    if( typeof RGTest !== 'undefined' && module.exports ) {
+    if ( typeof RGTest !== 'undefined' && module.exports ) {
         exports = module.exports = RGTest;
     }
     exports.RGTest = RGTest;

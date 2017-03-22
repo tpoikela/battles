@@ -1,21 +1,21 @@
 
-var chai = require("chai");
+var chai = require('chai');
 var expect = chai.expect;
 
-var RG = require("../battles");
-var ROT = require("../lib/rot.js");
+var RG = require('../battles');
+var ROT = require('../lib/rot.js');
 
-var RGTest = require("./roguetest.js");
+var RGTest = require('./roguetest.js');
 
 var Brain = RG.Brain;
 
 describe('Brain.Player', function() {
 
-    var level = RG.FACT.createLevel("arena", 10, 10);
-    var player = new RG.Actor.Rogue("Player");
+    var level = RG.FACT.createLevel('arena', 10, 10);
+    var player = new RG.Actor.Rogue('Player');
 
-    var demon = new RG.Actor.Rogue("Demon");
-    demon.setType("demon");
+    var demon = new RG.Actor.Rogue('Demon');
+    demon.setType('demon');
     demon.setBrain(new RG.Brain.Demon(demon));
     demon.addEnemy(player);
 
@@ -52,17 +52,17 @@ describe('Brain.Player', function() {
         expect(brain.energy).to.equal(RG.energy.REST);
 
         // No missile equipped
-        brain.decideNextAction({cmd: "missile"});
+        brain.decideNextAction({cmd: 'missile'});
         expect(brain.energy).to.equal(0);
 
         // Equip a missile
         var cell = RG.FACT.createFloorCell();
-        RGTest.equipItem(player, new RG.Item.Missile("Arrow"));
-        brain.decideNextAction({cmd: "missile", target: cell});
+        RGTest.equipItem(player, new RG.Item.Missile('Arrow'));
+        brain.decideNextAction({cmd: 'missile', target: cell});
         expect(brain.energy).to.equal(RG.energy.MISSILE);
 
 
-        brain.decideNextAction({cmd: "use", item: {}});
+        brain.decideNextAction({cmd: 'use', item: {}});
         expect(brain.energy).to.equal(0);
 
     });
@@ -78,7 +78,7 @@ describe('Brain.Player', function() {
         var attackCallback = brain.decideNextAction({code: ROT.VK_X});
         expect(brain.energy).to.equal(RG.energy.ATTACK);
         attackCallback();
-        expect(player.get("StatsMods").getSpeed()).to.equal(20);
+        expect(player.get('StatsMods').getSpeed()).to.equal(20);
         expect(player.getSpeed()).to.equal(120);
 
         brain.toggleFightMode();
