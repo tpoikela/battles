@@ -13,7 +13,6 @@ RG.Game.Engine = function() {
     this.isGUICommand = function() {return false;};
     this.doGUICommand = null;
 
-
     this.nextActor = null;
     this.simIntervalID = null;
 
@@ -25,7 +24,6 @@ RG.Game.Engine = function() {
     this.getMessages = function() {return _msg.getMessages();};
     this.hasNewMessages = function() {return _msg.hasNew();};
     this.clearMessages = function() { _msg.clear();};
-    // this.setSeenCells = function(cells) {_msg.setSeenCells(cells);};
 
     //--------------------------------------------------------------
     // ECS SYSTEMS
@@ -219,7 +217,7 @@ RG.Game.Engine = function() {
     };
 
 
-    /* Sets which levels are actively simulated.*/
+    /* Adds an active level. Only these levels are simulated.*/
     this.addActiveLevel = function(level) {
         var levelID = level.getID();
         var index = _activeLevels.indexOf(levelID);
@@ -260,10 +258,13 @@ RG.Game.Engine = function() {
         return index >= 0;
     };
 
+    /* Adds a TimeSystem into the engine. Each system can be updated with given
+     * intervals instead of every turn or loop.*/
     this.addTimeSystem = function(name, obj) {
         this.timeSystems[name] = obj;
-        // Must schedule the system
-        var updateEvent = new RG.Time.GameEvent(100, obj.update.bind(obj), true, 0);
+        // Must schedule the system to activate it
+        var updateEvent = new RG.Time.GameEvent(100,
+            obj.update.bind(obj), true, 0);
         this.addEvent(updateEvent);
     };
     this.addTimeSystem('TimeEffects', effects);
@@ -276,7 +277,9 @@ RG.Game.Engine = function() {
     this.notify = function(evtName, args) {
         if (evtName === RG.EVT_DESTROY_ITEM) {
             var item = args.item;
-            var owner = item.getOwner().getOwner(); // chaining due to inventory container
+
+            // chaining due to inventory container
+            var owner = item.getOwner().getOwner();
             if (!owner.getInvEq().removeItem(item)) {
                 RG.err('Game', 'notify - DESTROY_ITEM',
                     'Failed to remove item from inventory.');
@@ -390,7 +393,8 @@ RG.Game.Main = function() {
             return _players;
         }
         else {
-            RG.err('Game.Main', 'getPlayer', 'There are no players in the game.');
+            RG.err('Game.Main', 'getPlayer',
+                'There are no players in the game.');
             return null;
         }
     };
@@ -426,15 +430,19 @@ RG.Game.Main = function() {
         var levelOK = false;
         if (levels.length > 0) {
             levelOK = levels[0].addActorToFreeCell(player);
-            if (!levelOK) {RG.err('Game', 'addPlayer', 'Failed to add the player.');}
+            if (!levelOK) {
+                RG.err('Game', 'addPlayer', 'Failed to add the player.');
+            }
         }
         else {
-            RG.err('Game', 'addPlayer', 'No levels exist. Cannot add player.');
+            RG.err('Game', 'addPlayer',
+                'No levels exist. Cannot add player.');
         }
         return levelOK;
     };
 
-    /* Adds player to the first found level of given place. Name of place must be
+    /* Adds player to the first found level of given place.
+     * Name of place must be
      * specified as obj.place */
     var _addPlayerToPlace = function(player, obj) {
         if (obj.hasOwnProperty('place')) {
@@ -492,7 +500,8 @@ RG.Game.Main = function() {
                 _places[name] = levels;
             }
             else {
-                RG.err('Game.Main', 'addPlace', 'A place |' + name + '| exists.');
+                RG.err('Game.Main', 'addPlace',
+                    'A place |' + name + '| exists.');
             }
         }
         else {
@@ -501,8 +510,7 @@ RG.Game.Main = function() {
         }
     };
 
-
-    /* Returns the visible map to be rendered by GUI. */
+    /* Returns the visible map to be rendered by the GUI. */
     this.getVisibleMap = function() {
         var player = this.getPlayer();
         var map = player.getLevel().getMap();
@@ -570,6 +578,13 @@ RG.Game.Army = function(name) {
         return false;
     };
 
+    this.setBattle = function(battle) {_battle = battle;};
+    this.getBattle = function() {return _battle;};
+
+    this.getCasualties = function() {
+        return _casualties;
+    };
+
     this.getActors = function() {return _actors;};
 
     this.hasActor = function(actor) {
@@ -584,7 +599,8 @@ RG.Game.Army = function(name) {
             return true;
         }
         else {
-            RG.err('Game.Army', 'addActor', 'Actor already in army ' + this.getName());
+            RG.err('Game.Army', 'addActor',
+                'Actor already in army ' + this.getName());
         }
         return false;
     };
@@ -597,9 +613,8 @@ RG.Game.Army = function(name) {
             return true;
         }
         else {
-
+            return false;
         }
-        return false;
     };
 
     /* Monitor killed actors and remove them from the army.*/
@@ -609,7 +624,8 @@ RG.Game.Army = function(name) {
             var actor = msg.actor;
             if (this.hasActor(actor)) {
                 if (!this.removeActor(actor)) {
-                    RG.err('Game.Army', 'notify', "Couldn't remove the actor " + actor.getName());
+                    RG.err('Game.Army', 'notify',
+                        "Couldn't remove the actor " + actor.getName());
                 }
                 else {
                     ++_casualties;
@@ -653,7 +669,8 @@ RG.Game.Battle = function(name) {
             }
         }
         else {
-            RG.err('Game.Battle', 'addArmy', 'Level must exist before adding army.');
+            RG.err('Game.Battle', 'addArmy',
+                'Level must exist before adding army.');
         }
     };
 
@@ -778,7 +795,7 @@ RG.Game.Save = function() {
         };
         // Capture also game config settings (cols,rows,loot etc)
         for (var p in conf) {
-            dbObj[name][p] = conf[p];
+            if (p) {dbObj[name][p] = conf[p];}
         }
         dbString = JSON.stringify(dbObj);
         _storageRef.setItem(_playerList, dbString);
@@ -798,12 +815,16 @@ RG.Game.Save = function() {
 
     var _addCompsToEntity = function(ent, comps) {
         for (var name in comps) {
-            var comp = comps[name];
-            var newCompObj = new RG.Component[name]();
-            for (var fname in comp) {
-                newCompObj[fname](comp[fname]);
+            if (name) {
+                var comp = comps[name];
+                var newCompObj = new RG.Component[name]();
+                for (var fname in comp) {
+                    if (fname) {
+                        newCompObj[fname](comp[fname]);
+                    }
+                }
+                ent.add(name, newCompObj);
             }
-            ent.add(name, newCompObj);
         }
     };
 
