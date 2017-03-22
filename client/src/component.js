@@ -463,7 +463,7 @@ RG.Component.Missile = function(source) {
     var _dmg = 0;
 
     var _path = []; // Flying path for the missile
-    var _path_iter = -1;
+    var _pathIter = -1;
 
     this.getX = function() {return _x;};
     this.getY = function() {return _y;};
@@ -484,7 +484,7 @@ RG.Component.Missile = function(source) {
         _path = RG.getShortestPath(_x, _y, x, y);
         _targetX = x;
         _targetY = y;
-        if (_path.length > 0) {_path_iter = 0;}
+        if (_path.length > 0) {_pathIter = 0;}
     };
 
     this.getTargetX = function() {return _targetX;};
@@ -496,18 +496,18 @@ RG.Component.Missile = function(source) {
     };
 
     var iteratorValid = function() {
-        return _path_iter >= 0 && _path_iter < _path.length;
+        return _pathIter >= 0 && _pathIter < _path.length;
     };
 
     var setValuesFromIterator = function() {
-        var coord = _path[_path_iter];
+        var coord = _path[_pathIter];
         _x = coord.x;
         _y = coord.y;
     };
 
     this.first = function() {
         if (iteratorValid()) {
-            _path_iter = 0;
+            _pathIter = 0;
             setValuesFromIterator();
         }
         return null;
@@ -517,7 +517,7 @@ RG.Component.Missile = function(source) {
     this.next = function() {
         if (iteratorValid()) {
             --_range;
-            ++_path_iter;
+            ++_pathIter;
             setValuesFromIterator();
             return true;
         }
@@ -528,7 +528,7 @@ RG.Component.Missile = function(source) {
     this.prev = function() {
         if (iteratorValid()) {
             ++_range;
-            --_path_iter;
+            --_pathIter;
             setValuesFromIterator();
             return true;
         }
@@ -690,12 +690,10 @@ RG.Component.Expiration = function() {
     this.decrDuration = function() {
         for (var compType in this._duration) {
             this._duration[compType] -= 1;
-            console.log('Decreased duration of ' + compType);
             if (this._duration[compType] === 0) {
                 var ent = this.getEntity();
                 ent.remove(compType);
                 delete this._duration[compType];
-                console.log('Deleted compType ' + compType);
             }
         }
     };
