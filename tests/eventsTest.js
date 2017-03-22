@@ -1,10 +1,9 @@
 
 
-var chai = require('chai');
-var expect = chai.expect;
-var RG = require('../battles.js');
+var expect = require('chai').expect;
+var RG = require('../client/src/battles');
 
-EventPool = RG.EventPool;
+const EventPool = RG.EventPool;
 
 var Listener = function(eventName) {
 
@@ -12,6 +11,7 @@ var Listener = function(eventName) {
 
     this.eventName = eventName;
 
+    this.hasNotify = true;
     this.notify = function(name, args) {
         if (name === this.eventName) {
             console.log('Event ' + name + ' notified. Args:');

@@ -3,14 +3,11 @@
  *
  */
 
-var chai = require('chai');
-var expect = chai.expect;
-var RG = require('../battles.js');
+var expect = require('chai').expect;
+var RG = require('../client/src/battles');
 
 var Actor = RG.Actor.Rogue;
 var Action = RG.Time.RogueAction;
-var Level = RG.RogueLevel;
-var Element = RG.RogueElement;
 
 describe('Basic functions for actors', function() {
     it('Acts like Locatable', function() {
@@ -99,8 +96,9 @@ describe('Canceling events and actor actions', function() {
 
     it('Removes the event like it never happened', function() {
         var testActor = new RG.Actor.Rogue('actor');
-        var notZero = 555;
-        var changeEvent = new RG.Time.RogueOneShotEvent(testCB, 200, 'This happened');
+        // var notZero = 555;
+        var changeEvent = new RG.Time.RogueOneShotEvent(testCB, 200,
+            'This happened');
         sch.add(testActor, true, 100);
         sch.add(changeEvent, true, 190);
 

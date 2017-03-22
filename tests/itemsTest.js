@@ -1,8 +1,7 @@
 
-var chai = require('chai');
-var expect = chai.expect;
+var expect = require('chai').expect;
+var RG = require('../client/src/battles');
 
-var RG = require('../battles.js');
 var Slot = RG.Inv.EquipSlot;
 var Actor = RG.Actor.Rogue;
 
@@ -64,11 +63,11 @@ describe('How stackes are broken into multiple items', function() {
         newStack.setType('gold');
         newStack.count = 100;
 
-        var rm_ok = true;
-        while (hugeStack.count > 9000 && rm_ok) {
+        var rmOk = true;
+        while (hugeStack.count > 9000 && rmOk) {
             var coin = RG.removeStackedItems(hugeStack, 100);
-            rm_ok = RG.addStackedItems(newStack, coin);
-            expect(rm_ok).to.equal(true);
+            rmOk = RG.addStackedItems(newStack, coin);
+            expect(rmOk).to.equal(true);
             expect(coin.count).to.equal(100);
         }
         expect(newStack.count).to.equal(1100);
@@ -78,6 +77,7 @@ describe('How stackes are broken into multiple items', function() {
         testStack.setType('test');
         var stack = RG.removeStackedItems(testStack, 1);
         expect(testStack.count).to.equal(0);
+        expect(stack.count).to.equal(1);
 
         var two = new RG.Item.Base('test item');
         two.setType('test');
@@ -319,6 +319,7 @@ describe('How item stacks work with equipped missiles', function() {
 
 var ItemDestroyer = function() {
 
+    this.hasNotify = true;
     this.notify = function(evtName, obj) {
         if (evtName === RG.EVT_DESTROY_ITEM) {
             var item = obj.item;
@@ -347,7 +348,7 @@ describe('How one-shot items are removed after their use', function() {
 
         expect(invEq.hasItem(potion)).to.equal(true);
         expect(player.getInvEq().useItem(potion, {target: cell})).to.equal(true);
-        expect(player.get('Health').getHP() != currHP).to.equal(true);
+        expect(player.get('Health').getHP() !== currHP).to.equal(true);
         expect(invEq.hasItem(potion)).to.equal(false);
 
     });

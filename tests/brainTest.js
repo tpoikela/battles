@@ -1,8 +1,7 @@
 
-var chai = require('chai');
-var expect = chai.expect;
+var expect = require('chai').expect;
 
-var RG = require('../battles');
+var RG = require('../client/src/battles');
 var ROT = require('../lib/rot.js');
 
 var RGTest = require('./roguetest.js');
@@ -71,8 +70,8 @@ describe('Brain.Player', function() {
         var brain = new Brain.Player(player);
         brain.toggleFightMode();
 
-        var attack = player.getAttack();
-        var speed = player.getSpeed();
+        // var attack = player.getAttack();
+        // var speed = player.getSpeed();
 
         expect(brain.energy).to.equal(1);
         var attackCallback = brain.decideNextAction({code: ROT.VK_X});
@@ -90,6 +89,6 @@ describe('Brain.Player', function() {
 
 describe('Basic functions of Rogue Brain', function() {
     it('Has 1st priority for enemies', function() {
-        var brain = new Brain.Rogue();
+        // var brain = new Brain.Rogue();
     });
 });

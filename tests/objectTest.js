@@ -1,8 +1,7 @@
 
-var chai = require('chai');
-var expect = chai.expect;
+var expect = require('chai').expect;
 
-var Obj = require('../src/object.js');
+var Obj = require('../client/src/object.js');
 
 var TypedObj = Obj.Typed;
 

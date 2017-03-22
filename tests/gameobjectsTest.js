@@ -1,16 +1,14 @@
 
 
-var RG = require('../battles.js');
-var Obs = require('../data/battles_objects.js');
+var RG = require('../client/src/battles');
+var Obs = require('../client/data/battles_objects.js');
 var RGTest = require('./roguetest.js');
 
-var Effects = require('../data/effects.js');
+var Effects = require('../client/data/effects.js');
 
-var chai = require('chai');
-var expect = chai.expect;
+var expect = require('chai').expect;
 
 var Parser = RG.ObjectShellParser;
-var Db = RG.RogueObjectDatabase;
 var Actor = RG.Actor.Rogue;
 
 RG.cellRenderArray = RG.cellRenderVisible;
@@ -43,9 +41,9 @@ describe('How actors are created from file', function() {
         var objWolf = parser.dbGet({name: 'wolf'})[0];
         expect(objWolf).to.equal(wolfNew);
 
-        var wolves = parser.dbGet({categ: 'actors', danger: 3});
-        expect(wolves.hasOwnProperty('superwolf')).to.equal(true);
-        var wolf1 = wolves['superwolf'];
+        var wolfPack = parser.dbGet({categ: 'actors', danger: 3});
+        expect(wolfPack.hasOwnProperty('superwolf')).to.equal(true);
+        var wolf1 = wolfPack['superwolf'];
         expect(wolf1).to.equal(superWolf);
 
         // Create a reference actor
@@ -63,11 +61,10 @@ describe('How actors are created from file', function() {
         expect(cWolfComp.getAttack()).to.equal(wolfComp.getAttack());
         expect(cWolfComp.getDefense()).to.equal(wolfComp.getDefense());
         expect(createdWolf.getType()).to.equal(wolfObj.getType());
-        expect(createdWolf.get('Health').getHP()).to.equal(wolfObj.get('Health').getHP());
+
+        RGTest.expectEqualHealth(createdWolf, wolfObj);
 
         var player = RG.FACT.createPlayer('player', {});
-        player.setType('player');
-        player.setIsPlayer(true);
         var cell = new RG.FACT.createFloorCell();
         cell.setProp('actors', player);
         cell.setExplored(true);
@@ -82,6 +79,7 @@ describe('How actors are created from file', function() {
         var punyWolf = parser.parseObjShell('actors', {name: 'Puny wolf',
             base: 'wolf', attack: 1, defense: 50}
         );
+        expect(punyWolf.attack).to.equal(1);
 
         var punyWolfCreated = parser.createRandomActor({
             func: function(actor) {return actor.attack < 2;}

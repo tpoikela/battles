@@ -60,21 +60,22 @@ roguelike=/home/tpoikela/git/battles/ /home/tpoikela/git/battles/ filter="*.js *
   world.js
  }
  tests=tests {
-  battle.js
-  brain.js
-  communication.js
-  ecs.js
-  engine.js
-  events.js
-  game.js
-  gameobjects.js
-  items.js
-  map.js
-  missiles.js
-  object.js
+  battleTest.js
+  brainTest.js
+  communicationTest.js
+  ecsTest.js
+  engineTest.js
+  eventsTest.js
+  factoryTest.js
+  gameTest.js
+  gameobjectsTest.js
+  itemsTest.js
+  mapTest.js
+  missilesTest.js
+  objectTest.js
   roguetest.js
-  scheduler.js
-  spirits.js
-  world.js
+  schedulerTest.js
+  spiritsTest.js
+  worldTest.js
  }
 }

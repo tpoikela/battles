@@ -1,8 +1,7 @@
 
-var chai = require('chai');
-var expect = chai.expect;
+var expect = require('chai').expect;
 
-var RG = require('../battles.js');
+var RG = require('../client/src/battles');
 
 var ItemRand = RG.Factory.ItemRandomizer;
 

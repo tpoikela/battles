@@ -1,9 +1,8 @@
 
-var chai = require('chai');
-var expect = chai.expect;
-var RG = require('../battles.js');
+var expect = require('chai').expect;
+var RG = require('../client/src/battles');
 
-/** Updates given systems in given order.*/
+/* Updates given systems in given order.*/
 var updateSystems = function(systems) {
     for (var i = 0; i < systems.length; i++) {
         systems[i].update();
@@ -43,8 +42,11 @@ describe('How loot is dropped by monsters', function() {
 
     it('Drops loot when lethal damage is dealt', function() {
         var level = RG.FACT.createLevel('arena', 20, 20);
-        var monster = RG.FACT.createActor('TestMonster', {hp: 5, att: 1, def: 1, prot: 1});
-        var human = RG.FACT.createActor('Human', {hp: 5, att: 1, def: 1, prot: 1});
+
+        var monsterStats = {hp: 5, att: 1, def: 1, prot: 1};
+        var monster = RG.FACT.createActor('TestMonster', monsterStats);
+        var humanStats = {hp: 5, att: 1, def: 1, prot: 1};
+        var human = RG.FACT.createActor('Human', humanStats);
 
         var dSystem = new RG.System.Damage('Damage', ['Damage']);
         var systems = [dSystem];

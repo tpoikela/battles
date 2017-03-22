@@ -3,13 +3,11 @@
  *
  */
 
-var chai = require('chai');
-var expect = chai.expect;
-var RG = require('../battles.js');
+var expect = require('chai').expect;
+var RG = require('../client/src/battles');
 var RGTest = require('./roguetest.js');
 
 var Actor = RG.Actor.Rogue;
-var Action = RG.RogueAction;
 var Level = RG.Map.Level;
 var Element = RG.Element.Base;
 var Cell = RG.Map.Cell;
@@ -75,9 +73,11 @@ describe('Retrieving styling classes for cells', function() {
         var floorCell = new Cell(0, 0, new Element('floor'));
         var actor = Factory.createPlayer('Player', 50);
         floorCell.setExplored();
-        expect(RG.getStyleClassForCell(floorCell)).to.equal('cell-element-floor');
+        expect(RG.getStyleClassForCell(floorCell))
+            .to.equal('cell-element-floor');
         floorCell.setProp('actors', actor);
-        expect(RG.getStyleClassForCell(floorCell)).to.equal('cell-actor-player');
+        expect(RG.getStyleClassForCell(floorCell))
+            .to.equal('cell-actor-player');
     });
 });
 
@@ -302,7 +302,7 @@ describe('Moving actors around in the game', function() {
         var wall = new Element('wall');
         level.getMap().setBaseElemXY(4, 4, wall);
         // expect(level.moveActorTo(actor, 4, 4)).to.equal(false);
-        var movComp = new RG.Component.Movement(4, 4, level);
+        // var movComp = new RG.Component.Movement(4, 4, level);
         movSystem.update();
         expect(actor.getX(), "X didn't change due to wall").to.equal(2);
         expect(actor.getY()).to.equal(3);

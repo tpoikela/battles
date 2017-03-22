@@ -3,20 +3,17 @@
  * long sequence with GUI, but this module makes sure that basics are working.
  */
 
-var chai = require('chai');
-var expect = chai.expect;
-var RG = require('../battles.js');
-
+var expect = require('chai').expect;
+var RG = require('../client/src/battles');
 var RGTest = require('./roguetest.js');
+var Game = require('../client/src/game');
 
 var checkXY = RGTest.checkActorXY;
 
-var Game = require('../src/game.js');
 var Actor = RG.Actor.Rogue;
-var Fact = RG.FACT;
 
-var RGObjects = require('../data/battles_objects.js');
-RG.Effects = require('../data/effects.js');
+var RGObjects = require('../client/data/battles_objects.js');
+RG.Effects = require('../client/data/effects.js');
 
 var LocalStorage = require('node-localstorage').LocalStorage,
 localStorage = new LocalStorage('./battles_local_storage');
@@ -45,7 +42,7 @@ function getNewLevel(cols, rows) {
     return RG.FACT.createLevel('arena', cols, rows);
 }
 
-/** Returns a level with initialized with given actors.*/
+/* Returns a level with initialized with given actors.*/
 function getLevelWithNActors(cols, rows, nactors) {
     var level = getNewLevel(cols, rows);
     var actors = [];
@@ -92,7 +89,7 @@ describe('How game should proceed', function() {
     });
 });
 
-/** For listening actor killed events.*/
+/* For listening actor killed events.*/
 var KillListener = function(actor) {
 
     var _actor = actor;
@@ -341,8 +338,8 @@ describe('Game.Save how saving works', function() {
         var emptyGemRest = inv.getItems()[0];
         expect(emptyGemRest.equals(emptygem)).to.equal(true);
 
-        var gemWithSpirit = inv.getItems()[1];
-        var spiritRest = gemWithSpirit.getSpirit();
+        var gemWithSpirit2 = inv.getItems()[1];
+        var spiritRest = gemWithSpirit2.getSpirit();
         var statsRest = spiritRest.get('Stats');
         var statsOrig = spirit.get('Stats');
         expect(statsRest.getStrength()).to.equal(statsOrig.getStrength());
@@ -358,7 +355,8 @@ describe('How poison item is used, and experience propagates', function() {
         var game = new RG.Game.Main();
         var level = RG.FACT.createLevel('arena', 20, 20);
         var assassin = new Actor('assassin');
-        var poison = globalParser.createActualObj('items', 'Potion of frost poison');
+        var poison = globalParser.createActualObj('items',
+            'Potion of frost poison');
         assassin.getInvEq().addItem(poison);
 
         var victim = new Actor('victim');
@@ -378,21 +376,28 @@ describe('How poison item is used, and experience propagates', function() {
         var endExp = assassin.get('Experience').getExp();
         expect(endExp > startExp, 'Exp. points given from poison').to.equal(true);
 
-        var curePoison = globalParser.createActualObj('items', 'Potion of cure poison');
-        var frostPoison = globalParser.createActualObj('items', 'Potion of frost poison');
+        var curePoison = globalParser.createActualObj('items',
+            'Potion of cure poison');
+        var frostPoison = globalParser.createActualObj('items',
+            'Potion of frost poison');
+
         assassin.getInvEq().addItem(frostPoison);
         var curedVictim = new Actor('Cured victim');
 
         expect(curedVictim.has('Expiration')).to.equal(false);
         expect(curedVictim.has('Poison')).to.equal(false);
         level.addActor(curedVictim, 4, 4);
-        expect(frostPoison.useItem({target: level.getMap().getCell(4, 4)})).to.equal(true);
+
+        var poisonTarget = level.getMap().getCell(4, 4);
+        expect(frostPoison.useItem({target: poisonTarget})).to.equal(true);
         expect(curedVictim.has('Expiration')).to.equal(true);
         expect(curedVictim.has('Poison')).to.equal(true);
 
         curedVictim.getInvEq().addItem(curePoison);
         game.simulateGame();
-        expect(curePoison.useItem({target: level.getMap().getCell(4, 4)})).to.equal(true);
+
+        var cureTarget = level.getMap().getCell(4, 4);
+        expect(curePoison.useItem({target: cureTarget})).to.equal(true);
         console.log('Used curePoison now');
         expect(curedVictim.has('Poison')).to.equal(false);
         expect(curedVictim.get('Health').isAlive()).to.equal(true);

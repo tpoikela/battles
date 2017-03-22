@@ -1,10 +1,9 @@
 
-var chai = require('chai');
-var expect = chai.expect;
+var expect = require('chai').expect;
 
-var RG = require('../battles.js');
+var RG = require('../client/src/battles');
 
-var World = require('../src/world.js');
+var World = require('../client/src/world.js');
 
 
 describe('World.Branch', function() {
@@ -73,26 +72,26 @@ describe('World.AreaTile', function() {
         expect(areaTile.cols).to.equal(cols);
 
         testArea = new World.Area('TestArea', 3, 3);
-        var t1_1 = new World.AreaTile(1, 1, testArea);
-        var l1_1 = RG.FACT.createLevel('ruins', cols, rows);
-        t1_1.setLevel(l1_1);
-        expect(t1_1.isNorthEdge()).to.equal(false);
-        expect(t1_1.isSouthEdge()).to.equal(false);
-        expect(t1_1.isWestEdge()).to.equal(false);
-        expect(t1_1.isEastEdge()).to.equal(false);
+        var tile11 = new World.AreaTile(1, 1, testArea);
+        var level11 = RG.FACT.createLevel('ruins', cols, rows);
+        tile11.setLevel(level11);
+        expect(tile11.isNorthEdge()).to.equal(false);
+        expect(tile11.isSouthEdge()).to.equal(false);
+        expect(tile11.isWestEdge()).to.equal(false);
+        expect(tile11.isEastEdge()).to.equal(false);
 
         // Create 2 more tiles, and test connect()
-        var t2_1 = new World.AreaTile(2, 1, testArea);
-        var l2_1 = RG.FACT.createLevel('ruins', cols, rows);
-        t2_1.setLevel(l2_1);
-        var t1_2 = new World.AreaTile(1, 2, testArea);
-        var l1_2 = RG.FACT.createLevel('ruins', cols, rows);
-        t1_2.setLevel(l1_2);
-        t1_1.connect(t2_1, t1_2);
+        var tile21 = new World.AreaTile(2, 1, testArea);
+        var level21 = RG.FACT.createLevel('ruins', cols, rows);
+        tile21.setLevel(level21);
+        var tile12 = new World.AreaTile(1, 2, testArea);
+        var level12 = RG.FACT.createLevel('ruins', cols, rows);
+        tile12.setLevel(level12);
+        tile11.connect(tile21, tile12);
 
-        expect(l2_1.getStairs(l1_1) === null).to.equal(false);
-        expect(l1_1.getStairs(l2_1) === null).to.equal(false);
-        expect(l1_2.getStairs(l1_1) === null).to.equal(false);
+        expect(level21.getStairs(level11) === null).to.equal(false);
+        expect(level11.getStairs(level21) === null).to.equal(false);
+        expect(level12.getStairs(level11) === null).to.equal(false);
     });
 });
 

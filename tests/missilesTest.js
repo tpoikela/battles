@@ -1,11 +1,9 @@
 
 
-var chai = require('chai');
-var expect = chai.expect;
-var RG = require('../battles.js');
+var expect = require('chai').expect;
+var RG = require('../client/src/battles');
 
 var Actor = RG.Actor.Rogue;
-var Level = RG.RogueLevel;
 
 var updateSystems = function(systems) {
     for (var i = 0; i < systems.length; i++) {

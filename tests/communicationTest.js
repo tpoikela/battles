@@ -1,14 +1,13 @@
 
-var chai = require('chai');
-var expect = chai.expect;
-var RG = require('../battles.js');
+var expect = require('chai').expect;
+var RG = require('../client/src/battles');
 
 var Memory = RG.Brain.Memory;
 var Brain = RG.Brain.Rogue;
 
-RG.Game = require('../src/game.js');
+RG.Game = require('../client/src/game.js');
 
-/** Updates given systems in given order.*/
+/* Updates given systems in given order.*/
 var updateSystems = function(systems) {
     for (var i = 0; i < systems.length; i++) {
         systems[i].update();
@@ -49,7 +48,8 @@ describe('How AI brain memory performs basic functions', function() {
 describe('How actors communicate with each other', function() {
 
     it('Passes info between actors via comm components', function() {
-        var comSys = new RG.System.Communication('Communication', ['Communication']);
+        var comSys = new RG.System.Communication('Communication',
+            ['Communication']);
         var systems = [comSys];
 
         var hunter1 = RG.FACT.createActor('hunter1');

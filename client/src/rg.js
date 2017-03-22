@@ -1,34 +1,36 @@
 
 var ROT = require('../../lib/rot.js');
 
-/** Main object of the package for encapsulating all other objects. */
+var $DEBUG = 0;
+
+/* Main object of the package for encapsulating all other objects. */
 var RG = { // {{{2
 
-    gameTitle: "Battles in the North (BitN)",
+    gameTitle: 'Battles in the North (BitN)',
 
     cellRenderVisible: ['actors', 'items', 'traps', 'elements'],
     cellRenderAlways: ['items', 'traps', 'elements'],
 
     getClassName: function(cell, isVisible) {
-        if (isVisible) this.cellRenderArray = this.cellRenderVisible;
-        else this.cellRenderArray = this.cellRenderAlways;
+        if (isVisible) {this.cellRenderArray = this.cellRenderVisible;}
+        else {this.cellRenderArray = this.cellRenderAlways;}
         var className = this.getStyleClassForCell(cell);
         this.cellRenderArray = this.cellRenderVisible;
         return className;
     },
 
     getChar: function(cell, isVisible) {
-        if (isVisible) this.cellRenderArray = this.cellRenderVisible;
-        else this.cellRenderArray = this.cellRenderAlways;
+        if (isVisible) {this.cellRenderArray = this.cellRenderVisible;}
+        else {this.cellRenderArray = this.cellRenderAlways;}
         var cellChar = this.getCellChar(cell);
         this.cellRenderArray = this.cellRenderVisible;
         return cellChar;
     },
 
-    /** Maps a cell to specific object in stylesheet. For rendering purposes
+    /* Maps a cell to specific object in stylesheet. For rendering purposes
      * only.*/
     getStyleClassForCell: function(cell) {
-        if (!cell.isExplored()) return "cell-not-explored";
+        if (!cell.isExplored()) { return 'cell-not-explored';}
 
         for (var i = 0; i < this.cellRenderArray.length; i++) {
             var propType = this.cellRenderArray[i];
@@ -48,7 +50,7 @@ var RG = { // {{{2
         var objType = propObj.getType();
 
         // Return by name, this is for object shells generally
-        if (propObj.hasOwnProperty("getName")) {
+        if (propObj.hasOwnProperty('getName')) {
             var name = propObj.getName();
             if (styles.hasOwnProperty(name)) {
                 return styles[name];
@@ -57,29 +59,29 @@ var RG = { // {{{2
 
         // By type is usually for basic elements
         if (styles.hasOwnProperty(objType)) {
-            if (typeof styles[objType] === "object") {
+            if (typeof styles[objType] === 'object') {
                 // Invoke a state querying function
                 for (var p in styles[objType]) {
-                    if (p !== "default") {
+                    if (p !== 'default') {
                         var funcToCall = p;
                         if (propObj[funcToCall]()) {
                             return styles[objType][p];
                         }
                     }
                 }
-                return styles[objType]["default"];
+                return styles[objType]['default'];
 
             }
             return styles[objType];
         }
         else {
-            return styles["default"];
+            return styles['default'];
         }
     },
 
-    /** Returns char which is rendered on the map cell based on cell contents.*/
+    /* Returns char which is rendered on the map cell based on cell contents.*/
     getCellChar: function(cell) {
-        if (!cell.isExplored()) return "X";
+        if (!cell.isExplored()) {return 'X';}
 
         for (var i = 0; i < this.cellRenderArray.length; i++) {
             var propType = this.cellRenderArray[i];
@@ -95,11 +97,11 @@ var RG = { // {{{2
         return this.charStyles.elements[baseType];
     },
 
-    /** Returns shortest path (array of x,y pairs) between two points.*/
+    /* Returns shortest path (array of x,y pairs) between two points.*/
     getShortestPath: function(x0, y0, x1, y1) {
         var coords = [];
         var passableCallback = function(x, y) {return true;};
-        //var finder = new ROT.Path.Dijkstra(x1, y1, passableCallback);
+        // var finder = new ROT.Path.Dijkstra(x1, y1, passableCallback);
         var finder = new ROT.Path.AStar(x1, y1, passableCallback);
         finder.compute(x0, y0, function(x, y) {
             coords.push({x: x, y: y});
@@ -107,13 +109,13 @@ var RG = { // {{{2
         return coords;
     },
 
-    /** Returns shortest distance (in cells) between two points.*/
+    /* Returns shortest distance (in cells) between two points.*/
     shortestDist: function(x0, y0, x1, y1) {
         var coords = this.getShortestPath(x0, y0, x1, y1);
         return coords.length - 1; // Subtract one because starting cell included
     },
 
-    /** Adds a CSS class for given prop and type. For example, "actors", "wolf",
+    /* Adds a CSS class for given prop and type. For example, "actors", "wolf",
      * "cell-actor-wolf" uses CSS class .cell-actor-wolf to style cells with
      * wolves in them. */
     addCellStyle: function(prop, type, className) {
@@ -121,93 +123,93 @@ var RG = { // {{{2
             this.cellStyles[prop][type] = className;
         }
         else {
-            this.err("RG", "addCellStyle", "Unknown prop type: " + prop);
+            this.err('RG', 'addCellStyle', 'Unknown prop type: ' + prop);
         }
     },
 
-    /** Adds a char to render for given prop and type. Example: "actors",
+    /* Adds a char to render for given prop and type. Example: "actors",
      * "wolf", "w" renders 'w' for cells containing wolves.*/
     addCharStyle: function(prop, type, charName) {
         if (this.charStyles.hasOwnProperty(prop)) {
             this.charStyles[prop][type] = charName;
         }
         else {
-            this.err("RG", "addCharStyle", "Unknown prop type: " + prop);
+            this.err('RG', 'addCharStyle', 'Unknown prop type: ' + prop);
         }
     },
 
     // These are used to select rendered characters for map cells.
     charStyles: {
         elements: {
-            "default": ".",
-            "wall": "#",
-            "ice wall": "#",
-            "floor": ".",
-            "shop": ":",
-            "snow": ".",
-            "stairsUp": "<",
-            "stairsDown": ">",
-            "water": "~",
-            "door": {isClosed: "+",
-                     "default": "/",
-            },
+            default: '.',
+            wall: '#',
+            'ice wall': '#',
+            floor: '.',
+            shop: ':',
+            snow: '.',
+            stairsUp: '<',
+            stairsDown: '>',
+            water: '~',
+            door: {isClosed: '+',
+                     default: '/'
+            }
         },
         actors: {
-            "default": "X",
-            "monster": "@",
-            "player" : "@",
-            "spirit" : "Q",
-            "summoner" : "Z",
-            "wolf"   : "w",
+            default: 'X',
+            monster: '@',
+            player: '@',
+            spirit: 'Q',
+            summoner: 'Z',
+            wolf: 'w'
         },
         items: {
-            "default": "(",
-            "corpse" : "§",
-            "potion" : "!",
-            "spiritgem" : "*",
+            default: '(',
+            corpse: '§',
+            potion: '!',
+            spiritgem: '*'
         },
-        traps: {},
+        traps: {}
     },
 
     // These are used to select the CSS class for map cells.
     cellStyles: {
         elements: {
-            "default": "cell-element-default",
-            door: "cell-element-door",
-            floor: "cell-element-floor",
-            "ice wall": "cell-element-ice-wall",
-            shop: "cell-element-shop",
-            snow: "cell-element-snow",
-            wall: "cell-element-wall",
+            default: 'cell-element-default',
+            door: 'cell-element-door',
+            floor: 'cell-element-floor',
+            'ice wall': 'cell-element-ice-wall',
+            shop: 'cell-element-shop',
+            snow: 'cell-element-snow',
+            wall: 'cell-element-wall'
         },
         actors: {
-            "default": "cell-actor-default",
-            "player": "cell-actor-player",
-            "monster": "cell-actor-monster",
-            "summoner": "cell-actor-summoner",
-            "wolf": "cell-actor-animal",
-            "spirit": "cell-actor-spirit",
+            default: 'cell-actor-default',
+            player: 'cell-actor-player',
+            monster: 'cell-actor-monster',
+            summoner: 'cell-actor-summoner',
+            wolf: 'cell-actor-animal',
+            spirit: 'cell-actor-spirit'
         },
         items: {
-            "potion": "cell-item-potion",
-            "spiritgem": "cell-item-spiritgem",
-            "default": "cell-item-default",
+            potion: 'cell-item-potion',
+            spiritgem: 'cell-item-spiritgem',
+            default: 'cell-item-default'
         },
         traps: {
-            "default": "cell-traps",
-        },
+            default: 'cell-traps'
+        }
     },
 
     debug: function(obj, msg) {
         var inst = typeof obj;
-        if (0) console.log("[DEBUG]: " + inst + " " + msg);
+        if ($DEBUG) {console.log('[DEBUG]: ' + inst + ' ' + msg);}
     },
 
     err: function(obj, fun, msg) {
-        console.error("[ERROR]: " + obj + ": " + fun + " -> " + msg);
+        console.error('[ERROR]: ' + obj + ': ' + fun + ' -> ' + msg);
     },
 
-    /** Used to inherit from a prototype. Supports multiple inheritance but
+    /* Used to inherit from a prototype. Supports multiple inheritance but
      * sacrifices instanceof.*/
     extend2: function(Child, Parent) {
         var p = Parent.prototype;
@@ -217,7 +219,7 @@ var RG = { // {{{2
                 c[i] = p[i];
             }
         }
-        if (c.hasOwnProperty("uber")) {
+        if (c.hasOwnProperty('uber')) {
             var ubers = [c.uber];
             ubers.push(p);
             c.uber = ubers;
@@ -228,18 +230,18 @@ var RG = { // {{{2
         }
     },
 
-    /** Prints an error into console if 'val' is null or undefined.*/
+    /* Prints an error into console if 'val' is null or undefined.*/
     nullOrUndefError: function(name, msg, val) {
         if (this.isNullOrUndef([val])) {
-            console.error("nullOrUndefError: " + name + ": " + msg);
+            console.error('nullOrUndefError: ' + name + ': ' + msg);
         }
     },
 
-    /** Returns true if anything in the list is null or undefined.*/
+    /* Returns true if anything in the list is null or undefined.*/
     isNullOrUndef: function(list) {
         for (var i = 0; i < list.length; i++) {
-            if (list[i] === null || typeof list[i] === "undefined" ||
-                list === undefined) {
+            if (list[i] === null || typeof list[i] === 'undefined' ||
+                typeof list === 'undefined') {
                 return true;
             }
         }
@@ -247,28 +249,31 @@ var RG = { // {{{2
     },
 
     gameDanger: function(msg) {
-        this.emitMsgEvent("danger", msg);
+        this.emitMsgEvent('danger', msg);
     },
 
     gameMsg: function(msg) {
-        this.emitMsgEvent("prim", msg);
+        this.emitMsgEvent('prim', msg);
     },
 
     gameSuccess: function(msg) {
-        this.emitMsgEvent("success", msg);
+        this.emitMsgEvent('success', msg);
     },
 
     gameWarn: function(msg) {
-        this.emitMsgEvent("warn", msg);
+        this.emitMsgEvent('warn', msg);
     },
 
+    /* Emits message event with cell origin, style and message. */
     emitMsgEvent: function(style, msg) {
-        var newMsg = "";
-        if (typeof msg === "object") {
+        var newMsg = '';
+        if (typeof msg === 'object') {
             var cell = msg.cell;
             newMsg = msg.msg;
             newMsg = newMsg[0].toUpperCase() + newMsg.substring(1);
-            this.POOL.emitEvent(this.EVT_MSG, {cell: cell, msg: newMsg, style: style});
+
+            var msgObject = {cell: cell, msg: newMsg, style: style};
+            this.POOL.emitEvent(this.EVT_MSG, msgObject);
         }
         else {
             newMsg = msg[0].toUpperCase() + msg.substring(1);
@@ -277,16 +282,16 @@ var RG = { // {{{2
 
     },
 
-    /** Tries to add item2 to item1 stack. Returns true on success.*/
+    /* Tries to add item2 to item1 stack. Returns true on success.*/
     addStackedItems: function(item1, item2) {
         if (item1.equals(item2)) {
             var countToAdd = 1;
-            if (item2.hasOwnProperty("count")) {
+            if (item2.hasOwnProperty('count')) {
                 countToAdd = item2.count;
             }
 
             // Check if item1 already stacked
-            if (item1.hasOwnProperty("count")) {
+            if (item1.hasOwnProperty('count')) {
                 item1.count += countToAdd;
             }
             else {
@@ -297,12 +302,12 @@ var RG = { // {{{2
         return false;
     },
 
-    /** Removes N items from the stack and returns them. Returns null if the
+    /* Removes N items from the stack and returns them. Returns null if the
      * stack is not changed.*/
     removeStackedItems: function(itemStack, n) {
         if (n > 0) {
             var rmvItem = null;
-            if (itemStack.hasOwnProperty("count")) {
+            if (itemStack.hasOwnProperty('count')) {
                 if (n <= itemStack.count) {
                     itemStack.count -= n;
                     rmvItem = itemStack.clone();
@@ -332,26 +337,26 @@ var RG = { // {{{2
 
     getMissileDamage: function(att, miss) {
         var dmg = miss.getDamage();
-        dmg += Math.round(att.get("Stats").getAgility() / 3);
+        dmg += Math.round(att.get('Stats').getAgility() / 3);
         return dmg;
     },
 
     getMissileAttack: function(att, miss) {
-        var attack = att.get("Combat").getAttack();
+        var attack = att.get('Combat').getAttack();
         attack += att.getInvEq().getEquipment().getAttack();
-        attack += att.get("Stats").getAccuracy() / 2;
+        attack += att.get('Stats').getAccuracy() / 2;
         attack += att.getInvEq().getEquipment().getAccuracy() / 2;
         attack += miss.getAttack();
 
         return attack;
     },
 
-    /** Given actor and cells it sees, returns first enemy cell found.*/
+    /* Given actor and cells it sees, returns first enemy cell found.*/
     findEnemyCellForPlayer: function(actor, seenCells) {
-        var res =[];
+        var res = [];
         for (var i = 0; i < seenCells.length; i++) {
             if (seenCells[i].hasActors()) {
-                var actors = seenCells[i].getProp("actors");
+                var actors = seenCells[i].getProp('actors');
                 for (var j = 0; j < actors.length; j++) {
                     if (actor !== actors[j]) {
                         if (actors[j].isEnemy(actor)) {
@@ -391,7 +396,7 @@ var RG = { // {{{2
             this.POOL = this.eventPools[nlen - 1];
         }
         else {
-            RG.err("RG", "popEventPool", "No event pools left.");
+            RG.err('RG', 'popEventPool', 'No event pools left.');
         }
     },
 
@@ -411,29 +416,29 @@ var RG = { // {{{2
     MAX_ACTIVE_LEVELS: 3,
 
     // Different game events
-    EVT_ACTOR_CREATED: "EVT_ACTOR_CREATED",
-    EVT_ACTOR_KILLED: "EVT_ACTOR_KILLED",
-    EVT_DESTROY_ITEM: "EVT_DESTROY_ITEM",
-    EVT_MSG: "EVT_MSG",
+    EVT_ACTOR_CREATED: 'EVT_ACTOR_CREATED',
+    EVT_ACTOR_KILLED: 'EVT_ACTOR_KILLED',
+    EVT_DESTROY_ITEM: 'EVT_DESTROY_ITEM',
+    EVT_MSG: 'EVT_MSG',
 
-    EVT_LEVEL_CHANGED: "EVT_LEVEL_CHANGED",
-    EVT_LEVEL_ENTERED: "EVT_LEVEL_ENTERED",
+    EVT_LEVEL_CHANGED: 'EVT_LEVEL_CHANGED',
+    EVT_LEVEL_ENTERED: 'EVT_LEVEL_ENTERED',
 
-    EVT_LEVEL_PROP_ADDED: "EVT_LEVEL_PROP_ADDED",
+    EVT_LEVEL_PROP_ADDED: 'EVT_LEVEL_PROP_ADDED',
 
-    EVT_ACT_COMP_ADDED: "EVT_ACT_COMP_ADDED",
-    EVT_ACT_COMP_REMOVED: "EVT_ACT_COMP_REMOVED",
-    EVT_ACT_COMP_ENABLED: "EVT_ACT_COMP_ENABLED",
-    EVT_ACT_COMP_DISABLED: "EVT_ACT_COMP_DISABLED",
+    EVT_ACT_COMP_ADDED: 'EVT_ACT_COMP_ADDED',
+    EVT_ACT_COMP_REMOVED: 'EVT_ACT_COMP_REMOVED',
+    EVT_ACT_COMP_ENABLED: 'EVT_ACT_COMP_ENABLED',
+    EVT_ACT_COMP_DISABLED: 'EVT_ACT_COMP_DISABLED',
 
     // Different types
-    TYPE_ACTOR: "actors",
-    TYPE_ELEM: "elements",
-    TYPE_ITEM: "items",
-    TYPE_TRAP: "traps",
+    TYPE_ACTOR: 'actors',
+    TYPE_ELEM: 'elements',
+    TYPE_ITEM: 'items',
+    TYPE_TRAP: 'traps',
 
-    ITEM_TYPES: ["armour", "food", "gold", "goldcoin", "missile", "potion", "spiritgem", "weapon"],
-
+    ITEM_TYPES: ['armour', 'food', 'gold', 'goldcoin',
+        'missile', 'potion', 'spiritgem', 'weapon'],
 
     // Energy per action
     energy: {
@@ -444,7 +449,7 @@ var RG = { // {{{2
         MISSILE: 20,
         MOVE: 20,
         ATTACK: 30,
-        RUN: 40,
+        RUN: 40
     },
 
     // Different fighting modes
@@ -455,10 +460,10 @@ var RG = { // {{{2
     // 0.0 = uniform dist, higher number assigns more weight to median values
     DANGER_ADJ_FACTOR: 1.4,
 
-    GOLD_COIN_WEIGHT: 0.03, //kg
-    GOLD_COIN_NAME: "Gold coins",
+    GOLD_COIN_WEIGHT: 0.03, // kg
+    GOLD_COIN_NAME: 'Gold coins'
 
-}; /// }}} RG
+}; // / }}} RG
 
 
 RG.cellRenderArray = RG.cellRenderVisible;
@@ -468,27 +473,27 @@ RG.FMODES = [RG.FMODE_NORMAL, RG.FMODE_FAST, RG.FMODE_SLOW];
 
 RG.cellRenderArray = RG.cellRenderVisible;
 
-var ADJ_FACTOR = 0.0;
-
-/** Returns danger probabilites for given level.*/
+/* Returns danger probabilites for given level.*/
 RG.getDangerProb = function(min, max) {
-    if (min > max) return {};
+    if (min > max) {
+        console.error('RG.getDangerProb param order is min < max');
+        return {};
+    }
     var level = max + 1;
     var arr = [];
-    var sum = 0;
     for (var j = min; j <= level; j++) {
         arr.push(j);
-        sum += j;
     }
 
     var last = arr.length - 1;
-    var max  = arr[last];
+    var maxArr = arr[last];
 
-    var highPoint = (max % 2 === 0) ? max / 2 : (max+1) / 2;
+    var highPoint = (maxArr % 2 === 0) ? maxArr / 2 : (maxArr + 1) / 2;
     var obj = {};
 
     arr.forEach( function(val) {
-        var prob = max - Math.floor(RG.DANGER_ADJ_FACTOR*Math.abs(val - highPoint));
+        var absDiff = Math.abs(val - highPoint);
+        var prob = maxArr - Math.floor(RG.DANGER_ADJ_FACTOR * absDiff);
         prob = (prob === 0) ? prob + 1 : prob;
         obj[val] = prob;
 
@@ -497,13 +502,13 @@ RG.getDangerProb = function(min, max) {
     return obj;
 };
 
-/** Returns the weight distribution for foods. This is something like
+/* Returns the weight distribution for foods. This is something like
  * {0.1: 10, 0.2: 7, 0.3: 5, 0.5: 1} etc.*/
 RG.getFoodWeightDistr = function() {
     return {0.1: 20, 0.2: 10, 0.3: 5, 0.4: 3, 0.5: 1};
 };
 
-/** Converts abstract value into gold weight. */
+/* Converts abstract value into gold weight. */
 RG.valueToGoldWeight = function(value) {
     var currVal = value;
     var slope = 1;
@@ -515,17 +520,17 @@ RG.valueToGoldWeight = function(value) {
     return adjValue / 1000;
 };
 
-/** Given an actor, scales its attributes based on new experience level.*/
+/* Given an actor, scales its attributes based on new experience level.*/
 RG.levelUpActor = function(actor, newLevel) {
-    if (actor.has("Experience")) {
-        var currLevel = actor.get("Experience").getExpLevel();
+    if (actor.has('Experience')) {
+        var currLevel = actor.get('Experience').getExpLevel();
         if (currLevel < newLevel) {
             while (currLevel < newLevel) {
                 var nextLevel = currLevel + 1;
 
                 // Level up the Combat component
-                if (actor.has("Combat")) {
-                    var combatComp = actor.get("Combat");
+                if (actor.has('Combat')) {
+                    var combatComp = actor.get('Combat');
                     combatComp.setAttack(combatComp.getAttack() + 1);
                     combatComp.setDefense(combatComp.getDefense() + 1);
                     if (nextLevel % 3 === 0) {
@@ -542,24 +547,24 @@ RG.levelUpActor = function(actor, newLevel) {
                 }
 
                 // Level up the Health
-                if (actor.has("Health")) {
-                    var hComp = actor.get("Health");
+                if (actor.has('Health')) {
+                    var hComp = actor.get('Health');
                     var incr = 2;
-                    if (actor.isPlayer()) incr = 5;
+                    if (actor.isPlayer()) {incr = 5;}
                     hComp.setMaxHP(hComp.getMaxHP() + incr);
                     hComp.setHP(hComp.getHP() + incr);
                 }
                 ++currLevel;
 
             }
-            actor.get("Experience").setExpLevel(newLevel);
+            actor.get('Experience').setExpLevel(newLevel);
         }
         else {
-            RG.err("RG", "levelUpActor" , "New level must be > current level.");
+            RG.err('RG', 'levelUpActor', 'New level must be > current level.');
         }
     }
     else {
-        RG.err("RG", "levelUpActor" , "No exp. component found.");
+        RG.err('RG', 'levelUpActor', 'No exp. component found.');
 
     }
 };
@@ -567,10 +572,10 @@ RG.levelUpActor = function(actor, newLevel) {
 // Regexp for parsing dice expressions '2d4' or '1d6 + 1' etc.
 RG.DIE_RE = /\s*(\d+)d(\d+)\s*(\+|-)?\s*(\d+)?/;
 
-/** Parses die expression like '2d4' or '3d5 + 4' and returns it as an array [2,
+/* Parses die expression like '2d4' or '3d5 + 4' and returns it as an array [2,
  * 4, 0] or [3, 5, 4]. Returns empty array for invalid expressions.*/
 RG.parseDieSpec = function(strOrArray) {
-    if (typeof strOrArray === "object") {
+    if (typeof strOrArray === 'object') {
         if (strOrArray.length >= 3) {
             return [strOrArray[0], strOrArray[1], strOrArray[2]];
         }
@@ -582,8 +587,8 @@ RG.parseDieSpec = function(strOrArray) {
             var dType = match[2];
             var mod;
             if (!RG.isNullOrUndef([match[3], match[4]])) {
-                if (match[3] === "+") mod = match[4];
-                else mod = -match[4];
+                if (match[3] === '+') {mod = match[4];}
+                else {mod = -match[4];}
             }
             else {
                 mod = 0;
@@ -591,22 +596,22 @@ RG.parseDieSpec = function(strOrArray) {
             return [num, dType, mod];
         }
         else {
-            RG.err("RG", "parseDieSpec", "Cannot parse: " + strOrArray);
+            RG.err('RG', 'parseDieSpec', 'Cannot parse: ' + strOrArray);
         }
     }
     return [];
 };
 
-RG.ONE_SHOT_ITEMS = ["potion"];
+RG.ONE_SHOT_ITEMS = ['potion'];
 
-/** Returns true if given item is one-shot use item by its type.*/
+/* Returns true if given item is one-shot use item by its type.*/
 RG.isOneShotItem = function(item) {
     var itemType = item.getType();
     var index = RG.ONE_SHOT_ITEMS.indexOf(itemType);
     return index >= 0;
 };
 
-/** Destroys item (typically after use). */
+/* Destroys item (typically after use). */
 RG.destroyItemIfNeeded = function(item) {
     if (RG.isOneShotItem(item)) {
         if (item.count === 1) {
@@ -619,13 +624,13 @@ RG.destroyItemIfNeeded = function(item) {
     }
 };
 
-/** Given gold weight, returns the equivalent in coins.*/
+/* Given gold weight, returns the equivalent in coins.*/
 RG.getGoldInCoins = function(weight) {
     return Math.floor(weight / RG.GOLD_COIN_WEIGHT);
 };
 
 
-/** Lookup table object for movement and actions keys.*/
+/* Lookup table object for movement and actions keys.*/
 RG.KeyMap = {
 
     moveKeyMap: { },
@@ -655,7 +660,7 @@ RG.KeyMap = {
     isNextItem: function(code) {return code === ROT.VK_H;},
     isToggleDoor: function(code) {return code === ROT.VK_O;},
 
-    /** Based on keycode, computes and returns a new x,y pair. If code is
+    /* Based on keycode, computes and returns a new x,y pair. If code is
      * invalid, returns null. */
     getDiff: function(code, x, y) {
         if (this.moveKeyMap.hasOwnProperty(code)) {
@@ -670,18 +675,17 @@ RG.KeyMap = {
         else {
             return null;
         }
-    },
+    }
 
 };
 RG.KeyMap.initMap();
 
 
-
-/** Contains generic 2D geometric functions for square/rectangle/etc
+/* Contains generic 2D geometric functions for square/rectangle/etc
  * generation.*/
 RG.Geometry = {
 
-    /** Given start x,y and end x,y coordinates, returns all x,y coordinates in
+    /* Given start x,y and end x,y coordinates, returns all x,y coordinates in
      * the border of the rectangle.*/
     getHollowBox: function(x0, y0, maxX, maxY) {
         var res = [];
@@ -693,11 +697,11 @@ RG.Geometry = {
             }
         }
         return res;
-    },
+    }
 
 };
 
-/** Each die has number of throws, type of dice (d6, d20, d200...) and modifier
+/* Each die has number of throws, type of dice (d6, d20, d200...) and modifier
  * which is +/- X. */
 RG.Die = function(num, dice, mod) {
     var _num = parseInt(num, 10);
@@ -720,9 +724,9 @@ RG.Die = function(num, dice, mod) {
     };
 
     this.toString = function() {
-        var sign = "+";
-        if (mod < 0) sign = "-";
-        return _num + "d" + _dice + " " + sign + " " + _mod;
+        var sign = '+';
+        if (mod < 0) {sign = '-';}
+        return _num + 'd' + _dice + ' ' + sign + ' ' + _mod;
     };
 
     this.copy = function(rhs) {
@@ -731,7 +735,7 @@ RG.Die = function(num, dice, mod) {
         _mod = rhs.getMod();
     };
 
-    /** Returns true if dice are equal.*/
+    /* Returns true if dice are equal.*/
     this.equals = function(rhs) {
         var res = _num === rhs.getNum();
         res = res && (_dice === rhs.getDice());
@@ -740,16 +744,20 @@ RG.Die = function(num, dice, mod) {
     };
 };
 
-/** Event pool can be used to emit events and register callbacks for listeners.
+/* Event pool can be used to emit events and register callbacks for listeners.
  * This decouples the emitter and listener from each other.  */
 RG.EventPool = function() { // {{{2
 
     var _listeners = {};
     var _eventsNoListener = 0;
 
-    /** Emits an event with given name. args must be in object-notation ie.
+    this.getNumListeners = function() {
+        return _eventsNoListener;
+    };
+
+    /* Emits an event with given name. args must be in object-notation ie.
      * {data: "abcd"} */
-    this.emitEvent = function (evtName, args) {
+    this.emitEvent = function(evtName, args) {
         if (!RG.isNullOrUndef([evtName])) {
             if (_listeners.hasOwnProperty(evtName)) {
                 var called = _listeners[evtName];
@@ -762,14 +770,15 @@ RG.EventPool = function() { // {{{2
             }
         }
         else {
-            RG.nullOrUndefError("EventPool: emitEvent", "Event name must be given.", evtName);
+            RG.nullOrUndefError('EventPool: emitEvent',
+                'Event name must be given.', evtName);
         }
     };
 
-    /** Register an event listener. */
+    /* Register an event listener. */
     this.listenEvent = function(evtName, obj) {
         if (!RG.isNullOrUndef([evtName])) {
-            if (obj.hasOwnProperty("notify") && obj.hasNotify) {
+            if (obj.hasOwnProperty('notify') || obj.hasNotify) {
                 if (_listeners.hasOwnProperty(evtName)) {
                     var index = _listeners[evtName].indexOf(obj);
                     if (index === -1) {
@@ -782,22 +791,20 @@ RG.EventPool = function() { // {{{2
                 }
             }
             else {
-                //var msg = 'evtName: ' + evtName + ' obj: ' + JSON.stringify(obj);
                 var msg = 'evtName: ' + evtName;
                 msg += '\nprototype: ' + JSON.stringify(obj.prototype);
-                msg += '\n__proto__: ' + JSON.stringify(obj.__proto__);
-                msg += "\nCannot add object. Listener must implement notify()!";
+                msg += '\nCannot add object. Listener must implement notify()!';
                 console.error(msg);
             }
         }
         else {
-            RG.err("EventPool", "listenEvent", "Event name not well defined.");
+            RG.err('EventPool', 'listenEvent', 'Event name not well defined.');
         }
     };
 };
 RG.POOL = new RG.EventPool(); // Dangerous, global objects
 
-/** Handles the game message listening and storing of the messages.  */
+/* Handles the game message listening and storing of the messages.  */
 RG.MessageHandler = function() { // {{{2
 
     var _message = [];
@@ -807,14 +814,14 @@ RG.MessageHandler = function() { // {{{2
     this.hasNotify = true;
     this.notify = function(evtName, msg) {
         if (evtName === RG.EVT_MSG) {
-            if (msg.hasOwnProperty("msg")) {
-                var msgObj = {msg: msg.msg, style: "prim"};
+            if (msg.hasOwnProperty('msg')) {
+                var msgObj = {msg: msg.msg, style: 'prim'};
 
-                if (msg.hasOwnProperty("cell")) {
+                if (msg.hasOwnProperty('cell')) {
                     msgObj.cell = msg.cell;
                 }
 
-                if (msg.hasOwnProperty("style")) {
+                if (msg.hasOwnProperty('style')) {
                     msgObj.style = msg.style;
                 }
 
@@ -829,16 +836,13 @@ RG.MessageHandler = function() { // {{{2
 
     this.getMessages = function() {
         _hasNew = false;
-        if (_message.length > 0)
-            return _message;
-        else if (_prevMessage.length > 0)
-            return _prevMessage;
-        else
-            return [];
+        if (_message.length > 0) {return _message;}
+        else if (_prevMessage.length > 0) {return _prevMessage;}
+        else {return [];}
     };
 
     this.clear = function() {
-        if (_message.length > 0) _prevMessage = _message.slice();
+        if (_message.length > 0) {_prevMessage = _message.slice();}
         _message = [];
     };
 
@@ -857,7 +861,7 @@ RG.Entity = function() {
     this.getID = function() {return _id;};
 
     this.get = function(name) {
-        if (_comps.hasOwnProperty(name)) return _comps[name];
+        if (_comps.hasOwnProperty(name)) {return _comps[name];}
         return null;
     };
 

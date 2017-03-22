@@ -4,12 +4,11 @@
  * ECS system ordering and actor scheduling.
  */
 
-var chai = require('chai');
-var expect = chai.expect;
-var RG = require('../battles.js');
+var expect = require('chai').expect;
+var RG = require('../client/src/battles');
 
-var Game = require('../src/game.js');
-var Actor = require('../src/actor');
+var Game = require('../client/src/game.js');
+var Actor = require('../client/src/actor');
 
 var setupEngineWithActors = function() {
     this.engine = new Game.Engine();

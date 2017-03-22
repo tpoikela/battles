@@ -2,14 +2,14 @@
 /** Note: This file doesn't contain any unit tests. It has some architecture for
  * performing common test function.*/
 
-var RG = require('../battles.js');
-var chai = require('chai');
-var expect = chai.expect;
+var RG = require('../client/src/battles');
+var expect = require('chai').expect;
 
 var RGTest = {
 
 };
 
+/* Creates a mock-level for unit tests.*/
 RGTest.createMockLevel = function(cols, rows) {
     var level = {cols: cols, rows: rows,
         map: {
@@ -33,7 +33,8 @@ RGTest.equipItem = function(actor, item) {
     expect(invEq.equipItem(item)).to.equal(true);
 };
 
-/** Wraps an object into a cell for later use. Some functions require a map cell instead of taking the object directly. */
+/* Wraps an object into a cell for later use. Some functions require a map cell
+* instead of taking the object directly, so this is useful. */
 RGTest.wrapObjWithCell = function(obj) {
     var cell = RG.FACT.createFloorCell();
     cell.setExplored(true); // Otherwise returns darkness
@@ -58,12 +59,8 @@ RGTest.checkCSSClassName = function(obj, expClass) {
 
 };
 
-if (typeof exports !== 'undefined' ) {
-    if ( typeof RGTest !== 'undefined' && module.exports ) {
-        exports = module.exports = RGTest;
-    }
-    exports.RGTest = RGTest;
-}
-else {
-    window.RGTest = RGTest;
-}
+RGTest.expectEqualHealth = function(o1, o2) {
+    expect(o1.get('Health').getHP()).to.equal(o2.get('Health').getHP());
+};
+
+module.exports = RGTest;
