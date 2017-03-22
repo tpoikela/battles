@@ -59,14 +59,18 @@ describe('RG.FCCGame', function() {
     it('can be created', function() {
         var game = new RG.FCCGame();
         var conf = {
-            cols: 10,
-            rows: 10,
-            nLevels: 10,
-            sqrPerMonster: 10,
-            sqrPerItem: 10,
-            playerLevel: 'Strong'
+            cols: 40,
+            rows: 30,
+            levels: 2,
+            playerLevel: 'Medium',
+            sqrPerMonster: 40,
+            sqrPerItem: 100,
+            debugMode: false,
+            loadedPlayer: null,
+            loadedLevel: null,
+            playerName: 'Player'
         };
-        // game.createFCCGame(conf);
+        game.createFCCGame(conf);
 
     });
 });
