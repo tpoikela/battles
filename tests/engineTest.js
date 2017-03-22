@@ -10,6 +10,7 @@ var RG = require('../client/src/battles');
 var Game = require('../client/src/game.js');
 var Actor = require('../client/src/actor');
 
+/* Creates a game engine with 2 actors scheduled for actions.*/
 var setupEngineWithActors = function() {
     this.engine = new Game.Engine();
     this.actor = new Actor.Rogue('TestActor');
@@ -23,17 +24,42 @@ var setupEngineWithActors = function() {
 };
 
 describe('Game.Engine', function() {
-    it('Executes scheduled actors one by one', function() {
-        var eng = new setupEngineWithActors();
-        var engine = eng.engine;
 
+    var eng = null;
+    var engine = null;
+
+    beforeEach( () => {
+        eng = new setupEngineWithActors();
+        engine = eng.engine;
+
+    });
+
+    it('has game messages', function() {
+        var pool = RG.POOL;
+        var msg = engine.getMessages();
+        expect(msg).to.have.length(0);
+
+        var testMsg = 'A test message';
+        pool.emitEvent(RG.EVT_MSG, {msg: testMsg});
+        expect(engine.hasNewMessages()).to.be.true;
+        msg = engine.getMessages();
+        expect(engine.hasNewMessages()).to.be.false;
+        expect(msg).to.have.length(1);
+        expect(msg[0].msg).to.equal(testMsg);
+
+        engine.clearMessages();
+        msg = engine.getMessages();
+        expect(msg).to.have.length(1);
+
+
+    });
+
+    it('Executes scheduled actors one by one', function() {
         engine.simulateGame();
         engine.simulateGame();
     });
 
     it('Uses Systems to manage entity behaviour', function() {
-        var eng = new setupEngineWithActors();
-        engine = eng.engine;
         var timeSystem = engine.timeSystems.TimeEffects;
 
         var poison = new RG.Component.Poison();
