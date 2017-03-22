@@ -167,6 +167,7 @@ RG.Element.Shop.prototype.sellItem = function(item, seller) {
     var value = item.getValue() / this._costFactor;
     var goldWeight = RG.valueToGoldWeight(value);
     var nCoins = RG.getGoldInCoins(goldWeight);
+
     if (this.hasEnoughGold(this._shopkeeper, goldWeight)) {
         if (seller.getInvEq().dropItem(item)) {
             var coins = new RG.Item.GoldCoin();
@@ -183,6 +184,7 @@ RG.Element.Shop.prototype.sellItem = function(item, seller) {
         RG.gameMsg({cell: this._shopkeeper.getCell(),
             msg: 'Keeper ' + name + " doesn't have enough gold to buy it."});
     }
+
     return false;
 };
 
