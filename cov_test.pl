@@ -31,8 +31,10 @@ GetOptions(
 
 clean_cov() if defined $opt{clean};
 
+my $exclude = '-x "**/rot.js"';
+
 my $cmd = "";
-$cmd = "istanbul cover node_modules/.bin/_mocha tests";
+$cmd = "istanbul cover $exclude node_modules/.bin/_mocha tests";
 system($cmd);
 
 system("istanbul report --root coverage html");
