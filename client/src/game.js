@@ -882,7 +882,21 @@ RG.Game.Save = function() {
 
     var _getItemObjectType = function(item) {
         if (item.setType === 'spiritgem') {return 'SpiritGem';}
-        return item.setType.capitalize();
+        if (!RG.isNullOrUndef([item])) {
+            if (!RG.isNullOrUndef([item.setType])) {
+                return item.setType.capitalize();
+            }
+            else {
+                var itemJSON = JSON.stringify(item);
+                RG.err('Game.Save', '_getItemObjectType',
+                    'item.setType is undefined. item: ' + itemJSON);
+            }
+        }
+        else {
+            RG.err('Game.Save', '_getItemObjectType',
+                'item is undefined');
+        }
+        return null;
     };
 
 };
