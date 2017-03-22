@@ -143,6 +143,7 @@ RG.Brain.Player = function(actor) { // {{{2
                         return this.noAction();
                     }
                     else {
+                        this.energy = RG.energy.PICKUP;
                         return function() {
                             level.pickupItem(_actor, x, y);
                         };
