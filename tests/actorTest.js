@@ -47,4 +47,19 @@ describe('Rogue.Actor', function() {
 
     });
 
+    it('has stat modifiers', function() {
+        var actor = new Actor.Rogue('player hero');
+        actor.setIsPlayer(true);
+
+        var prot = actor.getProtection();
+        expect(prot).to.equal(0);
+
+        var str = actor.getStrength();
+        expect(str).to.equal(5);
+
+        var dmg = actor.getDamage();
+        expect(dmg > 0, 'More than 0 damage').to.equal(true);
+
+    });
+
 });
