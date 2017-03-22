@@ -134,7 +134,10 @@ describe('Brain.Player', function() {
         var brain = new Brain.Player(player);
         var food = new RG.Item.Food('food');
         var weapon = new RG.Item.Weapon('weapon');
-        // level.addItem(
+        level.addItem(food, 1, 1);
+        level.addItem(weapon, 1, 1);
+        brain.decideNextAction({code: RG.K_NEXT_ITEM});
+        expect(brain.energy).to.equal(0);
 
     });
 });
