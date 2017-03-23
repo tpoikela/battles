@@ -43,7 +43,7 @@ RG.Component.Base.prototype.entityAddCallback = function(entity) {
 };
 
 // Called when a component is removed from the entity
-RG.Component.Base.prototype.entityRemoveCallback = function(entity) {
+RG.Component.Base.prototype.entityRemoveCallback = function() {
     this.setEntity(null);
     // RG.POOL.emitEvent(this.getType(), {remove:true, entity: entity});
     for (var i = 0; i < this._onRemoveCallbacks.length; i++) {
@@ -331,18 +331,14 @@ RG.Component.Combat.prototype.toJSON = function() {
 /* Modifiers for the Combat component.*/
 RG.Component.CombatMods = function() {
     RG.Component.Combat.call(this);
+    this.setType('CombatMods');
+
+    this.setAttackRange(0);
+    this.setAttack(0);
+    this.setDefense(0);
+    this.setProtection(0);
 
     var _damage = 0;
-    var _range = 0;
-    var _attack = 0;
-    var _defense = 0;
-    var _protection = 0;
-
-    this.setType('CombatMods');
-    this.setAttackRange = function(range) {_range = range;};
-    this.setAttack = function(attack) { _attack = attack; };
-    this.setDefense = function(defense) { _defense = defense; };
-    this.setProtection = function(prot) {_protection = prot;};
 
     this.setDamage = function(dmg) {_damage = dmg;};
     this.getDamage = function() {return _damage;};
@@ -567,7 +563,8 @@ RG.Component.Loot = function(lootEntity) {
     this.setElemToCell = function(cell) {
         var entLevel = this.getEntity().getLevel();
         if (_lootEntity.hasOwnProperty('useStairs')) {
-            RG.debug(this, 'Added stairs to ' + cell.getX() + ', ' + cell.getY());
+            RG.debug(this, 'Added stairs to ' + cell.getX()
+                + ', ' + cell.getY());
             entLevel.addStairs(_lootEntity, cell.getX(), cell.getY());
         }
     };
@@ -692,11 +689,13 @@ RG.Component.Expiration = function() {
     /* Decreases duration of all time-based effects.*/
     this.decrDuration = function() {
         for (var compType in this._duration) {
-            this._duration[compType] -= 1;
-            if (this._duration[compType] === 0) {
-                var ent = this.getEntity();
-                ent.remove(compType);
-                delete this._duration[compType];
+            if (compType) {
+                this._duration[compType] -= 1;
+                if (this._duration[compType] === 0) {
+                    var ent = this.getEntity();
+                    ent.remove(compType);
+                    delete this._duration[compType];
+                }
             }
         }
     };

@@ -127,12 +127,10 @@ RG.Actor.Rogue.prototype.nextAction = function(obj) {
         action = new RG.Time.RogueAction(0, function() {}, {});
     }
 
-    if (action !== null) {
-        if (this._brain.hasOwnProperty('energy')) {
-            action.energy = this._brain.energy;
-        }
-        action.actor = this;
+    if (this._brain.hasOwnProperty('energy')) {
+        action.energy = this._brain.energy;
     }
+    action.actor = this;
     return action;
 };
 
@@ -171,7 +169,11 @@ RG.Actor.Rogue.prototype.toJSON = function() {
 RG.Actor.Rogue.prototype.getAttack = function() {
     var attack = this.get('Combat').getAttack();
     attack += this.getEquipAttack();
-    if (this.has('CombatMods')) {attack += this.get('CombatMods').getAttack();}
+
+    if (this.has('CombatMods')) {
+        attack += this.get('CombatMods').getAttack();
+    }
+
     attack += Math.floor(this.getAccuracy() / 2);
     return attack;
 };

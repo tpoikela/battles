@@ -5,9 +5,9 @@ var RG = require('../client/src/battles.js');
 var Actor = require('../client/src/actor.js');
 
 describe('Rogue.Actor', function() {
+
     it('has name, stats and inventory', function() {
         var actor = new Actor.Rogue('testRogue');
-
         expect(actor.getName()).to.equal('testRogue');
 
         var wp = actor.getWillpower();
@@ -47,7 +47,7 @@ describe('Rogue.Actor', function() {
 
     });
 
-    it('has stat modifiers', function() {
+    it('has different stats', function() {
         var actor = new Actor.Rogue('player hero');
         actor.setIsPlayer(true);
 
@@ -59,6 +59,33 @@ describe('Rogue.Actor', function() {
 
         var dmg = actor.getDamage();
         expect(dmg > 0, 'More than 0 damage').to.equal(true);
+
+    });
+
+    it('can have CombatMods added', function() {
+        var mob = new Actor.Rogue('mob');
+        var combatMods = new RG.Component.CombatMods();
+
+        var attack = mob.getAttack();
+        combatMods.setAttack(5);
+        mob.add('CombatMods', combatMods);
+        var newAttack = mob.getAttack();
+        expect(newAttack).to.equal(attack + 5);
+
+        combatMods.setDamage(5);
+        var mobDamage = mob.getDamage();
+        expect(mobDamage >= 6).to.equal(true);
+
+        var mobDefense = mob.getDefense();
+        combatMods.setDefense(7);
+        var mobNewDefense = mob.getDefense();
+        expect(mobNewDefense).to.equal(mobDefense + 7);
+    });
+
+    it('can have StatsMods added', function() {
+        var mob = new Actor.Rogue('mob');
+        var statMods = new RG.Component.StatsMods();
+        mob.add('StatsMods', statMods);
 
     });
 
