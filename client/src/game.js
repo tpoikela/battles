@@ -182,9 +182,16 @@ RG.Game.Engine = function() {
 
     this.playerCommand = function(obj) {
         if (this.nextActor.isPlayer() === false) {
-            RG.err('Engine', 'playerCommand',
-                'nextActor should be player but: ' + this.nextActor.getName()
-            );
+            if (this.nextActor.hasOwnProperty('isEvent')) {
+                RG.err('Engine', 'playerCommand',
+                    'Expected player, got an event');
+
+            }
+            else {
+                RG.err('Engine', 'playerCommand',
+                    'Expected player, got: ' + this.nextActor.getName()
+                );
+            }
         }
         var action = this.nextActor.nextAction(obj);
         this.doAction(action);

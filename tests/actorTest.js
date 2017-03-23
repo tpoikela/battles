@@ -87,6 +87,26 @@ describe('Rogue.Actor', function() {
         var statMods = new RG.Component.StatsMods();
         mob.add('StatsMods', statMods);
 
+        var oldWp = mob.getWillpower();
+        statMods.setWillpower(5);
+        var newWp = mob.getWillpower();
+        expect(newWp).to.equal(oldWp + 5);
+
+        var oldStr = mob.getStrength();
+        statMods.setStrength(-3);
+        var newStr = mob.getStrength();
+        expect(newStr).to.equal(oldStr - 3);
+
+        var oldAcc = mob.getAccuracy();
+        statMods.setAccuracy(10);
+        var newAcc = mob.getAccuracy();
+        expect(newAcc).to.equal(oldAcc + 10);
+
+        var oldAgi = mob.getAgility();
+        statMods.setAgility(10);
+        var newAgi = mob.getAgility();
+        expect(newAgi).to.equal(oldAgi + 10);
+
     });
 
 });

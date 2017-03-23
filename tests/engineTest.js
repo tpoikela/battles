@@ -21,6 +21,7 @@ var setupEngineWithActors = function() {
     level.addActor(this.actor2, 2, 2);
     this.actor.get('Action').enable();
     this.actor2.get('Action').enable();
+    this.level = level;
 };
 
 describe('Game.Engine', function() {
@@ -55,10 +56,34 @@ describe('Game.Engine', function() {
     });
 
     it('Executes scheduled actors one by one', function() {
+        var actor = eng.actor;
+        var action = actor.nextAction({});
         engine.simulateGame();
         engine.simulateGame();
+
     });
 
+    it('manages a list of active levels', function() {
+        var actor = eng.actor;
+        expect(engine.nextActor).to.be.null;
+        engine.addActiveLevel(eng.level);
+        engine.simulateGame();
+        expect(engine.nextActor).to.not.be.null;
+
+        var hunger = new RG.Component.Hunger(1000);
+        actor.add('Hunger', hunger);
+        actor.getBrain().energy = 10; // Add energy artificially
+        var energyBefore = hunger.getEnergy();
+        for (let i = 0; i < 10; i++) {
+            engine.simulateGame();
+            engine.updateLoopSystems();
+        }
+        var energyAfter = hunger.getEnergy();
+        expect(energyAfter).to.be.below(energyBefore);
+
+    });
+
+    // This a bit too thorough test for Engine
     it('Uses Systems to manage entity behaviour', function() {
         var timeSystem = engine.timeSystems.TimeEffects;
 
@@ -97,8 +122,21 @@ describe('Game.Engine', function() {
 
         // Check that actor2 was given exp for using poison to kill actor2
         var newExpActor2 = eng.actor2.get('Experience').getExp();
-        console.log('Old exp: ' + expActor2 + ' new ' + newExpActor2);
         expect(newExpActor2 > expActor2).to.equal(true);
+
+    });
+
+    it('has high-level update() function for GUI', function() {
+        var player = new RG.Actor.Rogue('player');
+        player.setIsPlayer(true);
+        engine.playerCommandCallback = function() {return true;};
+
+        eng.level.addActorToFreeCell(player);
+        engine.addActiveLevel(eng.level);
+        engine.simulateGame();
+        expect(engine.nextActor).to.not.be.null;
+        engine.nextActor = player;
+        engine.update({});
 
     });
 });

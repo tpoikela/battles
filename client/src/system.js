@@ -226,7 +226,8 @@ RG.System.Damage = function(type, compTypes) {
                 // Check if any damage was done at all
                 if (totalDmg <= 0) {
                     totalDmg = 0;
-                    RG.gameMsg("Attack doesn't penetrate protection of " + ent.getName());
+                    RG.gameMsg("Attack doesn't penetrate protection of "
+                        + ent.getName());
                 }
                 else {
                     health.decrHP(totalDmg);
@@ -519,14 +520,15 @@ RG.System.TimeEffects = function(type, compTypes) {
 
     this.update = function() {
         for (var e in this.entities) {
+            if (!e) {continue;}
             var ent = this.entities[e];
-            console.log('System.TimeEffects entity ' + ent.getName());
 
             // Process timed effects like poison etc.
             for (var i = 0; i < compTypes.length; i++) {
                 if (compTypes[i] !== 'Expiration') {
                     if (ent.has(compTypes[i])) {
-                        _dtable[compTypes[i]](ent); // Call dispatch table function
+                        // Call dispatch table function
+                        _dtable[compTypes[i]](ent);
                     }
                 }
             }
@@ -535,7 +537,7 @@ RG.System.TimeEffects = function(type, compTypes) {
         }
 
 
-        // Remove expired effects (mutates this.entities, so done outside for...)
+        // Remove expired effects (mutates this.entities, so done outside for)
         // Removes Expiration, as well as comps like Poison/Stun/Disease etc.
         for (var j = 0; j < _expiredEffects.length; j++) {
             var compName = _expiredEffects[j][0];
