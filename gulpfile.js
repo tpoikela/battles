@@ -7,6 +7,7 @@ var browserify = require('browserify');
 var browserifyInc = require('browserify-incremental');
 
 var source = require('vinyl-source-stream');
+var notify = require('gulp-notify');
 
 var nodemon = require('gulp-nodemon');
 
@@ -14,12 +15,11 @@ var ctags = require('gulp-ctags');
 
 // var spawn = require('child_process').spawn;
 
-var jsxDir = './client/jsx';
-
 var port = process.env.PORT || 8080;
 
 // Define paths for all source files here
 var paths = {
+    jsxDir: './client/jsx',
     client: ['./client/jsx/*.jsx', './client/**/*.js'],
     sass: ['./scss/*.*'],
 
@@ -31,8 +31,18 @@ var paths = {
 
 };
 
+/* Used to notify on build/compile errors.*/
+function handleErrors() {
+    var args = Array.prototype.slice.call(arguments);
+      notify.onError({
+        title: 'Compile Error',
+        message: '<%= error.message %>'
+      }).apply(this, args);
+      this.emit('end'); // Keep gulp from hanging on this task
+}
+
 var browserifyOpts = {
-    entries: jsxDir + '/app.jsx',
+    entries: paths.jsxDir + '/app.jsx',
     extensions: ['.jsx'],
     debug: true
 };
@@ -41,6 +51,7 @@ gulp.task('build-js', function() {
     return browserify(browserifyOpts)
         .transform(babelify)
         .bundle()
+        .on('error', handleErrors)
         .pipe(source('./bundle.js'))
         .pipe(gulp.dest('build'));
 });
@@ -55,6 +66,7 @@ gulp.task('build-js-inc', function() {
 
 	b.transform(babelify)
 		.bundle()
+        .on('error', handleErrors)
         .pipe(source('./bundle.js'))
         .pipe(gulp.dest('build'));
 
