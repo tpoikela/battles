@@ -3,29 +3,27 @@
  * long sequence with GUI, but this module makes sure that basics are working.
  */
 
-var expect = require('chai').expect;
-var RG = require('../client/src/battles');
-var RGTest = require('./roguetest.js');
-var Game = require('../client/src/game');
+const expect = require('chai').expect;
+const RG = require('../../../client/src/battles');
+const RGTest = require('../../roguetest.js');
+const Game = require('../../../client/src/game');
 
-var checkXY = RGTest.checkActorXY;
+const checkXY = RGTest.checkActorXY;
+const Actor = RG.Actor.Rogue;
 
-var Actor = RG.Actor.Rogue;
+const RGObjects = require('../../../client/data/battles_objects.js');
+RG.Effects = require('../../../client/data/effects.js');
 
-var RGObjects = require('../client/data/battles_objects.js');
-RG.Effects = require('../client/data/effects.js');
-
-var LocalStorage = require('node-localstorage').LocalStorage,
+const LocalStorage = require('node-localstorage').LocalStorage,
 localStorage = new LocalStorage('./battles_local_storage');
 
-
-var globalParser = new RG.ObjectShellParser();
+const globalParser = new RG.ObjectShellParser();
 globalParser.parseShellData(RG.Effects);
 globalParser.parseShellData(RGObjects);
 
 function checkMap(map, cols, rows) {
-    for (var x = 0; x < cols; x++) {
-        for (var y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+        for (let y = 0; y < rows; y++) {
             // console.log("x :: " + x);
             expect(typeof map.getCell(x, y)).not.to.equal('undefined');
         }
@@ -38,10 +36,10 @@ function getNewLevel(cols, rows) {
 
 /* Returns a level with initialized with given actors.*/
 function getLevelWithNActors(cols, rows, nactors) {
-    var level = getNewLevel(cols, rows);
-    var actors = [];
-    for (var i = 0; i < nactors; i++) {
-        var actor = new Actor(false);
+    const level = getNewLevel(cols, rows);
+    const actors = [];
+    for (let i = 0; i < nactors; i++) {
+        const actor = new Actor(false);
         actors.push(actor);
         level.addActorToFreeCell(actor);
     }
@@ -49,20 +47,19 @@ function getLevelWithNActors(cols, rows, nactors) {
 }
 
 describe('Game.Main', function() {
-
-    var game = null;
+    let game = null;
     beforeEach( () => {
         game = new Game.Main();
     });
 
 
     it('Initializes the game and adds player', function() {
-        var movSystem = new RG.System.Movement('Movement', ['Movement']);
-        var cols = 50;
-        var rows = 30;
-        var level = getNewLevel(cols, rows);
+        const movSystem = new RG.System.Movement('Movement', ['Movement']);
+        const cols = 50;
+        const rows = 30;
+        const level = getNewLevel(cols, rows);
 
-        var actor = new Actor('Player'); // player
+        const actor = new Actor('Player'); // player
         actor.setIsPlayer(true);
         actor.setFOVRange(5);
         game.addLevel(level);
@@ -71,16 +68,16 @@ describe('Game.Main', function() {
         expect(game.shownLevel()).to.equal(level);
         expect(actor.getLevel()).to.equal(level);
 
-        var newMap = level.getMap();
+        const newMap = level.getMap();
         checkMap(newMap, cols, rows);
 
-        var movComp = new RG.Component.Movement(12, 13, level);
+        const movComp = new RG.Component.Movement(12, 13, level);
         actor.add('Movement', movComp);
         movSystem.update();
         expect(actor.getX()).to.equal(12);
         expect(actor.getY()).to.equal(13);
 
-        var explCells = level.exploreCells(actor);
+        const explCells = level.exploreCells(actor);
         expect(explCells.length).to.equal(11 * 11);
 
         // expect(level.moveActorTo(actor, 11, 13)).to.equal(true);
@@ -89,9 +86,9 @@ describe('Game.Main', function() {
 });
 
 /* For listening actor killed events.*/
-var KillListener = function(actor) {
+const KillListener = function(actor) {
 
-    var _actor = actor;
+    const _actor = actor;
 
     this.isAlive = actor.get('Health').isAlive();
 
@@ -109,16 +106,16 @@ describe('How combat should evolve', function() {
 
 
     it('Deals damage from attacker to defender', function() {
-        var comSystem = new RG.System.Attack('Attack', ['Attack']);
-        var dmgSystem = new RG.System.Damage('Damage', ['Damage']);
+        const comSystem = new RG.System.Attack('Attack', ['Attack']);
+        const dmgSystem = new RG.System.Damage('Damage', ['Damage']);
 
-        var cols = 50;
-        var rows = 30;
-        var level = getNewLevel(cols, rows);
+        const cols = 50;
+        const rows = 30;
+        const level = getNewLevel(cols, rows);
 
-        var attacker = new Actor('Attacker');
+        const attacker = new Actor('Attacker');
         expect(attacker.get('Health').isAlive()).to.equal(true);
-        var defender = new Actor('Defender');
+        const defender = new Actor('Defender');
         expect(defender.get('Health').isAlive()).to.equal(true);
         attacker.get('Combat').setAttack(10);
         attacker.get('Combat').setDamage('1d4');
@@ -130,7 +127,7 @@ describe('How combat should evolve', function() {
         level.addActor(attacker, 1, 1);
         level.addActor(defender, 2, 2);
 
-        var attackComp = new RG.Component.Attack(defender);
+        const attackComp = new RG.Component.Attack(defender);
         attacker.add('Attack', attackComp);
         comSystem.update();
         expect(defender.has('Damage')).to.equal(true);
@@ -140,10 +137,10 @@ describe('How combat should evolve', function() {
 
         expect(defender.get('Health').isAlive()).to.equal(false);
 
-        var def2 = new Actor('defender2');
+        const def2 = new Actor('defender2');
         level.addActor(def2, 2, 2);
 
-        var attComp2 = new RG.Component.Attack(def2);
+        const attComp2 = new RG.Component.Attack(def2);
         attacker.add('Attack', attComp2);
 
         def2.get('Health').setHP(20);
@@ -166,7 +163,7 @@ describe('How combat should evolve', function() {
 
         expect(def2.get('Health').isAlive()).to.equal(true);
 
-        var killListen = new KillListener(def2);
+        const killListen = new KillListener(def2);
         while (killListen.isAlive) {
             attacker.add('Attack', attComp2);
             comSystem.update();
@@ -178,11 +175,11 @@ describe('How combat should evolve', function() {
 });
 
 describe('How AI brain works', function() {
-    var cols = 30;
-    var rows = 20;
-    var level = getNewLevel(cols, rows);
-    var mons1 = new Actor('Monster');
-    var player = new Actor('Player');
+    const cols = 30;
+    const rows = 20;
+    const level = getNewLevel(cols, rows);
+    const mons1 = new Actor('Monster');
+    const player = new Actor('Player');
     player.setType('player');
     player.setIsPlayer(true);
 
@@ -190,26 +187,26 @@ describe('How AI brain works', function() {
         expect(level.addActor(player, 2, 2)).to.equal(true);
         expect(level.addActor(mons1, 3, 5)).to.equal(true);
 
-        var map = level.getMap();
+        const map = level.getMap();
         expect(map.isPassable(2, 3)).to.equal(true);
 
-        var brain = mons1.getBrain();
-        var seenCells = level.getMap().getVisibleCells(mons1);
+        const brain = mons1.getBrain();
+        const seenCells = level.getMap().getVisibleCells(mons1);
         expect(seenCells.length).to.not.equal(0);
-        var playerCell = brain.findEnemyCell(seenCells);
+        const playerCell = brain.findEnemyCell(seenCells);
         expect(playerCell.hasProp('actors')).to.equal(true);
 
-        var pathCells = brain.getShortestPathTo(playerCell);
+        const pathCells = brain.getShortestPathTo(playerCell);
         expect(pathCells).to.be.an('array');
         expect(pathCells.length).to.not.equal(0);
     });
 
 
     it('Moves towards player when seen.', function() {
-        var movSystem = new RG.System.Movement('Movement', ['Movement']);
+        const movSystem = new RG.System.Movement('Movement', ['Movement']);
         expect(level.addActor(player, 2, 2)).to.equal(true);
         expect(level.addActor(mons1, 2, 4)).to.equal(true);
-        var action = mons1.nextAction();
+        const action = mons1.nextAction();
         action.doAction();
         movSystem.update();
         checkXY(mons1, 2, 3);
@@ -220,10 +217,10 @@ describe('How AI brain works', function() {
 describe('Game.Save how saving works', function() {
 
     // TODO add to RGTest
-    var setupPlayer = function(name) {
-        var level = RG.FACT.createLevel('arena', 10, 10);
+    const setupPlayer = function(name) {
+        const level = RG.FACT.createLevel('arena', 10, 10);
         level.setLevelNumber(3);
-        var player = new RG.Actor.Rogue(name);
+        const player = new RG.Actor.Rogue(name);
         player.setType('player');
         player.setIsPlayer(true);
         level.addActor(player, 3, 3);
@@ -231,27 +228,27 @@ describe('Game.Save how saving works', function() {
     };
 
     it('Saves/restores player properly', function() {
-        var gameSave = new RG.Game.Save();
+        const gameSave = new RG.Game.Save();
         gameSave.setStorage(localStorage);
-        var player = setupPlayer('Player1');
+        const player = setupPlayer('Player1');
 
         player.get('Experience').setExpLevel(5);
         gameSave.savePlayer(player);
 
-        var rest = gameSave.restorePlayer('Player1');
+        let rest = gameSave.restorePlayer('Player1');
         expect(rest.getName()).to.equal(player.getName());
         expect(rest.get('Experience').getExpLevel()).to.equal(5);
 
-        var playersAsObj = gameSave.getPlayersAsObj();
+        const playersAsObj = gameSave.getPlayersAsObj();
         expect(playersAsObj.hasOwnProperty('Player1')).to.equal(true);
 
-        var die = rest.get('Combat').getDamageDie();
+        const die = rest.get('Combat').getDamageDie();
         expect(die !== null).to.equal(true);
         expect(typeof die !== 'undefined').to.equal(true);
         expect(gameSave.getDungeonLevel()).to.equal(3);
 
-        var playerList = gameSave.getPlayersAsList();
-        var playerObj = playerList[0];
+        const playerList = gameSave.getPlayersAsList();
+        const playerObj = playerList[0];
         expect(playerObj.hasOwnProperty('name')).to.equal(true);
         expect(playerObj.hasOwnProperty('expLevel')).to.equal(true);
         expect(playerObj.hasOwnProperty('dungeonLevel')).to.equal(true);
@@ -259,23 +256,23 @@ describe('Game.Save how saving works', function() {
     });
 
     it('Saves/restores inventory properly', function() {
-        var gameSave = new RG.Game.Save();
+        const gameSave = new RG.Game.Save();
         gameSave.setStorage(localStorage);
-        var player = setupPlayer('Player1');
-        var invEq = player.getInvEq();
+        const player = setupPlayer('Player1');
+        const invEq = player.getInvEq();
 
         // Test first with simple food
-        var food = new RG.Item.Food('Habanero');
+        const food = new RG.Item.Food('Habanero');
         invEq.addItem(food);
 
         gameSave.savePlayer(player);
-        var rest = gameSave.restorePlayer('Player1');
-        var invItems = rest.getInvEq().getInventory().getItems();
+        let rest = gameSave.restorePlayer('Player1');
+        let invItems = rest.getInvEq().getInventory().getItems();
         expect(invItems.length).to.equal(1);
         expect(invItems[0].equals(food)).to.equal(true);
 
         // Create a new weapon
-        var weapon = new RG.Item.Weapon('Sword');
+        const weapon = new RG.Item.Weapon('Sword');
         weapon.setAttack(10);
         weapon.setDamage('3d3+5');
         weapon.count = 2;
@@ -287,11 +284,11 @@ describe('Game.Save how saving works', function() {
         invItems = rest.getInvEq().getInventory().getItems();
         expect(invItems.length).to.equal(2);
 
-        var sword = invItems[1];
+        const sword = invItems[1];
         expect(sword.equals(weapon)).to.equal(true);
         expect(sword.count).to.equal(2);
 
-        var armour = new RG.Item.Armour('Plate mail');
+        const armour = new RG.Item.Armour('Plate mail');
         armour.setDefense(11);
         invEq.addItem(armour);
         gameSave.savePlayer(player);
@@ -299,18 +296,18 @@ describe('Game.Save how saving works', function() {
         invItems = rest.getInvEq().getInventory().getItems();
         expect(invItems.length).to.equal(3);
 
-        var plateMail = invItems[2];
+        const plateMail = invItems[2];
         expect(armour.equals(plateMail)).to.equal(true);
 
     });
 
     it('Saves/restores and equips equipment correctly', function() {
-        var gameSave = new RG.Game.Save();
+        const gameSave = new RG.Game.Save();
         gameSave.setStorage(localStorage);
-        var player = setupPlayer('HeroPlayer');
-        var invEq = player.getInvEq();
+        const player = setupPlayer('HeroPlayer');
+        const invEq = player.getInvEq();
 
-        var weapon = new RG.Item.Weapon('Sword');
+        const weapon = new RG.Item.Weapon('Sword');
         weapon.setDefense(15);
         weapon.setAttack(1);
         weapon.setWeight(2.5);
@@ -319,28 +316,28 @@ describe('Game.Save how saving works', function() {
         expect(invEq.equipItem(weapon)).to.equal(true);
 
         // Empty spirit gem
-        var emptygem = new RG.Item.SpiritGem('Wolf gem');
+        const emptygem = new RG.Item.SpiritGem('Wolf gem');
         invEq.addItem(emptygem);
 
-        var gemWithSpirit = new RG.Item.SpiritGem('Used gem');
-        var spirit = new RG.Actor.Spirit('Wolf spirit');
+        const gemWithSpirit = new RG.Item.SpiritGem('Used gem');
+        const spirit = new RG.Actor.Spirit('Wolf spirit');
         spirit.get('Stats').setStrength(11);
         gemWithSpirit.setSpirit(spirit);
         invEq.addItem(gemWithSpirit);
 
         gameSave.savePlayer(player);
-        var rest = gameSave.restorePlayer('HeroPlayer');
-        var restWeapon = rest.getWeapon();
+        const rest = gameSave.restorePlayer('HeroPlayer');
+        const restWeapon = rest.getWeapon();
         expect(restWeapon.equals(weapon)).to.equal(true);
 
-        var inv = rest.getInvEq().getInventory();
-        var emptyGemRest = inv.getItems()[0];
+        const inv = rest.getInvEq().getInventory();
+        const emptyGemRest = inv.getItems()[0];
         expect(emptyGemRest.equals(emptygem)).to.equal(true);
 
-        var gemWithSpirit2 = inv.getItems()[1];
-        var spiritRest = gemWithSpirit2.getSpirit();
-        var statsRest = spiritRest.get('Stats');
-        var statsOrig = spirit.get('Stats');
+        const gemWithSpirit2 = inv.getItems()[1];
+        const spiritRest = gemWithSpirit2.getSpirit();
+        const statsRest = spiritRest.get('Stats');
+        const statsOrig = spirit.get('Stats');
         expect(statsRest.getStrength()).to.equal(statsOrig.getStrength());
 
 
@@ -351,43 +348,43 @@ describe('Game.Save how saving works', function() {
 describe('How poison item is used, and experience propagates', function() {
     it('Kills an actor after some time', function() {
 
-        var game = new RG.Game.Main();
-        var level = RG.FACT.createLevel('arena', 20, 20);
-        var assassin = new Actor('assassin');
-        var poison = globalParser.createActualObj('items',
+        const game = new RG.Game.Main();
+        const level = RG.FACT.createLevel('arena', 20, 20);
+        const assassin = new Actor('assassin');
+        const poison = globalParser.createActualObj('items',
             'Potion of frost poison');
         assassin.getInvEq().addItem(poison);
 
-        var victim = new Actor('victim');
+        const victim = new Actor('victim');
         victim.get('Health').setHP(5);
 
         level.addActor(assassin, 3, 5);
         level.addActor(victim, 6, 6);
         poison.useItem({target: level.getMap().getCell(6, 6)});
 
-        var startExp = assassin.get('Experience').getExp();
+        const startExp = assassin.get('Experience').getExp();
 
-        var count = 0;
+        let count = 0;
         while (victim.get('Health').isAlive() && count < 100) {
             game.simulateGame();
             ++count;
         }
-        var endExp = assassin.get('Experience').getExp();
-        expect(endExp > startExp, 'Exp. points given from poison').to.equal(true);
+        const endExp = assassin.get('Experience').getExp();
+        expect(endExp > startExp, 'Exp. points from poison').to.equal(true);
 
-        var curePoison = globalParser.createActualObj('items',
+        const curePoison = globalParser.createActualObj('items',
             'Potion of cure poison');
-        var frostPoison = globalParser.createActualObj('items',
+        const frostPoison = globalParser.createActualObj('items',
             'Potion of frost poison');
 
         assassin.getInvEq().addItem(frostPoison);
-        var curedVictim = new Actor('Cured victim');
+        const curedVictim = new Actor('Cured victim');
 
         expect(curedVictim.has('Expiration')).to.equal(false);
         expect(curedVictim.has('Poison')).to.equal(false);
         level.addActor(curedVictim, 4, 4);
 
-        var poisonTarget = level.getMap().getCell(4, 4);
+        const poisonTarget = level.getMap().getCell(4, 4);
         expect(frostPoison.useItem({target: poisonTarget})).to.equal(true);
         expect(curedVictim.has('Expiration')).to.equal(true);
         expect(curedVictim.has('Poison')).to.equal(true);
@@ -395,11 +392,11 @@ describe('How poison item is used, and experience propagates', function() {
         curedVictim.getInvEq().addItem(curePoison);
         game.simulateGame();
 
-        var cureTarget = level.getMap().getCell(4, 4);
+        const cureTarget = level.getMap().getCell(4, 4);
         expect(curePoison.useItem({target: cureTarget})).to.equal(true);
         expect(curedVictim.has('Poison')).to.equal(false);
         expect(curedVictim.get('Health').isAlive()).to.equal(true);
-        for (var i = 0; i < 20; i++) {game.simulateGame();}
+        for (let i = 0; i < 20; i++) {game.simulateGame();}
         expect(curedVictim.has('Expiration')).to.equal(false);
 
 
