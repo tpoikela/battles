@@ -1,13 +1,13 @@
 
-var expect = require('chai').expect;
-var RG = require('../client/src/battles.js');
+const expect = require('chai').expect;
+const RG = require('../../../client/src/battles.js');
 
 describe('Component.Base', function() {
 
     it('has exactly one related entity', function() {
-        var entity = new RG.Entity();
-        var entity2 = new RG.Entity();
-        var comp = new RG.Component.Base('Base');
+        const entity = new RG.Entity();
+        const entity2 = new RG.Entity();
+        const comp = new RG.Component.Base('Base');
 
         expect(comp.getType()).to.equal('Base');
 
@@ -24,13 +24,12 @@ describe('Component.Base', function() {
     });
 
     it('can be copied, cloned, compared', function() {
-        var comp = new RG.Component.Base('Base');
-
-        var compClone = comp.clone();
+        const comp = new RG.Component.Base('Base');
+        const compClone = comp.clone();
         expect(comp.equals(compClone)).to.be.true;
         expect(compClone.equals(comp)).to.be.true;
 
-        var compCopy = new RG.Component.Base('XXX');
+        const compCopy = new RG.Component.Base('XXX');
         compCopy.copy(comp);
         expect(comp.equals(compCopy)).to.be.true;
 
@@ -39,14 +38,14 @@ describe('Component.Base', function() {
     });
 
     it('has onAdd/Remove callback mechanism', function() {
-        var comp = new RG.Component.Base('Base');
-        var entity = new RG.Entity();
+        const comp = new RG.Component.Base('Base');
+        const entity = new RG.Entity();
 
-        var calledAdd = false;
-        var callbackAdd = function() {calledAdd = true;};
+        let calledAdd = false;
+        const callbackAdd = function() {calledAdd = true;};
 
-        var calledRemove = false;
-        var callbackRemove = function() {calledRemove = true;};
+        let calledRemove = false;
+        const callbackRemove = function() {calledRemove = true;};
 
         comp.addCallback('onAdd', callbackAdd);
         comp.addCallback('onRemove', callbackRemove);
@@ -59,6 +58,5 @@ describe('Component.Base', function() {
         expect(calledRemove).to.be.false;
         entity.remove('Base');
         expect(calledRemove).to.be.true;
-
     });
 });
