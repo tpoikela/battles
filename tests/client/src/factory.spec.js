@@ -1,22 +1,22 @@
 
-var expect = require('chai').expect;
+const expect = require('chai').expect;
+const RG = require('../../../client/src/battles');
 
-var RG = require('../client/src/battles');
-
-var ItemRand = RG.Factory.ItemRandomizer;
+const ItemRand = RG.Factory.ItemRandomizer;
 
 describe('RG.Factory.ItemRandomizer', function() {
     it('Randomizes item properties for proc generation', function() {
-        var itemRand = new ItemRand();
-        var food = new RG.Item.Food('meat');
-        var weightBefore = food.getWeight();
+        const itemRand = new ItemRand();
+        const food = new RG.Item.Food('meat');
+        const weightBefore = food.getWeight();
         itemRand.adjustItem(food);
-        var weightAfter = food.getWeight();
+
+        const weightAfter = food.getWeight();
         expect(weightBefore !== weightAfter).to.equal(true);
     });
 });
 
-var MockParser = function() {
+const MockParser = function() {
     this.createRandomItem = function() {
         return new RG.Item.Food('testFood');
     };
@@ -25,16 +25,15 @@ var MockParser = function() {
 
 describe('RG.Factory.Base', function() {
     it('Can create randomized towns', function() {
-        var factory = new RG.Factory.Base();
-
-        var conf = {
+        const factory = new RG.Factory.Base();
+        const conf = {
             parser: new MockParser(),
             func: function() {return 'dummy';}
         };
 
-        var townLevel = factory.createLevel('town', 80, 80, conf);
-        var actors = townLevel.getActors();
-        var keeper = actors[0];
+        const townLevel = factory.createLevel('town', 80, 80, conf);
+        const actors = townLevel.getActors();
+        const keeper = actors[0];
 
         expect(actors.length).to.equal(1);
         expect(keeper.getName()).to.equal('Shopkeeper');
@@ -45,11 +44,11 @@ describe('RG.Factory.Base', function() {
 
 describe('ObjectShellParser', function() {
     it('It is used for parsing object shells', function() {
-        var parser = new RG.ObjectShellParser();
-        var noObj = parser.createActualObj('items', 'Void Item');
+        const parser = new RG.ObjectShellParser();
+        const noObj = parser.createActualObj('items', 'Void Item');
         expect(noObj).to.be.null;
 
-        var invalidShell = {xxx: 'xxx', noname: 'noname'};
+        const invalidShell = {xxx: 'xxx', noname: 'noname'};
         expect(parser.validShellGiven(invalidShell)).to.be.false;
 
     });
@@ -57,8 +56,8 @@ describe('ObjectShellParser', function() {
 
 describe('RG.FCCGame', function() {
     it('can be created', function() {
-        var game = new RG.FCCGame();
-        var conf = {
+        const game = new RG.FCCGame();
+        const conf = {
             cols: 40,
             rows: 30,
             levels: 2,
