@@ -53,7 +53,7 @@
     "clean": "make clean",
     "coverage": "perl cov_test.pl",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
-    "test": "mocha tests/*.js"
+    "test": "mocha --recursive tests/**/*.js"
   },
   "license": "MIT",
   "bugs": {
