@@ -1,8 +1,7 @@
 
-var expect = require('chai').expect;
-var RG = require('../client/src/battles.js');
-
-var Actor = require('../client/src/actor.js');
+const expect = require('chai').expect;
+const RG = require('../../../client/src/battles');
+const Actor = require('../../../client/src/actor.js');
 
 describe('Rogue.Actor', function() {
 
