@@ -3,10 +3,10 @@
 # battles
 Roguelike-game Battles in the North
 
-The development browser is Firefox 38.0.5, on Fedora 20.
-Quickly tested also on Chrome 52.0.2743.116, on Fedora 20.
+The development browser is currently Chrome 59.0.3071.86 (Official Build)
+(64-bit) on Fedora 25.  Also tested on Firefox 53.0.3 (64-bit), on Fedora 25.
 
-The unit tests are being run on Node V4.2.1, using mocha and chai.expect mostly.
+The unit tests are being run on Node V8.0.0 using mocha and chai.expect.
 
 If there are rendering problems with the game area, try reducing the viewport
 size with buttons +/-X and +/-Y.
@@ -28,12 +28,9 @@ Build the project using gulp:
     gulp build-js
 ```
 
-Open 'index.html' with your browser. The game should start with a pop-up screen.
-
-To run the game in Chrome, first start a HTTP server in the project folder:
-
+Finally, serve the static files:
 ```code
     python -m SimpleHTTPServer
 ```
 
-After this, you should be able to access the game on address 0.0.0.0:8000.
+After this, you should be able to access the game on localhost:8000/index.html.
