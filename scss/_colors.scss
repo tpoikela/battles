@@ -1,0 +1,24 @@
+
+/* All color definitions for Battles. Use only these variables in other
+ * stylesheets.*/
+
+$snow-white: #fff;
+$white: #fff;
+
+$main-color: darken($snow-white, 10%);
+$main-color-2: darken($main-color, 15%);
+$main-color-3: darken($main-color-2, 15%);
+
+$ctrl-top-color: darken($main-color, 10%);
+
+$ruby-white: #111;
+$ruby-red: #e11;
+
+$black: #000;
+$blue: #00f;
+$yellow: #ff0;;
+$brown: #a52a2a;
+$green: #008000;
+$purple: #800080;
+
+$board-bg-color: rgba(255, 255, 255, 0.5);
