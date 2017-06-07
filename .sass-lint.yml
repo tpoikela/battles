@@ -6,3 +6,4 @@ rules:
     no-empty-rulesets: 0
     no-css-comments: 0
     brace-style: 0
+    leading-zero: 0
