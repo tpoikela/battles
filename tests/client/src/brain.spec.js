@@ -1,22 +1,20 @@
 
-var expect = require('chai').expect;
+const expect = require('chai').expect;
 
-var RG = require('../client/src/battles');
-var ROT = require('../lib/rot.js');
+const RG = require('../../../client/src/battles');
+const ROT = require('../../../lib/rot');
 
-var RGTest = require('./roguetest.js');
+const RGTest = require('../../roguetest.js');
 
-var Brain = RG.Brain;
+const Brain = RG.Brain;
 
 describe('Brain.Player', function() {
-
-    var level = null;
-    var player = null;
-    var demon = null;
-    var human = null;
+    let level = null;
+    let player = null;
+    let demon = null;
+    let human = null;
 
     beforeEach( () => {
-
         level = RG.FACT.createLevel('arena', 10, 10);
         player = new RG.Actor.Rogue('Player');
         demon = new RG.Actor.Rogue('Demon');
@@ -31,11 +29,10 @@ describe('Brain.Player', function() {
         player.setIsPlayer(true);
         level.addActor(player, 1, 1);
         level.addActor(demon, 1, 2);
-
     });
 
     it('Accepts key commands', function() {
-        var brain = new Brain.Player(player);
+        const brain = new Brain.Player(player);
 
         brain.decideNextAction({code: ROT.VK_R});
         expect(player.getSpeed()).to.equal(150);
@@ -58,7 +55,7 @@ describe('Brain.Player', function() {
     });
 
     it('Has cmds for more complex things', function() {
-        var brain = new Brain.Player(player);
+        const brain = new Brain.Player(player);
         brain.decideNextAction({code: ROT.VK_S});
         expect(brain.energy).to.equal(RG.energy.REST);
 
@@ -67,26 +64,24 @@ describe('Brain.Player', function() {
         expect(brain.energy).to.equal(0);
 
         // Equip a missile
-        var cell = RG.FACT.createFloorCell();
+        const cell = RG.FACT.createFloorCell();
         RGTest.equipItem(player, new RG.Item.Missile('Arrow'));
         brain.decideNextAction({cmd: 'missile', target: cell});
         expect(brain.energy).to.equal(RG.energy.MISSILE);
 
-
         brain.decideNextAction({cmd: 'use', item: {}});
         expect(brain.energy).to.equal(0);
-
     });
 
     it('Has different fighting modes', function() {
-        var brain = new Brain.Player(player);
+        const brain = new Brain.Player(player);
         brain.toggleFightMode();
 
         // var attack = player.getAttack();
         // var speed = player.getSpeed();
 
         expect(brain.energy).to.equal(1);
-        var attackCallback = brain.decideNextAction({code: ROT.VK_X});
+        let attackCallback = brain.decideNextAction({code: ROT.VK_X});
         expect(brain.energy).to.equal(RG.energy.ATTACK);
         attackCallback();
         expect(player.get('StatsMods').getSpeed()).to.equal(20);
@@ -100,7 +95,7 @@ describe('Brain.Player', function() {
 
     it('Needs confirm before attacking friends', function() {
         level.addActor(human, 2, 2);
-        var brain = new Brain.Player(player);
+        const brain = new Brain.Player(player);
 
         brain.decideNextAction({code: RG.K_MOVE_SE});
         expect(brain.energy).to.equal(0);
@@ -110,12 +105,11 @@ describe('Brain.Player', function() {
         brain.decideNextAction({code: RG.K_MOVE_SE});
         brain.decideNextAction({code: RG.K_YES});
         expect(brain.energy).to.equal(RG.energy.ATTACK);
-
     });
 
     it('can toggle between fighting modes', function() {
-        var brain = new Brain.Player(player);
-        var fightMode = brain.getFightMode();
+        const brain = new Brain.Player(player);
+        let fightMode = brain.getFightMode();
         expect(fightMode).to.equal(RG.FMODE_NORMAL);
         brain.decideNextAction({code: RG.K_FIGHT});
         fightMode = brain.getFightMode();
@@ -127,13 +121,12 @@ describe('Brain.Player', function() {
         brain.decideNextAction({code: RG.K_FIGHT});
         fightMode = brain.getFightMode();
         expect(fightMode).to.equal(RG.FMODE_NORMAL);
-
     });
 
     it('handles picking up of items', function() {
-        var brain = new Brain.Player(player);
-        var food = new RG.Item.Food('food');
-        var weapon = new RG.Item.Weapon('weapon');
+        const brain = new Brain.Player(player);
+        const food = new RG.Item.Food('food');
+        const weapon = new RG.Item.Weapon('weapon');
         level.addItem(food, 1, 1);
         level.addItem(weapon, 1, 1);
         brain.decideNextAction({code: RG.K_NEXT_ITEM});
@@ -145,31 +138,28 @@ describe('Brain.Player', function() {
     });
 
     it('can have GUI callbacks added to it', function() {
-        var cbCode = ROT.VK_ADD;
-        var called = false;
-        var callback = function(code) {
+        const cbCode = ROT.VK_ADD;
+        let called = false;
+        const callback = function(code) {
             called = true;
             return code;
         };
-        var brain = new Brain.Player(player);
+        const brain = new Brain.Player(player);
         brain.addGUICallback(cbCode, callback);
 
         expect(called).to.be.false;
         brain.decideNextAction({code: cbCode});
         expect(called).to.be.true;
-
     });
 });
 
 describe('RG.Brain.Rogue', function() {
-
-    var level = null;
-    var player = null;
-    var demon = null;
-    var human = null;
+    let level = null;
+    let player = null;
+    let demon = null;
+    let human = null;
 
     beforeEach( () => {
-
         level = RG.FACT.createLevel('arena', 10, 10);
         player = new RG.Actor.Rogue('Player');
         demon = new RG.Actor.Rogue('Demon');
@@ -185,12 +175,11 @@ describe('RG.Brain.Rogue', function() {
         player.setIsPlayer(true);
         level.addActor(player, 1, 1);
         level.addActor(demon, 1, 2);
-
     });
 
     it('Has 1st priority for enemies', function() {
         // var brain = demon.getBrain();
-        var cells = RG.Brain.getCellsAround(demon);
+        let cells = RG.Brain.getCellsAround(demon);
         expect(cells).to.have.length(9);
 
         level.addActor(human, 0, 0);
