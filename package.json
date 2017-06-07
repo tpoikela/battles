@@ -50,7 +50,7 @@
   },
   "scripts": {
     "build": "make build",
-    "clean": "make clean",
+    "clean": "rm build/*",
     "coverage": "perl cov_test.pl",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
     "test": "mocha --recursive tests/**/*.js"
