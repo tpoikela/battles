@@ -100,7 +100,7 @@ var RG = { // {{{2
     /* Returns shortest path (array of x,y pairs) between two points.*/
     getShortestPath: function(x0, y0, x1, y1) {
         var coords = [];
-        var passableCallback = function(x, y) {return true;};
+        var passableCallback = function() {return true;};
         // var finder = new ROT.Path.Dijkstra(x1, y1, passableCallback);
         var finder = new ROT.Path.AStar(x1, y1, passableCallback);
         finder.compute(x0, y0, function(x, y) {
@@ -765,7 +765,6 @@ RG.Die = function(num, dice, mod) {
 /* Event pool can be used to emit events and register callbacks for listeners.
  * This decouples the emitter and listener from each other.  */
 RG.EventPool = function() { // {{{2
-
     var _listeners = {};
     var _eventsNoListener = 0;
 
