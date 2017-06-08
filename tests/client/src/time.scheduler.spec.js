@@ -1,10 +1,9 @@
 /**
  * Unit Tests for checking action scheduling and turn taking between actors.
- *
  */
 
 const expect = require('chai').expect;
-const RG = require('../client/src/battles');
+const RG = require('../../../client/src/battles');
 
 const Actor = RG.Actor.Rogue;
 const Action = RG.Time.RogueAction;
@@ -17,7 +16,6 @@ describe('Basic functions for actors', function() {
         expect(actor.getY()).to.equal(10);
     });
 });
-
 
 describe('Scheduling one action', function() {
     it('Repeats the same actor indefinetely', function() {
@@ -78,9 +76,7 @@ describe('Scheduling one action', function() {
     });
 });
 
-const testCB = function(setToZero) {
-    setToZero = 0;
-};
+const emptyTestCB = function() {};
 
 const MockAction = function(dur) {
     let _dur = dur;
@@ -96,7 +92,7 @@ describe('Canceling events and actor actions', function() {
     it('Removes the event like it never happened', function() {
         const testActor = new RG.Actor.Rogue('actor');
         // const notZero = 555;
-        const changeEvent = new RG.Time.RogueOneShotEvent(testCB, 200,
+        const changeEvent = new RG.Time.RogueOneShotEvent(emptyTestCB, 200,
             'This happened');
         sch.add(testActor, true, 100);
         sch.add(changeEvent, true, 190);
@@ -124,6 +120,5 @@ describe('Canceling events and actor actions', function() {
         next = sch.next();
         expect(next).to.equal(testActor);
         sch.setAction(act);
-
     });
 });
