@@ -2,20 +2,26 @@
 /** Note: This file doesn't contain any unit tests. It has some architecture for
  * performing common test function.*/
 
-var RG = require('../client/src/battles');
-var expect = require('chai').expect;
+const RG = require('../client/src/battles');
+const expect = require('chai').expect;
 
-var RGTest = {
+const RGTest = {
 
 };
 
-/* Creates a mock-level for unit tests.*/
+/* Creates a mock-level for unit tests. */
 RGTest.createMockLevel = function(cols, rows) {
-    var level = {cols: cols, rows: rows,
+    const level = {cols: cols, rows: rows,
         map: {
-            getCell: function(x, y) {return {};},
-            hasXY: function(x, y) {return true;},
-            isPassable: function(x, y) {return true;}
+            getCell: function(x, y) {
+                return {};
+            },
+            hasXY: function(x, y) {
+                return true;
+            },
+            isPassable: function(x, y) {
+                return x > -1 && y > -1;
+            }
         },
         getMap: function() {return this.map;},
 
@@ -28,7 +34,7 @@ RGTest.createMockLevel = function(cols, rows) {
 };
 
 RGTest.equipItem = function(actor, item) {
-    var invEq = actor.getInvEq();
+    const invEq = actor.getInvEq();
     invEq.addItem(item);
     expect(invEq.equipItem(item)).to.equal(true);
 };
@@ -36,9 +42,9 @@ RGTest.equipItem = function(actor, item) {
 /* Wraps an object into a cell for later use. Some functions require a map cell
 * instead of taking the object directly, so this is useful. */
 RGTest.wrapObjWithCell = function(obj) {
-    var cell = RG.FACT.createFloorCell();
+    const cell = RG.FACT.createFloorCell();
     cell.setExplored(true); // Otherwise returns darkness
-    var propType = obj.getPropType();
+    const propType = obj.getPropType();
     cell.setProp(propType, obj);
     return cell;
 };
@@ -49,12 +55,12 @@ RGTest.checkActorXY = function(actor, x, y) {
 };
 
 RGTest.checkChar = function(obj, expChar) {
-    var cell = RGTest.wrapObjWithCell(obj);
+    const cell = RGTest.wrapObjWithCell(obj);
     expect(RG.getCellChar(cell)).to.equal(expChar);
 };
 
 RGTest.checkCSSClassName = function(obj, expClass) {
-    var cell = RGTest.wrapObjWithCell(obj);
+    const cell = RGTest.wrapObjWithCell(obj);
     expect(RG.getStyleClassForCell(cell)).to.equal(expClass);
 
 };
