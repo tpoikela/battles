@@ -1,23 +1,17 @@
 
-
-var expect = require('chai').expect;
-var RG = require('../client/src/battles');
+const expect = require('chai').expect;
+const RG = require('../../../client/src/battles');
 
 const EventPool = RG.EventPool;
 
-var Listener = function(eventName) {
-
+const Listener = function(eventName) {
     this.notified = false;
-
     this.eventName = eventName;
 
     this.hasNotify = true;
-    this.notify = function(name, args) {
+
+    this.notify = function(name) {
         if (name === this.eventName) {
-            console.log('Event ' + name + ' notified. Args:');
-            for (var p in args) {
-                console.log(p + ' -> ' + args[p]);
-            }
             this.notified = true;
         }
     };
@@ -27,21 +21,18 @@ var Listener = function(eventName) {
     };
 };
 
-var emitter = {
+const emitter = {
     pool: null,
 
     emit: function(name, args) {
         pool.emitEvent(name, args);
     }
-
 };
 
-var empty = {
+const empty = {};
 
-};
-
-var listener = new Listener('ActualEvent');
-var pool = new EventPool();
+const listener = new Listener('ActualEvent');
+const pool = new EventPool();
 pool.listenEvent(listener.eventName, listener);
 pool.listenEvent('TestEvent', empty);
 emitter.pool = pool;
