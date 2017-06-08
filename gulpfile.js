@@ -140,13 +140,13 @@ var watchDependents = [
   'build-sass'
 ];
 
-gulp.task('watch-cli', watchDependents, function() {
+gulp.task('watch-dev', watchDependents, function() {
     gulp.watch(paths.client, ['build-js-inc']);
     gulp.watch(paths.sass, ['build-sass']);
     gulp.watch(paths.tags, ['tags']);
 });
 
-gulp.task('watch', ['watch-cli', 'serve'], function() {
+gulp.task('watch', ['watch-dev', 'serve'], function() {
     gulp.watch(paths.server, ['serve']);
 });
 
