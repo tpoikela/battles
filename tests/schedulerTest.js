@@ -3,15 +3,15 @@
  *
  */
 
-var expect = require('chai').expect;
-var RG = require('../client/src/battles');
+const expect = require('chai').expect;
+const RG = require('../client/src/battles');
 
-var Actor = RG.Actor.Rogue;
-var Action = RG.Time.RogueAction;
+const Actor = RG.Actor.Rogue;
+const Action = RG.Time.RogueAction;
 
 describe('Basic functions for actors', function() {
     it('Acts like Locatable', function() {
-        var actor = new Actor(true);
+        const actor = new Actor(true);
         actor.setXY(2, 10);
         expect(actor.getX()).to.equal(2);
         expect(actor.getY()).to.equal(10);
@@ -21,16 +21,16 @@ describe('Basic functions for actors', function() {
 
 describe('Scheduling one action', function() {
     it('Repeats the same actor indefinetely', function() {
-        var sch = new RG.Time.Scheduler();
-        var actor = new Actor('actor');
-        var actorID = actor.id;
+        const sch = new RG.Time.Scheduler();
+        const actor = new Actor('actor');
+        let actorID = actor.id;
 
-        var player = new Actor('player');
-        var playerID = player.id;
-        var falseActor = new Actor('falseActor');
+        const player = new Actor('player');
+        const playerID = player.id;
+        const falseActor = new Actor('falseActor');
 
-        var playerAction = new Action(15, function() {});
-        var action = new Action(20, function() {});
+        const playerAction = new Action(15, function() {});
+        const action = new Action(20, function() {});
 
         expect(actor.isPlayer()).to.equal(false);
         player.setIsPlayer(true);
@@ -43,7 +43,7 @@ describe('Scheduling one action', function() {
         sch.add(player, true, 1);
 
         // t = 0
-        var nextActor = sch.next();
+        let nextActor = sch.next();
         sch.setAction(action);
         expect(nextActor.id).to.equal(actorID);
 
@@ -78,31 +78,30 @@ describe('Scheduling one action', function() {
     });
 });
 
-var testCB = function(setToZero) {
+const testCB = function(setToZero) {
     setToZero = 0;
 };
 
-var MockAction = function(dur) {
-
-    var _dur = dur;
+const MockAction = function(dur) {
+    let _dur = dur;
 
     this.setDuration = function(dur) {_dur = dur;};
     this.getDuration = function() {return _dur;};
 };
 
 describe('Canceling events and actor actions', function() {
-    var sch = new RG.Time.Scheduler();
-    var act = new MockAction(100);
+    const sch = new RG.Time.Scheduler();
+    const act = new MockAction(100);
 
     it('Removes the event like it never happened', function() {
-        var testActor = new RG.Actor.Rogue('actor');
-        // var notZero = 555;
-        var changeEvent = new RG.Time.RogueOneShotEvent(testCB, 200,
+        const testActor = new RG.Actor.Rogue('actor');
+        // const notZero = 555;
+        const changeEvent = new RG.Time.RogueOneShotEvent(testCB, 200,
             'This happened');
         sch.add(testActor, true, 100);
         sch.add(changeEvent, true, 190);
 
-        var next = sch.next();
+        let next = sch.next();
         sch.setAction(act);
         expect(next).to.equal(testActor);
 
