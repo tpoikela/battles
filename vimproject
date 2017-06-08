@@ -1,15 +1,19 @@
 roguelike=/home/tpoikela/git/battles/ CD=/home/tpoikela/git/battles/ filter="*.js *.jsx *.html *.scss *.txt *.md *.json" {
  battles.js
  getsource.js
+ gulpfile.js
  battles_gui.jsx
  index.html
- style.scss
  README.md
+ browserify-cache.json
  package.json
  client=client {
   data=data {
+   battles_objects.js
+   effects.js
   }
   gui=gui {
+   gui.js
   }
   jsx=jsx {
    app.jsx
@@ -49,27 +53,12 @@ roguelike=/home/tpoikela/git/battles/ CD=/home/tpoikela/git/battles/ filter="*.j
  }
  scss=scss {
   _actors.scss
+  _colors.scss
   _elements.scss
   _items.scss
+  style.scss
  }
  tests=tests {
-  actorTest.js
-  battleTest.js
-  brainTest.js
-  communicationTest.js
-  ecsTest.js
-  engineTest.js
-  eventsTest.js
-  factoryTest.js
-  gameTest.js
-  gameobjectsTest.js
-  itemsTest.js
-  mapTest.js
-  missilesTest.js
-  objectTest.js
   roguetest.js
-  schedulerTest.js
-  spiritsTest.js
-  worldTest.js
  }
 }
