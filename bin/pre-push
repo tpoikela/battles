@@ -1,0 +1,5 @@
+#!/usr/bin/env perl
+
+my $error = system('npm run test');
+exit $error;
+
