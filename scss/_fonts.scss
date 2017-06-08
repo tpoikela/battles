@@ -1,0 +1,21 @@
+
+@font-face {
+    font-family: 'Josefin Sans';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Josefin Sans'),
+    local('JosefinSans'),
+    url('public/fonts/Josefin.ttf'),
+    url('https://fonts.gstatic.com/s/josefinsans/v9/xgzbb53t8j-Mo-vYa23n5onF5uFdDttMLvmWuJdhhgs.ttf')
+    format('truetype');
+}
+
+@font-face {
+    font-family: 'VT323';
+    font-style: normal;
+    font-weight: 400;
+    src: local('VT323 Regular'), local('VT323-Regular'),
+    url('public/fonts/VT323.ttf'),
+    url('https://fonts.gstatic.com/s/vt323/v8/CfvjE7QXPaQqLo02SkpIgA.ttf')
+    format('truetype');
+}
