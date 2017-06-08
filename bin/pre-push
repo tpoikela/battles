@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
 
-my $error = system('npm run test');
+my $error = system('npm run test >& /dev/null');
 exit $error;
 
