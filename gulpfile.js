@@ -1,27 +1,31 @@
 
-var gulp = require('gulp');
-var sass = require('gulp-sass');
 
-var babelify = require('babelify');
-var browserify = require('browserify');
-var browserifyInc = require('browserify-incremental');
+const spawn = require('child_process').spawn;
 
-var source = require('vinyl-source-stream');
-var notify = require('gulp-notify');
+const gulp = require('gulp');
+const sass = require('gulp-sass');
 
-var nodemon = require('gulp-nodemon');
+const babelify = require('babelify');
+const browserify = require('browserify');
+const browserifyInc = require('browserify-incremental');
 
-var ctags = require('gulp-ctags');
+const source = require('vinyl-source-stream');
+const notify = require('gulp-notify');
 
-// var spawn = require('child_process').spawn;
+const nodemon = require('gulp-nodemon');
 
-var port = process.env.PORT || 8080;
+const ctags = require('gulp-ctags');
+
+// const spawn = require('child_process').spawn;
+
+const port = process.env.PORT || 8080;
 
 // Define paths for all source files here
-var paths = {
+const paths = {
     jsxDir: './client/jsx',
     client: ['./client/jsx/*.jsx', './client/**/*.js'],
     sass: ['./scss/*.*'],
+    tests: ['./tests/**/*.js'],
 
     server: './server.js',
     serverIgnore: ['./gulpfile.js', './scss', './pug', './public', './build',
@@ -33,7 +37,7 @@ var paths = {
 
 /* Used to notify on build/compile errors.*/
 function handleErrors() {
-    var args = Array.prototype.slice.call(arguments);
+    const args = Array.prototype.slice.call(arguments);
       notify.onError({
         title: 'Compile Error',
         message: '<%= error.message %>'
@@ -41,7 +45,7 @@ function handleErrors() {
       this.emit('end'); // Keep gulp from hanging on this task
 }
 
-var browserifyOpts = {
+const browserifyOpts = {
     entries: paths.jsxDir + '/app.jsx',
     extensions: ['.jsx'],
     debug: true
@@ -58,7 +62,7 @@ gulp.task('build-js', function() {
 
 // Incrementally building the js
 gulp.task('build-js-inc', function() {
-	var b = browserify(Object.assign({}, browserifyInc.args,
+	const b = browserify(Object.assign({}, browserifyInc.args,
 		browserifyOpts
 	));
 
@@ -89,7 +93,7 @@ gulp.task('build-sass', function() {
 
 });
 
-var buildTasks = ['build-js', 'build-sass'];
+const buildTasks = ['build-js', 'build-sass'];
 
 gulp.task('build', buildTasks, function() {
     console.log('Building the application.');
@@ -97,7 +101,7 @@ gulp.task('build', buildTasks, function() {
 
 /* Task for starting/restarting server on any changes.*/
 gulp.task('serve', function(cb) {
-    var called = false;
+    const called = false;
     nodemon({
         script: paths.server,
         ext: '.js',
@@ -122,6 +126,22 @@ gulp.task('serve', function(cb) {
     });
 });
 
+gulp.task('tests', function() {
+    const testProc = spawn('npm run test');
+    testProc.stdout.on('data', (data) => {
+      console.log(`stdout: ${data}`);
+    });
+
+    testProc.stderr.on('data', (data) => {
+      console.log(`stderr: ${data}`);
+    });
+
+    testProc.on('close', (code) => {
+      console.log(`child process exited with code ${code}`);
+    });
+
+});
+
 // Builds ctags-file for easier src navigation in Vim
 /* gulp.task('tags', function() {
     console.log('Building ctags for the project.');
@@ -134,7 +154,7 @@ gulp.task('tags', function() {
     .pipe(gulp.dest('./'));
 });
 
-var watchDependents = [
+const watchDependents = [
   'build-js-inc',
   'tags',
   'build-sass'
@@ -146,10 +166,13 @@ gulp.task('watch-dev', watchDependents, function() {
     gulp.watch(paths.tags, ['tags']);
 });
 
+gulp.task('watch-tests', ['tests'], function() {
+    gulp.watch(paths.tests, ['tests']);
+});
+
 gulp.task('watch', ['watch-dev', 'serve'], function() {
     gulp.watch(paths.server, ['serve']);
 });
-
 
 gulp.task('default', ['watch']);
 
