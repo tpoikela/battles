@@ -1,5 +1,9 @@
 #!/usr/bin/env perl
 
+print STDERR "Running unit tests as pre-push hook.\n";
 my $error = system('npm run test >& /dev/null');
+
+if ($error == 0) {print STDERR "Tests ok.\n";}
+
 exit $error;
 
