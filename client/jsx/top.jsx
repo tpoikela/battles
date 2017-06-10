@@ -235,10 +235,11 @@ class BattlesTop extends React.Component {
         }
     }
 
-
     /* Creates a new game instance.*/
     createNewGame() {
-        if (this.intID !== null) {clearInterval(this.intID);}
+        if (this.intID !== null) {
+            clearInterval(this.intID);
+        }
 
         this.resetGameState();
         var fccGame = new RG.FCCGame();
@@ -246,7 +247,7 @@ class BattlesTop extends React.Component {
             delete this.game;
             RG.FACT = new RG.Factory.Base();
         }
-        this.game = fccGame.createFCCGame(this.gameConf);
+        this.game = fccGame.createNewGame(this.gameConf);
         this.game.setGUICallbacks(this.isGUICommand, this.doGUICommand);
         var player = this.game.getPlayer();
         this.gameState.visibleCells = player.getLevel().exploreCells(player);
@@ -475,7 +476,7 @@ class BattlesTop extends React.Component {
     GUITarget() {
         if (this.gameState.isTargeting) {
             if (this.state.selectedCell !== null) {
-                let cell = this.state.selectedCell;
+                const cell = this.state.selectedCell;
                 this.gameState.autoTarget = true;
                 this.game.update({cmd: 'missile', target: cell});
                 this.gameState.visibleCells = this.game.visibleCells;
@@ -492,7 +493,7 @@ class BattlesTop extends React.Component {
             this.gameState.numCurrCell = 0;
 
             if (this.gameState.enemyCells.length > 0) {
-                let cell = this.gameState.enemyCells[0];
+                const cell = this.gameState.enemyCells[0];
                 this.setState({selectedCell: cell});
                 console.log('GUITarget found selected cell');
             }
@@ -584,6 +585,7 @@ class BattlesTop extends React.Component {
             case 'Off': this.gameConf.debugMode = false; break;
             case 'Arena': this.gameConf.debugMode = 'Arena'; break;
             case 'Battle': this.gameConf.debugMode = 'Battle'; break;
+            case 'Tiles': this.gameConf.debugMode = 'Tiles'; break;
             default: console.error('setDebugMode illegal mode ' + mode);
         }
     }
