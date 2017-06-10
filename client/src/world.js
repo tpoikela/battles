@@ -294,19 +294,57 @@ RG.World.Area = function(name, maxX, maxY) {
 
     var _maxX = maxX;
     var _maxY = maxY;
-    var _tiles = [];
+
+    this.getMaxX = () => (_maxX);
+    this.getMaxY = () => (_maxY);
+    const _tiles = [];
+
+    this._init = function() {
+        // Create the tiles
+        for (let x = 0; x < _maxX; x++) {
+            const tileColumn = [];
+            for (let y = 0; y < _maxY; y++) {
+                const newTile = new RG.World.AreaTile(x, y, this);
+                const level = RG.FACT.createLevel('ruins', 30, 30, {});
+                newTile.setLevel(level);
+                tileColumn.push(newTile);
+            }
+            _tiles.push(tileColumn);
+        }
+
+        // Connect the tiles
+        for (let x = 0; x < _maxX; x++) {
+            for (let y = 0; y < _maxY; y++) {
+                if (x < _maxX - 1 && y < _maxY - 1) {
+                    _tiles[x][y].connect(_tiles[x + 1][y], _tiles[x][y + 1]);
+                }
+                else if (x < _maxX - 1) {
+                    _tiles[x][y].connect(_tiles[x + 1][y], null);
+                }
+                else if (y < _maxY - 1) {
+                    _tiles[x][y].connect(null, _tiles[x][y + 1]);
+                }
+            }
+        }
+    };
+
+    this._init();
 
     this.getMaxX = function() {return _maxX;};
     this.getMaxY = function() {return _maxY;};
 
     this.getLevels = function() {
         var res = [];
-        for (var x = 0; x < _tiles.length; x++) {
-            for (var y = 0; y < _tiles[y].length; y++) {
+        for (let x = 0; x < _tiles.length; x++) {
+            for (let y = 0; y < _tiles[x].length; y++) {
                 res.push(_tiles[x][y].getLevel());
             }
         }
         return res;
+    };
+
+    this.getTiles = function() {
+        return _tiles;
     };
 
 };
@@ -315,7 +353,7 @@ RG.World.Area = function(name, maxX, maxY) {
 RG.World.Factory = function() {
 
     this.createArea = function(conf) {
-        console.log(conf);
+        const area = new RG.World.Area('testArea', 4, 4);
     };
 
     this.createDungeon = function(conf) {
