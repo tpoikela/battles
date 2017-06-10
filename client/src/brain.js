@@ -1,14 +1,12 @@
 
-
-var ROT = require('../../lib/rot.js');
-var RG = require('./rg.js');
+const ROT = require('../../lib/rot.js');
+const RG = require('./rg.js');
 
 //---------------------------------------------------------------------------
 // BRAINS {{{1
 //---------------------------------------------------------------------------
 
 RG.Brain = {};
-
 
 /* Returns a list of cells in 3x3 around the actor with the brain.*/
 RG.Brain.getCellsAround = function(actor) {
@@ -27,9 +25,7 @@ RG.Brain.getCellsAround = function(actor) {
 /* This brain is used by the player actor. It simply handles the player input
  * but by having brain, player actor looks like other actors.  */
 RG.Brain.Player = function(actor) { // {{{2
-
     var _actor = actor;
-
     var _guiCallbacks = {}; // For attaching GUI callbacks
 
     /* For given code, adds a GUI callback. When this keycode is given, a GUI
@@ -75,7 +71,7 @@ RG.Brain.Player = function(actor) { // {{{2
 
         var code = obj.code;
 
-        // Stop here, if action must be confirmed
+        // Stop here, if action must be confirmed by player by pressing Y
         if (_wantConfirm && _confirmCallback !== null) {
             // Want y/n answer
             _wantConfirm = false;
@@ -518,7 +514,7 @@ RG.Brain.Rogue = function(actor) { // {{{2
 
     /* Main function for retrieving the actionable callback. Acting actor must
      * be passed in. */
-    this.decideNextAction = function(obj) {
+    this.decideNextAction = function() {
         var seenCells = this.getSeenCells();
         var playerCell = this.findEnemyCell(seenCells);
 
@@ -718,8 +714,7 @@ RG.Brain.Summoner = function(actor) {
     var _memory = this.getMemory();
     _memory.addEnemyType('player');
 
-    this.decideNextAction = function(obj) {
-        var level = _actor.getLevel();
+    this.decideNextAction = function() {
         var seenCells = this.getSeenCells();
         var playerCell = this.findEnemyCell(seenCells);
 
@@ -781,12 +776,11 @@ RG.extend2(RG.Brain.Summoner, RG.Brain.Rogue);
 /* This brain is used by humans who are not hostile to the player.*/
 RG.Brain.Human = function(actor) {
     RG.Brain.Rogue.call(this, actor);
-    var _actor = actor;
+    // var _actor = actor;
 
     this.getMemory().addEnemyType('demon');
 
-    this.decideNextAction = function(obj) {
-        var level = _actor.getLevel();
+    this.decideNextAction = function() {
         var seenCells = this.getSeenCells();
         var enemyCell = this.findEnemyCell(seenCells);
         var friendCell = this.findFriendCell(seenCells);
@@ -833,10 +827,9 @@ RG.extend2(RG.Brain.Human, RG.Brain.Rogue);
 /* Brain object used by Spirit objects.*/
 RG.Brain.Spirit = function(actor) {
     RG.Brain.Rogue.call(this, actor);
-    var _actor = actor;
 
     /* Returns the next action for the spirit.*/
-    this.decideNextAction = function(obj) {
+    this.decideNextAction = function() {
         var seenCells = this.getSeenCells();
         return this.exploreLevel(seenCells);
     };
