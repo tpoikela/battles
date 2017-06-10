@@ -446,10 +446,13 @@ RG.FCCGame = function() {
         var player = this.createFCCPlayer(game, obj);
 
         if (obj.debugMode === 'Arena') {
-            return this.createFCCDebugGame(obj, game, player);
+            return this.createArenaDebugGame(obj, game, player);
         }
         else if (obj.debugMode === 'Battle') {
             return this.createDebugBattle(obj, game, player);
+        }
+        else if (obj.debugMode === 'Tiles') {
+            return this.createTiledWorld(obj, game, player);
         }
 
         var levels = ['rooms', 'rogue', 'digger'];
@@ -548,9 +551,19 @@ RG.FCCGame = function() {
 
     var _playerFOV = RG.FOV_RANGE;
 
+    this.createTiledWorld = function(obj, game, player) {
+        const area = new RG.World.Area('Kingdom', 4, 4);
+        const levels = area.getLevels();
+        levels.forEach(level => {
+            game.addLevel(level);
+        });
+        game.addPlayer(player);
+        return game;
+    };
+
     /* Can be used to create a short debugging game for testing.*/
-    this.createFCCDebugGame = function(obj, game, player) {
-        var sqrPerMonster = obj.sqrPerMonster;
+    this.createArenaDebugGame = function(obj, game, player) {
+        const sqrPerMonster = obj.sqrPerMonster;
         var sqrPerItem = obj.sqrPerItem;
         var level = this.createLastBattle(game, obj);
 
