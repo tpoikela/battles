@@ -102,13 +102,42 @@ describe('World.Area', function() {
     });
 });
 
+describe('World.Mountain', function() {
+
+});
 
 describe('World.World', function() {
+    let fact = null;
+    const conf = {
+        nAreas: 2,
+        nDungeonsPerArea: 3,
+        nMountainsPerArea: 1
+    };
+
+    beforeEach(() => {
+        fact = new RG.World.Factory();
+    });
+
+    afterEach(() => {
+        fact = null;
+    });
+
     it('Contains a number of dungeon and areas', function() {
-        var conf = {
-            nAreas: 2,
-            nDungeons: 3
-        };
         var world = new World.World(conf);
+        expect(world.getAreas()).to.have.length(2);
+        expect(world.getDungeons()).to.have.length(6);
+        expect(world.getMountains()).to.have.length(2);
+
+        const areaZero = world.getAreas()[0];
+        const dungeonZero = world.getDungeons()[0];
+        const entrance = dungeonZero.getEntrances()[0];
+        expect(typeof entrance).to.not.equal('undefined');
+
+        fact.createConnection(areaZero, dungeonZero);
+
+        const tile00 = areaZero.getTiles()[0][0];
+        expect(tile00).to.be.empty;
+        const tileLevel = tile00.getLevel();
+        expect(entrance.getTargetLevel()).to.equal(tileLevel);
     });
 });
