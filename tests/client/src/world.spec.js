@@ -92,7 +92,13 @@ describe('World.AreaTile', function() {
 
 describe('World.Area', function() {
     it('Contains a number of connected tiles', function() {
-        var area = new World.Area('SwampArea');
+        const area = new World.Area('SwampArea', 4, 5);
+        const tiles = area.getTiles();
+        const levels = area.getLevels();
+        expect(tiles[1][0].isNorthEdge()).to.equal(true);
+        expect(tiles[3][4].isSouthEdge()).to.equal(true);
+        expect(tiles[3][4].isEastEdge()).to.equal(true);
+        expect(levels).to.have.length(20);
     });
 });
 
