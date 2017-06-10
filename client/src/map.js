@@ -123,14 +123,14 @@ RG.Map.Cell.prototype.toString = function() {
     var str = 'Map.Cell ' + this._x + ', ' + this._y;
     str += ' explored: ' + this._explored;
     str += ' passes light: ' + this.lightPasses();
-    for (var prop in this._p) {
+    Object.keys(this._p).forEach(prop => {
         var arrProps = this._p[prop];
         for (var i = 0; i < arrProps.length; i++) {
             if (arrProps[i].hasOwnProperty('toString')) {
                 str += arrProps[i].toString();
             }
         }
-    }
+    });
     return str;
 };
 
@@ -142,10 +142,12 @@ RG.Map.Cell.prototype.hasPropType = function(propType) {
     if (this._baseElem.getType() === propType) {return true;}
 
     for (var prop in this._p) {
-        var arrProps = this._p[prop];
-        for (var i = 0; i < arrProps.length; i++) {
-            if (arrProps[i].getType() === propType) {
-                return true;
+        if (this._p.hasOwnProperty(prop)) {
+            var arrProps = this._p[prop];
+            for (var i = 0; i < arrProps.length; i++) {
+                if (arrProps[i].getType() === propType) {
+                    return true;
+                }
             }
         }
     }
@@ -156,14 +158,14 @@ RG.Map.Cell.prototype.hasPropType = function(propType) {
 RG.Map.Cell.prototype.getPropType = function(propType) {
     var props = [];
     if (this._baseElem.getType() === propType) {return [this._baseElem];}
-    for (var prop in this._p) {
+    Object.keys(this._p).forEach(prop => {
         var arrProps = this._p[prop];
         for (var i = 0; i < arrProps.length; i++) {
             if (arrProps[i].getType() === propType) {
                 props.push(arrProps[i]);
             }
         }
-    }
+    });
     return props;
 };
 
@@ -278,7 +280,7 @@ RG.Map.CellList = function(cols, rows) { // {{{2
         if (actor.isLocated()) {
             if (actor.getLevel().getMap() === this) {
                 var range = actor.getFOVRange();
-                fov.compute(xActor, yActor, range, function(x, y, r, visibility) {
+                fov.compute(xActor, yActor, range, (x, y, r, visibility) => {
                     if (visibility) {
                         if (_hasXY(x, y)) {
                             cells.push(map[x][y]);
@@ -345,11 +347,12 @@ RG.Map.Generator = function() { // {{{2
     this.getRandType = function() {
         var len = _types.length;
         var nRand = Math.floor(Math.random() * len);
-        return _types[nrand];
+        return _types[nRand];
     };
 
     var _nHouses = 5;
     this.setNHouses = function(nHouses) {_nHouses = nHouses;};
+    this.getNHouses = function() {return _nHouses;};
 
     /* Sets the generator for room generation.*/
     this.setGen = function(type, cols, rows) {
@@ -361,14 +364,16 @@ RG.Map.Generator = function() { // {{{2
             case 'arena': _mapGen = new ROT.Map.Arena(cols, rows); break;
             case 'cellular': _mapGen = this.createCellular(cols, rows); break;
             case 'digger': _mapGen = new ROT.Map.Digger(cols, rows); break;
-            case 'divided': _mapGen = new ROT.Map.DividedMaze(cols, rows); break;
+            case 'divided':
+                _mapGen = new ROT.Map.DividedMaze(cols, rows); break;
             case 'eller': _mapGen = new ROT.Map.EllerMaze(cols, rows); break;
             case 'icey': _mapGen = new ROT.Map.IceyMaze(cols, rows); break;
             case 'rogue': _mapGen = new ROT.Map.Rogue(cols, rows); break;
             case 'uniform': _mapGen = new ROT.Map.Uniform(cols, rows); break;
             case 'ruins': _mapGen = this.createRuins(cols, rows); break;
             case 'rooms': _mapGen = this.createRooms(cols, rows); break;
-            default: RG.err('MapGen', 'setGen', '_mapGen type ' + type + ' is unknown');
+            default: RG.err('MapGen',
+                'setGen', '_mapGen type ' + type + ' is unknown');
         }
     };
 
@@ -394,8 +399,8 @@ RG.Map.Generator = function() { // {{{2
     };
 
 
-    /* Creates "ruins" type level with open outer edges and inner "fortress" with
-     * some tunnels. */
+    /* Creates "ruins" type level with open outer edges and inner
+     * "fortress" with some tunnels. */
     this.createRuins = function(cols, rows) {
         var conf = {born: [4, 5, 6, 7, 8],
             survive: [2, 3, 4, 5], connected: true};
@@ -408,7 +413,7 @@ RG.Map.Generator = function() { // {{{2
     };
 
     /* Creates a cellular type dungeon and makes all areas connected.*/
-    this.createCellular = function(cols, rows, gens) {
+    this.createCellular = function(cols, rows) {
         var map = new ROT.Map.Cellular(cols, rows);
         map.randomize(0.5);
         for (var i = 0; i < 5; i++) {map.create();}
@@ -457,7 +462,8 @@ RG.Map.Generator = function() { // {{{2
             while (!houseCreated && tries < maxTriesHouse) {
                 var x0 = Math.floor(Math.random() * cols);
                 var y0 = Math.floor(Math.random() * rows);
-                houseCreated = this.createHouse(map, x0, y0, xSize, ySize, doors, wallsHalos);
+                houseCreated = this.createHouse(
+                    map, x0, y0, xSize, ySize, doors, wallsHalos);
                 ++tries;
                 if (typeof houseCreatd === 'object') {break;}
             }
@@ -485,8 +491,8 @@ RG.Map.Generator = function() { // {{{2
         var i;
         // Store x,y for house until failed
         for (i = 0; i < wallXY.length; i++) {
-            var x = wallXY[i][0];
-            var y = wallXY[i][1];
+            let x = wallXY[i][0];
+            let y = wallXY[i][1];
             if (map.hasXY(x, y)) {
                 if (wallsHalos.hasOwnProperty(x + ',' + y)) {
                     return false;
@@ -513,7 +519,8 @@ RG.Map.Generator = function() { // {{{2
         var haloY0 = y0 - 1;
         var haloMaxX = maxX + 1;
         var haloMaxY = maxY + 1;
-        var haloBox = RG.Geometry.getHollowBox(haloX0, haloY0, haloMaxX, haloMaxY);
+        var haloBox = RG.Geometry.getHollowBox(
+            haloX0, haloY0, haloMaxX, haloMaxY);
         for (i = 0; i < haloBox.length; i++) {
             var haloX = haloBox[i][0];
             var haloY = haloBox[i][1];
@@ -538,8 +545,8 @@ RG.Map.Generator = function() { // {{{2
         }
 
         var floorCoords = [];
-        for (var x = x0 + 1; x < maxX; x++) {
-            for (var y = y0 + 1; y < maxY; y++) {
+        for (let x = x0 + 1; x < maxX; x++) {
+            for (let y = y0 + 1; y < maxY; y++) {
                 floorCoords.push([x, y]);
             }
         }
@@ -568,7 +575,7 @@ RG.Map.Generator.prototype.addRandomSnow = function(map, ratio) {
 
 
 /* Object for the game levels. Contains map, actors and items.  */
-RG.Map.Level = function(cols, rows) { // {{{2
+RG.Map.Level = function() { // {{{2
     var _map = null;
 
     // Assign unique ID for each level
@@ -693,7 +700,8 @@ RG.Map.Level = function(cols, rows) { // {{{2
                 return true;
             }
             else {
-                RG.err('Level', 'addActor', 'No coordinates ' + x + ', ' + y + ' in the map.');
+                RG.err('Level', 'addActor',
+                    'No coordinates ' + x + ', ' + y + ' in the map.');
                 return false;
             }
         }
@@ -713,7 +721,8 @@ RG.Map.Level = function(cols, rows) { // {{{2
             var xCell = freeCells[0].getX();
             var yCell = freeCells[0].getY();
             if (this._addPropToLevelXY('actors', actor, xCell, yCell)) {
-                RG.debug(this, 'Added actor to free cell in ' + xCell + ', ' + yCell);
+                RG.debug(this,
+                    'Added actor to free cell in ' + xCell + ', ' + yCell);
                 return true;
             }
         }
@@ -774,9 +783,9 @@ RG.Map.Level = function(cols, rows) { // {{{2
         return _map.getExploredCells();
     };
 
-    //---------------------------------------------------------------------------
+    //-----------------------------------------------------------------
     // CALLBACKS
-    //---------------------------------------------------------------------------
+    //----------------------------------------------------------------
     var _callbacks = {};
 
     // For setting the callbacks
@@ -794,7 +803,9 @@ RG.Map.Level = function(cols, rows) { // {{{2
 
     this.onFirstEnter = function() {
         if (!_onFirstEnterDone) {
-            if (_callbacks.hasOwnProperty('OnFirstEnter')) {_callbacks.OnFirstEnter(this);}
+            if (_callbacks.hasOwnProperty('OnFirstEnter')) {
+                _callbacks.OnFirstEnter(this);
+            }
             _onFirstEnterDone = true;
         }
     };
@@ -805,7 +816,9 @@ RG.Map.Level = function(cols, rows) { // {{{2
 
     this.onFirstExit = function() {
         if (!_onFirstExitDone) {
-            if (_callbacks.hasOwnProperty('OnFirstExit')) {_callbacks.OnFirstExit(this);}
+            if (_callbacks.hasOwnProperty('OnFirstExit')) {
+                _callbacks.OnFirstExit(this);
+            }
             _onFirstExitDone = true;
         }
     };
