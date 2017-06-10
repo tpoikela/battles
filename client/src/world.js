@@ -255,6 +255,9 @@ RG.World.AreaTile = function(x, y, area) {
                 if (cell.isFree() && cellEast.isFree()) {
                     const stairs = new Stairs(true, _level, levelEast);
                     var stairsEast = new Stairs(false, levelEast, _level);
+                    stairs.setTargetStairs(stairsEast);
+                    stairsEast.setTargetStairs(stairs);
+
                     _level.addStairs(stairs, lastX, y);
                     levelEast.addStairs(stairsEast, 0, y);
                 }
@@ -275,6 +278,8 @@ RG.World.AreaTile = function(x, y, area) {
                 if (cell.isFree() && cellSouth.isFree()) {
                     const stairs = new Stairs(true, _level, levelSouth);
                     var stairsSouth = new Stairs(false, levelSouth, _level);
+                    stairs.setTargetStairs(stairsSouth);
+                    stairsSouth.setTargetStairs(stairs);
                     _level.addStairs(stairs, x, lastY);
                     levelSouth.addStairs(stairsSouth, x, 0);
                 }
