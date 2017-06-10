@@ -206,8 +206,14 @@ RG.Factory.Base = function() { // {{{2
     };
 
     /* Creates the game world. */
-    this.createWorld = function(nlevels) {
-
+    this.createWorld = function() {
+        const conf = {
+            nAreas: 1,
+            nDungeonsPerArea: 4,
+            nMountainsPerArea: 0
+        };
+        const world = new RG.World.World(conf);
+        return world;
     };
 
     /* Player stats based on user selection.*/
@@ -239,7 +245,7 @@ RG.Factory.Base = function() { // {{{2
     };
 
     /* Adds N random monsters to the level based on given danger level.*/
-    this.addNRandMonsters = function(parser, monstersPerLevel, level, maxDanger) {
+    this.addNRandMonsters = (parser, monstersPerLevel, level, maxDanger) => {
         // Generate the monsters randomly for this level
         for (var i = 0; i < monstersPerLevel; i++) {
             var cell = level.getFreeRandCell();
@@ -369,8 +375,12 @@ RG.FCCGame = function() {
             if (evtName === RG.EVT_ACTOR_CREATED) {
                 if (obj.hasOwnProperty('msg') && obj.msg === 'DemonSpawn') {
                     var actorCreated = obj.actor;
-                    if (actorCreated.getName() === 'Winter demon') {++_maxDemons;}
-                    if (actorCreated.getName() === 'Blizzard beast') {++_maxBeasts;}
+                    if (actorCreated.getName() === 'Winter demon') {
+                        ++_maxDemons;
+                    }
+                    if (actorCreated.getName() === 'Blizzard beast') {
+                        ++_maxBeasts;
+                    }
                 }
             }
             else if (evtName === RG.EVT_ACTOR_KILLED) {
@@ -380,7 +390,8 @@ RG.FCCGame = function() {
                     if (_demonsKilled === _maxDemons) {
                         this.allDemonsKilled();
                     }
-                    RG.debug(this, 'A winter demon was slain! Count:' + _demonsKilled);
+                    RG.debug(this,
+                        'A winter demon was slain! Count:' + _demonsKilled);
                     RG.debug(this, 'Max demons: ' + _maxDemons);
                 }
                 else if (actor.getName() === 'Blizzard beast') {
@@ -396,19 +407,22 @@ RG.FCCGame = function() {
 
         this.addSnow = function(level, ratio) {
             var map = level.getMap();
-            RG.Map.Generator.prototype.addRandomSnow(map, 0.2);
+            RG.Map.Generator.prototype.addRandomSnow(map, ratio);
         };
 
         /* Called after all winter demons have been slain.*/
         this.allDemonsKilled = function() {
-            RG.gameMsg("Humans have vanquished all demons! But it's not over..");
+            RG.gameMsg(
+                "Humans have vanquished all demons! But it's not over..");
 
             const map = _level.getMap();
+
             var windsEvent = new RG.Time.RogueOneShotEvent(
-                this.addSnow.bind(this, _level, 0.1),
-                20 * 100, "Winds are blowing stronger. You feel it's getting colder");
+                this.addSnow.bind(this, _level, 0.2), 20 * 100,
+                "Winds are blowing stronger. You feel it's getting colder"
+            );
             _game.addEvent(windsEvent);
-            var stormEvent = new RG.Time.RogueOneShotEvent( function() {}, 35 * 100,
+            var stormEvent = new RG.Time.RogueOneShotEvent( () => {}, 35 * 100,
                 'You see an eye of the storm approaching. Brace yourself now..');
             _game.addEvent(stormEvent);
             var beastEvent = new RG.Time.RogueOneShotEvent(
@@ -453,6 +467,9 @@ RG.FCCGame = function() {
         }
         else if (obj.debugMode === 'Tiles') {
             return this.createTiledWorld(obj, game, player);
+        }
+        else if (obj.debugMode === 'World') {
+            return this.createFullWorld(obj, game, player);
         }
 
         var levels = ['rooms', 'rogue', 'digger'];
@@ -554,6 +571,21 @@ RG.FCCGame = function() {
     this.createTiledWorld = function(obj, game, player) {
         const area = new RG.World.Area('Kingdom', 4, 4);
         const levels = area.getLevels();
+        levels.forEach(level => {
+            game.addLevel(level);
+        });
+        game.addPlayer(player);
+        return game;
+    };
+
+    this.createFullWorld = function(obj, game, player) {
+        const conf = {
+            nAreas: 1,
+            nDungeonsPerArea: 4,
+            nMountainsPerArea: 0
+        };
+        const world = new RG.World.World(conf);
+        const levels = world.getLevels();
         levels.forEach(level => {
             game.addLevel(level);
         });
