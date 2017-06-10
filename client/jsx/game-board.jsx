@@ -7,7 +7,7 @@ const GameRow = require('./game-row');
 const GUI = require('../gui/gui');
 
 /** Component which renders the game rows. {{{2 */
-var GameBoard = React.createClass({
+const GameBoard = React.createClass({
 
     viewportX: 35, // * 2
     viewportY: 12, // * 2
@@ -81,6 +81,14 @@ var GameBoard = React.createClass({
         if (selCell !== null) {
             selX = selCell.getX();
             selY = selCell.getY();
+        }
+
+        // TODO: Prevents a bug, if player wants to see inventory right after
+        // Load. Should render the visible cells properly though.
+        if (!seen) {
+            classes.fill('cell-not-seen', 0, cells.length - 1);
+            chars.fill('X', 0, cells.length - 1);
+            return [classes, chars];
         }
 
         for (var i = 0; i < cells.length; i++) {
