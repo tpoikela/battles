@@ -60,5 +60,28 @@ roguelike=/home/tpoikela/git/battles/ CD=/home/tpoikela/git/battles/ filter="*.j
  }
  tests=tests {
   roguetest.js
+  client=client {
+   src=src {
+    actor.spec.js
+    actor.spirit.spec.js
+    brain.communication.spec.js
+    brain.spec.js
+    component.spec.js
+    factory.spec.js
+    game.battle.spec.js
+    game.engine.spec.js
+    game.spec.js
+    item.missile.spec.js
+    item.spec.js
+    map.spec.js
+    object.spec.js
+    rg.eventpool.spec.js
+    rg.objectshellparser.spec.js
+    system.spec.js
+    time.scheduler.spec.js
+    world.spec.js
+   }
+
+  }
  }
 }
