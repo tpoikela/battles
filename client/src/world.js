@@ -5,6 +5,8 @@
 
 var RG = require('./rg.js');
 
+const Stairs = RG.Element.Stairs;
+
 RG.World = {};
 
 /* Branch, as name suggests, is a branch of dungeon. A branch is linear
@@ -60,7 +62,8 @@ RG.World.Branch = function(name) {
 
         if (!RG.isNullOrUndef([otherBranchLevel])) {
             var down = !stairs.isDown();
-            var newStairs = new RG.Element.Stairs(down, level, otherBranchLevel);
+            var newStairs = new RG.Element.Stairs(down,
+                level, otherBranchLevel);
             var cell = level.getFreeRandCell();
             level.addStairs(newStairs, cell.getX(), cell.getY());
             newStairs.setTargetStairs(stairs);
@@ -84,8 +87,7 @@ RG.World.Branch = function(name) {
         }
         else {
             RG.err('World.Branch', 'addLevel',
-                'Trying to add existing level (in index ' + index + ' already)');
-
+                'Trying to add existing level. ');
         }
     };
 
@@ -117,9 +119,14 @@ RG.World.Branch = function(name) {
 
         // Finally connect the stairs together
         for (let nl = 0; nl < nLevels; nl++) {
-            if (nl < nLevels - 1) {_stairsDown[nl].setTargetStairs(_stairsUp[nl + 1]);}
-            if (nl > 0) // Don't connect first stairs up
-                {_stairsUp[nl].setTargetStairs(_stairsDown[nl - 1]);}
+            if (nl < nLevels - 1) {
+                _stairsDown[nl].setTargetStairs(_stairsUp[nl + 1]);
+            }
+
+            // Don't connect first stairs up
+            if (nl > 0) {
+                _stairsUp[nl].setTargetStairs(_stairsDown[nl - 1]);
+            }
         }
     };
 
@@ -213,8 +220,8 @@ RG.World.AreaTile = function(x, y, area) {
     this.getLevel = function() {return _level;};
 
     this.getLevel = function() {return _level;};
-    this.getTileX = function() {return _x;};
-    this.getTileY = function() {return _y;};
+    this.getTileX = function() {return _tileX;};
+    this.getTileY = function() {return _tileY;};
 
     /* Returns true for edge tiles.*/
     this.isEdge = function() {
@@ -237,18 +244,17 @@ RG.World.AreaTile = function(x, y, area) {
 
         // Connect to east tile
         if (!RG.isNullOrUndef([eastTile])) {
-
             var levelEast = eastTile.getLevel();
-            var map = _level.getMap();
+            const map = _level.getMap();
             var mapEast = levelEast.getMap();
 
             for (var y = 1; y <= lastY - 1; y++) {
-                var cell = map.getCell(lastX, y);
+                const cell = map.getCell(lastX, y);
                 var cellEast = mapEast.getCell(0, y);
 
                 if (cell.isFree() && cellEast.isFree()) {
-                    var stairs = new RG.Element.Stairs(true, _level, levelEast);
-                    var stairsEast = new RG.Element.Stairs(false, levelEast, _level);
+                    const stairs = new Stairs(true, _level, levelEast);
+                    var stairsEast = new Stairs(false, levelEast, _level);
                     _level.addStairs(stairs, lastX, y);
                     levelEast.addStairs(stairsEast, 0, y);
                 }
@@ -259,16 +265,16 @@ RG.World.AreaTile = function(x, y, area) {
         // Connect to south tile
         if (!RG.isNullOrUndef([southTile])) {
             var levelSouth = southTile.getLevel();
-            var map = _level.getMap();
+            const map = _level.getMap();
             var mapSouth = levelSouth.getMap();
 
             for (var x = 1; x <= lastX - 1; x++) {
-                var cell = map.getCell(x, lastY);
+                const cell = map.getCell(x, lastY);
                 var cellSouth = mapSouth.getCell(x, 0);
 
                 if (cell.isFree() && cellSouth.isFree()) {
-                    var stairs = new RG.Element.Stairs(true, _level, levelSouth);
-                    var stairsSouth = new RG.Element.Stairs(false, levelSouth, _level);
+                    const stairs = new Stairs(true, _level, levelSouth);
+                    var stairsSouth = new Stairs(false, levelSouth, _level);
                     _level.addStairs(stairs, x, lastY);
                     levelSouth.addStairs(stairsSouth, x, 0);
                 }
@@ -309,11 +315,11 @@ RG.World.Area = function(name, maxX, maxY) {
 RG.World.Factory = function() {
 
     this.createArea = function(conf) {
-
+        console.log(conf);
     };
 
     this.createDungeon = function(conf) {
-
+        console.log(conf);
     };
 
 };
