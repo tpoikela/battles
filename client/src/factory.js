@@ -33,7 +33,7 @@ RG.Factory.ItemRandomizer = function() {
     var _foodWeights = RG.getFoodWeightDistr();
 
 
-    var _adjustFoodItem = function(food, val) {
+    var _adjustFoodItem = function(food) {
         var weight = ROT.RNG.getWeightedValue(_foodWeights);
         food.setWeight(weight);
     };
@@ -149,7 +149,7 @@ RG.Factory.Base = function() { // {{{2
         return level;
     };
 
-    this.createHouseElements = function(level, mapObj, conf) {
+    this.createHouseElements = function(level, mapObj) {
         if (!mapObj.hasOwnProperty('houses')) {return;}
         var map = mapObj.map;
         var houses = mapObj.houses;
@@ -199,9 +199,10 @@ RG.Factory.Base = function() { // {{{2
 
     /* Creates a randomized level for the game. Danger level controls how the
      * randomization is done. */
-    this.createRandLevel = function(cols, rows, danger) {
+    this.createRandLevel = function(cols, rows) {
         var levelType = RG.Map.Generator.getRandType();
         var level = this.createLevel(levelType, cols, rows);
+        return level;
     };
 
     this.createWorld = function(nlevels) {
