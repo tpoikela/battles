@@ -69,7 +69,7 @@ describe('RG.FCCGame', function() {
             loadedLevel: null,
             playerName: 'Player'
         };
-        game.createFCCGame(conf);
+        game.createNewGame(conf);
 
     });
 });
