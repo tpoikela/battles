@@ -491,8 +491,8 @@ RG.Map.Generator = function() { // {{{2
         var i;
         // Store x,y for house until failed
         for (i = 0; i < wallXY.length; i++) {
-            let x = wallXY[i][0];
-            let y = wallXY[i][1];
+            const x = wallXY[i][0];
+            const y = wallXY[i][1];
             if (map.hasXY(x, y)) {
                 if (wallsHalos.hasOwnProperty(x + ',' + y)) {
                     return false;
@@ -841,15 +841,17 @@ RG.Map.Level.prototype.idCount = 0;
 /* Dungeon is a collection of levels.*/
 RG.Map.Dungeon = function() {
 
-    var _levels = [];
-    var _stairs = [];
+    // var _levels = [];
+    // var _stairs = [];
 
+    /*
     var _conf = {
         cols: 80,
         rows: 60,
         levels: 10,
         levelTypes: ['rooms', 'rogue', 'digger']
     };
+    */
 
     /* Given level number, returns the danger level.*/
     this.dangerFunction = function(nlevel) {
