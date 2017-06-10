@@ -1,7 +1,7 @@
 
-var RG  = require("./rg.js");
+var RG = require('./rg.js');
 
-RG.Item = require("./item.js");
+RG.Item = require('./item.js');
 
 RG.Inv = {};
 
@@ -9,11 +9,11 @@ RG.Inv = {};
 // EQUIPMENT AND INVENTORY
 //---------------------------------------------------------------------------
 
-/** Models one slot in the inventory. */
+/* Models one slot in the inventory. */
 RG.Inv.EquipSlot = function(eq, type, stacked) {
     RG.Object.Ownable.call(this, eq);
-    var _eq = eq;
-    var _type = type;
+    // var _eq = eq;
+    // var _type = type;
     var _item = null;
 
     var _hasItem = false;
@@ -21,7 +21,7 @@ RG.Inv.EquipSlot = function(eq, type, stacked) {
     var _unequipped = null;
 
     var _stacked = false;
-    if (!RG.isNullOrUndef([stacked])) _stacked = stacked;
+    if (!RG.isNullOrUndef([stacked])) {_stacked = stacked;}
 
     this.isStacked = function() {return _stacked;};
 
@@ -29,13 +29,13 @@ RG.Inv.EquipSlot = function(eq, type, stacked) {
         return _unequipped;
     };
 
-    /** Returns the equipped item for this slot.*/
+    /* Returns the equipped item for this slot.*/
     this.getItem = function() {
-        if (_hasItem) return _item;
+        if (_hasItem) {return _item;}
         return null;
     };
 
-    /** Equips given item to first available place in slot.*/
+    /* Equips given item to first available place in slot.*/
     this.equipItem = function(item) {
         if (this.canEquip(item)) {
             if (!_stacked || !_hasItem) {
@@ -43,17 +43,15 @@ RG.Inv.EquipSlot = function(eq, type, stacked) {
                 _item = item;
                 _hasItem = true;
             }
-            else {
-                if (RG.addStackedItems(_item, item)) {
+            else if (RG.addStackedItems(_item, item)) {
                     _hasItem = true;
                 }
-            }
             return _hasItem;
         }
         return false;
     };
 
-    /** Unequips N items from the slot. */
+    /* Unequips N items from the slot. */
     this.unequipItem = function(n) {
         if (_hasItem) {
             if (!_stacked) {
@@ -61,13 +59,11 @@ RG.Inv.EquipSlot = function(eq, type, stacked) {
                 _unequipped = _item;
                 return true;
             }
-            else {
-                if (n > 0) {
+            else if (n > 0) {
                     _unequipped = RG.removeStackedItems(_item, n);
-                    if (_item.count === 0) _hasItem = false;
+                    if (_item.count === 0) {_hasItem = false;}
                     return true;
                 }
-            }
         }
         return false;
     };
@@ -85,21 +81,21 @@ RG.Inv.EquipSlot = function(eq, type, stacked) {
 };
 RG.extend2(RG.Inv.EquipSlot, RG.Object.Ownable);
 
-/** Models equipment on an actor.*/
+/* Models equipment on an actor.*/
 RG.Inv.Equipment = function(actor) {
     RG.Object.Ownable.call(this, actor);
 
     var _equipped = [];
 
     var _slots = {
-        hand: new RG.Inv.EquipSlot(this, "hand"),
-        shield: new RG.Inv.EquipSlot(this, "shield"),
-        head: new RG.Inv.EquipSlot(this, "head"),
-        chest: new RG.Inv.EquipSlot(this, "chest"),
-        neck: new RG.Inv.EquipSlot(this, "neck"),
-        feet: new RG.Inv.EquipSlot(this, "feet"),
-        missile: new RG.Inv.EquipSlot(this, "missile", true),
-        spiritgem: new RG.Inv.EquipSlot(this, "spiritgem"),
+        hand: new RG.Inv.EquipSlot(this, 'hand'),
+        shield: new RG.Inv.EquipSlot(this, 'shield'),
+        head: new RG.Inv.EquipSlot(this, 'head'),
+        chest: new RG.Inv.EquipSlot(this, 'chest'),
+        neck: new RG.Inv.EquipSlot(this, 'neck'),
+        feet: new RG.Inv.EquipSlot(this, 'feet'),
+        missile: new RG.Inv.EquipSlot(this, 'missile', true),
+        spiritgem: new RG.Inv.EquipSlot(this, 'spiritgem')
     };
 
     var _hasSlot = function(slotType) {
@@ -118,19 +114,19 @@ RG.Inv.Equipment = function(actor) {
 
     this.getItems = function() {return _equipped;};
 
-    /** Returns last unequipped item for the slot.*/
+    /* Returns last unequipped item for the slot.*/
     this.getUnequipped = function(slotType) {
         if (_hasSlot(slotType)) {
             return _slots[slotType].getUnequipped();
         }
         else {
-            RG.err("Equipment", "getUnequipped", 
-                "No slot type: " + slotType);
+            RG.err('Equipment', 'getUnequipped',
+                'No slot type: ' + slotType);
         }
         return null;
     };
 
-    /** Returns an item in the given slot.*/
+    /* Returns an item in the given slot.*/
     this.getItem = function(slot) {
         if (_slots.hasOwnProperty(slot)) {
             return _slots[slot].getItem();
@@ -138,26 +134,25 @@ RG.Inv.Equipment = function(actor) {
         return null;
     };
 
-    /** Equips given item. Slot is chosen automatically from suitable available
+    /* Equips given item. Slot is chosen automatically from suitable available
      * ones.*/
     this.equipItem = function(item) {
-        if (item.hasOwnProperty("getArmourType")) {
+        if (item.hasOwnProperty('getArmourType')) {
             if (_slots[item.getArmourType()].equipItem(item)) {
                 _equipped.push(item);
                 return true;
             }
         }
-        else { // No equip property, can only equip to hand
-            if (item.getType() === "missile") {
-                if (_slots.missile.equipItem(item)) {
-                    _addStackedItem(item);
-                    return true;
-                }
-            }
-            else if (_slots.hand.equipItem(item)) {
-                _equipped.push(item);
+        // No equip property, can only equip to hand
+        else if (item.getType() === 'missile') {
+            if (_slots.missile.equipItem(item)) {
+                _addStackedItem(item);
                 return true;
             }
+        }
+        else if (_slots.hand.equipItem(item)) {
+            _equipped.push(item);
+            return true;
         }
         return false;
     };
@@ -170,16 +165,18 @@ RG.Inv.Equipment = function(actor) {
                 break;
             }
         }
-        if (!matchFound) _equipped.push(item);
+        if (!matchFound) {_equipped.push(item);}
     };
 
-    /** Removes an item, or n items if specified.*/
+    /* Removes an item, or n items if specified.*/
     var _removeItem = function(item, n) {
         var index = _equipped.indexOf(item);
         if (index >= 0) {
             if (n > 0) {
-                if (_equipped[index].hasOwnProperty("count")) {
-                    if (_equipped[index].count === 0) _equipped.splice(index, 1);
+                if (_equipped[index].hasOwnProperty('count')) {
+                    if (_equipped[index].count === 0) {
+                        _equipped.splice(index, 1);
+                    }
                 }
                 return true;
             }
@@ -189,12 +186,12 @@ RG.Inv.Equipment = function(actor) {
             }
         }
         else {
-            RG.err("Equipment", "unequipItem", "Index < 0. Horribly wrong.");
+            RG.err('Equipment', 'unequipItem', 'Index < 0. Horribly wrong.');
         }
         return false;
     };
 
-    /** Returns true if given item is equipped.*/
+    /* Returns true if given item is equipped.*/
     this.isEquipped = function(item) {
         var index = _equipped.indexOf(item);
         return index !== -1;
@@ -204,7 +201,7 @@ RG.Inv.Equipment = function(actor) {
         return this.getItem(slotType);
     };
 
-    /** Unequips given slotType and index. */
+    /* Unequips given slotType and index. */
     this.unequipItem = function(slotType, n) {
         if (_hasSlot(slotType)) {
             var item = _slots[slotType].getItem();
@@ -213,28 +210,29 @@ RG.Inv.Equipment = function(actor) {
             }
         }
         else {
-            var msg = "Non-existing slot type " + slotType;
-            RG.err("Equipment", "unequipItem", msg);
+            var msg = 'Non-existing slot type ' + slotType;
+            RG.err('Equipment', 'unequipItem', msg);
         }
         return false;
     };
 
     this.propertySum = function(funcname) {
         var result = 0;
-        for (var slot in _slots) {
+        var slotKeys = Object.keys(_slots);
+        slotKeys.forEach(slot => {
             var item = this.getItem(slot);
             if (item !== null) {
                 if (item.hasOwnProperty(funcname)) {
                     result += item[funcname]();
                 }
-                else if (item.has("Stats")) {
-                    var sComp = item.get("Stats");
+                else if (item.has('Stats')) {
+                    var sComp = item.get('Stats');
                     if (sComp.hasOwnProperty(funcname)) {
                         result += sComp[funcname]();
                     }
                 }
             }
-        }
+        });
         return result;
     };
 
@@ -247,12 +245,14 @@ RG.Inv.Equipment = function(actor) {
     };
 
     // Dynamically generate accessors for different stats
-    var _mods = ["getDefense", "getAttack", "getProtection", "getSpeed", "getWillpower",
-        "getAccuracy", "getAgility", "getStrength"];
+    var _mods = ['getDefense', 'getAttack', 'getProtection',
+        'getSpeed', 'getWillpower',
+        'getAccuracy', 'getAgility', 'getStrength'];
 
     var that = this;
     for (var i = 0; i < _mods.length; i++) {
 
+        /* eslint no-loop-func: 0 */
         // Use closure to fix the function name
         var getFunc = function() {
             var privVar = _mods[i];
@@ -268,14 +268,14 @@ RG.Inv.Equipment = function(actor) {
 RG.extend2(RG.Inv.Equipment, RG.Object.Ownable);
 
 
-/** Object models inventory items and equipment on actor. This object handles
+/* Object models inventory items and equipment on actor. This object handles
  * movement of items between inventory and equipment. */
 RG.Inv.Inventory = function(actor) {
     RG.Object.Ownable.call(this, actor);
     var _actor = actor;
 
     var _inv = new RG.Item.Container(actor);
-    var _eq  = new RG.Inv.Equipment(actor);
+    var _eq = new RG.Inv.Equipment(actor);
 
     // Wrappers for container methods
     this.addItem = function(item) {_inv.addItem(item);};
@@ -290,29 +290,28 @@ RG.Inv.Inventory = function(actor) {
 
     this.useItem = function(item, obj) {
         if (_inv.hasItem(item)) {
-            if (item.hasOwnProperty("useItem")) {
+            if (item.hasOwnProperty('useItem')) {
                 item.useItem(obj);
                 return true;
             }
         }
         else {
-            RG.err("Inv.Inventory", "useItem", "Not in inventory, cannot use!");
+            RG.err('Inv.Inventory', 'useItem', 'Not in inventory, cannot use!');
         }
         return false;
     };
 
-    /** Returns true if given item can be carried.*/
+    /* Returns true if given item can be carried.*/
     this.canCarryItem = function(item) {
         var eqWeight = _eq.getWeight();
         var invWeight = _inv.getWeight();
         var newWeight = eqWeight + invWeight + item.getWeight();
         var maxWeight = _actor.getMaxWeight();
-        console.log("Inv.Inventory canCarryItem MW : " + maxWeight + " new" + newWeight);
-        if (newWeight > maxWeight) return false;
+        if (newWeight > maxWeight) {return false;}
         return true;
     };
 
-    /** Drops selected item to the actor's current location.*/
+    /* Drops selected item to the actor's current location.*/
     this.dropItem = function(item) {
         if (_inv.removeItem(item)) {
             var level = _actor.getLevel();
@@ -329,13 +328,13 @@ RG.Inv.Inventory = function(actor) {
     this.getInventory = function() {return _inv;};
     this.getEquipment = function() {return _eq;};
 
-    /** Removes item from inventory and equips it.*/
+    /* Removes item from inventory and equips it.*/
     this.equipItem = function(item) {
         if (_inv.hasItem(item)) {
             // If item has count > 2, can't use the same item ref
             var eqItem = _getItemToEquip(item);
             if (RG.isNullOrUndef[eqItem]) {
-                console.log("SEEMS TO BE NULL. KOSH!");
+                console.log('SEEMS TO BE NULL. KOSH!');
                 return false;
             }
 
@@ -343,12 +342,13 @@ RG.Inv.Inventory = function(actor) {
                 return true;
             }
             else {
-                console.log("FAILED. Add back to inv.");
+                console.log('FAILED. Add back to inv.');
                 _inv.addItem(eqItem); // Failed, add back to inv
             }
         }
         else {
-            RG.err("Inv.Inventory", "equipItem", "Cannot equip. Not in inventory.");
+            RG.err('Inv.Inventory', 'equipItem',
+                'Cannot equip. Not in inventory.');
         }
         return false;
     };
@@ -362,7 +362,7 @@ RG.Inv.Inventory = function(actor) {
         return null;
     };
 
-    /** Equips up to N items of given type. */
+    /* Equips up to N items of given type. */
     this.equipNItems = function(item, n) {
         if (_inv.hasItem(item)) {
             var res = _inv.removeNItems(item, n);
@@ -379,7 +379,7 @@ RG.Inv.Inventory = function(actor) {
         return false;
     };
 
-    /** Unequips item and puts it back to inventory.*/
+    /* Unequips item and puts it back to inventory.*/
     this.unequipItem = function(slotType, n) {
         var eqItem = _eq.getItem(slotType);
         if (!RG.isNullOrUndef([eqItem])) {
@@ -394,7 +394,7 @@ RG.Inv.Inventory = function(actor) {
         return false;
     };
 
-    /** Unequips and returns N items. Doesn't add to inv.*/
+    /* Unequips and returns N items. Doesn't add to inv.*/
     this.unequipAndGetItem = function(slotType, n) {
         var eqItem = _eq.getItem(slotType);
         if (!RG.isNullOrUndef([eqItem])) {
@@ -406,8 +406,8 @@ RG.Inv.Inventory = function(actor) {
     };
 
     this.getWeapon = function() {
-        var item = _eq.getItem("hand");
-        if (!RG.isNullOrUndef([item])) return item;
+        var item = _eq.getItem('hand');
+        if (!RG.isNullOrUndef([item])) {return item;}
         return null;
     };
 
