@@ -28,6 +28,7 @@ RG.World.Branch = function(name) {
 
     var _dungeon = null;
 
+    /* Sets/gets the dungeon where this branch is located. */
     this.setDungeon = function(dungeon) {_dungeon = dungeon;};
     this.getDungeon = function() {return _dungeon;};
 
@@ -62,7 +63,7 @@ RG.World.Branch = function(name) {
 
         if (!RG.isNullOrUndef([otherBranchLevel])) {
             var down = !stairs.isDown();
-            var newStairs = new RG.Element.Stairs(down,
+            var newStairs = new Stairs(down,
                 level, otherBranchLevel);
             var cell = level.getFreeRandCell();
             level.addStairs(newStairs, cell.getX(), cell.getY());
@@ -101,7 +102,7 @@ RG.World.Branch = function(name) {
             // Create stairs down
             if (nl < nLevels - 1) {
                 var targetDown = _levels[nl + 1];
-                var stairsDown = new RG.Element.Stairs(true, src, targetDown);
+                var stairsDown = new Stairs(true, src, targetDown);
                 stairCell = src.getFreeRandCell();
                 src.addStairs(stairsDown, stairCell.getX(), stairCell.getY());
                 _stairsDown.push(stairsDown);
@@ -110,7 +111,7 @@ RG.World.Branch = function(name) {
             // Create stairs up
             if (nl >= 0) {
                 var targetUp = _levels[nl - 1];
-                var stairsUp = new RG.Element.Stairs(false, src, targetUp);
+                var stairsUp = new Stairs(false, src, targetUp);
                 stairCell = src.getFreeRandCell();
                 src.addStairs(stairsUp, stairCell.getX(), stairCell.getY());
                 _stairsUp.push(stairsUp);
@@ -146,6 +147,7 @@ RG.World.Dungeon = function(name) {
         return index >= 0;
     };
 
+    /* Adds one branch to the dungeon. Returns true if OK. */
     this.addBranch = function(branch) {
         if (!this.hasBranch(branch)) {
             _branches.push(branch);
@@ -155,9 +157,10 @@ RG.World.Dungeon = function(name) {
         return false;
     };
 
+    /* Get all levels for this dungeon. */
     this.getLevels = function() {
-        var res = [];
-        for (var i = 0; i < _branches.length; i++) {
+        let res = [];
+        for (let i = 0; i < _branches.length; i++) {
             res = res.concat(_branches[i].getLevels());
         }
         return res;
@@ -165,20 +168,20 @@ RG.World.Dungeon = function(name) {
 
     /* Returns all entrances/exits for the dungeon.*/
     this.getEntrances = function() {
-        var res = [];
-        for (var i = 0; i < _branches.length; i++) {
+        const res = [];
+        for (let i = 0; i < _branches.length; i++) {
             res.push(_branches[i].getEntrance());
         }
         return res;
     };
 
-    /* Connects two branches b1 and b2 together from specified levels l1 and l2.
-     * */
+    /* Connects two branches b1 and b2 together from specified level
+     * numbers l1 and l2. */
     this.connectBranches = function(b1, b2, l1, l2) {
         if (this.hasBranch(b1) && this.hasBranch(b2)) {
             var down = true;
             if (l1 > l2) {down = false;}
-            var stairs = new RG.Element.Stairs(down);
+            var stairs = new Stairs(down);
             var b2Levels = b2.getLevels();
             if (l2 < b2Levels.length) {
                 var cell = b2Levels[l2].getFreeRandCell();
@@ -354,22 +357,87 @@ RG.World.Area = function(name, maxX, maxY) {
 
 };
 
+/* Mountains places consisting of tiles and dungeons. Mountain has few special
+ * tiles representing the summit.
+ */
+RG.World.Mountain = function() {
+    const _levels = [];
+
+    this.getLevels = () => (_levels);
+
+};
+
 /* Factory object for creating worlds and features. */
 RG.World.Factory = function() {
 
     this.createArea = function(conf) {
         const area = new RG.World.Area('testArea', 4, 4);
+        console.log('Conf is ' + conf);
+        return area;
+    };
+
+    this.createBranch = function() {
+        const branch = new RG.World.Branch('testBranch');
+        for (let i = 0; i < 5; i++) {
+            const level = RG.FACT.createLevel('cellular', 30, 30, {});
+            branch.addLevel(level);
+        }
+        branch.connectLevels();
+        return branch;
     };
 
     this.createDungeon = function(conf) {
-        console.log(conf);
+        const dungeon = new RG.World.Dungeon('testDungeon');
+        const branch = this.createBranch();
+        dungeon.addBranch(branch);
+        console.log('Conf is ' + conf);
+        return dungeon;
     };
 
+    this.createMountain = function(conf) {
+        const mountain = new RG.World.Mountain();
+        console.log('Conf is ' + conf);
+        return mountain;
+    };
+
+    /* Creates a connection between an area and a feature such as city, mountain
+     * or dungeon. Unless configured, connects the feature entrance to a random
+     * location in the area. */
+    this.createConnection = function(area, feature) {
+        // const areaMaxX = area.getMaxX();
+        // const areaMaxY = area.getMaxY();
+        const tile00 = area.getTiles()[0][0];
+        const tileLevel = tile00.getLevel();
+
+        const freeAreaCell = tileLevel.getFreeRandCell();
+        const freeX = freeAreaCell.getX();
+        const freeY = freeAreaCell.getY();
+
+        if (feature.hasOwnProperty('getEntrances')) {
+            const entrances = feature.getEntrances();
+            if (entrances.lenght > 0) {
+                const entranceStairs = entrances[0];
+                const entranceLevel = entranceStairs.getSrcLevel();
+                const tileStairs = new Stairs(true, tileLevel, entranceLevel);
+                tileStairs.setTargetStairs(entranceStairs);
+                entranceStairs.setTargetStairs(tileStairs);
+                tileLevel.addStairs(tileStairs, freeX, freeY);
+                console.log(`Created tile stairs at ${freeX}, ${freeY}`);
+            }
+            else {
+                RG.err('World.Factory', 'createConnection',
+                    'Zero entrances in feature. Cannot connect to tile.');
+
+            }
+        }
+        else { // No entrance for feature, what to do?
+            console.warn('No getEntrance method for feature.');
+        }
+    };
 };
 
-/* Largest place structure. Contains a number of area and dungeons. */
+/* Largest place. Contains a number of areas, mountains and dungeons. */
 RG.World.World = function(conf) {
-
     if (RG.isNullOrUndef([conf])) {
         RG.err('World.World', '', 'No configuration given.');
         return;
@@ -377,22 +445,56 @@ RG.World.World = function(conf) {
 
     var _fact = new RG.World.Factory();
 
-    var _areas = [];
-    var _dungeons = [];
+    const _allLevels = {}; // Lookup table for all levels
+    const _areas = [];
+    const _dungeons = [];
+    const _mountains = [];
 
+    const nAreas = conf.nAreas;
+    const nDungeonsPerArea = conf.nDungeonsPerArea;
+    const nMountainsPerArea = conf.nMountainsPerArea;
 
-    var nAreas = conf.nAreas;
-    var nDungeons = conf.nDungeons;
+    /* Adds the array of levels to the global map. */
+    this.addLevels = function(levels) {
+        levels.forEach(level => {
+            const id = level.getID();
+            if (!_allLevels.hasOwnProperty(id)) {
+                _allLevels[id] = level;
+            }
+            else {
+                RG.err('World.World', 'addLevels',
+                    `Level ID ${id} already exists.`);
+            }
+        });
+    };
 
-    for (var i = 0; i < nAreas; i++) {
-        var area = _fact.createArea(conf);
+    this.getLevels = function() {
+        return Object.keys(_allLevels).map(key => _allLevels[key]);
+    };
+
+    for (let n = 0; n < nAreas; n++) {
+        const area = _fact.createArea(conf);
         _areas.push(area);
+        this.addLevels(area.getLevels());
+
+        for (let n = 0; n < nDungeonsPerArea; n++) {
+            const dungeon = _fact.createDungeon(conf);
+            _dungeons.push(dungeon);
+            this.addLevels(dungeon.getLevels());
+            _fact.createConnection(area, dungeon);
+        }
+
+        for (let n = 0; n < nMountainsPerArea; n++) {
+            const mountain = _fact.createMountain(conf);
+            _mountains.push(mountain);
+            this.addLevels(mountain.getLevels());
+            _fact.createConnection(area, mountain);
+        }
     }
 
-    for (var j = 0; j < nDungeons; j++) {
-        var dungeon = _fact.createDungeon(conf);
-        _dungeons.push(dungeon);
-    }
+    this.getAreas = () => (_areas);
+    this.getDungeons = () => (_dungeons);
+    this.getMountains = () => (_mountains);
 
     // Connect areas and dungeons
 
