@@ -1,23 +1,23 @@
 
-var RG = require("./rg.js");
+var RG = require('./rg.js');
 
 RG.Object = {};
 
 RG.Object.Defense = function() {
 
-    var _attack   = 1;
-    var _defense  = 1;
+    var _attack = 1;
+    var _defense = 1;
     var _protection = 0;
 
     this.getAttack = function() {return _attack;};
     this.setAttack = function(attack) { _attack = attack; };
 
-    /** Defense related methods.*/
+    /* Defense related methods.*/
     this.getDefense = function() { return _defense; };
     this.setDefense = function(defense) { _defense = defense; };
 
     this.getProtection = function() {return _protection;};
-    this.setProtection = function(prot) {return _protection;};
+    this.setProtection = function(prot) {_protection = prot;};
 
 };
 
@@ -38,7 +38,7 @@ RG.Object.Defense.prototype.toJSON = function() {
     var json = {
         setAttack: this.getAttack(),
         setDefense: this.getDefense(),
-        setProtection: this.getProtection(),
+        setProtection: this.getProtection()
     };
     return json;
 };
@@ -47,24 +47,24 @@ RG.Object.Defense.prototype.toJSON = function() {
 RG.Object.Damage = function() {
     RG.Object.Defense.call(this);
 
-    var _damage   = new RG.Die(1, 4, 0);
-    var _range    = 1;
+    var _damage = new RG.Die(1, 4, 0);
+    var _range = 1;
 
-    /** Attack methods. */
+    /* Attack methods. */
     this.setAttackRange = function(range) {_range = range;};
     this.getAttackRange = function() {return _range; };
 
     this.setDamage = function(dStr) {
-        if (typeof dStr === "string") {
+        if (typeof dStr === 'string') {
             _damage = RG.FACT.createDie(dStr);
         }
-        else if (typeof dStr === "object") {
+        else if (typeof dStr === 'object') {
             _damage = dStr;
         }
     };
 
     this.getDamage = function() {
-        if (this.hasOwnProperty("getWeapon")) {
+        if (this.hasOwnProperty('getWeapon')) {
             var weapon = this.getWeapon();
             if (!RG.isNullOrUndef([weapon])) {
                 return weapon.getDamage();
@@ -102,9 +102,9 @@ RG.Object.Damage.prototype.equals = function(rhs) {
 };
 
 RG.Object.Damage.prototype.toString = function() {
-    var msg = " A: " + this.getAttack() + ", D: " + this.getDefense() + ", ";
-    msg += "Dmg: " + this.getDamageDie().toString();
-    msg += ",R:" + this.getAttackRange();
+    var msg = ' A: ' + this.getAttack() + ', D: ' + this.getDefense() + ', ';
+    msg += 'Dmg: ' + this.getDamageDie().toString();
+    msg += ',R:' + this.getAttackRange();
     return msg;
 };
 
@@ -116,7 +116,7 @@ RG.Object.Damage.prototype.toJSON = function() {
 };
 
 
-/** Typed objects should inherit from this. */
+/* Typed objects should inherit from this. */
 RG.Object.Typed = function(propType, type) {
     this.type = type;
     this._propType = propType;
@@ -132,19 +132,19 @@ RG.Object.Typed.prototype.setPropType = function(propType) {
         this._propType = propType;
     }
     else {
-        RG.err("Object.Typed", "setPropType",
-            "Unknown prop type: |" + propType + "|");
+        RG.err('Object.Typed', 'setPropType',
+            'Unknown prop type: |' + propType + '|');
     }
 };
 
 
 RG.Object.Typed.prototype.setType = function(type) {
     this.type = type;
-    RG.nullOrUndefError("Object.Typed: setType", "arg |type|", type);
+    RG.nullOrUndefError('Object.Typed: setType', 'arg |type|', type);
 };
 
 
-/** This object is used by all locatable objects in the game.  */
+/* This object is used by all locatable objects in the game.  */
 RG.Object.Locatable = function() { // {{{2
     RG.Object.Typed.call(this, null);
     this._x = null;
@@ -161,40 +161,42 @@ RG.extend2(RG.Object.Locatable, RG.Object.Typed);
     RG.Object.Locatable.prototype.getX = function() {return this._x;};
     RG.Object.Locatable.prototype.getY = function() {return this._y;};
 
+    RG.Object.Locatable.prototype.getXY = function() {
+        return [this._x, this._y];
+    };
 
-    RG.Object.Locatable.prototype.getXY = function() { return [this._x, this._y];};
 
-
-    /** Simple getters/setters for coordinates.*/
-    RG.Object.Locatable.prototype.setXY = function(x,y) {
+    /* Simple getters/setters for coordinates.*/
+    RG.Object.Locatable.prototype.setXY = function(x, y) {
         this._x = x;
         this._y = y;
     };
 
-/** Sets the level of this locatable object.*/
+/* Sets the level of this locatable object.*/
 RG.Object.Locatable.prototype.setLevel = function(level) {
     this._level = level;
-    RG.nullOrUndefError("Object.Locatable: setLevel", "arg |level|", level);
+    RG.nullOrUndefError('Object.Locatable: setLevel', 'arg |level|', level);
 };
 
 RG.Object.Locatable.prototype.getLevel = function() {
     return this._level;
 };
 
-/** Returns true if object is located at a position on a level.*/
+/* Returns true if object is located at a position on a level.*/
 RG.Object.Locatable.prototype.isLocated = function() {
     return (this._x !== null) && (this._y !== null) && (this._level !== null);
 };
 
-/** Returns true if locatables are in same position.*/
+/* Returns true if locatables are in same position.*/
 RG.Object.Locatable.prototype.isSamePos = function(obj) {
-    if (this._x !== obj.getX()) return false;
-    if (this._y !== obj.getY()) return false;
-    if (this._level !== obj.getLevel()) return false;
+    if (this._x !== obj.getX()) {return false;}
+    if (this._y !== obj.getY()) {return false;}
+    if (this._level !== obj.getLevel()) {return false;}
     return true;
 };
 
-/** Object.Ownable is sort of Object.Locatable but it moves with its owner. This ensures that
+/* Object.Ownable is sort of Object.Locatable but it moves with its owner.
+ * This ensures that
  * for example item coordinates are up-to-date with the carrier.*/
 RG.Object.Ownable = function(owner) {
     RG.Object.Typed.call(this, null);
@@ -206,28 +208,28 @@ RG.Object.Ownable = function(owner) {
 
     this.setOwner = function(owner) {
         if (RG.isNullOrUndef([owner])) {
-            RG.err("Object.Ownable", "setOwner", "Owner cannot be null.");
+            RG.err('Object.Ownable', 'setOwner', 'Owner cannot be null.');
         }
         else {
             _owner = owner;
         }
     };
 
-    /** Returns the owner of this object.*/
+    /* Returns the owner of this object.*/
     this.getOwner = function() {return _owner;};
 
     this.getX = function() {
-        if (_owner !== null) return _owner.getX();
+        if (_owner !== null) {return _owner.getX();}
         return null;
     };
 
     this.getY = function() {
-        if (_owner !== null) return _owner.getY();
+        if (_owner !== null) {return _owner.getY();}
         return null;
     };
 
     this.getLevel = function() {
-        if (_owner !== null) return _owner.getLevel();
+        if (_owner !== null) {return _owner.getLevel();}
         return null;
     };
 
