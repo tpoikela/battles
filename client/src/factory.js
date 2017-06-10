@@ -205,6 +205,7 @@ RG.Factory.Base = function() { // {{{2
         return level;
     };
 
+    /* Creates the game world. */
     this.createWorld = function(nlevels) {
 
     };
@@ -331,12 +332,12 @@ RG.FCCGame = function() {
         }
 
         if (!player.has('Hunger')) {
-            let hunger = new RG.Component.Hunger(20000);
+            const hunger = new RG.Component.Hunger(20000);
             player.add('Hunger', hunger);
         }
         else {
             // Notify Hunger system only
-            let hunger = player.get('Hunger');
+            const hunger = player.get('Hunger');
             player.remove('Hunger');
             player.add('Hunger', hunger);
         }
@@ -402,7 +403,7 @@ RG.FCCGame = function() {
         this.allDemonsKilled = function() {
             RG.gameMsg("Humans have vanquished all demons! But it's not over..");
 
-            var map = _level.getMap();
+            const map = _level.getMap();
             var windsEvent = new RG.Time.RogueOneShotEvent(
                 this.addSnow.bind(this, _level, 0.1),
                 20 * 100, "Winds are blowing stronger. You feel it's getting colder");
@@ -431,7 +432,7 @@ RG.FCCGame = function() {
     };
 
     /* Creates the game for the FCC project.*/
-    this.createFCCGame = function(obj) {
+    this.createNewGame = function(obj) {
         _parser.parseShellData(RG.Effects);
         _parser.parseShellData(RGObjects);
         var cols = obj.cols;
