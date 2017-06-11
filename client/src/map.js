@@ -209,6 +209,10 @@ RG.Map.CellList = function(cols, rows) { // {{{2
         return map[x][y].removeProp(prop, obj);
     };
 
+    this.setElemXY = function(x, y, obj) {
+        this.setProp(x, y, RG.TYPE_ELEM, obj);
+    };
+
     this.setBaseElemXY = function(x, y, elem) {
         map[x][y].setBaseElem(elem);
     };
@@ -558,6 +562,23 @@ RG.Map.Generator = function() { // {{{2
             floor: floorCoords,
             door: [doorX, doorY]
         };
+    };
+
+    /* Creates a forest map. Uses the same RNG but instead of walls, populates
+     * using trees. Ratio is conversion ratio of walls to trees. For example,
+     * 0.5 on average replaces half the walls with tree, and removes rest of
+     * the walls. */
+    this.createForest = function(ratio = 1.0) {
+        const map = new RG.Map.CellList(this.cols, this.rows);
+        _mapGen.create(function(x, y, val) {
+            map.setBaseElemXY(x, y, new RG.Element.Base('floor'));
+            const createTree = Math.random() <= ratio;
+            if (val === 1 && createTree) {
+                map.setElemXY(x, y, new RG.Element.Tree('tree'));
+            }
+        });
+        var obj = {map: map};
+        return obj;
     };
 
 }; // }}} Map.Generator
