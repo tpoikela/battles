@@ -313,7 +313,14 @@ RG.World.Area = function(name, maxX, maxY) {
             const tileColumn = [];
             for (let y = 0; y < _maxY; y++) {
                 const newTile = new RG.World.AreaTile(x, y, this);
-                const level = RG.FACT.createLevel('ruins', 30, 30, {});
+                // const level = RG.FACT.createLevel('ruins', 30, 30, {});
+                const levelConf = {
+                    forest: {
+                        ratio: 0.5,
+                        shape: 'ruins'
+                    }
+                };
+                const level = RG.FACT.createLevel('forest', 30, 30, levelConf);
                 newTile.setLevel(level);
                 tileColumn.push(newTile);
             }
