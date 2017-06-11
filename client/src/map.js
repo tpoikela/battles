@@ -576,6 +576,9 @@ RG.Map.Generator = function() { // {{{2
             if (val === 1 && createTree) {
                 map.setElemXY(x, y, new RG.Element.Tree('tree'));
             }
+            else if (val === 1) {
+                map.setElemXY(x, y, new RG.Element.Grass('grass'));
+            }
         });
         var obj = {map: map};
         return obj;
