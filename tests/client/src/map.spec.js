@@ -432,3 +432,13 @@ describe('How shops in the game work', function() {
 
     });
 });
+
+describe('Map.Generator', () => {
+    it('can generate forest levels with trees', () => {
+        const mapgen = new RG.Map.Generator();
+        mapgen.setGen('digger', 20, 20);
+        const obj = mapgen.createForest(0.5);
+        const map = obj.map;
+        expect(map).to.not.be.empty;
+    });
+});
