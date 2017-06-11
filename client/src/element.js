@@ -56,12 +56,43 @@ RG.Element.Stairs = function(down, srcLevel, targetLevel) {
     this.isDown = function() {return _down;};
 
     this.getSrcLevel = function() {return _srcLevel; };
-    this.setSrcLevel = function(src) {_srcLevel = src;};
+
+    this.setSrcLevel = function(src) {
+        if (!RG.isNullOrUndef([src])) {
+            _srcLevel = src;
+        }
+        else {
+            RG.err('Element.Stairs', 'setSrcLevel',
+                'Cannot set null/undefined level');
+        }
+    };
 
     this.getTargetLevel = function() {return _targetLevel; };
-    this.setTargetLevel = function(target) {_targetLevel = target;};
+    this.setTargetLevel = function(target) {
+        if (!RG.isNullOrUndef([target])) {
+            _targetLevel = target;
+        }
+        else {
+            RG.err('Element.Stairs', 'setTargetLevel',
+                'Cannot set null/undefined level.');
+        }
+    };
 
-    this.setTargetStairs = function(stairs) {_targetStairs = stairs;};
+    /* Sets target stairs for this object. Also sets the level if target stairs
+     * have one specified. */
+    this.setTargetStairs = function(stairs) {
+        if (!RG.isNullOrUndef([stairs])) {
+            _targetStairs = stairs;
+            const targetLevel = stairs.getSrcLevel();
+            if (!RG.isNullOrUndef([targetLevel])) {
+                this.setTargetLevel(targetLevel);
+            }
+        }
+        else {
+            RG.err('Element.Stairs', 'setTargetStairs',
+                'Cannot set null/undefined stairs.');
+        }
+    };
     this.getTargetStairs = function() {return _targetStairs;};
 
 };
