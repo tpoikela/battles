@@ -240,4 +240,10 @@ RG.Element.Shop.prototype.getShopkeeper = function() {
 };
 
 
+/* A tree element. */
+RG.Element.Tree = function() {
+    RG.Element.Base.call(this, 'tree');
+};
+RG.extend2(RG.Element.Tree, RG.Element.Base);
+
 module.exports = RG.Element;
