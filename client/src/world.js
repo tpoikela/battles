@@ -317,7 +317,7 @@ RG.World.Area = function(name, maxX, maxY) {
                 const levelConf = {
                     forest: {
                         ratio: 0.5,
-                        shape: 'ruins'
+                        shape: 'cellular'
                     }
                 };
                 const level = RG.FACT.createLevel('forest', 30, 30, levelConf);
