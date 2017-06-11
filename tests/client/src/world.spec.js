@@ -37,14 +37,23 @@ describe('World.Dungeon', function() {
     it('Contains a number of connected branches', function() {
         const dungeon = new World.Dungeon('DarkDungeon');
         const branches = [];
+        const numBranches = 4;
 
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < numBranches; i++) {
             const branch = new World.Branch('branch' + i);
             addLevelsToBranch(branch, i + 2);
             dungeon.addBranch(branch);
             branches.push(branch);
         }
         expect(branches[0].getDungeon()).to.equal(dungeon);
+
+        const entrances = dungeon.getEntrances();
+        expect(entrances).to.have.length(numBranches);
+
+        entrances.forEach(entr => {
+            const level = entr.getSrcLevel();
+            expect(level).not.to.be.empty;
+        });
 
         dungeon.connectBranches(branches[0], branches[1], 1, 2);
     });
@@ -109,9 +118,9 @@ describe('World.Mountain', function() {
 describe('World.World', function() {
     let fact = null;
     const conf = {
-        nAreas: 2,
-        nDungeonsPerArea: 3,
-        nMountainsPerArea: 1
+        nAreas: 1,
+        nDungeonsPerArea: 1,
+        nMountainsPerArea: 0
     };
 
     beforeEach(() => {
@@ -124,11 +133,12 @@ describe('World.World', function() {
 
     it('Contains a number of dungeon and areas', function() {
         var world = new World.World(conf);
-        expect(world.getAreas()).to.have.length(2);
-        expect(world.getDungeons()).to.have.length(6);
-        expect(world.getMountains()).to.have.length(2);
+        expect(world.getAreas()).to.have.length(1);
+        expect(world.getDungeons()).to.have.length(1);
+        expect(world.getMountains()).to.have.length(0);
 
         const areaZero = world.getAreas()[0];
+        expect(areaZero.getLevels()).to.have.length(16);
         const dungeonZero = world.getDungeons()[0];
         const entrance = dungeonZero.getEntrances()[0];
         expect(typeof entrance).to.not.equal('undefined');
@@ -136,7 +146,7 @@ describe('World.World', function() {
         fact.createConnection(areaZero, dungeonZero);
 
         const tile00 = areaZero.getTiles()[0][0];
-        expect(tile00).to.be.empty;
+        expect(tile00).not.to.be.empty;
         const tileLevel = tile00.getLevel();
         expect(entrance.getTargetLevel()).to.equal(tileLevel);
     });
