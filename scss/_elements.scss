@@ -12,6 +12,11 @@ $door-bg-color: white;
 $floor-bg-color: gray;
 $tree-color: lighten(green, 20%);
 
+@mixin green-elem {
+    background-color: $floor-bg-color;
+    color: $tree-color;
+}
+
 .cell-elements {
     color: white;
     background-color: purple;
@@ -60,6 +65,10 @@ $tree-color: lighten(green, 20%);
 };
 
 .cell-element-tree {
-    background-color: $floor-bg-color;
-    color: $tree-color;
+    @include green-elem;
 };
+
+.cell-element-grass {
+    @include green-elem;
+};
+
