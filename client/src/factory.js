@@ -132,13 +132,25 @@ RG.Factory.Base = function() { // {{{2
     this.createLevel = function(levelType, cols, rows, conf) {
         var mapgen = new RG.Map.Generator();
         var mapObj = null;
-
         var level = new RG.Map.Level(cols, rows);
+
         if (levelType === 'town') {
             mapObj = mapgen.createTown(cols, rows, conf);
             level.setMap(mapObj.map);
             this.createHouseElements(level, mapObj, conf);
             this.createShop(level, mapObj, conf);
+        }
+        else if (levelType === 'forest') {
+            if (!RG.isNullOrUndef([conf.forest])) {
+                const forestShape = conf.forest.shape;
+                mapgen.setGen(forestShape, cols, rows);
+                mapObj = mapgen.createForest(conf.forest.ratio);
+                level.setMap(mapObj.map);
+            }
+            else {
+                RG.err('RG.Factory.Base', 'createLevel',
+                    'conf.forest must be specified!');
+            }
         }
         else {
             mapgen.setGen(levelType, cols, rows);
@@ -369,7 +381,6 @@ RG.FCCGame = function() {
         var _beastsKilled = 0;
         var _demonsKilled = 0;
 
-
         this.hasNotify = true;
         this.notify = function(evtName, obj) {
             if (evtName === RG.EVT_ACTOR_CREATED) {
@@ -414,9 +425,6 @@ RG.FCCGame = function() {
         this.allDemonsKilled = function() {
             RG.gameMsg(
                 "Humans have vanquished all demons! But it's not over..");
-
-            const map = _level.getMap();
-
             var windsEvent = new RG.Time.RogueOneShotEvent(
                 this.addSnow.bind(this, _level, 0.2), 20 * 100,
                 "Winds are blowing stronger. You feel it's getting colder"
