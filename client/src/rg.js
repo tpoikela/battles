@@ -153,7 +153,8 @@ var RG = { // {{{2
             door: {isClosed: '+',
                      default: '/'
             },
-            tree: 'T'
+            tree: 'T',
+            grass: '"'
         },
         actors: {
             default: 'X',
@@ -182,7 +183,8 @@ var RG = { // {{{2
             shop: 'cell-element-shop',
             snow: 'cell-element-snow',
             wall: 'cell-element-wall',
-            tree: 'cell-element-tree'
+            tree: 'cell-element-tree',
+            grass: 'cell-element-grass'
         },
         actors: {
             default: 'cell-actor-default',
