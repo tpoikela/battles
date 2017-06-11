@@ -415,12 +415,13 @@ RG.World.Factory = function() {
 
         if (feature.hasOwnProperty('getEntrances')) {
             const entrances = feature.getEntrances();
-            if (entrances.lenght > 0) {
+            if (entrances.length > 0) {
                 const entranceStairs = entrances[0];
                 const entranceLevel = entranceStairs.getSrcLevel();
                 const tileStairs = new Stairs(true, tileLevel, entranceLevel);
                 tileStairs.setTargetStairs(entranceStairs);
                 entranceStairs.setTargetStairs(tileStairs);
+                entranceStairs.setTargetLevel(tileLevel);
                 tileLevel.addStairs(tileStairs, freeX, freeY);
                 console.log(`Created tile stairs at ${freeX}, ${freeY}`);
             }
@@ -431,7 +432,7 @@ RG.World.Factory = function() {
             }
         }
         else { // No entrance for feature, what to do?
-            console.warn('No getEntrance method for feature.');
+            console.warn('No getEntrance method for feature. Skipping connect');
         }
     };
 };
