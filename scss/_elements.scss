@@ -3,11 +3,19 @@
 // ELEMENTS CSS
 //----------------------
 
+$ground-color: #a52a2a;
+$wall-color: #f00;
+
+$door-color: #a52a2a;;
+$door-bg-color: white;
+
+$floor-bg-color: gray;
+$tree-color: lighten(green, 20%);
+
 .cell-elements {
     color: white;
     background-color: purple;
 }
-
 
 .cell-dark {
     background-color: #101010;
@@ -18,14 +26,13 @@
     color: black;
 };
 
-
 .cell-element-door {
-    color: brown;
-    background-color: white;
+    color: $door-color;
+    background-color: $door-bg-color;
 }
 
 .cell-element-floor {
-    background-color: gray;
+    background-color: $floor-bg-color;
 }
 
 .cell-element-ice-wall {
@@ -44,7 +51,7 @@
 };
 
 .cell-element-wall {
-    background-color: red;
+    background-color: $wall-color;
 }
 
 .cell-element-water {
@@ -53,5 +60,6 @@
 };
 
 .cell-element-tree {
-    color: green;
+    background-color: $floor-bg-color;
+    color: $tree-color;
 };

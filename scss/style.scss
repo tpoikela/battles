@@ -50,7 +50,7 @@ $cell-height: 17px;
     // background: radial-gradient($main-color, $main-color-2, $main-color-3);
 }
 
-/** Elements, classes and IDs.*/
+/** Elements, classes and IDs. */
 
 body {
     @include fonts;
@@ -76,9 +76,7 @@ body {
 //------------------------------------------------------------------
 
 @import 'actors';
-
 @import 'elements';
-
 @import 'items';
 
 .cell-target-selected {
