@@ -239,11 +239,16 @@ RG.Element.Shop.prototype.getShopkeeper = function() {
     return this._costFactor;
 };
 
-
 /* A tree element. */
 RG.Element.Tree = function() {
     RG.Element.Base.call(this, 'tree');
 };
 RG.extend2(RG.Element.Tree, RG.Element.Base);
+
+/* A grass element. */
+RG.Element.Grass = function() {
+    RG.Element.Base.call(this, 'grass');
+};
+RG.extend2(RG.Element.Grass, RG.Element.Base);
 
 module.exports = RG.Element;
