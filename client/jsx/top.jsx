@@ -215,10 +215,7 @@ class BattlesTop extends React.Component {
             this.gameConf.loadedLevel = this.gameSave.getDungeonLevel();
             var confObj = this.gameSave.getPlayersAsObj()[name];
             this.restoreConf(confObj);
-
             this.newGame();
-            // this.gameConf.loadedPlayer = null;
-            // this.gameConf.loadedLevel = null;
         }
     }
 
@@ -300,7 +297,6 @@ class BattlesTop extends React.Component {
 
     /* Listens for player key presses and handles them.*/
     handleKeyDown(evt) {
-        console.log('handleKeydown with ' + evt.keyCode);
         if (this.keyPending === false) {
             this.keyPending = true;
             this.nextCode = evt.keyCode;
@@ -310,7 +306,6 @@ class BattlesTop extends React.Component {
     mainLoop() {
         if (this.keyPending === true) {
             var code = this.nextCode;
-            console.log('mainLoop evaluating key ' + code);
             this.game.update({code: code});
             this.gameState.visibleCells = this.game.visibleCells;
             if (this.game.isGameOver()) {
