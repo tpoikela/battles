@@ -105,8 +105,11 @@ describe('World.Area', function() {
         const tiles = area.getTiles();
         const levels = area.getLevels();
         expect(tiles[1][0].isNorthEdge()).to.equal(true);
+        expect(tiles[1][1].isNorthEdge()).to.equal(false);
         expect(tiles[3][4].isSouthEdge()).to.equal(true);
+        expect(tiles[1][0].isSouthEdge()).to.equal(false);
         expect(tiles[3][4].isEastEdge()).to.equal(true);
+        expect(tiles[2][4].isEastEdge()).to.equal(false);
         expect(levels).to.have.length(20);
     });
 });
@@ -117,11 +120,6 @@ describe('World.Mountain', function() {
 
 describe('World.World', function() {
     let fact = null;
-    const conf = {
-        nAreas: 1,
-        nDungeonsPerArea: 1,
-        nMountainsPerArea: 0
-    };
 
     beforeEach(() => {
         fact = new RG.World.Factory();
@@ -131,23 +129,38 @@ describe('World.World', function() {
         fact = null;
     });
 
-    it('Contains a number of dungeon and areas', function() {
-        var world = new World.World(conf);
-        expect(world.getAreas()).to.have.length(1);
-        expect(world.getDungeons()).to.have.length(1);
-        expect(world.getMountains()).to.have.length(0);
+    it('Contains a number areas, dungeons and mountains', function() {
+        const worldConf = {
+            name: 'w1',
+            nAreas: 2,
+            area: [
+                { name: 'a1', maxX: 2, maxY: 3, nDungeons: 1,
+                    dungeon: [{name: 'd1.1'}]
+                },
+                { name: 'a2', maxX: 1, maxY: 4, nMountains: 1,
+                    mountain: [{name: 'm2.1'}]
+                }
+            ]
+        };
+        const world = fact.createWorld(worldConf);
+        expect(world.getName()).to.equal('w1');
+        expect(world.getAreas()).to.have.length(2);
+        expect(world.getAreas()[0].getDungeons()).to.have.length(1);
+        expect(world.getDungeons(), 'Found 1 dungeon').to.have.length(1);
+        expect(world.getMountains(), 'Found 1 mountain').to.have.length(1);
+    });
 
-        const areaZero = world.getAreas()[0];
-        expect(areaZero.getLevels()).to.have.length(16);
-        const dungeonZero = world.getDungeons()[0];
-        const entrance = dungeonZero.getEntrances()[0];
-        expect(typeof entrance).to.not.equal('undefined');
-
-        fact.createConnection(areaZero, dungeonZero);
-
-        const tile00 = areaZero.getTiles()[0][0];
-        expect(tile00).not.to.be.empty;
-        const tileLevel = tile00.getLevel();
-        expect(entrance.getTargetLevel()).to.equal(tileLevel);
+    it('Can also contain cities within areas', () => {
+        const worldConf = {
+            name: 'ww',
+            nAreas: 1,
+            area: [
+                { name: 'a1', maxX: 4, maxY: 5, nCities: 1,
+                    city: [{ name: 'Ravendark' }]
+                }
+            ]
+        };
+        const world = fact.createWorld(worldConf);
+        expect(world.getCities()).to.have.length(1);
     });
 });
