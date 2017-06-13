@@ -15,7 +15,6 @@ RG.Effects = require('../data/effects.js');
 
 RG.Factory = {};
 
-
 /* This object is used to randomize item properties during procedural
  * generation.*/
 RG.Factory.ItemRandomizer = function() {
@@ -235,7 +234,6 @@ RG.Factory.Base = function() { // {{{2
         Strong: {att: 5, def: 6, prot: 3, hp: 40, Weapon: 'Tomahawk'},
         Inhuman: {att: 10, def: 10, prot: 4, hp: 80, Weapon: 'Magic sword'}
     };
-
 
     /* Adds N random items to the level based on maximum value.*/
     this.addNRandItems = function(parser, itemsPerLevel, level, maxVal, func) {
@@ -484,12 +482,14 @@ RG.FCCGame = function() {
         var maxLevelType = levels.length;
 
         // For storing stairs and levels
-        var allStairsUp = [];
         var allStairsDown = [];
         var allLevels = [];
 
         var branch = new RG.World.Branch('StartBranch');
 
+        const itemConstraint = function(maxVal) {
+            return function(item) {return item.value <= maxVal;};
+        };
         // Generate all game levels
         for (var nl = 0; nl < nLevels; nl++) {
 
@@ -511,7 +511,7 @@ RG.FCCGame = function() {
 
             var maxVal = 20 * (nl + 1);
             this.addNRandItems(_parser, itemsPerLevel, level, maxVal,
-                function(item) {return item.value <= maxVal;}
+                itemConstraint(maxVal)
             );
             this.addNRandMonsters(_parser, monstersPerLevel, level, nl + 1);
 
@@ -548,8 +548,7 @@ RG.FCCGame = function() {
         lastStairsDown.setTargetStairs(townStairsUp);
 
         // Create townsfolk for the extra level
-        var humansPerLevel = 50;
-        for (var i = 0; i < 10; i++) {
+        for (let i = 0; i < 10; i++) {
             var name = 'Townsman';
             var human = this.createActor(name, {brain: 'Human'});
             human.setType('human');
@@ -587,11 +586,11 @@ RG.FCCGame = function() {
     };
 
     this.createFullWorld = function(obj, game, player) {
-        const conf = {
+        const conf = Object.assign({
             nAreas: 1,
             nDungeonsPerArea: 4,
             nMountainsPerArea: 0
-        };
+        }, obj);
         const world = new RG.World.World(conf);
         const levels = world.getLevels();
         levels.forEach(level => {
@@ -603,7 +602,6 @@ RG.FCCGame = function() {
 
     /* Can be used to create a short debugging game for testing.*/
     this.createArenaDebugGame = function(obj, game, player) {
-        const sqrPerMonster = obj.sqrPerMonster;
         var sqrPerItem = obj.sqrPerItem;
         var level = this.createLastBattle(game, obj);
 
@@ -620,7 +618,8 @@ RG.FCCGame = function() {
         var poison = _parser.createActualObj('items', 'Potion of frost poison');
         poison.count = 5;
         level.addItem(poison, 2, 2);
-        var curePoison = _parser.createActualObj('items', 'Potion of cure poison');
+        var curePoison = _parser.createActualObj('items',
+            'Potion of cure poison');
         level.addItem(curePoison, 3, 2);
 
         // Test for shops
