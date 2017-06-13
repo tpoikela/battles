@@ -1,4 +1,6 @@
 
+'use strict';
+
 const React = require('react');
 const RG = require('../src/rg.js');
 
@@ -6,53 +8,109 @@ const GameRow = require('./game-row');
 
 const GUI = require('../gui/gui');
 
+// TODO: Refactor out of this file
+/* Builds and returns two arrays. First contains all CSS classNames of
+ * cells to be rendered, and the second one all characters to be rendered.*/
+const getClassesAndChars = function(seen, cells, selCell) {
+    const cssClasses = [];
+    const asciiChars = [];
+
+    let selX = -1;
+    let selY = -1;
+
+    if (selCell !== null) {
+        selX = selCell.getX();
+        selY = selCell.getY();
+    }
+
+    // TODO: Prevents a bug, if player wants to see inventory right after
+    // Load. Should render the visible cells properly though.
+    if (!seen) {
+        cssClasses.fill('cell-not-seen', 0, cells.length - 1);
+        asciiChars.fill('X', 0, cells.length - 1);
+        return [cssClasses, asciiChars];
+    }
+
+    for (let i = 0; i < cells.length; i++) {
+        const cell = cells[i];
+        const cellIndex = seen.indexOf(cell);
+        const visibleToPlayer = cellIndex < 0 ? false : true;
+
+        let cellClass = RG.getClassName(cell, visibleToPlayer);
+        const cellChar = RG.getChar(cell, visibleToPlayer);
+
+        if (selX === cell.getX() && selY === cell.getY()) {
+            cellClass = 'cell-target-selected';
+        }
+
+        if (!visibleToPlayer) {
+            if (cell.isExplored()) {cellClass += ' cell-not-seen';}
+        }
+        cssClasses.push(cellClass);
+        asciiChars.push(cellChar);
+    }
+
+    return [cssClasses, asciiChars];
+};
+
 /** Component which renders the game rows. {{{2 */
 const GameBoard = React.createClass({
 
-    viewportX: 35, // * 2
-    viewportY: 12, // * 2
+    propTypes: {
+        mapShown: React.PropTypes.bool.isRequired,
+        viewportX: React.PropTypes.number,
+        viewportY: React.PropTypes.number,
+        player: React.PropTypes.object,
+        visibleCells: React.PropTypes.array,
+        map: React.PropTypes.object,
+        onCellClick: React.PropTypes.func,
+        selectedCell: React.PropTypes.object,
+        boardClassName: React.PropTypes.string
+    },
 
     render: function() {
-
-        var mapShown = this.props.mapShown;
-        var rowClass = 'cell-row-div-player-view';
+        const mapShown = this.props.mapShown;
+        let rowClass = 'cell-row-div-player-view';
         if (mapShown) {rowClass = 'cell-row-div-map-view';}
 
-        this.viewportX = this.props.viewportX;
-        this.viewportY = this.props.viewportY;
+        const player = this.props.player;
+        const playX = player.getX();
+        const playY = player.getY();
+        const map = this.props.map;
 
-        var player = this.props.player;
-        var playX = player.getX();
-        var playY = player.getY();
-        var map = this.props.map;
-
-        var shownCells = map;
-
+        let shownCells = map;
         if (!mapShown) {
-            shownCells = new GUI.Viewport(this.viewportX, this.viewportY, map);
+            shownCells = new GUI.Viewport(this.props.viewportX,
+                this.props.viewportY, map);
             shownCells.getCellsInViewPort(playX, playY, map);
         }
 
-        var onCellClick = this.props.onCellClick;
-        var visibleCells = this.props.visibleCells;
+        const cellRows = [];
+        const charRows = [];
+        const classRows = [];
+        for (let y = shownCells.startY; y <= shownCells.endY; ++y) {
+            const rowCellData = shownCells.getCellRow(y);
+            const classesChars = getClassesAndChars(this.props.visibleCells,
+                rowCellData, this.props.selectedCell);
 
-        var rowsHTML = [];
-        var selCell = this.props.selectedCell;
+            cellRows.push(rowCellData);
+            charRows.push(classesChars[1]);
+            classRows.push(classesChars[0]);
+        }
 
+        const rowsHTML = [];
         // Build the separate cell rows
-        for (var y = shownCells.startY; y <= shownCells.endY; ++y) {
-
-            var rowCellData = shownCells.getCellRow(y);
-            var startX = rowCellData[0].getX();
-            var classesChars = this.getClassesAndChars(visibleCells, rowCellData, selCell);
+        for (let y = shownCells.startY; y <= shownCells.endY; ++y) {
+            const yIndex = y - shownCells.startY;
+            const startX = cellRows[yIndex][0].getX();
 
             rowsHTML.push(
                 <GameRow
                     key={y}
-                    onCellClick={onCellClick}
-                    rowChars={classesChars[1]}
+                    onCellClick={this.props.onCellClick}
+                    rowChars={charRows[yIndex]}
                     rowClass={rowClass}
-                    rowClasses={classesChars[0]}
+                    rowClasses={classRows[yIndex]}
                     startX={startX}
                     y={y}
                 />);
@@ -67,59 +125,7 @@ const GameBoard = React.createClass({
                 {rowsHTML}
             </div>
         );
-    },
-
-    /* Builds and returns two arrays. First contains all CSS classNames of
-     * cells to be rendered, and the second one all characters to be rendered.*/
-    getClassesAndChars: function(seen, cells, selCell) {
-        var classes = [];
-        var chars = [];
-
-        var selX = -1;
-        var selY = -1;
-
-        if (selCell !== null) {
-            selX = selCell.getX();
-            selY = selCell.getY();
-        }
-
-        // TODO: Prevents a bug, if player wants to see inventory right after
-        // Load. Should render the visible cells properly though.
-        if (!seen) {
-            classes.fill('cell-not-seen', 0, cells.length - 1);
-            chars.fill('X', 0, cells.length - 1);
-            return [classes, chars];
-        }
-
-        for (var i = 0; i < cells.length; i++) {
-            var cell = cells[i];
-            var cellIndex = seen.indexOf(cell);
-            var visibleToPlayer = cellIndex < 0 ? false : true;
-            var cellClass = RG.getClassName(cell, visibleToPlayer);
-            var cellChar = RG.getChar(cell, visibleToPlayer);
-
-            if (selX === cell.getX() && selY === cell.getY()) {
-                cellClass = 'cell-target-selected';
-            }
-
-            if (!visibleToPlayer) {
-                if (cell.isExplored()) {cellClass += ' cell-not-seen';}
-            }
-            classes.push(cellClass);
-            chars.push(cellChar);
-        }
-
-        return [classes, chars];
     }
-
 }); // }}} Gameboard
-
-GameBoard.propTypes = {
-    mapShown: React.PropTypes.bool,
-    viewportX: React.PropTypes.number,
-    viewportY: React.PropTypes.number,
-    player: React.PropTypes.object,
-    visibleCells: React.PropTypes.array
-};
 
 module.exports = GameBoard;
