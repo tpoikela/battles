@@ -176,7 +176,8 @@ RG.Map.Cell.prototype.getProp = function(prop) {
     return null;
 };
 
-/* Map object which contains a number of cells. A map is used for rendering
+/* Map cell list object which contains a number of cells. A map is used for
+ * rendering
  * while the level contains actual information about game elements such as
  * monsters and items.  */
 RG.Map.CellList = function(cols, rows) { // {{{2
@@ -187,7 +188,7 @@ RG.Map.CellList = function(cols, rows) { // {{{2
     var _cols = cols;
     var _rows = rows;
 
-    for (var x = 0; x < this.cols; x++) {
+    for (let x = 0; x < this.cols; x++) {
         map.push([]);
         for (var y = 0; y < this.rows; y++) {
             var elem = new RG.Element.Base('floor');
@@ -317,6 +318,7 @@ RG.Map.CellList = function(cols, rows) { // {{{2
         return false;
     };
 
+    /* Prints the map in ASCII. */
     this.debugPrintInASCII = function() {
         var mapInASCII = '';
         for (var y = 0; y < this.rows; y++) {
@@ -333,7 +335,7 @@ RG.Map.CellList = function(cols, rows) { // {{{2
     };
 
 
-}; // }}} Map
+}; // }}} Map.CellList
 
 /* Map generator for the roguelike game.  */
 RG.Map.Generator = function() { // {{{2
@@ -606,7 +608,7 @@ RG.Map.Level = function() { // {{{2
     var _id = RG.Map.Level.prototype.idCount++;
 
     // Level properties
-    var _p = {
+    const _p = {
         actors: [],
         items: [],
         elements: [],
@@ -630,7 +632,7 @@ RG.Map.Level = function() { // {{{2
             RG.err('Map.Level', 'getStairs', 'arg |level| required.');
         }
 
-        for (var i = 0; i < _p.stairs.length; i++) {
+        for (let i = 0; i < _p.stairs.length; i++) {
             if (_p.stairs[i].getTargetLevel() === level) {
                 return _p.stairs[i];
             }
@@ -740,10 +742,10 @@ RG.Map.Level = function() { // {{{2
      * exact x,y coordinates.*/
     this.addActorToFreeCell = function(actor) {
         RG.debug(this, 'Adding actor to free slot');
-        var freeCells = _map.getFree();
+        const freeCells = _map.getFree();
         if (freeCells.length > 0) {
-            var xCell = freeCells[0].getX();
-            var yCell = freeCells[0].getY();
+            const xCell = freeCells[0].getX();
+            const yCell = freeCells[0].getY();
             if (this._addPropToLevelXY('actors', actor, xCell, yCell)) {
                 RG.debug(this,
                     'Added actor to free cell in ' + xCell + ', ' + yCell);
@@ -771,16 +773,17 @@ RG.Map.Level = function() { // {{{2
             return true;
         }
         else {
-            RG.err('Level', '_addPropToLevelXY', 'No property ' + propType);
+            RG.err('Level', '_addPropToLevelXY',
+                `No prop ${propType} supported. Obj: ${JSON.stringify(obj)}`);
         }
         return false;
     };
 
     /* Removes given actor from level. Returns true if successful.*/
     this.removeActor = function(actor) {
-        var index = _p.actors.indexOf(actor);
-        var x = actor.getX();
-        var y = actor.getY();
+        const index = _p.actors.indexOf(actor);
+        const x = actor.getX();
+        const y = actor.getY();
         if (_map.removeProp(x, y, 'actors', actor)) {
             _p.actors.splice(index, 1);
             return true;
@@ -793,7 +796,7 @@ RG.Map.Level = function() { // {{{2
     /* Explores the level from given actor's viewpoint. Sets new cells as
      * explored. There's no exploration tracking per actor.*/
     this.exploreCells = function(actor) {
-        var visibleCells = _map.getVisibleCells(actor);
+        const visibleCells = _map.getVisibleCells(actor);
         if (actor.isPlayer()) {
             for (var i = 0; i < visibleCells.length; i++) {
                 visibleCells[i].setExplored();
@@ -861,32 +864,5 @@ RG.Map.Level = function() { // {{{2
 
 }; // }}} Level
 RG.Map.Level.prototype.idCount = 0;
-
-/* Dungeon is a collection of levels.*/
-RG.Map.Dungeon = function() {
-
-    // var _levels = [];
-    // var _stairs = [];
-
-    /*
-    var _conf = {
-        cols: 80,
-        rows: 60,
-        levels: 10,
-        levelTypes: ['rooms', 'rogue', 'digger']
-    };
-    */
-
-    /* Given level number, returns the danger level.*/
-    this.dangerFunction = function(nlevel) {
-
-    };
-
-    /* Givel level number, returns the value for that level.*/
-    this.valueFunction = function(nlevel) {
-
-    };
-
-};
 
 module.exports = RG.Map;
