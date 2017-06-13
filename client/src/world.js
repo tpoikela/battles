@@ -238,7 +238,7 @@ RG.World.AreaTile = function(x, y, area) {
     this.isNorthEdge = function() {return _tileY === 0;};
     this.isSouthEdge = function() {return _tileY === (_area.getMaxY() - 1);};
     this.isWestEdge = function() {return _tileX === 0;};
-    this.isEastEdge = function() {return _tileY === (_area.getMaxY() - 1);};
+    this.isEastEdge = function() {return _tileX === (_area.getMaxX() - 1);};
 
     /* Connect this tile to east and south tiles */
     this.connect = function(eastTile, southTile) {
@@ -345,9 +345,6 @@ RG.World.Area = function(name, maxX, maxY) {
 
     this._init();
 
-    this.getMaxX = function() {return _maxX;};
-    this.getMaxY = function() {return _maxY;};
-
     this.getLevels = function() {
         var res = [];
         for (let x = 0; x < _tiles.length; x++) {
@@ -362,25 +359,235 @@ RG.World.Area = function(name, maxX, maxY) {
         return _tiles;
     };
 
+    this.dungeons = [];
+    this.mountains = [];
+    this.cities = [];
+
+    this.getDungeons = () => (this.dungeons);
+    this.getMountains = () => (this.mountains);
+    this.getCities = () => (this.cities);
+
+    this.addDungeon = function(dungeon) {
+        this.dungeons.push(dungeon);
+    };
+
+    this.addMountain = function(mountain) {
+        this.mountains.push(mountain);
+    };
+
+    this.addCity = function(city) {
+        this.cities.push(city);
+    };
+
 };
 
-/* Mountains places consisting of tiles and dungeons. Mountain has few special
- * tiles representing the summit.
+/* Mountains are places consisting of tiles and dungeons. Mountain has few
+ * special * tiles representing the summit.
  */
 RG.World.Mountain = function() {
     const _levels = [];
+    let _summit = null;
+    const _faces = [];
 
+/* MountainFace, 5 stages:
+        |       <- Summit
+       /|\
+      /|||\
+     /|||||\
+    /|||||||\
+   /|||||||||\
+
+4 tiletypes:
+    1. Summit (connect to all faces)
+    2. Left side tile (connect to face)
+    3. Right side tile (connect to face)
+    4. Central tiles (connect on all sides)
+
+Summit is above view, while face is more of climbing view.
+Bit weird but should be fine.
+
+*/
     this.getLevels = () => (_levels);
+
+    this.addSummit = (summit) => {
+        _summit = summit;
+    };
+
+    this.addFace = (face) => {
+        _faces.push(face);
+    };
+
+    this.getEntrances = () => {
+        const res = [];
+        _faces.forEach(face => {
+            res.push(face.getEntrance());
+        });
+        return res;
+    };
+
+    this.connect = () => {
+        this.connectFaces();
+        this.connectCentralTiles();
+        this.connectSummit();
+    };
+
+    /* Connects the mountain faces together. */
+    this.connectFaces = () => {
+
+    };
+
+    this.connectCentralTiles = () => {
+
+    };
+
+    this.connectSummit = () => {
+
+    };
 
 };
 
-/* Factory object for creating worlds and features. */
+/* One side (face) of the mountain. Each side consists of stages, of X by 1
+* Areas. */
+RG.World.MountainFace = function() {
+    // const _stages = [];
+
+};
+
+/* A city in the world. A special features of the city can be queried through
+* this object. */
+RG.World.City = function() {
+
+};
+
+/* Largest place. Contains a number of areas, mountains and dungeons. */
+RG.World.World = function(name) {
+
+    const _name = name;
+    const _allLevels = {}; // Lookup table for all levels
+    const _areas = [];
+    let _dungeons = [];
+    let _mountains = [];
+    let _cities = [];
+
+    this.getName = () => (_name);
+
+    /* Adds an area into the world. */
+    this.addArea = function(area) {
+        _areas.push(area);
+        this.addLevels(area.getLevels());
+        _dungeons = _dungeons.concat(area.getDungeons());
+        _mountains = _mountains.concat(area.getMountains());
+        _cities = _cities.concat(area.getCities());
+    };
+
+    /* Adds the array of levels to the global map. */
+    this.addLevels = function(levels) {
+        levels.forEach(level => {
+            const id = level.getID();
+            if (!_allLevels.hasOwnProperty(id)) {
+                _allLevels[id] = level;
+            }
+            else {
+                RG.err('World.World', 'addLevels',
+                    `Level ID ${id} already exists.`);
+            }
+        });
+    };
+
+    this.getLevels = function() {
+        return Object.keys(_allLevels).map(key => _allLevels[key]);
+    };
+
+    this.getAreas = () => (_areas);
+    this.getDungeons = () => (_dungeons);
+    this.getMountains = () => (_mountains);
+    this.getCities = () => (_cities);
+};
+
+/* Factory object for creating worlds and features. Uses conf object which is
+ * somewhat involved. For an example, see ../data/conf.world.js. This Factory
+ * does not have any procedural generation. The configuration object can be
+ * generated procedurally, and the factory will then use the configuration for
+ * building the world. Separation of concerns, you know.
+ */
 RG.World.Factory = function() {
 
+    /* Verifies that configuration contains all required keys.*/
+    this.verifyConf = function(msg, conf, required) {
+        let ok = true;
+        required.forEach(req => {
+            if (!conf.hasOwnProperty(req)) {
+                ok = false;
+                RG.err('World.Factory', 'verifyConf',
+                    `Missing conf arg: ${req}`);
+            }
+        });
+        if (!ok) {
+            RG.err('World.Factory', 'verifyConf', msg);
+        }
+        return ok;
+    };
+
+    /* Creates a world using given configuration. */
+    this.createWorld = function(conf) {
+        this.verifyConf('createWorld', conf, ['name', 'nAreas']);
+        const world = new RG.World.World(conf.name);
+        for (let i = 0; i < conf.nAreas; i++) {
+            const areaConf = conf.area[i];
+            const area = this.createArea(areaConf);
+            world.addArea(area);
+        }
+        return world;
+    };
+
+    /* Creates an area which can be added to a world. */
     this.createArea = function(conf) {
-        const area = new RG.World.Area('testArea', 4, 4);
-        console.log('Conf is ' + conf);
+        this.verifyConf('createArea', conf,
+            ['name', 'maxX', 'maxY']);
+        const area = new RG.World.Area(conf.name, conf.maxX, conf.maxY);
+        const nDungeons = conf.nDungeons || 0;
+        const nMountains = conf.nMountains || 0;
+        const nCities = conf.nCities || 0;
+
+        for (let i = 0; i < nDungeons; i++) {
+            const dungeonConf = conf.dungeon[i];
+            const dungeon = this.createDungeon(dungeonConf);
+            area.addDungeon(dungeon);
+            this.createConnection(area, dungeon);
+        }
+
+        for (let i = 0; i < nMountains; i++) {
+            const mountainConf = conf.mountain[i];
+            const mountain = this.createMountain(mountainConf);
+            area.addMountain(mountain);
+            this.createConnection(area, mountain);
+        }
+
+        for (let i = 0; i < nCities; i++) {
+            const cityConf = conf.city[i];
+            const city = this.createCity(cityConf);
+            area.addCity(city);
+            this.createConnection(area, city);
+        }
         return area;
+    };
+
+
+    this.createDungeon = function(conf) {
+        const dungeon = new RG.World.Dungeon('testDungeon', conf);
+        const branch = this.createBranch();
+        dungeon.addBranch(branch);
+        return dungeon;
+    };
+
+    this.createMountain = function(conf) {
+        const mountain = new RG.World.Mountain(conf);
+        return mountain;
+    };
+
+    this.createCity = function(conf) {
+        const city = new RG.World.City(conf);
+        return city;
     };
 
     this.createBranch = function() {
@@ -391,20 +598,6 @@ RG.World.Factory = function() {
         }
         branch.connectLevels();
         return branch;
-    };
-
-    this.createDungeon = function(conf) {
-        const dungeon = new RG.World.Dungeon('testDungeon');
-        const branch = this.createBranch();
-        dungeon.addBranch(branch);
-        console.log('Conf is ' + conf);
-        return dungeon;
-    };
-
-    this.createMountain = function(conf) {
-        const mountain = new RG.World.Mountain();
-        console.log('Conf is ' + conf);
-        return mountain;
     };
 
     /* Creates a connection between an area and a feature such as city, mountain
@@ -443,70 +636,5 @@ RG.World.Factory = function() {
         }
     };
 };
-
-/* Largest place. Contains a number of areas, mountains and dungeons. */
-RG.World.World = function(conf) {
-    if (RG.isNullOrUndef([conf])) {
-        RG.err('World.World', '', 'No configuration given.');
-        return;
-    }
-
-    var _fact = new RG.World.Factory();
-
-    const _allLevels = {}; // Lookup table for all levels
-    const _areas = [];
-    const _dungeons = [];
-    const _mountains = [];
-
-    const nAreas = conf.nAreas;
-    const nDungeonsPerArea = conf.nDungeonsPerArea;
-    const nMountainsPerArea = conf.nMountainsPerArea;
-
-    /* Adds the array of levels to the global map. */
-    this.addLevels = function(levels) {
-        levels.forEach(level => {
-            const id = level.getID();
-            if (!_allLevels.hasOwnProperty(id)) {
-                _allLevels[id] = level;
-            }
-            else {
-                RG.err('World.World', 'addLevels',
-                    `Level ID ${id} already exists.`);
-            }
-        });
-    };
-
-    this.getLevels = function() {
-        return Object.keys(_allLevels).map(key => _allLevels[key]);
-    };
-
-    for (let n = 0; n < nAreas; n++) {
-        const area = _fact.createArea(conf);
-        _areas.push(area);
-        this.addLevels(area.getLevels());
-
-        for (let n = 0; n < nDungeonsPerArea; n++) {
-            const dungeon = _fact.createDungeon(conf);
-            _dungeons.push(dungeon);
-            this.addLevels(dungeon.getLevels());
-            _fact.createConnection(area, dungeon);
-        }
-
-        for (let n = 0; n < nMountainsPerArea; n++) {
-            const mountain = _fact.createMountain(conf);
-            _mountains.push(mountain);
-            this.addLevels(mountain.getLevels());
-            _fact.createConnection(area, mountain);
-        }
-    }
-
-    this.getAreas = () => (_areas);
-    this.getDungeons = () => (_dungeons);
-    this.getMountains = () => (_mountains);
-
-    // Connect areas and dungeons
-
-};
-
 
 module.exports = RG.World;
