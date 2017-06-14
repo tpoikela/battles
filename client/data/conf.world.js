@@ -13,7 +13,9 @@ RG.WorldConf = {
             maxY: 4,
             nDungeons: 1,
             dungeon: [
-                { name: 'd1' }
+                { x: 0, y: 0, name: 'd1', nBranches: 1,
+                    branch: [{nLevels: 5}],
+                },
             ],
         },
     ],
