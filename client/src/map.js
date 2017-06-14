@@ -29,6 +29,11 @@ RG.Map.Cell.prototype.getBaseElem = function() { return this._baseElem; };
 /* Returns true if cell has any actors.*/
 RG.Map.Cell.prototype.hasActors = function() {return this.hasProp('actors');};
 
+/* Returns true if cell has any props. */
+RG.Map.Cell.prototype.hasProps = function() {
+    return Object.keys(this._p).length > 0;
+};
+
 /* Returns true if cell has stairs.*/
 RG.Map.Cell.prototype.hasStairs = function() {
     return this.hasPropType('stairsUp') || this.hasPropType('stairsDown');
