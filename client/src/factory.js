@@ -324,7 +324,7 @@ RG.Factory.Base = function() { // {{{2
 RG.FACT = new RG.Factory.Base();
 // }}}
 
-RG.Factory.Dungeon = function() {
+RG.Factory.Feature = function() {
     RG.Factory.Base.call(this);
 
     var _parser = new RG.ObjectShellParser();
@@ -357,8 +357,17 @@ RG.Factory.Dungeon = function() {
             _parser, monstersPerLevel, level, conf.nLevel + 1);
         return level;
     };
+
+    this.createCityLevel = function(conf) {
+        const levelConf = {
+            nHouses: 10, minHouseX: 5, maxHouseX: 10, minHouseY: 5, maxHouseY: 10,
+                parser: _parser, func: function(item) {return item.type === 'armour';}
+        };
+        const city = this.createLevel('town', conf.x, conf.y, levelConf);
+        return city;
+    };
 };
-RG.extend2(RG.Factory.Dungeon, RG.Factory.Base);
+RG.extend2(RG.Factory.Feature, RG.Factory.Base);
 
 RG.FCCGame = function() {
     RG.Factory.Base.call(this);
@@ -1165,7 +1174,11 @@ RG.ObjectShellParser = function() {
                     case 'spiritgem': return new RG.Item.SpiritGem(obj.name);
                     case 'weapon': return new RG.Item.Weapon(obj.name);
                     case 'tool': break;
-                    default: console.error(`Warning. Unknown subtype ${subtype}`);
+                    default: {
+                        const msg =
+                            `Unknown subtype: ${subtype}, obj: ${JSON.stringify(obj)}`;
+                        RG.err('', 'createNewObject', msg);
+                    }
                 }
                 return new RG.Item.Base(obj.name); // generic, useless
             case 'levels':
@@ -1215,7 +1228,7 @@ RG.ObjectShellParser = function() {
         var name = query.name;
         var categ = query.categ;
         var danger = query.danger;
-        var type = query.type;
+        // var type = query.type;
 
         // Specifying name returns an array
         if (typeof name !== 'undefined') {
