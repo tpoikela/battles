@@ -163,4 +163,12 @@ describe('World.World', function() {
         const world = fact.createWorld(worldConf);
         expect(world.getCities()).to.have.length(1);
     });
+
+    it('can be created from external config file', () => {
+        const worldConf = require('../../../client/data/conf.world');
+        const world = fact.createWorld(worldConf);
+        expect(world.getAreas()).to.have.length(worldConf.nAreas);
+        expect(world.getName()).to.equal(worldConf.name);
+        expect(world.getLevels()).to.have.length.above(0);
+    });
 });
