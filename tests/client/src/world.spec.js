@@ -135,6 +135,15 @@ describe('World.Factory', function() {
         fact = null;
     });
 
+    it('can create cities', () => {
+        const cityConf = {
+            name: 'Arkham'
+        };
+        const city = fact.createCity(cityConf);
+        expect(city.getName()).to.equal(cityConf.name);
+
+    });
+
     it('can create Branch using config object', () => {
         const brConf = {
             name: 'DangerousBranch',
