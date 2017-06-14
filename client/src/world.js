@@ -11,11 +11,9 @@ RG.World = {};
 
 RG.World.Base = function(name) {
     this.name = name;
-    console.log('Set name to ' + name);
 };
 
 RG.World.Base.prototype.getName = function() {
-    console.log('returning ' + this.name);
     return this.name;
 };
 
@@ -54,6 +52,9 @@ RG.World.Branch = function(name) {
 
     /* Stairs leading to other branches.*/
     this.getStairsOther = function() {return _stairsOther;};
+    this.addStairsOther = function(stairs) {
+        _stairsOther.push(stairs);
+    };
 
     /* Returns entrance/exit for the branch.*/
     this.getEntrance = function() {
@@ -72,10 +73,10 @@ RG.World.Branch = function(name) {
     };
 
     /* Connects specified level to the given stairs (Usually external to this
-     * branch.*/
+     * branch) .*/
     this.connectLevelToStairs = function(nLevel, stairs) {
-        var level = _levels[nLevel];
-        var otherBranchLevel = stairs.getSrcLevel();
+        const level = _levels[nLevel];
+        const otherBranchLevel = stairs.getSrcLevel();
 
         if (!RG.isNullOrUndef([otherBranchLevel])) {
             var down = !stairs.isDown();
@@ -83,8 +84,8 @@ RG.World.Branch = function(name) {
                 level, otherBranchLevel);
             var cell = level.getFreeRandCell();
             level.addStairs(newStairs, cell.getX(), cell.getY());
-            newStairs.setTargetStairs(stairs);
-            _stairsOther.push(newStairs);
+            newStairs.connect(stairs);
+            this.addStairsOther(newStairs);
         }
         else {
             RG.err('World.Branch', 'connectLevelToStairs',
@@ -218,7 +219,7 @@ RG.World.Dungeon = function(name) {
         let b2 = b2Arg;
 
         // Lookup objects by name
-        if (typeof b1Arg === 'string' && typeof b2Arg == 'string') {
+        if (typeof b1Arg === 'string' && typeof b2Arg === 'string') {
             b1 = _branches.find( br => br.getName() === b1Arg);
             b2 = _branches.find( br => br.getName() === b2Arg);
         }
@@ -230,14 +231,16 @@ RG.World.Dungeon = function(name) {
         }
 
         if (this.hasBranch(b1) && this.hasBranch(b2)) {
-            var down = true;
+            let down = true;
             if (l1 > l2) {down = false;}
-            var stairs = new Stairs(down);
+            var b2Stairs = new Stairs(down);
             var b2Levels = b2.getLevels();
             if (l2 < b2Levels.length) {
-                var cell = b2Levels[l2].getFreeRandCell();
-                b2Levels[l2].addStairs(stairs, cell.getX(), cell.getY());
-                b1.connectLevelToStairs(l1, stairs);
+                const cell = b2Levels[l2].getFreeRandCell();
+                b2Levels[l2].addStairs(b2Stairs, cell.getX(), cell.getY());
+                b2Stairs.setSrcLevel(b2Levels[l2]);
+                b2.addStairsOther(b2Stairs);
+                b1.connectLevelToStairs(l1, b2Stairs);
             }
             else {
                 RG.err('World.Dungeon', 'connectBranches',
@@ -406,6 +409,17 @@ RG.World.Area = function(name, maxX, maxY) {
 
     this.getTiles = function() {
         return _tiles;
+    };
+
+    this.getTileXY = function(x, y) {
+        if (x >= 0 && x < this.getMaxX() && y >= 0 && y < this.getMaxY()) {
+            return _tiles[x][y];
+        }
+        else {
+            RG.err('World.Area', 'getTileXY',
+                'Tile x,y is out of bounds.');
+        }
+        return null;
     };
 
     this.dungeons = [];
@@ -629,21 +643,21 @@ RG.World.Factory = function() {
             const dungeonConf = conf.dungeon[i];
             const dungeon = this.createDungeon(dungeonConf);
             area.addDungeon(dungeon);
-            this.createConnection(area, dungeon);
+            this.createConnection(area, dungeon, dungeonConf);
         }
 
         for (let i = 0; i < nMountains; i++) {
             const mountainConf = conf.mountain[i];
             const mountain = this.createMountain(mountainConf);
             area.addMountain(mountain);
-            this.createConnection(area, mountain);
+            this.createConnection(area, mountain, mountainConf);
         }
 
         for (let i = 0; i < nCities; i++) {
             const cityConf = conf.city[i];
             const city = this.createCity(cityConf);
             area.addCity(city);
-            this.createConnection(area, city);
+            this.createConnection(area, city, cityConf);
         }
         this.popScope(conf.name);
         return area;
@@ -727,11 +741,13 @@ RG.World.Factory = function() {
     /* Creates a connection between an area and a feature such as city, mountain
      * or dungeon. Unless configured, connects the feature entrance to a random
      * location in the area. */
-    this.createConnection = function(area, feature) {
-        // const areaMaxX = area.getMaxX();
-        // const areaMaxY = area.getMaxY();
-        const tile00 = area.getTiles()[0][0]; // TODO random connection
-        const tileLevel = tile00.getLevel();
+    this.createConnection = function(area, feature, conf) {
+        this.verifyConf('createConnection', conf, ['x', 'y']);
+
+        const x = conf.x;
+        const y = conf.y;
+        const tile = area.getTileXY(x, y); // TODO random connection
+        const tileLevel = tile.getLevel();
 
         const freeAreaCell = tileLevel.getFreeRandCell();
         const freeX = freeAreaCell.getX();
@@ -747,12 +763,11 @@ RG.World.Factory = function() {
                 entranceStairs.setTargetStairs(tileStairs);
                 entranceStairs.setTargetLevel(tileLevel);
                 tileLevel.addStairs(tileStairs, freeX, freeY);
-                console.log(`Created tile stairs at ${freeX}, ${freeY}`);
+                console.log(`Connected tile ${x}, ${y}`);
             }
             else {
                 RG.err('World.Factory', 'createConnection',
                     'Zero entrances in feature. Cannot connect to tile.');
-
             }
         }
         else { // No entrance for feature, what to do?
