@@ -69,4 +69,10 @@ RGTest.expectEqualHealth = function(o1, o2) {
     expect(o1.get('Health').getHP()).to.equal(o2.get('Health').getHP());
 };
 
+// Expect that branches b1 and b2 are connected by number of connections 
+// given by nConns.
+RGTest.expectedConnected = function(b1, b2, nConns) {
+
+};
+
 module.exports = RGTest;
