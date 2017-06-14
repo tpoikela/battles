@@ -182,11 +182,12 @@ RG.World.Dungeon = function(name) {
         if (!this.hasBranch(branch)) {
             _branches.push(branch);
             branch.setDungeon(this);
+
+            // By default, have at least one entrance
+            if (_branches.length === 1) {
+                this.setEntrance(branch.getName());
+            }
             return true;
-        }
-        // By default, have at least one entrance
-        if (_branches.length === 1) {
-            this.setEntrance(branch.getName());
         }
         return false;
     };
@@ -763,11 +764,12 @@ RG.World.Factory = function() {
                 entranceStairs.setTargetStairs(tileStairs);
                 entranceStairs.setTargetLevel(tileLevel);
                 tileLevel.addStairs(tileStairs, freeX, freeY);
-                console.log(`Connected tile ${x}, ${y}`);
+                console.log(`Connected tile ${x}, ${y} to ${feature.getName()}`);
             }
             else {
+                const msg = `No entrances in ${feature.getHierName()}.`;
                 RG.err('World.Factory', 'createConnection',
-                    'Zero entrances in feature. Cannot connect to tile.');
+                    `${msg}. Cannot connect to tile.`);
             }
         }
         else { // No entrance for feature, what to do?
