@@ -2,18 +2,33 @@
 const React = require('react');
 
 /** A row component which holds a number of cells. {{{2 */
-var GameRow = React.createClass({
+const GameRow = React.createClass({
 
-    shouldComponentUpdate: function(nextProps, nextState) {
+    propTypes: {
+        rowClasses: React.PropTypes.array,
+        rowChars: React.PropTypes.array,
+        onCellClick: React.PropTypes.func,
+        y: React.PropTypes.number,
+        startX: React.PropTypes.number,
+        rowClass: React.PropTypes.string
+    },
+
+    shouldComponentUpdate: function(nextProps) {
         if (this.props.rowClasses.length === nextProps.rowClasses.length) {
             if (this.props.rowChars.length === nextProps.rowChars.length) {
 
-                for (var i = 0; i < this.props.rowClasses.length; i++) {
-                    if (this.props.rowClasses[i] !== nextProps.rowClasses[i]) {return true;}
+                const classesLen = this.props.rowClasses.length;
+                for (let i = 0; i < classesLen; i++) {
+                    if (this.props.rowClasses[i] !== nextProps.rowClasses[i]) {
+                        return true;
+                    }
                 }
 
-                for (var j = 0; j < this.props.rowChars.length; j++) {
-                    if (this.props.rowChars[j] !== nextProps.rowChars[j]) {return true;}
+                const charsLen = this.props.rowChars.length;
+                for (let j = 0; j < charsLen; j++) {
+                    if (this.props.rowChars[j] !== nextProps.rowChars[j]) {
+                        return true;
+                    }
                 }
 
             }
@@ -27,19 +42,19 @@ var GameRow = React.createClass({
     },
 
     render: function() {
-        var y = this.props.y;
-        var that = this;
-        var startX = this.props.startX;
-        var rowClass = this.props.rowClass;
+        const y = this.props.y;
+        const startX = this.props.startX;
+        const rowClass = this.props.rowClass;
 
-        var rowCells = this.props.rowClasses.map( function(className, index) {
-            var cellChar = that.props.rowChars[index];
-            var cellX = startX + index;
+        const rowCells = this.props.rowClasses.map( (className, index) => {
+            const cellChar = this.props.rowChars[index];
+            const cellX = startX + index;
 
             return (
-                <span key={index}
+                <span
                     className={className}
-                    onClick={that.onCellClick.bind(that, cellX, y)}
+                    key={index}
+                    onClick={this.onCellClick.bind(this, cellX, y)}
                     >
                     {cellChar}
                 </span>
