@@ -11,23 +11,25 @@ RG.WorldConf = {
             name: 'Ravendark',
             maxX: 4,
             maxY: 4,
+            // DUNGEONS
             nDungeons: 1,
             dungeon: [
                 { x: 0, y: 0, name: 'd1', nBranches: 1,
                     branch: [{name: 'main', nLevels: 5}],
                 },
             ],
+            // CITIES
+            nCities: 1,
+            city: [
+                { x: 2, y: 2, name: 'Blashyrkh',
+                }
+            ],
+            // MOUNTAINS
+            nMountains: 0,
+            mountain: [
+
+            ],
         },
-    ],
-
-    nMountains: 0,
-    mountain: [
-
-    ],
-
-    nCities: 0,
-    city: [
-
     ],
 };
 
