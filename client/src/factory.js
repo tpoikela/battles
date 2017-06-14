@@ -1,6 +1,6 @@
 
-var RG = require('./rg.js');
-var ROT = require('../../lib/rot.js');
+const RG = require('./rg.js');
+const ROT = require('../../lib/rot.js');
 
 RG.Component = require('./component.js');
 RG.Brain = require('./brain.js');
@@ -9,6 +9,16 @@ RG.Map = require('./map.js');
 const RGObjects = require('../data/battles_objects.js');
 RG.Effects = require('../data/effects.js');
 
+const MSG = {
+    EYE_OF_STORM:
+        'You see an eye of the storm approaching. Brace yourself now..',
+    BEASTS_SLAIN:
+        'All beasts have been slain. The blizzard seems to calm down',
+    ENEMIES_DEAD:
+        'All enemies are dead! You emerge victorious. Congratulations!'
+};
+
+const Stairs = RG.Element.Stairs;
 //---------------------------------------------------------------------------
 // FACTORY OBJECTS
 //---------------------------------------------------------------------------
@@ -216,6 +226,7 @@ RG.Factory.Base = function() { // {{{2
         return level;
     };
 
+
     /* Player stats based on user selection.*/
     this.playerStats = {
         Weak: {att: 1, def: 1, prot: 1, hp: 15, Weapon: 'Dagger'},
@@ -312,6 +323,42 @@ RG.Factory.Base = function() { // {{{2
 
 RG.FACT = new RG.Factory.Base();
 // }}}
+
+RG.Factory.Dungeon = function() {
+    RG.Factory.Base.call(this);
+
+    var _parser = new RG.ObjectShellParser();
+    _parser.parseShellData(RG.Effects);
+    _parser.parseShellData(RGObjects);
+
+    this.getRandLevelType = function() {
+        const type = ['rooms', 'rogue', 'digger', 'cellular'];
+        const nLevelType = Math.floor(Math.random() * type.length);
+        return type[nLevelType];
+    };
+
+    /* Creates random dungeon level. */
+    this.createDungeonLevel = function(conf) {
+        const levelType = this.getRandLevelType();
+        const level = this.createLevel(levelType, conf.x, conf.y);
+
+        const numFree = level.getMap().getFree().length;
+        const monstersPerLevel = Math.round(numFree / conf.sqrPerMonster);
+        const itemsPerLevel = Math.round(numFree / conf.sqrPerItem);
+
+        const itemConstraint = function(maxVal) {
+            return function(item) {return item.value <= maxVal;};
+        };
+
+        this.addNRandItems(_parser, itemsPerLevel, level, conf.maxValue,
+            itemConstraint(conf.maxValue)
+        );
+        this.addNRandMonsters(
+            _parser, monstersPerLevel, level, conf.nLevel + 1);
+        return level;
+    };
+};
+RG.extend2(RG.Factory.Dungeon, RG.Factory.Base);
 
 RG.FCCGame = function() {
     RG.Factory.Base.call(this);
@@ -418,7 +465,7 @@ RG.FCCGame = function() {
             );
             _game.addEvent(windsEvent);
             var stormEvent = new RG.Time.RogueOneShotEvent( () => {}, 35 * 100,
-                'You see an eye of the storm approaching. Brace yourself now..');
+                MSG.EYE_OF_STORM);
             _game.addEvent(stormEvent);
             var beastEvent = new RG.Time.RogueOneShotEvent(
                 that.spawnBeastArmy.bind(that, _level, _parser), 50 * 100,
@@ -428,13 +475,13 @@ RG.FCCGame = function() {
 
 
         this.allBeastsKilled = function() {
-            RG.gameMsg('All beasts have been slain. The blizzard seems to calm down');
+            RG.gameMsg(MSG.BEASTS_SLAIN);
             // DO a final message of game over
             // Add random people to celebrate
-            var msgEvent = new RG.Time.RogueOneShotEvent(function() {}, 10 * 100,
-                'All enemies are dead! You emerge victorious. Congratulations!');
+            var msgEvent = new RG.Time.RogueOneShotEvent(() => {}, 10 * 100,
+                MSG.ENEMIES_DEAD);
             _game.addEvent(msgEvent);
-            var msgEvent2 = new RG.Time.RogueOneShotEvent(function() {}, 20 * 100,
+            var msgEvent2 = new RG.Time.RogueOneShotEvent(() => {}, 20 * 100,
                 'But Battles in North will continue soon in larger scale...');
             _game.addEvent(msgEvent2);
         };
@@ -524,13 +571,13 @@ RG.FCCGame = function() {
         branch.connectLevels();
         game.addPlace(branch);
 
-        var finalStairs = new RG.Element.Stairs(true, allLevels[nLevels - 1], townLevel);
+        var finalStairs = new Stairs(true, allLevels[nLevels - 1], townLevel);
         var stairsLoot = new RG.Component.Loot(finalStairs);
         summoner.add('Loot', stairsLoot);
         allStairsDown.push(finalStairs);
 
         var lastStairsDown = allStairsDown.slice(-1)[0];
-        var townStairsUp = new RG.Element.Stairs(false, townLevel, lastLevel);
+        var townStairsUp = new Stairs(false, townLevel, lastLevel);
         var rStairCell = townLevel.getFreeRandCell();
         townLevel.addStairs(townStairsUp, rStairCell.getX(), rStairCell.getY());
         townStairsUp.setTargetStairs(lastStairsDown);
@@ -641,7 +688,8 @@ RG.FCCGame = function() {
 
         var pepper = _parser.createActualObj('items', 'Ghost pepper');
         player.getInvEq().addItem(pepper);
-        var spiritPot = _parser.createActualObj('items', 'Potion of spirit form');
+        var spiritPot = _parser.createActualObj(
+            'items', 'Potion of spirit form');
         player.getInvEq().addItem(spiritPot);
 
         // player.setFOVRange(50);
@@ -681,12 +729,6 @@ RG.FCCGame = function() {
         game.addLevel(level);
         return level;
     };
-
-    this.createDebugWorld = function(obj, game, player) {
-        var world = new RG.World.World();
-
-    };
-
 };
 RG.extend2(RG.FCCGame, RG.Factory.Base);
 
