@@ -1,7 +1,14 @@
 #!/usr/bin/env perl
 
+# pre-push hook which runs all tests and returns non-zero value on test failure
+
 print STDERR "Running unit tests as pre-push hook.\n";
+
+my $time_start = time();
 my $error = system('npm run test >& /dev/null');
+
+my $sec = time() - $time_start;
+print "Ran tests in $sec s.\n";
 
 if ($error == 0) {print STDERR "Tests ok.\n";}
 
