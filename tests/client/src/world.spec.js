@@ -1,8 +1,10 @@
 
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
-const World = require('../../../client/src/world.js');
+const World = require('../../../client/src/world');
+const RGTest = require('../../roguetest');
 
+const expectConnected = RGTest.expectConnected;
 
 describe('World.Branch', function() {
     it('Contains a number of connected levels', function() {
@@ -150,22 +152,28 @@ describe('World.Factory', function() {
             ]
         };
         const dungeon = fact.createDungeon(dungeonConf);
+        const branches = dungeon.getBranches();
         expect(dungeon.getName()).to.equal('Cave');
         expect(dungeon.getLevels()).to.have.length(6);
         expect(dungeon.getEntrances()).to.have.length(1);
+        expectConnected(branches[0], branches[1], 1);
+        expectConnected(branches[1], branches[2], 1);
     });
 
-    /*
     it('Can create World using config object', function() {
         const worldConf = {
             name: 'w1',
             nAreas: 2,
             area: [
                 { name: 'a1', maxX: 2, maxY: 3, nDungeons: 1,
-                    dungeon: [{name: 'd1.1'}]
+                    dungeon: [
+                        {x: 0, y: 0, name: 'd1.1', nBranches: 1,
+                            branch: [ { name: 'b1', nLevels: 2 }]
+                        }
+                    ]
                 },
                 { name: 'a2', maxX: 1, maxY: 4, nMountains: 1,
-                    mountain: [{name: 'm2.1'}]
+                    mountain: [{x: 0, y: 1, name: 'm2.1'}]
                 }
             ]
         };
@@ -186,7 +194,7 @@ describe('World.Factory', function() {
             nAreas: 1,
             area: [
                 { name: 'a1', maxX: 4, maxY: 5, nCities: 1,
-                    city: [{ name: 'Ravendark' }]
+                    city: [{ x: 2, y: 2, name: 'Ravendark' }]
                 }
             ]
         };
@@ -201,5 +209,4 @@ describe('World.Factory', function() {
         expect(world.getName()).to.equal(worldConf.name);
         expect(world.getLevels()).to.have.length.above(0);
     });
-    */
 });
