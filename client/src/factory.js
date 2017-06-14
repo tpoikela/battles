@@ -216,17 +216,6 @@ RG.Factory.Base = function() { // {{{2
         return level;
     };
 
-    /* Creates the game world. */
-    this.createWorld = function() {
-        const conf = {
-            nAreas: 1,
-            nDungeonsPerArea: 4,
-            nMountainsPerArea: 0
-        };
-        const world = new RG.World.World(conf);
-        return world;
-    };
-
     /* Player stats based on user selection.*/
     this.playerStats = {
         Weak: {att: 1, def: 1, prot: 1, hp: 15, Weapon: 'Dagger'},
@@ -586,18 +575,28 @@ RG.FCCGame = function() {
     };
 
     this.createFullWorld = function(obj, game, player) {
-        const conf = Object.assign({
-            nAreas: 1,
-            nDungeonsPerArea: 4,
-            nMountainsPerArea: 0
-        }, obj);
-        const world = new RG.World.World(conf);
+        const conf = obj.world;
+        if (!conf) {
+            RG.err('Factory', 'createFullWorld',
+                'obj.world must exist!');
+            return null;
+        }
+        const fact = new RG.World.Factory();
+        const world = fact.createWorld(conf);
         const levels = world.getLevels();
-        levels.forEach(level => {
-            game.addLevel(level);
-        });
-        game.addPlayer(player);
-        return game;
+
+        if (levels.length > 0) {
+            levels.forEach(level => {
+                game.addLevel(level);
+            });
+            game.addPlayer(player);
+            return game;
+        }
+        else {
+            RG.err('Factory', 'createFullWorld',
+                'There are no levels in the world!');
+            return null;
+        }
     };
 
     /* Can be used to create a short debugging game for testing.*/
