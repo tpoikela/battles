@@ -247,17 +247,32 @@ RG.Map.CellList = function(cols, rows) { // {{{2
         return row;
     };
 
-    /* Returns all free cells in the map.*/
+    /* Returns all free cells in the map. 'free' means that cell can be
+    * traversed and is passable. */
     this.getFree = function() {
-        var freeCells = [];
-        for (var x = 0; x < this.cols; x++) {
-            for (var y = 0; y < this.rows; y++) {
+        const freeCells = [];
+        for (let x = 0; x < this.cols; x++) {
+            for (let y = 0; y < this.rows; y++) {
                 if (map[x][y].isFree()) {
                     freeCells.push(map[x][y]);
                 }
             }
         }
         return freeCells;
+    };
+
+    /* Returns all empty cells. Cell is empty, if it has only the base
+     * element, but no props. */
+    this.getEmptyCells = function() {
+        const emptyCells = [];
+        for (let x = 0; x < this.cols; x++) {
+            for (let y = 0; y < this.rows; y++) {
+                if (!map[x][y].hasProps()) {
+                    emptyCells.push(map[x][y]);
+                }
+            }
+        }
+        return emptyCells;
     };
 
     /* Returns true if the map has a cell in given x,y location.*/
@@ -857,12 +872,22 @@ RG.Map.Level = function() { // {{{2
 
     /* Return random free cell on a given level.*/
     this.getFreeRandCell = function() {
-        var freeCells = this.getMap().getFree();
+        const freeCells = this.getMap().getFree();
         if (freeCells.length > 0) {
-            var maxFree = freeCells.length;
-            var randCell = Math.floor(Math.random() * maxFree);
-            var cell = freeCells[randCell];
-            return cell;
+            const maxFree = freeCells.length;
+            const randCell = Math.floor(Math.random() * maxFree);
+            return freeCells[randCell];
+        }
+        return null;
+    };
+
+    /* Returns random empty cells, or null if cannot find any.*/
+    this.getEmptyRandCell = function() {
+        const emptyCells = this.getMap().getEmptyCells();
+        if (emptyCells.length > 0) {
+            const maxEmpty = emptyCells.length;
+            const randCell = Math.floor(Math.random() * maxEmpty);
+            return emptyCells[randCell];
         }
         return null;
     };
