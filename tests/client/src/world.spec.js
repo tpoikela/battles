@@ -135,6 +135,16 @@ describe('World.Factory', function() {
         fact = null;
     });
 
+    it('can create Branch using config object', () => {
+        const brConf = {
+            name: 'DangerousBranch',
+            nLevels: 2
+        };
+        const br = fact.createBranch(brConf);
+        expect(br.getName()).to.equal(brConf.name);
+        expect(br.getEntrance()).to.not.be.empty;
+    });
+
     it('Can create dungeon using config object', () => {
         const dungeonConf = {
             name: 'Cave',
