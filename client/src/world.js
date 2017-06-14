@@ -4,6 +4,7 @@
  */
 
 const RG = require('./rg.js');
+RG.Factory = require('./factory');
 
 const Stairs = RG.Element.Stairs;
 
@@ -399,12 +400,15 @@ RG.World.Area = function(name, maxX, maxY) {
     this._init();
 
     this.getLevels = function() {
-        var res = [];
+        let res = [];
         for (let x = 0; x < _tiles.length; x++) {
             for (let y = 0; y < _tiles[x].length; y++) {
                 res.push(_tiles[x][y].getLevel());
             }
         }
+        this.dungeons.forEach(d => {res = res.concat(d.getLevels());});
+        this.mountains.forEach(d => {res = res.concat(d.getLevels());});
+        this.cities.forEach(d => {res = res.concat(d.getLevels());});
         return res;
     };
 
@@ -525,6 +529,11 @@ RG.World.MountainFace = function() {
 * this object. */
 RG.World.City = function(name) {
     RG.World.Base.call(this, name);
+    const _levels = [];
+
+    this.getLevels = () => (_levels);
+
+    this.getEntrances = function() {return [];};
 
 };
 RG.extend2(RG.World.City, RG.World.Base);
@@ -538,7 +547,6 @@ RG.World.World = function(name) {
     let _dungeons = [];
     let _mountains = [];
     let _cities = [];
-
 
     /* Adds an area into the world. */
     this.addArea = function(area) {
@@ -581,6 +589,8 @@ RG.extend2(RG.World.World, RG.World.Base);
  * building the world. Separation of concerns, you know.
  */
 RG.World.Factory = function() {
+
+    this.dungeonFactory = new RG.Factory.Dungeon();
 
     this.scope = []; // Keeps track of hierarchical names of places
 
@@ -717,7 +727,17 @@ RG.World.Factory = function() {
         for (let i = 0; i < conf.nLevels; i++) {
             // TODO: Level configuration can be quite complex. Support random
             // and customly created levels somehow
-            const level = RG.FACT.createLevel('cellular', 30, 30, {});
+            // const level = RG.FACT.createLevel('cellular', 30, 30, {});
+            const levelConf = {
+                x: 40,
+                y: 40,
+                sqrPerMonster: 20,
+                sqrPerItem: 20,
+                maxValue: 20 * (i + 1),
+                nLevel: i,
+                special: [] // TODO for special levels
+            };
+            const level = this.dungeonFactory.createDungeonLevel(levelConf);
             branch.addLevel(level);
         }
         branch.connectLevels();
@@ -726,6 +746,7 @@ RG.World.Factory = function() {
     };
 
     this.createMountain = function(conf) {
+        this.verifyConf('createMountain', conf, ['name']);
         this.pushScope(conf.name);
         const mountain = new RG.World.Mountain(conf.name);
         this.popScope(conf.name);
@@ -733,6 +754,7 @@ RG.World.Factory = function() {
     };
 
     this.createCity = function(conf) {
+        this.verifyConf('createCity', conf, ['name']);
         this.pushScope(conf.name);
         const city = new RG.World.City(conf.name);
         this.popScope(conf.name);
@@ -747,10 +769,10 @@ RG.World.Factory = function() {
 
         const x = conf.x;
         const y = conf.y;
-        const tile = area.getTileXY(x, y); // TODO random connection
+        const tile = area.getTileXY(x, y);
         const tileLevel = tile.getLevel();
 
-        const freeAreaCell = tileLevel.getFreeRandCell();
+        const freeAreaCell = tileLevel.getEmptyRandCell();
         const freeX = freeAreaCell.getX();
         const freeY = freeAreaCell.getY();
 
@@ -760,11 +782,13 @@ RG.World.Factory = function() {
                 const entranceStairs = entrances[0];
                 const entranceLevel = entranceStairs.getSrcLevel();
                 const tileStairs = new Stairs(true, tileLevel, entranceLevel);
-                tileStairs.setTargetStairs(entranceStairs);
-                entranceStairs.setTargetStairs(tileStairs);
-                entranceStairs.setTargetLevel(tileLevel);
                 tileLevel.addStairs(tileStairs, freeX, freeY);
-                console.log(`Connected tile ${x}, ${y} to ${feature.getName()}`);
+                tileStairs.connect(entranceStairs);
+                // tileStairs.setTargetStairs(entranceStairs);
+                // entranceStairs.setTargetStairs(tileStairs);
+                // entranceStairs.setTargetLevel(tileLevel);
+                console.log(
+                    `Connected tile ${x}, ${y} to ${feature.getName()}`);
             }
             else {
                 const msg = `No entrances in ${feature.getHierName()}.`;
@@ -773,7 +797,8 @@ RG.World.Factory = function() {
             }
         }
         else { // No entrance for feature, what to do?
-            console.warn('No getEntrance method for feature. Skipping connect');
+            console.warn(
+                'No getEntrances method for feature. Skipping connect');
         }
     };
 };
