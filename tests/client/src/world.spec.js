@@ -198,7 +198,7 @@ describe('World.Factory', function() {
             'Dungeon name OK.').to.equal('d1.1');
     });
 
-    it('Can also contain cities within areas', () => {
+    it('can create cities within areas', () => {
         const worldConf = {
             name: 'ww',
             nAreas: 1,
@@ -212,7 +212,7 @@ describe('World.Factory', function() {
         expect(world.getCities()).to.have.length(1);
     });
 
-    it('can be created from external config file', () => {
+    it('can created world from external config object', () => {
         const worldConf = require('../../../client/data/conf.world');
         const world = fact.createWorld(worldConf);
         expect(world.getAreas()).to.have.length(worldConf.nAreas);
