@@ -234,11 +234,19 @@ RG.Game.Engine = function() {
             if (index === -1) { // No room for new level, pop one
                 var removedLevelID = _activeLevels.pop();
                 var removedLevel = _levelMap[removedLevelID];
-                var rmvActors = removedLevel.getActors();
-                for (var i = 0; i < rmvActors.length; i++) {
-                    rmvActors[i].get('Action').disable();
+                if (removedLevel) {
+                    var rmvActors = removedLevel.getActors();
+                    for (var i = 0; i < rmvActors.length; i++) {
+                        rmvActors[i].get('Action').disable();
+                    }
+                    RG.debug(this, 'Removed active level to make space...');
                 }
-                RG.debug(this, 'Removed active level to make space...');
+                else {
+                    const levelIDs = Object.keys(_levelMap).join(', ');
+                    RG.err('Game.Engine', 'addActiveLevel',
+                        `Failed to remove level ID ${removedLevelID}.
+                        IDs: ${levelIDs}`);
+                }
             }
             else { // Level already in actives, move to the front only
                 _activeLevels.splice(index, 1);
