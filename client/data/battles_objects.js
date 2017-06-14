@@ -519,7 +519,8 @@ var RGObjects = {
             attack: 2, damage: "1d8 + 1", range: 3, value: 60, weight: 0.3,
         },
         {
-            name: "Ruby glass throwing knife", className: "cell-item-ruby-glass",
+            name: "Ruby glass throwing knife", base: "MissileBase",
+            className: "cell-item-ruby-glass",
             attack: 3, damage: "1d10", range: 5, value: 80, weight: 0.1,
         },
         {
