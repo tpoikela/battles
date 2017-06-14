@@ -16,6 +16,7 @@ const GameMessages = require('./game-messages');
 const GameStats = require('./game-stats');
 const GameBoard = require('./game-board');
 
+const worldConf = require('../data/conf.world');
 
 /* Top-level component which renders all other components. Keeps also track
  * of the current game state.
@@ -109,7 +110,8 @@ class BattlesTop extends React.Component {
             debugMode: false,
             loadedPlayer: null,
             loadedLevel: null,
-            playerName: 'Player'
+            playerName: 'Player',
+            world: worldConf
         };
 
         this.lastPress = 0;
