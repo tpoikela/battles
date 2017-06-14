@@ -14,9 +14,9 @@ RGTest.createMockLevel = function(cols, rows) {
     const level = {cols: cols, rows: rows,
         map: {
             getCell: function(x, y) {
-                return {};
+                return { x: x, y: y };
             },
-            hasXY: function(x, y) {
+            hasXY: function() {
                 return true;
             },
             isPassable: function(x, y) {
@@ -69,10 +69,26 @@ RGTest.expectEqualHealth = function(o1, o2) {
     expect(o1.get('Health').getHP()).to.equal(o2.get('Health').getHP());
 };
 
-// Expect that branches b1 and b2 are connected by number of connections 
+// Expect that branches b1 and b2 are connected by number of connections
 // given by nConns.
-RGTest.expectedConnected = function(b1, b2, nConns) {
+RGTest.expectConnected = function(b1, b2, nConns) {
+    let connFound = 0;
+    const b1Stairs = b1.getStairsOther();
+    const b2Stairs = b2.getStairsOther();
+    expect(b1Stairs, 'B1 must have stairs').to.have.length.above(0);
+    expect(b2Stairs, 'B2 must have stairs').to.have.length.above(0);
 
+    b1Stairs.forEach( stair1 => {
+        const s1TargetID = stair1.getTargetLevel().getID();
+        b2Stairs.forEach( stair2 => {
+            if (s1TargetID === stair2.getSrcLevel().getID()) {
+                ++connFound;
+                // stair1 should be the target of stair2
+            }
+        });
+    });
+    expect(connFound, `Connections between branches must be ${nConns}`)
+        .to.equal(nConns);
 };
 
 module.exports = RGTest;
