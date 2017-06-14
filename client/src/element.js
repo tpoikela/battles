@@ -93,7 +93,15 @@ RG.Element.Stairs = function(down, srcLevel, targetLevel) {
                 'Cannot set null/undefined stairs.');
         }
     };
-    this.getTargetStairs = function() {return _targetStairs;};
+    this.getTargetStairs = function() {
+        return _targetStairs;
+    };
+
+    /* Connects to stairs together. */
+    this.connect = function(stairs) {
+        this.setTargetStairs(stairs);
+        stairs.setTargetStairs(this);
+    };
 
 };
 RG.extend2(RG.Element.Stairs, RG.Element.Base);
