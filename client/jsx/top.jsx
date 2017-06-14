@@ -71,7 +71,7 @@ class TopLogic {
 
 }
 
-var ProxyListener = function(cbNotify) {
+const ProxyListener = function(cbNotify) {
     this.hasNotify = true;
 
     this.notify = function(evtName, obj) {
@@ -79,7 +79,6 @@ var ProxyListener = function(cbNotify) {
     };
 
 };
-
 
 /* Top-level Component for the Battles GUI.*/
 class BattlesTop extends React.Component {
@@ -90,7 +89,7 @@ class BattlesTop extends React.Component {
         this.game = null;
         this.gameSave = new RG.Game.Save();
 
-        this.intID = null;
+        this.intervalID = null;
         // Holds game-state specific info for GUI (see resetGameState)
         this.gameState = {};
 
@@ -114,8 +113,6 @@ class BattlesTop extends React.Component {
             world: worldConf
         };
 
-        this.lastPress = 0;
-        this.fps = 1000.0 / 20;
         this.keyPending = false;
 
         this.hasNotify = true;
@@ -171,6 +168,7 @@ class BattlesTop extends React.Component {
         this.setState({render: true, renderFullScreen: true});
     }
 
+    /* Toggles view between normal view and zoomed out map view. */
     setViewType(type) {
         if (type === 'map') {
            this.viewportPlayerX = this.viewportX;
@@ -210,12 +208,12 @@ class BattlesTop extends React.Component {
 
     /* Loads a saved game.*/
     loadGame(name) {
-        var restoreObj = this.gameSave.restore(name);
-        var player = restoreObj.player;
+        const restoreObj = this.gameSave.restore(name);
+        const player = restoreObj.player;
         if (player !== null) {
             this.gameConf.loadedPlayer = player;
             this.gameConf.loadedLevel = this.gameSave.getDungeonLevel();
-            var confObj = this.gameSave.getPlayersAsObj()[name];
+            const confObj = this.gameSave.getPlayersAsObj()[name];
             this.restoreConf(confObj);
             this.newGame();
         }
@@ -228,20 +226,20 @@ class BattlesTop extends React.Component {
     }
 
     restoreConf(obj) {
-        var props = ['cols', 'rows', 'sqrPerMonster', 'sqrPerItem', 'levels'];
-        for (var i = 0; i < props.length; i++) {
+        const props = ['cols', 'rows', 'sqrPerMonster', 'sqrPerItem', 'levels'];
+        for (let i = 0; i < props.length; i++) {
             this.gameConf[props[i]] = obj[props[i]];
         }
     }
 
     /* Creates a new game instance.*/
     createNewGame() {
-        if (this.intID !== null) {
-            clearInterval(this.intID);
+        if (this.intervalID !== null) {
+            clearInterval(this.intervalID);
         }
 
         this.resetGameState();
-        var fccGame = new RG.FCCGame();
+        const fccGame = new RG.FCCGame();
         if (this.game !== null) {
             delete this.game;
             RG.FACT = new RG.Factory.Base();
@@ -252,7 +250,7 @@ class BattlesTop extends React.Component {
         this.gameState.visibleCells = player.getLevel().exploreCells(player);
         RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this.listener);
         RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this.listener);
-        this.intID = setInterval(this.mainLoop, 1000.0 / 60);
+        this.intervalID = setInterval(this.mainLoop, 1000.0 / 60);
     }
 
     selectItemTop(item) {
@@ -261,7 +259,7 @@ class BattlesTop extends React.Component {
 
     /* When a cell is clicked, perform a command/show debug info. */
     onCellClick(x, y) {
-        var cell = this.game.getPlayer().getLevel().getMap().getCell(x, y);
+        const cell = this.game.getPlayer().getLevel().getMap().getCell(x, y);
         if (this.gameState.isTargeting) {
             this.game.update({cmd: 'missile', target: cell});
             this.gameState.visibleCells = this.game.visibleCells;
@@ -278,7 +276,7 @@ class BattlesTop extends React.Component {
      * method.*/
     notify(evtName, obj) {
         if (evtName === RG.EVT_LEVEL_CHANGED) {
-            var actor = obj.actor;
+            const actor = obj.actor;
             if (actor.isPlayer()) {
                 this.setState({render: true, renderFullScreen: true});
             }
@@ -321,14 +319,14 @@ class BattlesTop extends React.Component {
     }
 
     render() {
-        var map = this.game.getVisibleMap();
-        var player = this.game.getPlayer();
-        var inv = player.getInvEq().getInventory();
-        var eq = player.getInvEq().getEquipment();
-        var fullScreen = this.state.renderFullScreen;
-        var maxWeight = player.getMaxWeight();
+        const map = this.game.getVisibleMap();
+        const player = this.game.getPlayer();
+        const inv = player.getInvEq().getInventory();
+        const eq = player.getInvEq().getEquipment();
+        const fullScreen = this.state.renderFullScreen;
+        const maxWeight = player.getMaxWeight();
 
-        var message = [];
+        let message = [];
         if (this.game.hasNewMessages()) {
             message = this.game.getMessages();
         }
@@ -466,6 +464,7 @@ class BattlesTop extends React.Component {
         $('#inventory-button').trigger('click');
     }
 
+    /* Toggles the map view. */
     GUIMap() {
         $('#map-player-button').trigger('click');
     }
