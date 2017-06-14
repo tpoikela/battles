@@ -14,7 +14,7 @@ RG.WorldConf = {
             nDungeons: 1,
             dungeon: [
                 { x: 0, y: 0, name: 'd1', nBranches: 1,
-                    branch: [{nLevels: 5}],
+                    branch: [{name: 'main', nLevels: 5}],
                 },
             ],
         },
