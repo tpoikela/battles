@@ -530,10 +530,22 @@ RG.World.MountainFace = function() {
 RG.World.City = function(name) {
     RG.World.Base.call(this, name);
     const _levels = [];
+    const _entrances = [];
 
     this.getLevels = () => (_levels);
 
-    this.getEntrances = function() {return [];};
+    this.getEntrances = function() {
+        return _entrances;
+    };
+
+    this.addLevel = function(level) {
+        _levels.push(level);
+        if (_levels.length === 1) {
+            const stairs = new Stairs(false, level);
+            level.addStairs(stairs, 0, 0);
+            _entrances.push(stairs);
+        }
+    };
 
 };
 RG.extend2(RG.World.City, RG.World.Base);
@@ -590,7 +602,7 @@ RG.extend2(RG.World.World, RG.World.Base);
  */
 RG.World.Factory = function() {
 
-    this.dungeonFactory = new RG.Factory.Dungeon();
+    this.featureFactory = new RG.Factory.Feature();
 
     this.scope = []; // Keeps track of hierarchical names of places
 
@@ -737,7 +749,7 @@ RG.World.Factory = function() {
                 nLevel: i,
                 special: [] // TODO for special levels
             };
-            const level = this.dungeonFactory.createDungeonLevel(levelConf);
+            const level = this.featureFactory.createDungeonLevel(levelConf);
             branch.addLevel(level);
         }
         branch.connectLevels();
@@ -756,7 +768,13 @@ RG.World.Factory = function() {
     this.createCity = function(conf) {
         this.verifyConf('createCity', conf, ['name']);
         this.pushScope(conf.name);
+        const cityConf = {
+            x: 100,
+            y: 100
+        };
         const city = new RG.World.City(conf.name);
+        const level = this.featureFactory.createCityLevel(cityConf);
+        city.addLevel(level);
         this.popScope(conf.name);
         return city;
     };
