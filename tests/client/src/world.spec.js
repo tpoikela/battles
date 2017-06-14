@@ -38,15 +38,19 @@ describe('World.Dungeon', function() {
         const dungeon = new World.Dungeon('DarkDungeon');
         const branches = [];
         const numBranches = 4;
+        const branchNames = [];
 
         for (let i = 0; i < numBranches; i++) {
-            const branch = new World.Branch('branch' + i);
+            const brName = 'branch' + i;
+            const branch = new World.Branch(brName);
             addLevelsToBranch(branch, i + 2);
             dungeon.addBranch(branch);
             branches.push(branch);
+            branchNames.push(brName);
         }
         expect(branches[0].getDungeon()).to.equal(dungeon);
 
+        dungeon.setEntrance(branchNames);
         const entrances = dungeon.getEntrances();
         expect(entrances).to.have.length(numBranches);
 
@@ -118,7 +122,7 @@ describe('World.Mountain', function() {
 
 });
 
-describe('World.World', function() {
+describe('World.Factory', function() {
     let fact = null;
 
     beforeEach(() => {
@@ -129,7 +133,30 @@ describe('World.World', function() {
         fact = null;
     });
 
-    it('Contains a number areas, dungeons and mountains', function() {
+    it('Can create dungeon using config object', () => {
+        const dungeonConf = {
+            name: 'Cave',
+            nBranches: 3,
+            entrance: 'br2',
+            connect: [
+                // Each connection is branch1, branch2, level1, level2
+                ['br1', 'br2', 0, 1],
+                ['br3', 'br2', 2, 0]
+            ],
+            branch: [
+                { name: 'br1', nLevels: 1 },
+                { name: 'br2', nLevels: 2 },
+                { name: 'br3', nLevels: 3 }
+            ]
+        };
+        const dungeon = fact.createDungeon(dungeonConf);
+        expect(dungeon.getName()).to.equal('Cave');
+        expect(dungeon.getLevels()).to.have.length(6);
+        expect(dungeon.getEntrances()).to.have.length(1);
+    });
+
+    /*
+    it('Can create World using config object', function() {
         const worldConf = {
             name: 'w1',
             nAreas: 2,
@@ -148,6 +175,9 @@ describe('World.World', function() {
         expect(world.getAreas()[0].getDungeons()).to.have.length(1);
         expect(world.getDungeons(), 'Found 1 dungeon').to.have.length(1);
         expect(world.getMountains(), 'Found 1 mountain').to.have.length(1);
+
+        expect(world.getDungeons()[0].getName(),
+            'Dungeon name OK.').to.equal('d1.1');
     });
 
     it('Can also contain cities within areas', () => {
@@ -171,4 +201,5 @@ describe('World.World', function() {
         expect(world.getName()).to.equal(worldConf.name);
         expect(world.getLevels()).to.have.length.above(0);
     });
+    */
 });
