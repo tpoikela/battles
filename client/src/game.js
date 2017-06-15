@@ -704,17 +704,19 @@ RG.Game.Battle = function(name) {
 
 };
 
+/* An object for saving the game in specified storage (local/etc..) */
 RG.Game.Save = function() {
-
-    var _storageRef = null;
-    var _dungeonLevel = 1;
+    let _storageRef = null;
+    const _fromJSON = new RG.Game.FromJSON();
 
     // Contains names of players for restore selection
-    var _playerList = '_battles_player_data_';
+    const _playerList = '_battles_player_data_';
 
     this.setStorage = function(stor) {_storageRef = stor;};
 
-    this.getDungeonLevel = function() {return _dungeonLevel;};
+    this.getDungeonLevel = function() {
+        return _fromJSON.getDungeonLevel();
+    };
 
     /* Main function which saves the full game.*/
     this.save = function(game, conf) {
@@ -788,7 +790,7 @@ RG.Game.Save = function() {
         if (playersObj.hasOwnProperty(name)) {
             var dbString = _storageRef.getItem('_battles_player_' + name);
             var dbObj = JSON.parse(dbString);
-            var player = _createPlayerObj(dbObj.player);
+            var player = _fromJSON.createPlayerObj(dbObj.player);
             return player;
         }
         else {
@@ -816,19 +818,37 @@ RG.Game.Save = function() {
         _storageRef.setItem(_playerList, dbString);
     };
 
+    var _checkStorageValid = function() {
+        if (RG.isNullOrUndef([_storageRef])) {
+            throw new Error('Game.Save you must setStorage() first.');
+        }
+    };
+
+
+};
+
+/* Object for converting serialized JSON objects to game objects. */
+RG.Game.FromJSON = function() {
+
+    var _dungeonLevel = 1;
+
+    this.getDungeonLevel = function() {
+        return _dungeonLevel;
+    };
+
     /* Handles creation of restored player from JSON.*/
-    var _createPlayerObj = function(obj) {
+    this.createPlayerObj = function(obj) {
         var player = new RG.Actor.Rogue(obj.name);
         player.setIsPlayer(true);
         player.setType('player');
-        _addCompsToEntity(player, obj.components);
-        _createInventory(obj, player);
-        _createEquipment(obj, player);
+        this.addCompsToEntity(player, obj.components);
+        this.createInventory(obj, player);
+        this.createEquipment(obj, player);
         _dungeonLevel = obj.dungeonLevel;
         return player;
     };
 
-    var _addCompsToEntity = function(ent, comps) {
+    this.addCompsToEntity = function(ent, comps) {
         for (var name in comps) {
             if (name) {
                 var comp = comps[name];
@@ -843,22 +863,42 @@ RG.Game.Save = function() {
         }
     };
 
-    var _createInventory = function(obj, player) {
+    this.createItem = function(obj) {
+        var item = obj;
+        var typeCapitalized = this.getItemObjectType(item);
+        var newObj = new RG.Item[typeCapitalized]();
+        for (var func in item) {
+            if (func === 'setSpirit') {
+                newObj[func](this.createSpirit(item[func]));
+            }
+            else {
+                newObj[func](item[func]); // Use setter
+            }
+        }
+        return newObj;
+    };
+
+    this.createSpirit = function(obj) {
+        var newObj = new RG.Actor.Spirit(obj.name);
+        this.addCompsToEntity(newObj, obj.components);
+        return newObj;
+    };
+
+    this.createInventory = function(obj, player) {
         if (obj.hasOwnProperty('inventory')) {
             var itemObjs = obj.inventory;
             for (var i = 0; i < itemObjs.length; i++) {
-                var newObj = _createItem(itemObjs[i]);
+                var newObj = this.createItem(itemObjs[i]);
                 player.getInvEq().addItem(newObj);
             }
-
         }
     };
 
-    var _createEquipment = function(obj, player) {
+    this.createEquipment = function(obj, player) {
         if (obj.hasOwnProperty('equipment')) {
             var equipObjs = obj.equipment;
             for (var i = 0; i < equipObjs.length; i++) {
-                var newObj = _createItem(equipObjs[i]);
+                var newObj = this.createItem(equipObjs[i]);
                 player.getInvEq().addItem(newObj);
                 player.getInvEq().equipItem(newObj);
             }
@@ -866,36 +906,7 @@ RG.Game.Save = function() {
         }
     };
 
-    var _createItem = function(obj) {
-        var item = obj;
-        var typeCapitalized = _getItemObjectType(item);
-        var newObj = new RG.Item[typeCapitalized]();
-        for (var func in item) {
-            if (func === 'setSpirit') {
-                newObj[func](_createSpirit(item[func]));
-            }
-            else {
-                newObj[func](item[func]); // Use setter
-            }
-        }
-        return newObj;
-
-    };
-
-    var _createSpirit = function(obj) {
-        var newObj = new RG.Actor.Spirit(obj.name);
-        _addCompsToEntity(newObj, obj.components);
-        return newObj;
-    };
-
-
-    var _checkStorageValid = function() {
-        if (RG.isNullOrUndef([_storageRef])) {
-            throw new Error('Game.Save you must setStorage() first.');
-        }
-    };
-
-    var _getItemObjectType = function(item) {
+    this.getItemObjectType = function(item) {
         if (item.setType === 'spiritgem') {return 'SpiritGem';}
         if (!RG.isNullOrUndef([item])) {
             if (!RG.isNullOrUndef([item.setType])) {
@@ -903,17 +914,36 @@ RG.Game.Save = function() {
             }
             else {
                 var itemJSON = JSON.stringify(item);
-                RG.err('Game.Save', '_getItemObjectType',
+                RG.err('Game.Save', 'getItemObjectType',
                     'item.setType is undefined. item: ' + itemJSON);
             }
         }
         else {
-            RG.err('Game.Save', '_getItemObjectType',
+            RG.err('Game.Save', 'getItemObjectType',
                 'item is undefined');
         }
         return null;
     };
 
+    /* Creates a Map.Level object from a json object. */
+    this.createLevel = function(json) {
+        const level = new RG.Map.Level();
+        level.setID(json.id);
+        level.setLevelNumber(json.levelNumber);
+
+        json.elements.forEach(elem => {
+            const elemObj = this.createElement(elem.obj);
+            this.addElement(elemObj, elem.x, elem.y);
+        });
+
+        return level;
+    };
+
+    this.createElement = function(elem) {
+        if (/stairs/.test(elem.type)) {
+
+        }
+    };
 };
 
 module.exports = RG.Game;
