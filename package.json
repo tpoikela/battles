@@ -6,9 +6,11 @@
     "babel-preset-es2015": "^6.22.0",
     "babel-preset-react": "^6.22.0",
     "babelify": "^7.3.0",
+    "blanket": "^1.2.3",
     "browserify": "^14.0.0",
-    "gulp": "^3.9.1",
+    "gulp-cached": "^1.1.1",
     "gulp-nodemon": "^2.2.1",
+    "gulp-notify": "^3.0.0",
     "gulp-sass": "^3.1.0",
     "jquery": "^3.2.1",
     "react": "^15.4.2",
@@ -23,23 +25,18 @@
     "browserify-incremental": "^3.1.1",
     "chai": "~3.5.0",
     "coveralls": "^2.12.0",
+    "gulp-ctags": "^0.1.0",
     "ctags": "^3.0.0",
     "eslint": "^3.14.1",
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-prefer-object-spread": "^1.1.0",
     "eslint-plugin-react": "^6.9.0",
-    "gulp": "^3.9.1",
-    "gulp-cached": "^1.1.1",
-    "gulp-ctags": "^0.1.0",
-    "gulp-nodemon": "^2.2.1",
-    "gulp-sass": "^3.1.0",
     "istanbul": "~0.4.5",
     "jsctags": "git://github.com/ramitos/jsctags.git",
     "mocha": "~3.1",
     "mocha-istanbul": "*",
     "node-localstorage": "~1.3.0",
-    "sass-lint": "^1.10.2",
-    "vinyl-source-stream": "^1.1.0"
+    "sass-lint": "^1.10.2"
   },
   "contributors": [
     "Tuomas Poikela <tuomas.sakari.poikela@gmail.com>"
@@ -49,7 +46,7 @@
     "url": "git://github.com/tpoikela/battles.git"
   },
   "scripts": {
-    "build": "make build",
+    "build": "gulp build-js",
     "clean": "rm build/*",
     "coverage": "perl cov_test.pl",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
