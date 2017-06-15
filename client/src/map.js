@@ -642,12 +642,15 @@ RG.Map.Level = function() { // {{{2
     this.getID = function() {return _id;};
 
     this.getActors = function() {return _p.actors;};
+    this.getItems = function() {return _p.items;};
+    this.getElements = function() {return _p.element;};
+    this.getStairs = function() {return _p.stairs;};
 
     this.setMap = function(map) {_map = map;};
     this.getMap = function() {return _map;};
 
     /* Given a level, returns stairs which lead to that level.*/
-    this.getStairs = function(level) {
+    this.getStairsToLevel = function(level) {
         if (RG.isNullOrUndef([level])) {
             RG.err('Map.Level', 'getStairs', 'arg |level| required.');
         }
