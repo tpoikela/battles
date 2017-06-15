@@ -669,12 +669,18 @@ RG.Map.Level = function() { // {{{2
 
     /* Adds stairs for this level.*/
     this.addStairs = function(stairs, x, y) {
-        stairs.setX(x);
-        stairs.setY(y);
-        if (stairs.getSrcLevel() !== this) {stairs.setSrcLevel(this);}
-        _map.setProp(x, y, 'elements', stairs);
-        _p.elements.push(stairs);
-        _p.stairs.push(stairs);
+        if (!RG.isNullOrUndef([x, y])) {
+            stairs.setX(x);
+            stairs.setY(y);
+            if (stairs.getSrcLevel() !== this) {stairs.setSrcLevel(this);}
+            _map.setProp(x, y, 'elements', stairs);
+            _p.elements.push(stairs);
+            _p.stairs.push(stairs);
+        }
+        else {
+            RG.err('Map.Level', 'addStairs',
+                'Cannot add stairs. x, y missing.');
+        }
     };
 
     /* Uses stairs for given actor if it's on top of the stairs.*/
@@ -715,7 +721,7 @@ RG.Map.Level = function() { // {{{2
 
     /* Removes an item from the level in x,y position.*/
     this.removeItem = function(item, x, y) {
-        return _map.removeProp(x, y, RG.TYPE_ITEM, item);
+        return this._removePropFromLevelXY(RG.TYPE_ITEM, item, x, y);
     };
 
     this.pickupItem = function(actor, x, y) {
@@ -781,8 +787,8 @@ RG.Map.Level = function() { // {{{2
         return false;
     };
 
-    /* Adds a prop to level to location x,y. Returns true on success, false on
-     * failure.*/
+    /* Adds a prop 'obj' to level location x,y. Returns true on success,
+     * false on failure.*/
     this._addPropToLevelXY = function(propType, obj, x, y) {
         if (_p.hasOwnProperty(propType)) {
             _p[propType].push(obj);
@@ -796,7 +802,37 @@ RG.Map.Level = function() { // {{{2
             return true;
         }
         else {
-            RG.err('Level', '_addPropToLevelXY',
+            RG.err('Map.Level', '_addPropToLevelXY',
+                `No prop ${propType} supported. Obj: ${JSON.stringify(obj)}`);
+        }
+        return false;
+    };
+
+    /* Removes a prop 'obj' to level location x,y. Returns true on success,
+     * false on failure.*/
+    this._removePropFromLevelXY = function(propType, obj, x, y) {
+        if (_p.hasOwnProperty(propType)) {
+            const index = _p[propType].indexOf(obj);
+
+            if (index >= 0) {
+                _p[propType].splice(index, 1);
+                if (!obj.hasOwnProperty('getOwner')) {
+                    obj.setXY(null, null);
+                    obj.setLevel(null);
+                }
+                RG.POOL.emitEvent(RG.EVT_LEVEL_PROP_REMOVED,
+                    {level: this, obj: obj, propType: propType});
+                return _map.removeProp(x, y, propType, obj);
+            }
+            else {
+                RG.err('Map.Level', '_removePropFromLevelXY',
+                    `Obj index not found in list _p[${propType}]`);
+
+            }
+            return false;
+        }
+        else {
+            RG.err('Map.Level', '_removePropFromLevelXY',
                 `No prop ${propType} supported. Obj: ${JSON.stringify(obj)}`);
         }
         return false;
