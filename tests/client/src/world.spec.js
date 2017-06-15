@@ -18,9 +18,9 @@ describe('World.Branch', function() {
         }
         branch.connectLevels();
 
-        let stairs = levels[0].getStairs(levels[1]);
+        let stairs = levels[0].getStairsToLevel(levels[1]);
         expect(stairs === null).to.equal(false);
-        stairs = levels[0].getStairs(levels[2]);
+        stairs = levels[0].getStairsToLevel(levels[2]);
         expect(stairs === null).to.equal(true);
         const entrance = branch.getEntrance();
         expect(entrance === null).to.equal(false);
