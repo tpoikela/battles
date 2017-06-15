@@ -624,7 +624,6 @@ RG.Map.Generator.prototype.addRandomSnow = function(map, ratio) {
 RG.Map.Level = function() { // {{{2
     var _map = null;
 
-    // Assign unique ID for each level
     var _id = RG.Map.Level.prototype.idCount++;
 
     // Level properties
@@ -639,6 +638,7 @@ RG.Map.Level = function() { // {{{2
     this.getLevelNumber = function() {return _levelNo;};
 
     this.getID = function() {return _id;};
+    this.setID = function(id) {_id = id;};
 
     this.getActors = function() {return _p.actors;};
     this.getItems = function() {return _p.items;};
@@ -648,11 +648,15 @@ RG.Map.Level = function() { // {{{2
     this.getStairs = function() {
         const res = [];
         _p.elements.forEach(elem => {
-            if (/stairs(Down|Up)/.test(elem.getType())) {
+            if (_isStairs(elem)) {
                 res.push(elem);
             }
         });
         return res;
+    };
+
+    const _isStairs = function(elem) {
+        return (/stairs(Down|Up)/).test(elem.getType());
     };
 
     this.setMap = function(map) {_map = map;};
@@ -703,6 +707,14 @@ RG.Map.Level = function() { // {{{2
             }
         }
         return false;
+    };
+
+    /* Adds one element into the level. */
+    this.addElement = function(elem, x, y) {
+        if (_isStairs(elem)) {
+            return this.addStairs(elem, x, y);
+        }
+        return this._addPropToLevelXY(RG.TYPE_ELEM, elem, x, y);
     };
 
     //---------------------------------------------------------------------
@@ -936,6 +948,38 @@ RG.Map.Level = function() { // {{{2
             return emptyCells[randCell];
         }
         return null;
+    };
+
+    /* Serializes the level object. */
+    this.toJSON = function() {
+        const obj = {
+            id: this.getID(),
+            levelNumber: this.getLevelNumber(),
+            actors: [],
+            items: [],
+            elements: []
+        };
+
+        // Must store x, y for each prop as well
+        const props = ['actors', 'items', 'elements'];
+        props.forEach(propType => {
+            _p[propType].forEach(elem => {
+                if (elem.hasOwnProperty('toJSON')) {
+                    const elemObj = {
+                        x: elem.getX(),
+                        y: elem.getY(),
+                        obj: elem.toJSON()
+                    };
+                    obj[propType].push(elemObj);
+                }
+                else {
+                    RG.err('Map.Level', 'toJSON',
+                        `Cannot serialize object ${JSON.stringify(elem)}`);
+                }
+            });
+        });
+
+        return obj;
     };
 
 }; // }}} Level
