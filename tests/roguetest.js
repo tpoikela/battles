@@ -33,6 +33,10 @@ RGTest.createMockLevel = function(cols, rows) {
     return level;
 };
 
+RGTest.createLevel = function(type, cols, rows) {
+    return RG.FACT.createLevel('arena', cols, rows);
+};
+
 RGTest.equipItem = function(actor, item) {
     const invEq = actor.getInvEq();
     invEq.addItem(item);
