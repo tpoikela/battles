@@ -631,8 +631,7 @@ RG.Map.Level = function() { // {{{2
     const _p = {
         actors: [],
         items: [],
-        elements: [],
-        stairs: []
+        elements: []
     };
 
     var _levelNo = 0;
@@ -643,8 +642,18 @@ RG.Map.Level = function() { // {{{2
 
     this.getActors = function() {return _p.actors;};
     this.getItems = function() {return _p.items;};
-    this.getElements = function() {return _p.element;};
-    this.getStairs = function() {return _p.stairs;};
+    this.getElements = function() {return _p.elements;};
+
+    /* Returns all stairs elements. */
+    this.getStairs = function() {
+        const res = [];
+        _p.elements.forEach(elem => {
+            if (/stairs(Down|Up)/.test(elem.getType())) {
+                res.push(elem);
+            }
+        });
+        return res;
+    };
 
     this.setMap = function(map) {_map = map;};
     this.getMap = function() {return _map;};
@@ -655,9 +664,10 @@ RG.Map.Level = function() { // {{{2
             RG.err('Map.Level', 'getStairs', 'arg |level| required.');
         }
 
-        for (let i = 0; i < _p.stairs.length; i++) {
-            if (_p.stairs[i].getTargetLevel() === level) {
-                return _p.stairs[i];
+        const allStairs = this.getStairs();
+        for (let i = 0; i < allStairs.length; i++) {
+            if (allStairs[i].getTargetLevel() === level) {
+                return allStairs[i];
             }
         }
         return null;
@@ -670,24 +680,21 @@ RG.Map.Level = function() { // {{{2
     /* Adds stairs for this level.*/
     this.addStairs = function(stairs, x, y) {
         if (!RG.isNullOrUndef([x, y])) {
-            stairs.setX(x);
-            stairs.setY(y);
-            if (stairs.getSrcLevel() !== this) {stairs.setSrcLevel(this);}
-            _map.setProp(x, y, 'elements', stairs);
-            _p.elements.push(stairs);
-            _p.stairs.push(stairs);
+            stairs.setSrcLevel(this);
+            return this._addPropToLevelXY(RG.TYPE_ELEM, stairs, x, y);
         }
         else {
             RG.err('Map.Level', 'addStairs',
                 'Cannot add stairs. x, y missing.');
         }
+        return false;
     };
 
     /* Uses stairs for given actor if it's on top of the stairs.*/
     this.useStairs = function(actor) {
-        var cell = _map.getCell(actor.getX(), actor.getY());
+        const cell = _map.getCell(actor.getX(), actor.getY());
         if (cell.hasStairs()) {
-            var stairs = cell.getStairs();
+            const stairs = cell.getStairs();
             if (stairs.useStairs(actor)) {
                 return true;
             }
@@ -750,7 +757,7 @@ RG.Map.Level = function() { // {{{2
         RG.debug(this, 'addActor called with x,y ' + x + ', ' + y);
         if (!RG.isNullOrUndef([x, y])) {
             if (_map.hasXY(x, y)) {
-                this._addPropToLevelXY('actors', actor, x, y);
+                this._addPropToLevelXY(RG.TYPE_ACTOR, actor, x, y);
                 RG.debug(this, 'Added actor to map x: ' + x + ' y: ' + y);
                 return true;
             }
@@ -775,7 +782,7 @@ RG.Map.Level = function() { // {{{2
         if (freeCells.length > 0) {
             const xCell = freeCells[0].getX();
             const yCell = freeCells[0].getY();
-            if (this._addPropToLevelXY('actors', actor, xCell, yCell)) {
+            if (this._addPropToLevelXY(RG.TYPE_ACTOR, actor, xCell, yCell)) {
                 RG.debug(this,
                     'Added actor to free cell in ' + xCell + ', ' + yCell);
                 return true;
@@ -843,7 +850,7 @@ RG.Map.Level = function() { // {{{2
         const index = _p.actors.indexOf(actor);
         const x = actor.getX();
         const y = actor.getY();
-        if (_map.removeProp(x, y, 'actors', actor)) {
+        if (_map.removeProp(x, y, RG.TYPE_ACTOR, actor)) {
             _p.actors.splice(index, 1);
             return true;
         }
