@@ -246,13 +246,15 @@ describe('It contains all game content info', function() {
 
     it('Creates healing potion correctly with useItem attribute', function() {
         const healPotion = parser.createActualObj('items', 'Healing potion');
-        expect(healPotion.hasOwnProperty('useFuncs')).to.equal(true);
-        expect(healPotion.hasOwnProperty('useItem')).to.equal(true);
-        expect(healPotion.hasOwnProperty('useArgs')).to.equal(true);
-        expect(healPotion.useArgs.hasOwnProperty('hp')).to.equal(true);
+        expect(healPotion).to.have.property('useFuncs');
+        expect(healPotion).to.have.property('useItem');
+        expect(healPotion).to.have.property('useArgs');
+        expect(healPotion.useArgs).to.have.property('hp');
         expect(healPotion.useArgs.hp).to.equal('3d4');
 
+        RG.suppressErrorMessages = true;
         healPotion.useItem({});
+        RG.suppressErrorMessages = false;
 
         const venom = parser.createActualObj('items', 'Potion of venom');
         expect(venom).to.have.property('useItem');
