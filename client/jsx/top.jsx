@@ -270,6 +270,7 @@ class BattlesTop extends React.Component {
             this.logic.describeCell(cell, this.gameState.visibleCells);
             this.setState({render: true, renderFullScreen: true});
         }
+        console.log(`Cell: ${JSON.stringify(cell)}`);
     }
 
     /* When listening events, component gets notification via this
