@@ -946,11 +946,22 @@ RG.Game.FromJSON = function() {
         level.setID(json.id);
         level.setLevelNumber(json.levelNumber);
 
+        const mapObj = this.createCellList(json.map);
+        level.setMap(mapObj);
+
         json.elements.forEach(elem => {
             const elemObj = this.createElement(elem.obj);
-            this.addElement(elemObj, elem.x, elem.y);
+            if (elemObj !== null) {
+                level.addElement(elemObj, elem.x, elem.y);
+                console.log('Added element to the level');
+            }
+            else {
+                RG.err('FromJSON', 'createLevel',
+                    `Elem ${JSON.stringify(elem)} returned null`);
+            }
         });
 
+        // Duplicate level IDs are very bad
         if (!id2level.hasOwnProperty(json.id)) {
             id2level[json.id] = level;
         }
@@ -977,6 +988,11 @@ RG.Game.FromJSON = function() {
         stairsInfo[sObj] = {targetLevel: elem.targetLevel,
             targetStairs: elem.targetStairs};
         return sObj;
+    };
+
+    this.createCellList = function(map) {
+        const mapObj = new RG.Map.CellList(map.cols, map.rows);
+        return mapObj;
     };
 };
 
