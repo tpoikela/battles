@@ -286,4 +286,10 @@ RG.Element.Grass = function() {
 };
 RG.extend2(RG.Element.Grass, RG.Element.Base);
 
+/* A stone element. */
+RG.Element.Stone = function() {
+    RG.Element.Base.call(this, 'stone');
+};
+RG.extend2(RG.Element.Stone, RG.Element.Base);
+
 module.exports = RG.Element;
