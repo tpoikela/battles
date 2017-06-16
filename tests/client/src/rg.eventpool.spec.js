@@ -21,12 +21,12 @@ const Listener = function(eventName) {
     };
 };
 
-const emitter = {
-    pool: null,
+const EventEmitter = function() {
+    this.pool = null;
 
-    emit: function(name, args) {
-        pool.emitEvent(name, args);
-    }
+    this.emit = function(name, args) {
+        this.pool.emitEvent(name, args);
+    };
 };
 
 const empty = {};
@@ -34,7 +34,12 @@ const empty = {};
 const listener = new Listener('ActualEvent');
 const pool = new EventPool();
 pool.listenEvent(listener.eventName, listener);
+
+RG.suppressErrorMessages = true;
 pool.listenEvent('TestEvent', empty);
+RG.suppressErrorMessages = false;
+
+const emitter = new EventEmitter();
 emitter.pool = pool;
 emitter.emit('TestEvent', {data: 'abcd'});
 
@@ -43,10 +48,10 @@ describe('How events bubble in the system', function() {
         expect(listener.notified).to.equal(false);
         emitter.emit('ActualEvent', {data: 'abcd'});
         expect(listener.notified).to.equal(true);
+
         listener.clearNotify();
         expect(listener.notified).to.equal(false);
         emitter.emit('RandomEvent', {data: 'abcd'});
-
     });
 });
 
