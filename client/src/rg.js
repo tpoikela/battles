@@ -159,7 +159,8 @@ var RG = { // {{{2
                      default: '/'
             },
             tree: 'T',
-            grass: '"'
+            grass: '"',
+            stone: '^'
         },
         actors: {
             default: 'X',
@@ -189,7 +190,8 @@ var RG = { // {{{2
             snow: 'cell-element-snow',
             wall: 'cell-element-wall',
             tree: 'cell-element-tree',
-            grass: 'cell-element-grass'
+            grass: 'cell-element-grass',
+            stone: 'cell-element-stone'
         },
         actors: {
             default: 'cell-actor-default',
@@ -830,7 +832,7 @@ RG.EventPool = function() { // {{{2
                 var msg = 'evtName: ' + evtName;
                 msg += '\nprototype: ' + JSON.stringify(obj.prototype);
                 msg += '\nCannot add object. Listener must implement notify()!';
-                console.error(msg);
+                RG.err('EventPool', 'listenEvent', msg);
             }
         }
         else {
