@@ -25,9 +25,11 @@ RG.WorldConf = {
                 }
             ],
             // MOUNTAINS
-            nMountains: 0,
+            nMountains: 1,
             mountain: [
-
+                { x: 0, y: 0, name: 'IceThorn', nFaces: 1,
+                    face: [{name: 'north', nLevels: 1}]
+                },
             ],
         },
     ],
