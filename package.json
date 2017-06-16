@@ -51,6 +51,7 @@
     "coverage": "perl cov_test.pl",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
     "hooks": "perl bin/deploy_hooks",
+    "server": "python -m SimpleHTTPServer",
     "test": "mocha --recursive tests/**/*.js"
   },
   "license": "MIT",
