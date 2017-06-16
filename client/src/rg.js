@@ -8,9 +8,13 @@ var RG = { // {{{2
 
     gameTitle: 'Battles in the North (BitN)',
 
+    // Can be set to true for testing, when error conditions are checked
+    suppressErrorMessages: false,
+
     cellRenderVisible: ['actors', 'items', 'traps', 'elements'],
     cellRenderAlways: ['items', 'traps', 'elements'],
 
+    /* Given Map.Cell, returns CSS classname used for styling that cell. */
     getClassName: function(cell, isVisible) {
         if (isVisible) {this.cellRenderArray = this.cellRenderVisible;}
         else {this.cellRenderArray = this.cellRenderAlways;}
@@ -19,6 +23,7 @@ var RG = { // {{{2
         return className;
     },
 
+    /* Given Map.Cell, returns a char that is rendered for the cell. */
     getChar: function(cell, isVisible) {
         if (isVisible) {this.cellRenderArray = this.cellRenderVisible;}
         else {this.cellRenderArray = this.cellRenderAlways;}
@@ -205,12 +210,19 @@ var RG = { // {{{2
     },
 
     debug: function(obj, msg) {
-        var inst = typeof obj;
-        if ($DEBUG) {console.log('[DEBUG]: ' + inst + ' ' + msg);}
+        if ($DEBUG) {
+            const inst = typeof obj;
+            const json = JSON.stringify(obj);
+            console.log(`[DEBUG]: Type: ${inst} ${json} |${msg}|`);
+        }
     },
 
     err: function(obj, fun, msg) {
-        console.error('[ERROR]: ' + obj + ': ' + fun + ' -> ' + msg);
+        if (!this.suppressErrorMessages) {
+            const formattedMsg = `[ERROR]: ${obj} ${fun} -> |${msg}|`;
+            console.error(formattedMsg);
+            throw new Error(formattedMsg);
+        }
     },
 
     /* Used to inherit from a prototype. Supports multiple inheritance but
@@ -237,7 +249,9 @@ var RG = { // {{{2
     /* Prints an error into console if 'val' is null or undefined.*/
     nullOrUndefError: function(name, msg, val) {
         if (this.isNullOrUndef([val])) {
-            console.error('nullOrUndefError: ' + name + ': ' + msg);
+            const formattedMsg = `nullOrUndef ${name} ${msg}`;
+            console.error(formattedMsg);
+            throw new Error(formattedMsg);
         }
     },
 
