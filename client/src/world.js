@@ -455,7 +455,6 @@ RG.extend2(RG.World.Area, RG.World.Base);
  */
 RG.World.Mountain = function(name) {
     RG.World.Base.call(this, name);
-    const _levels = [];
     let _summit = null;
     const _faces = [];
 
@@ -477,7 +476,14 @@ Summit is above view, while face is more of climbing view.
 Bit weird but should be fine.
 
 */
-    this.getLevels = () => (_levels);
+    this.getLevels = function() {
+        let res = [];
+        _faces.forEach(face => {
+            res = res.concat(face.getLevels());
+
+        });
+        return res;
+    };
 
     this.addSummit = (summit) => {
         _summit = summit;
@@ -522,6 +528,31 @@ RG.extend2(RG.World.Mountain, RG.World.Base);
 * Areas. */
 RG.World.MountainFace = function() {
     // const _stages = [];
+    const _levels = [];
+    let _entrance;
+
+    this.addLevel = function(level) {
+        _levels.push(level);
+        if (!_entrance) {
+            const stairs = new Stairs(false, level);
+            const midX = Math.floor(level.getMap().cols / 2);
+            const maxY = level.getMap().rows - 1;
+            level.addStairs(stairs, midX, maxY);
+            _entrance = stairs;
+        }
+    };
+
+    this.getLevels = function() {
+        return _levels;
+    };
+
+    this.setEntrance = function(stairs) {
+        _entrance = stairs;
+    };
+
+    this.getEntrance = function() {
+        return _entrance;
+    };
 
 };
 
@@ -761,6 +792,16 @@ RG.World.Factory = function() {
         this.verifyConf('createMountain', conf, ['name']);
         this.pushScope(conf.name);
         const mountain = new RG.World.Mountain(conf.name);
+        mountain.setHierName(this.getHierName());
+
+        this.pushScope('face1');
+        const northFace = new RG.World.MountainFace();
+        const mConf = { x: 50, y: 200 };
+        const level = this.featureFactory.createMountainLevel(mConf);
+        northFace.addLevel(level);
+        mountain.addFace(northFace);
+        this.popScope('face1');
+
         this.popScope(conf.name);
         return mountain;
     };
@@ -773,6 +814,7 @@ RG.World.Factory = function() {
             y: 100
         };
         const city = new RG.World.City(conf.name);
+        city.setHierName(this.getHierName());
         const level = this.featureFactory.createCityLevel(cityConf);
         city.addLevel(level);
         this.popScope(conf.name);
@@ -802,11 +844,6 @@ RG.World.Factory = function() {
                 const tileStairs = new Stairs(true, tileLevel, entranceLevel);
                 tileLevel.addStairs(tileStairs, freeX, freeY);
                 tileStairs.connect(entranceStairs);
-                // tileStairs.setTargetStairs(entranceStairs);
-                // entranceStairs.setTargetStairs(tileStairs);
-                // entranceStairs.setTargetLevel(tileLevel);
-                console.log(
-                    `Connected tile ${x}, ${y} to ${feature.getName()}`);
             }
             else {
                 const msg = `No entrances in ${feature.getHierName()}.`;
