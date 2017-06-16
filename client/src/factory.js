@@ -161,6 +161,11 @@ RG.Factory.Base = function() { // {{{2
                     'conf.forest must be specified!');
             }
         }
+        else if (levelType === 'mountain') {
+            mapgen.setGen('ruins', cols, rows);
+            mapObj = mapgen.createMountain();
+            level.setMap(mapObj.map);
+        }
         else {
             mapgen.setGen(levelType, cols, rows);
             mapObj = mapgen.getMap();
@@ -360,11 +365,21 @@ RG.Factory.Feature = function() {
 
     this.createCityLevel = function(conf) {
         const levelConf = {
-            nHouses: 10, minHouseX: 5, maxHouseX: 10, minHouseY: 5, maxHouseY: 10,
-                parser: _parser, func: function(item) {return item.type === 'armour';}
+            nHouses: 10, minHouseX: 5, maxHouseX: 10, minHouseY: 5,
+            maxHouseY: 10, parser: _parser,
+            func: function(item) {return item.type === 'armour';}
         };
         const city = this.createLevel('town', conf.x, conf.y, levelConf);
         return city;
+    };
+
+    this.createMountainLevel = function(conf) {
+        const mountConf = {
+
+        };
+        const mountainLevel = this.createLevel('mountain',
+            conf.x, conf.y, mountConf);
+        return mountainLevel;
     };
 };
 RG.extend2(RG.Factory.Feature, RG.Factory.Base);
