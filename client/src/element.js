@@ -108,15 +108,29 @@ RG.extend2(RG.Element.Stairs, RG.Element.Base);
 
 /* Serializes the Stairs object. */
 RG.Element.Stairs.prototype.toJSON = function() {
-    return {
-        targetLevel: this.getTargetLevel().getID(),
-        srcLevel: this.getSrcLevel().getID(),
-        targetStairs: {
-            x: this.getTargetStairs().getX(),
-            y: this.getTargetStairs().getY()
-        },
-        isDown: this.isDown()
-    };
+    if (this.getTargetStairs()) {
+        if (this.getTargetLevel()) {
+            return {
+                targetLevel: this.getTargetLevel().getID(),
+                srcLevel: this.getSrcLevel().getID(),
+                targetStairs: {
+                    x: this.getTargetStairs().getX(),
+                    y: this.getTargetStairs().getY()
+                },
+                isDown: this.isDown(),
+                type: this.getType()
+            };
+        }
+        else {
+            RG.err('Element.Stairs', 'toJSON',
+                'Target level missing. Cannot serialize.');
+        }
+    }
+    else {
+        RG.err('Element.Stairs', 'toJSON',
+            'Target stairs missing. Cannot serialize.');
+    }
+    return null;
 };
 
 /* Name says it all, be it open or closed.*/
