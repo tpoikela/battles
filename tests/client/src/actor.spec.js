@@ -22,8 +22,10 @@ describe('Rogue.Actor', function() {
         actor.setIsPlayer(true);
         expect(actor.isPlayer()).to.equal(true);
 
+        RG.suppressErrorMessages = true;
         actor.setIsPlayer(false);
         expect(actor.isPlayer()).to.equal(true);
+        RG.suppressErrorMessages = false;
 
         actor.setName('renamed');
         expect(actor.getName()).to.equal('renamed');
