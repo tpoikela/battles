@@ -69,7 +69,9 @@ describe('Map.Level', () => {
         expect(items[0]).to.equal(item1);
 
         expect(level1.removeItem(item1, 2, 2)).to.be.true;
+        RG.suppressErrorMessages = true;
         expect(level1.removeItem(item1, 2, 2)).to.be.false;
+        RG.suppressErrorMessages = false;
 
         items = level1.getItems();
         expect(items).to.have.length(1);
@@ -111,11 +113,16 @@ describe('Map.Level', () => {
         const level1 = RGTest.createLevel('arena', 20, 20);
         const level2 = RGTest.createLevel('arena', 20, 20);
         const stairs = new Stairs(true, level1, level2);
-        level1.addStairs(stairs);
+        const stairs2 = new Stairs(false, level2, level1);
+
+        expect(level1.addStairs(stairs, 2, 2)).to.be.true;
+        expect(level2.addStairs(stairs2, 3, 4)).to.be.true;
+        stairs.connect(stairs2);
+
         const json = level1.toJSON();
         const newLevel = fromJSON.createLevel(json);
 
         expect(newLevel.getID()).to.equal(level1.getID());
-        // expect(newLevel.getStairs()).to.have.length(1);
+        expect(newLevel.getStairs()).to.have.length(1);
     });
 });
