@@ -534,7 +534,7 @@ RG.World.MountainFace = function() {
     this.addLevel = function(level) {
         _levels.push(level);
         if (!_entrance) {
-            const stairs = new Stairs(false, level);
+            const stairs = new Stairs(true, level);
             const midX = Math.floor(level.getMap().cols / 2);
             const maxY = level.getMap().rows - 1;
             level.addStairs(stairs, midX, maxY);
@@ -841,7 +841,8 @@ RG.World.Factory = function() {
             if (entrances.length > 0) {
                 const entranceStairs = entrances[0];
                 const entranceLevel = entranceStairs.getSrcLevel();
-                const tileStairs = new Stairs(true, tileLevel, entranceLevel);
+                const isDown = !entranceStairs.isDown();
+                const tileStairs = new Stairs(isDown, tileLevel, entranceLevel);
                 tileLevel.addStairs(tileStairs, freeX, freeY);
                 tileStairs.connect(entranceStairs);
             }
