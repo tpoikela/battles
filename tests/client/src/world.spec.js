@@ -122,6 +122,19 @@ describe('World.Area', function() {
 
 describe('World.Mountain', function() {
 
+    it('has at least one entrance', () => {
+        const mountain = new RG.World.Mountain('mount1');
+        const face = new RG.World.MountainFace('northFace');
+        const level = RG.FACT.createLevel('arena', 30, 30);
+        face.addLevel(level);
+        expect(face.getEntrance().getType()).to.match(/stairs/);
+        expect(face.getLevels()).to.have.length(1);
+
+        mountain.addFace(face);
+        expect(mountain.getEntrances()).to.have.length(1);
+        expect(mountain.getLevels()).to.have.length(1);
+    });
+
 });
 
 describe('World.Factory', function() {
@@ -141,7 +154,6 @@ describe('World.Factory', function() {
         };
         const city = fact.createCity(cityConf);
         expect(city.getName()).to.equal(cityConf.name);
-
     });
 
     it('can create Branch using config object', () => {
