@@ -30,16 +30,16 @@ RG.Element.Stairs = function(down, srcLevel, targetLevel) {
     if (down) {RG.Element.Base.call(this, 'stairsDown');}
     else {RG.Element.Base.call(this, 'stairsUp');}
 
-    var _down = down;
-    var _srcLevel = srcLevel;
-    var _targetLevel = targetLevel;
-    var _targetStairs = null;
+    const _down = down;
+    let _srcLevel = srcLevel;
+    let _targetLevel = targetLevel;
+    let _targetStairs = null;
 
     /* Target actor uses the stairs.*/
     this.useStairs = function(actor) {
         if (!RG.isNullOrUndef([_targetStairs, _targetLevel])) {
-            var newX = _targetStairs.getX();
-            var newY = _targetStairs.getY();
+            const newX = _targetStairs.getX();
+            const newY = _targetStairs.getY();
             if (_srcLevel.removeActor(actor)) {
                 if (_targetLevel.addActor(actor, newX, newY)) {
                     RG.POOL.emitEvent(RG.EVT_LEVEL_CHANGED,
@@ -105,6 +105,19 @@ RG.Element.Stairs = function(down, srcLevel, targetLevel) {
 
 };
 RG.extend2(RG.Element.Stairs, RG.Element.Base);
+
+/* Serializes the Stairs object. */
+RG.Element.Stairs.prototype.toJSON = function() {
+    return {
+        targetLevel: this.getTargetLevel().getID(),
+        srcLevel: this.getSrcLevel().getID(),
+        targetStairs: {
+            x: this.getTargetStairs().getX(),
+            y: this.getTargetStairs().getY()
+        },
+        isDown: this.isDown()
+    };
+};
 
 /* Name says it all, be it open or closed.*/
 RG.Element.Door = function(closed) {
