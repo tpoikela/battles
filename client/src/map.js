@@ -186,12 +186,12 @@ RG.Map.Cell.prototype.getProp = function(prop) {
  * while the level contains actual information about game elements such as
  * monsters and items.  */
 RG.Map.CellList = function(cols, rows) { // {{{2
-    var map = [];
+    const map = [];
     this.cols = cols;
     this.rows = rows;
 
-    var _cols = cols;
-    var _rows = rows;
+    const _cols = cols;
+    const _rows = rows;
 
     for (let x = 0; x < this.cols; x++) {
         map.push([]);
@@ -341,9 +341,9 @@ RG.Map.CellList = function(cols, rows) { // {{{2
     /* Prints the map in ASCII. */
     this.debugPrintInASCII = function() {
         var mapInASCII = '';
-        for (var y = 0; y < this.rows; y++) {
+        for (let y = 0; y < this.rows; y++) {
             var row = '';
-            for (var x = 0; x < this.cols; x++) {
+            for (let x = 0; x < this.cols; x++) {
                 var cell = map[x][y];
                 if (cell.getStairs() !== null) {row += '>';}
                 else if (cell.getBaseElem().getType() === 'floor') {row += '.';}
@@ -356,6 +356,13 @@ RG.Map.CellList = function(cols, rows) { // {{{2
 
 
 }; // }}} Map.CellList
+
+RG.Map.CellList.prototype.toJSON = function() {
+    return {
+        cols: this.cols,
+        rows: this.rows
+    };
+};
 
 /* Map generator for the roguelike game.  */
 RG.Map.Generator = function() { // {{{2
@@ -837,7 +844,7 @@ RG.Map.Level = function() { // {{{2
                 _p[propType].splice(index, 1);
                 if (!obj.hasOwnProperty('getOwner')) {
                     obj.setXY(null, null);
-                    obj.setLevel(null);
+                    obj.unsetLevel();
                 }
                 RG.POOL.emitEvent(RG.EVT_LEVEL_PROP_REMOVED,
                     {level: this, obj: obj, propType: propType});
@@ -957,25 +964,26 @@ RG.Map.Level = function() { // {{{2
             levelNumber: this.getLevelNumber(),
             actors: [],
             items: [],
-            elements: []
+            elements: [],
+            map: this.getMap().toJSON()
         };
 
         // Must store x, y for each prop as well
         const props = ['actors', 'items', 'elements'];
         props.forEach(propType => {
             _p[propType].forEach(elem => {
-                if (elem.hasOwnProperty('toJSON')) {
+                //if (elem.hasOwnProperty('toJSON')) {
                     const elemObj = {
                         x: elem.getX(),
                         y: elem.getY(),
                         obj: elem.toJSON()
                     };
                     obj[propType].push(elemObj);
-                }
+                /*}
                 else {
                     RG.err('Map.Level', 'toJSON',
                         `Cannot serialize object ${JSON.stringify(elem)}`);
-                }
+                }*/
             });
         });
 
