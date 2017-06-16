@@ -45,8 +45,10 @@ describe('RG.Factory.Base', function() {
 describe('ObjectShellParser', function() {
     it('It is used for parsing object shells', function() {
         const parser = new RG.ObjectShellParser();
+        RG.suppressErrorMessages = true;
         const noObj = parser.createActualObj('items', 'Void Item');
         expect(noObj).to.be.null;
+        RG.suppressErrorMessages = true;
 
         const invalidShell = {xxx: 'xxx', noname: 'noname'};
         expect(parser.validShellGiven(invalidShell)).to.be.false;
