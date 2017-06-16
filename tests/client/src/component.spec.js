@@ -15,12 +15,13 @@ describe('Component.Base', function() {
         expect(comp.getEntity().getID()).to.equal(entity.getID());
 
         // Try to override the entity
+        RG.suppressErrorMessages = true;
         comp.setEntity(entity2);
         expect(comp.getEntity().getID()).to.equal(entity.getID());
+        RG.suppressErrorMessages = false;
 
         comp.setEntity(null);
         expect(comp.getEntity()).to.be.null;
-
     });
 
     it('can be copied, cloned, compared', function() {
@@ -47,9 +48,16 @@ describe('Component.Base', function() {
         let calledRemove = false;
         const callbackRemove = function() {calledRemove = true;};
 
+        let calledIllegal = false;
+        const callbackIllegal = function() {calledIllegal = true;};
+
         comp.addCallback('onAdd', callbackAdd);
         comp.addCallback('onRemove', callbackRemove);
-        comp.addCallback('onIllegal', callbackRemove);
+        RG.suppressErrorMessages = true;
+        comp.addCallback('onIllegal', callbackIllegal);
+        RG.suppressErrorMessages = false;
+
+        expect(calledIllegal).to.be.false;
 
         expect(calledAdd).to.be.false;
         entity.add('Base', comp);
@@ -58,5 +66,6 @@ describe('Component.Base', function() {
         expect(calledRemove).to.be.false;
         entity.remove('Base');
         expect(calledRemove).to.be.true;
+        expect(calledIllegal).to.be.false;
     });
 });
