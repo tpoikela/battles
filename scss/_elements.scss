@@ -6,10 +6,12 @@
 $ground-color: #a52a2a;
 $wall-color: #f00;
 
+$stone-color: #808080;
+
 $door-color: #a52a2a;;
 $door-bg-color: white;
 
-$floor-bg-color: gray;
+$floor-bg-color: $stone-color;;
 $tree-color: lighten(green, 20%);
 
 @mixin green-elem {
@@ -70,5 +72,10 @@ $tree-color: lighten(green, 20%);
 
 .cell-element-grass {
     @include green-elem;
+};
+
+.cell-element-stone {
+    background-color: $ground-color;
+    color: $stone-color;
 };
 
