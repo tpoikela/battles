@@ -4,6 +4,19 @@ var RG = require('./rg.js');
 RG.Object = require('./object.js');
 RG.Component = require('./component.js');
 
+// Constants for different item types
+RG.ITEM_ITEM = 'item';
+RG.ITEM_FOOD = 'food';
+RG.ITEM_CORPSE = 'corpse';
+RG.ITEM_WEAPON = 'weapon';
+RG.ITEM_ARMOUR = 'armour';
+RG.ITEM_SPIRITGEM = 'spiritgem';
+RG.ITEM_GOLD = 'gold';
+RG.ITEM_MISSILE = 'missile';
+RG.ITEM_MISSILE_WEAPON = 'missile_weapon';
+RG.ITEM_POTION = 'potion';
+RG.ITEM_GOLD_COIN = 'goldcoin';
+
 //---------------------------------------------------------------------------
 // ITEMS
 //---------------------------------------------------------------------------
@@ -16,6 +29,7 @@ RG.Item.Base = function(name) {
     RG.Object.Ownable.call(this, null);
     RG.Entity.call(this);
     this.setPropType(RG.TYPE_ITEM);
+    this.setType(RG.ITEM_ITEM);
 
     var _name = name;
     var _value = 1;
@@ -83,7 +97,7 @@ RG.Item.Base.prototype.toJSON = function() {
 /* Object representing food items in the game.*/
 RG.Item.Food = function(name) {
     RG.Item.Base.call(this, name);
-    this.setType('food');
+    this.setType(RG.ITEM_FOOD);
 
     var _energy = 0; // per 0.1 kg
 
@@ -140,7 +154,7 @@ RG.Item.Food.prototype.toJSON = function() {
 /* Corpse object dropped by killed actors.*/
 RG.Item.Corpse = function(name) {
     RG.Item.Base.call(this, name);
-    this.setType('corpse');
+    this.setType(RG.ITEM_CORPSE);
 };
 RG.extend2(RG.Item.Corpse, RG.Item.Base);
 
@@ -148,7 +162,7 @@ RG.extend2(RG.Item.Corpse, RG.Item.Base);
 RG.Item.Weapon = function(name) {
     RG.Item.Base.call(this, name);
     RG.Object.Damage.call(this);
-    this.setType('weapon');
+    this.setType(RG.ITEM_WEAPON);
 };
 RG.extend2(RG.Item.Weapon, RG.Item.Base);
 RG.extend2(RG.Item.Weapon, RG.Object.Damage);
@@ -189,7 +203,7 @@ RG.Item.Weapon.prototype.toJSON = function() {
 
 RG.Item.MissileWeapon = function(name) {
     RG.Item.Weapon.call(this, name);
-    this.setType('missile_weapon');
+    this.setType(RG.ITEM_MISSILE_WEAPON);
 
 };
 RG.extend2(RG.Item.MissileWeapon, RG.Item.Weapon);
@@ -199,7 +213,7 @@ RG.extend2(RG.Item.MissileWeapon, RG.Item.Weapon);
 RG.Item.Armour = function(name) {
     RG.Item.Base.call(this, name);
     RG.Object.Defense.call(this);
-    this.setType('armour');
+    this.setType(RG.ITEM_ARMOUR);
 
     var _armourType = null;
 
@@ -241,7 +255,7 @@ RG.Item.Armour.prototype.toJSON = function() {
 /* Potion object which restores hit points .*/
 RG.Item.Potion = function(name) {
     RG.Item.Base.call(this, name);
-    this.setType('potion');
+    this.setType(RG.ITEM_POTION);
 
     this.useItem = function(obj) {
         if (obj.hasOwnProperty('target')) {
@@ -279,7 +293,7 @@ RG.extend2(RG.Item.Potion, RG.Item.Base);
 RG.Item.Missile = function(name) {
     RG.Item.Base.call(this, name);
     RG.Object.Damage.call(this);
-    this.setType('missile');
+    this.setType(RG.ITEM_MISSILE);
 };
 RG.extend2(RG.Item.Missile, RG.Item.Base);
 RG.extend2(RG.Item.Missile, RG.Object.Damage);
@@ -506,7 +520,7 @@ RG.Item.Container.prototype.toJSON = function() {
 /* Gold items. */
 RG.Item.Gold = function(name) {
     RG.Item.Base.call(this, name);
-    this.setType('gold');
+    this.setType(RG.ITEM_GOLD);
     this._purity = 1.0;
 };
 RG.extend2(RG.Item.Gold, RG.Item.Base);
@@ -523,7 +537,7 @@ RG.Item.Gold.prototype.setPurity = function(purity) {
 /* Gold coins have standard weight and are (usually) made of pure gold.*/
 RG.Item.GoldCoin = function() {
     RG.Item.Gold.call(this, RG.GOLD_COIN_NAME);
-    this.setType('goldcoin');
+    this.setType(RG.ITEM_GOLD_COIN);
     this._purity = 1.0;
     this.setWeight(0.03);
 };
@@ -533,7 +547,7 @@ RG.extend2(RG.Item.GoldCoin, RG.Item.Gold);
 /* Spirit gems can capture spirits inside them.*/
 RG.Item.SpiritGem = function(name) {
     RG.Item.Base.call(this, name);
-    this.setType('spiritgem');
+    this.setType(RG.ITEM_SPIRITGEM);
 
     var _spirit = null;
     var _hasSpirit = false;
