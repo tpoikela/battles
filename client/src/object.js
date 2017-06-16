@@ -178,6 +178,17 @@ RG.Object.Locatable.prototype.setLevel = function(level) {
     RG.nullOrUndefError('Object.Locatable: setLevel', 'arg |level|', level);
 };
 
+/* Unsets the level to null. Throws error if level already null. */
+RG.Object.Locatable.prototype.unsetLevel = function() {
+    if (this._level) {
+        this._level = null;
+    }
+    else {
+        RG.err('Object.Locatable', 'unsetLevel',
+            'Trying to unset already null level.');
+    }
+};
+
 RG.Object.Locatable.prototype.getLevel = function() {
     return this._level;
 };
@@ -195,8 +206,8 @@ RG.Object.Locatable.prototype.isSamePos = function(obj) {
     return true;
 };
 
-/* Object.Ownable is sort of Object.Locatable but it moves with its owner.
- * This ensures that
+/* Object.Ownable moves with its owner. Thus, it's x-y position is
+ * determined by the owner. This ensures that
  * for example item coordinates are up-to-date with the carrier.*/
 RG.Object.Ownable = function(owner) {
     RG.Object.Typed.call(this, null);
