@@ -609,8 +609,18 @@ RG.Map.Generator = function() { // {{{2
                 map.setElemXY(x, y, new RG.Element.Grass('grass'));
             }
         });
-        var obj = {map: map};
-        return obj;
+        return {map: map};
+    };
+
+    this.createMountain = function() {
+        const map = new RG.Map.CellList(this.cols, this.rows);
+        _mapGen.create(function(x, y, val) {
+            map.setBaseElemXY(x, y, new RG.Element.Base('floor'));
+            if (val === 1) {
+                map.setElemXY(x, y, new RG.Element.Stone('stone'));
+            }
+        });
+        return {map: map};
     };
 
 }; // }}} Map.Generator
@@ -972,14 +982,15 @@ RG.Map.Level = function() { // {{{2
         const props = ['actors', 'items', 'elements'];
         props.forEach(propType => {
             _p[propType].forEach(elem => {
-                //if (elem.hasOwnProperty('toJSON')) {
+                // TODO: sort this out
+                // if (elem.hasOwnProperty('toJSON')) {
                     const elemObj = {
                         x: elem.getX(),
                         y: elem.getY(),
                         obj: elem.toJSON()
                     };
                     obj[propType].push(elemObj);
-                /*}
+                /* }
                 else {
                     RG.err('Map.Level', 'toJSON',
                         `Cannot serialize object ${JSON.stringify(elem)}`);
