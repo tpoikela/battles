@@ -832,8 +832,23 @@ RG.Game.FromJSON = function() {
 
     var _dungeonLevel = 1;
 
+    // Lookup table for mapping level ID to Map.Level object
+    const id2level = {};
+
+    // Stores connection information for stairs
+    const stairsInfo = {};
+
     this.getDungeonLevel = function() {
         return _dungeonLevel;
+    };
+
+    /* Creates the full game from serialized format. */
+    this.createGame = function() {
+        // Build levels (items, actors, elements) + world topo
+
+        // game json must contain everything
+
+        // Connect levels using id2level + stairsInfo
     };
 
     /* Handles creation of restored player from JSON.*/
@@ -936,13 +951,32 @@ RG.Game.FromJSON = function() {
             this.addElement(elemObj, elem.x, elem.y);
         });
 
+        if (!id2level.hasOwnProperty(json.id)) {
+            id2level[json.id] = level;
+        }
+        else {
+            RG.err('FromJSON', 'createLevel',
+                `Duplicate level ID detected ${json.id}`);
+        }
         return level;
     };
 
     this.createElement = function(elem) {
         if (/stairs/.test(elem.type)) {
-
+            return this.createUnconnectedStairs(elem);
         }
+        return null;
+    };
+
+    /* Tricky one. The target level should exist before connections. The object
+     * returned by this method is not complete stairs, but has placeholders for
+     * targetLevel (level ID) and targetStairs (x, y coordinates).
+     */
+    this.createUnconnectedStairs = function(elem) {
+        const sObj = new RG.Element.Stairs(elem.isDown);
+        stairsInfo[sObj] = {targetLevel: elem.targetLevel,
+            targetStairs: elem.targetStairs};
+        return sObj;
     };
 };
 
