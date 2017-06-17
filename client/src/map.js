@@ -1,6 +1,6 @@
 
-var ROT = require('../../lib/rot.js');
-var RG = require('./rg.js');
+const ROT = require('../../lib/rot.js');
+const RG = require('./rg.js');
 
 RG.Element = require('./element.js');
 
@@ -78,7 +78,7 @@ RG.Map.Cell.prototype.isExplored = function() {return this._explored;};
 /* Returns true if it's possible to move to this cell.*/
 RG.Map.Cell.prototype.isFree = function() {
     if (this.hasProp('actors')) {
-        for (var i = 0; i < this._p.actors.length; i++) {
+        for (let i = 0; i < this._p.actors.length; i++) {
             if (!this._p.actors[i].has('Ethereal')) {return false;}
         }
         return true;
@@ -106,8 +106,8 @@ RG.Map.Cell.prototype.setProp = function(prop, obj) {
 /* Removes the given object from cell properties.*/
 RG.Map.Cell.prototype.removeProp = function(prop, obj) {
     if (this.hasProp(prop)) {
-        var props = this._p[prop];
-        var index = props.indexOf(obj);
+        const props = this._p[prop];
+        const index = props.indexOf(obj);
         if (index === -1) {return false;}
         this._p[prop].splice(index, 1);
         if (this._p[prop].length === 0) {
@@ -125,12 +125,12 @@ RG.Map.Cell.prototype.hasProp = function(prop) {
 
 /* Returns string representation of the cell.*/
 RG.Map.Cell.prototype.toString = function() {
-    var str = 'Map.Cell ' + this._x + ', ' + this._y;
+    let str = 'Map.Cell ' + this._x + ', ' + this._y;
     str += ' explored: ' + this._explored;
     str += ' passes light: ' + this.lightPasses();
     Object.keys(this._p).forEach(prop => {
-        var arrProps = this._p[prop];
-        for (var i = 0; i < arrProps.length; i++) {
+        const arrProps = this._p[prop];
+        for (let i = 0; i < arrProps.length; i++) {
             if (arrProps[i].hasOwnProperty('toString')) {
                 str += arrProps[i].toString();
             }
@@ -146,10 +146,10 @@ RG.Map.Cell.prototype.toString = function() {
 RG.Map.Cell.prototype.hasPropType = function(propType) {
     if (this._baseElem.getType() === propType) {return true;}
 
-    for (var prop in this._p) {
+    for (const prop in this._p) {
         if (this._p.hasOwnProperty(prop)) {
-            var arrProps = this._p[prop];
-            for (var i = 0; i < arrProps.length; i++) {
+            const arrProps = this._p[prop];
+            for (let i = 0; i < arrProps.length; i++) {
                 if (arrProps[i].getType() === propType) {
                     return true;
                 }
@@ -161,11 +161,11 @@ RG.Map.Cell.prototype.hasPropType = function(propType) {
 
 /* Returns all props with given type in the cell.*/
 RG.Map.Cell.prototype.getPropType = function(propType) {
-    var props = [];
+    const props = [];
     if (this._baseElem.getType() === propType) {return [this._baseElem];}
     Object.keys(this._p).forEach(prop => {
-        var arrProps = this._p[prop];
-        for (var i = 0; i < arrProps.length; i++) {
+        const arrProps = this._p[prop];
+        for (let i = 0; i < arrProps.length; i++) {
             if (arrProps[i].getType() === propType) {
                 props.push(arrProps[i]);
             }
@@ -195,8 +195,8 @@ RG.Map.CellList = function(cols, rows) { // {{{2
 
     for (let x = 0; x < this.cols; x++) {
         map.push([]);
-        for (var y = 0; y < this.rows; y++) {
-            var elem = new RG.Element.Base('floor');
+        for (let y = 0; y < this.rows; y++) {
+            const elem = new RG.Element.Base('floor');
             map[x].push(new RG.Map.Cell(x, y, elem));
         }
     }
@@ -232,16 +232,16 @@ RG.Map.CellList = function(cols, rows) { // {{{2
     };
 
     this.getBaseElemRow = function(y) {
-        var row = [];
-        for (var i = 0; i < this.cols; ++i) {
+        const row = [];
+        for (let i = 0; i < this.cols; ++i) {
             row.push(map[i][y].getBaseElem());
         }
         return row;
     };
 
     this.getCellRow = function(y) {
-        var row = [];
-        for (var i = 0; i < this.cols; ++i) {
+        const row = [];
+        for (let i = 0; i < this.cols; ++i) {
             row.push(map[i][y]);
         }
         return row;
@@ -276,12 +276,12 @@ RG.Map.CellList = function(cols, rows) { // {{{2
     };
 
     /* Returns true if the map has a cell in given x,y location.*/
-    var _hasXY = function(x, y) {
+    const _hasXY = function(x, y) {
         return (x >= 0) && (x < _cols) && (y >= 0) && (y < _rows);
     };
 
     /* Returns true if light passes through this cell.*/
-    var lightPasses = function(x, y) {
+    const lightPasses = function(x, y) {
         if (_hasXY(x, y)) {
             return map[x][y].lightPasses(); // delegate to cell
         }
@@ -295,16 +295,16 @@ RG.Map.CellList = function(cols, rows) { // {{{2
         return false;
     };
 
-    var fov = new ROT.FOV.PreciseShadowcasting(lightPasses);
+    const fov = new ROT.FOV.PreciseShadowcasting(lightPasses);
 
     /* Returns visible cells for given actor.*/
     this.getVisibleCells = function(actor) {
-        var cells = [];
-        var xActor = actor.getX();
-        var yActor = actor.getY();
+        const cells = [];
+        const xActor = actor.getX();
+        const yActor = actor.getY();
         if (actor.isLocated()) {
             if (actor.getLevel().getMap() === this) {
-                var range = actor.getFOVRange();
+                const range = actor.getFOVRange();
                 fov.compute(xActor, yActor, range, (x, y, r, visibility) => {
                     if (visibility) {
                         if (_hasXY(x, y)) {
@@ -319,9 +319,9 @@ RG.Map.CellList = function(cols, rows) { // {{{2
 
     /* Returns all cells explored by the player.*/
     this.getExploredCells = function() {
-        var cells = [];
-        for (var x = 0; x < this.cols; x++) {
-            for (var y = 0; y < this.rows; y++) {
+        const cells = [];
+        for (let x = 0; x < this.cols; x++) {
+            for (let y = 0; y < this.rows; y++) {
                 if (map[x][y].isExplored()) {
                     cells.push(map[x][y]);
                 }
@@ -340,11 +340,11 @@ RG.Map.CellList = function(cols, rows) { // {{{2
 
     /* Prints the map in ASCII. */
     this.debugPrintInASCII = function() {
-        var mapInASCII = '';
+        let mapInASCII = '';
         for (let y = 0; y < this.rows; y++) {
-            var row = '';
+            let row = '';
             for (let x = 0; x < this.cols; x++) {
-                var cell = map[x][y];
+                const cell = map[x][y];
                 if (cell.getStairs() !== null) {row += '>';}
                 else if (cell.getBaseElem().getType() === 'floor') {row += '.';}
                 else {row += '#';}
@@ -369,21 +369,21 @@ RG.Map.Generator = function() { // {{{2
 
     this.cols = 50;
     this.rows = 30;
-    var _mapGen = new ROT.Map.Arena(50, 30);
-    var _mapType = null;
+    let _mapGen = new ROT.Map.Arena(50, 30);
+    let _mapType = null;
 
-    var _types = ['arena', 'cellular', 'digger', 'divided', 'dungeon',
+    const _types = ['arena', 'cellular', 'digger', 'divided', 'dungeon',
         'eller', 'icey', 'uniform', 'rogue', 'ruins', 'rooms'];
 
-    var _wall = 1;
+    let _wall = 1;
 
     this.getRandType = function() {
-        var len = _types.length;
-        var nRand = Math.floor(Math.random() * len);
+        const len = _types.length;
+        const nRand = Math.floor(Math.random() * len);
         return _types[nRand];
     };
 
-    var _nHouses = 5;
+    let _nHouses = 5;
     this.setNHouses = function(nHouses) {_nHouses = nHouses;};
     this.getNHouses = function() {return _nHouses;};
 
@@ -413,7 +413,7 @@ RG.Map.Generator = function() { // {{{2
     /* Returns an object containing randomized map + all special features
      * based on initialized generator settings. */
     this.getMap = function() {
-        var map = new RG.Map.CellList(this.cols, this.rows);
+        const map = new RG.Map.CellList(this.cols, this.rows);
         _mapGen.create(function(x, y, val) {
             if (val === _wall) {
                 map.setBaseElemXY(x, y, new RG.Element.Base('wall'));
@@ -422,7 +422,7 @@ RG.Map.Generator = function() { // {{{2
                 map.setBaseElemXY(x, y, new RG.Element.Base('floor'));
             }
         });
-        var obj = {map: map};
+        const obj = {map: map};
         if (_mapType === 'uniform' || _mapType === 'digger') {
             obj.rooms = _mapGen.getRooms(); // ROT.Map.Feature.Room
             obj.corridors = _mapGen.getCorridors(); // ROT.Map.Feature.Corridor
@@ -435,11 +435,11 @@ RG.Map.Generator = function() { // {{{2
     /* Creates "ruins" type level with open outer edges and inner
      * "fortress" with some tunnels. */
     this.createRuins = function(cols, rows) {
-        var conf = {born: [4, 5, 6, 7, 8],
+        const conf = {born: [4, 5, 6, 7, 8],
             survive: [2, 3, 4, 5], connected: true};
-        var map = new ROT.Map.Cellular(cols, rows, conf);
+        const map = new ROT.Map.Cellular(cols, rows, conf);
         map.randomize(0.9);
-        for (var i = 0; i < 5; i++) {map.create();}
+        for (let i = 0; i < 5; i++) {map.create();}
         map.connect(null, 1);
         _wall = 0;
         return map;
@@ -447,31 +447,31 @@ RG.Map.Generator = function() { // {{{2
 
     /* Creates a cellular type dungeon and makes all areas connected.*/
     this.createCellular = function(cols, rows) {
-        var map = new ROT.Map.Cellular(cols, rows);
+        const map = new ROT.Map.Cellular(cols, rows);
         map.randomize(0.5);
-        for (var i = 0; i < 5; i++) {map.create();}
+        for (let i = 0; i < 5; i++) {map.create();}
         map.connect(null, 1);
         _wall = 0;
         return map;
     };
 
     this.createRooms = function(cols, rows) {
-        var map = new ROT.Map.Digger(cols, rows,
+        const map = new ROT.Map.Digger(cols, rows,
             {roomWidth: [5, 20], dugPercentage: 0.7});
         return map;
     };
 
     /* Creates a town level of size cols X rows. */
     this.createTown = function(cols, rows, conf) {
-        var maxTriesHouse = 100;
-        var doors = {};
-        var wallsHalos = {};
+        const maxTriesHouse = 100;
+        const doors = {};
+        const wallsHalos = {};
 
-        var nHouses = 5;
-        var minX = 5;
-        var maxX = 5;
-        var minY = 5;
-        var maxY = 5;
+        let nHouses = 5;
+        let minX = 5;
+        let maxX = 5;
+        let minY = 5;
+        let maxY = 5;
 
         if (conf.hasOwnProperty('nHouses')) {nHouses = conf.nHouses;}
         if (conf.hasOwnProperty('minHouseX')) {minX = conf.minHouseX;}
@@ -479,22 +479,22 @@ RG.Map.Generator = function() { // {{{2
         if (conf.hasOwnProperty('maxHouseX')) {maxX = conf.maxHouseX;}
         if (conf.hasOwnProperty('maxHouseY')) {maxY = conf.maxHouseY;}
 
-        var houses = [];
+        const houses = [];
         this.setGen('arena', cols, rows);
-        var mapObj = this.getMap();
-        var map = mapObj.map;
+        const mapObj = this.getMap();
+        const map = mapObj.map;
 
-        for (var i = 0; i < nHouses; i++) {
+        for (let i = 0; i < nHouses; i++) {
 
-            var houseCreated = false;
-            var tries = 0;
-            var xSize = Math.floor(Math.random() * (maxX - minX)) + minX;
-            var ySize = Math.floor(Math.random() * (maxY - minY)) + minY;
+            let houseCreated = false;
+            let tries = 0;
+            const xSize = Math.floor(Math.random() * (maxX - minX)) + minX;
+            const ySize = Math.floor(Math.random() * (maxY - minY)) + minY;
 
             // Select random starting point, try to build house there
             while (!houseCreated && tries < maxTriesHouse) {
-                var x0 = Math.floor(Math.random() * cols);
-                var y0 = Math.floor(Math.random() * rows);
+                const x0 = Math.floor(Math.random() * cols);
+                const y0 = Math.floor(Math.random() * rows);
                 houseCreated = this.createHouse(
                     map, x0, y0, xSize, ySize, doors, wallsHalos);
                 ++tries;
@@ -510,20 +510,19 @@ RG.Map.Generator = function() { // {{{2
      * dimensions. Existing doors and walls must be passed to prevent
      * overlapping.*/
     this.createHouse = function(map, x0, y0, xDim, yDim, doors, wallsHalos) {
-        var maxX = x0 + xDim;
-        var maxY = y0 + yDim;
-        var wallCoords = [];
+        const maxX = x0 + xDim;
+        const maxY = y0 + yDim;
+        const wallCoords = [];
 
         // House doesn't fit on the map
         if (maxX >= map.cols) {return false;}
         if (maxY >= map.rows) {return false;}
 
-        var possibleRoom = [];
-        var wallXY = RG.Geometry.getHollowBox(x0, y0, maxX, maxY);
+        const possibleRoom = [];
+        const wallXY = RG.Geometry.getHollowBox(x0, y0, maxX, maxY);
 
-        var i;
         // Store x,y for house until failed
-        for (i = 0; i < wallXY.length; i++) {
+        for (let i = 0; i < wallXY.length; i++) {
             const x = wallXY[i][0];
             const y = wallXY[i][1];
             if (map.hasXY(x, y)) {
@@ -541,43 +540,43 @@ RG.Map.Generator = function() { // {{{2
         // House generation has succeeded at this point, true will be returned
 
         // Didn't fail, now we can build the actual walls
-        for (i = 0; i < possibleRoom.length; i++) {
-            var roomX = possibleRoom[i][0];
-            var roomY = possibleRoom[i][1];
+        for (let i = 0; i < possibleRoom.length; i++) {
+            const roomX = possibleRoom[i][0];
+            const roomY = possibleRoom[i][1];
             map.setBaseElemXY(roomX, roomY, new RG.Element.Base('wall'));
         }
 
         // Create the halo, prevents houses being too close to each other
-        var haloX0 = x0 - 1;
-        var haloY0 = y0 - 1;
-        var haloMaxX = maxX + 1;
-        var haloMaxY = maxY + 1;
-        var haloBox = RG.Geometry.getHollowBox(
+        const haloX0 = x0 - 1;
+        const haloY0 = y0 - 1;
+        const haloMaxX = maxX + 1;
+        const haloMaxY = maxY + 1;
+        const haloBox = RG.Geometry.getHollowBox(
             haloX0, haloY0, haloMaxX, haloMaxY);
-        for (i = 0; i < haloBox.length; i++) {
-            var haloX = haloBox[i][0];
-            var haloY = haloBox[i][1];
+        for (let i = 0; i < haloBox.length; i++) {
+            const haloX = haloBox[i][0];
+            const haloY = haloBox[i][1];
             wallsHalos[haloX + ',' + haloY] = true;
         }
 
         // Finally randomly insert the door for the house
-        var coordLength = wallCoords.length - 1;
-        var doorIndex = Math.floor(Math.random() * coordLength);
-        var doorX = wallCoords[doorIndex][0];
-        var doorY = wallCoords[doorIndex][1];
+        const coordLength = wallCoords.length - 1;
+        const doorIndex = Math.floor(Math.random() * coordLength);
+        const doorX = wallCoords[doorIndex][0];
+        const doorY = wallCoords[doorIndex][1];
         wallCoords.slice(doorIndex, 1);
 
         // At the moment, "door" is a hole in the wall
         map.setBaseElemXY(doorX, doorY, new RG.Element.Base('floor'));
         doors[doorX + ',' + doorY] = true;
 
-        for (i = 0; i < wallCoords.length; i++) {
-            var xHalo = wallCoords[i][0];
-            var yHalo = wallCoords[i][1];
+        for (let i = 0; i < wallCoords.length; i++) {
+            const xHalo = wallCoords[i][0];
+            const yHalo = wallCoords[i][1];
             wallsHalos[xHalo + ',' + yHalo] = true;
         }
 
-        var floorCoords = [];
+        const floorCoords = [];
         for (let x = x0 + 1; x < maxX; x++) {
             for (let y = y0 + 1; y < maxY; y++) {
                 floorCoords.push([x, y]);
@@ -627,9 +626,9 @@ RG.Map.Generator = function() { // {{{2
 
 /* Decorates given map with snow.*/
 RG.Map.Generator.prototype.addRandomSnow = function(map, ratio) {
-    var freeCells = map.getFree();
-    for (var i = 0; i < freeCells.length; i++) {
-        var addSnow = Math.random();
+    const freeCells = map.getFree();
+    for (let i = 0; i < freeCells.length; i++) {
+        const addSnow = Math.random();
         if (addSnow <= ratio) {
             freeCells[i].setBaseElem(new RG.Element.Base('snow'));
         }
@@ -639,9 +638,8 @@ RG.Map.Generator.prototype.addRandomSnow = function(map, ratio) {
 
 /* Object for the game levels. Contains map, actors and items.  */
 RG.Map.Level = function() { // {{{2
-    var _map = null;
-
-    var _id = RG.Map.Level.prototype.idCount++;
+    let _map = null;
+    let _id = RG.Map.Level.prototype.idCount++;
 
     // Level properties
     const _p = {
@@ -650,7 +648,7 @@ RG.Map.Level = function() { // {{{2
         elements: []
     };
 
-    var _levelNo = 0;
+    let _levelNo = 0;
     this.setLevelNumber = function(no) {_levelNo = no;};
     this.getLevelNumber = function() {return _levelNo;};
 
@@ -744,10 +742,10 @@ RG.Map.Level = function() { // {{{2
             return this._addPropToLevelXY(RG.TYPE_ITEM, item, x, y);
         }
         else {
-            var freeCells = _map.getFree();
+            const freeCells = _map.getFree();
             if (freeCells.length > 0) {
-                var xCell = freeCells[0].getX();
-                var yCell = freeCells[0].getY();
+                const xCell = freeCells[0].getX();
+                const yCell = freeCells[0].getY();
                 return this._addPropToLevelXY(RG.TYPE_ITEM, item, xCell, yCell);
             }
 
@@ -761,9 +759,9 @@ RG.Map.Level = function() { // {{{2
     };
 
     this.pickupItem = function(actor, x, y) {
-        var cell = _map.getCell(x, y);
+        const cell = _map.getCell(x, y);
         if (cell.hasProp(RG.TYPE_ITEM)) {
-            var item = cell.getProp(RG.TYPE_ITEM)[0];
+            const item = cell.getProp(RG.TYPE_ITEM)[0];
             if (actor.getInvEq().canCarryItem(item)) {
                 actor.getInvEq().addItem(item);
                 cell.removeProp(RG.TYPE_ITEM, item);
@@ -893,7 +891,7 @@ RG.Map.Level = function() { // {{{2
     this.exploreCells = function(actor) {
         const visibleCells = _map.getVisibleCells(actor);
         if (actor.isPlayer()) {
-            for (var i = 0; i < visibleCells.length; i++) {
+            for (let i = 0; i < visibleCells.length; i++) {
                 visibleCells[i].setExplored();
             }
         }
@@ -908,7 +906,7 @@ RG.Map.Level = function() { // {{{2
     //-----------------------------------------------------------------
     // CALLBACKS
     //----------------------------------------------------------------
-    var _callbacks = {};
+    const _callbacks = {};
 
     // For setting the callbacks
     this.setOnEnter = function(cb) {_callbacks.OnEnter = cb;};
@@ -916,8 +914,8 @@ RG.Map.Level = function() { // {{{2
     this.setOnExit = function(cb) {_callbacks.OnExit = cb;};
     this.setOnFirstExit = function(cb) {_callbacks.OnFirstExit = cb;};
 
-    var _onFirstEnterDone = false;
-    var _onFirstExitDone = false;
+    let _onFirstEnterDone = false;
+    let _onFirstExitDone = false;
 
     this.onEnter = function() {
         if (_callbacks.hasOwnProperty('OnEnter')) {_callbacks.OnEnter(this);}
