@@ -29,12 +29,12 @@ class TopLogic {
         var index = seenCells.indexOf(cell);
         if (index !== -1) {
             if (cell.hasActors()) {
-                var actor = cell.getProp('actors')[0];
-                var msg = 'You see ' + actor.getName();
+                const actor = cell.getProp('actors')[0];
+                const msg = 'You see ' + actor.getName();
                 RG.gameMsg(msg);
             }
             else if (cell.hasProp('items')) {
-                    var items = cell.getProp('items');
+                    const items = cell.getProp('items');
                     if (items.length > 1) {
                         RG.gameMsg('There are several items there');
                         RG.gameMsg('You see ' + items[0].getName() + ' on top');
@@ -59,9 +59,9 @@ class TopLogic {
 
     getAdjacentCell(player, code) {
         if (RG.KeyMap.inMoveCodeMap(code) || RG.KeyMap.isRest(code)) {
-            var x = player.getX();
-            var y = player.getY();
-            var diffXY = RG.KeyMap.getDiff(code, x, y);
+            const x = player.getX();
+            const y = player.getY();
+            const diffXY = RG.KeyMap.getDiff(code, x, y);
             if (diffXY !== null) {
                 return player.getLevel().getMap().getCell(diffXY[0], diffXY[1]);
             }
@@ -246,7 +246,8 @@ class BattlesTop extends React.Component {
         }
         this.game = fccGame.createNewGame(this.gameConf);
         this.game.setGUICallbacks(this.isGUICommand, this.doGUICommand);
-        var player = this.game.getPlayer();
+
+        const player = this.game.getPlayer();
         this.gameState.visibleCells = player.getLevel().exploreCells(player);
         RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this.listener);
         RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this.listener);
@@ -306,7 +307,7 @@ class BattlesTop extends React.Component {
 
     mainLoop() {
         if (this.keyPending === true) {
-            var code = this.nextCode;
+            const code = this.nextCode;
             this.game.update({code: code});
             this.gameState.visibleCells = this.game.visibleCells;
             if (this.game.isGameOver()) {
@@ -436,8 +437,8 @@ class BattlesTop extends React.Component {
             this.gameState.useModeEnabled = false;
             if (this.state.selectedItem !== null) {
 
-                var player = this.game.getPlayer();
-                var cell = this.logic.getAdjacentCell(player, code);
+                const player = this.game.getPlayer();
+                const cell = this.logic.getAdjacentCell(player, code);
                 if (cell !== null) {
                     this.game.update({
                         cmd: 'use', target: cell, item: this.state.selectedItem
@@ -512,14 +513,14 @@ class BattlesTop extends React.Component {
     /* Selects next target when 'n' is pressed.*/
     GUINextTarget() {
         if (this.gameState.isTargeting) {
-            var numCells = this.gameState.enemyCells.length;
+            const numCells = this.gameState.enemyCells.length;
             if (numCells > 0) {
-                var numNextCell = this.gameState.numCurrCell + 1;
+                let numNextCell = this.gameState.numCurrCell + 1;
                 if (numNextCell >= numCells) {
                     numNextCell = 0;
                 }
 
-                var nextCell = this.gameState.enemyCells[numNextCell];
+                const nextCell = this.gameState.enemyCells[numNextCell];
                 this.setState({selectedCell: nextCell});
                 this.gameState.numCurrCell = numNextCell;
             }
@@ -561,6 +562,7 @@ class BattlesTop extends React.Component {
                 this.gameConf.rows = 60; break;
             default: console.error('setLeveSize illegal size ' + levelSize);
         }
+        this.gameConf.levelSize = levelSize;
     }
 
     setPlayerLevel(level) {
@@ -575,6 +577,7 @@ class BattlesTop extends React.Component {
             case 'Epic': this.gameConf.levels = 30; break;
             default: console.error('setGameLength illegal length ' + length);
         }
+        this.gameConf.gameLength = length;
     }
 
     setDebugMode(mode) {
