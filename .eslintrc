@@ -12,6 +12,7 @@
     "mocha": true,
     "node": true
   },
+  "parser": "babel-eslint",
   "plugins": [
     "react",
     "import",
@@ -189,6 +190,7 @@
     "react/prop-types": 2,
     "react/react-in-jsx-scope": 2,
     "react/self-closing-comp": 2,
+    "react/jsx-uses-vars": 2,
 
     "import/default": 2,
     "import/export": 2,
