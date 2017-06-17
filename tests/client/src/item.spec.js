@@ -103,6 +103,7 @@ describe('How stackes are broken into multiple items', function() {
 
         const rmvArrow = RG.removeStackedItems(arrow, 1);
         expect(arrow.count).to.equal(1);
+        expect(rmvArrow.count).to.equal(1);
     });
 });
 
@@ -114,19 +115,16 @@ describe('How inventory container works', function() {
         const inv = invEq.getInventory();
         const eq = invEq.getEquipment();
 
-        const maxW = player.getMaxWeight();
-        console.log('MW: ' + maxW);
+        const heavySword = new RG.Item.Weapon('HeavySword');
+        heavySword.setWeight(21.0);
+        expect(invEq.canCarryItem(heavySword)).to.equal(false);
 
-        const heavyItem = new RG.Item.Weapon('Sword');
-        heavyItem.setWeight(21.0);
-        expect(invEq.canCarryItem(heavyItem)).to.equal(false);
-
-        const sword = new RG.Item.Weapon('Light sword');
-        sword.setWeight(5.0);
-        sword.count = 2;
-        expect(invEq.canCarryItem(sword)).to.equal(true);
-        invEq.addItem(sword);
-        invEq.equipItem(sword);
+        const lightSword = new RG.Item.Weapon('Light lightSword');
+        lightSword.setWeight(5.0);
+        lightSword.count = 2;
+        expect(invEq.canCarryItem(lightSword)).to.equal(true);
+        invEq.addItem(lightSword);
+        invEq.equipItem(lightSword);
         expect(eq.getWeight()).to.equal(5.0);
         expect(inv.getWeight()).to.equal(5.0);
 
@@ -198,10 +196,8 @@ describe('How item equipment slots work', function() {
     const player = new RG.Actor.Rogue('player');
     const invEq = new RG.Inv.Inventory(player);
     const eq = invEq.getEquipment();
-    const inv = invEq.getInventory();
 
     it('Holds items or stacks of items', function() {
-        const eqSlot = new Slot(eq, 'hand', false);
         const missSlot = new Slot(eq, 'missile', true);
 
         const arrow = new RG.Item.Missile('arrow');
