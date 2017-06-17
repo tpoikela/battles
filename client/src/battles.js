@@ -1,5 +1,7 @@
 
-var RG = require('./rg.js');
+/* Contains all source code modules assigned to RG. */
+
+const RG = require('./rg.js');
 
 RG.Game = require('./game.js');
 
@@ -16,6 +18,7 @@ RG.Map = require('./map.js');
 RG.World = require('./world.js');
 
 RG.Effects = require('../data/effects.js');
+RG.ObjectShellParser = require('./objectshellparser.js');
 RG.Factory = require('./factory.js');
 
 module.exports = RG;
