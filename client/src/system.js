@@ -1,5 +1,5 @@
 
-var RG = require('./rg.js');
+const RG = require('./rg.js');
 
 //---------------------------------------------------------------------------
 // ECS SYSTEMS {{{1
@@ -45,13 +45,13 @@ RG.System.Base = function(type, compTypes) {
      * compTypesAny if set, if entity has any required component.*/
     this.hasCompTypes = function(entity) {
         if (this.compTypesAny === false) { // All types must be present
-            for (var i = 0; i < compTypes.length; i++) {
+            for (let i = 0; i < compTypes.length; i++) {
                 if (!entity.has(compTypes[i])) {return false;}
             }
             return true;
         }
         else { // Only one compType has to be present
-            for (var j = 0; j < compTypes.length; j++) {
+            for (let j = 0; j < compTypes.length; j++) {
                 if (entity.has(compTypes[j])) {return true;}
             }
             return false;
@@ -59,7 +59,7 @@ RG.System.Base = function(type, compTypes) {
     };
 
     // Add a listener for each specified component type
-    for (var i = 0; i < this.compTypes.length; i++) {
+    for (let i = 0; i < this.compTypes.length; i++) {
         RG.POOL.listenEvent(this.compTypes[i], this);
     }
 
@@ -70,14 +70,14 @@ RG.System.Attack = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
 
     this.update = function() {
-        for (var e in this.entities) {
+        for (const e in this.entities) {
             if (!e) {continue;}
-            var ent = this.entities[e];
+            const ent = this.entities[e];
 
-            var att = ent;
-            var def = ent.get('Attack').getTarget();
-            var aName = att.getName();
-            var dName = def.getName();
+            const att = ent;
+            const def = ent.get('Attack').getTarget();
+            const aName = att.getName();
+            const dName = def.getName();
 
             if (def.has('Ethereal')) {
                 RG.gameMsg({cell: att.getCell(),
@@ -85,12 +85,12 @@ RG.System.Attack = function(type, compTypes) {
             }
             else {
                 // Actual hit change calculation
-                var totalAttack = att.getAttack();
-                var totalDefense = def.getDefense();
-                var hitChange = totalAttack / (totalAttack + totalDefense);
+                const totalAttack = att.getAttack();
+                const totalDefense = def.getDefense();
+                const hitChange = totalAttack / (totalAttack + totalDefense);
 
                 if (hitChange > Math.random()) {
-                    var totalDamage = att.getDamage();
+                    const totalDamage = att.getDamage();
                     if (totalDamage > 0) {this.doDamage(att, def, totalDamage);}
                     else {
 RG.gameMsg({cell: att.getCell,
@@ -108,7 +108,7 @@ RG.gameMsg({cell: att.getCell,
     };
 
     this.doDamage = function(att, def, dmg) {
-        var dmgComp = new RG.Component.Damage(dmg, 'cut');
+        const dmgComp = new RG.Component.Damage(dmg, 'cut');
         dmgComp.setSource(att);
         def.add('Damage', dmgComp);
         RG.gameWarn({cell: att.getCell(),
@@ -126,40 +126,41 @@ RG.System.Missile = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
 
     this.update = function() {
-        for (var e in this.entities) {
+        for (const e in this.entities) {
             if (!e) {continue;}
 
-            var ent = this.entities[e];
-            var mComp = ent.get('Missile');
-            var level = mComp.getLevel();
-            var map = level.getMap();
+            const ent = this.entities[e];
+            const mComp = ent.get('Missile');
+            const level = mComp.getLevel();
+            const map = level.getMap();
 
             while (mComp.isFlying() && !mComp.inTarget() && mComp.hasRange()) {
 
                 // Advance missile to next cell
                 mComp.next();
-                var currX = mComp.getX();
-                var currY = mComp.getY();
-                var currCell = map.getCell(currX, currY);
+                const currX = mComp.getX();
+                const currY = mComp.getY();
+                const currCell = map.getCell(currX, currY);
 
                 // Wall was hit, stop missile
                 if (currCell.hasPropType('wall')) {
                     mComp.prev();
-                    var prevX = mComp.getX();
-                    var prevY = mComp.getY();
-                    var prevCell = map.getCell(prevX, prevY);
+                    const prevX = mComp.getX();
+                    const prevY = mComp.getY();
+                    const prevCell = map.getCell(prevX, prevY);
 
                     this.finishMissileFlight(ent, mComp, prevCell);
                     RG.debug(this, 'Stopped missile to wall');
                     RG.gameMsg(ent.getName() + ' thuds to the wall');
                 }
                 else if (currCell.hasProp('actors')) {
-                    var actor = currCell.getProp('actors')[0];
+                    const actor = currCell.getProp('actors')[0];
                     // Check hit and miss
                     if (this.targetHit(actor, mComp)) {
                         this.finishMissileFlight(ent, mComp, currCell);
-                        var dmg = mComp.getDamage();
-                        var damageComp = new RG.Component.Damage(dmg, 'thrust');
+                        const dmg = mComp.getDamage();
+                        const damageComp = new RG.Component.Damage(dmg,
+                            'thrust');
                         damageComp.setSource(mComp.getSource());
                         damageComp.setDamage(mComp.getDamage());
                         actor.add('Damage', damageComp);
@@ -195,16 +196,16 @@ RG.System.Missile = function(type, compTypes) {
     this.finishMissileFlight = function(ent, mComp, currCell) {
         mComp.stopMissile(); // Target reached, stop missile
         ent.remove('Missile');
-        var level = mComp.getLevel();
+        const level = mComp.getLevel();
         level.addItem(ent, currCell.getX(), currCell.getY());
     };
 
     /* Returns true if the target was hit.*/
     this.targetHit = function(target, mComp) {
-        var attack = mComp.getAttack();
-        var defense = target.get('Combat').getDefense();
-        var hitProp = attack / (attack + defense);
-        var hitRand = Math.random();
+        const attack = mComp.getAttack();
+        const defense = target.get('Combat').getDefense();
+        const hitProp = attack / (attack + defense);
+        const hitRand = Math.random();
         if (hitProp > hitRand) {return true;}
         return false;
     };
@@ -217,11 +218,13 @@ RG.System.Damage = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
 
     this.update = function() {
-        for (var e in this.entities) {
-            var ent = this.entities[e];
+        for (const e in this.entities) {
+            if (!e) {continue;}
+
+            const ent = this.entities[e];
             if (ent.has('Health')) {
-                var health = ent.get('Health');
-                var totalDmg = _getDamageReduced(ent);
+                const health = ent.get('Health');
+                let totalDmg = _getDamageReduced(ent);
 
                 // Check if any damage was done at all
                 if (totalDmg <= 0) {
@@ -235,13 +238,11 @@ RG.System.Damage = function(type, compTypes) {
 
                 if (health.isDead()) {
                     if (ent.has('Loot')) {
-                        var entX = ent.getX();
-                        var entY = ent.getY();
-                        var entCell = ent.getLevel().getMap().getCell(entX, entY);
+                        const entCell = ent.getCell();
                         ent.get('Loot').dropLoot(entCell);
                     }
 
-                    var src = ent.get('Damage').getSource();
+                    const src = ent.get('Damage').getSource();
                     _killActor(src, ent);
                 }
                 ent.remove('Damage'); // After dealing damage, remove comp
@@ -251,10 +252,10 @@ RG.System.Damage = function(type, compTypes) {
 
     /* Checks if protection checks can be applied to the damage caused. For
      * damage like hunger and poison, no protection helps.*/
-    var _getDamageReduced = function(ent) {
-        var dmgComp = ent.get('Damage');
-        var dmg = dmgComp.getDamage();
-        var src = dmgComp.getSource();
+    const _getDamageReduced = function(ent) {
+        const dmgComp = ent.get('Damage');
+        const dmg = dmgComp.getDamage();
+        const src = dmgComp.getSource();
 
         if (src !== null) {ent.addEnemy(src);}
 
@@ -268,29 +269,29 @@ RG.System.Damage = function(type, compTypes) {
         }
 
         // Take defs protection value into account
-        var protEquip = ent.getEquipProtection();
-        var protStats = ent.get('Combat').getProtection();
-        var protTotal = protEquip + protStats;
-        var totalDmg = dmg - protTotal;
+        const protEquip = ent.getEquipProtection();
+        const protStats = ent.get('Combat').getProtection();
+        const protTotal = protEquip + protStats;
+        const totalDmg = dmg - protTotal;
         return totalDmg;
     };
 
     /* Removes actor from current level and emits Actor killed event.*/
-    var _killActor = function(src, actor) {
-        var dmgComp = actor.get('Damage');
-        var level = actor.getLevel();
-        var cell = actor.getCell();
+    const _killActor = function(src, actor) {
+        const dmgComp = actor.get('Damage');
+        const level = actor.getLevel();
+        const cell = actor.getCell();
         if (level.removeActor(actor)) {
             if (actor.has('Experience')) {
                 _giveExpToSource(src, actor);
             }
-            var dmgType = dmgComp.getDamageType();
+            const dmgType = dmgComp.getDamageType();
             if (dmgType === 'poison') {
 RG.gameDanger({cell: cell,
                     msg: actor.getName() + ' dies horribly of poisoning!'});
 }
 
-            var killMsg = actor.getName() + ' was killed';
+            let killMsg = actor.getName() + ' was killed';
             if (src !== null) {killMsg += ' by ' + src.getName();}
 
             RG.gameDanger({cell: cell, msg: killMsg});
@@ -302,11 +303,11 @@ RG.gameDanger({cell: cell,
     };
 
     /* When an actor is killed, gives experience to damage's source.*/
-    var _giveExpToSource = function(att, def) {
+    const _giveExpToSource = function(att, def) {
         if (att !== null) {
-            var defLevel = def.get('Experience').getExpLevel();
-            var defDanger = def.get('Experience').getDanger();
-            var expPoints = new RG.Component.ExpPoints(defLevel + defDanger);
+            const defLevel = def.get('Experience').getExpLevel();
+            const defDanger = def.get('Experience').getDanger();
+            const expPoints = new RG.Component.ExpPoints(defLevel + defDanger);
             att.add('ExpPoints', expPoints);
         }
     };
@@ -319,19 +320,22 @@ RG.ExpPointsSystem = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
 
     this.update = function() {
-        for (var e in this.entities) {
-            var ent = this.entities[e];
+        for (const e in this.entities) {
+            if (!e) {continue;}
+            const ent = this.entities[e];
 
-            var expComp = ent.get('Experience');
-            var expPoints = ent.get('ExpPoints');
+            const expComp = ent.get('Experience');
+            const expPoints = ent.get('ExpPoints');
 
-            var expLevel = expComp.getExpLevel();
-            var exp = expComp.getExp();
+            const expLevel = expComp.getExpLevel();
+
+            let exp = expComp.getExp();
             exp += expPoints.getExpPoints();
             expComp.setExp(exp);
-            var nextLevel = expLevel + 1;
-            var reqExp = 0;
-            for (var i = 1; i <= nextLevel; i++) {
+
+            const nextLevel = expLevel + 1;
+            let reqExp = 0;
+            for (let i = 1; i <= nextLevel; i++) {
                 reqExp += (i - 1) * 10;
             }
 
@@ -352,25 +356,26 @@ RG.System.Movement = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
 
     this.update = function() {
-        for (var e in this.entities) {
-            var ent = this.entities[e];
+        for (const e in this.entities) {
+            if (!e) {continue;}
+            const ent = this.entities[e];
             this.moveEntity(ent);
         }
     };
 
     this.moveEntity = function(ent) {
-        var x = ent.get('Movement').getX();
-        var y = ent.get('Movement').getY();
-        var level = ent.get('Movement').getLevel();
-        var map = level.getMap();
-        var cell = map.getCell(x, y);
+        const x = ent.get('Movement').getX();
+        const y = ent.get('Movement').getY();
+        const level = ent.get('Movement').getLevel();
+        const map = level.getMap();
+        const cell = map.getCell(x, y);
 
         if (cell.isFree()) {
-            var xOld = ent.getX();
-            var yOld = ent.getY();
+            const xOld = ent.getX();
+            const yOld = ent.getY();
             RG.debug(this, 'Trying to move ent from ' + xOld + ', ' + yOld);
 
-            var propType = ent.getPropType();
+            const propType = ent.getPropType();
             if (map.removeProp(xOld, yOld, propType, ent)) {
                 map.setProp(x, y, propType, ent);
                 ent.setXY(x, y);
@@ -383,7 +388,7 @@ RG.System.Movement = function(type, compTypes) {
                 return true;
             }
             else {
-                var coord = xOld + ', ' + yOld;
+                const coord = xOld + ', ' + yOld;
                 RG.err('MovementSystem', 'moveActorTo',
                     "Couldn't remove ent |" + ent.getName() + '| @ ' + coord);
             }
@@ -399,9 +404,9 @@ RG.System.Movement = function(type, compTypes) {
     this.checkMessageEmits = function(cell) {
         if (cell.hasStairs()) {RG.gameMsg('You see stairs here');}
         if (cell.hasProp('items')) {
-            var items = cell.getProp('items');
-            var topItem = items[0];
-            var topItemName = topItem.getName();
+            const items = cell.getProp('items');
+            const topItem = items[0];
+            const topItemName = topItem.getName();
             if (items.length > 1) {
                 RG.gameMsg('There are several items here. You see ' + topItemName + ' on top');
             }
@@ -421,8 +426,9 @@ RG.System.Stun = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
 
     this.update = function() {
-        for (var e in this.entities) {
-            var ent = this.entities[e];
+        for (const e in this.entities) {
+            if (!e) {continue;}
+            const ent = this.entities[e];
             if (ent.has('Attack')) {
                 ent.remove('Attack');
                 RG.gameMsg({cell: ent.getCell(),
@@ -444,16 +450,17 @@ RG.System.Hunger = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
 
     this.update = function() {
-        for (var e in this.entities) {
-            var ent = this.entities[e];
-            var hungerComp = ent.get('Hunger');
-            var actionComp = ent.get('Action');
+        for (const e in this.entities) {
+            if (!e) {continue;}
+            const ent = this.entities[e];
+            const hungerComp = ent.get('Hunger');
+            const actionComp = ent.get('Action');
             hungerComp.decrEnergy(actionComp.getEnergy());
             actionComp.resetEnergy();
             if (hungerComp.isStarving()) {
-                var takeDmg = Math.random(); // Don't make hunger damage too obvious
+                const takeDmg = Math.random(); // Don't make hunger damage too obvious
                 if (ent.has('Health') && takeDmg < 0.10) {
-                    var dmg = new RG.Component.Damage(1, 'hunger');
+                    const dmg = new RG.Component.Damage(1, 'hunger');
                     ent.add('Damage', dmg);
                     RG.gameWarn(ent.getName() + ' is starving!');
                 }
@@ -464,18 +471,19 @@ RG.System.Hunger = function(type, compTypes) {
 };
 RG.extend2(RG.System.Hunger, RG.System.Base);
 
-/* Processes entities with hunger component.*/
+/* Processes entities with communication component.*/
 RG.System.Communication = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
 
     // Each entity here has received communication and must capture its
     // information contents
     this.update = function() {
-        for (var e in this.entities) {
-            var ent = this.entities[e];
-            var comComp = ent.get('Communication');
-            var messages = comComp.getMsg();
-            for (var i = 0; i < messages.length; i++) {
+        for (const e in this.entities) {
+            if (!e) {continue;}
+            const ent = this.entities[e];
+            const comComp = ent.get('Communication');
+            const messages = comComp.getMsg();
+            for (let i = 0; i < messages.length; i++) {
                 this.processMessage(ent, messages[i]);
             }
             ent.remove('Communication');
@@ -493,14 +501,14 @@ RG.System.Communication = function(type, compTypes) {
     };
 
     this.processEnemies = function(ent, msg) {
-        var enemies = msg.enemies;
-        for (var i = 0; i < enemies.length; i++) {
+        const enemies = msg.enemies;
+        for (let i = 0; i < enemies.length; i++) {
             ent.addEnemy(enemies[i]);
         }
     };
 
     // Dispatch table for different messages
-    var _msgFunc = {
+    const _msgFunc = {
         Enemies: this.processEnemies
     };
 
@@ -515,16 +523,16 @@ RG.System.TimeEffects = function(type, compTypes) {
     this.compTypesAny = true;
 
     // Dispatch table used to call a handler function for each component
-    var _dtable = {};
-    var _expiredEffects = [];
+    const _dtable = {};
+    let _expiredEffects = [];
 
     this.update = function() {
-        for (var e in this.entities) {
+        for (const e in this.entities) {
             if (!e) {continue;}
-            var ent = this.entities[e];
+            const ent = this.entities[e];
 
             // Process timed effects like poison etc.
-            for (var i = 0; i < compTypes.length; i++) {
+            for (let i = 0; i < compTypes.length; i++) {
                 if (compTypes[i] !== 'Expiration') {
                     if (ent.has(compTypes[i])) {
                         // Call dispatch table function
@@ -539,17 +547,17 @@ RG.System.TimeEffects = function(type, compTypes) {
 
         // Remove expired effects (mutates this.entities, so done outside for)
         // Removes Expiration, as well as comps like Poison/Stun/Disease etc.
-        for (var j = 0; j < _expiredEffects.length; j++) {
-            var compName = _expiredEffects[j][0];
-            var entRem = _expiredEffects[j][1];
+        for (let j = 0; j < _expiredEffects.length; j++) {
+            const compName = _expiredEffects[j][0];
+            const entRem = _expiredEffects[j][1];
             entRem.remove(compName);
         }
         _expiredEffects = [];
     };
 
     /* Decreases the remaining duration in the component by one.*/
-    var _decreaseDuration = function(ent) {
-        var tEff = ent.get('Expiration');
+    const _decreaseDuration = function(ent) {
+        const tEff = ent.get('Expiration');
         tEff.decrDuration();
 
         // Remove Expiration only if other components are removed
@@ -560,21 +568,21 @@ RG.System.TimeEffects = function(type, compTypes) {
 
 
     /* Applies the poison effect to the entity.*/
-    var _applyPoison = function(ent) {
-        var poison = ent.get('Poison');
+    const _applyPoison = function(ent) {
+        const poison = ent.get('Poison');
 
         if (ent.get('Health').isDead()) {
             _expiredEffects.push(['Poison', ent]);
             if (ent.has('Expiration')) {
-                var te = ent.get('Expiration');
+                const te = ent.get('Expiration');
                 if (te.hasEffect(poison)) {
                     te.removeEffect(poison);
                 }
             }
         }
         else if (Math.random() < poison.getProb()) {
-                var poisonDmg = poison.getDamage();
-                var dmg = new RG.Component.Damage(poisonDmg, 'poison');
+                const poisonDmg = poison.getDamage();
+                const dmg = new RG.Component.Damage(poisonDmg, 'poison');
                 dmg.setSource(poison.getSource());
                 ent.add('Damage', dmg);
             }
@@ -584,7 +592,7 @@ RG.System.TimeEffects = function(type, compTypes) {
 
     /* Used for debug printing.*/
     this.printMatchedType = function(ent) {
-        for (var i = 0; i < this.compTypes.length; i++) {
+        for (let i = 0; i < this.compTypes.length; i++) {
             if (ent.has(this.compTypes[i])) {
                 RG.debug(this.compTypes[i], 'Has component');
             }
