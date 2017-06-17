@@ -332,15 +332,15 @@ RG.Inv.Inventory = function(actor) {
             // If item has count > 2, can't use the same item ref
             const eqItem = _getItemToEquip(item);
             if (RG.isNullOrUndef[eqItem]) {
-                console.log('SEEMS TO BE NULL. KOSH!');
-                return false;
+                RG.err('Inv.Inventory', 'equipItem',
+                    'equippedItem is null. Should not happen');
+                return false; // For suppressed errors
             }
 
             if (_eq.equipItem(eqItem)) {
                 return true;
             }
             else {
-                console.log('FAILED. Add back to inv.');
                 _inv.addItem(eqItem); // Failed, add back to inv
             }
         }
