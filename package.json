@@ -48,7 +48,7 @@
   "scripts": {
     "build": "gulp build-js",
     "clean": "rm build/*",
-    "coverage": "perl cov_test.pl",
+    "coverage": "perl bin/cov_test.pl",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
     "hooks": "perl bin/deploy_hooks",
     "server": "python -m SimpleHTTPServer",
