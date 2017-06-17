@@ -2,6 +2,8 @@
 const RG = require('./rg.js');
 const ROT = require('../../lib/rot.js');
 
+const debug = require('debug')('bitn:factory');
+
 RG.Component = require('./component.js');
 RG.Brain = require('./brain.js');
 RG.Map = require('./map.js');
@@ -35,19 +37,28 @@ const cityConfBase = function(_parser, conf) {
 /* Determines the x-y sizes for different types of levels. */
 const levelSizes = {
     tile: {
-
+        Small: {x: 40, y: 20},
+        Medium: {x: 60, y: 30},
+        Large: {x: 80, y: 40},
+        Huge: {x: 140, y: 60}
     },
-
     mountain: {
-
+        Small: {x: 40, y: 20},
+        Medium: {x: 60, y: 30},
+        Large: {x: 80, y: 40},
+        Huge: {x: 140, y: 60}
     },
-
     dungeon: {
-
+        Small: {x: 40, y: 20},
+        Medium: {x: 60, y: 30},
+        Large: {x: 80, y: 40},
+        Huge: {x: 140, y: 60}
     },
-
     city: {
-
+        Small: {x: 40, y: 20},
+        Medium: {x: 60, y: 30},
+        Large: {x: 80, y: 40},
+        Huge: {x: 140, y: 60}
     }
 };
 
@@ -204,7 +215,8 @@ RG.Factory.Base = function() { // {{{2
             }
         }
         else if (levelType === 'mountain') {
-            mapgen.setGen('ruins', cols, rows);
+            // mapgen.setGen('ruins', cols, rows);
+            mapgen.setGen('ruins', 50, 200);
             mapObj = mapgen.createMountain();
             level.setMap(mapObj.map);
         }
@@ -376,14 +388,13 @@ RG.Factory.Feature = function() {
         return type[nLevelType];
     };
 
-    /* Creates random dungeon level. */
-    this.createDungeonLevel = function(conf) {
-        const levelType = this.getRandLevelType();
-        const level = this.createLevel(levelType, conf.x, conf.y);
-
+    this.addItemsAndMonsters = function(conf, level) {
         const numFree = level.getMap().getFree().length;
         const monstersPerLevel = Math.round(numFree / conf.sqrPerMonster);
         const itemsPerLevel = Math.round(numFree / conf.sqrPerItem);
+
+        debug(`Adding ${monstersPerLevel} monsters and
+            ${itemsPerLevel} to the level`);
 
         const itemConstraint = function(maxVal) {
             return function(item) {return item.value <= maxVal;};
@@ -394,6 +405,13 @@ RG.Factory.Feature = function() {
         );
         this.addNRandMonsters(
             _parser, monstersPerLevel, level, conf.nLevel + 1);
+    };
+
+    /* Creates random dungeon level. */
+    this.createDungeonLevel = function(conf) {
+        const levelType = this.getRandLevelType();
+        const level = this.createLevel(levelType, conf.x, conf.y);
+        this.addItemsAndMonsters(conf, level);
         return level;
     };
 
@@ -405,10 +423,15 @@ RG.Factory.Feature = function() {
 
     this.createMountainLevel = function(conf) {
         const mountConf = {
-
+            maxValue: 100,
+            sqrPerMonster: 50,
+            sqrPerItem: 200,
+            nLevel: 4
         };
+        debug(`Creating mountain level with ${conf}`);
         const mountainLevel = this.createLevel('mountain',
             conf.x, conf.y, mountConf);
+        this.addItemsAndMonsters(mountConf, mountainLevel);
         return mountainLevel;
     };
 };
@@ -559,7 +582,6 @@ RG.Factory.World = function() {
         for (let i = 0; i < conf.nLevels; i++) {
             // TODO: Level configuration can be quite complex. Support random
             // and customly created levels somehow
-            // const level = RG.FACT.createLevel('cellular', 30, 30, {});
             const levelConf = {
                 x: 40,
                 y: 40,
