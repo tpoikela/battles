@@ -543,7 +543,6 @@ RG.System.TimeEffects = function(type, compTypes) {
             var compName = _expiredEffects[j][0];
             var entRem = _expiredEffects[j][1];
             entRem.remove(compName);
-            console.log('Component ' + compName + ' expired.');
         }
         _expiredEffects = [];
     };
@@ -587,7 +586,7 @@ RG.System.TimeEffects = function(type, compTypes) {
     this.printMatchedType = function(ent) {
         for (var i = 0; i < this.compTypes.length; i++) {
             if (ent.has(this.compTypes[i])) {
-                console.log('Has component: ' + this.compTypes[i]);
+                RG.debug(this.compTypes[i], 'Has component');
             }
         }
     };
