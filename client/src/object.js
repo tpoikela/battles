@@ -46,9 +46,8 @@ RG.Object.Defense.prototype.toJSON = function() {
 
 RG.Object.Damage = function() {
     RG.Object.Defense.call(this);
-
-    var _damage = new RG.Die(1, 4, 0);
-    var _range = 1;
+    let _damage = new RG.Die(1, 4, 0);
+    let _range = 1;
 
     /* Attack methods. */
     this.setAttackRange = function(range) {_range = range;};
@@ -65,7 +64,7 @@ RG.Object.Damage = function() {
 
     this.getDamage = function() {
         if (this.hasOwnProperty('getWeapon')) {
-            var weapon = this.getWeapon();
+            const weapon = this.getWeapon();
             if (!RG.isNullOrUndef([weapon])) {
                 return weapon.getDamage();
             }
@@ -87,7 +86,7 @@ RG.extend2(RG.Object.Damage, RG.Object.Defense);
 RG.Object.Damage.prototype.copy = function(rhs) {
     RG.Object.Defense.prototype.copy.call(this, rhs);
     this.setAttackRange(rhs.getAttackRange());
-    var die = new RG.Die();
+    const die = new RG.Die();
     die.copy(rhs.getDamageDie());
     this.setDamage(die);
 };
@@ -155,22 +154,25 @@ RG.Object.Locatable = function() { // {{{2
 }; // }}} Object.Locatable
 RG.extend2(RG.Object.Locatable, RG.Object.Typed);
 
-    RG.Object.Locatable.prototype.setX = function(x) {this._x = x; };
-    RG.Object.Locatable.prototype.setY = function(y) {this._y = y; };
+RG.Object.Locatable.prototype.setX = function(x) {this._x = x; };
+RG.Object.Locatable.prototype.setY = function(y) {this._y = y; };
 
-    RG.Object.Locatable.prototype.getX = function() {return this._x;};
-    RG.Object.Locatable.prototype.getY = function() {return this._y;};
+RG.Object.Locatable.prototype.getX = function() {return this._x;};
+RG.Object.Locatable.prototype.getY = function() {return this._y;};
 
-    RG.Object.Locatable.prototype.getXY = function() {
-        return [this._x, this._y];
-    };
+RG.Object.Locatable.prototype.getXY = function() {
+    return [this._x, this._y];
+};
 
+/* Simple getters/setters for coordinates.*/
+RG.Object.Locatable.prototype.setXY = function(x, y) {
+    this._x = x;
+    this._y = y;
+};
 
-    /* Simple getters/setters for coordinates.*/
-    RG.Object.Locatable.prototype.setXY = function(x, y) {
-        this._x = x;
-        this._y = y;
-    };
+RG.Object.Locatable.prototype.getCell = function() {
+    return this._level.getMap().getCell(this._x, this._y);
+};
 
 /* Sets the level of this locatable object.*/
 RG.Object.Locatable.prototype.setLevel = function(level) {
@@ -211,7 +213,7 @@ RG.Object.Locatable.prototype.isSamePos = function(obj) {
  * for example item coordinates are up-to-date with the carrier.*/
 RG.Object.Ownable = function(owner) {
     RG.Object.Typed.call(this, null);
-    var _owner = owner;
+    let _owner = owner;
 
     this.isSamePos = function(obj) {return _owner.isSamePos(obj);};
 
