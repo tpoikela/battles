@@ -1,5 +1,5 @@
 
-var RG = require('./rg.js');
+const RG = require('./rg.js');
 
 //---------------------------------------------------------------------------
 // ECS COMPONENTS
@@ -9,8 +9,8 @@ RG.Component = {};
 
 RG.Component.Base = function(type) {
 
-    var _type = type;
-    var _entity = null;
+    let _type = type;
+    let _entity = null;
 
     this._onAddCallbacks = [];
     this._onRemoveCallbacks = [];
@@ -37,7 +37,7 @@ RG.Component.Base = function(type) {
 RG.Component.Base.prototype.entityAddCallback = function(entity) {
     this.setEntity(entity);
     // RG.POOL.emitEvent(this.getType(), {add:true, entity: entity});
-    for (var i = 0; i < this._onAddCallbacks.length; i++) {
+    for (let i = 0; i < this._onAddCallbacks.length; i++) {
         this._onAddCallbacks[i]();
     }
 };
@@ -46,7 +46,7 @@ RG.Component.Base.prototype.entityAddCallback = function(entity) {
 RG.Component.Base.prototype.entityRemoveCallback = function() {
     this.setEntity(null);
     // RG.POOL.emitEvent(this.getType(), {remove:true, entity: entity});
-    for (var i = 0; i < this._onRemoveCallbacks.length; i++) {
+    for (let i = 0; i < this._onRemoveCallbacks.length; i++) {
         this._onRemoveCallbacks[i]();
     }
 };
@@ -62,7 +62,7 @@ RG.Component.Base.prototype.addCallback = function(name, cb) {
 };
 
 RG.Component.Base.prototype.clone = function() {
-    var comp = new RG.Component.Base(this.getType());
+    const comp = new RG.Component.Base(this.getType());
     return comp;
 };
 
@@ -82,11 +82,11 @@ RG.Component.Base.prototype.toString = function() {
  * getters and setters being named identically! Don't rely on this function if
  * you need something more sophisticated. */
 RG.Component.Base.prototype.toJSON = function() {
-    var obj = {};
-    for (var p in this) {
+    const obj = {};
+    for (const p in this) {
         if (/^get/.test(p)) {
             if (p !== 'getEntity' && p !== 'getType') {
-                var setter = p.replace('get', 'set');
+                const setter = p.replace('get', 'set');
                 obj[setter] = this[p]();
             }
         }
@@ -98,8 +98,8 @@ RG.Component.Base.prototype.toJSON = function() {
 RG.Component.Action = function() {
     RG.Component.Base.call(this, 'Action');
 
-    var _energy = 0;
-    var _active = false;
+    let _energy = 0;
+    let _active = false;
     this.getEnergy = function() {return _energy;};
 
     this.addEnergy = function(energy) {
@@ -141,9 +141,9 @@ RG.Component.Action.prototype.entityRemoveCallback = function(entity) {
 RG.Component.Hunger = function(energy) {
     RG.Component.Base.call(this, 'Hunger');
 
-    var _currEnergy = 20000;
-    var _maxEnergy = 20000;
-    var _minEnergy = -5000;
+    let _currEnergy = 20000;
+    let _maxEnergy = 20000;
+    const _minEnergy = -5000;
 
     this.getEnergy = function() {return _currEnergy;};
     this.getMaxEnergy = function() {return _maxEnergy;};
@@ -179,8 +179,8 @@ RG.extend2(RG.Component.Hunger, RG.Component.Base);
 RG.Component.Health = function(hp) {
     RG.Component.Base.call(this, 'Health');
 
-    var _hp = hp;
-    var _maxHP = hp;
+    let _hp = hp;
+    let _maxHP = hp;
 
     /* Hit points getters and setters.*/
     this.getHP = function() {return _hp;};
@@ -205,9 +205,9 @@ RG.extend2(RG.Component.Health, RG.Component.Base);
 RG.Component.Damage = function(dmg, type) {
     RG.Component.Base.call(this, 'Damage');
 
-    var _dmg = dmg;
-    var _type = type;
-    var _src = null;
+    let _dmg = dmg;
+    let _type = type;
+    let _src = null;
 
     this.getDamage = function() {return _dmg;};
     this.setDamage = function(dmg) {_dmg = dmg;};
@@ -225,10 +225,10 @@ RG.extend2(RG.Component.Damage, RG.Component.Base);
 RG.Component.Experience = function() {
     RG.Component.Base.call(this, 'Experience');
 
-    var _exp = 0;
-    var _expLevel = 1;
+    let _exp = 0;
+    let _expLevel = 1;
 
-    var _danger = 1;
+    let _danger = 1;
 
     /* Experience-level methods.*/
     this.setExp = function(exp) {_exp = exp;};
@@ -258,8 +258,8 @@ RG.extend2(RG.Component.Experience, RG.Component.Base);
 RG.Component.ExpPoints = function(expPoints) {
     RG.Component.Base.call(this, 'ExpPoints');
 
-    var _expPoints = expPoints;
-    var _skills = {};
+    let _expPoints = expPoints;
+    const _skills = {};
 
     this.setSkillPoints = function(skill, pts) {
         _skills[skill] = pts;
@@ -277,11 +277,11 @@ RG.extend2(RG.Component.ExpPoints, RG.Component.Base);
 RG.Component.Combat = function() {
     RG.Component.Base.call(this, 'Combat');
 
-    var _attack = 1;
-    var _defense = 1;
-    var _protection = 0;
-    var _damage = RG.FACT.createDie('1d4');
-    var _range = 1;
+    let _attack = 1;
+    let _defense = 1;
+    let _protection = 0;
+    let _damage = RG.FACT.createDie('1d4');
+    let _range = 1;
 
     this.getAttack = function() {return _attack;};
     this.setAttack = function(attack) { _attack = attack; };
@@ -296,7 +296,7 @@ RG.Component.Combat = function() {
     this.getDamage = function() {
         // TODO add weapon effects
         if (this.getEntity().hasOwnProperty('getWeapon')) {
-            var weapon = this.getEntity().getWeapon();
+            const weapon = this.getEntity().getWeapon();
             if (weapon !== null) {return weapon.getDamage();}
         }
         return _damage.roll();
@@ -322,7 +322,7 @@ RG.Component.Combat = function() {
 RG.extend2(RG.Component.Combat, RG.Component.Base);
 
 RG.Component.Combat.prototype.toJSON = function() {
-    var obj = RG.Component.Base.prototype.toJSON.call(this);
+    const obj = RG.Component.Base.prototype.toJSON.call(this);
     delete obj.setDamageDie; // Clean up setter
     obj.setDamage = this.getDamageDie().toString();
     return obj;
@@ -338,7 +338,7 @@ RG.Component.CombatMods = function() {
     this.setDefense(0);
     this.setProtection(0);
 
-    var _damage = 0;
+    let _damage = 0;
 
     this.setDamage = function(dmg) {_damage = dmg;};
     this.getDamage = function() {return _damage;};
@@ -349,11 +349,11 @@ RG.extend2(RG.Component.CombatMods, RG.Component.Combat);
 RG.Component.Stats = function() {
     RG.Component.Base.call(this, 'Stats');
 
-    var _accuracy = 5;
-    var _agility = 5;
-    var _strength = 5;
-    var _willpower = 5;
-    var _speed = 100;
+    let _accuracy = 5;
+    let _agility = 5;
+    let _strength = 5;
+    let _willpower = 5;
+    let _speed = 100;
 
     /* These determine the chance of hitting. */
     this.setAccuracy = function(accu) {_accuracy = accu;};
@@ -371,7 +371,7 @@ RG.Component.Stats = function() {
 };
 
 RG.Component.Stats.prototype.clone = function() {
-    var comp = new RG.Component.Stats();
+    const comp = new RG.Component.Stats();
     comp.copy(this);
     return comp;
 };
@@ -386,7 +386,7 @@ RG.Component.Stats.prototype.copy = function(rhs) {
 };
 
 RG.Component.Stats.prototype.equals = function(rhs) {
-    var res = this.getType() === rhs.getType();
+    let res = this.getType() === rhs.getType();
     res = res && this.getAccuracy() === rhs.getAccuracy();
     res = res && this.getAgility() === rhs.getAgility();
     res = res && this.getStrength() === rhs.getStrength();
@@ -396,7 +396,7 @@ RG.Component.Stats.prototype.equals = function(rhs) {
 };
 
 RG.Component.Stats.prototype.toString = function() {
-    var txt = '';
+    let txt = '';
     if (this.getAccuracy()) {txt += 'Acc: ' + this.getAccuracy();}
     if (this.getAgility()) {txt += ' ,Agi: ' + this.getAgility();}
     if (this.getStrength()) {txt += ' ,Str: ' + this.getStrength();}
@@ -424,7 +424,7 @@ RG.extend2(RG.Component.StatsMods, RG.Component.Stats);
 RG.Component.Attack = function(target) {
     RG.Component.Base.call(this, 'Attack');
 
-    var _target = target;
+    let _target = target;
 
     this.setTarget = function(t) {_target = t;};
     this.getTarget = function() {return _target;};
@@ -448,21 +448,21 @@ RG.extend2(RG.Component.Movement, RG.Component.Base);
 RG.Component.Missile = function(source) {
     RG.Component.Base.call(this, 'Missile');
 
-    var _x = source.getX();
-    var _y = source.getY();
-    var _source = source;
-    var _level = source.getLevel();
-    var _isFlying = true;
+    let _x = source.getX();
+    let _y = source.getY();
+    const _source = source;
+    const _level = source.getLevel();
+    let _isFlying = true;
 
-    var _targetX = null;
-    var _targetY = null;
+    let _targetX = null;
+    let _targetY = null;
 
-    var _range = 0;
-    var _attack = 0;
-    var _dmg = 0;
+    let _range = 0;
+    let _attack = 0;
+    let _dmg = 0;
 
-    var _path = []; // Flying path for the missile
-    var _pathIter = -1;
+    let _path = []; // Flying path for the missile
+    let _pathIter = -1;
 
     this.getX = function() {return _x;};
     this.getY = function() {return _y;};
@@ -494,12 +494,12 @@ RG.Component.Missile = function(source) {
         return _x === _targetX && _y === _targetY;
     };
 
-    var iteratorValid = function() {
+    const iteratorValid = function() {
         return _pathIter >= 0 && _pathIter < _path.length;
     };
 
-    var setValuesFromIterator = function() {
-        var coord = _path[_pathIter];
+    const setValuesFromIterator = function() {
+        const coord = _path[_pathIter];
         _x = coord.x;
         _y = coord.y;
     };
@@ -542,12 +542,12 @@ RG.Component.Loot = function(lootEntity) {
     RG.Component.Base.call(this, 'Loot');
 
     // This will be dropped as loot
-    var _lootEntity = lootEntity;
+    const _lootEntity = lootEntity;
 
     /* Drops the loot to the given cell.*/
     this.dropLoot = function(cell) {
         if (_lootEntity.hasOwnProperty('_propType')) {
-            var propType = _lootEntity.getPropType();
+            const propType = _lootEntity.getPropType();
             if (propType === 'elements') {
                 this.setElemToCell(cell);
             }
@@ -561,7 +561,7 @@ RG.Component.Loot = function(lootEntity) {
     };
 
     this.setElemToCell = function(cell) {
-        var entLevel = this.getEntity().getLevel();
+        const entLevel = this.getEntity().getLevel();
         if (_lootEntity.hasOwnProperty('useStairs')) {
             RG.debug(this, 'Added stairs to ' + cell.getX()
                 + ', ' + cell.getY());
@@ -577,7 +577,7 @@ RG.extend2(RG.Component.Loot, RG.Component.Base);
 RG.Component.Communication = function() {
     RG.Component.Base.call(this, 'Communication');
 
-    var _messages = [];
+    const _messages = [];
 
     this.getMsg = function() {return _messages;};
 
@@ -593,8 +593,8 @@ RG.extend2(RG.Component.Communication, RG.Component.Base);
 RG.Component.Physical = function() {
     RG.Component.Base.call(this, 'Physical');
 
-    var _weight = 1; // in kg
-    var _size = 1; // abstract unit
+    let _weight = 1; // in kg
+    let _size = 1; // abstract unit
 
     this.setWeight = function(weight) {
         _weight = weight;
@@ -620,7 +620,7 @@ RG.extend2(RG.Component.Ethereal, RG.Component.Base);
 RG.Component.Stun = function() {
     RG.Component.Base.call(this, 'Stun');
 
-    var _src = null;
+    let _src = null;
     this.getSource = function() {return _src;};
     this.setSource = function(src) {_src = src;};
 
@@ -632,10 +632,9 @@ RG.extend2(RG.Component.Stun, RG.Component.Base);
 RG.Component.Poison = function() {
     RG.Component.Base.call(this, 'Poison');
 
-    var _src = null;
-
-    var _die = null;
-    var _prob = 0.05; // Prob. of poison kicking in
+    let _src = null;
+    let _die = null;
+    let _prob = 0.05; // Prob. of poison kicking in
 
     this.getProb = function() {return _prob;};
     this.setProb = function(prob) {_prob = prob;};
@@ -672,11 +671,11 @@ RG.Component.Expiration = function() {
 
     /* Adds one effect to time-based components.*/
     this.addEffect = function(comp, dur) {
-        var type = comp.getType();
+        const type = comp.getType();
         if (!this._duration.hasOwnProperty(type)) {
             this._duration[type] = dur;
 
-            var that = this;
+            const that = this;
             comp.addCallback('onRemove', function() {
                 that.removeEffect(comp);
             });
@@ -688,11 +687,11 @@ RG.Component.Expiration = function() {
 
     /* Decreases duration of all time-based effects.*/
     this.decrDuration = function() {
-        for (var compType in this._duration) {
+        for (const compType in this._duration) {
             if (compType) {
                 this._duration[compType] -= 1;
                 if (this._duration[compType] === 0) {
-                    var ent = this.getEntity();
+                    const ent = this.getEntity();
                     ent.remove(compType);
                     delete this._duration[compType];
                 }
@@ -706,14 +705,14 @@ RG.Component.Expiration = function() {
     };
 
     this.hasEffect = function(comp) {
-        var compType = comp.getType();
+        const compType = comp.getType();
         return this._duration.hasOwnProperty(compType);
     };
 
     /* SHould be called to remove a specific effect, for example upon death of
      * an actor. */
     this.removeEffect = function(comp) {
-        var compType = comp.getType();
+        const compType = comp.getType();
         if (this._duration.hasOwnProperty(compType)) {
             delete this._duration[compType];
         }
