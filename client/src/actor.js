@@ -18,12 +18,12 @@ RG.Actor.Rogue = function(name) { // {{{2
     this._brain = new RG.Brain.Rogue(this);
     this._brain.getMemory().addEnemyType('player');
 
-    var _name = name;
+    let _name = name;
     this._isPlayer = false;
-    var _fovRange = RG.FOV_RANGE;
+    let _fovRange = RG.FOV_RANGE;
 
-    var _invEq = new RG.Inv.Inventory(this);
-    var _maxWeight = 10.0;
+    const _invEq = new RG.Inv.Inventory(this);
+    const _maxWeight = 10.0;
 
     // Components for this entity
     this.add('Action', new RG.Component.Action());
@@ -119,8 +119,8 @@ RG.Actor.Rogue.prototype.nextAction = function(obj) {
     var action = null;
 
     if (cb !== null) {
-        var speed = this.getSpeed();
-        var duration = parseInt(RG.BASE_SPEED / speed * RG.ACTION_DUR, 10);
+        const speed = this.getSpeed();
+        const duration = parseInt(RG.BASE_SPEED / speed * RG.ACTION_DUR, 10);
         action = new RG.Time.RogueAction(duration, cb, {});
     }
     else {
@@ -255,7 +255,7 @@ RG.Actor.Spirit = function(name) {
 
     this.add('Ethereal', new RG.Component.Ethereal());
 
-    var spiritBrain = new RG.Brain.Spirit(this);
+    const spiritBrain = new RG.Brain.Spirit(this);
     this.setBrain(spiritBrain);
 
 };
