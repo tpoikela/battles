@@ -16,11 +16,10 @@ RG.Game.Engine = function() {
     this.nextActor = null;
     this.simIntervalID = null;
 
-    var _activeLevels = []; // Only these levels are simulated
+    const _activeLevels = []; // Only these levels are simulated
+    const _scheduler = new RG.Time.Scheduler();
+    const _msg = new RG.MessageHandler();
 
-    var _scheduler = new RG.Time.Scheduler();
-
-    var _msg = new RG.MessageHandler();
     this.getMessages = function() {return _msg.getMessages();};
     this.hasNewMessages = function() {return _msg.hasNew();};
     this.clearMessages = function() { _msg.clear();};
@@ -51,18 +50,18 @@ RG.Game.Engine = function() {
     // Time-based systems are added to the scheduler
     this.timeSystems = {};
 
-    var effects = new RG.System.TimeEffects('TimeEffects',
+    const effects = new RG.System.TimeEffects('TimeEffects',
         ['Expiration', 'Poison']);
 
     this.updateSystems = function() {
-        for (var i = 0; i < this.systemOrder.length; i++) {
-            var sysName = this.systemOrder[i];
+        for (let i = 0; i < this.systemOrder.length; i++) {
+            const sysName = this.systemOrder[i];
             this.systems[sysName].update();
         }
     };
 
     this.updateLoopSystems = function() {
-        for (var s in this.loopSystems) {
+        for (const s in this.loopSystems) {
             if (s) {this.loopSystems[s].update();}
         }
     };
@@ -100,7 +99,7 @@ RG.Game.Engine = function() {
         action.doAction();
         if (action.hasOwnProperty('energy')) {
             if (action.hasOwnProperty('actor')) {
-                var actor = action.actor;
+                const actor = action.actor;
                 if (actor.has('Action')) {
                     actor.get('Action').addEnergy(action.energy);
                 }
@@ -119,7 +118,7 @@ RG.Game.Engine = function() {
 
             if (this.nextActor !== null) {
                 if (obj.hasOwnProperty('code')) {
-                    var code = obj.code;
+                    const code = obj.code;
                     if (this.isGUICommand(code)) {
                         this.doGUICommand(code);
                     }
@@ -151,15 +150,16 @@ RG.Game.Engine = function() {
 
         // Next/act until player found, then go back waiting for key...
         while (!this.nextActor.isPlayer() && !this.isGameOver()) {
-            var action = this.nextActor.nextAction();
+            const action = this.nextActor.nextAction();
             this.doAction(action);
 
             this.updateSystems();
 
             this.nextActor = this.getNextActor();
             if (RG.isNullOrUndef([this.nextActor])) {
-                console.error('Game loop out of events! This is bad!');
-                break;
+                RG.err('Game.Engine', 'updateGameLoop',
+                    'Game loop out of events! Fatal!');
+                break; // if errors suppressed (testing), breaks the loop
             }
         }
 
@@ -171,7 +171,7 @@ RG.Game.Engine = function() {
     this.simulateGame = function() {
         this.nextActor = this.getNextActor();
         if (!this.nextActor.isPlayer()) {
-            var action = this.nextActor.nextAction();
+            const action = this.nextActor.nextAction();
             this.doAction(action);
             this.updateSystems();
         }
@@ -193,7 +193,7 @@ RG.Game.Engine = function() {
                 );
             }
         }
-        var action = this.nextActor.nextAction(obj);
+        const action = this.nextActor.nextAction(obj);
         this.doAction(action);
         this.updateSystems();
         this.playerCommandCallback(this.nextActor);
@@ -205,7 +205,7 @@ RG.Game.Engine = function() {
 
     this.numActiveLevels = function() {return _activeLevels.length;};
 
-    var _levelMap = {};
+    const _levelMap = {};
 
     this.hasLevel = function(level) {
         return _levelMap.hasOwnProperty(level.getID());
@@ -232,11 +232,11 @@ RG.Game.Engine = function() {
         // Check if a level must be removed
         if (_activeLevels.length === (RG.MAX_ACTIVE_LEVELS)) {
             if (index === -1) { // No room for new level, pop one
-                var removedLevelID = _activeLevels.pop();
-                var removedLevel = _levelMap[removedLevelID];
+                const removedLevelID = _activeLevels.pop();
+                const removedLevel = _levelMap[removedLevelID];
                 if (removedLevel) {
-                    var rmvActors = removedLevel.getActors();
-                    for (var i = 0; i < rmvActors.length; i++) {
+                    const rmvActors = removedLevel.getActors();
+                    for (let i = 0; i < rmvActors.length; i++) {
                         rmvActors[i].get('Action').disable();
                     }
                     RG.debug(this, 'Removed active level to make space...');
@@ -258,8 +258,8 @@ RG.Game.Engine = function() {
         // This is a new level, enable all actors
         if (index === -1) {
             _activeLevels.unshift(levelID);
-            var actActors = level.getActors();
-            for (var j = 0; j < actActors.length; j++) {
+            const actActors = level.getActors();
+            for (let j = 0; j < actActors.length; j++) {
                 actActors[j].get('Action').enable();
             }
         }
@@ -278,7 +278,7 @@ RG.Game.Engine = function() {
     this.addTimeSystem = function(name, obj) {
         this.timeSystems[name] = obj;
         // Must schedule the system to activate it
-        var updateEvent = new RG.Time.GameEvent(100,
+        const updateEvent = new RG.Time.GameEvent(100,
             obj.update.bind(obj), true, 0);
         this.addEvent(updateEvent);
     };
@@ -291,10 +291,10 @@ RG.Game.Engine = function() {
     this.hasNotify = true;
     this.notify = function(evtName, args) {
         if (evtName === RG.EVT_DESTROY_ITEM) {
-            var item = args.item;
+            const item = args.item;
 
             // chaining due to inventory container
-            var owner = item.getOwner().getOwner();
+            const owner = item.getOwner().getOwner();
             if (!owner.getInvEq().removeItem(item)) {
                 RG.err('Game', 'notify - DESTROY_ITEM',
                     'Failed to remove item from inventory.');
@@ -345,7 +345,7 @@ RG.Game.Engine = function() {
             }
         }
         else if (evtName === RG.EVT_LEVEL_CHANGED) {
-            var actor = args.actor;
+            const actor = args.actor;
             if (actor.isPlayer()) {
                 this.addActiveLevel(actor.getLevel());
                 args.src.onExit();
@@ -368,17 +368,17 @@ RG.Game.Engine = function() {
 /* Top-level main object for the game.  */
 RG.Game.Main = function() {
 
-    var _players = [];   // List of players
-    var _levels = [];   // List of all levels
-    var _places = {};   // List of all places
-    var _shownLevel = null; // One per game only
-    var _gameOver = false;
+    const _players = [];   // List of players
+    const _levels = [];   // List of all levels
+    const _places = {};   // List of all places
+    let _shownLevel = null; // One per game only
+    let _gameOver = false;
 
-    var _eventPool = new RG.EventPool();
+    const _eventPool = new RG.EventPool();
     RG.resetEventPools();
     RG.pushEventPool(_eventPool);
 
-    var _engine = new RG.Game.Engine();
+    const _engine = new RG.Game.Engine();
 
     this.shownLevel = function() {return _shownLevel;};
     this.setShownLevel = function(level) {_shownLevel = level;};
@@ -441,8 +441,8 @@ RG.Game.Main = function() {
         return levelOK;
     };
 
-    var _addPlayerToFirstLevel = function(player, levels) {
-        var levelOK = false;
+    const _addPlayerToFirstLevel = function(player, levels) {
+        let levelOK = false;
         if (levels.length > 0) {
             levelOK = levels[0].addActorToFreeCell(player);
             if (!levelOK) {
@@ -459,11 +459,11 @@ RG.Game.Main = function() {
     /* Adds player to the first found level of given place.
      * Name of place must be
      * specified as obj.place */
-    var _addPlayerToPlace = function(player, obj) {
+    const _addPlayerToPlace = function(player, obj) {
         if (obj.hasOwnProperty('place')) {
-            var place = obj.place;
+            const place = obj.place;
             if (_places.hasOwnProperty(place)) {
-                var levels = _places[place];
+                const levels = _places[place];
                 return _addPlayerToFirstLevel(player, levels);
             }
             else {
@@ -506,10 +506,10 @@ RG.Game.Main = function() {
     /* Adds a place (dungeon/area) containing several levels.*/
     this.addPlace = function(place) {
         if (place.hasOwnProperty('getLevels')) {
-            var name = place.getName();
+            const name = place.getName();
             if (!_places.hasOwnProperty(name) ) {
-                var levels = place.getLevels();
-                for (var i = 0; i < levels.length; i++) {
+                const levels = place.getLevels();
+                for (let i = 0; i < levels.length; i++) {
                     this.addLevel(levels[i]);
                 }
                 _places[name] = levels;
@@ -527,8 +527,8 @@ RG.Game.Main = function() {
 
     /* Returns the visible map to be rendered by the GUI. */
     this.getVisibleMap = function() {
-        var player = this.getPlayer();
-        var map = player.getLevel().getMap();
+        const player = this.getPlayer();
+        const map = player.getLevel().getMap();
         return map;
     };
 
@@ -551,7 +551,7 @@ RG.Game.Main = function() {
             }
         }
         else if (evtName === RG.EVT_LEVEL_CHANGED) {
-            var actor = args.actor;
+            const actor = args.actor;
             if (actor.isPlayer()) {
                 _shownLevel = actor.getLevel();
             }
@@ -562,7 +562,7 @@ RG.Game.Main = function() {
 
     /* Adds one battle to the game. */
     this.addBattle = function(battle) {
-        var level = battle.getLevel();
+        const level = battle.getLevel();
         _engine.addActiveLevel(level);
     };
 
@@ -571,13 +571,13 @@ RG.Game.Main = function() {
 /* Army is a collection of actors.*/
 RG.Game.Army = function(name) {
 
-    var _name = name;
+    const _name = name;
 
-    var _actors = []; // All actors inside this army
+    const _actors = []; // All actors inside this army
 
-    var _battle = null;
-    var _casualties = 0;
-    var _defeatThreshold = 0;
+    let _battle = null;
+    let _casualties = 0;
+    let _defeatThreshold = 0;
 
     this.getName = function() {return _name;};
 
@@ -603,7 +603,7 @@ RG.Game.Army = function(name) {
     this.getActors = function() {return _actors;};
 
     this.hasActor = function(actor) {
-        var index = _actors.indexOf(actor);
+        const index = _actors.indexOf(actor);
         return index >= 0;
     };
 
@@ -622,7 +622,7 @@ RG.Game.Army = function(name) {
 
     /* Removes an actor from the army.*/
     this.removeActor = function(actor) {
-        var index = _actors.indexOf(actor);
+        const index = _actors.indexOf(actor);
         if (index >= 0) {
             _actors.splice(index, 1);
             return true;
@@ -636,7 +636,7 @@ RG.Game.Army = function(name) {
     this.hasNotify = true;
     this.notify = function(evtName, msg) {
         if (evtName === RG.EVT_ACTOR_KILLED) {
-            var actor = msg.actor;
+            const actor = msg.actor;
             if (this.hasActor(actor)) {
                 if (!this.removeActor(actor)) {
                     RG.err('Game.Army', 'notify',
@@ -655,12 +655,12 @@ RG.Game.Army = function(name) {
 /* Battle is "mini-game" which uses its own scheduling and engine.*/
 RG.Game.Battle = function(name) {
 
-    var _name = name;
-    var _armies = [];
-    var _level = null;
+    const _name = name;
+    const _armies = [];
+    let _level = null;
 
     // Keeps track of battles statistics
-    var _stats = {
+    const _stats = {
         duration: 0,
         casualties: 0,
         survivors: 0
@@ -678,8 +678,8 @@ RG.Game.Battle = function(name) {
     this.addArmy = function(army, x, y) {
         if (!RG.isNullOrUndef([_level])) {
             _armies.push(army);
-            var actors = army.getActors();
-            for (var i = 0; i < actors.length; i++) {
+            const actors = army.getActors();
+            for (let i = 0; i < actors.length; i++) {
                 _level.addActor(actors[i], x + i, y);
             }
         }
@@ -720,15 +720,15 @@ RG.Game.Save = function() {
 
     /* Main function which saves the full game.*/
     this.save = function(game, conf) {
-        var player = game.getPlayer();
+        const player = game.getPlayer();
         this.savePlayer(player, conf);
     };
 
     /* Restores game/player with the given name.*/
     this.restore = function(name) {
         if (!RG.isNullOrUndef([name])) {
-            var player = this.restorePlayer(name);
-            var obj = {
+            const player = this.restorePlayer(name);
+            const obj = {
                 player: player
             };
             return obj;
@@ -741,7 +741,7 @@ RG.Game.Save = function() {
 
     /* Returns a list of saved players.*/
     this.getPlayersAsList = function() {
-        var dbObj = this.getPlayersAsObj();
+        const dbObj = this.getPlayersAsObj();
         if (dbObj !== null) {
             return Object.keys(dbObj).map(function(val) {
                 return dbObj[val];
@@ -755,15 +755,15 @@ RG.Game.Save = function() {
     /* Returns an object containing the saved players.*/
     this.getPlayersAsObj = function() {
         _checkStorageValid();
-        var dbString = _storageRef.getItem(_playerList);
+        const dbString = _storageRef.getItem(_playerList);
         return JSON.parse(dbString);
     };
 
     /* Deletes given player from the list of save games.*/
     this.deletePlayer = function(name) {
         _checkStorageValid();
-        var dbString = _storageRef.getItem(_playerList);
-        var dbObj = JSON.parse(dbString);
+        let dbString = _storageRef.getItem(_playerList);
+        const dbObj = JSON.parse(dbString);
         if (dbObj.hasOwnProperty(name)) {
             delete dbObj[name];
         }
@@ -774,11 +774,11 @@ RG.Game.Save = function() {
     /* Saves a player object. */
     this.savePlayer = function(player, conf) {
         _checkStorageValid();
-        var name = player.getName();
-        var storedObj = player.toJSON();
+        const name = player.getName();
+        const storedObj = player.toJSON();
         storedObj.dungeonLevel = player.getLevel().getLevelNumber();
-        var dbObj = {player: storedObj};
-        var dbString = JSON.stringify(dbObj);
+        const dbObj = {player: storedObj};
+        const dbString = JSON.stringify(dbObj);
         _storageRef.setItem('_battles_player_' + name, dbString);
         _savePlayerInfo(name, storedObj, conf);
     };
@@ -786,11 +786,11 @@ RG.Game.Save = function() {
     /* Restores a player with given name. */
     this.restorePlayer = function(name) {
         _checkStorageValid();
-        var playersObj = this.getPlayersAsObj();
+        const playersObj = this.getPlayersAsObj();
         if (playersObj.hasOwnProperty(name)) {
-            var dbString = _storageRef.getItem('_battles_player_' + name);
-            var dbObj = JSON.parse(dbString);
-            var player = _fromJSON.createPlayerObj(dbObj.player);
+            const dbString = _storageRef.getItem('_battles_player_' + name);
+            const dbObj = JSON.parse(dbString);
+            const player = _fromJSON.createPlayerObj(dbObj.player);
             return player;
         }
         else {
@@ -801,9 +801,9 @@ RG.Game.Save = function() {
     };
 
     /* Saves name and level of the player into a list.*/
-    var _savePlayerInfo = function(name, obj, conf) {
-        var dbString = _storageRef.getItem(_playerList);
-        var dbObj = JSON.parse(dbString);
+    const _savePlayerInfo = function(name, obj, conf) {
+        let dbString = _storageRef.getItem(_playerList);
+        let dbObj = JSON.parse(dbString);
         if (dbObj === null) {dbObj = {};}
         dbObj[name] = {
             name: name,
@@ -811,14 +811,14 @@ RG.Game.Save = function() {
             dungeonLevel: obj.dungeonLevel
         };
         // Capture also game config settings (cols,rows,loot etc)
-        for (var p in conf) {
+        for (const p in conf) {
             if (p) {dbObj[name][p] = conf[p];}
         }
         dbString = JSON.stringify(dbObj);
         _storageRef.setItem(_playerList, dbString);
     };
 
-    var _checkStorageValid = function() {
+    const _checkStorageValid = function() {
         if (RG.isNullOrUndef([_storageRef])) {
             throw new Error('Game.Save you must setStorage() first.');
         }
@@ -830,7 +830,7 @@ RG.Game.Save = function() {
 /* Object for converting serialized JSON objects to game objects. */
 RG.Game.FromJSON = function() {
 
-    var _dungeonLevel = 1;
+    let _dungeonLevel = 1;
 
     // Lookup table for mapping level ID to Map.Level object
     const id2level = {};
@@ -853,7 +853,7 @@ RG.Game.FromJSON = function() {
 
     /* Handles creation of restored player from JSON.*/
     this.createPlayerObj = function(obj) {
-        var player = new RG.Actor.Rogue(obj.name);
+        const player = new RG.Actor.Rogue(obj.name);
         player.setIsPlayer(true);
         player.setType('player');
         this.addCompsToEntity(player, obj.components);
@@ -864,11 +864,11 @@ RG.Game.FromJSON = function() {
     };
 
     this.addCompsToEntity = function(ent, comps) {
-        for (var name in comps) {
+        for (const name in comps) {
             if (name) {
-                var comp = comps[name];
-                var newCompObj = new RG.Component[name]();
-                for (var fname in comp) {
+                const comp = comps[name];
+                const newCompObj = new RG.Component[name]();
+                for (const fname in comp) {
                     if (fname) {
                         newCompObj[fname](comp[fname]);
                     }
@@ -879,10 +879,10 @@ RG.Game.FromJSON = function() {
     };
 
     this.createItem = function(obj) {
-        var item = obj;
-        var typeCapitalized = this.getItemObjectType(item);
-        var newObj = new RG.Item[typeCapitalized]();
-        for (var func in item) {
+        const item = obj;
+        const typeCapitalized = this.getItemObjectType(item);
+        const newObj = new RG.Item[typeCapitalized]();
+        for (const func in item) {
             if (func === 'setSpirit') {
                 newObj[func](this.createSpirit(item[func]));
             }
@@ -894,16 +894,16 @@ RG.Game.FromJSON = function() {
     };
 
     this.createSpirit = function(obj) {
-        var newObj = new RG.Actor.Spirit(obj.name);
+        const newObj = new RG.Actor.Spirit(obj.name);
         this.addCompsToEntity(newObj, obj.components);
         return newObj;
     };
 
     this.createInventory = function(obj, player) {
         if (obj.hasOwnProperty('inventory')) {
-            var itemObjs = obj.inventory;
-            for (var i = 0; i < itemObjs.length; i++) {
-                var newObj = this.createItem(itemObjs[i]);
+            const itemObjs = obj.inventory;
+            for (let i = 0; i < itemObjs.length; i++) {
+                const newObj = this.createItem(itemObjs[i]);
                 player.getInvEq().addItem(newObj);
             }
         }
@@ -911,9 +911,9 @@ RG.Game.FromJSON = function() {
 
     this.createEquipment = function(obj, player) {
         if (obj.hasOwnProperty('equipment')) {
-            var equipObjs = obj.equipment;
-            for (var i = 0; i < equipObjs.length; i++) {
-                var newObj = this.createItem(equipObjs[i]);
+            const equipObjs = obj.equipment;
+            for (let i = 0; i < equipObjs.length; i++) {
+                const newObj = this.createItem(equipObjs[i]);
                 player.getInvEq().addItem(newObj);
                 player.getInvEq().equipItem(newObj);
             }
@@ -928,7 +928,7 @@ RG.Game.FromJSON = function() {
                 return item.setType.capitalize();
             }
             else {
-                var itemJSON = JSON.stringify(item);
+                const itemJSON = JSON.stringify(item);
                 RG.err('Game.Save', 'getItemObjectType',
                     'item.setType is undefined. item: ' + itemJSON);
             }
@@ -953,7 +953,6 @@ RG.Game.FromJSON = function() {
             const elemObj = this.createElement(elem.obj);
             if (elemObj !== null) {
                 level.addElement(elemObj, elem.x, elem.y);
-                console.log('Added element to the level');
             }
             else {
                 RG.err('FromJSON', 'createLevel',
