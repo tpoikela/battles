@@ -8,17 +8,17 @@ RG.ObjectShellParser = function() {
 
     // NOTE: 'SHELL' means vanilla JS object, which has not been
     // created with new:
-    //      SHELL:   var rat = {name: "Rat", type: "animal"};
-    //      OBJECT: var ratObj = new RG.Actor.Rogue("rat");
+    //      SHELL:   const rat = {name: "Rat", type: "animal"};
+    //      OBJECT: const ratObj = new RG.Actor.Rogue("rat");
     //              ratObj.setType("animal");
     //
     // Shells are used in external data file to describe game objects in a more
     // concise way. Game objects are created from shells by this object.
 
-    // var categ = ['actors', 'effects', 'items', 'levels', 'dungeons'];
+    // const categ = ['actors', 'effects', 'items', 'levels', 'dungeons'];
 
     // Stores the base shells
-    var _base = {
+    const _base = {
         actors: {},
         effects: {},
         items: {},
@@ -26,7 +26,7 @@ RG.ObjectShellParser = function() {
         dungeons: {}
     };
 
-    var _db = {
+    const _db = {
         actors: {},
         effects: {},
         items: {},
@@ -34,8 +34,8 @@ RG.ObjectShellParser = function() {
         dungeons: {}
     };
 
-    var dbDanger = {}; // All entries indexed by danger
-    var _dbByName = {}; // All entries indexed by name
+    const dbDanger = {}; // All entries indexed by danger
+    const _dbByName = {}; // All entries indexed by name
 
     /* Maps obj props to function calls. Essentially this maps bunch of setters
      * to different names. Following formats supported:
@@ -55,7 +55,7 @@ RG.ObjectShellParser = function() {
      * 4. "setter"
      *   Call setter obj["setter"](shell.field)
      * */
-    var _propToCall = {
+    const _propToCall = {
         actors: {
             type: 'setType',
             attack: {comp: 'Combat', func: 'setAttack'},
@@ -103,7 +103,7 @@ RG.ObjectShellParser = function() {
     };
 
     // Internal cache for proc generation
-    var _cache = {
+    const _cache = {
         actorWeights: {}
 
     };
@@ -114,15 +114,15 @@ RG.ObjectShellParser = function() {
 
     /* Parses all shell data, items, monsters, level etc.*/
     this.parseShellData = function(obj) {
-        var keys = Object.keys(obj);
-        for (var i = 0; i < keys.length; i++) {
+        const keys = Object.keys(obj);
+        for (let i = 0; i < keys.length; i++) {
             this.parseShellCateg(keys[i], obj[keys[i]]);
         }
     };
 
     /* Parses one specific shell category, ie items or monsters.*/
     this.parseShellCateg = function(categ, objsArray) {
-        for (var i = 0; i < objsArray.length; i++) {
+        for (let i = 0; i < objsArray.length; i++) {
             this.parseObjShell(categ, objsArray[i]);
         }
     };
@@ -133,7 +133,7 @@ RG.ObjectShellParser = function() {
         if (this.validShellGiven(obj)) {
             // Get properties from base class
             if (obj.hasOwnProperty('base')) {
-                var baseName = obj.base;
+                const baseName = obj.base;
                 if (this.baseExists(categ, baseName)) {
                     obj = this.extendObj(obj, this.getBase(categ, baseName));
                 }
@@ -160,7 +160,6 @@ RG.ObjectShellParser = function() {
                 "shell doesn't have a name.");
             return false;
         }
-        // console.log("validShell ==> " + obj.name);
         return true;
     };
 
@@ -196,12 +195,12 @@ RG.ObjectShellParser = function() {
                     _dbByName[obj.name].push(obj);
                 }
                 else {
-                    var newArr = [];
+                    const newArr = [];
                     newArr.push(obj);
                     _dbByName[obj.name] = newArr;
                 }
                 if (obj.hasOwnProperty('danger')) {
-                    var danger = obj.danger;
+                    const danger = obj.danger;
                     if (!dbDanger.hasOwnProperty(danger)) {
                         dbDanger[danger] = {};
                     }
@@ -221,7 +220,6 @@ RG.ObjectShellParser = function() {
 
     /* Stores char/CSS className for the object for rendering purposes.*/
     this.storeRenderingInfo = function(categ, obj) {
-        // console.log("\tStoring render information for " + obj.name);
         if (obj.hasOwnProperty('char')) {
             if (obj.hasOwnProperty('name')) {
                 RG.addCharStyle(categ, obj.name, obj['char']);
@@ -269,32 +267,35 @@ RG.ObjectShellParser = function() {
             return null;
         }
 
-        var shell = this.get(categ, name);
-        var propCalls = _propToCall[categ];
-        var newObj = this.createNewObject(categ, shell);
+        const shell = this.get(categ, name);
+        const propCalls = _propToCall[categ];
+        const newObj = this.createNewObject(categ, shell);
 
         // If propToCall table has the same key as shell property, call
         // function in _propToCall using the newly created object.
-        for (var p in shell) {
+        for (const p in shell) {
 
             // Called for basic type: actors, items...
             if (propCalls.hasOwnProperty(p)) {
-                var funcName = propCalls[p];
+                const funcName = propCalls[p];
                 if (typeof funcName === 'object') {
                     if (funcName.hasOwnProperty('comp')) {
                         this.addCompToObj(newObj, funcName, shell[p]);
                     }
                     else if (funcName.hasOwnProperty('factory')) {
                         if (p === 'brain') {
-                            var createdObj = funcName.factory(newObj, shell[p]);
+                            const createdObj
+                                = funcName.factory(newObj, shell[p]);
                             newObj[funcName.func](createdObj);
                         }
                     }
                     else {
-                        for (var f in funcName) {
-                            let fName = funcName[f];
-                            if (newObj.hasOwnProperty(fName)) {
-                                newObj[fName](shell[p]);
+                        for (const f in funcName) {
+                            if (funcName.hasOwnProperty(f)) {
+                                const fName = funcName[f];
+                                if (newObj.hasOwnProperty(fName)) {
+                                    newObj[fName](shell[p]);
+                                }
                             }
                         }
                     }
@@ -303,24 +304,24 @@ RG.ObjectShellParser = function() {
                     newObj[funcName](shell[p]);
                 }
             }
-            else { // Check for subtypes
-                if (shell.hasOwnProperty('type')) {
-                    if (propCalls.hasOwnProperty(shell.type)) {
-                        var propTypeCalls = propCalls[shell.type];
-                        if (propTypeCalls.hasOwnProperty(p)) {
-                            var funcName2 = propTypeCalls[p];
-                            if (typeof funcName2 === 'object') {
-                                for (var f2 in funcName2) {
+            // Check for subtypes
+            else if (shell.hasOwnProperty('type')) {
+                if (propCalls.hasOwnProperty(shell.type)) {
+                    const propTypeCalls = propCalls[shell.type];
+                    if (propTypeCalls.hasOwnProperty(p)) {
+                        const funcName2 = propTypeCalls[p];
+                        if (typeof funcName2 === 'object') {
+                            for (const f2 in funcName2) {
+                                if (funcName2.hasOwnProperty(f2)) {
                                     const fName2 = funcName2[f2];
-                                    // Should this be fName2, not fName?
                                     if (newObj.hasOwnProperty(fName2)) {
                                         newObj[funcName2[f2]](shell[p]);
                                     }
                                 }
                             }
-                            else {
-                                newObj[funcName2](shell[p]);
-                            }
+                        }
+                        else {
+                            newObj[funcName2](shell[p]);
                         }
                     }
                 }
@@ -337,14 +338,17 @@ RG.ObjectShellParser = function() {
     this.addUseEffects = function(shell, newObj) {
         newObj.useFuncs = [];
         newObj.useItem = _db.effects.use.func.bind(newObj);
-        if (typeof shell.use === 'object' && shell.use.hasOwnProperty('length')) {
-            for (var i = 0; i < shell.use.length; i++) {
+        if (typeof shell.use === 'object'
+            && shell.use.hasOwnProperty('length')) {
+            for (let i = 0; i < shell.use.length; i++) {
                 _addUseEffectToItem(shell, newObj, shell.use[i]);
             }
         }
         else if (typeof shell.use === 'object') {
-            for (var p in shell.use) {
-                _addUseEffectToItem(shell, newObj, p);
+            for (const p in shell.use) {
+                if (shell.use.hasOwnProperty(p)) {
+                    _addUseEffectToItem(shell, newObj, p);
+                }
             }
         }
         else {
@@ -352,19 +356,19 @@ RG.ObjectShellParser = function() {
         }
     };
 
-    var _addUseEffectToItem = function(shell, item, useName) {
-        var useFuncName = useName;
+    const _addUseEffectToItem = function(shell, item, useName) {
+        const useFuncName = useName;
         if (_db.effects.hasOwnProperty(useFuncName)) {
-            var useEffectShell = _db.effects[useFuncName];
-            var useFuncVar = useEffectShell.func;
+            const useEffectShell = _db.effects[useFuncName];
+            const useFuncVar = useEffectShell.func;
             item.useFuncs.push(useFuncVar);
 
             if (useEffectShell.hasOwnProperty('requires')) {
                 if (shell.use.hasOwnProperty(useName)) {
                     item.useArgs = {};
-                    var reqs = useEffectShell.requires;
+                    const reqs = useEffectShell.requires;
                     if (typeof reqs === 'object') {
-                        for (var i = 0; i < reqs.length; i++) {
+                        for (let i = 0; i < reqs.length; i++) {
                             _verifyAndAddReq(shell.use[useName], item, reqs[i]);
                         }
                     }
@@ -374,24 +378,27 @@ RG.ObjectShellParser = function() {
                 }
                 else {
                     RG.err('ObjectParser', 'addUseEffects',
-                        "useEffect shell has 'requires'. Item shell 'use' must be an object.");
+                        `useEffect shell has 'requires'.
+                        Item shell 'use' must be an object.`
+                    );
                 }
             }
         }
         else {
-            RG.err('ObjectParser', 'addUseEffects', 'Unknown effect: |' + useFuncName + '|');
+            RG.err('ObjectParser', 'addUseEffects',
+                'Unknown effect: |' + useFuncName + '|');
         }
     };
 
     /* Verifies that the shell has all requirements, and adds them to the
      * object, into useArgs.reqName. */
-    var _verifyAndAddReq = function(obj, item, reqName) {
+    const _verifyAndAddReq = function(obj, item, reqName) {
         if (obj.hasOwnProperty(reqName)) {
             item.useArgs[reqName] = obj[reqName];
         }
         else {
             RG.err('ObjectParser', '_verifyAndAddReq',
-                'Req |' + reqName + '| not specified in item shell. Item: ' + item);
+                `Req |${reqName}| not specified in item shell. Item: ${item}`);
         }
     };
 
@@ -399,13 +406,14 @@ RG.ObjectShellParser = function() {
      * component if it exists already.*/
     this.addCompToObj = function(newObj, compData, val) {
         if (compData.hasOwnProperty('func')) {
-            var fname = compData.func;
-            var compName = compData.comp;
+            const fname = compData.func;
+            const compName = compData.comp;
             if (newObj.has(compName)) {
-                newObj.get(compName)[fname](val); // Call comp with setter (fname)
+                // Call comp with setter (fname)
+                newObj.get(compName)[fname](val);
             }
             else { // Have to create new component
-                var comp = this.createComponent(compName);
+                const comp = this.createComponent(compName);
                 comp[fname](val); // Then call comp setter
             }
         }
@@ -425,11 +433,11 @@ RG.ObjectShellParser = function() {
     this.createNewObject = function(categ, obj) {
         switch (categ) {
             case RG.TYPE_ACTOR:
-                var type = obj.type;
+                const type = obj.type;
                 if (type === 'spirit') {return new RG.Actor.Spirit(obj.name);}
                 return new RG.Actor.Rogue(obj.name);
             case RG.TYPE_ITEM:
-                var subtype = obj.type;
+                const subtype = obj.type;
                 switch (subtype) {
                     case 'armour': return new RG.Item.Armour(obj.name);
                     case 'food': return new RG.Item.Food(obj.name);
@@ -439,8 +447,9 @@ RG.ObjectShellParser = function() {
                     case 'weapon': return new RG.Item.Weapon(obj.name);
                     case 'tool': break;
                     default: {
+                        const json = JSON.stringify(obj);
                         const msg =
-                            `Unknown subtype: ${subtype}, obj: ${JSON.stringify(obj)}`;
+                            `Unknown subtype: ${subtype}, obj: ${json}`;
                         RG.err('', 'createNewObject', msg);
                     }
                 }
@@ -463,10 +472,9 @@ RG.ObjectShellParser = function() {
 
     /* Extends the given object shell with a given base shell.*/
     this.extendObj = function(obj, baseObj) {
-        for (var prop in baseObj) {
+        for (const prop in baseObj) {
             if (!obj.hasOwnProperty(prop)) {
                 if (prop !== 'dontCreate') {
-                    // console.log("\textendObj: Added " + prop + " to " + obj.name);
                     obj[prop] = baseObj[prop];
                 }
             }
@@ -489,10 +497,10 @@ RG.ObjectShellParser = function() {
      * matches.*/
     this.dbGet = function(query) {
 
-        var name = query.name;
-        var categ = query.categ;
-        var danger = query.danger;
-        // var type = query.type;
+        const name = query.name;
+        const categ = query.categ;
+        const danger = query.danger;
+        // const type = query.type;
 
         // Specifying name returns an array
         if (typeof name !== 'undefined') {
@@ -502,7 +510,7 @@ RG.ObjectShellParser = function() {
 
         if (typeof danger !== 'undefined') {
             if (dbDanger.hasOwnProperty(danger)) {
-                var entries = dbDanger[danger];
+                const entries = dbDanger[danger];
                 if (typeof categ !== 'undefined') {
                     if (entries.hasOwnProperty(categ)) {
                         return entries[categ];
@@ -517,11 +525,10 @@ RG.ObjectShellParser = function() {
                 return {};
             }
         }
-        else { // Fetch all entries of given category
-            if (typeof categ !== 'undefined') {
-                if (_db.hasOwnProperty(categ)) {
-                    return _db[categ];
-                }
+        // Fetch all entries of given category
+        else if (typeof categ !== 'undefined') {
+            if (_db.hasOwnProperty(categ)) {
+                return _db[categ];
             }
         }
         return {};
@@ -536,12 +543,12 @@ RG.ObjectShellParser = function() {
      * returns two random actors (can be the same). Ex2: {danger: 3, num:1}
      * returns randomly one entry which has danger 3.*/
     this.dbGetRand = function(query) {
-        var danger = query.danger;
-        var categ = query.categ;
+        const danger = query.danger;
+        const categ = query.categ;
         if (typeof danger !== 'undefined') {
             if (typeof categ !== 'undefined') {
                 if (dbDanger.hasOwnProperty(danger)) {
-                    var entries = dbDanger[danger][categ];
+                    const entries = dbDanger[danger][categ];
                     return this.getRandFromObj(entries);
                 }
             }
@@ -553,23 +560,23 @@ RG.ObjectShellParser = function() {
      * given object {a: 1, b: 2, c: 3}, may return 1,2 or 3 with equal
      * probability.*/
     this.getRandFromObj = function(obj) {
-        var keys = Object.keys(obj);
-        var len = keys.length;
-        var randIndex = Math.floor( Math.random() * len);
+        const keys = Object.keys(obj);
+        const len = keys.length;
+        const randIndex = Math.floor( Math.random() * len);
         return obj[keys[randIndex]];
     };
 
     /* Filters given category with a function. Func gets each object as arg,
      * and must return either true or false.*/
     this.filterCategWithFunc = function(categ, func) {
-        var objects = this.dbGet({categ: categ});
-        var res = [];
-        var keys = Object.keys(objects);
+        const objects = this.dbGet({categ: categ});
+        const res = [];
+        const keys = Object.keys(objects);
 
-        for (var i = 0; i < keys.length; i++) {
-            var name = keys[i];
-            var obj = objects[name];
-            var acceptItem = func(obj);
+        for (let i = 0; i < keys.length; i++) {
+            const name = keys[i];
+            const obj = objects[name];
+            const acceptItem = func(obj);
             if (acceptItem) {
                 res.push(obj);
             }
@@ -580,9 +587,9 @@ RG.ObjectShellParser = function() {
 
     /* Creates a random actor based on danger value or a filter function.*/
     this.createRandomActor = function(obj) {
-        var randShell = null;
+        let randShell = null;
         if (obj.hasOwnProperty('danger')) {
-            var danger = obj.danger;
+            const danger = obj.danger;
             randShell = this.dbGetRand({danger: danger, categ: 'actors'});
             if (randShell !== null) {
                 return this.CreateFromShell('actors', randShell);
@@ -592,22 +599,23 @@ RG.ObjectShellParser = function() {
             }
         }
         else if (obj.hasOwnProperty('func')) {
-            var res = this.filterCategWithFunc('actors', obj.func);
+            const res = this.filterCategWithFunc('actors', obj.func);
             randShell = this.arrayGetRand(res);
             return this.CreateFromShell('actors', randShell);
         }
+        return null;
     };
 
     // Uses engine's internal weighting algorithm when givel a level number.
     // Note that this method can return null, if no correct danger level is
     // found. You can supply {func: ...} as a fallback solution.
     this.createRandomActorWeighted = function(min, max, obj) {
-        var key = min + ',' + max;
+        const key = min + ',' + max;
         if (!_cache.actorWeights.hasOwnProperty(key)) {
             _cache.actorWeights[key] = RG.getDangerProb(min, max);
         }
-        var danger = ROT.RNG.getWeightedValue(_cache.actorWeights[key]);
-        var actor = this.createRandomActor({danger: danger});
+        const danger = ROT.RNG.getWeightedValue(_cache.actorWeights[key]);
+        const actor = this.createRandomActor({danger: danger});
         if (RG.isNullOrUndef([actor])) {
             if (!RG.isNullOrUndef([obj])) {
                 return this.createRandomActor(obj);
@@ -619,14 +627,14 @@ RG.ObjectShellParser = function() {
     /* Creates a random item based on a selection function.
      *
      * Example:
-     *  var funcValueSel = function(item) {return item.value >= 100;}
-     *  var item = createRandomItem({func: funcValueSel}); // Returns item with
-     *  value > 100.
+     *  const funcValueSel = function(item) {return item.value >= 100;}
+     *  const item = createRandomItem({func: funcValueSel});
+     *  // Above returns item with value > 100.
      *  */
     this.createRandomItem = function(obj) {
         if (obj.hasOwnProperty('func')) {
-            var res = this.filterCategWithFunc('items', obj.func);
-            var randShell = this.arrayGetRand(res);
+            const res = this.filterCategWithFunc('items', obj.func);
+            const randShell = this.arrayGetRand(res);
             return this.CreateFromShell('items', randShell);
         }
         else {
@@ -637,8 +645,8 @@ RG.ObjectShellParser = function() {
 
     /* Returns a random entry from the array.*/
     this.arrayGetRand = function(arr) {
-        var len = arr.length;
-        var randIndex = Math.floor(Math.random() * len);
+        const len = arr.length;
+        const randIndex = Math.floor(Math.random() * len);
         return arr[randIndex];
     };
 
