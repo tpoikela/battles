@@ -333,19 +333,23 @@ describe('How one-shot items are removed after their use', function() {
         cell.setProp('actors', player);
         expect(cell.hasProp('actors')).to.equal(true);
         const invEq = player.getInvEq();
+
+        /* eslint-disable */
         const itemDestroy = new ItemDestroyer();
+        /* eslint-enable */
+
         invEq.addItem(potion);
 
-        // Do some damage
+        // Do some damage to the player
         const hp = player.get('Health').getHP();
         player.get('Health').setHP(hp - 5);
         const currHP = player.get('Health').getHP();
 
         expect(invEq.hasItem(potion)).to.equal(true);
-        expect(player.getInvEq().useItem(potion, {target: cell})).to.equal(true);
+        expect(player.getInvEq().useItem(potion,
+            {target: cell})).to.equal(true);
         expect(player.get('Health').getHP() !== currHP).to.equal(true);
         expect(invEq.hasItem(potion)).to.equal(false);
-
     });
 });
 
