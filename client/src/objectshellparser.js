@@ -127,8 +127,10 @@ RG.ObjectShellParser = function() {
         }
     };
 
-    /* Parses an object shell. Returns null for base objects, and
-     * corresponding object for actual actors.*/
+    /* Parses an object shell. Returns null for invalid objects, and
+     * corresponding object for actual actors. If 'base' property exists,
+     * all base properties will be added to the returned object.
+     * */
     this.parseObjShell = function(categ, obj) {
         if (this.validShellGiven(obj)) {
             // Get properties from base class
@@ -143,6 +145,7 @@ RG.ObjectShellParser = function() {
                 }
             }
 
+            // If type not given, use name as type
             if (categ === 'actors') {this.addTypeIfUntyped(obj);}
 
             this.storeIntoDb(categ, obj);
@@ -180,14 +183,16 @@ RG.ObjectShellParser = function() {
         return _base[categ][name];
     };
 
-    this.setAsBase = function(categ, obj) {
+    /* All shells can be used as base, not only ones with
+     * 'dontCreate: true' */
+    this.storeForUsingAsBase = function(categ, obj) {
         _base[categ][obj.name] = obj;
     };
 
     /* Stores the object into given category.*/
     this.storeIntoDb = function(categ, obj) {
         if (_db.hasOwnProperty(categ)) {
-            this.setAsBase(categ, obj);
+            this.storeForUsingAsBase(categ, obj);
 
             if (!obj.hasOwnProperty('dontCreate')) {
                 _db[categ][obj.name] = obj;
@@ -209,7 +214,7 @@ RG.ObjectShellParser = function() {
                     }
                     dbDanger[danger][categ][obj.name] = obj;
                 }
-            } // dontCreate
+            } // dontCreate: true shells are skipped (used as base)
         }
         else {
             RG.err('ObjectParser', 'storeIntoDb',
