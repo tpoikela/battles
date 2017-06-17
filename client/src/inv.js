@@ -1,5 +1,5 @@
 
-var RG = require('./rg.js');
+const RG = require('./rg.js');
 
 RG.Item = require('./item.js');
 
@@ -12,15 +12,13 @@ RG.Inv = {};
 /* Models one slot in the inventory. */
 RG.Inv.EquipSlot = function(eq, type, stacked) {
     RG.Object.Ownable.call(this, eq);
-    // var _eq = eq;
-    // var _type = type;
-    var _item = null;
+    // const _eq = eq;
+    // const _type = type;
+    let _item = null;
+    let _hasItem = false;
+    let _unequipped = null;
+    let _stacked = false;
 
-    var _hasItem = false;
-
-    var _unequipped = null;
-
-    var _stacked = false;
     if (!RG.isNullOrUndef([stacked])) {_stacked = stacked;}
 
     this.isStacked = function() {return _stacked;};
@@ -85,9 +83,9 @@ RG.extend2(RG.Inv.EquipSlot, RG.Object.Ownable);
 RG.Inv.Equipment = function(actor) {
     RG.Object.Ownable.call(this, actor);
 
-    var _equipped = [];
+    const _equipped = [];
 
-    var _slots = {
+    const _slots = {
         hand: new RG.Inv.EquipSlot(this, 'hand'),
         shield: new RG.Inv.EquipSlot(this, 'shield'),
         head: new RG.Inv.EquipSlot(this, 'head'),
@@ -98,13 +96,13 @@ RG.Inv.Equipment = function(actor) {
         spiritgem: new RG.Inv.EquipSlot(this, 'spiritgem')
     };
 
-    var _hasSlot = function(slotType) {
+    const _hasSlot = function(slotType) {
         return _slots.hasOwnProperty(slotType);
     };
 
     this.getWeight = function() {
-        var total = 0;
-        for (var i = 0; i < _equipped.length; i++) {
+        let total = 0;
+        for (let i = 0; i < _equipped.length; i++) {
             total += _equipped[i].getWeight() * _equipped[i].count;
         }
         return total;
@@ -157,9 +155,9 @@ RG.Inv.Equipment = function(actor) {
         return false;
     };
 
-    var _addStackedItem = function(item) {
-        var matchFound = false;
-        for (var i = 0; i < _equipped.length; i++) {
+    const _addStackedItem = function(item) {
+        let matchFound = false;
+        for (let i = 0; i < _equipped.length; i++) {
             if (_equipped[i].equals(item)) {
                 matchFound = true;
                 break;
@@ -169,8 +167,8 @@ RG.Inv.Equipment = function(actor) {
     };
 
     /* Removes an item, or n items if specified.*/
-    var _removeItem = function(item, n) {
-        var index = _equipped.indexOf(item);
+    const _removeItem = function(item, n) {
+        const index = _equipped.indexOf(item);
         if (index >= 0) {
             if (n > 0) {
                 if (_equipped[index].hasOwnProperty('count')) {
@@ -193,7 +191,7 @@ RG.Inv.Equipment = function(actor) {
 
     /* Returns true if given item is equipped.*/
     this.isEquipped = function(item) {
-        var index = _equipped.indexOf(item);
+        const index = _equipped.indexOf(item);
         return index !== -1;
     };
 
@@ -204,29 +202,29 @@ RG.Inv.Equipment = function(actor) {
     /* Unequips given slotType and index. */
     this.unequipItem = function(slotType, n) {
         if (_hasSlot(slotType)) {
-            var item = _slots[slotType].getItem();
+            const item = _slots[slotType].getItem();
             if (_slots[slotType].unequipItem(n)) {
                 return _removeItem(item, n);
             }
         }
         else {
-            var msg = 'Non-existing slot type ' + slotType;
+            const msg = 'Non-existing slot type ' + slotType;
             RG.err('Equipment', 'unequipItem', msg);
         }
         return false;
     };
 
     this.propertySum = function(funcname) {
-        var result = 0;
-        var slotKeys = Object.keys(_slots);
+        let result = 0;
+        const slotKeys = Object.keys(_slots);
         slotKeys.forEach(slot => {
-            var item = this.getItem(slot);
+            const item = this.getItem(slot);
             if (item !== null) {
                 if (item.hasOwnProperty(funcname)) {
                     result += item[funcname]();
                 }
                 else if (item.has('Stats')) {
-                    var sComp = item.get('Stats');
+                    const sComp = item.get('Stats');
                     if (sComp.hasOwnProperty(funcname)) {
                         result += sComp[funcname]();
                     }
@@ -237,25 +235,25 @@ RG.Inv.Equipment = function(actor) {
     };
 
     this.toJSON = function() {
-        var json = [];
-        for (var i = 0; i < _equipped.length; i++) {
+        const json = [];
+        for (let i = 0; i < _equipped.length; i++) {
             json.push(_equipped[i].toJSON());
         }
         return json;
     };
 
     // Dynamically generate accessors for different stats
-    var _mods = ['getDefense', 'getAttack', 'getProtection',
+    const _mods = ['getDefense', 'getAttack', 'getProtection',
         'getSpeed', 'getWillpower',
         'getAccuracy', 'getAgility', 'getStrength'];
 
-    var that = this;
-    for (var i = 0; i < _mods.length; i++) {
+    const that = this;
+    for (let i = 0; i < _mods.length; i++) {
 
         /* eslint no-loop-func: 0 */
         // Use closure to fix the function name
-        var getFunc = function() {
-            var privVar = _mods[i];
+        const getFunc = function() {
+            const privVar = _mods[i];
             return function() {
                 return that.propertySum(privVar);
             };
@@ -272,10 +270,10 @@ RG.extend2(RG.Inv.Equipment, RG.Object.Ownable);
  * movement of items between inventory and equipment. */
 RG.Inv.Inventory = function(actor) {
     RG.Object.Ownable.call(this, actor);
-    var _actor = actor;
+    const _actor = actor;
 
-    var _inv = new RG.Item.Container(actor);
-    var _eq = new RG.Inv.Equipment(actor);
+    const _inv = new RG.Item.Container(actor);
+    const _eq = new RG.Inv.Equipment(actor);
 
     // Wrappers for container methods
     this.addItem = function(item) {_inv.addItem(item);};
@@ -303,10 +301,10 @@ RG.Inv.Inventory = function(actor) {
 
     /* Returns true if given item can be carried.*/
     this.canCarryItem = function(item) {
-        var eqWeight = _eq.getWeight();
-        var invWeight = _inv.getWeight();
-        var newWeight = eqWeight + invWeight + item.getWeight();
-        var maxWeight = _actor.getMaxWeight();
+        const eqWeight = _eq.getWeight();
+        const invWeight = _inv.getWeight();
+        const newWeight = eqWeight + invWeight + item.getWeight();
+        const maxWeight = _actor.getMaxWeight();
         if (newWeight > maxWeight) {return false;}
         return true;
     };
@@ -314,7 +312,7 @@ RG.Inv.Inventory = function(actor) {
     /* Drops selected item to the actor's current location.*/
     this.dropItem = function(item) {
         if (_inv.removeItem(item)) {
-            var level = _actor.getLevel();
+            const level = _actor.getLevel();
             if (level.addItem(item, _actor.getX(), _actor.getY())) {
                 return true;
             }
@@ -332,7 +330,7 @@ RG.Inv.Inventory = function(actor) {
     this.equipItem = function(item) {
         if (_inv.hasItem(item)) {
             // If item has count > 2, can't use the same item ref
-            var eqItem = _getItemToEquip(item);
+            const eqItem = _getItemToEquip(item);
             if (RG.isNullOrUndef[eqItem]) {
                 console.log('SEEMS TO BE NULL. KOSH!');
                 return false;
@@ -353,10 +351,10 @@ RG.Inv.Inventory = function(actor) {
         return false;
     };
 
-    var _getItemToEquip = function(item) {
-        var res = _inv.removeItem(item);
+    const _getItemToEquip = function(item) {
+        const res = _inv.removeItem(item);
         if (res) {
-            var rmvItem = _inv.getRemovedItem();
+            const rmvItem = _inv.getRemovedItem();
             return rmvItem;
         }
         return null;
@@ -365,9 +363,9 @@ RG.Inv.Inventory = function(actor) {
     /* Equips up to N items of given type. */
     this.equipNItems = function(item, n) {
         if (_inv.hasItem(item)) {
-            var res = _inv.removeNItems(item, n);
+            const res = _inv.removeNItems(item, n);
             if (res) {
-                var removedItem = _inv.getRemovedItem();
+                const removedItem = _inv.getRemovedItem();
                 if (_eq.equipItem(removedItem)) {
                     return true;
                 }
@@ -381,10 +379,10 @@ RG.Inv.Inventory = function(actor) {
 
     /* Unequips item and puts it back to inventory.*/
     this.unequipItem = function(slotType, n) {
-        var eqItem = _eq.getItem(slotType);
+        const eqItem = _eq.getItem(slotType);
         if (!RG.isNullOrUndef([eqItem])) {
             if (_eq.unequipItem(slotType, n)) {
-                var rmvItems = _eq.getUnequipped(slotType);
+                const rmvItems = _eq.getUnequipped(slotType);
                 if (rmvItems !== null) {
                     this.addItem(rmvItems);
                     return true;
@@ -396,7 +394,7 @@ RG.Inv.Inventory = function(actor) {
 
     /* Unequips and returns N items. Doesn't add to inv.*/
     this.unequipAndGetItem = function(slotType, n) {
-        var eqItem = _eq.getItem(slotType);
+        const eqItem = _eq.getItem(slotType);
         if (!RG.isNullOrUndef([eqItem])) {
             if (_eq.unequipItem(slotType, n)) {
                 return _eq.getUnequipped(slotType);
@@ -406,7 +404,7 @@ RG.Inv.Inventory = function(actor) {
     };
 
     this.getWeapon = function() {
-        var item = _eq.getItem('hand');
+        const item = _eq.getItem('hand');
         if (!RG.isNullOrUndef([item])) {return item;}
         return null;
     };
