@@ -1,10 +1,10 @@
 
-var ROT = require('../../lib/rot.js');
+const ROT = require('../../lib/rot.js');
 
-var $DEBUG = 0;
+const $DEBUG = 0;
 
 /* Main object of the package for encapsulating all other objects. */
-var RG = { // {{{2
+const RG = { // {{{2
 
     gameTitle: 'Battles in the North (BitN)',
 
@@ -18,7 +18,7 @@ var RG = { // {{{2
     getClassName: function(cell, isVisible) {
         if (isVisible) {this.cellRenderArray = this.cellRenderVisible;}
         else {this.cellRenderArray = this.cellRenderAlways;}
-        var className = this.getStyleClassForCell(cell);
+        const className = this.getStyleClassForCell(cell);
         this.cellRenderArray = this.cellRenderVisible;
         return className;
     },
@@ -27,7 +27,7 @@ var RG = { // {{{2
     getChar: function(cell, isVisible) {
         if (isVisible) {this.cellRenderArray = this.cellRenderVisible;}
         else {this.cellRenderArray = this.cellRenderAlways;}
-        var cellChar = this.getCellChar(cell);
+        const cellChar = this.getCellChar(cell);
         this.cellRenderArray = this.cellRenderVisible;
         return cellChar;
     },
@@ -37,26 +37,26 @@ var RG = { // {{{2
     getStyleClassForCell: function(cell) {
         if (!cell.isExplored()) { return 'cell-not-explored';}
 
-        for (var i = 0; i < this.cellRenderArray.length; i++) {
-            var propType = this.cellRenderArray[i];
+        for (let i = 0; i < this.cellRenderArray.length; i++) {
+            const propType = this.cellRenderArray[i];
             if (cell.hasProp(propType)) {
-                var props = cell.getProp(propType);
-                var styles = this.cellStyles[propType];
-                var propObj = props[0];
+                const props = cell.getProp(propType);
+                const styles = this.cellStyles[propType];
+                const propObj = props[0];
                 return this.getPropClassOrChar(styles, propObj);
             }
         }
 
-        var baseType = cell.getBaseElem().getType();
+        const baseType = cell.getBaseElem().getType();
         return this.cellStyles.elements[baseType];
     },
 
     getPropClassOrChar: function(styles, propObj) {
-        var objType = propObj.getType();
+        const objType = propObj.getType();
 
         // Return by name, this is for object shells generally
         if (propObj.hasOwnProperty('getName')) {
-            var name = propObj.getName();
+            const name = propObj.getName();
             if (styles.hasOwnProperty(name)) {
                 return styles[name];
             }
@@ -66,9 +66,9 @@ var RG = { // {{{2
         if (styles.hasOwnProperty(objType)) {
             if (typeof styles[objType] === 'object') {
                 // Invoke a state querying function
-                for (var p in styles[objType]) {
+                for (const p in styles[objType]) {
                     if (p !== 'default') {
-                        var funcToCall = p;
+                        const funcToCall = p;
                         if (propObj[funcToCall]()) {
                             return styles[objType][p];
                         }
@@ -88,26 +88,26 @@ var RG = { // {{{2
     getCellChar: function(cell) {
         if (!cell.isExplored()) {return 'X';}
 
-        for (var i = 0; i < this.cellRenderArray.length; i++) {
-            var propType = this.cellRenderArray[i];
+        for (let i = 0; i < this.cellRenderArray.length; i++) {
+            const propType = this.cellRenderArray[i];
             if (cell.hasProp(propType)) {
-                var props = cell.getProp(propType);
-                var styles = this.charStyles[propType];
-                var propObj = props[0];
+                const props = cell.getProp(propType);
+                const styles = this.charStyles[propType];
+                const propObj = props[0];
                 return this.getPropClassOrChar(styles, propObj);
             }
         }
 
-        var baseType = cell.getBaseElem().getType();
+        const baseType = cell.getBaseElem().getType();
         return this.charStyles.elements[baseType];
     },
 
     /* Returns shortest path (array of x,y pairs) between two points.*/
     getShortestPath: function(x0, y0, x1, y1) {
-        var coords = [];
-        var passableCallback = function() {return true;};
-        // var finder = new ROT.Path.Dijkstra(x1, y1, passableCallback);
-        var finder = new ROT.Path.AStar(x1, y1, passableCallback);
+        const coords = [];
+        const passableCallback = function() {return true;};
+        // const finder = new ROT.Path.Dijkstra(x1, y1, passableCallback);
+        const finder = new ROT.Path.AStar(x1, y1, passableCallback);
         finder.compute(x0, y0, function(x, y) {
             coords.push({x: x, y: y});
         });
@@ -116,7 +116,7 @@ var RG = { // {{{2
 
     /* Returns shortest distance (in cells) between two points.*/
     shortestDist: function(x0, y0, x1, y1) {
-        var coords = this.getShortestPath(x0, y0, x1, y1);
+        const coords = this.getShortestPath(x0, y0, x1, y1);
         return coords.length - 1; // Subtract one because starting cell included
     },
 
@@ -230,15 +230,15 @@ var RG = { // {{{2
     /* Used to inherit from a prototype. Supports multiple inheritance but
      * sacrifices instanceof.*/
     extend2: function(Child, Parent) {
-        var p = Parent.prototype;
-        var c = Child.prototype;
-        for (var i in p) {
+        const p = Parent.prototype;
+        const c = Child.prototype;
+        for (const i in p) {
             if (!c.hasOwnProperty(i)) {
                 c[i] = p[i];
             }
         }
         if (c.hasOwnProperty('uber')) {
-            var ubers = [c.uber];
+            const ubers = [c.uber];
             ubers.push(p);
             c.uber = ubers;
         }
@@ -259,7 +259,7 @@ var RG = { // {{{2
 
     /* Returns true if anything in the list is null or undefined.*/
     isNullOrUndef: function(list) {
-        for (var i = 0; i < list.length; i++) {
+        for (let i = 0; i < list.length; i++) {
             if (list[i] === null || typeof list[i] === 'undefined' ||
                 typeof list === 'undefined') {
                 return true;
@@ -286,13 +286,13 @@ var RG = { // {{{2
 
     /* Emits message event with cell origin, style and message. */
     emitMsgEvent: function(style, msg) {
-        var newMsg = '';
+        let newMsg = '';
         if (typeof msg === 'object') {
-            var cell = msg.cell;
+            const cell = msg.cell;
             newMsg = msg.msg;
             newMsg = newMsg[0].toUpperCase() + newMsg.substring(1);
 
-            var msgObject = {cell: cell, msg: newMsg, style: style};
+            const msgObject = {cell: cell, msg: newMsg, style: style};
             this.POOL.emitEvent(this.EVT_MSG, msgObject);
         }
         else {
@@ -305,7 +305,7 @@ var RG = { // {{{2
     /* Tries to add item2 to item1 stack. Returns true on success.*/
     addStackedItems: function(item1, item2) {
         if (item1.equals(item2)) {
-            var countToAdd = 1;
+            let countToAdd = 1;
             if (item2.hasOwnProperty('count')) {
                 countToAdd = item2.count;
             }
@@ -326,7 +326,7 @@ var RG = { // {{{2
      * stack is not changed.*/
     removeStackedItems: function(itemStack, n) {
         if (n > 0) {
-            var rmvItem = null;
+            let rmvItem = null;
             if (itemStack.hasOwnProperty('count')) {
                 if (n <= itemStack.count) {
                     itemStack.count -= n;
@@ -356,13 +356,13 @@ var RG = { // {{{2
     //--------------------------------------------------------------
 
     getMissileDamage: function(att, miss) {
-        var dmg = miss.getDamage();
+        let dmg = miss.getDamage();
         dmg += Math.round(att.get('Stats').getAgility() / 3);
         return dmg;
     },
 
     getMissileAttack: function(att, miss) {
-        var attack = att.get('Combat').getAttack();
+        let attack = att.get('Combat').getAttack();
         attack += att.getInvEq().getEquipment().getAttack();
         attack += att.get('Stats').getAccuracy() / 2;
         attack += att.getInvEq().getEquipment().getAccuracy() / 2;
@@ -373,11 +373,11 @@ var RG = { // {{{2
 
     /* Given actor and cells it sees, returns first enemy cell found.*/
     findEnemyCellForPlayer: function(actor, seenCells) {
-        var res = [];
-        for (var i = 0; i < seenCells.length; i++) {
+        const res = [];
+        for (let i = 0; i < seenCells.length; i++) {
             if (seenCells[i].hasActors()) {
-                var actors = seenCells[i].getProp('actors');
-                for (var j = 0; j < actors.length; j++) {
+                const actors = seenCells[i].getProp('actors');
+                for (let j = 0; j < actors.length; j++) {
                     if (actor !== actors[j]) {
                         if (actors[j].isEnemy(actor)) {
                             res.push(seenCells[i]);
@@ -411,7 +411,7 @@ var RG = { // {{{2
 
     popEventPool: function() {
         this.eventPools.pop();
-        var nlen = this.eventPools.length;
+        const nlen = this.eventPools.length;
         if (nlen > 0) {
             this.POOL = this.eventPools[nlen - 1];
         }
@@ -500,21 +500,21 @@ RG.getDangerProb = function(min, max) {
         console.error('RG.getDangerProb param order is min < max');
         return {};
     }
-    var level = max + 1;
-    var arr = [];
-    for (var j = min; j <= level; j++) {
+    const level = max + 1;
+    const arr = [];
+    for (let j = min; j <= level; j++) {
         arr.push(j);
     }
 
-    var last = arr.length - 1;
-    var maxArr = arr[last];
+    const last = arr.length - 1;
+    const maxArr = arr[last];
 
-    var highPoint = (maxArr % 2 === 0) ? maxArr / 2 : (maxArr + 1) / 2;
-    var obj = {};
+    const highPoint = (maxArr % 2 === 0) ? maxArr / 2 : (maxArr + 1) / 2;
+    const obj = {};
 
     arr.forEach( function(val) {
-        var absDiff = Math.abs(val - highPoint);
-        var prob = maxArr - Math.floor(RG.DANGER_ADJ_FACTOR * absDiff);
+        const absDiff = Math.abs(val - highPoint);
+        let prob = maxArr - Math.floor(RG.DANGER_ADJ_FACTOR * absDiff);
         prob = (prob === 0) ? prob + 1 : prob;
         obj[val] = prob;
 
@@ -531,36 +531,36 @@ RG.getFoodWeightDistr = function() {
 
 /* Converts abstract value into gold weight. */
 RG.valueToGoldWeight = function(value) {
-    var currVal = value;
-    var slope = 1;
+    let currVal = value;
+    let slope = 1;
     while (currVal >= 100) {
         currVal -= 100;
         ++slope;
     }
-    var adjValue = slope * value + 10;
+    const adjValue = slope * value + 10;
     return adjValue / 1000;
 };
 
 /* Given an actor, scales its attributes based on new experience level.*/
 RG.levelUpActor = function(actor, newLevel) {
     if (actor.has('Experience')) {
-        var currLevel = actor.get('Experience').getExpLevel();
+        let currLevel = actor.get('Experience').getExpLevel();
         if (currLevel < newLevel) {
             while (currLevel < newLevel) {
-                var nextLevel = currLevel + 1;
+                const nextLevel = currLevel + 1;
 
                 // Level up the Combat component
                 if (actor.has('Combat')) {
-                    var combatComp = actor.get('Combat');
+                    const combatComp = actor.get('Combat');
                     combatComp.setAttack(combatComp.getAttack() + 1);
                     combatComp.setDefense(combatComp.getDefense() + 1);
                     if (nextLevel % 3 === 0) {
-                        var prot = combatComp.getProtection();
+                        const prot = combatComp.getProtection();
                         combatComp.setProtection(prot + 1);
                     }
 
                     // Upgrade damage die was well
-                    var dmgDie = combatComp.getDamageDie();
+                    const dmgDie = combatComp.getDamageDie();
                     dmgDie.setDice( dmgDie.getDice() + 1);
                     if (nextLevel % 3 === 0) {
                         dmgDie.setMod( dmgDie.getMod() + 1);
@@ -569,8 +569,8 @@ RG.levelUpActor = function(actor, newLevel) {
 
                 // Level up the Health
                 if (actor.has('Health')) {
-                    var hComp = actor.get('Health');
-                    var incr = 2;
+                    const hComp = actor.get('Health');
+                    let incr = 2;
                     if (actor.isPlayer()) {incr = 5;}
                     hComp.setMaxHP(hComp.getMaxHP() + incr);
                     hComp.setHP(hComp.getHP() + incr);
@@ -602,11 +602,11 @@ RG.parseDieSpec = function(strOrArray) {
         }
     }
     else {
-        var match = RG.DIE_RE.exec(strOrArray);
+        const match = RG.DIE_RE.exec(strOrArray);
         if (match !== null) {
-            var num = match[1];
-            var dType = match[2];
-            var mod;
+            const num = match[1];
+            const dType = match[2];
+            let mod = null;
             if (!RG.isNullOrUndef([match[3], match[4]])) {
                 if (match[3] === '+') {mod = match[4];}
                 else {mod = -match[4];}
@@ -627,8 +627,8 @@ RG.ONE_SHOT_ITEMS = ['potion'];
 
 /* Returns true if given item is one-shot use item by its type.*/
 RG.isOneShotItem = function(item) {
-    var itemType = item.getType();
-    var index = RG.ONE_SHOT_ITEMS.indexOf(itemType);
+    const itemType = item.getType();
+    const index = RG.ONE_SHOT_ITEMS.indexOf(itemType);
     return index >= 0;
 };
 
@@ -636,7 +636,7 @@ RG.isOneShotItem = function(item) {
 RG.destroyItemIfNeeded = function(item) {
     if (RG.isOneShotItem(item)) {
         if (item.count === 1) {
-            var msg = {item: item};
+            const msg = {item: item};
             RG.POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
         }
         else {
@@ -685,9 +685,9 @@ RG.KeyMap = {
      * invalid, returns null. */
     getDiff: function(code, x, y) {
         if (this.moveKeyMap.hasOwnProperty(code)) {
-            var diff = ROT.DIRS[8][this.moveKeyMap[code]];
-            var newX = x + diff[0];
-            var newY = y + diff[1];
+            const diff = ROT.DIRS[8][this.moveKeyMap[code]];
+            const newX = x + diff[0];
+            const newY = y + diff[1];
             return [newX, newY];
         }
         else if (code === ROT.VK_S) {
@@ -727,9 +727,9 @@ RG.Geometry = {
     /* Given start x,y and end x,y coordinates, returns all x,y coordinates in
      * the border of the rectangle.*/
     getHollowBox: function(x0, y0, maxX, maxY) {
-        var res = [];
-        for (var x = x0; x <= maxX; x++) {
-            for (var y = y0; y <= maxY; y++) {
+        const res = [];
+        for (let x = x0; x <= maxX; x++) {
+            for (let y = y0; y <= maxY; y++) {
                 if ((y === y0 || y === maxY || x === x0 || x === maxX) ) {
                     res.push([x, y]);
                 }
@@ -743,9 +743,9 @@ RG.Geometry = {
 /* Each die has number of throws, type of dice (d6, d20, d200...) and modifier
  * which is +/- X. */
 RG.Die = function(num, dice, mod) {
-    var _num = parseInt(num, 10);
-    var _dice = parseInt(dice, 10);
-    var _mod = parseInt(mod, 10);
+    let _num = parseInt(num, 10);
+    let _dice = parseInt(dice, 10);
+    let _mod = parseInt(mod, 10);
 
     this.getNum = function() {return _num;};
     this.setNum = function(num) {_num = num;};
@@ -755,15 +755,15 @@ RG.Die = function(num, dice, mod) {
     this.setMod = function(mod) {_mod = mod;};
 
     this.roll = function() {
-        var res = 0;
-        for (var i = 0; i < _num; i++) {
+        let res = 0;
+        for (let i = 0; i < _num; i++) {
             res += Math.floor(Math.random() * (_dice)) + 1;
         }
         return res + _mod;
     };
 
     this.toString = function() {
-        var sign = '+';
+        let sign = '+';
         if (mod < 0) {sign = '-';}
         return _num + 'd' + _dice + ' ' + sign + ' ' + _mod;
     };
@@ -776,7 +776,7 @@ RG.Die = function(num, dice, mod) {
 
     /* Returns true if dice are equal.*/
     this.equals = function(rhs) {
-        var res = _num === rhs.getNum();
+        let res = _num === rhs.getNum();
         res = res && (_dice === rhs.getDice());
         res = res && (_mod === rhs.getMod());
         return res;
@@ -786,8 +786,8 @@ RG.Die = function(num, dice, mod) {
 /* Event pool can be used to emit events and register callbacks for listeners.
  * This decouples the emitter and listener from each other.  */
 RG.EventPool = function() { // {{{2
-    var _listeners = {};
-    var _eventsNoListener = 0;
+    const _listeners = {};
+    let _eventsNoListener = 0;
 
     this.getNumListeners = function() {
         return _eventsNoListener;
@@ -798,8 +798,8 @@ RG.EventPool = function() { // {{{2
     this.emitEvent = function(evtName, args) {
         if (!RG.isNullOrUndef([evtName])) {
             if (_listeners.hasOwnProperty(evtName)) {
-                var called = _listeners[evtName];
-                for (var i = 0; i < called.length; i++) {
+                const called = _listeners[evtName];
+                for (let i = 0; i < called.length; i++) {
                     called[i].notify(evtName, args);
                 }
             }
@@ -818,7 +818,7 @@ RG.EventPool = function() { // {{{2
         if (!RG.isNullOrUndef([evtName])) {
             if (obj.hasOwnProperty('notify') || obj.hasNotify) {
                 if (_listeners.hasOwnProperty(evtName)) {
-                    var index = _listeners[evtName].indexOf(obj);
+                    const index = _listeners[evtName].indexOf(obj);
                     if (index === -1) {
                         _listeners[evtName].push(obj);
                     }
@@ -829,7 +829,7 @@ RG.EventPool = function() { // {{{2
                 }
             }
             else {
-                var msg = 'evtName: ' + evtName;
+                let msg = 'evtName: ' + evtName;
                 msg += '\nprototype: ' + JSON.stringify(obj.prototype);
                 msg += '\nCannot add object. Listener must implement notify()!';
                 RG.err('EventPool', 'listenEvent', msg);
@@ -845,15 +845,15 @@ RG.POOL = new RG.EventPool(); // Dangerous, global objects
 /* Handles the game message listening and storing of the messages.  */
 RG.MessageHandler = function() { // {{{2
 
-    var _message = [];
-    var _prevMessage = [];
-    var _hasNew = false;
+    let _message = [];
+    let _prevMessage = [];
+    let _hasNew = false;
 
     this.hasNotify = true;
     this.notify = function(evtName, msg) {
         if (evtName === RG.EVT_MSG) {
             if (msg.hasOwnProperty('msg')) {
-                var msgObj = {msg: msg.msg, style: 'prim'};
+                const msgObj = {msg: msg.msg, style: 'prim'};
 
                 if (msg.hasOwnProperty('cell')) {
                     msgObj.cell = msg.cell;
@@ -892,9 +892,9 @@ RG.MessageHandler = function() { // {{{2
 
 RG.Entity = function() {
 
-    var _id = RG.Entity.prototype.idCount++;
+    const _id = RG.Entity.prototype.idCount++;
 
-    var _comps = {};
+    const _comps = {};
 
     this.getID = function() {return _id;};
 
@@ -915,7 +915,7 @@ RG.Entity = function() {
 
     this.remove = function(name) {
         if (_comps.hasOwnProperty(name)) {
-            var comp = _comps[name];
+            const comp = _comps[name];
             comp.entityRemoveCallback(this);
             delete _comps[name];
             RG.POOL.emitEvent(name, {entity: this, remove: true});
