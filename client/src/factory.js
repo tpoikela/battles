@@ -19,6 +19,20 @@ const MSG = {
 };
 
 const Stairs = RG.Element.Stairs;
+
+/* Returns a basic configuration for a city level. */
+const cityConfBase = function(_parser, conf) {
+    const userConf = conf || {};
+    const obj = {
+        nHouses: 10, minHouseX: 5, maxHouseX: 10, minHouseY: 5,
+        maxHouseY: 10, parser: _parser,
+        func: function(item) {return item.type === 'armour';}
+    };
+    const result = Object.assign(obj, userConf);
+    return result;
+};
+
+
 //---------------------------------------------------------------------------
 // FACTORY OBJECTS
 //---------------------------------------------------------------------------
@@ -364,11 +378,7 @@ RG.Factory.Feature = function() {
     };
 
     this.createCityLevel = function(conf) {
-        const levelConf = {
-            nHouses: 10, minHouseX: 5, maxHouseX: 10, minHouseY: 5,
-            maxHouseY: 10, parser: _parser,
-            func: function(item) {return item.type === 'armour';}
-        };
+        const levelConf = cityConfBase(_parser);
         const city = this.createLevel('town', conf.x, conf.y, levelConf);
         return city;
     };
@@ -427,7 +437,7 @@ RG.FCCGame = function() {
     var that = this; // For private objects/functions
 
     // Private object for checking when battle is done
-    var DemonKillListener = function(game, level) {
+    const DemonKillListener = function(game, level) {
 
         // Needed for adding monsters and events
         var _game = game;
@@ -509,7 +519,7 @@ RG.FCCGame = function() {
                 'But Battles in North will continue soon in larger scale...');
             _game.addEvent(msgEvent2);
         };
-    };
+    }; // const DemonKillListener
 
     /* Creates the game for the FCC project.*/
     this.createNewGame = function(obj) {
@@ -721,16 +731,36 @@ RG.FCCGame = function() {
     };
 
     this.createDebugBattle = function(obj, game, player) {
-        // TODO
+        const battle = new RG.Game.Battle('Battle of ice kingdoms');
+        const army1 = new RG.Game.Army('Blue army');
+        const army2 = new RG.Game.Army('Red army');
+        this.addActorsToArmy(army1, 10, 'warlord');
+        this.addActorsToArmy(army2, 10, 'Winter demon');
+
+        const battleLevel = RG.FACT.createLevel('arena', 60, 30);
+        battle.setLevel(battleLevel);
+        battle.addArmy(army1, 1, 1);
+        battle.addArmy(army2, 1, 2);
+
+        game.addBattle(battle);
+
+        game.addPlayer(player);
+        return game;
+    };
+
+    this.addActorsToArmy = function(army, num, name) {
+        for (let i = 0; i < num; i++) {
+            const actor = _parser.createActualObj('actors', name);
+            actor.setFOVRange(10);
+            army.addActor(actor);
+        }
     };
 
     var _listener = null;
 
     this.createLastBattle = function(game, obj) {
-        var level = this.createLevel('town', obj.cols, obj.rows,
-            {nHouses: 10, minHouseX: 5, maxHouseX: 10, minHouseY: 5, maxHouseY: 10,
-                parser: _parser, func: function(item) {return item.type === 'armour';}}
-        );
+        const levelConf = cityConfBase(_parser);
+        var level = this.createLevel('town', obj.cols, obj.rows, levelConf);
         _listener = new DemonKillListener(game, level);
 
         this.createHumanArmy(level, _parser);
