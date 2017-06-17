@@ -22,8 +22,8 @@ RG.Actor.Rogue = function(name) { // {{{2
     this._isPlayer = false;
     let _fovRange = RG.FOV_RANGE;
 
-    const _invEq = new RG.Inv.Inventory(this);
-    const _maxWeight = 10.0;
+    this._invEq = new RG.Inv.Inventory(this);
+    this._maxWeight = 10.0;
 
     // Components for this entity
     this.add('Action', new RG.Component.Action());
@@ -34,14 +34,6 @@ RG.Actor.Rogue = function(name) { // {{{2
 
     this.setName = function(name) {_name = name;};
     this.getName = function() {return _name;};
-
-
-    /* Returns carrying capacity of the actor.*/
-    this.getMaxWeight = function() {
-        var statStr = this.get('Stats').getStrength();
-        var eqStr = _invEq.getEquipment().getStrength();
-        return 2 * statStr + 2 * eqStr + _maxWeight;
-    };
 
     /* Returns true if actor is a player.*/
     this.isPlayer = function() {return this._isPlayer;};
@@ -71,31 +63,38 @@ RG.Actor.Rogue = function(name) { // {{{2
     // Equipment related methods
     //---------------------------------
 
-    this.getInvEq = function() { return _invEq; };
+    this.getInvEq = function() { return this._invEq; };
 
     /* Returns weapon that is wielded by the actor.*/
-    this.getWeapon = function() {return _invEq.getWeapon();};
+    this.getWeapon = function() {return this._invEq.getWeapon();};
 
     /* Returns missile equipped by the player.*/
     this.getMissile = function() {
-        return _invEq.getEquipment().getItem('missile');
+        return this._invEq.getEquipment().getItem('missile');
     };
 
     this.getEquipAttack = function() {
-        return _invEq.getEquipment().getAttack();
+        return this._invEq.getEquipment().getAttack();
     };
 
     this.getEquipDefense = function() {
-        return _invEq.getEquipment().getDefense();
+        return this._invEq.getEquipment().getDefense();
     };
 
     this.getEquipProtection = function() {
-        return _invEq.getEquipment().getProtection();
+        return this._invEq.getEquipment().getProtection();
     };
 
 };
 RG.extend2(RG.Actor.Rogue, RG.Object.Locatable);
 RG.extend2(RG.Actor.Rogue, RG.Entity);
+
+/* Returns carrying capacity of the actor.*/
+RG.Actor.Rogue.prototype.getMaxWeight = function() {
+    var statStr = this.get('Stats').getStrength();
+    var eqStr = this._invEq.getEquipment().getStrength();
+    return 2 * statStr + 2 * eqStr + this._maxWeight;
+};
 
 /* Marks actor as player. Cannot unset player.*/
 RG.Actor.Rogue.prototype.setIsPlayer = function(isPlayer) {
