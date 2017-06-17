@@ -32,6 +32,34 @@ const cityConfBase = function(_parser, conf) {
     return result;
 };
 
+/* Determines the x-y sizes for different types of levels. */
+const levelSizes = {
+    tile: {
+
+    },
+
+    mountain: {
+
+    },
+
+    dungeon: {
+
+    },
+
+    city: {
+
+    }
+};
+
+
+/* Player stats based on user selection.*/
+const confPlayerStats = {
+    Weak: {att: 1, def: 1, prot: 1, hp: 15, Weapon: 'Dagger'},
+    Medium: {att: 2, def: 4, prot: 2, hp: 25, Weapon: 'Short sword'},
+    Strong: {att: 5, def: 6, prot: 3, hp: 40, Weapon: 'Tomahawk'},
+    Inhuman: {att: 10, def: 10, prot: 4, hp: 80, Weapon: 'Magic sword'}
+};
+
 
 //---------------------------------------------------------------------------
 // FACTORY OBJECTS
@@ -233,7 +261,7 @@ RG.Factory.Base = function() { // {{{2
             }
         }
         else {
-            RG.err('Factory', 'createShop', 'No houses in mapObj.');
+            RG.err('Factory.Base', 'createShop', 'No houses in mapObj.');
         }
     };
 
@@ -243,15 +271,6 @@ RG.Factory.Base = function() { // {{{2
         const levelType = RG.Map.Generator.getRandType();
         const level = this.createLevel(levelType, cols, rows);
         return level;
-    };
-
-
-    /* Player stats based on user selection.*/
-    this.playerStats = {
-        Weak: {att: 1, def: 1, prot: 1, hp: 15, Weapon: 'Dagger'},
-        Medium: {att: 2, def: 4, prot: 2, hp: 25, Weapon: 'Short sword'},
-        Strong: {att: 5, def: 6, prot: 3, hp: 40, Weapon: 'Tomahawk'},
-        Inhuman: {att: 10, def: 10, prot: 4, hp: 80, Weapon: 'Magic sword'}
     };
 
     /* Adds N random items to the level based on maximum value.*/
@@ -395,6 +414,240 @@ RG.Factory.Feature = function() {
 };
 RG.extend2(RG.Factory.Feature, RG.Factory.Base);
 
+/* Factory object for creating worlds and features. Uses conf object which is
+ * somewhat involved. For an example, see ../data/conf.world.js. This Factory
+ * does not have any procedural generation. The configuration object can be
+ * generated procedurally, and the factory will then use the configuration for
+ * building the world. Separation of concerns, you know.
+ */
+RG.Factory.World = function() {
+
+    this.featureFactory = new RG.Factory.Feature();
+
+    this.scope = []; // Keeps track of hierarchical names of places
+
+    this.pushScope = name => {
+        this.scope.push(name);
+    };
+
+    this.popScope = name => {
+        const poppedName = this.scope.pop();
+        if (poppedName !== name) {
+            RG.err('Factory.World', 'popScope',
+                `Popped: ${poppedName}, Expected: ${name}`);
+        }
+    };
+
+    /* Returns the full hierarchical name of feature. */
+    this.getHierName = () => this.scope.join('.');
+
+    /* Verifies that configuration contains all required keys.*/
+    this.verifyConf = function(msg, conf, required) {
+        let ok = true;
+        required.forEach(req => {
+            if (!conf.hasOwnProperty(req)) {
+                ok = false;
+                RG.err('Factory.World', 'verifyConf',
+                    `Missing conf arg: ${req}`);
+            }
+        });
+        if (!ok) {
+            RG.err('Factory.World', 'verifyConf', msg);
+        }
+        return ok;
+    };
+
+    /* Creates a world using given configuration. */
+    this.createWorld = function(conf) {
+        this.verifyConf('createWorld', conf, ['name', 'nAreas']);
+        this.pushScope(conf.name);
+        const world = new RG.World.World(conf.name);
+        for (let i = 0; i < conf.nAreas; i++) {
+            const areaConf = conf.area[i];
+            const area = this.createArea(areaConf);
+            world.addArea(area);
+        }
+        this.popScope(conf.name);
+        return world;
+    };
+
+    /* Creates an area which can be added to a world. */
+    this.createArea = function(conf) {
+        this.verifyConf('createArea', conf,
+            ['name', 'maxX', 'maxY']);
+        this.pushScope(conf.name);
+        const area = new RG.World.Area(conf.name, conf.maxX, conf.maxY);
+        area.setHierName(this.getHierName());
+        const nDungeons = conf.nDungeons || 0;
+        const nMountains = conf.nMountains || 0;
+        const nCities = conf.nCities || 0;
+
+        for (let i = 0; i < nDungeons; i++) {
+            const dungeonConf = conf.dungeon[i];
+            const dungeon = this.createDungeon(dungeonConf);
+            area.addDungeon(dungeon);
+            this.createConnection(area, dungeon, dungeonConf);
+        }
+
+        for (let i = 0; i < nMountains; i++) {
+            const mountainConf = conf.mountain[i];
+            const mountain = this.createMountain(mountainConf);
+            area.addMountain(mountain);
+            this.createConnection(area, mountain, mountainConf);
+        }
+
+        for (let i = 0; i < nCities; i++) {
+            const cityConf = conf.city[i];
+            const city = this.createCity(cityConf);
+            area.addCity(city);
+            this.createConnection(area, city, cityConf);
+        }
+        this.popScope(conf.name);
+        return area;
+    };
+
+
+    this.createDungeon = function(conf) {
+        this.verifyConf('createDungeon', conf,
+            ['name', 'nBranches']);
+        this.pushScope(conf.name);
+
+        const dungeon = new RG.World.Dungeon(conf.name);
+        dungeon.setHierName(this.getHierName());
+
+        for (let i = 0; i < conf.nBranches; i++) {
+            const branchConf = conf.branch[i];
+            const branch = this.createBranch(branchConf);
+            dungeon.addBranch(branch);
+        }
+
+        if (conf.entrance) {
+            dungeon.setEntrance(conf.entrance);
+        }
+
+        // Connect branches according to configuration
+        if (conf.nBranches > 1) {
+            if (conf.connect) {
+                conf.connect.forEach( conn => {
+                    if (conn.length === 4) {
+                        // conn has len 4, spread it out
+                        dungeon.connectBranches(...conn);
+                    }
+                    else {
+                        RG.err('Factory.World', 'createDungeon',
+                            'Each connection.length must be 4.');
+                    }
+                });
+            }
+            else {
+                RG.err('Factory.World', 'createDungeon',
+                    'nBranches > 1, but no conf.connect.');
+            }
+        }
+
+        this.popScope(conf.name);
+        return dungeon;
+    };
+
+    /* Creates one dungeon branch and all levels inside it. */
+    this.createBranch = function(conf) {
+        this.verifyConf('createBranch', conf,
+            ['name', 'nLevels']);
+        this.pushScope(conf.name);
+        const branch = new RG.World.Branch(conf.name);
+        branch.setHierName(this.getHierName());
+        for (let i = 0; i < conf.nLevels; i++) {
+            // TODO: Level configuration can be quite complex. Support random
+            // and customly created levels somehow
+            // const level = RG.FACT.createLevel('cellular', 30, 30, {});
+            const levelConf = {
+                x: 40,
+                y: 40,
+                sqrPerMonster: 20,
+                sqrPerItem: 20,
+                maxValue: 20 * (i + 1),
+                nLevel: i,
+                special: [] // TODO for special levels
+            };
+            const level = this.featureFactory.createDungeonLevel(levelConf);
+            branch.addLevel(level);
+        }
+        branch.connectLevels();
+        this.popScope(conf.name);
+        return branch;
+    };
+
+    this.createMountain = function(conf) {
+        this.verifyConf('createMountain', conf, ['name']);
+        this.pushScope(conf.name);
+        const mountain = new RG.World.Mountain(conf.name);
+        mountain.setHierName(this.getHierName());
+
+        this.pushScope('face1');
+        const northFace = new RG.World.MountainFace();
+        const mConf = { x: 50, y: 200 };
+        const level = this.featureFactory.createMountainLevel(mConf);
+        northFace.addLevel(level);
+        mountain.addFace(northFace);
+        this.popScope('face1');
+
+        this.popScope(conf.name);
+        return mountain;
+    };
+
+    this.createCity = function(conf) {
+        this.verifyConf('createCity', conf, ['name']);
+        this.pushScope(conf.name);
+        const cityConf = {
+            x: 100,
+            y: 100
+        };
+        const city = new RG.World.City(conf.name);
+        city.setHierName(this.getHierName());
+        const level = this.featureFactory.createCityLevel(cityConf);
+        city.addLevel(level);
+        this.popScope(conf.name);
+        return city;
+    };
+
+    /* Creates a connection between an area and a feature such as city, mountain
+     * or dungeon. Unless configured, connects the feature entrance to a random
+     * location in the area. */
+    this.createConnection = function(area, feature, conf) {
+        this.verifyConf('createConnection', conf, ['x', 'y']);
+
+        const x = conf.x;
+        const y = conf.y;
+        const tile = area.getTileXY(x, y);
+        const tileLevel = tile.getLevel();
+
+        const freeAreaCell = tileLevel.getEmptyRandCell();
+        const freeX = freeAreaCell.getX();
+        const freeY = freeAreaCell.getY();
+
+        if (feature.hasOwnProperty('getEntrances')) {
+            const entrances = feature.getEntrances();
+            if (entrances.length > 0) {
+                const entranceStairs = entrances[0];
+                const entranceLevel = entranceStairs.getSrcLevel();
+                const isDown = !entranceStairs.isDown();
+                const tileStairs = new Stairs(isDown, tileLevel, entranceLevel);
+                tileLevel.addStairs(tileStairs, freeX, freeY);
+                tileStairs.connect(entranceStairs);
+            }
+            else {
+                const msg = `No entrances in ${feature.getHierName()}.`;
+                RG.err('Factory.World', 'createConnection',
+                    `${msg}. Cannot connect to tile.`);
+            }
+        }
+        else { // No entrance for feature, what to do?
+            console.warn(
+                'No getEntrances method for feature. Skipping connect');
+        }
+    };
+};
+
 RG.FCCGame = function() {
     RG.Factory.Base.call(this);
 
@@ -405,7 +658,7 @@ RG.FCCGame = function() {
         let player = obj.loadedPlayer;
         if (RG.isNullOrUndef([player])) {
             const expLevel = obj.playerLevel;
-            const pConf = this.playerStats[expLevel];
+            const pConf = confPlayerStats[expLevel];
 
             player = this.createPlayer(obj.playerName, {
                 att: pConf.att, def: pConf.def, prot: pConf.prot
@@ -655,14 +908,15 @@ RG.FCCGame = function() {
     };
 
     this.createFullWorld = function(obj, game, player) {
-        const conf = obj.world;
-        if (!conf) {
+        const worldConf = obj.world;
+        if (!worldConf) {
             RG.err('Factory', 'createFullWorld',
                 'obj.world must exist!');
             return null;
         }
-        const fact = new RG.World.Factory();
-        const world = fact.createWorld(conf);
+        worldConf.levelSize = obj.levelSize;
+        const fact = new RG.Factory.World();
+        const world = fact.createWorld(worldConf);
         const levels = world.getLevels();
 
         if (levels.length > 0) {
