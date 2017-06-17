@@ -46,23 +46,23 @@ RG.Factory.ItemRandomizer = function() {
     /* Only public function. All logic is deferred to private functions.
      * Adjusts the properties of given item, based also on maxValue.*/
     this.adjustItem = function(item, val) {
-        var itemType = item.getType();
+        const itemType = item.getType();
         if (_adjustFunctions.hasOwnProperty(itemType)) {
             _adjustFunctions[itemType](item, val);
         }
     };
 
     /* Distr. of food weights.*/
-    var _foodWeights = RG.getFoodWeightDistr();
+    const _foodWeights = RG.getFoodWeightDistr();
 
 
-    var _adjustFoodItem = function(food) {
-        var weight = ROT.RNG.getWeightedValue(_foodWeights);
+    const _adjustFoodItem = function(food) {
+        const weight = ROT.RNG.getWeightedValue(_foodWeights);
         food.setWeight(weight);
     };
 
     /* LUT for functions to call on specific items.*/
-    var _adjustFunctions = {
+    const _adjustFunctions = {
         food: _adjustFoodItem
     };
 
@@ -71,18 +71,18 @@ RG.Factory.ItemRandomizer = function() {
 /* Factory object for creating some commonly used objects.*/
 RG.Factory.Base = function() { // {{{2
 
-    var _itemRandomizer = new RG.Factory.ItemRandomizer();
+    const _itemRandomizer = new RG.Factory.ItemRandomizer();
 
-    var _initCombatant = function(comb, obj) {
-        var hp = obj.hp;
-        var att = obj.att;
-        var def = obj.def;
-        var prot = obj.prot;
+    const _initCombatant = function(comb, obj) {
+        const hp = obj.hp;
+        const att = obj.att;
+        const def = obj.def;
+        const prot = obj.prot;
 
         if (!RG.isNullOrUndef([hp])) {
             comb.add('Health', new RG.Component.Health(hp));
         }
-        var combatComp = new RG.Component.Combat();
+        const combatComp = new RG.Component.Combat();
 
         if (!RG.isNullOrUndef([att])) {combatComp.setAttack(att);}
         if (!RG.isNullOrUndef([def])) {combatComp.setDefense(def);}
@@ -93,7 +93,7 @@ RG.Factory.Base = function() { // {{{2
 
     /* Creates a new die object from array or die expression '2d4 + 3' etc.*/
     this.createDie = function(strOrArray) {
-        var numDiceMod = RG.parseDieSpec(strOrArray);
+        const numDiceMod = RG.parseDieSpec(strOrArray);
         if (numDiceMod.length === 3) {
             return new RG.Die(numDiceMod[0], numDiceMod[1], numDiceMod[2]);
         }
@@ -102,7 +102,7 @@ RG.Factory.Base = function() { // {{{2
 
     /* Factory method for players.*/
     this.createPlayer = function(name, obj) {
-        var player = new RG.Actor.Rogue(name);
+        const player = new RG.Actor.Rogue(name);
         player.setIsPlayer(true);
         _initCombatant(player, obj);
         return player;
@@ -110,17 +110,17 @@ RG.Factory.Base = function() { // {{{2
 
     /* Factory method for monsters.*/
     this.createActor = function(name, obj) {
-        var monster = new RG.Actor.Rogue(name);
+        const monster = new RG.Actor.Rogue(name);
         if (RG.isNullOrUndef([obj])) {obj = {};}
 
-        var brain = obj.brain;
+        const brain = obj.brain;
         _initCombatant(monster, obj);
         if (!RG.isNullOrUndef([brain])) {
             if (typeof brain === 'object') {
                 monster.setBrain(brain);
             }
             else { // If brain is string, use factory to create a new one
-                var newBrain = this.createBrain(monster, brain);
+                const newBrain = this.createBrain(monster, brain);
                 monster.setBrain(newBrain);
             }
         }
@@ -153,9 +153,9 @@ RG.Factory.Base = function() { // {{{2
 
     /* Factory method for creating levels.*/
     this.createLevel = function(levelType, cols, rows, conf) {
-        var mapgen = new RG.Map.Generator();
-        var mapObj = null;
-        var level = new RG.Map.Level(cols, rows);
+        const mapgen = new RG.Map.Generator();
+        let mapObj = null;
+        const level = new RG.Map.Level(cols, rows);
 
         if (levelType === 'town') {
             mapObj = mapgen.createTown(cols, rows, conf);
@@ -191,40 +191,40 @@ RG.Factory.Base = function() { // {{{2
 
     this.createHouseElements = function(level, mapObj) {
         if (!mapObj.hasOwnProperty('houses')) {return;}
-        var map = mapObj.map;
-        var houses = mapObj.houses;
-        for (var i = 0; i < houses.length; i++) {
-            var doorXY = houses[i].door;
-            var door = new RG.Element.Door(true);
+        const map = mapObj.map;
+        const houses = mapObj.houses;
+        for (let i = 0; i < houses.length; i++) {
+            const doorXY = houses[i].door;
+            const door = new RG.Element.Door(true);
             map.getCell(doorXY[0], doorXY[1]).setProp('elements', door);
         }
     };
 
     /* Creates a shop and a shopkeeper into a random house in the given level.*/
     this.createShop = function(level, mapObj, conf) {
-        var map = mapObj.map;
+        const map = mapObj.map;
         if (mapObj.hasOwnProperty('houses')) {
-            var houses = mapObj.houses;
-            var nlength = houses.length;
-            var index = Math.floor(nlength * Math.random());
-            var house = mapObj.houses[index];
-            var floor = house.floor;
+            const houses = mapObj.houses;
+            const nlength = houses.length;
+            const index = Math.floor(nlength * Math.random());
+            const house = mapObj.houses[index];
+            const floor = house.floor;
 
-            var doorXY = house.door;
-            var door = new RG.Element.Door(true);
+            const doorXY = house.door;
+            const door = new RG.Element.Door(true);
             map.getCell(doorXY[0], doorXY[1]).setProp('elements', door);
 
-            var keeper = this.createActor('Shopkeeper', {brain: 'Human'});
-            for (var i = 0; i < floor.length; i++) {
-                var xy = floor[i];
+            const keeper = this.createActor('Shopkeeper', {brain: 'Human'});
+            for (let i = 0; i < floor.length; i++) {
+                const xy = floor[i];
                 if (i === 0) {level.addActor(keeper, xy[0], xy[1]);}
-                var cell = map.getCell(xy[0], xy[1]);
-                var shopElem = new RG.Element.Shop();
+                const cell = map.getCell(xy[0], xy[1]);
+                const shopElem = new RG.Element.Shop();
                 shopElem.setShopkeeper(keeper);
                 cell.setProp('elements', shopElem);
 
                 if (conf.hasOwnProperty('parser')) {
-                    var item = conf.parser.createRandomItem({
+                    const item = conf.parser.createRandomItem({
                         func: conf.func
                     });
                     item.add('Unpaid', new RG.Component.Unpaid());
@@ -240,8 +240,8 @@ RG.Factory.Base = function() { // {{{2
     /* Creates a randomized level for the game. Danger level controls how the
      * randomization is done. */
     this.createRandLevel = function(cols, rows) {
-        var levelType = RG.Map.Generator.getRandType();
-        var level = this.createLevel(levelType, cols, rows);
+        const levelType = RG.Map.Generator.getRandType();
+        const level = this.createLevel(levelType, cols, rows);
         return level;
     };
 
@@ -257,35 +257,35 @@ RG.Factory.Base = function() { // {{{2
     /* Adds N random items to the level based on maximum value.*/
     this.addNRandItems = function(parser, itemsPerLevel, level, maxVal, func) {
         // Generate the items randomly for this level
-        for (var j = 0; j < itemsPerLevel; j++) {
-            var item = parser.createRandomItem({
+        for (let j = 0; j < itemsPerLevel; j++) {
+            const item = parser.createRandomItem({
                 func: func
             });
             _doItemSpecificAdjustments(item, maxVal);
-            var itemCell = level.getFreeRandCell();
+            const itemCell = level.getFreeRandCell();
             level.addItem(item, itemCell.getX(), itemCell.getY());
         }
-        var food = parser.createRandomItem({func: function(item) {
+        const food = parser.createRandomItem({func: function(item) {
             return item.type === 'food';
         }});
-        var foodCell = level.getFreeRandCell();
-        _doItemSpecificAdjustments(item, maxVal);
+        const foodCell = level.getFreeRandCell();
+        _doItemSpecificAdjustments(food, maxVal);
         level.addItem(food, foodCell.getX(), foodCell.getY());
     };
 
     /* Adds N random monsters to the level based on given danger level.*/
     this.addNRandMonsters = (parser, monstersPerLevel, level, maxDanger) => {
         // Generate the monsters randomly for this level
-        for (var i = 0; i < monstersPerLevel; i++) {
-            var cell = level.getFreeRandCell();
-            /* var monster = parser.createRandomActor({
+        for (let i = 0; i < monstersPerLevel; i++) {
+            const cell = level.getFreeRandCell();
+            /* const monster = parser.createRandomActor({
                 func: function(actor){return actor.danger <= maxDanger;}
             });*/
-            var monster = parser.createRandomActorWeighted(1, maxDanger,
+            const monster = parser.createRandomActorWeighted(1, maxDanger,
                 {func: function(actor) {return actor.danger <= maxDanger;}}
             );
-            var objShell = parser.dbGet('actors', monster.getName());
-            var expLevel = maxDanger - objShell.danger;
+            const objShell = parser.dbGet('actors', monster.getName());
+            const expLevel = maxDanger - objShell.danger;
             if (expLevel > 1) {
                 RG.levelUpActor(monster, expLevel);
             }
@@ -295,28 +295,28 @@ RG.Factory.Base = function() { // {{{2
 
 
     /* Called for random items. Adjusts some of their attributes randomly.*/
-    var _doItemSpecificAdjustments = function(item, val) {
+    const _doItemSpecificAdjustments = function(item, val) {
         _itemRandomizer.adjustItem(item, val);
     };
 
 
     this.createHumanArmy = function(level, parser) {
-        for (var y = 0; y < 2; y++) {
-            for (var x = 0; x < 20; x++) {
-                var human = parser.createActualObj('actors', 'fighter');
+        for (let y = 0; y < 2; y++) {
+            for (let x = 0; x < 20; x++) {
+                const human = parser.createActualObj('actors', 'fighter');
                 level.addActor(human, x + 1, 4 + y);
             }
 
-            var warlord = parser.createActualObj('actors', 'warlord');
+            const warlord = parser.createActualObj('actors', 'warlord');
             level.addActor(warlord, 10, y + 7);
         }
 
     };
 
     this.spawnDemonArmy = function(level, parser) {
-        for (var y = 0; y < 2; y++) {
-            for (var i = 0; i < 10; i++) {
-                var demon = parser.createActualObj('actors', 'Winter demon');
+        for (let y = 0; y < 2; y++) {
+            for (let i = 0; i < 10; i++) {
+                const demon = parser.createActualObj('actors', 'Winter demon');
                 level.addActor(demon, i + 10, 14 + y);
                 RG.POOL.emitEvent(RG.EVT_ACTOR_CREATED, {actor: demon,
                     level: level, msg: 'DemonSpawn'});
@@ -325,11 +325,12 @@ RG.Factory.Base = function() { // {{{2
     };
 
     this.spawnBeastArmy = function(level, parser) {
-        var x0 = level.getMap().cols / 2;
-        var y0 = level.getMap().rows / 2;
-        for (var y = y0; y < y0 + 2; y++) {
-            for (var x = x0; x < x0 + 10; x++) {
-                var beast = parser.createActualObj('actors', 'Blizzard beast');
+        const x0 = level.getMap().cols / 2;
+        const y0 = level.getMap().rows / 2;
+        for (let y = y0; y < y0 + 2; y++) {
+            for (let x = x0; x < x0 + 10; x++) {
+                const beast = parser.createActualObj('actors',
+                    'Blizzard beast');
                 level.addActor(beast, x + 10, 14 + y);
                 RG.POOL.emitEvent(RG.EVT_ACTOR_CREATED, {actor: beast,
                     level: level, msg: 'DemonSpawn'});
@@ -346,7 +347,7 @@ RG.FACT = new RG.Factory.Base();
 RG.Factory.Feature = function() {
     RG.Factory.Base.call(this);
 
-    var _parser = new RG.ObjectShellParser();
+    const _parser = new RG.ObjectShellParser();
     _parser.parseShellData(RG.Effects);
     _parser.parseShellData(RGObjects);
 
@@ -397,14 +398,14 @@ RG.extend2(RG.Factory.Feature, RG.Factory.Base);
 RG.FCCGame = function() {
     RG.Factory.Base.call(this);
 
-    var _parser = new RG.ObjectShellParser();
+    const _parser = new RG.ObjectShellParser();
 
     /* Creates a player actor and starting inventory.*/
     this.createFCCPlayer = function(game, obj) {
-        var player = obj.loadedPlayer;
+        let player = obj.loadedPlayer;
         if (RG.isNullOrUndef([player])) {
-            var expLevel = obj.playerLevel;
-            var pConf = this.playerStats[expLevel];
+            const expLevel = obj.playerLevel;
+            const pConf = this.playerStats[expLevel];
 
             player = this.createPlayer(obj.playerName, {
                 att: pConf.att, def: pConf.def, prot: pConf.prot
@@ -412,7 +413,8 @@ RG.FCCGame = function() {
 
             player.setType('player');
             player.add('Health', new RG.Component.Health(pConf.hp));
-            var startingWeapon = _parser.createActualObj('items', pConf.Weapon);
+            const startingWeapon = _parser.createActualObj(
+                'items', pConf.Weapon);
             player.getInvEq().addItem(startingWeapon);
             player.getInvEq().equipItem(startingWeapon);
         }
@@ -427,33 +429,32 @@ RG.FCCGame = function() {
             player.remove('Hunger');
             player.add('Hunger', hunger);
         }
-        var regenPlayer = new RG.Time.RogueRegenEvent(player,
+        const regenPlayer = new RG.Time.RogueRegenEvent(player,
             20 * RG.ACTION_DUR);
         game.addEvent(regenPlayer);
         return player;
     };
 
 
-    var that = this; // For private objects/functions
+    const that = this; // For private objects/functions
 
     // Private object for checking when battle is done
     const DemonKillListener = function(game, level) {
 
         // Needed for adding monsters and events
-        var _game = game;
-        var _level = level;
+        const _game = game;
+        const _level = level;
 
-        var _maxBeasts = 0;
-        var _maxDemons = 0;
-
-        var _beastsKilled = 0;
-        var _demonsKilled = 0;
+        let _maxBeasts = 0;
+        let _maxDemons = 0;
+        let _beastsKilled = 0;
+        let _demonsKilled = 0;
 
         this.hasNotify = true;
         this.notify = function(evtName, obj) {
             if (evtName === RG.EVT_ACTOR_CREATED) {
                 if (obj.hasOwnProperty('msg') && obj.msg === 'DemonSpawn') {
-                    var actorCreated = obj.actor;
+                    const actorCreated = obj.actor;
                     if (actorCreated.getName() === 'Winter demon') {
                         ++_maxDemons;
                     }
@@ -463,7 +464,7 @@ RG.FCCGame = function() {
                 }
             }
             else if (evtName === RG.EVT_ACTOR_KILLED) {
-                var actor = obj.actor;
+                const actor = obj.actor;
                 if (actor.getName() === 'Winter demon') {
                     ++_demonsKilled;
                     if (_demonsKilled === _maxDemons) {
@@ -485,7 +486,7 @@ RG.FCCGame = function() {
         RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
 
         this.addSnow = function(level, ratio) {
-            var map = level.getMap();
+            const map = level.getMap();
             RG.Map.Generator.prototype.addRandomSnow(map, ratio);
         };
 
@@ -493,15 +494,15 @@ RG.FCCGame = function() {
         this.allDemonsKilled = function() {
             RG.gameMsg(
                 "Humans have vanquished all demons! But it's not over..");
-            var windsEvent = new RG.Time.RogueOneShotEvent(
+            const windsEvent = new RG.Time.RogueOneShotEvent(
                 this.addSnow.bind(this, _level, 0.2), 20 * 100,
                 "Winds are blowing stronger. You feel it's getting colder"
             );
             _game.addEvent(windsEvent);
-            var stormEvent = new RG.Time.RogueOneShotEvent( () => {}, 35 * 100,
-                MSG.EYE_OF_STORM);
+            const stormEvent = new RG.Time.RogueOneShotEvent(
+                () => {}, 35 * 100, MSG.EYE_OF_STORM);
             _game.addEvent(stormEvent);
-            var beastEvent = new RG.Time.RogueOneShotEvent(
+            const beastEvent = new RG.Time.RogueOneShotEvent(
                 that.spawnBeastArmy.bind(that, _level, _parser), 50 * 100,
                 'Winter spread by Blizzard Beasts! Hell seems to freeze.');
             _game.addEvent(beastEvent);
@@ -512,10 +513,10 @@ RG.FCCGame = function() {
             RG.gameMsg(MSG.BEASTS_SLAIN);
             // DO a final message of game over
             // Add random people to celebrate
-            var msgEvent = new RG.Time.RogueOneShotEvent(() => {}, 10 * 100,
+            const msgEvent = new RG.Time.RogueOneShotEvent(() => {}, 10 * 100,
                 MSG.ENEMIES_DEAD);
             _game.addEvent(msgEvent);
-            var msgEvent2 = new RG.Time.RogueOneShotEvent(() => {}, 20 * 100,
+            const msgEvent2 = new RG.Time.RogueOneShotEvent(() => {}, 20 * 100,
                 'But Battles in North will continue soon in larger scale...');
             _game.addEvent(msgEvent2);
         };
@@ -525,15 +526,15 @@ RG.FCCGame = function() {
     this.createNewGame = function(obj) {
         _parser.parseShellData(RG.Effects);
         _parser.parseShellData(RGObjects);
-        var cols = obj.cols;
-        var rows = obj.rows;
-        var nLevels = obj.levels;
-        var sqrPerMonster = obj.sqrPerMonster;
-        var sqrPerItem = obj.sqrPerItem;
+        const cols = obj.cols;
+        const rows = obj.rows;
+        const nLevels = obj.levels;
+        const sqrPerMonster = obj.sqrPerMonster;
+        const sqrPerItem = obj.sqrPerItem;
 
-        var levelCount = 1;
-        var game = new RG.Game.Main();
-        var player = this.createFCCPlayer(game, obj);
+        let levelCount = 1;
+        const game = new RG.Game.Main();
+        const player = this.createFCCPlayer(game, obj);
 
         if (obj.debugMode === 'Arena') {
             return this.createArenaDebugGame(obj, game, player);
@@ -548,38 +549,38 @@ RG.FCCGame = function() {
             return this.createFullWorld(obj, game, player);
         }
 
-        var levels = ['rooms', 'rogue', 'digger'];
-        var maxLevelType = levels.length;
+        const levels = ['rooms', 'rogue', 'digger'];
+        const maxLevelType = levels.length;
 
         // For storing stairs and levels
-        var allStairsDown = [];
-        var allLevels = [];
+        const allStairsDown = [];
+        const allLevels = [];
 
-        var branch = new RG.World.Branch('StartBranch');
+        const branch = new RG.World.Branch('StartBranch');
 
         const itemConstraint = function(maxVal) {
             return function(item) {return item.value <= maxVal;};
         };
         // Generate all game levels
-        for (var nl = 0; nl < nLevels; nl++) {
+        for (let nl = 0; nl < nLevels; nl++) {
 
-            var nLevelType = Math.floor(Math.random() * maxLevelType);
-            var levelType = levels[nLevelType];
+            const nLevelType = Math.floor(Math.random() * maxLevelType);
+            let levelType = levels[nLevelType];
             if (nl === 0) {levelType = 'ruins';}
-            var level = this.createLevel(levelType, cols, rows);
+            const level = this.createLevel(levelType, cols, rows);
             branch.addLevel(level);
 
-            var numFree = level.getMap().getFree().length;
-            var monstersPerLevel = Math.round(numFree / sqrPerMonster);
-            var itemsPerLevel = Math.round(numFree / sqrPerItem);
+            const numFree = level.getMap().getFree().length;
+            const monstersPerLevel = Math.round(numFree / sqrPerMonster);
+            const itemsPerLevel = Math.round(numFree / sqrPerItem);
 
-            var potion = new RG.Item.Potion('Healing potion');
+            const potion = new RG.Item.Potion('Healing potion');
             level.addItem(potion);
-            var missile = _parser.createActualObj('items', 'Shuriken');
+            const missile = _parser.createActualObj('items', 'Shuriken');
             missile.count = 20;
             level.addItem(missile);
 
-            var maxVal = 20 * (nl + 1);
+            const maxVal = 20 * (nl + 1);
             this.addNRandItems(_parser, itemsPerLevel, level, maxVal,
                 itemConstraint(maxVal)
             );
@@ -589,47 +590,45 @@ RG.FCCGame = function() {
         }
 
         // Create the final boss
-        var lastLevel = allLevels.slice(-1)[0];
-        console.log(JSON.stringify(allLevels));
-        var bossCell = lastLevel.getFreeRandCell();
-        var summoner = this.createActor('Summoner',
+        const lastLevel = allLevels.slice(-1)[0];
+        const bossCell = lastLevel.getFreeRandCell();
+        const summoner = this.createActor('Summoner',
             {hp: 100, att: 10, def: 10});
         summoner.setType('summoner');
         summoner.get('Experience').setExpLevel(10);
         summoner.setBrain(new RG.Brain.Summoner(summoner));
         lastLevel.addActor(summoner, bossCell.getX(), bossCell.getY());
 
-        var townLevel = this.createLastBattle(game, {cols: 80, rows: 60});
+        const townLevel = this.createLastBattle(game, {cols: 80, rows: 60});
         townLevel.setLevelNumber(levelCount++);
 
         branch.connectLevels();
         game.addPlace(branch);
 
-        var finalStairs = new Stairs(true, allLevels[nLevels - 1], townLevel);
-        var stairsLoot = new RG.Component.Loot(finalStairs);
+        const finalStairs = new Stairs(true, allLevels[nLevels - 1], townLevel);
+        const stairsLoot = new RG.Component.Loot(finalStairs);
         summoner.add('Loot', stairsLoot);
         allStairsDown.push(finalStairs);
 
-        var lastStairsDown = allStairsDown.slice(-1)[0];
-        var townStairsUp = new Stairs(false, townLevel, lastLevel);
-        var rStairCell = townLevel.getFreeRandCell();
+        const lastStairsDown = allStairsDown.slice(-1)[0];
+        const townStairsUp = new Stairs(false, townLevel, lastLevel);
+        const rStairCell = townLevel.getFreeRandCell();
         townLevel.addStairs(townStairsUp, rStairCell.getX(), rStairCell.getY());
         townStairsUp.setTargetStairs(lastStairsDown);
         lastStairsDown.setTargetStairs(townStairsUp);
 
         // Create townsfolk for the extra level
         for (let i = 0; i < 10; i++) {
-            var name = 'Townsman';
-            var human = this.createActor(name, {brain: 'Human'});
+            const name = 'Townsman';
+            const human = this.createActor(name, {brain: 'Human'});
             human.setType('human');
-            var cell = townLevel.getFreeRandCell();
+            const cell = townLevel.getFreeRandCell();
             townLevel.addActor(human, cell.getX(), cell.getY());
         }
 
         // Restore player position or start from beginning
         if (obj.loadedLevel !== null) {
-            var loadLevel = obj.loadedLevel;
-            console.log('Adding player to level ' + loadLevel);
+            const loadLevel = obj.loadedLevel;
             if (loadLevel <= nLevels) {
                 allLevels[loadLevel - 1].addActorToFreeCell(player);
             }
@@ -643,7 +642,7 @@ RG.FCCGame = function() {
 
     };
 
-    var _playerFOV = RG.FOV_RANGE;
+    let _playerFOV = RG.FOV_RANGE;
 
     this.createTiledWorld = function(obj, game, player) {
         const area = new RG.World.Area('Kingdom', 4, 4);
@@ -682,47 +681,48 @@ RG.FCCGame = function() {
 
     /* Can be used to create a short debugging game for testing.*/
     this.createArenaDebugGame = function(obj, game, player) {
-        var sqrPerItem = obj.sqrPerItem;
-        var level = this.createLastBattle(game, obj);
+        const sqrPerItem = obj.sqrPerItem;
+        const level = this.createLastBattle(game, obj);
 
-        var spirit = new RG.Actor.Spirit('Wolf spirit');
+        const spirit = new RG.Actor.Spirit('Wolf spirit');
         spirit.get('Stats').setStrength(500);
         level.addActor(spirit, 2, 1);
 
-        var gem = new RG.Item.SpiritGem('Lesser gem');
+        const gem = new RG.Item.SpiritGem('Lesser gem');
         level.addItem(gem);
 
-        var pickaxe = _parser.createActualObj('items', 'Pick-axe');
+        const pickaxe = _parser.createActualObj('items', 'Pick-axe');
         level.addItem(pickaxe, 2, 2);
 
-        var poison = _parser.createActualObj('items', 'Potion of frost poison');
+        const poison = _parser.createActualObj('items',
+            'Potion of frost poison');
         poison.count = 5;
         level.addItem(poison, 2, 2);
-        var curePoison = _parser.createActualObj('items',
+        const curePoison = _parser.createActualObj('items',
             'Potion of cure poison');
         level.addItem(curePoison, 3, 2);
 
         // Test for shops
-        var keeper = _parser.createActualObj('actors', 'shopkeeper');
+        const keeper = _parser.createActualObj('actors', 'shopkeeper');
         level.addActor(keeper, 2, 2);
-        var shopElem = new RG.Element.Shop();
-        var shopCell = level.getMap().getCell(3, 3);
+        const shopElem = new RG.Element.Shop();
+        const shopCell = level.getMap().getCell(3, 3);
         shopCell.setProp('elements', shopElem);
-        var soldItem = _parser.createActualObj('items', 'Ruby glass sword');
+        const soldItem = _parser.createActualObj('items', 'Ruby glass sword');
         soldItem.add('Unpaid', new RG.Component.Unpaid());
         shopCell.setProp('items', soldItem);
         shopElem.setShopkeeper(keeper);
 
-        var numFree = level.getMap().getFree().length;
-        // var monstersPerLevel = Math.round(numFree / sqrPerMonster);
-        var itemsPerLevel = Math.round(numFree / sqrPerItem);
+        const numFree = level.getMap().getFree().length;
+        // const monstersPerLevel = Math.round(numFree / sqrPerMonster);
+        const itemsPerLevel = Math.round(numFree / sqrPerItem);
         this.addNRandItems(_parser, itemsPerLevel, level, 2500,
             function(item) {return item.value <= 2500;});
         game.addPlayer(player);
 
-        var pepper = _parser.createActualObj('items', 'Ghost pepper');
+        const pepper = _parser.createActualObj('items', 'Ghost pepper');
         player.getInvEq().addItem(pepper);
-        var spiritPot = _parser.createActualObj(
+        const spiritPot = _parser.createActualObj(
             'items', 'Potion of spirit form');
         player.getInvEq().addItem(spiritPot);
 
@@ -731,7 +731,6 @@ RG.FCCGame = function() {
     };
 
     this.createDebugBattle = function(obj, game, player) {
-        console.log('createDebugBattle');
         const battle = new RG.Game.Battle('Battle of ice kingdoms');
         const army1 = new RG.Game.Army('Blue army');
         const army2 = new RG.Game.Army('Red army');
@@ -757,18 +756,18 @@ RG.FCCGame = function() {
     };
 
     /* eslint-disable */
-    var _listener = null;
+    let _listener = null;
     /* eslint-enable */
 
     this.createLastBattle = function(game, obj) {
         const levelConf = cityConfBase(_parser);
-        var level = this.createLevel('town', obj.cols, obj.rows, levelConf);
+        const level = this.createLevel('town', obj.cols, obj.rows, levelConf);
         _listener = new DemonKillListener(game, level);
 
         this.createHumanArmy(level, _parser);
 
         level.setOnFirstEnter(function() {
-            var demonEvent = new RG.Time.RogueOneShotEvent(
+            const demonEvent = new RG.Time.RogueOneShotEvent(
                 that.spawnDemonArmy.bind(that, level, _parser), 100 * 20,
                 'Demon hordes are unleashed from the unsilent abyss!');
             game.addEvent(demonEvent);
