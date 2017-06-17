@@ -169,10 +169,11 @@
     "use-isnan": 2,
     "valid-jsdoc": 2,
     "valid-typeof": 2,
-    "vars-on-top": 0,
+    "vars-on-top": 2,
     "wrap-iife": [ 2, "any" ],
     "wrap-regex": 2,
     "yoda": 0,
+
 
     "react/display-name": 2,
     "react/jsx-boolean-value": [ 2, "always" ],
@@ -180,7 +181,6 @@
     "react/jsx-no-undef": 2,
     "react/jsx-sort-props": [ 2, { "ignoreCase": true } ],
     "react/jsx-uses-react": 2,
-    "react/jsx-uses-vars": 2,
     "react/jsx-wrap-multilines": 2,
     "react/no-did-mount-set-state": 2,
     "react/no-did-update-set-state": 2,
@@ -200,5 +200,6 @@
     "import/no-duplicates": 2,
     "import/no-unresolved": 2,
     "import/unambiguous": 2
+
   }
 }
