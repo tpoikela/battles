@@ -1,6 +1,5 @@
 
 const RG = require('./rg.js');
-
 RG.Item = require('./item.js');
 
 RG.Inv = {};
@@ -12,8 +11,7 @@ RG.Inv = {};
 /* Models one slot in the inventory. */
 RG.Inv.EquipSlot = function(eq, type, stacked) {
     RG.Object.Ownable.call(this, eq);
-    // const _eq = eq;
-    // const _type = type;
+
     let _item = null;
     let _hasItem = false;
     let _unequipped = null;
