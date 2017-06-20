@@ -540,39 +540,12 @@ RG.ObjectShellParser = function() {
 
     };
 
-    //----------------------------------------------------------------------
-    // RANDOMIZED METHODS for procedural generation
-    //----------------------------------------------------------------------
-
-    /* Returns stuff randomly from db. For example, {categ: "actors", num: 2}
-     * returns two random actors (can be the same). Ex2: {danger: 3, num:1}
-     * returns randomly one entry which has danger 3.*/
-    this.dbGetRand = function(query) {
-        const danger = query.danger;
-        const categ = query.categ;
-        if (typeof danger !== 'undefined') {
-            if (typeof categ !== 'undefined') {
-                if (dbDanger.hasOwnProperty(danger)) {
-                    const entries = dbDanger[danger][categ];
-                    return this.getRandFromObj(entries);
-                }
-            }
-        }
-        return null;
-    };
-
-    /* Returns a property from an object, selected randomly. For example,
-     * given object {a: 1, b: 2, c: 3}, may return 1,2 or 3 with equal
-     * probability.*/
-    this.getRandFromObj = function(obj) {
-        const keys = Object.keys(obj);
-        const len = keys.length;
-        const randIndex = Math.floor( Math.random() * len);
-        return obj[keys[randIndex]];
-    };
-
     /* Filters given category with a function. Func gets each object as arg,
-     * and must return either true or false.*/
+     * and must return either true or false. Function can be for example:
+     *   1.func(obj) {if (obj.name === 'wolf') return true;} Or
+     *   2.func(obj) {if (obj.hp > 25) return true;}.
+     *   And it can be as complex as needed of course.
+     * */
     this.filterCategWithFunc = function(categ, func) {
         const objects = this.dbGet({categ: categ});
         const res = [];
@@ -588,6 +561,29 @@ RG.ObjectShellParser = function() {
         }
         return res;
 
+    };
+
+    //----------------------------------------------------------------------
+    // RANDOMIZED METHODS for procedural generation
+    //----------------------------------------------------------------------
+
+    /* Returns random object from the db. For example, {categ: "actors",
+     * danger: 2}
+     * returns a random actors with these constrains.
+     * Ex2: {danger: 3, num:1}
+     * returns randomly one entry which has danger 3.*/
+    this.dbGetRand = function(query) {
+        const danger = query.danger;
+        const categ = query.categ;
+        if (typeof danger !== 'undefined') {
+            if (typeof categ !== 'undefined') {
+                if (dbDanger.hasOwnProperty(danger)) {
+                    const entries = dbDanger[danger][categ];
+                    return this.getRandFromObj(entries);
+                }
+            }
+        }
+        return null;
     };
 
     /* Creates a random actor based on danger value or a filter function.*/
@@ -653,6 +649,16 @@ RG.ObjectShellParser = function() {
         const len = arr.length;
         const randIndex = Math.floor(Math.random() * len);
         return arr[randIndex];
+    };
+
+    /* Returns a property from an object, selected randomly. For example,
+     * given object {a: 1, b: 2, c: 3}, may return 1,2 or 3 with equal
+     * probability.*/
+    this.getRandFromObj = function(obj) {
+        const keys = Object.keys(obj);
+        const len = keys.length;
+        const randIndex = Math.floor( Math.random() * len);
+        return obj[keys[randIndex]];
     };
 
 };
