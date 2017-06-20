@@ -277,3 +277,35 @@ describe('It contains all game content info', function() {
 
 });
 
+describe('It has query functions for objects', function() {
+    const parser = new Parser();
+    parser.parseShellData(Effects);
+    parser.parseShellData(Obs);
+
+    it('can filter query with category/function', () => {
+        const actor = parser.dbGet({name: 'Winter demon'});
+        expect(actor[0].name).to.equal('Winter demon');
+
+        const items = parser.dbGet({categ: 'items'});
+        expect(Object.keys(items)).to.have.length.above(10);
+
+    });
+
+    it('can return objects randomly based on constraints', () => {
+        const actors = parser.dbGetRand({categ: 'actors', danger: 2});
+        expect(actors.danger).to.equal(2);
+
+        for (let i = 1; i < 20; i++) {
+            let maxLimit = i % 10;
+            if (maxLimit <= 1) {
+                ++maxLimit;
+            }
+            const actor = parser.createRandomActorWeighted(1, maxLimit);
+            if (actor !== null) {
+                expect(actor.get('Experience').getDanger())
+                    .to.be.below(maxLimit + 2);
+            }
+        }
+    });
+});
+
