@@ -139,6 +139,19 @@ RG.Map.Cell.prototype.toString = function() {
     return str;
 };
 
+RG.Map.Cell.prototype.toJSON = function() {
+    if (this._baseElem.getType() === 'wall') {return '#';}
+    if (this._baseElem.getType() === 'floor') {return '.';}
+    return this._baseElem.getType();
+    /*
+    return {
+        type: this._baseElem.getType(),
+        x: this._x,
+        y: this._y
+    };
+    */
+};
+
 /* Returns true if any cell property has the given type. Ie.
  * myCell.hasPropType("wall"). Doesn't check for basic props like "actors",
  * RG.TYPE_ITEM etc.
@@ -358,9 +371,17 @@ RG.Map.CellList = function(cols, rows) { // {{{2
 }; // }}} Map.CellList
 
 RG.Map.CellList.prototype.toJSON = function() {
+    const map = [];
+    for (let x = 0; x < this.cols; x++) {
+        map.push([]);
+        for (let y = 0; y < this.rows; y++) {
+            map[x][y] = this.getCell(x, y).toJSON();
+        }
+    }
     return {
         cols: this.cols,
-        rows: this.rows
+        rows: this.rows,
+        cells: map
     };
 };
 
