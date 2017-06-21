@@ -63,4 +63,17 @@ describe('RG.Game.FromJSON', () => {
         expect(items).to.have.length(1);
         expect(items[0].getName()).to.equal('sword');
     });
+
+    it('converts full game into JSON and back to object', () => {
+        const game = new RG.Game.Main();
+        const level = RGTest.createLevel('arena', 10, 10);
+        const player = new RG.Actor.Rogue('MyPlayer');
+        player.setType('player');
+        player.setIsPlayer(true);
+        game.addLevel(level);
+        game.addPlayer(player);
+        const json = game.toJSON();
+        const newGame = fromJSON.createGame(json);
+        expect(newGame.getPlayer().getName()).to.equal('MyPlayer');
+    });
 });
