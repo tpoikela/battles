@@ -863,6 +863,15 @@ RG.Game.FromJSON = function() {
         return player;
     };
 
+    this.createEntity = function(obj) {
+        const entity = new RG.Actor.Rogue(obj.name);
+        entity.setType(obj.type);
+        this.addCompsToEntity(entity, obj.components);
+        this.createInventory(obj, entity);
+        this.createEquipment(obj, entity);
+        return entity;
+    };
+
     this.addCompsToEntity = function(ent, comps) {
         for (const name in comps) {
             if (name) {
@@ -949,6 +958,7 @@ RG.Game.FromJSON = function() {
         const mapObj = this.createCellList(json.map);
         level.setMap(mapObj);
 
+        // Create elements such as stairs
         json.elements.forEach(elem => {
             const elemObj = this.createElement(elem.obj);
             if (elemObj !== null) {
@@ -957,6 +967,30 @@ RG.Game.FromJSON = function() {
             else {
                 RG.err('FromJSON', 'createLevel',
                     `Elem ${JSON.stringify(elem)} returned null`);
+            }
+        });
+
+        // Create actors
+        json.actors.forEach(actor => {
+            const actorObj = this.createActor(actor.obj);
+            if (actorObj !== null) {
+                level.addActor(actorObj, actor.x, actor.y);
+            }
+            else {
+                RG.err('FromJSON', 'createLevel',
+                    `Actor ${JSON.stringify(actor)} returned null`);
+            }
+        });
+
+        // Create items
+        json.items.forEach(item => {
+            const itemObj = this.createItem(item.obj);
+            if (itemObj !== null) {
+                level.addItem(itemObj, item.x, item.y);
+            }
+            else {
+                RG.err('FromJSON', 'createLevel',
+                    `Actor ${JSON.stringify(item)} returned null`);
             }
         });
 
@@ -978,6 +1012,10 @@ RG.Game.FromJSON = function() {
         return null;
     };
 
+    this.createActor = function(actor) {
+        return this.createEntity(actor);
+    };
+
     /* Tricky one. The target level should exist before connections. The object
      * returned by this method is not complete stairs, but has placeholders for
      * targetLevel (level ID) and targetStairs (x, y coordinates).
@@ -991,7 +1029,30 @@ RG.Game.FromJSON = function() {
 
     this.createCellList = function(map) {
         const mapObj = new RG.Map.CellList(map.cols, map.rows);
+        map.cells.forEach((col, x) => {
+            col.forEach((cell, y) => {
+                const baseElem = this.createBaseElem(cell);
+                mapObj.setBaseElemXY(x, y, baseElem);
+            });
+        });
         return mapObj;
+    };
+
+    this.createBaseElem = function(cell) {
+        switch (cell) {
+            case '#': // wall
+            case 'wall': return new RG.Element.Base('wall');
+            case '.': // floor
+            case 'floor': return new RG.Element.Base('floor');
+            case 'tree': return new RG.Element.Tree('tree');
+            case 'grass': return new RG.Element.Grass('grass');
+            case 'stone': return new RG.Element.Stone('stone');
+            default: {
+                RG.err('Game.fromJSON', 'createBaseElem',
+                    `Unknown type ${cell.type}`);
+            }
+        }
+        return null;
     };
 };
 
