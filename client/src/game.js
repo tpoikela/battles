@@ -1,5 +1,5 @@
 
-var RG = require('./rg.js');
+const RG = require('./rg.js');
 RG.System = require('./system.js');
 RG.Map = require('./map.js');
 RG.Time = require('./time.js');
@@ -88,8 +88,8 @@ RG.Game.Engine = function() {
 
     /* Adds an event to the scheduler.*/
     this.addEvent = function(gameEvent) {
-        var repeat = gameEvent.getRepeat();
-        var offset = gameEvent.getOffset();
+        const repeat = gameEvent.getRepeat();
+        const offset = gameEvent.getOffset();
         _scheduler.add(gameEvent, repeat, offset);
     };
 
@@ -213,7 +213,7 @@ RG.Game.Engine = function() {
 
     /* Adds one level to the game database.*/
     this.addLevel = function(level) {
-        var id = level.getID();
+        const id = level.getID();
         if (!_levelMap.hasOwnProperty(id)) {
             _levelMap[level.getID()] = level;
         }
@@ -226,8 +226,8 @@ RG.Game.Engine = function() {
 
     /* Adds an active level. Only these levels are simulated.*/
     this.addActiveLevel = function(level) {
-        var levelID = level.getID();
-        var index = _activeLevels.indexOf(levelID);
+        const levelID = level.getID();
+        const index = _activeLevels.indexOf(levelID);
 
         // Check if a level must be removed
         if (_activeLevels.length === (RG.MAX_ACTIVE_LEVELS)) {
@@ -269,7 +269,7 @@ RG.Game.Engine = function() {
 
 
     this.isActiveLevel = function(level) {
-        var index = _activeLevels.indexOf(level.getID());
+        const index = _activeLevels.indexOf(level.getID());
         return index >= 0;
     };
 
@@ -417,7 +417,7 @@ RG.Game.Main = function() {
     /* Adds player to the game. By default, it's added to the first level if
      * player has no level yet.*/
     this.addPlayer = function(player, obj) {
-        var levelOK = false;
+        let levelOK = false;
         if (!RG.isNullOrUndef([player.getLevel()])) {
             levelOK = true;
         }
@@ -566,7 +566,19 @@ RG.Game.Main = function() {
         _engine.addActiveLevel(level);
     };
 
-}; // }}} Game
+    this.toJSON = function() {
+        const levels = [];
+        _levels.forEach(level => {
+            levels.push(level.toJSON());
+        });
+        return {
+            engine: {},
+            player: this.getPlayer().toJSON(),
+            levels: levels
+        };
+    };
+
+}; // }}} Game.Main
 
 /* Army is a collection of actors.*/
 RG.Game.Army = function(name) {
@@ -1053,6 +1065,17 @@ RG.Game.FromJSON = function() {
             }
         }
         return null;
+    };
+
+    this.createGame = function(json) {
+        const game = new RG.Game.Main();
+        const player = this.createPlayerObj(json.player);
+        json.levels.forEach(levelJson => {
+            const level = this.createLevel(levelJson);
+            game.addLevel(level);
+        });
+        game.addPlayer(player);
+        return game;
     };
 };
 
