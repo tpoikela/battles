@@ -1,5 +1,5 @@
 
-var RG = require('./rg.js');
+const RG = require('./rg.js');
 
 RG.Object = require('./object.js');
 RG.Component = require('./component.js');
@@ -91,8 +91,8 @@ RG.extend2(RG.Actor.Rogue, RG.Entity);
 
 /* Returns carrying capacity of the actor.*/
 RG.Actor.Rogue.prototype.getMaxWeight = function() {
-    var statStr = this.get('Stats').getStrength();
-    var eqStr = this._invEq.getEquipment().getStrength();
+    const statStr = this.get('Stats').getStrength();
+    const eqStr = this._invEq.getEquipment().getStrength();
     return 2 * statStr + 2 * eqStr + this._maxWeight;
 };
 
@@ -114,8 +114,8 @@ RG.Actor.Rogue.prototype.setIsPlayer = function(isPlayer) {
 /* Returns the next action for this actor.*/
 RG.Actor.Rogue.prototype.nextAction = function(obj) {
     // Use actor brain to determine the action
-    var cb = this._brain.decideNextAction(obj);
-    var action = null;
+    const cb = this._brain.decideNextAction(obj);
+    let action = null;
 
     if (cb !== null) {
         const speed = this.getSpeed();
@@ -135,13 +135,13 @@ RG.Actor.Rogue.prototype.nextAction = function(obj) {
 
 /* Returns the cell where this actor is located at.*/
 RG.Actor.Rogue.prototype.getCell = function() {
-    var x = this.getX();
-    var y = this.getY();
+    const x = this.getX();
+    const y = this.getY();
     return this.getLevel().getMap().getCell(x, y);
 };
 
 RG.Actor.Rogue.prototype.toJSON = function() {
-    var obj = {
+    const obj = {
         name: this.getName(),
         type: this.getType(),
         components: {
@@ -166,7 +166,7 @@ RG.Actor.Rogue.prototype.toJSON = function() {
 //---------------------------------
 
 RG.Actor.Rogue.prototype.getAttack = function() {
-    var attack = this.get('Combat').getAttack();
+    let attack = this.get('Combat').getAttack();
     attack += this.getEquipAttack();
 
     if (this.has('CombatMods')) {
@@ -178,7 +178,7 @@ RG.Actor.Rogue.prototype.getAttack = function() {
 };
 
 RG.Actor.Rogue.prototype.getDefense = function() {
-    var defense = this.get('Combat').getDefense();
+    let defense = this.get('Combat').getDefense();
     defense += this.getEquipDefense();
     if (this.has('CombatMods')) {
         defense += this.get('CombatMods').getDefense();
@@ -188,7 +188,7 @@ RG.Actor.Rogue.prototype.getDefense = function() {
 };
 
 RG.Actor.Rogue.prototype.getProtection = function() {
-    var protection = this.get('Combat').getProtection();
+    let protection = this.get('Combat').getProtection();
     protection += this.getEquipProtection();
     if (this.has('CombatMods')) {
         protection += this.get('CombatMods').getProtection();
@@ -197,8 +197,8 @@ RG.Actor.Rogue.prototype.getProtection = function() {
 };
 
 RG.Actor.Rogue.prototype.getDamage = function() {
-    var damage = this.get('Combat').getDamage();
-    var strength = this.getStrength();
+    let damage = this.get('Combat').getDamage();
+    let strength = this.getStrength();
     strength += this.getInvEq().getEquipment().getStrength();
     damage += RG.strengthToDamage(strength);
     if (this.has('CombatMods')) {damage += this.get('CombatMods').getDamage();}
@@ -211,35 +211,35 @@ RG.Actor.Rogue.prototype.getDamage = function() {
 //-------------------------------------------------------------
 
 RG.Actor.Rogue.prototype.getAccuracy = function() {
-    var acc = this.get('Stats').getAccuracy();
+    let acc = this.get('Stats').getAccuracy();
     acc += this.getInvEq().getEquipment().getAccuracy();
     if (this.has('StatsMods')) {acc += this.get('StatsMods').getAccuracy();}
     return acc;
 };
 
 RG.Actor.Rogue.prototype.getAgility = function() {
-    var agi = this.get('Stats').getAgility();
+    let agi = this.get('Stats').getAgility();
     agi += this.getInvEq().getEquipment().getAgility();
     if (this.has('StatsMods')) {agi += this.get('StatsMods').getAgility();}
     return agi;
 };
 
 RG.Actor.Rogue.prototype.getStrength = function() {
-    var str = this.get('Stats').getStrength();
+    let str = this.get('Stats').getStrength();
     str += this.getInvEq().getEquipment().getStrength();
     if (this.has('StatsMods')) {str += this.get('StatsMods').getStrength();}
     return str;
 };
 
 RG.Actor.Rogue.prototype.getWillpower = function() {
-    var wil = this.get('Stats').getWillpower();
+    let wil = this.get('Stats').getWillpower();
     wil += this.getInvEq().getEquipment().getWillpower();
     if (this.has('StatsMods')) {wil += this.get('StatsMods').getWillpower();}
     return wil;
 };
 
 RG.Actor.Rogue.prototype.getSpeed = function() {
-    var speed = this.get('Stats').getSpeed();
+    let speed = this.get('Stats').getSpeed();
     speed += this.getInvEq().getEquipment().getSpeed();
     if (this.has('StatsMods')) {speed += this.get('StatsMods').getSpeed();}
     return speed;
