@@ -47,14 +47,13 @@ describe('RG.Game.FromJSON', () => {
     });
 
     it('converts level and its objects into JSON and back to object', () => {
-        const level = RGTest.createLevel('arena', 100, 100);
+        const level = RGTest.createLevel('arena', 10, 10);
         const actor = new RG.Actor.Rogue('Urkh!');
         actor.setType('goblin');
         const item = new RG.Item.Weapon('sword');
         level.addActor(actor, 2, 2);
         level.addItem(item, 3, 3);
         const json = level.toJSON();
-        console.log(JSON.stringify(json));
         const newLevel = fromJSON.createLevel(json);
 
         const actors = newLevel.getActors();
