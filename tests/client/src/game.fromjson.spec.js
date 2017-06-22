@@ -69,13 +69,28 @@ describe('RG.Game.FromJSON', () => {
         const level1 = RGTest.createLevel('arena', 10, 10);
         const level2 = RGTest.createLevel('arena', 10, 10);
         const s1 = new RG.Element.Stairs(true, level1, level2);
-        const s2 = new RG.Element.Stairs(true, level2, level1);
+        const s2 = new RG.Element.Stairs(false, level2, level1);
         s1.connect(s2);
+        level1.addStairs(s1, 1, 1);
+        level2.addStairs(s2, 2, 2);
         game.addLevel(level1);
         game.addLevel(level2);
+
         const json = game.toJSON();
         const newGame = fromJSON.createGame(json);
-        expect(newGame.getLevels()).to.have.length(2);
+        const newLevels = newGame.getLevels();
+        expect(newLevels).to.have.length(2);
+
+        const newS1 = newLevels[0].getStairs()[0];
+        const newS2 = newLevels[1].getStairs()[0];
+        const id1 = newLevels[0].getID();
+        const id2 = newLevels[1].getID();
+
+        expect(newS1.getTargetLevel(), 'Target level must be set').to.exist;
+        expect(newS2.getTargetLevel(), 'Target level must be set').to.exist;
+
+        expect(newS1.getTargetLevel().getID()).to.equal(id2);
+        expect(newS2.getTargetLevel().getID()).to.equal(id1);
 
     });
 
