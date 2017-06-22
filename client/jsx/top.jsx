@@ -199,7 +199,6 @@ class BattlesTop extends React.Component {
 
     /* Saves the game position.*/
     saveGame() {
-        // var player = this.game.getPlayer();
         this.gameSave.save(this.game, this.gameConf);
         this.savedPlayerList = this.gameSave.getPlayersAsList();
         RG.gameMsg('Your progress has been saved.');
@@ -308,7 +307,7 @@ class BattlesTop extends React.Component {
     mainLoop() {
         if (this.keyPending === true) {
             const code = this.nextCode;
-            this.game.update({code: code});
+            this.game.update({code});
             this.gameState.visibleCells = this.game.visibleCells;
             if (this.game.isGameOver()) {
                 this.setState({render: true, renderFullScreen: true});
