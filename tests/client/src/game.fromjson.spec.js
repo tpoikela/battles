@@ -64,6 +64,22 @@ describe('RG.Game.FromJSON', () => {
         expect(items[0].getName()).to.equal('sword');
     });
 
+    it('connects levels after restoring game from JSON', () => {
+        const game = new RG.Game.Main();
+        const level1 = RGTest.createLevel('arena', 10, 10);
+        const level2 = RGTest.createLevel('arena', 10, 10);
+        const s1 = new RG.Element.Stairs(true, level1, level2);
+        const s2 = new RG.Element.Stairs(true, level2, level1);
+        s1.connect(s2);
+        game.addLevel(level1);
+        game.addLevel(level2);
+        const json = game.toJSON();
+        const newGame = fromJSON.createGame(json);
+        expect(newGame.getLevels()).to.have.length(2);
+
+    });
+
+
     it('converts full game into JSON and back to object', () => {
         const game = new RG.Game.Main();
         const level = RGTest.createLevel('arena', 10, 10);
@@ -74,6 +90,26 @@ describe('RG.Game.FromJSON', () => {
         game.addPlayer(player);
         const json = game.toJSON();
         const newGame = fromJSON.createGame(json);
-        expect(newGame.getPlayer().getName()).to.equal('MyPlayer');
+        const newPlayer = newGame.getPlayer();
+        expect(newPlayer.getName()).to.equal('MyPlayer');
     });
+
+    it('converts a game containing world into JSON and back', () => {
+        const fact = new RG.Factory.World();
+        const game = new RG.Game.Main();
+        const conf = {name: 'Ice Kingdom', nAreas: 1,
+            area: [{ name: 'Area51', maxX: 1, maxY: 1}]
+        };
+        const world = fact.createWorld(conf);
+        const player = new RG.Actor.Rogue('MyPlayer');
+        player.setType('player');
+        player.setIsPlayer(true);
+        game.addPlace(world);
+        game.addPlayer(player, {place: 'Ice Kingdom'});
+        const json = game.toJSON();
+        const newGame = fromJSON.createGame(json);
+        expect(Object.keys(newGame.getPlaces())).to.have.length(1);
+    });
+
+
 });
