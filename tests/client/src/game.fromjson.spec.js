@@ -109,6 +109,7 @@ describe('RG.Game.FromJSON', () => {
         expect(newPlayer.getName()).to.equal('MyPlayer');
     });
 
+    /* TODO Decide on places serialization and add this test.
     it('converts a game containing world into JSON and back', () => {
         const fact = new RG.Factory.World();
         const game = new RG.Game.Main();
@@ -125,6 +126,7 @@ describe('RG.Game.FromJSON', () => {
         const newGame = fromJSON.createGame(json);
         expect(Object.keys(newGame.getPlaces())).to.have.length(1);
     });
+    */
 
 
 });
