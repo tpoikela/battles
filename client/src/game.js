@@ -16,6 +16,7 @@ RG.Game.Engine = function() {
     this.nextActor = null;
     this.simIntervalID = null;
 
+    const _levelMap = {}; // All levels, ID -> level
     const _activeLevels = []; // Only these levels are simulated
     const _scheduler = new RG.Time.Scheduler();
     const _msg = new RG.MessageHandler();
@@ -123,7 +124,7 @@ RG.Game.Engine = function() {
                         this.doGUICommand(code);
                     }
                     else {
-                        this.updateGameLoop({code: code});
+                        this.updateGameLoop({code});
                     }
                 }
                 else {
@@ -205,7 +206,6 @@ RG.Game.Engine = function() {
 
     this.numActiveLevels = function() {return _activeLevels.length;};
 
-    const _levelMap = {};
 
     this.hasLevel = function(level) {
         return _levelMap.hasOwnProperty(level.getID());
@@ -399,6 +399,11 @@ RG.Game.Main = function() {
     };
     _engine.isGameOver = this.isGameOver;
 
+    this.getLevels = function() {return _levels;};
+    this.getPlaces = function() {
+        return _places;
+    };
+
     /* Returns player(s) of the game.*/
     this.getPlayer = function() {
         if (_players.length === 1) {
@@ -408,8 +413,6 @@ RG.Game.Main = function() {
             return _players;
         }
         else {
-            RG.err('Game.Main', 'getPlayer',
-                'There are no players in the game.');
             return null;
         }
     };
@@ -422,11 +425,11 @@ RG.Game.Main = function() {
             levelOK = true;
         }
         else if (RG.isNullOrUndef([obj])) {
-                levelOK = _addPlayerToFirstLevel(player, _levels);
-            }
-            else {
-                levelOK = _addPlayerToPlace(player, obj);
-            }
+            levelOK = _addPlayerToFirstLevel(player, _levels);
+        }
+        else {
+            levelOK = _addPlayerToPlace(player, obj);
+        }
 
         if (levelOK) {
             _engine.nextActor = player;
@@ -571,11 +574,27 @@ RG.Game.Main = function() {
         _levels.forEach(level => {
             levels.push(level.toJSON());
         });
-        return {
+
+        const places = { };
+        /*
+        Object.keys(_places).forEach(name => {
+            const place = _places[name];
+            places[name] = place.toJSON();
+        });
+        */
+
+        const obj = {
             engine: {},
-            player: this.getPlayer().toJSON(),
-            levels: levels
+            levels,
+            places
         };
+
+        const player = this.getPlayer();
+        if (player !== null) {
+            obj.player = player.toJSON();
+        }
+
+        return obj;
     };
 
 }; // }}} Game.Main
@@ -740,9 +759,7 @@ RG.Game.Save = function() {
     this.restore = function(name) {
         if (!RG.isNullOrUndef([name])) {
             const player = this.restorePlayer(name);
-            const obj = {
-                player: player
-            };
+            const obj = {player};
             return obj;
         }
         else {
@@ -818,7 +835,7 @@ RG.Game.Save = function() {
         let dbObj = JSON.parse(dbString);
         if (dbObj === null) {dbObj = {};}
         dbObj[name] = {
-            name: name,
+            name,
             expLevel: obj.components.Experience.setExpLevel,
             dungeonLevel: obj.dungeonLevel
         };
@@ -852,15 +869,6 @@ RG.Game.FromJSON = function() {
 
     this.getDungeonLevel = function() {
         return _dungeonLevel;
-    };
-
-    /* Creates the full game from serialized format. */
-    this.createGame = function() {
-        // Build levels (items, actors, elements) + world topo
-
-        // game json must contain everything
-
-        // Connect levels using id2level + stairsInfo
     };
 
     /* Handles creation of restored player from JSON.*/
@@ -1069,14 +1077,33 @@ RG.Game.FromJSON = function() {
 
     this.createGame = function(json) {
         const game = new RG.Game.Main();
-        const player = this.createPlayerObj(json.player);
         json.levels.forEach(levelJson => {
             const level = this.createLevel(levelJson);
             game.addLevel(level);
         });
-        game.addPlayer(player);
+
+        /*
+        Object.keys(json.places).forEach(name => {
+            const place = json.places[name];
+            const placeObj = this.createPlace(place);
+            game.addPlace(placeObj);
+        });
+        */
+
+        if (json.player) {
+            const player = this.createPlayerObj(json.player);
+            game.addPlayer(player);
+        }
+
+        // Connect levels using id2level + stairsInfo
+
         return game;
     };
+
+    this.createPlace = function(place) {
+
+    };
+
 };
 
 module.exports = RG.Game;
