@@ -620,6 +620,22 @@ RG.World.World = function(name) {
     this.getDungeons = () => (_dungeons);
     this.getMountains = () => (_mountains);
     this.getCities = () => (_cities);
+
+    this.toJSON = function() {
+        const areas = _areas.map(area => area.toJSON());
+        // const dungeons = _dungeons.map(dung => dung.toJSON());
+        // const mountains = _mountains.map(mount => mount.toJSON());
+        // const cities = _cities.map(city => city.toJSON());
+        return {
+            name: this.getName(),
+            hierName: this.getHierName(),
+            nAreas: _areas.length,
+            areas
+            // dungeons,
+            // mountains,
+            // cities
+        };
+    };
 };
 RG.extend2(RG.World.World, RG.World.Base);
 
