@@ -969,7 +969,8 @@ RG.Game.FromJSON = function() {
         return null;
     };
 
-    /* Creates a Map.Level object from a json object. */
+    /* Creates a Map.Level object from a json object. NOTE: This method cannot
+    * connect stairs to other levels, but only create the stairs elements. */
     this.createLevel = function(json) {
         const level = new RG.Map.Level();
         level.setID(json.id);
@@ -980,7 +981,7 @@ RG.Game.FromJSON = function() {
 
         // Create elements such as stairs
         json.elements.forEach(elem => {
-            const elemObj = this.createElement(elem.obj);
+            const elemObj = this.createElement(elem);
             if (elemObj !== null) {
                 level.addElement(elemObj, elem.x, elem.y);
             }
@@ -1026,7 +1027,8 @@ RG.Game.FromJSON = function() {
     };
 
     this.createElement = function(elem) {
-        if (/stairs/.test(elem.type)) {
+        const elemObj = elem.obj;
+        if (/stairs/.test(elemObj.type)) {
             return this.createUnconnectedStairs(elem);
         }
         return null;
@@ -1041,9 +1043,15 @@ RG.Game.FromJSON = function() {
      * targetLevel (level ID) and targetStairs (x, y coordinates).
      */
     this.createUnconnectedStairs = function(elem) {
-        const sObj = new RG.Element.Stairs(elem.isDown);
-        stairsInfo[sObj] = {targetLevel: elem.targetLevel,
-            targetStairs: elem.targetStairs};
+        const x = elem.x;
+        const y = elem.y;
+        const id = elem.obj.srcLevel;
+        const stairsId = `${id},${x},${y}`;
+        const elemObj = elem.obj;
+        const sObj = new RG.Element.Stairs(elemObj.isDown);
+        stairsInfo[stairsId] = {targetLevel: elemObj.targetLevel,
+            targetStairs: elemObj.targetStairs};
+        console.log('FULL stairsInfo: ' + JSON.stringify(stairsInfo));
         return sObj;
     };
 
@@ -1082,6 +1090,8 @@ RG.Game.FromJSON = function() {
             game.addLevel(level);
         });
 
+        this.connectGameLevels(game);
+
         /*
         Object.keys(json.places).forEach(name => {
             const place = json.places[name];
@@ -1100,9 +1110,43 @@ RG.Game.FromJSON = function() {
         return game;
     };
 
+    this.connectGameLevels = function(game) {
+        console.log('stairsInfo: ' + JSON.stringify(stairsInfo));
+        const levels = game.getLevels();
+        levels.forEach(level => {
+            // const id = level.getID();
+            const stairsList = level.getStairs();
+            stairsList.forEach(s => {
+                const connObj = stairsInfo[s.getID()];
+                console.log('connObj: ' + JSON.stringify(connObj));
+                const targetLevel = id2level[connObj.targetLevel];
+                const targetStairsXY = connObj.targetStairs;
+                const x = targetStairsXY.x;
+                const y = targetStairsXY.y;
+                if (targetLevel) {
+                    s.setTargetLevel(targetLevel);
+                    const targetStairs = targetLevel.getMap().getCell(x, y).getStairs();
+                    if (targetStairs) {
+                        s.connect(targetStairs);
+                    }
+                    else {
+                        RG.err('Game.FromJSON', 'connectGameLevels',
+                            'Target stairs was null. Cannot connect.');
+                    }
+                }
+                else {
+                    RG.err('Game.FromJSON', 'connectGameLevels',
+                        'Target level null. Cannot connect.');
+                }
+            });
+        });
+    };
+
+    /*
     this.createPlace = function(place) {
 
     };
+    */
 
 };
 
