@@ -43,9 +43,9 @@ RG.Element.Stairs = function(down, srcLevel, targetLevel) {
             if (_srcLevel.removeActor(actor)) {
                 if (_targetLevel.addActor(actor, newX, newY)) {
                     RG.POOL.emitEvent(RG.EVT_LEVEL_CHANGED,
-                        {target: _targetLevel, src: _srcLevel, actor: actor});
+                        {target: _targetLevel, src: _srcLevel, actor});
                     RG.POOL.emitEvent(RG.EVT_LEVEL_ENTERED,
-                        {actor: actor, target: targetLevel});
+                        {actor, target: targetLevel});
                     return true;
                 }
             }
@@ -101,6 +101,14 @@ RG.Element.Stairs = function(down, srcLevel, targetLevel) {
     this.connect = function(stairs) {
         this.setTargetStairs(stairs);
         stairs.setTargetStairs(this);
+    };
+
+    /* Unique ID can be formed by levelID,x,y. */
+    this.getID = function() {
+        const x = this.getX();
+        const y = this.getY();
+        const id = _srcLevel.getID();
+        return `${id},${x},${y}`;
     };
 
 };
