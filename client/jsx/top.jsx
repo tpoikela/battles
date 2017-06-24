@@ -214,7 +214,6 @@ class BattlesTop extends React.Component {
             this.gameConf.loadedLevel = this.gameSave.getDungeonLevel();
             const confObj = this.gameSave.getPlayersAsObj()[name];
             this.restoreConf(confObj);
-            // this.newGame();
             this.initRestoredGame(restGame);
         }
     }
@@ -237,7 +236,7 @@ class BattlesTop extends React.Component {
         RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this.listener);
         RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this.listener);
         this.intervalID = setInterval(this.mainLoop, 1000.0 / 60);
-
+        this.setState({render: true, renderFullScreen: true});
     }
 
     deleteGame(name) {
