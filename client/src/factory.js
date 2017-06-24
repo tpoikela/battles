@@ -150,6 +150,7 @@ RG.Factory.Base = function() { // {{{2
     /* Factory method for monsters.*/
     this.createActor = function(name, obj) {
         const monster = new RG.Actor.Rogue(name);
+        monster.setType(name);
         if (RG.isNullOrUndef([obj])) {obj = {};}
 
         const brain = obj.brain;
@@ -254,7 +255,7 @@ RG.Factory.Base = function() { // {{{2
             const door = new RG.Element.Door(true);
             map.getCell(doorXY[0], doorXY[1]).setProp('elements', door);
 
-            const keeper = this.createActor('Shopkeeper', {brain: 'Human'});
+            const keeper = this.createActor('shopkeeper', {brain: 'Human'});
             for (let i = 0; i < floor.length; i++) {
                 const xy = floor[i];
                 if (i === 0) {level.addActor(keeper, xy[0], xy[1]);}
@@ -980,7 +981,9 @@ RG.FCCGame = function() {
 
         // Test for shops
         const keeper = _parser.createActualObj('actors', 'shopkeeper');
+        console.log(JSON.stringify(keeper));
         level.addActor(keeper, 2, 2);
+        console.log(level.toJSON());
         const shopElem = new RG.Element.Shop();
         const shopCell = level.getMap().getCell(3, 3);
         shopCell.setProp('elements', shopElem);
