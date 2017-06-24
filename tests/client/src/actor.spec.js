@@ -6,19 +6,19 @@ const Actor = require('../../../client/src/actor.js');
 describe('Rogue.Actor', function() {
 
     it('has name, stats and inventory', function() {
-        var actor = new Actor.Rogue('testRogue');
+        const actor = new Actor.Rogue('testRogue');
         expect(actor.getName()).to.equal('testRogue');
 
-        var wp = actor.getWillpower();
+        const wp = actor.getWillpower();
         expect(wp).to.equal(5);
 
-        var missile = actor.getMissile();
+        const missile = actor.getMissile();
         expect(missile).to.be.null;
 
     });
 
     it('can be a player actor', function() {
-        var actor = new Actor.Rogue('player hero');
+        const actor = new Actor.Rogue('player hero');
         actor.setIsPlayer(true);
         expect(actor.isPlayer()).to.equal(true);
 
@@ -33,13 +33,13 @@ describe('Rogue.Actor', function() {
     });
 
     it('can be serialized to JSON', function() {
-        var actor = new Actor.Rogue('player hero');
+        const actor = new Actor.Rogue('player hero');
         actor.setIsPlayer(true);
 
-        var hunger = new RG.Component.Hunger(100);
+        const hunger = new RG.Component.Hunger(100);
         actor.add('Hunger', hunger);
 
-        var actorJSON = actor.toJSON();
+        const actorJSON = actor.toJSON();
         expect(actorJSON.name).to.equal('player hero');
 
         expect(actorJSON).to.have.property('components');
@@ -49,65 +49,63 @@ describe('Rogue.Actor', function() {
     });
 
     it('has different stats', function() {
-        var actor = new Actor.Rogue('player hero');
+        const actor = new Actor.Rogue('player hero');
         actor.setIsPlayer(true);
 
-        var prot = actor.getProtection();
+        const prot = actor.getProtection();
         expect(prot).to.equal(0);
 
-        var str = actor.getStrength();
+        const str = actor.getStrength();
         expect(str).to.equal(5);
 
-        var dmg = actor.getDamage();
+        const dmg = actor.getDamage();
         expect(dmg > 0, 'More than 0 damage').to.equal(true);
 
     });
 
     it('can have CombatMods added', function() {
-        var mob = new Actor.Rogue('mob');
-        var combatMods = new RG.Component.CombatMods();
+        const mob = new Actor.Rogue('mob');
+        const combatMods = new RG.Component.CombatMods();
 
-        var attack = mob.getAttack();
+        const attack = mob.getAttack();
         combatMods.setAttack(5);
         mob.add('CombatMods', combatMods);
-        var newAttack = mob.getAttack();
+        const newAttack = mob.getAttack();
         expect(newAttack).to.equal(attack + 5);
 
         combatMods.setDamage(5);
-        var mobDamage = mob.getDamage();
+        const mobDamage = mob.getDamage();
         expect(mobDamage >= 6).to.equal(true);
 
-        var mobDefense = mob.getDefense();
+        const mobDefense = mob.getDefense();
         combatMods.setDefense(7);
-        var mobNewDefense = mob.getDefense();
+        const mobNewDefense = mob.getDefense();
         expect(mobNewDefense).to.equal(mobDefense + 7);
     });
 
     it('can have StatsMods added', function() {
-        var mob = new Actor.Rogue('mob');
-        var statMods = new RG.Component.StatsMods();
+        const mob = new Actor.Rogue('mob');
+        const statMods = new RG.Component.StatsMods();
         mob.add('StatsMods', statMods);
 
-        var oldWp = mob.getWillpower();
+        const oldWp = mob.getWillpower();
         statMods.setWillpower(5);
-        var newWp = mob.getWillpower();
+        const newWp = mob.getWillpower();
         expect(newWp).to.equal(oldWp + 5);
 
-        var oldStr = mob.getStrength();
+        const oldStr = mob.getStrength();
         statMods.setStrength(-3);
-        var newStr = mob.getStrength();
+        const newStr = mob.getStrength();
         expect(newStr).to.equal(oldStr - 3);
 
-        var oldAcc = mob.getAccuracy();
+        const oldAcc = mob.getAccuracy();
         statMods.setAccuracy(10);
-        var newAcc = mob.getAccuracy();
+        const newAcc = mob.getAccuracy();
         expect(newAcc).to.equal(oldAcc + 10);
 
-        var oldAgi = mob.getAgility();
+        const oldAgi = mob.getAgility();
         statMods.setAgility(10);
-        var newAgi = mob.getAgility();
+        const newAgi = mob.getAgility();
         expect(newAgi).to.equal(oldAgi + 10);
-
     });
-
 });
