@@ -141,12 +141,16 @@ RG.Actor.Rogue.prototype.getCell = function() {
 };
 
 RG.Actor.Rogue.prototype.toJSON = function() {
+    let levelID = null;
+    if (this.getLevel()) {
+        levelID = this.getLevel().getID();
+    }
     const obj = {
         name: this.getName(),
         type: this.getType(),
         x: this.getX(),
         y: this.getY(),
-        levelID: this.getLevel().getID(),
+        levelID,
         components: {
             Combat: this.get('Combat').toJSON(),
             Experience: this.get('Experience').toJSON(),
