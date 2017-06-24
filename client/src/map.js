@@ -140,16 +140,12 @@ RG.Map.Cell.prototype.toString = function() {
 };
 
 RG.Map.Cell.prototype.toJSON = function() {
-    if (this._baseElem.getType() === 'wall') {return '#';}
-    if (this._baseElem.getType() === 'floor') {return '.';}
-    return this._baseElem.getType();
-    /*
     return {
         type: this._baseElem.getType(),
         x: this._x,
-        y: this._y
+        y: this._y,
+        explored: this._explored
     };
-    */
 };
 
 /* Returns true if any cell property has the given type. Ie.
