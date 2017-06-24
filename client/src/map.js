@@ -1007,7 +1007,10 @@ RG.Map.Level = function() { // {{{2
                     obj: prop.toJSON()
                 };
                 // Avoid storing player twice (stored in Game.Main already)
-                if (!propType === 'actors' && propObj.obj.type !== 'player') {
+                if (!propType === 'actors') {
+                    obj[propType].push(propObj);
+                }
+                else if (propObj.obj.type !== 'player') {
                     obj[propType].push(propObj);
                 }
             });
