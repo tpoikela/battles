@@ -3,7 +3,10 @@
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 
-const worldConf = require('../data/conf.world');
+const worldConf = require('../../../client/data/conf.world');
+
+const LocalStorage = require('node-localstorage').LocalStorage,
+localStorage = new LocalStorage('./battles_local_storage');
 
 const isGUICommand = () => {};
 const doGUICommand = () => {};
