@@ -443,7 +443,7 @@ RG.Map.Generator = function() { // {{{2
                 map.setBaseElemXY(x, y, new RG.Element.Base('floor'));
             }
         });
-        const obj = {map: map};
+        const obj = {map};
         if (_mapType === 'uniform' || _mapType === 'digger') {
             obj.rooms = _mapGen.getRooms(); // ROT.Map.Feature.Room
             obj.corridors = _mapGen.getCorridors(); // ROT.Map.Feature.Corridor
@@ -524,7 +524,7 @@ RG.Map.Generator = function() { // {{{2
             if (houseCreated) {houses.push(houseCreated);}
 
         }
-        return {map: map, houses: houses};
+        return {map, houses};
     };
 
     /* Creates a house into a given map to a location x0,y0 with given
@@ -629,7 +629,7 @@ RG.Map.Generator = function() { // {{{2
                 map.setElemXY(x, y, new RG.Element.Grass('grass'));
             }
         });
-        return {map: map};
+        return {map};
     };
 
     this.createMountain = function() {
@@ -640,7 +640,7 @@ RG.Map.Generator = function() { // {{{2
                 map.setElemXY(x, y, new RG.Element.Stone('stone'));
             }
         });
-        return {map: map};
+        return {map};
     };
 
 }; // }}} Map.Generator
@@ -852,8 +852,8 @@ RG.Map.Level = function() { // {{{2
                 obj.setLevel(this);
             }
             _map.setProp(x, y, propType, obj);
-            RG.POOL.emitEvent(RG.EVT_LEVEL_PROP_ADDED, {level: this, obj: obj,
-                propType: propType});
+            RG.POOL.emitEvent(RG.EVT_LEVEL_PROP_ADDED, {level: this, obj,
+                propType});
             return true;
         }
         else {
@@ -876,7 +876,7 @@ RG.Map.Level = function() { // {{{2
                     obj.unsetLevel();
                 }
                 RG.POOL.emitEvent(RG.EVT_LEVEL_PROP_REMOVED,
-                    {level: this, obj: obj, propType: propType});
+                    {level: this, obj, propType});
                 return _map.removeProp(x, y, propType, obj);
             }
             else {
@@ -1000,20 +1000,16 @@ RG.Map.Level = function() { // {{{2
         // Must store x, y for each prop as well
         const props = ['actors', 'items', 'elements'];
         props.forEach(propType => {
-            _p[propType].forEach(elem => {
-                // TODO: sort this out
-                // if (elem.hasOwnProperty('toJSON')) {
-                    const elemObj = {
-                        x: elem.getX(),
-                        y: elem.getY(),
-                        obj: elem.toJSON()
-                    };
-                    obj[propType].push(elemObj);
-                /* }
-                else {
-                    RG.err('Map.Level', 'toJSON',
-                        `Cannot serialize object ${JSON.stringify(elem)}`);
-                }*/
+            _p[propType].forEach(prop => {
+                const propObj = {
+                    x: prop.getX(),
+                    y: prop.getY(),
+                    obj: prop.toJSON()
+                };
+                // Avoid storing player twice (stored in Game.Main already)
+                if (!propType === 'actors' && propObj.obj.type !== 'player') {
+                    obj[propType].push(propObj);
+                }
             });
         });
 
