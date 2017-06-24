@@ -14,8 +14,6 @@ const Actor = RG.Actor.Rogue;
 const RGObjects = require('../../../client/data/battles_objects.js');
 RG.Effects = require('../../../client/data/effects.js');
 
-const LocalStorage = require('node-localstorage').LocalStorage,
-localStorage = new LocalStorage('./battles_local_storage');
 
 const globalParser = new RG.ObjectShellParser();
 globalParser.parseShellData(RG.Effects);
@@ -34,24 +32,12 @@ function getNewLevel(cols, rows) {
     return RG.FACT.createLevel('arena', cols, rows);
 }
 
-/* Returns a level with initialized with given actors.*/
-function getLevelWithNActors(cols, rows, nactors) {
-    const level = getNewLevel(cols, rows);
-    const actors = [];
-    for (let i = 0; i < nactors; i++) {
-        const actor = new Actor(false);
-        actors.push(actor);
-        level.addActorToFreeCell(actor);
-    }
-    return [level, actors];
-}
 
 describe('Game.Main', function() {
     let game = null;
     beforeEach( () => {
         game = new Game.Main();
     });
-
 
     it('Initializes the game and adds player', function() {
         const movSystem = new RG.System.Movement('Movement', ['Movement']);
@@ -210,137 +196,6 @@ describe('How AI brain works', function() {
         action.doAction();
         movSystem.update();
         checkXY(mons1, 2, 3);
-    });
-
-});
-
-describe('Game.Save how saving works', function() {
-
-    // TODO add to RGTest
-    const setupPlayer = function(name) {
-        const level = RG.FACT.createLevel('arena', 10, 10);
-        level.setLevelNumber(3);
-        const player = new RG.Actor.Rogue(name);
-        player.setType('player');
-        player.setIsPlayer(true);
-        level.addActor(player, 3, 3);
-        return player;
-    };
-
-    it('Saves/restores player properly', function() {
-        const gameSave = new RG.Game.Save();
-        gameSave.setStorage(localStorage);
-        const player = setupPlayer('Player1');
-
-        player.get('Experience').setExpLevel(5);
-        gameSave.savePlayer(player);
-
-        let rest = gameSave.restorePlayer('Player1');
-        expect(rest.getName()).to.equal(player.getName());
-        expect(rest.get('Experience').getExpLevel()).to.equal(5);
-
-        const playersAsObj = gameSave.getPlayersAsObj();
-        expect(playersAsObj.hasOwnProperty('Player1')).to.equal(true);
-
-        const die = rest.get('Combat').getDamageDie();
-        expect(die !== null).to.equal(true);
-        expect(typeof die !== 'undefined').to.equal(true);
-        expect(gameSave.getDungeonLevel()).to.equal(3);
-
-        const playerList = gameSave.getPlayersAsList();
-        const playerObj = playerList[0];
-        expect(playerObj.hasOwnProperty('name')).to.equal(true);
-        expect(playerObj.hasOwnProperty('expLevel')).to.equal(true);
-        expect(playerObj.hasOwnProperty('dungeonLevel')).to.equal(true);
-
-    });
-
-    it('Saves/restores inventory properly', function() {
-        const gameSave = new RG.Game.Save();
-        gameSave.setStorage(localStorage);
-        const player = setupPlayer('Player1');
-        const invEq = player.getInvEq();
-
-        // Test first with simple food
-        const food = new RG.Item.Food('Habanero');
-        invEq.addItem(food);
-
-        gameSave.savePlayer(player);
-        let rest = gameSave.restorePlayer('Player1');
-        let invItems = rest.getInvEq().getInventory().getItems();
-        expect(invItems.length).to.equal(1);
-        expect(invItems[0].equals(food)).to.equal(true);
-
-        // Create a new weapon
-        const weapon = new RG.Item.Weapon('Sword');
-        weapon.setAttack(10);
-        weapon.setDamage('3d3+5');
-        weapon.count = 2;
-
-        // Add it, save player and then restore
-        invEq.addItem(weapon);
-        gameSave.savePlayer(player);
-        rest = gameSave.restorePlayer('Player1');
-        invItems = rest.getInvEq().getInventory().getItems();
-        expect(invItems.length).to.equal(2);
-
-        const sword = invItems[1];
-        expect(sword.equals(weapon)).to.equal(true);
-        expect(sword.count).to.equal(2);
-
-        const armour = new RG.Item.Armour('Plate mail');
-        armour.setDefense(11);
-        invEq.addItem(armour);
-        gameSave.savePlayer(player);
-        rest = gameSave.restorePlayer('Player1');
-        invItems = rest.getInvEq().getInventory().getItems();
-        expect(invItems.length).to.equal(3);
-
-        const plateMail = invItems[2];
-        expect(armour.equals(plateMail)).to.equal(true);
-
-    });
-
-    it('Saves/restores and equips equipment correctly', function() {
-        const gameSave = new RG.Game.Save();
-        gameSave.setStorage(localStorage);
-        const player = setupPlayer('HeroPlayer');
-        const invEq = player.getInvEq();
-
-        const weapon = new RG.Item.Weapon('Sword');
-        weapon.setDefense(15);
-        weapon.setAttack(1);
-        weapon.setWeight(2.5);
-
-        invEq.addItem(weapon);
-        expect(invEq.equipItem(weapon)).to.equal(true);
-
-        // Empty spirit gem
-        const emptygem = new RG.Item.SpiritGem('Wolf gem');
-        invEq.addItem(emptygem);
-
-        const gemWithSpirit = new RG.Item.SpiritGem('Used gem');
-        const spirit = new RG.Actor.Spirit('Wolf spirit');
-        spirit.get('Stats').setStrength(11);
-        gemWithSpirit.setSpirit(spirit);
-        invEq.addItem(gemWithSpirit);
-
-        gameSave.savePlayer(player);
-        const rest = gameSave.restorePlayer('HeroPlayer');
-        const restWeapon = rest.getWeapon();
-        expect(restWeapon.equals(weapon)).to.equal(true);
-
-        const inv = rest.getInvEq().getInventory();
-        const emptyGemRest = inv.getItems()[0];
-        expect(emptyGemRest.equals(emptygem)).to.equal(true);
-
-        const gemWithSpirit2 = inv.getItems()[1];
-        const spiritRest = gemWithSpirit2.getSpirit();
-        const statsRest = spiritRest.get('Stats');
-        const statsOrig = spirit.get('Stats');
-        expect(statsRest.getStrength()).to.equal(statsOrig.getStrength());
-
-
     });
 
 });
