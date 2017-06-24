@@ -751,8 +751,8 @@ RG.Game.Save = function() {
 
     /* Main function which saves the full game.*/
     this.save = function(game, conf) {
-        const player = game.getPlayer();
-        this.savePlayer(player, conf);
+        // const player = game.getPlayer();
+        this.savePlayer(game, conf);
     };
 
     /* Restores game/player with the given name.*/
@@ -801,15 +801,16 @@ RG.Game.Save = function() {
     };
 
     /* Saves a player object. */
-    this.savePlayer = function(player, conf) {
+    this.savePlayer = function(game, conf) {
         _checkStorageValid();
+        const player = game.getPlayer();
         const name = player.getName();
-        const storedObj = player.toJSON();
-        storedObj.dungeonLevel = player.getLevel().getLevelNumber();
-        const dbObj = {player: storedObj};
+        const storedObj = game.toJSON();
+        storedObj.dungeonLevel = player.getLevel().getID();
+        const dbObj = {name, game: storedObj};
         const dbString = JSON.stringify(dbObj);
         _storageRef.setItem('_battles_player_' + name, dbString);
-        _savePlayerInfo(name, storedObj, conf);
+        _savePlayerInfo(name, storedObj.player, conf);
     };
 
     /* Restores a player with given name. */
@@ -819,8 +820,10 @@ RG.Game.Save = function() {
         if (playersObj.hasOwnProperty(name)) {
             const dbString = _storageRef.getItem('_battles_player_' + name);
             const dbObj = JSON.parse(dbString);
-            const player = _fromJSON.createPlayerObj(dbObj.player);
-            return player;
+            // const player = _fromJSON.createPlayerObj(dbObj.player);
+            console.log(JSON.stringify(dbObj));
+            const game = _fromJSON.createGame(dbObj.game);
+            return game;
         }
         else {
             RG.err('Game.Save', 'restorePlayer',
@@ -829,7 +832,7 @@ RG.Game.Save = function() {
         }
     };
 
-    /* Saves name and level of the player into a list.*/
+    /* Saves name and level of the player into a list of players/save games.*/
     const _savePlayerInfo = function(name, obj, conf) {
         let dbString = _storageRef.getItem(_playerList);
         let dbObj = JSON.parse(dbString);
@@ -1114,8 +1117,8 @@ RG.Game.FromJSON = function() {
         console.log('stairsInfo: ' + JSON.stringify(stairsInfo));
         const levels = game.getLevels();
         levels.forEach(level => {
-            // const id = level.getID();
             const stairsList = level.getStairs();
+
             stairsList.forEach(s => {
                 const connObj = stairsInfo[s.getID()];
                 console.log('connObj: ' + JSON.stringify(connObj));
@@ -1125,7 +1128,8 @@ RG.Game.FromJSON = function() {
                 const y = targetStairsXY.y;
                 if (targetLevel) {
                     s.setTargetLevel(targetLevel);
-                    const targetStairs = targetLevel.getMap().getCell(x, y).getStairs();
+                    const targetStairs = targetLevel
+                        .getMap().getCell(x, y).getStairs();
                     if (targetStairs) {
                         s.connect(targetStairs);
                     }
