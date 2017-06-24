@@ -22,6 +22,14 @@ RG.Element.Base.prototype.isPassable = function() {
     return this.getType() !== 'wall';
 };
 
+/* Should be enough for stateless elements. Does not work for doors or stairs
+ * etc. */
+RG.Element.Base.prototype.toJSON = function() {
+    return {
+        type: this.getType()
+    };
+};
+
 // }}} Element
 
 /* Object models stairs connecting two levels. Stairs are one-way, thus
@@ -169,6 +177,13 @@ RG.Element.Door.prototype.isPassable = function() {
     return !this._closed;
 };
 
+RG.Element.Door.prototype.toJSON = function() {
+    return {
+        type: 'door',
+        closed: this._closed
+    };
+};
+
 /* A shop element is added to each cell inside a shop.*/
 RG.Element.Shop = function() {
     RG.Element.Base.call(this, 'shop');
@@ -277,8 +292,20 @@ RG.Element.Shop.prototype.setCostFactor = function(factor) {
 };
 
 /* Returns the shopkeeper.*/
-RG.Element.Shop.prototype.getShopkeeper = function() {
+RG.Element.Shop.prototype.getCostFactor = function() {
     return this._costFactor;
+};
+
+RG.Element.Shop.prototype.toJSON = function() {
+    let shopkeeperID = null;
+    if (this._shopkeeper) {
+        shopkeeperID = this._shopkeeper.getID();
+    }
+    return {
+        type: 'shop',
+        costFactor: this._costFactor,
+        shopkeeper: shopkeeperID
+    };
 };
 
 /* A tree element. */
