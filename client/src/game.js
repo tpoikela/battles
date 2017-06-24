@@ -1073,13 +1073,16 @@ RG.Game.FromJSON = function() {
             col.forEach((cell, y) => {
                 const baseElem = this.createBaseElem(cell);
                 mapObj.setBaseElemXY(x, y, baseElem);
+                if (cell.explored) {
+                    mapObj.getCell(x, y).setExplored(true);
+                }
             });
         });
         return mapObj;
     };
 
     this.createBaseElem = function(cell) {
-        switch (cell) {
+        switch (cell.type) {
             case '#': // wall
             case 'wall': return new RG.Element.Base('wall');
             case '.': // floor
