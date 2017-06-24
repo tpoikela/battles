@@ -140,12 +140,20 @@ RG.Map.Cell.prototype.toString = function() {
 };
 
 RG.Map.Cell.prototype.toJSON = function() {
-    return {
+    const json = {
         type: this._baseElem.getType(),
         x: this._x,
         y: this._y,
         explored: this._explored
     };
+    if (this._p.hasOwnProperty(RG.TYPE_ELEM)) {
+        const elements = [];
+        this._p[RG.TYPE_ELEM].forEach(elem => {
+            elements.push(elem.toJSON());
+        });
+        Object.assign(json, {elements});
+    }
+    return json;
 };
 
 /* Returns true if any cell property has the given type. Ie.
