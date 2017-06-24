@@ -935,19 +935,21 @@ RG.Map.Level = function() { // {{{2
     this.setOnExit = function(cb) {_callbacks.OnExit = cb;};
     this.setOnFirstExit = function(cb) {_callbacks.OnFirstExit = cb;};
 
-    let _onFirstEnterDone = false;
-    let _onFirstExitDone = false;
+    const _cbState = {
+        onFirstEnterDone: false,
+        onFirstExitDone: false
+    };
 
     this.onEnter = function() {
         if (_callbacks.hasOwnProperty('OnEnter')) {_callbacks.OnEnter(this);}
     };
 
     this.onFirstEnter = function() {
-        if (!_onFirstEnterDone) {
+        if (!_cbState.onFirstEnterDone) {
             if (_callbacks.hasOwnProperty('OnFirstEnter')) {
                 _callbacks.OnFirstEnter(this);
             }
-            _onFirstEnterDone = true;
+            _cbState.onFirstEnterDone = true;
         }
     };
 
@@ -956,11 +958,11 @@ RG.Map.Level = function() { // {{{2
     };
 
     this.onFirstExit = function() {
-        if (!_onFirstExitDone) {
+        if (!_cbState.onFirstExitDone) {
             if (_callbacks.hasOwnProperty('OnFirstExit')) {
                 _callbacks.OnFirstExit(this);
             }
-            _onFirstExitDone = true;
+            _cbState.onFirstExitDone = true;
         }
     };
 
@@ -994,7 +996,8 @@ RG.Map.Level = function() { // {{{2
             actors: [],
             items: [],
             elements: [],
-            map: this.getMap().toJSON()
+            map: this.getMap().toJSON(),
+            cbState: JSON.stringify(_cbState)
         };
 
         // Must store x, y for each prop as well
