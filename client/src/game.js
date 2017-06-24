@@ -738,7 +738,7 @@ RG.Game.Battle = function(name) {
 /* An object for saving the game in specified storage (local/etc..) */
 RG.Game.Save = function() {
     let _storageRef = null;
-    const _fromJSON = new RG.Game.FromJSON();
+    let _fromJSON = new RG.Game.FromJSON();
 
     // Contains names of players for restore selection
     const _playerList = '_battles_player_data_';
@@ -824,6 +824,7 @@ RG.Game.Save = function() {
         if (playersObj.hasOwnProperty(name)) {
             const dbString = _storageRef.getItem('_battles_player_' + name);
             const dbObj = JSON.parse(dbString);
+            _fromJSON = new RG.Game.FromJSON();
             const game = _fromJSON.createGame(dbObj.game);
             return game;
         }
