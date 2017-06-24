@@ -18,9 +18,15 @@ describe('Game.Save how saving works', function() {
         return {player, level};
     };
 
-    it('Saves/restores player properly', function() {
-        const gameSave = new RG.Game.Save();
+    let gameSave = null;
+
+    beforeEach(() => {
+        gameSave = new RG.Game.Save();
         gameSave.setStorage(localStorage);
+
+    });
+
+    it('Saves/restores player properly', function() {
         const setup = setupPlayerWithLevel('Player1');
         const game = new RG.Game.Main();
         game.addLevel(setup.level);
@@ -52,18 +58,22 @@ describe('Game.Save how saving works', function() {
     });
 
     it('Saves/restores inventory properly', function() {
-        const gameSave = new RG.Game.Save();
-        gameSave.setStorage(localStorage);
-        const player = setupPlayerWithLevel('Player1');
+        const game = new RG.Game.Main();
+        const setup = setupPlayerWithLevel('Player1');
+        const player = setup.player;
         const invEq = player.getInvEq();
 
         // Test first with simple food
         const food = new RG.Item.Food('Habanero');
         invEq.addItem(food);
 
-        gameSave.savePlayer(player);
-        let rest = gameSave.restorePlayer('Player1');
-        let invItems = rest.getInvEq().getInventory().getItems();
+        game.addLevel(setup.level);
+        game.addPlayer(player);
+        gameSave.savePlayer(game);
+        let restGame = gameSave.restorePlayer('Player1');
+
+        let restPlayer = restGame.getPlayer();
+        let invItems = restPlayer.getInvEq().getInventory().getItems();
         expect(invItems.length).to.equal(1);
         expect(invItems[0].equals(food)).to.equal(true);
 
@@ -74,10 +84,14 @@ describe('Game.Save how saving works', function() {
         weapon.count = 2;
 
         // Add it, save player and then restore
+        gameSave = new RG.Game.Save();
+        gameSave.setStorage(localStorage);
+
         invEq.addItem(weapon);
-        gameSave.savePlayer(player);
-        rest = gameSave.restorePlayer('Player1');
-        invItems = rest.getInvEq().getInventory().getItems();
+        gameSave.savePlayer(game);
+        restGame = gameSave.restorePlayer('Player1');
+        restPlayer = restGame.getPlayer();
+        invItems = restPlayer.getInvEq().getInventory().getItems();
         expect(invItems.length).to.equal(2);
 
         const sword = invItems[1];
@@ -87,9 +101,14 @@ describe('Game.Save how saving works', function() {
         const armour = new RG.Item.Armour('Plate mail');
         armour.setDefense(11);
         invEq.addItem(armour);
-        gameSave.savePlayer(player);
-        rest = gameSave.restorePlayer('Player1');
-        invItems = rest.getInvEq().getInventory().getItems();
+
+        gameSave = new RG.Game.Save();
+        gameSave.setStorage(localStorage);
+
+        gameSave.savePlayer(game);
+        restGame = gameSave.restorePlayer('Player1');
+        restPlayer = restGame.getPlayer();
+        invItems = restPlayer.getInvEq().getInventory().getItems();
         expect(invItems.length).to.equal(3);
 
         const plateMail = invItems[2];
@@ -98,10 +117,12 @@ describe('Game.Save how saving works', function() {
     });
 
     it('Saves/restores and equips equipment correctly', function() {
-        const gameSave = new RG.Game.Save();
-        gameSave.setStorage(localStorage);
-        const player = setupPlayerWithLevel('HeroPlayer');
+        const game = new RG.Game.Main();
+        const setup = setupPlayerWithLevel('HeroPlayer');
+        const player = setup.player;
         const invEq = player.getInvEq();
+        game.addLevel(setup.level);
+        game.addPlayer(player);
 
         const weapon = new RG.Item.Weapon('Sword');
         weapon.setDefense(15);
@@ -121,12 +142,13 @@ describe('Game.Save how saving works', function() {
         gemWithSpirit.setSpirit(spirit);
         invEq.addItem(gemWithSpirit);
 
-        gameSave.savePlayer(player);
-        const rest = gameSave.restorePlayer('HeroPlayer');
-        const restWeapon = rest.getWeapon();
+        gameSave.savePlayer(game);
+        const restGame = gameSave.restorePlayer('HeroPlayer');
+        const restPlayer = restGame.getPlayer();
+        const restWeapon = restPlayer.getWeapon();
         expect(restWeapon.equals(weapon)).to.equal(true);
 
-        const inv = rest.getInvEq().getInventory();
+        const inv = restPlayer.getInvEq().getInventory();
         const emptyGemRest = inv.getItems()[0];
         expect(emptyGemRest.equals(emptygem)).to.equal(true);
 
@@ -135,8 +157,5 @@ describe('Game.Save how saving works', function() {
         const statsRest = spiritRest.get('Stats');
         const statsOrig = spirit.get('Stats');
         expect(statsRest.getStrength()).to.equal(statsOrig.getStrength());
-
-
     });
-
 });
