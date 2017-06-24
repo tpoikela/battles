@@ -207,15 +207,37 @@ class BattlesTop extends React.Component {
 
     /* Loads a saved game.*/
     loadGame(name) {
-        const restoreObj = this.gameSave.restore(name);
-        const player = restoreObj.player;
+        const restGame = this.gameSave.restore(name);
+        const player = restGame.getPlayer();
         if (player !== null) {
             this.gameConf.loadedPlayer = player;
             this.gameConf.loadedLevel = this.gameSave.getDungeonLevel();
             const confObj = this.gameSave.getPlayersAsObj()[name];
             this.restoreConf(confObj);
-            this.newGame();
+            // this.newGame();
+            this.initRestoredGame(restGame);
         }
+    }
+
+    initRestoredGame(game) {
+        if (this.intervalID !== null) {
+            clearInterval(this.intervalID);
+        }
+
+        this.resetGameState();
+        if (this.game !== null) {
+            delete this.game;
+            RG.FACT = new RG.Factory.Base();
+        }
+        this.game = game;
+        this.game.setGUICallbacks(this.isGUICommand, this.doGUICommand);
+
+        const player = this.game.getPlayer();
+        this.gameState.visibleCells = player.getLevel().exploreCells(player);
+        RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this.listener);
+        RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this.listener);
+        this.intervalID = setInterval(this.mainLoop, 1000.0 / 60);
+
     }
 
     deleteGame(name) {
