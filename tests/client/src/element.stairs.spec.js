@@ -50,9 +50,11 @@ describe('Element.Stairs', () => {
         expect(json.targetStairs.x).to.equal(5);
         expect(json.targetStairs.y).to.equal(6);
 
+        const jsonWithXY = {obj: json, x: 3, y: 4};
+
         // And deserialized..
         const fromJSON = new FromJSON();
-        const s3 = fromJSON.createUnconnectedStairs(json);
+        const s3 = fromJSON.createUnconnectedStairs(jsonWithXY);
         expect(s3.isDown()).to.equal(s1.isDown());
     });
 });
