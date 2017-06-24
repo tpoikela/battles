@@ -11,7 +11,8 @@ localStorage = new LocalStorage('./battles_local_storage');
 const isGUICommand = () => {};
 const doGUICommand = () => {};
 
-describe('Function: Saving/restoring a game', () => {
+describe('Function: Saving/restoring a game', function() {
+    this.timeout(5000);
     // 1. Create a new game
     // 2. Do some stuff as user
     // 3. Save game
