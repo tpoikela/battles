@@ -144,6 +144,9 @@ RG.Actor.Rogue.prototype.toJSON = function() {
     const obj = {
         name: this.getName(),
         type: this.getType(),
+        x: this.getX(),
+        y: this.getY(),
+        levelID: this.getLevel().getID(),
         components: {
             Combat: this.get('Combat').toJSON(),
             Experience: this.get('Experience').toJSON(),
