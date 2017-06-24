@@ -804,13 +804,19 @@ RG.Game.Save = function() {
     this.savePlayer = function(game, conf) {
         _checkStorageValid();
         const player = game.getPlayer();
-        const name = player.getName();
-        const storedObj = game.toJSON();
-        storedObj.dungeonLevel = player.getLevel().getID();
-        const dbObj = {name, game: storedObj};
-        const dbString = JSON.stringify(dbObj);
-        _storageRef.setItem('_battles_player_' + name, dbString);
-        _savePlayerInfo(name, storedObj.player, conf);
+        if (!RG.isNullOrUndef([player])) {
+            const name = player.getName();
+            const storedObj = game.toJSON();
+            storedObj.dungeonLevel = player.getLevel().getID();
+            const dbObj = {name, game: storedObj};
+            const dbString = JSON.stringify(dbObj);
+            _storageRef.setItem('_battles_player_' + name, dbString);
+            _savePlayerInfo(name, storedObj.player, conf);
+        }
+        else {
+            RG.err('Game.Save', 'savePlayer',
+                'Cannot save null player. Forgot game.addPlayer?');
+        }
     };
 
     /* Restores a player with given name. */
@@ -820,8 +826,6 @@ RG.Game.Save = function() {
         if (playersObj.hasOwnProperty(name)) {
             const dbString = _storageRef.getItem('_battles_player_' + name);
             const dbObj = JSON.parse(dbString);
-            // const player = _fromJSON.createPlayerObj(dbObj.player);
-            console.log(JSON.stringify(dbObj));
             const game = _fromJSON.createGame(dbObj.game);
             return game;
         }
