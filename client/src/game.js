@@ -1109,7 +1109,21 @@ RG.Game.FromJSON = function() {
 
         if (json.player) {
             const player = this.createPlayerObj(json.player);
-            game.addPlayer(player);
+            const id = json.player.levelID;
+            const level = game.getLevels().find(item => item.getID() === id);
+            if (level) {
+                console.log(JSON.stringify(json.player));
+                console.log(JSON.stringify(id2level));
+                const x = json.player.x;
+                const y = json.player.y;
+                console.log('Level is XXX: ' + JSON.stringify(level));
+                level.addActor(player, x, y);
+                game.addPlayer(player);
+            }
+            else {
+                RG.err('Game.FromJSON', 'createGame',
+                    `Player level id ${id} was null`);
+            }
         }
 
         // Connect levels using id2level + stairsInfo
