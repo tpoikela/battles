@@ -36,7 +36,7 @@ describe('RG.Factory.Base', function() {
         const keeper = actors[0];
 
         expect(actors.length).to.equal(1);
-        expect(keeper.getName()).to.equal('Shopkeeper');
+        expect(keeper.getName()).to.equal('shopkeeper');
 
 
     });
