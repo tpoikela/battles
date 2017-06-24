@@ -751,16 +751,14 @@ RG.Game.Save = function() {
 
     /* Main function which saves the full game.*/
     this.save = function(game, conf) {
-        // const player = game.getPlayer();
         this.savePlayer(game, conf);
     };
 
     /* Restores game/player with the given name.*/
     this.restore = function(name) {
         if (!RG.isNullOrUndef([name])) {
-            const player = this.restorePlayer(name);
-            const obj = {player};
-            return obj;
+            const game = this.restorePlayer(name);
+            return game;
         }
         else {
             RG.err('Game.Save', 'restore', 'No name given (or null/undef).');
@@ -891,12 +889,19 @@ RG.Game.FromJSON = function() {
     };
 
     this.createEntity = function(obj) {
-        const entity = new RG.Actor.Rogue(obj.name);
-        entity.setType(obj.type);
-        this.addCompsToEntity(entity, obj.components);
-        this.createInventory(obj, entity);
-        this.createEquipment(obj, entity);
-        return entity;
+        if (obj.type) {
+            const entity = new RG.Actor.Rogue(obj.name);
+            entity.setType(obj.type);
+            this.addCompsToEntity(entity, obj.components);
+            this.createInventory(obj, entity);
+            this.createEquipment(obj, entity);
+            return entity;
+        }
+        else {
+            RG.err('FromJSON', 'createEntity',
+                `obj.type null, obj: ${JSON.stringify(obj)}`);
+        }
+        return null;
     };
 
     this.addCompsToEntity = function(ent, comps) {
@@ -1058,7 +1063,6 @@ RG.Game.FromJSON = function() {
         const sObj = new RG.Element.Stairs(elemObj.isDown);
         stairsInfo[stairsId] = {targetLevel: elemObj.targetLevel,
             targetStairs: elemObj.targetStairs};
-        console.log('FULL stairsInfo: ' + JSON.stringify(stairsInfo));
         return sObj;
     };
 
@@ -1112,11 +1116,8 @@ RG.Game.FromJSON = function() {
             const id = json.player.levelID;
             const level = game.getLevels().find(item => item.getID() === id);
             if (level) {
-                console.log(JSON.stringify(json.player));
-                console.log(JSON.stringify(id2level));
                 const x = json.player.x;
                 const y = json.player.y;
-                console.log('Level is XXX: ' + JSON.stringify(level));
                 level.addActor(player, x, y);
                 game.addPlayer(player);
             }
@@ -1132,14 +1133,12 @@ RG.Game.FromJSON = function() {
     };
 
     this.connectGameLevels = function(game) {
-        console.log('stairsInfo: ' + JSON.stringify(stairsInfo));
         const levels = game.getLevels();
         levels.forEach(level => {
             const stairsList = level.getStairs();
 
             stairsList.forEach(s => {
                 const connObj = stairsInfo[s.getID()];
-                console.log('connObj: ' + JSON.stringify(connObj));
                 const targetLevel = id2level[connObj.targetLevel];
                 const targetStairsXY = connObj.targetStairs;
                 const x = targetStairsXY.x;
