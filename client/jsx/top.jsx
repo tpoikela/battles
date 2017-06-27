@@ -205,9 +205,9 @@ class BattlesTop extends React.Component {
 
     /* Saves the game position.*/
     saveGame() {
-        const persist = new Persist(this.game.getPlayer().getName());
+        const name = this.game.getPlayer().getName();
+        const persist = new Persist(window.indexedDB, name);
         this.setState({saveInProgress: true});
-        console.log('Saving the game now XXX');
 
         this.gameToJSON().then(persist.toStorage)
             .then(() => {
@@ -235,7 +235,7 @@ class BattlesTop extends React.Component {
     loadGame(name) {
         this.setState({loadInProgress: true});
 
-        const persist = new Persist(name);
+        const persist = new Persist(window.indexedDB, name);
         persist.fromStorage().then(result => {
             const fromJSON = new RG.Game.FromJSON();
             let json = null;
