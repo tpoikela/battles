@@ -135,6 +135,8 @@ class BattlesTop extends React.Component {
         // Binding of callbacks
         this.bindCallbacks();
         this.initGUICommandTable();
+        ROT.RNG.setSeed(0); // TODO
+        RG.RAND.setSeed(0);
     }
 
     /* Resets the GUI game state.*/
