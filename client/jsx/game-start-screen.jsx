@@ -15,7 +15,6 @@ class GameStartScreen extends React.Component {
         super(props);
 
         this.state = {
-            selectedGame: null,
             playerName: 'Player'
         };
 
@@ -34,24 +33,16 @@ class GameStartScreen extends React.Component {
 
     /* Loads a saved game.*/
     loadGame() {
-        this.props.loadGame(this.state.selectedGame);
+        this.props.loadGame(this.props.selectedGame);
     }
 
     deleteGame() {
-        this.props.deleteGame(this.state.selectedGame);
+        this.props.deleteGame(this.props.selectedGame);
     }
 
     selectGame(name) {
-        this.setState({selectedGame: name});
-    }
-
-
-    shouldComponentUpdate(nextProps, nextState) {
-        if (nextProps.savedPlayerList !== this.props.savedPlayerList) {
-            return true;
-        }
-        if (nextState.playerName !== this.state.playerName) {return true;}
-        return false;
+        // this.setState({selectedGame: name});
+        this.props.selectGame(name);
     }
 
     render() {
@@ -96,7 +87,7 @@ class GameStartScreen extends React.Component {
 
                         <div className='modal-body row'>
                             {playerListHTML}
-                            <p>Selected game: {this.state.selectedGame}</p>
+                            <p>Selected game: {this.props.selectedGame}</p>
                         </div>
                         <div className='modal-footer row'>
                             <div className='col-md-6'>
@@ -255,7 +246,9 @@ GameStartScreen.propTypes = {
     setGameLength: React.PropTypes.func,
     setDebugMode: React.PropTypes.func,
 
-    newGame: React.PropTypes.func
+    newGame: React.PropTypes.func,
+    selectedGame: React.PropTypes.string,
+    selectGame: React.PropTypes.func
 };
 
 module.exports = GameStartScreen;
