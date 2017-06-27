@@ -26,6 +26,10 @@ RG.Random.prototype.arrayGetRand = function(arr) {
     return arr[randIndex];
 };
 
+RG.Random.prototype.getUniformInt = function(min, max) {
+    return this.rng.getUniformInt(min, max);
+};
+
 /* Returns a random index number from given array. */
 RG.Random.prototype.randIndex = function randIndex(arr) {
     return Math.floor(this.rng.getUniform() * arr.length);
