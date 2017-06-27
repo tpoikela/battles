@@ -48,7 +48,7 @@ var GameInventory = React.createClass({
     },
     */
 
-    /** Called when "Drop" is clicked. Drops item to the ground.*/
+    /* Called when "Drop" is clicked. Drops item to the ground.*/
     dropItem: function(evt) {
         if (this.selectedItem !== null) {
             var invEq = this.props.player.getInvEq();
@@ -64,7 +64,7 @@ var GameInventory = React.createClass({
         }
     },
 
-    /** When "Equip" is clicked, equips the selected item, if any.*/
+    /* When "Equip" is clicked, equips the selected item, if any.*/
     equipItem: function(evt) {
         // Get item somehow
         var item = this.selectedItem;
@@ -88,14 +88,14 @@ var GameInventory = React.createClass({
         }
     },
 
-    /** Called when "Remve" button is clicked to remove an equipped item.*/
-    unequipItem: function(evt) {
+    /* Called when "Remove" button is clicked to remove an equipped item.*/
+    unequipItem: function() {
         if (this.equipSelected !== null) {
-            var invEq = this.props.player.getInvEq();
-            var name = this.equipSelected.slotName;
+            const invEq = this.props.player.getInvEq();
+            const name = this.equipSelected.slotName;
             if (name === 'missile') {
-                var eqItem = invEq.getEquipment().getItem('missile');
-                var ok = false;
+                const eqItem = invEq.getEquipment().getItem('missile');
+                let ok = false;
 
                 if (eqItem !== null) {
                     if (invEq.unequipItem(name, eqItem.count)) {
@@ -127,7 +127,7 @@ var GameInventory = React.createClass({
         }
     },
 
-    useItem: function(evt) {
+    useItem: function() {
         if (this.selectedItem !== null) {
             if (this.selectedItem.hasOwnProperty('useItem')) {
                 var invEq = this.props.player.getInvEq();
@@ -157,14 +157,14 @@ var GameInventory = React.createClass({
 
     setSelectedItem: function(item) {
         this.selectedItem = item;
-        var msg = 'Inventory Selected: ' + item.toString();
+        const msg = 'Inventory Selected: ' + item.toString();
         this.props.selectItemTop(item);
         this.setState({invMsg: msg, msgStyle: 'text-info'});
     },
 
     setEquipSelected: function(selection) {
         this.equipSelected = selection;
-        var msg = 'Equipment Selected: ' + selection.item.toString();
+        const msg = 'Equipment Selected: ' + selection.item.toString();
         this.props.selectItemTop(selection.item);
         this.setState({invMsg: msg, msgStyle: 'text-info'});
     },
