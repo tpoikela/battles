@@ -801,22 +801,20 @@ RG.Brain.Human = function(actor) {
             return this.actionTowardsEnemy(enemyCell);
         }
         else if (friendActor !== null) { // Communicate enemies
-                if (!memory.hasCommunicatedWith(friendActor)) {
-                    const comComp = new RG.Component.Communication();
-                    const enemies = memory.getEnemies();
-                    const msg = {type: 'Enemies', enemies};
-                    comComp.addMsg(msg);
-                    if (!friendActor.has('Communication')) {
-                        friendActor.add('Communication', comComp);
-                        memory.addCommunicationWith(friendActor);
-                        return function() {};
-                    }
+            if (!memory.hasCommunicatedWith(friendActor)) {
+                const comComp = new RG.Component.Communication();
+                const enemies = memory.getEnemies();
+                const msg = {type: 'Enemies', enemies};
+                comComp.addMsg(msg);
+                if (!friendActor.has('Communication')) {
+                    friendActor.add('Communication', comComp);
+                    memory.addCommunicationWith(friendActor);
+                    return function() {};
                 }
             }
+        }
         return this.exploreLevel(seenCells);
-
     };
-
 
 };
 RG.extend2(RG.Brain.Human, RG.Brain.Rogue);
