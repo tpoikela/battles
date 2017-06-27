@@ -350,10 +350,13 @@ RG.World.AreaTile = function(x, y, area) {
  * Moving between tiles of areas happens by travelling to the edges of a tile.
  * Each tile is a level with special edge tiles.
  * */
-RG.World.Area = function(name, maxX, maxY) {
+RG.World.Area = function(name, maxX, maxY, cols, rows) {
     RG.World.Base.call(this, name);
     const _maxX = maxX;
     const _maxY = maxY;
+
+    const _cols = cols || 30;
+    const _rows = rows || 30;
 
     this.getMaxX = () => (_maxX);
     this.getMaxY = () => (_maxY);
@@ -372,7 +375,8 @@ RG.World.Area = function(name, maxX, maxY) {
                         shape: 'cellular'
                     }
                 };
-                const level = RG.FACT.createLevel('forest', 30, 30, levelConf);
+                const level = RG.FACT.createLevel('forest',
+                    _cols, _rows, levelConf);
                 newTile.setLevel(level);
                 tileColumn.push(newTile);
             }
