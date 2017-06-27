@@ -3,6 +3,8 @@
 
 const RG = require('./rg.js');
 
+RG.Random = require('./random.js');
+
 RG.Game = require('./game.js');
 
 RG.Object = require('./object.js');
