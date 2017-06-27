@@ -16,6 +16,8 @@ const GameMessages = require('./game-messages');
 const GameStats = require('./game-stats');
 const GameBoard = require('./game-board');
 
+const Persist = require('../src/persist');
+
 const worldConf = require('../data/conf.world');
 
 /* Top-level component which renders all other components. Keeps also track
@@ -125,7 +127,9 @@ class BattlesTop extends React.Component {
 
         this.state = {
             boardClassName: 'game-board-player-view',
+            loadInProgress: false,
             mapShown: false,
+            saveInProgress: false,
             selectedCell: null,
             selectedItem: null,
             render: true,
@@ -201,23 +205,63 @@ class BattlesTop extends React.Component {
 
     /* Saves the game position.*/
     saveGame() {
-        this.gameSave.save(this.game, this.gameConf);
-        this.savedPlayerList = this.gameSave.getPlayersAsList();
-        RG.gameMsg('Your progress has been saved.');
-        this.setState({render: true, renderFullScreen: true});
+        const persist = new Persist(this.game.getPlayer().getName());
+        this.setState({saveInProgress: true});
+        console.log('Saving the game now XXX');
+
+        this.gameToJSON().then(persist.toStorage)
+            .then(() => {
+                this.gameSave.save(this.game, this.gameConf);
+                this.savedPlayerList = this.gameSave.getPlayersAsList();
+                RG.gameMsg('Your progress has been saved.');
+                this.setState({render: true,
+                    saveInProgress: false, renderFullScreen: true});
+            });
+    }
+
+    gameToJSON() {
+        return new Promise((resolve, reject) => {
+            try {
+                const json = this.game.toJSON();
+                resolve(json);
+            }
+            catch (e) {
+                reject(e);
+            }
+        });
     }
 
     /* Loads a saved game.*/
     loadGame(name) {
-        const restGame = this.gameSave.restore(name);
-        const player = restGame.getPlayer();
-        if (player !== null) {
-            this.gameConf.loadedPlayer = player;
-            this.gameConf.loadedLevel = this.gameSave.getDungeonLevel();
-            const confObj = this.gameSave.getPlayersAsObj()[name];
-            this.restoreConf(confObj);
-            this.initRestoredGame(restGame);
-        }
+        this.setState({loadInProgress: true});
+
+        const persist = new Persist(name);
+        persist.fromStorage().then(result => {
+            console.log('game result length is: ' + JSON.stringify(result).length);
+            const fromJSON = new RG.Game.FromJSON();
+            let json = null;
+            console.log('Searching game to load for ' + name);
+            result.forEach(res => {
+                if (res.player.name === name) {
+                    console.log('Found the game to load for ' + name);
+                    json = res;
+                }
+            });
+
+            for (const p in json[0]) {console.log('json[0] p: ' + p);}
+            for (const p in json[1]) {console.log('json[1] p: ' + p);}
+
+            // const restGame = this.gameSave.restore(name);
+            const restGame = fromJSON.createGame(json);
+            const player = restGame.getPlayer();
+            if (player !== null) {
+                this.gameConf.loadedPlayer = player;
+                this.gameConf.loadedLevel = this.gameSave.getDungeonLevel();
+                const confObj = this.gameSave.getPlayersAsObj()[name];
+                this.restoreConf(confObj);
+                this.initRestoredGame(restGame);
+            }
+        });
     }
 
     initRestoredGame(game) {
@@ -238,7 +282,8 @@ class BattlesTop extends React.Component {
         RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this.listener);
         RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this.listener);
         this.intervalID = setInterval(this.mainLoop, 1000.0 / 60);
-        this.setState({render: true, renderFullScreen: true});
+        this.setState({render: true,
+            loadInProgress: false, renderFullScreen: true});
     }
 
     deleteGame(name) {
@@ -390,7 +435,9 @@ class BattlesTop extends React.Component {
                         />
                     </div>
                     <div className='col-md-10 game-messages-div'>
-                        <GameMessages message={message}
+                        <GameMessages
+                            message={message}
+                            saveInProgress={this.state.saveInProgress}
                             visibleCells={this.gameState.visibleCells}
                         />
                     </div>
@@ -650,6 +697,8 @@ class BattlesTop extends React.Component {
         this.GUITarget = this.GUITarget.bind(this);
         this.GUIUseItem = this.GUIUseItem.bind(this);
         this.forceRender = this.forceRender.bind(this);
+
+        this.gameToJSON = this.gameToJSON.bind(this);
     }
 
 }
