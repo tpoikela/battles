@@ -547,7 +547,7 @@ RG.ObjectShellParser = function() {
      *   And it can be as complex as needed of course.
      * */
     this.filterCategWithFunc = function(categ, func) {
-        const objects = this.dbGet({categ: categ});
+        const objects = this.dbGet({categ});
         const res = [];
         const keys = Object.keys(objects);
 
@@ -591,7 +591,7 @@ RG.ObjectShellParser = function() {
         let randShell = null;
         if (obj.hasOwnProperty('danger')) {
             const danger = obj.danger;
-            randShell = this.dbGetRand({danger: danger, categ: 'actors'});
+            randShell = this.dbGetRand({danger, categ: 'actors'});
             if (randShell !== null) {
                 return this.CreateFromShell('actors', randShell);
             }
@@ -601,7 +601,7 @@ RG.ObjectShellParser = function() {
         }
         else if (obj.hasOwnProperty('func')) {
             const res = this.filterCategWithFunc('actors', obj.func);
-            randShell = this.arrayGetRand(res);
+            randShell = RG.RAND.arrayGetRand(res);
             return this.CreateFromShell('actors', randShell);
         }
         return null;
@@ -616,7 +616,7 @@ RG.ObjectShellParser = function() {
             _cache.actorWeights[key] = RG.getDangerProb(min, max);
         }
         const danger = ROT.RNG.getWeightedValue(_cache.actorWeights[key]);
-        const actor = this.createRandomActor({danger: danger});
+        const actor = this.createRandomActor({danger});
         if (RG.isNullOrUndef([actor])) {
             if (!RG.isNullOrUndef([obj])) {
                 return this.createRandomActor(obj);
@@ -635,7 +635,7 @@ RG.ObjectShellParser = function() {
     this.createRandomItem = function(obj) {
         if (obj.hasOwnProperty('func')) {
             const res = this.filterCategWithFunc('items', obj.func);
-            const randShell = this.arrayGetRand(res);
+            const randShell = RG.RAND.arrayGetRand(res);
             return this.CreateFromShell('items', randShell);
         }
         else {
@@ -644,20 +644,12 @@ RG.ObjectShellParser = function() {
         return null;
     };
 
-    /* Returns a random entry from the array.*/
-    this.arrayGetRand = function(arr) {
-        const len = arr.length;
-        const randIndex = Math.floor(Math.random() * len);
-        return arr[randIndex];
-    };
-
     /* Returns a property from an object, selected randomly. For example,
      * given object {a: 1, b: 2, c: 3}, may return 1,2 or 3 with equal
      * probability.*/
     this.getRandFromObj = function(obj) {
         const keys = Object.keys(obj);
-        const len = keys.length;
-        const randIndex = Math.floor( Math.random() * len);
+        const randIndex = RG.RAND.randIndex(keys);
         return obj[keys[randIndex]];
     };
 
