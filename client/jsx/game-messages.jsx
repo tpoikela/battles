@@ -2,7 +2,7 @@
 const React = require('react');
 
 /** Component for displaying in-game messages.*/
-var GameMessages = React.createClass({
+const GameMessages = React.createClass({
 
     styleToClassName: {
         prim: 'text-primary',
@@ -12,30 +12,33 @@ var GameMessages = React.createClass({
         success: 'text-success'
     },
 
-    shouldComponentUpdate: function(nextProps, nextState) {
+    shouldComponentUpdate: function(nextProps) {
         return nextProps.message.length > 0;
     },
 
     render: function() {
-        var message = this.props.message;
-        var styles = this.styleToClassName;
-        var seenCells = this.props.visibleCells;
+        const message = this.props.message;
+        const styles = this.styleToClassName;
+        const seenCells = this.props.visibleCells;
 
-        var msgList = message.map( function(val, itemIndex) {
-            var className = styles[val.style];
-            var index = 1;
+        let msgList = <span>Saving the game...</span>;
+        if (!this.props.saveInProgress) {
+            msgList = message.map( function(val, itemIndex) {
+                var className = styles[val.style];
+                var index = 1;
 
-            if (!val.hasOwnProperty('seen')) {
-                if (val.hasOwnProperty('cell')) {
-                    index = seenCells.indexOf(val.cell);
-                    if (index >= 0) {val.seen = true;}
+                if (!val.hasOwnProperty('seen')) {
+                    if (val.hasOwnProperty('cell')) {
+                        index = seenCells.indexOf(val.cell);
+                        if (index >= 0) {val.seen = true;}
+                    }
                 }
-            }
 
-            if (index >= 0 || val.seen) {
-                return (<span key={itemIndex} className={className}>{val.msg}.</span>);
-            }
-        });
+                if (index >= 0 || val.seen) {
+                    return (<span key={itemIndex} className={className}>{val.msg}.</span>);
+                }
+            });
+        }
 
         return (
             <div className='game-messages'>{msgList}</div>
