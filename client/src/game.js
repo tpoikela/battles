@@ -886,7 +886,11 @@ RG.Game.FromJSON = function() {
 
     this.createEntity = function(obj) {
         if (obj.type) {
-            const entity = new RG.Actor.Rogue(obj.name);
+            let entity = null;
+            switch (obj.type) {
+                case 'spirit': entity = new RG.Actor.Spirit(obj.name); break;
+                default: entity = new RG.Actor.Rogue(obj.name);
+            }
             entity.setType(obj.type);
             this.addCompsToEntity(entity, obj.components);
             this.createInventory(obj, entity);
