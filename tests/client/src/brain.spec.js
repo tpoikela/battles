@@ -188,3 +188,18 @@ describe('RG.Brain.Rogue', function() {
     });
 
 });
+
+describe('Brain.Summoner', () => {
+    it('can summon help when seeing enemies', () => {
+        const summoner = new RG.Actor.Rogue('summoner');
+        const brain = new RG.Brain.Summoner(summoner);
+        const level = RG.FACT.createLevel('arena', 10, 10);
+        const player = new RG.Actor.Rogue('Player');
+        player.setIsPlayer(true);
+        level.addActor(summoner, 1, 1);
+        level.addActor(player, 3, 3);
+        while (!brain.summonedMonster()) {}
+        expect(level.getActors(), 'There should be one actor added')
+            .to.have.length(3);
+    });
+});
