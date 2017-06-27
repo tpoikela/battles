@@ -2,6 +2,8 @@
 
 const RG = require('../src/rg');
 
+/* Configuration settings for creating the game world. There's not much to
+* document. Follow the convention to construct your own world. */
 RG.WorldConf = {
     name: 'The North',
 
@@ -11,11 +13,23 @@ RG.WorldConf = {
             name: 'Ravendark',
             maxX: 4,
             maxY: 4,
+            cols: 30, rows: 30,
             // DUNGEONS
-            nDungeons: 1,
+            nDungeons: 2,
             dungeon: [
                 { x: 0, y: 0, name: 'd1', nBranches: 1,
                     branch: [{name: 'main', nLevels: 5}],
+                },
+                { x: 1, y: 1, name: 'Large dungeon', nBranches: 2,
+                    connect: [
+                        ['main', 'side', 6, 0],
+                        ['main', 'side2', 6, 0],
+                    ],
+                    branch: [
+                        {name: 'main', nLevels: 7},
+                        {name: 'side', nLevels: 3},
+                        {name: 'side2', nLevels: 3},
+                    ],
                 },
             ],
             // CITIES
