@@ -237,21 +237,14 @@ class BattlesTop extends React.Component {
 
         const persist = new Persist(name);
         persist.fromStorage().then(result => {
-            console.log('game result length is: ' + JSON.stringify(result).length);
             const fromJSON = new RG.Game.FromJSON();
             let json = null;
-            console.log('Searching game to load for ' + name);
             result.forEach(res => {
                 if (res.player.name === name) {
-                    console.log('Found the game to load for ' + name);
                     json = res;
                 }
             });
 
-            for (const p in json[0]) {console.log('json[0] p: ' + p);}
-            for (const p in json[1]) {console.log('json[1] p: ' + p);}
-
-            // const restGame = this.gameSave.restore(name);
             const restGame = fromJSON.createGame(json);
             const player = restGame.getPlayer();
             if (player !== null) {
