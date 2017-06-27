@@ -109,7 +109,7 @@ const RG = { // {{{2
         // const finder = new ROT.Path.Dijkstra(x1, y1, passableCallback);
         const finder = new ROT.Path.AStar(x1, y1, passableCallback);
         finder.compute(x0, y0, function(x, y) {
-            coords.push({x: x, y: y});
+            coords.push({x, y});
         });
         return coords;
     },
@@ -292,12 +292,12 @@ const RG = { // {{{2
             newMsg = msg.msg;
             newMsg = newMsg[0].toUpperCase() + newMsg.substring(1);
 
-            const msgObject = {cell: cell, msg: newMsg, style: style};
+            const msgObject = {cell, msg: newMsg, style};
             this.POOL.emitEvent(this.EVT_MSG, msgObject);
         }
         else {
             newMsg = msg[0].toUpperCase() + msg.substring(1);
-            this.POOL.emitEvent(this.EVT_MSG, {msg: newMsg, style: style});
+            this.POOL.emitEvent(this.EVT_MSG, {msg: newMsg, style});
         }
 
     },
