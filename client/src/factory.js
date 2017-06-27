@@ -246,8 +246,7 @@ RG.Factory.Base = function() { // {{{2
         const map = mapObj.map;
         if (mapObj.hasOwnProperty('houses')) {
             const houses = mapObj.houses;
-            const nlength = houses.length;
-            const index = Math.floor(nlength * Math.random());
+            const index = RG.RAND.randIndex(houses);
             const house = mapObj.houses[index];
             const floor = house.floor;
 
@@ -290,9 +289,7 @@ RG.Factory.Base = function() { // {{{2
     this.addNRandItems = function(parser, itemsPerLevel, level, maxVal, func) {
         // Generate the items randomly for this level
         for (let j = 0; j < itemsPerLevel; j++) {
-            const item = parser.createRandomItem({
-                func: func
-            });
+            const item = parser.createRandomItem({func});
             _doItemSpecificAdjustments(item, maxVal);
             const itemCell = level.getFreeRandCell();
             level.addItem(item, itemCell.getX(), itemCell.getY());
@@ -351,7 +348,7 @@ RG.Factory.Base = function() { // {{{2
                 const demon = parser.createActualObj('actors', 'Winter demon');
                 level.addActor(demon, i + 10, 14 + y);
                 RG.POOL.emitEvent(RG.EVT_ACTOR_CREATED, {actor: demon,
-                    level: level, msg: 'DemonSpawn'});
+                    level, msg: 'DemonSpawn'});
             }
         }
     };
@@ -365,7 +362,7 @@ RG.Factory.Base = function() { // {{{2
                     'Blizzard beast');
                 level.addActor(beast, x + 10, 14 + y);
                 RG.POOL.emitEvent(RG.EVT_ACTOR_CREATED, {actor: beast,
-                    level: level, msg: 'DemonSpawn'});
+                    level, msg: 'DemonSpawn'});
             }
         }
         RG.debug(this, 'Blizzard beasts should now appear.');
@@ -385,7 +382,7 @@ RG.Factory.Feature = function() {
 
     this.getRandLevelType = function() {
         const type = ['rooms', 'rogue', 'digger', 'cellular'];
-        const nLevelType = Math.floor(Math.random() * type.length);
+        const nLevelType = RG.RAND.randIndex(type);
         return type[nLevelType];
     };
 
@@ -826,7 +823,6 @@ RG.FCCGame = function() {
         }
 
         const levels = ['rooms', 'rogue', 'digger'];
-        const maxLevelType = levels.length;
 
         // For storing stairs and levels
         const allStairsDown = [];
@@ -840,7 +836,7 @@ RG.FCCGame = function() {
         // Generate all game levels
         for (let nl = 0; nl < nLevels; nl++) {
 
-            const nLevelType = Math.floor(Math.random() * maxLevelType);
+            const nLevelType = RG.RAND.randIndex(levels);
             let levelType = levels[nLevelType];
             if (nl === 0) {levelType = 'ruins';}
             const level = this.createLevel(levelType, cols, rows);
