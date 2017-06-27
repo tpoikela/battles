@@ -132,6 +132,7 @@ class BattlesTop extends React.Component {
             saveInProgress: false,
             selectedCell: null,
             selectedItem: null,
+            selectedGame: null,
             render: true,
             renderFullScreen: false
         };
@@ -141,6 +142,11 @@ class BattlesTop extends React.Component {
         this.initGUICommandTable();
         ROT.RNG.setSeed(0); // TODO
         RG.RAND.setSeed(0);
+    }
+
+    selectSaveGame(name) {
+        console.log('Top select save game clicked with name ' + name);
+        this.setState({selectedGame: name});
     }
 
     /* Resets the GUI game state.*/
@@ -206,7 +212,7 @@ class BattlesTop extends React.Component {
     /* Saves the game position.*/
     saveGame() {
         const name = this.game.getPlayer().getName();
-        const persist = new Persist(window.indexedDB, name);
+        const persist = new Persist(name);
         this.setState({saveInProgress: true});
 
         this.gameToJSON().then(persist.toStorage)
@@ -235,7 +241,7 @@ class BattlesTop extends React.Component {
     loadGame(name) {
         this.setState({loadInProgress: true});
 
-        const persist = new Persist(window.indexedDB, name);
+        const persist = new Persist(name);
         persist.fromStorage().then(result => {
             const fromJSON = new RG.Game.FromJSON();
             let json = null;
@@ -282,7 +288,8 @@ class BattlesTop extends React.Component {
     deleteGame(name) {
         this.gameSave.deletePlayer(name);
         this.savedPlayerList = this.gameSave.getPlayersAsList();
-        this.setState({render: true, renderFullScreen: true});
+        this.setState({render: true, renderFullScreen: true,
+            selectedGame: null});
     }
 
     restoreConf(obj) {
@@ -401,6 +408,8 @@ class BattlesTop extends React.Component {
                     loadGame={this.loadGame}
                     newGame={this.newGame}
                     savedPlayerList={this.savedPlayerList}
+                    selectedGame={this.state.selectedGame}
+                    selectGame={this.selectSaveGame}
                     setDebugMode={this.setDebugMode}
                     setGameLength={this.setGameLength}
                     setLevelSize={this.setLevelSize}
@@ -692,6 +701,7 @@ class BattlesTop extends React.Component {
         this.forceRender = this.forceRender.bind(this);
 
         this.gameToJSON = this.gameToJSON.bind(this);
+        this.selectSaveGame = this.selectSaveGame.bind(this);
     }
 
 }
