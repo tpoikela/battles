@@ -1,12 +1,8 @@
 
-
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 
 const worldConf = require('../../../client/data/conf.world');
-
-const LocalStorage = require('node-localstorage').LocalStorage,
-localStorage = new LocalStorage('./battles_local_storage');
 
 const isGUICommand = () => {};
 const doGUICommand = () => {};
@@ -36,14 +32,10 @@ describe('Function: Saving/restoring a game', function() {
         const game = fccGame.createNewGame(gameConf);
         game.setGUICallbacks(isGUICommand, doGUICommand);
 
-        const gameSave = new RG.Game.Save();
-        gameSave.setStorage(localStorage);
-
-        gameSave.save(game);
-
-        const restGame = gameSave.restorePlayer(gameConf.playerName);
+        const json = game.toJSON();
+        const fromJSON = new RG.Game.FromJSON();
+        const restGame = fromJSON.createGame(json);
 
         expect(restGame.getPlayer().getName()).to.equal(gameConf.playerName);
-
     });
 });
