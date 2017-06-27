@@ -497,7 +497,8 @@ RG.Factory.World = function() {
         this.verifyConf('createArea', conf,
             ['name', 'maxX', 'maxY']);
         this.pushScope(conf.name);
-        const area = new RG.World.Area(conf.name, conf.maxX, conf.maxY);
+        const area = new RG.World.Area(conf.name, conf.maxX, conf.maxY,
+            conf.cols, conf.rows);
         area.setHierName(this.getHierName());
         const nDungeons = conf.nDungeons || 0;
         const nMountains = conf.nMountains || 0;
