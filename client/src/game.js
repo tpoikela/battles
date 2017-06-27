@@ -804,12 +804,7 @@ RG.Game.Save = function() {
         const player = game.getPlayer();
         if (!RG.isNullOrUndef([player])) {
             const name = player.getName();
-            const storedObj = game.toJSON();
-            storedObj.dungeonLevel = player.getLevel().getID();
-            const dbObj = {name, game: storedObj};
-            const dbString = JSON.stringify(dbObj);
-            _storageRef.setItem('_battles_player_' + name, dbString);
-            _savePlayerInfo(name, storedObj.player, conf);
+            _savePlayerInfo(name, player.toJSON(), conf);
         }
         else {
             RG.err('Game.Save', 'savePlayer',
