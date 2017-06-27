@@ -568,7 +568,7 @@ RG.Brain.Rogue = function(actor) { // {{{2
         }
 
         if (index === -1) { // Everything explored, choose random cell
-            index = Math.floor(Math.random() * (seenCells.length));
+            index = RG.RAND.randIndex(seenCells);
         }
         return this.tryToMoveTowardsCell(seenCells[index]);
 
@@ -733,7 +733,7 @@ RG.Brain.Summoner = function(actor) {
     this.summonedMonster = function() {
         if (this.numSummoned === this.maxSummons) {return false;}
 
-        const summon = Math.random();
+        const summon = RG.RAND.getUniform();
         if (summon > 0.8) {
             const level = _actor.getLevel();
             const cellsAround = this.getFreeCellsAround();
@@ -785,7 +785,7 @@ RG.Brain.Human = function(actor) {
         const memory = this.getMemory();
 
         // If actor cannot communicate, always attack if possible
-        let communicateOrAttack = Math.random();
+        let communicateOrAttack = RG.RAND.getUniform();
         if (RG.isNullOrUndef([friendCell])) {
             communicateOrAttack = 1.0;
         }
@@ -804,7 +804,7 @@ RG.Brain.Human = function(actor) {
                 if (!memory.hasCommunicatedWith(friendActor)) {
                     const comComp = new RG.Component.Communication();
                     const enemies = memory.getEnemies();
-                    const msg = {type: 'Enemies', enemies: enemies};
+                    const msg = {type: 'Enemies', enemies};
                     comComp.addMsg(msg);
                     if (!friendActor.has('Communication')) {
                         friendActor.add('Communication', comComp);
