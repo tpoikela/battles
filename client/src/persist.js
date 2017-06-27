@@ -3,9 +3,9 @@
 
 const IDB_VERSION = 1;
 
-function connectToIDB(name, version) {
+function connectToIDB(indexedDB, name, version) {
     return new Promise((resolve, reject) => {
-        const request = window.indexedDB.open(name, version);
+        const request = indexedDB.open(name, version);
         request.onupgradeneeded = () => {
             request.result.createObjectStore(name,
                 { keyPath: 'id', autoIncrement: true });
@@ -27,7 +27,6 @@ function operateOnIDB(name, IDB, operation, data) {
             case 'GET':
                 request = store.getAll();
                 request.onsuccess = () => {
-                    console.log('GET request.result length: ' + request.result.length);
                     return resolve(request.result);
                 };
                 request.onerror = () => reject(request.error);
@@ -49,12 +48,12 @@ function operateOnIDB(name, IDB, operation, data) {
     });
 }
 
-async function operateWithIDB(store, operation, data) {
+async function operateWithIDB(indexedDB, store, operation, data) {
     let IDB;
     try {
         console.log('Trying to operate with IDB');
-        IDB = await connectToIDB(store, IDB_VERSION);
-        return await operateOnIDB(store, IDB, operation, data);
+        IDB = await connectToIDB(indexedDB, store, IDB_VERSION);
+        return await operateOnIDB(indexedDB, store, IDB, operation, data);
     }
     catch (exception) {
         console.error(exception);
@@ -67,8 +66,10 @@ async function operateWithIDB(store, operation, data) {
     }
 }
 
-module.exports = function Persist(storeName) {
-    this.fromStorage = () => operateWithIDB(storeName, 'GET', null);
-    this.toStorage = data => operateWithIDB(storeName, 'PUT', data);
-    this.deleteFromStorage = data => operateWithIDB(storeName, 'DELETE', data);
+module.exports = function Persist(indexedDB, storeName) {
+    const _indexedDB = indexedDB;
+    this.fromStorage = () => operateWithIDB(_indexedDB, storeName, 'GET', null);
+    this.toStorage = data => operateWithIDB(_indexedDB, storeName, 'PUT', data);
+    this.deleteFromStorage = data =>
+        operateWithIDB(_indexedDB, storeName, 'DELETE', data);
 };
