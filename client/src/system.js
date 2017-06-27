@@ -89,7 +89,7 @@ RG.System.Attack = function(type, compTypes) {
                 const totalDefense = def.getDefense();
                 const hitChange = totalAttack / (totalAttack + totalDefense);
 
-                if (hitChange > Math.random()) {
+                if (hitChange > RG.RAND.getUniform()) {
                     const totalDamage = att.getDamage();
                     if (totalDamage > 0) {this.doDamage(att, def, totalDamage);}
                     else {
@@ -205,7 +205,7 @@ RG.System.Missile = function(type, compTypes) {
         const attack = mComp.getAttack();
         const defense = target.get('Combat').getDefense();
         const hitProp = attack / (attack + defense);
-        const hitRand = Math.random();
+        const hitRand = RG.RAND.getUniform();
         if (hitProp > hitRand) {return true;}
         return false;
     };
@@ -287,15 +287,15 @@ RG.System.Damage = function(type, compTypes) {
             }
             const dmgType = dmgComp.getDamageType();
             if (dmgType === 'poison') {
-RG.gameDanger({cell: cell,
+                RG.gameDanger({cell,
                     msg: actor.getName() + ' dies horribly of poisoning!'});
-}
+            }
 
             let killMsg = actor.getName() + ' was killed';
             if (src !== null) {killMsg += ' by ' + src.getName();}
 
-            RG.gameDanger({cell: cell, msg: killMsg});
-            RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: actor});
+            RG.gameDanger({cell, msg: killMsg});
+            RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor});
         }
         else {
             RG.err('System.Combat', 'killActor', "Couldn't remove actor");
@@ -458,7 +458,7 @@ RG.System.Hunger = function(type, compTypes) {
             hungerComp.decrEnergy(actionComp.getEnergy());
             actionComp.resetEnergy();
             if (hungerComp.isStarving()) {
-                const takeDmg = Math.random(); // Don't make hunger damage too obvious
+                const takeDmg = RG.RAND.getUniform(); // Don't make hunger damage too obvious
                 if (ent.has('Health') && takeDmg < 0.10) {
                     const dmg = new RG.Component.Damage(1, 'hunger');
                     ent.add('Damage', dmg);
@@ -580,12 +580,12 @@ RG.System.TimeEffects = function(type, compTypes) {
                 }
             }
         }
-        else if (Math.random() < poison.getProb()) {
-                const poisonDmg = poison.getDamage();
-                const dmg = new RG.Component.Damage(poisonDmg, 'poison');
-                dmg.setSource(poison.getSource());
-                ent.add('Damage', dmg);
-            }
+        else if (RG.RAND.getUniform() < poison.getProb()) {
+            const poisonDmg = poison.getDamage();
+            const dmg = new RG.Component.Damage(poisonDmg, 'poison');
+            dmg.setSource(poison.getSource());
+            ent.add('Damage', dmg);
+        }
     };
 
     _dtable.Poison = _applyPoison;

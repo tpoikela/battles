@@ -757,7 +757,7 @@ RG.Die = function(num, dice, mod) {
     this.roll = function() {
         let res = 0;
         for (let i = 0; i < _num; i++) {
-            res += Math.floor(Math.random() * (_dice)) + 1;
+            res += RG.RAND.getUniformInt(1, _dice);
         }
         return res + _mod;
     };

@@ -403,9 +403,8 @@ RG.Map.Generator = function() { // {{{2
     let _wall = 1;
 
     this.getRandType = function() {
-        const len = _types.length;
-        const nRand = Math.floor(Math.random() * len);
-        return _types[nRand];
+        const index = RG.RAND.randIndex(_types);
+        return _types[index];
     };
 
     let _nHouses = 5;
@@ -513,13 +512,13 @@ RG.Map.Generator = function() { // {{{2
 
             let houseCreated = false;
             let tries = 0;
-            const xSize = Math.floor(Math.random() * (maxX - minX)) + minX;
-            const ySize = Math.floor(Math.random() * (maxY - minY)) + minY;
+            const xSize = RG.RAND.getUniformInt(minX, maxX);
+            const ySize = RG.RAND.getUniformInt(minY, maxY);
 
             // Select random starting point, try to build house there
             while (!houseCreated && tries < maxTriesHouse) {
-                const x0 = Math.floor(Math.random() * cols);
-                const y0 = Math.floor(Math.random() * rows);
+                const x0 = RG.RAND.getUniformInt(0, cols - 1);
+                const y0 = RG.RAND.getUniformInt(0, rows - 1);
                 houseCreated = this.createHouse(
                     map, x0, y0, xSize, ySize, doors, wallsHalos);
                 ++tries;
@@ -585,8 +584,9 @@ RG.Map.Generator = function() { // {{{2
         }
 
         // Finally randomly insert the door for the house
-        const coordLength = wallCoords.length - 1;
-        const doorIndex = Math.floor(Math.random() * coordLength);
+        // const coordLength = wallCoords.length - 1;
+        // const doorIndex = Math.floor(Math.random() * coordLength);
+        const doorIndex = RG.RAND.randIndex(wallCoords);
         const doorX = wallCoords[doorIndex][0];
         const doorY = wallCoords[doorIndex][1];
         wallCoords.slice(doorIndex, 1);
@@ -625,7 +625,7 @@ RG.Map.Generator = function() { // {{{2
         const map = new RG.Map.CellList(this.cols, this.rows);
         _mapGen.create(function(x, y, val) {
             map.setBaseElemXY(x, y, new RG.Element.Base('floor'));
-            const createTree = Math.random() <= ratio;
+            const createTree = RG.RAND.getUniform() <= ratio;
             if (val === 1 && createTree) {
                 map.setElemXY(x, y, new RG.Element.Tree('tree'));
             }
@@ -653,7 +653,7 @@ RG.Map.Generator = function() { // {{{2
 RG.Map.Generator.prototype.addRandomSnow = function(map, ratio) {
     const freeCells = map.getFree();
     for (let i = 0; i < freeCells.length; i++) {
-        const addSnow = Math.random();
+        const addSnow = RG.RAND.getUniform();
         if (addSnow <= ratio) {
             freeCells[i].setBaseElem(new RG.Element.Base('snow'));
         }
@@ -974,9 +974,8 @@ RG.Map.Level = function() { // {{{2
     this.getFreeRandCell = function() {
         const freeCells = this.getMap().getFree();
         if (freeCells.length > 0) {
-            const maxFree = freeCells.length;
-            const randCell = Math.floor(Math.random() * maxFree);
-            return freeCells[randCell];
+            const index = RG.RAND.randIndex(freeCells);
+            return freeCells[index];
         }
         return null;
     };
@@ -985,9 +984,8 @@ RG.Map.Level = function() { // {{{2
     this.getEmptyRandCell = function() {
         const emptyCells = this.getMap().getEmptyCells();
         if (emptyCells.length > 0) {
-            const maxEmpty = emptyCells.length;
-            const randCell = Math.floor(Math.random() * maxEmpty);
-            return emptyCells[randCell];
+            const index = RG.RAND.randIndex(emptyCells);
+            return emptyCells[index];
         }
         return null;
     };
