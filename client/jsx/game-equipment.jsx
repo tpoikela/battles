@@ -1,24 +1,23 @@
 
 const React = require('react');
-
 const GameEquipSlot = require('./game-equip-slot');
 
 /** Component which shows the equipment of the player.*/
-var GameEquipment = React.createClass({
+const GameEquipment = React.createClass({
 
     render: function() {
-        var eq = this.props.eq;
-        var slots = eq.getSlotTypes();
-        var equipped = [];
-        var setEquip = this.props.setEquipSelected;
+        const eq = this.props.eq;
+        const slots = eq.getSlotTypes();
+        const equipped = [];
+        const setEquip = this.props.setEquipSelected;
 
         // Creates the equipment slots based on whether they have items or not.
-        for (var i = 0; i < slots.length; i++) {
+        for (let i = 0; i < slots.length; i++) {
             var item = eq.getEquipped(slots[i]);
             var items = [];
             if (item !== null) {items.push(item);}
 
-            var key = i;
+            let key = i;
             if (items.length > 0) {
                 for (var j = 0; j < items.length; j++) {
                     key += ',' + j;
