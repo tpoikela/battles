@@ -111,7 +111,35 @@ describe('How actors are created from file', function() {
         expect(gemObj.getValue()).to.equal(40);
     });
 
-    it('can add items into the created actors', () => {
+    it('can add inventory items into the created actors', () => {
+        const parser = new Parser();
+        const goblin = parser.parseObjShell('actors', {
+            name: 'goblin', attack: 15, defense: 10, damage: '1d6 + 2',
+            hp: 9, inv: ['sword'], loot: 'Healing potion'
+        });
+        expect(goblin.inv).to.have.length(1);
+        expect(goblin.loot).to.equal('Healing potion');
+
+        const sword = parser.parseObjShell(RG.TYPE_ITEM, {
+            name: 'sword', type: 'weapon'
+        });
+        expect(sword).to.exist;
+        const potion = parser.parseObjShell(RG.TYPE_ITEM, {
+            name: 'Healing potion', type: 'potion'
+        });
+        expect(potion).to.exist;
+
+        const goblinObj = parser.createActualObj(RG.TYPE_ACTOR, 'goblin');
+
+        expect(goblinObj.has('Loot'),
+            'Goblin should have loot component').to.be.true;
+
+        const inv = goblinObj.getInvEq().getInventory();
+        expect(inv.getItems()).to.have.length(1);
+
+    });
+
+    it('can add equipped items into the created actors', () => {
         const parser = new Parser();
         const goblin = parser.parseObjShell('actors', {
             name: 'goblin', attack: 15, defense: 10, damage: '1d6 + 2',
@@ -291,6 +319,13 @@ describe('It contains all game content info', function() {
         pickaxe.useItem({target: cell});
         expect(cell.getBaseElem().getType()).to.equal('floor');
 
+    });
+
+    it('can create gold coins', () => {
+        const goldcoin = parser.createActualObj(RG.TYPE_ITEM, 'Gold coin');
+        expect(goldcoin.getName()).to.equal('Gold coin');
+        RGTest.checkChar(goldcoin, '$');
+        RGTest.checkCSSClassName(goldcoin, 'cell-item-gold-coin');
     });
 
 });
