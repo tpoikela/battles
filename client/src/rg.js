@@ -529,6 +529,16 @@ RG.getFoodWeightDistr = function() {
     return {0.1: 20, 0.2: 10, 0.3: 5, 0.4: 3, 0.5: 1};
 };
 
+/* Returns the count distribution for gold coins. */
+RG.getGoldCoinCountDistr = function(nLevel) {
+    const maxVal = nLevel + 1;
+    const dist = {};
+    for (let i = 1; i <= maxVal; i++) {
+        dist[i] = nLevel;
+    }
+    return dist;
+};
+
 /* Converts abstract value into gold weight. */
 RG.valueToGoldWeight = function(value) {
     let currVal = value;
