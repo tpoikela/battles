@@ -95,15 +95,21 @@ RG.Factory.ItemRandomizer = function() {
     /* Distr. of food weights.*/
     const _foodWeights = RG.getFoodWeightDistr();
 
-
     const _adjustFoodItem = function(food) {
         const weight = ROT.RNG.getWeightedValue(_foodWeights);
         food.setWeight(weight);
     };
 
+    const _adjustGoldCoin = function(gold, nLevel) {
+        const goldWeights = RG.getGoldCoinCountDistr(nLevel);
+        const count = ROT.RNG.getWeightedValue(goldWeights);
+        gold.setCount(count);
+    };
+
     /* LUT for functions to call on specific items.*/
     const _adjustFunctions = {
-        food: _adjustFoodItem
+        food: _adjustFoodItem,
+        goldcoin: _adjustGoldCoin
     };
 
 };
@@ -323,6 +329,13 @@ RG.Factory.Base = function() { // {{{2
         }
     };
 
+    this.addRandomGold = function(parser, goldPerLevel, level, nLevel) {
+        for (let i = 0; i < goldPerLevel; i++) {
+            const gold = new RG.Item.GoldCoin();
+            _doItemSpecificAdjustments(gold, nLevel);
+            level.addToRandomCell(gold);
+        }
+    };
 
     /* Called for random items. Adjusts some of their attributes randomly.*/
     const _doItemSpecificAdjustments = function(item, val) {
@@ -391,6 +404,7 @@ RG.Factory.Feature = function() {
         const numFree = level.getMap().getFree().length;
         const monstersPerLevel = Math.round(numFree / conf.sqrPerMonster);
         const itemsPerLevel = Math.round(numFree / conf.sqrPerItem);
+        const goldPerLevel = itemsPerLevel;
 
         debug(`Adding ${monstersPerLevel} monsters and
             ${itemsPerLevel} to the level`);
@@ -404,6 +418,9 @@ RG.Factory.Feature = function() {
         );
         this.addNRandMonsters(
             _parser, monstersPerLevel, level, conf.nLevel + 1);
+
+        this.addRandomGold(
+            _parser, goldPerLevel, level, conf.nLevel + 1);
     };
 
     /* Creates random dungeon level. */
