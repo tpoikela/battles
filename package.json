@@ -52,7 +52,8 @@
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
     "hooks": "perl bin/deploy_hooks",
     "server": "python -m SimpleHTTPServer",
-    "test": "mocha --recursive tests/client/src"
+    "test": "mocha --recursive tests/client/src",
+    "test:functional": "mocha --recursive tests/client/functional/"
   },
   "license": "MIT",
   "bugs": {
