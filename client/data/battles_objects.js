@@ -195,6 +195,11 @@ var RGObjects = {
     ],
 
     items: [
+        {
+            name: 'Gold coin', className: 'cell-item-gold-coin',
+            char: '$', material: 'gold',
+            type: 'goldcoin', value: 10
+        },
         //------------------------------------------------------------
         // MELEE WEAPONS
         //------------------------------------------------------------
