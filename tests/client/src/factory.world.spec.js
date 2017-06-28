@@ -28,7 +28,8 @@ describe('Factory.World', function() {
     it('can create Branch using config object', () => {
         const brConf = {
             name: 'DangerousBranch',
-            nLevels: 2
+            nLevels: 2,
+            entranceLevel: 0
         };
         const br = fact.createBranch(brConf);
         expect(br.getName()).to.equal(brConf.name);
@@ -72,15 +73,21 @@ describe('Factory.World', function() {
             ],
             branch: [
                 {name: 'main', nLevels: 1},
-                {name: 'side', nLevels: 1},
-                {name: 'side2', nLevels: 1}
+                {name: 'side', nLevels: 1, entranceLevel: 0},
+                {name: 'side2', nLevels: 1, entranceLevel: 0}
             ]
         };
         const dungeon = fact.createDungeon(dConf);
         const branches = dungeon.getBranches();
-        console.log(JSON.stringify(dungeon));
         expectConnected(branches[0], branches[1], 1);
         expectConnected(branches[0], branches[2], 1);
+
+        const entrB1 = branches[1].getEntrance();
+        const entrB2 = branches[2].getEntrance();
+        expect(entrB1).to.exist;
+        expect(entrB1.getTargetStairs()).to.be.null;
+        expect(entrB2).to.exist;
+        expect(entrB2.getTargetStairs()).to.be.null;
     });
 
     it('Can create World using config object', function() {
@@ -91,7 +98,8 @@ describe('Factory.World', function() {
                 { name: 'a1', maxX: 2, maxY: 3, nDungeons: 1,
                     dungeon: [
                         {x: 0, y: 0, name: 'd1.1', nBranches: 1,
-                            branch: [ { name: 'b1', nLevels: 2 }]
+                            branch: [ { name: 'b1', nLevels: 2,
+                                entranceLevel: 0}]
                         }
                     ]
                 },
