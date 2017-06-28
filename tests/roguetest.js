@@ -84,10 +84,12 @@ RGTest.expectConnected = function(b1, b2, nConns) {
 
     b1Stairs.forEach( stair1 => {
         const s1TargetID = stair1.getTargetLevel().getID();
+        expect(stair1.getTargetStairs()).not.to.be.empty;
         b2Stairs.forEach( stair2 => {
             if (s1TargetID === stair2.getSrcLevel().getID()) {
                 ++connFound;
                 // stair1 should be the target of stair2
+                expect(stair2.getTargetStairs()).not.to.be.empty;
             }
         });
     });
