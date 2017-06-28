@@ -335,6 +335,10 @@ RG.ObjectShellParser = function() {
 
         if (shell.hasOwnProperty('use')) {this.addUseEffects(shell, newObj);}
 
+        if (shell.hasOwnProperty('equip')) {
+            this.addEquippedItems(shell, newObj);
+        }
+
         // TODO map different props to function calls
         return newObj;
     };
@@ -360,6 +364,28 @@ RG.ObjectShellParser = function() {
             _addUseEffectToItem(shell, newObj, shell.use);
         }
     };
+
+    this.addEquippedItems = function(shell, actor) {
+        const equip = shell.equip;
+        equip.forEach(item => {
+            const itemObj = this.createActualObj(RG.TYPE_ITEM, item);
+            if (itemObj) {
+                actor.getInvEq().addItem(itemObj);
+                if (!actor.getInvEq().equipItem(itemObj)) {
+                    RG.err('ObjectShellParser', 'addEquippedItems',
+                        `Cannot equip: ${item} to ${actor.getName()}`);
+                }
+            }
+            else {
+                RG.err('ObjectShellParser', 'addEquippedItems',
+                    `itemObj for ${item} is null. Actor: ${actor.getName()}`);
+            }
+        });
+    };
+
+    // TODO addInventoryItems
+
+    // TODO addLootComponents
 
     const _addUseEffectToItem = function(shell, item, useName) {
         const useFuncName = useName;

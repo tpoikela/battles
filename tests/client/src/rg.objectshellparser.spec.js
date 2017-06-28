@@ -110,6 +110,24 @@ describe('How actors are created from file', function() {
         const gemObj = parser.createActualObj('items', 'Lesser gem');
         expect(gemObj.getValue()).to.equal(40);
     });
+
+    it('can add items into the created actors', () => {
+        const parser = new Parser();
+        const goblin = parser.parseObjShell('actors', {
+            name: 'goblin', attack: 15, defense: 10, damage: '1d6 + 2',
+            hp: 9, equip: ['sword']
+        });
+        expect(goblin.equip).to.have.length(1);
+        parser.parseObjShell(RG.TYPE_ITEM, {
+            name: 'sword', type: 'weapon', damage: '1d1'
+        });
+        const actualGoblin = parser.createActualObj(RG.TYPE_ACTOR, 'goblin');
+
+        const eqSword = actualGoblin.getWeapon();
+        expect(eqSword).to.exist;
+        expect(eqSword.getType()).to.equal('weapon');
+    });
+
 });
 
 describe('How food items are created from objects', function() {
