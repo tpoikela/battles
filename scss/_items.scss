@@ -4,17 +4,17 @@
 //----------------------
 
 .cell-item-default {
-    background-color: brown;
+    background-color: $item-default-bg;
 }
 
 .cell-item-potion {
-    background-color: white;
+    background-color: $white;
     color: purple;
 };
 
 .cell-item-armour {
     background-color: green;
-    color: white;
+    color: $white;
 };
 
 .cell-item-food {
@@ -24,22 +24,22 @@
 
 .cell-item-melee-weapon {
     background-color: blue;
-    color: white;
+    color: $white;
 };
 
 .cell-item-missile {
-    background-color: white;
+    background-color: $white;
     color: red;
 };
 
 .cell-item-leather {
-    background-color: brown;
-    color: white;
+    background-color: $brown;
+    color: $white;
 };
 
 .cell-item-iron {
     background-color: Silver;
-    color: white;
+    color: $white;
 };
 
 .cell-item-ruby-glass {
@@ -54,12 +54,12 @@
 
 .cell-item-magic {
     background-color: purple;
-    color: white;
+    color: $white;
 };
 
 .cell-item-spiritgem {
     background-color: purple;
-    color: white;
+    color: $white;
 };
 
 .cell-item-gold-coin {
