@@ -18,14 +18,14 @@ RG.WorldConf = {
             nDungeons: 2,
             dungeon: [
                 { x: 0, y: 0, name: 'd1', nBranches: 1,
-                    branch: [{name: 'main', nLevels: 5}],
+                    branch: [{name: 'main', nLevels: 5, entranceLevel: 0}],
                 },
                 { x: 0, y: 0, name: 'BranchTest', nBranches: 2,
                     connect: [
                         ['main', 'side', 0, 0]
                     ],
                     branch: [
-                        {name: 'main', nLevels: 1},
+                        {name: 'main', nLevels: 1, entranceLevel: 0},
                         {name: 'side', nLevels: 1},
                     ],
                 },
