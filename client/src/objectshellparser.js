@@ -339,6 +339,13 @@ RG.ObjectShellParser = function() {
             this.addEquippedItems(shell, newObj);
         }
 
+        if (shell.hasOwnProperty('inv')) {
+            this.addInventoryItems(shell, newObj);
+        }
+
+        if (shell.hasOwnProperty('loot')) {
+            this.addLootComponents(shell, newObj);
+        }
         // TODO map different props to function calls
         return newObj;
     };
@@ -385,8 +392,27 @@ RG.ObjectShellParser = function() {
     };
 
     // TODO addInventoryItems
+    this.addInventoryItems = function(shell, actor) {
+        const inv = shell.inv;
+        inv.forEach(item => {
+            const itemObj = this.createActualObj(RG.TYPE_ITEM, item);
+            if (itemObj) {
+                actor.getInvEq().addItem(itemObj);
+            }
+            else {
+                RG.err('ObjectShellParser', 'addInventoryItems',
+                    `itemObj for ${item} is null. Actor: ${actor.getName()}`);
+            }
+        });
+    };
 
     // TODO addLootComponents
+    this.addLootComponents = function(shell, actor) {
+        const loot = shell.loot;
+        const lootItem = this.createActualObj(RG.TYPE_ITEM, loot);
+        const lootComp = new RG.Component.Loot(lootItem);
+        actor.add('Loot', lootComp);
+    };
 
     const _addUseEffectToItem = function(shell, item, useName) {
         const useFuncName = useName;
