@@ -109,6 +109,8 @@ RG.Element.Stairs = function(down, srcLevel, targetLevel) {
     this.connect = function(stairs) {
         this.setTargetStairs(stairs);
         stairs.setTargetStairs(this);
+        this.setTargetLevel(stairs.getSrcLevel());
+        stairs.setTargetLevel(this.getSrcLevel());
     };
 
     /* Unique ID can be formed by levelID,x,y. */
