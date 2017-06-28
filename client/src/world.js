@@ -77,6 +77,7 @@ RG.World.Branch = function(name) {
         const level = _levels[nLevel];
         const otherBranchLevel = stairs.getSrcLevel();
 
+        console.log('connectLevelToStairs');
         if (!RG.isNullOrUndef([otherBranchLevel])) {
             const down = !stairs.isDown();
             const newStairs = new Stairs(down,
@@ -85,6 +86,9 @@ RG.World.Branch = function(name) {
             level.addStairs(newStairs, cell.getX(), cell.getY());
             newStairs.connect(stairs);
             this.addStairsOther(newStairs);
+
+            console.log('stairs: ' + JSON.stringify(stairs));
+            console.log('newStairs: ' + JSON.stringify(newStairs));
         }
         else {
             RG.err('World.Branch', 'connectLevelToStairs',
@@ -226,7 +230,7 @@ RG.World.Dungeon = function(name) {
 
         if (RG.isNullOrUndef([b1, b2])) {
             RG.err('World.Dungeon', 'connectBranches',
-                'Cannot connect null branches.');
+                'Cannot connect null branches. Check branch names.');
             return;
         }
 
@@ -249,7 +253,7 @@ RG.World.Dungeon = function(name) {
         }
         else {
             RG.err('World.Dungeon', 'connectBranches',
-                'Branches must be added to dungeon before connection.');
+                `Use addBranch ${b1} and ${b2} to dungeon before connection.`);
         }
     };
 
