@@ -446,6 +446,8 @@ RG.ObjectShellParser = function() {
                 switch (subtype) {
                     case 'armour': return new RG.Item.Armour(obj.name);
                     case 'food': return new RG.Item.Food(obj.name);
+                    case 'gold': return new RG.Item.Gold(obj.name);
+                    case 'goldcoin' : return new RG.Item.GoldCoin(obj.name);
                     case 'missile': return new RG.Item.Missile(obj.name);
                     case 'potion': return new RG.Item.Potion(obj.name);
                     case 'spiritgem': return new RG.Item.SpiritGem(obj.name);
