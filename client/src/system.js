@@ -427,7 +427,10 @@ RG.System.Movement = function(type, compTypes) {
             const topItem = items[0];
             let topItemName = topItem.getName();
             if (topItem.count > 1) {
-                topItemName = topItem.count + `${topItemName}s`;
+                topItemName = topItem.count + ` ${topItemName}`;
+                if (!(/s$/).test(topItemName)) {
+                    topItemName += 's';
+                }
             }
 
             if (items.length > 1) {
