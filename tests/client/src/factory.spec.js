@@ -42,23 +42,10 @@ describe('RG.Factory.Base', function() {
     });
 });
 
-describe('ObjectShellParser', function() {
-    it('It is used for parsing object shells', function() {
-        const parser = new RG.ObjectShellParser();
-        RG.suppressErrorMessages = true;
-        const noObj = parser.createActualObj('items', 'Void Item');
-        expect(noObj).to.be.null;
-        RG.suppressErrorMessages = true;
 
-        const invalidShell = {xxx: 'xxx', noname: 'noname'};
-        expect(parser.validShellGiven(invalidShell)).to.be.false;
-
-    });
-});
-
-describe('RG.FCCGame', function() {
-    it('can be created', function() {
-        const game = new RG.FCCGame();
+describe('RG.Factory.Game', function() {
+    it('can create new games', function() {
+        const gameFactory = new RG.Factory.Game();
         const conf = {
             cols: 40,
             rows: 30,
@@ -69,9 +56,11 @@ describe('RG.FCCGame', function() {
             debugMode: false,
             loadedPlayer: null,
             loadedLevel: null,
-            playerName: 'Player'
+            playerName: 'Player Hero'
         };
-        game.createNewGame(conf);
+        const game = gameFactory.createNewGame(conf);
 
+        expect(game).to.exist;
+        expect(game.getPlayer().getName()).to.equal('Player Hero');
     });
 });
