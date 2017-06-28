@@ -35,6 +35,7 @@ const cityConfBase = function(_parser, conf) {
 };
 
 /* Determines the x-y sizes for different types of levels. */
+/*
 const levelSizes = {
     tile: {
         Small: {x: 40, y: 20},
@@ -61,7 +62,7 @@ const levelSizes = {
         Huge: {x: 140, y: 60}
     }
 };
-
+*/
 
 /* Player stats based on user selection.*/
 const confPlayerStats = {
@@ -537,6 +538,12 @@ RG.Factory.World = function() {
         const dungeon = new RG.World.Dungeon(conf.name);
         dungeon.setHierName(this.getHierName());
 
+        if (conf.nBranches !== conf.branch.length) {
+            const len = conf.branch.length;
+            RG.err('Factory.World', 'createDungeon',
+                `Branch number mismatch [] = ${len}, n: ${conf.nBranches}`);
+        }
+
         for (let i = 0; i < conf.nBranches; i++) {
             const branchConf = conf.branch[i];
             const branch = this.createBranch(branchConf);
@@ -669,7 +676,7 @@ RG.Factory.World = function() {
     };
 };
 
-RG.FCCGame = function() {
+RG.Factory.Game = function() {
     RG.Factory.Base.call(this);
 
     const _parser = new RG.ObjectShellParser();
@@ -1061,7 +1068,7 @@ RG.FCCGame = function() {
         return level;
     };
 };
-RG.extend2(RG.FCCGame, RG.Factory.Base);
+RG.extend2(RG.Factory.Game, RG.Factory.Base);
 
 
 module.exports = RG.Factory;
