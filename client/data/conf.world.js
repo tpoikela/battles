@@ -20,7 +20,17 @@ RG.WorldConf = {
                 { x: 0, y: 0, name: 'd1', nBranches: 1,
                     branch: [{name: 'main', nLevels: 5}],
                 },
-                { x: 1, y: 1, name: 'Large dungeon', nBranches: 2,
+                { x: 0, y: 0, name: 'BranchTest', nBranches: 2,
+                    connect: [
+                        ['main', 'side', 0, 0]
+                    ],
+                    branch: [
+                        {name: 'main', nLevels: 1},
+                        {name: 'side', nLevels: 1},
+                    ],
+                },
+                /*
+                { x: 1, y: 1, name: 'Large dungeon', nBranches: 3,
                     connect: [
                         ['main', 'side', 6, 0],
                         ['main', 'side2', 6, 0],
@@ -31,6 +41,7 @@ RG.WorldConf = {
                         {name: 'side2', nLevels: 3},
                     ],
                 },
+                */
             ],
             // CITIES
             nCities: 1,
