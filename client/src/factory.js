@@ -601,6 +601,13 @@ RG.Factory.World = function() {
             branch.addLevel(level);
         }
         branch.connectLevels();
+
+        // Create entrance after levels have been created
+        if (conf.hasOwnProperty('entranceLevel')) {
+            const entrStairs = new Stairs(false);
+            branch.setEntrance(entrStairs, conf.entranceLevel);
+        }
+
         this.popScope(conf.name);
         return branch;
     };
