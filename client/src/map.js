@@ -718,6 +718,20 @@ RG.Map.Level = function() { // {{{2
     };
 
     //---------------------------------------------------------------------
+    // GENERIC ADD METHOD
+    //---------------------------------------------------------------------
+    this.addToRandomCell = function(obj) {
+        const cell = this.getFreeRandCell();
+        switch (obj.getPropType()) {
+            case RG.TYPE_ITEM:
+                this.addItem(obj, cell.getX(), cell.getY());
+                break;
+            default: RG.err('Map.Level', 'addToRandomCell',
+                `No known propType |${obj.getPropType()}|`);
+        }
+    };
+
+    //---------------------------------------------------------------------
     // STAIRS RELATED FUNCTIONS
     //---------------------------------------------------------------------
 
