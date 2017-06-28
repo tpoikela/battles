@@ -328,4 +328,15 @@ RG.Element.Stone = function() {
 };
 RG.extend2(RG.Element.Stone, RG.Element.Base);
 
+/* A water element. */
+RG.Element.Water = function() {
+    RG.Element.Base.call(this, 'water');
+};
+RG.extend2(RG.Element.Water, RG.Element.Base);
+
+RG.Element.Water.prototype.isPassable = function() {
+    return false;
+};
+
+
 module.exports = RG.Element;
