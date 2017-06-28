@@ -36,7 +36,7 @@ describe('How hunger system works', function() {
     });
 });
 
-describe('How loot is dropped by monsters', function() {
+describe('How items/loot is dropped by monsters', function() {
     it('Drops loot when lethal damage is dealt', function() {
         const level = RG.FACT.createLevel('arena', 20, 20);
 
@@ -51,6 +51,9 @@ describe('How loot is dropped by monsters', function() {
         const lootItem = new RG.Item.Base('Loot item');
         const loot = new RG.Component.Loot(lootItem);
 
+        const invItem = new RG.Item.Weapon('Sword');
+
+        monster.getInvEq().addItem(invItem);
         monster.add('Loot', loot);
         const dmgComp = new RG.Component.Damage(6, 'fire');
         dmgComp.setSource(human);
@@ -65,6 +68,10 @@ describe('How loot is dropped by monsters', function() {
         expect(monster.get('Health').getHP()).to.equal(0);
         expect(lootItem.getOwner()).to.equal(lootCell);
         expect(lootCell.hasProp('items')).to.equal(true);
+
+        // Check for the dropped inventory item
+        const items = lootCell.getProp(RG.TYPE_ITEM);
+        expect(items).to.have.length(2);
     });
 });
 
