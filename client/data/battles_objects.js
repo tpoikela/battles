@@ -52,6 +52,11 @@ var RGObjects = {
             attack: 4, defense: 4, damage: '1d9',
             hp: 25, danger: 5
         },
+        {
+            name: 'mountain lion', char: 'f', base: 'animal',
+            attack: 5, defense: 3, damage: '2d4',
+            hp: 25, danger: 5
+        },
 
         // HUMANOIDS
         {
@@ -119,7 +124,7 @@ var RGObjects = {
         },
         {
             name: 'miner', base: 'human',
-            attack: 4, danger: 4, damage: '1d5'
+            attack: 4, danger: 4, damage: '1d5', equip: ['Pick-axe']
         },
         {
             name: 'robber', base: 'human',
