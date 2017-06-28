@@ -306,7 +306,7 @@ class BattlesTop extends React.Component {
         }
 
         this.resetGameState();
-        const gameFactory = new RG.Game.Factory();
+        const gameFactory = new RG.Factory.Game();
         if (this.game !== null) {
             delete this.game;
             RG.FACT = new RG.Factory.Base();
