@@ -365,6 +365,7 @@ RG.ObjectShellParser = function() {
         }
     };
 
+    /* Adds equipped items given with shell.equip into the actor. */
     this.addEquippedItems = function(shell, actor) {
         const equip = shell.equip;
         equip.forEach(item => {
