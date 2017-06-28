@@ -59,8 +59,10 @@ RG.World.Branch = function(name) {
     /* Sets the entrance for this branch. */
     this.setEntrance = function(stairs, levelNumber) {
         if (levelNumber < _levels.length) {
+            const level = _levels[levelNumber];
             _entrance = stairs;
-            _entrance.setSrcLevel(_levels[levelNumber]);
+            const cell = level.getFreeRandCell();
+            level.addStairs(stairs, cell.getX(), cell.getY());
         }
         else {
             RG.err('World.Branch', 'setEntrance',
