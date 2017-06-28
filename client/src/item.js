@@ -540,8 +540,9 @@ RG.Item.Gold.prototype.toJSON = function() {
 };
 
 /* Gold coins have standard weight and are (usually) made of pure gold.*/
-RG.Item.GoldCoin = function() {
-    RG.Item.Gold.call(this, RG.GOLD_COIN_NAME);
+RG.Item.GoldCoin = function(name) {
+    const _name = name || RG.GOLD_COIN_NAME;
+    RG.Item.Gold.call(this, _name);
     this.setType(RG.ITEM_GOLD_COIN);
     this._purity = 1.0;
     this.setWeight(0.03);
