@@ -3,8 +3,6 @@ const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 const RGTest = require('../../roguetest');
 
-const worldConf = require('../../../client/data/conf.world');
-
 const expectConnected = RGTest.expectConnected;
 
 describe('Factory.World', function() {
@@ -62,6 +60,29 @@ describe('Factory.World', function() {
         expectConnected(branches[1], branches[2], 1);
     });
 
+
+    it('creates properly connected dungeons with branches', () => {
+        const dConf = {
+            x: 0, y: 0,
+            name: 'BranchTest',
+            nBranches: 3,
+            connect: [
+                ['main', 'side', 0, 0],
+                ['main', 'side2', 0, 0]
+            ],
+            branch: [
+                {name: 'main', nLevels: 1},
+                {name: 'side', nLevels: 1},
+                {name: 'side2', nLevels: 1}
+            ]
+        };
+        const dungeon = fact.createDungeon(dConf);
+        const branches = dungeon.getBranches();
+        console.log(JSON.stringify(dungeon));
+        expectConnected(branches[0], branches[1], 1);
+        expectConnected(branches[0], branches[2], 1);
+    });
+
     it('Can create World using config object', function() {
         const worldConf = {
             name: 'w1',
@@ -104,10 +125,4 @@ describe('Factory.World', function() {
         expect(world.getCities()).to.have.length(1);
     });
 
-    it('can created world from external config object', () => {
-        const world = fact.createWorld(worldConf);
-        expect(world.getAreas()).to.have.length(worldConf.nAreas);
-        expect(world.getName()).to.equal(worldConf.name);
-        expect(world.getLevels()).to.have.length.above(0);
-    });
 });
