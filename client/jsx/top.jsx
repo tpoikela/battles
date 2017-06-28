@@ -306,12 +306,12 @@ class BattlesTop extends React.Component {
         }
 
         this.resetGameState();
-        const fccGame = new RG.FCCGame();
+        const gameFactory = new RG.Game.Factory();
         if (this.game !== null) {
             delete this.game;
             RG.FACT = new RG.Factory.Base();
         }
-        this.game = fccGame.createNewGame(this.gameConf);
+        this.game = gameFactory.createNewGame(this.gameConf);
         this.game.setGUICallbacks(this.isGUICommand, this.doGUICommand);
 
         const player = this.game.getPlayer();
