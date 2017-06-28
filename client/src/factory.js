@@ -103,7 +103,7 @@ RG.Factory.ItemRandomizer = function() {
     const _adjustGoldCoin = function(gold, nLevel) {
         const goldWeights = RG.getGoldCoinCountDistr(nLevel);
         const count = ROT.RNG.getWeightedValue(goldWeights);
-        gold.setCount(count);
+        gold.setCount(parseInt(count, 10));
     };
 
     /* LUT for functions to call on specific items.*/
@@ -331,7 +331,7 @@ RG.Factory.Base = function() { // {{{2
 
     this.addRandomGold = function(parser, goldPerLevel, level, nLevel) {
         for (let i = 0; i < goldPerLevel; i++) {
-            const gold = new RG.Item.GoldCoin();
+            const gold = parser.createActualObj(RG.TYPE_ITEM, 'Gold coin');
             _doItemSpecificAdjustments(gold, nLevel);
             level.addToRandomCell(gold);
         }
