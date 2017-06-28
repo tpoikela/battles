@@ -37,6 +37,7 @@ RG.World.Branch = function(name) {
     const _stairsDown = [];
     const _stairsUp = [];
     const _stairsOther = [];
+    let _entrance = null;
 
     let _numCount = 1;
     let _dungeon = null;
@@ -55,20 +56,21 @@ RG.World.Branch = function(name) {
         _stairsOther.push(stairs);
     };
 
-    /* Returns entrance/exit for the branch.*/
-    this.getEntrance = function() {
-        return _stairsUp[0];
-    };
-
-    /* Connects entrance to a stairs.*/
-    this.connectEntrance = function(stairs) {
-        if (_stairsUp.length > 0) {
-            _stairsUp[0].setTargetStairs(stairs);
+    /* Sets the entrance for this branch. */
+    this.setEntrance = function(stairs, levelNumber) {
+        if (levelNumber < _levels.length) {
+            _entrance = stairs;
+            _entrance.setSrcLevel(_levels[levelNumber]);
         }
         else {
-            RG.err('World.Branch', 'connectEntrance',
-                'No stairs for connection exist. Call connectLevels() first.');
+            RG.err('World.Branch', 'setEntrance',
+                `Invalid level number. Must be < ${_levels.length}`);
         }
+    };
+
+    /* Returns entrance/exit for the branch.*/
+    this.getEntrance = function() {
+        return _entrance;
     };
 
     /* Connects specified level to the given stairs (Usually external to this
@@ -129,7 +131,7 @@ RG.World.Branch = function(name) {
             }
 
             // Create stairs up
-            if (nl >= 0) {
+            if (nl > 0) {
                 const targetUp = _levels[nl - 1];
                 const stairsUp = new Stairs(false, src, targetUp);
                 stairCell = src.getFreeRandCell();
@@ -141,13 +143,14 @@ RG.World.Branch = function(name) {
         // Finally connect the stairs together
         for (let nl = 0; nl < nLevels; nl++) {
             if (nl < nLevels - 1) {
-                _stairsDown[nl].setTargetStairs(_stairsUp[nl + 1]);
+                // _stairsDown[nl].setTargetStairs(_stairsUp[nl + 1]);
+                _stairsDown[nl].connect(_stairsUp[nl]);
             }
 
             // Don't connect first stairs up
-            if (nl > 0) {
+            /* if (nl > 0) {
                 _stairsUp[nl].setTargetStairs(_stairsDown[nl - 1]);
-            }
+            }*/
         }
     };
 
