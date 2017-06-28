@@ -309,3 +309,15 @@ describe('It has query functions for objects', function() {
     });
 });
 
+describe('ObjectShellParser error handling', function() {
+    it('It should detect invalid object shells', function() {
+        const parser = new RG.ObjectShellParser();
+        RG.suppressErrorMessages = true;
+        const noObj = parser.createActualObj('items', 'Void Item');
+        expect(noObj).to.be.null;
+        RG.suppressErrorMessages = true;
+
+        const invalidShell = {xxx: 'xxx', noname: 'noname'};
+        expect(parser.validShellGiven(invalidShell)).to.be.false;
+    });
+});
