@@ -20,7 +20,7 @@ describe('World.Branch', function() {
         stairs = levels[0].getStairsToLevel(levels[2]);
         expect(stairs === null).to.equal(true);
         const entrance = branch.getEntrance();
-        expect(entrance === null).to.equal(false);
+        expect(entrance, 'Entrance null unless set').to.be.null;
     });
 });
 
@@ -46,6 +46,8 @@ describe('World.Dungeon', function() {
             dungeon.addBranch(branch);
             branches.push(branch);
             branchNames.push(brName);
+            const entrStairs = new RG.Element.Stairs(false);
+            branch.setEntrance(entrStairs, 0);
         }
         expect(branches[0].getDungeon()).to.equal(dungeon);
 
