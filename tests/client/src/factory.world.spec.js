@@ -34,6 +34,11 @@ describe('Factory.World', function() {
         const br = fact.createBranch(brConf);
         expect(br.getName()).to.equal(brConf.name);
         expect(br.getEntrance()).to.not.be.empty;
+
+        const l0 = br.getLevels()[0];
+
+        // Should have entrance + stairs down == 2 stairs
+        expect(l0.getStairs()).to.have.length(2);
     });
 
     it('Can create dungeon using config object', () => {
