@@ -28,8 +28,8 @@ describe('Function: Saving/restoring a game', function() {
             playerName: 'Player1',
             world: worldConf
         };
-        const fccGame = new RG.FCCGame();
-        const game = fccGame.createNewGame(gameConf);
+        const gameFactory = new RG.Factory.Game();
+        const game = gameFactory.createNewGame(gameConf);
         game.setGUICallbacks(isGUICommand, doGUICommand);
 
         const json = game.toJSON();
