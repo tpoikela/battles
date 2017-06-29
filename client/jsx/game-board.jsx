@@ -79,11 +79,16 @@ const GameBoard = React.createClass({
         const map = this.props.map;
 
         let shownCells = map;
-        // if (!mapShown) {
+        if (!mapShown) {
             shownCells = new GUI.Viewport(this.props.viewportX,
                 this.props.viewportY, map);
             shownCells.getCellsInViewPort(playX, playY, map);
-        // }
+        }
+        else {
+            shownCells = new GUI.Viewport(map.cols,
+                map.rows, map);
+            shownCells.getCellsInViewPort(playX, playY, map);
+        }
 
         const cellRows = [];
         const charRows = [];
