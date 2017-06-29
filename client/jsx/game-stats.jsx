@@ -1,8 +1,9 @@
 const React = require('react');
 const RG = require('../src/rg.js');
+const $ = require('jquery');
 
 /** Component for displaying character stats.*/
-var GameStats = React.createClass({
+const GameStats = React.createClass({
 
     getInitialState: function() {
         return {
@@ -10,7 +11,14 @@ var GameStats = React.createClass({
         };
     },
 
-    changeMapView: function(evt) {
+    propTypes: {
+        player: React.propTypes.object.required,
+        selectedItem: React.propTypes.object.required,
+        setViewType: React.propTypes.func.required,
+        selectedCell: React.propTypes.object.required
+    },
+
+    changeMapView: function() {
         if (this.state.mapShown) {
             $('#map-player-button').text('Map View');
             this.setState({mapShown: false});
@@ -24,27 +32,28 @@ var GameStats = React.createClass({
     },
 
     render: function() {
-
         var player = this.props.player;
-        var eq = player.getInvEq().getEquipment();
         var dungeonLevel = player.getLevel().getLevelNumber();
         var selectedItem = this.props.selectedItem;
         var selectedCell = this.props.selectedCell;
 
-        var selItemName = '';
-        if (selectedItem !== null) {selItemName = 'Selected: ' + selectedItem.getName();}
+        let selItemName = '';
+        if (selectedItem !== null) {
+            selItemName = 'Selected: ' + selectedItem.getName();
+        }
 
-        var selCellDescr = '';
+        let selCellDescr = '';
         if (selectedCell !== null) {
             if (selectedCell.hasActors()) {
-                var actorName = selectedCell.getProp('actors')[0].getName();
+                const actorName = selectedCell.getProp('actors')[0].getName();
                 selCellDescr = 'Cell: ' + actorName;
             }
         }
 
         // Compile final stats information
-        var stats = {
-            HP: player.get('Health').getHP() + '/' + player.get('Health').getMaxHP(),
+        const stats = {
+            HP: player.get('Health').getHP() + '/'
+                + player.get('Health').getMaxHP(),
 
             Att: player.getAttack(),
             Def: player.getDefense(),
@@ -66,17 +75,19 @@ var GameStats = React.createClass({
         }
 
         // Create HTML for showing stats
-        var statsHTML = [];
-        var index = 0;
-        for (var key in stats) {
-            var val = stats[key];
-            statsHTML.push(<li key={index}>{key}: {val}</li>);
-            ++index;
+        const statsHTML = [];
+        let index = 0;
+        for (const key in stats) {
+            if (key) {
+                const val = stats[key];
+                statsHTML.push(<li key={index}>{key}: {val}</li>);
+                ++index;
+            }
         }
 
         // Create HTML for showing movement mode
-        var moveStatus = 'Move: ';
-        var moveClassName = 'text-info';
+        let moveStatus = 'Move: ';
+        let moveClassName = 'text-info';
         if (player.getBrain().isRunModeEnabled()) {
             moveStatus += ' Running';
             moveClassName = 'text-danger';
@@ -86,14 +97,14 @@ var GameStats = React.createClass({
         }
 
         // Create HTML for showing fighting mode
-        var fightMode = player.getBrain().getFightMode();
-        var fightModeStatus = 'Fight: ';
+        const fightMode = player.getBrain().getFightMode();
+        let fightModeStatus = 'Fight: ';
         if (fightMode === RG.FMODE_NORMAL) {fightModeStatus += 'Normal';}
         else if (fightMode === RG.FMODE_SLOW) {fightModeStatus += 'Slow';}
         else if (fightMode === RG.FMODE_FAST) {fightModeStatus += 'Fast';}
 
         // Other status like poisoning, stun, cold, etc.
-        var otherStatus = this.getPlayerStatus(player);
+        const otherStatus = this.getPlayerStatus(player);
 
         return (
             <div className='game-stats'>
@@ -103,8 +114,21 @@ var GameStats = React.createClass({
                 <p className='text-primary'>{selItemName}</p>
                 <p className='text-primary'>{selCellDescr}</p>
                 {otherStatus}
-                <button id='inventory-button' className='btn btn-info' data-toggle='modal' data-target='#inventoryModal'>Inventory</button>
-                <button id='map-player-button' className='btn btn-info' onClick={this.changeMapView}>Map View</button>
+                <button
+                    className='btn btn-rg btn-info'
+                    data-target='#inventoryModal'
+                    data-toggle='modal'
+                    id='inventory-button'
+                    >
+                    Inventory
+                </button>
+                <button
+                    className='btn btn-rg btn-info'
+                    id='map-player-button'
+                    onClick={this.changeMapView}
+                    >
+                    Map View
+                </button>
             </div>
         );
     },

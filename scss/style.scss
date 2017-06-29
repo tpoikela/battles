@@ -110,9 +110,24 @@ body {
     padding-top: 2px;
 }
 
+.btn-rg {
+    margin-right: 5px;
+
+};
+
 .game-stats {
     @include ctrl-panel;
 };
+
+@media (max-width: 1090px) {
+
+    .game-stats-list {
+        li {
+            display: inline;
+            margin-right: 5px;
+        }
+    };
+}
 
 .game-stats-list {
     list-style-type: none;
