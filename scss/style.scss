@@ -50,6 +50,17 @@ $cell-height: 17px;
     // background: radial-gradient($main-color, $main-color-2, $main-color-3);
 }
 
+// Changes vertical list into a horizontal one
+@mixin ver-to-hor-list {
+    list-style-type: none;
+    @media (max-width: 1090px) {
+        li {
+            display: inline;
+            margin-right: 5px;
+        }
+    }
+}
+
 /** Elements, classes and IDs. */
 
 body {
@@ -119,18 +130,12 @@ body {
     @include ctrl-panel;
 };
 
-@media (max-width: 1090px) {
-
-    .game-stats-list {
-        li {
-            display: inline;
-            margin-right: 5px;
-        }
-    };
-}
-
 .game-stats-list {
-    list-style-type: none;
+    @include ver-to-hor-list;
+};
+
+.player-mode-list {
+    @include ver-to-hor-list;
 };
 
 .game-board-player-view {
