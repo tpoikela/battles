@@ -1,41 +1,31 @@
 const React = require('react');
 const RG = require('../src/rg.js');
-const $ = require('jquery');
 
 /** Component for displaying character stats.*/
 const GameStats = React.createClass({
 
-    getInitialState: function() {
-        return {
-            mapShown: false
-        };
-    },
-
     propTypes: {
-        player: React.propTypes.object.required,
-        selectedItem: React.propTypes.object.required,
-        setViewType: React.propTypes.func.required,
-        selectedCell: React.propTypes.object.required
+        mapShown: React.PropTypes.bool.isRequired,
+        player: React.PropTypes.object.isRequired,
+        selectedItem: React.PropTypes.object,
+        setViewType: React.PropTypes.func.isRequired,
+        selectedCell: React.PropTypes.object
     },
 
     changeMapView: function() {
-        if (this.state.mapShown) {
-            $('#map-player-button').text('Map View');
-            this.setState({mapShown: false});
+        if (this.props.mapShown) {
             this.props.setViewType('player');
         }
         else {
-            $('#map-player-button').text('Player View');
-            this.setState({mapShown: true});
             this.props.setViewType('map');
         }
     },
 
     render: function() {
-        var player = this.props.player;
-        var dungeonLevel = player.getLevel().getLevelNumber();
-        var selectedItem = this.props.selectedItem;
-        var selectedCell = this.props.selectedCell;
+        const player = this.props.player;
+        const dungeonLevel = player.getLevel().getLevelNumber();
+        const selectedItem = this.props.selectedItem;
+        const selectedCell = this.props.selectedCell;
 
         let selItemName = '';
         if (selectedItem !== null) {
@@ -106,11 +96,18 @@ const GameStats = React.createClass({
         // Other status like poisoning, stun, cold, etc.
         const otherStatus = this.getPlayerStatus(player);
 
+        let mapButtonText = 'Map View';
+        if (this.props.mapShown) {
+            mapButtonText = 'Player View';
+        }
+
         return (
             <div className='game-stats'>
                 <ul className='game-stats-list'>{statsHTML}</ul>
-                <p className={moveClassName}>{moveStatus}</p>
-                <p className='text-primary'>{fightModeStatus}</p>
+                <ul className='player-mode-list'>
+                    <li className={moveClassName}>{moveStatus}</li>
+                    <li className='text-primary'>{fightModeStatus}</li>
+                </ul>
                 <p className='text-primary'>{selItemName}</p>
                 <p className='text-primary'>{selCellDescr}</p>
                 {otherStatus}
@@ -127,7 +124,7 @@ const GameStats = React.createClass({
                     id='map-player-button'
                     onClick={this.changeMapView}
                     >
-                    Map View
+                    {mapButtonText}
                 </button>
             </div>
         );
