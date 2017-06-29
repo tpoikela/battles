@@ -7,66 +7,27 @@ const GameItems = require('./game-items');
 const GameEquipment = require('./game-equipment');
 
 /** Component renders the player inventory.*/
-var GameInventory = React.createClass({
-
-    selectedItem: null,
-    equipSelected: null,
-
-    /*
-    getInitialState: function() {
-        return {
-            invMsg: '',
-            msgStyle: ''
-        };
-    },
-    */
-
-    invLastRenderLen: 0,
-    eqLastRenderLen: 0,
-    eqMissCount: 0,
-
-    /*
-    shouldComponentUpdate: function(nextProps, nextState) {
-        var thisLen = this.invLastRenderLen;
-        var nextLen = nextProps.inv.getItems().length;
-        var eqNextLen = nextProps.eq.getItems().length;
-
-        console.log("thisLen: " + thisLen + " nextLen " + nextLen);
-
-        if (this.state.invMsg !== nextState.invMsg) return true;
-        if (thisLen !== nextLen) return true;
-        if (this.eqLastRenderLen !== eqNextLen) {
-            return true;
-        }
-        else { // Check missile status
-            var eqMiss = nextProps.eq.getItem("missile");
-            if (eqMiss !== null) {
-                return eqMiss.count != this.eqMissCount;
-
-            }
-        }
-
-        return false;
-    },
-    */
+const GameInventory = React.createClass({
 
     propTypes: {
+        equipSelected: React.PropTypes.object,
         player: React.PropTypes.object,
         invMsg: React.PropTypes.string.isRequired,
         msgStyle: React.PropTypes.string.isRequired,
         setInventoryMsg: React.PropTypes.func.isRequired,
+        selectedItem: React.PropTypes.object,
         selectItemTop: React.PropTypes.func.isRequired,
+        selectEquipTop: React.PropTypes.func.isRequired,
         inv: React.PropTypes.object,
         eq: React.PropTypes.object,
         maxWeight: React.PropTypes.number
     },
 
-
     /* Called when "Drop" is clicked. Drops item to the ground.*/
     dropItem: function() {
-        if (this.selectedItem !== null) {
+        if (this.props.selectedItem !== null) {
             const invEq = this.props.player.getInvEq();
-            if (invEq.dropItem(this.selectedItem)) {
+            if (invEq.dropItem(this.props.selectedItem)) {
                 this.props.setInventoryMsg({
                     invMsg: 'Item dropped!', msgStyle: 'text-success'});
             }
@@ -81,7 +42,7 @@ var GameInventory = React.createClass({
     /* When "Equip" is clicked, equips the selected item, if any.*/
     equipItem: function() {
         // Get item somehow
-        var item = this.selectedItem;
+        var item = this.props.selectedItem;
         if (item !== null) {
             const invEq = this.props.player.getInvEq();
 
@@ -105,9 +66,9 @@ var GameInventory = React.createClass({
 
     /* Called when "Remove" button is clicked to remove an equipped item.*/
     unequipItem: function() {
-        if (this.equipSelected !== null) {
+        if (this.props.equipSelected !== null) {
             const invEq = this.props.player.getInvEq();
-            const name = this.equipSelected.slotName;
+            const name = this.props.equipSelected.slotName;
             if (name === 'missile') {
                 const eqItem = invEq.getEquipment().getItem('missile');
                 let ok = false;
@@ -143,18 +104,19 @@ var GameInventory = React.createClass({
         }
     },
 
+    /* Called when Use button is clicked. If an item is selected, uses that
+     * item. */
     useItem: function() {
-        if (this.selectedItem !== null) {
-            if (this.selectedItem.hasOwnProperty('useItem')) {
+        if (this.props.selectedItem !== null) {
+            if (this.props.selectedItem.hasOwnProperty('useItem')) {
                 const invEq = this.props.player.getInvEq();
                 const target = this.props.player.getCell();
-                const itemName = this.selectedItem.getName();
+                const itemName = this.props.selectedItem.getName();
 
-                if (invEq.useItem(this.selectedItem, {target: target})) {
+                if (invEq.useItem(this.props.selectedItem, {target: target})) {
                     this.props.setInventoryMsg(
                         {invMsg: 'You used the ' + itemName + '.',
                         msgStyle: 'text-success'});
-                    // this.props.forceRender();
                 }
                 else {
                     this.props.setInventoryMsg(
@@ -173,20 +135,17 @@ var GameInventory = React.createClass({
                 {invMsg: 'You must choose item to use!',
                 msgStyle: 'text-danger'});
         }
-
     },
 
     setSelectedItem: function(item) {
-        this.selectedItem = item;
         const msg = 'Inventory Selected: ' + item.toString();
         this.props.selectItemTop(item);
         this.props.setInventoryMsg({invMsg: msg, msgStyle: 'text-info'});
     },
 
     setEquipSelected: function(selection) {
-        this.equipSelected = selection;
         const msg = 'Equipment Selected: ' + selection.item.toString();
-        this.props.selectItemTop(selection.item);
+        this.props.selectEquipTop(selection.item);
         this.props.setInventoryMsg({invMsg: msg, msgStyle: 'text-info'});
     },
 
@@ -195,12 +154,6 @@ var GameInventory = React.createClass({
         const eq = this.props.eq;
         const maxWeight = this.props.maxWeight;
         const eqWeight = eq.getWeight();
-
-        this.invLastRenderLen = inv.getItems().length;
-        this.eqLastRenderLen = eq.getItems().length;
-        const missile = eq.getItem('missile');
-
-        if (missile !== null) {this.eqMissCount = missile.count;}
 
         return (
             <div className='modal fade' role='dialog' id='inventoryModal' tabIndex='-1' role='dialog' aria-labelledby='inventory-modal-label' aria-hidden='true'>
