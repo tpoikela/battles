@@ -127,14 +127,16 @@ class BattlesTop extends React.Component {
 
         this.state = {
             boardClassName: 'game-board-player-view',
+            invMsg: '',
             loadInProgress: false,
             mapShown: false,
+            invMsgStyle: '',
+            render: true,
+            renderFullScreen: false,
             saveInProgress: false,
             selectedCell: null,
-            selectedItem: null,
             selectedGame: null,
-            render: true,
-            renderFullScreen: false
+            selectedItem: null
         };
 
         // Binding of callbacks
@@ -163,6 +165,7 @@ class BattlesTop extends React.Component {
         this.gameConf.playerName = name;
     }
 
+    // TODO get rid of this method
     forceRender() {
         this.setState({render: true, renderFullScreen: true});
     }
@@ -188,14 +191,16 @@ class BattlesTop extends React.Component {
            this.viewportX = this.game.getPlayer().getLevel().getMap().cols;
            this.viewportY = this.game.getPlayer().getLevel().getMap().rows;
            this.setState({
+               render: true, renderFullScreen: true,
                boardClassName: 'game-board-map-view',
-                mapShown: true
+               mapShown: true
            });
         }
         else if (type === 'player') {
             this.viewportX = this.viewportPlayerX;
             this.viewportY = this.viewportPlayerY;
             this.setState({
+                render: true, renderFullScreen: true,
                 boardClassName: 'game-board-player-view',
                 mapShown: false
             });
@@ -424,9 +429,12 @@ class BattlesTop extends React.Component {
                     eq={eq}
                     forceRender={this.forceRender}
                     inv={inv}
+                    invMsg={this.state.invMsg}
                     maxWeight={maxWeight}
+                    msgStyle={this.state.invMsgStyle}
                     player={player}
                     selectItemTop={this.selectItemTop}
+                    setInventoryMsg={this.setInventoryMsg}
                 />
 
                 <div className='row game-panel-div'>
@@ -447,6 +455,7 @@ class BattlesTop extends React.Component {
                 <div className='row main-contents-div'>
                     <div className='text-left col-md-2 game-stats-div'>
                         <GameStats
+                            mapShown={this.state.mapShown}
                             player={player}
                             selectedCell={this.state.selectedCell}
                             selectedItem={this.state.selectedItem}
@@ -457,7 +466,7 @@ class BattlesTop extends React.Component {
                         <GameBoard
                             boardClassName={this.state.boardClassName}
                             map={map}
-                            mapShown={this.mapShown}
+                            mapShown={this.state.mapShown}
                             onCellClick={this.onCellClick}
                             player={player}
                             renderFullScreen={fullScreen}
@@ -530,6 +539,11 @@ class BattlesTop extends React.Component {
         else {
             console.error('Unknown keycode for GUI command.');
         }
+    }
+
+    /* Called by GameInventory to change the message shown. */
+    setInventoryMsg(msg) {
+        this.setState({invMsg: msg.invMsg, invMsgStyle: msg.msgStyle});
     }
 
     /* Brings up the inventory.*/
@@ -702,6 +716,8 @@ class BattlesTop extends React.Component {
 
         this.gameToJSON = this.gameToJSON.bind(this);
         this.selectSaveGame = this.selectSaveGame.bind(this);
+
+        this.setInventoryMsg = this.setInventoryMsg.bind(this);
     }
 
 }
