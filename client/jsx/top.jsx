@@ -127,6 +127,7 @@ class BattlesTop extends React.Component {
 
         this.state = {
             boardClassName: 'game-board-player-view',
+            equipSelected: null,
             invMsg: '',
             loadInProgress: false,
             mapShown: false,
@@ -163,11 +164,6 @@ class BattlesTop extends React.Component {
 
     setPlayerName(name) {
         this.gameConf.playerName = name;
-    }
-
-    // TODO get rid of this method
-    forceRender() {
-        this.setState({render: true, renderFullScreen: true});
     }
 
     /* Sets the size of the shown map.*/
@@ -330,6 +326,10 @@ class BattlesTop extends React.Component {
         this.setState({selectedItem: item});
     }
 
+    selectEquipTop(item) {
+        this.setState({selectedItem: item, equipSelected: item});
+    }
+
     /* When a cell is clicked, perform a command/show debug info. */
     onCellClick(x, y) {
         const cell = this.game.getPlayer().getLevel().getMap().getCell(x, y);
@@ -427,12 +427,14 @@ class BattlesTop extends React.Component {
 
                 <GameInventory
                     eq={eq}
-                    forceRender={this.forceRender}
+                    equipSelected={this.state.equipSelected}
                     inv={inv}
                     invMsg={this.state.invMsg}
                     maxWeight={maxWeight}
                     msgStyle={this.state.invMsgStyle}
                     player={player}
+                    selectedItem={this.state.selectedItem}
+                    selectEquipTop={this.selectEquipTop}
                     selectItemTop={this.selectItemTop}
                     setInventoryMsg={this.setInventoryMsg}
                 />
@@ -690,7 +692,6 @@ class BattlesTop extends React.Component {
         this.setPlayerLevel = this.setPlayerLevel.bind(this);
         this.setPlayerName = this.setPlayerName.bind(this);
 
-
         // GamePanel callbacks
         this.setViewSize = this.setViewSize.bind(this);
         this.saveGame = this.saveGame.bind(this);
@@ -702,7 +703,6 @@ class BattlesTop extends React.Component {
         this.doGUICommand = this.doGUICommand.bind(this);
         this.setViewType = this.setViewType.bind(this);
 
-        this.selectItemTop = this.selectItemTop.bind(this);
 
         // GameBoard callbacks
         this.onCellClick = this.onCellClick.bind(this);
@@ -712,12 +712,14 @@ class BattlesTop extends React.Component {
         this.GUINextTarget = this.GUINextTarget.bind(this);
         this.GUITarget = this.GUITarget.bind(this);
         this.GUIUseItem = this.GUIUseItem.bind(this);
-        this.forceRender = this.forceRender.bind(this);
 
         this.gameToJSON = this.gameToJSON.bind(this);
         this.selectSaveGame = this.selectSaveGame.bind(this);
 
+        // GameInventory callbacks
         this.setInventoryMsg = this.setInventoryMsg.bind(this);
+        this.selectEquipTop = this.selectEquipTop.bind(this);
+        this.selectItemTop = this.selectItemTop.bind(this);
     }
 
 }
