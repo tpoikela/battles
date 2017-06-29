@@ -107,9 +107,9 @@ const GameStats = React.createClass({
                 <ul className='player-mode-list'>
                     <li className={moveClassName}>{moveStatus}</li>
                     <li className='text-primary'>{fightModeStatus}</li>
+                    <li className='text-warning'>{selItemName}</li>
+                    <li className='text-danger'>{selCellDescr}</li>
                 </ul>
-                <p className='text-primary'>{selItemName}</p>
-                <p className='text-primary'>{selCellDescr}</p>
                 {otherStatus}
                 <button
                     className='btn btn-rg btn-info'
