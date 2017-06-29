@@ -14,6 +14,10 @@ const GameRow = React.createClass({
     },
 
     shouldComponentUpdate: function(nextProps) {
+        if (this.props.rowClass !== nextProps.rowClass) {
+            return true;
+        }
+
         if (this.props.rowClasses.length === nextProps.rowClasses.length) {
             if (this.props.rowChars.length === nextProps.rowChars.length) {
 
