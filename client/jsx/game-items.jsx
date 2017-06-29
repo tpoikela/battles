@@ -4,22 +4,31 @@ const React = require('react');
 const GameItemSlot = require('./game-item-slot');
 
 /** Component which shows the inventory items.*/
-var GameItems = React.createClass({
+const GameItems = React.createClass({
+
+    propTypes: {
+        inv: React.PropTypes.object,
+        setSelectedItem: React.PropTypes.func.isRequired,
+        maxWeight: React.PropTypes.number,
+        eqWeight: React.PropTypes.number
+    },
 
     render: function() {
-        var inv = this.props.inv;
-        var item = inv.first();
-        var items = [];
-        var setSelectedItem = this.props.setSelectedItem;
-        var totalWeight = inv.getWeight() + this.props.eqWeight;
+        const inv = this.props.inv;
+        const items = [];
+        const setSelectedItem = this.props.setSelectedItem;
+        let totalWeight = inv.getWeight() + this.props.eqWeight;
         totalWeight = totalWeight.toFixed(2);
-        var maxWeight = this.props.maxWeight;
+        const maxWeight = this.props.maxWeight;
 
-        var key = 0;
+        let item = inv.first();
+        let key = 0;
         while (item !== null && typeof item !== 'undefined') {
-            var type = item.getType();
-            var we = item.getWeight();
-            items.push(<GameItemSlot key={key} setSelectedItem={setSelectedItem} item={item} />);
+            items.push(<GameItemSlot
+                item={item}
+                key={key}
+                setSelectedItem={setSelectedItem}
+            />);
             item = inv.next();
             ++key;
         }
