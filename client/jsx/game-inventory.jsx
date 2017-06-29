@@ -12,12 +12,14 @@ var GameInventory = React.createClass({
     selectedItem: null,
     equipSelected: null,
 
+    /*
     getInitialState: function() {
         return {
             invMsg: '',
             msgStyle: ''
         };
     },
+    */
 
     invLastRenderLen: 0,
     eqLastRenderLen: 0,
@@ -48,42 +50,55 @@ var GameInventory = React.createClass({
     },
     */
 
+    propTypes: {
+        player: React.PropTypes.object,
+        invMsg: React.PropTypes.string.isRequired,
+        msgStyle: React.PropTypes.string.isRequired,
+        setInventoryMsg: React.PropTypes.func.isRequired,
+        selectItemTop: React.PropTypes.func.isRequired,
+        inv: React.PropTypes.object,
+        eq: React.PropTypes.object,
+        maxWeight: React.PropTypes.number
+    },
+
+
     /* Called when "Drop" is clicked. Drops item to the ground.*/
-    dropItem: function(evt) {
+    dropItem: function() {
         if (this.selectedItem !== null) {
-            var invEq = this.props.player.getInvEq();
+            const invEq = this.props.player.getInvEq();
             if (invEq.dropItem(this.selectedItem)) {
-                this.setState({invMsg: 'Item dropped!',
-                    msgStyle: 'text-success'});
+                this.props.setInventoryMsg({
+                    invMsg: 'Item dropped!', msgStyle: 'text-success'});
             }
 
         }
         else {
-            this.setState({invMsg: 'No item selected!',
+            this.props.setInventoryMsg({invMsg: 'No item selected!',
                 msgStyle: 'text-danger'});
         }
     },
 
     /* When "Equip" is clicked, equips the selected item, if any.*/
-    equipItem: function(evt) {
+    equipItem: function() {
         // Get item somehow
         var item = this.selectedItem;
         if (item !== null) {
-            var invEq = this.props.player.getInvEq();
+            const invEq = this.props.player.getInvEq();
 
             if (item.getType() === 'missile') {
                 if (invEq.equipNItems(item, item.count)) {
-                    this.setState({invMsg: 'Equipping succeeded!',
+                    this.props.setInventoryMsg(
+                        {invMsg: 'Equipping succeeded!',
                         msgStyle: 'text-success'});
                 }
             }
             else if (invEq.equipItem(item)) {
-                this.setState({invMsg: 'Equipping succeeded!',
+                this.props.setInventoryMsg({invMsg: 'Equipping succeeded!',
                     msgStyle: 'text-success'});
             }
         }
         else {
-            this.setState({invMsg: 'No item selected!',
+            this.props.setInventoryMsg({invMsg: 'No item selected!',
                 msgStyle: 'text-danger'});
         }
     },
@@ -99,30 +114,31 @@ var GameInventory = React.createClass({
 
                 if (eqItem !== null) {
                     if (invEq.unequipItem(name, eqItem.count)) {
-                        this.setState({invMsg: 'Removing succeeded!',
+                        this.props.setInventoryMsg(
+                            {invMsg: 'Removing succeeded!',
                             msgStyle: 'text-success'});
                         ok = true;
                     }
                 }
 
                 if (!ok) {
-                    this.setState({invMsg:
+                    this.props.setInventoryMsg({invMsg:
                         "Failed to remove the item from slot '" + name + "'!",
                         msgStyle: 'text-danger'});
                 }
             }
             else if (invEq.unequipItem(name)) {
-                this.setState({invMsg: 'Removing succeeded!',
+                this.props.setInventoryMsg({invMsg: 'Removing succeeded!',
                     msgStyle: 'text-success'});
             }
             else {
-                this.setState({invMsg:
+                this.props.setInventoryMsg({invMsg:
                     "Failed to remove the item from slot '" + name + "'!",
                     msgStyle: 'text-danger'});
             }
         }
         else {
-            this.setState({invMsg: 'No equipment selected!',
+            this.props.setInventoryMsg({invMsg: 'No equipment selected!',
                 msgStyle: 'text-danger'});
         }
     },
@@ -130,26 +146,31 @@ var GameInventory = React.createClass({
     useItem: function() {
         if (this.selectedItem !== null) {
             if (this.selectedItem.hasOwnProperty('useItem')) {
-                var invEq = this.props.player.getInvEq();
-                var target = this.props.player.getCell();
+                const invEq = this.props.player.getInvEq();
+                const target = this.props.player.getCell();
+                const itemName = this.selectedItem.getName();
+
                 if (invEq.useItem(this.selectedItem, {target: target})) {
-                    var itemName = this.selectedItem.getName();
-                    this.setState({invMsg: 'You used the ' + itemName + '.',
+                    this.props.setInventoryMsg(
+                        {invMsg: 'You used the ' + itemName + '.',
                         msgStyle: 'text-success'});
-                    this.props.forceRender();
+                    // this.props.forceRender();
                 }
                 else {
-                    this.setState({invMsg: 'You failed to use the ' + itemName + '.',
+                    this.props.setInventoryMsg(
+                        {invMsg: 'You failed to use the ' + itemName + '.',
                         msgStyle: 'text-danger'});
                 }
             }
             else {
-                this.setState({invMsg: 'Cannot use the chosen item!',
+                this.props.setInventoryMsg(
+                    {invMsg: 'Cannot use the chosen item!',
                     msgStyle: 'text-danger'});
             }
         }
         else {
-            this.setState({invMsg: 'You must choose item to use!',
+            this.props.setInventoryMsg(
+                {invMsg: 'You must choose item to use!',
                 msgStyle: 'text-danger'});
         }
 
@@ -159,25 +180,25 @@ var GameInventory = React.createClass({
         this.selectedItem = item;
         const msg = 'Inventory Selected: ' + item.toString();
         this.props.selectItemTop(item);
-        this.setState({invMsg: msg, msgStyle: 'text-info'});
+        this.props.setInventoryMsg({invMsg: msg, msgStyle: 'text-info'});
     },
 
     setEquipSelected: function(selection) {
         this.equipSelected = selection;
         const msg = 'Equipment Selected: ' + selection.item.toString();
         this.props.selectItemTop(selection.item);
-        this.setState({invMsg: msg, msgStyle: 'text-info'});
+        this.props.setInventoryMsg({invMsg: msg, msgStyle: 'text-info'});
     },
 
     render: function() {
-        var inv = this.props.inv;
-        var eq = this.props.eq;
-        var maxWeight = this.props.maxWeight;
-        var eqWeight = eq.getWeight();
+        const inv = this.props.inv;
+        const eq = this.props.eq;
+        const maxWeight = this.props.maxWeight;
+        const eqWeight = eq.getWeight();
 
         this.invLastRenderLen = inv.getItems().length;
         this.eqLastRenderLen = eq.getItems().length;
-        var missile = eq.getItem('missile');
+        const missile = eq.getItem('missile');
 
         if (missile !== null) {this.eqMissCount = missile.count;}
 
@@ -196,7 +217,7 @@ var GameInventory = React.createClass({
                         </div>
                         <div className='modal-footer row'>
                             <div className='col-md-6'>
-                                <p className={this.state.msgStyle}>{this.state.invMsg}</p>
+                                <p className={this.props.msgStyle}>{this.props.invMsg}</p>
                             </div>
                             <div className='col-md-6'>
                                 <button type='button' className='btn btn-secondary' onClick={this.dropItem}>Drop</button>
