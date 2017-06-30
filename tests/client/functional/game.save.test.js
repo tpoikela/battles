@@ -32,10 +32,20 @@ describe('Function: Saving/restoring a game', function() {
         const game = gameFactory.createNewGame(gameConf);
         game.setGUICallbacks(isGUICommand, doGUICommand);
 
+        const numLevelsBefore = game.getLevels().length;
         const json = game.toJSON();
         const fromJSON = new RG.Game.FromJSON();
         const restGame = fromJSON.createGame(json);
 
         expect(restGame.getPlayer().getName()).to.equal(gameConf.playerName);
+
+        const numLevelsAfter = restGame.getLevels().length;
+        expect(numLevelsAfter, 'Levels must match after restore'
+            ).to.equal(numLevelsBefore);
+
+        const places = restGame.getPlaces();
+        expect(Object.keys(places)).to.have.length(1);
+        const world = places[worldConf.name];
+        expect(world.getName()).to.equal(worldConf.name);
     });
 });
