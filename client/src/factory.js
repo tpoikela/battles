@@ -460,8 +460,15 @@ RG.extend2(RG.Factory.Feature, RG.Factory.Base);
  * building the world. Separation of concerns, you know.
  */
 RG.Factory.World = function() {
-
     this.featureFactory = new RG.Factory.Feature();
+
+    // Can be used to pass already created levels to different features. For
+    // example, after restore game, no new levels should be created
+    this.id2level = {};
+
+    this.setId2Level = function(id2level) {
+        this.id2level = id2level;
+    };
 
     this.scope = []; // Keeps track of hierarchical names of places
 
@@ -515,6 +522,8 @@ RG.Factory.World = function() {
         this.verifyConf('createArea', conf,
             ['name', 'maxX', 'maxY']);
         this.pushScope(conf.name);
+
+        // TODO deal with levels when restoring
         const area = new RG.World.Area(conf.name, conf.maxX, conf.maxY,
             conf.cols, conf.rows);
         area.setHierName(this.getHierName());
