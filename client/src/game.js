@@ -576,12 +576,12 @@ RG.Game.Main = function() {
         });
 
         const places = { };
-        /*
         Object.keys(_places).forEach(name => {
             const place = _places[name];
             places[name] = place.toJSON();
         });
-        */
+
+        // TODO places should store their own levels
 
         const obj = {
             engine: {},
@@ -1100,21 +1100,26 @@ RG.Game.FromJSON = function() {
 
     this.createGame = function(json) {
         const game = new RG.Game.Main();
+
+        console.log('game keys: ' + Object.keys(json));
+        // Levels must be created before the actual world, because the World
+        // object contains only level IDs
         json.levels.forEach(levelJson => {
             const level = this.createLevel(levelJson);
             game.addLevel(level);
         });
 
-        this.connectGameLevels(game);
-
-        /*
         Object.keys(json.places).forEach(name => {
             const place = json.places[name];
+            console.log('\tPlace is ' + name);
             const placeObj = this.createPlace(place);
             game.addPlace(placeObj);
         });
-        */
 
+        // Connect levels using id2level + stairsInfo
+        this.connectGameLevels(game);
+
+        // Player created separately from other actors for now
         if (json.player) {
             const player = this.createPlayerObj(json.player);
             const id = json.player.levelID;
@@ -1131,7 +1136,6 @@ RG.Game.FromJSON = function() {
             }
         }
 
-        // Connect levels using id2level + stairsInfo
 
         return game;
     };
@@ -1167,11 +1171,13 @@ RG.Game.FromJSON = function() {
         });
     };
 
-    /*
+    /* Assume the place is World object for now. */
     this.createPlace = function(place) {
-
+        const fact = new RG.Factory.World();
+        fact.setId2Level(id2level);
+        const world = fact.createWorld(place);
+        return world;
     };
-    */
 
 };
 
