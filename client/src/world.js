@@ -81,7 +81,6 @@ RG.World.Branch = function(name) {
         const level = _levels[nLevel];
         const otherBranchLevel = stairs.getSrcLevel();
 
-        console.log('connectLevelToStairs');
         if (!RG.isNullOrUndef([otherBranchLevel])) {
             const down = !stairs.isDown();
             const newStairs = new Stairs(down,
@@ -90,9 +89,6 @@ RG.World.Branch = function(name) {
             level.addStairs(newStairs, cell.getX(), cell.getY());
             newStairs.connect(stairs);
             this.addStairsOther(newStairs);
-
-            console.log('stairs: ' + JSON.stringify(stairs));
-            console.log('newStairs: ' + JSON.stringify(newStairs));
         }
         else {
             RG.err('World.Branch', 'connectLevelToStairs',
