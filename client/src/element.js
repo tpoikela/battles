@@ -13,10 +13,8 @@ RG.Element = {};
  * necessarily blocking movement.  */
 RG.Element.Base = function(elemType) { // {{{2
     RG.Object.Typed.call(this, RG.TYPE_ELEM, elemType);
-    RG.Object.Locatable.call(this);
 };
 RG.extend2(RG.Element.Base, RG.Object.Typed);
-RG.extend2(RG.Element.Base, RG.Object.Locatable);
 
 RG.Element.Base.prototype.isPassable = function() {
     return this.getType() !== 'wall';
@@ -37,6 +35,7 @@ RG.Element.Base.prototype.toJSON = function() {
 RG.Element.Stairs = function(down, srcLevel, targetLevel) {
     if (down) {RG.Element.Base.call(this, 'stairsDown');}
     else {RG.Element.Base.call(this, 'stairsUp');}
+    RG.Object.Locatable.call(this);
 
     const _down = down;
     let _srcLevel = srcLevel;
@@ -123,6 +122,7 @@ RG.Element.Stairs = function(down, srcLevel, targetLevel) {
 
 };
 RG.extend2(RG.Element.Stairs, RG.Element.Base);
+RG.extend2(RG.Element.Stairs, RG.Object.Locatable);
 
 /* Serializes the Stairs object. */
 RG.Element.Stairs.prototype.toJSON = function() {
@@ -154,10 +154,12 @@ RG.Element.Stairs.prototype.toJSON = function() {
 /* Name says it all, be it open or closed.*/
 RG.Element.Door = function(closed) {
     RG.Element.Base.call(this, 'door');
+    RG.Object.Locatable.call(this);
     this._closed = closed || true;
 
 };
 RG.extend2(RG.Element.Door, RG.Element.Base);
+RG.extend2(RG.Element.Door, RG.Object.Locatable);
 
 RG.Element.Door.prototype.isOpen = function() {
     return !this._closed;
@@ -189,12 +191,14 @@ RG.Element.Door.prototype.toJSON = function() {
 /* A shop element is added to each cell inside a shop.*/
 RG.Element.Shop = function() {
     RG.Element.Base.call(this, 'shop');
+    RG.Object.Locatable.call(this);
 
     this._shopkeeper = null;
     this._costFactor = 1.0;
 
 };
 RG.extend2(RG.Element.Shop, RG.Element.Base);
+RG.extend2(RG.Element.Shop, RG.Object.Locatable);
 
 /* Returns the price in gold coins for item in the cell.*/
 RG.Element.Shop.prototype.getItemPriceForBuying = function(item) {
