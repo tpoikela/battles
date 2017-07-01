@@ -371,9 +371,22 @@ RG.Brain.Player = function(actor) { // {{{2
         }
         else if (obj.cmd === 'drop') {
             const invEq = _actor.getInvEq();
+            const actorCell = _actor.getCell();
             let result = false;
             let msg = `Failed to drop ${obj.item.getName()}`;
-            if (invEq.dropItem(obj.item)) {
+            if (actorCell.hasShop()) {
+                const shopElem = actorCell.getPropType('shop')[0];
+                const price = shopElem.getItemPriceForSelling(obj.item);
+                _wantConfirm = true;
+                _confirmCallback = function() {
+                    shopElem.sellItem(obj.item, _actor);
+                };
+                msg = `Press y to sell item for ${price} gold coins.`;
+                if (obj.hasOwnProperty('callback')) {
+                    obj.callback({msg: msg, result});
+                }
+            }
+            else if (invEq.dropItem(obj.item)) {
                 result = true;
                 msg = 'Item dropped!';
             }
