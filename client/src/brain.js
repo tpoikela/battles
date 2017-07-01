@@ -347,11 +347,21 @@ RG.Brain.Player = function(actor) { // {{{2
         else if (obj.cmd === 'use') {
             if (obj.hasOwnProperty('item')) {
                 const item = obj.item;
+                let result = false;
+                let msg = `You failed to use ${item.getName()}.`;
                 if (item.hasOwnProperty('useItem')) {
                     this.energy = RG.energy.USE;
                     item.useItem({target: obj.target});
+                    result = true;
                 }
-                else {
+
+                if (obj.hasOwnProperty('callback')) {
+                    if (result) {
+                        msg = `You used ${item.getName()}!`;
+                    }
+                    obj.callback({msg: msg, result});
+                }
+                else if (!result) {
                     return this.cmdNotPossible('You cannot use that item.');
                 }
             }
