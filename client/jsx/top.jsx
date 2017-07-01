@@ -127,6 +127,7 @@ class BattlesTop extends React.Component {
 
         this.state = {
             boardClassName: 'game-board-player-view',
+            creatingGame: false,
             equipSelected: null,
             invMsg: '',
             loadInProgress: false,
@@ -203,11 +204,26 @@ class BattlesTop extends React.Component {
         }
     }
 
+    createNewGameAsync() {
+        return new Promise((resolve, reject) => {
+            try {
+                console.log('Inside a promise now');
+                this.createNewGame();
+                resolve();
+            }
+            catch (e) {
+                reject(e);
+            }
+        });
+    }
 
     /* Called when "Start" button is clicked to create a new game.*/
     newGame() {
-        this.createNewGame();
-        this.setState({render: true, renderFullScreen: true});
+        this.setState({creatingGame: true});
+        this.createNewGameAsync().then(() => {
+            this.setState({render: true, renderFullScreen: true,
+                creatingGame: false});
+        });
     }
 
     /* Saves the game position.*/
@@ -326,8 +342,14 @@ class BattlesTop extends React.Component {
         this.setState({selectedItem: item});
     }
 
-    selectEquipTop(item) {
-        this.setState({selectedItem: item, equipSelected: item});
+    selectEquipTop(selection) {
+        if (selection) {
+            this.setState({selectedItem: selection.item,
+                equipSelected: selection});
+        }
+        else {
+            this.setState({selectedItem: null, equipSelected: null});
+        }
     }
 
     /* When a cell is clicked, perform a command/show debug info. */
@@ -426,6 +448,7 @@ class BattlesTop extends React.Component {
                 <GameHelpScreen />
 
                 <GameInventory
+                    doInvCmd={this.doInvCmd}
                     eq={eq}
                     equipSelected={this.state.equipSelected}
                     inv={inv}
@@ -454,6 +477,15 @@ class BattlesTop extends React.Component {
                         />
                     </div>
                 </div>
+                {this.state.creatingGame &&
+                <div className='row main-contents-div'>
+                    <div className='text-left col-md-2 game-stats-div'/>
+                    <div className='col-md-10 game-board-div'>
+                        Loading game. Please wait...
+                    </div>
+                </div>
+                }
+                {!this.state.creatingGame &&
                 <div className='row main-contents-div'>
                     <div className='text-left col-md-2 game-stats-div'>
                         <GameStats
@@ -479,7 +511,7 @@ class BattlesTop extends React.Component {
                         />
                     </div>
                 </div>
-
+                }
             </div>
         );
     }
@@ -511,6 +543,11 @@ class BattlesTop extends React.Component {
         else {
             return this.guiCommands.hasOwnProperty(code);
         }
+    }
+
+    /* GameInventory should add a callback which updates the GUI (via props) */
+    doInvCmd(cmd) {
+        this.game.update(cmd);
     }
 
     /* Calls a GUI command corresponding to the code.*/
@@ -720,6 +757,7 @@ class BattlesTop extends React.Component {
         this.setInventoryMsg = this.setInventoryMsg.bind(this);
         this.selectEquipTop = this.selectEquipTop.bind(this);
         this.selectItemTop = this.selectItemTop.bind(this);
+        this.doInvCmd = this.doInvCmd.bind(this);
     }
 
 }
