@@ -13,7 +13,6 @@ const Element = RG.Element.Base;
 const Cell = RG.Map.Cell;
 const Item = RG.Item.Base;
 const Container = RG.Item.Container;
-const InvAndEquip = RG.Inv.Inventory;
 const Factory = RG.FACT;
 const Stairs = RG.Element.Stairs;
 
@@ -147,27 +146,6 @@ describe('Items in map cells', function() {
 
     });
 
-    it('Actor inventory has a container and equipped items', function() {
-        const food = new Item('Bagel');
-        food.setType('food');
-        const sword = new Item('Sword');
-        sword.setType('weapon');
-        const actor = Factory.createPlayer('Player', 50);
-
-        const invEq = new InvAndEquip(actor);
-        invEq.addItem(food);
-        expect(invEq.getInventory().getItems().length).to.equal(1);
-        invEq.addItem(sword);
-        expect(invEq.getInventory().getItems().length).to.equal(2);
-        expect(invEq.equipItem(sword)).to.equal(true);
-        expect(invEq.getInventory().getItems().length).to.equal(1);
-
-        const handsEquipped = invEq.getEquipment().getEquipped('hand');
-        expect(handsEquipped.equals(sword)).to.equal(true);
-        expect(invEq.unequipItem('hand')).to.equal(true);
-
-    });
-
     it('Picking up items from floor by actor', function() {
         const level = Factory.createLevel('arena', 20, 20);
         const actor = Factory.createPlayer('Player', {});
@@ -188,23 +166,6 @@ describe('Items in map cells', function() {
         expect(invItems[0]).to.equal(weapon);
         expect(actor.getInvEq().equipItem(weapon)).to.equal(true);
         expect(inv.isEmpty()).to.equal(true);
-    });
-
-    it('Equips armour into correct slots', function() {
-        const helmet = new RG.Item.Armour('Helmet');
-        helmet.setArmourType('head');
-
-        const actor = Factory.createPlayer('Player', 50);
-
-        const invEq = new InvAndEquip(actor);
-
-        invEq.addItem(helmet);
-        expect(invEq.equipItem(helmet)).to.equal(true);
-
-        const headEquipped = invEq.getEquipment().getEquipped('head');
-        expect(headEquipped.equals(helmet)).to.equal(true);
-        expect(invEq.unequipItem('head', 0)).to.equal(true);
-
     });
 
     it('Can contain open/closed doors', function() {

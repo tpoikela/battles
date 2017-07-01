@@ -2,7 +2,6 @@
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 
-const Slot = RG.Inv.EquipSlot;
 const Actor = RG.Actor.Rogue;
 const Item = RG.Item.Base;
 
@@ -109,33 +108,6 @@ describe('How stackes are broken into multiple items', function() {
 
 describe('How inventory container works', function() {
 
-    it('Checks maximum weight allowed', function() {
-        const player = new RG.Actor.Rogue('player');
-        const invEq = player.getInvEq();
-        const inv = invEq.getInventory();
-        const eq = invEq.getEquipment();
-
-        const heavySword = new RG.Item.Weapon('HeavySword');
-        heavySword.setWeight(21.0);
-        expect(invEq.canCarryItem(heavySword)).to.equal(false);
-
-        const lightSword = new RG.Item.Weapon('Light lightSword');
-        lightSword.setWeight(5.0);
-        lightSword.count = 2;
-        expect(invEq.canCarryItem(lightSword)).to.equal(true);
-        invEq.addItem(lightSword);
-        invEq.equipItem(lightSword);
-        expect(eq.getWeight()).to.equal(5.0);
-        expect(inv.getWeight()).to.equal(5.0);
-
-        const shuriken = new RG.Item.Missile('Shuriken');
-        shuriken.count = 20;
-        shuriken.setWeight(0.1);
-        invEq.addItem(shuriken);
-        expect(inv.getWeight()).to.equal(7.0);
-
-
-    });
 
     it('Checks items by reference for existence', function() {
         const player = new RG.Actor.Rogue('player');
@@ -188,28 +160,6 @@ describe('How inventory container works', function() {
         expect(arrow.count).to.equal(5);
         const removed2 = inv.getRemovedItem();
         expect(removed2.count).to.equal(3);
-
-    });
-});
-
-describe('How item equipment slots work', function() {
-    const player = new RG.Actor.Rogue('player');
-    const invEq = new RG.Inv.Inventory(player);
-    const eq = invEq.getEquipment();
-
-    it('Holds items or stacks of items', function() {
-        const missSlot = new Slot(eq, 'missile', true);
-
-        const arrow = new RG.Item.Missile('arrow');
-        arrow.count = 10;
-        expect(missSlot.equipItem(arrow)).to.equal(true);
-        expect(missSlot.unequipItem(5)).to.equal(true);
-
-        const arrowStack = missSlot.getItem();
-        expect(arrowStack.count).to.equal(5);
-        expect(missSlot.unequipItem(5)).to.equal(true);
-        const nullArrowStack = missSlot.getItem();
-        expect(nullArrowStack === null).to.equal(true);
 
     });
 });
