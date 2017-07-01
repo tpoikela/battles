@@ -73,7 +73,7 @@ describe('Brain.Player', function() {
         expect(brain.energy).to.equal(0);
     });
 
-    it('has commands for dropping and equipping items', () => {
+    it('has commands for dropping, equipping and unequipping items', () => {
         const brain = new Brain.Player(player);
         const sword = new RG.Item.Weapon('sword');
         player.getInvEq().addItem(sword);
@@ -87,6 +87,10 @@ describe('Brain.Player', function() {
         player.getInvEq().addItem(dagger);
         brain.decideNextAction(equipCmd);
         expect(player.getWeapon().getName()).to.equal(dagger.getName());
+
+        const unequipCmd = {cmd: 'unequip', slot: 'hand'};
+        brain.decideNextAction(unequipCmd);
+        expect(player.getWeapon()).to.equal(null);
     });
 
     it('Has different fighting modes', function() {

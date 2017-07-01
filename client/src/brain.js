@@ -391,6 +391,33 @@ RG.Brain.Player = function(actor) { // {{{2
                 obj.callback({msg: msg, result});
             }
         }
+        else if (obj.cmd === 'unequip') {
+            const name = obj.slot;
+            const invEq = _actor.getInvEq();
+            let result = false;
+            let msg = `Failed to remove item from slot ${name}.`;
+
+            if (name === 'missile') {
+                const eqItem = invEq.getEquipment().getItem('missile');
+
+                if (eqItem !== null) {
+                    if (invEq.unequipItem(name, eqItem.count)) {
+                        result = true;
+                    }
+                }
+            }
+            else if (invEq.unequipItem(name)) {
+                result = true;
+            }
+
+            if (obj.hasOwnProperty('callback')) {
+                if (result) {
+                    msg = `Unequipping from ${name} succeeded!`;
+                }
+                obj.callback({msg: msg, result});
+            }
+
+        }
         return function() {};
     };
 
