@@ -69,7 +69,8 @@ describe('Brain.Player', function() {
         brain.decideNextAction({cmd: 'missile', target: cell});
         expect(brain.energy).to.equal(RG.energy.MISSILE);
 
-        brain.decideNextAction({cmd: 'use', item: {}});
+        const sword = new RG.Item.Weapon('sword');
+        brain.decideNextAction({cmd: 'use', item: sword});
         expect(brain.energy).to.equal(0);
     });
 
