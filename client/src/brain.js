@@ -359,6 +359,38 @@ RG.Brain.Player = function(actor) { // {{{2
                 RG.err('Brain.Player', 'handleCommand', 'obj has no item');
             }
         }
+        else if (obj.cmd === 'drop') {
+            const invEq = _actor.getInvEq();
+            let result = false;
+            let msg = `Failed to drop ${obj.item.getName()}`;
+            if (invEq.dropItem(obj.item)) {
+                result = true;
+                msg = 'Item dropped!';
+            }
+            if (obj.hasOwnProperty('callback')) {
+                obj.callback({msg: msg, result});
+            }
+        }
+        else if (obj.cmd === 'equip') {
+            const invEq = _actor.getInvEq();
+            const item = obj.item;
+            let result = false;
+            let msg = `Failed to equip ${item.getName()}`;
+            if (item.getType() === 'missile') {
+                if (invEq.equipNItems(item, item.count)) {
+                    result = true;
+                }
+            }
+            else if (invEq.equipItem(item)) {
+                result = true;
+            }
+            if (obj.hasOwnProperty('callback')) {
+                if (result) {
+                    msg = `Equipping ${item.getName()} succeeded!`;
+                }
+                obj.callback({msg: msg, result});
+            }
+        }
         return function() {};
     };
 
