@@ -1018,9 +1018,10 @@ RG.Factory.Game = function() {
 
         // Test for shops
         const keeper = _parser.createActualObj('actors', 'shopkeeper');
-        console.log(JSON.stringify(keeper));
+        const gold = new RG.Item.GoldCoin();
+        gold.count = 50;
+        keeper.getInvEq().addItem(gold);
         level.addActor(keeper, 2, 2);
-        console.log(level.toJSON());
         const shopElem = new RG.Element.Shop();
         const shopCell = level.getMap().getCell(3, 3);
         shopCell.setProp('elements', shopElem);
