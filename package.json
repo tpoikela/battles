@@ -47,6 +47,7 @@
   },
   "scripts": {
     "build": "gulp build-js",
+    "build:production": "NODE_ENV=production ./browserify ./client/jsx/app.jsx --extension .jsx -t babelify > ./build/bundle.js",
     "clean": "rm build/*",
     "coverage": "perl bin/cov_test.pl",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
