@@ -12,10 +12,10 @@ RG.Element = {};
 /* Element is a wall or other obstacle or a feature in the map. It's not
  * necessarily blocking movement.  */
 RG.Element.Base = function(elemType) { // {{{2
+    RG.Object.Typed.call(this, RG.TYPE_ELEM, elemType);
     RG.Object.Locatable.call(this);
-    this.setPropType('elements');
-    this.setType(elemType);
 };
+RG.extend2(RG.Element.Base, RG.Object.Typed);
 RG.extend2(RG.Element.Base, RG.Object.Locatable);
 
 RG.Element.Base.prototype.isPassable = function() {

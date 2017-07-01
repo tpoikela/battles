@@ -1,24 +1,30 @@
 
-var RG = require('./rg.js');
+const RG = require('./rg.js');
 
 RG.Object = {};
 
 RG.Object.Defense = function() {
+    this._attack = 1;
+    this._defense = 1;
+    this._protection = 0;
+};
 
-    var _attack = 1;
-    var _defense = 1;
-    var _protection = 0;
+RG.Object.Defense.prototype.getAttack = function() {return this._attack;};
+RG.Object.Defense.prototype.setAttack = function(attack) {
+    this._attack = attack;
+};
 
-    this.getAttack = function() {return _attack;};
-    this.setAttack = function(attack) { _attack = attack; };
+/* Defense related methods.*/
+RG.Object.Defense.prototype.getDefense = function() { return this._defense; };
+RG.Object.Defense.prototype.setDefense = function(defense) {
+    this._defense = defense;
+};
 
-    /* Defense related methods.*/
-    this.getDefense = function() { return _defense; };
-    this.setDefense = function(defense) { _defense = defense; };
-
-    this.getProtection = function() {return _protection;};
-    this.setProtection = function(prot) {_protection = prot;};
-
+RG.Object.Defense.prototype.getProtection = function() {
+    return this._protection;
+};
+RG.Object.Defense.prototype.setProtection = function(prot) {
+    this._protection = prot;
 };
 
 RG.Object.Defense.prototype.copy = function(rhs) {
@@ -28,14 +34,14 @@ RG.Object.Defense.prototype.copy = function(rhs) {
 };
 
 RG.Object.Defense.prototype.equals = function(rhs) {
-    var res = this.getAttack() === rhs.getAttack() &&
+    const res = this.getAttack() === rhs.getAttack() &&
         this.getDefense() === rhs.getDefense() &&
         this.getProtection() === rhs.getProtection();
     return res;
 };
 
 RG.Object.Defense.prototype.toJSON = function() {
-    var json = {
+    const json = {
         setAttack: this.getAttack(),
         setDefense: this.getDefense(),
         setProtection: this.getProtection()
@@ -122,7 +128,7 @@ RG.Object.Typed = function(propType, type) {
 
 };
 
-    RG.Object.Typed.prototype.getPropType = function() {return this._propType;};
+RG.Object.Typed.prototype.getPropType = function() {return this._propType;};
 RG.Object.Typed.prototype.getType = function() {return this.type;};
 
 RG.Object.Typed.prototype.setPropType = function(propType) {
@@ -136,23 +142,17 @@ RG.Object.Typed.prototype.setPropType = function(propType) {
     }
 };
 
-
 RG.Object.Typed.prototype.setType = function(type) {
     this.type = type;
     RG.nullOrUndefError('Object.Typed: setType', 'arg |type|', type);
 };
 
-
 /* This object is used by all locatable objects in the game.  */
 RG.Object.Locatable = function() { // {{{2
-    RG.Object.Typed.call(this, null);
     this._x = null;
     this._y = null;
     this._level = null;
-
-
 }; // }}} Object.Locatable
-RG.extend2(RG.Object.Locatable, RG.Object.Typed);
 
 RG.Object.Locatable.prototype.setX = function(x) {this._x = x; };
 RG.Object.Locatable.prototype.setY = function(y) {this._y = y; };
@@ -212,7 +212,6 @@ RG.Object.Locatable.prototype.isSamePos = function(obj) {
  * determined by the owner. This ensures that
  * for example item coordinates are up-to-date with the carrier.*/
 RG.Object.Ownable = function(owner) {
-    RG.Object.Typed.call(this, null);
     let _owner = owner;
 
     this.isSamePos = function(obj) {return _owner.isSamePos(obj);};
@@ -247,7 +246,6 @@ RG.Object.Ownable = function(owner) {
     };
 
 };
-RG.extend2(RG.Object.Ownable, RG.Object.Typed);
 
 
 module.exports = RG.Object;

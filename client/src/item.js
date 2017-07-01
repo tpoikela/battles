@@ -26,10 +26,9 @@ RG.Item = {};
 /* Models an item. Each item is ownable by someone. During game, there are no
  * items with null owners. Ownership shouldn't be ever set to null. */
 RG.Item.Base = function(name) {
+    RG.Object.Typed.call(this, RG.TYPE_ITEM, RG.TYPE_ITEM);
     RG.Object.Ownable.call(this, null);
     RG.Entity.call(this);
-    this.setPropType(RG.TYPE_ITEM);
-    this.setType(RG.ITEM_ITEM);
 
     let _name = name;
     let _value = 1;
@@ -50,6 +49,7 @@ RG.Item.Base = function(name) {
     this.setCount = function(count) {this.count = count;};
 
 };
+RG.extend2(RG.Item.Base, RG.Object.Typed);
 RG.extend2(RG.Item.Base, RG.Object.Ownable);
 
 RG.Item.Base.prototype.toString = function() {

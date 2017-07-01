@@ -10,9 +10,10 @@ RG.Actor = {};
 
 /* Object representing a game actor who takes actions.  */
 RG.Actor.Rogue = function(name) { // {{{2
+    RG.Object.Typed.call(this, RG.TYPE_ACTOR, null);
     RG.Object.Locatable.call(this);
     RG.Entity.call(this);
-    this.setPropType('actors');
+    // this.setPropType('actors');
 
     // Member vars
     this._brain = new RG.Brain.Rogue(this);
@@ -86,6 +87,7 @@ RG.Actor.Rogue = function(name) { // {{{2
     };
 
 };
+RG.extend2(RG.Actor.Rogue, RG.Object.Typed);
 RG.extend2(RG.Actor.Rogue, RG.Object.Locatable);
 RG.extend2(RG.Actor.Rogue, RG.Entity);
 
