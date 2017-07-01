@@ -91,7 +91,9 @@ class BattlesTop extends React.Component {
         this.game = null;
         this.gameSave = new RG.Game.Save();
 
-        this.intervalID = null;
+        // Used for request animation frame
+        this.frameID = null;
+
         // Holds game-state specific info for GUI (see resetGameState)
         this.gameState = {};
 
@@ -281,8 +283,8 @@ class BattlesTop extends React.Component {
     }
 
     initRestoredGame(game) {
-        if (this.intervalID !== null) {
-            clearInterval(this.intervalID);
+        if (this.frameID) {
+            cancelAnimationFrame(this.frameID);
         }
 
         this.resetGameState();
@@ -297,7 +299,7 @@ class BattlesTop extends React.Component {
         this.gameState.visibleCells = player.getLevel().exploreCells(player);
         RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this.listener);
         RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this.listener);
-        this.intervalID = setInterval(this.mainLoop, 1000.0 / 60);
+        this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
         this.setState({render: true,
             loadInProgress: false, renderFullScreen: true});
     }
@@ -318,8 +320,8 @@ class BattlesTop extends React.Component {
 
     /* Creates a new game instance.*/
     createNewGame() {
-        if (this.intervalID !== null) {
-            clearInterval(this.intervalID);
+        if (this.frameID) {
+            cancelAnimationFrame(this.frameID);
         }
 
         this.resetGameState();
@@ -335,7 +337,7 @@ class BattlesTop extends React.Component {
         this.gameState.visibleCells = player.getLevel().exploreCells(player);
         RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this.listener);
         RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this.listener);
-        this.intervalID = setInterval(this.mainLoop, 1000.0 / 60);
+        this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
     }
 
     selectItemTop(item) {
@@ -412,6 +414,7 @@ class BattlesTop extends React.Component {
             }
             this.keyPending = false;
         }
+        this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
     }
 
     render() {
