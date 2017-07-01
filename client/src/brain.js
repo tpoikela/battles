@@ -377,10 +377,21 @@ RG.Brain.Player = function(actor) { // {{{2
             if (actorCell.hasShop()) {
                 const shopElem = actorCell.getPropType('shop')[0];
                 const price = shopElem.getItemPriceForSelling(obj.item);
+
                 _wantConfirm = true;
                 _confirmCallback = function() {
-                    shopElem.sellItem(obj.item, _actor);
+                    const sellOk = shopElem.sellItem(obj.item, _actor);
+                    if (obj.hasOwnProperty('callback')) {
+                        if (sellOk) {
+                            msg = `${obj.item.getName()} was sold.`;
+                        }
+                        else {
+                            msg = `Cannot sell ${obj.item.getName()}.`;
+                        }
+                        obj.callback({msg: msg, result: sellOk});
+                    }
                 };
+
                 msg = `Press y to sell item for ${price} gold coins.`;
                 if (obj.hasOwnProperty('callback')) {
                     obj.callback({msg: msg, result});
