@@ -194,7 +194,8 @@ RG.Element.Shop = function() {
     RG.Object.Locatable.call(this);
 
     this._shopkeeper = null;
-    this._costFactor = 1.0;
+    this._costFactorSell = 1.0;
+    this._costFactorBuy = 0.5;
 
 };
 RG.extend2(RG.Element.Shop, RG.Element.Base);
@@ -203,7 +204,7 @@ RG.extend2(RG.Element.Shop, RG.Object.Locatable);
 /* Returns the price in gold coins for item in the cell.*/
 RG.Element.Shop.prototype.getItemPriceForBuying = function(item) {
     if (item.has('Unpaid')) {
-        const value = item.getValue() * this._costFactor;
+        const value = item.getValue() * this._costFactorSell;
         const goldWeight = RG.valueToGoldWeight(value);
         const ncoins = RG.getGoldInCoins(goldWeight);
         return ncoins;
@@ -213,6 +214,14 @@ RG.Element.Shop.prototype.getItemPriceForBuying = function(item) {
             'Item ' + item.getName() + ' is not Unpaid item');
     }
     return null;
+};
+
+/* Returns the price for selling the item. */
+RG.Element.Shop.prototype.getItemPriceForSelling = function(item) {
+    const value = item.getValue() * this._costFactorBuy;
+    const goldWeight = RG.valueToGoldWeight(value);
+    const ncoins = RG.getGoldInCoins(goldWeight);
+    return ncoins;
 };
 
 RG.Element.Shop.prototype.hasEnoughGold = function(actor, goldWeight) {
@@ -232,7 +241,7 @@ RG.Element.Shop.prototype.hasEnoughGold = function(actor, goldWeight) {
 /* Function for buying an item.*/
 RG.Element.Shop.prototype.buyItem = function(item, buyer) {
     const buyerCell = buyer.getCell();
-    const value = item.getValue() * this._costFactor;
+    const value = item.getValue() * this._costFactorSell;
     const goldWeight = RG.valueToGoldWeight(value);
     const nCoins = RG.getGoldInCoins(goldWeight);
 
@@ -257,8 +266,13 @@ RG.Element.Shop.prototype.buyItem = function(item, buyer) {
 
 /* Function for selling an item.*/
 RG.Element.Shop.prototype.sellItem = function(item, seller) {
+    if (!seller) {
+        RG.err('Element.Shop', 'sellItem',
+            'Seller is null or undefined.');
+    }
+
     const sellerCell = seller.getCell();
-    const value = item.getValue() / this._costFactor;
+    const value = item.getValue() * this._costFactorBuy;
     const goldWeight = RG.valueToGoldWeight(value);
     const nCoins = RG.getGoldInCoins(goldWeight);
 
@@ -268,7 +282,7 @@ RG.Element.Shop.prototype.sellItem = function(item, seller) {
             coins.count = nCoins;
             seller.getInvEq().addItem(coins);
             item.add('Unpaid', new RG.Component.Unpaid());
-            RG.gameMsg({cell: sellerCell, msg: seller.getName +
+            RG.gameMsg({cell: sellerCell, msg: seller.getName() +
                 ' sold ' + item.getName() + ' for ' + nCoins + ' coins.'});
             return true;
         }
@@ -292,14 +306,20 @@ RG.Element.Shop.prototype.getShopkeeper = function() {
     return this._shopkeeper;
 };
 
-/* Sets the shopkeeper.*/
-RG.Element.Shop.prototype.setCostFactor = function(factor) {
-    this._costFactor = factor;
+/* Sets the cost factors for selling and buying. .*/
+RG.Element.Shop.prototype.setCostFactor = function(buy, sell) {
+    this._costFactorSell = sell;
+    this._costFactorBuy = buy;
 };
 
-/* Returns the shopkeeper.*/
-RG.Element.Shop.prototype.getCostFactor = function() {
-    return this._costFactor;
+/* Returns the cost factor for selling. .*/
+RG.Element.Shop.prototype.getCostFactorSell = function() {
+    return this._costFactorSell;
+};
+
+/* Returns the cost factor for buying. .*/
+RG.Element.Shop.prototype.getCostFactorBuy = function() {
+    return this._costFactorBuy;
 };
 
 RG.Element.Shop.prototype.toJSON = function() {
@@ -309,7 +329,8 @@ RG.Element.Shop.prototype.toJSON = function() {
     }
     return {
         type: 'shop',
-        costFactor: this._costFactor,
+        costFactorSell: this._costFactorSell,
+        costFactorBuy: this._costFactorBuy,
         shopkeeper: shopkeeperID
     };
 };
