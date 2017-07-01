@@ -73,6 +73,17 @@ describe('Brain.Player', function() {
         expect(brain.energy).to.equal(0);
     });
 
+    it('has commands for dropping items', () => {
+        const brain = new Brain.Player(player);
+        const sword = new RG.Item.Weapon('sword');
+        player.getInvEq().addItem(sword);
+        const dropCmd = {cmd: 'drop', item: sword};
+        expect(level.getItems()).to.have.length(0);
+        brain.decideNextAction(dropCmd);
+        // const dropCell = player.getCell();
+        expect(level.getItems()).to.have.length(1);
+    });
+
     it('Has different fighting modes', function() {
         const brain = new Brain.Player(player);
         brain.toggleFightMode();
@@ -198,7 +209,7 @@ describe('Brain.Summoner', () => {
         player.setIsPlayer(true);
         level.addActor(summoner, 1, 1);
         level.addActor(player, 3, 3);
-        while (!brain.summonedMonster()) {}
+        while (!brain.summonedMonster()) {continue;}
         expect(level.getActors(), 'There should be one actor added')
             .to.have.length(3);
     });
