@@ -904,6 +904,7 @@ RG.Game.FromJSON = function() {
             this.addCompsToEntity(entity, obj.components);
             this.createInventory(obj, entity);
             this.createEquipment(obj, entity);
+            this.createBrain(obj.brain, entity);
             return entity;
         }
         else {
@@ -930,6 +931,20 @@ RG.Game.FromJSON = function() {
                 }
                 ent.add(name, newCompObj);
             }
+        }
+    };
+
+    this.createBrain = function(brain, ent) {
+        const type = brain.type;
+        const typeUc = type[0].toUpperCase() + type.substring(1);
+        if (RG.Brain[typeUc]) {
+            const brain = new RG.Brain[typeUc](ent);
+            // TODO reconstruct memory
+        }
+        else {
+            RG.err('FromJSON', 'createBrain',
+                `Cannot find RG.Brain.${typeUc}`);
+
         }
     };
 
