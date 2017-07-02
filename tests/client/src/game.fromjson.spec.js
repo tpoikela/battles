@@ -28,13 +28,6 @@ describe('RG.Game.FromJSON', function() {
         expect(newItem.getType()).to.equal(item1.getType());
     });
 
-    it('Converts level JSON back to RG.Map.Level', () => {
-        const level = RGTest.createLevel('arena', 20, 20);
-        const json = level.toJSON();
-        const newLevel = fromJSON.createLevel(json);
-        expect(newLevel.getID()).to.equal(level.getID());
-    });
-
     it('Converts level.map JSON back to RG.Map', () => {
         const level = RGTest.createLevel('arena', 20, 20);
         const json = level.toJSON();
@@ -47,6 +40,14 @@ describe('RG.Game.FromJSON', function() {
         }
     });
 
+    it('Converts level JSON back to RG.Map.Level', () => {
+        const level = RGTest.createLevel('arena', 20, 20);
+        const json = level.toJSON();
+        const newLevel = fromJSON.createLevel(json);
+        expect(newLevel.getID()).to.equal(level.getID());
+    });
+
+
     it('converts level and its objects into JSON and back to object', () => {
         const level = RGTest.createLevel('arena', 10, 10);
         const actor = new RG.Actor.Rogue('Urkh!');
@@ -54,15 +55,26 @@ describe('RG.Game.FromJSON', function() {
         const item = new RG.Item.Weapon('sword');
         level.addActor(actor, 2, 2);
         level.addItem(item, 3, 3);
+
+        const shopElem = new RG.Element.Shop();
+        const shopItem = new RG.Item.Weapon('Sword for sale');
+        level.addElement(shopElem, 4, 4);
+        level.addItem(shopItem, 4, 4);
+
         const json = level.toJSON();
         const newLevel = fromJSON.createLevel(json);
 
         const actors = newLevel.getActors();
         const items = newLevel.getItems();
+        const elements = newLevel.getElements();
+
         expect(actors).to.have.length(1);
         expect(actors[0].getName()).to.equal('Urkh!');
-        expect(items).to.have.length(1);
+        expect(items).to.have.length(2);
         expect(items[0].getName()).to.equal('sword');
+
+        expect(elements).to.have.length(1);
+        expect(elements[0].getType()).to.equal('shop');
     });
 
     it('connects levels after restoring game from JSON', () => {
