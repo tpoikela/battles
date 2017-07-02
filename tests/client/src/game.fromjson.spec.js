@@ -109,24 +109,31 @@ describe('RG.Game.FromJSON', () => {
         expect(newPlayer.getName()).to.equal('MyPlayer');
     });
 
-    /* TODO Decide on places serialization and add this test.
     it('converts a game containing world into JSON and back', () => {
         const fact = new RG.Factory.World();
         const game = new RG.Game.Main();
         const conf = {name: 'Ice Kingdom', nAreas: 1,
             area: [{ name: 'Area51', maxX: 1, maxY: 1}]
         };
+        console.log('Started Factory.World');
         const world = fact.createWorld(conf);
         const player = new RG.Actor.Rogue('MyPlayer');
         player.setType('player');
         player.setIsPlayer(true);
         game.addPlace(world);
         game.addPlayer(player, {place: 'Ice Kingdom'});
+        let numLevels = game.getLevels();
+        expect(numLevels).to.have.length(1);
         const json = game.toJSON();
+        expect(json.lastLevelID).to.equal(RG.Map.Level.prototype.idCount);
+        expect(json.lastEntityID).to.equal(RG.Entity.prototype.idCount);
+
+        console.log('Creating new game now');
+        // Create new game from JSON
         const newGame = fromJSON.createGame(json);
         expect(Object.keys(newGame.getPlaces())).to.have.length(1);
+        numLevels = newGame.getLevels();
+        console.log(JSON.stringify(numLevels.map(l => l.getID())));
+        expect(numLevels).to.have.length(1);
     });
-    */
-
-
 });
