@@ -48,12 +48,15 @@ describe('How AI brain memory performs basic functions', function() {
 describe('How actors communicate with each other', function() {
 
     it('Passes info between actors via comm components', function() {
+        const level = RG.FACT.createLevel('arena', 10, 10);
         const comSys = new RG.System.Communication('Communication',
             ['Communication']);
         const systems = [comSys];
 
         const hunter1 = RG.FACT.createActor('hunter1');
+        level.addActor(hunter1, 1, 1);
         const hunter2 = RG.FACT.createActor('hunter2');
+        level.addActor(hunter2, 2, 2);
 
         const brain1 = new Brain(hunter1);
         hunter1.setBrain(brain1);
@@ -67,7 +70,8 @@ describe('How actors communicate with each other', function() {
         const mem1 = brain1.getMemory();
 
         const comComp = new RG.Component.Communication();
-        comComp.addMsg({type: 'Enemies', enemies: mem1.getEnemies()});
+        comComp.addMsg({src: hunter1, type: 'Enemies',
+            enemies: mem1.getEnemies()});
         expect(comSys.entities.hasOwnProperty(hunter2.getID())).to.equal(false);
         hunter2.add('Communication', comComp);
         expect(comSys.entities.hasOwnProperty(hunter2.getID())).to.equal(true);
