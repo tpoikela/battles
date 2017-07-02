@@ -545,9 +545,14 @@ RG.System.Communication = function(type, compTypes) {
 
     this.processEnemies = function(ent, msg) {
         const enemies = msg.enemies;
+        const srcName = msg.src.getName();
         for (let i = 0; i < enemies.length; i++) {
             ent.addEnemy(enemies[i]);
         }
+        const msgObj = {cell: ent.getCell(),
+            msg: `${srcName} seems to communicate with ${ent.getName()}`
+        };
+        RG.gameDanger(msgObj);
     };
 
     // Dispatch table for different messages
