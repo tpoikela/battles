@@ -101,6 +101,17 @@ describe('World.AreaTile', function() {
         expect(level11.getStairs(level21) === null).to.equal(false);
         expect(level12.getStairs(level11) === null).to.equal(false);
     });
+
+    it('can be serialized to JSON', () => {
+        const testArea = new World.Area('TestArea', 1, 2);
+        const areaTile = new World.AreaTile(0, 1, testArea);
+        const tileLevel = RG.FACT.createLevel('ruins', 10, 10);
+        areaTile.setLevel(tileLevel);
+        const json = areaTile.toJSON();
+        expect(json.level).to.equal(tileLevel.getID());
+        expect(json.x).to.equal(0);
+        expect(json.y).to.equal(1);
+    });
 });
 
 
@@ -116,6 +127,14 @@ describe('World.Area', function() {
         expect(tiles[3][4].isEastEdge()).to.equal(true);
         expect(tiles[2][4].isEastEdge()).to.equal(false);
         expect(levels).to.have.length(20);
+    });
+
+    it('can be serialized to JSON', () => {
+        const area = new World.Area('SwampArea', 1, 2);
+        const json = area.toJSON();
+        expect(json.tiles[0][0]).to.exist;
+        expect(json.tiles[0][1]).to.exist;
+        expect(json.name).to.equal('SwampArea');
     });
 });
 
