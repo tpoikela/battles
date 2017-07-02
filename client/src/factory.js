@@ -261,16 +261,18 @@ RG.Factory.Base = function() { // {{{2
 
             const doorXY = house.door;
             const door = new RG.Element.Door(true);
-            map.getCell(doorXY[0], doorXY[1]).setProp('elements', door);
+            // map.getCell(doorXY[0], doorXY[1]).setProp('elements', door);
+            level.addElement(door, doorXY[0], doorXY[1]);
 
             const keeper = this.createActor('shopkeeper', {brain: 'Human'});
             for (let i = 0; i < floor.length; i++) {
                 const xy = floor[i];
                 if (i === 0) {level.addActor(keeper, xy[0], xy[1]);}
-                const cell = map.getCell(xy[0], xy[1]);
+                // const cell = map.getCell(xy[0], xy[1]);
                 const shopElem = new RG.Element.Shop();
                 shopElem.setShopkeeper(keeper);
-                cell.setProp('elements', shopElem);
+                // cell.setProp('elements', shopElem);
+                level.addElement(shopElem, xy[0], xy[1]);
 
                 if (conf.hasOwnProperty('parser')) {
                     const item = conf.parser.createRandomItem({
