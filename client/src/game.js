@@ -1073,6 +1073,7 @@ RG.Game.FromJSON = function() {
 
     this.createActor = function(actor) {
         const entity = this.createEntity(actor);
+        entity.setID(actor.id);
         id2entity[entity.getID()] = entity;
         return entity;
     };
