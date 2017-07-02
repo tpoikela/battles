@@ -421,7 +421,16 @@ RG.System.Movement = function(type, compTypes) {
     /* If player moved to the square, checks if any messages must
      * be emitted. */
     this.checkMessageEmits = function(cell) {
-        if (cell.hasStairs()) {RG.gameMsg('You see stairs here');}
+        if (cell.hasStairs()) {
+            const stairs = cell.getStairs();
+            const level = stairs.getTargetLevel();
+            let msg = 'You see stairs here';
+            if (level.getParent()) {
+                const name = level.getParent();
+                msg += `. They seem to be leading to ${name}`;
+            }
+            RG.gameMsg(msg);
+        }
         if (cell.hasProp('items')) {
             const items = cell.getProp('items');
             const topItem = items[0];
