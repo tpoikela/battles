@@ -466,7 +466,7 @@ RG.Game.Main = function() {
         if (obj.hasOwnProperty('place')) {
             const place = obj.place;
             if (_places.hasOwnProperty(place)) {
-                const levels = _places[place];
+                const levels = _places[place].getLevels();
                 return _addPlayerToFirstLevel(player, levels);
             }
             else {
@@ -512,10 +512,16 @@ RG.Game.Main = function() {
             const name = place.getName();
             if (!_places.hasOwnProperty(name) ) {
                 const levels = place.getLevels();
-                for (let i = 0; i < levels.length; i++) {
-                    this.addLevel(levels[i]);
+                if (levels.length > 0) {
+                    for (let i = 0; i < levels.length; i++) {
+                        this.addLevel(levels[i]);
+                    }
                 }
-                _places[name] = levels;
+                else {
+                    RG.err('Game.Main', 'addPlace',
+                        `Place ${name} has no levels!`);
+                }
+                _places[name] = place;
             }
             else {
                 RG.err('Game.Main', 'addPlace',
@@ -586,7 +592,9 @@ RG.Game.Main = function() {
         const obj = {
             engine: {},
             levels,
-            places
+            places,
+            lastLevelID: RG.Map.Level.prototype.idCount,
+            lastEntityID: RG.Entity.prototype.idCount
         };
 
         const player = this.getPlayer();
@@ -864,6 +872,7 @@ RG.Game.FromJSON = function() {
 
     // Lookup table for mapping level ID to Map.Level object
     const id2level = {};
+    const id2entity = {};
 
     // Stores connection information for stairs
     const stairsInfo = {};
@@ -1048,7 +1057,9 @@ RG.Game.FromJSON = function() {
     };
 
     this.createActor = function(actor) {
-        return this.createEntity(actor);
+        const entity = this.createEntity(actor);
+        id2entity[entity.getID()] = entity;
+        return entity;
     };
 
     /* Tricky one. The target level should exist before connections. The object
@@ -1106,7 +1117,9 @@ RG.Game.FromJSON = function() {
         // object contains only level IDs
         json.levels.forEach(levelJson => {
             const level = this.createLevel(levelJson);
-            game.addLevel(level);
+            if (!levelJson.parent) {
+                game.addLevel(level); // remove once world is properly created
+            }
         });
 
         Object.keys(json.places).forEach(name => {
@@ -1132,10 +1145,14 @@ RG.Game.FromJSON = function() {
             }
             else {
                 RG.err('Game.FromJSON', 'createGame',
-                    `Player level id ${id} was null`);
+                    `Cannot find player level object with level ID ${id}`);
             }
         }
 
+        // Restore the ID counters for levels and entities, otherwise duplicate
+        // IDs will appear when new levels/entities are created
+        RG.Map.Level.prototype.idCount = json.lastLevelID;
+        RG.Entity.prototype.idCount = json.lastEntityID;
 
         return game;
     };
