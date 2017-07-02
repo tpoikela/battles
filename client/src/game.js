@@ -919,8 +919,13 @@ RG.Game.FromJSON = function() {
                 const comp = comps[name];
                 const newCompObj = new RG.Component[name]();
                 for (const fname in comp) {
-                    if (fname) {
+                    if (typeof newCompObj[fname] === 'function') {
                         newCompObj[fname](comp[fname]);
+                    }
+                    else {
+                        RG.err('FromJSON', 'addCompsToEntity',
+                            `${fname} not a function in ${name}`);
+
                     }
                 }
                 ent.add(name, newCompObj);
@@ -1106,6 +1111,11 @@ RG.Game.FromJSON = function() {
                 if (cell.explored) {
                     mapObj.getCell(x, y).setExplored(true);
                 }
+                if (cell.elements) {
+                    cell.elements.forEach(elem => {
+                        mapObj.setElemXY(x, y, this.createBaseElem(elem));
+                    });
+                }
             });
         });
         return mapObj;
@@ -1120,6 +1130,7 @@ RG.Game.FromJSON = function() {
             case 'tree': return new RG.Element.Tree('tree');
             case 'grass': return new RG.Element.Grass('grass');
             case 'stone': return new RG.Element.Stone('stone');
+            case 'water': return new RG.Element.Water('water');
             default: {
                 RG.err('Game.fromJSON', 'createBaseElem',
                     `Unknown type ${cell.type}`);
