@@ -127,10 +127,14 @@ describe('RG.Game.FromJSON', function() {
                     {x: 0, y: 0, name: 'Cliff', nFaces: 1,
                         face: [{name: 'north', nLevels: 1, x: 20, y: 20}]
                     }
+                ],
+                nCities: 1,
+                city: [
+                    {x: 0, y: 0, name: 'City1', nLevels: 1, entranceLevel: 0}
                 ]
             }]
         };
-        const numLevels = 4;
+        const numLevels = 5;
 
         // Create game, world and player first
         const game = new RG.Game.Main();
@@ -176,6 +180,7 @@ describe('RG.Game.FromJSON', function() {
         expect(b1.getEntrance()).not.to.be.empty;
         expect(b1.getDungeon()).not.to.be.empty;
 
+        // Verify mountain restoration
         const mountains = newWorld.getMountains();
         expect(mountains).to.have.length(1);
         const m1 = mountains[0];
@@ -183,5 +188,12 @@ describe('RG.Game.FromJSON', function() {
 
         const f1 = m1.getFaces()[0];
         expect(f1.getEntrance()).not.to.be.empty;
+
+        // Verify that city is restored correctly
+        const cities = newWorld.getCities();
+        expect(cities, 'World has one city').to.have.length(1);
+        const c1 = cities[0];
+        expect(c1.getEntrances()[0]).to.not.be.empty;
+
     });
 });
