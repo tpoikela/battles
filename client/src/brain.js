@@ -27,6 +27,7 @@ RG.Brain.getCellsAround = function(actor) {
 RG.Brain.Player = function(actor) { // {{{2
     const _actor = actor;
     const _guiCallbacks = {}; // For attaching GUI callbacks
+    const _type = 'player';
 
     /* For given code, adds a GUI callback. When this keycode is given, a GUI
      * callback is called instead. */
@@ -50,6 +51,8 @@ RG.Brain.Player = function(actor) { // {{{2
         // this.energy = 1;
         _actor.get('StatsMods').setSpeed(0);
     };
+
+    this.getType = function() {return _type;};
 
     this.isRunModeEnabled = function() {return _runModeEnabled;};
 
@@ -519,6 +522,12 @@ RG.Brain.Player = function(actor) { // {{{2
     /* Required for damage dealing. Does nothing for the player.*/
     this.addEnemy = function() {};
 
+    this.toJSON = function() {
+        return {
+            type: this.getType()
+        };
+    };
+
 }; // }}} Brain.Player
 
 /* Memory is used by the actor to hold information about enemies, items etc.
@@ -573,8 +582,12 @@ RG.Brain.Memory = function() {
 RG.Brain.Rogue = function(actor) { // {{{2
     let _actor = actor; // Owner of the brain
     const _explored = {}; // Memory of explored cells
+    let _type = 'rogue';
 
     const _memory = new RG.Brain.Memory(this);
+
+    this.getType = function() {return _type;};
+    this.setType = function(type) {_type = type;};
 
     this.getMemory = function() {return _memory;};
 
@@ -743,11 +756,18 @@ RG.Brain.Rogue = function(actor) { // {{{2
         return path;
     };
 
+    this.toJSON = function() {
+        return {
+            type: this.getType()
+        };
+    };
+
 }; // }}} RogueBrain
 
 /* Brain used by most of the animals. TODO: Add some corpse eating behaviour. */
 RG.Brain.Animal = function(actor) {
     RG.Brain.Rogue.call(this, actor);
+    this.setType('animal');
 
     const _memory = this.getMemory();
     _memory.addEnemyType('player');
@@ -769,6 +789,7 @@ RG.extend2(RG.Brain.Animal, RG.Brain.Rogue);
 /* Brain used by most of the animals. TODO: Add some corpse eating behaviour. */
 RG.Brain.Demon = function(actor) {
     RG.Brain.Rogue.call(this, actor);
+    this.setType('demon');
 
     const _memory = this.getMemory();
     _memory.addEnemyType('player');
@@ -791,12 +812,14 @@ RG.extend2(RG.Brain.Demon, RG.Brain.Rogue);
 
 RG.Brain.Zombie = function(actor) {
     RG.Brain.Rogue.call(this, actor);
+    this.setType('zombie');
 };
 RG.extend2(RG.Brain.Zombie, RG.Brain.Rogue);
 
 /* Brain used by summoners. */
 RG.Brain.Summoner = function(actor) {
     RG.Brain.Rogue.call(this, actor);
+    this.setType('summoner');
 
     const _actor = actor;
     this.numSummoned = 0;
@@ -867,6 +890,7 @@ RG.extend2(RG.Brain.Summoner, RG.Brain.Rogue);
 /* This brain is used by humans who are not hostile to the player.*/
 RG.Brain.Human = function(actor) {
     RG.Brain.Rogue.call(this, actor);
+    this.setType('human');
 
     this.getMemory().addEnemyType('demon');
 
@@ -897,7 +921,7 @@ RG.Brain.Human = function(actor) {
             if (!memory.hasCommunicatedWith(friendActor)) {
                 const comComp = new RG.Component.Communication();
                 const enemies = memory.getEnemies();
-                const msg = {type: 'Enemies', enemies};
+                const msg = {type: 'Enemies', enemies, src: this.getActor()};
                 comComp.addMsg(msg);
                 if (!friendActor.has('Communication')) {
                     friendActor.add('Communication', comComp);
@@ -915,6 +939,7 @@ RG.extend2(RG.Brain.Human, RG.Brain.Rogue);
 /* Brain object used by Spirit objects.*/
 RG.Brain.Spirit = function(actor) {
     RG.Brain.Rogue.call(this, actor);
+    this.setType('spirit');
 
     /* Returns the next action for the spirit.*/
     this.decideNextAction = function() {
