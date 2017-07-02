@@ -515,7 +515,9 @@ RG.World.Area = function(name, maxX, maxY, cols, rows, levels) {
             cols: _cols, rows: _rows,
             tiles: tilesJSON,
             nDungeons: this.dungeons.length,
-            dungeon: this.dungeons.map(dg => dg.toJSON())
+            dungeon: this.dungeons.map(dg => dg.toJSON()),
+            nMountains: this.mountains.length,
+            mountain: this.mountains.map(mt => mt.toJSON())
         };
     };
 
@@ -565,6 +567,8 @@ Bit weird but should be fine.
         _faces.push(face);
     };
 
+    this.getFaces = () => _faces;
+
     this.getEntrances = () => {
         const res = [];
         _faces.forEach(face => {
@@ -593,24 +597,44 @@ Bit weird but should be fine.
 
     };
 
+    this.toJSON = function() {
+        const obj = {
+            name: this.getName(),
+            hierName: this.getHierName(),
+            nFaces: _faces.length,
+            face: _faces.map(face => face.toJSON())
+        };
+        return obj;
+    };
+
 };
 RG.extend2(RG.World.Mountain, RG.World.Base);
 
 /* One side (face) of the mountain. Each side consists of stages, of X by 1
 * Areas. */
-RG.World.MountainFace = function() {
+RG.World.MountainFace = function(name) {
+    RG.World.Base.call(this, name);
     // const _stages = [];
     const _levels = [];
-    let _entrance;
+    let _entrance = null;
 
     this.addLevel = function(level) {
         _levels.push(level);
-        if (!_entrance) {
+        level.setParent(this.getName());
+    };
+
+    this.addEntrance = function(levelNumber) {
+        if (_entrance === null) {
+            const level = _levels[levelNumber];
             const stairs = new Stairs(true, level);
             const midX = Math.floor(level.getMap().cols / 2);
             const maxY = level.getMap().rows - 1;
             level.addStairs(stairs, midX, maxY);
-            _entrance = stairs;
+            _entrance = {levelNumber, x: midX, y: maxY};
+        }
+        else {
+            RG.err('World.MountainFace', 'addEntrance',
+                'Entrance already added.');
         }
     };
 
@@ -622,11 +646,30 @@ RG.World.MountainFace = function() {
         _entrance = stairs;
     };
 
+    this.setEntranceLocation = function(entrance) {
+        _entrance = entrance;
+    };
+
     this.getEntrance = function() {
-        return _entrance;
+        if (_entrance === null) {return null;}
+        const entrLevel = _levels[_entrance.levelNumber];
+        const entrCell = entrLevel.getMap().getCell(_entrance.x, _entrance.y);
+        return entrCell.getStairs();
+    };
+
+    this.toJSON = function() {
+        const obj = {
+            name: this.getName(),
+            hierName: this.getHierName(),
+            nLevels: _levels.length,
+            levels: _levels.map(level => level.getID()),
+            entrance: _entrance
+        };
+        return obj;
     };
 
 };
+RG.extend2(RG.World.MountainFace, RG.World.Base);
 
 /* A city in the world. A special features of the city can be queried through
 * this object. */
