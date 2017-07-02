@@ -105,6 +105,7 @@ RG.World.Branch = function(name) {
         if (!this.hasLevel(level)) {
             level.setLevelNumber(_numCount++);
             _levels.push(level);
+            level.setParent(this.getName());
         }
         else {
             RG.err('World.Branch', 'addLevel',
@@ -150,6 +151,16 @@ RG.World.Branch = function(name) {
                 _stairsUp[nl].setTargetStairs(_stairsDown[nl - 1]);
             }*/
         }
+    };
+
+    this.toJSON = function() {
+        const obj = {
+            name: this.getName(),
+            hierName: this.getHierName(),
+            nLevels: _levels.length,
+            levels: _levels.map(level => level.getID())
+        };
+        return obj;
     };
 
 };
@@ -256,6 +267,17 @@ RG.World.Dungeon = function(name) {
             RG.err('World.Dungeon', 'connectBranches',
                 `Use addBranch ${b1} and ${b2} to dungeon before connection.`);
         }
+    };
+
+    this.toJSON = function() {
+        const obj = {
+            name: this.getName(),
+            hierName: this.getHierName(),
+            entranceNames: this._entranceNames,
+            nBranches: _branches.length,
+            branch: _branches.map(br => br.toJSON())
+        };
+        return obj;
     };
 
 };
@@ -370,6 +392,11 @@ RG.World.Area = function(name, maxX, maxY, cols, rows, levels) {
     this.getMaxY = () => (_maxY);
     const _tiles = [];
 
+    // Subfeatures inside this tile
+    this.dungeons = [];
+    this.mountains = [];
+    this.cities = [];
+
     this._init = function() {
         // Create the tiles
         for (let x = 0; x < _maxX; x++) {
@@ -448,10 +475,6 @@ RG.World.Area = function(name, maxX, maxY, cols, rows, levels) {
         return null;
     };
 
-    this.dungeons = [];
-    this.mountains = [];
-    this.cities = [];
-
     this.getDungeons = function() {return this.dungeons;};
     this.getMountains = function() {return this.mountains;};
     this.getCities = function() {return this.cities;};
@@ -480,7 +503,9 @@ RG.World.Area = function(name, maxX, maxY, cols, rows, levels) {
             hierName: this.getHierName(),
             maxX: _maxX, maxY: _maxY,
             cols: _cols, rows: _rows,
-            tiles: tilesJSON
+            tiles: tilesJSON,
+            nDungeons: this.dungeons.length,
+            dungeon: this.dungeons.map(dg => dg.toJSON())
         };
     };
 
