@@ -164,6 +164,15 @@ RG.Actor.Rogue.prototype.toJSON = function() {
         equipment: this.getInvEq().getEquipment().toJSON()
     };
 
+    /* TODO: Using this crashes the game unfortunately
+    const components = {};
+    const thisComps = this.getComponents();
+    Object.keys(thisComps).forEach(name => {
+        components[thisComps[name].getType()] = thisComps[name].toJSON();
+    });
+    obj.components = components;
+    */
+
     if (this.has('Hunger')) {
         obj.components.Hunger = this.get('Hunger').toJSON();
     }
