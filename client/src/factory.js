@@ -248,7 +248,9 @@ RG.Factory.Base = function() { // {{{2
         }
     };
 
-    /* Creates a shop and a shopkeeper into a random house in the given level.*/
+    /* Creates a shop and a shopkeeper into a random house in the given level.
+     * Level should already contain empty houses where the shop is created at
+     * random. */
     this.createShop = function(level, mapObj, conf) {
         const map = mapObj.map;
         if (mapObj.hasOwnProperty('houses')) {
@@ -433,8 +435,8 @@ RG.Factory.Feature = function() {
 
     this.createCityLevel = function(conf) {
         const levelConf = cityConfBase(_parser);
-        const city = this.createLevel('town', conf.x, conf.y, levelConf);
-        return city;
+        const cityLevel = this.createLevel('town', conf.x, conf.y, levelConf);
+        return cityLevel;
     };
 
     this.createMountainLevel = function(conf) {
@@ -541,7 +543,6 @@ RG.Factory.World = function() {
 
         for (let i = 0; i < nDungeons; i++) {
             const dungeonConf = conf.dungeon[i];
-            console.log('dconf: ' + JSON.stringify(dungeonConf));
             const dungeon = this.createDungeon(dungeonConf);
             area.addDungeon(dungeon);
             if (!this.id2levelSet) {
@@ -562,7 +563,9 @@ RG.Factory.World = function() {
             const cityConf = conf.city[i];
             const city = this.createCity(cityConf);
             area.addCity(city);
-            this.createConnection(area, city, cityConf);
+            if (!this.id2levelSet) {
+                this.createConnection(area, city, cityConf);
+            }
         }
         this.popScope(conf.name);
         return area;
@@ -572,7 +575,6 @@ RG.Factory.World = function() {
      * to construct 2-d array of levels.*/
     this.getAreaLevels = function(conf) {
         const levels = [];
-        console.log('Constructing area levels now');
         if (conf.tiles) {
             conf.tiles.forEach(tileCol => {
                 const levelCol = [];
@@ -668,7 +670,6 @@ RG.Factory.World = function() {
             };
             let level = null;
             if (conf.levels) {
-                console.log(`Restoring level ${conf.levels[i]} for branch`);
                 level = this.id2level[conf.levels[i]];
             }
             else {
@@ -746,16 +747,39 @@ RG.Factory.World = function() {
     };
 
     this.createCity = function(conf) {
-        this.verifyConf('createCity', conf, ['name']);
+        if (this.id2levelSet) {
+            this.verifyConf('createCity',
+                conf, ['name', 'nLevels', 'entrances']);
+        }
+        else {
+            this.verifyConf('createCity',
+                conf, ['name', 'nLevels', 'entranceLevel']);
+        }
         this.pushScope(conf.name);
         const cityConf = {
-            x: 100,
-            y: 100
+            x: 100, y: 50
         };
         const city = new RG.World.City(conf.name);
         city.setHierName(this.getHierName());
-        const level = this.featureFactory.createCityLevel(cityConf);
-        city.addLevel(level);
+        for (let i = 0; i < conf.nLevels; i++) {
+            let level = null;
+            if (!this.id2levelSet) {
+                level = this.featureFactory.createCityLevel(cityConf);
+            }
+            else {
+                const id = conf.levels[i];
+                level = this.id2level[id];
+            }
+            city.addLevel(level);
+        }
+
+        if (conf.hasOwnProperty('entranceLevel')) {
+            city.addEntrance(conf.entranceLevel);
+        }
+        else if (conf.hasOwnProperty('entrances')) {
+            city.setEntranceLocations(conf.entrances);
+        }
+
         this.popScope(conf.name);
         return city;
     };
