@@ -83,6 +83,7 @@ RG.Item.Base.prototype.clone = function() {
 
 RG.Item.Base.prototype.toJSON = function() {
     const json = {
+        setID: this.getID(),
         setName: this.getName(),
         setValue: this.getValue(),
         setWeight: this.getWeight(),
@@ -90,6 +91,12 @@ RG.Item.Base.prototype.toJSON = function() {
         setType: this.getType(),
         setCount: this.count
     };
+    const components = {};
+    const thisComps = this.getComponents();
+    Object.keys(thisComps).forEach(name => {
+        components[thisComps[name].getType()] = thisComps[name].toJSON();
+    });
+    json.components = components;
     return json;
 };
 
