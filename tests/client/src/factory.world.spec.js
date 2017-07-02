@@ -19,7 +19,7 @@ describe('Factory.World', function() {
 
     it('can create cities', () => {
         const cityConf = {
-            name: 'Arkham'
+            name: 'Arkham', nLevels: 1, entranceLevel: 0
         };
         const city = fact.createCity(cityConf);
         expect(city.getName()).to.equal(cityConf.name);
@@ -132,8 +132,9 @@ describe('Factory.World', function() {
             name: 'ww',
             nAreas: 1,
             area: [
-                { name: 'a1', maxX: 4, maxY: 5, nCities: 1,
-                    city: [{ x: 2, y: 2, name: 'Ravendark' }]
+                { name: 'a1', maxX: 3, maxY: 3, nCities: 1,
+                    city: [{ x: 2, y: 2, name: 'Ravendark', nLevels: 1,
+                    entranceLevel: 0}]
                 }
             ]
         };
