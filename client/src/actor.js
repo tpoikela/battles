@@ -148,6 +148,7 @@ RG.Actor.Rogue.prototype.toJSON = function() {
         levelID = this.getLevel().getID();
     }
     const obj = {
+        id: this.getID(),
         name: this.getName(),
         type: this.getType(),
         x: this.getX(),
