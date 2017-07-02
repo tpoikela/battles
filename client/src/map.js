@@ -665,6 +665,7 @@ RG.Map.Generator.prototype.addRandomSnow = function(map, ratio) {
 RG.Map.Level = function() { // {{{2
     let _map = null;
     let _id = RG.Map.Level.prototype.idCount++;
+    let _parent = null; // Reference to dungeon,city,mountain...
 
     // Level properties
     const _p = {
@@ -679,6 +680,9 @@ RG.Map.Level = function() { // {{{2
 
     this.getID = function() {return _id;};
     this.setID = function(id) {_id = id;};
+
+    this.getParent = function() {return _parent;};
+    this.setParent = function(parent) {_parent = parent;};
 
     this.getActors = function() {return _p.actors;};
     this.getItems = function() {return _p.items;};
@@ -1015,6 +1019,11 @@ RG.Map.Level = function() { // {{{2
             map: this.getMap().toJSON(),
             cbState: JSON.stringify(_cbState)
         };
+
+        const parent = this.getParent();
+        if (parent) {
+            obj.parent = parent;
+        }
 
         // Must store x, y for each prop as well
         const props = ['actors', 'items', 'elements'];
