@@ -7,7 +7,8 @@ const RGTest = require('../../roguetest');
 
 const FromJSON = Game.FromJSON;
 
-describe('RG.Game.FromJSON', () => {
+describe('RG.Game.FromJSON', function() {
+    this.timeout(4000);
     let fromJSON = null;
 
     beforeEach(() => {
@@ -120,10 +121,16 @@ describe('RG.Game.FromJSON', () => {
                             {name: 'Branch1', nLevels: 2, entranceLevel: 0}
                         ]
                     }
+                ],
+                nMountains: 1,
+                mountain: [
+                    {x: 0, y: 0, name: 'Cliff', nFaces: 1,
+                        face: [{name: 'north', nLevels: 1, x: 20, y: 20}]
+                    }
                 ]
             }]
         };
-        const numLevels = 3;
+        const numLevels = 4;
 
         // Create game, world and player first
         const game = new RG.Game.Main();
@@ -168,5 +175,13 @@ describe('RG.Game.FromJSON', () => {
         expect(b1.getName()).to.equal('Branch1');
         expect(b1.getEntrance()).not.to.be.empty;
         expect(b1.getDungeon()).not.to.be.empty;
+
+        const mountains = newWorld.getMountains();
+        expect(mountains).to.have.length(1);
+        const m1 = mountains[0];
+        expect(m1.getName()).to.equal('Cliff');
+
+        const f1 = m1.getFaces()[0];
+        expect(f1.getEntrance()).not.to.be.empty;
     });
 });
