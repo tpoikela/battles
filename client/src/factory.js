@@ -553,7 +553,9 @@ RG.Factory.World = function() {
             const mountainConf = conf.mountain[i];
             const mountain = this.createMountain(mountainConf);
             area.addMountain(mountain);
-            this.createConnection(area, mountain, mountainConf);
+            if (!this.id2levelSet) {
+                this.createConnection(area, mountain, mountainConf);
+            }
         }
 
         for (let i = 0; i < nCities; i++) {
@@ -692,21 +694,55 @@ RG.Factory.World = function() {
     };
 
     this.createMountain = function(conf) {
-        this.verifyConf('createMountain', conf, ['name']);
+        this.verifyConf('createMountain', conf, ['name', 'nFaces']);
         this.pushScope(conf.name);
         const mountain = new RG.World.Mountain(conf.name);
         mountain.setHierName(this.getHierName());
 
-        this.pushScope('face1');
-        const northFace = new RG.World.MountainFace();
-        const mConf = { x: 50, y: 200 };
-        const level = this.featureFactory.createMountainLevel(mConf);
-        northFace.addLevel(level);
-        mountain.addFace(northFace);
-        this.popScope('face1');
+        for (let i = 0; i < conf.nFaces; i++) {
+            const faceConf = conf.face[i];
+            const mountainFace = this.createMountainFace(faceConf);
+            mountain.addFace(mountainFace);
+        }
 
         this.popScope(conf.name);
         return mountain;
+    };
+
+    this.createMountainFace = function(conf) {
+        if (this.id2levelSet) {
+            this.verifyConf('createMountainFace', conf, ['name', 'nLevels']);
+        }
+        else {
+            this.verifyConf('createMountainFace',
+                conf, ['name', 'nLevels', 'x', 'y']);
+        }
+
+        const faceName = conf.name;
+        this.pushScope(faceName);
+        const face = new RG.World.MountainFace(faceName);
+        const mLevelConf = { x: conf.x, y: conf.y};
+
+        for (let i = 0; i < conf.nLevels; i++) {
+            let level = null;
+            if (!this.id2levelSet) {
+                level = this.featureFactory.createMountainLevel(mLevelConf);
+            }
+            else {
+                const id = conf.levels[i];
+                level = this.id2level[id];
+            }
+            face.addLevel(level);
+            if (!this.id2levelSet) {
+                face.addEntrance(i);
+            }
+            else {
+                face.setEntranceLocation(conf.entrance);
+            }
+        }
+
+        this.popScope(faceName);
+        return face;
     };
 
     this.createCity = function(conf) {
