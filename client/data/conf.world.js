@@ -46,7 +46,7 @@ RG.WorldConf = {
             // CITIES
             nCities: 1,
             city: [
-                { x: 2, y: 2, name: 'Blashyrkh',
+                { x: 2, y: 2, name: 'Blashyrkh', nLevels: 1, entranceLevel: 0
                 }
             ],
             // MOUNTAINS
