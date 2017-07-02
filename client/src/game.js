@@ -936,6 +936,9 @@ RG.Game.FromJSON = function() {
             if (func === 'setSpirit') {
                 newObj[func](this.createSpirit(item[func]));
             }
+            else if (func === 'components') {
+                this.addCompsToEntity(newObj, obj.components);
+            }
             else {
                 newObj[func](item[func]); // Use setter
             }
