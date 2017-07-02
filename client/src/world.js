@@ -263,7 +263,6 @@ RG.extend2(RG.World.Dungeon, RG.World.Base);
 
 /* Area-tile is a level which has entry/exit points on a number of edges.*/
 RG.World.AreaTile = function(x, y, area) {
-
     const _tileX = x;
     const _tileY = y;
     const _area = area;
@@ -279,8 +278,6 @@ RG.World.AreaTile = function(x, y, area) {
         this.cols = _level.getMap().cols;
         this.rows = _level.getMap().rows;
     };
-
-    this.getLevel = function() {return _level;};
 
     this.getLevel = function() {return _level;};
     this.getTileX = function() {return _tileX;};
@@ -349,13 +346,19 @@ RG.World.AreaTile = function(x, y, area) {
             }
         }
     };
+
+    this.toJSON = function() {
+        return {
+            x: _tileX, y: _tileY, level: _level.getID()
+        };
+    };
 };
 
 /* Area is N x M area of tiles, with no linear progression like in dungeons.
  * Moving between tiles of areas happens by travelling to the edges of a tile.
  * Each tile is a level with special edge tiles.
  * */
-RG.World.Area = function(name, maxX, maxY, cols, rows) {
+RG.World.Area = function(name, maxX, maxY, cols, rows, levels) {
     RG.World.Base.call(this, name);
     const _maxX = maxX;
     const _maxY = maxY;
@@ -380,25 +383,36 @@ RG.World.Area = function(name, maxX, maxY, cols, rows) {
                         shape: 'cellular'
                     }
                 };
-                const level = RG.FACT.createLevel('forest',
-                    _cols, _rows, levelConf);
+                let level = null;
+                if (levels) {
+                    level = levels[x][y];
+                    console.log(`Setting Area level with ID ${level.getID()}`);
+                }
+                else {
+                    level = RG.FACT.createLevel('forest',
+                        _cols, _rows, levelConf);
+                    level.setParent(this.getName());
+                }
                 newTile.setLevel(level);
                 tileColumn.push(newTile);
             }
             _tiles.push(tileColumn);
         }
 
-        // Connect the tiles
-        for (let x = 0; x < _maxX; x++) {
-            for (let y = 0; y < _maxY; y++) {
-                if (x < _maxX - 1 && y < _maxY - 1) {
-                    _tiles[x][y].connect(_tiles[x + 1][y], _tiles[x][y + 1]);
-                }
-                else if (x < _maxX - 1) {
-                    _tiles[x][y].connect(_tiles[x + 1][y], null);
-                }
-                else if (y < _maxY - 1) {
-                    _tiles[x][y].connect(null, _tiles[x][y + 1]);
+        // Connect the tiles, unless levels already given (and connected)
+        if (!levels) {
+            for (let x = 0; x < _maxX; x++) {
+                for (let y = 0; y < _maxY; y++) {
+                    if (x < _maxX - 1 && y < _maxY - 1) {
+                        _tiles[x][y].connect(
+                            _tiles[x + 1][y], _tiles[x][y + 1]);
+                    }
+                    else if (x < _maxX - 1) {
+                        _tiles[x][y].connect(_tiles[x + 1][y], null);
+                    }
+                    else if (y < _maxY - 1) {
+                        _tiles[x][y].connect(null, _tiles[x][y + 1]);
+                    }
                 }
             }
         }
@@ -452,6 +466,22 @@ RG.World.Area = function(name, maxX, maxY, cols, rows) {
 
     this.addCity = function(city) {
         this.cities.push(city);
+    };
+
+    this.toJSON = function() {
+        const tilesJSON = [];
+        _tiles.forEach(tileCol => {
+            const tileColJSON = tileCol.map(tile => tile.toJSON());
+            tilesJSON.push(tileColJSON);
+        });
+
+        return {
+            name: this.getName(),
+            hierName: this.getHierName(),
+            maxX: _maxX, maxY: _maxY,
+            cols: _cols, rows: _rows,
+            tiles: tilesJSON
+        };
     };
 
 };
@@ -631,7 +661,7 @@ RG.World.World = function(name) {
     this.getCities = () => (_cities);
 
     this.toJSON = function() {
-        const areas = _areas.map(area => area.toJSON());
+        const area = _areas.map(area => area.toJSON());
         // const dungeons = _dungeons.map(dung => dung.toJSON());
         // const mountains = _mountains.map(mount => mount.toJSON());
         // const cities = _cities.map(city => city.toJSON());
@@ -639,7 +669,7 @@ RG.World.World = function(name) {
             name: this.getName(),
             hierName: this.getHierName(),
             nAreas: _areas.length,
-            areas
+            area
             // dungeons,
             // mountains,
             // cities
