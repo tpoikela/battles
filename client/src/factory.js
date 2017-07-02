@@ -1093,9 +1093,7 @@ RG.Factory.Game = function() {
         const levels = world.getLevels();
 
         if (levels.length > 0) {
-            levels.forEach(level => {
-                game.addLevel(level);
-            });
+            game.addPlace(world);
             game.addPlayer(player);
             return game;
         }
