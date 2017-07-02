@@ -620,22 +620,24 @@ RG.Factory.World = function() {
         }
 
         // Connect branches according to configuration
-        if (conf.nBranches > 1) {
-            if (conf.connect) {
-                conf.connect.forEach( conn => {
-                    if (conn.length === 4) {
-                        // conn has len 4, spread it out
-                        dungeon.connectBranches(...conn);
-                    }
-                    else {
-                        RG.err('Factory.World', 'createDungeon',
-                            'Each connection.length must be 4.');
-                    }
-                });
-            }
-            else {
-                RG.err('Factory.World', 'createDungeon',
-                    'nBranches > 1, but no conf.connect.');
+        if (!this.id2levelSet) {
+            if (conf.nBranches > 1) {
+                if (conf.connect) {
+                    conf.connect.forEach( conn => {
+                        if (conn.length === 4) {
+                            // conn has len 4, spread it out
+                            dungeon.connectBranches(...conn);
+                        }
+                        else {
+                            RG.err('Factory.World', 'createDungeon',
+                                'Each connection.length must be 4.');
+                        }
+                    });
+                }
+                else {
+                    RG.err('Factory.World', 'createDungeon',
+                        'nBranches > 1, but no conf.connect.');
+                }
             }
         }
 
@@ -676,12 +678,13 @@ RG.Factory.World = function() {
         // Do only if not restoring the branch
         if (!this.id2levelSet) {
             branch.connectLevels();
-
-            // Create entrance after levels have been created
             if (conf.hasOwnProperty('entranceLevel')) {
                 const entrStairs = new Stairs(false);
                 branch.setEntrance(entrStairs, conf.entranceLevel);
             }
+        }
+        else if (conf.hasOwnProperty('entrance')) {
+            branch.setEntranceLocation(conf.entrance);
         }
 
         this.popScope(conf.name);
