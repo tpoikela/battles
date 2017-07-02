@@ -5,6 +5,13 @@ const RG = require('./rg.js');
 // ECS COMPONENTS
 //---------------------------------------------------------------------------
 
+/* Important Guidelines: Each component constructor must NOT take any
+ * parameters. Call Base constructor with the type. (which must be identical
+ * to the Object type).
+ * To benefit from serialisation, all methods should be named:
+ * setXXX - getXXX
+ */
+
 RG.Component = {};
 
 RG.Component.Base = function(type) {
@@ -30,8 +37,6 @@ RG.Component.Base = function(type) {
             RG.err('Component', 'setEntity', 'Entity already set.');
         }
     };
-
-
 };
 // Called when a component is added to the entity
 RG.Component.Base.prototype.entityAddCallback = function(entity) {
@@ -239,16 +244,6 @@ RG.Component.Experience = function() {
 
     this.setDanger = function(danger) {_danger = danger;};
     this.getDanger = function() {return _danger;};
-
-    /*
-    this.toJSON = function() {
-        return {
-            setExp: _exp,
-            setExpLevel: _expLevel,
-            setDanger: _danger,
-        };
-    };
-   */
 
 };
 RG.extend2(RG.Component.Experience, RG.Component.Base);
