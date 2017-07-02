@@ -1048,10 +1048,25 @@ RG.Game.FromJSON = function() {
         return level;
     };
 
+    /* Creates elements such as stairs, doors and shop. */
     this.createElement = function(elem) {
         const elemObj = elem.obj;
-        if (/stairs/.test(elemObj.type)) {
+        const type = elemObj.type;
+        if (/stairs/.test(type)) {
             return this.createUnconnectedStairs(elem);
+        }
+        else if (type === 'shop') {
+            const shopElem = new RG.Element.Shop();
+            let shopkeeper = null;
+            if (!RG.isNullOrUndef([elem.shopkeeper])) {
+                shopkeeper = id2entity[elem.shopkeeper];
+            }
+            shopElem.setShopkeeper(shopkeeper);
+            shopElem.setCostFactor(elem.costFactorBuy, elem.costFactorSell);
+            return shopElem;
+        }
+        else if (type === 'door') {
+            return new RG.Element.Door(elemObj.closed);
         }
         return null;
     };
