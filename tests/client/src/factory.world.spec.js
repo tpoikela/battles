@@ -110,7 +110,9 @@ describe('Factory.World', function() {
                     ]
                 },
                 { name: 'a2', maxX: 1, maxY: 4, nMountains: 1,
-                    mountain: [{x: 0, y: 1, name: 'm2.1'}]
+                    mountain: [{x: 0, y: 1, name: 'm2.1', nFaces: 1,
+                        face: [{name: 'Steep', nLevels: 1, x: 10, y: 10}]
+                    }]
                 }
             ]
         };
