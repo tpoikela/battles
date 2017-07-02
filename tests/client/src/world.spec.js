@@ -157,3 +157,15 @@ describe('World.Mountain', function() {
 
 });
 
+describe('World.City', () => {
+    it('contains levels and entrances', () => {
+        const city = new RG.World.City('City1');
+        expect(city.getName()).to.equal('City1');
+
+        const level = RG.FACT.createLevel('arena', 20, 20);
+        city.addLevel(level);
+        city.addEntrance(0);
+        expect(city.getEntrances()).to.have.length(1);
+    });
+});
+
