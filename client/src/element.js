@@ -3,8 +3,7 @@
  * elements like stairs.
  */
 
-var RG = require('./rg.js');
-
+const RG = require('./rg.js');
 RG.Object = require('./object.js');
 
 RG.Element = {};
