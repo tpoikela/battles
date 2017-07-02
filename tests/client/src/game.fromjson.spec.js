@@ -61,6 +61,7 @@ describe('RG.Game.FromJSON', function() {
 
         const shopElem = new RG.Element.Shop();
         const shopItem = new RG.Item.Weapon('Sword for sale');
+        shopItem.add('Unpaid', new RG.Component.Unpaid());
         level.addElement(shopElem, 4, 4);
         level.addItem(shopItem, 4, 4);
 
@@ -82,7 +83,7 @@ describe('RG.Game.FromJSON', function() {
         expect(elements).to.have.length(1);
         expect(elements[0].getType()).to.equal('shop');
 
-        expect(items[1].has('Unpaid')).to.be.true;
+        expect(items[1].has('Unpaid'), 'Item is unpaid').to.be.true;
     });
 
     it('connects levels after restoring game from JSON', () => {
