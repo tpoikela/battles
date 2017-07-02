@@ -902,11 +902,12 @@ RG.MessageHandler = function() { // {{{2
 
 RG.Entity = function() {
 
-    const _id = RG.Entity.prototype.idCount++;
+    let _id = RG.Entity.prototype.idCount++;
 
     const _comps = {};
 
     this.getID = function() {return _id;};
+    this.setID = function(id) {_id = id;};
 
     this.get = function(name) {
         if (_comps.hasOwnProperty(name)) {return _comps[name];}
