@@ -10,12 +10,7 @@ const fromJSON = new FromJSON();
 
 const Actor = RG.Actor.Rogue;
 const Level = RG.Map.Level;
-// const Element = RG.Element.Base;
-// const Cell = RG.Map.Cell;
 const Item = RG.Item.Base;
-// const Container = RG.Item.Container;
-// const InvAndEquip = RG.Inv.Inventory;
-// const Factory = RG.FACT;
 
 const Stairs = RG.Element.Stairs;
 const Door = RG.Element.Door;
