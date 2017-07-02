@@ -96,6 +96,7 @@ class BattlesTop extends React.Component {
 
         // Holds game-state specific info for GUI (see resetGameState)
         this.gameState = {};
+        this.resetGameState();
 
         this.viewportPlayerX = 35; // * 2
         this.viewportPlayerY = 12; // * 2
