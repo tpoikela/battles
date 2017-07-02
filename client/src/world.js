@@ -56,13 +56,15 @@ RG.World.Branch = function(name) {
         _stairsOther.push(stairs);
     };
 
-    /* Sets the entrance for this branch. */
+    /* Adds entrance stairs for this branch. */
     this.setEntrance = function(stairs, levelNumber) {
         if (levelNumber < _levels.length) {
             const level = _levels[levelNumber];
-            _entrance = stairs;
             const cell = level.getFreeRandCell();
-            level.addStairs(stairs, cell.getX(), cell.getY());
+            const x = cell.getX();
+            const y = cell.getY();
+            level.addStairs(stairs, x, y);
+            _entrance = {levelNumber, x, y};
         }
         else {
             RG.err('World.Branch', 'setEntrance',
@@ -70,9 +72,15 @@ RG.World.Branch = function(name) {
         }
     };
 
+    this.setEntranceLocation = function(entrance) {
+        _entrance = entrance;
+    };
+
     /* Returns entrance/exit for the branch.*/
     this.getEntrance = function() {
-        return _entrance;
+        const entrLevel = _levels[_entrance.levelNumber];
+        const entrCell = entrLevel.getMap().getCell(_entrance.x, _entrance.y);
+        return entrCell.getStairs();
     };
 
     /* Connects specified level to the given stairs (Usually external to this
@@ -158,7 +166,8 @@ RG.World.Branch = function(name) {
             name: this.getName(),
             hierName: this.getHierName(),
             nLevels: _levels.length,
-            levels: _levels.map(level => level.getID())
+            levels: _levels.map(level => level.getID()),
+            entrance: _entrance
         };
         return obj;
     };
