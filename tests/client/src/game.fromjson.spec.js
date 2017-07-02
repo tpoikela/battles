@@ -111,29 +111,61 @@ describe('RG.Game.FromJSON', () => {
 
     it('converts a game containing world into JSON and back', () => {
         const fact = new RG.Factory.World();
-        const game = new RG.Game.Main();
         const conf = {name: 'Ice Kingdom', nAreas: 1,
-            area: [{ name: 'Area51', maxX: 1, maxY: 1}]
+            area: [{ name: 'Area51', maxX: 1, maxY: 1,
+                nDungeons: 1,
+                dungeon: [
+                    { x: 0, y: 0, name: 'Dungeon1', nBranches: 1,
+                        branch: [
+                            {name: 'Branch1', nLevels: 2, entranceLevel: 0}
+                        ]
+                    }
+                ]
+            }]
         };
-        console.log('Started Factory.World');
+        const numLevels = 3;
+
+        // Create game, world and player first
+        const game = new RG.Game.Main();
         const world = fact.createWorld(conf);
         const player = new RG.Actor.Rogue('MyPlayer');
         player.setType('player');
         player.setIsPlayer(true);
         game.addPlace(world);
         game.addPlayer(player, {place: 'Ice Kingdom'});
-        let numLevels = game.getLevels();
-        expect(numLevels).to.have.length(1);
+        let gameLevels = game.getLevels();
+
+        // Verify correct number of levels before serialisation
+        expect(gameLevels).to.have.length(numLevels);
+
+        // Serialise and check ID counters
         const json = game.toJSON();
         expect(json.lastLevelID).to.equal(RG.Map.Level.prototype.idCount);
         expect(json.lastEntityID).to.equal(RG.Entity.prototype.idCount);
 
         console.log('Creating new game now');
-        // Create new game from JSON
+
+        // Create new game from JSON, verify place + levels have been restored
         const newGame = fromJSON.createGame(json);
         expect(Object.keys(newGame.getPlaces())).to.have.length(1);
-        numLevels = newGame.getLevels();
-        console.log(JSON.stringify(numLevels.map(l => l.getID())));
-        expect(numLevels).to.have.length(1);
+        gameLevels = newGame.getLevels();
+        expect(gameLevels).to.have.length(numLevels);
+
+        console.log('Level IDs: ' +
+            JSON.stringify(gameLevels.map(l => l.getID())));
+
+        // Verify that world features have been restored
+        const newWorld = newGame.getPlaces()['Ice Kingdom'];
+        const dungeons = newWorld.getDungeons();
+        expect(dungeons, 'World has 1 dungeon').to.have.length(1);
+
+        // Detailed checks that dungeon and branches restored OK
+        const d1 = dungeons[0];
+        expect(d1.getName(), 'Dungeon name OK').to.equal('Dungeon1');
+        expect(d1.getEntrances()).to.have.length(1);
+
+        const b1 = d1.getBranches()[0];
+        expect(b1.getName()).to.equal('Branch1');
+        expect(b1.getEntrance()).not.to.be.empty;
     });
 });
