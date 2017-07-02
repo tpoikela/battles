@@ -1112,7 +1112,6 @@ RG.Game.FromJSON = function() {
     this.createGame = function(json) {
         const game = new RG.Game.Main();
 
-        console.log('game keys: ' + Object.keys(json));
         // Levels must be created before the actual world, because the World
         // object contains only level IDs
         json.levels.forEach(levelJson => {
@@ -1124,7 +1123,6 @@ RG.Game.FromJSON = function() {
 
         Object.keys(json.places).forEach(name => {
             const place = json.places[name];
-            console.log('\tPlace is ' + name);
             const placeObj = this.createPlace(place);
             game.addPlace(placeObj);
         });
