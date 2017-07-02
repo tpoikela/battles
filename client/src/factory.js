@@ -465,9 +465,13 @@ RG.Factory.World = function() {
     // Can be used to pass already created levels to different features. For
     // example, after restore game, no new levels should be created
     this.id2level = {};
+    this.id2levelSet = false;
 
+    /* If id2level is set, factory does not construct any levels. It uses
+     * id2level as a lookup table instead. */
     this.setId2Level = function(id2level) {
         this.id2level = id2level;
+        this.id2levelSet = true;
     };
 
     this.scope = []; // Keeps track of hierarchical names of places
@@ -524,8 +528,12 @@ RG.Factory.World = function() {
         this.pushScope(conf.name);
 
         // TODO deal with levels when restoring
+        let areaLevels = null;
+        if (this.id2levelSet) {
+            areaLevels = this.getAreaLevels(conf);
+        }
         const area = new RG.World.Area(conf.name, conf.maxX, conf.maxY,
-            conf.cols, conf.rows);
+            conf.cols, conf.rows, areaLevels);
         area.setHierName(this.getHierName());
         const nDungeons = conf.nDungeons || 0;
         const nMountains = conf.nMountains || 0;
@@ -555,6 +563,34 @@ RG.Factory.World = function() {
         return area;
     };
 
+    /* Used when creating area from existing levels. Uses id2level lookup table
+     * to construct 2-d array of levels.*/
+    this.getAreaLevels = function(conf) {
+        const levels = [];
+        console.log('Constructing area levels now');
+        if (conf.tiles) {
+            conf.tiles.forEach(tileCol => {
+                const levelCol = [];
+                tileCol.forEach(tile => {
+                    const level = this.id2level[tile.level];
+                    if (level) {
+                        levelCol.push(level);
+                    }
+                    else {
+                        RG.err('Factory.World', 'getAreaLevels',
+                            `No level ID ${tile.level} in id2level`);
+                    }
+                });
+                levels.push(levelCol);
+            });
+        }
+        else {
+            RG.err('Factory.World', 'getAreaLevels',
+                'conf.tiles null/undefined, but id2levelSet true');
+
+        }
+        return levels;
+    };
 
     this.createDungeon = function(conf) {
         this.verifyConf('createDungeon', conf,
