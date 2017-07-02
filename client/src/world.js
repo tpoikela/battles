@@ -423,7 +423,6 @@ RG.World.Area = function(name, maxX, maxY, cols, rows, levels) {
                 let level = null;
                 if (levels) {
                     level = levels[x][y];
-                    console.log(`Setting Area level with ID ${level.getID()}`);
                 }
                 else {
                     level = RG.FACT.createLevel('forest',
