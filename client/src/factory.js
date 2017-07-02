@@ -541,9 +541,12 @@ RG.Factory.World = function() {
 
         for (let i = 0; i < nDungeons; i++) {
             const dungeonConf = conf.dungeon[i];
+            console.log('dconf: ' + JSON.stringify(dungeonConf));
             const dungeon = this.createDungeon(dungeonConf);
             area.addDungeon(dungeon);
-            this.createConnection(area, dungeon, dungeonConf);
+            if (!this.id2levelSet) {
+                this.createConnection(area, dungeon, dungeonConf);
+            }
         }
 
         for (let i = 0; i < nMountains; i++) {
@@ -659,15 +662,26 @@ RG.Factory.World = function() {
                 nLevel: i,
                 special: [] // TODO for special levels
             };
-            const level = this.featureFactory.createDungeonLevel(levelConf);
+            let level = null;
+            if (conf.levels) {
+                console.log(`Restoring level ${conf.levels[i]} for branch`);
+                level = this.id2level[conf.levels[i]];
+            }
+            else {
+                level = this.featureFactory.createDungeonLevel(levelConf);
+            }
             branch.addLevel(level);
         }
-        branch.connectLevels();
 
-        // Create entrance after levels have been created
-        if (conf.hasOwnProperty('entranceLevel')) {
-            const entrStairs = new Stairs(false);
-            branch.setEntrance(entrStairs, conf.entranceLevel);
+        // Do only if not restoring the branch
+        if (!this.id2levelSet) {
+            branch.connectLevels();
+
+            // Create entrance after levels have been created
+            if (conf.hasOwnProperty('entranceLevel')) {
+                const entrStairs = new Stairs(false);
+                branch.setEntrance(entrStairs, conf.entranceLevel);
+            }
         }
 
         this.popScope(conf.name);
