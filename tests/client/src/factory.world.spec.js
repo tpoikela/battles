@@ -52,8 +52,8 @@ describe('Factory.World', function() {
                 ['br3', 'br2', 2, 0]
             ],
             branch: [
-                { name: 'br1', nLevels: 1 },
-                { name: 'br2', nLevels: 2 },
+                { name: 'br1', nLevels: 1},
+                { name: 'br2', nLevels: 2, entranceLevel: 0},
                 { name: 'br3', nLevels: 3 }
             ]
         };
@@ -62,6 +62,7 @@ describe('Factory.World', function() {
         expect(dungeon.getName()).to.equal('Cave');
         expect(dungeon.getLevels()).to.have.length(6);
         expect(dungeon.getEntrances()).to.have.length(1);
+        expect(dungeon.getEntrances()[0]).not.to.be.empty;
         expectConnected(branches[0], branches[1], 1);
         expectConnected(branches[1], branches[2], 1);
     });
