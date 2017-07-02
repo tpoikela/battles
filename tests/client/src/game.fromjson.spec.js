@@ -167,5 +167,6 @@ describe('RG.Game.FromJSON', () => {
         const b1 = d1.getBranches()[0];
         expect(b1.getName()).to.equal('Branch1');
         expect(b1.getEntrance()).not.to.be.empty;
+        expect(b1.getDungeon()).not.to.be.empty;
     });
 });
