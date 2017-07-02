@@ -106,6 +106,10 @@ RG.Component.Action = function() {
     let _energy = 0;
     let _active = false;
     this.getEnergy = function() {return _energy;};
+    this.setEnergy = function(energy) {_energy = energy;};
+
+    this.getActive = function() {return _active;};
+    this.setActive = function(active) {_active = active;};
 
     this.addEnergy = function(energy) {
         _energy += energy;
