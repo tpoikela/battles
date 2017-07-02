@@ -32,11 +32,8 @@ RG.World.Base.prototype.setHierName = function(hierName) {
  * entry points to other branches (or out of the dungeon). */
 RG.World.Branch = function(name) {
     RG.World.Base.call(this, name);
-
     const _levels = [];
-    const _stairsOther = [];
     let _entrance = null;
-
     let _numCount = 1;
     let _dungeon = null;
 
@@ -46,10 +43,22 @@ RG.World.Branch = function(name) {
 
     this.getLevels = function() {return _levels;};
 
-    /* Stairs leading to other branches.*/
-    this.getStairsOther = function() {return _stairsOther;};
-    this.addStairsOther = function(stairs) {
-        _stairsOther.push(stairs);
+    /* Returns stairs leading to other branches/features. Used only for testing
+    * purposes. */
+    this.getStairsOther = function() {
+        const stairs = [];
+        _levels.forEach(level => {
+            const sList = level.getStairs();
+            sList.forEach(s => {
+                const levelS = s.getTargetLevel();
+                if (levelS) {
+                    if (levelS.getParent() !== this.getName()) {
+                        stairs.push(s);
+                    }
+                }
+            });
+        });
+        return stairs;
     };
 
     /* Adds entrance stairs for this branch. */
@@ -93,7 +102,6 @@ RG.World.Branch = function(name) {
             const cell = level.getFreeRandCell();
             level.addStairs(newStairs, cell.getX(), cell.getY());
             newStairs.connect(stairs);
-            this.addStairsOther(newStairs);
         }
         else {
             RG.err('World.Branch', 'connectLevelToStairs',
@@ -258,7 +266,6 @@ RG.World.Dungeon = function(name) {
                 const cell = b2Levels[l2].getFreeRandCell();
                 b2Levels[l2].addStairs(b2Stairs, cell.getX(), cell.getY());
                 b2Stairs.setSrcLevel(b2Levels[l2]);
-                b2.addStairsOther(b2Stairs);
                 b1.connectLevelToStairs(l1, b2Stairs);
             }
             else {
