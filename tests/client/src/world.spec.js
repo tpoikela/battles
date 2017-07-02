@@ -145,6 +145,8 @@ describe('World.Mountain', function() {
         const face = new RG.World.MountainFace('northFace');
         const level = RG.FACT.createLevel('arena', 30, 30);
         face.addLevel(level);
+        expect(face.getEntrance()).to.be.null;
+        face.addEntrance(0);
         expect(face.getEntrance().getType()).to.match(/stairs/);
         expect(face.getLevels()).to.have.length(1);
 
