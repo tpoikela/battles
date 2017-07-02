@@ -161,7 +161,8 @@ RG.Actor.Rogue.prototype.toJSON = function() {
             Stats: this.get('Stats').toJSON()
         },
         inventory: this.getInvEq().getInventory().toJSON(),
-        equipment: this.getInvEq().getEquipment().toJSON()
+        equipment: this.getInvEq().getEquipment().toJSON(),
+        brain: this._brain.toJSON()
     };
 
     /* TODO: Using this crashes the game unfortunately
