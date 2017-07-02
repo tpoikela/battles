@@ -517,7 +517,9 @@ RG.World.Area = function(name, maxX, maxY, cols, rows, levels) {
             nDungeons: this.dungeons.length,
             dungeon: this.dungeons.map(dg => dg.toJSON()),
             nMountains: this.mountains.length,
-            mountain: this.mountains.map(mt => mt.toJSON())
+            mountain: this.mountains.map(mt => mt.toJSON()),
+            nCities: this.cities.length,
+            city: this.cities.map(city => city.toJSON())
         };
     };
 
@@ -676,21 +678,45 @@ RG.extend2(RG.World.MountainFace, RG.World.Base);
 RG.World.City = function(name) {
     RG.World.Base.call(this, name);
     const _levels = [];
-    const _entrances = [];
+    let _entrances = [];
 
     this.getLevels = () => (_levels);
 
     this.getEntrances = function() {
-        return _entrances;
+        const entrances = [];
+        _entrances.forEach(entr => {
+            const entrLevel = _levels[entr.levelNumber];
+            const entrCell = entrLevel.getMap().getCell(entr.x, entr.y);
+            entrances.push(entrCell.getStairs());
+        });
+        return entrances;
+    };
+
+    this.setEntranceLocations = function(entrances) {
+        _entrances = entrances;
     };
 
     this.addLevel = function(level) {
         _levels.push(level);
-        if (_levels.length === 1) {
-            const stairs = new Stairs(false, level);
-            level.addStairs(stairs, 0, 0);
-            _entrances.push(stairs);
-        }
+        level.setParent(this.getName());
+    };
+
+    this.addEntrance = function(levelNumber) {
+        const level = _levels[levelNumber];
+        const stairs = new Stairs(true, level);
+        level.addStairs(stairs, 1, 1);
+        _entrances.push({levelNumber, x: 1, y: 1});
+    };
+
+    this.toJSON = function() {
+        const obj = {
+            name: this.getName(),
+            hierName: this.getHierName(),
+            nLevels: _levels.length,
+            levels: _levels.map(level => level.getID()),
+            entrances: _entrances
+        };
+        return obj;
     };
 
 };
