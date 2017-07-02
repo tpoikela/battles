@@ -1151,8 +1151,8 @@ RG.Game.FromJSON = function() {
 
         // Restore the ID counters for levels and entities, otherwise duplicate
         // IDs will appear when new levels/entities are created
-        RG.Map.Level.prototype.idCount = json.lastLevelID;
-        RG.Entity.prototype.idCount = json.lastEntityID;
+        // RG.Map.Level.prototype.idCount = json.lastLevelID;
+        // RG.Entity.prototype.idCount = json.lastEntityID;
 
         return game;
     };
