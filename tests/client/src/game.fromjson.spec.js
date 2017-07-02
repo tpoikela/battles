@@ -55,6 +55,7 @@ describe('RG.Game.FromJSON', function() {
 
         const goblinEntID = actor.getID();
         const item = new RG.Item.Weapon('sword');
+        const swordID = item.getID();
         level.addActor(actor, 2, 2);
         level.addItem(item, 3, 3);
 
@@ -76,9 +77,12 @@ describe('RG.Game.FromJSON', function() {
         expect(newGoblin.getID()).to.equal(goblinEntID);
         expect(items).to.have.length(2);
         expect(items[0].getName()).to.equal('sword');
+        expect(items[0].getID()).to.equal(swordID);
 
         expect(elements).to.have.length(1);
         expect(elements[0].getType()).to.equal('shop');
+
+        expect(items[1].has('Unpaid')).to.be.true;
     });
 
     it('connects levels after restoring game from JSON', () => {
