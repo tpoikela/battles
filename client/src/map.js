@@ -47,7 +47,6 @@ RG.Map.Cell.prototype.hasDoor = function() {
     return this.hasPropType('door');
 };
 
-
 /* Return stairs in this cell, or null if there are none.*/
 RG.Map.Cell.prototype.getStairs = function() {
     if (this.hasPropType('stairsUp')) {
@@ -149,9 +148,11 @@ RG.Map.Cell.prototype.toJSON = function() {
     if (this._p.hasOwnProperty(RG.TYPE_ELEM)) {
         const elements = [];
         this._p[RG.TYPE_ELEM].forEach(elem => {
-            elements.push(elem.toJSON());
+            if (/(tree|grass|stone|water)/.test(elem.getType())) {
+                elements.push(elem.toJSON());
+            }
         });
-        Object.assign(json, {elements});
+        json.elements = elements;
     }
     return json;
 };
