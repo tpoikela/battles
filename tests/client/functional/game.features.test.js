@@ -7,6 +7,7 @@ RG.Effects = require('../../../client/data/effects');
 
 const downKey = {code: RG.K_MOVE_S};
 const pickupKey = {code: RG.K_PICKUP};
+const confirmKey = {code: RG.K_YES};
 
 /* AI for driving the player with commands. */
 RG.PlayerDriver = function(player) {
@@ -30,6 +31,21 @@ function findActor(level, query) {
         actors.forEach(actor => {
             if (actor[fname]() === val) {
                 found = actor;
+            }
+        });
+    });
+    return found;
+}
+
+function findItem(level, query) {
+    const items = level.getItems();
+    let found = null;
+    Object.keys(query).forEach(q => {
+        const val = query[q];
+        const fname = q;
+        items.forEach(item => {
+            if (item[fname]() === val) {
+                found = item;
             }
         });
     });
@@ -60,6 +76,7 @@ describe('Function: All small game features', function() {
     it('Devil is in the details. After a bug appears: Fix -> Verify ', () => {
         let l1 = new RG.FACT.createLevel('arena', 20, 20);
         let p1 = new RG.Actor.Rogue('Player1');
+        const p1Inv = p1.getInvEq().getInventory();
         const shopkeeper = parser.createActualObj(RG.TYPE_ACTOR, 'shopkeeper');
         const humanoid = parser.createActualObj(RG.TYPE_ACTOR, 'humanoid');
         const sword = new RG.Item.Weapon('sword');
@@ -78,12 +95,32 @@ describe('Function: All small game features', function() {
         expect(p1.getCell().getY()).to.equal(1);
         game.update(pickupKey);
         expect(l1.getItems(), 'l1 has no items after pickup').to.have.length(0);
-        expect(p1.getInvEq().getInventory().getItems()).to.have.length(1);
+        expect(p1Inv.getItems()).to.have.length(1);
 
         game.update(downKey);
 
         expect(humanoid.isEnemy(p1), 'Humanoid is enemy').to.equal(true);
         expect(shopkeeper.isEnemy(p1), 'shopkeeper not enemy').to.equal(false);
+
+        // Test selling of items
+        const p1X = p1.getX();
+        const p1Y = p1.getY();
+        const magicSword = parser.createActualObj(RG.TYPE_ITEM, 'Magic sword');
+        p1Inv.addItem(magicSword);
+
+        const dagger = parser.createActualObj(RG.TYPE_ITEM, 'Magic dagger');
+        dagger.add('Unpaid', new RG.Component.Unpaid());
+        l1.addItem(dagger, p1X, p1Y);
+
+        expect(p1Inv.getItems()).to.have.length(2);
+        const shopElem = new RG.Element.Shop();
+        shopElem.setShopkeeper(shopkeeper);
+        l1.addElement(shopElem, p1X, p1Y);
+        const dropCmd = {cmd: 'drop', item: magicSword};
+        game.update(dropCmd);
+        game.update(confirmKey);
+        expect(p1Inv.getItems(), 'Two items after selling').to.have.length(2);
+
 
         //-------------------------------------
         // Fun starts after restoring
@@ -110,12 +147,19 @@ describe('Function: All small game features', function() {
 
         const inv = p1.getInvEq();
         expect(inv.getInventory().getItems(), 'Player has one item')
-            .to.have.length(1);
+            .to.have.length(2);
 
-        expect(l1.getItems(), 'Level has no items').to.have.length(0);
+        expect(l1.getItems(), 'Level has 2 items').to.have.length(2);
 
         expect(hum.isEnemy(p1), 'Humanoid is enemy').to.equal(true);
         expect(sk.isEnemy(p1), 'shopkeeper not enemy').to.equal(false);
+
+        const newShop = l1.getElements().find(
+            elem => elem.getType() === 'shop');
+        expect(newShop.getShopkeeper().getID()).to.equal(shopkeeper.getID());
+        const newDagger = findItem(l1, {getName: 'Magic dagger'});
+        const price = newShop.getItemPriceForSelling(newDagger);
+        expect(price).to.be.above(0);
 
     });
 });
