@@ -124,8 +124,7 @@ const GameBoard = React.createClass({
         // Finally return the full rendered board
         return (
             <div
-                className={this.props.boardClassName}
-                id='game-board'
+                className={`game-board ${this.props.boardClassName}`}
                 >
                 {rowsHTML}
             </div>
