@@ -3,6 +3,8 @@
 # battles
 Roguelike-game Battles in the North
 
+You can play it here: (https://tpoikela.github.io/battles/)
+
 The development browser is currently Chrome 59.0.3071.86 (Official Build)
 (64-bit) on Fedora 25.  Also tested on Firefox 53.0.3 (64-bit), on Fedora 25.
 
@@ -12,6 +14,10 @@ If there are rendering problems with the game area, try reducing the viewport
 size with buttons +/-X and +/-Y.
 
 ## How to play
+
+You can access the game directly here: (https://tpoikela.github.io/battles/)
+
+If you want to build it yourself, then:
 
 Clone it:
 ```code
@@ -23,14 +29,18 @@ Install dependencies:
     npm install
 ```
 
-Build the project using gulp:
+Build the project using npm/gulp:
 ```code
-    gulp build-js
+    npm run build
+    # OR if you want to develop
+    gulp watch-dev
 ```
 
 Finally, serve the static files:
 ```code
     python -m SimpleHTTPServer
+    # OR
+    npm run server
 ```
 
 After this, you should be able to access the game on localhost:8000/index.html.
