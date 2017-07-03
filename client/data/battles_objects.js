@@ -143,7 +143,7 @@ var RGObjects = {
         {
             name: 'shopkeeper', char: '@', base: 'human', hp: 50,
             attack: 10, defense: 10, damage: '3d3',
-            danger: 6
+            danger: 6, inv: [{name: 'Gold coin', count: 100}]
         },
 
         // WILDLINGS
