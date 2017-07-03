@@ -1031,18 +1031,6 @@ RG.Game.FromJSON = function() {
         const mapObj = this.createCellList(json.map);
         level.setMap(mapObj);
 
-        // Create elements such as stairs
-        json.elements.forEach(elem => {
-            const elemObj = this.createElement(elem);
-            if (elemObj !== null) {
-                level.addElement(elemObj, elem.x, elem.y);
-            }
-            else {
-                RG.err('FromJSON', 'createLevel',
-                    `Elem ${JSON.stringify(elem)} returned null`);
-            }
-        });
-
         // Create actors
         json.actors.forEach(actor => {
             const actorObj = this.createActor(actor.obj);
@@ -1052,6 +1040,18 @@ RG.Game.FromJSON = function() {
             else {
                 RG.err('FromJSON', 'createLevel',
                     `Actor ${JSON.stringify(actor)} returned null`);
+            }
+        });
+
+        // Create elements such as stairs
+        json.elements.forEach(elem => {
+            const elemObj = this.createElement(elem);
+            if (elemObj !== null) {
+                level.addElement(elemObj, elem.x, elem.y);
+            }
+            else {
+                RG.err('FromJSON', 'createLevel',
+                    `Elem ${JSON.stringify(elem)} returned null`);
             }
         });
 
@@ -1088,11 +1088,18 @@ RG.Game.FromJSON = function() {
         else if (type === 'shop') {
             const shopElem = new RG.Element.Shop();
             let shopkeeper = null;
-            if (!RG.isNullOrUndef([elem.shopkeeper])) {
-                shopkeeper = id2entity[elem.shopkeeper];
+            if (!RG.isNullOrUndef([elemObj.shopkeeper])) {
+                shopkeeper = id2entity[elemObj.shopkeeper];
+                if (shopkeeper) {
+                    shopElem.setShopkeeper(shopkeeper);
+                }
+                else {
+                    RG.err('Game.FromJSON', 'createElement',
+                        `Shopkeeper with ID ${elemObj.shopkeeper} not found`);
+                }
             }
-            shopElem.setShopkeeper(shopkeeper);
-            shopElem.setCostFactor(elem.costFactorBuy, elem.costFactorSell);
+            shopElem.setCostFactor(elemObj.costFactorBuy,
+                elemObj.costFactorSell);
             return shopElem;
         }
         else if (type === 'door') {
