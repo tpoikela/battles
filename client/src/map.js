@@ -808,7 +808,7 @@ RG.Map.Level = function() { // {{{2
             const item = cell.getProp(RG.TYPE_ITEM)[0];
             if (actor.getInvEq().canCarryItem(item)) {
                 actor.getInvEq().addItem(item);
-                cell.removeProp(RG.TYPE_ITEM, item);
+                this.removeItem(item, x, y);
                 RG.gameMsg(actor.getName() + ' picked up ' + item.getName());
             }
             else {
