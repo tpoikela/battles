@@ -939,6 +939,7 @@ RG.Game.FromJSON = function() {
         const typeUc = type[0].toUpperCase() + type.substring(1);
         if (RG.Brain[typeUc]) {
             const brain = new RG.Brain[typeUc](ent);
+            ent.setBrain(brain);
             // TODO reconstruct memory
         }
         else {
