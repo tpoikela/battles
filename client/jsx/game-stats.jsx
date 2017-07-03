@@ -112,7 +112,7 @@ const GameStats = React.createClass({
                 </ul>
                 {otherStatus}
                 <button
-                    className='btn btn-rg btn-info'
+                    className='btn btn-xs btn-rg btn-info'
                     data-target='#inventoryModal'
                     data-toggle='modal'
                     id='inventory-button'
@@ -120,7 +120,7 @@ const GameStats = React.createClass({
                     Inventory
                 </button>
                 <button
-                    className='btn btn-rg btn-info'
+                    className='btn btn-xs btn-rg btn-info'
                     id='map-player-button'
                     onClick={this.changeMapView}
                     >
