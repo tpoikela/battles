@@ -13,10 +13,7 @@ const source = require('vinyl-source-stream');
 const notify = require('gulp-notify');
 
 const nodemon = require('gulp-nodemon');
-
 const ctags = require('gulp-ctags');
-
-// const spawn = require('child_process').spawn;
 
 const port = process.env.PORT || 8080;
 
@@ -25,7 +22,7 @@ const paths = {
     jsxDir: './client/jsx',
     client: ['./client/jsx/*.jsx', './client/**/*.js'],
     sass: ['./scss/*.*'],
-    tests: ['./tests/**/*.js'],
+    tests: ['./tests/client/src/*.js'],
 
     server: './server.js',
     serverIgnore: ['./gulpfile.js', './scss', './pug', './public', './build',
@@ -34,16 +31,6 @@ const paths = {
     tags: ['./client/**/*', './server/**/*', './pug/**/*', './scss/**/*']
 
 };
-
-/* Used to notify on build/compile errors.*/
-function handleErrors() {
-    const args = Array.prototype.slice.call(arguments);
-      notify.onError({
-        title: 'Compile Error',
-        message: '<%= error.message %>'
-      }).apply(this, args);
-      this.emit('end'); // Keep gulp from hanging on this task
-}
 
 const browserifyOpts = {
     entries: paths.jsxDir + '/app.jsx',
@@ -62,14 +49,14 @@ gulp.task('build-js', function() {
 
 // Incrementally building the js
 gulp.task('build-js-inc', function() {
-	const b = browserify(Object.assign({}, browserifyInc.args,
-		browserifyOpts
-	));
+    const b = browserify(Object.assign({}, browserifyInc.args,
+        browserifyOpts
+    ));
 
-	browserifyInc(b, {cacheFile: './browserify-cache.json'});
+    browserifyInc(b, {cacheFile: './browserify-cache.json'});
 
-	b.transform(babelify)
-		.bundle()
+    b.transform(babelify)
+        .bundle()
         .on('error', handleErrors)
         .pipe(source('./bundle.js'))
         .pipe(gulp.dest('build'));
@@ -87,9 +74,9 @@ gulp.task('build-test', function() {
 });
 
 gulp.task('build-sass', function() {
-	return gulp.src('./scss/*.scss')
-    .pipe(sass().on('error', sass.logError))
-    .pipe(gulp.dest('./build'));
+    return gulp.src('./scss/*.scss')
+        .pipe(sass().on('error', sass.logError))
+        .pipe(gulp.dest('./build'));
 
 });
 
@@ -112,52 +99,57 @@ gulp.task('serve', function(cb) {
             PORT: port
         }
     })
-    .on('start', function() {
-        if (!called) {
-            console.log('Server started on port ' + port);
-            called = true;
-            cb();
-        }
-    })
-    .on('restart', function(files) {
-        if (files) {
-            console.log('Nodemon will restart due to changes in: ', files);
-        }
-    });
+        .on('start', function() {
+            if (!called) {
+                console.log('Server started on port ' + port);
+                called = true;
+                cb();
+            }
+        })
+        .on('restart', function(files) {
+            if (files) {
+                console.log('Nodemon will restart due to changes in: ', files);
+            }
+        });
 });
 
+
+/* Task used for continuous testing. Use watch-tests. */
 gulp.task('tests', function() {
-    const testProc = spawn('npm run test');
+    const testProc = spawn('npm', ['run', 'test']);
+    const errors = [];
+    const mochaData = [];
+
     testProc.stdout.on('data', (data) => {
-      console.log(`stdout: ${data}`);
+        mochaData.push(data);
     });
 
     testProc.stderr.on('data', (data) => {
-      console.log(`stderr: ${data}`);
+        errors.push(data);
     });
 
     testProc.on('close', (code) => {
-      console.log(`child process exited with code ${code}`);
+        if (code !== 0) {
+            const mochaFirstError = getMochaError(mochaData);
+            notify.onError({
+                title: 'Test Error',
+                message: mochaFirstError
+            }).apply(this, errors);
+        }
     });
 
 });
 
-// Builds ctags-file for easier src navigation in Vim
-/* gulp.task('tags', function() {
-    console.log('Building ctags for the project.');
-    spawn('ctags', ['-R'].concat(paths.tags));
-}); */
-
 gulp.task('tags', function() {
-  return gulp.src(paths.tags)
-    .pipe(ctags({name: 'tags'}))
-    .pipe(gulp.dest('./'));
+    return gulp.src(paths.tags)
+        .pipe(ctags({name: 'tags'}))
+        .pipe(gulp.dest('./'));
 });
 
 const watchDependents = [
-  'build-js-inc',
-  'tags',
-  'build-sass'
+    'build-js-inc',
+    'tags',
+    'build-sass'
 ];
 
 gulp.task('watch-dev', watchDependents, function() {
@@ -167,7 +159,8 @@ gulp.task('watch-dev', watchDependents, function() {
 });
 
 gulp.task('watch-tests', ['tests'], function() {
-    gulp.watch(paths.tests, ['tests']);
+    const allPaths = paths.tests.concat(paths.client);
+    gulp.watch(allPaths, ['tests']);
 });
 
 gulp.task('watch', ['watch-dev', 'serve'], function() {
@@ -176,3 +169,35 @@ gulp.task('watch', ['watch-dev', 'serve'], function() {
 
 gulp.task('default', ['watch']);
 
+//---------------------------------------------------------------------------
+// HELPER FUNCTIONS
+//---------------------------------------------------------------------------
+
+/* Used to notify on build/compile errors.*/
+function handleErrors() {
+    const args = Array.prototype.slice.call(arguments);
+    notify.onError({
+        title: 'Compile Error',
+        message: '<%= error.message %>'
+    }).apply(this, args);
+    this.emit('end'); // Keep gulp from hanging on this task
+}
+
+/* Extracts the first error from mocha output. */
+function getMochaError(lines) {
+    const reContext = /at Context\.it \(.*\)/;
+    let error = '';
+    lines.forEach(line => {
+        const str = line.toString();
+        if (reContext.test(str)) {
+            if (error === '') {
+                const match = str.match(reContext);
+                error = match[0];
+            }
+        }
+    });
+    if (error.length === '') {
+        error = 'Error in tests!';
+    }
+    return error;
+}
