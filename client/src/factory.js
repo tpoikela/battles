@@ -262,6 +262,9 @@ RG.Factory.Base = function() { // {{{2
             level.addElement(door, doorXY[0], doorXY[1]);
 
             const keeper = this.createActor('shopkeeper', {brain: 'Human'});
+            const gold = new RG.Item.GoldCoin('Gold coin');
+            gold.count = 100;
+            keeper.getInvEq().addItem(gold);
             for (let i = 0; i < floor.length; i++) {
                 const xy = floor[i];
                 if (i === 0) {level.addActor(keeper, xy[0], xy[1]);}
