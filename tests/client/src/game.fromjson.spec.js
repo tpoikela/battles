@@ -37,8 +37,8 @@ describe('RG.Game.FromJSON', function() {
         const newMap = newLevel.getMap();
         for (let x = 0; x < 20; x++) {
             expect(newMap.getCell(x, 0).isPassable(),
-                `Cell ${x},0 should have wall thus not passable`,
-            ).to.equal(false);
+                `Cell ${x},0 should have wall thus not passable`)
+                .to.equal(false);
         }
     });
 
