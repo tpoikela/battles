@@ -32,9 +32,10 @@ GetOptions(
 clean_cov() if defined $opt{clean};
 
 my $exclude = '-x "**/rot.js"';
+my $source = "tests/client/**/*.js";
 
 my $cmd = "";
-$cmd = "istanbul cover $exclude node_modules/.bin/_mocha tests/client/src/*.js";
+$cmd = "istanbul cover $exclude node_modules/.bin/_mocha $source";
 system($cmd);
 
 system("istanbul report --root coverage html");
