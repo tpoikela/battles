@@ -46,8 +46,9 @@
     "url": "git://github.com/tpoikela/battles.git"
   },
   "scripts": {
-    "build": "gulp build-js",
+    "build": "npm run build:production && npm run build:sass",
     "build:production": "NODE_ENV=production ./browserify ./client/jsx/app.jsx --extension .jsx -t babelify > ./build/bundle.js",
+    "build:sass": "sass scss/style.scss -t compressed > build/style.css",
     "clean": "rm build/*",
     "coverage": "perl bin/cov_test.pl",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
