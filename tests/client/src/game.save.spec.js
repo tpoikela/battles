@@ -2,8 +2,7 @@
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 
-const LocalStorage = require('node-localstorage').LocalStorage,
-localStorage = new LocalStorage('./battles_local_storage');
+const LocalStorage = require('node-localstorage').LocalStorage;
 
 describe('Game.Save how saving works', function() {
 
@@ -19,8 +18,10 @@ describe('Game.Save how saving works', function() {
     };
 
     let gameSave = null;
+    let localStorage = null;
 
     beforeEach(() => {
+        localStorage = new LocalStorage('./battles_local_storage');
         gameSave = new RG.Game.Save();
         gameSave.setStorage(localStorage);
 
@@ -121,7 +122,6 @@ describe('Game.Save how saving works', function() {
 
         const plateMail = invItems[2];
         expect(armour.equals(plateMail)).to.equal(true);
-
     });
 
     it('Saves/restores and equips equipment correctly', function() {
