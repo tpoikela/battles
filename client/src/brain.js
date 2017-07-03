@@ -544,7 +544,9 @@ RG.Brain.Memory = function() {
 
     // TODO add memory of player closing a door/using stairs
 
-    this.addEnemyType = function(type) {_enemyTypes.push(type);};
+    this.addEnemyType = function(type) {
+        _enemyTypes.push(type);
+    };
 
     /* Checks if given actor is an enemy. */
     this.isEnemy = function(actor) {
