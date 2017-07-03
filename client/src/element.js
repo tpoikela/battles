@@ -287,6 +287,7 @@ RG.Element.Shop.prototype.sellItem = function(item, seller) {
         }
     }
     else {
+        console.log('No money for keeper');
         const name = this._shopkeeper.getName();
         RG.gameMsg({cell: this._shopkeeper.getCell(),
             msg: 'Keeper ' + name + " doesn't have enough gold to buy it."});
@@ -297,7 +298,13 @@ RG.Element.Shop.prototype.sellItem = function(item, seller) {
 
 /* Sets the shopkeeper.*/
 RG.Element.Shop.prototype.setShopkeeper = function(keeper) {
-    this._shopkeeper = keeper;
+    if (!RG.isNullOrUndef([keeper])) {
+        this._shopkeeper = keeper;
+    }
+    else {
+        RG.err('Element.Shop', 'setShopkeeper',
+            'Shopkeeper must be non-null and defined.');
+    }
 };
 
 /* Returns the shopkeeper.*/
@@ -307,8 +314,14 @@ RG.Element.Shop.prototype.getShopkeeper = function() {
 
 /* Sets the cost factors for selling and buying. .*/
 RG.Element.Shop.prototype.setCostFactor = function(buy, sell) {
-    this._costFactorSell = sell;
-    this._costFactorBuy = buy;
+    if (!RG.isNullOrUndef([buy, sell])) {
+        this._costFactorSell = sell;
+        this._costFactorBuy = buy;
+    }
+    else {
+        RG.err('Element.Shop', 'setCostFactor',
+            'Args buy/sell must be non-null and defined!');
+    }
 };
 
 /* Returns the cost factor for selling. .*/
