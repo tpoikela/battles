@@ -21,7 +21,7 @@ var GameHelpScreen = React.createClass({
                         <div className='modal-body row'>
                             <div className='col-md-6'>
                                 <p>To move around, use:</p>
-                                <table id='mov-buttons-table' className='table table-large'>
+                                <table className='table table-large mov-buttons-table'>
                                     <thead />
                                     <tbody>
                                         <tr><td>{'\u2B09'} q</td><td>{'\u2B06'} w</td><td>{'\u2B08'} e</td></tr>
