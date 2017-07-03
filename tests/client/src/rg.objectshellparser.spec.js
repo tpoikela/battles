@@ -156,6 +156,24 @@ describe('How actors are created from file', function() {
         expect(eqSword.getType()).to.equal('weapon');
     });
 
+    it('can add inventory items with count into the created actors', () => {
+        const parser = new Parser();
+        const keeperShell = {
+            name: 'shopkeeper', char: '@', hp: 50,
+            attack: 10, defense: 10, damage: '3d3',
+            danger: 6, inv: [{name: 'Gold coin', count: 100}]
+        };
+        const goldCoinShell = {name: 'Gold coin', type: 'goldcoin'};
+        expect(parser.parseObjShell(RG.TYPE_ITEM, goldCoinShell))
+            .not.to.be.empty;
+        const keeper = parser.parseObjShell(RG.TYPE_ACTOR, keeperShell);
+        expect(keeper.inv).to.deep.equal([{name: 'Gold coin', count: 100}]);
+        const keeperObj = parser.createActualObj(RG.TYPE_ACTOR, 'shopkeeper');
+
+        const gold = keeperObj.getInvEq().getInventory().getItems()[0];
+        expect(gold.count, 'Keeper has 100 gold coins').to.equal(100);
+    });
+
 });
 
 describe('How food items are created from objects', function() {
