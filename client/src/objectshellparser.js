@@ -395,13 +395,16 @@ RG.ObjectShellParser = function() {
     this.addInventoryItems = function(shell, actor) {
         const inv = shell.inv;
         inv.forEach(item => {
-            const itemObj = this.createActualObj(RG.TYPE_ITEM, item);
+            const name = item.name || item;
+            const count = item.count || 1;
+            const itemObj = this.createActualObj(RG.TYPE_ITEM, name);
             if (itemObj) {
+                itemObj.count = count;
                 actor.getInvEq().addItem(itemObj);
             }
             else {
                 RG.err('ObjectShellParser', 'addInventoryItems',
-                    `itemObj for ${item} is null. Actor: ${actor.getName()}`);
+                    `itemObj for ${name} is null. Actor: ${actor.getName()}`);
             }
         });
     };
