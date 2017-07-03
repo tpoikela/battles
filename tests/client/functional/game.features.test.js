@@ -21,6 +21,21 @@ RG.PlayerDriver = function(player) {
 };
 RG.extend2(RG.PlayerDriver, RG.Brain.Rogue);
 
+function findActor(level, query) {
+    const actors = level.getActors();
+    let found = null;
+    Object.keys(query).forEach(q => {
+        const val = query[q];
+        const fname = q;
+        actors.forEach(actor => {
+            if (actor[fname]() === val) {
+                found = actor;
+            }
+        });
+    });
+    return found;
+}
+
 describe('Function: All small game features', function() {
     this.timeout(60000);
 
@@ -46,11 +61,15 @@ describe('Function: All small game features', function() {
         let l1 = new RG.FACT.createLevel('arena', 20, 20);
         let p1 = new RG.Actor.Rogue('Player1');
         const shopkeeper = parser.createActualObj(RG.TYPE_ACTOR, 'shopkeeper');
+        const humanoid = parser.createActualObj(RG.TYPE_ACTOR, 'humanoid');
         const sword = new RG.Item.Weapon('sword');
 
         l1.addActor(p1, 1, 1);
-        l1.addItem(sword, 1, 1);
         l1.addActor(shopkeeper, 3, 3);
+        l1.addActor(humanoid, 15, 15);
+
+        l1.addItem(sword, 1, 1);
+
         expect(shopkeeper.getBrain().getType()).to.equal('human');
         p1.setIsPlayer(true);
         game.addLevel(l1);
@@ -63,28 +82,40 @@ describe('Function: All small game features', function() {
 
         game.update(downKey);
 
+        expect(humanoid.isEnemy(p1), 'Humanoid is enemy').to.equal(true);
+        expect(shopkeeper.isEnemy(p1), 'shopkeeper not enemy').to.equal(false);
+
         //-------------------------------------
         // Fun starts after restoring
         //-------------------------------------
+        console.log('Now restoring the game and performing checks.');
 
         const json = game.toJSON();
-        console.log(JSON.stringify(json, null, ' '));
+        // console.log(JSON.stringify(json, null, ' '));
         const newGame = fromJSON.createGame(json);
+
+        // We can still update the game
         expect(newGame.update.bind(newGame, downKey)).to.not.throw(Error);
 
         l1 = newGame.getLevels()[0];
-        const actors = l1.getActors();
+        // const actors = l1.getActors();
 
         // Verify shopkeeper's brain
-        const sk = actors.find(actor => actor.getName() === 'shopkeeper');
-        expect(sk.getBrain().getType()).to.equal('human');
+        const sk = findActor(l1, {getName: 'shopkeeper'});
+        p1 = findActor(l1, {getName: 'Player1'});
+        const hum = findActor(l1, {getName: 'humanoid'});
 
-        p1 = actors.find(actor => actor.getName() === 'Player1');
+        expect(sk.getBrain().getType()).to.equal('human');
+        expect(hum.getBrain().getType()).to.equal('rogue');
+
         const inv = p1.getInvEq();
         expect(inv.getInventory().getItems(), 'Player has one item')
             .to.have.length(1);
 
         expect(l1.getItems(), 'Level has no items').to.have.length(0);
+
+        expect(hum.isEnemy(p1), 'Humanoid is enemy').to.equal(true);
+        expect(sk.isEnemy(p1), 'shopkeeper not enemy').to.equal(false);
 
     });
 });
