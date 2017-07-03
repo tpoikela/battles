@@ -154,7 +154,7 @@ const GameInventory = React.createClass({
                     <div className='modal-content'>
                         <ModalHeader id='inventory-modal-label' text='Inventory'/>
                         <div className='modal-body row'>
-                            <div id='items-box' className='col-md-6'>
+                            <div className='items-box col-md-6'>
                                 <GameItems eqWeight={eqWeight} maxWeight={maxWeight} setSelectedItem={this.setSelectedItem} inv={inv} />
                             </div>
                             <div id='equipment-box' className='col-md-6'>
