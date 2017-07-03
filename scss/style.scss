@@ -8,6 +8,8 @@
 $cell-width: 17px;
 $cell-height: 17px;
 
+$padding-stats: 10px;
+
 @import 'colors';
 
 @mixin fonts {
@@ -59,9 +61,12 @@ $cell-height: 17px;
             margin-right: 5px;
         }
     }
+    @media (min-width: 1000px) {
+        li {
+            display: block;
+        }
+    }
 }
-
-/** Elements, classes and IDs. */
 
 body {
     @include fonts;
@@ -71,11 +76,10 @@ body {
     margin: 0;
 };
 
-#mov-buttons-table {
+.mov-buttons-table {
     border: 1px solid $black;
     font-size: 16px;
     padding: 5px;
-
 };
 
 .select-label {
@@ -105,7 +109,7 @@ body {
 // MENUS
 //---------------------------------------------------------------------
 
-#mount-point {
+.mount-point {
     margin-top: 10px;
 }
 
@@ -134,6 +138,16 @@ body {
     @include ver-to-hor-list;
 };
 
+ul {
+    &.game-stats-list {
+        padding-left: $padding-stats;
+    }
+
+    &.player-mode-list {
+        padding-left: $padding-stats;
+    }
+}
+
 .player-mode-list {
     @include ver-to-hor-list;
 };
@@ -154,14 +168,16 @@ body {
     margin-bottom: -2px;
 }
 
-#game-board {
+.game-board {
     cursor: crosshair;
     margin-left: 10px;
     margin-right: 10px;
 
-    span:hover {
-        background-color: $board-bg-color;
-        color: $black;
+    span {
+        :hover {
+            background-color: $board-bg-color;
+            color: $black;
+        }
     };
 }
 
@@ -203,7 +219,7 @@ body {
     @include menu-list-item;
 };
 
-#items-box {
+.items-box {
     height: 400px;
     overflow: auto;
 };
