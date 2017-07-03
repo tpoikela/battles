@@ -1,16 +1,45 @@
 #!/usr/bin/env perl
 
-# pre-push hook which runs all tests and returns non-zero value on test failure
+# An example hook script to verify what is about to be pushed.  Called by "git
+# push" after it has checked the remote status, but before anything has been
+# pushed.  If this script exits with a non-zero status nothing will be pushed.
+#
+# This hook is called with the following parameters:
+#
+# $1 -- Name of the remote to which the push is being done
+# $2 -- URL to which the push is being done
+#
+# If pushing without using a named remote those arguments will be equal.
+#
+# Information about the commits which are being pushed is supplied as lines to
+# the standard input in the form:
+#
+#   <local ref> <local sha1> <remote ref> <remote sha1>
+#
 
-print STDERR "Running unit tests as pre-push hook.\n";
+my $remote= $ARGV[0];
+my $url= $ARGV[1];
 
-my $time_start = time();
-my $error = system('npm run test >& /dev/null');
+my $test_cmd = "npm run test";
 
-my $sec = time() - $time_start;
-print "Ran tests in $sec s.\n";
+print "remote: $remote, url: $url\n";
 
-if ($error == 0) {print STDERR "Tests ok.\n";}
+my $branch = `git branch`;
 
-exit $error;
+if ($branch =~ /\*\s+master/gs) {
+    print "Master branch detected. Running all tests.\n";
+    $test_cmd = "npm run test:all"
+}
+else {
+    print "Not in master branch. Skipping functional tests.\n";
+    $test_cmd = "npm run test";
+}
 
+print "Running tests as pre-push to hook.\n";
+my $error = system("$test_cmd >& /dev/null");
+if ($error == 0) {
+    print "Tests OK. Proceeding to push.\n";
+}
+else {
+    die("Tests FAILED. Aborting push. Run $test_cmd and fix errors.\n");
+}
