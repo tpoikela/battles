@@ -73,6 +73,10 @@ RG.Brain.Player = function(actor) { // {{{2
         }
 
         const code = obj.code;
+        if (!code) {
+            RG.err('Brain.Player', 'decideNextAction',
+                `obj.code must exist. Got obj: ${JSON.stringify(obj)}`);
+        }
 
         // Stop here, if action must be confirmed by player by pressing Y
         if (_wantConfirm && _confirmCallback !== null) {
