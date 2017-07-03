@@ -940,6 +940,12 @@ RG.Game.FromJSON = function() {
         if (RG.Brain[typeUc]) {
             const brain = new RG.Brain[typeUc](ent);
             ent.setBrain(brain);
+            // TODO addEnemyType called in Actor.Rogue, find better solution
+            // Maybe Brain.Enemy, with hate against player?
+            // And rename Brain.Rogue -> Brain.Base.
+            if (type === 'rogue') {
+                brain.getMemory().addEnemyType('player');
+            }
             // TODO reconstruct memory
         }
         else {
