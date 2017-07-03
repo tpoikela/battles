@@ -21,11 +21,13 @@ describe('RG.Game.FromJSON', function() {
 
     it('Converts item JSON back to RG.Items', () => {
         const item1 = new RG.Item.Weapon('knife');
+        item1.setValue(100);
         const json = item1.toJSON();
         const newItem = fromJSON.createItem(json);
 
         expect(newItem.getName()).to.equal(item1.getName());
         expect(newItem.getType()).to.equal(item1.getType());
+        expect(newItem.getValue()).to.equal(100);
     });
 
     it('Converts level.map JSON back to RG.Map', () => {
