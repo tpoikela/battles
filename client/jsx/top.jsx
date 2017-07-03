@@ -472,50 +472,41 @@ class BattlesTop extends React.Component {
                             saveGame={this.saveGame}
                             setViewSize={this.setViewSize}
                         />
+                        <div className='text-left game-stats-div'>
+                            <GameStats
+                                mapShown={this.state.mapShown}
+                                player={player}
+                                selectedCell={this.state.selectedCell}
+                                selectedItem={this.state.selectedItem}
+                                setViewType={this.setViewType}
+                            />
+                        </div>
                     </div>
-                    <div className='col-md-10 game-messages-div'>
-                        <GameMessages
-                            message={message}
-                            saveInProgress={this.state.saveInProgress}
-                            visibleCells={this.gameState.visibleCells}
-                        />
-                    </div>
-                </div>
-                {this.state.creatingGame &&
-                <div className='row main-contents-div'>
-                    <div className='text-left col-md-2 game-stats-div'/>
-                    <div className='col-md-10 game-board-div'>
-                        Loading game. Please wait...
-                    </div>
-                </div>
-                }
-                {!this.state.creatingGame &&
-                <div className='row main-contents-div'>
-                    <div className='text-left col-md-2 game-stats-div'>
-                        <GameStats
-                            mapShown={this.state.mapShown}
-                            player={player}
-                            selectedCell={this.state.selectedCell}
-                            selectedItem={this.state.selectedItem}
-                            setViewType={this.setViewType}
-                        />
-                    </div>
-                    <div className='col-md-10 game-board-div'>
-                        <GameBoard
-                            boardClassName={this.state.boardClassName}
-                            map={map}
-                            mapShown={this.state.mapShown}
-                            onCellClick={this.onCellClick}
-                            player={player}
-                            renderFullScreen={fullScreen}
-                            selectedCell={this.state.selectedCell}
-                            viewportX={this.viewportX}
-                            viewportY={this.viewportY}
-                            visibleCells={this.gameState.visibleCells}
-                        />
+                    <div className='col-md-10'>
+                        <div className='game-messages-div'>
+                            <GameMessages
+                                message={message}
+                                saveInProgress={this.state.saveInProgress}
+                                visibleCells={this.gameState.visibleCells}
+                            />
+                        </div>
+                        <div className='game-board-div'>
+                            <GameBoard
+                                boardClassName={this.state.boardClassName}
+                                map={map}
+                                mapShown={this.state.mapShown}
+                                onCellClick={this.onCellClick}
+                                player={player}
+                                renderFullScreen={fullScreen}
+                                selectedCell={this.state.selectedCell}
+                                viewportX={this.viewportX}
+                                viewportY={this.viewportY}
+                                visibleCells={this.gameState.visibleCells}
+                            />
+                        </div>
                     </div>
                 </div>
-                }
+
             </div>
         );
     }
