@@ -66,7 +66,9 @@ describe('Function: Creating game world from a file', function() {
                 ],
                 nCities: 1,
                 city: [
-                    {x: 0, y: 0, name: 'City1', nLevels: 1, entranceLevel: 0}
+                    {x: 0, y: 0, name: 'City1', nQuarters: 1,
+                        quarter: [{name: 'Q1', nLevels: 1, entranceLevel: 0}]
+                    }
                 ]
             }]
         };
