@@ -756,7 +756,7 @@ RG.World.City = function(name) {
             // levels: _levels.map(level => level.getID()),
             // entrances: _entrances,
             nQuarters: _quarters.length,
-            quarters: _quarters.map(q => q.toJSON())
+            quarter: _quarters.map(q => q.toJSON())
         };
         return obj;
     };
@@ -793,6 +793,10 @@ RG.World.CityQuarter = function(name) {
         return getStairsOther(this.getName(), _levels);
     };
 
+    this.setEntranceLocation = function(entrance) {
+        _entrance = entrance;
+    };
+
     /* Returns entrance/exit for the quarter.*/
     this.getEntrance = function() {
         if (_entrance === null) {return null;}
@@ -805,8 +809,8 @@ RG.World.CityQuarter = function(name) {
         if (_entrance === null) {
             const level = _levels[levelNumber];
             const stairs = new Stairs(true, level);
-            level.addStairs(stairs, 0, 0);
-            _entrance = {levelNumber, x: 0, y: 0};
+            level.addStairs(stairs, 1, 1);
+            _entrance = {levelNumber, x: 1, y: 1};
         }
         else {
             RG.err('World.CityQuarter', 'addEntrance',
