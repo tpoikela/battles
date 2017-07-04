@@ -765,6 +765,28 @@ RG.Factory.World = function() {
             city.addQuarter(quarter);
         }
 
+        // Connect branches according to configuration
+        if (!this.id2levelSet) {
+            if (conf.nQuarters > 1) {
+                if (conf.connect) {
+                    conf.connect.forEach( conn => {
+                        if (conn.length === 4) {
+                            // conn has len 4, spread it out
+                            city.connectQuarters(...conn);
+                        }
+                        else {
+                            RG.err('Factory.World', 'createCity',
+                                'Each connection.length must be 4.');
+                        }
+                    });
+                }
+                else {
+                    RG.err('Factory.World', 'createCity',
+                        'nBranches > 1, but no conf.connect.');
+                }
+            }
+        }
+
         this.popScope(conf.name);
         return city;
     };
