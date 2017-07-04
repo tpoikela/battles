@@ -143,7 +143,7 @@ describe('World.Mountain', function() {
     it('has at least one entrance', () => {
         const mountain = new RG.World.Mountain('mount1');
         const face = new RG.World.MountainFace('northFace');
-        const level = RG.FACT.createLevel('arena', 30, 30);
+        const level = RG.FACT.createLevel('arena', 10, 10);
         face.addLevel(level);
         expect(face.getEntrance()).to.be.null;
         face.addEntrance(0);
@@ -157,14 +157,31 @@ describe('World.Mountain', function() {
 
 });
 
-describe('World.City', () => {
+describe('World.CityQuarter', () => {
     it('contains levels and entrances', () => {
+        const q = new RG.World.CityQuarter('North');
+        expect(q.getName()).to.equal('North');
+        const level = RG.FACT.createLevel('arena', 10, 10);
+        q.addLevel(level);
+        expect(q.getLevels()).to.have.length(1);
+        q.addEntrance(0);
+        expect(q.getEntrance().getType()).to.match(/stairs/);
+
+    });
+});
+
+describe('World.City', () => {
+    it('contains quarters and entrances', () => {
         const city = new RG.World.City('City1');
         expect(city.getName()).to.equal('City1');
 
-        const level = RG.FACT.createLevel('arena', 20, 20);
-        city.addLevel(level);
-        city.addEntrance(0);
+        const q1 = new RG.World.CityQuarter('Q1');
+        const level = RG.FACT.createLevel('arena', 10, 10);
+        q1.addLevel(level);
+        q1.addEntrance(0);
+        city.addQuarter(q1);
+
+        expect(city.getQuarters()[0].getName()).to.equal('Q1');
         expect(city.getEntrances()).to.have.length(1);
     });
 });
