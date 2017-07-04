@@ -2,6 +2,19 @@
 
 const RG = require('../src/rg');
 
+const cityBlashyrkh =
+    { x: 2, y: 2, name: 'Blashyrkh', nQuarters: 1,
+        quarter: [
+            {name: 'Center', nLevels: 1, entranceLevel: 0, nShops: 1,
+                shop: [
+                    item => item.type === 'food',
+                    item => item.value < 100 && item.type === 'weapon',
+                ]
+            },
+        ],
+    };
+
+
 /* Configuration settings for creating the game world. There's not much to
 * document. Follow the convention to construct your own world. */
 RG.WorldConf = {
@@ -49,9 +62,7 @@ RG.WorldConf = {
                 { x: 0, y: 0, name: 'Petit town', nQuarters: 1,
                     quarter: [{name: 'Center', nLevels: 1, entranceLevel: 0}],
                 },
-                { x: 2, y: 2, name: 'Blashyrkh', nQuarters: 1,
-                    quarter: [{name: 'Center', nLevels: 1, entranceLevel: 0}],
-                },
+                cityBlashyrkh,
             ],
             // MOUNTAINS
             nMountains: 1,
