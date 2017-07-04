@@ -184,5 +184,14 @@ describe('World.City', () => {
         expect(city.getQuarters()[0].getName()).to.equal('Q1');
         expect(city.getEntrances()).to.have.length(1);
     });
+
+    it('can be serialized to JSON', () => {
+        const city = new RG.World.City('City1');
+        const q1 = new RG.World.CityQuarter('Q1');
+        city.addQuarter(q1);
+
+        const json = city.toJSON();
+        expect(json).to.have.property('quarter');
+    });
 });
 
