@@ -144,7 +144,13 @@ RG.World.Branch = function(name) {
     };
 
     this.setEntranceLocation = function(entrance) {
-        _entrance = entrance;
+        if (!RG.isNullOrUndef([entrance])) {
+            _entrance = entrance;
+        }
+        else {
+            RG.err('World.Branch', 'setEntranceLocation',
+                'Arg entrance is not defined.');
+        }
     };
 
     /* Returns entrance/exit for the branch.*/
@@ -684,7 +690,13 @@ RG.World.MountainFace = function(name) {
     };
 
     this.setEntranceLocation = function(entrance) {
-        _entrance = entrance;
+        if (!RG.isNullOrUndef([entrance])) {
+            _entrance = entrance;
+        }
+        else {
+            RG.err('World.MountainFace', 'setEntranceLocation',
+                'Arg entrance is not defined.');
+        }
     };
 
     this.getEntrance = function() {
@@ -794,7 +806,13 @@ RG.World.CityQuarter = function(name) {
     };
 
     this.setEntranceLocation = function(entrance) {
-        _entrance = entrance;
+        if (!RG.isNullOrUndef([entrance])) {
+            _entrance = entrance;
+        }
+        else {
+            RG.err('World.CityQuarter', 'setEntranceLocation',
+                'Arg entrance is not defined.');
+        }
     };
 
     /* Returns entrance/exit for the quarter.*/
@@ -846,6 +864,7 @@ RG.World.CityQuarter = function(name) {
             levels: _levels.map(level => level.getID()),
             entrance: _entrance
         };
+        console.log('CityQuarter JSON: ' + JSON.stringify(obj));
         return obj;
     };
 };
