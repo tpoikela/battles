@@ -46,8 +46,12 @@ RG.WorldConf = {
             // CITIES
             nCities: 2,
             city: [
-                { x: 0, y: 0, name: 'Petit town', nLevels: 1, entranceLevel: 0},
-                { x: 2, y: 2, name: 'Blashyrkh', nLevels: 1, entranceLevel: 0}
+                { x: 0, y: 0, name: 'Petit town', nQuarters: 1,
+                    quarter: [{name: 'Center', nLevels: 1, entranceLevel: 0}],
+                },
+                { x: 2, y: 2, name: 'Blashyrkh', nQuarters: 1,
+                    quarter: [{name: 'Center', nLevels: 1, entranceLevel: 0}],
+                },
             ],
             // MOUNTAINS
             nMountains: 1,
