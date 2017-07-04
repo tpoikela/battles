@@ -118,7 +118,6 @@ describe('RG.Game.FromJSON', function() {
 
     });
 
-
     it('converts full game into JSON and back to object', () => {
         const game = new RG.Game.Main();
         const level = RGTest.createLevel('arena', 10, 10);
