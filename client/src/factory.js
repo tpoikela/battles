@@ -746,42 +746,61 @@ RG.Factory.World = function() {
         return face;
     };
 
+    /* Creates a City and all its sub-features. */
     this.createCity = function(conf) {
         if (this.id2levelSet) {
             this.verifyConf('createCity',
-                conf, ['name', 'nLevels', 'entrances']);
+                conf, ['name', 'Quarters']);
         }
         else {
             this.verifyConf('createCity',
-                conf, ['name', 'nLevels', 'entranceLevel']);
+                conf, ['name', 'nQuarters']);
         }
         this.pushScope(conf.name);
-        const cityConf = {
-            x: 100, y: 50
-        };
         const city = new RG.World.City(conf.name);
         city.setHierName(this.getHierName());
+        for (let i = 0; i < conf.nQuarters; i++) {
+            const qConf = conf.quarter[i];
+            const quarter = this.createCityQuarter(qConf);
+            city.addQuarter(quarter);
+        }
+
+        this.popScope(conf.name);
+        return city;
+    };
+
+    /* Createa CityQuarter which can be added to a city. */
+    this.createCityQuarter = function(conf) {
+        this.verifyConf('createCityQuarter',
+            conf, ['name', 'nLevels']);
+        this.pushScope(conf.name);
+        const quarter = new RG.World.CityQuarter(conf.name);
+        quarter.setHierName(this.getHierName());
+
+        const cityLevelConf = {
+            x: conf.x || 80, y: conf.y || 40,
+            nShops: conf.nShops || 1,
+            shop: conf.shop || {type: 'item'}
+        };
         for (let i = 0; i < conf.nLevels; i++) {
             let level = null;
             if (!this.id2levelSet) {
-                level = this.featureFactory.createCityLevel(cityConf);
+                level = this.featureFactory.createCityLevel(cityLevelConf);
             }
             else {
                 const id = conf.levels[i];
                 level = this.id2level[id];
             }
-            city.addLevel(level);
+            quarter.addLevel(level);
         }
-
         if (conf.hasOwnProperty('entranceLevel')) {
-            city.addEntrance(conf.entranceLevel);
+            quarter.addEntrance(conf.entranceLevel);
         }
-        else if (conf.hasOwnProperty('entrances')) {
-            city.setEntranceLocations(conf.entrances);
+        else if (conf.hasOwnProperty('entrance')) {
+            quarter.setEntranceLocations(conf.entrances);
         }
-
         this.popScope(conf.name);
-        return city;
+        return quarter;
     };
 
     /* Creates a connection between an area and a feature such as city, mountain
