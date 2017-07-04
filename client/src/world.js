@@ -65,6 +65,7 @@ RG.World = {};
 
 RG.World.Base = function(name) {
     this.name = name;
+    this.type = 'base';
 };
 
 RG.World.Base.prototype.getName = function() {
@@ -79,12 +80,21 @@ RG.World.Base.prototype.setHierName = function(hierName) {
     this.hierName = hierName;
 };
 
+RG.World.Base.prototype.getType = function() {
+    return this.type;
+};
+
+RG.World.Base.prototype.setType = function(type) {
+    this.type = type;
+};
+
 /* Branch, as name suggests, is a branch of dungeon. A branch is linear
  * progression of connected levels (usually with increasing difficulty).
  * Branch can have
  * entry points to other branches (or out of the dungeon). */
 RG.World.Branch = function(name) {
     RG.World.Base.call(this, name);
+    this.setType('branch');
     const _levels = [];
     let _entrance = null;
     let _numCount = 1;
@@ -236,6 +246,7 @@ RG.extend2(RG.World.Branch, RG.World.Base);
 /* Dungeons is a collection of branches.*/
 RG.World.Dungeon = function(name) {
     RG.World.Base.call(this, name);
+    this.setType('dungeon');
     const _branches = [];
     let _entranceNames = [];
 
@@ -414,6 +425,7 @@ RG.World.AreaTile = function(x, y, area) {
  * */
 RG.World.Area = function(name, maxX, maxY, cols, rows, levels) {
     RG.World.Base.call(this, name);
+    this.setType('area');
     const _maxX = maxX;
     const _maxY = maxY;
 
@@ -552,6 +564,7 @@ RG.extend2(RG.World.Area, RG.World.Base);
  */
 RG.World.Mountain = function(name) {
     RG.World.Base.call(this, name);
+    this.setType('mountain');
     let _summit = null;
     const _faces = [];
 
@@ -637,6 +650,7 @@ RG.extend2(RG.World.Mountain, RG.World.Base);
 * Areas. */
 RG.World.MountainFace = function(name) {
     RG.World.Base.call(this, name);
+    this.setType('face');
     // const _stages = [];
     const _levels = [];
     let _entrance = null;
@@ -698,6 +712,7 @@ RG.extend2(RG.World.MountainFace, RG.World.Base);
 * this object. */
 RG.World.City = function(name) {
     RG.World.Base.call(this, name);
+    this.setType('city');
     const _quarters = [];
 
     this.getLevels = function() {
@@ -763,6 +778,7 @@ RG.extend2(RG.World.City, RG.World.Base);
  * special features for that level. */
 RG.World.CityQuarter = function(name) {
     RG.World.Base.call(this, name);
+    this.setType('quarter');
     const _levels = [];
     let _entrance = null;
 
@@ -834,6 +850,7 @@ RG.extend2(RG.World.CityQuarter, RG.World.Base);
 /* Largest place. Contains a number of areas, mountains and dungeons. */
 RG.World.World = function(name) {
     RG.World.Base.call(this, name);
+    this.setType('world');
 
     const _allLevels = {}; // Lookup table for all levels
     const _areas = [];
