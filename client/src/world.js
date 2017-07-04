@@ -21,6 +21,40 @@ function getStairsOther(name, levels) {
     return stairs;
 }
 
+/* Connects to sub-features like dungeon branch or city quarter together.*/
+function connectSubFeatures(features, q1Arg, q2Arg, l1, l2) {
+    let q1 = q1Arg;
+    let q2 = q2Arg;
+
+    // Lookup objects by name
+    if (typeof q1Arg === 'string' && typeof q2Arg === 'string') {
+        q1 = features.find( q => q.getName() === q1Arg);
+        q2 = features.find( q => q.getName() === q2Arg);
+    }
+
+    if (RG.isNullOrUndef([q1, q2])) {
+        RG.err('RG.World', 'connectSubFeatures',
+            'Cannot connect null features. Check the names.');
+        return;
+    }
+
+    let down = true;
+    if (l1 > l2) {down = false;}
+    const b2Stairs = new Stairs(down);
+    const b2Levels = q2.getLevels();
+    if (l2 < b2Levels.length) {
+        const cell = b2Levels[l2].getFreeRandCell();
+        b2Levels[l2].addStairs(b2Stairs, cell.getX(), cell.getY());
+        b2Stairs.setSrcLevel(b2Levels[l2]);
+        q1.connectLevelToStairs(l1, b2Stairs);
+    }
+    else {
+        RG.err('RG.World', 'connectSubFeatures',
+            'Level ' + l2 + " doesn't exist in sub-feature " + q2.getName());
+    }
+
+}
+
 
 const RG = require('./rg.js');
 RG.Factory = require('./factory');
@@ -264,41 +298,7 @@ RG.World.Dungeon = function(name) {
     /* Connects two branches b1 and b2 together from specified level
      * numbers l1 and l2. */
     this.connectBranches = function(b1Arg, b2Arg, l1, l2) {
-        let b1 = b1Arg;
-        let b2 = b2Arg;
-
-        // Lookup objects by name
-        if (typeof b1Arg === 'string' && typeof b2Arg === 'string') {
-            b1 = _branches.find( br => br.getName() === b1Arg);
-            b2 = _branches.find( br => br.getName() === b2Arg);
-        }
-
-        if (RG.isNullOrUndef([b1, b2])) {
-            RG.err('World.Dungeon', 'connectBranches',
-                'Cannot connect null branches. Check branch names.');
-            return;
-        }
-
-        if (this.hasBranch(b1) && this.hasBranch(b2)) {
-            let down = true;
-            if (l1 > l2) {down = false;}
-            const b2Stairs = new Stairs(down);
-            const b2Levels = b2.getLevels();
-            if (l2 < b2Levels.length) {
-                const cell = b2Levels[l2].getFreeRandCell();
-                b2Levels[l2].addStairs(b2Stairs, cell.getX(), cell.getY());
-                b2Stairs.setSrcLevel(b2Levels[l2]);
-                b1.connectLevelToStairs(l1, b2Stairs);
-            }
-            else {
-                RG.err('World.Dungeon', 'connectBranches',
-                    'Level ' + l2 + " doesn't exist in branch " + b2.getName());
-            }
-        }
-        else {
-            RG.err('World.Dungeon', 'connectBranches',
-                `Use addBranch ${b1} and ${b2} to dungeon before connection.`);
-        }
+        connectSubFeatures(_branches, b1Arg, b2Arg, l1, l2);
     };
 
     this.toJSON = function() {
@@ -699,8 +699,6 @@ RG.extend2(RG.World.MountainFace, RG.World.Base);
 RG.World.City = function(name) {
     RG.World.Base.call(this, name);
     const _quarters = [];
-    // const _levels = [];
-    // let _entrances = [];
 
     this.getLevels = function() {
         let result = [];
@@ -718,28 +716,8 @@ RG.World.City = function(name) {
                 entrances.push(qEntr);
             }
         });
-        /*
-        _entrances.forEach(entr => {
-            const entrLevel = _levels[entr.levelNumber];
-            const entrCell = entrLevel.getMap().getCell(entr.x, entr.y);
-            entrances.push(entrCell.getStairs());
-        });
-        */
         return entrances;
     };
-
-    /*
-    this.setEntranceLocations = function(entrances) {
-        _entrances = entrances;
-    };
-    */
-
-    /*
-    this.addLevel = function(level) {
-        _levels.push(level);
-        level.setParent(this.getName());
-    };
-    */
 
     this.getQuarters = function() {
         return _quarters;
@@ -754,15 +732,6 @@ RG.World.City = function(name) {
                 `City ${this.getName()} quarter not defined.`);
         }
     };
-
-    /*
-    this.addEntrance = function(levelNumber) {
-        const level = _levels[levelNumber];
-        const stairs = new Stairs(true, level);
-        level.addStairs(stairs, 1, 1);
-        _entrances.push({levelNumber, x: 1, y: 1});
-    };
-    */
 
     this.toJSON = function() {
         const obj = {
@@ -784,42 +753,7 @@ RG.World.City = function(name) {
 
     /* Connects two city quarters together. */
     this.connectQuarters = function(q1Arg, q2Arg, l1, l2) {
-        let q1 = q1Arg;
-        let q2 = q2Arg;
-
-        // Lookup objects by name
-        if (typeof q1Arg === 'string' && typeof q2Arg === 'string') {
-            q1 = _quarters.find( q => q.getName() === q1Arg);
-            q2 = _quarters.find( q => q.getName() === q2Arg);
-        }
-
-        if (RG.isNullOrUndef([q1, q2])) {
-            RG.err('World.City', 'connectQuarters',
-                'Cannot connect null branches. Check branch names.');
-            return;
-        }
-
-        if (this.hasQuarter(q1) && this.hasQuarter(q2)) {
-            let down = true;
-            if (l1 > l2) {down = false;}
-            const b2Stairs = new Stairs(down);
-            const b2Levels = q2.getLevels();
-            if (l2 < b2Levels.length) {
-                const cell = b2Levels[l2].getFreeRandCell();
-                b2Levels[l2].addStairs(b2Stairs, cell.getX(), cell.getY());
-                b2Stairs.setSrcLevel(b2Levels[l2]);
-                q1.connectLevelToStairs(l1, b2Stairs);
-            }
-            else {
-                RG.err('World.City', 'connectQuarters',
-                    'Level ' + l2 + " doesn't exist in branch " + q2.getName());
-            }
-        }
-        else {
-            RG.err('World.City', 'connectQuarters',
-                `Use addQuarter ${q1} and ${q2} to city before connection.`);
-        }
-
+        connectSubFeatures(_quarters, q1Arg, q2Arg, l1, l2);
     };
 
 };
