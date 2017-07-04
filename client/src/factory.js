@@ -27,8 +27,8 @@ const cityConfBase = function(_parser, conf) {
     const userConf = conf || {};
     const obj = {
         nHouses: 10, minHouseX: 5, maxHouseX: 10, minHouseY: 5,
-        maxHouseY: 10, parser: _parser,
-        func: function(item) {return item.type === 'armour';}
+        maxHouseY: 10, parser: _parser, nShops: 1,
+        shopFunc: [item => item.type === 'armour']
     };
     const result = Object.assign(obj, userConf);
     return result;
@@ -208,7 +208,7 @@ RG.Factory.Base = function() { // {{{2
             mapObj = mapgen.createTown(cols, rows, conf);
             level.setMap(mapObj.map);
             this.createHouseElements(level, mapObj, conf);
-            this.createShop(level, mapObj, conf);
+            this.createShops(level, mapObj, conf);
         }
         else if (levelType === 'forest') {
             if (!RG.isNullOrUndef([conf.forest])) {
@@ -250,39 +250,61 @@ RG.Factory.Base = function() { // {{{2
     /* Creates a shop and a shopkeeper into a random house in the given level.
      * Level should already contain empty houses where the shop is created at
      * random. */
-    this.createShop = function(level, mapObj, conf) {
+    this.createShops = function(level, mapObj, conf) {
         if (mapObj.hasOwnProperty('houses')) {
             const houses = mapObj.houses;
-            const index = RG.RAND.randIndex(houses);
-            const house = mapObj.houses[index];
-            const floor = house.floor;
 
-            const doorXY = house.door;
-            const door = new RG.Element.Door(true);
-            level.addElement(door, doorXY[0], doorXY[1]);
+            const usedHouses = [];
+            const watchDog = 0;
+            for (let n = 0; n < conf.nShops; n++) {
 
-            const keeper = this.createActor('shopkeeper', {brain: 'Human'});
-            const gold = new RG.Item.GoldCoin('Gold coin');
-            gold.count = 100;
-            keeper.getInvEq().addItem(gold);
-            for (let i = 0; i < floor.length; i++) {
-                const xy = floor[i];
-                if (i === 0) {level.addActor(keeper, xy[0], xy[1]);}
-                const shopElem = new RG.Element.Shop();
-                shopElem.setShopkeeper(keeper);
-                level.addElement(shopElem, xy[0], xy[1]);
+                // Find the next (unused) index for a house
+                let index = RG.RAND.randIndex(houses);
+                while (usedHouses.indexOf(index) >= 0) {
+                    index = RG.RAND.randIndex(houses);
+                    ++watchDog;
+                    if (watchDog === (2 * houses.length)) {
+                        RG.err('Factory.Base', 'createShops',
+                            'WatchDog reached max houses');
+                    }
+                }
 
-                if (conf.hasOwnProperty('parser')) {
-                    const item = conf.parser.createRandomItem({
-                        func: conf.func
-                    });
-                    item.add('Unpaid', new RG.Component.Unpaid());
-                    level.addItem(item, xy[0], xy[1]);
+                const house = mapObj.houses[index];
+                const floor = house.floor;
+                const doorXY = house.door;
+                const door = new RG.Element.Door(true);
+                level.addElement(door, doorXY[0], doorXY[1]);
+
+                const keeper = this.createActor('shopkeeper', {brain: 'Human'});
+                const gold = new RG.Item.GoldCoin('Gold coin');
+                gold.count = 100;
+                keeper.getInvEq().addItem(gold);
+                for (let i = 0; i < floor.length; i++) {
+                    const xy = floor[i];
+                    if (i === 0) {level.addActor(keeper, xy[0], xy[1]);}
+                    const shopElem = new RG.Element.Shop();
+                    shopElem.setShopkeeper(keeper);
+                    level.addElement(shopElem, xy[0], xy[1]);
+
+                    if (conf.hasOwnProperty('parser')) {
+                        if (typeof conf.shopFunc[n] === 'function') {
+                            const item = conf.parser.createRandomItem({
+                                func: conf.shopFunc[n]
+                            });
+                            item.add('Unpaid', new RG.Component.Unpaid());
+                            level.addItem(item, xy[0], xy[1]);
+                        }
+                        else {
+                            RG.err('Factory.Base', 'createShop',
+                                `shopFunc${n} not properly defined.`);
+
+                        }
+                    }
                 }
             }
         }
         else {
-            RG.err('Factory.Base', 'createShop', 'No houses in mapObj.');
+            RG.err('Factory.Base', 'createShops', 'No houses in mapObj.');
         }
     };
 
@@ -434,7 +456,7 @@ RG.Factory.Feature = function() {
     };
 
     this.createCityLevel = function(conf) {
-        const levelConf = cityConfBase(_parser);
+        const levelConf = cityConfBase(_parser, conf);
         const cityLevel = this.createLevel('town', conf.x, conf.y, levelConf);
         return cityLevel;
     };
@@ -802,7 +824,7 @@ RG.Factory.World = function() {
         const cityLevelConf = {
             x: conf.x || 80, y: conf.y || 40,
             nShops: conf.nShops || 1,
-            shop: conf.shop || {type: 'item'}
+            shopFunc: conf.shop || [(item) => (item.type === 'food')]
         };
         for (let i = 0; i < conf.nLevels; i++) {
             let level = null;
@@ -819,7 +841,7 @@ RG.Factory.World = function() {
             quarter.addEntrance(conf.entranceLevel);
         }
         else if (conf.hasOwnProperty('entrance')) {
-            quarter.setEntranceLocation(conf.entrances);
+            quarter.setEntranceLocation(conf.entrance);
         }
         this.popScope(conf.name);
         return quarter;
