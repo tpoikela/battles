@@ -18,10 +18,21 @@ describe('Factory.World', function() {
 
     it('can create cities', () => {
         const cityConf = {
-            name: 'Arkham', nLevels: 1, entranceLevel: 0
+            name: 'Arkham', nQuarters: 2,
+            connect: [
+                ['Q1', 'Q2', 0, 0]
+            ],
+            quarter: [
+                {name: 'Q1', nLevels: 1, entranceLevel: 0},
+                {name: 'Q2', nLevels: 2}
+            ]
         };
         const city = fact.createCity(cityConf);
         expect(city.getName()).to.equal(cityConf.name);
+
+        const qs = city.getQuarters();
+        expect(qs).to.have.length(2);
+        expectConnected(qs[0], qs[1], 1);
     });
 
     it('can create Branch using config object', () => {
@@ -101,9 +112,14 @@ describe('Factory.World', function() {
             name: 'ww',
             nAreas: 1,
             area: [
-                { name: 'a1', maxX: 3, maxY: 3, nCities: 1,
-                    city: [{ x: 2, y: 2, name: 'Ravendark', nLevels: 1,
-                    entranceLevel: 0}]
+                { name: 'a1', maxX: 1, maxY: 1, nCities: 1,
+                    city: [
+                        { x: 0, y: 0, name: 'Ravendark', nQuarters: 1,
+                            quarter: [
+                                {name: 'Q1', nLevels: 1, entranceLevel: 0}
+                            ]
+                        }
+                    ]
                 }
             ]
         };
