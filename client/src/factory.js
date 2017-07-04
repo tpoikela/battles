@@ -750,7 +750,7 @@ RG.Factory.World = function() {
     this.createCity = function(conf) {
         if (this.id2levelSet) {
             this.verifyConf('createCity',
-                conf, ['name', 'Quarters']);
+                conf, ['name', 'nQuarters']);
         }
         else {
             this.verifyConf('createCity',
@@ -819,7 +819,7 @@ RG.Factory.World = function() {
             quarter.addEntrance(conf.entranceLevel);
         }
         else if (conf.hasOwnProperty('entrance')) {
-            quarter.setEntranceLocations(conf.entrances);
+            quarter.setEntranceLocation(conf.entrances);
         }
         this.popScope(conf.name);
         return quarter;
