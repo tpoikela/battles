@@ -28,14 +28,19 @@ describe('RG.Factory.Base', function() {
         const factory = new RG.Factory.Base();
         const conf = {
             parser: new MockParser(),
-            func: function() {return 'dummy';}
+            func: function() {return 'dummy';},
+            nShops: 2,
+            shopFunc: [
+                item => (item.getType() === 'potion'),
+                item => (item.getType() === 'food')
+            ]
         };
 
         const townLevel = factory.createLevel('town', 80, 80, conf);
         const actors = townLevel.getActors();
         const keeper = actors[0];
 
-        expect(actors.length).to.equal(1);
+        expect(actors.length).to.equal(2);
         expect(keeper.getName()).to.equal('shopkeeper');
 
 
