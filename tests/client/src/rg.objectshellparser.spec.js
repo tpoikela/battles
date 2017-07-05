@@ -13,6 +13,11 @@ const Actor = RG.Actor.Rogue;
 
 RG.cellRenderArray = RG.cellRenderVisible;
 
+const wolfShell = {
+    name: 'wolf', attack: 15, defense: 10, damage: '1d6 + 2',
+    hp: 9
+};
+
 //---------------------------------------------------------------------------
 // PARSER TESTS
 //---------------------------------------------------------------------------
@@ -21,10 +26,7 @@ describe('How actors are created from file', function() {
 
     it('Returns base objects and supports also base', function() {
         const parser = new Parser();
-        const wolfNew = parser.parseObjShell('actors', {
-            name: 'wolf', attack: 15, defense: 10, damage: '1d6 + 2',
-            hp: 9
-        });
+        const wolfNew = parser.parseObjShell('actors', wolfShell);
         expect(wolfNew.attack).to.equal(15);
         expect(wolfNew.defense).to.equal(10);
 
@@ -86,6 +88,23 @@ describe('How actors are created from file', function() {
         });
         expect(punyWolfCreated.get('Combat').getDefense()).to.equal(50);
         expect(punyWolfCreated.get('Combat').getAttack()).to.equal(1);
+
+    });
+
+    it('can create actors in constrained-random manner', () => {
+        const parser = new Parser();
+        const wolf = Object.assign({}, wolfShell);
+        wolf.type = 'animal';
+        wolf.danger = 2;
+        parser.parseObjShell(RG.TYPE_ACTOR, wolf);
+
+        let func = actor => (actor.danger <= 1 && actor.type === 'animal');
+        expect(parser.createRandomActor.bind(parser, {func})).to.throw(Error);
+
+        let wolfObj = null;
+        func = actor => (actor.danger <= 2 && actor.type === 'animal');
+        wolfObj = parser.createRandomActor({func});
+        expect(wolfObj).not.to.be.empty;
 
     });
 
@@ -246,7 +265,8 @@ describe('It contains all game content info', function() {
         const rat = parser.get('actors', 'rat');
         expect(rat.hp).to.equal(5);
         const ratObj = parser.createActualObj('actors', 'rat');
-        expect(ratObj.getType()).to.equal('rat');
+        expect(ratObj.getName()).to.equal('rat');
+        expect(ratObj.getType()).to.equal('animal');
         expect(ratObj.get('Health').getHP()).to.equal(5);
         expect(ratObj.get('Health').getMaxHP()).to.equal(5);
         expect(ratObj.get('Combat').getAttack()).to.equal(1);
