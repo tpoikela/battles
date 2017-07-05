@@ -34,7 +34,6 @@ const dungeons = {
     beastDungeon: { x: 0, y: 0, name: 'Beast dungeon', nBranches: 1,
         constraint: {
             actor: actor => {
-                console.log('ccc => actor: ' + JSON.stringify(actor));
                 return (actor.type === 'animal');
             }
         },
