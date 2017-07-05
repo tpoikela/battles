@@ -16,8 +16,7 @@ const RG = require('../src/rg');
 // that for now there's NO merging of constraints. This means that the full
 // constraint object is overwritten.
 
-const Cities = {
-
+const cities = {
     Blashyrkh:
     { x: 2, y: 2, name: 'Blashyrkh', nQuarters: 1,
         quarter: [
@@ -31,6 +30,12 @@ const Cities = {
     },
 };
 
+const dungeons = {
+    smallDungeon: { x: 0, y: 0, name: 'Small dungeon', nBranches: 1,
+        constraint: {actor: actor => (actor.type === 'animal')},
+        branch: [{name: 'main', nLevels: 5, entranceLevel: 0}],
+    },
+};
 
 /* Configuration settings for creating the game world. There's not much to
 * document. Follow the convention to construct your own world. */
@@ -47,10 +52,7 @@ RG.WorldConf = {
             // DUNGEONS
             nDungeons: 2,
             dungeon: [
-                { x: 0, y: 0, name: 'Small dungeon', nBranches: 1,
-                    constraint: {actor: actor => (actor.type === 'animal')},
-                    branch: [{name: 'main', nLevels: 5, entranceLevel: 0}],
-                },
+                dungeons.smallDungeon,
                 { x: 0, y: 0, name: 'BranchTest', nBranches: 2,
                     connect: [
                         ['main', 'side', 0, 0]
@@ -80,7 +82,7 @@ RG.WorldConf = {
                 { x: 0, y: 0, name: 'Petit town', nQuarters: 1,
                     quarter: [{name: 'Center', nLevels: 1, entranceLevel: 0}],
                 },
-                Cities.Blashyrkh,
+                cities.Blashyrkh,
             ],
             // MOUNTAINS
             nMountains: 1,
