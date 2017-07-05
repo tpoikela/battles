@@ -106,4 +106,31 @@ describe('RG.Inv.Inventory', () => {
         invEq.addItem(shuriken);
         expect(inv.getWeight()).to.equal(7.0);
     });
+
+    it('Should not lose the item count (Bug was found)', () => {
+        const player = new RG.Actor.Rogue('player');
+        const invEq = player.getInvEq();
+        const inv = invEq.getInventory();
+
+        const dart = new RG.Item.Missile('Dart');
+        dart.count = 1;
+        const arrow = new RG.Item.Missile('Arrow');
+        arrow.count = 1;
+
+        invEq.addItem(dart);
+        invEq.addItem(arrow);
+        expect(invEq.equipItem(dart)).to.equal(true);
+        expect(invEq.equipItem(arrow)).to.equal(false);
+
+        let items = inv.getItems();
+        expect(items[0].count).to.equal(1);
+
+        invEq.unequipItem('missile', 1);
+        expect(items).to.have.length(2);
+        expect(invEq.equipNItems(dart, 1)).to.equal(true);
+        expect(invEq.equipNItems(arrow, 1)).to.equal(false);
+
+        items = inv.getItems();
+        expect(items[0].count).to.equal(1);
+    });
 });
