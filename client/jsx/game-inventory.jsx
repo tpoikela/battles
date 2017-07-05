@@ -58,6 +58,7 @@ const GameInventory = React.createClass({
                 }
                 this.props.setInventoryMsg(
                     {invMsg: obj.msg, msgStyle: msgStyle});
+                this.props.selectItemTop(null);
             }.bind(this);
             this.props.doInvCmd(cmd);
         }
