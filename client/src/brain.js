@@ -73,7 +73,7 @@ RG.Brain.Player = function(actor) { // {{{2
         }
 
         const code = obj.code;
-        if (!code) {
+        if (RG.isNullOrUndef([code])) {
             RG.err('Brain.Player', 'decideNextAction',
                 `obj.code must exist. Got obj: ${JSON.stringify(obj)}`);
         }
