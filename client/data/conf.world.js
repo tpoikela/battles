@@ -31,8 +31,17 @@ const cities = {
 };
 
 const dungeons = {
+    beastDungeon: { x: 0, y: 0, name: 'Beast dungeon', nBranches: 1,
+        constraint: {
+            actor: actor => {
+                console.log('ccc => actor: ' + JSON.stringify(actor));
+                return (actor.type === 'animal');
+            }
+        },
+        branch: [{name: 'Animals', nLevels: 5, entranceLevel: 0}],
+    },
     smallDungeon: { x: 0, y: 0, name: 'Small dungeon', nBranches: 1,
-        constraint: {actor: actor => (actor.type === 'animal')},
+        // constraint: {actor: actor => (actor.type === 'animal')},
         branch: [{name: 'main', nLevels: 5, entranceLevel: 0}],
     },
 };
@@ -50,9 +59,10 @@ RG.WorldConf = {
             maxY: 4,
             cols: 70, rows: 30,
             // DUNGEONS
-            nDungeons: 2,
+            nDungeons: 3,
             dungeon: [
                 dungeons.smallDungeon,
+                dungeons.beastDungeon,
                 { x: 0, y: 0, name: 'BranchTest', nBranches: 2,
                     connect: [
                         ['main', 'side', 0, 0]
