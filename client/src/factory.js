@@ -492,7 +492,6 @@ RG.extend2(RG.Factory.Feature, RG.Factory.Base);
 RG.Factory.World = function() {
     this.featureFactory = new RG.Factory.Feature();
 
-
     // Can be used to pass already created levels to different features. For
     // example, after restore game, no new levels should be created
     this.id2level = {};
@@ -506,9 +505,14 @@ RG.Factory.World = function() {
     };
 
     this.scope = []; // Keeps track of hierarchical names of places
+    this.confStack = [];
 
-    this.pushScope = function(name) {
-        this.scope.push(name);
+    this.pushScope = function(conf) {
+        this.scope.push(conf.name);
+        this.confStack.push(conf);
+        if (conf.hasOwnProperty('constraint')) {
+            this.pushConstraint(conf.constraint);
+        }
     };
 
     this.popScope = function(name) {
@@ -517,15 +521,29 @@ RG.Factory.World = function() {
             RG.err('Factory.World', 'popScope',
                 `Popped: ${poppedName}, Expected: ${name}`);
         }
+        else {
+            const conf = this.confStack.pop();
+            if (conf.hasOwnProperty('constraint')) {
+                this.popConstraint();
+            }
+        }
     };
 
     // Random constraint management
-    this.constrainStack = [];
+    this.constraintStack = [];
     this.pushConstraint = function(constr) {
-        this.constrainStack.push(constr);
+        this.constraintStack.push(constr);
     };
     this.popConstraint = function() {
-        this.constrainStack.pop();
+        this.constraintStack.pop();
+    };
+    /* Returns the current constraint in effect. */
+    this.getConstraint = function() {
+        const len = this.constraintStack.length;
+        if (len) {
+            return this.constraintStack[len - 1];
+        }
+        return null;
     };
 
 
@@ -551,7 +569,7 @@ RG.Factory.World = function() {
     /* Creates a world using given configuration. */
     this.createWorld = function(conf) {
         this.verifyConf('createWorld', conf, ['name', 'nAreas']);
-        this.pushScope(conf.name);
+        this.pushScope(conf);
         const world = new RG.World.World(conf.name);
         for (let i = 0; i < conf.nAreas; i++) {
             const areaConf = conf.area[i];
@@ -566,7 +584,7 @@ RG.Factory.World = function() {
     this.createArea = function(conf) {
         this.verifyConf('createArea', conf,
             ['name', 'maxX', 'maxY']);
-        this.pushScope(conf.name);
+        this.pushScope(conf);
 
         // TODO deal with levels when restoring
         let areaLevels = null;
@@ -641,7 +659,7 @@ RG.Factory.World = function() {
     this.createDungeon = function(conf) {
         this.verifyConf('createDungeon', conf,
             ['name', 'nBranches']);
-        this.pushScope(conf.name);
+        this.pushScope(conf);
 
         const dungeon = new RG.World.Dungeon(conf.name);
         dungeon.setHierName(this.getHierName());
@@ -692,7 +710,7 @@ RG.Factory.World = function() {
     this.createBranch = function(conf) {
         this.verifyConf('createBranch', conf,
             ['name', 'nLevels']);
-        this.pushScope(conf.name);
+        this.pushScope(conf);
         const branch = new RG.World.Branch(conf.name);
         branch.setHierName(this.getHierName());
         for (let i = 0; i < conf.nLevels; i++) {
@@ -735,7 +753,7 @@ RG.Factory.World = function() {
 
     this.createMountain = function(conf) {
         this.verifyConf('createMountain', conf, ['name', 'nFaces']);
-        this.pushScope(conf.name);
+        this.pushScope(conf);
         const mountain = new RG.World.Mountain(conf.name);
         mountain.setHierName(this.getHierName());
 
@@ -759,7 +777,7 @@ RG.Factory.World = function() {
         }
 
         const faceName = conf.name;
-        this.pushScope(faceName);
+        this.pushScope(conf);
         const face = new RG.World.MountainFace(faceName);
         const mLevelConf = { x: conf.x, y: conf.y};
 
@@ -795,7 +813,7 @@ RG.Factory.World = function() {
             this.verifyConf('createCity',
                 conf, ['name', 'nQuarters']);
         }
-        this.pushScope(conf.name);
+        this.pushScope(conf);
         const city = new RG.World.City(conf.name);
         city.setHierName(this.getHierName());
         for (let i = 0; i < conf.nQuarters; i++) {
@@ -834,7 +852,7 @@ RG.Factory.World = function() {
     this.createCityQuarter = function(conf) {
         this.verifyConf('createCityQuarter',
             conf, ['name', 'nLevels']);
-        this.pushScope(conf.name);
+        this.pushScope(conf);
         const quarter = new RG.World.CityQuarter(conf.name);
         quarter.setHierName(this.getHierName());
 
