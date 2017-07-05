@@ -99,9 +99,9 @@ class BattlesTop extends React.Component {
         this.resetGameState();
 
         this.viewportPlayerX = 35; // * 2
-        this.viewportPlayerY = 12; // * 2
+        this.viewportPlayerY = 15; // * 2
         this.viewportX = 35; // * 2
-        this.viewportY = 12; // * 2
+        this.viewportY = 15; // * 2
 
         // Simple configuration for the game
         this.gameConf = {
