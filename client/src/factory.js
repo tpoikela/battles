@@ -339,15 +339,35 @@ RG.Factory.Base = function() { // {{{2
         const maxDanger = conf.maxDanger;
         for (let i = 0; i < conf.monstersPerLevel; i++) {
             const cell = level.getFreeRandCell();
-            const monster = parser.createRandomActorWeighted(1, maxDanger,
-                {func: function(actor) {return actor.danger <= maxDanger;}}
-            );
+
+            // Generic randomization with danger level
+            let monster = null;
+            if (!conf.func) {
+                monster = parser.createRandomActorWeighted(1, maxDanger,
+                    {func: function(actor) {return actor.danger <= maxDanger;}}
+                );
+            }
+            else {
+                monster = parser.createRandomActor({
+                    func: (actor) => (conf.func(actor) &&
+                        actor.danger <= maxDanger)
+                });
+            }
+
+            // This levels up the actor to match current danger level
             const objShell = parser.dbGet('actors', monster.getName());
             const expLevel = maxDanger - objShell.danger;
             if (expLevel > 1) {
                 RG.levelUpActor(monster, expLevel);
             }
-            level.addActor(monster, cell.getX(), cell.getY());
+
+            if (monster) {
+                level.addActor(monster, cell.getX(), cell.getY());
+            }
+            else {
+                RG.err('Factory.Feature', 'addNRandMonsters',
+                    `Generated monster null. Conf: ${JSON.stringify(conf)}`);
+            }
         }
     };
 
@@ -442,9 +462,18 @@ RG.Factory.Feature = function() {
         this.addNRandItems(level, _parser, itemConf);
 
         const actorConf = {
-            monstersPerLevel,
-            maxDanger: conf.nLevel + 1
+            monstersPerLevel: conf.monstersPerLevel || monstersPerLevel,
+            maxDanger: conf.maxDanger || conf.nLevel + 1
         };
+        if (conf.actor) {
+            if (typeof conf.actor === 'function') {
+                actorConf.func = conf.actor;
+            }
+            else {
+                RG.err('Factory.Feature', 'addItemsAndMonsters',
+                    'conf.actor must be a function');
+            }
+        }
         this.addNRandMonsters(level, _parser, actorConf);
 
         const goldConf = {
@@ -713,6 +742,9 @@ RG.Factory.World = function() {
         this.pushScope(conf);
         const branch = new RG.World.Branch(conf.name);
         branch.setHierName(this.getHierName());
+
+        const constraint = this.getConstraint();
+
         for (let i = 0; i < conf.nLevels; i++) {
             // TODO: Level configuration can be quite complex. Support random
             // and customly created levels somehow
@@ -722,9 +754,12 @@ RG.Factory.World = function() {
                 sqrPerMonster: 40,
                 sqrPerItem: 40,
                 maxValue: 20 * (i + 1),
-                nLevel: i,
-                special: [] // TODO for special levels
+                nLevel: i
             };
+            if (constraint) {
+                levelConf.actor = constraint.actor;
+            }
+
             let level = null;
             if (conf.levels) {
                 level = this.id2level[conf.levels[i]];
@@ -914,8 +949,8 @@ RG.Factory.World = function() {
             }
         }
         else { // No entrance for feature, what to do?
-            console.warn(
-                'No getEntrances method for feature. Skipping connect');
+            RG.err('Factory.World', 'createConnection',
+                'No getEntrances method for feature.');
         }
     };
 };
