@@ -25,11 +25,11 @@ var RGObjects = {
             range: 1, danger: 1, speed: 100, brain: 'Animal'
         },
         {
-            name: 'bat', type: 'bat', char: 'b', base: 'animal',
+            name: 'bat', char: 'b', base: 'animal',
             defense: 2
         },
         {
-            name: 'rat', type: 'rat', char: 'r', base: 'animal'
+            name: 'rat', char: 'r', base: 'animal'
         },
         {
             name: 'rattlesnake', char: 's', base: 'animal',
