@@ -855,15 +855,17 @@ RG.POOL = new RG.EventPool(); // Dangerous, global objects
 /* Handles the game message listening and storing of the messages.  */
 RG.MessageHandler = function() { // {{{2
 
-    let _message = [];
-    let _prevMessage = [];
+    let _lastMsg = null;
+
+    let _messages = [];
+    let _prevMessages = [];
     let _hasNew = false;
 
     this.hasNotify = true;
     this.notify = function(evtName, msg) {
         if (evtName === RG.EVT_MSG) {
             if (msg.hasOwnProperty('msg')) {
-                const msgObj = {msg: msg.msg, style: 'prim'};
+                const msgObj = {msg: msg.msg, style: 'prim', count: 1};
 
                 if (msg.hasOwnProperty('cell')) {
                     msgObj.cell = msg.cell;
@@ -873,7 +875,13 @@ RG.MessageHandler = function() { // {{{2
                     msgObj.style = msg.style;
                 }
 
-                _message.push(msgObj);
+                if (_lastMsg && _lastMsg.msg === msgObj.msg) {
+                    _lastMsg.count += 1;
+                }
+                else {
+                    _lastMsg = msgObj;
+                    _messages.push(msgObj);
+                }
                 _hasNew = true;
             }
         }
@@ -884,14 +892,14 @@ RG.MessageHandler = function() { // {{{2
 
     this.getMessages = function() {
         _hasNew = false;
-        if (_message.length > 0) {return _message;}
-        else if (_prevMessage.length > 0) {return _prevMessage;}
+        if (_messages.length > 0) {return _messages;}
+        else if (_prevMessages.length > 0) {return _prevMessages;}
         else {return [];}
     };
 
     this.clear = function() {
-        if (_message.length > 0) {_prevMessage = _message.slice();}
-        _message = [];
+        if (_messages.length > 0) {_prevMessages = _messages.slice();}
+        _messages = [];
     };
 
 }; // }}} Messages
