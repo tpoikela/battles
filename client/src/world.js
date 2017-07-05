@@ -240,9 +240,11 @@ RG.World.Branch = function(name) {
             name: this.getName(),
             hierName: this.getHierName(),
             nLevels: _levels.length,
-            levels: _levels.map(level => level.getID()),
-            entrance: _entrance
+            levels: _levels.map(level => level.getID())
         };
+        if (_entrance) {
+            obj.entrance = _entrance;
+        }
         return obj;
     };
 
@@ -711,9 +713,11 @@ RG.World.MountainFace = function(name) {
             name: this.getName(),
             hierName: this.getHierName(),
             nLevels: _levels.length,
-            levels: _levels.map(level => level.getID()),
-            entrance: _entrance
+            levels: _levels.map(level => level.getID())
         };
+        if (_entrance) {
+            obj.entrance = _entrance;
+        }
         return obj;
     };
 
@@ -861,10 +865,11 @@ RG.World.CityQuarter = function(name) {
             name: this.getName(),
             hierName: this.getHierName(),
             nLevels: _levels.length,
-            levels: _levels.map(level => level.getID()),
-            entrance: _entrance
+            levels: _levels.map(level => level.getID())
         };
-        console.log('CityQuarter JSON: ' + JSON.stringify(obj));
+        if (_entrance) {
+            obj.entrance = _entrance;
+        }
         return obj;
     };
 };
