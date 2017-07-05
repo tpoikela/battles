@@ -2,6 +2,12 @@
 
 const RG = require('../src/rg');
 
+
+// Note:
+// An object with key 'constraint' can be passed at any level. This contains
+// info about procedural generation.
+
+
 const cityBlashyrkh =
     { x: 2, y: 2, name: 'Blashyrkh', nQuarters: 1,
         quarter: [
