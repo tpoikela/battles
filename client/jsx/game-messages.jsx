@@ -41,7 +41,12 @@ const GameMessages = React.createClass({
                 }
 
                 const count = val.count === 1 ? '' : ` (x${val.count})`;
-                const fullMsg = `${val.msg}${count}`;
+                let fullMsg = `${val.msg}${count}`;
+
+                if (!fullMsg.match(/.$/)) {
+                    fullMsg += '.';
+                }
+                fullMsg += ' ';
 
                 if (index >= 0 || val.seen) {
                     return (
