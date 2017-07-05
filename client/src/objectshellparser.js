@@ -486,8 +486,15 @@ RG.ObjectShellParser = function() {
     };
 
     /* Creates actual game object from obj shell in given category.*/
-    this.CreateFromShell = function(categ, obj) {
-        return this.createActualObj(categ, obj.name);
+    this.createFromShell = function(categ, obj) {
+        if (obj) {
+            return this.createActualObj(categ, obj.name);
+        }
+        else {
+            RG.err('RG.ObjectShellParser', 'createFromShell',
+                'obj given must be defined.');
+        }
+        return null;
     };
 
     /* Factory-method for creating the actual game objects.*/
@@ -651,7 +658,7 @@ RG.ObjectShellParser = function() {
             const danger = obj.danger;
             randShell = this.dbGetRand({danger, categ: 'actors'});
             if (randShell !== null) {
-                return this.CreateFromShell('actors', randShell);
+                return this.createFromShell('actors', randShell);
             }
             else {
                 return null;
@@ -660,7 +667,7 @@ RG.ObjectShellParser = function() {
         else if (obj.hasOwnProperty('func')) {
             const res = this.filterCategWithFunc('actors', obj.func);
             randShell = RG.RAND.arrayGetRand(res);
-            return this.CreateFromShell('actors', randShell);
+            return this.createFromShell('actors', randShell);
         }
         return null;
     };
@@ -696,7 +703,7 @@ RG.ObjectShellParser = function() {
         if (obj.hasOwnProperty('func')) {
             const res = this.filterCategWithFunc('items', obj.func);
             const randShell = RG.RAND.arrayGetRand(res);
-            return this.CreateFromShell('items', randShell);
+            return this.createFromShell('items', randShell);
         }
         else {
             RG.err('ObjectParser', 'createRandomItem', 'No function given.');
