@@ -35,13 +35,14 @@ describe('Function: Saving/restoring a game', function() {
 
         const numLevelsBefore = game.getLevels().length;
         const levelIDsBefore = game.getLevels().map(level => level.getID());
+        console.log('Now serializing the game.');
         let json = game.toJSON();
+        console.log(JSON.stringify(json, null, ' '));
         const levelIDsJSON = json.levels.map(level => level.id);
         expect(levelIDsJSON, 'Level IDs in JSON are preserved')
             .to.deep.equal(levelIDsBefore);
 
         for (let i = 0; i < 2; i++) {
-            console.log('Now serializing the game.');
             const fromJSON = new RG.Game.FromJSON();
             console.log('Now restoring game from serialized object.');
             const restGame = fromJSON.createGame(json);
@@ -64,7 +65,9 @@ describe('Function: Saving/restoring a game', function() {
             expect(Object.keys(places)).to.have.length(1);
             const world = places[worldConf.name];
             expect(world.getName()).to.equal(worldConf.name);
+            console.log('Now serializing the game.');
             json = restGame.toJSON();
+            console.log(JSON.stringify(json, null, ' '));
         }
     });
 });
