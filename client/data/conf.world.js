@@ -5,20 +5,31 @@ const RG = require('../src/rg');
 
 // Note:
 // An object with key 'constraint' can be passed at any level. This contains
-// info about procedural generation.
+// info about procedural generation. There are scopes for constraints. The
+// innermost constraint is taken into account, and the rest are ignored.
+// Priority goes like this:
+//      0. Level
+//      1. Branch/Quarter/Face
+//      2. Dungeon/Mountain/City
+//      3. World.
+// For example, anything level-specific overrides all other constraints. Note
+// that for now there's NO merging of constraints. This means that the full
+// constraint object is overwritten.
 
+const Cities = {
 
-const cityBlashyrkh =
+    Blashyrkh:
     { x: 2, y: 2, name: 'Blashyrkh', nQuarters: 1,
         quarter: [
-            {name: 'Center', nLevels: 1, entranceLevel: 0, nShops: 1,
+            {name: 'Center', nLevels: 1, entranceLevel: 0, nShops: 2,
                 shop: [
                     item => item.type === 'food',
                     item => item.value < 100 && item.type === 'weapon',
                 ]
             },
         ],
-    };
+    },
+};
 
 
 /* Configuration settings for creating the game world. There's not much to
@@ -36,7 +47,8 @@ RG.WorldConf = {
             // DUNGEONS
             nDungeons: 2,
             dungeon: [
-                { x: 0, y: 0, name: 'd1', nBranches: 1,
+                { x: 0, y: 0, name: 'Small dungeon', nBranches: 1,
+                    constraint: {actor: actor => (actor.type === 'animal')},
                     branch: [{name: 'main', nLevels: 5, entranceLevel: 0}],
                 },
                 { x: 0, y: 0, name: 'BranchTest', nBranches: 2,
@@ -68,7 +80,7 @@ RG.WorldConf = {
                 { x: 0, y: 0, name: 'Petit town', nQuarters: 1,
                     quarter: [{name: 'Center', nLevels: 1, entranceLevel: 0}],
                 },
-                cityBlashyrkh,
+                Cities.Blashyrkh,
             ],
             // MOUNTAINS
             nMountains: 1,
