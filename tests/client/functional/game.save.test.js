@@ -35,30 +35,36 @@ describe('Function: Saving/restoring a game', function() {
 
         const numLevelsBefore = game.getLevels().length;
         const levelIDsBefore = game.getLevels().map(level => level.getID());
-        const json = game.toJSON();
+        let json = game.toJSON();
         const levelIDsJSON = json.levels.map(level => level.id);
         expect(levelIDsJSON, 'Level IDs in JSON are preserved')
             .to.deep.equal(levelIDsBefore);
 
-        console.log('Now serializing the game.');
-        const fromJSON = new RG.Game.FromJSON();
-        console.log('Now restoring game from serialized object.');
-        const restGame = fromJSON.createGame(json);
+        for (let i = 0; i < 2; i++) {
+            console.log('Now serializing the game.');
+            const fromJSON = new RG.Game.FromJSON();
+            console.log('Now restoring game from serialized object.');
+            const restGame = fromJSON.createGame(json);
 
-        console.log('Starting the checks for this test');
-        expect(restGame.getPlayer().getName()).to.equal(gameConf.playerName);
+            console.log('Starting the checks for this test');
+            expect(restGame.getPlayer().getName())
+                .to.equal(gameConf.playerName);
 
-        const numLevelsAfter = restGame.getLevels().length;
-        const levelIDsAfter = restGame.getLevels().map(level => level.getID());
-        expect(numLevelsAfter, 'Levels must match after restore'
-            ).to.equal(numLevelsBefore);
+            const numLevelsAfter = restGame.getLevels().length;
+            const levelIDsAfter = restGame.getLevels()
+                .map(level => level.getID());
 
-        expect(levelIDsAfter, 'Level IDs are preserved')
-            .to.deep.equal(levelIDsBefore);
+            expect(numLevelsAfter, 'Levels must match after restore'
+                ).to.equal(numLevelsBefore);
 
-        const places = restGame.getPlaces();
-        expect(Object.keys(places)).to.have.length(1);
-        const world = places[worldConf.name];
-        expect(world.getName()).to.equal(worldConf.name);
+            expect(levelIDsAfter, 'Level IDs are preserved')
+                .to.deep.equal(levelIDsBefore);
+
+            const places = restGame.getPlaces();
+            expect(Object.keys(places)).to.have.length(1);
+            const world = places[worldConf.name];
+            expect(world.getName()).to.equal(worldConf.name);
+            json = restGame.toJSON();
+        }
     });
 });
