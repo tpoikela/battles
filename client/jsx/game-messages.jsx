@@ -16,6 +16,12 @@ const GameMessages = React.createClass({
         return nextProps.message.length > 0;
     },
 
+    propTypes: {
+        message: React.PropTypes.array,
+        visibleCells: React.PropTypes.array,
+        saveInProgress: React.PropTypes.bool
+    },
+
     render: function() {
         const message = this.props.message;
         const styles = this.styleToClassName;
@@ -24,8 +30,8 @@ const GameMessages = React.createClass({
         let msgList = <span>Saving the game...</span>;
         if (!this.props.saveInProgress) {
             msgList = message.map( function(val, itemIndex) {
-                var className = styles[val.style];
-                var index = 1;
+                const className = styles[val.style];
+                let index = 1;
 
                 if (!val.hasOwnProperty('seen')) {
                     if (val.hasOwnProperty('cell')) {
@@ -34,9 +40,20 @@ const GameMessages = React.createClass({
                     }
                 }
 
+                const count = val.count === 1 ? '' : ` (x${val.count})`;
+                const fullMsg = `${val.msg}${count}`;
+
                 if (index >= 0 || val.seen) {
-                    return (<span key={itemIndex} className={className}>{val.msg}.</span>);
+                    return (
+                        <span
+                            className={className}
+                            key={itemIndex}
+                            >
+                            {fullMsg}
+                        </span>
+                    );
                 }
+                return null;
             });
         }
 
