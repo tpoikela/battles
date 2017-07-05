@@ -16,6 +16,26 @@ describe('Factory.World', function() {
         fact = null;
     });
 
+    it('has scope and hier name management', () => {
+        const conf1 = {name: 'Top'};
+        const conf2 = {name: 'Sub', constraint: 'abc'};
+        const conf3 = {name: 'SubSub'};
+        const conf4 = {name: 'Bottom', constraint: 'xyz'};
+        fact.pushScope(conf1);
+        fact.pushScope(conf2);
+        expect(fact.getHierName()).to.equal('Top.Sub');
+        expect(fact.getConstraint()).to.equal('abc');
+        fact.pushScope(conf3);
+        expect(fact.getHierName()).to.equal('Top.Sub.SubSub');
+        expect(fact.getConstraint()).to.equal('abc');
+        fact.pushScope(conf4);
+        expect(fact.getConstraint()).to.equal('xyz');
+        fact.popScope(conf4.name);
+        expect(fact.getConstraint()).to.equal('abc');
+        fact.popScope(conf3.name);
+        expect(fact.getConstraint()).to.equal('abc');
+    });
+
     it('can create cities', () => {
         const cityConf = {
             name: 'Arkham', nQuarters: 2,
