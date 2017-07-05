@@ -255,7 +255,7 @@ RG.Factory.Base = function() { // {{{2
             const houses = mapObj.houses;
 
             const usedHouses = [];
-            const watchDog = 0;
+            let watchDog = 0;
             for (let n = 0; n < conf.nShops; n++) {
 
                 // Find the next (unused) index for a house
@@ -317,11 +317,11 @@ RG.Factory.Base = function() { // {{{2
     };
 
     /* Adds N random items to the level based on maximum value.*/
-    this.addNRandItems = function(parser, itemsPerLevel, level, maxVal, func) {
+    this.addNRandItems = function(level, parser, conf) {
         // Generate the items randomly for this level
-        for (let j = 0; j < itemsPerLevel; j++) {
-            const item = parser.createRandomItem({func});
-            _doItemSpecificAdjustments(item, maxVal);
+        for (let j = 0; j < conf.itemsPerLevel; j++) {
+            const item = parser.createRandomItem({func: conf.func});
+            _doItemSpecificAdjustments(item, conf.maxVal);
             const itemCell = level.getFreeRandCell();
             level.addItem(item, itemCell.getX(), itemCell.getY());
         }
@@ -329,18 +329,16 @@ RG.Factory.Base = function() { // {{{2
             return item.type === 'food';
         }});
         const foodCell = level.getFreeRandCell();
-        _doItemSpecificAdjustments(food, maxVal);
+        _doItemSpecificAdjustments(food, conf.maxVal);
         level.addItem(food, foodCell.getX(), foodCell.getY());
     };
 
     /* Adds N random monsters to the level based on given danger level.*/
-    this.addNRandMonsters = (parser, monstersPerLevel, level, maxDanger) => {
+    this.addNRandMonsters = (level, parser, conf) => {
         // Generate the monsters randomly for this level
-        for (let i = 0; i < monstersPerLevel; i++) {
+        const maxDanger = conf.maxDanger;
+        for (let i = 0; i < conf.monstersPerLevel; i++) {
             const cell = level.getFreeRandCell();
-            /* const monster = parser.createRandomActor({
-                func: function(actor){return actor.danger <= maxDanger;}
-            });*/
             const monster = parser.createRandomActorWeighted(1, maxDanger,
                 {func: function(actor) {return actor.danger <= maxDanger;}}
             );
@@ -353,10 +351,10 @@ RG.Factory.Base = function() { // {{{2
         }
     };
 
-    this.addRandomGold = function(parser, goldPerLevel, level, nLevel) {
-        for (let i = 0; i < goldPerLevel; i++) {
+    this.addRandomGold = function(level, parser, conf) {
+        for (let i = 0; i < conf.goldPerLevel; i++) {
             const gold = parser.createActualObj(RG.TYPE_ITEM, 'Gold coin');
-            _doItemSpecificAdjustments(gold, nLevel);
+            _doItemSpecificAdjustments(gold, conf.nLevel);
             level.addToRandomCell(gold);
         }
     };
@@ -380,7 +378,7 @@ RG.Factory.Base = function() { // {{{2
 
     };
 
-    this.spawnDemonArmy = function(level, parser) {
+    this.createDemonArmy = function(level, parser) {
         for (let y = 0; y < 2; y++) {
             for (let i = 0; i < 10; i++) {
                 const demon = parser.createActualObj('actors', 'Winter demon');
@@ -391,7 +389,7 @@ RG.Factory.Base = function() { // {{{2
         }
     };
 
-    this.spawnBeastArmy = function(level, parser) {
+    this.createDemonArmy = function(level, parser) {
         const x0 = level.getMap().cols / 2;
         const y0 = level.getMap().rows / 2;
         for (let y = y0; y < y0 + 2; y++) {
@@ -424,7 +422,7 @@ RG.Factory.Feature = function() {
         return type[nLevelType];
     };
 
-    this.addItemsAndMonsters = function(conf, level) {
+    this.addItemsAndMonsters = function(level, conf) {
         const numFree = level.getMap().getFree().length;
         const monstersPerLevel = Math.round(numFree / conf.sqrPerMonster);
         const itemsPerLevel = Math.round(numFree / conf.sqrPerItem);
@@ -437,21 +435,29 @@ RG.Factory.Feature = function() {
             return function(item) {return item.value <= maxVal;};
         };
 
-        this.addNRandItems(_parser, itemsPerLevel, level, conf.maxValue,
-            itemConstraint(conf.maxValue)
-        );
-        this.addNRandMonsters(
-            _parser, monstersPerLevel, level, conf.nLevel + 1);
+        const itemConf = {
+            itemsPerLevel, func: itemConstraint(conf.maxValue),
+            maxValue: conf.maxValue
+        };
+        this.addNRandItems(level, _parser, itemConf);
 
-        this.addRandomGold(
-            _parser, goldPerLevel, level, conf.nLevel + 1);
+        const actorConf = {
+            monstersPerLevel,
+            maxDanger: conf.nLevel + 1
+        };
+        this.addNRandMonsters(level, _parser, actorConf);
+
+        const goldConf = {
+            goldPerLevel, nLevel: conf.nLevel + 1
+        };
+        this.addRandomGold(level, _parser, goldConf);
     };
 
     /* Creates random dungeon level. */
     this.createDungeonLevel = function(conf) {
         const levelType = this.getRandLevelType();
         const level = this.createLevel(levelType, conf.x, conf.y);
-        this.addItemsAndMonsters(conf, level);
+        this.addItemsAndMonsters(level, conf);
         return level;
     };
 
@@ -471,7 +477,7 @@ RG.Factory.Feature = function() {
         debug(`Creating mountain level with ${conf}`);
         const mountainLevel = this.createLevel('mountain',
             conf.x, conf.y, mountConf);
-        this.addItemsAndMonsters(mountConf, mountainLevel);
+        this.addItemsAndMonsters(mountainLevel, mountConf);
         return mountainLevel;
     };
 };
@@ -485,6 +491,7 @@ RG.extend2(RG.Factory.Feature, RG.Factory.Base);
  */
 RG.Factory.World = function() {
     this.featureFactory = new RG.Factory.Feature();
+
 
     // Can be used to pass already created levels to different features. For
     // example, after restore game, no new levels should be created
@@ -500,17 +507,27 @@ RG.Factory.World = function() {
 
     this.scope = []; // Keeps track of hierarchical names of places
 
-    this.pushScope = name => {
+    this.pushScope = function(name) {
         this.scope.push(name);
     };
 
-    this.popScope = name => {
+    this.popScope = function(name) {
         const poppedName = this.scope.pop();
         if (poppedName !== name) {
             RG.err('Factory.World', 'popScope',
                 `Popped: ${poppedName}, Expected: ${name}`);
         }
     };
+
+    // Random constraint management
+    this.constrainStack = [];
+    this.pushConstraint = function(constr) {
+        this.constrainStack.push(constr);
+    };
+    this.popConstraint = function() {
+        this.constrainStack.pop();
+    };
+
 
     /* Returns the full hierarchical name of feature. */
     this.getHierName = () => this.scope.join('.');
@@ -682,10 +699,10 @@ RG.Factory.World = function() {
             // TODO: Level configuration can be quite complex. Support random
             // and customly created levels somehow
             const levelConf = {
-                x: 40,
-                y: 40,
-                sqrPerMonster: 20,
-                sqrPerItem: 20,
+                x: 80,
+                y: 30,
+                sqrPerMonster: 40,
+                sqrPerItem: 40,
                 maxValue: 20 * (i + 1),
                 nLevel: i,
                 special: [] // TODO for special levels
@@ -993,7 +1010,7 @@ RG.Factory.Game = function() {
                 () => {}, 35 * 100, MSG.EYE_OF_STORM);
             _game.addEvent(stormEvent);
             const beastEvent = new RG.Time.RogueOneShotEvent(
-                that.spawnBeastArmy.bind(that, _level, _parser), 50 * 100,
+                that.createDemonArmy.bind(that, _level, _parser), 50 * 100,
                 'Winter spread by Blizzard Beasts! Hell seems to freeze.');
             _game.addEvent(beastEvent);
         };
@@ -1070,10 +1087,17 @@ RG.Factory.Game = function() {
             level.addItem(missile);
 
             const maxVal = 20 * (nl + 1);
-            this.addNRandItems(_parser, itemsPerLevel, level, maxVal,
-                itemConstraint(maxVal)
-            );
-            this.addNRandMonsters(_parser, monstersPerLevel, level, nl + 1);
+            const itemConf = {
+                itemsPerLevel, func: itemConstraint(maxVal),
+                maxValue: maxVal
+            };
+            this.addNRandItems(level, _parser, itemConf);
+
+            const actorConf = {
+                monstersPerLevel,
+                maxDanger: nl + 1
+            };
+            this.addNRandMonsters(level, _parser, actorConf);
 
             allLevels.push(level);
         }
@@ -1207,8 +1231,13 @@ RG.Factory.Game = function() {
         const numFree = level.getMap().getFree().length;
         // const monstersPerLevel = Math.round(numFree / sqrPerMonster);
         const itemsPerLevel = Math.round(numFree / sqrPerItem);
-        this.addNRandItems(_parser, itemsPerLevel, level, 2500,
-            function(item) {return item.value <= 2500;});
+
+        const itemConf = {
+            itemsPerLevel,
+            func: (item) => (item.value <= 2500),
+            maxValue: 2500
+        };
+        this.addNRandItems(level, _parser, itemConf);
         game.addPlayer(player);
 
         const pepper = _parser.createActualObj('items', 'Ghost pepper');
@@ -1259,7 +1288,7 @@ RG.Factory.Game = function() {
 
         level.setOnFirstEnter(function() {
             const demonEvent = new RG.Time.RogueOneShotEvent(
-                that.spawnDemonArmy.bind(that, level, _parser), 100 * 20,
+                that.createDemonArmy.bind(that, level, _parser), 100 * 20,
                 'Demon hordes are unleashed from the unsilent abyss!');
             game.addEvent(demonEvent);
         });
