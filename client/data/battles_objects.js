@@ -19,7 +19,7 @@ var RGObjects = {
 
         // ANIMALS
         {
-            name: 'animal', dontCreate: true,
+            name: 'animal', dontCreate: true, type: 'animal',
             className: 'cell-actor-animal',
             attack: 1, defense: 1, hp: 5,
             range: 1, danger: 1, speed: 100, brain: 'Animal'
