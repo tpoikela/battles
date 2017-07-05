@@ -665,7 +665,7 @@ RG.ObjectShellParser = function() {
         return null;
     };
 
-    // Uses engine's internal weighting algorithm when givel a level number.
+    // Uses engine's internal weighting algorithm when given a level number.
     // Note that this method can return null, if no correct danger level is
     // found. You can supply {func: ...} as a fallback solution.
     this.createRandomActorWeighted = function(min, max, obj) {
@@ -675,6 +675,8 @@ RG.ObjectShellParser = function() {
         }
         const danger = ROT.RNG.getWeightedValue(_cache.actorWeights[key]);
         const actor = this.createRandomActor({danger});
+
+        // Fallback to using a function, obj.func
         if (RG.isNullOrUndef([actor])) {
             if (!RG.isNullOrUndef([obj])) {
                 return this.createRandomActor(obj);
