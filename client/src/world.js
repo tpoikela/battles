@@ -469,8 +469,8 @@ RG.World.Area = function(name, maxX, maxY, cols, rows, levels) {
                 else {
                     level = RG.FACT.createLevel('forest',
                         _cols, _rows, levelConf);
-                    level.setParent(this.getName());
                 }
+                level.setParent(this.getName());
                 newTile.setLevel(level);
                 tileColumn.push(newTile);
             }
