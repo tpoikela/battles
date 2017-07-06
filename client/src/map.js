@@ -683,7 +683,15 @@ RG.Map.Level = function() { // {{{2
     this.setID = function(id) {_id = id;};
 
     this.getParent = function() {return _parent;};
-    this.setParent = function(parent) {_parent = parent;};
+    this.setParent = function(parent) {
+        if (!RG.isNullOrUndef([parent])) {
+            _parent = parent;
+        }
+        else {
+            RG.err('Map.Level', 'setParent',
+                'Parent is not defined.');
+        }
+    };
 
     this.getActors = function() {return _p.actors;};
     this.getItems = function() {return _p.items;};
