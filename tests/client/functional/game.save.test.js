@@ -33,33 +33,39 @@ describe('Function: Saving/restoring a game', function() {
         const game = gameFactory.createNewGame(gameConf);
         game.setGUICallbacks(isGUICommand, doGUICommand);
 
+        const parentsBefore = game.getLevels().map(level => level.getParent());
         const numLevelsBefore = game.getLevels().length;
         const levelIDsBefore = game.getLevels().map(level => level.getID());
         console.log('Now serializing the game.');
         let json = game.toJSON();
-        console.log(JSON.stringify(json, null, ' '));
+        // console.log(JSON.stringify(json, null, ' '));
         const levelIDsJSON = json.levels.map(level => level.id);
         expect(levelIDsJSON, 'Level IDs in JSON are preserved')
             .to.deep.equal(levelIDsBefore);
 
+
         for (let i = 0; i < 2; i++) {
             const fromJSON = new RG.Game.FromJSON();
-            console.log('Now restoring game from serialized object.');
+            console.log(`Restoring game ${i} from serialized object.`);
             const restGame = fromJSON.createGame(json);
 
             console.log('Starting the checks for this test');
             expect(restGame.getPlayer().getName())
                 .to.equal(gameConf.playerName);
 
+            const parentsAfter = game.getLevels()
+                .map(level => level.getParent());
             const numLevelsAfter = restGame.getLevels().length;
             const levelIDsAfter = restGame.getLevels()
                 .map(level => level.getID());
 
-            expect(numLevelsAfter, 'Levels must match after restore'
-                ).to.equal(numLevelsBefore);
+            expect(numLevelsAfter, 'Levels must match after restore')
+                .to.equal(numLevelsBefore);
 
             expect(levelIDsAfter, 'Level IDs are preserved')
                 .to.deep.equal(levelIDsBefore);
+            expect(parentsAfter, 'Level parents are preserved')
+                .to.deep.equal(parentsBefore);
 
             const places = restGame.getPlaces();
             expect(Object.keys(places)).to.have.length(1);
@@ -67,7 +73,7 @@ describe('Function: Saving/restoring a game', function() {
             expect(world.getName()).to.equal(worldConf.name);
             console.log('Now serializing the game.');
             json = restGame.toJSON();
-            console.log(JSON.stringify(json, null, ' '));
+            // console.log(JSON.stringify(json, null, ' '));
         }
     });
 });
