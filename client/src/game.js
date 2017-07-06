@@ -502,7 +502,8 @@ RG.Game.Main = function() {
             _engine.addLevel(level);
         }
         else {
-            RG.err('Game', 'addLevel', 'Duplicate level ID ' + level.getID());
+            RG.err('Game.Main', 'addLevel',
+                'Duplicate level ID ' + level.getID());
         }
     };
 
