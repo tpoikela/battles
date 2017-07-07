@@ -72,6 +72,26 @@ const confPlayerStats = {
     Inhuman: {att: 10, def: 10, prot: 4, hp: 80, Weapon: 'Magic sword'}
 };
 
+RG.VerifyConf = function(objName) {
+    const _name = objName;
+
+    /* Verifies that configuration contains all required keys.*/
+    this.verifyConf = function(funcName, conf, required) {
+        let ok = true;
+        let errorMsg = '';
+        required.forEach(req => {
+            if (!conf.hasOwnProperty(req)) {
+                ok = false;
+                errorMsg += `${funcName}(): Missing: ${req}`;
+            }
+        });
+        if (!ok) {
+            RG.err(_name, 'verifyConf', errorMsg);
+        }
+        return ok;
+    };
+
+};
 
 //---------------------------------------------------------------------------
 // FACTORY OBJECTS
@@ -101,9 +121,15 @@ RG.Factory.ItemRandomizer = function() {
     };
 
     const _adjustGoldCoin = function(gold, nLevel) {
-        const goldWeights = RG.getGoldCoinCountDistr(nLevel);
-        const count = ROT.RNG.getWeightedValue(goldWeights);
-        gold.setCount(parseInt(count, 10));
+        if (!RG.isNullOrUndef([nLevel])) {
+            const goldWeights = RG.getGoldCoinCountDistr(nLevel);
+            const count = ROT.RNG.getWeightedValue(goldWeights);
+            gold.setCount(parseInt(count, 10));
+        }
+        else {
+            RG.err('Factory.ItemRandomizer', '_adjustGoldCoin',
+                'nLevel is not defined.');
+        }
     };
 
     /* LUT for functions to call on specific items.*/
@@ -116,7 +142,7 @@ RG.Factory.ItemRandomizer = function() {
 
 /* Factory object for creating some commonly used objects.*/
 RG.Factory.Base = function() { // {{{2
-
+    const _verif = new RG.VerifyConf('Factory.Base');
     const _itemRandomizer = new RG.Factory.ItemRandomizer();
 
     const _initCombatant = function(comb, obj) {
@@ -251,6 +277,7 @@ RG.Factory.Base = function() { // {{{2
      * Level should already contain empty houses where the shop is created at
      * random. */
     this.createShops = function(level, mapObj, conf) {
+        _verif.verifyConf('createShops', conf, ['nShops']);
         if (mapObj.hasOwnProperty('houses')) {
             const houses = mapObj.houses;
 
@@ -318,10 +345,11 @@ RG.Factory.Base = function() { // {{{2
 
     /* Adds N random items to the level based on maximum value.*/
     this.addNRandItems = function(level, parser, conf) {
+        _verif.verifyConf('addNRandItems', conf, ['func', 'maxValue']);
         // Generate the items randomly for this level
         for (let j = 0; j < conf.itemsPerLevel; j++) {
             const item = parser.createRandomItem({func: conf.func});
-            _doItemSpecificAdjustments(item, conf.maxVal);
+            _doItemSpecificAdjustments(item, conf.maxValue);
             const itemCell = level.getFreeRandCell();
             level.addItem(item, itemCell.getX(), itemCell.getY());
         }
@@ -329,12 +357,14 @@ RG.Factory.Base = function() { // {{{2
             return item.type === 'food';
         }});
         const foodCell = level.getFreeRandCell();
-        _doItemSpecificAdjustments(food, conf.maxVal);
+        _doItemSpecificAdjustments(food, conf.maxValue);
         level.addItem(food, foodCell.getX(), foodCell.getY());
     };
 
     /* Adds N random monsters to the level based on given danger level.*/
     this.addNRandMonsters = (level, parser, conf) => {
+        _verif.verifyConf('addNRandMonsters', conf,
+            ['maxDanger', 'monstersPerLevel']);
         // Generate the monsters randomly for this level
         const maxDanger = conf.maxDanger;
         for (let i = 0; i < conf.monstersPerLevel; i++) {
@@ -432,6 +462,8 @@ RG.FACT = new RG.Factory.Base();
 RG.Factory.Feature = function() {
     RG.Factory.Base.call(this);
 
+    const _verif = new RG.VerifyConf('Factory.Feature');
+
     const _parser = new RG.ObjectShellParser();
     _parser.parseShellData(RG.Effects);
     _parser.parseShellData(RGObjects);
@@ -443,6 +475,9 @@ RG.Factory.Feature = function() {
     };
 
     this.addItemsAndMonsters = function(level, conf) {
+        _verif.verifyConf('addItemsAndMonsters', conf,
+            ['nLevel', 'sqrPerItem', 'sqrPerMonster', 'maxValue']);
+
         const numFree = level.getMap().getFree().length;
         const monstersPerLevel = Math.round(numFree / conf.sqrPerMonster);
         const itemsPerLevel = Math.round(numFree / conf.sqrPerItem);
@@ -451,12 +486,14 @@ RG.Factory.Feature = function() {
         debug(`Adding ${monstersPerLevel} monsters and
             ${itemsPerLevel} to the level`);
 
-        const itemConstraint = function(maxVal) {
-            return function(item) {return item.value <= maxVal;};
+        const itemConstraint = function(maxValue) {
+            return function(item) {return item.value <= maxValue;};
         };
 
         const itemConf = {
-            itemsPerLevel, func: itemConstraint(conf.maxValue),
+            nLevel: conf.nLevel, // verified to exist
+            itemsPerLevel,
+            func: itemConstraint(conf.maxValue),
             maxValue: conf.maxValue
         };
         this.addNRandItems(level, _parser, itemConf);
@@ -477,7 +514,8 @@ RG.Factory.Feature = function() {
         this.addNRandMonsters(level, _parser, actorConf);
 
         const goldConf = {
-            goldPerLevel, nLevel: conf.nLevel + 1
+            goldPerLevel,
+            nLevel: conf.nLevel + 1
         };
         this.addRandomGold(level, _parser, goldConf);
     };
@@ -519,6 +557,7 @@ RG.extend2(RG.Factory.Feature, RG.Factory.Base);
  * building the world. Separation of concerns, you know.
  */
 RG.Factory.World = function() {
+    const _verif = new RG.VerifyConf('Factory.World');
     this.featureFactory = new RG.Factory.Feature();
 
     // Can be used to pass already created levels to different features. For
@@ -579,25 +618,10 @@ RG.Factory.World = function() {
     /* Returns the full hierarchical name of feature. */
     this.getHierName = () => this.scope.join('.');
 
-    /* Verifies that configuration contains all required keys.*/
-    this.verifyConf = function(msg, conf, required) {
-        let ok = true;
-        required.forEach(req => {
-            if (!conf.hasOwnProperty(req)) {
-                ok = false;
-                RG.err('Factory.World', 'verifyConf',
-                    `Missing conf arg: ${req}`);
-            }
-        });
-        if (!ok) {
-            RG.err('Factory.World', 'verifyConf', msg);
-        }
-        return ok;
-    };
 
     /* Creates a world using given configuration. */
     this.createWorld = function(conf) {
-        this.verifyConf('createWorld', conf, ['name', 'nAreas']);
+        _verif.verifyConf('createWorld', conf, ['name', 'nAreas']);
         this.pushScope(conf);
         const world = new RG.World.World(conf.name);
         for (let i = 0; i < conf.nAreas; i++) {
@@ -611,7 +635,7 @@ RG.Factory.World = function() {
 
     /* Creates an area which can be added to a world. */
     this.createArea = function(conf) {
-        this.verifyConf('createArea', conf,
+        _verif.verifyConf('createArea', conf,
             ['name', 'maxX', 'maxY']);
         this.pushScope(conf);
 
@@ -686,7 +710,7 @@ RG.Factory.World = function() {
     };
 
     this.createDungeon = function(conf) {
-        this.verifyConf('createDungeon', conf,
+        _verif.verifyConf('createDungeon', conf,
             ['name', 'nBranches']);
         this.pushScope(conf);
 
@@ -737,7 +761,7 @@ RG.Factory.World = function() {
 
     /* Creates one dungeon branch and all levels inside it. */
     this.createBranch = function(conf) {
-        this.verifyConf('createBranch', conf,
+        _verif.verifyConf('createBranch', conf,
             ['name', 'nLevels']);
         this.pushScope(conf);
         const branch = new RG.World.Branch(conf.name);
@@ -787,7 +811,7 @@ RG.Factory.World = function() {
     };
 
     this.createMountain = function(conf) {
-        this.verifyConf('createMountain', conf, ['name', 'nFaces']);
+        _verif.verifyConf('createMountain', conf, ['name', 'nFaces']);
         this.pushScope(conf);
         const mountain = new RG.World.Mountain(conf.name);
         mountain.setHierName(this.getHierName());
@@ -804,10 +828,10 @@ RG.Factory.World = function() {
 
     this.createMountainFace = function(conf) {
         if (this.id2levelSet) {
-            this.verifyConf('createMountainFace', conf, ['name', 'nLevels']);
+            _verif.verifyConf('createMountainFace', conf, ['name', 'nLevels']);
         }
         else {
-            this.verifyConf('createMountainFace',
+            _verif.verifyConf('createMountainFace',
                 conf, ['name', 'nLevels', 'x', 'y']);
         }
 
@@ -841,11 +865,11 @@ RG.Factory.World = function() {
     /* Creates a City and all its sub-features. */
     this.createCity = function(conf) {
         if (this.id2levelSet) {
-            this.verifyConf('createCity',
+            _verif.verifyConf('createCity',
                 conf, ['name', 'nQuarters']);
         }
         else {
-            this.verifyConf('createCity',
+            _verif.verifyConf('createCity',
                 conf, ['name', 'nQuarters']);
         }
         this.pushScope(conf);
@@ -885,7 +909,7 @@ RG.Factory.World = function() {
 
     /* Createa CityQuarter which can be added to a city. */
     this.createCityQuarter = function(conf) {
-        this.verifyConf('createCityQuarter',
+        _verif.verifyConf('createCityQuarter',
             conf, ['name', 'nLevels']);
         this.pushScope(conf);
         const quarter = new RG.World.CityQuarter(conf.name);
@@ -921,7 +945,7 @@ RG.Factory.World = function() {
      * or dungeon. Unless configured, connects the feature entrance to a random
      * location in the area. */
     this.createConnection = function(area, feature, conf) {
-        this.verifyConf('createConnection', conf, ['x', 'y']);
+        _verif.verifyConf('createConnection', conf, ['x', 'y']);
 
         const x = conf.x;
         const y = conf.y;
@@ -1117,8 +1141,8 @@ RG.Factory.Game = function() {
 
         const branch = new RG.World.Branch('StartBranch');
 
-        const itemConstraint = function(maxVal) {
-            return function(item) {return item.value <= maxVal;};
+        const itemConstraint = function(maxValue) {
+            return function(item) {return item.value <= maxValue;};
         };
         // Generate all game levels
         for (let nl = 0; nl < nLevels; nl++) {
@@ -1139,10 +1163,10 @@ RG.Factory.Game = function() {
             missile.count = 20;
             level.addItem(missile);
 
-            const maxVal = 20 * (nl + 1);
+            const maxValue = 20 * (nl + 1);
             const itemConf = {
-                itemsPerLevel, func: itemConstraint(maxVal),
-                maxValue: maxVal
+                itemsPerLevel, func: itemConstraint(maxValue),
+                maxValue
             };
             this.addNRandItems(level, _parser, itemConf);
 
