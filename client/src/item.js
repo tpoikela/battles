@@ -52,6 +52,7 @@ RG.Item.Base = function(name) {
 RG.extend2(RG.Item.Base, RG.Object.Typed);
 RG.extend2(RG.Item.Base, RG.Object.Ownable);
 
+/* Used when showing the item in inventory lists etc. */
 RG.Item.Base.prototype.toString = function() {
     let txt = this.getName() + ', ' + this.getType() + ', ';
     const totalWeight = this.getWeight() * this.count;
