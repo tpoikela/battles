@@ -17,6 +17,7 @@ describe('Factory.World', function() {
     });
 
     it('has scope and hier name management', () => {
+        const fact = new RG.Factory.World();
         const conf1 = {name: 'Top'};
         const conf2 = {name: 'Sub', constraint: 'abc'};
         const conf3 = {name: 'SubSub'};
@@ -97,7 +98,6 @@ describe('Factory.World', function() {
         expectConnected(branches[1], branches[2], 1);
     });
 
-
     it('creates properly connected dungeons with branches', () => {
         const dConf = {
             x: 0, y: 0,
@@ -125,7 +125,6 @@ describe('Factory.World', function() {
         expect(entrB2).to.exist;
         expect(entrB2.getTargetStairs()).to.be.null;
     });
-
 
     it('can create cities within areas', () => {
         const worldConf = {
