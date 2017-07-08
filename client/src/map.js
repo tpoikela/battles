@@ -204,7 +204,7 @@ RG.Map.Cell.prototype.getProp = function(prop) {
  * while the level contains actual information about game elements such as
  * monsters and items.  */
 RG.Map.CellList = function(cols, rows) { // {{{2
-    const map = [];
+    this._map = [];
     this.cols = cols;
     this.rows = rows;
 
@@ -212,25 +212,25 @@ RG.Map.CellList = function(cols, rows) { // {{{2
     const _rows = rows;
 
     for (let x = 0; x < this.cols; x++) {
-        map.push([]);
+        this._map.push([]);
         for (let y = 0; y < this.rows; y++) {
             const elem = new RG.Element.Base('floor');
-            map[x].push(new RG.Map.Cell(x, y, elem));
+            this._map[x].push(new RG.Map.Cell(x, y, elem));
         }
     }
 
-    /* Returns true if x,y are in the map.*/
+    /* Returns true if x,y are in the this._map.*/
     this.hasXY = function(x, y) {
         return (x >= 0) && (x < this.cols) && (y >= 0) && (y < this.rows);
     };
 
     /* Sets a property for the underlying cell.*/
     this.setProp = function(x, y, prop, obj) {
-        map[x][y].setProp(prop, obj);
+        this._map[x][y].setProp(prop, obj);
     };
 
     this.removeProp = function(x, y, prop, obj) {
-        return map[x][y].removeProp(prop, obj);
+        return this._map[x][y].removeProp(prop, obj);
     };
 
     this.setElemXY = function(x, y, obj) {
@@ -238,21 +238,21 @@ RG.Map.CellList = function(cols, rows) { // {{{2
     };
 
     this.setBaseElemXY = function(x, y, elem) {
-        map[x][y].setBaseElem(elem);
+        this._map[x][y].setBaseElem(elem);
     };
 
     this.getBaseElemXY = function(x, y) {
-        return map[x][y].getBaseElem();
+        return this._map[x][y].getBaseElem();
     };
 
     this.getCell = function(x, y) {
-        return map[x][y];
+        return this._map[x][y];
     };
 
     this.getBaseElemRow = function(y) {
         const row = [];
         for (let i = 0; i < this.cols; ++i) {
-            row.push(map[i][y].getBaseElem());
+            row.push(this._map[i][y].getBaseElem());
         }
         return row;
     };
@@ -260,19 +260,19 @@ RG.Map.CellList = function(cols, rows) { // {{{2
     this.getCellRow = function(y) {
         const row = [];
         for (let i = 0; i < this.cols; ++i) {
-            row.push(map[i][y]);
+            row.push(this._map[i][y]);
         }
         return row;
     };
 
-    /* Returns all free cells in the map. 'free' means that cell can be
+    /* Returns all free cells in the this._map. 'free' means that cell can be
     * traversed and is passable. */
     this.getFree = function() {
         const freeCells = [];
         for (let x = 0; x < this.cols; x++) {
             for (let y = 0; y < this.rows; y++) {
-                if (map[x][y].isFree()) {
-                    freeCells.push(map[x][y]);
+                if (this._map[x][y].isFree()) {
+                    freeCells.push(this._map[x][y]);
                 }
             }
         }
@@ -285,15 +285,15 @@ RG.Map.CellList = function(cols, rows) { // {{{2
         const emptyCells = [];
         for (let x = 0; x < this.cols; x++) {
             for (let y = 0; y < this.rows; y++) {
-                if (!map[x][y].hasProps()) {
-                    emptyCells.push(map[x][y]);
+                if (!this._map[x][y].hasProps()) {
+                    emptyCells.push(this._map[x][y]);
                 }
             }
         }
         return emptyCells;
     };
 
-    /* Returns true if the map has a cell in given x,y location.*/
+    /* Returns true if the this._map has a cell in given x,y location.*/
     const _hasXY = function(x, y) {
         return (x >= 0) && (x < _cols) && (y >= 0) && (y < _rows);
     };
@@ -301,19 +301,19 @@ RG.Map.CellList = function(cols, rows) { // {{{2
     /* Returns true if light passes through this cell.*/
     const lightPasses = function(x, y) {
         if (_hasXY(x, y)) {
-            return map[x][y].lightPasses(); // delegate to cell
+            return this._map[x][y].lightPasses(); // delegate to cell
         }
         return false;
     };
 
     this.isPassable = function(x, y) {
         if (_hasXY(x, y)) {
-            return map[x][y].isPassable();
+            return this._map[x][y].isPassable();
         }
         return false;
     };
 
-    const fov = new ROT.FOV.PreciseShadowcasting(lightPasses);
+    const fov = new ROT.FOV.PreciseShadowcasting(lightPasses.bind(this));
 
     /* Returns visible cells for given actor.*/
     this.getVisibleCells = function(actor) {
@@ -326,7 +326,7 @@ RG.Map.CellList = function(cols, rows) { // {{{2
                 fov.compute(xActor, yActor, range, (x, y, r, visibility) => {
                     if (visibility) {
                         if (_hasXY(x, y)) {
-                            cells.push(map[x][y]);
+                            cells.push(this._map[x][y]);
                         }
                     }
                 });
@@ -340,14 +340,14 @@ RG.Map.CellList = function(cols, rows) { // {{{2
         const cells = [];
         for (let x = 0; x < this.cols; x++) {
             for (let y = 0; y < this.rows; y++) {
-                if (map[x][y].isExplored()) {
-                    cells.push(map[x][y]);
+                if (this._map[x][y].isExplored()) {
+                    cells.push(this._map[x][y]);
                 }
             }
         }
     };
 
-    /* Returns true if x,y is located at map border cells.*/
+    /* Returns true if x,y is located at this._map border cells.*/
     this.isBorderXY = function(x, y) {
         if (x === 0) {return true;}
         if (y === 0) {return true;}
@@ -356,13 +356,13 @@ RG.Map.CellList = function(cols, rows) { // {{{2
         return false;
     };
 
-    /* Prints the map in ASCII. */
+    /* Prints the this._map in ASCII. */
     this.debugPrintInASCII = function() {
         let mapInASCII = '';
         for (let y = 0; y < this.rows; y++) {
             let row = '';
             for (let x = 0; x < this.cols; x++) {
-                const cell = map[x][y];
+                const cell = this._map[x][y];
                 if (cell.getStairs() !== null) {row += '>';}
                 else if (cell.getBaseElem().getType() === 'floor') {row += '.';}
                 else {row += '#';}
@@ -373,7 +373,7 @@ RG.Map.CellList = function(cols, rows) { // {{{2
     };
 
 
-}; // }}} Map.CellList
+}; // }}} this._map.CellList
 
 RG.Map.CellList.prototype.toJSON = function() {
     const map = [];
