@@ -524,7 +524,8 @@ class BattlesTop extends React.Component {
 
         const charRows = [];
         const classRows = [];
-        let startX = null;
+        const startX = shownCells.startX;
+
         for (let y = shownCells.startY; y <= shownCells.endY; ++y) {
             const rowCellData = shownCells.getCellRow(y);
             const classesChars = getClassesAndChars(this.gameState.visibleCells,
@@ -532,9 +533,6 @@ class BattlesTop extends React.Component {
 
             charRows.push(classesChars[1]);
             classRows.push(classesChars[0]);
-            if (startX === null) {
-              startX = rowCellData[0].getX();
-            }
         }
 
         return (
