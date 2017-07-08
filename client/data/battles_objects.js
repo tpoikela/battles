@@ -14,7 +14,6 @@
 
 var RGObjects = {
 
-
     actors: [
 
         // ANIMALS
@@ -25,17 +24,15 @@ var RGObjects = {
             range: 1, danger: 1, speed: 100, brain: 'Animal'
         },
         {
+            name: 'rat', char: 'r', base: 'animal'
+        },
+        {
             name: 'bat', char: 'b', base: 'animal',
             defense: 2
         },
         {
-            name: 'rat', char: 'r', base: 'animal'
-        },
-        {
-            name: 'rattlesnake', char: 's', base: 'animal',
-            poison: true, // Change to weapon: venomous fangs
-            attack: 2, defense: 3, damage: '1d3',
-            hp: 10, danger: 3
+            name: 'giant ant', char: 'a', base: 'animal',
+            defense: 2, hp: 7
         },
         {
             name: 'coyote', char: 'c', base: 'animal',
@@ -48,13 +45,24 @@ var RGObjects = {
             hp: 15, danger: 3
         },
         {
+            name: 'rattlesnake', char: 's', base: 'animal',
+            poison: true, // Change to weapon: venomous fangs
+            attack: 2, defense: 3, damage: '1d3',
+            hp: 10, danger: 3
+        },
+        {
+            name: 'wolverine', char: 'W', base: 'animal',
+            attack: 4, defense: 4, damage: '1d7',
+            hp: 20, danger: 4
+        },
+        {
             name: 'bear', char: 'B', base: 'animal',
-            attack: 4, defense: 4, damage: '1d9',
-            hp: 25, danger: 5
+            attack: 5, defense: 5, damage: '1d9',
+            hp: 30, danger: 5
         },
         {
             name: 'mountain lion', char: 'f', base: 'animal',
-            attack: 5, defense: 3, damage: '2d4',
+            attack: 6, defense: 3, damage: '2d4',
             hp: 25, danger: 5
         },
 
@@ -93,7 +101,7 @@ var RGObjects = {
         {
             name: 'Glacial golem', char: 'G', base: 'WinterBeingBase',
             attack: 4, defense: 4, protection: 3, damage: '2d4', speed: 90,
-            danger: 5, hp: 30
+            danger: 10, hp: 30
         },
         {
             name: 'Mighty raven', base: 'WinterBeingBase', char: 'R',
@@ -103,17 +111,17 @@ var RGObjects = {
         {
             name: 'Winter demon', type: 'demon', char: 'D',
             attack: 5, defense: 5, protection: 2, damage: '3d3', range: 1,
-            hp: 30, danger: 6, brain: 'Demon', base: 'WinterBeingBase'
+            hp: 30, danger: 12, brain: 'Demon', base: 'WinterBeingBase'
         },
         {
             name: 'Blizzard beast', type: 'demon', char: 'B',
             attack: 7, defense: 6, protection: 4, damage: '3d4', range: 1,
-            hp: 50, danger: 8, brain: 'Demon', base: 'WinterBeingBase'
+            hp: 50, danger: 16, brain: 'Demon', base: 'WinterBeingBase'
         },
         {
             name: 'Frostburn monarch', type: 'demon', char: 'M',
             attack: 7, defense: 6, protection: 6, damage: '3d4', range: 1,
-            hp: 70, danger: 10, brain: 'Demon', base: 'WinterBeingBase'
+            hp: 70, danger: 20, brain: 'Demon', base: 'WinterBeingBase'
         },
 
         // HUMANS
