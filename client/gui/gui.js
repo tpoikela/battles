@@ -1,13 +1,4 @@
 
-// Set to 1 for some debug information
-var $DEBUG = 0;
-
-function debug(msg) {
-    if ($DEBUG) {
-        console.log('DEBUG:' + msg);
-    }
-}
-
 const GUI = {};
 
 /* Object which manages the shown part of the level.*/
