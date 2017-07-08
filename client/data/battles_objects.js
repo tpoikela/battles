@@ -551,6 +551,15 @@ var RGObjects = {
             attack: 5, damage: '2d10 + 3', range: 3, value: 200, weight: 0.5
         },
 
+        // MISSILE WEAPONS
+        // - Crossbow
+        // - Double crossbow
+        // - Rifle
+        // - Long bow
+        // - Bow of defense (used as defensive weapon)
+
+        // AMMO
+
         // POTIONS
         // Note: Each potion should define useItem method. See examples below.
         {
