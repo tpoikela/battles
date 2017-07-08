@@ -513,12 +513,12 @@ class BattlesTop extends React.Component {
         let shownCells = map;
         if (!mapShown) {
             shownCells = new GUI.Viewport(this.viewportX,
-                this.viewportY, map);
+                this.viewportY);
             shownCells.getCellsInViewPort(playX, playY, map);
         }
         else {
             shownCells = new GUI.Viewport(map.cols,
-                map.rows, map);
+                map.rows);
             shownCells.getCellsInViewPort(playX, playY, map);
         }
 
