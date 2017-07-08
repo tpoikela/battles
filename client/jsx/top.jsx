@@ -24,6 +24,54 @@ const worldConf = require('../data/conf.world');
  * of the current game state.
  */
 
+const GUI = require('../gui/gui');
+
+// TODO: Refactor out of this file
+/* Builds and returns two arrays. First contains all CSS classNames of
+ * cells to be rendered, and the second one all characters to be rendered.*/
+const getClassesAndChars = function(seen, cells, selCell) {
+    const cssClasses = [];
+    const asciiChars = [];
+
+    let selX = -1;
+    let selY = -1;
+
+    if (selCell !== null) {
+        selX = selCell.getX();
+        selY = selCell.getY();
+    }
+
+    // TODO: Prevents a bug, if player wants to see inventory right after
+    // Load. Should render the visible cells properly though.
+    if (!seen) {
+        cssClasses.fill('cell-not-seen', 0, cells.length - 1);
+        asciiChars.fill('X', 0, cells.length - 1);
+        return [cssClasses, asciiChars];
+    }
+
+    for (let i = 0; i < cells.length; i++) {
+        const cell = cells[i];
+        const cellIndex = seen.indexOf(cell);
+        const visibleToPlayer = cellIndex < 0 ? false : true;
+
+        let cellClass = RG.getClassName(cell, visibleToPlayer);
+        const cellChar = RG.getChar(cell, visibleToPlayer);
+
+        if (selX === cell.getX() && selY === cell.getY()) {
+            cellClass = 'cell-target-selected';
+        }
+
+        if (!visibleToPlayer) {
+            if (cell.isExplored()) {cellClass += ' cell-not-seen';}
+        }
+        cssClasses.push(cellClass);
+        asciiChars.push(cellChar);
+    }
+
+    return [cssClasses, asciiChars];
+};
+
+
 /* Contains logic that is not tightly coupled to the GUI.*/
 class TopLogic {
 
@@ -438,7 +486,6 @@ class BattlesTop extends React.Component {
         const player = this.game.getPlayer();
         const inv = player.getInvEq().getInventory();
         const eq = player.getInvEq().getEquipment();
-        const fullScreen = this.state.renderFullScreen;
         const maxWeight = player.getMaxWeight();
 
         let message = [];
@@ -454,6 +501,41 @@ class BattlesTop extends React.Component {
             lootType: this.state.lootType,
             debugMode: this.state.debugMode
         };
+
+        // All computations for the GameBoard
+        const mapShown = this.state.mapShown;
+        let rowClass = 'cell-row-div-player-view';
+        if (mapShown) {rowClass = 'cell-row-div-map-view';}
+
+        const playX = player.getX();
+        const playY = player.getY();
+
+        let shownCells = map;
+        if (!mapShown) {
+            shownCells = new GUI.Viewport(this.viewportX,
+                this.viewportY, map);
+            shownCells.getCellsInViewPort(playX, playY, map);
+        }
+        else {
+            shownCells = new GUI.Viewport(map.cols,
+                map.rows, map);
+            shownCells.getCellsInViewPort(playX, playY, map);
+        }
+
+        const charRows = [];
+        const classRows = [];
+        let startX = null;
+        for (let y = shownCells.startY; y <= shownCells.endY; ++y) {
+            const rowCellData = shownCells.getCellRow(y);
+            const classesChars = getClassesAndChars(this.gameState.visibleCells,
+                rowCellData, this.state.selectedCell);
+
+            charRows.push(classesChars[1]);
+            classRows.push(classesChars[0]);
+            if (startX === null) {
+              startX = rowCellData[0].getX();
+            }
+        }
 
         return (
             <div className='container main-div' id='main-div' >
@@ -519,15 +601,13 @@ class BattlesTop extends React.Component {
                         <div className='game-board-div'>
                             <GameBoard
                                 boardClassName={this.state.boardClassName}
-                                map={map}
-                                mapShown={this.state.mapShown}
+                                charRows={charRows}
+                                classRows={classRows}
+                                endY={shownCells.endY}
                                 onCellClick={this.onCellClick}
-                                player={player}
-                                renderFullScreen={fullScreen}
-                                selectedCell={this.state.selectedCell}
-                                viewportX={this.viewportX}
-                                viewportY={this.viewportY}
-                                visibleCells={this.gameState.visibleCells}
+                                rowClass={rowClass}
+                                startX={startX}
+                                startY={shownCells.startY}
                             />
                         </div>
                     </div>
