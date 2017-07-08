@@ -41,7 +41,6 @@ RG.Component.Base = function(type) {
 // Called when a component is added to the entity
 RG.Component.Base.prototype.entityAddCallback = function(entity) {
     this.setEntity(entity);
-    // RG.POOL.emitEvent(this.getType(), {add:true, entity: entity});
     for (let i = 0; i < this._onAddCallbacks.length; i++) {
         this._onAddCallbacks[i]();
     }
@@ -50,7 +49,6 @@ RG.Component.Base.prototype.entityAddCallback = function(entity) {
 // Called when a component is removed from the entity
 RG.Component.Base.prototype.entityRemoveCallback = function() {
     this.setEntity(null);
-    // RG.POOL.emitEvent(this.getType(), {remove:true, entity: entity});
     for (let i = 0; i < this._onRemoveCallbacks.length; i++) {
         this._onRemoveCallbacks[i]();
     }
@@ -215,14 +213,14 @@ RG.Component.Damage = function(dmg, type) {
     RG.Component.Base.call(this, 'Damage');
 
     let _dmg = dmg;
-    let _type = type;
+    let _dmgType = type;
     let _src = null;
 
     this.getDamage = function() {return _dmg;};
     this.setDamage = function(dmg) {_dmg = dmg;};
 
-    this.getDamageType = function() {return _type;};
-    this.setDamageType = function(type) {_type = type;};
+    this.getDamageType = function() {return _dmgType;};
+    this.setDamageType = function(type) {_dmgType = type;};
 
     this.getSource = function() {return _src;};
     this.setSource = function(src) {_src = src;};
