@@ -105,12 +105,18 @@ class BattlesTop extends React.Component {
 
         // Simple configuration for the game
         this.gameConf = {
-            cols: 80,
-            rows: 60,
+            cols: 60,
+            rows: 30,
             levels: 2,
+
             playerLevel: 'Medium',
-            sqrPerMonster: 40,
-            sqrPerItem: 100,
+            gameLength: 'Medium',
+            levelSize: 'Medium',
+            monstType: 'Medium',
+            lootType: 'Medium',
+
+            sqrPerMonster: 120,
+            sqrPerItem: 120,
             debugMode: false,
             loadedPlayer: null,
             loadedLevel: null,
@@ -136,12 +142,20 @@ class BattlesTop extends React.Component {
             loadInProgress: false,
             mapShown: false,
             invMsgStyle: '',
+            playerName: 'Player',
             render: true,
             renderFullScreen: false,
             saveInProgress: false,
             selectedCell: null,
             selectedGame: null,
-            selectedItem: null
+            selectedItem: null,
+
+            playerLevel: 'Medium',
+            gameLength: 'Medium',
+            levelSize: 'Medium',
+            monstType: 'Medium',
+            lootType: 'Medium',
+            debugMode: 'Off'
         };
 
         // Binding of callbacks
@@ -168,6 +182,7 @@ class BattlesTop extends React.Component {
 
     setPlayerName(name) {
         this.gameConf.playerName = name;
+        this.setState({playerName: name});
     }
 
     /* Sets the size of the shown map.*/
@@ -431,6 +446,15 @@ class BattlesTop extends React.Component {
             message = this.game.getMessages();
         }
 
+        const settings = {
+            playerLevel: this.state.playerLevel,
+            gameLength: this.state.gameLength,
+            levelSize: this.state.levelSize,
+            monstType: this.state.monstType,
+            lootType: this.state.lootType,
+            debugMode: this.state.debugMode
+        };
+
         return (
             <div className='container main-div' id='main-div' >
 
@@ -438,6 +462,7 @@ class BattlesTop extends React.Component {
                     deleteGame={this.deleteGame}
                     loadGame={this.loadGame}
                     newGame={this.newGame}
+                    playerName={this.state.playerName}
                     savedPlayerList={this.savedPlayerList}
                     selectedGame={this.state.selectedGame}
                     selectGame={this.selectSaveGame}
@@ -448,6 +473,7 @@ class BattlesTop extends React.Component {
                     setMonsters={this.setMonsters}
                     setPlayerLevel={this.setPlayerLevel}
                     setPlayerName={this.setPlayerName}
+                    settings={settings}
                 />
                 <GameHelpScreen />
 
@@ -657,6 +683,8 @@ class BattlesTop extends React.Component {
             case 'Abundant': this.gameConf.sqrPerItem = 50; break;
             default: console.error('setLoot illegal lootType ' + lootType);
         }
+        this.gameConf.lootType = lootType;
+        this.setState({lootType});
     }
 
     setMonsters(monstType) {
@@ -667,6 +695,8 @@ class BattlesTop extends React.Component {
             default:
                 console.error('setMonsters illegal monstType ' + monstType);
         }
+        this.gameConf.monstType = monstType;
+        this.setState({monstType});
     }
 
     setLevelSize(levelSize) {
@@ -682,10 +712,12 @@ class BattlesTop extends React.Component {
             default: console.error('setLeveSize illegal size ' + levelSize);
         }
         this.gameConf.levelSize = levelSize;
+        this.setState({levelSize});
     }
 
     setPlayerLevel(level) {
         this.gameConf.playerLevel = level;
+        this.setState({playerLevel: level});
     }
 
     setGameLength(length) {
@@ -697,6 +729,7 @@ class BattlesTop extends React.Component {
             default: console.error('setGameLength illegal length ' + length);
         }
         this.gameConf.gameLength = length;
+        this.setState({gameLength: length});
     }
 
     setDebugMode(mode) {
@@ -708,6 +741,7 @@ class BattlesTop extends React.Component {
             case 'World': this.gameConf.debugMode = 'World'; break;
             default: console.error('setDebugMode illegal mode ' + mode);
         }
+        this.setState({debugMode: mode});
     }
 
     bindCallbacks() {
