@@ -7,27 +7,21 @@ class RadioButtons extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {
-            activeButton: ''
-        };
-
         this.onButtonClick = this.onButtonClick.bind(this);
-
     }
 
     onButtonClick(name) {
         this.props.callback(name);
-        this.setState({activeButton: name});
     }
 
     render() {
-        var buttons = this.props.buttons;
+        const currValue = this.props.currValue;
+        const buttons = this.props.buttons;
 
         // Generate buttons using map
-        var buttonList = buttons.map( (name, index) => {
-
-            var classes = 'btn btn-primary';
-            if (this.state.activeButton === name) {
+        const buttonList = buttons.map( (name, index) => {
+            let classes = 'btn btn-primary';
+            if (currValue === name) {
                 classes = 'btn btn-success active';
             }
 
@@ -58,6 +52,7 @@ class RadioButtons extends React.Component {
 RadioButtons.propTypes = {
     buttons: React.PropTypes.array,
     callback: React.PropTypes.func,
+    currValue: React.PropTypes.string,
     titleName: React.PropTypes.string
 };
 
