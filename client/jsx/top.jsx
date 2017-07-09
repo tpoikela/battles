@@ -638,7 +638,9 @@ class BattlesTop extends React.Component {
                 this.gameState.autoTarget = true;
                 this.game.update({cmd: 'missile', target: cell});
                 this.gameState.visibleCells = this.game.visibleCells;
+                this.screen.setSelectedCell(null);
                 this.setState({selectedCell: null});
+                this.screen.setSelectedCell(null);
             }
             this.gameState.autoTarget = false;
             this.gameState.isTargeting = false;
@@ -652,6 +654,7 @@ class BattlesTop extends React.Component {
 
             if (this.gameState.enemyCells.length > 0) {
                 const cell = this.gameState.enemyCells[0];
+                this.screen.setSelectedCell(cell);
                 this.setState({selectedCell: cell});
                 console.log('GUITarget found selected cell');
             }
@@ -681,6 +684,7 @@ class BattlesTop extends React.Component {
                 }
 
                 const nextCell = this.gameState.enemyCells[numNextCell];
+                this.screen.setSelectedCell(nextCell);
                 this.setState({selectedCell: nextCell});
                 this.gameState.numCurrCell = numNextCell;
             }
