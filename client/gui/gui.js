@@ -8,6 +8,12 @@ GUI.Viewport = function(viewportX, viewportY) {
     this.viewportX = viewportX;
     this.viewportY = viewportY;
 
+    /* Sets the viewport dimensions. */
+    this.setViewportXY = function(x, y) {
+        this.viewportX = x;
+        this.viewportY = y;
+    };
+
     /* Returns an object containing all cells in viewport, and viewport
      * coordinates.
      */
