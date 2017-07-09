@@ -16,61 +16,11 @@ const GameMessages = require('./game-messages');
 const GameStats = require('./game-stats');
 const GameBoard = require('./game-board');
 
+const Screen = require('../gui/screen');
+
 const Persist = require('../src/persist');
 
 const worldConf = require('../data/conf.world');
-
-/* Top-level component which renders all other components. Keeps also track
- * of the current game state.
- */
-
-const GUI = require('../gui/gui');
-
-// TODO: Refactor out of this file
-/* Builds and returns two arrays. First contains all CSS classNames of
- * cells to be rendered, and the second one all characters to be rendered.*/
-const getClassesAndChars = function(seen, cells, selCell) {
-    const cssClasses = [];
-    const asciiChars = [];
-
-    let selX = -1;
-    let selY = -1;
-
-    if (selCell !== null) {
-        selX = selCell.getX();
-        selY = selCell.getY();
-    }
-
-    // TODO: Prevents a bug, if player wants to see inventory right after
-    // Load. Should render the visible cells properly though.
-    if (!seen) {
-        cssClasses.fill('cell-not-seen', 0, cells.length - 1);
-        asciiChars.fill('X', 0, cells.length - 1);
-        return [cssClasses, asciiChars];
-    }
-
-    for (let i = 0; i < cells.length; i++) {
-        const cell = cells[i];
-        const cellIndex = seen.indexOf(cell);
-        const visibleToPlayer = cellIndex < 0 ? false : true;
-
-        let cellClass = RG.getClassName(cell, visibleToPlayer);
-        const cellChar = RG.getChar(cell, visibleToPlayer);
-
-        if (selX === cell.getX() && selY === cell.getY()) {
-            cellClass = 'cell-target-selected';
-        }
-
-        if (!visibleToPlayer) {
-            if (cell.isExplored()) {cellClass += ' cell-not-seen';}
-        }
-        cssClasses.push(cellClass);
-        asciiChars.push(cellChar);
-    }
-
-    return [cssClasses, asciiChars];
-};
-
 
 /* Contains logic that is not tightly coupled to the GUI.*/
 class TopLogic {
@@ -150,6 +100,8 @@ class BattlesTop extends React.Component {
         this.viewportPlayerY = 15; // * 2
         this.viewportX = 35; // * 2
         this.viewportY = 15; // * 2
+
+        this.screen = new Screen(this.viewportX, this.viewportY);
 
         // Simple configuration for the game
         this.gameConf = {
@@ -243,6 +195,7 @@ class BattlesTop extends React.Component {
             if (xOrY === 'X') {this.viewportX -= 5;}
             else {this.viewportY -= 2;}
         }
+        this.screen.setViewportXY(this.viewportX, this.viewportY);
         this.setState({render: true, renderFullScreen: true});
     }
 
@@ -253,6 +206,9 @@ class BattlesTop extends React.Component {
            this.viewportPlayerY = this.viewportY;
            this.viewportX = this.game.getPlayer().getLevel().getMap().cols;
            this.viewportY = this.game.getPlayer().getLevel().getMap().rows;
+           this.screen.setMapShown(true);
+           this.screen.setViewportXY(this.viewportX, this.viewportY);
+
            this.setState({
                render: true, renderFullScreen: true,
                boardClassName: 'game-board-map-view',
@@ -262,6 +218,8 @@ class BattlesTop extends React.Component {
         else if (type === 'player') {
             this.viewportX = this.viewportPlayerX;
             this.viewportY = this.viewportPlayerY;
+            this.screen.setMapShown(false);
+            this.screen.setViewportXY(this.viewportX, this.viewportY);
             this.setState({
                 render: true, renderFullScreen: true,
                 boardClassName: 'game-board-player-view',
@@ -509,31 +467,10 @@ class BattlesTop extends React.Component {
 
         const playX = player.getX();
         const playY = player.getY();
-
-        let shownCells = map;
-        if (!mapShown) {
-            shownCells = new GUI.Viewport(this.viewportX,
-                this.viewportY);
-            shownCells.getCellsInViewPort(playX, playY, map);
-        }
-        else {
-            shownCells = new GUI.Viewport(map.cols,
-                map.rows);
-            shownCells.getCellsInViewPort(playX, playY, map);
-        }
-
-        const charRows = [];
-        const classRows = [];
-        const startX = shownCells.startX;
-
-        for (let y = shownCells.startY; y <= shownCells.endY; ++y) {
-            const rowCellData = shownCells.getCellRow(y);
-            const classesChars = getClassesAndChars(this.gameState.visibleCells,
-                rowCellData, this.state.selectedCell);
-
-            charRows.push(classesChars[1]);
-            classRows.push(classesChars[0]);
-        }
+        this.screen.render(playX, playY, map, this.gameState.visibleCells);
+        const charRows = this.screen.getCharRows();
+        const classRows = this.screen.getClassRows();
+        const startX = this.screen.getStartX();
 
         return (
             <div className='container main-div' id='main-div' >
@@ -601,11 +538,11 @@ class BattlesTop extends React.Component {
                                 boardClassName={this.state.boardClassName}
                                 charRows={charRows}
                                 classRows={classRows}
-                                endY={shownCells.endY}
+                                endY={this.screen.endY}
                                 onCellClick={this.onCellClick}
                                 rowClass={rowClass}
                                 startX={startX}
-                                startY={shownCells.startY}
+                                startY={this.screen.startY}
                             />
                         </div>
                     </div>
