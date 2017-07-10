@@ -9,10 +9,11 @@
 // Some info on attributes:
 //      dontCreate: true - Use with base classes, prevents object creation
 //      base: xxx        - Use xxx as a base for the object
-//      danger    - Used for rand generation, higher values means less often
+//      danger - For rand generation for actors, higher values means less often
+//      value  - For rand gen (+buy/sell) for items, higher means less often
 //      cssClass         - Used for rendering purposes.
 
-var RGObjects = {
+const RGObjects = {
 
     actors: [
 
