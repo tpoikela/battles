@@ -502,8 +502,11 @@ RG.ObjectShellParser = function() {
         switch (categ) {
             case RG.TYPE_ACTOR:
                 const type = obj.type;
-                if (type === 'spirit') {return new RG.Actor.Spirit(obj.name);}
-                return new RG.Actor.Rogue(obj.name);
+                switch (type) {
+                    case 'spirit': return new RG.Actor.Spirit(obj.name);
+                    case 'summoner': return new RG.Actor.Summoner(obj.name);
+                    default: return new RG.Actor.Rogue(obj.name);
+                }
             case RG.TYPE_ITEM:
                 const subtype = obj.type;
                 switch (subtype) {
