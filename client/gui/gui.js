@@ -1,4 +1,5 @@
 
+// const RG = require('../src/battles');
 const GUI = {};
 
 /* Object which manages the shown part of the level.*/
@@ -66,7 +67,9 @@ GUI.Viewport = function(viewportX, viewportY) {
         for (let yy = startY; yy <= endY; yy++) {
             this[yy] = [];
             for (let xx = startX; xx <= endX; xx++) {
-                this[yy].push(map._map[xx][yy]);
+                // console.log('map._map[xx]: ' + map._map[xx]);
+                // this[yy].push(map._map[xx][yy]);
+                this[yy].push(map.getCell(xx, yy));
             }
         }
 
