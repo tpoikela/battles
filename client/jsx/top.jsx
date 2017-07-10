@@ -161,8 +161,8 @@ class BattlesTop extends React.Component {
         // Binding of callbacks
         this.bindCallbacks();
         this.initGUICommandTable();
-        ROT.RNG.setSeed(0); // TODO
-        RG.RAND.setSeed(0);
+        ROT.RNG.setSeed(1); // TODO
+        RG.RAND.setSeed(1);
     }
 
     selectSaveGame(name) {
@@ -467,7 +467,12 @@ class BattlesTop extends React.Component {
 
         const playX = player.getX();
         const playY = player.getY();
-        this.screen.render(playX, playY, map, this.gameState.visibleCells);
+        if (map) {
+            this.screen.render(playX, playY, map, this.gameState.visibleCells);
+        }
+        else {
+            console.log('map undefined');
+        }
         const charRows = this.screen.getCharRows();
         const classRows = this.screen.getClassRows();
         const startX = this.screen.getStartX();
