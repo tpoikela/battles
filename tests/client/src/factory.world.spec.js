@@ -6,6 +6,7 @@ const RGTest = require('../../roguetest');
 const expectConnected = RGTest.expectConnected;
 
 describe('Factory.World', function() {
+    this.timeout(3000);
     let fact = null;
 
     beforeEach(() => {
