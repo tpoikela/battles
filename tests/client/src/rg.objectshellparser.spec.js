@@ -311,6 +311,15 @@ describe('It contains all game content info', function() {
         expect(missObj.getWeight()).to.equal(0.1);
     });
 
+    it('should parse/create missile weapons and ammo', () => {
+        const rifle = parser.createActualObj('items', 'Rifle');
+        const bullet = parser.createActualObj('items', 'Rifle bullet');
+
+        expect(rifle.getAttackRange()).to.equal(7);
+        expect(bullet.getAttackRange()).to.equal(1);
+
+    });
+
     it('Parses/creates spirits/gems properly', function() {
         const demonSpirit = parser.createActualObj('actors',
             'Winter demon spirit');
