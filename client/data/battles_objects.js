@@ -562,6 +562,16 @@ var RGObjects = {
         },
 
         // MISSILE WEAPONS
+        {
+            name: 'MissileWeaponBase', dontCreate: true,
+            type: 'missile_weapon',
+            className: 'cell-item-missileweapon',
+            attack: 0, defense: 0, char: '{'
+        },
+        {
+            name: 'rifle', base: 'MissileWeaponBase',
+            attack: 1, range: 5, value: 200
+        },
         // - Crossbow
         // - Double crossbow
         // - Rifle
@@ -569,6 +579,11 @@ var RGObjects = {
         // - Bow of defense (used as defensive weapon)
 
         // AMMO
+        {
+            name: 'Rifle bullet', base: 'MissileBase',
+            type: 'ammo',
+            attack: 1, damage: '3d4', value: 50
+        },
 
         // POTIONS
         // Note: Each potion should define useItem method. See examples below.
