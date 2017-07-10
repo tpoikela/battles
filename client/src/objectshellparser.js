@@ -102,6 +102,9 @@ RG.ObjectShellParser = function() {
         dungeons: {}
     };
 
+    _propToCall.items.missileweapon = _propToCall.items.missile;
+    _propToCall.items.ammo = _propToCall.items.missile;
+
     // Internal cache for proc generation
     const _cache = {
         actorWeights: {}
@@ -504,7 +507,6 @@ RG.ObjectShellParser = function() {
                 const type = obj.type;
                 switch (type) {
                     case 'spirit': return new RG.Actor.Spirit(obj.name);
-                    case 'summoner': return new RG.Actor.Summoner(obj.name);
                     default: return new RG.Actor.Rogue(obj.name);
                 }
             case RG.TYPE_ITEM:
@@ -515,6 +517,8 @@ RG.ObjectShellParser = function() {
                     case 'gold': return new RG.Item.Gold(obj.name);
                     case 'goldcoin' : return new RG.Item.GoldCoin(obj.name);
                     case 'missile': return new RG.Item.Missile(obj.name);
+                    case 'missileweapon': return new RG.Item.MissileWeapon(obj.name);
+                    case 'ammo': return new RG.Item.Ammo(obj.name);
                     case 'potion': return new RG.Item.Potion(obj.name);
                     case 'spiritgem': return new RG.Item.SpiritGem(obj.name);
                     case 'weapon': return new RG.Item.Weapon(obj.name);
