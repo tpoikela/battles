@@ -1202,6 +1202,12 @@ RG.Factory.Game = function() {
             'Potion of cure poison');
         level.addItem(curePoison, 3, 2);
 
+        const rifle = _parser.createActualObj('items', 'Rifle');
+        const ammo = _parser.createActualObj('items', 'Rifle bullet');
+        ammo.setCount(100);
+        level.addItem(rifle, 1, 1);
+        level.addItem(ammo, 1, 1);
+
         // Test for shops
         const keeper = _parser.createActualObj('actors', 'shopkeeper');
         const gold = new RG.Item.GoldCoin();
