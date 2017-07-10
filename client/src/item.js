@@ -14,6 +14,7 @@ RG.ITEM_SPIRITGEM = 'spiritgem';
 RG.ITEM_GOLD = 'gold';
 RG.ITEM_MISSILE = 'missile';
 RG.ITEM_MISSILE_WEAPON = 'missile_weapon';
+RG.ITEM_AMMUNITION = 'ammunition';
 RG.ITEM_POTION = 'potion';
 RG.ITEM_GOLD_COIN = 'goldcoin';
 
@@ -215,6 +216,13 @@ RG.Item.MissileWeapon = function(name) {
 
 };
 RG.extend2(RG.Item.MissileWeapon, RG.Item.Weapon);
+
+RG.Item.Ammunition = function(name) {
+    RG.Item.Weapon.call(this, name);
+    this.setType(RG.ITEM_AMMUNITION);
+
+};
+RG.extend2(RG.Item.Ammunition, RG.Item.Weapon);
 
 
 /* Base object for armour.*/
