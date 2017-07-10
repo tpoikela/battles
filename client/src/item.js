@@ -209,7 +209,7 @@ RG.Item.Weapon.prototype.toJSON = function() {
     return json;
 };
 
-
+/* Base object for missile weapons. */
 RG.Item.MissileWeapon = function(name) {
     RG.Item.Weapon.call(this, name);
     this.setType(RG.ITEM_MISSILE_WEAPON);
@@ -620,16 +620,16 @@ RG.Item.SpiritGem = function(name) {
     const _getters =
         ['getStrength', 'getWillpower', 'getAccuracy', 'getAgility'];
 
-    for (let i = 0; i < _getters.length; i++) {
-        /* eslint no-loop-func: 0 */
-        const getFunc = function() {
-            const funcName = _getters[i];
-            return function() {
-                if (!_hasSpirit) {return 0;}
-                return _spirit.get('Stats')[funcName]();
-            };
+    const createGetFunc = function(i) {
+        const funcName = _getters[i];
+        return function() {
+            if (!_hasSpirit) {return 0;}
+            return _spirit.get('Stats')[funcName]();
         };
-        this[_getters[i]] = getFunc();
+    };
+
+    for (let i = 0; i < _getters.length; i++) {
+        this[_getters[i]] = createGetFunc(i);
     }
 
 };
