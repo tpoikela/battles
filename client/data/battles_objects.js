@@ -131,12 +131,12 @@ var RGObjects = {
             range: 1, hp: 20, danger: 3, brain: 'Human'
         },
         {
-            name: 'miner', base: 'human',
-            attack: 4, danger: 4, damage: '1d5', equip: ['Pick-axe']
+            name: 'robber', base: 'human',
+            attack: 2, defense: 4, danger: 3
         },
         {
-            name: 'robber', base: 'human',
-            attack: 2, defense: 4
+            name: 'miner', base: 'human',
+            attack: 4, danger: 4, damage: '1d5', equip: ['Pick-axe']
         },
         {
             name: 'fighter', base: 'human', hp: 25,
@@ -152,6 +152,12 @@ var RGObjects = {
             name: 'shopkeeper', char: '@', base: 'human', hp: 50,
             attack: 10, defense: 10, damage: '3d3',
             danger: 6, inv: [{name: 'Gold coin', count: 100}]
+        },
+        {
+            name: 'summoner', char: '@', base: 'human', hp: 50,
+            type: 'summoner',
+            attack: 7, defense: 7, damage: '2d4', brain: 'Summoner',
+            danger: 10
         },
 
         // WILDLINGS
@@ -523,6 +529,10 @@ var RGObjects = {
             name: 'MissileBase', className: 'cell-item-missile', char: '/',
             type: 'missile', dontCreate: true,
             attack: 1, damage: '1d1', range: 2, weight: 0.1
+        },
+        {
+            name: 'Rock', base: 'MissileBase', className: 'cell-item-rock',
+            char: '*', damage: '1d4', range: 5, value: 10, weight: 0.2
         },
         {
             name: 'Shuriken', base: 'MissileBase',
