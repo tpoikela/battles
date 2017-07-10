@@ -329,8 +329,21 @@ RG.Brain.Player = function(actor) { // {{{2
         _restoreBaseSpeed();
         if (obj.cmd === 'missile') {
             const invEq = _actor.getInvEq();
+            // TODO changes to fire more than 1 missile
             const missile = invEq.unequipAndGetItem('missile', 1);
+
             if (!RG.isNullOrUndef([missile])) {
+
+                // Check for missile weapon for ammunition
+                if (missile.has('Ammo')) {
+                    const missWeapon = invEq.getEquipment()
+                        .getEquipped('missileweapon');
+                    if (missWeapon === null) {
+                        const msg = 'No missile weapon equipped.';
+                        return this.cmdNotPossible(msg);
+                    }
+                }
+
                 if (!RG.isNullOrUndef([obj.target])) {
                     const x = obj.target.getX();
                     const y = obj.target.getY();
