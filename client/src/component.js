@@ -715,7 +715,6 @@ RG.Component.Expiration = function() {
         }
 
     };
-
 };
 RG.extend2(RG.Component.Expiration, RG.Component.Base);
 
@@ -723,5 +722,11 @@ RG.Component.Indestructible = function() {
     RG.Component.Base.call(this, 'Indestructible');
 };
 RG.extend2(RG.Component.Indestructible, RG.Component.Base);
+
+RG.Component.Ammo = function() {
+    RG.Component.Base.call(this, 'Ammo');
+};
+RG.extend2(RG.Component.Ammo, RG.Component.Base);
+
 
 module.exports = RG.Component;
