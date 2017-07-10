@@ -81,6 +81,28 @@ describe('RG.Inv.Inventory', () => {
         expect(invEq.unequipItem('head', 0)).to.equal(true);
     });
 
+    it('Equips missile weapons and ammo correctly', () => {
+        const rifle = new RG.Item.MissileWeapon('rifle');
+        const ammo = new RG.Item.Ammo('rifle bullet');
+        const actor = new RG.Actor.Rogue('rogue');
+        const invEq = new RG.Inv.Inventory(actor);
+
+        invEq.addItem(rifle);
+        invEq.addItem(ammo);
+        expect(invEq.equipItem(rifle)).to.equal(true);
+        expect(invEq.equipItem(ammo)).to.equal(true);
+
+        const missWeaponEquipped = invEq.getEquipment()
+            .getEquipped('missileweapon');
+        const ammoWeaponEquipped = invEq.getEquipment().getEquipped('missile');
+
+        expect(missWeaponEquipped.getName()).to.equal('rifle');
+        expect(ammoWeaponEquipped.getName()).to.equal('rifle bullet');
+
+        const missWeapon = invEq.getMissileWeapon();
+        expect(missWeapon.equals(missWeaponEquipped)).to.be.true;
+    });
+
     it('Checks maximum weight allowed to carry', function() {
         const player = new RG.Actor.Rogue('player');
         const invEq = player.getInvEq();
