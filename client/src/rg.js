@@ -358,6 +358,9 @@ const RG = { // {{{2
     getMissileDamage: function(att, miss) {
         let dmg = miss.getDamage();
         dmg += Math.round(att.get('Stats').getAgility() / 3);
+        if (miss.has('Ammo')) {
+            dmg += att.getMissileWeapon().getDamage();
+        }
         return dmg;
     },
 
@@ -369,6 +372,16 @@ const RG = { // {{{2
         attack += miss.getAttack();
 
         return attack;
+    },
+
+    getMissileRange: function(att, miss) {
+        let range = miss.getAttackRange();
+        if (miss.has('Ammo')) {
+            const missWeapon = att.getMissileWeapon();
+            const weaponRange = missWeapon.getAttackRange();
+            range += weaponRange;
+        }
+        return range;
     },
 
     /* Given actor and cells it sees, returns first enemy cell found.*/
