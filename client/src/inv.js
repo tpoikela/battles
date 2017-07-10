@@ -91,6 +91,7 @@ RG.Inv.Equipment = function(actor) {
         neck: new RG.Inv.EquipSlot(this, 'neck'),
         feet: new RG.Inv.EquipSlot(this, 'feet'),
         missile: new RG.Inv.EquipSlot(this, 'missile', true),
+        missileweapon: new RG.Inv.EquipSlot(this, 'missileweapon'),
         spiritgem: new RG.Inv.EquipSlot(this, 'spiritgem')
     };
 
@@ -143,6 +144,12 @@ RG.Inv.Equipment = function(actor) {
         else if (item.getType() === 'missile') {
             if (_slots.missile.equipItem(item)) {
                 _addStackedItem(item);
+                return true;
+            }
+        }
+        else if (item.getType() === 'missileweapon') {
+            if (_slots.missileweapon.equipItem(item)) {
+                _equipped.push(item);
                 return true;
             }
         }
@@ -403,6 +410,12 @@ RG.Inv.Inventory = function(actor) {
 
     this.getWeapon = function() {
         const item = _eq.getItem('hand');
+        if (!RG.isNullOrUndef([item])) {return item;}
+        return null;
+    };
+
+    this.getMissileWeapon = function() {
+        const item = _eq.getItem('missileweapon');
         if (!RG.isNullOrUndef([item])) {return item;}
         return null;
     };
