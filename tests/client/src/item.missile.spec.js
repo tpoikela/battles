@@ -22,7 +22,7 @@ describe('How dice are cast and what values they give', function() {
 
         const factDie = RG.FACT.createDie('2d4 + 2');
         for (let i = 0; i < 100; i++) {
-            let val = factDie.roll();
+            const val = factDie.roll();
             expect(val >= 4).to.equal(true);
             expect(val <= 10).to.equal(true);
         }
@@ -69,8 +69,6 @@ const createMissile = function(obj) {
 };
 
 describe('How missile is fired and hits a wall', function() {
-
-
     it('Starts from source and flies to target', function() {
         const systems = createSystems();
 
@@ -143,7 +141,7 @@ describe('How missile is fired and hits a wall', function() {
         targetEnt.get('Combat').setDefense(0);
         level.addActor(targetEnt, 1, 6);
 
-        const mEnt = new RG.Item.Missile('missile');
+        // const mEnt = new RG.Item.Missile('missile');
         const mComp = createMissile({src: srcEnt, x: 1, y: 6, r: 10, d: 5});
         mComp.setAttack(1);
 
@@ -193,5 +191,36 @@ describe('How missile is fired and hits a wall', function() {
         // Create a spirit and normal actor
         // TODO
     });
+});
 
+describe('How missile weapons affect missiles', () => {
+    it('adds to the default range of missile', () => {
+        const rifle = new RG.Item.MissileWeapon('rifle');
+        rifle.setAttack(1);
+        rifle.setAttackRange(4);
+        rifle.setDamage('1d1+1');
+        const ammo = new RG.Item.Ammo('rifle bullet');
+        ammo.setAttack(2);
+        ammo.setAttackRange(2);
+        ammo.setDamage('3d1+3');
+        const actor = new RG.Actor.Rogue('rogue');
+        actor.get('Stats').setAccuracy(0);
+        actor.get('Stats').setAgility(0);
+        const invEq = actor.getInvEq();
+
+        invEq.addItem(rifle);
+        invEq.addItem(ammo);
+        expect(invEq.equipItem(rifle)).to.equal(true);
+        expect(invEq.equipItem(ammo)).to.equal(true);
+
+        const attack = RG.getMissileAttack(actor, ammo);
+        expect(attack).to.equal(3);
+
+        const damage = RG.getMissileDamage(actor, ammo);
+        expect(damage).to.equal(8);
+
+        const range = RG.getMissileRange(actor, ammo);
+        expect(range).to.equal(6);
+
+    });
 });
