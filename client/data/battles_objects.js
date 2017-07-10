@@ -564,24 +564,44 @@ var RGObjects = {
         // MISSILE WEAPONS
         {
             name: 'MissileWeaponBase', dontCreate: true,
-            type: 'missile_weapon',
+            type: 'missileweapon',
             className: 'cell-item-missileweapon',
             attack: 0, defense: 0, char: '{'
         },
         {
-            name: 'rifle', base: 'MissileWeaponBase',
-            attack: 1, range: 5, value: 200
+            name: 'Bow', base: 'MissileWeaponBase',
+            attack: 1, range: 4, value: 100
         },
-        // - Crossbow
-        // - Double crossbow
-        // - Rifle
-        // - Long bow
-        // - Bow of defense (used as defensive weapon)
-
+        {
+            name: 'Crossbow', base: 'MissileWeaponBase',
+            attack: 3, range: 6, value: 250
+        },
+        {
+            name: 'Double crossbow', base: 'MissileWeaponBase',
+            attack: 0, range: 5, value: 400
+        },
+        {
+            name: 'Bow of Defense', base: 'MissileWeaponBase',
+            attack: 1, range: 4, defense: 6, value: 500
+        },
+        {
+            name: 'Rifle', base: 'MissileWeaponBase',
+            attack: 4, range: 7, value: 500
+        },
         // AMMO
         {
+            name: 'Arrow', base: 'MissileBase',
+            type: 'ammo', range: 1,
+            attack: 0, damage: '1d6', value: 10
+        },
+        {
+            name: 'Bolt', base: 'MissileBase',
+            type: 'ammo', range: 1,
+            attack: 1, damage: '1d8', value: 20
+        },
+        {
             name: 'Rifle bullet', base: 'MissileBase',
-            type: 'ammo',
+            type: 'ammo', range: 1,
             attack: 1, damage: '3d4', value: 50
         },
 
