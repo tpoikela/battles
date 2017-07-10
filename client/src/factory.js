@@ -132,10 +132,22 @@ RG.Factory.ItemRandomizer = function() {
         }
     };
 
+    const _adjustMissile = function(missile, nLevel) {
+        if (!RG.isNullOrUndef([nLevel])) {
+            // TODO use distribution to generate the count
+            missile.setCount(10);
+        }
+        else {
+            RG.err('Factory.ItemRandomizer', '_adjustMissile',
+                'nLevel is not defined.');
+        }
+    };
+
     /* LUT for functions to call on specific items.*/
     const _adjustFunctions = {
         food: _adjustFoodItem,
-        goldcoin: _adjustGoldCoin
+        goldcoin: _adjustGoldCoin,
+        missile: _adjustMissile
     };
 
 };
@@ -1106,17 +1118,11 @@ RG.Factory.Game = function() {
         };
     }; // const DemonKillListener
 
-    /* Creates the game for the FCC project.*/
+    /* Creates the game based on the selection. */
     this.createNewGame = function(obj) {
         _parser.parseShellData(RG.Effects);
         _parser.parseShellData(RGObjects);
-        const cols = obj.cols;
-        const rows = obj.rows;
-        const nLevels = obj.levels;
-        const sqrPerMonster = obj.sqrPerMonster;
-        const sqrPerItem = obj.sqrPerItem;
 
-        let levelCount = 1;
         const game = new RG.Game.Main();
         const player = this.createFCCPlayer(game, obj);
 
@@ -1132,104 +1138,9 @@ RG.Factory.Game = function() {
         else if (obj.debugMode === 'World') {
             return this.createFullWorld(obj, game, player);
         }
-
-        const levels = ['rooms', 'rogue', 'digger'];
-
-        // For storing stairs and levels
-        const allStairsDown = [];
-        const allLevels = [];
-
-        const branch = new RG.World.Branch('StartBranch');
-
-        const itemConstraint = function(maxValue) {
-            return function(item) {return item.value <= maxValue;};
-        };
-        // Generate all game levels
-        for (let nl = 0; nl < nLevels; nl++) {
-
-            const nLevelType = RG.RAND.randIndex(levels);
-            let levelType = levels[nLevelType];
-            if (nl === 0) {levelType = 'ruins';}
-            const level = this.createLevel(levelType, cols, rows);
-            branch.addLevel(level);
-
-            const numFree = level.getMap().getFree().length;
-            const monstersPerLevel = Math.round(numFree / sqrPerMonster);
-            const itemsPerLevel = Math.round(numFree / sqrPerItem);
-
-            const potion = new RG.Item.Potion('Healing potion');
-            level.addItem(potion);
-            const missile = _parser.createActualObj('items', 'Shuriken');
-            missile.count = 20;
-            level.addItem(missile);
-
-            const maxValue = 20 * (nl + 1);
-            const itemConf = {
-                itemsPerLevel, func: itemConstraint(maxValue),
-                maxValue
-            };
-            this.addNRandItems(level, _parser, itemConf);
-
-            const actorConf = {
-                monstersPerLevel,
-                maxDanger: nl + 1
-            };
-            this.addNRandMonsters(level, _parser, actorConf);
-
-            allLevels.push(level);
+        else {
+            return this.createOneDungeonAndBoss(obj, game, player);
         }
-
-        // Create the final boss
-        const lastLevel = allLevels.slice(-1)[0];
-        const bossCell = lastLevel.getFreeRandCell();
-        const summoner = this.createActor('Summoner',
-            {hp: 100, att: 10, def: 10});
-        summoner.setType('summoner');
-        summoner.get('Experience').setExpLevel(10);
-        summoner.setBrain(new RG.Brain.Summoner(summoner));
-        lastLevel.addActor(summoner, bossCell.getX(), bossCell.getY());
-
-        const townLevel = this.createLastBattle(game, {cols: 80, rows: 60});
-        townLevel.setLevelNumber(levelCount++);
-
-        branch.connectLevels();
-        game.addPlace(branch);
-
-        const finalStairs = new Stairs(true, allLevels[nLevels - 1], townLevel);
-        const stairsLoot = new RG.Component.Loot(finalStairs);
-        summoner.add('Loot', stairsLoot);
-        allStairsDown.push(finalStairs);
-
-        const lastStairsDown = allStairsDown.slice(-1)[0];
-        const townStairsUp = new Stairs(false, townLevel, lastLevel);
-        const rStairCell = townLevel.getFreeRandCell();
-        townLevel.addStairs(townStairsUp, rStairCell.getX(), rStairCell.getY());
-        townStairsUp.setTargetStairs(lastStairsDown);
-        lastStairsDown.setTargetStairs(townStairsUp);
-
-        // Create townsfolk for the extra level
-        for (let i = 0; i < 10; i++) {
-            const name = 'Townsman';
-            const human = this.createActor(name, {brain: 'Human'});
-            human.setType('human');
-            const cell = townLevel.getFreeRandCell();
-            townLevel.addActor(human, cell.getX(), cell.getY());
-        }
-
-        // Restore player position or start from beginning
-        if (obj.loadedLevel !== null) {
-            const loadLevel = obj.loadedLevel;
-            if (loadLevel <= nLevels) {
-                allLevels[loadLevel - 1].addActorToFreeCell(player);
-            }
-            else {
-                allLevels[0].addActorToFreeCell(player);
-            }
-        }
-        game.addPlayer(player, {place: 'StartBranch'});
-
-        return game;
-
     };
 
     let _playerFOV = RG.FOV_RANGE;
@@ -1342,6 +1253,114 @@ RG.Factory.Game = function() {
 
         game.addPlayer(player);
         return game;
+    };
+
+    this.createOneDungeonAndBoss = function(obj, game, player) {
+        const cols = obj.cols;
+        const rows = obj.rows;
+        const nLevels = obj.levels;
+        const sqrPerMonster = obj.sqrPerMonster;
+        const sqrPerItem = obj.sqrPerItem;
+
+        let levelCount = 1;
+        const levels = ['rooms', 'rogue', 'digger'];
+
+        // For storing stairs and levels
+        const allStairsDown = [];
+        const allLevels = [];
+
+        const branch = new RG.World.Branch('StartBranch');
+
+        const itemConstraint = function(maxValue) {
+            return function(item) {return item.value <= maxValue;};
+        };
+        // Generate all game levels
+        for (let nl = 0; nl < nLevels; nl++) {
+
+            const nLevelType = RG.RAND.randIndex(levels);
+            let levelType = levels[nLevelType];
+            if (nl === 0) {levelType = 'ruins';}
+            const level = this.createLevel(levelType, cols, rows);
+            branch.addLevel(level);
+
+            const numFree = level.getMap().getFree().length;
+            const monstersPerLevel = Math.round(numFree / sqrPerMonster);
+            const itemsPerLevel = Math.round(numFree / sqrPerItem);
+
+            const potion = new RG.Item.Potion('Healing potion');
+            level.addItem(potion);
+            const missile = _parser.createActualObj('items', 'Shuriken');
+            missile.count = 20;
+            level.addItem(missile);
+
+            const maxValue = 20 * (nl + 1);
+            const itemConf = {
+                itemsPerLevel, func: itemConstraint(maxValue),
+                maxValue
+            };
+            this.addNRandItems(level, _parser, itemConf);
+
+            const actorConf = {
+                monstersPerLevel,
+                maxDanger: nl + 1
+            };
+            this.addNRandMonsters(level, _parser, actorConf);
+
+            allLevels.push(level);
+        }
+
+        // Create the final boss
+        const lastLevel = allLevels.slice(-1)[0];
+        const bossCell = lastLevel.getFreeRandCell();
+        const summoner = this.createActor('Summoner',
+            {hp: 100, att: 10, def: 10});
+        summoner.setType('summoner');
+        summoner.get('Experience').setExpLevel(10);
+        summoner.setBrain(new RG.Brain.Summoner(summoner));
+        lastLevel.addActor(summoner, bossCell.getX(), bossCell.getY());
+
+        const townLevel = this.createLastBattle(game, {cols: 80, rows: 60});
+        townLevel.setLevelNumber(levelCount++);
+
+        branch.connectLevels();
+        game.addPlace(branch);
+
+        const finalStairs = new Stairs(true, allLevels[nLevels - 1], townLevel);
+        const stairsLoot = new RG.Component.Loot(finalStairs);
+        summoner.add('Loot', stairsLoot);
+        allStairsDown.push(finalStairs);
+
+        const lastStairsDown = allStairsDown.slice(-1)[0];
+        const townStairsUp = new Stairs(false, townLevel, lastLevel);
+        const rStairCell = townLevel.getFreeRandCell();
+        townLevel.addStairs(townStairsUp, rStairCell.getX(), rStairCell.getY());
+        townStairsUp.setTargetStairs(lastStairsDown);
+        lastStairsDown.setTargetStairs(townStairsUp);
+
+        // Create townsfolk for the extra level
+        for (let i = 0; i < 10; i++) {
+            const name = 'Townsman';
+            const human = this.createActor(name, {brain: 'Human'});
+            human.setType('human');
+            const cell = townLevel.getFreeRandCell();
+            townLevel.addActor(human, cell.getX(), cell.getY());
+        }
+
+        // Restore player position or start from beginning
+        if (obj.loadedLevel !== null) {
+            const loadLevel = obj.loadedLevel;
+            if (loadLevel <= nLevels) {
+                allLevels[loadLevel - 1].addActorToFreeCell(player);
+            }
+            else {
+                allLevels[0].addActorToFreeCell(player);
+            }
+        }
+        game.addPlayer(player, {place: 'StartBranch'});
+
+        return game;
+
+
     };
 
     this.addActorsToArmy = function(army, num, name) {
