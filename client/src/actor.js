@@ -69,6 +69,11 @@ RG.Actor.Rogue = function(name) { // {{{2
     /* Returns weapon that is wielded by the actor.*/
     this.getWeapon = function() {return this._invEq.getWeapon();};
 
+    /* Returns weapon that is wielded by the actor.*/
+    this.getMissileWeapon = function() {
+        return this._invEq.getMissileWeapon();
+    };
+
     /* Returns missile equipped by the player.*/
     this.getMissile = function() {
         return this._invEq.getEquipment().getItem('missile');
