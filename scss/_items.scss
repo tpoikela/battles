@@ -9,27 +9,27 @@
 
 .cell-item-potion {
     background-color: $white;
-    color: purple;
+    color: $purple;
 };
 
 .cell-item-armour {
-    background-color: green;
+    background-color: $green;
     color: $white;
 };
 
 .cell-item-food {
-    background-color: yellow;
-    color: black;
+    background-color: $yellow;
+    color: $black;
 };
 
 .cell-item-melee-weapon {
-    background-color: blue;
+    background-color: $blue;
     color: $white;
 };
 
 .cell-item-missile {
     background-color: $white;
-    color: red;
+    color: $red;
 };
 
 .cell-item-leather {
@@ -38,7 +38,7 @@
 };
 
 .cell-item-iron {
-    background-color: Silver;
+    background-color: $silver;
     color: $white;
 };
 
@@ -49,21 +49,25 @@
 
 .cell-item-ice {
     background-color: darken($snow-white, 10%);
-    color: blue;
+    color: $blue;
 };
 
 .cell-item-magic {
-    background-color: purple;
+    background-color: $purple;
     color: $white;
 };
 
 .cell-item-spiritgem {
-    background-color: purple;
+    background-color: $purple;
     color: $white;
 };
 
 .cell-item-gold-coin {
-    color: $gold;
     background-color: $brown;
+    color: $gold;
 };
 
+.cell-item-rock {
+    background-color: $black;
+    color: $gray;
+};
