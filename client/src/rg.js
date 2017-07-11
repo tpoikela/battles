@@ -760,6 +760,16 @@ RG.LEVEL_LARGE_Y = 5 * RG.BLOCK_Y;
 RG.LEVEL_HUGE_X = 7 * RG.BLOCK_X;
 RG.LEVEL_HUGE_Y = 7 * RG.BLOCK_Y;
 
+// Controls the number of items generated for each N squares
+RG.LOOT_SPARSE_SQR = 200;
+RG.LOOT_MEDIUM_SQR = 120;
+RG.LOOT_ABUNDANT_SQR = 50;
+
+// Controls the number of actors generated for each N squares
+RG.ACTOR_SPARSE_SQR = 200;
+RG.ACTOR_MEDIUM_SQR = 120;
+RG.ACTOR_ABUNDANT_SQR = 50;
+
 /* Contains generic 2D geometric functions for square/rectangle/triangle
  * generation.*/
 RG.Geometry = {
