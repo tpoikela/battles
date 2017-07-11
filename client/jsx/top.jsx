@@ -702,9 +702,11 @@ class BattlesTop extends React.Component {
 
     setLoot(lootType) {
         switch (lootType) {
-            case 'Sparse': this.gameConf.sqrPerItem = 200; break;
-            case 'Medium': this.gameConf.sqrPerItem = 120; break;
-            case 'Abundant': this.gameConf.sqrPerItem = 50; break;
+            case 'Sparse': this.gameConf.sqrPerItem = RG.LOOT_SPARSE_SQR; break;
+            case 'Medium': this.gameConf.sqrPerItem = RG.LOOT_MEDIUM_SQR; break;
+            case 'Abundant': {
+                this.gameConf.sqrPerItem = RG.LOOT_ABUNDANT_SQR; break;
+            }
             default: console.error('setLoot illegal lootType ' + lootType);
         }
         this.gameConf.lootType = lootType;
@@ -713,9 +715,15 @@ class BattlesTop extends React.Component {
 
     setMonsters(monstType) {
         switch (monstType) {
-            case 'Sparse': this.gameConf.sqrPerMonster = 200; break;
-            case 'Medium': this.gameConf.sqrPerMonster = 120; break;
-            case 'Abundant': this.gameConf.sqrPerMonster = 50; break;
+            case 'Sparse': {
+                this.gameConf.sqrPerMonster = RG.ACTOR_SPARSE_SQR; break;
+            }
+            case 'Medium': {
+                this.gameConf.sqrPerMonster = RG.ACTOR_MEDIUM_SQR; break;
+            }
+            case 'Abundant': {
+                this.gameConf.sqrPerMonster = RG.ACTOR_ABUNDANT_SQR; break;
+            }
             default:
                 console.error('setMonsters illegal monstType ' + monstType);
         }
