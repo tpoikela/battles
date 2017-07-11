@@ -1006,6 +1006,7 @@ RG.Game.FromJSON = function() {
     this.getItemObjectType = function(item) {
         if (item.setType === 'spiritgem') {return 'SpiritGem';}
         if (item.setType === 'goldcoin') {return 'GoldCoin';}
+        if (item.setType === 'missileweapon') {return 'MissileWeapon';}
         if (!RG.isNullOrUndef([item])) {
             if (!RG.isNullOrUndef([item.setType])) {
                 return item.setType.capitalize();
