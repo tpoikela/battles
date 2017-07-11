@@ -743,6 +743,23 @@ RG.K_NEXT_ITEM = ROT.VK_H;
 RG.K_DOOR = ROT.VK_O;
 RG.K_REST = ROT.VK_S;
 
+// These determine the size of one block in a level. These numbers are important
+// because they determine a sub-area used for procedural generation of shops,
+// vaults and other special features.
+RG.BLOCK_X = 20;
+RG.BLOCK_Y = 7;
+
+// Level size determined as function of BLOCK_X/Y. Note that due to different
+// block size or x/y, levels are not square shaped, but x > y.
+RG.LEVEL_SMALL_X = 3 * RG.BLOCK_X;
+RG.LEVEL_SMALL_Y = 3 * RG.BLOCK_Y;
+RG.LEVEL_MEDIUM_X = 4 * RG.BLOCK_X;
+RG.LEVEL_MEDIUM_Y = 4 * RG.BLOCK_Y;
+RG.LEVEL_LARGE_X = 5 * RG.BLOCK_X;
+RG.LEVEL_LARGE_Y = 5 * RG.BLOCK_Y;
+RG.LEVEL_HUGE_X = 7 * RG.BLOCK_X;
+RG.LEVEL_HUGE_Y = 7 * RG.BLOCK_Y;
+
 /* Contains generic 2D geometric functions for square/rectangle/triangle
  * generation.*/
 RG.Geometry = {

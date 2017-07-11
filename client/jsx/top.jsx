@@ -725,14 +725,14 @@ class BattlesTop extends React.Component {
 
     setLevelSize(levelSize) {
         switch (levelSize) {
-            case 'Small': this.gameConf.cols = 40;
-                this.gameConf.rows = 20; break;
-            case 'Medium': this.gameConf.cols = 60;
-                this.gameConf.rows = 30; break;
-            case 'Large': this.gameConf.cols = 80;
-                this.gameConf.rows = 40; break;
-            case 'Huge': this.gameConf.cols = 140;
-                this.gameConf.rows = 60; break;
+            case 'Small': this.gameConf.cols = RG.LEVEL_SMALL_X;
+                this.gameConf.rows = RG.LEVEL_SMALL_Y; break;
+            case 'Medium': this.gameConf.cols = RG.LEVEL_MEDIUM_X;
+                this.gameConf.rows = RG.LEVEL_MEDIUM_Y; break;
+            case 'Large': this.gameConf.cols = RG.LEVEL_LARGE_X;
+                this.gameConf.rows = RG.LEVEL_LARGE_Y; break;
+            case 'Huge': this.gameConf.cols = RG.LEVEL_HUGE_X;
+                this.gameConf.rows = RG.LEVEL_HUGE_Y; break;
             default: console.error('setLeveSize illegal size ' + levelSize);
         }
         this.gameConf.levelSize = levelSize;
