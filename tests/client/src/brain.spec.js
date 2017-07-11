@@ -199,7 +199,6 @@ describe('RG.Brain.Rogue', function() {
     });
 
     it('Has 1st priority for enemies', function() {
-        // var brain = demon.getBrain();
         let cells = RG.Brain.getCellsAround(demon);
         expect(cells).to.have.length(9);
 
@@ -208,8 +207,22 @@ describe('RG.Brain.Rogue', function() {
         expect(cells).to.have.length(4);
     });
 
+    it('explores randomly when no enemies', () => {
+        const arena = RG.FACT.createLevel('arena', 10, 10);
+        const rogue = new RG.Actor.Rogue('rogue');
+        arena.addActor(rogue, 1, 1);
+        const action = rogue.getBrain().decideNextAction();
+        console.log(typeof action);
+        console.log('action obj: ' + JSON.stringify(action));
+        action();
+        const cellChanged = rogue.getCell().getX() !== 1 ||
+            rogue.getCell().getY() !== 1;
+        expect(cellChanged, 'Actor cell changed').to.be.true;
+    });
+
 });
 
+/*
 describe('Brain.Summoner', () => {
     it('can summon help when seeing enemies', () => {
         const summoner = new RG.Actor.Rogue('summoner');
@@ -224,3 +237,4 @@ describe('Brain.Summoner', () => {
             .to.have.length(3);
     });
 });
+*/
