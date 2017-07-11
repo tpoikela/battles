@@ -12,8 +12,8 @@
  *
  */
 
-function SelectorNode(conditionFunction, actionIfTrue, actionIfFalse) {
-    this.conditionFunction = conditionFunction;
+function SelectorNode(condFunc, actionIfTrue, actionIfFalse) {
+    this.condFunc = condFunc;
     this.actionIfTrue = actionIfTrue;
     this.actionIfFalse = actionIfFalse;
 }
@@ -56,29 +56,37 @@ function shuffle(array) {
     return array;
 }
 
-function execBehavTree(behaviourTreeNode, actor) {
+function startBehavTree(behaviourTreeNode, actor) {
+    const resArray = [];
+    execBehavTree(behaviourTreeNode, actor, resArray);
+    return resArray;
+}
+
+function execBehavTree(behaviourTreeNode, actor, resArray) {
     if (typeof actor.completedCurrentAction === 'undefined' || actor.completedCurrentAction === true) {
 
         if (Object.getPrototypeOf(behaviourTreeNode) === SelectorNode.prototype) {
             console.log('selector');
-            selector(behaviourTreeNode, actor);
+            selector(behaviourTreeNode, actor, resArray);
 
         }
         else if (Object.getPrototypeOf(behaviourTreeNode) === SequencerNode.prototype) {
             console.log('sequencer');
-            sequencer(behaviourTreeNode, actor);
+            sequencer(behaviourTreeNode, actor, resArray);
 
         }
         else if (Object.getPrototypeOf(behaviourTreeNode) === SequencerRandomNode.prototype) {
-            sequencerRandom(behaviourTreeNode, actor);
+            sequencerRandom(behaviourTreeNode, actor, resArray);
 
         }
         else if (Object.getPrototypeOf(behaviourTreeNode) === SelectorRandomNode.prototype) {
-            selectorRandom(behaviourTreeNode, actor);
-
+            selectorRandom(behaviourTreeNode, actor, resArray);
         }
         else {
             const res = behaviourTreeNode(actor);
+            if (typeof res === 'function') {
+                resArray.push(res);
+            }
             return res;
         }
     }
@@ -92,31 +100,31 @@ function execBehavTree(behaviourTreeNode, actor) {
 
 // Private functions
 
-function selector(selectorNode, actor) {
-    if (execBehavTree(selectorNode.conditionFunction, actor)) {
-        execBehavTree(selectorNode.actionIfTrue, actor);
+function selector(selectorNode, actor, arr) {
+    if (execBehavTree(selectorNode.condFunc, actor, arr)) {
+        execBehavTree(selectorNode.actionIfTrue, actor, arr);
     }
     else {
-        execBehavTree(selectorNode.actionIfFalse, actor);
+        execBehavTree(selectorNode.actionIfFalse, actor, arr);
     }
 }
 
-function sequencer(sequencerNode, actor) {
+function sequencer(sequencerNode, actor, arr) {
     for (let i = 0; i < sequencerNode.actionArray.length; i++) {
-        execBehavTree(sequencerNode.actionArray[i], actor);
+        execBehavTree(sequencerNode.actionArray[i], actor, arr);
     }
 }
 
-function sequencerRandom(sequencerRandomNode, actor) {
+function sequencerRandom(sequencerRandomNode, actor, arr) {
     shuffle(sequencerRandomNode.actionArray);
     for (let i = 0; i < sequencerRandomNode.actionArray.length; i++) {
-        execBehavTree(sequencerRandomNode.actionArray[i], actor);
+        execBehavTree(sequencerRandomNode.actionArray[i], actor, arr);
     }
 }
 
-function selectorRandom(selectorRandomNode, actor) {
+function selectorRandom(selectorRandomNode, actor, arr) {
     const randomIndex = Math.floor(Math.random() * selectorRandomNode.actionArray.length);
-    execBehavTree(selectorRandomNode.actionArray[randomIndex], actor);
+    execBehavTree(selectorRandomNode.actionArray[randomIndex], actor, arr);
 }
 
 /*
@@ -203,6 +211,7 @@ const BTree = {
     SelectorRandomNode,
     SequencerRandomNode,
     execBehavTree,
+    startBehavTree,
     Model: {
         Rogue: rogueModelBehavTree
     }
