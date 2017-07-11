@@ -2,6 +2,8 @@
 const ROT = require('../../lib/rot.js');
 const RG = require('./rg.js');
 
+// const BTree = require('./aisequence');
+
 //---------------------------------------------------------------------------
 // BRAINS {{{1
 //---------------------------------------------------------------------------
@@ -638,6 +640,7 @@ RG.Brain.Rogue = function(actor) { // {{{2
     /* Main function for retrieving the actionable callback. Acting actor must
      * be passed in. */
     this.decideNextAction = function() {
+        // return BTree.execBehavTree(BTree.Model.Rogue, _actor);
         const seenCells = this.getSeenCells();
         const playerCell = this.findEnemyCell(seenCells);
 
@@ -750,6 +753,26 @@ RG.Brain.Rogue = function(actor) { // {{{2
         return null;
     };
 
+    /* Flees from the given cell or explores randomly if cannot. */
+    this.fleeFromCell = function(cell, seenCells) {
+        const x = cell.getX();
+        const y = cell.getY();
+        const thisX = _actor.getX();
+        const thisY = _actor.getY();
+        const deltaX = x - thisX;
+        const deltaY = y - thisY;
+        // delta determines the direction to flee
+        const newX = thisX - deltaX;
+        const newY = thisY - deltaY;
+        if (_actor.getLevel().getMap().hasXY(newX, newY)) {
+            const newCell = _actor.getLevel().getMap().getCell(newX, newY);
+            if (newCell.isPassable()) {
+                return this.tryToMoveTowardsCell(newCell);
+            }
+        }
+        return this.exploreLevel(seenCells);
+    };
+
     /* Returns shortest path from actor to the given cell. Resulting cells are
      * returned in order: closest to the actor first. Thus moving to next cell
      * can be done by taking the first returned cell.*/
@@ -827,7 +850,6 @@ RG.Brain.Demon = function(actor) {
 
 };
 RG.extend2(RG.Brain.Demon, RG.Brain.Rogue);
-
 
 RG.Brain.Zombie = function(actor) {
     RG.Brain.Rogue.call(this, actor);
