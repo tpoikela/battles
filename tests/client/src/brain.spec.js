@@ -208,13 +208,13 @@ describe('RG.Brain.Rogue', function() {
     });
 
     it('explores randomly when no enemies', () => {
+        const movSys = new RG.System.Movement('Movement', ['Movement']);
         const arena = RG.FACT.createLevel('arena', 10, 10);
         const rogue = new RG.Actor.Rogue('rogue');
         arena.addActor(rogue, 1, 1);
-        const action = rogue.getBrain().decideNextAction();
-        console.log(typeof action);
-        console.log('action obj: ' + JSON.stringify(action));
-        action();
+        const action = rogue.nextAction();
+        action.doAction();
+        movSys.update();
         const cellChanged = rogue.getCell().getX() !== 1 ||
             rogue.getCell().getY() !== 1;
         expect(cellChanged, 'Actor cell changed').to.be.true;
@@ -222,7 +222,6 @@ describe('RG.Brain.Rogue', function() {
 
 });
 
-/*
 describe('Brain.Summoner', () => {
     it('can summon help when seeing enemies', () => {
         const summoner = new RG.Actor.Rogue('summoner');
@@ -237,4 +236,3 @@ describe('Brain.Summoner', () => {
             .to.have.length(3);
     });
 });
-*/
