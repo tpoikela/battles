@@ -35,7 +35,6 @@ const cityConfBase = function(_parser, conf) {
 };
 
 /* Determines the x-y sizes for different types of levels. */
-/*
 const levelSizes = {
     tile: {
         Small: {x: 40, y: 20},
@@ -50,10 +49,10 @@ const levelSizes = {
         Huge: {x: 140, y: 60}
     },
     dungeon: {
-        Small: {x: 40, y: 20},
-        Medium: {x: 60, y: 30},
-        Large: {x: 80, y: 40},
-        Huge: {x: 140, y: 60}
+        Small: {x: RG.LEVEL_SMALL_X, y: RG.LEVEL_SMALL_Y},
+        Medium: {x: RG.LEVEL_MEDIUM_X, y: RG.LEVEL_MEDIUM_Y},
+        Large: {x: RG.LEVEL_LARGE_X, y: RG.LEVEL_LARGE_Y},
+        Huge: {x: RG.LEVEL_HUGE_X, y: RG.LEVEL_HUGE_Y}
     },
     city: {
         Small: {x: 40, y: 20},
@@ -62,7 +61,6 @@ const levelSizes = {
         Huge: {x: 140, y: 60}
     }
 };
-*/
 
 /* Player stats based on user selection.*/
 const confPlayerStats = {
@@ -572,6 +570,13 @@ RG.Factory.World = function() {
     const _verif = new RG.VerifyConf('Factory.World');
     this.featureFactory = new RG.Factory.Feature();
 
+    // Used for generating levels, if more specific settings not given
+    this.globalConf = {
+        dungeonX: RG.LEVEL_MEDIUM_X,
+        dungeonY: RG.LEVEL_MEDIUM_Y
+
+    };
+
     // Can be used to pass already created levels to different features. For
     // example, after restore game, no new levels should be created
     this.id2level = {};
@@ -609,6 +614,35 @@ RG.Factory.World = function() {
         }
     };
 
+    /* Initializes the global configuration such as level size. */
+    this.setGlobalConf = function(conf) {
+        const levelSize = conf.levelSize || 'Medium';
+        const sqrPerMonster = conf.sqrPerMonster || RG.ACTOR_MEDIUM_SQR;
+        this.globalConf.levelSize = levelSize;
+        this.globalConf.dungeonX = levelSizes.dungeon[levelSize].x;
+        this.globalConf.dungeonY = levelSizes.dungeon[levelSize].y;
+        this.globalConf.sqrPerMonster = sqrPerMonster;
+        this.globalConf.sqrPerItem = conf.sqrPerItem || RG.LOOT_MEDIUM_SQR;
+    };
+
+    /* Returns global config value. */
+    this.getConf = function(keys) {
+        if (typeof keys === 'string') {
+            return this.globalConf[keys];
+        }
+        let currRef = this.globalConf;
+        keys.forEach(key => {
+            if (currRef.hasOwnProperty(key)) {
+                currRef = currRef[key];
+            }
+            else {
+                RG.err('Factory.World', 'getConf',
+                    `Cannot find conf for keys ${JSON.stringify(keys)}`);
+            }
+        });
+        return currRef;
+    };
+
     // Random constraint management
     this.constraintStack = [];
     this.pushConstraint = function(constr) {
@@ -626,10 +660,8 @@ RG.Factory.World = function() {
         return null;
     };
 
-
     /* Returns the full hierarchical name of feature. */
     this.getHierName = () => this.scope.join('.');
-
 
     /* Creates a world using given configuration. */
     this.createWorld = function(conf) {
@@ -785,10 +817,10 @@ RG.Factory.World = function() {
             // TODO: Level configuration can be quite complex. Support random
             // and customly created levels somehow
             const levelConf = {
-                x: 80,
-                y: 30,
-                sqrPerMonster: 40,
-                sqrPerItem: 40,
+                x: this.getConf(['dungeonX']),
+                y: this.getConf(['dungeonY']),
+                sqrPerMonster: this.getConf('sqrPerMonster'),
+                sqrPerItem: this.getConf('sqrPerItem'),
                 maxValue: 20 * (i + 1),
                 nLevel: i
             };
@@ -996,8 +1028,9 @@ RG.Factory.Game = function() {
 
     const _parser = new RG.ObjectShellParser();
 
-    /* Creates a player actor and starting inventory.*/
-    this.createFCCPlayer = function(game, obj) {
+    /* Creates a player actor and starting inventory unless a game has been
+     * restored. */
+    this.createPlayerUnlessLoaded = function(game, obj) {
         let player = obj.loadedPlayer;
         if (RG.isNullOrUndef([player])) {
             const expLevel = obj.playerLevel;
@@ -1124,7 +1157,7 @@ RG.Factory.Game = function() {
         _parser.parseShellData(RGObjects);
 
         const game = new RG.Game.Main();
-        const player = this.createFCCPlayer(game, obj);
+        const player = this.createPlayerUnlessLoaded(game, obj);
 
         if (obj.debugMode === 'Arena') {
             return this.createArenaDebugGame(obj, game, player);
@@ -1164,6 +1197,8 @@ RG.Factory.Game = function() {
         }
         worldConf.levelSize = obj.levelSize;
         const fact = new RG.Factory.World();
+        fact.setGlobalConf(obj);
+
         const world = fact.createWorld(worldConf);
         const levels = world.getLevels();
 
