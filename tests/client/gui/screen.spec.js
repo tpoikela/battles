@@ -49,4 +49,17 @@ describe('GUI.Screen', () => {
         expect(classes).to.have.length(11);
 
     });
+
+    it('can render a full map without player', () => {
+        const level = RG.FACT.createLevel('arena', 10, 10);
+        const map = level.getMap();
+        const screen = new Screen(5, 5);
+        screen.renderFullMap(map);
+
+        const chars = screen.getCharRows();
+        const classes = screen.getClassRows();
+        expect(chars).to.have.length(10);
+        expect(classes).to.have.length(10);
+
+    });
 });
