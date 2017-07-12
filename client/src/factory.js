@@ -222,6 +222,14 @@ RG.Factory.Base = function() { // {{{2
         }
     };
 
+    this.createElement = function(elemType) {
+        switch (elemType) {
+            case 'wall': return new RG.Element.Base('wall');
+            case 'floor': return new RG.Element.Base('floor');
+            default: return null;
+        }
+    };
+
     this.createFloorCell = function(x, y) {
         return new RG.Map.Cell(x, y, new RG.Element.Base('floor'));
     };
