@@ -21,6 +21,8 @@ RG.Map.Cell = function(x, y, elem) { // {{{2
 
 RG.Map.Cell.prototype.getX = function() {return this._x;};
 RG.Map.Cell.prototype.getY = function() {return this._y;};
+RG.Map.Cell.prototype.setX = function(x) {this._x = x;};
+RG.Map.Cell.prototype.setY = function(y) {this._y = y;};
 
 /* Sets/gets the base element for this cell. There can be only one element.*/
 RG.Map.Cell.prototype.setBaseElem = function(elem) { this._baseElem = elem; };
