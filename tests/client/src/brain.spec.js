@@ -263,13 +263,48 @@ describe('Brain.Summoner', () => {
     it('can summon help when seeing enemies', () => {
         const summoner = new RG.Actor.Rogue('summoner');
         const brain = new RG.Brain.Summoner(summoner);
+        summoner.setBrain(brain);
+
         const level = RG.FACT.createLevel('arena', 10, 10);
         const player = new RG.Actor.Rogue('Player');
         player.setIsPlayer(true);
         level.addActor(summoner, 1, 1);
         level.addActor(player, 3, 3);
-        while (!brain.summonedMonster()) {continue;}
+
+        brain.summonProbability = 1.01;
+        const summonAction = summoner.nextAction();
+        summonAction.doAction();
         expect(level.getActors(), 'There should be one actor added')
             .to.have.length(3);
+    });
+});
+
+describe('Brain.Human', () => {
+    it('communicates enemies to friend actors', () => {
+        const commSystem = new RG.System.Communication(
+            'Communication', ['Communication']
+        );
+        const human = new RG.Actor.Rogue('human');
+        const brain = new RG.Brain.Human(human);
+        brain.commProbability = 1.01;
+        human.setBrain(brain);
+
+        const human2 = new RG.Actor.Rogue('human2');
+        const brain2 = new RG.Brain.Human(human2);
+        human2.setBrain(brain2);
+
+        const demon = new RG.Actor.Rogue('demon');
+        demon.setType('demon');
+
+        const level = RG.FACT.createLevel('arena', 10, 10);
+        level.addActor(human, 2, 2);
+        level.addActor(human2, 1, 1);
+        level.addActor(demon, 3, 3);
+
+        const action = human.nextAction();
+        action.doAction();
+        expect(human2.has('Communication')).to.be.true;
+        commSystem.update();
+        expect(human2.has('Communication')).to.be.false;
     });
 });
