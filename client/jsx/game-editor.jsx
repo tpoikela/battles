@@ -5,6 +5,9 @@ const GameBoard = require('./game-board');
 const RG = require('../src/battles');
 const Screen = require('../gui/screen');
 
+const RGEffects = require('../data/effects');
+const RGObjects = require('../data/battles_objects');
+
 class GameEditor extends React.Component {
 
     constructor(props) {
@@ -15,7 +18,10 @@ class GameEditor extends React.Component {
             levelX: 80,
             levelY: 28,
             levelType: 'arena',
-            errorMsg: ''
+            errorMsg: '',
+
+            itemFunc: (item) => (item.value < 5000),
+            maxValue: 5000
         };
 
         this.screen = new Screen(state.levelX, state.levelY);
@@ -30,7 +36,14 @@ class GameEditor extends React.Component {
         this.onChangeX = this.onChangeX.bind(this);
         this.onChangeY = this.onChangeY.bind(this);
 
+        this.generateActors = this.generateActors.bind(this);
+        this.generateItems = this.generateItems.bind(this);
+
         this.state = state;
+
+        this.parser = new RG.ObjectShellParser();
+        this.parser.parseShellData(RGEffects);
+        this.parser.parseShellData(RGObjects);
     }
 
     exploreAll(level) {
@@ -41,6 +54,12 @@ class GameEditor extends React.Component {
                 cell.setExplored(true);
             }
         }
+    }
+
+    /* Converts the rendered level to JSON.*/
+    levelToJSON() {
+        const json = this.state.level.toJSON();
+        localStorage.setItem('savedLevel', JSON.stringify(json));
     }
 
     generateMap() {
@@ -54,6 +73,44 @@ class GameEditor extends React.Component {
         catch (e) {
             this.setState({errorMsg: e.message});
         }
+    }
+
+    generateItems() {
+        const itemFunc = this.state.itemFunc;
+        const maxValue = this.state.maxValue;
+        const conf = {
+            func: itemFunc, maxValue,
+            itemsPerLevel: 10
+        };
+        const level = this.state.level;
+
+        // Remove existing items first
+        const items = level.getItems();
+        items.forEach(item => {
+            level.removeItem(item, item.getX(), item.getY());
+        });
+
+        RG.FACT.addNRandItems(level, this.parser, conf);
+        this.setState({level: level});
+    }
+
+    generateActors() {
+        const level = this.state.level;
+
+        // Remove existing actors first
+        const actors = level.getActors();
+        actors.forEach(actor => {
+            level.removeActor(actor, actor.getX(), actor.getY());
+        });
+
+        const conf = {
+            maxDanger: 20,
+            monstersPerLevel: 20,
+            func: (actor) => (actor.danger < 100)
+        };
+
+        RG.FACT.addNRandMonsters(this.state.level, this.parser, conf);
+        this.setState({level: level});
     }
 
     onChangeType(evt) {
@@ -107,6 +164,11 @@ class GameEditor extends React.Component {
                     onChange={this.onChangeY}
                     value={this.state.levelY}
                 />
+                <button onClick={this.generateActors}>Actors!</button>
+                <button onClick={this.generateItems}>Items!</button>
+                <div>
+                    {errorMsg}
+                </div>
                 <div className='game-board-div'>
                     <GameBoard
                         boardClassName={this.state.boardClassName}
@@ -118,9 +180,6 @@ class GameEditor extends React.Component {
                         startX={0}
                         startY={0}
                     />
-                </div>
-                <div>
-                    {errorMsg}
                 </div>
             </div>
         );
