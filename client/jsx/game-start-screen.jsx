@@ -206,6 +206,12 @@ class GameStartScreen extends React.Component {
             <div className='modal-footer row'>
               <div className='col-md-6'>
                 <button
+                  className='btn btn-primary'
+                  data-dismiss='modal'
+                  onClick={this.props.toggleEditor}
+                  type='button'
+                  >Editor</button>
+                <button
                   className='btn btn-success'
                   data-dismiss='modal'
                   onClick={newGame}
@@ -249,7 +255,9 @@ GameStartScreen.propTypes = {
 
   newGame: React.PropTypes.func,
   selectedGame: React.PropTypes.string,
-  selectGame: React.PropTypes.func
+  selectGame: React.PropTypes.func,
+
+  toggleEditor: React.PropTypes.func
 };
 
 module.exports = GameStartScreen;
