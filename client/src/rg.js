@@ -786,7 +786,51 @@ RG.Geometry = {
             }
         }
         return res;
+    },
+
+    insertSubLevel: function(l1, l2, startX, startY) {
+        const m1 = l1.getMap();
+        const m2 = l2.getMap();
+        if (m1.cols < m2.cols) {
+            RG.err('Geometry', 'mergeLevels',
+                'Cols: Second level arg cols must be smaller.');
+        }
+        if (m1.rows < m2.rows) {
+            RG.err('Geometry', 'mergeLevels',
+                'Rows: Second level arg rows must be smaller.');
+        }
+        const endX = startX + m2.cols - 1;
+        const endY = startY + m2.rows - 1;
+        for (let x = startX; x <= endX; x++) {
+            for (let y = startY; y <= endY; y++) {
+                if (m1.hasXY(x, y)) {
+                    m1._map[x][y] = m2._map[x - startX][y - startY];
+                    m1._map[x][y].setX(x);
+                    m1._map[x][y].setY(y);
+                }
+            }
+        }
+    },
+
+    /* Inserts elements into the given level as rectangle bounded by the
+     * coordinates given. */
+    insertElements: function(l1, elemType, llx, lly, urx, ury) {
+        const m1 = l1.getMap();
+        for (let x = llx; x <= urx; x++) {
+            for (let y = lly; y <= ury; y++) {
+                if (m1.hasXY(x, y)) {
+                    const elem = RG.FACT.createElement(elemType);
+                    if (elemType.match(/(wall|floor)/)) {
+                        m1._map[x][y].setBaseElem(elem);
+                    }
+                    else {
+                        m1._map[x][y].setProp('elements', elem);
+                    }
+                }
+            }
+        }
     }
+
 
 };
 
