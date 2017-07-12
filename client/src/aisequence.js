@@ -66,12 +66,10 @@ function execBehavTree(behaviourTreeNode, actor, resArray) {
     if (typeof actor.completedCurrentAction === 'undefined' || actor.completedCurrentAction === true) {
 
         if (Object.getPrototypeOf(behaviourTreeNode) === SelectorNode.prototype) {
-            console.log('selector');
             selector(behaviourTreeNode, actor, resArray);
 
         }
         else if (Object.getPrototypeOf(behaviourTreeNode) === SequencerNode.prototype) {
-            console.log('sequencer');
             sequencer(behaviourTreeNode, actor, resArray);
 
         }
@@ -90,11 +88,6 @@ function execBehavTree(behaviourTreeNode, actor, resArray) {
             return res;
         }
     }
-    console.log('typeof actor.completedCurrentAction: ' + typeof actor.completedCurrentAction);
-    console.log('actor.completedCurrentAction: ' + actor.completedCurrentAction);
-    console.log('typeof node: ' + typeof behaviourTreeNode);
-    console.log(JSON.stringify(behaviourTreeNode));
-    console.log('execBehavTree Returning empty func now');
     return () => {};
 }
 
@@ -175,6 +168,7 @@ rogueModel.exploreLevel = function(actor) {
     return brain.exploreLevel(seenCells);
 };
 
+/*
 const rogueModelBehavTree =
     new SelectorNode(
         rogueModel.ifSeriouslyWounded,
@@ -184,6 +178,17 @@ const rogueModelBehavTree =
             rogueModel.attackPlayer,
             rogueModel.exploreLevel
         )
+    );
+*/
+const rogueModelBehavTree =
+    new SelectorNode(
+        rogueModel.ifPlayerIsInSight,
+        new SelectorNode(
+            rogueModel.ifSeriouslyWounded,
+            rogueModel.flee,
+            rogueModel.attackPlayer
+        ),
+        rogueModel.exploreLevel
     );
 
 /*
