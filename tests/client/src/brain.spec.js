@@ -220,6 +220,43 @@ describe('RG.Brain.Rogue', function() {
         expect(cellChanged, 'Actor cell changed').to.be.true;
     });
 
+    it('flees when low on health', () => {
+        const movSys = new RG.System.Movement('Movement', ['Movement']);
+        const arena = RG.FACT.createLevel('arena', 30, 30);
+        const rogue = new RG.Actor.Rogue('rogue');
+        rogue.setFOVRange(20);
+        const player = new RG.Actor.Rogue('player');
+
+        // Check that flee action not triggered when not player seen
+        rogue.get('Health').setHP(1);
+        arena.addActor(rogue, 2, 2);
+        const action = rogue.nextAction();
+        action.doAction();
+        movSys.update();
+        const rogueX = rogue.getX();
+        const rogueY = rogue.getY();
+        const cellChanged = rogueX !== 2 || rogueY !== 2;
+        expect(cellChanged, 'Explore even when low on health').to.equal(true);
+
+        // Add player to provoke flee response in rogue
+        arena.addActor(player, 1, 1);
+        player.setIsPlayer(true);
+
+        let currDist = RG.shortestDist(rogueX, rogueY, 1, 1);
+        let prevDist = currDist;
+        for (let i = 3; i < 9; i++) {
+            const action = rogue.nextAction();
+            action.doAction();
+            movSys.update();
+            const rogueX = rogue.getX();
+            const rogueY = rogue.getY();
+            currDist = RG.shortestDist(rogueX, rogueY, 1, 1);
+            console.log(`x: ${rogueX} y: ${rogueY} dist: ${currDist}`);
+            expect(currDist).to.be.above(prevDist);
+            prevDist = currDist;
+        }
+    });
+
 });
 
 describe('Brain.Summoner', () => {
