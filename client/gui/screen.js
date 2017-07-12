@@ -116,11 +116,28 @@ GUI.Screen = function(viewX, viewY) {
             const classesChars = getClassesAndChars(visibleCells,
                 rowCellData, this.selectedCell);
 
-            _charRows[yCount] = classesChars[1];
             _classRows[yCount] = classesChars[0];
+            _charRows[yCount] = classesChars[1];
             ++yCount;
         }
 
+    };
+
+    /* Renders the full map as visible. */
+    this.renderFullMap = function(map) {
+        this.startX = 0;
+        this.endX = map.cols - 1;
+        this.startY = 0;
+        this.endY = map.rows - 1;
+
+        for (let y = 0; y < map.rows; ++y) {
+            const rowCellData = map.getCellRow(y);
+            const classesChars = getClassesAndChars(rowCellData,
+                rowCellData, null);
+
+            _classRows[y] = classesChars[0];
+            _charRows[y] = classesChars[1];
+        }
     };
 
 };
