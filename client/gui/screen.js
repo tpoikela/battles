@@ -133,7 +133,7 @@ GUI.Screen = function(viewX, viewY) {
         for (let y = 0; y < map.rows; ++y) {
             const rowCellData = map.getCellRow(y);
             const classesChars = getClassesAndChars(rowCellData,
-                rowCellData, null);
+                rowCellData, this.selectedCell);
 
             _classRows[y] = classesChars[0];
             _charRows[y] = classesChars[1];
