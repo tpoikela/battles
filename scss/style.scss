@@ -181,6 +181,12 @@ ul {
     };
 }
 
+.game-editor-board-div {
+    .game-board {
+        cursor: pointer;
+    }
+}
+
 .ctrl-bottom {
     @include ctrl-panel;
     margin-top: 10px;
