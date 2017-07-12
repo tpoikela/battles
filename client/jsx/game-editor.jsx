@@ -39,6 +39,8 @@ class GameEditor extends React.Component {
         this.generateActors = this.generateActors.bind(this);
         this.generateItems = this.generateItems.bind(this);
 
+        this.levelToJSON = this.levelToJSON.bind(this);
+
         this.state = state;
 
         this.parser = new RG.ObjectShellParser();
@@ -164,8 +166,11 @@ class GameEditor extends React.Component {
                     onChange={this.onChangeY}
                     value={this.state.levelY}
                 />
-                <button onClick={this.generateActors}>Actors!</button>
-                <button onClick={this.generateItems}>Items!</button>
+                <div>
+                    <button onClick={this.generateActors}>Actors!</button>
+                    <button onClick={this.generateItems}>Items!</button>
+                    <button onClick={this.levelToJSON}>To JSON</button>
+                </div>
                 <div>
                     {errorMsg}
                 </div>
