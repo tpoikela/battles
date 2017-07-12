@@ -211,6 +211,11 @@ RG.Map.CellList = function(cols, rows) { // {{{2
     const _cols = cols;
     const _rows = rows;
 
+    if (typeof _cols !== 'number' || typeof _rows !== 'number') {
+        RG.err('Map.CellList', 'constructor',
+            'Map.CellList(rows, cols) expects 2 integers.');
+    }
+
     for (let x = 0; x < this.cols; x++) {
         this._map.push([]);
         for (let y = 0; y < this.rows; y++) {
