@@ -129,19 +129,21 @@ function tick(behaviourTreeNode, actor) {
 */
 
 //----------------------------------------------------------------------
-// EXAMPLES
+// MODELS
 //----------------------------------------------------------------------
 
-const rogueModel = {};
+const Models = {}; // Namespace for models
 
-rogueModel.ifPlayerIsInSight = function(actor) {
+Models.Rogue = {};
+
+Models.Rogue.ifPlayerIsInSight = function(actor) {
     const brain = actor.getBrain();
     const seenCells = brain.getSeenCells();
     const playerCell = brain.findEnemyCell(seenCells);
     return playerCell !== null;
 };
 
-rogueModel.attackPlayer = function(actor) {
+Models.Rogue.attackEnemy = function(actor) {
     const brain = actor.getBrain();
     const seenCells = brain.getSeenCells();
     const playerCell = brain.findEnemyCell(seenCells);
@@ -149,67 +151,99 @@ rogueModel.attackPlayer = function(actor) {
 };
 
 /* Returns true if actor has 10% of health. */
-rogueModel.ifSeriouslyWounded = function(actor) {
+Models.Rogue.ifSeriouslyWounded = function(actor) {
     const healthComp = actor.get('Health');
     const thr = Math.round(healthComp.getMaxHP() * 0.1);
     return healthComp.getHP() <= thr;
 };
 
-rogueModel.flee = function(actor) {
+Models.Rogue.flee = function(actor) {
     const brain = actor.getBrain();
     const seenCells = brain.getSeenCells();
     const playerCell = brain.findEnemyCell(seenCells);
     return brain.fleeFromCell(playerCell, seenCells);
 };
 
-rogueModel.exploreLevel = function(actor) {
+Models.Rogue.exploreLevel = function(actor) {
     const brain = actor.getBrain();
     const seenCells = brain.getSeenCells();
     return brain.exploreLevel(seenCells);
 };
 
-/*
-const rogueModelBehavTree =
+Models.Rogue.Nodes = {};
+
+Models.Rogue.Nodes.combat =
     new SelectorNode(
-        rogueModel.ifSeriouslyWounded,
-        new SequencerNode([rogueModel.flee]),
-        new SelectorNode(
-            rogueModel.ifPlayerIsInSight,
-            rogueModel.attackPlayer,
-            rogueModel.exploreLevel
-        )
+        Models.Rogue.ifSeriouslyWounded,
+        Models.Rogue.flee,
+        Models.Rogue.attackEnemy
     );
-*/
-const rogueModelBehavTree =
+
+Models.Rogue.tree =
     new SelectorNode(
-        rogueModel.ifPlayerIsInSight,
+        Models.Rogue.ifPlayerIsInSight,
+        Models.Rogue.Nodes.combat,
+        Models.Rogue.exploreLevel
+    );
+
+/* Human models for AI. */
+Models.Human = {};
+
+Models.Human.isEnemyInSight = function(actor) {
+    return Models.Rogue.ifPlayerIsInSight(actor);
+};
+
+Models.Human.willCommunicate = function(actor) {
+    return actor.getBrain().willCommunicate();
+};
+
+Models.Human.communicateEnemies = function(actor) {
+    return actor.getBrain().communicateEnemies();
+};
+
+Models.Human.tree =
+    new SelectorNode(
+        Models.Human.isEnemyInSight,
         new SelectorNode(
-            rogueModel.ifSeriouslyWounded,
-            rogueModel.flee,
-            rogueModel.attackPlayer
+            Models.Human.willCommunicate,
+            Models.Human.communicateEnemies,
+            Models.Rogue.Nodes.combat
         ),
-        rogueModel.exploreLevel
+        Models.Rogue.exploreLevel
     );
 
-/*
-    const actor1 = new RG.Actor.Rogue('goblin');
-    const player = new RG.Actor.Rogue('player');
-    player.setIsPlayer(true);
-    const level = RG.FACT.createLevel('arena', 10, 10);
-    level.addActor(actor1, 1, 1);
-    level.addActor(player, 3, 3);
+//------------------------------
+/* Demon models for AI. */
+//------------------------------
+Models.Demon = {};
 
-    for (let i = 0; i < 10; i++) {
-        execBehavTree(rogueModelBehavTree, actor1);
-        if (i === 5) {
-            actor1.get('Health').setHP(1);
-        }
-    }
-*/
-// }
+// Models.Demon.tree =  {};
 
-// battlesExample();
+//------------------------------
+/* Summoner models for AI. */
+//------------------------------
+Models.Summoner = {};
 
+Models.Summoner.willSummon = function(actor) {
+    return actor.getBrain().willSummon();
+};
+
+Models.Summoner.summonMonster = function(actor) {
+    return actor.getBrain().summonMonster();
+};
+
+Models.Summoner.tree =
+    new SelectorNode(
+        Models.Rogue.ifPlayerIsInSight,
+        new SelectorNode(
+            Models.Summoner.willSummon,
+            Models.Summoner.summonMonster,
+            Models.Rogue.tree
+        ),
+        Models.Rogue.exploreLevel
+    );
+
+// Object for exports
 const BTree = {
     SelectorNode,
     SequencerNode,
@@ -217,9 +251,7 @@ const BTree = {
     SequencerRandomNode,
     execBehavTree,
     startBehavTree,
-    Model: {
-        Rogue: rogueModelBehavTree
-    }
+    Models
 };
 
 module.exports = BTree;
