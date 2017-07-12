@@ -15,6 +15,7 @@ const GamePanel = require('./game-panel');
 const GameMessages = require('./game-messages');
 const GameStats = require('./game-stats');
 const GameBoard = require('./game-board');
+const GameEditor = require('./game-editor');
 
 const Screen = require('../gui/screen');
 
@@ -155,7 +156,9 @@ class BattlesTop extends React.Component {
             levelSize: 'Medium',
             monstType: 'Medium',
             lootType: 'Medium',
-            debugMode: 'Off'
+            debugMode: 'Off',
+
+            showEditor: false
         };
 
         // Binding of callbacks
@@ -163,6 +166,10 @@ class BattlesTop extends React.Component {
         this.initGUICommandTable();
         ROT.RNG.setSeed(1); // TODO
         RG.RAND.setSeed(1);
+    }
+
+    toggleEditor() {
+        this.setState({showEditor: !this.state.showEditor});
     }
 
     selectSaveGame(name) {
@@ -496,9 +503,12 @@ class BattlesTop extends React.Component {
                     setPlayerLevel={this.setPlayerLevel}
                     setPlayerName={this.setPlayerName}
                     settings={settings}
+                    toggleEditor={this.toggleEditor}
                 />
                 <GameHelpScreen />
 
+
+                {!this.state.showEditor &&
                 <GameInventory
                     doInvCmd={this.doInvCmd}
                     eq={eq}
@@ -513,7 +523,9 @@ class BattlesTop extends React.Component {
                     selectItemTop={this.selectItemTop}
                     setInventoryMsg={this.setInventoryMsg}
                 />
+                }
 
+                {!this.state.showEditor &&
                 <div className='row game-panel-div'>
                     <div className='col-md-2'>
                         <GamePanel
@@ -552,7 +564,10 @@ class BattlesTop extends React.Component {
                         </div>
                     </div>
                 </div>
-
+                }
+                {this.state.showEditor &&
+                    <GameEditor />
+                }
             </div>
         );
     }
@@ -819,6 +834,8 @@ class BattlesTop extends React.Component {
         this.selectEquipTop = this.selectEquipTop.bind(this);
         this.selectItemTop = this.selectItemTop.bind(this);
         this.doInvCmd = this.doInvCmd.bind(this);
+
+        this.toggleEditor = this.toggleEditor.bind(this);
     }
 
 }
