@@ -2,7 +2,7 @@
 const ROT = require('../../lib/rot.js');
 const RG = require('./rg.js');
 
-// const BTree = require('./aisequence');
+const BTree = require('./aisequence');
 
 //---------------------------------------------------------------------------
 // BRAINS {{{1
@@ -617,6 +617,8 @@ RG.Brain.Rogue = function(actor) { // {{{2
 
     this.addEnemy = function(actor) {_memory.addEnemy(actor);};
 
+    this._seenCached = null;
+
     const _passableCallback = function(x, y) {
         const map = _actor.getLevel().getMap();
         if (!RG.isNullOrUndef([map])) {
@@ -634,13 +636,18 @@ RG.Brain.Rogue = function(actor) { // {{{2
 
     // Convenience methods (for child classes)
     this.getSeenCells = function() {
+        if (this._seenCached) {
+            return this._seenCached;
+        }
         return _actor.getLevel().getMap().getVisibleCells(_actor);
     };
 
     /* Main function for retrieving the actionable callback. Acting actor must
      * be passed in. */
     this.decideNextAction = function() {
-        // return BTree.execBehavTree(BTree.Model.Rogue, _actor);
+        this._seenCached = null;
+        return BTree.startBehavTree(BTree.Model.Rogue, _actor)[0];
+        /*
         const seenCells = this.getSeenCells();
         const playerCell = this.findEnemyCell(seenCells);
 
@@ -649,6 +656,7 @@ RG.Brain.Rogue = function(actor) { // {{{2
             return this.actionTowardsEnemy(playerCell);
         }
         return this.exploreLevel(seenCells);
+        */
     };
 
     /* Takes action towards given enemy cell.*/
