@@ -928,6 +928,8 @@ RG.Brain.Human = function(actor) {
     RG.Brain.Rogue.call(this, actor);
     this.setType('human');
 
+    this.commProbability = 0.5;
+
     this.getMemory().addEnemyType('demon');
 
     this.willCommunicate = function() {
@@ -951,7 +953,7 @@ RG.Brain.Human = function(actor) {
             }
         }
 
-        if (communicateOrAttack > 0.5) {
+        if (communicateOrAttack < (1.0 - this.commProbability)) {
             return false;
         }
         return true;
