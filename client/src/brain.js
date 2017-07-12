@@ -1,8 +1,13 @@
 
 const ROT = require('../../lib/rot.js');
 const RG = require('./rg.js');
-
 const BTree = require('./aisequence');
+
+const Models = BTree.Models;
+
+// Dummy callback to return, if the actor's action provides a state
+// changing action without callback.
+const ACTION_ALREADY_DONE = () => {};
 
 //---------------------------------------------------------------------------
 // BRAINS {{{1
@@ -634,29 +639,20 @@ RG.Brain.Rogue = function(actor) { // {{{2
         return false;
     };
 
-    // Convenience methods (for child classes)
+    // Returns cells seen by this actor
     this.getSeenCells = function() {
         if (this._seenCached) {
             return this._seenCached;
         }
-        return _actor.getLevel().getMap().getVisibleCells(_actor);
+        this._seenCached = _actor.getLevel().getMap().getVisibleCells(_actor);
+        return this._seenCached;
     };
 
     /* Main function for retrieving the actionable callback. Acting actor must
      * be passed in. */
     this.decideNextAction = function() {
         this._seenCached = null;
-        return BTree.startBehavTree(BTree.Model.Rogue, _actor)[0];
-        /*
-        const seenCells = this.getSeenCells();
-        const playerCell = this.findEnemyCell(seenCells);
-
-        // We have found the player
-        if (!RG.isNullOrUndef([playerCell])) { // Move or attack
-            return this.actionTowardsEnemy(playerCell);
-        }
-        return this.exploreLevel(seenCells);
-        */
+        return BTree.startBehavTree(Models.Rogue.tree, _actor)[0];
     };
 
     /* Takes action towards given enemy cell.*/
@@ -782,10 +778,9 @@ RG.Brain.Rogue = function(actor) { // {{{2
     };
 
     /* Returns shortest path from actor to the given cell. Resulting cells are
-     * returned in order: closest to the actor first. Thus moving to next cell
-     * can be done by taking the first returned cell.*/
+     * returned in order: closest to the actor first. Thus moving to the
+     * next cell can be done by taking the first returned cell.*/
     this.getShortestPathTo = function(cell) {
-
         const path = [];
         const toX = cell.getX();
         const toY = cell.getY();
@@ -873,55 +868,47 @@ RG.Brain.Summoner = function(actor) {
     const _actor = actor;
     this.numSummoned = 0;
     this.maxSummons = 20;
+    this.summonProbability = 0.2;
 
     const _memory = this.getMemory();
     _memory.addEnemyType('player');
 
     this.decideNextAction = function() {
-        const seenCells = this.getSeenCells();
-        const playerCell = this.findEnemyCell(seenCells);
+        this._seenCached = null;
+        return BTree.startBehavTree(Models.Summoner.tree, _actor)[0];
+    };
 
-        // We have found the player
-        if (!RG.isNullOrUndef([playerCell])) { // Move or attack
-            if (this.summonedMonster()) {
-                return function() {};
-            }
-            else {
-                return this.actionTowardsEnemy(playerCell);
-            }
+    /* Returns true if the summoner will summon on this action. */
+    this.willSummon = function() {
+        if (this.numSummoned === this.maxSummons) {return false;}
+        const summon = RG.RAND.getUniform();
+        if (summon > (1.0 - this.summonProbability)) {
+            console.log('SUMMONING NOW');
+            return true;
         }
-        return this.exploreLevel(seenCells);
-
+        return false;
     };
 
     /* Tries to summon a monster to a nearby cell. Returns true if success.*/
-    this.summonedMonster = function() {
-        if (this.numSummoned === this.maxSummons) {return false;}
-
-        const summon = RG.RAND.getUniform();
-        if (summon > 0.8) {
-            const level = _actor.getLevel();
-            const cellsAround = this.getFreeCellsAround();
-            if (cellsAround.length > 0) {
-                const freeX = cellsAround[0].getX();
-                const freeY = cellsAround[0].getY();
-                const summoned = RG.FACT.createActor('Summoned',
-                    {hp: 15, att: 7, def: 7});
-                summoned.get('Experience').setExpLevel(5);
-                level.addActor(summoned, freeX, freeY);
-                RG.gameMsg(_actor.getName() + ' summons some help');
-                this.numSummoned += 1;
-                return true;
-            }
-            else {
-                const txt = ' screamed incantation but nothing happened';
-                RG.gameMsg(_actor.getName() + txt);
-            }
+    this.summonMonster = function() {
+        const level = _actor.getLevel();
+        const cellsAround = this.getFreeCellsAround();
+        if (cellsAround.length > 0) {
+            const freeX = cellsAround[0].getX();
+            const freeY = cellsAround[0].getY();
+            const summoned = RG.FACT.createActor('Summoned',
+                {hp: 15, att: 7, def: 7});
+            summoned.get('Experience').setExpLevel(5);
+            level.addActor(summoned, freeX, freeY);
+            RG.gameMsg(_actor.getName() + ' summons some help');
+            this.numSummoned += 1;
         }
-        return false;
-
+        else {
+            const txt = ' screamed an incantation but nothing happened';
+            RG.gameMsg(_actor.getName() + txt);
+        }
+        return ACTION_ALREADY_DONE;
     };
-
 
     /* Returns all free cells around the actor owning the brain.*/
     this.getFreeCellsAround = function() {
@@ -943,43 +930,53 @@ RG.Brain.Human = function(actor) {
 
     this.getMemory().addEnemyType('demon');
 
-    this.decideNextAction = function() {
+    this.willCommunicate = function() {
+        const communicateOrAttack = RG.RAND.getUniform();
         const seenCells = this.getSeenCells();
-        const enemyCell = this.findEnemyCell(seenCells);
+        // const enemyCell = this.findEnemyCell(seenCells);
         const friendCell = this.findFriendCell(seenCells);
-        let friendActor = null;
         const memory = this.getMemory();
 
-        // If actor cannot communicate, always attack if possible
-        let communicateOrAttack = RG.RAND.getUniform();
+        let friendActor = null;
         if (RG.isNullOrUndef([friendCell])) {
-            communicateOrAttack = 1.0;
+            return false;
         }
         else {
             friendActor = friendCell.getProp('actors')[0];
             if (memory.hasCommunicatedWith(friendActor)) {
-                communicateOrAttack = 1.0;
+                return false;
+            }
+            else if (friendActor.has('Communication')) {
+                return false;
             }
         }
 
-        // We have found the enemy, move or attack
-        if (!RG.isNullOrUndef([enemyCell]) && communicateOrAttack > 0.5) {
-            return this.actionTowardsEnemy(enemyCell);
+        if (communicateOrAttack > 0.5) {
+            return false;
         }
-        else if (friendActor !== null) { // Communicate enemies
-            if (!memory.hasCommunicatedWith(friendActor)) {
-                const comComp = new RG.Component.Communication();
-                const enemies = memory.getEnemies();
-                const msg = {type: 'Enemies', enemies, src: this.getActor()};
-                comComp.addMsg(msg);
-                if (!friendActor.has('Communication')) {
-                    friendActor.add('Communication', comComp);
-                    memory.addCommunicationWith(friendActor);
-                    return function() {};
-                }
-            }
-        }
-        return this.exploreLevel(seenCells);
+        return true;
+
+    };
+
+    this.decideNextAction = function() {
+        this._seenCached = null;
+        return BTree.startBehavTree(Models.Human.tree, actor)[0];
+    };
+
+    this.communicateEnemies = function() {
+        const memory = this.getMemory();
+        const enemies = memory.getEnemies();
+        const seenCells = this.getSeenCells();
+        const friendCell = this.findFriendCell(seenCells);
+        const friendActor = friendCell.getProp('actors')[0];
+
+        const comComp = new RG.Component.Communication();
+        const msg = {type: 'Enemies', enemies, src: this.getActor()};
+        comComp.addMsg(msg);
+
+        friendActor.add('Communication', comComp);
+        memory.addCommunicationWith(friendActor);
+        return ACTION_ALREADY_DONE;
     };
 
 };
