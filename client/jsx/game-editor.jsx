@@ -18,10 +18,20 @@ class GameEditor extends React.Component {
             levelX: 80,
             levelY: 28,
             levelType: 'arena',
+
+            subLevelX: 20,
+            subLevelY: 7,
+            subLevelType: 'arena',
+
             errorMsg: '',
 
             itemFunc: (item) => (item.value < 5000),
-            maxValue: 5000
+            maxValue: 5000,
+
+            selectedCell: null,
+            elementType: 'floor',
+            elemX: 1,
+            elemY: 1
         };
 
         this.screen = new Screen(state.levelX, state.levelY);
@@ -36,6 +46,11 @@ class GameEditor extends React.Component {
         this.onChangeX = this.onChangeX.bind(this);
         this.onChangeY = this.onChangeY.bind(this);
 
+        this.subGenerateMap = this.subGenerateMap.bind(this);
+        this.onChangeSubType = this.onChangeSubType.bind(this);
+        this.onChangeSubX = this.onChangeSubX.bind(this);
+        this.onChangeSubY = this.onChangeSubY.bind(this);
+
         this.generateActors = this.generateActors.bind(this);
         this.generateItems = this.generateItems.bind(this);
 
@@ -46,6 +61,11 @@ class GameEditor extends React.Component {
         this.parser = new RG.ObjectShellParser();
         this.parser.parseShellData(RGEffects);
         this.parser.parseShellData(RGObjects);
+
+        this.onCellClick = this.onCellClick.bind(this);
+
+        this.insertElement = this.insertElement.bind(this);
+        this.onChangeElement = this.onChangeElement.bind(this);
     }
 
     exploreAll(level) {
@@ -56,6 +76,13 @@ class GameEditor extends React.Component {
                 cell.setExplored(true);
             }
         }
+    }
+
+    onCellClick(x, y) {
+        const cell = this.state.level.getMap().getCell(x, y);
+        console.log(`Clicked ${x},${y} ${JSON.stringify(cell)}`);
+        this.screen.setSelectedCell(cell);
+        this.setState({selectedCell: cell});
     }
 
     /* Converts the rendered level to JSON.*/
@@ -75,6 +102,18 @@ class GameEditor extends React.Component {
         catch (e) {
             this.setState({errorMsg: e.message});
         }
+    }
+
+    subGenerateMap() {
+        const level = this.state.level;
+        let subLevel = RG.FACT.createLevel(this.state.subLevelType,
+            this.state.subLevelX, this.state.subLevelY);
+        this.exploreAll(subLevel);
+        const x = this.state.selectedCell.getX();
+        const y = this.state.selectedCell.getY();
+        RG.Geometry.insertSubLevel(level, subLevel, x, y);
+        subLevel = null;
+        this.setState({level: level});
     }
 
     generateItems() {
@@ -130,6 +169,42 @@ class GameEditor extends React.Component {
         this.setState({levelY: value});
     }
 
+    onChangeSubType(evt) {
+        const value = evt.target.value;
+        this.setState({subLevelType: value});
+    }
+
+    onChangeSubX(evt) {
+        const value = parseInt(evt.target.value, 10);
+        this.setState({subLevelX: value});
+    }
+
+    onChangeSubY(evt) {
+        const value = parseInt(evt.target.value, 10);
+        this.setState({subLevelY: value});
+    }
+
+    onChangeElement(evt) {
+        const value = evt.target.value;
+        this.setState({elementType: value});
+    }
+
+    insertElement() {
+        const llx = this.state.selectedCell.getX();
+        const lly = this.state.selectedCell.getY();
+        const urx = llx;
+        const ury = lly;
+        const level = this.state.level;
+        try {
+            RG.Geometry.insertElements(level, this.state.elementType,
+                llx, lly, urx, ury);
+        }
+        catch (e) {
+            this.setState({errorMsg: e.message});
+        }
+        this.setState({level: level});
+    }
+
     render() {
         const mapShown = this.props.mapShown;
         let rowClass = 'cell-row-div-player-view';
@@ -144,43 +219,70 @@ class GameEditor extends React.Component {
         }
 
         const errorMsg = this.getErrorMsg();
-
         const charRows = this.screen.getCharRows();
         const classRows = this.screen.getClassRows();
         return (
             <div className='game-editor'>
                 <h2>Battles Game Editor</h2>
-                <button onClick={this.generateMap}>Generate!</button>
-                <input
-                    name='level-type'
-                    onChange={this.onChangeType}
-                    value={this.state.levelType}
-                />
-                <input
-                    name='level-x'
-                    onChange={this.onChangeX}
-                    value={this.state.levelX}
-                />
-                <input
-                    name='level-y'
-                    onChange={this.onChangeY}
-                    value={this.state.levelY}
-                />
-                <div>
+                <div className='btn-div'>
+                    <button onClick={this.generateMap}>Generate!</button>
+                    <input
+                        name='level-type'
+                        onChange={this.onChangeType}
+                        value={this.state.levelType}
+                    />
+                    <input
+                        name='level-x'
+                        onChange={this.onChangeX}
+                        value={this.state.levelX}
+                    />
+                    <input
+                        name='level-y'
+                        onChange={this.onChangeY}
+                        value={this.state.levelY}
+                    />
+                </div>
+                <div className='btn-div'>
+                    <button onClick={this.subGenerateMap}>SubGen!</button>
+                    <input
+                        name='sublevel-type'
+                        onChange={this.onChangeSubType}
+                        value={this.state.subLevelType}
+                    />
+                    <input
+                        name='sublevel-x'
+                        onChange={this.onChangeSubX}
+                        value={this.state.subLevelX}
+                    />
+                    <input
+                        name='sublevel-y'
+                        onChange={this.onChangeSubY}
+                        value={this.state.subLevelY}
+                    />
+                </div>
+                <div className='btn-div'>
                     <button onClick={this.generateActors}>Actors!</button>
                     <button onClick={this.generateItems}>Items!</button>
                     <button onClick={this.levelToJSON}>To JSON</button>
                 </div>
+                <div className='btn-div'>
+                    <button onClick={this.insertElement}>Insert element</button>
+                    <input
+                        name='insert-element'
+                        onChange={this.onChangeElement}
+                        value={this.state.elementType}
+                    />
+                </div>
                 <div>
                     {errorMsg}
                 </div>
-                <div className='game-board-div'>
+                <div className='game-editor-board-div'>
                     <GameBoard
                         boardClassName={this.state.boardClassName}
                         charRows={charRows}
                         classRows={classRows}
                         endY={this.screen.endY}
-                        onCellClick={() => {}}
+                        onCellClick={this.onCellClick}
                         rowClass={rowClass}
                         startX={0}
                         startY={0}
