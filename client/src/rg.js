@@ -829,8 +829,36 @@ RG.Geometry = {
                 }
             }
         }
-    }
+    },
 
+    /* Inserts actors into the given level as rectangle bounded by the
+     * coordinates given. */
+    insertActors: function(l1, actorName, llx, lly, urx, ury, parser) {
+        const m1 = l1.getMap();
+        for (let x = llx; x <= urx; x++) {
+            for (let y = lly; y <= ury; y++) {
+                if (m1.hasXY(x, y)) {
+                    const actor = parser.createActualObj(RG.TYPE_ACTOR,
+                        actorName);
+                    l1.addActor(actor, x, y);
+                }
+            }
+        }
+    },
+
+    /* Inserts items into the given level as rectangle bounded by the
+     * coordinates given. */
+    insertItems: function(l1, itemName, llx, lly, urx, ury, parser) {
+        const m1 = l1.getMap();
+        for (let x = llx; x <= urx; x++) {
+            for (let y = lly; y <= ury; y++) {
+                if (m1.hasXY(x, y)) {
+                    const item = parser.createActualObj(RG.TYPE_ITEM, itemName);
+                    l1.addItem(item, x, y);
+                }
+            }
+        }
+    }
 
 };
 
