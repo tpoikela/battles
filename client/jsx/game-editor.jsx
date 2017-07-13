@@ -30,8 +30,11 @@ class GameEditor extends React.Component {
 
             selectedCell: null,
             elementType: 'floor',
-            elemX: 1,
-            elemY: 1
+            actorName: '',
+            itemName: '',
+
+            insertXWidth: 1,
+            insertYWidth: 1
         };
 
         this.screen = new Screen(state.levelX, state.levelY);
@@ -41,6 +44,13 @@ class GameEditor extends React.Component {
 
         state.level = level;
 
+        this.state = state;
+
+        this.parser = new RG.ObjectShellParser();
+        this.parser.parseShellData(RGEffects);
+        this.parser.parseShellData(RGObjects);
+
+        // Bind functions for callbacks
         this.generateMap = this.generateMap.bind(this);
         this.onChangeType = this.onChangeType.bind(this);
         this.onChangeX = this.onChangeX.bind(this);
@@ -56,16 +66,17 @@ class GameEditor extends React.Component {
 
         this.levelToJSON = this.levelToJSON.bind(this);
 
-        this.state = state;
-
-        this.parser = new RG.ObjectShellParser();
-        this.parser.parseShellData(RGEffects);
-        this.parser.parseShellData(RGObjects);
-
         this.onCellClick = this.onCellClick.bind(this);
 
         this.insertElement = this.insertElement.bind(this);
         this.onChangeElement = this.onChangeElement.bind(this);
+        this.insertActor = this.insertActor.bind(this);
+        this.onChangeActor = this.onChangeActor.bind(this);
+        this.insertItem = this.insertItem.bind(this);
+        this.onChangeItem = this.onChangeItem.bind(this);
+
+        this.onChangeInsertXWidth = this.onChangeInsertXWidth.bind(this);
+        this.onChangeInsertYWidth = this.onChangeInsertYWidth.bind(this);
     }
 
     exploreAll(level) {
@@ -91,6 +102,7 @@ class GameEditor extends React.Component {
         localStorage.setItem('savedLevel', JSON.stringify(json));
     }
 
+    /* Generates the large map. This erases everything. */
     generateMap() {
         try {
             const level = RG.FACT.createLevel(this.state.levelType,
@@ -104,6 +116,8 @@ class GameEditor extends React.Component {
         }
     }
 
+    /* Inserts a sub-map into the current level. This overwrites all cells
+     * in the large map (including items and actors. */
     subGenerateMap() {
         const level = this.state.level;
         let subLevel = RG.FACT.createLevel(this.state.subLevelType,
@@ -154,46 +168,16 @@ class GameEditor extends React.Component {
         this.setState({level: level});
     }
 
-    onChangeType(evt) {
-        const value = evt.target.value;
-        this.setState({levelType: value});
-    }
-
-    onChangeX(evt) {
-        const value = parseInt(evt.target.value, 10);
-        this.setState({levelX: value});
-    }
-
-    onChangeY(evt) {
-        const value = parseInt(evt.target.value, 10);
-        this.setState({levelY: value});
-    }
-
-    onChangeSubType(evt) {
-        const value = evt.target.value;
-        this.setState({subLevelType: value});
-    }
-
-    onChangeSubX(evt) {
-        const value = parseInt(evt.target.value, 10);
-        this.setState({subLevelX: value});
-    }
-
-    onChangeSubY(evt) {
-        const value = parseInt(evt.target.value, 10);
-        this.setState({subLevelY: value});
-    }
-
-    onChangeElement(evt) {
-        const value = evt.target.value;
-        this.setState({elementType: value});
+    debugMsg(msg) {
+        console.log('[DEBUG] ' + msg);
     }
 
     insertElement() {
+        this.debugMsg('insertElement');
         const llx = this.state.selectedCell.getX();
         const lly = this.state.selectedCell.getY();
-        const urx = llx;
-        const ury = lly;
+        const urx = this.state.insertXWidth + llx;
+        const ury = this.state.insertYWidth + lly;
         const level = this.state.level;
         try {
             RG.Geometry.insertElements(level, this.state.elementType,
@@ -203,6 +187,39 @@ class GameEditor extends React.Component {
             this.setState({errorMsg: e.message});
         }
         this.setState({level: level});
+    }
+
+    insertActor() {
+        const llx = this.state.selectedCell.getX();
+        const lly = this.state.selectedCell.getY();
+        const urx = this.state.insertXWidth + llx;
+        const ury = this.state.insertYWidth + lly;
+        const level = this.state.level;
+        try {
+            RG.Geometry.insertActors(level, this.state.actorName,
+                llx, lly, urx, ury, this.parser);
+        }
+        catch (e) {
+            this.setState({errorMsg: e.message});
+        }
+        this.setState({level: level});
+    }
+
+    insertItem() {
+        const llx = this.state.selectedCell.getX();
+        const lly = this.state.selectedCell.getY();
+        const urx = this.state.insertXWidth + llx;
+        const ury = this.state.insertYWidth + lly;
+        const level = this.state.level;
+        try {
+            RG.Geometry.insertItems(level, this.state.itemName,
+                llx, lly, urx, ury, this.parser);
+        }
+        catch (e) {
+            this.setState({errorMsg: e.message});
+        }
+        this.setState({level: level});
+
     }
 
     render() {
@@ -263,7 +280,6 @@ class GameEditor extends React.Component {
                 <div className='btn-div'>
                     <button onClick={this.generateActors}>Actors!</button>
                     <button onClick={this.generateItems}>Items!</button>
-                    <button onClick={this.levelToJSON}>To JSON</button>
                 </div>
                 <div className='btn-div'>
                     <button onClick={this.insertElement}>Insert element</button>
@@ -271,6 +287,30 @@ class GameEditor extends React.Component {
                         name='insert-element'
                         onChange={this.onChangeElement}
                         value={this.state.elementType}
+                    />
+                    <button onClick={this.insertActor}>Insert actor</button>
+                    <input
+                        name='insert-actor'
+                        onChange={this.onChangeActor}
+                        value={this.state.actorName}
+                    />
+                    <button onClick={this.insertItem}>Insert item</button>
+                    <input
+                        name='insert-item'
+                        onChange={this.onChangeItem}
+                        value={this.state.itemName}
+                    />
+                </div>
+                <div className='btn-div'>
+                    <input
+                        name='insert-x-width'
+                        onChange={this.onChangeInsertXWidth}
+                        value={this.state.insertXWidth}
+                    />
+                    <input
+                        name='insert-y-width'
+                        onChange={this.onChangeInsertYWidth}
+                        value={this.state.insertYWidth}
                     />
                 </div>
                 <div>
@@ -288,6 +328,9 @@ class GameEditor extends React.Component {
                         startY={0}
                     />
                 </div>
+                <div className='btn-div'>
+                    <button onClick={this.levelToJSON}>To JSON</button>
+                </div>
             </div>
         );
     }
@@ -299,6 +342,94 @@ class GameEditor extends React.Component {
         else {
             return <p className='text-success'>OK. No errors.</p>;
         }
+    }
+
+    //----------------------------------------------------------------
+    // onChangeXXX callbacks for <input> fields
+    //----------------------------------------------------------------
+
+    onChangeType(evt) {
+        const value = evt.target.value;
+        this.setState({levelType: value});
+    }
+
+    onChangeX(evt) {
+        const value = parseInt(evt.target.value, 10);
+        this.setState({levelX: value});
+    }
+
+    onChangeY(evt) {
+        const value = parseInt(evt.target.value, 10);
+        this.setState({levelY: value});
+    }
+
+    onChangeSubType(evt) {
+        const value = evt.target.value;
+        this.setState({subLevelType: value});
+    }
+
+    onChangeSubX(evt) {
+        const value = parseInt(evt.target.value, 10);
+        this.setState({subLevelX: value});
+    }
+
+    onChangeSubY(evt) {
+        const value = parseInt(evt.target.value, 10);
+        this.setState({subLevelY: value});
+    }
+
+    onChangeElement(evt) {
+        const value = evt.target.value;
+        this.setState({elementType: value});
+    }
+
+    onChangeActor(evt) {
+        const value = evt.target.value;
+        this.setState({actorName: value});
+    }
+
+    onChangeItem(evt) {
+        const value = evt.target.value;
+        this.setState({itemName: value});
+    }
+
+    onChangeInsertXWidth(evt) {
+        const value = parseInt(evt.target.value, 10);
+        this.setState({insertXWidth: value});
+    }
+
+    onChangeInsertYWidth(evt) {
+        const value = parseInt(evt.target.value, 10);
+        this.setState({insertYWidth: value});
+    }
+
+    bindFunctionsToThis() {
+        this.generateMap = this.generateMap.bind(this);
+        this.onChangeType = this.onChangeType.bind(this);
+        this.onChangeX = this.onChangeX.bind(this);
+        this.onChangeY = this.onChangeY.bind(this);
+
+        this.subGenerateMap = this.subGenerateMap.bind(this);
+        this.onChangeSubType = this.onChangeSubType.bind(this);
+        this.onChangeSubX = this.onChangeSubX.bind(this);
+        this.onChangeSubY = this.onChangeSubY.bind(this);
+
+        this.generateActors = this.generateActors.bind(this);
+        this.generateItems = this.generateItems.bind(this);
+
+        this.levelToJSON = this.levelToJSON.bind(this);
+
+        this.onCellClick = this.onCellClick.bind(this);
+
+        this.insertElement = this.insertElement.bind(this);
+        this.onChangeElement = this.onChangeElement.bind(this);
+        this.insertActor = this.insertActor.bind(this);
+        this.onChangeActor = this.onChangeActor.bind(this);
+        this.insertItem = this.insertItem.bind(this);
+        this.onChangeItem = this.onChangeItem.bind(this);
+
+        this.onChangeInsertXWidth = this.onChangeInsertXWidth.bind(this);
+        this.onChangeInsertYWidth = this.onChangeInsertYWidth.bind(this);
     }
 }
 
