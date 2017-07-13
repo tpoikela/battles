@@ -285,16 +285,18 @@ class BattlesTop extends React.Component {
         });
     }
 
-    /* Loads a saved game.*/
-    loadGame(name) {
+    /* Loads a saved game from a JSON. */
+    loadGame(playerName) {
         this.setState({loadInProgress: true});
 
-        const persist = new Persist(name);
+        const persist = new Persist(playerName);
         persist.fromStorage().then(result => {
             const fromJSON = new RG.Game.FromJSON();
+
+            // Pick JSON matching the selected player name
             let json = null;
             result.forEach(res => {
-                if (res.player.name === name) {
+                if (res.player.name === playerName) {
                     json = res;
                 }
             });
@@ -304,13 +306,15 @@ class BattlesTop extends React.Component {
             if (player !== null) {
                 this.gameConf.loadedPlayer = player;
                 this.gameConf.loadedLevel = this.gameSave.getDungeonLevel();
-                const confObj = this.gameSave.getPlayersAsObj()[name];
+                const confObj = this.gameSave.getPlayersAsObj()[playerName];
                 this.restoreConf(confObj);
                 this.initRestoredGame(restGame);
             }
         });
     }
 
+    /* Sets up the event pool, GUI callbacks, animation frame and first
+     * visible cells for a restored game. */
     initRestoredGame(game) {
         if (this.frameID) {
             cancelAnimationFrame(this.frameID);
@@ -565,6 +569,7 @@ class BattlesTop extends React.Component {
                     </div>
                 </div>
                 }
+
                 {this.state.showEditor &&
                     <GameEditor />
                 }
