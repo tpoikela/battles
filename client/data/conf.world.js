@@ -2,6 +2,7 @@
 
 const RG = require('../src/rg');
 
+const temple = require('./temple.json');
 
 // Note:
 // An object with key 'constraint' can be passed at any level. This contains
@@ -37,7 +38,11 @@ const dungeons = {
                 return (actor.type === 'animal');
             }
         },
-        branch: [{name: 'Animals', nLevels: 5, entranceLevel: 0}],
+        branch: [
+            {name: 'Animals', nLevels: 5, entranceLevel: 0,
+             presetLevels: [{nLevel: 0, level: temple}]
+            }
+        ],
     },
     smallDungeon: { x: 0, y: 0, name: 'Small dungeon', nBranches: 1,
         // constraint: {actor: actor => (actor.type === 'animal')},
