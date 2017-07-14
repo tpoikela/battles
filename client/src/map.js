@@ -1066,4 +1066,10 @@ RG.Map.Level = function() { // {{{2
 }; // }}} Level
 RG.Map.Level.prototype.idCount = 0;
 
+RG.Map.Level.createLevelID = function() {
+    const id = RG.Map.Level.prototype.idCount;
+    RG.Map.Level.prototype.idCount += 1;
+    return id;
+};
+
 module.exports = RG.Map;
