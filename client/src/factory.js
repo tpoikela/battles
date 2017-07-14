@@ -210,6 +210,13 @@ RG.Factory.Base = function() { // {{{2
         switch (elemType) {
             case 'wall': return new RG.Element.Base('wall');
             case 'floor': return new RG.Element.Base('floor');
+            case 'door' : return new RG.Element.Door(true);
+            case 'opendoor' : return new RG.Element.Door(false);
+            case 'tree': return new RG.Element.Tree();
+            case 'grass': return new RG.Element.Grass();
+            case 'water': return new RG.Element.Water();
+            case 'stone': return new RG.Element.Stone();
+            case 'snow': return new RG.Element.Base('snow');
             default: return null;
         }
     };
@@ -525,14 +532,9 @@ RG.Factory.Feature = function() {
     /* Creates random dungeon level. */
     this.createDungeonLevel = function(conf) {
         let level = null;
-        if (conf.hasOwnProperty('template')) {
-            // TODO
-        }
-        else {
-            const levelType = this.getRandLevelType();
-            level = this.createLevel(levelType, conf.x, conf.y);
-            this.addItemsAndMonsters(level, conf);
-        }
+        const levelType = this.getRandLevelType();
+        level = this.createLevel(levelType, conf.x, conf.y);
+        this.addItemsAndMonsters(level, conf);
         return level;
     };
 
