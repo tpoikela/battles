@@ -382,6 +382,20 @@ RG.Map.CellList = function(cols, rows) { // {{{2
 
 }; // }}} this._map.CellList
 
+RG.Map.CellList.invertMap = function(map) {
+    for (let x = 0; x < map.cols; x++) {
+        for (let y = 0; y < map.rows; y++) {
+            const type = map._map[x][y].getBaseElem().getType();
+            if (type === 'wall') {
+                map._map[x][y].setBaseElem(new RG.Element.Base('floor'));
+            }
+            else if (type === 'floor') {
+                map._map[x][y].setBaseElem(new RG.Element.Base('wall'));
+            }
+        }
+    }
+};
+
 RG.Map.CellList.prototype.toJSON = function() {
     const map = [];
     for (let x = 0; x < this.cols; x++) {
@@ -479,8 +493,9 @@ RG.Map.Generator = function() { // {{{2
 
     /* Creates a cellular type dungeon and makes all areas connected.*/
     this.createCellular = function(cols, rows) {
-        const map = new ROT.Map.Cellular(cols, rows);
-        map.randomize(0.5);
+        const map = new ROT.Map.Cellular(cols, rows,
+            {connected: true});
+        map.randomize(0.52);
         for (let i = 0; i < 5; i++) {map.create();}
         map.connect(null, 1);
         _wall = 0;
@@ -1071,5 +1086,6 @@ RG.Map.Level.createLevelID = function() {
     RG.Map.Level.prototype.idCount += 1;
     return id;
 };
+
 
 module.exports = RG.Map;
