@@ -34,13 +34,16 @@ class GameEditor extends React.Component {
             itemName: '',
 
             insertXWidth: 1,
-            insertYWidth: 1
+            insertYWidth: 1,
+
+            shownLevelConf: '',
+            levelConf: {}
         };
 
         this.screen = new Screen(state.levelX, state.levelY);
         const level = RG.FACT.createLevel(state.levelType,
             state.levelX, state.levelY);
-        this.exploreAll(level);
+        RG.setAllExplored(level, true);
 
         state.level = level;
 
@@ -77,16 +80,9 @@ class GameEditor extends React.Component {
 
         this.onChangeInsertXWidth = this.onChangeInsertXWidth.bind(this);
         this.onChangeInsertYWidth = this.onChangeInsertYWidth.bind(this);
-    }
 
-    exploreAll(level) {
-        const map = level.getMap();
-        for (let x = 0; x < map.cols; x++) {
-            for (let y = 0; y < map.rows; y++) {
-                const cell = map._map[x][y];
-                cell.setExplored(true);
-            }
-        }
+        this.invertMap = this.invertMap.bind(this);
+        // this.onChangeLevelConf = this.onChangeLevelConf.bind(this);
     }
 
     onCellClick(x, y) {
@@ -104,11 +100,16 @@ class GameEditor extends React.Component {
 
     /* Generates the large map. This erases everything. */
     generateMap() {
+        const levelType = this.state.levelType;
         try {
-            const level = RG.FACT.createLevel(this.state.levelType,
-                this.state.levelX, this.state.levelY);
+            let conf = {};
+            if (this.state.levelConf.hasOwnProperty(levelType)) {
+                conf = this.state.levelConf[levelType];
+            }
+            const level = RG.FACT.createLevel(levelType,
+                this.state.levelX, this.state.levelY, conf);
             this.screen.setViewportXY(this.state.levelX, this.state.levelY);
-            this.exploreAll(level);
+            RG.setAllExplored(level, true);
             this.setState({level: level});
         }
         catch (e) {
@@ -122,7 +123,7 @@ class GameEditor extends React.Component {
         const level = this.state.level;
         let subLevel = RG.FACT.createLevel(this.state.subLevelType,
             this.state.subLevelX, this.state.subLevelY);
-        this.exploreAll(subLevel);
+        RG.setAllExplored(subLevel, true);
         const x = this.state.selectedCell.getX();
         const y = this.state.selectedCell.getY();
         RG.Geometry.insertSubLevel(level, subLevel, x, y);
@@ -222,6 +223,14 @@ class GameEditor extends React.Component {
 
     }
 
+    /* Inverts the map base elements (floor/wall) */
+    invertMap() {
+        const level = this.state.level;
+        const map = level.getMap();
+        RG.Map.CellList.invertMap(map);
+        this.setState({level: level});
+    }
+
     render() {
         const mapShown = this.props.mapShown;
         let rowClass = 'cell-row-div-player-view';
@@ -238,6 +247,8 @@ class GameEditor extends React.Component {
         const errorMsg = this.getErrorMsg();
         const charRows = this.screen.getCharRows();
         const classRows = this.screen.getClassRows();
+        const levelConfElem = this.getLevelConfElement();
+
         return (
             <div className='game-editor'>
                 <h2>Battles Game Editor</h2>
@@ -258,6 +269,8 @@ class GameEditor extends React.Component {
                         onChange={this.onChangeY}
                         value={this.state.levelY}
                     />
+                    <button onClick={this.invertMap}>Invert</button>
+                    {levelConfElem}
                 </div>
                 <div className='btn-div'>
                     <button onClick={this.subGenerateMap}>SubGen!</button>
@@ -344,13 +357,70 @@ class GameEditor extends React.Component {
         }
     }
 
+    onChangeLevelConf(confType, key) {
+        const id = `#${confType}--${key}`;
+        const inputElem = document.querySelector(id);
+        const value = inputElem.value;
+        const conf = this.state.levelConf;
+        conf[confType][key] = value;
+        this.setState({levelConf: conf});
+    }
+
+    /* Returns the level config configuration shown directly under level
+     * generation. */
+    getLevelConfElement() {
+        let elem = null;
+        const confType = this.state.shownLevelConf;
+        if (confType.length > 0) {
+            const conf = this.state.levelConf[confType];
+            elem = Object.keys(conf).map(key => {
+                const currVal = this.state.levelConf[confType][key];
+                const newValue = currVal ? currVal : conf[key];
+                const onChangeFunc =
+                    this.onChangeLevelConf.bind(this, confType, key);
+                if (typeof conf[key] !== 'function') {
+                    return (
+                        <label key={`${confType}--${key}`}>{key}
+                            <input
+                                id={`${confType}--${key}`}
+                                name={`${confType}-${key}`}
+                                onChange={onChangeFunc}
+                                value={newValue}
+                            />
+
+                        </label>
+
+                    );
+                }
+                else {
+                    return <label>{key}</label>;
+                }
+            });
+        }
+        return <div className='game-editor-level-conf'>{elem}</div>;
+    }
+
     //----------------------------------------------------------------
     // onChangeXXX callbacks for <input> fields
     //----------------------------------------------------------------
 
     onChangeType(evt) {
         const value = evt.target.value;
-        this.setState({levelType: value});
+        const levelType = value;
+        let levelConf = this.state.levelConf;
+        let shownLevelConf = this.state.shownLevelConf;
+        if (value === 'town') {
+            if (!levelConf.town) {
+                levelConf.town = RG.Factory.cityConfBase(
+                    this.parser, {});
+                shownLevelConf = 'town';
+            }
+        }
+        else {
+            levelConf = {};
+            shownLevelConf = '';
+        }
+        this.setState({levelType, levelConf, shownLevelConf});
     }
 
     onChangeX(evt) {
