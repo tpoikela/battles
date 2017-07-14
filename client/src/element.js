@@ -154,7 +154,8 @@ RG.Element.Stairs.prototype.toJSON = function() {
 RG.Element.Door = function(closed) {
     RG.Element.Base.call(this, 'door');
     RG.Object.Locatable.call(this);
-    this._closed = closed || true;
+    this._closed = (typeof closed === 'undefined')
+        ? true : closed;
 
 };
 RG.extend2(RG.Element.Door, RG.Element.Base);
