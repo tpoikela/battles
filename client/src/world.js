@@ -206,13 +206,12 @@ RG.World.Branch = function(name) {
 
         for (let nl = 0; nl < nLevels; nl++) {
             const src = _levels[nl];
-            let stairCell = null;
 
             // Create stairs down
             if (nl < nLevels - 1) {
                 const targetDown = _levels[nl + 1];
                 const stairsDown = new Stairs(true, src, targetDown);
-                stairCell = src.getFreeRandCell();
+                const stairCell = src.getFreeRandCell();
                 src.addStairs(stairsDown, stairCell.getX(), stairCell.getY());
                 arrStairsDown.push(stairsDown);
             }
@@ -221,7 +220,7 @@ RG.World.Branch = function(name) {
             if (nl > 0) {
                 const targetUp = _levels[nl - 1];
                 const stairsUp = new Stairs(false, src, targetUp);
-                stairCell = src.getFreeRandCell();
+                const stairCell = src.getFreeRandCell();
                 src.addStairs(stairsUp, stairCell.getX(), stairCell.getY());
                 arrStairsUp.push(stairsUp);
             }
