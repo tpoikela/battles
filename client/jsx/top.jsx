@@ -551,6 +551,7 @@ class BattlesTop extends React.Component {
                             <GameMessages
                                 message={message}
                                 saveInProgress={this.state.saveInProgress}
+                                showAll={false}
                                 visibleCells={this.gameState.visibleCells}
                             />
                         </div>
