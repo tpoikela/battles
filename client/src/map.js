@@ -135,6 +135,9 @@ RG.Map.Cell.prototype.toString = function() {
             if (arrProps[i].hasOwnProperty('toString')) {
                 str += arrProps[i].toString();
             }
+            else if (arrProps[i].hasOwnProperty('toJSON')) {
+                str += JSON.stringify(arrProps[i].toJSON());
+            }
         }
     });
     return str;
@@ -150,7 +153,7 @@ RG.Map.Cell.prototype.toJSON = function() {
     if (this._p.hasOwnProperty(RG.TYPE_ELEM)) {
         const elements = [];
         this._p[RG.TYPE_ELEM].forEach(elem => {
-            if (/(tree|grass|stone|water)/.test(elem.getType())) {
+            if (/(snow|tree|grass|stone|water)/.test(elem.getType())) {
                 elements.push(elem.toJSON());
             }
         });
