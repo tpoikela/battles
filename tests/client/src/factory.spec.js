@@ -78,6 +78,7 @@ describe('RG.Factory.Game', function() {
 
     it('can create new games with preset levels', () => {
         const gameFactory = new RG.Factory.Game();
+        temple.id = RG.LEVEL_ID_ADD + 1000000;
         const worldConf = {
             name: 'PresetLevelWorld',
             presetLevels: {
