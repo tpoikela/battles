@@ -37,7 +37,12 @@ class GameEditor extends React.Component {
             insertYWidth: 1,
 
             shownLevelConf: '',
-            levelConf: {}
+            levelConf: {},
+
+            editorLevel: null,
+            frameCount: 0,
+            fps: 0,
+            simulationStarted: false
         };
 
         this.screen = new Screen(state.levelX, state.levelY);
@@ -83,6 +88,10 @@ class GameEditor extends React.Component {
 
         this.invertMap = this.invertMap.bind(this);
         // this.onChangeLevelConf = this.onChangeLevelConf.bind(this);
+        this.simulateLevel = this.simulateLevel.bind(this);
+        this.playSimulation = this.playSimulation.bind(this);
+        this.pauseSimulation = this.pauseSimulation.bind(this);
+        this.stopSimulation = this.stopSimulation.bind(this);
     }
 
     onCellClick(x, y) {
@@ -173,12 +182,68 @@ class GameEditor extends React.Component {
         console.log('[DEBUG] ' + msg);
     }
 
+
+    /* Starts a simulation of the level. No player support yet. */
+    simulateLevel() {
+        let editorLevel = this.state.editorLevel;
+        if (!this.state.simulationStarted) {
+            const fromJSON = new RG.Game.FromJSON();
+            const json = this.state.level.toJSON();
+            const levelClone = fromJSON.createLevel(json);
+            editorLevel = this.state.level;
+
+            this.game = new RG.Game.Main();
+            this.game.addLevel(levelClone);
+            this.game.addActiveLevel(levelClone);
+            const startTime = new Date().getTime();
+            this.setState({level: this.game.getLevels()[0],
+                editorLevel,
+                frameCount: 0, startTime, simulationStarted: true});
+            // this.frameID = setTimeout(this.mainLoop.bind(this), 20);
+            this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
+        }
+        else {
+            this.playSimulation();
+        }
+    }
+
+    mainLoop() {
+        const frameCount = this.state.frameCount;
+        const fps = 1000 * frameCount /
+            (new Date().getTime() - this.state.startTime);
+        this.game.simulateGame();
+        this.setState({level: this.game.getLevels()[0],
+            frameCount: frameCount + 1, fps: fps});
+        // this.frameID = setTimeout(this.mainLoop.bind(this), 20);
+        this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
+    }
+
+    playSimulation() {
+        this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
+    }
+
+    pauseSimulation() {
+        if (this.frameID) {
+            cancelAnimationFrame(this.frameID);
+            // clearInterval(this.frameID);
+        }
+    }
+
+    stopSimulation() {
+        if (this.frameID) {
+            cancelAnimationFrame(this.frameID);
+            // clearInterval(this.frameID);
+        }
+        const editorLevel = this.state.editorLevel;
+        this.setState({level: editorLevel, simulationStarted: false});
+    }
+
     insertElement() {
-        this.debugMsg('insertElement');
         const llx = this.state.selectedCell.getX();
         const lly = this.state.selectedCell.getY();
-        const urx = this.state.insertXWidth + llx;
-        const ury = this.state.insertYWidth + lly;
+        const urx = this.state.insertXWidth + llx - 1;
+        const ury = this.state.insertYWidth + lly - 1;
+        this.debugMsg('insertElement: ' + `${llx}, ${lly}, ${urx}, ${ury}`);
         const level = this.state.level;
         try {
             RG.Geometry.insertElements(level, this.state.elementType,
@@ -193,8 +258,9 @@ class GameEditor extends React.Component {
     insertActor() {
         const llx = this.state.selectedCell.getX();
         const lly = this.state.selectedCell.getY();
-        const urx = this.state.insertXWidth + llx;
-        const ury = this.state.insertYWidth + lly;
+        const urx = this.state.insertXWidth + llx - 1;
+        const ury = this.state.insertYWidth + lly - 1;
+        this.debugMsg('insertActor: ' + `${llx}, ${lly}, ${urx}, ${ury}`);
         const level = this.state.level;
         try {
             RG.Geometry.insertActors(level, this.state.actorName,
@@ -209,8 +275,8 @@ class GameEditor extends React.Component {
     insertItem() {
         const llx = this.state.selectedCell.getX();
         const lly = this.state.selectedCell.getY();
-        const urx = this.state.insertXWidth + llx;
-        const ury = this.state.insertYWidth + lly;
+        const urx = this.state.insertXWidth + llx - 1;
+        const ury = this.state.insertYWidth + lly - 1;
         const level = this.state.level;
         try {
             RG.Geometry.insertItems(level, this.state.itemName,
@@ -343,6 +409,14 @@ class GameEditor extends React.Component {
                 </div>
                 <div className='btn-div'>
                     <button onClick={this.levelToJSON}>To JSON</button>
+                </div>
+                <div className='btn-div'>
+                    <button onClick={this.simulateLevel}>Simulate</button>
+                    <button onClick={this.playSimulation}>Play</button>
+                    <button onClick={this.pauseSimulation}>Pause</button>
+                    <button onClick={this.stopSimulation}>Stop</button>
+                    <p>Frame count: {this.state.frameCount}</p>
+                    <p>FPS: {this.state.fps}</p>
                 </div>
             </div>
         );
