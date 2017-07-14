@@ -39,9 +39,7 @@ const dungeons = {
             }
         },
         branch: [
-            {name: 'Animals', nLevels: 5, entranceLevel: 0,
-             presetLevels: [{nLevel: 0, level: temple}]
-            }
+            {name: 'Animals', nLevels: 5, entranceLevel: 0}
         ],
     },
     smallDungeon: { x: 0, y: 0, name: 'Small dungeon', nBranches: 1,
@@ -54,6 +52,10 @@ const dungeons = {
 * document. Follow the convention to construct your own world. */
 RG.WorldConf = {
     name: 'The North',
+
+    presetLevels: {
+        'Beast dungeon.Animals': [{nLevel: 0, level: temple}]
+    },
 
     nAreas: 1,
     area: [
