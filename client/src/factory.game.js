@@ -35,6 +35,7 @@ RG.Factory.Game = function() {
     RG.Factory.Base.call(this);
 
     const _parser = new RG.ObjectShellParser();
+    this.presetLevels = {};
 
     /* Creates a player actor and starting inventory unless a game has been
      * restored. */
@@ -197,6 +198,7 @@ RG.Factory.Game = function() {
 
     this.createFullWorld = function(obj, game, player) {
         const worldConf = obj.world;
+        this.processPresetLevels(worldConf);
         if (!worldConf) {
             RG.err('Factory', 'createFullWorld',
                 'obj.world must exist!');
@@ -205,6 +207,7 @@ RG.Factory.Game = function() {
         worldConf.levelSize = obj.levelSize;
         const fact = new RG.Factory.World();
         fact.setGlobalConf(obj);
+        fact.setPresetLevels(this.presetLevels);
 
         const world = fact.createWorld(worldConf);
         const levels = world.getLevels();
@@ -220,6 +223,27 @@ RG.Factory.Game = function() {
             return null;
         }
     };
+
+    this.processPresetLevels = function(conf) {
+        this.presetLevels = {};
+        const keys = Object.keys(conf.presetLevels);
+        keys.forEach(name => {
+            console.log('processPresetLevels for ' + name);
+            this.presetLevels[name] =
+                this.createPresetLevels(conf.presetLevels[name]);
+        });
+    };
+
+    this.createPresetLevels = function(arr) {
+        const fromJSON = new RG.Game.FromJSON();
+        return arr.map(item => (
+            {
+                nLevel: item.nLevel,
+                level: fromJSON.createLevel(item.level)
+            }
+        ));
+    };
+
 
     /* Can be used to create a short debugging game for testing.*/
     this.createArenaDebugGame = function(obj, game, player) {
