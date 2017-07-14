@@ -218,7 +218,7 @@ RG.Game.Engine = function() {
             _levelMap[level.getID()] = level;
         }
         else {
-            RG.err('Game.Main', 'addLevel',
+            RG.err('Game.Engine', 'addLevel',
                 'Level ID ' + id + ' already exists!');
         }
     };
@@ -255,7 +255,7 @@ RG.Game.Engine = function() {
             }
         }
 
-        // This is a new level, enable all actors
+        // This is a new level, enable all actors by adding Action comp
         if (index === -1) {
             _activeLevels.unshift(levelID);
             const actActors = level.getActors();
