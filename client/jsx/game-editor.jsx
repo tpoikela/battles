@@ -4,6 +4,7 @@ const React = require('react');
 const GameBoard = require('./game-board');
 const RG = require('../src/battles');
 const Screen = require('../gui/screen');
+const GameMessages = require('./game-messages');
 
 const RGEffects = require('../data/effects');
 const RGObjects = require('../data/battles_objects');
@@ -97,6 +98,8 @@ class GameEditor extends React.Component {
     onCellClick(x, y) {
         const cell = this.state.level.getMap().getCell(x, y);
         console.log(`Clicked ${x},${y} ${JSON.stringify(cell)}`);
+        console.log(cell.toString());
+
         this.screen.setSelectedCell(cell);
         this.setState({selectedCell: cell});
     }
@@ -185,12 +188,11 @@ class GameEditor extends React.Component {
 
     /* Starts a simulation of the level. No player support yet. */
     simulateLevel() {
-        let editorLevel = this.state.editorLevel;
         if (!this.state.simulationStarted) {
             const fromJSON = new RG.Game.FromJSON();
             const json = this.state.level.toJSON();
             const levelClone = fromJSON.createLevel(json);
-            editorLevel = this.state.level;
+            const editorLevel = this.state.level;
 
             this.game = new RG.Game.Main();
             this.game.addLevel(levelClone);
@@ -219,12 +221,15 @@ class GameEditor extends React.Component {
     }
 
     playSimulation() {
-        this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
+        if (this.frameID === null) {
+            this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
+        }
     }
 
     pauseSimulation() {
         if (this.frameID) {
             cancelAnimationFrame(this.frameID);
+            this.frameID = null;
             // clearInterval(this.frameID);
         }
     }
@@ -232,6 +237,7 @@ class GameEditor extends React.Component {
     stopSimulation() {
         if (this.frameID) {
             cancelAnimationFrame(this.frameID);
+            this.frameID = null;
             // clearInterval(this.frameID);
         }
         const editorLevel = this.state.editorLevel;
@@ -315,6 +321,13 @@ class GameEditor extends React.Component {
         const classRows = this.screen.getClassRows();
         const levelConfElem = this.getLevelConfElement();
 
+        let message = [];
+        if (this.state.simulationStarted) {
+            if (this.game.hasNewMessages()) {
+                message = this.game.getMessages();
+            }
+        }
+
         return (
             <div className='game-editor'>
                 <h2>Battles Game Editor</h2>
@@ -395,6 +408,17 @@ class GameEditor extends React.Component {
                 <div>
                     {errorMsg}
                 </div>
+                {this.state.simulationStarted &&
+                    <div className='game-messages-div'>
+                        <GameMessages
+                            message={message}
+                            saveInProgress={false}
+                            showAll={true}
+                            visibleCells={[]}
+                        />
+                    </div>
+
+                }
                 <div className='game-editor-board-div'>
                     <GameBoard
                         boardClassName={this.state.boardClassName}
@@ -407,16 +431,18 @@ class GameEditor extends React.Component {
                         startY={0}
                     />
                 </div>
-                <div className='btn-div'>
-                    <button onClick={this.levelToJSON}>To JSON</button>
-                </div>
-                <div className='btn-div'>
-                    <button onClick={this.simulateLevel}>Simulate</button>
-                    <button onClick={this.playSimulation}>Play</button>
-                    <button onClick={this.pauseSimulation}>Pause</button>
-                    <button onClick={this.stopSimulation}>Stop</button>
-                    <p>Frame count: {this.state.frameCount}</p>
-                    <p>FPS: {this.state.fps}</p>
+                <div className='game-editor-bottom-btn'>
+                    <div className='btn-div'>
+                        <button onClick={this.levelToJSON}>To JSON</button>
+                    </div>
+                    <div className='btn-div'>
+                        <button onClick={this.simulateLevel}>Simulate</button>
+                        <button onClick={this.playSimulation}>Play</button>
+                        <button onClick={this.pauseSimulation}>Pause</button>
+                        <button onClick={this.stopSimulation}>Stop</button>
+                        <p>Frame count: {this.state.frameCount}</p>
+                        <p>FPS: {this.state.fps}</p>
+                    </div>
                 </div>
             </div>
         );
