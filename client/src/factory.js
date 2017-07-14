@@ -572,7 +572,12 @@ RG.Factory.World = function() {
     this.globalConf = {
         dungeonX: RG.LEVEL_MEDIUM_X,
         dungeonY: RG.LEVEL_MEDIUM_Y
+    };
 
+    this.presetLevels = {};
+
+    this.setPresetLevels = function(levels) {
+        this.presetLevels = levels;
     };
 
     // Can be used to pass already created levels to different features. For
@@ -807,13 +812,15 @@ RG.Factory.World = function() {
             ['name', 'nLevels']);
         this.pushScope(conf);
         const branch = new RG.World.Branch(conf.name);
-        branch.setHierName(this.getHierName());
+
+        const hierName = this.getHierName();
+        branch.setHierName(hierName);
 
         const constraint = this.getConstraint();
+        const presetLevels = this.getPresetLevels(hierName);
 
         for (let i = 0; i < conf.nLevels; i++) {
-            // TODO: Level configuration can be quite complex. Support random
-            // and hand-crafted levels somehow
+
             const levelConf = {
                 x: this.getConf(['dungeonX']),
                 y: this.getConf(['dungeonY']),
@@ -821,18 +828,29 @@ RG.Factory.World = function() {
                 sqrPerItem: this.getConf('sqrPerItem'),
                 maxValue: 20 * (i + 1),
                 nLevel: i
-                // TODO template: used for hand-crafted levels
             };
+
             if (constraint) {
                 levelConf.actor = constraint.actor;
             }
 
+            // First try to find a preset level
             let level = null;
-            if (conf.levels) {
-                level = this.id2level[conf.levels[i]];
+            if (presetLevels.length > 0) {
+                const obj = presetLevels.find(item => item.nLevel === i);
+                if (obj) {
+                    level = obj.level;
+                }
             }
-            else {
-                level = this.featureFactory.createDungeonLevel(levelConf);
+
+            // If preset not found, either restore or create a new one
+            if (!level) {
+                if (conf.levels) {
+                    level = this.id2level[conf.levels[i]];
+                }
+                else {
+                    level = this.featureFactory.createDungeonLevel(levelConf);
+                }
             }
             branch.addLevel(level);
         }
@@ -851,6 +869,15 @@ RG.Factory.World = function() {
 
         this.popScope(conf.name);
         return branch;
+    };
+
+    this.getPresetLevels = function(hierName) {
+        const keys = Object.keys(this.presetLevels);
+        const foundKey = keys.find(item => new RegExp(item).test(hierName));
+        if (foundKey) {
+            return this.presetLevels[foundKey];
+        }
+        return [];
     };
 
     this.createMountain = function(conf) {
