@@ -19,13 +19,15 @@ const GameMessages = React.createClass({
     propTypes: {
         message: React.PropTypes.array,
         visibleCells: React.PropTypes.array,
-        saveInProgress: React.PropTypes.bool
+        saveInProgress: React.PropTypes.bool,
+        showAll: React.PropTypes.bool
     },
 
     render: function() {
         const message = this.props.message;
         const styles = this.styleToClassName;
         const seenCells = this.props.visibleCells;
+        const showAll = this.props.showAll;
 
         let msgList = <span>Saving the game...</span>;
         if (!this.props.saveInProgress) {
@@ -33,7 +35,10 @@ const GameMessages = React.createClass({
                 const className = styles[val.style];
                 let index = 1;
 
-                if (!val.hasOwnProperty('seen')) {
+                if (showAll) {
+                    val.seen = true;
+                }
+                else if (!val.hasOwnProperty('seen')) {
                     if (val.hasOwnProperty('cell')) {
                         index = seenCells.indexOf(val.cell);
                         if (index >= 0) {val.seen = true;}
