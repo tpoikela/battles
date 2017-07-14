@@ -865,6 +865,16 @@ RG.Geometry = {
 
 };
 
+RG.setAllExplored = function(level, isExplored) {
+    const map = level.getMap();
+    for (let x = 0; x < map.cols; x++) {
+        for (let y = 0; y < map.rows; y++) {
+            const cell = map._map[x][y];
+            cell.setExplored(isExplored);
+        }
+    }
+};
+
 /* Each die has number of throws, type of dice (d6, d20, d200...) and modifier
  * which is +/- X. */
 RG.Die = function(num, dice, mod) {
