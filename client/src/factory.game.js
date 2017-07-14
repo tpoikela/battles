@@ -252,6 +252,9 @@ RG.Factory.Game = function() {
                     item.setID(RG.Entity.createEntityID());
                 }
             });
+
+            // Reset cell explored status
+            RG.setAllExplored(level, false);
             return {
                 nLevel: item.nLevel,
                 level
