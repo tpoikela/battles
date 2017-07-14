@@ -474,6 +474,9 @@ const RG = { // {{{2
     ITEM_TYPES: ['armour', 'food', 'gold', 'goldcoin',
         'missile', 'potion', 'spiritgem', 'weapon'],
 
+    LEVEL_ID_ADD: 1000000000,
+    ENTITY_ID_ADD: 1000000000,
+
     // Energy per action
     energy: {
         DEFAULT: 10,
@@ -1057,6 +1060,12 @@ RG.Entity = function() {
 
 };
 RG.Entity.prototype.idCount = 0;
+
+RG.Entity.createEntityID = function() {
+    const id = RG.Entity.prototype.idCount;
+    RG.Entity.prototype.idCount += 1;
+    return id;
+};
 
 module.exports = RG;
 
