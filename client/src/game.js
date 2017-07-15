@@ -296,7 +296,7 @@ RG.Game.Engine = function() {
             // chaining due to inventory container
             const owner = item.getOwner().getOwner();
             if (!owner.getInvEq().removeItem(item)) {
-                RG.err('Game', 'notify - DESTROY_ITEM',
+                RG.err('Game.Engine', 'notify - DESTROY_ITEM',
                     'Failed to remove item from inventory.');
             }
         }
@@ -305,7 +305,7 @@ RG.Game.Engine = function() {
                 this.addActor(args.actor);
             }
             else {
-                RG.err('Game', 'notify - ACT_COMP_ADDED',
+                RG.err('Game.Engine', 'notify - ACT_COMP_ADDED',
                     'No actor specified for the event.');
             }
         }
@@ -314,7 +314,7 @@ RG.Game.Engine = function() {
                 this.removeActor(args.actor);
             }
             else {
-                RG.err('Game', 'notify - ACT_COMP_ADDED',
+                RG.err('Game.Engine', 'notify - ACT_COMP_REMOVED',
                     'No actor specified for the event.');
             }
         }
@@ -323,7 +323,7 @@ RG.Game.Engine = function() {
                 this.addActor(args.actor);
             }
             else {
-                RG.err('Game', 'notify - ACT_COMP_ENABLED',
+                RG.err('Game.Engine', 'notify - ACT_COMP_ENABLED',
                     'No actor specified for the event.');
             }
         }
