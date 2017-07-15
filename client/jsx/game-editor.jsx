@@ -43,7 +43,8 @@ class GameEditor extends React.Component {
             editorLevel: null,
             frameCount: 0,
             fps: 0,
-            simulationStarted: false
+            simulationStarted: false,
+            turnsPerSec: 1000
         };
 
         this.screen = new Screen(state.levelX, state.levelY);
@@ -52,12 +53,16 @@ class GameEditor extends React.Component {
         RG.setAllExplored(level, true);
 
         state.level = level;
+        state.editorLevel = level;
 
         this.state = state;
 
         this.parser = new RG.ObjectShellParser();
         this.parser.parseShellData(RGEffects);
         this.parser.parseShellData(RGObjects);
+
+        this.intervalID = null;
+        this.frameID = null;
 
         // Bind functions for callbacks
         this.generateMap = this.generateMap.bind(this);
@@ -91,6 +96,7 @@ class GameEditor extends React.Component {
         // this.onChangeLevelConf = this.onChangeLevelConf.bind(this);
         this.simulateLevel = this.simulateLevel.bind(this);
         this.playSimulation = this.playSimulation.bind(this);
+        this.playFastSimulation = this.playFastSimulation.bind(this);
         this.pauseSimulation = this.pauseSimulation.bind(this);
         this.stopSimulation = this.stopSimulation.bind(this);
     }
@@ -122,7 +128,7 @@ class GameEditor extends React.Component {
                 this.state.levelX, this.state.levelY, conf);
             this.screen.setViewportXY(this.state.levelX, this.state.levelY);
             RG.setAllExplored(level, true);
-            this.setState({level: level});
+            this.setState({level: level, editorLevel: level});
         }
         catch (e) {
             this.setState({errorMsg: e.message});
@@ -192,16 +198,13 @@ class GameEditor extends React.Component {
             const fromJSON = new RG.Game.FromJSON();
             const json = this.state.level.toJSON();
             const levelClone = fromJSON.createLevel(json);
-            const editorLevel = this.state.level;
 
             this.game = new RG.Game.Main();
             this.game.addLevel(levelClone);
             this.game.addActiveLevel(levelClone);
             const startTime = new Date().getTime();
             this.setState({level: this.game.getLevels()[0],
-                editorLevel,
                 frameCount: 0, startTime, simulationStarted: true});
-            // this.frameID = setTimeout(this.mainLoop.bind(this), 20);
             this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
         }
         else {
@@ -216,32 +219,72 @@ class GameEditor extends React.Component {
         this.game.simulateGame();
         this.setState({level: this.game.getLevels()[0],
             frameCount: frameCount + 1, fps: fps});
-        // this.frameID = setTimeout(this.mainLoop.bind(this), 20);
         this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
     }
 
+    /* Simulates the game for N turns, then renders once. */
+    mainLoopFast() {
+        for (let i = 0; i < this.state.turnsPerSec; i++) {
+            this.game.simulateGame();
+        }
+        this.setState({level: this.game.getLevels()[0]});
+    }
+
     playSimulation() {
-        if (this.frameID === null) {
-            this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
+        if (this.state.simulationStarted) {
+            if (this.intervalID !== null) {
+                clearInterval(this.intervalID);
+                this.intervalID = null;
+            }
+            if (this.frameID === null) {
+                this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
+            }
+        }
+        else {
+            console.error('Start simulation first using Simulate');
+        }
+    }
+
+    playFastSimulation() {
+        if (this.state.simulationStarted) {
+            if (this.frameID) {
+                cancelAnimationFrame(this.frameID);
+                this.frameID = null;
+            }
+            this.intervalID = setInterval(this.mainLoopFast.bind(this),
+                this.state.turnsPerSec);
+        }
+        else {
+            console.error('Start simulation first using Simulate');
         }
     }
 
     pauseSimulation() {
+        if (this.intervalID) {
+            clearInterval(this.intervalID);
+            this.intervalID = null;
+        }
         if (this.frameID) {
             cancelAnimationFrame(this.frameID);
             this.frameID = null;
-            // clearInterval(this.frameID);
         }
     }
 
     stopSimulation() {
-        if (this.frameID) {
-            cancelAnimationFrame(this.frameID);
-            this.frameID = null;
-            // clearInterval(this.frameID);
+        if (this.state.simulationStarted) {
+            if (this.intervalID) {
+                clearInterval(this.intervalID);
+                this.intervalID = null;
+            }
+            if (this.frameID) {
+                cancelAnimationFrame(this.frameID);
+                this.frameID = null;
+            }
+            const editorLevel = this.state.editorLevel;
+            this.game = null;
+            delete this.game;
+            this.setState({level: editorLevel, simulationStarted: false});
         }
-        const editorLevel = this.state.editorLevel;
-        this.setState({level: editorLevel, simulationStarted: false});
     }
 
     insertElement() {
@@ -326,6 +369,11 @@ class GameEditor extends React.Component {
             if (this.game.hasNewMessages()) {
                 message = this.game.getMessages();
             }
+        }
+
+        let ctrlBtnClass = '';
+        if (!this.state.simulationStarted) {
+            ctrlBtnClass = 'disabled';
         }
 
         return (
@@ -437,9 +485,10 @@ class GameEditor extends React.Component {
                     </div>
                     <div className='btn-div'>
                         <button onClick={this.simulateLevel}>Simulate</button>
-                        <button onClick={this.playSimulation}>Play</button>
-                        <button onClick={this.pauseSimulation}>Pause</button>
-                        <button onClick={this.stopSimulation}>Stop</button>
+                        <button className={ctrlBtnClass} onClick={this.playSimulation}>Play</button>
+                        <button className={ctrlBtnClass} onClick={this.playFastSimulation}>>>></button>
+                        <button className={ctrlBtnClass} onClick={this.pauseSimulation}>Pause</button>
+                        <button className={ctrlBtnClass} onClick={this.stopSimulation}>Stop</button>
                         <p>Frame count: {this.state.frameCount}</p>
                         <p>FPS: {this.state.fps}</p>
                     </div>
@@ -571,35 +620,6 @@ class GameEditor extends React.Component {
     onChangeInsertYWidth(evt) {
         const value = parseInt(evt.target.value, 10);
         this.setState({insertYWidth: value});
-    }
-
-    bindFunctionsToThis() {
-        this.generateMap = this.generateMap.bind(this);
-        this.onChangeType = this.onChangeType.bind(this);
-        this.onChangeX = this.onChangeX.bind(this);
-        this.onChangeY = this.onChangeY.bind(this);
-
-        this.subGenerateMap = this.subGenerateMap.bind(this);
-        this.onChangeSubType = this.onChangeSubType.bind(this);
-        this.onChangeSubX = this.onChangeSubX.bind(this);
-        this.onChangeSubY = this.onChangeSubY.bind(this);
-
-        this.generateActors = this.generateActors.bind(this);
-        this.generateItems = this.generateItems.bind(this);
-
-        this.levelToJSON = this.levelToJSON.bind(this);
-
-        this.onCellClick = this.onCellClick.bind(this);
-
-        this.insertElement = this.insertElement.bind(this);
-        this.onChangeElement = this.onChangeElement.bind(this);
-        this.insertActor = this.insertActor.bind(this);
-        this.onChangeActor = this.onChangeActor.bind(this);
-        this.insertItem = this.insertItem.bind(this);
-        this.onChangeItem = this.onChangeItem.bind(this);
-
-        this.onChangeInsertXWidth = this.onChangeInsertXWidth.bind(this);
-        this.onChangeInsertYWidth = this.onChangeInsertYWidth.bind(this);
     }
 }
 
