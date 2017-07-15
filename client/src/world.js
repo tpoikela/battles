@@ -455,10 +455,8 @@ RG.World.Area = function(name, maxX, maxY, cols, rows, levels) {
             for (let y = 0; y < _maxY; y++) {
                 const newTile = new RG.World.AreaTile(x, y, this);
                 const levelConf = {
-                    forest: {
-                        ratio: 0.5,
-                        shape: 'cellular'
-                    }
+                    ratio: 0.5,
+                    shape: 'cellular'
                 };
                 let level = null;
                 if (levels) {
