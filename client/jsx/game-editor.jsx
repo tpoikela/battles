@@ -119,7 +119,7 @@ class GameEditor extends React.Component {
     /* Generates the large map. This erases everything. */
     generateMap() {
         const levelType = this.state.levelType;
-        try {
+        //try {
             let conf = {};
             if (this.state.levelConf.hasOwnProperty(levelType)) {
                 conf = this.state.levelConf[levelType];
@@ -129,10 +129,10 @@ class GameEditor extends React.Component {
             this.screen.setViewportXY(this.state.levelX, this.state.levelY);
             RG.setAllExplored(level, true);
             this.setState({level: level, editorLevel: level});
-        }
+        /*}
         catch (e) {
             this.setState({errorMsg: e.message});
-        }
+        }*/
     }
 
     /* Inserts a sub-map into the current level. This overwrites all cells
@@ -195,6 +195,8 @@ class GameEditor extends React.Component {
     /* Starts a simulation of the level. No player support yet. */
     simulateLevel() {
         if (!this.state.simulationStarted) {
+            const id = this.state.level.getID();
+            console.log('Starting sim with level ' + id);
             const fromJSON = new RG.Game.FromJSON();
             const json = this.state.level.toJSON();
             const levelClone = fromJSON.createLevel(json);
@@ -203,8 +205,10 @@ class GameEditor extends React.Component {
             this.game.addLevel(levelClone);
             this.game.addActiveLevel(levelClone);
             const startTime = new Date().getTime();
-            this.setState({level: this.game.getLevels()[0],
-                frameCount: 0, startTime, simulationStarted: true});
+
+            const newLevel = this.game.getLevels()[0];
+            this.setState({level: newLevel, frameCount: 0,
+                startTime, simulationStarted: true});
             this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
         }
         else {
@@ -280,10 +284,12 @@ class GameEditor extends React.Component {
                 cancelAnimationFrame(this.frameID);
                 this.frameID = null;
             }
+            console.log('Stopped simulation.');
             const editorLevel = this.state.editorLevel;
             this.game = null;
             delete this.game;
-            this.setState({level: editorLevel, simulationStarted: false});
+            this.setState({level: editorLevel, editorLevel: editorLevel,
+                simulationStarted: false});
         }
     }
 
@@ -363,6 +369,7 @@ class GameEditor extends React.Component {
         const charRows = this.screen.getCharRows();
         const classRows = this.screen.getClassRows();
         const levelConfElem = this.getLevelConfElement();
+        const levelSelectElem = this.getLevelSelectElement();
 
         let message = [];
         if (this.state.simulationStarted) {
@@ -371,9 +378,9 @@ class GameEditor extends React.Component {
             }
         }
 
-        let ctrlBtnClass = '';
+        let ctrlBtnClass = 'btn btn-xs';
         if (!this.state.simulationStarted) {
-            ctrlBtnClass = 'disabled';
+            ctrlBtnClass = 'btn btn-xs disabled';
         }
 
         return (
@@ -381,11 +388,13 @@ class GameEditor extends React.Component {
                 <h2>Battles Game Editor</h2>
                 <div className='btn-div'>
                     <button onClick={this.generateMap}>Generate!</button>
-                    <input
+                    <select
                         name='level-type'
                         onChange={this.onChangeType}
                         value={this.state.levelType}
-                    />
+                        >
+                        {levelSelectElem}
+                    </select>
                     <input
                         name='level-x'
                         onChange={this.onChangeX}
@@ -484,7 +493,7 @@ class GameEditor extends React.Component {
                         <button onClick={this.levelToJSON}>To JSON</button>
                     </div>
                     <div className='btn-div'>
-                        <button onClick={this.simulateLevel}>Simulate</button>
+                        <button className='btn btn-xs' onClick={this.simulateLevel}>Simulate</button>
                         <button className={ctrlBtnClass} onClick={this.playSimulation}>Play</button>
                         <button className={ctrlBtnClass} onClick={this.playFastSimulation}>>>></button>
                         <button className={ctrlBtnClass} onClick={this.pauseSimulation}>Pause</button>
@@ -549,6 +558,17 @@ class GameEditor extends React.Component {
         return <div className='game-editor-level-conf'>{elem}</div>;
     }
 
+    getLevelSelectElement() {
+        const _types = ['arena', 'cellular', 'digger', 'divided', 'dungeon',
+            'eller', 'icey', 'uniform', 'rogue', 'ruins', 'rooms',
+            'town', 'forest'];
+        const elem = _types.map(type => {
+            const key = 'key-sel-type-' + type;
+            return <option key={key} value={type}>{type}</option>;
+        });
+        return elem;
+    }
+
     //----------------------------------------------------------------
     // onChangeXXX callbacks for <input> fields
     //----------------------------------------------------------------
@@ -563,6 +583,12 @@ class GameEditor extends React.Component {
                 levelConf.town = RG.Factory.cityConfBase(
                     this.parser, {});
                 shownLevelConf = 'town';
+            }
+        }
+        else if (value === 'forest') {
+            if (!levelConf.forest) {
+                levelConf.forest = {shape: 'cellular', ratio: 0.5};
+                shownLevelConf = 'forest';
             }
         }
         else {
