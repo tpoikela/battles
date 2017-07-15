@@ -448,6 +448,7 @@ RG.Map.Generator = function() { // {{{2
             case 'digger': _mapGen = new ROT.Map.Digger(cols, rows); break;
             case 'divided':
                 _mapGen = new ROT.Map.DividedMaze(cols, rows); break;
+            case 'empty': _mapGen = new ROT.Map.Dungeon(cols, rows); break;
             case 'eller': _mapGen = new ROT.Map.EllerMaze(cols, rows); break;
             case 'icey': _mapGen = new ROT.Map.IceyMaze(cols, rows); break;
             case 'rogue': _mapGen = new ROT.Map.Rogue(cols, rows); break;
