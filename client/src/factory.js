@@ -246,16 +246,10 @@ RG.Factory.Base = function() { // {{{2
             this.createShops(level, mapObj, conf);
         }
         else if (levelType === 'forest') {
-            if (!RG.isNullOrUndef([conf.forest])) {
-                const forestShape = conf.forest.shape;
-                mapgen.setGen(forestShape, cols, rows);
-                mapObj = mapgen.createForest(conf.forest.ratio);
-                level.setMap(mapObj.map);
-            }
-            else {
-                RG.err('RG.Factory.Base', 'createLevel',
-                    'conf.forest must be specified!');
-            }
+            const forestShape = conf.shape;
+            mapgen.setGen(forestShape, cols, rows);
+            mapObj = mapgen.createForest(conf.ratio);
+            level.setMap(mapObj.map);
         }
         else if (levelType === 'mountain') {
             // mapgen.setGen('ruins', cols, rows);
