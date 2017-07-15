@@ -33,6 +33,7 @@ class GameEditor extends React.Component {
             elementType: 'floor',
             actorName: '',
             itemName: '',
+            numEntities: 20,
 
             insertXWidth: 1,
             insertYWidth: 1,
@@ -44,6 +45,7 @@ class GameEditor extends React.Component {
             frameCount: 0,
             fps: 0,
             simulationStarted: false,
+            simulationPaused: false,
             turnsPerSec: 1000
         };
 
@@ -77,6 +79,7 @@ class GameEditor extends React.Component {
 
         this.generateActors = this.generateActors.bind(this);
         this.generateItems = this.generateItems.bind(this);
+        this.onChangeNumEntities = this.onChangeNumEntities.bind(this);
 
         this.levelToJSON = this.levelToJSON.bind(this);
 
@@ -119,7 +122,7 @@ class GameEditor extends React.Component {
     /* Generates the large map. This erases everything. */
     generateMap() {
         const levelType = this.state.levelType;
-        //try {
+        // try {
             let conf = {};
             if (this.state.levelConf.hasOwnProperty(levelType)) {
                 conf = this.state.levelConf[levelType];
@@ -129,7 +132,7 @@ class GameEditor extends React.Component {
             this.screen.setViewportXY(this.state.levelX, this.state.levelY);
             RG.setAllExplored(level, true);
             this.setState({level: level, editorLevel: level});
-        /*}
+        /* }
         catch (e) {
             this.setState({errorMsg: e.message});
         }*/
@@ -154,7 +157,7 @@ class GameEditor extends React.Component {
         const maxValue = this.state.maxValue;
         const conf = {
             func: itemFunc, maxValue,
-            itemsPerLevel: 10
+            itemsPerLevel: this.state.numEntities
         };
         const level = this.state.level;
 
@@ -179,7 +182,7 @@ class GameEditor extends React.Component {
 
         const conf = {
             maxDanger: 20,
-            monstersPerLevel: 20,
+            monstersPerLevel: this.state.numEntities,
             func: (actor) => (actor.danger < 100)
         };
 
@@ -243,6 +246,7 @@ class GameEditor extends React.Component {
             if (this.frameID === null) {
                 this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
             }
+            this.setState({simulationPaused: false});
         }
         else {
             console.error('Start simulation first using Simulate');
@@ -257,6 +261,7 @@ class GameEditor extends React.Component {
             }
             this.intervalID = setInterval(this.mainLoopFast.bind(this),
                 this.state.turnsPerSec);
+            this.setState({simulationPaused: false});
         }
         else {
             console.error('Start simulation first using Simulate');
@@ -272,6 +277,7 @@ class GameEditor extends React.Component {
             cancelAnimationFrame(this.frameID);
             this.frameID = null;
         }
+        this.setState({simulationPaused: true});
     }
 
     stopSimulation() {
@@ -289,7 +295,7 @@ class GameEditor extends React.Component {
             this.game = null;
             delete this.game;
             this.setState({level: editorLevel, editorLevel: editorLevel,
-                simulationStarted: false});
+                simulationStarted: false, simulationPaused: false});
         }
     }
 
@@ -368,8 +374,7 @@ class GameEditor extends React.Component {
         const errorMsg = this.getErrorMsg();
         const charRows = this.screen.getCharRows();
         const classRows = this.screen.getClassRows();
-        const levelConfElem = this.getLevelConfElement();
-        const levelSelectElem = this.getLevelSelectElement();
+        const editorPanelElem = this.getEditorPanelElement();
 
         let message = [];
         if (this.state.simulationStarted) {
@@ -383,90 +388,20 @@ class GameEditor extends React.Component {
             ctrlBtnClass = 'btn btn-xs disabled';
         }
 
+        const renderPanel = !this.state.simulationStarted ||
+            (this.state.simulationStarted && this.state.simulationPaused);
         return (
-            <div className='game-editor'>
+            <div className='game-editor-main-div'>
                 <h2>Battles Game Editor</h2>
-                <div className='btn-div'>
-                    <button onClick={this.generateMap}>Generate!</button>
-                    <select
-                        name='level-type'
-                        onChange={this.onChangeType}
-                        value={this.state.levelType}
-                        >
-                        {levelSelectElem}
-                    </select>
-                    <input
-                        name='level-x'
-                        onChange={this.onChangeX}
-                        value={this.state.levelX}
-                    />
-                    <input
-                        name='level-y'
-                        onChange={this.onChangeY}
-                        value={this.state.levelY}
-                    />
-                    <button onClick={this.invertMap}>Invert</button>
-                    {levelConfElem}
-                </div>
-                <div className='btn-div'>
-                    <button onClick={this.subGenerateMap}>SubGen!</button>
-                    <input
-                        name='sublevel-type'
-                        onChange={this.onChangeSubType}
-                        value={this.state.subLevelType}
-                    />
-                    <input
-                        name='sublevel-x'
-                        onChange={this.onChangeSubX}
-                        value={this.state.subLevelX}
-                    />
-                    <input
-                        name='sublevel-y'
-                        onChange={this.onChangeSubY}
-                        value={this.state.subLevelY}
-                    />
-                </div>
-                <div className='btn-div'>
-                    <button onClick={this.generateActors}>Actors!</button>
-                    <button onClick={this.generateItems}>Items!</button>
-                </div>
-                <div className='btn-div'>
-                    <button onClick={this.insertElement}>Insert element</button>
-                    <input
-                        name='insert-element'
-                        onChange={this.onChangeElement}
-                        value={this.state.elementType}
-                    />
-                    <button onClick={this.insertActor}>Insert actor</button>
-                    <input
-                        name='insert-actor'
-                        onChange={this.onChangeActor}
-                        value={this.state.actorName}
-                    />
-                    <button onClick={this.insertItem}>Insert item</button>
-                    <input
-                        name='insert-item'
-                        onChange={this.onChangeItem}
-                        value={this.state.itemName}
-                    />
-                </div>
-                <div className='btn-div'>
-                    <input
-                        name='insert-x-width'
-                        onChange={this.onChangeInsertXWidth}
-                        value={this.state.insertXWidth}
-                    />
-                    <input
-                        name='insert-y-width'
-                        onChange={this.onChangeInsertYWidth}
-                        value={this.state.insertYWidth}
-                    />
-                </div>
-                <div>
+
+                {renderPanel && editorPanelElem}
+
+                <div className='game-editor-messages'>
                     {errorMsg}
                 </div>
+
                 {this.state.simulationStarted &&
-                    <div className='game-messages-div'>
+                    <div className='game-editor-game-messages'>
                         <GameMessages
                             message={message}
                             saveInProgress={false}
@@ -474,8 +409,8 @@ class GameEditor extends React.Component {
                             visibleCells={[]}
                         />
                     </div>
-
                 }
+
                 <div className='game-editor-board-div'>
                     <GameBoard
                         boardClassName={this.state.boardClassName}
@@ -520,7 +455,12 @@ class GameEditor extends React.Component {
         const inputElem = document.querySelector(id);
         const value = inputElem.value;
         const conf = this.state.levelConf;
-        conf[confType][key] = value;
+        if (key.match(/(\w+)Func/)) {
+            // TODO how to handle functions
+        }
+        else {
+            conf[confType][key] = value;
+        }
         this.setState({levelConf: conf});
     }
 
@@ -560,13 +500,105 @@ class GameEditor extends React.Component {
 
     getLevelSelectElement() {
         const _types = ['arena', 'cellular', 'digger', 'divided', 'dungeon',
-            'eller', 'icey', 'uniform', 'rogue', 'ruins', 'rooms',
+            'eller', 'empty', 'icey', 'uniform', 'rogue', 'ruins', 'rooms',
             'town', 'forest'];
         const elem = _types.map(type => {
             const key = 'key-sel-type-' + type;
             return <option key={key} value={type}>{type}</option>;
         });
         return elem;
+    }
+
+    getEditorPanelElement() {
+        const levelConfElem = this.getLevelConfElement();
+        const levelSelectElem = this.getLevelSelectElement();
+        return (
+            <div className='game-editor-panel'>
+                <div className='btn-div'>
+                    <button onClick={this.generateMap}>Generate!</button>
+                    <select
+                        name='level-type'
+                        onChange={this.onChangeType}
+                        value={this.state.levelType}
+                        >
+                        {levelSelectElem}
+                    </select>
+                    <input
+                        name='level-x'
+                        onChange={this.onChangeX}
+                        value={this.state.levelX}
+                    />
+                    <input
+                        name='level-y'
+                        onChange={this.onChangeY}
+                        value={this.state.levelY}
+                    />
+                    <button onClick={this.invertMap}>Invert</button>
+                    {levelConfElem}
+                </div>
+                <div className='btn-div'>
+                    <button onClick={this.subGenerateMap}>SubGen!</button>
+                    <select
+                        name='sublevel-type'
+                        onChange={this.onChangeSubType}
+                        value={this.state.subLevelType}
+                        >
+                        {levelSelectElem}
+                    </select>
+                    <input
+                        name='sublevel-x'
+                        onChange={this.onChangeSubX}
+                        value={this.state.subLevelX}
+                    />
+                    <input
+                        name='sublevel-y'
+                        onChange={this.onChangeSubY}
+                        value={this.state.subLevelY}
+                    />
+                </div>
+                <div className='btn-div'>
+                    <button onClick={this.generateActors}>Actors!</button>
+                    <button onClick={this.generateItems}>Items!</button>
+                    <input
+                        name='gen-num-entities'
+                        onChange={this.onChangeNumEntities}
+                        value={this.state.numEntities}
+                    />
+                </div>
+                <div className='btn-div'>
+                    <button onClick={this.insertElement}>Insert element</button>
+                    <input
+                        name='insert-element'
+                        onChange={this.onChangeElement}
+                        value={this.state.elementType}
+                    />
+                    <button onClick={this.insertActor}>Insert actor</button>
+                    <input
+                        name='insert-actor'
+                        onChange={this.onChangeActor}
+                        value={this.state.actorName}
+                    />
+                    <button onClick={this.insertItem}>Insert item</button>
+                    <input
+                        name='insert-item'
+                        onChange={this.onChangeItem}
+                        value={this.state.itemName}
+                    />
+                </div>
+                <div className='btn-div'>
+                    <input
+                        name='insert-x-width'
+                        onChange={this.onChangeInsertXWidth}
+                        value={this.state.insertXWidth}
+                    />
+                    <input
+                        name='insert-y-width'
+                        onChange={this.onChangeInsertYWidth}
+                        value={this.state.insertYWidth}
+                    />
+                </div>
+            </div>
+        );
     }
 
     //----------------------------------------------------------------
@@ -598,13 +630,21 @@ class GameEditor extends React.Component {
         this.setState({levelType, levelConf, shownLevelConf});
     }
 
+    getInt(value, base) {
+        const retValue = parseInt(value, base);
+        if (Number.isInteger(retValue)) {
+            return retValue;
+        }
+        return '';
+    }
+
     onChangeX(evt) {
-        const value = parseInt(evt.target.value, 10);
+        const value = this.getInt(evt.target.value, 10);
         this.setState({levelX: value});
     }
 
     onChangeY(evt) {
-        const value = parseInt(evt.target.value, 10);
+        const value = this.getInt(evt.target.value, 10);
         this.setState({levelY: value});
     }
 
@@ -614,12 +654,12 @@ class GameEditor extends React.Component {
     }
 
     onChangeSubX(evt) {
-        const value = parseInt(evt.target.value, 10);
+        const value = this.getInt(evt.target.value, 10);
         this.setState({subLevelX: value});
     }
 
     onChangeSubY(evt) {
-        const value = parseInt(evt.target.value, 10);
+        const value = this.getInt(evt.target.value, 10);
         this.setState({subLevelY: value});
     }
 
@@ -639,14 +679,20 @@ class GameEditor extends React.Component {
     }
 
     onChangeInsertXWidth(evt) {
-        const value = parseInt(evt.target.value, 10);
+        const value = this.getInt(evt.target.value, 10);
         this.setState({insertXWidth: value});
     }
 
     onChangeInsertYWidth(evt) {
-        const value = parseInt(evt.target.value, 10);
+        const value = this.getInt(evt.target.value, 10);
         this.setState({insertYWidth: value});
     }
+
+    onChangeNumEntities(evt) {
+        const value = this.getInt(evt.target.value, 10);
+        this.setState({numEntities: value});
+    }
+
 }
 
 GameEditor.propTypes = {
