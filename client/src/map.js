@@ -230,7 +230,8 @@ RG.Map.CellList = function(cols, rows) { // {{{2
     for (let x = 0; x < this.cols; x++) {
         this._map.push([]);
         for (let y = 0; y < this.rows; y++) {
-            const elem = new RG.Element.Base('floor');
+            // const elem = new RG.Element.Base('floor');
+            const elem = RG.FLOOR_ELEM;
             this._map[x].push(new RG.Map.Cell(x, y, elem));
         }
     }
@@ -396,10 +397,12 @@ RG.Map.CellList.invertMap = function(map) {
         for (let y = 0; y < map.rows; y++) {
             const type = map._map[x][y].getBaseElem().getType();
             if (type === 'wall') {
-                map._map[x][y].setBaseElem(new RG.Element.Base('floor'));
+                map._map[x][y].setBaseElem(RG.FLOOR_ELEM);
+                // map._map[x][y].setBaseElem(new RG.Element.Base('floor'));
             }
             else if (type === 'floor') {
-                map._map[x][y].setBaseElem(new RG.Element.Base('wall'));
+                map._map[x][y].setBaseElem(RG.WALL_ELEM);
+                // map._map[x][y].setBaseElem(new RG.Element.Base('wall'));
             }
         }
     }
@@ -423,9 +426,9 @@ RG.Map.CellList.prototype.toJSON = function() {
 /* Map generator for the roguelike game.  */
 RG.Map.Generator = function() { // {{{2
 
-    this.cols = 50;
-    this.rows = 30;
-    let _mapGen = new ROT.Map.Arena(50, 30);
+    this.cols = RG.LEVEL_MEDIUM_X;
+    this.rows = RG.LEVEL_MEDIUM_Y;
+    let _mapGen = new ROT.Map.Arena(this.cols, this.rows);
     let _mapType = null;
 
     const _types = ['arena', 'cellular', 'digger', 'divided', 'dungeon',
@@ -474,10 +477,12 @@ RG.Map.Generator = function() { // {{{2
         const map = new RG.Map.CellList(this.cols, this.rows);
         _mapGen.create(function(x, y, val) {
             if (val === _wall) {
-                map.setBaseElemXY(x, y, new RG.Element.Base('wall'));
+                map.setBaseElemXY(x, y, RG.WALL_ELEM);
+                // map.setBaseElemXY(x, y, new RG.Element.Base('wall'));
             }
             else {
-                map.setBaseElemXY(x, y, new RG.Element.Base('floor'));
+                map.setBaseElemXY(x, y, RG.FLOOR_ELEM);
+                // map.setBaseElemXY(x, y, new RG.Element.Base('floor'));
             }
         });
         const obj = {map};
@@ -602,7 +607,8 @@ RG.Map.Generator = function() { // {{{2
         for (let i = 0; i < possibleRoom.length; i++) {
             const roomX = possibleRoom[i][0];
             const roomY = possibleRoom[i][1];
-            map.setBaseElemXY(roomX, roomY, new RG.Element.Base('wall'));
+            // map.setBaseElemXY(roomX, roomY, new RG.Element.Base('wall'));
+            map.setBaseElemXY(roomX, roomY, RG.WALL_ELEM);
         }
 
         // Create the halo, prevents houses being too close to each other
@@ -627,7 +633,8 @@ RG.Map.Generator = function() { // {{{2
         wallCoords.slice(doorIndex, 1);
 
         // At the moment, "door" is a hole in the wall
-        map.setBaseElemXY(doorX, doorY, new RG.Element.Base('floor'));
+        // map.setBaseElemXY(doorX, doorY, new RG.Element.Base('floor'));
+        map.setBaseElemXY(doorX, doorY, RG.FLOOR_ELEM);
         doors[doorX + ',' + doorY] = true;
 
         for (let i = 0; i < wallCoords.length; i++) {
@@ -661,7 +668,8 @@ RG.Map.Generator = function() { // {{{2
         const ratio = conf.ratio;
         _mapGen = new ROT.Map.Forest(this.cols, this.rows, conf);
         _mapGen.create(function(x, y, val) {
-            map.setBaseElemXY(x, y, new RG.Element.Base('floor'));
+            // map.setBaseElemXY(x, y, new RG.Element.Base('floor'));
+            map.setBaseElemXY(x, y, RG.FLOOR_ELEM);
             const createTree = RG.RAND.getUniform() <= ratio;
             if (val === 1 && createTree) {
                 map.setElemXY(x, y, new RG.Element.Tree('tree'));
@@ -677,7 +685,8 @@ RG.Map.Generator = function() { // {{{2
         const map = new RG.Map.CellList(this.cols, this.rows);
         _mapGen = new ROT.Map.Mountain(this.cols, this.rows, conf);
         _mapGen.create(function(x, y, val) {
-            map.setBaseElemXY(x, y, new RG.Element.Base('floor'));
+            // map.setBaseElemXY(x, y, new RG.Element.Base('floor'));
+            map.setBaseElemXY(x, y, RG.FLOOR_ELEM);
             if (val === _wall) {
                 map.setElemXY(x, y, new RG.Element.Stone('stone'));
             }
