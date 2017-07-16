@@ -21,7 +21,24 @@ function getStairsOther(name, levels) {
     return stairs;
 }
 
-/* Connects to sub-features like dungeon branch or city quarter together.*/
+/* Tries to connect stairs to level N in given levels. */
+function connectLevelToStairs(levels, nLevel, stairs) {
+    const level = levels[nLevel];
+    const otherQuartLevel = stairs.getSrcLevel();
+
+    if (!RG.isNullOrUndef([otherQuartLevel])) {
+        const down = !stairs.isDown();
+        const newStairs = new Stairs(down,
+            level, otherQuartLevel);
+        const cell = level.getFreeRandCell();
+        level.addStairs(newStairs, cell.getX(), cell.getY());
+        newStairs.connect(stairs);
+        return true;
+    }
+    return false;
+}
+
+/* Connects 2 sub-features like dungeon branch or city quarter together.*/
 function connectSubFeatures(features, q1Arg, q2Arg, l1, l2) {
     let q1 = q1Arg;
     let q2 = q2Arg;
@@ -63,6 +80,8 @@ const Stairs = RG.Element.Stairs;
 
 RG.World = {};
 
+/* Base class for world places. Each place has name and type + full hierarchical
+* name to trace where the place is in hierarchy. */
 RG.World.Base = function(name) {
     this.name = name;
     this.type = 'base';
@@ -88,7 +107,7 @@ RG.World.Base.prototype.setType = function(type) {
     this.type = type;
 };
 
-/* Branch, as name suggests, is a branch of dungeon. A branch is linear
+/* World.Branch, is a branch of dungeon. A branch is linear
  * progression of connected levels (usually with increasing difficulty).
  * Branch can have
  * entry points to other branches (or out of the dungeon). */
@@ -110,21 +129,6 @@ RG.World.Branch = function(name) {
     * purposes. */
     this.getStairsOther = function() {
         return getStairsOther(this.getName(), _levels);
-        /*
-        const stairs = [];
-        _levels.forEach(level => {
-            const sList = level.getStairs();
-            sList.forEach(s => {
-                const levelS = s.getTargetLevel();
-                if (levelS) {
-                    if (levelS.getParent() !== this.getName()) {
-                        stairs.push(s);
-                    }
-                }
-            });
-        });
-        return stairs;
-        */
     };
 
     /* Adds entrance stairs for this branch. */
@@ -164,18 +168,7 @@ RG.World.Branch = function(name) {
     /* Connects specified level to the given stairs (Usually external to this
      * branch) .*/
     this.connectLevelToStairs = function(nLevel, stairs) {
-        const level = _levels[nLevel];
-        const otherBranchLevel = stairs.getSrcLevel();
-
-        if (!RG.isNullOrUndef([otherBranchLevel])) {
-            const down = !stairs.isDown();
-            const newStairs = new Stairs(down,
-                level, otherBranchLevel);
-            const cell = level.getFreeRandCell();
-            level.addStairs(newStairs, cell.getX(), cell.getY());
-            newStairs.connect(stairs);
-        }
-        else {
+        if (!connectLevelToStairs(_levels, nLevel, stairs)) {
             RG.err('World.Branch', 'connectLevelToStairs',
                 'Stairs must be first connected to other level.');
         }
@@ -570,7 +563,8 @@ RG.extend2(RG.World.Area, RG.World.Base);
 RG.World.Mountain = function(name) {
     RG.World.Base.call(this, name);
     this.setType('mountain');
-    let _summit = null;
+
+    const _summits = [];
     const _faces = [];
 
 /* MountainFace, 5 stages:
@@ -587,8 +581,8 @@ RG.World.Mountain = function(name) {
     3. Right side tile (connect to face)
     4. Central tiles (connect on all sides)
 
-Summit is above view, while face is more of climbing view.
-Bit weird but should be fine.
+Summit is top-down view, while face is more of climbing,
+from-the-side view. Bit weird but should be fine.
 
 */
     this.getLevels = function() {
@@ -601,7 +595,7 @@ Bit weird but should be fine.
     };
 
     this.addSummit = (summit) => {
-        _summit = summit;
+        _summits.push(summit);
     };
 
     this.addFace = (face) => {
@@ -609,6 +603,7 @@ Bit weird but should be fine.
     };
 
     this.getFaces = () => _faces;
+    this.getSummits = () => _summits;
 
     this.getEntrances = () => {
         const res = [];
@@ -618,24 +613,16 @@ Bit weird but should be fine.
         return res;
     };
 
-    this.connect = function() {
-        this.connectFaces();
-        this.connectCentralTiles();
-        this.connectSummit();
+    /* Connects two faces b1 and b2 together from specified level
+     * numbers l1 and l2. */
+    this.connectFaces = function(f1Arg, f2Arg, l1, l2) {
+        connectSubFeatures(_faces, f1Arg, f2Arg, l1, l2);
     };
 
-    /* Connects the mountain faces together. */
-    this.connectFaces = () => {
-
-    };
-
-    this.connectCentralTiles = () => {
-
-    };
-
-    this.connectSummit = () => {
-        console.log(`summit: ${_summit}`);
-
+    this.connectFaceAndSummit = function(face, summit, l1, l2) {
+        const faceObj = _faces.find( f => f.getName() === face);
+        const summitObj = _summits.find(s => s.getName() === summit);
+        connectSubFeatures([faceObj, summitObj], face, summit, l1, l2);
     };
 
     this.toJSON = function() {
@@ -643,7 +630,9 @@ Bit weird but should be fine.
             name: this.getName(),
             hierName: this.getHierName(),
             nFaces: _faces.length,
-            face: _faces.map(face => face.toJSON())
+            face: _faces.map(face => face.toJSON()),
+            nSummits: _summits.length,
+            summit: _summits.map(summit => summit.toJSON())
         };
         return obj;
     };
@@ -652,11 +641,12 @@ Bit weird but should be fine.
 RG.extend2(RG.World.Mountain, RG.World.Base);
 
 /* One side (face) of the mountain. Each side consists of stages, of X by 1
-* Areas. */
+ * Areas. This is also re-used as a mountain summit because internally it's the
+ * same. */
 RG.World.MountainFace = function(name) {
     RG.World.Base.call(this, name);
     this.setType('face');
-    // const _stages = [];
+
     const _levels = [];
     let _entrance = null;
 
@@ -678,6 +668,11 @@ RG.World.MountainFace = function(name) {
             RG.err('World.MountainFace', 'addEntrance',
                 'Entrance already added.');
         }
+    };
+
+    /* Needed for connectivity testing. */
+    this.getStairsOther = function() {
+        return getStairsOther(this.getName(), _levels);
     };
 
     this.getLevels = function() {
@@ -703,6 +698,13 @@ RG.World.MountainFace = function(name) {
         const entrLevel = _levels[_entrance.levelNumber];
         const entrCell = entrLevel.getMap().getCell(_entrance.x, _entrance.y);
         return entrCell.getStairs();
+    };
+
+    this.connectLevelToStairs = function(nLevel, stairs) {
+        if (!connectLevelToStairs(_levels, nLevel, stairs)) {
+            RG.err('World.MountainFace', 'connectLevelToStairs',
+                'Stairs must be first connected to other level.');
+        }
     };
 
     this.toJSON = function() {
@@ -840,18 +842,7 @@ RG.World.CityQuarter = function(name) {
     /* Connects specified level to the given stairs (Usually external to this
      * quarter) .*/
     this.connectLevelToStairs = function(nLevel, stairs) {
-        const level = _levels[nLevel];
-        const otherQuartLevel = stairs.getSrcLevel();
-
-        if (!RG.isNullOrUndef([otherQuartLevel])) {
-            const down = !stairs.isDown();
-            const newStairs = new Stairs(down,
-                level, otherQuartLevel);
-            const cell = level.getFreeRandCell();
-            level.addStairs(newStairs, cell.getX(), cell.getY());
-            newStairs.connect(stairs);
-        }
-        else {
+        if (!connectLevelToStairs(_levels, nLevel, stairs)) {
             RG.err('World.CityQuarter', 'connectLevelToStairs',
                 'Stairs must be first connected to other level.');
         }
@@ -872,7 +863,8 @@ RG.World.CityQuarter = function(name) {
 };
 RG.extend2(RG.World.CityQuarter, RG.World.Base);
 
-/* Largest place. Contains a number of areas, mountains and dungeons. */
+/* Largest place at the top of hierarchy. Contains a number of areas,
+ * mountains, dungeons and cities. */
 RG.World.World = function(name) {
     RG.World.Base.call(this, name);
     this.setType('world');
@@ -911,23 +903,18 @@ RG.World.World = function(name) {
     };
 
     this.getAreas = () => (_areas);
+    // TODO these functions should directly query the areas.
     this.getDungeons = () => (_dungeons);
     this.getMountains = () => (_mountains);
     this.getCities = () => (_cities);
 
     this.toJSON = function() {
         const area = _areas.map(area => area.toJSON());
-        // const dungeons = _dungeons.map(dung => dung.toJSON());
-        // const mountains = _mountains.map(mount => mount.toJSON());
-        // const cities = _cities.map(city => city.toJSON());
         return {
             name: this.getName(),
             hierName: this.getHierName(),
             nAreas: _areas.length,
             area
-            // dungeons,
-            // mountains,
-            // cities
         };
     };
 };
