@@ -46,7 +46,9 @@ class GameEditor extends React.Component {
             fps: 0,
             simulationStarted: false,
             simulationPaused: false,
-            turnsPerSec: 1000
+            turnsPerSec: 1000,
+
+            idCount: 0
         };
 
         this.screen = new Screen(state.levelX, state.levelY);
@@ -54,6 +56,7 @@ class GameEditor extends React.Component {
             state.levelX, state.levelY);
         RG.setAllExplored(level, true);
 
+        level.editorID = state.idCount++;
         state.level = level;
         state.editorLevel = level;
 
@@ -129,6 +132,7 @@ class GameEditor extends React.Component {
             }
             const level = RG.FACT.createLevel(levelType,
                 this.state.levelX, this.state.levelY, conf);
+            level.editorID = this.state.idCount++;
             this.screen.setViewportXY(this.state.levelX, this.state.levelY);
             RG.setAllExplored(level, true);
             this.setState({level: level, editorLevel: level});
@@ -203,14 +207,20 @@ class GameEditor extends React.Component {
             const fromJSON = new RG.Game.FromJSON();
             const json = this.state.level.toJSON();
             const levelClone = fromJSON.createLevel(json);
+            levelClone.editorID = this.state.idCount++;
 
+            const nActors = levelClone.getActors().length;
+            console.log('Cloned level has ' + nActors + ' actors');
+
+            RG.POOL = new RG.EventPool(); // Dangerous, global objects
             this.game = new RG.Game.Main();
             this.game.addLevel(levelClone);
             this.game.addActiveLevel(levelClone);
             const startTime = new Date().getTime();
+            console.log('Game has ' + this.game.getLevels().length + ' levels');
 
-            const newLevel = this.game.getLevels()[0];
-            this.setState({level: newLevel, frameCount: 0,
+            // const newLevel = this.game.getLevels()[0];
+            this.setState({level: levelClone, frameCount: 0,
                 startTime, simulationStarted: true});
             this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
         }
@@ -500,8 +510,8 @@ class GameEditor extends React.Component {
 
     getLevelSelectElement() {
         const _types = ['arena', 'cellular', 'digger', 'divided', 'dungeon',
-            'eller', 'empty', 'icey', 'uniform', 'rogue', 'ruins', 'rooms',
-            'town', 'forest'];
+            'eller', 'empty', 'forest', 'icey', 'uniform', 'rogue', 'ruins', 'rooms',
+            'town'];
         const elem = _types.map(type => {
             const key = 'key-sel-type-' + type;
             return <option key={key} value={type}>{type}</option>;
@@ -619,7 +629,7 @@ class GameEditor extends React.Component {
         }
         else if (value === 'forest') {
             if (!levelConf.forest) {
-                levelConf.forest = {shape: 'cellular', ratio: 0.5};
+                levelConf.forest = {nForests: 5, forestSize: 100, ratio: 0.5};
                 shownLevelConf = 'forest';
             }
         }
