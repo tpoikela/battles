@@ -472,7 +472,7 @@ RG.Factory.Feature = function() {
     _parser.parseShellData(RGObjects);
 
     this.getRandLevelType = function() {
-        const type = ['rooms', 'rogue', 'digger', 'cellular'];
+        const type = ['rooms', 'rogue', 'digger'];
         const nLevelType = RG.RAND.randIndex(type);
         return type[nLevelType];
     };
