@@ -134,7 +134,8 @@ RG.Factory.ItemRandomizer = function() {
 
 };
 
-/* Factory object for creating some commonly used objects.*/
+/* Factory object for creating some commonly used objects. Because this is a
+* global object RG.FACT, no state should be used. */
 RG.Factory.Base = function() { // {{{2
     const _verif = new RG.VerifyConf('Factory.Base');
     const _itemRandomizer = new RG.Factory.ItemRandomizer();
@@ -246,9 +247,8 @@ RG.Factory.Base = function() { // {{{2
             this.createShops(level, mapObj, conf);
         }
         else if (levelType === 'forest') {
-            const forestShape = conf.shape;
-            mapgen.setGen(forestShape, cols, rows);
-            mapObj = mapgen.createForest(conf.ratio);
+            mapgen.setGen('forest', cols, rows);
+            mapObj = mapgen.createForest(conf);
             level.setMap(mapObj.map);
         }
         else if (levelType === 'mountain') {
