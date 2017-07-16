@@ -2,6 +2,8 @@
 const ROT = require('../../lib/rot.js');
 const RG = require('./rg.js');
 
+ROT.Map.Forest = require('../../lib/map.forest');
+
 RG.Element = require('./element.js');
 
 RG.Map = {};
@@ -169,15 +171,18 @@ RG.Map.Cell.prototype.toJSON = function() {
 RG.Map.Cell.prototype.hasPropType = function(propType) {
     if (this._baseElem.getType() === propType) {return true;}
 
-    for (const prop in this._p) {
-        if (this._p.hasOwnProperty(prop)) {
+    const keys = Object.keys(this._p);
+    for (let i = 0; i < keys.length; i++) {
+    // for (const prop in this._p) {
+        // if (this._p.hasOwnProperty(prop)) {
+            const prop = keys[i];
             const arrProps = this._p[prop];
             for (let i = 0; i < arrProps.length; i++) {
                 if (arrProps[i].getType() === propType) {
                     return true;
                 }
             }
-        }
+        // }
     }
     return false;
 };
@@ -450,6 +455,7 @@ RG.Map.Generator = function() { // {{{2
                 _mapGen = new ROT.Map.DividedMaze(cols, rows); break;
             case 'empty': _mapGen = new ROT.Map.Dungeon(cols, rows); break;
             case 'eller': _mapGen = new ROT.Map.EllerMaze(cols, rows); break;
+            case 'forest': _mapGen = new ROT.Map.Forest(cols, rows); break;
             case 'icey': _mapGen = new ROT.Map.IceyMaze(cols, rows); break;
             case 'rogue': _mapGen = new ROT.Map.Rogue(cols, rows); break;
             case 'uniform': _mapGen = new ROT.Map.Uniform(cols, rows); break;
@@ -648,8 +654,10 @@ RG.Map.Generator = function() { // {{{2
      * using trees. Ratio is conversion ratio of walls to trees. For example,
      * 0.5 on average replaces half the walls with tree, and removes rest of
      * the walls. */
-    this.createForest = function(ratio = 1.0) {
+    this.createForest = function(conf) {
         const map = new RG.Map.CellList(this.cols, this.rows);
+        const ratio = conf.ratio;
+        _mapGen = new ROT.Map.Forest(this.cols, this.rows, conf);
         _mapGen.create(function(x, y, val) {
             map.setBaseElemXY(x, y, new RG.Element.Base('floor'));
             const createTree = RG.RAND.getUniform() <= ratio;
