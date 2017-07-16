@@ -170,8 +170,10 @@ describe('World.Mountain', function() {
 
         const faces = mountain.getFaces();
         expect(faces).to.have.length(4);
-        mountain.connectFaces('north', 'south', 0, 0);
-        expectConnected(faces[0], faces[1], 1);
+        for (let i = 0; i < 5; i++) {
+            mountain.connectFaces('north', 'south', 0, 0);
+        }
+        expectConnected(faces[0], faces[1], 5);
         mountain.connectFaces('east', 'west', 0, 0);
         expectConnected(faces[2], faces[3], 1);
 
