@@ -38,8 +38,8 @@ class GameEditor extends React.Component {
             insertXWidth: 1,
             insertYWidth: 1,
 
-            shownLevelConf: '',
-            levelConf: {},
+            levelConf: {shown: ''},
+            subLevelConf: {shown: ''},
 
             editorLevel: null,
             frameCount: 0,
@@ -125,35 +125,40 @@ class GameEditor extends React.Component {
     /* Generates the large map. This erases everything. */
     generateMap() {
         const levelType = this.state.levelType;
-        // try {
-            let conf = {};
-            if (this.state.levelConf.hasOwnProperty(levelType)) {
-                conf = this.state.levelConf[levelType];
-            }
-            const level = RG.FACT.createLevel(levelType,
-                this.state.levelX, this.state.levelY, conf);
-            level.editorID = this.state.idCount++;
-            this.screen.setViewportXY(this.state.levelX, this.state.levelY);
-            RG.setAllExplored(level, true);
-            this.setState({level: level, editorLevel: level});
-        /* }
-        catch (e) {
-            this.setState({errorMsg: e.message});
-        }*/
+        let conf = {};
+        if (this.state.levelConf.hasOwnProperty(levelType)) {
+            conf = this.state.levelConf[levelType];
+        }
+        const level = RG.FACT.createLevel(levelType,
+            this.state.levelX, this.state.levelY, conf);
+        level.editorID = this.state.idCount++;
+        this.screen.setViewportXY(this.state.levelX, this.state.levelY);
+        RG.setAllExplored(level, true);
+        this.setState({level: level, editorLevel: level});
     }
 
     /* Inserts a sub-map into the current level. This overwrites all cells
      * in the large map (including items and actors. */
     subGenerateMap() {
         const level = this.state.level;
-        let subLevel = RG.FACT.createLevel(this.state.subLevelType,
-            this.state.subLevelX, this.state.subLevelY);
+        const levelType = this.state.subLevelType;
+        let conf = {};
+        if (this.state.subLevelConf.hasOwnProperty(levelType)) {
+            conf = this.state.subLevelConf[levelType];
+        }
+        const subLevel = RG.FACT.createLevel(levelType,
+            this.state.subLevelX, this.state.subLevelY, conf);
         RG.setAllExplored(subLevel, true);
-        const x = this.state.selectedCell.getX();
-        const y = this.state.selectedCell.getY();
-        RG.Geometry.insertSubLevel(level, subLevel, x, y);
-        subLevel = null;
-        this.setState({level: level});
+        if (this.state.selectedCell) {
+            const x = this.state.selectedCell.getX();
+            const y = this.state.selectedCell.getY();
+            RG.Geometry.insertSubLevel(level, subLevel, x, y);
+            this.setState({level: level});
+        }
+        else {
+            const msg = 'You must select a cell first from the map.';
+            this.setState({errorMsg: msg});
+        }
     }
 
     generateItems() {
@@ -198,6 +203,271 @@ class GameEditor extends React.Component {
         console.log('[DEBUG] ' + msg);
     }
 
+
+    insertElement() {
+        const llx = this.state.selectedCell.getX();
+        const lly = this.state.selectedCell.getY();
+        const urx = this.state.insertXWidth + llx - 1;
+        const ury = this.state.insertYWidth + lly - 1;
+        this.debugMsg('insertElement: ' + `${llx}, ${lly}, ${urx}, ${ury}`);
+        const level = this.state.level;
+        try {
+            RG.Geometry.insertElements(level, this.state.elementType,
+                llx, lly, urx, ury);
+        }
+        catch (e) {
+            this.setState({errorMsg: e.message});
+        }
+        this.setState({level: level});
+    }
+
+    insertActor() {
+        const llx = this.state.selectedCell.getX();
+        const lly = this.state.selectedCell.getY();
+        const urx = this.state.insertXWidth + llx - 1;
+        const ury = this.state.insertYWidth + lly - 1;
+        this.debugMsg('insertActor: ' + `${llx}, ${lly}, ${urx}, ${ury}`);
+        const level = this.state.level;
+        try {
+            RG.Geometry.insertActors(level, this.state.actorName,
+                llx, lly, urx, ury, this.parser);
+        }
+        catch (e) {
+            this.setState({errorMsg: e.message});
+        }
+        this.setState({level: level});
+    }
+
+    insertItem() {
+        const llx = this.state.selectedCell.getX();
+        const lly = this.state.selectedCell.getY();
+        const urx = this.state.insertXWidth + llx - 1;
+        const ury = this.state.insertYWidth + lly - 1;
+        const level = this.state.level;
+        try {
+            RG.Geometry.insertItems(level, this.state.itemName,
+                llx, lly, urx, ury, this.parser);
+        }
+        catch (e) {
+            this.setState({errorMsg: e.message});
+        }
+        this.setState({level: level});
+
+    }
+
+    /* Inverts the map base elements (floor/wall) */
+    invertMap() {
+        const level = this.state.level;
+        const map = level.getMap();
+        RG.Map.CellList.invertMap(map);
+        this.setState({level: level});
+    }
+
+    render() {
+        const mapShown = this.props.mapShown;
+        let rowClass = 'cell-row-div-player-view';
+        if (mapShown) {rowClass = 'cell-row-div-map-view';}
+
+        let map = null;
+        if (this.state.level) {
+            map = this.state.level.getMap();
+        }
+        if (map) {
+            this.screen.renderFullMap(map);
+        }
+
+        const errorMsg = this.getErrorMsg();
+        const charRows = this.screen.getCharRows();
+        const classRows = this.screen.getClassRows();
+        const editorPanelElem = this.getEditorPanelElement();
+        const simulationButtons = this.getSimulationButtons();
+
+        let message = [];
+        if (this.state.simulationStarted) {
+            if (this.game.hasNewMessages()) {
+                message = this.game.getMessages();
+            }
+        }
+
+        const renderPanel = !this.state.simulationStarted ||
+            (this.state.simulationStarted && this.state.simulationPaused);
+        return (
+            <div className='game-editor-main-div'>
+                <h2>Battles Game Editor</h2>
+
+                {renderPanel && editorPanelElem}
+
+                <div className='game-editor-messages'>
+                    {errorMsg}
+                </div>
+
+                {this.state.simulationStarted &&
+                    <div className='game-editor-game-messages'>
+                        <GameMessages
+                            message={message}
+                            saveInProgress={false}
+                            showAll={true}
+                            visibleCells={[]}
+                        />
+                    </div>
+                }
+
+                <div className='game-editor-board-div'>
+                    <GameBoard
+                        boardClassName={this.state.boardClassName}
+                        charRows={charRows}
+                        classRows={classRows}
+                        endY={this.screen.endY}
+                        onCellClick={this.onCellClick}
+                        rowClass={rowClass}
+                        startX={0}
+                        startY={0}
+                    />
+                </div>
+                <div className='game-editor-bottom-btn'>
+                    <div className='btn-div'>
+                        <button onClick={this.levelToJSON}>To JSON</button>
+                    </div>
+                    {simulationButtons}
+                </div>
+            </div>
+        );
+    }
+
+    getErrorMsg() {
+        if (this.state.errorMsg.length > 0) {
+            return <p className='text-danger'>{this.state.errorMsg}</p>;
+        }
+        else {
+            return <p className='text-success'>OK. No errors.</p>;
+        }
+    }
+
+    onChangeLevelConf(confType, key, idHead) {
+        const id = `#${idHead}--${confType}--${key}`;
+        const inputElem = document.querySelector(id);
+        const value = inputElem.value;
+        const conf = idHead === 'main' ? this.state.levelConf
+            : this.state.subLevelConf;
+        if (key.match(/(\w+)Func/)) {
+            // TODO how to handle functions
+        }
+        else {
+            conf[confType][key] = value;
+        }
+
+        if (idHead === 'main') {
+            this.setState({levelConf: conf});
+        }
+        else {
+            this.setState({subLevelConf: conf});
+        }
+    }
+
+
+    /* Modifes the given level configuration object based on the value
+     * (level type). */
+    modifyLevelConf(value, levelConf) {
+        if (value === 'town') {
+            if (!levelConf.town) {
+                levelConf.town = RG.Factory.cityConfBase(
+                    this.parser, {});
+                levelConf.shown = 'town';
+            }
+        }
+        else if (value === 'forest') {
+            if (!levelConf.forest) {
+                levelConf.forest = {nForests: 5, forestSize: 100, ratio: 0.5,
+                    factor: 6};
+                levelConf.shown = 'forest';
+            }
+        }
+        else {
+            levelConf = {};
+            levelConf.shown = '';
+        }
+    }
+
+    //----------------------------------------------------------------
+    // onChangeXXX callbacks for <input> fields
+    //----------------------------------------------------------------
+
+    onChangeType(evt) {
+        const value = evt.target.value;
+        const levelType = value;
+        const levelConf = this.state.levelConf;
+        this.modifyLevelConf(value, levelConf);
+        this.setState({levelType, levelConf});
+    }
+
+    getInt(value, base) {
+        const retValue = parseInt(value, base);
+        if (Number.isInteger(retValue)) {
+            return retValue;
+        }
+        return '';
+    }
+
+    onChangeX(evt) {
+        const value = this.getInt(evt.target.value, 10);
+        this.setState({levelX: value});
+    }
+
+    onChangeY(evt) {
+        const value = this.getInt(evt.target.value, 10);
+        this.setState({levelY: value});
+    }
+
+    onChangeSubType(evt) {
+        const value = evt.target.value;
+        const subLevelConf = this.state.subLevelConf;
+        this.modifyLevelConf(value, subLevelConf);
+        this.setState({subLevelType: value, subLevelConf});
+    }
+
+    onChangeSubX(evt) {
+        const value = this.getInt(evt.target.value, 10);
+        this.setState({subLevelX: value});
+    }
+
+    onChangeSubY(evt) {
+        const value = this.getInt(evt.target.value, 10);
+        this.setState({subLevelY: value});
+    }
+
+    onChangeElement(evt) {
+        const value = evt.target.value;
+        this.setState({elementType: value});
+    }
+
+    onChangeActor(evt) {
+        const value = evt.target.value;
+        this.setState({actorName: value});
+    }
+
+    onChangeItem(evt) {
+        const value = evt.target.value;
+        this.setState({itemName: value});
+    }
+
+    onChangeInsertXWidth(evt) {
+        const value = this.getInt(evt.target.value, 10);
+        this.setState({insertXWidth: value});
+    }
+
+    onChangeInsertYWidth(evt) {
+        const value = this.getInt(evt.target.value, 10);
+        this.setState({insertYWidth: value});
+    }
+
+    onChangeNumEntities(evt) {
+        const value = this.getInt(evt.target.value, 10);
+        this.setState({numEntities: value});
+    }
+
+    //----------------------------------------------------------------
+    // SIMULATION METHODS
+    //----------------------------------------------------------------
 
     /* Starts a simulation of the level. No player support yet. */
     simulateLevel() {
@@ -309,189 +579,28 @@ class GameEditor extends React.Component {
         }
     }
 
-    insertElement() {
-        const llx = this.state.selectedCell.getX();
-        const lly = this.state.selectedCell.getY();
-        const urx = this.state.insertXWidth + llx - 1;
-        const ury = this.state.insertYWidth + lly - 1;
-        this.debugMsg('insertElement: ' + `${llx}, ${lly}, ${urx}, ${ury}`);
-        const level = this.state.level;
-        try {
-            RG.Geometry.insertElements(level, this.state.elementType,
-                llx, lly, urx, ury);
-        }
-        catch (e) {
-            this.setState({errorMsg: e.message});
-        }
-        this.setState({level: level});
-    }
-
-    insertActor() {
-        const llx = this.state.selectedCell.getX();
-        const lly = this.state.selectedCell.getY();
-        const urx = this.state.insertXWidth + llx - 1;
-        const ury = this.state.insertYWidth + lly - 1;
-        this.debugMsg('insertActor: ' + `${llx}, ${lly}, ${urx}, ${ury}`);
-        const level = this.state.level;
-        try {
-            RG.Geometry.insertActors(level, this.state.actorName,
-                llx, lly, urx, ury, this.parser);
-        }
-        catch (e) {
-            this.setState({errorMsg: e.message});
-        }
-        this.setState({level: level});
-    }
-
-    insertItem() {
-        const llx = this.state.selectedCell.getX();
-        const lly = this.state.selectedCell.getY();
-        const urx = this.state.insertXWidth + llx - 1;
-        const ury = this.state.insertYWidth + lly - 1;
-        const level = this.state.level;
-        try {
-            RG.Geometry.insertItems(level, this.state.itemName,
-                llx, lly, urx, ury, this.parser);
-        }
-        catch (e) {
-            this.setState({errorMsg: e.message});
-        }
-        this.setState({level: level});
-
-    }
-
-    /* Inverts the map base elements (floor/wall) */
-    invertMap() {
-        const level = this.state.level;
-        const map = level.getMap();
-        RG.Map.CellList.invertMap(map);
-        this.setState({level: level});
-    }
-
-    render() {
-        const mapShown = this.props.mapShown;
-        let rowClass = 'cell-row-div-player-view';
-        if (mapShown) {rowClass = 'cell-row-div-map-view';}
-
-        let map = null;
-        if (this.state.level) {
-            map = this.state.level.getMap();
-        }
-        if (map) {
-            this.screen.renderFullMap(map);
-        }
-
-        const errorMsg = this.getErrorMsg();
-        const charRows = this.screen.getCharRows();
-        const classRows = this.screen.getClassRows();
-        const editorPanelElem = this.getEditorPanelElement();
-
-        let message = [];
-        if (this.state.simulationStarted) {
-            if (this.game.hasNewMessages()) {
-                message = this.game.getMessages();
-            }
-        }
-
-        let ctrlBtnClass = 'btn btn-xs';
-        if (!this.state.simulationStarted) {
-            ctrlBtnClass = 'btn btn-xs disabled';
-        }
-
-        const renderPanel = !this.state.simulationStarted ||
-            (this.state.simulationStarted && this.state.simulationPaused);
-        return (
-            <div className='game-editor-main-div'>
-                <h2>Battles Game Editor</h2>
-
-                {renderPanel && editorPanelElem}
-
-                <div className='game-editor-messages'>
-                    {errorMsg}
-                </div>
-
-                {this.state.simulationStarted &&
-                    <div className='game-editor-game-messages'>
-                        <GameMessages
-                            message={message}
-                            saveInProgress={false}
-                            showAll={true}
-                            visibleCells={[]}
-                        />
-                    </div>
-                }
-
-                <div className='game-editor-board-div'>
-                    <GameBoard
-                        boardClassName={this.state.boardClassName}
-                        charRows={charRows}
-                        classRows={classRows}
-                        endY={this.screen.endY}
-                        onCellClick={this.onCellClick}
-                        rowClass={rowClass}
-                        startX={0}
-                        startY={0}
-                    />
-                </div>
-                <div className='game-editor-bottom-btn'>
-                    <div className='btn-div'>
-                        <button onClick={this.levelToJSON}>To JSON</button>
-                    </div>
-                    <div className='btn-div'>
-                        <button className='btn btn-xs' onClick={this.simulateLevel}>Simulate</button>
-                        <button className={ctrlBtnClass} onClick={this.playSimulation}>Play</button>
-                        <button className={ctrlBtnClass} onClick={this.playFastSimulation}>>>></button>
-                        <button className={ctrlBtnClass} onClick={this.pauseSimulation}>Pause</button>
-                        <button className={ctrlBtnClass} onClick={this.stopSimulation}>Stop</button>
-                        <p>Frame count: {this.state.frameCount}</p>
-                        <p>FPS: {this.state.fps}</p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    getErrorMsg() {
-        if (this.state.errorMsg.length > 0) {
-            return <p className='text-danger'>{this.state.errorMsg}</p>;
-        }
-        else {
-            return <p className='text-success'>OK. No errors.</p>;
-        }
-    }
-
-    onChangeLevelConf(confType, key) {
-        const id = `#${confType}--${key}`;
-        const inputElem = document.querySelector(id);
-        const value = inputElem.value;
-        const conf = this.state.levelConf;
-        if (key.match(/(\w+)Func/)) {
-            // TODO how to handle functions
-        }
-        else {
-            conf[confType][key] = value;
-        }
-        this.setState({levelConf: conf});
-    }
+    //--------------------------------------------------------------
+    // JSX GENERATING METHODS
+    //--------------------------------------------------------------
 
     /* Returns the level config configuration shown directly under level
      * generation. */
-    getLevelConfElement() {
+    getLevelConfElement(id, levelConf) {
         let elem = null;
-        const confType = this.state.shownLevelConf;
+        const confType = levelConf.shown;
         if (confType.length > 0) {
-            const conf = this.state.levelConf[confType];
+            const conf = levelConf[confType];
             elem = Object.keys(conf).map(key => {
-                const currVal = this.state.levelConf[confType][key];
+                const currVal = levelConf[confType][key];
                 const newValue = currVal ? currVal : conf[key];
                 const onChangeFunc =
-                    this.onChangeLevelConf.bind(this, confType, key);
+                    this.onChangeLevelConf.bind(this, confType, key, id);
                 if (typeof conf[key] !== 'function') {
                     return (
                         <label key={`${confType}--${key}`}>{key}
                             <input
-                                id={`${confType}--${key}`}
-                                name={`${confType}-${key}`}
+                                id={`${id}--${confType}--${key}`}
+                                name={`${id}--{confType}-${key}`}
                                 onChange={onChangeFunc}
                                 value={newValue}
                             />
@@ -510,8 +619,8 @@ class GameEditor extends React.Component {
 
     getLevelSelectElement() {
         const _types = ['arena', 'cellular', 'digger', 'divided', 'dungeon',
-            'eller', 'empty', 'forest', 'icey', 'uniform', 'rogue', 'ruins', 'rooms',
-            'town'];
+            'eller', 'empty', 'forest', 'icey', 'mountain', 'uniform', 'rogue',
+            'ruins', 'rooms', 'town'];
         const elem = _types.map(type => {
             const key = 'key-sel-type-' + type;
             return <option key={key} value={type}>{type}</option>;
@@ -520,8 +629,11 @@ class GameEditor extends React.Component {
     }
 
     getEditorPanelElement() {
-        const levelConfElem = this.getLevelConfElement();
+        const levelConfElem = this.getLevelConfElement('main',
+            this.state.levelConf);
         const levelSelectElem = this.getLevelSelectElement();
+        const subLevelConfElem = this.getLevelConfElement('sub',
+            this.state.subLevelConf);
         return (
             <div className='game-editor-panel'>
                 <div className='btn-div'>
@@ -530,8 +642,7 @@ class GameEditor extends React.Component {
                         name='level-type'
                         onChange={this.onChangeType}
                         value={this.state.levelType}
-                        >
-                        {levelSelectElem}
+                    >{levelSelectElem}
                     </select>
                     <input
                         name='level-x'
@@ -552,7 +663,7 @@ class GameEditor extends React.Component {
                         name='sublevel-type'
                         onChange={this.onChangeSubType}
                         value={this.state.subLevelType}
-                        >
+                    >
                         {levelSelectElem}
                     </select>
                     <input
@@ -565,6 +676,7 @@ class GameEditor extends React.Component {
                         onChange={this.onChangeSubY}
                         value={this.state.subLevelY}
                     />
+                    {subLevelConfElem}
                 </div>
                 <div className='btn-div'>
                     <button onClick={this.generateActors}>Actors!</button>
@@ -611,99 +723,49 @@ class GameEditor extends React.Component {
         );
     }
 
-    //----------------------------------------------------------------
-    // onChangeXXX callbacks for <input> fields
-    //----------------------------------------------------------------
-
-    onChangeType(evt) {
-        const value = evt.target.value;
-        const levelType = value;
-        let levelConf = this.state.levelConf;
-        let shownLevelConf = this.state.shownLevelConf;
-        if (value === 'town') {
-            if (!levelConf.town) {
-                levelConf.town = RG.Factory.cityConfBase(
-                    this.parser, {});
-                shownLevelConf = 'town';
-            }
+    getSimulationButtons() {
+        let ctrlBtnClass = 'btn btn-xs';
+        if (!this.state.simulationStarted) {
+            ctrlBtnClass = 'btn btn-xs disabled';
         }
-        else if (value === 'forest') {
-            if (!levelConf.forest) {
-                levelConf.forest = {nForests: 5, forestSize: 100, ratio: 0.5,
-                    factor: 6};
-                shownLevelConf = 'forest';
-            }
-        }
-        else {
-            levelConf = {};
-            shownLevelConf = '';
-        }
-        this.setState({levelType, levelConf, shownLevelConf});
-    }
+        return (
+            <div className='btn-div'>
 
-    getInt(value, base) {
-        const retValue = parseInt(value, base);
-        if (Number.isInteger(retValue)) {
-            return retValue;
-        }
-        return '';
-    }
+                <button
+                    className='btn btn-xs'
+                    onClick={this.simulateLevel}
+                >Simulate
+                </button>
 
-    onChangeX(evt) {
-        const value = this.getInt(evt.target.value, 10);
-        this.setState({levelX: value});
-    }
+                <button
+                    className={ctrlBtnClass}
+                    onClick={this.playSimulation}
+                >Play
+                </button>
 
-    onChangeY(evt) {
-        const value = this.getInt(evt.target.value, 10);
-        this.setState({levelY: value});
-    }
+                <button
+                    className={ctrlBtnClass}
+                    onClick={this.playFastSimulation}
+                >>>>
+                </button>
 
-    onChangeSubType(evt) {
-        const value = evt.target.value;
-        this.setState({subLevelType: value});
-    }
+                <button
+                    className={ctrlBtnClass}
+                    onClick={this.pauseSimulation}
+                >Pause
+                </button>
+                <button
+                    className={ctrlBtnClass}
+                    onClick={this.stopSimulation}
+                >Stop
+                </button>
 
-    onChangeSubX(evt) {
-        const value = this.getInt(evt.target.value, 10);
-        this.setState({subLevelX: value});
-    }
+                <p>Frame count: {this.state.frameCount}</p>
+                <p>FPS: {this.state.fps}</p>
+            </div>
 
-    onChangeSubY(evt) {
-        const value = this.getInt(evt.target.value, 10);
-        this.setState({subLevelY: value});
+        );
     }
-
-    onChangeElement(evt) {
-        const value = evt.target.value;
-        this.setState({elementType: value});
-    }
-
-    onChangeActor(evt) {
-        const value = evt.target.value;
-        this.setState({actorName: value});
-    }
-
-    onChangeItem(evt) {
-        const value = evt.target.value;
-        this.setState({itemName: value});
-    }
-
-    onChangeInsertXWidth(evt) {
-        const value = this.getInt(evt.target.value, 10);
-        this.setState({insertXWidth: value});
-    }
-
-    onChangeInsertYWidth(evt) {
-        const value = this.getInt(evt.target.value, 10);
-        this.setState({insertYWidth: value});
-    }
-
-    onChangeNumEntities(evt) {
-        const value = this.getInt(evt.target.value, 10);
-        this.setState({numEntities: value});
-    }
-
 }
 
 GameEditor.propTypes = {
