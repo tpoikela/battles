@@ -207,6 +207,9 @@ RG.Element.Shop.prototype.getItemPriceForBuying = function(item) {
         const value = item.getValue() * this._costFactorSell;
         const goldWeight = RG.valueToGoldWeight(value);
         const ncoins = RG.getGoldInCoins(goldWeight);
+        if (ncoins === 0) {
+            return 1;
+        }
         return ncoins;
     }
     else {
@@ -288,7 +291,6 @@ RG.Element.Shop.prototype.sellItem = function(item, seller) {
         }
     }
     else {
-        console.log('No money for keeper');
         const name = this._shopkeeper.getName();
         RG.gameMsg({cell: this._shopkeeper.getCell(),
             msg: 'Keeper ' + name + " doesn't have enough gold to buy it."});
