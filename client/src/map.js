@@ -3,6 +3,7 @@ const ROT = require('../../lib/rot.js');
 const RG = require('./rg.js');
 
 ROT.Map.Forest = require('../../lib/map.forest');
+ROT.Map.Mountain = require('../../lib/map.mountain');
 
 RG.Element = require('./element.js');
 
@@ -456,6 +457,7 @@ RG.Map.Generator = function() { // {{{2
             case 'empty': _mapGen = new ROT.Map.Dungeon(cols, rows); break;
             case 'eller': _mapGen = new ROT.Map.EllerMaze(cols, rows); break;
             case 'forest': _mapGen = new ROT.Map.Forest(cols, rows); break;
+            case 'mountain': _mapGen = new ROT.Map.Mountain(cols, rows); break;
             case 'icey': _mapGen = new ROT.Map.IceyMaze(cols, rows); break;
             case 'rogue': _mapGen = new ROT.Map.Rogue(cols, rows); break;
             case 'uniform': _mapGen = new ROT.Map.Uniform(cols, rows); break;
@@ -671,8 +673,9 @@ RG.Map.Generator = function() { // {{{2
         return {map};
     };
 
-    this.createMountain = function() {
+    this.createMountain = function(conf) {
         const map = new RG.Map.CellList(this.cols, this.rows);
+        _mapGen = new ROT.Map.Mountain(this.cols, this.rows, conf);
         _mapGen.create(function(x, y, val) {
             map.setBaseElemXY(x, y, new RG.Element.Base('floor'));
             if (val === _wall) {

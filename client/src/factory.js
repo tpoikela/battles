@@ -252,9 +252,9 @@ RG.Factory.Base = function() { // {{{2
             level.setMap(mapObj.map);
         }
         else if (levelType === 'mountain') {
-            // mapgen.setGen('ruins', cols, rows);
-            mapgen.setGen('ruins', 50, 200);
-            mapObj = mapgen.createMountain();
+            mapgen.setGen('mountain', cols, rows);
+            conf.nForests = Math.round(cols / 80 * rows / 28 * 5);
+            mapObj = mapgen.createMountain(conf);
             level.setMap(mapObj.map);
         }
         else {
