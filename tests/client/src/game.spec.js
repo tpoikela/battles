@@ -69,7 +69,6 @@ describe('Game.Main', function() {
 
     it('can add player to the specified location', () => {
         const fact = new RG.Factory.World();
-        // const playerStart = {name: 'StartPlace', x: 1, y: 1};
         const worldConf = {
             name: 'StartPlace',
             nAreas: 1, area: [{name: 'a1', maxX: 2, maxY: 2}]
