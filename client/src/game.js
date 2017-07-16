@@ -466,8 +466,17 @@ RG.Game.Main = function() {
         if (obj.hasOwnProperty('place')) {
             const place = obj.place;
             if (_places.hasOwnProperty(place)) {
-                const levels = _places[place].getLevels();
-                return _addPlayerToFirstLevel(player, levels);
+                if (obj.hasOwnProperty('x') && obj.hasOwnProperty('y')) {
+                    const placeObj = _places[place];
+                    const area = placeObj.getAreas()[0];
+                    const tile = area.getTileXY(obj.x, obj.y);
+                    const levels = [tile.getLevel()];
+                    return _addPlayerToFirstLevel(player, levels);
+                }
+                else {
+                    const levels = _places[place].getLevels();
+                    return _addPlayerToFirstLevel(player, levels);
+                }
             }
             else {
                 RG.err('Game.Main', '_addPlayerToPlace',
