@@ -57,6 +57,8 @@ RG.WorldConf = {
         'Beast dungeon.Animals': [{nLevel: 0, level: temple}]
     },
 
+    playerStart: {place: 'The North', x: 2, y: 4},
+
     nAreas: 1,
     area: [
         {
