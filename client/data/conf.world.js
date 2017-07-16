@@ -105,9 +105,22 @@ RG.WorldConf = {
             // MOUNTAINS
             nMountains: 1,
             mountain: [
-                { x: 0, y: 0, name: 'IceThorn', nFaces: 1,
+                { x: 1, y: 3, name: 'IceThorn', nFaces: 1,
                     face: [{name: 'north', nLevels: 1, x: 50, y: 200}]
                 },
+                {
+                    x: 2, y: 0, name: 'Spiral of Chaos', nFaces: 4,
+                    nSummits: 1,
+                    face: [
+                        {name: 'north', nLevels: 1, x: 50, y: 200},
+                        {name: 'south', nLevels: 1, x: 50, y: 200},
+                        {name: 'west', nLevels: 1, x: 50, y: 200},
+                        {name: 'east', nLevels: 1, x: 50, y: 200}
+                    ],
+                    summit: [
+
+                    ],
+                }
             ],
         },
     ],
