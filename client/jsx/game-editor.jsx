@@ -629,7 +629,8 @@ class GameEditor extends React.Component {
         }
         else if (value === 'forest') {
             if (!levelConf.forest) {
-                levelConf.forest = {nForests: 5, forestSize: 100, ratio: 0.5};
+                levelConf.forest = {nForests: 5, forestSize: 100, ratio: 0.5,
+                    factor: 6};
                 shownLevelConf = 'forest';
             }
         }
