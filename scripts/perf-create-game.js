@@ -42,3 +42,6 @@ levels.forEach(level => {
 
 console.log('The game has ' + nActors + ' actors.');
 console.log('The game has ' + nItems + ' items.');
+console.log('Elements created: ' + RG.elementsCreated);
+
+console.log(JSON.stringify(game.toJSON()));
