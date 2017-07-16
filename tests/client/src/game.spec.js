@@ -65,9 +65,28 @@ describe('Game.Main', function() {
 
         const explCells = level.exploreCells(actor);
         expect(explCells.length).to.equal(11 * 11);
+    });
 
-        // expect(level.moveActorTo(actor, 11, 13)).to.equal(true);
+    it('can add player to the specified location', () => {
+        const fact = new RG.Factory.World();
+        // const playerStart = {name: 'StartPlace', x: 1, y: 1};
+        const worldConf = {
+            name: 'StartPlace',
+            nAreas: 1, area: [{name: 'a1', maxX: 2, maxY: 2}]
+        };
+        const world = fact.createWorld(worldConf);
+        const game = new RG.Game.Main();
+        game.addPlace(world);
+        expect(game.getLevels()).to.have.length(4);
 
+        const player = new RG.Actor.Rogue('PlayerHero');
+        player.setIsPlayer(true);
+        game.addPlayer(player, {place: 'StartPlace', x: 1, y: 1});
+
+        const playerLevelID = player.getLevel().getID();
+        const area = world.getAreas()[0];
+        const expectedLevelID = area.getTileXY(1, 1).getLevel().getID();
+        expect(playerLevelID).to.equal(expectedLevelID);
     });
 });
 
