@@ -2,12 +2,15 @@
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 const World = require('../../../client/src/world');
+const RGTest = require('../../roguetest');
+
+const expectConnected = RGTest.expectConnected;
 
 describe('World.Branch', function() {
     it('Contains a number of connected levels', function() {
         const nlevels = 4;
         const levels = [];
-        const branch = new World.Branch();
+        const branch = new World.Branch('br1');
         for (let i = 0; i < nlevels; i++) {
             levels.push(RG.FACT.createLevel('arena', 20, 20));
             branch.addLevel(levels[i]);
@@ -153,6 +156,31 @@ describe('World.Mountain', function() {
         mountain.addFace(face);
         expect(mountain.getEntrances()).to.have.length(1);
         expect(mountain.getLevels()).to.have.length(1);
+    });
+
+    it('can have multiple connected mountain faces + summits', () => {
+        const mountain = new RG.World.Mountain('Mount Doom');
+        const faceNames = ['north', 'south', 'east', 'west'];
+        faceNames.forEach(face => {
+            const faceObj = new RG.World.MountainFace(face);
+            const level = RG.FACT.createLevel('empty', 10, 10);
+            faceObj.addLevel(level);
+            mountain.addFace(faceObj);
+        });
+
+        const faces = mountain.getFaces();
+        expect(faces).to.have.length(4);
+        mountain.connectFaces('north', 'south', 0, 0);
+        expectConnected(faces[0], faces[1], 1);
+        mountain.connectFaces('east', 'west', 0, 0);
+        expectConnected(faces[2], faces[3], 1);
+
+        const summit = new RG.World.MountainFace('North summit');
+        const summitLevel = RG.FACT.createLevel('empty', 10, 10);
+        summit.addLevel(summitLevel);
+        mountain.addSummit(summit);
+        mountain.connectFaceAndSummit('north', 'North summit', 0, 0);
+        expectConnected(faces[0], mountain.getSummits()[0], 1);
     });
 
 });
