@@ -12,6 +12,7 @@ RG.Element = {};
  * necessarily blocking movement.  */
 RG.Element.Base = function(elemType) { // {{{2
     RG.Object.Typed.call(this, RG.TYPE_ELEM, elemType);
+    RG.elementsCreated += 1;
 };
 RG.extend2(RG.Element.Base, RG.Object.Typed);
 
@@ -26,6 +27,11 @@ RG.Element.Base.prototype.toJSON = function() {
         type: this.getType()
     };
 };
+
+RG.elementsCreated = 0;
+
+RG.WALL_ELEM = Object.freeze(new RG.Element.Base('wall'));
+RG.FLOOR_ELEM = Object.freeze(new RG.Element.Base('floor'));
 
 // }}} Element
 
