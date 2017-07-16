@@ -9,7 +9,7 @@ $wall-color: #f00;
 $stone-color: #808080;
 
 $door-color: #a52a2a;;
-$door-bg-color: white;
+$door-bg-color: $white;
 
 $floor-bg-color: $stone-color;;
 $tree-color: lighten(green, 20%);
@@ -20,8 +20,8 @@ $tree-color: lighten(green, 20%);
 }
 
 .cell-elements {
-    color: white;
     background-color: purple;
+    color: white;
 }
 
 .cell-dark {
@@ -34,8 +34,8 @@ $tree-color: lighten(green, 20%);
 };
 
 .cell-element-door {
-    color: $door-color;
     background-color: $door-bg-color;
+    color: $door-color;
 }
 
 .cell-element-floor {
@@ -79,3 +79,6 @@ $tree-color: lighten(green, 20%);
     color: $stone-color;
 };
 
+.cell-element-stairs {
+    background-color: $wall-color;
+}
