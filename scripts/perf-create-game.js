@@ -11,7 +11,6 @@ const startTime = new Date();
 const gameConf = {
     cols: 80,
     rows: 28,
-    // levels: 2,
     playerLevel: 'Medium',
     sqrPerMonster: 40,
     sqrPerItem: 100,
