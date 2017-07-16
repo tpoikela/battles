@@ -212,9 +212,14 @@ RG.Factory.Game = function() {
         const world = fact.createWorld(worldConf);
         const levels = world.getLevels();
 
+        let playerStart = {place: worldConf.name, x: 0, y: 0};
+        if (worldConf.playerStart) {
+            playerStart = worldConf.playerStart;
+        }
+
         if (levels.length > 0) {
             game.addPlace(world);
-            game.addPlayer(player);
+            game.addPlayer(player, playerStart);
             return game;
         }
         else {
