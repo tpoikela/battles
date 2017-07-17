@@ -624,10 +624,18 @@ RG.Brain.Rogue = function(actor) { // {{{2
 
     this._seenCached = null;
 
+    /* Callback used for actor's path finding. */
     const _passableCallback = function(x, y) {
         const map = _actor.getLevel().getMap();
+        const hasFlying = _actor.has('Flying');
         if (!RG.isNullOrUndef([map])) {
-            let res = map.isPassable(x, y);
+            let res = false;
+            if (hasFlying) {
+                res = map.isPassableByAir(x, y);
+            }
+            else {
+                res = map.isPassable(x, y);
+            }
             if (!res) {
                 res = (x === _actor.getX()) && (y === _actor.getY());
             }
@@ -771,6 +779,9 @@ RG.Brain.Rogue = function(actor) { // {{{2
         if (_actor.getLevel().getMap().hasXY(newX, newY)) {
             const newCell = _actor.getLevel().getMap().getCell(newX, newY);
             if (newCell.isPassable()) {
+                return this.tryToMoveTowardsCell(newCell);
+            }
+            else if (_actor.has('Flying') && newCell.isPassableByAir()) {
                 return this.tryToMoveTowardsCell(newCell);
             }
         }
