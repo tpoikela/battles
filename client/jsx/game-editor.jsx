@@ -8,7 +8,6 @@ const GameMessages = require('./game-messages');
 
 const RGEffects = require('../data/effects');
 const RGObjects = require('../data/battles_objects');
-const MapMountain = require('../../lib/map.mountain');
 
 class GameEditor extends React.Component {
 
