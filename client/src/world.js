@@ -655,6 +655,7 @@ RG.World.MountainFace = function(name) {
         level.setParent(this.getName());
     };
 
+    /* Entrance is created at the bottom by default. */
     this.addEntrance = function(levelNumber) {
         if (_entrance === null) {
             const level = _levels[levelNumber];
