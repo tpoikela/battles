@@ -291,13 +291,17 @@ RG.Game.FromJSON = function() {
     this.createBaseElem = function(cell) {
         switch (cell.type) {
             case '#': // wall
-            case 'wall': return new RG.Element.Base('wall');
+            case 'wall': return RG.WALL_ELEM;
             case '.': // floor
-            case 'floor': return new RG.Element.Base('floor');
+            case 'floor': return RG.FLOOR_ELEM;
             case 'tree': return new RG.Element.Tree('tree');
             case 'grass': return new RG.Element.Grass('grass');
-            case 'stone': return new RG.Element.Stone('stone');
+            case 'stone': return RG.STONE_ELEM;
             case 'water': return new RG.Element.Water('water');
+            case 'chasm': return RG.CHASM_ELEM;
+            case 'road': return RG.ROAD_ELEM;
+            case 'highrock': return RG.HIGH_ROCK_ELEM;
+            case 'bridge': return RG.BRIDGE_ELEM;
             default: {
                 RG.err('Game.fromJSON', 'createBaseElem',
                     `Unknown type ${cell.type}`);
