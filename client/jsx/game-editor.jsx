@@ -388,8 +388,10 @@ class GameEditor extends React.Component {
                     // gradients: MapMountain.noiseGradients,
                     noiseMult: 1,
                     noiseDivider: 20,
+                    highRockThr: 0.75,
                     stoneThr: 0.5,
-                    chasmThr: -0.4
+                    chasmThr: -0.4,
+                    nRoadTurns: 8
                 };
                 levelConf.shown = 'mountain';
             }
