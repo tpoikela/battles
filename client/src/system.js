@@ -388,7 +388,7 @@ RG.System.Movement = function(type, compTypes) {
         const map = level.getMap();
         const cell = map.getCell(x, y);
 
-        if (cell.isFree()) {
+        if (cell.isFree(ent.has('Flying'))) {
             const xOld = ent.getX();
             const yOld = ent.getY();
             RG.debug(this, 'Trying to move ent from ' + xOld + ', ' + yOld);
