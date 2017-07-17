@@ -102,7 +102,18 @@ const RG = { // {{{2
         return this.charStyles.elements[baseType];
     },
 
-    /* Returns shortest path (array of x,y pairs) between two points.*/
+    getShortestPassablePath: function(map, x0, y0, x1, y1) {
+        const coords = [];
+        const passableCallback = (x, y) => map.isPassable(x, y);
+        const finder = new ROT.Path.AStar(x1, y1, passableCallback);
+        finder.compute(x0, y0, function(x, y) {
+            coords.push({x, y});
+        });
+        return coords;
+    },
+
+    /* Returns shortest path (array of x,y pairs) between two points. Does not
+    * check if any of the cells are passable. */
     getShortestPath: function(x0, y0, x1, y1) {
         const coords = [];
         const passableCallback = function() {return true;};
@@ -155,12 +166,17 @@ const RG = { // {{{2
             stairsUp: '<',
             stairsDown: '>',
             water: '~',
-            door: {isClosed: '+',
-                     default: '/'
+            door: {
+                isClosed: '+',
+                default: '/'
             },
             tree: 'T',
             grass: '"',
-            stone: '^'
+            stone: '^',
+            highrock: '^',
+            road: '.',
+            chasm: '~',
+            bridge: '='
         },
         actors: {
             default: 'X',
@@ -185,13 +201,17 @@ const RG = { // {{{2
             default: 'cell-element-default',
             door: 'cell-element-door',
             floor: 'cell-element-floor',
-            'ice wall': 'cell-element-ice-wall',
+            icewall: 'cell-element-ice-wall',
             shop: 'cell-element-shop',
             snow: 'cell-element-snow',
             wall: 'cell-element-wall',
             tree: 'cell-element-tree',
             grass: 'cell-element-grass',
-            stone: 'cell-element-stone'
+            stone: 'cell-element-stone',
+            highrock: 'cell-element-highrock',
+            road: 'cell-element-road',
+            chasm: 'cell-element-chasm',
+            bridge: 'cell-element-bridge'
         },
         actors: {
             default: 'cell-actor-default',
