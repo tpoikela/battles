@@ -287,9 +287,13 @@ RG.ObjectShellParser = function() {
             if (propCalls.hasOwnProperty(p)) {
                 const funcName = propCalls[p];
                 if (typeof funcName === 'object') {
+
+                    // 1. Add new component to the object
                     if (funcName.hasOwnProperty('comp')) {
                         this.addCompToObj(newObj, funcName, shell[p]);
                     }
+                    // 2. Or use factory to create an object and add it to the
+                    // object. Only 'brain' supported for now.
                     else if (funcName.hasOwnProperty('factory')) {
                         if (p === 'brain') {
                             const createdObj
@@ -297,6 +301,8 @@ RG.ObjectShellParser = function() {
                             newObj[funcName.func](createdObj);
                         }
                     }
+                    // 3. Or call one of the object's methods with the value in
+                    // the object shell
                     else {
                         for (const f in funcName) {
                             if (funcName.hasOwnProperty(f)) {
@@ -308,12 +314,14 @@ RG.ObjectShellParser = function() {
                         }
                     }
                 }
-                else {
+                else { // 4. For strings, call the setter directly
                     newObj[funcName](shell[p]);
                 }
             }
             // Check for subtypes
             else if (shell.hasOwnProperty('type')) {
+
+                // No idea what this mess of code does
                 if (propCalls.hasOwnProperty(shell.type)) {
                     const propTypeCalls = propCalls[shell.type];
                     if (propTypeCalls.hasOwnProperty(p)) {
@@ -349,6 +357,12 @@ RG.ObjectShellParser = function() {
         if (shell.hasOwnProperty('loot')) {
             this.addLootComponents(shell, newObj);
         }
+
+        // Example: {name: 'bat', addComp: 'Flying'}
+        if (shell.hasOwnProperty('addComp')) {
+            this.addComponent(shell, newObj);
+        }
+
         // TODO map different props to function calls
         return newObj;
     };
@@ -420,6 +434,36 @@ RG.ObjectShellParser = function() {
         actor.add('Loot', lootComp);
     };
 
+    /* This function makes a pile of mess if used on non-entities. */
+    this.addComponent = function(shell, entity) {
+        if (typeof shell.addComp === 'string') {
+            _addCompFromString(shell, entity);
+        }
+        else if (shell.addComp.hasOwnProperty('length')) {
+
+        }
+        else if (typeof shell.addComp === 'object') {
+
+        }
+        else {
+            RG.err('ObjectShellParser', 'addComponent',
+                'Giving up. shell.addComp must be string, array or object.');
+        }
+    };
+
+    const _addCompFromString = function(shell, entity) {
+        try {
+            const comp = new RG.Component[shell.addComp]();
+            entity.add(shell.addComp, comp);
+        }
+        catch (e) {
+            let msg = `shell.addComp |${shell.addComp}|`;
+            msg += 'Component names are capitalized.';
+            RG.err('ObjectShellParser', 'addComponent',
+                `${e.message} - ${msg}`);
+        }
+    };
+
     const _addUseEffectToItem = function(shell, item, useName) {
         const useFuncName = useName;
         if (_db.effects.hasOwnProperty(useFuncName)) {
@@ -473,10 +517,10 @@ RG.ObjectShellParser = function() {
             const fname = compData.func;
             const compName = compData.comp;
             if (newObj.has(compName)) {
-                // Call comp with setter (fname)
+                // 1. Call existing comp with setter (fname)
                 newObj.get(compName)[fname](val);
             }
-            else { // Have to create new component
+            else { // 2. Or create a new component
                 const comp = this.createComponent(compName);
                 comp[fname](val); // Then call comp setter
             }
