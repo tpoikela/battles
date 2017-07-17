@@ -19,6 +19,7 @@ describe('Function: Creating game world from a file', function() {
             nAreas: 2,
             area: [
                 { name: 'a1', maxX: 2, maxY: 3, nDungeons: 1,
+                    cols: 80, rows: 28,
                     dungeon: [
                         {x: 0, y: 0, name: 'd1.1', nBranches: 1,
                             branch: [ { name: 'b1', nLevels: 2,
@@ -27,8 +28,10 @@ describe('Function: Creating game world from a file', function() {
                     ]
                 },
                 { name: 'a2', maxX: 1, maxY: 3, nMountains: 1,
+                    cols: 80, rows: 28,
                     mountain: [{x: 0, y: 1, name: 'm2.1', nFaces: 1,
-                        face: [{name: 'Steep', nLevels: 1, x: 10, y: 10}]
+                        face: [{name: 'Steep', nLevels: 1, x: 50, y: 100,
+                        entranceLevel: 0}]
                     }]
                 }
             ]
@@ -61,7 +64,8 @@ describe('Function: Creating game world from a file', function() {
                 nMountains: 1,
                 mountain: [
                     {x: 0, y: 0, name: 'Cliff', nFaces: 1,
-                        face: [{name: 'north', nLevels: 1, x: 20, y: 20}]
+                        face: [{name: 'north', nLevels: 1, x: 20, y: 20,
+                        entranceLevel: 0}]
                     }
                 ],
                 nCities: 1,
