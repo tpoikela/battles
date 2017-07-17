@@ -687,7 +687,7 @@ RG.Map.Generator = function() { // {{{2
         _mapGen.create(function(x, y, val) {
             // map.setBaseElemXY(x, y, new RG.Element.Base('floor'));
             map.setBaseElemXY(x, y, RG.FLOOR_ELEM);
-            if (val === _wall) {
+            if (val === conf.stoneThr) {
                 map.setElemXY(x, y, new RG.Element.Stone('stone'));
             }
         });
