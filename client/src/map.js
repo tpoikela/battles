@@ -66,21 +66,24 @@ RG.Map.Cell.prototype.getStairs = function() {
 
 /* Returns true if light passes through this map cell.*/
 RG.Map.Cell.prototype.lightPasses = function() {
-    if (this._baseElem.getType() === 'wall') {return false;}
-    else if (this.hasPropType('door')) {
+    if (!this._baseElem.lightPasses()) {return false;}
+    if (this.hasPropType('door')) {
         return this.getPropType('door')[0].isOpen();
     }
     return true;
 };
 
 RG.Map.Cell.prototype.isPassable = function() {return this.isFree();};
+RG.Map.Cell.prototype.isPassableByAir = function() {
+    return this._baseElem.isPassableByAir();
+};
 
 RG.Map.Cell.prototype.setExplored = function() {this._explored = true;};
 
 RG.Map.Cell.prototype.isExplored = function() {return this._explored;};
 
 /* Returns true if it's possible to move to this cell.*/
-RG.Map.Cell.prototype.isFree = function() {
+RG.Map.Cell.prototype.isFree = function(isFlying = false) {
     if (this.hasProp('actors')) {
         for (let i = 0; i < this._p.actors.length; i++) {
             if (!this._p.actors[i].has('Ethereal')) {return false;}
@@ -90,7 +93,13 @@ RG.Map.Cell.prototype.isFree = function() {
     else if (this.hasPropType('door')) {
         return this.getPropType('door')[0].isOpen();
     }
-    return this._baseElem.isPassable();
+    // Handle flying/non-flying here
+    if (!isFlying) {
+        return this._baseElem.isPassable();
+    }
+    else {
+        return this._baseElem.isPassableByAir();
+    }
 };
 
 /* Add given obj with specified property type.*/
@@ -326,6 +335,13 @@ RG.Map.CellList = function(cols, rows) { // {{{2
     this.isPassable = function(x, y) {
         if (_hasXY(x, y)) {
             return this._map[x][y].isPassable();
+        }
+        return false;
+    };
+
+    this.isPassableByAir = function(x, y) {
+        if (_hasXY(x, y)) {
+            return this._map[x][y].isPassableByAir();
         }
         return false;
     };
@@ -683,19 +699,106 @@ RG.Map.Generator = function() { // {{{2
 
     this.createMountain = function(conf) {
         const map = new RG.Map.CellList(this.cols, this.rows);
+        if (!conf) {
+            conf = {};
+        }
+        if (!conf.hasOwnProperty('highRockThr')) {conf.highRockThr = 0.75;}
+        if (!conf.hasOwnProperty('stoneThr')) {conf.stoneThr = 0.4;}
+        if (!conf.hasOwnProperty('chasmThr')) {conf.chasmThr = -0.3;}
+        if (!conf.hasOwnProperty('nRoadTurns')) {conf.nRoadTurns = 4;}
+
         _mapGen = new ROT.Map.Mountain(this.cols, this.rows, conf);
         _mapGen.create(function(x, y, val) {
-            if (val > conf.stoneThr) {
-                map.setElemXY(x, y, new RG.Element.Stone('stone'));
+            if (val > conf.highRockThr) {
+                map.setBaseElemXY(x, y, RG.HIGH_ROCK_ELEM);
+            }
+            else if (val > conf.stoneThr) {
+                map.setBaseElemXY(x, y, RG.STONE_ELEM);
             }
             else if (val < conf.chasmThr) {
-                map.setElemXY(x, y, new RG.Element.Chasm('chasm'));
+                map.setBaseElemXY(x, y, RG.CHASM_ELEM);
             }
             else {
                 map.setBaseElemXY(x, y, RG.FLOOR_ELEM);
             }
         });
-        return {map};
+        const paths = [];
+        this.createMountainPath(map, paths, conf);
+        return {map, paths};
+    };
+
+    /* Creates a zig-zagging road across the level from south to north. */
+    this.createMountainPath = function(map, paths, conf) {
+        const nTurns = conf.nRoadTurns || 10;
+        let yPerTurn = Math.floor(map.rows / nTurns);
+        if (yPerTurn < 4) {yPerTurn = 4;} // Prevent too little path progression
+        const xLeft = 2;
+        const xRight = map.cols - 3;
+
+        let inBounds = true;
+        for (let i = 0; inBounds && i < nTurns; i++) {
+            inBounds = false;
+            const x0 = i % 2 === 0 ? xLeft : xRight;
+            const x1 = i % 2 === 1 ? xLeft : xRight;
+            const yLow = i * yPerTurn;
+            const yHigh = (i + 1) * yPerTurn;
+
+            // Compute 2 paths: Shortest and shortest passable. Then calculate
+            // weights. Choose one with lower weight.
+            const coordPassable = RG.getShortestPassablePath(map,
+                x0, yLow, x1, yHigh);
+            const coordShortest = RG.getShortestPath(x0, yLow, x1, yHigh);
+            const passableWeight = this.getPathWeight(map, coordPassable);
+            const shortestWeight = this.getPathWeight(map, coordShortest);
+
+            let coord = null;
+            if (coordPassable.length === 0) {
+                coord = coordShortest;
+            }
+            else {
+                coord = passableWeight >= shortestWeight ? coordShortest
+                    : coordPassable;
+            }
+
+            const chosenCoord = [];
+            for (let j = 0; j < coord.length; j++) {
+                const c = coord[j];
+                if (map.hasXY(c.x, c.y)) {
+                    const baseElem = map.getBaseElemXY(c.x, c.y);
+                    if (baseElem.getType() === 'chasm') {
+                        map.setBaseElemXY(c.x, c.y, RG.BRIDGE_ELEM);
+                    }
+                    else if (baseElem.getType() === 'stone') {
+                        // TODO add mountain path
+                        map.setBaseElemXY(c.x, c.y, RG.ROAD_ELEM);
+                    }
+                    else {
+                        map.setBaseElemXY(c.x, c.y, RG.ROAD_ELEM);
+                    }
+                    inBounds = true;
+                    chosenCoord.push(c);
+                }
+            }
+            paths.push(chosenCoord);
+        }
+
+    };
+
+    this.getPathWeight = function(map, coord) {
+        let w = 0;
+        coord.forEach(c => {
+            if (map.hasXY(c.x, c.y)) {
+                const elem = map.getBaseElemXY(c.x, c.y);
+                switch (elem.getType()) {
+                    case 'floor': w += 1; break;
+                    case 'stone': w += 2; break;
+                    case 'highrock': w += 4; break;
+                    case 'chasm': w += 5; break;
+                    default: w += 0; break;
+                }
+            }
+        });
+        return w;
     };
 
 }; // }}} Map.Generator
