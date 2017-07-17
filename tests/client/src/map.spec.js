@@ -22,7 +22,7 @@ RG.cellRenderArray = RG.cellRenderVisible;
 // MAP CELL
 //---------------------------------------------------------------------------
 
-describe('Basic properties of map cell', function() {
+describe('Map.Cell', function() {
     it('Holds elements and actors', function() {
         const actor = Factory.createPlayer('Player', 50);
         const cell = new Cell(0, 0, new Element('wall'));
@@ -57,7 +57,7 @@ describe('Basic properties of map cell', function() {
     });
 });
 
-describe('Retrieving styling classes for cells', function() {
+describe('RG.getStyleClassForCell()', function() {
     it('Returns correct CSS class and char', function() {
         const cell = new Cell(0, 0, new Element('wall'));
         cell.setExplored();
@@ -401,5 +401,23 @@ describe('Map.Generator', () => {
         const obj = mapgen.createForest(0.5);
         const map = obj.map;
         expect(map).to.not.be.empty;
+    });
+
+    it('can generate mountain levels with zig-zag paths', () => {
+        const mapgen = new RG.Map.Generator();
+        mapgen.setGen('mountain', 50, 200);
+        const conf = {
+            chasmThr: -0.3,
+            stoneThr: 0.4,
+            highRockThr: 0.6,
+            nRoadTurns: 6
+        };
+
+        for (let i = 0; i < 40; i++) {
+            const obj = mapgen.createMountain(100, 400, conf);
+            const map = obj.map;
+            expect(map).to.exist;
+        }
+
     });
 });
