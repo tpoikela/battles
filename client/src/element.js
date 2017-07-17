@@ -30,8 +30,6 @@ RG.Element.Base.prototype.toJSON = function() {
 
 RG.elementsCreated = 0;
 
-RG.WALL_ELEM = Object.freeze(new RG.Element.Base('wall'));
-RG.FLOOR_ELEM = Object.freeze(new RG.Element.Base('floor'));
 
 // }}} Element
 
@@ -393,5 +391,10 @@ RG.extend2(RG.Element.Water, RG.Element.Base);
 RG.Element.Water.prototype.isPassable = function() {
     return false;
 };
+
+// Constant elements which can be used by all levels
+RG.WALL_ELEM = Object.freeze(new RG.Element.Base('wall'));
+RG.FLOOR_ELEM = Object.freeze(new RG.Element.Base('floor'));
+RG.CHASM_ELEM = Object.freeze(new RG.Element.Chasm());
 
 module.exports = RG.Element;
