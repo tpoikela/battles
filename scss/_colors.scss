@@ -2,8 +2,19 @@
 /* All color definitions for Battles. Use only these variables in other
  * stylesheets.*/
 
+// Base colors
+$black: #000;
+$blue: #00f;
+$brown: #a52a2a;
+$cyan: #0ff;
+$gray: #808080;
+$green: #008000;
+$purple: #800080;
+$red: #f00;
+$silver: #c0c0c0;
 $snow-white: #fff;
 $white: #fff;
+$yellow: #ff0;;
 
 $main-color: darken($snow-white, 10%);
 $main-color-2: darken($main-color, 15%);
@@ -14,18 +25,13 @@ $ctrl-top-color: darken($main-color, 10%);
 $ruby-white: #111;
 $ruby-red: #e11;
 
-$red: #f00;
-$silver: #c0c0c0;
-$black: #000;
-$blue: #00f;
-$yellow: #ff0;;
-$brown: #a52a2a;
-$green: #008000;
-$purple: #800080;
-$gray: #808080;
 
 $board-bg-color: rgba(255, 255, 255, 0.5);
 
 $gold: darken($yellow, 10%);
 
 $item-default-bg: $brown;
+
+$color-dark-cell: #101010;
+
+$shop-bg-color: darken($cyan, 30%);
