@@ -132,4 +132,32 @@ describe('RG.Game.FromJSON', function() {
         expect(newPlayer.getName()).to.equal('MyPlayer');
     });
 
+    it('converts a mountain to JSON and back to object', () => {
+        const mountain = new RG.World.Mountain('Mount doom');
+        const f1 = new RG.World.MountainFace('f1');
+        const f2 = new RG.World.MountainFace('f2');
+        const l1 = RG.FACT.createLevel('mountain', 50, 100);
+        f1.addLevel(l1);
+        const l2 = RG.FACT.createLevel('mountain', 50, 100);
+        f2.addLevel(l2);
+        mountain.addFace(f1);
+        mountain.addFace(f2);
+        mountain.connectFaces('f1', 'f2', 0, 0);
+
+        const jsonL1 = l1.toJSON();
+        const jsonL2 = l2.toJSON();
+        const json = mountain.toJSON();
+
+        const newL1 = fromJSON.createLevel(jsonL1);
+        const newL2 = fromJSON.createLevel(jsonL2);
+        const id2level = {};
+        id2level[newL1.getID()] = newL1;
+        id2level[newL2.getID()] = newL2;
+
+        const factWorld = new RG.Factory.World();
+        factWorld.setId2Level(id2level);
+        const newMountain = factWorld.createMountain(json);
+        expect(newMountain.getLevels()).to.have.length(2);
+    });
+
 });
