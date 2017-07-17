@@ -728,5 +728,10 @@ RG.Component.Ammo = function() {
 };
 RG.extend2(RG.Component.Ammo, RG.Component.Base);
 
+/* Component added to anything that flies. */
+RG.Component.Flying = function() {
+    RG.Component.Base.call(this, 'Flying');
+};
+RG.extend2(RG.Component.Flying, RG.Component.Base);
 
 module.exports = RG.Component;
