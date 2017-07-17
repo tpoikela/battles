@@ -253,7 +253,6 @@ RG.Factory.Base = function() { // {{{2
         }
         else if (levelType === 'mountain') {
             mapgen.setGen('mountain', cols, rows);
-            conf.nForests = Math.round(cols / 80 * rows / 28 * 5);
             mapObj = mapgen.createMountain(conf);
             level.setMap(mapObj.map);
         }
@@ -780,7 +779,7 @@ RG.Factory.World = function() {
         if (!this.id2levelSet) {
             if (conf.nBranches > 1) {
                 if (conf.connect) {
-                    conf.connect.forEach( conn => {
+                    conf.connect.forEach(conn => {
                         if (conn.length === 4) {
                             // conn has len 4, spread it out
                             dungeon.connectBranches(...conn);
@@ -888,6 +887,27 @@ RG.Factory.World = function() {
             mountain.addFace(mountainFace);
         }
 
+        if (!this.id2levelSet) {
+            if (conf.nFaces > 1) {
+                if (conf.connect) {
+                    conf.connect.forEach(conn => {
+                        if (conn.length === 4) {
+                            // conn has len 4, spread it out
+                            mountain.connectFaces(...conn);
+                        }
+                        else {
+                            RG.err('Factory.World', 'createMountain',
+                                'Each connection.length must be 4.');
+                        }
+                    });
+                }
+                else {
+                    RG.err('Factory.World', 'createMountain',
+                        'nBranches > 1, but no conf.connect.');
+                }
+            }
+        }
+
         this.popScope(conf.name);
         return mountain;
     };
@@ -916,12 +936,13 @@ RG.Factory.World = function() {
                 level = this.id2level[id];
             }
             face.addLevel(level);
-            if (!this.id2levelSet) {
-                face.addEntrance(i);
-            }
-            else {
-                face.setEntranceLocation(conf.entrance);
-            }
+        }
+
+        if (conf.hasOwnProperty('entranceLevel')) {
+            face.addEntrance(conf.entranceLevel);
+        }
+        else if (conf.hasOwnProperty('entrance')) {
+            face.setEntranceLocation(conf.entrance);
         }
 
         this.popScope(faceName);
@@ -947,11 +968,11 @@ RG.Factory.World = function() {
             city.addQuarter(quarter);
         }
 
-        // Connect branches according to configuration
+        // Connect city quarters according to configuration
         if (!this.id2levelSet) {
             if (conf.nQuarters > 1) {
                 if (conf.connect) {
-                    conf.connect.forEach( conn => {
+                    conf.connect.forEach(conn => {
                         if (conn.length === 4) {
                             // conn has len 4, spread it out
                             city.connectQuarters(...conn);
