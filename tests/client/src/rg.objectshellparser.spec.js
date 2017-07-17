@@ -1,7 +1,7 @@
 
 
 const RG = require('../../../client/src/battles');
-const Obs = require('../../../client/data/battles_objects.js');
+const RGObjects = require('../../../client/data/battles_objects.js');
 const RGTest = require('../../roguetest.js');
 
 const Effects = require('../../../client/data/effects.js');
@@ -193,7 +193,22 @@ describe('How actors are created from file', function() {
         expect(gold.count, 'Keeper has 100 gold coins').to.equal(100);
     });
 
+    describe('addComponent(shell, newObj)', () => {
+        it('can add component with a string attribute', () => {
+            const parser = new Parser();
+            const bat = {name: 'bat', addComp: 'Flying'};
+            const shell = parser.parseObjShell(RG.TYPE_ACTOR, bat);
+
+            const batActor = new RG.Actor.Rogue('bat');
+            parser.addComponent(shell, batActor);
+
+            expect(batActor.has('Flying')).to.equal(true);
+        });
+
+    });
+
 });
+
 
 describe('How food items are created from objects', function() {
    const parser = new Parser();
@@ -253,7 +268,7 @@ describe('How food items are created from objects', function() {
 describe('It contains all game content info', function() {
     const parser = new Parser();
     parser.parseShellData(Effects);
-    parser.parseShellData(Obs);
+    parser.parseShellData(RGObjects);
 
     it('Should parse all actors properly', function() {
         const rsnake = parser.get('actors', 'rattlesnake');
@@ -380,7 +395,7 @@ describe('It contains all game content info', function() {
 describe('It has query functions for objects', function() {
     const parser = new Parser();
     parser.parseShellData(Effects);
-    parser.parseShellData(Obs);
+    parser.parseShellData(RGObjects);
 
     it('can filter query with category/function', () => {
         const actor = parser.dbGet({name: 'Winter demon'});
@@ -406,6 +421,19 @@ describe('It has query functions for objects', function() {
                     .to.be.below(maxLimit + 2);
             }
         }
+    });
+
+    it('can create flying actors', () => {
+        const flying = ['bat', 'hawk', 'eagle', 'black vulture'];
+        flying.forEach(name => {
+            const flyEnt = parser.createActualObj(RG.TYPE_ACTOR, name);
+            expect(flyEnt.has('Flying'), `${name} has Flying`).to.equal(true);
+            const actor = flyEnt.getBrain().getActor();
+            expect(flyEnt).to.deep.equal(actor);
+            expect(actor.has('Flying'), `${name} has Flying`).to.equal(true);
+
+        });
+
     });
 });
 
