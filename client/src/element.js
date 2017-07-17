@@ -374,6 +374,16 @@ RG.Element.Stone = function() {
 };
 RG.extend2(RG.Element.Stone, RG.Element.Base);
 
+/* A chasm element. */
+RG.Element.Chasm = function() {
+    RG.Element.Base.call(this, 'chasm');
+};
+RG.extend2(RG.Element.Chasm, RG.Element.Base);
+
+RG.Element.Chasm.prototype.isPassable = function() {
+    return false;
+};
+
 /* A water element. */
 RG.Element.Water = function() {
     RG.Element.Base.call(this, 'water');
@@ -383,6 +393,5 @@ RG.extend2(RG.Element.Water, RG.Element.Base);
 RG.Element.Water.prototype.isPassable = function() {
     return false;
 };
-
 
 module.exports = RG.Element;
