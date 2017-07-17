@@ -387,10 +387,10 @@ class GameEditor extends React.Component {
             if (!levelConf.mountain) {
                 levelConf.mountain = {
                     // gradients: MapMountain.noiseGradients,
-                    gradientMult: 1,
                     noiseMult: 1,
                     noiseDivider: 20,
-                    stoneThr: 1
+                    stoneThr: 0.5,
+                    chasmThr: -0.4
                 };
                 levelConf.shown = 'mountain';
             }
