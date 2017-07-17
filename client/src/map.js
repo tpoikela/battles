@@ -685,10 +685,14 @@ RG.Map.Generator = function() { // {{{2
         const map = new RG.Map.CellList(this.cols, this.rows);
         _mapGen = new ROT.Map.Mountain(this.cols, this.rows, conf);
         _mapGen.create(function(x, y, val) {
-            // map.setBaseElemXY(x, y, new RG.Element.Base('floor'));
-            map.setBaseElemXY(x, y, RG.FLOOR_ELEM);
-            if (val === conf.stoneThr) {
+            if (val > conf.stoneThr) {
                 map.setElemXY(x, y, new RG.Element.Stone('stone'));
+            }
+            else if (val < conf.chasmThr) {
+                map.setElemXY(x, y, new RG.Element.Chasm('chasm'));
+            }
+            else {
+                map.setBaseElemXY(x, y, RG.FLOOR_ELEM);
             }
         });
         return {map};
