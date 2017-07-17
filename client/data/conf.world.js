@@ -1,4 +1,5 @@
 /* eslint comma-dangle: 0 */
+/* eslint max-len: 85 */
 
 const RG = require('../src/rg');
 
@@ -103,11 +104,23 @@ RG.WorldConf = {
                 cities.Blashyrkh,
             ],
             // MOUNTAINS
-            nMountains: 1,
+            nMountains: 2,
             mountain: [
                 { x: 1, y: 3, name: 'IceThorn', nFaces: 1,
-                    face: [{name: 'north', nLevels: 1, x: 50, y: 200}]
+                    face: [
+                        {name: 'north', nLevels: 1, x: 50, y: 200, entranceLevel: 0}
+                    ],
                 },
+                { x: 2, y: 4, name: 'Perilous Needle', nFaces: 2,
+                    connect: [
+                        ['north', 'east', 0, 0]
+                    ],
+                    face: [
+                        {name: 'north', nLevels: 1, x: 100, y: 400, entranceLevel: 0},
+                        {name: 'east', nLevels: 1, x: 100, y: 400}
+                    ],
+                },
+                /*
                 {
                     x: 2, y: 0, name: 'Spiral of Chaos', nFaces: 4,
                     nSummits: 1,
@@ -121,6 +134,7 @@ RG.WorldConf = {
 
                     ],
                 }
+                */
             ],
         },
     ],
