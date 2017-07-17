@@ -8,6 +8,7 @@ const GameMessages = require('./game-messages');
 
 const RGEffects = require('../data/effects');
 const RGObjects = require('../data/battles_objects');
+const MapMountain = require('../../lib/map.mountain');
 
 class GameEditor extends React.Component {
 
@@ -380,6 +381,18 @@ class GameEditor extends React.Component {
                 levelConf.forest = {nForests: 5, forestSize: 100, ratio: 0.5,
                     factor: 6};
                 levelConf.shown = 'forest';
+            }
+        }
+        else if (value === 'mountain') {
+            if (!levelConf.mountain) {
+                levelConf.mountain = {
+                    // gradients: MapMountain.noiseGradients,
+                    gradientMult: 1,
+                    noiseMult: 1,
+                    noiseDivider: 20,
+                    stoneThr: 1
+                };
+                levelConf.shown = 'mountain';
             }
         }
         else {
