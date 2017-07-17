@@ -29,7 +29,7 @@ const RGObjects = {
         },
         {
             name: 'bat', char: 'b', base: 'animal',
-            defense: 2
+            defense: 2, addComp: 'Flying'
         },
         {
             name: 'giant ant', char: 'a', base: 'animal',
@@ -39,6 +39,11 @@ const RGObjects = {
             name: 'coyote', char: 'c', base: 'animal',
             attack: 3, defense: 3, damage: '1d4',
             hp: 12, danger: 2
+        },
+        {
+            name: 'hawk', char: 'H', base: 'animal',
+            attack: 4, defense: 1, damage: '1d5',
+            hp: 9, danger: 3, addComp: 'Flying'
         },
         {
             name: 'wolf', char: 'w', base: 'animal',
@@ -57,6 +62,16 @@ const RGObjects = {
             hp: 20, danger: 4
         },
         {
+            name: 'eagle', char: 'E', base: 'animal',
+            attack: 4, defense: 4, damage: '1d7',
+            hp: 20, danger: 4, addComp: 'Flying'
+        },
+        {
+            name: 'black vulture', char: 'V', base: 'animal',
+            attack: 5, defense: 5, damage: '1d7',
+            hp: 25, danger: 5, addComp: 'Flying'
+        },
+        {
             name: 'bear', char: 'B', base: 'animal',
             attack: 5, defense: 5, damage: '1d9',
             hp: 30, danger: 5
@@ -65,6 +80,16 @@ const RGObjects = {
             name: 'mountain lion', char: 'f', base: 'animal',
             attack: 6, defense: 3, damage: '2d4',
             hp: 25, danger: 5
+        },
+        {
+            name: 'griffin', char: 'G', base: 'animal',
+            attack: 7, defense: 4, damage: '3d3',
+            hp: 35, danger: 6, addComp: 'Flying'
+        },
+        {
+            name: 'manticore', char: 'M', base: 'animal',
+            attack: 7, defense: 7, damage: '1d10',
+            hp: 50, danger: 10, addComp: 'Flying'
         },
 
         // HUMANOIDS
@@ -87,7 +112,7 @@ const RGObjects = {
         {
             name: 'Ice bat', char: 'b', base: 'WinterBeingBase',
             attack: 1, defense: 1, damage: '1d6', speed: 110,
-            danger: 2, hp: 8, brain: 'Animal'
+            danger: 2, hp: 8, brain: 'Animal', addComp: 'Flying'
         },
         {
             name: 'Frost goblin', char: 'g', base: 'WinterBeingBase',
@@ -107,7 +132,7 @@ const RGObjects = {
         {
             name: 'Mighty raven', base: 'WinterBeingBase', char: 'R',
             attack: 4, defense: 8, damage: '2d4 + 2', range: 1, hp: 20,
-            danger: 5, brain: 'Animal'
+            danger: 5, brain: 'Animal', addComp: 'Flying'
         },
         {
             name: 'Winter demon', type: 'demon', char: 'D',
