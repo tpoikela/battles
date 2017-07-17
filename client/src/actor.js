@@ -182,6 +182,9 @@ RG.Actor.Rogue.prototype.toJSON = function() {
     if (this.has('Hunger')) {
         obj.components.Hunger = this.get('Hunger').toJSON();
     }
+    if (this.has('Flying')) {
+        obj.components.Flying = this.get('Flying').toJSON();
+    }
 
     return obj;
 };
