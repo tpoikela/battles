@@ -20,6 +20,14 @@ RG.Element.Base.prototype.isPassable = function() {
     return this.getType() !== 'wall';
 };
 
+RG.Element.Base.prototype.isPassableByAir = function() {
+    return this.getType() !== 'wall';
+};
+
+RG.Element.Base.prototype.lightPasses = function() {
+    return this.getType() !== 'wall';
+};
+
 /* Should be enough for stateless elements. Does not work for doors or stairs
  * etc. */
 RG.Element.Base.prototype.toJSON = function() {
@@ -372,6 +380,20 @@ RG.Element.Stone = function() {
 };
 RG.extend2(RG.Element.Stone, RG.Element.Base);
 
+/* High rock which is difficult to pass through. */
+RG.Element.HighRock = function() {
+    RG.Element.Base.call(this, 'highrock');
+};
+RG.extend2(RG.Element.HighRock, RG.Element.Base);
+
+RG.Element.HighRock.prototype.isPassable = function() {
+    return false;
+};
+
+RG.Element.HighRock.prototype.lightPasses = function() {
+    return false;
+};
+
 /* A chasm element. */
 RG.Element.Chasm = function() {
     RG.Element.Base.call(this, 'chasm');
@@ -392,9 +414,15 @@ RG.Element.Water.prototype.isPassable = function() {
     return false;
 };
 
-// Constant elements which can be used by all levels
-RG.WALL_ELEM = Object.freeze(new RG.Element.Base('wall'));
-RG.FLOOR_ELEM = Object.freeze(new RG.Element.Base('floor'));
+// Constant elements which can be used by all levels. Use freeze to prevent any
+// mutations.
+RG.BRIDGE_ELEM = Object.freeze(new RG.Element.Base('bridge'));
 RG.CHASM_ELEM = Object.freeze(new RG.Element.Chasm());
+RG.FLOOR_ELEM = Object.freeze(new RG.Element.Base('floor'));
+RG.HIGH_ROCK_ELEM = Object.freeze(new RG.Element.HighRock());
+RG.ROAD_ELEM = Object.freeze(new RG.Element.Base('road'));
+RG.STONE_ELEM = Object.freeze(new RG.Element.Stone());
+RG.WALL_ELEM = Object.freeze(new RG.Element.Base('wall'));
+RG.WATER_ELEM = Object.freeze(new RG.Element.Water());
 
 module.exports = RG.Element;
