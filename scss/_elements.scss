@@ -7,12 +7,13 @@ $ground-color: #a52a2a;
 $wall-color: #f00;
 
 $stone-color: #808080;
+$dark-stone-color: darken($stone-color, 30%);
 
 $door-color: #a52a2a;;
 $door-bg-color: $white;
 
 $floor-bg-color: $stone-color;;
-$tree-color: lighten(green, 20%);
+$tree-color: lighten($green, 20%);
 
 @mixin green-elem {
     background-color: $floor-bg-color;
@@ -20,17 +21,17 @@ $tree-color: lighten(green, 20%);
 }
 
 .cell-elements {
-    background-color: purple;
-    color: white;
+    background-color: $purple;
+    color: $white;
 }
 
 .cell-dark {
-    background-color: #101010;
+    background-color: $color-dark-cell;
 }
 
 .cell-not-explored {
-    background-color: black;
-    color: black;
+    background-color: $black;
+    color: $black;
 };
 
 .cell-element-door {
@@ -43,18 +44,18 @@ $tree-color: lighten(green, 20%);
 }
 
 .cell-element-ice-wall {
-    background-color: blue;
-    color: white;
+    background-color: $blue;
+    color: $white;
 };
 
 .cell-element-shop {
-    color: white;
-    background-color: darken(cyan, 30%);
+    background-color: $shop-bg-color;
+    color: $white;
 }
 
 .cell-element-snow {
     background-color: $snow-white;
-    color: black;
+    color: $black;
 };
 
 .cell-element-wall {
@@ -62,8 +63,8 @@ $tree-color: lighten(green, 20%);
 }
 
 .cell-element-water {
-    background-color: white;
-    color: blue;
+    background-color: $white;
+    color: $blue;
 };
 
 .cell-element-tree {
@@ -79,6 +80,28 @@ $tree-color: lighten(green, 20%);
     color: $stone-color;
 };
 
+.cell-element-highrock {
+    background-color: $ground-color;
+    // color: $dark-stone-color;
+    color: $white;
+}
+
 .cell-element-stairs {
     background-color: $wall-color;
+}
+
+.cell-element-road {
+    // background-color: $floor-bg-color;
+    background-color: $white;
+    color: $brown;
+}
+
+.cell-element-chasm {
+    background-color: $black;
+    color: $gray;
+}
+
+.cell-element-bridge {
+    background-color: $brown;
+    color: $white;
 }
