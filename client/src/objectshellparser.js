@@ -136,16 +136,19 @@ RG.ObjectShellParser = function() {
      * */
     this.parseObjShell = function(categ, obj) {
         if (this.validShellGiven(obj)) {
-            // Get properties from base class
+            // Get properties from base shell
             if (obj.hasOwnProperty('base')) {
-                const baseName = obj.base;
-                if (this.baseExists(categ, baseName)) {
-                    obj = this.extendObj(obj, this.getBase(categ, baseName));
-                }
-                else {
-                    RG.err('ObjectParser', 'parseObjShell',
-                        'Unknown base ' + baseName + ' specified for ' + obj);
-                }
+                const baseShells = typeof obj.base === 'string' ? [obj.base]
+                    : obj.base;
+                baseShells.forEach(baseName => {
+                    if (this.baseExists(categ, baseName)) {
+                        obj = this.extendObj(obj, this.getBase(categ, baseName));
+                    }
+                    else {
+                        RG.err('ObjectParser', 'parseObjShell',
+                            'Unknown base ' + baseName + ' specified for ' + obj);
+                    }
+                });
             }
 
             // If type not given, use name as type
@@ -176,7 +179,7 @@ RG.ObjectShellParser = function() {
         }
     };
 
-    /* Returns an object shell given category and name.*/
+    /* Returns an object shell, given category and name.*/
     this.get = function(categ, name) {
         return _db[categ][name];
     };
@@ -437,13 +440,20 @@ RG.ObjectShellParser = function() {
     /* This function makes a pile of mess if used on non-entities. */
     this.addComponent = function(shell, entity) {
         if (typeof shell.addComp === 'string') {
-            _addCompFromString(shell, entity);
+            _addCompFromString(shell.addComp, entity);
         }
         else if (shell.addComp.hasOwnProperty('length')) {
-
+            shell.addComp.forEach(comp => {
+                if (typeof comp === 'string') {
+                    _addCompFromString(comp, entity);
+                }
+                else {
+                    _addCompFromObj(comp, entity);
+                }
+            });
         }
         else if (typeof shell.addComp === 'object') {
-
+            _addCompFromObj(shell.addComp, entity);
         }
         else {
             RG.err('ObjectShellParser', 'addComponent',
@@ -451,17 +461,20 @@ RG.ObjectShellParser = function() {
         }
     };
 
-    const _addCompFromString = function(shell, entity) {
+    const _addCompFromString = function(compName, entity) {
         try {
-            const comp = new RG.Component[shell.addComp]();
-            entity.add(shell.addComp, comp);
+            const comp = new RG.Component[compName]();
+            entity.add(compName, comp);
         }
         catch (e) {
-            let msg = `shell.addComp |${shell.addComp}|`;
+            let msg = `shell.addComp |${compName}|`;
             msg += 'Component names are capitalized.';
             RG.err('ObjectShellParser', 'addComponent',
                 `${e.message} - ${msg}`);
         }
+    };
+
+    const _addCompFromObj = function(compObj, entity) {
     };
 
     const _addUseEffectToItem = function(shell, item, useName) {
