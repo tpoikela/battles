@@ -41,7 +41,7 @@ const GameBoard = React.createClass({
         return (
             <div
                 className={`game-board ${this.props.boardClassName}`}
-                >
+            >
                 {rowsHTML}
             </div>
         );
