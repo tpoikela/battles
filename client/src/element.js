@@ -419,9 +419,11 @@ RG.Element.Water.prototype.isPassable = function() {
 RG.BRIDGE_ELEM = Object.freeze(new RG.Element.Base('bridge'));
 RG.CHASM_ELEM = Object.freeze(new RG.Element.Chasm());
 RG.FLOOR_ELEM = Object.freeze(new RG.Element.Base('floor'));
+RG.GRASS_ELEM = Object.freeze(new RG.Element.Grass());
 RG.HIGH_ROCK_ELEM = Object.freeze(new RG.Element.HighRock());
 RG.ROAD_ELEM = Object.freeze(new RG.Element.Base('road'));
 RG.STONE_ELEM = Object.freeze(new RG.Element.Stone());
+RG.TREE_ELEM = Object.freeze(new RG.Element.Tree());
 RG.WALL_ELEM = Object.freeze(new RG.Element.Base('wall'));
 RG.WATER_ELEM = Object.freeze(new RG.Element.Water());
 
