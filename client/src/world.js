@@ -446,9 +446,15 @@ RG.World.Area = function(name, maxX, maxY, cols, rows, levels) {
             const tileColumn = [];
             for (let y = 0; y < _maxY; y++) {
                 const newTile = new RG.World.AreaTile(x, y, this);
+
+                // Scale the forest gen based on tile size
+                const xMult = _cols / RG.LEVEL_MEDIUM_X;
+                const yMult = _rows / RG.LEVEL_MEDIUM_Y;
+                const mult = xMult * yMult;
+
                 const levelConf = {
                     ratio: 0.5,
-                    nForests: 30,
+                    nForests: Math.floor(mult * 30),
                     forestSize: 100
                 };
                 let level = null;
