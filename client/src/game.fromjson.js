@@ -294,10 +294,10 @@ RG.Game.FromJSON = function() {
             case 'wall': return RG.WALL_ELEM;
             case '.': // floor
             case 'floor': return RG.FLOOR_ELEM;
-            case 'tree': return new RG.Element.Tree('tree');
-            case 'grass': return new RG.Element.Grass('grass');
+            case 'tree': return RG.TREE_ELEM;
+            case 'grass': return RG.GRASS_ELEM;
             case 'stone': return RG.STONE_ELEM;
-            case 'water': return new RG.Element.Water('water');
+            case 'water': return RG.WATER_ELEM;
             case 'chasm': return RG.CHASM_ELEM;
             case 'road': return RG.ROAD_ELEM;
             case 'highrock': return RG.HIGH_ROCK_ELEM;
