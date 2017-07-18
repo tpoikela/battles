@@ -494,11 +494,9 @@ RG.Map.Generator = function() { // {{{2
         _mapGen.create(function(x, y, val) {
             if (val === _wall) {
                 map.setBaseElemXY(x, y, RG.WALL_ELEM);
-                // map.setBaseElemXY(x, y, new RG.Element.Base('wall'));
             }
             else {
                 map.setBaseElemXY(x, y, RG.FLOOR_ELEM);
-                // map.setBaseElemXY(x, y, new RG.Element.Base('floor'));
             }
         });
         const obj = {map};
@@ -506,7 +504,6 @@ RG.Map.Generator = function() { // {{{2
             obj.rooms = _mapGen.getRooms(); // ROT.Map.Feature.Room
             obj.corridors = _mapGen.getCorridors(); // ROT.Map.Feature.Corridor
         }
-
         return obj;
     };
 
@@ -623,7 +620,6 @@ RG.Map.Generator = function() { // {{{2
         for (let i = 0; i < possibleRoom.length; i++) {
             const roomX = possibleRoom[i][0];
             const roomY = possibleRoom[i][1];
-            // map.setBaseElemXY(roomX, roomY, new RG.Element.Base('wall'));
             map.setBaseElemXY(roomX, roomY, RG.WALL_ELEM);
         }
 
@@ -641,15 +637,12 @@ RG.Map.Generator = function() { // {{{2
         }
 
         // Finally randomly insert the door for the house
-        // const coordLength = wallCoords.length - 1;
-        // const doorIndex = Math.floor(Math.random() * coordLength);
         const doorIndex = RG.RAND.randIndex(wallCoords);
         const doorX = wallCoords[doorIndex][0];
         const doorY = wallCoords[doorIndex][1];
         wallCoords.slice(doorIndex, 1);
 
         // At the moment, "door" is a hole in the wall
-        // map.setBaseElemXY(doorX, doorY, new RG.Element.Base('floor'));
         map.setBaseElemXY(doorX, doorY, RG.FLOOR_ELEM);
         doors[doorX + ',' + doorY] = true;
 
@@ -684,7 +677,6 @@ RG.Map.Generator = function() { // {{{2
         const ratio = conf.ratio;
         _mapGen = new ROT.Map.Forest(this.cols, this.rows, conf);
         _mapGen.create(function(x, y, val) {
-            // map.setBaseElemXY(x, y, new RG.Element.Base('floor'));
             map.setBaseElemXY(x, y, RG.FLOOR_ELEM);
             const createTree = RG.RAND.getUniform() <= ratio;
             if (val === 1 && createTree) {
