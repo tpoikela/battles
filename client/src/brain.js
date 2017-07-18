@@ -223,7 +223,9 @@ RG.Brain.Player = function(actor) { // {{{2
                     }
                 }
                 else {
-                    return this.cmdNotPossible('You cannot venture there.');
+                    const msg = RG.getImpassableMsg(_actor,
+                        currMap.getCell(x, y), 'You');
+                    return this.cmdNotPossible(msg);
                 }
             }
             else {
