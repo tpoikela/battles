@@ -1,5 +1,4 @@
 
-
 const RG = require('../../../client/src/battles');
 const RGObjects = require('../../../client/data/battles_objects.js');
 const RGTest = require('../../roguetest.js');
@@ -22,7 +21,7 @@ const wolfShell = {
 // PARSER TESTS
 //---------------------------------------------------------------------------
 
-describe('How actors are created from file', function() {
+describe('RG.ObjectShellParser', function() {
 
     it('Returns base objects and supports also base', function() {
         const parser = new Parser();
@@ -207,9 +206,6 @@ describe('How actors are created from file', function() {
 
     });
 
-});
-
-
 describe('How food items are created from objects', function() {
    const parser = new Parser();
     it('Creates food objects items from shells', function() {
@@ -308,7 +304,6 @@ describe('It contains all game content info', function() {
         expect(rubySwordShell.attack).to.equal(rubySwordObj.getAttack());
     });
 
-
     it('Should parse all armour properly', function() {
         const larmour = parser.get('items', 'Leather armour');
         expect(larmour.defense).to.equal(2);
@@ -390,6 +385,22 @@ describe('It contains all game content info', function() {
         RGTest.checkCSSClassName(goldcoin, 'cell-item-gold-coin');
     });
 
+    it('suppors multiple base shells', () => {
+        const parser = new Parser();
+        const b1 = {name: 'base1', hp: 10, damage: 10};
+        const b2 = {name: 'base2', hp: 15, defense: 20};
+        const shell = {name: 'shell', base: ['base2', 'base1']};
+
+        parser.parseObjShell('actors', b1);
+        parser.parseObjShell('actors', b2);
+        const objShell = parser.parseObjShell('actors', shell);
+
+        expect(objShell.damage).to.equal(10);
+        expect(objShell.hp).to.equal(15);
+        expect(objShell.defense).to.equal(20);
+
+    });
+
 });
 
 describe('It has query functions for objects', function() {
@@ -449,3 +460,5 @@ describe('ObjectShellParser error handling', function() {
         expect(parser.validShellGiven(invalidShell)).to.be.false;
     });
 });
+
+}); // describe ObjectShellParser
