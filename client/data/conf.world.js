@@ -66,7 +66,7 @@ RG.WorldConf = {
             name: 'Ravendark',
             maxX: 5,
             maxY: 5,
-            cols: 80, rows: 28,
+            cols: 100, rows: 100,
             // DUNGEONS
             nDungeons: 3,
             dungeon: [
