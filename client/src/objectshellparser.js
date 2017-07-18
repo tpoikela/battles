@@ -140,13 +140,13 @@ RG.ObjectShellParser = function() {
             if (obj.hasOwnProperty('base')) {
                 const baseShells = typeof obj.base === 'string' ? [obj.base]
                     : obj.base;
-                baseShells.forEach(baseName => {
-                    if (this.baseExists(categ, baseName)) {
-                        obj = this.extendObj(obj, this.getBase(categ, baseName));
+                baseShells.forEach(bName => {
+                    if (this.baseExists(categ, bName)) {
+                        obj = this.extendObj(obj, this.getBase(categ, bName));
                     }
                     else {
                         RG.err('ObjectParser', 'parseObjShell',
-                            'Unknown base ' + baseName + ' specified for ' + obj);
+                            'Unknown base ' + bName + ' specified for ' + obj);
                     }
                 });
             }
@@ -475,6 +475,7 @@ RG.ObjectShellParser = function() {
     };
 
     const _addCompFromObj = function(compObj, entity) {
+        this.addCompToObj(compObj, entity, null);
     };
 
     const _addUseEffectToItem = function(shell, item, useName) {
@@ -574,7 +575,8 @@ RG.ObjectShellParser = function() {
                     case 'gold': return new RG.Item.Gold(obj.name);
                     case 'goldcoin' : return new RG.Item.GoldCoin(obj.name);
                     case 'missile': return new RG.Item.Missile(obj.name);
-                    case 'missileweapon': return new RG.Item.MissileWeapon(obj.name);
+                    case 'missileweapon':
+                        return new RG.Item.MissileWeapon(obj.name);
                     case 'ammo': return new RG.Item.Ammo(obj.name);
                     case 'potion': return new RG.Item.Potion(obj.name);
                     case 'spiritgem': return new RG.Item.SpiritGem(obj.name);
@@ -637,12 +639,12 @@ RG.ObjectShellParser = function() {
         // const type = query.type;
 
         // Specifying name returns an array
-        if (typeof name !== 'undefined') {
+        if (!RG.isNullOrUndef([name])) {
             if (_dbByName.hasOwnProperty(name)) {return _dbByName[name];}
             else {return [];}
         }
 
-        if (typeof danger !== 'undefined') {
+        if (!RG.isNullOrUndef([danger])) {
             if (dbDanger.hasOwnProperty(danger)) {
                 const entries = dbDanger[danger];
                 if (typeof categ !== 'undefined') {
@@ -660,7 +662,7 @@ RG.ObjectShellParser = function() {
             }
         }
         // Fetch all entries of given category
-        else if (typeof categ !== 'undefined') {
+        else if (!RG.isNullOrUndef([categ])) {
             if (_db.hasOwnProperty(categ)) {
                 return _db[categ];
             }
