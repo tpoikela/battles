@@ -895,6 +895,13 @@ RG.setAllExplored = function(level, isExplored) {
     }
 };
 
+/* Returns a game message for cell which cannot be travelled. */
+RG.getImpassableMsg = function(actor, cell, str) {
+    const type = cell.getBaseElem().getType();
+    const cellMsg = `cannot venture beyond ${type}`;
+    return `${str} ${cellMsg}`;
+};
+
 /* Each die has number of throws, type of dice (d6, d20, d200...) and modifier
  * which is +/- X. */
 RG.Die = function(num, dice, mod) {
