@@ -43,21 +43,20 @@ function connectSubFeatures(features, q1Arg, q2Arg, l1, l2) {
     let q1 = q1Arg;
     let q2 = q2Arg;
 
-    // Lookup objects by name
+    // Lookup objects by name if they are string
     if (typeof q1Arg === 'string' && typeof q2Arg === 'string') {
-        q1 = features.find( q => q.getName() === q1Arg);
-        q2 = features.find( q => q.getName() === q2Arg);
+        q1 = features.find(q => q.getName() === q1Arg);
+        q2 = features.find(q => q.getName() === q2Arg);
     }
 
     if (RG.isNullOrUndef([q1, q2])) {
         RG.err('RG.World', 'connectSubFeatures',
-            'Cannot connect null features. Check the names.');
-        return;
+            'Cannot connect null features. Check the names/refs.');
     }
 
-    let down = true;
-    if (l1 > l2) {down = false;}
-    const b2Stairs = new Stairs(down);
+    let s2IsDown = true;
+    if (l1 > l2) {s2IsDown = false;}
+    const b2Stairs = new Stairs(s2IsDown);
     const b2Levels = q2.getLevels();
     if (l2 < b2Levels.length) {
         const cell = b2Levels[l2].getFreeRandCell();
@@ -660,10 +659,27 @@ RG.World.MountainFace = function(name) {
         if (_entrance === null) {
             const level = _levels[levelNumber];
             const stairs = new Stairs(true, level);
-            const midX = Math.floor(level.getMap().cols / 2);
-            const maxY = level.getMap().rows - 1;
-            level.addStairs(stairs, midX, maxY);
-            _entrance = {levelNumber, x: midX, y: maxY};
+            const map = level.getMap();
+            const midX = Math.floor(map.cols / 2);
+            const maxY = map.rows - 1;
+
+            let x = midX;
+            let y = maxY;
+            // Verify that there's a path from these stairs. Start scanning from
+            // bottom y, mid x. First scan the row to the left, then right. If
+            // nothing free is found, go to the row above.
+            while (!map.getCell(x, y).isFree()) {
+                if (x === 0) {x = midX + 1;}
+                if (x <= midX) {--x;}
+                if (x > midX) {++x;}
+                if (x === map.cols - 1) {
+                    x = midX;
+                    --y;
+                }
+            }
+
+            level.addStairs(stairs, x, y);
+            _entrance = {levelNumber, x, y};
         }
         else {
             RG.err('World.MountainFace', 'addEntrance',
