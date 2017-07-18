@@ -680,10 +680,10 @@ RG.Map.Generator = function() { // {{{2
             map.setBaseElemXY(x, y, RG.FLOOR_ELEM);
             const createTree = RG.RAND.getUniform() <= ratio;
             if (val === 1 && createTree) {
-                map.setElemXY(x, y, new RG.Element.Tree('tree'));
+                map.setElemXY(x, y, RG.TREE_ELEM);
             }
             else if (val === 1) {
-                map.setElemXY(x, y, new RG.Element.Grass('grass'));
+                map.setElemXY(x, y, RG.GRASS_ELEM);
             }
         });
         return {map};
