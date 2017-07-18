@@ -413,11 +413,26 @@ describe('Map.Generator', () => {
             nRoadTurns: 6
         };
 
-        for (let i = 0; i < 40; i++) {
+        for (let i = 0; i < 1; i++) {
             const obj = mapgen.createMountain(100, 400, conf);
             const map = obj.map;
             expect(map).to.exist;
         }
 
+    });
+});
+
+describe('Map.CellList', () => {
+    it('contains map cells with different properties', () => {
+        const mapgen = new RG.Map.Generator();
+        mapgen.setGen('empty', 20, 20);
+        const obj = mapgen.getMap();
+        const map = obj.map;
+
+        map.setBaseElemXY(0, 0, RG.CHASM_ELEM);
+
+        expect(map.isPassable(0, 0)).to.equal(false);
+        expect(map.getCell(0, 0).isFree()).to.equal(false);
+        expect(map.isPassableByAir(0, 0)).to.equal(true);
     });
 });
