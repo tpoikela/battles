@@ -59,7 +59,7 @@ const GameRow = React.createClass({
                     className={className}
                     key={index}
                     onClick={this.onCellClick.bind(this, cellX, y)}
-                    >
+                >
                     {cellChar}
                 </span>
             );
