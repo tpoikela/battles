@@ -349,16 +349,23 @@ RG.Factory.Base = function() { // {{{2
     this.addNRandItems = function(level, parser, conf) {
         _verif.verifyConf('addNRandItems', conf, ['func', 'maxValue']);
         // Generate the items randomly for this level
+
+        const freeCells = level.getMap().getFree();
         for (let j = 0; j < conf.itemsPerLevel; j++) {
+            const index = RG.RAND.randIndex(freeCells);
+            const cell = freeCells[index];
+
             const item = parser.createRandomItem({func: conf.func});
             _doItemSpecificAdjustments(item, conf.maxValue);
-            const itemCell = level.getFreeRandCell();
-            level.addItem(item, itemCell.getX(), itemCell.getY());
+            level.addItem(item, cell.getX(), cell.getY());
+            freeCells.splice(index, 1); // remove used cell
         }
         const food = parser.createRandomItem({func: function(item) {
             return item.type === 'food';
         }});
-        const foodCell = level.getFreeRandCell();
+
+        const index = RG.RAND.randIndex(freeCells);
+        const foodCell = freeCells[index];
         _doItemSpecificAdjustments(food, conf.maxValue);
         level.addItem(food, foodCell.getX(), foodCell.getY());
     };
@@ -369,8 +376,11 @@ RG.Factory.Base = function() { // {{{2
             ['maxDanger', 'monstersPerLevel']);
         // Generate the monsters randomly for this level
         const maxDanger = conf.maxDanger;
+
+        const freeCells = level.getMap().getFree();
         for (let i = 0; i < conf.monstersPerLevel; i++) {
-            const cell = level.getFreeRandCell();
+            const index = RG.RAND.randIndex(freeCells);
+            const cell = freeCells[index];
 
             // Generic randomization with danger level
             let monster = null;
@@ -400,14 +410,21 @@ RG.Factory.Base = function() { // {{{2
                 RG.err('Factory.Feature', 'addNRandMonsters',
                     `Generated monster null. Conf: ${JSON.stringify(conf)}`);
             }
+
+            freeCells.splice(index, 1); // remove used cell
         }
     };
 
     this.addRandomGold = function(level, parser, conf) {
+        const freeCells = level.getMap().getFree();
         for (let i = 0; i < conf.goldPerLevel; i++) {
+            const index = RG.RAND.randIndex(freeCells);
+            const cell = freeCells[index];
+
             const gold = parser.createActualObj(RG.TYPE_ITEM, 'Gold coin');
             _doItemSpecificAdjustments(gold, conf.nLevel);
-            level.addToRandomCell(gold);
+            level.addItem(gold, cell.getX(), cell.getY());
+            freeCells.splice(index, 1); // remove used cell
         }
     };
 
@@ -900,6 +917,8 @@ RG.Factory.World = function() {
                                 'Each connection.length must be 4.');
                         }
                     });
+
+                    // TODO verify that levels are passable
                 }
                 else {
                     RG.err('Factory.World', 'createMountain',
