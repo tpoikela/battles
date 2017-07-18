@@ -459,16 +459,17 @@ const RG = { // {{{2
 
     // Default FOV range for actors
     FOV_RANGE: 4,
-    ROWS: 30,
-    COLS: 50,
     ACTION_DUR: 100,
     BASE_SPEED: 100,
     DEFAULT_HP: 50,
 
-    // How many levels are simulated at once
+    // How many levels are simulated at once, having more adds realism
+    // but slows down the game
     MAX_ACTIVE_LEVELS: 3,
 
+    //----------------------
     // Different game events
+    //----------------------
     EVT_ACTOR_CREATED: 'EVT_ACTOR_CREATED',
     EVT_ACTOR_KILLED: 'EVT_ACTOR_KILLED',
     EVT_DESTROY_ITEM: 'EVT_DESTROY_ITEM',
@@ -485,7 +486,9 @@ const RG = { // {{{2
     EVT_ACT_COMP_ENABLED: 'EVT_ACT_COMP_ENABLED',
     EVT_ACT_COMP_DISABLED: 'EVT_ACT_COMP_DISABLED',
 
+    //----------------------
     // Different types
+    //----------------------
     TYPE_ACTOR: 'actors',
     TYPE_ELEM: 'elements',
     TYPE_ITEM: 'items',
