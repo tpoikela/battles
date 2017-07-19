@@ -159,7 +159,7 @@ const RG = { // {{{2
         elements: {
             default: '.',
             wall: '#',
-            'ice wall': '#',
+            icewall: '#',
             floor: '.',
             shop: ':',
             snow: '.',
@@ -211,7 +211,8 @@ const RG = { // {{{2
             highrock: 'cell-element-highrock',
             road: 'cell-element-road',
             chasm: 'cell-element-chasm',
-            bridge: 'cell-element-bridge'
+            bridge: 'cell-element-bridge',
+            water: 'cell-element-water'
         },
         actors: {
             default: 'cell-actor-default',
@@ -813,6 +814,29 @@ RG.Geometry = {
         }
         return res;
     },
+
+    /* Given a list of levels and x,y sizes, creates a super-level. Works
+    * properly only if all levels have equal size. */
+    /* abutLevels: function(levels, x, y) {
+        if (levels.length !== x * y) {
+            RG.err('RG', 'abutLevels',
+                `${levels.length} cannot be abutted as ${x} by ${y}.`);
+        }
+        const l0 = levels[0];
+        const cols = l0.getMap().cols * x;
+        const rows = l0.getMap().rows * y;
+        const newLevel = RG.FACT.createLevel('empty', cols, rows);
+
+        for (let xx = 0; xx < x; xx++) {
+            for (let yy = 0; yy < y; yy++) {
+                const index = yy * x + xx;
+                const currLevel = levels[index];
+                // Loop through all cells
+
+            }
+        }
+
+    },*/
 
     insertSubLevel: function(l1, l2, startX, startY) {
         const m1 = l1.getMap();
