@@ -650,11 +650,24 @@ class GameEditor extends React.Component {
         return elem;
     }
 
-    getActorSelectElem() {
-        const actors = this.parser.dbGet({categ: 'actors'});
-        const elem = Object.values(actors).map(actor => {
-            const key = 'key-sel-actor-' + actor.name;
-            return <option key={key} value={actor.name}>{actor.name}</option>;
+    getElementSelectElem() {
+        const elements = Object.keys(RG.cellStyles.elements);
+        const elem = elements.map(elemType => {
+            if (elemType !== 'default') {
+                const key = 'key-sel-element-' + elemType;
+                return <option key={key} value={elemType}>{elemType}</option>;
+            }
+            return null;
+        });
+        return elem;
+    }
+
+    /* Returns the <option> dropdown menu elements for items/actors. */
+    getSelectElem(type) {
+        const items = this.parser.dbGet({categ: type});
+        const elem = Object.values(items).map(item => {
+            const key = `key-sel-${type}-${item.name}`;
+            return <option key={key} value={item.name}>{item.name}</option>;
         });
         return elem;
     }
@@ -663,7 +676,9 @@ class GameEditor extends React.Component {
         const levelConfElem = this.getLevelConfElement('main',
             this.state.levelConf);
         const levelSelectElem = this.getLevelSelectElement();
-        const actorSelectElem = this.getActorSelectElem();
+        const elementSelectElem = this.getElementSelectElem();
+        const actorSelectElem = this.getSelectElem('actors');
+        const itemSelectElem = this.getSelectElem('items');
         const subLevelConfElem = this.getLevelConfElement('sub',
             this.state.subLevelConf);
         return (
@@ -721,17 +736,13 @@ class GameEditor extends React.Component {
                 </div>
                 <div className='btn-div'>
                     <button onClick={this.insertElement}>Insert element</button>
-                    <input
+                    <select
                         name='insert-element'
                         onChange={this.onChangeElement}
                         value={this.state.elementType}
-                    />
+                    >{elementSelectElem}
+                    </select>
                     <button onClick={this.insertActor}>Insert actor</button>
-                    <input
-                        name='insert-actor'
-                        onChange={this.onChangeActor}
-                        value={this.state.actorName}
-                    />
                     <select
                         name='insert-actor'
                         onChange={this.onChangeActor}
@@ -739,11 +750,13 @@ class GameEditor extends React.Component {
                     >{actorSelectElem}
                     </select>
                     <button onClick={this.insertItem}>Insert item</button>
-                    <input
+                    <select
                         name='insert-item'
                         onChange={this.onChangeItem}
                         value={this.state.itemName}
-                    />
+                    >{itemSelectElem}
+                    </select>
+
                 </div>
                 <div className='btn-div'>
                     <input
