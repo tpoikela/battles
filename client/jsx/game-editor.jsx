@@ -650,10 +650,20 @@ class GameEditor extends React.Component {
         return elem;
     }
 
+    getActorSelectElem() {
+        const actors = this.parser.dbGet({categ: 'actors'});
+        const elem = Object.values(actors).map(actor => {
+            const key = 'key-sel-actor-' + actor.name;
+            return <option key={key} value={actor.name}>{actor.name}</option>;
+        });
+        return elem;
+    }
+
     getEditorPanelElement() {
         const levelConfElem = this.getLevelConfElement('main',
             this.state.levelConf);
         const levelSelectElem = this.getLevelSelectElement();
+        const actorSelectElem = this.getActorSelectElem();
         const subLevelConfElem = this.getLevelConfElement('sub',
             this.state.subLevelConf);
         return (
@@ -722,6 +732,12 @@ class GameEditor extends React.Component {
                         onChange={this.onChangeActor}
                         value={this.state.actorName}
                     />
+                    <select
+                        name='insert-actor'
+                        onChange={this.onChangeActor}
+                        value={this.state.actorName}
+                    >{actorSelectElem}
+                    </select>
                     <button onClick={this.insertItem}>Insert item</button>
                     <input
                         name='insert-item'
