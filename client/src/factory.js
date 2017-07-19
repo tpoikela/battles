@@ -209,15 +209,18 @@ RG.Factory.Base = function() { // {{{2
 
     this.createElement = function(elemType) {
         switch (elemType) {
-            case 'wall': return new RG.Element.Base('wall');
-            case 'floor': return new RG.Element.Base('floor');
+            case 'chasm': return RG.CHASM_ELEM;
             case 'door' : return new RG.Element.Door(true);
+            case 'floor': return RG.FLOOR_ELEM;
+            case 'grass': return RG.GRASS_ELEM;
+            case 'highrock': return RG.HIGH_ROCK_ELEM;
+            case 'icewall': return RG.ICE_WALL_ELEM;
             case 'opendoor' : return new RG.Element.Door(false);
-            case 'tree': return new RG.Element.Tree();
-            case 'grass': return new RG.Element.Grass();
-            case 'water': return new RG.Element.Water();
-            case 'stone': return new RG.Element.Stone();
-            case 'snow': return new RG.Element.Base('snow');
+            case 'snow': return RG.SNOW_ELEM;
+            case 'stone': return RG.STONE_ELEM;
+            case 'tree': return RG.TREE_ELEM;
+            case 'wall': return RG.WALL_ELEM;
+            case 'water': return RG.WATER_ELEM;
             default: return null;
         }
     };
