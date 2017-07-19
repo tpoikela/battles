@@ -47,7 +47,7 @@ class GameEditor extends React.Component {
             simulationStarted: false,
             simulationPaused: false,
             turnsPerSec: 1000,
-
+            turnsPerFrame: 1,
             idCount: 0
         };
 
@@ -105,6 +105,7 @@ class GameEditor extends React.Component {
         this.playFastSimulation = this.playFastSimulation.bind(this);
         this.pauseSimulation = this.pauseSimulation.bind(this);
         this.stopSimulation = this.stopSimulation.bind(this);
+        this.onChangeTurnsPerFrame = this.onChangeTurnsPerFrame.bind(this);
     }
 
     onCellClick(x, y) {
@@ -343,27 +344,6 @@ class GameEditor extends React.Component {
         }
     }
 
-    onChangeLevelConf(confType, key, idHead) {
-        const id = `#${idHead}--${confType}--${key}`;
-        const inputElem = document.querySelector(id);
-        const value = inputElem.value;
-        const conf = idHead === 'main' ? this.state.levelConf
-            : this.state.subLevelConf;
-        if (key.match(/(\w+)Func/)) {
-            // TODO how to handle functions
-        }
-        else {
-            conf[confType][key] = value;
-        }
-
-        if (idHead === 'main') {
-            this.setState({levelConf: conf});
-        }
-        else {
-            this.setState({subLevelConf: conf});
-        }
-    }
-
 
     /* Modifes the given level configuration object based on the value
      * (level type). */
@@ -405,6 +385,27 @@ class GameEditor extends React.Component {
     //----------------------------------------------------------------
     // onChangeXXX callbacks for <input> fields
     //----------------------------------------------------------------
+
+    onChangeLevelConf(confType, key, idHead) {
+        const id = `#${idHead}--${confType}--${key}`;
+        const inputElem = document.querySelector(id);
+        const value = inputElem.value;
+        const conf = idHead === 'main' ? this.state.levelConf
+            : this.state.subLevelConf;
+        if (key.match(/(\w+)Func/)) {
+            // TODO how to handle functions
+        }
+        else {
+            conf[confType][key] = value;
+        }
+
+        if (idHead === 'main') {
+            this.setState({levelConf: conf});
+        }
+        else {
+            this.setState({subLevelConf: conf});
+        }
+    }
 
     onChangeType(evt) {
         const value = evt.target.value;
@@ -479,6 +480,11 @@ class GameEditor extends React.Component {
         this.setState({numEntities: value});
     }
 
+    onChangeTurnsPerFrame(evt) {
+        const value = this.getInt(evt.target.value, 10);
+        this.setState({turnsPerFrame: value});
+    }
+
     //----------------------------------------------------------------
     // SIMULATION METHODS
     //----------------------------------------------------------------
@@ -517,7 +523,9 @@ class GameEditor extends React.Component {
         const frameCount = this.state.frameCount;
         const fps = 1000 * frameCount /
             (new Date().getTime() - this.state.startTime);
-        this.game.simulateGame();
+        for (let n = 0; n < this.state.turnsPerFrame; n++) {
+            this.game.simulateGame();
+        }
         this.setState({level: this.game.getLevels()[0],
             frameCount: frameCount + 1, fps: fps});
         this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
@@ -773,6 +781,16 @@ class GameEditor extends React.Component {
                     onClick={this.stopSimulation}
                 >Stop
                 </button>
+
+                <div>
+                    <label>Turns per frame:
+                    <input
+                        name='input-turns-per-frame'
+                        onChange={this.onChangeTurnsPerFrame}
+                        value={this.state.turnsPerFrame}
+                    />
+                    </label>
+                </div>
 
                 <p>Frame count: {this.state.frameCount}</p>
                 <p>FPS: {this.state.fps}</p>
