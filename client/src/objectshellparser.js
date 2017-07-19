@@ -15,8 +15,6 @@ RG.ObjectShellParser = function() {
     // Shells are used in external data file to describe game objects in a more
     // concise way. Game objects are created from shells by this object.
 
-    // const categ = ['actors', 'effects', 'items', 'levels', 'dungeons'];
-
     // Stores the base shells
     const _base = {
         actors: {},
@@ -317,7 +315,7 @@ RG.ObjectShellParser = function() {
                         }
                     }
                 }
-                else { // 4. For strings, call the setter directly
+                else { // 4. For strings, call the setter 'funcName' directly
                     newObj[funcName](shell[p]);
                 }
             }
