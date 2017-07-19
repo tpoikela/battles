@@ -9,11 +9,11 @@ $wall-color: #f00;
 $stone-color: #808080;
 $dark-stone-color: darken($stone-color, 30%);
 
-$door-color: #a52a2a;;
-$door-bg-color: $white;
-
 $floor-bg-color: $stone-color;;
 $tree-color: lighten($green, 20%);
+
+$door-color: #a52a2a;;
+$door-bg-color: $floor-bg-color;
 
 @mixin green-elem {
     background-color: $floor-bg-color;
@@ -63,7 +63,7 @@ $tree-color: lighten($green, 20%);
 }
 
 .cell-element-water {
-    background-color: $white;
+    background-color: $floor-bg-color;
     color: $blue;
 };
 
