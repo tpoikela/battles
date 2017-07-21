@@ -33,14 +33,17 @@ describe('World.Creator', () => {
     it('adds cities to the created configuration', () => {
         const creator = new Creator();
         const conf = creator.createWorldConf({name: 'My World'});
-
         const area0 = conf.area[0];
-
         expect(area0.nCities).to.be.above(0);
-
-        console.log(JSON.stringify(area0));
 
         const city0 = area0.city[0];
         expect(city0.quarter).to.have.length.above(0);
+    });
+
+    it('adds mountains to the created configuration', () => {
+        const creator = new Creator();
+        const conf = creator.createWorldConf({name: 'My World'});
+        const area0 = conf.area[0];
+        expect(area0.nMountains).to.be.above(0);
     });
 });
