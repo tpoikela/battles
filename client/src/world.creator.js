@@ -62,6 +62,8 @@ const areaSizeToXY = {
  */
 const Creator = function() {
 
+    this.featCoeff = 0.3;
+
     // Assumptions: Increase difficulty the more player travels from starting
     // position. Start is always at Math.floor(xMax/2), yMax.
     // Moving between areas is equivalent of X difficulty steps increase
@@ -176,6 +178,7 @@ const Creator = function() {
             branch: branches
         };
         if (connect) {obj.connect = connect;}
+        return obj;
     };
 
     /* Creates branches config for dungeon. This include entrance and branch
@@ -196,7 +199,7 @@ const Creator = function() {
     };
 
     this.createSingleBranchConf = function(dungeonConf, conf) {
-        const nLevels = this.getNumLevels(dungeonConf, conf);
+        const nLevels = this.getNumLevels('dungeon', dungeonConf, conf);
         return {
             name: this.getName('branch'),
             nLevels
@@ -208,7 +211,71 @@ const Creator = function() {
     //---------------
 
     this.createCitiesConf = function(areaConf, conf) {
-        return [];
+        const nCities = this.getNumFeatures('city', areaConf, conf);
+        console.log('Creating ' + nCities + ' cities');
+        const cities = [];
+        for (let i = 0; i < nCities; i++) {
+            const city = this.createSingleCityConf(areaConf, conf);
+            cities.push(city);
+        }
+        return cities;
+    };
+
+    this.createSingleCityConf = function(areaConf, conf) {
+        const xy = this.getXYInArea(areaConf);
+        const cityConf = Object.assign({}, areaConf);
+        cityConf.x = xy.x;
+        cityConf.y = xy.y;
+
+        const quarters = this.createQuartersConf(cityConf, conf);
+        const connect = this.createQuarterConnections('quarter', quarters);
+
+        const obj = {
+            name: '',
+            x: xy.x,
+            y: xy.y,
+            nQuarters: quarters.length,
+            quarter: quarters
+        };
+        if (connect) {obj.connect = connect;}
+        return obj;
+    };
+
+    /* Creates the config for quarters of single city. */
+    this.createQuartersConf = function(cityConf, conf) {
+        const nQuarters = this.getNumQuarters(cityConf);
+        const quarters = [];
+        for (let i = 0; i < nQuarters; i++) {
+            const quarter = this.createSingleQuarterConf(cityConf, conf);
+            if (i === 0) {
+                quarter.entranceLevel = 0;
+            }
+            quarters.push(quarter);
+        }
+        return quarters;
+    };
+
+    /* THis function decide on the structure of quarter, nHouses, shops etc. */
+    this.createSingleQuarterConf = function(cityConf, conf) {
+        const nLevels = this.getNumLevels('city', cityConf, conf);
+        return {
+            nLevels,
+            name: this.getName('quarter')
+        };
+    };
+
+    this.createQuarterConnections = function(type, feats) {
+        if (feats.length === 1) {return null;}
+        const connections = [];
+        for (let i = 1; i < feats.length; i++) {
+            const br0 = feats[i - 1];
+            const br1 = feats[i];
+            const l0 = this.rand.getWeightedLinear(br0.nLevels - 1);
+            const l1 = 0; // TODO add some randomization
+            const connect = [br0.name, br1.name, l0, l1];
+            connections.push(connect);
+        }
+        return connections;
     };
 
     //---------------
@@ -226,8 +293,10 @@ const Creator = function() {
     /* Returns the number of features that should be generated. */
     this.getNumFeatures = function(type, areaConf, conf) {
         let nFeatures = (areaConf.maxX + 1) * (areaConf.maxY + 1);
+        console.log(type + ' nFeatures: ' + nFeatures);
         // TODO based on type/conf, adjust the number
-        nFeatures += nFeatures * this.rand.getNormal();
+        nFeatures = this.rand.getNormal(nFeatures, this.featCoeff * nFeatures);
+        console.log('After nFeatures after normal: ' + nFeatures);
         return nFeatures;
     };
 
@@ -242,9 +311,21 @@ const Creator = function() {
     /* Returns more branches for dungeons further
      * from starting position. */
     this.getNumBranches = function(dungeonConf) {
-
+        return 1;
     };
 
+    this.getNumQuarters = function(cityConf) {
+        return 1;
+    };
+
+    this.getNumLevels = function(type, featConf, conf) {
+        switch (type) {
+            case 'dungeon': return this.rand.getUniformInt(1, 10);
+            case 'city': return this.rand.getUniformInt(1, 3);
+            case 'mountain': return this.rand.getUniformInt(1, 3);
+            default: return 1;
+        }
+    };
 
     //-------------------
     // CONNECTING STUFF
@@ -255,11 +336,15 @@ const Creator = function() {
     this.createBranchConnections = function(type, feats) {
         if (feats.length === 1) {return null;}
         const connections = [];
-        for (let i = 0; i < feats.length; i++) {
-
+        for (let i = 1; i < feats.length; i++) {
+            const br0 = feats[i - 1];
+            const br1 = feats[i];
+            const l0 = this.rand.getWeightedLinear(br0.nLevels - 1);
+            const l1 = 0; // TODO add some randomization
+            const connect = [br0.name, br1.name, l0, l1];
+            connections.push(connect);
         }
         return connections;
-
     };
 
     //----------------------------
