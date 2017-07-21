@@ -47,6 +47,37 @@ const getClassesAndChars = function(seen, cells, selCell) {
     return [cssClasses, asciiChars];
 };
 
+/* Same as above but optimized for showing the full map in the game editor.
+*  Does not take into account cells seen by player. */
+const getClassesAndCharsFullMap = function(cells, selCell) {
+    const cssClasses = [];
+    const asciiChars = [];
+
+    let selX = -1;
+    let selY = -1;
+
+    if (selCell !== null) {
+        selX = selCell.getX();
+        selY = selCell.getY();
+    }
+
+    for (let i = 0; i < cells.length; i++) {
+        const cell = cells[i];
+
+        let cellClass = RG.getClassName(cell, true);
+        const cellChar = RG.getChar(cell, true);
+
+        if (selX === cell.getX() && selY === cell.getY()) {
+            cellClass = 'cell-target-selected';
+        }
+
+        cssClasses.push(cellClass);
+        asciiChars.push(cellChar);
+    }
+
+    return [cssClasses, asciiChars];
+};
+
 /* Creates a screen with viewport set to given parameters. */
 GUI.Screen = function(viewX, viewY) {
     this.viewportX = viewX;
@@ -132,8 +163,8 @@ GUI.Screen = function(viewX, viewY) {
 
         for (let y = 0; y < map.rows; ++y) {
             const rowCellData = map.getCellRow(y);
-            const classesChars = getClassesAndChars(rowCellData,
-                rowCellData, this.selectedCell);
+            const classesChars = getClassesAndCharsFullMap(rowCellData,
+                this.selectedCell);
 
             _classRows[y] = classesChars[0];
             _charRows[y] = classesChars[1];
