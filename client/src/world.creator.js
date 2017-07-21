@@ -171,7 +171,7 @@ const Creator = function() {
         const connect = this.createBranchConnections('branch', branches);
 
         const obj = {
-            name: '',
+            name: this.getName('dungeon'),
             x: xy.x,
             y: xy.y,
             nBranches: branches.length,
@@ -184,7 +184,7 @@ const Creator = function() {
     /* Creates branches config for dungeon. This include entrance and branch
      * connections. */
     this.createBranchesConf = function(dungeonConf, conf) {
-        const nBranches = this.getNumBranches(dungeonConf);
+        const nBranches = this.getNumBranches(dungeonConf, conf);
         const branches = [];
         for (let i = 0; i < nBranches; i++) {
             const branch = this.createSingleBranchConf(dungeonConf, conf);
@@ -212,7 +212,6 @@ const Creator = function() {
 
     this.createCitiesConf = function(areaConf, conf) {
         const nCities = this.getNumFeatures('city', areaConf, conf);
-        console.log('Creating ' + nCities + ' cities');
         const cities = [];
         for (let i = 0; i < nCities; i++) {
             const city = this.createSingleCityConf(areaConf, conf);
@@ -243,7 +242,7 @@ const Creator = function() {
 
     /* Creates the config for quarters of single city. */
     this.createQuartersConf = function(cityConf, conf) {
-        const nQuarters = this.getNumQuarters(cityConf);
+        const nQuarters = this.getNumQuarters(cityConf, conf);
         const quarters = [];
         for (let i = 0; i < nQuarters; i++) {
             const quarter = this.createSingleQuarterConf(cityConf, conf);
@@ -264,6 +263,7 @@ const Creator = function() {
         };
     };
 
+    /* Connects all city quarters together. */
     this.createQuarterConnections = function(type, feats) {
         if (feats.length === 1) {return null;}
         const connections = [];
@@ -282,21 +282,70 @@ const Creator = function() {
     // MOUNTAINS
     //---------------
 
-    this.createMountainsConf = function(areaNum, conf) {
-        return [];
+    this.createMountainsConf = function(areaConf, conf) {
+        const nMountains = this.getNumFeatures('mountain', areaConf, conf);
+        const mountains = [];
+        for (let i = 0; i < nMountains; i++) {
+            const mountain = this.createSingleMountainConf(areaConf, conf);
+            mountains.push(mountain);
+        }
+        return mountains;
     };
 
-    this.getDifficulty = function(x, y) {
+    this.createSingleMountainConf = function(areaConf, conf) {
+        const xy = this.getXYInArea(areaConf);
+        const mountConf = Object.assign({}, areaConf);
+        mountConf.x = xy.x;
+        mountConf.y = xy.y;
 
+        const faces = this.createFacesConf(mountConf, conf);
+        const connect = this.createFaceConnections('mountain', faces);
+
+        const obj = {
+            name: '',
+            x: xy.x,
+            y: xy.y,
+            nFaces: faces.length,
+            face: faces
+        };
+        if (connect) {obj.connect = connect;}
+        return obj;
     };
+
+    this.createFacesConf = function(mountConf, conf) {
+        const nFaces = this.getNumFaces(mountConf, conf);
+        const faces = [];
+        for (let i = 0; i < nFaces; i++) {
+            const face = this.createSingleFaceConf(mountConf, conf);
+            faces.push(face);
+
+            // For now, entrance is always from level 0 of br 0
+            if (i === 0) {
+                face.entranceLevel = 0;
+            }
+        }
+        return faces;
+    };
+
+    this.createSingleFaceConf = function(mountConf, conf) {
+        const nLevels = this.getNumLevels('mountain', mountConf, conf);
+        return {
+            x: 100,
+            y: 200,
+            name: this.getName('face'),
+            nLevels
+        };
+    };
+
+    /* this.getDifficulty = function(x, y) {
+
+    }; */
 
     /* Returns the number of features that should be generated. */
     this.getNumFeatures = function(type, areaConf, conf) {
         let nFeatures = (areaConf.maxX + 1) * (areaConf.maxY + 1);
-        console.log(type + ' nFeatures: ' + nFeatures);
         // TODO based on type/conf, adjust the number
         nFeatures = this.rand.getNormal(nFeatures, this.featCoeff * nFeatures);
-        console.log('After nFeatures after normal: ' + nFeatures);
         return nFeatures;
     };
 
@@ -310,11 +359,15 @@ const Creator = function() {
 
     /* Returns more branches for dungeons further
      * from starting position. */
-    this.getNumBranches = function(dungeonConf) {
+    this.getNumBranches = function(dungeonConf, conf) {
         return 1;
     };
 
-    this.getNumQuarters = function(cityConf) {
+    this.getNumQuarters = function(cityConf, conf) {
+        return 1;
+    };
+
+    this.getNumFaces = function(mountConf, conf) {
         return 1;
     };
 
@@ -342,6 +395,22 @@ const Creator = function() {
             const l0 = this.rand.getWeightedLinear(br0.nLevels - 1);
             const l1 = 0; // TODO add some randomization
             const connect = [br0.name, br1.name, l0, l1];
+            connections.push(connect);
+        }
+        return connections;
+    };
+
+
+    /* Creates mountain face connections. */
+    this.createFaceConnections = function(type, feats) {
+        if (feats.length === 1) {return null;}
+        const connections = [];
+        for (let i = 1; i < feats.length; i++) {
+            const f0 = feats[i - 1];
+            const f1 = feats[i];
+            const l0 = this.rand.getWeightedLinear(f0.nLevels - 1);
+            const l1 = 0; // TODO add some randomization
+            const connect = [f0.name, f1.name, l0, l1];
             connections.push(connect);
         }
         return connections;
