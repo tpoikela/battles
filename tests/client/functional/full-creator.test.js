@@ -7,17 +7,19 @@ const Creator = require('../../../client/src/world.creator');
 describe('Creator + Factory', function() {
     this.timeout(60000);
     it('description', () => {
-        /*
-        const creator = new Creator();
-        const worldConf = creator.createWorldConf({name: 'The North'});
 
-        console.log(JSON.stringify(worldConf, null, '  '));
+        const conf = {
+            name: 'My World',
+            worldSize: 'Small',
+            areaSize: 'Small'
+        };
+        const creator = new Creator();
+        const worldConf = creator.createWorldConf(conf);
 
         const worldFact = new RG.Factory.World();
         const world = worldFact.createWorld(worldConf);
 
-        expect(world.getName()).to.equal('The North');
-        */
-
+        expect(world.getName()).to.equal('My World');
+        expect(world.getAreas()).to.have.length(1);
     });
 });
