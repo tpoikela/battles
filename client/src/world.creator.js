@@ -133,6 +133,7 @@ const Creator = function() {
         const mountains = this.createMountainsConf(areaConf, conf);
 
         return {
+            name: this.getName('area'),
             maxX,
             maxY,
             nDungeons: dungeons.length,
@@ -352,8 +353,8 @@ const Creator = function() {
     /* Given areaConf, return x,y position where the feature can be added. */
     this.getXYInArea = function(areaConf) {
         return {
-            x: this.rand.getUniformInt(0, areaConf.maxX),
-            y: this.rand.getUniformInt(0, areaConf.maxY)
+            x: this.rand.getUniformInt(0, areaConf.maxX - 1),
+            y: this.rand.getUniformInt(0, areaConf.maxY - 1)
         };
     };
 
