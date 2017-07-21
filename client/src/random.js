@@ -39,15 +39,19 @@ RG.Random.prototype.getUniform = function() {
     return this.rng.getUniform();
 };
 
-RG.Random.prototype.getNormal = function() {
-    return this.rng.getNormal();
+RG.Random.prototype.getNormal = function(mean, stddev) {
+    return this.rng.getNormal(mean, stddev);
 };
 
 /* Given a number N, returns an integer from 0 to N weighted such that N has the
  * highest weight, and 0 the lowest.
  */
 RG.Random.prototype.getWeightedLinear = function(N) {
-
+    const weights = {};
+    for (let i = 0; i < N; i++) {
+        weights[i] = i + 1; // Without + 1, 0 will never be chosen
+    }
+    return this.rng.getWeightedValue(weights);
 };
 
 RG.Random.prototype.toJSON = function() {
