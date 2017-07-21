@@ -166,7 +166,7 @@ const Creator = function() {
         dungeonConf.y = xy.y;
 
         const branches = this.createBranchesConf(dungeonConf, conf);
-        const connect = this.createBranchConnections(branches);
+        const connect = this.createBranchConnections('branch', branches);
 
         const obj = {
             name: '',
