@@ -39,6 +39,17 @@ RG.Random.prototype.getUniform = function() {
     return this.rng.getUniform();
 };
 
+RG.Random.prototype.getNormal = function() {
+    return this.rng.getNormal();
+};
+
+/* Given a number N, returns an integer from 0 to N weighted such that N has the
+ * highest weight, and 0 the lowest.
+ */
+RG.Random.prototype.getWeightedLinear = function(N) {
+
+};
+
 RG.Random.prototype.toJSON = function() {
     return {
         seed: this.seed,
