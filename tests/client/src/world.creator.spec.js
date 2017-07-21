@@ -15,14 +15,20 @@ describe('World.Creator', () => {
 
         const conf2 = creator.createWorldConf(
             {name: 'Northern Lands',
-                difficulty: 'Easy', size: 'Large', items: 'Abundant',
+                difficulty: 'Easy', areaSize: 'Medium', worldSize: 'Medium',
+                items: 'Abundant',
                 climate: 'cold', monsters: 'Sparse', elevation: 'High',
                 excavation: 'Medium', population: 'Low'
             }
         );
 
+        expect(conf2.nAreas).to.equal(2);
         expect(conf2).to.have.property('playerStart');
         expect(conf2).to.have.property('area');
+
+        const areas = conf2.area;
+
+        expect(areas[0].dungeon).to.have.length.above(0);
 
     });
 });
