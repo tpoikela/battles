@@ -23,23 +23,34 @@ function getStairsOther(name, levels) {
 
 /* Tries to connect stairs to level N in given levels. */
 function connectLevelToStairs(levels, nLevel, stairs) {
-    const level = levels[nLevel];
-    const otherQuartLevel = stairs.getSrcLevel();
+    if (nLevel < levels.length) {
+        const level = levels[nLevel];
+        const otherQuartLevel = stairs.getSrcLevel();
 
-    if (!RG.isNullOrUndef([otherQuartLevel])) {
-        const down = !stairs.isDown();
-        const newStairs = new Stairs(down,
-            level, otherQuartLevel);
-        const cell = level.getFreeRandCell();
-        level.addStairs(newStairs, cell.getX(), cell.getY());
-        newStairs.connect(stairs);
-        return true;
+        if (!RG.isNullOrUndef([otherQuartLevel])) {
+            const down = !stairs.isDown();
+            const newStairs = new Stairs(down,
+                level, otherQuartLevel);
+            const cell = level.getFreeRandCell();
+            level.addStairs(newStairs, cell.getX(), cell.getY());
+            newStairs.connect(stairs);
+            return true;
+        }
+    }
+    else {
+        RG.err('world.js', 'connectLevelToStairs',
+            `nLevel: ${nLevel} out of bounds (${levels.length})`);
+
     }
     return false;
 }
 
 /* Connects 2 sub-features like dungeon branch or city quarter together.*/
 function connectSubFeatures(features, q1Arg, q2Arg, l1, l2) {
+    if (RG.isNullOrUndef([l1, l2])) {
+        RG.err('RG.World', 'connectSubFeatures',
+            `l1 (${l1}) and l2 (${l2}) must be non-null and integers.`);
+    }
     let q1 = q1Arg;
     let q2 = q2Arg;
 
