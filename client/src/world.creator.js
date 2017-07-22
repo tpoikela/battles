@@ -16,9 +16,12 @@ const defaultConf = {
     // World generation params
     climate: 'Medium',
     elevation: 'Medium',
+    mountainSize: 'Medium',
     excavation: 'Medium',
+    dungeonSize: 'Medium',
     forestation: 'Medium',
     population: 'Medium',
+    citySize: 'Medium',
     size: 'Medium',
     water: 'Sparse'
 };
@@ -29,6 +32,13 @@ const worldSizeToNum = {
     Medium: 2,
     Large: 4,
     Huge: 8
+};
+
+const featureScaleCoeff = {
+    Small: 0.7,
+    Medium: 1.0,
+    High: 1.3,
+    Huge: 1.7
 };
 
 // Maps sizes such as Small or Medium to numbers
@@ -269,11 +279,16 @@ const Creator = function() {
         if (feats.length === 1) {return null;}
         const connections = [];
         for (let i = 1; i < feats.length; i++) {
-            const br0 = feats[i - 1];
-            const br1 = feats[i];
-            const l0 = this.rand.getWeightedLinear(br0.nLevels - 1);
+            const q0 = feats[i - 1];
+            const q1 = feats[i];
+
+            let l0 = this.rand.getWeightedLinear(q0.nLevels - 1);
             const l1 = 0; // TODO add some randomization
-            const connect = [br0.name, br1.name, l0, l1];
+
+            if (RG.isNullOrUndef([l0])) {
+                l0 = q0.nLevels - 1;
+            }
+            const connect = [q0.name, q1.name, l0, l1];
             connections.push(connect);
         }
         return connections;
@@ -342,12 +357,33 @@ const Creator = function() {
 
     }; */
 
-    /* Returns the number of features that should be generated. */
+    /* Given feature type (dungeon, city, mountain), returns
+    * the number of features that should be generated. */
     this.getNumFeatures = function(type, areaConf, conf) {
         let nFeatures = (areaConf.maxX + 1) * (areaConf.maxY + 1);
+        nFeatures *= this.scaleNumFeatures(type, conf);
         // TODO based on type/conf, adjust the number
         nFeatures = this.rand.getNormal(nFeatures, this.featCoeff * nFeatures);
         return nFeatures;
+    };
+
+    /* Scales the number of features based on the corresponding value in conf.
+     * */
+    this.scaleNumFeatures = function(type, conf) {
+        switch (type) {
+            case 'dungeon': {
+                return featureScaleCoeff[conf.excavation];
+            }
+            case 'mountain': {
+                return featureScaleCoeff[conf.elevation];
+            }
+            case 'city': {
+                return featureScaleCoeff[conf.population];
+            }
+            default: RG.err('Creator', 'scaleNumFeatures',
+                `Unknown feat type ${type}`);
+        }
+        return 1.0;
     };
 
     /* Given areaConf, return x,y position where the feature can be added. */
@@ -361,15 +397,33 @@ const Creator = function() {
     /* Returns more branches for dungeons further
      * from starting position. */
     this.getNumBranches = function(dungeonConf, conf) {
-        return 1;
+        switch (conf.dungeonSize) {
+            case 'Small': return 1;
+            case 'Medium': return this.rand.getUniformInt(1, 2);
+            case 'Large': return this.rand.getUniformInt(1, 3);
+            case 'Huge': return this.rand.getUniformInt(1, 4);
+            default: return 1;
+        }
     };
 
     this.getNumQuarters = function(cityConf, conf) {
-        return 1;
+        switch (conf.citySize) {
+            case 'Small': return 1;
+            case 'Medium': return this.rand.getUniformInt(1, 2);
+            case 'Large': return this.rand.getUniformInt(1, 3);
+            case 'Huge': return this.rand.getUniformInt(1, 4);
+            default: return 1;
+        }
     };
 
     this.getNumFaces = function(mountConf, conf) {
-        return 1;
+        switch (conf.mountainSize) {
+            case 'Small': return 1;
+            case 'Medium': return this.rand.getUniformInt(1, 2);
+            case 'Large': return 3;
+            case 'Huge': return 4;
+            default: return 1;
+        }
     };
 
     this.getNumLevels = function(type, featConf, conf) {
@@ -393,14 +447,19 @@ const Creator = function() {
         for (let i = 1; i < feats.length; i++) {
             const br0 = feats[i - 1];
             const br1 = feats[i];
-            const l0 = this.rand.getWeightedLinear(br0.nLevels - 1);
+
+            let l0 = this.rand.getWeightedLinear(br0.nLevels - 1);
             const l1 = 0; // TODO add some randomization
+
+            if (RG.isNullOrUndef([l0])) {
+                l0 = br0.nLevels - 1;
+            }
+
             const connect = [br0.name, br1.name, l0, l1];
             connections.push(connect);
         }
         return connections;
     };
-
 
     /* Creates mountain face connections. */
     this.createFaceConnections = function(type, feats) {
@@ -409,8 +468,14 @@ const Creator = function() {
         for (let i = 1; i < feats.length; i++) {
             const f0 = feats[i - 1];
             const f1 = feats[i];
-            const l0 = this.rand.getWeightedLinear(f0.nLevels - 1);
+
+            let l0 = this.rand.getWeightedLinear(f0.nLevels - 1);
             const l1 = 0; // TODO add some randomization
+
+            if (RG.isNullOrUndef([l0])) {
+                l0 = f0.nLevels - 1;
+            }
+
             const connect = [f0.name, f1.name, l0, l1];
             connections.push(connect);
         }
@@ -432,6 +497,5 @@ const Creator = function() {
     };
 
 };
-
 
 module.exports = Creator;
