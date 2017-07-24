@@ -78,7 +78,14 @@ const Creator = function() {
     // position. Start is always at Math.floor(xMax/2), yMax.
     // Moving between areas is equivalent of X difficulty steps increase
 
+    /* Main function. You should call this to get a full configuration to create
+     * the world. This conf should be given to Factory.World. */
     this.createWorldConf = function(conf) {
+        if (!conf.name) {
+            RG.err('Creator', 'createWorldConf',
+                'conf.name must be specified.');
+        }
+
         // Assign user conf over default first
         Object.keys(defaultConf).forEach(key => {
             if (!conf.hasOwnProperty(key)) {
@@ -90,7 +97,7 @@ const Creator = function() {
         this.rand.setSeed(conf.seed);
 
         const areas = this.createAreasConf(conf);
-        const playerStart = this.getPlayerStart(areas, conf);
+        const playerStart = this.getPlayerStart(areas[0], conf);
         return {
             name: conf.name,
             nAreas: areas.length,
@@ -100,10 +107,9 @@ const Creator = function() {
     };
 
     /* Create object for player position. */
-    this.getPlayerStart = function(areas, conf) {
-        const firstArea = areas[0];
-        const maxY = firstArea.maxY;
-        const midX = Math.floor(firstArea.maxX);
+    this.getPlayerStart = function(firstArea, conf) {
+        const maxY = firstArea.maxY - 1;
+        const midX = Math.floor(firstArea.maxX / 2);
         return {
             place: conf.name, // rename to area.name
             x: midX, y: maxY
@@ -178,6 +184,8 @@ const Creator = function() {
         dungeonConf.x = xy.x;
         dungeonConf.y = xy.y;
 
+        this.setDistFromStart(dungeonConf, areaConf);
+
         const branches = this.createBranchesConf(dungeonConf, conf);
         const connect = this.createBranchConnections('branch', branches);
 
@@ -236,6 +244,8 @@ const Creator = function() {
         const cityConf = Object.assign({}, areaConf);
         cityConf.x = xy.x;
         cityConf.y = xy.y;
+
+        this.setDistFromStart(cityConf, areaConf);
 
         const quarters = this.createQuartersConf(cityConf, conf);
         const connect = this.createQuarterConnections('quarter', quarters);
@@ -313,6 +323,8 @@ const Creator = function() {
         const mountConf = Object.assign({}, areaConf);
         mountConf.x = xy.x;
         mountConf.y = xy.y;
+
+        this.setDistFromStart(mountConf, areaConf);
 
         const faces = this.createFacesConf(mountConf, conf);
         const connect = this.createFaceConnections('mountain', faces);
@@ -420,17 +432,24 @@ const Creator = function() {
         switch (conf.mountainSize) {
             case 'Small': return 1;
             case 'Medium': return this.rand.getUniformInt(1, 2);
-            case 'Large': return 3;
-            case 'Huge': return 4;
+            case 'Large': return this.rand.getUniformInt(1, 3);
+            case 'Huge': return this.rand.getUniformInt(1, 4);
             default: return 1;
         }
     };
 
-    this.getNumLevels = function(type, featConf, conf) {
+    /* Returns the number of levels generated for given feature. */
+    this.getNumLevels = function(type /* , featConf, conf */) {
         switch (type) {
-            case 'dungeon': return this.rand.getUniformInt(1, 10);
-            case 'city': return this.rand.getUniformInt(1, 3);
-            case 'mountain': return this.rand.getUniformInt(1, 3);
+            case 'dungeon': {
+                return this.rand.getUniformInt(1, 10);
+            }
+            case 'city': {
+                return this.rand.getUniformInt(1, 3);
+            }
+            case 'mountain': {
+                return this.rand.getUniformInt(1, 3);
+            }
             default: return 1;
         }
     };
@@ -480,6 +499,17 @@ const Creator = function() {
             connections.push(connect);
         }
         return connections;
+    };
+
+    /* Sets x,y distance for given feature from the starting tile. */
+    this.setDistFromStart = function(featConf, areaConf) {
+        const startX = Math.floor(areaConf.maxX / 2);
+        const startY = areaConf.maxY;
+        featConf.distX = Math.abs(featConf.x - startX);
+        featConf.distY = Math.abs(featConf.y - startY);
+        featConf.distSqr = Math.sqrt(
+            Math.pow(featConf.distX, 2) + Math.pow(featConf.distY, 2)
+        );
     };
 
     //----------------------------
