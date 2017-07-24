@@ -526,8 +526,10 @@ RG.World.Area = function(name, maxX, maxY, cols, rows, levels) {
             return _tiles[x][y];
         }
         else {
+            const maxX = this.getMaxX();
+            const maxY = this.getMaxY();
             RG.err('World.Area', 'getTileXY',
-                'Tile x,y is out of bounds.');
+                `Tile x,y (${x}, ${y}) is out of bounds (${maxX}, ${maxY}).`);
         }
         return null;
     };
