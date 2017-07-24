@@ -6,6 +6,8 @@ RG.Element = require('./element');
 
 RG.Game.FromJSON = require('./game.fromjson');
 
+const Creator = require('./world.creator');
+
 const RGObjects = require('../data/battles_objects.js');
 RG.Effects = require('../data/effects.js');
 
@@ -173,8 +175,8 @@ RG.Factory.Game = function() {
         else if (obj.debugMode === 'Battle') {
             return this.createDebugBattle(obj, game, player);
         }
-        else if (obj.debugMode === 'Tiles') {
-            return this.createTiledWorld(obj, game, player);
+        else if (obj.debugMode === 'Creator') {
+            return this.createWorldWithCreator(obj, game, player);
         }
         else if (obj.debugMode === 'World') {
             return this.createFullWorld(obj, game, player);
@@ -186,14 +188,16 @@ RG.Factory.Game = function() {
 
     let _playerFOV = RG.FOV_RANGE;
 
-    this.createTiledWorld = function(obj, game, player) {
-        const area = new RG.World.Area('Kingdom', 4, 4);
-        const levels = area.getLevels();
-        levels.forEach(level => {
-            game.addLevel(level);
-        });
-        game.addPlayer(player);
-        return game;
+    this.createWorldWithCreator = function(obj, game, player) {
+        console.log('Creating world with creator!');
+        const creator = new Creator();
+
+        const conf = {name: 'World', worldSize: 'Small',
+            areaSize: 'Small'
+        };
+
+        obj.world = creator.createWorldConf(conf);
+        return this.createFullWorld(obj, game, player);
     };
 
     this.createFullWorld = function(obj, game, player) {
@@ -212,6 +216,8 @@ RG.Factory.Game = function() {
         const world = fact.createWorld(worldConf);
         const levels = world.getLevels();
 
+        console.log('The world has ' + levels.length + ' levels now');
+
         let playerStart = {place: worldConf.name, x: 0, y: 0};
         if (worldConf.playerStart) {
             playerStart = worldConf.playerStart;
@@ -229,14 +235,17 @@ RG.Factory.Game = function() {
         }
     };
 
+    /* Creates all preset levels specified in the world configuration. */
     this.processPresetLevels = function(conf) {
         this.presetLevels = {};
-        const keys = Object.keys(conf.presetLevels);
-        keys.forEach(name => {
-            console.log('processPresetLevels for ' + name);
-            this.presetLevels[name] =
-                this.createPresetLevels(conf.presetLevels[name]);
-        });
+        if (conf.hasOwnProperty('presetLevels')) {
+            const keys = Object.keys(conf.presetLevels);
+            keys.forEach(name => {
+                console.log('processPresetLevels for ' + name);
+                this.presetLevels[name] =
+                    this.createPresetLevels(conf.presetLevels[name]);
+            });
+        }
     };
 
     this.createPresetLevels = function(arr) {
@@ -258,7 +267,8 @@ RG.Factory.Game = function() {
                 }
             });
 
-            // Reset cell explored status
+            // Reset cell explored status, because game-editor sets all cells as
+            // explored for viewing purposes
             RG.setAllExplored(level, false);
             return {
                 nLevel: item.nLevel,
