@@ -39,12 +39,12 @@ class GameStartScreen extends React.Component {
   }
 
   render() {
-    var setLoot = this.props.setLoot;
-    var setMonsters = this.props.setMonsters;
-    var setLevelSize = this.props.setLevelSize;
-    var setPlayerLevel = this.props.setPlayerLevel;
-    var setGameLength = this.props.setGameLength;
-    var setDebugMode = this.props.setDebugMode;
+    const setLoot = this.props.setLoot;
+    const setMonsters = this.props.setMonsters;
+    const setLevelSize = this.props.setLevelSize;
+    const setPlayerLevel = this.props.setPlayerLevel;
+    const setGameLength = this.props.setGameLength;
+    const setDebugMode = this.props.setDebugMode;
 
     var savedPlayerList = this.props.savedPlayerList;
     var playerListHTML = savedPlayerList.map( (val, index) => {
@@ -195,7 +195,7 @@ class GameStartScreen extends React.Component {
                   titleName='Player'
                 />
                 <RadioButtons
-                  buttons={['Off', 'Arena', 'Battle', 'Tiles', 'World']}
+                  buttons={['Off', 'Arena', 'Battle', 'Creator', 'World']}
                   callback={setDebugMode}
                   currValue={this.props.settings.debugMode}
                   titleName='Debug'
@@ -210,7 +210,7 @@ class GameStartScreen extends React.Component {
                   data-dismiss='modal'
                   onClick={this.props.toggleEditor}
                   type='button'
-                  >Editor</button>
+                >Editor</button>
                 <button
                   className='btn btn-success'
                   data-dismiss='modal'
