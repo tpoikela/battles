@@ -790,7 +790,7 @@ class BattlesTop extends React.Component {
             case 'Off': this.gameConf.debugMode = false; break;
             case 'Arena': this.gameConf.debugMode = 'Arena'; break;
             case 'Battle': this.gameConf.debugMode = 'Battle'; break;
-            case 'Tiles': this.gameConf.debugMode = 'Tiles'; break;
+            case 'Creator': this.gameConf.debugMode = 'Creator'; break;
             case 'World': this.gameConf.debugMode = 'World'; break;
             default: console.error('setDebugMode illegal mode ' + mode);
         }
