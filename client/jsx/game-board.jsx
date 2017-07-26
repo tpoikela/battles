@@ -24,10 +24,11 @@ const GameBoard = React.createClass({
         // Build the separate cell rows
         for (let y = this.props.startY; y <= this.props.endY; ++y) {
             const yIndex = y - this.props.startY;
+            const key = this.props.startX + ',' + y;
 
             rowsHTML.push(
                 <GameRow
-                    key={y}
+                    key={key}
                     onCellClick={this.props.onCellClick}
                     rowChars={this.props.charRows[yIndex]}
                     rowClass={this.props.rowClass}
