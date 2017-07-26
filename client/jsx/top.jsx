@@ -601,15 +601,18 @@ class BattlesTop extends React.Component {
 
     /* Returns true if given command is a GUI command. */
     isGUICommand(code) {
-        if (this.gameState.autoTarget && code === ROT.VK_T) {
-            return false;
+        if (this.gameState) {
+            if (this.gameState.autoTarget && code === ROT.VK_T) {
+                return false;
+            }
+            else if (this.gameState.useModeEnabled) {
+                return true;
+            }
+            else {
+                return this.guiCommands.hasOwnProperty(code);
+            }
         }
-        else if (this.gameState.useModeEnabled) {
-            return true;
-        }
-        else {
-            return this.guiCommands.hasOwnProperty(code);
-        }
+        return false;
     }
 
     /* GameInventory should add a callback which updates the GUI (via props) */
