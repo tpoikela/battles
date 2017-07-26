@@ -815,6 +815,39 @@ RG.Geometry = {
         return res;
     },
 
+    getHollowDiamond: function(x0, y0, size) {
+        const RightX = x0 + 2 * size;
+        const midX = x0 + size;
+        const highY = y0 + size;
+        const lowY = y0 - size;
+
+        const coord = [[x0, y0]];
+        // Left side of the diamond
+        for (let x = x0 + 1; x <= midX; x++) {
+            // Upper left coordinates
+            for (let y = y0 + 1; y <= highY; y++) {
+                coord.push([x, y]);
+            }
+            // Lower left coordinates
+            for (let y = y0 - 1; y >= lowY; y--) {
+                coord.push([x, y]);
+            }
+        }
+
+        // Righ side of the diamond
+        for (let x = midX + 1; x <= RightX; x++) {
+            // Upper right coordinates
+            for (let y = y0 + 1; y <= highY; y++) {
+                coord.push([x, y]);
+            }
+            // Lower right coordinates
+            for (let y = y0 - 1; y >= lowY; y--) {
+                coord.push([x, y]);
+            }
+        }
+        return coord;
+    },
+
     /* Given a list of levels and x,y sizes, creates a super-level. Works
     * properly only if all levels have equal size. */
     /* abutLevels: function(levels, x, y) {
@@ -861,6 +894,7 @@ RG.Geometry = {
             }
         }
     },
+
 
     /* Inserts elements into the given level as rectangle bounded by the
      * coordinates given. */
