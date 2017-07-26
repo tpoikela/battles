@@ -414,8 +414,13 @@ RG.Element.Water.prototype.isPassable = function() {
     return false;
 };
 
-// Constant elements which can be used by all levels. Use freeze to prevent any
-// mutations.
+RG.Element.Water = function() {
+    RG.Element.Base.call(this, 'water');
+};
+
+// Constant elements which can be used by all levels. freeze()
+// used to prevent any mutations. Note that elements with any state
+// in them should not be shared (unless state is common for all)
 RG.BRIDGE_ELEM = Object.freeze(new RG.Element.Base('bridge'));
 RG.CHASM_ELEM = Object.freeze(new RG.Element.Chasm());
 RG.FLOOR_ELEM = Object.freeze(new RG.Element.Base('floor'));
