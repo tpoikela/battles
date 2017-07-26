@@ -9,6 +9,8 @@ const GameMessages = require('./game-messages');
 const RGEffects = require('../data/effects');
 const RGObjects = require('../data/battles_objects');
 
+const NO_VISIBLE_CELLS = [];
+
 class GameEditor extends React.Component {
 
     constructor(props) {
@@ -308,7 +310,7 @@ class GameEditor extends React.Component {
                             message={message}
                             saveInProgress={false}
                             showAll={true}
-                            visibleCells={[]}
+                            visibleCells={NO_VISIBLE_CELLS}
                         />
                     </div>
                 }
@@ -330,6 +332,8 @@ class GameEditor extends React.Component {
                         <button onClick={this.levelToJSON}>To JSON</button>
                     </div>
                     {simulationButtons}
+
+                    <button onClick={this.props.toggleEditor} />
                 </div>
             </div>
         );
@@ -830,7 +834,8 @@ class GameEditor extends React.Component {
 }
 
 GameEditor.propTypes = {
-    mapShown: React.PropTypes.bool
+    mapShown: React.PropTypes.bool,
+    toggleEditor: React.PropTypes.func
 };
 
 module.exports = GameEditor;
