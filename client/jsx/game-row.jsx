@@ -17,18 +17,18 @@ const GameRow = React.createClass({
         if (this.props.rowClass !== nextProps.rowClass) {
             return true;
         }
+        const classesLen = this.props.rowClasses.length;
+        const charsLen = this.props.rowChars.length;
 
-        if (this.props.rowClasses.length === nextProps.rowClasses.length) {
-            if (this.props.rowChars.length === nextProps.rowChars.length) {
+        if (classesLen === nextProps.rowClasses.length) {
+            if (charsLen === nextProps.rowChars.length) {
 
-                const classesLen = this.props.rowClasses.length;
                 for (let i = 0; i < classesLen; i++) {
                     if (this.props.rowClasses[i] !== nextProps.rowClasses[i]) {
                         return true;
                     }
                 }
 
-                const charsLen = this.props.rowChars.length;
                 for (let j = 0; j < charsLen; j++) {
                     if (this.props.rowChars[j] !== nextProps.rowChars[j]) {
                         return true;
