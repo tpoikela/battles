@@ -1,6 +1,8 @@
 
 const React = require('react');
 
+const ROT = require('../../lib/rot');
+
 const GameBoard = require('./game-board');
 const RG = require('../src/battles');
 const Screen = require('../gui/screen');
@@ -56,7 +58,10 @@ class GameEditor extends React.Component {
             levelConf: {shown: ''},
             subLevelConf: {shown: ''},
 
-            editorLevel: null,
+            level: null,
+            levelList: [],
+            levelIndex: 0,
+
             frameCount: 0,
             fps: 0,
             simulationStarted: false,
@@ -73,7 +78,7 @@ class GameEditor extends React.Component {
 
         level.editorID = state.idCount++;
         state.level = level;
-        state.editorLevel = level;
+        state.levelList.push(level);
 
         this.state = state;
 
@@ -123,6 +128,29 @@ class GameEditor extends React.Component {
         this.pauseSimulation = this.pauseSimulation.bind(this);
         this.stopSimulation = this.stopSimulation.bind(this);
         this.onChangeTurnsPerFrame = this.onChangeTurnsPerFrame.bind(this);
+
+        this.handleKeyDown = this.handleKeyDown.bind(this);
+    }
+
+    componentDidMount() {
+      document.addEventListener('keydown', this.handleKeyDown, true);
+    }
+
+    componentWillUnMount() {
+      document.removeEventListener('keydown', this.handleKeyDown);
+    }
+
+    /* Handles some quick keys for faster placement. */
+    handleKeyDown(evt) {
+        const keyCode = this.nextCode = evt.keyCode;
+        if (keyCode === ROT.VK_PERIOD) {
+            this.setState({elementType: 'floor'});
+            this.insertElement();
+        }
+        else if (keyCode === ROT.VK_W) {
+            this.setState({elementType: 'wall'});
+            this.insertElement();
+        }
     }
 
     onCellClick(x, y) {
@@ -153,7 +181,10 @@ class GameEditor extends React.Component {
         level.editorID = this.state.idCount++;
         this.screen.setViewportXY(this.state.levelX, this.state.levelY);
         RG.setAllExplored(level, true);
-        this.setState({level: level, editorLevel: level});
+        const levelList = this.state.levelList;
+        levelList.push(level);
+        const levelIndex = levelList.length - 1;
+        this.setState({level: level, levelList, levelIndex});
     }
 
     /* Inserts a sub-map into the current level. This overwrites all
@@ -316,6 +347,7 @@ class GameEditor extends React.Component {
         const classRows = this.screen.getClassRows();
         const editorPanelElem = this.getEditorPanelElement();
         const simulationButtons = this.getSimulationButtons();
+        const gameEditorLevelList = this.getLevelList();
 
         let message = [];
         if (this.state.simulationStarted) {
@@ -328,13 +360,11 @@ class GameEditor extends React.Component {
             (this.state.simulationStarted && this.state.simulationPaused);
         return (
             <div className='game-editor-main-div'>
-                <p className='text-primary'>Battles Game Editor</p>
+                <p className='text-primary'>
+                    Battles Game Editor: {errorMsg}
+                </p>
 
                 {renderPanel && editorPanelElem}
-
-                <div className='game-editor-messages'>
-                    {errorMsg}
-                </div>
 
                 {this.state.simulationStarted &&
                     <div className='game-editor-game-messages'>
@@ -347,17 +377,25 @@ class GameEditor extends React.Component {
                     </div>
                 }
 
-                <div className='game-editor-board-div'>
-                    <GameBoard
-                        boardClassName={this.state.boardClassName}
-                        charRows={charRows}
-                        classRows={classRows}
-                        endY={this.screen.endY}
-                        onCellClick={this.onCellClick}
-                        rowClass={rowClass}
-                        startX={0}
-                        startY={0}
-                    />
+                <div className='row'>
+                    List of levels:
+                    <div className='list-group col-md-2'>
+                        {gameEditorLevelList}
+                    </div>
+                    <div className='col-md-10'>
+                    <div className='game-editor-board-div'>
+                        <GameBoard
+                            boardClassName={this.state.boardClassName}
+                            charRows={charRows}
+                            classRows={classRows}
+                            endY={this.screen.endY}
+                            onCellClick={this.onCellClick}
+                            rowClass={rowClass}
+                            startX={0}
+                            startY={0}
+                        />
+                    </div>
+                    </div>
                 </div>
                 <div className='game-editor-bottom-btn'>
                     {simulationButtons}
@@ -378,13 +416,13 @@ class GameEditor extends React.Component {
 
     getEditorMsg() {
         if (this.state.errorMsg.length > 0) {
-            return <p className='text-danger'>{this.state.errorMsg}</p>;
+            return <span className='text-danger'>{this.state.errorMsg}</span>;
         }
         else {
             if (this.state.msg.length > 0) {
-                return <p className='text-info'>{this.state.msg}</p>;
+                return <span className='text-info'>{this.state.msg}</span>;
             }
-            return <p className='text-success'>OK. No errors.</p>;
+            return <span className='text-success'>OK. No errors.</span>;
         }
     }
 
@@ -665,12 +703,16 @@ class GameEditor extends React.Component {
                 this.frameID = null;
             }
             console.log('Stopped simulation.');
-            const editorLevel = this.state.editorLevel;
             this.game = null;
             delete this.game;
-            this.setState({level: editorLevel, editorLevel: editorLevel,
+            const shownLevel = this.state.levelList[this.state.levelIndex];
+            this.setState({level: shownLevel,
                 simulationStarted: false, simulationPaused: false});
         }
+    }
+
+    selectLevel(level, i) {
+        this.setState({level: level, levelIndex: i});
     }
 
     //--------------------------------------------------------------
@@ -915,6 +957,33 @@ class GameEditor extends React.Component {
             </div>
 
         );
+    }
+
+    /* Creates the LHS panel for browsing levels. */
+    getLevelList() {
+        const levelList = this.state.levelList.map((level, i) => {
+            const selectLevel = this.selectLevel.bind(this, level, i);
+            const className = this.state.levelIndex === i
+                ? 'list-group-item active' : 'list-group-item';
+
+            const nActors = level.getActors().length;
+            const nActorsShow = nActors ? 'A:' + nActors : '';
+            const nItems = level.getItems().length;
+            const nItemsShow = nItems ? 'I:' + nItems : '';
+
+            return (
+                <a className={className}
+                    href='#'
+                    key={level.getID()}
+                    onClick={selectLevel}
+                >
+                    L{level.getID()}:
+                    {level.getMap().cols}x{level.getMap().rows}|{nActorsShow}|
+                    {nItemsShow}
+                </a>
+            );
+        });
+        return levelList;
     }
 }
 
