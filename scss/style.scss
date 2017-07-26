@@ -152,6 +152,11 @@ ul {
     @include ver-to-hor-list;
 };
 
+.game-board-player-view-xl  {
+    font-family: monospace;
+    font-size: 24px;
+};
+
 .game-board-player-view {
     @include cell-font;
 };
@@ -162,6 +167,11 @@ ul {
 
 .game-board-map-view {
     @include cell-font-map;
+};
+
+.game-board-map-view-xs {
+    font-family: monospace;
+    font-size: 6px;
 };
 
 .cell-row-div-map-view {
