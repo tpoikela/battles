@@ -871,6 +871,41 @@ RG.Geometry = {
 
     },*/
 
+    splitLevel: function(level, conf) {
+        const levels = [];
+        const width = level.getMap().cols / conf.nLevelsX;
+        const height = level.getMap().rows / conf.nLevelsY;
+
+        for (let x = 0; x < conf.nLevelsX; x++) {
+            const levelCol = [];
+            for (let y = 0; y < conf.nLevelsY; y++) {
+                const subLevel = RG.FACT.createLevel('empty', width, height);
+                levelCol.push(subLevel);
+            }
+            levels.push(levelCol);
+        }
+
+        // Copy all the elements
+        const map = level.getMap();
+        for (let x = 0; x < map.cols; x++) {
+            const subIndexX = Math.floor(x / width);
+            for (let y = 0; y < map.rows; y++) {
+                const subIndexY = Math.floor(y / height);
+                // Get correct sub-level
+                // console.log(`Super x,y: ${x},${y}: SubX,Y: ${subX}, ${subY}`);
+                const subLevel = levels[subIndexX][subIndexY];
+                const subX = x % width;
+                const subY = y % height;
+                subLevel.getMap().setBaseElemXY(
+                    subX, subY, map.getBaseElemXY(x, y));
+
+                // Translate x,y to sub-level x,y
+            }
+        }
+
+        return levels;
+    },
+
     insertSubLevel: function(l1, l2, startX, startY) {
         const m1 = l1.getMap();
         const m2 = l2.getMap();
