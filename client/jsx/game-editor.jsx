@@ -11,6 +11,13 @@ const RGObjects = require('../data/battles_objects');
 
 const NO_VISIBLE_CELLS = [];
 
+const boardViews = [
+    'game-board-map-view-xs',
+    'game-board-map-view',
+    'game-board-player-view',
+    'game-board-player-view-xl'
+];
+
 class GameEditor extends React.Component {
 
     constructor(props) {
@@ -18,6 +25,9 @@ class GameEditor extends React.Component {
 
         const state = {
             boardClassName: 'game-board-player-view',
+            boardIndex: 2, // Points to boardViews array
+            fontSize: 16,
+
             levelX: 80,
             levelY: 28,
             levelType: 'arena',
@@ -25,8 +35,11 @@ class GameEditor extends React.Component {
             subLevelX: 20,
             subLevelY: 7,
             subLevelType: 'arena',
+            subLevelTileX: 1,
+            subLevelTileY: 1,
 
             errorMsg: '',
+            msg: '',
 
             itemFunc: (item) => (item.value < 5000),
             maxValue: 5000,
@@ -73,7 +86,7 @@ class GameEditor extends React.Component {
 
         // Bind functions for callbacks
         this.generateMap = this.generateMap.bind(this);
-        this.onChangeType = this.onChangeType.bind(this);
+        this.onChangeMapType = this.onChangeMapType.bind(this);
         this.onChangeX = this.onChangeX.bind(this);
         this.onChangeY = this.onChangeY.bind(this);
 
@@ -81,6 +94,8 @@ class GameEditor extends React.Component {
         this.onChangeSubType = this.onChangeSubType.bind(this);
         this.onChangeSubX = this.onChangeSubX.bind(this);
         this.onChangeSubY = this.onChangeSubY.bind(this);
+        this.onChangeSubTileX = this.onChangeSubTileX.bind(this);
+        this.onChangeSubTileY = this.onChangeSubTileY.bind(this);
 
         this.generateActors = this.generateActors.bind(this);
         this.generateItems = this.generateItems.bind(this);
@@ -119,7 +134,7 @@ class GameEditor extends React.Component {
         this.setState({selectedCell: cell});
     }
 
-    /* Converts the rendered level to JSON.*/
+    /* Converts the rendered level to JSON and puts that into localStorage.*/
     levelToJSON() {
         const json = this.state.level.toJSON();
         localStorage.setItem('savedLevel', JSON.stringify(json));
@@ -132,30 +147,45 @@ class GameEditor extends React.Component {
         if (this.state.levelConf.hasOwnProperty(levelType)) {
             conf = this.state.levelConf[levelType];
         }
-        const level = RG.FACT.createLevel(levelType,
-            this.state.levelX, this.state.levelY, conf);
+        const level = RG.FACT.createLevel(
+            levelType, this.state.levelX, this.state.levelY, conf);
+
         level.editorID = this.state.idCount++;
         this.screen.setViewportXY(this.state.levelX, this.state.levelY);
         RG.setAllExplored(level, true);
         this.setState({level: level, editorLevel: level});
     }
 
-    /* Inserts a sub-map into the current level. This overwrites all cells
-     * in the large map (including items and actors. */
+    /* Inserts a sub-map into the current level. This overwrites all
+     * overlapping cells in the large map (incl items and actors). */
     subGenerateMap() {
         const level = this.state.level;
         const levelType = this.state.subLevelType;
         let conf = {};
+
         if (this.state.subLevelConf.hasOwnProperty(levelType)) {
             conf = this.state.subLevelConf[levelType];
         }
-        const subLevel = RG.FACT.createLevel(levelType,
-            this.state.subLevelX, this.state.subLevelY, conf);
-        RG.setAllExplored(subLevel, true);
+        const subWidth = this.state.subLevelX;
+        const subHeight = this.state.subLevelY;
+
         if (this.state.selectedCell) {
-            const x = this.state.selectedCell.getX();
-            const y = this.state.selectedCell.getY();
-            RG.Geometry.insertSubLevel(level, subLevel, x, y);
+            const x0 = this.state.selectedCell.getX();
+            const y0 = this.state.selectedCell.getY();
+
+            // Iterate through tiles in x-direction (tx) and tiles in
+            // y-direction (ty). Compute upper left x,y for each sub-level.
+            for (let tx = 0; tx < this.state.subLevelTileX; tx++) {
+                for (let ty = 0; ty < this.state.subLevelTileY; ty++) {
+                    const xSub = x0 + tx * subWidth;
+                    const ySub = y0 + ty * subHeight;
+                    const subLevel = RG.FACT.createLevel(
+                        levelType, subWidth, this.state.subLevelY, conf);
+                    RG.setAllExplored(subLevel, true);
+                    RG.Geometry.insertSubLevel(level, subLevel, xSub, ySub);
+                }
+            }
+
             this.setState({level: level});
         }
         else {
@@ -164,6 +194,7 @@ class GameEditor extends React.Component {
         }
     }
 
+    /* Generates and inserts random items into the map. */
     generateItems() {
         const itemFunc = this.state.itemFunc;
         const maxValue = this.state.maxValue;
@@ -183,6 +214,7 @@ class GameEditor extends React.Component {
         this.setState({level: level});
     }
 
+    /* Generates and inserts random actors into the map. */
     generateActors() {
         const level = this.state.level;
 
@@ -279,7 +311,7 @@ class GameEditor extends React.Component {
             this.screen.renderFullMap(map);
         }
 
-        const errorMsg = this.getErrorMsg();
+        const errorMsg = this.getEditorMsg();
         const charRows = this.screen.getCharRows();
         const classRows = this.screen.getClassRows();
         const editorPanelElem = this.getEditorPanelElement();
@@ -296,7 +328,7 @@ class GameEditor extends React.Component {
             (this.state.simulationStarted && this.state.simulationPaused);
         return (
             <div className='game-editor-main-div'>
-                <h2>Battles Game Editor</h2>
+                <p className='text-primary'>Battles Game Editor</p>
 
                 {renderPanel && editorPanelElem}
 
@@ -328,22 +360,30 @@ class GameEditor extends React.Component {
                     />
                 </div>
                 <div className='game-editor-bottom-btn'>
-                    <div className='btn-div'>
-                        <button onClick={this.levelToJSON}>To JSON</button>
-                    </div>
                     {simulationButtons}
 
-                    <button onClick={this.props.toggleEditor} />
+                    <div className='btn-div'>
+                        <button onClick={this.levelToJSON}>Save</button>
+                        <button
+                            className='btn btn-danger btn-lg'
+                            onClick={this.props.toggleEditor}
+                        >
+                            Close editor
+                        </button>
+                    </div>
                 </div>
             </div>
         );
     }
 
-    getErrorMsg() {
+    getEditorMsg() {
         if (this.state.errorMsg.length > 0) {
             return <p className='text-danger'>{this.state.errorMsg}</p>;
         }
         else {
+            if (this.state.msg.length > 0) {
+                return <p className='text-info'>{this.state.msg}</p>;
+            }
             return <p className='text-success'>OK. No errors.</p>;
         }
     }
@@ -369,7 +409,6 @@ class GameEditor extends React.Component {
         else if (value === 'mountain') {
             if (!levelConf.mountain) {
                 levelConf.mountain = {
-                    // gradients: MapMountain.noiseGradients,
                     noiseMult: 1,
                     noiseDivider: 20,
                     highRockThr: 0.75,
@@ -381,9 +420,28 @@ class GameEditor extends React.Component {
             }
         }
         else {
-            levelConf = {};
-            levelConf.shown = '';
+            levelConf[value] = {};
+            levelConf.shown = value;
         }
+    }
+
+    /* Zooms the game board in or out. TODO: Make this actually work correctly.
+     */
+    zoom(inOut) {
+        let index = this.state.boardIndex;
+
+        if (inOut === '+') {
+            if (index < (boardViews.length - 1)) {
+                ++index;
+            }
+        }
+        else if (inOut === '-') {
+            if (index > 0) {
+                --index;
+            }
+        }
+        const boardClassName = boardViews[index];
+        this.setState({boardClassName, boardIndex: index});
     }
 
     //----------------------------------------------------------------
@@ -411,7 +469,7 @@ class GameEditor extends React.Component {
         }
     }
 
-    onChangeType(evt) {
+    onChangeMapType(evt) {
         const value = evt.target.value;
         const levelType = value;
         const levelConf = this.state.levelConf;
@@ -452,6 +510,16 @@ class GameEditor extends React.Component {
     onChangeSubY(evt) {
         const value = this.getInt(evt.target.value, 10);
         this.setState({subLevelY: value});
+    }
+
+    onChangeSubTileX(evt) {
+        const value = this.getInt(evt.target.value, 10);
+        this.setState({subLevelTileX: value});
+    }
+
+    onChangeSubTileY(evt) {
+        const value = this.getInt(evt.target.value, 10);
+        this.setState({subLevelTileY: value});
     }
 
     onChangeElement(evt) {
@@ -691,10 +759,11 @@ class GameEditor extends React.Component {
                     <button onClick={this.generateMap}>Generate!</button>
                     <select
                         name='level-type'
-                        onChange={this.onChangeType}
+                        onChange={this.onChangeMapType}
                         value={this.state.levelType}
                     >{levelSelectElem}
                     </select>
+                    <label>Size:
                     <input
                         name='level-x'
                         onChange={this.onChangeX}
@@ -705,7 +774,10 @@ class GameEditor extends React.Component {
                         onChange={this.onChangeY}
                         value={this.state.levelY}
                     />
+                    </label>
                     <button onClick={this.invertMap}>Invert</button>
+                    <button onClick={this.zoom.bind(this, '+')}>+</button>
+                    <button onClick={this.zoom.bind(this, '-')}>-</button>
                     {levelConfElem}
                 </div>
                 <div className='btn-div'>
@@ -717,6 +789,7 @@ class GameEditor extends React.Component {
                     >
                         {levelSelectElem}
                     </select>
+                    <label>Size:
                     <input
                         name='sublevel-x'
                         onChange={this.onChangeSubX}
@@ -727,6 +800,19 @@ class GameEditor extends React.Component {
                         onChange={this.onChangeSubY}
                         value={this.state.subLevelY}
                     />
+                    </label>
+                    <label>Tiles:
+                    <input
+                        name='sublevel-tile-x'
+                        onChange={this.onChangeSubTileX}
+                        value={this.state.subLevelTileX}
+                    />
+                    <input
+                        name='sublevel-tile-y'
+                        onChange={this.onChangeSubTileY}
+                        value={this.state.subLevelTileY}
+                    />
+                    </label>
                     {subLevelConfElem}
                 </div>
                 <div className='btn-div'>
@@ -761,8 +847,7 @@ class GameEditor extends React.Component {
                     >{itemSelectElem}
                     </select>
 
-                </div>
-                <div className='btn-div'>
+                    <span>| X by Y</span>
                     <input
                         name='insert-x-width'
                         onChange={this.onChangeInsertXWidth}
