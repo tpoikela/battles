@@ -57,7 +57,8 @@
     "start": "python -m SimpleHTTPServer",
     "test": "mocha --recursive tests/client/src",
     "test:functional": "mocha --recursive tests/client/functional/",
-    "test:all": "npm run test && npm run test:functional"
+    "test:gui": "mocha --recursive tests/client/gui",
+    "test:all": "npm run test && npm run test:gui && npm run test:functional"
   },
   "license": "MIT",
   "bugs": {
