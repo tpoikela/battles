@@ -52,7 +52,7 @@ class GameStartScreen extends React.Component {
         <div
           className='player-list-item' key={index}
           onClick={this.selectGame.bind(this, val.name)}
-          >
+        >
           Name: {val.name}, L: {val.expLevel} DL: {val.dungeonLevel}
         </div>);
     });
@@ -69,7 +69,7 @@ class GameStartScreen extends React.Component {
           id='gameLoadModal'
           role='dialog'
           tabIndex='-1'
-          >
+        >
           <div className='modal-dialog modal-lg'>
             <div className='modal-content'>
 
@@ -89,14 +89,14 @@ class GameStartScreen extends React.Component {
                   data-dismiss='modal'
                   onClick={this.loadGame}
                   type='button'
-                  >
+                >
                   Load
                 </button>
                 <button
                   className='btn btn-secondary btn-danger'
                   onClick={this.deleteGame}
                   type='button'
-                  >
+                >
                   Delete
                 </button>
               </div>
@@ -113,7 +113,7 @@ class GameStartScreen extends React.Component {
         role='dialog'
         role='dialog'
         tabIndex='-1'
-        >
+      >
         <div className='modal-dialog modal-lg'>
           <div className='modal-content'>
             <ModalHeader
@@ -216,14 +216,14 @@ class GameStartScreen extends React.Component {
                   data-dismiss='modal'
                   onClick={newGame}
                   type='button'
-                  >Embark!</button>
+                >Embark!</button>
                 <button
                   className='btn btn-secondary btn-warning'
                   data-dismiss='modal'
                   data-target='#gameLoadModal'
                   data-toggle='modal'
                   type='button'
-                  >
+                >
                   Load
                 </button>
 
@@ -240,24 +240,24 @@ class GameStartScreen extends React.Component {
 
 GameStartScreen.propTypes = {
   settings: React.PropTypes.object,
-  deleteGame: React.PropTypes.func,
-  loadGame: React.PropTypes.func,
+  deleteGame: React.PropTypes.func.isRequired,
+  loadGame: React.PropTypes.func.isRequired,
   savedPlayerList: React.PropTypes.array,
-  setPlayerName: React.PropTypes.func,
+  setPlayerName: React.PropTypes.func.isRequired,
   playerName: React.PropTypes.string,
 
-  setLoot: React.PropTypes.func,
-  setMonsters: React.PropTypes.func,
-  setLevelSize: React.PropTypes.func,
-  setPlayerLevel: React.PropTypes.func,
-  setGameLength: React.PropTypes.func,
-  setDebugMode: React.PropTypes.func,
+  setLoot: React.PropTypes.func.isRequired,
+  setMonsters: React.PropTypes.func.isRequired,
+  setLevelSize: React.PropTypes.func.isRequired,
+  setPlayerLevel: React.PropTypes.func.isRequired,
+  setGameLength: React.PropTypes.func.isRequired,
+  setDebugMode: React.PropTypes.func.isRequired,
 
-  newGame: React.PropTypes.func,
+  newGame: React.PropTypes.func.isRequired,
   selectedGame: React.PropTypes.string,
-  selectGame: React.PropTypes.func,
+  selectGame: React.PropTypes.func.isRequired,
 
-  toggleEditor: React.PropTypes.func
+  toggleEditor: React.PropTypes.func.isRequired
 };
 
 module.exports = GameStartScreen;
