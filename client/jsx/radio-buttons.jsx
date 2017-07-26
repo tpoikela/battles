@@ -14,6 +14,14 @@ class RadioButtons extends React.Component {
         this.props.callback(name);
     }
 
+    shouldComponentUpdate(nextProps) {
+        if (nextProps.currValue !== this.props.currValue) {
+            return true;
+        }
+        console.log('Will not render the component RadioButtons');
+        return false;
+    }
+
     render() {
         const currValue = this.props.currValue;
         const buttons = this.props.buttons;
@@ -30,7 +38,7 @@ class RadioButtons extends React.Component {
                     className={classes}
                     key={index}
                     onClick={this.onButtonClick.bind(this, name)}
-                    >
+                >
                     {name}
                 </button>
             );
@@ -40,7 +48,7 @@ class RadioButtons extends React.Component {
             <div className='radio-buttons btn-group'>
                 <label
                     className='select-label btn text-primary'
-                    >
+                >
                     {this.props.titleName}</label>
                 {buttonList}
             </div>
