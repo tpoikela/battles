@@ -10,7 +10,7 @@ ReactDOM.render(
     document.getElementById('mount-point')
 );
 
-if (process.env.NODE_ENV !== 'production') {
+if (/debug/.test(document.location.search)) {
 	/* eslint-disable */
 	let createClass = React.createClass;
     Object.defineProperty(React, 'createClass', {
