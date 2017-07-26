@@ -1,5 +1,5 @@
 
-const GUI = require('./gui');
+const Viewport = require('./viewport');
 const RG = require('../src/battles');
 
 // TODO: Refactor out of this file
@@ -79,7 +79,7 @@ const getClassesAndCharsFullMap = function(cells, selCell) {
 };
 
 /* Creates a screen with viewport set to given parameters. */
-GUI.Screen = function(viewX, viewY) {
+const Screen = function(viewX, viewY) {
     this.viewportX = viewX;
     this.viewportY = viewY;
     this.selectedCell = null;
@@ -88,7 +88,7 @@ GUI.Screen = function(viewX, viewY) {
     let _classRows = [];
     let _mapShown = false;
 
-    this.viewport = new GUI.Viewport(viewX, viewY);
+    this.viewport = new Viewport(viewX, viewY);
 
     /* Returns the leftmost X-coordinate of the viewport. */
     this.getStartX = function() {
@@ -173,4 +173,4 @@ GUI.Screen = function(viewX, viewY) {
 
 };
 
-module.exports = GUI.Screen;
+module.exports = Screen;
