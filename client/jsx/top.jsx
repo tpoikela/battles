@@ -150,7 +150,7 @@ class BattlesTop extends React.Component {
             selectedCell: null,
             selectedGame: null,
             selectedItem: null,
-
+            showStartScreen: true,
             playerLevel: 'Medium',
             gameLength: 'Medium',
             levelSize: 'Medium',
@@ -168,12 +168,12 @@ class BattlesTop extends React.Component {
         RG.RAND.setSeed(1);
     }
 
+    /* Toggles the game editor view. */
     toggleEditor() {
         this.setState({showEditor: !this.state.showEditor});
     }
 
     selectSaveGame(name) {
-        console.log('Top select save game clicked with name ' + name);
         this.setState({selectedGame: name});
     }
 
@@ -238,7 +238,6 @@ class BattlesTop extends React.Component {
     createNewGameAsync() {
         return new Promise((resolve, reject) => {
             try {
-                console.log('Inside a promise now');
                 this.createNewGame();
                 resolve();
             }
@@ -248,9 +247,9 @@ class BattlesTop extends React.Component {
         });
     }
 
-    /* Called when "Start" button is clicked to create a new game.*/
+    /* Called when "Embark" button is clicked to create a new game.*/
     newGame() {
-        this.setState({creatingGame: true});
+        this.setState({creatingGame: true, showStartScreen: false});
         this.createNewGameAsync().then(() => {
             this.setState({render: true, renderFullScreen: true,
                 creatingGame: false});
@@ -491,6 +490,7 @@ class BattlesTop extends React.Component {
         return (
             <div className='container main-div' id='main-div' >
 
+                {this.state.showStartScreen &&
                 <GameStartScreen
                     deleteGame={this.deleteGame}
                     loadGame={this.loadGame}
@@ -509,6 +509,7 @@ class BattlesTop extends React.Component {
                     settings={settings}
                     toggleEditor={this.toggleEditor}
                 />
+                }
                 <GameHelpScreen />
 
 
@@ -535,6 +536,8 @@ class BattlesTop extends React.Component {
                         <GamePanel
                             saveGame={this.saveGame}
                             setViewSize={this.setViewSize}
+                            showLoadScreen={this.showLoadScreen}
+                            showStartScreen={this.showStartScreen}
                         />
                         <div className='text-left game-stats-div'>
                             <GameStats
@@ -572,7 +575,9 @@ class BattlesTop extends React.Component {
                 }
 
                 {this.state.showEditor &&
-                    <GameEditor />
+                    <GameEditor
+                        toggleEditor={this.toggleEditor}
+                    />
                 }
             </div>
         );
@@ -717,6 +722,20 @@ class BattlesTop extends React.Component {
         }
     }
 
+    showStartScreen() {
+        if (!this.state.showStartScreen) {
+            $('#start-button').trigger('click');
+            this.setState({showStartScreen: true});
+        }
+    }
+
+    showLoadScreen() {
+        if (!this.state.showStartScreen) {
+            $('#load-button').trigger('click');
+            this.setState({showStartScreen: true});
+        }
+    }
+
     //--------------------------------
     // GAME CONFIG RELATED FUNCTIONS
     //-------------------------------
@@ -842,6 +861,9 @@ class BattlesTop extends React.Component {
         this.doInvCmd = this.doInvCmd.bind(this);
 
         this.toggleEditor = this.toggleEditor.bind(this);
+
+        this.showStartScreen = this.showStartScreen.bind(this);
+        this.showLoadScreen = this.showLoadScreen.bind(this);
     }
 
 }
