@@ -5,6 +5,7 @@
 */
 
 const ROT = require('../lib/rot');
+const RG = require('../client/src/battles');
 
 // Straight lines
 const LL_WE = '\u2550'; // ═
@@ -27,7 +28,6 @@ const TT_E = '\u2563'; // ╣
 const TT_N = '\u2566'; // ╦
 const TT_S = '\u2569'; // ╩
 const TERM = '*';
-
 
 // Used for randomization
 const dirValues = [
@@ -94,7 +94,7 @@ const CAN_CONNECT = {
 // Corners
     [CC_NW]: { // ╔
         N: N_HAS_CONN, // ╔
-                         // e
+                       // e
         S: [],
         E: [],
         W: W_HAS_CONN // ╔e
@@ -163,26 +163,59 @@ const CAN_CONNECT = {
     }
 };
 
-// Fully randomized
-const map = getRandMap(40, 20);
-// printMap(map);
+/* Main function which returns RG.Map.Level. */
+function getFullWorld(conf = {}) {
 
-randomizeBorder(map);
-printMap(map);
+    const worldX = conf.worldX || 400;
+    const worldY = conf.worldY || 400;
 
-addLineHorizontalWestToEast(7, map);
-printMap(map);
+    const X = 40;
+    const Y = 20;
 
-const map2 = JSON.parse(JSON.stringify(map));
+    const xMap = worldX / X;
+    const yMap = worldY / Y;
 
-connectUnconnectedTopBottom(map);
+    // Fully randomized
+    const map = getRandMap(X, Y);
+    // printMap(map);
 
-console.log('BOTTOM2TOP');
-connectUnconnectedBottomTop(map2);
+    randomizeBorder(map);
+    // printMap(map);
 
+    addLineHorizontalWestToEast(Math.floor(Y * 0.30), map);
+    addLineHorizontalWestToEast(Math.floor(Y * 0.50), map);
+    // printMap(map);
 
-printMap(map);
-printMap(map2);
+    const map2 = JSON.parse(JSON.stringify(map));
+    connectUnconnectedTopBottom(map);
+    connectUnconnectedBottomTop(map2);
+
+    printMap(map);
+    // printMap(map2);
+
+    const worldLevel = getLevelsWithElems(map, worldX, worldY, xMap, yMap);
+
+// const json = worldLevel.toJSON();
+// Dumps the full map into a file
+// console.log(JSON.stringify(json));
+
+    if (conf.split) {
+        const conf = {
+            nLevelsX: 8,
+            nLevelsY: 8
+        };
+        const splitLevels = RG.Geometry.splitLevel(worldLevel, conf);
+
+        splitLevels.forEach(levelCol => {
+            levelCol.forEach(l => {
+                l.getMap().debugPrintInASCII();
+            });
+        });
+        return splitLevels;
+    }
+
+    return worldLevel;
+}
 
 //---------------------------------------------------------------------------
 // HELPERS
@@ -298,7 +331,7 @@ function processCell(x, y, map) {
         else {
             map[x][y] = TERM;
         }
-        printMap(map);
+        // printMap(map);
     }
 }
 
@@ -309,8 +342,6 @@ function getNeighbours(x, y, map) {
     const tiles = [];
     // N
     if (y > 0) {
-        console.log(`map tile ${x},${y - 1}: ${map[x][y - 1]}`);
-        console.log('getN N: ' + JSON.stringify(CAN_CONNECT[map[x][y - 1]]));
         const conn = CAN_CONNECT[map[x][y - 1]].N;
         tiles.push([map[x][y - 1], conn]);
     }
@@ -342,4 +373,98 @@ function printMap(map) {
         }
         console.log(line.join(''));
     }
+}
+
+/* Returns element map with 1 marking the lines. */
+function getLevelsWithElems(map, elemX, elemY, xMap, yMap) {
+    const yMax = map[0].length;
+    const xMax = map.length;
+    const level = RG.FACT.createLevel('empty', elemX, elemY);
+
+    for (let x = 0; x < xMax; x++) {
+        for (let y = 0; y < yMax; y++) {
+            const subLevel = getSubLevel(map[x][y], xMap, yMap);
+            const x0 = x * xMap;
+            const y0 = y * yMap;
+            RG.Geometry.insertSubLevel(level, subLevel, x0, y0);
+        }
+    }
+    return level;
+}
+
+/* Returns a subLevel created based on map. */
+function getSubLevel(type, xMap, yMap) {
+    const subX = xMap;
+    const subY = yMap;
+    const subLevel = RG.FACT.createLevel('empty', subX, subY);
+    const map = subLevel.getMap();
+
+    const canConnectNorth = N_HAS_CONN.findIndex(item => item === type) >= 0;
+    const canConnectSouth = S_HAS_CONN.findIndex(item => item === type) >= 0;
+    const canConnectEast = E_HAS_CONN.findIndex(item => item === type) >= 0;
+    const canConnectWest = W_HAS_CONN.findIndex(item => item === type) >= 0;
+
+    const midX = Math.floor(subX / 2);
+    const midY = Math.floor(subY / 2);
+
+
+    // console.log('Width is ' + width);
+
+    let width = getLineWidth(5, 2, subX);
+    // Draw line from center to north
+    if (canConnectNorth) {
+        for (let y = 0; y < midY; y++) {
+            for (let x = midX - (width - 1); x <= midX + (width - 1); x++) {
+                // console.log('subLevel x is ' + x + ' subX: ' + subX);
+                map.setBaseElemXY(x, y, RG.WALL_ELEM);
+            }
+        }
+    }
+    width = getLineWidth(5, 2, subX);
+    // Draw line from center to south
+    if (canConnectSouth) {
+        for (let y = midY; y < subY; y++) {
+            for (let x = midX - (width - 1); x <= midX + (width - 1); x++) {
+                map.setBaseElemXY(x, y, RG.WALL_ELEM);
+            }
+        }
+    }
+    width = getLineWidth(5, 2, subY);
+    // Draw line from center to east
+    if (canConnectEast) {
+        for (let x = midX; x < subX; x++) {
+            for (let y = midY - (width - 1); y <= midY + (width - 1); y++) {
+                map.setBaseElemXY(x, y, RG.WALL_ELEM);
+            }
+        }
+    }
+    width = getLineWidth(5, 2, subY);
+    // Draw line from center to west
+    if (canConnectWest) {
+        for (let x = 0; x < midX; x++) {
+            for (let y = midY - (width - 1); y <= midY + (width - 1); y++) {
+                map.setBaseElemXY(x, y, RG.WALL_ELEM);
+            }
+        }
+    }
+    return subLevel;
+}
+
+function getLineWidth(mean, stddev, subSize) {
+    let width = Math.floor(ROT.RNG.getNormal(5, 2));
+    // width = Math.floor(width + coeff * width);
+
+    if (width > subSize / 2) {
+        width = subSize / 2 - 1;
+    }
+    else if (width < 1) {
+        width = 1;
+    }
+    return width;
+}
+
+module.exports = getFullWorld;
+
+if (process.env.RUN) {
+    getFullWorld();
 }
