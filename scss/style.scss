@@ -174,8 +174,18 @@ ul {
     font-size: 6px;
 };
 
+.game-board-map-view-xxxs {
+    font-family: monospace;
+    font-size: 3px;
+    margin-top: 40px;
+};
+
 .cell-row-div-map-view {
     margin-bottom: -2px;
+}
+
+.cell-row-div-map-view-xxxs {
+    margin-bottom: -1px;
 }
 
 .game-board {
