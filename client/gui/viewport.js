@@ -1,6 +1,4 @@
 
-let CALLS = 0;
-
 /* Viewport object which manages the shown part of the level. */
 const Viewport = function(viewportX, viewportY) {
 
@@ -18,8 +16,6 @@ const Viewport = function(viewportX, viewportY) {
      * player, the map Map.CellList of current level.
      */
     this.getCellsInViewPort = function(x, y, map) {
-        ++CALLS;
-        console.log(`getCellsInViewPort called: ${CALLS}`);
         let startX = x - this.viewportX;
         let endX = x + this.viewportX;
         let startY = y - this.viewportY;
