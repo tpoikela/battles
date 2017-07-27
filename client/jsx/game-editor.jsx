@@ -13,7 +13,10 @@ const RGObjects = require('../data/battles_objects');
 
 const NO_VISIBLE_CELLS = [];
 
+const genFullWorld = require('../../scripts/mountain-range');
+
 const boardViews = [
+    'game-board-map-view-xxxs',
     'game-board-map-view-xs',
     'game-board-map-view',
     'game-board-player-view',
@@ -37,7 +40,7 @@ class GameEditor extends React.Component {
 
         const state = {
             boardClassName: 'game-board-player-view',
-            boardIndex: 2, // Points to boardViews array
+            boardIndex: 3, // Points to boardViews array
             fontSize: 16,
 
             levelX: 80,
@@ -100,6 +103,7 @@ class GameEditor extends React.Component {
         this.frameID = null;
 
         // Bind functions for callbacks
+        this.generateWorld = this.generateWorld.bind(this);
         this.generateMap = this.generateMap.bind(this);
         this.onChangeMapType = this.onChangeMapType.bind(this);
         this.onChangeX = this.onChangeX.bind(this);
@@ -176,6 +180,22 @@ class GameEditor extends React.Component {
     levelToJSON() {
         const json = this.state.level.toJSON();
         localStorage.setItem('savedLevel', JSON.stringify(json));
+    }
+
+    /* Generates a world scale map. */
+    generateWorld() {
+        const conf = {
+            worldX: this.state.levelX,
+            worldY: this.state.levelY
+        };
+        const level = genFullWorld(conf);
+        level.getMap()._optimizeForRowAccess();
+        level.editorID = this.state.idCount++;
+        this.screen.setViewportXY(level.getMap().cols, level.getMap().rows);
+        const levelList = this.state.levelList;
+        levelList.push(level);
+        const levelIndex = levelList.length - 1;
+        this.setState({level: level, levelList, levelIndex});
     }
 
     /* Generates the large map. This erases everything. */
@@ -345,6 +365,9 @@ class GameEditor extends React.Component {
         const mapShown = this.props.mapShown;
         let rowClass = 'cell-row-div-player-view';
         if (mapShown) {rowClass = 'cell-row-div-map-view';}
+        if (this.state.boardClassName === 'game-board-map-view-xxxs') {
+            rowClass = 'cell-row-div-map-view-xxxs';
+        }
 
         let map = null;
         if (this.state.level) {
@@ -390,8 +413,8 @@ class GameEditor extends React.Component {
                 }
 
                 <div className='row'>
-                    List of levels:
                     <div className='list-group col-md-2'>
+                        List of levels:
                         {gameEditorLevelList}
                     </div>
                     <div className='col-md-10'>
@@ -810,6 +833,9 @@ class GameEditor extends React.Component {
             this.state.subLevelConf);
         return (
             <div className='game-editor-panel'>
+                <div className='btn-div'>
+                    <button onClick={this.generateWorld}>WorldGen!</button>
+                </div>
                 <div className='btn-div'>
                     <button onClick={this.generateMap}>Generate!</button>
                     <select
