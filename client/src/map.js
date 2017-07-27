@@ -405,6 +405,12 @@ RG.Map.CellList = function(cols, rows) { // {{{2
         console.log(mapInASCII);
     };
 
+    /* Queries a row of cells. _optimizeForRowAccess must be called before this
+     * function is used. */
+    this.getCellRowFast = function(y) {
+        return this._rowMap[y];
+    };
+
 
 }; // }}} this._map.CellList
 
@@ -420,6 +426,18 @@ RG.Map.CellList.invertMap = function(map) {
                 map._map[x][y].setBaseElem(RG.WALL_ELEM);
                 // map._map[x][y].setBaseElem(new RG.Element.Base('wall'));
             }
+        }
+    }
+};
+
+/* Creates another internal representation of the map. This can be used for fast
+ * row access. */
+RG.Map.CellList.prototype._optimizeForRowAccess = function() {
+    this._rowMap = [];
+    for (let y = 0; y < this.rows; y++) {
+        this._rowMap[y] = [];
+        for (let x = 0; x < this.cols; x++) {
+            this._rowMap[y][x] = this._map[x][y];
         }
     }
 };
