@@ -168,8 +168,10 @@ class BattlesTop extends React.Component {
         RG.RAND.setSeed(1);
     }
 
-    /* Toggles the game editor view. */
+    /* Toggles the game editor view. Need to terminate the existing
+     * animation. */
     toggleEditor() {
+        cancelAnimationFrame(this.frameID);
         this.setState({showEditor: !this.state.showEditor});
     }
 
