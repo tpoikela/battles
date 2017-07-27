@@ -54,6 +54,7 @@ describe('GUI.Screen', () => {
         const level = RG.FACT.createLevel('arena', 10, 10);
         const map = level.getMap();
         const screen = new Screen(5, 5);
+        map._optimizeForRowAccess(map);
         screen.renderFullMap(map);
 
         const chars = screen.getCharRows();
