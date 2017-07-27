@@ -74,7 +74,7 @@ class GameEditor extends React.Component {
         this.screen = new Screen(state.levelX, state.levelY);
         const level = RG.FACT.createLevel(state.levelType,
             state.levelX, state.levelY);
-        RG.setAllExplored(level, true);
+        level.getMap()._optimizeForRowAccess();
 
         level.editorID = state.idCount++;
         state.level = level;
@@ -175,10 +175,12 @@ class GameEditor extends React.Component {
         if (this.state.levelConf.hasOwnProperty(levelType)) {
             conf = this.state.levelConf[levelType];
         }
+
         const level = RG.FACT.createLevel(
             levelType, this.state.levelX, this.state.levelY, conf);
-
+        level.getMap()._optimizeForRowAccess();
         level.editorID = this.state.idCount++;
+
         this.screen.setViewportXY(this.state.levelX, this.state.levelY);
         RG.setAllExplored(level, true);
         const levelList = this.state.levelList;
@@ -607,6 +609,7 @@ class GameEditor extends React.Component {
             const fromJSON = new RG.Game.FromJSON();
             const json = this.state.level.toJSON();
             const levelClone = fromJSON.createLevel(json);
+            levelClone.getMap()._optimizeForRowAccess();
             levelClone.editorID = this.state.idCount++;
 
             const nActors = levelClone.getActors().length;
