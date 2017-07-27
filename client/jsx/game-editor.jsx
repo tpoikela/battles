@@ -20,6 +20,16 @@ const boardViews = [
     'game-board-player-view-xl'
 ];
 
+const startSimulation = (startTime, level) =>
+    () => (
+        {
+            level,
+            startTime: startTime,
+            simulationStarted: true,
+            frameCount: 0
+        }
+    );
+
 class GameEditor extends React.Component {
 
     constructor(props) {
@@ -263,7 +273,7 @@ class GameEditor extends React.Component {
             func: (actor) => (actor.danger < 100)
         };
 
-        RG.FACT.addNRandMonsters(this.state.level, this.parser, conf);
+        RG.FACT.addNRandMonsters(level, this.parser, conf);
         this.setState({level: level});
     }
 
@@ -623,8 +633,9 @@ class GameEditor extends React.Component {
             console.log('Game has ' + this.game.getLevels().length + ' levels');
 
             // const newLevel = this.game.getLevels()[0];
-            this.setState({level: levelClone, frameCount: 0,
-                startTime, simulationStarted: true});
+            // this.setState({level: levelClone, frameCount: 0,
+            // startTime, simulationStarted: true});
+            this.setState(startSimulation(startTime, levelClone));
             this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
         }
         else {
@@ -639,8 +650,7 @@ class GameEditor extends React.Component {
         for (let n = 0; n < this.state.turnsPerFrame; n++) {
             this.game.simulateGame();
         }
-        this.setState({level: this.game.getLevels()[0],
-            frameCount: frameCount + 1, fps: fps});
+        this.setState({frameCount: frameCount + 1, fps: fps});
         this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
     }
 
