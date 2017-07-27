@@ -23,6 +23,23 @@ const RG = { // {{{2
         return className;
     },
 
+    /* Same as getClassName, but optimized for viewing the full map. */
+    getClassNameFullMap: function(cell) {
+        this.cellRenderArray = this.cellRenderVisible;
+
+        for (let i = 0; i < 4; i++) {
+            const propType = this.cellRenderVisible[i];
+            if (cell.hasProp(propType)) {
+                const props = cell.getProp(propType);
+                const styles = this.cellStyles[propType];
+                return this.getPropClassOrCharFullMap(styles, props[0]);
+            }
+        }
+
+        const baseType = cell.getBaseElem().getType();
+        return this.cellStyles.elements[baseType];
+    },
+
     /* Given Map.Cell, returns a char that is rendered for the cell. */
     getChar: function(cell, isVisible) {
         if (isVisible) {this.cellRenderArray = this.cellRenderVisible;}
@@ -30,6 +47,21 @@ const RG = { // {{{2
         const cellChar = this.getCellChar(cell);
         this.cellRenderArray = this.cellRenderVisible;
         return cellChar;
+    },
+
+    /* Same as getChar, but optimized for full map viewing. */
+    getCharFullMap: function(cell) {
+        this.cellRenderArray = this.cellRenderVisible;
+        for (let i = 0; i < 4; i++) {
+            if (cell.hasProp(this.cellRenderVisible[i])) {
+                const props = cell.getProp(this.cellRenderVisible[i]);
+                const styles = this.charStyles[this.cellRenderVisible[i]];
+                return this.getPropClassOrCharFullMap(styles, props[0]);
+            }
+        }
+
+        const baseType = cell.getBaseElem().getType();
+        return this.charStyles.elements[baseType];
     },
 
     /* Maps a cell to specific object in stylesheet. For rendering purposes
@@ -84,15 +116,47 @@ const RG = { // {{{2
         }
     },
 
+    getPropClassOrCharFullMap: function(styles, propObj) {
+        // Return by name, this is for object shells generally
+        if (propObj.hasOwnProperty('getName')) {
+            const name = propObj.getName();
+            if (styles.hasOwnProperty(name)) {
+                return styles[name];
+            }
+        }
+
+        const objType = propObj.getType();
+        // By type is usually for basic elements
+        if (styles.hasOwnProperty(objType)) {
+            if (typeof styles[objType] === 'object') {
+                // Invoke a state querying function
+                for (const p in styles[objType]) {
+                    if (p !== 'default') {
+                        const funcToCall = p;
+                        if (propObj[funcToCall]()) {
+                            return styles[objType][p];
+                        }
+                    }
+                }
+                return styles[objType]['default'];
+
+            }
+            return styles[objType];
+        }
+        else {
+            return styles['default'];
+        }
+    },
+
     /* Returns char which is rendered on the map cell based on cell contents.*/
     getCellChar: function(cell) {
         if (!cell.isExplored()) {return 'X';}
 
         for (let i = 0; i < this.cellRenderArray.length; i++) {
-            const propType = this.cellRenderArray[i];
-            if (cell.hasProp(propType)) {
-                const props = cell.getProp(propType);
-                const styles = this.charStyles[propType];
+            // const propType = this.cellRenderArray[i];
+            if (cell.hasProp(this.cellRenderArray[i])) {
+                const props = cell.getProp(this.cellRenderArray[i]);
+                const styles = this.charStyles[this.cellRenderArray[i]];
                 const propObj = props[0];
                 return this.getPropClassOrChar(styles, propObj);
             }

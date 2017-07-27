@@ -64,8 +64,8 @@ const getClassesAndCharsFullMap = function(cells, selCell) {
     for (let i = 0; i < cells.length; i++) {
         const cell = cells[i];
 
-        let cellClass = RG.getClassName(cell, true);
-        const cellChar = RG.getChar(cell, true);
+        let cellClass = RG.getClassNameFullMap(cell);
+        const cellChar = RG.getCharFullMap(cell);
 
         if (selX === cell.getX() && selY === cell.getY()) {
             cellClass = 'cell-target-selected';
@@ -162,9 +162,8 @@ const Screen = function(viewX, viewY) {
         this.endY = map.rows - 1;
 
         for (let y = 0; y < map.rows; ++y) {
-            const rowCellData = map.getCellRow(y);
-            const classesChars = getClassesAndCharsFullMap(rowCellData,
-                this.selectedCell);
+            const classesChars = getClassesAndCharsFullMap(
+                map.getCellRowFast(y), this.selectedCell);
 
             _classRows[y] = classesChars[0];
             _charRows[y] = classesChars[1];
