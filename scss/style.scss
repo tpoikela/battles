@@ -176,6 +176,10 @@ ul {
     font-size: 3px;
 };
 
+.game-board-map-view-xxxxs {
+    font-size: 1px;
+};
+
 // Row styling for different board sizes
 
 .cell-row-div-player-view {
@@ -189,7 +193,7 @@ ul {
 
 .game-board {
     font-family: monospace;
-    line-height: 1;
+    line-height: 1.1;
     margin-left: 10px;
     margin-right: 10px;
     margin-top: 20px;
