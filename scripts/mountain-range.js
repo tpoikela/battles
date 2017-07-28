@@ -476,6 +476,7 @@ function getLineWidth(mean, stddev, subSize) {
     return width;
 }
 
+/* Gets the width using moving average algorithm. */
 function getWidthMovingAvg(nElem, mean, stddev, subSize, filterW) {
     const unfiltered = [];
     for (let i = 0; i < nElem; i++) {
@@ -484,7 +485,7 @@ function getWidthMovingAvg(nElem, mean, stddev, subSize, filterW) {
 
     const filtered = [];
     for (let i = 0; i < filterW; i++) {
-        filtered.push(unfiltered[0]);
+        filtered.push(unfiltered[i]);
     }
 
     // Filter array with algorith
@@ -492,7 +493,14 @@ function getWidthMovingAvg(nElem, mean, stddev, subSize, filterW) {
         const filtVal = getFiltered(unfiltered, i, filterW);
         filtered.push(filtVal);
     }
-    filtered.push(unfiltered[nElem - 1]);
+
+    for (let i = (nElem - filterW); i < nElem; i++) {
+        // Hack for now, find correct solution
+        if (filtered.length < unfiltered.length) {
+            filtered.push(unfiltered[i]);
+        }
+    }
+
     return filtered;
 }
 
