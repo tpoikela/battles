@@ -146,10 +146,24 @@ gulp.task('tags', function() {
         .pipe(gulp.dest('./'));
 });
 
+
+gulp.task('apply-prod-environment', function() {
+    process.env.NODE_ENV = 'production';
+});
+
+
+//---------------------------------------------------------------------------
+// WATCH TASSKS
+//---------------------------------------------------------------------------
+
 const watchDependents = [
     'build-js-inc',
     'tags',
     'build-sass'
+];
+
+const prodDependents = [
+    'apply-prod-environment'
 ];
 
 gulp.task('watch-dev', watchDependents, function() {
@@ -165,6 +179,12 @@ gulp.task('watch-tests', ['tests'], function() {
 
 gulp.task('watch', ['watch-dev', 'serve'], function() {
     gulp.watch(paths.server, ['serve']);
+});
+
+gulp.task('watch-prod', prodDependents, function() {
+    gulp.watch(paths.client, ['build-js-inc']);
+    gulp.watch(paths.sass, ['build-sass']);
+    gulp.watch(paths.tags, ['tags']);
 });
 
 gulp.task('default', ['watch']);
