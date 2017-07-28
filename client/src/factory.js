@@ -461,16 +461,24 @@ RG.Factory.Base = function() { // {{{2
         }
     };
 
-    this.createDemonArmy = function(level, parser) {
+    this.createBeastArmy = function(level, parser) {
         const x0 = level.getMap().cols / 2;
         const y0 = level.getMap().rows / 2;
         for (let y = y0; y < y0 + 2; y++) {
             for (let x = x0; x < x0 + 10; x++) {
                 const beast = parser.createActualObj('actors',
                     'Blizzard beast');
-                level.addActor(beast, x + 10, 14 + y);
-                RG.POOL.emitEvent(RG.EVT_ACTOR_CREATED, {actor: beast,
-                    level, msg: 'DemonSpawn'});
+                const xAct = x + 10;
+                const yAct = y + 14;
+                if (level.getMap().hasXY(xAct, yAct)) {
+                    level.addActor(beast, xAct, yAct);
+                    RG.POOL.emitEvent(RG.EVT_ACTOR_CREATED, {actor: beast,
+                        level, msg: 'DemonSpawn'});
+                }
+                else {
+                    RG.warn('Factory.Base', 'createBeastArmy',
+                        `Cannot put beast to ${xAct}, ${yAct}.`);
+                }
             }
         }
         RG.debug(this, 'Blizzard beasts should now appear.');
