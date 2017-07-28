@@ -163,19 +163,21 @@ const CAN_CONNECT = {
     }
 };
 
-/* Main function which returns RG.Map.Level. */
+/* Main function to construct the world
+*  which returns RG.Map.Level. */
 function getFullWorld(conf = {}) {
 
     const worldX = conf.worldX || 400;
     const worldY = conf.worldY || 400;
 
-    const X = 40;
-    const Y = 20;
+    // Size of the high-level feature map
+    const X = conf.highX || 40;
+    const Y = conf.highY || 20;
 
-    const xMap = worldX / X;
-    const yMap = worldY / Y;
+    const xMap = Math.floor(worldX / X);
+    const yMap = Math.floor(worldY / Y);
 
-    // Fully randomized
+    // Fully randomized map first
     const map = getRandMap(X, Y);
     // printMap(map);
 
@@ -381,6 +383,8 @@ function getLevelsWithElems(map, elemX, elemY, xMap, yMap) {
     const xMax = map.length;
     const level = RG.FACT.createLevel('empty', elemX, elemY);
 
+    // We build the world map in smaller pieces, and then insert the
+    // small piece into large level.
     for (let x = 0; x < xMax; x++) {
         for (let y = 0; y < yMax; y++) {
             const subLevel = getSubLevel(map[x][y], xMap, yMap);
@@ -407,41 +411,50 @@ function getSubLevel(type, xMap, yMap) {
     const midX = Math.floor(subX / 2);
     const midY = Math.floor(subY / 2);
 
+    const MEAN_W = 5;
+    const STDDEV_W = 2;
+    let width = null;
 
-    // console.log('Width is ' + width);
 
-    let width = getLineWidth(5, 2, subX);
+    let widths = getWidthMovingAvg(midY, MEAN_W, STDDEV_W, subX, 3);
     // Draw line from center to north
     if (canConnectNorth) {
         for (let y = 0; y < midY; y++) {
+            // width = getLineWidth(MEAN_W, STDDEV_W, subX);
+            width = widths[y];
             for (let x = midX - (width - 1); x <= midX + (width - 1); x++) {
-                // console.log('subLevel x is ' + x + ' subX: ' + subX);
                 map.setBaseElemXY(x, y, RG.WALL_ELEM);
             }
         }
     }
-    width = getLineWidth(5, 2, subX);
+    widths = getWidthMovingAvg(subY - midY, MEAN_W, STDDEV_W, subX, 3);
     // Draw line from center to south
     if (canConnectSouth) {
         for (let y = midY; y < subY; y++) {
+            // width = getLineWidth(MEAN_W, STDDEV_W, subX);
+            width = widths[y - midY];
             for (let x = midX - (width - 1); x <= midX + (width - 1); x++) {
                 map.setBaseElemXY(x, y, RG.WALL_ELEM);
             }
         }
     }
-    width = getLineWidth(5, 2, subY);
+    widths = getWidthMovingAvg(subX - midX, MEAN_W, STDDEV_W, subX, 3);
     // Draw line from center to east
     if (canConnectEast) {
         for (let x = midX; x < subX; x++) {
+            // width = getLineWidth(MEAN_W, STDDEV_W, subY);
+            width = widths[x - midX];
             for (let y = midY - (width - 1); y <= midY + (width - 1); y++) {
                 map.setBaseElemXY(x, y, RG.WALL_ELEM);
             }
         }
     }
-    width = getLineWidth(5, 2, subY);
+    widths = getWidthMovingAvg(midY, MEAN_W, STDDEV_W, subX, 3);
     // Draw line from center to west
     if (canConnectWest) {
         for (let x = 0; x < midX; x++) {
+            // width = getLineWidth(MEAN_W, STDDEV_W, subY);
+            width = widths[x];
             for (let y = midY - (width - 1); y <= midY + (width - 1); y++) {
                 map.setBaseElemXY(x, y, RG.WALL_ELEM);
             }
@@ -451,7 +464,7 @@ function getSubLevel(type, xMap, yMap) {
 }
 
 function getLineWidth(mean, stddev, subSize) {
-    let width = Math.floor(ROT.RNG.getNormal(5, 2));
+    let width = Math.floor(ROT.RNG.getNormal(mean, stddev));
     // width = Math.floor(width + coeff * width);
 
     if (width > subSize / 2) {
@@ -461,6 +474,35 @@ function getLineWidth(mean, stddev, subSize) {
         width = 1;
     }
     return width;
+}
+
+function getWidthMovingAvg(nElem, mean, stddev, subSize, filterW) {
+    const unfiltered = [];
+    for (let i = 0; i < nElem; i++) {
+        unfiltered.push(getLineWidth(mean, stddev, subSize));
+    }
+
+    const filtered = [];
+    for (let i = 0; i < filterW; i++) {
+        filtered.push(unfiltered[0]);
+    }
+
+    // Filter array with algorith
+    for (let i = filterW; i < (nElem - filterW); i++) {
+        const filtVal = getFiltered(unfiltered, i, filterW);
+        filtered.push(filtVal);
+    }
+    filtered.push(unfiltered[nElem - 1]);
+    return filtered;
+}
+
+function getFiltered(arr, i, filterW) {
+    const num = 2 * filterW + 1;
+    let sum = 0;
+    for (let n = i - filterW; n <= i + filterW; n++) {
+        sum += arr[n];
+    }
+    return Math.floor(sum / num);
 }
 
 module.exports = getFullWorld;
