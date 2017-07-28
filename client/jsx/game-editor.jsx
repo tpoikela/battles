@@ -16,6 +16,7 @@ const NO_VISIBLE_CELLS = [];
 const genFullWorld = require('../../scripts/mountain-range');
 
 const boardViews = [
+    'game-board-map-view-xxxxs',
     'game-board-map-view-xxxs',
     'game-board-map-view-xs',
     'game-board-map-view',
