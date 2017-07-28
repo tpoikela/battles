@@ -53,6 +53,32 @@ describe('GUI.Screen', () => {
 
     });
 
+    it('can use viewport combined with RLE during game', () => {
+        const level = RG.FACT.createLevel('arena', 40, 40);
+        const map = level.getMap();
+        const screen = new Screen(20, 20);
+        screen.setViewportXY(10, 10);
+        const actor = new RG.Actor.Rogue('rogue');
+        actor.setIsPlayer(true);
+        actor.setFOVRange(5);
+        level.addActor(actor, 1, 1);
+        const visibleCells = level.exploreCells(actor);
+        screen.renderWithRLE(1, 1, map, visibleCells);
+
+        const chars = screen.getCharRows();
+        const classes = screen.getClassRows();
+
+        console.log(JSON.stringify(chars[0]));
+        console.log(JSON.stringify(classes[0]));
+        console.log(JSON.stringify(chars[1]));
+        console.log(JSON.stringify(classes[1]));
+        expect(chars[0]).to.have.length(1);
+        expect(classes[0]).to.have.length(1);
+        expect(chars[1]).to.have.length(3);
+        expect(classes[1]).to.have.length(3);
+
+    });
+
     it('can render a full map without player', () => {
         const level = RG.FACT.createLevel('arena', 10, 10);
         const map = level.getMap();
