@@ -6,6 +6,7 @@ RG.Element = require('./element');
 
 RG.Game.FromJSON = require('./game.fromjson');
 
+RG.getOverWorld = require('./overworld');
 const Creator = require('./world.creator');
 
 const RGObjects = require('../data/battles_objects.js');
@@ -181,12 +182,47 @@ RG.Factory.Game = function() {
         else if (obj.debugMode === 'World') {
             return this.createFullWorld(obj, game, player);
         }
+        else if (obj.debugMode === 'OverWorld') {
+            return this.createOverWorld(obj, game, player);
+        }
         else {
             return this.createOneDungeonAndBoss(obj, game, player);
         }
     };
 
     let _playerFOV = RG.FOV_RANGE;
+
+    this.createOverWorld = function(obj, game, player) {
+        const mult = 1;
+        const conf = {
+            yFirst: false,
+            topToBottom: false,
+            // stopOnWall: 'random',
+            stopOnWall: true,
+            // nHWalls: 2,
+            nVWalls: [0.8],
+            highX: mult * 40,
+            highY: mult * 20,
+            worldX: mult * 400,
+            worldY: mult * 400
+        };
+        const level = RG.getOverWorld(conf);
+        const itemConf = {
+            itemsPerLevel: 10000,
+            func: (item) => (item.value <= 2500),
+            maxValue: 2500
+        };
+        this.addNRandItems(level, _parser, itemConf);
+
+        const actorConf = {
+            monstersPerLevel: 1000, maxDanger: 20
+        };
+        this.addNRandMonsters(level, _parser, actorConf);
+        level.addActor(player, 350, 350);
+        game.addLevel(level);
+        game.addPlayer(player);
+        return game;
+    };
 
     this.createWorldWithCreator = function(obj, game, player) {
         console.log('Creating world with creator!');
