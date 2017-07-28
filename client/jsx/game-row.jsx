@@ -1,4 +1,5 @@
 
+/* eslint max-len: [2, 100, 2] */
 const React = require('react');
 
 /** A row component which holds a number of cells. {{{2 */
@@ -10,7 +11,8 @@ const GameRow = React.createClass({
         onCellClick: React.PropTypes.func,
         y: React.PropTypes.number,
         startX: React.PropTypes.number,
-        rowClass: React.PropTypes.string
+        rowClass: React.PropTypes.string,
+        useRLE: React.PropTypes.bool
     },
 
     shouldComponentUpdate: function(nextProps) {
@@ -41,7 +43,7 @@ const GameRow = React.createClass({
                         // Compare run-length
                         if (this.props.rowClasses[i][0] !== nextProps.rowClasses[i][0]) {
                             return true;
-                        } 
+                        }
                         // Compare className
                         if (this.props.rowClasses[i][1] !== nextProps.rowClasses[i][1]) {
                             return true;
@@ -95,7 +97,6 @@ const GameRow = React.createClass({
         else {
             rowCells = this.props.rowClasses.map( (rleAndClass, index) => {
                 const rleAndChar = this.props.rowChars[index];
-
                 return (
                     <span
                         className={rleAndClass[1]}
