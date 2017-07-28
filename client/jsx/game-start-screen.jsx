@@ -195,7 +195,7 @@ class GameStartScreen extends React.Component {
                   titleName='Player'
                 />
                 <RadioButtons
-                  buttons={['Off', 'Arena', 'Battle', 'Creator', 'World']}
+                  buttons={['Off', 'Arena', 'Battle', 'Creator', 'World', 'OverWorld']}
                   callback={setDebugMode}
                   currValue={this.props.settings.debugMode}
                   titleName='Debug'
