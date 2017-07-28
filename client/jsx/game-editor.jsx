@@ -81,7 +81,9 @@ class GameEditor extends React.Component {
             simulationPaused: false,
             turnsPerSec: 1000,
             turnsPerFrame: 1,
-            idCount: 0
+            idCount: 0,
+
+            useRLE: true
         };
 
         this.screen = new Screen(state.levelX, state.levelY);
@@ -373,8 +375,14 @@ class GameEditor extends React.Component {
         if (this.state.level) {
             map = this.state.level.getMap();
         }
+
         if (map) {
-            this.screen.renderFullMap(map);
+            if (this.state.useRLE) {
+                this.screen.renderFullMapWithRLE(map);
+            }
+            else {
+                this.screen.renderFullMap(map);
+            }
         }
 
         const errorMsg = this.getEditorMsg();
@@ -428,6 +436,7 @@ class GameEditor extends React.Component {
                             rowClass={rowClass}
                             startX={0}
                             startY={0}
+                            useRLE={this.state.useRLE}
                         />
                     </div>
                     </div>
