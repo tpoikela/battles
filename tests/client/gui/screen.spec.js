@@ -61,6 +61,40 @@ describe('GUI.Screen', () => {
         const classes = screen.getClassRows();
         expect(chars).to.have.length(10);
         expect(classes).to.have.length(10);
+    });
 
+    it('can render full map with run-length enc', () => {
+
+        // Test level:
+        // ##### RLE: 1, 5x wall
+        // #...# RLE: 3, 2x wall, 2x floor, wall
+        // #.#.# RLE: 5, wall, floor, wall, floor, wall
+        // #...# RLE: 3, wall, 3x floor, wall
+        // ##### RLE: 1, 5x wall
+        //
+
+        const level = RG.FACT.createLevel('arena', 5, 5);
+        const map = level.getMap();
+        const screen = new Screen(5, 5);
+
+        map.setBaseElemXY(2, 2, RG.WALL_ELEM);
+
+        map._optimizeForRowAccess(map);
+        screen.renderFullMapWithRLE(map);
+
+        const chars = screen.getCharRows();
+        const classes = screen.getClassRows();
+        expect(chars[0]).to.have.length(1);
+        expect(classes[0]).to.have.length(1);
+
+        console.log(JSON.stringify(chars[1]));
+        expect(chars[1]).to.have.length(3);
+        expect(classes[1]).to.have.length(3);
+
+        expect(chars[2]).to.have.length(5);
+        expect(classes[2]).to.have.length(5);
+
+        expect(chars[2][2][1]).to.equal('#');
+        expect(classes[2][2][1]).to.equal('cell-element-wall');
     });
 });
