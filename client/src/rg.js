@@ -40,6 +40,7 @@ const RG = { // {{{2
                 return this.getPropClassOrCharFullMap(styles, props[0]);
             }
         }
+        return null;
     },
 
     /* Given Map.Cell, returns a char that is rendered for the cell. */
@@ -67,6 +68,7 @@ const RG = { // {{{2
                 return this.getPropClassOrCharFullMap(styles, props[0]);
             }
         }
+        return null;
     },
 
     /* Maps a cell to specific object in stylesheet. For rendering purposes
@@ -316,6 +318,14 @@ const RG = { // {{{2
             throw new Error(formattedMsg);
         }
     },
+
+    warn: function(obj, fun, msg) {
+        if (!this.suppressWarningMessages) {
+            const formattedMsg = `[WARN]: ${obj} ${fun} -> |${msg}|`;
+            console.error(formattedMsg);
+        }
+    },
+
 
     /* Used to inherit from a prototype. Supports multiple inheritance but
      * sacrifices instanceof.*/
@@ -961,7 +971,6 @@ RG.Geometry = {
             for (let y = 0; y < map.rows; y++) {
                 const subIndexY = Math.floor(y / height);
                 // Get correct sub-level
-                // console.log(`Super x,y: ${x},${y}: SubX,Y: ${subX}, ${subY}`);
                 const subLevel = levels[subIndexX][subIndexY];
                 const subX = x % width;
                 const subY = y % height;
