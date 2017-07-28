@@ -133,7 +133,7 @@ class BattlesTop extends React.Component {
 
         this.gameSave.setStorage(window.localStorage);
         this.savedPlayerList = this.gameSave.getPlayersAsList();
-        this.createNewGame();
+        // this.createNewGame();
 
         this.state = {
             boardClassName: 'game-board-player-view',
@@ -452,15 +452,48 @@ class BattlesTop extends React.Component {
     }
 
     render() {
-        const map = this.game.getVisibleMap();
-        const player = this.game.getPlayer();
-        const inv = player.getInvEq().getInventory();
-        const eq = player.getInvEq().getEquipment();
-        const maxWeight = player.getMaxWeight();
-
+        let map = null;
+        let player = null;
+        let inv = null;
+        let eq = null;
+        let maxWeight = null;
         let message = [];
-        if (this.game.hasNewMessages()) {
-            message = this.game.getMessages();
+        let charRows = null;
+        let classRows = null;
+        let startX = null;
+        let rowClass = '';
+
+        let gameValid = false;
+        if (this.game) {
+            map = this.game.getVisibleMap();
+            player = this.game.getPlayer();
+            inv = player.getInvEq().getInventory();
+            eq = player.getInvEq().getEquipment();
+            maxWeight = player.getMaxWeight();
+            if (this.game.hasNewMessages()) {
+                message = this.game.getMessages();
+            }
+
+            // All computations for the GameBoard
+            const mapShown = this.state.mapShown;
+            rowClass = 'cell-row-div-player-view';
+            if (mapShown) {rowClass = 'cell-row-div-map-view';}
+
+            const playX = player.getX();
+            const playY = player.getY();
+            if (map) {
+                this.screen.renderWithRLE(
+                    playX, playY, map, this.gameState.visibleCells);
+            }
+            else {
+                console.log('map undefined');
+            }
+            charRows = this.screen.getCharRows();
+            classRows = this.screen.getClassRows();
+            startX = this.screen.getStartX();
+
+            console.log('Setting gameValid to true!');
+            gameValid = true;
         }
 
         const settings = {
@@ -471,23 +504,6 @@ class BattlesTop extends React.Component {
             lootType: this.state.lootType,
             debugMode: this.state.debugMode
         };
-
-        // All computations for the GameBoard
-        const mapShown = this.state.mapShown;
-        let rowClass = 'cell-row-div-player-view';
-        if (mapShown) {rowClass = 'cell-row-div-map-view';}
-
-        const playX = player.getX();
-        const playY = player.getY();
-        if (map) {
-            this.screen.render(playX, playY, map, this.gameState.visibleCells);
-        }
-        else {
-            console.log('map undefined');
-        }
-        const charRows = this.screen.getCharRows();
-        const classRows = this.screen.getClassRows();
-        const startX = this.screen.getStartX();
 
         return (
             <div className='container main-div' id='main-div' >
@@ -515,7 +531,7 @@ class BattlesTop extends React.Component {
                 <GameHelpScreen />
 
 
-                {!this.state.showEditor &&
+                {gameValid && !this.state.showEditor &&
                 <GameInventory
                     doInvCmd={this.doInvCmd}
                     eq={eq}
@@ -541,6 +557,7 @@ class BattlesTop extends React.Component {
                             showLoadScreen={this.showLoadScreen}
                             showStartScreen={this.showStartScreen}
                         />
+                        {gameValid &&
                         <div className='text-left game-stats-div'>
                             <GameStats
                                 mapShown={this.state.mapShown}
@@ -550,7 +567,9 @@ class BattlesTop extends React.Component {
                                 setViewType={this.setViewType}
                             />
                         </div>
+                        }
                     </div>
+                    {gameValid &&
                     <div className='col-md-10'>
                         <div className='game-messages-div'>
                             <GameMessages
@@ -570,9 +589,11 @@ class BattlesTop extends React.Component {
                                 rowClass={rowClass}
                                 startX={startX}
                                 startY={this.screen.startY}
+                                useRLE={true}
                             />
                         </div>
                     </div>
+                    }
                 </div>
                 }
 
