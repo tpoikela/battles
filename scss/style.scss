@@ -16,10 +16,10 @@ $padding-stats: 10px;
     font-family: 'Josefin Sans', sans-serif;
 }
 
-@mixin cell-font {
+@mixin cell-font($size) {
     //font-family: 'VT323', monospace;
     font-family: monospace;
-    font-size: 16px;
+    font-size: $size;
 }
 
 @mixin cell-font-map {
@@ -152,17 +152,16 @@ ul {
     @include ver-to-hor-list;
 };
 
+// -----------------------------------
+// FONTSIZES for different board sizes
+// -----------------------------------
+
 .game-board-player-view-xl  {
-    font-family: monospace;
     font-size: 24px;
 };
 
 .game-board-player-view {
-    @include cell-font;
-};
-
-.cell-row-div-player-view {
-    margin-bottom: -5px;
+    @include cell-font(16px);
 };
 
 .game-board-map-view {
@@ -170,28 +169,30 @@ ul {
 };
 
 .game-board-map-view-xs {
-    font-family: monospace;
     font-size: 6px;
 };
 
 .game-board-map-view-xxxs {
-    font-family: monospace;
     font-size: 3px;
-    margin-top: 40px;
+};
+
+// Row styling for different board sizes
+
+.cell-row-div-player-view {
 };
 
 .cell-row-div-map-view {
-    margin-bottom: -2px;
 }
 
 .cell-row-div-map-view-xxxs {
-    margin-bottom: -1px;
 }
 
 .game-board {
-    cursor: crosshair;
+    font-family: monospace;
+    line-height: 1;
     margin-left: 10px;
     margin-right: 10px;
+    margin-top: 20px;
 
     span {
         :hover {
@@ -213,12 +214,10 @@ ul {
 }
 
 .radio-buttons {
-
     button {
         margin-bottom: 5px;
         margin-right: 2px;
     }
-
 };
 
 .player-list-item {
