@@ -47,6 +47,75 @@ const getClassesAndChars = function(seen, cells, selCell) {
     return [cssClasses, asciiChars];
 };
 
+const getClassesAndCharsWithRLE = function(seen, cells, selCell) {
+    let prevChar = null;
+    let prevClass = null;
+    let charRL = 0;
+    let classRL = 0;
+
+    const cssClasses = [];
+    const asciiChars = [];
+
+    let selX = -1;
+    let selY = -1;
+
+    if (selCell !== null) {
+        selX = selCell.getX();
+        selY = selCell.getY();
+    }
+
+    // TODO: Prevents a bug, if player wants to see inventory right after
+    // Load. Should render the visible cells properly though.
+    if (!seen) {
+        cssClasses.fill('cell-not-seen', 0, cells.length - 1);
+        asciiChars.fill('X', 0, cells.length - 1);
+        return [cssClasses, asciiChars];
+    }
+
+    let cellClass = '';
+    let cellChar = '';
+
+    for (let i = 0; i < cells.length; i++) {
+        const cell = cells[i];
+        const cellIndex = seen.indexOf(cell);
+        const visibleToPlayer = cellIndex < 0 ? false : true;
+
+        cellClass = RG.getClassName(cell, visibleToPlayer);
+        cellChar = RG.getChar(cell, visibleToPlayer);
+
+        if (selX === cell.getX() && selY === cell.getY()) {
+            cellClass = 'cell-target-selected';
+        }
+
+        if (!visibleToPlayer) {
+            if (cell.isExplored()) {cellClass += ' cell-not-seen';}
+        }
+
+        const finishRLE = (cellClass !== prevClass) && prevClass
+            || (cellChar !== prevChar) && prevChar;
+
+        if (finishRLE) {
+            cssClasses.push([classRL, prevClass]);
+            classRL = 1;
+            asciiChars.push([charRL, prevChar]);
+            charRL = 1;
+        }
+        else {
+            ++classRL;
+            ++charRL;
+        }
+
+        prevChar = cellChar;
+        prevClass = cellClass;
+    }
+
+    // Need to add the remaining cells
+    if (classRL > 0) {cssClasses.push([classRL, cellClass]);}
+    if (charRL > 0) {asciiChars.push([charRL, cellChar]);}
+
+    return [cssClasses, asciiChars];
+};
+
 /* Same as above but optimized for showing the full map in the game editor.
 *  Does not take into account cells seen by player. */
 const getClassesAndCharsFullMap = function(cells, selCell) {
@@ -78,7 +147,8 @@ const getClassesAndCharsFullMap = function(cells, selCell) {
     return [cssClasses, asciiChars];
 };
 
-const getClassesAndCharsWithRLE = function(cells, selCell) {
+/* Returns the CSS classes + characters to be rendered using RLE. */
+const getClassesAndCharsFullMapWithRLE = function(cells, selCell) {
     let prevChar = null;
     let prevClass = null;
     let charRL = 0;
@@ -108,22 +178,17 @@ const getClassesAndCharsWithRLE = function(cells, selCell) {
             cellClass = 'cell-target-selected';
         }
 
-        const rleOk = (cellClass !== prevClass) && prevClass
-            && (cellChar !== prevChar) && prevChar;
+        const finishRLE = (cellClass !== prevClass) && prevClass
+            || (cellChar !== prevChar) && prevChar;
 
-        if (rleOk) {
+        if (finishRLE) {
             cssClasses.push([classRL, prevClass]);
             classRL = 1;
-        }
-        else {
-            ++classRL;
-        }
-
-        if (rleOk) {
             asciiChars.push([charRL, prevChar]);
             charRL = 1;
         }
         else {
+            ++classRL;
             ++charRL;
         }
 
@@ -185,9 +250,7 @@ const Screen = function(viewX, viewY) {
         return _classRows;
     };
 
-    /* 'Renders' the ASCII screen and style classes based on player's
-     * coordinate, map and visible cells. */
-    this.render = function(playX, playY, map, visibleCells) {
+    this._initRender = function(playX, playY, map) {
         if (!_mapShown) {
             this.setViewportXY(this.viewportX,
                 this.viewportY);
@@ -201,7 +264,12 @@ const Screen = function(viewX, viewY) {
         this.endX = this.viewport.endX;
         this.startY = this.viewport.startY;
         this.endY = this.viewport.endY;
+    };
 
+    /* 'Renders' the ASCII screen and style classes based on player's
+     * coordinate, map and visible cells. */
+    this.render = function(playX, playY, map, visibleCells) {
+        this._initRender(playX, playY, map);
         let yCount = 0;
         for (let y = this.viewport.startY; y <= this.viewport.endY; ++y) {
             const rowCellData = this.viewport.getCellRow(y);
@@ -213,6 +281,20 @@ const Screen = function(viewX, viewY) {
             ++yCount;
         }
 
+    };
+
+    this.renderWithRLE = function(playX, playY, map, visibleCells) {
+        this._initRender(playX, playY, map);
+        let yCount = 0;
+        for (let y = this.viewport.startY; y <= this.viewport.endY; ++y) {
+            const rowCellData = this.viewport.getCellRow(y);
+            const classesChars = getClassesAndCharsWithRLE(visibleCells,
+                rowCellData, this.selectedCell);
+
+            _classRows[yCount] = classesChars[0];
+            _charRows[yCount] = classesChars[1];
+            ++yCount;
+        }
     };
 
     /* Renders the full map as visible. */
@@ -238,7 +320,7 @@ const Screen = function(viewX, viewY) {
         this.endY = map.rows - 1;
 
         for (let y = 0; y < map.rows; ++y) {
-            const classesChars = getClassesAndCharsWithRLE(
+            const classesChars = getClassesAndCharsFullMapWithRLE(
                 map.getCellRowFast(y), this.selectedCell);
 
             _classRows[y] = classesChars[0];
