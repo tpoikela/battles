@@ -27,7 +27,7 @@ const TT_W = '\u2560'; // ╠
 const TT_E = '\u2563'; // ╣
 const TT_N = '\u2566'; // ╦
 const TT_S = '\u2569'; // ╩
-const TERM = '*';
+const TERM = '.';
 
 // Used for randomization
 const dirValues = [
@@ -66,10 +66,16 @@ const LINE_WE_WEIGHT = {
     [XX]: 1
 };
 
+const LINE_NS_WEIGHT = {
+    [LL_NS]: 10,
+    [TT_E]: 3,
+    [TT_W]: 3,
+    [XX]: 1
+};
+
 // If we have an empty cell (e), and neighbouring cell is of type 'first key',
-// if the cells is located in the dir 'second key' of the empty cell,
-// listed cells can be connected.
-//
+// and this cell is located in the dir 'second key' of the empty cell,
+// listed cells can be used as empty cell.
 const CAN_CONNECT = {
     [LL_WE]: {
         N: [], // ═
@@ -118,7 +124,7 @@ const CAN_CONNECT = {
         W: [] // ╝e
     },
 
-    [XX]: {
+    [XX]: { // ╬ connects to all dirs
         N: N_HAS_CONN,
         S: S_HAS_CONN,
         E: E_HAS_CONN,
@@ -149,7 +155,7 @@ const CAN_CONNECT = {
         E: E_HAS_CONN,
         W: W_HAS_CONN
     },
-    [TT_S]: {
+    [TT_S]: { // ╩
         N: [],
         S: S_HAS_CONN,
         E: E_HAS_CONN,
@@ -163,12 +169,43 @@ const CAN_CONNECT = {
     }
 };
 
+/* Data struct for overworld. */
+const OverWorld = function() {
+
+    this._map = [];
+    this._hWalls = [];
+    this._vWalls = [];
+
+    this.setMap = function(map) {
+        this._map = map;
+    };
+
+    this.addVWall = function(wall) {
+        this._vWalls.push(wall);
+    };
+
+    this.addHWall = function(wall) {
+        this._hWalls.push(wall);
+    };
+
+};
+
 /* Main function to construct the world
 *  which returns RG.Map.Level. */
 function getFullWorld(conf = {}) {
 
+    const overworld = new OverWorld();
+
     const worldX = conf.worldX || 400;
     const worldY = conf.worldY || 400;
+
+    const yFirst = typeof conf.yFirst !== 'undefined' ? conf.yFirst : true;
+
+    const topToBottom = typeof conf.topToBottom !== 'undefined'
+        ? conf.topToBottom : true;
+
+    const printResult = typeof conf.printResult !== 'undefined'
+        ? conf.printResult : true;
 
     // Size of the high-level feature map
     const X = conf.highX || 40;
@@ -177,6 +214,8 @@ function getFullWorld(conf = {}) {
     const xMap = Math.floor(worldX / X);
     const yMap = Math.floor(worldY / Y);
 
+    console.log(`xMap ${xMap}, yMap: ${yMap}`);
+
     // Fully randomized map first
     const map = getRandMap(X, Y);
     // printMap(map);
@@ -184,22 +223,63 @@ function getFullWorld(conf = {}) {
     randomizeBorder(map);
     // printMap(map);
 
-    addLineHorizontalWestToEast(Math.floor(Y * 0.30), map);
-    addLineHorizontalWestToEast(Math.floor(Y * 0.50), map);
+    let nHWalls = typeof conf.nHWalls !== 'undefined'
+        ? conf.nHWalls : [0.3, 0.5];
+    let nVWalls = typeof conf.nVWalls !== 'undefined'
+        ? conf.nVWalls : [];
+    const stopOnWall = typeof conf.stopOnWall !== 'undefined'
+        ? conf.stopOnWall : false;
+
+    // If only integers are given, randomize positions of walls.
+    if (Number.isInteger(conf.nHWalls)) {
+        nHWalls = [];
+        for (let i = 0; i < conf.nHWalls; i++) {
+            nHWalls.push(ROT.RNG.getUniform());
+        }
+    }
+    if (Number.isInteger(conf.nVWalls)) {
+        nVWalls = [];
+        for (let i = 0; i < conf.nVWalls; i++) {
+            nVWalls.push(ROT.RNG.getUniform());
+        }
+    }
+
+    // Add horizontal and vertical "walls"
+    for (let i = 0; i < nHWalls.length; i++) {
+        let stop = stopOnWall;
+        if (stopOnWall === 'random') {
+            stop = ROT.RNG.getUniform() >= 0.5;
+        }
+        addLineHorizontalWestToEast(overworld,
+            Math.floor(Y * nHWalls[i]), map, stop);
+    }
+    for (let i = 0; i < nVWalls.length; i++) {
+        let stop = stopOnWall;
+        if (stopOnWall === 'random') {
+            stop = ROT.RNG.getUniform() >= 0.5;
+        }
+        addLineVerticalNorthToSouth(overworld,
+            Math.floor(X * nVWalls[i]), map, stop);
+    }
+
     // printMap(map);
 
-    const map2 = JSON.parse(JSON.stringify(map));
-    connectUnconnectedTopBottom(map);
-    connectUnconnectedBottomTop(map2);
+    if (topToBottom) {
+        connectUnconnectedTopBottom(map, yFirst);
+    }
+    else {
+        connectUnconnectedBottomTop(map, yFirst);
+    }
 
-    printMap(map);
+    if (printResult) {
+        printMap(map);
+    }
+    overworld.setMap(map);
     // printMap(map2);
 
-    const worldLevel = getLevelsWithElems(map, worldX, worldY, xMap, yMap);
+    addWorldFeatures(overworld);
 
-// const json = worldLevel.toJSON();
-// Dumps the full map into a file
-// console.log(JSON.stringify(json));
+    const worldLevel = getLevelsWithElems(map, worldX, worldY, xMap, yMap);
 
     if (conf.split) {
         const conf = {
@@ -279,46 +359,111 @@ function randomizeBorder(map) {
 
 }
 
-/* Adds a horizontal line. */
-function addLineHorizontalWestToEast(y, map) {
+/* Adds a horizontal line travelling from E -> W. */
+function addLineHorizontalWestToEast(ow, y, map, stopOnWall = false) {
     const xMax = map.length;
+    let finished = false;
+    const wall = {y, x: [1]};
     map[0][y] = TT_W;
-    map[xMax - 1][y] = TT_E;
+    if (!stopOnWall) {map[xMax - 1][y] = TT_E;}
     for (let x = 1; x < xMax - 1; x++) {
-        map[x][y] = ROT.RNG.getWeightedValue(LINE_WE_WEIGHT);
-        // map[x][y] = getRandArr(LINE_WE);
+        if (!finished) {
+            if (map[x][y] !== EMPTY) {
+                if (!stopOnWall) {
+                    map[x][y] = XX; // Push through wall
+                }
+                else { // Add ╣ and finish
+                    finished = true;
+                    map[x][y] = TT_E;
+                    wall.x.push(x);
+                }
+            }
+            else {
+                map[x][y] = ROT.RNG.getWeightedValue(LINE_WE_WEIGHT);
+            }
+        }
     }
+    if (!finished) {wall.x.push(xMax - 1);}
+    ow.addHWall(wall);
 }
 
-/* Assumes that map has tiles with connections. Goes through empty tiles only.
+/* Adds a horizontal line travelling from E -> W. */
+function addLineVerticalNorthToSouth(ow, x, map, stopOnWall = false) {
+    const yMax = map[0].length;
+    let finished = false;
+    const wall = {x, y: [1]};
+    map[x][0] = TT_N;
+    if (!stopOnWall) {map[x][yMax - 1] = TT_S;}
+    for (let y = 1; y < yMax - 1; y++) {
+        if (!finished) {
+            if (map[x][y] !== EMPTY) {
+                if (!stopOnWall) {
+                    map[x][y] = XX; // Push through wall
+                }
+                else { // Add ╩ and finish
+                    finished = true;
+                    map[x][y] = TT_S;
+                    wall.y.push(y);
+                }
+            }
+            else {
+                map[x][y] = ROT.RNG.getWeightedValue(LINE_NS_WEIGHT);
+            }
+        }
+    }
+    if (!finished) {wall.y.push(yMax - 1);}
+    ow.addVWall(wall);
+}
+
+/* Connects all unconnected tiles by starting from 0,0 -> 0,N, then
+ * moving to 1,0 -> 1,N, and so on.
  * */
-function connectUnconnectedTopBottom(map) {
+function connectUnconnectedTopBottom(map, yFirst = true) {
     const yMax = map[0].length;
     const xMax = map.length;
 
-    for (let x = 0; x < xMax; x++) {
-        for (let y = 0; y < yMax; y++) {
-            processCell(x, y, map);
+    if (yFirst) {
+        for (let x = 0; x < xMax; x++) {
+            for (let y = 0; y < yMax; y++) {
+                processCell(x, y, map);
+            }
         }
     }
-
+    else {
+        for (let y = 0; y < yMax; y++) {
+            for (let x = 0; x < xMax; x++) {
+                processCell(x, y, map);
+            }
+        }
+    }
 }
 
-function connectUnconnectedBottomTop(map) {
+/* Connects all unconnected tiles by starting from 0,N -> 0,0, then
+ * moving to 1,N -> 1,0, and so on.
+ * */
+function connectUnconnectedBottomTop(map, yFirst = true) {
     const yMax = map[0].length;
     const xMax = map.length;
 
-    for (let x = 0; x < xMax; x++) {
-        for (let y = yMax - 1; y >= 0; y--) {
-            processCell(x, y, map);
+    if (yFirst) {
+        for (let x = 0; x < xMax; x++) {
+            for (let y = yMax - 1; y >= 0; y--) {
+                processCell(x, y, map);
+            }
         }
     }
-
+    else {
+        for (let y = yMax - 1; y >= 0; y--) {
+            for (let x = 0; x < xMax; x++) {
+                processCell(x, y, map);
+            }
+        }
+    }
 }
 
 function processCell(x, y, map) {
     if (map[x][y] === EMPTY) {
-        const neighbours = getNeighbours(x, y, map);
+        const neighbours = getValidNeighbours(x, y, map);
         const validNeigbours = neighbours.filter(n =>
             n[0] !== EMPTY && n[0] !== TERM
         );
@@ -337,8 +482,8 @@ function processCell(x, y, map) {
     }
 }
 
-/* Returns neighbouring tiles for the given x,y. */
-function getNeighbours(x, y, map) {
+/* Returns valid neighbouring tiles for the given x,y. */
+function getValidNeighbours(x, y, map) {
     const yMax = map[0].length;
     const xMax = map.length;
     const tiles = [];
@@ -352,15 +497,15 @@ function getNeighbours(x, y, map) {
         const conn = CAN_CONNECT[map[x][y + 1]].S;
         tiles.push([map[x][y + 1], conn]);
     }
-    // W
-    if (x > 0) {
-        const conn = CAN_CONNECT[map[x - 1][y]].W;
-        tiles.push([map[x - 1][y], conn]);
-    }
     // E
     if (x < xMax - 1) {
         const conn = CAN_CONNECT[map[x + 1][y]].E;
         tiles.push([map[x + 1][y], conn]);
+    }
+    // W
+    if (x > 0) {
+        const conn = CAN_CONNECT[map[x - 1][y]].W;
+        tiles.push([map[x - 1][y], conn]);
     }
     return tiles;
 }
@@ -377,14 +522,14 @@ function printMap(map) {
     }
 }
 
-/* Returns element map with 1 marking the lines. */
+/* Returns element map with 1 marking the lines, 0 for non-lines. */
 function getLevelsWithElems(map, elemX, elemY, xMap, yMap) {
     const yMax = map[0].length;
     const xMax = map.length;
     const level = RG.FACT.createLevel('empty', elemX, elemY);
 
-    // We build the world map in smaller pieces, and then insert the
-    // small piece into large level.
+    // Build the world level in smaller pieces, and then insert the
+    // small leves into the large level.
     for (let x = 0; x < xMax; x++) {
         for (let y = 0; y < yMax; y++) {
             const subLevel = getSubLevel(map[x][y], xMap, yMap);
@@ -396,7 +541,7 @@ function getLevelsWithElems(map, elemX, elemY, xMap, yMap) {
     return level;
 }
 
-/* Returns a subLevel created based on map. */
+/* Returns a subLevel created based on the tile type. */
 function getSubLevel(type, xMap, yMap) {
     const subX = xMap;
     const subY = yMap;
@@ -414,7 +559,6 @@ function getSubLevel(type, xMap, yMap) {
     const MEAN_W = 5;
     const STDDEV_W = 2;
     let width = null;
-
 
     let widths = getWidthMovingAvg(midY, MEAN_W, STDDEV_W, subX, 3);
     // Draw line from center to north
@@ -513,8 +657,26 @@ function getFiltered(arr, i, filterW) {
     return Math.floor(sum / num);
 }
 
+/* Adds features like water, cities etc into the world. */
+function addWorldFeatures(ow) {
+
+}
+
 module.exports = getFullWorld;
 
+// Can be used for quick testing
 if (process.env.RUN) {
-    getFullWorld();
+    const conf = {
+        yFirst: false,
+        topToBottom: false,
+        // stopOnWall: 'random',
+        stopOnWall: true,
+        // nHWalls: 2,
+        nVWalls: [0.8],
+        highX: 80,
+        highY: 40,
+        worldX: 800,
+        worldY: 800
+    };
+    getFullWorld(conf);
 }
