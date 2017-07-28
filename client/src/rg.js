@@ -27,6 +27,11 @@ const RG = { // {{{2
     getClassNameFullMap: function(cell) {
         this.cellRenderArray = this.cellRenderVisible;
 
+        if (!cell.hasProps()) {
+            const baseType = cell.getBaseElem().getType();
+            return this.cellStyles.elements[baseType];
+        }
+
         for (let i = 0; i < 4; i++) {
             const propType = this.cellRenderVisible[i];
             if (cell.hasProp(propType)) {
@@ -35,9 +40,6 @@ const RG = { // {{{2
                 return this.getPropClassOrCharFullMap(styles, props[0]);
             }
         }
-
-        const baseType = cell.getBaseElem().getType();
-        return this.cellStyles.elements[baseType];
     },
 
     /* Given Map.Cell, returns a char that is rendered for the cell. */
@@ -52,6 +54,12 @@ const RG = { // {{{2
     /* Same as getChar, but optimized for full map viewing. */
     getCharFullMap: function(cell) {
         this.cellRenderArray = this.cellRenderVisible;
+
+        if (!cell.hasProps()) {
+            const baseType = cell.getBaseElem().getType();
+            return this.charStyles.elements[baseType];
+        }
+
         for (let i = 0; i < 4; i++) {
             if (cell.hasProp(this.cellRenderVisible[i])) {
                 const props = cell.getProp(this.cellRenderVisible[i]);
@@ -59,9 +67,6 @@ const RG = { // {{{2
                 return this.getPropClassOrCharFullMap(styles, props[0]);
             }
         }
-
-        const baseType = cell.getBaseElem().getType();
-        return this.charStyles.elements[baseType];
     },
 
     /* Maps a cell to specific object in stylesheet. For rendering purposes
