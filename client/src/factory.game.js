@@ -142,7 +142,7 @@ RG.Factory.Game = function() {
                 () => {}, 35 * 100, MSG.EYE_OF_STORM);
             _game.addEvent(stormEvent);
             const beastEvent = new RG.Time.RogueOneShotEvent(
-                that.createDemonArmy.bind(that, _level, _parser), 50 * 100,
+                that.createBeastArmy.bind(that, _level, _parser), 50 * 100,
                 'Winter spread by Blizzard Beasts! Hell seems to freeze.');
             _game.addEvent(beastEvent);
         };
