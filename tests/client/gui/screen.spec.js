@@ -68,14 +68,13 @@ describe('GUI.Screen', () => {
         const chars = screen.getCharRows();
         const classes = screen.getClassRows();
 
-        console.log(JSON.stringify(chars[0]));
-        console.log(JSON.stringify(classes[0]));
-        console.log(JSON.stringify(chars[1]));
-        console.log(JSON.stringify(classes[1]));
-        expect(chars[0]).to.have.length(1);
-        expect(classes[0]).to.have.length(1);
-        expect(chars[1]).to.have.length(3);
-        expect(classes[1]).to.have.length(3);
+        const charRow1 = [[1, '#'], [1, '@'], [5, '.'], [14, 'X']];
+
+        expect(chars[0]).to.have.length(2);
+        expect(classes[0]).to.have.length(2);
+        expect(chars[1]).to.have.length(4);
+        expect(chars[1]).to.deep.equal(charRow1);
+        expect(classes[1]).to.have.length(4);
 
     });
 
@@ -159,8 +158,8 @@ describe('GUI.Screen', () => {
 
         for (let y = 1; y < levelY - 1; y++) {
             const msg = `Row ${y} is okay.`;
-            expect(chars[y], `Char: ${msg}`).to.have.length(5);
-            expect(classes[y], `Class: ${msg}`).to.have.length(5);
+            expect(chars[y].length, `Char: ${msg}`).to.be.within(5, 6);
+            expect(classes[y].length, `Class: ${msg}`).to.be.within(5, 6);
         }
     });
 });
