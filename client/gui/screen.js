@@ -78,6 +78,64 @@ const getClassesAndCharsFullMap = function(cells, selCell) {
     return [cssClasses, asciiChars];
 };
 
+const getClassesAndCharsWithRLE = function(cells, selCell) {
+    let prevChar = null;
+    let prevClass = null;
+    let charRL = 0;
+    let classRL = 0;
+
+    const cssClasses = [];
+    const asciiChars = [];
+
+    let selX = -1;
+    let selY = -1;
+
+    if (selCell !== null) {
+        selX = selCell.getX();
+        selY = selCell.getY();
+    }
+
+    let cellClass = '';
+    let cellChar = '';
+
+    for (let i = 0; i < cells.length; i++) {
+        const cell = cells[i];
+
+        cellClass = RG.getClassNameFullMap(cell);
+        cellChar = RG.getCharFullMap(cell);
+
+        if (selX === cell.getX() && selY === cell.getY()) {
+            cellClass = 'cell-target-selected';
+        }
+
+        if ((cellClass !== prevClass) && prevClass) {
+            cssClasses.push([classRL, prevClass]);
+            classRL = 1;
+        }
+        else {
+            ++classRL;
+        }
+
+        if ((cellChar !== prevChar) && prevChar) {
+            asciiChars.push([charRL, prevChar]);
+            charRL = 1;
+        }
+        else {
+            ++charRL;
+        }
+
+        prevChar = cellChar;
+        prevClass = cellClass;
+    }
+
+    // Need to add the remaining cells
+    if (classRL > 0) {cssClasses.push([classRL, cellClass]);}
+    if (charRL > 0) {asciiChars.push([charRL, cellChar]);}
+
+    return [cssClasses, asciiChars];
+
+};
+
 /* Creates a screen with viewport set to given parameters. */
 const Screen = function(viewX, viewY) {
     this.viewportX = viewX;
@@ -163,6 +221,21 @@ const Screen = function(viewX, viewY) {
 
         for (let y = 0; y < map.rows; ++y) {
             const classesChars = getClassesAndCharsFullMap(
+                map.getCellRowFast(y), this.selectedCell);
+
+            _classRows[y] = classesChars[0];
+            _charRows[y] = classesChars[1];
+        }
+    };
+
+    this.renderFullMapWithRLE = function(map) {
+        this.startX = 0;
+        this.endX = map.cols - 1;
+        this.startY = 0;
+        this.endY = map.rows - 1;
+
+        for (let y = 0; y < map.rows; ++y) {
+            const classesChars = getClassesAndCharsWithRLE(
                 map.getCellRowFast(y), this.selectedCell);
 
             _classRows[y] = classesChars[0];
