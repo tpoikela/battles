@@ -9,17 +9,17 @@ const GameBoard = React.createClass({
 
     propTypes: {
         boardClassName: React.PropTypes.string,
+        charRows: React.PropTypes.arrayOf(String),
+        classRows: React.PropTypes.arrayOf(String),
+        endY: React.PropTypes.number,
         onCellClick: React.PropTypes.func,
         rowClass: React.PropTypes.string,
+        useRLE: React.PropTypes.bool,
         startX: React.PropTypes.number,
-        startY: React.PropTypes.number,
-        endY: React.PropTypes.number,
-        charRows: React.PropTypes.arrayOf(String),
-        classRows: React.PropTypes.arrayOf(String)
+        startY: React.PropTypes.number
     },
 
     render: function() {
-
         const rowsHTML = [];
         // Build the separate cell rows
         for (let y = this.props.startY; y <= this.props.endY; ++y) {
@@ -34,6 +34,7 @@ const GameBoard = React.createClass({
                     rowClass={this.props.rowClass}
                     rowClasses={this.props.classRows[yIndex]}
                     startX={this.props.startX}
+                    useRLE={this.props.useRLE}
                     y={y}
                 />);
         }
