@@ -2,21 +2,59 @@
 const RG = require('../client/src/battles');
 const Screen = require('../client/gui/screen');
 
-const x = 80;
-const y = 28;
-const startTime = new Date();
+const useRLE = true;
+const csv = false; // Print results in CSV format
+const dx = 80;
+const dy = 28;
 
-const level = RG.FACT.createLevel('arena', x, y);
+// How many renders tried per screen
+const numRenders = 2000;
+const numTries = 1;
 
-const screen = new Screen(x, y);
+let x = 320;
+let y = 112;
 
-const numRenders = 4000;
-for (let i = 0; i < numRenders; i++) {
-    screen.renderFullMap(level.getMap());
+if (csv) {console.log('x,y,createMs,fps');}
+
+for (let j = 0; j < numTries; j++) {
+    if (j > 0) {
+        x += dx;
+        y += dy;
+    }
+    if (!csv) {
+        console.log(`Level ${x} by ${y}`);
+    }
+
+    const startCreate = new Date();
+    const level = RG.FACT.createLevel('arena', x, y);
+    const endCreate = new Date();
+    const durCreate = endCreate.getTime() - startCreate.getTime();
+
+    const screen = new Screen(x, y);
+    const map = level.getMap();
+    map._optimizeForRowAccess();
+
+    const startTime = new Date();
+    for (let i = 0; i < numRenders; i++) {
+        if (useRLE) {
+            screen.renderFullMapWithRLE(level.getMap());
+        }
+        else {
+            screen.renderFullMap(level.getMap());
+        }
+    }
+    const endTime = new Date();
+    const durationMs = endTime.getTime() - startTime.getTime();
+    const fps = numRenders / durationMs * 1000;
+
+    // Report all results
+    if (csv) {
+        console.log(`${x},${y},${durCreate},${fps}`);
+    }
+    else {
+        console.log('createLevel ' + durCreate + ' ms');
+        console.log('Rendering took ' + durationMs + ' ms');
+        console.log('FPS: ' + fps);
+    }
 }
 
-const endTime = new Date();
-const durationMs = endTime.getTime() - startTime.getTime();
-console.log('Creation took ' + durationMs + ' ms');
-const fps = numRenders / durationMs * 1000;
-console.log('FPS: ' + fps);
