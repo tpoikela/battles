@@ -2,10 +2,14 @@
 'use strict';
 
 const React = require('react');
+const ReactDOM = require('react-dom');
 const GameRow = require('./game-row');
 
 /** Component which renders the game rows. {{{2 */
 const GameBoard = React.createClass({
+
+    marginLeft: 10,
+    marginTop: 20,
 
     propTypes: {
         boardClassName: React.PropTypes.string,
@@ -18,6 +22,30 @@ const GameBoard = React.createClass({
         startX: React.PropTypes.number,
         startY: React.PropTypes.number
     },
+
+	componentDidMount: function() {
+        ReactDOM.findDOMNode(this).addEventListener(
+			'click', this.onCellClick);
+    },
+
+    componentWillUnmount: function() {
+        ReactDOM.findDOMNode(this).removeEventListener(
+			'click', this.onCellClick);
+    },
+
+	onCellClick: function(evt) {
+        console.log(JSON.stringify(evt));
+        const thisElem = ReactDOM.findDOMNode(this);
+        const px = evt.pageX;
+        const py = evt.pageY;
+        const offsetTop = thisElem.offsetTop;
+        const offsetLeft = thisElem.offsetLeft;
+        const relX = px - offsetLeft - this.marginLeft;
+        const relY = py - offsetTop - this.marginTop;
+        console.log(`Clicked coord ${px},${py}`);
+        console.log(`Relative coord ${relX},${relY}`);
+	},
+
 
     render: function() {
         const rowsHTML = [];
