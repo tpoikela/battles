@@ -3,6 +3,9 @@ const expect = require('chai').expect;
 const Screen = require('../../../client/gui/screen');
 const RG = require('../../../client/src/battles');
 
+const RGObjects = require('../../../client/data/battles_objects.js');
+const RGEffects = require('../../../client/data/effects');
+
 const wallChar = '#';
 const wallClass = 'cell-element-wall';
 
@@ -87,7 +90,6 @@ describe('GUI.Screen', () => {
         expect(chars[0]).to.have.length(1);
         expect(classes[0]).to.have.length(1);
 
-        console.log(JSON.stringify(chars[1]));
         expect(chars[1]).to.have.length(3);
         expect(classes[1]).to.have.length(3);
 
@@ -96,5 +98,43 @@ describe('GUI.Screen', () => {
 
         expect(chars[2][2][1]).to.equal('#');
         expect(classes[2][2][1]).to.equal('cell-element-wall');
+    });
+
+    it('can render full map with actors using RLE correctly', () => {
+        const parser = new RG.ObjectShellParser();
+        parser.parseShellData(RGObjects);
+        parser.parseShellData(RGEffects);
+        const levelX = 100;
+        const levelY = 100;
+        const level = RG.FACT.createLevel('arena', levelX, levelY);
+        const map = level.getMap();
+        const screen = new Screen(100, 100);
+        map._optimizeForRowAccess(map);
+
+        // Slap some actors into the level before rendering
+        let xPos = 2;
+        for (let y = 1; y < levelY - 1; y++) {
+            const actor1 = parser.createRandomActor({
+                func: (actor) => (actor.type === 'animal')
+            });
+            const actor2 = parser.createRandomActor({
+                func: (actor) => (actor.type === 'animal')
+            });
+            level.addActor(actor1, xPos, y);
+            level.addActor(actor2, xPos + 1, y);
+            if (xPos < levelX - 4) {
+                ++xPos;
+            }
+        }
+
+        screen.renderFullMapWithRLE(map);
+        const chars = screen.getCharRows();
+        const classes = screen.getClassRows();
+
+        for (let y = 1; y < levelY - 1; y++) {
+            const msg = `Row ${y} is okay.`;
+            expect(chars[y], `Char: ${msg}`).to.have.length(5);
+            expect(classes[y], `Class: ${msg}`).to.have.length(5);
+        }
     });
 });

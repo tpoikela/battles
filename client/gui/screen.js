@@ -108,7 +108,10 @@ const getClassesAndCharsWithRLE = function(cells, selCell) {
             cellClass = 'cell-target-selected';
         }
 
-        if ((cellClass !== prevClass) && prevClass) {
+        const rleOk = (cellClass !== prevClass) && prevClass
+            && (cellChar !== prevChar) && prevChar;
+
+        if (rleOk) {
             cssClasses.push([classRL, prevClass]);
             classRL = 1;
         }
@@ -116,7 +119,7 @@ const getClassesAndCharsWithRLE = function(cells, selCell) {
             ++classRL;
         }
 
-        if ((cellChar !== prevChar) && prevChar) {
+        if (rleOk) {
             asciiChars.push([charRL, prevChar]);
             charRL = 1;
         }
