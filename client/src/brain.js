@@ -896,7 +896,6 @@ RG.Brain.Summoner = function(actor) {
         if (this.numSummoned === this.maxSummons) {return false;}
         const summon = RG.RAND.getUniform();
         if (summon > (1.0 - this.summonProbability)) {
-            console.log('SUMMONING NOW');
             return true;
         }
         return false;
