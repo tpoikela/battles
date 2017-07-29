@@ -368,12 +368,24 @@ const RG = { // {{{2
         return false;
     },
 
-    gameDanger: function(msg) {
-        this.emitMsgEvent('danger', msg);
-    },
+    // -------------------------------------------------
+    // Functions for emitting in-game messages to player
+    // -------------------------------------------------
 
+    // Accepts 2 different arguments:
+    // 1. A simple string messages
+    // 2. {msg: "Your message", cell: Origin cell of messaage}
+    // Using 2. messages can be easily filtered by position.
     gameMsg: function(msg) {
         this.emitMsgEvent('prim', msg);
+    },
+
+    gameInfo: function(msg) {
+        this.emitMsgEvent('info', msg);
+    },
+
+    gameDescr: function(msg) {
+        this.emitMsgEvent('descr', msg);
     },
 
     gameSuccess: function(msg) {
@@ -382,6 +394,10 @@ const RG = { // {{{2
 
     gameWarn: function(msg) {
         this.emitMsgEvent('warn', msg);
+    },
+
+    gameDanger: function(msg) {
+        this.emitMsgEvent('danger', msg);
     },
 
     /* Emits message event with cell origin, style and message. */
@@ -565,6 +581,8 @@ const RG = { // {{{2
     EVT_ACT_COMP_REMOVED: 'EVT_ACT_COMP_REMOVED',
     EVT_ACT_COMP_ENABLED: 'EVT_ACT_COMP_ENABLED',
     EVT_ACT_COMP_DISABLED: 'EVT_ACT_COMP_DISABLED',
+
+    EVT_WIN_COND_TRUE: 'EVT_WIN_COND_TRUE',
 
     //----------------------
     // Different types
