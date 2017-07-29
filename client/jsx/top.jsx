@@ -492,7 +492,6 @@ class BattlesTop extends React.Component {
             classRows = this.screen.getClassRows();
             startX = this.screen.getStartX();
 
-            console.log('Setting gameValid to true!');
             gameValid = true;
         }
 
