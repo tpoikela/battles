@@ -204,22 +204,34 @@ RG.Factory.Game = function() {
             highX: mult * 40,
             highY: mult * 20,
             worldX: mult * 400,
-            worldY: mult * 400
+            worldY: mult * 400,
+            nLevelsX: mult * 4,
+            nLevelsY: mult * 4
         };
-        const level = RG.getOverWorld(conf);
+        const worldLevel = RG.getOverWorld(conf);
         const itemConf = {
             itemsPerLevel: 10000,
             func: (item) => (item.value <= 2500),
             maxValue: 2500
         };
-        this.addNRandItems(level, _parser, itemConf);
+        this.addNRandItems(worldLevel, _parser, itemConf);
 
         const actorConf = {
             monstersPerLevel: 1000, maxDanger: 20
         };
-        this.addNRandMonsters(level, _parser, actorConf);
-        level.addActor(player, 350, 350);
-        game.addLevel(level);
+        this.addNRandMonsters(worldLevel, _parser, actorConf);
+        const splitLevels = RG.Geometry.splitLevel(worldLevel, conf);
+        splitLevels[2][3].addActorToFreeCell(player);
+
+        const worldArea = new RG.World.Area('Ravendark', conf.nLevelsX,
+            conf.nLevelsY, 100, 100, splitLevels);
+        worldArea.connectTiles();
+
+        for (let x = 0; x < splitLevels.length; x++) {
+            for (let y = 0; y < splitLevels[x].length; y++) {
+                game.addLevel(splitLevels[x][y]);
+            }
+        }
         game.addPlayer(player);
         return game;
     };
