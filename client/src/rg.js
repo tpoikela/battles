@@ -877,7 +877,7 @@ RG.ACTOR_MEDIUM_SQR = 120;
 RG.ACTOR_ABUNDANT_SQR = 50;
 
 /* Contains generic 2D geometric functions for square/rectangle/triangle
- * generation.*/
+ * generation and level manipulation. */
 RG.Geometry = {
 
     /* Given start x,y and end x,y coordinates, returns all x,y coordinates in
@@ -950,6 +950,8 @@ RG.Geometry = {
 
     },*/
 
+    /* Splits a larger level into a matrix of X by Y sublevels. This does
+    * not preserve the original level for efficiency reasons. */
     splitLevel: function(level, conf) {
         const levels = [];
         const width = level.getMap().cols / conf.nLevelsX;
@@ -964,21 +966,65 @@ RG.Geometry = {
             levels.push(levelCol);
         }
 
-        // Copy all the elements
+        const getSubLevel = function(x, y) {
+            const subIndexX = Math.floor(x / width);
+            const subIndexY = Math.floor(y / height);
+            return levels[subIndexX][subIndexY];
+        };
+
+        const getSubX = function(x) {return x % width;};
+        const getSubY = function(y) {return y % height;};
+
+        // Move all the elements
         const map = level.getMap();
         for (let x = 0; x < map.cols; x++) {
-            const subIndexX = Math.floor(x / width);
             for (let y = 0; y < map.rows; y++) {
-                const subIndexY = Math.floor(y / height);
                 // Get correct sub-level
-                const subLevel = levels[subIndexX][subIndexY];
-                const subX = x % width;
-                const subY = y % height;
+                const subLevel = getSubLevel(x, y);
+                const subX = getSubX(x);
+                const subY = getSubY(y);
                 subLevel.getMap().setBaseElemXY(
                     subX, subY, map.getBaseElemXY(x, y));
 
                 // Translate x,y to sub-level x,y
             }
+        }
+
+        // Move actors
+        const actors = level.getActors().slice();
+        actors.forEach(actor => {
+            const aX = actor.getX();
+            const aY = actor.getY();
+            if (level.removeActor(actor)) {
+                const subLevel = getSubLevel(aX, aY);
+                const subX = getSubX(aX);
+                const subY = getSubY(aY);
+                subLevel.addActor(actor, subX, subY);
+            }
+            else {
+                RG.warn('Geometry', 'splitLevel',
+                    `removeActor failed on ${JSON.stringify(actor)}`);
+            }
+        });
+
+        // Move items
+        const items = level.getItems().slice();
+        items.forEach(item => {
+            const aX = item.getX();
+            const aY = item.getY();
+            level.removeItem(item, aX, aY);
+
+            const subLevel = getSubLevel(aX, aY);
+            const subX = getSubX(aX);
+            const subY = getSubY(aY);
+            subLevel.addItem(item, subX, subY);
+        });
+
+        // Warn about existing stairs
+        const stairs = level.getStairs();
+        if (stairs.length > 0) {
+            RG.warn('Geometry', 'splitLevel',
+                'Function does not move stairs correctly (yet).');
         }
 
         return levels;
