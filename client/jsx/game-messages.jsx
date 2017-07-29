@@ -7,6 +7,7 @@ const GameMessages = React.createClass({
     styleToClassName: {
         prim: 'text-primary',
         info: 'text-info',
+        descr: 'text-muted',
         warn: 'text-warning',
         danger: 'text-danger',
         success: 'text-success'
@@ -51,14 +52,14 @@ const GameMessages = React.createClass({
                 if (!fullMsg.match(/.$/)) {
                     fullMsg += '.';
                 }
-                fullMsg += ' ';
+                fullMsg += '. ';
 
                 if (index >= 0 || val.seen) {
                     return (
                         <span
                             className={className}
                             key={itemIndex}
-                            >
+                        >
                             {fullMsg}
                         </span>
                     );
