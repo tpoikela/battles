@@ -275,7 +275,7 @@ RG.Game.FromJSON = function() {
             col.forEach((cell, y) => {
                 const baseElem = this.createBaseElem(cell);
                 mapObj.setBaseElemXY(x, y, baseElem);
-                if (cell.explored) {
+                if (cell.ex) {
                     mapObj.getCell(x, y).setExplored(true);
                 }
                 if (cell.elements) {
