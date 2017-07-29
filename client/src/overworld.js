@@ -280,21 +280,6 @@ RG.getOverWorld = function(conf = {}) {
 
     const worldLevel = getLevelsWithElems(map, worldX, worldY, xMap, yMap);
 
-    if (conf.split) {
-        const conf = {
-            nLevelsX: 8,
-            nLevelsY: 8
-        };
-        const splitLevels = RG.Geometry.splitLevel(worldLevel, conf);
-
-        splitLevels.forEach(levelCol => {
-            levelCol.forEach(l => {
-                l.getMap().debugPrintInASCII();
-            });
-        });
-        return splitLevels;
-    }
-
     return worldLevel;
 };
 
