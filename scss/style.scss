@@ -10,6 +10,8 @@ $cell-height: 17px;
 
 $padding-stats: 10px;
 
+$success-color-on-gray: #066;
+
 @import 'colors';
 
 @mixin fonts {
@@ -113,16 +115,26 @@ body {
     margin-top: 10px;
 }
 
+/* Game-play related messages. Naming is the same as in bootstrap. */
 .game-messages {
-    background-color: $ctrl-top-color;
+    // xxx background-color: $ctrl-top-color;
+    background-color: $black;
     border: 1px solid $black;
-    border-radius: 5px;
-    font-size: 18px;
+    // xxx border-radius: 5px;
+    // xxx font-size: 18px;
+    color: $white;
+    font-family: monospace;
+    font-size: 16px;
     height: 60px;
-    margin-bottom: 10px;
+    // xxx margin-bottom: 10px;
     overflow: auto;
     padding-left: 5px;
     padding-top: 2px;
+
+    .text-primary {
+        color: $white;
+    }
+
 }
 
 .btn-rg {
@@ -258,4 +270,5 @@ ul {
 //------------------------------------------------------------------
 
 @import 'component.game-editor';
+
 
