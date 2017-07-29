@@ -880,5 +880,69 @@ RG.Game.Save = function() {
 
 };
 
+/* Describes a condition when the player has won the game. 1st version pretty
+ * much checks if given actor is killed. */
+RG.Game.WinCondition = function(name) {
+    this.name = name;
+    this.description = ''; // Shown when condition filled
+
+    this._condIncomplete = {};
+    this._condFilled = {};
+
+    this._isTrue = false;
+    this.isTrue = function() {return this._isTrue;};
+
+    this._notifyCallbacks = {};
+
+    this.hasNotify = true;
+    this.notify = function(evtName, args) {
+        if (this._notifyCallbacks.hasOwnProperty(evtName)) {
+            this._notifyCallbacks[evtName](args);
+        }
+
+        if (Object.keys(this._condIncomplete).length === 0) {
+            this._isTrue = true;
+        }
+        else {
+            console.log('No zero keys');
+
+        }
+    };
+
+    /* Add an event to listen to for win condition. */
+    this._addEvent = function(type) {
+        RG.POOL.listenEvent(type, this);
+    };
+
+    this.addActorKilled = function(actor) {
+        this._addEvent(RG.EVT_ACTOR_KILLED);
+        this._condIncomplete[RG.EVT_ACTOR_KILLED] = [actor.getID()];
+    };
+
+    /* Customisable callback fired on condition being true. */
+    this.onTrue = function() {
+        let msg = `Condition: ${this.name}, Description: ${this.description}.`;
+        msg += 'Congratulations. You have won!';
+        RG.gameSuccess(msg);
+    };
+
+    // Some default callbacks (if not overwritten)
+    this._notifyCallbacks[RG.EVT_ACTOR_KILLED] = (args) => {
+        const actor = args.actor;
+        const actors = this._condIncomplete[RG.EVT_ACTOR_KILLED];
+        if (actors) {
+            const index = actors.indexOf(actor.getID());
+            if (index >= 0) {
+                actors.splice(index, 1);
+                if (actors.length === 0) {
+                    console.log('Deleting key No zero keys');
+                    delete this._condIncomplete[RG.EVT_ACTOR_KILLED];
+                }
+            }
+        }
+    };
+
+};
+
 module.exports = RG.Game;
 
