@@ -433,17 +433,17 @@ RG.World.AreaTile = function(x, y, area) {
  * Moving between tiles of areas happens by travelling to the edges of a tile.
  * Each tile is a level with special edge tiles.
  * */
-RG.World.Area = function(name, maxX, maxY, cols, rows, levels) {
+RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
     RG.World.Base.call(this, name);
     this.setType('area');
-    const _maxX = maxX;
-    const _maxY = maxY;
+    const _sizeX = sizeX;
+    const _sizeY = sizeY;
 
     const _cols = cols || 30;
     const _rows = rows || 30;
 
-    this.getMaxX = () => (_maxX);
-    this.getMaxY = () => (_maxY);
+    this.getMaxX = () => (_sizeX);
+    this.getMaxY = () => (_sizeY);
     const _tiles = [];
 
     // Subfeatures inside this tile
@@ -453,9 +453,9 @@ RG.World.Area = function(name, maxX, maxY, cols, rows, levels) {
 
     this._init = function() {
         // Create the tiles
-        for (let x = 0; x < _maxX; x++) {
+        for (let x = 0; x < _sizeX; x++) {
             const tileColumn = [];
-            for (let y = 0; y < _maxY; y++) {
+            for (let y = 0; y < _sizeY; y++) {
                 const newTile = new RG.World.AreaTile(x, y, this);
 
                 // Scale the forest gen based on tile size
@@ -484,19 +484,25 @@ RG.World.Area = function(name, maxX, maxY, cols, rows, levels) {
         }
 
         // Connect the tiles, unless levels already given (and connected)
+        // If levels are not connect, need to call connectTiles() manually
         if (!levels) {
-            for (let x = 0; x < _maxX; x++) {
-                for (let y = 0; y < _maxY; y++) {
-                    if (x < _maxX - 1 && y < _maxY - 1) {
-                        _tiles[x][y].connect(
-                            _tiles[x + 1][y], _tiles[x][y + 1]);
-                    }
-                    else if (x < _maxX - 1) {
-                        _tiles[x][y].connect(_tiles[x + 1][y], null);
-                    }
-                    else if (y < _maxY - 1) {
-                        _tiles[x][y].connect(null, _tiles[x][y + 1]);
-                    }
+            this.connectTiles();
+        }
+    };
+
+    /* Connects all tiles together from the sides. */
+    this.connectTiles = function() {
+        for (let x = 0; x < _sizeX; x++) {
+            for (let y = 0; y < _sizeY; y++) {
+                if (x < _sizeX - 1 && y < _sizeY - 1) {
+                    _tiles[x][y].connect(
+                        _tiles[x + 1][y], _tiles[x][y + 1]);
+                }
+                else if (x < _sizeX - 1) {
+                    _tiles[x][y].connect(_tiles[x + 1][y], null);
+                }
+                else if (y < _sizeY - 1) {
+                    _tiles[x][y].connect(null, _tiles[x][y + 1]);
                 }
             }
         }
@@ -560,7 +566,7 @@ RG.World.Area = function(name, maxX, maxY, cols, rows, levels) {
         return {
             name: this.getName(),
             hierName: this.getHierName(),
-            maxX: _maxX, maxY: _maxY,
+            maxX: _sizeX, maxY: _sizeY,
             cols: _cols, rows: _rows,
             tiles: tilesJSON,
             nDungeons: this.dungeons.length,
