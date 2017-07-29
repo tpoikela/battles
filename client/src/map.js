@@ -159,9 +159,13 @@ RG.Map.Cell.prototype.toJSON = function() {
     const json = {
         type: this._baseElem.getType(),
         x: this._x,
-        y: this._y,
-        explored: this._explored
+        y: this._y
     };
+
+    if (this._explored) {
+        json.ex = 1;
+    }
+
     if (this._p.hasOwnProperty(RG.TYPE_ELEM)) {
         const elements = [];
         this._p[RG.TYPE_ELEM].forEach(elem => {
