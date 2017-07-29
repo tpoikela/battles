@@ -8,6 +8,7 @@ const Models = BTree.Models;
 // Dummy callback to return, if the actor's action provides a state
 // changing action without callback.
 const ACTION_ALREADY_DONE = () => {};
+const NO_ACTION_TAKEN = () => {};
 
 //---------------------------------------------------------------------------
 // BRAINS {{{1
@@ -728,7 +729,7 @@ RG.Brain.Rogue = function(actor) { // {{{2
             };
         }
         else {
-            return function() {}; // Don't move, rest
+            return NO_ACTION_TAKEN; // Don't move, rest
         }
     };
 
@@ -1003,6 +1004,7 @@ RG.Brain.Spirit = function(actor) {
 
     /* Returns the next action for the spirit.*/
     this.decideNextAction = function() {
+        this._seenCached = null;
         const seenCells = this.getSeenCells();
         return this.exploreLevel(seenCells);
     };
