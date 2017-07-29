@@ -13,7 +13,37 @@ const RGObjects = require('../data/battles_objects');
 
 const NO_VISIBLE_CELLS = [];
 
+const FileSaver = require('file-saver');
 const genFullWorld = require('../../scripts/mountain-range');
+
+/*
+ * Sketch to specify the menus in more sane way than jsx.
+const topMenu = {
+    File: {
+        Save: 'callback1',
+        Load: 'callback2',
+        Quit: 'callback3'
+    },
+    Edit: {
+
+    },
+    Select: {
+    },
+    View: {
+        // No actual zooming supported
+        'Size +':
+        'Size -':
+        'Size fit':
+        'Size max':
+        'Size min':
+    },
+    Tools: {
+    },
+    Settings: {
+
+    }
+};
+*/
 
 const boardViews = [
     'game-board-map-view-xxxxs',
@@ -84,7 +114,8 @@ class GameEditor extends React.Component {
             turnsPerFrame: 1,
             idCount: 0,
 
-            useRLE: true
+            useRLE: true,
+            savedLevelName: 'saved_level_from_editor.json'
         };
 
         this.screen = new Screen(state.levelX, state.levelY);
@@ -123,7 +154,8 @@ class GameEditor extends React.Component {
         this.generateItems = this.generateItems.bind(this);
         this.onChangeNumEntities = this.onChangeNumEntities.bind(this);
 
-        this.levelToJSON = this.levelToJSON.bind(this);
+        this.saveLevel = this.saveLevel.bind(this);
+        this.loadLevel = this.loadLevel.bind(this);
 
         this.onCellClick = this.onCellClick.bind(this);
 
@@ -180,28 +212,85 @@ class GameEditor extends React.Component {
     }
 
     /* Converts the rendered level to JSON and puts that into localStorage.*/
-    levelToJSON() {
+    saveLevel() {
         const json = this.state.level.toJSON();
-        localStorage.setItem('savedLevel', JSON.stringify(json));
+        try {
+            /* eslint-disable */
+            const isFileSaverSupported = !!new Blob;
+            /* eslint-enable */
+            if (isFileSaverSupported) {
+                const date = new Date().getTime();
+                const fname = `${date}_${this.state.savedLevelName}.json`;
+                const text = JSON.stringify(json);
+                const blob = new Blob([text],
+                    {type: 'text/plain;charset=utf-8'});
+                FileSaver.saveAs(blob, fname);
+            }
+        }
+        catch (e) {
+            let msg = 'No Blob support in browser. Saving to localStorage.\n';
+            msg += 'You can visit /level.html to view the JSON.';
+            localStorage.setItem('savedLevel', JSON.stringify(json));
+            this.setState({errorMsg: msg});
+        }
     }
 
-    /* Generates a world scale map. */
+    /* Loads a user file and converts that into a level, which will be shown
+     * if the loading was successful. */
+    loadLevel() {
+        const fileList = document.querySelector('#level-file-input').files;
+        console.log('Filelist has ' + fileList.length + ' files');
+
+        const file = fileList[0];
+        for (const f in file) {
+            if (f) {
+                console.log(f + '->' + JSON.stringify(file[f]));
+            }
+        }
+        if (file) {
+            console.log(JSON.stringify(file));
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const text = reader.result;
+
+                console.log('FileReader text: ' + text);
+                try {
+                    // Many things can go wrong: Not JSON, not a valid level..
+                    const json = JSON.parse(text);
+                    const fromJSON = new RG.Game.FromJSON();
+                    const level = fromJSON.createLevel(json);
+                    this.addLevelToEditor(level);
+                }
+                catch (e) {
+                    const msg = 'File: Not valid JSON or level: ' + e.message;
+                    this.setState({errorMsg: msg});
+                }
+            };
+            reader.onerror = (e) => {
+                const msg = 'Filereader error: ' + e;
+                this.setState({errorMsg: msg});
+            };
+
+            reader.readAsText(file);
+        }
+        else {
+            const msg = 'Could not get the file.';
+            this.setState({errorMsg: msg});
+        }
+    }
+
+    /* Generates a world scale map using overworld algorithm and adds it to the
+     * editor. */
     generateWorld() {
         const conf = {
             worldX: this.state.levelX,
             worldY: this.state.levelY
         };
         const level = genFullWorld(conf);
-        level.getMap()._optimizeForRowAccess();
-        level.editorID = this.state.idCount++;
-        this.screen.setViewportXY(level.getMap().cols, level.getMap().rows);
-        const levelList = this.state.levelList;
-        levelList.push(level);
-        const levelIndex = levelList.length - 1;
-        this.setState({level: level, levelList, levelIndex});
+        this.addLevelToEditor(level);
     }
 
-    /* Generates the large map. This erases everything. */
+    /* Generates a new level map and adds it to the editor.  */
     generateMap() {
         const levelType = this.state.levelType;
         let conf = {};
@@ -211,13 +300,17 @@ class GameEditor extends React.Component {
 
         const level = RG.FACT.createLevel(
             levelType, this.state.levelX, this.state.levelY, conf);
+        this.addLevelToEditor(level);
+    }
+
+    /* Adds one level to the editor and updates the state. */
+    addLevelToEditor(level) {
         level.getMap()._optimizeForRowAccess();
         level.editorID = this.state.idCount++;
 
-        this.screen.setViewportXY(this.state.levelX, this.state.levelY);
-        RG.setAllExplored(level, true);
         const levelList = this.state.levelList;
         levelList.push(level);
+        // Show the newly added level immediately
         const levelIndex = levelList.length - 1;
         this.setState({level: level, levelList, levelIndex});
     }
@@ -247,7 +340,6 @@ class GameEditor extends React.Component {
                     const ySub = y0 + ty * subHeight;
                     const subLevel = RG.FACT.createLevel(
                         levelType, subWidth, this.state.subLevelY, conf);
-                    RG.setAllExplored(subLevel, true);
                     RG.Geometry.insertSubLevel(level, subLevel, xSub, ySub);
                 }
             }
@@ -446,7 +538,14 @@ class GameEditor extends React.Component {
                     {simulationButtons}
 
                     <div className='btn-div'>
-                        <button onClick={this.levelToJSON}>Save</button>
+                        <button onClick={this.saveLevel}>Save</button>
+                        <label>Load
+                            <input
+                                id='level-file-input'
+                                onChange={this.loadLevel}
+                                type='file'
+                            />
+                        </label>
                         <button
                             className='btn btn-danger btn-lg'
                             onClick={this.props.toggleEditor}
