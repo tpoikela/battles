@@ -619,11 +619,10 @@ RG.Game.Main = function() {
 
 }; // }}} Game.Main
 
-/* Army is a collection of actors.*/
+/* Army is a collection of actors associated with a battle. This is useful for
+ *  battle commanders to have access to their full army. */
 RG.Game.Army = function(name) {
-
     const _name = name;
-
     const _actors = []; // All actors inside this army
 
     let _battle = null;
@@ -883,16 +882,21 @@ RG.Game.Save = function() {
 /* Describes a condition when the player has won the game. 1st version pretty
  * much checks if given actor is killed. */
 RG.Game.WinCondition = function(name) {
-    this.name = name;
+    const _name = name;
     this.description = ''; // Shown when condition filled
 
     this._condIncomplete = {};
     this._condFilled = {};
 
+    this.getName = function() {return _name;};
+
     this._isTrue = false;
     this.isTrue = function() {return this._isTrue;};
 
     this._notifyCallbacks = {};
+    this.addNotifyCallback = function(type, func) {
+        this._notifyCallbacks[type] = func;
+    };
 
     this.hasNotify = true;
     this.notify = function(evtName, args) {
@@ -900,12 +904,11 @@ RG.Game.WinCondition = function(name) {
             this._notifyCallbacks[evtName](args);
         }
 
-        if (Object.keys(this._condIncomplete).length === 0) {
-            this._isTrue = true;
-        }
-        else {
-            console.log('No zero keys');
-
+        if (!this._isTrue) {
+            if (Object.keys(this._condIncomplete).length === 0) {
+                this._isTrue = true;
+                this.onTrue();
+            }
         }
     };
 
@@ -921,9 +924,10 @@ RG.Game.WinCondition = function(name) {
 
     /* Customisable callback fired on condition being true. */
     this.onTrue = function() {
-        let msg = `Condition: ${this.name}, Description: ${this.description}.`;
+        let msg = `Condition: ${_name}, Description: ${this.description}.`;
         msg += 'Congratulations. You have won!';
         RG.gameSuccess(msg);
+        RG.POOL.emitEvent(RG.EVT_WIN_COND_TRUE, {name: _name});
     };
 
     // Some default callbacks (if not overwritten)
@@ -935,7 +939,6 @@ RG.Game.WinCondition = function(name) {
             if (index >= 0) {
                 actors.splice(index, 1);
                 if (actors.length === 0) {
-                    console.log('Deleting key No zero keys');
                     delete this._condIncomplete[RG.EVT_ACTOR_KILLED];
                 }
             }
