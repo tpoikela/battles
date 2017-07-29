@@ -157,7 +157,7 @@ RG.Factory.Game = function() {
                 MSG.ENEMIES_DEAD);
             _game.addEvent(msgEvent);
             const msgEvent2 = new RG.Time.RogueOneShotEvent(() => {}, 20 * 100,
-                'But Battles in North will continue soon in larger scale...');
+                'Battles in the North will continue soon in larger scale...');
             _game.addEvent(msgEvent2);
         };
     }; // const DemonKillListener
@@ -382,14 +382,18 @@ RG.Factory.Game = function() {
             maxValue: 2500
         };
         this.addNRandItems(level, _parser, itemConf);
-        game.addPlayer(player);
 
-        const pepper = _parser.createActualObj('items', 'Ghost pepper');
-        player.getInvEq().addItem(pepper);
+        // const pepper = _parser.createActualObj('items', 'Ghost pepper');
+        // player.getInvEq().addItem(pepper);
         const spiritPot = _parser.createActualObj(
             'items', 'Potion of spirit form');
         player.getInvEq().addItem(spiritPot);
 
+        const winCond = new RG.Game.WinCondition('Kill a keeper');
+        winCond.addActorKilled(keeper);
+
+        player.get('Stats').setStrength(1000);
+        game.addPlayer(player);
         return game;
     };
 
