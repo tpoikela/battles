@@ -193,7 +193,7 @@ RG.Factory.Game = function() {
     let _playerFOV = RG.FOV_RANGE;
 
     this.createOverWorld = function(obj, game, player) {
-        const mult = 1;
+        const mult = 2;
         const conf = {
             yFirst: false,
             topToBottom: false,
@@ -217,11 +217,13 @@ RG.Factory.Game = function() {
         this.addNRandItems(worldLevel, _parser, itemConf);
 
         const actorConf = {
-            monstersPerLevel: 1000, maxDanger: 20
+            monstersPerLevel: 10000, maxDanger: 20
         };
         this.addNRandMonsters(worldLevel, _parser, actorConf);
         const splitLevels = RG.Geometry.splitLevel(worldLevel, conf);
-        splitLevels[2][3].addActorToFreeCell(player);
+
+        const midX = Math.floor(conf.nLevelsX / 2);
+        splitLevels[midX][conf.nLevelsY - 1].addActorToFreeCell(player);
 
         const worldArea = new RG.World.Area('Ravendark', conf.nLevelsX,
             conf.nLevelsY, 100, 100, splitLevels);
@@ -232,6 +234,7 @@ RG.Factory.Game = function() {
                 game.addLevel(splitLevels[x][y]);
             }
         }
+        player.setFOVRange(10);
         game.addPlayer(player);
         return game;
     };
@@ -387,7 +390,6 @@ RG.Factory.Game = function() {
             'items', 'Potion of spirit form');
         player.getInvEq().addItem(spiritPot);
 
-        // player.setFOVRange(50);
         return game;
     };
 
