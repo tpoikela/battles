@@ -276,3 +276,15 @@ describe('How poison item is used, and experience propagates', function() {
     });
 });
 
+describe('Game.WinCondition', () => {
+    it('description', () => {
+        const winCond = new RG.Game.WinCondition('Kill boss');
+        expect(winCond.isTrue(), 'Win condition false').to.be.false;
+
+        const boss = new RG.Actor.Rogue('Huge evil boss');
+        winCond.addActorKilled(boss);
+        RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: boss});
+        expect(winCond.isTrue(), 'Win condition true now').to.be.true;
+
+    });
+});
