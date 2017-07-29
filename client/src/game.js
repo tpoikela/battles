@@ -6,7 +6,8 @@ RG.Time = require('./time.js');
 
 RG.Game = {};
 
-/* Game engine which handles turn scheduling and systems updates.*/
+/* Game engine which handles turn scheduling, systems updates and in-game
+ * messaging between objects. */
 RG.Game.Engine = function() {
 
     // Ignore GUI commands by default
@@ -43,12 +44,13 @@ RG.Game.Engine = function() {
     this.systems.Communication = new RG.System.Communication('Communication',
         ['Communication']);
 
-    // Systems updated once each game loop
+    // Systems updated once each game loop (once for each player action)
+    this.loopSystemOrder = ['Hunger'];
     this.loopSystems = {};
     this.loopSystems.Hunger = new RG.System.Hunger('Hunger',
         ['Action', 'Hunger']);
 
-    // Time-based systems are added to the scheduler
+    // Time-based systems are added to the scheduler directly
     this.timeSystems = {};
 
     const effects = new RG.System.TimeEffects('TimeEffects',
@@ -62,8 +64,9 @@ RG.Game.Engine = function() {
     };
 
     this.updateLoopSystems = function() {
-        for (const s in this.loopSystems) {
-            if (s) {this.loopSystems[s].update();}
+        for (let i = 0; i < this.loopSystemOrder.length; i++) {
+            const sysName = this.loopSystemOrder[i];
+            this.loopSystems[sysName].update();
         }
     };
 
@@ -112,7 +115,6 @@ RG.Game.Engine = function() {
     // GAME LOOPS
     //--------------------------------------------------------------
 
-    /* GUI should only call this method.*/
     this.update = function(obj) {
         if (!this.isGameOver()) {
             this.clearMessages();
@@ -154,7 +156,7 @@ RG.Game.Engine = function() {
             const action = this.nextActor.nextAction();
             this.doAction(action);
 
-            this.updateSystems();
+            this.updateSystems(); // All systems for each actor
 
             this.nextActor = this.getNextActor();
             if (RG.isNullOrUndef([this.nextActor])) {
@@ -164,7 +166,7 @@ RG.Game.Engine = function() {
             }
         }
 
-        this.updateLoopSystems();
+        this.updateLoopSystems(); // Loop systems once per player action
 
     };
 
