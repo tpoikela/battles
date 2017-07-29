@@ -1016,8 +1016,9 @@ RG.Map.Level = function() { // {{{2
         }
     };
 
-    /* USing this method, actor can be added to a free cell without knowing the
-     * exact x,y coordinates.*/
+    /* Using this method, actor can be added to a free cell without knowing the
+     * exact x,y coordinates. This is not random, such that top-left (0,0) is
+     * always preferred. */
     this.addActorToFreeCell = function(actor) {
         RG.debug(this, 'Adding actor to free slot');
         const freeCells = _map.getFree();
