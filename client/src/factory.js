@@ -1117,6 +1117,37 @@ RG.Factory.World = function() {
             RG.err('Factory.World', 'createConnection',
                 'No getEntrances method for feature.');
         }
+
+        // Make extra connections between the area and feature. This is useful
+        // if city/dungeon needs to have 2 or more entrances
+        if (conf.hasOwnProperty('connectToXY')) {
+            const connectionsXY = conf.connectToXY;
+            connectionsXY.forEach(conn => {
+                const nLevel = conn.nLevel;
+                const x = conn.levelX;
+                const y = conn.levelY;
+                const name = conn.name;
+
+                const featLevel = feature.findLevel(name, nLevel);
+                if (featLevel) {
+                    // Create 2 new stairs, add 1st to the area level, and 2nd
+                    // to the feature level
+                    const tileStairs = new Stairs(true, tileLevel, featLevel);
+                    const featStairs = new Stairs(false, featLevel, tileLevel);
+                    tileLevel.addStairs(tileStairs, x, y);
+                    tileStairs.connect(featStairs);
+                }
+                else {
+                    let msg = `connectToXY: ${JSON.stringify(conn)}`;
+                    msg += `featureConf: ${JSON.stringify(conf)}`;
+                    RG.err('Factory.World', 'createConnection',
+                        `No level found. ${msg}`);
+
+                }
+            });
+        }
+
+
     };
 };
 
