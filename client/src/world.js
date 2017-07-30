@@ -41,6 +41,41 @@ function findLevel(name, features, nLevel) {
     return null;
 }
 
+function connectLevels(_levels) {
+    const nLevels = _levels.length;
+    const arrStairsDown = [];
+    const arrStairsUp = [];
+
+    for (let nl = 0; nl < nLevels; nl++) {
+        const src = _levels[nl];
+
+        // Create stairs down
+        if (nl < nLevels - 1) {
+            const targetDown = _levels[nl + 1];
+            const stairsDown = new Stairs(true, src, targetDown);
+            const stairCell = src.getFreeRandCell();
+            src.addStairs(stairsDown, stairCell.getX(), stairCell.getY());
+            arrStairsDown.push(stairsDown);
+        }
+
+        // Create stairs up
+        if (nl > 0) {
+            const targetUp = _levels[nl - 1];
+            const stairsUp = new Stairs(false, src, targetUp);
+            const stairCell = src.getFreeRandCell();
+            src.addStairs(stairsUp, stairCell.getX(), stairCell.getY());
+            arrStairsUp.push(stairsUp);
+        }
+    }
+
+    // Finally connect the stairs together
+    for (let nl = 0; nl < nLevels; nl++) {
+        if (nl < nLevels - 1) {
+            arrStairsDown[nl].connect(arrStairsUp[nl]);
+        }
+    }
+}
+
 /* Tries to connect stairs to level N in given levels. */
 function connectLevelToStairs(levels, nLevel, stairs) {
     if (nLevel < levels.length) {
@@ -223,38 +258,7 @@ RG.World.Branch = function(name) {
 
     /* Connects the added levels together.*/
     this.connectLevels = function() {
-        const nLevels = _levels.length;
-        const arrStairsDown = [];
-        const arrStairsUp = [];
-
-        for (let nl = 0; nl < nLevels; nl++) {
-            const src = _levels[nl];
-
-            // Create stairs down
-            if (nl < nLevels - 1) {
-                const targetDown = _levels[nl + 1];
-                const stairsDown = new Stairs(true, src, targetDown);
-                const stairCell = src.getFreeRandCell();
-                src.addStairs(stairsDown, stairCell.getX(), stairCell.getY());
-                arrStairsDown.push(stairsDown);
-            }
-
-            // Create stairs up
-            if (nl > 0) {
-                const targetUp = _levels[nl - 1];
-                const stairsUp = new Stairs(false, src, targetUp);
-                const stairCell = src.getFreeRandCell();
-                src.addStairs(stairsUp, stairCell.getX(), stairCell.getY());
-                arrStairsUp.push(stairsUp);
-            }
-        }
-
-        // Finally connect the stairs together
-        for (let nl = 0; nl < nLevels; nl++) {
-            if (nl < nLevels - 1) {
-                arrStairsDown[nl].connect(arrStairsUp[nl]);
-            }
-        }
+        connectLevels(_levels);
     };
 
     this.toJSON = function() {
@@ -924,6 +928,11 @@ RG.World.CityQuarter = function(name) {
             RG.err('World.CityQuarter', 'connectLevelToStairs',
                 'Stairs must be first connected to other level.');
         }
+    };
+
+    /* Connects levels in linear fashion 0->1->2->...->N. */
+    this.connectLevels = function() {
+        connectLevels(_levels);
     };
 
     this.toJSON = function() {
