@@ -9,9 +9,8 @@ RG.RAND.setSeed(new Date().getTime());
 const OverWorld = RG.OverWorld;
 const createOverWorld = OverWorld.createOverWorld;
 
-const mult = 1;
-
-const conf = {
+let mult = 1;
+let conf = {
     yFirst: false,
     topToBottom: false,
     // stopOnWall: 'random',
@@ -22,6 +21,25 @@ const conf = {
     highY: mult * 40,
     worldX: mult * 800,
     worldY: mult * 400
+};
+
+mult = 1;
+conf = {
+    yFirst: false,
+    topToBottom: false,
+    // stopOnWall: 'random',
+    stopOnWall: true,
+    // nHWalls: 2,
+    nVWalls: [0.8],
+    highX: mult * 40,
+    highY: mult * 20,
+    worldX: mult * 800,
+    worldY: mult * 400,
+    nLevelsX: mult * 8,
+    nLevelsY: mult * 4,
+    areaX: mult * 8,
+    areaY: mult * 4,
+    printResult: false
 };
 
 const startTime = new Date().getTime();
