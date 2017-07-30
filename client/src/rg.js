@@ -584,9 +584,9 @@ const RG = { // {{{2
 
     EVT_WIN_COND_TRUE: 'EVT_WIN_COND_TRUE',
 
-    //----------------------
-    // Different types
-    //----------------------
+    //----------------------------
+    // Different entity/prop types
+    //----------------------------
     TYPE_ACTOR: 'actors',
     TYPE_ELEM: 'elements',
     TYPE_ITEM: 'items',
@@ -597,6 +597,14 @@ const RG = { // {{{2
 
     LEVEL_ID_ADD: 1000000000,
     ENTITY_ID_ADD: 1000000000,
+
+    //----------------------------
+    // Different level types
+    //----------------------------
+
+    LEVEL_EMPTY: 'empty',
+    LEVEL_FOREST: 'forest',
+    LEVEL_MOUNTAIN: 'mountain',
 
     // Energy per action
     energy: {
