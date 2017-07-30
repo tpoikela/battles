@@ -127,14 +127,15 @@ describe('Factory.World', function() {
         expect(entrB2.getTargetStairs()).to.be.null;
     });
 
-    it('can create cities within areas', () => {
+    it('can create cities within areas with given locations', () => {
         const worldConf = {
             name: 'ww',
             nAreas: 1,
             area: [
                 { name: 'a1', maxX: 1, maxY: 1, nCities: 1,
                     city: [
-                        { x: 0, y: 0, name: 'Ravendark', nQuarters: 1,
+                        { x: 0, y: 0, levelX: 4, levelY: 7,
+                            name: 'Ravendark', nQuarters: 1,
                             quarter: [
                                 {name: 'Q1', nLevels: 1, entranceLevel: 0}
                             ]
@@ -145,6 +146,11 @@ describe('Factory.World', function() {
         };
         const world = fact.createWorld(worldConf);
         expect(world.getCities()).to.have.length(1);
+
+        const areaLevel = world.getAreas()[0].getTileXY(0, 0).getLevel();
+        const stairs = areaLevel.getStairs()[0];
+        expect(stairs.getX()).to.equal(4);
+        expect(stairs.getY()).to.equal(7);
     });
 
 });
