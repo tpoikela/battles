@@ -20,8 +20,9 @@
  *      (llx, lly)
  */
 
-const ROT = require('../../lib/rot');
 const RG = require('./rg');
+
+const getRandIn = RG.RAND.arrayGetRand.bind(RG.RAND);
 
 RG.OverWorld = {};
 
@@ -251,7 +252,8 @@ RG.OverWorld.SubFeature = function(type, coord) {
 };
 
 /* Data struct which is tied to 'RG.Map.Level'. Contains more high-level
- * information like positions of walls and other features. */
+ * information like positions of walls and other features. Essentially a wrapper
+ * around Map.Level, to keep feature info out of the Map.Level. */
 RG.OverWorld.SubLevel = function(level) {
     this._level = level;
     this._hWalls = [];
@@ -382,7 +384,10 @@ RG.OverWorld.Map = function() {
 
 };
 
-/* Factory function to construct the overworld. */
+/* Factory function to construct the overworld. Generally you want to call this
+ * method.
+ * @return RG.Map.Level.
+ */
 RG.OverWorld.createOverWorld = function(conf = {}) {
     const overworld = new RG.OverWorld.Map();
 
@@ -435,20 +440,6 @@ RG.OverWorld.createOverWorld = function(conf = {}) {
 // HELPERS
 //---------------------------------------------------------------------------
 
-/* Creates a fully randomized map of sizeX by sizeY. */
-/*
-function createRandMap(sizeX, sizeY) {
-    const map = [];
-    for (let x = 0; x < sizeX; x++) {
-        map[x] = [];
-        for (let y = 0; y < sizeY; y++) {
-            map[x][y] = getRandArr(dirValues);
-        }
-    }
-    return map;
-}
-*/
-
 /* Creates an empty map. */
 function createEmptyMap(sizeX, sizeY) {
     const map = [];
@@ -461,14 +452,7 @@ function createEmptyMap(sizeX, sizeY) {
     return map;
 }
 
-/* Returns random element from array. */
-function getRandArr(arr) {
-    const max = arr.length;
-    const index = Math.floor(ROT.RNG.getUniform() * max);
-    return arr[index];
-}
-
-/* Randomizes map border still using valid border cells. Valid cells are ones
+/* Randomizes map border using valid border cells. Valid cells are ones
  * which do not have connections outside the map, and abut to neighbouring
  * cells correctly. */
 function randomizeBorders(map) {
@@ -483,22 +467,22 @@ function randomizeBorders(map) {
 
     // N border, y = 0, vary x
     for (let x = 1; x < sizeX - 1; x++) {
-        map[x][0] = getRandArr(N_BORDER);
+        map[x][0] = getRandIn(N_BORDER);
     }
 
     // S border, y = max, vary x
     for (let x = 1; x < sizeX - 1; x++) {
-        map[x][sizeY - 1] = getRandArr(S_BORDER);
+        map[x][sizeY - 1] = getRandIn(S_BORDER);
     }
 
     // E border, x = max, vary y
     for (let y = 1; y < sizeY - 1; y++) {
-        map[sizeX - 1][y] = getRandArr(E_BORDER);
+        map[sizeX - 1][y] = getRandIn(E_BORDER);
     }
 
     // W border, x = 0, vary y
     for (let y = 1; y < sizeY - 1; y++) {
-        map[0][y] = getRandArr(W_BORDER);
+        map[0][y] = getRandIn(W_BORDER);
     }
 
 }
@@ -518,13 +502,13 @@ function addWallsIfAny(ow, map, conf) {
     if (Number.isInteger(conf.nHWalls)) {
         nHWalls = [];
         for (let i = 0; i < conf.nHWalls; i++) {
-            nHWalls.push(ROT.RNG.getUniform());
+            nHWalls.push(RG.RAND.getUniform());
         }
     }
     if (Number.isInteger(conf.nVWalls)) {
         nVWalls = [];
         for (let i = 0; i < conf.nVWalls; i++) {
-            nVWalls.push(ROT.RNG.getUniform());
+            nVWalls.push(RG.RAND.getUniform());
         }
     }
 
@@ -532,7 +516,7 @@ function addWallsIfAny(ow, map, conf) {
     for (let i = 0; i < nHWalls.length; i++) {
         let stop = stopOnWall;
         if (stopOnWall === 'random') {
-            stop = ROT.RNG.getUniform() >= 0.5;
+            stop = RG.RAND.getUniform() >= 0.5;
         }
         addLineHorizontalWestToEast(ow,
             Math.floor(sizeY * nHWalls[i]), map, stop);
@@ -540,7 +524,7 @@ function addWallsIfAny(ow, map, conf) {
     for (let i = 0; i < nVWalls.length; i++) {
         let stop = stopOnWall;
         if (stopOnWall === 'random') {
-            stop = ROT.RNG.getUniform() >= 0.5;
+            stop = RG.RAND.getUniform() >= 0.5;
         }
         addLineVerticalNorthToSouth(ow,
             Math.floor(sizeX * nVWalls[i]), map, stop);
@@ -569,7 +553,7 @@ function addLineHorizontalWestToEast(ow, y, map, stopOnWall = false) {
             }
             else {
                 console.log(`Placing wall to ${x},${y}`);
-                map[x][y] = ROT.RNG.getWeightedValue(LINE_WE_WEIGHT);
+                map[x][y] = RG.RAND.getWeighted(LINE_WE_WEIGHT);
             }
         }
     }
@@ -602,7 +586,7 @@ function addLineVerticalNorthToSouth(ow, x, map, stopOnWall = false) {
                 }
             }
             else {
-                map[x][y] = ROT.RNG.getWeightedValue(LINE_NS_WEIGHT);
+                map[x][y] = RG.RAND.getWeighted(LINE_NS_WEIGHT);
             }
         }
     }
@@ -664,12 +648,12 @@ function connectUnconnectedBottomTop(map, yFirst = true) {
 function processCell(x, y, map) {
     if (map[x][y] === EMPTY) {
         const neighbours = getValidNeighbours(x, y, map);
-        const validNeigbours = neighbours.filter(n =>
+        const validNeighbours = neighbours.filter(n =>
             n[0] !== EMPTY && n[0] !== TERM
         );
-        if (validNeigbours.length === 1) {
-            if (validNeigbours[0][1].length > 0) {
-                map[x][y] = getRandArr(validNeigbours[0][1]);
+        if (validNeighbours.length === 1) {
+            if (validNeighbours[0][1].length > 0) {
+                map[x][y] = getRandIn(validNeighbours[0][1]);
             }
             else {
                 map[x][y] = TERM;
@@ -721,7 +705,7 @@ function printMap(map) {
     }
 }
 
-/* Creates the actual overworld level. */
+/* Creates the overworld level. Returns RG.Map.Level. */
 function createOverWorldLevel(ow, elemX, elemY, xMap, yMap) {
     const map = ow.getMap();
     const sizeY = map[0].length;
@@ -752,15 +736,30 @@ function createSubLevel(ow, owX, owY, xMap, yMap) {
     const subX = xMap;
     const subY = yMap;
     const subLevel = RG.FACT.createLevel(RG.LEVEL_EMPTY, subX, subY);
-    const map = subLevel.getMap();
 
     const owSubLevel = new RG.OverWorld.SubLevel(subLevel);
     ow.addSubLevel([owX, owY], owSubLevel);
+
+    addSubLevelWalls(type, owSubLevel, subLevel);
+
+    // TODO Add other features such as cities, dungeons etc to the level.
+    addSubLevelFeatures(ow, owX, owY, subLevel);
+
+    return subLevel;
+}
+
+/* Adds the "mountain" walls into the overworld subLevel and the RG.Map.Level
+ * sublevel. */
+function addSubLevelWalls(type, owSubLevel, subLevel) {
+    const map = subLevel.getMap();
 
     const canConnectNorth = N_HAS_CONN.findIndex(item => item === type) >= 0;
     const canConnectSouth = S_HAS_CONN.findIndex(item => item === type) >= 0;
     const canConnectEast = E_HAS_CONN.findIndex(item => item === type) >= 0;
     const canConnectWest = W_HAS_CONN.findIndex(item => item === type) >= 0;
+
+    const subX = map.cols;
+    const subY = map.rows;
 
     const midX = Math.floor(subX / 2);
     const midY = Math.floor(subY / 2);
@@ -835,15 +834,11 @@ function createSubLevel(ow, owX, owY, xMap, yMap) {
         owSubLevel.addWall(wall);
     }
 
-    // TODO Add other features such as cities, dungeons etc to the level.
-    addSubLevelFeatures(ow, owX, owY, subLevel);
-
-    return subLevel;
 }
 
 
 function getLineWidth(mean, stddev, subSize) {
-    let width = Math.floor(ROT.RNG.getNormal(mean, stddev));
+    let width = Math.floor(RG.RAND.getNormal(mean, stddev));
     // width = Math.floor(width + coeff * width);
 
     if (width > subSize / 2) {
@@ -915,7 +910,7 @@ function addMountainFort(owSubLevel, subLevel) {
     const wall = owSubLevel.getWall();
     const start = wall.getWallStart();
     const end = wall.getWallEnd();
-    const randPos = ROT.RNG.getUniformInt(start, end);
+    const randPos = RG.RAND.getUniformInt(start, end);
     const coord = wall.getCoordAt(randPos);
 
     // Tile is a list of x,y coordinates
@@ -1018,14 +1013,14 @@ function cellMatches(type, listOrStr) {
 
 /* Finds a random cell of given type from the box of coordinates. */
 function findCellRandXYInBox(map, llx, lly, urx, ury, listOrStr) {
-    let x = llx === urx ? llx : ROT.RNG.getUniformInt(llx, urx);
-    let y = lly === ury ? lly : ROT.RNG.getUniformInt(ury, lly);
+    let x = llx === urx ? llx : RG.RAND.getUniformInt(llx, urx);
+    let y = lly === ury ? lly : RG.RAND.getUniformInt(ury, lly);
     let watchdog = 100 * (urx - llx + 1) * (lly - ury + 1);
 
     let match = cellMatches(map[x][y], listOrStr);
     while (!match) {
-        x = llx === urx ? llx : ROT.RNG.getUniformInt(llx, urx);
-        y = lly === ury ? lly : ROT.RNG.getUniformInt(ury, lly);
+        x = llx === urx ? llx : RG.RAND.getUniformInt(llx, urx);
+        y = lly === ury ? lly : RG.RAND.getUniformInt(ury, lly);
         match = cellMatches(map[x][y], listOrStr);
         if (watchdog === 0) {
             const box = `(${llx},${lly}) -> (${urx},${ury})`;
@@ -1068,8 +1063,8 @@ function getRandLoc(loc, shrink, sizeX, sizeY) {
     }
 
     return [
-        ROT.RNG.getUniformInt(llx, urx),
-        ROT.RNG.getUniformInt(ury, lly)
+        RG.RAND.getUniformInt(llx, urx),
+        RG.RAND.getUniformInt(ury, lly)
     ];
 }
 
