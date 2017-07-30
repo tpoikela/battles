@@ -24,10 +24,10 @@ RG.ObjectShellParser = require('./objectshellparser.js');
 RG.Game = require('./game.js');
 RG.Factory = require('./factory.js');
 
+RG.Names = require('../data/name-gen.js');
 RG.Overworld = require('./overworld.js');
 
 RG.Game.FromJSON = require('./game.fromjson.js');
-// RG.Game.Save
 
 RG.Factory.Game = require('./factory.game.js');
 
