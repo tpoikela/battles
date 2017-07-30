@@ -228,26 +228,28 @@ const RG = { // {{{2
     // These are used to select rendered characters for map cells.
     charStyles: {
         elements: {
+            bridge: '=',
+            chasm: '~',
             default: '.',
-            wall: '#',
-            icewall: '#',
             floor: '.',
+            fort: '#',
+            grass: '"',
+            highrock: '^',
+            icewall: '#',
+            road: '.',
             shop: ':',
             snow: '.',
-            stairsUp: '<',
             stairsDown: '>',
-            water: '~',
-            door: {
-                isClosed: '+',
-                default: '/'
-            },
-            tree: 'T',
-            grass: '"',
+            stairsUp: '<',
             stone: '^',
-            highrock: '^',
-            road: '.',
-            chasm: '~',
-            bridge: '='
+            tree: 'T',
+            wall: '#',
+            water: '~',
+            // Elements with different states
+            door: {
+                isClosed: '+', // if isClosed() returns true
+                default: '/'
+            }
         },
         actors: {
             default: 'X',
@@ -272,6 +274,7 @@ const RG = { // {{{2
             default: 'cell-element-default',
             door: 'cell-element-door',
             floor: 'cell-element-floor',
+            fort: 'cell-element-fort',
             icewall: 'cell-element-ice-wall',
             shop: 'cell-element-shop',
             snow: 'cell-element-snow',
@@ -926,7 +929,12 @@ RG.Geometry = {
         const highY = y0 + size;
         const lowY = y0 - size;
 
+        const diamond = {};
         const coord = [[x0, y0]];
+        diamond.N = [midX, highY];
+        diamond.S = [midX, lowY];
+        diamond.E = [RightX, y0];
+        diamond.W = [x0, y0];
         // Left side of the diamond
         for (let x = x0 + 1; x <= midX; x++) {
             // Upper left coordinates
@@ -950,7 +958,8 @@ RG.Geometry = {
                 coord.push([x, y]);
             }
         }
-        return coord;
+        diamond.coord = coord;
+        return diamond;
     },
 
     /* Given a list of levels and x,y sizes, creates a super-level. Works
@@ -1127,6 +1136,43 @@ RG.Geometry = {
                 }
             }
         }
+    },
+
+
+    getFreeArea: function(freeCoord, xDim, yDim, result) {
+        let found = false;
+        const left = freeCoord.slice();
+        const lookupXY = {};
+        freeCoord.forEach(xy => {
+            lookupXY[xy[0] + ',' + xy[1]] = xy;
+        });
+
+        while (!found && left.length > 0) {
+            const index = RG.RAND.getUniformInt(0, left.length - 1);
+
+            // Starting point
+            const x0 = left[index][0];
+            const y0 = left[index][1];
+            let areaOk = true;
+
+            for (let x = x0; x < x0 + xDim; x++) {
+                for (let y = y0; y < y0 + yDim; y++) {
+                    if (lookupXY[x + ',' + y]) {
+                        result.push([x, y]);
+                    }
+                    else {
+                        areaOk = false;
+                    }
+                }
+            }
+            found = areaOk;
+
+            if (!found) {
+                result = [];
+                left.splice(index);
+            }
+        }
+        return found;
     }
 
 };
