@@ -21,6 +21,7 @@
  */
 
 const RG = require('./rg');
+RG.Names = require('../data/name-gen');
 
 const getRandIn = RG.RAND.arrayGetRand.bind(RG.RAND);
 
@@ -253,14 +254,20 @@ RG.OverWorld.SubFeature = function(type, coord) {
 
 /* Data struct which is tied to 'RG.Map.Level'. Contains more high-level
  * information like positions of walls and other features. Essentially a wrapper
- * around Map.Level, to keep feature info out of the Map.Level. */
+ * around Map.Level, to keep feature creep out of the Map.Level. */
 RG.OverWorld.SubLevel = function(level) {
     this._level = level;
     this._hWalls = [];
     this._vWalls = [];
+    this._subX = level.getMap().rows;
+    this._subY = level.getMap().cols;
 
     // Store any number of different type of features by type
     this._features = {};
+    this.getFeatures = () => this._features;
+
+    this.getSubX = () => this._subX;
+    this.getSubY = () => this._subY;
 
     // Stores one feature per coordinate location
     this._featuresByXY = {};
@@ -431,8 +438,13 @@ RG.OverWorld.createOverWorld = function(conf = {}) {
         console.log(overworld.mapToString());
     }
 
+    // This will most likely fail, unless values have been set explicitly
+    const areaX = conf.areaX || worldX / 100;
+    const areaY = conf.areaY || worldY / 100;
+
     const worldLevel = createOverWorldLevel(
-        overworld, worldX, worldY, xMap, yMap);
+        overworld, worldX, worldY, xMap, yMap, areaX, areaY);
+
     return worldLevel;
 };
 
@@ -487,6 +499,7 @@ function randomizeBorders(map) {
 
 }
 
+/* Adds the large-scale walls into the overworld map. */
 function addWallsIfAny(ow, map, conf) {
     const sizeY = map[0].length;
     const sizeX = map.length;
@@ -518,7 +531,7 @@ function addWallsIfAny(ow, map, conf) {
         if (stopOnWall === 'random') {
             stop = RG.RAND.getUniform() >= 0.5;
         }
-        addLineHorizontalWestToEast(ow,
+        addHorizontalWallWestToEast(ow,
             Math.floor(sizeY * nHWalls[i]), map, stop);
     }
     for (let i = 0; i < nVWalls.length; i++) {
@@ -526,14 +539,14 @@ function addWallsIfAny(ow, map, conf) {
         if (stopOnWall === 'random') {
             stop = RG.RAND.getUniform() >= 0.5;
         }
-        addLineVerticalNorthToSouth(ow,
+        addVerticalWallNorthToSouth(ow,
             Math.floor(sizeX * nVWalls[i]), map, stop);
     }
 
 }
 
-/* Adds a horizontal line travelling from E -> W. */
-function addLineHorizontalWestToEast(ow, y, map, stopOnWall = false) {
+/* Adds a horizontal wall travelling from E -> W. */
+function addHorizontalWallWestToEast(ow, y, map, stopOnWall = false) {
     const sizeX = map.length;
     let didStopToWall = false;
     const wall = {y, x: [1]};
@@ -566,8 +579,8 @@ function addLineHorizontalWestToEast(ow, y, map, stopOnWall = false) {
     ow.addHWall(wall);
 }
 
-/* Adds a horizontal line travelling from E -> W. */
-function addLineVerticalNorthToSouth(ow, x, map, stopOnWall = false) {
+/* Adds a horizontal wall travelling from E -> W. */
+function addVerticalWallNorthToSouth(ow, x, map, stopOnWall = false) {
     const sizeY = map[0].length;
     let didStopToWall = false;
     const wall = {x, y: [1]};
@@ -706,11 +719,11 @@ function printMap(map) {
 }
 
 /* Creates the overworld level. Returns RG.Map.Level. */
-function createOverWorldLevel(ow, elemX, elemY, xMap, yMap) {
+function createOverWorldLevel(ow, worldX, worldY, xMap, yMap, areaX, areaY) {
     const map = ow.getMap();
     const sizeY = map[0].length;
     const sizeX = map.length;
-    const level = RG.FACT.createLevel(RG.LEVEL_EMPTY, elemX, elemY);
+    const level = RG.FACT.createLevel(RG.LEVEL_EMPTY, worldX, worldY);
 
     const subLevels = [];
     // Build the world level in smaller pieces, and then insert the
@@ -725,7 +738,10 @@ function createOverWorldLevel(ow, elemX, elemY, xMap, yMap) {
             RG.Geometry.insertSubLevel(level, subLevel, x0, y0);
         }
     }
-    return level;
+
+    const conf = RG.OverWorld.createWorldConf(ow, subLevels, areaX, areaY);
+
+    return [level, conf];
 }
 
 /* Returns a subLevel created based on the tile type. */
@@ -789,7 +805,6 @@ function addSubLevelWalls(type, owSubLevel, subLevel) {
     if (canConnectNorth || canConnectSouth) {
         const wall = new Wall('vertical');
         for (let y = startY; y <= endY; y++) {
-            // width = getLineWidth(MEAN_W, STDDEV_W, subX);
             width = widths[y - startY];
             const tile = [];
             if (width === 1) {width = MEAN_WX;}
@@ -821,7 +836,6 @@ function addSubLevelWalls(type, owSubLevel, subLevel) {
     if (canConnectEast || canConnectWest) {
         const wall = new Wall('horizontal');
         for (let x = startX; x <= endX; x++) {
-            // width = getLineWidth(MEAN_W, STDDEV_W, subY);
             width = widths[x - startX];
             const tile = [];
             if (width === 1) {width = MEAN_WY;}
@@ -836,8 +850,7 @@ function addSubLevelWalls(type, owSubLevel, subLevel) {
 
 }
 
-
-function getLineWidth(mean, stddev, subSize) {
+function getWallWidth(mean, stddev, subSize) {
     let width = Math.floor(RG.RAND.getNormal(mean, stddev));
     // width = Math.floor(width + coeff * width);
 
@@ -854,7 +867,7 @@ function getLineWidth(mean, stddev, subSize) {
 function getWidthMovingAvg(nElem, mean, stddev, subSize, filterW) {
     const unfiltered = [];
     for (let i = 0; i < nElem; i++) {
-        unfiltered.push(getLineWidth(mean, stddev, subSize));
+        unfiltered.push(getWallWidth(mean, stddev, subSize));
     }
 
     const filtered = [];
@@ -949,11 +962,21 @@ function addWorldFeatures(ow) {
     addFeatureToWall(ow, ow._hWalls[0], WTOWER);
     addFeatureToWall(ow, ow._vWalls[0], WTOWER);
 
-    // Create biomes for actor generation
+    // TODO list for features:
+
+    // Add the main roads for most important places
+
+    // Create biomes for actor generation of overworld
+
+    // Create forests and lakes
 
     // Distribute dungeons
 
-    // Distr
+    // Distribute mountains
+
+    // Distribute cities
+
+    // Adds roads for created features
 }
 
 /* Adds a feature to the map based on the cardinal direction. */
@@ -1066,6 +1089,114 @@ function getRandLoc(loc, shrink, sizeX, sizeY) {
         RG.RAND.getUniformInt(llx, urx),
         RG.RAND.getUniformInt(ury, lly)
     ];
+}
+
+/* Creates a world configuration which can be given to Factory.World.
+ * Maps an MxN array of sub-levels into |areaX| X |areaY| array of tile levels.
+ * Both levels are RG.Map.Levels.
+ */
+RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
+    const worldConf = {
+        nAreas: 1,
+        area: [{name: 'The North', maxX: areaX, maxY: areaY,
+            dungeon: [],
+            mountain: [],
+            city: [],
+            nDungeons: 0,
+            nMountains: 0,
+            nCities: 0
+        }]
+    };
+    const areaConf = worldConf.area[0];
+
+    const subLevelsX = subLevels.length;
+    const subLevelsY = subLevels[0].length;
+    if (!subLevelsX || !subLevelsY) {
+        const msg = `levels in X: ${subLevelsX}, Y: ${subLevelsY}`;
+        RG.err('OverWorld', 'createWorldConf',
+            `Illegal num of sublevels: ${msg}`);
+    }
+
+    const xMap = subLevelsX / areaX; // SubLevels per tile level in x-dir
+    const yMap = subLevelsY / areaY; // SubLevels per tile level in y-dir
+
+    // if xMap/yMap not integers, mapping will be wrong, thus we cannot round
+    // the map values, just throw error
+    if (!Number.isInteger(xMap)) {
+        RG.err('OverWorld', 'createWorldConf',
+            `xMap not int: ${xMap}, sub X :${subLevelsX}, areaX: ${areaX}`);
+    }
+    if (!Number.isInteger(yMap)) {
+        RG.err('OverWorld', 'createWorldConf',
+            `xMap not int: ${yMap}, sub Y :${subLevelsY}, areaY: ${areaY}`);
+    }
+
+    // Map values are OK
+    for (let x = 0; x < subLevelsX; x++) {
+        for (let y = 0; y < subLevelsY; y++) {
+
+            // Find sub-level indices + area level indices
+            const slX = x % xMap;
+            const slY = y % yMap;
+            const aX = Math.floor(x / xMap);
+            const aY = Math.floor(y / yMap);
+
+            const subLevel = ow.getSubLevel([x, y]);
+            const subX = subLevel.getSubX();
+            const subY = subLevel.getSubY();
+
+            const features = subLevel.getFeatures();
+            Object.keys(features).forEach(type => {
+                const featureArray = features[type];
+                featureArray.forEach(feat => {
+                    if (feat.type === 'fort') {
+                        const coord = feat.coord;
+                        const featX = coord[0][0];
+                        const featY = coord[0][1];
+                        const nLevels = coord.length;
+                        const cityConf = {
+                            name: feat.name,
+                            nQuarters: 1,
+                            quarter: [
+                                {name: RG.Names.getRandPlaceName('quarter'),
+                                    nLevels, entranceLevel: 0
+                                }
+                            ],
+                            x: aX, // area x,
+                            y: aY, // area y
+                            levelX: mapX(featX, slX, subX),
+                            levelY: mapY(featY, slY, subY)
+                        };
+                        areaConf.nCities += 1;
+                        areaConf.city.push(cityConf);
+                    }
+                    /* if (feat.type === 'blacktower') {
+
+                    }*/
+                });
+            });
+        }
+    }
+
+    return worldConf;
+};
+
+/* Maps an x coord in a sub-level (Map.Level) into an x-y coordinate in
+ * an AreaTile.
+ * slX = sub-level x index in area tile. For example:
+ * Assuming we have a matrix 3x3 of 10x10 sub-levels. Our area tile is now
+ * 30x30. slX points then to x-pos of 3x3 matrix.
+ */
+function mapX(x, slX, subSizeX) {
+    return x + slX * subSizeX;
+}
+
+/* Maps an y coord in a sub-level (Map.Level) into an x-y coordinate in
+ * an AreaTile.
+ * slY = sub-level y index in area tile. For longer expl, see mapY() above.
+ */
+function mapY(y, slY, subSizeY) {
+    return y + slY * subSizeY;
 }
 
 module.exports = RG.OverWorld;
