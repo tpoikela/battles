@@ -1,10 +1,11 @@
 
 /* Test code to generate valley surrounded by mountains.
-* Uses unicode "double lines" for easier visualisation.
-*
 */
 
 const RG = require('../client/src/battles');
+
+const OverWorld = RG.OverWorld;
+const createOverWorld = OverWorld.createOverWorld;
 
 const mult = 1;
 
@@ -15,14 +16,14 @@ const conf = {
     stopOnWall: true,
     // nHWalls: 2,
     nVWalls: [0.8],
-    highX: mult * 40,
-    highY: mult * 20,
-    worldX: mult * 400,
+    highX: mult * 80,
+    highY: mult * 40,
+    worldX: mult * 800,
     worldY: mult * 400
 };
 
 const startTime = new Date().getTime();
-RG.getOverWorld(conf);
+createOverWorld(conf);
 const endTime = new Date().getTime();
 
 const dur = endTime - startTime;
