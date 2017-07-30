@@ -328,6 +328,16 @@ const Screen = function(viewX, viewY) {
         }
     };
 
+    this.clear = function() {
+        _classRows = [];
+        _charRows = [];
+        this.selectedCell = null;
+        this.startX = 0;
+        this.endX = -1;
+        this.startY = 0;
+        this.endY = -1;
+    };
+
 };
 
 module.exports = Screen;
