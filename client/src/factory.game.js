@@ -193,7 +193,7 @@ RG.Factory.Game = function() {
     let _playerFOV = RG.FOV_RANGE;
 
     this.createOverWorld = function(obj, game, player) {
-        const mult = 2;
+        const mult = 1;
         const conf = {
             yFirst: false,
             topToBottom: false,
@@ -201,25 +201,33 @@ RG.Factory.Game = function() {
             stopOnWall: true,
             // nHWalls: 2,
             nVWalls: [0.8],
-            highX: mult * 80,
+            highX: mult * 40,
             highY: mult * 20,
             worldX: mult * 800,
             worldY: mult * 400,
             nLevelsX: mult * 8,
-            nLevelsY: mult * 4
+            nLevelsY: mult * 4,
+            areaX: mult * 8,
+            areaY: mult * 4
         };
-        const worldLevel = RG.OverWorld.createOverWorld(conf);
+        const worldAndConf = RG.OverWorld.createOverWorld(conf);
+        const worldLevel = worldAndConf[0];
+        const worldConf = worldAndConf[1];
+        /*
         const itemConf = {
             itemsPerLevel: 10000,
             func: (item) => (item.value <= 2500),
             maxValue: 2500
         };
         this.addNRandItems(worldLevel, _parser, itemConf);
+        */
 
+        /*
         const actorConf = {
             monstersPerLevel: 10000, maxDanger: 20
         };
         this.addNRandMonsters(worldLevel, _parser, actorConf);
+        */
         const splitLevels = RG.Geometry.splitLevel(worldLevel, conf);
 
         const midX = Math.floor(conf.nLevelsX / 2);
@@ -229,13 +237,23 @@ RG.Factory.Game = function() {
             conf.nLevelsY, 100, 100, splitLevels);
         worldArea.connectTiles();
 
+        // Use factory to create a world
+        const fact = new RG.Factory.World();
+        // worldConf.presetLevels = {};
+        // worldConf.presetLevels['Realm'] = splitLevels;
+        fact.setPresetLevels({Realm: splitLevels});
+        const world = fact.createWorld(worldConf);
+        game.addPlace(world);
+
+        /*
         for (let x = 0; x < splitLevels.length; x++) {
             for (let y = 0; y < splitLevels[x].length; y++) {
                 game.addLevel(splitLevels[x][y]);
             }
         }
+        */
         player.setFOVRange(10);
-        game.addPlayer(player);
+        game.addPlayer(player); // Player already placed to level
         return game;
     };
 
