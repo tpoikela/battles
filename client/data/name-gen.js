@@ -3,6 +3,7 @@
 // Thanks to www.fantasynamegenerators.com for some tips
 
 const Names = {};
+const RG = require('../src/rg.js');
 
 Names.place = {
     dungeon: [
@@ -51,6 +52,11 @@ Names.actor = {
 
 Names.item = {
 
+};
+
+Names.getRandPlaceName = (type) => {
+    const arr = Names.place[type];
+    return RG.RAND.arrayGetRand(arr);
 };
 
 module.exports = Names;
