@@ -43,6 +43,10 @@ RG.Random.prototype.getNormal = function(mean, stddev) {
     return this.rng.getNormal(mean, stddev);
 };
 
+RG.Random.prototype.getWeighted = function(obj) {
+    return this.rng.getWeightedValue(obj);
+};
+
 /* Given a number N, returns an integer from 0 to N weighted such that N has the
  * highest weight, and 0 the lowest.
  */
