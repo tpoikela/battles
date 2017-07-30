@@ -25,6 +25,8 @@ RG.Names = require('../data/name-gen');
 
 const getRandIn = RG.RAND.arrayGetRand.bind(RG.RAND);
 
+const $DEBUG = true;
+
 RG.OverWorld = {};
 
 // Straight lines
@@ -739,6 +741,8 @@ function createOverWorldLevel(ow, worldX, worldY, xMap, yMap, areaX, areaY) {
         }
     }
 
+    console.log(`AreaTile size: x: ${worldX / areaX}, y: ${worldY / areaY}`);
+
     const conf = RG.OverWorld.createWorldConf(ow, subLevels, areaX, areaY);
 
     return [level, conf];
@@ -1097,8 +1101,9 @@ function getRandLoc(loc, shrink, sizeX, sizeY) {
  */
 RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
     const worldConf = {
+        name: 'The North',
         nAreas: 1,
-        area: [{name: 'The North', maxX: areaX, maxY: areaY,
+        area: [{name: 'The Northern Realm', maxX: areaX, maxY: areaY,
             dungeon: [],
             mountain: [],
             city: [],
@@ -1119,6 +1124,13 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
 
     const xMap = subLevelsX / areaX; // SubLevels per tile level in x-dir
     const yMap = subLevelsY / areaY; // SubLevels per tile level in y-dir
+
+    if ($DEBUG) {
+        console.log(`subLevelsX: ${subLevelsX}, areaX: ${areaX}`);
+        console.log(`subLevelsY: ${subLevelsY}, areaY: ${areaY}`);
+        console.log(`MapX: ${xMap} levels to one tile`);
+        console.log(`MapY: ${yMap} levels to one tile`);
+    }
 
     // if xMap/yMap not integers, mapping will be wrong, thus we cannot round
     // the map values, just throw error
@@ -1145,27 +1157,42 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
             const subX = subLevel.getSubX();
             const subY = subLevel.getSubY();
 
+            // console.log(`subX: ${subX} subY: ${subY}`);
+
             const features = subLevel.getFeatures();
             Object.keys(features).forEach(type => {
                 const featureArray = features[type];
                 featureArray.forEach(feat => {
                     if (feat.type === 'fort') {
                         const coord = feat.coord;
-                        const featX = coord[0][0];
-                        const featY = coord[0][1];
                         const nLevels = coord.length;
+                        const lastCoord = nLevels - 1;
+
+                        const connX = mapX(coord[0][0], slX, subX);
+                        const connY = mapY(coord[0][1], slY, subY) - 1;
+
+                        const featX = mapX(coord[lastCoord][0], slX, subX);
+                        const featY = mapY(coord[lastCoord][1], slY, subY) + 1;
+
+                        console.log(`featX: ${featX} featY: ${featY}`);
+                        console.log(`slX: ${slX} slY: ${slY}`);
+
+                        const qName = RG.Names.getRandPlaceName('quarter');
                         const cityConf = {
                             name: feat.name,
                             nQuarters: 1,
+                            connectToXY: [
+                                {name: qName, levelX: connX,
+                                levelY: connY, nLevel: nLevels - 1}],
                             quarter: [
-                                {name: RG.Names.getRandPlaceName('quarter'),
+                                {name: qName,
                                     nLevels, entranceLevel: 0
                                 }
                             ],
                             x: aX, // area x,
                             y: aY, // area y
-                            levelX: mapX(featX, slX, subX),
-                            levelY: mapY(featY, slY, subY)
+                            levelX: featX,
+                            levelY: featY
                         };
                         areaConf.nCities += 1;
                         areaConf.city.push(cityConf);
@@ -1188,7 +1215,11 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
  * 30x30. slX points then to x-pos of 3x3 matrix.
  */
 function mapX(x, slX, subSizeX) {
-    return x + slX * subSizeX;
+    const res = x + slX * subSizeX;
+    if (res >= 100 ) {
+        console.log(`WARNING mapX: ${res}, ${x}, ${slX}, ${subSizeX}`);
+    }
+    return res;
 }
 
 /* Maps an y coord in a sub-level (Map.Level) into an x-y coordinate in
