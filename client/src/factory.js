@@ -709,13 +709,28 @@ RG.Factory.World = function() {
             ['name', 'maxX', 'maxY']);
         this.pushScope(conf);
 
-        // TODO deal with levels when restoring
+        const hierName = this.getHierName();
+
         let areaLevels = null;
+        let needsConnect = false;
         if (this.id2levelSet) {
             areaLevels = this.getAreaLevels(conf);
         }
+        else {
+            areaLevels = this.getPresetLevels(hierName);
+            if (areaLevels.length === 0) {
+                areaLevels = null;
+            }
+            else {
+                needsConnect = true;
+            }
+        }
+
         const area = new RG.World.Area(conf.name, conf.maxX, conf.maxY,
             conf.cols, conf.rows, areaLevels);
+        if (needsConnect) {
+            area.connectTiles();
+        }
         area.setHierName(this.getHierName());
         const nDungeons = conf.nDungeons || 0;
         const nMountains = conf.nMountains || 0;
