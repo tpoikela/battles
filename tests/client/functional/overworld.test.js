@@ -2,7 +2,8 @@
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 
-describe('How Game is created from Overworld', () => {
+describe('How Game is created from Overworld', function() {
+    this.timeout(10000);
     it('description', () => {
         const gameFact = new RG.Factory.Game();
 
