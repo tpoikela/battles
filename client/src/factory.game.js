@@ -201,14 +201,14 @@ RG.Factory.Game = function() {
             stopOnWall: true,
             // nHWalls: 2,
             nVWalls: [0.8],
-            highX: mult * 40,
+            highX: mult * 80,
             highY: mult * 20,
-            worldX: mult * 400,
+            worldX: mult * 800,
             worldY: mult * 400,
-            nLevelsX: mult * 4,
+            nLevelsX: mult * 8,
             nLevelsY: mult * 4
         };
-        const worldLevel = RG.getOverWorld(conf);
+        const worldLevel = RG.OverWorld.createOverWorld(conf);
         const itemConf = {
             itemsPerLevel: 10000,
             func: (item) => (item.value <= 2500),
