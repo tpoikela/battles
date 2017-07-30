@@ -56,8 +56,11 @@ RG.WorldConf = {
 
     presetLevels: {
         'Beast dungeon.Animals': [{nLevel: 0, level: temple}]
+        // for area: 'Area name': [levels], must match x by y, in this would
+        // be 5 by 5. No support for individual levels for areas.
     },
 
+    // Specifies a tile where player is placed at the start
     playerStart: {place: 'The North', x: 2, y: 4},
 
     nAreas: 1,
