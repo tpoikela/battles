@@ -21,6 +21,26 @@ function getStairsOther(name, levels) {
     return stairs;
 }
 
+/* Finds a level from a named feature such as city quarter, dungeon branch or
+ * mountain face. */
+function findLevel(name, features, nLevel) {
+    const feat = features.find(feat => {
+        return feat.getName() === name;
+    });
+    if (feat) {
+        const levels = feat.getLevels();
+        if (levels.length > nLevel) {
+            return levels[nLevel];
+        }
+        else {
+            RG.err('world.js', 'findLevel',
+                `nLevel ${nLevel} out of bounds (${levels.length - 1})`);
+        }
+    }
+    // If level null, issue warning
+    return null;
+}
+
 /* Tries to connect stairs to level N in given levels. */
 function connectLevelToStairs(levels, nLevel, stairs) {
     if (nLevel < levels.length) {
@@ -268,6 +288,10 @@ RG.World.Dungeon = function(name) {
 
     this.getBranches = function() {
         return _branches;
+    };
+
+    this.findLevel = function(name, nLevel) {
+        return findLevel(name, _branches, nLevel);
     };
 
     /* Sets the entry branch(es) for the dungeon. */
@@ -618,6 +642,14 @@ from-the-side view. Bit weird but should be fine.
         return res;
     };
 
+    this.findLevel = function(name, nLevel) {
+        const level = findLevel(name, _faces, nLevel);
+        if (level === null) {
+            return findLevel(name, _summits, nLevel);
+        }
+        return level;
+    };
+
     this.addSummit = (summit) => {
         _summits.push(summit);
     };
@@ -778,6 +810,10 @@ RG.World.City = function(name) {
             result = result.concat(q.getLevels());
         });
         return result;
+    };
+
+    this.findLevel = function(name, nLevel) {
+        return findLevel(name, _quarters, nLevel);
     };
 
     this.getEntrances = function() {

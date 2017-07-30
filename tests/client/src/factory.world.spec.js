@@ -136,8 +136,11 @@ describe('Factory.World', function() {
                     city: [
                         { x: 0, y: 0, levelX: 4, levelY: 7,
                             name: 'Ravendark', nQuarters: 1,
+                            connectToXY: [
+                                {name: 'Q1', nLevel: 1, levelX: 8, levelY: 9}
+                            ],
                             quarter: [
-                                {name: 'Q1', nLevels: 1, entranceLevel: 0}
+                                {name: 'Q1', nLevels: 2, entranceLevel: 0}
                             ]
                         }
                     ]
@@ -148,9 +151,15 @@ describe('Factory.World', function() {
         expect(world.getCities()).to.have.length(1);
 
         const areaLevel = world.getAreas()[0].getTileXY(0, 0).getLevel();
-        const stairs = areaLevel.getStairs()[0];
-        expect(stairs.getX()).to.equal(4);
-        expect(stairs.getY()).to.equal(7);
+        const stairs0 = areaLevel.getStairs()[0];
+        expect(stairs0.getX()).to.equal(4);
+        expect(stairs0.getY()).to.equal(7);
+
+        const stairs1 = areaLevel.getStairs()[1];
+        expect(stairs1.getX()).to.equal(8);
+        expect(stairs1.getY()).to.equal(9);
+
+
     });
 
 });
