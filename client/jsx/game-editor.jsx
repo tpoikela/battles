@@ -1,7 +1,7 @@
 
 const React = require('react');
-
 const ROT = require('../../lib/rot');
+const FileSaver = require('file-saver');
 
 const GameBoard = require('./game-board');
 const RG = require('../src/battles');
@@ -13,8 +13,7 @@ const RGObjects = require('../data/battles_objects');
 
 const NO_VISIBLE_CELLS = [];
 
-const FileSaver = require('file-saver');
-const genFullWorld = require('../../scripts/mountain-range');
+const createOverWorld = RG.OverWorld.createOverWorld;
 
 /*
  * Sketch to specify the menus in more sane way than jsx.
@@ -179,6 +178,8 @@ class GameEditor extends React.Component {
         this.onChangeTurnsPerFrame = this.onChangeTurnsPerFrame.bind(this);
 
         this.handleKeyDown = this.handleKeyDown.bind(this);
+
+        this.deleteLevel = this.deleteLevel.bind(this);
     }
 
     componentDidMount() {
@@ -200,6 +201,14 @@ class GameEditor extends React.Component {
             this.setState({elementType: 'wall'});
             this.insertElement();
         }
+    }
+
+    /* Returns current level */
+    getLevel() {
+        if (this.state.levelList.length) {
+            return this.state.levelList[this.state.levelIndex];
+        }
+        return null;
     }
 
     onCellClick(x, y) {
@@ -282,11 +291,18 @@ class GameEditor extends React.Component {
     /* Generates a world scale map using overworld algorithm and adds it to the
      * editor. */
     generateWorld() {
+        const mult = 1;
         const conf = {
-            worldX: this.state.levelX,
-            worldY: this.state.levelY
+            worldX: mult * this.state.levelX,
+            worldY: mult * this.state.levelY,
+            yFirst: false,
+            topToBottom: false,
+            stopOnWall: true,
+            nVWalls: [0.8],
+            highX: mult * 40,
+            highY: mult * 20
         };
-        const level = genFullWorld(conf);
+        const level = createOverWorld(conf);
         this.addLevelToEditor(level);
     }
 
@@ -457,6 +473,8 @@ class GameEditor extends React.Component {
     }
 
     render() {
+        console.log('render() called');
+
         const mapShown = this.props.mapShown;
         let rowClass = 'cell-row-div-player-view';
         if (mapShown) {rowClass = 'cell-row-div-map-view';}
@@ -466,6 +484,7 @@ class GameEditor extends React.Component {
 
         let map = null;
         if (this.state.level) {
+            console.log('this.state.level is not null');
             map = this.state.level.getMap();
         }
 
@@ -476,6 +495,10 @@ class GameEditor extends React.Component {
             else {
                 this.screen.renderFullMap(map);
             }
+        }
+        else {
+            console.log('Clearing the screen');
+            this.screen.clear();
         }
 
         const errorMsg = this.getEditorMsg();
@@ -857,7 +880,26 @@ class GameEditor extends React.Component {
     }
 
     selectLevel(level, i) {
+        console.log('Select level clicked');
         this.setState({level: level, levelIndex: i});
+    }
+
+    deleteLevel(evt) {
+        evt.stopPropagation();
+        const {id} = evt.target;
+        const i = parseInt(id, 10);
+        const levelList = this.state.levelList;
+        console.log('Length is ' + levelList.length);
+        levelList.splice(i, 1);
+        console.log('Aftert splice() Length is ' + levelList.length);
+        const shownLevel = levelList.length > 0 ? levelList[0] : null;
+        if (shownLevel === null) {
+            console.log('Setting level to null');
+            this.setState({level: null, levelIndex: -1, levelList});
+        }
+        else {
+            this.setState({level: shownLevel, levelIndex: 0, levelList});
+        }
     }
 
     //--------------------------------------------------------------
@@ -1112,7 +1154,7 @@ class GameEditor extends React.Component {
         const levelList = this.state.levelList.map((level, i) => {
             const selectLevel = this.selectLevel.bind(this, level, i);
             const className = this.state.levelIndex === i
-                ? 'list-group-item active' : 'list-group-item';
+                ? 'list-group-item list-group-item-info' : 'list-group-item';
 
             const nActors = level.getActors().length;
             const nActorsShow = nActors ? 'A:' + nActors : '';
@@ -1128,6 +1170,11 @@ class GameEditor extends React.Component {
                     L{level.getID()}:
                     {level.getMap().cols}x{level.getMap().rows}|{nActorsShow}|
                     {nItemsShow}
+                    <button
+                        className='btn-xs btn-danger pull-right'
+                        id={i}
+                        onClick={this.deleteLevel}
+                    >X</button>
                 </a>
             );
         });
