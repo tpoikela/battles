@@ -1069,9 +1069,18 @@ RG.Factory.World = function() {
         const tile = area.getTileXY(x, y);
         const tileLevel = tile.getLevel();
 
-        const freeAreaCell = tileLevel.getEmptyRandCell();
-        const freeX = freeAreaCell.getX();
-        const freeY = freeAreaCell.getY();
+        let freeX = -1;
+        let freeY = -1;
+
+        if (RG.isNullOrUndef([conf.levelX, conf.levelY])) {
+            const freeAreaCell = tileLevel.getEmptyRandCell();
+            freeX = freeAreaCell.getX();
+            freeY = freeAreaCell.getY();
+        }
+        else {
+            freeX = conf.levelX;
+            freeY = conf.levelY;
+        }
 
         if (feature.hasOwnProperty('getEntrances')) {
             const entrances = feature.getEntrances();
