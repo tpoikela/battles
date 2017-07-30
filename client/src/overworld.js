@@ -1,7 +1,5 @@
-
-
-/* Code to generate the game overworld.
- *
+/*
+ * Code to generate the game 2-D overworld.
  */
 
 /* bb = bounding box = (llx lly urx urx)
@@ -9,10 +7,23 @@
  * lly = lower-left y
  * urx = upper-right x
  * ury = upper-right y
+ *
+ * Because 0,0 is located in the top-left (NW) corner, ury <= lly, which maybe
+ * confusing because 'lower' has higher value than 'upper'. But in this case
+ * 'lower' and 'upper' refer to visual location.
+ *    y x0123
+ *    0  #### <-(urx, ury)
+ *    1  ####
+ *    2  ####
+ *       ^
+ *       |
+ *      (llx, lly)
  */
 
 const ROT = require('../../lib/rot');
 const RG = require('./rg');
+
+RG.OverWorld = {};
 
 // Straight lines
 const LL_WE = '\u2550'; // ═
@@ -42,10 +53,14 @@ const WTOWER = '\u2656';
 // const CITY = '\u1CC1';
 
 // Used for randomization
+/*
 const dirValues = [
     TERM, XX, EMPTY, TT_E, TT_W, TT_S, TT_N, CC_NW, CC_NE,
     CC_SW, CC_SE, LL_WE, LL_NS
 ];
+*/
+
+const CELL_ANY = 'CELL_ANY'; // Used in matching functions only
 
 // Can connect to east side
 const E_HAS_CONN = [XX, TT_W, TT_N, TT_S, CC_NW, CC_SW, LL_WE];
@@ -71,6 +86,8 @@ const W_BORDER = [LL_NS, TT_W];
 // const LINE_WE = [LL_WE, TT_N, TT_S, XX];
 // const LINE_NS = [LL_NS, TT_E, TT_W, XX];
 
+// Used for weighted randomisation of creating west-east walls,
+// favors non-branching walls
 const LINE_WE_WEIGHT = {
     [LL_WE]: 10,
     [TT_N]: 3,
@@ -78,6 +95,8 @@ const LINE_WE_WEIGHT = {
     [XX]: 1
 };
 
+// Used for weighted randomisation of create north-south walls,
+// favors non-branching walls
 const LINE_NS_WEIGHT = {
     [LL_NS]: 10,
     [TT_E]: 3,
@@ -85,6 +104,7 @@ const LINE_NS_WEIGHT = {
     [XX]: 1
 };
 
+// Connection mappings for different 'mountain' tiles
 // If we have an empty cell (e), and neighbouring cell is of type 'first key',
 // and this cell is located in the dir 'second key' of the empty cell,
 // listed cells can be used as empty cell.
@@ -181,9 +201,38 @@ const CAN_CONNECT = {
     }
 };
 
+const Wall = function(type) {
+    this.type = type; // vertical/horizontal/etc
+    this.tiles = []; // 2-d array of coordinates
+
+    this.addTile = function(tile) {
+        this.tiles.push(tile);
+    };
+};
+
+/* Data struct which is tied to 'RG.Map.Level'. Contains more high-level
+ * information like positions of walls and other features. */
+RG.OverWorld.SubLevel = function(level) {
+
+    this._level = level;
+    this._hWalls = [];
+    this._vWalls = [];
+
+    this.addWall = function(wall) {
+        if (wall.type === 'vertical') {
+            this._vWalls.push(wall);
+        }
+        else if (wall.type === 'horizontal') {
+            this._hWalls.push(wall);
+        }
+    };
+
+};
+
 /* Data struct for overworld. */
-const OverWorld = function() {
+RG.OverWorld.Map = function() {
     this._baseMap = [];
+    this._subLevels = [];
 
     this._hWalls = [];
     this._vWalls = [];
@@ -192,8 +241,13 @@ const OverWorld = function() {
     this._featuresByXY = {};
 
     this.getMap = () => this._baseMap;
+
     this.setMap = function(map) {
+        const sizeX = map.length;
         this._baseMap = map;
+        for (let x = 0; x < sizeX; x++) {
+            this._subLevels[x] = [];
+        }
     };
 
     this.addVWall = function(wall) {
@@ -216,6 +270,10 @@ const OverWorld = function() {
         }
         this._features[type].push(xy);
         this._featuresByXY[keyXY].push(type);
+    };
+
+    this.addSubLevel = function(xy, level) {
+        this._subLevels[xy[0]][xy[1]] = level;
     };
 
     this.mapToString = function() {
@@ -244,11 +302,9 @@ const OverWorld = function() {
 
 };
 
-/* Main function to construct the world
-*  which returns RG.Map.Level. */
-RG.getOverWorld = function(conf = {}) {
-
-    const overworld = new OverWorld();
+/* Factory function to construct the overworld. */
+RG.OverWorld.createOverWorld = function(conf = {}) {
+    const overworld = new RG.OverWorld.Map();
 
     const worldX = conf.worldX || 400;
     const worldY = conf.worldY || 400;
@@ -268,12 +324,8 @@ RG.getOverWorld = function(conf = {}) {
     const xMap = Math.floor(worldX / owTilesX);
     const yMap = Math.floor(worldY / owTilesY);
 
-    console.log(`xMap ${xMap}, yMap: ${yMap}`);
-
-    // Fully randomized map first
-    const map = getRandMap(owTilesX, owTilesY);
-
-    randomizeBorder(map);
+    const map = createEmptyMap(owTilesX, owTilesY);
+    randomizeBorders(map);
     printMap(map);
     addWallsIfAny(overworld, map, conf);
     printMap(map);
@@ -294,7 +346,8 @@ RG.getOverWorld = function(conf = {}) {
         console.log(overworld.mapToString());
     }
 
-    const worldLevel = getLevelsWithElems(map, worldX, worldY, xMap, yMap);
+    const worldLevel = createOverWorldLevel(
+        overworld, worldX, worldY, xMap, yMap);
     return worldLevel;
 };
 
@@ -302,7 +355,9 @@ RG.getOverWorld = function(conf = {}) {
 // HELPERS
 //---------------------------------------------------------------------------
 
-function getRandMap(sizeX, sizeY) {
+/* Creates a fully randomized map of sizeX by sizeY. */
+/*
+function createRandMap(sizeX, sizeY) {
     const map = [];
     for (let x = 0; x < sizeX; x++) {
         map[x] = [];
@@ -312,46 +367,56 @@ function getRandMap(sizeX, sizeY) {
     }
     return map;
 }
+*/
 
-function getRandArr(arr) {
-    const max = arr.length;
-    const index = Math.floor(Math.random() * max);
-    return arr[index];
-}
-
-/* Randomizes map order with valid border cells. */
-function randomizeBorder(map) {
-    const sizeY = map[0].length;
-    const sizeX = map.length;
-
+/* Creates an empty map. */
+function createEmptyMap(sizeX, sizeY) {
+    const map = [];
     for (let x = 0; x < sizeX; x++) {
+        map[x] = [];
         for (let y = 0; y < sizeY; y++) {
             map[x][y] = EMPTY;
         }
     }
+    return map;
+}
 
-    // Set corners
+/* Returns random element from array. */
+function getRandArr(arr) {
+    const max = arr.length;
+    const index = Math.floor(ROT.RNG.getUniform() * max);
+    return arr[index];
+}
+
+/* Randomizes map border still using valid border cells. Valid cells are ones
+ * which do not have connections outside the map, and abut to neighbouring
+ * cells correctly. */
+function randomizeBorders(map) {
+    const sizeY = map[0].length;
+    const sizeX = map.length;
+
+    // Set map corners
     map[0][0] = CC_NW;
     map[0][sizeY - 1] = CC_SW;
     map[sizeX - 1][sizeY - 1] = CC_SE;
     map[sizeX - 1][0] = CC_NE;
 
-    // N, y = 0, vary x
+    // N border, y = 0, vary x
     for (let x = 1; x < sizeX - 1; x++) {
         map[x][0] = getRandArr(N_BORDER);
     }
 
-    // S, y = max, vary x
+    // S border, y = max, vary x
     for (let x = 1; x < sizeX - 1; x++) {
         map[x][sizeY - 1] = getRandArr(S_BORDER);
     }
 
-    // E, x = max, vary y
+    // E border, x = max, vary y
     for (let y = 1; y < sizeY - 1; y++) {
         map[sizeX - 1][y] = getRandArr(E_BORDER);
     }
 
-    // W, x = 0, vary y
+    // W border, x = 0, vary y
     for (let y = 1; y < sizeY - 1; y++) {
         map[0][y] = getRandArr(W_BORDER);
     }
@@ -576,19 +641,23 @@ function printMap(map) {
     }
 }
 
-/* Returns element map with 1 marking the lines, 0 for non-lines. */
-function getLevelsWithElems(map, elemX, elemY, xMap, yMap) {
+/* Creates the actual overworld level. */
+function createOverWorldLevel(ow, elemX, elemY, xMap, yMap) {
+    const map = ow.getMap();
     const sizeY = map[0].length;
     const sizeX = map.length;
-    const level = RG.FACT.createLevel('empty', elemX, elemY);
+    const level = RG.FACT.createLevel(RG.LEVEL_EMPTY, elemX, elemY);
 
+    const subLevels = [];
     // Build the world level in smaller pieces, and then insert the
     // small leves into the large level.
     for (let x = 0; x < sizeX; x++) {
+        subLevels[x] = [];
         for (let y = 0; y < sizeY; y++) {
-            const subLevel = getSubLevel(map[x][y], xMap, yMap);
+            const subLevel = createSubLevel(ow, x, y, xMap, yMap);
             const x0 = x * xMap;
             const y0 = y * yMap;
+            subLevels[x][y] = subLevel;
             RG.Geometry.insertSubLevel(level, subLevel, x0, y0);
         }
     }
@@ -596,11 +665,17 @@ function getLevelsWithElems(map, elemX, elemY, xMap, yMap) {
 }
 
 /* Returns a subLevel created based on the tile type. */
-function getSubLevel(type, xMap, yMap) {
+function createSubLevel(ow, owX, owY, xMap, yMap) {
+    const owMap = ow.getMap();
+    const type = owMap[owX][owY];
+
     const subX = xMap;
     const subY = yMap;
-    const subLevel = RG.FACT.createLevel('empty', subX, subY);
+    const subLevel = RG.FACT.createLevel(RG.LEVEL_EMPTY, subX, subY);
     const map = subLevel.getMap();
+
+    const owSubLevel = new RG.OverWorld.SubLevel(subLevel);
+    ow.addSubLevel([owX, owY], owSubLevel);
 
     const canConnectNorth = N_HAS_CONN.findIndex(item => item === type) >= 0;
     const canConnectSouth = S_HAS_CONN.findIndex(item => item === type) >= 0;
@@ -611,53 +686,76 @@ function getSubLevel(type, xMap, yMap) {
     const midY = Math.floor(subY / 2);
 
     const MEAN_W = 5;
-    const STDDEV_W = 2;
+    const STDDEV_W = 3;
     let width = null;
 
-    let widths = getWidthMovingAvg(midY, MEAN_W, STDDEV_W, subX, 3);
+    let startY = -1;
+    let endY = -1;
+    if (canConnectNorth && canConnectSouth) {
+        startY = 0;
+        endY = subY - 1;
+    }
+    else if (canConnectNorth) {
+        startY = 0;
+        endY = midY - 1;
+    }
+    else if (canConnectSouth) {
+        startY = midY;
+        endY = subY - 1;
+    }
+
+    let widths = getWidthMovingAvg(endY + 1, MEAN_W, STDDEV_W, subX, 3);
     // Draw line from center to north
-    if (canConnectNorth) {
-        for (let y = 0; y < midY; y++) {
+    if (canConnectNorth || canConnectSouth) {
+        const wall = new Wall('vertical');
+        for (let y = startY; y <= endY; y++) {
             // width = getLineWidth(MEAN_W, STDDEV_W, subX);
-            width = widths[y];
+            width = widths[y - startY];
+            const tile = [];
+            if (width === 1) {width = MEAN_W;}
             for (let x = midX - (width - 1); x <= midX + (width - 1); x++) {
                 map.setBaseElemXY(x, y, RG.WALL_ELEM);
+                tile.push([x, y]);
             }
+            wall.addTile(tile);
         }
+        owSubLevel.addWall(wall);
     }
-    widths = getWidthMovingAvg(subY - midY, MEAN_W, STDDEV_W, subX, 3);
-    // Draw line from center to south
-    if (canConnectSouth) {
-        for (let y = midY; y < subY; y++) {
-            // width = getLineWidth(MEAN_W, STDDEV_W, subX);
-            width = widths[y - midY];
-            for (let x = midX - (width - 1); x <= midX + (width - 1); x++) {
-                map.setBaseElemXY(x, y, RG.WALL_ELEM);
-            }
-        }
+
+    let startX = -1;
+    let endX = -1;
+    if (canConnectEast && canConnectWest) {
+        startX = 0;
+        endX = subX - 1;
     }
-    widths = getWidthMovingAvg(subX - midX, MEAN_W, STDDEV_W, subX, 3);
-    // Draw line from center to east
-    if (canConnectEast) {
-        for (let x = midX; x < subX; x++) {
+    else if (canConnectEast) {
+        startX = midX;
+        endX = subX - 1;
+    }
+    else if (canConnectWest) {
+        startX = 0;
+        endX = midX - 1;
+    }
+
+    widths = getWidthMovingAvg(endX + 1, MEAN_W, STDDEV_W, subX, 3);
+    if (canConnectEast || canConnectWest) {
+        const wall = new Wall('horizontal');
+        for (let x = startX; x <= endX; x++) {
             // width = getLineWidth(MEAN_W, STDDEV_W, subY);
-            width = widths[x - midX];
+            width = widths[x - startX];
+            const tile = [];
+            if (width === 1) {width = MEAN_W;}
             for (let y = midY - (width - 1); y <= midY + (width - 1); y++) {
                 map.setBaseElemXY(x, y, RG.WALL_ELEM);
             }
+            wall.addTile(tile);
         }
+        owSubLevel.addWall(wall);
     }
-    widths = getWidthMovingAvg(midY, MEAN_W, STDDEV_W, subX, 3);
-    // Draw line from center to west
-    if (canConnectWest) {
-        for (let x = 0; x < midX; x++) {
-            // width = getLineWidth(MEAN_W, STDDEV_W, subY);
-            width = widths[x];
-            for (let y = midY - (width - 1); y <= midY + (width - 1); y++) {
-                map.setBaseElemXY(x, y, RG.WALL_ELEM);
-            }
-        }
-    }
+
+    // TODO Add other features such as cities, dungeons etc to the level.
+
+
     return subLevel;
 }
 
@@ -753,28 +851,57 @@ function addFeatureToAreaByDir(ow, loc, shrink, type) {
 
 /* Adds given feature on top of given wall to random position. */
 function addFeatureToWall(ow, wall, type) {
+    const map = ow.getMap();
     let xy = null;
 
     if (wall.type === 'horizontal') { // y will be fixed
-        const lx = wall.x[0];
-        const rx = wall.x[wall.x.length - 1];
-
-        xy = [
-            ROT.RNG.getUniformInt(lx, rx),
-            wall.y
-        ];
+        const llx = wall.x[0];
+        const urx = wall.x[wall.x.length - 1];
+        xy = findCellRandXYInBox(map, llx, wall.y, urx, wall.y, LL_WE);
     }
     if (wall.type === 'vertical') { // y will be fixed
-        const ly = wall.y[0];
-        const ry = wall.y[wall.y.length - 1];
-
-        xy = [
-            wall.x,
-            ROT.RNG.getUniformInt(ly, ry)
-        ];
+        const lly = wall.y[0];
+        const ury = wall.y[wall.y.length - 1];
+        xy = findCellRandXYInBox(map, wall.x, lly, wall.x, ury, LL_NS);
     }
 
     ow.addFeature(xy, type);
+}
+
+/* Checks if given cell type matches any in the array. If there's CELL_ANY,
+ * in the list, then returns always true regardless of type. */
+function cellMatches(type, listOrStr) {
+    let list = listOrStr;
+    if (typeof listOrStr === 'string') {
+        list = [listOrStr];
+    }
+    const matchAny = list.indexOf(CELL_ANY);
+    if (matchAny >= 0) {return true;}
+
+    const matchFound = list.indexOf(type);
+    return matchFound >= 0;
+}
+
+/* Finds a random cell of given type from the box of coordinates. */
+function findCellRandXYInBox(map, llx, lly, urx, ury, listOrStr) {
+    let x = llx === urx ? llx : ROT.RNG.getUniformInt(llx, urx);
+    let y = lly === ury ? lly : ROT.RNG.getUniformInt(ury, lly);
+    let watchdog = 100 * (urx - llx + 1) * (lly - ury + 1);
+
+    let match = cellMatches(map[x][y], listOrStr);
+    while (!match) {
+        x = llx === urx ? llx : ROT.RNG.getUniformInt(llx, urx);
+        y = lly === ury ? lly : ROT.RNG.getUniformInt(ury, lly);
+        match = cellMatches(map[x][y], listOrStr);
+        if (watchdog === 0) {
+            const box = `(${llx},${lly}) -> (${urx},${ury})`;
+            RG.warn('OverWorld', 'findCellRandXYInBox',
+                `No cells of type ${listOrStr} in ${box}`);
+            break;
+        }
+        --watchdog;
+    }
+    return [x, y];
 }
 
 /* Given location like 'NE' (northeast), and shrink 0 - 1, plus maximum size,
@@ -812,5 +939,5 @@ function getRandLoc(loc, shrink, sizeX, sizeY) {
     ];
 }
 
-module.exports = RG.getOverWorld;
+module.exports = RG.OverWorld;
 
