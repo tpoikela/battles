@@ -43,6 +43,11 @@ $door-bg-color: $floor-bg-color;
     background-color: $floor-bg-color;
 }
 
+.cell-element-fort {
+    background-color: $floor-bg-color;
+    color: $black;
+}
+
 .cell-element-ice-wall {
     background-color: $blue;
     color: $white;
