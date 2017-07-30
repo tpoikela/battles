@@ -203,20 +203,65 @@ const CAN_CONNECT = {
 
 const Wall = function(type) {
     this.type = type; // vertical/horizontal/etc
-    this.tiles = []; // 2-d array of coordinates
+    this.coord = []; // 2-d array of coordinates
 
-    this.addTile = function(tile) {
-        this.tiles.push(tile);
+    this.addWallCoord = function(tile) {
+        this.coord.push(tile);
     };
+
+    this.getCoordAt = function(n) {
+        return this.coord[n];
+    };
+
+    this.getWallStart = function() {
+        if (type === 'vertical') {
+            return this.coord[0][0][1];
+        }
+        if (type === 'horizontal') {
+            return this.coord[0][0][0];
+        }
+        return -1;
+    };
+
+    this.getWallEnd = function() {
+        const last = this.coord.length - 1;
+        if (type === 'vertical') {
+            return this.coord[last][0][1];
+        }
+        if (type === 'horizontal') {
+            return this.coord[last][0][0];
+        }
+        return -1;
+    };
+
+    this.toString = function() {
+        let str = `Type: ${this.type} `;
+        str += `Length: ${this.coord.length}\n`;
+        str += `Start: ${this.getWallStart()} End: ${this.getWallEnd()}\n`;
+        str += `Tiles: ${JSON.stringify(this.coord)}`;
+        return str;
+    };
+};
+
+/* Feature has type and a list of coordinates. It can be for example a fort
+ * occupying several squares. */
+RG.OverWorld.SubFeature = function(type, coord) {
+    this.type = type;
+    this.coord = coord;
 };
 
 /* Data struct which is tied to 'RG.Map.Level'. Contains more high-level
  * information like positions of walls and other features. */
 RG.OverWorld.SubLevel = function(level) {
-
     this._level = level;
     this._hWalls = [];
     this._vWalls = [];
+
+    // Store any number of different type of features by type
+    this._features = {};
+
+    // Stores one feature per coordinate location
+    this._featuresByXY = {};
 
     this.addWall = function(wall) {
         if (wall.type === 'vertical') {
@@ -225,6 +270,31 @@ RG.OverWorld.SubLevel = function(level) {
         else if (wall.type === 'horizontal') {
             this._hWalls.push(wall);
         }
+    };
+
+    /* Returns one wall (or null) if none found. */
+    this.getWall = function() {
+        const hLen = this._hWalls.length;
+        const vLen = this._vWalls.length;
+        if (hLen === 0 && vLen === 0) {return null;}
+        if (hLen === 0) {return this._vWalls[0];}
+        if (vLen === 0) {return this._hWalls[0];}
+        RG.warn('OverWorld.SubLevel', 'getWall',
+            `Return hor wall. Too many walls: vLen: ${vLen}, hLen: ${hLen}`);
+        return this._hWalls[0];
+    };
+
+    this.addFeature = function(feature) {
+        const type = feature.type;
+        if (!this._features.hasOwnProperty(type)) {
+            this._features[type] = [];
+        }
+        this._features[type].push(feature);
+
+        feature.coord.forEach(xy => {
+            const keyXY = xy[0] + ',' + xy[1];
+            this._featuresByXY[keyXY] = type;
+        });
     };
 
 };
@@ -241,6 +311,7 @@ RG.OverWorld.Map = function() {
     this._featuresByXY = {};
 
     this.getMap = () => this._baseMap;
+    this.getCell = (xy) => this._baseMap[xy[0]][xy[1]];
 
     this.setMap = function(map) {
         const sizeX = map.length;
@@ -272,8 +343,17 @@ RG.OverWorld.Map = function() {
         this._featuresByXY[keyXY].push(type);
     };
 
+    this.getFeaturesByXY = function(xy) {
+        const keyXY = xy[0] + ',' + xy[1];
+        return this._featuresByXY[keyXY];
+    };
+
     this.addSubLevel = function(xy, level) {
         this._subLevels[xy[0]][xy[1]] = level;
+    };
+
+    this.getSubLevel = function(xy) {
+        return this._subLevels[xy[0]][xy[1]];
     };
 
     this.mapToString = function() {
@@ -685,7 +765,8 @@ function createSubLevel(ow, owX, owY, xMap, yMap) {
     const midX = Math.floor(subX / 2);
     const midY = Math.floor(subY / 2);
 
-    const MEAN_W = 5;
+    const MEAN_WX = 5;
+    const MEAN_WY = 5;
     const STDDEV_W = 3;
     let width = null;
 
@@ -704,7 +785,7 @@ function createSubLevel(ow, owX, owY, xMap, yMap) {
         endY = subY - 1;
     }
 
-    let widths = getWidthMovingAvg(endY + 1, MEAN_W, STDDEV_W, subX, 3);
+    let widths = getWidthMovingAvg(endY + 1, MEAN_WX, STDDEV_W, subX, 3);
     // Draw line from center to north
     if (canConnectNorth || canConnectSouth) {
         const wall = new Wall('vertical');
@@ -712,12 +793,12 @@ function createSubLevel(ow, owX, owY, xMap, yMap) {
             // width = getLineWidth(MEAN_W, STDDEV_W, subX);
             width = widths[y - startY];
             const tile = [];
-            if (width === 1) {width = MEAN_W;}
+            if (width === 1) {width = MEAN_WX;}
             for (let x = midX - (width - 1); x <= midX + (width - 1); x++) {
                 map.setBaseElemXY(x, y, RG.WALL_ELEM);
                 tile.push([x, y]);
             }
-            wall.addTile(tile);
+            wall.addWallCoord(tile);
         }
         owSubLevel.addWall(wall);
     }
@@ -737,27 +818,29 @@ function createSubLevel(ow, owX, owY, xMap, yMap) {
         endX = midX - 1;
     }
 
-    widths = getWidthMovingAvg(endX + 1, MEAN_W, STDDEV_W, subX, 3);
+    widths = getWidthMovingAvg(endX + 1, MEAN_WY, STDDEV_W, subX, 3);
     if (canConnectEast || canConnectWest) {
         const wall = new Wall('horizontal');
         for (let x = startX; x <= endX; x++) {
             // width = getLineWidth(MEAN_W, STDDEV_W, subY);
             width = widths[x - startX];
             const tile = [];
-            if (width === 1) {width = MEAN_W;}
+            if (width === 1) {width = MEAN_WY;}
             for (let y = midY - (width - 1); y <= midY + (width - 1); y++) {
                 map.setBaseElemXY(x, y, RG.WALL_ELEM);
+                tile.push([x, y]);
             }
-            wall.addTile(tile);
+            wall.addWallCoord(tile);
         }
         owSubLevel.addWall(wall);
     }
 
     // TODO Add other features such as cities, dungeons etc to the level.
-
+    addSubLevelFeatures(ow, owX, owY, subLevel);
 
     return subLevel;
 }
+
 
 function getLineWidth(mean, stddev, subSize) {
     let width = Math.floor(ROT.RNG.getNormal(mean, stddev));
@@ -809,6 +892,56 @@ function getFiltered(arr, i, filterW) {
     return Math.floor(sum / num);
 }
 
+/* Monster of a function. Has to add all possible features. */
+function addSubLevelFeatures(ow, owX, owY, subLevel) {
+    const xy = [owX, owY];
+    const owSubLevel = ow.getSubLevel(xy);
+    const features = ow.getFeaturesByXY(xy);
+    const base = ow.getCell(xy);
+
+    if (!features) {return;}
+
+    features.forEach(feat => {
+        if ((base === LL_WE || base === LL_NS) && feat === WTOWER) {
+            addMountainFort(owSubLevel, subLevel);
+        }
+        else if (feat === BTOWER) {
+            addBlackTower(owSubLevel, subLevel);
+        }
+    });
+}
+
+function addMountainFort(owSubLevel, subLevel) {
+    const wall = owSubLevel.getWall();
+    const start = wall.getWallStart();
+    const end = wall.getWallEnd();
+    const randPos = ROT.RNG.getUniformInt(start, end);
+    const coord = wall.getCoordAt(randPos);
+
+    // Tile is a list of x,y coordinates
+    subLevel.getMap().setBaseElems(coord, RG.FORT_ELEM);
+    const fort = new RG.OverWorld.SubFeature('fort', coord);
+    owSubLevel.addFeature(fort);
+
+}
+
+function addBlackTower(owSubLevel, subLevel) {
+    let placed = false;
+    const freeCells = subLevel.getMap().getFree();
+    const freeXY = freeCells.map(cell => [cell.getX(), cell.getY()]);
+    const coord = [];
+
+    if (RG.Geometry.getFreeArea(freeXY, 3, 3, coord)) {
+        placed = true;
+    }
+
+    if (placed) {
+        subLevel.getMap().setBaseElems(coord, RG.FORT_ELEM);
+        const tower = new RG.OverWorld.SubFeature('blacktower', coord);
+        owSubLevel.addFeature(tower);
+    }
+
+}
 
 /* Adds features like water, cities etc into the world. */
 function addWorldFeatures(ow) {
@@ -819,6 +952,7 @@ function addWorldFeatures(ow) {
     // City of B
     addFeatureToWall(ow, ow._hWalls[1], WTOWER);
     addFeatureToWall(ow, ow._hWalls[0], WTOWER);
+    addFeatureToWall(ow, ow._vWalls[0], WTOWER);
 
     // Create biomes for actor generation
 
