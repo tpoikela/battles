@@ -418,17 +418,21 @@ RG.Map.CellList = function(cols, rows) { // {{{2
 
 }; // }}} this._map.CellList
 
+RG.Map.CellList.prototype.setBaseElems = function(coord, elem) {
+    coord.forEach(xy => {
+        this._map[xy[0]][xy[1]].setBaseElem(elem);
+    });
+};
+
 RG.Map.CellList.invertMap = function(map) {
     for (let x = 0; x < map.cols; x++) {
         for (let y = 0; y < map.rows; y++) {
             const type = map._map[x][y].getBaseElem().getType();
             if (type === 'wall') {
                 map._map[x][y].setBaseElem(RG.FLOOR_ELEM);
-                // map._map[x][y].setBaseElem(new RG.Element.Base('floor'));
             }
             else if (type === 'floor') {
                 map._map[x][y].setBaseElem(RG.WALL_ELEM);
-                // map._map[x][y].setBaseElem(new RG.Element.Base('wall'));
             }
         }
     }
