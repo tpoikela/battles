@@ -414,8 +414,14 @@ RG.Element.Water.prototype.isPassable = function() {
     return false;
 };
 
-RG.Element.Water = function() {
-    RG.Element.Base.call(this, 'water');
+/* A fort element. */
+RG.Element.Fort = function() {
+    RG.Element.Base.call(this, 'fort');
+};
+RG.extend2(RG.Element.Fort, RG.Element.Base);
+
+RG.Element.Fort.prototype.isPassable = function() {
+    return false;
 };
 
 // Constant elements which can be used by all levels. freeze()
@@ -433,5 +439,6 @@ RG.STONE_ELEM = Object.freeze(new RG.Element.Stone());
 RG.TREE_ELEM = Object.freeze(new RG.Element.Tree());
 RG.WALL_ELEM = Object.freeze(new RG.Element.Base('wall'));
 RG.WATER_ELEM = Object.freeze(new RG.Element.Water());
+RG.FORT_ELEM = Object.freeze(new RG.Element.Fort());
 
 module.exports = RG.Element;
