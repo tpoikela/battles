@@ -15,6 +15,9 @@ RG.Brain = require('./brain.js');
 RG.Inv = require('./inv.js');
 RG.Actor = require('./actor.js');
 RG.Element = require('./element.js');
+
+RG.Template = require('./template.js');
+
 RG.Map = require('./map.js');
 RG.World = require('./world.js');
 
