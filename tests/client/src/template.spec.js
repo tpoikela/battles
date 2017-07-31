@@ -38,7 +38,8 @@ describe('Template.ElemGenY', () => {
 
 describe('Template.ElemTemplate', () => {
     it('description', () => {
-        RG.Template.createTemplate(templStr2x2);
+        const templ = RG.Template.createTemplate(templStr2x2);
+        console.log(JSON.stringify(templ.getChars([2, 10, 1])));
 
     });
 });

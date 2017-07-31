@@ -23,27 +23,37 @@ RG.Template.createTemplate = function(str) {
     }
 
     ++nLine; // Skip empty line
-    // const templLines = [];
+    const asciiLines = [];
+    while (nLine < lines.length) {
+        asciiLines.push(lines[nLine]);
+        ++nLine;
+    }
 
     // Parse x-generators from first line
-    let currLineArr = lines[nLine].split('');
-    const {xGenPos, xWidths} = getXWidthsAndGenXPos(currLineArr);
+    let currLineArr = asciiLines[0].split('');
+    const {genPos: xGenPos, widths: xWidths} = getWidthsAndGenPos(currLineArr);
     console.log(JSON.stringify(xGenPos));
     console.log(JSON.stringify(xWidths));
 
+    const firstCol = [];
     const rows = [];
     let y = 0;
-    while (nLine < lines.length) {
-        let x = 0;
+    for (let i = 0; i < asciiLines.length; i++) {
+        let xSrc = 0;
+        let xTarget = 0;
         rows.push([]);
-        currLineArr = lines[nLine].split('');
+        currLineArr = asciiLines[i].split('');
+        console.log(JSON.stringify(`y: ${y} currLineArr: ${currLineArr}`));
+        firstCol.push(currLineArr[0]);
         xWidths.forEach(w => {
-            const elem = currLineArr.slice(x, x + w);
-            console.log(`x: ${x}, w: ${w}, elem: ${elem}`);
-            rows[y][x] = elem;
-            x += w;
+            const elem = currLineArr.slice(xSrc, xSrc + w);
+            console.log(`x: ${xSrc}, w: ${w}, elem: ${elem}`);
+            if (elem) {
+                rows[y][xTarget] = elem;
+            }
+            xSrc += w;
+            ++xTarget;
         });
-        ++nLine;
         ++y;
     }
 
@@ -51,37 +61,24 @@ RG.Template.createTemplate = function(str) {
         console.log(`Row[${i}]: ${JSON.stringify(r)}`);
     });
 
-    // With xWidths, we know the column widths now
-    // xGenPos tells us the generator positions
+    console.log('firstCols is: ' + JSON.stringify(firstCol));
 
-    /*
-    while (currLine && currLine.length > 0) {
-        const splitLine = currLine.split('');
-        const lineLen = splitLine.length;
+    const {genPos: yGenPos, widths: yWidths} = getWidthsAndGenPos(firstCol);
+    console.log('yGenPos: ' + JSON.stringify(yGenPos));
+    console.log('yWidths: ' + JSON.stringify(yWidths));
 
-        const result = [splitLine[0]];
-        let prevChar = '';
-        const currChar = splitLine[1];
-        let str = currChar;
+    const conf = {
+        xGenPos, yGenPos,
+        xWidths, yWidths,
+        rows,
+        elemMap
+    };
 
-        for (let x = 1; x < lineLen - 1; x++) {
-
-        }
-
-
-        ++nLine;
-        currLine = lines[nLine];
-        templLines.push(result);
-    }
-
-    console.log(JSON.stringify(templLines));
-
-    //const template = new ElemTemplate(templLines);
+    const template = new ElemTemplate(conf);
     return template;
-    */
 };
 
-function getXWidthsAndGenXPos(currLineArr) {
+function getWidthsAndGenPos(currLineArr) {
     const lineLen = currLineArr.length;
     const xGenPos = {};
     const xWidths = [1];
@@ -105,7 +102,8 @@ function getXWidthsAndGenXPos(currLineArr) {
             }
         }
         else if (genXLen > 0) {
-            xGenPos[x - genXLen] = genXLen;
+            // xGenPos[x - genXLen] = genXLen;
+            xGenPos[xWidths.length] = genXLen;
             xWidths.push(genXLen);
             xWidths.push(1);
             genXLen = 0;
@@ -116,50 +114,49 @@ function getXWidthsAndGenXPos(currLineArr) {
         prevChar = currChar;
     }
     if (genXLen > 0) {
-        xGenPos[lineLen - genXLen] = genXLen;
+        // xGenPos[lineLen - genXLen] = genXLen;
+        xGenPos[xWidths.length] = genXLen;
         xWidths.push(genXLen);
     }
     return {
-        xGenPos,
-        xWidths
+        genPos: xGenPos,
+        widths: xWidths
     };
 }
 
-const ElemTemplate = function(elemMap, arr) {
-    this.elemMap = elemMap;
-    const nMaps = Object.keys(elemMap).length;
-    this.sizeX = arr.length;
-    this.sizeY = arr[0].length;
+const ElemTemplate = function(conf) {
+    this.elemMap = conf.elemMap;
+    const nMaps = Object.keys(this.elemMap).length;
+    this.sizeX = conf.xWidths.length;
+    this.sizeY = conf.rows.length;
 
     this.elemArr = [];
 
     // Indicates which cells have generators
-    this.hasGenXY = {};
-    this.hasGenCol = {};
+    this.xGenPos = conf.xGenPos;
+    this.yGenPos = conf.yGenPos;
     this.hasGenRow = {};
 
     // Before Gen madness, place normal cells
     for (let x = 0; x < this.sizeX; x++) {
+        this.elemArr[x] = [];
         for (let y = 0; y < this.sizeY; y++) {
-            this.elemArr[x] = arr[x][y];
+            this.elemArr[x][y] = conf.rows[y][x].join('');
         }
     }
+    console.log(JSON.stringify('before X elemArray: ' + this.elemArr));
 
-    // Find X-generators
-    for (let x = 1; x < this.sizeX; x++) {
-        const match = arr[x][0].match(/[A-Z]/);
-        if (match) {
-            console.log('Found GenX: ' + match);
+    Object.keys(this.xGenPos).forEach(x => {
+        for (let y = 0; y < this.sizeY; y++) {
+            console.log(`-- ${x}, ${y}`);
+            const str = this.elemArr[x][y];
+            this.elemArr[x][y] = new ElemGenX(str);
         }
-    }
+    });
+
+    console.log(JSON.stringify('elemArray: ' + this.elemArr));
 
     // Find Y-generator
-    for (let y = 1; y < this.sizeY; y++) {
-        const match = arr[0][y].match(/[A-Z]/);
-        if (match) {
-            console.log('Found GenY: ' + match);
-        }
-    }
 
     this.getChars = function(arr) {
         if (arr.length > 0 && arr.length !== nMaps) {
@@ -167,13 +164,26 @@ const ElemTemplate = function(elemMap, arr) {
                 `Input array length must be ${nMaps}.`);
         }
         else {
+            let index = 0; // Points to the generator array value
             const result = [];
             for (let x = 0; x < this.sizeX; x++) {
-                if (typeof this.elemArr[x][0] === 'object') {
-                    result[x][0] = this.elemArr[x][0].getChars(arr[0]);
+                result[x] = [];
+                for (let y = 0; y < this.sizeY; y++) {
+                    if (typeof this.elemArr[x][y] === 'object') {
+                        result[x][y] = this.elemArr[x][y].getChars(arr[index]);
+                    }
+                    else {
+                        result[x][y] = this.elemArr[x][y];
+                    }
                 }
+                ++index; // Gen value changes per column
             }
+
+            // X is fine, now apply Y-generators
+
+            return result;
         }
+        return [];
     };
 };
 RG.Template.ElemTemplate = ElemTemplate;
