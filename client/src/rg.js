@@ -909,9 +909,22 @@ RG.ACTOR_ABUNDANT_SQR = 50;
  * generation and level manipulation. */
 RG.Geometry = {
 
+    /* Returns a box of coordinates given starting point and end points
+     * (inclusive). */
+    getBox: function(x0, y0, maxX, maxY) {
+        const res = [];
+        for (let x = x0; x <= maxX; x++) {
+            for (let y = y0; y <= maxY; y++) {
+                res.push([x, y]);
+            }
+        }
+        return res;
+    },
+
     /* Given start x,y and end x,y coordinates, returns all x,y coordinates in
      * the border of the rectangle.*/
     getHollowBox: function(x0, y0, maxX, maxY) {
+        console.log(`getHollowBox: ${x0},${y0}, ${maxX},${maxY}`);
         const res = [];
         for (let x = x0; x <= maxX; x++) {
             for (let y = y0; y <= maxY; y++) {
@@ -960,6 +973,33 @@ RG.Geometry = {
         }
         diamond.coord = coord;
         return diamond;
+    },
+
+    /* Returns true if given coordinate is one of the corners defined by the
+     * box. */
+    isCorner: function(x, y, llx, lly, urx, ury) {
+        if (x === llx || x === urx) {
+            return y === lly || y === ury;
+        }
+        return false;
+    },
+
+    /* Removes all xy-pairs from the first array that are contained also in the
+     * 2nd one. Returns number of elements removed. */
+    removeMatching: function(modified, remove) {
+        let nFound = 0;
+        remove.forEach(xy => {
+            const index = modified.findIndex(xyPair => (
+                xyPair[0] === xy[0] && xyPair[1] === xy[1]
+            ));
+
+            if (index >= 0) {
+                modified.splice(index, 1);
+                ++nFound;
+            }
+
+        });
+        return nFound;
     },
 
     /* Given a list of levels and x,y sizes, creates a super-level. Works
@@ -1139,6 +1179,9 @@ RG.Geometry = {
     },
 
 
+    /* Given a list of coordinates (can be any shape), checks if a box xDim *
+     * yDim fits anywhere. Returns true if OK, and
+     * 'result' will be a list of x,y pairs for the box. */
     getFreeArea: function(freeCoord, xDim, yDim, result) {
         let found = false;
         const left = freeCoord.slice();
