@@ -583,9 +583,25 @@ RG.Map.Generator = function() { // {{{2
         if (conf.hasOwnProperty('maxHouseY')) {maxY = conf.maxHouseY;}
 
         const houses = [];
-        this.setGen('arena', cols, rows);
+        const levelType = conf.levelType || 'arena';
+        this.setGen(levelType, cols, rows);
         const mapObj = this.getMap();
         const map = mapObj.map;
+
+        const freeCells = map.getFree();
+        const freeCoord = freeCells.map(cell => [cell.getX(), cell.getY()]);
+
+        const getHollowBox = RG.Geometry.getHollowBox;
+        let border = getHollowBox(0, 0, cols - 1, rows - 1);
+        console.log('Outer border length: ' + border.length);
+        border = border.concat(getHollowBox(1, 1, cols - 2, rows - 2));
+        console.log('Two borders length: ' + border.length);
+
+        console.log('len free before: ' + freeCoord.length);
+        const rem = RG.Geometry.removeMatching(freeCoord, border);
+        console.log('len free after: ' + freeCoord.length);
+
+        console.log(`Removed ${rem} border coordinates`);
 
         for (let i = 0; i < nHouses; i++) {
 
@@ -596,14 +612,26 @@ RG.Map.Generator = function() { // {{{2
 
             // Select random starting point, try to build house there
             while (!houseCreated && tries < maxTriesHouse) {
-                const x0 = RG.RAND.getUniformInt(0, cols - 1);
-                const y0 = RG.RAND.getUniformInt(0, rows - 1);
+                const xy = RG.RAND.arrayGetRand(freeCoord);
+                // const x0 = RG.RAND.getUniformInt(2, cols - 1 - maxX - 1);
+                // const y0 = RG.RAND.getUniformInt(2, rows - 1 - maxY - 1);
+                const x0 = xy[0];
+                const y0 = xy[1];
                 houseCreated = this.createHouse(
-                    map, x0, y0, xSize, ySize, doors, wallsHalos);
+                    map, x0, y0, xSize, ySize, doors, wallsHalos, freeCoord);
                 ++tries;
-                if (typeof houseCreatd === 'object') {break;}
             }
-            if (houseCreated) {houses.push(houseCreated);}
+            if (houseCreated) {
+                houses.push(houseCreated);
+                const {llx, urx, lly, ury} = houseCreated;
+                const wallCoord = RG.Geometry.getBox(llx, lly, urx, ury);
+                const nFound = RG.Geometry.removeMatching(freeCoord, wallCoord);
+                if (!nFound) {
+                    const msg = `in box ${llx},${lly},${urx},${ury}`;
+                    RG.warn('Map.Generator', 'createTown',
+                        `No free cells modified for house ${msg}`);
+                }
+            }
 
         }
         return {map, houses};
@@ -612,9 +640,17 @@ RG.Map.Generator = function() { // {{{2
     /* Creates a house into a given map to a location x0,y0 with given
      * dimensions. Existing doors and walls must be passed to prevent
      * overlapping.*/
-    this.createHouse = function(map, x0, y0, xDim, yDim, doors, wallsHalos) {
+    this.createHouse = function(
+        map, x0, y0, xDim, yDim, doors, wallsHalos, freeCoord) {
+
         const maxX = x0 + xDim;
         const maxY = y0 + yDim;
+
+        const freeIndex = freeCoord.findIndex(xy => (
+            xy[0] === maxX && xy[1] === maxY
+        ));
+        if (freeIndex < 0) {return false;}
+
         const wallCoords = [];
 
         // House doesn't fit on the map
@@ -633,21 +669,30 @@ RG.Map.Generator = function() { // {{{2
                     return false;
                 }
                 else if (!doors.hasOwnProperty(x + ',' + y)) {
-                        possibleRoom.push([x, y]);
-                        // Exclude map border from door generation
-                        if (!map.isBorderXY(x, y)) {wallCoords.push([x, y]);}
-                    }
+                    possibleRoom.push([x, y]);
+                    // Exclude map border from door generation
+                    if (!map.isBorderXY(x, y)) {wallCoords.push([x, y]);}
+                }
             }
         }
 
-        // House generation has succeeded at this point, true will be returned
-
-        // Didn't fail, now we can build the actual walls
-        for (let i = 0; i < possibleRoom.length; i++) {
-            const roomX = possibleRoom[i][0];
-            const roomY = possibleRoom[i][1];
-            map.setBaseElemXY(roomX, roomY, RG.WALL_ELEM);
+        const floorCoords = [];
+        for (let x = x0 + 1; x < maxX; x++) {
+            for (let y = y0 + 1; y < maxY; y++) {
+                const index = freeCoord.findIndex(xy => (
+                    xy[0] === x && xy[1] === y
+                ));
+                if (index >= 0) {
+                    floorCoords.push([x, y]);
+                }
+                else {
+                    return false;
+                }
+            }
         }
+
+        // House generation has succeeded at this point
+        map.setBaseElems(possibleRoom, RG.WALL_ELEM);
 
         // Create the halo, prevents houses being too close to each other
         const haloX0 = x0 - 1;
@@ -662,10 +707,21 @@ RG.Map.Generator = function() { // {{{2
             wallsHalos[haloX + ',' + haloY] = true;
         }
 
-        // Finally randomly insert the door for the house
-        const doorIndex = RG.RAND.randIndex(wallCoords);
-        const doorX = wallCoords[doorIndex][0];
-        const doorY = wallCoords[doorIndex][1];
+        // Finally randomly insert the door for the house, excluding corners
+        let doorIndex = RG.RAND.randIndex(wallCoords);
+        let doorX = wallCoords[doorIndex][0];
+        let doorY = wallCoords[doorIndex][1];
+        let watchdog = 1000;
+        while (RG.Geometry.isCorner(doorX, doorY, x0, y0, maxX, maxY)) {
+            doorIndex = RG.RAND.randIndex(wallCoords);
+            doorX = wallCoords[doorIndex][0];
+            doorY = wallCoords[doorIndex][1];
+            --watchdog;
+            if (watchdog === 0) {
+                console.log(`Timed out with len ${wallCoords.length}`);
+                break;
+            }
+        }
         wallCoords.slice(doorIndex, 1);
 
         // At the moment, "door" is a hole in the wall
@@ -678,12 +734,6 @@ RG.Map.Generator = function() { // {{{2
             wallsHalos[xHalo + ',' + yHalo] = true;
         }
 
-        const floorCoords = [];
-        for (let x = x0 + 1; x < maxX; x++) {
-            for (let y = y0 + 1; y < maxY; y++) {
-                floorCoords.push([x, y]);
-            }
-        }
 
         // Return room object
         return {
