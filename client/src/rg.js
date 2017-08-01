@@ -1220,6 +1220,64 @@ RG.Geometry = {
 
 };
 
+/* Debugging function for printing 2D map row-by-row. */
+RG.printMap = function(map) {
+    let rowByRow = null;
+    if (Array.isArray(map)) {
+        rowByRow = RG.colsToRows(map);
+    }
+    else if (map instanceof RG.Map.CellList) {
+        rowByRow = RG.colsToRows(map._map);
+    }
+    if (rowByRow) {
+        const sizeY = rowByRow.length;
+        for (let y = 0; y < sizeY; y++) {
+            console.log(rowByRow[y].join(''));
+        }
+    }
+
+};
+
+RG.colsToRows = function(arr) {
+    const res = [];
+    const sizeY = arr[0].length;
+    const sizeX = arr.length;
+    for (let y = 0; y < sizeY; y++) {
+        res[y] = [];
+        for (let x = 0; x < sizeX; x++) {
+            res[y][x] = arr[x][y];
+        }
+    }
+    return res;
+};
+
+/* Given 2D array of elements, flattens all arrays inside each [x][y]
+ * positions. */
+RG.flattenTo2D = function(arr) {
+    const sizeY = arr.length;
+    const res = [];
+    for (let y = 0; y < sizeY; y++) {
+        let row = arr[y];
+        // console.log(`Flattening: ${row}`);
+        row = flat(row);
+        // console.log(`-> Flattened: ${row}`);
+        res.push(row);
+    }
+	function flat(data) {
+		var r = [];
+        data.forEach(e => {
+            if (Array.isArray(e)) {
+                r = r.concat(flat(e));
+            }
+            else {
+                r.push(e);
+            }
+        });
+		return r;
+	}
+	return res;
+};
+
 RG.setAllExplored = function(level, isExplored) {
     const map = level.getMap();
     for (let x = 0; x < map.cols; x++) {
