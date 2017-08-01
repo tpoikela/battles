@@ -82,8 +82,8 @@ RG.Template.createTemplate = function(str) {
     debug('firstCols is: ' + JSON.stringify(firstCol));
 
     const {genPos: yGenPos, widths: yWidths} = getWidthsAndGenPos(firstCol);
-    debug('yGenPos: ' + JSON.stringify(yGenPos));
-    debug('yWidths: ' + JSON.stringify(yWidths));
+    debug('@yGenPos: ' + JSON.stringify(yGenPos));
+    debug('@yWidths: ' + JSON.stringify(yWidths));
 
     const conf = {
         xGenPos, yGenPos,
@@ -111,6 +111,7 @@ function getWidthsAndGenPos(currLineArr) {
                     ++genXLen;
                 }
                 else {
+                    xGenPos[xWidths.length] = genXLen;
                     xWidths.push(genXLen);
                     genXLen = 1;
                 }

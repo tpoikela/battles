@@ -162,15 +162,17 @@ describe('Template.ElemTemplate', () => {
 
         RG.Template.$DEBUG = 0;
         const asciiBiggerMess = templ.getChars([2, 2, 2, 2, 2, 2]);
-        RG.printMap(asciiBiggerMess);
+        // RG.printMap(asciiBiggerMess);
         expect(asciiBiggerMess).to.have.length(4 + 2 * 2 + 2 * 3 * 2);
 
     });
 
     it('can expand template with 2 adjacent params', () => {
+        RG.Template.$DEBUG = 0;
         const templ = RG.Template.createTemplate(templStr2Adj);
         const ascii = templ.getChars([2, 2]);
-        expect(ascii[0]).to.deep.equal('#??..'.split());
+        // RG.printMap(ascii);
+        expect(ascii[0]).to.deep.equal('#??..'.split(''));
     });
 });
 
