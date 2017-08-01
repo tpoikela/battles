@@ -20,6 +20,22 @@ N=#
 ...
 N.#`;
 
+const templStrMixed = `
+X=#
+Y=.
+
+~X
+Y^`;
+
+const templStrSingleYMultiX = `
+Y=#
+XXX=.#.
+
+~#XXX#
+.#...#
+Y#...#
+.#...#`;
+
 describe('Template.ElemGenX', () => {
     it('Generates sequences of chars from template', () => {
         const genX = new Template.ElemGenX('#~#');
@@ -43,14 +59,37 @@ describe('Template.ElemGenY', () => {
 });
 
 describe('Template.ElemTemplate', () => {
-    it('description', () => {
+    it('can expand templates in x-direction', () => {
         const templ = RG.Template.createTemplate(templStr2x2);
         const ascii = templ.getChars([2, 3, 1]);
-        console.log(JSON.stringify(ascii));
+        console.log('x-ascii is ' + JSON.stringify(ascii));
+        expect(ascii).to.have.length(3 * 1 + 2 * 2 + 2 * 3 + 1);
+        expect(ascii[0]).to.have.length(2);
+    });
 
+    it('can expand templates in y-direction', () => {
+        const val = 3;
         const templ2 = RG.Template.createTemplate(templStrY);
-        const ascii2 = templ2.getChars([3]);
-        console.log(JSON.stringify(ascii2));
+        const ascii2 = templ2.getChars([val]);
+        expect(ascii2).to.have.length(3);
+        expect(ascii2[0]).to.have.length(1 + val);
+    });
+
+    it('can expand mixed x-y templates', () => {
+        const templMixed = RG.Template.createTemplate(templStrMixed);
+        const asciiMixed = templMixed.getChars([2, 3]);
+        console.log(JSON.stringify(asciiMixed));
+        expect(asciiMixed).to.have.length(3);
+        expect(asciiMixed[0]).to.have.length(4);
+    });
+
+    it('can expand single-y, multi-x templates', () => {
+        const templMixed = RG.Template.createTemplate(templStrSingleYMultiX);
+        const asciiMixed = templMixed.getChars([2, 4]);
+        expect(asciiMixed).to.have.length(3 + 2 * 3);
+
+        RG.printMap(asciiMixed);
 
     });
 });
+

@@ -32,8 +32,8 @@ RG.Template.createTemplate = function(str) {
     // Parse x-generators from first line
     let currLineArr = asciiLines[0].split('');
     const {genPos: xGenPos, widths: xWidths} = getWidthsAndGenPos(currLineArr);
-    console.log(JSON.stringify(xGenPos));
-    console.log(JSON.stringify(xWidths));
+    // console.log(JSON.stringify(xGenPos));
+    // console.log(JSON.stringify(xWidths));
 
     const firstCol = [];
     const rows = [];
@@ -43,17 +43,19 @@ RG.Template.createTemplate = function(str) {
         let xTarget = 0;
         rows.push([]);
         currLineArr = asciiLines[i].split('');
-        console.log(JSON.stringify(`y: ${y} currLineArr: ${currLineArr}`));
+        // console.log(JSON.stringify(`y: ${y} currLineArr: ${currLineArr}`));
         firstCol.push(currLineArr[0]);
-        xWidths.forEach(w => {
+
+        for (let j = 0; j < xWidths.length; j++) {
+            const w = xWidths[j];
             const elem = currLineArr.slice(xSrc, xSrc + w);
-            console.log(`x: ${xSrc}, w: ${w}, elem: ${elem}`);
+            // console.log(`x: ${xSrc}, w: ${w}, elem: ${elem}`);
             if (elem) {
                 rows[y][xTarget] = elem;
             }
             xSrc += w;
             ++xTarget;
-        });
+        }
         ++y;
     }
 
@@ -147,17 +149,13 @@ const ElemTemplate = function(conf) {
             this.elemArr[x][y] = conf.rows[y][x].join('');
         }
     }
-    console.log(JSON.stringify('before X elemArray: ' + this.elemArr));
 
     Object.keys(this.xGenPos).forEach(x => {
         for (let y = 0; y < this.sizeY; y++) {
-            console.log(`-- ${x}, ${y}`);
             const str = this.elemArr[x][y];
             this.elemArr[x][y] = new ElemGenX(str);
         }
     });
-
-    console.log(JSON.stringify('elemArray: ' + this.elemArr));
 
     // Find Y-generator
 
@@ -174,7 +172,8 @@ const ElemTemplate = function(conf) {
                 xGenResult[x] = [];
                 for (let y = 0; y < this.sizeY; y++) {
                     if (typeof this.elemArr[x][y] === 'object') {
-                        xGenResult[x][y] = this.elemArr[x][y].getChars(arr[index]);
+                        const val = arr[index];
+                        xGenResult[x][y] = this.elemArr[x][y].getChars(val);
                         incrIndex = true;
                     }
                     else {
@@ -187,6 +186,10 @@ const ElemTemplate = function(conf) {
                 }
             }
 
+            this.substituteMaps(xGenResult);
+            console.log('X before split: ' + JSON.stringify(xGenResult));
+            const splitRes = this.splitMultiElements(xGenResult);
+            console.log('After-X, Before-Y: ' + JSON.stringify(splitRes));
             // X is fine, now apply Y-generators
             if (Object.keys(this.yGenPos).length > 0) {
                 const yGenResult = [];
@@ -196,11 +199,11 @@ const ElemTemplate = function(conf) {
                     let y = 0;
                     let xGenY = 0;
 
-                    console.log(`len xGen: ${xGenResult[x].length}`);
                     // Take w amount of rows from xGenResult
                     this.yWidths.forEach(w => {
-                        console.log(`\tSlicing now ${xGenY}, ${xGenY + w}`);
-                        yGenResult[x][y] = xGenResult[x].slice(xGenY, xGenY + w);
+                        yGenResult[x][y] =
+                            xGenResult[x].slice(xGenY, xGenY + w);
+                            // splitRes[x].slice(xGenY, xGenY + w);
                         ++y;
                         xGenY += w;
                     });
@@ -217,23 +220,25 @@ const ElemTemplate = function(conf) {
                     ++index;
                 });
 
-                console.log('y after expand ' + JSON.stringify(yGenResult));
+                const flattened = RG.flattenTo2D(yGenResult);
+                console.log('y after flatten ' + JSON.stringify(flattened));
+                const splitRes = this.splitMultiElements(flattened);
+                console.log('y after flatten ' + JSON.stringify(splitRes));
                 // TODO flatten/substitute
-                return yGenResult;
+                return splitRes;
             }
             else {
-                // TODO flatten/substitute
-                return xGenResult;
+                // console.log('X-Before subst: ' + JSON.stringify(xGenResult));
+                // xxx this.substituteMaps(xGenResult);
+
+                // const splitRes = this.splitMultiElements(xGenResult);
+                // console.log('X-After, split: ' + JSON.stringify(splitRes));
+
+                return splitRes;
             }
         }
         return [];
     };
-
-    /*
-    this.expandXGen = function(arr, elem) {
-
-    };
-    */
 
     this.expandYGen = function(val, elem) {
         console.log(`expandYGen ${val} -> ${elem}`);
@@ -242,6 +247,55 @@ const ElemTemplate = function(conf) {
            newElem.push(elem);
         }
         return newElem;
+    };
+
+    /* Substitutes the [A-Z] maps for specified ascii chars. */
+    this.substituteMaps = function(arr) {
+        const sizeX = arr.length;
+        Object.keys(this.elemMap).forEach(map => {
+            const mapRe = new RegExp(map, 'g'); // Need re for global replace
+            for (let x = 0; x < sizeX; x++) {
+                arr[x][0] = arr[x][0].replace(mapRe, this.elemMap[map]);
+            }
+        });
+    };
+
+    /* Splits elements like [aa, bb, cc] into [a, b, c], [a, b, c]
+    * Has no impact on single elemns like [a, b, c] */
+    this.splitMultiElements = function(arr) {
+        const sizeX = arr.length;
+        const res = [];
+        let realX = 0;
+        for (let x = 0; x < sizeX; x++) {
+            const col = arr[x];
+            const nChars = col[0].length;
+            if (nChars > 1) { // Need to split this
+                // console.log(`Splitting ${nChars} nChars: ${col}`);
+                for (let y = 0; y < col.length; y++) {
+                   // Take one char per y
+                   const row = col[y];
+                    let writeIndex = realX;
+                    row.split('').forEach(char => {
+                        if (y === 0) {
+                            // Create new array on 1st index
+                            res.push([char]);
+                            // console.log('\tres push ' + JSON.stringify(res));
+                        }
+                        else {
+                            // ..and push to array on 2nd,3rd etc
+                            res[writeIndex++].push(char);
+                            // console.log('\tres[x] push ' + JSON.stringify(res));
+                        }
+                    });
+                }
+                realX += nChars; // Real X dim was expanded by nChars
+            }
+            else {
+                ++realX;
+                res.push(col);
+            }
+        }
+        return res;
     };
 };
 RG.Template.ElemTemplate = ElemTemplate;
