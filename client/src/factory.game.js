@@ -193,7 +193,7 @@ RG.Factory.Game = function() {
     let _playerFOV = RG.FOV_RANGE;
 
     this.createOverWorld = function(obj, game, player) {
-        const mult = 1;
+        const mult = 2;
         const conf = {
             yFirst: false,
             topToBottom: false,
@@ -213,24 +213,38 @@ RG.Factory.Game = function() {
         const worldAndConf = RG.OverWorld.createOverWorld(conf);
         const worldLevel = worldAndConf[0];
         const worldConf = worldAndConf[1];
-        /*
-        const itemConf = {
-            itemsPerLevel: 10000,
-            func: (item) => (item.value <= 2500),
-            maxValue: 2500
-        };
-        this.addNRandItems(worldLevel, _parser, itemConf);
-        */
 
-        /*
-        const actorConf = {
-            monstersPerLevel: 10000, maxDanger: 20
-        };
-        this.addNRandMonsters(worldLevel, _parser, actorConf);
-        */
         const splitLevels = RG.Geometry.splitLevel(worldLevel, conf);
-
         const midX = Math.floor(conf.nLevelsX / 2);
+
+        const sizeY = splitLevels[0].length;
+        for (let x = 0; x < splitLevels.length; x++) {
+            const xDiff = Math.abs(midX - x);
+            for (let y = 0; y < sizeY; y++) {
+                const yDiff = sizeY - y;
+                const itemsPerLevel = 20 + xDiff + 2 * yDiff;
+                const actorsPerLevel = (yDiff + 1) * 10 + 2 * xDiff;
+
+                console.log(`Creating items for level[${x}][${y}]`);
+                console.log(`nItems: ${itemsPerLevel}`);
+                console.log(`nMonsters: ${actorsPerLevel}`);
+
+                const itemConf = {
+                    itemsPerLevel,
+                    func: (item) => (item.value <= 15 * yDiff + 5 * xDiff),
+                    maxValue: 15 * yDiff + 5 * xDiff
+                };
+                this.addNRandItems(splitLevels[x][y], _parser, itemConf);
+
+                const actorConf = {
+                    monstersPerLevel: actorsPerLevel,
+                    maxDanger: yDiff + xDiff
+                };
+                this.addNRandMonsters(splitLevels[x][y], _parser, actorConf);
+
+            }
+        }
+
         splitLevels[midX][conf.nLevelsY - 1].addActorToFreeCell(player);
 
         const worldArea = new RG.World.Area('Ravendark', conf.nLevelsX,
