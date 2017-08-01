@@ -593,15 +593,9 @@ RG.Map.Generator = function() { // {{{2
 
         const getHollowBox = RG.Geometry.getHollowBox;
         let border = getHollowBox(0, 0, cols - 1, rows - 1);
-        console.log('Outer border length: ' + border.length);
         border = border.concat(getHollowBox(1, 1, cols - 2, rows - 2));
-        console.log('Two borders length: ' + border.length);
 
-        console.log('len free before: ' + freeCoord.length);
-        const rem = RG.Geometry.removeMatching(freeCoord, border);
-        console.log('len free after: ' + freeCoord.length);
-
-        console.log(`Removed ${rem} border coordinates`);
+        RG.Geometry.removeMatching(freeCoord, border);
 
         for (let i = 0; i < nHouses; i++) {
 
