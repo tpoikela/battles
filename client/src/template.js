@@ -3,7 +3,15 @@ const RG = require('./rg');
 
 RG.Template = {};
 
+RG.Template.$DEBUG = 0;
+
 const genRegex = /[A-Z]/;
+
+const debug = function(msg) {
+    if (RG.Template.$DEBUG) {
+        console.log('[DEBUG ' + msg);
+    }
+};
 
 RG.Template.createTemplate = function(str) {
     const lines = str.split('\n');
@@ -14,9 +22,17 @@ RG.Template.createTemplate = function(str) {
     if (currLine.length === 0) {currLine = lines[++nLine];}
     const elemMap = {};
     while (currLine && currLine.length > 0) {
-        const mapAndVal = currLine.split(/\s*=\s*/);
-        if (mapAndVal.length === 2) {
-            elemMap[mapAndVal[0]] = mapAndVal[1];
+        const keyAndVal = currLine.split(/\s*=\s*/);
+        if (keyAndVal.length === 2) {
+            const key = keyAndVal[0];
+            const val = keyAndVal[1];
+            if (key.length === val.length) {
+                elemMap[keyAndVal[0]] = keyAndVal[1];
+            }
+            else {
+                RG.err('Template', 'createTemplate',
+                    `Key ${key}, val ${val} have different len`);
+            }
         }
         ++nLine;
         currLine = lines[nLine];
@@ -32,8 +48,8 @@ RG.Template.createTemplate = function(str) {
     // Parse x-generators from first line
     let currLineArr = asciiLines[0].split('');
     const {genPos: xGenPos, widths: xWidths} = getWidthsAndGenPos(currLineArr);
-    // console.log(JSON.stringify(xGenPos));
-    // console.log(JSON.stringify(xWidths));
+    debug(JSON.stringify(xGenPos));
+    debug(JSON.stringify(xWidths));
 
     const firstCol = [];
     const rows = [];
@@ -43,13 +59,13 @@ RG.Template.createTemplate = function(str) {
         let xTarget = 0;
         rows.push([]);
         currLineArr = asciiLines[i].split('');
-        // console.log(JSON.stringify(`y: ${y} currLineArr: ${currLineArr}`));
+        debug(JSON.stringify(`y: ${y} currLineArr: ${currLineArr}`));
         firstCol.push(currLineArr[0]);
 
         for (let j = 0; j < xWidths.length; j++) {
             const w = xWidths[j];
             const elem = currLineArr.slice(xSrc, xSrc + w);
-            // console.log(`x: ${xSrc}, w: ${w}, elem: ${elem}`);
+            debug(`x: ${xSrc}, w: ${w}, elem: ${elem}`);
             if (elem) {
                 rows[y][xTarget] = elem;
             }
@@ -60,14 +76,14 @@ RG.Template.createTemplate = function(str) {
     }
 
     rows.forEach((r, i) => {
-        console.log(`Row[${i}]: ${JSON.stringify(r)}`);
+        debug(`Row[${i}]: ${JSON.stringify(r)}`);
     });
 
-    console.log('firstCols is: ' + JSON.stringify(firstCol));
+    debug('firstCols is: ' + JSON.stringify(firstCol));
 
     const {genPos: yGenPos, widths: yWidths} = getWidthsAndGenPos(firstCol);
-    console.log('yGenPos: ' + JSON.stringify(yGenPos));
-    console.log('yWidths: ' + JSON.stringify(yWidths));
+    debug('yGenPos: ' + JSON.stringify(yGenPos));
+    debug('yWidths: ' + JSON.stringify(yWidths));
 
     const conf = {
         xGenPos, yGenPos,
@@ -186,10 +202,10 @@ const ElemTemplate = function(conf) {
                 }
             }
 
-            this.substituteMaps(xGenResult);
-            console.log('X before split: ' + JSON.stringify(xGenResult));
+            this.substituteXMaps(xGenResult);
+            debug('X before split: ' + JSON.stringify(xGenResult));
             const splitRes = this.splitMultiElements(xGenResult);
-            console.log('After-X, Before-Y: ' + JSON.stringify(splitRes));
+            debug('After-X, Before-Y: ' + JSON.stringify(splitRes));
             // X is fine, now apply Y-generators
             if (Object.keys(this.yGenPos).length > 0) {
                 const yGenResult = [];
@@ -209,7 +225,7 @@ const ElemTemplate = function(conf) {
                     });
 
                 }
-                console.log('y after widths ' + JSON.stringify(yGenResult));
+                debug('y after widths ' + JSON.stringify(yGenResult));
 
                 // Finally we expand the y-gens inline
                 Object.keys(this.yGenPos).forEach(yPos => {
@@ -221,18 +237,18 @@ const ElemTemplate = function(conf) {
                 });
 
                 const flattened = RG.flattenTo2D(yGenResult);
-                console.log('y after flatten ' + JSON.stringify(flattened));
+                debug('y after flatten ' + JSON.stringify(flattened));
                 const splitRes = this.splitMultiElements(flattened);
-                console.log('y after flatten ' + JSON.stringify(splitRes));
+                debug('y after flatten ' + JSON.stringify(splitRes));
                 // TODO flatten/substitute
+                this.substituteYMaps(splitRes);
                 return splitRes;
             }
             else {
-                // console.log('X-Before subst: ' + JSON.stringify(xGenResult));
-                // xxx this.substituteMaps(xGenResult);
+                debug('X-Before subst: ' + JSON.stringify(xGenResult));
 
                 // const splitRes = this.splitMultiElements(xGenResult);
-                // console.log('X-After, split: ' + JSON.stringify(splitRes));
+                debug('X-After, split: ' + JSON.stringify(splitRes));
 
                 return splitRes;
             }
@@ -241,7 +257,7 @@ const ElemTemplate = function(conf) {
     };
 
     this.expandYGen = function(val, elem) {
-        console.log(`expandYGen ${val} -> ${elem}`);
+        debug(`expandYGen ${val} -> ${elem}`);
         const newElem = [];
         for (let i = 0; i < val; i++) {
            newElem.push(elem);
@@ -250,7 +266,7 @@ const ElemTemplate = function(conf) {
     };
 
     /* Substitutes the [A-Z] maps for specified ascii chars. */
-    this.substituteMaps = function(arr) {
+    this.substituteXMaps = function(arr) {
         const sizeX = arr.length;
         Object.keys(this.elemMap).forEach(map => {
             const mapRe = new RegExp(map, 'g'); // Need re for global replace
@@ -258,6 +274,34 @@ const ElemTemplate = function(conf) {
                 arr[x][0] = arr[x][0].replace(mapRe, this.elemMap[map]);
             }
         });
+    };
+
+    /* Need to substitute the first column only. Arr is otherwise in correct
+    * shape. */
+    this.substituteYMaps = function(arr) {
+        let firstCol = [];
+        const sizeY = arr[0].length;
+        for (let y = 0; y < sizeY; y++) {
+            firstCol.push(arr[0][y]);
+        }
+        debug('firstCol is now: ' + JSON.stringify(firstCol));
+        let str = firstCol.join('');
+        Object.keys(this.elemMap).forEach(map => {
+            const mapRe = new RegExp(map, 'g'); // Need re for global replace
+            str = str.replace(mapRe, this.elemMap[map]);
+        });
+
+        // Convert string back to 1st column array
+        firstCol = str.split('');
+        debug('firstCol END: ' + JSON.stringify(firstCol));
+
+        if (RG.Template.$DEBUG) {
+            RG.printMap(arr);
+        }
+        // Re-apply the substituted column
+        for (let y = 0; y < sizeY; y++) {
+            arr[0][y] = firstCol[y];
+        }
     };
 
     /* Splits elements like [aa, bb, cc] into [a, b, c], [a, b, c]
@@ -270,7 +314,7 @@ const ElemTemplate = function(conf) {
             const col = arr[x];
             const nChars = col[0].length;
             if (nChars > 1) { // Need to split this
-                // console.log(`Splitting ${nChars} nChars: ${col}`);
+                debug(`Splitting ${nChars} nChars: ${col}`);
                 for (let y = 0; y < col.length; y++) {
                    // Take one char per y
                    const row = col[y];
@@ -279,12 +323,12 @@ const ElemTemplate = function(conf) {
                         if (y === 0) {
                             // Create new array on 1st index
                             res.push([char]);
-                            // console.log('\tres push ' + JSON.stringify(res));
+                            debug('\tres push ' + JSON.stringify(res));
                         }
                         else {
                             // ..and push to array on 2nd,3rd etc
                             res[writeIndex++].push(char);
-                            // console.log('\tres[x] push ' + JSON.stringify(res));
+                            debug('\tres[x] push ' + JSON.stringify(res));
                         }
                     });
                 }

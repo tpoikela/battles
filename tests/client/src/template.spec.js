@@ -36,6 +36,43 @@ XXX=.#.
 Y#...#
 .#...#`;
 
+const templStrSingleXMultiY = `
+YY=::
+X=>
+
+~#X^
+.#.^
+Y#.^
+Y#.^
+.#.^`;
+
+const templStrMultiXMultiY = `
+YY=::
+XX=>>
+
+~#XX^
+Y#..^
+Y#..^
+.#..^`;
+
+// If this works, we're done
+const templMess = `
+AA=##
+BBB=///
+CCC=%%%
+DD=??
+E=>
+FF=<<
+
+~AA.BBBCCC~
+D..........
+D..........
+~..........
+E..........
+F.#.#.#.#.#
+F..:.:.:.:.
+~..........`;
+
 describe('Template.ElemGenX', () => {
     it('Generates sequences of chars from template', () => {
         const genX = new Template.ElemGenX('#~#');
@@ -62,7 +99,6 @@ describe('Template.ElemTemplate', () => {
     it('can expand templates in x-direction', () => {
         const templ = RG.Template.createTemplate(templStr2x2);
         const ascii = templ.getChars([2, 3, 1]);
-        console.log('x-ascii is ' + JSON.stringify(ascii));
         expect(ascii).to.have.length(3 * 1 + 2 * 2 + 2 * 3 + 1);
         expect(ascii[0]).to.have.length(2);
     });
@@ -78,7 +114,6 @@ describe('Template.ElemTemplate', () => {
     it('can expand mixed x-y templates', () => {
         const templMixed = RG.Template.createTemplate(templStrMixed);
         const asciiMixed = templMixed.getChars([2, 3]);
-        console.log(JSON.stringify(asciiMixed));
         expect(asciiMixed).to.have.length(3);
         expect(asciiMixed[0]).to.have.length(4);
     });
@@ -87,8 +122,37 @@ describe('Template.ElemTemplate', () => {
         const templMixed = RG.Template.createTemplate(templStrSingleYMultiX);
         const asciiMixed = templMixed.getChars([2, 4]);
         expect(asciiMixed).to.have.length(3 + 2 * 3);
+    });
 
-        RG.printMap(asciiMixed);
+    it('can expand single-x, multi-y templatse', () => {
+        const templ = RG.Template.createTemplate(templStrSingleXMultiY);
+        const asciiMixed = templ.getChars([1, 2]);
+        expect(asciiMixed).to.have.length(4);
+        expect(asciiMixed[0]).to.have.length(2 + 2 * 2 + 1);
+
+        // And we can reuse the same parsed template
+        const asciiMixed2 = templ.getChars([3, 4]);
+        expect(asciiMixed2).to.have.length(6);
+        expect(asciiMixed2[0]).to.deep.equal('~.::::::::.'.split(''));
+    });
+
+    it('can expand multi-x, multi-y templates', () => {
+        const templ = RG.Template.createTemplate(templStrMultiXMultiY);
+        const asciiMixed = templ.getChars([1, 1]);
+        expect(asciiMixed).to.have.length(5);
+        expect(asciiMixed[0]).to.have.length(4);
+        expect(asciiMixed[0]).to.deep.equal('~::.'.split(''));
+    });
+
+    it('can expand complex template', () => {
+        const templ = RG.Template.createTemplate(templMess);
+        const asciiMess = templ.getChars([1, 1, 1, 1, 1, 1]);
+        expect(asciiMess).to.have.length(11);
+
+        RG.Template.$DEBUG = 0;
+        const asciiBiggerMess = templ.getChars([2, 2, 2, 2, 2, 2]);
+        expect(asciiBiggerMess).to.have.length(1 + 1 + 2 * 2 + 2 * 3 * 2 + 1);
+        // RG.printMap(asciiBiggerMess);
 
     });
 });
