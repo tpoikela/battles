@@ -130,6 +130,9 @@ const ElemTemplate = function(conf) {
     this.sizeX = conf.xWidths.length;
     this.sizeY = conf.rows.length;
 
+    this.xWidths = conf.xWidths;
+    this.yWidths = conf.yWidths;
+
     this.elemArr = [];
 
     // Indicates which cells have generators
@@ -165,25 +168,80 @@ const ElemTemplate = function(conf) {
         }
         else {
             let index = 0; // Points to the generator array value
-            const result = [];
+            let incrIndex = false; // Increment only on generators
+            const xGenResult = [];
             for (let x = 0; x < this.sizeX; x++) {
-                result[x] = [];
+                xGenResult[x] = [];
                 for (let y = 0; y < this.sizeY; y++) {
                     if (typeof this.elemArr[x][y] === 'object') {
-                        result[x][y] = this.elemArr[x][y].getChars(arr[index]);
+                        xGenResult[x][y] = this.elemArr[x][y].getChars(arr[index]);
+                        incrIndex = true;
                     }
                     else {
-                        result[x][y] = this.elemArr[x][y];
+                        xGenResult[x][y] = this.elemArr[x][y];
                     }
                 }
-                ++index; // Gen value changes per column
+                if (incrIndex) {
+                    ++index; // Gen value changes per column
+                    incrIndex = false;
+                }
             }
 
             // X is fine, now apply Y-generators
+            if (Object.keys(this.yGenPos).length > 0) {
+                const yGenResult = [];
+                // Use yWidths to generate a new array
+                for (let x = 0; x < this.sizeX; x++) {
+                    yGenResult[x] = [];
+                    let y = 0;
+                    let xGenY = 0;
 
-            return result;
+                    console.log(`len xGen: ${xGenResult[x].length}`);
+                    // Take w amount of rows from xGenResult
+                    this.yWidths.forEach(w => {
+                        console.log(`\tSlicing now ${xGenY}, ${xGenY + w}`);
+                        yGenResult[x][y] = xGenResult[x].slice(xGenY, xGenY + w);
+                        ++y;
+                        xGenY += w;
+                    });
+
+                }
+                console.log('y after widths ' + JSON.stringify(yGenResult));
+
+                // Finally we expand the y-gens inline
+                Object.keys(this.yGenPos).forEach(yPos => {
+                    for (let x = 0; x < this.sizeX; x++) {
+                        yGenResult[x][yPos] = this.expandYGen(arr[index],
+                            yGenResult[x][yPos]);
+                    }
+                    ++index;
+                });
+
+                console.log('y after expand ' + JSON.stringify(yGenResult));
+                // TODO flatten/substitute
+                return yGenResult;
+            }
+            else {
+                // TODO flatten/substitute
+                return xGenResult;
+            }
         }
         return [];
+    };
+
+    /*
+    this.expandXGen = function(arr, elem) {
+
+    };
+    */
+
+    this.expandYGen = function(val, elem) {
+        console.log(`expandYGen ${val} -> ${elem}`);
+        const newElem = [];
+        for (let i = 0; i < val; i++) {
+           newElem.push(elem);
+        }
+        return newElem;
     };
 };
 RG.Template.ElemTemplate = ElemTemplate;
