@@ -924,7 +924,6 @@ RG.Geometry = {
     /* Given start x,y and end x,y coordinates, returns all x,y coordinates in
      * the border of the rectangle.*/
     getHollowBox: function(x0, y0, maxX, maxY) {
-        console.log(`getHollowBox: ${x0},${y0}, ${maxX},${maxY}`);
         const res = [];
         for (let x = x0; x <= maxX; x++) {
             for (let y = y0; y <= maxY; y++) {
@@ -1258,9 +1257,7 @@ RG.flattenTo2D = function(arr) {
     const res = [];
     for (let y = 0; y < sizeY; y++) {
         let row = arr[y];
-        // console.log(`Flattening: ${row}`);
         row = flat(row);
-        // console.log(`-> Flattened: ${row}`);
         res.push(row);
     }
 	function flat(data) {
