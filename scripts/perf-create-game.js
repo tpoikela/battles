@@ -14,7 +14,7 @@ const gameConf = {
     playerLevel: 'Medium',
     sqrPerMonster: 40,
     sqrPerItem: 100,
-    debugMode: 'World',
+    debugMode: 'OverWorld',
     loadedPlayer: null,
     loadedLevel: null,
     playerName: 'Player1',
