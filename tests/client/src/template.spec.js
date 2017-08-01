@@ -14,6 +14,12 @@ C=~
 .NN.BB.C
 ..#.#.##`;
 
+const templStrY = `
+N=#
+
+...
+N.#`;
+
 describe('Template.ElemGenX', () => {
     it('Generates sequences of chars from template', () => {
         const genX = new Template.ElemGenX('#~#');
@@ -39,7 +45,12 @@ describe('Template.ElemGenY', () => {
 describe('Template.ElemTemplate', () => {
     it('description', () => {
         const templ = RG.Template.createTemplate(templStr2x2);
-        console.log(JSON.stringify(templ.getChars([2, 10, 1])));
+        const ascii = templ.getChars([2, 3, 1]);
+        console.log(JSON.stringify(ascii));
+
+        const templ2 = RG.Template.createTemplate(templStrY);
+        const ascii2 = templ2.getChars([3]);
+        console.log(JSON.stringify(ascii2));
 
     });
 });
