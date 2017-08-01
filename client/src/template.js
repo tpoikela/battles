@@ -189,6 +189,9 @@ const ElemTemplate = function(conf) {
                 for (let y = 0; y < this.sizeY; y++) {
                     if (typeof this.elemArr[x][y] === 'object') {
                         const val = arr[index];
+                        console.log('VAL XXX IS ' + val);
+                        const expVal = this.elemArr[x][y].getChars(val);
+                        console.log('Expansion will be ' + expVal);
                         xGenResult[x][y] = this.elemArr[x][y].getChars(val);
                         incrIndex = true;
                     }
@@ -356,10 +359,11 @@ const ElemGenX = function(str) {
 };
 RG.Template.ElemGenX = ElemGenX;
 
+/*
 const ElemGenY = function(strOrObj) {
     const hasGen = typeof strOrObj === 'object';
 
-    /* Returns chars corresponding to this generator. */
+    // Returns chars corresponding to this generator.
     this.getChars = function(N = 1) {
         const res = [];
         if (hasGen) {
@@ -377,5 +381,6 @@ const ElemGenY = function(strOrObj) {
 
 };
 RG.Template.ElemGenY = ElemGenY;
+*/
 
 module.exports = RG.Template;

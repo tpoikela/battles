@@ -64,14 +64,15 @@ DD=??
 E=>
 FF=<<
 
-~AA.BBBCCC~
-D..........
-D..........
-~..........
-E..........
-F.#.#.#.#.#
-F..:.:.:.:.
-~..........`;
+~AA.BBB.CCC~
+D...........
+D...........
+~...........
+E...........
+~~~~~~~~~~~~
+F.#.#.#..#.#
+F..:.:..:.:.
+~...........`;
 
 describe('Template.ElemGenX', () => {
     it('Generates sequences of chars from template', () => {
@@ -81,6 +82,7 @@ describe('Template.ElemGenX', () => {
     });
 });
 
+/*
 describe('Template.ElemGenY', () => {
     it('Generates sequences of chars from template', () => {
         const genY = new Template.ElemGenY('#~#');
@@ -94,6 +96,7 @@ describe('Template.ElemGenY', () => {
         expect(genY.getChars([1, 1])).to.deep.equal(['#']);
     });
 });
+*/
 
 describe('Template.ElemTemplate', () => {
     it('can expand templates in x-direction', () => {
@@ -147,12 +150,12 @@ describe('Template.ElemTemplate', () => {
     it('can expand complex template', () => {
         const templ = RG.Template.createTemplate(templMess);
         const asciiMess = templ.getChars([1, 1, 1, 1, 1, 1]);
-        expect(asciiMess).to.have.length(11);
+        expect(asciiMess).to.have.length(12);
 
         RG.Template.$DEBUG = 0;
         const asciiBiggerMess = templ.getChars([2, 2, 2, 2, 2, 2]);
-        expect(asciiBiggerMess).to.have.length(1 + 1 + 2 * 2 + 2 * 3 * 2 + 1);
-        // RG.printMap(asciiBiggerMess);
+        RG.printMap(asciiBiggerMess);
+        expect(asciiBiggerMess).to.have.length(4 + 2 * 2 + 2 * 3 * 2);
 
     });
 });
