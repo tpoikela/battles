@@ -74,6 +74,14 @@ F.#.#.#..#.#
 F..:.:..:.:.
 ~...........`;
 
+const templStr2Adj = `
+A=?
+B=.
+
+#~
+A~
+B~`;
+
 describe('Template.ElemGenX', () => {
     it('Generates sequences of chars from template', () => {
         const genX = new Template.ElemGenX('#~#');
@@ -157,6 +165,12 @@ describe('Template.ElemTemplate', () => {
         RG.printMap(asciiBiggerMess);
         expect(asciiBiggerMess).to.have.length(4 + 2 * 2 + 2 * 3 * 2);
 
+    });
+
+    it('can expand template with 2 adjacent params', () => {
+        const templ = RG.Template.createTemplate(templStr2Adj);
+        const ascii = templ.getChars([2, 2]);
+        expect(ascii[0]).to.deep.equal('#??..'.split());
     });
 });
 

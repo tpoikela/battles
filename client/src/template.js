@@ -189,9 +189,7 @@ const ElemTemplate = function(conf) {
                 for (let y = 0; y < this.sizeY; y++) {
                     if (typeof this.elemArr[x][y] === 'object') {
                         const val = arr[index];
-                        console.log('VAL XXX IS ' + val);
-                        const expVal = this.elemArr[x][y].getChars(val);
-                        console.log('Expansion will be ' + expVal);
+                        // const expVal = this.elemArr[x][y].getChars(val);
                         xGenResult[x][y] = this.elemArr[x][y].getChars(val);
                         incrIndex = true;
                     }
