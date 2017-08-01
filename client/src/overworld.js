@@ -1178,6 +1178,7 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
                         console.log(`slX: ${slX} slY: ${slY}`);
 
                         const qName = RG.Names.getRandPlaceName('quarter');
+                        console.log(`Place name will be ${qName}`);
                         const cityConf = {
                             name: feat.name,
                             nQuarters: 1,
@@ -1205,6 +1206,7 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
         }
     }
 
+    console.log('createWorldConf returning configuration..');
     return worldConf;
 };
 
