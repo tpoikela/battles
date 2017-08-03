@@ -507,22 +507,28 @@ const Items = [
 
     // FOOD
     // Note: Food has energy X kcal/100g * 10. Food items can have weight,
-    // but if
-    // they don't, weight is then generated randomly. Value is also per
-    // 100g.
+    // but if they don't, weight is then generated randomly. Value is also per
+    // 100g. Energy should be generally between 0 - 9000
     {
         name: 'FoodBase', className: 'cell-item-food', char: '%',
         weight: 0.1, type: 'food', dontCreate: true
     },
     {
-        name: 'Dried meat', base: 'FoodBase', energy: 1300, value: value(2)
+        name: 'Berries', base: 'FoodBase', energy: 1700, value: value(30)
     },
     {
-        name: 'Corn', base: 'FoodBase', energy: 1600, value: value(3)
+        name: 'Dried meat', base: 'FoodBase', energy: 1300, value: value(20)
+    },
+    {
+        name: 'Corn', base: 'FoodBase', energy: 1600, value: value(30)
     },
     {
         name: 'Beef', base: 'FoodBase', energy: 1000, value: value(20),
         weight: 0.4
+    },
+    {
+        name: 'Ration', base: 'FoodBase', energy: 2000, value: value(40),
+        weight: 1.0
     },
     {
         name: 'Dried fruit', base: 'FoodBase', energy: 3500, value: value(50)
