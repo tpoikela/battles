@@ -64,6 +64,7 @@ const dirValues = [
 ];
 */
 
+const ILLEGAL_POS = -1;
 const CELL_ANY = 'CELL_ANY'; // Used in matching functions only
 
 // Can connect to east side
@@ -217,6 +218,17 @@ const Wall = function(type) {
         return this.coord[n];
     };
 
+    /* Returns the y-pos for horizontal and x-pos for vertical walls. */
+    this.getWallPos = function() {
+        if (type === 'vertical') {
+            return this.coord[0][0][0];
+        }
+        if (type === 'horizontal') {
+            return this.coord[0][0][1];
+        }
+        return ILLEGAL_POS;
+    };
+
     this.getWallStart = function() {
         if (type === 'vertical') {
             return this.coord[0][0][1];
@@ -224,7 +236,7 @@ const Wall = function(type) {
         if (type === 'horizontal') {
             return this.coord[0][0][0];
         }
-        return -1;
+        return ILLEGAL_POS;
     };
 
     this.getWallEnd = function() {
@@ -311,9 +323,12 @@ RG.OverWorld.SubLevel = function(level) {
 };
 
 /* Data struct for overworld. */
-RG.OverWorld.Map = function() {
+RG.OverWorld.Map = function(tilesX, tilesY) {
     this._baseMap = [];
     this._subLevels = [];
+
+    this._tilesX = tilesX;
+    this._tilesY = tilesY;
 
     this._hWalls = [];
     this._vWalls = [];
@@ -321,8 +336,13 @@ RG.OverWorld.Map = function() {
     this._features = {};
     this._featuresByXY = {};
 
+    this.biomeMap = {};
+
     this.getMap = () => this._baseMap;
     this.getCell = (xy) => this._baseMap[xy[0]][xy[1]];
+
+    this.getHWalls = () => this._hWalls;
+    this.getVWalls = () => this._vWalls;
 
     this.setMap = function(map) {
         const sizeX = map.length;
@@ -330,6 +350,11 @@ RG.OverWorld.Map = function() {
         for (let x = 0; x < sizeX; x++) {
             this._subLevels[x] = [];
         }
+    };
+
+    this.addBiome = function(x, y, biomeType) {
+        const key = x + ',' + y;
+        this.biomeMap[key] = biomeType;
     };
 
     this.addVWall = function(wall) {
@@ -391,6 +416,7 @@ RG.OverWorld.Map = function() {
         return lines.map(line => line.join(''));
     };
 
+
 };
 
 /* Factory function to construct the overworld. Generally you want to call this
@@ -398,7 +424,6 @@ RG.OverWorld.Map = function() {
  * @return RG.Map.Level.
  */
 RG.OverWorld.createOverWorld = function(conf = {}) {
-    const overworld = new RG.OverWorld.Map();
 
     const worldX = conf.worldX || 400;
     const worldY = conf.worldY || 400;
@@ -414,6 +439,7 @@ RG.OverWorld.createOverWorld = function(conf = {}) {
     // Size of the high-level feature map
     const owTilesX = conf.highX || 40;
     const owTilesY = conf.highY || 20;
+    const overworld = new RG.OverWorld.Map(owTilesX, owTilesY);
 
     const xMap = Math.floor(worldX / owTilesX);
     const yMap = Math.floor(worldY / owTilesY);
@@ -729,7 +755,7 @@ function createOverWorldLevel(ow, worldX, worldY, xMap, yMap, areaX, areaY) {
 
     const subLevels = [];
     // Build the world level in smaller pieces, and then insert the
-    // small leves into the large level.
+    // small levels into the large level.
     for (let x = 0; x < sizeX; x++) {
         subLevels[x] = [];
         for (let y = 0; y < sizeY; y++) {
@@ -955,13 +981,15 @@ function addBlackTower(owSubLevel, subLevel) {
 
 }
 
-/* Adds features like water, cities etc into the world. */
+/* Adds features like water, cities etc into the world. This feature only
+    * designates the x,y coordinate on overworld map, but does not give details
+    * for the Map.Level sublevels. */
 function addWorldFeatures(ow) {
 
     // Add final tower
     addFeatureToAreaByDir(ow, 'NE', 0.5, BTOWER);
 
-    // City of B
+    // City of B, + other wall fortresses
     addFeatureToWall(ow, ow._hWalls[1], WTOWER);
     addFeatureToWall(ow, ow._hWalls[0], WTOWER);
     addFeatureToWall(ow, ow._vWalls[0], WTOWER);
@@ -971,6 +999,10 @@ function addWorldFeatures(ow) {
     // Add the main roads for most important places
 
     // Create biomes for actor generation of overworld
+    addBiomeToOverWorld(ow, {y: {start: 'N', end: 'wall'}});
+    addBiomeToOverWorld(ow, {x: {start: ['wall', 0], end: 'E'}});
+    addBiomeToOverWorld(ow, {y: {start: ['wall', 0], end: ['wall', 1]}});
+    addBiomeToOverWorld(ow, {y: {start: ['wall', 1], end: 'S'}});
 
     // Create forests and lakes
 
@@ -1022,6 +1054,102 @@ function addFeatureToWall(ow, wall, type) {
     }
 
     ow.addFeature(xy, type);
+}
+
+/* Adds a biome zone to the overworld map. These zones can be used to generate
+ * terrain props + different actors based on the zone type. */
+function addBiomeToOverWorld(ow, cmd) {
+    const biomeType = cmd.type;
+
+    let xStart = 0;
+    let xEnd = -1;
+    let yStart = 0;
+    let yEnd = -1;
+
+    if (cmd.x) {
+        const start = cmd.x.start;
+        const end = cmd.x.end;
+        if (start === 'W') {xStart = 0;}
+        else if (start === 'wall') {
+            const walls = ow.getVWalls();
+            if (walls.length > 0) {
+                xStart = walls[0].getWallPos();
+            }
+        }
+        else if (Array.isArray(start)) {
+            if (start[0] === 'wall') {
+                const walls = ow.getVWalls();
+                if (walls.length > start[1]) {
+                    xStart = walls[start[1]].getWallPos();
+                }
+            }
+        }
+
+        if (end === 'E') {xEnd = ow.tilesX - 1;}
+        else if (end === 'wall') {
+            const walls = ow.getVWalls();
+            if (walls.length > 0) {
+                xEnd = walls[0].getWallPos();
+            }
+        }
+        else if (Array.isArray(start)) {
+            if (end[0] === 'wall') {
+                const walls = ow.getVWalls();
+                if (walls.length > start[1]) {
+                    xEnd = walls[start[1]].getWallPos();
+                }
+            }
+        }
+    }
+
+    if (cmd.y) {
+        const start = cmd.y.start;
+        const end = cmd.y.end;
+
+        // Find start position
+        if (start === 'N') {yStart = 0;}
+        else if (start === 'wall') {
+            // Find first horizontal wall
+            const walls = ow.getHWalls();
+            if (walls.length > 0) {
+                yStart = walls[0].getWallPos();
+            }
+        }
+        else if (Array.isArray(start)) {
+            if (start[0] === 'wall') {
+                const walls = ow.getHWalls();
+                if (walls.length > start[1]) {
+                    yStart = walls[start[1]].getWallPos();
+                }
+            }
+        }
+
+        // Find end position
+        if (end === 'S') {yEnd = ow.tilesY - 1;}
+        else if (start === 'wall') {
+            const walls = ow.getHWalls();
+            if (walls.length > 0) {
+                yStart = walls[0].getWallPos();
+            }
+        }
+        else if (Array.isArray(start)) {
+            if (start[0] === 'wall') {
+                const walls = ow.getHWalls();
+                if (walls.length > start[1]) {
+                    yStart = walls[start[1]].getWallPos();
+                }
+            }
+        }
+
+        // Apply given type on the found range
+        for (let x = xStart; x <= xEnd; x++) {
+            for (let y = yStart; y <= yEnd; y++) {
+                ow.addBiome(x, y, biomeType);
+            }
+        }
+
+
+    }
 }
 
 /* Checks if given cell type matches any in the array. If there's CELL_ANY,
@@ -1104,6 +1232,7 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
         name: 'The North',
         nAreas: 1,
         area: [{name: 'The Northern Realm', maxX: areaX, maxY: areaY,
+            biome: {},
             dungeon: [],
             mountain: [],
             city: [],
@@ -1140,10 +1269,11 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
     }
     if (!Number.isInteger(yMap)) {
         RG.err('OverWorld', 'createWorldConf',
-            `xMap not int: ${yMap}, sub Y :${subLevelsY}, areaY: ${areaY}`);
+            `yMap not int: ${yMap}, sub Y :${subLevelsY}, areaY: ${areaY}`);
     }
 
-    // Map values are OK
+    // Map values are OK, this loops through smaller overworld sublevels, which
+    // are aligned with the mountain wall creation
     for (let x = 0; x < subLevelsX; x++) {
         for (let y = 0; y < subLevelsY; y++) {
 
@@ -1190,8 +1320,8 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
                                     nLevels, entranceLevel: 0
                                 }
                             ],
-                            x: aX, // area x,
-                            y: aY, // area y
+                            x: aX, // areaTileX
+                            y: aY, // areaTileY
                             levelX: featX,
                             levelY: featY
                         };
@@ -1205,6 +1335,8 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
             });
         }
     }
+
+    addBiomeLocations(ow, areaConf);
 
     console.log('createWorldConf returning configuration..');
     return worldConf;
@@ -1230,6 +1362,18 @@ function mapX(x, slX, subSizeX) {
  */
 function mapY(y, slY, subSizeY) {
     return y + slY * subSizeY;
+}
+
+/* Map biomes from overworld into areaX * areaY space. */
+function addBiomeLocations(ow, areaConf) {
+    for (let x = 0; x < areaConf.maxX; x++) {
+        for (let y = 0; y < areaConf.maxY; y++) {
+            const key = x + ',' + y;
+            areaConf.biome[key] = 'arctic tundra';
+            // How to map multiple cells into one?
+            // 1. Option: Determine "majority" biome for that area
+        }
+    }
 }
 
 module.exports = RG.OverWorld;
