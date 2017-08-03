@@ -494,7 +494,7 @@ RG.Factory.Feature = function() {
 
     const _verif = new RG.VerifyConf('Factory.Feature');
 
-    const _parser = new RG.ObjectShellParser();
+    const _parser = new RG.ObjectShell.Parser();
     _parser.parseShellData(RG.Effects);
     _parser.parseShellData(RGObjects);
 
@@ -1140,9 +1140,14 @@ RG.Factory.World = function() {
                 if (featLevel) {
                     // Create 2 new stairs, add 1st to the area level, and 2nd
                     // to the feature level
+                    const freeCell = featLevel.getFreeRandCell();
+                    const featX = freeCell.getX();
+                    const featY = freeCell.getY();
+
                     const tileStairs = new Stairs(true, tileLevel, featLevel);
                     const featStairs = new Stairs(false, featLevel, tileLevel);
                     tileLevel.addStairs(tileStairs, x, y);
+                    featLevel.addStairs(featStairs, featX, featY);
                     tileStairs.connect(featStairs);
                 }
                 else {

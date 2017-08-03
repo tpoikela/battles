@@ -37,7 +37,7 @@ const MSG = {
 RG.Factory.Game = function() {
     RG.Factory.Base.call(this);
 
-    const _parser = new RG.ObjectShellParser();
+    const _parser = new RG.ObjectShell.Parser();
     this.presetLevels = {};
 
     /* Creates a player actor and starting inventory unless a game has been

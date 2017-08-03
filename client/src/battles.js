@@ -22,7 +22,7 @@ RG.Map = require('./map.js');
 RG.World = require('./world.js');
 
 RG.Effects = require('../data/effects.js');
-RG.ObjectShellParser = require('./objectshellparser.js');
+RG.ObjectShell = require('./objectshellparser.js');
 
 RG.Game = require('./game.js');
 RG.Factory = require('./factory.js');

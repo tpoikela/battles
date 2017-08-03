@@ -2,38 +2,10 @@
 const RG = require('./rg.js');
 const ROT = require('../../lib/rot.js');
 
-/* Object parser for reading game data. Game data is contained within shell
- * objects which are simply object literals without functions etc. */
-RG.ObjectShellParser = function() {
+RG.ObjectShell = {};
 
-    // NOTE: 'SHELL' means vanilla JS object, which has not been
-    // created with new:
-    //      SHELL:   const rat = {name: "Rat", type: "animal"};
-    //      OBJECT: const ratObj = new RG.Actor.Rogue("rat");
-    //              ratObj.setType("animal");
-    //
-    // Shells are used in external data file to describe game objects in a more
-    // concise way. Game objects are created from shells by this object.
-
-    // Stores the base shells
-    const _base = {
-        actors: {},
-        effects: {},
-        items: {},
-        levels: {},
-        dungeons: {}
-    };
-
-    const _db = {
-        actors: {},
-        effects: {},
-        items: {},
-        levels: {},
-        dungeons: {}
-    };
-
-    const dbDanger = {}; // All entries indexed by danger
-    const _dbByName = {}; // All entries indexed by name
+RG.ObjectShell.Creator = function(db) {
+    const _db = db;
 
     /* Maps obj props to function calls. Essentially this maps bunch of setters
      * to different names. Following formats supported:
@@ -103,148 +75,9 @@ RG.ObjectShellParser = function() {
     _propToCall.items.missileweapon = _propToCall.items.missile;
     _propToCall.items.ammo = _propToCall.items.missile;
 
-    // Internal cache for proc generation
-    const _cache = {
-        actorWeights: {}
-
-    };
-
-    //-----------------------------------------------------------------------
-    // "PARSING" METHODS
-    //-----------------------------------------------------------------------
-
-    /* Parses all shell data, items, monsters, level etc.*/
-    this.parseShellData = function(obj) {
-        const keys = Object.keys(obj);
-        for (let i = 0; i < keys.length; i++) {
-            this.parseShellCateg(keys[i], obj[keys[i]]);
-        }
-    };
-
-    /* Parses one specific shell category, ie items or monsters.*/
-    this.parseShellCateg = function(categ, objsArray) {
-        for (let i = 0; i < objsArray.length; i++) {
-            this.parseObjShell(categ, objsArray[i]);
-        }
-    };
-
-    /* Parses an object shell. Returns null for invalid objects, and
-     * corresponding object for actual actors. If 'base' property exists,
-     * all base properties will be added to the returned object.
-     * */
-    this.parseObjShell = function(categ, obj) {
-        if (this.validShellGiven(obj)) {
-            // Get properties from base shell
-            if (obj.hasOwnProperty('base')) {
-                const baseShells = typeof obj.base === 'string' ? [obj.base]
-                    : obj.base;
-                baseShells.forEach(bName => {
-                    if (this.baseExists(categ, bName)) {
-                        obj = this.extendObj(obj, this.getBase(categ, bName));
-                    }
-                    else {
-                        RG.err('ObjectParser', 'parseObjShell',
-                            'Unknown base ' + bName + ' specified for ' + obj);
-                    }
-                });
-            }
-
-            // If type not given, use name as type
-            if (categ === 'actors') {this.addTypeIfUntyped(obj);}
-
-            this.storeIntoDb(categ, obj);
-            return obj;
-        }
-        else {
-            return null;
-        }
-    };
-
-    /* Checks that the object shell given is correctly formed.*/
-    this.validShellGiven = function(obj) {
-        if (!obj.hasOwnProperty('name')) {
-            RG.err('ObjectShellParser', 'validShellGiven',
-                "shell doesn't have a name.");
-            return false;
-        }
-        return true;
-    };
-
-    /* If an object doesn't have type, the name is chosen as its type.*/
-    this.addTypeIfUntyped = function(obj) {
-        if (!obj.hasOwnProperty('type')) {
-            obj.type = obj.name;
-        }
-    };
-
     /* Returns an object shell, given category and name.*/
     this.get = function(categ, name) {
         return _db[categ][name];
-    };
-
-    /* Return specified base shell.*/
-    this.getBase = function(categ, name) {
-        return _base[categ][name];
-    };
-
-    /* All shells can be used as base, not only ones with
-     * 'dontCreate: true' */
-    this.storeForUsingAsBase = function(categ, obj) {
-        _base[categ][obj.name] = obj;
-    };
-
-    /* Stores the object into given category.*/
-    this.storeIntoDb = function(categ, obj) {
-        if (_db.hasOwnProperty(categ)) {
-            this.storeForUsingAsBase(categ, obj);
-
-            if (!obj.hasOwnProperty('dontCreate')) {
-                _db[categ][obj.name] = obj;
-                if (_dbByName.hasOwnProperty(obj.name)) {
-                    _dbByName[obj.name].push(obj);
-                }
-                else {
-                    const newArr = [];
-                    newArr.push(obj);
-                    _dbByName[obj.name] = newArr;
-                }
-                if (obj.hasOwnProperty('danger')) {
-                    const danger = obj.danger;
-                    if (!dbDanger.hasOwnProperty(danger)) {
-                        dbDanger[danger] = {};
-                    }
-                    if (!dbDanger[danger].hasOwnProperty(categ)) {
-                        dbDanger[danger][categ] = {};
-                    }
-                    dbDanger[danger][categ][obj.name] = obj;
-                }
-            } // dontCreate: true shells are skipped (used as base)
-        }
-        else {
-            RG.err('ObjectParser', 'storeIntoDb',
-                'Unknown category: ' + categ);
-        }
-        this.storeRenderingInfo(categ, obj);
-    };
-
-    /* Stores char/CSS className for the object for rendering purposes.*/
-    this.storeRenderingInfo = function(categ, obj) {
-        if (obj.hasOwnProperty('char')) {
-            if (obj.hasOwnProperty('name')) {
-                RG.addCharStyle(categ, obj.name, obj['char']);
-            }
-            else {
-                RG.addCharStyle(categ, obj.type, obj['char']);
-            }
-        }
-        if (obj.hasOwnProperty('className')) {
-            if (obj.hasOwnProperty('name')) {
-                RG.addCellStyle(categ, obj.name, obj.className);
-            }
-            else {
-                RG.addCellStyle(categ, obj.type, obj.className);
-            }
-        }
     };
 
     /* Creates a component of specified type.*/
@@ -259,7 +92,7 @@ RG.ObjectShellParser = function() {
                     return RG.Component[type]();
                 }
                 else {
-                    RG.err('Factory', 'createComponent',
+                    RG.err('ObjectShell.Parser', 'createComponent',
                         'Component |' + type + "| doesn't exist.");
                 }
         }
@@ -270,12 +103,6 @@ RG.ObjectShellParser = function() {
      * the blueprint must exist already in the database (blueprints must have
      * been parser before). */
     this.createActualObj = function(categ, name) {
-        if (!this.dbExists(categ, name)) {
-            RG.err('ObjectParser', 'createActualObj',
-                'Categ: ' + categ + ' Name: ' + name + " doesn't exist.");
-            return null;
-        }
-
         const shell = this.get(categ, name);
         const propCalls = _propToCall[categ];
         const newObj = this.createNewObject(categ, shell);
@@ -368,71 +195,66 @@ RG.ObjectShellParser = function() {
         return newObj;
     };
 
-    /* If shell has 'use', this adds specific use effect to the item.*/
-    this.addUseEffects = function(shell, newObj) {
-        newObj.useFuncs = [];
-        newObj.useItem = _db.effects.use.func.bind(newObj);
-        if (typeof shell.use === 'object'
-            && shell.use.hasOwnProperty('length')) {
-            for (let i = 0; i < shell.use.length; i++) {
-                _addUseEffectToItem(shell, newObj, shell.use[i]);
-            }
-        }
-        else if (typeof shell.use === 'object') {
-            for (const p in shell.use) {
-                if (shell.use.hasOwnProperty(p)) {
-                    _addUseEffectToItem(shell, newObj, p);
+    /* Factory-method for creating the actual game objects.*/
+    this.createNewObject = function(categ, obj) {
+        switch (categ) {
+            case RG.TYPE_ACTOR:
+                const type = obj.type;
+                switch (type) {
+                    case 'spirit': return new RG.Actor.Spirit(obj.name);
+                    default: return new RG.Actor.Rogue(obj.name);
                 }
+            case RG.TYPE_ITEM:
+                const subtype = obj.type;
+                switch (subtype) {
+                    case 'armour': return new RG.Item.Armour(obj.name);
+                    case 'food': return new RG.Item.Food(obj.name);
+                    case 'gold': return new RG.Item.Gold(obj.name);
+                    case 'goldcoin' : return new RG.Item.GoldCoin(obj.name);
+                    case 'missile': return new RG.Item.Missile(obj.name);
+                    case 'missileweapon':
+                        return new RG.Item.MissileWeapon(obj.name);
+                    case 'ammo': return new RG.Item.Ammo(obj.name);
+                    case 'potion': return new RG.Item.Potion(obj.name);
+                    case 'spiritgem': return new RG.Item.SpiritGem(obj.name);
+                    case 'weapon': return new RG.Item.Weapon(obj.name);
+                    case 'tool': break;
+                    default: {
+                        const json = JSON.stringify(obj);
+                        const msg =
+                            `Unknown subtype: ${subtype}, obj: ${json}`;
+                        RG.err('', 'createNewObject', msg);
+                    }
+                }
+                return new RG.Item.Base(obj.name); // generic, useless
+            case 'levels':
+                return RG.FACT.createLevel(obj.type, obj.cols, obj.rows);
+            case 'dungeons': break;
+            default: break;
+        }
+        return null;
+    };
+
+    /* Adds a component to the newly created object, or updates existing
+     * component if it exists already.*/
+    this.addCompToObj = function(newObj, compData, val) {
+        if (compData.hasOwnProperty('func')) {
+            const fname = compData.func;
+            const compName = compData.comp;
+            if (newObj.has(compName)) {
+                // 1. Call existing comp with setter (fname)
+                newObj.get(compName)[fname](val);
+            }
+            else { // 2. Or create a new component
+                const comp = this.createComponent(compName);
+                comp[fname](val); // Then call comp setter
             }
         }
         else {
-            _addUseEffectToItem(shell, newObj, shell.use);
+            newObj.add(compData.comp,
+                this.createComponent(compData.comp, val));
         }
-    };
 
-    /* Adds equipped items given with shell.equip into the actor. */
-    this.addEquippedItems = function(shell, actor) {
-        const equip = shell.equip;
-        equip.forEach(item => {
-            const itemObj = this.createActualObj(RG.TYPE_ITEM, item);
-            if (itemObj) {
-                actor.getInvEq().addItem(itemObj);
-                if (!actor.getInvEq().equipItem(itemObj)) {
-                    RG.err('ObjectShellParser', 'addEquippedItems',
-                        `Cannot equip: ${item} to ${actor.getName()}`);
-                }
-            }
-            else {
-                RG.err('ObjectShellParser', 'addEquippedItems',
-                    `itemObj for ${item} is null. Actor: ${actor.getName()}`);
-            }
-        });
-    };
-
-    // TODO addInventoryItems
-    this.addInventoryItems = function(shell, actor) {
-        const inv = shell.inv;
-        inv.forEach(item => {
-            const name = item.name || item;
-            const count = item.count || 1;
-            const itemObj = this.createActualObj(RG.TYPE_ITEM, name);
-            if (itemObj) {
-                itemObj.count = count;
-                actor.getInvEq().addItem(itemObj);
-            }
-            else {
-                RG.err('ObjectShellParser', 'addInventoryItems',
-                    `itemObj for ${name} is null. Actor: ${actor.getName()}`);
-            }
-        });
-    };
-
-    // TODO addLootComponents
-    this.addLootComponents = function(shell, actor) {
-        const loot = shell.loot;
-        const lootItem = this.createActualObj(RG.TYPE_ITEM, loot);
-        const lootComp = new RG.Component.Loot(lootItem);
-        actor.add('Loot', lootComp);
     };
 
     /* This function makes a pile of mess if used on non-entities. */
@@ -454,7 +276,7 @@ RG.ObjectShellParser = function() {
             _addCompFromObj(shell.addComp, entity);
         }
         else {
-            RG.err('ObjectShellParser', 'addComponent',
+            RG.err('ObjectShell.Parser', 'addComponent',
                 'Giving up. shell.addComp must be string, array or object.');
         }
     };
@@ -467,13 +289,80 @@ RG.ObjectShellParser = function() {
         catch (e) {
             let msg = `shell.addComp |${compName}|`;
             msg += 'Component names are capitalized.';
-            RG.err('ObjectShellParser', 'addComponent',
+            RG.err('ObjectShell.Parser', 'addComponent',
                 `${e.message} - ${msg}`);
         }
     };
 
     const _addCompFromObj = function(compObj, entity) {
         this.addCompToObj(compObj, entity, null);
+    };
+
+    // Adds the inventory items for the actors which are specified with 'inv'
+    this.addInventoryItems = function(shell, actor) {
+        const inv = shell.inv;
+        inv.forEach(item => {
+            const name = item.name || item;
+            const count = item.count || 1;
+            const itemObj = this.createActualObj(RG.TYPE_ITEM, name);
+            if (itemObj) {
+                itemObj.count = count;
+                actor.getInvEq().addItem(itemObj);
+            }
+            else {
+                RG.err('ObjectShell.Parser', 'addInventoryItems',
+                    `itemObj for ${name} is null. Actor: ${actor.getName()}`);
+            }
+        });
+    };
+
+    // TODO addLootComponents
+    this.addLootComponents = function(shell, actor) {
+        const loot = shell.loot;
+        const lootItem = this.createActualObj(RG.TYPE_ITEM, loot);
+        const lootComp = new RG.Component.Loot(lootItem);
+        actor.add('Loot', lootComp);
+    };
+
+    /* Adds equipped items given with shell.equip into the actor. */
+    this.addEquippedItems = function(shell, actor) {
+        const equip = shell.equip;
+        equip.forEach(item => {
+            const itemObj = this.createActualObj(RG.TYPE_ITEM, item);
+            if (itemObj) {
+                actor.getInvEq().addItem(itemObj);
+                if (!actor.getInvEq().equipItem(itemObj)) {
+                    RG.err('ObjectShell.Parser', 'addEquippedItems',
+                        `Cannot equip: ${item} to ${actor.getName()}`);
+                }
+            }
+            else {
+                RG.err('ObjectShell.Parser', 'addEquippedItems',
+                    `itemObj for ${item} is null. Actor: ${actor.getName()}`);
+            }
+        });
+    };
+
+    /* If shell has 'use', this adds specific use effect to the item.*/
+    this.addUseEffects = function(shell, newObj) {
+        newObj.useFuncs = [];
+        newObj.useItem = _db.effects.use.func.bind(newObj);
+        if (typeof shell.use === 'object'
+            && shell.use.hasOwnProperty('length')) {
+            for (let i = 0; i < shell.use.length; i++) {
+                _addUseEffectToItem(shell, newObj, shell.use[i]);
+            }
+        }
+        else if (typeof shell.use === 'object') {
+            for (const p in shell.use) {
+                if (shell.use.hasOwnProperty(p)) {
+                    _addUseEffectToItem(shell, newObj, p);
+                }
+            }
+        }
+        else {
+            _addUseEffectToItem(shell, newObj, shell.use);
+        }
     };
 
     const _addUseEffectToItem = function(shell, item, useName) {
@@ -522,78 +411,198 @@ RG.ObjectShellParser = function() {
         }
     };
 
-    /* Adds a component to the newly created object, or updates existing
-     * component if it exists already.*/
-    this.addCompToObj = function(newObj, compData, val) {
-        if (compData.hasOwnProperty('func')) {
-            const fname = compData.func;
-            const compName = compData.comp;
-            if (newObj.has(compName)) {
-                // 1. Call existing comp with setter (fname)
-                newObj.get(compName)[fname](val);
-            }
-            else { // 2. Or create a new component
-                const comp = this.createComponent(compName);
-                comp[fname](val); // Then call comp setter
-            }
-        }
-        else {
-            newObj.add(compData.comp,
-                this.createComponent(compData.comp, val));
-        }
-
-    };
-
     /* Creates actual game object from obj shell in given category.*/
     this.createFromShell = function(categ, obj) {
         if (obj) {
             return this.createActualObj(categ, obj.name);
         }
         else {
-            RG.err('RG.ObjectShellParser', 'createFromShell',
+            RG.err('ObjectShell.Creator', 'createFromShell',
                 'obj given must be defined.');
         }
         return null;
     };
 
-    /* Factory-method for creating the actual game objects.*/
-    this.createNewObject = function(categ, obj) {
-        switch (categ) {
-            case RG.TYPE_ACTOR:
-                const type = obj.type;
-                switch (type) {
-                    case 'spirit': return new RG.Actor.Spirit(obj.name);
-                    default: return new RG.Actor.Rogue(obj.name);
-                }
-            case RG.TYPE_ITEM:
-                const subtype = obj.type;
-                switch (subtype) {
-                    case 'armour': return new RG.Item.Armour(obj.name);
-                    case 'food': return new RG.Item.Food(obj.name);
-                    case 'gold': return new RG.Item.Gold(obj.name);
-                    case 'goldcoin' : return new RG.Item.GoldCoin(obj.name);
-                    case 'missile': return new RG.Item.Missile(obj.name);
-                    case 'missileweapon':
-                        return new RG.Item.MissileWeapon(obj.name);
-                    case 'ammo': return new RG.Item.Ammo(obj.name);
-                    case 'potion': return new RG.Item.Potion(obj.name);
-                    case 'spiritgem': return new RG.Item.SpiritGem(obj.name);
-                    case 'weapon': return new RG.Item.Weapon(obj.name);
-                    case 'tool': break;
-                    default: {
-                        const json = JSON.stringify(obj);
-                        const msg =
-                            `Unknown subtype: ${subtype}, obj: ${json}`;
-                        RG.err('', 'createNewObject', msg);
-                    }
-                }
-                return new RG.Item.Base(obj.name); // generic, useless
-            case 'levels':
-                return RG.FACT.createLevel(obj.type, obj.cols, obj.rows);
-            case 'dungeons': break;
-            default: break;
+};
+
+/* Object parser for reading game data. Game data is contained within shell
+ * objects which are simply object literals without functions etc. */
+RG.ObjectShell.Parser = function() {
+
+    // NOTE: 'SHELL' means vanilla JS object, which has not been
+    // created with new:
+    //      SHELL:   const rat = {name: "Rat", type: "animal"};
+    //      OBJECT: const ratObj = new RG.Actor.Rogue("rat");
+    //              ratObj.setType("animal");
+    //
+    // Shells are used in external data file to describe game objects in a more
+    // concise way. Game objects are created from shells by this object.
+
+    // Stores the base shells
+    const _base = {
+        actors: {},
+        effects: {},
+        items: {},
+        levels: {},
+        dungeons: {}
+    };
+
+    const _db = {
+        actors: {},
+        effects: {},
+        items: {},
+        levels: {},
+        dungeons: {}
+    };
+
+    const _creator = new RG.ObjectShell.Creator(_db);
+
+    const dbDanger = {}; // All entries indexed by danger
+    const _dbByName = {}; // All entries indexed by name
+
+
+    // Internal cache for proc generation
+    const _cache = {
+        actorWeights: {}
+
+    };
+
+    //-----------------------------------------------------------------------
+    // "PARSING" METHODS
+    //-----------------------------------------------------------------------
+
+    /* Parses all shell data, items, monsters, level etc.*/
+    this.parseShellData = function(obj) {
+        const keys = Object.keys(obj);
+        for (let i = 0; i < keys.length; i++) {
+            this.parseShellCateg(keys[i], obj[keys[i]]);
         }
-        return null;
+    };
+
+    /* Parses one specific shell category, ie items or monsters.*/
+    this.parseShellCateg = function(categ, objsArray) {
+        for (let i = 0; i < objsArray.length; i++) {
+            this.parseObjShell(categ, objsArray[i]);
+        }
+    };
+
+    /* Parses an object shell. Returns null for invalid objects, and
+     * corresponding object for actual actors. If 'base' property exists,
+     * all base properties will be added to the returned object.
+     * */
+    this.parseObjShell = function(categ, obj) {
+        if (this.validShellGiven(obj)) {
+            // Get properties from base shell
+            if (obj.hasOwnProperty('base')) {
+                const baseShells = typeof obj.base === 'string' ? [obj.base]
+                    : obj.base;
+                baseShells.forEach(bName => {
+                    if (this.baseExists(categ, bName)) {
+                        obj = this.extendObj(obj, this.getBase(categ, bName));
+                    }
+                    else {
+                        RG.err('ObjectParser', 'parseObjShell',
+                            'Unknown base ' + bName + ' specified for ' + obj);
+                    }
+                });
+            }
+
+            // If type not given, use name as type
+            if (categ === 'actors') {this.addTypeIfUntyped(obj);}
+
+            this.storeIntoDb(categ, obj);
+            return obj;
+        }
+        else {
+            return null;
+        }
+    };
+
+    /* Checks that the object shell given is correctly formed.*/
+    this.validShellGiven = function(obj) {
+        if (!obj.hasOwnProperty('name')) {
+            RG.err('ObjectShell.Parser', 'validShellGiven',
+                "shell doesn't have a name.");
+            return false;
+        }
+        return true;
+    };
+
+    /* If an object doesn't have type, the name is chosen as its type.*/
+    this.addTypeIfUntyped = function(obj) {
+        if (!obj.hasOwnProperty('type')) {
+            obj.type = obj.name;
+        }
+    };
+
+    /* Returns an object shell, given category and name.*/
+    this.get = function(categ, name) {
+        return _db[categ][name];
+    };
+
+    /* Return specified base shell.*/
+    this.getBase = function(categ, name) {
+        return _base[categ][name];
+    };
+
+    /* All shells can be used as base, not only ones with
+     * 'dontCreate: true' */
+    this.storeForUsingAsBase = function(categ, obj) {
+        _base[categ][obj.name] = obj;
+    };
+
+    /* Stores the object into given category.*/
+    this.storeIntoDb = function(categ, obj) {
+        if (_db.hasOwnProperty(categ)) {
+            this.storeForUsingAsBase(categ, obj);
+
+            if (!obj.hasOwnProperty('dontCreate')) {
+                _db[categ][obj.name] = obj;
+                if (_dbByName.hasOwnProperty(obj.name)) {
+                    _dbByName[obj.name].push(obj);
+                }
+                else {
+                    const newArr = [];
+                    newArr.push(obj);
+                    _dbByName[obj.name] = newArr;
+                }
+                if (obj.hasOwnProperty('danger')) {
+                    const danger = obj.danger;
+                    if (!dbDanger.hasOwnProperty(danger)) {
+                        dbDanger[danger] = {};
+                    }
+                    if (!dbDanger[danger].hasOwnProperty(categ)) {
+                        dbDanger[danger][categ] = {};
+                    }
+                    dbDanger[danger][categ][obj.name] = obj;
+                }
+            } // dontCreate: true shells are skipped (used as base)
+        }
+        else {
+            RG.err('ObjectParser', 'storeIntoDb',
+                'Unknown category: ' + categ);
+        }
+        this.storeRenderingInfo(categ, obj);
+    };
+
+    /* Stores char/CSS className for the object for rendering purposes.*/
+    this.storeRenderingInfo = function(categ, obj) {
+        if (obj.hasOwnProperty('char')) {
+            if (obj.hasOwnProperty('name')) {
+                RG.addCharStyle(categ, obj.name, obj['char']);
+            }
+            else {
+                RG.addCharStyle(categ, obj.type, obj['char']);
+            }
+        }
+        if (obj.hasOwnProperty('className')) {
+            if (obj.hasOwnProperty('name')) {
+                RG.addCellStyle(categ, obj.name, obj.className);
+            }
+            else {
+                RG.addCellStyle(categ, obj.type, obj.className);
+            }
+        }
     };
 
     /* Returns true if shell base exists.*/
@@ -616,8 +625,36 @@ RG.ObjectShellParser = function() {
         return obj;
     };
 
+
+    //---------------------------------------------------------------
+    // CREATE METHODS
+    //---------------------------------------------------------------
+
+    /* Creates a component of specified type.*/
+    this.createComponent = function(type, val) {
+        return _creator.createComponent(type, val);
+    };
+
+    /* Returns an actual game object when given category and name. Note that
+     * the blueprint must exist already in the database (blueprints must have
+     * been parser before). */
+    this.createActualObj = function(categ, name) {
+        if (!this.dbExists(categ, name)) {
+            RG.err('ObjectShell.Parser', 'createActualObj',
+                'Categ: ' + categ + ' Name: ' + name + " doesn't exist.");
+            return null;
+        }
+        return _creator.createActualObj(categ, name);
+    };
+
+    /* Creates actual game object from obj shell in given category.*/
+    this.createFromShell = function(categ, obj) {
+        return _creator.createFromShell(categ, obj);
+    };
+
+
     //--------------------------------------------------------------------
-    // Database get-methods
+    // Query methods for object shells
     //--------------------------------------------------------------------
 
     this.dbExists = function(categ, name) {
@@ -786,4 +823,5 @@ RG.ObjectShellParser = function() {
 
 };
 
-module.exports = RG.ObjectShellParser;
+
+module.exports = RG.ObjectShell;
