@@ -432,6 +432,9 @@ class BattlesTop extends React.Component {
         if (this.keyPending === false) {
             this.keyPending = true;
             this.nextCode = evt.keyCode;
+            if (!this.isGUICommand(evt.keyCode)) {
+                this.gameState.isTargeting = false;
+            }
         }
     }
 
@@ -616,6 +619,7 @@ class BattlesTop extends React.Component {
         this.guiCommands[ROT.VK_I] = this.GUIInventory;
         this.guiCommands[ROT.VK_M] = this.GUIMap;
         this.guiCommands[ROT.VK_N] = this.GUINextTarget;
+        this.guiCommands[ROT.VK_L] = this.GUILook;
         this.guiCommands[ROT.VK_T] = this.GUITarget;
         this.guiCommands[ROT.VK_U] = this.GUIUseItem;
 
@@ -687,6 +691,35 @@ class BattlesTop extends React.Component {
         $('#map-player-button').trigger('click');
     }
 
+    /* Finds the nearest enemy and shows its name when 'l' is pressed. */
+    GUILook() {
+        if (this.gameState.isTargeting) {
+            const nextCell = this.getNextTargetCell();
+            const actor = nextCell.getActors()[0];
+            this.screen.setSelectedCell(nextCell);
+            const msg = `You see ${actor.getName()} nearby.`;
+            this.screen.setSelectedCell(nextCell);
+            RG.gameMsg(msg);
+            this.setState({selectedCell: nextCell});
+        }
+        else {
+            this.gameState.isTargeting = true;
+            this.gameState.enemyCells = RG.findEnemyCellForPlayer(
+                this.game.getPlayer(), this.gameState.visibleCells);
+            this.gameState.numCurrCell = 0;
+            let msg = 'You do not see any enemies nearby.';
+            if (this.gameState.enemyCells.length > 0) {
+                const cell = this.gameState.enemyCells[0];
+                const actor = cell.getActors()[0];
+                msg = `You see ${actor.getName()} nearby.`;
+                this.screen.setSelectedCell(cell);
+                RG.gameMsg(msg);
+                this.setState({selectedCell: cell});
+            }
+            this.setState({render: true});
+        }
+    }
+
     GUITarget() {
         if (this.gameState.isTargeting) {
             if (this.state.selectedCell !== null) {
@@ -696,7 +729,6 @@ class BattlesTop extends React.Component {
                 this.gameState.visibleCells = this.game.visibleCells;
                 this.screen.setSelectedCell(null);
                 this.setState({selectedCell: null});
-                this.screen.setSelectedCell(null);
             }
             this.gameState.autoTarget = false;
             this.gameState.isTargeting = false;
@@ -732,19 +764,25 @@ class BattlesTop extends React.Component {
     /* Selects next target when 'n' is pressed.*/
     GUINextTarget() {
         if (this.gameState.isTargeting) {
-            const numCells = this.gameState.enemyCells.length;
-            if (numCells > 0) {
-                let numNextCell = this.gameState.numCurrCell + 1;
-                if (numNextCell >= numCells) {
-                    numNextCell = 0;
-                }
-
-                const nextCell = this.gameState.enemyCells[numNextCell];
-                this.screen.setSelectedCell(nextCell);
-                this.setState({selectedCell: nextCell});
-                this.gameState.numCurrCell = numNextCell;
-            }
+            const nextCell = this.getNextTargetCell();
+            this.screen.setSelectedCell(nextCell);
+            this.setState({selectedCell: nextCell});
         }
+    }
+
+    getNextTargetCell() {
+        const numCells = this.gameState.enemyCells.length;
+        if (numCells > 0) {
+            let numNextCell = this.gameState.numCurrCell + 1;
+            if (numNextCell >= numCells) {
+                numNextCell = 0;
+            }
+
+            const nextCell = this.gameState.enemyCells[numNextCell];
+            this.gameState.numCurrCell = numNextCell;
+            return nextCell;
+        }
+        return null;
     }
 
     showStartScreen() {
@@ -874,6 +912,7 @@ class BattlesTop extends React.Component {
         this.GUIInventory = this.GUIInventory.bind(this);
         this.GUIMap = this.GUIMap.bind(this);
         this.GUINextTarget = this.GUINextTarget.bind(this);
+        this.GUILook = this.GUILook.bind(this);
         this.GUITarget = this.GUITarget.bind(this);
         this.GUIUseItem = this.GUIUseItem.bind(this);
 
@@ -890,6 +929,9 @@ class BattlesTop extends React.Component {
 
         this.showStartScreen = this.showStartScreen.bind(this);
         this.showLoadScreen = this.showLoadScreen.bind(this);
+
+        this.getNextTargetCell = this.getNextTargetCell.bind(this);
+
     }
 
 }
