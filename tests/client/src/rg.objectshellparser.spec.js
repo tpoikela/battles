@@ -7,7 +7,9 @@ const Effects = require('../../../client/data/effects.js');
 
 const expect = require('chai').expect;
 
-const Parser = RG.ObjectShellParser;
+const Parser = RG.ObjectShell.Parser;
+const Creator = RG.ObjectShell.Creator;
+
 const Actor = RG.Actor.Rogue;
 
 RG.cellRenderArray = RG.cellRenderVisible;
@@ -21,7 +23,7 @@ const wolfShell = {
 // PARSER TESTS
 //---------------------------------------------------------------------------
 
-describe('RG.ObjectShellParser', function() {
+describe('RG.ObjectShell.Parser', function() {
 
     it('Returns base objects and supports also base', function() {
         const parser = new Parser();
@@ -194,13 +196,13 @@ describe('RG.ObjectShellParser', function() {
 
     describe('addComponent(shell, newObj)', () => {
         it('can add component with a string attribute', () => {
+            const creator = new Creator();
             const parser = new Parser();
             const bat = {name: 'bat', addComp: 'Flying'};
             const shell = parser.parseObjShell(RG.TYPE_ACTOR, bat);
-
             const batActor = new RG.Actor.Rogue('bat');
-            parser.addComponent(shell, batActor);
 
+            creator.addComponent(shell, batActor);
             expect(batActor.has('Flying')).to.equal(true);
         });
 
@@ -448,9 +450,9 @@ describe('It has query functions for objects', function() {
     });
 });
 
-describe('ObjectShellParser error handling', function() {
+describe('ObjectShell.Parser error handling', function() {
     it('It should detect invalid object shells', function() {
-        const parser = new RG.ObjectShellParser();
+        const parser = new Parser();
         RG.suppressErrorMessages = true;
         const noObj = parser.createActualObj('items', 'Void Item');
         expect(noObj).to.be.null;
@@ -461,4 +463,4 @@ describe('ObjectShellParser error handling', function() {
     });
 });
 
-}); // describe ObjectShellParser
+}); // describe ObjectShell.Parser

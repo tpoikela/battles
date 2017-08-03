@@ -6,7 +6,7 @@ const Game = require('../../..//client/src/game.js');
 const RGObjects = require('../../../client/data/battles_objects.js');
 RG.Effects = require('../../../client/data/effects.js');
 
-const globalParser = new RG.ObjectShellParser();
+const globalParser = new RG.ObjectShell.Parser();
 globalParser.parseShellData(RG.Effects);
 globalParser.parseShellData(RGObjects);
 
