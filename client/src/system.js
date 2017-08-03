@@ -432,6 +432,14 @@ RG.System.Movement = function(type, compTypes) {
             }
             RG.gameMsg(msg);
         }
+        else if (cell.hasPassage()) {
+            const passage = cell.getPassage();
+            const level = passage.getSrcLevel();
+            const dir = RG.getCardinalDirection(level, cell);
+            const msg = `You see a passage here leading to ${dir}.`;
+            RG.gameMsg(msg);
+        }
+
         if (cell.hasProp('items')) {
             const items = cell.getProp('items');
             const topItem = items[0];
