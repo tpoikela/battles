@@ -223,6 +223,9 @@ RG.Game.FromJSON = function() {
         if (/stairs/.test(type)) {
             return this.createUnconnectedStairs(elem);
         }
+        else if (type === 'passage') {
+            return this.createUnconnectedStairs(elem);
+        }
         else if (type === 'shop') {
             const shopElem = new RG.Element.Shop();
             let shopkeeper = null;
