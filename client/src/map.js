@@ -10,7 +10,8 @@ RG.Element = require('./element.js');
 RG.Map = {};
 
 /* Object representing one game cell. It can hold actors, items, traps or
- * elements. */
+ * elements. Cell has x,y for convenient access to coordinates.
+ * */
 RG.Map.Cell = function(x, y, elem) { // {{{2
 
     this._baseElem = elem;
@@ -33,6 +34,7 @@ RG.Map.Cell.prototype.getBaseElem = function() { return this._baseElem; };
 
 /* Returns true if cell has any actors.*/
 RG.Map.Cell.prototype.hasActors = function() {return this.hasProp('actors');};
+RG.Map.Cell.prototype.getActors = function() {return this.getProp('actors');};
 
 /* Returns true if cell has any props. */
 RG.Map.Cell.prototype.hasProps = function() {
@@ -42,6 +44,11 @@ RG.Map.Cell.prototype.hasProps = function() {
 /* Returns true if cell has stairs.*/
 RG.Map.Cell.prototype.hasStairs = function() {
     return this.hasPropType('stairsUp') || this.hasPropType('stairsDown');
+};
+
+/* Returns true if cell has passage to another tile. */
+RG.Map.Cell.prototype.hasPassage = function() {
+    return this.hasPropType('passage');
 };
 
 RG.Map.Cell.prototype.hasShop = function() {
@@ -63,6 +70,13 @@ RG.Map.Cell.prototype.getStairs = function() {
     return null;
 };
 
+/* Returns passage in this cell, or null if not found. */
+RG.Map.Cell.prototype.getPassage = function() {
+    if (this.hasPropType('passage')) {
+        return this.getPropType('passage')[0];
+    }
+    return null;
+};
 
 /* Returns true if light passes through this map cell.*/
 RG.Map.Cell.prototype.lightPasses = function() {
@@ -986,6 +1000,15 @@ RG.Map.Level = function() { // {{{2
             }
             else {
                 RG.err('Level', 'useStairs', 'Failed to use the stairs.');
+            }
+        }
+        else if (cell.hasPassage()) {
+            const passage = cell.getPassage();
+            if (passage.useStairs(actor)) {
+                return true;
+            }
+            else {
+                RG.err('Level', 'useStairs', 'Failed to use the passage.');
             }
         }
         return false;
