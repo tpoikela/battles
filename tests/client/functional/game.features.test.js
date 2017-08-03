@@ -61,7 +61,7 @@ describe('Function: All small game features', function() {
 
     beforeEach(() => {
         game = new RG.Game.Main();
-        parser = new RG.ObjectShellParser();
+        parser = new RG.ObjectShell.Parser();
         parser.parseShellData(RG.Effects);
         parser.parseShellData(RGObjects);
         fromJSON = new RG.Game.FromJSON();

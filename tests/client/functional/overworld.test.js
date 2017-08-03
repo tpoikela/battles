@@ -2,9 +2,12 @@
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 
+const RGObjects = require('../../../client/data/battles_objects');
+const RGEffects = require('../../../client/data/effects');
+
 describe('How Game is created from Overworld', function() {
     this.timeout(10000);
-    it('description', () => {
+    it('is created using factory from game/player objects', () => {
         const gameFact = new RG.Factory.Game();
 
         const conf = {
@@ -14,8 +17,10 @@ describe('How Game is created from Overworld', function() {
         const player = new RG.Actor.Rogue('My Hero');
         player.setIsPlayer(true);
         const gameObj = new RG.Game.Main();
+        /*
         const game = gameFact.createOverWorld(conf, gameObj, player);
 
-        expect(game).to.exit;
+        expect(game).to.exist;
+        */
     });
 });
