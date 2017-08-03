@@ -92,7 +92,7 @@ RG.ObjectShell.Creator = function(db) {
                     return RG.Component[type]();
                 }
                 else {
-                    RG.err('ObjectShell.Parser', 'createComponent',
+                    RG.err('ObjectShell.Creator', 'createComponent',
                         'Component |' + type + "| doesn't exist.");
                 }
         }
@@ -276,7 +276,7 @@ RG.ObjectShell.Creator = function(db) {
             _addCompFromObj(shell.addComp, entity);
         }
         else {
-            RG.err('ObjectShell.Parser', 'addComponent',
+            RG.err('ObjectShell.Creator', 'addComponent',
                 'Giving up. shell.addComp must be string, array or object.');
         }
     };
@@ -289,7 +289,7 @@ RG.ObjectShell.Creator = function(db) {
         catch (e) {
             let msg = `shell.addComp |${compName}|`;
             msg += 'Component names are capitalized.';
-            RG.err('ObjectShell.Parser', 'addComponent',
+            RG.err('ObjectShell.Creator', 'addComponent',
                 `${e.message} - ${msg}`);
         }
     };
@@ -310,13 +310,13 @@ RG.ObjectShell.Creator = function(db) {
                 actor.getInvEq().addItem(itemObj);
             }
             else {
-                RG.err('ObjectShell.Parser', 'addInventoryItems',
+                RG.err('ObjectShell.Creator', 'addInventoryItems',
                     `itemObj for ${name} is null. Actor: ${actor.getName()}`);
             }
         });
     };
 
-    // TODO addLootComponents
+    // Adds the loot component to the Actor object
     this.addLootComponents = function(shell, actor) {
         const loot = shell.loot;
         const lootItem = this.createActualObj(RG.TYPE_ITEM, loot);
@@ -332,12 +332,12 @@ RG.ObjectShell.Creator = function(db) {
             if (itemObj) {
                 actor.getInvEq().addItem(itemObj);
                 if (!actor.getInvEq().equipItem(itemObj)) {
-                    RG.err('ObjectShell.Parser', 'addEquippedItems',
+                    RG.err('ObjectShell.Creator', 'addEquippedItems',
                         `Cannot equip: ${item} to ${actor.getName()}`);
                 }
             }
             else {
-                RG.err('ObjectShell.Parser', 'addEquippedItems',
+                RG.err('ObjectShell.Creator', 'addEquippedItems',
                     `itemObj for ${item} is null. Actor: ${actor.getName()}`);
             }
         });
@@ -425,6 +425,175 @@ RG.ObjectShell.Creator = function(db) {
 
 };
 
+/* Object handling the procedural generation. It has an object "database" and
+ * objects can be pulled randomly from it. */
+RG.ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
+    const _db = db;
+    const _dbDanger = dbDanger;
+    const _dbByName = dbByName;
+
+    // Internal cache for proc generation
+    const _cache = {
+        actorWeights: {}
+
+    };
+
+    /* Returns entries from db based on the query. Returns null if nothing
+     * matches.*/
+    this.dbGet = function(query) {
+        const name = query.name;
+        const categ = query.categ;
+        const danger = query.danger;
+        // const type = query.type;
+
+        // Specifying name returns an array
+        if (!RG.isNullOrUndef([name])) {
+            if (_dbByName.hasOwnProperty(name)) {return _dbByName[name];}
+            else {return [];}
+        }
+
+        if (!RG.isNullOrUndef([danger])) {
+            if (_dbDanger.hasOwnProperty(danger)) {
+                const entries = _dbDanger[danger];
+                if (typeof categ !== 'undefined') {
+                    if (entries.hasOwnProperty(categ)) {
+                        return entries[categ];
+                    }
+                    else {return {};}
+                }
+                else {
+                    return _dbDanger[danger];
+                }
+            }
+            else {
+                return {};
+            }
+        }
+        // Fetch all entries of given category
+        else if (!RG.isNullOrUndef([categ])) {
+            if (_db.hasOwnProperty(categ)) {
+                return _db[categ];
+            }
+        }
+        return {};
+
+    };
+
+    /* Filters given category with a function. Func gets each object as arg,
+     * and must return either true or false. Function can be for example:
+     *   1.func(obj) {if (obj.name === 'wolf') return true;} Or
+     *   2.func(obj) {if (obj.hp > 25) return true;}.
+     *   And it can be as complex as needed of course.
+     * */
+    this.filterCategWithFunc = function(categ, func) {
+        const objects = this.dbGet({categ});
+        const res = [];
+        const keys = Object.keys(objects);
+
+        for (let i = 0; i < keys.length; i++) {
+            const name = keys[i];
+            const obj = objects[name];
+            const acceptItem = func(obj);
+            if (acceptItem) {
+                res.push(obj);
+            }
+        }
+        return res;
+
+    };
+
+    //---------------------------------------------------
+    // RANDOMIZED METHODS for procedural generation
+    //---------------------------------------------------
+
+    /* Returns random object from the db. For example, {categ: "actors",
+     * danger: 2}
+     * returns a random actors with these constrains.
+     * Ex2: {danger: 3, num:1}
+     * returns randomly one entry which has danger 3.*/
+    this.dbGetRand = function(query) {
+        const danger = query.danger;
+        const categ = query.categ;
+        if (typeof danger !== 'undefined') {
+            if (typeof categ !== 'undefined') {
+                if (_dbDanger.hasOwnProperty(danger)) {
+                    const entries = _dbDanger[danger][categ];
+                    return this.getRandFromObj(entries);
+                }
+            }
+        }
+        return null;
+    };
+
+    /* Creates a random actor based on danger value or a filter function.*/
+    this.getRandomActor = function(obj) {
+        if (obj.hasOwnProperty('danger')) {
+            const danger = obj.danger;
+            const randShell = this.dbGetRand({danger, categ: RG.TYPE_ACTOR});
+            if (randShell !== null) {
+                return randShell;
+            }
+        }
+        else if (obj.hasOwnProperty('func')) {
+            const res = this.filterCategWithFunc( RG.TYPE_ACTOR, obj.func);
+            return RG.RAND.arrayGetRand(res);
+        }
+        return null;
+    };
+
+    /* Returns a random item based on a selection function.
+     *
+     * Example:
+     *  const funcValueSel = function(item) {return item.value >= 100;}
+     *  const item = createRandomItem({func: funcValueSel});
+     *  // Above returns item with value > 100.
+     */
+    this.getRandomItem = function(obj) {
+        if (obj.hasOwnProperty('func')) {
+            const res = this.filterCategWithFunc('items', obj.func);
+            return RG.RAND.arrayGetRand(res);
+        }
+        else {
+            RG.err('ObjectShell.ProcGen', 'getRandomItem',
+                `No function with func. obj arg: ${JSON.stringify(obj)}`);
+        }
+        return null;
+    };
+
+    // Uses engine's internal weighting algorithm when given a level number.
+    // Note that this method can return null, if no correct danger level is
+    // found. You can supply {func: ...} as a fallback solution.
+    this.getRandomActorWeighted = function(min, max) {
+        const key = min + ',' + max;
+        if (!_cache.actorWeights.hasOwnProperty(key)) {
+            _cache.actorWeights[key] = RG.getDangerProb(min, max);
+        }
+        const danger = ROT.RNG.getWeightedValue(_cache.actorWeights[key]);
+        // const actor = this.createRandomActor({danger});
+        const actor = this.getRandomActor({danger});
+        return actor;
+
+        /*
+        // Fallback to using a function, obj.func
+        if (RG.isNullOrUndef([actor])) {
+            if (!RG.isNullOrUndef([obj])) {
+                return this.createRandomActor(obj);
+            }
+        }
+        return actor;
+        */
+    };
+
+    /* Returns a property from an object, selected randomly. For example,
+     * given object {a: 1, b: 2, c: 3}, may return 1,2 or 3 with equal
+     * probability.*/
+    this.getRandFromObj = function(obj) {
+        const keys = Object.keys(obj);
+        const randIndex = RG.RAND.randIndex(keys);
+        return obj[keys[randIndex]];
+    };
+};
+
 /* Object parser for reading game data. Game data is contained within shell
  * objects which are simply object literals without functions etc. */
 RG.ObjectShell.Parser = function() {
@@ -455,17 +624,12 @@ RG.ObjectShell.Parser = function() {
         dungeons: {}
     };
 
-    const _creator = new RG.ObjectShell.Creator(_db);
-
-    const dbDanger = {}; // All entries indexed by danger
+    const _dbDanger = {}; // All entries indexed by danger
     const _dbByName = {}; // All entries indexed by name
 
+    const _creator = new RG.ObjectShell.Creator(_db);
+    const _procgen = new RG.ObjectShell.ProcGen(_db, _dbDanger, _dbByName);
 
-    // Internal cache for proc generation
-    const _cache = {
-        actorWeights: {}
-
-    };
 
     //-----------------------------------------------------------------------
     // "PARSING" METHODS
@@ -508,7 +672,7 @@ RG.ObjectShell.Parser = function() {
             }
 
             // If type not given, use name as type
-            if (categ === 'actors') {this.addTypeIfUntyped(obj);}
+            if (categ === RG.TYPE_ACTOR) {this.addTypeIfUntyped(obj);}
 
             this.storeIntoDb(categ, obj);
             return obj;
@@ -568,13 +732,13 @@ RG.ObjectShell.Parser = function() {
                 }
                 if (obj.hasOwnProperty('danger')) {
                     const danger = obj.danger;
-                    if (!dbDanger.hasOwnProperty(danger)) {
-                        dbDanger[danger] = {};
+                    if (!_dbDanger.hasOwnProperty(danger)) {
+                        _dbDanger[danger] = {};
                     }
-                    if (!dbDanger[danger].hasOwnProperty(categ)) {
-                        dbDanger[danger][categ] = {};
+                    if (!_dbDanger[danger].hasOwnProperty(categ)) {
+                        _dbDanger[danger][categ] = {};
                     }
-                    dbDanger[danger][categ][obj.name] = obj;
+                    _dbDanger[danger][categ][obj.name] = obj;
                 }
             } // dontCreate: true shells are skipped (used as base)
         }
@@ -627,16 +791,12 @@ RG.ObjectShell.Parser = function() {
 
 
     //---------------------------------------------------------------
-    // CREATE METHODS
+    // CREATE METHODS (to be removed, but kept now because removing
+    //   these would break the API in major way)
     //---------------------------------------------------------------
 
-    /* Creates a component of specified type.*/
-    this.createComponent = function(type, val) {
-        return _creator.createComponent(type, val);
-    };
-
     /* Returns an actual game object when given category and name. Note that
-     * the blueprint must exist already in the database (blueprints must have
+     * the shell must exist already in the database (shell must have
      * been parser before). */
     this.createActualObj = function(categ, name) {
         if (!this.dbExists(categ, name)) {
@@ -652,7 +812,6 @@ RG.ObjectShell.Parser = function() {
         return _creator.createFromShell(categ, obj);
     };
 
-
     //--------------------------------------------------------------------
     // Query methods for object shells
     //--------------------------------------------------------------------
@@ -667,108 +826,22 @@ RG.ObjectShell.Parser = function() {
     /* Returns entries from db based on the query. Returns null if nothing
      * matches.*/
     this.dbGet = function(query) {
-
-        const name = query.name;
-        const categ = query.categ;
-        const danger = query.danger;
-        // const type = query.type;
-
-        // Specifying name returns an array
-        if (!RG.isNullOrUndef([name])) {
-            if (_dbByName.hasOwnProperty(name)) {return _dbByName[name];}
-            else {return [];}
-        }
-
-        if (!RG.isNullOrUndef([danger])) {
-            if (dbDanger.hasOwnProperty(danger)) {
-                const entries = dbDanger[danger];
-                if (typeof categ !== 'undefined') {
-                    if (entries.hasOwnProperty(categ)) {
-                        return entries[categ];
-                    }
-                    else {return {};}
-                }
-                else {
-                    return dbDanger[danger];
-                }
-            }
-            else {
-                return {};
-            }
-        }
-        // Fetch all entries of given category
-        else if (!RG.isNullOrUndef([categ])) {
-            if (_db.hasOwnProperty(categ)) {
-                return _db[categ];
-            }
-        }
-        return {};
-
+        return _procgen.dbGet(query);
     };
 
-    /* Filters given category with a function. Func gets each object as arg,
-     * and must return either true or false. Function can be for example:
-     *   1.func(obj) {if (obj.name === 'wolf') return true;} Or
-     *   2.func(obj) {if (obj.hp > 25) return true;}.
-     *   And it can be as complex as needed of course.
-     * */
-    this.filterCategWithFunc = function(categ, func) {
-        const objects = this.dbGet({categ});
-        const res = [];
-        const keys = Object.keys(objects);
-
-        for (let i = 0; i < keys.length; i++) {
-            const name = keys[i];
-            const obj = objects[name];
-            const acceptItem = func(obj);
-            if (acceptItem) {
-                res.push(obj);
-            }
-        }
-        return res;
-
+    this.dbGetRand = function(query) {
+        return _procgen.dbGetRand(query);
     };
 
     //----------------------------------------------------------------------
     // RANDOMIZED METHODS for procedural generation
     //----------------------------------------------------------------------
 
-    /* Returns random object from the db. For example, {categ: "actors",
-     * danger: 2}
-     * returns a random actors with these constrains.
-     * Ex2: {danger: 3, num:1}
-     * returns randomly one entry which has danger 3.*/
-    this.dbGetRand = function(query) {
-        const danger = query.danger;
-        const categ = query.categ;
-        if (typeof danger !== 'undefined') {
-            if (typeof categ !== 'undefined') {
-                if (dbDanger.hasOwnProperty(danger)) {
-                    const entries = dbDanger[danger][categ];
-                    return this.getRandFromObj(entries);
-                }
-            }
-        }
-        return null;
-    };
-
     /* Creates a random actor based on danger value or a filter function.*/
     this.createRandomActor = function(obj) {
-        let randShell = null;
-        if (obj.hasOwnProperty('danger')) {
-            const danger = obj.danger;
-            randShell = this.dbGetRand({danger, categ: 'actors'});
-            if (randShell !== null) {
-                return this.createFromShell('actors', randShell);
-            }
-            else {
-                return null;
-            }
-        }
-        else if (obj.hasOwnProperty('func')) {
-            const res = this.filterCategWithFunc('actors', obj.func);
-            randShell = RG.RAND.arrayGetRand(res);
-            return this.createFromShell('actors', randShell);
+        const randShell = _procgen.getRandomActor(obj);
+        if (randShell) {
+            return _creator.createFromShell(RG.TYPE_ACTOR, randShell);
         }
         return null;
     };
@@ -777,20 +850,14 @@ RG.ObjectShell.Parser = function() {
     // Note that this method can return null, if no correct danger level is
     // found. You can supply {func: ...} as a fallback solution.
     this.createRandomActorWeighted = function(min, max, obj) {
-        const key = min + ',' + max;
-        if (!_cache.actorWeights.hasOwnProperty(key)) {
-            _cache.actorWeights[key] = RG.getDangerProb(min, max);
+        const actorShell = _procgen.getRandomActorWeighted(min, max);
+        if (actorShell) {
+            return _creator.createFromShell(RG.TYPE_ACTOR, actorShell);
         }
-        const danger = ROT.RNG.getWeightedValue(_cache.actorWeights[key]);
-        const actor = this.createRandomActor({danger});
-
-        // Fallback to using a function, obj.func
-        if (RG.isNullOrUndef([actor])) {
-            if (!RG.isNullOrUndef([obj])) {
-                return this.createRandomActor(obj);
-            }
+        else if (!RG.isNullOrUndef([obj])) {
+            return this.createRandomActor(obj);
         }
-        return actor;
+        return null;
     };
 
     /* Creates a random item based on a selection function.
@@ -801,27 +868,14 @@ RG.ObjectShell.Parser = function() {
      *  // Above returns item with value > 100.
      *  */
     this.createRandomItem = function(obj) {
-        if (obj.hasOwnProperty('func')) {
-            const res = this.filterCategWithFunc('items', obj.func);
-            const randShell = RG.RAND.arrayGetRand(res);
-            return this.createFromShell('items', randShell);
-        }
-        else {
-            RG.err('ObjectParser', 'createRandomItem', 'No function given.');
+        const randShell = _procgen.getRandomItem(obj);
+        if (randShell) {
+            return _creator.createFromShell('items', randShell);
         }
         return null;
     };
 
-    /* Returns a property from an object, selected randomly. For example,
-     * given object {a: 1, b: 2, c: 3}, may return 1,2 or 3 with equal
-     * probability.*/
-    this.getRandFromObj = function(obj) {
-        const keys = Object.keys(obj);
-        const randIndex = RG.RAND.randIndex(keys);
-        return obj[keys[randIndex]];
-    };
 
 };
-
 
 module.exports = RG.ObjectShell;

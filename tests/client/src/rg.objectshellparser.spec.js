@@ -100,7 +100,7 @@ describe('RG.ObjectShell.Parser', function() {
         parser.parseObjShell(RG.TYPE_ACTOR, wolf);
 
         let func = actor => (actor.danger <= 1 && actor.type === 'animal');
-        expect(parser.createRandomActor.bind(parser, {func})).to.throw(Error);
+        expect(parser.createRandomActor({func})).to.be.null;
 
         let wolfObj = null;
         func = actor => (actor.danger <= 2 && actor.type === 'animal');
