@@ -4,17 +4,36 @@ const React = require('react');
 const RG = require('../src/rg.js');
 const ModalHeader = require('./modal-header');
 
-/** This component contains short info on keys and how to play the game.*/
-var GameHelpScreen = React.createClass({
+const TextHelp = props => (
+    <p>
+        <span className='text-primary'>{props.char}</span>
+        {'- ' + props.descr}
+    </p>
+);
 
-    shouldComponentUpdate: function(nextProps, nextState) {
+TextHelp.propTypes = {
+    char: React.PropTypes.string,
+    descr: React.PropTypes.string
+};
+
+/** This component contains short info on keys and how to play the game.*/
+const GameHelpScreen = React.createClass({
+
+    shouldComponentUpdate: function() {
         return false;
     },
 
     render: function() {
         console.log('render() GameHelpScreen');
         return (
-            <div className='modal fade' role='dialog' id='gameHelpModal' tabIndex='-1' role='dialog' aria-labelledby='game-help-modal-label' aria-hidden='true'>
+            <div
+                aria-hidden='true'
+                aria-labelledby='game-help-modal-label'
+                className='modal fade'
+                id='gameHelpModal'
+                role='dialog'
+                tabIndex='-1'
+            >
                 <div className='modal-dialog modal-lg'>
                     <div className='modal-content'>
                         <ModalHeader id='game-help-modal-label' text={RG.gameTitle + 'Help'}/>
@@ -31,24 +50,29 @@ var GameHelpScreen = React.createClass({
                                 </table>
                             </div>
                             <div className='col-md-6 help-info-buttons'>
-                                <p><span className='text-primary'>b</span> - Use stairs.</p>
-                                <p><span className='text-primary'>f</span> - Change fight mode.</p>
-                                <p><span className='text-primary'>h</span> - See next item in the cell.</p>
-                                <p><span className='text-primary'>m</span> - Toggle the map/player view.</p>
-                                <p><span className='text-primary'>n</span> - Next target (when in targeting mode).</p>
-                                <p><span className='text-primary'>i</span> - View inventory.</p>
-                                <p><span className='text-primary'>o</span> - Open/close door.</p>
-                                <p><span className='text-primary'>r</span> - Toggle run mode (1.5 x speed).</p>
-                                <p><span className='text-primary'>t</span> - Enter targeting mode. Press again to fire.</p>
-                                <p><span className='text-primary'>u</span> - Use an item.</p>
-                                <p><span className='text-primary'>,</span> - Pick up an item.</p>
-                                <p><span className='text-primary'>.</span> - Rest (takes less energy than moving).</p>
+                                <TextHelp char={'b'} descr={'Use stairs/passage.'} />
+                                <TextHelp char={'f'} descr={'Change fight mode.'} />
+                                <TextHelp char={'h'} descr={'See next item in the cell.'} />
+                                <TextHelp char={'i'} descr={'View inventory.'} />
+                                <TextHelp char={'l'} descr={'Look around.'} />
+                                <TextHelp char={'m'} descr={'Toggle the map/player view.'} />
+                                <TextHelp char={'n'} descr={'Next target (when in targeting mode).'} />
+                                <TextHelp char={'o'} descr={'Open/close door.'} />
+                                <TextHelp char={'r'} descr={'Toggle run mode (1.5 x speed).'} />
+                                <TextHelp char={'t'} descr={'Enter targeting mode. Press again to fire.'} />
+                                <TextHelp char={'u'} descr={'Use an item.'} />
+                                <TextHelp char={','} descr={'Pick up an item.'} />
+                                <TextHelp char={'.'} descr={'Rest (takes less energy than moving).'} />
                             </div>
                         </div>
 
                         <div className='modal-footer row'>
                             <div className='col-md-6'>
-                                <button type='button' className='btn btn-secondary' data-dismiss='modal'>Close</button>
+                                <button
+                                    className='btn btn-secondary'
+                                    data-dismiss='modal'
+                                    type='button'
+                                >Close</button>
                             </div>
                         </div>
 
