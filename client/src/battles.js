@@ -5,6 +5,8 @@ const RG = require('./rg.js');
 
 RG.Random = require('./random.js');
 
+RG.Geometry = require('./geometry.js');
+
 RG.Object = require('./object.js');
 RG.Item = require('./item.js');
 RG.Time = require('./time.js');
