@@ -1,6 +1,7 @@
 
 const scaleAll = 1.0;
 
+/* Function to scale the item values. For fine-tuning the game balance. */
 function value(type, val) {
     let value = 0;
     if (typeof type === 'string') {
@@ -11,10 +12,12 @@ function value(type, val) {
             case 'permaice': value = 1.5 * val; break;
             case 'ruby': value = 1.5 * val; break;
             case 'magic': value = 1.5 * val; break;
+            case 'gem': value = 1.0 * val; break;
             default: value = val;
         }
     }
     else if (Number.isInteger(type)) {
+        // If called as ie value(100)
         value = type;
     }
     return Math.floor(scaleAll * value);
@@ -83,6 +86,12 @@ const Items = [
         weight: 1.2, value: value(50)
     },
     {
+        name: 'Longsword', base: 'MeleeWeaponBase',
+        material: 'steel',
+        damage: '1d8', attack: 2, defense: 2,
+        weight: 0.8, value: value(75)
+    },
+    {
         name: 'Tomahawk', base: 'MeleeWeaponBase',
         material: ['wood', 'stone', 'leather'],
         damage: '1d9 + 2', attack: 2, defense: 3,
@@ -92,7 +101,7 @@ const Items = [
         name: 'Battle axe', base: 'MeleeWeaponBase',
         material: 'iron',
         damage: '2d6 + 2', attack: 2, defense: 1,
-        weight: 1.5, value: value(85)
+        weight: 2.5, value: value(85)
     },
 
     // ICE WEAPONS (not easy to hit with, do lots of damage)
@@ -103,7 +112,7 @@ const Items = [
         attack: 1
     },
     {
-        name: 'Permaice Dagger', base: 'IceWeaponBase',
+        name: 'Permaice dagger', base: 'IceWeaponBase',
         damage: '1d4 + 6', defense: 3, weight: 0.6, value: value(100)
     },
     {
@@ -144,6 +153,11 @@ const Items = [
         name: 'Ruby glass spear', base: 'RubyWeaponBase',
         damage: '3d5 + 2',
         attack: 3, defense: 6, weight: 0.4, value: value(400)
+    },
+    {
+        name: 'Ruby glass battle axe', base: 'RubyWeaponBase',
+        damage: '4d6 + 3',
+        attack: 6, defense: 2, weight: 0.7, value: value(800)
     },
 
     // MAGIC WEAPONS
@@ -429,16 +443,22 @@ const Items = [
         name: 'Rifle', base: 'MissileWeaponBase',
         attack: 4, range: 7, value: value(500)
     },
+
     // AMMO
     {
         name: 'Arrow', base: 'MissileBase',
-        type: 'ammo', range: 1,
+        type: 'ammo', range: 1, weight: 0.1,
         attack: 0, damage: '1d6', value: value(10)
     },
     {
         name: 'Bolt', base: 'MissileBase',
-        type: 'ammo', range: 1,
+        type: 'ammo', range: 1, weight: 0.1,
         attack: 1, damage: '1d8', value: value(20)
+    },
+    {
+        name: 'Ruby glass bolt', base: 'MissileBase',
+        type: 'ammo', range: 2, weight: 0.05,
+        attack: 3, damage: '2d8', value: value('ruby', 60)
     },
     {
         name: 'Rifle bullet', base: 'MissileBase',
@@ -527,14 +547,16 @@ const Items = [
         weight: 0.1, type: 'spiritgem', dontCreate: true
     },
     {
-        name: 'Lesser gem', base: 'SpiritGemBase', value: value(30), weight: 3.0
+        name: 'Lesser gem', base: 'SpiritGemBase', value: value('gem', 30),
+        weight: 3.0
     },
     {
-        name: 'Normal gem', base: 'SpiritGemBase', value: value(60), weight: 1.5
+        name: 'Ordinary gem', base: 'SpiritGemBase', value: value('gem', 60),
+        weight: 1.5
     },
     {
-        name: 'Greater gem', base: 'SpiritGemBase', value: value(100),
-        weight: 0.2
+        name: 'Greater gem', base: 'SpiritGemBase', value: value('gem', 100),
+        weight: 0.5
     }
 ];
 
