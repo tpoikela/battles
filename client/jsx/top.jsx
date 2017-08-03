@@ -426,14 +426,20 @@ class BattlesTop extends React.Component {
         // $(document.body).off('keydown', this.handleKeyDown);
     }
 
+    isValidKey() {
+        // TODO return false on unused keys
+        return true;
+    }
 
     /* Listens for player key presses and handles them.*/
     handleKeyDown(evt) {
         if (this.keyPending === false) {
-            this.keyPending = true;
-            this.nextCode = evt.keyCode;
-            if (!this.isGUICommand(evt.keyCode)) {
-                this.gameState.isTargeting = false;
+            if (this.isValidKey(evt.keyCode)) {
+                this.keyPending = true;
+                this.nextCode = evt.keyCode;
+                if (!this.isGUICommand(evt.keyCode)) {
+                    this.gameState.isTargeting = false;
+                }
             }
         }
     }
