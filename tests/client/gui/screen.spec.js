@@ -126,7 +126,7 @@ describe('GUI.Screen', () => {
     });
 
     it('can render full map with actors using RLE correctly', () => {
-        const parser = new RG.ObjectShellParser();
+        const parser = new RG.ObjectShell.Parser();
         parser.parseShellData(RGObjects);
         parser.parseShellData(RGEffects);
         const levelX = 100;
