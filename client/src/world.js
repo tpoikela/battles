@@ -421,6 +421,9 @@ RG.World.AreaTile = function(x, y, area) {
                     stairs.setTargetStairs(stairsEast);
                     stairsEast.setTargetStairs(stairs);
 
+                    stairs.setType('passage');
+                    stairsEast.setType('passage');
+
                     _level.addStairs(stairs, lastX, y);
                     levelEast.addStairs(stairsEast, 0, y);
                 }
@@ -443,6 +446,10 @@ RG.World.AreaTile = function(x, y, area) {
                     const stairsSouth = new Stairs(false, levelSouth, _level);
                     stairs.setTargetStairs(stairsSouth);
                     stairsSouth.setTargetStairs(stairs);
+
+                    stairs.setType('passage');
+                    stairsSouth.setType('passage');
+
                     _level.addStairs(stairs, x, lastY);
                     levelSouth.addStairs(stairsSouth, x, 0);
                 }
