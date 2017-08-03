@@ -48,7 +48,7 @@
     "url": "git://github.com/tpoikela/battles.git"
   },
   "scripts": {
-    "build": "npm run build:production && npm run build:sass",
+    "build": "npm run build:sass && npm run build:production",
     "build:production": "NODE_ENV=production ./browserify ./client/jsx/app.jsx --extension .jsx -t babelify | uglifyjs --mangle --compress > ./build/bundle.js",
     "build:production:debug": "NODE_ENV=production ./browserify --debug ./client/jsx/app.jsx --extension .jsx -t babelify > ./build/bundle.js",
     "build:sass": "sass scss/style.scss -t compressed > build/style.css",
