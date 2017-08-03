@@ -171,8 +171,12 @@ RG.Brain.Player = function(actor) { // {{{2
                 if (currCell.hasStairs()) {
                     return function() {level.useStairs(_actor);};
                 }
+                else if (currCell.hasPassage()) {
+                    return function() {level.useStairs(_actor);};
+                }
                 else {
-                    return this.cmdNotPossible('There are no stairs here.');
+                    return this.cmdNotPossible(
+                        'There are no stairs or passage here.');
                 }
             }
 
