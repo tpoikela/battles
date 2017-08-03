@@ -12,7 +12,7 @@ RG.Element = {};
  * necessarily blocking movement.  */
 RG.Element.Base = function(elemType) { // {{{2
     RG.Object.Typed.call(this, RG.TYPE_ELEM, elemType);
-    RG.elementsCreated += 1;
+    RG.elementsCreated += 1; // Used for debugging only
 };
 RG.extend2(RG.Element.Base, RG.Object.Typed);
 
