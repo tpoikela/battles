@@ -773,6 +773,23 @@ RG.Map.Generator = function() { // {{{2
         return {map};
     };
 
+    this.createLakes = function(conf) {
+        const map = new RG.Map.CellList(this.cols, this.rows);
+        // const ratio = conf.ratio;
+        _mapGen = new ROT.Map.Forest(this.cols, this.rows, conf);
+        _mapGen.create(function(x, y, val) {
+            map.setBaseElemXY(x, y, RG.FLOOR_ELEM);
+            // const createDeep = RG.RAND.getUniform() <= ratio;
+            if (val === 1 /* && createDeep */) {
+                map.setBaseElemXY(x, y, RG.WATER_ELEM);
+            }
+            /* else if (val === 1) {
+                map.setBaseElemXY(x, y, RG.GRASS_ELEM);
+            }*/
+        });
+        return {map};
+    };
+
     this.createMountain = function(conf) {
         const map = new RG.Map.CellList(this.cols, this.rows);
         if (!conf) {
