@@ -878,18 +878,29 @@ function addBiomeFeaturesSubLevel(biomeType, subLevel) {
     else if (biomeType === 'taiga' || biomeType === 'forest') {
         const freeCells = subLevel.getMap().getFree();
         const conf = {
-            ratio: 0.1
+            ratio: 0.9
         };
         const forest = RG.FACT.createLevel('forest', cols, rows, conf);
         const forestMap = forest.getMap();
         freeCells.forEach(cell => {
             cell.setBaseElem(forestMap.getBaseElemXY(cell.getX(), cell.getY()));
         });
+
+        // Add some water
+        const addLakes = RG.RAND.getUniform();
+        if (addLakes < 0.3) {
+            const lakes = RG.FACT.createLevel('lakes', cols, rows, conf);
+            const lakesMap = lakes.getMap();
+            freeCells.forEach(cell => {
+                cell.setBaseElem(
+                    lakesMap.getBaseElemXY(cell.getX(), cell.getY()));
+            });
+        }
     }
     else if (biomeType === 'grassland') {
         const freeCells = subLevel.getMap().getFree();
         const conf = {
-            ratio: 0.9
+            ratio: 0.1
         };
         const grassland = RG.FACT.createLevel('forest', cols, rows, conf);
         const grassMap = grassland.getMap();
