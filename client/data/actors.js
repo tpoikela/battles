@@ -93,6 +93,23 @@ const Actors = [
         danger: 2
     },
 
+    // BEARFOLK
+    {
+        name: 'BearfolkBase', char: 'B', className: 'cell-actor-bearfolk',
+        dontCreate: true, brain: 'Bearfolk'
+    },
+
+    // UNDEAD
+    {
+        name: 'UndeadBase', className: 'cell-actor-undead',
+        dontCreate: true, addComp: 'Undead', brain: 'Undead',
+        range: 1
+    },
+    {
+        name: 'skeleton', char: 'z', base: 'UndeadBase',
+        attack: 2, defense: 2, damage: '1d6', danger: 2
+    },
+
     // DEMONS AND WINTRY BEINGS
     {
         name: 'WinterBeingBase', className: 'cell-actor-winter',
