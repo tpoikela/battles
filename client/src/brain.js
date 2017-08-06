@@ -11,7 +11,7 @@ const ACTION_ALREADY_DONE = () => {};
 const NO_ACTION_TAKEN = () => {};
 
 //---------------------------------------------------------------------------
-// BRAINS {{{1
+// BRAINS
 //---------------------------------------------------------------------------
 
 RG.Brain = {};
@@ -32,7 +32,7 @@ RG.Brain.getCellsAround = function(actor) {
 
 /* This brain is used by the player actor. It simply handles the player input
  * but by having brain, player actor looks like other actors.  */
-RG.Brain.Player = function(actor) { // {{{2
+RG.Brain.Player = function(actor) {
     const _actor = actor;
     const _guiCallbacks = {}; // For attaching GUI callbacks
     const _type = 'player';
@@ -559,7 +559,7 @@ RG.Brain.Player = function(actor) { // {{{2
         };
     };
 
-}; // }}} Brain.Player
+}; // Brain.Player
 
 /* Memory is used by the actor to hold information about enemies, items etc.
  * It's a separate object from decision-making brain.*/
@@ -612,7 +612,7 @@ RG.Brain.Memory = function() {
 
 /* Brain is used by the AI to perform and decide on actions. Brain returns
  * actionable callbacks but doesn't know Action objects.  */
-RG.Brain.Rogue = function(actor) { // {{{2
+RG.Brain.Rogue = function(actor) {
     let _actor = actor; // Owner of the brain
     const _explored = {}; // Memory of explored cells
     let _type = 'rogue';
@@ -825,7 +825,7 @@ RG.Brain.Rogue = function(actor) { // {{{2
         };
     };
 
-}; // }}} RogueBrain
+}; // RogueBrain
 
 /* Brain used by most of the animals. TODO: Add some corpse eating behaviour. */
 RG.Brain.Animal = function(actor) {
@@ -877,6 +877,18 @@ RG.Brain.Zombie = function(actor) {
     this.setType('zombie');
 };
 RG.extend2(RG.Brain.Zombie, RG.Brain.Rogue);
+
+/* Brain object used by Undead. */
+RG.Brain.Undead = function(actor) {
+    RG.Brain.Rogue.call(this, actor);
+    this.setType('undead');
+
+    const _memory = this.getMemory();
+    _memory.addEnemyType('player');
+    _memory.addEnemyType('human');
+    _memory.addEnemyType('dwarf');
+};
+RG.extend2(RG.Brain.Undead, RG.Brain.Rogue);
 
 /* Brain used by summoners. */
 RG.Brain.Summoner = function(actor) {
@@ -1001,6 +1013,13 @@ RG.Brain.Human = function(actor) {
 };
 RG.extend2(RG.Brain.Human, RG.Brain.Rogue);
 
+/* Brain object used by the bearfolk. */
+RG.Brain.Bearfolk = function(actor) {
+    RG.Brain.Rogue.call(this, actor);
+    this.setType('bearfolk');
+};
+RG.extend2(RG.Brain.Bearfolk, RG.Brain.Rogue);
+
 /* Brain object used by Spirit objects.*/
 RG.Brain.Spirit = function(actor) {
     RG.Brain.Rogue.call(this, actor);
@@ -1014,7 +1033,5 @@ RG.Brain.Spirit = function(actor) {
     };
 };
 RG.extend2(RG.Brain.Spirit, RG.Brain.Rogue);
-
-// }}} BRAINS
 
 module.exports = RG.Brain;
