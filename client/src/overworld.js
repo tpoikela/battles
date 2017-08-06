@@ -842,9 +842,13 @@ function createSubLevel(ow, owX, owY, xMap, yMap) {
     const owMap = ow.getMap();
     const type = owMap[owX][owY];
 
+    const biomeType = ow.getBiome(owX, owY);
+
     const subX = xMap;
     const subY = yMap;
     const subLevel = RG.FACT.createLevel(RG.LEVEL_EMPTY, subX, subY);
+
+    addBiomeFeaturesSubLevel(biomeType, subLevel);
 
     const owSubLevel = new RG.OverWorld.SubLevel(subLevel);
     ow.addSubLevel([owX, owY], owSubLevel);
@@ -855,6 +859,45 @@ function createSubLevel(ow, owX, owY, xMap, yMap) {
     addSubLevelFeatures(ow, owX, owY, subLevel);
 
     return subLevel;
+}
+
+
+function addBiomeFeaturesSubLevel(biomeType, subLevel) {
+    const cols = subLevel.getMap().cols;
+    const rows = subLevel.getMap().rows;
+
+    if (biomeType === 'arctic') {
+        RG.Map.Generator.addRandomSnow(subLevel.getMap(), 1.0);
+    }
+    else if (biomeType === 'alpine') {
+        RG.Map.Generator.addRandomSnow(subLevel.getMap(), 0.5);
+    }
+    else if (biomeType === 'tundra') {
+        RG.Map.Generator.addRandomSnow(subLevel.getMap(), 0.1);
+    }
+    else if (biomeType === 'taiga' || biomeType === 'forest') {
+        const freeCells = subLevel.getMap().getFree();
+        const conf = {
+            ratio: 0.1
+        };
+        const forest = RG.FACT.createLevel('forest', cols, rows, conf);
+        const forestMap = forest.getMap();
+        freeCells.forEach(cell => {
+            cell.setBaseElem(forestMap.getBaseElemXY(cell.getX(), cell.getY()));
+        });
+    }
+    else if (biomeType === 'grassland') {
+        const freeCells = subLevel.getMap().getFree();
+        const conf = {
+            ratio: 0.9
+        };
+        const grassland = RG.FACT.createLevel('forest', cols, rows, conf);
+        const grassMap = grassland.getMap();
+        freeCells.forEach(cell => {
+            cell.setBaseElem(grassMap.getBaseElemXY(cell.getX(), cell.getY()));
+        });
+    }
+
 }
 
 /* Adds the "mountain" walls into the overworld subLevel and the RG.Map.Level
