@@ -39,7 +39,7 @@ conf = {
     nLevelsY: mult * 4,
     areaX: mult * 8,
     areaY: mult * 4,
-    printResult: false
+    printResult: true
 };
 
 const startTime = new Date().getTime();
@@ -50,3 +50,4 @@ const dur = endTime - startTime;
 console.log('Creating overworld took ' + dur + 'ms');
 
 console.log(JSON.stringify(levelAndConf[1]));
+
