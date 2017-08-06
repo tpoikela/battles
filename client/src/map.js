@@ -764,10 +764,10 @@ RG.Map.Generator = function() { // {{{2
             map.setBaseElemXY(x, y, RG.FLOOR_ELEM);
             const createTree = RG.RAND.getUniform() <= ratio;
             if (val === 1 && createTree) {
-                map.setElemXY(x, y, RG.TREE_ELEM);
+                map.setBaseElemXY(x, y, RG.TREE_ELEM);
             }
             else if (val === 1) {
-                map.setElemXY(x, y, RG.GRASS_ELEM);
+                map.setBaseElemXY(x, y, RG.GRASS_ELEM);
             }
         });
         return {map};
@@ -880,7 +880,7 @@ RG.Map.Generator = function() { // {{{2
 }; // }}} Map.Generator
 
 /* Decorates given map with snow.*/
-RG.Map.Generator.prototype.addRandomSnow = function(map, ratio) {
+RG.Map.Generator.addRandomSnow = function(map, ratio) {
     const freeCells = map.getFree();
     for (let i = 0; i < freeCells.length; i++) {
         const addSnow = RG.RAND.getUniform();
