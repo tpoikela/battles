@@ -1,4 +1,5 @@
 
+/* gulpfile for battles roguelike. */
 
 const spawn = require('child_process').spawn;
 
@@ -11,9 +12,7 @@ const browserifyInc = require('browserify-incremental');
 
 const source = require('vinyl-source-stream');
 const notify = require('gulp-notify');
-
 const nodemon = require('gulp-nodemon');
-const ctags = require('gulp-ctags');
 
 const port = process.env.PORT || 8080;
 
@@ -141,9 +140,26 @@ gulp.task('tests', function() {
 });
 
 gulp.task('tags', function() {
-    return gulp.src(paths.tags)
-        .pipe(ctags({name: 'tags'}))
-        .pipe(gulp.dest('./'));
+    const tagsProc = spawn('bin/gen_tags.sh');
+    const errors = [];
+    tagsProc.stderr.on('data', (data) => {
+        errors.push(data);
+    });
+    tagsProc.on('close', (code) => {
+        if (code !== 0) {
+            const tagsError = errors.join('\n');
+            notify.onError({
+                title: 'Tags Error',
+                message: tagsError
+            }).apply(this, errors);
+        }
+        else {
+            gulp.src('./tags')
+            .pipe(
+                notify('OK. Tags exited with 0')
+            );
+        }
+    });
 });
 
 
