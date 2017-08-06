@@ -336,6 +336,7 @@ RG.OverWorld.Map = function(tilesX, tilesY) {
     this._features = {};
     this._featuresByXY = {};
 
+    this.biomeTypeMap = {};
     this.biomeMap = {};
 
     this.getMap = () => this._baseMap;
@@ -354,6 +355,10 @@ RG.OverWorld.Map = function(tilesX, tilesY) {
 
     this.addBiome = function(x, y, biomeType) {
         const key = x + ',' + y;
+        if (!this.biomeTypeMap.hasOwnProperty(biomeType)) {
+            this.biomeTypeMap[biomeType] = 0;
+        }
+        this.biomeTypeMap[biomeType] += 1;
         this.biomeMap[key] = biomeType;
     };
 
@@ -392,6 +397,21 @@ RG.OverWorld.Map = function(tilesX, tilesY) {
         return this._subLevels[xy[0]][xy[1]];
     };
 
+    this.getSizeX = function() {
+        return this._baseMap.length;
+    };
+
+    this.getSizeY = function() {
+        if (this._baseMap[0].length > 0) {
+            return this._baseMap[0].length;
+        }
+        else {
+            RG.warn('OverWorld.Map', 'getSizeY',
+                'Y-size requested but returning zero value');
+            return 0;
+        }
+    };
+
     this.mapToString = function() {
         const map = JSON.parse(JSON.stringify(this._baseMap));
         const sizeY = map[0].length;
@@ -414,6 +434,32 @@ RG.OverWorld.Map = function(tilesX, tilesY) {
             lines.push(line);
         }
         return lines.map(line => line.join(''));
+    };
+
+    this.printBiomeMap = function() {
+        const sizeX = this.getSizeX() - 1;
+        const sizeY = this.getSizeY() - 1;
+
+        // Build a legend ie: 0 - arctic, 1 - alpine, 2 - forest etc
+        const keys = Object.keys(this.biomeTypeMap);
+        const name2Num = {};
+        const legend = keys.map((key, index) => {
+            name2Num[key] = '' + index;
+            return `${index} - ${key}`;
+        });
+
+        let result = '';
+        for (let y = 0; y < sizeY; y++) {
+            let rowStr = '';
+            for (let x = 0; x < sizeX; x++) {
+                const key = x + ',' + y;
+                rowStr += ',' + name2Num[this.biomeMap[key]];
+            }
+            rowStr += '\n';
+            result += rowStr;
+        }
+        result += '\n' + legend.join('\n');
+        console.log(result);
     };
 
 
@@ -473,6 +519,7 @@ RG.OverWorld.createOverWorld = function(conf = {}) {
     const worldLevel = createOverWorldLevel(
         overworld, worldX, worldY, xMap, yMap, areaX, areaY);
 
+    if (printResult) {overworld.printBiomeMap();}
     return worldLevel;
 };
 
@@ -999,10 +1046,10 @@ function addWorldFeatures(ow) {
     // Add the main roads for most important places
 
     // Create biomes for actor generation of overworld
-    addBiomeToOverWorld(ow, {y: {start: 'N', end: 'wall'}});
-    addBiomeToOverWorld(ow, {x: {start: ['wall', 0], end: 'E'}});
-    addBiomeToOverWorld(ow, {y: {start: ['wall', 0], end: ['wall', 1]}});
-    addBiomeToOverWorld(ow, {y: {start: ['wall', 1], end: 'S'}});
+    addBiomeToOverWorld(ow, {y: {start: 'N', end: 'wall'}, type: 'arctic'});
+    addBiomeToOverWorld(ow, {x: {start: ['wall', 0], end: 'E'}, type: 'extreme'});
+    addBiomeToOverWorld(ow, {y: {start: ['wall', 0], end: ['wall', 1]}, type: 'alpine'});
+    addBiomeToOverWorld(ow, {y: {start: ['wall', 1], end: 'S'}, type: 'grass'});
 
     // Create forests and lakes
 
@@ -1062,93 +1109,102 @@ function addBiomeToOverWorld(ow, cmd) {
     const biomeType = cmd.type;
 
     let xStart = 0;
-    let xEnd = -1;
+    let xEnd = ow.getSizeX() - 1;
     let yStart = 0;
-    let yEnd = -1;
+    let yEnd = ow.getSizeY() - 1;
 
     if (cmd.x) {
+        console.log('cmd.x specified.');
         const start = cmd.x.start;
         const end = cmd.x.end;
+
+        // Find start position for X
         if (start === 'W') {xStart = 0;}
         else if (start === 'wall') {
             const walls = ow.getVWalls();
             if (walls.length > 0) {
-                xStart = walls[0].getWallPos();
+                xStart = walls[0].x;
             }
         }
         else if (Array.isArray(start)) {
             if (start[0] === 'wall') {
                 const walls = ow.getVWalls();
                 if (walls.length > start[1]) {
-                    xStart = walls[start[1]].getWallPos();
+                    console.log('xxx: ' + JSON.stringify(walls[start[1]]));
+                    xStart = walls[start[1]].x;
                 }
             }
         }
 
-        if (end === 'E') {xEnd = ow.tilesX - 1;}
+        // Find end position for X
+        if (end === 'E') {xEnd = ow.getSizeX() - 1;}
         else if (end === 'wall') {
             const walls = ow.getVWalls();
             if (walls.length > 0) {
-                xEnd = walls[0].getWallPos();
+                xEnd = walls[0].x;
             }
         }
         else if (Array.isArray(start)) {
             if (end[0] === 'wall') {
                 const walls = ow.getVWalls();
-                if (walls.length > start[1]) {
-                    xEnd = walls[start[1]].getWallPos();
+                if (walls.length > end[1]) {
+                    xEnd = walls[end[1]].x;
                 }
             }
         }
     }
 
     if (cmd.y) {
+        console.log('cmd.y specified.');
         const start = cmd.y.start;
         const end = cmd.y.end;
 
-        // Find start position
+        // Find start position for Y
         if (start === 'N') {yStart = 0;}
         else if (start === 'wall') {
             // Find first horizontal wall
             const walls = ow.getHWalls();
             if (walls.length > 0) {
-                yStart = walls[0].getWallPos();
+                yStart = walls[0].y;
             }
         }
         else if (Array.isArray(start)) {
             if (start[0] === 'wall') {
                 const walls = ow.getHWalls();
                 if (walls.length > start[1]) {
-                    yStart = walls[start[1]].getWallPos();
+                    yStart = walls[start[1]].y;
                 }
             }
         }
 
-        // Find end position
-        if (end === 'S') {yEnd = ow.tilesY - 1;}
-        else if (start === 'wall') {
+        // Find end position for Y
+        if (end === 'S') {yEnd = ow.getSizeY() - 1;}
+        else if (end === 'wall') {
             const walls = ow.getHWalls();
             if (walls.length > 0) {
-                yStart = walls[0].getWallPos();
+                yEnd = walls[0].y;
             }
         }
         else if (Array.isArray(start)) {
-            if (start[0] === 'wall') {
+            if (end[0] === 'wall') {
                 const walls = ow.getHWalls();
-                if (walls.length > start[1]) {
-                    yStart = walls[start[1]].getWallPos();
+                if (walls.length > end[1]) {
+                    yEnd = walls[end[1]].y;
                 }
             }
         }
 
-        // Apply given type on the found range
-        for (let x = xStart; x <= xEnd; x++) {
-            for (let y = yStart; y <= yEnd; y++) {
-                ow.addBiome(x, y, biomeType);
-            }
+    } // cmd.y
+
+    if (cmd.x) {console.log(`x: ${xStart} -> ${xEnd}`);}
+    if (cmd.y) {console.log(`y: ${yStart} -> ${yEnd}`);}
+
+    // Apply given type on the found range
+    for (let x = xStart; x <= xEnd; x++) {
+        for (let y = yStart; y <= yEnd; y++) {
+            // console.log(`Adding biome [${x}][${y}]: ${biomeType}`);
+            ow.addBiome(x, y, biomeType);
         }
-
-
     }
 }
 
@@ -1277,7 +1333,7 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
     for (let x = 0; x < subLevelsX; x++) {
         for (let y = 0; y < subLevelsY; y++) {
 
-            // Find sub-level indices + area level indices
+            // Find sub-level (Map.Level) indices + area level indices
             const slX = x % xMap;
             const slY = y % yMap;
             const aX = Math.floor(x / xMap);
