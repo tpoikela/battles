@@ -734,4 +734,19 @@ RG.Component.Flying = function() {
 };
 RG.extend2(RG.Component.Flying, RG.Component.Base);
 
+/* Component added to anything Undead. */
+RG.Component.Undead = function() {
+    RG.Component.Base.call(this, 'Undead');
+};
+RG.extend2(RG.Component.Undead, RG.Component.Base);
+
+//--------------------------------------------
+// Comps that add or remove other components
+//--------------------------------------------
+
+RG.Component.AddOnHit = function() {
+    RG.Component.Base.call(this, 'AddOnHit');
+};
+RG.extend2(RG.Component.AddOnHit, RG.Component.Base);
+
 module.exports = RG.Component;
