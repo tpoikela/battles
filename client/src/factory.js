@@ -255,6 +255,11 @@ RG.Factory.Base = function() { // {{{2
             mapObj = mapgen.createForest(conf);
             level.setMap(mapObj.map);
         }
+        else if (levelType === 'lakes') {
+            mapgen.setGen('forest', cols, rows);
+            mapObj = mapgen.createLakes(conf);
+            level.setMap(mapObj.map);
+        }
         else if (levelType === 'mountain') {
             mapgen.setGen('mountain', cols, rows);
             mapObj = mapgen.createMountain(conf);
