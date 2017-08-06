@@ -20,9 +20,19 @@ const Actors = [
         defense: 2, hp: 7
     },
     {
+        name: 'badger', char: 'c', base: 'animal',
+        attack: 1, defense: 4, damage: '1d4',
+        hp: 10, danger: 2
+    },
+    {
         name: 'coyote', char: 'c', base: 'animal',
         attack: 3, defense: 3, damage: '1d4',
         hp: 12, danger: 2
+    },
+    {
+        name: 'lynx', char: 'f', base: 'animal',
+        attack: 5, defense: 1, damage: '1d6',
+        hp: 12, danger: 3
     },
     {
         name: 'hawk', char: 'H', base: 'animal',
@@ -107,6 +117,11 @@ const Actors = [
         name: 'Frost viper', char: 's', base: 'WinterBeingBase',
         attack: 3, defense: 3, protection: 3, damage: '1d7', hp: 18,
         danger: 4
+    },
+    {
+        name: 'Arctic Wolf', char: 'w', base: 'WinterBeingBase',
+        attack: 4, defense: 2, damage: '1d8', brain: 'Animal',
+        hp: 21, danger: 5
     },
     {
         name: 'Glacial golem', char: 'G', base: 'WinterBeingBase',
