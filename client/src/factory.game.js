@@ -127,7 +127,7 @@ RG.Factory.Game = function() {
 
         this.addSnow = function(level, ratio) {
             const map = level.getMap();
-            RG.Map.Generator.prototype.addRandomSnow(map, ratio);
+            RG.Map.Generator.addRandomSnow(map, ratio);
         };
 
         /* Called after all winter demons have been slain.*/
