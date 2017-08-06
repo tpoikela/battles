@@ -56,6 +56,15 @@ const BTOWER = '\u265C';
 const WTOWER = '\u2656';
 // const CITY = '\u1CC1';
 
+const biomeTypeMap = {
+    arctic: 0,
+    alpine: 1,
+    tundra: 2,
+    taiga: 3,
+    forest: 4,
+    grassland: 5
+};
+
 // Used for randomization
 /*
 const dirValues = [
@@ -336,8 +345,19 @@ RG.OverWorld.Map = function(tilesX, tilesY) {
     this._features = {};
     this._featuresByXY = {};
 
-    this.biomeTypeMap = {};
     this.biomeMap = {};
+
+    this.getBiome = function(x, y) {
+        const key = x + ',' + y;
+        if (this.biomeMap.hasOwnProperty(key)) {
+            return this.biomeMap[x + ',' + y];
+        }
+        else {
+            RG.err('OverWorld.Map', 'getBiome',
+                `No biome set for x,y ${x},${y}`);
+        }
+        return '';
+    };
 
     this.getMap = () => this._baseMap;
     this.getCell = (xy) => this._baseMap[xy[0]][xy[1]];
@@ -355,10 +375,6 @@ RG.OverWorld.Map = function(tilesX, tilesY) {
 
     this.addBiome = function(x, y, biomeType) {
         const key = x + ',' + y;
-        if (!this.biomeTypeMap.hasOwnProperty(biomeType)) {
-            this.biomeTypeMap[biomeType] = 0;
-        }
-        this.biomeTypeMap[biomeType] += 1;
         this.biomeMap[key] = biomeType;
     };
 
@@ -441,7 +457,7 @@ RG.OverWorld.Map = function(tilesX, tilesY) {
         const sizeY = this.getSizeY() - 1;
 
         // Build a legend ie: 0 - arctic, 1 - alpine, 2 - forest etc
-        const keys = Object.keys(this.biomeTypeMap);
+        const keys = Object.keys(biomeTypeMap);
         const name2Num = {};
         const legend = keys.map((key, index) => {
             name2Num[key] = '' + index;
@@ -1046,10 +1062,12 @@ function addWorldFeatures(ow) {
     // Add the main roads for most important places
 
     // Create biomes for actor generation of overworld
-    addBiomeToOverWorld(ow, {y: {start: 'N', end: 'wall'}, type: 'arctic'});
-    addBiomeToOverWorld(ow, {x: {start: ['wall', 0], end: 'E'}, type: 'extreme'});
-    addBiomeToOverWorld(ow, {y: {start: ['wall', 0], end: ['wall', 1]}, type: 'alpine'});
-    addBiomeToOverWorld(ow, {y: {start: ['wall', 1], end: 'S'}, type: 'grass'});
+    addBiomeToOverWorld(ow, {y: {start: 'N', end: 'wall'}, type: 'alpine'});
+    addBiomeToOverWorld(ow, {x: {start: ['wall', 0], end: 'E'},
+        type: 'arctic'});
+    addBiomeToOverWorld(ow, {y: {start: ['wall', 0], end: ['wall', 1]},
+        type: 'tundra'});
+    addBiomeToOverWorld(ow, {y: {start: ['wall', 1], end: 'S'}, type: 'taiga'});
 
     // Create forests and lakes
 
@@ -1144,7 +1162,7 @@ function addBiomeToOverWorld(ow, cmd) {
                 xEnd = walls[0].x;
             }
         }
-        else if (Array.isArray(start)) {
+        else if (Array.isArray(end)) {
             if (end[0] === 'wall') {
                 const walls = ow.getVWalls();
                 if (walls.length > end[1]) {
@@ -1185,7 +1203,7 @@ function addBiomeToOverWorld(ow, cmd) {
                 yEnd = walls[0].y;
             }
         }
-        else if (Array.isArray(start)) {
+        else if (Array.isArray(end)) {
             if (end[0] === 'wall') {
                 const walls = ow.getHWalls();
                 if (walls.length > end[1]) {
@@ -1422,14 +1440,31 @@ function mapY(y, slY, subSizeY) {
 
 /* Map biomes from overworld into areaX * areaY space. */
 function addBiomeLocations(ow, areaConf) {
+    const owSizeX = ow.getSizeX();
+    const owSizeY = ow.getSizeY();
+    const xMap = owSizeX / areaConf.maxX;
+    const yMap = owSizeY / areaConf.maxY;
+
     for (let x = 0; x < areaConf.maxX; x++) {
         for (let y = 0; y < areaConf.maxY; y++) {
+            const bbox = getSubBoxForAreaTile(x, y, xMap, yMap);
             const key = x + ',' + y;
-            areaConf.biome[key] = 'arctic tundra';
+            const biomeType = ow.getBiome(bbox[0], bbox[3]);
+            areaConf.biome[key] = biomeType;
             // How to map multiple cells into one?
             // 1. Option: Determine "majority" biome for that area
         }
     }
+}
+
+/* Returns the bounding box of sublevel coordinates for given tile. For example,
+ * tile 0,0 with xMap=3,yMap=5, returns [0, 4, 2, 0]. */
+function getSubBoxForAreaTile(x, y, xMap, yMap) {
+    const lx = x * xMap;
+    const rx = lx + xMap - 1;
+    const ry = y * yMap;
+    const ly = ry + yMap - 1;
+    return [lx, ly, rx, ry];
 }
 
 module.exports = RG.OverWorld;
