@@ -128,7 +128,7 @@ class GameEditor extends React.Component {
 
         this.state = state;
 
-        this.parser = new RG.ObjectShellParser();
+        this.parser = new RG.ObjectShell.Parser();
         this.parser.parseShellData(RGEffects);
         this.parser.parseShellData(RGObjects);
 
@@ -302,8 +302,8 @@ class GameEditor extends React.Component {
             highX: mult * 40,
             highY: mult * 20
         };
-        const level = createOverWorld(conf);
-        this.addLevelToEditor(level);
+        const levelAndConf = createOverWorld(conf);
+        this.addLevelToEditor(levelAndConf[0]);
     }
 
     /* Generates a new level map and adds it to the editor.  */
