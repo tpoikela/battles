@@ -203,6 +203,7 @@ RG.Factory.Base = function() { // {{{2
             case 'Human': return new RG.Brain.Human(actor);
             case 'Summoner': return new RG.Brain.Summoner(actor);
             case 'Zombie': return new RG.Brain.Zombie(actor);
+            case 'Undead': return new RG.Brain.Undead(actor);
             default: return new RG.Brain.Rogue(actor);
         }
     };
