@@ -69,3 +69,13 @@ describe('Component.Base', function() {
         expect(calledIllegal).to.be.false;
     });
 });
+
+describe('Component.Combat', () => {
+    it('contains damage dies for damage dealing', () => {
+        const player = RG.FACT.createPlayer('Player', {});
+        const combatComp = new RG.Component.Combat();
+        player.add('Combat', combatComp);
+        expect(player.get('Combat').getDamage() >= 1).to.equal(true);
+        expect(player.get('Combat').getDamage() <= 4).to.equal(true);
+    });
+});
