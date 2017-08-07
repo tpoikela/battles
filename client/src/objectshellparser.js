@@ -75,6 +75,10 @@ RG.ObjectShell.Creator = function(db) {
     _propToCall.items.missileweapon = _propToCall.items.missile;
     _propToCall.items.ammo = _propToCall.items.missile;
 
+    const _addOnHitComps = {
+        poison: ['duration', 'damage', 'prob']
+    };
+
     /* Returns an object shell, given category and name.*/
     this.get = function(categ, name) {
         return _db[categ][name];
@@ -89,7 +93,7 @@ RG.ObjectShell.Creator = function(db) {
             case 'Stats': return new RG.Component.Stats();
             default:
                 if (RG.Component.hasOwnProperty(type)) {
-                    return RG.Component[type]();
+                    return new RG.Component[type]();
                 }
                 else {
                     RG.err('ObjectShell.Creator', 'createComponent',
@@ -101,7 +105,7 @@ RG.ObjectShell.Creator = function(db) {
 
     /* Returns an actual game object when given category and name. Note that
      * the blueprint must exist already in the database (blueprints must have
-     * been parser before). */
+     * been parsed before). */
     this.createActualObj = function(categ, name) {
         const shell = this.get(categ, name);
         const propCalls = _propToCall[categ];
@@ -191,8 +195,23 @@ RG.ObjectShell.Creator = function(db) {
             this.addComponent(shell, newObj);
         }
 
+        if (shell.hasOwnProperty('poison')) {
+            this.addPoison(shell, newObj);
+        }
+
         // TODO map different props to function calls
         return newObj;
+    };
+
+    this.addPoison = function(shell, obj) {
+        const poison = shell.poison;
+        const poisonComp = new RG.Component.Poison();
+        poisonComp.setProb(poison.prob);
+        poisonComp.setSource(obj);
+        poisonComp.setDamage(RG.FACT.createDie(poison.damage));
+        const addOnHit = new RG.Component.AddOnHit();
+        addOnHit.setComp(poisonComp);
+        obj.add('AddOnHit', addOnHit);
     };
 
     /* Factory-method for creating the actual game objects.*/
