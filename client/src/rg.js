@@ -477,10 +477,10 @@ const RG = { // {{{2
     //--------------------------------------------------------------
 
     getMissileDamage: function(att, miss) {
-        let dmg = miss.getDamage();
+        let dmg = miss.rollDamage();
         dmg += Math.round(att.get('Stats').getAgility() / 3);
         if (miss.has('Ammo')) {
-            dmg += att.getMissileWeapon().getDamage();
+            dmg += att.getMissileWeapon().rollDamage();
         }
         return dmg;
     },
@@ -986,15 +986,17 @@ RG.setAllExplored = function(level, isExplored) {
 };
 
 RG.addCompToEntAfterHit = function(comp, ent) {
+    const compClone = comp.clone();
 
     if (comp.hasOwnProperty('duration')) {
-        const compDur = comp.getDuration();
+        RG.Component.addDuration(compClone, comp.getDurationDie());
+        const compDur = compClone.getDuration();
         const expiration = new RG.Component.Expiration();
-        expiration.addEffect(comp, compDur);
+        expiration.addEffect(compClone, compDur);
         ent.add('Expiration', expiration);
     }
 
-    ent.add(comp.getType(), comp);
+    ent.add(compClone.getType(), compClone);
 };
 
 /* Returns a game message for cell which cannot be travelled. */

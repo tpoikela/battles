@@ -64,13 +64,39 @@ RG.Component.Base.prototype.addCallback = function(name, cb) {
     }
 };
 
+/* Works correctly for any component having only simple getters and setters. For
+ * more complex components, roll out a separate clone function. */
 RG.Component.Base.prototype.clone = function() {
-    const comp = new RG.Component.Base(this.getType());
-    return comp;
+    const compType = this.getType();
+    if (RG.Component.hasOwnProperty(compType)) {
+        const comp = new RG.Component[compType]();
+        comp.copy(this);
+        return comp;
+    }
+    else {
+        RG.err('Component.Base', 'clone',
+            `No type |${compType}| in RG.Component.`);
+    }
+    return null;
 };
 
+/* Works for any component implementing getXXX/setXXX functions. Does a shallow
+ * copy of properties only though. */
 RG.Component.Base.prototype.copy = function(rhs) {
-    this.setType(rhs.getType());
+    for (const p in this) {
+        if (/^get/.test(p)) {
+            const getter = p;
+            if (getter !== 'getEntity') {
+                const setter = getter.replace('get', 'set');
+                if (typeof rhs[getter] === 'function') {
+                    if (typeof this[setter] === 'function') {
+                        const attrVal = rhs[getter]();
+                        this[setter](attrVal);
+                    }
+                }
+            }
+        }
+    }
 };
 
 RG.Component.Base.prototype.equals = function(rhs) {
@@ -88,9 +114,14 @@ RG.Component.Base.prototype.toJSON = function() {
     const obj = {};
     for (const p in this) {
         if (/^get/.test(p)) {
-            if (p !== 'getEntity' && p !== 'getType') {
-                const setter = p.replace('get', 'set');
-                obj[setter] = this[p]();
+            const getter = p;
+            if (getter !== 'getEntity' && getter !== 'getType') {
+                if (typeof this[getter] === 'function') {
+                    const setter = getter.replace('get', 'set');
+                    if (typeof this[setter] === 'function') {
+                        obj[setter] = this[getter]();
+                    }
+                }
             }
         }
     }
@@ -281,7 +312,7 @@ RG.Component.Combat = function() {
     let _attack = 1;
     let _defense = 1;
     let _protection = 0;
-    let _damage = RG.FACT.createDie('1d4');
+    let _damageDie = RG.FACT.createDie('1d4');
     let _range = 1;
 
     this.getAttack = function() {return _attack;};
@@ -294,17 +325,13 @@ RG.Component.Combat = function() {
     this.getProtection = function() {return _protection;};
     this.setProtection = function(prot) {_protection = prot;};
 
-    this.getDamage = function() {
+    this.rollDamage = function() {
         // TODO add weapon effects
         if (this.getEntity().hasOwnProperty('getWeapon')) {
             const weapon = this.getEntity().getWeapon();
             if (weapon !== null) {return weapon.getDamage();}
         }
-        return _damage.roll();
-    };
-
-    this.setDamage = function(strOrArray) {
-        _damage = RG.FACT.createDie(strOrArray);
+        return _damageDie.roll();
     };
 
     /* Attack methods. */
@@ -312,11 +339,16 @@ RG.Component.Combat = function() {
     this.getAttackRange = function() {return _range; };
 
     this.getDamageDie = function() {
-        return _damage;
+        return _damageDie;
     };
 
-    this.setDamageDie = function(str) {
-        this.setDamage(str);
+    this.setDamageDie = function(strOrDie) {
+        if (typeof strOrDie === 'string') {
+            _damageDie = RG.FACT.createDie(strOrDie);
+        }
+        else {
+            _damageDie = strOrDie;
+        }
     };
 
 };
@@ -324,8 +356,7 @@ RG.extend2(RG.Component.Combat, RG.Component.Base);
 
 RG.Component.Combat.prototype.toJSON = function() {
     const obj = RG.Component.Base.prototype.toJSON.call(this);
-    delete obj.setDamageDie; // Clean up setter
-    obj.setDamage = this.getDamageDie().toString();
+    obj.setDamageDie = this.getDamageDie().toString();
     return obj;
 };
 
@@ -634,7 +665,7 @@ RG.Component.Poison = function() {
     RG.Component.Base.call(this, 'Poison');
 
     let _src = null;
-    let _die = null;
+    let _damageDie = null;
     let _prob = 0.05; // Prob. of poison kicking in
 
     this.getProb = function() {return _prob;};
@@ -643,8 +674,21 @@ RG.Component.Poison = function() {
     this.getSource = function() {return _src;};
     this.setSource = function(src) {_src = src;};
 
-    this.setDamage = function(die) {_die = die;};
-    this.getDamage = function() {return _die.roll();};
+    this.rollDamage = function() {return _damageDie.roll();};
+
+    this.getDamageDie = function() {
+        return _damageDie;
+    };
+
+    this.setDamageDie = function(strOrDie) {
+        if (typeof strOrDie === 'string') {
+            _damageDie = RG.FACT.createDie(strOrDie);
+        }
+        else {
+            _damageDie = strOrDie;
+        }
+    };
+
 
 };
 RG.extend2(RG.Component.Poison, RG.Component.Base);
@@ -766,8 +810,12 @@ RG.Component.addDuration = function(comp, die) {
         return this.duration.roll();
     }.bind(comp);
 
-    comp.setDuration = function(die) {
+    comp.setDurationDie = function(die) {
         this.duration = die;
+    }.bind(comp);
+
+    comp.getDurationDie = function() {
+        return this.duration;
     }.bind(comp);
 
 };

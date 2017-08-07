@@ -280,12 +280,10 @@ RG.System.Damage = function(type, compTypes) {
 
     /* Applies add-on hit effects such as poison, frost or others. */
     const _applyAddOnHitComp = function(ent) {
-        console.log('applyAddOnHitComp');
         const dmgComp = ent.get('Damage');
         const weapon = dmgComp.getWeapon();
         if (weapon) { // Attack was done using weapon
             if (weapon.has('AddOnHit')) {
-                console.log('weapon has add on hit');
                 const comp = weapon.get('AddOnHit').getComp();
                 RG.addCompToEntAfterHit(comp, ent);
             }
@@ -660,7 +658,7 @@ RG.System.TimeEffects = function(type, compTypes) {
             }
         }
         else if (RG.RAND.getUniform() < poison.getProb()) {
-            const poisonDmg = poison.getDamage();
+            const poisonDmg = poison.rollDamage();
             const dmg = new RG.Component.Damage(poisonDmg, 'poison');
             dmg.setSource(poison.getSource());
             ent.add('Damage', dmg);

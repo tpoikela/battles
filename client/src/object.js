@@ -52,38 +52,35 @@ RG.Object.Defense.prototype.toJSON = function() {
 
 RG.Object.Damage = function() {
     RG.Object.Defense.call(this);
-    let _damage = new RG.Die(1, 4, 0);
+    let _damageDie = new RG.Die(1, 4, 0);
     let _range = 1;
 
     /* Attack methods. */
     this.setAttackRange = function(range) {_range = range;};
     this.getAttackRange = function() {return _range; };
 
-    this.setDamage = function(dStr) {
-        if (typeof dStr === 'string') {
-            _damage = RG.FACT.createDie(dStr);
-        }
-        else if (typeof dStr === 'object') {
-            _damage = dStr;
-        }
-    };
 
-    this.getDamage = function() {
+    this.rollDamage = function() {
         if (this.hasOwnProperty('getWeapon')) {
             const weapon = this.getWeapon();
             if (!RG.isNullOrUndef([weapon])) {
-                return weapon.getDamage();
+                return weapon.rollDamage();
             }
         }
-        return _damage.roll();
+        return _damageDie.roll();
     };
 
     this.getDamageDie = function() {
-        return _damage;
+        return _damageDie;
     };
 
-    this.setDamageDie = function(str) {
-        this.setDamage(str);
+    this.setDamageDie = function(dStr) {
+        if (typeof dStr === 'string') {
+            _damageDie = RG.FACT.createDie(dStr);
+        }
+        else if (typeof dStr === 'object') {
+            _damageDie = dStr;
+        }
     };
 
 };
@@ -94,7 +91,7 @@ RG.Object.Damage.prototype.copy = function(rhs) {
     this.setAttackRange(rhs.getAttackRange());
     const die = new RG.Die();
     die.copy(rhs.getDamageDie());
-    this.setDamage(die);
+    this.setDamageDie(die);
 };
 
 RG.Object.Damage.prototype.equals = function(rhs) {
@@ -116,7 +113,7 @@ RG.Object.Damage.prototype.toString = function() {
 RG.Object.Damage.prototype.toJSON = function() {
     var json = RG.Object.Defense.prototype.toJSON.call(this);
     json.setAttackRange = this.getAttackRange();
-    json.setDamage = this.getDamageDie().toString();
+    json.setDamageDie = this.getDamageDie().toString();
     return json;
 };
 

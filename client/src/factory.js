@@ -916,12 +916,9 @@ RG.Factory.World = function() {
     };
 
     this.getPresetLevels = function(hierName) {
-        console.log('Looking levels for ' + hierName);
         const keys = Object.keys(this.presetLevels);
-        console.log('presetLevels keys: ' + keys);
         const foundKey = keys.find(item => new RegExp(item).test(hierName));
         if (foundKey) {
-            console.log('Found!');
             return this.presetLevels[foundKey];
         }
         return [];

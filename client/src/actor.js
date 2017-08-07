@@ -225,7 +225,7 @@ RG.Actor.Rogue.prototype.getProtection = function() {
 };
 
 RG.Actor.Rogue.prototype.getDamage = function() {
-    let damage = this.get('Combat').getDamage();
+    let damage = this.get('Combat').rollDamage();
     let strength = this.getStrength();
     strength += this.getInvEq().getEquipment().getStrength();
     damage += RG.strengthToDamage(strength);

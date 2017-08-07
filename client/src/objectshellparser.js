@@ -30,7 +30,7 @@ RG.ObjectShell.Creator = function(db) {
             type: 'setType',
             attack: {comp: 'Combat', func: 'setAttack'},
             defense: {comp: 'Combat', func: 'setDefense'},
-            damage: {comp: 'Combat', func: 'setDamage'},
+            damage: {comp: 'Combat', func: 'setDamageDie'},
             speed: {comp: 'Stats', func: 'setSpeed'},
 
             strength: {comp: 'Stats', func: 'setStrength'},
@@ -55,12 +55,12 @@ RG.ObjectShell.Creator = function(db) {
             },
 
             weapon: {
-                damage: 'setDamage',
+                damage: 'setDamageDie',
                 attack: 'setAttack',
                 defense: 'setDefense'
             },
             missile: {
-                damage: 'setDamage',
+                damage: 'setDamageDie',
                 attack: 'setAttack',
                 range: 'setAttackRange'
             },
@@ -208,7 +208,7 @@ RG.ObjectShell.Creator = function(db) {
         const poisonComp = new RG.Component.Poison();
         poisonComp.setProb(poison.prob);
         poisonComp.setSource(obj);
-        poisonComp.setDamage(RG.FACT.createDie(poison.damage));
+        poisonComp.setDamageDie(RG.FACT.createDie(poison.damage));
 
         const dieDuration = RG.FACT.createDie(poison.duration);
         RG.Component.addDuration(poisonComp, dieDuration);

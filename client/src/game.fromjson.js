@@ -61,8 +61,9 @@ RG.Game.FromJSON = function() {
                         newCompObj[fname](comp[fname]);
                     }
                     else {
+                        const json = JSON.stringify(comp);
                         RG.err('FromJSON', 'addCompsToEntity',
-                            `${fname} not a function in ${name}`);
+                            `${fname} not function in ${name}. Comp: ${json}`);
 
                     }
                 }
