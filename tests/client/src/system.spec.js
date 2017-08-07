@@ -67,7 +67,6 @@ describe('How items/loot is dropped by monsters', function() {
 
 describe('System.Damage', () => {
     it('handles adding components on hit', () => {
-        const level = RG.FACT.createLevel('arena', 10, 10);
         const dSystem = new RG.System.Damage('Damage', ['Damage']);
         const systems = [dSystem];
 
@@ -75,7 +74,8 @@ describe('System.Damage', () => {
         const addOnHit = new RG.Component.AddOnHit();
         const poisonComp = new RG.Component.Poison();
         addOnHit.setComp(poisonComp);
-        poisonComp.duration = '1d6 + 5';
+        const dieDur = RG.FACT.createDie('1d6 + 5');
+        RG.Component.addDuration(poisonComp, dieDur);
         poisonSword.add('AddOnHit', addOnHit);
         const human = new RG.Actor.Rogue('Human');
         human.getInvEq().addItem(poisonSword);
@@ -87,7 +87,17 @@ describe('System.Damage', () => {
         dmgComp.setWeapon(poisonSword);
         beast.add('Damage', dmgComp);
 
+        const beastAddOnHit = new RG.Component.AddOnHit();
+        const beastDmgComp = new RG.Component.Damage(10, 'slash');
+        const beastPoisonComp = new RG.Component.Poison();
+        beastAddOnHit.setComp(beastPoisonComp);
+        beast.add('AddOnHit', beastAddOnHit);
+
+        beastDmgComp.setSource(beast);
+        human.add('Damage', beastDmgComp);
+
         updateSystems(systems);
         expect(beast.has('Poison')).to.equal(true);
+        expect(human.has('Poison')).to.equal(true);
     });
 });
