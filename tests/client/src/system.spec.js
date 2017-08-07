@@ -9,16 +9,6 @@ const updateSystems = function(systems) {
     }
 };
 
-describe('Combat using ECS', function() {
-    it('Has combat components', function() {
-        const player = RG.FACT.createPlayer('Player', {});
-        const combatComp = new RG.Component.Combat();
-        player.add('Combat', combatComp);
-        expect(player.get('Combat').getDamage() >= 1).to.equal(true);
-        expect(player.get('Combat').getDamage() <= 4).to.equal(true);
-    });
-});
-
 describe('How hunger system works', function() {
     it('Subtracts energy from actors with hunger', function() {
         const system = new RG.System.Hunger('Hunger', ['Hunger', 'Action']);
@@ -75,3 +65,29 @@ describe('How items/loot is dropped by monsters', function() {
     });
 });
 
+describe('System.Damage', () => {
+    it('handles adding components on hit', () => {
+        const level = RG.FACT.createLevel('arena', 10, 10);
+        const dSystem = new RG.System.Damage('Damage', ['Damage']);
+        const systems = [dSystem];
+
+        const poisonSword = new RG.Item.Weapon('Sword of Poison');
+        const addOnHit = new RG.Component.AddOnHit();
+        const poisonComp = new RG.Component.Poison();
+        addOnHit.addComp(poisonComp);
+        poisonComp.duration = '1d6 + 5';
+        poisonSword.add('AddOnHit', addOnHit);
+        const human = new RG.Actor.Rogue('Human');
+        human.getInvEq().addItem(poisonSword);
+        human.getInvEq().equipItem(poisonSword);
+        const beast = new RG.Actor.Rogue('Beast');
+
+        const dmgComp = new RG.Component.Damage(10, 'slash');
+        dmgComp.setSource(human);
+        dmgComp.setWeapon(poisonSword);
+        beast.add('Damage', dmgComp);
+
+        updateSystems(systems);
+        expect(beast.has('Poison')).to.equal(true);
+    });
+});
