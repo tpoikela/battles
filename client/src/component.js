@@ -753,7 +753,7 @@ RG.Component.AddOnHit = function() {
 
     let _comp = null;
 
-    this.addComp = function(comp) {_comp = comp;};
+    this.setComp = function(comp) {_comp = comp;};
     this.getComp = function() {return _comp;};
 };
 RG.extend2(RG.Component.AddOnHit, RG.Component.Base);
