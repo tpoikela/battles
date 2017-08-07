@@ -74,7 +74,7 @@ describe('System.Damage', () => {
         const poisonSword = new RG.Item.Weapon('Sword of Poison');
         const addOnHit = new RG.Component.AddOnHit();
         const poisonComp = new RG.Component.Poison();
-        addOnHit.addComp(poisonComp);
+        addOnHit.setComp(poisonComp);
         poisonComp.duration = '1d6 + 5';
         poisonSword.add('AddOnHit', addOnHit);
         const human = new RG.Actor.Rogue('Human');
