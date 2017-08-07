@@ -233,6 +233,7 @@ RG.System.Damage = function(type, compTypes) {
                         + ent.getName());
                 }
                 else {
+                    _applyAddOnHitComp(ent);
                     health.decrHP(totalDmg);
                 }
 
@@ -275,6 +276,27 @@ RG.System.Damage = function(type, compTypes) {
         const protTotal = protEquip + protStats;
         const totalDmg = dmg - protTotal;
         return totalDmg;
+    };
+
+    /* Applies add-on hit effects such as poison, frost or others. */
+    const _applyAddOnHitComp = function(ent) {
+        console.log('applyAddOnHitComp');
+        const dmgComp = ent.get('Damage');
+        const weapon = dmgComp.getWeapon();
+        if (weapon) { // Attack was done using weapon
+            if (weapon.has('AddOnHit')) {
+                console.log('weapon has add on hit');
+                const comp = weapon.get('AddOnHit').getComp();
+                RG.addCompToEntAfterHit(comp, ent);
+            }
+        }
+        else { // No weapon was used
+            const src = dmgComp.getSource();
+            if (src && src.has('AddOnHit')) {
+                const comp = src.get('AddOnHit').getComp();
+                RG.addCompToEntAfterHit(comp, ent);
+            }
+        }
     };
 
     const _dropInvAndEq = function(actor) {
