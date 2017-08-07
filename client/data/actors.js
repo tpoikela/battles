@@ -46,9 +46,9 @@ const Actors = [
     },
     {
         name: 'rattlesnake', char: 's', base: 'animal',
-        poison: true, // Change to weapon: venomous fangs
         attack: 2, defense: 3, damage: '1d3',
-        hp: 10, danger: 3
+        hp: 10, danger: 3,
+        poison: {duration: '1d6', damage: '1d10', prob: '0.1'}
     },
     {
         name: 'wolverine', char: 'W', base: 'animal',
@@ -133,7 +133,8 @@ const Actors = [
     {
         name: 'Frost viper', char: 's', base: 'WinterBeingBase',
         attack: 3, defense: 3, protection: 3, damage: '1d7', hp: 18,
-        danger: 4
+        danger: 4,
+        poison: {duration: '1d6 + 5', damage: '1d6', prob: '0.1'}
     },
     {
         name: 'Arctic Wolf', char: 'w', base: 'WinterBeingBase',
