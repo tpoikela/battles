@@ -182,7 +182,7 @@ RG.Effects = {
                         const dmgDie = new RG.Die(arr[0], arr[1], arr[2]);
 
                         const poisonComp = new RG.Component.Poison();
-                        poisonComp.setDamage(dmgDie);
+                        poisonComp.setDamageDie(dmgDie);
 
                         const expiration = new RG.Component.Expiration();
                         expiration.addEffect(poisonComp, poisonDur);
