@@ -215,6 +215,7 @@ RG.Component.Damage = function(dmg, type) {
     let _dmg = dmg;
     let _dmgType = type;
     let _src = null;
+    let _weapon = null;
 
     this.getDamage = function() {return _dmg;};
     this.setDamage = function(dmg) {_dmg = dmg;};
@@ -224,6 +225,9 @@ RG.Component.Damage = function(dmg, type) {
 
     this.getSource = function() {return _src;};
     this.setSource = function(src) {_src = src;};
+
+    this.getWeapon = function() {return _weapon;};
+    this.setWeapon = function(weapon) {_weapon = weapon;};
 
 };
 RG.extend2(RG.Component.Damage, RG.Component.Base);
@@ -746,6 +750,11 @@ RG.extend2(RG.Component.Undead, RG.Component.Base);
 
 RG.Component.AddOnHit = function() {
     RG.Component.Base.call(this, 'AddOnHit');
+
+    let _comp = null;
+
+    this.addComp = function(comp) {_comp = comp;};
+    this.getComp = function() {return _comp;};
 };
 RG.extend2(RG.Component.AddOnHit, RG.Component.Base);
 
