@@ -99,5 +99,12 @@ describe('System.Damage', () => {
         updateSystems(systems);
         expect(beast.has('Poison')).to.equal(true);
         expect(human.has('Poison')).to.equal(true);
+
+        const dmg2 = new RG.Component.Damage(5, 'slash');
+        dmg2.setSource(beast);
+        human.add('Damage', dmg2);
+        updateSystems(systems);
+        expect(beast.has('Poison')).to.equal(true);
+        expect(human.has('Poison')).to.equal(true);
     });
 });

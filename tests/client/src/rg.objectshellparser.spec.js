@@ -54,7 +54,7 @@ describe('RG.ObjectShell.Parser', function() {
         wolfObj.setType('wolf');
         wolfObj.get('Combat').setAttack(15);
         wolfObj.get('Combat').setDefense(10);
-        wolfObj.get('Combat').setDamage('1d6 + 2');
+        wolfObj.get('Combat').setDamageDie('1d6 + 2');
         wolfObj.get('Health').setHP(9);
         const wolfComp = wolfObj.get('Combat');
 

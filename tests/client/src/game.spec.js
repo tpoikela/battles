@@ -122,7 +122,7 @@ describe('How combat should evolve', function() {
         const defender = new Actor('Defender');
         expect(defender.get('Health').isAlive()).to.equal(true);
         attacker.get('Combat').setAttack(10);
-        attacker.get('Combat').setDamage('1d4');
+        attacker.get('Combat').setDamageDie('1d4');
         defender.get('Health').setHP(1);
         defender.get('Combat').setDefense(0);
         defender.get('Combat').setProtection(0);

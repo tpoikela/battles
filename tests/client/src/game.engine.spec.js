@@ -89,7 +89,7 @@ describe('Game.Engine', function() {
         expect(expiration.hasEffect(poison)).to.equal(true);
         // poison.setDuration(20);
         poison.setProb(1.0);
-        poison.setDamage(new RG.Die(1, 1, 10));
+        poison.setDamageDie(new RG.Die(1, 1, 10));
         poison.setSource(eng.actor2);
 
         const currHP = eng.actor.get('Health').getHP();

@@ -33,9 +33,7 @@ describe('Component.Base', function() {
         const compCopy = new RG.Component.Base('XXX');
         compCopy.copy(comp);
         expect(comp.equals(compCopy)).to.be.true;
-
         expect(comp.toString()).to.match(/Base/);
-
     });
 
     it('has onAdd/Remove callback mechanism', function() {
@@ -70,12 +68,27 @@ describe('Component.Base', function() {
     });
 });
 
+describe('Component.Poison', () => {
+    it('can be copied or cloned', () => {
+        const p1 = new RG.Component.Poison();
+        p1.setProb(0.01);
+        p1.setDamageDie('1d6 + 4');
+        const p2 = p1.clone();
+
+        expect(p2.getProb()).to.equal(0.01);
+
+        const d1Str = p1.getDamageDie().toString();
+        const d2Str = p2.getDamageDie().toString();
+        expect(d1Str).to.equal(d2Str);
+    });
+});
+
 describe('Component.Combat', () => {
     it('contains damage dies for damage dealing', () => {
         const player = RG.FACT.createPlayer('Player', {});
         const combatComp = new RG.Component.Combat();
         player.add('Combat', combatComp);
-        expect(player.get('Combat').getDamage() >= 1).to.equal(true);
-        expect(player.get('Combat').getDamage() <= 4).to.equal(true);
+        expect(player.get('Combat').rollDamage() >= 1).to.equal(true);
+        expect(player.get('Combat').rollDamage() <= 4).to.equal(true);
     });
 });

@@ -198,11 +198,11 @@ describe('How missile weapons affect missiles', () => {
         const rifle = new RG.Item.MissileWeapon('rifle');
         rifle.setAttack(1);
         rifle.setAttackRange(4);
-        rifle.setDamage('1d1+1');
+        rifle.setDamageDie('1d1+1');
         const ammo = new RG.Item.Ammo('rifle bullet');
         ammo.setAttack(2);
         ammo.setAttackRange(2);
-        ammo.setDamage('3d1+3');
+        ammo.setDamageDie('3d1+3');
         const actor = new RG.Actor.Rogue('rogue');
         actor.get('Stats').setAccuracy(0);
         actor.get('Stats').setAgility(0);
