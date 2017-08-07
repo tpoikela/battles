@@ -270,7 +270,7 @@ describe('It contains all game content info', function() {
 
     it('Should parse all actors properly', function() {
         const rsnake = parser.get('actors', 'rattlesnake');
-        expect(rsnake.poison).to.equal(true);
+        expect(rsnake.poison).to.exist;
         const coyote = parser.get('actors', 'coyote');
         expect(coyote.attack).to.equal(3);
         expect(coyote.danger).to.equal(2);
@@ -406,9 +406,13 @@ describe('It contains all game content info', function() {
 });
 
 describe('It has query functions for objects', function() {
-    const parser = new Parser();
-    parser.parseShellData(Effects);
-    parser.parseShellData(RGObjects);
+
+    let parser = null;
+    before(() => {
+        parser = new Parser();
+        parser.parseShellData(Effects);
+        parser.parseShellData(RGObjects);
+    });
 
     it('can filter query with category/function', () => {
         const actor = parser.dbGet({name: 'Winter demon'});
@@ -447,6 +451,14 @@ describe('It has query functions for objects', function() {
 
         });
 
+    });
+
+    it('can create venomous actors', () => {
+        const viper = parser.createActualObj(RG.TYPE_ACTOR, 'Frost viper');
+        expect(viper.has('AddOnHit')).to.equal(true);
+
+        const addOnHit = viper.get('AddOnHit');
+        expect(addOnHit.getComp().getType()).to.equal('Poison');
     });
 });
 
