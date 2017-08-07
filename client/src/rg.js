@@ -988,9 +988,7 @@ RG.setAllExplored = function(level, isExplored) {
 RG.addCompToEntAfterHit = function(comp, ent) {
 
     if (comp.hasOwnProperty('duration')) {
-        const arr = RG.parseDieSpec(comp.duration);
-        const durDie = new RG.Die(arr[0], arr[1], arr[2]);
-        const compDur = durDie.roll();
+        const compDur = comp.getDuration();
         const expiration = new RG.Component.Expiration();
         expiration.addEffect(comp, compDur);
         ent.add('Expiration', expiration);
