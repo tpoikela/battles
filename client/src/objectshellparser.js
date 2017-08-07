@@ -209,6 +209,9 @@ RG.ObjectShell.Creator = function(db) {
         poisonComp.setProb(poison.prob);
         poisonComp.setSource(obj);
         poisonComp.setDamage(RG.FACT.createDie(poison.damage));
+
+        const dieDuration = RG.FACT.createDie(poison.duration);
+        RG.Component.addDuration(poisonComp, dieDuration);
         const addOnHit = new RG.Component.AddOnHit();
         addOnHit.setComp(poisonComp);
         obj.add('AddOnHit', addOnHit);
