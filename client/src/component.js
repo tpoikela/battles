@@ -758,4 +758,18 @@ RG.Component.AddOnHit = function() {
 };
 RG.extend2(RG.Component.AddOnHit, RG.Component.Base);
 
+/* Adds a duration and accessor functions to given component. */
+RG.Component.addDuration = function(comp, die) {
+    comp.duration = die;
+
+    comp.getDuration = function() {
+        return this.duration.roll();
+    }.bind(comp);
+
+    comp.setDuration = function(die) {
+        this.duration = die;
+    }.bind(comp);
+
+};
+
 module.exports = RG.Component;
