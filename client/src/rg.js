@@ -985,6 +985,20 @@ RG.setAllExplored = function(level, isExplored) {
     }
 };
 
+RG.addCompToEntAfterHit = function(comp, ent) {
+
+    if (comp.hasOwnProperty('duration')) {
+        const arr = RG.parseDieSpec(comp.duration);
+        const durDie = new RG.Die(arr[0], arr[1], arr[2]);
+        const compDur = durDie.roll();
+        const expiration = new RG.Component.Expiration();
+        expiration.addEffect(comp, compDur);
+        ent.add('Expiration', expiration);
+    }
+
+    ent.add(comp.getType(), comp);
+};
+
 /* Returns a game message for cell which cannot be travelled. */
 RG.getImpassableMsg = function(actor, cell, str) {
     const type = cell.getBaseElem().getType();
