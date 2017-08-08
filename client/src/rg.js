@@ -874,24 +874,32 @@ RG.KeyMap = {
 };
 RG.KeyMap.initMap();
 
-// Assign ROT keys to meaningful constants
-RG.K_MOVE_N = ROT.VK_W;
-RG.K_MOVE_NE = ROT.VK_E;
-RG.K_MOVE_E = ROT.VK_D;
-RG.K_MOVE_SE = ROT.VK_C;
-RG.K_MOVE_S = ROT.VK_X;
-RG.K_MOVE_SW = ROT.VK_Z;
-RG.K_MOVE_W = ROT.VK_A;
-RG.K_MOVE_NW = ROT.VK_Q;
+RG.KEY = {};
 
-RG.K_PICKUP = ROT.VK_COMMA;
-RG.K_USE_STAIRS = ROT.VK_B;
-RG.K_RUN = ROT.VK_R;
-RG.K_FIGHT = ROT.VK_F;
-RG.K_YES = ROT.VK_Y;
-RG.K_NEXT_ITEM = ROT.VK_H;
-RG.K_DOOR = ROT.VK_O;
-RG.K_REST = ROT.VK_S;
+// Assign ROT keys to meaningful constants
+RG.KEY.MOVE_N = ROT.VK_W;
+RG.KEY.MOVE_NE = ROT.VK_E;
+RG.KEY.MOVE_E = ROT.VK_D;
+RG.KEY.MOVE_SE = ROT.VK_C;
+RG.KEY.MOVE_S = ROT.VK_X;
+RG.KEY.MOVE_SW = ROT.VK_Z;
+RG.KEY.MOVE_W = ROT.VK_A;
+RG.KEY.MOVE_NW = ROT.VK_Q;
+
+RG.KEY.PICKUP = ROT.VK_COMMA;
+RG.KEY.USE_STAIRS = ROT.VK_B;
+RG.KEY.RUN = ROT.VK_R;
+RG.KEY.FIGHT = ROT.VK_F;
+RG.KEY.YES = ROT.VK_Y;
+RG.KEY.NEXT_ITEM = ROT.VK_H;
+RG.KEY.DOOR = ROT.VK_O;
+RG.KEY.REST = ROT.VK_S;
+RG.KEY.LOOK = ROT.VK_L;
+RG.KEY.POWER = ROT.VK_P;
+
+RG.isValidKey = function(keyCode) {
+    return RG.KEY.hasOwnProperty(keyCode);
+};
 
 // These determine the size of one block in a level. These numbers are important
 // because they determine a sub-area used for procedural generation of shops,
