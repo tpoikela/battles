@@ -440,9 +440,8 @@ class BattlesTop extends React.Component {
         // $(document.body).off('keydown', this.handleKeyDown);
     }
 
-    isValidKey() {
-        // TODO return false on unused keys
-        return true;
+    isValidKey(keyCode) {
+        return RG.isValidKey(keyCode);
     }
 
     /* Listens for player key presses and handles them.*/
