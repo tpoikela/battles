@@ -79,6 +79,7 @@ describe('System.Attack', () => {
         human.getInvEq().addItem(sword);
         human.getInvEq().equipItem(sword);
         const beast = new RG.Actor.Rogue('Beast');
+        beast.get('Combat').setDefense(0);
 
         Test.wrapIntoLevel([human, beast]);
 
