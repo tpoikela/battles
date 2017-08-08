@@ -65,6 +65,7 @@ RG.Random.prototype.toJSON = function() {
     };
 };
 
+// Global RNG
 RG.RAND = new RG.Random();
 
 module.exports = RG.Random;
