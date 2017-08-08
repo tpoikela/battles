@@ -49,7 +49,7 @@ RG.Object.Defense.prototype.toJSON = function() {
     return json;
 };
 
-
+/* Damage object used in Weapons and other damaging things. */
 RG.Object.Damage = function() {
     RG.Object.Defense.call(this);
     let _damageDie = new RG.Die(1, 4, 0);
@@ -58,7 +58,6 @@ RG.Object.Damage = function() {
     /* Attack methods. */
     this.setAttackRange = function(range) {_range = range;};
     this.getAttackRange = function() {return _range; };
-
 
     this.rollDamage = function() {
         if (this.hasOwnProperty('getWeapon')) {
@@ -167,6 +166,7 @@ RG.Object.Locatable.prototype.setXY = function(x, y) {
     this._y = y;
 };
 
+/* Accessing the current cell of object. */
 RG.Object.Locatable.prototype.getCell = function() {
     return this._level.getMap().getCell(this._x, this._y);
 };
