@@ -2,6 +2,8 @@
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 
+const Test = require('../../roguetest');
+
 /* Updates given systems in given order.*/
 const updateSystems = function(systems) {
     for (let i = 0; i < systems.length; i++) {
@@ -65,6 +67,29 @@ describe('How items/loot is dropped by monsters', function() {
     });
 });
 
+describe('System.Attack', () => {
+    it('handles attacks between actors and adds Damage', () => {
+        const attackSystem = new RG.System.Attack('Attack', ['Attack']);
+        const systems = [attackSystem];
+
+        const sword = new RG.Item.Weapon('Sword');
+        sword.setDamageDie('10d10 + 10');
+        sword.setAttack(100);
+        const human = new RG.Actor.Rogue('Human');
+        human.getInvEq().addItem(sword);
+        human.getInvEq().equipItem(sword);
+        const beast = new RG.Actor.Rogue('Beast');
+
+        Test.wrapIntoLevel([human, beast]);
+
+        const attackComp = new RG.Component.Attack(beast);
+        human.add('Attack', attackComp);
+        updateSystems(systems);
+
+        expect(beast.has('Damage'), 'Beast was dealt damage').to.be.true;
+    });
+});
+
 describe('System.Damage', () => {
     it('handles adding components on hit', () => {
         const dSystem = new RG.System.Damage('Damage', ['Damage']);
@@ -75,7 +100,7 @@ describe('System.Damage', () => {
         const poisonComp = new RG.Component.Poison();
         addOnHit.setComp(poisonComp);
         const dieDur = RG.FACT.createDie('1d6 + 5');
-        RG.Component.addDuration(poisonComp, dieDur);
+        poisonComp.setDurationDie(dieDur);
         poisonSword.add('AddOnHit', addOnHit);
         const human = new RG.Actor.Rogue('Human');
         human.getInvEq().addItem(poisonSword);
