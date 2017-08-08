@@ -10,6 +10,50 @@ const Models = BTree.Models;
 const ACTION_ALREADY_DONE = () => {};
 const NO_ACTION_TAKEN = () => {};
 
+/* Used for testing purposes only. */
+const TestSelectionObj = function() {
+
+    this.select = function(code) {
+        if (code === ROT.VK_1) {
+            RG.gameMsg('Please select now direction to fire.');
+            // Returns another object for selection with function 'select'
+            return {
+                select: function(code) {
+                    switch (code) {
+                        case RG.KEY.MOVE_W: {
+                            return () => {
+                                RG.gameMsg('SubSelection west ' + code);
+                            };
+                        }
+                        case RG.KEY.MOVE_E: {
+                            return () => {
+                                RG.gameMsg('SubSelection east ' + code);
+                            };
+                        }
+                        case RG.KEY.MOVE_S: {
+                            return () => {
+                                RG.gameMsg('SubSelection south ' + code);
+                            };
+                        }
+                        case RG.KEY.MOVE_N: {
+                            return () => {
+                                RG.gameMsg('SubSelection north ' + code);
+                            };
+                        }
+                        default: return null;
+                    }
+                }
+            };
+        }
+        else {
+            return function() {
+                RG.gameMsg('You selected code ' + code);
+            };
+        }
+    };
+
+};
+
 //---------------------------------------------------------------------------
 // BRAINS
 //---------------------------------------------------------------------------
@@ -48,6 +92,9 @@ RG.Brain.Player = function(actor) {
     let _confirmCallback = null;
     let _wantConfirm = false;
     let _confirmEnergy = 1;
+
+    let _wantSelection = false;
+    let _selectionObject = false;
 
     let _runModeEnabled = false;
 
@@ -99,11 +146,26 @@ RG.Brain.Player = function(actor) {
             return this.noAction();
         }
 
+        // A player must make a selection
+        if (_wantSelection && _selectionObject !== null) {
+            const selection = _selectionObject.select(code);
+            if (typeof selection === 'function') {
+                _wantSelection = false;
+                return selection;
+            }
+            else if (typeof selection === 'object') {
+                _selectionObject = selection;
+                return this.noAction();
+            }
+            _wantSelection = false;
+            RG.gameMsg('You cancel the action.');
+            return this.noAction();
+        }
+
         // Invoke GUI callback with given code
         if (_guiCallbacks.hasOwnProperty(code)) {
             return _guiCallbacks[code](code);
         }
-
 
         // Enable/disable run mode
         if (RG.KeyMap.isRunMode(code)) {
@@ -182,6 +244,13 @@ RG.Brain.Player = function(actor) {
 
             if (RG.KeyMap.isToggleDoor(code)) {
                 return this.tryToToggleDoor();
+            }
+
+            if (RG.KeyMap.isUsePower(code)) {
+                _wantSelection = true;
+                _selectionObject = new TestSelectionObj();
+                RG.gameMsg('Press 0-9 to make a selection.');
+                return this.noAction();
             }
         }
 
