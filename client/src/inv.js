@@ -225,12 +225,12 @@ RG.Inv.Equipment = function(actor) {
         slotKeys.forEach(slot => {
             const item = this.getItem(slot);
             if (item !== null) {
-                if (item.hasOwnProperty(funcname)) {
+                if (typeof item[funcname] === 'function') {
                     result += item[funcname]();
                 }
                 else if (item.has('Stats')) {
                     const sComp = item.get('Stats');
-                    if (sComp.hasOwnProperty(funcname)) {
+                    if (typeof sComp[funcname] === 'function') {
                         result += sComp[funcname]();
                     }
                 }
