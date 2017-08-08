@@ -195,6 +195,8 @@ describe('How missile is fired and hits a wall', function() {
 
 describe('How missile weapons affect missiles', () => {
     it('adds to the default range of missile', () => {
+        const sword = new RG.Item.Weapon('sword');
+        sword.setAttack(10);
         const rifle = new RG.Item.MissileWeapon('rifle');
         rifle.setAttack(1);
         rifle.setAttackRange(4);
@@ -206,10 +208,13 @@ describe('How missile weapons affect missiles', () => {
         const actor = new RG.Actor.Rogue('rogue');
         actor.get('Stats').setAccuracy(0);
         actor.get('Stats').setAgility(0);
+        actor.get('Combat').setAttack(0);
         const invEq = actor.getInvEq();
 
+        invEq.addItem(sword);
         invEq.addItem(rifle);
         invEq.addItem(ammo);
+        expect(invEq.equipItem(sword)).to.equal(true);
         expect(invEq.equipItem(rifle)).to.equal(true);
         expect(invEq.equipItem(ammo)).to.equal(true);
 
