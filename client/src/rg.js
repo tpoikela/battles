@@ -989,8 +989,7 @@ RG.addCompToEntAfterHit = function(comp, ent) {
     const compClone = comp.clone();
 
     if (comp.hasOwnProperty('duration')) {
-        RG.Component.addDuration(compClone, comp.getDurationDie());
-        const compDur = compClone.getDuration();
+        const compDur = compClone.rollDuration();
         const expiration = new RG.Component.Expiration();
         expiration.addEffect(compClone, compDur);
         ent.add('Expiration', expiration);
