@@ -85,17 +85,17 @@ RG.System.Attack = function(type, compTypes) {
             }
             else {
                 // Actual hit change calculation
-                const totalAttack = att.getAttack();
+                const totalAttack = RG.getMeleeAttack(att);
                 const totalDefense = def.getDefense();
-                const hitChange = totalAttack / (totalAttack + totalDefense);
+                const hitChance = totalAttack / (totalAttack + totalDefense);
 
-                if (hitChange > RG.RAND.getUniform()) {
+                if (hitChance > RG.RAND.getUniform()) {
                     const totalDamage = att.getDamage();
                     if (totalDamage > 0) {this.doDamage(att, def, totalDamage);}
                     else {
-RG.gameMsg({cell: att.getCell,
+                        RG.gameMsg({cell: att.getCell,
                             msg: aName + ' fails to hurt ' + dName});
-}
+                    }
                 }
                 else {
                     RG.gameMsg({cell: att.getCell(),
