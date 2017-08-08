@@ -76,8 +76,10 @@ describe('System.Attack', () => {
         sword.setDamageDie('10d10 + 10');
         sword.setAttack(100);
         const human = new RG.Actor.Rogue('Human');
+        human.get('Combat').setAttack(100);
         human.getInvEq().addItem(sword);
         human.getInvEq().equipItem(sword);
+        expect(human.getEquipAttack()).to.equal(100);
         const beast = new RG.Actor.Rogue('Beast');
         beast.get('Combat').setDefense(0);
 
