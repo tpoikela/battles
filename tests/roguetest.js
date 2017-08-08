@@ -9,6 +9,8 @@ const RGTest = {
 
 };
 
+RGTest.rng = new RG.Random();
+
 /* Creates a mock-level for unit tests. */
 RGTest.createMockLevel = function(cols, rows) {
     const level = {cols: cols, rows: rows,
@@ -98,6 +100,22 @@ RGTest.expectConnected = function(b1, b2, nConns) {
     });
     expect(connFound, `Connections between branches must be ${nConns}`)
         .to.equal(nConns);
+};
+
+/* Adds each entity into the level. */
+RGTest.wrapIntoLevel = function(arr) {
+    const level = RG.FACT.createLevel('empty', 20, 20);
+    arr.forEach(ent => {
+        const x = RGTest.rng.getUniformInt(0, 19);
+        const y = RGTest.rng.getUniformInt(0, 19);
+        if (ent.getPropType() === RG.TYPE_ACTOR) {
+            level.addActor(ent, x, y);
+        }
+        if (ent.getPropType() === RG.TYPE_ITEM) {
+            level.addItem(ent, x, y);
+        }
+    });
+    return level;
 };
 
 module.exports = RGTest;
