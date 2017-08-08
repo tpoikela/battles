@@ -17,12 +17,19 @@ class GameStartScreen extends React.Component {
     this.deleteGame = this.deleteGame.bind(this);
     this.selectGame = this.selectGame.bind(this);
     this.loadGame = this.loadGame.bind(this);
+    this.onSeedChange = this.onSeedChange.bind(this);
   }
 
   onNameChange(evt) {
     var name = evt.target.value;
     evt.stopPropagation();
     this.props.setPlayerName(name);
+  }
+
+  onSeedChange(evt) {
+    var name = evt.target.value;
+    evt.stopPropagation();
+    this.props.setSeedName(name);
   }
 
   /* Loads a saved game.*/
@@ -159,6 +166,13 @@ class GameStartScreen extends React.Component {
                     value={this.props.playerName}
                   />
                 </label>
+                <label>Enter a word:
+                    <input
+                        onChange={this.onSeedChange}
+                        type='text'
+                        value={this.props.seedName}
+                    />
+                </label>
 
               </div>
 
@@ -245,7 +259,8 @@ GameStartScreen.propTypes = {
   savedPlayerList: React.PropTypes.array,
   setPlayerName: React.PropTypes.func.isRequired,
   playerName: React.PropTypes.string,
-
+  seedName: React.PropTypes.string,
+  setSeedName: React.PropTypes.func.isRequired,
   setLoot: React.PropTypes.func.isRequired,
   setMonsters: React.PropTypes.func.isRequired,
   setLevelSize: React.PropTypes.func.isRequired,

@@ -5,6 +5,8 @@ const ROT = require('../../lib/rot');
 const RG = require('../src/rg.js');
 RG.Game = require('../src/game.js');
 
+const md5 = require('js-md5');
+
 const $ = require('jquery');
 
 // Subcomponents
@@ -138,33 +140,33 @@ class BattlesTop extends React.Component {
         this.state = {
             boardClassName: 'game-board-player-view',
             creatingGame: false,
+            debugMode: 'Off',
             equipSelected: null,
+            gameLength: 'Medium',
             invMsg: '',
-            loadInProgress: false,
-            mapShown: false,
             invMsgStyle: '',
+            levelSize: 'Medium',
+            loadInProgress: false,
+            lootType: 'Medium',
+            mapShown: false,
+            monstType: 'Medium',
+            playerLevel: 'Medium',
             playerName: 'Player',
             render: true,
             renderFullScreen: false,
             saveInProgress: false,
+            seedName: 0,
             selectedCell: null,
             selectedGame: null,
             selectedItem: null,
-            showStartScreen: true,
-            playerLevel: 'Medium',
-            gameLength: 'Medium',
-            levelSize: 'Medium',
-            monstType: 'Medium',
-            lootType: 'Medium',
-            debugMode: 'Off',
-
-            showEditor: false
+            showEditor: false,
+            showStartScreen: true
         };
 
         // Binding of callbacks
         this.bindCallbacks();
         this.initGUICommandTable();
-        ROT.RNG.setSeed(1); // TODO
+        ROT.RNG.setSeed(1);
         RG.RAND.setSeed(1);
     }
 
@@ -192,6 +194,20 @@ class BattlesTop extends React.Component {
     setPlayerName(name) {
         this.gameConf.playerName = name;
         this.setState({playerName: name});
+    }
+
+    setSeedName(name) {
+        console.log('seedSeedName ' + name);
+        let seed = parseInt(name, 10);
+        if (Number.isNaN(seed)) {
+            const hash = md5(name);
+            console.log('Hash is ' + hash);
+            seed = parseInt(hash, 16);
+        }
+        console.log('True seed is ' + seed);
+        ROT.RNG.setSeed(seed);
+        RG.RAND.setSeed(seed);
+        this.setState({seedName: name});
     }
 
     /* Sets the size of the shown map.*/
@@ -523,6 +539,7 @@ class BattlesTop extends React.Component {
                     newGame={this.newGame}
                     playerName={this.state.playerName}
                     savedPlayerList={this.savedPlayerList}
+                    seedName={this.state.seedName}
                     selectedGame={this.state.selectedGame}
                     selectGame={this.selectSaveGame}
                     setDebugMode={this.setDebugMode}
@@ -532,6 +549,7 @@ class BattlesTop extends React.Component {
                     setMonsters={this.setMonsters}
                     setPlayerLevel={this.setPlayerLevel}
                     setPlayerName={this.setPlayerName}
+                    setSeedName={this.setSeedName}
                     settings={settings}
                     toggleEditor={this.toggleEditor}
                 />
@@ -899,6 +917,7 @@ class BattlesTop extends React.Component {
         this.setMonsters = this.setMonsters.bind(this);
         this.setPlayerLevel = this.setPlayerLevel.bind(this);
         this.setPlayerName = this.setPlayerName.bind(this);
+        this.setSeedName = this.setSeedName.bind(this);
 
         // GamePanel callbacks
         this.setViewSize = this.setViewSize.bind(this);
