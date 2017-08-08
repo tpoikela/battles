@@ -831,14 +831,14 @@ RG.KeyMap = {
 
     // Start from W, go clock wise on keyboard
     initMap: function() {
-        this.moveKeyMap[ROT.VK_W] = 0;
-        this.moveKeyMap[ROT.VK_E] = 1;
-        this.moveKeyMap[ROT.VK_D] = 2;
-        this.moveKeyMap[ROT.VK_C] = 3;
-        this.moveKeyMap[ROT.VK_X] = 4;
-        this.moveKeyMap[ROT.VK_Z] = 5;
-        this.moveKeyMap[ROT.VK_A] = 6;
-        this.moveKeyMap[ROT.VK_Q] = 7;
+        this.moveKeyMap[RG.KEY.MOVE_N] = 0;
+        this.moveKeyMap[RG.KEY.MOVE_NE] = 1;
+        this.moveKeyMap[RG.KEY.MOVE_E] = 2;
+        this.moveKeyMap[RG.KEY.MOVE_SE] = 3;
+        this.moveKeyMap[RG.KEY.MOVE_S] = 4;
+        this.moveKeyMap[RG.KEY.MOVE_SW] = 5;
+        this.moveKeyMap[RG.KEY.MOVE_W] = 6;
+        this.moveKeyMap[RG.KEY.MOVE_NW] = 7;
     },
 
     inMoveCodeMap: function(code) {
@@ -846,13 +846,15 @@ RG.KeyMap = {
     },
 
     isRest: function(code) {return code === ROT.VK_S || ROT.VK_PERIOD;},
-    isPickup: function(code) {return code === ROT.VK_COMMA;},
-    isUseStairs: function(code) {return code === ROT.VK_B;},
-    isRunMode: function(code) {return code === ROT.VK_R;},
-    isFightMode: function(code) {return code === ROT.VK_F;},
-    isConfirmYes: function(code) {return code === ROT.VK_Y;},
-    isNextItem: function(code) {return code === ROT.VK_H;},
-    isToggleDoor: function(code) {return code === ROT.VK_O;},
+    isPickup: function(code) {return code === RG.KEY.PICKUP;},
+    isUseStairs: function(code) {return code === RG.KEY.USE_STAIRS;},
+    isRunMode: function(code) {return code === RG.KEY.RUN;},
+    isFightMode: function(code) {return code === RG.KEY.FIGHT;},
+    isConfirmYes: function(code) {return code === RG.KEY.YES;},
+    isNextItem: function(code) {return code === RG.KEY.NEXT_ITEM;},
+    isToggleDoor: function(code) {return code === RG.KEY.DOOR;},
+    isLook: function(code) {return code === RG.KEY.LOOK;},
+    isUsePower: function(code) {return code === RG.KEY.POWER;},
 
     /* Based on keycode, computes and returns a new x,y pair. If code is
      * invalid, returns null. */
@@ -872,7 +874,6 @@ RG.KeyMap = {
     }
 
 };
-RG.KeyMap.initMap();
 
 RG.KEY = {};
 
@@ -896,6 +897,7 @@ RG.KEY.DOOR = ROT.VK_O;
 RG.KEY.REST = ROT.VK_S;
 RG.KEY.LOOK = ROT.VK_L;
 RG.KEY.POWER = ROT.VK_P;
+RG.KeyMap.initMap();
 
 RG.isValidKey = function(keyCode) {
     let found = false;
