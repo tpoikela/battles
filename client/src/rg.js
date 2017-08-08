@@ -898,7 +898,11 @@ RG.KEY.LOOK = ROT.VK_L;
 RG.KEY.POWER = ROT.VK_P;
 
 RG.isValidKey = function(keyCode) {
-    return RG.KEY.hasOwnProperty(keyCode);
+    let found = false;
+    Object.keys(RG.KEY).forEach(key => {
+        found = found || RG.KEY[key] === keyCode;
+    });
+    return found;
 };
 
 // These determine the size of one block in a level. These numbers are important
