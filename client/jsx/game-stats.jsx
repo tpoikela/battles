@@ -24,7 +24,7 @@ const GameStats = React.createClass({
     render: function() {
         const player = this.props.player;
         const dungeonLevel = player.getLevel().getLevelNumber();
-        const location = player.getLevel().getParent().getName();
+        const location = player.getLevel().getParent();
         const selectedItem = this.props.selectedItem;
         const selectedCell = this.props.selectedCell;
 
