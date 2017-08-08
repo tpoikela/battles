@@ -1,127 +1,6 @@
 
 const RG = require('./rg.js');
-
-//---------------------------------------------------------------------------
-// MIXINS for components
-//---------------------------------------------------------------------------
-
-/*
-const Mixin = (superclass) => class extends superclass {
-
-};
-*/
-
-const MixinCombatAttr = (superclass) => class extends superclass {
-
-    constructor(args) {
-        super(args);
-        this._attack = 0;
-        this._range = 0;
-        this._defense = 0;
-        this._protection = 0;
-    }
-
-    getAttack() {return this._attack;}
-    setAttack(attack) { this._attack = attack; }
-
-    /* Defense related methods.*/
-    getDefense() { return this._defense; }
-    setDefense(defense) { this._defense = defense; }
-
-    getProtection() {return this._protection;}
-    setProtection(prot) {this._protection = prot;}
-
-    /* Attack methods. */
-    setAttackRange(range) {this._range = range;}
-    getAttackRange() {return this._range; }
-
-    copy(rhs) {
-        super.copy(rhs);
-        this._attack = rhs._attack;
-        this._range = rhs._range;
-        this._defense = rhs._defense;
-        this._protection = rhs._protection;
-    }
-
-    toJSON() {
-        const obj = super.toJSON();
-        obj.setAttack = this._attack;
-        obj.setAttackRange = this._range;
-        obj.setDefense = this._defense;
-        obj.setProtection = this._protection;
-        return obj;
-    }
-
-};
-
-const MixinDamageRoll = (superclass) => class extends superclass {
-
-    constructor(args) {
-        super(args);
-        this.damageDie = RG.FACT.createDie('1d4');
-    }
-
-    rollDamage() {
-        if (this.getEntity().hasOwnProperty('getWeapon')) {
-            const weapon = this.getEntity().getWeapon();
-            if (weapon !== null) {return weapon.rollDamage();}
-        }
-        return this.damageDie.roll();
-    }
-
-    getDamageDie() {
-        return this.damageDie;
-    }
-
-    setDamageDie(strOrDie) {
-        if (typeof strOrDie === 'string') {
-            this.damageDie = RG.FACT.createDie(strOrDie);
-        }
-        else {
-            this.damageDie = strOrDie;
-        }
-    }
-
-    copy(rhs) {
-        super.copy(rhs);
-        this.damageDie = rhs.getDamageDie();
-    }
-
-    toJSON() {
-        const obj = super.toJSON();
-        obj.setDamageDie = this.damageDie.toString();
-        return obj;
-    }
-
-};
-
-/* Adds a duration and accessor functions to given component. */
-const MixinDurationRoll = (superclass) => class extends superclass {
-
-    rollDuration() {
-        return this.duration.roll();
-    }
-
-    setDurationDie(die) {
-        this.duration = die;
-    }
-
-    getDurationDie() {
-        return this.duration;
-    }
-
-    copy(rhs) {
-        super.copy(rhs);
-        this.duration = rhs.getDurationDie();
-    }
-
-    toJSON() {
-        const obj = super.toJSON();
-        obj.setDurationDie = this.duration.toString();
-        return obj;
-    }
-
-};
+const Mixin = require('./mixin');
 
 //---------------------------------------------------------------------------
 // ECS COMPONENTS
@@ -428,7 +307,7 @@ RG.Component.ExpPoints = function(expPoints) {
 RG.extend2(RG.Component.ExpPoints, RG.Component.Base);
 
 /* This component is used with entities performing any kind of combat.*/
-class Combat extends MixinCombatAttr(MixinDamageRoll(RG.Component.Base)) {
+class Combat extends Mixin.CombatAttr(Mixin.DamageRoll(RG.Component.Base)) {
 
     constructor() {
         super('Combat');
@@ -443,7 +322,7 @@ class Combat extends MixinCombatAttr(MixinDamageRoll(RG.Component.Base)) {
 RG.Component.Combat = Combat;
 
 /* Modifiers for the Combat component.*/
-class CombatMods extends MixinCombatAttr(RG.Component.Base) {
+class CombatMods extends Mixin.CombatAttr(RG.Component.Base) {
 
     constructor(args) {
         super(args);
@@ -738,7 +617,7 @@ RG.Component.Stun = function() {
 RG.extend2(RG.Component.Stun, RG.Component.Base);
 
 /* Poison component which damages the entity.*/
-class Poison extends MixinDurationRoll(MixinDamageRoll(RG.Component.Base)) {
+class Poison extends Mixin.DurationRoll(Mixin.DamageRoll(RG.Component.Base)) {
 
     constructor() {
         super('Poison');
