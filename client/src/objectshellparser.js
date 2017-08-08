@@ -1,6 +1,5 @@
 
 const RG = require('./rg.js');
-const ROT = require('../../lib/rot.js');
 
 RG.ObjectShell = {};
 
@@ -75,9 +74,11 @@ RG.ObjectShell.Creator = function(db) {
     _propToCall.items.missileweapon = _propToCall.items.missile;
     _propToCall.items.ammo = _propToCall.items.missile;
 
+    /*
     const _addOnHitComps = {
         poison: ['duration', 'damage', 'prob']
     };
+    */
 
     /* Returns an object shell, given category and name.*/
     this.get = function(categ, name) {
@@ -590,20 +591,9 @@ RG.ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
         if (!_cache.actorWeights.hasOwnProperty(key)) {
             _cache.actorWeights[key] = RG.getDangerProb(min, max);
         }
-        const danger = ROT.RNG.getWeightedValue(_cache.actorWeights[key]);
-        // const actor = this.createRandomActor({danger});
+        const danger = RG.RAND.getWeighted(_cache.actorWeights[key]);
         const actor = this.getRandomActor({danger});
         return actor;
-
-        /*
-        // Fallback to using a function, obj.func
-        if (RG.isNullOrUndef([actor])) {
-            if (!RG.isNullOrUndef([obj])) {
-                return this.createRandomActor(obj);
-            }
-        }
-        return actor;
-        */
     };
 
     /* Returns a property from an object, selected randomly. For example,

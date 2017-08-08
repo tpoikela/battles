@@ -1,7 +1,5 @@
 
 const RG = require('./rg.js');
-const ROT = require('../../lib/rot.js');
-
 const debug = require('debug')('bitn:factory');
 
 RG.Component = require('./component.js');
@@ -98,14 +96,14 @@ RG.Factory.ItemRandomizer = function() {
     const _foodWeights = RG.getFoodWeightDistr();
 
     const _adjustFoodItem = function(food) {
-        const weight = ROT.RNG.getWeightedValue(_foodWeights);
+        const weight = RG.RAND.getWeighted(_foodWeights);
         food.setWeight(weight);
     };
 
     const _adjustGoldCoin = function(gold, nLevel) {
         if (!RG.isNullOrUndef([nLevel])) {
             const goldWeights = RG.getGoldCoinCountDistr(nLevel);
-            const count = ROT.RNG.getWeightedValue(goldWeights);
+            const count = RG.RAND.getWeighted(goldWeights);
             gold.setCount(parseInt(count, 10));
         }
         else {
