@@ -441,7 +441,9 @@ class BattlesTop extends React.Component {
     }
 
     isValidKey(keyCode) {
-        return RG.isValidKey(keyCode);
+        return RG.isValidKey(keyCode) ||
+            this.guiCommands[keyCode] ||
+            (keyCode >= ROT.VK_0 && keyCode <= ROT.VK_9);
     }
 
     /* Listens for player key presses and handles them.*/
