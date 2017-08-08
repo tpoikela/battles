@@ -24,6 +24,7 @@ const GameStats = React.createClass({
     render: function() {
         const player = this.props.player;
         const dungeonLevel = player.getLevel().getLevelNumber();
+        const location = player.getLevel().getParent().getName();
         const selectedItem = this.props.selectedItem;
         const selectedCell = this.props.selectedCell;
 
@@ -57,7 +58,8 @@ const GameStats = React.createClass({
             Speed: player.getSpeed(),
             XP: player.get('Experience').getExp(),
             XL: player.get('Experience').getExpLevel(),
-            DL: dungeonLevel
+            DL: dungeonLevel,
+            Loc: location
         };
 
         if (player.has('Hunger')) {
@@ -116,14 +118,14 @@ const GameStats = React.createClass({
                     data-target='#inventoryModal'
                     data-toggle='modal'
                     id='inventory-button'
-                    >
+                >
                     Inventory
                 </button>
                 <button
                     className='btn btn-xs btn-rg btn-info'
                     id='map-player-button'
                     onClick={this.changeMapView}
-                    >
+                >
                     {mapButtonText}
                 </button>
             </div>
