@@ -2,6 +2,128 @@
 const RG = require('./rg.js');
 
 //---------------------------------------------------------------------------
+// MIXINS for components
+//---------------------------------------------------------------------------
+
+/*
+const Mixin = (superclass) => class extends superclass {
+
+};
+*/
+
+const MixinCombatAttr = (superclass) => class extends superclass {
+
+    constructor(args) {
+        super(args);
+        this._attack = 0;
+        this._range = 0;
+        this._defense = 0;
+        this._protection = 0;
+    }
+
+    getAttack() {return this._attack;}
+    setAttack(attack) { this._attack = attack; }
+
+    /* Defense related methods.*/
+    getDefense() { return this._defense; }
+    setDefense(defense) { this._defense = defense; }
+
+    getProtection() {return this._protection;}
+    setProtection(prot) {this._protection = prot;}
+
+    /* Attack methods. */
+    setAttackRange(range) {this._range = range;}
+    getAttackRange() {return this._range; }
+
+    copy(rhs) {
+        super.copy(rhs);
+        this._attack = rhs._attack;
+        this._range = rhs._range;
+        this._defense = rhs._defense;
+        this._protection = rhs._protection;
+    }
+
+    toJSON() {
+        const obj = super.toJSON();
+        obj.setAttack = this._attack;
+        obj.setAttackRange = this._range;
+        obj.setDefense = this._defense;
+        obj.setProtection = this._protection;
+        return obj;
+    }
+
+};
+
+const MixinDamageRoll = (superclass) => class extends superclass {
+
+    constructor(args) {
+        super(args);
+        this.damageDie = RG.FACT.createDie('1d4');
+    }
+
+    rollDamage() {
+        if (this.getEntity().hasOwnProperty('getWeapon')) {
+            const weapon = this.getEntity().getWeapon();
+            if (weapon !== null) {return weapon.rollDamage();}
+        }
+        return this.damageDie.roll();
+    }
+
+    getDamageDie() {
+        return this.damageDie;
+    }
+
+    setDamageDie(strOrDie) {
+        if (typeof strOrDie === 'string') {
+            this.damageDie = RG.FACT.createDie(strOrDie);
+        }
+        else {
+            this.damageDie = strOrDie;
+        }
+    }
+
+    copy(rhs) {
+        super.copy(rhs);
+        this.damageDie = rhs.getDamageDie();
+    }
+
+    toJSON() {
+        const obj = super.toJSON();
+        obj.setDamageDie = this.damageDie.toString();
+        return obj;
+    }
+
+};
+
+/* Adds a duration and accessor functions to given component. */
+const MixinDurationRoll = (superclass) => class extends superclass {
+
+    rollDuration() {
+        return this.duration.roll();
+    }
+
+    setDurationDie(die) {
+        this.duration = die;
+    }
+
+    getDurationDie() {
+        return this.duration;
+    }
+
+    copy(rhs) {
+        super.copy(rhs);
+        this.duration = rhs.getDurationDie();
+    }
+
+    toJSON() {
+        const obj = super.toJSON();
+        obj.setDurationDie = this.duration.toString();
+        return obj;
+    }
+
+};
+
+//---------------------------------------------------------------------------
 // ECS COMPONENTS
 //---------------------------------------------------------------------------
 
@@ -305,77 +427,33 @@ RG.Component.ExpPoints = function(expPoints) {
 };
 RG.extend2(RG.Component.ExpPoints, RG.Component.Base);
 
-/* This component is added when entity gains experience.*/
-RG.Component.Combat = function() {
-    RG.Component.Base.call(this, 'Combat');
+/* This component is used with entities performing any kind of combat.*/
+class Combat extends MixinCombatAttr(MixinDamageRoll(RG.Component.Base)) {
 
-    let _attack = 1;
-    let _defense = 1;
-    let _protection = 0;
-    let _damageDie = RG.FACT.createDie('1d4');
-    let _range = 1;
+    constructor() {
+        super('Combat');
+        this._attack = 1;
+        this._defense = 1;
+        this._protection = 0;
+        this._range = 1;
+    }
 
-    this.getAttack = function() {return _attack;};
-    this.setAttack = function(attack) { _attack = attack; };
 
-    /* Defense related methods.*/
-    this.getDefense = function() { return _defense; };
-    this.setDefense = function(defense) { _defense = defense; };
-
-    this.getProtection = function() {return _protection;};
-    this.setProtection = function(prot) {_protection = prot;};
-
-    this.rollDamage = function() {
-        // TODO add weapon effects
-        if (this.getEntity().hasOwnProperty('getWeapon')) {
-            const weapon = this.getEntity().getWeapon();
-            if (weapon !== null) {return weapon.getDamage();}
-        }
-        return _damageDie.roll();
-    };
-
-    /* Attack methods. */
-    this.setAttackRange = function(range) {_range = range;};
-    this.getAttackRange = function() {return _range; };
-
-    this.getDamageDie = function() {
-        return _damageDie;
-    };
-
-    this.setDamageDie = function(strOrDie) {
-        if (typeof strOrDie === 'string') {
-            _damageDie = RG.FACT.createDie(strOrDie);
-        }
-        else {
-            _damageDie = strOrDie;
-        }
-    };
-
-};
-RG.extend2(RG.Component.Combat, RG.Component.Base);
-
-RG.Component.Combat.prototype.toJSON = function() {
-    const obj = RG.Component.Base.prototype.toJSON.call(this);
-    obj.setDamageDie = this.getDamageDie().toString();
-    return obj;
-};
+}
+RG.Component.Combat = Combat;
 
 /* Modifiers for the Combat component.*/
-RG.Component.CombatMods = function() {
-    RG.Component.Combat.call(this);
-    this.setType('CombatMods');
+class CombatMods extends MixinCombatAttr(RG.Component.Base) {
 
-    this.setAttackRange(0);
-    this.setAttack(0);
-    this.setDefense(0);
-    this.setProtection(0);
+    constructor(args) {
+        super(args);
+        this._damage = 0;
+    }
 
-    let _damage = 0;
-
-    this.setDamage = function(dmg) {_damage = dmg;};
-    this.getDamage = function() {return _damage;};
-};
-RG.extend2(RG.Component.CombatMods, RG.Component.Combat);
+    setDamage(dmg) {this._damage = dmg;}
+    getDamage() {return this._damage;}
+}
+RG.Component.CombatMods = CombatMods;
 
 /* This component stores entity stats like speed, agility etc.*/
 RG.Component.Stats = function() {
@@ -659,39 +737,28 @@ RG.Component.Stun = function() {
 };
 RG.extend2(RG.Component.Stun, RG.Component.Base);
 
-
 /* Poison component which damages the entity.*/
-RG.Component.Poison = function() {
-    RG.Component.Base.call(this, 'Poison');
+class Poison extends MixinDurationRoll(MixinDamageRoll(RG.Component.Base)) {
 
-    let _src = null;
-    let _damageDie = null;
-    let _prob = 0.05; // Prob. of poison kicking in
+    constructor() {
+        super('Poison');
+        this._src = null;
+        this._prob = 0.05; // Prob. of poison kicking in
+    }
 
-    this.getProb = function() {return _prob;};
-    this.setProb = function(prob) {_prob = prob;};
+    getProb() {return this._prob;}
+    setProb(prob) {this._prob = prob;}
 
-    this.getSource = function() {return _src;};
-    this.setSource = function(src) {_src = src;};
+    getSource() {return this._src;}
+    setSource(src) {this._src = src;}
 
-    this.rollDamage = function() {return _damageDie.roll();};
-
-    this.getDamageDie = function() {
-        return _damageDie;
-    };
-
-    this.setDamageDie = function(strOrDie) {
-        if (typeof strOrDie === 'string') {
-            _damageDie = RG.FACT.createDie(strOrDie);
-        }
-        else {
-            _damageDie = strOrDie;
-        }
-    };
-
-
-};
-RG.extend2(RG.Component.Poison, RG.Component.Base);
+    copy(rhs) {
+        super.copy(rhs);
+        this._prob = rhs.getProb();
+        this._src = rhs.getSource();
+    }
+}
+RG.Component.Poison = Poison;
 
 /* For branding stolen goods.*/
 RG.Component.Stolen = function() {
@@ -802,22 +869,5 @@ RG.Component.AddOnHit = function() {
 };
 RG.extend2(RG.Component.AddOnHit, RG.Component.Base);
 
-/* Adds a duration and accessor functions to given component. */
-RG.Component.addDuration = function(comp, die) {
-    comp.duration = die;
-
-    comp.getDuration = function() {
-        return this.duration.roll();
-    }.bind(comp);
-
-    comp.setDurationDie = function(die) {
-        this.duration = die;
-    }.bind(comp);
-
-    comp.getDurationDie = function() {
-        return this.duration;
-    }.bind(comp);
-
-};
 
 module.exports = RG.Component;
