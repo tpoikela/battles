@@ -166,7 +166,6 @@ class BattlesTop extends React.Component {
         // Binding of callbacks
         this.bindCallbacks();
         this.initGUICommandTable();
-        ROT.RNG.setSeed(1);
         RG.RAND.setSeed(1);
     }
 
@@ -205,7 +204,6 @@ class BattlesTop extends React.Component {
             seed = parseInt(hash, 16);
         }
         console.log('True seed is ' + seed);
-        ROT.RNG.setSeed(seed);
         RG.RAND.setSeed(seed);
         this.setState({seedName: name});
     }
