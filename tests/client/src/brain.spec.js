@@ -118,13 +118,13 @@ describe('Brain.Player', function() {
         level.addActor(human, 2, 2);
         const brain = new Brain.Player(player);
 
-        brain.decideNextAction({code: RG.K_MOVE_SE});
+        brain.decideNextAction({code: RG.KEY.MOVE_SE});
         expect(brain.energy).to.equal(0);
-        brain.decideNextAction({code: RG.K_REST});
+        brain.decideNextAction({code: RG.KEY.REST});
         expect(brain.energy).to.equal(0);
 
-        brain.decideNextAction({code: RG.K_MOVE_SE});
-        brain.decideNextAction({code: RG.K_YES});
+        brain.decideNextAction({code: RG.KEY.MOVE_SE});
+        brain.decideNextAction({code: RG.KEY.YES});
         expect(brain.energy).to.equal(RG.energy.ATTACK);
     });
 
@@ -132,14 +132,14 @@ describe('Brain.Player', function() {
         const brain = new Brain.Player(player);
         let fightMode = brain.getFightMode();
         expect(fightMode).to.equal(RG.FMODE_NORMAL);
-        brain.decideNextAction({code: RG.K_FIGHT});
+        brain.decideNextAction({code: RG.KEY.FIGHT});
         fightMode = brain.getFightMode();
         expect(fightMode).to.equal(RG.FMODE_FAST);
 
-        brain.decideNextAction({code: RG.K_FIGHT});
+        brain.decideNextAction({code: RG.KEY.FIGHT});
         fightMode = brain.getFightMode();
         expect(fightMode).to.equal(RG.FMODE_SLOW);
-        brain.decideNextAction({code: RG.K_FIGHT});
+        brain.decideNextAction({code: RG.KEY.FIGHT});
         fightMode = brain.getFightMode();
         expect(fightMode).to.equal(RG.FMODE_NORMAL);
     });
@@ -150,10 +150,10 @@ describe('Brain.Player', function() {
         const weapon = new RG.Item.Weapon('weapon');
         level.addItem(food, 1, 1);
         level.addItem(weapon, 1, 1);
-        brain.decideNextAction({code: RG.K_NEXT_ITEM});
+        brain.decideNextAction({code: RG.KEY.NEXT_ITEM});
         expect(brain.energy).to.equal(0);
 
-        brain.decideNextAction({code: RG.K_PICKUP});
+        brain.decideNextAction({code: RG.KEY.PICKUP});
         expect(brain.energy).to.equal(RG.energy.PICKUP);
 
     });

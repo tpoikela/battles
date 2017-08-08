@@ -131,7 +131,7 @@ describe('Game.Engine', function() {
         engine.simulateGame();
         expect(engine.nextActor).to.not.be.null;
         engine.nextActor = player;
-        engine.update({code: RG.K_REST});
+        engine.update({code: RG.KEY.REST});
         expect(engine.nextActor).to.not.be.null;
     });
 });
