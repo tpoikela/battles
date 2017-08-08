@@ -476,6 +476,16 @@ const RG = { // {{{2
     // COMBAT-RELATED FUNCTIONS
     //--------------------------------------------------------------
 
+    getMeleeAttack: function(att) {
+        let attack = att.getAttack();
+        const missile = att.getInvEq().getEquipment().getItem('missile');
+        const missWeapon = att.getInvEq().getMissileWeapon();
+        if (missile) {attack -= missile.getAttack();}
+        if (missWeapon) {attack -= missWeapon.getAttack();}
+        return attack;
+    },
+
+
     getMissileDamage: function(att, miss) {
         let dmg = miss.rollDamage();
         dmg += Math.round(att.get('Stats').getAgility() / 3);
@@ -485,12 +495,15 @@ const RG = { // {{{2
         return dmg;
     },
 
-    getMissileAttack: function(att, miss) {
+    getMissileAttack: function(att) {
         let attack = att.get('Combat').getAttack();
         attack += att.getInvEq().getEquipment().getAttack();
         attack += att.get('Stats').getAccuracy() / 2;
         attack += att.getInvEq().getEquipment().getAccuracy() / 2;
-        attack += miss.getAttack();
+
+        // Subtract melee weapon
+        const weapon = att.getWeapon();
+        if (weapon) {attack -= weapon.getAttack();}
 
         return attack;
     },
