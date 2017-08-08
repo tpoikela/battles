@@ -5,9 +5,9 @@ const RG = require('../../../client/src/battles');
 const RGObjects = require('../../../client/data/battles_objects');
 RG.Effects = require('../../../client/data/effects');
 
-const downKey = {code: RG.K_MOVE_S};
-const pickupKey = {code: RG.K_PICKUP};
-const confirmKey = {code: RG.K_YES};
+const downKey = {code: RG.KEY.MOVE_S};
+const pickupKey = {code: RG.KEY.PICKUP};
+const confirmKey = {code: RG.KEY.YES};
 
 /* AI for driving the player with commands. */
 RG.PlayerDriver = function(player) {
@@ -16,7 +16,6 @@ RG.PlayerDriver = function(player) {
 
     this.getNextCmdOrKey = function() {
         // const seenCells = this.getSeenCells();
-
     };
 
 };
