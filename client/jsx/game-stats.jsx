@@ -5,7 +5,7 @@ const RG = require('../src/rg.js');
 const GameStats = React.createClass({
 
     propTypes: {
-        mapShown: React.PropTypes.bool.isRequired,
+        showMap: React.PropTypes.bool.isRequired,
         player: React.PropTypes.object.isRequired,
         selectedItem: React.PropTypes.object,
         setViewType: React.PropTypes.func.isRequired,
@@ -13,7 +13,7 @@ const GameStats = React.createClass({
     },
 
     changeMapView: function() {
-        if (this.props.mapShown) {
+        if (this.props.showMap) {
             this.props.setViewType('player');
         }
         else {
@@ -99,7 +99,7 @@ const GameStats = React.createClass({
         const otherStatus = this.getPlayerStatus(player);
 
         let mapButtonText = 'Map View';
-        if (this.props.mapShown) {
+        if (this.props.showMap) {
             mapButtonText = 'Player View';
         }
 
