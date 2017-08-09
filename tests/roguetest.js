@@ -6,7 +6,6 @@ const RG = require('../client/src/battles');
 const expect = require('chai').expect;
 
 const RGTest = {
-
 };
 
 RGTest.rng = new RG.Random();
@@ -116,6 +115,20 @@ RGTest.wrapIntoLevel = function(arr) {
         }
     });
     return level;
+};
+
+/* Moves entity from its current position to x,y. */
+RGTest.moveEntityTo = function(ent, x, y) {
+    const map = ent.getLevel().getMap();
+    const xOld = ent.getX();
+    const yOld = ent.getY();
+    const propType = ent.getPropType();
+    if (map.removeProp(xOld, yOld, propType, ent)) {
+        map.setProp(x, y, propType, ent);
+        ent.setXY(x, y);
+        return true;
+    }
+    return false;
 };
 
 module.exports = RGTest;
