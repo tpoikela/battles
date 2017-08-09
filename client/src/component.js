@@ -735,6 +735,55 @@ RG.Component.Undead = function() {
 RG.extend2(RG.Component.Undead, RG.Component.Base);
 
 //--------------------------------------------
+// Spellcasting related components
+//--------------------------------------------
+
+RG.Component.SpellPower = function(maxPP) {
+    RG.Component.Base.call(this, 'SpellPower');
+
+    let _maxPP = maxPP || 10;
+    let _pp = _maxPP;
+
+    /* Spell power points getters and setters.*/
+    this.getPP = function() {return _pp;};
+    this.setPP = function(pp) {_pp = pp;};
+    this.getMaxPP = function() {return _maxPP;};
+    this.setMaxPP = function(pp) {_maxPP = pp;};
+
+    this.addPP = function(pp) {
+        _pp += pp;
+        if (_pp > _maxPP) {_pp = _maxPP;}
+    };
+
+    this.decrPP = function(pp) {_pp -= pp;};
+
+    this.hasPower = function() {return _pp > 0;};
+    this.canCast = function(spellPP) {return _pp >= spellPP;};
+
+};
+RG.extend2(RG.Component.SpellPower, RG.Component.Base);
+
+/* SpellCasting component which is added to an actor when it casts a spell. */
+RG.Component.SpellCast = function() {
+    RG.Component.Base.call(this, 'SpellCast');
+
+    let _spell = null;
+    let _src = null;
+    let _args = null;
+
+    this.getSpell = function() {return _spell;};
+    this.setSpell = function(spell) {_spell = spell;};
+
+    this.getSource = function() {return _src;};
+    this.setSource = function(src) {_src = src;};
+
+    this.getArgs = function() {return _args;};
+    this.setArgs = function(args) {_args = args;};
+
+};
+RG.extend2(RG.Component.SpellCast, RG.Component.Base);
+
+//--------------------------------------------
 // Comps that add or remove other components
 //--------------------------------------------
 
