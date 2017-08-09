@@ -679,6 +679,26 @@ RG.System.TimeEffects = function(type, compTypes) {
 };
 RG.extend2(RG.System.Communication, RG.System.Base);
 
+/* System which processes the spell casting components. */
+RG.System.SpellCast = function(type, compTypes) {
+    RG.System.Base.call(this, type, compTypes);
+
+    this.update = function() {
+        for (const e in this.entities) {
+            if (!e) {continue;}
+            const ent = this.entities[e];
+
+            const spellcast = ent.get('SpellCast');
+            const args = spellcast.getArgs();
+            const spell = spellcast.getSpell();
+            spell.cast(args);
+            ent.get('SpellPower').decrPP(spell.getPower());
+        }
+    };
+
+};
+RG.extend2(RG.System.SpellCast, RG.System.Base);
+
 // }}} SYSTEMS
 
 module.exports = RG.System;
