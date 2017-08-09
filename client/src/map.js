@@ -92,6 +92,10 @@ RG.Map.Cell.prototype.isPassableByAir = function() {
     return this._baseElem.isPassableByAir();
 };
 
+RG.Map.Cell.prototype.isSpellPassable = function() {
+    return this._baseElem.isSpellPassable();
+};
+
 RG.Map.Cell.prototype.setExplored = function() {this._explored = true;};
 
 RG.Map.Cell.prototype.isExplored = function() {return this._explored;};

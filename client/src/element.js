@@ -24,6 +24,10 @@ RG.Element.Base.prototype.isPassableByAir = function() {
     return this.getType() !== 'wall';
 };
 
+RG.Element.Base.prototype.isSpellPassable = function() {
+    return this.getType() !== 'wall';
+};
+
 RG.Element.Base.prototype.lightPasses = function() {
     return this.getType() !== 'wall';
 };
