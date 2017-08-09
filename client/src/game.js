@@ -617,6 +617,22 @@ RG.Game.Main = function() {
         return obj;
     };
 
+    this.isMenuShown = function() {
+        const player = this.getPlayer();
+        if (player) {
+            return player.getBrain().isMenuShown();
+        }
+        return false;
+    };
+
+    this.getMenu = function() {
+        const player = this.getPlayer();
+        if (player) {
+            return player.getBrain().getMenu();
+        }
+        return null;
+    };
+
 }; // }}} Game.Main
 
 /* Army is a collection of actors associated with a battle. This is useful for
