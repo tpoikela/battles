@@ -18,6 +18,14 @@ const TestSelectionObj = function() {
             RG.gameMsg('Please select now direction to fire.');
             // Returns another object for selection with function 'select'
             return {
+                getMenu: function() {
+                    return {
+                        N: 'Move north',
+                        S: 'Move south',
+                        E: 'Move east',
+                        W: 'Move west'
+                    };
+                },
                 select: function(code) {
                     switch (code) {
                         case RG.KEY.MOVE_W: {
@@ -40,16 +48,26 @@ const TestSelectionObj = function() {
                                 RG.gameMsg('SubSelection north ' + code);
                             };
                         }
-                        default: return null;
+                        default: {
+                            console.log('Canceling the fire command..');
+                            return null;
+                        }
                     }
                 }
             };
         }
         else {
             return function() {
-                RG.gameMsg('You selected code ' + code);
+                RG.gameMsg('You kick! You selected code ' + code);
             };
         }
+    };
+
+    this.getMenu = function() {
+        return {
+            0: 'Kick someone',
+            1: 'Move around'
+        };
     };
 
 };
@@ -117,6 +135,14 @@ RG.Brain.Player = function(actor) {
         return null;
     };
 
+    this.isMenuShown = function() {return _wantSelection;};
+    this.getMenu = function() {
+        if (_selectionObject) {
+            return _selectionObject.getMenu();
+        }
+        return null;
+    };
+
     /* Main function which returns next action as function. TODO: Refactor into
     * something bearable. It's 150 lines now! */
     this.decideNextAction = function(obj) {
@@ -150,14 +176,17 @@ RG.Brain.Player = function(actor) {
         if (_wantSelection && _selectionObject !== null) {
             const selection = _selectionObject.select(code);
             if (typeof selection === 'function') {
+                console.log('typeof selection is function');
                 _wantSelection = false;
                 return selection;
             }
-            else if (typeof selection === 'object') {
+            else if (selection && typeof selection === 'object') {
+                console.log('typeof selection is object');
                 _selectionObject = selection;
                 return this.noAction();
             }
             _wantSelection = false;
+            console.log('Setting wantSelection to false now.');
             RG.gameMsg('You cancel the action.');
             return this.noAction();
         }
