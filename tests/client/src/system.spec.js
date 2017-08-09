@@ -136,3 +136,35 @@ describe('System.Damage', () => {
         expect(human.has('Poison')).to.equal(true);
     });
 });
+
+describe('System.SpellCast', () => {
+    it('handles spellcasting of actors', () => {
+        const dSystem = new RG.System.Damage('Damage', ['Damage']);
+        const spellSystem = new RG.System.SpellCast('SpellCast', ['SpellCast']);
+        const systems = [spellSystem, dSystem];
+
+        const mage = new RG.Actor.Rogue('mage');
+        const orc = new RG.Actor.Rogue('orc');
+        Test.wrapIntoLevel([mage, orc]);
+        Test.moveEntityTo(mage, 1, 1);
+        Test.moveEntityTo(orc, 3, 1);
+
+        const startHP = orc.get('Health').getHP();
+
+        const spellPower = new RG.Component.SpellPower(20);
+        mage.add('SpellPower', spellPower);
+
+        const frostBolt = new RG.Spell.FrostBolt();
+
+        const spellCast = new RG.Component.SpellCast();
+        spellCast.setSource(mage);
+        spellCast.setSpell(frostBolt);
+        spellCast.setArgs({dir: [1, 0], src: mage});
+        mage.add('SpellCast', spellCast);
+
+        updateSystems(systems);
+
+        expect(orc.get('Health').getHP()).to.be.below(startHP);
+        expect(mage.get('SpellPower').getPP()).to.be.below(20);
+    });
+});
