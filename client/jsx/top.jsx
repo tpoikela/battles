@@ -6,10 +6,9 @@ const RG = require('../src/rg.js');
 RG.Game = require('../src/game.js');
 
 const md5 = require('js-md5');
-
 const $ = require('jquery');
 
-// Subcomponents
+// Subcomponents for the GUI
 const GameStartScreen = require('./game-start-screen');
 const GameHelpScreen = require('./game-help-screen');
 const GameInventory = require('./game-inventory');
@@ -18,11 +17,10 @@ const GameMessages = require('./game-messages');
 const GameStats = require('./game-stats');
 const GameBoard = require('./game-board');
 const GameEditor = require('./game-editor');
+const GameMenu = require('./game-menu');
 
 const Screen = require('../gui/screen');
-
 const Persist = require('../src/persist');
-
 const worldConf = require('../data/conf.world');
 
 /* Contains logic that is not tightly coupled to the GUI.*/
@@ -148,18 +146,19 @@ class BattlesTop extends React.Component {
             levelSize: 'Medium',
             loadInProgress: false,
             lootType: 'Medium',
-            mapShown: false,
             monstType: 'Medium',
             playerLevel: 'Medium',
             playerName: 'Player',
             render: true,
             renderFullScreen: false,
             saveInProgress: false,
-            seedName: 0,
+            seedName: '',
             selectedCell: null,
             selectedGame: null,
             selectedItem: null,
             showEditor: false,
+            showMap: false,
+            showGameMenu: false,
             showStartScreen: true
         };
 
@@ -235,7 +234,7 @@ class BattlesTop extends React.Component {
            this.setState({
                render: true, renderFullScreen: true,
                boardClassName: 'game-board-map-view',
-               mapShown: true
+               showMap: true
            });
         }
         else if (type === 'player') {
@@ -246,7 +245,7 @@ class BattlesTop extends React.Component {
             this.setState({
                 render: true, renderFullScreen: true,
                 boardClassName: 'game-board-player-view',
-                mapShown: false
+                showMap: false
             });
         }
     }
@@ -467,8 +466,13 @@ class BattlesTop extends React.Component {
             if (this.game.isGameOver()) {
                 this.setState({render: true, renderFullScreen: true});
             }
+            else if (this.game.isMenuShown()) {
+                this.setState({showGameMenu: true, render: true,
+                    renderFullScreen: true});
+            }
             else {
-                this.setState({render: true, renderFullScreen: false});
+                this.setState({render: true, renderFullScreen: false,
+                    showGameMenu: false});
             }
             this.keyPending = false;
         }
@@ -499,9 +503,9 @@ class BattlesTop extends React.Component {
             }
 
             // All computations for the GameBoard
-            const mapShown = this.state.mapShown;
+            const showMap = this.state.showMap;
             rowClass = 'cell-row-div-player-view';
-            if (mapShown) {rowClass = 'cell-row-div-map-view';}
+            if (showMap) {rowClass = 'cell-row-div-map-view';}
 
             const playX = player.getX();
             const playY = player.getY();
@@ -585,11 +589,11 @@ class BattlesTop extends React.Component {
                         {gameValid &&
                         <div className='text-left game-stats-div'>
                             <GameStats
-                                mapShown={this.state.mapShown}
                                 player={player}
                                 selectedCell={this.state.selectedCell}
                                 selectedItem={this.state.selectedItem}
                                 setViewType={this.setViewType}
+                                showMap={this.state.showMap}
                             />
                         </div>
                         }
@@ -605,6 +609,7 @@ class BattlesTop extends React.Component {
                             />
                         </div>
                         <div className='game-board-div'>
+                            {!this.state.showGameMenu &&
                             <GameBoard
                                 boardClassName={this.state.boardClassName}
                                 charRows={charRows}
@@ -616,6 +621,14 @@ class BattlesTop extends React.Component {
                                 startY={this.screen.startY}
                                 useRLE={true}
                             />
+                            }
+                            {this.state.showGameMenu &&
+                            <GameMenu
+                                height={28}
+                                menuObj={this.game.getMenu()}
+                                width={80}
+                            />
+                            }
                         </div>
                     </div>
                     }
