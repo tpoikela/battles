@@ -12,6 +12,7 @@ RG.Item = require('./item.js');
 RG.Time = require('./time.js');
 RG.Mixin = require('./mixin.js');
 RG.Component = require('./component.js');
+RG.Spell = require('./spell.js');
 RG.System = require('./system.js');
 RG.BTree = require('./aisequence.js');
 RG.Brain = require('./brain.js');
