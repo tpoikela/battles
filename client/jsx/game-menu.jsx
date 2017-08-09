@@ -32,8 +32,10 @@ class GameMenu extends React.Component {
         const topLineCount = 3;
         const menuLineCount = Object.keys(menuObj).length;
         const bottomLineCount = height - topLineCount - menuLineCount;
+
         const paddingTop = getPaddingLines(width, topLineCount);
         const paddingBottom = getPaddingLines(width, bottomLineCount);
+
         const menuElem = Object.keys(menuObj).map(item => {
             const text = padToWidth(width, `[${item}] - ${menuObj[item]} `, 3);
             return (
