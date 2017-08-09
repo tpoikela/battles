@@ -31,13 +31,15 @@ RG.Game.Engine = function() {
     //--------------------------------------------------------------
 
     // These systems updated after each action
-    this.systemOrder = ['Stun', 'Attack', 'Missile', 'Movement', 'Damage',
-        'ExpPoints', 'Communication'];
+    this.systemOrder = ['Stun', 'Attack', 'Missile', 'Movement', 'SpellCast',
+        'Damage', 'ExpPoints', 'Communication'];
     this.systems = {};
     this.systems.Stun = new RG.System.Stun('Stun', ['Stun']);
     this.systems.Attack = new RG.System.Attack('Attack', ['Attack']);
     this.systems.Missile = new RG.System.Missile('Missile', ['Missile']);
     this.systems.Movement = new RG.System.Movement('Movement', ['Movement']);
+    this.systems.SpellCast = new RG.System.SpellCast('SpellCast',
+        ['SpellCast']);
     this.systems.Damage = new RG.System.Damage('Damage', ['Damage', 'Health']);
     this.systems.ExpPoints = new RG.ExpPointsSystem('ExpPoints',
         ['ExpPoints', 'Experience']);
