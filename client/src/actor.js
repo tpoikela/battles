@@ -114,6 +114,7 @@ RG.Actor.Rogue.prototype.setIsPlayer = function(isPlayer) {
 
         this._spells = new RG.Spell.Catalog(this);
         this._spells.addSpell(new RG.Spell.FrostBolt());
+        this._spells.addSpell(new RG.Spell.IceShield());
     }
     else {
         RG.err('Actor.Rogue', 'setIsPlayer',
