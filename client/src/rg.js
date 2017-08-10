@@ -875,6 +875,21 @@ RG.KeyMap = {
 
 };
 
+RG.menuIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'a', 'b', 'c', 'd', 'e', 'f',
+    'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+    'u', 'v', 'w', 'x', 'y', 'z'
+];
+
+RG.codeToIndex = function(code) {
+    if (code >= ROT.VK_0 && code <= ROT.VK_9) {
+        return code - ROT.VK_0;
+    }
+    else if (code >= ROT.VK_A && code <= ROT.VK_Z) {
+        return code - ROT.VK_A + 10;
+    }
+    return -1;
+};
+
 RG.KEY = {};
 
 // Assign ROT keys to meaningful constants
