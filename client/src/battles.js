@@ -3,15 +3,17 @@
 
 const RG = require('./rg.js');
 
+// No deps to RG.SubElems
 RG.Random = require('./random.js');
-
-RG.Geometry = require('./geometry.js');
-
-RG.Object = require('./object.js');
-RG.Item = require('./item.js');
-RG.Time = require('./time.js');
 RG.Mixin = require('./mixin.js');
+RG.Geometry = require('./geometry.js');
+RG.Object = require('./object.js');
+RG.Time = require('./time.js');
+RG.Template = require('./template.js');
+
+// Minor deps to other exports
 RG.Component = require('./component.js');
+RG.Item = require('./item.js');
 RG.Spell = require('./spell.js');
 RG.System = require('./system.js');
 RG.BTree = require('./aisequence.js');
@@ -20,7 +22,6 @@ RG.Inv = require('./inv.js');
 RG.Actor = require('./actor.js');
 RG.Element = require('./element.js');
 
-RG.Template = require('./template.js');
 
 RG.Map = require('./map.js');
 RG.World = require('./world.js');
