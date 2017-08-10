@@ -464,7 +464,8 @@ class BattlesTop extends React.Component {
             this.game.update({code});
             this.gameState.visibleCells = this.game.visibleCells;
             if (this.game.isGameOver()) {
-                this.setState({render: true, renderFullScreen: true});
+                this.setState({render: true, renderFullScreen: true,
+                    showGameMenu: false});
             }
             else if (this.game.isMenuShown()) {
                 this.setState({showGameMenu: true, render: true,
