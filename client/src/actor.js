@@ -111,6 +111,9 @@ RG.Actor.Rogue.prototype.setIsPlayer = function(isPlayer) {
         this.setType('player');
         this.add('StatsMods', new RG.Component.StatsMods());
         this.add('CombatMods', new RG.Component.CombatMods());
+
+        this._spells = new RG.Spell.Catalog(this);
+        this._spells.addSpell(new RG.Spell.FrostBolt());
     }
     else {
         RG.err('Actor.Rogue', 'setIsPlayer',
