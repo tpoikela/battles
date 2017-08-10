@@ -135,10 +135,19 @@ RG.Brain.Player = function(actor) {
         return null;
     };
 
-    this.isMenuShown = function() {return _wantSelection;};
+    this.isMenuShown = function() {
+        if (_selectionObject) {
+            return _selectionObject.showMenu();
+            // return _wantSelection;
+        }
+        return false;
+    };
+
     this.getMenu = function() {
         if (_selectionObject) {
-            return _selectionObject.getMenu();
+            if (_selectionObject.showMenu()) {
+                return _selectionObject.getMenu();
+            }
         }
         return null;
     };
@@ -277,7 +286,8 @@ RG.Brain.Player = function(actor) {
 
             if (RG.KeyMap.isUsePower(code)) {
                 _wantSelection = true;
-                _selectionObject = new TestSelectionObj();
+                // _selectionObject = new TestSelectionObj();
+                _selectionObject = _actor._spells.getSelectionObject();
                 RG.gameMsg('Press 0-9 to make a selection.');
                 return this.noAction();
             }
