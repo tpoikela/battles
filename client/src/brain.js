@@ -182,22 +182,32 @@ RG.Brain.Player = function(actor) {
         }
 
         // A player must make a selection
-        if (_wantSelection && _selectionObject !== null) {
-            const selection = _selectionObject.select(code);
-            if (typeof selection === 'function') {
-                console.log('typeof selection is function');
+        if (_wantSelection) {
+            if (_selectionObject !== null) {
+                const selection = _selectionObject.select(code);
+                if (typeof selection === 'function') {
+                    console.log('typeof selection is function');
+                    _wantSelection = false;
+                    _selectionObject = null;
+                    return selection;
+                }
+                else if (selection && typeof selection === 'object') {
+                    console.log('typeof selection is object');
+                    _selectionObject = selection;
+                    return this.noAction();
+                }
                 _wantSelection = false;
-                return selection;
-            }
-            else if (selection && typeof selection === 'object') {
-                console.log('typeof selection is object');
-                _selectionObject = selection;
+                _selectionObject = null;
+                console.log('Setting wantSelection to false now.');
+                RG.gameMsg('You cancel the action.');
                 return this.noAction();
             }
-            _wantSelection = false;
-            console.log('Setting wantSelection to false now.');
-            RG.gameMsg('You cancel the action.');
-            return this.noAction();
+            else {
+                _wantSelection = false;
+                _selectionObject = null;
+                RG.gameMsg('You cancel the action.');
+                return this.noAction();
+            }
         }
 
         // Invoke GUI callback with given code
