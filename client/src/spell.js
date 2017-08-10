@@ -31,15 +31,20 @@ RG.Spell.Catalog = function(actor) {
         return _spells;
     };
 
+    /* Returns the object which is used in Brain.Player to make the player
+     * selection of spell casting. */
     this.getSelectionObject = function() {
         const powerSorted = _spells.sort(compareSpells);
         return {
             select: function(code) {
-                RG.gameMsg('Please select a spell to cast:');
                 const selection = RG.codeToIndex(code);
-                return powerSorted[selection].getSelectionObject(actor);
+                if (selection < powerSorted.length) {
+                    return powerSorted[selection].getSelectionObject(actor);
+                }
+                return null;
             },
             getMenu: function() {
+                RG.gameMsg('Please select a spell to cast:');
                 const indices = RG.menuIndices.slice(0, _spells.length);
                 const obj = {};
                 powerSorted.forEach((spell, index) => {
@@ -62,6 +67,11 @@ RG.Spell.Base = function(name, power) {
 
     this.getPower = function() {return _power;};
     this.setPower = function(power) {_power = power;};
+
+    this.toString = function() {
+        const str = `${_name} - ${_power}PP`;
+        return str;
+    };
 
 };
 
@@ -110,7 +120,7 @@ RG.Spell.FrostBolt = function() {
 
     this.toString = function() {
         let str = `${this.getName()} - ${this.getPower()}pp`;
-        str = `D: ${_damageDie.toString()} R: ${_range}`;
+        str += `D: ${_damageDie.toString()} R: ${_range}`;
         return str;
     };
 
@@ -119,9 +129,12 @@ RG.Spell.FrostBolt = function() {
         return {
             select: (code) => {
                 const args = {};
-                args.dir = [1, 0];
-                args.src = actor;
-                return this.cast.bind(this, args);
+                args.dir = RG.KeyMap.getDir(code);
+                if (args.dir) {
+                    args.src = actor;
+                    return this.cast.bind(this, args);
+                }
+                return null;
             },
             showMenu: () => false
         };
@@ -129,5 +142,37 @@ RG.Spell.FrostBolt = function() {
 
 };
 RG.extend2(RG.Spell.FrostBolt, RG.Spell.Base);
+
+RG.Spell.IceShield = function() {
+    RG.Spell.Base.call(this, 'Ice shield', 7);
+
+    const _duration = RG.FACT.createDie('5d5 + 5');
+    const _defenseDie = RG.FACT.createDie('1d6 + 1');
+
+    this.cast = function(args) {
+        const actor = args.src;
+        const dur = _duration.roll();
+        const combatMods = new RG.Component.CombatMods();
+        combatMods.setDefense(_defenseDie.roll());
+        if (actor.has('Expiration')) {
+            actor.get('Expiration').addEffect(combatMods, dur);
+        }
+        else {
+            const expComp = new RG.Component.Expiration();
+            expComp.addEffect(combatMods, dur);
+            actor.add('Expiration', expComp);
+        }
+        RG.gameMsg('You feel a boost to your defense.');
+    };
+
+    this.getSelectionObject = function(actor) {
+        const args = {src: actor};
+        const func = this.cast.bind(this, args);
+        func.showMenu = () => false;
+        return func;
+    };
+
+};
+RG.extend2(RG.Spell.IceShield, RG.Spell.Base);
 
 module.exports = RG.Spell;
