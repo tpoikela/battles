@@ -871,6 +871,13 @@ RG.KeyMap = {
         else {
             return null;
         }
+    },
+
+    getDir: function(code) {
+        if (this.moveKeyMap.hasOwnProperty(code)) {
+            return ROT.DIRS[8][this.moveKeyMap[code]];
+        }
+        return null;
     }
 
 };
