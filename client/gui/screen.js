@@ -47,7 +47,7 @@ const getClassesAndChars = function(seen, cells, selCell) {
     return [cssClasses, asciiChars];
 };
 
-const getClassesAndCharsWithRLE = function(seen, cells, selCell) {
+const getClassesAndCharsWithRLE = function(seen, cells, selCell, anim) {
     let prevChar = null;
     let prevClass = null;
     let charRL = 0;
@@ -77,13 +77,25 @@ const getClassesAndCharsWithRLE = function(seen, cells, selCell) {
 
     for (let i = 0; i < cells.length; i++) {
         const cell = cells[i];
+        const cellX = cell.getX();
+        const cellY = cell.getY();
+
         const cellIndex = seen.indexOf(cell);
         const visibleToPlayer = cellIndex < 0 ? false : true;
 
         cellClass = RG.getClassName(cell, visibleToPlayer);
         cellChar = RG.getChar(cell, visibleToPlayer);
 
-        if (selX === cell.getX() && selY === cell.getY()) {
+        if (visibleToPlayer && anim) {
+            const key = cellX + ',' + cellY;
+            if (anim[key]) {
+                console.log('In screen, anim is ' + JSON.stringify(anim));
+                cellClass = anim[key].className;
+                cellChar = anim[key].char;
+            }
+        }
+
+        if (cell.isAtXY(selX, selY)) {
             cellClass = 'cell-target-selected';
         }
 
@@ -283,13 +295,13 @@ const Screen = function(viewX, viewY) {
 
     };
 
-    this.renderWithRLE = function(playX, playY, map, visibleCells) {
+    this.renderWithRLE = function(playX, playY, map, visibleCells, anim) {
         this._initRender(playX, playY, map);
         let yCount = 0;
         for (let y = this.viewport.startY; y <= this.viewport.endY; ++y) {
             const rowCellData = this.viewport.getCellRow(y);
             const classesChars = getClassesAndCharsWithRLE(visibleCells,
-                rowCellData, this.selectedCell);
+                rowCellData, this.selectedCell, anim);
 
             _classRows[yCount] = classesChars[0];
             _charRows[yCount] = classesChars[1];
