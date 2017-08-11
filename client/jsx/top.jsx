@@ -194,14 +194,11 @@ class BattlesTop extends React.Component {
     }
 
     setSeedName(name) {
-        console.log('seedSeedName ' + name);
         let seed = parseInt(name, 10);
         if (Number.isNaN(seed)) {
             const hash = md5(name);
-            console.log('Hash is ' + hash);
             seed = parseInt(hash, 16);
         }
-        console.log('True seed is ' + seed);
         RG.RAND.setSeed(seed);
         this.setState({seedName: name});
     }
@@ -299,30 +296,33 @@ class BattlesTop extends React.Component {
 
     /* Loads a saved game from a JSON. */
     loadGame(playerName) {
-        this.setState({loadInProgress: true});
+        if (playerName) {
+            console.log('PlayerNAme is OK: ' + playerName);
+            this.setState({loadInProgress: true});
 
-        const persist = new Persist(playerName);
-        persist.fromStorage().then(result => {
-            const fromJSON = new RG.Game.FromJSON();
+            const persist = new Persist(playerName);
+            persist.fromStorage().then(result => {
+                const fromJSON = new RG.Game.FromJSON();
 
-            // Pick JSON matching the selected player name
-            let json = null;
-            result.forEach(res => {
-                if (res.player.name === playerName) {
-                    json = res;
+                // Pick JSON matching the selected player name
+                let json = null;
+                result.forEach(res => {
+                    if (res.player.name === playerName) {
+                        json = res;
+                    }
+                });
+
+                const restGame = fromJSON.createGame(json);
+                const player = restGame.getPlayer();
+                if (player !== null) {
+                    this.gameConf.loadedPlayer = player;
+                    this.gameConf.loadedLevel = this.gameSave.getDungeonLevel();
+                    const confObj = this.gameSave.getPlayersAsObj()[playerName];
+                    this.restoreConf(confObj);
+                    this.initRestoredGame(restGame);
                 }
             });
-
-            const restGame = fromJSON.createGame(json);
-            const player = restGame.getPlayer();
-            if (player !== null) {
-                this.gameConf.loadedPlayer = player;
-                this.gameConf.loadedLevel = this.gameSave.getDungeonLevel();
-                const confObj = this.gameSave.getPlayersAsObj()[playerName];
-                this.restoreConf(confObj);
-                this.initRestoredGame(restGame);
-            }
-        });
+        }
     }
 
     /* Sets up the event pool, GUI callbacks, animation frame and first
@@ -350,9 +350,11 @@ class BattlesTop extends React.Component {
     }
 
     deleteGame(name) {
-        this.gameSave.deletePlayer(name);
-        this.savedPlayerList = this.gameSave.getPlayersAsList();
-        this.setState({render: true, selectedGame: null});
+        if (name) {
+            this.gameSave.deletePlayer(name);
+            this.savedPlayerList = this.gameSave.getPlayersAsList();
+            this.setState({render: true, selectedGame: null});
+        }
     }
 
     restoreConf(obj) {
@@ -793,7 +795,6 @@ class BattlesTop extends React.Component {
                 const cell = this.gameState.enemyCells[0];
                 this.screen.setSelectedCell(cell);
                 this.setState({selectedCell: cell});
-                console.log('GUITarget found selected cell');
             }
 
         }
