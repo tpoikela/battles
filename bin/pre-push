@@ -17,6 +17,11 @@
 #   <local ref> <local sha1> <remote ref> <remote sha1>
 #
 
+if (exists $ENV{SKIP_HOOKS}) {
+    print "SKIP_HOOKS found. Skipping pre-push..\n";
+    exit 0;
+}
+
 my $remote= $ARGV[0];
 my $url= $ARGV[1];
 
