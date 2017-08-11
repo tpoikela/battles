@@ -817,4 +817,14 @@ RG.Component.AddOnHit = function() {
 RG.extend2(RG.Component.AddOnHit, RG.Component.Base);
 
 
+RG.Component.Animation = function(args) {
+    RG.Component.Base.call(this, 'Animation');
+    let _args = args;
+
+    this.getArgs = function() {return _args;};
+    this.setArgs = function(args) {_args = args;};
+
+};
+RG.extend2(RG.Component.Animation, RG.Component.Base);
+
 module.exports = RG.Component;
