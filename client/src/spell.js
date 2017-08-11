@@ -81,41 +81,25 @@ RG.Spell.FrostBolt = function() {
     const _damageDie = RG.FACT.createDie('4d4 + 4');
     const _range = 5;
 
+    this.getRange = function() {return _range;};
+
     this.cast = function(args) {
-        console.log('Casting frost bolt now');
         const src = args.src;
-        const map = src.getLevel().getMap();
         const dir = args.dir;
-        const dX = dir[0];
-        const dY = dir[1];
+        const x = src.getX();
+        const y = src.getY();
 
-        let x = src.getX();
-        let y = src.getY();
-        let rangeLeft = _range;
-
-        while (rangeLeft > 0) {
-            x += dX;
-            y += dY;
-            console.log('FrostBolt at x, y ' + x + ',' + y);
-            const cell = map.getCell(x, y);
-            if (cell.hasActors()) {
-                // Deal some damage etc
-                const dmg = new RG.Component.Damage();
-                dmg.setSource(src);
-                dmg.setDamageType('ice');
-                dmg.setDamage(_damageDie.roll());
-                const actor = cell.getActors()[0];
-                actor.add('Damage', dmg);
-                console.log('FrostBolt hit actor ' + actor.getName());
-                RG.gameMsg({cell: cell, msg: 'Frost bolt hits '
-                    + actor.getName()});
-            }
-            if (!cell.isSpellPassable()) {
-                rangeLeft = 0;
-            }
-            --rangeLeft;
-        }
-
+        const obj = {
+            from: [x, y],
+            dir,
+            spell: this,
+            src: args.src,
+            damageType: 'ice',
+            damage: _damageDie.roll()
+        };
+        const rayComp = new RG.Component.SpellRay();
+        rayComp.setArgs(obj);
+        args.src.add('SpellRay', rayComp);
     };
 
     this.toString = function() {
@@ -149,6 +133,7 @@ RG.Spell.FrostBolt = function() {
 };
 RG.extend2(RG.Spell.FrostBolt, RG.Spell.Base);
 
+/* Ice shield increase the defense of the caster temporarily. */
 RG.Spell.IceShield = function() {
     RG.Spell.Base.call(this, 'Ice shield', 7);
 
