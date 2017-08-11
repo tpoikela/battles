@@ -15,7 +15,6 @@ RG.Game.Engine = function() {
     this.doGUICommand = null;
 
     this.nextActor = null;
-    this.simIntervalID = null;
 
     const _levelMap = {}; // All levels, ID -> level
     const _activeLevels = []; // Only these levels are simulated
@@ -142,10 +141,7 @@ RG.Game.Engine = function() {
         else {
             this.clearMessages();
             RG.POOL.emitEvent(RG.EVT_MSG, {msg: 'GAME OVER!'});
-            if (this.simIntervalID === null) {
-                this.simIntervalID = setInterval(
-                    this.simulateGame.bind(this), 1);
-            }
+            this.simulateGame();
         }
     };
 
@@ -161,6 +157,8 @@ RG.Game.Engine = function() {
             this.doAction(action);
 
             this.updateSystems(); // All systems for each actor
+
+            // TODO check any animations that should be shown
 
             this.nextActor = this.getNextActor();
             if (RG.isNullOrUndef([this.nextActor])) {
@@ -203,6 +201,7 @@ RG.Game.Engine = function() {
         const action = this.nextActor.nextAction(obj);
         this.doAction(action);
         this.updateSystems();
+        // TODO add animation callback
         this.playerCommandCallback(this.nextActor);
     };
 
