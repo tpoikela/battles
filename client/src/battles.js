@@ -10,6 +10,7 @@ RG.Geometry = require('./geometry.js');
 RG.Object = require('./object.js');
 RG.Time = require('./time.js');
 RG.Template = require('./template.js');
+RG.Animation = require('./animation.js');
 
 // Minor deps to other exports
 RG.Component = require('./component.js');
@@ -21,7 +22,6 @@ RG.Brain = require('./brain.js');
 RG.Inv = require('./inv.js');
 RG.Actor = require('./actor.js');
 RG.Element = require('./element.js');
-
 
 RG.Map = require('./map.js');
 RG.World = require('./world.js');
