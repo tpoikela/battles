@@ -140,8 +140,10 @@ describe('System.Damage', () => {
 describe('System.SpellCast', () => {
     it('handles spellcasting of actors', () => {
         const dSystem = new RG.System.Damage('Damage', ['Damage']);
+        const effectSystem = new RG.System.SpellEffect('SpellEffect',
+            ['SpellRay']);
         const spellSystem = new RG.System.SpellCast('SpellCast', ['SpellCast']);
-        const systems = [spellSystem, dSystem];
+        const systems = [spellSystem, effectSystem, dSystem];
 
         const mage = new RG.Actor.Rogue('mage');
         const orc = new RG.Actor.Rogue('orc');
