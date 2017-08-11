@@ -40,6 +40,8 @@ RG.Game.Engine = function() {
     this.systems.Movement = new RG.System.Movement('Movement', ['Movement']);
     this.systems.SpellCast = new RG.System.SpellCast('SpellCast',
         ['SpellCast']);
+    this.systems.SpellEffect = new RG.System.SpellEffect('SpellEffect',
+        ['SpellRay']);
     this.systems.Damage = new RG.System.Damage('Damage', ['Damage', 'Health']);
     this.systems.ExpPoints = new RG.ExpPointsSystem('ExpPoints',
         ['ExpPoints', 'Experience']);
