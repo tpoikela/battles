@@ -602,6 +602,8 @@ const RG = { // {{{2
 
     EVT_WIN_COND_TRUE: 'EVT_WIN_COND_TRUE',
 
+    EVT_ANIMATION: 'EVT_ANIMATION',
+
     //----------------------------
     // Different entity/prop types
     //----------------------------
