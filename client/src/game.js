@@ -15,6 +15,7 @@ RG.Game.Engine = function() {
     this.doGUICommand = null;
 
     this.nextActor = null;
+    this.animation = null;
 
     const _levelMap = {}; // All levels, ID -> level
     const _activeLevels = []; // Only these levels are simulated
@@ -29,9 +30,11 @@ RG.Game.Engine = function() {
     // ECS SYSTEMS
     //--------------------------------------------------------------
 
-    // These systems updated after each action
+    // These systems updated after each action. Order is important, for example,
+    // animations should be seen before actors are killed
     this.systemOrder = ['Stun', 'Attack', 'Missile', 'Movement', 'SpellCast',
-        'Damage', 'ExpPoints', 'Communication'];
+        'SpellEffect', 'Animation', 'Damage', 'ExpPoints', 'Communication'];
+
     this.systems = {};
     this.systems.Stun = new RG.System.Stun('Stun', ['Stun']);
     this.systems.Attack = new RG.System.Attack('Attack', ['Attack']);
@@ -41,6 +44,8 @@ RG.Game.Engine = function() {
         ['SpellCast']);
     this.systems.SpellEffect = new RG.System.SpellEffect('SpellEffect',
         ['SpellRay']);
+    this.systems.Animation = new RG.System.Animation('Animation',
+        ['Animation']);
     this.systems.Damage = new RG.System.Damage('Damage', ['Damage', 'Health']);
     this.systems.ExpPoints = new RG.ExpPointsSystem('ExpPoints',
         ['ExpPoints', 'Experience']);
@@ -359,6 +364,9 @@ RG.Game.Engine = function() {
                 args.target.onFirstEnter();
             }
         }
+        else if (evtName === RG.EVT_ANIMATION) {
+            this.animation = args.animation;
+        }
     };
     RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this);
     RG.POOL.listenEvent(RG.EVT_ACT_COMP_ADDED, this);
@@ -367,6 +375,7 @@ RG.Game.Engine = function() {
     RG.POOL.listenEvent(RG.EVT_ACT_COMP_DISABLED, this);
     RG.POOL.listenEvent(RG.EVT_LEVEL_PROP_ADDED, this);
     RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this);
+    RG.POOL.listenEvent(RG.EVT_ANIMATION, this);
 
 };
 
@@ -634,6 +643,15 @@ RG.Game.Main = function() {
             return player.getBrain().getMenu();
         }
         return null;
+    };
+
+    this.hasAnimation = function() {
+        return _engine.animation !== null &&
+            _engine.animation.hasFrames();
+    };
+
+    this.getAnimationFrame = function() {
+        return _engine.animation.nextFrame();
     };
 
 }; // }}} Game.Main
