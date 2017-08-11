@@ -150,7 +150,6 @@ class BattlesTop extends React.Component {
             playerLevel: 'Medium',
             playerName: 'Player',
             render: true,
-            renderFullScreen: false,
             saveInProgress: false,
             seedName: '',
             selectedCell: null,
@@ -218,7 +217,7 @@ class BattlesTop extends React.Component {
             else {this.viewportY -= 2;}
         }
         this.screen.setViewportXY(this.viewportX, this.viewportY);
-        this.setState({render: true, renderFullScreen: true});
+        this.setState({render: true});
     }
 
     /* Toggles view between normal view and zoomed out map view. */
@@ -232,7 +231,7 @@ class BattlesTop extends React.Component {
            this.screen.setViewportXY(this.viewportX, this.viewportY);
 
            this.setState({
-               render: true, renderFullScreen: true,
+               render: true,
                boardClassName: 'game-board-map-view',
                showMap: true
            });
@@ -243,7 +242,7 @@ class BattlesTop extends React.Component {
             this.screen.setMapShown(false);
             this.screen.setViewportXY(this.viewportX, this.viewportY);
             this.setState({
-                render: true, renderFullScreen: true,
+                render: true,
                 boardClassName: 'game-board-player-view',
                 showMap: false
             });
@@ -266,7 +265,7 @@ class BattlesTop extends React.Component {
     newGame() {
         this.setState({creatingGame: true, showStartScreen: false});
         this.createNewGameAsync().then(() => {
-            this.setState({render: true, renderFullScreen: true,
+            this.setState({render: true,
                 creatingGame: false});
         });
     }
@@ -282,8 +281,7 @@ class BattlesTop extends React.Component {
                 this.gameSave.save(this.game, this.gameConf);
                 this.savedPlayerList = this.gameSave.getPlayersAsList();
                 RG.gameMsg('Your progress has been saved.');
-                this.setState({render: true,
-                    saveInProgress: false, renderFullScreen: true});
+                this.setState({render: true, saveInProgress: false});
             });
     }
 
@@ -348,14 +346,13 @@ class BattlesTop extends React.Component {
         RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this.listener);
         this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
         this.setState({render: true,
-            loadInProgress: false, renderFullScreen: true});
+            loadInProgress: false});
     }
 
     deleteGame(name) {
         this.gameSave.deletePlayer(name);
         this.savedPlayerList = this.gameSave.getPlayersAsList();
-        this.setState({render: true, renderFullScreen: true,
-            selectedGame: null});
+        this.setState({render: true, selectedGame: null});
     }
 
     restoreConf(obj) {
@@ -407,12 +404,12 @@ class BattlesTop extends React.Component {
         if (this.gameState.isTargeting) {
             this.game.update({cmd: 'missile', target: cell});
             this.gameState.visibleCells = this.game.visibleCells;
-            this.setState({render: true, renderFullScreen: false});
+            this.setState({render: true});
             this.gameState.isTargeting = false;
         }
         else {
             this.logic.describeCell(cell, this.gameState.visibleCells);
-            this.setState({render: true, renderFullScreen: true});
+            this.setState({render: true});
         }
         console.log(`Cell: ${JSON.stringify(cell)}`);
     }
@@ -423,7 +420,7 @@ class BattlesTop extends React.Component {
         if (evtName === RG.EVT_LEVEL_CHANGED) {
             const actor = obj.actor;
             if (actor.isPlayer()) {
-                this.setState({render: true, renderFullScreen: true});
+                this.setState({render: true});
             }
         }
     }
@@ -463,21 +460,36 @@ class BattlesTop extends React.Component {
             const code = this.nextCode;
             this.game.update({code});
             this.gameState.visibleCells = this.game.visibleCells;
-            if (this.game.isGameOver()) {
-                this.setState({render: true, renderFullScreen: true,
-                    showGameMenu: false});
+            if (this.game.hasAnimation()) {
+                this.playAnimation();
+            }
+            else if (this.game.isGameOver()) {
+                this.setState({render: true, showGameMenu: false});
             }
             else if (this.game.isMenuShown()) {
-                this.setState({showGameMenu: true, render: true,
-                    renderFullScreen: true});
+                this.setState({showGameMenu: true, render: true});
             }
             else {
-                this.setState({render: true, renderFullScreen: false,
-                    showGameMenu: false});
+                this.setState({render: true, showGameMenu: false});
             }
             this.keyPending = false;
         }
         this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
+    }
+
+    /* Plays the animation until all frames have been shown. */
+    playAnimation() {
+        if (this.game.hasAnimation()) {
+            const anim = this.game.getAnimationFrame();
+            this.setState({render: true, animation: anim});
+            this.animationID = requestAnimationFrame(
+                this.playAnimation.bind(this));
+        }
+        else {
+            // Animation is finished
+            this.setState({render: true, animation: null});
+            this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
+        }
     }
 
     render() {
@@ -510,13 +522,13 @@ class BattlesTop extends React.Component {
 
             const playX = player.getX();
             const playY = player.getY();
+
             if (map) {
                 this.screen.renderWithRLE(
-                    playX, playY, map, this.gameState.visibleCells);
+                    playX, playY, map, this.gameState.visibleCells,
+                    this.state.animation);
             }
-            else {
-                console.log('map undefined');
-            }
+
             charRows = this.screen.getCharRows();
             classRows = this.screen.getClassRows();
             startX = this.screen.getStartX();
