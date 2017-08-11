@@ -783,6 +783,25 @@ RG.Component.SpellCast = function() {
 };
 RG.extend2(RG.Component.SpellCast, RG.Component.Base);
 
+RG.Component.SpellRay = function() {
+    RG.Component.Base.call(this, 'SpellRay');
+
+    let _spell = null;
+    let _src = null;
+    let _args = null;
+
+    this.getSpell = function() {return _spell;};
+    this.setSpell = function(spell) {_spell = spell;};
+
+    this.getSource = function() {return _src;};
+    this.setSource = function(src) {_src = src;};
+
+    this.getArgs = function() {return _args;};
+    this.setArgs = function(args) {_args = args;};
+
+};
+RG.extend2(RG.Component.SpellRay, RG.Component.Base);
+
 //--------------------------------------------
 // Comps that add or remove other components
 //--------------------------------------------
