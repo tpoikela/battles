@@ -86,10 +86,10 @@ const getClassesAndCharsWithRLE = function(seen, cells, selCell, anim) {
         cellClass = RG.getClassName(cell, visibleToPlayer);
         cellChar = RG.getChar(cell, visibleToPlayer);
 
+        // Useless to animate non-visible cells
         if (visibleToPlayer && anim) {
             const key = cellX + ',' + cellY;
             if (anim[key]) {
-                console.log('In screen, anim is ' + JSON.stringify(anim));
                 cellClass = anim[key].className;
                 cellChar = anim[key].char;
             }
