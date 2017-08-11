@@ -132,7 +132,13 @@ RG.Spell.FrostBolt = function() {
                 args.dir = RG.KeyMap.getDir(code);
                 if (args.dir) {
                     args.src = actor;
-                    return this.cast.bind(this, args);
+                    return () => {
+                        const spellCast = new RG.Component.SpellCast();
+                        spellCast.setSource(actor);
+                        spellCast.setSpell(this);
+                        spellCast.setArgs(args);
+                        actor.add('SpellCast', spellCast);
+                    };
                 }
                 return null;
             },
@@ -166,9 +172,13 @@ RG.Spell.IceShield = function() {
     };
 
     this.getSelectionObject = function(actor) {
-        const args = {src: actor};
-        const func = this.cast.bind(this, args);
-        func.showMenu = () => false;
+        const func = () => {
+            const spellCast = new RG.Component.SpellCast();
+            spellCast.setSource(actor);
+            spellCast.setSpell(this);
+            spellCast.setArgs({src: actor});
+            actor.add('SpellCast', spellCast);
+        };
         return func;
     };
 
