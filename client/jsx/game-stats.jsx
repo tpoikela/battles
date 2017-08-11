@@ -45,6 +45,8 @@ const GameStats = React.createClass({
         const stats = {
             HP: player.get('Health').getHP() + '/'
                 + player.get('Health').getMaxHP(),
+            PP: player.get('SpellPower').getPP() + '/'
+                + player.get('SpellPower').getMaxPP(),
 
             Att: player.getAttack(),
             Def: player.getDefense(),
