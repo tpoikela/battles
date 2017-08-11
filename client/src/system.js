@@ -748,6 +748,7 @@ RG.System.SpellEffect = function(type, compTypes) {
         const dX = args.dir[0];
         const dY = args.dir[1];
         let rangeLeft = spell.getRange();
+        let rangeCrossed = 0;
         while (rangeLeft > 0) {
             x += dX;
             y += dY;
@@ -768,13 +769,72 @@ RG.System.SpellEffect = function(type, compTypes) {
             if (!cell.isSpellPassable()) {
                 rangeLeft = 0;
             }
+            else {
+                ++rangeCrossed;
+            }
             --rangeLeft;
         }
         ent.remove('SpellRay');
+        const animArgs = {
+            dir: args.dir,
+            ray: true,
+            from: args.from,
+            range: rangeCrossed,
+            style: args.damageType
+        };
+        const animComp = new RG.Component.Animation(animArgs);
+        ent.add('Animation', animComp);
     };
 
 };
 RG.extend2(RG.System.SpellEffect, RG.System.Base);
+
+/* System which constructs the animations to play. */
+RG.System.Animation = function(type, compTypes) {
+    RG.System.Base.call(this, type, compTypes);
+
+    this.update = function() {
+        for (const e in this.entities) {
+            if (!e) {continue;}
+            const ent = this.entities[e];
+            const animComp = ent.get('Animation');
+            const args = animComp.getArgs();
+            if (args.dir) {
+                this.directionalAnimation(args);
+            }
+            ent.remove('Animation');
+        }
+    };
+
+    this.directionalAnimation = function(args) {
+        let x = args.from[0];
+        let y = args.from[1];
+        const dX = args.dir[0];
+        const dY = args.dir[1];
+        let rangeLeft = args.range;
+
+        const animation = new RG.Animation.Animation();
+        const frame = {};
+        if (args.ray) {
+            while (rangeLeft > 0) {
+                x += dX;
+                y += dY;
+                const key = x + ',' + y;
+                frame[key] = {};
+                frame[key].char = 'X';
+                frame[key].className = 'cell-ray';
+
+                const frameCopy = Object.assign({}, frame);
+                animation.addFrame(frameCopy);
+
+                --rangeLeft;
+            }
+        }
+        // No ref to engine, thus emit an event, engine will catch it
+        RG.POOL.emitEvent(RG.EVT_ANIMATION, {animation});
+    };
+};
+RG.extend2(RG.System.Animation, RG.System.Base);
 
 // }}} SYSTEMS
 
