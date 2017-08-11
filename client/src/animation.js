@@ -8,11 +8,16 @@ RG.Animation.Animation = function() {
     this.numFrames = 0;
     this.currFrame = 0;
 
+    // "Slows" down the animation by this factor
+    this.factor = 2;
+
     this.frames = [];
 
     this.addFrame = function(frame) {
-        ++this.numFrames;
-        this.frames.push(frame);
+        for (let i = 0; i < this.factor; i++) {
+            ++this.numFrames;
+            this.frames.push(frame);
+        }
     };
 
     /* Advances animation to the next frame. */
