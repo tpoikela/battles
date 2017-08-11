@@ -679,7 +679,9 @@ RG.System.TimeEffects = function(type, compTypes) {
 };
 RG.extend2(RG.System.Communication, RG.System.Base);
 
-/* System which processes the spell casting components. */
+/* System which processes the spell casting components. This system checks if
+ * the spell casting succeeds and then handles PP reduction, but it does not
+ * execute the effects of the spell.*/
 RG.System.SpellCast = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
 
@@ -687,17 +689,92 @@ RG.System.SpellCast = function(type, compTypes) {
         for (const e in this.entities) {
             if (!e) {continue;}
             const ent = this.entities[e];
-
+            const name = ent.getName();
+            const cell = ent.getCell();
             const spellcast = ent.get('SpellCast');
-            const args = spellcast.getArgs();
-            const spell = spellcast.getSpell();
-            spell.cast(args);
-            ent.get('SpellPower').decrPP(spell.getPower());
+
+            // TODO add checks for impairment, counterspells etc
+
+            if (ent.has('SpellPower')) {
+                const ppComp = ent.get('SpellPower');
+                const spell = spellcast.getSpell();
+                if (spell.getPower() <= ppComp.getPP()) {
+                    const args = spellcast.getArgs();
+                    spell.cast(args);
+                    ppComp.decrPP(spell.getPower());
+                }
+                else {
+                    const msg = `${name} has no enough power to cast spell`;
+                    RG.gameMsg({cell: cell, msg: msg});
+                }
+            }
+            else {
+                const msg = `${name} has no power to cast spells!`;
+                RG.gameMsg({cell: cell, msg: msg});
+            }
+            ent.remove('SpellCast');
         }
     };
 
 };
 RG.extend2(RG.System.SpellCast, RG.System.Base);
+
+/* SpellEffect system processes the actual effects of spells, and creates damage
+ * dealing components etc. An example if FrostBolt which creates SpellRay
+ * component for each cell it's travelling to. */
+RG.System.SpellEffect = function(type, compTypes) {
+    RG.System.Base.call(this, type, compTypes);
+    this.compTypesAny = true; // Process with any relavant Spell comp
+
+    this.update = function() {
+        for (const e in this.entities) {
+            if (!e) {continue;}
+            const ent = this.entities[e];
+            if (ent.has('SpellRay')) {
+                this.processSpellRay(ent);
+            }
+        }
+    };
+
+    this.processSpellRay = function(ent) {
+        const ray = ent.get('SpellRay');
+        const args = ray.getArgs();
+        const map = ent.getLevel().getMap();
+        const spell = args.spell;
+        const name = spell.getName();
+
+        let x = args.from[0];
+        let y = args.from[1];
+        const dX = args.dir[0];
+        const dY = args.dir[1];
+        let rangeLeft = spell.getRange();
+        while (rangeLeft > 0) {
+            x += dX;
+            y += dY;
+            const cell = map.getCell(x, y);
+            if (cell.hasActors()) {
+                // Deal some damage etc
+                const dmg = new RG.Component.Damage();
+                dmg.setSource(ent);
+                dmg.setDamageType(args.damageType);
+                dmg.setDamage(args.damage);
+
+                const actor = cell.getActors()[0];
+                // TODO add some evasion checks
+                actor.add('Damage', dmg);
+                RG.gameMsg({cell: cell,
+                    msg: `${name} hits ${actor.getName()}`});
+            }
+            if (!cell.isSpellPassable()) {
+                rangeLeft = 0;
+            }
+            --rangeLeft;
+        }
+        ent.remove('SpellRay');
+    };
+
+};
+RG.extend2(RG.System.SpellEffect, RG.System.Base);
 
 // }}} SYSTEMS
 
