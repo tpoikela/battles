@@ -14,7 +14,9 @@ describe('How Game is created from Overworld', function() {
 
         const conf = {
             debugMode: 'OverWorld',
-            playerLevel: 'Medium'
+            playerLevel: 'Medium',
+            sqrPerItem: 50,
+            sqrPerMonster: 50
         };
 
         // const player = new RG.Actor.Rogue('My Hero');
@@ -22,5 +24,11 @@ describe('How Game is created from Overworld', function() {
         // const gameObj = new RG.Game.Main();
         const game = gameFact.createNewGame(conf);
         expect(game).to.exist;
+
+        const levels = game.getLevels();
+        levels.forEach(level => {
+            expect(level.getActors()).to.have.length.above(0);
+            expect(level.getItems()).to.have.length.above(0);
+        });
     });
 });
