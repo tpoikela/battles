@@ -54,6 +54,7 @@ const TERM = '.';
 // Features like cities etc.
 const BTOWER = '\u265C';
 const WTOWER = '\u2656';
+const DUNGEON = '\u2616';
 // const CITY = '\u1CC1';
 
 const biomeTypeMap = {
@@ -96,6 +97,9 @@ const N_BORDER = [LL_WE, TT_N];
 const S_BORDER = [LL_WE, TT_S];
 const E_BORDER = [LL_NS, TT_E];
 const W_BORDER = [LL_NS, TT_W];
+
+const ALL_WALLS = [XX, TT_N, TT_S, TT_E, TT_W, CC_SW, CC_NW, CC_SE, CC_NE,
+    LL_WE, LL_NS];
 
 // const LINE_WE = [LL_WE, TT_N, TT_S, XX];
 // const LINE_NS = [LL_NS, TT_E, TT_W, XX];
@@ -215,6 +219,8 @@ const CAN_CONNECT = {
     }
 };
 
+/* Wall object inside the Overworld. Wall here means a huge wall of mountains.
+ * */
 const Wall = function(type) {
     this.type = type; // vertical/horizontal/etc
     this.coord = []; // 2-d array of coordinates
@@ -273,6 +279,22 @@ const Wall = function(type) {
 RG.OverWorld.SubFeature = function(type, coord) {
     this.type = type;
     this.coord = coord;
+
+    if (Array.isArray(coord)) {
+        if (coord.length === 0) {
+            RG.err('OverWorld.SubFeature', 'new',
+                'coord len is 0.');
+        }
+        else if (!Array.isArray(coord[0])) {
+            RG.err('OverWorld.SubFeature', 'new',
+                'Each coord must be [x, y] pair.');
+        }
+    }
+    else {
+        RG.err('OverWorld.SubFeature', 'new',
+            'coord must be an array.');
+    }
+
 };
 
 /* Data struct which is tied to 'RG.Map.Level'. Contains more high-level
@@ -522,7 +544,7 @@ RG.OverWorld.createOverWorld = function(conf = {}) {
     printMap(map);
     overworld.setMap(map);
 
-    addWorldFeatures(overworld);
+    addOverWorldFeatures(overworld);
 
     if (printResult) {
         console.log(overworld.mapToString());
@@ -535,7 +557,7 @@ RG.OverWorld.createOverWorld = function(conf = {}) {
     const worldLevel = createOverWorldLevel(
         overworld, worldX, worldY, xMap, yMap, areaX, areaY);
 
-    if (printResult) {overworld.printBiomeMap();}
+    // if (printResult) {overworld.printBiomeMap();}
     return worldLevel;
 };
 
@@ -656,7 +678,6 @@ function addHorizontalWallWestToEast(ow, y, map, stopOnWall = false) {
                 }
             }
             else {
-                console.log(`Placing wall to ${x},${y}`);
                 map[x][y] = RG.RAND.getWeighted(LINE_WE_WEIGHT);
             }
         }
@@ -797,6 +818,7 @@ function getValidNeighbours(x, y, map) {
     return tiles;
 }
 
+/* Prints the given map. */
 function printMap(map) {
     const sizeY = map[0].length;
     const sizeX = map.length;
@@ -829,8 +851,6 @@ function createOverWorldLevel(ow, worldX, worldY, xMap, yMap, areaX, areaY) {
             RG.Geometry.insertSubLevel(level, subLevel, x0, y0);
         }
     }
-
-    console.log(`AreaTile size: x: ${worldX / areaX}, y: ${worldY / areaY}`);
 
     const conf = RG.OverWorld.createWorldConf(ow, subLevels, areaX, areaY);
 
@@ -1058,15 +1078,18 @@ function addSubLevelFeatures(ow, owX, owY, subLevel) {
 
     features.forEach(feat => {
         if ((base === LL_WE || base === LL_NS) && feat === WTOWER) {
-            addMountainFort(owSubLevel, subLevel);
+            addMountainFortToSubLevel(owSubLevel, subLevel);
         }
         else if (feat === BTOWER) {
-            addBlackTower(owSubLevel, subLevel);
+            addBlackTowerToSubLevel(owSubLevel, subLevel);
+        }
+        else if (feat === DUNGEON) {
+            addDungeonToSubLevel(owSubLevel, subLevel);
         }
     });
 }
 
-function addMountainFort(owSubLevel, subLevel) {
+function addMountainFortToSubLevel(owSubLevel, subLevel) {
     const wall = owSubLevel.getWall();
     const start = wall.getWallStart();
     const end = wall.getWallEnd();
@@ -1077,10 +1100,9 @@ function addMountainFort(owSubLevel, subLevel) {
     subLevel.getMap().setBaseElems(coord, RG.FORT_ELEM);
     const fort = new RG.OverWorld.SubFeature('fort', coord);
     owSubLevel.addFeature(fort);
-
 }
 
-function addBlackTower(owSubLevel, subLevel) {
+function addBlackTowerToSubLevel(owSubLevel, subLevel) {
     let placed = false;
     const freeCells = subLevel.getMap().getFree();
     const freeXY = freeCells.map(cell => [cell.getX(), cell.getY()]);
@@ -1098,10 +1120,48 @@ function addBlackTower(owSubLevel, subLevel) {
 
 }
 
+function addDungeonToSubLevel(owSubLevel, subLevel) {
+    let placed = false;
+    const map = subLevel.getMap();
+    const freeCells = map.getFree();
+    const freeXY = freeCells.map(cell => [cell.getX(), cell.getY()]);
+
+    let coord = [];
+    let watchdog = 1000;
+    while (!placed) {
+        const xy = getRandIn(freeXY);
+        const box = RG.Geometry.getBoxAround(xy[0], xy[1], 1);
+
+        box.forEach(xyBox => {
+            if (!placed) {
+                if (map.hasXY(xyBox[0], xyBox[1])) {
+                    const elem = map.getBaseElemXY(xyBox[0], xyBox[1]);
+                    if (elem.getType() === 'wall') {
+                        coord = [xyBox];
+                        placed = true;
+                    }
+                }
+            }
+        });
+
+        if (watchdog === 0) {
+            break;
+        }
+        --watchdog;
+    }
+
+    if (placed) {
+        const dungeon = new RG.OverWorld.SubFeature('dungeon', coord);
+        owSubLevel.addFeature(dungeon);
+    }
+}
+
 /* Adds features like water, cities etc into the world. This feature only
-    * designates the x,y coordinate on overworld map, but does not give details
-    * for the Map.Level sublevels. */
-function addWorldFeatures(ow) {
+ * designates the x,y coordinate on overworld map, but does not give details
+ * for the Map.Level sublevels. */
+function addOverWorldFeatures(ow) {
+    const sizeX = ow.getSizeX();
+    const sizeY = ow.getSizeY();
 
     // Add final tower
     addFeatureToAreaByDir(ow, 'NE', 0.5, BTOWER);
@@ -1126,6 +1186,7 @@ function addWorldFeatures(ow) {
     // Create forests and lakes
 
     // Distribute dungeons
+    addDungeonsToOverWorld(ow, 20, 1, sizeY - 2, sizeX - 2, sizeY - 10);
 
     // Distribute mountains
 
@@ -1186,7 +1247,6 @@ function addBiomeToOverWorld(ow, cmd) {
     let yEnd = ow.getSizeY() - 1;
 
     if (cmd.x) {
-        console.log('cmd.x specified.');
         const start = cmd.x.start;
         const end = cmd.x.end;
 
@@ -1202,7 +1262,6 @@ function addBiomeToOverWorld(ow, cmd) {
             if (start[0] === 'wall') {
                 const walls = ow.getVWalls();
                 if (walls.length > start[1]) {
-                    console.log('xxx: ' + JSON.stringify(walls[start[1]]));
                     xStart = walls[start[1]].x;
                 }
             }
@@ -1227,7 +1286,6 @@ function addBiomeToOverWorld(ow, cmd) {
     }
 
     if (cmd.y) {
-        console.log('cmd.y specified.');
         const start = cmd.y.start;
         const end = cmd.y.end;
 
@@ -1268,15 +1326,22 @@ function addBiomeToOverWorld(ow, cmd) {
 
     } // cmd.y
 
-    if (cmd.x) {console.log(`x: ${xStart} -> ${xEnd}`);}
-    if (cmd.y) {console.log(`y: ${yStart} -> ${yEnd}`);}
+    // if (cmd.x) {console.log(`x: ${xStart} -> ${xEnd}`);}
+    // if (cmd.y) {console.log(`y: ${yStart} -> ${yEnd}`);}
 
     // Apply given type on the found range
     for (let x = xStart; x <= xEnd; x++) {
         for (let y = yStart; y <= yEnd; y++) {
-            // console.log(`Adding biome [${x}][${y}]: ${biomeType}`);
             ow.addBiome(x, y, biomeType);
         }
+    }
+}
+
+/* Adds dungeons into the overworld. Can be bounded using using coordinates. */
+function addDungeonsToOverWorld(ow, nDungeons, lx, ly, rx, ry) {
+    for (let i = 0; i < nDungeons; i++) {
+        const xy = findCellRandXYInBox(ow.getMap(), lx, ly, rx, ry, ALL_WALLS);
+        ow.addFeature(xy, DUNGEON);
     }
 }
 
@@ -1415,12 +1480,17 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
             const subX = subLevel.getSubX();
             const subY = subLevel.getSubY();
 
-            // console.log(`subX: ${subX} subY: ${subY}`);
-
             const features = subLevel.getFeatures();
             Object.keys(features).forEach(type => {
                 const featureArray = features[type];
                 featureArray.forEach(feat => {
+
+                    const coord = feat.coord;
+                    if (!coord) {
+                        RG.err('OverWorld', 'createWorldConf',
+                            `coord must exist. feat: ${JSON.stringify(feat)}`);
+                    }
+
                     if (feat.type === 'fort') {
                         const coord = feat.coord;
                         const nLevels = coord.length;
@@ -1432,11 +1502,7 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
                         const featX = mapX(coord[lastCoord][0], slX, subX);
                         const featY = mapY(coord[lastCoord][1], slY, subY) + 1;
 
-                        console.log(`featX: ${featX} featY: ${featY}`);
-                        console.log(`slX: ${slX} slY: ${slY}`);
-
                         const qName = RG.Names.getRandPlaceName('quarter');
-                        console.log(`Place name will be ${qName}`);
                         const cityConf = {
                             name: feat.name,
                             nQuarters: 1,
@@ -1456,6 +1522,31 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
                         areaConf.nCities += 1;
                         areaConf.city.push(cityConf);
                     }
+                    else if (feat.type === 'dungeon') {
+                        const coord = feat.coord;
+
+                        // const connX = mapX(coord[0][0], slX, subX);
+                        // const connY = mapY(coord[0][1], slY, subY) - 1;
+
+                        console.log('dungeon coord: ' + JSON.stringify(coord));
+
+
+                        const nLevels = 5;
+                        const featX = mapX(coord[0][0], slX, subX);
+                        const featY = mapY(coord[0][1], slY, subY);
+                        const bName = RG.Names.getRandPlaceName('dungeon');
+
+                        const dungeonConf = {
+                            name: feat.name,
+                            nBranches: 1,
+                            branch: [
+                                {name: bName, nLevels, entranceLevel: 0}
+                            ],
+                            x: aX, y: aY, levelX: featX, levelY: featY
+                        };
+                        areaConf.nDungeons += 1;
+                        areaConf.dungeon.push(dungeonConf);
+                    }
                     /* if (feat.type === 'blacktower') {
 
                     }*/
@@ -1465,8 +1556,6 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
     }
 
     addBiomeLocations(ow, areaConf);
-
-    console.log('createWorldConf returning configuration..');
     return worldConf;
 };
 
@@ -1477,11 +1566,18 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
  * 30x30. slX points then to x-pos of 3x3 matrix.
  */
 function mapX(x, slX, subSizeX) {
-    const res = x + slX * subSizeX;
-    if (res >= 100 ) {
-        console.log(`WARNING mapX: ${res}, ${x}, ${slX}, ${subSizeX}`);
+    if (Number.isInteger(x)) {
+        const res = x + slX * subSizeX;
+        if (res >= 100 ) {
+            console.log(`WARNING mapX: ${res}, ${x}, ${slX}, ${subSizeX}`);
+        }
+        return res;
     }
-    return res;
+    else {
+        RG.err('overworld.js', 'mapX',
+            `x must be an integer. Got: ${x}`);
+    }
+    return null;
 }
 
 /* Maps an y coord in a sub-level (Map.Level) into an x-y coordinate in
@@ -1489,7 +1585,14 @@ function mapX(x, slX, subSizeX) {
  * slY = sub-level y index in area tile. For longer expl, see mapY() above.
  */
 function mapY(y, slY, subSizeY) {
-    return y + slY * subSizeY;
+    if (Number.isInteger(y)) {
+        return y + slY * subSizeY;
+    }
+    else {
+        RG.err('overworld.js', 'mapY',
+            `y must be an integer. Got: ${y}`);
+    }
+    return null;
 }
 
 /* Map biomes from overworld into areaX * areaY space. */
