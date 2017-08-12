@@ -64,7 +64,7 @@ describe('Game.Main', function() {
         expect(actor.getY()).to.equal(13);
 
         const explCells = level.exploreCells(actor);
-        expect(explCells.length).to.equal(11 * 11);
+        expect(explCells.length).to.equal(145);
     });
 
     it('can add player to the specified location', () => {

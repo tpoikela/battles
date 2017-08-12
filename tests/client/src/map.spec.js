@@ -213,7 +213,7 @@ describe('Map.CellList', function() {
         actor.getFOVRange = function() {return 1;}; // Override default
         level1.addActor(actor, 4, 4);
         const cells = map.getVisibleCells(actor);
-        expect(cells.length).to.equal(9);
+        expect(cells.length).to.equal(17);
 
         let zeroCells = map.getVisibleCells(actorNotInLevel);
         expect(zeroCells.length).to.equal(0);
