@@ -371,7 +371,7 @@ RG.Map.CellList = function(cols, rows) { // {{{2
         return false;
     };
 
-    const fov = new ROT.FOV.PreciseShadowcasting(lightPasses.bind(this));
+    const fov = new ROT.FOV.RecursiveShadowcasting(lightPasses.bind(this));
 
     /* Returns visible cells for given actor.*/
     this.getVisibleCells = function(actor) {
