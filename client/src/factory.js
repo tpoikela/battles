@@ -652,24 +652,10 @@ RG.Factory.World = function() {
         }
 
         // If nothing found, try the global configuration
-        if (typeof keys === 'string') {
-            if (Array.isArray(this.globalConf[keys])) {
-                const last = this.globalConf[keys].length;
-                return this.globalConf[keys][last];
-            }
+        if (this.globalConf.hasOwnProperty(keys)) {
             return this.globalConf[keys];
         }
-        let currRef = this.globalConf;
-        keys.forEach(key => {
-            if (currRef.hasOwnProperty(key)) {
-                currRef = currRef[key];
-            }
-            else {
-                RG.err('Factory.World', 'getConf',
-                    `Cannot find conf for keys ${JSON.stringify(keys)}`);
-            }
-        });
-        return currRef;
+        return null;
     };
 
     /* Returns the full hierarchical name of feature. */
