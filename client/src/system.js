@@ -198,6 +198,13 @@ RG.System.Missile = function(type, compTypes) {
         ent.remove('Missile');
         const level = mComp.getLevel();
         level.addItem(ent, currCell.getX(), currCell.getY());
+
+        const args = {
+            missile: mComp,
+            to: [currCell.getX(), currCell.getY()]
+        };
+        const animComp = new RG.Component.Animation(args);
+        ent.add('Animation', animComp);
     };
 
     /* Returns true if the target was hit.*/
@@ -800,13 +807,47 @@ RG.System.Animation = function(type, compTypes) {
             const animComp = ent.get('Animation');
             const args = animComp.getArgs();
             if (args.dir) {
-                this.directionalAnimation(args);
+                this.lineAnimation(args);
+            }
+            else if (args.missile) {
+                this.missileAnimation(args);
             }
             ent.remove('Animation');
         }
     };
 
-    this.directionalAnimation = function(args) {
+    /* Construct a missile animation from Missile component. */
+    this.missileAnimation = function(args) {
+        const mComp = args.missile;
+        const xEnd = args.to[0];
+        const yEnd = args.to[0];
+        const xy = mComp.first();
+        let xCurr = xy[0];
+        let yCurr = xy[1];
+
+        const animation = new RG.Animation.Animation();
+        while (xCurr !== xEnd && yCurr !== yEnd) {
+            const frame = {};
+            const key = xCurr + ',' + yCurr;
+            frame[key] = {};
+            frame[key].char = '/';
+            frame[key].className = 'cell-item-missile';
+            animation.addFrame(frame);
+
+            if (mComp.next()) {
+                xCurr = mComp.getX();
+                yCurr = mComp.getY();
+            }
+            else {
+                break;
+            }
+        }
+        RG.POOL.emitEvent(RG.EVT_ANIMATION, {animation});
+
+    };
+
+    /* Constructs line animation (a bolt etc). */
+    this.lineAnimation = function(args) {
         let x = args.from[0];
         let y = args.from[1];
         const dX = args.dir[0];
