@@ -3,6 +3,8 @@
 
 const RG = require('./rg.js');
 
+RG.Verify = require('./verify.js');
+
 // No deps to RG.SubElems
 RG.Random = require('./random.js');
 RG.Mixin = require('./mixin.js');
