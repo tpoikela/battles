@@ -470,6 +470,7 @@ RG.Brain.Player = function(actor) {
                 if (missile.has('Ammo')) {
                     const missWeapon = invEq.getEquipment()
                         .getEquipped('missileweapon');
+                    console.log('Weapon is ' + JSON.stringify(missWeapon));
                     if (missWeapon === null) {
                         const msg = 'No missile weapon equipped.';
                         return this.cmdNotPossible(msg);
@@ -483,7 +484,7 @@ RG.Brain.Player = function(actor) {
                     mComp.setTargetXY(x, y);
                     mComp.setDamage(RG.getMissileDamage(_actor, missile));
                     mComp.setAttack(RG.getMissileAttack(_actor, missile));
-                    mComp.setRange(missile.getAttackRange());
+                    mComp.setRange(RG.getMissileRange(_actor, missile));
                     missile.add('Missile', mComp);
                     this.energy = RG.energy.MISSILE;
                 }
