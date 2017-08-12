@@ -493,15 +493,15 @@ RG.Component.Missile = function(source) {
         _y = coord.y;
     };
 
+    /* Resets the path iterator to the first x,y. */
     this.first = function() {
-        if (iteratorValid()) {
-            _pathIter = 0;
-            setValuesFromIterator();
-        }
-        return null;
+        _pathIter = 0;
+        setValuesFromIterator();
+        return [_x, _y];
     };
 
-    /* Returns the next cell in missile's path. Moves iterator forward. */
+    /* Moves to next cell in missile's path. Returns null if path is finished.
+     * */
     this.next = function() {
         if (iteratorValid()) {
             --_range;
