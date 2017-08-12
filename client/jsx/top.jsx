@@ -133,7 +133,6 @@ class BattlesTop extends React.Component {
 
         this.gameSave.setStorage(window.localStorage);
         this.savedPlayerList = this.gameSave.getPlayersAsList();
-        // this.createNewGame();
 
         this.state = {
             boardClassName: 'game-board-player-view',
@@ -339,6 +338,7 @@ class BattlesTop extends React.Component {
         }
         this.game = game;
         this.game.setGUICallbacks(this.isGUICommand, this.doGUICommand);
+        this.game.setAnimationCallback(this.playAnimation.bind(this));
 
         const player = this.game.getPlayer();
         this.gameState.visibleCells = player.getLevel().exploreCells(player);
@@ -378,6 +378,7 @@ class BattlesTop extends React.Component {
         }
         this.game = gameFactory.createNewGame(this.gameConf);
         this.game.setGUICallbacks(this.isGUICommand, this.doGUICommand);
+        this.game.setAnimationCallback(this.playAnimation.bind(this));
 
         const player = this.game.getPlayer();
         this.gameState.visibleCells = player.getLevel().exploreCells(player);
@@ -462,10 +463,7 @@ class BattlesTop extends React.Component {
             const code = this.nextCode;
             this.game.update({code});
             this.gameState.visibleCells = this.game.visibleCells;
-            if (this.game.hasAnimation()) {
-                this.playAnimation();
-            }
-            else if (this.game.isGameOver()) {
+            if (this.game.isGameOver()) {
                 this.setState({render: true, showGameMenu: false});
             }
             else if (this.game.isMenuShown()) {

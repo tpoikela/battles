@@ -16,6 +16,7 @@ RG.Game.Engine = function() {
 
     this.nextActor = null;
     this.animation = null;
+    this.animationCallback = null;
 
     const _levelMap = {}; // All levels, ID -> level
     const _activeLevels = []; // Only these levels are simulated
@@ -206,7 +207,11 @@ RG.Game.Engine = function() {
         const action = this.nextActor.nextAction(obj);
         this.doAction(action);
         this.updateSystems();
-        // TODO add animation callback
+
+        // Execute animation callback
+        if (this.hasAnimation() && this.animationCallback) {
+            this.animationCallback(this.animation);
+        }
         this.playerCommandCallback(this.nextActor);
     };
 
@@ -215,7 +220,6 @@ RG.Game.Engine = function() {
     //--------------------------------------------------------------
 
     this.numActiveLevels = function() {return _activeLevels.length;};
-
 
     this.hasLevel = function(level) {
         return _levelMap.hasOwnProperty(level.getID());
@@ -376,6 +380,12 @@ RG.Game.Engine = function() {
     RG.POOL.listenEvent(RG.EVT_LEVEL_PROP_ADDED, this);
     RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this);
     RG.POOL.listenEvent(RG.EVT_ANIMATION, this);
+
+
+    this.hasAnimation = function() {
+        return this.animation !== null &&
+            this.animation.hasFrames();
+    };
 
 };
 
@@ -645,9 +655,18 @@ RG.Game.Main = function() {
         return null;
     };
 
+    this.setAnimationCallback = function(cb) {
+        if (typeof cb === 'function') {
+            _engine.animationCallback = cb;
+        }
+        else {
+            RG.warn('Game.Main', 'setAnimationCallback',
+                'Callback must be a function.');
+        }
+    };
+
     this.hasAnimation = function() {
-        return _engine.animation !== null &&
-            _engine.animation.hasFrames();
+        return _engine.hasAnimation();
     };
 
     this.getAnimationFrame = function() {
