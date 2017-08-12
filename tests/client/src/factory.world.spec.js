@@ -17,25 +17,29 @@ describe('Factory.World', function() {
         fact = null;
     });
 
-    it('has scope and hier name management', () => {
+    it('has scope, conf and hier name management', () => {
         const fact = new RG.Factory.World();
-        const conf1 = {name: 'Top'};
+        const conf1 = {name: 'Top', myConf: 'Top_abc'};
         const conf2 = {name: 'Sub', constraint: 'abc'};
-        const conf3 = {name: 'SubSub'};
+        const conf3 = {name: 'SubSub', myConf: 'SubSub_xxx'};
         const conf4 = {name: 'Bottom', constraint: 'xyz'};
         fact.pushScope(conf1);
         fact.pushScope(conf2);
         expect(fact.getHierName()).to.equal('Top.Sub');
-        expect(fact.getConstraint()).to.equal('abc');
+        expect(fact.getConf('constraint')).to.equal('abc');
+        expect(fact.getConf('myConf')).to.equal('Top_abc');
+
         fact.pushScope(conf3);
         expect(fact.getHierName()).to.equal('Top.Sub.SubSub');
-        expect(fact.getConstraint()).to.equal('abc');
+        expect(fact.getConf('constraint')).to.equal('abc');
+        expect(fact.getConf('myConf')).to.equal('SubSub_xxx');
+
         fact.pushScope(conf4);
-        expect(fact.getConstraint()).to.equal('xyz');
-        fact.popScope(conf4.name);
-        expect(fact.getConstraint()).to.equal('abc');
-        fact.popScope(conf3.name);
-        expect(fact.getConstraint()).to.equal('abc');
+        expect(fact.getConf('constraint')).to.equal('xyz');
+        fact.popScope(conf4);
+        expect(fact.getConf('constraint')).to.equal('abc');
+        fact.popScope(conf3);
+        expect(fact.getConf('constraint')).to.equal('abc');
     });
 
     it('can create cities', () => {
@@ -61,7 +65,9 @@ describe('Factory.World', function() {
         const brConf = {
             name: 'DangerousBranch',
             nLevels: 2,
-            entranceLevel: 0
+            entranceLevel: 0,
+            sqrPerItem: 20,
+            sqrPerMonster: 20
         };
         const br = fact.createBranch(brConf);
         expect(br.getName()).to.equal(brConf.name);
@@ -78,6 +84,8 @@ describe('Factory.World', function() {
             name: 'Cave',
             nBranches: 3,
             entrance: 'br2',
+            sqrPerMonster: 50,
+            sqrPerItem: 50,
             connect: [
                 // Each connection is branch1, branch2, level1, level2
                 ['br1', 'br2', 0, 1],
@@ -103,6 +111,8 @@ describe('Factory.World', function() {
         const dConf = {
             x: 0, y: 0,
             name: 'BranchTest',
+            sqrPerItem: 100,
+            sqrPerMonster: 100,
             nBranches: 3,
             connect: [
                 ['main', 'side', 0, 0],
@@ -147,6 +157,8 @@ describe('Factory.World', function() {
                 }
             ]
         };
+
+        fact.setGlobalConf({});
         const world = fact.createWorld(worldConf);
         expect(world.getCities()).to.have.length(1);
 
