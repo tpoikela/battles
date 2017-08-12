@@ -37,6 +37,7 @@ const MSG = {
 RG.Factory.Game = function() {
     RG.Factory.Base.call(this);
 
+    const _verif = new RG.Verify.Conf('Factory.Game');
     const _parser = new RG.ObjectShell.Parser();
     this.presetLevels = {};
 
@@ -164,6 +165,8 @@ RG.Factory.Game = function() {
 
     /* Creates the game based on the selection. */
     this.createNewGame = function(obj) {
+        _verif.verifyConf('createNewGame', obj, ['sqrPerItem', 'sqrPerMonster',
+            'debugMode']);
         _parser.parseShellData(RG.Effects);
         _parser.parseShellData(RGObjects);
 
@@ -193,8 +196,8 @@ RG.Factory.Game = function() {
     let _playerFOV = RG.FOV_RANGE;
 
     this.createOverWorld = function(obj, game, player) {
-        const mult = 2;
-        const conf = {
+        const mult = 1;
+        const owConf = {
             yFirst: false,
             topToBottom: false,
             // stopOnWall: 'random',
@@ -210,12 +213,11 @@ RG.Factory.Game = function() {
             areaX: mult * 8,
             areaY: mult * 4
         };
-        const worldAndConf = RG.OverWorld.createOverWorld(conf);
+        const worldAndConf = RG.OverWorld.createOverWorld(owConf);
         const worldLevel = worldAndConf[0];
-        const worldConf = worldAndConf[1];
 
-        const splitLevels = RG.Geometry.splitLevel(worldLevel, conf);
-        const midX = Math.floor(conf.nLevelsX / 2);
+        const splitLevels = RG.Geometry.splitLevel(worldLevel, owConf);
+        const midX = Math.floor(owConf.nLevelsX / 2);
 
         const sizeY = splitLevels[0].length;
         for (let x = 0; x < splitLevels.length; x++) {
@@ -245,27 +247,20 @@ RG.Factory.Game = function() {
             }
         }
 
-        splitLevels[midX][conf.nLevelsY - 1].addActorToFreeCell(player);
+        splitLevels[midX][owConf.nLevelsY - 1].addActorToFreeCell(player);
 
-        const worldArea = new RG.World.Area('Ravendark', conf.nLevelsX,
-            conf.nLevelsY, 100, 100, splitLevels);
+        const worldArea = new RG.World.Area('Ravendark', owConf.nLevelsX,
+            owConf.nLevelsY, 100, 100, splitLevels);
         worldArea.connectTiles();
 
-        // Use factory to create a world
         const fact = new RG.Factory.World();
-        // worldConf.presetLevels = {};
-        // worldConf.presetLevels['Realm'] = splitLevels;
         fact.setPresetLevels({Realm: splitLevels});
+        fact.setGlobalConf(obj);
+
+        const worldConf = worldAndConf[1];
         const world = fact.createWorld(worldConf);
         game.addPlace(world);
 
-        /*
-        for (let x = 0; x < splitLevels.length; x++) {
-            for (let y = 0; y < splitLevels[x].length; y++) {
-                game.addLevel(splitLevels[x][y]);
-            }
-        }
-        */
         player.setFOVRange(10);
         game.addPlayer(player); // Player already placed to level
         return game;
@@ -591,6 +586,7 @@ RG.Factory.Game = function() {
         game.addLevel(level);
         return level;
     };
+
 };
 RG.extend2(RG.Factory.Game, RG.Factory.Base);
 
