@@ -101,10 +101,9 @@ body {
     color: $black;
 };
 
-// Performs quite poorly in FF, but Chrome is fine
+// Cells out of FOV
 .cell-not-seen {
-    //filter: brightness(75%);
-    //opacity: 0.8;
+    filter: brightness(65%);
 }
 
 //---------------------------------------------------------------------
@@ -117,16 +116,12 @@ body {
 
 /* Game-play related messages. Naming is the same as in bootstrap. */
 .game-messages {
-    // xxx background-color: $ctrl-top-color;
     background-color: $black;
     border: 1px solid $black;
-    // xxx border-radius: 5px;
-    // xxx font-size: 18px;
     color: $white;
     font-family: monospace;
     font-size: 16px;
     height: 60px;
-    // xxx margin-bottom: 10px;
     overflow: auto;
     padding-left: 5px;
     padding-top: 2px;
