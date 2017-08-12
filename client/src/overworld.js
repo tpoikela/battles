@@ -1139,6 +1139,7 @@ function addDungeonToSubLevel(owSubLevel, subLevel) {
                     if (elem.getType() === 'wall') {
                         coord = [xyBox];
                         placed = true;
+                        map.setBaseElemXY(xyBox[0], xyBox[1], RG.FLOOR_ELEM);
                     }
                 }
             }
@@ -1502,9 +1503,10 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
                         const featX = mapX(coord[lastCoord][0], slX, subX);
                         const featY = mapY(coord[lastCoord][1], slY, subY) + 1;
 
-                        const qName = RG.Names.getRandPlaceName('quarter');
+                        const cityName = RG.Names.getUniqueCityName();
+                        const qName = RG.Names.getGenericPlaceName('quarter');
                         const cityConf = {
-                            name: feat.name,
+                            name: cityName,
                             nQuarters: 1,
                             connectToXY: [
                                 {name: qName, levelX: connX,
@@ -1534,13 +1536,14 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
                         const nLevels = 5;
                         const featX = mapX(coord[0][0], slX, subX);
                         const featY = mapY(coord[0][1], slY, subY);
-                        const bName = RG.Names.getRandPlaceName('dungeon');
+                        const dName = RG.Names.getGenericPlaceName('dungeon');
+                        const brName = RG.Names.getGenericPlaceName('branch');
 
                         const dungeonConf = {
-                            name: feat.name,
+                            name: dName,
                             nBranches: 1,
                             branch: [
-                                {name: bName, nLevels, entranceLevel: 0}
+                                {name: brName, nLevels, entranceLevel: 0}
                             ],
                             x: aX, y: aY, levelX: featX, levelY: featY
                         };
