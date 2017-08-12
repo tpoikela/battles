@@ -538,8 +538,9 @@ RG.System.Hunger = function(type, compTypes) {
             if (hungerComp.isStarving()) {
                 // Don't make hunger damage too obvious
                 const takeDmg = RG.RAND.getUniform();
-                if (ent.has('Health') && takeDmg < 0.10) {
-                    const dmg = new RG.Component.Damage(1, 'hunger');
+                if (ent.has('Health') && takeDmg < RG.HUNGER_PROB) {
+                    const dmg = new RG.Component.Damage(RG.HUNGER_DMG,
+                        'hunger');
                     ent.add('Damage', dmg);
                     RG.gameWarn(ent.getName() + ' is starving!');
                 }
@@ -740,6 +741,9 @@ RG.System.SpellEffect = function(type, compTypes) {
             if (ent.has('SpellRay')) {
                 this.processSpellRay(ent);
             }
+            else if (ent.has('SpellCell')) {
+                this.processSpellCell(ent);
+            }
         }
     };
 
@@ -769,6 +773,8 @@ RG.System.SpellEffect = function(type, compTypes) {
 
                 const actor = cell.getActors()[0];
                 // TODO add some evasion checks
+                // TODO add onHit callback for spell because not all spells
+                // cause damage
                 actor.add('Damage', dmg);
                 RG.gameMsg({cell: cell,
                     msg: `${name} hits ${actor.getName()}`});
@@ -793,6 +799,47 @@ RG.System.SpellEffect = function(type, compTypes) {
         ent.add('Animation', animComp);
     };
 
+    this.processSpellCell = function(ent) {
+        const spellComp = ent.get('SpellCell');
+        const args = spellComp.getArgs();
+        const map = ent.getLevel().getMap();
+        const spell = args.spell;
+        const name = spell.getName();
+
+        const dX = args.dir[0];
+        const dY = args.dir[1];
+        const x = args.from[0] + dX;
+        const y = args.from[1] + dY;
+        console.log(`SpellCell x,y ${x},${y}`);
+
+        const cell = map.getCell(x, y);
+        if (cell.hasActors()) {
+            console.log('Dealing damage in SpellCell');
+            // Deal some damage etc
+            const dmg = new RG.Component.Damage();
+            dmg.setSource(ent);
+            dmg.setDamageType(args.damageType);
+            dmg.setDamage(args.damage);
+
+            const actor = cell.getActors()[0];
+            // TODO add some evasion checks
+            // TODO add onHit callback for spell because not all spells
+            // cause damage
+            actor.add('Damage', dmg);
+            RG.gameMsg({cell: cell,
+                msg: `${name} hits ${actor.getName()}`});
+        }
+
+        ent.remove('SpellCell');
+        const animArgs = {
+            cell: true,
+            coord: [[x, y]],
+            style: args.damageType
+        };
+        const animComp = new RG.Component.Animation(animArgs);
+        ent.add('Animation', animComp);
+    };
+
 };
 RG.extend2(RG.System.SpellEffect, RG.System.Base);
 
@@ -811,6 +858,9 @@ RG.System.Animation = function(type, compTypes) {
             }
             else if (args.missile) {
                 this.missileAnimation(args);
+            }
+            else if (args.cell) {
+                this.cellAnimation(args);
             }
             ent.remove('Animation');
         }
@@ -860,10 +910,10 @@ RG.System.Animation = function(type, compTypes) {
             while (rangeLeft > 0) {
                 x += dX;
                 y += dY;
-                const key = x + ',' + y;
-                frame[key] = {};
-                frame[key].char = 'X';
-                frame[key].className = 'cell-ray';
+                frame[x + ',' + y] = {
+                    char: 'X',
+                    className: 'cell-ray'
+                };
 
                 const frameCopy = Object.assign({}, frame);
                 animation.addFrame(frameCopy);
@@ -872,6 +922,21 @@ RG.System.Animation = function(type, compTypes) {
             }
         }
         // No ref to engine, thus emit an event, engine will catch it
+        RG.POOL.emitEvent(RG.EVT_ANIMATION, {animation});
+    };
+
+    this.cellAnimation = function(args) {
+        const animation = new RG.Animation.Animation();
+        const frame = {};
+        animation.slowDown = 10;
+        args.coord.forEach(xy => {
+            frame[xy[0] + ',' + xy[1]] = {
+                char: '*',
+                className: 'cell-animation'
+            };
+        });
+
+        animation.addFrame(frame);
         RG.POOL.emitEvent(RG.EVT_ANIMATION, {animation});
     };
 };
