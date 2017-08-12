@@ -103,7 +103,9 @@ RG.Item.Base.prototype.toJSON = function() {
 };
 
 
-/* Object representing food items in the game.*/
+//----------------
+/* RG.Item.Food */
+//----------------
 RG.Item.Food = function(name) {
     RG.Item.Base.call(this, name);
     this.setType(RG.ITEM_FOOD);
@@ -160,14 +162,18 @@ RG.Item.Food.prototype.toJSON = function() {
 };
 
 
-/* Corpse object dropped by killed actors.*/
+//------------------
+/* RG.Item.Corpse */
+//------------------
 RG.Item.Corpse = function(name) {
     RG.Item.Base.call(this, name);
     this.setType(RG.ITEM_CORPSE);
 };
 RG.extend2(RG.Item.Corpse, RG.Item.Base);
 
-/* Base object for all weapons.*/
+//------------------
+/* RG.Item.Weapon */
+//------------------
 RG.Item.Weapon = function(name) {
     RG.Item.Base.call(this, name);
     RG.Object.Damage.call(this);
@@ -209,7 +215,9 @@ RG.Item.Weapon.prototype.toJSON = function() {
     return json;
 };
 
-/* Base object for missile weapons. */
+//-------------------------
+/* RG.Item.MissileWeapon */
+//-------------------------
 RG.Item.MissileWeapon = function(name) {
     RG.Item.Weapon.call(this, name);
     this.setType(RG.ITEM_MISSILE_WEAPON);
@@ -217,6 +225,9 @@ RG.Item.MissileWeapon = function(name) {
 };
 RG.extend2(RG.Item.MissileWeapon, RG.Item.Weapon);
 
+//---------------------------------------
+/* RG.Item.Ammo Object for ammunition. */
+//---------------------------------------
 RG.Item.Ammo = function(name) {
     RG.Item.Weapon.call(this, name);
     this.setType(RG.ITEM_MISSILE);
@@ -224,7 +235,26 @@ RG.Item.Ammo = function(name) {
 };
 RG.extend2(RG.Item.Ammo, RG.Item.Weapon);
 
-/* Base object for armour.*/
+RG.Item.Ammo.prototype.clone = function() {
+    const ammo = new RG.Item.Ammo(this.getName());
+    ammo.copy(this);
+    return ammo;
+};
+
+RG.Item.Ammo.prototype.copy = function(rhs) {
+    RG.Item.Base.prototype.copy.call(this, rhs);
+    RG.Object.Damage.prototype.copy.call(this, rhs);
+};
+
+RG.Item.Ammo.prototype.equals = function(rhs) {
+    let res = RG.Item.Base.prototype.equals.call(this, rhs);
+    res = res && RG.Object.Damage.prototype.equals.call(this, rhs);
+    return res;
+};
+
+//-------------------------------------------
+/* RG.Item.Armour Object for armour items. */
+//-------------------------------------------
 RG.Item.Armour = function(name) {
     RG.Item.Base.call(this, name);
     RG.Object.Defense.call(this);
@@ -266,7 +296,9 @@ RG.Item.Armour.prototype.toJSON = function() {
     return json;
 };
 
-/* Potion object which restores hit points .*/
+//--------------------------------------
+/* RG.Item.Potion Object for potions. */
+//--------------------------------------
 RG.Item.Potion = function(name) {
     RG.Item.Base.call(this, name);
     this.setType(RG.ITEM_POTION);
@@ -303,7 +335,9 @@ RG.Item.Potion = function(name) {
 };
 RG.extend2(RG.Item.Potion, RG.Item.Base);
 
-/* Models an object which is used as a missile.*/
+//----------------------------------------------
+/* RG.Item.Missile Object for thrown missile. */
+//----------------------------------------------
 RG.Item.Missile = function(name) {
     RG.Item.Base.call(this, name);
     RG.Object.Damage.call(this);
@@ -321,7 +355,6 @@ RG.Item.Missile.prototype.clone = function() {
 RG.Item.Missile.prototype.copy = function(rhs) {
     RG.Item.Base.prototype.copy.call(this, rhs);
     RG.Object.Damage.prototype.copy.call(this, rhs);
-
 };
 
 RG.Item.Missile.prototype.equals = function(rhs) {
@@ -341,7 +374,9 @@ RG.Item.Missile.prototype.toJSON = function() {
 };
 
 
-/* Models an item container. Can hold a number of items.*/
+//------------------------------------------------------
+/* RG.Item.Container An item which holds other items. */
+//------------------------------------------------------
 RG.Item.Container = function(owner) {
     RG.Item.Base.call(this, 'container');
     this.setOwner(owner);
@@ -530,7 +565,9 @@ RG.Item.Container.prototype.toJSON = function() {
     return json;
 };
 
-/* Gold items. */
+//----------------
+/* RG.Item.Gold */
+//----------------
 RG.Item.Gold = function(name) {
     RG.Item.Base.call(this, name);
     this.setType(RG.ITEM_GOLD);
@@ -553,6 +590,9 @@ RG.Item.Gold.prototype.toJSON = function() {
     return json;
 };
 
+//-------------------------------------------
+/* RG.Item.GoldCoin because we need money. */
+//-------------------------------------------
 /* Gold coins have standard weight and are (usually) made of pure gold.*/
 RG.Item.GoldCoin = function(name) {
     const _name = name || RG.GOLD_COIN_NAME;
@@ -564,7 +604,9 @@ RG.Item.GoldCoin = function(name) {
 RG.extend2(RG.Item.GoldCoin, RG.Item.Gold);
 
 
-/* Spirit gems can capture spirits inside them.*/
+//-------------------------------------------
+/* RG.Item.SpiritGem for capturing spirits. */
+//-------------------------------------------
 RG.Item.SpiritGem = function(name) {
     RG.Item.Base.call(this, name);
     this.setType(RG.ITEM_SPIRITGEM);
