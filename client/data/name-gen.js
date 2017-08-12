@@ -5,7 +5,21 @@
 const Names = {};
 const RG = require('../src/rg.js');
 
-Names.place = {
+// There are two kinds of names:
+// 1. Generic ones such as Dungeon, City, Town, Vault etc.
+// 2. Unique ones such as Everhold or Ebonfell.
+
+/* As the whole purpose of this module is to generate random names, each
+ * function will return randomly picked values of course.
+ */
+
+Names.place = {};
+
+/* Generic place names are placed here. */
+Names.place.generic = {
+    branch: [
+        'Hand', 'Foot', 'Small', 'Large'
+    ],
     dungeon: [
         'Crypt', 'Catacombs', 'Tombs',
         'Dungeon', 'Cave', 'Grotto', 'Cavern',
@@ -23,7 +37,8 @@ Names.place = {
     ],
 
     face: [
-        'Face', 'Buttress', 'Ridge', 'Shoulder'
+        'Face', 'Buttress', 'Ridge', 'Shoulder', 'Crag', 'Crest', 'Brink',
+        'Cairn', 'Col', 'Pass', 'Crown', 'Scree', 'Watershed'
     ],
 
     forest: [
@@ -31,10 +46,9 @@ Names.place = {
         'Woods', 'Thicket', 'Glade',
     ],
 
-    city: [
-
+    city: ['Town', 'Keep', 'Fort', 'Fortress', 'Town', 'Village', 'Township',
+        'Guard', 'Capital'
     ],
-
     lake: [
         'Basin', 'Cove', 'Reservoir', 'Depths', 'Gorge', 'Lagoon', 'Domain',
         'Pond', 'Expanse', 'Lake', 'Shallows', 'Loch', 'Falls', 'Rapids',
@@ -46,6 +60,22 @@ Names.place = {
 
 };
 
+Names.place.unique = {
+    city: {
+        first: [
+            'Stag', 'Small', 'Mud', 'Ebon', 'Silk', 'Spirit', 'Basin',
+            'Shadow', 'Gold', 'Snow', 'Frost', 'Ice', 'Hound', 'Moon',
+            'Dire', 'Ever', 'Iron', 'Ruby', 'Star', 'Crystal', 'Glimmer',
+            'Winters', 'Raven', 'Pine', 'Ever', 'Never'
+        ],
+        second: [
+            'guard', 'point', 'fell', 'mire', 'shield', 'crest', 'yard',
+            'minster', 'swallow', 'grasp', 'cliff', 'cross', 'host', 'barrow',
+            'vein', 'view', 'home'
+        ]
+    },
+};
+
 Names.actor = {
 
 };
@@ -54,8 +84,14 @@ Names.item = {
 
 };
 
-Names.getRandPlaceName = (type) => {
-    const arr = Names.place[type];
+Names.getUniqueCityName = () => {
+    const first = RG.RAND.arrayGetRand(Names.place.unique.city.first);
+    const second = RG.RAND.arrayGetRand(Names.place.unique.city.second);
+    return first + second;
+};
+
+Names.getGenericPlaceName = (type) => {
+    const arr = Names.place.generic[type];
     return RG.RAND.arrayGetRand(arr);
 };
 
