@@ -647,7 +647,10 @@ const RG = { // {{{2
     DANGER_ADJ_FACTOR: 1.4,
 
     GOLD_COIN_WEIGHT: 0.03, // kg
-    GOLD_COIN_NAME: 'Gold coins'
+    GOLD_COIN_NAME: 'Gold coins',
+
+    HUNGER_PROB: 0.10, // Prob. of starvation to cause damage every turn
+    HUNGER_DMG: 1      // Damage caused by starvation kicking in
 
 }; // / }}} RG
 
@@ -655,6 +658,7 @@ const RG = { // {{{2
 RG.cellRenderArray = RG.cellRenderVisible;
 
 RG.PROP_TYPES = [RG.TYPE_ACTOR, RG.TYPE_ELEM, RG.TYPE_ITEM, RG.TYPE_TRAP];
+// Fighting modes
 RG.FMODES = [RG.FMODE_NORMAL, RG.FMODE_FAST, RG.FMODE_SLOW];
 
 RG.cellRenderArray = RG.cellRenderVisible;
