@@ -74,7 +74,7 @@ const GameStats = React.createClass({
         for (const key in stats) {
             if (key) {
                 const val = stats[key];
-                statsHTML.push(<li key={index}>{key}: {val}</li>);
+                statsHTML.push(<li key={key + ',' + index}>{key}: {val}</li>);
                 ++index;
             }
         }
