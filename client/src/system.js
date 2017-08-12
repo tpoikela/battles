@@ -493,6 +493,20 @@ RG.System.Movement = function(type, compTypes) {
                 else {RG.gameMsg('It is for sale');}
             }
         }
+
+        const baseType = cell.getBaseElem().getType();
+        let baseMsg = '';
+        console.log('baseTYpe is ' + baseType);
+        switch (baseType) {
+            case 'tree': baseMsg = 'There is a tree here.'; break;
+            case 'grass': baseMsg = 'You see some grass.'; break;
+            case 'snow': baseMsg = 'Ground is covered with snow.'; break;
+            case 'road': baseMsg = 'You tread lightly on the road.'; break;
+            default: break;
+        }
+        if (baseMsg.length > 0) {
+            RG.gameMsg(baseMsg);
+        }
     };
 
 };
@@ -763,29 +777,34 @@ RG.System.SpellEffect = function(type, compTypes) {
         while (rangeLeft > 0) {
             x += dX;
             y += dY;
-            const cell = map.getCell(x, y);
-            if (cell.hasActors()) {
-                // Deal some damage etc
-                const dmg = new RG.Component.Damage();
-                dmg.setSource(ent);
-                dmg.setDamageType(args.damageType);
-                dmg.setDamage(args.damage);
+            if (map.hasXY(x, y)) {
+                const cell = map.getCell(x, y);
+                if (cell.hasActors()) {
+                    // Deal some damage etc
+                    const dmg = new RG.Component.Damage();
+                    dmg.setSource(ent);
+                    dmg.setDamageType(args.damageType);
+                    dmg.setDamage(args.damage);
 
-                const actor = cell.getActors()[0];
-                // TODO add some evasion checks
-                // TODO add onHit callback for spell because not all spells
-                // cause damage
-                actor.add('Damage', dmg);
-                RG.gameMsg({cell: cell,
-                    msg: `${name} hits ${actor.getName()}`});
-            }
-            if (!cell.isSpellPassable()) {
-                rangeLeft = 0;
+                    const actor = cell.getActors()[0];
+                    // TODO add some evasion checks
+                    // TODO add onHit callback for spell because not all spells
+                    // cause damage
+                    actor.add('Damage', dmg);
+                    RG.gameMsg({cell: cell,
+                        msg: `${name} hits ${actor.getName()}`});
+                }
+                if (!cell.isSpellPassable()) {
+                    rangeLeft = 0;
+                }
+                else {
+                    ++rangeCrossed;
+                }
+                --rangeLeft;
             }
             else {
-                ++rangeCrossed;
+                rangeLeft = 0;
             }
-            --rangeLeft;
         }
         ent.remove('SpellRay');
         const animArgs = {
@@ -812,32 +831,35 @@ RG.System.SpellEffect = function(type, compTypes) {
         const y = args.from[1] + dY;
         console.log(`SpellCell x,y ${x},${y}`);
 
-        const cell = map.getCell(x, y);
-        if (cell.hasActors()) {
-            console.log('Dealing damage in SpellCell');
-            // Deal some damage etc
-            const dmg = new RG.Component.Damage();
-            dmg.setSource(ent);
-            dmg.setDamageType(args.damageType);
-            dmg.setDamage(args.damage);
+        if (map.hasXY(x, y)) {
+            const cell = map.getCell(x, y);
+            if (cell.hasActors()) {
+                console.log('Dealing damage in SpellCell');
+                // Deal some damage etc
+                const dmg = new RG.Component.Damage();
+                dmg.setSource(ent);
+                dmg.setDamageType(args.damageType);
+                dmg.setDamage(args.damage);
 
-            const actor = cell.getActors()[0];
-            // TODO add some evasion checks
-            // TODO add onHit callback for spell because not all spells
-            // cause damage
-            actor.add('Damage', dmg);
-            RG.gameMsg({cell: cell,
-                msg: `${name} hits ${actor.getName()}`});
+                const actor = cell.getActors()[0];
+                // TODO add some evasion checks
+                // TODO add onHit callback for spell because not all spells
+                // cause damage
+                actor.add('Damage', dmg);
+                RG.gameMsg({cell: cell,
+                    msg: `${name} hits ${actor.getName()}`});
+            }
+
+            const animArgs = {
+                cell: true,
+                coord: [[x, y]],
+                style: args.damageType
+            };
+            const animComp = new RG.Component.Animation(animArgs);
+            ent.add('Animation', animComp);
         }
 
         ent.remove('SpellCell');
-        const animArgs = {
-            cell: true,
-            coord: [[x, y]],
-            style: args.damageType
-        };
-        const animComp = new RG.Component.Animation(animArgs);
-        ent.add('Animation', animComp);
     };
 
 };
