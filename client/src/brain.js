@@ -11,6 +11,7 @@ const ACTION_ALREADY_DONE = () => {};
 const NO_ACTION_TAKEN = () => {};
 
 /* Used for testing purposes only. */
+/*
 const TestSelectionObj = function() {
 
     this.select = function(code) {
@@ -71,6 +72,7 @@ const TestSelectionObj = function() {
     };
 
 };
+*/
 
 //---------------------------------------------------------------------------
 // BRAINS
@@ -470,7 +472,6 @@ RG.Brain.Player = function(actor) {
                 if (missile.has('Ammo')) {
                     const missWeapon = invEq.getEquipment()
                         .getEquipped('missileweapon');
-                    console.log('Weapon is ' + JSON.stringify(missWeapon));
                     if (missWeapon === null) {
                         const msg = 'No missile weapon equipped.';
                         return this.cmdNotPossible(msg);
