@@ -2,25 +2,25 @@
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 
-const RGObjects = require('../../../client/data/battles_objects');
-const RGEffects = require('../../../client/data/effects');
+RG.Factory.Game = require('../../../client/src/factory.game');
+
+// const RGObjects = require('../../../client/data/battles_objects');
+// const RGEffects = require('../../../client/data/effects');
 
 describe('How Game is created from Overworld', function() {
-    this.timeout(10000);
+    this.timeout(20000);
     it('is created using factory from game/player objects', () => {
         const gameFact = new RG.Factory.Game();
 
         const conf = {
-            // Empty
+            debugMode: 'OverWorld',
+            playerLevel: 'Medium'
         };
 
-        const player = new RG.Actor.Rogue('My Hero');
-        player.setIsPlayer(true);
-        const gameObj = new RG.Game.Main();
-        /*
-        const game = gameFact.createOverWorld(conf, gameObj, player);
-
+        // const player = new RG.Actor.Rogue('My Hero');
+        // player.setIsPlayer(true);
+        // const gameObj = new RG.Game.Main();
+        const game = gameFact.createNewGame(conf);
         expect(game).to.exist;
-        */
     });
 });
