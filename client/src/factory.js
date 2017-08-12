@@ -363,18 +363,27 @@ RG.Factory.Base = function() { // {{{2
             const cell = freeCells[index];
 
             const item = parser.createRandomItem({func: conf.func});
-            _doItemSpecificAdjustments(item, conf.maxValue);
-            level.addItem(item, cell.getX(), cell.getY());
-            freeCells.splice(index, 1); // remove used cell
+            if (item) {
+                _doItemSpecificAdjustments(item, conf.maxValue);
+                level.addItem(item, cell.getX(), cell.getY());
+                freeCells.splice(index, 1); // remove used cell
+            }
         }
         const food = parser.createRandomItem({func: function(item) {
             return item.type === 'food';
         }});
 
-        const index = RG.RAND.randIndex(freeCells);
-        const foodCell = freeCells[index];
-        _doItemSpecificAdjustments(food, conf.maxValue);
-        level.addItem(food, foodCell.getX(), foodCell.getY());
+        if (food) {
+            const index = RG.RAND.randIndex(freeCells);
+            const foodCell = freeCells[index];
+            _doItemSpecificAdjustments(food, conf.maxValue);
+            level.addItem(food, foodCell.getX(), foodCell.getY());
+        }
+        else {
+            RG.warn('Factory.Base', 'addNRandItems',
+                'Item.Food was not created properly.');
+
+        }
     };
 
     /* Adds N random monsters to the level based on given danger level.*/
@@ -403,14 +412,14 @@ RG.Factory.Base = function() { // {{{2
                 });
             }
 
-            // This levels up the actor to match current danger level
-            const objShell = parser.dbGet('actors', monster.getName());
-            const expLevel = maxDanger - objShell.danger;
-            if (expLevel > 1) {
-                RG.levelUpActor(monster, expLevel);
-            }
 
             if (monster) {
+                // This levels up the actor to match current danger level
+                const objShell = parser.dbGet('actors', monster.getName());
+                const expLevel = maxDanger - objShell.danger;
+                if (expLevel > 1) {
+                    RG.levelUpActor(monster, expLevel);
+                }
                 level.addActor(monster, cell.getX(), cell.getY());
             }
             else {
