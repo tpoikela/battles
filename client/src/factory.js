@@ -53,26 +53,6 @@ const levelSizes = {
     }
 };
 
-RG.VerifyConf = function(objName) {
-    const _name = objName;
-
-    /* Verifies that configuration contains all required keys.*/
-    this.verifyConf = function(funcName, conf, required) {
-        let ok = true;
-        let errorMsg = '';
-        required.forEach(req => {
-            if (!conf.hasOwnProperty(req)) {
-                ok = false;
-                errorMsg += `${funcName}(): Missing: ${req}`;
-            }
-        });
-        if (!ok) {
-            RG.err(_name, 'verifyConf', errorMsg);
-        }
-        return ok;
-    };
-
-};
 
 //---------------------------------------------------------------------------
 // FACTORY OBJECTS
@@ -135,7 +115,7 @@ RG.Factory.ItemRandomizer = function() {
 /* Factory object for creating some commonly used objects. Because this is a
 * global object RG.FACT, no state should be used. */
 RG.Factory.Base = function() { // {{{2
-    const _verif = new RG.VerifyConf('Factory.Base');
+    const _verif = new RG.Verify.Conf('Factory.Base');
     const _itemRandomizer = new RG.Factory.ItemRandomizer();
 
     const _initCombatant = function(comb, obj) {
@@ -505,7 +485,7 @@ RG.FACT = new RG.Factory.Base();
 RG.Factory.Feature = function() {
     RG.Factory.Base.call(this);
 
-    const _verif = new RG.VerifyConf('Factory.Feature');
+    const _verif = new RG.Verify.Conf('Factory.Feature');
 
     const _parser = new RG.ObjectShell.Parser();
     _parser.parseShellData(RG.Effects);
@@ -601,7 +581,7 @@ RG.extend2(RG.Factory.Feature, RG.Factory.Base);
  * building the world. Separation of concerns, you know.
  */
 RG.Factory.World = function() {
-    const _verif = new RG.VerifyConf('Factory.World');
+    const _verif = new RG.Verify.Conf('Factory.World');
     this.featureFactory = new RG.Factory.Feature();
 
     // Used for generating levels, if more specific settings not given
@@ -634,22 +614,18 @@ RG.Factory.World = function() {
     this.pushScope = function(conf) {
         this.scope.push(conf.name);
         this.confStack.push(conf);
-        if (conf.hasOwnProperty('constraint')) {
-            this.pushConstraint(conf.constraint);
-        }
     };
 
-    this.popScope = function(name) {
+    this.popScope = function(conf) {
+        const name = conf.name;
         const poppedName = this.scope.pop();
         if (poppedName !== name) {
             RG.err('Factory.World', 'popScope',
                 `Popped: ${poppedName}, Expected: ${name}`);
         }
         else {
-            const conf = this.confStack.pop();
-            if (conf.hasOwnProperty('constraint')) {
-                this.popConstraint();
-            }
+            const currConf = this.confStack.pop();
+            debug('Popped scope: ' + currConf.name);
         }
     };
 
@@ -662,11 +638,25 @@ RG.Factory.World = function() {
         this.globalConf.dungeonY = levelSizes.dungeon[levelSize].y;
         this.globalConf.sqrPerMonster = sqrPerMonster;
         this.globalConf.sqrPerItem = conf.sqrPerItem || RG.LOOT_MEDIUM_SQR;
+        this.globalConf.set = true;
+        debug('globalConf set to ' + JSON.stringify(this.globalConf));
     };
 
-    /* Returns global config value. */
+    /* Returns config value. */
     this.getConf = function(keys) {
+        // First travel the config stack from the top
+        for (let i = this.confStack.length - 1; i >= 0; i--) {
+            if (this.confStack[i].hasOwnProperty(keys)) {
+                return this.confStack[i][keys];
+            }
+        }
+
+        // If nothing found, try the global configuration
         if (typeof keys === 'string') {
+            if (Array.isArray(this.globalConf[keys])) {
+                const last = this.globalConf[keys].length;
+                return this.globalConf[keys][last];
+            }
             return this.globalConf[keys];
         }
         let currRef = this.globalConf;
@@ -682,29 +672,15 @@ RG.Factory.World = function() {
         return currRef;
     };
 
-    // Random constraint management
-    this.constraintStack = [];
-    this.pushConstraint = function(constr) {
-        this.constraintStack.push(constr);
-    };
-    this.popConstraint = function() {
-        this.constraintStack.pop();
-    };
-    /* Returns the current constraint in effect. */
-    this.getConstraint = function() {
-        const len = this.constraintStack.length;
-        if (len) {
-            return this.constraintStack[len - 1];
-        }
-        return null;
-    };
-
     /* Returns the full hierarchical name of feature. */
     this.getHierName = () => this.scope.join('.');
 
     /* Creates a world using given configuration. */
     this.createWorld = function(conf) {
         _verif.verifyConf('createWorld', conf, ['name', 'nAreas']);
+        if (!this.globalConf.set) {
+            this.setGlobalConf({});
+        }
         this.pushScope(conf);
         const world = new RG.World.World(conf.name);
         for (let i = 0; i < conf.nAreas; i++) {
@@ -712,7 +688,7 @@ RG.Factory.World = function() {
             const area = this.createArea(areaConf);
             world.addArea(area);
         }
-        this.popScope(conf.name);
+        this.popScope(conf);
         return world;
     };
 
@@ -775,7 +751,7 @@ RG.Factory.World = function() {
                 this.createConnection(area, city, cityConf);
             }
         }
-        this.popScope(conf.name);
+        this.popScope(conf);
         return area;
     };
 
@@ -853,7 +829,7 @@ RG.Factory.World = function() {
             }
         }
 
-        this.popScope(conf.name);
+        this.popScope(conf);
         return dungeon;
     };
 
@@ -867,14 +843,14 @@ RG.Factory.World = function() {
         const hierName = this.getHierName();
         branch.setHierName(hierName);
 
-        const constraint = this.getConstraint();
+        const constraint = this.getConf('constraint');
         const presetLevels = this.getPresetLevels(hierName);
 
         for (let i = 0; i < conf.nLevels; i++) {
 
             const levelConf = {
-                x: this.getConf(['dungeonX']),
-                y: this.getConf(['dungeonY']),
+                x: this.getConf('dungeonX'),
+                y: this.getConf('dungeonY'),
                 sqrPerMonster: this.getConf('sqrPerMonster'),
                 sqrPerItem: this.getConf('sqrPerItem'),
                 maxValue: 20 * (i + 1),
@@ -918,7 +894,7 @@ RG.Factory.World = function() {
             branch.setEntranceLocation(conf.entrance);
         }
 
-        this.popScope(conf.name);
+        this.popScope(conf);
         return branch;
     };
 
@@ -966,7 +942,7 @@ RG.Factory.World = function() {
             }
         }
 
-        this.popScope(conf.name);
+        this.popScope(conf);
         return mountain;
     };
 
@@ -1003,7 +979,7 @@ RG.Factory.World = function() {
             face.setEntranceLocation(conf.entrance);
         }
 
-        this.popScope(faceName);
+        this.popScope(conf);
         return face;
     };
 
@@ -1048,7 +1024,7 @@ RG.Factory.World = function() {
             }
         }
 
-        this.popScope(conf.name);
+        this.popScope(conf);
         return city;
     };
 
@@ -1087,7 +1063,7 @@ RG.Factory.World = function() {
         else if (conf.hasOwnProperty('entrance')) {
             quarter.setEntranceLocation(conf.entrance);
         }
-        this.popScope(conf.name);
+        this.popScope(conf);
         return quarter;
     };
 
