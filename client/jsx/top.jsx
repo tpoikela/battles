@@ -438,14 +438,12 @@ class BattlesTop extends React.Component {
     }
 
     componentDidMount() {
-      // $(document.body).on('keydown', this.handleKeyDown);
-      document.addEventListener('keydown', this.handleKeyDown, true);
+      document.addEventListener('keypress', this.handleKeyDown, true);
       $('#start-button').trigger('click');
     }
 
     componentWillUnMount() {
-      document.removeEventListener('keydown', this.handleKeyDown);
-        // $(document.body).off('keydown', this.handleKeyDown);
+      document.removeEventListener('keypress', this.handleKeyDown);
     }
 
     isValidKey(keyCode) {
@@ -456,11 +454,12 @@ class BattlesTop extends React.Component {
 
     /* Listens for player key presses and handles them.*/
     handleKeyDown(evt) {
+        const keyCode = typeof evt.which === 'number' ? evt.which : evt.keyCode;
         if (this.keyPending === false) {
-            if (this.isValidKey(evt.keyCode)) {
+            if (this.isValidKey(keyCode)) {
                 this.keyPending = true;
-                this.nextCode = evt.keyCode;
-                if (!this.isGUICommand(evt.keyCode)) {
+                this.nextCode = keyCode;
+                if (!this.isGUICommand(keyCode)) {
                     this.gameState.isTargeting = false;
                 }
             }
@@ -754,12 +753,18 @@ class BattlesTop extends React.Component {
     GUILook() {
         if (this.gameState.isTargeting) {
             const nextCell = this.getNextTargetCell();
-            const actor = nextCell.getActors()[0];
-            this.screen.setSelectedCell(nextCell);
-            const msg = `You see ${actor.getName()} nearby.`;
-            this.screen.setSelectedCell(nextCell);
-            RG.gameMsg(msg);
-            this.setState({selectedCell: nextCell});
+            if (nextCell) {
+                const actor = nextCell.getActors()[0];
+                const msg = `You see ${actor.getName()} nearby.`;
+                this.screen.setSelectedCell(nextCell);
+                RG.gameMsg(msg);
+                this.setState({selectedCell: nextCell});
+            }
+            else {
+                this.gameState.isTargeting = false;
+                this.screen.setSelectedCell(null);
+                this.setState({selectedCell: null});
+            }
         }
         else {
             this.gameState.isTargeting = true;
@@ -775,7 +780,6 @@ class BattlesTop extends React.Component {
                 RG.gameMsg(msg);
                 this.setState({selectedCell: cell});
             }
-            this.setState({render: true});
         }
     }
 
@@ -836,9 +840,8 @@ class BattlesTop extends React.Component {
                 numNextCell = 0;
             }
 
-            const nextCell = this.gameState.enemyCells[numNextCell];
             this.gameState.numCurrCell = numNextCell;
-            return nextCell;
+            return this.gameState.enemyCells[numNextCell];
         }
         return null;
     }
