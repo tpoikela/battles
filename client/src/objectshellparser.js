@@ -1,6 +1,7 @@
 
 const RG = require('./rg.js');
 
+
 RG.ObjectShell = {};
 
 RG.ObjectShell.Creator = function(db) {
@@ -73,12 +74,6 @@ RG.ObjectShell.Creator = function(db) {
 
     _propToCall.items.missileweapon = _propToCall.items.missile;
     _propToCall.items.ammo = _propToCall.items.missile;
-
-    /*
-    const _addOnHitComps = {
-        poison: ['duration', 'damage', 'prob']
-    };
-    */
 
     /* Returns an object shell, given category and name.*/
     this.get = function(categ, name) {
@@ -205,6 +200,10 @@ RG.ObjectShell.Creator = function(db) {
             this.addPoison(shell, newObj);
         }
 
+        if (shell.hasOwnProperty('enemies')) {
+            this.addEnemies(shell, newObj);
+        }
+
         // TODO map different props to function calls
         return newObj;
     };
@@ -221,6 +220,12 @@ RG.ObjectShell.Creator = function(db) {
         const addOnHit = new RG.Component.AddOnHit();
         addOnHit.setComp(poisonComp);
         obj.add('AddOnHit', addOnHit);
+    };
+
+    this.addEnemies = function(shell, obj) {
+        shell.enemies.forEach(enemyType => {
+            obj.getBrain().addEnemyType(enemyType);
+        });
     };
 
     /* Factory-method for creating the actual game objects.*/
@@ -693,7 +698,8 @@ RG.ObjectShell.Parser = function() {
                     }
                     else {
                         RG.err('ObjectParser', 'parseObjShell',
-                            'Unknown base ' + bName + ' specified for ' + obj);
+                            'Unknown base ' + bName + ' specified for '
+                            + JSON.stringify(obj));
                     }
                 });
             }
