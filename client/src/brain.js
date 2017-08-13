@@ -1154,4 +1154,55 @@ RG.Brain.Spirit = function(actor) {
 };
 RG.extend2(RG.Brain.Spirit, RG.Brain.Rogue);
 
+/* Brain object used by archers. */
+RG.Brain.Archer = function(actor) {
+    RG.Brain.Rogue.call(this, actor);
+    this.setType('archer');
+    const _actor = actor;
+
+    this.decideNextAction = function() {
+        this._seenCached = null;
+        return BTree.startBehavTree(Models.Archer.tree, _actor)[0];
+    };
+
+    /* Checks if the actor can attack given x,y coordinate.*/
+    this.canDoRangedAttack = function() {
+        const seenCells = this.getSeenCells();
+        const enemy = this.findEnemyCell(seenCells);
+        const x = enemy.getX();
+        const y = enemy.getY();
+        const actorX = _actor.getX();
+        const actorY = _actor.getY();
+        const miss = _actor.getInvEq().getEquipment().getItem('missile');
+        console.log(`Checking for ranged attack: ${miss}`);
+        if (miss) {
+            const range = RG.getMissileRange(_actor, miss);
+            const getDist = RG.shortestDist(x, y, actorX, actorY);
+            console.log(`canDoRangedAttack ${range} ${getDist}`);
+            if (getDist <= range) {return true;}
+            // TODO test for a clean shot
+        }
+        return false;
+    };
+
+    /* Performs a ranged attack on enemy cell. */
+    this.doRangedAttack = function() {
+        const seenCells = this.getSeenCells();
+        const enemy = this.findEnemyCell(seenCells);
+        return function() {
+            const x = enemy.getX();
+            const y = enemy.getY();
+            const mComp = new RG.Component.Missile(_actor);
+            const missile = _actor.getInvEq().getEquipment().getItem('missile');
+            mComp.setTargetXY(x, y);
+            mComp.setDamage(RG.getMissileDamage(_actor, missile));
+            mComp.setAttack(RG.getMissileAttack(_actor, missile));
+            mComp.setRange(RG.getMissileRange(_actor, missile));
+            missile.add('Missile', mComp);
+            console.log('Added missileComp');
+        };
+    };
+};
+RG.extend2(RG.Brain.Archer, RG.Brain.Rogue);
+
 module.exports = RG.Brain;
