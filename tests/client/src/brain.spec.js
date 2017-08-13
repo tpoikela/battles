@@ -308,3 +308,32 @@ describe('Brain.Human', () => {
         expect(human2.has('Communication')).to.be.false;
     });
 });
+
+describe('Brain.Archer', () => {
+    it('can do ranged attacks on enemies', () => {
+        const missSystem = new RG.System.Missile('Missile',
+            ['Missile']);
+        const player = new RG.Actor.Rogue('player');
+        player.setIsPlayer(true);
+
+        const archer = new RG.Actor.Rogue('archer');
+        const arrow = new RG.Item.Ammo('arrow');
+        arrow.count = 10;
+        const bow = new RG.Item.MissileWeapon('bow');
+        RGTest.equipItems(archer, [arrow, bow]);
+
+        const brain = new RG.Brain.Archer(archer);
+        archer.setBrain(brain);
+        archer.getBrain().addEnemy(player);
+
+        const level = RGTest.wrapIntoLevel([player, archer]);
+        RGTest.moveEntityTo(player, 2, 2);
+        RGTest.moveEntityTo(archer, 4, 4);
+
+        const action = archer.nextAction();
+        action.doAction();
+
+        missSystem.update();
+        expect(level.getItems().length, '1 arrow was shot').to.equal(1);
+    });
+});
