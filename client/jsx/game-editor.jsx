@@ -63,6 +63,7 @@ const startSimulation = (startTime, level) =>
         }
     );
 
+/* Component for game/level editor. */
 class GameEditor extends React.Component {
 
     constructor(props) {
@@ -212,12 +213,15 @@ class GameEditor extends React.Component {
     }
 
     onCellClick(x, y) {
-        const cell = this.state.level.getMap().getCell(x, y);
-        console.log(`Clicked ${x},${y} ${JSON.stringify(cell)}`);
-        console.log(cell.toString());
+        const map = this.state.level.getMap();
+        if (map.hasXY(x, y)) {
+            const cell = map.getCell(x, y);
+            console.log(`Clicked ${x},${y} ${JSON.stringify(cell)}`);
+            console.log(cell.toString());
 
-        this.screen.setSelectedCell(cell);
-        this.setState({selectedCell: cell});
+            this.screen.setSelectedCell(cell);
+            this.setState({selectedCell: cell});
+        }
     }
 
     /* Converts the rendered level to JSON and puts that into localStorage.*/
@@ -483,12 +487,13 @@ class GameEditor extends React.Component {
         }
 
         let map = null;
+        let mapSizeX = null;
         if (this.state.level) {
-            console.log('this.state.level is not null');
             map = this.state.level.getMap();
         }
 
         if (map) {
+            mapSizeX = map.cols;
             if (this.state.useRLE) {
                 this.screen.renderFullMapWithRLE(map);
             }
@@ -550,6 +555,7 @@ class GameEditor extends React.Component {
                             endY={this.screen.endY}
                             onCellClick={this.onCellClick}
                             rowClass={rowClass}
+                            sizeX={mapSizeX}
                             startX={0}
                             startY={0}
                             useRLE={this.state.useRLE}
