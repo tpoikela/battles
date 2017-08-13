@@ -974,7 +974,6 @@ RG.KEY.POWER = ROT.VK_P + 32;
 RG.KeyMap.initMap();
 
 RG.isValidKey = function(keyCode) {
-    console.log('RG.isValidKey key code is ' + keyCode);
     let found = false;
     Object.keys(RG.KEY).forEach(key => {
         found = found || RG.KEY[key] === keyCode;
