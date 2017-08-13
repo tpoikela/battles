@@ -177,11 +177,13 @@ RG.Factory.Base = function() { // {{{2
     this.createBrain = function(actor, brainName) {
         switch (brainName) {
             case 'Animal': return new RG.Brain.Animal(actor);
+            case 'Archer': return new RG.Brain.Archer(actor);
             case 'Demon': return new RG.Brain.Demon(actor);
+            // case 'Goblin': return new RG.Brain.Goblin(actor);
             case 'Human': return new RG.Brain.Human(actor);
             case 'Summoner': return new RG.Brain.Summoner(actor);
-            case 'Zombie': return new RG.Brain.Zombie(actor);
             case 'Undead': return new RG.Brain.Undead(actor);
+            case 'Zombie': return new RG.Brain.Zombie(actor);
             default: return new RG.Brain.Rogue(actor);
         }
     };
