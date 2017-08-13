@@ -128,7 +128,19 @@ RGTest.moveEntityTo = function(ent, x, y) {
         ent.setXY(x, y);
         return true;
     }
-    return false;
+    throw new Error(`Cannot move entity to ${x}, ${y}`);
+};
+
+/* Equips all given items for the given actor, and checks that everything
+ * succeeds. */
+RGTest.equipItems = function(ent, items) {
+    const inv = ent.getInvEq();
+    items.forEach(item => {
+        inv.addItem(item);
+        if (!inv.equipItem(item)) {
+            throw new Error(`Cannot equip item ${item}`);
+        }
+    });
 };
 
 module.exports = RGTest;
