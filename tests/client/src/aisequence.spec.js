@@ -4,7 +4,9 @@ const BTree = require('../../../client/src/aisequence');
 
 describe('BTree', () => {
     it('should return function sequence', () => {
-        const actor = {};
+        const actor = {
+            getName: () => 'actor name'
+        };
         const setActorName = (actor) => {
             return () => {
                 actor.isNameSet = true;
@@ -27,7 +29,8 @@ describe('BTree', () => {
 
     it('should have selections', () => {
         const actor = {
-            hp: 15
+            hp: 15,
+            getName: () => 'actor name'
         };
 
         const condFunc = (actor) => (actor.hp >= 10);
