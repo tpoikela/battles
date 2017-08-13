@@ -106,6 +106,7 @@ class GameEditor extends React.Component {
             levelList: [],
             levelIndex: 0,
 
+            showAnimations: false,
             frameCount: 0,
             fps: 0,
             simulationStarted: false,
@@ -218,6 +219,11 @@ class GameEditor extends React.Component {
             const cell = map.getCell(x, y);
             console.log(`Clicked ${x},${y} ${JSON.stringify(cell)}`);
             console.log(cell.toString());
+
+            if (cell.hasActors()) {
+                console.log(cell.getActors()[0]);
+                console.log(JSON.stringify(cell.getActors()[0]));
+            }
 
             this.screen.setSelectedCell(cell);
             this.setState({selectedCell: cell});
@@ -477,8 +483,6 @@ class GameEditor extends React.Component {
     }
 
     render() {
-        console.log('render() called');
-
         const mapShown = this.props.mapShown;
         let rowClass = 'cell-row-div-player-view';
         if (mapShown) {rowClass = 'cell-row-div-map-view';}
@@ -772,6 +776,23 @@ class GameEditor extends React.Component {
     // SIMULATION METHODS
     //----------------------------------------------------------------
 
+    playAnimation() {
+        console.log('Animation start');
+        if (this.game.hasAnimation()) {
+            console.log('\tAnimation frame');
+            const anim = this.game.getAnimationFrame();
+            this.setState({render: true, animation: anim});
+            this.animationID = requestAnimationFrame(
+                this.playAnimation.bind(this));
+        }
+        else {
+            // Animation is finished
+            console.log('\tAnimation finished');
+            this.setState({render: true, animation: null});
+            this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
+        }
+    }
+
     /* Starts a simulation of the level. No player support yet. */
     simulateLevel() {
         if (!this.state.simulationStarted) {
@@ -790,6 +811,10 @@ class GameEditor extends React.Component {
             this.game = new RG.Game.Main();
             this.game.addLevel(levelClone);
             this.game.addActiveLevel(levelClone);
+            if (this.state.showAnimations) {
+                this.game.setAnimationCallback(this.playAnimation.bind(this));
+            }
+
             const startTime = new Date().getTime();
             console.log('Game has ' + this.game.getLevels().length + ' levels');
 
