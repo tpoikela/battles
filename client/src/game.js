@@ -207,11 +207,6 @@ RG.Game.Engine = function() {
         const action = this.nextActor.nextAction(obj);
         this.doAction(action);
         this.updateSystems();
-
-        // Execute animation callback
-        if (this.hasAnimation() && this.animationCallback) {
-            this.animationCallback(this.animation);
-        }
         this.playerCommandCallback(this.nextActor);
     };
 
@@ -369,7 +364,11 @@ RG.Game.Engine = function() {
             }
         }
         else if (evtName === RG.EVT_ANIMATION) {
-            this.animation = args.animation;
+            if (this.animationCallback) {
+                console.log('After evt calling callback.');
+                this.animation = args.animation;
+                this.animationCallback(this.animation);
+            }
         }
     };
     RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this);
