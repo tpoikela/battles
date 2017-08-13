@@ -174,6 +174,7 @@ describe('RG.ObjectShell.Parser', function() {
         const eqSword = actualGoblin.getWeapon();
         expect(eqSword).to.exist;
         expect(eqSword.getType()).to.equal('weapon');
+
     });
 
     it('can add inventory items with count into the created actors', () => {
@@ -264,9 +265,13 @@ describe('How food items are created from objects', function() {
 //---------------------------------------------------------------------------
 
 describe('It contains all game content info', function() {
-    const parser = new Parser();
-    parser.parseShellData(Effects);
-    parser.parseShellData(RGObjects);
+
+    let parser = null;
+    before(() => {
+        parser = new Parser();
+        parser.parseShellData(Effects);
+        parser.parseShellData(RGObjects);
+    });
 
     it('Should parse all actors properly', function() {
         const rsnake = parser.get('actors', 'rattlesnake');
@@ -401,6 +406,13 @@ describe('It contains all game content info', function() {
         expect(objShell.hp).to.equal(15);
         expect(objShell.defense).to.equal(20);
 
+    });
+
+    it('can create actors with equipped items with count', () => {
+        const goblinSlinger = parser.createActor('goblin slinger');
+        const inv = goblinSlinger.getInvEq();
+        const rocks = inv.getEquipped('missile');
+        expect(rocks.count).to.equal(10);
     });
 
 });
