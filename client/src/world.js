@@ -885,10 +885,12 @@ RG.World.CityQuarter = function(name) {
     this.setType('quarter');
     const _levels = [];
     let _entrance = null;
+    let _numCount = 1;
 
     this.getLevels = () => (_levels);
 
     this.addLevel = function(level) {
+        level.setLevelNumber(_numCount++);
         _levels.push(level);
         level.setParent(this.getName());
     };
