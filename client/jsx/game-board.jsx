@@ -5,10 +5,14 @@ const React = require('react');
 const ReactDOM = require('react-dom');
 const GameRow = require('./game-row');
 
-const eventToPosition = (e, elem, numCells) => {
+const eventToPosition = (e, elem, props) => {
     // Where the mouse was clicked
     const x = e.clientX;
     const y = e.clientY;
+
+    const numCells = props.sizeX;
+    const startX = props.startX;
+    const startY = props.startY;
 
     const rect = elem.getBoundingClientRect();
 
@@ -17,10 +21,12 @@ const eventToPosition = (e, elem, numCells) => {
     const sizeX = rowElem.clientWidth / numCells;
     const sizeY = rowElem.clientHeight;
 
+    console.log('eventToPosition sizeX ' + sizeX);
+
     const relX = x - rect.left;
     const relY = y - rect.top;
-    const posX = Math.floor(relX / sizeX);
-    const posY = Math.floor(relY / sizeY);
+    const posX = Math.floor(relX / sizeX) + startX;
+    const posY = Math.floor(relY / sizeY) + startY;
     return [posX, posY];
 };
 
@@ -52,8 +58,7 @@ const GameBoard = React.createClass({
 
 	onCellClick: function(evt) {
         // this.board specified using react ref=
-        const numCells = this.props.sizeX;
-        const xy = eventToPosition(evt, this.board, numCells);
+        const xy = eventToPosition(evt, this.board, this.props);
         console.log(`eventToPosition returned ${xy}`);
         this.props.onCellClick(xy[0], xy[1]);
 	},
