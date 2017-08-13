@@ -5,11 +5,27 @@ const React = require('react');
 const ReactDOM = require('react-dom');
 const GameRow = require('./game-row');
 
+const eventToPosition = (e, elem, numCells) => {
+    // Where the mouse was clicked
+    const x = e.clientX;
+    const y = e.clientY;
+
+    const rect = elem.getBoundingClientRect();
+
+    const rowElem = document.getElementsByClassName('game-board-row')[0];
+    console.log(`h: ${rowElem.clientHeight} w: ${rowElem.clientWidth}`);
+    const sizeX = rowElem.clientWidth / numCells;
+    const sizeY = rowElem.clientHeight;
+
+    const relX = x - rect.left;
+    const relY = y - rect.top;
+    const posX = Math.floor(relX / sizeX);
+    const posY = Math.floor(relY / sizeY);
+    return [posX, posY];
+};
+
 /** Component which renders the game rows. {{{2 */
 const GameBoard = React.createClass({
-
-    marginLeft: 10,
-    marginTop: 20,
 
     propTypes: {
         boardClassName: React.PropTypes.string,
@@ -19,6 +35,7 @@ const GameBoard = React.createClass({
         onCellClick: React.PropTypes.func,
         rowClass: React.PropTypes.string,
         useRLE: React.PropTypes.bool,
+        sizeX: React.PropTypes.number,
         startX: React.PropTypes.number,
         startY: React.PropTypes.number
     },
@@ -34,16 +51,11 @@ const GameBoard = React.createClass({
     },
 
 	onCellClick: function(evt) {
-        console.log(JSON.stringify(evt));
-        const thisElem = ReactDOM.findDOMNode(this);
-        const px = evt.pageX;
-        const py = evt.pageY;
-        const offsetTop = thisElem.offsetTop;
-        const offsetLeft = thisElem.offsetLeft;
-        const relX = px - offsetLeft - this.marginLeft;
-        const relY = py - offsetTop - this.marginTop;
-        console.log(`Clicked coord ${px},${py}`);
-        console.log(`Relative coord ${relX},${relY}`);
+        // this.board specified using react ref=
+        const numCells = this.props.sizeX;
+        const xy = eventToPosition(evt, this.board, numCells);
+        console.log(`eventToPosition returned ${xy}`);
+        this.props.onCellClick(xy[0], xy[1]);
 	},
 
 
@@ -57,7 +69,6 @@ const GameBoard = React.createClass({
             rowsHTML.push(
                 <GameRow
                     key={key}
-                    onCellClick={this.props.onCellClick}
                     rowChars={this.props.charRows[yIndex]}
                     rowClass={this.props.rowClass}
                     rowClasses={this.props.classRows[yIndex]}
@@ -71,6 +82,7 @@ const GameBoard = React.createClass({
         return (
             <div
                 className={`game-board ${this.props.boardClassName}`}
+                ref={node => {this.board = node;}}
             >
                 {rowsHTML}
             </div>
