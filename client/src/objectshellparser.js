@@ -110,6 +110,11 @@ RG.ObjectShell.Creator = function(db) {
     this.createActualObj = function(categ, name) {
         const shell = this.get(categ, name);
         const propCalls = _propToCall[categ];
+        if (!shell) {
+            RG.err('ObjectShell.Creator', 'createActualObj',
+                `shell for ${name} is not found.`);
+        }
+
         const newObj = this.createNewObject(categ, shell);
 
         // If propToCall table has the same key as shell property, call
@@ -351,10 +356,20 @@ RG.ObjectShell.Creator = function(db) {
     this.addEquippedItems = function(shell, actor) {
         const equip = shell.equip;
         equip.forEach(item => {
-            const itemObj = this.createActualObj(RG.TYPE_ITEM, item);
+            const itemName = item.name || item;
+            const count = item.count || 1;
+            const itemObj = this.createActualObj(RG.TYPE_ITEM, itemName);
             if (itemObj) {
+                itemObj.count = count;
                 actor.getInvEq().addItem(itemObj);
-                if (!actor.getInvEq().equipItem(itemObj)) {
+                if (count > 1) {
+                    if (!actor.getInvEq().equipNItems(itemObj, count)) {
+                        const actorName = actor.getName();
+                        RG.err('ObjectShell.Creator', 'addEquippedItems',
+                            `Cannot equip: ${count} ${item} to ${actorName}`);
+                    }
+                }
+                else if (!actor.getInvEq().equipItem(itemObj)) {
                     RG.err('ObjectShell.Creator', 'addEquippedItems',
                         `Cannot equip: ${item} to ${actor.getName()}`);
                 }
@@ -806,6 +821,14 @@ RG.ObjectShell.Parser = function() {
     // CREATE METHODS (to be removed, but kept now because removing
     //   these would break the API in major way)
     //---------------------------------------------------------------
+
+    this.createActor = function(name) {
+        return this.createActualObj(RG.TYPE_ACTOR, name);
+    };
+
+    this.createItem = function(name) {
+        return this.createActualObj(RG.TYPE_ITEM, name);
+    };
 
     /* Returns an actual game object when given category and name. Note that
      * the shell must exist already in the database (shell must have
