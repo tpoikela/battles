@@ -72,24 +72,28 @@ RG.Game.FromJSON = function() {
         }
     };
 
-    this.createBrain = function(brain, ent) {
-        const type = brain.type;
+    this.createBrain = function(brainJSON, ent) {
+        const type = brainJSON.type;
         const typeUc = type[0].toUpperCase() + type.substring(1);
         if (RG.Brain[typeUc]) {
-            const brain = new RG.Brain[typeUc](ent);
-            ent.setBrain(brain);
+            const brainObj = new RG.Brain[typeUc](ent);
+            ent.setBrain(brainObj);
             // TODO addEnemyType called in Actor.Rogue, find better solution
             // Maybe Brain.Enemy, with hate against player?
             // And rename Brain.Rogue -> Brain.Base.
-            if (type === 'rogue') {
-                brain.getMemory().addEnemyType('player');
+            if (brainJSON.memory) {
+                brainJSON.memory.enemyTypes.forEach(type => {
+                    brainObj.addEnemyType(type);
+                });
+            }
+            else if (type === 'rogue') {
+                brainObj.getMemory().addEnemyType('player');
             }
             // TODO reconstruct memory
         }
         else {
             RG.err('FromJSON', 'createBrain',
-                `Cannot find RG.Brain.${typeUc}`);
-
+                `Cannot find RG.Brain.${typeUc}, JSON: ${brainJSON}`);
         }
     };
 
