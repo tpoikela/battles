@@ -496,7 +496,6 @@ RG.System.Movement = function(type, compTypes) {
 
         const baseType = cell.getBaseElem().getType();
         let baseMsg = '';
-        console.log('baseTYpe is ' + baseType);
         switch (baseType) {
             case 'tree': baseMsg = 'There is a tree here.'; break;
             case 'grass': baseMsg = 'You see some grass.'; break;
@@ -829,12 +828,10 @@ RG.System.SpellEffect = function(type, compTypes) {
         const dY = args.dir[1];
         const x = args.from[0] + dX;
         const y = args.from[1] + dY;
-        console.log(`SpellCell x,y ${x},${y}`);
 
         if (map.hasXY(x, y)) {
             const cell = map.getCell(x, y);
             if (cell.hasActors()) {
-                console.log('Dealing damage in SpellCell');
                 // Deal some damage etc
                 const dmg = new RG.Component.Damage();
                 dmg.setSource(ent);
@@ -915,7 +912,6 @@ RG.System.Animation = function(type, compTypes) {
             }
         }
         RG.POOL.emitEvent(RG.EVT_ANIMATION, {animation});
-
     };
 
     /* Constructs line animation (a bolt etc). */
