@@ -189,6 +189,11 @@ ul {
 
 // Row styling for different board sizes
 
+.game-board-row {
+    display: inline-block;
+    zoom: 1;
+}
+
 .cell-row-div-player-view {
 };
 
