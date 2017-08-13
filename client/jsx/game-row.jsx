@@ -8,7 +8,6 @@ const GameRow = React.createClass({
     propTypes: {
         rowClasses: React.PropTypes.array,
         rowChars: React.PropTypes.array,
-        onCellClick: React.PropTypes.func,
         y: React.PropTypes.number,
         startX: React.PropTypes.number,
         rowClass: React.PropTypes.string,
@@ -67,13 +66,8 @@ const GameRow = React.createClass({
         return true;
     },
 
-    onCellClick: function(x, y) {
-        this.props.onCellClick(x, y);
-    },
-
     render: function() {
         const y = this.props.y;
-        const startX = this.props.startX;
         const rowClass = this.props.rowClass;
 
         let rowCells = null;
@@ -81,13 +75,11 @@ const GameRow = React.createClass({
         if (!this.props.useRLE) {
             rowCells = this.props.rowClasses.map( (className, index) => {
                 const cellChar = this.props.rowChars[index];
-                const cellX = startX + index;
 
                 return (
                     <span
                         className={className}
                         key={y + ',' + index}
-                        onClick={this.onCellClick.bind(this, cellX, y)}
                     >
                         {cellChar}
                     </span>
@@ -109,7 +101,7 @@ const GameRow = React.createClass({
         }
 
         return (
-            <div className={rowClass}>
+            <div className={'game-board-row ' + rowClass}>
                 {rowCells}
             </div>
         );
