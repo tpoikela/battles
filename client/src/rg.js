@@ -829,6 +829,34 @@ RG.getGoldInCoins = function(weight) {
     return Math.floor(weight / RG.GOLD_COIN_WEIGHT);
 };
 
+/* eslint-disable */
+RG.VK_a = ROT.VK_A + 32;
+RG.VK_b = ROT.VK_B + 32;
+RG.VK_c = ROT.VK_C + 32;
+RG.VK_d = ROT.VK_D + 32;
+RG.VK_e = ROT.VK_E + 32;
+RG.VK_f = ROT.VK_F + 32;
+RG.VK_g = ROT.VK_G + 32;
+RG.VK_h = ROT.VK_H + 32;
+RG.VK_i = ROT.VK_I + 32;
+RG.VK_j = ROT.VK_J + 32;
+RG.VK_k = ROT.VK_K + 32;
+RG.VK_l = ROT.VK_L + 32;
+RG.VK_m = ROT.VK_M + 32;
+RG.VK_n = ROT.VK_N + 32;
+RG.VK_o = ROT.VK_O + 32;
+RG.VK_p = ROT.VK_P + 32;
+RG.VK_q = ROT.VK_Q + 32;
+RG.VK_r = ROT.VK_R + 32;
+RG.VK_s = ROT.VK_S + 32;
+RG.VK_t = ROT.VK_T + 32;
+RG.VK_u = ROT.VK_U + 32;
+RG.VK_v = ROT.VK_V + 32;
+RG.VK_w = ROT.VK_W + 32;
+RG.VK_x = ROT.VK_X + 32;
+RG.VK_y = ROT.VK_Y + 32;
+RG.VK_z = ROT.VK_Z + 32;
+/* eslint-enable */
 
 /* Lookup table object for movement and actions keys.*/
 RG.KeyMap = {
@@ -845,13 +873,22 @@ RG.KeyMap = {
         this.moveKeyMap[RG.KEY.MOVE_SW] = 5;
         this.moveKeyMap[RG.KEY.MOVE_W] = 6;
         this.moveKeyMap[RG.KEY.MOVE_NW] = 7;
+
+        this.moveKeyMap[ROT.VK_8] = 0;
+        this.moveKeyMap[ROT.VK_9] = 1;
+        this.moveKeyMap[ROT.VK_6] = 2;
+        this.moveKeyMap[ROT.VK_3] = 3;
+        this.moveKeyMap[ROT.VK_2] = 4;
+        this.moveKeyMap[ROT.VK_1] = 5;
+        this.moveKeyMap[ROT.VK_4] = 6;
+        this.moveKeyMap[ROT.VK_7] = 7;
     },
 
     inMoveCodeMap: function(code) {
         return this.moveKeyMap.hasOwnProperty(code);
     },
 
-    isRest: function(code) {return code === ROT.VK_S || ROT.VK_PERIOD;},
+    isRest: function(code) {return code === RG.VK_s || ROT.VK_PERIOD;},
     isPickup: function(code) {return code === RG.KEY.PICKUP;},
     isUseStairs: function(code) {return code === RG.KEY.USE_STAIRS;},
     isRunMode: function(code) {return code === RG.KEY.RUN;},
@@ -871,7 +908,7 @@ RG.KeyMap = {
             const newY = y + diff[1];
             return [newX, newY];
         }
-        else if (code === ROT.VK_S) {
+        else if (code === RG.VK_s) {
             return [x, y];
         }
         else {
@@ -897,8 +934,8 @@ RG.codeToIndex = function(code) {
     if (code >= ROT.VK_0 && code <= ROT.VK_9) {
         return code - ROT.VK_0;
     }
-    else if (code >= ROT.VK_A && code <= ROT.VK_Z) {
-        return code - ROT.VK_A + 10;
+    else if (code >= RG.VK_a && code <= RG.VK_z) {
+        return code - RG.VK_a + 10;
     }
     return -1;
 };
@@ -906,32 +943,34 @@ RG.codeToIndex = function(code) {
 RG.KEY = {};
 
 // Assign ROT keys to meaningful constants
-RG.KEY.MOVE_N = ROT.VK_W;
-RG.KEY.MOVE_NE = ROT.VK_E;
-RG.KEY.MOVE_E = ROT.VK_D;
-RG.KEY.MOVE_SE = ROT.VK_C;
-RG.KEY.MOVE_S = ROT.VK_X;
-RG.KEY.MOVE_SW = ROT.VK_Z;
-RG.KEY.MOVE_W = ROT.VK_A;
-RG.KEY.MOVE_NW = ROT.VK_Q;
+RG.KEY.MOVE_N = ROT.VK_W + 32;
+RG.KEY.MOVE_NE = ROT.VK_E + 32;
+RG.KEY.MOVE_E = ROT.VK_D + 32;
+RG.KEY.MOVE_SE = ROT.VK_C + 32;
+RG.KEY.MOVE_S = ROT.VK_X + 32;
+RG.KEY.MOVE_SW = ROT.VK_Z + 32;
+RG.KEY.MOVE_W = ROT.VK_A + 32;
+RG.KEY.MOVE_NW = ROT.VK_Q + 32;
 
 RG.KEY.PICKUP = ROT.VK_COMMA;
-RG.KEY.USE_STAIRS = ROT.VK_B;
-RG.KEY.RUN = ROT.VK_R;
-RG.KEY.FIGHT = ROT.VK_F;
-RG.KEY.YES = ROT.VK_Y;
-RG.KEY.NEXT_ITEM = ROT.VK_H;
-RG.KEY.DOOR = ROT.VK_O;
-RG.KEY.REST = ROT.VK_S;
-RG.KEY.LOOK = ROT.VK_L;
-RG.KEY.POWER = ROT.VK_P;
+RG.KEY.USE_STAIRS = ROT.VK_B + 32;
+RG.KEY.RUN = ROT.VK_R + 32;
+RG.KEY.FIGHT = ROT.VK_F + 32;
+RG.KEY.YES = ROT.VK_Y + 32;
+RG.KEY.NEXT_ITEM = ROT.VK_H + 32;
+RG.KEY.DOOR = ROT.VK_O + 32;
+RG.KEY.REST = ROT.VK_S + 32;
+RG.KEY.LOOK = ROT.VK_L + 32;
+RG.KEY.POWER = ROT.VK_P + 32;
 RG.KeyMap.initMap();
 
 RG.isValidKey = function(keyCode) {
+    console.log('RG.isValidKey key code is ' + keyCode);
     let found = false;
     Object.keys(RG.KEY).forEach(key => {
         found = found || RG.KEY[key] === keyCode;
     });
+    found = found || RG.KeyMap.inMoveCodeMap(keyCode);
     return found;
 };
 
