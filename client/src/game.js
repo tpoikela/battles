@@ -276,7 +276,6 @@ RG.Game.Engine = function() {
 
     this.isGameOver = function() {return false;};
 
-
     this.isActiveLevel = function(level) {
         const index = _activeLevels.indexOf(level.getID());
         return index >= 0;
@@ -365,7 +364,6 @@ RG.Game.Engine = function() {
         }
         else if (evtName === RG.EVT_ANIMATION) {
             if (this.animationCallback) {
-                console.log('After evt calling callback.');
                 this.animation = args.animation;
                 this.animationCallback(this.animation);
             }
