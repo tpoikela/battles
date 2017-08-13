@@ -674,19 +674,19 @@ class BattlesTop extends React.Component {
     /* GUI command keybindings are specified here. */
     initGUICommandTable() {
         this.guiCommands = {};
-        this.guiCommands[ROT.VK_I] = this.GUIInventory;
-        this.guiCommands[ROT.VK_M] = this.GUIMap;
-        this.guiCommands[ROT.VK_N] = this.GUINextTarget;
-        this.guiCommands[ROT.VK_L] = this.GUILook;
-        this.guiCommands[ROT.VK_T] = this.GUITarget;
-        this.guiCommands[ROT.VK_U] = this.GUIUseItem;
+        this.guiCommands[RG.VK_i] = this.GUIInventory;
+        this.guiCommands[RG.VK_m] = this.GUIMap;
+        this.guiCommands[RG.VK_n] = this.GUINextTarget;
+        this.guiCommands[RG.VK_l] = this.GUILook;
+        this.guiCommands[RG.VK_t] = this.GUITarget;
+        this.guiCommands[RG.VK_u] = this.GUIUseItem;
 
     }
 
     /* Returns true if given command is a GUI command. */
     isGUICommand(code) {
         if (this.gameState) {
-            if (this.gameState.autoTarget && code === ROT.VK_T) {
+            if (this.gameState.autoTarget && code === RG.VK_t) {
                 return false;
             }
             else if (this.gameState.useModeEnabled) {
