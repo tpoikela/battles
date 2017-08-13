@@ -6,7 +6,8 @@ const Actors = [
         name: 'animal', dontCreate: true, type: 'animal',
         className: 'cell-actor-animal',
         attack: 1, defense: 1, hp: 5,
-        range: 1, danger: 1, speed: 100, brain: 'Animal'
+        range: 1, danger: 1, speed: 100, brain: 'Animal',
+        enemies: ['player', 'human']
     },
     {
         name: 'rat', char: 'r', base: 'animal'
@@ -90,14 +91,13 @@ const Actors = [
         name: 'goblin', char: 'g', type: 'goblin',
         className: 'cell-actor-goblin',
         attack: 1, defense: 1, damage: '1d4', range: 1, hp: 5,
-        danger: 2, brain: 'Goblin'
+        danger: 2, enemies: ['human', 'player']
     },
     {
         name: 'goblin slinger', base: 'goblin',
         attack: 2, defense: 1, hp: 8,
-        equip: [{name: 'Rock', count: 10}]
+        equip: [{name: 'Rock', count: 10}], brain: 'Archer'
     },
-
     // HUMANOIDS
     {
         name: 'humanoid', char: 'h', type: 'humanoid',
@@ -115,7 +115,7 @@ const Actors = [
     {
         name: 'UndeadBase', className: 'cell-actor-undead',
         dontCreate: true, addComp: 'Undead', brain: 'Undead',
-        range: 1
+        range: 1, enemies: ['player', 'human']
     },
     {
         name: 'skeleton', char: 'z', base: 'UndeadBase',
@@ -125,7 +125,7 @@ const Actors = [
     // DEMONS AND WINTRY BEINGS
     {
         name: 'WinterBeingBase', className: 'cell-actor-winter',
-        dontCreate: true
+        dontCreate: true, enemies: ['player', 'human']
     },
     {
         name: 'Crevasse worm', char: 'w', base: 'WinterBeingBase',
@@ -189,6 +189,13 @@ const Actors = [
         attack: 2, defense: 2, damage: '1d4',
         range: 1, hp: 20, danger: 3
     },
+    {
+        name: 'dwarven rifleman', char: 'h', type: 'dwarf',
+        attack: 4, defense: 4, damage: '1d8',
+        range: 1, hp: 40, danger: 7, enemies: ['human', 'undead', 'demon'],
+        equip: ['Rifle', {name: 'Rifle bullet', count: 10}],
+        brain: 'Archer'
+    },
     // HUMANS
     {
         name: 'human', char: '@', type: 'human',
@@ -197,7 +204,8 @@ const Actors = [
     },
     {
         name: 'robber', base: 'human',
-        attack: 2, defense: 4, danger: 3
+        attack: 2, defense: 4, danger: 3,
+        enemies: ['player', 'human']
     },
     {
         name: 'miner', base: 'human',
@@ -231,7 +239,12 @@ const Actors = [
         name: 'wildling', char: 'I', className: 'cell-actor-wildling',
         type: 'wildling',
         attack: 4, defense: 1, damage: '1d6', range: 1,
-        hp: 15, danger: 3
+        hp: 15, danger: 3, enemies: ['player', 'human']
+    },
+    {
+        name: 'wildling archer', base: 'wildling', char: 'F',
+        attack: 4, defense: 3, damage: '1d6', hp: 20, danger: 4,
+        equip: ['Bow', {name: 'Arrow', count: 10}], brain: 'Archer'
     },
     {
         name: 'wildling fighter', base: 'wildling', char: 'F',
