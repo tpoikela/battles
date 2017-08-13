@@ -415,6 +415,20 @@ describe('It contains all game content info', function() {
         expect(rocks.count).to.equal(10);
     });
 
+    it('can add enemies for actors', () => {
+        const goblin = parser.createActor('goblin');
+        const fighter = parser.createActor('fighter');
+        let mem = goblin.getBrain().getMemory();
+        expect(mem.isEnemy(fighter)).to.equal(true);
+
+        const goblinSlinger = parser.createActor('goblin slinger');
+        mem = goblinSlinger.getBrain().getMemory();
+        expect(mem.isEnemy(fighter)).to.equal(true);
+
+        console.log(JSON.stringify(goblinSlinger));
+
+    });
+
 });
 
 describe('It has query functions for objects', function() {
