@@ -858,6 +858,11 @@ RG.VK_y = ROT.VK_Y + 32;
 RG.VK_z = ROT.VK_Z + 32;
 /* eslint-enable */
 
+RG.VK_COMMA = 44;
+RG.VK_PERIOD = 46;
+RG.VK_LT = 60;
+RG.VK_GT = 62;
+
 /* Lookup table object for movement and actions keys.*/
 RG.KeyMap = {
 
@@ -888,9 +893,12 @@ RG.KeyMap = {
         return this.moveKeyMap.hasOwnProperty(code);
     },
 
-    isRest: function(code) {return code === RG.VK_s || ROT.VK_PERIOD;},
+    isRest: function(code) {return code === RG.VK_s || RG.VK_PERIOD;},
     isPickup: function(code) {return code === RG.KEY.PICKUP;},
-    isUseStairs: function(code) {return code === RG.KEY.USE_STAIRS;},
+    isUseStairs: function(code) {
+        return code === RG.KEY.USE_STAIRS_DOWN ||
+            code === RG.KEY.USE_STAIRS_UP;
+    },
     isRunMode: function(code) {return code === RG.KEY.RUN;},
     isFightMode: function(code) {return code === RG.KEY.FIGHT;},
     isConfirmYes: function(code) {return code === RG.KEY.YES;},
@@ -952,8 +960,9 @@ RG.KEY.MOVE_SW = ROT.VK_Z + 32;
 RG.KEY.MOVE_W = ROT.VK_A + 32;
 RG.KEY.MOVE_NW = ROT.VK_Q + 32;
 
-RG.KEY.PICKUP = ROT.VK_COMMA;
-RG.KEY.USE_STAIRS = ROT.VK_B + 32;
+RG.KEY.PICKUP = RG.VK_COMMA;
+RG.KEY.USE_STAIRS_UP = RG.VK_LT;
+RG.KEY.USE_STAIRS_DOWN = RG.VK_GT;
 RG.KEY.RUN = ROT.VK_R + 32;
 RG.KEY.FIGHT = ROT.VK_F + 32;
 RG.KEY.YES = ROT.VK_Y + 32;
