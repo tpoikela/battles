@@ -403,18 +403,27 @@ class BattlesTop extends React.Component {
 
     /* When a cell is clicked, perform a command/show debug info. */
     onCellClick(x, y) {
-        const cell = this.game.getPlayer().getLevel().getMap().getCell(x, y);
-        if (this.gameState.isTargeting) {
-            this.game.update({cmd: 'missile', target: cell});
-            this.gameState.visibleCells = this.game.visibleCells;
-            this.setState({render: true});
-            this.gameState.isTargeting = false;
+        const map = this.game.getPlayer().getLevel().getMap();
+        if (map.hasXY(x, y)) {
+            const cell = map.getCell(x, y);
+            if (this.gameState.isTargeting) {
+                this.game.update({cmd: 'missile', target: cell});
+                this.gameState.visibleCells = this.game.visibleCells;
+                this.screen.setSelectedCell(null);
+                this.setState({selectedCell: null});
+                this.gameState.isTargeting = false;
+            }
+            else {
+                this.logic.describeCell(cell, this.gameState.visibleCells);
+                this.setState({selectedCell: cell});
+            }
+            console.log(`Cell: ${JSON.stringify(cell)}`);
         }
         else {
-            this.logic.describeCell(cell, this.gameState.visibleCells);
-            this.setState({render: true});
+            RG.warn('BattlesTop', 'onCellClick',
+                `No cell ${x},${y} in the map.`);
+
         }
-        console.log(`Cell: ${JSON.stringify(cell)}`);
     }
 
     /* When listening events, component gets notification via this
@@ -630,6 +639,7 @@ class BattlesTop extends React.Component {
                                 endY={this.screen.endY}
                                 onCellClick={this.onCellClick}
                                 rowClass={rowClass}
+                                sizeX={2 * this.screen.viewportX + 1}
                                 startX={startX}
                                 startY={this.screen.startY}
                                 useRLE={true}
