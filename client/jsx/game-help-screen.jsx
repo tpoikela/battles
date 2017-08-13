@@ -1,5 +1,7 @@
 'use strict';
 
+/* eslint max-len: 100 */
+
 const React = require('react');
 const RG = require('../src/rg.js');
 const ModalHeader = require('./modal-header');
@@ -53,11 +55,12 @@ const GameHelpScreen = React.createClass({
                                 <TextHelp char={'b'} descr={'Use stairs/passage.'} />
                                 <TextHelp char={'f'} descr={'Change fight mode.'} />
                                 <TextHelp char={'h'} descr={'See next item in the cell.'} />
-                                <TextHelp char={'i'} descr={'View inventory.'} />
+                                <TextHelp char={'i'} descr={'Show inventory.'} />
                                 <TextHelp char={'l'} descr={'Look around.'} />
                                 <TextHelp char={'m'} descr={'Toggle the map/player view.'} />
-                                <TextHelp char={'n'} descr={'Next target (when in targeting mode).'} />
+                                <TextHelp char={'n'} descr={'Next target (target/look).'} />
                                 <TextHelp char={'o'} descr={'Open/close door.'} />
+                                <TextHelp char={'p'} descr={'Use your powers.'} />
                                 <TextHelp char={'r'} descr={'Toggle run mode (1.5 x speed).'} />
                                 <TextHelp char={'t'} descr={'Enter targeting mode. Press again to fire.'} />
                                 <TextHelp char={'u'} descr={'Use an item.'} />
