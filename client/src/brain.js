@@ -728,6 +728,13 @@ RG.Brain.Memory = function() {
         return index !== -1;
     };
 
+    this.toJSON = function() {
+        return {
+            enemies: _enemies.map(enemy => enemy.getID),
+            enemyTypes: _enemyTypes
+        };
+    };
+
 };
 
 /* Brain is used by the AI to perform and decide on actions. Brain returns
@@ -748,6 +755,7 @@ RG.Brain.Rogue = function(actor) {
     this.getActor = function() {return _actor;};
 
     this.addEnemy = function(actor) {_memory.addEnemy(actor);};
+    this.addEnemyType = function(type) {_memory.addEnemyType(type);};
 
     this._seenCached = null;
 
@@ -941,7 +949,8 @@ RG.Brain.Rogue = function(actor) {
 
     this.toJSON = function() {
         return {
-            type: this.getType()
+            type: this.getType(),
+            memory: this.getMemory().toJSON()
         };
     };
 
@@ -1174,11 +1183,9 @@ RG.Brain.Archer = function(actor) {
         const actorX = _actor.getX();
         const actorY = _actor.getY();
         const miss = _actor.getInvEq().getEquipment().getItem('missile');
-        console.log(`Checking for ranged attack: ${miss}`);
         if (miss) {
             const range = RG.getMissileRange(_actor, miss);
             const getDist = RG.shortestDist(x, y, actorX, actorY);
-            console.log(`canDoRangedAttack ${range} ${getDist}`);
             if (getDist <= range) {return true;}
             // TODO test for a clean shot
         }
@@ -1199,7 +1206,6 @@ RG.Brain.Archer = function(actor) {
             mComp.setAttack(RG.getMissileAttack(_actor, missile));
             mComp.setRange(RG.getMissileRange(_actor, missile));
             missile.add('Missile', mComp);
-            console.log('Added missileComp');
         };
     };
 };
