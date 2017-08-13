@@ -1187,7 +1187,7 @@ function addOverWorldFeatures(ow) {
     // Create forests and lakes
 
     // Distribute dungeons
-    addDungeonsToOverWorld(ow, 20, 1, sizeY - 2, sizeX - 2, sizeY - 10);
+    addDungeonsToOverWorld(ow, 40, 1, sizeY - 2, sizeX - 2, sizeY - 10);
 
     // Distribute mountains
 
