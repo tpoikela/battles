@@ -98,6 +98,16 @@ const Actors = [
         attack: 2, defense: 1, hp: 8,
         equip: [{name: 'Rock', count: 10}], brain: 'Archer'
     },
+    {
+        name: 'goblin fighter', base: 'goblin',
+        attack: 2, defense: 3, protection: 1, hp: 12,
+        danger: 2
+    },
+    {
+        name: 'goblin sergeant', base: 'goblin',
+        attack: 4, defense: 2, protection: 2, hp: 17,
+        danger: 4
+    },
     // HUMANOIDS
     {
         name: 'humanoid', char: 'h', type: 'humanoid',
@@ -164,6 +174,12 @@ const Actors = [
         danger: 5, brain: 'Animal', addComp: 'Flying'
     },
     {
+        name: 'Cryomancer', base: 'WinterBeingBase', char: '@',
+        type: 'human', enemies: ['player'],
+        attack: 4, defense: 4, damage: '1d6', range: 1, hp: 30,
+        danger: 5, spells: ['Frost bolt'], pp: 20, brain: 'SpellCaster'
+    },
+    {
         name: 'Winter demon', type: 'demon', char: 'D',
         attack: 5, defense: 5, protection: 2, damage: '3d3', range: 1,
         hp: 30, danger: 12, brain: 'Demon', base: 'WinterBeingBase'
@@ -187,12 +203,19 @@ const Actors = [
     {
         name: 'dwarf', char: 'h', type: 'dwarf',
         attack: 2, defense: 2, damage: '1d4',
-        range: 1, hp: 20, danger: 3
+        range: 1, hp: 20, danger: 3, enemies: ['human', 'undead', 'demon']
     },
     {
-        name: 'dwarven rifleman', char: 'h', type: 'dwarf',
+        name: 'dwarven axeman',
         attack: 4, defense: 4, damage: '1d8',
-        range: 1, hp: 40, danger: 7, enemies: ['human', 'undead', 'demon'],
+        range: 1, hp: 40, danger: 5,
+        equip: ['Battle axe', 'Chain armour']
+
+    },
+    {
+        name: 'dwarven rifleman',
+        attack: 4, defense: 4, damage: '1d8',
+        range: 1, hp: 40, danger: 7,
         equip: ['Rifle', {name: 'Rifle bullet', count: 10}],
         brain: 'Archer'
     },
@@ -229,7 +252,7 @@ const Actors = [
     },
     {
         name: 'summoner', char: '@', base: 'human', hp: 50,
-        type: 'summoner',
+        type: 'summoner', enemies: ['player'],
         attack: 7, defense: 7, damage: '2d4', brain: 'Summoner',
         danger: 10
     },
@@ -238,21 +261,25 @@ const Actors = [
     {
         name: 'wildling', char: 'I', className: 'cell-actor-wildling',
         type: 'wildling',
-        attack: 4, defense: 1, damage: '1d6', range: 1,
+        attack: 2, defense: 1, damage: '1d6', range: 1,
         hp: 15, danger: 3, enemies: ['player', 'human']
     },
     {
         name: 'wildling archer', base: 'wildling', char: 'F',
-        attack: 4, defense: 3, damage: '1d6', hp: 20, danger: 4,
+        attack: 3, defense: 3, damage: '1d6', hp: 20, danger: 4,
         equip: ['Bow', {name: 'Arrow', count: 10}], brain: 'Archer'
     },
     {
         name: 'wildling fighter', base: 'wildling', char: 'F',
-        attack: 6, defense: 3, damage: '1d10', hp: 25, danger: 5
+        attack: 4, defense: 3, damage: '1d9', hp: 25, danger: 5
     },
     {
         name: 'wildling warlord', base: 'wildling', char: 'W',
-        attack: 8, defense: 4, damage: '1d13', hp: 40, danger: 7
+        attack: 6, defense: 3, damage: '1d12', hp: 40, danger: 7
+    },
+    {
+        name: 'wildling king', base: 'wildling', char: 'W',
+        attack: 8, defense: 5, damage: '1d15', hp: 50, danger: 10
     },
 
     // SPIRITS
@@ -289,8 +316,25 @@ const Actors = [
         name: 'Winter demon spirit', base: 'SpiritBase',
         strength: 3, accuracy: 3, agility: 3, willpower: 3, power: 7,
         danger: 7
+    },
+    {
+        name: 'Monarch spirit', base: 'SpiritBase',
+        strength: 6, accuracy: 0, agility: 1, willpower: 6, power: 10,
+        danger: 12
+
     }
 ];
+
+// TODO add a function to scale values easily
+const scaleValue = function(valName, multiply) {
+    Actors.forEach(actor => {
+        if (Number.isInteger(actor[valName])) {
+            actor[valName] *= multiply;
+        }
+    });
+};
+
+scaleValue('danger', 1);
 
 module.exports = Actors;
 
