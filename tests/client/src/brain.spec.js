@@ -34,29 +34,29 @@ describe('Brain.Player', function() {
     it('Accepts key commands', function() {
         const brain = new Brain.Player(player);
 
-        brain.decideNextAction({code: ROT.VK_R});
+        brain.decideNextAction({code: RG.VK_r});
         expect(player.getSpeed()).to.equal(150);
         expect(brain.isRunModeEnabled()).to.equal(true);
         expect(brain.energy).to.equal(0);
-        brain.decideNextAction({code: ROT.VK_S});
+        brain.decideNextAction({code: RG.VK_s});
         expect(brain.isRunModeEnabled()).to.equal(false);
         expect(brain.energy).to.equal(RG.energy.REST);
 
-        brain.decideNextAction({code: ROT.VK_C});
+        brain.decideNextAction({code: RG.VK_c});
         expect(brain.energy).to.equal(RG.energy.MOVE);
 
-        brain.decideNextAction({code: ROT.VK_X});
+        brain.decideNextAction({code: RG.VK_x});
         expect(brain.energy).to.equal(RG.energy.ATTACK);
 
-        brain.decideNextAction({code: ROT.VK_R}); // Enable run mode
-        brain.decideNextAction({code: ROT.VK_C}); // Move
+        brain.decideNextAction({code: RG.VK_r}); // Enable run mode
+        brain.decideNextAction({code: RG.VK_c}); // Move
         expect(brain.energy).to.equal(RG.energy.RUN);
 
     });
 
     it('Has cmds for more complex things', function() {
         const brain = new Brain.Player(player);
-        brain.decideNextAction({code: ROT.VK_S});
+        brain.decideNextAction({code: RG.VK_s});
         expect(brain.energy).to.equal(RG.energy.REST);
 
         // No missile equipped
@@ -102,14 +102,14 @@ describe('Brain.Player', function() {
         // var speed = player.getSpeed();
 
         expect(brain.energy).to.equal(1);
-        let attackCallback = brain.decideNextAction({code: ROT.VK_X});
+        let attackCallback = brain.decideNextAction({code: RG.VK_x});
         expect(brain.energy).to.equal(RG.energy.ATTACK);
         attackCallback();
         expect(player.get('StatsMods').getSpeed()).to.equal(20);
         expect(player.getSpeed()).to.equal(120);
 
         brain.toggleFightMode();
-        attackCallback = brain.decideNextAction({code: ROT.VK_X});
+        attackCallback = brain.decideNextAction({code: RG.VK_x});
         attackCallback();
         expect(player.getSpeed()).to.equal(80);
     });
