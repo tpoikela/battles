@@ -23,7 +23,7 @@ let conf = {
     worldY: mult * 400
 };
 
-mult = 1;
+mult = 2;
 conf = {
     yFirst: false,
     topToBottom: false,
