@@ -12,6 +12,9 @@
  *
  */
 
+const RG = require('./rg');
+const debug = require('debug')('bitn:aisequence');
+
 function SelectorNode(condFunc, actionIfTrue, actionIfFalse) {
     this.condFunc = condFunc;
     this.actionIfTrue = actionIfTrue;
@@ -34,36 +37,15 @@ function SequencerRandomNode(actionArray) {
 // Utility functions
 //--------------------------------------------------------------------
 
-/*
- * From http:// stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
- */
-function shuffle(array) {
-    let currentIndex = array.length, temporaryValue, randomIndex;
-
-    // While there remain elements to shuffle...
-    while (0 !== currentIndex) {
-
-        // Pick a remaining element...
-        randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex -= 1;
-
-        // And swap it with the current element.
-        temporaryValue = array[currentIndex];
-        array[currentIndex] = array[randomIndex];
-        array[randomIndex] = temporaryValue;
-    }
-
-    return array;
-}
-
 function startBehavTree(behaviourTreeNode, actor) {
     const resArray = [];
+    debug('startBehavTree for actor ' + actor.getName());
     execBehavTree(behaviourTreeNode, actor, resArray);
     return resArray;
 }
 
 function execBehavTree(behaviourTreeNode, actor, resArray) {
-    if (typeof actor.completedCurrentAction === 'undefined' || actor.completedCurrentAction === true) {
+    if (typeof actor.currActionDone === 'undefined' || actor.currActionDone === true) {
 
         if (Object.getPrototypeOf(behaviourTreeNode) === SelectorNode.prototype) {
             selector(behaviourTreeNode, actor, resArray);
@@ -109,24 +91,16 @@ function sequencer(sequencerNode, actor, arr) {
 }
 
 function sequencerRandom(sequencerRandomNode, actor, arr) {
-    shuffle(sequencerRandomNode.actionArray);
+    RG.RAND.shuffle(sequencerRandomNode.actionArray);
     for (let i = 0; i < sequencerRandomNode.actionArray.length; i++) {
         execBehavTree(sequencerRandomNode.actionArray[i], actor, arr);
     }
 }
 
 function selectorRandom(selectorRandomNode, actor, arr) {
-    const randomIndex = Math.floor(Math.random() * selectorRandomNode.actionArray.length);
+    const randomIndex = RG.RAND.randIndex(selectorRandomNode.actionArray.length);
     execBehavTree(selectorRandomNode.actionArray[randomIndex], actor, arr);
 }
-
-/*
-function tick(behaviourTreeNode, actor) {
-    setInterval(function() {
-        execBehavTree(behaviourTreeNode, actor);
-    }, 50);
-}
-*/
 
 //----------------------------------------------------------------------
 // MODELS
@@ -140,6 +114,7 @@ Models.Rogue.ifPlayerIsInSight = function(actor) {
     const brain = actor.getBrain();
     const seenCells = brain.getSeenCells();
     const playerCell = brain.findEnemyCell(seenCells);
+    debug(`${actor.getName()} playerSeen: ${playerCell}`);
     return playerCell !== null;
 };
 
@@ -239,6 +214,30 @@ Models.Summoner.tree =
             Models.Summoner.willSummon,
             Models.Summoner.summonMonster,
             Models.Rogue.tree
+        ),
+        Models.Rogue.exploreLevel
+    );
+
+//------------------------------
+/* Archer models for AI. */
+//------------------------------
+Models.Archer = {};
+
+Models.Archer.canDoRangedAttack = function(actor) {
+    return actor.getBrain().canDoRangedAttack();
+};
+
+Models.Archer.doRangedAttack = function(actor) {
+    return actor.getBrain().doRangedAttack();
+};
+
+Models.Archer.tree =
+    new SelectorNode(
+        Models.Rogue.ifPlayerIsInSight,
+        new SelectorNode(
+            Models.Archer.canDoRangedAttack,
+            Models.Archer.doRangedAttack,
+            Models.Rogue.Nodes.combat
         ),
         Models.Rogue.exploreLevel
     );
