@@ -85,6 +85,18 @@ const Actors = [
         attack: 7, defense: 7, damage: '1d10',
         hp: 50, danger: 10, addComp: 'Flying'
     },
+    // GOBLINS
+    {
+        name: 'goblin', char: 'g', type: 'goblin',
+        className: 'cell-actor-goblin',
+        attack: 1, defense: 1, damage: '1d4', range: 1, hp: 5,
+        danger: 2, brain: 'Goblin'
+    },
+    {
+        name: 'goblin slinger', base: 'goblin',
+        attack: 2, defense: 1, hp: 8,
+        equip: [{name: 'Rock', count: 10}]
+    },
 
     // HUMANOIDS
     {
