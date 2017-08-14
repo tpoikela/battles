@@ -1200,7 +1200,7 @@ RG.Brain.Archer = function(actor) {
             const x = enemy.getX();
             const y = enemy.getY();
             const mComp = new RG.Component.Missile(_actor);
-            const missile = _actor.getInvEq().getEquipment().getItem('missile');
+            const missile = _actor.getInvEq().unequipAndGetItem('missile', 1);
             mComp.setTargetXY(x, y);
             mComp.setDamage(RG.getMissileDamage(_actor, missile));
             mComp.setAttack(RG.getMissileAttack(_actor, missile));
