@@ -4,11 +4,8 @@ const RG = require('../../../client/src/battles');
 
 RG.Factory.Game = require('../../../client/src/factory.game');
 
-// const RGObjects = require('../../../client/data/battles_objects');
-// const RGEffects = require('../../../client/data/effects');
-
 describe('How Game is created from Overworld', function() {
-    this.timeout(20000);
+    this.timeout(30000);
     it('is created using factory from game/player objects', () => {
         const gameFact = new RG.Factory.Game();
 
@@ -24,6 +21,10 @@ describe('How Game is created from Overworld', function() {
         // const gameObj = new RG.Game.Main();
         const game = gameFact.createNewGame(conf);
         expect(game).to.exist;
+
+        const places = game.getPlaces();
+        expect(Object.keys(places)).to.have.length(1);
+
 
         const levels = game.getLevels();
         levels.forEach(level => {
