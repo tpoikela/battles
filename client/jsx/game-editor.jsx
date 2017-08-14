@@ -17,7 +17,9 @@ const createOverWorld = RG.OverWorld.createOverWorld;
 
 /*
  * Sketch to specify the menus in more sane way than jsx.
-const topMenu = {
+ */
+/*
+const topMenuConf = {
     File: {
         Save: 'callback1',
         Load: 'callback2',
@@ -572,19 +574,19 @@ class GameEditor extends React.Component {
 
                     <div className='btn-div'>
                         <button onClick={this.saveLevel}>Save</button>
-                        <label>Load
-                            <input
-                                id='level-file-input'
-                                onChange={this.loadLevel}
-                                type='file'
-                            />
-                        </label>
-                        <button
-                            className='btn btn-danger btn-lg'
-                            onClick={this.props.toggleEditor}
-                        >
-                            Close editor
-                        </button>
+                        <input
+                            id='level-file-input'
+                            onChange={this.loadLevel}
+                            type='file'
+                        />
+                        <div>
+                            <button
+                                className='btn btn-danger btn-lg'
+                                onClick={this.props.toggleEditor}
+                            >
+                                Close editor
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1211,6 +1213,7 @@ class GameEditor extends React.Component {
         });
         return levelList;
     }
+
 }
 
 GameEditor.propTypes = {
