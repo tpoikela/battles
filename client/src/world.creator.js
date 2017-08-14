@@ -1,4 +1,7 @@
 
+/* NOTE: This file is unused at the moment. It has been replaced by overworld
+*  generation, which is less random. */
+
 const RG = require('./rg.js');
 RG.Random = require('./random');
 
@@ -166,7 +169,7 @@ const Creator = function() {
     // DUNGEONS
     //---------------
 
-    // :w
+    /* Creates configuration for all dungeons. */
     this.createDungeonsConf = function(areaConf, conf) {
         const nDungeons = this.getNumFeatures('dungeon', areaConf, conf);
         const dungeons = [];
@@ -364,10 +367,6 @@ const Creator = function() {
             nLevels
         };
     };
-
-    /* this.getDifficulty = function(x, y) {
-
-    }; */
 
     /* Given feature type (dungeon, city, mountain), returns
     * the number of features that should be generated. */
