@@ -232,6 +232,8 @@ const RG = { // {{{2
             chasm: '~',
             default: '.',
             floor: '.',
+            floorcave: '.',
+            floorcrypt: '.',
             fort: '#',
             grass: '"',
             highrock: '^',
@@ -245,6 +247,8 @@ const RG = { // {{{2
             stone: '^',
             tree: 'T',
             wall: '#',
+            wallcave: '#',
+            wallcrypt: '#',
             water: '~',
             // Elements with different states
             door: {
@@ -277,6 +281,8 @@ const RG = { // {{{2
             default: 'cell-element-default',
             door: 'cell-element-door',
             floor: 'cell-element-floor',
+            floorcave: 'cell-element-floor-cave',
+            floorcrypt: 'cell-element-floor-crypt',
             fort: 'cell-element-fort',
             grass: 'cell-element-grass',
             highrock: 'cell-element-highrock',
@@ -288,6 +294,8 @@ const RG = { // {{{2
             stone: 'cell-element-stone',
             tree: 'cell-element-tree',
             wall: 'cell-element-wall',
+            wallcave: 'cell-element-wall-cave',
+            wallcrypt: 'cell-element-wall-crypt',
             water: 'cell-element-water'
         },
         actors: {

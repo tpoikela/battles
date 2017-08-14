@@ -9,7 +9,7 @@ $wall-color: #f00;
 $stone-color: #808080;
 $dark-stone-color: darken($stone-color, 30%);
 
-$floor-bg-color: $stone-color;;
+$floor-bg-color: $stone-color;
 $tree-color: lighten($green, 20%);
 
 $door-color: #a52a2a;;
@@ -43,6 +43,15 @@ $door-bg-color: $floor-bg-color;
     background-color: $floor-bg-color;
 }
 
+.cell-element-floor-cave {
+    background-color: $floor-bg-color;
+}
+
+.cell-element-floor-crypt {
+    background-color: $black;
+    color: $gray;
+}
+
 .cell-element-fort {
     background-color: $floor-bg-color;
     color: $black;
@@ -67,6 +76,16 @@ $door-bg-color: $floor-bg-color;
     background-color: $wall-color;
 }
 
+.cell-element-wall-cave {
+    background-color: $black;
+    color: $brown;
+}
+
+.cell-element-wall-crypt {
+    background-color: $black;
+    color: $gray;
+}
+
 .cell-element-water {
     background-color: $floor-bg-color;
     color: $blue;
@@ -87,7 +106,6 @@ $door-bg-color: $floor-bg-color;
 
 .cell-element-highrock {
     background-color: $ground-color;
-    // color: $dark-stone-color;
     color: $white;
 }
 
