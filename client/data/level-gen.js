@@ -20,25 +20,38 @@ const getNumLevels = function(name) {
 /* Returns generation constraints based on the level name. */
 const getConstraint = function(name) {
     switch (name) {
+        case 'Cave': return {
+            actor: actor => actor.type === 'animal' || actor.type === 'goblin'
+        };
         case 'Crypt': return {
-            actor: actor => {
-                return (actor.type === 'undead');
-            }
+            actor: actor => actor.type === 'undead'
         };
         default: return null;
     }
 };
 
+const convertToImplemented = function(name) {
+    switch (name) {
+        case 'Grotto': return 'Cave';
+        case 'Cavern': return 'Cave';
+        case 'Catacombs': return 'Crypt';
+        case 'Tombs': return 'Crypt';
+        case 'Cells': return 'Dungeon';
+        default: return name;
+    }
+};
+
 LevelGen.getDungeonConf = (dungeonName) => {
-    const brName = RG.Names.getGenericPlaceName('branch');
-    const nLevels = getNumLevels(dungeonName);
-    const constraint = getConstraint(dungeonName);
+    const usedName = convertToImplemented(dungeonName);
+    // const brName = RG.Names.getGenericPlaceName('branch');
+    const nLevels = getNumLevels(usedName);
+    const constraint = getConstraint(usedName);
     const obj = {
         name: dungeonName,
-        type: dungeonName.toLowerCase(),
+        dungeonType: usedName.toLowerCase(),
         nBranches: 1,
         branch: [
-            {name: brName, nLevels, entranceLevel: 0}
+            {name: dungeonName, nLevels, entranceLevel: 0}
         ]
     };
 
