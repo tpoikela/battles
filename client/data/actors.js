@@ -125,11 +125,22 @@ const Actors = [
     {
         name: 'UndeadBase', className: 'cell-actor-undead',
         dontCreate: true, addComp: 'Undead', brain: 'Undead',
-        range: 1, enemies: ['player', 'human']
+        range: 1, enemies: ['player', 'human'], type: 'undead'
+    },
+    {
+        name: 'skeletal dog', char: 'z', base: 'UndeadBase',
+        attack: 1, defense: 1, damage: '1d6', danger: 1,
+        hp: 6
     },
     {
         name: 'skeleton', char: 'z', base: 'UndeadBase',
-        attack: 2, defense: 2, damage: '1d6', danger: 2
+        attack: 2, defense: 1, damage: '1d5', danger: 1,
+        hp: 9
+    },
+    {
+        name: 'zombie', char: 'z', base: 'UndeadBase',
+        attack: 2, defense: 2, damage: '1d6', danger: 2,
+        hp: 12
     },
 
     // DEMONS AND WINTRY BEINGS
