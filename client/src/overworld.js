@@ -22,6 +22,7 @@
 
 const RG = require('./rg');
 RG.Names = require('../data/name-gen');
+RG.LevelGen = require('../data/level-gen');
 
 const getRandIn = RG.RAND.arrayGetRand.bind(RG.RAND);
 
@@ -1132,6 +1133,7 @@ function addDungeonToSubLevel(owSubLevel, subLevel) {
         const xy = getRandIn(freeXY);
         const box = RG.Geometry.getBoxAround(xy[0], xy[1], 1);
 
+        /* eslint-disable */
         box.forEach(xyBox => {
             if (!placed) {
                 if (map.hasXY(xyBox[0], xyBox[1])) {
@@ -1144,6 +1146,7 @@ function addDungeonToSubLevel(owSubLevel, subLevel) {
                 }
             }
         });
+        /* eslint-enable */
 
         if (watchdog === 0) {
             break;
@@ -1532,21 +1535,13 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
 
                         console.log('dungeon coord: ' + JSON.stringify(coord));
 
-
-                        const nLevels = 5;
                         const featX = mapX(coord[0][0], slX, subX);
                         const featY = mapY(coord[0][1], slY, subY);
                         const dName = RG.Names.getGenericPlaceName('dungeon');
-                        const brName = RG.Names.getGenericPlaceName('branch');
 
-                        const dungeonConf = {
-                            name: dName,
-                            nBranches: 1,
-                            branch: [
-                                {name: brName, nLevels, entranceLevel: 0}
-                            ],
-                            x: aX, y: aY, levelX: featX, levelY: featY
-                        };
+                        const dungeonConf = RG.LevelGen.getDungeonConf(dName);
+                        Object.assign(dungeonConf,
+                            {x: aX, y: aY, levelX: featX, levelY: featY});
                         areaConf.nDungeons += 1;
                         areaConf.dungeon.push(dungeonConf);
                     }
