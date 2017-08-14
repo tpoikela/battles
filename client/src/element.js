@@ -8,6 +8,8 @@ RG.Object = require('./object.js');
 
 RG.Element = {};
 
+const wallRegexp = /wall/;
+
 /* Element is a wall or other obstacle or a feature in the map. It's not
  * necessarily blocking movement.  */
 RG.Element.Base = function(elemType) { // {{{2
@@ -17,19 +19,19 @@ RG.Element.Base = function(elemType) { // {{{2
 RG.extend2(RG.Element.Base, RG.Object.Typed);
 
 RG.Element.Base.prototype.isPassable = function() {
-    return this.getType() !== 'wall';
+    return !wallRegexp.test(this.getType());
 };
 
 RG.Element.Base.prototype.isPassableByAir = function() {
-    return this.getType() !== 'wall';
+    return !wallRegexp.test(this.getType());
 };
 
 RG.Element.Base.prototype.isSpellPassable = function() {
-    return this.getType() !== 'wall';
+    return !wallRegexp.test(this.getType());
 };
 
 RG.Element.Base.prototype.lightPasses = function() {
-    return this.getType() !== 'wall';
+    return !wallRegexp.test(this.getType());
 };
 
 /* Should be enough for stateless elements. Does not work for doors or stairs
@@ -434,6 +436,8 @@ RG.Element.Fort.prototype.isPassable = function() {
 RG.BRIDGE_ELEM = Object.freeze(new RG.Element.Base('bridge'));
 RG.CHASM_ELEM = Object.freeze(new RG.Element.Chasm());
 RG.FLOOR_ELEM = Object.freeze(new RG.Element.Base('floor'));
+RG.FLOOR_CAVE_ELEM = Object.freeze(new RG.Element.Base('floorcave'));
+RG.FLOOR_CRYPT_ELEM = Object.freeze(new RG.Element.Base('floorcrypt'));
 RG.GRASS_ELEM = Object.freeze(new RG.Element.Grass());
 RG.HIGH_ROCK_ELEM = Object.freeze(new RG.Element.HighRock());
 RG.ICE_WALL_ELEM = Object.freeze(new RG.Element.Base('icewall'));
@@ -442,6 +446,8 @@ RG.SNOW_ELEM = Object.freeze(new RG.Element.Base('snow'));
 RG.STONE_ELEM = Object.freeze(new RG.Element.Stone());
 RG.TREE_ELEM = Object.freeze(new RG.Element.Tree());
 RG.WALL_ELEM = Object.freeze(new RG.Element.Base('wall'));
+RG.WALL_CAVE_ELEM = Object.freeze(new RG.Element.Base('wallcave'));
+RG.WALL_CRYPT_ELEM = Object.freeze(new RG.Element.Base('wallcrypt'));
 RG.WATER_ELEM = Object.freeze(new RG.Element.Water());
 RG.FORT_ELEM = Object.freeze(new RG.Element.Fort());
 
