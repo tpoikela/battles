@@ -9,15 +9,31 @@ RG.Geometry = {
      * be used to include the coordinate itself in the result. */
     getBoxAround: function(x0, y0, d, incSelf = false) {
         const res = [];
-        for (let x = x0 - d; x < x0 + d; x++) {
-            for (let y = y0 - d; y < y0 + d; y++) {
-                if (x !== x0 && y !== y0) {
+        for (let x = x0 - d; x <= x0 + d; x++) {
+            for (let y = y0 - d; y <= y0 + d; y++) {
+                if (x !== x0 || y !== y0) {
                     res.push([x, y]);
                 }
             }
         }
         if (incSelf) {res.push([x0, y0]);}
         return res;
+    },
+
+    getCrossAround: function(x0, y0, d, incSelf = false) {
+        const res = [];
+        for (let x = x0 - d; x <= x0 + d; x++) {
+            for (let y = y0 - d; y <= y0 + d; y++) {
+                if (x === x0 || y === y0) {
+                    if (x !== x0 || y !== y0) {
+                        res.push([x, y]);
+                    }
+                }
+            }
+        }
+        if (incSelf) {res.push([x0, y0]);}
+        return res;
+
     },
 
     /* Returns a box of coordinates given starting point and end points
