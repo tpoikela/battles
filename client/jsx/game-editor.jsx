@@ -974,9 +974,12 @@ class GameEditor extends React.Component {
     }
 
     getLevelSelectElement() {
-        const _types = ['arena', 'cellular', 'digger', 'divided', 'dungeon',
-            'eller', 'empty', 'forest', 'icey', 'mountain', 'uniform', 'rogue',
-            'ruins', 'rooms', 'town'];
+        const _types = [
+            'arena', 'cellular', 'cave', 'crypt', 'digger', 'divided',
+            'dungeon', 'eller', 'empty', 'forest', 'icey', 'miner',
+            'mountain', 'uniform', 'rogue',
+            'ruins', 'rooms', 'town'
+        ];
         const elem = _types.map(type => {
             const key = 'key-sel-type-' + type;
             return <option key={key} value={type}>{type}</option>;
