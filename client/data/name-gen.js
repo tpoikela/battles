@@ -22,12 +22,12 @@ Names.place.generic = {
     ],
     dungeon: [
         'Crypt', 'Catacombs', 'Tombs',
-        'Dungeon', 'Cave', 'Grotto', 'Cavern',
-        'Burrows',
-        'Delves',
-        'Haunt', 'Point',
-        'Vault', 'Lair', 'Tunnels', 'Cells', 'Pits',
-        'Labyrinth', 'Maze'
+        'Dungeon', 'Cells',
+        'Cave', 'Grotto', 'Cavern',
+        // 'Burrows', 'Delves',
+        // 'Haunt', 'Point',
+        // 'Vault', 'Lair', 'Tunnels', 'Pits',
+        'Labyrinth' // , 'Maze'
     ],
 
     mountain: [
