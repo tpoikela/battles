@@ -3,6 +3,7 @@ const ROT = require('../../lib/rot.js');
 const RG = require('./rg.js');
 
 ROT.Map.Forest = require('../../lib/map.forest');
+ROT.Map.Miner = require('../../lib/map.miner');
 ROT.Map.Mountain = require('../../lib/map.mountain');
 
 RG.Element = require('./element.js');
@@ -516,19 +517,27 @@ RG.Map.Generator = function() { // {{{2
         _mapType = type;
         switch (type) {
             case 'arena': _mapGen = new ROT.Map.Arena(cols, rows); break;
+            case 'cave': _mapGen = new ROT.Map.Miner(cols, rows); break;
             case 'cellular': _mapGen = this.createCellular(cols, rows); break;
+            case 'crypt': _mapGen = new ROT.Map.Uniform(cols, rows); break;
             case 'digger': _mapGen = new ROT.Map.Digger(cols, rows); break;
             case 'divided':
                 _mapGen = new ROT.Map.DividedMaze(cols, rows); break;
+            case 'dungeon': _mapGen = new ROT.Map.Rogue(cols, rows); break;
             case 'empty': _mapGen = new ROT.Map.Dungeon(cols, rows); break;
             case 'eller': _mapGen = new ROT.Map.EllerMaze(cols, rows); break;
             case 'forest': _mapGen = new ROT.Map.Forest(cols, rows); break;
+            case 'lakes': _mapGen = new ROT.Map.Forest(cols, rows); break;
+            case 'labyrinth':
+                _mapGen = new ROT.Map.DividedMaze(cols, rows); break;
+            case 'miner': _mapGen = new ROT.Map.Miner(cols, rows); break;
             case 'mountain': _mapGen = new ROT.Map.Mountain(cols, rows); break;
             case 'icey': _mapGen = new ROT.Map.IceyMaze(cols, rows); break;
             case 'rogue': _mapGen = new ROT.Map.Rogue(cols, rows); break;
             case 'uniform': _mapGen = new ROT.Map.Uniform(cols, rows); break;
             case 'ruins': _mapGen = this.createRuins(cols, rows); break;
             case 'rooms': _mapGen = this.createRooms(cols, rows); break;
+            case 'town': _mapGen = new ROT.Map.Arena(cols, rows); break;
             default: RG.err('MapGen',
                 'setGen', '_mapGen type ' + type + ' is unknown');
         }
@@ -899,6 +908,35 @@ RG.Map.Generator = function() { // {{{2
             }
         });
         return w;
+    };
+
+    this.createCrypt = function(cols, rows) {
+        this.setGen('crypt', cols, rows);
+        const map = new RG.Map.CellList(cols, rows);
+        _mapGen.create(function(x, y, val) {
+            if (val === 1) {
+                map.setBaseElemXY(x, y, RG.WALL_CRYPT_ELEM);
+            }
+            else {
+                map.setBaseElemXY(x, y, RG.FLOOR_CRYPT_ELEM);
+
+            }
+        });
+        return {map};
+    };
+
+    this.createCave = function(cols, rows, conf) {
+        _mapGen = new ROT.Map.Miner(cols, rows, conf);
+        const map = new RG.Map.CellList(cols, rows);
+        _mapGen.create(function(x, y, val) {
+            if (val === 1) {
+                map.setBaseElemXY(x, y, RG.WALL_CAVE_ELEM);
+            }
+            else {
+                map.setBaseElemXY(x, y, RG.FLOOR_CAVE_ELEM);
+            }
+        });
+        return {map};
     };
 
 }; // }}} Map.Generator

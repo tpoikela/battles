@@ -224,6 +224,7 @@ RG.Factory.Base = function() { // {{{2
         let mapObj = null;
         const level = new RG.Map.Level(cols, rows);
 
+        mapgen.setGen(levelType, cols, rows);
         if (levelType === 'town') {
             mapObj = mapgen.createTown(cols, rows, conf);
             level.setMap(mapObj.map);
@@ -231,24 +232,31 @@ RG.Factory.Base = function() { // {{{2
             this.createShops(level, mapObj, conf);
         }
         else if (levelType === 'forest') {
-            mapgen.setGen('forest', cols, rows);
             mapObj = mapgen.createForest(conf);
-            level.setMap(mapObj.map);
         }
         else if (levelType === 'lakes') {
-            mapgen.setGen('forest', cols, rows);
             mapObj = mapgen.createLakes(conf);
-            level.setMap(mapObj.map);
         }
         else if (levelType === 'mountain') {
-            mapgen.setGen('mountain', cols, rows);
             mapObj = mapgen.createMountain(conf);
+        }
+        else if (levelType === 'crypt') {
+            mapObj = mapgen.createCrypt(cols, rows, {});
+        }
+        else if (levelType === 'cave') {
+            mapObj = mapgen.createCave(cols, rows, {});
+        }
+        else {
+            mapObj = mapgen.getMap();
+        }
+
+        if (mapObj) {
             level.setMap(mapObj.map);
         }
         else {
-            mapgen.setGen(levelType, cols, rows);
-            mapObj = mapgen.getMap();
-            level.setMap(mapObj.map);
+            const msg = JSON.stringify(conf);
+            RG.err('Factory.Base', 'createLevel',
+                `mapObj is null. type: ${levelType}. ${msg}`);
         }
 
         return level;
@@ -394,7 +402,6 @@ RG.Factory.Base = function() { // {{{2
                 });
             }
 
-
             if (monster) {
                 // This levels up the actor to match current danger level
                 const objShell = parser.dbGet('actors', monster.getName());
@@ -508,8 +515,8 @@ RG.Factory.Feature = function() {
         const itemsPerLevel = Math.round(numFree / conf.sqrPerItem);
         const goldPerLevel = itemsPerLevel;
 
-        debug(`Adding ${monstersPerLevel} monsters and
-            ${itemsPerLevel} to the level`);
+        debug(`Adding ${monstersPerLevel} monsters and items ` +
+            `${itemsPerLevel} to the level`);
 
         const itemConstraint = function(maxValue) {
             return function(item) {return item.value <= maxValue;};
@@ -548,7 +555,11 @@ RG.Factory.Feature = function() {
     /* Creates random dungeon level. */
     this.createDungeonLevel = function(conf) {
         let level = null;
-        const levelType = this.getRandLevelType();
+        let levelType = this.getRandLevelType();
+        if (conf.dungeonType) {
+            levelType = conf.dungeonType;
+        }
+        debug(`dungeonLevel: ${levelType}, ${JSON.stringify(conf)}`);
         level = this.createLevel(levelType, conf.x, conf.y);
         this.addItemsAndMonsters(level, conf);
         return level;
@@ -844,6 +855,11 @@ RG.Factory.World = function() {
                 maxValue: 20 * (i + 1),
                 nLevel: i
             };
+
+            const dungeonType = this.getConf('dungeonType');
+            if (dungeonType) {
+                levelConf.dungeonType = dungeonType;
+            }
 
             if (constraint) {
                 levelConf.actor = constraint.actor;
