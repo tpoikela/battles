@@ -23,6 +23,7 @@
 const RG = require('./rg');
 RG.Names = require('../data/name-gen');
 RG.LevelGen = require('../data/level-gen');
+RG.WorldConf = require('./world.creator');
 
 const getRandIn = RG.RAND.arrayGetRand.bind(RG.RAND);
 
@@ -30,35 +31,38 @@ const $DEBUG = true;
 
 RG.OverWorld = {};
 
+const OW = {};
+
 // Straight lines
-const LL_WE = '\u2550'; // ═
-const LL_NS = '\u2551'; // ║
+OW.LL_WE = '\u2550'; // ═
+OW.LL_NS = '\u2551'; // ║
 
 // Corners
-const CC_NW = '\u2554'; // ╔
-const CC_NE = '\u2557'; // ╗
-const CC_SW = '\u255A'; // ╚
-const CC_SE = '\u255D'; // ╝
+OW.CC_NW = '\u2554'; // ╔
+OW.CC_NE = '\u2557'; // ╗
+OW.CC_SW = '\u255A'; // ╚
+OW.CC_SE = '\u255D'; // ╝
 
 // Double cross
-const XX = '\u256C'; // ╬
-const EMPTY = 'e';
+OW.XX = '\u256C'; // ╬
+OW.EMPTY = 'e';
 
 // NSEW
 
-const TT_W = '\u2560'; // ╠
-const TT_E = '\u2563'; // ╣
-const TT_N = '\u2566'; // ╦
-const TT_S = '\u2569'; // ╩
-const TERM = '.';
+OW.TT_W = '\u2560'; // ╠
+OW.TT_E = '\u2563'; // ╣
+OW.TT_N = '\u2566'; // ╦
+OW.TT_S = '\u2569'; // ╩
+OW.TERM = '.';
 
 // Features like cities etc.
-const BTOWER = '\u265C';
-const WTOWER = '\u2656';
-const DUNGEON = '\u2616';
+OW.BTOWER = '\u265C';
+OW.WTOWER = '\u2656';
+OW.DUNGEON = '\u2616';
+OW.VILLAGE = '\u27F0';
 // const CITY = '\u1CC1';
 
-const biomeTypeMap = {
+OW.biomeTypeMap = {
     arctic: 0,
     alpine: 1,
     tundra: 2,
@@ -70,155 +74,161 @@ const biomeTypeMap = {
 // Used for randomization
 /*
 const dirValues = [
-    TERM, XX, EMPTY, TT_E, TT_W, TT_S, TT_N, CC_NW, CC_NE,
-    CC_SW, CC_SE, LL_WE, LL_NS
+    OW.TERM, OW.XX, OW.EMPTY, OW.TT_E, OW.TT_W,
+    OW.TT_S, OW.TT_N, OW.CC_NW, OW.CC_NE,
+    OW.CC_SW, OW.CC_SE, OW.LL_WE, OW.LL_NS
 ];
 */
 
-const ILLEGAL_POS = -1;
-const CELL_ANY = 'CELL_ANY'; // Used in matching functions only
+OW.ILLEGAL_POS = -1;
+OW.CELL_ANY = 'OW.CELL_ANY'; // Used in matching functions only
 
 // Can connect to east side
-const E_HAS_CONN = [XX, TT_W, TT_N, TT_S, CC_NW, CC_SW, LL_WE];
-// const E_CONN = [TERM, XX, TT_E, TT_S, TT_N, LL_WE, CC_NE, CC_SE];
+OW.E_HAS_CONN = [
+    OW.XX, OW.TT_W, OW.TT_N, OW.TT_S, OW.CC_NW, OW.CC_SW, OW.LL_WE];
 
 // Can connect to west side
-const W_HAS_CONN = [XX, TT_E, TT_N, TT_S, CC_NE, CC_SE, LL_WE];
-// const W_CONN = [TERM, XX, TT_W, TT_S, TT_N, LL_WE, CC_NW, CC_SW];
+OW.W_HAS_CONN = [
+    OW.XX, OW.TT_E, OW.TT_N, OW.TT_S, OW.CC_NE, OW.CC_SE, OW.LL_WE];
 
 // Can connect to north
-const N_HAS_CONN = [XX, TT_S, TT_W, TT_E, CC_SW, CC_SE, LL_NS];
-// const N_CONN = [TERM, XX];
+OW.N_HAS_CONN = [
+    OW.XX, OW.TT_S, OW.TT_W, OW.TT_E, OW.CC_SW, OW.CC_SE, OW.LL_NS];
 
 // Can connect to south
-const S_HAS_CONN = [XX, TT_N, TT_W, TT_E, CC_NW, CC_NE, LL_NS];
-// const S_CONN = [TERM, XX];
+OW.S_HAS_CONN = [
+    OW.XX, OW.TT_N, OW.TT_W, OW.TT_E, OW.CC_NW, OW.CC_NE, OW.LL_NS];
 
-const N_BORDER = [LL_WE, TT_N];
-const S_BORDER = [LL_WE, TT_S];
-const E_BORDER = [LL_NS, TT_E];
-const W_BORDER = [LL_NS, TT_W];
+OW.N_BORDER = [OW.LL_WE, OW.TT_N];
+OW.S_BORDER = [OW.LL_WE, OW.TT_S];
+OW.E_BORDER = [OW.LL_NS, OW.TT_E];
+OW.W_BORDER = [OW.LL_NS, OW.TT_W];
 
-const ALL_WALLS = [XX, TT_N, TT_S, TT_E, TT_W, CC_SW, CC_NW, CC_SE, CC_NE,
-    LL_WE, LL_NS];
+OW.ALL_WALLS = [
+    OW.XX, OW.TT_N, OW.TT_S, OW.TT_E, OW.TT_W,
+    OW.CC_SW, OW.CC_NW, OW.CC_SE, OW.CC_NE,
+    OW.LL_WE, OW.LL_NS
+];
 
-// const LINE_WE = [LL_WE, TT_N, TT_S, XX];
-// const LINE_NS = [LL_NS, TT_E, TT_W, XX];
+// const LINE_WE = [OW.LL_WE, OW.TT_N, OW.TT_S, OW.XX];
+// const LINE_NS = [OW.LL_NS, OW.TT_E, OW.TT_W, OW.XX];
 
 // Used for weighted randomisation of creating west-east walls,
 // favors non-branching walls
-const LINE_WE_WEIGHT = {
-    [LL_WE]: 10,
-    [TT_N]: 3,
-    [TT_S]: 3,
-    [XX]: 1
+OW.LINE_WE_WEIGHT = {
+    [OW.LL_WE]: 10,
+    [OW.TT_N]: 3,
+    [OW.TT_S]: 3,
+    [OW.XX]: 1
 };
 
 // Used for weighted randomisation of create north-south walls,
 // favors non-branching walls
-const LINE_NS_WEIGHT = {
-    [LL_NS]: 10,
-    [TT_E]: 3,
-    [TT_W]: 3,
-    [XX]: 1
+OW.LINE_NS_WEIGHT = {
+    [OW.LL_NS]: 10,
+    [OW.TT_E]: 3,
+    [OW.TT_W]: 3,
+    [OW.XX]: 1
 };
 
 // Connection mappings for different 'mountain' tiles
 // If we have an empty cell (e), and neighbouring cell is of type 'first key',
 // and this cell is located in the dir 'second key' of the empty cell,
 // listed cells can be used as empty cell.
-const CAN_CONNECT = {
-    [LL_WE]: {
+OW.CAN_CONNECT = {
+    [OW.LL_WE]: {
         N: [], // ═
                // e
 
         S: [], // e
                // ═
 
-        E: E_HAS_CONN, // e═
-        W: W_HAS_CONN  // ═e
+        E: OW.E_HAS_CONN, // e═
+        W: OW.W_HAS_CONN  // ═e
     },
-    [LL_NS]: {
-        N: N_HAS_CONN, // ║
+    [OW.LL_NS]: {
+        N: OW.N_HAS_CONN, // ║
                        // e
 
-        S: S_HAS_CONN, // e
+        S: OW.S_HAS_CONN, // e
                        // ║
         E: [], // e║
         W: []  // ║e
     },
 
     // Corners
-    [CC_NW]: { // ╔
-        N: N_HAS_CONN, // ╔
+    [OW.CC_NW]: { // ╔
+        N: OW.N_HAS_CONN, // ╔
                        // e
         S: [],
         E: [],
-        W: W_HAS_CONN // ╔e
+        W: OW.W_HAS_CONN // ╔e
     },
-    [CC_NE]: {
-        N: N_HAS_CONN,
+    [OW.CC_NE]: {
+        N: OW.N_HAS_CONN,
         S: [],
-        E: E_HAS_CONN,
+        E: OW.E_HAS_CONN,
         W: []
     },
-    [CC_SW]: { // ╚
+    [OW.CC_SW]: { // ╚
         N: [],
-        S: S_HAS_CONN,
+        S: OW.S_HAS_CONN,
         E: [], // e╚
-        W: W_HAS_CONN
+        W: OW.W_HAS_CONN
     },
-    [CC_SE]: { // ╝
+    [OW.CC_SE]: { // ╝
         N: [],
-        S: S_HAS_CONN,
-        E: E_HAS_CONN,  // e╝
+        S: OW.S_HAS_CONN,
+        E: OW.E_HAS_CONN,  // e╝
         W: [] // ╝e
     },
 
-    [XX]: { // ╬ connects to all dirs
-        N: N_HAS_CONN,
-        S: S_HAS_CONN,
-        E: E_HAS_CONN,
-        W: W_HAS_CONN
+    [OW.XX]: { // ╬ connects to all dirs
+        N: OW.N_HAS_CONN,
+        S: OW.S_HAS_CONN,
+        E: OW.E_HAS_CONN,
+        W: OW.W_HAS_CONN
     },
-    [EMPTY]: {
+    [OW.EMPTY]: {
         N: [],
         S: [],
         E: [],
         W: []
     },
 
-    [TT_W]: { // ╠
-        N: N_HAS_CONN,
-        S: S_HAS_CONN,
+    [OW.TT_W]: { // ╠
+        N: OW.N_HAS_CONN,
+        S: OW.S_HAS_CONN,
         E: [], // e╠
-        W: W_HAS_CONN  // ╠e
+        W: OW.W_HAS_CONN  // ╠e
     },
-    [TT_E]: { // ╣
-        N: N_HAS_CONN,
-        S: S_HAS_CONN,
-        E: E_HAS_CONN,
+    [OW.TT_E]: { // ╣
+        N: OW.N_HAS_CONN,
+        S: OW.S_HAS_CONN,
+        E: OW.E_HAS_CONN,
         W: []
     },
-    [TT_N]: { // ╦
-        N: N_HAS_CONN,
+    [OW.TT_N]: { // ╦
+        N: OW.N_HAS_CONN,
         S: [],
-        E: E_HAS_CONN,
-        W: W_HAS_CONN
+        E: OW.E_HAS_CONN,
+        W: OW.W_HAS_CONN
     },
-    [TT_S]: { // ╩
+    [OW.TT_S]: { // ╩
         N: [],
-        S: S_HAS_CONN,
-        E: E_HAS_CONN,
-        W: W_HAS_CONN
+        S: OW.S_HAS_CONN,
+        E: OW.E_HAS_CONN,
+        W: OW.W_HAS_CONN
     },
-    [TERM]: {
+    [OW.TERM]: {
         N: [],
         S: [],
         E: [],
         W: []
     }
 };
+
+OW.cityTypesRe = /(fort|city|village)/;
 
 /* Wall object inside the Overworld. Wall here means a huge wall of mountains.
  * */
@@ -242,7 +252,7 @@ const Wall = function(type) {
         if (type === 'horizontal') {
             return this.coord[0][0][1];
         }
-        return ILLEGAL_POS;
+        return OW.ILLEGAL_POS;
     };
 
     this.getWallStart = function() {
@@ -252,7 +262,7 @@ const Wall = function(type) {
         if (type === 'horizontal') {
             return this.coord[0][0][0];
         }
-        return ILLEGAL_POS;
+        return OW.ILLEGAL_POS;
     };
 
     this.getWallEnd = function() {
@@ -480,7 +490,7 @@ RG.OverWorld.Map = function(tilesX, tilesY) {
         const sizeY = this.getSizeY() - 1;
 
         // Build a legend ie: 0 - arctic, 1 - alpine, 2 - forest etc
-        const keys = Object.keys(biomeTypeMap);
+        const keys = Object.keys(OW.biomeTypeMap);
         const name2Num = {};
         const legend = keys.map((key, index) => {
             name2Num[key] = '' + index;
@@ -509,10 +519,6 @@ RG.OverWorld.Map = function(tilesX, tilesY) {
  * @return RG.Map.Level.
  */
 RG.OverWorld.createOverWorld = function(conf = {}) {
-
-    const worldX = conf.worldX || 400;
-    const worldY = conf.worldY || 400;
-
     const yFirst = typeof conf.yFirst !== 'undefined' ? conf.yFirst : true;
 
     const topToBottom = typeof conf.topToBottom !== 'undefined'
@@ -526,34 +532,38 @@ RG.OverWorld.createOverWorld = function(conf = {}) {
     const owTilesY = conf.highY || 20;
     const overworld = new RG.OverWorld.Map(owTilesX, owTilesY);
 
-    const xMap = Math.floor(worldX / owTilesX);
-    const yMap = Math.floor(worldY / owTilesY);
-
-    const map = createEmptyMap(owTilesX, owTilesY);
-    randomizeBorders(map);
-    printMap(map);
-    addWallsIfAny(overworld, map, conf);
-    printMap(map);
+    const owMap = createEmptyMap(owTilesX, owTilesY);
+    randomizeBorders(owMap);
+    addWallsIfAny(overworld, owMap, conf);
 
     if (topToBottom) {
-        connectUnconnectedTopBottom(map, yFirst);
+        connectUnconnectedTopBottom(owMap, yFirst);
     }
     else {
-        connectUnconnectedBottomTop(map, yFirst);
+        connectUnconnectedBottomTop(owMap, yFirst);
     }
 
-    printMap(map);
-    overworld.setMap(map);
-
+    printMap(owMap);
+    overworld.setMap(owMap);
     addOverWorldFeatures(overworld);
+
+    // High-level overworld generation ends here
 
     if (printResult) {
         console.log(overworld.mapToString());
     }
 
+    // More accurate sub-level generation starts here
+
+    const worldX = conf.worldX || 400;
+    const worldY = conf.worldY || 400;
+
     // This will most likely fail, unless values have been set explicitly
     const areaX = conf.areaX || worldX / 100;
     const areaY = conf.areaY || worldY / 100;
+
+    const xMap = Math.floor(worldX / owTilesX);
+    const yMap = Math.floor(worldY / owTilesY);
 
     const worldLevel = createOverWorldLevel(
         overworld, worldX, worldY, xMap, yMap, areaX, areaY);
@@ -572,7 +582,7 @@ function createEmptyMap(sizeX, sizeY) {
     for (let x = 0; x < sizeX; x++) {
         map[x] = [];
         for (let y = 0; y < sizeY; y++) {
-            map[x][y] = EMPTY;
+            map[x][y] = OW.EMPTY;
         }
     }
     return map;
@@ -586,29 +596,29 @@ function randomizeBorders(map) {
     const sizeX = map.length;
 
     // Set map corners
-    map[0][0] = CC_NW;
-    map[0][sizeY - 1] = CC_SW;
-    map[sizeX - 1][sizeY - 1] = CC_SE;
-    map[sizeX - 1][0] = CC_NE;
+    map[0][0] = OW.CC_NW;
+    map[0][sizeY - 1] = OW.CC_SW;
+    map[sizeX - 1][sizeY - 1] = OW.CC_SE;
+    map[sizeX - 1][0] = OW.CC_NE;
 
     // N border, y = 0, vary x
     for (let x = 1; x < sizeX - 1; x++) {
-        map[x][0] = getRandIn(N_BORDER);
+        map[x][0] = getRandIn(OW.N_BORDER);
     }
 
     // S border, y = max, vary x
     for (let x = 1; x < sizeX - 1; x++) {
-        map[x][sizeY - 1] = getRandIn(S_BORDER);
+        map[x][sizeY - 1] = getRandIn(OW.S_BORDER);
     }
 
     // E border, x = max, vary y
     for (let y = 1; y < sizeY - 1; y++) {
-        map[sizeX - 1][y] = getRandIn(E_BORDER);
+        map[sizeX - 1][y] = getRandIn(OW.E_BORDER);
     }
 
     // W border, x = 0, vary y
     for (let y = 1; y < sizeY - 1; y++) {
-        map[0][y] = getRandIn(W_BORDER);
+        map[0][y] = getRandIn(OW.W_BORDER);
     }
 
 }
@@ -664,28 +674,28 @@ function addHorizontalWallWestToEast(ow, y, map, stopOnWall = false) {
     const sizeX = map.length;
     let didStopToWall = false;
     const wall = {y, x: [1]};
-    map[0][y] = TT_W;
-    if (!stopOnWall) {map[sizeX - 1][y] = TT_E;}
+    map[0][y] = OW.TT_W;
+    if (!stopOnWall) {map[sizeX - 1][y] = OW.TT_E;}
     for (let x = 1; x < sizeX - 1; x++) {
         if (!didStopToWall) {
-            if (map[x][y] !== EMPTY) {
+            if (map[x][y] !== OW.EMPTY) {
                 if (!stopOnWall) {
-                    map[x][y] = XX; // Push through wall
+                    map[x][y] = OW.XX; // Push through wall
                 }
                 else { // Add ╣ and finish
                     didStopToWall = true;
-                    map[x][y] = TT_E;
+                    map[x][y] = OW.TT_E;
                     wall.x.push(x);
                 }
             }
             else {
-                map[x][y] = RG.RAND.getWeighted(LINE_WE_WEIGHT);
+                map[x][y] = RG.RAND.getWeighted(OW.LINE_WE_WEIGHT);
             }
         }
     }
     if (!didStopToWall) { // Didn't stop to wall
         if (stopOnWall) { // But we wanted, so add ending piece
-            map[sizeX - 1][y] = TT_E;
+            map[sizeX - 1][y] = OW.TT_E;
         }
         wall.x.push(sizeX - 1);
     }
@@ -697,28 +707,28 @@ function addVerticalWallNorthToSouth(ow, x, map, stopOnWall = false) {
     const sizeY = map[0].length;
     let didStopToWall = false;
     const wall = {x, y: [1]};
-    map[x][0] = TT_N;
-    if (!stopOnWall) {map[x][sizeY - 1] = TT_S;}
+    map[x][0] = OW.TT_N;
+    if (!stopOnWall) {map[x][sizeY - 1] = OW.TT_S;}
     for (let y = 1; y < sizeY - 1; y++) {
         if (!didStopToWall) {
-            if (map[x][y] !== EMPTY) {
+            if (map[x][y] !== OW.EMPTY) {
                 if (!stopOnWall) {
-                    map[x][y] = XX; // Push through wall
+                    map[x][y] = OW.XX; // Push through wall
                 }
                 else { // Add ╩ and finish
                     didStopToWall = true;
-                    map[x][y] = TT_S;
+                    map[x][y] = OW.TT_S;
                     wall.y.push(y);
                 }
             }
             else {
-                map[x][y] = RG.RAND.getWeighted(LINE_NS_WEIGHT);
+                map[x][y] = RG.RAND.getWeighted(OW.LINE_NS_WEIGHT);
             }
         }
     }
     if (!didStopToWall) {
         if (stopOnWall) { // But we wanted, so add ending piece
-            map[x][sizeY - 1] = TT_S;
+            map[x][sizeY - 1] = OW.TT_S;
         }
         wall.y.push(sizeY - 1);
     }
@@ -772,21 +782,21 @@ function connectUnconnectedBottomTop(map, yFirst = true) {
 }
 
 function processCell(x, y, map) {
-    if (map[x][y] === EMPTY) {
+    if (map[x][y] === OW.EMPTY) {
         const neighbours = getValidNeighbours(x, y, map);
         const validNeighbours = neighbours.filter(n =>
-            n[0] !== EMPTY && n[0] !== TERM
+            n[0] !== OW.EMPTY && n[0] !== OW.TERM
         );
         if (validNeighbours.length === 1) {
             if (validNeighbours[0][1].length > 0) {
                 map[x][y] = getRandIn(validNeighbours[0][1]);
             }
             else {
-                map[x][y] = TERM;
+                map[x][y] = OW.TERM;
             }
         }
         else {
-            map[x][y] = TERM;
+            map[x][y] = OW.TERM;
         }
     }
 }
@@ -798,22 +808,22 @@ function getValidNeighbours(x, y, map) {
     const tiles = [];
     // N
     if (y > 0) {
-        const conn = CAN_CONNECT[map[x][y - 1]].N;
+        const conn = OW.CAN_CONNECT[map[x][y - 1]].N;
         tiles.push([map[x][y - 1], conn]);
     }
     // S
     if (y < sizeY - 1) {
-        const conn = CAN_CONNECT[map[x][y + 1]].S;
+        const conn = OW.CAN_CONNECT[map[x][y + 1]].S;
         tiles.push([map[x][y + 1], conn]);
     }
     // E
     if (x < sizeX - 1) {
-        const conn = CAN_CONNECT[map[x + 1][y]].E;
+        const conn = OW.CAN_CONNECT[map[x + 1][y]].E;
         tiles.push([map[x + 1][y], conn]);
     }
     // W
     if (x > 0) {
-        const conn = CAN_CONNECT[map[x - 1][y]].W;
+        const conn = OW.CAN_CONNECT[map[x - 1][y]].W;
         tiles.push([map[x - 1][y], conn]);
     }
     return tiles;
@@ -937,10 +947,10 @@ function addBiomeFeaturesSubLevel(biomeType, subLevel) {
 function addSubLevelWalls(type, owSubLevel, subLevel) {
     const map = subLevel.getMap();
 
-    const canConnectNorth = N_HAS_CONN.findIndex(item => item === type) >= 0;
-    const canConnectSouth = S_HAS_CONN.findIndex(item => item === type) >= 0;
-    const canConnectEast = E_HAS_CONN.findIndex(item => item === type) >= 0;
-    const canConnectWest = W_HAS_CONN.findIndex(item => item === type) >= 0;
+    const canConnectNorth = OW.N_HAS_CONN.findIndex(item => item === type) >= 0;
+    const canConnectSouth = OW.S_HAS_CONN.findIndex(item => item === type) >= 0;
+    const canConnectEast = OW.E_HAS_CONN.findIndex(item => item === type) >= 0;
+    const canConnectWest = OW.W_HAS_CONN.findIndex(item => item === type) >= 0;
 
     const subX = map.cols;
     const subY = map.rows;
@@ -1078,14 +1088,17 @@ function addSubLevelFeatures(ow, owX, owY, subLevel) {
     if (!features) {return;}
 
     features.forEach(feat => {
-        if ((base === LL_WE || base === LL_NS) && feat === WTOWER) {
+        if ((base === OW.LL_WE || base === OW.LL_NS) && feat === OW.WTOWER) {
             addMountainFortToSubLevel(owSubLevel, subLevel);
         }
-        else if (feat === BTOWER) {
+        else if (feat === OW.BTOWER) {
             addBlackTowerToSubLevel(owSubLevel, subLevel);
         }
-        else if (feat === DUNGEON) {
+        else if (feat === OW.DUNGEON) {
             addDungeonToSubLevel(owSubLevel, subLevel);
+        }
+        else if (feat === OW.VILLAGE) {
+            addVillageToSubLevel(owSubLevel, subLevel);
         }
     });
 }
@@ -1160,6 +1173,22 @@ function addDungeonToSubLevel(owSubLevel, subLevel) {
     }
 }
 
+/* Adds a village to the free square of the sub-level. */
+function addVillageToSubLevel(owSubLevel, subLevel) {
+    const map = subLevel.getMap();
+    const freeCells = map.getFree();
+    if (freeCells.length > 0) {
+        const freeXY = freeCells.map(cell => [cell.getX(), cell.getY()]);
+        const coord = RG.RAND.arrayGetRand(freeXY);
+        const village = new RG.OverWorld.SubFeature('village', [coord]);
+        owSubLevel.addFeature(village);
+    }
+    else {
+        RG.err('overworld.js', 'addVillageToSubLevel',
+            'No free cells found in the level.');
+    }
+}
+
 /* Adds features like water, cities etc into the world. This feature only
  * designates the x,y coordinate on overworld map, but does not give details
  * for the Map.Level sublevels. */
@@ -1168,12 +1197,12 @@ function addOverWorldFeatures(ow) {
     const sizeY = ow.getSizeY();
 
     // Add final tower
-    addFeatureToAreaByDir(ow, 'NE', 0.5, BTOWER);
+    addFeatureToAreaByDir(ow, 'NE', 0.5, OW.BTOWER);
 
     // City of B, + other wall fortresses
-    addFeatureToWall(ow, ow._hWalls[1], WTOWER);
-    addFeatureToWall(ow, ow._hWalls[0], WTOWER);
-    addFeatureToWall(ow, ow._vWalls[0], WTOWER);
+    addFeatureToWall(ow, ow._hWalls[1], OW.WTOWER);
+    addFeatureToWall(ow, ow._hWalls[0], OW.WTOWER);
+    addFeatureToWall(ow, ow._vWalls[0], OW.WTOWER);
 
     // TODO list for features:
 
@@ -1187,6 +1216,7 @@ function addOverWorldFeatures(ow) {
         type: 'tundra'});
     addBiomeToOverWorld(ow, {y: {start: ['wall', 1], end: 'S'}, type: 'taiga'});
 
+
     // Create forests and lakes
 
     // Distribute dungeons
@@ -1194,7 +1224,8 @@ function addOverWorldFeatures(ow) {
 
     // Distribute mountains
 
-    // Distribute cities
+    // Distribute cities and villages etc settlements
+    addVillagesToOverWorld(ow, 10, 1, sizeY - 2, sizeX - 2, sizeY - 10);
 
     // Adds roads for created features
 }
@@ -1207,7 +1238,7 @@ function addFeatureToAreaByDir(ow, loc, shrink, type) {
 
     let xy = getRandLoc(loc, shrink, sizeX, sizeY);
     let watchdog = 1000;
-    while (map[xy[0]][xy[1]] !== TERM) {
+    while (map[xy[0]][xy[1]] !== OW.TERM) {
         xy = getRandLoc(loc, shrink, sizeX, sizeY);
         if (watchdog === 0) {
             RG.warn('OverWorld', 'addFeature',
@@ -1229,12 +1260,12 @@ function addFeatureToWall(ow, wall, type) {
     if (wall.type === 'horizontal') { // y will be fixed
         const llx = wall.x[0];
         const urx = wall.x[wall.x.length - 1];
-        xy = findCellRandXYInBox(map, llx, wall.y, urx, wall.y, LL_WE);
+        xy = findCellRandXYInBox(map, llx, wall.y, urx, wall.y, OW.LL_WE);
     }
     if (wall.type === 'vertical') { // y will be fixed
         const lly = wall.y[0];
         const ury = wall.y[wall.y.length - 1];
-        xy = findCellRandXYInBox(map, wall.x, lly, wall.x, ury, LL_NS);
+        xy = findCellRandXYInBox(map, wall.x, lly, wall.x, ury, OW.LL_NS);
     }
 
     ow.addFeature(xy, type);
@@ -1344,19 +1375,28 @@ function addBiomeToOverWorld(ow, cmd) {
 /* Adds dungeons into the overworld. Can be bounded using using coordinates. */
 function addDungeonsToOverWorld(ow, nDungeons, lx, ly, rx, ry) {
     for (let i = 0; i < nDungeons; i++) {
-        const xy = findCellRandXYInBox(ow.getMap(), lx, ly, rx, ry, ALL_WALLS);
-        ow.addFeature(xy, DUNGEON);
+        const xy = findCellRandXYInBox(ow.getMap(), lx, ly, rx, ry,
+            OW.ALL_WALLS);
+        ow.addFeature(xy, OW.DUNGEON);
     }
 }
 
-/* Checks if given cell type matches any in the array. If there's CELL_ANY,
+/* Adds villages into the overworld. Can be bounded using using coordinates. */
+function addVillagesToOverWorld(ow, nDungeons, lx, ly, rx, ry) {
+    for (let i = 0; i < nDungeons; i++) {
+        const xy = findCellRandXYInBox(ow.getMap(), lx, ly, rx, ry, [OW.TERM]);
+        ow.addFeature(xy, OW.VILLAGE);
+    }
+}
+
+/* Checks if given cell type matches any in the array. If there's OW.CELL_ANY,
  * in the list, then returns always true regardless of type. */
 function cellMatches(type, listOrStr) {
     let list = listOrStr;
     if (typeof listOrStr === 'string') {
         list = [listOrStr];
     }
-    const matchAny = list.indexOf(CELL_ANY);
+    const matchAny = list.indexOf(OW.CELL_ANY);
     if (matchAny >= 0) {return true;}
 
     const matchFound = list.indexOf(type);
@@ -1495,45 +1535,37 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
                             `coord must exist. feat: ${JSON.stringify(feat)}`);
                     }
 
-                    if (feat.type === 'fort') {
+                    if (OW.cityTypesRe.test(feat.type)) {
                         const coord = feat.coord;
                         const nLevels = coord.length;
                         const lastCoord = nLevels - 1;
+                        feat.nLevels = nLevels;
 
+                        // Extra connection because fort has 2 exits/entrances
                         const connX = mapX(coord[0][0], slX, subX);
                         const connY = mapY(coord[0][1], slY, subY) - 1;
 
+                        // Where 1st entrance is located on Map.Level
                         const featX = mapX(coord[lastCoord][0], slX, subX);
                         const featY = mapY(coord[lastCoord][1], slY, subY) + 1;
 
-                        const cityName = RG.Names.getUniqueCityName();
-                        const qName = RG.Names.getGenericPlaceName('quarter');
-                        const cityConf = {
-                            name: cityName,
-                            nQuarters: 1,
-                            connectToXY: [
-                                {name: qName, levelX: connX,
-                                levelY: connY, nLevel: nLevels - 1}],
-                            quarter: [
-                                {name: qName,
-                                    nLevels, entranceLevel: 0
-                                }
-                            ],
-                            x: aX, // areaTileX
-                            y: aY, // areaTileY
-                            levelX: featX,
-                            levelY: featY
-                        };
+                        const cName = RG.Names.getUniqueCityName();
+                        const cityConf = RG.LevelGen.getCityConf(cName, feat);
+                        cityConf.connectToXY = [{
+                            name: cityConf.quarter[cityConf.nQuarters - 1].name,
+                            levelX: connX,
+                            levelY: connY,
+                            nLevel: 0
+                        }];
+                        cityConf.x = aX;
+                        cityConf.y = aY;
+                        cityConf.levelX = featX;
+                        cityConf.levelY = featY;
                         areaConf.nCities += 1;
                         areaConf.city.push(cityConf);
                     }
                     else if (feat.type === 'dungeon') {
                         const coord = feat.coord;
-
-                        // const connX = mapX(coord[0][0], slX, subX);
-                        // const connY = mapY(coord[0][1], slY, subY) - 1;
-
-                        console.log('dungeon coord: ' + JSON.stringify(coord));
 
                         const featX = mapX(coord[0][0], slX, subX);
                         const featY = mapY(coord[0][1], slY, subY);
