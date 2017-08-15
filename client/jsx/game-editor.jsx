@@ -311,8 +311,8 @@ class GameEditor extends React.Component {
             topToBottom: false,
             stopOnWall: true,
             nVWalls: [0.8],
-            highX: mult * 40,
-            highY: mult * 20
+            owTilesX: mult * 40,
+            owTilesY: mult * 20
         };
         const levelAndConf = createOverWorld(conf);
         this.addLevelToEditor(levelAndConf[0]);
