@@ -35,6 +35,7 @@ RG.Game = require('./game.js');
 RG.Factory = require('./factory.js');
 
 RG.Names = require('../data/name-gen.js');
+RG.LevelGen = require('../data/level-gen.js');
 RG.Overworld = require('./overworld.js');
 
 RG.Game.FromJSON = require('./game.fromjson.js');
