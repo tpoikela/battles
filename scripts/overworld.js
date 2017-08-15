@@ -17,8 +17,8 @@ let conf = {
     stopOnWall: true,
     // nHWalls: 2,
     nVWalls: [0.8],
-    highX: mult * 80,
-    highY: mult * 40,
+    owTilesX: mult * 80,
+    owTilesY: mult * 40,
     worldX: mult * 800,
     worldY: mult * 400
 };
@@ -31,8 +31,8 @@ conf = {
     stopOnWall: true,
     // nHWalls: 2,
     nVWalls: [0.8],
-    highX: mult * 40,
-    highY: mult * 20,
+    owTilesX: mult * 40,
+    owTilesY: mult * 20,
     worldX: mult * 800,
     worldY: mult * 400,
     nLevelsX: mult * 8,
