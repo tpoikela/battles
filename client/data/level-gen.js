@@ -4,6 +4,7 @@
 
 const RG = require('../src/rg');
 RG.Names = require('./name-gen');
+RG.WorldConf = require('../src/world.creator');
 
 const LevelGen = {};
 
@@ -41,7 +42,11 @@ const convertToImplemented = function(name) {
     }
 };
 
-LevelGen.getDungeonConf = (dungeonName) => {
+//---------------------------------------------------------------------------
+// DUNGEON GENERATION
+//---------------------------------------------------------------------------
+
+LevelGen.getDungeonConf = dungeonName => {
     const usedName = convertToImplemented(dungeonName);
     // const brName = RG.Names.getGenericPlaceName('branch');
     const nLevels = getNumLevels(usedName);
@@ -62,5 +67,106 @@ LevelGen.getDungeonConf = (dungeonName) => {
     return obj;
 };
 
+//---------------------------------------------------------------------------
+// CITY GENERATION
+//---------------------------------------------------------------------------
+
+const getNumQuarters = (cityType) => {
+    switch (cityType) {
+        case 'Town': return 1;
+        case 'Village': return 1;
+        case 'Fort': return 2;
+        case 'Capital': return RG.RAND.getUniformInt(3, 5);
+        default: return 1;
+    }
+
+};
+
+const getRandomShopType = () => RG.RAND.arrayGetRand(RG.SHOP_TYPES);
+
+/* Adds shop generation constraints for the quarter. */
+const addShopConstraints = (qConf, conf) => {
+    const maxValue = conf.maxValue || 100;
+    const shopTypeConf = conf.shopType || 'random';
+    const qName = conf.name;
+
+    if (qName === 'Market' || qName === 'Bazaar') {
+        const nShops = RG.RAND.getUniformInt(1, 3);
+        qConf.nShops = nShops;
+        qConf.shop = [];
+        for (let i = 0; i < nShops; i++) {
+            let shopType = getRandomShopType();
+
+            // Optionally allow first shopType to be given
+            if (shopTypeConf !== 'random' && i === 0) {
+                shopType = shopTypeConf;
+            }
+            const shopFunc = (item) => (
+                item.type === shopType && item.value <= maxValue
+            );
+            qConf.push(shopFunc);
+        }
+    }
+};
+
+/* Returns the configuration for city quarters. */
+const getQuarterConf = (nQuarters, conf) => {
+    const quarters = [];
+    for (let i = 0; i < nQuarters; i++) {
+        const qName = RG.Names.getGenericPlaceName('quarter');
+        const qConf = {
+            name: qName,
+            nLevels: 1
+        };
+        if (i === 0) {
+            qConf.entranceLevel = 0;
+        }
+
+        addShopConstraints(qConf, conf);
+        // TODO add any other special features based on the type
+        quarters.push(qConf);
+    }
+    return quarters;
+};
+
+const createQuarterConnections = function(feats) {
+    if (feats.length === 1) {return null;}
+    const connections = [];
+    for (let i = 1; i < feats.length; i++) {
+        const q0 = feats[i - 1];
+        const q1 = feats[i];
+
+        let l0 = RG.RAND.getWeightedLinear(q0.nLevels - 1);
+        const l1 = 0; // TODO add some randomization
+
+        if (RG.isNullOrUndef([l0])) {
+            l0 = q0.nLevels - 1;
+        }
+        const connect = [q0.name, q1.name, l0, l1];
+        connections.push(connect);
+    }
+    return connections;
+};
+
+LevelGen.getCityConf = (cityName, conf) => {
+    let cityType = RG.Names.getGenericPlaceName('city');
+    if (conf.type === 'fort') {
+        cityType = 'Fort';
+    }
+    else if (conf.capital) {
+        cityType = 'Capital';
+    }
+    const nQuarters = getNumQuarters(cityType, conf);
+    const quarters = getQuarterConf(nQuarters, conf);
+    const connect = createQuarterConnections(quarters);
+    const obj = {
+        name: cityName,
+        nQuarters,
+        quarter: quarters
+    };
+
+    if (connect) {obj.connect = connect;}
+    return obj;
+};
 
 module.exports = LevelGen;
