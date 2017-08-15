@@ -662,10 +662,12 @@ RG.Game.Main = function() {
         }
     };
 
+    /* Returns true if engine has animation to play. */
     this.hasAnimation = function() {
         return _engine.hasAnimation();
     };
 
+    /* Gets the next animation frame. */
     this.getAnimationFrame = function() {
         return _engine.animation.nextFrame();
     };
