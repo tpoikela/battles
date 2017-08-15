@@ -1,5 +1,6 @@
 
 const RG = require('./rg');
+RG.Random = require('./random');
 
 const OW = {};
 
@@ -206,8 +207,8 @@ OW.createOverWorld = function(conf = {}) {
         ? conf.printResult : true;
 
     // Size of the high-level feature map
-    const owTilesX = conf.highX || 40;
-    const owTilesY = conf.highY || 20;
+    const owTilesX = conf.owTilesX || 40;
+    const owTilesY = conf.owTilesY || 20;
     const overworld = new OW.Map();
 
     const owMap = createEmptyMap(owTilesX, owTilesY);
@@ -221,7 +222,7 @@ OW.createOverWorld = function(conf = {}) {
         connectUnconnectedBottomTop(owMap, yFirst);
     }
 
-    printMap(owMap);
+    if (conf.printResult) {printMap(owMap);}
     overworld.setMap(owMap);
     addOverWorldFeatures(overworld);
 
@@ -264,6 +265,8 @@ OW.Map = function() {
     this.getMap = () => this._baseMap;
     this.getCell = (xy) => this._baseMap[xy[0]][xy[1]];
 
+    this.numHWalls = () => this._hWalls.length;
+    this.numVWalls = () => this._vWalls.length;
     this.getHWalls = () => this._hWalls;
     this.getVWalls = () => this._vWalls;
 
@@ -332,6 +335,7 @@ OW.Map = function() {
 
 };
 
+/* Converts the OW.Map into string. */
 OW.Map.prototype.mapToString = function() {
     const map = JSON.parse(JSON.stringify(this._baseMap));
     const sizeY = map[0].length;
@@ -356,6 +360,7 @@ OW.Map.prototype.mapToString = function() {
     return lines.map(line => line.join(''));
 };
 
+/* Prints the map of biomes and a legend explaining the numbers. */
 OW.Map.prototype.printBiomeMap = function() {
     const sizeX = this.getSizeX() - 1;
     const sizeY = this.getSizeY() - 1;
@@ -662,9 +667,13 @@ function addOverWorldFeatures(ow) {
     addFeatureToAreaByDir(ow, 'NE', 0.5, OW.BTOWER);
 
     // City of B, + other wall fortresses
-    addFeatureToWall(ow, ow._hWalls[1], OW.WTOWER);
-    addFeatureToWall(ow, ow._hWalls[0], OW.WTOWER);
-    addFeatureToWall(ow, ow._vWalls[0], OW.WTOWER);
+    if (ow.numHWalls() > 1) {
+        addFeatureToWall(ow, ow._hWalls[1], OW.WTOWER);
+        addFeatureToWall(ow, ow._hWalls[0], OW.WTOWER);
+    }
+    if (ow.numVWalls() > 0) {
+        addFeatureToWall(ow, ow._vWalls[0], OW.BTOWER);
+    }
 
     // TODO list for features:
 
@@ -822,9 +831,6 @@ function addBiomeToOverWorld(ow, cmd) {
         }
 
     } // cmd.y
-
-    // if (cmd.x) {console.log(`x: ${xStart} -> ${xEnd}`);}
-    // if (cmd.y) {console.log(`y: ${yStart} -> ${yEnd}`);}
 
     // Apply given type on the found range
     for (let x = xStart; x <= xEnd; x++) {
