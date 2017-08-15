@@ -18,7 +18,6 @@ class RadioButtons extends React.Component {
         if (nextProps.currValue !== this.props.currValue) {
             return true;
         }
-        console.log('Will not render the component RadioButtons');
         return false;
     }
 
