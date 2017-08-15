@@ -68,10 +68,10 @@ const areaSizeToXY = {
     Freezing: -0.2
 };*/
 
-RG.WorldConf = {};
+const WorldConf = {};
 
 /* Connects all city quarters together. */
-RG.WorldConf.createQuarterConnections = function(feats) {
+WorldConf.createQuarterConnections = function(feats) {
     if (feats.length === 1) {return null;}
     const connections = [];
     for (let i = 1; i < feats.length; i++) {
@@ -95,7 +95,7 @@ RG.WorldConf.createQuarterConnections = function(feats) {
  * NOTE: To keep the code shorter, 'conf' refers always to the global
  * configuration. It's always the last param for each function.
  */
-RG.WorldConf.Creator = function() {
+WorldConf.Creator = function() {
 
     this.featCoeff = 0.3;
 
@@ -273,7 +273,7 @@ RG.WorldConf.Creator = function() {
         this.setDistFromStart(cityConf, areaConf);
 
         const quarters = this.createQuartersConf(cityConf, conf);
-        const connect = RG.WorldConf.createQuarterConnections(quarters);
+        const connect = WorldConf.createQuarterConnections(quarters);
 
         const obj = {
             name: '',
@@ -530,4 +530,4 @@ RG.WorldConf.Creator = function() {
 
 };
 
-module.exports = RG.WorldConf;
+module.exports = WorldConf;
