@@ -345,8 +345,7 @@ class BattlesTop extends React.Component {
         RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this.listener);
         RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this.listener);
         this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
-        this.setState({render: true,
-            loadInProgress: false});
+        this.setState({render: true, loadInProgress: false});
     }
 
     deleteGame(name) {
