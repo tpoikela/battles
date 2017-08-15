@@ -68,12 +68,34 @@ const areaSizeToXY = {
     Freezing: -0.2
 };*/
 
+RG.WorldConf = {};
+
+/* Connects all city quarters together. */
+RG.WorldConf.createQuarterConnections = function(feats) {
+    if (feats.length === 1) {return null;}
+    const connections = [];
+    for (let i = 1; i < feats.length; i++) {
+        const q0 = feats[i - 1];
+        const q1 = feats[i];
+
+        let l0 = RG.RAND.getWeightedLinear(q0.nLevels - 1);
+        const l1 = 0; // TODO add some randomization
+
+        if (RG.isNullOrUndef([l0])) {
+            l0 = q0.nLevels - 1;
+        }
+        const connect = [q0.name, q1.name, l0, l1];
+        connections.push(connect);
+    }
+    return connections;
+};
+
 /* The object creates the initial high-level world configuration which is used
  * to build the world containing all playable levels.
  * NOTE: To keep the code shorter, 'conf' refers always to the global
  * configuration. It's always the last param for each function.
  */
-const Creator = function() {
+RG.WorldConf.Creator = function() {
 
     this.featCoeff = 0.3;
 
@@ -251,7 +273,7 @@ const Creator = function() {
         this.setDistFromStart(cityConf, areaConf);
 
         const quarters = this.createQuartersConf(cityConf, conf);
-        const connect = this.createQuarterConnections('quarter', quarters);
+        const connect = RG.WorldConf.createQuarterConnections(quarters);
 
         const obj = {
             name: '',
@@ -287,25 +309,6 @@ const Creator = function() {
         };
     };
 
-    /* Connects all city quarters together. */
-    this.createQuarterConnections = function(type, feats) {
-        if (feats.length === 1) {return null;}
-        const connections = [];
-        for (let i = 1; i < feats.length; i++) {
-            const q0 = feats[i - 1];
-            const q1 = feats[i];
-
-            let l0 = this.rand.getWeightedLinear(q0.nLevels - 1);
-            const l1 = 0; // TODO add some randomization
-
-            if (RG.isNullOrUndef([l0])) {
-                l0 = q0.nLevels - 1;
-            }
-            const connect = [q0.name, q1.name, l0, l1];
-            connections.push(connect);
-        }
-        return connections;
-    };
 
     //---------------
     // MOUNTAINS
@@ -527,4 +530,4 @@ const Creator = function() {
 
 };
 
-module.exports = Creator;
+module.exports = RG.WorldConf;
