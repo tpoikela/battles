@@ -227,10 +227,6 @@ RG.Factory.Game = function() {
                 const itemsPerLevel = 20 + xDiff + 2 * yDiff;
                 const actorsPerLevel = (yDiff + 1) * 10 + 2 * xDiff;
 
-                console.log(`Creating items for level[${x}][${y}]`);
-                console.log(`nItems: ${itemsPerLevel}`);
-                console.log(`nMonsters: ${actorsPerLevel}`);
-
                 const itemConf = {
                     itemsPerLevel,
                     func: (item) => (item.value <= 15 * yDiff + 5 * xDiff),
