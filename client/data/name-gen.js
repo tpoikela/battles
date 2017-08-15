@@ -46,8 +46,12 @@ Names.place.generic = {
         'Woods', 'Thicket', 'Glade',
     ],
 
-    city: ['Town', 'Keep', 'Fort', 'Fortress', 'Town', 'Village', 'Township',
-        'Guard', 'Capital'
+    city: [
+        'Town', 'Village', // 'Township', 'Hamlet',
+        'Fort',
+        // 'Stronghold', 'Fortress', 'Outpost', 'Castle',
+        'City', // 'Capital',
+        // 'Guard'
     ],
     lake: [
         'Basin', 'Cove', 'Reservoir', 'Depths', 'Gorge', 'Lagoon', 'Domain',
@@ -55,7 +59,13 @@ Names.place.generic = {
     ],
 
     quarter: [
-        'Plaza', 'Garden', 'Row', 'Works', 'Side', 'Market', 'Acre', 'Bazaar',
+        'Market', 'Bazaar',
+        'Plaza', 'Row', 'Works', 'Side', 'Acre',
+        'Garden', 'Park',
+        'Temple', 'Necropolis', 'Cemetery',
+        'Library', 'Arcane',
+        'Royal', 'Slum',
+        'Arena', 'Military', 'Barracks'
     ],
 
 };
