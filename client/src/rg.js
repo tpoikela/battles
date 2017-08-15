@@ -620,8 +620,8 @@ const RG = { // {{{2
     TYPE_ITEM: 'items',
     TYPE_TRAP: 'traps',
 
-    ITEM_TYPES: ['armour', 'food', 'gold', 'goldcoin',
-        'missile', 'potion', 'spiritgem', 'weapon'],
+    ITEM_TYPES: ['ammo', 'armour', 'food', 'gold', 'goldcoin',
+        'missile', 'missileweapon', 'potion', 'spiritgem', 'weapon'],
 
     LEVEL_ID_ADD: 1000000000,
     ENTITY_ID_ADD: 1000000000,
@@ -658,7 +658,12 @@ const RG = { // {{{2
     GOLD_COIN_NAME: 'Gold coins',
 
     HUNGER_PROB: 0.10, // Prob. of starvation to cause damage every turn
-    HUNGER_DMG: 1      // Damage caused by starvation kicking in
+    HUNGER_DMG: 1,     // Damage caused by starvation kicking in
+
+    // This is a subset of ITEM_TYPES, excluding gold items
+    SHOP_TYPES: ['ammo', 'armour', 'food',
+        'missile', 'missileweapon', 'potion', 'spiritgem', 'weapon'
+    ]
 
 }; // / }}} RG
 
