@@ -33,8 +33,9 @@ function findLevel(name, features, nLevel) {
             return levels[nLevel];
         }
         else {
+            const msg = `Name: ${name}`;
             RG.err('world.js', 'findLevel',
-                `nLevel ${nLevel} out of bounds (${levels.length - 1})`);
+                `${msg} nLev ${nLevel} out of bounds (${levels.length - 1})`);
         }
     }
     // If level null, issue warning
