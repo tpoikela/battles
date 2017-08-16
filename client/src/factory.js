@@ -20,7 +20,10 @@ RG.Factory.cityConfBase = function(_parser, conf) {
     const obj = {
         nHouses: 10, minHouseX: 5, maxHouseX: 10, minHouseY: 5,
         maxHouseY: 10, parser: _parser, nShops: 1,
-        shopFunc: [item => item.type === 'armour']
+        shopFunc: [
+            item => item.type === RG.RAND.arrayGetRand(RG.SHOP_TYPES)
+        ],
+        shopType: ''
     };
     const result = Object.assign(obj, userConf);
     return result;
@@ -314,17 +317,32 @@ RG.Factory.Base = function() { // {{{2
                     level.addElement(shopElem, xy[0], xy[1]);
 
                     if (conf.hasOwnProperty('parser')) {
+                        let item = null;
                         if (typeof conf.shopFunc[n] === 'function') {
-                            const item = conf.parser.createRandomItem({
+                            item = conf.parser.createRandomItem({
                                 func: conf.shopFunc[n]
                             });
-                            item.add('Unpaid', new RG.Component.Unpaid());
-                            level.addItem(item, xy[0], xy[1]);
+                        }
+                        else if (Array.isArray(conf.shopType)) {
+                            item = conf.parser.createRandomItem({
+                                func: item => item.type === conf.shopType[n]
+                            });
+                        }
+                        else if (typeof conf.shopType === 'string') {
+                            item = conf.parser.createRandomItem({
+                                func: item => item.type === conf.shopType
+                            });
+                        }
+
+                        if (!item) {
+                            const msg = 'item null. ' +
+                                `conf: ${JSON.stringify(conf)}`;
+                            RG.err('Factory.Base', 'createShop',
+                                `${msg} shopFunc/type${n} not well defined.`);
                         }
                         else {
-                            RG.err('Factory.Base', 'createShop',
-                                `shopFunc${n} not properly defined.`);
-
+                            item.add('Unpaid', new RG.Component.Unpaid());
+                            level.addItem(item, xy[0], xy[1]);
                         }
                     }
                 }
