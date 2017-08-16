@@ -906,7 +906,7 @@ RG.KeyMap = {
         return this.moveKeyMap.hasOwnProperty(code);
     },
 
-    isRest: function(code) {return code === RG.VK_s || RG.VK_PERIOD;},
+    isRest: function(code) {return code === RG.VK_s || code === RG.VK_PERIOD;},
     isPickup: function(code) {return code === RG.KEY.PICKUP;},
     isUseStairs: function(code) {
         return code === RG.KEY.USE_STAIRS_DOWN ||
@@ -940,6 +940,9 @@ RG.KeyMap = {
     getDir: function(code) {
         if (this.moveKeyMap.hasOwnProperty(code)) {
             return ROT.DIRS[8][this.moveKeyMap[code]];
+        }
+        else if (this.isRest(code)) {
+            return [0, 0];
         }
         return null;
     }
