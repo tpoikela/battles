@@ -16,12 +16,13 @@ const GamePanel = require('./game-panel');
 const GameMessages = require('./game-messages');
 const GameStats = require('./game-stats');
 const GameBoard = require('./game-board');
-const GameEditor = require('./game-editor');
 const GameMenu = require('./game-menu');
 
 const Screen = require('../gui/screen');
 const Persist = require('../src/persist');
 const worldConf = require('../data/conf.world');
+
+const GameEditor = require('../editor/game-editor');
 
 /* Contains logic that is not tightly coupled to the GUI.*/
 class TopLogic {
