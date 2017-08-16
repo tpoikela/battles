@@ -6,6 +6,7 @@ RG.Element = require('./element');
 
 RG.Game.FromJSON = require('./game.fromjson');
 
+const OW = require('./overworld.map');
 RG.getOverWorld = require('./overworld');
 const Creator = require('./world.creator');
 
@@ -213,7 +214,10 @@ RG.Factory.Game = function() {
             areaX: mult * 8,
             areaY: mult * 4
         };
-        const worldAndConf = RG.OverWorld.createOverWorld(owConf);
+
+        const overworld = OW.createOverWorld(owConf);
+        const worldAndConf = RG.OverWorld.createOverWorldLevel(
+          overworld, owConf);
         const worldLevel = worldAndConf[0];
 
         const splitLevels = RG.Geometry.splitLevel(worldLevel, owConf);
@@ -256,6 +260,7 @@ RG.Factory.Game = function() {
         const worldConf = worldAndConf[1];
         const world = fact.createWorld(worldConf);
         game.addPlace(world);
+        game.setOverWorld(overworld);
 
         player.setFOVRange(10);
         game.addPlayer(player); // Player already placed to level
