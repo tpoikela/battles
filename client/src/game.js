@@ -606,6 +606,12 @@ RG.Game.Main = function() {
         _engine.addActiveLevel(level);
     };
 
+    this.getOverWorld = () => this._overworld;
+    this.setOverWorld = (ow) => {
+      console.log('Overworld was set in game.');
+      this._overworld = ow;
+    };
+
     this.toJSON = function() {
         const levels = [];
         _levels.forEach(level => {
