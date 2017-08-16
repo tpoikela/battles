@@ -17,6 +17,7 @@ const GameMessages = require('./game-messages');
 const GameStats = require('./game-stats');
 const GameBoard = require('./game-board');
 const GameMenu = require('./game-menu');
+const GameOverWorldMap = require('./game-overworld-map');
 
 const Screen = require('../gui/screen');
 const Persist = require('../src/persist');
@@ -511,6 +512,7 @@ class BattlesTop extends React.Component {
         let classRows = null;
         let startX = null;
         let rowClass = '';
+        let overworld = null;
 
         let gameValid = false;
         if (this.game) {
@@ -519,6 +521,7 @@ class BattlesTop extends React.Component {
             inv = player.getInvEq().getInventory();
             eq = player.getInvEq().getEquipment();
             maxWeight = player.getMaxWeight();
+            overworld = this.game.getOverWorld();
             if (this.game.hasNewMessages()) {
                 message = this.game.getMessages();
             }
@@ -579,6 +582,8 @@ class BattlesTop extends React.Component {
                 />
                 }
                 <GameHelpScreen />
+
+                <GameOverWorldMap ow={overworld} />
 
 
                 {gameValid && !this.state.showEditor &&
