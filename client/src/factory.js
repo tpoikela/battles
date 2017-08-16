@@ -5,6 +5,7 @@ const debug = require('debug')('bitn:factory');
 RG.Component = require('./component.js');
 RG.Brain = require('./brain.js');
 RG.Map = require('./map.js');
+RG.Map.Generator = require('./map.generator');
 
 const RGObjects = require('../data/battles_objects.js');
 RG.Effects = require('../data/effects.js');
