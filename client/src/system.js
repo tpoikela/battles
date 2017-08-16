@@ -832,25 +832,43 @@ RG.System.SpellEffect = function(type, compTypes) {
         if (map.hasXY(x, y)) {
             const cell = map.getCell(x, y);
             if (cell.hasActors()) {
-                // Deal some damage etc
-                const dmg = new RG.Component.Damage();
-                dmg.setSource(ent);
-                dmg.setDamageType(args.damageType);
-                dmg.setDamage(args.damage);
-
                 const actor = cell.getActors()[0];
-                // TODO add some evasion checks
-                // TODO add onHit callback for spell because not all spells
-                // cause damage
-                actor.add('Damage', dmg);
-                RG.gameMsg({cell: cell,
-                    msg: `${name} hits ${actor.getName()}`});
+                if (args.targetComp) {
+                    const setFunc = args.set;
+                    const getFunc = args.get;
+                    if (actor.has(args.targetComp)) {
+                        const comp = actor.get(args.targetComp);
+                        const actorName = actor.getName();
+                        if (getFunc) {
+                            comp[setFunc](comp[getFunc()] + args.value);
+                        }
+                        else {
+                            comp[setFunc](args.value);
+                        }
+                        RG.gameMsg({cell: cell,
+                            msg: `Spell ${name} is cast on ${actorName}`});
+                    }
+                }
+                else {
+                    // Deal some damage etc
+                    const dmg = new RG.Component.Damage();
+                    dmg.setSource(ent);
+                    dmg.setDamageType(args.damageType);
+                    dmg.setDamage(args.damage);
+
+                    // TODO add some evasion checks
+                    // TODO add onHit callback for spell because not all spells
+                    // cause damage
+                    actor.add('Damage', dmg);
+                    RG.gameMsg({cell: cell,
+                        msg: `${name} hits ${actor.getName()}`});
+                }
             }
 
             const animArgs = {
                 cell: true,
                 coord: [[x, y]],
-                style: args.damageType
+                style: args.damageType || ''
             };
             const animComp = new RG.Component.Animation(animArgs);
             ent.add('Animation', animComp);
