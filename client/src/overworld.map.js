@@ -36,7 +36,8 @@ OW.TERM = '.';
 OW.BTOWER = '\u265C';
 OW.WTOWER = '\u2656';
 OW.DUNGEON = '\u2616';
-OW.VILLAGE = '\u27F0';
+// OW.VILLAGE = '\u27F0';
+OW.VILLAGE = '\u25B3';
 // const CITY = '\u1CC1';
 
 OW.biomeTypeMap = {
