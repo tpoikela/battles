@@ -576,8 +576,15 @@ RG.Map.Level = function() { // {{{2
     /* Adds stairs for this level.*/
     this.addStairs = function(stairs, x, y) {
         if (!RG.isNullOrUndef([x, y])) {
-            stairs.setSrcLevel(this);
-            return this._addPropToLevelXY(RG.TYPE_ELEM, stairs, x, y);
+            if (_map.hasXY(x, y)) {
+              stairs.setSrcLevel(this);
+              return this._addPropToLevelXY(RG.TYPE_ELEM, stairs, x, y);
+            }
+            else {
+              const msg = `x,y ${x},${y} out of map bounds.`;
+                RG.err('Map.Level', 'addStairs',
+                  `${msg}: cols ${_map.cols}, rows: ${_map.rows}`);
+            }
         }
         else {
             RG.err('Map.Level', 'addStairs',
