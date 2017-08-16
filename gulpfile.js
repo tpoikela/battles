@@ -139,27 +139,39 @@ gulp.task('tests', function() {
 
 });
 
+let tagsRunning = false;
+
 gulp.task('tags', function() {
-    const tagsProc = spawn('bin/gen_tags.sh');
-    const errors = [];
-    tagsProc.stderr.on('data', (data) => {
-        errors.push(data);
-    });
-    tagsProc.on('close', (code) => {
-        if (code !== 0) {
-            const tagsError = errors.join('\n');
-            notify.onError({
-                title: 'Tags Error',
-                message: tagsError
-            }).apply(this, errors);
-        }
-        else {
-            gulp.src('./tags')
-            .pipe(
-                notify('OK. Tags exited with 0')
-            );
-        }
-    });
+    if (!tagsRunning) {
+        tagsRunning = true;
+        const tagsProc = spawn('bin/gen_tags.sh');
+        const errors = [];
+        tagsProc.stderr.on('data', (data) => {
+            errors.push(data);
+        });
+        tagsProc.on('close', (code) => {
+            if (code !== 0) {
+                const tagsError = errors.join('\n');
+                notify.onError({
+                    title: 'Tags Error',
+                    message: tagsError
+                }).apply(this, errors);
+            }
+            else {
+                gulp.src('./tags')
+                .pipe(
+                    notify('OK. Tags exited with 0')
+                );
+            }
+            tagsRunning = false;
+        });
+    }
+    else {
+        gulp.src('./tags')
+        .pipe(
+            notify('Tags already running. Skipping.')
+        );
+    }
 });
 
 
