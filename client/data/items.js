@@ -487,6 +487,12 @@ const Items = [
         value: value(50)
     },
     {
+        name: 'Potion of power', base: 'PotionBase',
+        use: {addToCompValue: {name: 'SpellPower', set: 'setPP',
+            get: 'getPP', value: '1d10 + 2'}
+        }, value: value(50)
+    },
+    {
         name: 'Potion of cure poison', base: 'PotionBase',
         use: {cure: {effect: 'poison'}}, value: value(80)
     },
@@ -503,6 +509,31 @@ const Items = [
         name: 'Potion of spirit form', base: 'PotionBase',
         use: {addComp: {name: 'Ethereal', duration: '2d10'}},
         value: value(100)
+    },
+    {
+        name: 'Potion of quickness', base: 'PotionBase',
+        use: {modifyStat: {value: 2, statName: 'speed'}},
+        value: value(150)
+    },
+    {
+        name: 'Potion of willpower', base: 'PotionBase',
+        use: {modifyStat: {value: 1, statName: 'willpower'}},
+        value: value(200)
+    },
+    {
+        name: 'Potion of strength', base: 'PotionBase',
+        use: {modifyStat: {value: 1, statName: 'strength'}},
+        value: value(300)
+    },
+    {
+        name: 'Potion of agility', base: 'PotionBase',
+        use: {modifyStat: {value: 1, statName: 'agility'}},
+        value: value(300)
+    },
+    {
+        name: 'Potion of accuracy', base: 'PotionBase',
+        use: {modifyStat: {value: 1, statName: 'accurary'}},
+        value: value(300)
     },
 
     // FOOD
