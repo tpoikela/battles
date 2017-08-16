@@ -4,6 +4,7 @@ const RG = require('./rg.js');
 RG.Object = require('./object.js');
 RG.Component = require('./component.js');
 RG.Brain = require('./brain.js');
+RG.Brain.Player = require('./brain.player.js');
 RG.Inv = require('./inv.js');
 
 RG.Actor = {};
@@ -13,9 +14,7 @@ RG.Actor.Rogue = function(name) { // {{{2
     RG.Object.Typed.call(this, RG.TYPE_ACTOR, null);
     RG.Object.Locatable.call(this);
     RG.Entity.call(this);
-    // this.setPropType('actors');
 
-    // Member vars
     this._brain = new RG.Brain.Rogue(this);
     this._brain.getMemory().addEnemyType('player');
 
