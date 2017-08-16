@@ -67,6 +67,9 @@ Names.place.generic = {
         'Royal', 'Slum',
         'Arena', 'Military', 'Barracks'
     ],
+    area: [
+
+    ]
 
 };
 
