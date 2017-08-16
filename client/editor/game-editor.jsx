@@ -15,6 +15,7 @@ const RGObjects = require('../data/battles_objects');
 const NO_VISIBLE_CELLS = [];
 
 const createOverWorld = RG.OverWorld.createOverWorld;
+const WorldConf = require('../src/world.creator');
 
 /*
  * Sketch to specify the menus in more sane way than jsx.
@@ -77,13 +78,15 @@ class GameEditor extends React.Component {
       boardIndex: 3, // Points to boardViews array
       fontSize: 16,
 
+      lastTouchedConf: null,
+
       featureType: 'city',
       featureList: [],
+      featureConf: {shown: ''},
 
       levelX: 80,
       levelY: 28,
       levelType: 'arena',
-
 
       subLevelX: 20,
       subLevelY: 7,
@@ -334,19 +337,19 @@ class GameEditor extends React.Component {
     const featureType = this.state.featureType;
     console.log('Adding feature type ' + featureType);
     const fact = new RG.Factory.World();
-    const featConf = {
-      name: 'Test', nQuarters: 1,
-      quarter: [{name: 'q1', nLevels: 2}]
-    };
+    const featConf = this.state.featureConf[featureType];
 
     let feat = null;
     switch (featureType) {
+      case 'branch': feat = fact.createBranch(featConf); break;
       case 'city': feat = fact.createCity(featConf); break;
       case 'dungeon': feat = fact.createDungeon(featConf); break;
+      case 'face': feat = fact.createMountainFace(featConf); break;
       case 'mountain': feat = fact.createDungeon(featConf); break;
+      case 'quarter': feat = fact.createCityQuarter(featConf); break;
       default: console.log('No legal featureType given');
     }
-    this.addFeatureToEditor(feat);
+    this.addFeatureToEditor(featureType, feat);
   }
 
   /* Generates a new level map and adds it to the editor.  */
@@ -357,8 +360,10 @@ class GameEditor extends React.Component {
       conf = this.state.levelConf[levelType];
     }
 
+    conf.parser = this.parser;
     const level = RG.FACT.createLevel(
       levelType, this.state.levelX, this.state.levelY, conf);
+    delete conf.parser;
     this.addLevelToEditor(level);
   }
 
@@ -374,7 +379,7 @@ class GameEditor extends React.Component {
     this.setState({level: level, levelList, levelIndex});
   }
 
-  addFeatureToEditor(feat) {
+  addFeatureToEditor(type, feat) {
     const levels = feat.getLevels();
     const levelList = this.state.levelList;
     levels.forEach(level => {
@@ -382,8 +387,10 @@ class GameEditor extends React.Component {
       level.editorID = this.state.idCount++;
       levelList.push(level);
     });
+    const featureConf = this.state.featureConf;
+    featureConf.shown = type;
     const levelIndex = this.state.levelIndex + 1;
-    this.setState({level: levels[0], levelList, levelIndex});
+    this.setState({level: levels[0], levelList, levelIndex, featureConf});
   }
 
   /* Inserts a sub-map into the current level. This overwrites all
@@ -636,6 +643,7 @@ class GameEditor extends React.Component {
               </button>
             </div>
           </div>
+
         </div>
       </div>
     );
@@ -659,8 +667,7 @@ class GameEditor extends React.Component {
   modifyLevelConf(value, levelConf) {
     if (value === 'town') {
       if (!levelConf.town) {
-        levelConf.town = RG.Factory.cityConfBase(
-          this.parser, {});
+        levelConf.town = RG.Factory.cityConfBase({});
         levelConf.shown = 'town';
       }
     }
@@ -717,8 +724,12 @@ class GameEditor extends React.Component {
     const id = `#${idHead}--${confType}--${key}`;
     const inputElem = document.querySelector(id);
     const value = inputElem.value;
-    const conf = idHead === 'main' ? this.state.levelConf
-      : this.state.subLevelConf;
+    let conf = null;
+
+    if (idHead === 'main') {conf = this.state.levelConf;}
+    else if (idHead === 'feature') {conf = this.state.featureConf;}
+    else {conf = this.state.subLevelConf;}
+
     if (key.match(/(\w+)Func/)) {
       // TODO how to handle functions
     }
@@ -729,14 +740,22 @@ class GameEditor extends React.Component {
     if (idHead === 'main') {
       this.setState({levelConf: conf});
     }
+    else if (idHead === 'feature') {
+      this.setState({featureConf: conf});
+    }
     else {
       this.setState({subLevelConf: conf});
     }
   }
 
   onChangeFeatureType(evt) {
-    const value = evt.target.value;
-    this.setState({featureType: value});
+    const type = evt.target.value;
+    const featConf = WorldConf.getBaseConf(type);
+    const featureConf = this.state.featureConf;
+    featureConf[type] = featConf;
+    featureConf.shown = type;
+    this.setState({featureType: type, featureConf,
+      lastTouchedConf: featureConf});
   }
 
   onChangeMapType(evt) {
@@ -744,7 +763,7 @@ class GameEditor extends React.Component {
     const levelType = value;
     const levelConf = this.state.levelConf;
     this.modifyLevelConf(value, levelConf);
-    this.setState({levelType, levelConf});
+    this.setState({levelType, levelConf, lastTouchedConf: levelConf});
   }
 
   getInt(value, base) {
@@ -769,7 +788,8 @@ class GameEditor extends React.Component {
     const value = evt.target.value;
     const subLevelConf = this.state.subLevelConf;
     this.modifyLevelConf(value, subLevelConf);
-    this.setState({subLevelType: value, subLevelConf});
+    this.setState({subLevelType: value, subLevelConf,
+      lastTouchedConf: subLevelConf});
   }
 
   onChangeSubX(evt) {
@@ -969,22 +989,20 @@ class GameEditor extends React.Component {
     }
   }
 
+  /* Called when a level is selected from level list. */
   selectLevel(level, i) {
-    console.log('Select level clicked');
     this.setState({level: level, levelIndex: i});
   }
 
+  /* When delete cross is pressed, deletes the level. */
   deleteLevel(evt) {
     evt.stopPropagation();
     const {id} = evt.target;
     const i = parseInt(id, 10);
     const levelList = this.state.levelList;
-    console.log('Length is ' + levelList.length);
     levelList.splice(i, 1);
-    console.log('Aftert splice() Length is ' + levelList.length);
     const shownLevel = levelList.length > 0 ? levelList[0] : null;
     if (shownLevel === null) {
-      console.log('Setting level to null');
       this.setState({level: null, levelIndex: -1, levelList});
     }
     else {
@@ -1017,7 +1035,6 @@ class GameEditor extends React.Component {
                 onChange={onChangeFunc}
                 value={newValue}
               />
-
           </label>
 
           );
@@ -1067,7 +1084,8 @@ class GameEditor extends React.Component {
   }
 
   getFeatureSelectElem() {
-    const featNames = ['city', 'dungeon', 'mountain'];
+    const featNames = ['branch', 'city', 'dungeon', 'face', 'mountain',
+      'quarter'];
     const features = Object.values(featNames).map(type => {
       const key = `key-sel-feature-${type}`;
       return <option key={key} value={type}>{type}</option>;
@@ -1078,6 +1096,8 @@ class GameEditor extends React.Component {
 
   getEditorPanelElement() {
     const featureSelectElem = this.getFeatureSelectElem();
+    const featureConfElem = this.getLevelConfElement('feature',
+      this.state.featureConf);
     const levelConfElem = this.getLevelConfElement('main',
       this.state.levelConf);
     const levelSelectElem = this.getLevelSelectElement();
@@ -1107,6 +1127,7 @@ class GameEditor extends React.Component {
                 value={this.state.featureType}
               >{featureSelectElem}
               </select>
+              {featureConfElem}
             </div>
 
             <div className='btn-div'>
@@ -1325,18 +1346,21 @@ class GameEditor extends React.Component {
   //-----------------------------
 
   importConfig() {
-    const shownConf = this.state.levelConf.shown;
-    const conf = this.state.levelConf[shownConf];
-    const str = JSON.stringify(conf);
-    this.setState({confTemplText: str});
+    if (this.state.lastTouchedConf) {
+      const shown = this.state.lastTouchedConf.shown;
+      const conf = this.state.lastTouchedConf[shown];
+      const str = JSON.stringify(conf);
+      this.setState({confTemplText: str});
+    }
   }
 
   exportConfig() {
     try {
       const conf = JSON.parse(this.state.confTemplText);
-      const levelConf = this.state.levelConf;
-      levelConf[levelConf.shown] = conf;
-      this.setState({levelConf});
+      const lastTouchedConf = this.state.lastTouchedConf;
+      const shown = lastTouchedConf.shown;
+      lastTouchedConf[shown] = conf;
+      this.setState({lastTouchedConf});
     }
     catch (e) {
       this.setState({errorMsg: e.message});
