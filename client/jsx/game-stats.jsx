@@ -130,6 +130,14 @@ const GameStats = React.createClass({
                 >
                     {mapButtonText}
                 </button>
+                <button
+                    className='btn btn-xs btn-rg btn-info'
+                    data-target='#gameOverWorldMapModal'
+                    data-toggle='modal'
+                    id='show-overworld-button'
+                >
+                  Overworld
+                </button>
             </div>
         );
     },
