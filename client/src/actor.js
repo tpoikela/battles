@@ -112,9 +112,7 @@ RG.Actor.Rogue.prototype.setIsPlayer = function(isPlayer) {
         this.add('CombatMods', new RG.Component.CombatMods());
 
         this._spells = new RG.Spell.SpellBook(this);
-        this._spells.addSpell(new RG.Spell.FrostBolt());
-        this._spells.addSpell(new RG.Spell.IceShield());
-        this._spells.addSpell(new RG.Spell.GraspOfWinter());
+        RG.Spell.addAllSpells(this._spells);
 
         this.add('SpellPower', new RG.Component.SpellPower());
         this.get('SpellPower').setPP(100);
