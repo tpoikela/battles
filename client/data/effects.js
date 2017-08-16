@@ -3,6 +3,27 @@
 const RG = require('../src/rg');
 RG.Component = require('../src/component.js');
 
+const getTargetActor = (obj) => {
+    if (obj.hasOwnProperty('target')) {
+        const cell = obj.target;
+        if (cell.hasActors()) {
+            return cell.getProp('actors')[0];
+        }
+    }
+    return null;
+};
+
+const valueToNumber = function(value) {
+    if (Number.isInteger(value)) {
+        return value;
+    }
+    else { // Assume a die spec
+        const arr = RG.parseDieSpec(value);
+        const valueDie = new RG.Die(arr[0], arr[1], arr[2]);
+        return valueDie.roll();
+    }
+};
+
 RG.Effects = {
 
     // Effects can be used in items freely.
@@ -29,6 +50,7 @@ RG.Effects = {
     effects: [
 
         // Generic use function added to all items with use effects
+        // Calls each use-function implementation
         {
             name: 'use',
             func: function(obj) {
@@ -49,36 +71,57 @@ RG.Effects = {
             name: 'addComp',
             requires: ['name', 'duration'],
             func: function(obj) {
-                if (obj.hasOwnProperty('target')) {
-                    const cell = obj.target;
-                    if (cell.hasActors()) {
-                        const actor = cell.getProp('actors')[0];
-                        const name = this.useArgs.name.capitalize();
-                        if (RG.Component.hasOwnProperty(name)) {
-                            const comp = new RG.Component[name]();
+                const actor = getTargetActor(obj);
+                if (actor) {
+                const name = this.useArgs.name.capitalize();
+                    if (RG.Component.hasOwnProperty(name)) {
+                        const comp = new RG.Component[name]();
 
-                            const arr = RG.parseDieSpec(this.useArgs.duration);
-                            const durDie = new RG.Die(arr[0], arr[1], arr[2]);
-                            const dur = durDie.roll();
+                        const arr = RG.parseDieSpec(this.useArgs.duration);
+                        const durDie = new RG.Die(arr[0], arr[1], arr[2]);
+                        const dur = durDie.roll();
 
-                            const expiration = new RG.Component.Expiration();
-                            expiration.addEffect(comp, dur);
+                        const expiration = new RG.Component.Expiration();
+                        expiration.addEffect(comp, dur);
 
-                            actor.add(comp.getType(), comp);
-                            actor.add('Expiration', expiration);
+                        actor.add(comp.getType(), comp);
+                        actor.add('Expiration', expiration);
 
-                            RG.destroyItemIfNeeded(this);
-                            return true;
-                        }
-                        else {
-                            RG.err('useEffect', 'addComp', 'Item: ' +
-                                this.getName() + ' invalid comp type ' + name);
-                        }
+                        RG.destroyItemIfNeeded(this);
+                        return true;
+                    }
+                    else {
+                        RG.err('useEffect', 'addComp', 'Item: ' +
+                            this.getName() + ' invalid comp type ' + name);
                     }
                 }
                 return false;
 
             },
+        },
+        // Adds an effect to component.
+        // Given use: {addToCompValue: {name: 'Health', set: 'setHP', get:
+        // 'getHP',
+        // value: -1}}, one can be subtracted from hp of Health component.
+        {
+            name: 'addToCompValue',
+            requires: ['name', 'set', 'get', 'value'],
+            func: function(obj) {
+                const actor = getTargetActor(obj);
+                const compName = this.useArgs.name;
+                if (actor) {
+                    if (actor.has(compName)) {
+                        const comp = actor.get(compName);
+                        const currValue = comp[this.useArgs.get]();
+                        const value = this.useArgs.value;
+                        const numValue = valueToNumber(value);
+                        comp[this.useArgs.set](currValue + numValue);
+                    }
+                }
+                return false;
+
+            }
+
         },
 
         // Cures an effect specified in use: {cure: {effect: Poison}}
@@ -86,23 +129,20 @@ RG.Effects = {
             name: 'cure',
             requires: ['effect'],
             func: function(obj) {
-                if (obj.hasOwnProperty('target')) {
-                    const cell = obj.target;
-                    if (cell.hasActors()) {
-                        const actor = cell.getProp('actors')[0];
-                        const effectName = this.useArgs.effect.capitalize();
-                        if (actor.has(effectName)) {
-                            // const rmvComp = actor.get(effectName);
-                            actor.remove(effectName);
-                            RG.gameMsg(actor.getName()
-                                + ' seems to be cured of ' + effectName);
-                        }
-                        else {
-                            RG.gameMsg(this.getName() + ' was wasted');
-                        }
-                        RG.destroyItemIfNeeded(this);
-                        return true;
+                const actor = getTargetActor(obj);
+                if (actor) {
+                    const effectName = this.useArgs.effect.capitalize();
+                    if (actor.has(effectName)) {
+                        // const rmvComp = actor.get(effectName);
+                        actor.remove(effectName);
+                        RG.gameMsg(actor.getName()
+                            + ' seems to be cured of ' + effectName);
                     }
+                    else {
+                        RG.gameMsg(this.getName() + ' was wasted');
+                    }
+                    RG.destroyItemIfNeeded(this);
+                    return true;
                 }
                 return false;
             },
@@ -136,29 +176,22 @@ RG.Effects = {
             name: 'heal',
             requires: ['hp'],
             func: function(obj) {
-                if (obj.hasOwnProperty('target')) {
-                    const cell = obj.target;
-                    if (cell.hasActors()) {
-                        const target = cell.getProp('actors')[0];
-                        const arr = RG.parseDieSpec(this.useArgs.hp);
-                        const die = new RG.Die(arr[0], arr[1], arr[2]);
-                        const pt = die.roll();
-                        if (target.has('Health')) {
-                            target.get('Health').addHP(pt);
-                            RG.destroyItemIfNeeded(this);
-                            RG.gameMsg(target.getName() +
-                                ' drinks ' + this.getName());
-                            return true;
-                        }
-                    }
-                    else {
-                        RG.gameWarn(
-                            'Cannot see anyone there for using the potion.');
+                const actor = getTargetActor(obj);
+                if (actor) {
+                    const arr = RG.parseDieSpec(this.useArgs.hp);
+                    const die = new RG.Die(arr[0], arr[1], arr[2]);
+                    const pt = die.roll();
+                    if (actor.has('Health')) {
+                        actor.get('Health').addHP(pt);
+                        RG.destroyItemIfNeeded(this);
+                        RG.gameMsg(actor.getName() +
+                            ' drinks ' + this.getName());
+                        return true;
                     }
                 }
                 else {
-                    RG.err(this.getName(), 'useItem.heal',
-                        'No prop |target| given in obj.');
+                    RG.gameWarn(
+                        'Cannot see anyone there for using the potion.');
                 }
                 return false;
             },
@@ -170,36 +203,33 @@ RG.Effects = {
             name: 'poison',
             requires: ['duration', 'damage', 'prob'],
             func: function(obj) {
-                if (obj.hasOwnProperty('target')) {
-                    const cell = obj.target;
-                    if (cell.hasActors()) {
-                        const target = cell.getProp('actors')[0];
-                        let arr = RG.parseDieSpec(this.useArgs.duration);
-                        const durDie = new RG.Die(arr[0], arr[1], arr[2]);
-                        const poisonDur = durDie.roll();
+                const actor = getTargetActor(obj);
+                if (actor) {
+                    let arr = RG.parseDieSpec(this.useArgs.duration);
+                    const durDie = new RG.Die(arr[0], arr[1], arr[2]);
+                    const poisonDur = durDie.roll();
 
-                        arr = RG.parseDieSpec(this.useArgs.damage);
-                        const dmgDie = new RG.Die(arr[0], arr[1], arr[2]);
+                    arr = RG.parseDieSpec(this.useArgs.damage);
+                    const dmgDie = new RG.Die(arr[0], arr[1], arr[2]);
 
-                        const poisonComp = new RG.Component.Poison();
-                        poisonComp.setDamageDie(dmgDie);
+                    const poisonComp = new RG.Component.Poison();
+                    poisonComp.setDamageDie(dmgDie);
 
-                        const expiration = new RG.Component.Expiration();
-                        expiration.addEffect(poisonComp, poisonDur);
+                    const expiration = new RG.Component.Expiration();
+                    expiration.addEffect(poisonComp, poisonDur);
 
-                        // Need owner to assign exp correctly
-                        let itemOwner = this.getOwner();
-                        while (itemOwner.hasOwnProperty('getOwner')) {
-                            itemOwner = itemOwner.getOwner();
-                        }
-                        poisonComp.setSource(itemOwner);
-
-                        poisonComp.setProb(this.useArgs.prob);
-                        target.add('Poison', poisonComp);
-                        target.add('Expiration', expiration);
-                        RG.destroyItemIfNeeded(this);
-                        return true;
+                    // Need owner to assign exp correctly
+                    let itemOwner = this.getOwner();
+                    while (itemOwner.hasOwnProperty('getOwner')) {
+                        itemOwner = itemOwner.getOwner();
                     }
+                    poisonComp.setSource(itemOwner);
+
+                    poisonComp.setProb(this.useArgs.prob);
+                    actor.add('Poison', poisonComp);
+                    actor.add('Expiration', expiration);
+                    RG.destroyItemIfNeeded(this);
+                    return true;
                 }
                 return false;
             },
@@ -210,34 +240,50 @@ RG.Effects = {
             name: 'stun',
             requires: ['duration'],
             func: function(obj) {
-                if (obj.hasOwnProperty('target')) {
-                    const cell = obj.target;
-                    if (cell.hasActors()) {
-                        const target = cell.getProp('actors')[0];
-                        const arr = RG.parseDieSpec(this.useArgs.duration);
-                        const durDie = new RG.Die(arr[0], arr[1], arr[2]);
-                        const stunDur = durDie.roll();
-                        const stunComp = new RG.Component.Stun();
-                        const expiration = new RG.Component.Expiration();
-                        expiration.addEffect(stunComp, stunDur);
+                const actor = getTargetActor(obj);
+                if (actor) {
+                    const arr = RG.parseDieSpec(this.useArgs.duration);
+                    const durDie = new RG.Die(arr[0], arr[1], arr[2]);
+                    const stunDur = durDie.roll();
+                    const stunComp = new RG.Component.Stun();
+                    const expiration = new RG.Component.Expiration();
+                    expiration.addEffect(stunComp, stunDur);
 
-                        let itemOwner = this.getOwner();
-                        while (itemOwner.hasOwnProperty('getOwner')) {
-                            itemOwner = itemOwner.getOwner();
-                        }
-                        stunComp.setSource(itemOwner);
-
-                        target.add('Stun', stunComp);
-                        target.add('Expiration', expiration);
-                        RG.destroyItemIfNeeded(this);
-                        RG.gameMsg(target.getName() +
-                            ' is stunned by ' + this.getName());
-                        return true;
+                    let itemOwner = this.getOwner();
+                    while (itemOwner.hasOwnProperty('getOwner')) {
+                        itemOwner = itemOwner.getOwner();
                     }
+                    stunComp.setSource(itemOwner);
+
+                    actor.add('Stun', stunComp);
+                    actor.add('Expiration', expiration);
+                    RG.destroyItemIfNeeded(this);
+                    RG.gameMsg(actor.getName() +
+                        ' is stunned by ' + this.getName());
+                    return true;
                 }
                 return false;
-            },
+            }
         }, // stun
+        // Modifies of the actor stats with given value
+        {
+            name: 'modifyStat',
+            requires: ['statName', 'value'],
+            func: function(obj) {
+                const actor = getTargetActor(obj);
+                if (actor) {
+                    const value = this.useArgs.value;
+                    const statName = this.useArgs.statName.capitalize();
+                    const setFunc = 'set' + statName;
+                    const getFunc = 'get' + statName;
+                    const stats = actor.get('Stats');
+                    const currVal = stats[getFunc]();
+                    stats[setFunc](currVal + value);
+                }
+                return false;
+
+            }
+        },
 
 
     ],
