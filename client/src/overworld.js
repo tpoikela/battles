@@ -174,7 +174,10 @@ RG.OverWorld.SubLevel = function(level) {
  */
 RG.OverWorld.createOverWorld = function(conf = {}) {
     const overworld = OW.createOverWorld(conf);
+    return RG.createOverWorldLevel(overworld, conf);
+};
 
+RG.OverWorld.createOverWorldLevel = function(overworld, conf) {
     const worldX = conf.worldX || 400;
     const worldY = conf.worldY || 400;
 
@@ -189,6 +192,7 @@ RG.OverWorld.createOverWorld = function(conf = {}) {
         overworld, worldX, worldY, xMap, yMap, areaX, areaY);
 
     return worldLevel;
+
 };
 
 
