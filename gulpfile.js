@@ -19,7 +19,7 @@ const port = process.env.PORT || 8080;
 // Define paths for all source files here
 const paths = {
     jsxDir: './client/jsx',
-    client: ['./client/jsx/*.jsx', './client/**/*.js', './lib/*.js'],
+    client: ['./client/**/*.jsx', './client/**/*.js', './lib/*.js'],
     sass: ['./scss/*.*'],
     tests: ['./tests/client/src/*.js'],
 
