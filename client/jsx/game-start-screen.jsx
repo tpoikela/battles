@@ -1,6 +1,6 @@
 
 const React = require('react');
-const RG = require('../src/battles.js');
+const RG = require('../src/rg.js');
 
 const ModalHeader = require('./modal-header');
 const RadioButtons = require('./radio-buttons');
@@ -209,7 +209,8 @@ class GameStartScreen extends React.Component {
                   titleName='Player'
                 />
                 <RadioButtons
-                  buttons={['Off', 'Arena', 'Battle', 'Creator', 'World', 'OverWorld']}
+                  buttons={['Off', 'Arena', 'Battle',
+                    'Creator', 'World', 'OverWorld']}
                   callback={setDebugMode}
                   currValue={this.props.settings.debugMode}
                   titleName='Debug'
