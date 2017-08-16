@@ -15,15 +15,15 @@ const Stairs = RG.Element.Stairs;
 RG.Factory = {};
 
 /* Returns a basic configuration for a city level. */
-RG.Factory.cityConfBase = function(_parser, conf) {
+RG.Factory.cityConfBase = function(conf) {
     const userConf = conf || {};
     const obj = {
         nHouses: 10, minHouseX: 5, maxHouseX: 10, minHouseY: 5,
-        maxHouseY: 10, parser: _parser, nShops: 1,
+        maxHouseY: 10, nShops: 1,
         shopFunc: [
             item => item.type === RG.RAND.arrayGetRand(RG.SHOP_TYPES)
         ],
-        shopType: ''
+        shopType: '', levelType: 'arena'
     };
     const result = Object.assign(obj, userConf);
     return result;
@@ -318,10 +318,16 @@ RG.Factory.Base = function() { // {{{2
 
                     if (conf.hasOwnProperty('parser')) {
                         let item = null;
-                        if (typeof conf.shopFunc[n] === 'function') {
-                            item = conf.parser.createRandomItem({
-                                func: conf.shopFunc[n]
-                            });
+                        if (conf.shopFunc) {
+                            if (typeof conf.shopFunc[n] === 'function') {
+                                item = conf.parser.createRandomItem({
+                                    func: conf.shopFunc[n]
+                                });
+                            }
+                            else {
+                                RG.err('Factory.Base', 'createShop',
+                                    'shopFunc must be a function.');
+                            }
                         }
                         else if (Array.isArray(conf.shopType)) {
                             item = conf.parser.createRandomItem({
@@ -585,7 +591,8 @@ RG.Factory.Feature = function() {
     };
 
     this.createCityLevel = function(conf) {
-        const levelConf = RG.Factory.cityConfBase(_parser, conf);
+        const levelConf = RG.Factory.cityConfBase(conf);
+        levelConf.parser = _parser;
         const cityLevel = this.createLevel('town', conf.x, conf.y, levelConf);
         return cityLevel;
     };
