@@ -247,6 +247,10 @@ ul {
     @include menu-list-item;
 };
 
+.game-overworld-map-pre {
+    font-family: monospace;
+    line-height: 1.1;
+}
 
 //---------------------------------------------------------------------
 // GAME MENU (for player command selection)
