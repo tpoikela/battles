@@ -78,6 +78,38 @@ const getUniformInt = function(min, max) {
     return RG.RAND.getUniformInt(min, max);
 };
 
+WorldConf.getBaseConf = function(type) {
+    let feat = null;
+    switch (type) {
+        case 'branch': feat = WorldConf.createSingleBranchConf(); break;
+        case 'city': {
+            feat = {
+                name: 'city', nQuarters: 1,
+                quarter: [WorldConf.createSingleQuarterConf()]
+            };
+            break;
+        }
+        case 'dungeon': {
+            feat = {
+                name: 'dungeon', nBranches: 1,
+                branch: [WorldConf.createSingleBranchConf()]
+            };
+            break;
+        }
+        case 'face': feat = WorldConf.createSingleFaceConf(); break;
+        case 'mountain': {
+            feat = {
+                name: 'mountain', nFaces: 1,
+                face: [WorldConf.createSingleFaceConf()]
+            };
+            break;
+        }
+        case 'quarter': feat = WorldConf.createSingleQuarterConf(); break;
+        default: console.log('No legal featureType given');
+    }
+    return feat;
+};
+
 /* Connects all city quarters together. */
 WorldConf.createQuarterConnections = function(feats) {
     if (feats.length === 1) {return null;}
@@ -292,7 +324,7 @@ WorldConf.createBranchesConf = function(dungeonConf, conf) {
     const nBranches = WorldConf.getNumBranches(dungeonConf, conf);
     const branches = [];
     for (let i = 0; i < nBranches; i++) {
-        const branch = WorldConf.createSingleBranchConf(dungeonConf, conf);
+        const branch = WorldConf.createSingleBranchConf();
         branches.push(branch);
 
         // For now, entrance is always from level 0 of br 0
@@ -303,10 +335,37 @@ WorldConf.createBranchesConf = function(dungeonConf, conf) {
     return branches;
 };
 
-WorldConf.createSingleBranchConf = function(dungeonConf, conf) {
-    const nLevels = WorldConf.getNumLevels('dungeon', dungeonConf, conf);
+WorldConf.createSingleBranchConf = function() {
+    const nLevels = WorldConf.getNumLevels('dungeon');
     return {
         name: Names.getGenericPlaceName('branch'),
+        nLevels
+    };
+};
+
+//---------------------
+// CITIES
+//---------------------
+
+/* THis function decide on the structure of quarter, nHouses, shops etc. */
+WorldConf.createSingleQuarterConf = function() {
+    const nLevels = WorldConf.getNumLevels('city');
+    return {
+        nLevels,
+        name: Names.getGenericPlaceName('quarter')
+    };
+};
+
+//------------
+// MOUNTAINS
+//------------
+
+WorldConf.createSingleFaceConf = function() {
+    const nLevels = WorldConf.getNumLevels('mountain');
+    return {
+        x: 100,
+        y: 200,
+        name: Names.getGenericPlaceName('face'),
         nLevels
     };
 };
@@ -438,22 +497,13 @@ WorldConf.Creator = function() {
         const nQuarters = WorldConf.getNumQuarters(cityConf, conf);
         const quarters = [];
         for (let i = 0; i < nQuarters; i++) {
-            const quarter = this.createSingleQuarterConf(cityConf, conf);
+            const quarter = WorldConf.createSingleQuarterConf();
             if (i === 0) {
                 quarter.entranceLevel = 0;
             }
             quarters.push(quarter);
         }
         return quarters;
-    };
-
-    /* THis function decide on the structure of quarter, nHouses, shops etc. */
-    this.createSingleQuarterConf = function(cityConf, conf) {
-        const nLevels = WorldConf.getNumLevels('city', cityConf, conf);
-        return {
-            nLevels,
-            name: this.getName('quarter')
-        };
     };
 
 
@@ -497,7 +547,7 @@ WorldConf.Creator = function() {
         const nFaces = WorldConf.getNumFaces(mountConf, conf);
         const faces = [];
         for (let i = 0; i < nFaces; i++) {
-            const face = this.createSingleFaceConf(mountConf, conf);
+            const face = WorldConf.createSingleFaceConf();
             faces.push(face);
 
             // For now, entrance is always from level 0 of br 0
@@ -507,22 +557,6 @@ WorldConf.Creator = function() {
         }
         return faces;
     };
-
-    this.createSingleFaceConf = function(mountConf, conf) {
-        const nLevels = WorldConf.getNumLevels('mountain', mountConf, conf);
-        return {
-            x: 100,
-            y: 200,
-            name: this.getName('face'),
-            nLevels
-        };
-    };
-
-
-    //-------------------
-    // CONNECTING STUFF
-    //-------------------
-
 
     //----------------------------
     // NAME GEN FUNCTIONS
