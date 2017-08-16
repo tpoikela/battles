@@ -16,6 +16,42 @@ const compareSpells = function(s1, s2) {
     return 0;
 };
 
+RG.Spell.getSelectionObjectDir = function(spell, actor, msg) {
+    RG.gameMsg(msg);
+    return {
+        select: (code) => {
+            const args = {};
+            args.dir = RG.KeyMap.getDir(code);
+            if (args.dir) {
+                args.src = actor;
+                return () => {
+                    const spellCast = new RG.Component.SpellCast();
+                    spellCast.setSource(actor);
+                    spellCast.setSpell(spell);
+                    spellCast.setArgs(args);
+                    actor.add('SpellCast', spellCast);
+                };
+            }
+            return null;
+        },
+        showMenu: () => false
+    };
+};
+
+const getDirSpellArgs = function(spell, args) {
+    const src = args.src;
+    const dir = args.dir;
+    const x = src.getX();
+    const y = src.getY();
+    const obj = {
+        from: [x, y],
+        dir,
+        spell: spell,
+        src: args.src
+    };
+    return obj;
+};
+
 /* A list of spells known by a single actor. */
 RG.Spell.SpellBook = function(actor) {
     const _actor = actor;
@@ -175,47 +211,50 @@ RG.Spell.GraspOfWinter = function() {
     const _damageDie = RG.FACT.createDie('4d4 + 4');
 
     this.cast = function(args) {
-        console.log('Casting winters grasp');
-        const src = args.src;
-        const dir = args.dir;
-        const x = src.getX();
-        const y = src.getY();
-
-        const obj = {
-            from: [x, y],
-            dir,
-            spell: this,
-            src: args.src,
-            damageType: 'ice',
-            damage: _damageDie.roll()
-        };
+        const obj = getDirSpellArgs(this, args);
+        obj.damageType = 'ice';
+        obj.damage = _damageDie.roll();
         const spellComp = new RG.Component.SpellCell();
         spellComp.setArgs(obj);
         args.src.add('SpellCell', spellComp);
     };
 
     this.getSelectionObject = function(actor) {
-        RG.gameMsg('Select a direction for grasping:');
-        return {
-            select: (code) => {
-                const args = {};
-                args.dir = RG.KeyMap.getDir(code);
-                if (args.dir) {
-                    args.src = actor;
-                    return () => {
-                        const spellCast = new RG.Component.SpellCast();
-                        spellCast.setSource(actor);
-                        spellCast.setSpell(this);
-                        spellCast.setArgs(args);
-                        actor.add('SpellCast', spellCast);
-                    };
-                }
-                return null;
-            },
-            showMenu: () => false
-        };
+        const msg = 'Select a direction for grasping:';
+        return RG.Spell.getSelectionObjectDir(this, actor, msg);
     };
 };
 RG.extend2(RG.Spell.GraspOfWinter, RG.Spell.Base);
+
+/* Healing spell, duh. */
+RG.Spell.Heal = function() {
+    RG.Spell.Base.call(this, 'Heal', 6);
+
+    const _healingDie = RG.FACT.createDie('2d4');
+
+    this.cast = function(args) {
+        const obj = getDirSpellArgs(this, args);
+        obj.targetComp = 'Health';
+        obj.set = 'addHP';
+        obj.value = _healingDie.roll();
+        const spellComp = new RG.Component.SpellCell();
+        spellComp.setArgs(obj);
+        args.src.add('SpellCell', spellComp);
+    };
+
+    this.getSelectionObject = function(actor) {
+        const msg = 'Select a direction for healing:';
+        return RG.Spell.getSelectionObjectDir(this, actor, msg);
+    };
+};
+RG.extend2(RG.Spell.Heal, RG.Spell.Base);
+
+
+RG.Spell.addAllSpells = function(book) {
+    book.addSpell(new RG.Spell.FrostBolt());
+    book.addSpell(new RG.Spell.IceShield());
+    book.addSpell(new RG.Spell.GraspOfWinter());
+    book.addSpell(new RG.Spell.Heal());
+};
 
 module.exports = RG.Spell;
