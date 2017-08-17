@@ -34,12 +34,16 @@ OW.TERM = '.';
 
 // Features like cities etc.
 OW.WCAPITAL = '\u2654';
+OW.BCAPITAL = '\u265A';
 OW.BTOWER = '\u265C';
 OW.WTOWER = '\u2656';
-OW.DUNGEON = '\u2616';
+OW.WDUNGEON = '\u2616';
 // OW.VILLAGE = '\u27F0';
-OW.VILLAGE = '\u25B3';
+OW.BVILLAGE = '\u25B2';
+OW.WVILLAGE = '\u25B3';
 // const CITY = '\u1CC1';
+
+OW.PROB_BVILLAGE = 0.25;
 
 OW.biomeTypeMap = {
     arctic: 0,
@@ -682,6 +686,7 @@ function addOverWorldFeatures(ow) {
     }
     if (ow.numVWalls() > 0) {
         addFeatureToWall(ow, ow._vWalls[0], OW.BTOWER);
+        addFeatureToWall(ow, ow._vWalls[0], OW.BCAPITAL);
     }
 
     // TODO list for features:
@@ -771,7 +776,7 @@ function addDungeonsToOverWorld(ow, nDungeons, cmd) {
     const bbox = getBoundingBox(ow, cmd);
     for (let i = 0; i < nDungeons; i++) {
         const xy = findCellRandXYInBox(ow.getMap(), bbox, OW.ALL_WALLS);
-        ow.addFeature(xy, OW.DUNGEON);
+        ow.addFeature(xy, OW.WDUNGEON);
     }
 }
 
@@ -780,7 +785,12 @@ function addVillagesToOverWorld(ow, nDungeons, cmd) {
     const bbox = getBoundingBox(ow, cmd);
     for (let i = 0; i < nDungeons; i++) {
         const xy = findCellRandXYInBox(ow.getMap(), bbox, [OW.TERM]);
-        ow.addFeature(xy, OW.VILLAGE);
+        if (RG.RAND.getUniform() < OW.PROB_BVILLAGE) {
+            ow.addFeature(xy, OW.BVILLAGE);
+        }
+        else {
+            ow.addFeature(xy, OW.WVILLAGE);
+        }
     }
 }
 
