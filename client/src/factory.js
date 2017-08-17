@@ -614,6 +614,8 @@ RG.Factory.Feature = function() {
     // CITY LEVELS
     //---------------------------
 
+    /* Called for each nLevels of city quarter. Delegates the task to other
+    * functions based on the type of city and quarter. */
     this.createCityLevel = function(conf) {
         const levelConf = RG.Factory.cityConfBase(conf);
         levelConf.parser = _parser;
@@ -658,12 +660,9 @@ RG.Factory.Feature = function() {
         levelConf.levelType = 'empty';
         levelConf.wallType = 'wooden';
         const level = this.createLevel('town', cols, rows, levelConf);
-        const actorConf = {
-            monstersPerLevel: 30,
-            maxDanger: 2,
-            func: actor => actor.type === 'human'
-        };
-        this.addNRandMonsters(level, _parser, actorConf);
+        levelConf.monstersPerLevel = 30;
+        levelConf.maxDanger = 3;
+        this.populateCityLevel(level, levelConf);
         return level;
     };
 
@@ -694,49 +693,52 @@ RG.Factory.Feature = function() {
             alignment = RG.RAND.arrayGetRand(RG.ALIGNMENTS);
         }
         if (alignment === RG.ALIGN_GOOD) {
-            this.populateWithHumans(level);
+            this.populateWithHumans(level, levelConf);
         }
         else if (alignment === RG.ALIGN_EVIL) {
-            this.populateWithNonHumans(level);
+            this.populateWithNonHumans(level, levelConf);
         }
         else {
-            this.populateWithNeutral(level);
+            this.populateWithNeutral(level, levelConf);
         }
     };
 
-    this.populateWithHumans = function(level) {
+    this.populateWithHumans = function(level, levelConf) {
         const actorConf = {
-            monstersPerLevel: 100,
-            maxDanger: 10,
+            monstersPerLevel: levelConf.monstersPerLevel || 100,
+            maxDanger: levelConf.maxDanger || 10,
             func: actor => (
                 actor.type === 'human' &&
                 actor.name !== 'shopkeeper'
             )
         };
+        if (levelConf.func) {actorConf.func = levelConf.func;}
         this.addNRandMonsters(level, _parser, actorConf);
     };
 
-    this.populateWithNonHumans = function(level) {
+    this.populateWithNonHumans = function(level, levelConf) {
         const actorConf = {
-            monstersPerLevel: 100,
-            maxDanger: 10,
+            monstersPerLevel: levelConf.monstersPerLevel || 100,
+            maxDanger: levelConf.maxDanger || 10,
             func: actor => (
                 actor.type !== 'human'
             )
         };
+        if (levelConf.func) {actorConf.func = levelConf.func;}
         this.addNRandMonsters(level, _parser, actorConf);
     };
 
-    this.populateWithNeutral = function(level) {
+    this.populateWithNeutral = function(level, levelConf) {
         const actorConf = {
-            monstersPerLevel: 50,
-            maxDanger: 10,
+            monstersPerLevel: levelConf.monstersPerLevel || 100,
+            maxDanger: levelConf.maxDanger || 10,
             func: actor => (
                 actor.type === 'dwarf' ||
                 actor.type === 'spirit' ||
                 actor.type === 'bearfolk'
             )
         };
+        if (levelConf.func) {actorConf.func = levelConf.func;}
         this.addNRandMonsters(level, _parser, actorConf);
     };
 
@@ -1202,6 +1204,8 @@ RG.Factory.World = function() {
             shopFunc: conf.shop || [(item) => (item.type === 'food')]
         };
 
+        // This bunch of data must be passed in conf because featFact does not
+        // have access to it via getConf
         const groupType = this.getConf('groupType');
         const cityType = this.getConf('cityType');
         const quarterType = this.getConf('quarterType');
