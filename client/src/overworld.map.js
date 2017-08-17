@@ -33,6 +33,7 @@ OW.TT_S = '\u2569'; // ╩
 OW.TERM = '.';
 
 // Features like cities etc.
+OW.WCAPITAL = '\u2654';
 OW.BTOWER = '\u265C';
 OW.WTOWER = '\u2656';
 OW.DUNGEON = '\u2616';
@@ -669,7 +670,7 @@ function addOverWorldFeatures(ow) {
 
     // City of B, + other wall fortresses
     if (ow.numHWalls() > 1) {
-        addFeatureToWall(ow, ow._hWalls[1], OW.WTOWER);
+        addFeatureToWall(ow, ow._hWalls[1], OW.WCAPITAL);
         addFeatureToWall(ow, ow._hWalls[0], OW.WTOWER);
     }
     if (ow.numVWalls() > 0) {
@@ -688,8 +689,7 @@ function addOverWorldFeatures(ow) {
         type: 'tundra'});
     addBiomeToOverWorld(ow, {y: {start: ['wall', 1], end: 'S'}, type: 'taiga'});
 
-
-    // Create forests and lakes
+    // Create forests and lakes (sort of done in sub-level generation)
 
     // Distribute dungeons
     addDungeonsToOverWorld(ow, 40, 1, sizeY - 2, sizeX - 2, sizeY - 10);
