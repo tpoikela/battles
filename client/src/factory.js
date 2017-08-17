@@ -197,14 +197,19 @@ RG.Factory.Base = function() { // {{{2
             case 'chasm': return RG.CHASM_ELEM;
             case 'door' : return new RG.Element.Door(true);
             case 'floor': return RG.FLOOR_ELEM;
+            case 'floorcave': return RG.FLOOR_CAVE_ELEM;
+            case 'floorcrypt': return RG.FLOOR_CRYPT_ELEM;
             case 'grass': return RG.GRASS_ELEM;
             case 'highrock': return RG.HIGH_ROCK_ELEM;
-            case 'icewall': return RG.ICE_WALL_ELEM;
             case 'opendoor' : return new RG.Element.Door(false);
             case 'snow': return RG.SNOW_ELEM;
             case 'stone': return RG.STONE_ELEM;
             case 'tree': return RG.TREE_ELEM;
             case 'wall': return RG.WALL_ELEM;
+            case 'wallcave': return RG.WALL_CAVE_ELEM;
+            case 'wallcrypt': return RG.WALL_CRYPT_ELEM;
+            case 'wallice': return RG.ICE_WALL_ELEM;
+            case 'wallwooden': return RG.WALL_WOODEN_ELEM;
             case 'water': return RG.WATER_ELEM;
             default: return null;
         }
@@ -590,12 +595,6 @@ RG.Factory.Feature = function() {
         return level;
     };
 
-    this.createCityLevel = function(conf) {
-        const levelConf = RG.Factory.cityConfBase(conf);
-        levelConf.parser = _parser;
-        const cityLevel = this.createLevel('town', conf.x, conf.y, levelConf);
-        return cityLevel;
-    };
 
     this.createMountainLevel = function(conf) {
         const mountConf = {
@@ -610,6 +609,88 @@ RG.Factory.Feature = function() {
         this.addItemsAndMonsters(mountainLevel, mountConf);
         return mountainLevel;
     };
+
+    //---------------------------
+    // CITY LEVELS
+    //---------------------------
+
+    this.createCityLevel = function(conf) {
+        const levelConf = RG.Factory.cityConfBase(conf);
+        levelConf.parser = _parser;
+        let cityLevel = null;
+
+        const {x, y} = conf;
+        if (levelConf.groupType) {
+            switch (levelConf.groupType) {
+                case 'village': {
+                    console.log('Creating village level now');
+                    cityLevel = this.createVillageLevel(x, y, levelConf);
+                    break;
+                }
+                case 'capital': {
+                    cityLevel = this.createCapitalLevel(x, y, levelConf);
+                    break;
+                }
+                case 'stronghold': {
+                    cityLevel = this.createStrongholdLevel(x, y, levelConf);
+                    break;
+                }
+                case 'fort': {
+                    console.log('Creating capital/fort level now');
+                    cityLevel = this.createFortLevel(x, y, levelConf);
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+        }
+
+        if (cityLevel === null) {
+            cityLevel = this.createLevel('town', x, y, levelConf);
+        }
+        return cityLevel;
+    };
+
+    this.createVillageLevel = function(cols, rows, levelConf) {
+        levelConf.levelType = 'empty';
+        levelConf.wallType = 'wooden';
+        const level = this.createLevel('town', cols, rows, levelConf);
+        const actorConf = {
+            monstersPerLevel: 30,
+            maxDanger: 2,
+            func: actor => actor.type === 'human'
+        };
+        this.addNRandMonsters(level, _parser, actorConf);
+        return level;
+    };
+
+    this.createFortLevel = function(cols, rows, levelConf) {
+        levelConf.levelType = 'miner';
+        return this.createLevel('town', 100, 100, levelConf);
+    };
+
+    this.createCapitalLevel = function(cols, rows, levelConf) {
+        levelConf.levelType = 'miner';
+        const level = this.createLevel('town', 100, 100, levelConf);
+        const actorConf = {
+            monstersPerLevel: 100,
+            maxDanger: 10,
+            func: actor => (
+                actor.type === 'human' &&
+                actor.name !== 'shopkeeper'
+            )
+        };
+        this.addNRandMonsters(level, _parser, actorConf);
+        return level;
+    };
+
+    this.createStrongholdLevel = function(cols, rows, levelConf) {
+        levelConf.levelType = 'miner';
+        const level = this.createLevel('town', 100, 100, levelConf);
+        return level;
+    };
+
 };
 RG.extend2(RG.Factory.Feature, RG.Factory.Base);
 
@@ -1071,6 +1152,14 @@ RG.Factory.World = function() {
             nShops: conf.nShops || 1,
             shopFunc: conf.shop || [(item) => (item.type === 'food')]
         };
+
+        const groupType = this.getConf('groupType');
+        const cityType = this.getConf('cityType');
+        const quarterType = this.getConf('quarterType');
+        if (groupType) {cityLevelConf.groupType = groupType;}
+        if (cityType) {cityLevelConf.cityType = cityType;}
+        if (quarterType) {cityLevelConf.cityType = quarterType;}
+
         for (let i = 0; i < conf.nLevels; i++) {
             let level = null;
             if (!this.id2levelSet) {
@@ -1108,17 +1197,17 @@ RG.Factory.World = function() {
         const tile = area.getTileXY(x, y);
         const tileLevel = tile.getLevel();
 
-        let freeX = -1;
-        let freeY = -1;
+        let tileStairsX = -1;
+        let tileStairsY = -1;
 
         if (RG.isNullOrUndef([conf.levelX, conf.levelY])) {
             const freeAreaCell = tileLevel.getEmptyRandCell();
-            freeX = freeAreaCell.getX();
-            freeY = freeAreaCell.getY();
+            tileStairsX = freeAreaCell.getX();
+            tileStairsY = freeAreaCell.getY();
         }
         else {
-            freeX = conf.levelX;
-            freeY = conf.levelY;
+            tileStairsX = conf.levelX;
+            tileStairsY = conf.levelY;
         }
 
         if (feature.hasOwnProperty('getEntrances')) {
@@ -1128,7 +1217,7 @@ RG.Factory.World = function() {
                 const entranceLevel = entranceStairs.getSrcLevel();
                 const isDown = !entranceStairs.isDown();
                 const tileStairs = new Stairs(isDown, tileLevel, entranceLevel);
-                tileLevel.addStairs(tileStairs, freeX, freeY);
+                tileLevel.addStairs(tileStairs, tileStairsX, tileStairsY);
                 tileStairs.connect(entranceStairs);
             }
             else {
