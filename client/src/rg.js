@@ -638,14 +638,14 @@ const RG = { // {{{2
 
     // Energy per action
     energy: {
-        DEFAULT: 10,
-        REST: 10,
-        USE: 10,
-        PICKUP: 10,
-        MISSILE: 20,
-        MOVE: 20,
-        ATTACK: 30,
-        RUN: 40
+        DEFAULT: 5,
+        REST: 5,
+        USE: 5,
+        PICKUP: 5,
+        MISSILE: 10,
+        MOVE: 10,
+        ATTACK: 15,
+        RUN: 20
     },
 
     // Different fighting modes
@@ -665,7 +665,12 @@ const RG = { // {{{2
     // This is a subset of ITEM_TYPES, excluding gold items
     SHOP_TYPES: ['ammo', 'armour', 'food',
         'missile', 'missileweapon', 'potion', 'spiritgem', 'weapon'
-    ]
+    ],
+
+    // Alignments (TODO make more diverse)
+    ALIGN_GOOD: 'ALIGN_GOOD',
+    ALIGN_EVIL: 'ALIGN_EVIL',
+    ALIGN_NEUTRAL: 'ALIGN_NEUTRAL'
 
 }; // / }}} RG
 
@@ -675,6 +680,8 @@ RG.cellRenderArray = RG.cellRenderVisible;
 RG.PROP_TYPES = [RG.TYPE_ACTOR, RG.TYPE_ELEM, RG.TYPE_ITEM, RG.TYPE_TRAP];
 // Fighting modes
 RG.FMODES = [RG.FMODE_NORMAL, RG.FMODE_FAST, RG.FMODE_SLOW];
+
+RG.ALIGNMENTS = [RG.ALIGN_GOOD, RG.ALIGN_NEUTRAL, RG.ALIGN_EVIL];
 
 RG.cellRenderArray = RG.cellRenderVisible;
 
