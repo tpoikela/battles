@@ -5,15 +5,15 @@ const RG = require('../../../client/src/battles');
 RG.Factory.Game = require('../../../client/src/factory.game');
 
 describe('How Game is created from Overworld', function() {
-    this.timeout(30000);
+    this.timeout(45000);
     it('is created using factory from game/player objects', () => {
         const gameFact = new RG.Factory.Game();
 
         const conf = {
             debugMode: 'OverWorld',
             playerLevel: 'Medium',
-            sqrPerItem: 50,
-            sqrPerMonster: 50
+            sqrPerItem: 100,
+            sqrPerMonster: 100
         };
 
         // const player = new RG.Actor.Rogue('My Hero');
