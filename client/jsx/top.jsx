@@ -679,6 +679,7 @@ class BattlesTop extends React.Component {
     /* GUI command keybindings are specified here. */
     initGUICommandTable() {
         this.guiCommands = {};
+        this.guiCommands[ROT.VK_H] = this.GUIHelp;
         this.guiCommands[RG.VK_i] = this.GUIInventory;
         this.guiCommands[RG.VK_m] = this.GUIMap;
         this.guiCommands[ROT.VK_M] = this.GUIOverWorldMap;
@@ -704,6 +705,10 @@ class BattlesTop extends React.Component {
             }
         }
         return false;
+    }
+
+    GUIHelp() {
+        $('#help-button').trigger('click');
     }
 
     /* GameInventory should add a callback which updates the GUI (via props) */
@@ -982,6 +987,7 @@ class BattlesTop extends React.Component {
         // GameBoard callbacks
         this.onCellClick = this.onCellClick.bind(this);
 
+        this.GUIHelp = this.GUIHelp.bind(this);
         this.GUIInventory = this.GUIInventory.bind(this);
         this.GUIMap = this.GUIMap.bind(this);
         this.GUIOverWorldMap = this.GUIOverWorldMap.bind(this);
