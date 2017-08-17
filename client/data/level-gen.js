@@ -4,7 +4,7 @@
 
 const RG = require('../src/rg');
 RG.Names = require('./name-gen');
-RG.WorldConf = require('../src/world.creator');
+const WorldConf = require('../src/world.creator');
 
 const LevelGen = {};
 
@@ -76,6 +76,7 @@ const getNumQuarters = (cityType) => {
         case 'Town': return 1;
         case 'Village': return 1;
         case 'Fort': return 2;
+        case 'Stronhold': return RG.RAND.getUniformInt(2, 4);
         case 'Capital': return RG.RAND.getUniformInt(3, 5);
         default: return 1;
     }
@@ -129,25 +130,6 @@ const getQuarterConf = (nQuarters, conf) => {
     return quarters;
 };
 
-const createQuarterConnections = function(feats) {
-    if (feats.length === 1) {return null;}
-    const connections = [];
-    for (let i = 1; i < feats.length; i++) {
-        const q0 = feats[i - 1];
-        const q1 = feats[i];
-
-        let l0 = RG.RAND.getWeightedLinear(q0.nLevels - 1);
-        const l1 = 0; // TODO add some randomization
-
-        if (RG.isNullOrUndef([l0])) {
-            l0 = q0.nLevels - 1;
-        }
-        const connect = [q0.name, q1.name, l0, l1];
-        connections.push(connect);
-    }
-    return connections;
-};
-
 LevelGen.getCityConf = (cityName, conf) => {
     let cityType = RG.Names.getGenericPlaceName('city');
     if (conf.type === 'fort') {
@@ -156,9 +138,12 @@ LevelGen.getCityConf = (cityName, conf) => {
     else if (conf.capital) {
         cityType = 'Capital';
     }
+    else if (conf.type === 'stronghold') {
+        cityType = 'Stronghold';
+    }
     const nQuarters = getNumQuarters(cityType, conf);
     const quarters = getQuarterConf(nQuarters, conf);
-    const connect = createQuarterConnections(quarters);
+    const connect = WorldConf.createQuarterConnections(quarters);
     const obj = {
         name: cityName,
         nQuarters,
