@@ -141,6 +141,9 @@ LevelGen.getCityConf = (cityName, conf) => {
     else if (conf.type === 'stronghold') {
         cityType = 'Stronghold';
     }
+    else if (conf.type === 'village') {
+        cityType = RG.Names.getVillageType();
+    }
     const nQuarters = getNumQuarters(cityType, conf);
     const quarters = getQuarterConf(nQuarters, conf);
     const connect = WorldConf.createQuarterConnections(quarters);
