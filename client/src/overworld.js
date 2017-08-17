@@ -26,7 +26,7 @@ RG.LevelGen = require('../data/level-gen');
 
 const OW = require('./overworld.map');
 
-const $DEBUG = true;
+const $DEBUG = false;
 
 RG.OverWorld = {};
 
@@ -452,11 +452,11 @@ function addSubLevelFeatures(ow, owX, owY, subLevel) {
         else if (feat === OW.BTOWER || feat === OW.WTOWER) {
             addTowerToSubLevel(feat, owSubLevel, subLevel);
         }
-        else if (feat === OW.DUNGEON) {
+        else if (feat === OW.WDUNGEON) {
             addDungeonToSubLevel(owSubLevel, subLevel);
         }
-        else if (feat === OW.VILLAGE) {
-            addVillageToSubLevel(owSubLevel, subLevel);
+        else if (feat === OW.WVILLAGE) {
+            addVillageToSubLevel(feat, owSubLevel, subLevel);
         }
     });
 
@@ -480,6 +480,7 @@ function addMountainFortToSubLevel(feat, owSubLevel, subLevel) {
     // Tile is a list of x,y coordinates
     subLevel.getMap().setBaseElems(coord, RG.FORT_ELEM);
     const fort = new RG.OverWorld.SubFeature(type, coord);
+    fort.alignment = getAlignment(feat);
     owSubLevel.addFeature(fort);
 }
 
@@ -498,9 +499,23 @@ function addTowerToSubLevel(feat, owSubLevel, subLevel) {
     if (placed) {
         subLevel.getMap().setBaseElems(coord, RG.FORT_ELEM);
         const tower = new RG.OverWorld.SubFeature(type, coord);
+        tower.alignment = getAlignment(feat);
         owSubLevel.addFeature(tower);
     }
 
+}
+
+/* Returns the alignment for the given feature. */
+function getAlignment(feat) {
+    switch (feat) {
+        case OW.BCAPITAL: // fallthrough
+        case OW.BTOWER:  // fallthrough
+        case OW.BVILLAGE: return RG.ALIGN_EVIL;
+        case OW.WCAPITAL: // fallthrough
+        case OW.WTOWER: // fallthrough
+        case OW.WVILLAGE: return RG.ALIGN_GOOD;
+        default: return RG.ALIGN_NEUTRAL;
+    }
 }
 
 function addDungeonToSubLevel(owSubLevel, subLevel) {
@@ -543,13 +558,14 @@ function addDungeonToSubLevel(owSubLevel, subLevel) {
 }
 
 /* Adds a village to the free square of the sub-level. */
-function addVillageToSubLevel(owSubLevel, subLevel) {
+function addVillageToSubLevel(feat, owSubLevel, subLevel) {
     const map = subLevel.getMap();
     const freeCells = map.getFree();
     if (freeCells.length > 0) {
         const freeXY = freeCells.map(cell => [cell.getX(), cell.getY()]);
         const coord = RG.RAND.arrayGetRand(freeXY);
         const village = new RG.OverWorld.SubFeature('village', [coord]);
+        village.aligntment = getAlignment(feat);
         owSubLevel.addFeature(village);
     }
     else {
@@ -674,6 +690,8 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
                         cityConf.y = aY;
                         cityConf.levelX = featX;
                         cityConf.levelY = featY;
+                        cityConf.alignment = feat.alignment
+                            || getRandIn(RG.ALIGNMENTS);
                         areaConf.nCities += 1;
                         areaConf.city.push(cityConf);
                     }
