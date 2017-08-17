@@ -30,8 +30,7 @@ const $DEBUG = true;
 
 RG.OverWorld = {};
 
-const cityTypesRe = /(fort|city|village)/;
-
+const cityTypesRe = /(capital|city|fort|stronghold|village)/;
 const getRandIn = RG.RAND.arrayGetRand.bind(RG.RAND);
 
 /* Wall object inside the Overworld. Wall here means a huge wall of mountains.
@@ -442,11 +441,14 @@ function addSubLevelFeatures(ow, owX, owY, subLevel) {
     if (!features) {return;}
 
     features.forEach(feat => {
-        if ((base === OW.LL_WE || base === OW.LL_NS) && feat === OW.WTOWER) {
-            addMountainFortToSubLevel(owSubLevel, subLevel);
+        if (feat === OW.WCAPITAL) {
+            addMountainFortToSubLevel(feat, owSubLevel, subLevel);
         }
-        else if (feat === OW.BTOWER) {
-            addBlackTowerToSubLevel(owSubLevel, subLevel);
+        else if (isMountainFort(base, feat)) {
+            addMountainFortToSubLevel(feat, owSubLevel, subLevel);
+        }
+        else if (feat === OW.BTOWER || feat === OW.WTOWER) {
+            addTowerToSubLevel(feat, owSubLevel, subLevel);
         }
         else if (feat === OW.DUNGEON) {
             addDungeonToSubLevel(owSubLevel, subLevel);
@@ -455,22 +457,31 @@ function addSubLevelFeatures(ow, owX, owY, subLevel) {
             addVillageToSubLevel(owSubLevel, subLevel);
         }
     });
+
 }
 
-function addMountainFortToSubLevel(owSubLevel, subLevel) {
+function isMountainFort(base, feat) {
+    return (base === OW.LL_WE || base === OW.LL_NS) &&
+        (feat === OW.BTOWER || feat === OW.WTOWER);
+}
+
+function addMountainFortToSubLevel(feat, owSubLevel, subLevel) {
     const wall = owSubLevel.getWall();
     const start = wall.getWallStart();
     const end = wall.getWallEnd();
     const randPos = RG.RAND.getUniformInt(start, end);
     const coord = wall.getCoordAt(randPos);
 
+    let type = feat === OW.WTOWER ? 'fort' : 'stronghold';
+    type = feat === OW.WCAPITAL ? 'capital' : type;
+
     // Tile is a list of x,y coordinates
     subLevel.getMap().setBaseElems(coord, RG.FORT_ELEM);
-    const fort = new RG.OverWorld.SubFeature('fort', coord);
+    const fort = new RG.OverWorld.SubFeature(type, coord);
     owSubLevel.addFeature(fort);
 }
 
-function addBlackTowerToSubLevel(owSubLevel, subLevel) {
+function addTowerToSubLevel(feat, owSubLevel, subLevel) {
     let placed = false;
     const freeCells = subLevel.getMap().getFree();
     const freeXY = freeCells.map(cell => [cell.getX(), cell.getY()]);
@@ -480,9 +491,11 @@ function addBlackTowerToSubLevel(owSubLevel, subLevel) {
         placed = true;
     }
 
+    const type = feat === OW.BTOWER ? 'blacktower' : 'whitetower';
+
     if (placed) {
         subLevel.getMap().setBaseElems(coord, RG.FORT_ELEM);
-        const tower = new RG.OverWorld.SubFeature('blacktower', coord);
+        const tower = new RG.OverWorld.SubFeature(type, coord);
         owSubLevel.addFeature(tower);
     }
 
