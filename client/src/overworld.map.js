@@ -689,12 +689,13 @@ function addOverWorldFeatures(ow) {
     // Add the main roads for most important places
     const cmdBetweenHWalls = {y: {start: ['wall', 0], end: ['wall', 1]}};
     const cmdAboveNorthWall = {y: {start: 'N', end: 'wall'}};
+    const cmdSouthernArea = {y: {start: ['wall', 1], end: 'S'}};
 
     // Create biomes for actor generation of overworld
     addBiomeToOverWorld(ow, cmdAboveNorthWall, 'alpine');
     addBiomeToOverWorld(ow, {x: {start: ['wall', 0], end: 'E'}}, 'arctic');
     addBiomeToOverWorld(ow, cmdBetweenHWalls, 'tundra');
-    addBiomeToOverWorld(ow, {y: {start: ['wall', 1], end: 'S'}}, 'taiga');
+    addBiomeToOverWorld(ow, cmdSouthernArea, 'taiga');
 
     // Create forests and lakes (sort of done in sub-level generation)
 
