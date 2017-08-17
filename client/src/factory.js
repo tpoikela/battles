@@ -628,15 +628,17 @@ RG.Factory.Feature = function() {
                     break;
                 }
                 case 'capital': {
+                    console.log('Creating capital level now');
                     cityLevel = this.createCapitalLevel(x, y, levelConf);
                     break;
                 }
                 case 'stronghold': {
+                    console.log('Creating stronghold level now');
                     cityLevel = this.createStrongholdLevel(x, y, levelConf);
                     break;
                 }
                 case 'fort': {
-                    console.log('Creating capital/fort level now');
+                    console.log('Creating fort level now');
                     cityLevel = this.createFortLevel(x, y, levelConf);
                     break;
                 }
@@ -667,12 +669,42 @@ RG.Factory.Feature = function() {
 
     this.createFortLevel = function(cols, rows, levelConf) {
         levelConf.levelType = 'miner';
-        return this.createLevel('town', 100, 100, levelConf);
+        const level = this.createLevel('town', 100, 100, levelConf);
+        this.populateCityLevel(level, levelConf);
+        return level;
     };
 
     this.createCapitalLevel = function(cols, rows, levelConf) {
         levelConf.levelType = 'miner';
         const level = this.createLevel('town', 100, 100, levelConf);
+        this.populateCityLevel(level, levelConf);
+        return level;
+    };
+
+    this.createStrongholdLevel = function(cols, rows, levelConf) {
+        levelConf.levelType = 'miner';
+        const level = this.createLevel('town', 100, 100, levelConf);
+        this.populateCityLevel(level, levelConf);
+        return level;
+    };
+
+    this.populateCityLevel = function(level, levelConf) {
+        let alignment = levelConf.alignment;
+        if (!alignment) {
+            alignment = RG.RAND.arrayGetRand(RG.ALIGNMENTS);
+        }
+        if (alignment === RG.ALIGN_GOOD) {
+            this.populateWithHumans(level);
+        }
+        else if (alignment === RG.ALIGN_EVIL) {
+            this.populateWithNonHumans(level);
+        }
+        else {
+            this.populateWithNeutral(level);
+        }
+    };
+
+    this.populateWithHumans = function(level) {
         const actorConf = {
             monstersPerLevel: 100,
             maxDanger: 10,
@@ -682,13 +714,30 @@ RG.Factory.Feature = function() {
             )
         };
         this.addNRandMonsters(level, _parser, actorConf);
-        return level;
     };
 
-    this.createStrongholdLevel = function(cols, rows, levelConf) {
-        levelConf.levelType = 'miner';
-        const level = this.createLevel('town', 100, 100, levelConf);
-        return level;
+    this.populateWithNonHumans = function(level) {
+        const actorConf = {
+            monstersPerLevel: 100,
+            maxDanger: 10,
+            func: actor => (
+                actor.type !== 'human'
+            )
+        };
+        this.addNRandMonsters(level, _parser, actorConf);
+    };
+
+    this.populateWithNeutral = function(level) {
+        const actorConf = {
+            monstersPerLevel: 50,
+            maxDanger: 10,
+            func: actor => (
+                actor.type === 'dwarf' ||
+                actor.type === 'spirit' ||
+                actor.type === 'bearfolk'
+            )
+        };
+        this.addNRandMonsters(level, _parser, actorConf);
     };
 
 };
@@ -1156,9 +1205,11 @@ RG.Factory.World = function() {
         const groupType = this.getConf('groupType');
         const cityType = this.getConf('cityType');
         const quarterType = this.getConf('quarterType');
+        const alignment = this.getConf('alignment');
         if (groupType) {cityLevelConf.groupType = groupType;}
         if (cityType) {cityLevelConf.cityType = cityType;}
         if (quarterType) {cityLevelConf.cityType = quarterType;}
+        if (alignment) {cityLevelConf.alignment = alignment;}
 
         for (let i = 0; i < conf.nLevels; i++) {
             let level = null;
