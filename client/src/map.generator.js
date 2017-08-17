@@ -158,7 +158,8 @@ RG.Map.Generator = function() { // {{{2
                 const x0 = xy[0];
                 const y0 = xy[1];
                 houseCreated = this.createHouse(
-                    map, x0, y0, xSize, ySize, doors, wallsHalos, freeCoord);
+                    map, x0, y0, xSize, ySize, doors, wallsHalos, freeCoord,
+                    conf.wallType);
                 ++tries;
             }
             if (houseCreated) {
@@ -181,7 +182,8 @@ RG.Map.Generator = function() { // {{{2
      * dimensions. Existing doors and walls must be passed to prevent
      * overlapping.*/
     this.createHouse = function(
-        map, x0, y0, xDim, yDim, doors, wallsHalos, freeCoord) {
+        map, x0, y0, xDim, yDim, doors, wallsHalos, freeCoord, wallType
+    ) {
 
         const maxX = x0 + xDim;
         const maxY = y0 + yDim;
@@ -232,7 +234,12 @@ RG.Map.Generator = function() { // {{{2
         }
 
         // House generation has succeeded at this point
-        map.setBaseElems(possibleRoom, RG.WALL_ELEM);
+        if (!wallType) {
+            map.setBaseElems(possibleRoom, RG.WALL_ELEM);
+        }
+        else {
+            map.setBaseElems(possibleRoom, RG.WALL_WOODEN_ELEM);
+        }
 
         // Create the halo, prevents houses being too close to each other
         const haloX0 = x0 - 1;
