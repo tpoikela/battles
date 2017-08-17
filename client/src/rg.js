@@ -237,7 +237,6 @@ const RG = { // {{{2
             fort: '#',
             grass: '"',
             highrock: '^',
-            icewall: '#',
             passage: '.',
             road: '.',
             shop: ':',
@@ -249,6 +248,8 @@ const RG = { // {{{2
             wall: '#',
             wallcave: '#',
             wallcrypt: '#',
+            wallice: '#',
+            wallwooden: '#',
             water: '~',
             // Elements with different states
             door: {
@@ -286,7 +287,6 @@ const RG = { // {{{2
             fort: 'cell-element-fort',
             grass: 'cell-element-grass',
             highrock: 'cell-element-highrock',
-            icewall: 'cell-element-ice-wall',
             passage: 'cell-element-passage',
             road: 'cell-element-road',
             shop: 'cell-element-shop',
@@ -296,6 +296,8 @@ const RG = { // {{{2
             wall: 'cell-element-wall',
             wallcave: 'cell-element-wall-cave',
             wallcrypt: 'cell-element-wall-crypt',
+            wallice: 'cell-element-wall-ice',
+            wallwooden: 'cell-element-wall-wooden',
             water: 'cell-element-water'
         },
         actors: {
