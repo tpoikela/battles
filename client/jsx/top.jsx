@@ -681,6 +681,7 @@ class BattlesTop extends React.Component {
         this.guiCommands = {};
         this.guiCommands[RG.VK_i] = this.GUIInventory;
         this.guiCommands[RG.VK_m] = this.GUIMap;
+        this.guiCommands[ROT.VK_M] = this.GUIOverWorldMap;
         this.guiCommands[RG.VK_n] = this.GUINextTarget;
         this.guiCommands[RG.VK_l] = this.GUILook;
         this.guiCommands[RG.VK_t] = this.GUITarget;
@@ -690,6 +691,7 @@ class BattlesTop extends React.Component {
 
     /* Returns true if given command is a GUI command. */
     isGUICommand(code) {
+        console.log(`isGUICommand with code ${code}`);
         if (this.gameState) {
             if (this.gameState.autoTarget && code === RG.VK_t) {
                 return false;
@@ -752,6 +754,10 @@ class BattlesTop extends React.Component {
     /* Toggles the map view. */
     GUIMap() {
         $('#map-player-button').trigger('click');
+    }
+
+    GUIOverWorldMap() {
+        $('#show-overworld-button').trigger('click');
     }
 
     /* Finds the nearest enemy and shows its name when 'l' is pressed. */
@@ -978,6 +984,7 @@ class BattlesTop extends React.Component {
 
         this.GUIInventory = this.GUIInventory.bind(this);
         this.GUIMap = this.GUIMap.bind(this);
+        this.GUIOverWorldMap = this.GUIOverWorldMap.bind(this);
         this.GUINextTarget = this.GUINextTarget.bind(this);
         this.GUILook = this.GUILook.bind(this);
         this.GUITarget = this.GUITarget.bind(this);
