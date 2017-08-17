@@ -64,7 +64,7 @@ Names.place.generic = {
         'Garden', 'Park',
         'Temple', 'Necropolis', 'Cemetery',
         'Library', 'Arcane',
-        'Royal', 'Slum',
+        'Royal', 'Slum', 'Living',
         'Arena', 'Military', 'Barracks'
     ],
     area: [
@@ -95,6 +95,10 @@ Names.actor = {
 
 Names.item = {
 
+};
+
+Names.getVillageType = () => {
+    return RG.RAND.arrayGetRand(['Village', 'Hamlet', 'Town', 'Township']);
 };
 
 Names.getUniqueCityName = () => {
