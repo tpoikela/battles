@@ -31,6 +31,8 @@ const $DEBUG = true;
 RG.OverWorld = {};
 
 const cityTypesRe = /(capital|city|fort|stronghold|village)/;
+const twoEntranceCityRe = /(fort|stronghold|capital)/;
+
 const getRandIn = RG.RAND.arrayGetRand.bind(RG.RAND);
 
 /* Wall object inside the Overworld. Wall here means a huge wall of mountains.
@@ -577,20 +579,20 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
     };
     const areaConf = worldConf.area[0];
 
-    const subLevelsX = subLevels.length;
-    const subLevelsY = subLevels[0].length;
-    if (!subLevelsX || !subLevelsY) {
-        const msg = `levels in X: ${subLevelsX}, Y: ${subLevelsY}`;
+    const nSubLevelsX = subLevels.length;
+    const nSubLevelsY = subLevels[0].length;
+    if (!nSubLevelsX || !nSubLevelsY) {
+        const msg = `levels in X: ${nSubLevelsX}, Y: ${nSubLevelsY}`;
         RG.err('OverWorld', 'createWorldConf',
             `Illegal num of sublevels: ${msg}`);
     }
 
-    const xMap = subLevelsX / areaX; // SubLevels per tile level in x-dir
-    const yMap = subLevelsY / areaY; // SubLevels per tile level in y-dir
+    const xMap = nSubLevelsX / areaX; // SubLevels per tile level in x-dir
+    const yMap = nSubLevelsY / areaY; // SubLevels per tile level in y-dir
 
     if ($DEBUG) {
-        console.log(`subLevelsX: ${subLevelsX}, areaX: ${areaX}`);
-        console.log(`subLevelsY: ${subLevelsY}, areaY: ${areaY}`);
+        console.log(`nSubLevelsX: ${nSubLevelsX}, areaX: ${areaX}`);
+        console.log(`nSubLevelsY: ${nSubLevelsY}, areaY: ${areaY}`);
         console.log(`MapX: ${xMap} levels to one tile`);
         console.log(`MapY: ${yMap} levels to one tile`);
     }
@@ -599,21 +601,23 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
     // the map values, just throw error
     if (!Number.isInteger(xMap)) {
         RG.err('OverWorld', 'createWorldConf',
-            `xMap not int: ${xMap}, sub X :${subLevelsX}, areaX: ${areaX}`);
+            `xMap not int: ${xMap}, sub X :${nSubLevelsX}, areaX: ${areaX}`);
     }
     if (!Number.isInteger(yMap)) {
         RG.err('OverWorld', 'createWorldConf',
-            `yMap not int: ${yMap}, sub Y :${subLevelsY}, areaY: ${areaY}`);
+            `yMap not int: ${yMap}, sub Y :${nSubLevelsY}, areaY: ${areaY}`);
     }
 
     // Map values are OK, this loops through smaller overworld sublevels, which
     // are aligned with the mountain wall creation
-    for (let x = 0; x < subLevelsX; x++) {
-        for (let y = 0; y < subLevelsY; y++) {
+    for (let x = 0; x < nSubLevelsX; x++) {
+        for (let y = 0; y < nSubLevelsY; y++) {
 
             // Find sub-level (Map.Level) indices + area level indices
             const slX = x % xMap;
             const slY = y % yMap;
+
+            // Tile coordinate pointing tile in the M by N AreaTiles
             const aX = Math.floor(x / xMap);
             const aY = Math.floor(y / yMap);
 
@@ -638,22 +642,34 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
                         const lastCoord = nLevels - 1;
                         feat.nLevels = nLevels;
 
-                        // Extra connection because fort has 2 exits/entrances
-                        const connX = mapX(coord[0][0], slX, subX);
-                        const connY = mapY(coord[0][1], slY, subY) - 1;
-
-                        // Where 1st entrance is located on Map.Level
+                        // Where 1st (main) entrance is located on Map.Level
                         const featX = mapX(coord[lastCoord][0], slX, subX);
-                        const featY = mapY(coord[lastCoord][1], slY, subY) + 1;
+                        let featY = mapY(coord[lastCoord][1], slY, subY) + 1;
+                        if (featY >= 100) {
+                            const msg = `subXY ${x},${y}, tileXY: ${aX},${aY}`;
+                            console.log(`${msg} reduce the featY for ${type}`);
+                            featY -= 1;
+                        }
 
                         const cName = RG.Names.getUniqueCityName();
                         const cityConf = RG.LevelGen.getCityConf(cName, feat);
-                        cityConf.connectToXY = [{
-                            name: cityConf.quarter[cityConf.nQuarters - 1].name,
-                            levelX: connX,
-                            levelY: connY,
-                            nLevel: 0
-                        }];
+
+                        // Extra connection because fort has 2 exits/entrances
+                        // Where 2nd (exit) entrance is located on Map.Level
+                        if (twoEntranceCityRe.test(feat)) {
+                            const connX = mapX(coord[0][0], slX, subX);
+                            const connY = mapY(coord[0][1], slY, subY) - 1;
+                            const nLast = cityConf.nQuarters - 1;
+
+                            cityConf.connectToXY = [{
+                                name: cityConf.quarter[nLast].name,
+                                levelX: connX,
+                                levelY: connY,
+                                nLevel: 0
+                            }];
+                        }
+
+                        cityConf.groupType = feat.type;
                         cityConf.x = aX;
                         cityConf.y = aY;
                         cityConf.levelX = featX;
