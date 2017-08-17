@@ -57,10 +57,6 @@ $door-bg-color: $floor-bg-color;
     color: $black;
 }
 
-.cell-element-ice-wall {
-    background-color: $blue;
-    color: $white;
-};
 
 .cell-element-shop {
     background-color: $shop-bg-color;
@@ -71,6 +67,10 @@ $door-bg-color: $floor-bg-color;
     background-color: $snow-white;
     color: $black;
 };
+
+//--------------
+// WALL STYLES
+//--------------
 
 .cell-element-wall {
     background-color: $wall-color;
@@ -85,6 +85,17 @@ $door-bg-color: $floor-bg-color;
     background-color: $black;
     color: $gray;
 }
+
+.cell-element-wall-wooden {
+    background-color: $floor-bg-color:
+    color: $wooden-color;
+}
+
+.cell-element-wall-ice {
+    background-color: $blue;
+    color: $white;
+};
+
 
 .cell-element-water {
     background-color: $floor-bg-color;
