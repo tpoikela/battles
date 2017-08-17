@@ -237,6 +237,11 @@ const Actors = [
         range: 1, hp: 20, danger: 3, brain: 'Human'
     },
     {
+        name: 'townsfolk', base: 'human',
+        attack: 1, defense: 1, damage: '1d4',
+        range: 1, hp: 10, danger: 1
+    },
+    {
         name: 'robber', base: 'human',
         attack: 2, defense: 4, danger: 3,
         enemies: ['player', 'human']
