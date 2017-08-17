@@ -440,7 +440,6 @@ RG.FLOOR_CAVE_ELEM = Object.freeze(new RG.Element.Base('floorcave'));
 RG.FLOOR_CRYPT_ELEM = Object.freeze(new RG.Element.Base('floorcrypt'));
 RG.GRASS_ELEM = Object.freeze(new RG.Element.Grass());
 RG.HIGH_ROCK_ELEM = Object.freeze(new RG.Element.HighRock());
-RG.ICE_WALL_ELEM = Object.freeze(new RG.Element.Base('icewall'));
 RG.ROAD_ELEM = Object.freeze(new RG.Element.Base('road'));
 RG.SNOW_ELEM = Object.freeze(new RG.Element.Base('snow'));
 RG.STONE_ELEM = Object.freeze(new RG.Element.Stone());
@@ -448,6 +447,8 @@ RG.TREE_ELEM = Object.freeze(new RG.Element.Tree());
 RG.WALL_ELEM = Object.freeze(new RG.Element.Base('wall'));
 RG.WALL_CAVE_ELEM = Object.freeze(new RG.Element.Base('wallcave'));
 RG.WALL_CRYPT_ELEM = Object.freeze(new RG.Element.Base('wallcrypt'));
+RG.WALL_ICE_ELEM = Object.freeze(new RG.Element.Base('wallice'));
+RG.WALL_WOODEN_ELEM = Object.freeze(new RG.Element.Base('wallwooden'));
 RG.WATER_ELEM = Object.freeze(new RG.Element.Water());
 RG.FORT_ELEM = Object.freeze(new RG.Element.Fort());
 
