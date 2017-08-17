@@ -687,24 +687,27 @@ function addOverWorldFeatures(ow) {
     // TODO list for features:
 
     // Add the main roads for most important places
+    const cmdBetweenHWalls = {y: {start: ['wall', 0], end: ['wall', 1]}};
+    const cmdAboveNorthWall = {y: {start: 'N', end: 'wall'}};
 
     // Create biomes for actor generation of overworld
-    addBiomeToOverWorld(ow, {y: {start: 'N', end: 'wall'}, type: 'alpine'});
-    addBiomeToOverWorld(ow, {x: {start: ['wall', 0], end: 'E'},
-        type: 'arctic'});
-    addBiomeToOverWorld(ow, {y: {start: ['wall', 0], end: ['wall', 1]},
-        type: 'tundra'});
-    addBiomeToOverWorld(ow, {y: {start: ['wall', 1], end: 'S'}, type: 'taiga'});
+    addBiomeToOverWorld(ow, cmdAboveNorthWall, 'alpine');
+    addBiomeToOverWorld(ow, {x: {start: ['wall', 0], end: 'E'}}, 'arctic');
+    addBiomeToOverWorld(ow, cmdBetweenHWalls, 'tundra');
+    addBiomeToOverWorld(ow, {y: {start: ['wall', 1], end: 'S'}}, 'taiga');
 
     // Create forests and lakes (sort of done in sub-level generation)
 
     // Distribute dungeons
-    addDungeonsToOverWorld(ow, 40, 1, sizeY - 2, sizeX - 2, sizeY - 10);
+    addDungeonsToOverWorld(ow, 40, bBox(1, sizeY - 2, sizeX - 2, sizeY - 10));
+    addDungeonsToOverWorld(ow, 10, cmdBetweenHWalls);
+    addDungeonsToOverWorld(ow, 20, cmdAboveNorthWall);
 
     // Distribute mountains
 
     // Distribute cities and villages etc settlements
-    addVillagesToOverWorld(ow, 10, 1, sizeY - 2, sizeX - 2, sizeY - 10);
+    addVillagesToOverWorld(ow, 10, bBox(1, sizeY - 2, sizeX - 2, sizeY - 10));
+    addVillagesToOverWorld(ow, 2, cmdBetweenHWalls);
 
     // Adds roads for created features
 }
@@ -739,12 +742,12 @@ function addFeatureToWall(ow, wall, type) {
     if (wall.type === 'horizontal') { // y will be fixed
         const llx = wall.x[0];
         const urx = wall.x[wall.x.length - 1];
-        xy = findCellRandXYInBox(map, llx, wall.y, urx, wall.y, OW.LL_WE);
+        xy = findCellRandXYInBox(map, bBox(llx, wall.y, urx, wall.y), OW.LL_WE);
     }
     if (wall.type === 'vertical') { // y will be fixed
         const lly = wall.y[0];
         const ury = wall.y[wall.y.length - 1];
-        xy = findCellRandXYInBox(map, wall.x, lly, wall.x, ury, OW.LL_NS);
+        xy = findCellRandXYInBox(map, bBox(wall.x, lly, wall.x, ury), OW.LL_NS);
     }
 
     ow.addFeature(xy, type);
@@ -752,8 +755,126 @@ function addFeatureToWall(ow, wall, type) {
 
 /* Adds a biome zone to the overworld map. These zones can be used to generate
  * terrain props + different actors based on the zone type. */
-function addBiomeToOverWorld(ow, cmd) {
-    const biomeType = cmd.type;
+function addBiomeToOverWorld(ow, cmd, biomeType) {
+    const bbox = getBoundingBox(ow, cmd);
+    // Apply given type on the found range
+    for (let x = bbox.llx; x <= bbox.urx; x++) {
+        for (let y = bbox.ury; y <= bbox.lly; y++) {
+            ow.addBiome(x, y, biomeType);
+        }
+    }
+}
+
+/* Adds dungeons into the overworld. Can be bounded using using coordinates. */
+function addDungeonsToOverWorld(ow, nDungeons, cmd) {
+    const bbox = getBoundingBox(ow, cmd);
+    for (let i = 0; i < nDungeons; i++) {
+        const xy = findCellRandXYInBox(ow.getMap(), bbox, OW.ALL_WALLS);
+        ow.addFeature(xy, OW.DUNGEON);
+    }
+}
+
+/* Adds villages into the overworld. Can be bounded using using coordinates. */
+function addVillagesToOverWorld(ow, nDungeons, cmd) {
+    const bbox = getBoundingBox(ow, cmd);
+    for (let i = 0; i < nDungeons; i++) {
+        const xy = findCellRandXYInBox(ow.getMap(), bbox, [OW.TERM]);
+        ow.addFeature(xy, OW.VILLAGE);
+    }
+}
+
+/* Checks if given cell type matches any in the array. If there's OW.CELL_ANY,
+ * in the list, then returns always true regardless of type. */
+function cellMatches(type, listOrStr) {
+    let list = listOrStr;
+    if (typeof listOrStr === 'string') {
+        list = [listOrStr];
+    }
+    const matchAny = list.indexOf(OW.CELL_ANY);
+    if (matchAny >= 0) {return true;}
+
+    const matchFound = list.indexOf(type);
+    return matchFound >= 0;
+}
+
+/* Finds a random cell of given type from the box of coordinates. */
+function findCellRandXYInBox(map, bbox, listOrStr) {
+    const {llx, lly, urx, ury} = bbox;
+
+    let x = llx === urx ? llx : RG.RAND.getUniformInt(llx, urx);
+    let y = lly === ury ? lly : RG.RAND.getUniformInt(ury, lly);
+    let watchdog = 100 * (urx - llx + 1) * (lly - ury + 1);
+
+    let match = cellMatches(map[x][y], listOrStr);
+    while (!match) {
+        x = llx === urx ? llx : RG.RAND.getUniformInt(llx, urx);
+        y = lly === ury ? lly : RG.RAND.getUniformInt(ury, lly);
+        match = cellMatches(map[x][y], listOrStr);
+        if (watchdog === 0) {
+            const box = `(${llx},${lly}) -> (${urx},${ury})`;
+            RG.warn('OverWorld', 'findCellRandXYInBox',
+                `No cells of type ${listOrStr} in ${box}`);
+            break;
+        }
+        --watchdog;
+    }
+    return [x, y];
+}
+
+/* Given location like 'NE' (northeast), and shrink 0 - 1, plus maximum size,
+ * returns a random x,y coordinate bounded by these conditions.
+ */
+function getRandLoc(loc, shrink, sizeX, sizeY) {
+    let llx = 0;
+    let lly = 0;
+    let urx = 0;
+    let ury = 0;
+
+    // Determine the bounding coordinates for random location
+    if (loc.match(/N/)) {
+        ury = 0;
+        lly = Math.floor(shrink * 0.25 * sizeY);
+    }
+    if (loc.match(/S/)) {
+        lly = sizeY - 1;
+        ury = 0.75 * sizeY;
+        ury = Math.floor(ury + (1 - shrink) * (lly - ury));
+    }
+    if (loc.match(/E/)) {
+        urx = sizeX - 1;
+        llx = 0.75 * sizeX;
+        llx = Math.floor(llx + (1 - shrink) * (urx - llx));
+    }
+    if (loc.match(/W/)) {
+        llx = 0;
+        urx = Math.floor(shrink * 0.25 * sizeX);
+    }
+
+    return [
+        RG.RAND.getUniformInt(llx, urx),
+        RG.RAND.getUniformInt(ury, lly)
+    ];
+}
+
+/* Returns a bounding box object of given coordinates. */
+function bBox(llx, lly, urx, ury) {
+    if (RG.isNullOrUndef([llx, lly, urx, ury])) {
+        RG.err('overworld.map.js', 'bBox',
+            `bBox coord(s) undef/null: ${llx},${lly},${urx},${ury}`);
+    }
+    return {isBox: true, llx, lly, urx, ury};
+}
+
+/* Returns a bounding box (llx, lly, urx, ury) based on the command.
+ * Formats:
+ *   1. cmd: {[x|y]: {start: 'wall'|['wall', Nwall]}}
+ *   2.
+ * */
+
+function getBoundingBox(ow, cmd) {
+    if (cmd.isBox) {
+        return cmd;
+    }
 
     let xStart = 0;
     let xEnd = ow.getSizeX() - 1;
@@ -840,100 +961,11 @@ function addBiomeToOverWorld(ow, cmd) {
 
     } // cmd.y
 
-    // Apply given type on the found range
-    for (let x = xStart; x <= xEnd; x++) {
-        for (let y = yStart; y <= yEnd; y++) {
-            ow.addBiome(x, y, biomeType);
-        }
-    }
-}
+    return {
+        llx: xStart, urx: xEnd,
+        ury: yStart, lly: yEnd
+    };
 
-/* Adds dungeons into the overworld. Can be bounded using using coordinates. */
-function addDungeonsToOverWorld(ow, nDungeons, lx, ly, rx, ry) {
-    for (let i = 0; i < nDungeons; i++) {
-        const xy = findCellRandXYInBox(ow.getMap(), lx, ly, rx, ry,
-            OW.ALL_WALLS);
-        ow.addFeature(xy, OW.DUNGEON);
-    }
-}
-
-/* Adds villages into the overworld. Can be bounded using using coordinates. */
-function addVillagesToOverWorld(ow, nDungeons, lx, ly, rx, ry) {
-    for (let i = 0; i < nDungeons; i++) {
-        const xy = findCellRandXYInBox(ow.getMap(), lx, ly, rx, ry, [OW.TERM]);
-        ow.addFeature(xy, OW.VILLAGE);
-    }
-}
-
-/* Checks if given cell type matches any in the array. If there's OW.CELL_ANY,
- * in the list, then returns always true regardless of type. */
-function cellMatches(type, listOrStr) {
-    let list = listOrStr;
-    if (typeof listOrStr === 'string') {
-        list = [listOrStr];
-    }
-    const matchAny = list.indexOf(OW.CELL_ANY);
-    if (matchAny >= 0) {return true;}
-
-    const matchFound = list.indexOf(type);
-    return matchFound >= 0;
-}
-
-/* Finds a random cell of given type from the box of coordinates. */
-function findCellRandXYInBox(map, llx, lly, urx, ury, listOrStr) {
-    let x = llx === urx ? llx : RG.RAND.getUniformInt(llx, urx);
-    let y = lly === ury ? lly : RG.RAND.getUniformInt(ury, lly);
-    let watchdog = 100 * (urx - llx + 1) * (lly - ury + 1);
-
-    let match = cellMatches(map[x][y], listOrStr);
-    while (!match) {
-        x = llx === urx ? llx : RG.RAND.getUniformInt(llx, urx);
-        y = lly === ury ? lly : RG.RAND.getUniformInt(ury, lly);
-        match = cellMatches(map[x][y], listOrStr);
-        if (watchdog === 0) {
-            const box = `(${llx},${lly}) -> (${urx},${ury})`;
-            RG.warn('OverWorld', 'findCellRandXYInBox',
-                `No cells of type ${listOrStr} in ${box}`);
-            break;
-        }
-        --watchdog;
-    }
-    return [x, y];
-}
-
-/* Given location like 'NE' (northeast), and shrink 0 - 1, plus maximum size,
- * returns a random x,y coordinate bounded by these conditions.
- */
-function getRandLoc(loc, shrink, sizeX, sizeY) {
-    let llx = 0;
-    let lly = 0;
-    let urx = 0;
-    let ury = 0;
-
-    // Determine the bounding coordinates for random location
-    if (loc.match(/N/)) {
-        ury = 0;
-        lly = Math.floor(shrink * 0.25 * sizeY);
-    }
-    if (loc.match(/S/)) {
-        lly = sizeY - 1;
-        ury = 0.75 * sizeY;
-        ury = Math.floor(ury + (1 - shrink) * (lly - ury));
-    }
-    if (loc.match(/E/)) {
-        urx = sizeX - 1;
-        llx = 0.75 * sizeX;
-        llx = Math.floor(llx + (1 - shrink) * (urx - llx));
-    }
-    if (loc.match(/W/)) {
-        llx = 0;
-        urx = Math.floor(shrink * 0.25 * sizeX);
-    }
-
-    return [
-        RG.RAND.getUniformInt(llx, urx),
-        RG.RAND.getUniformInt(ury, lly)
-    ];
 }
 
 module.exports = OW;
