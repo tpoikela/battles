@@ -22,13 +22,15 @@ describe('OW.Map', () => {
 
     it('has biomes and features added', () => {
         const conf = {
-            owTilesX: 20,
-            owTilesY: 10
+            owTilesX: 40,
+            owTilesY: 20
         };
         const ow = OW.createOverWorld(conf);
         expect(ow.getBiome(0, 1)).to.not.be.empty;
 
         const features = ow.getFeaturesByType(OW.WCAPITAL);
         expect(features).to.have.length(1);
+
+        console.log(ow.mapToString());
     });
 });
