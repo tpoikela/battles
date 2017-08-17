@@ -206,7 +206,7 @@ OW.createOverWorld = function(conf = {}) {
         ? conf.topToBottom : true;
 
     const printResult = typeof conf.printResult !== 'undefined'
-        ? conf.printResult : true;
+        ? conf.printResult : false;
 
     // Size of the high-level feature map
     const owTilesX = conf.owTilesX || 40;
@@ -305,6 +305,13 @@ OW.Map = function() {
         }
         this._features[type].push(xy);
         this._featuresByXY[keyXY].push(type);
+    };
+
+    this.getFeaturesByType = function(type) {
+        if (!this._features.hasOwnProperty(type)) {
+            return [];
+        }
+        return this._features[type];
     };
 
     this.getFeaturesByXY = function(xy) {
