@@ -74,6 +74,7 @@ F.#.#.#..#.#
 F..:.:..:.:.
 ~...........`;
 
+// Not so fast, had to include one extra test case..
 const templStr2Adj = `
 A=?
 B=.
@@ -82,6 +83,15 @@ B=.
 A~
 B~`;
 
+const templProps = `
+name:Test template
+description: Test Description
+
+#.#
+...
+#.#`;
+
+// Not much to test here
 describe('Template.ElemGenX', () => {
     it('Generates sequences of chars from template', () => {
         const genX = new Template.ElemGenX('#~#');
@@ -90,23 +100,14 @@ describe('Template.ElemGenX', () => {
     });
 });
 
-/*
-describe('Template.ElemGenY', () => {
-    it('Generates sequences of chars from template', () => {
-        const genY = new Template.ElemGenY('#~#');
-        expect(genY.getChars()).to.deep.equal(['#~#']);
-        expect(genY.getChars(2)).to.deep.equal(['#~#', '#~#']);
-    });
-
-    it('can have nested ElemGenX', () => {
-        const genX = new Template.ElemGenX('#');
-        const genY = new Template.ElemGenY(genX);
-        expect(genY.getChars([1, 1])).to.deep.equal(['#']);
-    });
-});
-*/
-
 describe('Template.ElemTemplate', () => {
+
+    it('can contain any number of properties', () => {
+        const templ = RG.Template.createTemplate(templProps);
+        expect(templ.getProp('name')).to.equal('Test template');
+        expect(templ.getProp('description')).to.equal('Test Description');
+    });
+
     it('can expand templates in x-direction', () => {
         const templ = RG.Template.createTemplate(templStr2x2);
         const ascii = templ.getChars([2, 3, 1]);
@@ -174,5 +175,23 @@ describe('Template.ElemTemplate', () => {
         // RG.printMap(ascii);
         expect(ascii[0]).to.deep.equal('#??..'.split(''));
     });
+
+    /*
+    it('can also expand template by giving it object', () => {
+        const templ = RG.Template.createTemplate(templMess);
+        const expObj = {
+            AA: 1,
+            BBB: 1,
+            CCC: 1,
+            DD: 1,
+            E: 1,
+            FF: 1
+        };
+        const asciiMessExp = templ.getChars([1, 1, 1, 1, 1, 1]);
+        const asciiMessGot = templ.getChars(expObj);
+        expect(asciiMessGot).to.deep.equal(asciiMessExp);
+    });
+    */
+
 });
 
