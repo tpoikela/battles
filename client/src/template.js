@@ -33,6 +33,7 @@ RG.Template.createTemplate = function(str) {
     const elemMap = {};
     const elemPropMap = {};
 
+    // Find params 'X=#' and props 'key:val'
     while (currLine && currLine.length > 0) {
         if (paramSplitRegex.test(currLine)) {
             const keyAndVal = currLine.split(paramSplitRegex);
@@ -219,7 +220,7 @@ const ElemTemplate = function(conf) {
     // Find Y-generator
 
     this.getChars = function(arr) {
-        if (arr.length > 0 && arr.length !== nMaps) {
+        if (arr.length > 0 && arr.length < nMaps) {
             RG.err('ElemTemplate', 'getChars',
                 `Input array length must be ${nMaps}.`);
         }
@@ -284,14 +285,12 @@ const ElemTemplate = function(conf) {
                 debug('y after flatten ' + JSON.stringify(flattened));
                 const splitRes = this.splitMultiElements(flattened);
                 debug('y after flatten ' + JSON.stringify(splitRes));
-                // TODO flatten/substitute
+
                 this.substituteYMaps(splitRes);
                 return splitRes;
             }
             else {
                 debug('X-Before subst: ' + JSON.stringify(xGenResult));
-
-                // const splitRes = this.splitMultiElements(xGenResult);
                 debug('X-After, split: ' + JSON.stringify(splitRes));
 
                 return splitRes;
