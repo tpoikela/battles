@@ -7,6 +7,8 @@ describe('Template.Level', () => {
     it('creates a 2-d map of the level', () => {
         const level = new TemplLevel(4, 4);
 
+        RG.RAND.setSeed(new Date().getTime());
+
         level.setGenParams([1, 2, 3, 4]);
         level.create();
         expect(Array.isArray(level.map)).to.be.true;
