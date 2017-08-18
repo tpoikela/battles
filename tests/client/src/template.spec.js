@@ -91,6 +91,16 @@ description: Test Description
 ...
 #.#`;
 
+const templMultiXY = `
+X=#
+Y=+
+
+#X.X#
+Y.#.^
+.....
+Y...^
+#####`;
+
 // Not much to test here
 describe('Template.ElemGenX', () => {
     it('Generates sequences of chars from template', () => {
@@ -176,6 +186,17 @@ describe('Template.ElemTemplate', () => {
         expect(ascii[0]).to.deep.equal('#??..'.split(''));
     });
 
+
+    it('can expand templates with same param in 2 places', () => {
+        const templ = RG.Template.createTemplate(templMultiXY);
+        const p = [2, 2, 3, 3];
+        const ascii = templ.getChars(p);
+        const firstCol = '#+++.+++#'.split('');
+        const lastCol = '#^^^.^^^#'.split('');
+        expect(ascii).to.have.length(1 + p[0] + 1 + p[1] + 1);
+        expect(ascii[0]).to.deep.equal(firstCol);
+        expect(ascii[6]).to.deep.equal(lastCol);
+    });
     /*
     it('can also expand template by giving it object', () => {
         const templ = RG.Template.createTemplate(templMess);
