@@ -6,6 +6,8 @@ RG.Template = {};
 RG.Template.$DEBUG = 0;
 
 const genRegex = /[A-Z]/;
+const paramSplitRegex = /\s*=\s*/;
+const propSplitRegex = /\s*:\s*/;
 
 const debug = function(msg) {
     if (RG.Template.$DEBUG) {
@@ -13,6 +15,13 @@ const debug = function(msg) {
     }
 };
 
+/*
+ * Template format:
+ *
+ */
+
+/* Creates and return ElemTemplate from a string.
+ */
 RG.Template.createTemplate = function(str) {
     const lines = str.split('\n');
     let nLine = 0;
@@ -20,22 +29,45 @@ RG.Template.createTemplate = function(str) {
 
     // Skip possible empty line
     if (currLine.length === 0) {currLine = lines[++nLine];}
+
     const elemMap = {};
+    const elemPropMap = {};
+
     while (currLine && currLine.length > 0) {
-        const keyAndVal = currLine.split(/\s*=\s*/);
-        if (keyAndVal.length === 2) {
-            const key = keyAndVal[0];
-            const val = keyAndVal[1];
-            if (key.length === val.length) {
-                elemMap[keyAndVal[0]] = keyAndVal[1];
-            }
-            else {
-                RG.err('Template', 'createTemplate',
-                    `Key ${key}, val ${val} have different len`);
+        if (paramSplitRegex.test(currLine)) {
+            const keyAndVal = currLine.split(paramSplitRegex);
+            if (keyAndVal.length === 2) {
+                const key = keyAndVal[0];
+                const val = keyAndVal[1];
+                if (key.length === val.length) {
+                    elemMap[keyAndVal[0]] = keyAndVal[1];
+                }
+                else {
+                    RG.err('Template', 'createTemplate',
+                        `Key ${key}, val ${val} have different len`);
+                }
             }
         }
+        else if (propSplitRegex.test(currLine)) {
+            const keyAndVal = currLine.split(propSplitRegex);
+            if (keyAndVal.length === 2) {
+                const key = keyAndVal[0];
+                const val = keyAndVal[1];
+                elemPropMap[key] = val;
+            }
+            else {
+                RG.warn('Template', 'createTemplate',
+                    `Prop must be key:val. Ignoring line ${currLine}`);
+            }
+        }
+        // TODO maybe add logic to skip empty lines
         ++nLine;
         currLine = lines[nLine];
+    }
+
+    if (nLine === lines.length) {
+        RG.err('Template', 'createTemplate',
+            'No empty line between header and template section.');
     }
 
     ++nLine; // Skip empty line
@@ -93,6 +125,7 @@ RG.Template.createTemplate = function(str) {
     };
 
     const template = new ElemTemplate(conf);
+    template.setProps(elemPropMap);
     return template;
 };
 
@@ -148,6 +181,7 @@ const ElemTemplate = function(conf) {
     const nMaps = Object.keys(this.elemMap).length;
     this.sizeX = conf.xWidths.length;
     this.sizeY = conf.rows.length;
+    this.elemPropMap = {};
 
     this.xWidths = conf.xWidths;
     this.yWidths = conf.yWidths;
@@ -158,6 +192,14 @@ const ElemTemplate = function(conf) {
     this.xGenPos = conf.xGenPos;
     this.yGenPos = conf.yGenPos;
     this.hasGenRow = {};
+
+    this.setProps = function(props) {
+        this.elemPropMap = props;
+    };
+
+    this.getProp = function(name) {
+        return this.elemPropMap[name];
+    };
 
     // Before Gen madness, place normal cells
     for (let x = 0; x < this.sizeX; x++) {
@@ -357,29 +399,5 @@ const ElemGenX = function(str) {
 
 };
 RG.Template.ElemGenX = ElemGenX;
-
-/*
-const ElemGenY = function(strOrObj) {
-    const hasGen = typeof strOrObj === 'object';
-
-    // Returns chars corresponding to this generator.
-    this.getChars = function(N = 1) {
-        const res = [];
-        if (hasGen) {
-            for (let i = 0; i < N[1]; i++) {
-                res.push(strOrObj.getChars(N[0]));
-            }
-        }
-        else {
-            for (let i = 0; i < N; i++) {
-                res.push(strOrObj);
-            }
-        }
-        return res;
-    };
-
-};
-RG.Template.ElemGenY = ElemGenY;
-*/
 
 module.exports = RG.Template;
