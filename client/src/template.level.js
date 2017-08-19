@@ -4,7 +4,22 @@ RG.Random = require('./random');
 
 RG.Template = require('./template');
 
+const fillerTempl = `
+name:FILLER
+X=#
+Y=#
+
+#X###X#
+Y######
+#######
+#######
+#######
+Y######
+#######`;
+
 const baseTemplates = [
+
+// Filler
 
 // Omni-directionals
 `
@@ -223,8 +238,6 @@ Y#...#.
 
 ];
 
-const TILE_UNUSED = 'TILE_UNUSED';
-
 RG.Template.Level = function(tilesX, tilesY) {
     this.tilesX = tilesX;
     this.tilesY = tilesY;
@@ -233,7 +246,10 @@ RG.Template.Level = function(tilesX, tilesY) {
     this.genParamMin = 1;
     this.genParamMax = 1;
 
+    this.filler = RG.Template.createTemplate(fillerTempl);
     this.templates = baseTemplates.map(t => RG.Template.createTemplate(t));
+    this._unusedExits = [];
+    this.freeExits = {};
 
     this.sortedByExit = {
         N: [], S: [], E: [], W: []
@@ -252,7 +268,7 @@ RG.Template.Level = function(tilesX, tilesY) {
     for (let x = 0; x < this.tilesX; x++) {
         this.templMap[x] = [];
         for (let y = 0; y < this.tilesY; y++) {
-            this.templMap[x][y] = TILE_UNUSED;
+            this.templMap[x][y] = this.filler;
         }
     }
 
@@ -260,7 +276,8 @@ RG.Template.Level = function(tilesX, tilesY) {
         this.genParams = arr;
     };
 
-    /* Creates the level. Result is in this.map. */
+    /* Creates the level. Result is in this.map.
+    * Main function you want to call. */
     this.create = function() {
 
         let dungeonInvalid = true;
@@ -283,6 +300,8 @@ RG.Template.Level = function(tilesX, tilesY) {
 
                 const {x, y} = room;
 
+                console.log(`Current room in ${x},${y}`);
+
                 const exits = this._getFreeExits(room);
 
                 // Pick one exit randomly
@@ -293,14 +312,16 @@ RG.Template.Level = function(tilesX, tilesY) {
 
                 // Get a new room matching this exit
                 const listMatching = this.sortedByExit[exitRequired];
-                const roomMatching = RG.RAND.arrayGetRand(listMatching);
+                const templMatch = RG.RAND.arrayGetRand(listMatching);
 
                 // Make sure the new room is valid
                 const newX = this._getNewX(x, exitRequired);
                 const newY = this._getNewY(y, exitRequired);
                 if (this._isRoomLegal(newX, newY)) {
-                    this._placeRoom(newX, newY, roomMatching);
+                    this._placeRoom(
+                        x, y, chosen, newX, newY, exitRequired, templMatch);
                     ++roomCount;
+                    console.log('Room count incremented to ' + roomCount);
                 }
 
                 // Place the new room and incr roomCount
@@ -319,6 +340,7 @@ RG.Template.Level = function(tilesX, tilesY) {
         // Assign a random template for each tile
         // TODO make this more organic and based on the directions, such that
         // all rooms are well connected
+        /*
         for (let x = 0; x < this.tilesX; x++) {
             for (let y = 0; y < this.tilesY; y++) {
                 this.templMap[x][y] = this.getRandomTemplate();
@@ -326,6 +348,7 @@ RG.Template.Level = function(tilesX, tilesY) {
                     `${JSON.stringify(this.templMap[x][y])}`);
             }
         }
+        */
 
         // Create gen params for each tile
         this.genParamsX = [];
@@ -344,9 +367,9 @@ RG.Template.Level = function(tilesX, tilesY) {
             this.mapExpanded[x] = [];
             for (let y = 0; y < this.tilesY; y++) {
                 const params = this.genParamsX[x].concat(this.genParamsY[y]);
+                // console.log(`${x},${y}: ` +
+                    // `${JSON.stringify(this.mapExpanded[x][y])}`);
                 this.mapExpanded[x][y] = this.templMap[x][y].getChars(params);
-                console.log(`${x},${y}: ` +
-                    `${JSON.stringify(this.mapExpanded[x][y])}`);
             }
         }
 
@@ -369,6 +392,10 @@ RG.Template.Level = function(tilesX, tilesY) {
 
     };
 
+    //----------------------------------------------------------------
+    // PRIVATE
+    //----------------------------------------------------------------
+
     this._getRoomWithUnusedExits = function() {
         if (this._unusedExits.length > 0) {
             return RG.RAND.arrayGetRand(this._unusedExits);
@@ -376,10 +403,49 @@ RG.Template.Level = function(tilesX, tilesY) {
         return null;
     };
 
-    this.getFreeExits = function(room) {
+    this._getFreeExits = function(room) {
         const {x, y} = room;
         const key = x + ',' + y;
-        return this.freeExits[key];
+        if (this.freeExits[key]) {
+            return this.freeExits[key];
+        }
+        else {
+            RG.err('Template', '_getFreeExits',
+                `No ${key}, Room: ${JSON.stringify(room)}`);
+        }
+        return null;
+    };
+
+    this._removeChosenExit = function(x, y, chosen) {
+        const key = x + ',' + y;
+        const exits = this.freeExits[key];
+        console.log(JSON.stringify(this.freeExits));
+        console.log(`${x},${y} removeChosenExit ${chosen}`);
+        console.log(`\tnExits: ${exits.length}`);
+        const index = exits.indexOf(chosen);
+        if (index >= 0) {
+            this.freeExits[key].splice(index, 1);
+            if (this.freeExits[key].length === 0) {
+                const unusedIndex = this._unusedExits.findIndex(room => {
+                    return room.x === x && room.y === y;
+                });
+                if (unusedIndex >= 0) {
+                    this._unusedExits.splice(unusedIndex, 1);
+                    delete this.freeExits[key];
+                    console.log(`\t${x},${y} has no unused exits anymore.`);
+                }
+                else {
+                    RG.err('Template', '_removeChosenExit',
+                        `Cannot find ${x},${y} in unusedExits to remove.`);
+                }
+            }
+            console.log('\tAfter remove: '
+                + JSON.stringify(this.freeExits[key]));
+        }
+        else {
+            RG.err('Template', '_removeChosenExit',
+                `${x},${y} dir: ${chosen} not found.`);
+        }
     };
 
     this._isRoomLegal = function(x, y) {
@@ -389,10 +455,56 @@ RG.Template.Level = function(tilesX, tilesY) {
         return false;
     };
 
-    this._placeRoom = function(x, y, templ) {
-        // Remove from unused exits
-        // Add to unused exits
-        // Add to templMap
+    this._placeStartRoom = function() {
+        const x = RG.RAND.getUniformInt(0, this.tilesX - 1);
+        const y = RG.RAND.getUniformInt(0, this.tilesY - 1);
+        this.templMap[x][y] = this.getRandomTemplate();
+        const room = {x, y, room: this.templMap[x][y]};
+
+        // TODO
+        this._addRoomData(room);
+
+    };
+
+    this._placeRoom = function(
+        x, y, chosen, newX, newY, exitRequired, templMatch
+    ) {
+        // Remove chosen exit (old room) from unused exits
+        this._removeChosenExit(x, y, chosen);
+
+        // Add new room data to unused exits
+        const room = {x: newX, y: newY, room: templMatch};
+        this._addRoomData(room);
+
+        // But remove chosen exit
+        this._removeChosenExit(newX, newY, exitRequired);
+
+        // Check for abutting rooms on other edges and remove any exits
+        this._checkAbuttingRooms(room);
+
+        // Finally add new room to templMap
+        this.templMap[newX][newY] = templMatch;
+
+    };
+
+    this._addRoomData = function(room) {
+        this._unusedExits.push(room);
+        const exits = room.room.getProp('dir').split('');
+        if (room.x === 0) {this._removeExit('E', exits);}
+        if (room.x === this.tilesX - 1) {this._removeExit('W', exits);}
+        if (room.y === 0) {this._removeExit('N', exits);}
+        if (room.y === this.tilesY - 1) {this._removeExit('S', exits);}
+        const key = room.x + ',' + room.y;
+        this.freeExits[key] = exits;
+        console.log('>>> Added room ' + JSON.stringify(room));
+    };
+
+    /* Tries to remove exit. */
+    this._removeExit = function(dir, exits) {
+        const index = exits.indexOf(exits);
+        if (index >= 0) {
+            exits.splice(index, 1);
+        }
     };
 
     this._getRequiredExit = function(chosen) {
@@ -413,22 +525,11 @@ RG.Template.Level = function(tilesX, tilesY) {
     };
 
     this._getNewY = function(y, dir) {
-        if (dir === 'N') {return y - 1;}
-        if (dir === 'S') {return y + 1;}
+        if (dir === 'N') {return y + 1;}
+        if (dir === 'S') {return y - 1;}
         return y;
     };
 
-    this._placeStartRoom = function() {
-        const x = RG.RAND.getUniformInt(0, this.tilesX - 1);
-        const y = RG.RAND.getUniformInt(0, this.tilesY - 1);
-        this.templMap[x][y] = this.getRandomTemplate();
-        this._unusedExits.push({x, y, room: this.templMap[x][y]});
-
-        const exits = this._getExits(room);
-        const key = x + ',' + y;
-        this.freeExits[key] = exits;
-
-    };
 
     this.getRandomTemplate = function() {
         // TODO at some point, we need to check how the entrances in rooms match
@@ -437,6 +538,86 @@ RG.Template.Level = function(tilesX, tilesY) {
 
     this._getExits = function(room) {
         return room.room.getProp('dir').split('');
+    };
+
+    this._checkAbuttingRooms = function(room) {
+        const {x, y} = room;
+        // const exits = this._getExits(room);
+        // const neighbours = [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]];
+
+        console.log(`CheckAbut ${x},${y}`);
+        if (x > 0) {
+            const nx = x - 1;
+            if (!this._isFiller(nx, y)) {
+                if (this._hasExit('W', x, y)) {
+                    this._removeChosenExit(x, y, 'W');
+                }
+                this._removeExitByXY('E', nx, y);
+            }
+        }
+        else if (this._hasExit('W', x, y)) {
+            this._removeChosenExit(x, y, 'W');
+        }
+
+        if (x < this.tilesX - 1) {
+            const nx = x + 1;
+            if (!this._isFiller(nx, y)) {
+                if (this._hasExit('E', x, y)) {
+                    this._removeChosenExit(x, y, 'E');
+                }
+                this._removeExitByXY('W', nx, y);
+            }
+        }
+        else if (this._hasExit('E', x, y)) {
+            this._removeChosenExit(x, y, 'E');
+        }
+
+        if (y > 0) {
+            const ny = y - 1;
+            if (!this._isFiller(x, ny)) {
+                if (this._hasExit('N', x, y)) {
+                    this._removeChosenExit(x, y, 'N');
+                }
+                this._removeExitByXY('S', x, ny);
+            }
+        }
+        else if (this._hasExit('N', x, y)) {
+            this._removeChosenExit(x, y, 'N');
+        }
+
+        if (y < this.tilesY - 1) {
+            const ny = y + 1;
+            if (!this._isFiller(x, ny)) {
+                if (this._hasExit('S', x, y)) {
+                    this._removeChosenExit(x, y, 'S');
+                }
+                this._removeExitByXY('N', x, ny);
+            }
+        }
+        else if (this._hasExit('S', x, y)) {
+            this._removeChosenExit(x, y, 'S');
+        }
+
+
+    };
+
+    this._isFiller = function(x, y) {
+        console.log(`isFiller x,y ${x},${y}`);
+        return this.templMap[x][y].getProp('name') === 'FILLER';
+    };
+
+    this._removeExitByXY = function(dir, x, y) {
+        if (this._hasExit(dir, x, y)) {
+            this._removeChosenExit(x, y, dir);
+        }
+    };
+
+    this._hasExit = function(dir, x, y) {
+        const key = x + ',' + y;
+        if (this.freeExits[key]) {
+            return this.freeExits[key].indexOf(dir) >= 0;
+        }
+        return false;
     };
 
 };
