@@ -5,7 +5,7 @@ const TemplLevel = require('../../../client/src/template.level');
 
 describe('Template.Level', () => {
     it('creates a 2-d map of the level', () => {
-        const level = new TemplLevel(4, 4);
+        const level = new TemplLevel(10, 10);
 
         RG.RAND.setSeed(new Date().getTime());
 
