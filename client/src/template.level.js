@@ -308,7 +308,7 @@ RG.Template.Level = function(tilesX, tilesY) {
                 const chosen = RG.RAND.arrayGetRand(exits);
 
                 // Get required matching exit
-                const exitRequired = this._getRequiredExit(chosen);
+                const exitRequired = this.getMatchingExit(chosen);
 
                 // Get a new room matching this exit
                 const listMatching = this.sortedByExit[exitRequired];
@@ -332,23 +332,12 @@ RG.Template.Level = function(tilesX, tilesY) {
                 dungeonInvalid = false;
             }
             else {
+                RG.err('Template', 'create',
+                    'cleanup not implemented yet.');
                 this._cleanupAndTryAgain();
             }
 
         }
-
-        // Assign a random template for each tile
-        // TODO make this more organic and based on the directions, such that
-        // all rooms are well connected
-        /*
-        for (let x = 0; x < this.tilesX; x++) {
-            for (let y = 0; y < this.tilesY; y++) {
-                this.templMap[x][y] = this.getRandomTemplate();
-                console.log(`${x},${y}: ` +
-                    `${JSON.stringify(this.templMap[x][y])}`);
-            }
-        }
-        */
 
         // Create gen params for each tile
         this.genParamsX = [];
@@ -461,8 +450,9 @@ RG.Template.Level = function(tilesX, tilesY) {
         this.templMap[x][y] = this.getRandomTemplate();
         const room = {x, y, room: this.templMap[x][y]};
 
-        // TODO
         this._addRoomData(room);
+
+        this._removeBorderExits(room);
 
     };
 
@@ -482,6 +472,8 @@ RG.Template.Level = function(tilesX, tilesY) {
         // Check for abutting rooms on other edges and remove any exits
         this._checkAbuttingRooms(room);
 
+        this._removeBorderExits(room);
+
         // Finally add new room to templMap
         this.templMap[newX][newY] = templMatch;
 
@@ -490,24 +482,12 @@ RG.Template.Level = function(tilesX, tilesY) {
     this._addRoomData = function(room) {
         this._unusedExits.push(room);
         const exits = room.room.getProp('dir').split('');
-        if (room.x === 0) {this._removeExit('E', exits);}
-        if (room.x === this.tilesX - 1) {this._removeExit('W', exits);}
-        if (room.y === 0) {this._removeExit('N', exits);}
-        if (room.y === this.tilesY - 1) {this._removeExit('S', exits);}
         const key = room.x + ',' + room.y;
         this.freeExits[key] = exits;
         console.log('>>> Added room ' + JSON.stringify(room));
     };
 
-    /* Tries to remove exit. */
-    this._removeExit = function(dir, exits) {
-        const index = exits.indexOf(exits);
-        if (index >= 0) {
-            exits.splice(index, 1);
-        }
-    };
-
-    this._getRequiredExit = function(chosen) {
+    this.getMatchingExit = function(chosen) {
         switch (chosen) {
             case 'N': return 'S';
             case 'S': return 'N';
@@ -536,68 +516,73 @@ RG.Template.Level = function(tilesX, tilesY) {
         return RG.RAND.arrayGetRand(this.templates);
     };
 
-    this._getExits = function(room) {
-        return room.room.getProp('dir').split('');
+    /* Removes exits from tiles which are placed in any borders of the map. */
+    this._removeBorderExits = function(room) {
+        const {x, y} = room;
+        if (x === 0) {
+            if (this._hasExit('W', x, y)) {
+                this._removeChosenExit(x, y, 'W');
+            }
+        }
+
+        if (x === this.tilesX - 1) {
+            if (this._hasExit('E', x, y)) {
+                this._removeChosenExit(x, y, 'E');
+            }
+        }
+
+        if (y === 0) {
+            if (this._hasExit('N', x, y)) {
+                this._removeChosenExit(x, y, 'N');
+            }
+        }
+
+
+        if (y === this.tilesY - 1) {
+            if (this._hasExit('S', x, y)) {
+                this._removeChosenExit(x, y, 'S');
+            }
+        }
+
     };
 
+    /* Checks for rooms already in place around the placed room, and removes all
+     * matching exists. */
     this._checkAbuttingRooms = function(room) {
         const {x, y} = room;
-        // const exits = this._getExits(room);
-        // const neighbours = [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]];
 
         console.log(`CheckAbut ${x},${y}`);
         if (x > 0) {
             const nx = x - 1;
             if (!this._isFiller(nx, y)) {
-                if (this._hasExit('W', x, y)) {
-                    this._removeChosenExit(x, y, 'W');
-                }
+                this._removeExitByXY('W', x, y);
                 this._removeExitByXY('E', nx, y);
             }
-        }
-        else if (this._hasExit('W', x, y)) {
-            this._removeChosenExit(x, y, 'W');
         }
 
         if (x < this.tilesX - 1) {
             const nx = x + 1;
             if (!this._isFiller(nx, y)) {
-                if (this._hasExit('E', x, y)) {
-                    this._removeChosenExit(x, y, 'E');
-                }
+                this._removeExitByXY('E', x, y);
                 this._removeExitByXY('W', nx, y);
             }
-        }
-        else if (this._hasExit('E', x, y)) {
-            this._removeChosenExit(x, y, 'E');
         }
 
         if (y > 0) {
             const ny = y - 1;
             if (!this._isFiller(x, ny)) {
-                if (this._hasExit('N', x, y)) {
-                    this._removeChosenExit(x, y, 'N');
-                }
+                this._removeExitByXY('N', x, y);
                 this._removeExitByXY('S', x, ny);
             }
-        }
-        else if (this._hasExit('N', x, y)) {
-            this._removeChosenExit(x, y, 'N');
         }
 
         if (y < this.tilesY - 1) {
             const ny = y + 1;
             if (!this._isFiller(x, ny)) {
-                if (this._hasExit('S', x, y)) {
-                    this._removeChosenExit(x, y, 'S');
-                }
+                this._removeExitByXY('S', x, y);
                 this._removeExitByXY('N', x, ny);
             }
         }
-        else if (this._hasExit('S', x, y)) {
-            this._removeChosenExit(x, y, 'S');
-        }
-
 
     };
 
