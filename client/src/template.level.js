@@ -125,13 +125,13 @@ RG.Template.Level = function(tilesX, tilesY) {
                 // Place the new room and incr roomCount
                 ++numTries;
 
-                if (roomCount >= goalCount) {
+                if (goalCount !== -1 && roomCount >= goalCount) {
                     dungeonInvalid = false;
                     break;
                 }
             }
 
-            if (roomCount >= goalCount) {
+            if (roomCount >= goalCount || goalCount === -1) {
                 dungeonInvalid = false;
             }
             else {
