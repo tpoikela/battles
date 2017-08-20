@@ -9,57 +9,34 @@ const Crypt = require('../data/tiles.crypt');
 const baseTemplates = Crypt.tiles;
 const fillerTempl = Crypt.filler;
 
-
-/*
-const fillerFloor = `
-name:FILLER
-X=.
-Y=.
-
-.X...X.
-Y......
-.......
-.......
-.......
-Y......
-.......`;
-*/
-
-
 RG.Template.Level = function(tilesX, tilesY) {
     this.tilesX = tilesX;
     this.tilesY = tilesY;
     this.genParams = [1, 1, 1, 1];
     this.roomCount = 40;
 
+    this.filler = RG.Template.createTemplate(fillerTempl);
+    this.templates = baseTemplates.map(t => RG.Template.createTemplate(t));
+
     this.genParamMin = 1;
     this.genParamMax = 1;
 
-    this.filler = RG.Template.createTemplate(fillerTempl);
-    this.templates = baseTemplates.map(t => RG.Template.createTemplate(t));
     this._unusedExits = [];
     this.freeExits = {};
 
     this.sortedByExit = {
         N: [], S: [], E: [], W: []
     };
-    // Sort data into 4 lists with N, S, E, W exits
-    this.templates.forEach(templ => {
-        const dir = templ.getProp('dir');
-        if (/N/.test(dir)) {this.sortedByExit.N.push(templ);}
-        if (/S/.test(dir)) {this.sortedByExit.S.push(templ);}
-        if (/E/.test(dir)) {this.sortedByExit.E.push(templ);}
-        if (/W/.test(dir)) {this.sortedByExit.W.push(templ);}
-    });
 
-    // Initialize a map with filler cells
-    this.templMap = [];
-    for (let x = 0; x < this.tilesX; x++) {
-        this.templMap[x] = [];
-        for (let y = 0; y < this.tilesY; y++) {
-            this.templMap[x][y] = this.filler;
-        }
-    }
+    /* Sets the filler tile used to fill the map first. */
+    this.setFiller = function(fillerTempl) {
+        this.filler = RG.Template.createTemplate(fillerTempl);
+    };
+
+    this.setTemplates = function(asciiTempl) {
+        this.templates = [];
+        this.templates = asciiTempl.map(t => RG.Template.createTemplate(t));
+    };
 
     this.setGenParams = function(arr) {
         this.genParams = arr;
@@ -69,9 +46,34 @@ RG.Template.Level = function(tilesX, tilesY) {
         this.roomCount = count;
     };
 
+    /* Sets the callback for constraint. This callback is called with
+     * (x, y, exitReqd), and exposes this.sortedByExit.
+     */
+    this.setConstraintFunc = function(func) {
+        this.constraintFunc = func.bind(this);
+    };
+
     /* Creates the level. Result is in this.map.
     * Main function you want to call. */
     this.create = function() {
+
+        // Sort data into 4 lists with N, S, E, W exits
+        this.templates.forEach(templ => {
+            const dir = templ.getProp('dir');
+            if (/N/.test(dir)) {this.sortedByExit.N.push(templ);}
+            if (/S/.test(dir)) {this.sortedByExit.S.push(templ);}
+            if (/E/.test(dir)) {this.sortedByExit.E.push(templ);}
+            if (/W/.test(dir)) {this.sortedByExit.W.push(templ);}
+        });
+
+        // Initialize a map with filler cells
+        this.templMap = [];
+        for (let x = 0; x < this.tilesX; x++) {
+            this.templMap[x] = [];
+            for (let y = 0; y < this.tilesY; y++) {
+                this.templMap[x][y] = this.filler;
+            }
+        }
 
         let dungeonInvalid = true;
         while (dungeonInvalid) {
@@ -101,18 +103,17 @@ RG.Template.Level = function(tilesX, tilesY) {
                 const chosen = RG.RAND.arrayGetRand(exits);
 
                 // Get required matching exit
-                const exitRequired = this.getMatchingExit(chosen);
+                const exitReqd = this.getMatchingExit(chosen);
+                const newX = this._getNewX(x, exitReqd);
+                const newY = this._getNewY(y, exitReqd);
 
                 // Get a new room matching this exit
-                const listMatching = this.sortedByExit[exitRequired];
-                const templMatch = RG.RAND.arrayGetRand(listMatching);
+                const templMatch = this._getNextTemplate(newX, newY, exitReqd);
 
                 // Make sure the new room is valid
-                const newX = this._getNewX(x, exitRequired);
-                const newY = this._getNewY(y, exitRequired);
                 if (this._isRoomLegal(newX, newY)) {
                     this._placeRoom(
-                        x, y, chosen, newX, newY, exitRequired, templMatch);
+                        x, y, chosen, newX, newY, exitReqd, templMatch);
                     ++roomCount;
                     console.log('Room count incremented to ' + roomCount);
                 }
@@ -173,9 +174,39 @@ RG.Template.Level = function(tilesX, tilesY) {
 
     };
 
+
+    /* Finds a template based on prop name and val, and returns a random
+     * template among the found templates. */
+    this.findTemplate = function(query) {
+        const result = [];
+        Object.keys(query).forEach(key => {
+            this.templates.forEach(t => {
+                if (t.getProp(key) === query[key]) {
+                    result.push(t);
+                }
+            });
+        });
+        return RG.RAND.arrayGetRand(result);
+    };
+
     //----------------------------------------------------------------
     // PRIVATE
     //----------------------------------------------------------------
+
+    this._getNextTemplate = function(x, y, exitReqd) {
+        let next = null;
+        if (typeof this.constraintFunc === 'function') {
+            next = this.constraintFunc(x, y, exitReqd);
+        }
+
+        if (!next) {
+            const listMatching = this.sortedByExit[exitReqd];
+            const templMatch = RG.RAND.arrayGetRand(listMatching);
+            return templMatch;
+        }
+
+        return next;
+    };
 
     this._getRoomWithUnusedExits = function() {
         if (this._unusedExits.length > 0) {
@@ -249,7 +280,7 @@ RG.Template.Level = function(tilesX, tilesY) {
     };
 
     this._placeRoom = function(
-        x, y, chosen, newX, newY, exitRequired, templMatch
+        x, y, chosen, newX, newY, exitReqd, templMatch
     ) {
         // Remove chosen exit (old room) from unused exits
         this._removeChosenExit(x, y, chosen);
@@ -259,7 +290,7 @@ RG.Template.Level = function(tilesX, tilesY) {
         this._addRoomData(room);
 
         // But remove chosen exit
-        this._removeChosenExit(newX, newY, exitRequired);
+        this._removeChosenExit(newX, newY, exitReqd);
 
         // Check for abutting rooms on other edges and remove any exits
         this._checkAbuttingRooms(room);
