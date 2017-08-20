@@ -6,81 +6,8 @@ const Castle = {};
 
 const corridorDoorThr = 0.2;
 
-Castle.filler = `
-name:FILLER
-X=.
-Y=.
-
-.X...X.
-Y......
-.......
-.......
-.......
-Y......
-.......`;
-
-Castle.templates = [
-
-// Terminals
-`
-dir:N
-name:term_n
-X=#
-Y=#
-
-#X#+#X#
-#.....#
-Y.....#
-#.....#
-Y.....#
-#.....#
-#######`,
-
-`
-dir:S
-name:term_s
-X=#
-Y=#
-
-#X###X#
-#.....#
-Y.....#
-#.....#
-Y.....#
-#.....#
-###+###`,
-
-`
-dir:E
-name:term_e
-X=#
-Y=#
-
-#X###X#
-#.....#
-Y.....#
-#.....+
-Y.....#
-#.....#
-#######`,
-
-`
-dir:W
-name:term_w
-X=#
-Y=#
-
-#X###X#
-#.....#
-Y.....#
-+.....#
-Y.....#
-#.....#
-#######`,
-
-// Corridors
-
 // Corners
+Castle.corners = [
 `
 dir:NW
 name:corner_se
@@ -135,9 +62,101 @@ Y......
 #......
 Y......
 #......
-#.....#`,
+#.....#`
+];
+
+// Terminals
+Castle.terms = [
+`
+dir:N
+name:term_n
+X=#
+Y=#
+
+#X#+#X#
+#.....#
+Y.....#
+#.....#
+Y.....#
+#.....#
+#######`,
+
+`
+dir:S
+name:term_s
+X=#
+Y=#
+
+#X###X#
+#.....#
+Y.....#
+#.....#
+Y.....#
+#.....#
+###+###`,
+
+`
+dir:E
+name:term_e
+X=#
+Y=#
+
+#X###X#
+#.....#
+Y.....#
+#.....+
+Y.....#
+#.....#
+#######`,
+
+`
+dir:W
+name:term_w
+X=#
+Y=#
+
+#X###X#
+#.....#
+Y.....#
++.....#
+Y.....#
+#.....#
+#######`
+];
+
+// Entrances
+Castle.entrances = [
+`
+dir:NEW
+name:entrance_n
+X=.
+Y=#
+
+#X...X#
+##...##
+Y##.###
+..#+#..
+.......
+Y.....#
+#######`,
+
+`
+dir:SEW
+name:entrance_s
+X=#
+Y=#
+
+#X###X#
+.......
+Y.#.##.
+.##+##.
+Y#...##
+#.....#
+##...##`
+];
 
 // Corridors
+Castle.corridors = [
 `
 dir:NS
 name:corridor_ns
@@ -151,7 +170,23 @@ Y.....#
 Y.....#
 #.....#
 #.....#`,
+`
+dir:EW
+name:corridor_ew
+X=#
+Y=.
 
+#X###X#
+.......
+Y......
+.......
+Y......
+.......
+#######`
+];
+
+// Branching from the main wall
+Castle.branches = [
 `
 dir:NSE
 name:corridor_nse
@@ -180,19 +215,6 @@ Y.....#
 #.....#
 ##...##`,
 
-`
-dir:EW
-name:corridor_ew
-X=#
-Y=.
-
-#X###X#
-.......
-Y......
-.......
-Y......
-.......
-#######`,
 
 `
 dir:NEW
@@ -224,11 +246,42 @@ Y......
 
 ];
 
+// Filler cell
+Castle.fillerFloor = `
+name:FILLER
+X=.
+Y=.
+
+.X...X.
+Y......
+.......
+.......
+.......
+Y......
+.......`;
+
+Castle.fillerWall = `
+name:FILLER
+X=#
+Y=#
+
+#X###X#
+Y######
+#######
+#######
+#######
+Y######
+#######`;
+
+Castle.templates = [];
+
+/* Returns the starting room for castle generation. */
 Castle.getStartRoom = function() {
     console.log('### Castle.getStartRoom');
-    const templ = this.findTemplate({name: 'corner_nw'});
+    // const templ = this.findTemplate({name: 'corner_nw'});
+    const templ = this.findTemplate({name: 'entrance_n'});
     return {
-        x: 0, y: 0, room: templ
+        x: Math.floor(this.tilesX / 2), y: 0, room: templ
     };
 };
 
@@ -295,5 +348,16 @@ Castle.constraintFunc = function(x, y, exitReqd) {
     console.log(`RETURN NULL for ${x},${y}`);
     return null;
 };
+
+Castle.templates = []
+    .concat(Castle.branches)
+    .concat(Castle.corners)
+    .concat(Castle.terms)
+    .concat(Castle.entrances)
+    .concat(Castle.corridors);
+
+Castle.templatesWall = []
+    .concat(Castle.corners)
+    .concat(Castle.corridors);
 
 module.exports = Castle;
