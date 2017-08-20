@@ -150,6 +150,19 @@ Y......
 #######
 #######`,
 
+`
+dir:EW
+name:BaseTemplate8
+X=#
+Y=#
+
+#X###X#
+#.#.#.#
+Y.....#
+.......
+Y.....#
+#.#.#.#
+#######`,
 // Corners
 `
 dir:NW
@@ -194,7 +207,7 @@ Y#...#.
 ###.###`,
 
 `
-dir:SE
+dir:SW
 name:BaseTemplate8
 X=#
 Y=.
@@ -263,7 +276,7 @@ RG.Template.Level = function(tilesX, tilesY) {
         if (/W/.test(dir)) {this.sortedByExit.W.push(templ);}
     });
 
-    // Initialize an empty map
+    // Initialize a map with filler cells
     this.templMap = [];
     for (let x = 0; x < this.tilesX; x++) {
         this.templMap[x] = [];
@@ -332,8 +345,6 @@ RG.Template.Level = function(tilesX, tilesY) {
                 dungeonInvalid = false;
             }
             else {
-                RG.err('Template', 'create',
-                    'cleanup not implemented yet.');
                 this._cleanupAndTryAgain();
             }
 
@@ -603,6 +614,20 @@ RG.Template.Level = function(tilesX, tilesY) {
             return this.freeExits[key].indexOf(dir) >= 0;
         }
         return false;
+    };
+
+    this._cleanupAndTryAgain = function() {
+        // Initialize a map with filler cells
+        this.templMap = [];
+        for (let x = 0; x < this.tilesX; x++) {
+            this.templMap[x] = [];
+            for (let y = 0; y < this.tilesY; y++) {
+                this.templMap[x][y] = this.filler;
+            }
+        }
+        this.freeExits = {};
+        this._unusedExits = [];
+        this.create();
     };
 
 };
