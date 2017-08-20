@@ -17,6 +17,21 @@ Y######
 Y######
 #######`;
 
+/*
+const fillerFloor = `
+name:FILLER
+X=.
+Y=.
+
+.X...X.
+Y......
+.......
+.......
+.......
+Y......
+.......`;
+*/
+
 const baseTemplates = [
 
 // Filler
@@ -36,6 +51,19 @@ Y.....#
 Y.....#
 ###.###`,
 
+`
+dir:NSEW
+name:BaseTemplate1
+X=#
+Y=#
+
+#X#.#X#
+Y.....#
+#.#.#.#
+...#...
+#.#.#.#
+Y.....#
+###.###`,
 `
 dir:NSEW
 name:BaseTemplate2
@@ -84,6 +112,20 @@ dir:NSEW
 X=.
 Y=.
 
+#.X.X.#
+###.###
+Y#...#.
+...#...
+Y#...#.
+###.###
+#.....#`,
+
+`
+name:BaseTemplate4
+dir:NSEW
+X=.
+Y=.
+
 ..X.X..
 .##.##.
 Y##.##.
@@ -108,6 +150,20 @@ Y.....#
 #######`,
 
 `
+dir:N
+name:BaseTemplate5
+X=#
+Y=#
+
+#X#.#X#
+#.....#
+Y.#.#.#
+###.###
+Y##.###
+##...##
+#######`,
+
+`
 dir:S
 name:BaseTemplate5
 X=#
@@ -118,6 +174,20 @@ Y=#
 Y.#.#.#
 ###.###
 Y.#.#.#
+#.....#
+##...##`,
+
+`
+dir:S
+name:BaseTemplate5
+X=#
+Y=#
+
+#X###X#
+#######
+Y######
+###.###
+Y.....#
 #.....#
 ##...##`,
 
@@ -136,6 +206,20 @@ Y.#.#.#
 #######`,
 
 `
+dir:W
+name:BaseTemplate5
+X=#
+Y=#
+
+#X###X#
+#.#...#
+Y.#.###
+..#...#
+Y.###.#
+#.....#
+#######`,
+
+`
 dir:E
 name:BaseTemplate5
 X=#
@@ -148,6 +232,21 @@ Y..#..#
 Y.###.#
 #.....#
 #######`,
+
+`
+dir:E
+name:BaseTemplate5
+X=#
+Y=#
+
+#X###X#
+#.....#
+Y...###
+#...#..
+Y.###.#
+#.....#
+#######`,
+
 // Corridors (2 exits on opposite sides)
 `
 dir:NS
