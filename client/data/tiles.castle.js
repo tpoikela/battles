@@ -4,7 +4,7 @@ RG.Random = require('../src/random');
 
 const Castle = {};
 
-const corridorDoorThr = 0.2;
+Castle.corridorDoorThr = 0.2;
 
 // Corners
 Castle.corners = [
@@ -155,6 +155,23 @@ Y#...##
 ##...##`
 ];
 
+// Entrances
+Castle.entranceWall = [
+`
+dir:NEW
+name:entrance_n
+X=.
+Y=#
+
+#X...X#
+##...##
+Y##.###
+..#+#..
+.......
+Y.....#
+##...##`
+];
+
 // Corridors
 Castle.corridors = [
 `
@@ -287,6 +304,8 @@ Castle.getStartRoom = function() {
 
 /* Constraint function how to generate the castle level. */
 Castle.constraintFunc = function(x, y, exitReqd) {
+
+    // Constraints for 4 corners
     if (x === 0 && y === 0) {
         return this.findTemplate({name: 'corner_nw'});
     }
@@ -300,48 +319,60 @@ Castle.constraintFunc = function(x, y, exitReqd) {
         return this.findTemplate({name: 'corner_se'});
     }
 
+    // Northern wall
     if (y === 0 ) {
         const ew = this.findTemplate({name: 'corridor_ew'});
         const sew = this.findTemplate({name: 'corridor_sew'});
-        if (exitReqd === 'S') {
-            return sew;
-        }
-        if (RG.RAND.getUniform() < corridorDoorThr) {
-            return sew;
+        if (sew) {
+            if (exitReqd === 'S') {
+                return sew;
+            }
+            if (RG.RAND.getUniform() < Castle.corridorDoorThr) {
+                return sew;
+            }
         }
         return ew;
     }
+    // Southern wall
     else if (y === this.tilesY - 1) {
         const ew = this.findTemplate({name: 'corridor_ew'});
         const corrNew = this.findTemplate({name: 'corridor_new'});
-        if (exitReqd === 'N') {
-            return corrNew;
-        }
-        if (RG.RAND.getUniform() < corridorDoorThr) {
-            return corrNew;
+        if (corrNew) {
+            if (exitReqd === 'N') {
+                return corrNew;
+            }
+            if (RG.RAND.getUniform() < Castle.corridorDoorThr) {
+                return corrNew;
+            }
         }
         return ew;
     }
 
+    // Western wall
     if (x === 0) {
         const corrNs = this.findTemplate({name: 'corridor_ns'});
         const corrNse = this.findTemplate({name: 'corridor_nse'});
-        if (exitReqd === 'E') {
-            return corrNse;
-        }
-        if (RG.RAND.getUniform() < corridorDoorThr) {
-            return corrNse;
+        if (corrNse) {
+            if (exitReqd === 'E') {
+                return corrNse;
+            }
+            if (RG.RAND.getUniform() < Castle.corridorDoorThr) {
+                return corrNse;
+            }
         }
         return corrNs;
     }
+    // Eastern wall
     else if (x === this.tilesX - 1) {
         const corrNs = this.findTemplate({name: 'corridor_ns'});
         const corrNsw = this.findTemplate({name: 'corridor_nsw'});
-        if (exitReqd === 'W') {
-            return corrNsw;
-        }
-        if (RG.RAND.getUniform() < corridorDoorThr) {
-            return corrNsw;
+        if (corrNsw) {
+            if (exitReqd === 'W') {
+                return corrNsw;
+            }
+            if (RG.RAND.getUniform() < Castle.corridorDoorThr) {
+                return corrNsw;
+            }
         }
         return corrNs;
     }
@@ -357,6 +388,7 @@ Castle.templates = []
     .concat(Castle.corridors);
 
 Castle.templatesWall = []
+    .concat(Castle.entranceWall)
     .concat(Castle.corners)
     .concat(Castle.corridors);
 
