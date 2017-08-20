@@ -53,6 +53,10 @@ RG.Template.Level = function(tilesX, tilesY) {
         this.constraintFunc = func.bind(this);
     };
 
+    this.setStartRoomFunc = function(func) {
+        this.getStartRoom = func.bind(this);
+    };
+
     /* Creates the level. Result is in this.map.
     * Main function you want to call. */
     this.create = function() {
@@ -268,17 +272,38 @@ RG.Template.Level = function(tilesX, tilesY) {
     };
 
     this._placeStartRoom = function() {
-        const x = RG.RAND.getUniformInt(0, this.tilesX - 1);
-        const y = RG.RAND.getUniformInt(0, this.tilesY - 1);
-        this.templMap[x][y] = this.getRandomTemplate();
-        const room = {x, y, room: this.templMap[x][y]};
+        let room = null;
+        if (typeof this.getStartRoom === 'function') {
+            room = this.getStartRoom();
+            const props = ['x', 'y', 'room'];
+            props.forEach(p => {
+                if (!room.hasOwnProperty(p)) {
+                    const msg = 'room must have {x, y, room}.';
+                    RG.err('Template', '_placeStartRoom',
+                        `Prop ${p} null/undef. ${msg}.`);
+                }
+            });
+        }
+        else {
+            const x = RG.RAND.getUniformInt(0, this.tilesX - 1);
+            const y = RG.RAND.getUniformInt(0, this.tilesY - 1);
+            room = {x, y, room: this.getRandomTemplate()};
+        }
 
-        this._addRoomData(room);
+        console.log('Start room: ' + JSON.stringify(room));
+        this.templMap[room.x][room.y] = room.room;
 
-        this._removeBorderExits(room);
-
+        if (room !== null) {
+            this._addRoomData(room);
+            this._removeBorderExits(room);
+        }
+        else {
+            RG.err('Template', '_placeStartRoom',
+                'Starting room was null. Oh no!');
+        }
     };
 
+    /* Places one room into the map. */
     this._placeRoom = function(
         x, y, chosen, newX, newY, exitReqd, templMatch
     ) {

@@ -23,7 +23,7 @@ Castle.templates = [
 // Corners
 `
 dir:NW
-name:cornerse
+name:corner_se
 X=.
 Y=#
 
@@ -37,7 +37,7 @@ Y.....#
 
 `
 dir:NE
-name:cornersw
+name:corner_sw
 X=.
 Y=#
 
@@ -51,7 +51,7 @@ Y......
 
 `
 dir:SW
-name:cornerne
+name:corner_ne
 X=#
 Y=.
 
@@ -65,7 +65,7 @@ Y.....#
 
 `
 dir:SE
-name:cornernw
+name:corner_nw
 X=#
 Y=#
 
@@ -108,19 +108,26 @@ Y......
 
 ];
 
+Castle.getStartRoom = function() {
+    const templ = this.findTemplate({name: 'corner_nw'});
+    return {
+        x: 0, y: 0, room: templ
+    };
+};
+
 /* Constraint function how to generate the castle level. */
 Castle.constraintFunc = function(x, y, exitReqd) {
     if (x === 0 && y === 0) {
-        return this.findTemplate({name: 'cornernw'});
+        return this.findTemplate({name: 'corner_nw'});
     }
     if (x === 0 && y === this.tilesY - 1) {
-        return this.findTemplate({name: 'cornersw'});
+        return this.findTemplate({name: 'corner_sw'});
     }
     if (x === this.tilesX - 1 && y === 0) {
-        return this.findTemplate({name: 'cornerne'});
+        return this.findTemplate({name: 'corner_ne'});
     }
-    if (x === this.tilesY - 1 && y === this.tilesY - 1) {
-        return this.findTemplate({name: 'cornerse'});
+    if (x === this.tilesX - 1 && y === this.tilesY - 1) {
+        return this.findTemplate({name: 'corner_se'});
     }
 
     if (y === 0 || y === this.tilesY - 1) {
