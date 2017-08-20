@@ -107,6 +107,47 @@ Y.....#
 #.....#
 #######`,
 
+`
+dir:S
+name:BaseTemplate5
+X=#
+Y=#
+
+#X###X#
+#.....#
+Y.#.#.#
+###.###
+Y.#.#.#
+#.....#
+##...##`,
+
+`
+dir:W
+name:BaseTemplate5
+X=#
+Y=#
+
+#X###X#
+#.....#
+Y.#.#.#
+...####
+Y.#.#.#
+#.....#
+#######`,
+
+`
+dir:E
+name:BaseTemplate5
+X=#
+Y=#
+
+#X###X#
+#.....#
+Y..#..#
+#..#...
+Y.###.#
+#.....#
+#######`,
 // Corridors (2 exits on opposite sides)
 `
 dir:NS
@@ -627,7 +668,7 @@ RG.Template.Level = function(tilesX, tilesY) {
         }
         this.freeExits = {};
         this._unusedExits = [];
-        this.create();
+        // this.create();
     };
 
 };
