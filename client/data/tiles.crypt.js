@@ -22,7 +22,7 @@ Crypt.tiles = [
 // Omni-directionals
 `
 dir:NSEW
-name:BaseTemplate1
+name:omni
 X=#
 Y=#
 
@@ -36,7 +36,7 @@ Y.....#
 
 `
 dir:NSEW
-name:BaseTemplate1
+name:omni
 X=#
 Y=#
 
@@ -49,7 +49,7 @@ Y.....#
 ###.###`,
 `
 dir:NSEW
-name:BaseTemplate2
+name:omni
 X=#
 Y=#
 
@@ -62,7 +62,7 @@ Y.....#
 ###.###`,
 
 `
-name:BaseTemplate3
+name:omni
 dir:NSEW
 X=#
 Y=#
@@ -76,7 +76,7 @@ Y..#..#
 ##...##`,
 
 `
-name:BaseTemplate4
+name:omni
 dir:NSEW
 X=.
 Y=.
@@ -90,7 +90,7 @@ Y#...#.
 .......`,
 
 `
-name:BaseTemplate4
+name:omni
 dir:NSEW
 X=.
 Y=.
@@ -104,7 +104,7 @@ Y#...#.
 #.....#`,
 
 `
-name:BaseTemplate4
+name:omni
 dir:NSEW
 X=.
 Y=.
@@ -117,10 +117,24 @@ Y##.##.
 .##.##.
 .......`,
 
+`
+dir:NSEW
+name:omni
+X=.
+Y=.
+
+..X.X..
+.##.##.
+Y#...#.
+.#...#.
+Y#...#.
+.##.##.
+.......`,
+
 // Terminals (one exit only)
 `
 dir:N
-name:BaseTemplate5
+name:term
 X=#
 Y=#
 
@@ -134,7 +148,7 @@ Y.....#
 
 `
 dir:N
-name:BaseTemplate5
+name:term
 X=#
 Y=#
 
@@ -148,7 +162,7 @@ Y##.###
 
 `
 dir:S
-name:BaseTemplate5
+name:term
 X=#
 Y=#
 
@@ -162,7 +176,7 @@ Y.#.#.#
 
 `
 dir:S
-name:BaseTemplate5
+name:term
 X=#
 Y=#
 
@@ -176,7 +190,7 @@ Y.....#
 
 `
 dir:W
-name:BaseTemplate5
+name:term
 X=#
 Y=#
 
@@ -190,7 +204,7 @@ Y.#.#.#
 
 `
 dir:W
-name:BaseTemplate5
+name:term
 X=#
 Y=#
 
@@ -204,7 +218,7 @@ Y.###.#
 
 `
 dir:E
-name:BaseTemplate5
+name:term
 X=#
 Y=#
 
@@ -218,7 +232,7 @@ Y.###.#
 
 `
 dir:E
-name:BaseTemplate5
+name:term
 X=#
 Y=#
 
@@ -233,7 +247,7 @@ Y.###.#
 // Corridors (2 exits on opposite sides)
 `
 dir:NS
-name:BaseTemplate6
+name:corridor
 X=#
 Y=#
 
@@ -247,7 +261,7 @@ Y#...##
 
 `
 dir:NS
-name:BaseTemplate7
+name:corridor
 X=#
 Y=#
 
@@ -259,9 +273,10 @@ Y#...##
 #.....#
 ##...##`,
 
+
 `
 dir:EW
-name:BaseTemplate8
+name:corridor
 X=#
 Y=#
 
@@ -275,7 +290,7 @@ Y......
 
 `
 dir:EW
-name:BaseTemplate8
+name:corridor
 X=#
 Y=#
 
@@ -286,10 +301,11 @@ Y.....#
 Y.....#
 #.#.#.#
 #######`,
+
 // Corners
 `
 dir:NW
-name:BaseTemplate8
+name:corner
 X=#
 Y=#
 
@@ -302,8 +318,22 @@ Y....##
 #######`,
 
 `
+dir:NW
+name:corner
+X=#
+Y=#
+
+#X#.#X#
+#.....#
+Y.....#
+......#
+Y.###.#
+#.....#
+#######`,
+
+`
 dir:NE
-name:BaseTemplate8
+name:corner
 X=.
 Y=#
 
@@ -316,8 +346,22 @@ Y#...#.
 #######`,
 
 `
+dir:NE
+name:corner
+X=#
+Y=#
+
+#X#.#X#
+#.....#
+Y.###.#
+#......
+Y.....#
+#.....#
+#######`,
+
+`
 dir:SE
-name:BaseTemplate8
+name:corner
 X=#
 Y=#
 
@@ -330,8 +374,22 @@ Y#...#.
 ###.###`,
 
 `
+dir:SE
+name:corner
+X=#
+Y=#
+
+#X###X#
+#.#.#.#
+Y#...##
+#......
+Y#...##
+#.#.#.#
+###.###`,
+
+`
 dir:SW
-name:BaseTemplate8
+name:corner
 X=#
 Y=.
 
@@ -346,7 +404,7 @@ Y#...##
 // The rest
 `
 dir:SEW
-name:BaseTemplate8
+name:threeway
 X=#
 Y=.
 
@@ -359,8 +417,22 @@ Y#...#.
 ###.###`,
 
 `
+dir:SEW
+name:threeway
+X=#
+Y=#
+
+#X###X#
+#.....#
+Y.#.#.#
+..#.#..
+Y##.###
+#.....#
+#.....#`,
+
+`
 dir:NEW
-name:BaseTemplate8
+name:threeway
 X=#
 Y=.
 
@@ -370,8 +442,36 @@ Y#...#.
 .......
 Y#...#.
 #######
-#######`
+#######`,
 
+
+`
+dir:NSW
+name:threeway
+X=#
+Y=#
+
+#X...X#
+###.###
+Y#...##
+......#
+Y#...##
+###.###
+###.###`,
+
+`
+dir:NSE
+name:threeway
+X=#
+Y=#
+
+#X...X#
+###.###
+Y#...##
+##.....
+Y#...##
+###.###
+###.###`
 ];
 
 module.exports = Crypt;
