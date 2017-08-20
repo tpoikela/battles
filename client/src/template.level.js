@@ -30,6 +30,7 @@ RG.Template.Level = function(tilesX, tilesY) {
     this.tilesX = tilesX;
     this.tilesY = tilesY;
     this.genParams = [1, 1, 1, 1];
+    this.roomCount = 40;
 
     this.genParamMin = 1;
     this.genParamMax = 1;
@@ -42,7 +43,7 @@ RG.Template.Level = function(tilesX, tilesY) {
     this.sortedByExit = {
         N: [], S: [], E: [], W: []
     };
-    // Sort data into 4 lists with N, S, E, W exists
+    // Sort data into 4 lists with N, S, E, W exits
     this.templates.forEach(templ => {
         const dir = templ.getProp('dir');
         if (/N/.test(dir)) {this.sortedByExit.N.push(templ);}
@@ -64,6 +65,10 @@ RG.Template.Level = function(tilesX, tilesY) {
         this.genParams = arr;
     };
 
+    this.setRoomCount = function(count) {
+        this.roomCount = count;
+    };
+
     /* Creates the level. Result is in this.map.
     * Main function you want to call. */
     this.create = function() {
@@ -73,7 +78,7 @@ RG.Template.Level = function(tilesX, tilesY) {
             this._placeStartRoom();
 
             let roomCount = 0;
-            const goalCount = 40;
+            const goalCount = this.roomCount;
             let numTries = 0;
             let hasExits = true;
 
@@ -114,6 +119,11 @@ RG.Template.Level = function(tilesX, tilesY) {
 
                 // Place the new room and incr roomCount
                 ++numTries;
+
+                if (roomCount >= goalCount) {
+                    dungeonInvalid = false;
+                    break;
+                }
             }
 
             if (roomCount >= goalCount) {
@@ -129,31 +139,28 @@ RG.Template.Level = function(tilesX, tilesY) {
         this.genParamsX = [];
         this.genParamsY = [];
         for (let x = 0; x < this.tilesX; x++) {
-            const paramsX = [1, 1];
+            const paramsX = [this.genParams[0], this.genParams[1]];
             this.genParamsX.push(paramsX);
         }
         for (let y = 0; y < this.tilesY; y++) {
-            const paramsY = [2, 2];
+            const paramsY = [this.genParams[2], this.genParams[3]];
             this.genParamsY.push(paramsY);
         }
 
+        // Expand the tiles with parameters
         this.mapExpanded = [];
         for (let x = 0; x < this.tilesX; x++) {
             this.mapExpanded[x] = [];
             for (let y = 0; y < this.tilesY; y++) {
                 const params = this.genParamsX[x].concat(this.genParamsY[y]);
-                // console.log(`${x},${y}: ` +
-                    // `${JSON.stringify(this.mapExpanded[x][y])}`);
                 this.mapExpanded[x][y] = this.templMap[x][y].getChars(params);
             }
         }
 
         this.map = [];
-        // let xOffset = 0;
         // Now we have an unflattened map: 4-dimensional arrays
         for (let tileX = 0; tileX < this.tilesX; tileX++) {
             const numCols = this.mapExpanded[tileX][0].length;
-            console.log(`tileX: ${tileX} numCols: ${numCols}`);
             for (let i = 0; i < numCols; i++) {
                 let finalCol = [];
                 for (let tileY = 0; tileY < this.tilesY; tileY++) {
@@ -162,7 +169,6 @@ RG.Template.Level = function(tilesX, tilesY) {
                 }
                 this.map.push(finalCol);
             }
-            // xOffset += numCols;
         }
 
     };
