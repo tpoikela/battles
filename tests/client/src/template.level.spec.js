@@ -22,17 +22,39 @@ describe('Template.Level', () => {
     });
 
     it('can create 2-d castles', () => {
-        const level = new TemplLevel(10, 7);
+        const level = new TemplLevel(12, 6);
         RG.RAND.setSeed(new Date().getTime());
 
-        level.setFiller(Castle.filler);
+        level.setFiller(Castle.fillerWall);
         level.setTemplates(Castle.templates);
         level.setConstraintFunc(Castle.constraintFunc);
         level.setStartRoomFunc(Castle.getStartRoom);
 
         level.setGenParams([1, 1, 1, 1]);
-        level.setRoomCount(20);
+        level.setRoomCount(-1); // Fill until no more exits
         level.create();
+
+        expect(level.map).to.have.length(7 * 12);
+        expect(level.map[0]).to.have.length(7 * 6);
+
+        // RG.printMap(level.map);
+    });
+
+    it('can create 2-d castles with outer wall only', () => {
+        const level = new TemplLevel(12, 6);
+        RG.RAND.setSeed(new Date().getTime());
+
+        level.setFiller(Castle.fillerFloor);
+        level.setTemplates(Castle.templatesWall);
+        level.setConstraintFunc(Castle.constraintFunc);
+        level.setStartRoomFunc(Castle.getStartRoom);
+
+        level.setGenParams([1, 1, 1, 1]);
+        level.setRoomCount(-1); // Fill until no more exits
+        level.create();
+
+        expect(level.map).to.have.length(7 * 12);
+        expect(level.map[0]).to.have.length(7 * 6);
 
         RG.printMap(level.map);
     });
