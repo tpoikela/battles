@@ -17,11 +17,10 @@ describe('Template.Level', () => {
         expect(Array.isArray(level.map)).to.be.true;
 
         // console.log(JSON.stringify(level.map));
-        RG.printMap(level.map);
+        // RG.printMap(level.map);
 
     });
 
-    /*
     it('can create 2-d castles', () => {
         const level = new TemplLevel(10, 7);
         RG.RAND.setSeed(new Date().getTime());
@@ -29,11 +28,12 @@ describe('Template.Level', () => {
         level.setFiller(Castle.filler);
         level.setTemplates(Castle.templates);
         level.setConstraintFunc(Castle.constraintFunc);
-        level.setGenParams([1, 2, 1, 1]);
-        level.setRoomCount(30);
+        level.setStartRoomFunc(Castle.getStartRoom);
+
+        level.setGenParams([1, 1, 1, 1]);
+        level.setRoomCount(20);
         level.create();
 
         RG.printMap(level.map);
     });
-    */
 });
