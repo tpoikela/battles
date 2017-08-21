@@ -6,8 +6,7 @@ RG.Template = require('./template');
 
 const Crypt = require('../data/tiles.crypt');
 
-const baseTemplates = Crypt.tiles;
-const fillerTempl = Crypt.filler;
+const fillerTempl = Crypt.tiles.filler;
 
 /* This object can be used to create levels from ASCII-based templates. Each
  * template should be abuttable in reasonable way, and connections between tiles
@@ -20,7 +19,7 @@ RG.Template.Level = function(tilesX, tilesY) {
     this.roomCount = 40;
 
     this.filler = RG.Template.createTemplate(fillerTempl);
-    this.templates = baseTemplates.map(t => RG.Template.createTemplate(t));
+    this.templates = [];
 
     this.genParamMin = 1;
     this.genParamMax = 1;
@@ -37,15 +36,19 @@ RG.Template.Level = function(tilesX, tilesY) {
         this.filler = RG.Template.createTemplate(fillerTempl);
     };
 
-    this.setTemplates = function(asciiTempl) {
+    /* Sets the room templates that are used. */
+    this.setTemplates = function(asciiTiles) {
         this.templates = [];
-        this.templates = asciiTempl.map(t => RG.Template.createTemplate(t));
+        this.templates = asciiTiles.map(t => RG.Template.createTemplate(t));
     };
 
+    /* Sets the generator parameters for expansion. */
     this.setGenParams = function(arr) {
         this.genParams = arr;
     };
 
+    /* Sets the target room count. -1 fills until no more well-connected
+    * rooms are possible. */
     this.setRoomCount = function(count) {
         this.roomCount = count;
     };
@@ -58,7 +61,26 @@ RG.Template.Level = function(tilesX, tilesY) {
     };
 
     this.setStartRoomFunc = function(func) {
-        this.getStartRoom = func.bind(this);
+        this.startRoomFunc = func.bind(this);
+    };
+
+    /* Calls as many setters above as possible from given object. */
+    this.use = function(obj) {
+        const props = ['constraintFunc', 'startRoomFunc', 'roomCount'];
+        props.forEach(p => {
+            if (obj.hasOwnProperty(p)) {
+                const setter = 'set' + p.capitalize();
+                this[setter](obj[p]);
+            }
+        });
+
+        if (obj.tiles.filler) {
+            this.setFiller(obj.tiles.filler);
+        }
+
+        if (obj.Models.default) {
+            this.setTemplates(obj.Models.default);
+        }
     };
 
     /* Creates the level. Result is in this.map.
@@ -197,6 +219,16 @@ RG.Template.Level = function(tilesX, tilesY) {
         return RG.RAND.arrayGetRand(result);
     };
 
+    /* Removes the templates matching the given query. This is useful, if for
+     * example after starting conditions you want to remove some cells. */
+    /* this.removeTemplate = function(query) {
+        const copyTemplates = this.templates.slice();
+        this.templates.forEach(t => {
+
+        });
+        this.templates = copyTemplates;
+    }; */
+
     //----------------------------------------------------------------
     // PRIVATE
     //----------------------------------------------------------------
@@ -277,8 +309,8 @@ RG.Template.Level = function(tilesX, tilesY) {
 
     this._placeStartRoom = function() {
         let room = null;
-        if (typeof this.getStartRoom === 'function') {
-            room = this.getStartRoom();
+        if (typeof this.startRoomFunc === 'function') {
+            room = this.startRoomFunc();
             const props = ['x', 'y', 'room'];
             props.forEach(p => {
                 if (!room.hasOwnProperty(p)) {
