@@ -9,6 +9,10 @@ const Crypt = require('../data/tiles.crypt');
 const baseTemplates = Crypt.tiles;
 const fillerTempl = Crypt.filler;
 
+/* This object can be used to create levels from ASCII-based templates. Each
+ * template should be abuttable in reasonable way, and connections between tiles
+ * should be described properly. See files in '../data/tiles.*'.
+ */
 RG.Template.Level = function(tilesX, tilesY) {
     this.tilesX = tilesX;
     this.tilesY = tilesY;
@@ -226,7 +230,7 @@ RG.Template.Level = function(tilesX, tilesY) {
             return this.freeExits[key];
         }
         else {
-            RG.err('Template', '_getFreeExits',
+            RG.err('Template.Level', '_getFreeExits',
                 `No ${key}, Room: ${JSON.stringify(room)}`);
         }
         return null;
@@ -251,7 +255,7 @@ RG.Template.Level = function(tilesX, tilesY) {
                     console.log(`\t${x},${y} has no unused exits anymore.`);
                 }
                 else {
-                    RG.err('Template', '_removeChosenExit',
+                    RG.err('Template.Level', '_removeChosenExit',
                         `Cannot find ${x},${y} in unusedExits to remove.`);
                 }
             }
@@ -259,7 +263,7 @@ RG.Template.Level = function(tilesX, tilesY) {
                 + JSON.stringify(this.freeExits[key]));
         }
         else {
-            RG.err('Template', '_removeChosenExit',
+            RG.err('Template.Level', '_removeChosenExit',
                 `${x},${y} dir: ${chosen} not found.`);
         }
     };
@@ -279,7 +283,7 @@ RG.Template.Level = function(tilesX, tilesY) {
             props.forEach(p => {
                 if (!room.hasOwnProperty(p)) {
                     const msg = 'room must have {x, y, room}.';
-                    RG.err('Template', '_placeStartRoom',
+                    RG.err('Template.Level', '_placeStartRoom',
                         `Prop ${p} null/undef. ${msg}.`);
                 }
             });
@@ -298,7 +302,7 @@ RG.Template.Level = function(tilesX, tilesY) {
             this._removeBorderExits(room);
         }
         else {
-            RG.err('Template', '_placeStartRoom',
+            RG.err('Template.Level', '_placeStartRoom',
                 'Starting room was null. Oh no!');
         }
     };
