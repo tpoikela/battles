@@ -6,8 +6,10 @@ const Castle = {};
 
 Castle.corridorDoorThr = 0.2;
 
+Castle.tiles = {};
+
 // Corners
-Castle.corners = [
+Castle.tiles.corner = [
 `
 dir:NW
 name:corner_se
@@ -66,7 +68,7 @@ Y......
 ];
 
 // Terminals
-Castle.terms = [
+Castle.tiles.term = [
 `
 dir:N
 name:term_n
@@ -125,7 +127,7 @@ Y.....#
 ];
 
 // Entrances
-Castle.entrances = [
+Castle.tiles.entrance = [
 `
 dir:NEW
 name:entrance_n
@@ -156,7 +158,7 @@ Y#...##
 ];
 
 // Entrances
-Castle.entranceWall = [
+Castle.tiles.entranceWall = [
 `
 dir:NEW
 name:entrance_n
@@ -173,7 +175,7 @@ Y.....#
 ];
 
 // Corridors
-Castle.corridors = [
+Castle.tiles.corridor = [
 `
 dir:NS
 name:corridor_ns
@@ -203,7 +205,7 @@ Y......
 ];
 
 // Branching from the main wall
-Castle.branches = [
+Castle.tiles.branch = [
 `
 dir:NSE
 name:corridor_nse
@@ -264,7 +266,7 @@ Y......
 ];
 
 // Filler cell
-Castle.fillerFloor = `
+Castle.tiles.fillerFloor = `
 name:FILLER
 X=.
 Y=.
@@ -277,7 +279,7 @@ Y......
 Y......
 .......`;
 
-Castle.fillerWall = `
+Castle.tiles.fillerWall = `
 name:FILLER
 X=#
 Y=#
@@ -290,10 +292,8 @@ Y######
 Y######
 #######`;
 
-Castle.templates = [];
-
 /* Returns the starting room for castle generation. */
-Castle.getStartRoom = function() {
+Castle.startRoomFunc = function() {
     console.log('### Castle.getStartRoom');
     // const templ = this.findTemplate({name: 'corner_nw'});
     const templ = this.findTemplate({name: 'entrance_n'});
@@ -380,16 +380,20 @@ Castle.constraintFunc = function(x, y, exitReqd) {
     return null;
 };
 
-Castle.templates = []
-    .concat(Castle.branches)
-    .concat(Castle.corners)
-    .concat(Castle.terms)
-    .concat(Castle.entrances)
-    .concat(Castle.corridors);
+Castle.roomCount = -1; // Fill until no more exists
 
-Castle.templatesWall = []
-    .concat(Castle.entranceWall)
-    .concat(Castle.corners)
-    .concat(Castle.corridors);
+Castle.Models = {};
+
+Castle.Models.full = []
+    .concat(Castle.tiles.branch)
+    .concat(Castle.tiles.corner)
+    .concat(Castle.tiles.term)
+    .concat(Castle.tiles.entrance)
+    .concat(Castle.tiles.corridor);
+
+Castle.Models.outerWall = []
+    .concat(Castle.tiles.entranceWall)
+    .concat(Castle.tiles.corner)
+    .concat(Castle.tiles.corridor);
 
 module.exports = Castle;
