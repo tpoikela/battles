@@ -3,6 +3,9 @@ const RG = require('./rg.js');
 const ROT = require('../../lib/rot.js');
 RG.Map = require('./map');
 
+const TemplateLevel = require('./template.level');
+const Crypt = require('../data/tiles.crypt');
+
 /* Map generator for the roguelike game.  */
 RG.Map.Generator = function() { // {{{2
 
@@ -462,6 +465,46 @@ RG.Map.Generator = function() { // {{{2
         return {map};
     };
 
+    this.createCryptNew = function(cols, rows, conf) {
+        const level = new TemplateLevel(12, 7);
+        level.use(Crypt);
+        level.setGenParams([1, 1, 1, 1]);
+        level.setRoomCount(30);
+        level.create();
+
+        const asciiToElem = {
+            '#': RG.WALL_CRYPT_ELEM,
+            '.': RG.FLOOR_CRYPT_ELEM
+        };
+        const mapObj = this.createMapFromAsciiMap(level.map, asciiToElem);
+        return mapObj;
+
+    };
+
+    /* Given 2-d ascii map, and mapping from ascii to Element, constructs the
+     * map of base elements, and returns it. */
+    this.createMapFromAsciiMap = function(asciiMap, asciiToElem) {
+        const cols = asciiMap.length;
+        const rows = asciiMap[0].length;
+        const map = new RG.Map.CellList(cols, rows);
+        for (let x = 0; x < cols; x++) {
+            for (let y = 0; y < rows; y++) {
+                if (asciiMap[x][y] === '+') {
+                    const door = new RG.Element.Door();
+                    map.setBaseElemXY(x, y, asciiToElem['.']);
+                    map.setElemXY(x, y, door);
+                }
+                else {
+                    baseElem = asciiToElem[asciiMap[x][y]];
+                    map.setBaseElemXY(x, y, baseElem);
+                }
+            }
+        }
+        return {
+            map
+        };
+    };
+
 }; // }}} Map.Generator
 
 /* Decorates the given map with snow. ratio is used how much
@@ -472,7 +515,7 @@ RG.Map.Generator.addRandomSnow = function(map, ratio) {
     for (let i = 0; i < freeCells.length; i++) {
         const addSnow = RG.RAND.getUniform();
         if (addSnow <= ratio) {
-            freeCells[i].setBaseElem(new RG.Element.Base('snow'));
+            freeCells[i].setBaseElem(RG.SNOW_ELEM);
         }
     }
 };
