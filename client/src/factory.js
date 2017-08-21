@@ -250,7 +250,7 @@ RG.Factory.Base = function() { // {{{2
             mapObj = mapgen.createMountain(conf);
         }
         else if (levelType === 'crypt') {
-            mapObj = mapgen.createCrypt(cols, rows, {});
+            mapObj = mapgen.createCryptNew(cols, rows, {});
         }
         else if (levelType === 'cave') {
             mapObj = mapgen.createCave(cols, rows, {});
