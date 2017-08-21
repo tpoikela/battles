@@ -3,6 +3,7 @@ const RG = require('../../../client/src/battles');
 const expect = require('chai').expect;
 const TemplLevel = require('../../../client/src/template.level');
 
+const Crypt = require('../../../client/data/tiles.crypt');
 const Castle = require('../../../client/data/tiles.castle');
 
 describe('Template.Level', () => {
@@ -13,25 +14,21 @@ describe('Template.Level', () => {
 
         level.setGenParams([1, 2, 1, 1]);
         level.setRoomCount(30);
+        level.use(Crypt);
         level.create();
         expect(Array.isArray(level.map)).to.be.true;
-
-        // console.log(JSON.stringify(level.map));
         // RG.printMap(level.map);
-
     });
 
     it('can create 2-d castles', () => {
         const level = new TemplLevel(12, 6);
         RG.RAND.setSeed(new Date().getTime());
 
-        level.setFiller(Castle.fillerWall);
-        level.setTemplates(Castle.templates);
-        level.setConstraintFunc(Castle.constraintFunc);
-        level.setStartRoomFunc(Castle.getStartRoom);
+        level.setFiller(Castle.tiles.fillerWall);
+        level.setTemplates(Castle.Models.full);
+        level.use(Castle);
 
         level.setGenParams([1, 1, 1, 1]);
-        level.setRoomCount(-1); // Fill until no more exits
         level.create();
 
         expect(level.map).to.have.length(7 * 12);
@@ -44,13 +41,11 @@ describe('Template.Level', () => {
         const level = new TemplLevel(12, 6);
         RG.RAND.setSeed(new Date().getTime());
 
-        level.setFiller(Castle.fillerFloor);
-        level.setTemplates(Castle.templatesWall);
-        level.setConstraintFunc(Castle.constraintFunc);
-        level.setStartRoomFunc(Castle.getStartRoom);
+        level.use(Castle);
+        level.setFiller(Castle.tiles.fillerFloor);
+        level.setTemplates(Castle.Models.outerWall);
 
         level.setGenParams([1, 1, 1, 1]);
-        level.setRoomCount(-1); // Fill until no more exits
         level.create();
 
         expect(level.map).to.have.length(7 * 12);
