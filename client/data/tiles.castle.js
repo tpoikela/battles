@@ -163,8 +163,8 @@ X=#
 Y=#
 
 #X###X#
-.......
-Y.#.##.
+Y......
+..#.##.
 .##+##.
 Y#...##
 #.....#
@@ -185,14 +185,28 @@ Y##.###
 ..#+#..
 .......
 Y.....#
-##...##`
+##...##`,
+
+`
+dir:SEW
+name:entrance_s
+X=#
+Y=#
+
+#X...X#
+Y.....#
+..#.#..
+.##+##.
+Y#...##
+#.....#
+#.....#`
 ];
 
 // Corridors
 Castle.tiles.corridor = [
 `
 dir:NS
-name:corridor_ns
+name:corridor_east
 X=.
 Y=#
 
@@ -203,9 +217,24 @@ Y.....#
 Y.....#
 #.....#
 #.....#`,
+
+`
+dir:NS
+name:corridor_west
+X=.
+Y=#
+
+#X...X#
+#.....#
+Y.....#
+#.....#
+Y.....#
+#.....#
+#.....#`,
+
 `
 dir:EW
-name:corridor_ew
+name:corridor_north
 X=#
 Y=.
 
@@ -215,6 +244,80 @@ Y......
 .......
 Y......
 .......
+#######`,
+
+`
+dir:EW
+name:corridor_south
+X=#
+Y=.
+
+#X###X#
+.......
+Y......
+.......
+Y......
+.......
+#######`
+];
+
+// These provide exit from the main wall, however their exit direction is not
+// specified thus they're treated as normal bi-directional corridors for PCG
+Castle.tiles.corridorWithExit = [
+`
+dir:NS
+name:corridor_east
+X=.
+Y=#
+
+#X...X#
+#.....#
+Y#....#
+......#
+Y#....#
+#.....#
+#.....#`,
+
+`
+dir:NS
+name:corridor_west
+X=.
+Y=#
+
+#X...X#
+#.....#
+Y....##
+#......
+Y....##
+#.....#
+#.....#`,
+
+`
+dir:EW
+name:corridor_north
+X=#
+Y=.
+
+#X###X#
+.......
+Y......
+.......
+Y......
+..#.#..
+###.###`,
+
+`
+dir:EW
+name:corridor_south
+X=#
+Y=.
+
+#X#.#X#
+..#.#..
+Y......
+.......
+Y......
+..#.#..
 #######`
 ];
 
@@ -248,7 +351,6 @@ Y.....#
 #.....#
 ##...##`,
 
-
 `
 dir:NEW
 name:corridor_new
@@ -276,7 +378,6 @@ Y......
 Y......
 .......
 ###+###`
-
 ];
 
 // Filler cell
@@ -308,10 +409,19 @@ Y######
 
 /* Returns the starting room for castle generation. */
 Castle.startRoomFunc = function() {
-    // const templ = this.findTemplate({name: 'corner_nw'});
-    const templ = this.findTemplate({name: 'entrance_n'});
+    const midX = Math.floor(this.tilesX / 2);
+    let templ = null;
+    const north = RG.RAND.getUniform() <= 0.5;
+    let y = 0;
+    if (north) {
+        templ = this.findTemplate({name: 'entrance_n'});
+    }
+    else {
+        templ = this.findTemplate({name: 'entrance_s'});
+        y = this.tilesY - 1;
+    }
     return {
-        x: Math.floor(this.tilesX / 2), y: 0, room: templ
+        x: midX, y, room: templ
     };
 };
 
@@ -334,7 +444,7 @@ Castle.constraintFunc = function(x, y, exitReqd) {
 
     // Northern wall
     if (y === 0 ) {
-        const ew = this.findTemplate({name: 'corridor_ew'});
+        const ew = this.findTemplate({name: 'corridor_north'});
         const sew = this.findTemplate({name: 'corridor_sew'});
         if (sew) {
             if (exitReqd === 'S') {
@@ -348,7 +458,7 @@ Castle.constraintFunc = function(x, y, exitReqd) {
     }
     // Southern wall
     else if (y === this.tilesY - 1) {
-        const ew = this.findTemplate({name: 'corridor_ew'});
+        const ew = this.findTemplate({name: 'corridor_south'});
         const corrNew = this.findTemplate({name: 'corridor_new'});
         if (corrNew) {
             if (exitReqd === 'N') {
@@ -363,7 +473,7 @@ Castle.constraintFunc = function(x, y, exitReqd) {
 
     // Western wall
     if (x === 0) {
-        const corrNs = this.findTemplate({name: 'corridor_ns'});
+        const corrNs = this.findTemplate({name: 'corridor_west'});
         const corrNse = this.findTemplate({name: 'corridor_nse'});
         if (corrNse) {
             if (exitReqd === 'E') {
@@ -377,7 +487,7 @@ Castle.constraintFunc = function(x, y, exitReqd) {
     }
     // Eastern wall
     else if (x === this.tilesX - 1) {
-        const corrNs = this.findTemplate({name: 'corridor_ns'});
+        const corrNs = this.findTemplate({name: 'corridor_east'});
         const corrNsw = this.findTemplate({name: 'corridor_nsw'});
         if (corrNsw) {
             if (exitReqd === 'W') {
@@ -406,6 +516,7 @@ Castle.Models.full = []
 Castle.Models.outerWall = []
     .concat(Castle.tiles.entranceWall)
     .concat(Castle.tiles.corner)
-    .concat(Castle.tiles.corridor);
+    .concat(Castle.tiles.corridor)
+    .concat(Castle.tiles.corridorWithExit);
 
 module.exports = Castle;
