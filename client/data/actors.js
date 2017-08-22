@@ -1,6 +1,7 @@
 /* Contains the in-game actors. */
 
 const Actors = [
+
     // ANIMALS
     {
         name: 'animal', dontCreate: true, type: 'animal',
@@ -86,6 +87,7 @@ const Actors = [
         attack: 7, defense: 7, damage: '1d10',
         hp: 50, danger: 10, addComp: 'Flying'
     },
+
     // GOBLINS
     {
         name: 'goblin', char: 'g', type: 'goblin',
@@ -108,6 +110,17 @@ const Actors = [
         attack: 4, defense: 2, protection: 2, hp: 17,
         danger: 4
     },
+    {
+        name: 'goblin lord', base: 'goblin',
+        attack: 5, defense: 4, protection: 3, hp: 30,
+        danger: 7
+    },
+    {
+        name: 'goblin king', base: 'goblin',
+        attack: 7, defense: 7, protection: 3, hp: 40,
+        danger: 10
+    },
+
     // HUMANOIDS
     {
         name: 'humanoid', char: 'h', type: 'humanoid',
@@ -118,7 +131,22 @@ const Actors = [
     // BEARFOLK
     {
         name: 'BearfolkBase', char: 'B', className: 'cell-actor-bearfolk',
-        dontCreate: true, brain: 'Bearfolk'
+        dontCreate: true, brain: 'Bearfolk',
+        attack: 1, defense: 1, damage: '1d5 + 1', range: 1, hp: 10,
+        danger: 1, enemies: ['goblin', 'dwarf', 'undead', 'demon']
+    },
+    {
+      name: 'bearfolk fighter', base: 'BearfolkBase',
+      attack: 2, defense: 2, danger: 2, hp: 15
+    },
+    {
+      name: 'bearfolk archer', base: 'BearfolkBase',
+      attack: 2, defense: 2, danger: 3, hp: 13,
+      equip: ['Bow', {name: 'Arrow', count: 10}], brain: 'Archer'
+    },
+    {
+      name: 'bearfolk king', base: 'BearfolkBase',
+      attack: 7, defense: 7, protection: 5, danger: 8, hp: 40
     },
 
     // UNDEAD
@@ -133,6 +161,11 @@ const Actors = [
         hp: 6
     },
     {
+        name: 'skeletal spider', char: 'S', base: 'UndeadBase',
+        attack: 2, defense: 1, damage: '1d4', danger: 1, hp: 5,
+        poison: {duration: '2d10', damage: '1d2', prob: '0.2'}
+    },
+    {
         name: 'skeleton', char: 'z', base: 'UndeadBase',
         attack: 2, defense: 1, damage: '1d5', danger: 1,
         hp: 9
@@ -141,6 +174,11 @@ const Actors = [
         name: 'zombie', char: 'z', base: 'UndeadBase',
         attack: 2, defense: 2, damage: '1d6', danger: 2,
         hp: 12
+    },
+    {
+        name: 'lich', char: 'L', base: 'UndeadBase',
+        attack: 4, defense: 4, damage: '1d8', danger: 10,
+        hp: 50, brain: 'Summoner'
     },
 
     // DEMONS AND WINTRY BEINGS
