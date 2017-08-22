@@ -142,6 +142,7 @@ RG.System.Missile = function(type, compTypes) {
                 const currY = mComp.getY();
                 const currCell = map.getCell(currX, currY);
 
+                let shownMsg = '';
                 // Wall was hit, stop missile
                 if (currCell.hasPropType('wall')) {
                     mComp.prev();
@@ -151,7 +152,7 @@ RG.System.Missile = function(type, compTypes) {
 
                     this.finishMissileFlight(ent, mComp, prevCell);
                     RG.debug(this, 'Stopped missile to wall');
-                    RG.gameMsg(ent.getName() + ' thuds to the wall');
+                    shownMsg = ent.getName() + ' thuds to the wall';
                 }
                 else if (currCell.hasProp('actors')) {
                     const actor = currCell.getProp('actors')[0];
@@ -165,28 +166,31 @@ RG.System.Missile = function(type, compTypes) {
                         damageComp.setDamage(mComp.getDamage());
                         actor.add('Damage', damageComp);
                         RG.debug(this, 'Hit an actor');
-                        RG.gameWarn(ent.getName() + ' hits ' + actor.getName());
+                        shownMsg = ent.getName() + ' hits ' + actor.getName();
                     }
                     else if (mComp.inTarget()) {
                         this.finishMissileFlight(ent, mComp, currCell);
                         RG.debug(this, 'In target cell, and missed an entity');
-                        RG.gameMsg(ent.getName() + ' misses the target');
+                        shownMsg = ent.getName() + ' misses the target';
                     }
                     else if (!mComp.hasRange()) {
                         this.finishMissileFlight(ent, mComp, currCell);
                         RG.debug(this, 'Missile out of range. Missed entity.');
-                        RG.gameMsg(ent.getName() + ' misses the target');
+                        shownMsg = ent.getName() + ' misses the target';
                     }
                 }
                 else if (mComp.inTarget()) {
                     this.finishMissileFlight(ent, mComp, currCell);
                     RG.debug(this, 'In target cell but no hits');
-                    RG.gameMsg(ent.getName() + " doesn't hit anything");
+                    shownMsg = ent.getName() + " doesn't hit anything";
                 }
                 else if (!mComp.hasRange()) {
                     this.finishMissileFlight(ent, mComp, currCell);
                     RG.debug(this, 'Missile out of range. Hit nothing.');
-                    RG.gameMsg(ent.getName() + " doesn't hit anything");
+                    shownMsg = ent.getName() + " doesn't hit anything";
+                }
+                if (shownMsg.length > 0) {
+                    RG.gameMsg({cell: currCell, msg: shownMsg});
                 }
             }
 
