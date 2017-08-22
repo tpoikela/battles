@@ -260,6 +260,12 @@ RG.Factory.Base = function() { // {{{2
             this.createHouseElements(level, mapObj, conf);
             this.createShops(level, mapObj, conf);
         }
+        else if (levelType === 'townwithwall') {
+            mapObj = mapgen.createTownWithWall(cols, rows, conf);
+            level.setMap(mapObj.map);
+            this.createHouseElements(level, mapObj, conf);
+            this.createShops(level, mapObj, conf);
+        }
         else if (levelType === 'forest') {
             mapObj = mapgen.createForest(conf);
         }
@@ -559,8 +565,8 @@ RG.Factory.Feature = function() {
         return type[nLevelType];
     };
 
-    this.addItemsAndMonsters = function(level, conf) {
-        _verif.verifyConf('addItemsAndMonsters', conf,
+    this.addItemsAndActors = function(level, conf) {
+        _verif.verifyConf('addItemsAndActors', conf,
             ['nLevel', 'sqrPerItem', 'sqrPerMonster', 'maxValue']);
 
         const numFree = level.getMap().getFree().length;
@@ -592,7 +598,7 @@ RG.Factory.Feature = function() {
                 actorConf.func = conf.actor;
             }
             else {
-                RG.err('Factory.Feature', 'addItemsAndMonsters',
+                RG.err('Factory.Feature', 'addItemsAndActors',
                     'conf.actor must be a function');
             }
         }
@@ -614,7 +620,7 @@ RG.Factory.Feature = function() {
         }
         debug(`dungeonLevel: ${levelType}, ${JSON.stringify(conf)}`);
         level = this.createLevel(levelType, conf.x, conf.y);
-        this.addItemsAndMonsters(level, conf);
+        this.addItemsAndActors(level, conf);
         return level;
     };
 
@@ -629,7 +635,7 @@ RG.Factory.Feature = function() {
         debug(`Creating mountain level with ${conf}`);
         const mountainLevel = this.createLevel('mountain',
             conf.x, conf.y, mountConf);
-        this.addItemsAndMonsters(mountainLevel, mountConf);
+        this.addItemsAndActors(mountainLevel, mountConf);
         return mountainLevel;
     };
 
