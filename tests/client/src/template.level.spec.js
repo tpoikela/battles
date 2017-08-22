@@ -34,7 +34,7 @@ describe('Template.Level', () => {
         expect(level.map).to.have.length(7 * 12);
         expect(level.map[0]).to.have.length(7 * 6);
 
-        // RG.printMap(level.map);
+        RG.printMap(level.map);
     });
 
     it('can create 2-d castles with outer wall only', () => {
@@ -52,5 +52,20 @@ describe('Template.Level', () => {
         expect(level.map[0]).to.have.length(7 * 6);
 
         RG.printMap(level.map);
+    });
+
+    it('can also remove templates after creation', () => {
+        const level = new TemplLevel(7, 7);
+        level.use(Castle);
+        level.setFiller(Castle.tiles.fillerFloor);
+        level.setTemplates(Castle.Models.outerWall);
+
+        let templ = level.findTemplate({name: 'corner_nw'});
+        expect(templ.getProp('name')).to.equal('corner_nw');
+
+        level.removeTemplate({name: 'corner_nw'});
+        templ = level.findTemplate({name: 'corner_nw'});
+        expect(templ).to.be.null;
+
     });
 });
