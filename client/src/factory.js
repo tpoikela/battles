@@ -62,7 +62,6 @@ const levelSizes = {
 // FACTORY OBJECTS
 //---------------------------------------------------------------------------
 
-
 /* This object is used to randomize item properties during procedural
  * generation.*/
 RG.Factory.ItemRandomizer = function() {
@@ -116,11 +115,8 @@ RG.Factory.ItemRandomizer = function() {
 
 };
 
-/* Factory object for creating some commonly used objects. Because this is a
-* global object RG.FACT, no state should be used. */
-RG.Factory.Base = function() { // {{{2
-    const _verif = new RG.Verify.Conf('Factory.Base');
-    const _itemRandomizer = new RG.Factory.ItemRandomizer();
+/* Factory object for creating actors. */
+RG.Factory.Actor = function() {
 
     const _initCombatant = function(comb, obj) {
         const hp = obj.hp;
@@ -140,16 +136,7 @@ RG.Factory.Base = function() { // {{{2
         comb.add('Combat', combatComp);
     };
 
-    /* Creates a new die object from array or die expression '2d4 + 3' etc.*/
-    this.createDie = function(strOrArray) {
-        const numDiceMod = RG.parseDieSpec(strOrArray);
-        if (numDiceMod.length === 3) {
-            return new RG.Die(numDiceMod[0], numDiceMod[1], numDiceMod[2]);
-        }
-        return null;
-    };
-
-    /* Factory method for players.*/
+    /* Creates a player actor. */
     this.createPlayer = function(name, obj) {
         const player = new RG.Actor.Rogue(name);
         player.setIsPlayer(true);
@@ -157,11 +144,10 @@ RG.Factory.Base = function() { // {{{2
         return player;
     };
 
-    /* Factory method for monsters.*/
-    this.createActor = function(name, obj) {
+    /* Factory method for non-player actors. */
+    this.createActor = function(name, obj = {}) {
         const monster = new RG.Actor.Rogue(name);
         monster.setType(name);
-        if (RG.isNullOrUndef([obj])) {obj = {};}
 
         const brain = obj.brain;
         _initCombatant(monster, obj);
@@ -190,6 +176,40 @@ RG.Factory.Base = function() { // {{{2
             case 'Zombie': return new RG.Brain.Zombie(actor);
             default: return new RG.Brain.Rogue(actor);
         }
+    };
+};
+
+/* Factory object for creating some commonly used objects. Because this is a
+* global object RG.FACT, no state should be used. */
+RG.Factory.Base = function() { // {{{2
+    const _verif = new RG.Verify.Conf('Factory.Base');
+    const _itemRandomizer = new RG.Factory.ItemRandomizer();
+
+    const _actorFact = new RG.Factory.Actor();
+
+
+    /* Creates a new die object from array or die expression '2d4 + 3' etc.*/
+    this.createDie = function(strOrArray) {
+        const numDiceMod = RG.parseDieSpec(strOrArray);
+        if (numDiceMod.length === 3) {
+            return new RG.Die(numDiceMod[0], numDiceMod[1], numDiceMod[2]);
+        }
+        return null;
+    };
+
+    /* Factory method for players.*/
+    this.createPlayer = function(name, obj) {
+        return _actorFact.createPlayer(name, obj);
+    };
+
+    /* Factory method for monsters.*/
+    this.createActor = function(name, obj = {}) {
+        return _actorFact.createActor(name, obj);
+    };
+
+    /* Factory method for AI brain creation.*/
+    this.createBrain = function(actor, brainName) {
+        return _actorFact.createBrain(actor, brainName);
     };
 
     this.createElement = function(elemType) {
@@ -250,10 +270,13 @@ RG.Factory.Base = function() { // {{{2
             mapObj = mapgen.createMountain(conf);
         }
         else if (levelType === 'crypt') {
-            mapObj = mapgen.createCryptNew(cols, rows, {});
+            mapObj = mapgen.createCryptNew(cols, rows, conf);
         }
         else if (levelType === 'cave') {
-            mapObj = mapgen.createCave(cols, rows, {});
+            mapObj = mapgen.createCave(cols, rows, conf);
+        }
+        else if (levelType === 'castle') {
+            mapObj = mapgen.createCastle(cols, rows, conf);
         }
         else {
             mapObj = mapgen.getMap();
@@ -407,14 +430,14 @@ RG.Factory.Base = function() { // {{{2
     };
 
     /* Adds N random monsters to the level based on given danger level.*/
-    this.addNRandMonsters = (level, parser, conf) => {
-        _verif.verifyConf('addNRandMonsters', conf,
-            ['maxDanger', 'monstersPerLevel']);
+    this.addNRandActors = (level, parser, conf) => {
+        _verif.verifyConf('addNRandActors', conf,
+            ['maxDanger', 'actorsPerLevel']);
         // Generate the monsters randomly for this level
         const maxDanger = conf.maxDanger;
 
         const freeCells = level.getMap().getFree();
-        for (let i = 0; i < conf.monstersPerLevel; i++) {
+        for (let i = 0; i < conf.actorsPerLevel; i++) {
             const index = RG.RAND.randIndex(freeCells);
             const cell = freeCells[index];
 
@@ -442,7 +465,7 @@ RG.Factory.Base = function() { // {{{2
                 level.addActor(monster, cell.getX(), cell.getY());
             }
             else {
-                RG.err('Factory.Feature', 'addNRandMonsters',
+                RG.err('Factory.Feature', 'addNRandActors',
                     `Generated monster null. Conf: ${JSON.stringify(conf)}`);
             }
 
@@ -541,11 +564,11 @@ RG.Factory.Feature = function() {
             ['nLevel', 'sqrPerItem', 'sqrPerMonster', 'maxValue']);
 
         const numFree = level.getMap().getFree().length;
-        const monstersPerLevel = Math.round(numFree / conf.sqrPerMonster);
+        const actorsPerLevel = Math.round(numFree / conf.sqrPerMonster);
         const itemsPerLevel = Math.round(numFree / conf.sqrPerItem);
         const goldPerLevel = itemsPerLevel;
 
-        debug(`Adding ${monstersPerLevel} monsters and items ` +
+        debug(`Adding ${actorsPerLevel} monsters and items ` +
             `${itemsPerLevel} to the level`);
 
         const itemConstraint = function(maxValue) {
@@ -561,7 +584,7 @@ RG.Factory.Feature = function() {
         this.addNRandItems(level, _parser, itemConf);
 
         const actorConf = {
-            monstersPerLevel: conf.monstersPerLevel || monstersPerLevel,
+            actorsPerLevel: conf.actorsPerLevel || actorsPerLevel,
             maxDanger: conf.maxDanger || conf.nLevel + 1
         };
         if (conf.actor) {
@@ -573,7 +596,7 @@ RG.Factory.Feature = function() {
                     'conf.actor must be a function');
             }
         }
-        this.addNRandMonsters(level, _parser, actorConf);
+        this.addNRandActors(level, _parser, actorConf);
 
         const goldConf = {
             goldPerLevel,
@@ -660,7 +683,7 @@ RG.Factory.Feature = function() {
         levelConf.levelType = 'empty';
         levelConf.wallType = 'wooden';
         const level = this.createLevel('town', cols, rows, levelConf);
-        levelConf.monstersPerLevel = 30;
+        levelConf.actorsPerLevel = 30;
         levelConf.maxDanger = 3;
         this.populateCityLevel(level, levelConf);
         return level;
@@ -705,7 +728,7 @@ RG.Factory.Feature = function() {
 
     this.populateWithHumans = function(level, levelConf) {
         const actorConf = {
-            monstersPerLevel: levelConf.monstersPerLevel || 100,
+            actorsPerLevel: levelConf.actorsPerLevel || 100,
             maxDanger: levelConf.maxDanger || 10,
             func: actor => (
                 actor.type === 'human' &&
@@ -713,24 +736,24 @@ RG.Factory.Feature = function() {
             )
         };
         if (levelConf.func) {actorConf.func = levelConf.func;}
-        this.addNRandMonsters(level, _parser, actorConf);
+        this.addNRandActors(level, _parser, actorConf);
     };
 
     this.populateWithNonHumans = function(level, levelConf) {
         const actorConf = {
-            monstersPerLevel: levelConf.monstersPerLevel || 100,
+            actorsPerLevel: levelConf.actorsPerLevel || 100,
             maxDanger: levelConf.maxDanger || 10,
             func: actor => (
                 actor.type !== 'human'
             )
         };
         if (levelConf.func) {actorConf.func = levelConf.func;}
-        this.addNRandMonsters(level, _parser, actorConf);
+        this.addNRandActors(level, _parser, actorConf);
     };
 
     this.populateWithNeutral = function(level, levelConf) {
         const actorConf = {
-            monstersPerLevel: levelConf.monstersPerLevel || 100,
+            actorsPerLevel: levelConf.actorsPerLevel || 100,
             maxDanger: levelConf.maxDanger || 10,
             func: actor => (
                 actor.type === 'dwarf' ||
@@ -739,7 +762,7 @@ RG.Factory.Feature = function() {
             )
         };
         if (levelConf.func) {actorConf.func = levelConf.func;}
-        this.addNRandMonsters(level, _parser, actorConf);
+        this.addNRandActors(level, _parser, actorConf);
     };
 
 };
