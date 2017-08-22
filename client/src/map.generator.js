@@ -39,7 +39,7 @@ RG.Map.Generator = function() { // {{{2
             case 'arena': _mapGen = new ROT.Map.Arena(cols, rows); break;
             case 'cave': _mapGen = new ROT.Map.Miner(cols, rows); break;
             case 'cellular': _mapGen = this.createCellular(cols, rows); break;
-            case 'castle': _mapGen = this.createCastle.bind(this, cols, rows); break;
+            case 'castle': break;
             case 'crypt': _mapGen = new ROT.Map.Uniform(cols, rows); break;
             case 'digger': _mapGen = new ROT.Map.Digger(cols, rows); break;
             case 'divided':
@@ -59,6 +59,7 @@ RG.Map.Generator = function() { // {{{2
             case 'ruins': _mapGen = this.createRuins(cols, rows); break;
             case 'rooms': _mapGen = this.createRooms(cols, rows); break;
             case 'town': _mapGen = new ROT.Map.Arena(cols, rows); break;
+            case 'townwithwall': break;
             default: RG.err('MapGen',
                 'setGen', '_mapGen type ' + type + ' is unknown');
         }
@@ -501,6 +502,53 @@ RG.Map.Generator = function() { // {{{2
         const mapObj = this.createMapFromAsciiMap(level.map, asciiToElem);
         mapObj.tiles = level.xyToBbox;
         return mapObj;
+    };
+
+    this.createTownWithWall = function(cols, rows, conf = {}) {
+        const tilesX = Math.ceil(cols / 7) + 2;
+        const tilesY = Math.ceil(rows / 7) + 2;
+        const level = new TemplateLevel(tilesX, tilesY);
+        level.use(Castle);
+        level.setTemplates(Castle.Models.outerWall);
+        level.setFiller(Castle.tiles.fillerFloor);
+        level.create();
+
+        const asciiToElem = {
+            '#': RG.WALL_ELEM,
+            '.': RG.FLOOR_ELEM
+        };
+        const castleMapObj = this.createMapFromAsciiMap(level.map, asciiToElem);
+        castleMapObj.tiles = level.xyToBbox;
+
+        conf.levelType = 'empty' || conf.levelType;
+        const townMapObj = this.createTown(cols, rows, conf);
+
+        const finalMap = castleMapObj.map;
+        RG.Geometry.mergeMaps(finalMap, townMapObj.map, 7, 7);
+
+        // Adjust house coordinates due to map merging
+        const houses = townMapObj.houses;
+        houses.forEach(house => {
+            house.llx += 7;
+            house.lly += 7;
+            house.urx += 7;
+            house.ury += 7;
+            house.walls = house.walls.map(w => {
+                w[0] += 7; w[1] += 7;
+                return w;
+            });
+            house.floor = house.floor.map(f => {
+                f[0] += 7; f[1] += 7;
+                return f;
+            });
+            house.door[0] += 7; house.door[1] += 7;
+        });
+
+        return {
+            map: finalMap,
+            houses,
+            tiles: castleMapObj.tiles
+        };
     };
 
     /* Given 2-d ascii map, and mapping from ascii to Element, constructs the
