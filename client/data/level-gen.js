@@ -73,14 +73,14 @@ LevelGen.getDungeonConf = dungeonName => {
 
 const getNumQuarters = (cityType) => {
     switch (cityType) {
-        case 'Town': return 1;
+        case 'Hamlet': return 2;
         case 'Village': return 1;
+        case 'Town': return 2;
         case 'Fort': return 2;
         case 'Stronhold': return RG.RAND.getUniformInt(2, 4);
         case 'Capital': return RG.RAND.getUniformInt(3, 5);
         default: return 1;
     }
-
 };
 
 const getRandomShopType = () => RG.RAND.arrayGetRand(RG.SHOP_TYPES);
