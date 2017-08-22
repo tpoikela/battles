@@ -645,7 +645,7 @@ RG.Factory.Feature = function() {
 
     /* Called for each nLevels of city quarter. Delegates the task to other
     * functions based on the type of city and quarter. */
-    this.createCityLevel = function(conf) {
+    this.createCityLevel = function(nLevel, conf) {
         const levelConf = RG.Factory.cityConfBase(conf);
         levelConf.parser = _parser;
         let cityLevel = null;
@@ -660,7 +660,7 @@ RG.Factory.Feature = function() {
                 }
                 case 'capital': {
                     console.log('Creating capital level now');
-                    cityLevel = this.createCapitalLevel(x, y, levelConf);
+                    cityLevel = this.createCapitalLevel(nLevel, x, y, levelConf);
                     break;
                 }
                 case 'stronghold': {
@@ -702,9 +702,16 @@ RG.Factory.Feature = function() {
         return level;
     };
 
-    this.createCapitalLevel = function(cols, rows, levelConf) {
+    this.createCapitalLevel = function(nLevel, cols, rows, levelConf) {
         levelConf.levelType = 'miner';
-        const level = this.createLevel('town', 100, 100, levelConf);
+        let level = null;
+        if (nLevel === 0) {
+            levelConf.levelType = 'townwithwall';
+            level = this.createLevel('townwithwall', 200, 200, levelConf);
+        }
+        else {
+            level = this.createLevel('town', 100, 100, levelConf);
+        }
         this.populateCityLevel(level, levelConf);
         return level;
     };
@@ -1247,7 +1254,7 @@ RG.Factory.World = function() {
         for (let i = 0; i < conf.nLevels; i++) {
             let level = null;
             if (!this.id2levelSet) {
-                level = this.featureFactory.createCityLevel(cityLevelConf);
+                level = this.featureFactory.createCityLevel(i, cityLevelConf);
             }
             else {
                 const id = conf.levels[i];
