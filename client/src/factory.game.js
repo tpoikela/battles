@@ -239,10 +239,10 @@ RG.Factory.Game = function() {
                 this.addNRandItems(splitLevels[x][y], _parser, itemConf);
 
                 const actorConf = {
-                    monstersPerLevel: actorsPerLevel,
+                    actorsPerLevel: actorsPerLevel,
                     maxDanger: yDiff + xDiff
                 };
-                this.addNRandMonsters(splitLevels[x][y], _parser, actorConf);
+                this.addNRandActors(splitLevels[x][y], _parser, actorConf);
 
             }
         }
@@ -401,7 +401,7 @@ RG.Factory.Game = function() {
         shopElem.setShopkeeper(keeper);
 
         const numFree = level.getMap().getFree().length;
-        // const monstersPerLevel = Math.round(numFree / sqrPerMonster);
+        // const actorsPerLevel = Math.round(numFree / sqrPerMonster);
         const itemsPerLevel = Math.round(numFree / sqrPerItem);
 
         const itemConf = {
@@ -471,7 +471,7 @@ RG.Factory.Game = function() {
             branch.addLevel(level);
 
             const numFree = level.getMap().getFree().length;
-            const monstersPerLevel = Math.round(numFree / sqrPerMonster);
+            const actorsPerLevel = Math.round(numFree / sqrPerMonster);
             const itemsPerLevel = Math.round(numFree / sqrPerItem);
 
             const potion = new RG.Item.Potion('Healing potion');
@@ -488,10 +488,10 @@ RG.Factory.Game = function() {
             this.addNRandItems(level, _parser, itemConf);
 
             const actorConf = {
-                monstersPerLevel,
+                actorsPerLevel,
                 maxDanger: nl + 1
             };
-            this.addNRandMonsters(level, _parser, actorConf);
+            this.addNRandActors(level, _parser, actorConf);
 
             allLevels.push(level);
         }
