@@ -687,12 +687,10 @@ class BattlesTop extends React.Component {
         this.guiCommands[RG.VK_l] = this.GUILook;
         this.guiCommands[RG.VK_t] = this.GUITarget;
         this.guiCommands[RG.VK_u] = this.GUIUseItem;
-
     }
 
     /* Returns true if given command is a GUI command. */
     isGUICommand(code) {
-        console.log(`isGUICommand with code ${code}`);
         if (this.gameState) {
             if (this.gameState.autoTarget && code === RG.VK_t) {
                 return false;
