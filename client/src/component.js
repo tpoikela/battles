@@ -734,6 +734,12 @@ RG.Component.Undead = function() {
 };
 RG.extend2(RG.Component.Undead, RG.Component.Base);
 
+/* Component added to summoned entities. */
+RG.Component.Summoned = function() {
+    RG.Component.Base.call(this, 'Summoned');
+};
+RG.extend2(RG.Component.Summoned, RG.Component.Base);
+
 //--------------------------------------------
 // Spellcasting related components
 //--------------------------------------------
