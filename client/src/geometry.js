@@ -152,7 +152,8 @@ RG.Geometry = {
     },*/
 
     /* Splits a larger level into a matrix of X by Y sublevels. This does
-    * not preserve the original level for efficiency reasons. */
+    * not preserve the original level for efficiency reasons, but extracts
+    * all entities and moves them to smaller levels. */
     splitLevel: function(level, conf) {
         const levels = [];
         const width = level.getMap().cols / conf.nLevelsX;
@@ -231,16 +232,22 @@ RG.Geometry = {
         return levels;
     },
 
+    /* Inserts a level inside another one. Function works only for elements, and
+     * sets map cells only. */
     insertSubLevel: function(l1, l2, startX, startY) {
         const m1 = l1.getMap();
         const m2 = l2.getMap();
+        this.mergeMaps(m1, m2, startX, startY);
+    },
+
+    mergeMaps: function(m1, m2, startX, startY) {
         if (m1.cols < m2.cols) {
-            RG.err('Geometry', 'mergeLevels',
-                'Cols: Second level arg cols must be smaller.');
+            RG.err('Geometry', 'mergeMaps',
+                'Cols: Second map arg cols must be smaller.');
         }
         if (m1.rows < m2.rows) {
-            RG.err('Geometry', 'mergeLevels',
-                'Rows: Second level arg rows must be smaller.');
+            RG.err('Geometry', 'mergeMaps',
+                'Rows: Second map arg rows must be smaller.');
         }
         const endX = startX + m2.cols - 1;
         const endY = startY + m2.rows - 1;
@@ -254,7 +261,6 @@ RG.Geometry = {
             }
         }
     },
-
 
     /* Inserts elements into the given level as rectangle bounded by the
      * coordinates given. */
