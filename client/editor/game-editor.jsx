@@ -661,7 +661,6 @@ class GameEditor extends React.Component {
     }
   }
 
-
   /* Modifes the given level configuration object based on the value
    * (level type). */
   modifyLevelConf(value, levelConf) {
@@ -669,6 +668,12 @@ class GameEditor extends React.Component {
       if (!levelConf.town) {
         levelConf.town = RG.Factory.cityConfBase({});
         levelConf.shown = 'town';
+      }
+    }
+    else if (value === 'townwithwall') {
+      if (!levelConf.townwithwall) {
+        levelConf.townwithwall = RG.Factory.cityConfBase({});
+        levelConf.shown = 'townwithwall';
       }
     }
     else if (value === 'forest') {
@@ -1066,7 +1071,7 @@ class GameEditor extends React.Component {
       'arena', 'castle', 'cellular', 'cave', 'crypt', 'digger', 'divided',
       'dungeon', 'eller', 'empty', 'forest', 'icey', 'miner',
       'mountain', 'uniform', 'rogue',
-      'ruins', 'rooms', 'town'
+      'ruins', 'rooms', 'town', 'townwithwall'
     ];
     const elem = types.map(type => {
       const key = 'key-sel-type-' + type;
