@@ -2,6 +2,8 @@
 const RG = require('./rg');
 RG.Random = require('./random');
 
+const debug = require('debug')('bitn:Template.Level');
+
 RG.Template = require('./template');
 
 const Crypt = require('../data/tiles.crypt');
@@ -9,8 +11,12 @@ const Crypt = require('../data/tiles.crypt');
 const fillerTempl = Crypt.tiles.filler;
 
 /* This object can be used to create levels from ASCII-based templates. Each
- * template should be abuttable in reasonable way, and connections between tiles
+ * template should be abuttable in a reasonable way, and connections between
+ * tiles
  * should be described properly. See files in '../data/tiles.*'.
+ *
+ // Original algorithm can be found from "Procedural Generation in
+ // Game Design" chapter 7, by Jim Shepard.
  */
 RG.Template.Level = function(tilesX, tilesY) {
     this.tilesX = tilesX;
@@ -87,6 +93,11 @@ RG.Template.Level = function(tilesX, tilesY) {
     * Main function you want to call. */
     this.create = function() {
 
+        if (this.templates.length === 0) {
+            RG.err('Template.Level', 'create',
+                'No templates. Use setTemplates() before create()');
+        }
+
         // Sort data into 4 lists with N, S, E, W exits
         this.templates.forEach(templ => {
             const dir = templ.getProp('dir');
@@ -116,7 +127,7 @@ RG.Template.Level = function(tilesX, tilesY) {
 
             while (numTries < 1000 && hasExits) {
 
-                // Get a room with unused exists
+                // Get a room with unused exits
                 const room = this._getRoomWithUnusedExits();
                 if (room === null) {
                     hasExits = false;
@@ -125,7 +136,7 @@ RG.Template.Level = function(tilesX, tilesY) {
 
                 const {x, y} = room;
 
-                console.log(`Current room in ${x},${y}`);
+                debug(`Current room in ${x},${y}`);
 
                 const exits = this._getFreeExits(room);
 
@@ -145,7 +156,7 @@ RG.Template.Level = function(tilesX, tilesY) {
                     this._placeRoom(
                         x, y, chosen, newX, newY, exitReqd, templMatch);
                     ++roomCount;
-                    console.log('Room count incremented to ' + roomCount);
+                    debug('Room count incremented to ' + roomCount);
                 }
 
                 // Place the new room and incr roomCount
@@ -188,20 +199,37 @@ RG.Template.Level = function(tilesX, tilesY) {
             }
         }
 
+        // Now we have an unflattened map: 4-dimensional arrays, the last part
+        // is to convert this into 2-d array.
         this.map = [];
-        // Now we have an unflattened map: 4-dimensional arrays
+        this.xyToBbox = {};
+        let llx = 0;
+        let urx = 0;
         for (let tileX = 0; tileX < this.tilesX; tileX++) {
             const numCols = this.mapExpanded[tileX][0].length;
+            urx = llx + numCols - 1;
+
             for (let i = 0; i < numCols; i++) {
+                let lly = 0;
+                let ury = 0;
                 let finalCol = [];
                 for (let tileY = 0; tileY < this.tilesY; tileY++) {
                     const tileCol = this.mapExpanded[tileX][tileY][i];
+                    const tileColLen = tileCol.length;
+                    lly = ury + tileColLen - 1;
                     finalCol = finalCol.concat(tileCol);
+
+                    this.xyToBbox[tileX + ',' + tileY] = {
+                        name: this.templMap[tileX][tileY].getProp('name'),
+                        type: this.templMap[tileX][tileY].getProp('type'),
+                        llx, urx, ury, lly
+                    };
+                    ury += tileColLen;
                 }
                 this.map.push(finalCol);
             }
+            llx += numCols;
         }
-
     };
 
 
@@ -216,18 +244,23 @@ RG.Template.Level = function(tilesX, tilesY) {
                 }
             });
         });
-        return RG.RAND.arrayGetRand(result);
+        if (result.length > 0) {
+            return RG.RAND.arrayGetRand(result);
+        }
+        return null;
     };
 
     /* Removes the templates matching the given query. This is useful, if for
      * example after starting conditions you want to remove some cells. */
-    /* this.removeTemplate = function(query) {
-        const copyTemplates = this.templates.slice();
-        this.templates.forEach(t => {
-
-        });
-        this.templates = copyTemplates;
-    }; */
+    this.removeTemplate = function(query) {
+        const key = Object.keys(query)[0];
+        const index = this.templates.findIndex(t => (
+            t.getProp(key) === query[key]
+        ));
+        if (index >= 0) {
+            this.templates.splice(index, 1);
+        }
+    };
 
     //----------------------------------------------------------------
     // PRIVATE
@@ -271,9 +304,9 @@ RG.Template.Level = function(tilesX, tilesY) {
     this._removeChosenExit = function(x, y, chosen) {
         const key = x + ',' + y;
         const exits = this.freeExits[key];
-        console.log(JSON.stringify(this.freeExits));
-        console.log(`${x},${y} removeChosenExit ${chosen}`);
-        console.log(`\tnExits: ${exits.length}`);
+        debug(JSON.stringify(this.freeExits));
+        debug(`${x},${y} removeChosenExit ${chosen}`);
+        debug(`\tnExits: ${exits.length}`);
         const index = exits.indexOf(chosen);
         if (index >= 0) {
             this.freeExits[key].splice(index, 1);
@@ -284,14 +317,14 @@ RG.Template.Level = function(tilesX, tilesY) {
                 if (unusedIndex >= 0) {
                     this._unusedExits.splice(unusedIndex, 1);
                     delete this.freeExits[key];
-                    console.log(`\t${x},${y} has no unused exits anymore.`);
+                    debug(`\t${x},${y} has no unused exits anymore.`);
                 }
                 else {
                     RG.err('Template.Level', '_removeChosenExit',
                         `Cannot find ${x},${y} in unusedExits to remove.`);
                 }
             }
-            console.log('\tAfter remove: '
+            debug('\tAfter remove: '
                 + JSON.stringify(this.freeExits[key]));
         }
         else {
@@ -301,12 +334,14 @@ RG.Template.Level = function(tilesX, tilesY) {
     };
 
     this._isRoomLegal = function(x, y) {
-        if (x < this.tilesX && y < this.tilesY) {
+        if (x >= 0 && x < this.tilesX && y >= 0 && y < this.tilesY) {
             return true;
         }
         return false;
     };
 
+    /* Places 1st room using startRoomFunc, or randomly if no function is
+     * specified. */
     this._placeStartRoom = function() {
         let room = null;
         if (typeof this.startRoomFunc === 'function') {
@@ -321,12 +356,12 @@ RG.Template.Level = function(tilesX, tilesY) {
             });
         }
         else {
-            const x = RG.RAND.getUniformInt(0, this.tilesX - 1);
-            const y = RG.RAND.getUniformInt(0, this.tilesY - 1);
+            const x = RG.RAND.getUniformInt(1, this.tilesX - 2);
+            const y = RG.RAND.getUniformInt(1, this.tilesY - 2);
             room = {x, y, room: this.getRandomTemplate()};
         }
 
-        console.log('Start room: ' + JSON.stringify(room));
+        debug('Start room: ' + JSON.stringify(room));
         this.templMap[room.x][room.y] = room.room;
 
         if (room !== null) {
@@ -368,7 +403,7 @@ RG.Template.Level = function(tilesX, tilesY) {
         const exits = room.room.getProp('dir').split('');
         const key = room.x + ',' + room.y;
         this.freeExits[key] = exits;
-        console.log('>>> Added room ' + JSON.stringify(room));
+        debug('>>> Added room ' + JSON.stringify(room));
     };
 
     this.getMatchingExit = function(chosen) {
@@ -396,11 +431,11 @@ RG.Template.Level = function(tilesX, tilesY) {
 
 
     this.getRandomTemplate = function() {
-        // TODO at some point, we need to check how the entrances in rooms match
         return RG.RAND.arrayGetRand(this.templates);
     };
 
-    /* Removes exits from tiles which are placed in any borders of the map. */
+    /* Removes exits from tiles which are placed in any borders of the map.
+    *  Prevents out-of-bounds expansion. */
     this._removeBorderExits = function(room) {
         const {x, y} = room;
         if (x === 0) {
@@ -435,7 +470,7 @@ RG.Template.Level = function(tilesX, tilesY) {
     this._checkAbuttingRooms = function(room) {
         const {x, y} = room;
 
-        console.log(`CheckAbut ${x},${y}`);
+        debug(`CheckAbut ${x},${y}`);
         if (x > 0) {
             const nx = x - 1;
             if (!this._isFiller(nx, y)) {
@@ -471,7 +506,7 @@ RG.Template.Level = function(tilesX, tilesY) {
     };
 
     this._isFiller = function(x, y) {
-        console.log(`isFiller x,y ${x},${y}`);
+        debug(`isFiller x,y ${x},${y}`);
         return this.templMap[x][y].getProp('name') === 'FILLER';
     };
 
@@ -500,7 +535,6 @@ RG.Template.Level = function(tilesX, tilesY) {
         }
         this.freeExits = {};
         this._unusedExits = [];
-        // this.create();
     };
 
 };
