@@ -25,6 +25,20 @@ Y.....#
 #######`,
 
 `
+dir:NW
+name:corner_se
+X=#
+Y=#
+
+#X#+#X#
+Y.....#
++.....#
++...#.#
++..####
+Y...###
+#######`,
+
+`
 dir:NE
 name:corner_sw
 X=.
@@ -215,7 +229,7 @@ Y=#
 #X...X#
 #.....#
 Y.....#
-#......
+#.....+
 Y.....#
 #.....#
 #.....#`,
@@ -229,7 +243,7 @@ Y=#
 #X...X#
 #.....#
 Y.....#
-......#
++.....#
 Y.....#
 #.....#
 ##...##`,
@@ -241,7 +255,7 @@ name:corridor_new
 X=#
 Y=.
 
-#X#.#X#
+#X#+#X#
 .......
 Y......
 .......
@@ -261,7 +275,7 @@ Y......
 .......
 Y......
 .......
-###.###`
+###+###`
 
 ];
 
@@ -294,7 +308,6 @@ Y######
 
 /* Returns the starting room for castle generation. */
 Castle.startRoomFunc = function() {
-    console.log('### Castle.getStartRoom');
     // const templ = this.findTemplate({name: 'corner_nw'});
     const templ = this.findTemplate({name: 'entrance_n'});
     return {
@@ -376,11 +389,10 @@ Castle.constraintFunc = function(x, y, exitReqd) {
         }
         return corrNs;
     }
-    console.log(`RETURN NULL for ${x},${y}`);
     return null;
 };
 
-Castle.roomCount = -1; // Fill until no more exists
+Castle.roomCount = -1; // Fill until no more exits
 
 Castle.Models = {};
 
