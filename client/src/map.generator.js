@@ -5,6 +5,7 @@ RG.Map = require('./map');
 
 const TemplateLevel = require('./template.level');
 const Crypt = require('../data/tiles.crypt');
+const Castle = require('../data/tiles.castle');
 
 /* Map generator for the roguelike game.  */
 RG.Map.Generator = function() { // {{{2
@@ -38,6 +39,7 @@ RG.Map.Generator = function() { // {{{2
             case 'arena': _mapGen = new ROT.Map.Arena(cols, rows); break;
             case 'cave': _mapGen = new ROT.Map.Miner(cols, rows); break;
             case 'cellular': _mapGen = this.createCellular(cols, rows); break;
+            case 'castle': _mapGen = this.createCastle.bind(this, cols, rows); break;
             case 'crypt': _mapGen = new ROT.Map.Uniform(cols, rows); break;
             case 'digger': _mapGen = new ROT.Map.Digger(cols, rows); break;
             case 'divided':
@@ -65,23 +67,28 @@ RG.Map.Generator = function() { // {{{2
     /* Returns an object containing randomized map + all special features
      * based on initialized generator settings. */
     this.getMap = function() {
-        const map = new RG.Map.CellList(this.cols, this.rows);
-        _mapGen.create(function(x, y, val) {
-            if (val === _wall) {
-                map.setBaseElemXY(x, y, RG.WALL_ELEM);
+        const obj = {};
+        if (typeof _mapGen === 'function') {
+            obj.map = _mapGen();
+        }
+        else {
+            const map = new RG.Map.CellList(this.cols, this.rows);
+            _mapGen.create(function(x, y, val) {
+                if (val === _wall) {
+                    map.setBaseElemXY(x, y, RG.WALL_ELEM);
+                }
+                else {
+                    map.setBaseElemXY(x, y, RG.FLOOR_ELEM);
+                }
+            });
+            obj.map = map;
+            if (_mapType === 'uniform' || _mapType === 'digger') {
+                obj.rooms = _mapGen.getRooms();
+                obj.corridors = _mapGen.getCorridors();
             }
-            else {
-                map.setBaseElemXY(x, y, RG.FLOOR_ELEM);
-            }
-        });
-        const obj = {map};
-        if (_mapType === 'uniform' || _mapType === 'digger') {
-            obj.rooms = _mapGen.getRooms(); // ROT.Map.Feature.Room
-            obj.corridors = _mapGen.getCorridors(); // ROT.Map.Feature.Corridor
         }
         return obj;
     };
-
 
     /* Creates "ruins" type level with open outer edges and inner
      * "fortress" with some tunnels. */
@@ -436,21 +443,7 @@ RG.Map.Generator = function() { // {{{2
         return w;
     };
 
-    this.createCrypt = function(cols, rows) {
-        this.setGen('crypt', cols, rows);
-        const map = new RG.Map.CellList(cols, rows);
-        _mapGen.create(function(x, y, val) {
-            if (val === 1) {
-                map.setBaseElemXY(x, y, RG.WALL_CRYPT_ELEM);
-            }
-            else {
-                map.setBaseElemXY(x, y, RG.FLOOR_CRYPT_ELEM);
-
-            }
-        });
-        return {map};
-    };
-
+    /* Creates a single cave level. */
     this.createCave = function(cols, rows, conf) {
         _mapGen = new ROT.Map.Miner(cols, rows, conf);
         const map = new RG.Map.CellList(cols, rows);
@@ -465,11 +458,17 @@ RG.Map.Generator = function() { // {{{2
         return {map};
     };
 
-    this.createCryptNew = function(cols, rows, conf) {
-        const level = new TemplateLevel(12, 7);
+    /* Creates a single crypt level. */
+    this.createCryptNew = function(cols, rows, conf = {}) {
+        const tilesX = conf.tilesX || 12;
+        const tilesY = conf.tilesY || 8;
+        const level = new TemplateLevel(tilesX, tilesY);
         level.use(Crypt);
-        level.setGenParams([1, 1, 1, 1]);
-        level.setRoomCount(30);
+
+        const genParams = conf.genParams || [1, 1, 1, 1];
+        const roomCount = conf.roomCount || 40;
+        level.setGenParams(genParams);
+        level.setRoomCount(roomCount);
         level.create();
 
         const asciiToElem = {
@@ -477,8 +476,31 @@ RG.Map.Generator = function() { // {{{2
             '.': RG.FLOOR_CRYPT_ELEM
         };
         const mapObj = this.createMapFromAsciiMap(level.map, asciiToElem);
+        mapObj.tiles = level.xyToBbox;
         return mapObj;
 
+    };
+
+    this.createCastle = function(cols, rows, conf = {}) {
+        const tilesX = conf.tilesX || 12;
+        const tilesY = conf.tilesY || 8;
+        const level = new TemplateLevel(tilesX, tilesY);
+        level.use(Castle);
+        level.setTemplates(Castle.Models.full);
+
+        const genParams = conf.genParams || [1, 1, 1, 1];
+        const roomCount = conf.roomCount || 40;
+        level.setGenParams(genParams);
+        level.setRoomCount(roomCount);
+        level.create();
+
+        const asciiToElem = {
+            '#': RG.WALL_ELEM,
+            '.': RG.FLOOR_ELEM
+        };
+        const mapObj = this.createMapFromAsciiMap(level.map, asciiToElem);
+        mapObj.tiles = level.xyToBbox;
+        return mapObj;
     };
 
     /* Given 2-d ascii map, and mapping from ascii to Element, constructs the
@@ -495,7 +517,7 @@ RG.Map.Generator = function() { // {{{2
                     map.setElemXY(x, y, door);
                 }
                 else {
-                    baseElem = asciiToElem[asciiMap[x][y]];
+                    const baseElem = asciiToElem[asciiMap[x][y]];
                     map.setBaseElemXY(x, y, baseElem);
                 }
             }
@@ -507,9 +529,8 @@ RG.Map.Generator = function() { // {{{2
 
 }; // }}} Map.Generator
 
-/* Decorates the given map with snow. ratio is used how much
- * snow to put.
- * */
+/* Decorates the given map with snow. ratio is used to control how much
+ * snow to put. */
 RG.Map.Generator.addRandomSnow = function(map, ratio) {
     const freeCells = map.getFree();
     for (let i = 0; i < freeCells.length; i++) {
