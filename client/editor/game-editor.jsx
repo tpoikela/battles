@@ -462,11 +462,11 @@ class GameEditor extends React.Component {
 
     const conf = {
       maxDanger: 20,
-      monstersPerLevel: this.state.numEntities,
+      actorsPerLevel: this.state.numEntities,
       func: (actor) => (actor.danger < 100)
     };
 
-    RG.FACT.addNRandMonsters(level, this.parser, conf);
+    RG.FACT.addNRandActors(level, this.parser, conf);
     this.setState({level: level});
   }
 
@@ -689,6 +689,20 @@ class GameEditor extends React.Component {
           nRoadTurns: 8
         };
         levelConf.shown = 'mountain';
+      }
+    }
+    else if (value === 'crypt' || value === 'castle') {
+      const conf = {
+        tilesX: 12, tilesY: 7, roomCount: 30,
+        genParams: [1, 1, 1, 1]
+      };
+      if (value === 'crypt' && !levelConf.crypt) {
+        levelConf.crypt = conf;
+        levelConf.shown = 'crypt';
+      }
+      if (value === 'castle' && !levelConf.castle) {
+        levelConf.castle = conf;
+        levelConf.shown = 'castle';
       }
     }
     else {
@@ -1049,7 +1063,7 @@ class GameEditor extends React.Component {
 
   getLevelSelectElement() {
     const types = [
-      'arena', 'cellular', 'cave', 'crypt', 'digger', 'divided',
+      'arena', 'castle', 'cellular', 'cave', 'crypt', 'digger', 'divided',
       'dungeon', 'eller', 'empty', 'forest', 'icey', 'miner',
       'mountain', 'uniform', 'rogue',
       'ruins', 'rooms', 'town'
