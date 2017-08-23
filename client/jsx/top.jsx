@@ -818,13 +818,24 @@ class BattlesTop extends React.Component {
             this.gameState.numCurrCell = 0;
 
             if (this.gameState.enemyCells.length > 0) {
-                const cell = this.gameState.enemyCells[0];
+                const cell = this.selectCellToTarget(
+                    this.gameState.enemyCells);
                 this.screen.setSelectedCell(cell);
                 this.setState({selectedCell: cell});
             }
 
         }
         this.setState({render: true});
+    }
+
+    selectCellToTarget(cells) {
+        const player = this.game.getPlayer();
+        const lastID = player.getBrain().getMemory().getLastAttacked();
+        for (let i = 0; i < cells.length; i++) {
+            const actor = cells[i].getProp('actors')[0];
+            if (actor.getID() === lastID) {return cells[i];}
+        }
+        return cells[0];
     }
 
     GUIUseItem() {

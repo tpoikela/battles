@@ -1,69 +1,25 @@
 
 const RG = require('./rg');
 
-/* Used for testing purposes only. */
-/*
-const TestSelectionObj = function() {
+/* Memory object for the player .*/
+const MemoryPlayer = function() {
+    let _lastAttackedID = null;
 
-    this.select = function(code) {
-        if (code === ROT.VK_1) {
-            RG.gameMsg('Please select now direction to fire.');
-            // Returns another object for selection with function 'select'
-            return {
-                getMenu: function() {
-                    return {
-                        N: 'Move north',
-                        S: 'Move south',
-                        E: 'Move east',
-                        W: 'Move west'
-                    };
-                },
-                select: function(code) {
-                    switch (code) {
-                        case RG.KEY.MOVE_W: {
-                            return () => {
-                                RG.gameMsg('SubSelection west ' + code);
-                            };
-                        }
-                        case RG.KEY.MOVE_E: {
-                            return () => {
-                                RG.gameMsg('SubSelection east ' + code);
-                            };
-                        }
-                        case RG.KEY.MOVE_S: {
-                            return () => {
-                                RG.gameMsg('SubSelection south ' + code);
-                            };
-                        }
-                        case RG.KEY.MOVE_N: {
-                            return () => {
-                                RG.gameMsg('SubSelection north ' + code);
-                            };
-                        }
-                        default: {
-                            console.log('Canceling the fire command..');
-                            return null;
-                        }
-                    }
-                }
-            };
-        }
-        else {
-            return function() {
-                RG.gameMsg('You kick! You selected code ' + code);
-            };
-        }
+    /* Sets the last attacked actor. */
+    this.setLastAttacked = function(actor) {
+        _lastAttackedID = actor.getID();
     };
 
-    this.getMenu = function() {
-        return {
-            0: 'Kick someone',
-            1: 'Move around'
-        };
+    this.getLastAttacked = () => _lastAttackedID;
+
+    /* Returns true if the actor was the last attacked one. */
+    this.wasLastAttacked = function(actor) {
+        return _lastAttackedID === actor.getID();
     };
+
 
 };
-*/
+
 
 /* This brain is used by the player actor. It simply handles the player input
  * but by having brain, player actor looks like other actors.  */
@@ -71,12 +27,15 @@ const BrainPlayer = function(actor) {
     const _actor = actor;
     const _guiCallbacks = {}; // For attaching GUI callbacks
     const _type = 'player';
+    const _memory = new MemoryPlayer();
 
     /* For given code, adds a GUI callback. When this keycode is given, a GUI
      * callback is called instead. */
     this.addGUICallback = function(code, callback) {
         _guiCallbacks[code] = callback;
     };
+
+    this.getMemory = () => _memory;
 
     this.energy = 1; // Consumed energy per action
 
