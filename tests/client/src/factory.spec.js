@@ -58,7 +58,7 @@ describe('RG.Factory.Game', function() {
             rows: 30,
             levels: 2,
             playerLevel: 'Medium',
-            sqrPerMonster: 40,
+            sqrPerActor: 40,
             sqrPerItem: 100,
             debugMode: false,
             loadedPlayer: null,
@@ -71,7 +71,6 @@ describe('RG.Factory.Game', function() {
     it('can create new games', function() {
         const gameFactory = new RG.Factory.Game();
         const game = gameFactory.createNewGame(conf);
-
         expect(game).to.exist;
         expect(game.getPlayer().getName()).to.equal('Player Hero');
     });

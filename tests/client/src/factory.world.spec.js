@@ -67,7 +67,7 @@ describe('Factory.World', function() {
             nLevels: 2,
             entranceLevel: 0,
             sqrPerItem: 20,
-            sqrPerMonster: 20
+            sqrPerActor: 20
         };
         const br = fact.createBranch(brConf);
         expect(br.getName()).to.equal(brConf.name);
@@ -84,7 +84,7 @@ describe('Factory.World', function() {
             name: 'Cave',
             nBranches: 3,
             entrance: 'br2',
-            sqrPerMonster: 50,
+            sqrPerActor: 50,
             sqrPerItem: 50,
             connect: [
                 // Each connection is branch1, branch2, level1, level2
@@ -112,7 +112,7 @@ describe('Factory.World', function() {
             x: 0, y: 0,
             name: 'BranchTest',
             sqrPerItem: 100,
-            sqrPerMonster: 100,
+            sqrPerActor: 100,
             nBranches: 3,
             connect: [
                 ['main', 'side', 0, 0],

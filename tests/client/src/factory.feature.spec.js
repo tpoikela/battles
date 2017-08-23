@@ -29,4 +29,35 @@ describe('Factory.Feature', () => {
         expect(capital).to.exist;
         expect(capital.getActors()).to.have.length.above(5);
     });
+
+    it('can add actors/items to the level', () => {
+        const fact = new RG.Factory.Feature();
+        const level = RG.FACT.createLevel('arena', 20, 20, {});
+
+        const conf = {
+            item: item => (
+                /Permaice/.test(item.name)
+            ),
+            actor: actor => actor.type === 'undead',
+            sqrPerActor: 20,
+            sqrPerItem: 20,
+            nLevel: 0,
+            maxValue: 1000,
+            food: () => false,
+            gold: () => false
+        };
+
+        fact.addItemsAndActors(level, conf);
+
+        const actors = level.getActors();
+        const items = level.getItems();
+
+        items.forEach(item => {
+            expect(item.getName()).to.match(/Permaice/);
+        });
+
+        actors.forEach(actor => {
+            expect(actor.getType()).to.equal('undead');
+        });
+    });
 });
