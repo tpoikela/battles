@@ -12,7 +12,7 @@ describe('Factory.Feature', () => {
             quarterType: ''
         };
 
-        const village = fact.createCityLevel(villageConf);
+        const village = fact.createCityLevel(0, villageConf);
         expect(village).to.exist;
         expect(village.getActors()).to.have.length.above(5);
     });
@@ -25,7 +25,7 @@ describe('Factory.Feature', () => {
             groupType: 'capital',
             quarterType: ''
         };
-        const capital = fact.createCityLevel(capitalConf);
+        const capital = fact.createCityLevel(0, capitalConf);
         expect(capital).to.exist;
         expect(capital.getActors()).to.have.length.above(5);
     });
