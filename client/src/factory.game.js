@@ -233,7 +233,12 @@ RG.Factory.Game = function() {
 
                 const itemConf = {
                     itemsPerLevel,
-                    func: (item) => (item.value <= 15 * yDiff + 5 * xDiff),
+                    func: (item) => (
+                        item.value <= 15 * yDiff + 5 * xDiff
+                        && item.type !== 'food'
+                    ),
+                    gold: () => false,
+                    food: () => false,
                     maxValue: 15 * yDiff + 5 * xDiff
                 };
                 this.addNRandItems(splitLevels[x][y], _parser, itemConf);
