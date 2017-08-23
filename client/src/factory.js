@@ -660,7 +660,8 @@ RG.Factory.Feature = function() {
                 }
                 case 'capital': {
                     console.log('Creating capital level now');
-                    cityLevel = this.createCapitalLevel(nLevel, x, y, levelConf);
+                    cityLevel = this.createCapitalLevel(
+                        nLevel, x, y, levelConf);
                     break;
                 }
                 case 'stronghold': {
@@ -679,6 +680,7 @@ RG.Factory.Feature = function() {
             }
         }
 
+        // Fall back to the default method
         if (cityLevel === null) {
             cityLevel = this.createLevel('town', x, y, levelConf);
         }
@@ -1041,12 +1043,16 @@ RG.Factory.World = function() {
 
         for (let i = 0; i < conf.nLevels; i++) {
 
+            const maxDanger = this.getConf('maxDanger');
+            const maxValue = this.getConf('maxValue');
+
             const levelConf = {
                 x: this.getConf('dungeonX'),
                 y: this.getConf('dungeonY'),
                 sqrPerMonster: this.getConf('sqrPerMonster'),
                 sqrPerItem: this.getConf('sqrPerItem'),
-                maxValue: 20 * (i + 1),
+                maxValue: maxValue || 20 * (i + 1),
+                maxDanger: maxDanger || 2,
                 nLevel: i
             };
 
@@ -1057,6 +1063,7 @@ RG.Factory.World = function() {
 
             if (constraint) {
                 levelConf.actor = constraint.actor;
+                debug(`Found actor constraint for ${hierName}`);
             }
 
             // First try to find a preset level
