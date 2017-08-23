@@ -118,7 +118,7 @@ class BattlesTop extends React.Component {
             monstType: 'Medium',
             lootType: 'Medium',
 
-            sqrPerMonster: 120,
+            sqrPerActor: 120,
             sqrPerItem: 120,
             debugMode: false,
             loadedPlayer: null,
@@ -359,7 +359,7 @@ class BattlesTop extends React.Component {
     }
 
     restoreConf(obj) {
-        const props = ['cols', 'rows', 'sqrPerMonster', 'sqrPerItem', 'levels'];
+        const props = ['cols', 'rows', 'sqrPerActor', 'sqrPerItem', 'levels'];
         for (let i = 0; i < props.length; i++) {
             this.gameConf[props[i]] = obj[props[i]];
         }
@@ -905,13 +905,13 @@ class BattlesTop extends React.Component {
     setMonsters(monstType) {
         switch (monstType) {
             case 'Sparse': {
-                this.gameConf.sqrPerMonster = RG.ACTOR_SPARSE_SQR; break;
+                this.gameConf.sqrPerActor = RG.ACTOR_SPARSE_SQR; break;
             }
             case 'Medium': {
-                this.gameConf.sqrPerMonster = RG.ACTOR_MEDIUM_SQR; break;
+                this.gameConf.sqrPerActor = RG.ACTOR_MEDIUM_SQR; break;
             }
             case 'Abundant': {
-                this.gameConf.sqrPerMonster = RG.ACTOR_ABUNDANT_SQR; break;
+                this.gameConf.sqrPerActor = RG.ACTOR_ABUNDANT_SQR; break;
             }
             default:
                 console.error('setMonsters illegal monstType ' + monstType);
