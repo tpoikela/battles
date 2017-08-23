@@ -39,6 +39,8 @@ RG.Brain.Memory = function() {
     const _enemyTypes = []; // List of enemy types for this actor
     let _communications = [];
 
+    let _lastAttackedID = null;
+
     // TODO add memory of player closing a door/using stairs
 
     this.addEnemyType = function(type) {
@@ -72,6 +74,14 @@ RG.Brain.Memory = function() {
         }
     };
 
+    this.setLastAttacked = function(actor) {
+        _lastAttackedID = actor.getID();
+    };
+
+    this.wasLastAttacked = function(actor) {
+        return _lastAttackedID === actor.getID();
+    };
+
     /* Returns true if has communicated with given actor.*/
     this.hasCommunicatedWith = function(actor) {
         const index = _communications.indexOf(actor);
@@ -79,10 +89,14 @@ RG.Brain.Memory = function() {
     };
 
     this.toJSON = function() {
-        return {
+        const obj = {
             enemies: _enemies.map(enemy => enemy.getID),
             enemyTypes: _enemyTypes
         };
+        if (_lastAttackedID) {
+            obj.lastAttackedID = _lastAttackedID;
+        }
+        return obj;
     };
 
 };
@@ -227,12 +241,24 @@ RG.Brain.Rogue = function(actor) {
 
     /* Given a list of cells, returns a cell with an enemy in it or null.*/
     this.findEnemyCell = function(seenCells) {
+        const enemyCells = [];
         for (let i = 0, iMax = seenCells.length; i < iMax; i++) {
             if (seenCells[i].hasProp('actors')) {
                 const actors = seenCells[i].getProp('actors');
-                if (_memory.isEnemy(actors[0])) {return seenCells[i];}
+                // Prevent suicidal attacks on the actor itself
+                if (actors[0].getID() !== _actor.getID()) {
+                    if (_memory.isEnemy(actors[0])) {
+                        if (_memory.wasLastAttacked(actors[0])) {
+                            return seenCells[i];
+                        }
+                        else {
+                            enemyCells.push(seenCells[i]);
+                        }
+                    }
+                }
             }
         }
+        if (enemyCells.length > 0) {return RG.RAND.arrayGetRand(enemyCells);}
         return null;
     };
 
