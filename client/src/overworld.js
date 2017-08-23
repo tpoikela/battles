@@ -792,8 +792,15 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
     dungeonConf.maxDanger = 50;
     dungeonConf.constraint = {};
     dungeonConf.constraint.actor = actor => (
-        actor.type !== 'human' && actor.danger >= 6
+        actor.type !== 'human' && actor.danger >= 6 &&
+        actor.base === 'WinterBeingBase'
     );
+    dungeonConf.constraint.item = item => (
+        (/Permaice/).test(item.name) ||
+        (/Gold/).test(item.name)
+    );
+    dungeonConf.constraint.food = () => false;
+    dungeonConf.constraint.gold = () => false;
     areaConf.nDungeons += 1;
     areaConf.dungeon.push(dungeonConf);
 }
