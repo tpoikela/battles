@@ -55,8 +55,8 @@ RGTest.wrapObjWithCell = function(obj) {
 };
 
 RGTest.checkActorXY = function(actor, x, y) {
-    expect(actor.getX()).to.equal(x);
-    expect(actor.getY()).to.equal(y);
+    expect(actor.getX(), `X must be ${x}`).to.equal(x);
+    expect(actor.getY(), `Y must be ${y}`).to.equal(y);
 };
 
 RGTest.checkChar = function(obj, expChar) {
