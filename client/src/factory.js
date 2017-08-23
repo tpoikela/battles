@@ -418,20 +418,22 @@ RG.Factory.Base = function() { // {{{2
                 freeCells.splice(index, 1); // remove used cell
             }
         }
-        const food = parser.createRandomItem({func: function(item) {
-            return item.type === 'food';
-        }});
 
-        if (food) {
-            const index = RG.RAND.randIndex(freeCells);
-            const foodCell = freeCells[index];
-            _doItemSpecificAdjustments(food, conf.maxValue);
-            level.addItem(food, foodCell.getX(), foodCell.getY());
-        }
-        else {
-            RG.warn('Factory.Base', 'addNRandItems',
-                'Item.Food was not created properly.');
+        if (conf.food()) {
+            const food = parser.createRandomItem({
+                func: item => item.type === 'food'
+            });
 
+            if (food) {
+                const index = RG.RAND.randIndex(freeCells);
+                const foodCell = freeCells[index];
+                _doItemSpecificAdjustments(food, conf.maxValue);
+                level.addItem(food, foodCell.getX(), foodCell.getY());
+            }
+            else {
+                RG.warn('Factory.Base', 'addNRandItems',
+                    'Item.Food was not created properly.');
+            }
         }
     };
 
@@ -479,6 +481,7 @@ RG.Factory.Base = function() { // {{{2
         }
     };
 
+    /* Adds a random number of gold coins to the level. */
     this.addRandomGold = function(level, parser, conf) {
         const freeCells = level.getMap().getFree();
         for (let i = 0; i < conf.goldPerLevel; i++) {
@@ -567,10 +570,10 @@ RG.Factory.Feature = function() {
 
     this.addItemsAndActors = function(level, conf) {
         _verif.verifyConf('addItemsAndActors', conf,
-            ['nLevel', 'sqrPerItem', 'sqrPerMonster', 'maxValue']);
+            ['nLevel', 'sqrPerItem', 'sqrPerActor', 'maxValue']);
 
         const numFree = level.getMap().getFree().length;
-        const actorsPerLevel = Math.round(numFree / conf.sqrPerMonster);
+        const actorsPerLevel = Math.round(numFree / conf.sqrPerActor);
         const itemsPerLevel = Math.round(numFree / conf.sqrPerItem);
         const goldPerLevel = itemsPerLevel;
 
@@ -585,8 +588,20 @@ RG.Factory.Feature = function() {
             nLevel: conf.nLevel, // verified to exist
             itemsPerLevel,
             func: itemConstraint(conf.maxValue),
-            maxValue: conf.maxValue
+            maxValue: conf.maxValue,
+            food: () => true,
+            gold: () => true
         };
+        if (conf.food) {
+            itemConf.food = conf.food;
+        }
+        if (conf.gold) {
+            itemConf.gold = conf.gold;
+        }
+        if (conf.item) {
+            itemConf.func = conf.item;
+            debug(`Set itemConf.func to ${conf.item.toString()}`);
+        }
         this.addNRandItems(level, _parser, itemConf);
 
         const actorConf = {
@@ -604,11 +619,13 @@ RG.Factory.Feature = function() {
         }
         this.addNRandActors(level, _parser, actorConf);
 
-        const goldConf = {
-            goldPerLevel,
-            nLevel: conf.nLevel + 1
-        };
-        this.addRandomGold(level, _parser, goldConf);
+        if (itemConf.gold()) {
+            const goldConf = {
+                goldPerLevel,
+                nLevel: conf.nLevel + 1
+            };
+            this.addRandomGold(level, _parser, goldConf);
+        }
     };
 
     /* Creates random dungeon level. */
@@ -628,7 +645,7 @@ RG.Factory.Feature = function() {
     this.createMountainLevel = function(conf) {
         const mountConf = {
             maxValue: 100,
-            sqrPerMonster: 50,
+            sqrPerActor: 50,
             sqrPerItem: 200,
             nLevel: 4
         };
@@ -841,11 +858,11 @@ RG.Factory.World = function() {
     /* Initializes the global configuration such as level size. */
     this.setGlobalConf = function(conf) {
         const levelSize = conf.levelSize || 'Medium';
-        const sqrPerMonster = conf.sqrPerMonster || RG.ACTOR_MEDIUM_SQR;
+        const sqrPerActor = conf.sqrPerActor || RG.ACTOR_MEDIUM_SQR;
         this.globalConf.levelSize = levelSize;
         this.globalConf.dungeonX = levelSizes.dungeon[levelSize].x;
         this.globalConf.dungeonY = levelSizes.dungeon[levelSize].y;
-        this.globalConf.sqrPerMonster = sqrPerMonster;
+        this.globalConf.sqrPerActor = sqrPerActor;
         this.globalConf.sqrPerItem = conf.sqrPerItem || RG.LOOT_MEDIUM_SQR;
         this.globalConf.set = true;
         debug('globalConf set to ' + JSON.stringify(this.globalConf));
@@ -1038,7 +1055,6 @@ RG.Factory.World = function() {
         const hierName = this.getHierName();
         branch.setHierName(hierName);
 
-        const constraint = this.getConf('constraint');
         const presetLevels = this.getPresetLevels(hierName);
 
         for (let i = 0; i < conf.nLevels; i++) {
@@ -1049,7 +1065,7 @@ RG.Factory.World = function() {
             const levelConf = {
                 x: this.getConf('dungeonX'),
                 y: this.getConf('dungeonY'),
-                sqrPerMonster: this.getConf('sqrPerMonster'),
+                sqrPerActor: this.getConf('sqrPerActor'),
                 sqrPerItem: this.getConf('sqrPerItem'),
                 maxValue: maxValue || 20 * (i + 1),
                 maxDanger: maxDanger || 2,
@@ -1061,17 +1077,14 @@ RG.Factory.World = function() {
                 levelConf.dungeonType = dungeonType;
             }
 
-            if (constraint) {
-                levelConf.actor = constraint.actor;
-                debug(`Found actor constraint for ${hierName}`);
-            }
+            this.setLevelConstraints(levelConf);
 
             // First try to find a preset level
             let level = null;
             if (presetLevels.length > 0) {
-                const obj = presetLevels.find(item => item.nLevel === i);
-                if (obj) {
-                    level = obj.level;
+                const levelObj = presetLevels.find(lv => lv.nLevel === i);
+                if (levelObj) {
+                    level = levelObj.level;
                 }
             }
 
@@ -1101,6 +1114,44 @@ RG.Factory.World = function() {
 
         this.popScope(conf);
         return branch;
+    };
+
+    /* Sets the randomization constraints for the level based on current
+     * configuration. */
+    this.setLevelConstraints = function(levelConf) {
+        const constraint = this.getConf('constraint');
+        if (constraint) {
+            const hierName = this.getHierName();
+            if (constraint.actor) {
+                levelConf.actor = constraint.actor;
+                const str = constraint.actor.toString();
+                debug(`Found actor constraint for ${hierName}: ${str}`);
+            }
+            if (constraint.item) {
+                levelConf.item = constraint.item;
+                const str = constraint.item.toString();
+                debug(`Found item constraint for ${hierName}: ${str}`);
+            }
+            if (constraint.food) {
+                levelConf.food = constraint.food;
+                const str = constraint.food.toString();
+                debug(`Found food constraint for ${hierName}: ${str}`);
+            }
+            if (constraint.gold) {
+                levelConf.gold = constraint.gold;
+                const str = constraint.gold.toString();
+                debug(`Found gold constraint for ${hierName}: ${str}`);
+            }
+        }
+
+        const groupType = this.getConf('groupType');
+        const cityType = this.getConf('cityType');
+        const quarterType = this.getConf('quarterType');
+        const alignment = this.getConf('alignment');
+        if (groupType) {levelConf.groupType = groupType;}
+        if (cityType) {levelConf.cityType = cityType;}
+        if (quarterType) {levelConf.cityType = quarterType;}
+        if (alignment) {levelConf.alignment = alignment;}
     };
 
     this.getPresetLevels = function(hierName) {
@@ -1164,6 +1215,8 @@ RG.Factory.World = function() {
         this.pushScope(conf);
         const face = new RG.World.MountainFace(faceName);
         const mLevelConf = { x: conf.x, y: conf.y};
+
+        this.setLevelConstraints(mLevelConf);
 
         for (let i = 0; i < conf.nLevels; i++) {
             let level = null;
@@ -1249,14 +1302,7 @@ RG.Factory.World = function() {
 
         // This bunch of data must be passed in conf because featFact does not
         // have access to it via getConf
-        const groupType = this.getConf('groupType');
-        const cityType = this.getConf('cityType');
-        const quarterType = this.getConf('quarterType');
-        const alignment = this.getConf('alignment');
-        if (groupType) {cityLevelConf.groupType = groupType;}
-        if (cityType) {cityLevelConf.cityType = cityType;}
-        if (quarterType) {cityLevelConf.cityType = quarterType;}
-        if (alignment) {cityLevelConf.alignment = alignment;}
+        this.setLevelConstraints(cityLevelConf);
 
         for (let i = 0; i < conf.nLevels; i++) {
             let level = null;
