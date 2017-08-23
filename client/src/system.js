@@ -135,6 +135,15 @@ RG.System.Missile = function(type, compTypes) {
             const level = mComp.getLevel();
             const map = level.getMap();
 
+            const targetX = mComp.getTargetX();
+            const targetY = mComp.getTargetY();
+            const targetCell = map.getCell(targetX, targetY);
+            if (targetCell.hasProp('actors')) {
+                const targetActor = targetCell.getProp('actors')[0];
+                const attacker = mComp.getSource();
+                attacker.getBrain().getMemory().setLastAttacked(targetActor);
+            }
+
             while (mComp.isFlying() && !mComp.inTarget() && mComp.hasRange()) {
 
                 // Advance missile to next cell
@@ -422,6 +431,7 @@ RG.System.Movement = function(type, compTypes) {
         const level = ent.get('Movement').getLevel();
         const map = level.getMap();
         const cell = map.getCell(x, y);
+        const prevCell = ent.getCell();
 
         if (cell.isFree(ent.has('Flying'))) {
             const xOld = ent.getX();
@@ -434,7 +444,9 @@ RG.System.Movement = function(type, compTypes) {
                 ent.setXY(x, y);
 
                 if (ent.hasOwnProperty('isPlayer')) {
-                    if (ent.isPlayer()) {this.checkMessageEmits(cell);}
+                    if (ent.isPlayer()) {
+                        this.checkMessageEmits(prevCell, cell);
+                    }
                 }
 
                 ent.remove('Movement');
@@ -455,9 +467,9 @@ RG.System.Movement = function(type, compTypes) {
 
     /* If player moved to the square, checks if any messages must
      * be emitted. */
-    this.checkMessageEmits = function(cell) {
-        if (cell.hasStairs()) {
-            const stairs = cell.getStairs();
+    this.checkMessageEmits = function(prevCell, newCell) {
+        if (newCell.hasStairs()) {
+            const stairs = newCell.getStairs();
             const level = stairs.getTargetLevel();
             let msg = 'You see stairs here';
             if (level.getParent()) {
@@ -466,16 +478,18 @@ RG.System.Movement = function(type, compTypes) {
             }
             RG.gameMsg(msg);
         }
-        else if (cell.hasPassage()) {
-            const passage = cell.getPassage();
+        else if (newCell.hasPassage()) {
+            const passage = newCell.getPassage();
             const level = passage.getSrcLevel();
-            const dir = RG.getCardinalDirection(level, cell);
+            const dir = RG.getCardinalDirection(level, newCell);
             const msg = `You see a passage here leading to ${dir}.`;
             RG.gameMsg(msg);
         }
 
-        if (cell.hasProp('items')) {
-            const items = cell.getProp('items');
+        const hasItems = newCell.hasProp('items');
+
+        if (hasItems) {
+            const items = newCell.getProp('items');
             const topItem = items[0];
             let topItemName = topItem.getName();
             if (topItem.count > 1) {
@@ -501,7 +515,14 @@ RG.System.Movement = function(type, compTypes) {
             }
         }
 
-        const baseType = cell.getBaseElem().getType();
+        if (!prevCell.hasShop() && newCell.hasShop()) {
+            RG.gameMsg('You have entered a shop.');
+        }
+        else if (newCell.hasShop()) {
+            RG.gameMsg('You can drop items to sell here.');
+        }
+
+        const baseType = newCell.getBaseElem().getType();
         let baseMsg = '';
         switch (baseType) {
             case 'tree': baseMsg = 'There is a tree here.'; break;
