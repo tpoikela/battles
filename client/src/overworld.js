@@ -575,9 +575,12 @@ function addVillageToSubLevel(feat, owSubLevel, subLevel) {
 }
 
 
-/* Creates a world configuration which can be given to Factory.World.
- * Maps an MxN array of sub-levels into |areaX| X |areaY| array of tile levels.
- * Both levels are RG.Map.Levels.
+/* Creates a world configuration which can be given to Factory.World to build
+ * the final game overworld with features, actors and items.
+ *
+ * Maps an MxN array of sub-levels (each |subX| X |subY|) into
+ * |areaX| X |areaY| array of World.AreaTile levels.
+ * Both levels are RG.Map.Level objects.
  */
 RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
     const worldConf = {
@@ -641,7 +644,10 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
             const subX = subLevel.getSubX();
             const subY = subLevel.getSubY();
 
+            const coordObj = {xMap, yMap, nSubLevelsX, nSubLevelsY,
+                x, y, slX, slY, aX, aY, subLevel, subX, subY};
             const features = subLevel.getFeatures();
+
             Object.keys(features).forEach(type => {
                 const featureArray = features[type];
                 featureArray.forEach(feat => {
@@ -653,47 +659,7 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
                     }
 
                     if (cityTypesRe.test(feat.type)) {
-                        const coord = feat.coord;
-                        const nLevels = coord.length;
-                        const lastCoord = nLevels - 1;
-                        feat.nLevels = nLevels;
-
-                        // Where 1st (main) entrance is located on Map.Level
-                        const featX = mapX(coord[lastCoord][0], slX, subX);
-                        let featY = mapY(coord[lastCoord][1], slY, subY) + 1;
-                        if (featY >= 100) {
-                            const msg = `subXY ${x},${y}, tileXY: ${aX},${aY}`;
-                            console.log(`${msg} reduce the featY for ${type}`);
-                            featY -= 1;
-                        }
-
-                        const cName = RG.Names.getUniqueCityName();
-                        const cityConf = RG.LevelGen.getCityConf(cName, feat);
-
-                        // Extra connection because fort has 2 exits/entrances
-                        // Where 2nd (exit) entrance is located on Map.Level
-                        if (twoEntranceCityRe.test(feat)) {
-                            const connX = mapX(coord[0][0], slX, subX);
-                            const connY = mapY(coord[0][1], slY, subY) - 1;
-                            const nLast = cityConf.nQuarters - 1;
-
-                            cityConf.connectToXY = [{
-                                name: cityConf.quarter[nLast].name,
-                                levelX: connX,
-                                levelY: connY,
-                                nLevel: 0
-                            }];
-                        }
-
-                        cityConf.groupType = feat.type;
-                        cityConf.x = aX;
-                        cityConf.y = aY;
-                        cityConf.levelX = featX;
-                        cityConf.levelY = featY;
-                        cityConf.alignment = feat.alignment
-                            || getRandIn(RG.ALIGNMENTS);
-                        areaConf.nCities += 1;
-                        areaConf.city.push(cityConf);
+                        addCityConfToArea(feat, coordObj, areaConf);
                     }
                     else if (feat.type === 'dungeon') {
                         const coord = feat.coord;
@@ -708,9 +674,9 @@ RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
                         areaConf.nDungeons += 1;
                         areaConf.dungeon.push(dungeonConf);
                     }
-                    /* if (feat.type === 'blacktower') {
-
-                    }*/
+                    else if (feat.type === 'blacktower') {
+                        addBlackTowerConfToArea(feat, coordObj, areaConf);
+                    }
                 });
             });
         }
@@ -754,6 +720,82 @@ function mapY(y, slY, subSizeY) {
             `y must be an integer. Got: ${y}`);
     }
     return null;
+}
+
+/* Adds a city configuration to the area. */
+function addCityConfToArea(feat, coordObj, areaConf) {
+    const {x, y, slX, slY, aX, aY, subX, subY} = coordObj;
+    const coord = feat.coord;
+    const nLevels = coord.length;
+    const lastCoord = nLevels - 1;
+    feat.nLevels = nLevels;
+
+    // Where 1st (main) entrance is located on Map.Level
+    const featX = mapX(coord[lastCoord][0], slX, subX);
+    let featY = mapY(coord[lastCoord][1], slY, subY) + 1;
+    if (featY >= 100) {
+        const msg = `subXY ${x},${y}, tileXY: ${aX},${aY}`;
+        console.log(`${msg} reduce the featY for ${feat.type}`);
+        featY -= 1;
+    }
+
+    const cName = RG.Names.getUniqueCityName();
+    const cityConf = RG.LevelGen.getCityConf(cName, feat);
+
+    // Extra connection because fort has 2 exits/entrances
+    // Where 2nd (exit) entrance is located on Map.Level
+    if (twoEntranceCityRe.test(feat)) {
+        const connX = mapX(coord[0][0], slX, subX);
+        const connY = mapY(coord[0][1], slY, subY) - 1;
+        const nLast = cityConf.nQuarters - 1;
+
+        cityConf.connectToXY = [{
+            name: cityConf.quarter[nLast].name,
+            levelX: connX,
+            levelY: connY,
+            nLevel: 0
+        }];
+    }
+
+    cityConf.groupType = feat.type;
+    cityConf.x = aX;
+    cityConf.y = aY;
+    cityConf.levelX = featX;
+    cityConf.levelY = featY;
+    cityConf.alignment = feat.alignment
+        || getRandIn(RG.ALIGNMENTS);
+    areaConf.nCities += 1;
+    areaConf.city.push(cityConf);
+
+}
+
+/* Adds the black tower configuration to area. */
+function addBlackTowerConfToArea(feat, coordObj, areaConf) {
+    const {xMap, yMap, nSubLevelsX, nSubLevelsY,
+        x, y, slX, slY, aX, aY, subX, subY} = coordObj;
+    const coord = feat.coord;
+    const xy = coord[7];
+    const featX = mapX(xy[0], slX, subX);
+    const featY = mapY(xy[1], slY, subY);
+    const tName = 'Elder raventhrone';
+
+    const midX = Math.floor(nSubLevelsX / xMap / 2);
+    const yPos = nSubLevelsY / yMap - 1;
+
+    const dungeonConf = RG.LevelGen.getDungeonConf(tName);
+    Object.assign(dungeonConf,
+        // {x: aX, y: aY, levelX: featX, levelY: featY});
+        {x: midX, y: yPos, levelX: 1, levelY: 1});
+    dungeonConf.dungeonType = 'castle';
+    dungeonConf.tilesX = 20;
+    dungeonConf.tilesY = 20;
+    dungeonConf.maxDanger = 50;
+    dungeonConf.constraint = {};
+    dungeonConf.constraint.actor = actor => (
+        actor.type !== 'human' && actor.danger >= 6
+    );
+    areaConf.nDungeons += 1;
+    areaConf.dungeon.push(dungeonConf);
 }
 
 /* Map biomes from overworld into areaX * areaY space. */
