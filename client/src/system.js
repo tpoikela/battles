@@ -102,6 +102,7 @@ RG.System.Attack = function(type, compTypes) {
                         msg: aName + ' misses ' + dName});
                 }
                 def.addEnemy(att);
+                att.getBrain().getMemory().setLastAttacked(def);
             }
             ent.remove('Attack');
         }
@@ -274,7 +275,9 @@ RG.System.Damage = function(type, compTypes) {
 
         // Deal with "internal" damage bypassing protection here
         if (dmgComp.getDamageType() === 'poison') {
-            RG.gameDanger('Poison is gnawing inside ' + ent.getName());
+            const cell = ent.getCell();
+            const msg = 'Poison is gnawing inside ' + ent.getName();
+            RG.gameDanger({cell, msg});
             return dmg;
         }
         else if (dmgComp.getDamageType() === 'hunger') {
