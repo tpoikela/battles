@@ -77,14 +77,20 @@ RG.Game.FromJSON = function() {
         const typeUc = type[0].toUpperCase() + type.substring(1);
         if (RG.Brain[typeUc]) {
             const brainObj = new RG.Brain[typeUc](ent);
+            const memObj = brainObj.getMemory();
+            const memJSON = brainJSON.memory;
             ent.setBrain(brainObj);
             // TODO addEnemyType called in Actor.Rogue, find better solution
             // Maybe Brain.Enemy, with hate against player?
             // And rename Brain.Rogue -> Brain.Base.
-            if (brainJSON.memory) {
-                brainJSON.memory.enemyTypes.forEach(type => {
+            if (memJSON) {
+                memJSON.enemyTypes.forEach(type => {
                     brainObj.addEnemyType(type);
                 });
+
+                if (memJSON.lastAttackedID) {
+                    memObj.setLastAttacked(memJSON.lastAttackedID);
+                }
             }
             else if (type === 'rogue') {
                 brainObj.getMemory().addEnemyType('player');
