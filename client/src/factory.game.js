@@ -166,7 +166,7 @@ RG.Factory.Game = function() {
 
     /* Creates the game based on the selection. */
     this.createNewGame = function(obj) {
-        _verif.verifyConf('createNewGame', obj, ['sqrPerItem', 'sqrPerMonster',
+        _verif.verifyConf('createNewGame', obj, ['sqrPerItem', 'sqrPerActor',
             'debugMode']);
         _parser.parseShellData(RG.Effects);
         _parser.parseShellData(RGObjects);
@@ -401,7 +401,7 @@ RG.Factory.Game = function() {
         shopElem.setShopkeeper(keeper);
 
         const numFree = level.getMap().getFree().length;
-        // const actorsPerLevel = Math.round(numFree / sqrPerMonster);
+        // const actorsPerLevel = Math.round(numFree / sqrPerActor);
         const itemsPerLevel = Math.round(numFree / sqrPerItem);
 
         const itemConf = {
@@ -446,7 +446,7 @@ RG.Factory.Game = function() {
         const cols = obj.cols;
         const rows = obj.rows;
         const nLevels = obj.levels;
-        const sqrPerMonster = obj.sqrPerMonster;
+        const sqrPerActor = obj.sqrPerActor;
         const sqrPerItem = obj.sqrPerItem;
 
         let levelCount = 1;
@@ -471,7 +471,7 @@ RG.Factory.Game = function() {
             branch.addLevel(level);
 
             const numFree = level.getMap().getFree().length;
-            const actorsPerLevel = Math.round(numFree / sqrPerMonster);
+            const actorsPerLevel = Math.round(numFree / sqrPerActor);
             const itemsPerLevel = Math.round(numFree / sqrPerItem);
 
             const potion = new RG.Item.Potion('Healing potion');
@@ -483,7 +483,8 @@ RG.Factory.Game = function() {
             const maxValue = 20 * (nl + 1);
             const itemConf = {
                 itemsPerLevel, func: itemConstraint(maxValue),
-                maxValue
+                maxValue,
+                food: () => true
             };
             this.addNRandItems(level, _parser, itemConf);
 
