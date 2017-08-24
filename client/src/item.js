@@ -343,7 +343,7 @@ RG.Item.Rune = function(name) {
     RG.Item.Base.call(this, name);
     this.setType(RG.ITEM_RUNE);
 
-    const _charges = 1;
+    let _charges = 1;
 
     this.getCharges = () => _charges;
     this.setCharges = (charges) => {_charges = charges;};
