@@ -16,6 +16,7 @@ RG.ITEM_MISSILE = 'missile';
 RG.ITEM_MISSILE_WEAPON = 'missileweapon';
 RG.ITEM_AMMUNITION = 'ammo';
 RG.ITEM_POTION = 'potion';
+RG.ITEM_RUNE = 'rune';
 RG.ITEM_GOLD_COIN = 'goldcoin';
 
 //---------------------------------------------------------------------------
@@ -334,6 +335,48 @@ RG.Item.Potion = function(name) {
 
 };
 RG.extend2(RG.Item.Potion, RG.Item.Base);
+
+//----------------------------------------
+/* RG.Item.Rune Object for rune stones. */
+//----------------------------------------
+RG.Item.Rune = function(name) {
+    RG.Item.Base.call(this, name);
+    this.setType(RG.ITEM_RUNE);
+
+    const _charges = 1;
+
+    this.getCharges = () => _charges;
+    this.setCharges = (charges) => {_charges = charges;};
+
+    this.useItem = function() {
+        // Various complex effects
+    };
+
+};
+RG.extend2(RG.Item.Potion, RG.Item.Base);
+
+RG.Item.Rune.prototype.clone = function() {
+    const rune = new RG.Item.Rune(this.getName());
+    rune.copy(this);
+    return rune;
+};
+
+RG.Item.Rune.prototype.copy = function(rhs) {
+    RG.Item.Base.prototype.copy.call(this, rhs);
+    this.setCharges(rhs.getCharges());
+};
+
+RG.Item.Rune.prototype.equals = function(rhs) {
+    let res = RG.Item.Base.prototype.equals.call(this, rhs);
+    res = res && this.getCharges() === rhs.getCharges();
+    return res;
+};
+
+RG.Item.Rune.prototype.toJSON = function() {
+    const json = RG.Item.Base.prototype.toJSON.call(this);
+    json.setCharges = this.getCharges();
+    return json;
+};
 
 //----------------------------------------------
 /* RG.Item.Missile Object for thrown missile. */
