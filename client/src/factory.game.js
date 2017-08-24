@@ -412,7 +412,9 @@ RG.Factory.Game = function() {
         const itemConf = {
             itemsPerLevel,
             func: (item) => (item.value <= 2500),
-            maxValue: 2500
+            maxValue: 2500,
+            food: () => true,
+            gold: () => false
         };
         this.addNRandItems(level, _parser, itemConf);
 
