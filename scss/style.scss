@@ -19,13 +19,11 @@ $success-color-on-gray: #066;
 }
 
 @mixin cell-font($size) {
-    //font-family: 'VT323', monospace;
     font-family: monospace;
     font-size: $size;
 }
 
 @mixin cell-font-map {
-    //font-family: 'VT323', monospace;
     font-family: monospace;
     font-size: 8px;
 }
@@ -48,10 +46,6 @@ $success-color-on-gray: #066;
 // Defines the main gradient for the background
 @mixin gray-gradient {
     background: $main-color;
-    // background: -o-radial-gradient($main-color, $main-color-2, $main-color-3);
-    // background: -webkit-radial-gradient($main-color, $main-color-2, $main-color-3);
-    // background: -moz-radial-gradient($main-color, $main-color-2, $main-color-3);
-    // background: radial-gradient($main-color, $main-color-2, $main-color-3);
 }
 
 // Changes vertical list into a horizontal one
@@ -216,7 +210,9 @@ ul {
 
 .game-board-div {
     .game-board-row {
-        display: inline-block;
+        @media only screen and (max-width: 1090px) {
+            display: inline-block;
+        }
         zoom: 1;
     }
 }
