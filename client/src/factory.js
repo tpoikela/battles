@@ -419,7 +419,7 @@ RG.Factory.Base = function() { // {{{2
             }
         }
 
-        if (conf.food()) {
+        if (typeof conf.food === 'function' && conf.food()) {
             const food = parser.createRandomItem({
                 func: item => item.type === 'food'
             });
