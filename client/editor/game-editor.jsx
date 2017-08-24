@@ -14,7 +14,9 @@ const RGObjects = require('../data/battles_objects');
 
 const NO_VISIBLE_CELLS = [];
 
-const createOverWorld = RG.OverWorld.createOverWorld;
+const OW = require('../src/overworld.map');
+RG.getOverWorld = require('../src//overworld');
+
 const WorldConf = require('../src/world.creator');
 
 /*
@@ -319,7 +321,7 @@ class GameEditor extends React.Component {
    * editor. */
   generateWorld() {
     const mult = 1;
-    const conf = {
+    const owConf = {
       worldX: mult * this.state.levelX,
       worldY: mult * this.state.levelY,
       yFirst: false,
@@ -329,8 +331,11 @@ class GameEditor extends React.Component {
       owTilesX: mult * 40,
       owTilesY: mult * 20
     };
-    const levelAndConf = createOverWorld(conf);
-    this.addLevelToEditor(levelAndConf[0]);
+    const overworld = OW.createOverWorld(owConf);
+    const worldAndConf = RG.OverWorld.createOverWorldLevel(
+      overworld, owConf);
+    const worldLevel = worldAndConf[0];
+    this.addLevelToEditor(worldLevel);
   }
 
   generateFeature() {
