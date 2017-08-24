@@ -67,9 +67,7 @@ RG.ObjectShell.Creator = function(db) {
             food: {
                 energy: 'setEnergy'
             }
-        },
-        levels: {},
-        dungeons: {}
+        }
     };
 
     _propToCall.items.missileweapon = _propToCall.items.missile;
@@ -260,9 +258,6 @@ RG.ObjectShell.Creator = function(db) {
                     }
                 }
                 return new RG.Item.Base(obj.name); // generic, useless
-            case 'levels':
-                return RG.FACT.createLevel(obj.type, obj.cols, obj.rows);
-            case 'dungeons': break;
             default: break;
         }
         return null;
@@ -478,7 +473,6 @@ RG.ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
     // Internal cache for proc generation
     const _cache = {
         actorWeights: {}
-
     };
 
     /* Returns entries from db based on the query. Returns null if nothing
@@ -643,17 +637,13 @@ RG.ObjectShell.Parser = function() {
     const _base = {
         actors: {},
         effects: {},
-        items: {},
-        levels: {},
-        dungeons: {}
+        items: {}
     };
 
     const _db = {
         actors: {},
         effects: {},
-        items: {},
-        levels: {},
-        dungeons: {}
+        items: {}
     };
 
     const _dbDanger = {}; // All entries indexed by danger
