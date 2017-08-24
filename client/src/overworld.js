@@ -796,8 +796,7 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
         actor.base === 'WinterBeingBase'
     );
     dungeonConf.constraint.item = item => (
-        (/Permaice/).test(item.name) ||
-        (/Gold/).test(item.name)
+        item.value >= 65 || (/Gold/).test(item.name)
     );
     dungeonConf.constraint.food = () => false;
     dungeonConf.constraint.gold = () => false;
