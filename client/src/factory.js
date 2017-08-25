@@ -213,24 +213,12 @@ RG.Factory.Base = function() { // {{{2
     };
 
     this.createElement = function(elemType) {
+        if (RG.elemTypeToObj(elemType)) {
+            return RG.elemTypeToObj(elemType);
+        }
         switch (elemType) {
-            case 'chasm': return RG.CHASM_ELEM;
             case 'door' : return new RG.Element.Door(true);
-            case 'floor': return RG.FLOOR_ELEM;
-            case 'floorcave': return RG.FLOOR_CAVE_ELEM;
-            case 'floorcrypt': return RG.FLOOR_CRYPT_ELEM;
-            case 'grass': return RG.GRASS_ELEM;
-            case 'highrock': return RG.HIGH_ROCK_ELEM;
             case 'opendoor' : return new RG.Element.Door(false);
-            case 'snow': return RG.SNOW_ELEM;
-            case 'stone': return RG.STONE_ELEM;
-            case 'tree': return RG.TREE_ELEM;
-            case 'wall': return RG.WALL_ELEM;
-            case 'wallcave': return RG.WALL_CAVE_ELEM;
-            case 'wallcrypt': return RG.WALL_CRYPT_ELEM;
-            case 'wallice': return RG.ICE_WALL_ELEM;
-            case 'wallwooden': return RG.WALL_WOODEN_ELEM;
-            case 'water': return RG.WATER_ELEM;
             default: return null;
         }
     };
@@ -585,7 +573,7 @@ RG.Factory.Feature = function() {
         };
 
         const itemConf = {
-            nLevel: conf.nLevel, // verified to exist
+            nLevel: conf.nLevel,
             itemsPerLevel,
             func: itemConstraint(conf.maxValue),
             maxValue: conf.maxValue,
@@ -628,7 +616,8 @@ RG.Factory.Feature = function() {
         }
     };
 
-    /* Creates random dungeon level. */
+    /* Creates dungeon level. Unless levelType is given, chooses the type
+     * randomly. */
     this.createDungeonLevel = function(conf) {
         let level = null;
         let levelType = this.getRandLevelType();
@@ -636,7 +625,7 @@ RG.Factory.Feature = function() {
             levelType = conf.dungeonType;
         }
         debug(`dungeonLevel: ${levelType}, ${JSON.stringify(conf)}`);
-        level = this.createLevel(levelType, conf.x, conf.y);
+        level = this.createLevel(levelType, conf.x, conf.y, conf);
         this.addItemsAndActors(level, conf);
         return level;
     };
@@ -716,7 +705,7 @@ RG.Factory.Feature = function() {
 
     this.createFortLevel = function(cols, rows, levelConf) {
         levelConf.levelType = 'miner';
-        const level = this.createLevel('town', 100, 100, levelConf);
+        const level = this.createLevel('town', 100, 84, levelConf);
         this.populateCityLevel(level, levelConf);
         return level;
     };
@@ -726,10 +715,10 @@ RG.Factory.Feature = function() {
         let level = null;
         if (nLevel === 0) {
             levelConf.levelType = 'townwithwall';
-            level = this.createLevel('townwithwall', 200, 200, levelConf);
+            level = this.createLevel('townwithwall', 200, 84, levelConf);
         }
         else {
-            level = this.createLevel('town', 100, 100, levelConf);
+            level = this.createLevel('town', 100, 84, levelConf);
         }
         this.populateCityLevel(level, levelConf);
         return level;
@@ -737,7 +726,7 @@ RG.Factory.Feature = function() {
 
     this.createStrongholdLevel = function(cols, rows, levelConf) {
         levelConf.levelType = 'miner';
-        const level = this.createLevel('town', 100, 100, levelConf);
+        const level = this.createLevel('town', 100, 84, levelConf);
         this.populateCityLevel(level, levelConf);
         return level;
     };
@@ -1148,10 +1137,14 @@ RG.Factory.World = function() {
         const cityType = this.getConf('cityType');
         const quarterType = this.getConf('quarterType');
         const alignment = this.getConf('alignment');
+        const wallType = this.getConf('wallType');
+        const floorType = this.getConf('floorType');
         if (groupType) {levelConf.groupType = groupType;}
         if (cityType) {levelConf.cityType = cityType;}
         if (quarterType) {levelConf.cityType = quarterType;}
         if (alignment) {levelConf.alignment = alignment;}
+        if (wallType) {levelConf.wallType = wallType;}
+        if (floorType) {levelConf.floorType = floorType;}
     };
 
     this.getPresetLevels = function(hierName) {
