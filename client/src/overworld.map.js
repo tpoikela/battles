@@ -254,12 +254,12 @@ OW.Map = function() {
     this._features = {};
     this._featuresByXY = {};
 
-    this.biomeMap = {};
+    this._biomeMap = {};
 
     this.getBiome = function(x, y) {
         const key = x + ',' + y;
-        if (this.biomeMap.hasOwnProperty(key)) {
-            return this.biomeMap[x + ',' + y];
+        if (this._biomeMap.hasOwnProperty(key)) {
+            return this._biomeMap[x + ',' + y];
         }
         else {
             RG.err('OW.Map', 'getBiome',
@@ -286,7 +286,7 @@ OW.Map = function() {
 
     this.addBiome = function(x, y, biomeType) {
         const key = x + ',' + y;
-        this.biomeMap[key] = biomeType;
+        this._biomeMap[key] = biomeType;
     };
 
     this.addVWall = function(wall) {
@@ -346,6 +346,18 @@ OW.Map = function() {
         }
     };
 
+    this.toJSON = function() {
+        const json = {
+            baseMap: this._baseMap,
+            biomeMap: this._biomeMap,
+            features: this._features,
+            featuresByXY: this._featuresByXY,
+            vWalls: this._vWalls,
+            hWalls: this._hWalls
+        };
+        return json;
+    };
+
 };
 
 /* Converts the OW.Map into string. */
@@ -391,7 +403,7 @@ OW.Map.prototype.printBiomeMap = function() {
         let rowStr = '';
         for (let x = 0; x < sizeX; x++) {
             const key = x + ',' + y;
-            rowStr += ',' + name2Num[this.biomeMap[key]];
+            rowStr += ',' + name2Num[this._biomeMap[key]];
         }
         rowStr += '\n';
         result += rowStr;
