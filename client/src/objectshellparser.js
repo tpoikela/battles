@@ -4,8 +4,9 @@ const RG = require('./rg.js');
 
 RG.ObjectShell = {};
 
-RG.ObjectShell.Creator = function(db) {
+RG.ObjectShell.Creator = function(db, dbNoRandom) {
     const _db = db;
+    const _dbNoRandom = dbNoRandom;
 
     /* Maps obj props to function calls. Essentially this maps bunch of setters
      * to different names. Following formats supported:
@@ -75,6 +76,9 @@ RG.ObjectShell.Creator = function(db) {
 
     /* Returns an object shell, given category and name.*/
     this.get = function(categ, name) {
+        if (_dbNoRandom[categ][name]) {
+            return _dbNoRandom[categ][name];
+        }
         return _db[categ][name];
     };
 
@@ -649,9 +653,13 @@ RG.ObjectShell.Parser = function() {
     const _dbDanger = {}; // All entries indexed by danger
     const _dbByName = {}; // All entries indexed by name
 
-    const _creator = new RG.ObjectShell.Creator(_db);
-    const _procgen = new RG.ObjectShell.ProcGen(_db, _dbDanger, _dbByName);
+    const _dbNoRandom = {
+        actors: {},
+        items: {}
+    }; // All entries excluded from random generation
 
+    const _creator = new RG.ObjectShell.Creator(_db, _dbNoRandom);
+    const _procgen = new RG.ObjectShell.ProcGen(_db, _dbDanger, _dbByName);
 
     //-----------------------------------------------------------------------
     // "PARSING" METHODS
@@ -743,8 +751,12 @@ RG.ObjectShell.Parser = function() {
         if (_db.hasOwnProperty(categ)) {
             this.storeForUsingAsBase(categ, obj);
 
-            if (!obj.hasOwnProperty('dontCreate')) {
-                _db[categ][obj.name] = obj;
+            if (obj.hasOwnProperty('noRandom')) {
+                console.log('Added to noRandom');
+                _dbNoRandom[categ][obj.name] = obj;
+                console.log(JSON.stringify(_dbNoRandom));
+            }
+            else if (!obj.hasOwnProperty('dontCreate')) {
                 if (_dbByName.hasOwnProperty(obj.name)) {
                     _dbByName[obj.name].push(obj);
                 }
@@ -753,6 +765,8 @@ RG.ObjectShell.Parser = function() {
                     newArr.push(obj);
                     _dbByName[obj.name] = newArr;
                 }
+
+                _db[categ][obj.name] = obj;
                 if (obj.hasOwnProperty('danger')) {
                     const danger = obj.danger;
                     if (!_dbDanger.hasOwnProperty(danger)) {
@@ -763,6 +777,7 @@ RG.ObjectShell.Parser = function() {
                     }
                     _dbDanger[danger][categ][obj.name] = obj;
                 }
+
             } // dontCreate: true shells are skipped (used as base)
         }
         else {
@@ -849,7 +864,12 @@ RG.ObjectShell.Parser = function() {
 
     this.dbExists = function(categ, name) {
         if (_db.hasOwnProperty(categ)) {
-            if (_db[categ].hasOwnProperty(name)) {return true;}
+            if (_db[categ].hasOwnProperty(name)) {
+                return true;
+            }
+        }
+        if (_dbNoRandom[categ][name]) {
+            return true;
         }
         return false;
     };
