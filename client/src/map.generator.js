@@ -76,10 +76,10 @@ RG.Map.Generator = function() { // {{{2
             const map = new RG.Map.CellList(this.cols, this.rows);
             _mapGen.create(function(x, y, val) {
                 if (val === _wall) {
-                    map.setBaseElemXY(x, y, RG.WALL_ELEM);
+                    map.setBaseElemXY(x, y, RG.ELEM.WALL);
                 }
                 else {
-                    map.setBaseElemXY(x, y, RG.FLOOR_ELEM);
+                    map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
                 }
             });
             obj.map = map;
@@ -244,13 +244,8 @@ RG.Map.Generator = function() { // {{{2
             }
         }
 
-        // House generation has succeeded at this point
-        if (!wallType) {
-            map.setBaseElems(possibleRoom, RG.WALL_ELEM);
-        }
-        else {
-            map.setBaseElems(possibleRoom, RG.WALL_WOODEN_ELEM);
-        }
+        const wallElem = this.getWallElem(wallType);
+        map.setBaseElems(possibleRoom, wallElem);
 
         // Create the halo, prevents houses being too close to each other
         const haloX0 = x0 - 1;
@@ -283,7 +278,7 @@ RG.Map.Generator = function() { // {{{2
         wallCoords.slice(doorIndex, 1);
 
         // At the moment, "door" is a hole in the wall
-        map.setBaseElemXY(doorX, doorY, RG.FLOOR_ELEM);
+        map.setBaseElemXY(doorX, doorY, RG.ELEM.FLOOR);
         doors[doorX + ',' + doorY] = true;
 
         for (let i = 0; i < wallCoords.length; i++) {
@@ -311,13 +306,13 @@ RG.Map.Generator = function() { // {{{2
         const ratio = conf.ratio;
         _mapGen = new ROT.Map.Forest(this.cols, this.rows, conf);
         _mapGen.create(function(x, y, val) {
-            map.setBaseElemXY(x, y, RG.FLOOR_ELEM);
+            map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
             const createTree = RG.RAND.getUniform() <= ratio;
             if (val === 1 && createTree) {
-                map.setBaseElemXY(x, y, RG.TREE_ELEM);
+                map.setBaseElemXY(x, y, RG.ELEM.TREE);
             }
             else if (val === 1) {
-                map.setBaseElemXY(x, y, RG.GRASS_ELEM);
+                map.setBaseElemXY(x, y, RG.ELEM.GRASS);
             }
         });
         return {map};
@@ -328,13 +323,13 @@ RG.Map.Generator = function() { // {{{2
         // const ratio = conf.ratio;
         _mapGen = new ROT.Map.Forest(this.cols, this.rows, conf);
         _mapGen.create(function(x, y, val) {
-            map.setBaseElemXY(x, y, RG.FLOOR_ELEM);
+            map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
             // const createDeep = RG.RAND.getUniform() <= ratio;
             if (val === 1 /* && createDeep */) {
-                map.setBaseElemXY(x, y, RG.WATER_ELEM);
+                map.setBaseElemXY(x, y, RG.ELEM.WATER);
             }
             /* else if (val === 1) {
-                map.setBaseElemXY(x, y, RG.GRASS_ELEM);
+                map.setBaseElemXY(x, y, RG.ELEM.GRASS);
             }*/
         });
         return {map};
@@ -353,16 +348,16 @@ RG.Map.Generator = function() { // {{{2
         _mapGen = new ROT.Map.Mountain(this.cols, this.rows, conf);
         _mapGen.create(function(x, y, val) {
             if (val > conf.highRockThr) {
-                map.setBaseElemXY(x, y, RG.HIGH_ROCK_ELEM);
+                map.setBaseElemXY(x, y, RG.ELEM.HIGH_ROCK);
             }
             else if (val > conf.stoneThr) {
-                map.setBaseElemXY(x, y, RG.STONE_ELEM);
+                map.setBaseElemXY(x, y, RG.ELEM.STONE);
             }
             else if (val < conf.chasmThr) {
-                map.setBaseElemXY(x, y, RG.CHASM_ELEM);
+                map.setBaseElemXY(x, y, RG.ELEM.CHASM);
             }
             else {
-                map.setBaseElemXY(x, y, RG.FLOOR_ELEM);
+                map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
             }
         });
         const paths = [];
@@ -409,14 +404,14 @@ RG.Map.Generator = function() { // {{{2
                 if (map.hasXY(c.x, c.y)) {
                     const baseElem = map.getBaseElemXY(c.x, c.y);
                     if (baseElem.getType() === 'chasm') {
-                        map.setBaseElemXY(c.x, c.y, RG.BRIDGE_ELEM);
+                        map.setBaseElemXY(c.x, c.y, RG.ELEM.BRIDGE);
                     }
                     else if (baseElem.getType() === 'stone') {
                         // TODO add mountain path
-                        map.setBaseElemXY(c.x, c.y, RG.ROAD_ELEM);
+                        map.setBaseElemXY(c.x, c.y, RG.ELEM.ROAD);
                     }
                     else {
-                        map.setBaseElemXY(c.x, c.y, RG.ROAD_ELEM);
+                        map.setBaseElemXY(c.x, c.y, RG.ELEM.ROAD);
                     }
                     inBounds = true;
                     chosenCoord.push(c);
@@ -450,10 +445,10 @@ RG.Map.Generator = function() { // {{{2
         const map = new RG.Map.CellList(cols, rows);
         _mapGen.create(function(x, y, val) {
             if (val === 1) {
-                map.setBaseElemXY(x, y, RG.WALL_CAVE_ELEM);
+                map.setBaseElemXY(x, y, RG.ELEM.WALL_CAVE);
             }
             else {
-                map.setBaseElemXY(x, y, RG.FLOOR_CAVE_ELEM);
+                map.setBaseElemXY(x, y, RG.ELEM.FLOOR_CAVE);
             }
         });
         return {map};
@@ -473,8 +468,8 @@ RG.Map.Generator = function() { // {{{2
         level.create();
 
         const asciiToElem = {
-            '#': RG.WALL_CRYPT_ELEM,
-            '.': RG.FLOOR_CRYPT_ELEM
+            '#': RG.ELEM.WALL_CRYPT,
+            '.': RG.ELEM.FLOOR_CRYPT
         };
         const mapObj = this.createMapFromAsciiMap(level.map, asciiToElem);
         mapObj.tiles = level.xyToBbox;
@@ -496,8 +491,8 @@ RG.Map.Generator = function() { // {{{2
         level.create();
 
         const asciiToElem = {
-            '#': RG.WALL_ELEM,
-            '.': RG.FLOOR_ELEM
+            '#': this.getWallElem(conf.wallType),
+            '.': this.getFloorElem(conf.floorType)
         };
         const mapObj = this.createMapFromAsciiMap(level.map, asciiToElem);
         mapObj.tiles = level.xyToBbox;
@@ -514,8 +509,8 @@ RG.Map.Generator = function() { // {{{2
         level.create();
 
         const asciiToElem = {
-            '#': RG.WALL_ELEM,
-            '.': RG.FLOOR_ELEM
+            '#': RG.ELEM.WALL,
+            '.': RG.ELEM.FLOOR
         };
         const castleMapObj = this.createMapFromAsciiMap(level.map, asciiToElem);
         castleMapObj.tiles = level.xyToBbox;
@@ -575,6 +570,28 @@ RG.Map.Generator = function() { // {{{2
         };
     };
 
+    this.getWallElem = function(wallType) {
+        switch (wallType) {
+            case 'wallcave': return RG.ELEM.WALL_CAVE;
+            case 'wallcrypt': return RG.ELEM.WALL_CRYPT;
+            case 'wallice': return RG.ELEM.WALL_ICE;
+            case 'wallwooden': return RG.ELEM.WALL_WOODEN;
+            default: return RG.ELEM.WALL;
+        }
+
+    };
+
+    this.getFloorElem = function(floorType) {
+        switch (floorType) {
+            case 'floorcave': return RG.ELEM.FLOOR_CAVE;
+            case 'floorcrypt': return RG.ELEM.FLOOR_CRYPT;
+            case 'floorice': return RG.ELEM.FLOOR_ICE;
+            case 'floorwooden': return RG.ELEM.FLOOR_WOODEN;
+            default: return RG.ELEM.FLOOR;
+        }
+    };
+
+
 }; // }}} Map.Generator
 
 /* Decorates the given map with snow. ratio is used to control how much
@@ -584,7 +601,7 @@ RG.Map.Generator.addRandomSnow = function(map, ratio) {
     for (let i = 0; i < freeCells.length; i++) {
         const addSnow = RG.RAND.getUniform();
         if (addSnow <= ratio) {
-            freeCells[i].setBaseElem(RG.SNOW_ELEM);
+            freeCells[i].setBaseElem(RG.ELEM.SNOW);
         }
     }
 };
