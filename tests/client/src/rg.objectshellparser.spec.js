@@ -429,6 +429,17 @@ describe('It contains all game content info', function() {
 
     });
 
+    it('also supports non-random shells', () => {
+        const bossShell = {
+            name: 'Unique boss', noRandom: true,
+            danger: 2
+        };
+        const boss = parser.parseObjShell(RG.TYPE_ACTOR, bossShell);
+        expect(boss.noRandom).to.equal(true);
+        const bossObj = parser.createActor('Unique boss');
+        expect(bossObj.getName()).to.equal('Unique boss');
+    });
+
 });
 
 describe('It has query functions for objects', function() {
