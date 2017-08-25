@@ -342,7 +342,7 @@ function addSubLevelWalls(type, owSubLevel, subLevel) {
             const tile = [];
             if (width === 1) {width = MEAN_WX;}
             for (let x = midX - (width - 1); x <= midX + (width - 1); x++) {
-                map.setBaseElemXY(x, y, RG.WALL_ELEM);
+                map.setBaseElemXY(x, y, RG.ELEM.WALL);
                 tile.push([x, y]);
             }
             wall.addWallCoord(tile);
@@ -373,7 +373,7 @@ function addSubLevelWalls(type, owSubLevel, subLevel) {
             const tile = [];
             if (width === 1) {width = MEAN_WY;}
             for (let y = midY - (width - 1); y <= midY + (width - 1); y++) {
-                map.setBaseElemXY(x, y, RG.WALL_ELEM);
+                map.setBaseElemXY(x, y, RG.ELEM.WALL);
                 tile.push([x, y]);
             }
             wall.addWallCoord(tile);
@@ -478,7 +478,7 @@ function addMountainFortToSubLevel(feat, owSubLevel, subLevel) {
     type = feat === OW.WCAPITAL ? 'capital' : type;
 
     // Tile is a list of x,y coordinates
-    subLevel.getMap().setBaseElems(coord, RG.FORT_ELEM);
+    subLevel.getMap().setBaseElems(coord, RG.ELEM.FORT);
     const fort = new RG.OverWorld.SubFeature(type, coord);
     fort.alignment = getAlignment(feat);
     owSubLevel.addFeature(fort);
@@ -497,7 +497,7 @@ function addTowerToSubLevel(feat, owSubLevel, subLevel) {
     const type = feat === OW.BTOWER ? 'blacktower' : 'whitetower';
 
     if (placed) {
-        subLevel.getMap().setBaseElems(coord, RG.FORT_ELEM);
+        subLevel.getMap().setBaseElems(coord, RG.ELEM.FORT);
         const tower = new RG.OverWorld.SubFeature(type, coord);
         tower.alignment = getAlignment(feat);
         owSubLevel.addFeature(tower);
@@ -538,7 +538,7 @@ function addDungeonToSubLevel(owSubLevel, subLevel) {
                     if (elem.getType() === 'wall') {
                         coord = [xyBox];
                         placed = true;
-                        map.setBaseElemXY(xyBox[0], xyBox[1], RG.FLOOR_ELEM);
+                        map.setBaseElemXY(xyBox[0], xyBox[1], RG.ELEM.FLOOR);
                     }
                 }
             }
@@ -787,6 +787,7 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
         // {x: aX, y: aY, levelX: featX, levelY: featY});
         {x: midX, y: yPos, levelX: 1, levelY: 1});
     dungeonConf.dungeonType = 'castle';
+    dungeonConf.wallType = 'wallice';
     dungeonConf.tilesX = 20;
     dungeonConf.tilesY = 20;
     dungeonConf.maxDanger = 50;
