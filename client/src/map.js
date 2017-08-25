@@ -266,7 +266,7 @@ RG.Map.CellList = function(cols, rows) { // {{{2
         this._map.push([]);
         for (let y = 0; y < this.rows; y++) {
             // const elem = new RG.Element.Base('floor');
-            const elem = RG.FLOOR_ELEM;
+            const elem = RG.ELEM.FLOOR;
             this._map[x].push(new RG.Map.Cell(x, y, elem));
         }
     }
@@ -451,10 +451,10 @@ RG.Map.CellList.invertMap = function(map) {
         for (let y = 0; y < map.rows; y++) {
             const type = map._map[x][y].getBaseElem().getType();
             if (type === 'wall') {
-                map._map[x][y].setBaseElem(RG.FLOOR_ELEM);
+                map._map[x][y].setBaseElem(RG.ELEM.FLOOR);
             }
             else if (type === 'floor') {
-                map._map[x][y].setBaseElem(RG.WALL_ELEM);
+                map._map[x][y].setBaseElem(RG.ELEM.WALL);
             }
         }
     }
