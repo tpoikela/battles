@@ -430,26 +430,32 @@ RG.Element.Fort.prototype.isPassable = function() {
     return false;
 };
 
+RG.ELEM = {};
 // Constant elements which can be used by all levels. freeze()
 // used to prevent any mutations. Note that elements with any state
 // in them should not be shared (unless state is common for all)
-RG.BRIDGE_ELEM = Object.freeze(new RG.Element.Base('bridge'));
-RG.CHASM_ELEM = Object.freeze(new RG.Element.Chasm());
-RG.FLOOR_ELEM = Object.freeze(new RG.Element.Base('floor'));
-RG.FLOOR_CAVE_ELEM = Object.freeze(new RG.Element.Base('floorcave'));
-RG.FLOOR_CRYPT_ELEM = Object.freeze(new RG.Element.Base('floorcrypt'));
-RG.GRASS_ELEM = Object.freeze(new RG.Element.Grass());
-RG.HIGH_ROCK_ELEM = Object.freeze(new RG.Element.HighRock());
-RG.ROAD_ELEM = Object.freeze(new RG.Element.Base('road'));
-RG.SNOW_ELEM = Object.freeze(new RG.Element.Base('snow'));
-RG.STONE_ELEM = Object.freeze(new RG.Element.Stone());
-RG.TREE_ELEM = Object.freeze(new RG.Element.Tree());
-RG.WALL_ELEM = Object.freeze(new RG.Element.Base('wall'));
-RG.WALL_CAVE_ELEM = Object.freeze(new RG.Element.Base('wallcave'));
-RG.WALL_CRYPT_ELEM = Object.freeze(new RG.Element.Base('wallcrypt'));
-RG.WALL_ICE_ELEM = Object.freeze(new RG.Element.Base('wallice'));
-RG.WALL_WOODEN_ELEM = Object.freeze(new RG.Element.Base('wallwooden'));
-RG.WATER_ELEM = Object.freeze(new RG.Element.Water());
-RG.FORT_ELEM = Object.freeze(new RG.Element.Fort());
+RG.ELEM.BRIDGE = Object.freeze(new RG.Element.Base('bridge'));
+RG.ELEM.CHASM = Object.freeze(new RG.Element.Chasm());
+RG.ELEM.FLOOR = Object.freeze(new RG.Element.Base('floor'));
+RG.ELEM.FLOOR_CAVE = Object.freeze(new RG.Element.Base('floorcave'));
+RG.ELEM.FLOOR_CRYPT = Object.freeze(new RG.Element.Base('floorcrypt'));
+RG.ELEM.GRASS = Object.freeze(new RG.Element.Grass());
+RG.ELEM.HIGH_ROCK = Object.freeze(new RG.Element.HighRock());
+RG.ELEM.ROAD = Object.freeze(new RG.Element.Base('road'));
+RG.ELEM.SNOW = Object.freeze(new RG.Element.Base('snow'));
+RG.ELEM.STONE = Object.freeze(new RG.Element.Stone());
+RG.ELEM.TREE = Object.freeze(new RG.Element.Tree());
+RG.ELEM.WALL = Object.freeze(new RG.Element.Base('wall'));
+RG.ELEM.WALL_CAVE = Object.freeze(new RG.Element.Base('wallcave'));
+RG.ELEM.WALL_CRYPT = Object.freeze(new RG.Element.Base('wallcrypt'));
+RG.ELEM.WALL_ICE = Object.freeze(new RG.Element.Base('wallice'));
+RG.ELEM.WALL_WOODEN = Object.freeze(new RG.Element.Base('wallwooden'));
+RG.ELEM.WATER = Object.freeze(new RG.Element.Water());
+RG.ELEM.FORT = Object.freeze(new RG.Element.Fort());
+
+RG.elemTypeToObj = {};
+Object.keys(RG.ELEM).forEach(key => {
+    RG.elemTypeToObj[RG.ELEM[key].getType()] = RG.ELEM[key];
+});
 
 module.exports = RG.Element;
