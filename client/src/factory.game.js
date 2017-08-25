@@ -335,7 +335,7 @@ RG.Factory.Game = function() {
     this.createPresetLevels = function(arr) {
         const fromJSON = new RG.Game.FromJSON();
         return arr.map(item => {
-            const level = fromJSON.createLevel(item.level);
+            const level = fromJSON.restoreLevel(item.level);
             // Need to reset level + actors IDs for this game
             if (level.getID() < RG.LEVEL_ID_ADD) {
                 level.setID(RG.Map.Level.createLevelID());
