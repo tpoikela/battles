@@ -235,7 +235,7 @@ describe('Map.CellList', function() {
         const obj = mapgen.getMap();
         const map = obj.map;
 
-        map.setBaseElemXY(0, 0, RG.CHASM_ELEM);
+        map.setBaseElemXY(0, 0, RG.ELEM.CHASM);
 
         expect(map.isPassable(0, 0)).to.equal(false);
         expect(map.getCell(0, 0).isFree()).to.equal(false);

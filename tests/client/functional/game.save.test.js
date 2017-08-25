@@ -20,7 +20,7 @@ describe('Function: Saving/restoring a game', function() {
             rows: 60,
             levels: 2,
             playerLevel: 'Medium',
-            sqrPerMonster: 40,
+            sqrPerActor: 40,
             sqrPerItem: 100,
             debugMode: 'World',
             loadedPlayer: null,

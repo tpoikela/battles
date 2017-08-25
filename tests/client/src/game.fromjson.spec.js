@@ -33,7 +33,7 @@ describe('RG.Game.FromJSON', function() {
     it('Converts level.map JSON back to RG.Map', () => {
         const level = RGTest.createLevel('arena', 20, 20);
         const json = level.toJSON();
-        const newLevel = fromJSON.createLevel(json);
+        const newLevel = fromJSON.restoreLevel(json);
         const newMap = newLevel.getMap();
         for (let x = 0; x < 20; x++) {
             expect(newMap.getCell(x, 0).isPassable(),
@@ -45,8 +45,18 @@ describe('RG.Game.FromJSON', function() {
     it('Converts level JSON back to RG.Map.Level', () => {
         const level = RGTest.createLevel('arena', 20, 20);
         const json = level.toJSON();
-        const newLevel = fromJSON.createLevel(json);
+        const newLevel = fromJSON.restoreLevel(json);
         expect(newLevel.getID()).to.equal(level.getID());
+    });
+
+    it('converts overworld JSON back to RG.OverWorld.Map', () => {
+        const conf = {};
+        const ow = RG.OW.createOverWorld(conf);
+        const json = ow.toJSON();
+        const newOw = fromJSON.restoreOverWorld(json);
+        expect(newOw).to.exist;
+
+        expect(newOw.getMap()).to.deep.equal(ow.getMap());
     });
 
 
@@ -68,7 +78,7 @@ describe('RG.Game.FromJSON', function() {
         level.addItem(shopItem, 4, 4);
 
         const json = level.toJSON();
-        const newLevel = fromJSON.createLevel(json);
+        const newLevel = fromJSON.restoreLevel(json);
 
         const actors = newLevel.getActors();
         const items = newLevel.getItems();
@@ -148,8 +158,8 @@ describe('RG.Game.FromJSON', function() {
         const jsonL2 = l2.toJSON();
         const json = mountain.toJSON();
 
-        const newL1 = fromJSON.createLevel(jsonL1);
-        const newL2 = fromJSON.createLevel(jsonL2);
+        const newL1 = fromJSON.restoreLevel(jsonL1);
+        const newL2 = fromJSON.restoreLevel(jsonL2);
         const id2level = {};
         id2level[newL1.getID()] = newL1;
         id2level[newL2.getID()] = newL2;

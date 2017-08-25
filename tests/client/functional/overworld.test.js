@@ -13,7 +13,7 @@ describe('How Game is created from Overworld', function() {
             debugMode: 'OverWorld',
             playerLevel: 'Medium',
             sqrPerItem: 100,
-            sqrPerMonster: 100
+            sqrPerActor: 100
         };
 
         // const player = new RG.Actor.Rogue('My Hero');

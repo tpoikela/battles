@@ -105,7 +105,7 @@ describe('GUI.Screen', () => {
         const map = level.getMap();
         const screen = new Screen(5, 5);
 
-        map.setBaseElemXY(2, 2, RG.WALL_ELEM);
+        map.setBaseElemXY(2, 2, RG.ELEM.WALL);
 
         map._optimizeForRowAccess(map);
         screen.renderFullMapWithRLE(map);

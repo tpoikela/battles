@@ -115,7 +115,7 @@ describe('Map.Level', () => {
         stairs.connect(stairs2);
 
         const json = level1.toJSON();
-        const newLevel = fromJSON.createLevel(json);
+        const newLevel = fromJSON.restoreLevel(json);
 
         expect(newLevel.getID()).to.equal(level1.getID());
         expect(newLevel.getStairs()).to.have.length(1);
