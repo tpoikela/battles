@@ -2,6 +2,8 @@
 const RG = require('./rg');
 RG.Game = require('./game');
 
+const OW = require('./overworld.map');
+
 /* Object for converting serialized JSON objects to game objects. */
 RG.Game.FromJSON = function() {
 
@@ -19,7 +21,7 @@ RG.Game.FromJSON = function() {
     };
 
     /* Handles creation of restored player from JSON.*/
-    this.createPlayerObj = function(obj) {
+    this.restorePlayer = function(obj) {
         const player = new RG.Actor.Rogue(obj.name);
         player.setIsPlayer(true);
         player.setType('player');
@@ -30,7 +32,7 @@ RG.Game.FromJSON = function() {
         return player;
     };
 
-    this.createEntity = function(obj) {
+    this.restoreEntity = function(obj) {
         if (obj.type) {
             let entity = null;
             switch (obj.type) {
@@ -45,7 +47,7 @@ RG.Game.FromJSON = function() {
             return entity;
         }
         else {
-            RG.err('FromJSON', 'createEntity',
+            RG.err('FromJSON', 'restoreEntity',
                 `obj.type null, obj: ${JSON.stringify(obj)}`);
         }
         return null;
@@ -172,7 +174,7 @@ RG.Game.FromJSON = function() {
 
     /* Creates a Map.Level object from a json object. NOTE: This method cannot
     * connect stairs to other levels, but only create the stairs elements. */
-    this.createLevel = function(json) {
+    this.restoreLevel = function(json) {
         const level = new RG.Map.Level();
         level.setID(json.id);
         level.setLevelNumber(json.levelNumber);
@@ -187,7 +189,7 @@ RG.Game.FromJSON = function() {
                 level.addActor(actorObj, actor.x, actor.y);
             }
             else {
-                RG.err('FromJSON', 'createLevel',
+                RG.err('FromJSON', 'restoreLevel',
                     `Actor ${JSON.stringify(actor)} returned null`);
             }
         });
@@ -199,7 +201,7 @@ RG.Game.FromJSON = function() {
                 level.addElement(elemObj, elem.x, elem.y);
             }
             else {
-                RG.err('FromJSON', 'createLevel',
+                RG.err('FromJSON', 'restoreLevel',
                     `Elem ${JSON.stringify(elem)} returned null`);
             }
         });
@@ -211,7 +213,7 @@ RG.Game.FromJSON = function() {
                 level.addItem(itemObj, item.x, item.y);
             }
             else {
-                RG.err('FromJSON', 'createLevel',
+                RG.err('FromJSON', 'restoreLevel',
                     `Actor ${JSON.stringify(item)} returned null`);
             }
         });
@@ -221,7 +223,7 @@ RG.Game.FromJSON = function() {
             id2level[json.id] = level;
         }
         else {
-            RG.err('FromJSON', 'createLevel',
+            RG.err('FromJSON', 'restoreLevel',
                 `Duplicate level ID detected ${json.id}`);
         }
         return level;
@@ -261,7 +263,7 @@ RG.Game.FromJSON = function() {
     };
 
     this.createActor = function(actor) {
-        const entity = this.createEntity(actor);
+        const entity = this.restoreEntity(actor);
         entity.setID(actor.id);
         id2entity[entity.getID()] = entity;
         return entity;
@@ -305,20 +307,25 @@ RG.Game.FromJSON = function() {
     this.createBaseElem = function(cell) {
         switch (cell.type) {
             case '#': // wall
-            case 'wall': return RG.WALL_ELEM;
+            case 'wall': return RG.ELEM.WALL;
             case '.': // floor
-            case 'floor': return RG.FLOOR_ELEM;
-            case 'tree': return RG.TREE_ELEM;
-            case 'grass': return RG.GRASS_ELEM;
-            case 'stone': return RG.STONE_ELEM;
-            case 'water': return RG.WATER_ELEM;
-            case 'chasm': return RG.CHASM_ELEM;
-            case 'road': return RG.ROAD_ELEM;
-            case 'highrock': return RG.HIGH_ROCK_ELEM;
-            case 'bridge': return RG.BRIDGE_ELEM;
+            case 'floor': return RG.ELEM.FLOOR;
+            case 'tree': return RG.ELEM.TREE;
+            case 'grass': return RG.ELEM.GRASS;
+            case 'stone': return RG.ELEM.STONE;
+            case 'water': return RG.ELEM.WATER;
+            case 'chasm': return RG.ELEM.CHASM;
+            case 'road': return RG.ELEM.ROAD;
+            case 'highrock': return RG.ELEM.HIGH_ROCK;
+            case 'bridge': return RG.ELEM.BRIDGE;
             default: {
-                RG.err('Game.fromJSON', 'createBaseElem',
-                    `Unknown type ${cell.type}`);
+                if (RG.elemTypeToObj[cell.type]) {
+                    return RG.elemTypeToObj[cell.type];
+                }
+                else {
+                    RG.err('Game.fromJSON', 'createBaseElem',
+                        `Unknown type ${cell.type}`);
+                }
             }
         }
         return null;
@@ -330,7 +337,7 @@ RG.Game.FromJSON = function() {
         // Levels must be created before the actual world, because the World
         // object contains only level IDs
         json.levels.forEach(levelJson => {
-            const level = this.createLevel(levelJson);
+            const level = this.restoreLevel(levelJson);
             if (!levelJson.parent) {
                 game.addLevel(level); // remove once world is properly created
             }
@@ -338,16 +345,21 @@ RG.Game.FromJSON = function() {
 
         Object.keys(json.places).forEach(name => {
             const place = json.places[name];
-            const placeObj = this.createPlace(place);
+            const placeObj = this.restorePlace(place);
             game.addPlace(placeObj);
         });
+
+        if (json.overworld) {
+            const overworld = this.restoreOverWorld(json.overworld);
+            game.setOverWorld(overworld);
+        }
 
         // Connect levels using id2level + stairsInfo
         this.connectGameLevels(game);
 
         // Player created separately from other actors for now
         if (json.player) {
-            const player = this.createPlayerObj(json.player);
+            const player = this.restorePlayer(json.player);
             const id = json.player.levelID;
             const level = game.getLevels().find(item => item.getID() === id);
             if (level) {
@@ -402,11 +414,22 @@ RG.Game.FromJSON = function() {
     };
 
     /* Assume the place is World object for now. */
-    this.createPlace = function(place) {
+    this.restorePlace = function(place) {
         const fact = new RG.Factory.World();
         fact.setId2Level(id2level);
         const world = fact.createWorld(place);
         return world;
+    };
+
+    this.restoreOverWorld = function(json) {
+        const ow = new OW.Map();
+        ow.setMap(json.baseMap);
+        ow._features = json.features;
+        ow._featuresByXY = json.featuresByXY;
+        ow._vWalls = json.vWalls;
+        ow._hWalls = json.hWalls;
+        ow._biomeMap = json.biomeMap;
+        return ow;
     };
 
 };
