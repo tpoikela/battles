@@ -197,6 +197,11 @@ RG.Actor.Rogue.prototype.toJSON = function() {
         obj.components.Flying = this.get('Flying').toJSON();
     }
 
+    if (obj.type === null) {
+        RG.err('Actor.Rogue', 'toJSON',
+            `Type null for ${JSON.stringify(obj)}`);
+    }
+
     return obj;
 };
 
