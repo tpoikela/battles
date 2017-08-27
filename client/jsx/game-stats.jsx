@@ -56,6 +56,7 @@ const GameStats = React.createClass({
             Agi: player.getAgility(),
             Acc: player.getAccuracy(),
             Wil: player.getWillpower(),
+            Per: player.getPerception(),
 
             Speed: player.getSpeed(),
             XP: player.get('Experience').getExp(),
