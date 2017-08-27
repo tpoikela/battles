@@ -209,12 +209,15 @@ ul {
 }
 
 .game-board-div {
+    display: inline-block;
+
     .game-board-row {
         @media only screen and (max-width: 1090px) {
             display: inline-block;
         }
         zoom: 1;
     }
+
 }
 
 .game-editor-board-div {
