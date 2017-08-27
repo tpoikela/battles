@@ -56,15 +56,19 @@ function verifySaveData(data) {
     traverseObj(data);
 }
 
+const stack = [];
 function traverseObj(obj) {
 	for (const prop in obj) {
 		if (obj.hasOwnProperty(prop)) {
+            stack.push(prop);
 			if (typeof obj[prop] === 'object') {
 				traverseObj(obj[prop]);
 			}
             else if (typeof obj[prop] === 'function') {
-                throw new Error('Error. Function detected: ' + prop);
+                const msg = `Error. Func in ${JSON.stringify(stack)}`;
+                throw new Error(msg);
 			}
+            stack.pop();
 		}
 	}
 }
