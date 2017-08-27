@@ -38,8 +38,13 @@ RG.Actor.Rogue = function(name) { // {{{2
     /* Returns true if actor is a player.*/
     this.isPlayer = function() {return this._isPlayer;};
 
-    this.getFOVRange = function() { return _fovRange;};
-    this.setFOVRange = function(range) {_fovRange = range;};
+    this.getFOVRange = function() {
+        return _fovRange;
+    };
+
+    this.setFOVRange = function(range) {
+        _fovRange = range;
+    };
 
     //---------------------------------
     // Brain-relatd methods
@@ -163,6 +168,7 @@ RG.Actor.Rogue.prototype.toJSON = function() {
         type: this.getType(),
         x: this.getX(),
         y: this.getY(),
+        fovRange: this.getFOVRange(),
         levelID,
         components: {
             Combat: this.get('Combat').toJSON(),
@@ -276,7 +282,13 @@ RG.Actor.Rogue.prototype.getSpeed = function() {
     speed += this.getInvEq().getEquipment().getSpeed();
     if (this.has('StatsMods')) {speed += this.get('StatsMods').getSpeed();}
     return speed;
+};
 
+RG.Actor.Rogue.prototype.getPerception = function() {
+    let per = this.get('Stats').getPerception();
+    per += this.getInvEq().getEquipment().getPerception();
+    if (this.has('StatsMods')) {per += this.get('StatsMods').getPerception();}
+    return per;
 };
 
 /* Spirit actors. They have Ethereal component and cannot be attacked, but they
