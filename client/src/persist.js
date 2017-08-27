@@ -27,7 +27,8 @@ function operateOnIDB(name, IDB, operation, data) {
             case 'GET':
                 request = store.getAll();
                 request.onsuccess = () => {
-                    console.log('GET request.result length: ' + request.result.length);
+                    console.log('GET request.result length: '
+                        + request.result.length);
                     return resolve(request.result);
                 };
                 request.onerror = () => reject(request.error);
@@ -35,18 +36,37 @@ function operateOnIDB(name, IDB, operation, data) {
             case 'PUT':
                 console.log('Persist data to store length: '
                     + JSON.stringify(data).length);
+                verifySaveData(data);
                 request = store.put(data);
                 request.onsuccess = () => resolve(request.result);
                 request.onerror = () => reject(request.error);
                 break;
             case 'DELETE':
-                request = store.delete(data.id);
+                // request = store.delete(data.id);
+                request = store.clear();
                 request.onsuccess = () => resolve(request.result);
                 request.onerror = () => reject(request.error);
                 break;
             default: console.warn('No operation performed on IDB');
         }
     });
+}
+
+function verifySaveData(data) {
+    traverseObj(data);
+}
+
+function traverseObj(obj) {
+	for (const prop in obj) {
+		if (obj.hasOwnProperty(prop)) {
+			if (typeof obj[prop] === 'object') {
+				traverseObj(obj[prop]);
+			}
+            else if (typeof obj[prop] === 'function') {
+                throw new Error('Error. Function detected: ' + prop);
+			}
+		}
+	}
 }
 
 async function operateWithIDB(store, operation, data) {
@@ -58,6 +78,7 @@ async function operateWithIDB(store, operation, data) {
     }
     catch (exception) {
         console.error(exception);
+        throw exception;
     }
     finally {
         if (IDB) {
@@ -70,5 +91,5 @@ async function operateWithIDB(store, operation, data) {
 module.exports = function Persist(storeName) {
     this.fromStorage = () => operateWithIDB(storeName, 'GET', null);
     this.toStorage = data => operateWithIDB(storeName, 'PUT', data);
-    this.deleteFromStorage = data => operateWithIDB(storeName, 'DELETE', data);
+    this.deleteStorage = () => operateWithIDB(storeName, 'DELETE');
 };
