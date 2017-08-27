@@ -12,6 +12,7 @@ RG.Game.FromJSON = function() {
     // Lookup table for mapping level ID to Map.Level object
     const id2level = {};
     const id2entity = {};
+    const id2EntityJson = {};
 
     // Stores connection information for stairs
     const stairsInfo = {};
@@ -27,38 +28,28 @@ RG.Game.FromJSON = function() {
         player.setType('player');
         player.setID(obj.id);
         id2entity[obj.id] = player;
+        // id2EntityJson[obj.id] = obj;
+        _dungeonLevel = obj.dungeonLevel;
+
         this.addCompsToEntity(player, obj.components);
         this.createInventory(obj, player);
         this.createEquipment(obj, player);
-        _dungeonLevel = obj.dungeonLevel;
         if (obj.fovRange) {
             player.setFOVRange(obj.fovRange);
         }
         return player;
     };
 
-    this.restoreEntity = function(obj) {
-        if (obj.type) {
-            let entity = null;
-            switch (obj.type) {
-                case 'spirit': entity = new RG.Actor.Spirit(obj.name); break;
-                default: entity = new RG.Actor.Rogue(obj.name);
-            }
-            entity.setType(obj.type);
-            this.addCompsToEntity(entity, obj.components);
-            this.createInventory(obj, entity);
-            this.createEquipment(obj, entity);
-            this.createBrain(obj.brain, entity);
-            if (obj.fovRange) {
-                entity.setFOVRange(obj.fovRange);
-            }
-            return entity;
+    /* Restores all data for already created entity. */
+    this.restoreEntity = function(obj, entity) {
+        this.addCompsToEntity(entity, obj.components);
+        this.createInventory(obj, entity);
+        this.createEquipment(obj, entity);
+        this.createBrain(obj.brain, entity);
+        if (obj.fovRange) {
+            entity.setFOVRange(obj.fovRange);
         }
-        else {
-            RG.err('FromJSON', 'restoreEntity',
-                `obj.type null, obj: ${JSON.stringify(obj)}`);
-        }
-        return null;
+        return entity;
     };
 
     this.addCompsToEntity = function(ent, comps) {
@@ -99,8 +90,14 @@ RG.Game.FromJSON = function() {
                 });
 
                 if (memJSON.lastAttackedID) {
-                    memObj.setLastAttacked(memJSON.lastAttackedID);
+                    const entity = id2entity[memJSON.lastAttackedID];
+                    memObj.setLastAttacked(entity);
                 }
+
+                memJSON.enemies.forEach(enemyID => {
+                    const enemy = id2entity[enemyID];
+                    memObj.addEnemy(enemy);
+                });
             }
             else if (type === 'rogue') {
                 brainObj.getMemory().addEnemyType('player');
@@ -270,10 +267,23 @@ RG.Game.FromJSON = function() {
         return null;
     };
 
-    this.createActor = function(actor) {
-        const entity = this.restoreEntity(actor);
-        entity.setID(actor.id);
+    /* Creates the actor and sets entity ID refs, but does not restore all
+     * entity data. */
+    this.createActor = function(obj) {
+        if (obj.type === null) {
+            RG.err('FromJSON', 'restoreEntity',
+                `obj.type null, obj: ${JSON.stringify(obj)}`);
+        }
+
+        let entity = null;
+        switch (obj.type) {
+            case 'spirit': entity = new RG.Actor.Spirit(obj.name); break;
+            default: entity = new RG.Actor.Rogue(obj.name);
+        }
+        entity.setType(obj.type);
+        entity.setID(obj.id);
         id2entity[entity.getID()] = entity;
+        id2EntityJson[obj.id] = obj;
         return entity;
     };
 
@@ -382,6 +392,8 @@ RG.Game.FromJSON = function() {
             }
         }
 
+        this.restoreEntityData();
+
         // Restore the ID counters for levels and entities, otherwise duplicate
         // IDs will appear when new levels/entities are created
         // RG.Map.Level.prototype.idCount = json.lastLevelID;
@@ -438,6 +450,14 @@ RG.Game.FromJSON = function() {
         ow._hWalls = json.hWalls;
         ow._biomeMap = json.biomeMap;
         return ow;
+    };
+
+    this.restoreEntityData = function() {
+        Object.keys(id2EntityJson).forEach(id => {
+            const obj = id2EntityJson[id];
+            const entity = id2entity[id];
+            this.restoreEntity(obj, entity);
+        });
     };
 
 };
