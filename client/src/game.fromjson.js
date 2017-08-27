@@ -25,10 +25,15 @@ RG.Game.FromJSON = function() {
         const player = new RG.Actor.Rogue(obj.name);
         player.setIsPlayer(true);
         player.setType('player');
+        player.setID(obj.id);
+        id2entity[obj.id] = player;
         this.addCompsToEntity(player, obj.components);
         this.createInventory(obj, player);
         this.createEquipment(obj, player);
         _dungeonLevel = obj.dungeonLevel;
+        if (obj.fovRange) {
+            player.setFOVRange(obj.fovRange);
+        }
         return player;
     };
 
@@ -44,6 +49,9 @@ RG.Game.FromJSON = function() {
             this.createInventory(obj, entity);
             this.createEquipment(obj, entity);
             this.createBrain(obj.brain, entity);
+            if (obj.fovRange) {
+                entity.setFOVRange(obj.fovRange);
+            }
             return entity;
         }
         else {
