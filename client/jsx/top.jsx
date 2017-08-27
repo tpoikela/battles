@@ -352,9 +352,16 @@ class BattlesTop extends React.Component {
 
     deleteGame(name) {
         if (name) {
-            this.gameSave.deletePlayer(name);
-            this.savedPlayerList = this.gameSave.getPlayersAsList();
-            this.setState({render: true, selectedGame: null});
+            const persist = new Persist(name);
+            try {
+                persist.deleteStorage();
+                this.gameSave.deletePlayer(name);
+                this.savedPlayerList = this.gameSave.getPlayersAsList();
+                this.setState({render: true, selectedGame: null});
+            }
+            catch (e) {
+                console.error(e.message);
+            }
         }
     }
 
