@@ -80,6 +80,7 @@ describe('RG.Game.FromJSON', function() {
 
         const json = level.toJSON();
         const newLevel = fromJSON.restoreLevel(json);
+        fromJSON.restoreEntityData();
 
         const actors = newLevel.getActors();
         const items = newLevel.getItems();
