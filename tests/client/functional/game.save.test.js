@@ -32,6 +32,7 @@ describe('Function: Saving/restoring a game', function() {
         console.log('Now creating a new game');
         const game = gameFactory.createNewGame(gameConf);
         game.setGUICallbacks(isGUICommand, doGUICommand);
+        game.getPlayer().setFOVRange(11);
 
         const parentsBefore = game.getLevels().map(level => level.getParent());
         const numLevelsBefore = game.getLevels().length;
@@ -43,7 +44,6 @@ describe('Function: Saving/restoring a game', function() {
         expect(levelIDsJSON, 'Level IDs in JSON are preserved')
             .to.deep.equal(levelIDsBefore);
 
-
         for (let i = 0; i < 2; i++) {
             const fromJSON = new RG.Game.FromJSON();
             console.log(`Restoring game ${i} from serialized object.`);
@@ -52,6 +52,8 @@ describe('Function: Saving/restoring a game', function() {
             console.log('Starting the checks for this test');
             expect(restGame.getPlayer().getName())
                 .to.equal(gameConf.playerName);
+
+            expect(restGame.getPlayer().getFOVRange()).to.equal(11);
 
             const parentsAfter = game.getLevels()
                 .map(level => level.getParent());
