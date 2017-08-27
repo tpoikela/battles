@@ -64,6 +64,7 @@ describe('RG.Game.FromJSON', function() {
         const level = RGTest.createLevel('arena', 10, 10);
         const actor = new RG.Actor.Rogue('Urkh!');
         actor.setType('goblin');
+        actor.setFOVRange(21);
 
         const goblinEntID = actor.getID();
         const item = new RG.Item.Weapon('sword');
@@ -88,6 +89,7 @@ describe('RG.Game.FromJSON', function() {
         expect(actors).to.have.length(1);
         expect(newGoblin.getName()).to.equal('Urkh!');
         expect(newGoblin.getID()).to.equal(goblinEntID);
+        expect(newGoblin.getFOVRange()).to.equal(21);
         expect(items).to.have.length(2);
         expect(items[0].getName()).to.equal('sword');
         expect(items[0].getID()).to.equal(swordID);
