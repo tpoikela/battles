@@ -1,4 +1,7 @@
 
+/* This file contains a long test case actual game scenarios to test the more
+ * complex interactions. */
+
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 
@@ -101,7 +104,9 @@ describe('Function: All small game features', function() {
         expect(humanoid.isEnemy(p1), 'Humanoid is enemy').to.equal(true);
         expect(shopkeeper.isEnemy(p1), 'shopkeeper not enemy').to.equal(false);
 
+        //------------------------
         // Test selling of items
+        //------------------------
         const p1X = p1.getX();
         const p1Y = p1.getY();
         const magicSword = parser.createActualObj(RG.TYPE_ITEM, 'Magic sword');
@@ -119,7 +124,6 @@ describe('Function: All small game features', function() {
         game.update(dropCmd);
         game.update(confirmKey);
         expect(p1Inv.getItems(), 'Two items after selling').to.have.length(2);
-
 
         //-------------------------------------
         // Fun starts after restoring
@@ -141,8 +145,8 @@ describe('Function: All small game features', function() {
         p1 = findActor(l1, {getName: 'Player1'});
         const hum = findActor(l1, {getName: 'humanoid'});
 
-        expect(sk.getBrain().getType()).to.equal('human');
-        expect(hum.getBrain().getType()).to.equal('rogue');
+        expect(sk.getBrain().getType(), 'Brain type OK').to.equal('human');
+        expect(hum.getBrain().getType(), 'Brain type OK').to.equal('rogue');
 
         const inv = p1.getInvEq();
         expect(inv.getInventory().getItems(), 'Player has one item')
