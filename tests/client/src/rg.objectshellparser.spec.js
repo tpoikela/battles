@@ -415,7 +415,13 @@ describe('It contains all game content info', function() {
         expect(objShell.damage).to.equal(10);
         expect(objShell.hp).to.equal(15);
         expect(objShell.defense).to.equal(20);
+    });
 
+    it('creates actors with type', () => {
+        const miner = parser.createActor('miner');
+        expect(miner.getType()).to.equal('human');
+        const json = miner.toJSON();
+        expect(json.type).to.equal('human');
     });
 
     it('can create actors with equipped items with count', () => {
@@ -434,9 +440,6 @@ describe('It contains all game content info', function() {
         const goblinSlinger = parser.createActor('goblin slinger');
         mem = goblinSlinger.getBrain().getMemory();
         expect(mem.isEnemy(fighter)).to.equal(true);
-
-        console.log(JSON.stringify(goblinSlinger));
-
     });
 
     it('also supports non-random shells', () => {
