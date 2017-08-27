@@ -90,7 +90,7 @@ RG.Brain.Memory = function() {
 
     this.toJSON = function() {
         const obj = {
-            enemies: _enemies.map(enemy => enemy.getID),
+            enemies: _enemies.map(enemy => enemy.getID()),
             enemyTypes: _enemyTypes
         };
         if (_lastAttackedID) {
