@@ -42,6 +42,7 @@ function findLevel(name, features, nLevel) {
     return null;
 }
 
+/* Does linear connection of levels to given direction. */
 function connectLevels(_levels) {
     const nLevels = _levels.length;
     const arrStairsDown = [];
@@ -146,6 +147,10 @@ const Stairs = RG.Element.Stairs;
 
 RG.World = {};
 
+//----------------
+// RG.World.Base
+//----------------
+
 /* Base class for world places. Each place has name and type + full hierarchical
 * name to trace where the place is in hierarchy. */
 RG.World.Base = function(name) {
@@ -173,6 +178,54 @@ RG.World.Base.prototype.setType = function(type) {
     this.type = type;
 };
 
+//---------------------
+// RG.World.FeatureBase
+//---------------------
+
+RG.World.FeatureBase = function(name) {
+    RG.World.Base.call(this, name);
+
+    this._subFeatures = [];
+
+    this.addSubFeature = function(subFeature) {
+        this._subFeatures.push(subFeature);
+    };
+
+    this.getLevels = function() {
+        let res = [];
+        this._subFeatures.forEach(subFeat => {
+            res = res.concat(subFeat.getLevels());
+        });
+        return res;
+    };
+
+    this.connectSubFeatures = function(s1Arg, s2Arg, l1, l2) {
+        connectSubFeatures(this._subFeatures, s1Arg, s2Arg, l1, l2);
+    };
+
+    this.findLevel = function(name, nLevel) {
+        const level = findLevel(name, this._subFeatures, nLevel);
+        return level;
+    };
+
+    /* Returns each entrance in each subfeature. */
+    this.getEntrances = function() {
+        const entrances = [];
+        this._subFeatures.forEach(q => {
+            const qEntr = q.getEntrance();
+            if (qEntr) {
+                entrances.push(qEntr);
+            }
+        });
+        return entrances;
+    };
+
+};
+RG.extend2(RG.World.FeatureBase, RG.World.Base);
+
+//------------------
+// RG.World.Branch
+//------------------
 /* World.Branch, is a branch of dungeon. A branch is linear
  * progression of connected levels (usually with increasing difficulty).
  * Branch can have
@@ -280,23 +333,18 @@ RG.extend2(RG.World.Branch, RG.World.Base);
 
 /* Dungeons is a collection of branches.*/
 RG.World.Dungeon = function(name) {
-    RG.World.Base.call(this, name);
+    RG.World.FeatureBase.call(this, name);
     this.setType('dungeon');
-    const _branches = [];
     let _entranceNames = [];
 
     /* Returns true if the dungeon has given branch.*/
     this.hasBranch = function(branch) {
-        const index = _branches.indexOf(branch);
+        const index = this._subFeatures.indexOf(branch);
         return index >= 0;
     };
 
     this.getBranches = function() {
-        return _branches;
-    };
-
-    this.findLevel = function(name, nLevel) {
-        return findLevel(name, _branches, nLevel);
+        return this._subFeatures;
     };
 
     /* Sets the entry branch(es) for the dungeon. */
@@ -312,11 +360,11 @@ RG.World.Dungeon = function(name) {
     /* Adds one branch to the dungeon. Returns true if OK. */
     this.addBranch = function(branch) {
         if (!this.hasBranch(branch)) {
-            _branches.push(branch);
+            this._subFeatures.push(branch);
             branch.setDungeon(this);
 
             // By default, have at least one entrance
-            if (_branches.length === 1) {
+            if (this._subFeatures.length === 1) {
                 this.setEntrance(branch.getName());
             }
             return true;
@@ -324,20 +372,12 @@ RG.World.Dungeon = function(name) {
         return false;
     };
 
-    /* Get all levels for this dungeon. */
-    this.getLevels = function() {
-        let res = [];
-        for (let i = 0; i < _branches.length; i++) {
-            res = res.concat(_branches[i].getLevels());
-        }
-        return res;
-    };
-
     /* Returns all entrances/exits for the dungeon.*/
     this.getEntrances = function() {
         const res = [];
-        for (let i = 0; i < _branches.length; i++) {
-            const branch = _branches[i];
+        const nSubFeats = this._subFeatures.length;
+        for (let i = 0; i < nSubFeats; i++) {
+            const branch = this._subFeatures[i];
             if (_entranceNames.indexOf(branch.getName()) >= 0) {
                 res.push(branch.getEntrance());
             }
@@ -348,22 +388,22 @@ RG.World.Dungeon = function(name) {
     /* Connects two branches b1 and b2 together from specified level
      * numbers l1 and l2. */
     this.connectBranches = function(b1Arg, b2Arg, l1, l2) {
-        connectSubFeatures(_branches, b1Arg, b2Arg, l1, l2);
+        connectSubFeatures(this._subFeatures, b1Arg, b2Arg, l1, l2);
     };
 
     this.toJSON = function() {
-        const obj = {
+        const obj2 = {
             name: this.getName(),
-            hierName: this.getHierName(),
+            type: this.getType(),
             entranceNames: this._entranceNames,
-            nBranches: _branches.length,
-            branch: _branches.map(br => br.toJSON())
+            nBranches: this._subFeatures.length,
+            branch: this._subFeatures.map(br => br.toJSON())
         };
-        return obj;
+        return obj2;
     };
 
 };
-RG.extend2(RG.World.Dungeon, RG.World.Base);
+RG.extend2(RG.World.Dungeon, RG.World.FeatureBase);
 
 /* Area-tile is a level which has entry/exit points on a number of edges.*/
 RG.World.AreaTile = function(x, y, area) {
@@ -621,11 +661,10 @@ RG.extend2(RG.World.Area, RG.World.Base);
  * special * tiles representing the summit.
  */
 RG.World.Mountain = function(name) {
-    RG.World.Base.call(this, name);
+    RG.World.FeatureBase.call(this, name);
     this.setType('mountain');
 
     const _summits = [];
-    const _faces = [];
 
 /* MountainFace, 5 stages:
         |       <- Summit
@@ -645,17 +684,10 @@ Summit is top-down view, while face is more of climbing,
 from-the-side view. Bit weird but should be fine.
 
 */
-    this.getLevels = function() {
-        let res = [];
-        _faces.forEach(face => {
-            res = res.concat(face.getLevels());
-
-        });
-        return res;
-    };
 
     this.findLevel = function(name, nLevel) {
-        const level = findLevel(name, _faces, nLevel);
+        const level = RG.World.FeatureBase.prototype.findLevel(
+            name, nLevel);
         if (level === null) {
             return findLevel(name, _summits, nLevel);
         }
@@ -667,15 +699,15 @@ from-the-side view. Bit weird but should be fine.
     };
 
     this.addFace = (face) => {
-        _faces.push(face);
+        this.addSubFeature(face);
     };
 
-    this.getFaces = () => _faces;
+    this.getFaces = () => this._subFeatures;
     this.getSummits = () => _summits;
 
     this.getEntrances = () => {
         const res = [];
-        _faces.forEach(face => {
+        this._subFeatures.forEach(face => {
             res.push(face.getEntrance());
         });
         return res;
@@ -684,29 +716,30 @@ from-the-side view. Bit weird but should be fine.
     /* Connects two faces b1 and b2 together from specified level
      * numbers l1 and l2. */
     this.connectFaces = function(f1Arg, f2Arg, l1, l2) {
-        connectSubFeatures(_faces, f1Arg, f2Arg, l1, l2);
+        connectSubFeatures(this._subFeatures, f1Arg, f2Arg, l1, l2);
     };
 
     this.connectFaceAndSummit = function(face, summit, l1, l2) {
-        const faceObj = _faces.find( f => f.getName() === face);
+        const faceObj = this._subFeatures.find(f => f.getName() === face);
         const summitObj = _summits.find(s => s.getName() === summit);
         connectSubFeatures([faceObj, summitObj], face, summit, l1, l2);
     };
 
-    this.toJSON = function() {
-        const obj = {
-            name: this.getName(),
-            hierName: this.getHierName(),
-            nFaces: _faces.length,
-            face: _faces.map(face => face.toJSON()),
-            nSummits: _summits.length,
-            summit: _summits.map(summit => summit.toJSON())
-        };
-        return obj;
-    };
 
 };
-RG.extend2(RG.World.Mountain, RG.World.Base);
+RG.extend2(RG.World.Mountain, RG.World.FeatureBase);
+
+RG.World.Mountain.prototype.toJSON = function() {
+    const obj = {
+        name: this.getName(),
+        type: this.getType(),
+        nFaces: this._subFeatures.length,
+        face: this._subFeatures.map(face => face.toJSON()),
+        nSummits: this.getSummits().length,
+        summit: this.getSummits().map(summit => summit.toJSON())
+    };
+    return obj;
+};
 
 /* One side (face) of the mountain. Each side consists of stages, of X by 1
  * Areas. This is also re-used as a mountain summit because internally it's the
@@ -812,40 +845,16 @@ RG.extend2(RG.World.MountainFace, RG.World.Base);
 /* A city in the world. A special features of the city can be queried through
 * this object. */
 RG.World.City = function(name) {
-    RG.World.Base.call(this, name);
+    RG.World.FeatureBase.call(this, name);
     this.setType('city');
-    const _quarters = [];
-
-    this.getLevels = function() {
-        let result = [];
-        _quarters.forEach(q => {
-            result = result.concat(q.getLevels());
-        });
-        return result;
-    };
-
-    this.findLevel = function(name, nLevel) {
-        return findLevel(name, _quarters, nLevel);
-    };
-
-    this.getEntrances = function() {
-        const entrances = [];
-        _quarters.forEach(q => {
-            const qEntr = q.getEntrance();
-            if (qEntr) {
-                entrances.push(qEntr);
-            }
-        });
-        return entrances;
-    };
 
     this.getQuarters = function() {
-        return _quarters;
+        return this._subFeatures;
     };
 
     this.addQuarter = function(quarter) {
         if (!RG.isNullOrUndef([quarter])) {
-            _quarters.push(quarter);
+            this._subFeatures.push(quarter);
         }
         else {
             RG.err('World.City', 'addQuarter',
@@ -856,28 +865,26 @@ RG.World.City = function(name) {
     this.toJSON = function() {
         const obj = {
             name: this.getName(),
+            type: this.getType(),
             hierName: this.getHierName(),
-            // nLevels: _levels.length,
-            // levels: _levels.map(level => level.getID()),
-            // entrances: _entrances,
-            nQuarters: _quarters.length,
-            quarter: _quarters.map(q => q.toJSON())
+            nQuarters: this._subFeatures.length,
+            quarter: this._subFeatures.map(q => q.toJSON())
         };
         return obj;
     };
 
     this.hasQuarter = function(q) {
-        const index = _quarters.indexOf(q);
+        const index = this._subFeatures.indexOf(q);
         return index >= 0;
     };
 
     /* Connects two city quarters together. */
     this.connectQuarters = function(q1Arg, q2Arg, l1, l2) {
-        connectSubFeatures(_quarters, q1Arg, q2Arg, l1, l2);
+        connectSubFeatures(this._subFeatures, q1Arg, q2Arg, l1, l2);
     };
 
 };
-RG.extend2(RG.World.City, RG.World.Base);
+RG.extend2(RG.World.City, RG.World.FeatureBase);
 
 /* City quarter is a subset of the City. It contains the actual level and
  * special features for that level. */
