@@ -382,7 +382,6 @@ describe('It contains all game content info', function() {
         expect(cell.getBaseElem().getType()).to.equal('wall');
         pickaxe.useItem({target: cell});
         expect(cell.getBaseElem().getType()).to.equal('floor');
-
     });
 
     it('can create gold coins', () => {
@@ -390,6 +389,17 @@ describe('It contains all game content info', function() {
         expect(goldcoin.getName()).to.equal('Gold coin');
         RGTest.checkChar(goldcoin, '$');
         RGTest.checkCSSClassName(goldcoin, 'cell-item-gold-coin');
+    });
+
+    it('can create stat-boosting potions', () => {
+        const potion = parser.createItem('Potion of agility');
+        const user = new RG.Actor.Rogue('user');
+        user.getInvEq().addItem(potion);
+        const cell = RGTest.wrapObjWithCell(user);
+        const agil = user.get('Stats').getAgility();
+        potion.useItem({target: cell});
+        const agilAfter = user.get('Stats').getAgility();
+        expect(agilAfter).to.be.above(agil);
     });
 
     it('suppors multiple base shells', () => {
@@ -439,10 +449,9 @@ describe('It contains all game content info', function() {
         const bossObj = parser.createActor('Unique boss');
         expect(bossObj.getName()).to.equal('Unique boss');
     });
-
 });
 
-describe('It has query functions for objects', function() {
+describe('Data query functions for objects', function() {
 
     let parser = null;
     before(() => {
