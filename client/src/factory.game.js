@@ -361,7 +361,6 @@ RG.Factory.Game = function() {
         });
     };
 
-
     /* Can be used to create a short debugging game for testing.*/
     this.createArenaDebugGame = function(obj, game, player) {
         const sqrPerItem = obj.sqrPerItem;
@@ -423,6 +422,9 @@ RG.Factory.Game = function() {
         const spiritPot = _parser.createActualObj(
             'items', 'Potion of spirit form');
         player.getInvEq().addItem(spiritPot);
+
+        const potStr = _parser.createItem('Potion of strength');
+        player.getInvEq().addItem(potStr);
 
         const winCond = new RG.Game.WinCondition('Kill a keeper');
         winCond.addActorKilled(keeper);
