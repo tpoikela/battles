@@ -342,6 +342,7 @@ RG.Component.Stats = function() {
     let _agility = 5;
     let _strength = 5;
     let _willpower = 5;
+    let _perception = 5;
     let _speed = 100;
 
     /* These determine the chance of hitting. */
@@ -353,6 +354,8 @@ RG.Component.Stats = function() {
     this.getStrength = function() {return _strength;};
     this.setWillpower = function(wp) {_willpower = wp;};
     this.getWillpower = function() {return _willpower;};
+    this.setPerception = function(per) {_perception = per;};
+    this.getPerception = function() {return _perception;};
 
     this.setSpeed = function(speed) {_speed = speed;};
     this.getSpeed = function() {return _speed;};
@@ -372,6 +375,7 @@ RG.Component.Stats.prototype.copy = function(rhs) {
     this.setStrength(rhs.getStrength());
     this.setWillpower(rhs.getWillpower());
     this.setSpeed(rhs.getSpeed());
+    this.setPerception(rhs.getPerception());
 };
 
 RG.Component.Stats.prototype.equals = function(rhs) {
@@ -381,6 +385,7 @@ RG.Component.Stats.prototype.equals = function(rhs) {
     res = res && this.getStrength() === rhs.getStrength();
     res = res && this.getWillpower() === rhs.getWillpower();
     res = res && this.getSpeed() === rhs.getSpeed();
+    res = res && this.getPerception() === rhs.getPerception();
     return res;
 };
 
@@ -390,6 +395,7 @@ RG.Component.Stats.prototype.toString = function() {
     if (this.getAgility()) {txt += ' ,Agi: ' + this.getAgility();}
     if (this.getStrength()) {txt += ' ,Str: ' + this.getStrength();}
     if (this.getWillpower()) {txt += ' ,Wil: ' + this.getWillpower();}
+    if (this.getPerception()) {txt += ' ,Per: ' + this.getPerception();}
     return txt;
 };
 
@@ -403,6 +409,7 @@ RG.Component.StatsMods = function() {
     this.setAgility(0);
     this.setStrength(0);
     this.setWillpower(0);
+    this.setPerception(0);
     this.setSpeed(0);
 };
 RG.extend2(RG.Component.StatsMods, RG.Component.Stats);
