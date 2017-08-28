@@ -911,6 +911,10 @@ RG.World.CityQuarter = function(name) {
     let _entrance = null;
     let _numCount = 1;
 
+    const _shops = [];
+    this.addShop = shop => _shops.push(shop);
+    this.getShops = () => _shops;
+
     this.getLevels = () => (_levels);
 
     this.addLevel = function(level) {
@@ -973,7 +977,8 @@ RG.World.CityQuarter = function(name) {
             name: this.getName(),
             hierName: this.getHierName(),
             nLevels: _levels.length,
-            levels: _levels.map(level => level.getID())
+            levels: _levels.map(level => level.getID()),
+            shops: _shops.map(shop => shop.toJSON())
         };
         if (_entrance) {
             obj.entrance = _entrance;
@@ -1048,25 +1053,92 @@ RG.extend2(RG.World.Top, RG.World.Base);
 //---------------------------------------------------------------------------
 
 RG.World.Shop = function() {
-    this._keeperID = null;
-    this._levelID = null;
+    this._shopkeeper = null;
+    this._level = null;
     this._coord = [];
+    this._isAbandoned = false;
+
+    this.setLevel = function(level) {
+        this._level = level;
+    };
+
+    this.getLevel = () => this._level;
+
+    this.setCoord = function(coord) {
+        this._coord = coord;
+    };
 
     this.hasNotify = true;
     this.notify = function(evtName, args) {
-        if (args.actor.getID() === this._keeperID) {
-            this.setShopAbandoned();
+        if (this._shopkeeper) {
+            if (args.actor.getID() === this._shopkeeper.getID()) {
+                console.log('Abandoning the shop now.');
+                this.setShopAbandoned();
+            }
         }
     };
     RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
 };
 
-RG.World.Shop.prototype.setShopAbandoned = function() {
-
+RG.World.Shop.prototype.getShopkeeper = function() {
+    return this._shopkeeper;
 };
 
-RG.World.Shop.prototype.refreshShopItems = function() {
+RG.World.Shop.prototype.setShopkeeper = function(keeper) {
+    this._shopkeeper = keeper;
+};
 
+RG.World.Shop.prototype.setShopAbandoned = function() {
+    this._isAbandoned = true;
+    this._shopkeeper = null;
+    this._coord.forEach(xy => {
+        const cell = this._level.getMap().getCell(xy[0], xy[1]);
+        const items = cell.getItems();
+        const shop = cell.getShop();
+        items.forEach(item => {
+            console.log('Abandon shop at ' + xy[0] + ',' + xy[1]);
+            shop.abandonShop(item);
+        });
+    });
+};
+
+RG.World.Shop.prototype.reclaimShop = function() {
+    // TODO
+};
+
+/* Get empty cells of the shop (no items in cells). */
+RG.World.Shop.prototype.emptyCells = function() {
+    const result = [];
+    this._coord.forEach(xy => {
+        const cell = this._level.getMap().getCell(xy[0], xy[1]);
+        if (!cell.hasItems()) {
+            result.push(cell);
+        }
+    });
+    return result;
+};
+
+/* Adds new items to the empty cells of the shop. */
+RG.World.Shop.prototype.refreshShopItems = function(newItems) {
+    let nItem = 0;
+    this._coord.forEach(xy => {
+        const cell = this._level.getMap().getCell(xy[0], xy[1]);
+        if (!cell.hasItems()) {
+            if (nItem < newItems.length) {
+                newItems[nItem].add('Unpaid', new RG.Component.Unpaid());
+                this._level.addItem(newItems[nItem], xy[0], xy[1]);
+                ++nItem;
+            }
+        }
+    });
+};
+
+RG.World.Shop.prototype.toJSON = function() {
+    return {
+        isAbandoned: this._isAbandoned,
+        shopkeeper: this._shopkeeper
+
+    };
 };
 
 module.exports = RG.World;
