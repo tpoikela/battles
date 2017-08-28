@@ -1347,7 +1347,7 @@ RG.Factory.World = function() {
             tileStairsY = conf.levelY;
         }
 
-        if (feature.hasOwnProperty('getEntrances')) {
+        if (typeof feature.getEntrances === 'function') {
             const entrances = feature.getEntrances();
             if (entrances.length > 0) {
                 const entranceStairs = entrances[0];
