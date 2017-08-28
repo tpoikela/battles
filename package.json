@@ -39,7 +39,8 @@
     "mocha": "~3.1",
     "mocha-istanbul": "*",
     "node-localstorage": "~1.3.0",
-    "sass-lint": "^1.10.2"
+    "sass-lint": "^1.10.2",
+    "serial-mocha": "0.0.4"
   },
   "contributors": [
     "Tuomas Poikela <tuomas.sakari.poikela@gmail.com>"
@@ -59,7 +60,7 @@
     "hooks": "perl bin/deploy_hooks",
     "start": "python -m SimpleHTTPServer",
     "test": "mocha --recursive tests/client/src",
-    "test:functional": "mocha --recursive tests/client/functional/",
+    "test:functional": "./serial-mocha tests/client/functional/*.js",
     "test:gui": "mocha --recursive tests/client/gui",
     "test:all": "npm run test && npm run test:gui && npm run test:functional"
   },
