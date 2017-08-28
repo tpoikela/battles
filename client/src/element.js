@@ -214,10 +214,15 @@ RG.Element.Shop = function() {
     this._shopkeeper = null;
     this._costFactorSell = 1.0;
     this._costFactorBuy = 0.5;
+    this._isAbandoned = false;
 
 };
 RG.extend2(RG.Element.Shop, RG.Element.Base);
 RG.extend2(RG.Element.Shop, RG.Object.Locatable);
+
+RG.Element.Shop.prototype.isAbandoned = function() {
+    return this._isAbandoned;
+};
 
 /* Returns the price in gold coins for item in the cell.*/
 RG.Element.Shop.prototype.getItemPriceForBuying = function(item) {
@@ -317,6 +322,14 @@ RG.Element.Shop.prototype.sellItem = function(item, seller) {
     return false;
 };
 
+RG.Element.Shop.prototype.abandonShop = function(item) {
+    this._shopkeeper = null;
+    this._isAbandoned = true;
+    if (item.has('Unpaid')) {
+        item.remove('Unpaid');
+    }
+};
+
 /* Sets the shopkeeper.*/
 RG.Element.Shop.prototype.setShopkeeper = function(keeper) {
     if (!RG.isNullOrUndef([keeper])) {
@@ -360,12 +373,16 @@ RG.Element.Shop.prototype.toJSON = function() {
     if (this._shopkeeper) {
         shopkeeperID = this._shopkeeper.getID();
     }
-    return {
+    const obj = {
         type: 'shop',
+        isAbandoned: this._isAbandoned,
         costFactorSell: this._costFactorSell,
-        costFactorBuy: this._costFactorBuy,
-        shopkeeper: shopkeeperID
+        costFactorBuy: this._costFactorBuy
     };
+    if (shopkeeperID !== null) {
+        obj.shopkeeper = shopkeeperID;
+    }
+    return obj;
 };
 
 /* A tree element. */
