@@ -40,6 +40,9 @@ RG.Map.Cell.prototype.getBaseElem = function() { return this._baseElem; };
 RG.Map.Cell.prototype.hasActors = function() {return this.hasProp('actors');};
 RG.Map.Cell.prototype.getActors = function() {return this.getProp('actors');};
 
+RG.Map.Cell.prototype.hasItems = function() {return this.hasProp('items');};
+RG.Map.Cell.prototype.getItems = function() {return this.getProp('items');};
+
 /* Returns true if cell has any props. */
 RG.Map.Cell.prototype.hasProps = function() {
     return Object.keys(this._p).length > 0;
@@ -57,6 +60,10 @@ RG.Map.Cell.prototype.hasPassage = function() {
 
 RG.Map.Cell.prototype.hasShop = function() {
     return this.hasPropType('shop');
+};
+
+RG.Map.Cell.prototype.getShop = function() {
+    return this.getPropType('shop')[0];
 };
 
 RG.Map.Cell.prototype.hasDoor = function() {
