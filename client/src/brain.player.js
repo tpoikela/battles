@@ -189,8 +189,17 @@ const BrainPlayer = function(actor) {
                 cmdType = 'PICKUP';
                 if (currCell.hasProp('items')) {
                     if (currCell.hasShop()) {
-                        _createBuyConfirmCallback(currCell);
-                        return this.noAction();
+                        const shop = currCell.getShop();
+                        if (!shop.isAbandoned()) {
+                            _createBuyConfirmCallback(currCell);
+                            return this.noAction();
+                        }
+                        else {
+                            this.energy = RG.energy.PICKUP;
+                            return function() {
+                                level.pickupItem(_actor, x, y);
+                            };
+                        }
                     }
                     else {
                         this.energy = RG.energy.PICKUP;
