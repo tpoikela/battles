@@ -32,12 +32,21 @@ GetOptions(
 clean_cov() if defined $opt{clean};
 
 my $exclude = '-x "**/rot.js"';
-my $source = "tests/client/**/*.js";
+my $source = "tests/client/**/*.spec.js";
+my $serial_src = "tests/client/functional/*.js";
+my $serial_mocha = "node_modules/serial-mocha/bin/cli.js";
 
+print STDERR "Running coverage for unit tests.\n";
 my $cmd = "";
 $cmd = "istanbul cover $exclude node_modules/.bin/_mocha $source";
 system($cmd);
 
+# TODO does not work at the moment, reports only "no coverage collected"
+#print STDERR "Running coverage for functional tests.\n";
+#$cmd = "istanbul cover $exclude $serial_mocha $serial_src";
+#system($cmd);
+
+print STDERR "Now producing the coverage report.\n";
 system("istanbul report --root coverage html");
 
 sub clean_cov {
