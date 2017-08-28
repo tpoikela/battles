@@ -273,7 +273,6 @@ RG.Factory.Game = function() {
     };
 
     this.createWorldWithCreator = function(obj, game, player) {
-        console.log('Creating world with creator!');
         const creator = new Creator();
 
         const conf = {name: 'World', worldSize: 'Small',
