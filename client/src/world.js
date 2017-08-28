@@ -139,7 +139,6 @@ function connectSubFeatures(features, q1Arg, q2Arg, l1, l2) {
 
 }
 
-
 const RG = require('./rg.js');
 RG.Factory = require('./factory');
 
@@ -184,53 +183,54 @@ RG.World.Base.prototype.setType = function(type) {
 
 RG.World.FeatureBase = function(name) {
     RG.World.Base.call(this, name);
-
     this._subFeatures = [];
 
-    this.addSubFeature = function(subFeature) {
-        if (!RG.isNullOrUndef([subFeature])) {
-            this._subFeatures.push(subFeature);
-            return true;
-        }
-        return false;
-    };
-
-    this.hasSubFeature = function(subFeature) {
-        const index = this._subFeatures.indexOf(subFeature);
-        return index >= 0;
-    };
-
-    this.getLevels = function() {
-        let res = [];
-        this._subFeatures.forEach(subFeat => {
-            res = res.concat(subFeat.getLevels());
-        });
-        return res;
-    };
-
-    this.connectSubFeatures = function(s1Arg, s2Arg, l1, l2) {
-        connectSubFeatures(this._subFeatures, s1Arg, s2Arg, l1, l2);
-    };
-
-    this.findLevel = function(name, nLevel) {
-        const level = findLevel(name, this._subFeatures, nLevel);
-        return level;
-    };
-
-    /* Returns each entrance in each subfeature. */
-    this.getEntrances = function() {
-        const entrances = [];
-        this._subFeatures.forEach(q => {
-            const qEntr = q.getEntrance();
-            if (qEntr) {
-                entrances.push(qEntr);
-            }
-        });
-        return entrances;
-    };
 
 };
 RG.extend2(RG.World.FeatureBase, RG.World.Base);
+
+RG.World.FeatureBase.prototype.addSubFeature = function(subFeature) {
+    if (!RG.isNullOrUndef([subFeature])) {
+        this._subFeatures.push(subFeature);
+        return true;
+    }
+    return false;
+};
+
+RG.World.FeatureBase.prototype.hasSubFeature = function(subFeature) {
+    const index = this._subFeatures.indexOf(subFeature);
+    return index >= 0;
+};
+
+RG.World.FeatureBase.prototype.getLevels = function() {
+    let res = [];
+    this._subFeatures.forEach(subFeat => {
+        res = res.concat(subFeat.getLevels());
+    });
+    return res;
+};
+
+RG.World.FeatureBase.prototype.connectSubFeatures = function(
+    s1Arg, s2Arg, l1, l2) {
+    connectSubFeatures(this._subFeatures, s1Arg, s2Arg, l1, l2);
+};
+
+RG.World.FeatureBase.prototype.findLevel = function(name, nLevel) {
+    const level = findLevel(name, this._subFeatures, nLevel);
+    return level;
+};
+
+/* Returns each entrance in each subfeature. */
+RG.World.FeatureBase.prototype.getEntrances = function() {
+    const entrances = [];
+    this._subFeatures.forEach(q => {
+        const qEntr = q.getEntrance();
+        if (qEntr) {
+            entrances.push(qEntr);
+        }
+    });
+    return entrances;
+};
 
 //------------------
 // RG.World.Branch
@@ -962,6 +962,9 @@ RG.World.CityQuarter = function(name) {
 };
 RG.extend2(RG.World.CityQuarter, RG.World.Base);
 
+//-----------------------------
+// RG.World.World
+//-----------------------------
 /* Largest place at the top of hierarchy. Contains a number of areas,
  * mountains, dungeons and cities. */
 RG.World.World = function(name) {
