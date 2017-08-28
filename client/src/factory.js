@@ -883,7 +883,7 @@ RG.Factory.World = function() {
             this.setGlobalConf({});
         }
         this.pushScope(conf);
-        const world = new RG.World.World(conf.name);
+        const world = new RG.World.Top(conf.name);
         for (let i = 0; i < conf.nAreas; i++) {
             const areaConf = conf.area[i];
             const area = this.createArea(areaConf);
