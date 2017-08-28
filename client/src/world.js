@@ -184,8 +184,6 @@ RG.World.Base.prototype.setType = function(type) {
 RG.World.FeatureBase = function(name) {
     RG.World.Base.call(this, name);
     this._subFeatures = [];
-
-
 };
 RG.extend2(RG.World.FeatureBase, RG.World.Base);
 
@@ -230,6 +228,26 @@ RG.World.FeatureBase.prototype.getEntrances = function() {
         }
     });
     return entrances;
+};
+
+//--------------------------
+// RG.World.SubFeatureBase
+//--------------------------
+/* Base class for branches, quarters and mountain faces. Mostly has logic to
+ * manipulate level features like shops, armorers etc.
+ */
+RG.World.SubFeatureBase = function(name) {
+    RG.World.Base.call(this, name);
+    this._levelFeatures = new Map();
+};
+RG.extend2(RG.World.SubFeatureBase, RG.World.Base);
+
+RG.World.SubFeatureBase.prototype.addLevelFeature = function(feat) {
+    const type = feat.getType();
+    if (!this._levelFeatures.has(type)) {
+        this._levelFeatures[type] = [];
+    }
+    this._levelFeatures[type].push(feat);
 };
 
 //------------------
@@ -881,6 +899,9 @@ RG.World.City = function(name) {
 };
 RG.extend2(RG.World.City, RG.World.FeatureBase);
 
+//-----------------------------
+// RG.World.CityQuarter
+//-----------------------------
 /* City quarter is a subset of the City. It contains the actual level and
  * special features for that level. */
 RG.World.CityQuarter = function(name) {
@@ -963,11 +984,11 @@ RG.World.CityQuarter = function(name) {
 RG.extend2(RG.World.CityQuarter, RG.World.Base);
 
 //-----------------------------
-// RG.World.World
+// RG.World.Top
 //-----------------------------
 /* Largest place at the top of hierarchy. Contains a number of areas,
  * mountains, dungeons and cities. */
-RG.World.World = function(name) {
+RG.World.Top = function(name) {
     RG.World.Base.call(this, name);
     this.setType('world');
 
@@ -994,7 +1015,7 @@ RG.World.World = function(name) {
                 _allLevels[id] = level;
             }
             else {
-                RG.err('World.World', 'addLevels',
+                RG.err('World.Top', 'addLevels',
                     `Level ID ${id} already exists.`);
             }
         });
@@ -1020,6 +1041,32 @@ RG.World.World = function(name) {
         };
     };
 };
-RG.extend2(RG.World.World, RG.World.Base);
+RG.extend2(RG.World.Top, RG.World.Base);
+
+//---------------------------------------------------------------------------
+// LEVEL FEATURES
+//---------------------------------------------------------------------------
+
+RG.World.Shop = function() {
+    this._keeperID = null;
+    this._levelID = null;
+    this._coord = [];
+
+    this.hasNotify = true;
+    this.notify = function(evtName, args) {
+        if (args.actor.getID() === this._keeperID) {
+            this.setShopAbandoned();
+        }
+    };
+    RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
+};
+
+RG.World.Shop.prototype.setShopAbandoned = function() {
+
+};
+
+RG.World.Shop.prototype.refreshShopItems = function() {
+
+};
 
 module.exports = RG.World;
