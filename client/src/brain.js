@@ -592,4 +592,37 @@ RG.Brain.Archer = function(actor) {
 };
 RG.extend2(RG.Brain.Archer, RG.Brain.Rogue);
 
+/* Brain object for spellcasting actors. This model focuses on aggressive
+ * spellcasting intended to harm opponents. */
+RG.Brain.SpellCaster = function(actor) {
+    RG.Brain.Rogue.call(this, actor);
+    const _actor = actor;
+
+    this.decideNextAction = function() {
+        this._seenCached = null;
+        return BTree.startBehavTree(Models.SpellCaster.tree, _actor)[0];
+    };
+
+    /* Returns true if spellcaster can cast a spell. */
+    this.canCastSpell = function() {
+
+    };
+
+    /* Returns true if spellcaster can cast a spell. */
+    this.shouldCastSpell = function() {
+        // Obviously too complex, things to take into account:
+        // 1. Distance from enemy
+        // 2. Direction of enemy (straight line)
+        // 3. Damages to allies
+    };
+
+    /* Casts a spell. */
+    this.castSpell = function() {
+
+    };
+
+};
+RG.extend2(RG.Brain.SpellCaster, RG.Brain.Rogue);
+
+
 module.exports = RG.Brain;
