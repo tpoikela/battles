@@ -75,7 +75,12 @@ RG.Brain.Memory = function() {
     };
 
     this.setLastAttacked = function(actor) {
-        _lastAttackedID = actor.getID();
+        if (actor) {
+            _lastAttackedID = actor.getID();
+        }
+        else {
+            _lastAttackedID = null;
+        }
     };
 
     this.wasLastAttacked = function(actor) {
