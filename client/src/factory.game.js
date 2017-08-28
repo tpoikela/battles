@@ -405,7 +405,6 @@ RG.Factory.Game = function() {
         shopElem.setShopkeeper(keeper);
 
         const numFree = level.getMap().getFree().length;
-        // const actorsPerLevel = Math.round(numFree / sqrPerActor);
         const itemsPerLevel = Math.round(numFree / sqrPerItem);
 
         const itemConf = {
@@ -417,8 +416,6 @@ RG.Factory.Game = function() {
         };
         this.addNRandItems(level, _parser, itemConf);
 
-        // const pepper = _parser.createActualObj('items', 'Ghost pepper');
-        // player.getInvEq().addItem(pepper);
         const spiritPot = _parser.createActualObj(
             'items', 'Potion of spirit form');
         player.getInvEq().addItem(spiritPot);
@@ -573,7 +570,8 @@ RG.Factory.Game = function() {
     /* eslint-enable */
 
     this.createLastBattle = function(game, obj) {
-        const levelConf = RG.Factory.cityConfBase(_parser);
+        const levelConf = RG.Factory.cityConfBase({});
+        levelConf.parser = _parser;
         const level = this.createLevel('town', obj.cols, obj.rows, levelConf);
         _listener = new DemonKillListener(game, level);
 
