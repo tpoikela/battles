@@ -308,7 +308,9 @@ RG.Factory.Base = function() { // {{{2
 
             const usedHouses = [];
             let watchDog = 0;
+            level.shops = [];
             for (let n = 0; n < conf.nShops; n++) {
+                const shopObj = new RG.World.Shop();
 
                 // Find the next (unused) index for a house
                 let index = RG.RAND.randIndex(houses);
@@ -331,6 +333,8 @@ RG.Factory.Base = function() { // {{{2
                 const gold = new RG.Item.GoldCoin('Gold coin');
                 gold.count = 100;
                 keeper.getInvEq().addItem(gold);
+
+                const shopCoord = [];
                 for (let i = 0; i < floor.length; i++) {
                     const xy = floor[i];
                     if (i === 0) {level.addActor(keeper, xy[0], xy[1]);}
@@ -339,28 +343,7 @@ RG.Factory.Base = function() { // {{{2
                     level.addElement(shopElem, xy[0], xy[1]);
 
                     if (conf.hasOwnProperty('parser')) {
-                        let item = null;
-                        if (conf.shopFunc) {
-                            if (typeof conf.shopFunc[n] === 'function') {
-                                item = conf.parser.createRandomItem({
-                                    func: conf.shopFunc[n]
-                                });
-                            }
-                            else {
-                                RG.err('Factory.Base', 'createShop',
-                                    'shopFunc must be a function.');
-                            }
-                        }
-                        else if (Array.isArray(conf.shopType)) {
-                            item = conf.parser.createRandomItem({
-                                func: item => item.type === conf.shopType[n]
-                            });
-                        }
-                        else if (typeof conf.shopType === 'string') {
-                            item = conf.parser.createRandomItem({
-                                func: item => item.type === conf.shopType
-                            });
-                        }
+                        const item = this.getShopItem(n, conf);
 
                         if (!item) {
                             const msg = 'item null. ' +
@@ -371,14 +354,48 @@ RG.Factory.Base = function() { // {{{2
                         else {
                             item.add('Unpaid', new RG.Component.Unpaid());
                             level.addItem(item, xy[0], xy[1]);
+                            shopCoord.push(xy);
                         }
                     }
                 }
+
+                shopObj.setShopkeeper(keeper);
+                shopObj.setLevel(level);
+                shopObj.setCoord(shopCoord);
+                level.shops.push(shopObj);
             }
         }
         else {
             RG.err('Factory.Base', 'createShops', 'No houses in mapObj.');
         }
+
+    };
+
+    /* Returns a shop item based on the configuration. */
+    this.getShopItem = function(n, conf) {
+        let item = null;
+        if (conf.shopFunc) {
+            if (typeof conf.shopFunc[n] === 'function') {
+                item = conf.parser.createRandomItem({
+                    func: conf.shopFunc[n]
+                });
+            }
+            else {
+                RG.err('Factory.Base', 'createShop -> getShopItem',
+                    'shopFunc must be a function.');
+            }
+        }
+        else if (Array.isArray(conf.shopType)) {
+            item = conf.parser.createRandomItem({
+                func: item => item.type === conf.shopType[n]
+            });
+        }
+        else if (typeof conf.shopType === 'string') {
+            item = conf.parser.createRandomItem({
+                func: item => item.type === conf.shopType
+            });
+        }
+        return item;
     };
 
     /* Creates a randomized level for the game. Danger level controls how the
@@ -1301,6 +1318,11 @@ RG.Factory.World = function() {
             let level = null;
             if (!this.id2levelSet) {
                 level = this.featureFactory.createCityLevel(i, cityLevelConf);
+                if (level.shops) {
+                    level.shops.forEach(shop => {
+                        quarter.addShop(shop);
+                    });
+                }
             }
             else {
                 const id = conf.levels[i];
