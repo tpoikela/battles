@@ -175,7 +175,7 @@ RG.OverWorld.SubLevel = function(level) {
  */
 RG.OverWorld.createOverWorld = function(conf = {}) {
     const overworld = OW.createOverWorld(conf);
-    return RG.createOverWorldLevel(overworld, conf);
+    return RG.OverWorld.createOverWorldLevel(overworld, conf);
 };
 
 RG.OverWorld.createOverWorldLevel = function(overworld, conf) {
@@ -189,10 +189,10 @@ RG.OverWorld.createOverWorldLevel = function(overworld, conf) {
     const xMap = Math.floor(worldX / overworld.getSizeX());
     const yMap = Math.floor(worldY / overworld.getSizeY());
 
-    const worldLevel = createOverWorldLevel(
+    const worldLevelAndConf = createOverWorldLevel(
         overworld, worldX, worldY, xMap, yMap, areaX, areaY);
 
-    return worldLevel;
+    return worldLevelAndConf;
 
 };
 
@@ -488,15 +488,29 @@ function addTowerToSubLevel(feat, owSubLevel, subLevel) {
     let placed = false;
     const freeCells = subLevel.getMap().getFree();
     const freeXY = freeCells.map(cell => [cell.getX(), cell.getY()]);
-    const coord = [];
+    let coord = [];
 
-    if (RG.Geometry.getFreeArea(freeXY, 3, 3, coord)) {
-        placed = true;
+    let watchdog = 0;
+    while (coord.length !== 9) {
+        if (RG.Geometry.getFreeArea(freeXY, 3, 3, coord)) {
+            placed = true;
+        }
+        if (coord.length < 9) {
+            console.log('addTowerToSubLevel. Too few coords. Retrying.');
+            placed = false;
+            coord = [];
+        }
+        if (watchdog === 100) {
+            break;
+        }
+        ++watchdog;
     }
 
     const type = feat === OW.BTOWER ? 'blacktower' : 'whitetower';
 
     if (placed) {
+        console.log('addTowerToSubLevel feat placed with ' +
+            JSON.stringify(coord));
         subLevel.getMap().setBaseElems(coord, RG.ELEM.FORT);
         const tower = new RG.OverWorld.SubFeature(type, coord);
         tower.alignment = getAlignment(feat);
@@ -774,7 +788,12 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
     const {xMap, yMap, nSubLevelsX, nSubLevelsY,
         x, y, slX, slY, aX, aY, subX, subY} = coordObj;
     const coord = feat.coord;
+
     const xy = coord[7];
+    if (RG.isNullOrUndef([xy])) {
+        const msg = 'xy null/undef. feat: ' + JSON.stringify(feat);
+        RG.err('overworld.js', 'addBlackTowerConfToArea', msg);
+    }
     const featX = mapX(xy[0], slX, subX);
     const featY = mapY(xy[1], slY, subY);
     const tName = 'Elder raventhrone';
