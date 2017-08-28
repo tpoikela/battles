@@ -188,7 +188,16 @@ RG.World.FeatureBase = function(name) {
     this._subFeatures = [];
 
     this.addSubFeature = function(subFeature) {
-        this._subFeatures.push(subFeature);
+        if (!RG.isNullOrUndef([subFeature])) {
+            this._subFeatures.push(subFeature);
+            return true;
+        }
+        return false;
+    };
+
+    this.hasSubFeature = function(subFeature) {
+        const index = this._subFeatures.indexOf(subFeature);
+        return index >= 0;
     };
 
     this.getLevels = function() {
@@ -339,8 +348,7 @@ RG.World.Dungeon = function(name) {
 
     /* Returns true if the dungeon has given branch.*/
     this.hasBranch = function(branch) {
-        const index = this._subFeatures.indexOf(branch);
-        return index >= 0;
+        return this.hasSubFeature(branch);
     };
 
     this.getBranches = function() {
@@ -705,14 +713,6 @@ from-the-side view. Bit weird but should be fine.
     this.getFaces = () => this._subFeatures;
     this.getSummits = () => _summits;
 
-    this.getEntrances = () => {
-        const res = [];
-        this._subFeatures.forEach(face => {
-            res.push(face.getEntrance());
-        });
-        return res;
-    };
-
     /* Connects two faces b1 and b2 together from specified level
      * numbers l1 and l2. */
     this.connectFaces = function(f1Arg, f2Arg, l1, l2) {
@@ -724,7 +724,6 @@ from-the-side view. Bit weird but should be fine.
         const summitObj = _summits.find(s => s.getName() === summit);
         connectSubFeatures([faceObj, summitObj], face, summit, l1, l2);
     };
-
 
 };
 RG.extend2(RG.World.Mountain, RG.World.FeatureBase);
@@ -853,13 +852,19 @@ RG.World.City = function(name) {
     };
 
     this.addQuarter = function(quarter) {
-        if (!RG.isNullOrUndef([quarter])) {
-            this._subFeatures.push(quarter);
-        }
-        else {
+        if (!this.addSubFeature(quarter)) {
             RG.err('World.City', 'addQuarter',
                 `City ${this.getName()} quarter not defined.`);
         }
+    };
+
+    this.hasQuarter = function(q) {
+        return this.hasSubFeature(q);
+    };
+
+    /* Connects two city quarters together. */
+    this.connectQuarters = function(q1Arg, q2Arg, l1, l2) {
+        connectSubFeatures(this._subFeatures, q1Arg, q2Arg, l1, l2);
     };
 
     this.toJSON = function() {
@@ -871,16 +876,6 @@ RG.World.City = function(name) {
             quarter: this._subFeatures.map(q => q.toJSON())
         };
         return obj;
-    };
-
-    this.hasQuarter = function(q) {
-        const index = this._subFeatures.indexOf(q);
-        return index >= 0;
-    };
-
-    /* Connects two city quarters together. */
-    this.connectQuarters = function(q1Arg, q2Arg, l1, l2) {
-        connectSubFeatures(this._subFeatures, q1Arg, q2Arg, l1, l2);
     };
 
 };
