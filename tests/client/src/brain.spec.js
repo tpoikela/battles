@@ -251,7 +251,6 @@ describe('RG.Brain.Rogue', function() {
             const rogueX = rogue.getX();
             const rogueY = rogue.getY();
             currDist = RG.shortestDist(rogueX, rogueY, 1, 1);
-            console.log(`x: ${rogueX} y: ${rogueY} dist: ${currDist}`);
             expect(currDist).to.be.above(prevDist);
             prevDist = currDist;
         }

@@ -30,7 +30,5 @@ describe('OW.Map', () => {
 
         const features = ow.getFeaturesByType(OW.WCAPITAL);
         expect(features).to.have.length(1);
-
-        console.log(ow.mapToString());
     });
 });
