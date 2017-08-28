@@ -228,9 +228,11 @@ OW.createOverWorld = function(conf = {}) {
         connectUnconnectedBottomTop(owMap, yFirst);
     }
 
-    if (conf.printResult) {printMap(owMap);}
+    if (conf.printResult) {
+        printMap(owMap);
+    }
     overworld.setMap(owMap);
-    addOverWorldFeatures(overworld);
+    addOverWorldFeatures(overworld, conf);
 
     // High-level overworld generation ends here
 
@@ -329,6 +331,10 @@ OW.Map = function() {
 
     this.getSubLevel = function(xy) {
         return this._subLevels[xy[0]][xy[1]];
+    };
+
+    this.getAreaXY = function() {
+        return this.getSizeX() * this.getSizeY();
     };
 
     this.getSizeX = function() {
@@ -684,10 +690,13 @@ function printMap(map) {
 /* Adds features like water, cities etc into the world. This feature only
  * designates the x,y coordinate on overworld map, but does not give details
  * for the Map.Level sublevels. */
-function addOverWorldFeatures(ow) {
+function addOverWorldFeatures(ow, conf) {
     const sizeX = ow.getSizeX();
     const sizeY = ow.getSizeY();
-
+    const area = sizeX * sizeY;
+    const nDungeonsSouth = conf.nDungeonsSouth || Math.floor(area / 40);
+    const nDungeonsCenter = conf.nDungeonsCenter || Math.floor(area / 80);
+    const nDungeonsNorth = conf.nDungeonsNorth || Math.floor(area / 80);
     // Add final tower
     addFeatureToAreaByDir(ow, 'NE', 0.5, OW.BTOWER);
 
@@ -717,9 +726,10 @@ function addOverWorldFeatures(ow) {
     // Create forests and lakes (sort of done in sub-level generation)
 
     // Distribute dungeons
-    addDungeonsToOverWorld(ow, 40, bBox(1, sizeY - 2, sizeX - 2, sizeY - 10));
-    addDungeonsToOverWorld(ow, 10, cmdBetweenHWalls);
-    addDungeonsToOverWorld(ow, 20, cmdAboveNorthWall);
+    const bBoxSouth = bBox(1, sizeY - 2, sizeX - 2, sizeY - 10);
+    addDungeonsToOverWorld(ow, nDungeonsSouth, bBoxSouth);
+    addDungeonsToOverWorld(ow, nDungeonsCenter, cmdBetweenHWalls);
+    addDungeonsToOverWorld(ow, nDungeonsNorth, cmdAboveNorthWall);
 
     // Distribute mountains
 
