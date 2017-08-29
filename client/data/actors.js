@@ -226,7 +226,7 @@ const Actors = [
         name: 'Cryomancer', base: 'WinterBeingBase', char: '@',
         type: 'human', enemies: ['player', 'human'],
         attack: 4, defense: 4, damage: '1d6', range: 1, hp: 30,
-        danger: 5, spells: ['Frost bolt'], maxPP: 22, pp: 21,
+        danger: 5, spells: ['FrostBolt'], maxPP: 22, pp: 21,
         brain: 'SpellCaster'
     },
     {
@@ -386,8 +386,8 @@ const Actors = [
     },
     {
         name: 'Thabba, Son of Ice', base: 'UniqueBase',
-        char: '@', danger: 100,
-        spells: ['Frost bolt'], pp: 100, brain: 'SpellCaster',
+        char: '@', danger: 100, enemies: ['human'],
+        spells: ['FrostBolt'], pp: 100, brain: 'SpellCaster',
         strength: 30, accuracy: 15, agility: 20, willpower: 20, perception: 15,
         attack: 20, defense: 20, protection: 5,
         equip: ['Permaice katana', 'Permaice armour']
