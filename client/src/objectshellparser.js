@@ -236,8 +236,10 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
     };
 
     this.addSpells = function(shell, obj) {
-        obj._spells = new RG.Spell.SpellBook();
-        obj._spells.addSpell(new RG.Spell.FrostBolt());
+        obj.setBook(new RG.Spell.SpellBook());
+        shell.spells.forEach(spell => {
+            obj.getBook().addSpell(new RG.Spell[spell]());
+        });
     };
 
     /* Factory-method for creating the actual game objects.*/
