@@ -319,7 +319,7 @@ RG.System.Damage = function(type, compTypes) {
         const invEq = actor.getInvEq();
         const items = invEq.getInventory().getItems();
         items.forEach(item => {
-            if (invEq.removeItem(item)) {
+            if (invEq.removeNItems(item, item.count)) {
                 const rmvItem = invEq.getRemovedItem();
                 actor.getLevel().addItem(rmvItem, x, y);
             }
