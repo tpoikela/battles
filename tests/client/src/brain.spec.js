@@ -172,6 +172,18 @@ describe('Brain.Player', function() {
         brain.decideNextAction({code: cbCode});
         expect(called).to.be.true;
     });
+
+    it('has commands for using spellpowers', () => {
+        const brain = new Brain.Player(player);
+        let func = brain.decideNextAction({code: RG.KEY.POWER});
+        expect(func).to.be.null;
+        expect(brain.isMenuShown()).to.equal(true);
+        func = brain.decideNextAction({code: ROT.VK_0});
+        expect(func).to.be.null;
+        expect(brain.isMenuShown()).to.equal(false);
+        func = brain.decideNextAction({code: RG.VK_a});
+        expect(func).to.be.function;
+    });
 });
 
 describe('RG.Brain.Rogue', function() {
