@@ -149,7 +149,13 @@ describe('RG.Game.FromJSON', function() {
         const mountain = new RG.World.Mountain('Mount doom');
         const f1 = new RG.World.MountainFace('f1');
         const f2 = new RG.World.MountainFace('f2');
+
+        const goblin = new RG.Actor.Rogue('Small goblin');
+        goblin.get('Stats').setAgility(17);
+        goblin.setType('goblin');
+
         const l1 = RG.FACT.createLevel('mountain', 50, 100);
+        l1.addActor(goblin, 1, 3);
         f1.addLevel(l1);
         const l2 = RG.FACT.createLevel('mountain', 50, 100);
         f2.addLevel(l2);
@@ -162,6 +168,13 @@ describe('RG.Game.FromJSON', function() {
         const json = mountain.toJSON();
 
         const newL1 = fromJSON.restoreLevel(jsonL1);
+        fromJSON.restoreEntityData();
+        const actorsL1 = newL1.getActors();
+        expect(actorsL1).to.have.length(1);
+
+        const newGoblin = actorsL1[0];
+        expect(newGoblin.get('Stats').getAgility()).to.equal(17);
+
         const newL2 = fromJSON.restoreLevel(jsonL2);
         const id2level = {};
         id2level[newL1.getID()] = newL1;
@@ -171,6 +184,24 @@ describe('RG.Game.FromJSON', function() {
         factWorld.setId2Level(id2level);
         const newMountain = factWorld.createMountain(json);
         expect(newMountain.getLevels()).to.have.length(2);
+    });
+
+    it('can convert spellcaster actors', () => {
+        const wizard = RGTest.getMeAWizard();
+        const json = wizard.toJSON();
+        expect(json).to.have.property('spellbook');
+        expect(json.spellbook.spells).to.have.length(1);
+
+        const restWizard = fromJSON.createActor(json);
+        fromJSON.restoreEntityData(restWizard, json);
+
+        expect(restWizard._spellbook, 'Spellbook exists').to.exist;
+        const restSpell = restWizard._spellbook.getSpells()[0];
+        expect(restSpell.getPower()).to.equal(11);
+        expect(restSpell.getRange()).to.equal(7);
+
+        const damageDie = restSpell.getDice()[0];
+        expect(damageDie.toJSON()).to.deep.equal([1, 2, 3]);
     });
 
 });
