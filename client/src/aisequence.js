@@ -110,7 +110,7 @@ const Models = {}; // Namespace for models
 
 Models.Rogue = {};
 
-Models.Rogue.ifPlayerIsInSight = function(actor) {
+Models.Rogue.ifEnemyIsInSight = function(actor) {
     const brain = actor.getBrain();
     const seenCells = brain.getSeenCells();
     const playerCell = brain.findEnemyCell(seenCells);
@@ -156,7 +156,7 @@ Models.Rogue.Nodes.combat =
 
 Models.Rogue.tree =
     new SelectorNode(
-        Models.Rogue.ifPlayerIsInSight,
+        Models.Rogue.ifEnemyIsInSight,
         Models.Rogue.Nodes.combat,
         Models.Rogue.exploreLevel
     );
@@ -165,7 +165,7 @@ Models.Rogue.tree =
 Models.Human = {};
 
 Models.Human.isEnemyInSight = function(actor) {
-    return Models.Rogue.ifPlayerIsInSight(actor);
+    return Models.Rogue.ifEnemyIsInSight(actor);
 };
 
 Models.Human.willCommunicate = function(actor) {
@@ -209,7 +209,7 @@ Models.Summoner.summonMonster = function(actor) {
 
 Models.Summoner.tree =
     new SelectorNode(
-        Models.Rogue.ifPlayerIsInSight,
+        Models.Rogue.ifEnemyIsInSight,
         new SelectorNode(
             Models.Summoner.willSummon,
             Models.Summoner.summonMonster,
@@ -233,10 +233,43 @@ Models.Archer.doRangedAttack = function(actor) {
 
 Models.Archer.tree =
     new SelectorNode(
-        Models.Rogue.ifPlayerIsInSight,
+        Models.Rogue.ifEnemyIsInSight,
         new SelectorNode(
             Models.Archer.canDoRangedAttack,
             Models.Archer.doRangedAttack,
+            Models.Rogue.Nodes.combat
+        ),
+        Models.Rogue.exploreLevel
+    );
+
+//------------------------------
+/* SpellCaster model for AI. */
+//------------------------------
+
+Models.SpellCaster = {};
+
+Models.SpellCaster.shouldCastSpell = function(actor) {
+    return actor.getBrain().shouldCastSpell();
+};
+
+Models.SpellCaster.canCastSpell = function(actor) {
+    return actor.getBrain().canCastSpell();
+};
+
+Models.SpellCaster.castSpell = function(actor) {
+    return actor.getBrain().castSpell();
+};
+
+Models.SpellCaster.tree =
+    new SelectorNode(
+        Models.Rogue.ifEnemyIsInSight,
+        new SelectorNode(
+            Models.SpellCaster.shouldCastSpell,
+            new SelectorNode(
+                Models.SpellCaster.canCastSpell,
+                Models.SpellCaster.castSpell,
+                Models.Rogue.Nodes.combat
+            ),
             Models.Rogue.Nodes.combat
         ),
         Models.Rogue.exploreLevel
