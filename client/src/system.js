@@ -63,49 +63,51 @@ RG.System.Base = function(type, compTypes) {
         RG.POOL.listenEvent(this.compTypes[i], this);
     }
 
+    this.update = function() {
+        for (const e in this.entities) {
+            if (!e) {continue;}
+            this.updateEntity(this.entities[e]);
+        }
+    };
+
 };
 
 /* Processes entities with attack-related components.*/
 RG.System.Attack = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
 
-    this.update = function() {
-        for (const e in this.entities) {
-            if (!e) {continue;}
-            const ent = this.entities[e];
+    this.updateEntity = function(ent) {
+        const att = ent;
+        const def = ent.get('Attack').getTarget();
+        const aName = att.getName();
+        const dName = def.getName();
 
-            const att = ent;
-            const def = ent.get('Attack').getTarget();
-            const aName = att.getName();
-            const dName = def.getName();
+        if (def.has('Ethereal')) {
+            RG.gameMsg({cell: att.getCell(),
+                msg: 'Attack of ' + aName + ' passes through ' + dName});
+        }
+        else {
+            // Actual hit change calculation
+            const totalAttack = RG.getMeleeAttack(att);
+            const totalDefense = def.getDefense();
+            const hitChance = totalAttack / (totalAttack + totalDefense);
 
-            if (def.has('Ethereal')) {
-                RG.gameMsg({cell: att.getCell(),
-                    msg: 'Attack of ' + aName + ' passes through ' + dName});
+            if (hitChance > RG.RAND.getUniform()) {
+                const totalDamage = att.getDamage();
+                if (totalDamage > 0) {this.doDamage(att, def, totalDamage);}
+                else {
+                    RG.gameMsg({cell: att.getCell,
+                        msg: aName + ' fails to hurt ' + dName});
+                }
             }
             else {
-                // Actual hit change calculation
-                const totalAttack = RG.getMeleeAttack(att);
-                const totalDefense = def.getDefense();
-                const hitChance = totalAttack / (totalAttack + totalDefense);
-
-                if (hitChance > RG.RAND.getUniform()) {
-                    const totalDamage = att.getDamage();
-                    if (totalDamage > 0) {this.doDamage(att, def, totalDamage);}
-                    else {
-                        RG.gameMsg({cell: att.getCell,
-                            msg: aName + ' fails to hurt ' + dName});
-                    }
-                }
-                else {
-                    RG.gameMsg({cell: att.getCell(),
-                        msg: aName + ' misses ' + dName});
-                }
-                def.addEnemy(att);
-                att.getBrain().getMemory().setLastAttacked(def);
+                RG.gameMsg({cell: att.getCell(),
+                    msg: aName + ' misses ' + dName});
             }
-            ent.remove('Attack');
+            def.addEnemy(att);
+            att.getBrain().getMemory().setLastAttacked(def);
         }
+        ent.remove('Attack');
     };
 
     this.doDamage = function(att, def, dmg) {
@@ -126,85 +128,80 @@ RG.extend2(RG.System.Attack, RG.System.Base);
 RG.System.Missile = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
 
-    this.update = function() {
-        for (const e in this.entities) {
-            if (!e) {continue;}
+    this.updateEntity = function(ent) {
+        const mComp = ent.get('Missile');
+        const level = mComp.getLevel();
+        const map = level.getMap();
 
-            const ent = this.entities[e];
-            const mComp = ent.get('Missile');
-            const level = mComp.getLevel();
-            const map = level.getMap();
+        const targetX = mComp.getTargetX();
+        const targetY = mComp.getTargetY();
+        const targetCell = map.getCell(targetX, targetY);
+        if (targetCell.hasProp('actors')) {
+            const targetActor = targetCell.getProp('actors')[0];
+            const attacker = mComp.getSource();
+            attacker.getBrain().getMemory().setLastAttacked(targetActor);
+        }
 
-            const targetX = mComp.getTargetX();
-            const targetY = mComp.getTargetY();
-            const targetCell = map.getCell(targetX, targetY);
-            if (targetCell.hasProp('actors')) {
-                const targetActor = targetCell.getProp('actors')[0];
-                const attacker = mComp.getSource();
-                attacker.getBrain().getMemory().setLastAttacked(targetActor);
+        while (mComp.isFlying() && !mComp.inTarget() && mComp.hasRange()) {
+
+            // Advance missile to next cell
+            mComp.next();
+            const currX = mComp.getX();
+            const currY = mComp.getY();
+            const currCell = map.getCell(currX, currY);
+
+            let shownMsg = '';
+            // Wall was hit, stop missile
+            if (currCell.hasPropType('wall')) {
+                mComp.prev();
+                const prevX = mComp.getX();
+                const prevY = mComp.getY();
+                const prevCell = map.getCell(prevX, prevY);
+
+                this.finishMissileFlight(ent, mComp, prevCell);
+                RG.debug(this, 'Stopped missile to wall');
+                shownMsg = ent.getName() + ' thuds to the wall';
             }
-
-            while (mComp.isFlying() && !mComp.inTarget() && mComp.hasRange()) {
-
-                // Advance missile to next cell
-                mComp.next();
-                const currX = mComp.getX();
-                const currY = mComp.getY();
-                const currCell = map.getCell(currX, currY);
-
-                let shownMsg = '';
-                // Wall was hit, stop missile
-                if (currCell.hasPropType('wall')) {
-                    mComp.prev();
-                    const prevX = mComp.getX();
-                    const prevY = mComp.getY();
-                    const prevCell = map.getCell(prevX, prevY);
-
-                    this.finishMissileFlight(ent, mComp, prevCell);
-                    RG.debug(this, 'Stopped missile to wall');
-                    shownMsg = ent.getName() + ' thuds to the wall';
-                }
-                else if (currCell.hasProp('actors')) {
-                    const actor = currCell.getProp('actors')[0];
-                    // Check hit and miss
-                    if (this.targetHit(actor, mComp)) {
-                        this.finishMissileFlight(ent, mComp, currCell);
-                        const dmg = mComp.getDamage();
-                        const damageComp = new RG.Component.Damage(dmg,
-                            'thrust');
-                        damageComp.setSource(mComp.getSource());
-                        damageComp.setDamage(mComp.getDamage());
-                        actor.add('Damage', damageComp);
-                        RG.debug(this, 'Hit an actor');
-                        shownMsg = ent.getName() + ' hits ' + actor.getName();
-                    }
-                    else if (mComp.inTarget()) {
-                        this.finishMissileFlight(ent, mComp, currCell);
-                        RG.debug(this, 'In target cell, and missed an entity');
-                        shownMsg = ent.getName() + ' misses the target';
-                    }
-                    else if (!mComp.hasRange()) {
-                        this.finishMissileFlight(ent, mComp, currCell);
-                        RG.debug(this, 'Missile out of range. Missed entity.');
-                        shownMsg = ent.getName() + ' misses the target';
-                    }
+            else if (currCell.hasProp('actors')) {
+                const actor = currCell.getProp('actors')[0];
+                // Check hit and miss
+                if (this.targetHit(actor, mComp)) {
+                    this.finishMissileFlight(ent, mComp, currCell);
+                    const dmg = mComp.getDamage();
+                    const damageComp = new RG.Component.Damage(dmg,
+                        'thrust');
+                    damageComp.setSource(mComp.getSource());
+                    damageComp.setDamage(mComp.getDamage());
+                    actor.add('Damage', damageComp);
+                    RG.debug(this, 'Hit an actor');
+                    shownMsg = ent.getName() + ' hits ' + actor.getName();
                 }
                 else if (mComp.inTarget()) {
                     this.finishMissileFlight(ent, mComp, currCell);
-                    RG.debug(this, 'In target cell but no hits');
-                    shownMsg = ent.getName() + " doesn't hit anything";
+                    RG.debug(this, 'In target cell, and missed an entity');
+                    shownMsg = ent.getName() + ' misses the target';
                 }
                 else if (!mComp.hasRange()) {
                     this.finishMissileFlight(ent, mComp, currCell);
-                    RG.debug(this, 'Missile out of range. Hit nothing.');
-                    shownMsg = ent.getName() + " doesn't hit anything";
-                }
-                if (shownMsg.length > 0) {
-                    RG.gameMsg({cell: currCell, msg: shownMsg});
+                    RG.debug(this, 'Missile out of range. Missed entity.');
+                    shownMsg = ent.getName() + ' misses the target';
                 }
             }
-
+            else if (mComp.inTarget()) {
+                this.finishMissileFlight(ent, mComp, currCell);
+                RG.debug(this, 'In target cell but no hits');
+                shownMsg = ent.getName() + " doesn't hit anything";
+            }
+            else if (!mComp.hasRange()) {
+                this.finishMissileFlight(ent, mComp, currCell);
+                RG.debug(this, 'Missile out of range. Hit nothing.');
+                shownMsg = ent.getName() + " doesn't hit anything";
+            }
+            if (shownMsg.length > 0) {
+                RG.gameMsg({cell: currCell, msg: shownMsg});
+            }
         }
+
     };
 
     this.finishMissileFlight = function(ent, mComp, currCell) {
@@ -238,38 +235,33 @@ RG.extend2(RG.System.Missile, RG.System.Base);
 RG.System.Damage = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
 
-    this.update = function() {
-        for (const e in this.entities) {
-            if (!e) {continue;}
+    this.updateEntity = function(ent) {
+        if (ent.has('Health')) {
+            const health = ent.get('Health');
+            let totalDmg = _getDamageReduced(ent);
 
-            const ent = this.entities[e];
-            if (ent.has('Health')) {
-                const health = ent.get('Health');
-                let totalDmg = _getDamageReduced(ent);
-
-                // Check if any damage was done at all
-                if (totalDmg <= 0) {
-                    totalDmg = 0;
-                    RG.gameMsg("Attack doesn't penetrate protection of "
-                        + ent.getName());
-                }
-                else {
-                    _applyAddOnHitComp(ent);
-                    health.decrHP(totalDmg);
-                }
-
-                if (health.isDead()) {
-                    if (ent.has('Loot')) {
-                        const entCell = ent.getCell();
-                        ent.get('Loot').dropLoot(entCell);
-                    }
-                    _dropInvAndEq(ent);
-
-                    const src = ent.get('Damage').getSource();
-                    _killActor(src, ent);
-                }
-                ent.remove('Damage'); // After dealing damage, remove comp
+            // Check if any damage was done at all
+            if (totalDmg <= 0) {
+                totalDmg = 0;
+                RG.gameMsg("Attack doesn't penetrate protection of "
+                    + ent.getName());
             }
+            else {
+                _applyAddOnHitComp(ent);
+                health.decrHP(totalDmg);
+            }
+
+            if (health.isDead()) {
+                if (ent.has('Loot')) {
+                    const entCell = ent.getCell();
+                    ent.get('Loot').dropLoot(entCell);
+                }
+                _dropInvAndEq(ent);
+
+                const src = ent.get('Damage').getSource();
+                _killActor(src, ent);
+            }
+            ent.remove('Damage'); // After dealing damage, remove comp
         }
     };
 
@@ -379,34 +371,28 @@ RG.extend2(RG.System.Damage, RG.System.Base);
 RG.ExpPointsSystem = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
 
-    this.update = function() {
-        for (const e in this.entities) {
-            if (!e) {continue;}
-            const ent = this.entities[e];
+    this.updateEntity = function(ent) {
+        const expComp = ent.get('Experience');
+        const expPoints = ent.get('ExpPoints');
+        const expLevel = expComp.getExpLevel();
 
-            const expComp = ent.get('Experience');
-            const expPoints = ent.get('ExpPoints');
+        let exp = expComp.getExp();
+        exp += expPoints.getExpPoints();
+        expComp.setExp(exp);
 
-            const expLevel = expComp.getExpLevel();
-
-            let exp = expComp.getExp();
-            exp += expPoints.getExpPoints();
-            expComp.setExp(exp);
-
-            const nextLevel = expLevel + 1;
-            let reqExp = 0;
-            for (let i = 1; i <= nextLevel; i++) {
-                reqExp += (i - 1) * 10;
-            }
-
-            if (exp >= reqExp) { // Required exp points exceeded
-                RG.levelUpActor(ent, nextLevel);
-                const name = ent.getName();
-                const msg = `${name} appears to be more experience now.`;
-                RG.gameSuccess({msg: msg, cell: ent.getCell()});
-            }
-            ent.remove('ExpPoints');
+        const nextLevel = expLevel + 1;
+        let reqExp = 0;
+        for (let i = 1; i <= nextLevel; i++) {
+            reqExp += (i - 1) * 10;
         }
+
+        if (exp >= reqExp) { // Required exp points exceeded
+            RG.levelUpActor(ent, nextLevel);
+            const name = ent.getName();
+            const msg = `${name} appears to be more experience now.`;
+            RG.gameSuccess({msg: msg, cell: ent.getCell()});
+        }
+        ent.remove('ExpPoints');
     };
 
 };
@@ -417,15 +403,7 @@ RG.extend2(RG.ExpPointsSystem, RG.System.Base);
 RG.System.Movement = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
 
-    this.update = function() {
-        for (const e in this.entities) {
-            if (!e) {continue;}
-            const ent = this.entities[e];
-            this.moveEntity(ent);
-        }
-    };
-
-    this.moveEntity = function(ent) {
+    this.updateEntity = function(ent) {
         const x = ent.get('Movement').getX();
         const y = ent.get('Movement').getY();
         const level = ent.get('Movement').getLevel();
@@ -544,20 +522,16 @@ RG.extend2(RG.System.Movement, RG.System.Base);
 RG.System.Stun = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
 
-    this.update = function() {
-        for (const e in this.entities) {
-            if (!e) {continue;}
-            const ent = this.entities[e];
-            if (ent.has('Attack')) {
-                ent.remove('Attack');
-                RG.gameMsg({cell: ent.getCell(),
-                    msg: ent.getName() + ' is too stunned to attack.'});
-            }
-            else if (ent.has('Movement')) {
-                ent.remove('Movement');
-                RG.gameMsg({cell: ent.getCell(),
-                    msg: ent.getName() + ' is too stunned to move.'});
-            }
+    this.updateEntity = function(ent) {
+        if (ent.has('Attack')) {
+            ent.remove('Attack');
+            RG.gameMsg({cell: ent.getCell(),
+                msg: ent.getName() + ' is too stunned to attack.'});
+        }
+        else if (ent.has('Movement')) {
+            ent.remove('Movement');
+            RG.gameMsg({cell: ent.getCell(),
+                msg: ent.getName() + ' is too stunned to move.'});
         }
     };
 
@@ -568,23 +542,19 @@ RG.extend2(RG.System.Stun, RG.System.Base);
 RG.System.Hunger = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
 
-    this.update = function() {
-        for (const e in this.entities) {
-            if (!e) {continue;}
-            const ent = this.entities[e];
-            const hungerComp = ent.get('Hunger');
-            const actionComp = ent.get('Action');
-            hungerComp.decrEnergy(actionComp.getEnergy());
-            actionComp.resetEnergy();
-            if (hungerComp.isStarving()) {
-                // Don't make hunger damage too obvious
-                const takeDmg = RG.RAND.getUniform();
-                if (ent.has('Health') && takeDmg < RG.HUNGER_PROB) {
-                    const dmg = new RG.Component.Damage(RG.HUNGER_DMG,
-                        'hunger');
-                    ent.add('Damage', dmg);
-                    RG.gameWarn(ent.getName() + ' is starving!');
-                }
+    this.updateEntity = function(ent) {
+        const hungerComp = ent.get('Hunger');
+        const actionComp = ent.get('Action');
+        hungerComp.decrEnergy(actionComp.getEnergy());
+        actionComp.resetEnergy();
+        if (hungerComp.isStarving()) {
+            // Don't make hunger damage too obvious
+            const takeDmg = RG.RAND.getUniform();
+            if (ent.has('Health') && takeDmg < RG.HUNGER_PROB) {
+                const dmg = new RG.Component.Damage(RG.HUNGER_DMG,
+                    'hunger');
+                ent.add('Damage', dmg);
+                RG.gameWarn(ent.getName() + ' is starving!');
             }
         }
     };
@@ -598,17 +568,13 @@ RG.System.Communication = function(type, compTypes) {
 
     // Each entity here has received communication and must capture its
     // information contents
-    this.update = function() {
-        for (const e in this.entities) {
-            if (!e) {continue;}
-            const ent = this.entities[e];
-            const comComp = ent.get('Communication');
-            const messages = comComp.getMsg();
-            for (let i = 0; i < messages.length; i++) {
-                this.processMessage(ent, messages[i]);
-            }
-            ent.remove('Communication');
+    this.updateEntity = function(ent) {
+        const comComp = ent.get('Communication');
+        const messages = comComp.getMsg();
+        for (let i = 0; i < messages.length; i++) {
+            this.processMessage(ent, messages[i]);
         }
+        ent.remove('Communication');
     };
 
     this.processMessage = function(ent, msg) {
@@ -669,7 +635,6 @@ RG.System.TimeEffects = function(type, compTypes) {
             // Process expiration effects/duration of Expiration itself
             if (ent.has('Expiration')) {_decreaseDuration(ent);}
         }
-
 
         // Remove expired effects (mutates this.entities, so done outside for)
         // Removes Expiration, as well as comps like Poison/Stun/Disease etc.
@@ -734,35 +699,31 @@ RG.extend2(RG.System.Communication, RG.System.Base);
 RG.System.SpellCast = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
 
-    this.update = function() {
-        for (const e in this.entities) {
-            if (!e) {continue;}
-            const ent = this.entities[e];
-            const name = ent.getName();
-            const cell = ent.getCell();
-            const spellcast = ent.get('SpellCast');
+    this.updateEntity = function(ent) {
+        const name = ent.getName();
+        const cell = ent.getCell();
+        const spellcast = ent.get('SpellCast');
 
-            // TODO add checks for impairment, counterspells etc
+        // TODO add checks for impairment, counterspells etc
 
-            if (ent.has('SpellPower')) {
-                const ppComp = ent.get('SpellPower');
-                const spell = spellcast.getSpell();
-                if (spell.getPower() <= ppComp.getPP()) {
-                    const args = spellcast.getArgs();
-                    spell.cast(args);
-                    ppComp.decrPP(spell.getPower());
-                }
-                else {
-                    const msg = `${name} has no enough power to cast spell`;
-                    RG.gameMsg({cell: cell, msg: msg});
-                }
+        if (ent.has('SpellPower')) {
+            const ppComp = ent.get('SpellPower');
+            const spell = spellcast.getSpell();
+            if (spell.getPower() <= ppComp.getPP()) {
+                const args = spellcast.getArgs();
+                spell.cast(args);
+                ppComp.decrPP(spell.getPower());
             }
             else {
-                const msg = `${name} has no power to cast spells!`;
+                const msg = `${name} has no enough power to cast spell`;
                 RG.gameMsg({cell: cell, msg: msg});
             }
-            ent.remove('SpellCast');
         }
+        else {
+            const msg = `${name} has no power to cast spells!`;
+            RG.gameMsg({cell: cell, msg: msg});
+        }
+        ent.remove('SpellCast');
     };
 
 };
@@ -775,16 +736,12 @@ RG.System.SpellEffect = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
     this.compTypesAny = true; // Process with any relavant Spell comp
 
-    this.update = function() {
-        for (const e in this.entities) {
-            if (!e) {continue;}
-            const ent = this.entities[e];
-            if (ent.has('SpellRay')) {
-                this.processSpellRay(ent);
-            }
-            else if (ent.has('SpellCell')) {
-                this.processSpellCell(ent);
-            }
+    this.updateEntity = function(ent) {
+        if (ent.has('SpellRay')) {
+            this.processSpellRay(ent);
+        }
+        else if (ent.has('SpellCell')) {
+            this.processSpellCell(ent);
         }
     };
 
@@ -912,23 +869,19 @@ RG.extend2(RG.System.SpellEffect, RG.System.Base);
 RG.System.Animation = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
 
-    this.update = function() {
-        for (const e in this.entities) {
-            if (!e) {continue;}
-            const ent = this.entities[e];
-            const animComp = ent.get('Animation');
-            const args = animComp.getArgs();
-            if (args.dir) {
-                this.lineAnimation(args);
-            }
-            else if (args.missile) {
-                this.missileAnimation(args);
-            }
-            else if (args.cell) {
-                this.cellAnimation(args);
-            }
-            ent.remove('Animation');
+    this.updateEntity = function(ent) {
+        const animComp = ent.get('Animation');
+        const args = animComp.getArgs();
+        if (args.dir) {
+            this.lineAnimation(args);
         }
+        else if (args.missile) {
+            this.missileAnimation(args);
+        }
+        else if (args.cell) {
+            this.cellAnimation(args);
+        }
+        ent.remove('Animation');
     };
 
     /* Construct a missile animation from Missile component. */
