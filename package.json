@@ -54,7 +54,7 @@
     "build:production": "NODE_ENV=production ./browserify ./client/jsx/app.jsx --extension .jsx -t babelify | uglifyjs --mangle --compress > ./build/bundle.js",
     "build:production:debug": "NODE_ENV=production ./browserify --debug ./client/jsx/app.jsx --extension .jsx -t babelify > ./build/bundle.js",
     "build:sass": "sass scss/style.scss -t compressed > build/style.css",
-    "clean": "rm build/*",
+    "clean": "rm build/* && rm -r coverage",
     "coverage": "perl bin/cov_test.pl",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
     "hooks": "perl bin/deploy_hooks",
