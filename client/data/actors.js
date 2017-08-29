@@ -224,7 +224,7 @@ const Actors = [
     },
     {
         name: 'Cryomancer', base: 'WinterBeingBase', char: '@',
-        type: 'human', enemies: ['player'],
+        type: 'human', enemies: ['player', 'human'],
         attack: 4, defense: 4, damage: '1d6', range: 1, hp: 30,
         danger: 5, spells: ['Frost bolt'], pp: 20, brain: 'SpellCaster'
     },
