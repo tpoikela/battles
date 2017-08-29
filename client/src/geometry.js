@@ -355,16 +355,21 @@ RG.Geometry = {
             || Math.abs(x1 - x0) === Math.abs(y1 - y0);
         if (isLine) {
             const res = [];
-            const dX = (x1 - x0) / Math.abs(x1 - x0);
-            const dY = (y1 - y0) / Math.abs(y1 - y0);
+            const dX = x1 === x0 ? 0 : (x1 - x0) / Math.abs(x1 - x0);
+            const dY = y1 === y0 ? 0 : (y1 - y0) / Math.abs(y1 - y0);
             if (incEnds) {res.push([x0, y0]);}
-            while (x0 !== x1) {
-                x0 += dX;
-                y0 += dY;
+            while (x0 !== x1 || y0 !== y1) {
+                if (x0 !== x1) {x0 += dX;}
+                if (y0 !== y1) {y0 += dY;}
                 console.log('x0: ' + x0 + ' x1: ' + x1);
-                res.push([x0, y0]);
+
+                if (x0 === x1 && y0 === y1 && incEnds) {
+                    res.push([x0, y0]);
+                }
+                else {
+                    res.push([x0, y0]);
+                }
             }
-            if (incEnds) {res.push([x0, y0]);}
             return res;
         }
         return [];
