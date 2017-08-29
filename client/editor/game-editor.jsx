@@ -482,15 +482,15 @@ class GameEditor extends React.Component {
 
 
   insertElement() {
-    const llx = this.state.selectedCell.getX();
-    const lly = this.state.selectedCell.getY();
-    const urx = this.state.insertXWidth + llx - 1;
-    const ury = this.state.insertYWidth + lly - 1;
-    this.debugMsg('insertElement: ' + `${llx}, ${lly}, ${urx}, ${ury}`);
+    const ulx = this.state.selectedCell.getX();
+    const uly = this.state.selectedCell.getY();
+    const lrx = this.state.insertXWidth + ulx - 1;
+    const lry = this.state.insertYWidth + uly - 1;
+    this.debugMsg('insertElement: ' + `${ulx}, ${uly}, ${lrx}, ${lry}`);
     const level = this.state.level;
     try {
       RG.Geometry.insertElements(level, this.state.elementType,
-        llx, lly, urx, ury);
+        {ulx, uly, lrx, lry});
     }
     catch (e) {
       this.setState({errorMsg: e.message});
@@ -499,15 +499,15 @@ class GameEditor extends React.Component {
   }
 
   insertActor() {
-    const llx = this.state.selectedCell.getX();
-    const lly = this.state.selectedCell.getY();
-    const urx = this.state.insertXWidth + llx - 1;
-    const ury = this.state.insertYWidth + lly - 1;
-    this.debugMsg('insertActor: ' + `${llx}, ${lly}, ${urx}, ${ury}`);
+    const ulx = this.state.selectedCell.getX();
+    const uly = this.state.selectedCell.getY();
+    const lrx = this.state.insertXWidth + ulx - 1;
+    const lry = this.state.insertYWidth + uly - 1;
+    this.debugMsg('insertActor: ' + `${ulx}, ${uly}, ${lrx}, ${lry}`);
     const level = this.state.level;
     try {
       RG.Geometry.insertActors(level, this.state.actorName,
-        llx, lly, urx, ury, this.parser);
+        {ulx, uly, lrx, lry}, this.parser);
     }
     catch (e) {
       this.setState({errorMsg: e.message});
@@ -516,14 +516,14 @@ class GameEditor extends React.Component {
   }
 
   insertItem() {
-    const llx = this.state.selectedCell.getX();
-    const lly = this.state.selectedCell.getY();
-    const urx = this.state.insertXWidth + llx - 1;
-    const ury = this.state.insertYWidth + lly - 1;
+    const ulx = this.state.selectedCell.getX();
+    const uly = this.state.selectedCell.getY();
+    const lrx = this.state.insertXWidth + ulx - 1;
+    const lry = this.state.insertYWidth + uly - 1;
     const level = this.state.level;
     try {
       RG.Geometry.insertItems(level, this.state.itemName,
-        llx, lly, urx, ury, this.parser);
+        {ulx, uly, lrx, lry}, this.parser);
     }
     catch (e) {
       this.setState({errorMsg: e.message});
