@@ -136,19 +136,9 @@ RG.Spell.FrostBolt = function() {
     this.getDice = function() {return [_damageDie];};
 
     this.cast = function(args) {
-        const src = args.src;
-        const dir = args.dir;
-        const x = src.getX();
-        const y = src.getY();
-
-        const obj = {
-            from: [x, y],
-            dir,
-            spell: this,
-            src: args.src,
-            damageType: 'ice',
-            damage: _damageDie.roll()
-        };
+        const obj = getDirSpellArgs(this, args);
+        obj.damageType = 'ice';
+        obj.damage = _damageDie.roll();
         const rayComp = new RG.Component.SpellRay();
         rayComp.setArgs(obj);
         args.src.add('SpellRay', rayComp);
