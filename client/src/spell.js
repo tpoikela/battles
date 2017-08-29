@@ -163,7 +163,6 @@ RG.Spell.FrostBolt = function() {
 
     this.getCastFunc = function(actor, dir) {
         const args = {dir};
-        console.log('XXX Added SpellCast comp');
         if (args.dir) {
             args.src = actor;
             return () => {
