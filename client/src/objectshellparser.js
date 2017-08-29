@@ -38,6 +38,8 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
             agility: {comp: 'Stats', func: 'setAgility'},
             willpower: {comp: 'Stats', func: 'setWillpower'},
 
+            pp: {comp: 'SpellPower', func: 'setPP'},
+            maxPP: {comp: 'SpellPower', func: 'setMaxPP'},
             hp: {comp: 'Health'},
             danger: {comp: 'Experience', func: 'setDanger'},
             brain: {func: 'setBrain', factory: RG.FACT.createBrain}
@@ -236,8 +238,6 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
     this.addSpells = function(shell, obj) {
         obj._spells = new RG.Spell.SpellBook();
         obj._spells.addSpell(new RG.Spell.FrostBolt());
-        obj.add('SpellPower', new RG.Component.SpellPower());
-        obj.get('SpellPower').setPP(20);
     };
 
     /* Factory-method for creating the actual game objects.*/
@@ -290,6 +290,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
             else { // 2. Or create a new component
                 const comp = this.createComponent(compName);
                 comp[fname](val); // Then call comp setter
+                newObj.add(compName, comp);
             }
         }
         else {
@@ -762,9 +763,7 @@ RG.ObjectShell.Parser = function() {
             this.storeForUsingAsBase(categ, obj);
 
             if (obj.hasOwnProperty('noRandom')) {
-                console.log('Added to noRandom');
                 _dbNoRandom[categ][obj.name] = obj;
-                console.log(JSON.stringify(_dbNoRandom));
             }
             else if (!obj.hasOwnProperty('dontCreate')) {
                 if (_dbByName.hasOwnProperty(obj.name)) {
