@@ -509,6 +509,13 @@ describe('Data query functions for objects', function() {
         const addOnHit = viper.get('AddOnHit');
         expect(addOnHit.getComp().getType()).to.equal('Poison');
     });
+
+    it('can create spellcasters', () => {
+        const cryomancer = parser.createActor('Cryomancer');
+        expect(cryomancer.has('SpellPower')).to.equal(true);
+        expect(cryomancer.get('SpellPower').getPP()).to.equal(21);
+        expect(cryomancer.get('SpellPower').getMaxPP()).to.equal(22);
+    });
 });
 
 describe('ObjectShell.Parser error handling', function() {
