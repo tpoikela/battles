@@ -171,12 +171,21 @@ RG.Factory.Actor = function() {
             case 'Demon': return new RG.Brain.Demon(actor);
             // case 'Goblin': return new RG.Brain.Goblin(actor);
             case 'Human': return new RG.Brain.Human(actor);
+            case 'SpellCaster': return new RG.Brain.SpellCaster(actor);
             case 'Summoner': return new RG.Brain.Summoner(actor);
             case 'Undead': return new RG.Brain.Undead(actor);
             case 'Zombie': return new RG.Brain.Zombie(actor);
             default: return new RG.Brain.Rogue(actor);
         }
     };
+
+    this.createSpell = function(spellName) {
+        if (RG.Spell.hasOwnProperty(spellName)) {
+            return new RG.Spell[spellName]();
+        }
+        return null;
+    };
+
 };
 
 /* Factory object for creating some commonly used objects. Because this is a
@@ -210,6 +219,11 @@ RG.Factory.Base = function() { // {{{2
     /* Factory method for AI brain creation.*/
     this.createBrain = function(actor, brainName) {
         return _actorFact.createBrain(actor, brainName);
+    };
+
+    /* Factory method for AI brain creation.*/
+    this.createSpell = function(name) {
+        return _actorFact.createSpell(name);
     };
 
     this.createElement = function(elemType) {
