@@ -227,8 +227,8 @@ RG.Factory.Base = function() { // {{{2
     };
 
     this.createElement = function(elemType) {
-        if (RG.elemTypeToObj(elemType)) {
-            return RG.elemTypeToObj(elemType);
+        if (RG.elemTypeToObj[elemType]) {
+            return RG.elemTypeToObj[elemType];
         }
         switch (elemType) {
             case 'door' : return new RG.Element.Door(true);
