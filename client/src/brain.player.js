@@ -117,26 +117,21 @@ const BrainPlayer = function(actor) {
         if (_wantSelection) {
             if (_selectionObject !== null) {
                 const selection = _selectionObject.select(code);
+                // function terminates the selection
                 if (typeof selection === 'function') {
                     _wantSelection = false;
                     _selectionObject = null;
                     return selection;
-                }
+                } // object returns another selection
                 else if (selection && typeof selection === 'object') {
                     _selectionObject = selection;
                     return this.noAction();
                 }
-                _wantSelection = false;
-                _selectionObject = null;
-                RG.gameMsg('You cancel the action.');
-                return this.noAction();
             }
-            else {
-                _wantSelection = false;
-                _selectionObject = null;
-                RG.gameMsg('You cancel the action.');
-                return this.noAction();
-            }
+            _wantSelection = false;
+            _selectionObject = null;
+            RG.gameMsg('You cancel the action.');
+            return this.noAction();
         }
 
         // Invoke GUI callback with given code
@@ -234,7 +229,7 @@ const BrainPlayer = function(actor) {
 
             if (RG.KeyMap.isUsePower(code)) {
                 _wantSelection = true;
-                _selectionObject = _actor._spells.getSelectionObject();
+                _selectionObject = _actor._spellbook.getSelectionObject();
                 RG.gameMsg('Press 0-9 to make a selection.');
                 return this.noAction();
             }
