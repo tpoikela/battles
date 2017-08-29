@@ -34,7 +34,7 @@ describe('Template.Level', () => {
         expect(level.map).to.have.length(7 * 12);
         expect(level.map[0]).to.have.length(7 * 6);
 
-        RG.printMap(level.map);
+        // RG.printMap(level.map);
     });
 
     it('can create 2-d castles with outer wall only', () => {
