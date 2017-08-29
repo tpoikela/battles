@@ -2,22 +2,23 @@
  * Code to generate the game 2-D overworld.
  */
 
-/* bb = bounding box = (llx lly urx urx)
- * llx = lower-left x
- * lly = lower-left y
- * urx = upper-right x
- * ury = upper-right y
+/* bb = bounding box = (ulx uly lrx lry)
+ * ulx = upper-left x
+ * uly = upper-left y
+ * lrx = lower-right x
+ * lry = lower-right y
  *
- * Because 0,0 is located in the top-left (NW) corner, ury <= lly, which maybe
+ * Because 0,0 is located in the top-left (NW) corner, uly <= lry, which maybe
  * confusing because 'lower' has higher value than 'upper'. But in this case
  * 'lower' and 'upper' refer to visual location.
- *    y x0123
- *    0  #### <-(urx, ury)
- *    1  ####
- *    2  ####
- *       ^
+ *
+ *      (ulx, uly)
  *       |
- *      (llx, lly)
+ *       V
+ *    y x0123
+ *    0  ####
+ *    1  ####
+ *    2  #### <-(lrx, lry)
  */
 
 const RG = require('./rg');

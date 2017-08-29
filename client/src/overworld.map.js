@@ -768,14 +768,14 @@ function addFeatureToWall(ow, wall, type) {
     let xy = null;
 
     if (wall.type === 'horizontal') { // y will be fixed
-        const llx = wall.x[0];
-        const urx = wall.x[wall.x.length - 1];
-        xy = findCellRandXYInBox(map, bBox(llx, wall.y, urx, wall.y), OW.LL_WE);
+        const ulx = wall.x[0];
+        const lrx = wall.x[wall.x.length - 1];
+        xy = findCellRandXYInBox(map, bBox(ulx, wall.y, lrx, wall.y), OW.LL_WE);
     }
     if (wall.type === 'vertical') { // y will be fixed
-        const lly = wall.y[0];
-        const ury = wall.y[wall.y.length - 1];
-        xy = findCellRandXYInBox(map, bBox(wall.x, lly, wall.x, ury), OW.LL_NS);
+        const uly = wall.y[0];
+        const lry = wall.y[wall.y.length - 1];
+        xy = findCellRandXYInBox(map, bBox(wall.x, uly, wall.x, lry), OW.LL_NS);
     }
 
     ow.addFeature(xy, type);
@@ -786,8 +786,8 @@ function addFeatureToWall(ow, wall, type) {
 function addBiomeToOverWorld(ow, cmd, biomeType) {
     const bbox = getBoundingBox(ow, cmd);
     // Apply given type on the found range
-    for (let x = bbox.llx; x <= bbox.urx; x++) {
-        for (let y = bbox.ury; y <= bbox.lly; y++) {
+    for (let x = bbox.ulx; x <= bbox.lrx; x++) {
+        for (let y = bbox.uly; y <= bbox.lry; y++) {
             ow.addBiome(x, y, biomeType);
         }
     }
@@ -832,19 +832,19 @@ function cellMatches(type, listOrStr) {
 
 /* Finds a random cell of given type from the box of coordinates. */
 function findCellRandXYInBox(map, bbox, listOrStr) {
-    const {llx, lly, urx, ury} = bbox;
+    const {ulx, uly, lrx, lry} = bbox;
 
-    let x = llx === urx ? llx : RG.RAND.getUniformInt(llx, urx);
-    let y = lly === ury ? lly : RG.RAND.getUniformInt(ury, lly);
-    let watchdog = 100 * (urx - llx + 1) * (lly - ury + 1);
+    let x = ulx === lrx ? ulx : RG.RAND.getUniformInt(ulx, lrx);
+    let y = lry === uly ? lry : RG.RAND.getUniformInt(uly, lry);
+    let watchdog = 100 * (lrx - ulx + 1) * (lry - uly + 1);
 
     let match = cellMatches(map[x][y], listOrStr);
     while (!match) {
-        x = llx === urx ? llx : RG.RAND.getUniformInt(llx, urx);
-        y = lly === ury ? lly : RG.RAND.getUniformInt(ury, lly);
+        x = ulx === lrx ? ulx : RG.RAND.getUniformInt(ulx, lrx);
+        y = lry === uly ? lry : RG.RAND.getUniformInt(uly, lry);
         match = cellMatches(map[x][y], listOrStr);
         if (watchdog === 0) {
-            const box = `(${llx},${lly}) -> (${urx},${ury})`;
+            const box = `(${ulx},${lry}) -> (${lrx},${uly})`;
             RG.warn('OverWorld', 'findCellRandXYInBox',
                 `No cells of type ${listOrStr} in ${box}`);
             break;
@@ -858,47 +858,47 @@ function findCellRandXYInBox(map, bbox, listOrStr) {
  * returns a random x,y coordinate bounded by these conditions.
  */
 function getRandLoc(loc, shrink, sizeX, sizeY) {
-    let llx = 0;
-    let lly = 0;
-    let urx = 0;
-    let ury = 0;
+    let ulx = 0;
+    let lry = 0;
+    let lrx = 0;
+    let uly = 0;
 
     // Determine the bounding coordinates for random location
     if (loc.match(/N/)) {
-        ury = 0;
-        lly = Math.floor(shrink * 0.25 * sizeY);
+        uly = 0;
+        lry = Math.floor(shrink * 0.25 * sizeY);
     }
     if (loc.match(/S/)) {
-        lly = sizeY - 1;
-        ury = 0.75 * sizeY;
-        ury = Math.floor(ury + (1 - shrink) * (lly - ury));
+        lry = sizeY - 1;
+        uly = 0.75 * sizeY;
+        uly = Math.floor(uly + (1 - shrink) * (lry - uly));
     }
     if (loc.match(/E/)) {
-        urx = sizeX - 1;
-        llx = 0.75 * sizeX;
-        llx = Math.floor(llx + (1 - shrink) * (urx - llx));
+        lrx = sizeX - 1;
+        ulx = 0.75 * sizeX;
+        ulx = Math.floor(ulx + (1 - shrink) * (lrx - ulx));
     }
     if (loc.match(/W/)) {
-        llx = 0;
-        urx = Math.floor(shrink * 0.25 * sizeX);
+        ulx = 0;
+        lrx = Math.floor(shrink * 0.25 * sizeX);
     }
 
     return [
-        RG.RAND.getUniformInt(llx, urx),
-        RG.RAND.getUniformInt(ury, lly)
+        RG.RAND.getUniformInt(ulx, lrx),
+        RG.RAND.getUniformInt(uly, lry)
     ];
 }
 
 /* Returns a bounding box object of given coordinates. */
-function bBox(llx, lly, urx, ury) {
-    if (RG.isNullOrUndef([llx, lly, urx, ury])) {
+function bBox(ulx, lry, lrx, uly) {
+    if (RG.isNullOrUndef([ulx, lry, lrx, uly])) {
         RG.err('overworld.map.js', 'bBox',
-            `bBox coord(s) undef/null: ${llx},${lly},${urx},${ury}`);
+            `bBox coord(s) undef/null: ${ulx},${lry},${lrx},${uly}`);
     }
-    return {isBox: true, llx, lly, urx, ury};
+    return {isBox: true, ulx, lry, lrx, uly};
 }
 
-/* Returns a bounding box (llx, lly, urx, ury) based on the command.
+/* Returns a bounding box (ulx, lry, lrx, uly) based on the command.
  * Formats:
  *   1. cmd: {[x|y]: {start: 'wall'|['wall', Nwall]}}
  *   2.
@@ -995,8 +995,8 @@ function getBoundingBox(ow, cmd) {
     } // cmd.y
 
     return {
-        llx: xStart, urx: xEnd,
-        ury: yStart, lly: yEnd
+        ulx: xStart, lrx: xEnd,
+        uly: yStart, lry: yEnd
     };
 
 }
