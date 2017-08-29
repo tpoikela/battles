@@ -244,22 +244,32 @@ RG.Brain.Rogue = function(actor) {
         return false;
     };
 
-    /* Given a list of cells, returns a cell with an enemy in it or null.*/
-    this.findEnemyCell = function(seenCells) {
-        const enemyCells = [];
+    this.findCellsWithActors = function(seenCells) {
+        const cells = [];
         for (let i = 0, iMax = seenCells.length; i < iMax; i++) {
             if (seenCells[i].hasProp('actors')) {
                 const actors = seenCells[i].getProp('actors');
-                // Prevent suicidal attacks on the actor itself
+                // Exclude itself from list
                 if (actors[0].getID() !== _actor.getID()) {
-                    if (_memory.isEnemy(actors[0])) {
-                        if (_memory.wasLastAttacked(actors[0])) {
-                            return seenCells[i];
-                        }
-                        else {
-                            enemyCells.push(seenCells[i]);
-                        }
-                    }
+                    cells.push(seenCells[i]);
+                }
+            }
+        }
+        return cells;
+    };
+
+    /* Given a list of cells, returns a cell with an enemy in it or null.*/
+    this.findEnemyCell = function(seenCells) {
+        const enemyCells = [];
+        const cells = this.findCellsWithActors(seenCells);
+        for (let i = 0; i < cells.length; i++) {
+            const actors = cells[i].getActors();
+            if (_memory.isEnemy(actors[0])) {
+                if (_memory.wasLastAttacked(actors[0])) {
+                    return cells[i];
+                }
+                else {
+                    enemyCells.push(cells[i]);
                 }
             }
         }
@@ -270,13 +280,10 @@ RG.Brain.Rogue = function(actor) {
     /* Finds a friend cell among seen cells.*/
     this.findFriendCell = function(seenCells) {
         const memory = this.getMemory();
-        for (let i = 0, iMax = seenCells.length; i < iMax; i++) {
-            if (seenCells[i].hasProp('actors')) {
-                const actors = seenCells[i].getProp('actors');
-                if (actors[0] !== _actor) { // Exclude itself
-                    if (!memory.isEnemy(actors[0])) {return seenCells[i];}
-                }
-            }
+        const cells = this.findCellsWithActors(seenCells);
+        for (let i = 0; i < cells.length; i++) {
+            const actors = cells[i].getActors();
+            if (!memory.isEnemy(actors[0])) {return cells[i];}
         }
         return null;
     };
