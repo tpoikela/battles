@@ -70,7 +70,6 @@ const BrainPlayer = function(actor) {
     this.isMenuShown = function() {
         if (_selectionObject) {
             return _selectionObject.showMenu();
-            // return _wantSelection;
         }
         return false;
     };
