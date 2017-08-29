@@ -54,6 +54,27 @@ RGTest.wrapObjWithCell = function(obj) {
     return cell;
 };
 
+RGTest.getMeAWizard = function(conf = {}) {
+    const wizard = new RG.Actor.Rogue('wizard');
+    wizard.setType(conf.type || 'human');
+    const brain = new RG.Brain.SpellCaster(wizard);
+    wizard.setBrain(brain);
+
+    wizard._spellbook = new RG.Spell.SpellBook(wizard);
+    const spell = RG.FACT.createSpell('FrostBolt');
+    spell.setPower(conf.power || 11);
+    spell.setRange(conf.range || 7);
+    spell.setDice([RG.FACT.createDie([1, 2, 3])]);
+    wizard._spellbook.addSpell(spell);
+
+    const spellPower = new RG.Component.SpellPower();
+    spellPower.setPP(30);
+    spellPower.setMaxPP(40);
+    wizard.add('SpellPower', spellPower);
+    return wizard;
+
+};
+
 RGTest.checkActorXY = function(actor, x, y) {
     expect(actor.getX(), `X must be ${x}`).to.equal(x);
     expect(actor.getY(), `Y must be ${y}`).to.equal(y);
