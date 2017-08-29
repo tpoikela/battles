@@ -296,7 +296,8 @@ class GameEditor extends React.Component {
           // Many things can go wrong: Not JSON, not a valid level..
           const json = JSON.parse(text);
           const fromJSON = new RG.Game.FromJSON();
-          const level = fromJSON.createLevel(json);
+          const level = fromJSON.restoreLevel(json);
+          fromJSON.restoreEntityData();
           this.addLevelToEditor(level);
         }
         catch (e) {
@@ -901,9 +902,12 @@ class GameEditor extends React.Component {
     if (!this.state.simulationStarted) {
       const id = this.state.level.getID();
       console.log('Starting sim with level ' + id);
+
       const fromJSON = new RG.Game.FromJSON();
       const json = this.state.level.toJSON();
-      const levelClone = fromJSON.createLevel(json);
+      const levelClone = fromJSON.restoreLevel(json);
+      fromJSON.restoreEntityData();
+
       levelClone.getMap()._optimizeForRowAccess();
       levelClone.editorID = this.state.idCount++;
 
