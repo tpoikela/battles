@@ -1173,6 +1173,10 @@ RG.Die = function(num, dice, mod) {
         res = res && (_mod === rhs.getMod());
         return res;
     };
+
+    this.toJSON = function() {
+        return [_num, _dice, _mod];
+    };
 };
 
 /* Event pool can be used to emit events and register callbacks for listeners.
