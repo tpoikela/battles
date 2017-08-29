@@ -415,6 +415,15 @@ RG.Factory.Game = function() {
         };
         this.addNRandItems(level, _parser, itemConf);
 
+        const cols = level.getMap().cols;
+        const rows = level.getMap().rows;
+
+        const boss = _parser.createActor('Thabba, Son of Ice');
+        level.addActor(boss, cols - 2, rows - 2);
+
+        const cryomancer = _parser.createActor('Cryomancer');
+        level.addActor(cryomancer, 1, rows - 2);
+
         const spiritPot = _parser.createActualObj(
             'items', 'Potion of spirit form');
         player.getInvEq().addItem(spiritPot);
