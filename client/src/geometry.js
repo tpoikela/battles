@@ -103,9 +103,9 @@ RG.Geometry = {
 
     /* Returns true if given coordinate is one of the corners defined by the
      * box. */
-    isCorner: function(x, y, llx, lly, urx, ury) {
-        if (x === llx || x === urx) {
-            return y === lly || y === ury;
+    isCorner: function(x, y, ulx, uly, lrx, lry) {
+        if (x === ulx || x === lrx) {
+            return y === uly || y === lry;
         }
         return false;
     },
@@ -262,52 +262,50 @@ RG.Geometry = {
         }
     },
 
-    /* Inserts elements into the given level as rectangle bounded by the
-     * coordinates given. */
-    insertElements: function(l1, elemType, llx, lly, urx, ury) {
-        const m1 = l1.getMap();
-        for (let x = llx; x <= urx; x++) {
-            for (let y = lly; y <= ury; y++) {
-                if (m1.hasXY(x, y)) {
-                    const elem = RG.FACT.createElement(elemType);
-                    if (elemType.match(/(wall|floor)/)) {
-                        m1._map[x][y].setBaseElem(elem);
-                    }
-                    else {
-                        m1._map[x][y].setProp('elements', elem);
-                    }
+    iterateMapWithBBox: function(map, bbox, cb) {
+        for (let x = bbox.ulx; x <= bbox.lrx; x++) {
+            for (let y = bbox.uly; y <= bbox.lry; y++) {
+                if (map.hasXY(x, y)) {
+                    cb(x, y);
                 }
             }
         }
+    },
+
+    /* Inserts elements into the given level as rectangle bounded by the
+     * coordinates given. */
+    insertElements: function(l1, elemType, bbox) {
+        const m1 = l1.getMap();
+        this.iterateMapWithBBox(m1, bbox, (x, y) => {
+            const elem = RG.FACT.createElement(elemType);
+            if (elemType.match(/(wall|floor)/)) {
+                m1._map[x][y].setBaseElem(elem);
+            }
+            else {
+                m1._map[x][y].setProp('elements', elem);
+            }
+        });
     },
 
     /* Inserts actors into the given level as rectangle bounded by the
      * coordinates given. */
-    insertActors: function(l1, actorName, llx, lly, urx, ury, parser) {
+    insertActors: function(l1, actorName, bbox, parser) {
         const m1 = l1.getMap();
-        for (let x = llx; x <= urx; x++) {
-            for (let y = lly; y <= ury; y++) {
-                if (m1.hasXY(x, y)) {
-                    const actor = parser.createActualObj(RG.TYPE_ACTOR,
-                        actorName);
-                    l1.addActor(actor, x, y);
-                }
-            }
-        }
+        this.iterateMapWithBBox(m1, bbox, (x, y) => {
+            const actor = parser.createActualObj(RG.TYPE_ACTOR,
+                actorName);
+            l1.addActor(actor, x, y);
+        });
     },
 
     /* Inserts items into the given level as rectangle bounded by the
      * coordinates given. */
-    insertItems: function(l1, itemName, llx, lly, urx, ury, parser) {
+    insertItems: function(l1, itemName, bbox, parser) {
         const m1 = l1.getMap();
-        for (let x = llx; x <= urx; x++) {
-            for (let y = lly; y <= ury; y++) {
-                if (m1.hasXY(x, y)) {
-                    const item = parser.createActualObj(RG.TYPE_ITEM, itemName);
-                    l1.addItem(item, x, y);
-                }
-            }
-        }
+        this.iterateMapWithBBox(m1, bbox, (x, y) => {
+            const item = parser.createActualObj(RG.TYPE_ITEM, itemName);
+            l1.addItem(item, x, y);
+        });
     },
 
 
