@@ -139,6 +139,14 @@ function connectSubFeatures(features, q1Arg, q2Arg, l1, l2) {
 
 }
 
+function getEntrance(levels, entrance) {
+    if (entrance === null) {return null;}
+    const {x, y} = entrance;
+    const entrLevel = levels[entrance.levelNumber];
+    const entrCell = entrLevel.getMap().getCell(x, y);
+    return entrCell.getStairs();
+}
+
 const RG = require('./rg.js');
 RG.Factory = require('./factory');
 
@@ -305,10 +313,7 @@ RG.World.Branch = function(name) {
 
     /* Returns entrance/exit for the branch.*/
     this.getEntrance = function() {
-        if (_entrance === null) {return null;}
-        const entrLevel = _levels[_entrance.levelNumber];
-        const entrCell = entrLevel.getMap().getCell(_entrance.x, _entrance.y);
-        return entrCell.getStairs();
+        return getEntrance(_levels, _entrance);
     };
 
     /* Connects specified level to the given stairs (Usually external to this
@@ -830,10 +835,7 @@ RG.World.MountainFace = function(name) {
     };
 
     this.getEntrance = function() {
-        if (_entrance === null) {return null;}
-        const entrLevel = _levels[_entrance.levelNumber];
-        const entrCell = entrLevel.getMap().getCell(_entrance.x, _entrance.y);
-        return entrCell.getStairs();
+        return getEntrance(_levels, _entrance);
     };
 
     this.connectLevelToStairs = function(nLevel, stairs) {
@@ -939,10 +941,7 @@ RG.World.CityQuarter = function(name) {
 
     /* Returns entrance/exit for the quarter.*/
     this.getEntrance = function() {
-        if (_entrance === null) {return null;}
-        const entrLevel = _levels[_entrance.levelNumber];
-        const entrCell = entrLevel.getMap().getCell(_entrance.x, _entrance.y);
-        return entrCell.getStairs();
+        return getEntrance(_levels, _entrance);
     };
 
     this.addEntrance = function(levelNumber) {
