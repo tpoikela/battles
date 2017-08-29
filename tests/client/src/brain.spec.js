@@ -336,3 +336,29 @@ describe('Brain.Archer', () => {
         expect(level.getItems().length, '1 arrow was shot').to.equal(1);
     });
 });
+
+describe('Brain.SpellCaster', () => {
+    it('casts spells towards enemy', () => {
+        const spellSystem = new RG.System.SpellCast('SpellCast',
+            ['SpellCast']);
+        const effectSystem = new RG.System.SpellEffect('SpellEffect',
+            ['SpellRay']);
+
+        const wizard = RGTest.getMeAWizard();
+        wizard.getBrain().addEnemyType('goblin');
+        const goblin = new RG.Actor.Rogue('goblin');
+        goblin.setType('goblin');
+        const level = RGTest.wrapIntoLevel([wizard, goblin]);
+        RGTest.moveEntityTo(wizard, 2, 2);
+        RGTest.moveEntityTo(goblin, 4, 4);
+
+        const action = wizard.nextAction();
+        action.doAction();
+
+        spellSystem.update();
+        effectSystem.update();
+        expect(goblin.has('Damage')).to.be.true;
+        expect(goblin.get('Damage').getDamageType()).to.equal('ice');
+
+    });
+});
