@@ -116,8 +116,8 @@ RG.Actor.Rogue.prototype.setIsPlayer = function(isPlayer) {
         this.add('StatsMods', new RG.Component.StatsMods());
         this.add('CombatMods', new RG.Component.CombatMods());
 
-        this._spells = new RG.Spell.SpellBook(this);
-        RG.Spell.addAllSpells(this._spells);
+        this._spellbook = new RG.Spell.SpellBook(this);
+        RG.Spell.addAllSpells(this._spellbook);
 
         this.add('SpellPower', new RG.Component.SpellPower());
         this.get('SpellPower').setPP(100);
@@ -200,6 +200,13 @@ RG.Actor.Rogue.prototype.toJSON = function() {
     if (obj.type === null) {
         RG.err('Actor.Rogue', 'toJSON',
             `Type null for ${JSON.stringify(obj)}`);
+    }
+
+    if (this._spellbook) {
+        obj.spellbook = this._spellbook.toJSON();
+    }
+    if (this.has('SpellPower')) {
+        obj.components.SpellPower = this.get('SpellPower').toJSON();
     }
 
     return obj;
