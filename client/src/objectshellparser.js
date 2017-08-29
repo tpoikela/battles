@@ -1,7 +1,6 @@
 
 const RG = require('./rg.js');
 
-
 RG.ObjectShell = {};
 
 RG.ObjectShell.Creator = function(db, dbNoRandom) {
@@ -206,6 +205,10 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
             this.addEnemies(shell, newObj);
         }
 
+        if (shell.hasOwnProperty('spells')) {
+            this.addSpells(shell, newObj);
+        }
+
         // TODO map different props to function calls
         return newObj;
     };
@@ -228,6 +231,13 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
         shell.enemies.forEach(enemyType => {
             obj.getBrain().addEnemyType(enemyType);
         });
+    };
+
+    this.addSpells = function(shell, obj) {
+        obj._spells = new RG.Spell.SpellBook();
+        obj._spells.addSpell(new RG.Spell.FrostBolt());
+        obj.add('SpellPower', new RG.Component.SpellPower());
+        obj.get('SpellPower').setPP(20);
     };
 
     /* Factory-method for creating the actual game objects.*/
