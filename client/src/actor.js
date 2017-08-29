@@ -100,6 +100,14 @@ RG.extend2(RG.Actor.Rogue, RG.Object.Typed);
 RG.extend2(RG.Actor.Rogue, RG.Object.Locatable);
 RG.extend2(RG.Actor.Rogue, RG.Entity);
 
+RG.Actor.Rogue.prototype.setBook = function(book) {
+    this._spellbook = book;
+};
+
+RG.Actor.Rogue.prototype.getBook = function() {
+    return this._spellbook;
+};
+
 /* Returns carrying capacity of the actor.*/
 RG.Actor.Rogue.prototype.getMaxWeight = function() {
     const statStr = this.get('Stats').getStrength();
