@@ -12,12 +12,12 @@ RG.Game.FromJSON = function() {
     let _dungeonLevel = 1;
 
     // Lookup table for mapping level ID to Map.Level object
-    const id2level = {};
-    const id2entity = {};
-    const id2EntityJson = {};
+    let id2level = {};
+    let id2entity = {};
+    let id2EntityJson = {};
 
     // Stores connection information for stairs
-    const stairsInfo = {};
+    let stairsInfo = {};
 
     /* Resets internal data of this object. */
     this.reset = function() {
