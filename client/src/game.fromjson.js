@@ -38,7 +38,6 @@ RG.Game.FromJSON = function() {
         player.setType('player');
         player.setID(obj.id);
         id2entity[obj.id] = player;
-        // id2EntityJson[obj.id] = obj;
         _dungeonLevel = obj.dungeonLevel;
 
         this.addCompsToEntity(player, obj.components);
