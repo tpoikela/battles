@@ -111,7 +111,7 @@ RG.Brain.Memory = function() {
 RG.Brain.Rogue = function(actor) {
     let _actor = actor; // Owner of the brain
     const _explored = {}; // Memory of explored cells
-    let _type = 'rogue';
+    let _type = 'Rogue';
 
     const _memory = new RG.Brain.Memory(this);
 
@@ -340,7 +340,7 @@ RG.Brain.Rogue = function(actor) {
 /* Brain used by most of the animals. TODO: Add some corpse eating behaviour. */
 RG.Brain.Animal = function(actor) {
     RG.Brain.Rogue.call(this, actor);
-    this.setType('animal');
+    this.setType('Animal');
 
     const _memory = this.getMemory();
     _memory.addEnemyType('player');
@@ -362,7 +362,7 @@ RG.extend2(RG.Brain.Animal, RG.Brain.Rogue);
 /* Brain used by most of the animals. TODO: Add some corpse eating behaviour. */
 RG.Brain.Demon = function(actor) {
     RG.Brain.Rogue.call(this, actor);
-    this.setType('demon');
+    this.setType('Demon');
 
     const _memory = this.getMemory();
     _memory.addEnemyType('player');
@@ -384,14 +384,14 @@ RG.extend2(RG.Brain.Demon, RG.Brain.Rogue);
 
 RG.Brain.Zombie = function(actor) {
     RG.Brain.Rogue.call(this, actor);
-    this.setType('zombie');
+    this.setType('Zombie');
 };
 RG.extend2(RG.Brain.Zombie, RG.Brain.Rogue);
 
 /* Brain object used by Undead. */
 RG.Brain.Undead = function(actor) {
     RG.Brain.Rogue.call(this, actor);
-    this.setType('undead');
+    this.setType('Undead');
 
     const _memory = this.getMemory();
     _memory.addEnemyType('player');
@@ -403,7 +403,7 @@ RG.extend2(RG.Brain.Undead, RG.Brain.Rogue);
 /* Brain used by summoners. */
 RG.Brain.Summoner = function(actor) {
     RG.Brain.Rogue.call(this, actor);
-    this.setType('summoner');
+    this.setType('Summoner');
 
     const _actor = actor;
     this.numSummoned = 0;
@@ -465,7 +465,7 @@ RG.extend2(RG.Brain.Summoner, RG.Brain.Rogue);
 /* This brain is used by humans who are not hostile to the player.*/
 RG.Brain.Human = function(actor) {
     RG.Brain.Rogue.call(this, actor);
-    this.setType('human');
+    this.setType('Human');
 
     this.commProbability = 0.5;
 
@@ -526,14 +526,14 @@ RG.extend2(RG.Brain.Human, RG.Brain.Rogue);
 /* Brain object used by the bearfolk. */
 RG.Brain.Bearfolk = function(actor) {
     RG.Brain.Rogue.call(this, actor);
-    this.setType('bearfolk');
+    this.setType('Bearfolk');
 };
 RG.extend2(RG.Brain.Bearfolk, RG.Brain.Rogue);
 
 /* Brain object used by Spirit objects.*/
 RG.Brain.Spirit = function(actor) {
     RG.Brain.Rogue.call(this, actor);
-    this.setType('spirit');
+    this.setType('Spirit');
 
     /* Returns the next action for the spirit.*/
     this.decideNextAction = function() {
@@ -547,7 +547,7 @@ RG.extend2(RG.Brain.Spirit, RG.Brain.Rogue);
 /* Brain object used by archers. */
 RG.Brain.Archer = function(actor) {
     RG.Brain.Rogue.call(this, actor);
-    this.setType('archer');
+    this.setType('Archer');
     const _actor = actor;
 
     this.decideNextAction = function() {
@@ -596,29 +596,50 @@ RG.extend2(RG.Brain.Archer, RG.Brain.Rogue);
  * spellcasting intended to harm opponents. */
 RG.Brain.SpellCaster = function(actor) {
     RG.Brain.Rogue.call(this, actor);
+    this.setType('SpellCaster');
     const _actor = actor;
 
     this.decideNextAction = function() {
         this._seenCached = null;
+        this._spell = this.getRandomSpell();
+        this._spellDir = null;
         return BTree.startBehavTree(Models.SpellCaster.tree, _actor)[0];
+    };
+
+    this.getRandomSpell = function() {
+        if (_actor._spellbook && _actor._spellbook.getSpells().length > 0) {
+            return RG.RAND.arrayGetRand(_actor._spellbook.getSpells());
+        }
+        return null;
     };
 
     /* Returns true if spellcaster can cast a spell. */
     this.canCastSpell = function() {
-
+        if (_actor.get('SpellPower').getPP() >= this._spell.getPower()) {
+            return true;
+        }
+        return false;
     };
 
-    /* Returns true if spellcaster can cast a spell. */
+    /* Returns true if spellcaster should cast the spell. */
     this.shouldCastSpell = function() {
-        // Obviously too complex, things to take into account:
-        // 1. Distance from enemy
-        // 2. Direction of enemy (straight line)
-        // 3. Damages to allies
+        const seenCells = this.getSeenCells();
+        const enemy = this.findEnemyCell(seenCells).getActors()[0];
+        const [x0, y0] = [_actor.getX(), _actor.getY()];
+        const [x1, y1] = [enemy.getX(), enemy.getY()];
+        const lineXY = RG.Geometry.getStraightLine(x0, y0, x1, y1);
+        if (lineXY.length > 1) {
+            const dX = lineXY[1][0] - lineXY[0][0];
+            const dY = lineXY[1][1] - lineXY[0][1];
+            this._spellDir = [dX, dY];
+            return true;
+        }
+        return false;
     };
 
     /* Casts a spell. */
     this.castSpell = function() {
-
+        return this._spell.getCastFunc(_actor, this._spellDir);
     };
 
 };
