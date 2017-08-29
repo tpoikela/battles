@@ -4,7 +4,9 @@ RG.Game = require('./game');
 
 const OW = require('./overworld.map');
 
-/* Object for converting serialized JSON objects to game objects. */
+/* Object for converting serialized JSON objects to game objects. Note that all
+ * actor/level ID info is stored between uses. If you call restoreLevel() two
+ * times, all data from 1st is preserved. Call reset() to clear data. */
 RG.Game.FromJSON = function() {
 
     let _dungeonLevel = 1;
@@ -16,6 +18,14 @@ RG.Game.FromJSON = function() {
 
     // Stores connection information for stairs
     const stairsInfo = {};
+
+    /* Resets internal data of this object. */
+    this.reset = function() {
+        id2level = {};
+        id2entity = {};
+        id2EntityJson = {};
+        stairsInfo = {};
+    };
 
     this.getDungeonLevel = function() {
         return _dungeonLevel;
@@ -49,6 +59,9 @@ RG.Game.FromJSON = function() {
         if (obj.fovRange) {
             entity.setFOVRange(obj.fovRange);
         }
+        if (obj.spellbook) {
+            this.createSpells(obj, entity);
+        }
         return entity;
     };
 
@@ -75,15 +88,12 @@ RG.Game.FromJSON = function() {
 
     this.createBrain = function(brainJSON, ent) {
         const type = brainJSON.type;
-        const typeUc = type[0].toUpperCase() + type.substring(1);
-        if (RG.Brain[typeUc]) {
-            const brainObj = new RG.Brain[typeUc](ent);
+        if (RG.Brain[type]) {
+            const brainObj = new RG.Brain[type](ent);
             const memObj = brainObj.getMemory();
             const memJSON = brainJSON.memory;
             ent.setBrain(brainObj);
-            // TODO addEnemyType called in Actor.Rogue, find better solution
-            // Maybe Brain.Enemy, with hate against player?
-            // And rename Brain.Rogue -> Brain.Base.
+
             if (memJSON) {
                 memJSON.enemyTypes.forEach(type => {
                     brainObj.addEnemyType(type);
@@ -99,15 +109,35 @@ RG.Game.FromJSON = function() {
                     memObj.addEnemy(enemy);
                 });
             }
-            else if (type === 'rogue') {
+            else if (type === 'Rogue') {
                 brainObj.getMemory().addEnemyType('player');
             }
             // TODO reconstruct memory
         }
         else {
             RG.err('FromJSON', 'createBrain',
-                `Cannot find RG.Brain.${typeUc}, JSON: ${brainJSON}`);
+                `Cannot find RG.Brain.${type}, JSON: ${brainJSON}`);
         }
+    };
+
+    this.createSpells = function(json, entity) {
+        entity._spellbook = new RG.Spell.SpellBook();
+        json.spellbook.spells.forEach(spell => {
+            const spellObj = new RG.Spell[spell.new]();
+            spellObj.setPower(spell.power);
+            if (spell.range) {
+                spellObj.setRange(spell.range);
+            }
+            // If spell has damage/duration etc dice, restore them
+            if (spell.dice) {
+                const dice = [];
+                spell.dice.forEach(die => {
+                    dice.push(RG.FACT.createDie(die));
+                });
+                spellObj.setDice(dice);
+            }
+            entity._spellbook.addSpell(spellObj);
+        });
     };
 
     this.createItem = function(obj) {
