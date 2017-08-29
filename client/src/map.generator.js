@@ -175,11 +175,11 @@ RG.Map.Generator = function() { // {{{2
             }
             if (houseCreated) {
                 houses.push(houseCreated);
-                const {llx, urx, lly, ury} = houseCreated;
-                const wallCoord = RG.Geometry.getBox(llx, lly, urx, ury);
+                const {ulx, lrx, uly, lry} = houseCreated;
+                const wallCoord = RG.Geometry.getBox(ulx, uly, lrx, lry);
                 const nFound = RG.Geometry.removeMatching(freeCoord, wallCoord);
                 if (!nFound) {
-                    const msg = `in box ${llx},${lly},${urx},${ury}`;
+                    const msg = `in box ${ulx},${uly},${lrx},${lry}`;
                     RG.warn('Map.Generator', 'createTown',
                         `No free cells modified for house ${msg}`);
                 }
@@ -290,7 +290,7 @@ RG.Map.Generator = function() { // {{{2
 
         // Return room object
         return {
-            llx: x0, lly: y0, urx: maxX, ury: maxY,
+            ulx: x0, uly: y0, lrx: maxX, lry: maxY,
             walls: wallCoords,
             floor: floorCoords,
             door: [doorX, doorY]
@@ -524,10 +524,10 @@ RG.Map.Generator = function() { // {{{2
         // Adjust house coordinates due to map merging
         const houses = townMapObj.houses;
         houses.forEach(house => {
-            house.llx += 7;
-            house.lly += 7;
-            house.urx += 7;
-            house.ury += 7;
+            house.ulx += 7;
+            house.uly += 7;
+            house.lrx += 7;
+            house.lry += 7;
             house.walls = house.walls.map(w => {
                 w[0] += 7; w[1] += 7;
                 return w;
