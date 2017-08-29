@@ -515,6 +515,9 @@ describe('Data query functions for objects', function() {
         expect(cryomancer.has('SpellPower')).to.equal(true);
         expect(cryomancer.get('SpellPower').getPP()).to.equal(21);
         expect(cryomancer.get('SpellPower').getMaxPP()).to.equal(22);
+
+        const spellbook = cryomancer.getBook();
+        expect(spellbook.getSpells()).to.have.length(1);
     });
 });
 
