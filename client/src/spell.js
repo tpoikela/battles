@@ -92,6 +92,11 @@ RG.Spell.SpellBook = function(actor) {
         };
     };
 
+    this.toJSON = function() {
+        return {
+            spells: _spells.map(spell => spell.toJSON())
+        };
+    };
 };
 
 /* Base object for all spells. */
@@ -109,15 +114,26 @@ RG.Spell.Base = function(name, power) {
         return str;
     };
 
+    this.toJSON = function() {
+        return {
+            power: _power
+        };
+    };
+
 };
 
 RG.Spell.FrostBolt = function() {
     RG.Spell.Base.call(this, 'Frost bolt');
 
-    const _damageDie = RG.FACT.createDie('4d4 + 4');
-    const _range = 5;
+    let _damageDie = RG.FACT.createDie('4d4 + 4');
+    let _range = 5;
 
     this.getRange = function() {return _range;};
+    this.setRange = function(range) {_range = range;};
+    this.setDice = function(dice) {
+        _damageDie = dice[0];
+    };
+    this.getDice = function() {return [_damageDie];};
 
     this.cast = function(args) {
         const src = args.src;
@@ -148,21 +164,37 @@ RG.Spell.FrostBolt = function() {
         RG.gameMsg('Select a direction for firing:');
         return {
             select: (code) => {
-                const args = {};
-                args.dir = RG.KeyMap.getDir(code);
-                if (args.dir) {
-                    args.src = actor;
-                    return () => {
-                        const spellCast = new RG.Component.SpellCast();
-                        spellCast.setSource(actor);
-                        spellCast.setSpell(this);
-                        spellCast.setArgs(args);
-                        actor.add('SpellCast', spellCast);
-                    };
-                }
-                return null;
+                const dir = RG.KeyMap.getDir(code);
+                return this.getCastFunc(actor, dir);
             },
             showMenu: () => false
+        };
+    };
+
+    this.getCastFunc = function(actor, dir) {
+        const args = {dir};
+        console.log('XXX Added SpellCast comp');
+        if (args.dir) {
+            args.src = actor;
+            return () => {
+                const spellCast = new RG.Component.SpellCast();
+                spellCast.setSource(actor);
+                spellCast.setSpell(this);
+                spellCast.setArgs(args);
+                actor.add('SpellCast', spellCast);
+                console.log('Added SpellCast comp');
+            };
+        }
+        return null;
+    };
+
+    this.toJSON = function() {
+        return {
+            name: this.getName(),
+            power: this.getPower(),
+            range: _range,
+            dice: [_damageDie.toJSON()],
+            new: 'FrostBolt'
         };
     };
 
