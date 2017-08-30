@@ -89,7 +89,7 @@ describe('Function: All small game features', function() {
 
         l1.addItem(sword, 1, 1);
 
-        expect(shopkeeper.getBrain().getType()).to.equal('human');
+        expect(shopkeeper.getBrain().getType()).to.equal('Human');
         p1.setIsPlayer(true);
         game.addLevel(l1);
         game.addPlayer(p1);
@@ -145,8 +145,8 @@ describe('Function: All small game features', function() {
         p1 = findActor(l1, {getName: 'Player1'});
         const hum = findActor(l1, {getName: 'humanoid'});
 
-        expect(sk.getBrain().getType(), 'Brain type OK').to.equal('human');
-        expect(hum.getBrain().getType(), 'Brain type OK').to.equal('rogue');
+        expect(sk.getBrain().getType(), 'Brain type OK').to.equal('Human');
+        expect(hum.getBrain().getType(), 'Brain type OK').to.equal('Rogue');
 
         const inv = p1.getInvEq();
         expect(inv.getInventory().getItems(), 'Player has one item')
