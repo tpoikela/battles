@@ -88,33 +88,29 @@ RG.System.Attack = function(type, compTypes) {
         }
         else {
             // Actual hit change calculation
-            let totalAttack = RG.getMeleeAttack(att);
-            if (att.has('Attacker')) {
-                totalAttack += this.addAttackerBonus(att);
+            this.performAttack(att, def, aName, dName);
+            if (def.has('CounterAttack')) {
+                const msg = `${dName} seems to counter attack.`;
+                RG.gameMsg({cell: def.getCell(), msg});
+                this.performAttack(def, att, dName, aName);
             }
 
-            let totalDefense = def.getDefense();
-            if (def.has('Defender')) {
-                totalDefense += this.addDefenderBonus(def);
+            if (att.has('BiDirStrike')) {
+                const biDirTarget = this.getBiDirTarget(att, def);
+                if (biDirTarget) {
+                    const msg = `${aName} tries to hit double strike.`;
+                    RG.gameMsg({msg, cell: att.getCell()});
+                    const defName = biDirTarget.getName();
+                    this.performAttack(att, biDirTarget, aName, defName);
 
-            }
-            const hitChance = totalAttack / (totalAttack + totalDefense);
-
-            if (hitChance > RG.RAND.getUniform()) {
-                const totalDamage = att.getDamage();
-                if (totalDamage > 0) {
-                    this.doDamage(att, def, totalDamage);
+                    if (biDirTarget.has('CounterAttack')) {
+                        const msg = `${defName} seems to counter attack.`;
+                        RG.gameMsg({cell: biDirTarget.getCell(), msg});
+                        this.performAttack(biDirTarget, att, defName, aName);
+                    }
                 }
-                else {
-                    RG.gameMsg({cell: att.getCell,
-                        msg: aName + ' fails to hurt ' + dName});
-                }
             }
-            else {
-                RG.gameMsg({cell: att.getCell(),
-                    msg: aName + ' misses ' + dName});
-            }
-            def.addEnemy(att);
+
             att.getBrain().getMemory().setLastAttacked(def);
         }
         ent.remove('Attack');
@@ -138,6 +134,61 @@ RG.System.Attack = function(type, compTypes) {
         const cells = RG.Brain.getEnemyCellsAround(def);
         console.log('Defender grants a bonus of ' + cells.length);
         return cells.length;
+    };
+
+    this.performAttack = function(att, def, aName, dName) {
+        let totalAttack = RG.getMeleeAttack(att);
+        if (att.has('Attacker')) {
+            totalAttack += this.addAttackerBonus(att);
+        }
+
+        let totalDefense = def.getDefense();
+        if (def.has('Defender')) {
+            totalDefense += this.addDefenderBonus(def);
+        }
+        const hitChance = totalAttack / (totalAttack + totalDefense);
+
+        if (hitChance > RG.RAND.getUniform()) {
+            const totalDamage = att.getDamage();
+            if (totalDamage > 0) {
+                this.doDamage(att, def, totalDamage);
+            }
+            else {
+                RG.gameMsg({cell: att.getCell,
+                    msg: aName + ' fails to hurt ' + dName});
+            }
+        }
+        else {
+            RG.gameMsg({cell: att.getCell(),
+                msg: aName + ' misses ' + dName});
+        }
+        def.addEnemy(att);
+    };
+
+    /* Gets an enemy target for bi-directional strike, if any. */
+    this.getBiDirTarget = function(att, def) {
+        // 1st, find opposite x,y for the 1st attack
+        const [attX, attY] = [att.getX(), att.getY()];
+        const [defX, defY] = [def.getX(), def.getY()];
+        const dX = -1 * (defX - attX);
+        const dY = -1 * (defY - attY);
+        const biDirX = attX + dX;
+        const biDirY = attY + dY;
+
+        // Once x,y found, check if there's an enemy
+        const map = att.getLevel().getMap();
+        if (map.hasXY(biDirX, biDirY)) {
+            const cell = map.getCell(biDirX, biDirY);
+            if (cell.hasActors()) {
+                const targets = cell.getActors();
+                for (let i = 0; i < targets.length; i++) {
+                    if (att.isEnemy(targets[i])) {
+                        return targets[i];
+                    }
+                }
+            }
+        }
+        return null;
     };
 };
 RG.extend2(RG.System.Attack, RG.System.Base);
