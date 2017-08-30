@@ -99,10 +99,14 @@ RG.Inv.Equipment = function(actor) {
         return _slots.hasOwnProperty(slotType);
     };
 
+    /* Returns the total weight of the equipment. */
     this.getWeight = function() {
         let total = 0;
         for (let i = 0; i < _equipped.length; i++) {
             total += _equipped[i].getWeight() * _equipped[i].count;
+        }
+        if (actor.has('MasterEquipper')) {
+            total *= actor.get('MasterEquipper').getFactor();
         }
         return total;
     };
