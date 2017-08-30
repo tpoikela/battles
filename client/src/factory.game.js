@@ -431,6 +431,11 @@ RG.Factory.Game = function() {
         const potStr = _parser.createItem('Potion of strength');
         player.getInvEq().addItem(potStr);
 
+        // BladeMaster components
+        player.add('Attacker', new RG.Component.Attacker());
+        player.add('Defender', new RG.Component.Defender());
+        player.add('MasterEquipper', new RG.Component.MasterEquipper());
+
         const winCond = new RG.Game.WinCondition('Kill a keeper');
         winCond.addActorKilled(keeper);
 
