@@ -18,17 +18,45 @@ const NO_ACTION_TAKEN = () => {};
 RG.Brain = {};
 
 /* Returns a list of cells in 3x3 around the actor with the brain.*/
-RG.Brain.getCellsAround = function(actor) {
+RG.Brain.getCellsAroundActor = function(actor) {
     const map = actor.getLevel().getMap();
     const x = actor.getX();
     const y = actor.getY();
     const cells = [];
     for (let xx = x - 1; xx <= x + 1; xx++) {
         for (let yy = y - 1; yy <= y + 1; yy++) {
-            if (map.hasXY(xx, yy)) {cells.push(map.getCell(xx, yy));}
+            if (map.hasXY(xx, yy)) {
+                if (xx !== x || yy !== y) {
+                    cells.push(map.getCell(xx, yy));
+                }
+            }
         }
     }
     return cells;
+};
+
+/* Returns all cells with actors in them. */
+RG.Brain.findCellsWithActors = function(actor, seenCells) {
+    const cells = [];
+    for (let i = 0, iMax = seenCells.length; i < iMax; i++) {
+        if (seenCells[i].hasProp('actors')) {
+            const actors = seenCells[i].getProp('actors');
+            // Exclude itself from list
+            if (actors[0].getID() !== actor.getID()) {
+                cells.push(seenCells[i]);
+            }
+        }
+    }
+    return cells;
+};
+
+RG.Brain.getEnemyCellsAround = function(actor) {
+    const cellsAround = RG.Brain.getCellsAroundActor(actor);
+    const res = cellsAround.filter(cell => (
+        cell.hasActors() &&
+            actor.getBrain().getMemory().isEnemy(cell.getActors()[0])
+    ));
+    return res;
 };
 
 /* Memory is used by the actor to hold information about enemies, items etc.
@@ -244,24 +272,11 @@ RG.Brain.Rogue = function(actor) {
         return false;
     };
 
-    this.findCellsWithActors = function(seenCells) {
-        const cells = [];
-        for (let i = 0, iMax = seenCells.length; i < iMax; i++) {
-            if (seenCells[i].hasProp('actors')) {
-                const actors = seenCells[i].getProp('actors');
-                // Exclude itself from list
-                if (actors[0].getID() !== _actor.getID()) {
-                    cells.push(seenCells[i]);
-                }
-            }
-        }
-        return cells;
-    };
 
     /* Given a list of cells, returns a cell with an enemy in it or null.*/
     this.findEnemyCell = function(seenCells) {
         const enemyCells = [];
-        const cells = this.findCellsWithActors(seenCells);
+        const cells = RG.Brain.findCellsWithActors(_actor, seenCells);
         for (let i = 0; i < cells.length; i++) {
             const actors = cells[i].getActors();
             if (_memory.isEnemy(actors[0])) {
@@ -273,6 +288,7 @@ RG.Brain.Rogue = function(actor) {
                 }
             }
         }
+        // Return random enemy cell to make behav less predictable
         if (enemyCells.length > 0) {return RG.RAND.arrayGetRand(enemyCells);}
         return null;
     };
@@ -280,7 +296,7 @@ RG.Brain.Rogue = function(actor) {
     /* Finds a friend cell among seen cells.*/
     this.findFriendCell = function(seenCells) {
         const memory = this.getMemory();
-        const cells = this.findCellsWithActors(seenCells);
+        const cells = RG.Brain.findCellsWithActors(_actor, seenCells);
         for (let i = 0; i < cells.length; i++) {
             const actors = cells[i].getActors();
             if (!memory.isEnemy(actors[0])) {return cells[i];}
@@ -353,16 +369,6 @@ RG.Brain.Animal = function(actor) {
     _memory.addEnemyType('player');
     _memory.addEnemyType('human');
 
-    this.findEnemyCell = function(seenCells) {
-        for (let i = 0, iMax = seenCells.length; i < iMax; i++) {
-            if (seenCells[i].hasProp('actors')) {
-                const actors = seenCells[i].getProp('actors');
-                if (_memory.isEnemy(actors[0])) {return seenCells[i];}
-            }
-        }
-        return null;
-    };
-
 };
 RG.extend2(RG.Brain.Animal, RG.Brain.Rogue);
 
@@ -374,17 +380,6 @@ RG.Brain.Demon = function(actor) {
     const _memory = this.getMemory();
     _memory.addEnemyType('player');
     _memory.addEnemyType('human');
-
-    this.findEnemyCell = function(seenCells) {
-        const memory = this.getMemory();
-        for (let i = 0, iMax = seenCells.length; i < iMax; i++) {
-            if (seenCells[i].hasProp('actors')) {
-                const actors = seenCells[i].getProp('actors');
-                if (memory.isEnemy(actors[0])) {return seenCells[i];}
-            }
-        }
-        return null;
-    };
 
 };
 RG.extend2(RG.Brain.Demon, RG.Brain.Rogue);
@@ -458,12 +453,8 @@ RG.Brain.Summoner = function(actor) {
 
     /* Returns all free cells around the actor owning the brain.*/
     this.getFreeCellsAround = function() {
-        const cellsAround = RG.Brain.getCellsAround(_actor);
-        const freeCells = [];
-        for (let i = 0; i < cellsAround.length; i++) {
-            if (cellsAround[i].isFree()) {freeCells.push(cellsAround[i]);}
-        }
-        return freeCells;
+        const cellsAround = RG.Brain.getCellsAroundActor(_actor);
+        return cellsAround.filter(cell => cell.isFree());
     };
 
 };
@@ -481,7 +472,6 @@ RG.Brain.Human = function(actor) {
     this.willCommunicate = function() {
         const communicateOrAttack = RG.RAND.getUniform();
         const seenCells = this.getSeenCells();
-        // const enemyCell = this.findEnemyCell(seenCells);
         const friendCell = this.findFriendCell(seenCells);
         const memory = this.getMemory();
 
