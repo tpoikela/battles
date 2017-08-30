@@ -211,12 +211,12 @@ describe('RG.Brain.Rogue', function() {
     });
 
     it('Has 1st priority for enemies', function() {
-        let cells = RG.Brain.getCellsAround(demon);
-        expect(cells).to.have.length(9);
+        let cells = RG.Brain.getCellsAroundActor(demon);
+        expect(cells).to.have.length(8);
 
         level.addActor(human, 0, 0);
-        cells = RG.Brain.getCellsAround(human);
-        expect(cells).to.have.length(4);
+        cells = RG.Brain.getCellsAroundActor(human);
+        expect(cells).to.have.length(3);
     });
 
     it('explores randomly when no enemies', () => {
