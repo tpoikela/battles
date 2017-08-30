@@ -133,6 +133,8 @@ const GameInventory = React.createClass({
         const maxWeight = this.props.maxWeight;
         const eqWeight = eq.getWeight();
 
+        const isMasterEquipper = this.props.player.has('MasterEquipper');
+
         const activebuttonClass = 'btn btn-secondary';
         const disabledButtonClass = 'btn btn-secondary disabled';
 
@@ -155,12 +157,24 @@ const GameInventory = React.createClass({
                     <div className='modal-content'>
                         <ModalHeader id='inventory-modal-label' text='Inventory'/>
                         <div className='modal-body row'>
+
                             <div className='items-box col-md-6'>
-                                <GameItems eqWeight={eqWeight} maxWeight={maxWeight} setSelectedItem={this.setSelectedItem} inv={inv} />
+                                <GameItems
+                                    eqWeight={eqWeight}
+                                    inv={inv}
+                                    maxWeight={maxWeight}
+                                    setSelectedItem={this.setSelectedItem}
+                                />
                             </div>
+
                             <div id='equipment-box' className='col-md-6'>
-                                <GameEquipment setEquipSelected={this.setEquipSelected} eq={eq} />
+                                <GameEquipment
+                                    eq={eq}
+                                    isMasterEquipper={isMasterEquipper}
+                                    setEquipSelected={this.setEquipSelected}
+                                />
                             </div>
+
                         </div>
                         <div className='modal-footer row'>
                             <div className='col-md-6'>
