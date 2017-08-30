@@ -1238,7 +1238,11 @@ RG.EventPool = function() { // {{{2
 };
 RG.POOL = new RG.EventPool(); // Dangerous, global objects
 
-/* Handles the game message listening and storing of the messages.  */
+//---------------------------------------------------------------------------
+// MessageHandler
+//---------------------------------------------------------------------------
+
+/* Handles the game message listening and storing of the messages. */
 RG.MessageHandler = function() { // {{{2
 
     let _lastMsg = null;
@@ -1295,48 +1299,45 @@ RG.MessageHandler = function() { // {{{2
 //---------------------------------------------------------------------------
 
 RG.Entity = function() {
-
-    let _id = RG.Entity.prototype.idCount++;
-
-    const _comps = {};
-
-    this.getID = function() {return _id;};
-    this.setID = function(id) {_id = id;};
-
-    this.get = function(name) {
-        if (_comps.hasOwnProperty(name)) {return _comps[name];}
-        return null;
-    };
-
-    this.add = function(name, comp) {
-        _comps[name] = comp;
-        comp.entityAddCallback(this);
-        RG.POOL.emitEvent(name, {entity: this, add: true});
-    };
-
-    this.has = function(name) {
-        return _comps.hasOwnProperty(name);
-    };
-
-    this.remove = function(name) {
-        if (_comps.hasOwnProperty(name)) {
-            const comp = _comps[name];
-            comp.entityRemoveCallback(this);
-            delete _comps[name];
-            RG.POOL.emitEvent(name, {entity: this, remove: true});
-        }
-    };
-
-    this.getComponents = function() {return _comps;};
-
+    this._id = RG.Entity.idCount++;
+    this._comps = {};
 };
-RG.Entity.prototype.idCount = 0;
+RG.Entity.idCount = 0;
 
 RG.Entity.createEntityID = function() {
     const id = RG.Entity.prototype.idCount;
     RG.Entity.prototype.idCount += 1;
     return id;
 };
+
+RG.Entity.prototype.getID = function() {return this._id;};
+RG.Entity.prototype.setID = function(id) {this._id = id;};
+
+RG.Entity.prototype.get = function(name) {
+    if (this._comps.hasOwnProperty(name)) {return this._comps[name];}
+    return null;
+};
+
+RG.Entity.prototype.add = function(name, comp) {
+    this._comps[name] = comp;
+    comp.entityAddCallback(this);
+    RG.POOL.emitEvent(name, {entity: this, add: true});
+};
+
+RG.Entity.prototype.has = function(name) {
+    return this._comps.hasOwnProperty(name);
+};
+
+RG.Entity.prototype.remove = function(name) {
+    if (this._comps.hasOwnProperty(name)) {
+        const comp = this._comps[name];
+        comp.entityRemoveCallback(this);
+        delete this._comps[name];
+        RG.POOL.emitEvent(name, {entity: this, remove: true});
+    }
+};
+
+RG.Entity.prototype.getComponents = function() {return this._comps;};
 
 module.exports = RG;
 
