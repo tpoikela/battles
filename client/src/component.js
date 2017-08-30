@@ -759,11 +759,23 @@ RG.Component.Attacker = function() {
 };
 RG.extend2(RG.Component.Attacker, RG.Component.Base);
 
+/* Component which gives an actor bi-directional melee strike. */
+RG.Component.BiDirStrike = function() {
+    RG.Component.Base.call(this, 'BiDirStrike');
+};
+RG.extend2(RG.Component.BiDirStrike, RG.Component.Base);
+
+/* Component which gives an actor bi-directional melee strike. */
+RG.Component.CounterAttack = function() {
+    RG.Component.Base.call(this, 'CounterAttack');
+};
+RG.extend2(RG.Component.CounterAttack, RG.Component.Base);
+
 /* Component which gives reduces equipment weight by 50%. */
 RG.Component.MasterEquipper = function() {
     RG.Component.Base.call(this, 'MasterEquipper');
 
-    const _factor = 0.5;
+    let _factor = 0.5;
     this.setFactor = factor => {_factor = factor;};
     this.getFactor = () => _factor;
 
