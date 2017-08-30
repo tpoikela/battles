@@ -435,6 +435,8 @@ RG.Factory.Game = function() {
         player.add('Attacker', new RG.Component.Attacker());
         player.add('Defender', new RG.Component.Defender());
         player.add('MasterEquipper', new RG.Component.MasterEquipper());
+        player.add('BiDirStrike', new RG.Component.BiDirStrike());
+        player.add('CounterAttack', new RG.Component.BiDirStrike());
 
         const winCond = new RG.Game.WinCondition('Kill a keeper');
         winCond.addActorKilled(keeper);
