@@ -594,25 +594,25 @@ const RG = { // {{{2
     //----------------------
     // Different game events
     //----------------------
-    EVT_ACTOR_CREATED: 'EVT_ACTOR_CREATED',
-    EVT_ACTOR_KILLED: 'EVT_ACTOR_KILLED',
-    EVT_DESTROY_ITEM: 'EVT_DESTROY_ITEM',
-    EVT_MSG: 'EVT_MSG',
+    EVT_ACTOR_CREATED: Symbol(),
+    EVT_ACTOR_KILLED: Symbol(),
+    EVT_DESTROY_ITEM: Symbol(),
+    EVT_MSG: Symbol(),
 
-    EVT_LEVEL_CHANGED: 'EVT_LEVEL_CHANGED',
-    EVT_LEVEL_ENTERED: 'EVT_LEVEL_ENTERED',
+    EVT_LEVEL_CHANGED: Symbol(),
+    EVT_LEVEL_ENTERED: Symbol(),
 
-    EVT_LEVEL_PROP_ADDED: 'EVT_LEVEL_PROP_ADDED',
-    EVT_LEVEL_PROP_REMOVED: 'EVT_LEVEL_PROP_REMOVED',
+    EVT_LEVEL_PROP_ADDED: Symbol(),
+    EVT_LEVEL_PROP_REMOVED: Symbol(),
 
-    EVT_ACT_COMP_ADDED: 'EVT_ACT_COMP_ADDED',
-    EVT_ACT_COMP_REMOVED: 'EVT_ACT_COMP_REMOVED',
-    EVT_ACT_COMP_ENABLED: 'EVT_ACT_COMP_ENABLED',
-    EVT_ACT_COMP_DISABLED: 'EVT_ACT_COMP_DISABLED',
+    EVT_ACT_COMP_ADDED: Symbol(),
+    EVT_ACT_COMP_REMOVED: Symbol(),
+    EVT_ACT_COMP_ENABLED: Symbol(),
+    EVT_ACT_COMP_DISABLED: Symbol(),
 
-    EVT_WIN_COND_TRUE: 'EVT_WIN_COND_TRUE',
+    EVT_WIN_COND_TRUE: Symbol(),
 
-    EVT_ANIMATION: 'EVT_ANIMATION',
+    EVT_ANIMATION: Symbol(),
 
     //----------------------------
     // Different entity/prop types
