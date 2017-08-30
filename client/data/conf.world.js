@@ -39,8 +39,14 @@ const dungeons = {
                 return (actor.type === 'animal');
             }
         },
+        create: {
+            actor: [{name: 'goblin', target: 'Animals', nLevel: 4}]
+        },
         branch: [
-            {name: 'Animals', nLevels: 5, entranceLevel: 0}
+            {
+                name: 'Animals', nLevels: 5, entranceLevel: 0,
+                create: {actor: [{name: 'goblin', nLevel: 4}]}
+            }
         ],
     },
     smallDungeon: { x: 0, y: 0, name: 'Small dungeon', nBranches: 1,
