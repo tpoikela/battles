@@ -747,6 +747,29 @@ RG.Component.Summoned = function() {
 };
 RG.extend2(RG.Component.Summoned, RG.Component.Base);
 
+/* Component which gives a defender bonus (+1 for each enemy). */
+RG.Component.Defender = function() {
+    RG.Component.Base.call(this, 'Defender');
+};
+RG.extend2(RG.Component.Defender, RG.Component.Base);
+
+/* Component which gives an attack bonus (+1 for each enemy). */
+RG.Component.Attacker = function() {
+    RG.Component.Base.call(this, 'Attacker');
+};
+RG.extend2(RG.Component.Attacker, RG.Component.Base);
+
+/* Component which gives reduces equipment weight by 50%. */
+RG.Component.MasterEquipper = function() {
+    RG.Component.Base.call(this, 'MasterEquipper');
+
+    const _factor = 0.5;
+    this.setFactor = factor => {_factor = factor;};
+    this.getFactor = () => _factor;
+
+};
+RG.extend2(RG.Component.MasterEquipper, RG.Component.Base);
+
 //--------------------------------------------
 // Spellcasting related components
 //--------------------------------------------
