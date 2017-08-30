@@ -821,6 +821,12 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
     );
     dungeonConf.constraint.food = () => false;
     dungeonConf.constraint.gold = () => false;
+    dungeonConf.branch[0].create = {
+        actor: [{
+            name: 'Thabba, Son of Ice',
+            nLevel: dungeonConf.branch[0].nLevels - 1}
+        ]
+    };
     areaConf.nDungeons += 1;
     areaConf.dungeon.push(dungeonConf);
 }
