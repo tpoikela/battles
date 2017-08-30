@@ -5,37 +5,60 @@ const GameEquipSlot = require('./game-equip-slot');
 /** Component which shows the equipment of the player.*/
 const GameEquipment = React.createClass({
 
+    propTypes: {
+        eq: React.PropTypes.object,
+        isMasterEquipper: React.PropTypes.bool,
+        setEquipSelected: React.PropTypes.func
+    },
+
     render: function() {
         const eq = this.props.eq;
         const slots = eq.getSlotTypes();
         const equipped = [];
         const setEquip = this.props.setEquipSelected;
 
+        let attr = '';
+        if (this.props.isMasterEquipper) {
+            attr = '(Weight reduced by 50%)';
+        }
+
         // Creates the equipment slots based on whether they have items or not.
         for (let i = 0; i < slots.length; i++) {
-            var item = eq.getEquipped(slots[i]);
-            var items = [];
+            const item = eq.getEquipped(slots[i]);
+            const items = [];
             if (item !== null) {items.push(item);}
 
             let key = i;
             if (items.length > 0) {
-                for (var j = 0; j < items.length; j++) {
+                for (let j = 0; j < items.length; j++) {
                     key += ',' + j;
                     equipped.push(
-                        <GameEquipSlot setEquipSelected={setEquip} key={key} slotName={slots[i]} slotNumber={j} item={items[j]} />
+                        <GameEquipSlot
+                            item={items[j]}
+                            key={key}
+                            setEquipSelected={setEquip}
+                            slotName={slots[i]}
+                            slotNumber={j}
+                        />
                     );
                 }
             }
             else {
                 equipped.push(
-                    <GameEquipSlot setEquipSelected={setEquip} key={key} slotName={slots[i]} slotNumber={j} item={null} />
+                    <GameEquipSlot
+                        item={null}
+                        key={key}
+                        setEquipSelected={setEquip}
+                        slotName={slots[i]}
+                        slotNumber={0}
+                    />
                 );
             }
         }
 
         return (
             <div>
-                <p>Equipment</p>
+                <p>Equipment {attr}</p>
                 {equipped}
             </div>
         );
