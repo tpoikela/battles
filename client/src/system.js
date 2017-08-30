@@ -88,13 +88,23 @@ RG.System.Attack = function(type, compTypes) {
         }
         else {
             // Actual hit change calculation
-            const totalAttack = RG.getMeleeAttack(att);
-            const totalDefense = def.getDefense();
+            let totalAttack = RG.getMeleeAttack(att);
+            if (att.has('Attacker')) {
+                totalAttack += this.addAttackerBonus(att);
+            }
+
+            let totalDefense = def.getDefense();
+            if (def.has('Defender')) {
+                totalDefense += this.addDefenderBonus(def);
+
+            }
             const hitChance = totalAttack / (totalAttack + totalDefense);
 
             if (hitChance > RG.RAND.getUniform()) {
                 const totalDamage = att.getDamage();
-                if (totalDamage > 0) {this.doDamage(att, def, totalDamage);}
+                if (totalDamage > 0) {
+                    this.doDamage(att, def, totalDamage);
+                }
                 else {
                     RG.gameMsg({cell: att.getCell,
                         msg: aName + ' fails to hurt ' + dName});
@@ -116,6 +126,18 @@ RG.System.Attack = function(type, compTypes) {
         def.add('Damage', dmgComp);
         RG.gameWarn({cell: att.getCell(),
             msg: att.getName() + ' hits ' + def.getName()});
+    };
+
+    this.addAttackerBonus = function(att) {
+        const cells = RG.Brain.getEnemyCellsAround(att);
+        console.log('Attacker grants a bonus of ' + cells.length);
+        return cells.length;
+    };
+
+    this.addDefenderBonus = function(def) {
+        const cells = RG.Brain.getEnemyCellsAround(def);
+        console.log('Defender grants a bonus of ' + cells.length);
+        return cells.length;
     };
 };
 RG.extend2(RG.System.Attack, RG.System.Base);
@@ -243,8 +265,9 @@ RG.System.Damage = function(type, compTypes) {
             // Check if any damage was done at all
             if (totalDmg <= 0) {
                 totalDmg = 0;
-                RG.gameMsg("Attack doesn't penetrate protection of "
-                    + ent.getName());
+                const msg = "Attack doesn't penetrate protection of "
+                    + ent.getName();
+                RG.gameMsg({msg, cell: ent.getCell()});
             }
             else {
                 _applyAddOnHitComp(ent);
