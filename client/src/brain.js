@@ -606,6 +606,8 @@ RG.Brain.SpellCaster = function(actor) {
     this.setType('SpellCaster');
     const _actor = actor;
 
+    const _castingProb = 0.2;
+
     this.decideNextAction = function() {
         this._seenCached = null;
         this._spell = this.getRandomSpell();
@@ -614,8 +616,8 @@ RG.Brain.SpellCaster = function(actor) {
     };
 
     this.getRandomSpell = function() {
-        if (_actor._spellbook && _actor._spellbook.getSpells().length > 0) {
-            return RG.RAND.arrayGetRand(_actor._spellbook.getSpells());
+        if (_actor.getBook() && _actor.getBook().getSpells().length > 0) {
+            return RG.RAND.arrayGetRand(_actor.getBook().getSpells());
         }
         return null;
     };
@@ -623,7 +625,9 @@ RG.Brain.SpellCaster = function(actor) {
     /* Returns true if spellcaster can cast a spell. */
     this.canCastSpell = function() {
         if (_actor.get('SpellPower').getPP() >= this._spell.getPower()) {
-            return true;
+            if (RG.RAND.getUniform() <= _castingProb) {
+                return true;
+            }
         }
         return false;
     };
@@ -632,21 +636,18 @@ RG.Brain.SpellCaster = function(actor) {
     this.shouldCastSpell = function() {
         const seenCells = this.getSeenCells();
         const enemy = this.findEnemyCell(seenCells).getActors()[0];
-        const [x0, y0] = [_actor.getX(), _actor.getY()];
-        const [x1, y1] = [enemy.getX(), enemy.getY()];
-        const lineXY = RG.Geometry.getStraightLine(x0, y0, x1, y1);
-        if (lineXY.length > 1) {
-            const dX = lineXY[1][0] - lineXY[0][0];
-            const dY = lineXY[1][1] - lineXY[0][1];
-            this._spellDir = [dX, dY];
-            return true;
-        }
-        return false;
+        const args = {enemy, actor: _actor};
+        return this._spell.aiShouldCastSpell(args);
     };
 
     /* Casts a spell. */
     this.castSpell = function() {
-        return this._spell.getCastFunc(_actor, this._spellDir);
+        return this._spell.getCastFunc(_actor, this._spellArgs);
+    };
+
+    /* Sets the arguments for spell to be cast. */
+    this.setSpellArgs = function(args) {
+        this._spellArgs = args;
     };
 
 };

@@ -155,14 +155,13 @@ RG.Spell.FrostBolt = function() {
         return {
             select: (code) => {
                 const dir = RG.KeyMap.getDir(code);
-                return this.getCastFunc(actor, dir);
+                return this.getCastFunc(actor, {dir});
             },
             showMenu: () => false
         };
     };
 
-    this.getCastFunc = function(actor, dir) {
-        const args = {dir};
+    this.getCastFunc = function(actor, args) {
         if (args.dir) {
             args.src = actor;
             return () => {
@@ -185,6 +184,20 @@ RG.Spell.FrostBolt = function() {
             dice: [_damageDie.toJSON()],
             new: 'FrostBolt'
         };
+    };
+
+    this.aiShouldCastSpell = function(args) {
+        const {actor, enemy} = args;
+        const [x0, y0] = [actor.getX(), actor.getY()];
+        const [x1, y1] = [enemy.getX(), enemy.getY()];
+        const lineXY = RG.Geometry.getStraightLine(x0, y0, x1, y1);
+        if (lineXY.length > 1) {
+            const dX = lineXY[1][0] - lineXY[0][0];
+            const dY = lineXY[1][1] - lineXY[0][1];
+            actor.getBrain().setSpellArgs({dir: [dX, dY]});
+            return true;
+        }
+        return false;
     };
 
 };
