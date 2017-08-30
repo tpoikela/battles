@@ -817,6 +817,12 @@ RG.Factory.Feature = function() {
         this.addNRandActors(level, _parser, actorConf);
     };
 
+    this.addActorToLevel = function(actorName, level) {
+        const actor = _parser.createActor(actorName);
+        const cell = level.getFreeRandCell();
+        level.addActor(actor, cell.getX(), cell.getY());
+    };
+
 };
 RG.extend2(RG.Factory.Feature, RG.Factory.Base);
 
@@ -1115,8 +1121,11 @@ RG.Factory.World = function() {
                 }
                 else {
                     level = this.featureFactory.createDungeonLevel(levelConf);
+                    // For creating 'fixed' items and actors
+                    this.addFixedFeatures(i, level, branch);
                 }
             }
+
             branch.addLevel(level);
         }
 
@@ -1176,6 +1185,26 @@ RG.Factory.World = function() {
         if (alignment) {levelConf.alignment = alignment;}
         if (wallType) {levelConf.wallType = wallType;}
         if (floorType) {levelConf.floorType = floorType;}
+    };
+
+    this.addFixedFeatures = function(nLevel, level, feat) {
+        const create = this.getConf('create');
+        if (create && create.actor) {
+            const createActors = create.actor;
+            createActors.forEach(createActor => {
+                if (createActor.nLevel === nLevel) {
+                    const actorName = createActor.name;
+                    if (createActor.hasOwnProperty('target') &&
+                        feat.getName() === createActor.target) {
+                        this.featureFactory.addActorToLevel(actorName, level);
+                    }
+                    else {
+                        console.log('Creating ' + createActor.name);
+                        this.featureFactory.addActorToLevel(actorName, level);
+                    }
+                }
+            });
+        }
     };
 
     this.getPresetLevels = function(hierName) {
