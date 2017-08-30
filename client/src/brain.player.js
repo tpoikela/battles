@@ -2,7 +2,7 @@
 const RG = require('./rg');
 
 /* Memory object for the player .*/
-const MemoryPlayer = function() {
+const MemoryPlayer = function(player) {
     let _lastAttackedID = null;
 
     /* Sets the last attacked actor. */
@@ -17,6 +17,10 @@ const MemoryPlayer = function() {
         return _lastAttackedID === actor.getID();
     };
 
+    /* Returns true if the given actor is enemy of player. */
+    this.isEnemy = function(actor) {
+        return actor.getBrain().getMemory().isEnemy(player);
+    };
 
 };
 
@@ -27,7 +31,7 @@ const BrainPlayer = function(actor) {
     const _actor = actor;
     const _guiCallbacks = {}; // For attaching GUI callbacks
     const _type = 'player';
-    const _memory = new MemoryPlayer();
+    const _memory = new MemoryPlayer(actor);
 
     /* For given code, adds a GUI callback. When this keycode is given, a GUI
      * callback is called instead. */
