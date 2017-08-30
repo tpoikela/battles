@@ -53,6 +53,7 @@ RG.Item.Base = function(name) {
 };
 RG.extend2(RG.Item.Base, RG.Object.Typed);
 RG.extend2(RG.Item.Base, RG.Object.Ownable);
+RG.extend2(RG.Item.Base, RG.Entity);
 
 /* Used when showing the item in inventory lists etc. */
 RG.Item.Base.prototype.toString = function() {
