@@ -747,6 +747,15 @@ RG.Component.Summoned = function() {
 };
 RG.extend2(RG.Component.Summoned, RG.Component.Base);
 
+RG.Component.Sharpener = function() {
+    RG.Component.Base.call(this, 'Sharpener');
+};
+RG.extend2(RG.Component.Sharpener, RG.Component.Base);
+
+//---------------------------------------------------------------------------
+// MELEE COMBAT COMPONENTS
+//---------------------------------------------------------------------------
+
 /* Component which gives a defender bonus (+1 for each enemy). */
 RG.Component.Defender = function() {
     RG.Component.Base.call(this, 'Defender');
@@ -781,6 +790,20 @@ RG.Component.MasterEquipper = function() {
 
 };
 RG.extend2(RG.Component.MasterEquipper, RG.Component.Base);
+
+/* Component which gives an actor power to wield two weapons (if not using
+ * shield). */
+RG.Component.Ambidexterity = function() {
+    RG.Component.Base.call(this, 'Ambidexterity');
+};
+RG.extend2(RG.Component.Ambidexterity, RG.Component.Base);
+
+/* Gives ability to strike melee hits from distance (generally with a range of 2
+ * instead of 1. */
+RG.Component.LongReach = function() {
+    RG.Component.Base.call(this, 'LongReach');
+};
+RG.extend2(RG.Component.LongReach, RG.Component.Base);
 
 //--------------------------------------------
 // Spellcasting related components
