@@ -5,18 +5,18 @@ const RG = require('./rg');
 //-------------------------------------------------------------------------
 /* BladeMaster actor class and its experience level-specific features. */
 //-------------------------------------------------------------------------
-ActorClass.BladeMaster = function(actor) {
+ActorClass.Blademaster = function(actor) {
     this._actor = actor;
     const _name = actor.getName();
 
     this._messages = {
         4: `${_name} knows now how to defend more skillfully`,
-        8: `${_name} gains new skill`,
-        12: `${_name} gains new skill`,
-        16: `${_name} gains new skill`,
-        20: `${_name} gains new skill`,
-        24: `${_name} gains new skill`,
-        28: `${_name} gains new skill`,
+        8: `${_name} knows now how to hit enemies more accurately`,
+        12: `${_name} knows now how to handle equipment better`,
+        16: `${_name} can now strike in two directions`,
+        20: `${_name} can now keep the weapons sharp`,
+        24: `${_name} can now wield two blades at once`,
+        28: `${_name} can now strike back immediately when attacked`,
         32: `${_name} has become a True Blademaster`
     };
 
@@ -28,25 +28,26 @@ ActorClass.BladeMaster = function(actor) {
             this._actor.add(new RG.Component.Defender());
         },
         8: () => {
-
+            this._actor.add(new RG.Component.Attacker());
         },
         12: () => {
-
+            this._actor.add(new RG.Component.MasterEquipper());
         },
         16: () => {
-
+            this._actor.add(new RG.Component.BiDirStrike());
         },
         20: () => {
-
+            this._actor.add(new RG.Component.Sharpener());
         },
         24: () => {
-
+            this._actor.add(new RG.Component.Ambidexterity());
         },
         28: () => {
-
+            this._actor.add(new RG.Component.CounterAttack());
         },
         32: () => {
-
+            this.get('Combat').setRange(2);
+            this._actor.add(new RG.Component.LongReach());
         }
     };
 
@@ -190,5 +191,7 @@ ActorClass.Marksman = function(actor) {
     };
 
 };
+
+RG.ACTOR_CLASSES = Object.keys(ActorClass);
 
 module.exports = ActorClass;
