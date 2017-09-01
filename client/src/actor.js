@@ -63,7 +63,6 @@ RG.Actor.Rogue = function(name) { // {{{2
         this._brain.setActor(this);
     };
 
-
     //---------------------------------
     // Equipment related methods
     //---------------------------------
@@ -94,6 +93,15 @@ RG.Actor.Rogue = function(name) { // {{{2
     this.getEquipProtection = function() {
         return this._invEq.getEquipment().getProtection();
     };
+
+    this.setActorClass = function(classObj) {
+        this._actorClass = classObj;
+    };
+
+    this.getActorClass = function() {
+        return this._actorClass;
+    };
+
 
 };
 RG.extend2(RG.Actor.Rogue, RG.Object.Typed);
@@ -198,12 +206,13 @@ RG.Actor.Rogue.prototype.toJSON = function() {
     obj.components = components;
     */
 
-    if (this.has('Hunger')) {
-        obj.components.Hunger = this.get('Hunger').toJSON();
-    }
-    if (this.has('Flying')) {
-        obj.components.Flying = this.get('Flying').toJSON();
-    }
+    const simpleComps = ['Hunger', 'Flying', 'Defender', 'Attacker',
+        'CounterAttack', 'BiDirStrike', 'MasterEquipper', 'SpellPower'];
+    simpleComps.forEach(compName => {
+        if (this.has(compName)) {
+            obj.components[compName] = this.get(compName).toJSON();
+        }
+    });
 
     if (obj.type === null) {
         RG.err('Actor.Rogue', 'toJSON',
@@ -212,9 +221,6 @@ RG.Actor.Rogue.prototype.toJSON = function() {
 
     if (this._spellbook) {
         obj.spellbook = this._spellbook.toJSON();
-    }
-    if (this.has('SpellPower')) {
-        obj.components.SpellPower = this.get('SpellPower').toJSON();
     }
 
     return obj;
