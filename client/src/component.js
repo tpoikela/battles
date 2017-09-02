@@ -756,7 +756,7 @@ RG.extend2(RG.Component.Sharpener, RG.Component.Base);
 RG.Component.ActorClass = function() {
     RG.Component.Base.call(this, 'ActorClass');
 
-    const _class = null;
+    let _class = null;
 
     this.setClass = function(classObj) {
         _class = classObj;
