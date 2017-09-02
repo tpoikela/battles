@@ -92,7 +92,7 @@ describe('Canceling events and actor actions', function() {
     it('Removes the event like it never happened', function() {
         const testActor = new RG.Actor.Rogue('actor');
         // const notZero = 555;
-        const changeEvent = new RG.Time.RogueOneShotEvent(emptyTestCB, 200,
+        const changeEvent = new RG.Time.OneShotEvent(emptyTestCB, 200,
             'This happened');
         sch.add(testActor, true, 100);
         sch.add(changeEvent, true, 190);
