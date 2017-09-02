@@ -72,6 +72,18 @@ RG.Time.RegenEvent = function(actor, dur) {
 };
 RG.extend2(RG.Time.RegenEvent, RG.Time.GameEvent);
 
+/* Regeneration power points event. Initialized with an actor. */
+RG.Time.RegenPPEvent = function(actor, dur) {
+    const _dur = dur; // Duration between events
+
+    const _regeneratePower = function() {
+        actor.get('SpellPower').addPP(1);
+    };
+
+    RG.Time.GameEvent.call(this, _dur, _regeneratePower, true);
+};
+RG.extend2(RG.Time.RegenPPEvent, RG.Time.GameEvent);
+
 /* Event that is executed once after an offset.*/
 RG.Time.OneShotEvent = function(cb, offset, msg) {
 
