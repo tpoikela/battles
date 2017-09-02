@@ -88,7 +88,10 @@ RG.Factory.Game = function() {
         }
         const regenPlayer = new RG.Time.RegenEvent(player,
             20 * RG.ACTION_DUR);
+        const regenPlayerPP = new RG.Time.RegenPPEvent(player,
+            30 * RG.ACTION_DUR);
         game.addEvent(regenPlayer);
+        game.addEvent(regenPlayerPP);
         return player;
     };
 
