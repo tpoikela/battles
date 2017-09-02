@@ -64,26 +64,26 @@ ActorClass.Blademaster = function(actor) {
             this._actor.add(new RG.Component.Defender());
         },
         8: () => {
-            actor.add(new RG.Component.Attacker());
+            this._actor.add(new RG.Component.Attacker());
         },
         12: () => {
-            actor.add(new RG.Component.MasterEquipper());
+            this._actor.add(new RG.Component.MasterEquipper());
         },
         16: () => {
-            actor.add(new RG.Component.BiDirStrike());
+            this._actor.add(new RG.Component.BiDirStrike());
         },
         20: () => {
-            actor.add(new RG.Component.Sharpener());
+            this._actor.add(new RG.Component.Sharpener());
         },
         24: () => {
-            actor.add(new RG.Component.Ambidexterity());
+            this._actor.add(new RG.Component.Ambidexterity());
         },
         28: () => {
-            actor.add(new RG.Component.CounterAttack());
+            this._actor.add(new RG.Component.CounterAttack());
         },
         32: () => {
             actor.get('Combat').setRange(2);
-            actor.add(new RG.Component.LongReach());
+            this._actor.add(new RG.Component.LongReach());
         }
     };
 
