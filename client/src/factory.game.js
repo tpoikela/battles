@@ -62,11 +62,18 @@ RG.Factory.Game = function() {
             player.getInvEq().addItem(startingWeapon);
             player.getInvEq().equipItem(startingWeapon);
 
-            obj.actorClass = 'Blademaster';
-            const actorClassComp = new RG.Component.ActorClass();
-            const actorClass = new ActorClass[obj.actorClass](player);
-            actorClassComp.setClass(actorClass);
-            player.add(actorClassComp);
+            if (obj.playerClass) {
+                if (ActorClass.hasOwnProperty(obj.playerClass)) {
+                    const actorClassComp = new RG.Component.ActorClass();
+                    const actorClass = new ActorClass[obj.playerClass](player);
+                    actorClassComp.setClass(actorClass);
+                    player.add(actorClassComp);
+                }
+                else {
+                    RG.err('Factory.Game', 'createPlayerUnlessLoaded',
+                        `${obj.playerClass} not found in ActorClass.`);
+                }
+            }
         }
 
         if (!player.has('Hunger')) {
