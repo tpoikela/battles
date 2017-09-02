@@ -15,10 +15,13 @@ describe('ActorClass.Blademaster', () => {
 
         RGTest.wrapIntoLevel([rogue]);
 
+        bm.advanceLevel();
+        expect(rogue.has('Defender')).to.be.false;
         rogue.get('Experience').setExpLevel(4);
         bm.advanceLevel();
         expect(rogue.has('Defender')).to.be.true;
 
+        expect(rogue.has('Ambidexterity')).to.be.false;
         rogue.get('Experience').setExpLevel(24);
         bm.advanceLevel();
         expect(rogue.has('Ambidexterity')).to.be.true;
