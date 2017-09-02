@@ -117,6 +117,7 @@ class BattlesTop extends React.Component {
             levelSize: 'Medium',
             monstType: 'Medium',
             lootType: 'Medium',
+            playerClass: 'Adventurer',
 
             sqrPerActor: 120,
             sqrPerItem: 120,
@@ -558,6 +559,7 @@ class BattlesTop extends React.Component {
         }
 
         const settings = {
+            playerClass: this.state.playerClass,
             playerLevel: this.state.playerLevel,
             gameLength: this.state.gameLength,
             levelSize: this.state.levelSize,
@@ -584,6 +586,7 @@ class BattlesTop extends React.Component {
                     setLevelSize={this.setLevelSize}
                     setLoot={this.setLoot}
                     setMonsters={this.setMonsters}
+                    setPlayerClass={this.setPlayerClass}
                     setPlayerLevel={this.setPlayerLevel}
                     setPlayerName={this.setPlayerName}
                     setSeedName={this.setSeedName}
@@ -951,6 +954,11 @@ class BattlesTop extends React.Component {
         this.setState({playerLevel: level});
     }
 
+    setPlayerClass(className) {
+        this.gameConf.playerClass = className;
+        this.setState({playerClass: className});
+    }
+
     setGameLength(length) {
         switch (length) {
             case 'Short': this.gameConf.levels = 5; break;
@@ -990,6 +998,7 @@ class BattlesTop extends React.Component {
         this.setPlayerLevel = this.setPlayerLevel.bind(this);
         this.setPlayerName = this.setPlayerName.bind(this);
         this.setSeedName = this.setSeedName.bind(this);
+        this.setPlayerClass = this.setPlayerClass.bind(this);
 
         // GamePanel callbacks
         this.setViewSize = this.setViewSize.bind(this);
