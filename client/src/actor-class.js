@@ -1,6 +1,42 @@
 
 const ActorClass = {};
 const RG = require('./rg');
+RG.Component = require('./component');
+
+ActorClass.Base = function(name) {
+    this._className = name;
+
+    this.getClassName = function() {
+        return this._className;
+    };
+};
+
+//-------------------------------------------------------------------------
+/* Adventurer actor class and its experience level-specific features. */
+//-------------------------------------------------------------------------
+ActorClass.Adventurer = function(actor) {
+    this._actor = actor;
+
+    /* Called when a level is advanced by the actor. Checks for messages, and if
+     * the next ability is triggered. */
+    this.advanceLevel = function() {
+        const newLevel = this._actor.get('Experience').getExpLevel();
+        if (newLevel % 4 === 0) {
+            // Get other random actor class
+            // Use it to add new abilities to the actor
+        }
+    };
+
+    /* Called at the creation of the actor. Gives certain set of starting items.
+     */
+    this.addStartingItems = () => {
+
+    };
+
+    this.setStartingStats = () => {
+
+    };
+};
 
 //-------------------------------------------------------------------------
 /* BladeMaster actor class and its experience level-specific features. */
@@ -28,26 +64,26 @@ ActorClass.Blademaster = function(actor) {
             this._actor.add(new RG.Component.Defender());
         },
         8: () => {
-            this._actor.add(new RG.Component.Attacker());
+            actor.add(new RG.Component.Attacker());
         },
         12: () => {
-            this._actor.add(new RG.Component.MasterEquipper());
+            actor.add(new RG.Component.MasterEquipper());
         },
         16: () => {
-            this._actor.add(new RG.Component.BiDirStrike());
+            actor.add(new RG.Component.BiDirStrike());
         },
         20: () => {
-            this._actor.add(new RG.Component.Sharpener());
+            actor.add(new RG.Component.Sharpener());
         },
         24: () => {
-            this._actor.add(new RG.Component.Ambidexterity());
+            actor.add(new RG.Component.Ambidexterity());
         },
         28: () => {
-            this._actor.add(new RG.Component.CounterAttack());
+            actor.add(new RG.Component.CounterAttack());
         },
         32: () => {
-            this.get('Combat').setRange(2);
-            this._actor.add(new RG.Component.LongReach());
+            actor.get('Combat').setRange(2);
+            actor.add(new RG.Component.LongReach());
         }
     };
 
@@ -183,6 +219,65 @@ ActorClass.Marksman = function(actor) {
     };
 
     this.addStartingItems = () => {
+
+    };
+
+    this.setStartingStats = () => {
+
+    };
+
+};
+
+//-------------------------------------------------------------------------
+/* Spellsinger actor class and its experience level-specific features. */
+//-------------------------------------------------------------------------
+ActorClass.Spellsinger = function(actor) {
+    this._actor = actor;
+    const _name = actor.getName();
+
+    this._messages = {
+        4: `${_name} gains new skill`,
+        8: `${_name} gains new skill`,
+        12: `${_name} gains new skill`,
+        16: `${_name} gains new skill`,
+        20: `${_name} gains new skill`,
+        24: `${_name} gains new skill`,
+        28: `${_name} gains new skill`,
+        32: `${_name} has become a Mighty Spellsinger`
+    };
+
+    this._advances = {
+        1: () => {
+
+        },
+        4: () => {
+
+        },
+        8: () => {
+
+        },
+        12: () => {
+
+        },
+        16: () => {
+
+        },
+        20: () => {
+
+        },
+        24: () => {
+
+        },
+        28: () => {
+
+        },
+        32: () => {
+
+        }
+    };
+
+    this.addStartingItems = () => {
+        // Starting instrument
 
     };
 
