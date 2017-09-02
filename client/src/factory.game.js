@@ -12,6 +12,7 @@ const Creator = require('./world.creator');
 
 const RGObjects = require('../data/battles_objects.js');
 RG.Effects = require('../data/effects.js');
+const ActorClass = require('./actor-class');
 
 const Stairs = RG.Element.Stairs;
 
@@ -60,6 +61,12 @@ RG.Factory.Game = function() {
                 'items', pConf.Weapon);
             player.getInvEq().addItem(startingWeapon);
             player.getInvEq().equipItem(startingWeapon);
+
+            obj.actorClass = 'Blademaster';
+            const actorClassComp = new RG.Component.ActorClass();
+            const actorClass = new ActorClass[obj.actorClass](player);
+            actorClassComp.setClass(actorClass);
+            player.add(actorClassComp);
         }
 
         if (!player.has('Hunger')) {
@@ -72,7 +79,7 @@ RG.Factory.Game = function() {
             player.remove('Hunger');
             player.add('Hunger', hunger);
         }
-        const regenPlayer = new RG.Time.RogueRegenEvent(player,
+        const regenPlayer = new RG.Time.RegenEvent(player,
             20 * RG.ACTION_DUR);
         game.addEvent(regenPlayer);
         return player;
@@ -136,15 +143,15 @@ RG.Factory.Game = function() {
         this.allDemonsKilled = function() {
             RG.gameMsg(
                 "Humans have vanquished all demons! But it's not over..");
-            const windsEvent = new RG.Time.RogueOneShotEvent(
+            const windsEvent = new RG.Time.OneShotEvent(
                 this.addSnow.bind(this, _level, 0.2), 20 * 100,
                 "Winds are blowing stronger. You feel it's getting colder"
             );
             _game.addEvent(windsEvent);
-            const stormEvent = new RG.Time.RogueOneShotEvent(
+            const stormEvent = new RG.Time.OneShotEvent(
                 () => {}, 35 * 100, MSG.EYE_OF_STORM);
             _game.addEvent(stormEvent);
-            const beastEvent = new RG.Time.RogueOneShotEvent(
+            const beastEvent = new RG.Time.OneShotEvent(
                 that.createBeastArmy.bind(that, _level, _parser), 50 * 100,
                 'Winter spread by Blizzard Beasts! Hell seems to freeze.');
             _game.addEvent(beastEvent);
@@ -155,10 +162,10 @@ RG.Factory.Game = function() {
             RG.gameMsg(MSG.BEASTS_SLAIN);
             // DO a final message of game over
             // Add random people to celebrate
-            const msgEvent = new RG.Time.RogueOneShotEvent(() => {}, 10 * 100,
+            const msgEvent = new RG.Time.OneShotEvent(() => {}, 10 * 100,
                 MSG.ENEMIES_DEAD);
             _game.addEvent(msgEvent);
-            const msgEvent2 = new RG.Time.RogueOneShotEvent(() => {}, 20 * 100,
+            const msgEvent2 = new RG.Time.OneShotEvent(() => {}, 20 * 100,
                 'Battles in the North will continue soon in larger scale...');
             _game.addEvent(msgEvent2);
         };
@@ -593,7 +600,7 @@ RG.Factory.Game = function() {
         this.createHumanArmy(level, _parser);
 
         level.setOnFirstEnter(function() {
-            const demonEvent = new RG.Time.RogueOneShotEvent(
+            const demonEvent = new RG.Time.OneShotEvent(
                 that.createDemonArmy.bind(that, level, _parser), 100 * 20,
                 'Demon hordes are unleashed from the unsilent abyss!');
             game.addEvent(demonEvent);
