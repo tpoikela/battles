@@ -61,7 +61,7 @@ RG.Time.GameEvent = function(dur, cb, repeat, offset) {
 };
 
 /* Regeneration event. Initialized with an actor. */
-RG.Time.RogueRegenEvent = function(actor, dur) {
+RG.Time.RegenEvent = function(actor, dur) {
     const _dur = dur; // Duration between events
 
     const _regenerate = function() {
@@ -70,10 +70,10 @@ RG.Time.RogueRegenEvent = function(actor, dur) {
 
     RG.Time.GameEvent.call(this, _dur, _regenerate, true);
 };
-RG.extend2(RG.Time.RogueRegenEvent, RG.Time.GameEvent);
+RG.extend2(RG.Time.RegenEvent, RG.Time.GameEvent);
 
 /* Event that is executed once after an offset.*/
-RG.Time.RogueOneShotEvent = function(cb, offset, msg) {
+RG.Time.OneShotEvent = function(cb, offset, msg) {
 
     // Wraps the callback into function and emits a message
     var _cb = function() {
@@ -85,7 +85,7 @@ RG.Time.RogueOneShotEvent = function(cb, offset, msg) {
 
     RG.Time.GameEvent.call(this, 0, _cb, false, offset);
 };
-RG.extend2(RG.Time.RogueOneShotEvent, RG.Time.GameEvent);
+RG.extend2(RG.Time.OneShotEvent, RG.Time.GameEvent);
 
 
 /* Scheduler for the game actions.  */
