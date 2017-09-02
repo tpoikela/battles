@@ -586,7 +586,7 @@ const BrainPlayer = function(actor) {
 
     /* Tries to open/close a door nearby the player.*/
     this.tryToToggleDoor = function() {
-        const cellsAround = RG.Brain.getCellsAround(_actor);
+        const cellsAround = RG.Brain.getCellsAroundActor(_actor);
         for (let i = 0; i < cellsAround.length; i++) {
             if (cellsAround[i].hasDoor()) {
                 const door = cellsAround[i].getPropType('door')[0];
