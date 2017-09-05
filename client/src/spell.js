@@ -148,7 +148,7 @@ RG.Spell.FrostBolt = function() {
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
-        obj.damageType = 'ice';
+        obj.damageType = RG.DMG.ICE;
         obj.damage = _damageDie.roll();
         const rayComp = new RG.Component.SpellRay();
         rayComp.setArgs(obj);
@@ -250,7 +250,7 @@ RG.Spell.GraspOfWinter = function() {
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
-        obj.damageType = 'ice';
+        obj.damageType = RG.DMG.ICE;
         obj.damage = _damageDie.roll();
         const spellComp = new RG.Component.SpellCell();
         spellComp.setArgs(obj);
