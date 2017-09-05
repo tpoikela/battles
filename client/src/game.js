@@ -33,11 +33,13 @@ RG.Game.Engine = function() {
 
     // These systems updated after each action. Order is important, for example,
     // animations should be seen before actors are killed
-    this.systemOrder = ['Stun', 'Attack', 'Missile', 'Movement', 'SpellCast',
-        'SpellEffect', 'Animation', 'Damage', 'ExpPoints', 'Communication'];
+    this.systemOrder = ['Disability', 'Attack', 'Missile', 'Movement',
+        'SpellCast', 'SpellEffect', 'Animation', 'Damage', 'ExpPoints',
+        'Communication'];
 
     this.systems = {};
-    this.systems.Stun = new RG.System.Stun('Stun', ['Stun']);
+    this.systems.Disability = new RG.System.Disability('Disability',
+        ['Stun', 'Paralysis']);
     this.systems.Attack = new RG.System.Attack('Attack', ['Attack']);
     this.systems.Missile = new RG.System.Missile('Missile', ['Missile']);
     this.systems.Movement = new RG.System.Movement('Movement', ['Movement']);
