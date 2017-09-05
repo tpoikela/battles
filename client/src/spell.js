@@ -6,6 +6,7 @@ const RG = require('./rg');
 
 RG.Spell = {};
 
+/* Used for sorting the spells by spell power. */
 const compareSpells = function(s1, s2) {
     if (s1.getPower() < s2.getPower()) {
         return -1;
@@ -23,8 +24,20 @@ const addToExpirationComp = function(actor, comp, dur) {
     else {
         const expComp = new RG.Component.Expiration();
         expComp.addEffect(comp, dur);
-        actor.add('Expiration', expComp);
+        actor.add(expComp);
     }
+    actor.add(comp);
+};
+
+RG.Spell.getSelectionObjectSelf = function(spell, actor) {
+    const func = () => {
+        const spellCast = new RG.Component.SpellCast();
+        spellCast.setSource(actor);
+        spellCast.setSpell(spell);
+        spellCast.setArgs({src: actor});
+        actor.add(spellCast);
+    };
+    return func;
 };
 
 RG.Spell.getSelectionObjectDir = function(spell, actor, msg) {
@@ -231,19 +244,13 @@ RG.Spell.IceShield = function() {
     };
 
     this.getSelectionObject = function(actor) {
-        const func = () => {
-            const spellCast = new RG.Component.SpellCast();
-            spellCast.setSource(actor);
-            spellCast.setSpell(this);
-            spellCast.setArgs({src: actor});
-            actor.add('SpellCast', spellCast);
-        };
-        return func;
+        return RG.Spell.getSelectionObjectSelf(this, actor);
     };
 
 };
 RG.extend2(RG.Spell.IceShield, RG.Spell.Base);
 
+/* A spell for melee combat using grasp of winter. */
 RG.Spell.GraspOfWinter = function() {
     RG.Spell.Base.call(this, 'Grasp of winter');
     const _damageDie = RG.FACT.createDie('4d4 + 4');
@@ -297,11 +304,9 @@ RG.Spell.SummonIceMinion = function() {
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
-        console.log('Ice minion casting now');
 
         // Will be called by System.Spell.Effect
         obj.callback = cell => {
-            console.log('callback in SummonIceMinion');
             if (cell.isFree()) {
                 const [x, y] = [cell.getX(), cell.getY()];
                 const level = args.src.getLevel();
@@ -328,6 +333,27 @@ RG.Spell.SummonIceMinion = function() {
 
 };
 RG.extend2(RG.Spell.SummonIceMinion, RG.Spell.Base);
+
+/* PowerDrain spell which cancels enemy spell and gives power to the caster of
+* this spell. */
+RG.Spell.PowerDrain = function() {
+    RG.Spell.Base.call(this, 'PowerDrain', 15);
+    const _duration = RG.FACT.createDie('20d5 + 10');
+
+    this.cast = function(args) {
+        const actor = args.src;
+        const dur = _duration.roll();
+        const drainComp = new RG.Component.PowerDrain();
+        addToExpirationComp(actor, drainComp, dur);
+        RG.gameMsg('You feel protected against magic.');
+    };
+
+    this.getSelectionObject = function(actor) {
+        return RG.Spell.getSelectionObjectSelf(this, actor);
+    };
+
+};
+RG.extend2(RG.Spell.PowerDrain, RG.Spell.Base);
 
 /* Healing spell, duh. */
 RG.Spell.Heal = function() {
@@ -359,6 +385,7 @@ RG.Spell.addAllSpells = function(book) {
     book.addSpell(new RG.Spell.GraspOfWinter());
     book.addSpell(new RG.Spell.IcyPrison());
     book.addSpell(new RG.Spell.SummonIceMinion());
+    book.addSpell(new RG.Spell.PowerDrain());
     book.addSpell(new RG.Spell.Heal());
 };
 
