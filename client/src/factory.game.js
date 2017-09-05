@@ -458,7 +458,8 @@ RG.Factory.Game = function() {
         const winCond = new RG.Game.WinCondition('Kill a keeper');
         winCond.addActorKilled(keeper);
 
-        player.get('Stats').setStrength(1000);
+        player.get('SpellPower').setPP(100);
+        player.get('SpellPower').setMaxPP(100);
         game.addPlayer(player);
         return game;
     };
