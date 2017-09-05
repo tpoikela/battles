@@ -43,7 +43,8 @@ RG.Game.Engine = function() {
     this.systems.Attack = new RG.System.Attack(['Attack']);
     this.systems.Missile = new RG.System.Missile(['Missile']);
     this.systems.Movement = new RG.System.Movement(['Movement']);
-    this.systems.SpellCast = new RG.System.SpellCast(['SpellCast']);
+    this.systems.SpellCast = new RG.System.SpellCast(['SpellCast',
+        'PowerDrain']);
     this.systems.SpellEffect = new RG.System.SpellEffect(
         ['SpellRay', 'SpellCell']);
     this.systems.Animation = new RG.System.Animation(
