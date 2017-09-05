@@ -670,7 +670,19 @@ const RG = { // {{{2
     // Alignments (TODO make more diverse)
     ALIGN_GOOD: 'ALIGN_GOOD',
     ALIGN_EVIL: 'ALIGN_EVIL',
-    ALIGN_NEUTRAL: 'ALIGN_NEUTRAL'
+    ALIGN_NEUTRAL: 'ALIGN_NEUTRAL',
+
+    // Constants for movement directions
+    DIR: {
+        N: [0, -1],
+        S: [0, 1],
+        E: [1, 0],
+        W: [-1, 0],
+        NE: [1, -1],
+        SE: [1, 1],
+        NW: [-1, -1],
+        SW: [1, -1]
+    }
 
 }; // / }}} RG
 
