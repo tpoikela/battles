@@ -135,7 +135,7 @@ RG.System.Attack = function(compTypes) {
     };
 
     this.doDamage = function(att, def, dmg) {
-        const dmgComp = new RG.Component.Damage(dmg, 'cut');
+        const dmgComp = new RG.Component.Damage(dmg, RG.DMG.MELEE);
         dmgComp.setSource(att);
         def.add('Damage', dmgComp);
         RG.gameWarn({cell: att.getCell(),
@@ -258,7 +258,7 @@ RG.System.Missile = function(compTypes) {
                     this.finishMissileFlight(ent, mComp, currCell);
                     const dmg = mComp.getDamage();
                     const damageComp = new RG.Component.Damage(dmg,
-                        'thrust');
+                        RG.DMG.MISSILE);
                     damageComp.setSource(mComp.getSource());
                     damageComp.setDamage(mComp.getDamage());
                     actor.add('Damage', damageComp);
@@ -699,7 +699,7 @@ RG.System.Hunger = function(compTypes) {
             const takeDmg = RG.RAND.getUniform();
             if (ent.has('Health') && takeDmg < RG.HUNGER_PROB) {
                 const dmg = new RG.Component.Damage(RG.HUNGER_DMG,
-                    'hunger');
+                    RG.DMG.HUNGER);
                 ent.add('Damage', dmg);
                 RG.gameWarn(ent.getName() + ' is starving!');
             }
@@ -820,7 +820,7 @@ RG.System.TimeEffects = function(compTypes) {
         }
         else if (RG.RAND.getUniform() < poison.getProb()) {
             const poisonDmg = poison.rollDamage();
-            const dmg = new RG.Component.Damage(poisonDmg, 'poison');
+            const dmg = new RG.Component.Damage(poisonDmg, RG.DMG.POISON);
             dmg.setSource(poison.getSource());
             ent.add('Damage', dmg);
         }
