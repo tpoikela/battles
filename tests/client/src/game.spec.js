@@ -40,7 +40,7 @@ describe('Game.Main', function() {
     });
 
     it('Initializes the game and adds player', function() {
-        const movSystem = new RG.System.Movement('Movement', ['Movement']);
+        const movSystem = new RG.System.Movement(['Movement']);
         const cols = 50;
         const rows = 30;
         const level = getNewLevel(cols, rows);
@@ -110,8 +110,8 @@ describe('How combat should evolve', function() {
 
 
     it('Deals damage from attacker to defender', function() {
-        const comSystem = new RG.System.Attack('Attack', ['Attack']);
-        const dmgSystem = new RG.System.Damage('Damage', ['Damage']);
+        const comSystem = new RG.System.Attack(['Attack']);
+        const dmgSystem = new RG.System.Damage(['Damage']);
 
         const cols = 50;
         const rows = 30;
@@ -207,7 +207,7 @@ describe('How AI brain works', function() {
 
 
     it('Moves towards player when seen.', function() {
-        const movSystem = new RG.System.Movement('Movement', ['Movement']);
+        const movSystem = new RG.System.Movement(['Movement']);
         expect(level.addActor(player, 2, 2)).to.equal(true);
         expect(level.addActor(mons1, 2, 4)).to.equal(true);
         const action = mons1.nextAction();

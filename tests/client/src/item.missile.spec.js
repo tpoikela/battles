@@ -53,8 +53,8 @@ describe('How dice are cast and what values they give', function() {
 });
 
 const createSystems = function() {
-    const mSystem = new RG.System.Missile('Missile', ['Missile']);
-    const dSystem = new RG.System.Damage('Damage', ['Damage']);
+    const mSystem = new RG.System.Missile(['Missile']);
+    const dSystem = new RG.System.Damage(['Damage']);
     return [mSystem, dSystem];
 };
 

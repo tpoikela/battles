@@ -49,8 +49,7 @@ describe('How actors communicate with each other', function() {
 
     it('Passes info between actors via comm components', function() {
         const level = RG.FACT.createLevel('arena', 10, 10);
-        const comSys = new RG.System.Communication('Communication',
-            ['Communication']);
+        const comSys = new RG.System.Communication(['Communication']);
         const systems = [comSys];
 
         const hunter1 = RG.FACT.createActor('hunter1');

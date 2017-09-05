@@ -13,7 +13,7 @@ const updateSystems = function(systems) {
 
 describe('How hunger system works', function() {
     it('Subtracts energy from actors with hunger', function() {
-        const system = new RG.System.Hunger('Hunger', ['Hunger', 'Action']);
+        const system = new RG.System.Hunger(['Hunger', 'Action']);
         const hunger = new RG.Component.Hunger(2000);
         const action = new RG.Component.Action();
         const player = RG.FACT.createPlayer('Player', {});
@@ -37,7 +37,7 @@ describe('How items/loot is dropped by monsters', function() {
         const humanStats = {hp: 5, att: 1, def: 1, prot: 1};
         const human = RG.FACT.createActor('Human', humanStats);
 
-        const dSystem = new RG.System.Damage('Damage', ['Damage']);
+        const dSystem = new RG.System.Damage(['Damage']);
         const systems = [dSystem];
 
         const lootItem = new RG.Item.Base('Loot item');
@@ -69,7 +69,7 @@ describe('How items/loot is dropped by monsters', function() {
 
 describe('System.Attack', () => {
     it('handles attacks between actors and adds Damage', () => {
-        const attackSystem = new RG.System.Attack('Attack', ['Attack']);
+        const attackSystem = new RG.System.Attack(['Attack']);
         const systems = [attackSystem];
 
         const sword = new RG.Item.Weapon('Sword');
@@ -95,7 +95,7 @@ describe('System.Attack', () => {
 
 describe('System.Damage', () => {
     it('handles adding components on hit', () => {
-        const dSystem = new RG.System.Damage('Damage', ['Damage']);
+        const dSystem = new RG.System.Damage(['Damage']);
         const systems = [dSystem];
 
         const poisonSword = new RG.Item.Weapon('Sword of Poison');
@@ -139,10 +139,9 @@ describe('System.Damage', () => {
 
 describe('System.SpellCast', () => {
     it('handles spellcasting of actors', () => {
-        const dSystem = new RG.System.Damage('Damage', ['Damage']);
-        const effectSystem = new RG.System.SpellEffect('SpellEffect',
-            ['SpellRay']);
-        const spellSystem = new RG.System.SpellCast('SpellCast', ['SpellCast']);
+        const dSystem = new RG.System.Damage(['Damage']);
+        const effectSystem = new RG.System.SpellEffect(['SpellRay']);
+        const spellSystem = new RG.System.SpellCast(['SpellCast']);
         const systems = [spellSystem, effectSystem, dSystem];
 
         const mage = new RG.Actor.Rogue('mage');

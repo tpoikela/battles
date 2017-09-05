@@ -220,7 +220,7 @@ describe('RG.Brain.Rogue', function() {
     });
 
     it('explores randomly when no enemies', () => {
-        const movSys = new RG.System.Movement('Movement', ['Movement']);
+        const movSys = new RG.System.Movement(['Movement']);
         const arena = RG.FACT.createLevel('arena', 10, 10);
         const rogue = new RG.Actor.Rogue('rogue');
         arena.addActor(rogue, 1, 1);
@@ -233,7 +233,7 @@ describe('RG.Brain.Rogue', function() {
     });
 
     it('flees when low on health', () => {
-        const movSys = new RG.System.Movement('Movement', ['Movement']);
+        const movSys = new RG.System.Movement(['Movement']);
         const arena = RG.FACT.createLevel('arena', 30, 30);
         const rogue = new RG.Actor.Rogue('rogue');
         rogue.setFOVRange(20);
@@ -293,7 +293,7 @@ describe('Brain.Summoner', () => {
 describe('Brain.Human', () => {
     it('communicates enemies to friend actors', () => {
         const commSystem = new RG.System.Communication(
-            'Communication', ['Communication']
+            ['Communication']
         );
         const human = new RG.Actor.Rogue('human');
         const brain = new RG.Brain.Human(human);
@@ -322,8 +322,7 @@ describe('Brain.Human', () => {
 
 describe('Brain.Archer', () => {
     it('can do ranged attacks on enemies', () => {
-        const missSystem = new RG.System.Missile('Missile',
-            ['Missile']);
+        const missSystem = new RG.System.Missile(['Missile']);
         const player = new RG.Actor.Rogue('player');
         player.setIsPlayer(true);
 
@@ -351,10 +350,8 @@ describe('Brain.Archer', () => {
 
 describe('Brain.SpellCaster', () => {
     it('casts spells towards enemy', () => {
-        const spellSystem = new RG.System.SpellCast('SpellCast',
-            ['SpellCast']);
-        const effectSystem = new RG.System.SpellEffect('SpellEffect',
-            ['SpellRay']);
+        const spellSystem = new RG.System.SpellCast(['SpellCast']);
+        const effectSystem = new RG.System.SpellEffect(['SpellRay']);
 
         const wizard = RGTest.getMeAWizard();
         wizard.getBrain().addEnemyType('goblin');
