@@ -16,6 +16,17 @@ const compareSpells = function(s1, s2) {
     return 0;
 };
 
+const addToExpirationComp = function(actor, comp, dur) {
+    if (actor.has('Expiration')) {
+        actor.get('Expiration').addEffect(comp, dur);
+    }
+    else {
+        const expComp = new RG.Component.Expiration();
+        expComp.addEffect(comp, dur);
+        actor.add('Expiration', expComp);
+    }
+};
+
 RG.Spell.getSelectionObjectDir = function(spell, actor, msg) {
     RG.gameMsg(msg);
     return {
@@ -215,14 +226,7 @@ RG.Spell.IceShield = function() {
         const dur = _duration.roll();
         const combatMods = new RG.Component.CombatMods();
         combatMods.setDefense(_defenseDie.roll());
-        if (actor.has('Expiration')) {
-            actor.get('Expiration').addEffect(combatMods, dur);
-        }
-        else {
-            const expComp = new RG.Component.Expiration();
-            expComp.addEffect(combatMods, dur);
-            actor.add('Expiration', expComp);
-        }
+        addToExpirationComp(actor, combatMods, dur);
         RG.gameMsg('You feel a boost to your defense.');
     };
 
@@ -260,6 +264,32 @@ RG.Spell.GraspOfWinter = function() {
 };
 RG.extend2(RG.Spell.GraspOfWinter, RG.Spell.Base);
 
+/* IcyPrison spell which paralyses actors for a certain duration. */
+RG.Spell.IcyPrison = function() {
+    RG.Spell.Base.call(this, 'Icy prison', 10);
+
+    const _duration = RG.FACT.createDie('1d6 + 1');
+
+    this.cast = function(args) {
+        const obj = getDirSpellArgs(this, args);
+        const dur = _duration.roll();
+
+        const paralysis = new RG.Component.Paralysis();
+        paralysis.setSource(args.src);
+        obj.addComp = {comp: paralysis, duration: dur};
+
+        const spellComp = new RG.Component.SpellCell();
+        spellComp.setArgs(obj);
+        args.src.add('SpellCell', spellComp);
+    };
+
+    this.getSelectionObject = function(actor) {
+        const msg = 'Select a direction for casting:';
+        return RG.Spell.getSelectionObjectDir(this, actor, msg);
+    };
+
+};
+
 /* Healing spell, duh. */
 RG.Spell.Heal = function() {
     RG.Spell.Base.call(this, 'Heal', 6);
@@ -288,6 +318,7 @@ RG.Spell.addAllSpells = function(book) {
     book.addSpell(new RG.Spell.FrostBolt());
     book.addSpell(new RG.Spell.IceShield());
     book.addSpell(new RG.Spell.GraspOfWinter());
+    book.addSpell(new RG.Spell.IcyPrison());
     book.addSpell(new RG.Spell.Heal());
 };
 
