@@ -367,7 +367,7 @@ describe('Brain.SpellCaster', () => {
         spellSystem.update();
         effectSystem.update();
         expect(goblin.has('Damage')).to.be.true;
-        expect(goblin.get('Damage').getDamageType()).to.equal('ice');
+        expect(goblin.get('Damage').getDamageType()).to.equal(RG.DMG.ICE);
 
     });
 });
