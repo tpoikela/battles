@@ -633,7 +633,7 @@ RG.Component.Paralysis = function() {
     this.setSource = function(src) {_src = src;};
 
 };
-RG.extend2(RG.Component.Stun, RG.Component.Base);
+RG.extend2(RG.Component.Paralysis, RG.Component.Base);
 
 /* Poison component which damages the entity.*/
 class Poison extends Mixin.DurationRoll(Mixin.DamageRoll(RG.Component.Base)) {
@@ -685,9 +685,8 @@ RG.Component.Expiration = function() {
         if (!this._duration.hasOwnProperty(type)) {
             this._duration[type] = dur;
 
-            const that = this;
-            comp.addCallback('onRemove', function() {
-                that.removeEffect(comp);
+            comp.addCallback('onRemove', () => {
+                this.removeEffect(comp);
             });
         }
         else { // increase existing duration
