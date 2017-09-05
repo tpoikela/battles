@@ -845,32 +845,64 @@ RG.extend2(RG.System.Communication, RG.System.Base);
  * execute the effects of the spell.*/
 RG.System.SpellCast = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.SPELL_CAST, compTypes);
+    this.compTypesAny = true;
 
     this.updateEntity = function(ent) {
         const name = ent.getName();
         const cell = ent.getCell();
-        const spellcast = ent.get('SpellCast');
 
         // TODO add checks for impairment, counterspells etc
 
-        if (ent.has('SpellPower')) {
+        if (ent.has('SpellPower') && ent.has('SpellCast')) {
+            const spellcast = ent.get('SpellCast');
             const ppComp = ent.get('SpellPower');
             const spell = spellcast.getSpell();
             if (spell.getPower() <= ppComp.getPP()) {
+                const drainers = Object.values(this.entities).filter(ent => (
+                    ent.has('PowerDrain')
+                ));
+
                 const args = spellcast.getArgs();
-                spell.cast(args);
                 ppComp.decrPP(spell.getPower());
+
+                if (drainers.length === 0) {
+                    spell.cast(args);
+                }
+                else if (this._checkPowerDrain(spell, args, drainers)) {
+                    const msg = 'Spell was canceled by power drain.';
+                    RG.gameMsg({cell: cell, msg: msg});
+                }
+                else {
+                    spell.cast(args);
+                }
             }
             else {
                 const msg = `${name} has no enough power to cast spell`;
                 RG.gameMsg({cell: cell, msg: msg});
             }
+            ent.remove('SpellCast');
         }
-        else {
-            const msg = `${name} has no power to cast spells!`;
-            RG.gameMsg({cell: cell, msg: msg});
-        }
-        ent.remove('SpellCast');
+    };
+
+    this._checkPowerDrain = function(spell, args, drainers) {
+        let isDrained = false;
+        const casterX = args.src.getX();
+        const casterY = args.src.getY();
+        drainers.forEach(ent => {
+            const drainX = ent.getX();
+            const drainY = ent.getY();
+            const dist = RG.shortestDist(casterX, casterY, drainX, drainY);
+            if (dist <= ent.get('PowerDrain').drainDist) {
+                ent.remove('PowerDrain');
+                isDrained = true;
+                if (ent.has('SpellPower')) {
+                    ent.get('SpellPower').addPP(spell.getPower());
+                }
+                return;
+            }
+        });
+        return isDrained;
+
     };
 
 };
