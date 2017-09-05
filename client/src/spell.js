@@ -289,6 +289,45 @@ RG.Spell.IcyPrison = function() {
     };
 
 };
+RG.extend2(RG.Spell.IcyPrison, RG.Spell.Base);
+
+/* A spell to summon an ice minion to fight for the caster. */
+RG.Spell.SummonIceMinion = function() {
+    RG.Spell.Base.call(this, 'Summon ice minion', 14);
+
+    this.cast = function(args) {
+        const obj = getDirSpellArgs(this, args);
+        console.log('Ice minion casting now');
+
+        // Will be called by System.Spell.Effect
+        obj.callback = cell => {
+            console.log('callback in SummonIceMinion');
+            if (cell.isFree()) {
+                const [x, y] = [cell.getX(), cell.getY()];
+                const level = args.src.getLevel();
+
+                // TODO create proper minion
+                const minion = new RG.Actor.Rogue('Ice minion');
+                level.addActor(minion, x, y);
+
+                const name = args.src.getName();
+                const msg = `${name} summons an ice minion!`;
+                RG.gameMsg({cell, msg});
+            }
+        };
+
+        const spellComp = new RG.Component.SpellCell();
+        spellComp.setArgs(obj);
+        args.src.add('SpellCell', spellComp);
+    };
+
+    this.getSelectionObject = function(actor) {
+        const msg = 'Select a free cell for summoning:';
+        return RG.Spell.getSelectionObjectDir(this, actor, msg);
+    };
+
+};
+RG.extend2(RG.Spell.SummonIceMinion, RG.Spell.Base);
 
 /* Healing spell, duh. */
 RG.Spell.Heal = function() {
@@ -319,6 +358,7 @@ RG.Spell.addAllSpells = function(book) {
     book.addSpell(new RG.Spell.IceShield());
     book.addSpell(new RG.Spell.GraspOfWinter());
     book.addSpell(new RG.Spell.IcyPrison());
+    book.addSpell(new RG.Spell.SummonIceMinion());
     book.addSpell(new RG.Spell.Heal());
 };
 
