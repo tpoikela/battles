@@ -988,19 +988,27 @@ RG.System.SpellEffect = function(compTypes) {
                 }
                 else if (args.addComp) {
                     const comp = args.addComp.comp;
-                    if (args.addComp.duration) { // Transient component
-                        const dur = args.addComp.duration;
-                        if (actor.has('Expiration')) {
-                            actor.get('Expiration').addEffect(comp, dur);
+
+                    if (comp) {
+                        if (args.addComp.duration) { // Transient component
+                            const dur = args.addComp.duration;
+                            if (actor.has('Expiration')) {
+                                actor.get('Expiration').addEffect(comp, dur);
+                            }
+                            else {
+                                const expComp = new RG.Component.Expiration();
+                                expComp.addEffect(comp, dur);
+                                actor.add('Expiration', expComp);
+                            }
                         }
-                        else {
-                            const expComp = new RG.Component.Expiration();
-                            expComp.addEffect(comp, dur);
-                            actor.add('Expiration', expComp);
+                        else { // Permanent component
+                            actor.add(comp);
                         }
                     }
-                    else { // Permanent component
-                        actor.add(comp);
+                    else {
+                        const json = JSON.stringify(args);
+                        RG.err('System.SpellEffect', 'processSpellCell',
+                            `args.addComp.comp must be defined. Args: ${json}`);
                     }
 
                     const compType = comp.getType();
