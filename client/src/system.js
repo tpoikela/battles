@@ -593,24 +593,82 @@ RG.extend2(RG.System.Movement, RG.System.Base);
 
 
 /* Stun system removes Movement/Attack components from actors to prevent. */
-RG.System.Stun = function(type, compTypes) {
+RG.System.Disability = function(type, compTypes) {
     RG.System.Base.call(this, type, compTypes);
 
-    this.updateEntity = function(ent) {
-        if (ent.has('Attack')) {
-            ent.remove('Attack');
-            RG.gameMsg({cell: ent.getCell(),
-                msg: ent.getName() + ' is too stunned to attack.'});
-        }
-        else if (ent.has('Movement')) {
-            ent.remove('Movement');
-            RG.gameMsg({cell: ent.getCell(),
-                msg: ent.getName() + ' is too stunned to move.'});
+    this.compTypesAny = true; // Triggered on at least one component
+
+    // Messages emitted for each disability
+    const _msg = {
+        Paralysis: {
+            Attack: 'cannot attack under paralysis',
+            Movement: 'cannot move under paralysis',
+            SpellCast: 'cannot cast spells under paralysis'
+        },
+        Stun: {
+            Attack: 'is too stunned to attack',
+            Movement: 'is too stunned to move',
+            SpellCast: 'is too stunned to cast spells'
         }
     };
 
+    // Callbacks to execute for each disability
+    const _dispatchTable = {
+        Paralysis: {
+            Attack: ent => {
+                ent.remove('Attack');
+                _emitMsg('Paralysis', 'Attack', ent);
+            },
+            Movement: ent => {
+                ent.remove('Movement');
+                _emitMsg('Paralysis', 'Movement', ent);
+            },
+            SpellCast: ent => {
+                ent.remove('SpellCast');
+                _emitMsg('Paralysis', 'SpellCast', ent);
+            }
+        },
+        Stun: {
+            Attack: ent => {
+                ent.remove('Attack');
+                _emitMsg('Stun', 'Attack', ent);
+            },
+            Movement: ent => {
+                ent.remove('Movement');
+                _emitMsg('Stun', 'Movement', ent);
+            },
+            SpellCast: ent => {
+                ent.remove('SpellCast');
+                _emitMsg('Stun', 'SpellCast', ent);
+            }
+        }
+    };
+
+    // Processing order of the components
+    const _compOrder = ['Paralysis', 'Stun'];
+    const _actComp = ['Attack', 'Movement', 'SpelCast'];
+
+    this.updateEntity = function(ent) {
+        _compOrder.forEach(compName => {
+            if (ent.has(compName)) {
+                _actComp.forEach(actCompName => {
+                    if (ent.has(actCompName)) {
+                        _dispatchTable[compName][actCompName](ent);
+                    }
+                });
+            }
+        });
+    };
+
+    const _emitMsg = function(comp, actionComp, ent) {
+        const cell = ent.getCell();
+        const entName = ent.getName();
+        const msg = `${entName} ${_msg[comp][actionComp]}`;
+        RG.gameMsg({cell, msg});
+    };
+
 };
-RG.extend2(RG.System.Stun, RG.System.Base);
+RG.extend2(RG.System.Disability, RG.System.Base);
 
 /* Processes entities with hunger component.*/
 RG.System.Hunger = function(type, compTypes) {
@@ -892,6 +950,8 @@ RG.System.SpellEffect = function(type, compTypes) {
             const cell = map.getCell(x, y);
             if (cell.hasActors()) {
                 const actor = cell.getActors()[0];
+
+                // Spell targeting specific component
                 if (args.targetComp) {
                     const setFunc = args.set;
                     const getFunc = args.get;
@@ -907,6 +967,27 @@ RG.System.SpellEffect = function(type, compTypes) {
                         RG.gameMsg({cell: cell,
                             msg: `Spell ${name} is cast on ${actorName}`});
                     }
+                }
+                else if (args.addComp) {
+                    const comp = args.addComp.comp;
+                    if (args.addComp.duration) { // Transient component
+                        const dur = args.addComp.duration;
+                        if (actor.has('Expiration')) {
+                            actor.get('Expiration').addEffect(comp, dur);
+                        }
+                        else {
+                            const expComp = new RG.Component.Expiration();
+                            expComp.addEffect(comp, dur);
+                            actor.add('Expiration', expComp);
+                        }
+                    }
+                    else { // Permanent component
+                        actor.add(comp);
+                    }
+
+                    const compType = comp.getType();
+                    const msg = `${actor.getName()} seems to have ${compType}`;
+                    RG.gameMsg({cell: actor.getCell(), msg});
                 }
                 else {
                     // Deal some damage etc
