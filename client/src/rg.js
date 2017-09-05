@@ -682,6 +682,14 @@ const RG = { // {{{2
         SE: [1, 1],
         NW: [-1, -1],
         SW: [1, -1]
+    },
+
+    DMG: {
+        MELEE: 'MELEE',
+        MISSILE: 'MISSILE',
+        POISON: 'POISON',
+        ICE: 'ICE',
+        HUNGER: 'HUNGER'
     }
 
 }; // / }}} RG
