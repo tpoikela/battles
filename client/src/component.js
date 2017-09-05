@@ -859,6 +859,15 @@ RG.Component.SpellPower = function(maxPP) {
 };
 RG.extend2(RG.Component.SpellPower, RG.Component.Base);
 
+/* PowerDrain component which is cancels a SpellCast and adds spell power to
+ * holder of PowerDrain. */
+RG.Component.PowerDrain = function() {
+    RG.Component.Base.call(this, 'PowerDrain');
+
+    this.drainDist = 5;
+};
+RG.extend2(RG.Component.PowerDrain, RG.Component.Base);
+
 /* SpellCasting component which is added to an actor when it casts a spell. */
 RG.Component.SpellCast = function() {
     RG.Component.Base.call(this, 'SpellCast');

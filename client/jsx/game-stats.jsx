@@ -146,13 +146,16 @@ const GameStats = React.createClass({
     getPlayerStatus: function(player) {
         var stat = [];
         if (player.has('Poison')) {
-            stat.push(<p className='text-danger'>Poisoned</p>);
+            stat.push(<p key='stat-poison' className='text-danger'>Poisoned</p>);
         }
         if (player.has('Stun')) {
-            stat.push(<p className='text-danger'>Stunned</p>);
+            stat.push(<p key='stat-stun' className='text-danger'>Stunned</p>);
         }
         if (player.has('Ethereal')) {
-            stat.push(<p className='text-danger'>Ethereal</p>);
+            stat.push(<p key='stat-ethereal' className='text-danger'>Ethereal</p>);
+        }
+        if (player.has('PowerDrain')) {
+            stat.push(<p key='stat-power-drain' className='text-success'>Power drain</p>);
         }
         return stat;
     }
