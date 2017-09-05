@@ -962,9 +962,14 @@ RG.System.SpellEffect = function(compTypes) {
         const y = args.from[1] + dY;
 
         if (map.hasXY(x, y)) {
-            const cell = map.getCell(x, y);
-            if (cell.hasActors()) {
-                const actor = cell.getActors()[0];
+            const targetCell = map.getCell(x, y);
+
+            // Callback given for the spell
+            if (args.callback) {
+                args.callback(targetCell);
+            }
+            else if (targetCell.hasActors()) {
+                const actor = targetCell.getActors()[0];
 
                 // Spell targeting specific component
                 if (args.targetComp) {
@@ -979,7 +984,7 @@ RG.System.SpellEffect = function(compTypes) {
                         else {
                             comp[setFunc](args.value);
                         }
-                        RG.gameMsg({cell: cell,
+                        RG.gameMsg({cell: targetCell,
                             msg: `Spell ${name} is cast on ${actorName}`});
                     }
                 }
@@ -1024,7 +1029,7 @@ RG.System.SpellEffect = function(compTypes) {
                     // TODO add onHit callback for spell because not all spells
                     // cause damage
                     actor.add('Damage', dmg);
-                    RG.gameMsg({cell: cell,
+                    RG.gameMsg({cell: targetCell,
                         msg: `${name} hits ${actor.getName()}`});
                 }
             }
