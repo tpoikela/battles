@@ -1,6 +1,20 @@
 
 const RG = require('./rg.js');
 
+RG.SYS = {};
+RG.SYS.ANIMATION = Symbol();
+RG.SYS.ATTACK = Symbol();
+RG.SYS.COMMUNICATION = Symbol();
+RG.SYS.DAMAGE = Symbol();
+RG.SYS.DISABILITY = Symbol();
+RG.SYS.EXP_POINTS = Symbol();
+RG.SYS.HUNGER = Symbol();
+RG.SYS.MISSILE = Symbol();
+RG.SYS.MOVEMENT = Symbol();
+RG.SYS.SPELL_CAST = Symbol();
+RG.SYS.SPELL_EFFECT = Symbol();
+RG.SYS.TIME_EFFECTS = Symbol();
+
 //---------------------------------------------------------------------------
 // ECS SYSTEMS {{{1
 //---------------------------------------------------------------------------
@@ -9,6 +23,10 @@ RG.System = {};
 
 /* Base class for all systems in ECS framework.*/
 RG.System.Base = function(type, compTypes) {
+    if (!Array.isArray(compTypes)) {
+        RG.err('System.Base', 'new',
+            '2nd arg must be an array of component types');
+    }
 
     this.type = type;           // Type of the system
     this.compTypes = compTypes; // Required comps in entity
@@ -73,8 +91,8 @@ RG.System.Base = function(type, compTypes) {
 };
 
 /* Processes entities with attack-related components.*/
-RG.System.Attack = function(type, compTypes) {
-    RG.System.Base.call(this, type, compTypes);
+RG.System.Attack = function(compTypes) {
+    RG.System.Base.call(this, RG.SYS.ATTACK, compTypes);
 
     this.updateEntity = function(ent) {
         const att = ent;
@@ -198,8 +216,8 @@ RG.extend2(RG.System.Attack, RG.System.Base);
 // SourceComponent, TargetComponent, LocationComponent, OwnerComponent
 
 /* Processes all missiles launched by actors/traps/etc.*/
-RG.System.Missile = function(type, compTypes) {
-    RG.System.Base.call(this, type, compTypes);
+RG.System.Missile = function(compTypes) {
+    RG.System.Base.call(this, RG.SYS.MISSILE, compTypes);
 
     this.updateEntity = function(ent) {
         const mComp = ent.get('Missile');
@@ -305,8 +323,8 @@ RG.System.Missile = function(type, compTypes) {
 RG.extend2(RG.System.Missile, RG.System.Base);
 
 /* Processes entities with damage component.*/
-RG.System.Damage = function(type, compTypes) {
-    RG.System.Base.call(this, type, compTypes);
+RG.System.Damage = function(compTypes) {
+    RG.System.Base.call(this, RG.SYS.DAMAGE, compTypes);
 
     this.updateEntity = function(ent) {
         if (ent.has('Health')) {
@@ -442,8 +460,8 @@ RG.System.Damage = function(type, compTypes) {
 RG.extend2(RG.System.Damage, RG.System.Base);
 
 /* Called for entities which gained experience points recently.*/
-RG.ExpPointsSystem = function(type, compTypes) {
-    RG.System.Base.call(this, type, compTypes);
+RG.System.ExpPoints = function(compTypes) {
+    RG.System.Base.call(this, RG.SYS.EXP_POINTS, compTypes);
 
     this.updateEntity = function(ent) {
         const expComp = ent.get('Experience');
@@ -471,11 +489,11 @@ RG.ExpPointsSystem = function(type, compTypes) {
 
 };
 
-RG.extend2(RG.ExpPointsSystem, RG.System.Base);
+RG.extend2(RG.System.ExpPoints, RG.System.Base);
 
 /* This system handles all entity movement.*/
-RG.System.Movement = function(type, compTypes) {
-    RG.System.Base.call(this, type, compTypes);
+RG.System.Movement = function(compTypes) {
+    RG.System.Base.call(this, RG.SYS.MOVEMENT, compTypes);
 
     this.updateEntity = function(ent) {
         const x = ent.get('Movement').getX();
@@ -593,8 +611,8 @@ RG.extend2(RG.System.Movement, RG.System.Base);
 
 
 /* Stun system removes Movement/Attack components from actors to prevent. */
-RG.System.Disability = function(type, compTypes) {
-    RG.System.Base.call(this, type, compTypes);
+RG.System.Disability = function(compTypes) {
+    RG.System.Base.call(this, RG.SYS.DISABILITY, compTypes);
 
     this.compTypesAny = true; // Triggered on at least one component
 
@@ -671,8 +689,8 @@ RG.System.Disability = function(type, compTypes) {
 RG.extend2(RG.System.Disability, RG.System.Base);
 
 /* Processes entities with hunger component.*/
-RG.System.Hunger = function(type, compTypes) {
-    RG.System.Base.call(this, type, compTypes);
+RG.System.Hunger = function(compTypes) {
+    RG.System.Base.call(this, RG.SYS.HUNGER, compTypes);
 
     this.updateEntity = function(ent) {
         const hungerComp = ent.get('Hunger');
@@ -695,8 +713,8 @@ RG.System.Hunger = function(type, compTypes) {
 RG.extend2(RG.System.Hunger, RG.System.Base);
 
 /* Processes entities with communication component.*/
-RG.System.Communication = function(type, compTypes) {
-    RG.System.Base.call(this, type, compTypes);
+RG.System.Communication = function(compTypes) {
+    RG.System.Base.call(this, RG.SYS.COMMUNICATION, compTypes);
 
     // Each entity here has received communication and must capture its
     // information contents
@@ -742,8 +760,8 @@ RG.extend2(RG.System.Communication, RG.System.Base);
 /* System which handles time-based effects like poisoning etc. It also handles
  * expiration of effects. This is a special system because its updates are
  * scheduled by the scheduler to guarantee a specific execution interval. */
-RG.System.TimeEffects = function(type, compTypes) {
-    RG.System.Base.call(this, type, compTypes);
+RG.System.TimeEffects = function(compTypes) {
+    RG.System.Base.call(this, RG.SYS.TIME_EFFECTS, compTypes);
     this.compTypesAny = true;
 
     // Dispatch table used to call a handler function for each component
@@ -828,8 +846,8 @@ RG.extend2(RG.System.Communication, RG.System.Base);
 /* System which processes the spell casting components. This system checks if
  * the spell casting succeeds and then handles PP reduction, but it does not
  * execute the effects of the spell.*/
-RG.System.SpellCast = function(type, compTypes) {
-    RG.System.Base.call(this, type, compTypes);
+RG.System.SpellCast = function(compTypes) {
+    RG.System.Base.call(this, RG.SYS.SPELL_CAST, compTypes);
 
     this.updateEntity = function(ent) {
         const name = ent.getName();
@@ -864,8 +882,8 @@ RG.extend2(RG.System.SpellCast, RG.System.Base);
 /* SpellEffect system processes the actual effects of spells, and creates damage
  * dealing components etc. An example if FrostBolt which creates SpellRay
  * component for each cell it's travelling to. */
-RG.System.SpellEffect = function(type, compTypes) {
-    RG.System.Base.call(this, type, compTypes);
+RG.System.SpellEffect = function(compTypes) {
+    RG.System.Base.call(this, RG.SYS.SPELL_EFFECT, compTypes);
     this.compTypesAny = true; // Process with any relavant Spell comp
 
     this.updateEntity = function(ent) {
@@ -1021,8 +1039,8 @@ RG.System.SpellEffect = function(type, compTypes) {
 RG.extend2(RG.System.SpellEffect, RG.System.Base);
 
 /* System which constructs the animations to play. */
-RG.System.Animation = function(type, compTypes) {
-    RG.System.Base.call(this, type, compTypes);
+RG.System.Animation = function(compTypes) {
+    RG.System.Base.call(this, RG.SYS.ANIMATION, compTypes);
 
     this.updateEntity = function(ent) {
         const animComp = ent.get('Animation');
