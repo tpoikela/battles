@@ -623,6 +623,18 @@ RG.Component.Stun = function() {
 };
 RG.extend2(RG.Component.Stun, RG.Component.Base);
 
+/* Paralysis component prevents actor from taking many actions like moving and
+ * attacking. */
+RG.Component.Paralysis = function() {
+    RG.Component.Base.call(this, 'Paralysis');
+
+    let _src = null;
+    this.getSource = function() {return _src;};
+    this.setSource = function(src) {_src = src;};
+
+};
+RG.extend2(RG.Component.Stun, RG.Component.Base);
+
 /* Poison component which damages the entity.*/
 class Poison extends Mixin.DurationRoll(Mixin.DamageRoll(RG.Component.Base)) {
 
