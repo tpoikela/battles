@@ -144,13 +144,11 @@ RG.System.Attack = function(compTypes) {
 
     this.addAttackerBonus = function(att) {
         const cells = RG.Brain.getEnemyCellsAround(att);
-        console.log('Attacker grants a bonus of ' + cells.length);
         return cells.length;
     };
 
     this.addDefenderBonus = function(def) {
         const cells = RG.Brain.getEnemyCellsAround(def);
-        console.log('Defender grants a bonus of ' + cells.length);
         return cells.length;
     };
 
@@ -613,7 +611,6 @@ RG.extend2(RG.System.Movement, RG.System.Base);
 /* Stun system removes Movement/Attack components from actors to prevent. */
 RG.System.Disability = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.DISABILITY, compTypes);
-
     this.compTypesAny = true; // Triggered on at least one component
 
     // Messages emitted for each disability
@@ -664,7 +661,7 @@ RG.System.Disability = function(compTypes) {
 
     // Processing order of the components
     const _compOrder = ['Paralysis', 'Stun'];
-    const _actComp = ['Attack', 'Movement', 'SpelCast'];
+    const _actComp = ['Attack', 'Movement', 'SpellCast'];
 
     this.updateEntity = function(ent) {
         _compOrder.forEach(compName => {
@@ -1000,6 +997,7 @@ RG.System.SpellEffect = function(compTypes) {
                                 expComp.addEffect(comp, dur);
                                 actor.add('Expiration', expComp);
                             }
+                            actor.add(comp);
                         }
                         else { // Permanent component
                             actor.add(comp);
