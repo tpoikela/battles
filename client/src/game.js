@@ -38,34 +38,31 @@ RG.Game.Engine = function() {
         'Communication'];
 
     this.systems = {};
-    this.systems.Disability = new RG.System.Disability('Disability',
+    this.systems.Disability = new RG.System.Disability(
         ['Stun', 'Paralysis']);
-    this.systems.Attack = new RG.System.Attack('Attack', ['Attack']);
-    this.systems.Missile = new RG.System.Missile('Missile', ['Missile']);
-    this.systems.Movement = new RG.System.Movement('Movement', ['Movement']);
-    this.systems.SpellCast = new RG.System.SpellCast('SpellCast',
-        ['SpellCast']);
-    this.systems.SpellEffect = new RG.System.SpellEffect('SpellEffect',
+    this.systems.Attack = new RG.System.Attack(['Attack']);
+    this.systems.Missile = new RG.System.Missile(['Missile']);
+    this.systems.Movement = new RG.System.Movement(['Movement']);
+    this.systems.SpellCast = new RG.System.SpellCast(['SpellCast']);
+    this.systems.SpellEffect = new RG.System.SpellEffect(
         ['SpellRay', 'SpellCell']);
-    this.systems.Animation = new RG.System.Animation('Animation',
+    this.systems.Animation = new RG.System.Animation(
         ['Animation']);
-    this.systems.Damage = new RG.System.Damage('Damage', ['Damage', 'Health']);
-    this.systems.ExpPoints = new RG.ExpPointsSystem('ExpPoints',
+    this.systems.Damage = new RG.System.Damage(['Damage', 'Health']);
+    this.systems.ExpPoints = new RG.System.ExpPoints(
         ['ExpPoints', 'Experience']);
-    this.systems.Communication = new RG.System.Communication('Communication',
+    this.systems.Communication = new RG.System.Communication(
         ['Communication']);
 
     // Systems updated once each game loop (once for each player action)
     this.loopSystemOrder = ['Hunger'];
     this.loopSystems = {};
-    this.loopSystems.Hunger = new RG.System.Hunger('Hunger',
-        ['Action', 'Hunger']);
+    this.loopSystems.Hunger = new RG.System.Hunger(['Action', 'Hunger']);
 
     // Time-based systems are added to the scheduler directly
     this.timeSystems = {};
 
-    const effects = new RG.System.TimeEffects('TimeEffects',
-        ['Expiration', 'Poison']);
+    const effects = new RG.System.TimeEffects(['Expiration', 'Poison']);
 
     this.updateSystems = function() {
         for (let i = 0; i < this.systemOrder.length; i++) {
