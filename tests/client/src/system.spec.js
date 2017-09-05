@@ -2,7 +2,7 @@
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 
-const Test = require('../../roguetest');
+const RGTest = require('../../roguetest');
 
 /* Updates given systems in given order.*/
 const updateSystems = function(systems) {
@@ -11,7 +11,7 @@ const updateSystems = function(systems) {
     }
 };
 
-describe('How hunger system works', function() {
+describe('System.Hunger', function() {
     it('Subtracts energy from actors with hunger', function() {
         const system = new RG.System.Hunger(['Hunger', 'Action']);
         const hunger = new RG.Component.Hunger(2000);
@@ -83,7 +83,7 @@ describe('System.Attack', () => {
         const beast = new RG.Actor.Rogue('Beast');
         beast.get('Combat').setDefense(0);
 
-        Test.wrapIntoLevel([human, beast]);
+        RGTest.wrapIntoLevel([human, beast]);
 
         const attackComp = new RG.Component.Attack(beast);
         human.add('Attack', attackComp);
@@ -146,9 +146,9 @@ describe('System.SpellCast', () => {
 
         const mage = new RG.Actor.Rogue('mage');
         const orc = new RG.Actor.Rogue('orc');
-        Test.wrapIntoLevel([mage, orc]);
-        Test.moveEntityTo(mage, 1, 1);
-        Test.moveEntityTo(orc, 3, 1);
+        RGTest.wrapIntoLevel([mage, orc]);
+        RGTest.moveEntityTo(mage, 1, 1);
+        RGTest.moveEntityTo(orc, 3, 1);
 
         const startHP = orc.get('Health').getHP();
 
@@ -167,5 +167,39 @@ describe('System.SpellCast', () => {
 
         expect(orc.get('Health').getHP()).to.be.below(startHP);
         expect(mage.get('SpellPower').getPP()).to.be.below(20);
+    });
+});
+
+describe('System.Disability', () => {
+    it('stops actors from acting', () => {
+        const disSystem = new RG.System.Disability(['Stun', 'Paralysis']);
+        const movSystem = new RG.System.Movement(['Movement']);
+
+        const walker = new RG.Actor.Rogue('walker');
+        const level = RGTest.wrapIntoLevel([walker]);
+        RGTest.moveEntityTo(walker, 2, 2);
+        const movComp = new RG.Component.Movement(level, 3, 3);
+        movComp.setLevel(level);
+        movComp.setXY(3, 3);
+        walker.add(movComp);
+        walker.add(new RG.Component.Paralysis());
+
+        updateSystems([disSystem, movSystem]);
+
+        expect(walker.getX()).to.equal(2);
+        expect(walker.getY()).to.equal(2);
+
+        walker.remove('Paralysis');
+        walker.add(movComp);
+        updateSystems([disSystem, movSystem]);
+        expect(walker.getX()).to.equal(3);
+        expect(walker.getY()).to.equal(3);
+
+        walker.add(new RG.Component.Stun());
+        movComp.setXY(5, 5);
+        walker.add(movComp);
+        updateSystems([disSystem, movSystem]);
+        expect(walker.getX()).to.equal(3);
+        expect(walker.getY()).to.equal(3);
     });
 });
