@@ -630,7 +630,7 @@ RG.Game.Main = function() {
         };
 
         const player = this.getPlayer();
-        if (player !== null) {
+        if (player) {
             obj.player = player.toJSON();
         }
 
