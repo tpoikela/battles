@@ -184,6 +184,38 @@ describe('Brain.Player', function() {
         func = brain.decideNextAction({code: RG.VK_a});
         expect(func).to.be.function;
     });
+
+    it('has commands for shooting and targeting', () => {
+        const player = new RG.Actor.Rogue('player');
+        player.setIsPlayer(true);
+        const orc = new RG.Actor.Rogue('orc');
+        const goblin = new RG.Actor.Rogue('goblin');
+        orc.addEnemy(player);
+        goblin.addEnemy(player);
+
+        RGTest.wrapIntoLevel([player, orc, goblin]);
+        RGTest.moveEntityTo(player, 2, 2);
+        RGTest.moveEntityTo(orc, 1, 1);
+        RGTest.moveEntityTo(goblin, 3, 3);
+
+        const brain = player.getBrain();
+        expect(brain.hasTargetSelected()).to.be.false;
+        brain.decideNextAction({code: RG.KEY.TARGET});
+        expect(brain.hasTargetSelected()).to.be.true;
+
+        const firstID = brain.getTarget().getFirstActor().getID();
+        const firstNumCell = brain.currEnemyCell;
+        brain.decideNextAction({code: RG.KEY.NEXT});
+
+        const nextNumCell = brain.currEnemyCell;
+        const nextID = brain.getTarget().getFirstActor().getID();
+        expect(firstNumCell).not.to.equal(nextNumCell);
+        expect(firstID).to.equal(nextID);
+
+        brain.decideNextAction({code: RG.KEY.NEXT});
+        const thirdID = brain.getTarget().getFirstActor().getID();
+        expect(firstID).not.to.equal(thirdID);
+    });
 });
 
 describe('RG.Brain.Rogue', function() {
