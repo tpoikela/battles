@@ -146,6 +146,7 @@ RG.Spell.Base = function(name, power) {
 
 };
 
+/* Base class for ranged spells. */
 RG.Spell.Ranged = function(name, power) {
     RG.Spell.Base.call(this, name, power);
 
@@ -160,15 +161,25 @@ RG.Spell.Ranged = function(name, power) {
     this.getDice = function() {return [_damageDie];};
 
     this.toString = function() {
-        let str = `${this.getName()} - ${this.getPower()}pp`;
-        str += `D: ${_damageDie.toString()} R: ${_range}`;
+        let str = `${this.getName()} - ${this.getPower()} pp`;
+        str += ` D: ${_damageDie.toString()} R: ${_range}`;
         return str;
     };
 
 };
 RG.extend2(RG.Spell.Ranged, RG.Spell.Base);
 
-/* Classis Frost bolt which shoots a ray to one direction from the caster. */
+RG.Spell.Ranged.prototype.toJSON = function() {
+    return {
+        name: this.getName(),
+        power: this.getPower(),
+        range: this.getRange(),
+        dice: [this.getDice()[0].toJSON()]
+        // new: should be added by child classes
+    };
+};
+
+/* Class Frost bolt which shoots a ray to one direction from the caster. */
 RG.Spell.FrostBolt = function() {
     RG.Spell.Ranged.call(this, 'Frost bolt', 5);
 
@@ -441,6 +452,28 @@ RG.Spell.MindControl = function() {
 };
 RG.extend2(RG.Spell.MindControl, RG.Spell.Base);
 
+/* MindControl spell takes over an enemy for a certain number of turns. */
+RG.Spell.Blizzard = function() {
+    RG.Spell.Ranged.call(this, 'Blizzard', 35);
+
+    this.cast = function(args) {
+        const obj = {src: args.src, range: this.getRange()};
+        obj.damageType = RG.DMG.ICE;
+        obj.damage = this.getDice()[0].roll();
+        obj.spell = this;
+        const spellComp = new RG.Component.SpellArea();
+        spellComp.setArgs(obj);
+        args.src.add(spellComp);
+        RG.gameMsg('Your surroundings are engulfed in blizzard!');
+    };
+
+    this.getSelectionObject = function(actor) {
+        console.log('Blizzard getSelectionObject');
+        return RG.Spell.getSelectionObjectSelf(this, actor);
+    };
+};
+RG.extend2(RG.Spell.Blizzard, RG.Spell.Ranged);
+
 /* Healing spell, duh. */
 RG.Spell.Heal = function() {
     RG.Spell.Base.call(this, 'Heal', 6);
@@ -474,6 +507,7 @@ RG.Spell.addAllSpells = function(book) {
     book.addSpell(new RG.Spell.PowerDrain());
     book.addSpell(new RG.Spell.IceArrow());
     book.addSpell(new RG.Spell.MindControl());
+    book.addSpell(new RG.Spell.Blizzard());
     book.addSpell(new RG.Spell.Heal());
 };
 
