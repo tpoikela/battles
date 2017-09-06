@@ -144,6 +144,25 @@ RG.Actor.Rogue.prototype.setIsPlayer = function(isPlayer) {
     }
 };
 
+/* Used when controlling other actors the "real player" actor .*/
+RG.Actor.Rogue.prototype.setPlayerCtrl = function(isPlayer) {
+    if (isPlayer) {
+        this._isPlayer = true;
+        this._brain = new RG.Brain.Player(this);
+        if (!this.has('StatsMods')) {
+            this.add('StatsMods', new RG.Component.StatsMods());
+        }
+        if (!this.has('CombatMods')) {
+            this.add('CombatMods', new RG.Component.CombatMods());
+        }
+    }
+    else {
+        this._isPlayer = false;
+        this.remove('StatsMods');
+        this.remove('CombatMods');
+    }
+};
+
 /* Returns the next action for this actor.*/
 RG.Actor.Rogue.prototype.nextAction = function(obj) {
     // Use actor brain to determine the action
