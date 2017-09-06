@@ -46,7 +46,7 @@ RG.Game.Engine = function() {
     this.systems.SpellCast = new RG.System.SpellCast(['SpellCast',
         'PowerDrain']);
     this.systems.SpellEffect = new RG.System.SpellEffect(
-        ['SpellRay', 'SpellCell', 'SpellMissile']);
+        ['SpellRay', 'SpellCell', 'SpellMissile', 'SpellArea']);
     this.systems.Animation = new RG.System.Animation(
         ['Animation']);
     this.systems.Damage = new RG.System.Damage(['Damage', 'Health']);
