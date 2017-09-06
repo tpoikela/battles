@@ -948,6 +948,8 @@ RG.KeyMap = {
     isToggleDoor: function(code) {return code === RG.KEY.DOOR;},
     isLook: function(code) {return code === RG.KEY.LOOK;},
     isUsePower: function(code) {return code === RG.KEY.POWER;},
+    isTargetMode: function(code) {return code === RG.KEY.TARGET;},
+    isNextTarget: function(code) {return code === RG.KEY.NEXT;},
 
     /* Based on keycode, computes and returns a new x,y pair. If code is
      * invalid, returns null. */
@@ -1016,6 +1018,8 @@ RG.KEY.DOOR = ROT.VK_O + 32;
 RG.KEY.REST = ROT.VK_S + 32;
 RG.KEY.LOOK = ROT.VK_L + 32;
 RG.KEY.POWER = ROT.VK_P + 32;
+RG.KEY.TARGET = RG.VK_t;
+RG.KEY.NEXT = RG.VK_n;
 RG.KeyMap.initMap();
 
 RG.isValidKey = function(keyCode) {
