@@ -1,10 +1,28 @@
 
-/* File contains spell definitions for the game. */
-
+/* File contains spell definitions for the game.
+ * Each spell should contain at least:
+ *   1. cast()
+ *   2. getSelectionObject()
+ *   3. aiShouldCastSpell (optional)
+ *   4. getCastFunc (optional)
+ *
+ * where 3&4 are used with spellcaster AI. Without these, the spell cannot be
+ * used by AI.
+ *
+ */
 const RG = require('./rg');
 // const Mixin = require('./mixin');
 
 RG.Spell = {};
+
+// Defaults (starting values) for spells
+/*const defaults = {
+    FrostBolt: {
+        power: 5,
+        damage: '4d4 + 4',
+        range: 5
+    }
+};*/
 
 /* Used for sorting the spells by spell power. */
 const compareSpells = function(s1, s2) {
@@ -133,17 +151,18 @@ RG.Spell.Base = function(name, power) {
     this.getPower = function() {return _power;};
     this.setPower = function(power) {_power = power;};
 
-    this.toString = function() {
-        const str = `${_name} - ${_power}PP`;
-        return str;
-    };
 
-    this.toJSON = function() {
-        return {
-            power: _power
-        };
-    };
+};
 
+RG.Spell.Base.prototype.toString = function() {
+    const str = `${this.getName()} - ${this.getPower()}PP`;
+    return str;
+};
+
+RG.Spell.Base.prototype.toJSON = function() {
+    return {
+        power: this.getPower()
+    };
 };
 
 /* Base class for ranged spells. */
@@ -160,14 +179,15 @@ RG.Spell.Ranged = function(name, power) {
     };
     this.getDice = function() {return [_damageDie];};
 
-    this.toString = function() {
-        let str = `${this.getName()} - ${this.getPower()} pp`;
-        str += ` D: ${_damageDie.toString()} R: ${_range}`;
-        return str;
-    };
 
 };
 RG.extend2(RG.Spell.Ranged, RG.Spell.Base);
+
+RG.Spell.Ranged.prototype.toString = function() {
+    let str = `${this.getName()} - ${this.getPower()} pp`;
+    str += ` D: ${this.getDice()[0].toString()} R: ${this.getRange()}`;
+    return str;
+};
 
 RG.Spell.Ranged.prototype.toJSON = function() {
     return {
@@ -178,6 +198,27 @@ RG.Spell.Ranged.prototype.toJSON = function() {
         // new: should be added by child classes
     };
 };
+
+/* A spell for melee combat using grasp of winter. */
+RG.Spell.GraspOfWinter = function() {
+    RG.Spell.Base.call(this, 'Grasp of winter');
+    const _damageDie = RG.FACT.createDie('4d4 + 4');
+
+    this.cast = function(args) {
+        const obj = getDirSpellArgs(this, args);
+        obj.damageType = RG.DMG.ICE;
+        obj.damage = _damageDie.roll();
+        const spellComp = new RG.Component.SpellCell();
+        spellComp.setArgs(obj);
+        args.src.add('SpellCell', spellComp);
+    };
+
+    this.getSelectionObject = function(actor) {
+        const msg = 'Select a direction for grasping:';
+        return RG.Spell.getSelectionObjectDir(this, actor, msg);
+    };
+};
+RG.extend2(RG.Spell.GraspOfWinter, RG.Spell.Base);
 
 /* Class Frost bolt which shoots a ray to one direction from the caster. */
 RG.Spell.FrostBolt = function() {
@@ -269,26 +310,6 @@ RG.Spell.IceShield = function() {
 };
 RG.extend2(RG.Spell.IceShield, RG.Spell.Base);
 
-/* A spell for melee combat using grasp of winter. */
-RG.Spell.GraspOfWinter = function() {
-    RG.Spell.Base.call(this, 'Grasp of winter');
-    const _damageDie = RG.FACT.createDie('4d4 + 4');
-
-    this.cast = function(args) {
-        const obj = getDirSpellArgs(this, args);
-        obj.damageType = RG.DMG.ICE;
-        obj.damage = _damageDie.roll();
-        const spellComp = new RG.Component.SpellCell();
-        spellComp.setArgs(obj);
-        args.src.add('SpellCell', spellComp);
-    };
-
-    this.getSelectionObject = function(actor) {
-        const msg = 'Select a direction for grasping:';
-        return RG.Spell.getSelectionObjectDir(this, actor, msg);
-    };
-};
-RG.extend2(RG.Spell.GraspOfWinter, RG.Spell.Base);
 
 /* IcyPrison spell which paralyses actors for a certain duration. */
 RG.Spell.IcyPrison = function() {
