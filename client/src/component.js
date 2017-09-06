@@ -324,8 +324,8 @@ RG.Component.Combat = Combat;
 /* Modifiers for the Combat component.*/
 class CombatMods extends Mixin.CombatAttr(RG.Component.Base) {
 
-    constructor(args) {
-        super(args);
+    constructor() {
+        super('CombatMods');
         this._damage = 0;
     }
 
@@ -932,6 +932,11 @@ RG.Component.SpellCell = function() {
     RG.Component.SpellBase.call(this, 'SpellCell');
 };
 RG.extend2(RG.Component.SpellCell, RG.Component.SpellBase);
+
+RG.Component.SpellArea = function() {
+    RG.Component.SpellBase.call(this, 'SpellArea');
+};
+RG.extend2(RG.Component.SpellArea, RG.Component.SpellBase);
 
 //--------------------------------------------
 // Comps that add or remove other components
