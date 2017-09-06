@@ -218,6 +218,7 @@ RG.System.Missile = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.MISSILE, compTypes);
 
     this.updateEntity = function(ent) {
+        console.log('System.Missile in effect now.');
         const mComp = ent.get('Missile');
         const level = mComp.getLevel();
         const map = level.getMap();
@@ -296,8 +297,11 @@ RG.System.Missile = function(compTypes) {
     this.finishMissileFlight = function(ent, mComp, currCell) {
         mComp.stopMissile(); // Target reached, stop missile
         ent.remove('Missile');
-        const level = mComp.getLevel();
-        level.addItem(ent, currCell.getX(), currCell.getY());
+
+        if (!mComp.destroyItem) {
+            const level = mComp.getLevel();
+            level.addItem(ent, currCell.getX(), currCell.getY());
+        }
 
         const args = {
             missile: mComp,
@@ -922,6 +926,9 @@ RG.System.SpellEffect = function(compTypes) {
         else if (ent.has('SpellCell')) {
             this.processSpellCell(ent);
         }
+        else if (ent.has('SpellMissile')) {
+            this.processSpellMissile(ent);
+        }
     };
 
     this.processSpellRay = function(ent) {
@@ -1076,6 +1083,26 @@ RG.System.SpellEffect = function(compTypes) {
         }
 
         ent.remove('SpellCell');
+    };
+
+    this.processSpellMissile = function(ent) {
+        console.log('Processing SpellMissile');
+        const spellComp = ent.get('SpellMissile');
+        const args = spellComp.getArgs();
+        const spell = args.spell;
+        // const name = spell.getName();
+
+        const iceArrow = new RG.Item.Ammo('Ice arrow');
+        const mComp = new RG.Component.Missile(args.src);
+        mComp.setTargetXY(args.to[0], args.to[1]);
+        mComp.destroyItem = true;
+        mComp.setDamage(args.damage);
+        mComp.setAttack(60);
+        mComp.setRange(spell.getRange());
+
+        iceArrow.add(mComp);
+
+        ent.remove('SpellMissile');
     };
 
 };
