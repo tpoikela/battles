@@ -490,7 +490,20 @@ class BattlesTop extends React.Component {
                 this.setState({showGameMenu: true, render: true});
             }
             else {
-                this.setState({render: true, showGameMenu: false});
+                const player = this.game.getPlayer();
+                const updates = {render: true, showGameMenu: false};
+                if (player.getBrain().hasTargetSelected()) {
+                    console.log('Player has target selected');
+                    updates.selectedCell = player.getBrain().getTarget();
+                    this.screen.setSelectedCell(updates.selectedCell);
+                    this.gameState.isTargeting = true;
+                }
+                else {
+                    this.gameState.isTargeting = false;
+                    updates.selectedCell = null;
+                    this.screen.setSelectedCell(null);
+                }
+                this.setState(updates);
             }
             this.keyPending = false;
         }
@@ -696,9 +709,8 @@ class BattlesTop extends React.Component {
         this.guiCommands[RG.VK_i] = this.GUIInventory;
         this.guiCommands[RG.VK_m] = this.GUIMap;
         this.guiCommands[ROT.VK_M] = this.GUIOverWorldMap;
-        this.guiCommands[RG.VK_n] = this.GUINextTarget;
+        // this.guiCommands[RG.VK_n] = this.GUINextTarget;
         this.guiCommands[RG.VK_l] = this.GUILook;
-        this.guiCommands[RG.VK_t] = this.GUITarget;
         this.guiCommands[RG.VK_u] = this.GUIUseItem;
     }
 
@@ -808,47 +820,6 @@ class BattlesTop extends React.Component {
                 this.setState({selectedCell: cell});
             }
         }
-    }
-
-    GUITarget() {
-        if (this.gameState.isTargeting) {
-            if (this.state.selectedCell !== null) {
-                const cell = this.state.selectedCell;
-                this.gameState.autoTarget = true;
-                this.game.update({cmd: 'missile', target: cell});
-                this.gameState.visibleCells = this.game.visibleCells;
-                this.screen.setSelectedCell(null);
-                this.setState({selectedCell: null});
-            }
-            this.gameState.autoTarget = false;
-            this.gameState.isTargeting = false;
-        }
-        else {
-            RG.gameWarn("Click on a cell to attack or press 't'");
-            this.gameState.isTargeting = true;
-            this.gameState.enemyCells = RG.findEnemyCellForPlayer(
-                this.game.getPlayer(), this.gameState.visibleCells);
-            this.gameState.numCurrCell = 0;
-
-            if (this.gameState.enemyCells.length > 0) {
-                const cell = this.selectCellToTarget(
-                    this.gameState.enemyCells);
-                this.screen.setSelectedCell(cell);
-                this.setState({selectedCell: cell});
-            }
-
-        }
-        this.setState({render: true});
-    }
-
-    selectCellToTarget(cells) {
-        const player = this.game.getPlayer();
-        const lastID = player.getBrain().getMemory().getLastAttacked();
-        for (let i = 0; i < cells.length; i++) {
-            const actor = cells[i].getProp('actors')[0];
-            if (actor.getID() === lastID) {return cells[i];}
-        }
-        return cells[0];
     }
 
     GUIUseItem() {
@@ -1021,7 +992,6 @@ class BattlesTop extends React.Component {
         this.GUIOverWorldMap = this.GUIOverWorldMap.bind(this);
         this.GUINextTarget = this.GUINextTarget.bind(this);
         this.GUILook = this.GUILook.bind(this);
-        this.GUITarget = this.GUITarget.bind(this);
         this.GUIUseItem = this.GUIUseItem.bind(this);
 
         this.gameToJSON = this.gameToJSON.bind(this);
