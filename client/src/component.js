@@ -49,10 +49,10 @@ RG.Component.Base.prototype.entityAddCallback = function(entity) {
 
 // Called when a component is removed from the entity
 RG.Component.Base.prototype.entityRemoveCallback = function() {
-    this.setEntity(null);
     for (let i = 0; i < this._onRemoveCallbacks.length; i++) {
         this._onRemoveCallbacks[i]();
     }
+    this.setEntity(null);
 };
 
 
@@ -635,6 +635,31 @@ RG.Component.Paralysis = function() {
 };
 RG.extend2(RG.Component.Paralysis, RG.Component.Base);
 
+/* MindControl component allows another actor to control the mind-controlled
+ * actor. */
+RG.Component.MindControl = function() {
+    RG.Component.Base.call(this, 'MindControl');
+
+    let _src = null;
+    let _brainTarget = null;
+    this.getSource = function() {return _src;};
+    this.setSource = function(src) {_src = src;};
+
+    const _addCb = () => {
+        _brainTarget = this.getEntity().getBrain();
+        this.getEntity().setPlayerCtrl(true);
+    };
+
+    const _removeCb = () => {
+        this.getEntity().setPlayerCtrl(false);
+        this.getEntity().setBrain(_brainTarget);
+    };
+
+    this.addCallback('onAdd', _addCb);
+    this.addCallback('onRemove', _removeCb);
+};
+RG.extend2(RG.Component.MindControl, RG.Component.Base);
+
 /* Poison component which damages the entity.*/
 class Poison extends Mixin.DurationRoll(Mixin.DamageRoll(RG.Component.Base)) {
 
@@ -868,63 +893,45 @@ RG.Component.PowerDrain = function() {
 };
 RG.extend2(RG.Component.PowerDrain, RG.Component.Base);
 
+RG.Component.SpellBase = function(type) {
+    RG.Component.Base.call(this, type);
+
+    let _spell = null;
+    let _src = null;
+    let _args = null;
+
+    this.getSpell = function() {return _spell;};
+    this.setSpell = function(spell) {_spell = spell;};
+
+    this.getSource = function() {return _src;};
+    this.setSource = function(src) {_src = src;};
+
+    this.getArgs = function() {return _args;};
+    this.setArgs = function(args) {_args = args;};
+
+};
+RG.extend2(RG.Component.SpellBase, RG.Component.Base);
+
 /* SpellCasting component which is added to an actor when it casts a spell. */
 RG.Component.SpellCast = function() {
-    RG.Component.Base.call(this, 'SpellCast');
-
-    let _spell = null;
-    let _src = null;
-    let _args = null;
-
-    this.getSpell = function() {return _spell;};
-    this.setSpell = function(spell) {_spell = spell;};
-
-    this.getSource = function() {return _src;};
-    this.setSource = function(src) {_src = src;};
-
-    this.getArgs = function() {return _args;};
-    this.setArgs = function(args) {_args = args;};
-
+    RG.Component.SpellBase.call(this, 'SpellCast');
 };
-RG.extend2(RG.Component.SpellCast, RG.Component.Base);
+RG.extend2(RG.Component.SpellCast, RG.Component.SpellBase);
 
 RG.Component.SpellRay = function() {
-    RG.Component.Base.call(this, 'SpellRay');
-
-    let _spell = null;
-    let _src = null;
-    let _args = null;
-
-    this.getSpell = function() {return _spell;};
-    this.setSpell = function(spell) {_spell = spell;};
-
-    this.getSource = function() {return _src;};
-    this.setSource = function(src) {_src = src;};
-
-    this.getArgs = function() {return _args;};
-    this.setArgs = function(args) {_args = args;};
-
+    RG.Component.SpellBase.call(this, 'SpellRay');
 };
-RG.extend2(RG.Component.SpellRay, RG.Component.Base);
+RG.extend2(RG.Component.SpellRay, RG.Component.SpellBase);
+
+RG.Component.SpellMissile = function() {
+    RG.Component.SpellBase.call(this, 'SpellMissile');
+};
+RG.extend2(RG.Component.SpellMissile, RG.Component.SpellBase);
 
 RG.Component.SpellCell = function() {
-    RG.Component.Base.call(this, 'SpellCell');
-
-    let _spell = null;
-    let _src = null;
-    let _args = null;
-
-    this.getSpell = function() {return _spell;};
-    this.setSpell = function(spell) {_spell = spell;};
-
-    this.getSource = function() {return _src;};
-    this.setSource = function(src) {_src = src;};
-
-    this.getArgs = function() {return _args;};
-    this.setArgs = function(args) {_args = args;};
-
+    RG.Component.SpellBase.call(this, 'SpellCell');
 };
-RG.extend2(RG.Component.SpellCell, RG.Component.Base);
+RG.extend2(RG.Component.SpellCell, RG.Component.SpellBase);
 
 //--------------------------------------------
 // Comps that add or remove other components
