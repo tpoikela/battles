@@ -313,7 +313,7 @@ RG.Spell.SummonIceMinion = function() {
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
 
-        // Will be called by System.Spell.Effect
+        // Will be called by System.SpellEffect
         obj.callback = cell => {
             if (cell.isFree()) {
                 const [x, y] = [cell.getX(), cell.getY()];
@@ -366,6 +366,7 @@ RG.extend2(RG.Spell.PowerDrain, RG.Spell.Base);
 /* IceArrow spell fires a missile to specified square. */
 RG.Spell.IceArrow = function() {
     RG.Spell.Ranged.call(this, 'IceArrow', 20);
+    this.setRange(9);
 
     this.cast = function(args) {
         const [x, y] = [args.src.getX(), args.src.getY()];
@@ -373,7 +374,8 @@ RG.Spell.IceArrow = function() {
             from: [x, y],
             target: args.target,
             spell: this,
-            src: args.src
+            src: args.src,
+            to: [args.target.getX(), args.target.getY()]
         };
         obj.damageType = RG.DMG.ICE;
         obj.damage = this.getDice()[0].roll();
@@ -384,6 +386,7 @@ RG.Spell.IceArrow = function() {
 
     this.getSelectionObject = function(actor) {
         RG.gameMsg('Press [n] for next target. [t] to fire.');
+        actor.getBrain().nextTarget();
         const spell = this;
         return {
             select: function(code) {
@@ -399,8 +402,11 @@ RG.Spell.IceArrow = function() {
                         spellCast.setSpell(spell);
                         spellCast.setArgs({src: actor, target});
                         actor.add(spellCast);
+                        actor.getBrain().cancelTargeting();
                     };
-                    default: return null;
+                    default: {
+                        return null;
+                    }
                 }
             },
             showMenu: () => false
@@ -408,6 +414,32 @@ RG.Spell.IceArrow = function() {
     };
 };
 RG.extend2(RG.Spell.IceArrow, RG.Spell.Ranged);
+
+/* MindControl spell takes over an enemy for a certain number of turns. */
+RG.Spell.MindControl = function() {
+    RG.Spell.Base.call(this, 'MindControl', 25);
+    const _duration = RG.FACT.createDie('1d6 + 3');
+
+    this.cast = function(args) {
+        const obj = getDirSpellArgs(this, args);
+        const dur = _duration.roll();
+
+        const mindControl = new RG.Component.MindControl();
+        mindControl.setSource(args.src);
+        obj.addComp = {comp: mindControl, duration: dur};
+
+        const spellComp = new RG.Component.SpellCell();
+        spellComp.setArgs(obj);
+        args.src.add('SpellCell', spellComp);
+    };
+
+    this.getSelectionObject = function(actor) {
+        const msg = 'Select an actor to control:';
+        return RG.Spell.getSelectionObjectDir(this, actor, msg);
+    };
+
+};
+RG.extend2(RG.Spell.MindControl, RG.Spell.Base);
 
 /* Healing spell, duh. */
 RG.Spell.Heal = function() {
@@ -432,7 +464,7 @@ RG.Spell.Heal = function() {
 };
 RG.extend2(RG.Spell.Heal, RG.Spell.Base);
 
-
+/* Used for testing the spells. Adds all spells to given SpellBook. */
 RG.Spell.addAllSpells = function(book) {
     book.addSpell(new RG.Spell.FrostBolt());
     book.addSpell(new RG.Spell.IceShield());
@@ -441,7 +473,9 @@ RG.Spell.addAllSpells = function(book) {
     book.addSpell(new RG.Spell.SummonIceMinion());
     book.addSpell(new RG.Spell.PowerDrain());
     book.addSpell(new RG.Spell.IceArrow());
+    book.addSpell(new RG.Spell.MindControl());
     book.addSpell(new RG.Spell.Heal());
 };
 
 module.exports = RG.Spell;
+
