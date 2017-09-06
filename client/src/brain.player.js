@@ -49,7 +49,7 @@ const BrainPlayer = function(actor) {
 
     let _wantSelection = false;
     let _selectionObject = false;
-
+    let _isTargeting = false;
     let _runModeEnabled = false;
 
     let _fightMode = RG.FMODE_NORMAL;
@@ -135,6 +135,33 @@ const BrainPlayer = function(actor) {
             _selectionObject = null;
             RG.gameMsg('You cancel the action.');
             return this.noAction();
+        }
+
+        // Targeting mode logic
+        if (RG.KeyMap.isTargetMode(code)) {
+            if (_isTargeting) {
+                const cell = this.getTarget();
+                this.cancelTargeting();
+                if (cell) {
+                    return this.handleCommand({cmd: 'missile', target: cell});
+                }
+                RG.gameMsg('No valid targets to attack.');
+                return this.noAction();
+            }
+            else {
+                _isTargeting = true;
+                this.nextTarget();
+                return this.noAction();
+            }
+        }
+        else if (RG.KeyMap.isNextTarget(code)) {
+            if (_isTargeting) {
+                this.nextTarget();
+                return this.noAction();
+            }
+        }
+        else if (_isTargeting) {
+            this.cancelTargeting();
         }
 
         // Invoke GUI callback with given code
@@ -601,6 +628,57 @@ const BrainPlayer = function(actor) {
         }
         return this.cmdNotPossible('There are no doors close by');
 
+    };
+
+    this.enemyCells = [];
+
+    /* Returns true if a player has target selected. */
+    this.hasTargetSelected = function() {
+        if (this.enemyCells) {
+            return this.enemyCells.length > 0;
+        }
+        return false;
+    };
+
+    /* Moves to the next target. */
+    this.nextTarget = function() {
+        if (this.enemyCells.length === 0) {
+            const visibleCells = _actor.getLevel().exploreCells(_actor);
+            this.enemyCells = RG.findEnemyCellForPlayer(
+                _actor, visibleCells);
+            this.currEnemyCell = this.selectCellToTarget();
+        }
+        else {
+            ++this.currEnemyCell;
+            if (this.currEnemyCell >= this.enemyCells.length) {
+                this.currEnemyCell = 0;
+            }
+        }
+    };
+
+    /* Returns the current selected cell for targeting. */
+    this.getTarget = function() {
+        if (this.currEnemyCell < this.enemyCells.length) {
+            return this.enemyCells[this.currEnemyCell];
+        }
+        return null;
+    };
+
+    this.cancelTargeting = function() {
+        console.log('Cancelled targeting in player brain');
+        this.enemyCells = [];
+        _isTargeting = false;
+    };
+
+    /* Picks either last attacked actor, or the first found. */
+    this.selectCellToTarget = function() {
+        const cells = this.enemyCells;
+        const lastID = this.getMemory().getLastAttacked();
+        for (let i = 0; i < cells.length; i++) {
+            const actor = cells[i].getProp('actors')[0];
+            if (actor.getID() === lastID) {return i;}
+        }
+        return 0;
     };
 
     /* Required for damage dealing. Does nothing for the player.*/
