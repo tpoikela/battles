@@ -15,6 +15,7 @@ RG.SYS.SPELL_CAST = Symbol();
 RG.SYS.SPELL_EFFECT = Symbol();
 RG.SYS.TIME_EFFECTS = Symbol();
 
+
 //---------------------------------------------------------------------------
 // ECS SYSTEMS {{{1
 //---------------------------------------------------------------------------
@@ -1087,7 +1088,6 @@ RG.System.SpellEffect = function(compTypes) {
         const spellComp = ent.get('SpellMissile');
         const args = spellComp.getArgs();
         const spell = args.spell;
-        // const name = spell.getName();
 
         const iceArrow = new RG.Item.Ammo('Ice arrow');
         const mComp = new RG.Component.Missile(args.src);
@@ -1101,6 +1101,7 @@ RG.System.SpellEffect = function(compTypes) {
         ent.remove('SpellMissile');
     };
 
+    /* Processes area-affecting spell effects. */
     this.processSpellArea = function(ent) {
         const spellComp = ent.get('SpellArea');
         const args = spellComp.getArgs();
@@ -1117,6 +1118,9 @@ RG.System.SpellEffect = function(compTypes) {
                     const actors = cell.getActors();
                     for (let i = 0; i < actors.length; i++) {
                         this._addDamageToActor(actors[i], args);
+                        const name = actors[i].getName();
+                        RG.gameMsg({cell: actors[i].getCell(),
+                            msg: `${name} is hit by ${spell.getName()}`});
                     }
 
                 }
