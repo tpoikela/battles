@@ -46,7 +46,7 @@ RG.Game.Engine = function() {
     this.systems.SpellCast = new RG.System.SpellCast(['SpellCast',
         'PowerDrain']);
     this.systems.SpellEffect = new RG.System.SpellEffect(
-        ['SpellRay', 'SpellCell']);
+        ['SpellRay', 'SpellCell', 'SpellMissile']);
     this.systems.Animation = new RG.System.Animation(
         ['Animation']);
     this.systems.Damage = new RG.System.Damage(['Damage', 'Health']);
@@ -155,6 +155,8 @@ RG.Game.Engine = function() {
      * next player command.*/
     this.updateGameLoop = function(obj) {
         this.playerCommand(obj);
+        this.currPlayer = this.nextActor;
+        console.log('updateGameLoop acting ' + this.currPlayer.getName());
         this.nextActor = this.getNextActor();
 
         // Next/act until player found, then go back waiting for key...
@@ -427,15 +429,7 @@ RG.Game.Main = function() {
 
     /* Returns player(s) of the game.*/
     this.getPlayer = function() {
-        if (_players.length === 1) {
-            return _players[0];
-        }
-        else if (_players.length > 1) {
-            return _players;
-        }
-        else {
-            return null;
-        }
+        return this.currPlayer;
     };
 
     /* Adds player to the game. By default, it's added to the first level if
@@ -454,6 +448,7 @@ RG.Game.Main = function() {
 
         if (levelOK) {
             _engine.nextActor = player;
+            this.currPlayer = player;
             if (_shownLevel === null) {_shownLevel = player.getLevel();}
             _players.push(player);
             RG.debug(this, 'Added a player to the Game.');
