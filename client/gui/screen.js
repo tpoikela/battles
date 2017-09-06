@@ -59,7 +59,7 @@ const getClassesAndCharsWithRLE = function(seen, cells, selCell, anim) {
     let selX = -1;
     let selY = -1;
 
-    if (selCell !== null) {
+    if (selCell) {
         selX = selCell.getX();
         selY = selCell.getY();
     }
