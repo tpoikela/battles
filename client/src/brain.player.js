@@ -19,6 +19,9 @@ const MemoryPlayer = function(player) {
 
     /* Returns true if the given actor is enemy of player. */
     this.isEnemy = function(actor) {
+        if (actor.isPlayer()) {
+            return false; // Needed for MindControl
+        }
         return actor.getBrain().getMemory().isEnemy(player);
     };
 
@@ -57,8 +60,9 @@ const BrainPlayer = function(actor) {
     /* Restores the base speed after run-mode.*/
     const _restoreBaseSpeed = function() {
         _runModeEnabled = false;
-        // this.energy = 1;
-        _actor.get('StatsMods').setSpeed(0);
+        if (_actor.has('StatsMods')) {
+            _actor.get('StatsMods').setSpeed(0);
+        }
     };
 
     this.getType = function() {return _type;};
@@ -149,7 +153,6 @@ const BrainPlayer = function(actor) {
                 return this.noAction();
             }
             else {
-                _isTargeting = true;
                 this.nextTarget();
                 return this.noAction();
             }
@@ -594,7 +597,9 @@ const BrainPlayer = function(actor) {
                 for (const setFunc in setters) {
                     if (setFunc) {
                         const baseStatVal = setters[setFunc];
-                        _actor.get(compName)[setFunc](baseStatVal);
+                        if (_actor.has(compName)) {
+                            _actor.get(compName)[setFunc](baseStatVal);
+                        }
                     }
                 }
             }
@@ -609,7 +614,6 @@ const BrainPlayer = function(actor) {
         }
         return null;
     };
-
 
     /* Tries to open/close a door nearby the player.*/
     this.tryToToggleDoor = function() {
@@ -643,6 +647,7 @@ const BrainPlayer = function(actor) {
     /* Moves to the next target. */
     this.nextTarget = function() {
         if (this.enemyCells.length === 0) {
+            _isTargeting = true;
             const visibleCells = _actor.getLevel().exploreCells(_actor);
             this.enemyCells = RG.findEnemyCellForPlayer(
                 _actor, visibleCells);
@@ -665,7 +670,6 @@ const BrainPlayer = function(actor) {
     };
 
     this.cancelTargeting = function() {
-        console.log('Cancelled targeting in player brain');
         this.enemyCells = [];
         _isTargeting = false;
     };
@@ -675,8 +679,12 @@ const BrainPlayer = function(actor) {
         const cells = this.enemyCells;
         const lastID = this.getMemory().getLastAttacked();
         for (let i = 0; i < cells.length; i++) {
-            const actor = cells[i].getProp('actors')[0];
-            if (actor.getID() === lastID) {return i;}
+            const actors = cells[i].getProp('actors');
+            for (let j = 0; j < actors.length; j++) {
+                if (actors[j].getID() === lastID) {
+                    return i;
+                }
+            }
         }
         return 0;
     };
