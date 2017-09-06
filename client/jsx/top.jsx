@@ -299,7 +299,6 @@ class BattlesTop extends React.Component {
     /* Loads a saved game from a JSON. */
     loadGame(playerName) {
         if (playerName) {
-            console.log('PlayerNAme is OK: ' + playerName);
             this.setState({loadInProgress: true});
 
             const persist = new Persist(playerName);
@@ -493,7 +492,6 @@ class BattlesTop extends React.Component {
                 const player = this.game.getPlayer();
                 const updates = {render: true, showGameMenu: false};
                 if (player.getBrain().hasTargetSelected()) {
-                    console.log('Player has target selected');
                     updates.selectedCell = player.getBrain().getTarget();
                     this.screen.setSelectedCell(updates.selectedCell);
                     this.gameState.isTargeting = true;
