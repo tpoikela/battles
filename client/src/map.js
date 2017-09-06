@@ -39,6 +39,13 @@ RG.Map.Cell.prototype.getBaseElem = function() { return this._baseElem; };
 /* Returns true if cell has any actors.*/
 RG.Map.Cell.prototype.hasActors = function() {return this.hasProp('actors');};
 RG.Map.Cell.prototype.getActors = function() {return this.getProp('actors');};
+RG.Map.Cell.prototype.getFirstActor = function() {
+    const actors = this.getProp('actors');
+    if (actors && actors.length > 0) {
+        return actors[0];
+    }
+    return null;
+};
 
 RG.Map.Cell.prototype.hasItems = function() {return this.hasProp('items');};
 RG.Map.Cell.prototype.getItems = function() {return this.getProp('items');};
