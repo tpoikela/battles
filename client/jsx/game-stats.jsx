@@ -34,7 +34,7 @@ const GameStats = React.createClass({
         }
 
         let selCellDescr = '';
-        if (selectedCell !== null) {
+        if (selectedCell) {
             if (selectedCell.hasActors()) {
                 const actorName = selectedCell.getProp('actors')[0].getName();
                 selCellDescr = 'Cell: ' + actorName;
