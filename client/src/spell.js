@@ -146,8 +146,8 @@ RG.Spell.Base = function(name, power) {
 
 };
 
-RG.Spell.FrostBolt = function() {
-    RG.Spell.Base.call(this, 'Frost bolt');
+RG.Spell.Ranged = function(name, power) {
+    RG.Spell.Base.call(this, name, power);
 
     let _damageDie = RG.FACT.createDie('4d4 + 4');
     let _range = 5;
@@ -159,20 +159,28 @@ RG.Spell.FrostBolt = function() {
     };
     this.getDice = function() {return [_damageDie];};
 
-    this.cast = function(args) {
-        const obj = getDirSpellArgs(this, args);
-        obj.damageType = RG.DMG.ICE;
-        obj.damage = _damageDie.roll();
-        const rayComp = new RG.Component.SpellRay();
-        rayComp.setArgs(obj);
-        args.src.add('SpellRay', rayComp);
-    };
-
     this.toString = function() {
         let str = `${this.getName()} - ${this.getPower()}pp`;
         str += `D: ${_damageDie.toString()} R: ${_range}`;
         return str;
     };
+
+};
+RG.extend2(RG.Spell.Ranged, RG.Spell.Base);
+
+/* Classis Frost bolt which shoots a ray to one direction from the caster. */
+RG.Spell.FrostBolt = function() {
+    RG.Spell.Ranged.call(this, 'Frost bolt', 5);
+
+    this.cast = function(args) {
+        const obj = getDirSpellArgs(this, args);
+        obj.damageType = RG.DMG.ICE;
+        obj.damage = this.getDice()[0].roll();
+        const rayComp = new RG.Component.SpellRay();
+        rayComp.setArgs(obj);
+        args.src.add('SpellRay', rayComp);
+    };
+
 
     this.getSelectionObject = function(actor) {
         RG.gameMsg('Select a direction for firing:');
@@ -204,8 +212,8 @@ RG.Spell.FrostBolt = function() {
         return {
             name: this.getName(),
             power: this.getPower(),
-            range: _range,
-            dice: [_damageDie.toJSON()],
+            range: this.getRange(),
+            dice: [this.getDice()[0].toJSON()],
             new: 'FrostBolt'
         };
     };
@@ -225,7 +233,7 @@ RG.Spell.FrostBolt = function() {
     };
 
 };
-RG.extend2(RG.Spell.FrostBolt, RG.Spell.Base);
+RG.extend2(RG.Spell.FrostBolt, RG.Spell.Ranged);
 
 /* Ice shield increase the defense of the caster temporarily. */
 RG.Spell.IceShield = function() {
@@ -355,6 +363,52 @@ RG.Spell.PowerDrain = function() {
 };
 RG.extend2(RG.Spell.PowerDrain, RG.Spell.Base);
 
+/* IceArrow spell fires a missile to specified square. */
+RG.Spell.IceArrow = function() {
+    RG.Spell.Ranged.call(this, 'IceArrow', 20);
+
+    this.cast = function(args) {
+        const [x, y] = [args.src.getX(), args.src.getY()];
+        const obj = {
+            from: [x, y],
+            target: args.target,
+            spell: this,
+            src: args.src
+        };
+        obj.damageType = RG.DMG.ICE;
+        obj.damage = this.getDice()[0].roll();
+        const missComp = new RG.Component.SpellMissile();
+        missComp.setArgs(obj);
+        args.src.add(missComp);
+    };
+
+    this.getSelectionObject = function(actor) {
+        RG.gameMsg('Press [n] for next target. [t] to fire.');
+        const spell = this;
+        return {
+            select: function(code) {
+                switch (code) {
+                    case RG.VK_n: {
+                        actor.getBrain().nextTarget();
+                        return this;
+                    }
+                    case RG.VK_t: return () => {
+                        const target = actor.getBrain().getTarget();
+                        const spellCast = new RG.Component.SpellCast();
+                        spellCast.setSource(actor);
+                        spellCast.setSpell(spell);
+                        spellCast.setArgs({src: actor, target});
+                        actor.add(spellCast);
+                    };
+                    default: return null;
+                }
+            },
+            showMenu: () => false
+        };
+    };
+};
+RG.extend2(RG.Spell.IceArrow, RG.Spell.Ranged);
+
 /* Healing spell, duh. */
 RG.Spell.Heal = function() {
     RG.Spell.Base.call(this, 'Heal', 6);
@@ -386,6 +440,7 @@ RG.Spell.addAllSpells = function(book) {
     book.addSpell(new RG.Spell.IcyPrison());
     book.addSpell(new RG.Spell.SummonIceMinion());
     book.addSpell(new RG.Spell.PowerDrain());
+    book.addSpell(new RG.Spell.IceArrow());
     book.addSpell(new RG.Spell.Heal());
 };
 
