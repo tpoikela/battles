@@ -929,6 +929,9 @@ RG.System.SpellEffect = function(compTypes) {
         else if (ent.has('SpellMissile')) {
             this.processSpellMissile(ent);
         }
+        else if (ent.has('SpellArea')) {
+            this.processSpellArea(ent);
+        }
     };
 
     this.processSpellRay = function(ent) {
@@ -1059,15 +1062,10 @@ RG.System.SpellEffect = function(compTypes) {
                 }
                 else {
                     // Deal some damage etc
-                    const dmg = new RG.Component.Damage();
-                    dmg.setSource(ent);
-                    dmg.setDamageType(args.damageType);
-                    dmg.setDamage(args.damage);
-
+                    this._addDamageToActor(actor, args);
                     // TODO add some evasion checks
                     // TODO add onHit callback for spell because not all spells
                     // cause damage
-                    actor.add('Damage', dmg);
                     RG.gameMsg({cell: targetCell,
                         msg: `${name} hits ${actor.getName()}`});
                 }
@@ -1086,7 +1084,6 @@ RG.System.SpellEffect = function(compTypes) {
     };
 
     this.processSpellMissile = function(ent) {
-        console.log('Processing SpellMissile');
         const spellComp = ent.get('SpellMissile');
         const args = spellComp.getArgs();
         const spell = args.spell;
@@ -1101,8 +1098,49 @@ RG.System.SpellEffect = function(compTypes) {
         mComp.setRange(spell.getRange());
 
         iceArrow.add(mComp);
-
         ent.remove('SpellMissile');
+    };
+
+    this.processSpellArea = function(ent) {
+        const spellComp = ent.get('SpellArea');
+        const args = spellComp.getArgs();
+        const spell = args.spell;
+        const range = spell.getRange();
+        const [x0, y0] = [args.src.getX(), args.src.getY()];
+        const map = args.src.getLevel().getMap();
+        const coord = RG.Geometry.getBoxAround(x0, y0, range);
+
+        coord.forEach(xy => {
+            if (map.hasXY(xy[0], xy[1])) {
+                const cell = map.getCell(xy[0], xy[1]);
+                if (cell.hasActors()) {
+                    const actors = cell.getActors();
+                    for (let i = 0; i < actors.length; i++) {
+                        this._addDamageToActor(actors[i], args);
+                    }
+
+                }
+            }
+        });
+
+        // Create animation and remove Spell component
+        const animArgs = {
+            cell: true,
+            coord: coord,
+            style: args.damageType || ''
+        };
+        const animComp = new RG.Component.Animation(animArgs);
+        ent.add('Animation', animComp);
+        ent.remove('SpellArea');
+
+    };
+
+    this._addDamageToActor = function(actor, args) {
+        const dmg = new RG.Component.Damage();
+        dmg.setSource(args.src);
+        dmg.setDamageType(args.damageType);
+        dmg.setDamage(args.damage);
+        actor.add('Damage', dmg);
     };
 
 };
