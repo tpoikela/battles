@@ -485,9 +485,10 @@ class BattlesTop extends React.Component {
             if (this.game.isGameOver()) {
                 this.setState({render: true, showGameMenu: false});
             }
-            else if (this.game.isMenuShown()) {
+            /* else if (this.game.isMenuShown()) {
+                console.log('Menu is shown');
                 this.setState({showGameMenu: true, render: true});
-            }
+            }*/
             else {
                 const player = this.game.getPlayer();
                 const updates = {render: true, showGameMenu: false};
@@ -535,6 +536,7 @@ class BattlesTop extends React.Component {
         let startX = null;
         let rowClass = '';
         let overworld = null;
+        let showGameMenu = false;
 
         let gameValid = false;
         if (this.game) {
@@ -567,6 +569,8 @@ class BattlesTop extends React.Component {
             startX = this.screen.getStartX();
 
             gameValid = true;
+
+            showGameMenu = this.game.isMenuShown();
         }
 
         const settings = {
@@ -659,7 +663,7 @@ class BattlesTop extends React.Component {
                             />
                         </div>
                         <div className='game-board-div'>
-                            {!this.state.showGameMenu &&
+                            {!showGameMenu &&
                             <GameBoard
                                 boardClassName={this.state.boardClassName}
                                 charRows={charRows}
@@ -673,7 +677,7 @@ class BattlesTop extends React.Component {
                                 useRLE={true}
                             />
                             }
-                            {this.state.showGameMenu &&
+                            {showGameMenu &&
                             <GameMenu
                                 height={28}
                                 menuObj={this.game.getMenu()}
