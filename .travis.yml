@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-  - "6.1"
+  - "8.0"
 after_success: 'npm run coveralls'
 env:
   - CXX=g++-4.8
