@@ -182,6 +182,8 @@ class GameEditor extends React.Component {
     this.loadLevel = this.loadLevel.bind(this);
 
     this.onCellClick = this.onCellClick.bind(this);
+    this.onChangeCellSelectX = this.onChangeCellSelectX.bind(this);
+    this.onChangeCellSelectY = this.onChangeCellSelectY.bind(this);
 
     this.insertElement = this.insertElement.bind(this);
     this.onChangeElement = this.onChangeElement.bind(this);
@@ -235,6 +237,27 @@ class GameEditor extends React.Component {
       this.setState({elementType: 'wall'});
       this.insertElement();
     }
+    else if (RG.KeyMap.inMoveCodeMap(keyCode)) {
+      let mult = 1;
+      if (keyCode >= ROT.VK_1 && keyCode <= ROT.VK_9) {
+        mult = 10;
+      }
+      const cell = this.state.selectedCell;
+      if (cell) {
+        const [x0, y0] = [cell.getX(), cell.getY()];
+        const dir = RG.KeyMap.getDir(keyCode);
+        const newX = x0 + dir[0] * mult;
+        const newY = y0 + dir[1] * mult;
+        const map = this.state.level.getMap();
+        if (map.hasXY(newX, newY)) {
+          const newCell = map.getCell(newX, newY);
+          this.setState({
+            selectedCell: newCell,
+            cellSelectX: newX, cellSelectY: newY
+          });
+        }
+      }
+    }
   }
 
   /* Returns current level */
@@ -257,8 +280,10 @@ class GameEditor extends React.Component {
         console.log(JSON.stringify(cell.getActors()[0]));
       }
 
-      this.screen.setSelectedCell(cell);
-      this.setState({selectedCell: cell});
+      this.setState({
+        selectedCell: cell, cellSelectX: cell.getX(),
+        cellSelectY: cell.getY()
+      });
     }
   }
 
@@ -580,6 +605,10 @@ class GameEditor extends React.Component {
     let mapSizeX = null;
     if (this.state.level) {
       map = this.state.level.getMap();
+    }
+
+    if (this.state.selectedCell) {
+      this.screen.setSelectedCell(this.state.selectedCell);
     }
 
     if (map) {
@@ -910,6 +939,34 @@ class GameEditor extends React.Component {
   onChangeTurnsPerFrame(evt) {
     const value = this.getInt(evt.target.value, 10);
     this.setState({turnsPerFrame: value});
+  }
+
+  onChangeCellSelectX(evt) {
+    const newX = this.getInt(evt.target.value, 10);
+    const cell = this.state.selectedCell;
+    const update = {cellSelectX: newX};
+    const map = this.state.level.getMap();
+    if (cell) {
+      if (map.hasXY(newX, cell.getY())) {
+        const newCell = map.getCell(newX, cell.getY());
+        update.selectedCell = newCell;
+      }
+    }
+    this.setState(update);
+  }
+
+  onChangeCellSelectY(evt) {
+    const newY = this.getInt(evt.target.value, 10);
+    const cell = this.state.selectedCell;
+    const update = {cellSelectY: newY};
+    const map = this.state.level.getMap();
+    if (cell) {
+      if (map.hasXY(cell.getX(), newY)) {
+        const newCell = map.getCell(cell.getX(), newY);
+        update.selectedCell = newCell;
+      }
+    }
+    this.setState(update);
   }
 
   //----------------------------------------------------------------
@@ -1314,6 +1371,21 @@ class GameEditor extends React.Component {
             />
             <button onClick={this.importConfig}>Import</button>
             <button onClick={this.exportConfig}>Export</button>
+
+            <div className='cell-selection'>
+              <span>Selection:</span>
+              <input
+                name='cell-select-x'
+                onChange={this.onChangeCellSelectX}
+                value={this.state.cellSelectX}
+              />
+              <input
+                name='cell-select-y'
+                onChange={this.onChangeCellSelectY}
+                value={this.state.cellSelectY}
+              />
+            </div>
+
           </div>
         </div>
       </div>
