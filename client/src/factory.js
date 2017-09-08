@@ -286,6 +286,9 @@ RG.Factory.Base = function() { // {{{2
         else if (levelType === 'castle') {
             mapObj = mapgen.createCastle(cols, rows, conf);
         }
+        else if (levelType === 'wall') {
+            mapObj = mapgen.createWall(cols, rows, conf);
+        }
         else {
             mapObj = mapgen.getMap();
         }
