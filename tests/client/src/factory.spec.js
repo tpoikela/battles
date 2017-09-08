@@ -60,7 +60,7 @@ describe('RG.Factory.Game', function() {
             playerLevel: 'Medium',
             sqrPerActor: 40,
             sqrPerItem: 100,
-            debugMode: false,
+            playMode: 'Dungeon',
             loadedPlayer: null,
             loadedLevel: null,
             playerName: 'Player Hero'
@@ -102,7 +102,7 @@ describe('RG.Factory.Game', function() {
             ]
         };
         conf.world = worldConf;
-        conf.debugMode = 'World';
+        conf.playMode = 'World';
         const game = gameFactory.createNewGame(conf);
         expect(game).to.exist;
         expect(game.getLevels()).to.have.length(3);
