@@ -2,9 +2,9 @@
 const RG = require('../../../client/src/battles');
 const expect = require('chai').expect;
 
-describe('Factory.Feature', () => {
+describe('Factory.Zone', () => {
     it('can create village levels', () => {
-        const fact = new RG.Factory.Feature();
+        const fact = new RG.Factory.Zone();
         const villageConf = {
             x: 80, y: 28,
             cityType: 'Village',
@@ -18,7 +18,7 @@ describe('Factory.Feature', () => {
     });
 
     it('can create the capital level', () => {
-        const fact = new RG.Factory.Feature();
+        const fact = new RG.Factory.Zone();
         const capitalConf = {
             x: 100, y: 100,
             cityType: 'Capital',
@@ -31,7 +31,7 @@ describe('Factory.Feature', () => {
     });
 
     it('can add actors/items to the level', () => {
-        const fact = new RG.Factory.Feature();
+        const fact = new RG.Factory.Zone();
         const level = RG.FACT.createLevel('arena', 20, 20, {});
 
         const conf = {
