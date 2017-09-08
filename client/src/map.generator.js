@@ -7,6 +7,11 @@ const TemplateLevel = require('./template.level');
 const Crypt = require('../data/tiles.crypt');
 const Castle = require('../data/tiles.castle');
 
+ROT.Map.Forest = require('../../lib/map.forest');
+ROT.Map.Miner = require('../../lib/map.miner');
+ROT.Map.Mountain = require('../../lib/map.mountain');
+ROT.Map.Wall = require('../../lib/map.wall');
+
 /* Map generator for the roguelike game.  */
 RG.Map.Generator = function() { // {{{2
 
@@ -60,6 +65,7 @@ RG.Map.Generator = function() { // {{{2
             case 'rooms': _mapGen = this.createRooms(cols, rows); break;
             case 'town': _mapGen = new ROT.Map.Arena(cols, rows); break;
             case 'townwithwall': break;
+            case 'wall': _mapGen = new ROT.Map.Wall(cols, rows); break;
             default: RG.err('MapGen',
                 'setGen', '_mapGen type ' + type + ' is unknown');
         }
@@ -331,6 +337,18 @@ RG.Map.Generator = function() { // {{{2
             /* else if (val === 1) {
                 map.setBaseElemXY(x, y, RG.ELEM.GRASS);
             }*/
+        });
+        return {map};
+    };
+
+
+    this.createWall = function(cols, rows, conf) {
+        const map = new RG.Map.CellList(this.cols, this.rows);
+        _mapGen = new ROT.Map.Wall(cols, rows, conf);
+        _mapGen.create(function(x, y, val) {
+            if (val === 1 /* && createDeep */) {
+                map.setBaseElemXY(x, y, RG.ELEM.WALL);
+            }
         });
         return {map};
     };
