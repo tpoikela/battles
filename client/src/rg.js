@@ -1342,19 +1342,16 @@ RG.Entity.prototype.get = function(name) {
     return null;
 };
 
-RG.Entity.prototype.add = function(name, comp) {
-    if (typeof name === 'object') {
-        const compObj = name;
-        const compName = compObj.getType();
-        this._comps[compName] = compObj;
-        compObj.entityAddCallback(this);
-        RG.POOL.emitEvent(compName, {entity: this, add: true});
+RG.Entity.prototype.add = function(nameOrComp, comp) {
+    let compName = nameOrComp;
+    let compObj = comp;
+    if (typeof nameOrComp === 'object') {
+        compObj = nameOrComp;
+        compName = nameOrComp.getType();
     }
-    else {
-        this._comps[name] = comp;
-        comp.entityAddCallback(this);
-        RG.POOL.emitEvent(name, {entity: this, add: true});
-    }
+    this._comps[compName] = compObj;
+    compObj.entityAddCallback(this);
+    RG.POOL.emitEvent(compName, {entity: this, add: true});
 };
 
 RG.Entity.prototype.has = function(name) {
