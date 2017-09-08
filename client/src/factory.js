@@ -1076,15 +1076,14 @@ RG.Factory.World = function() {
         _verif.verifyConf('createBranch', conf,
             ['name', 'nLevels']);
         this.pushScope(conf);
-        const branch = new RG.World.Branch(conf.name);
 
+        const branch = new RG.World.Branch(conf.name);
         const hierName = this.getHierName();
         branch.setHierName(hierName);
 
         const presetLevels = this.getPresetLevels(hierName);
 
         for (let i = 0; i < conf.nLevels; i++) {
-
             const maxDanger = this.getConf('maxDanger');
             const maxValue = this.getConf('maxValue');
 
@@ -1116,7 +1115,7 @@ RG.Factory.World = function() {
 
             // If preset not found, either restore or create a new one
             if (!level) {
-                if (conf.levels) {
+                if (conf.levels) { // Restore level
                     level = this.id2level[conf.levels[i]];
                 }
                 else {
@@ -1129,12 +1128,11 @@ RG.Factory.World = function() {
             branch.addLevel(level);
         }
 
-        // Do only if not restoring the branch
+        // Do connecting only if not restoring the branch
         if (!this.id2levelSet) {
             branch.connectLevels();
             if (conf.hasOwnProperty('entranceLevel')) {
-                const entrStairs = new Stairs(false);
-                branch.setEntrance(entrStairs, conf.entranceLevel);
+                branch.addEntrance(conf.entranceLevel);
             }
         }
         else if (conf.hasOwnProperty('entrance')) {
@@ -1187,8 +1185,11 @@ RG.Factory.World = function() {
         if (floorType) {levelConf.floorType = floorType;}
     };
 
+    /* Adds fixed features such as stairs, actors and items into the level. */
     this.addFixedFeatures = function(nLevel, level, feat) {
         const create = this.getConf('create');
+
+        // Actor creation
         if (create && create.actor) {
             const createActors = create.actor;
             createActors.forEach(createActor => {
@@ -1205,8 +1206,21 @@ RG.Factory.World = function() {
                 }
             });
         }
+
+        // Stairs creation
+        if (create && create.stairs) {
+            const createStairs = create.stairs;
+            createStairs.forEach(sConf => {
+                if (sConf.nLevel === nLevel) {
+                    const {x, y, isDown} = sConf;
+                    const stairs = new Stairs(isDown, level);
+                    level.addStairs(stairs, x, y);
+                }
+            });
+        }
     };
 
+    /* Returns preset levels (if any) for the current world feature. */
     this.getPresetLevels = function(hierName) {
         const keys = Object.keys(this.presetLevels);
         const foundKey = keys.find(item => new RegExp(item).test(hierName));
@@ -1344,8 +1358,10 @@ RG.Factory.World = function() {
         _verif.verifyConf('createCityQuarter',
             conf, ['name', 'nLevels']);
         this.pushScope(conf);
+
         const quarter = new RG.World.CityQuarter(conf.name);
-        quarter.setHierName(this.getHierName());
+        const hierName = this.getHierName();
+        quarter.setHierName(hierName);
 
         const cityLevelConf = {
             x: conf.x || 80, y: conf.y || 40,
@@ -1361,6 +1377,7 @@ RG.Factory.World = function() {
             let level = null;
             if (!this.id2levelSet) {
                 level = this.featureFactory.createCityLevel(i, cityLevelConf);
+                this.addFixedFeatures(i, level, quarter);
                 if (level.shops) {
                     level.shops.forEach(shop => {
                         quarter.addShop(shop);
