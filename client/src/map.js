@@ -2,10 +2,6 @@
 const ROT = require('../../lib/rot.js');
 const RG = require('./rg.js');
 
-ROT.Map.Forest = require('../../lib/map.forest');
-ROT.Map.Miner = require('../../lib/map.miner');
-ROT.Map.Mountain = require('../../lib/map.mountain');
-
 RG.Element = require('./element.js');
 
 RG.Map = {};
