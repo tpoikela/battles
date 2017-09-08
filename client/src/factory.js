@@ -495,7 +495,7 @@ RG.Factory.Base = function() { // {{{2
                 level.addActor(monster, cell.getX(), cell.getY());
             }
             else {
-                RG.err('Factory.Feature', 'addNRandActors',
+                RG.err('Factory.Zone', 'addNRandActors',
                     `Generated monster null. Conf: ${JSON.stringify(conf)}`);
             }
 
@@ -575,10 +575,10 @@ RG.Factory.Base = function() { // {{{2
 RG.FACT = new RG.Factory.Base();
 // }}}
 
-RG.Factory.Feature = function() {
+RG.Factory.Zone = function() {
     RG.Factory.Base.call(this);
 
-    const _verif = new RG.Verify.Conf('Factory.Feature');
+    const _verif = new RG.Verify.Conf('Factory.Zone');
 
     const _parser = new RG.ObjectShell.Parser();
     _parser.parseShellData(RG.Effects);
@@ -635,7 +635,7 @@ RG.Factory.Feature = function() {
                 actorConf.func = conf.actor;
             }
             else {
-                RG.err('Factory.Feature', 'addItemsAndActors',
+                RG.err('Factory.Zone', 'addItemsAndActors',
                     'conf.actor must be a function');
             }
         }
@@ -827,9 +827,9 @@ RG.Factory.Feature = function() {
     };
 
 };
-RG.extend2(RG.Factory.Feature, RG.Factory.Base);
+RG.extend2(RG.Factory.Zone, RG.Factory.Base);
 
-/* Factory object for creating worlds and features. Uses conf object which is
+/* Factory object for creating worlds and zones. Uses conf object which is
  * somewhat involved. For an example, see ../data/conf.world.js. This Factory
  * does not have any procedural generation. The configuration object can be
  * generated procedurally, and the factory will then use the configuration for
@@ -837,7 +837,7 @@ RG.extend2(RG.Factory.Feature, RG.Factory.Base);
  */
 RG.Factory.World = function() {
     const _verif = new RG.Verify.Conf('Factory.World');
-    this.featureFactory = new RG.Factory.Feature();
+    this.factZone = new RG.Factory.Zone();
 
     // Used for generating levels, if more specific settings not given
     this.globalConf = {
@@ -851,7 +851,7 @@ RG.Factory.World = function() {
         this.presetLevels = levels;
     };
 
-    // Can be used to pass already created levels to different features. For
+    // Can be used to pass already created levels to different zones. For
     // example, after restore game, no new levels should be created
     this.id2level = {};
     this.id2levelSet = false;
@@ -913,7 +913,7 @@ RG.Factory.World = function() {
         return null;
     };
 
-    /* Returns the full hierarchical name of feature. */
+    /* Returns the full hierarchical name of the zone. */
     this.getHierName = () => this.scope.join('.');
 
     /* Creates a world using given configuration. */
@@ -1122,7 +1122,7 @@ RG.Factory.World = function() {
                     level = this.id2level[conf.levels[i]];
                 }
                 else {
-                    level = this.featureFactory.createDungeonLevel(levelConf);
+                    level = this.factZone.createDungeonLevel(levelConf);
                     // For creating 'fixed' items and actors
                     this.addFixedFeatures(i, level, branch);
                 }
@@ -1200,11 +1200,11 @@ RG.Factory.World = function() {
                     const actorName = createActor.name;
                     if (createActor.hasOwnProperty('target') &&
                         feat.getName() === createActor.target) {
-                        this.featureFactory.addActorToLevel(actorName, level);
+                        this.factZone.addActorToLevel(actorName, level);
                     }
                     else {
                         console.log('Creating ' + createActor.name);
-                        this.featureFactory.addActorToLevel(actorName, level);
+                        this.factZone.addActorToLevel(actorName, level);
                     }
                 }
             });
@@ -1223,7 +1223,7 @@ RG.Factory.World = function() {
         }
     };
 
-    /* Returns preset levels (if any) for the current world feature. */
+    /* Returns preset levels (if any) for the current zone. */
     this.getPresetLevels = function(hierName) {
         const keys = Object.keys(this.presetLevels);
         const foundKey = keys.find(item => new RegExp(item).test(hierName));
@@ -1291,7 +1291,7 @@ RG.Factory.World = function() {
         for (let i = 0; i < conf.nLevels; i++) {
             let level = null;
             if (!this.id2levelSet) {
-                level = this.featureFactory.createMountainLevel(mLevelConf);
+                level = this.factZone.createMountainLevel(mLevelConf);
             }
             else {
                 const id = conf.levels[i];
@@ -1311,7 +1311,7 @@ RG.Factory.World = function() {
         return face;
     };
 
-    /* Creates a City and all its sub-features. */
+    /* Creates a City and all its sub-zones. */
     this.createCity = function(conf) {
         if (this.id2levelSet) {
             _verif.verifyConf('createCity',
@@ -1379,7 +1379,7 @@ RG.Factory.World = function() {
         for (let i = 0; i < conf.nLevels; i++) {
             let level = null;
             if (!this.id2levelSet) {
-                level = this.featureFactory.createCityLevel(i, cityLevelConf);
+                level = this.factZone.createCityLevel(i, cityLevelConf);
                 this.addFixedFeatures(i, level, quarter);
                 if (level.shops) {
                     level.shops.forEach(shop => {
@@ -1408,10 +1408,10 @@ RG.Factory.World = function() {
         return quarter;
     };
 
-    /* Creates a connection between an area and a feature such as city, mountain
-     * or dungeon. Unless configured, connects the feature entrance to a random
+    /* Creates a connection between an area and a zone such as city, mountain
+     * or dungeon. Unless configured, connects the zone entrance to a random
      * location in the area. */
-    this.createConnection = function(area, feature, conf) {
+    this.createConnection = function(area, zone, conf) {
         _verif.verifyConf('createConnection', conf, ['x', 'y']);
 
         const x = conf.x;
@@ -1432,8 +1432,8 @@ RG.Factory.World = function() {
             tileStairsY = conf.levelY;
         }
 
-        if (typeof feature.getEntrances === 'function') {
-            const entrances = feature.getEntrances();
+        if (typeof zone.getEntrances === 'function') {
+            const entrances = zone.getEntrances();
             if (entrances.length > 0) {
                 const entranceStairs = entrances[0];
                 const entranceLevel = entranceStairs.getSrcLevel();
@@ -1443,17 +1443,17 @@ RG.Factory.World = function() {
                 tileStairs.connect(entranceStairs);
             }
             else {
-                const msg = `No entrances in ${feature.getHierName()}.`;
+                const msg = `No entrances in ${zone.getHierName()}.`;
                 RG.err('Factory.World', 'createConnection',
                     `${msg}. Cannot connect to tile.`);
             }
         }
-        else { // No entrance for feature, what to do?
+        else { // No entrance for zone, what to do?
             RG.err('Factory.World', 'createConnection',
-                'No getEntrances method for feature.');
+                'No getEntrances method for zone.');
         }
 
-        // Make extra connections between the area and feature. This is useful
+        // Make extra connections between the area and zone. This is useful
         // if city/dungeon needs to have 2 or more entrances
         if (conf.hasOwnProperty('connectToXY')) {
             const connectionsXY = conf.connectToXY;
@@ -1463,23 +1463,23 @@ RG.Factory.World = function() {
                 const y = conn.levelY;
                 const name = conn.name;
 
-                const featLevel = feature.findLevel(name, nLevel);
-                if (featLevel) {
+                const zoneLevel = zone.findLevel(name, nLevel);
+                if (zoneLevel) {
                     // Create 2 new stairs, add 1st to the area level, and 2nd
-                    // to the feature level
-                    const freeCell = featLevel.getFreeRandCell();
-                    const featX = freeCell.getX();
-                    const featY = freeCell.getY();
+                    // to the zone level
+                    const freeCell = zoneLevel.getFreeRandCell();
+                    const zoneX = freeCell.getX();
+                    const zoneY = freeCell.getY();
 
-                    const tileStairs = new Stairs(true, tileLevel, featLevel);
-                    const featStairs = new Stairs(false, featLevel, tileLevel);
+                    const tileStairs = new Stairs(true, tileLevel, zoneLevel);
+                    const featStairs = new Stairs(false, zoneLevel, tileLevel);
                     tileLevel.addStairs(tileStairs, x, y);
-                    featLevel.addStairs(featStairs, featX, featY);
+                    zoneLevel.addStairs(featStairs, zoneX, zoneY);
                     tileStairs.connect(featStairs);
                 }
                 else {
                     let msg = `connectToXY: ${JSON.stringify(conn)}`;
-                    msg += `featureConf: ${JSON.stringify(conf)}`;
+                    msg += `zoneConf: ${JSON.stringify(conf)}`;
                     RG.err('Factory.World', 'createConnection',
                         `No level found. ${msg}`);
 
