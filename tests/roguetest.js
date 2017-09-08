@@ -5,8 +5,7 @@
 const RG = require('../client/src/battles');
 const expect = require('chai').expect;
 
-const RGTest = {
-};
+const RGTest = {};
 
 RGTest.rng = new RG.Random();
 
@@ -93,6 +92,17 @@ RGTest.checkCSSClassName = function(obj, expClass) {
 
 RGTest.expectEqualHealth = function(o1, o2) {
     expect(o1.get('Health').getHP()).to.equal(o2.get('Health').getHP());
+};
+
+RGTest.verifyStairsConnectivity = function(stairs) {
+    let connVerified = 0;
+    stairs.forEach(s => {
+        expect(s.getTargetStairs()).not.to.be.empty;
+        expect(s.getTargetLevel()).not.to.be.empty;
+        expect(s.getSrcLevel()).not.to.be.empty;
+        ++connVerified;
+    });
+    console.log(`verifyStairsConnectivity ${connVerified} connections OK`);
 };
 
 // Expect that branches b1 and b2 are connected by number of connections
