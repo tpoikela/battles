@@ -418,17 +418,23 @@ class GameEditor extends React.Component {
 
       // Iterate through tiles in x-direction (tx) and tiles in
       // y-direction (ty). Compute upper left x,y for each sub-level.
-      for (let tx = 0; tx < this.state.subLevelTileX; tx++) {
-        for (let ty = 0; ty < this.state.subLevelTileY; ty++) {
-          const xSub = x0 + tx * subWidth;
-          const ySub = y0 + ty * subHeight;
-          const subLevel = RG.FACT.createLevel(
-            levelType, subWidth, this.state.subLevelY, conf);
-          RG.Geometry.insertSubLevel(level, subLevel, xSub, ySub);
+      let errorMsg = '';
+      try {
+        for (let tx = 0; tx < this.state.subLevelTileX; tx++) {
+          for (let ty = 0; ty < this.state.subLevelTileY; ty++) {
+            const xSub = x0 + tx * subWidth;
+            const ySub = y0 + ty * subHeight;
+            const subLevel = RG.FACT.createLevel(
+              levelType, subWidth, this.state.subLevelY, conf);
+            RG.Geometry.insertSubLevel(level, subLevel, xSub, ySub);
+          }
         }
       }
+      catch (e) {
+        errorMsg = e.message;
+      }
 
-      this.setState({level: level});
+      this.setState({level: level, errorMsg});
     }
     else {
       const msg = 'You must select a cell first from the map.';
