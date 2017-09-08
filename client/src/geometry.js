@@ -242,12 +242,14 @@ RG.Geometry = {
 
     mergeMaps: function(m1, m2, startX, startY) {
         if (m1.cols < m2.cols) {
+            const got = `m1: ${m1.cols} m2: ${m2.cols}`;
             RG.err('Geometry', 'mergeMaps',
-                'Cols: Second map arg cols must be smaller.');
+                'Cols: m2 cols must be smaller/equal: ' + got);
         }
         if (m1.rows < m2.rows) {
+            const got = `m1: ${m1.rows} m2: ${m2.rows}`;
             RG.err('Geometry', 'mergeMaps',
-                'Rows: Second map arg rows must be smaller.');
+                'Rows: m2 rows must be smaller/equal: ' + got);
         }
         const endX = startX + m2.cols - 1;
         const endY = startY + m2.rows - 1;
