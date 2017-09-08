@@ -43,7 +43,7 @@
     "serial-mocha": "0.0.4"
   },
   "engines": {
-      node: ">= 7.0"
+      "node": ">= 7.0"
   },
   "contributors": [
     "Tuomas Poikela <tuomas.sakari.poikela@gmail.com>"
