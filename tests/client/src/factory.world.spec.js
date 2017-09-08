@@ -79,6 +79,23 @@ describe('Factory.World', function() {
         expect(l0.getStairs()).to.have.length(2);
     });
 
+    it('can create elements to fixed positions', () => {
+        const brConf = {
+            name: 'DangerousBranch',
+            nLevels: 2,
+            entranceLevel: 0,
+            sqrPerItem: 20,
+            sqrPerActor: 20,
+            create: {
+                stairs: [{nLevel: 1, isDown: false, x: 10, y: 10}]
+            }
+        };
+        const br = fact.createBranch(brConf);
+        const l1 = br.getLevels()[1];
+        const stairsL1 = l1.getStairs();
+        expect(stairsL1).to.have.length(2);
+    });
+
     it('Can create dungeon using config object', () => {
         const dungeonConf = {
             name: 'Cave',
