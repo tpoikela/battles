@@ -1,6 +1,8 @@
 
 const React = require('react');
 const ROT = require('../../lib/rot');
+ROT.Map.Wall = require('../../lib/map.wall');
+
 const FileSaver = require('file-saver');
 
 const GameBoard = require('../jsx/game-board');
@@ -190,7 +192,6 @@ class GameEditor extends React.Component {
     this.onChangeConfTemplText = this.onChangeConfTemplText.bind(this);
 
     this.invertMap = this.invertMap.bind(this);
-    // this.onChangeLevelConf = this.onChangeLevelConf.bind(this);
     this.simulateLevel = this.simulateLevel.bind(this);
     this.playSimulation = this.playSimulation.bind(this);
     this.playFastSimulation = this.playFastSimulation.bind(this);
@@ -434,7 +435,7 @@ class GameEditor extends React.Component {
         errorMsg = e.message;
       }
 
-      this.setState({level: level, errorMsg});
+      this.setState({level, errorMsg});
     }
     else {
       const msg = 'You must select a cell first from the map.';
@@ -674,7 +675,7 @@ class GameEditor extends React.Component {
   }
 
   /* Modifes the given level configuration object based on the value
-   * (level type). */
+   * (level type) after level (sub) type is changed in the editor. */
   modifyLevelConf(value, levelConf) {
     if (value === 'town') {
       if (!levelConf.town) {
@@ -722,6 +723,11 @@ class GameEditor extends React.Component {
         levelConf.shown = 'castle';
       }
     }
+    else if (value === 'wall') {
+      const wallGen = new ROT.Map.Wall();
+      levelConf.wall = wallGen._options;
+      levelConf.shown = 'wall';
+    }
     else {
       levelConf[value] = {};
       levelConf.shown = value;
@@ -764,8 +770,11 @@ class GameEditor extends React.Component {
     if (key.match(/(\w+)Func/)) {
       // TODO how to handle functions
     }
-    else {
+    else if (isNaN(value)) {
       conf[confType][key] = value;
+    }
+    else {
+      conf[confType][key] = +value;
     }
 
     if (idHead === 'main') {
@@ -1086,7 +1095,7 @@ class GameEditor extends React.Component {
       'arena', 'castle', 'cellular', 'cave', 'crypt', 'digger', 'divided',
       'dungeon', 'eller', 'empty', 'forest', 'icey', 'miner',
       'mountain', 'uniform', 'rogue',
-      'ruins', 'rooms', 'town', 'townwithwall'
+      'ruins', 'rooms', 'town', 'townwithwall', 'wall'
     ];
     const elem = types.map(type => {
       const key = 'key-sel-type-' + type;
