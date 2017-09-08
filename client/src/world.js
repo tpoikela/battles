@@ -147,6 +147,24 @@ function getEntrance(levels, entrance) {
     return entrCell.getStairs();
 }
 
+/* Connects given array of area tiles together. */
+function connectTiles(_tiles, _sizeX, _sizeY) {
+    for (let x = 0; x < _sizeX; x++) {
+        for (let y = 0; y < _sizeY; y++) {
+            if (x < _sizeX - 1 && y < _sizeY - 1) {
+                _tiles[x][y].connect(
+                    _tiles[x + 1][y], _tiles[x][y + 1]);
+            }
+            else if (x < _sizeX - 1) {
+                _tiles[x][y].connect(_tiles[x + 1][y], null);
+            }
+            else if (y < _sizeY - 1) {
+                _tiles[x][y].connect(null, _tiles[x][y + 1]);
+            }
+        }
+    }
+}
+
 const RG = require('./rg.js');
 RG.Factory = require('./factory');
 
@@ -605,20 +623,7 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
 
     /* Connects all tiles together from the sides. */
     this.connectTiles = function() {
-        for (let x = 0; x < _sizeX; x++) {
-            for (let y = 0; y < _sizeY; y++) {
-                if (x < _sizeX - 1 && y < _sizeY - 1) {
-                    _tiles[x][y].connect(
-                        _tiles[x + 1][y], _tiles[x][y + 1]);
-                }
-                else if (x < _sizeX - 1) {
-                    _tiles[x][y].connect(_tiles[x + 1][y], null);
-                }
-                else if (y < _sizeY - 1) {
-                    _tiles[x][y].connect(null, _tiles[x][y + 1]);
-                }
-            }
-        }
+        connectTiles(_tiles, _sizeX, _sizeY);
     };
 
     this._init();
