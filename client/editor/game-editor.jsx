@@ -71,6 +71,12 @@ const startSimulation = (startTime, level) =>
     }
   );
 
+const updateLevelAndErrorMsg = (level, msg) => (
+  () => ({
+    level, errorMsg: msg
+  })
+);
+
 /* Component for game/level editor. */
 class GameEditor extends React.Component {
 
@@ -211,6 +217,12 @@ class GameEditor extends React.Component {
   componentWillUnMount() {
     document.removeEventListener('keypress', this.handleKeyDown);
   }
+
+  setStateWithLevel(level, obj = {}) {
+    level.getMap()._optimizeForRowAccess();
+    this.setState(Object.assign({level}, obj));
+  }
+
 
   /* Handles some quick keys for faster placement. */
   handleKeyDown(evt) {
@@ -407,6 +419,8 @@ class GameEditor extends React.Component {
     const levelType = this.state.subLevelType;
     let conf = {};
 
+    console.log('Subgenerating...');
+
     if (this.state.subLevelConf.hasOwnProperty(levelType)) {
       conf = this.state.subLevelConf[levelType];
     }
@@ -428,14 +442,20 @@ class GameEditor extends React.Component {
             const subLevel = RG.FACT.createLevel(
               levelType, subWidth, this.state.subLevelY, conf);
             RG.Geometry.insertSubLevel(level, subLevel, xSub, ySub);
+            console.log('Inserted a sublevel');
           }
         }
       }
       catch (e) {
         errorMsg = e.message;
+        console.error(e.message);
       }
 
-      this.setState({level, errorMsg});
+      level.getMap()._optimizeForRowAccess();
+
+      console.log('Calling setState now');
+      // this.setState({level: level, errorMsg});
+      this.setState(updateLevelAndErrorMsg(level, errorMsg));
     }
     else {
       const msg = 'You must select a cell first from the map.';
@@ -460,7 +480,7 @@ class GameEditor extends React.Component {
     });
 
     RG.FACT.addNRandItems(level, this.parser, conf);
-    this.setState({level: level});
+    this.setStateWithLevel(level);
   }
 
   /* Generates and inserts random actors into the map. */
@@ -480,7 +500,7 @@ class GameEditor extends React.Component {
     };
 
     RG.FACT.addNRandActors(level, this.parser, conf);
-    this.setState({level: level});
+    this.setStateWithLevel(level);
   }
 
   debugMsg(msg) {
@@ -502,7 +522,7 @@ class GameEditor extends React.Component {
     catch (e) {
       this.setState({errorMsg: e.message});
     }
-    this.setState({level: level});
+    this.setStateWithLevel(level);
   }
 
   insertActor() {
@@ -519,7 +539,7 @@ class GameEditor extends React.Component {
     catch (e) {
       this.setState({errorMsg: e.message});
     }
-    this.setState({level: level});
+    this.setStateWithLevel(level);
   }
 
   insertItem() {
@@ -535,8 +555,7 @@ class GameEditor extends React.Component {
     catch (e) {
       this.setState({errorMsg: e.message});
     }
-    this.setState({level: level});
-
+    this.setStateWithLevel(level);
   }
 
   /* Inverts the map base elements (floor/wall) */
@@ -544,7 +563,7 @@ class GameEditor extends React.Component {
     const level = this.state.level;
     const map = level.getMap();
     RG.Map.CellList.invertMap(map);
-    this.setState({level: level});
+    this.setStateWithLevel(level);
   }
 
   render() {
@@ -554,6 +573,8 @@ class GameEditor extends React.Component {
     if (this.state.boardClassName === 'game-board-map-view-xxxs') {
       rowClass = 'cell-row-div-map-view-xxxs';
     }
+
+    console.log('editor rendering()');
 
     let map = null;
     let mapSizeX = null;
