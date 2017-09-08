@@ -84,9 +84,9 @@ class GameEditor extends React.Component {
 
       lastTouchedConf: null,
 
-      featureType: 'city',
-      featureList: [],
-      featureConf: {shown: ''},
+      zoneType: 'city',
+      zoneList: [],
+      zoneConf: {shown: ''},
 
       levelX: 80,
       levelY: 28,
@@ -153,8 +153,8 @@ class GameEditor extends React.Component {
 
     // Bind functions for callbacks
     this.generateWorld = this.generateWorld.bind(this);
-    this.generateFeature = this.generateFeature.bind(this);
-    this.onChangeFeatureType = this.onChangeFeatureType.bind(this);
+    this.generateZone = this.generateZone.bind(this);
+    this.onChangeZoneType = this.onChangeZoneType.bind(this);
 
     this.generateMap = this.generateMap.bind(this);
     this.onChangeMapType = this.onChangeMapType.bind(this);
@@ -340,23 +340,23 @@ class GameEditor extends React.Component {
     this.addLevelToEditor(worldLevel);
   }
 
-  generateFeature() {
-    const featureType = this.state.featureType;
-    console.log('Adding feature type ' + featureType);
+  generateZone() {
+    const zoneType = this.state.zoneType;
+    console.log('Adding feature type ' + zoneType);
     const fact = new RG.Factory.World();
-    const featConf = this.state.featureConf[featureType];
+    const featConf = this.state.zoneConf[zoneType];
 
     let feat = null;
-    switch (featureType) {
+    switch (zoneType) {
       case 'branch': feat = fact.createBranch(featConf); break;
       case 'city': feat = fact.createCity(featConf); break;
       case 'dungeon': feat = fact.createDungeon(featConf); break;
       case 'face': feat = fact.createMountainFace(featConf); break;
       case 'mountain': feat = fact.createDungeon(featConf); break;
       case 'quarter': feat = fact.createCityQuarter(featConf); break;
-      default: console.log('No legal featureType given');
+      default: console.log('No legal zoneType given');
     }
-    this.addFeatureToEditor(featureType, feat);
+    this.addFeatureToEditor(zoneType, feat);
   }
 
   /* Generates a new level map and adds it to the editor.  */
@@ -394,10 +394,10 @@ class GameEditor extends React.Component {
       level.editorID = this.state.idCount++;
       levelList.push(level);
     });
-    const featureConf = this.state.featureConf;
-    featureConf.shown = type;
+    const zoneConf = this.state.zoneConf;
+    zoneConf.shown = type;
     const levelIndex = this.state.levelIndex + 1;
-    this.setState({level: levels[0], levelList, levelIndex, featureConf});
+    this.setState({level: levels[0], levelList, levelIndex, zoneConf});
   }
 
   /* Inserts a sub-map into the current level. This overwrites all
@@ -764,7 +764,7 @@ class GameEditor extends React.Component {
     let conf = null;
 
     if (idHead === 'main') {conf = this.state.levelConf;}
-    else if (idHead === 'feature') {conf = this.state.featureConf;}
+    else if (idHead === 'feature') {conf = this.state.zoneConf;}
     else {conf = this.state.subLevelConf;}
 
     if (key.match(/(\w+)Func/)) {
@@ -781,21 +781,21 @@ class GameEditor extends React.Component {
       this.setState({levelConf: conf});
     }
     else if (idHead === 'feature') {
-      this.setState({featureConf: conf});
+      this.setState({zoneConf: conf});
     }
     else {
       this.setState({subLevelConf: conf});
     }
   }
 
-  onChangeFeatureType(evt) {
+  onChangeZoneType(evt) {
     const type = evt.target.value;
     const featConf = WorldConf.getBaseConf(type);
-    const featureConf = this.state.featureConf;
-    featureConf[type] = featConf;
-    featureConf.shown = type;
-    this.setState({featureType: type, featureConf,
-      lastTouchedConf: featureConf});
+    const zoneConf = this.state.zoneConf;
+    zoneConf[type] = featConf;
+    zoneConf.shown = type;
+    this.setState({zoneType: type, zoneConf,
+      lastTouchedConf: zoneConf});
   }
 
   onChangeMapType(evt) {
@@ -1059,7 +1059,7 @@ class GameEditor extends React.Component {
 
   /* Returns the level config configuration shown directly under level
    * generation. */
-  getLevelConfElement(id, levelConf) {
+  getConfElement(id, levelConf) {
     let elem = null;
     const confType = levelConf.shown;
     if (confType.length > 0) {
@@ -1126,7 +1126,7 @@ class GameEditor extends React.Component {
     return elem;
   }
 
-  getFeatureSelectElem() {
+  getZoneSelectElem() {
     const featNames = ['branch', 'city', 'dungeon', 'face', 'mountain',
       'quarter'];
     const features = Object.values(featNames).map(type => {
@@ -1138,17 +1138,18 @@ class GameEditor extends React.Component {
   }
 
   getEditorPanelElement() {
-    const featureSelectElem = this.getFeatureSelectElem();
-    const featureConfElem = this.getLevelConfElement('feature',
-      this.state.featureConf);
-    const levelConfElem = this.getLevelConfElement('main',
+    const zoneSelectElem = this.getZoneSelectElem();
+    const zoneConfElem = this.getConfElement('zone',
+      this.state.zoneConf);
+    const levelConfElem = this.getConfElement('main',
       this.state.levelConf);
     const levelSelectElem = this.getLevelSelectElement();
     const elementSelectElem = this.getElementSelectElem();
     const actorSelectElem = this.getSelectElem('actors');
     const itemSelectElem = this.getSelectElem('items');
-    const subLevelConfElem = this.getLevelConfElement('sub',
+    const subLevelConfElem = this.getConfElement('sub',
       this.state.subLevelConf);
+
     return (
       <div className='game-editor-panel'>
         <div className='row'>
@@ -1163,14 +1164,14 @@ class GameEditor extends React.Component {
             </div>
 
             <div className='btn-div'>
-              <button onClick={this.generateFeature}>Feature!</button>
+              <button onClick={this.generateZone}>Zone!</button>
               <select
                 name='feature-type'
-                onChange={this.onChangeFeatureType}
-                value={this.state.featureType}
-              >{featureSelectElem}
+                onChange={this.onChangeZoneType}
+                value={this.state.zoneType}
+              >{zoneSelectElem}
               </select>
-              {featureConfElem}
+              {zoneConfElem}
             </div>
 
             <div className='btn-div'>
