@@ -53,7 +53,7 @@ class GameStartScreen extends React.Component {
     const setLevelSize = this.props.setLevelSize;
     const setPlayerLevel = this.props.setPlayerLevel;
     const setGameLength = this.props.setGameLength;
-    const setDebugMode = this.props.setDebugMode;
+    const setPlayMode = this.props.setPlayMode;
 
     const savedPlayerList = this.props.savedPlayerList;
     var playerListHTML = savedPlayerList.map( (val, index) => {
@@ -233,11 +233,11 @@ class GameStartScreen extends React.Component {
 
                 <div className='dropdown-select-div'>
                   <DropdownSelect
-                    callback={setDebugMode}
-                    currValue={this.props.settings.debugMode}
-                    options={['Off', 'Arena', 'Battle',
+                    callback={setPlayMode}
+                    currValue={this.props.settings.playMode}
+                    options={['Arena', 'Dungeon', 'Battle',
                       'Creator', 'World', 'OverWorld']}
-                    titleName='Debug'
+                    titleName='Play mode'
                   />
                 </div>
 
@@ -300,7 +300,7 @@ GameStartScreen.propTypes = {
   setLevelSize: React.PropTypes.func.isRequired,
   setPlayerLevel: React.PropTypes.func.isRequired,
   setGameLength: React.PropTypes.func.isRequired,
-  setDebugMode: React.PropTypes.func.isRequired,
+  setPlayMode: React.PropTypes.func.isRequired,
   setPlayerClass: React.PropTypes.func.isRequired,
 
   newGame: React.PropTypes.func.isRequired,

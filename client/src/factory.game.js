@@ -184,29 +184,29 @@ RG.Factory.Game = function() {
     /* Creates the game based on the selection. */
     this.createNewGame = function(obj) {
         _verif.verifyConf('createNewGame', obj, ['sqrPerItem', 'sqrPerActor',
-            'debugMode']);
+            'playMode']);
         _parser.parseShellData(RG.Effects);
         _parser.parseShellData(RGObjects);
 
         const game = new RG.Game.Main();
         const player = this.createPlayerUnlessLoaded(game, obj);
 
-        if (obj.debugMode === 'Arena') {
+        if (obj.playMode === 'Arena') {
             return this.createArenaDebugGame(obj, game, player);
         }
-        else if (obj.debugMode === 'Battle') {
+        else if (obj.playMode === 'Battle') {
             return this.createDebugBattle(obj, game, player);
         }
-        else if (obj.debugMode === 'Creator') {
+        else if (obj.playMode === 'Creator') {
             return this.createWorldWithCreator(obj, game, player);
         }
-        else if (obj.debugMode === 'World') {
+        else if (obj.playMode === 'World') {
             return this.createFullWorld(obj, game, player);
         }
-        else if (obj.debugMode === 'OverWorld') {
+        else if (obj.playMode === 'OverWorld') {
             return this.createOverWorld(obj, game, player);
         }
-        else {
+        else { // Dungeon mode
             return this.createOneDungeonAndBoss(obj, game, player);
         }
     };

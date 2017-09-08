@@ -10,7 +10,7 @@ describe('How Game is created from Overworld', function() {
         const gameFact = new RG.Factory.Game();
 
         const conf = {
-            debugMode: 'OverWorld',
+            playMode: 'OverWorld',
             playerLevel: 'Medium',
             sqrPerItem: 100,
             sqrPerActor: 100

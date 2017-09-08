@@ -121,7 +121,7 @@ class BattlesTop extends React.Component {
 
             sqrPerActor: 120,
             sqrPerItem: 120,
-            debugMode: false,
+            playMode: false,
             loadedPlayer: null,
             loadedLevel: null,
             playerName: 'Player',
@@ -140,7 +140,7 @@ class BattlesTop extends React.Component {
         this.state = {
             boardClassName: 'game-board-player-view',
             creatingGame: false,
-            debugMode: 'Off',
+            playMode: 'Off',
             equipSelected: null,
             gameLength: 'Medium',
             invMsg: '',
@@ -482,13 +482,10 @@ class BattlesTop extends React.Component {
             const code = this.nextCode;
             this.game.update({code});
             this.gameState.visibleCells = this.game.visibleCells;
+
             if (this.game.isGameOver()) {
                 this.setState({render: true, showGameMenu: false});
             }
-            /* else if (this.game.isMenuShown()) {
-                console.log('Menu is shown');
-                this.setState({showGameMenu: true, render: true});
-            }*/
             else {
                 const player = this.game.getPlayer();
                 const updates = {render: true, showGameMenu: false};
@@ -509,7 +506,7 @@ class BattlesTop extends React.Component {
         this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
     }
 
-    /* Plays the animation until all frames have been shown. */
+    /* Plays the animation until all animation frames have been shown. */
     playAnimation() {
         if (this.game.hasAnimation()) {
             const anim = this.game.getAnimationFrame();
@@ -518,7 +515,7 @@ class BattlesTop extends React.Component {
                 this.playAnimation.bind(this));
         }
         else {
-            // Animation is finished
+            // Animation is finished, go back to mainLoop
             this.setState({render: true, animation: null});
             this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
         }
@@ -580,7 +577,7 @@ class BattlesTop extends React.Component {
             levelSize: this.state.levelSize,
             monstType: this.state.monstType,
             lootType: this.state.lootType,
-            debugMode: this.state.debugMode
+            playMode: this.state.playMode
         };
 
         return (
@@ -596,7 +593,6 @@ class BattlesTop extends React.Component {
                     seedName={this.state.seedName}
                     selectedGame={this.state.selectedGame}
                     selectGame={this.selectSaveGame}
-                    setDebugMode={this.setDebugMode}
                     setGameLength={this.setGameLength}
                     setLevelSize={this.setLevelSize}
                     setLoot={this.setLoot}
@@ -604,6 +600,7 @@ class BattlesTop extends React.Component {
                     setPlayerClass={this.setPlayerClass}
                     setPlayerLevel={this.setPlayerLevel}
                     setPlayerName={this.setPlayerName}
+                    setPlayMode={this.setPlayMode}
                     setSeedName={this.setSeedName}
                     settings={settings}
                     toggleEditor={this.toggleEditor}
@@ -612,7 +609,6 @@ class BattlesTop extends React.Component {
                 <GameHelpScreen />
 
                 <GameOverWorldMap ow={overworld} />
-
 
                 {gameValid && !this.state.showEditor &&
                 <GameInventory
@@ -652,6 +648,7 @@ class BattlesTop extends React.Component {
                         </div>
                         }
                     </div>
+
                     {gameValid &&
                     <div className='col-md-10'>
                         <div className='game-messages-div'>
@@ -687,6 +684,7 @@ class BattlesTop extends React.Component {
                         </div>
                     </div>
                     }
+
                 </div>
                 }
 
@@ -944,17 +942,17 @@ class BattlesTop extends React.Component {
         this.setState({gameLength: length});
     }
 
-    setDebugMode(mode) {
+    setPlayMode(mode) {
         switch (mode) {
-            case 'Off': this.gameConf.debugMode = false; break;
-            case 'Arena': this.gameConf.debugMode = 'Arena'; break;
-            case 'Battle': this.gameConf.debugMode = 'Battle'; break;
-            case 'Creator': this.gameConf.debugMode = 'Creator'; break;
-            case 'World': this.gameConf.debugMode = 'World'; break;
-            case 'OverWorld': this.gameConf.debugMode = 'OverWorld'; break;
-            default: console.error('setDebugMode illegal mode ' + mode);
+            case 'Arena': this.gameConf.playMode = 'Arena'; break;
+            case 'Battle': this.gameConf.playMode = 'Battle'; break;
+            case 'Creator': this.gameConf.playMode = 'Creator'; break;
+            case 'Dungeon': this.gameConf.playMode = 'Dungeon'; break;
+            case 'OverWorld': this.gameConf.playMode = 'OverWorld'; break;
+            case 'World': this.gameConf.playMode = 'World'; break;
+            default: console.error('setPlayMode illegal mode ' + mode);
         }
-        this.setState({debugMode: mode});
+        this.setState({playMode: mode});
     }
 
     bindCallbacks() {
@@ -963,7 +961,7 @@ class BattlesTop extends React.Component {
         // GameStartScreen callbacks
         this.deleteGame = this.deleteGame.bind(this);
         this.loadGame = this.loadGame.bind(this);
-        this.setDebugMode = this.setDebugMode.bind(this);
+        this.setPlayMode = this.setPlayMode.bind(this);
         this.setGameLength = this.setGameLength.bind(this);
         this.setLevelSize = this.setLevelSize.bind(this);
         this.setLoot = this.setLoot.bind(this);

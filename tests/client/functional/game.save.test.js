@@ -22,7 +22,7 @@ describe('Function: Saving/restoring a game', function() {
             playerLevel: 'Medium',
             sqrPerActor: 40,
             sqrPerItem: 100,
-            debugMode: 'World',
+            playMode: 'World',
             loadedPlayer: null,
             loadedLevel: null,
             playerName: 'Player1',
