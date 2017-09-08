@@ -285,6 +285,11 @@ RG.World.Branch = function(name) {
         return getStairsOther(this.getName(), _levels);
     };
 
+    this.addEntrance = function(levelNumber) {
+        const entrStairs = new Stairs(false);
+        this.setEntrance(entrStairs, levelNumber);
+    };
+
     /* Adds entrance stairs for this branch. */
     this.setEntrance = function(stairs, levelNumber) {
         if (levelNumber < _levels.length) {
