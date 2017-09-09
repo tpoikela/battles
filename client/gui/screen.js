@@ -169,12 +169,12 @@ const getClassesAndCharsFullMapWithRLE = function(cells, selCell) {
     const cssClasses = [];
     const asciiChars = [];
 
-    let selX = -1;
-    let selY = -1;
-
-    if (selCell !== null) {
-        selX = selCell.getX();
-        selY = selCell.getY();
+    let selMap = null;
+    if (selCell) {
+        selMap = new Map();
+        selCell.forEach(cell => {
+            selMap.set(cell.getX() + ',' + cell.getY(), cell);
+        });
     }
 
     let cellClass = '';
@@ -186,8 +186,11 @@ const getClassesAndCharsFullMapWithRLE = function(cells, selCell) {
         cellClass = RG.getClassNameFullMap(cell);
         cellChar = RG.getCharFullMap(cell);
 
-        if (selX === cell.getX() && selY === cell.getY()) {
-            cellClass = 'cell-target-selected';
+        if (selMap) {
+            const [x, y] = [cell.getX(), cell.getY()];
+            if (selMap.has(x + ',' + y)) {
+                cellClass = 'cell-target-selected';
+            }
         }
 
         const finishRLE = (cellClass !== prevClass) && prevClass
