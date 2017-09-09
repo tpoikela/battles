@@ -48,6 +48,19 @@ RG.Geometry = {
         return res;
     },
 
+    /* Given two cells, returns bounding box defined by upper-left
+     * and lower-right corners.
+     */
+    getBoxCornersForCells: function(c0, c1) {
+      const [x0, y0] = [c0.getX(), c0.getY()];
+      const [x1, y1] = [c1.getX(), c1.getY()];
+      const ulx = x0 <= x1 ? x0 : x1;
+      const lrx = x1 > x0 ? x1 : x0;
+      const uly = y0 <= y1 ? y0 : y1;
+      const lry = y1 > y0 ? y1 : y0;
+      return {ulx, uly, lrx, lry};
+    },
+
     /* Given start x,y and end x,y coordinates, returns all x,y coordinates in
      * the border of the rectangle.*/
     getHollowBox: function(x0, y0, maxX, maxY) {
@@ -290,23 +303,27 @@ RG.Geometry = {
     },
 
     /* Inserts actors into the given level as rectangle bounded by the
-     * coordinates given. */
+     * coordinates given. Skips non-free cells. */
     insertActors: function(l1, actorName, bbox, parser) {
         const m1 = l1.getMap();
         this.iterateMapWithBBox(m1, bbox, (x, y) => {
-            const actor = parser.createActualObj(RG.TYPE_ACTOR,
-                actorName);
-            l1.addActor(actor, x, y);
+            if (m1.getCell(x, y).isFree()) {
+                const actor = parser.createActualObj(RG.TYPE_ACTOR,
+                    actorName);
+                l1.addActor(actor, x, y);
+            }
         });
     },
 
     /* Inserts items into the given level as rectangle bounded by the
-     * coordinates given. */
+     * coordinates given. Skips non-free cells. */
     insertItems: function(l1, itemName, bbox, parser) {
         const m1 = l1.getMap();
         this.iterateMapWithBBox(m1, bbox, (x, y) => {
-            const item = parser.createActualObj(RG.TYPE_ITEM, itemName);
-            l1.addItem(item, x, y);
+            if (m1.getCell(x, y).isFree()) {
+                const item = parser.createActualObj(RG.TYPE_ITEM, itemName);
+                l1.addItem(item, x, y);
+            }
         });
     },
 
