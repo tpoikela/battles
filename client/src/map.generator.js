@@ -160,6 +160,11 @@ RG.Map.Generator = function() { // {{{2
 
         RG.Geometry.removeMatching(freeCoord, border);
 
+        if (!freeCoord.length) {
+          RG.warn('Map.Generator', 'createTown',
+            'No free coordinates');
+        }
+
         for (let i = 0; i < nHouses; i++) {
 
             let houseCreated = false;
