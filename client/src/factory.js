@@ -412,6 +412,11 @@ RG.Factory.Base = function() { // {{{2
                 func: item => item.type === conf.shopType
             });
         }
+        else { // Fallback, if no config
+            item = conf.parser.createRandomItem({
+                func: item => item.value <= 50 + n * 100
+            });
+        }
         return item;
     };
 
