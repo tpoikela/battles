@@ -21,6 +21,8 @@ RG.getOverWorld = require('../src//overworld');
 
 const WorldConf = require('../src/world.creator');
 
+import Capital from '../data/capital';
+
 /*
  * Sketch to specify the menus in more sane way than jsx.
  */
@@ -111,6 +113,9 @@ class GameEditor extends React.Component {
       maxValue: 5000,
 
       selectedCell: null,
+      selectMode: false,
+      selectBegin: null,
+
       elementType: 'floor',
       actorName: '',
       itemName: '',
@@ -162,7 +167,7 @@ class GameEditor extends React.Component {
     this.generateZone = this.generateZone.bind(this);
     this.onChangeZoneType = this.onChangeZoneType.bind(this);
 
-    this.generateMap = this.generateMap.bind(this);
+    this.generateLevel = this.generateLevel.bind(this);
     this.onChangeMapType = this.onChangeMapType.bind(this);
     this.onChangeX = this.onChangeX.bind(this);
     this.onChangeY = this.onChangeY.bind(this);
@@ -225,6 +230,15 @@ class GameEditor extends React.Component {
     this.setState(Object.assign({level}, obj));
   }
 
+  /* Returns the first selected cell. */
+  getSelectedCell() {
+    if (this.state.selectedCell) {
+      if (this.state.selectedCell.length > 0) {
+        return this.state.selectedCell[0];
+      }
+    }
+    return null;
+  }
 
   /* Handles some quick keys for faster placement. */
   handleKeyDown(evt) {
@@ -242,7 +256,12 @@ class GameEditor extends React.Component {
       if (keyCode >= ROT.VK_1 && keyCode <= ROT.VK_9) {
         mult = 10;
       }
-      const cell = this.state.selectedCell;
+
+      let cell = this.getSelectedCell();
+      if (this.state.selectMode) {
+        cell = this.state.selectEnd;
+      }
+
       if (cell) {
         const [x0, y0] = [cell.getX(), cell.getY()];
         const dir = RG.KeyMap.getDir(keyCode);
@@ -251,13 +270,48 @@ class GameEditor extends React.Component {
         const map = this.state.level.getMap();
         if (map.hasXY(newX, newY)) {
           const newCell = map.getCell(newX, newY);
-          this.setState({
-            selectedCell: newCell,
-            cellSelectX: newX, cellSelectY: newY
-          });
+          if (this.state.selectMode) {
+            const selectedCells = this.getSelection(this.state.selectBegin,
+              newCell, map);
+            this.setState({selectedCell: selectedCells, selectEnd: newCell});
+          }
+          else {
+            this.setState({
+              selectedCell: [newCell],
+              cellSelectX: newX, cellSelectY: newY
+            });
+          }
         }
       }
     }
+    else if (keyCode === RG.VK_s) {
+      const cell = this.getSelectedCell();
+      const selectMode = !this.state.selectMode;
+      if (!this.state.selectMode) {
+        if (cell) {
+          this.setState({selectMode, selectBegin: cell, selectEnd: cell});
+        }
+      }
+      else if (cell) {
+        this.setState({selectMode, selectEnd: cell});
+      }
+    }
+  }
+
+  /* Returns all cells in the current selection. */
+  getSelection(c0, c1, map) {
+    const [x0, y0] = [c0.getX(), c0.getY()];
+    const [x1, y1] = [c1.getX(), c1.getY()];
+    if (x0 === x1 && y0 === y1) {
+      return [c0];
+    }
+    const bb = RG.Geometry.getBoxCornersForCells(c0, c1);
+    const coord = RG.Geometry.getBox(bb.ulx, bb.uly, bb.lrx, bb.lry);
+    const res = [];
+    coord.forEach(xy => {
+      res.push(map.getCell(xy[0], xy[1]));
+    });
+    return res;
   }
 
   /* Returns current level */
@@ -281,7 +335,7 @@ class GameEditor extends React.Component {
       }
 
       this.setState({
-        selectedCell: cell, cellSelectX: cell.getX(),
+        selectedCell: [cell], cellSelectX: cell.getX(),
         cellSelectY: cell.getY()
       });
     }
@@ -357,7 +411,7 @@ class GameEditor extends React.Component {
   }
 
   /* Generates a world scale map using overworld algorithm and adds it to the
-   * editor. */
+   * editor. Does not generate any sublevels or zones. */
   generateWorld() {
     const mult = 1;
     const owConf = {
@@ -397,16 +451,24 @@ class GameEditor extends React.Component {
   }
 
   /* Generates a new level map and adds it to the editor.  */
-  generateMap() {
+  generateLevel() {
     const levelType = this.state.levelType;
     let conf = {};
     if (this.state.levelConf.hasOwnProperty(levelType)) {
       conf = this.state.levelConf[levelType];
     }
 
+    const [cols, rows] = [this.state.levelX, this.state.levelY];
+
     conf.parser = this.parser;
-    const level = RG.FACT.createLevel(
-      levelType, this.state.levelX, this.state.levelY, conf);
+    let level = null;
+    if (levelType === 'capital') {
+      level = new Capital(cols, rows, conf).getLevel();
+    }
+    else {
+      level = RG.FACT.createLevel(
+        levelType, this.state.levelX, this.state.levelY, conf);
+    }
     delete conf.parser;
     this.addLevelToEditor(level);
   }
@@ -453,8 +515,8 @@ class GameEditor extends React.Component {
     const subHeight = this.state.subLevelY;
 
     if (this.state.selectedCell) {
-      const x0 = this.state.selectedCell.getX();
-      const y0 = this.state.selectedCell.getY();
+      const x0 = this.getSelectedCell.getX();
+      const y0 = this.getSelectedCell.getY();
 
       // Iterate through tiles in x-direction (tx) and tiles in
       // y-direction (ty). Compute upper left x,y for each sub-level.
@@ -532,12 +594,23 @@ class GameEditor extends React.Component {
     console.log('[DEBUG] ' + msg);
   }
 
+  getBBoxForInsertion() {
+    if (this.state.selectMode) {
+      const c0 = this.state.selectBegin;
+      const c1 = this.state.selectEnd;
+      return RG.Geometry.getBoxCornersForCells(c0, c1);
+    }
+    else {
+      const ulx = this.getSelectedCell().getX();
+      const uly = this.getSelectedCell().getY();
+      const lrx = this.state.insertXWidth + ulx - 1;
+      const lry = this.state.insertYWidth + uly - 1;
+      return {ulx, uly, lrx, lry};
+    }
+  }
 
   insertElement() {
-    const ulx = this.state.selectedCell.getX();
-    const uly = this.state.selectedCell.getY();
-    const lrx = this.state.insertXWidth + ulx - 1;
-    const lry = this.state.insertYWidth + uly - 1;
+    const {ulx, uly, lrx, lry} = this.getBBoxForInsertion();
     this.debugMsg('insertElement: ' + `${ulx}, ${uly}, ${lrx}, ${lry}`);
     const level = this.state.level;
     try {
@@ -551,10 +624,7 @@ class GameEditor extends React.Component {
   }
 
   insertActor() {
-    const ulx = this.state.selectedCell.getX();
-    const uly = this.state.selectedCell.getY();
-    const lrx = this.state.insertXWidth + ulx - 1;
-    const lry = this.state.insertYWidth + uly - 1;
+    const {ulx, uly, lrx, lry} = this.getBBoxForInsertion();
     this.debugMsg('insertActor: ' + `${ulx}, ${uly}, ${lrx}, ${lry}`);
     const level = this.state.level;
     try {
@@ -568,10 +638,7 @@ class GameEditor extends React.Component {
   }
 
   insertItem() {
-    const ulx = this.state.selectedCell.getX();
-    const uly = this.state.selectedCell.getY();
-    const lrx = this.state.insertXWidth + ulx - 1;
-    const lry = this.state.insertYWidth + uly - 1;
+    const {ulx, uly, lrx, lry} = this.getBBoxForInsertion();
     const level = this.state.level;
     try {
       RG.Geometry.insertItems(level, this.state.itemName,
@@ -943,7 +1010,7 @@ class GameEditor extends React.Component {
 
   onChangeCellSelectX(evt) {
     const newX = this.getInt(evt.target.value, 10);
-    const cell = this.state.selectedCell;
+    const cell = this.getSelectedCell();
     const update = {cellSelectX: newX};
     const map = this.state.level.getMap();
     if (cell) {
@@ -957,7 +1024,7 @@ class GameEditor extends React.Component {
 
   onChangeCellSelectY(evt) {
     const newY = this.getInt(evt.target.value, 10);
-    const cell = this.state.selectedCell;
+    const cell = this.getSelectedCell();
     const update = {cellSelectY: newY};
     const map = this.state.level.getMap();
     if (cell) {
@@ -1170,7 +1237,8 @@ class GameEditor extends React.Component {
 
   getLevelSelectElement() {
     const types = [
-      'arena', 'castle', 'cellular', 'cave', 'crypt', 'digger', 'divided',
+      'arena', 'castle', 'capital', 'cellular', 'cave', 'crypt',
+      'digger', 'divided',
       'dungeon', 'eller', 'empty', 'forest', 'icey', 'miner',
       'mountain', 'uniform', 'rogue',
       'ruins', 'rooms', 'town', 'townwithwall', 'wall'
@@ -1253,7 +1321,7 @@ class GameEditor extends React.Component {
             </div>
 
             <div className='btn-div'>
-              <button onClick={this.generateMap}>Level!</button>
+              <button onClick={this.generateLevel}>Level!</button>
               <select
                 name='level-type'
                 onChange={this.onChangeMapType}
