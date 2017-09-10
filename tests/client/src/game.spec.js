@@ -242,6 +242,9 @@ describe('How poison item is used, and experience propagates', () => {
             game.simulateGame();
             ++count;
         }
+        expect(count, 'Victim dies in 100 turns').to.be.below(100);
+        expect(victim.get('Health', 'Victim is dead').isAlive()).to.be.false;
+
         const endExp = assassin.get('Experience').getExp();
         expect(endExp > startExp, 'Exp. points from poison').to.equal(true);
 

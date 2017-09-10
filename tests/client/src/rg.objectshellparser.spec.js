@@ -290,6 +290,7 @@ describe('It contains all game content info', () => {
         expect(ratObj.get('Combat').getAttack()).to.equal(1);
         expect(ratObj.get('Combat').getDefense()).to.equal(1);
         expect(ratObj.get('Stats').getSpeed()).to.equal(100);
+        console.log('ratObj: ' + JSON.stringify(ratObj));
         RGTest.checkChar(ratObj, 'r');
         RGTest.checkCSSClassName(ratObj, 'cell-actor-animal');
 

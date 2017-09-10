@@ -2,11 +2,13 @@
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles.js');
 
+import Entity from '../../../client/src/entity';
+
 describe('Component.Base', () => {
 
     it('has exactly one related entity', () => {
-        const entity = new RG.Entity();
-        const entity2 = new RG.Entity();
+        const entity = new Entity();
+        const entity2 = new Entity();
         const comp = new RG.Component.Base('Base');
 
         expect(comp.getType()).to.equal('Base');
@@ -38,7 +40,7 @@ describe('Component.Base', () => {
 
     it('has onAdd/Remove callback mechanism', () => {
         const comp = new RG.Component.Base('Base');
-        const entity = new RG.Entity();
+        const entity = new Entity();
 
         let calledAdd = false;
         const callbackAdd = () => {calledAdd = true;};

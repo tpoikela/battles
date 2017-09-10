@@ -87,8 +87,8 @@ describe('Items in map cells', () => {
     it('Is placed in a cell and needs an owner', () => {
         const cell = new Cell(0, 1, new Element('floor'));
         cell.setExplored();
-        const item = new Item('food');
-        item.setType('food');
+        const item = new Item('MyFood');
+        item.setType('fooditem');
         cell.setProp('items', item);
         expect(cell.hasProp('items')).to.equal(true);
 
@@ -374,6 +374,9 @@ describe('Element.Shop', () => {
         soldItem.setValue(300);
         soldItem.add('Unpaid', new RG.Component.Unpaid());
         level.addItem(soldItem, 1, 1);
+
+        console.log('Owner' + soldItem.getOwner());
+
         expect(shopCell.hasProp('items')).to.equal(true);
         expect(soldItem.has('Unpaid')).to.equal(true);
         expect(shopElem.getItemPriceForBuying(soldItem)).to.equal(40);
@@ -424,7 +427,7 @@ describe('Map.Generator', () => {
         };
 
         for (let i = 0; i < 1; i++) {
-            const obj = mapgen.createMountain(100, 400, conf);
+            const obj = mapgen.createMountain(conf);
             const map = obj.map;
             expect(map).to.exist;
         }
