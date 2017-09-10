@@ -3,9 +3,11 @@ const RG = require('./rg');
 
 RG.Mixin = {};
 
+// Dummy Base class to be used with mixins.
 class Base {}
 RG.Mixin.Base = Base;
 
+/* A mixin used for typed objects. */
 RG.Mixin.Typed = (superclass) => class extends superclass {
 
     constructor(args) {
@@ -35,6 +37,7 @@ RG.Mixin.Typed = (superclass) => class extends superclass {
 
 };
 
+/* A mixin for ownable objects. */
 RG.Mixin.Ownable = (superclass) => class extends superclass {
 
     constructor(args) {
@@ -76,6 +79,7 @@ RG.Mixin.Ownable = (superclass) => class extends superclass {
 
 };
 
+/* Mixin used in Locatable objects with x,y coordinates. */
 RG.Mixin.Locatable = (superclass) => class extends superclass {
 
     constructor(args) {
@@ -108,7 +112,7 @@ RG.Mixin.Locatable = (superclass) => class extends superclass {
     /* Sets the level of this locatable object.*/
     setLevel(level) {
         this._level = level;
-        RG.nullOrUndefError('Object.Locatable: setLevel', 'arg |level|', level);
+        RG.nullOrUndefError('Mixin.Locatable: setLevel', 'arg |level|', level);
     }
 
     /* Unsets the level to null. Throws error if level already null. */
@@ -117,7 +121,7 @@ RG.Mixin.Locatable = (superclass) => class extends superclass {
             this._level = null;
         }
         else {
-            RG.err('Object.Locatable', 'unsetLevel',
+            RG.err('Mixin.Locatable', 'unsetLevel',
                 'Trying to unset already null level.');
         }
     }
@@ -185,6 +189,7 @@ RG.Mixin.CombatAttr = (superclass) => class extends superclass {
 
 };
 
+/* Mixin for objects requiring a damage roll. */
 RG.Mixin.DamageRoll = (superclass) => class extends superclass {
 
     constructor(args) {
@@ -253,5 +258,129 @@ RG.Mixin.DurationRoll = (superclass) => class extends superclass {
     }
 
 };
+
+RG.Mixin.Defense = (superclass) => class extends superclass {
+
+    constructor(args) {
+        super(args);
+        this._attack = 1;
+        this._defense = 1;
+        this._protection = 0;
+    }
+
+    getAttack() {return this._attack;}
+
+    setAttack(attack) {
+        this._attack = attack;
+    }
+
+    /* Defense related methods.*/
+    getDefense() { return this._defense; }
+
+    setDefense(defense) {
+        this._defense = defense;
+    }
+
+    getProtection() {
+        return this._protection;
+    }
+
+    setProtection(prot) {
+        this._protection = prot;
+    }
+
+    copy(rhs) {
+        super.copy(rhs);
+        this.setAttack(rhs.getAttack());
+        this.setDefense(rhs.getDefense());
+        this.setProtection(rhs.getProtection());
+    }
+
+    equals(rhs) {
+        let res = super.equals(rhs);
+        if (res) {
+            res = this.getAttack() === rhs.getAttack() &&
+                this.getDefense() === rhs.getDefense() &&
+                this.getProtection() === rhs.getProtection();
+        }
+        return res;
+    }
+
+    toJSON() {
+        const json = super.toJSON();
+        json.setAttack = this.getAttack();
+        json.setDefense = this.getDefense();
+        json.setProtection = this.getProtection();
+        return json;
+    }
+
+};
+
+/* Mixin for damage objects. */
+RG.Mixin.Damage = (superclass) => class extends RG.Mixin.Defense(superclass) {
+
+    constructor(args) {
+        super(args);
+        this._damageDie = new RG.Die(1, 4, 0);
+        this._range = 1;
+    }
+
+    setAttackRange(range) {this._range = range;}
+    getAttackRange() {return this._range;}
+
+    rollDamage() {
+        if (this.hasOwnProperty('getWeapon')) {
+            const weapon = this.getWeapon();
+            if (!RG.isNullOrUndef([weapon])) {
+                return weapon.rollDamage();
+            }
+        }
+        return this._damageDie.roll();
+    }
+
+    getDamageDie() {return this._damageDie;}
+
+    setDamageDie(dStr) {
+        if (typeof dStr === 'string') {
+            this._damageDie = RG.FACT.createDie(dStr);
+        }
+        else if (typeof dStr === 'object') {
+            this._damageDie = dStr;
+        }
+    }
+
+    copy(rhs) {
+        super.copy(rhs);
+        this.setAttackRange(rhs.getAttackRange());
+        const die = new RG.Die();
+        die.copy(rhs.getDamageDie());
+        this.setDamageDie(die);
+    }
+
+    equals(rhs) {
+        let res = super.equals(rhs);
+        if (res) {
+            res = this.getDamageDie().equals(rhs.getDamageDie());
+            res = res && this.getAttackRange() === rhs.getAttackRange();
+        }
+        return res;
+    }
+
+    toString() {
+        let msg = ` A: ${this.getAttack()}, D: ${this.getDefense()}, `;
+        msg += 'Dmg: ' + this.getDamageDie().toString();
+        msg += ',R:' + this.getAttackRange();
+        return msg;
+    }
+
+    toJSON() {
+        const json = super.toJSON();
+        json.setAttackRange = this.getAttackRange();
+        json.setDamageDie = this.getDamageDie().toString();
+        return json;
+    }
+
+};
+
 
 module.exports = RG.Mixin;
