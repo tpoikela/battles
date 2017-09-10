@@ -168,12 +168,10 @@ RG.extend2(RG.Component.Action, RG.Component.Base);
 
 RG.Component.Action.prototype.entityAddCallback = function(entity) {
     RG.Component.Base.prototype.entityAddCallback.call(this, entity);
-    // RG.POOL.emitEvent(RG.EVT_ACT_COMP_ADDED, {actor: entity});
 };
 
 RG.Component.Action.prototype.entityRemoveCallback = function(entity) {
     RG.Component.Base.prototype.entityRemoveCallback.call(this, entity);
-    // RG.POOL.emitEvent(RG.EVT_ACT_COMP_REMOVED, {actor: entity});
 };
 
 /* Component which takes care of hunger and satiation. */
