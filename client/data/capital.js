@@ -3,6 +3,7 @@
 const RG = require('../src/rg');
 RG.Factory = require('../src/factory');
 
+RG.ObjectShell = require('../src/objectshellparser');
 const Objects = require('../data/battles_objects.js');
 RG.Effects = require('../data/effects.js');
 
