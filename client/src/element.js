@@ -388,31 +388,31 @@ RG.Element.Shop = RGElementShop;
 
 /* A tree element. */
 class RGElementTree extends RGElementBase {
-    constructor(type) {
-        super(type);
+    constructor() {
+        super('tree');
     }
 }
 RG.Element.Tree = RGElementTree;
 
 /* A grass element. */
 class RGElementGrass extends RGElementBase {
-    constructor(type) {
-        super(type);
+    constructor() {
+        super('grass');
     }
 }
 RG.Element.Grass = RGElementGrass;
 
 /* A stone element. */
 class RGElementStone extends RGElementBase {
-    constructor(type) {
-        super(type);
+    constructor() {
+        super('stone');
     }
 }
 RG.Element.Stone = RGElementStone;
 /* High rock which is difficult to pass through. */
 class RGElementHighRock extends RGElementBase {
-    constructor(type) {
-        super(type);
+    constructor() {
+        super('highrock');
     }
 
     isPassable() {return false;}
@@ -423,8 +423,8 @@ RG.Element.HighRock = RGElementHighRock;
 
 /* A chasm element. */
 class RGElementChasm extends RGElementBase {
-    constructor(type) {
-        super(type);
+    constructor() {
+        super('chasm');
     }
 
     isPassable() {return false;}
@@ -433,8 +433,8 @@ RG.Element.Chasm = RGElementChasm;
 
 /* A water element. */
 class RGElementWater extends RGElementBase {
-    constructor(type) {
-        super(type);
+    constructor() {
+        super('water');
     }
 
     isPassable() {return false;}
@@ -443,8 +443,8 @@ RG.Element.Water = RGElementWater;
 
 /* A fort element. */
 class RGElementFort extends RGElementBase {
-    constructor(type) {
-        super(type);
+    constructor() {
+        super('fort');
     }
     isPassable() {return false;}
 }
