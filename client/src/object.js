@@ -114,33 +114,6 @@ RG.Object.Damage.prototype.toJSON = function() {
     return json;
 };
 
-
-/* Typed objects should inherit from this. */
-RG.Object.Typed = function(propType, type) {
-    this.type = type;
-    this._propType = propType;
-
-};
-
-RG.Object.Typed.prototype.getPropType = function() {return this._propType;};
-RG.Object.Typed.prototype.getType = function() {return this.type;};
-
-RG.Object.Typed.prototype.setPropType = function(propType) {
-    var index = RG.PROP_TYPES.indexOf(propType);
-    if (index >= 0) {
-        this._propType = propType;
-    }
-    else {
-        RG.err('Object.Typed', 'setPropType',
-            'Unknown prop type: |' + propType + '|');
-    }
-};
-
-RG.Object.Typed.prototype.setType = function(type) {
-    this.type = type;
-    RG.nullOrUndefError('Object.Typed: setType', 'arg |type|', type);
-};
-
 /* This object is used by all locatable objects in the game.  */
 class RGObjectLocatable {
     constructor() { // {{{2
