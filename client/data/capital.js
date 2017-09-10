@@ -17,8 +17,7 @@ export default class Capital {
     };
     const mainLevel = RG.FACT.createLevel('wall', cols, rows, wallOpts);
 
-    const subLevelPos = [0.04, 0.20, 0.75, 0.95];
-
+    const subLevelPos = [0.03, 0.20, 0.75, 0.95];
     const widths = [0.5, 0.80, 0.6];
 
     const parser = new RG.ObjectShell.Parser();
@@ -26,13 +25,15 @@ export default class Capital {
     parser.parseShellData(Objects);
 
     const levelConf = [
-      {nShops: 0, parser},
-      {nShops: 5, parser},
-      {nShops: 0, parser}
+      {nShops: 1, parser, nGates: 2},
+      {nShops: 5, parser, nGates: 2},
+      {nShops: 1, parser, nGates: 2}
     ];
 
+    const wallSize = 2 * 7;
+
     for (let i = 0; i < subLevelPos.length - 1; i++) {
-      const y0 = Math.floor(rows * subLevelPos[i]);
+      const y0 = Math.floor(rows * subLevelPos[i]) + wallSize;
       const y1 = Math.floor(rows * subLevelPos[i + 1]);
       const levelRows = y1 - y0;
 
@@ -51,6 +52,14 @@ export default class Capital {
     }
 
     this.level = mainLevel;
+  }
+
+  setConfig() {
+
+  }
+
+  buildLevel() {
+
   }
 
   getLevel() {
