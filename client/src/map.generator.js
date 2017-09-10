@@ -158,12 +158,17 @@ RG.Map.Generator = function() { // {{{2
         let border = getHollowBox(0, 0, cols - 1, rows - 1);
         border = border.concat(getHollowBox(1, 1, cols - 2, rows - 2));
 
-        RG.Geometry.removeMatching(freeCoord, border);
-
         if (!freeCoord.length) {
           RG.warn('Map.Generator', 'createTown',
             'No free coordinates');
         }
+
+        const coordObj = freeCoord.reduce((acc, item, index) => {
+            acc[item[0] + ',' + item[1]] = item;
+            return acc;
+        }, {});
+
+        RG.Geometry.removeMatching(coordObj, border);
 
         for (let i = 0; i < nHouses; i++) {
 
@@ -172,23 +177,23 @@ RG.Map.Generator = function() { // {{{2
             const xSize = RG.RAND.getUniformInt(minX, maxX);
             const ySize = RG.RAND.getUniformInt(minY, maxY);
 
+            const currCoord = Object.values(coordObj);
             // Select random starting point, try to build house there
             while (!houseCreated && tries < maxTriesHouse) {
-                const xy = RG.RAND.arrayGetRand(freeCoord);
-                // const x0 = RG.RAND.getUniformInt(2, cols - 1 - maxX - 1);
-                // const y0 = RG.RAND.getUniformInt(2, rows - 1 - maxY - 1);
+                const xy = RG.RAND.arrayGetRand(currCoord);
                 const x0 = xy[0];
                 const y0 = xy[1];
                 houseCreated = this.createHouse(
-                    map, x0, y0, xSize, ySize, doors, wallsHalos, freeCoord,
+                    map, x0, y0, xSize, ySize, doors, wallsHalos, coordObj,
                     conf.wallType);
                 ++tries;
             }
+
             if (houseCreated) {
                 houses.push(houseCreated);
                 const {ulx, lrx, uly, lry} = houseCreated;
                 const wallCoord = RG.Geometry.getBox(ulx, uly, lrx, lry);
-                const nFound = RG.Geometry.removeMatching(freeCoord, wallCoord);
+                const nFound = RG.Geometry.removeMatching(coordObj, wallCoord);
                 if (!nFound) {
                     const msg = `in box ${ulx},${uly},${lrx},${lry}`;
                     RG.warn('Map.Generator', 'createTown',
@@ -210,10 +215,9 @@ RG.Map.Generator = function() { // {{{2
         const maxX = x0 + xDim;
         const maxY = y0 + yDim;
 
-        const freeIndex = freeCoord.findIndex(xy => (
-            xy[0] === maxX && xy[1] === maxY
-        ));
-        if (freeIndex < 0) {return false;}
+        if (!freeCoord.hasOwnProperty(maxX + ',' + maxY)) {
+            return false;
+        }
 
         const wallCoords = [];
 
@@ -243,10 +247,7 @@ RG.Map.Generator = function() { // {{{2
         const floorCoords = [];
         for (let x = x0 + 1; x < maxX; x++) {
             for (let y = y0 + 1; y < maxY; y++) {
-                const index = freeCoord.findIndex(xy => (
-                    xy[0] === x && xy[1] === y
-                ));
-                if (index >= 0) {
+                if (freeCoord.hasOwnProperty(x + ',' + y)) {
                     floorCoords.push([x, y]);
                 }
                 else {
@@ -529,6 +530,9 @@ RG.Map.Generator = function() { // {{{2
         level.use(Castle);
         level.setTemplates(Castle.Models.outerWall);
         level.setFiller(Castle.tiles.fillerFloor);
+        if (conf.nGates === 2) {
+          level.setStartRoomFunc(Castle.startFuncTwoGates);
+        }
         level.create();
 
         const asciiToElem = {
