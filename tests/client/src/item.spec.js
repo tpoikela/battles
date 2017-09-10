@@ -30,6 +30,19 @@ describe('How items are typed, physical entities', () => {
         expect(clonedItem.equals(item)).to.equal(true);
 
     });
+
+    it('can be compared', () => {
+        Object.keys(RG.Item).forEach(item => {
+            if (!(/Container/).test(item)) {
+                const newItem = new RG.Item[item]();
+                expect(newItem.equals(newItem),
+                    'Identity: ' + item).to.equal(true);
+            }
+        });
+        const arrow1 = new RG.Item.Missile('Arrow');
+        const arrow2 = new RG.Item.Missile('Steel arrow');
+        expect(arrow1.equals(arrow2)).to.be.false;
+    });
 });
 
 describe('How items are stacked', () => {
@@ -176,11 +189,17 @@ describe('How inventory container works', () => {
 });
 
 describe('How item stacks work with equipped missiles', () => {
-    const player = new RG.Actor.Rogue('player');
-    const invEq = new RG.Inv.Inventory(player);
-    const inv = invEq.getInventory();
-    const eq = invEq.getEquipment();
+    let player = null;
+    let invEq = null;
+    let inv = null;
+    let eq = null;
 
+    beforeEach(() => {
+        player = new RG.Actor.Rogue('player');
+        invEq = new RG.Inv.Inventory(player);
+        inv = invEq.getInventory();
+        eq = invEq.getEquipment();
+    });
 
     it('Stacks item in inv when added individually', () => {
         for (let i = 0; i < 10; i++) {
@@ -264,7 +283,7 @@ describe('How item stacks work with equipped missiles', () => {
         expect(invEq.equipItem(plate)).to.equal(true);
 
         const gem = new RG.Item.SpiritGem('Lesser gem');
-        expect(gem.hasOwnProperty('getArmourType')).to.equal(true);
+        expect(gem.getArmourType()).to.equal('spiritgem');
         inv.addItem(gem);
         expect(invEq.equipItem(gem)).to.equal(true);
         expect(eq.getStrength()).to.equal(0);
