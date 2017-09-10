@@ -273,7 +273,10 @@ class GameEditor extends React.Component {
           if (this.state.selectMode) {
             const selectedCells = this.getSelection(this.state.selectBegin,
               newCell, map);
-            this.setState({selectedCell: selectedCells, selectEnd: newCell});
+            const dX = newX - this.state.selectBegin.getX();
+            const dY = newY - this.state.selectBegin.getY();
+            this.setState({selectedCell: selectedCells, selectEnd: newCell,
+                selectDiffX: dX, selectDiffY: dY});
           }
           else {
             this.setState({
@@ -1452,6 +1455,18 @@ class GameEditor extends React.Component {
                 onChange={this.onChangeCellSelectY}
                 value={this.state.cellSelectY}
               />
+            </div>
+
+            <div className='selection-diff'>
+              <span>dX/dY:</span>
+                <input
+                  name='cell-select-diff-x'
+                  value={this.state.selectDiffX}
+                />
+                <input
+                  name='cell-select-diff-x'
+                  value={this.state.selectDiffY}
+                />
             </div>
 
           </div>
