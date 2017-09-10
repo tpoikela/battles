@@ -519,7 +519,7 @@ RG.System.Movement = function(compTypes) {
                 map.setProp(x, y, propType, ent);
                 ent.setXY(x, y);
 
-                if (ent.hasOwnProperty('isPlayer')) {
+                if (ent.isPlayer) {
                     if (ent.isPlayer()) {
                         this.checkMessageEmits(prevCell, cell);
                     }
@@ -562,9 +562,7 @@ RG.System.Movement = function(compTypes) {
             RG.gameMsg(msg);
         }
 
-        const hasItems = newCell.hasProp('items');
-
-        if (hasItems) {
+        if (newCell.hasItems()) {
             const items = newCell.getProp('items');
             const topItem = items[0];
             let topItemName = topItem.getName();
@@ -589,6 +587,10 @@ RG.System.Movement = function(compTypes) {
                 if (topItem.count > 1) {RG.gameMsg('They are for sale');}
                 else {RG.gameMsg('It is for sale');}
             }
+        }
+        else {
+            console.log('No items in the cell');
+
         }
 
         if (!prevCell.hasShop() && newCell.hasShop()) {
