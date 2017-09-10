@@ -160,6 +160,10 @@ describe('GUI.Screen', () => {
             const msg = `Row ${y} is okay.`;
             expect(chars[y].length, `Char: ${msg}`).to.be.within(5, 6);
             expect(classes[y].length, `Class: ${msg}`).to.be.within(5, 6);
+            for (let x = 0; x < chars[y].length; x++) {
+                expect(chars[y][x]).not.to.be.empty;
+                expect(classes[y][x]).not.to.be.empty;
+            }
         }
     });
 });
