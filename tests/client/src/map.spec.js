@@ -21,8 +21,8 @@ RG.cellRenderArray = RG.cellRenderVisible;
 // MAP CELL
 //---------------------------------------------------------------------------
 
-describe('Map.Cell', function() {
-    it('Holds elements and actors', function() {
+describe('Map.Cell', () => {
+    it('Holds elements and actors', () => {
         const actor = Factory.createPlayer('Player', 50);
         const cell = new Cell(0, 0, new Element('wall'));
         expect(cell.isFree()).to.equal(false);
@@ -56,8 +56,8 @@ describe('Map.Cell', function() {
     });
 });
 
-describe('RG.getStyleClassForCell()', function() {
-    it('Returns correct CSS class and char', function() {
+describe('RG.getStyleClassForCell()', () => {
+    it('Returns correct CSS class and char', () => {
         const cell = new Cell(0, 0, new Element('wall'));
         cell.setExplored();
         expect(RG.getStyleClassForCell(cell)).to.equal('cell-element-wall');
@@ -83,8 +83,8 @@ describe('RG.getStyleClassForCell()', function() {
 // ITEMS AND MAP CELLS
 //--------------------------------------------------------------------------
 
-describe('Items in map cells', function() {
-    it('Is placed in a cell and needs an owner', function() {
+describe('Items in map cells', () => {
+    it('Is placed in a cell and needs an owner', () => {
         const cell = new Cell(0, 1, new Element('floor'));
         cell.setExplored();
         const item = new Item('food');
@@ -104,7 +104,7 @@ describe('Items in map cells', function() {
 
     });
 
-    it('Container can also be placed into the cell', function() {
+    it('Container can also be placed into the cell', () => {
         const cell = new Cell(1, 2, new Element('floor'));
         cell.setExplored();
         const container = new Container(cell);
@@ -145,7 +145,7 @@ describe('Items in map cells', function() {
 
     });
 
-    it('Picking up items from floor by actor', function() {
+    it('Picking up items from floor by actor', () => {
         const level = Factory.createLevel('arena', 20, 20);
         const actor = Factory.createPlayer('Player', {});
         const inv = actor.getInvEq().getInventory();
@@ -167,7 +167,7 @@ describe('Items in map cells', function() {
         expect(inv.isEmpty()).to.equal(true);
     });
 
-    it('Can contain open/closed doors', function() {
+    it('Can contain open/closed doors', () => {
         const openDoor = new RG.Element.Door(true);
         openDoor.openDoor();
         const doorCell = new RG.Map.Cell(0, 1, new RG.Element.Base('floor'));
@@ -190,13 +190,13 @@ describe('Items in map cells', function() {
 // MAP UNIT TESTS
 //---------------------------------------------------------------------------
 
-describe('Map.CellList', function() {
+describe('Map.CellList', () => {
     const actor = new Actor('Player');
     actor.setIsPlayer(true);
     const level1 = Factory.createLevel('arena', 10, 10);
     // const level2 = Factory.createLevel('arena', 20, 20);
 
-    it('Is initialized as empty and having floors', function() {
+    it('Is initialized as empty and having floors', () => {
         const map = level1.getMap();
         expect(map.hasXY(0, 0)).to.equal(true);
         expect(map.hasXY(9, 9)).to.equal(true);
@@ -210,7 +210,7 @@ describe('Map.CellList', function() {
         }
 
         const actorNotInLevel = new Actor('monster');
-        actor.getFOVRange = function() {return 1;}; // Override default
+        actor.getFOVRange = () => 1; // Override default
         level1.addActor(actor, 4, 4);
         const cells = map.getVisibleCells(actor);
         expect(cells.length).to.equal(17);
@@ -247,8 +247,8 @@ describe('Map.CellList', function() {
 // LEVEL UNIT TESTS
 //---------------------------------------------------------------------------
 
-describe('Moving actors around in the game', function() {
-    it('Moves but is blocked by walls.', function() {
+describe('Moving actors around in the game', () => {
+    it('Moves but is blocked by walls.', () => {
         const movSystem = new RG.System.Movement(['Movement']);
         const actor = new Actor('TestActor');
         const level = new Level(10, 10);
@@ -276,7 +276,7 @@ describe('Moving actors around in the game', function() {
 
     });
 
-    it('Moves actors between levels using stairs', function() {
+    it('Moves actors between levels using stairs', () => {
         const movSystem = new RG.System.Movement(['Movement']);
         const level1 = Factory.createLevel('arena', 20, 20);
         const level2 = Factory.createLevel('arena', 20, 20);
@@ -344,8 +344,8 @@ describe('Moving actors around in the game', function() {
 // SHOPS
 //--------------------------------------------------------------------------
 
-describe('Element.Shop', function() {
-    it('Has special Shop elements', function() {
+describe('Element.Shop', () => {
+    it('Has special Shop elements', () => {
         const level = RG.FACT.createLevel('arena', 30, 30);
         const map = level.getMap();
         const shopkeeper = new RG.Actor.Rogue('Shopkeeper');

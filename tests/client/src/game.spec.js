@@ -33,13 +33,13 @@ function getNewLevel(cols, rows) {
 }
 
 
-describe('Game.Main', function() {
+describe('Game.Main', () => {
     let game = null;
     beforeEach( () => {
         game = new Game.Main();
     });
 
-    it('Initializes the game and adds player', function() {
+    it('Initializes the game and adds player', () => {
         const movSystem = new RG.System.Movement(['Movement']);
         const cols = 50;
         const rows = 30;
@@ -106,10 +106,10 @@ const KillListener = function(actor) {
     RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
 };
 
-describe('How combat should evolve', function() {
+describe('How combat should evolve', () => {
 
 
-    it('Deals damage from attacker to defender', function() {
+    it('Deals damage from attacker to defender', () => {
         const comSystem = new RG.System.Attack(['Attack']);
         const dmgSystem = new RG.System.Damage(['Damage']);
 
@@ -178,7 +178,7 @@ describe('How combat should evolve', function() {
     });
 });
 
-describe('How AI brain works', function() {
+describe('How AI brain works', () => {
     const cols = 30;
     const rows = 20;
     const level = getNewLevel(cols, rows);
@@ -187,7 +187,7 @@ describe('How AI brain works', function() {
     player.setType('player');
     player.setIsPlayer(true);
 
-    it('Brain should find player cell', function() {
+    it('Brain should find player cell', () => {
         expect(level.addActor(player, 2, 2)).to.equal(true);
         expect(level.addActor(mons1, 3, 5)).to.equal(true);
 
@@ -206,7 +206,7 @@ describe('How AI brain works', function() {
     });
 
 
-    it('Moves towards player when seen.', function() {
+    it('Moves towards player when seen.', () => {
         const movSystem = new RG.System.Movement(['Movement']);
         expect(level.addActor(player, 2, 2)).to.equal(true);
         expect(level.addActor(mons1, 2, 4)).to.equal(true);
@@ -218,8 +218,8 @@ describe('How AI brain works', function() {
 
 });
 
-describe('How poison item is used, and experience propagates', function() {
-    it('Kills an actor after some time', function() {
+describe('How poison item is used, and experience propagates', () => {
+    it('Kills an actor after some time', () => {
 
         const game = new RG.Game.Main();
         const level = RG.FACT.createLevel('arena', 20, 20);

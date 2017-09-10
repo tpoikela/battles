@@ -5,14 +5,14 @@ const RG = require('../../../client/src/battles');
 
 const Actor = RG.Actor.Rogue;
 
-const updateSystems = function(systems) {
+const updateSystems = systems => {
     for (let i = 0; i < systems.length; i++) {
         systems[i].update();
     }
 };
 
-describe('How dice are cast and what values they give', function() {
-    it('Produces random values based on constructor arguments', function() {
+describe('How dice are cast and what values they give', () => {
+    it('Produces random values based on constructor arguments', () => {
         const die = new RG.Die(1, 10, 1);
         for (let i = 0; i < 100; i++) {
             const val = die.roll();
@@ -28,7 +28,7 @@ describe('How dice are cast and what values they give', function() {
         }
     });
 
-    it('Works also with string args', function() {
+    it('Works also with string args', () => {
         const die = new RG.Die('1', '10', '1');
         for (let i = 0; i < 100; i++) {
             const val = die.roll();
@@ -52,13 +52,13 @@ describe('How dice are cast and what values they give', function() {
     });
 });
 
-const createSystems = function() {
+const createSystems = () => {
     const mSystem = new RG.System.Missile(['Missile']);
     const dSystem = new RG.System.Damage(['Damage']);
     return [mSystem, dSystem];
 };
 
-const createMissile = function(obj) {
+const createMissile = obj => {
     const mEnt = new RG.Item.Missile('missile');
     const mComp = new RG.Component.Missile(obj.src);
     mComp.setDamage(obj.d);
@@ -68,8 +68,8 @@ const createMissile = function(obj) {
     return mComp;
 };
 
-describe('How missile is fired and hits a wall', function() {
-    it('Starts from source and flies to target', function() {
+describe('How missile is fired and hits a wall', () => {
+    it('Starts from source and flies to target', () => {
         const systems = createSystems();
 
         const level = RG.FACT.createLevel('arena', 30, 30);
@@ -98,7 +98,7 @@ describe('How missile is fired and hits a wall', function() {
         expect(targetCell.hasProp('items')).to.equal(true);
     });
 
-    it('Stops and hits a wall', function() {
+    it('Stops and hits a wall', () => {
         const systems = createSystems();
 
         const level = RG.FACT.createLevel('arena', 30, 30);
@@ -128,7 +128,7 @@ describe('How missile is fired and hits a wall', function() {
 
     });
 
-    it('Stops and hits an entity (actor)', function() {
+    it('Stops and hits an entity (actor)', () => {
         const systems = createSystems();
 
         const level = RG.FACT.createLevel('arena', 30, 30);
@@ -160,7 +160,7 @@ describe('How missile is fired and hits a wall', function() {
         expect(targetCell.hasPropType('missile')).to.equal(true);
     });
 
-    it('Stops after reaching maximum range', function() {
+    it('Stops after reaching maximum range', () => {
         const systems = createSystems();
         const level = RG.FACT.createLevel('arena', 30, 30);
         // Archer to fire the missiles
@@ -180,7 +180,7 @@ describe('How missile is fired and hits a wall', function() {
         expect(targetCell.hasPropType('missile')).to.equal(true);
     });
 
-    it('Missile passes through ethereal beings', function() {
+    it('Missile passes through ethereal beings', () => {
         const systems = createSystems();
         const level = RG.FACT.createLevel('arena', 30, 30);
         const srcEnt = new Actor('archer');

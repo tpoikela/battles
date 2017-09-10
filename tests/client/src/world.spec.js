@@ -6,8 +6,8 @@ const RGTest = require('../../roguetest');
 
 const expectConnected = RGTest.expectConnected;
 
-describe('World.Branch', function() {
-    it('Contains a number of connected levels', function() {
+describe('World.Branch', () => {
+    it('Contains a number of connected levels', () => {
         const nlevels = 4;
         const levels = [];
         const branch = new World.Branch('br1');
@@ -27,7 +27,7 @@ describe('World.Branch', function() {
     });
 });
 
-const addLevelsToBranch = function(br, nLevels) {
+const addLevelsToBranch = (br, nLevels) => {
     for (let i = 0; i < nLevels; i++) {
         const level = RG.FACT.createLevel('arena', 20, 20);
         br.addLevel(level);
@@ -35,8 +35,8 @@ const addLevelsToBranch = function(br, nLevels) {
     br.connectLevels();
 };
 
-describe('World.Dungeon', function() {
-    it('Contains a number of connected branches', function() {
+describe('World.Dungeon', () => {
+    it('Contains a number of connected branches', () => {
         const dungeon = new World.Dungeon('DarkDungeon');
         const branches = [];
         const numBranches = 4;
@@ -67,8 +67,8 @@ describe('World.Dungeon', function() {
     });
 });
 
-describe('World.AreaTile', function() {
-    it('Contains a level and connects from sides to other tiles', function() {
+describe('World.AreaTile', () => {
+    it('Contains a level and connects from sides to other tiles', () => {
         const cols = 20;
         const rows = 20;
 
@@ -118,8 +118,8 @@ describe('World.AreaTile', function() {
 });
 
 
-describe('World.Area', function() {
-    it('Contains a number of connected tiles', function() {
+describe('World.Area', () => {
+    it('Contains a number of connected tiles', () => {
         const area = new World.Area('SwampArea', 4, 5);
         const tiles = area.getTiles();
         const levels = area.getLevels();
@@ -141,7 +141,7 @@ describe('World.Area', function() {
     });
 });
 
-describe('World.Mountain', function() {
+describe('World.Mountain', () => {
 
     it('has at least one entrance', () => {
         const mountain = new RG.World.Mountain('mount1');

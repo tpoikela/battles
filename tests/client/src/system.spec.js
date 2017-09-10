@@ -5,14 +5,14 @@ const RG = require('../../../client/src/battles');
 const RGTest = require('../../roguetest');
 
 /* Updates given systems in given order.*/
-const updateSystems = function(systems) {
+const updateSystems = systems => {
     for (let i = 0; i < systems.length; i++) {
         systems[i].update();
     }
 };
 
-describe('System.Hunger', function() {
-    it('Subtracts energy from actors with hunger', function() {
+describe('System.Hunger', () => {
+    it('Subtracts energy from actors with hunger', () => {
         const system = new RG.System.Hunger(['Hunger', 'Action']);
         const hunger = new RG.Component.Hunger(2000);
         const action = new RG.Component.Action();
@@ -28,8 +28,8 @@ describe('System.Hunger', function() {
     });
 });
 
-describe('How items/loot is dropped by monsters', function() {
-    it('Drops loot when lethal damage is dealt', function() {
+describe('How items/loot is dropped by monsters', () => {
+    it('Drops loot when lethal damage is dealt', () => {
         const level = RG.FACT.createLevel('arena', 20, 20);
 
         const monsterStats = {hp: 5, att: 1, def: 1, prot: 1};

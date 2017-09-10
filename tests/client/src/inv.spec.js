@@ -6,9 +6,9 @@ const Item = RG.Item.Base;
 const Actor = RG.Actor.Rogue;
 const Slot = RG.Inv.EquipSlot;
 
-describe('RG.Inv.EquipSlot', function() {
+describe('RG.Inv.EquipSlot', () => {
 
-    it('Holds items or stacks of items', function() {
+    it('Holds items or stacks of items', () => {
         const rogue = new RG.Actor.Rogue('rogue');
         const invEq = new RG.Inv.Inventory(rogue);
         const eq = invEq.getEquipment();
@@ -30,7 +30,7 @@ describe('RG.Inv.EquipSlot', function() {
 
 describe('RG.Inv.Inventory', () => {
 
-    it('can contain and equip items', function() {
+    it('can contain and equip items', () => {
         const food = new Item('Bagel');
         food.setType('food');
         const sword = new Item('Sword');
@@ -66,7 +66,7 @@ describe('RG.Inv.Inventory', () => {
 
     });
 
-    it('Equips armour into correct slots', function() {
+    it('Equips armour into correct slots', () => {
         const helmet = new RG.Item.Armour('Helmet');
         helmet.setArmourType('head');
 
@@ -103,7 +103,7 @@ describe('RG.Inv.Inventory', () => {
         expect(missWeapon.equals(missWeaponEquipped)).to.be.true;
     });
 
-    it('Checks maximum weight allowed to carry', function() {
+    it('Checks maximum weight allowed to carry', () => {
         const player = new RG.Actor.Rogue('player');
         const invEq = player.getInvEq();
         const inv = invEq.getInventory();

@@ -4,10 +4,10 @@ const RG = require('../../../client/src/battles');
 
 const LocalStorage = require('node-localstorage').LocalStorage;
 
-describe('Game.Save how saving works', function() {
+describe('Game.Save how saving works', () => {
 
     // TODO add to RGTest
-    const setupPlayerWithLevel = function(name) {
+    const setupPlayerWithLevel = name => {
         const level = RG.FACT.createLevel('arena', 10, 10);
         level.setLevelNumber(3);
         const player = new RG.Actor.Rogue(name);
@@ -27,7 +27,7 @@ describe('Game.Save how saving works', function() {
 
     });
 
-    it('Saves/restores player properly', function() {
+    it('Saves/restores player properly', () => {
         const setup = setupPlayerWithLevel('Player1');
         const game = new RG.Game.Main();
         game.addLevel(setup.level);
@@ -60,7 +60,7 @@ describe('Game.Save how saving works', function() {
         expect(playerObj.hasOwnProperty('expLevel')).to.equal(true);
     });
 
-    it('Saves/restores inventory properly', function() {
+    it('Saves/restores inventory properly', () => {
         const game = new RG.Game.Main();
         const setup = setupPlayerWithLevel('Player1');
         const player = setup.player;
@@ -121,7 +121,7 @@ describe('Game.Save how saving works', function() {
         expect(index).to.be.above(-1);
     });
 
-    it('Saves/restores and equips equipment correctly', function() {
+    it('Saves/restores and equips equipment correctly', () => {
         const game = new RG.Game.Main();
         const setup = setupPlayerWithLevel('HeroPlayer');
         const player = setup.player;

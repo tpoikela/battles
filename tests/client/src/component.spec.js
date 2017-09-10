@@ -2,9 +2,9 @@
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles.js');
 
-describe('Component.Base', function() {
+describe('Component.Base', () => {
 
-    it('has exactly one related entity', function() {
+    it('has exactly one related entity', () => {
         const entity = new RG.Entity();
         const entity2 = new RG.Entity();
         const comp = new RG.Component.Base('Base');
@@ -24,7 +24,7 @@ describe('Component.Base', function() {
         expect(comp.getEntity()).to.be.null;
     });
 
-    it('can be copied, cloned, compared', function() {
+    it('can be copied, cloned, compared', () => {
         const comp = new RG.Component.Base('Base');
         const compClone = comp.clone();
         expect(comp.equals(compClone)).to.be.true;
@@ -36,18 +36,18 @@ describe('Component.Base', function() {
         expect(comp.toString()).to.match(/Base/);
     });
 
-    it('has onAdd/Remove callback mechanism', function() {
+    it('has onAdd/Remove callback mechanism', () => {
         const comp = new RG.Component.Base('Base');
         const entity = new RG.Entity();
 
         let calledAdd = false;
-        const callbackAdd = function() {calledAdd = true;};
+        const callbackAdd = () => {calledAdd = true;};
 
         let calledRemove = false;
-        const callbackRemove = function() {calledRemove = true;};
+        const callbackRemove = () => {calledRemove = true;};
 
         let calledIllegal = false;
-        const callbackIllegal = function() {calledIllegal = true;};
+        const callbackIllegal = () => {calledIllegal = true;};
 
         comp.addCallback('onAdd', callbackAdd);
         comp.addCallback('onRemove', callbackRemove);

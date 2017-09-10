@@ -5,8 +5,8 @@ const RG = require('../../../client/src/battles');
 const Spirit = RG.Actor.Spirit;
 const Actor = RG.Actor.Rogue;
 
-describe('RG.Actor.Spirit', function() {
-    it('Is an ethereal being, doesnt block passage', function() {
+describe('RG.Actor.Spirit', () => {
+    it('Is an ethereal being, doesnt block passage', () => {
         const level = RG.FACT.createLevel('arena', 10, 10);
         const spirit = new Spirit('Wolf spirit');
         const actor = new Actor('Being');

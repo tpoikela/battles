@@ -8,13 +8,13 @@ const Brain = RG.Brain.Rogue;
 RG.Game = require('../../../client/src/game.js');
 
 /* Updates given systems in given order.*/
-const updateSystems = function(systems) {
+const updateSystems = systems => {
     for (let i = 0; i < systems.length; i++) {
         systems[i].update();
     }
 };
 
-describe('How AI brain memory performs basic functions', function() {
+describe('How AI brain memory performs basic functions', () => {
     const hunter = RG.FACT.createActor('hunter');
     const brain = new Brain(hunter);
     hunter.setBrain(brain);
@@ -22,7 +22,7 @@ describe('How AI brain memory performs basic functions', function() {
     const animal = RG.FACT.createActor('animal');
     const beast = RG.FACT.createActor('beast');
 
-    it('Keeps track of enemies', function() {
+    it('Keeps track of enemies', () => {
         const memory = new Memory(brain);
 
         expect(memory.isEnemy(animal)).to.equal(false);
@@ -35,7 +35,7 @@ describe('How AI brain memory performs basic functions', function() {
         expect(memory.isEnemy(beast)).to.equal(true);
     });
 
-    it('Keeps track of communications', function() {
+    it('Keeps track of communications', () => {
         const memory = new Memory(brain);
 
         expect(memory.hasCommunicatedWith(animal)).to.equal(false);
@@ -45,9 +45,9 @@ describe('How AI brain memory performs basic functions', function() {
 });
 
 
-describe('How actors communicate with each other', function() {
+describe('How actors communicate with each other', () => {
 
-    it('Passes info between actors via comm components', function() {
+    it('Passes info between actors via comm components', () => {
         const level = RG.FACT.createLevel('arena', 10, 10);
         const comSys = new RG.System.Communication(['Communication']);
         const systems = [comSys];

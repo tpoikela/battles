@@ -5,8 +5,8 @@ const RG = require('../../../client/src/battles');
 const ItemRand = RG.Factory.ItemRandomizer;
 const temple = require('../../../client/data/temple.json');
 
-describe('RG.Factory.ItemRandomizer', function() {
-    it('Randomizes item properties for proc generation', function() {
+describe('RG.Factory.ItemRandomizer', () => {
+    it('Randomizes item properties for proc generation', () => {
         const itemRand = new ItemRand();
         const food = new RG.Item.Food('meat');
         const weightBefore = food.getWeight();
@@ -18,14 +18,12 @@ describe('RG.Factory.ItemRandomizer', function() {
 });
 
 const MockParser = function() {
-    this.createRandomItem = function() {
-        return new RG.Item.Food('testFood');
-    };
+    this.createRandomItem = () => new RG.Item.Food('testFood');
 
 };
 
-describe('RG.Factory.Base', function() {
-    it('Can create randomized towns', function() {
+describe('RG.Factory.Base', () => {
+    it('Can create randomized towns', () => {
         const factory = new RG.Factory.Base();
         const conf = {
             parser: new MockParser(),
@@ -48,7 +46,7 @@ describe('RG.Factory.Base', function() {
     });
 });
 
-describe('RG.Factory.Game', function() {
+describe('RG.Factory.Game', () => {
 
     let conf = null;
 
@@ -68,7 +66,7 @@ describe('RG.Factory.Game', function() {
     });
 
 
-    it('can create new games', function() {
+    it('can create new games', () => {
         const gameFactory = new RG.Factory.Game();
         const game = gameFactory.createNewGame(conf);
         expect(game).to.exist;

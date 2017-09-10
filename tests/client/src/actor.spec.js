@@ -3,9 +3,9 @@ const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 const Actor = require('../../../client/src/actor.js');
 
-describe('Rogue.Actor', function() {
+describe('Rogue.Actor', () => {
 
-    it('has name, stats and inventory', function() {
+    it('has name, stats and inventory', () => {
         const actor = new Actor.Rogue('testRogue');
         expect(actor.getName()).to.equal('testRogue');
 
@@ -17,7 +17,7 @@ describe('Rogue.Actor', function() {
 
     });
 
-    it('can be a player actor', function() {
+    it('can be a player actor', () => {
         const actor = new Actor.Rogue('player hero');
         actor.setIsPlayer(true);
         expect(actor.isPlayer()).to.equal(true);
@@ -32,7 +32,7 @@ describe('Rogue.Actor', function() {
 
     });
 
-    it('can be serialized to JSON', function() {
+    it('can be serialized to JSON', () => {
         const actor = new Actor.Rogue('player hero');
         actor.setIsPlayer(true);
 
@@ -48,7 +48,7 @@ describe('Rogue.Actor', function() {
 
     });
 
-    it('has different stats', function() {
+    it('has different stats', () => {
         const actor = new Actor.Rogue('player hero');
         actor.setIsPlayer(true);
 
@@ -63,7 +63,7 @@ describe('Rogue.Actor', function() {
 
     });
 
-    it('can have CombatMods added', function() {
+    it('can have CombatMods added', () => {
         const mob = new Actor.Rogue('mob');
         const combatMods = new RG.Component.CombatMods();
 
@@ -83,7 +83,7 @@ describe('Rogue.Actor', function() {
         expect(mobNewDefense).to.equal(mobDefense + 7);
     });
 
-    it('can have StatsMods added', function() {
+    it('can have StatsMods added', () => {
         const mob = new Actor.Rogue('mob');
         const statMods = new RG.Component.StatsMods();
         mob.add('StatsMods', statMods);

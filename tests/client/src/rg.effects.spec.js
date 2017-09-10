@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 const Effects = require('../../../client/data/effects');
 
-const getEffectByName = function(obj, name) {
+const getEffectByName = (obj, name) => {
     const index = obj.effects.findIndex(item => item.name === name);
     return obj.effects[index];
 };

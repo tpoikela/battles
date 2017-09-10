@@ -23,9 +23,9 @@ const wolfShell = {
 // PARSER TESTS
 //---------------------------------------------------------------------------
 
-describe('RG.ObjectShell.Parser', function() {
+describe('RG.ObjectShell.Parser', () => {
 
-    it('Returns base objects and supports also base', function() {
+    it('Returns base objects and supports also base', () => {
         const parser = new Parser();
         const wolfNew = parser.parseObjShell('actors', wolfShell);
         expect(wolfNew.attack).to.equal(15);
@@ -68,7 +68,7 @@ describe('RG.ObjectShell.Parser', function() {
         RGTest.expectEqualHealth(createdWolf, wolfObj);
 
         const player = RG.FACT.createPlayer('player', {});
-        const cell = new RG.FACT.createFloorCell();
+        const cell = RG.FACT.createFloorCell();
         cell.setProp('actors', player);
         cell.setExplored(true);
 
@@ -109,7 +109,7 @@ describe('RG.ObjectShell.Parser', function() {
 
     });
 
-    it('Parses Spirits/Gems and creates them correctly', function() {
+    it('Parses Spirits/Gems and creates them correctly', () => {
         const parser = new Parser();
         const spiritShell = {
             name: 'Wolf spirit', type: 'spirit',
@@ -209,9 +209,9 @@ describe('RG.ObjectShell.Parser', function() {
 
     });
 
-describe('How food items are created from objects', function() {
+describe('How food items are created from objects', () => {
    const parser = new Parser();
-    it('Creates food objects items from shells', function() {
+    it('Creates food objects items from shells', () => {
         const foodBase = parser.parseObjShell('items',
             {type: 'food', name: 'foodBase',
             weight: 0.1, misc: 'XXX', dontCreate: true, char: '%',
@@ -264,7 +264,7 @@ describe('How food items are created from objects', function() {
 // PARSING THE FULL OBJECTS FILE
 //---------------------------------------------------------------------------
 
-describe('It contains all game content info', function() {
+describe('It contains all game content info', () => {
 
     let parser = null;
     before(() => {
@@ -273,7 +273,7 @@ describe('It contains all game content info', function() {
         parser.parseShellData(RGObjects);
     });
 
-    it('Should parse all actors properly', function() {
+    it('Should parse all actors properly', () => {
         const rsnake = parser.get('actors', 'rattlesnake');
         expect(rsnake.poison).to.exist;
         const coyote = parser.get('actors', 'coyote');
@@ -295,7 +295,7 @@ describe('It contains all game content info', function() {
 
     });
 
-    it('Should parse all items properly', function() {
+    it('Should parse all items properly', () => {
         const bayShell = parser.get('items', 'Bayonette');
         expect(bayShell.base).to.equal('MeleeWeaponBase');
         const bayon = parser.createActualObj('items', 'Bayonette');
@@ -303,7 +303,7 @@ describe('It contains all game content info', function() {
         RGTest.checkCSSClassName(bayon, 'cell-item-melee-weapon');
     });
 
-    it('Should parse weapons properly', function() {
+    it('Should parse weapons properly', () => {
         const rubySwordShell = parser.get('items', 'Ruby glass sword');
         const rubySwordObj = parser.createActualObj('items',
             'Ruby glass sword');
@@ -311,7 +311,7 @@ describe('It contains all game content info', function() {
         expect(rubySwordShell.attack).to.equal(rubySwordObj.getAttack());
     });
 
-    it('Should parse all armour properly', function() {
+    it('Should parse all armour properly', () => {
         const larmour = parser.get('items', 'Leather armour');
         expect(larmour.defense).to.equal(2);
 
@@ -322,7 +322,7 @@ describe('It contains all game content info', function() {
         expect(armObj.getWeight()).to.equal(2.0);
     });
 
-    it('Should parse missiles with correct ranges', function() {
+    it('Should parse missiles with correct ranges', () => {
         const missObj = parser.createActualObj('items', 'Shuriken');
         expect(missObj.getAttackRange()).to.equal(3);
         expect(missObj.getWeight()).to.equal(0.1);
@@ -337,7 +337,7 @@ describe('It contains all game content info', function() {
 
     });
 
-    it('Parses/creates spirits/gems properly', function() {
+    it('Parses/creates spirits/gems properly', () => {
         const demonSpirit = parser.createActualObj('actors',
             'Winter demon spirit');
         expect(demonSpirit.has('Stats')).to.equal(true);
@@ -346,7 +346,7 @@ describe('It contains all game content info', function() {
         // const spiritGem =
     });
 
-    it('Can generate actors using weighted algorithms', function() {
+    it('Can generate actors using weighted algorithms', () => {
         let newActor = parser.createRandomActorWeighted(1, 1);
         expect(RG.isNullOrUndef([newActor])).to.equal(false);
 
@@ -354,7 +354,7 @@ describe('It contains all game content info', function() {
         // expect(RG.isNullOrUndef([newActor])).to.equal(false);
     });
 
-    it('Creates healing potion correctly with useItem attribute', function() {
+    it('Creates healing potion correctly with useItem attribute', () => {
         const healPotion = parser.createActualObj('items', 'Healing potion');
         expect(healPotion).to.have.property('useFuncs');
         expect(healPotion).to.have.property('useItem');
@@ -372,8 +372,8 @@ describe('It contains all game content info', function() {
 
     });
 
-    it('Creates a proper pickaxe with digger capability', function() {
-        const cell = new RG.FACT.createWallCell();
+    it('Creates a proper pickaxe with digger capability', () => {
+        const cell = RG.FACT.createWallCell();
         const pickaxe = parser.createActualObj('items', 'Pick-axe');
         expect(pickaxe).to.have.property('useItem');
 
@@ -454,7 +454,7 @@ describe('It contains all game content info', function() {
     });
 });
 
-describe('Data query functions for objects', function() {
+describe('Data query functions for objects', () => {
 
     let parser = null;
     before(() => {
@@ -521,8 +521,8 @@ describe('Data query functions for objects', function() {
     });
 });
 
-describe('ObjectShell.Parser error handling', function() {
-    it('It should detect invalid object shells', function() {
+describe('ObjectShell.Parser error handling', () => {
+    it('It should detect invalid object shells', () => {
         const parser = new Parser();
         RG.suppressErrorMessages = true;
         const noObj = parser.createActualObj('items', 'Void Item');

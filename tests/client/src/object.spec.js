@@ -4,8 +4,8 @@ const Obj = require('../../../client/src/object.js');
 
 const TypedObj = Obj.Typed;
 
-describe('Defense Object', function() {
-    it('Holds information related to attack/defense', function() {
+describe('Defense Object', () => {
+    it('Holds information related to attack/defense', () => {
         const defObj = new Obj.Defense();
         const defObj2 = new Obj.Defense();
         expect(defObj.equals(defObj2)).to.equal(true);
@@ -14,8 +14,8 @@ describe('Defense Object', function() {
     });
 });
 
-describe('Damage Object', function() {
-    it('Contains info about damage', function() {
+describe('Damage Object', () => {
+    it('Contains info about damage', () => {
         const dmg1 = new Obj.Damage();
         const dmg2 = new Obj.Damage();
         expect(dmg2.equals(dmg1)).to.equal(true);
@@ -25,16 +25,16 @@ describe('Damage Object', function() {
     });
 });
 
-describe('TypedObject', function() {
-    it('Stores type info about the objects', function() {
+describe('TypedObject', () => {
+    it('Stores type info about the objects', () => {
         const obj = new TypedObj('actors', 'xxx');
         expect(obj.getPropType()).to.equal('actors');
         expect(obj.getType()).to.equal('xxx');
     });
 });
 
-describe('Locatable Object', function() {
-    it('Stores location information', function() {
+describe('Locatable Object', () => {
+    it('Stores location information', () => {
         const loc1 = new Obj.Locatable();
         expect(loc1.getLevel()).to.equal(null);
 
@@ -52,8 +52,8 @@ describe('Locatable Object', function() {
     });
 });
 
-describe('Ownable Object', function() {
-    it('Asks Locatable for location information', function() {
+describe('Ownable Object', () => {
+    it('Asks Locatable for location information', () => {
         const owner = new Obj.Locatable();
         owner.setXY(1, 2);
         const owned = new Obj.Ownable(owner);

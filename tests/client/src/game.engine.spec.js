@@ -24,7 +24,7 @@ const setupEngineWithActors = function() {
     this.level = level;
 };
 
-describe('Game.Engine', function() {
+describe('Game.Engine', () => {
     let eng = null;
     let engine = null;
 
@@ -33,7 +33,7 @@ describe('Game.Engine', function() {
         engine = eng.engine;
     });
 
-    it('has game messages', function() {
+    it('has game messages', () => {
         const pool = RG.POOL;
         let msg = engine.getMessages();
         expect(msg).to.have.length(0);
@@ -51,14 +51,14 @@ describe('Game.Engine', function() {
         expect(msg).to.have.length(1);
     });
 
-    it('Executes scheduled actors one by one', function() {
+    it('Executes scheduled actors one by one', () => {
         const actor = eng.actor;
         const action = actor.nextAction({});
         engine.simulateGame();
         engine.simulateGame();
     });
 
-    it('manages a list of active levels', function() {
+    it('manages a list of active levels', () => {
         const actor = eng.actor;
         expect(engine.nextActor).to.be.null;
         engine.addActiveLevel(eng.level);
@@ -79,7 +79,7 @@ describe('Game.Engine', function() {
     });
 
     // This a bit too thorough test for Engine
-    it('Uses Systems to manage entity behaviour', function() {
+    it('Uses Systems to manage entity behaviour', () => {
         const timeSystem = engine.timeSystems.TimeEffects;
 
         const poison = new RG.Component.Poison();
@@ -121,10 +121,10 @@ describe('Game.Engine', function() {
 
     });
 
-    it('has high-level update() function for GUI', function() {
+    it('has high-level update() function for GUI', () => {
         const player = new RG.Actor.Rogue('player');
         player.setIsPlayer(true);
-        engine.playerCommandCallback = function() {return true;};
+        engine.playerCommandCallback = () => true;
 
         eng.level.addActorToFreeCell(player);
         engine.addActiveLevel(eng.level);

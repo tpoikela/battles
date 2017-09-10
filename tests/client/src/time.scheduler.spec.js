@@ -8,8 +8,8 @@ const RG = require('../../../client/src/battles');
 const Actor = RG.Actor.Rogue;
 const Action = RG.Time.RogueAction;
 
-describe('Basic functions for actors', function() {
-    it('Acts like Locatable', function() {
+describe('Basic functions for actors', () => {
+    it('Acts like Locatable', () => {
         const actor = new Actor(true);
         actor.setXY(2, 10);
         expect(actor.getX()).to.equal(2);
@@ -17,8 +17,8 @@ describe('Basic functions for actors', function() {
     });
 });
 
-describe('Scheduling one action', function() {
-    it('Repeats the same actor indefinetely', function() {
+describe('Scheduling one action', () => {
+    it('Repeats the same actor indefinetely', () => {
         const sch = new RG.Time.Scheduler();
         const actor = new Actor('actor');
         let actorID = actor.id;
@@ -27,8 +27,8 @@ describe('Scheduling one action', function() {
         const playerID = player.id;
         const falseActor = new Actor('falseActor');
 
-        const playerAction = new Action(15, function() {});
-        const action = new Action(20, function() {});
+        const playerAction = new Action(15, () => {});
+        const action = new Action(20, () => {});
 
         expect(actor.isPlayer()).to.equal(false);
         player.setIsPlayer(true);
@@ -76,20 +76,20 @@ describe('Scheduling one action', function() {
     });
 });
 
-const emptyTestCB = function() {};
+const emptyTestCB = () => {};
 
 const MockAction = function(dur) {
     let _dur = dur;
 
-    this.setDuration = function(dur) {_dur = dur;};
-    this.getDuration = function() {return _dur;};
+    this.setDuration = dur => {_dur = dur;};
+    this.getDuration = () => _dur;
 };
 
-describe('Canceling events and actor actions', function() {
+describe('Canceling events and actor actions', () => {
     const sch = new RG.Time.Scheduler();
     const act = new MockAction(100);
 
-    it('Removes the event like it never happened', function() {
+    it('Removes the event like it never happened', () => {
         const testActor = new RG.Actor.Rogue('actor');
         // const notZero = 555;
         const changeEvent = new RG.Time.OneShotEvent(emptyTestCB, 200,

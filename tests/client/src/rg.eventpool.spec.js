@@ -43,8 +43,8 @@ const emitter = new EventEmitter();
 emitter.pool = pool;
 emitter.emit('TestEvent', {data: 'abcd'});
 
-describe('How events bubble in the system', function() {
-    it('Sends notification to listener', function() {
+describe('How events bubble in the system', () => {
+    it('Sends notification to listener', () => {
         expect(listener.notified).to.equal(false);
         emitter.emit('ActualEvent', {data: 'abcd'});
         expect(listener.notified).to.equal(true);

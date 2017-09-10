@@ -5,8 +5,8 @@ const RG = require('../../../client/src/battles');
 const Actor = RG.Actor.Rogue;
 const Item = RG.Item.Base;
 
-describe('How items are physical entities', function() {
-    it('Has weight and size', function() {
+describe('How items are physical entities', () => {
+    it('Has weight and size', () => {
         const item = new Item('TestItem');
         expect(item.has('Physical')).to.equal(true);
 
@@ -21,8 +21,8 @@ describe('How items are physical entities', function() {
     });
 });
 
-describe('How items are stacked', function() {
-    it('Adds two items to create a count of 2', function() {
+describe('How items are stacked', () => {
+    it('Adds two items to create a count of 2', () => {
         const item1 = new RG.Item.Base('Test item');
         item1.setType('test');
         const item2 = new RG.Item.Base('Test item');
@@ -31,7 +31,7 @@ describe('How items are stacked', function() {
         expect(item1.count).to.equal(2);
     });
 
-    it('Stacks weapons correctly', function() {
+    it('Stacks weapons correctly', () => {
         const weapon1 = new RG.Item.Weapon('Short sword');
         weapon1.setAttack(3);
         const weapon2 = new RG.Item.Weapon('Short sword');
@@ -45,8 +45,8 @@ describe('How items are stacked', function() {
     });
 });
 
-describe('How stackes are broken into multiple items', function() {
-    it('Splits item stack into two items', function() {
+describe('How stackes are broken into multiple items', () => {
+    it('Splits item stack into two items', () => {
         const itemStack = new RG.Item.Base('Arrow');
         itemStack.setType('missile');
         itemStack.count = 2;
@@ -87,7 +87,7 @@ describe('How stackes are broken into multiple items', function() {
 
     });
 
-    it('Manages missile items correctly', function() {
+    it('Manages missile items correctly', () => {
         const arrow = new RG.Item.Missile('arrow');
         arrow.setAttack(3);
         const arrow2 = new RG.Item.Missile('arrow');
@@ -106,10 +106,10 @@ describe('How stackes are broken into multiple items', function() {
     });
 });
 
-describe('How inventory container works', function() {
+describe('How inventory container works', () => {
 
 
-    it('Checks items by reference for existence', function() {
+    it('Checks items by reference for existence', () => {
         const player = new RG.Actor.Rogue('player');
         const invEq = new RG.Inv.Inventory(player);
         const inv = invEq.getInventory();
@@ -164,14 +164,14 @@ describe('How inventory container works', function() {
     });
 });
 
-describe('How item stacks work with equipped missiles', function() {
+describe('How item stacks work with equipped missiles', () => {
     const player = new RG.Actor.Rogue('player');
     const invEq = new RG.Inv.Inventory(player);
     const inv = invEq.getInventory();
     const eq = invEq.getEquipment();
 
 
-    it('Stacks item in inv when added individually', function() {
+    it('Stacks item in inv when added individually', () => {
         for (let i = 0; i < 10; i++) {
             const arrow = new RG.Item.Missile('arrow');
             invEq.addItem(arrow);
@@ -241,7 +241,7 @@ describe('How item stacks work with equipped missiles', function() {
 
     });
 
-    it('Equips armour correctly', function() {
+    it('Equips armour correctly', () => {
         const collar = new RG.Item.Armour('Collar');
         collar.setArmourType('neck');
         inv.addItem(collar);
@@ -265,7 +265,7 @@ describe('How item stacks work with equipped missiles', function() {
 const ItemDestroyer = function() {
 
     this.hasNotify = true;
-    this.notify = function(evtName, obj) {
+    this.notify = (evtName, obj) => {
         if (evtName === RG.EVT_DESTROY_ITEM) {
             const item = obj.item;
             const owner = item.getOwner().getOwner();
@@ -275,8 +275,8 @@ const ItemDestroyer = function() {
     RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this);
 };
 
-describe('How one-shot items are removed after their use', function() {
-    it('Player uses a potion and it is destroyed after this.', function() {
+describe('How one-shot items are removed after their use', () => {
+    it('Player uses a potion and it is destroyed after this.', () => {
         const potion = new RG.Item.Potion('potion');
         const player = new Actor('Player');
         const cell = RG.FACT.createFloorCell();
@@ -303,8 +303,8 @@ describe('How one-shot items are removed after their use', function() {
     });
 });
 
-describe('Gold coins and other valuables', function() {
-    it('Has weight and stacks normally', function() {
+describe('Gold coins and other valuables', () => {
+    it('Has weight and stacks normally', () => {
         const gold = new RG.Item.Gold('Gold nugget');
         gold.count = 3;
         gold.setWeight(0.1);
@@ -315,8 +315,8 @@ describe('Gold coins and other valuables', function() {
     });
 });
 
-describe('RG.Item.MissileWeapon', function() {
-    it('Shoots arrows or bolts', function() {
+describe('RG.Item.MissileWeapon', () => {
+    it('Shoots arrows or bolts', () => {
         const bow = new RG.Item.MissileWeapon('bow');
         expect(bow).to.have.property('getAttackRange');
     });
