@@ -220,7 +220,7 @@ RG.Effects = {
 
                     // Need owner to assign exp correctly
                     let itemOwner = this.getOwner();
-                    while (itemOwner.hasOwnProperty('getOwner')) {
+                    while (itemOwner.getOwner) {
                         itemOwner = itemOwner.getOwner();
                     }
                     poisonComp.setSource(itemOwner);
@@ -250,7 +250,7 @@ RG.Effects = {
                     expiration.addEffect(stunComp, stunDur);
 
                     let itemOwner = this.getOwner();
-                    while (itemOwner.hasOwnProperty('getOwner')) {
+                    while (itemOwner.getOwner) {
                         itemOwner = itemOwner.getOwner();
                     }
                     stunComp.setSource(itemOwner);
