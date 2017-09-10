@@ -2,10 +2,13 @@
 const RG = require('./rg.js');
 const debug = require('debug')('bitn:factory');
 
+RG.Actor = require('./actor');
 RG.Component = require('./component.js');
 RG.Brain = require('./brain.js');
 RG.Map = require('./map.js');
 RG.Map.Generator = require('./map.generator');
+RG.Verify = require('./verify');
+RG.World = require('./world');
 
 const RGObjects = require('../data/battles_objects.js');
 RG.Effects = require('../data/effects.js');
