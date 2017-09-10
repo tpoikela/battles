@@ -20,16 +20,14 @@ RG.Game.FromJSON = function() {
     let stairsInfo = {};
 
     /* Resets internal data of this object. */
-    this.reset = function() {
+    this.reset = () => {
         id2level = {};
         id2entity = {};
         id2EntityJson = {};
         stairsInfo = {};
     };
 
-    this.getDungeonLevel = function() {
-        return _dungeonLevel;
-    };
+    this.getDungeonLevel = () => _dungeonLevel;
 
     /* Handles creation of restored player from JSON.*/
     this.restorePlayer = function(obj) {
@@ -64,7 +62,7 @@ RG.Game.FromJSON = function() {
         return entity;
     };
 
-    this.addCompsToEntity = function(ent, comps) {
+    this.addCompsToEntity = (ent, comps) => {
         for (const name in comps) {
             if (name) {
                 const comp = comps[name];
@@ -85,7 +83,7 @@ RG.Game.FromJSON = function() {
         }
     };
 
-    this.createBrain = function(brainJSON, ent) {
+    this.createBrain = (brainJSON, ent) => {
         const type = brainJSON.type;
         if (RG.Brain[type]) {
             const brainObj = new RG.Brain[type](ent);
@@ -119,7 +117,7 @@ RG.Game.FromJSON = function() {
         }
     };
 
-    this.createSpells = function(json, entity) {
+    this.createSpells = (json, entity) => {
         entity._spellbook = new RG.Spell.SpellBook();
         json.spellbook.spells.forEach(spell => {
             const spellObj = new RG.Spell[spell.new]();
@@ -185,7 +183,7 @@ RG.Game.FromJSON = function() {
         }
     };
 
-    this.getItemObjectType = function(item) {
+    this.getItemObjectType = item => {
         if (item.setType === 'spiritgem') {return 'SpiritGem';}
         if (item.setType === 'goldcoin') {return 'GoldCoin';}
         if (item.setType === 'missileweapon') {return 'MissileWeapon';}
@@ -298,7 +296,7 @@ RG.Game.FromJSON = function() {
 
     /* Creates the actor and sets entity ID refs, but does not restore all
      * entity data. */
-    this.createActor = function(obj) {
+    this.createActor = obj => {
         if (obj.type === null) {
             RG.err('FromJSON', 'restoreEntity',
                 `obj.type null, obj: ${JSON.stringify(obj)}`);
@@ -320,7 +318,7 @@ RG.Game.FromJSON = function() {
      * returned by this method is not complete stairs, but has placeholders for
      * targetLevel (level ID) and targetStairs (x, y coordinates).
      */
-    this.createUnconnectedStairs = function(elem) {
+    this.createUnconnectedStairs = elem => {
         const x = elem.x;
         const y = elem.y;
         const id = elem.obj.srcLevel;
@@ -351,7 +349,7 @@ RG.Game.FromJSON = function() {
         return mapObj;
     };
 
-    this.createBaseElem = function(cell) {
+    this.createBaseElem = cell => {
         switch (cell.type) {
             case '#': // wall
             case 'wall': return RG.ELEM.WALL;
@@ -431,7 +429,7 @@ RG.Game.FromJSON = function() {
         return game;
     };
 
-    this.connectGameLevels = function(game) {
+    this.connectGameLevels = game => {
         const levels = game.getLevels();
         levels.forEach(level => {
             const stairsList = level.getStairs();
@@ -463,14 +461,14 @@ RG.Game.FromJSON = function() {
     };
 
     /* Assume the place is World object for now. */
-    this.restorePlace = function(place) {
+    this.restorePlace = place => {
         const fact = new RG.Factory.World();
         fact.setId2Level(id2level);
         const world = fact.createWorld(place);
         return world;
     };
 
-    this.restoreOverWorld = function(json) {
+    this.restoreOverWorld = json => {
         const ow = new OW.Map();
         ow.setMap(json.baseMap);
         ow._features = json.features;

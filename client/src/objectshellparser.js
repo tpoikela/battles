@@ -76,7 +76,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
     _propToCall.items.ammo = _propToCall.items.missile;
 
     /* Returns an object shell, given category and name.*/
-    this.get = function(categ, name) {
+    this.get = (categ, name) => {
         if (_dbNoRandom[categ][name]) {
             return _dbNoRandom[categ][name];
         }
@@ -84,7 +84,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
     };
 
     /* Creates a component of specified type.*/
-    this.createComponent = function(type, val) {
+    this.createComponent = (type, val) => {
         switch (type) {
             case 'Combat': return new RG.Component.Combat();
             case 'Experience': return new RG.Component.Experience();
@@ -215,7 +215,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
         return newObj;
     };
 
-    this.addPoison = function(shell, obj) {
+    this.addPoison = (shell, obj) => {
         const poison = shell.poison;
         const poisonComp = new RG.Component.Poison();
         poisonComp.setProb(poison.prob);
@@ -229,13 +229,13 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
         obj.add('AddOnHit', addOnHit);
     };
 
-    this.addEnemies = function(shell, obj) {
+    this.addEnemies = (shell, obj) => {
         shell.enemies.forEach(enemyType => {
             obj.getBrain().addEnemyType(enemyType);
         });
     };
 
-    this.addSpells = function(shell, obj) {
+    this.addSpells = (shell, obj) => {
         obj.setBook(new RG.Spell.SpellBook());
         shell.spells.forEach(spell => {
             obj.getBook().addSpell(new RG.Spell[spell]());
@@ -243,7 +243,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
     };
 
     /* Factory-method for creating the actual game objects.*/
-    this.createNewObject = function(categ, obj) {
+    this.createNewObject = (categ, obj) => {
         switch (categ) {
             case RG.TYPE_ACTOR:
                 const type = obj.type;
@@ -303,7 +303,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
     };
 
     /* This function makes a pile of mess if used on non-entities. */
-    this.addComponent = function(shell, entity) {
+    this.addComponent = (shell, entity) => {
         if (typeof shell.addComp === 'string') {
             _addCompFromString(shell.addComp, entity);
         }
@@ -326,7 +326,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
         }
     };
 
-    const _addCompFromString = function(compName, entity) {
+    const _addCompFromString = (compName, entity) => {
         try {
             const comp = new RG.Component[compName]();
             entity.add(compName, comp);
@@ -399,7 +399,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
     };
 
     /* If shell has 'use', this adds specific use effect to the item.*/
-    this.addUseEffects = function(shell, newObj) {
+    this.addUseEffects = (shell, newObj) => {
         newObj.useFuncs = [];
         newObj.useItem = _db.effects.use.func.bind(newObj);
         if (typeof shell.use === 'object'
@@ -420,7 +420,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
         }
     };
 
-    const _addUseEffectToItem = function(shell, item, useName) {
+    const _addUseEffectToItem = (shell, item, useName) => {
         const useFuncName = useName;
         if (_db.effects.hasOwnProperty(useFuncName)) {
             const useEffectShell = _db.effects[useFuncName];
@@ -456,7 +456,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
 
     /* Verifies that the shell has all requirements, and adds them to the
      * object, into useArgs.reqName. */
-    const _verifyAndAddReq = function(obj, item, reqName) {
+    const _verifyAndAddReq = (obj, item, reqName) => {
         if (obj.hasOwnProperty(reqName)) {
             item.useArgs[reqName] = obj[reqName];
         }
@@ -494,7 +494,7 @@ RG.ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
 
     /* Returns entries from db based on the query. Returns null if nothing
      * matches.*/
-    this.dbGet = function(query) {
+    this.dbGet = query => {
         const name = query.name;
         const categ = query.categ;
         const danger = query.danger;
@@ -630,7 +630,7 @@ RG.ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
     /* Returns a property from an object, selected randomly. For example,
      * given object {a: 1, b: 2, c: 3}, may return 1,2 or 3 with equal
      * probability.*/
-    this.getRandFromObj = function(obj) {
+    this.getRandFromObj = obj => {
         const keys = Object.keys(obj);
         const randIndex = RG.RAND.randIndex(keys);
         return obj[keys[randIndex]];
@@ -727,7 +727,7 @@ RG.ObjectShell.Parser = function() {
     };
 
     /* Checks that the object shell given is correctly formed.*/
-    this.validShellGiven = function(obj) {
+    this.validShellGiven = obj => {
         if (!obj.hasOwnProperty('name')) {
             RG.err('ObjectShell.Parser', 'validShellGiven',
                 "shell doesn't have a name.");
@@ -737,25 +737,21 @@ RG.ObjectShell.Parser = function() {
     };
 
     /* If an object doesn't have type, the name is chosen as its type.*/
-    this.addTypeIfUntyped = function(obj) {
+    this.addTypeIfUntyped = obj => {
         if (!obj.hasOwnProperty('type')) {
             obj.type = obj.name;
         }
     };
 
     /* Returns an object shell, given category and name.*/
-    this.get = function(categ, name) {
-        return _db[categ][name];
-    };
+    this.get = (categ, name) => _db[categ][name];
 
     /* Return specified base shell.*/
-    this.getBase = function(categ, name) {
-        return _base[categ][name];
-    };
+    this.getBase = (categ, name) => _base[categ][name];
 
     /* All shells can be used as base, not only ones with
      * 'dontCreate: true' */
-    this.storeForUsingAsBase = function(categ, obj) {
+    this.storeForUsingAsBase = (categ, obj) => {
         _base[categ][obj.name] = obj;
     };
 
@@ -799,7 +795,7 @@ RG.ObjectShell.Parser = function() {
     };
 
     /* Stores char/CSS className for the object for rendering purposes.*/
-    this.storeRenderingInfo = function(categ, obj) {
+    this.storeRenderingInfo = (categ, obj) => {
         if (obj.hasOwnProperty('char')) {
             if (obj.hasOwnProperty('name')) {
                 RG.addCharStyle(categ, obj.name, obj['char']);
@@ -819,7 +815,7 @@ RG.ObjectShell.Parser = function() {
     };
 
     /* Returns true if shell base exists.*/
-    this.baseExists = function(categ, baseName) {
+    this.baseExists = (categ, baseName) => {
         if (_base.hasOwnProperty(categ)) {
             return _base[categ].hasOwnProperty(baseName);
         }
@@ -827,7 +823,7 @@ RG.ObjectShell.Parser = function() {
     };
 
     /* Extends the given object shell with a given base shell.*/
-    this.extendObj = function(obj, baseObj) {
+    this.extendObj = (obj, baseObj) => {
         for (const prop in baseObj) {
             if (!obj.hasOwnProperty(prop)) {
                 if (prop !== 'dontCreate') {
@@ -865,15 +861,13 @@ RG.ObjectShell.Parser = function() {
     };
 
     /* Creates actual game object from obj shell in given category.*/
-    this.createFromShell = function(categ, obj) {
-        return _creator.createFromShell(categ, obj);
-    };
+    this.createFromShell = (categ, obj) => _creator.createFromShell(categ, obj);
 
     //--------------------------------------------------------------------
     // Query methods for object shells
     //--------------------------------------------------------------------
 
-    this.dbExists = function(categ, name) {
+    this.dbExists = (categ, name) => {
         if (_db.hasOwnProperty(categ)) {
             if (_db[categ].hasOwnProperty(name)) {
                 return true;
@@ -887,20 +881,16 @@ RG.ObjectShell.Parser = function() {
 
     /* Returns entries from db based on the query. Returns null if nothing
      * matches.*/
-    this.dbGet = function(query) {
-        return _procgen.dbGet(query);
-    };
+    this.dbGet = query => _procgen.dbGet(query);
 
-    this.dbGetRand = function(query) {
-        return _procgen.dbGetRand(query);
-    };
+    this.dbGetRand = query => _procgen.dbGetRand(query);
 
     //----------------------------------------------------------------------
     // RANDOMIZED METHODS for procedural generation
     //----------------------------------------------------------------------
 
     /* Creates a random actor based on danger value or a filter function.*/
-    this.createRandomActor = function(obj) {
+    this.createRandomActor = obj => {
         const randShell = _procgen.getRandomActor(obj);
         if (randShell) {
             return _creator.createFromShell(RG.TYPE_ACTOR, randShell);
@@ -929,7 +919,7 @@ RG.ObjectShell.Parser = function() {
      *  const item = createRandomItem({func: funcValueSel});
      *  // Above returns item with value > 100.
      *  */
-    this.createRandomItem = function(obj) {
+    this.createRandomItem = obj => {
         const randShell = _procgen.getRandomItem(obj);
         if (randShell) {
             return _creator.createFromShell('items', randShell);

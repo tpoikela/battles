@@ -11,15 +11,13 @@ RG.Time.RogueAction = function(dur, cb, obj) { // {{{2
     var _cb = cb; // Action callback
     var _energy = 0;
 
-    this.setEnergy = function(en) {_energy = en;};
-    this.getEnergy = function() {return _energy;};
+    this.setEnergy = en => {_energy = en;};
+    this.getEnergy = () => _energy;
 
 
-    this.getDuration = function() {
-        return _duration;
-    };
+    this.getDuration = () => _duration;
 
-    this.doAction = function() {
+    this.doAction = () => {
         _cb(obj);
     };
 
@@ -43,20 +41,18 @@ RG.Time.GameEvent = function(dur, cb, repeat, offset) {
     this.isEvent = true; // Needed for the scheduler
 
     /* Clunky for events, but must implement for the scheduler.*/
-    this.isPlayer = function() {return false;};
+    this.isPlayer = () => false;
 
-    this.nextAction = function() {
-        return new RG.Time.RogueAction(dur, cb, {});
-    };
+    this.nextAction = () => new RG.Time.RogueAction(dur, cb, {});
 
-    this.getRepeat = function() {return _repeat;};
-    this.setRepeat = function(repeat) {_repeat = repeat;};
+    this.getRepeat = () => _repeat;
+    this.setRepeat = repeat => {_repeat = repeat;};
 
-    this.getOffset = function() {return _offset;};
-    this.setOffset = function(offset) {_offset = offset;};
+    this.getOffset = () => _offset;
+    this.setOffset = offset => {_offset = offset;};
 
-    this.setLevel = function(level) {_level = level;};
-    this.getLevel = function() {return _level;};
+    this.setLevel = level => {_level = level;};
+    this.getLevel = () => _level;
 
 };
 
@@ -64,7 +60,7 @@ RG.Time.GameEvent = function(dur, cb, repeat, offset) {
 RG.Time.RegenEvent = function(actor, dur) {
     const _dur = dur; // Duration between events
 
-    const _regenerate = function() {
+    const _regenerate = () => {
         actor.get('Health').addHP(1);
     };
 
@@ -76,7 +72,7 @@ RG.extend2(RG.Time.RegenEvent, RG.Time.GameEvent);
 RG.Time.RegenPPEvent = function(actor, dur) {
     const _dur = dur; // Duration between events
 
-    const _regeneratePower = function() {
+    const _regeneratePower = () => {
         actor.get('SpellPower').addPP(1);
     };
 
@@ -88,7 +84,7 @@ RG.extend2(RG.Time.RegenPPEvent, RG.Time.GameEvent);
 RG.Time.OneShotEvent = function(cb, offset, msg) {
 
     // Wraps the callback into function and emits a message
-    var _cb = function() {
+    var _cb = () => {
         if (!RG.isNullOrUndef([msg])) {
             RG.gameMsg(msg);
         }
@@ -111,7 +107,7 @@ RG.Time.Scheduler = function() { // {{{2
     var _actors = [];
 
     /* Adds an actor or event to the scheduler.*/
-    this.add = function(actOrEvent, repeat, offset) {
+    this.add = (actOrEvent, repeat, offset) => {
         _scheduler.add(actOrEvent, repeat, offset);
         if (actOrEvent.hasOwnProperty('isEvent')) {
             _events.push(actOrEvent);
@@ -122,13 +118,11 @@ RG.Time.Scheduler = function() { // {{{2
     };
 
     // Returns next actor/event or null if no next actor exists.
-    this.next = function() {
-        return _scheduler.next();
-    };
+    this.next = () => _scheduler.next();
 
     /* Must be called after next() to re-schedule next slot for the
      * actor/event.*/
-    this.setAction = function(action) {
+    this.setAction = action => {
         _scheduler.setDuration(action.getDuration());
     };
 
@@ -147,7 +141,7 @@ RG.Time.Scheduler = function() { // {{{2
     };
 
     /* Removes an event from the scheduler. Returns true on success.*/
-    this.removeEvent = function(actOrEvent) {
+    this.removeEvent = actOrEvent => {
         var index = -1;
         if (actOrEvent.hasOwnProperty('isEvent')) {
             index = _events.indexOf(actOrEvent);
@@ -159,9 +153,7 @@ RG.Time.Scheduler = function() { // {{{2
 
     };
 
-    this.getTime = function() {
-        return _scheduler.getTime();
-    };
+    this.getTime = () => _scheduler.getTime();
 
     /* Hooks to the event system. When an actor is killed, removes it from the
      * scheduler.*/

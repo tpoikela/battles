@@ -9,7 +9,7 @@ const genRegex = /[A-Z]/;
 const paramSplitRegex = /\s*=\s*/;
 const propSplitRegex = /\s*:\s*/;
 
-const debug = function(msg) {
+const debug = msg => {
     if (RG.Template.$DEBUG) {
         console.log('[DEBUG ' + msg);
     }
@@ -22,7 +22,7 @@ const debug = function(msg) {
 
 /* Creates and return ElemTemplate from a string.
  */
-RG.Template.createTemplate = function(str) {
+RG.Template.createTemplate = str => {
     const lines = str.split('\n');
     let nLine = 0;
     let currLine = lines[0];
@@ -299,7 +299,7 @@ const ElemTemplate = function(conf) {
         return [];
     };
 
-    this.expandYGen = function(val, elem) {
+    this.expandYGen = (val, elem) => {
         debug(`expandYGen ${val} -> ${elem}`);
         const newElem = [];
         for (let i = 0; i < val; i++) {
@@ -349,7 +349,7 @@ const ElemTemplate = function(conf) {
 
     /* Splits elements like [aa, bb, cc] into [a, b, c], [a, b, c]
     * Has no impact on single elemns like [a, b, c] */
-    this.splitMultiElements = function(arr) {
+    this.splitMultiElements = arr => {
         const sizeX = arr.length;
         const res = [];
         let realX = 0;
@@ -392,9 +392,7 @@ const ElemGenX = function(str) {
 
     this.length = () => len;
 
-    this.getChars = function(N = 1) {
-        return str.repeat(N);
-    };
+    this.getChars = (N = 1) => str.repeat(N);
 
 };
 RG.Template.ElemGenX = ElemGenX;

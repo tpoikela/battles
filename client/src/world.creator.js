@@ -74,11 +74,9 @@ const WorldConf = {};
 
 WorldConf.featCoeff = 0.3;
 
-const getUniformInt = function(min, max) {
-    return RG.RAND.getUniformInt(min, max);
-};
+const getUniformInt = (min, max) => RG.RAND.getUniformInt(min, max);
 
-WorldConf.getBaseConf = function(type) {
+WorldConf.getBaseConf = type => {
     let feat = null;
     switch (type) {
         case 'branch': feat = WorldConf.createSingleBranchConf(); break;
@@ -111,7 +109,7 @@ WorldConf.getBaseConf = function(type) {
 };
 
 /* Connects all city quarters together. */
-WorldConf.createQuarterConnections = function(feats) {
+WorldConf.createQuarterConnections = feats => {
     if (feats.length === 1) {return null;}
     const connections = [];
     for (let i = 1; i < feats.length; i++) {
@@ -131,7 +129,7 @@ WorldConf.createQuarterConnections = function(feats) {
 };
 
 /* Creates mountain face connections. */
-WorldConf.createFaceConnections = function(type, feats) {
+WorldConf.createFaceConnections = (type, feats) => {
     if (feats.length === 1) {return null;}
     const connections = [];
     for (let i = 1; i < feats.length; i++) {
@@ -153,7 +151,7 @@ WorldConf.createFaceConnections = function(type, feats) {
 
 /* Loops through feature list and connects them together. The connections
  * depend on the type parameter. */
-WorldConf.createBranchConnections = function(type, feats) {
+WorldConf.createBranchConnections = (type, feats) => {
     if (feats.length === 1) {return null;}
     const connections = [];
     for (let i = 1; i < feats.length; i++) {
@@ -174,7 +172,7 @@ WorldConf.createBranchConnections = function(type, feats) {
 };
 
 /* Sets x,y distance for given feature from the starting tile. */
-WorldConf.setDistFromStart = function(featConf, areaConf) {
+WorldConf.setDistFromStart = (featConf, areaConf) => {
     const startX = Math.floor(areaConf.maxX / 2);
     const startY = areaConf.maxY;
     featConf.distX = Math.abs(featConf.x - startX);
@@ -185,7 +183,7 @@ WorldConf.setDistFromStart = function(featConf, areaConf) {
 };
 
 /* Create object for player position. */
-WorldConf.getPlayerStart = function(firstArea, conf) {
+WorldConf.getPlayerStart = (firstArea, conf) => {
     const maxY = firstArea.maxY - 1;
     const midX = Math.floor(firstArea.maxX / 2);
     return {
@@ -195,16 +193,14 @@ WorldConf.getPlayerStart = function(firstArea, conf) {
 };
 
 /* Given areaConf, return x,y position where the feature can be added. */
-WorldConf.getXYInArea = function(areaConf) {
-    return {
-        x: getUniformInt(0, areaConf.maxX - 1),
-        y: getUniformInt(0, areaConf.maxY - 1)
-    };
-};
+WorldConf.getXYInArea = areaConf => ({
+    x: getUniformInt(0, areaConf.maxX - 1),
+    y: getUniformInt(0, areaConf.maxY - 1)
+});
 
 /* Returns more branches for dungeons further
  * from starting position. */
-WorldConf.getNumBranches = function(dungeonConf, conf) {
+WorldConf.getNumBranches = (dungeonConf, conf) => {
     switch (conf.dungeonSize) {
         case 'Small': return 1;
         case 'Medium': return getUniformInt(1, 2);
@@ -214,7 +210,7 @@ WorldConf.getNumBranches = function(dungeonConf, conf) {
     }
 };
 
-WorldConf.getNumQuarters = function(cityConf, conf) {
+WorldConf.getNumQuarters = (cityConf, conf) => {
     switch (conf.citySize) {
         case 'Small': return 1;
         case 'Medium': return getUniformInt(1, 2);
@@ -224,7 +220,7 @@ WorldConf.getNumQuarters = function(cityConf, conf) {
     }
 };
 
-WorldConf.getNumFaces = function(mountConf, conf) {
+WorldConf.getNumFaces = (mountConf, conf) => {
     switch (conf.mountainSize) {
         case 'Small': return 1;
         case 'Medium': return getUniformInt(1, 2);
@@ -235,7 +231,7 @@ WorldConf.getNumFaces = function(mountConf, conf) {
 };
 
 /* Returns the number of levels generated for given feature. */
-WorldConf.getNumLevels = function(type /* , featConf, conf */) {
+WorldConf.getNumLevels = type /* , featConf, conf */ => {
     switch (type) {
         case 'dungeon': {
             return getUniformInt(1, 10);
@@ -252,7 +248,7 @@ WorldConf.getNumLevels = function(type /* , featConf, conf */) {
 
 /* Scales the number of features based on the corresponding value in conf.
  * */
-WorldConf.scaleNumFeatures = function(type, conf) {
+WorldConf.scaleNumFeatures = (type, conf) => {
     switch (type) {
         case 'dungeon': {
             return featureScaleCoeff[conf.excavation];
@@ -271,7 +267,7 @@ WorldConf.scaleNumFeatures = function(type, conf) {
 
 /* Given feature type (dungeon, city, mountain), returns
 * the number of features that should be generated. */
-WorldConf.getNumFeatures = function(type, areaConf, conf) {
+WorldConf.getNumFeatures = (type, areaConf, conf) => {
     let nFeatures = (areaConf.maxX + 1) * (areaConf.maxY + 1);
     nFeatures *= WorldConf.scaleNumFeatures(type, conf);
     // TODO based on type/conf, adjust the number
@@ -284,7 +280,7 @@ WorldConf.getNumFeatures = function(type, areaConf, conf) {
 //------------------
 
 /* Creates configuration for all dungeons based on the (area)conf. */
-WorldConf.createDungeonsConf = function(areaConf, conf) {
+WorldConf.createDungeonsConf = (areaConf, conf) => {
     const nDungeons = WorldConf.getNumFeatures('dungeon', areaConf, conf);
     const dungeons = [];
     for (let i = 0; i < nDungeons; i++) {
@@ -296,7 +292,7 @@ WorldConf.createDungeonsConf = function(areaConf, conf) {
 
 
 /* Creates conf for a single dungeon. */
-WorldConf.createSingleDungeonConf = function(areaConf, conf) {
+WorldConf.createSingleDungeonConf = (areaConf, conf) => {
     const xy = WorldConf.getXYInArea(areaConf);
     const dungeonConf = Object.assign({}, areaConf);
     dungeonConf.x = xy.x;
@@ -320,7 +316,7 @@ WorldConf.createSingleDungeonConf = function(areaConf, conf) {
 
 /* Creates branches config for dungeon. This include entrance and branch
  * connections. */
-WorldConf.createBranchesConf = function(dungeonConf, conf) {
+WorldConf.createBranchesConf = (dungeonConf, conf) => {
     const nBranches = WorldConf.getNumBranches(dungeonConf, conf);
     const branches = [];
     for (let i = 0; i < nBranches; i++) {
@@ -335,7 +331,7 @@ WorldConf.createBranchesConf = function(dungeonConf, conf) {
     return branches;
 };
 
-WorldConf.createSingleBranchConf = function() {
+WorldConf.createSingleBranchConf = () => {
     const nLevels = WorldConf.getNumLevels('dungeon');
     return {
         name: Names.getGenericPlaceName('branch'),
@@ -348,7 +344,7 @@ WorldConf.createSingleBranchConf = function() {
 //---------------------
 
 /* THis function decide on the structure of quarter, nHouses, shops etc. */
-WorldConf.createSingleQuarterConf = function() {
+WorldConf.createSingleQuarterConf = () => {
     const nLevels = WorldConf.getNumLevels('city');
     return {
         nLevels,
@@ -360,7 +356,7 @@ WorldConf.createSingleQuarterConf = function() {
 // MOUNTAINS
 //------------
 
-WorldConf.createSingleFaceConf = function() {
+WorldConf.createSingleFaceConf = () => {
     const nLevels = WorldConf.getNumLevels('mountain');
     return {
         x: 100,
@@ -493,7 +489,7 @@ WorldConf.Creator = function() {
     };
 
     /* Creates the config for quarters of single city. */
-    this.createQuartersConf = function(cityConf, conf) {
+    this.createQuartersConf = (cityConf, conf) => {
         const nQuarters = WorldConf.getNumQuarters(cityConf, conf);
         const quarters = [];
         for (let i = 0; i < nQuarters; i++) {
@@ -543,7 +539,7 @@ WorldConf.Creator = function() {
         return obj;
     };
 
-    this.createFacesConf = function(mountConf, conf) {
+    this.createFacesConf = (mountConf, conf) => {
         const nFaces = WorldConf.getNumFaces(mountConf, conf);
         const faces = [];
         for (let i = 0; i < nFaces; i++) {

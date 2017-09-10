@@ -203,7 +203,7 @@ OW.CAN_CONNECT = {
 };
 
 /* Creates the overworld map and returns the created map. */
-OW.createOverWorld = function(conf = {}) {
+OW.createOverWorld = (conf = {}) => {
     const yFirst = typeof conf.yFirst !== 'undefined' ? conf.yFirst : true;
 
     const topToBottom = typeof conf.topToBottom !== 'undefined'

@@ -9,7 +9,7 @@ RG.Verify.Conf = function(objName) {
     const _name = objName;
 
     /* Verifies that configuration contains all required keys.*/
-    this.verifyConf = function(funcName, conf, required) {
+    this.verifyConf = (funcName, conf, required) => {
         let ok = true;
         let errorMsg = '';
         required.forEach(req => {

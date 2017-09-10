@@ -39,14 +39,14 @@ RG.Item.Base = function(name) {
 
     this.count = 1; // Number of items
 
-    this.setName = function(name) {_name = name;};
-    this.getName = function() {return _name;};
+    this.setName = name => {_name = name;};
+    this.getName = () => _name;
 
     this.setWeight = function(weight) {this.get('Physical').setWeight(weight);};
     this.getWeight = function() {return this.get('Physical').getWeight();};
 
-    this.setValue = function(value) {_value = value;};
-    this.getValue = function() {return _value;};
+    this.setValue = value => {_value = value;};
+    this.getValue = () => _value;
 
     this.setCount = function(count) {this.count = count;};
 
@@ -114,8 +114,8 @@ RG.Item.Food = function(name) {
 
     let _energy = 0; // per 0.1 kg
 
-    this.setEnergy = function(energy) {_energy = energy;};
-    this.getEnergy = function() {return _energy;};
+    this.setEnergy = energy => {_energy = energy;};
+    this.getEnergy = () => _energy;
 
     this.getConsumedEnergy = function() {
         return Math.round( (this.getWeight() * _energy) / 0.1);
@@ -264,8 +264,8 @@ RG.Item.Armour = function(name) {
 
     let _armourType = null;
 
-    this.setArmourType = function(type) {_armourType = type;};
-    this.getArmourType = function() {return _armourType;};
+    this.setArmourType = type => {_armourType = type;};
+    this.getArmourType = () => _armourType;
 };
 RG.extend2(RG.Item.Armour, RG.Item.Base);
 RG.extend2(RG.Item.Armour, RG.Object.Defense);
@@ -349,7 +349,7 @@ RG.Item.Rune = function(name) {
     this.getCharges = () => _charges;
     this.setCharges = (charges) => {_charges = charges;};
 
-    this.useItem = function() {
+    this.useItem = () => {
         // Various complex effects
     };
 
@@ -459,7 +459,7 @@ RG.Item.Container = function(owner) {
     };
 
     /* Returns the total weight of the container.*/
-    this.getWeight = function() {
+    this.getWeight = () => {
         let sum = 0;
         for (let i = 0; i < _items.length; i++) {
             sum += _items[i].getWeight() * _items[i].count;
@@ -483,10 +483,10 @@ RG.Item.Container = function(owner) {
         }
     };
 
-    this.getItems = function() {return _items;};
+    this.getItems = () => _items;
 
     /* Check by pure obj ref. Returns true if contains item ref.*/
-    this.hasItemRef = function(item) {
+    this.hasItemRef = item => {
         const index = _items.indexOf(item);
         if (index !== -1) {return true;}
         return false;
@@ -508,14 +508,14 @@ RG.Item.Container = function(owner) {
         return false;
     };
 
-    const _getMatchingItemIndex = function(item) {
+    const _getMatchingItemIndex = item => {
         for (let i = 0; i < _items.length; i++) {
             if (item.equals(_items[i])) {return i;}
         }
         return -1;
     };
 
-    const _removeItem = function(item) {
+    const _removeItem = item => {
         const i = _getMatchingItemIndex(item);
 
         if (i === -1) {
@@ -536,9 +536,7 @@ RG.Item.Container = function(owner) {
     };
 
     /* Returns last removed item if removeItem returned true.*/
-    this.getRemovedItem = function() {
-        return _removedItem;
-    };
+    this.getRemovedItem = () => _removedItem;
 
     /* Removes N items from the inventory of given type.*/
     this.removeNItems = function(item, n) {
@@ -561,7 +559,7 @@ RG.Item.Container = function(owner) {
     };
 
     /* Returns first item or null for empty container.*/
-    this.first = function() {
+    this.first = () => {
         if (_items.length > 0) {
             _iter = 1;
             return _items[0];
@@ -570,22 +568,17 @@ RG.Item.Container = function(owner) {
     };
 
     /* Returns next item from container or null if there are no more items.*/
-    this.next = function() {
+    this.next = () => {
         if (_iter < _items.length) {
             return _items[_iter++];
         }
         return null;
     };
 
-    this.last = function() {
-        return _items[_items.length - 1];
-
-    };
+    this.last = () => _items[_items.length - 1];
 
     /* Returns true for empty container.*/
-    this.isEmpty = function() {
-        return _items.length === 0;
-    };
+    this.isEmpty = () => _items.length === 0;
 
 
 };
@@ -657,12 +650,12 @@ RG.Item.SpiritGem = function(name) {
 
     let _spirit = null;
     let _hasSpirit = false;
-    this.getArmourType = function() {return 'spiritgem';};
+    this.getArmourType = () => 'spiritgem';
 
-    this.hasSpirit = function() {return _hasSpirit;};
-    this.getSpirit = function() {return _spirit;};
+    this.hasSpirit = () => _hasSpirit;
+    this.getSpirit = () => _spirit;
 
-    this.setSpirit = function(spirit) {
+    this.setSpirit = spirit => {
         if (!_hasSpirit) {
             _hasSpirit = true;
             _spirit = spirit;
@@ -704,9 +697,9 @@ RG.Item.SpiritGem = function(name) {
     const _getters =
         ['getStrength', 'getWillpower', 'getAccuracy', 'getAgility'];
 
-    const createGetFunc = function(i) {
+    const createGetFunc = i => {
         const funcName = _getters[i];
-        return function() {
+        return () => {
             if (!_hasSpirit) {return 0;}
             return _spirit.get('Stats')[funcName]();
         };

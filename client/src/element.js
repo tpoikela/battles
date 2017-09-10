@@ -60,7 +60,7 @@ RG.Element.Stairs = function(down, srcLevel, targetLevel) {
     let _targetStairs = null;
 
     /* Target actor uses the stairs.*/
-    this.useStairs = function(actor) {
+    this.useStairs = actor => {
         if (!RG.isNullOrUndef([_targetStairs, _targetLevel])) {
             const newX = _targetStairs.getX();
             const newY = _targetStairs.getY();
@@ -77,11 +77,11 @@ RG.Element.Stairs = function(down, srcLevel, targetLevel) {
         return false;
     };
 
-    this.isDown = function() {return _down;};
+    this.isDown = () => _down;
 
-    this.getSrcLevel = function() {return _srcLevel; };
+    this.getSrcLevel = () => _srcLevel;
 
-    this.setSrcLevel = function(src) {
+    this.setSrcLevel = src => {
         if (!RG.isNullOrUndef([src])) {
             _srcLevel = src;
         }
@@ -91,8 +91,8 @@ RG.Element.Stairs = function(down, srcLevel, targetLevel) {
         }
     };
 
-    this.getTargetLevel = function() {return _targetLevel; };
-    this.setTargetLevel = function(target) {
+    this.getTargetLevel = () => _targetLevel;
+    this.setTargetLevel = target => {
         if (!RG.isNullOrUndef([target])) {
             _targetLevel = target;
         }
@@ -117,9 +117,7 @@ RG.Element.Stairs = function(down, srcLevel, targetLevel) {
                 'Cannot set null/undefined stairs.');
         }
     };
-    this.getTargetStairs = function() {
-        return _targetStairs;
-    };
+    this.getTargetStairs = () => _targetStairs;
 
     /* Connects to stairs together. */
     this.connect = function(stairs) {
@@ -250,7 +248,7 @@ RG.Element.Shop.prototype.getItemPriceForSelling = function(item) {
     return ncoins;
 };
 
-RG.Element.Shop.prototype.hasEnoughGold = function(actor, goldWeight) {
+RG.Element.Shop.prototype.hasEnoughGold = (actor, goldWeight) => {
     const ncoins = RG.getGoldInCoins(goldWeight);
     const items = actor.getInvEq().getInventory().getItems();
     for (let i = 0; i < items.length; i++) {
@@ -409,13 +407,9 @@ RG.Element.HighRock = function() {
 };
 RG.extend2(RG.Element.HighRock, RG.Element.Base);
 
-RG.Element.HighRock.prototype.isPassable = function() {
-    return false;
-};
+RG.Element.HighRock.prototype.isPassable = () => false;
 
-RG.Element.HighRock.prototype.lightPasses = function() {
-    return false;
-};
+RG.Element.HighRock.prototype.lightPasses = () => false;
 
 /* A chasm element. */
 RG.Element.Chasm = function() {
@@ -423,9 +417,7 @@ RG.Element.Chasm = function() {
 };
 RG.extend2(RG.Element.Chasm, RG.Element.Base);
 
-RG.Element.Chasm.prototype.isPassable = function() {
-    return false;
-};
+RG.Element.Chasm.prototype.isPassable = () => false;
 
 /* A water element. */
 RG.Element.Water = function() {
@@ -433,9 +425,7 @@ RG.Element.Water = function() {
 };
 RG.extend2(RG.Element.Water, RG.Element.Base);
 
-RG.Element.Water.prototype.isPassable = function() {
-    return false;
-};
+RG.Element.Water.prototype.isPassable = () => false;
 
 /* A fort element. */
 RG.Element.Fort = function() {
@@ -443,9 +433,7 @@ RG.Element.Fort = function() {
 };
 RG.extend2(RG.Element.Fort, RG.Element.Base);
 
-RG.Element.Fort.prototype.isPassable = function() {
-    return false;
-};
+RG.Element.Fort.prototype.isPassable = () => false;
 
 RG.ELEM = {};
 // Constant elements which can be used by all levels. freeze()

@@ -356,9 +356,7 @@ RG.Map.CellList = function(cols, rows) { // {{{2
     };
 
     /* Returns true if the this._map has a cell in given x,y location.*/
-    const _hasXY = function(x, y) {
-        return (x >= 0) && (x < _cols) && (y >= 0) && (y < _rows);
-    };
+    const _hasXY = (x, y) => (x >= 0) && (x < _cols) && (y >= 0) && (y < _rows);
 
     /* Returns true if light passes through this cell.*/
     const lightPasses = function(x, y) {
@@ -456,7 +454,7 @@ RG.Map.CellList.prototype.setBaseElems = function(coord, elem) {
     });
 };
 
-RG.Map.CellList.invertMap = function(map) {
+RG.Map.CellList.invertMap = map => {
     for (let x = 0; x < map.cols; x++) {
         for (let y = 0; y < map.rows; y++) {
             const type = map._map[x][y].getBaseElem().getType();
@@ -511,14 +509,14 @@ RG.Map.Level = function() { // {{{2
     };
 
     let _levelNo = 0;
-    this.setLevelNumber = function(no) {_levelNo = no;};
-    this.getLevelNumber = function() {return _levelNo;};
+    this.setLevelNumber = no => {_levelNo = no;};
+    this.getLevelNumber = () => _levelNo;
 
-    this.getID = function() {return _id;};
-    this.setID = function(id) {_id = id;};
+    this.getID = () => _id;
+    this.setID = id => {_id = id;};
 
-    this.getParent = function() {return _parent;};
-    this.setParent = function(parent) {
+    this.getParent = () => _parent;
+    this.setParent = parent => {
         if (!RG.isNullOrUndef([parent])) {
             _parent = parent;
         }
@@ -528,12 +526,12 @@ RG.Map.Level = function() { // {{{2
         }
     };
 
-    this.getActors = function() {return _p.actors;};
-    this.getItems = function() {return _p.items;};
-    this.getElements = function() {return _p.elements;};
+    this.getActors = () => _p.actors;
+    this.getItems = () => _p.items;
+    this.getElements = () => _p.elements;
 
     /* Returns all stairs elements. */
-    this.getStairs = function() {
+    this.getStairs = () => {
         const res = [];
         _p.elements.forEach(elem => {
             if (_isStairs(elem)) {
@@ -543,12 +541,10 @@ RG.Map.Level = function() { // {{{2
         return res;
     };
 
-    const _isStairs = function(elem) {
-        return (/stairs(Down|Up)/).test(elem.getType());
-    };
+    const _isStairs = elem => (/stairs(Down|Up)/).test(elem.getType());
 
-    this.setMap = function(map) {_map = map;};
-    this.getMap = function() {return _map;};
+    this.setMap = map => {_map = map;};
+    this.getMap = () => _map;
 
     /* Given a level, returns stairs which lead to that level.*/
     this.getStairsToLevel = function(level) {
@@ -604,7 +600,7 @@ RG.Map.Level = function() { // {{{2
     };
 
     /* Uses stairs for given actor if it's on top of the stairs.*/
-    this.useStairs = function(actor) {
+    this.useStairs = actor => {
         const cell = _map.getCell(actor.getX(), actor.getY());
         if (cell.hasStairs()) {
             const stairs = cell.getStairs();
@@ -777,7 +773,7 @@ RG.Map.Level = function() { // {{{2
     };
 
     /* Removes given actor from level. Returns true if successful.*/
-    this.removeActor = function(actor) {
+    this.removeActor = actor => {
         const index = _p.actors.indexOf(actor);
         const x = actor.getX();
         const y = actor.getY();
@@ -792,7 +788,7 @@ RG.Map.Level = function() { // {{{2
 
     /* Explores the level from given actor's viewpoint. Sets new cells as
      * explored. There's no exploration tracking per actor.*/
-    this.exploreCells = function(actor) {
+    this.exploreCells = actor => {
         const visibleCells = _map.getVisibleCells(actor);
         if (actor.isPlayer()) {
             for (let i = 0; i < visibleCells.length; i++) {
@@ -803,9 +799,7 @@ RG.Map.Level = function() { // {{{2
     };
 
     /* Returns all explored cells in the map.*/
-    this.getExploredCells = function() {
-        return _map.getExploredCells();
-    };
+    this.getExploredCells = () => _map.getExploredCells();
 
     //-----------------------------------------------------------------
     // CALLBACKS
@@ -813,10 +807,10 @@ RG.Map.Level = function() { // {{{2
     const _callbacks = {};
 
     // For setting the callbacks
-    this.setOnEnter = function(cb) {_callbacks.OnEnter = cb;};
-    this.setOnFirstEnter = function(cb) {_callbacks.OnFirstEnter = cb;};
-    this.setOnExit = function(cb) {_callbacks.OnExit = cb;};
-    this.setOnFirstExit = function(cb) {_callbacks.OnFirstExit = cb;};
+    this.setOnEnter = cb => {_callbacks.OnEnter = cb;};
+    this.setOnFirstEnter = cb => {_callbacks.OnFirstEnter = cb;};
+    this.setOnExit = cb => {_callbacks.OnExit = cb;};
+    this.setOnFirstExit = cb => {_callbacks.OnFirstExit = cb;};
 
     const _cbState = {
         onFirstEnterDone: false,
@@ -911,7 +905,7 @@ RG.Map.Level = function() { // {{{2
 }; // }}} Level
 RG.Map.Level.prototype.idCount = 0;
 
-RG.Map.Level.createLevelID = function() {
+RG.Map.Level.createLevelID = () => {
     const id = RG.Map.Level.prototype.idCount;
     RG.Map.Level.prototype.idCount += 1;
     return id;

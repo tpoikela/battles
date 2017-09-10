@@ -25,14 +25,14 @@ RG.Map.Generator = function() { // {{{2
 
     let _wall = 1;
 
-    this.getRandType = function() {
+    this.getRandType = () => {
         const index = RG.RAND.randIndex(_types);
         return _types[index];
     };
 
     let _nHouses = 5;
-    this.setNHouses = function(nHouses) {_nHouses = nHouses;};
-    this.getNHouses = function() {return _nHouses;};
+    this.setNHouses = nHouses => {_nHouses = nHouses;};
+    this.getNHouses = () => _nHouses;
 
     /* Sets the generator for room generation.*/
     this.setGen = function(type, cols, rows) {
@@ -80,7 +80,7 @@ RG.Map.Generator = function() { // {{{2
         }
         else {
             const map = new RG.Map.CellList(this.cols, this.rows);
-            _mapGen.create(function(x, y, val) {
+            _mapGen.create((x, y, val) => {
                 if (val === _wall) {
                     map.setBaseElemXY(x, y, RG.ELEM.WALL);
                 }
@@ -99,7 +99,7 @@ RG.Map.Generator = function() { // {{{2
 
     /* Creates "ruins" type level with open outer edges and inner
      * "fortress" with some tunnels. */
-    this.createRuins = function(cols, rows) {
+    this.createRuins = (cols, rows) => {
         const conf = {born: [4, 5, 6, 7, 8],
             survive: [2, 3, 4, 5], connected: true};
         const map = new ROT.Map.Cellular(cols, rows, conf);
@@ -111,7 +111,7 @@ RG.Map.Generator = function() { // {{{2
     };
 
     /* Creates a cellular type dungeon and makes all areas connected.*/
-    this.createCellular = function(cols, rows) {
+    this.createCellular = (cols, rows) => {
         const map = new ROT.Map.Cellular(cols, rows,
             {connected: true});
         map.randomize(0.52);
@@ -121,7 +121,7 @@ RG.Map.Generator = function() { // {{{2
         return map;
     };
 
-    this.createRooms = function(cols, rows) {
+    this.createRooms = (cols, rows) => {
         const map = new ROT.Map.Digger(cols, rows,
             {roomWidth: [5, 20], dugPercentage: 0.7});
         return map;
@@ -317,7 +317,7 @@ RG.Map.Generator = function() { // {{{2
         const map = new RG.Map.CellList(this.cols, this.rows);
         const ratio = conf.ratio;
         _mapGen = new ROT.Map.Forest(this.cols, this.rows, conf);
-        _mapGen.create(function(x, y, val) {
+        _mapGen.create((x, y, val) => {
             map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
             const createTree = RG.RAND.getUniform() <= ratio;
             if (val === 1 && createTree) {
@@ -334,7 +334,7 @@ RG.Map.Generator = function() { // {{{2
         const map = new RG.Map.CellList(this.cols, this.rows);
         // const ratio = conf.ratio;
         _mapGen = new ROT.Map.Forest(this.cols, this.rows, conf);
-        _mapGen.create(function(x, y, val) {
+        _mapGen.create((x, y, val) => {
             map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
             // const createDeep = RG.RAND.getUniform() <= ratio;
             if (val === 1 /* && createDeep */) {
@@ -351,7 +351,7 @@ RG.Map.Generator = function() { // {{{2
     this.createWall = function(cols, rows, conf) {
         const map = new RG.Map.CellList(this.cols, this.rows);
         _mapGen = new ROT.Map.Wall(cols, rows, conf);
-        _mapGen.create(function(x, y, val) {
+        _mapGen.create((x, y, val) => {
             if (val === 1 /* && createDeep */) {
                 map.setBaseElemXY(x, y, RG.ELEM.WALL);
             }
@@ -370,7 +370,7 @@ RG.Map.Generator = function() { // {{{2
         if (!conf.hasOwnProperty('nRoadTurns')) {conf.nRoadTurns = 4;}
 
         _mapGen = new ROT.Map.Mountain(this.cols, this.rows, conf);
-        _mapGen.create(function(x, y, val) {
+        _mapGen.create((x, y, val) => {
             if (val > conf.highRockThr) {
                 map.setBaseElemXY(x, y, RG.ELEM.HIGH_ROCK);
             }
@@ -446,7 +446,7 @@ RG.Map.Generator = function() { // {{{2
 
     };
 
-    this.getPathWeight = function(map, coord) {
+    this.getPathWeight = (map, coord) => {
         let w = 0;
         coord.forEach(c => {
             if (map.hasXY(c.x, c.y)) {
@@ -464,10 +464,10 @@ RG.Map.Generator = function() { // {{{2
     };
 
     /* Creates a single cave level. */
-    this.createCave = function(cols, rows, conf) {
+    this.createCave = (cols, rows, conf) => {
         _mapGen = new ROT.Map.Miner(cols, rows, conf);
         const map = new RG.Map.CellList(cols, rows);
-        _mapGen.create(function(x, y, val) {
+        _mapGen.create((x, y, val) => {
             if (val === 1) {
                 map.setBaseElemXY(x, y, RG.ELEM.WALL_CAVE);
             }
@@ -575,7 +575,7 @@ RG.Map.Generator = function() { // {{{2
 
     /* Given 2-d ascii map, and mapping from ascii to Element, constructs the
      * map of base elements, and returns it. */
-    this.createMapFromAsciiMap = function(asciiMap, asciiToElem) {
+    this.createMapFromAsciiMap = (asciiMap, asciiToElem) => {
         const cols = asciiMap.length;
         const rows = asciiMap[0].length;
         const map = new RG.Map.CellList(cols, rows);
@@ -597,7 +597,7 @@ RG.Map.Generator = function() { // {{{2
         };
     };
 
-    this.getWallElem = function(wallType) {
+    this.getWallElem = wallType => {
         switch (wallType) {
             case 'wallcave': return RG.ELEM.WALL_CAVE;
             case 'wallcrypt': return RG.ELEM.WALL_CRYPT;
@@ -608,7 +608,7 @@ RG.Map.Generator = function() { // {{{2
 
     };
 
-    this.getFloorElem = function(floorType) {
+    this.getFloorElem = floorType => {
         switch (floorType) {
             case 'floorcave': return RG.ELEM.FLOOR_CAVE;
             case 'floorcrypt': return RG.ELEM.FLOOR_CRYPT;
@@ -623,7 +623,7 @@ RG.Map.Generator = function() { // {{{2
 
 /* Decorates the given map with snow. ratio is used to control how much
  * snow to put. */
-RG.Map.Generator.addRandomSnow = function(map, ratio) {
+RG.Map.Generator.addRandomSnow = (map, ratio) => {
     const freeCells = map.getFree();
     for (let i = 0; i < freeCells.length; i++) {
         const addSnow = RG.RAND.getUniform();

@@ -56,8 +56,8 @@ RG.Object.Damage = function() {
     let _range = 1;
 
     /* Attack methods. */
-    this.setAttackRange = function(range) {_range = range;};
-    this.getAttackRange = function() {return _range; };
+    this.setAttackRange = range => {_range = range;};
+    this.getAttackRange = () => _range;
 
     this.rollDamage = function() {
         if (this.hasOwnProperty('getWeapon')) {
@@ -69,11 +69,9 @@ RG.Object.Damage = function() {
         return _damageDie.roll();
     };
 
-    this.getDamageDie = function() {
-        return _damageDie;
-    };
+    this.getDamageDie = () => _damageDie;
 
-    this.setDamageDie = function(dStr) {
+    this.setDamageDie = dStr => {
         if (typeof dStr === 'string') {
             _damageDie = RG.FACT.createDie(dStr);
         }
@@ -211,11 +209,11 @@ RG.Object.Locatable.prototype.isSamePos = function(obj) {
 RG.Object.Ownable = function(owner) {
     let _owner = owner;
 
-    this.isSamePos = function(obj) {return _owner.isSamePos(obj);};
+    this.isSamePos = obj => _owner.isSamePos(obj);
 
-    this.getLevel = function() {return _owner.getLevel();};
+    this.getLevel = () => _owner.getLevel();
 
-    this.setOwner = function(owner) {
+    this.setOwner = owner => {
         if (RG.isNullOrUndef([owner])) {
             RG.err('Object.Ownable', 'setOwner', 'Owner cannot be null.');
         }
@@ -225,19 +223,19 @@ RG.Object.Ownable = function(owner) {
     };
 
     /* Returns the owner of this object.*/
-    this.getOwner = function() {return _owner;};
+    this.getOwner = () => _owner;
 
-    this.getX = function() {
+    this.getX = () => {
         if (_owner !== null) {return _owner.getX();}
         return null;
     };
 
-    this.getY = function() {
+    this.getY = () => {
         if (_owner !== null) {return _owner.getY();}
         return null;
     };
 
-    this.getLevel = function() {
+    this.getLevel = () => {
         if (_owner !== null) {return _owner.getLevel();}
         return null;
     };

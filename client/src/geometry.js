@@ -192,14 +192,14 @@ RG.Geometry = {
             levels.push(levelCol);
         }
 
-        const getSubLevel = function(x, y) {
+        const getSubLevel = (x, y) => {
             const subIndexX = Math.floor(x / width);
             const subIndexY = Math.floor(y / height);
             return levels[subIndexX][subIndexY];
         };
 
-        const getSubX = function(x) {return x % width;};
-        const getSubY = function(y) {return y % height;};
+        const getSubX = x => x % width;
+        const getSubY = y => y % height;
 
         // Move all the elements
         const map = level.getMap();

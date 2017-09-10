@@ -25,7 +25,7 @@ RG.Spell = {};
 };*/
 
 /* Used for sorting the spells by spell power. */
-const compareSpells = function(s1, s2) {
+const compareSpells = (s1, s2) => {
     if (s1.getPower() < s2.getPower()) {
         return -1;
     }
@@ -35,7 +35,7 @@ const compareSpells = function(s1, s2) {
     return 0;
 };
 
-const addToExpirationComp = function(actor, comp, dur) {
+const addToExpirationComp = (actor, comp, dur) => {
     if (actor.has('Expiration')) {
         actor.get('Expiration').addEffect(comp, dur);
     }
@@ -47,7 +47,7 @@ const addToExpirationComp = function(actor, comp, dur) {
     actor.add(comp);
 };
 
-RG.Spell.getSelectionObjectSelf = function(spell, actor) {
+RG.Spell.getSelectionObjectSelf = (spell, actor) => {
     const func = () => {
         const spellCast = new RG.Component.SpellCast();
         spellCast.setSource(actor);
@@ -58,7 +58,7 @@ RG.Spell.getSelectionObjectSelf = function(spell, actor) {
     return func;
 };
 
-RG.Spell.getSelectionObjectDir = function(spell, actor, msg) {
+RG.Spell.getSelectionObjectDir = (spell, actor, msg) => {
     RG.gameMsg(msg);
     return {
         select: (code) => {
@@ -80,7 +80,7 @@ RG.Spell.getSelectionObjectDir = function(spell, actor, msg) {
     };
 };
 
-const getDirSpellArgs = function(spell, args) {
+const getDirSpellArgs = (spell, args) => {
     const src = args.src;
     const dir = args.dir;
     const x = src.getX();
@@ -99,19 +99,17 @@ RG.Spell.SpellBook = function(actor) {
     const _actor = actor;
     const _spells = [];
 
-    this.getActor = function() {return _actor;};
+    this.getActor = () => _actor;
 
-    this.addSpell = function(spell) {
+    this.addSpell = spell => {
         _spells.push(spell);
     };
 
-    this.getSpells = function() {
-        return _spells;
-    };
+    this.getSpells = () => _spells;
 
     /* Returns the object which is used in Brain.Player to make the player
      * selection of spell casting. */
-    this.getSelectionObject = function() {
+    this.getSelectionObject = () => {
         const powerSorted = _spells.sort(compareSpells);
         return {
             select: function(code) {
@@ -134,11 +132,9 @@ RG.Spell.SpellBook = function(actor) {
         };
     };
 
-    this.toJSON = function() {
-        return {
-            spells: _spells.map(spell => spell.toJSON())
-        };
-    };
+    this.toJSON = () => ({
+        spells: _spells.map(spell => spell.toJSON())
+    });
 };
 
 /* Base object for all spells. */
@@ -146,10 +142,10 @@ RG.Spell.Base = function(name, power) {
     const _name = name;
     let _power = power || 5;
 
-    this.getName = function() {return _name;};
+    this.getName = () => _name;
 
-    this.getPower = function() {return _power;};
-    this.setPower = function(power) {_power = power;};
+    this.getPower = () => _power;
+    this.setPower = power => {_power = power;};
 
 
 };
@@ -172,12 +168,12 @@ RG.Spell.Ranged = function(name, power) {
     let _damageDie = RG.FACT.createDie('4d4 + 4');
     let _range = 5;
 
-    this.getRange = function() {return _range;};
-    this.setRange = function(range) {_range = range;};
-    this.setDice = function(dice) {
+    this.getRange = () => _range;
+    this.setRange = range => {_range = range;};
+    this.setDice = dice => {
         _damageDie = dice[0];
     };
-    this.getDice = function() {return [_damageDie];};
+    this.getDice = () => [_damageDie];
 
 
 };
@@ -270,7 +266,7 @@ RG.Spell.FrostBolt = function() {
         };
     };
 
-    this.aiShouldCastSpell = function(args) {
+    this.aiShouldCastSpell = args => {
         const {actor, enemy} = args;
         const [x0, y0] = [actor.getX(), actor.getY()];
         const [x1, y1] = [enemy.getX(), enemy.getY()];
@@ -294,7 +290,7 @@ RG.Spell.IceShield = function() {
     const _duration = RG.FACT.createDie('5d5 + 5');
     const _defenseDie = RG.FACT.createDie('1d6 + 1');
 
-    this.cast = function(args) {
+    this.cast = args => {
         const actor = args.src;
         const dur = _duration.roll();
         const combatMods = new RG.Component.CombatMods();
@@ -380,7 +376,7 @@ RG.Spell.PowerDrain = function() {
     RG.Spell.Base.call(this, 'PowerDrain', 15);
     const _duration = RG.FACT.createDie('20d5 + 10');
 
-    this.cast = function(args) {
+    this.cast = args => {
         const actor = args.src;
         const dur = _duration.roll();
         const drainComp = new RG.Component.PowerDrain();
@@ -519,7 +515,7 @@ RG.Spell.Heal = function() {
 RG.extend2(RG.Spell.Heal, RG.Spell.Base);
 
 /* Used for testing the spells. Adds all spells to given SpellBook. */
-RG.Spell.addAllSpells = function(book) {
+RG.Spell.addAllSpells = book => {
     book.addSpell(new RG.Spell.FrostBolt());
     book.addSpell(new RG.Spell.IceShield());
     book.addSpell(new RG.Spell.GraspOfWinter());

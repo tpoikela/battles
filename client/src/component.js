@@ -25,11 +25,11 @@ RG.Component.Base = function(type) {
     this._onAddCallbacks = [];
     this._onRemoveCallbacks = [];
 
-    this.getType = function() {return _type;};
-    this.setType = function(type) {_type = type;};
+    this.getType = () => _type;
+    this.setType = type => {_type = type;};
 
-    this.getEntity = function() {return _entity;};
-    this.setEntity = function(entity) {
+    this.getEntity = () => _entity;
+    this.setEntity = entity => {
         if (_entity === null && entity !== null) {
             _entity = entity;
         }
@@ -137,17 +137,17 @@ RG.Component.Action = function() {
 
     let _energy = 0;
     let _active = false;
-    this.getEnergy = function() {return _energy;};
-    this.setEnergy = function(energy) {_energy = energy;};
+    this.getEnergy = () => _energy;
+    this.setEnergy = energy => {_energy = energy;};
 
-    this.getActive = function() {return _active;};
-    this.setActive = function(active) {_active = active;};
+    this.getActive = () => _active;
+    this.setActive = active => {_active = active;};
 
-    this.addEnergy = function(energy) {
+    this.addEnergy = energy => {
         _energy += energy;
     };
 
-    this.resetEnergy = function() {_energy = 0;};
+    this.resetEnergy = () => {_energy = 0;};
 
     this.enable = function() {
         if (_active === false) {
@@ -186,32 +186,30 @@ RG.Component.Hunger = function(energy) {
     let _maxEnergy = 20000;
     const _minEnergy = -5000;
 
-    this.getEnergy = function() {return _currEnergy;};
-    this.getMaxEnergy = function() {return _maxEnergy;};
+    this.getEnergy = () => _currEnergy;
+    this.getMaxEnergy = () => _maxEnergy;
 
-    this.setEnergy = function(energy) {_currEnergy = energy;};
-    this.setMaxEnergy = function(energy) {_maxEnergy = energy;};
+    this.setEnergy = energy => {_currEnergy = energy;};
+    this.setMaxEnergy = energy => {_maxEnergy = energy;};
 
     if (!RG.isNullOrUndef([energy])) {
         _currEnergy = energy;
         _maxEnergy = energy;
     }
 
-    this.addEnergy = function(energy) {
+    this.addEnergy = energy => {
         _currEnergy += energy;
         if (_currEnergy > _maxEnergy) {_currEnergy = _maxEnergy;}
     };
 
-    this.decrEnergy = function(energy) {
+    this.decrEnergy = energy => {
         _currEnergy -= energy;
         if (_currEnergy < _minEnergy) {_currEnergy = _minEnergy;}
     };
 
-    this.isStarving = function() {
-        return _currEnergy <= 0;
-    };
+    this.isStarving = () => _currEnergy <= 0;
 
-    this.isFull = function() {return _currEnergy === _maxEnergy;};
+    this.isFull = () => _currEnergy === _maxEnergy;
 
 };
 RG.extend2(RG.Component.Hunger, RG.Component.Base);
@@ -224,20 +222,20 @@ RG.Component.Health = function(hp) {
     let _maxHP = hp;
 
     /* Hit points getters and setters.*/
-    this.getHP = function() {return _hp;};
-    this.setHP = function(hp) {_hp = hp;};
-    this.getMaxHP = function() {return _maxHP;};
-    this.setMaxHP = function(hp) {_maxHP = hp;};
+    this.getHP = () => _hp;
+    this.setHP = hp => {_hp = hp;};
+    this.getMaxHP = () => _maxHP;
+    this.setMaxHP = hp => {_maxHP = hp;};
 
-    this.addHP = function(hp) {
+    this.addHP = hp => {
         _hp += hp;
         if (_hp > _maxHP) {_hp = _maxHP;}
     };
 
-    this.decrHP = function(hp) {_hp -= hp;};
+    this.decrHP = hp => {_hp -= hp;};
 
-    this.isAlive = function() {return _hp > 0;};
-    this.isDead = function() {return _hp <= 0;};
+    this.isAlive = () => _hp > 0;
+    this.isDead = () => _hp <= 0;
 
 };
 RG.extend2(RG.Component.Health, RG.Component.Base);
@@ -251,17 +249,17 @@ RG.Component.Damage = function(dmg, type) {
     let _src = null;
     let _weapon = null;
 
-    this.getDamage = function() {return _dmg;};
-    this.setDamage = function(dmg) {_dmg = dmg;};
+    this.getDamage = () => _dmg;
+    this.setDamage = dmg => {_dmg = dmg;};
 
-    this.getDamageType = function() {return _dmgType;};
-    this.setDamageType = function(type) {_dmgType = type;};
+    this.getDamageType = () => _dmgType;
+    this.setDamageType = type => {_dmgType = type;};
 
-    this.getSource = function() {return _src;};
-    this.setSource = function(src) {_src = src;};
+    this.getSource = () => _src;
+    this.setSource = src => {_src = src;};
 
-    this.getWeapon = function() {return _weapon;};
-    this.setWeapon = function(weapon) {_weapon = weapon;};
+    this.getWeapon = () => _weapon;
+    this.setWeapon = weapon => {_weapon = weapon;};
 
 };
 RG.extend2(RG.Component.Damage, RG.Component.Base);
@@ -276,14 +274,14 @@ RG.Component.Experience = function() {
     let _danger = 1;
 
     /* Experience-level methods.*/
-    this.setExp = function(exp) {_exp = exp;};
-    this.getExp = function() {return _exp;};
-    this.addExp = function(nExp) {_exp += nExp;};
-    this.setExpLevel = function(expLevel) {_expLevel = expLevel;};
-    this.getExpLevel = function() {return _expLevel;};
+    this.setExp = exp => {_exp = exp;};
+    this.getExp = () => _exp;
+    this.addExp = nExp => {_exp += nExp;};
+    this.setExpLevel = expLevel => {_expLevel = expLevel;};
+    this.getExpLevel = () => _expLevel;
 
-    this.setDanger = function(danger) {_danger = danger;};
-    this.getDanger = function() {return _danger;};
+    this.setDanger = danger => {_danger = danger;};
+    this.getDanger = () => _danger;
 
 };
 RG.extend2(RG.Component.Experience, RG.Component.Base);
@@ -296,14 +294,14 @@ RG.Component.ExpPoints = function(expPoints) {
     let _expPoints = expPoints;
     const _skills = {};
 
-    this.setSkillPoints = function(skill, pts) {
+    this.setSkillPoints = (skill, pts) => {
         _skills[skill] = pts;
     };
-    this.getSkillPoints = function() {return _skills;};
+    this.getSkillPoints = () => _skills;
 
-    this.setExpPoints = function(exp) {_expPoints = exp;};
-    this.getExpPoints = function() {return _expPoints;};
-    this.addExpPoints = function(exp) { _expPoints += exp;};
+    this.setExpPoints = exp => {_expPoints = exp;};
+    this.getExpPoints = () => _expPoints;
+    this.addExpPoints = exp => { _expPoints += exp;};
 
 };
 RG.extend2(RG.Component.ExpPoints, RG.Component.Base);
@@ -348,19 +346,19 @@ RG.Component.Stats = function() {
     let _speed = 100;
 
     /* These determine the chance of hitting. */
-    this.setAccuracy = function(accu) {_accuracy = accu;};
-    this.getAccuracy = function() {return _accuracy;};
-    this.setAgility = function(agil) {_agility = agil;};
-    this.getAgility = function() {return _agility;};
-    this.setStrength = function(str) {_strength = str;};
-    this.getStrength = function() {return _strength;};
-    this.setWillpower = function(wp) {_willpower = wp;};
-    this.getWillpower = function() {return _willpower;};
-    this.setPerception = function(per) {_perception = per;};
-    this.getPerception = function() {return _perception;};
+    this.setAccuracy = accu => {_accuracy = accu;};
+    this.getAccuracy = () => _accuracy;
+    this.setAgility = agil => {_agility = agil;};
+    this.getAgility = () => _agility;
+    this.setStrength = str => {_strength = str;};
+    this.getStrength = () => _strength;
+    this.setWillpower = wp => {_willpower = wp;};
+    this.getWillpower = () => _willpower;
+    this.setPerception = per => {_perception = per;};
+    this.getPerception = () => _perception;
 
-    this.setSpeed = function(speed) {_speed = speed;};
-    this.getSpeed = function() {return _speed;};
+    this.setSpeed = speed => {_speed = speed;};
+    this.getSpeed = () => _speed;
 
 };
 
@@ -424,8 +422,8 @@ RG.Component.Attack = function(target) {
 
     let _target = target;
 
-    this.setTarget = function(t) {_target = t;};
-    this.getTarget = function() {return _target;};
+    this.setTarget = t => {_target = t;};
+    this.getTarget = () => _target;
 
 };
 RG.extend2(RG.Component.Attack, RG.Component.Base);
@@ -462,48 +460,44 @@ RG.Component.Missile = function(source) {
     let _path = []; // Flying path for the missile
     let _pathIter = -1;
 
-    this.getX = function() {return _x;};
-    this.getY = function() {return _y;};
-    this.getSource = function() {return _source;};
-    this.getLevel = function() {return _level;};
+    this.getX = () => _x;
+    this.getY = () => _y;
+    this.getSource = () => _source;
+    this.getLevel = () => _level;
 
-    this.setRange = function(range) {_range = range;};
-    this.hasRange = function() {return _range > 0;};
-    this.isFlying = function() {return _isFlying;};
-    this.stopMissile = function() {_isFlying = false;};
+    this.setRange = range => {_range = range;};
+    this.hasRange = () => _range > 0;
+    this.isFlying = () => _isFlying;
+    this.stopMissile = () => {_isFlying = false;};
 
-    this.getAttack = function() {return _attack;};
-    this.setAttack = function(att) {_attack = att;};
-    this.getDamage = function() {return _dmg;};
-    this.setDamage = function(dmg) {_dmg = dmg;};
+    this.getAttack = () => _attack;
+    this.setAttack = att => {_attack = att;};
+    this.getDamage = () => _dmg;
+    this.setDamage = dmg => {_dmg = dmg;};
 
-    this.setTargetXY = function(x, y) {
+    this.setTargetXY = (x, y) => {
         _path = RG.getShortestPath(_x, _y, x, y);
         _targetX = x;
         _targetY = y;
         if (_path.length > 0) {_pathIter = 0;}
     };
 
-    this.getTargetX = function() {return _targetX;};
-    this.getTargetY = function() {return _targetY;};
+    this.getTargetX = () => _targetX;
+    this.getTargetY = () => _targetY;
 
     /* Returns true if missile has reached its target map cell.*/
-    this.inTarget = function() {
-        return _x === _targetX && _y === _targetY;
-    };
+    this.inTarget = () => _x === _targetX && _y === _targetY;
 
-    const iteratorValid = function() {
-        return _pathIter >= 0 && _pathIter < _path.length;
-    };
+    const iteratorValid = () => _pathIter >= 0 && _pathIter < _path.length;
 
-    const setValuesFromIterator = function() {
+    const setValuesFromIterator = () => {
         const coord = _path[_pathIter];
         _x = coord.x;
         _y = coord.y;
     };
 
     /* Resets the path iterator to the first x,y. */
-    this.first = function() {
+    this.first = () => {
         _pathIter = 0;
         setValuesFromIterator();
         return [_x, _y];
@@ -511,7 +505,7 @@ RG.Component.Missile = function(source) {
 
     /* Moves to next cell in missile's path. Returns null if path is finished.
      * */
-    this.next = function() {
+    this.next = () => {
         if (iteratorValid()) {
             --_range;
             ++_pathIter;
@@ -522,7 +516,7 @@ RG.Component.Missile = function(source) {
     };
 
     /* Returns the prev cell in missile's path. Moves iterator backward. */
-    this.prev = function() {
+    this.prev = () => {
         if (iteratorValid()) {
             ++_range;
             --_pathIter;
@@ -577,10 +571,10 @@ RG.Component.Communication = function() {
 
     const _messages = [];
 
-    this.getMsg = function() {return _messages;};
+    this.getMsg = () => _messages;
 
     /* Adds one message to the communication.*/
-    this.addMsg = function(obj) {
+    this.addMsg = obj => {
         _messages.push(obj);
     };
 
@@ -594,13 +588,13 @@ RG.Component.Physical = function() {
     let _weight = 1; // in kg
     let _size = 1; // abstract unit
 
-    this.setWeight = function(weight) {
+    this.setWeight = weight => {
         _weight = weight;
     };
 
-    this.getWeight = function() {return _weight;};
-    this.setSize = function(size) {_size = size;};
-    this.getSize = function() {return _size;};
+    this.getWeight = () => _weight;
+    this.setSize = size => {_size = size;};
+    this.getSize = () => _size;
 
 };
 RG.extend2(RG.Component.Physical, RG.Component.Base);
@@ -619,8 +613,8 @@ RG.Component.Stun = function() {
     RG.Component.Base.call(this, 'Stun');
 
     let _src = null;
-    this.getSource = function() {return _src;};
-    this.setSource = function(src) {_src = src;};
+    this.getSource = () => _src;
+    this.setSource = src => {_src = src;};
 
 };
 RG.extend2(RG.Component.Stun, RG.Component.Base);
@@ -631,8 +625,8 @@ RG.Component.Paralysis = function() {
     RG.Component.Base.call(this, 'Paralysis');
 
     let _src = null;
-    this.getSource = function() {return _src;};
-    this.setSource = function(src) {_src = src;};
+    this.getSource = () => _src;
+    this.setSource = src => {_src = src;};
 
 };
 RG.extend2(RG.Component.Paralysis, RG.Component.Base);
@@ -644,8 +638,8 @@ RG.Component.MindControl = function() {
 
     let _src = null;
     let _brainTarget = null;
-    this.getSource = function() {return _src;};
-    this.setSource = function(src) {_src = src;};
+    this.getSource = () => _src;
+    this.setSource = src => {_src = src;};
 
     const _addCb = () => {
         _brainTarget = this.getEntity().getBrain();
@@ -796,7 +790,7 @@ RG.Component.ActorClass = function() {
 
     let _class = null;
 
-    this.setClass = function(classObj) {
+    this.setClass = classObj => {
         _class = classObj;
     };
 
@@ -868,20 +862,20 @@ RG.Component.SpellPower = function(maxPP) {
     let _pp = _maxPP;
 
     /* Spell power points getters and setters.*/
-    this.getPP = function() {return _pp;};
-    this.setPP = function(pp) {_pp = pp;};
-    this.getMaxPP = function() {return _maxPP;};
-    this.setMaxPP = function(pp) {_maxPP = pp;};
+    this.getPP = () => _pp;
+    this.setPP = pp => {_pp = pp;};
+    this.getMaxPP = () => _maxPP;
+    this.setMaxPP = pp => {_maxPP = pp;};
 
-    this.addPP = function(pp) {
+    this.addPP = pp => {
         _pp += pp;
         if (_pp > _maxPP) {_pp = _maxPP;}
     };
 
-    this.decrPP = function(pp) {_pp -= pp;};
+    this.decrPP = pp => {_pp -= pp;};
 
-    this.hasPower = function() {return _pp > 0;};
-    this.canCast = function(spellPP) {return _pp >= spellPP;};
+    this.hasPower = () => _pp > 0;
+    this.canCast = spellPP => _pp >= spellPP;
 
 };
 RG.extend2(RG.Component.SpellPower, RG.Component.Base);
@@ -902,14 +896,14 @@ RG.Component.SpellBase = function(type) {
     let _src = null;
     let _args = null;
 
-    this.getSpell = function() {return _spell;};
-    this.setSpell = function(spell) {_spell = spell;};
+    this.getSpell = () => _spell;
+    this.setSpell = spell => {_spell = spell;};
 
-    this.getSource = function() {return _src;};
-    this.setSource = function(src) {_src = src;};
+    this.getSource = () => _src;
+    this.setSource = src => {_src = src;};
 
-    this.getArgs = function() {return _args;};
-    this.setArgs = function(args) {_args = args;};
+    this.getArgs = () => _args;
+    this.setArgs = args => {_args = args;};
 
 };
 RG.extend2(RG.Component.SpellBase, RG.Component.Base);
@@ -949,8 +943,8 @@ RG.Component.AddOnHit = function() {
 
     let _comp = null;
 
-    this.setComp = function(comp) {_comp = comp;};
-    this.getComp = function() {return _comp;};
+    this.setComp = comp => {_comp = comp;};
+    this.getComp = () => _comp;
 };
 RG.extend2(RG.Component.AddOnHit, RG.Component.Base);
 
@@ -959,8 +953,8 @@ RG.Component.Animation = function(args) {
     RG.Component.Base.call(this, 'Animation');
     let _args = args;
 
-    this.getArgs = function() {return _args;};
-    this.setArgs = function(args) {_args = args;};
+    this.getArgs = () => _args;
+    this.setArgs = args => {_args = args;};
 
 };
 RG.extend2(RG.Component.Animation, RG.Component.Base);

@@ -6,19 +6,17 @@ const MemoryPlayer = function(player) {
     let _lastAttackedID = null;
 
     /* Sets the last attacked actor. */
-    this.setLastAttacked = function(actor) {
+    this.setLastAttacked = actor => {
         _lastAttackedID = actor.getID();
     };
 
     this.getLastAttacked = () => _lastAttackedID;
 
     /* Returns true if the actor was the last attacked one. */
-    this.wasLastAttacked = function(actor) {
-        return _lastAttackedID === actor.getID();
-    };
+    this.wasLastAttacked = actor => _lastAttackedID === actor.getID();
 
     /* Returns true if the given actor is enemy of player. */
-    this.isEnemy = function(actor) {
+    this.isEnemy = actor => {
         if (actor.isPlayer()) {
             return false; // Needed for MindControl
         }
@@ -38,7 +36,7 @@ const BrainPlayer = function(actor) {
 
     /* For given code, adds a GUI callback. When this keycode is given, a GUI
      * callback is called instead. */
-    this.addGUICallback = function(code, callback) {
+    this.addGUICallback = (code, callback) => {
         _guiCallbacks[code] = callback;
     };
 
@@ -58,16 +56,16 @@ const BrainPlayer = function(actor) {
     let _fightMode = RG.FMODE_NORMAL;
 
     /* Restores the base speed after run-mode.*/
-    const _restoreBaseSpeed = function() {
+    const _restoreBaseSpeed = () => {
         _runModeEnabled = false;
         if (_actor.has('StatsMods')) {
             _actor.get('StatsMods').setSpeed(0);
         }
     };
 
-    this.getType = function() {return _type;};
+    this.getType = () => _type;
 
-    this.isRunModeEnabled = function() {return _runModeEnabled;};
+    this.isRunModeEnabled = () => _runModeEnabled;
 
     this.cmdNotPossible = function(msg) {
         this.energy = 0;
@@ -75,14 +73,14 @@ const BrainPlayer = function(actor) {
         return null;
     };
 
-    this.isMenuShown = function() {
+    this.isMenuShown = () => {
         if (_selectionObject) {
             return _selectionObject.showMenu();
         }
         return false;
     };
 
-    this.getMenu = function() {
+    this.getMenu = () => {
         if (_selectionObject) {
             if (_selectionObject.showMenu()) {
                 return _selectionObject.getMenu();
@@ -224,14 +222,14 @@ const BrainPlayer = function(actor) {
                         }
                         else {
                             this.energy = RG.energy.PICKUP;
-                            return function() {
+                            return () => {
                                 level.pickupItem(_actor, x, y);
                             };
                         }
                     }
                     else {
                         this.energy = RG.energy.PICKUP;
-                        return function() {
+                        return () => {
                             level.pickupItem(_actor, x, y);
                         };
                     }
@@ -245,10 +243,10 @@ const BrainPlayer = function(actor) {
             if (RG.KeyMap.isUseStairs(code)) {
                 cmdType = 'STAIRS';
                 if (currCell.hasStairs()) {
-                    return function() {level.useStairs(_actor);};
+                    return () => {level.useStairs(_actor);};
                 }
                 else if (currCell.hasPassage()) {
-                    return function() {level.useStairs(_actor);};
+                    return () => {level.useStairs(_actor);};
                 }
                 else {
                     return this.cmdNotPossible(
@@ -278,7 +276,7 @@ const BrainPlayer = function(actor) {
                         this.energy = RG.energy.MOVE;
                     }
 
-                    return function() {
+                    return () => {
                         const movComp = new RG.Component.Movement(x, y, level);
                         _actor.add('Movement', movComp);
                     };
@@ -292,7 +290,7 @@ const BrainPlayer = function(actor) {
                             'Null target for attack x,y: ' + x + ',' + y);
                     }
 
-                    const attackCallback = function() {
+                    const attackCallback = () => {
                         _setAttackStats();
                         const attackComp = new RG.Component.Attack(target);
                         _actor.add('Attack', attackComp);
@@ -323,7 +321,7 @@ const BrainPlayer = function(actor) {
         }
         else if (cmdType === 'REST') {
             this.energy = RG.energy.REST;
-            return function() {};
+            return () => {};
         }
 
         return this.noAction();
@@ -336,10 +334,10 @@ const BrainPlayer = function(actor) {
     };
 
     /* Returns current fighting mode.*/
-    this.getFightMode = function() {return _fightMode;};
+    this.getFightMode = () => _fightMode;
 
     /* Toggle between walking/running modes.*/
-    this.toggleRunMode = function() {
+    this.toggleRunMode = () => {
         if (_runModeEnabled) {
             _restoreBaseSpeed();
         }
@@ -352,13 +350,13 @@ const BrainPlayer = function(actor) {
     };
 
     /* Toggles between different fighting modes.*/
-    this.toggleFightMode = function() {
+    this.toggleFightMode = () => {
         _fightMode += 1;
         if (_fightMode >= RG.FMODES.length) {_fightMode = RG.FMODE_NORMAL;}
     };
 
     /* If there are multiple items per cell, digs next item to the top.*/
-    this.getNextItemOnTop = function(cell) {
+    this.getNextItemOnTop = cell => {
         if (cell.hasProp('items')) {
             const items = cell.getProp('items');
             const name = items[0].getName();
@@ -379,12 +377,12 @@ const BrainPlayer = function(actor) {
 
     /* Creates the callback for buying an item, and sets up the confirmation
      * request from player.*/
-    const _createBuyConfirmCallback = function(currCell) {
+    const _createBuyConfirmCallback = currCell => {
         const topItem = currCell.getProp('items')[0];
         const shopElem = currCell.getPropType('shop')[0];
         const nCoins = shopElem.getItemPriceForBuying(topItem);
 
-        const buyItemCallback = function() {
+        const buyItemCallback = () => {
             shopElem.buyItem(topItem, _actor);
         };
 
@@ -396,7 +394,7 @@ const BrainPlayer = function(actor) {
     };
 
     /* Sets the stats for attack for special modes.*/
-    const _setAttackStats = function() {
+    const _setAttackStats = () => {
         const stats = _actor.get('Stats');
         const combat = _actor.get('Combat');
         let speedBoost = 0;
@@ -496,7 +494,7 @@ const BrainPlayer = function(actor) {
                 const price = shopElem.getItemPriceForSelling(obj.item);
 
                 _wantConfirm = true;
-                _confirmCallback = function() {
+                _confirmCallback = () => {
                     const sellOk = shopElem.sellItem(obj.item, _actor);
                     if (obj.hasOwnProperty('callback')) {
                         if (sellOk) {
@@ -569,7 +567,7 @@ const BrainPlayer = function(actor) {
             }
 
         }
-        return function() {};
+        return () => {};
     };
 
     // Not used to store anything, used only to map setters to components
@@ -607,7 +605,7 @@ const BrainPlayer = function(actor) {
     };
 
     /* Returns possible target for attack, or null if none are found.*/
-    const _getAttackTarget = function(map, x, y) {
+    const _getAttackTarget = (map, x, y) => {
         const targets = map.getCell(x, y).getProp('actors');
         for (let i = 0; i < targets.length; i++) {
             if (!targets[i].has('Ethereal')) {return targets[i];}
@@ -627,7 +625,7 @@ const BrainPlayer = function(actor) {
                 else {
                     door.openDoor();
                 }
-                return function() {};
+                return () => {};
             }
         }
         return this.cmdNotPossible('There are no doors close by');
@@ -690,7 +688,7 @@ const BrainPlayer = function(actor) {
     };
 
     /* Required for damage dealing. Does nothing for the player.*/
-    this.addEnemy = function() {};
+    this.addEnemy = () => {};
 
     this.toJSON = function() {
         return {

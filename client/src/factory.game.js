@@ -144,7 +144,7 @@ RG.Factory.Game = function() {
         RG.POOL.listenEvent(RG.EVT_ACTOR_CREATED, this);
         RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
 
-        this.addSnow = function(level, ratio) {
+        this.addSnow = (level, ratio) => {
             const map = level.getMap();
             RG.Map.Generator.addRandomSnow(map, ratio);
         };
@@ -168,7 +168,7 @@ RG.Factory.Game = function() {
         };
 
 
-        this.allBeastsKilled = function() {
+        this.allBeastsKilled = () => {
             RG.gameMsg(MSG.BEASTS_SLAIN);
             // DO a final message of game over
             // Add random people to celebrate
@@ -348,7 +348,7 @@ RG.Factory.Game = function() {
         }
     };
 
-    this.createPresetLevels = function(arr) {
+    this.createPresetLevels = arr => {
         const fromJSON = new RG.Game.FromJSON();
         return arr.map(item => {
             const level = fromJSON.restoreLevel(item.level);
@@ -497,9 +497,7 @@ RG.Factory.Game = function() {
 
         const branch = new RG.World.Branch('StartBranch');
 
-        const itemConstraint = function(maxValue) {
-            return function(item) {return item.value <= maxValue;};
-        };
+        const itemConstraint = maxValue => item => item.value <= maxValue;
         // Generate all game levels
         for (let nl = 0; nl < nLevels; nl++) {
 
@@ -590,7 +588,7 @@ RG.Factory.Game = function() {
 
     };
 
-    this.addActorsToArmy = function(army, num, name) {
+    this.addActorsToArmy = (army, num, name) => {
         for (let i = 0; i < num; i++) {
             const actor = _parser.createActualObj('actors', name);
             actor.setFOVRange(10);
@@ -610,18 +608,18 @@ RG.Factory.Game = function() {
 
         this.createHumanArmy(level, _parser);
 
-        level.setOnFirstEnter(function() {
+        level.setOnFirstEnter(() => {
             const demonEvent = new RG.Time.OneShotEvent(
                 that.createDemonArmy.bind(that, level, _parser), 100 * 20,
                 'Demon hordes are unleashed from the unsilent abyss!');
             game.addEvent(demonEvent);
         });
 
-        level.setOnEnter( function() {
+        level.setOnEnter( () => {
             _playerFOV = game.getPlayer().getFOVRange();
             game.getPlayer().setFOVRange(20);
         });
-        level.setOnExit( function() {
+        level.setOnExit( () => {
             game.getPlayer().setFOVRange(_playerFOV);
         });
 

@@ -32,17 +32,15 @@ RG.Actor.Rogue = function(name) { // {{{2
     this.add('Stats', new RG.Component.Stats());
     this.add('Health', new RG.Component.Health(50));
 
-    this.setName = function(name) {_name = name;};
-    this.getName = function() {return _name;};
+    this.setName = name => {_name = name;};
+    this.getName = () => _name;
 
     /* Returns true if actor is a player.*/
     this.isPlayer = function() {return this._isPlayer;};
 
-    this.getFOVRange = function() {
-        return _fovRange;
-    };
+    this.getFOVRange = () => _fovRange;
 
-    this.setFOVRange = function(range) {
+    this.setFOVRange = range => {
         _fovRange = range;
     };
 
@@ -175,7 +173,7 @@ RG.Actor.Rogue.prototype.nextAction = function(obj) {
         action = new RG.Time.RogueAction(duration, cb, {});
     }
     else {
-        action = new RG.Time.RogueAction(0, function() {}, {});
+        action = new RG.Time.RogueAction(0, () => {}, {});
     }
 
     if (this._brain.hasOwnProperty('energy')) {

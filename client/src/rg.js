@@ -177,7 +177,7 @@ const RG = { // {{{2
         const coords = [];
         const passableCallback = (x, y) => map.isPassable(x, y);
         const finder = new ROT.Path.AStar(x1, y1, passableCallback);
-        finder.compute(x0, y0, function(x, y) {
+        finder.compute(x0, y0, (x, y) => {
             coords.push({x, y});
         });
         return coords;
@@ -187,10 +187,10 @@ const RG = { // {{{2
     * check if any of the cells are passable. */
     getShortestPath: function(x0, y0, x1, y1) {
         const coords = [];
-        const passableCallback = function() {return true;};
+        const passableCallback = () => true;
         // const finder = new ROT.Path.Dijkstra(x1, y1, passableCallback);
         const finder = new ROT.Path.AStar(x1, y1, passableCallback);
-        finder.compute(x0, y0, function(x, y) {
+        finder.compute(x0, y0, (x, y) => {
             coords.push({x, y});
         });
         return coords;
@@ -706,7 +706,7 @@ RG.ALIGNMENTS = [RG.ALIGN_GOOD, RG.ALIGN_NEUTRAL, RG.ALIGN_EVIL];
 RG.cellRenderArray = RG.cellRenderVisible;
 
 /* Returns danger probabilites for given level.*/
-RG.getDangerProb = function(min, max) {
+RG.getDangerProb = (min, max) => {
     if (min > max) {
         console.error('RG.getDangerProb param order is min < max');
         return {};
@@ -723,7 +723,7 @@ RG.getDangerProb = function(min, max) {
     const highPoint = (maxArr % 2 === 0) ? maxArr / 2 : (maxArr + 1) / 2;
     const obj = {};
 
-    arr.forEach( function(val) {
+    arr.forEach( val => {
         const absDiff = Math.abs(val - highPoint);
         let prob = maxArr - Math.floor(RG.DANGER_ADJ_FACTOR * absDiff);
         prob = (prob === 0) ? prob + 1 : prob;
@@ -736,12 +736,16 @@ RG.getDangerProb = function(min, max) {
 
 /* Returns the weight distribution for foods. This is something like
  * {0.1: 10, 0.2: 7, 0.3: 5, 0.5: 1} etc.*/
-RG.getFoodWeightDistr = function() {
-    return {0.1: 20, 0.2: 10, 0.3: 5, 0.4: 3, 0.5: 1};
-};
+RG.getFoodWeightDistr = () => ({
+    0.1: 20,
+    0.2: 10,
+    0.3: 5,
+    0.4: 3,
+    0.5: 1
+});
 
 /* Returns the count distribution for gold coins. */
-RG.getGoldCoinCountDistr = function(nLevel) {
+RG.getGoldCoinCountDistr = nLevel => {
     const maxVal = nLevel + 1;
     const dist = {};
     for (let i = 1; i <= maxVal; i++) {
@@ -751,7 +755,7 @@ RG.getGoldCoinCountDistr = function(nLevel) {
 };
 
 /* Converts abstract value into gold weight. */
-RG.valueToGoldWeight = function(value) {
+RG.valueToGoldWeight = value => {
     let currVal = value;
     let slope = 1;
     while (currVal >= 100) {
@@ -763,7 +767,7 @@ RG.valueToGoldWeight = function(value) {
 };
 
 /* Given an actor, scales its attributes based on new experience level.*/
-RG.levelUpActor = function(actor, newLevel) {
+RG.levelUpActor = (actor, newLevel) => {
     if (actor.has('Experience')) {
         let currLevel = actor.get('Experience').getExpLevel();
         if (currLevel < newLevel) {
@@ -816,7 +820,7 @@ RG.DIE_RE = /\s*(\d+)d(\d+)\s*(\+|-)?\s*(\d+)?/;
 
 /* Parses die expression like '2d4' or '3d5 + 4' and returns it as an array [2,
  * 4, 0] or [3, 5, 4]. Returns empty array for invalid expressions.*/
-RG.parseDieSpec = function(strOrArray) {
+RG.parseDieSpec = strOrArray => {
     if (typeof strOrArray === 'object') {
         if (strOrArray.length >= 3) {
             return [strOrArray[0], strOrArray[1], strOrArray[2]];
@@ -847,14 +851,14 @@ RG.parseDieSpec = function(strOrArray) {
 RG.ONE_SHOT_ITEMS = ['potion'];
 
 /* Returns true if given item is one-shot use item by its type.*/
-RG.isOneShotItem = function(item) {
+RG.isOneShotItem = item => {
     const itemType = item.getType();
     const index = RG.ONE_SHOT_ITEMS.indexOf(itemType);
     return index >= 0;
 };
 
 /* Destroys item (typically after use). */
-RG.destroyItemIfNeeded = function(item) {
+RG.destroyItemIfNeeded = item => {
     if (RG.isOneShotItem(item)) {
         if (item.count === 1) {
             const msg = {item: item};
@@ -867,9 +871,7 @@ RG.destroyItemIfNeeded = function(item) {
 };
 
 /* Given gold weight, returns the equivalent in coins.*/
-RG.getGoldInCoins = function(weight) {
-    return Math.floor(weight / RG.GOLD_COIN_WEIGHT);
-};
+RG.getGoldInCoins = weight => Math.floor(weight / RG.GOLD_COIN_WEIGHT);
 
 /* eslint-disable */
 RG.VK_a = ROT.VK_A + 32;
@@ -985,7 +987,7 @@ RG.menuIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'a', 'b', 'c', 'd', 'e', 'f',
     'u', 'v', 'w', 'x', 'y', 'z'
 ];
 
-RG.codeToIndex = function(code) {
+RG.codeToIndex = code => {
     if (code >= ROT.VK_0 && code <= ROT.VK_9) {
         return code - ROT.VK_0;
     }
@@ -1022,7 +1024,7 @@ RG.KEY.TARGET = RG.VK_t;
 RG.KEY.NEXT = RG.VK_n;
 RG.KeyMap.initMap();
 
-RG.isValidKey = function(keyCode) {
+RG.isValidKey = keyCode => {
     let found = false;
     Object.keys(RG.KEY).forEach(key => {
         found = found || RG.KEY[key] === keyCode;
@@ -1058,7 +1060,7 @@ RG.ACTOR_SPARSE_SQR = 200;
 RG.ACTOR_MEDIUM_SQR = 120;
 RG.ACTOR_ABUNDANT_SQR = 50;
 
-RG.getCardinalDirection = function(level, cell) {
+RG.getCardinalDirection = (level, cell) => {
     const cols = level.getMap().cols;
     const rows = level.getMap().rows;
     const x = cell.getX();
@@ -1071,7 +1073,7 @@ RG.getCardinalDirection = function(level, cell) {
 };
 
 /* Debugging function for printing 2D map row-by-row. */
-RG.printMap = function(map) {
+RG.printMap = map => {
     let rowByRow = null;
     if (Array.isArray(map)) {
         rowByRow = RG.colsToRows(map);
@@ -1088,7 +1090,7 @@ RG.printMap = function(map) {
 
 };
 
-RG.colsToRows = function(arr) {
+RG.colsToRows = arr => {
     const res = [];
     const sizeY = arr[0].length;
     const sizeX = arr.length;
@@ -1103,7 +1105,7 @@ RG.colsToRows = function(arr) {
 
 /* Given 2D array of elements, flattens all arrays inside each [x][y]
  * positions. */
-RG.flattenTo2D = function(arr) {
+RG.flattenTo2D = arr => {
     const sizeY = arr.length;
     const res = [];
     for (let y = 0; y < sizeY; y++) {
@@ -1126,7 +1128,7 @@ RG.flattenTo2D = function(arr) {
 	return res;
 };
 
-RG.setAllExplored = function(level, isExplored) {
+RG.setAllExplored = (level, isExplored) => {
     const map = level.getMap();
     for (let x = 0; x < map.cols; x++) {
         for (let y = 0; y < map.rows; y++) {
@@ -1136,7 +1138,7 @@ RG.setAllExplored = function(level, isExplored) {
     }
 };
 
-RG.addCompToEntAfterHit = function(comp, ent) {
+RG.addCompToEntAfterHit = (comp, ent) => {
     const compClone = comp.clone();
 
     if (comp.hasOwnProperty('duration')) {
@@ -1150,7 +1152,7 @@ RG.addCompToEntAfterHit = function(comp, ent) {
 };
 
 /* Returns a game message for cell which cannot be travelled. */
-RG.getImpassableMsg = function(actor, cell, str) {
+RG.getImpassableMsg = (actor, cell, str) => {
     const type = cell.getBaseElem().getType();
     const cellMsg = `cannot venture beyond ${type}`;
     return `${str} ${cellMsg}`;
@@ -1163,14 +1165,14 @@ RG.Die = function(num, dice, mod) {
     let _dice = parseInt(dice, 10);
     let _mod = parseInt(mod, 10);
 
-    this.getNum = function() {return _num;};
-    this.setNum = function(num) {_num = num;};
-    this.getDice = function() {return _dice;};
-    this.setDice = function(dice) {_dice = dice;};
-    this.getMod = function() {return _mod;};
-    this.setMod = function(mod) {_mod = mod;};
+    this.getNum = () => _num;
+    this.setNum = num => {_num = num;};
+    this.getDice = () => _dice;
+    this.setDice = dice => {_dice = dice;};
+    this.getMod = () => _mod;
+    this.setMod = mod => {_mod = mod;};
 
-    this.roll = function() {
+    this.roll = () => {
         let res = 0;
         for (let i = 0; i < _num; i++) {
             res += RG.RAND.getUniformInt(1, _dice);
@@ -1178,29 +1180,27 @@ RG.Die = function(num, dice, mod) {
         return res + _mod;
     };
 
-    this.toString = function() {
+    this.toString = () => {
         let sign = '+';
         if (mod < 0) {sign = '-';}
         return _num + 'd' + _dice + ' ' + sign + ' ' + _mod;
     };
 
-    this.copy = function(rhs) {
+    this.copy = rhs => {
         _num = rhs.getNum();
         _dice = rhs.getDice();
         _mod = rhs.getMod();
     };
 
     /* Returns true if dice are equal.*/
-    this.equals = function(rhs) {
+    this.equals = rhs => {
         let res = _num === rhs.getNum();
         res = res && (_dice === rhs.getDice());
         res = res && (_mod === rhs.getMod());
         return res;
     };
 
-    this.toJSON = function() {
-        return [_num, _dice, _mod];
-    };
+    this.toJSON = () => [_num, _dice, _mod];
 };
 
 /* Event pool can be used to emit events and register callbacks for listeners.
@@ -1209,13 +1209,11 @@ RG.EventPool = function() { // {{{2
     const _listeners = {};
     let _eventsNoListener = 0;
 
-    this.getNumListeners = function() {
-        return _eventsNoListener;
-    };
+    this.getNumListeners = () => _eventsNoListener;
 
     /* Emits an event with given name. args must be in object-notation ie.
      * {data: "abcd"} */
-    this.emitEvent = function(evtName, args) {
+    this.emitEvent = (evtName, args) => {
         if (!RG.isNullOrUndef([evtName])) {
             if (_listeners.hasOwnProperty(evtName)) {
                 const called = _listeners[evtName];
@@ -1234,7 +1232,7 @@ RG.EventPool = function() { // {{{2
     };
 
     /* Register an event listener. */
-    this.listenEvent = function(evtName, obj) {
+    this.listenEvent = (evtName, obj) => {
         if (!RG.isNullOrUndef([evtName])) {
             if (obj.hasOwnProperty('notify') || obj.hasNotify) {
                 if (_listeners.hasOwnProperty(evtName)) {
@@ -1276,7 +1274,7 @@ RG.MessageHandler = function() { // {{{2
     let _hasNew = false;
 
     this.hasNotify = true;
-    this.notify = function(evtName, msg) {
+    this.notify = (evtName, msg) => {
         if (evtName === RG.EVT_MSG) {
             if (msg.hasOwnProperty('msg')) {
                 const msgObj = {msg: msg.msg, style: 'prim', count: 1};
@@ -1302,16 +1300,16 @@ RG.MessageHandler = function() { // {{{2
     };
     RG.POOL.listenEvent(RG.EVT_MSG, this);
 
-    this.hasNew = function() {return _hasNew;};
+    this.hasNew = () => _hasNew;
 
-    this.getMessages = function() {
+    this.getMessages = () => {
         _hasNew = false;
         if (_messages.length > 0) {return _messages;}
         else if (_prevMessages.length > 0) {return _prevMessages;}
         else {return [];}
     };
 
-    this.clear = function() {
+    this.clear = () => {
         if (_messages.length > 0) {_prevMessages = _messages.slice();}
         _messages = [];
     };
@@ -1328,7 +1326,7 @@ RG.Entity = function() {
 };
 RG.Entity.idCount = 0;
 
-RG.Entity.createEntityID = function() {
+RG.Entity.createEntityID = () => {
     const id = RG.Entity.prototype.idCount;
     RG.Entity.prototype.idCount += 1;
     return id;

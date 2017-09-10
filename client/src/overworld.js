@@ -174,12 +174,12 @@ RG.OverWorld.SubLevel = function(level) {
  * method.
  * @return RG.Map.Level.
  */
-RG.OverWorld.createOverWorld = function(conf = {}) {
+RG.OverWorld.createOverWorld = (conf = {}) => {
     const overworld = OW.createOverWorld(conf);
     return RG.OverWorld.createOverWorldLevel(overworld, conf);
 };
 
-RG.OverWorld.createOverWorldLevel = function(overworld, conf) {
+RG.OverWorld.createOverWorldLevel = (overworld, conf) => {
     const worldX = conf.worldX || 400;
     const worldY = conf.worldY || 400;
 
@@ -597,7 +597,7 @@ function addVillageToSubLevel(feat, owSubLevel, subLevel) {
  * |areaX| X |areaY| array of World.AreaTile levels.
  * Both levels are RG.Map.Level objects.
  */
-RG.OverWorld.createWorldConf = function(ow, subLevels, areaX, areaY) {
+RG.OverWorld.createWorldConf = (ow, subLevels, areaX, areaY) => {
     const worldConf = {
         name: 'The North',
         nAreas: 1,

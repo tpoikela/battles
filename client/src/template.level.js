@@ -417,7 +417,7 @@ RG.Template.Level = function(tilesX, tilesY) {
         }
     };
 
-    this.getMatchingExit = function(chosen) {
+    this.getMatchingExit = chosen => {
         switch (chosen) {
             case 'N': return 'S';
             case 'S': return 'N';
@@ -427,14 +427,14 @@ RG.Template.Level = function(tilesX, tilesY) {
         }
     };
 
-    this._getNewX = function(x, dir) {
+    this._getNewX = (x, dir) => {
         if (dir === 'E') {return x - 1;}
         if (dir === 'W') {return x + 1;}
         return x;
 
     };
 
-    this._getNewY = function(y, dir) {
+    this._getNewY = (y, dir) => {
         if (dir === 'N') {return y + 1;}
         if (dir === 'S') {return y - 1;}
         return y;

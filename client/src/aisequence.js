@@ -110,7 +110,7 @@ const Models = {}; // Namespace for models
 
 Models.Rogue = {};
 
-Models.Rogue.ifEnemyIsInSight = function(actor) {
+Models.Rogue.ifEnemyIsInSight = actor => {
     const brain = actor.getBrain();
     const seenCells = brain.getSeenCells();
     const playerCell = brain.findEnemyCell(seenCells);
@@ -118,7 +118,7 @@ Models.Rogue.ifEnemyIsInSight = function(actor) {
     return playerCell !== null;
 };
 
-Models.Rogue.attackEnemy = function(actor) {
+Models.Rogue.attackEnemy = actor => {
     const brain = actor.getBrain();
     const seenCells = brain.getSeenCells();
     const playerCell = brain.findEnemyCell(seenCells);
@@ -126,20 +126,20 @@ Models.Rogue.attackEnemy = function(actor) {
 };
 
 /* Returns true if actor has 10% of health. */
-Models.Rogue.ifSeriouslyWounded = function(actor) {
+Models.Rogue.ifSeriouslyWounded = actor => {
     const healthComp = actor.get('Health');
     const thr = Math.round(healthComp.getMaxHP() * 0.1);
     return healthComp.getHP() <= thr;
 };
 
-Models.Rogue.flee = function(actor) {
+Models.Rogue.flee = actor => {
     const brain = actor.getBrain();
     const seenCells = brain.getSeenCells();
     const playerCell = brain.findEnemyCell(seenCells);
     return brain.fleeFromCell(playerCell, seenCells);
 };
 
-Models.Rogue.exploreLevel = function(actor) {
+Models.Rogue.exploreLevel = actor => {
     const brain = actor.getBrain();
     const seenCells = brain.getSeenCells();
     return brain.exploreLevel(seenCells);
@@ -164,17 +164,11 @@ Models.Rogue.tree =
 /* Human models for AI. */
 Models.Human = {};
 
-Models.Human.isEnemyInSight = function(actor) {
-    return Models.Rogue.ifEnemyIsInSight(actor);
-};
+Models.Human.isEnemyInSight = actor => Models.Rogue.ifEnemyIsInSight(actor);
 
-Models.Human.willCommunicate = function(actor) {
-    return actor.getBrain().willCommunicate();
-};
+Models.Human.willCommunicate = actor => actor.getBrain().willCommunicate();
 
-Models.Human.communicateEnemies = function(actor) {
-    return actor.getBrain().communicateEnemies();
-};
+Models.Human.communicateEnemies = actor => actor.getBrain().communicateEnemies();
 
 Models.Human.tree =
     new SelectorNode(
@@ -199,13 +193,9 @@ Models.Demon = {};
 //------------------------------
 Models.Summoner = {};
 
-Models.Summoner.willSummon = function(actor) {
-    return actor.getBrain().willSummon();
-};
+Models.Summoner.willSummon = actor => actor.getBrain().willSummon();
 
-Models.Summoner.summonMonster = function(actor) {
-    return actor.getBrain().summonMonster();
-};
+Models.Summoner.summonMonster = actor => actor.getBrain().summonMonster();
 
 Models.Summoner.tree =
     new SelectorNode(
@@ -223,13 +213,9 @@ Models.Summoner.tree =
 //------------------------------
 Models.Archer = {};
 
-Models.Archer.canDoRangedAttack = function(actor) {
-    return actor.getBrain().canDoRangedAttack();
-};
+Models.Archer.canDoRangedAttack = actor => actor.getBrain().canDoRangedAttack();
 
-Models.Archer.doRangedAttack = function(actor) {
-    return actor.getBrain().doRangedAttack();
-};
+Models.Archer.doRangedAttack = actor => actor.getBrain().doRangedAttack();
 
 Models.Archer.tree =
     new SelectorNode(
@@ -248,17 +234,11 @@ Models.Archer.tree =
 
 Models.SpellCaster = {};
 
-Models.SpellCaster.shouldCastSpell = function(actor) {
-    return actor.getBrain().shouldCastSpell();
-};
+Models.SpellCaster.shouldCastSpell = actor => actor.getBrain().shouldCastSpell();
 
-Models.SpellCaster.canCastSpell = function(actor) {
-    return actor.getBrain().canCastSpell();
-};
+Models.SpellCaster.canCastSpell = actor => actor.getBrain().canCastSpell();
 
-Models.SpellCaster.castSpell = function(actor) {
-    return actor.getBrain().castSpell();
-};
+Models.SpellCaster.castSpell = actor => actor.getBrain().castSpell();
 
 Models.SpellCaster.tree =
     new SelectorNode(

@@ -135,7 +135,7 @@ RG.System.Attack = function(compTypes) {
         ent.remove('Attack');
     };
 
-    this.doDamage = function(att, def, dmg) {
+    this.doDamage = (att, def, dmg) => {
         const dmgComp = new RG.Component.Damage(dmg, RG.DMG.MELEE);
         dmgComp.setSource(att);
         def.add('Damage', dmgComp);
@@ -143,12 +143,12 @@ RG.System.Attack = function(compTypes) {
             msg: att.getName() + ' hits ' + def.getName()});
     };
 
-    this.addAttackerBonus = function(att) {
+    this.addAttackerBonus = att => {
         const cells = RG.Brain.getEnemyCellsAround(att);
         return cells.length;
     };
 
-    this.addDefenderBonus = function(def) {
+    this.addDefenderBonus = def => {
         const cells = RG.Brain.getEnemyCellsAround(def);
         return cells.length;
     };
@@ -183,7 +183,7 @@ RG.System.Attack = function(compTypes) {
     };
 
     /* Gets an enemy target for bi-directional strike, if any. */
-    this.getBiDirTarget = function(att, def) {
+    this.getBiDirTarget = (att, def) => {
         // 1st, find opposite x,y for the 1st attack
         const [attX, attY] = [att.getX(), att.getY()];
         const [defX, defY] = [def.getX(), def.getY()];
@@ -295,7 +295,7 @@ RG.System.Missile = function(compTypes) {
 
     };
 
-    this.finishMissileFlight = function(ent, mComp, currCell) {
+    this.finishMissileFlight = (ent, mComp, currCell) => {
         mComp.stopMissile(); // Target reached, stop missile
         ent.remove('Missile');
 
@@ -313,7 +313,7 @@ RG.System.Missile = function(compTypes) {
     };
 
     /* Returns true if the target was hit.*/
-    this.targetHit = function(target, mComp) {
+    this.targetHit = (target, mComp) => {
         const attack = mComp.getAttack();
         const defense = target.get('Combat').getDefense();
         const hitProp = attack / (attack + defense);
@@ -329,7 +329,7 @@ RG.extend2(RG.System.Missile, RG.System.Base);
 RG.System.Damage = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.DAMAGE, compTypes);
 
-    this.updateEntity = function(ent) {
+    this.updateEntity = ent => {
         if (ent.has('Health')) {
             const health = ent.get('Health');
             let totalDmg = _getDamageReduced(ent);
@@ -362,7 +362,7 @@ RG.System.Damage = function(compTypes) {
 
     /* Checks if protection checks can be applied to the damage caused. For
      * damage like hunger and poison, no protection helps.*/
-    const _getDamageReduced = function(ent) {
+    const _getDamageReduced = ent => {
         const dmgComp = ent.get('Damage');
         const dmg = dmgComp.getDamage();
         const src = dmgComp.getSource();
@@ -389,7 +389,7 @@ RG.System.Damage = function(compTypes) {
     };
 
     /* Applies add-on hit effects such as poison, frost or others. */
-    const _applyAddOnHitComp = function(ent) {
+    const _applyAddOnHitComp = ent => {
         const dmgComp = ent.get('Damage');
         const weapon = dmgComp.getWeapon();
         if (weapon) { // Attack was done using weapon
@@ -407,7 +407,7 @@ RG.System.Damage = function(compTypes) {
         }
     };
 
-    const _dropInvAndEq = function(actor) {
+    const _dropInvAndEq = actor => {
         const cell = actor.getCell();
         const x = cell.getX();
         const y = cell.getY();
@@ -424,7 +424,7 @@ RG.System.Damage = function(compTypes) {
     };
 
     /* Removes actor from current level and emits Actor killed event.*/
-    const _killActor = function(src, actor) {
+    const _killActor = (src, actor) => {
         const dmgComp = actor.get('Damage');
         const level = actor.getLevel();
         const cell = actor.getCell();
@@ -450,7 +450,7 @@ RG.System.Damage = function(compTypes) {
     };
 
     /* When an actor is killed, gives experience to damage's source.*/
-    const _giveExpToSource = function(att, def) {
+    const _giveExpToSource = (att, def) => {
         if (att !== null) {
             const defLevel = def.get('Experience').getExpLevel();
             const defDanger = def.get('Experience').getDanger();
@@ -466,7 +466,7 @@ RG.extend2(RG.System.Damage, RG.System.Base);
 RG.System.ExpPoints = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.EXP_POINTS, compTypes);
 
-    this.updateEntity = function(ent) {
+    this.updateEntity = ent => {
         const expComp = ent.get('Experience');
         const expPoints = ent.get('ExpPoints');
         const expLevel = expComp.getExpLevel();
@@ -540,7 +540,7 @@ RG.System.Movement = function(compTypes) {
 
     /* If player moved to the square, checks if any messages must
      * be emitted. */
-    this.checkMessageEmits = function(prevCell, newCell) {
+    this.checkMessageEmits = (prevCell, newCell) => {
         if (newCell.hasStairs()) {
             const stairs = newCell.getStairs();
             const level = stairs.getTargetLevel();
@@ -668,7 +668,7 @@ RG.System.Disability = function(compTypes) {
     const _compOrder = ['Paralysis', 'Stun'];
     const _actComp = ['Attack', 'Movement', 'SpellCast'];
 
-    this.updateEntity = function(ent) {
+    this.updateEntity = ent => {
         _compOrder.forEach(compName => {
             if (ent.has(compName)) {
                 _actComp.forEach(actCompName => {
@@ -680,7 +680,7 @@ RG.System.Disability = function(compTypes) {
         });
     };
 
-    const _emitMsg = function(comp, actionComp, ent) {
+    const _emitMsg = (comp, actionComp, ent) => {
         const cell = ent.getCell();
         const entName = ent.getName();
         const msg = `${entName} ${_msg[comp][actionComp]}`;
@@ -694,7 +694,7 @@ RG.extend2(RG.System.Disability, RG.System.Base);
 RG.System.Hunger = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.HUNGER, compTypes);
 
-    this.updateEntity = function(ent) {
+    this.updateEntity = ent => {
         const hungerComp = ent.get('Hunger');
         const actionComp = ent.get('Action');
         hungerComp.decrEnergy(actionComp.getEnergy());
@@ -729,7 +729,7 @@ RG.System.Communication = function(compTypes) {
         ent.remove('Communication');
     };
 
-    this.processMessage = function(ent, msg) {
+    this.processMessage = (ent, msg) => {
         if (_msgFunc.hasOwnProperty(msg.type)) {
             _msgFunc[msg.type](ent, msg);
         }
@@ -739,7 +739,7 @@ RG.System.Communication = function(compTypes) {
         }
     };
 
-    this.processEnemies = function(ent, msg) {
+    this.processEnemies = (ent, msg) => {
         const enemies = msg.enemies;
         const srcName = msg.src.getName();
         for (let i = 0; i < enemies.length; i++) {
@@ -799,7 +799,7 @@ RG.System.TimeEffects = function(compTypes) {
     };
 
     /* Decreases the remaining duration in the component by one.*/
-    const _decreaseDuration = function(ent) {
+    const _decreaseDuration = ent => {
         const tEff = ent.get('Expiration');
         tEff.decrDuration();
 
@@ -811,7 +811,7 @@ RG.System.TimeEffects = function(compTypes) {
 
 
     /* Applies the poison effect to the entity.*/
-    const _applyPoison = function(ent) {
+    const _applyPoison = ent => {
         const poison = ent.get('Poison');
 
         if (ent.get('Health').isDead()) {
@@ -889,7 +889,7 @@ RG.System.SpellCast = function(compTypes) {
         }
     };
 
-    this._checkPowerDrain = function(spell, args, drainers) {
+    this._checkPowerDrain = (spell, args, drainers) => {
         let isDrained = false;
         const casterX = args.src.getX();
         const casterY = args.src.getY();
@@ -935,7 +935,7 @@ RG.System.SpellEffect = function(compTypes) {
         }
     };
 
-    this.processSpellRay = function(ent) {
+    this.processSpellRay = ent => {
         const ray = ent.get('SpellRay');
         const args = ray.getArgs();
         const map = ent.getLevel().getMap();
@@ -1084,7 +1084,7 @@ RG.System.SpellEffect = function(compTypes) {
         ent.remove('SpellCell');
     };
 
-    this.processSpellMissile = function(ent) {
+    this.processSpellMissile = ent => {
         const spellComp = ent.get('SpellMissile');
         const args = spellComp.getArgs();
         const spell = args.spell;
@@ -1139,7 +1139,7 @@ RG.System.SpellEffect = function(compTypes) {
 
     };
 
-    this._addDamageToActor = function(actor, args) {
+    this._addDamageToActor = (actor, args) => {
         const dmg = new RG.Component.Damage();
         dmg.setSource(args.src);
         dmg.setDamageType(args.damageType);
@@ -1170,7 +1170,7 @@ RG.System.Animation = function(compTypes) {
     };
 
     /* Construct a missile animation from Missile component. */
-    this.missileAnimation = function(args) {
+    this.missileAnimation = args => {
         const mComp = args.missile;
         const xEnd = args.to[0];
         const yEnd = args.to[0];
@@ -1199,7 +1199,7 @@ RG.System.Animation = function(compTypes) {
     };
 
     /* Constructs line animation (a bolt etc). */
-    this.lineAnimation = function(args) {
+    this.lineAnimation = args => {
         let x = args.from[0];
         let y = args.from[1];
         const dX = args.dir[0];
@@ -1227,7 +1227,7 @@ RG.System.Animation = function(compTypes) {
         RG.POOL.emitEvent(RG.EVT_ANIMATION, {animation});
     };
 
-    this.cellAnimation = function(args) {
+    this.cellAnimation = args => {
         const animation = new RG.Animation.Animation();
         const frame = {};
         animation.slowDown = 10;
