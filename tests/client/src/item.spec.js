@@ -5,7 +5,18 @@ const RG = require('../../../client/src/battles');
 const Actor = RG.Actor.Rogue;
 const Item = RG.Item.Base;
 
-describe('How items are physical entities', () => {
+describe('How items are typed, physical entities', () => {
+
+    it('has a type', () => {
+        Object.keys(RG.Item).forEach(item => {
+            if (!(/Container/).test(item)) {
+                const newItem = new RG.Item[item]();
+                expect(newItem.getType(), 'RG.Item.' + item).not.to.be.empty;
+            }
+        });
+    });
+
+
     it('Has weight and size', () => {
         const item = new Item('TestItem');
         expect(item.has('Physical')).to.equal(true);
