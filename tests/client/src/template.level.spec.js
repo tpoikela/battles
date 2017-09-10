@@ -54,6 +54,26 @@ describe('Template.Level', () => {
         // RG.printMap(level.map);
     });
 
+    it('can have custom starting room function specified', () => {
+        const level = new TemplLevel(12, 6);
+        RG.RAND.setSeed(new Date().getTime());
+
+        const Castle2Gates = Object.assign({}, Castle);
+        Castle2Gates.startRoomFunc = Castle.startFuncTwoGates;
+
+        level.use(Castle2Gates);
+        level.setFiller(Castle.tiles.fillerWall);
+        level.setTemplates(Castle.Models.full);
+
+        level.setGenParams([1, 1, 1, 1]);
+        level.create();
+
+        expect(level.map).to.have.length(7 * 12);
+        expect(level.map[0]).to.have.length(7 * 6);
+
+        // RG.printMap(level.map);
+    });
+
     it('can also remove templates after creation', () => {
         const level = new TemplLevel(7, 7);
         level.use(Castle);
