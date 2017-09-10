@@ -15,30 +15,32 @@ const Mixin = require('./mixin');
 
 RG.Component = {};
 
+/* Base class for all components. Provides callback hooks, copying and cloning.
+ * */
 RG.Component.Base = function(type) {
-
-    let _type = type;
-    let _entity = null;
+    this._type = type;
+    this._entity = null;
 
     this._onAddCallbacks = [];
     this._onRemoveCallbacks = [];
-
-    this.getType = () => _type;
-    this.setType = type => {_type = type;};
-
-    this.getEntity = () => _entity;
-    this.setEntity = entity => {
-        if (_entity === null && entity !== null) {
-            _entity = entity;
-        }
-        else if (entity === null) {
-            _entity = null;
-        }
-        else {
-            RG.err('Component', 'setEntity', 'Entity already set.');
-        }
-    };
 };
+
+RG.Component.Base.prototype.getEntity = function() {return this._entity;};
+RG.Component.Base.prototype.setEntity = function(entity) {
+    if (this._entity === null && entity !== null) {
+        this._entity = entity;
+    }
+    else if (entity === null) {
+        this._entity = null;
+    }
+    else {
+        RG.err('Component.Base', 'setEntity', 'Entity already set.');
+    }
+};
+
+RG.Component.Base.prototype.getType = function() {return this._type;};
+RG.Component.Base.prototype.setType = function(type) {this._type = type;};
+
 // Called when a component is added to the entity
 RG.Component.Base.prototype.entityAddCallback = function(entity) {
     this.setEntity(entity);
