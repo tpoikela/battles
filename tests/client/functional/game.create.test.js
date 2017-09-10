@@ -2,6 +2,8 @@ const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 const RGTest = require('../../roguetest');
 
+import Entity from '../../../client/src/entity';
+
 const worldConf = require('../../../client/data/conf.world');
 
 describe('Function: Creating game world from a file', function() {
@@ -95,7 +97,7 @@ describe('Function: Creating game world from a file', function() {
         // Serialise and check ID counters
         const json = game.toJSON();
         expect(json.lastLevelID).to.equal(RG.Map.Level.prototype.idCount);
-        expect(json.lastEntityID).to.equal(RG.Entity.prototype.idCount);
+        expect(json.lastEntityID).to.equal(Entity.getIDCount());
 
         console.log('Creating new game now');
 
