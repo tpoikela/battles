@@ -432,18 +432,10 @@ Castle.startRoomFunc = function() {
 /* Start function if two fixed entrances are required. */
 Castle.startFuncTwoGates = function() {
   const midX = Math.floor(this.tilesX / 2);
-  const midY = Math.floor(this.tilesY / 2);
   const gateN = this.findTemplate({name: 'entrance_n'});
   const gateS = this.findTemplate({name: 'entrance_s'});
 
-  // const vault = this.findTemplate({name: 'vault_small_s'});
-  const corridor = this.findTemplate({name: 'corridor_new'});
-
   this.addRoom(gateN, midX, 0);
-
-  Vault.func.createMediumVault(midX, midY - 1, this, corridor);
-  Vault.func.createLargeVault(1, 1, this, corridor);
-  // this.addRoom(corridor, midX, midY + 1);
 
   return {
     x: midX, y: this.tilesY - 1, room: gateS
