@@ -125,19 +125,30 @@ RG.Geometry = {
 
     /* Removes all xy-pairs from the first array that are contained also in the
      * 2nd one. Returns number of elements removed. */
-    removeMatching: function(modified, remove) {
+    removeMatching: function(modified, toBeRemoved) {
         let nFound = 0;
-        remove.forEach(xy => {
-            const index = modified.findIndex(xyPair => (
-                xyPair[0] === xy[0] && xyPair[1] === xy[1]
-            ));
+        if (Array.isArray(modified)) {
+            toBeRemoved.forEach(xy => {
+                const index = modified.findIndex(xyPair => (
+                    xyPair[0] === xy[0] && xyPair[1] === xy[1]
+                ));
 
-            if (index >= 0) {
-                modified.splice(index, 1);
-                ++nFound;
-            }
+                if (index >= 0) {
+                    modified.splice(index, 1);
+                    ++nFound;
+                }
 
-        });
+            });
+        }
+        else {
+            toBeRemoved.forEach(xy => {
+                const key = xy[0] + ',' + xy[1];
+                if (modified.hasOwnProperty(key)) {
+                    delete modified[key];
+                    ++nFound;
+                }
+            });
+        }
         return nFound;
     },
 
