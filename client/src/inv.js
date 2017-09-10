@@ -10,7 +10,6 @@ RG.Inv = {};
 
 /* Models one slot in the inventory. */
 RG.Inv.EquipSlot = function(eq, type, stacked) {
-    RG.Object.Ownable.call(this, eq);
 
     let _item = null;
     let _hasItem = false;
@@ -38,8 +37,8 @@ RG.Inv.EquipSlot = function(eq, type, stacked) {
                 _hasItem = true;
             }
             else if (RG.addStackedItems(_item, item)) {
-                    _hasItem = true;
-                }
+                _hasItem = true;
+            }
             return _hasItem;
         }
         return false;
@@ -73,11 +72,9 @@ RG.Inv.EquipSlot = function(eq, type, stacked) {
     };
 
 };
-RG.extend2(RG.Inv.EquipSlot, RG.Object.Ownable);
 
 /* Models equipment on an actor.*/
 RG.Inv.Equipment = function(actor) {
-    RG.Object.Ownable.call(this, actor);
 
     const _equipped = [];
 
@@ -266,13 +263,10 @@ RG.Inv.Equipment = function(actor) {
     }
 
 };
-RG.extend2(RG.Inv.Equipment, RG.Object.Ownable);
-
 
 /* Object models inventory items and equipment on actor. This object handles
  * movement of items between inventory and equipment. */
 RG.Inv.Inventory = function(actor) {
-    RG.Object.Ownable.call(this, actor);
     const _actor = actor;
 
     const _inv = new RG.Item.Container(actor);
@@ -420,6 +414,5 @@ RG.Inv.Inventory = function(actor) {
 
 
 };
-RG.extend2(RG.Inv.Inventory, RG.Object.Ownable);
 
 module.exports = RG.Inv;
