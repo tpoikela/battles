@@ -94,7 +94,7 @@ const RG = { // {{{2
         const objType = propObj.getType();
 
         // Return by name, this is for object shells generally
-        if (propObj.hasOwnProperty('getName')) {
+        if (propObj.getName) {
             const name = propObj.getName();
             if (styles.hasOwnProperty(name)) {
                 return styles[name];
@@ -125,7 +125,7 @@ const RG = { // {{{2
 
     getPropClassOrCharFullMap: function(styles, propObj) {
         // Return by name, this is for object shells generally
-        if (propObj.hasOwnProperty('getName')) {
+        if (propObj.getName) {
             const name = propObj.getName();
             if (styles.hasOwnProperty(name)) {
                 return styles[name];
@@ -266,7 +266,7 @@ const RG = { // {{{2
             wolf: 'w'
         },
         items: {
-            default: '(',
+            default: '?',
             corpse: '§',
             potion: '!',
             spiritgem: '*'
@@ -437,12 +437,12 @@ const RG = { // {{{2
     addStackedItems: function(item1, item2) {
         if (item1.equals(item2)) {
             let countToAdd = 1;
-            if (item2.hasOwnProperty('count')) {
+            if (item2.count) {
                 countToAdd = item2.count;
             }
 
             // Check if item1 already stacked
-            if (item1.hasOwnProperty('count')) {
+            if (item1.count) {
                 item1.count += countToAdd;
             }
             else {
@@ -458,7 +458,7 @@ const RG = { // {{{2
     removeStackedItems: function(itemStack, n) {
         if (n > 0) {
             let rmvItem = null;
-            if (itemStack.hasOwnProperty('count')) {
+            if (itemStack.count) {
                 if (n <= itemStack.count) {
                     itemStack.count -= n;
                     rmvItem = itemStack.clone();
@@ -1315,57 +1315,6 @@ RG.MessageHandler = function() { // {{{2
     };
 
 }; // }}} Messages
-
-//---------------------------------------------------------------------------
-// ECS ENTITY
-//---------------------------------------------------------------------------
-
-RG.Entity = function() {
-    this._id = RG.Entity.idCount++;
-    this._comps = {};
-};
-RG.Entity.idCount = 0;
-
-RG.Entity.createEntityID = () => {
-    const id = RG.Entity.prototype.idCount;
-    RG.Entity.prototype.idCount += 1;
-    return id;
-};
-
-RG.Entity.prototype.getID = function() {return this._id;};
-RG.Entity.prototype.setID = function(id) {this._id = id;};
-
-RG.Entity.prototype.get = function(name) {
-    if (this._comps.hasOwnProperty(name)) {return this._comps[name];}
-    return null;
-};
-
-RG.Entity.prototype.add = function(nameOrComp, comp) {
-    let compName = nameOrComp;
-    let compObj = comp;
-    if (typeof nameOrComp === 'object') {
-        compObj = nameOrComp;
-        compName = nameOrComp.getType();
-    }
-    this._comps[compName] = compObj;
-    compObj.entityAddCallback(this);
-    RG.POOL.emitEvent(compName, {entity: this, add: true});
-};
-
-RG.Entity.prototype.has = function(name) {
-    return this._comps.hasOwnProperty(name);
-};
-
-RG.Entity.prototype.remove = function(name) {
-    if (this._comps.hasOwnProperty(name)) {
-        const comp = this._comps[name];
-        comp.entityRemoveCallback(this);
-        delete this._comps[name];
-        RG.POOL.emitEvent(name, {entity: this, remove: true});
-    }
-};
-
-RG.Entity.prototype.getComponents = function() {return this._comps;};
 
 module.exports = RG;
 

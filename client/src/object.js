@@ -142,66 +142,69 @@ RG.Object.Typed.prototype.setType = function(type) {
 };
 
 /* This object is used by all locatable objects in the game.  */
-RG.Object.Locatable = function() { // {{{2
-    this._x = null;
-    this._y = null;
-    this._level = null;
-}; // }}} Object.Locatable
-
-RG.Object.Locatable.prototype.setX = function(x) {this._x = x; };
-RG.Object.Locatable.prototype.setY = function(y) {this._y = y; };
-
-RG.Object.Locatable.prototype.getX = function() {return this._x;};
-RG.Object.Locatable.prototype.getY = function() {return this._y;};
-
-RG.Object.Locatable.prototype.getXY = function() {
-    return [this._x, this._y];
-};
-
-/* Simple getters/setters for coordinates.*/
-RG.Object.Locatable.prototype.setXY = function(x, y) {
-    this._x = x;
-    this._y = y;
-};
-
-/* Accessing the current cell of object. */
-RG.Object.Locatable.prototype.getCell = function() {
-    return this._level.getMap().getCell(this._x, this._y);
-};
-
-/* Sets the level of this locatable object.*/
-RG.Object.Locatable.prototype.setLevel = function(level) {
-    this._level = level;
-    RG.nullOrUndefError('Object.Locatable: setLevel', 'arg |level|', level);
-};
-
-/* Unsets the level to null. Throws error if level already null. */
-RG.Object.Locatable.prototype.unsetLevel = function() {
-    if (this._level) {
+class RGObjectLocatable {
+    constructor() { // {{{2
+        this._x = null;
+        this._y = null;
         this._level = null;
     }
-    else {
-        RG.err('Object.Locatable', 'unsetLevel',
-            'Trying to unset already null level.');
+
+    setX(x) {this._x = x; }
+    setY(y) {this._y = y; }
+    getX() {return this._x;}
+    getY() {return this._y;}
+
+    getXY() {
+        return [this._x, this._y];
     }
-};
 
-RG.Object.Locatable.prototype.getLevel = function() {
-    return this._level;
-};
+    /* Simple getters/setters for coordinates.*/
+    setXY(x, y) {
+        this._x = x;
+        this._y = y;
+    }
 
-/* Returns true if object is located at a position on a level.*/
-RG.Object.Locatable.prototype.isLocated = function() {
-    return (this._x !== null) && (this._y !== null) && (this._level !== null);
-};
+    /* Accessing the current cell of object. */
+    getCell() {
+        return this._level.getMap().getCell(this._x, this._y);
+    }
 
-/* Returns true if locatables are in same position.*/
-RG.Object.Locatable.prototype.isSamePos = function(obj) {
-    if (this._x !== obj.getX()) {return false;}
-    if (this._y !== obj.getY()) {return false;}
-    if (this._level !== obj.getLevel()) {return false;}
-    return true;
-};
+    /* Sets the level of this locatable object.*/
+    setLevel(level) {
+        this._level = level;
+        RG.nullOrUndefError('Object.Locatable: setLevel', 'arg |level|', level);
+    }
+
+    /* Unsets the level to null. Throws error if level already null. */
+    unsetLevel() {
+        if (this._level) {
+            this._level = null;
+        }
+        else {
+            RG.err('Object.Locatable', 'unsetLevel',
+                'Trying to unset already null level.');
+        }
+    }
+
+    getLevel() {
+        return this._level;
+    }
+
+    /* Returns true if object is located at a position on a level.*/
+    isLocated() {
+        return (this._x !== null) && (this._y !== null) && (this._level !== null);
+    }
+
+    /* Returns true if locatables are in same position.*/
+    isSamePos(obj) {
+        if (this._x !== obj.getX()) {return false;}
+        if (this._y !== obj.getY()) {return false;}
+        if (this._level !== obj.getLevel()) {return false;}
+        return true;
+    }
+} // }}} Object.Locatable
+
+RG.Object.Locatable = RGObjectLocatable;
 
 /* Object.Ownable moves with its owner. Thus, it's x-y position is
  * determined by the owner. This ensures that

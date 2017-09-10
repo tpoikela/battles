@@ -289,7 +289,7 @@ RG.Inv.Inventory = function(actor) {
 
     this.useItem = (item, obj) => {
         if (_inv.hasItem(item)) {
-            if (item.hasOwnProperty('useItem')) {
+            if (item.useItem) {
                 item.useItem(obj);
                 return true;
             }

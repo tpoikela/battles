@@ -3,6 +3,145 @@ const RG = require('./rg');
 
 RG.Mixin = {};
 
+class Base {}
+RG.Mixin.Base = Base;
+
+RG.Mixin.Typed = (superclass) => class extends superclass {
+
+    constructor(args) {
+        if (superclass) {super(args);}
+        this.type = args.type || '';
+        this._propType = args.propType || '';
+	}
+
+    getPropType() {return this._propType;}
+    getType() {return this.type;}
+
+    setPropType(propType) {
+        var index = RG.PROP_TYPES.indexOf(propType);
+        if (index >= 0) {
+            this._propType = propType;
+        }
+        else {
+            RG.err('Object.Typed', 'setPropType',
+                'Unknown prop type: |' + propType + '|');
+        }
+    }
+
+    setType(type) {
+        this.type = type;
+        RG.nullOrUndefError('Object.Typed: setType', 'arg |type|', type);
+    }
+
+};
+
+RG.Mixin.Ownable = (superclass) => class extends superclass {
+
+    constructor(args) {
+		super(args);
+		this._owner = args.owner || null;
+        this.isOwnable = true;
+	}
+
+    isSamePos(obj) {return this._owner.isSamePos(obj);}
+
+    getLevel() {return this._owner.getLevel();}
+
+    setOwner(owner) {
+        if (RG.isNullOrUndef([owner])) {
+            RG.err('Object.Ownable', 'setOwner', 'Owner cannot be null.');
+        }
+        else {
+            this._owner = owner;
+        }
+    }
+
+    /* Returns the owner of this object.*/
+    getOwner() {return this._owner;}
+
+    getX() {
+        if (this._owner !== null) {return this._owner.getX();}
+        return null;
+    }
+
+    getY() {
+        if (this._owner !== null) {return this._owner.getY();}
+        return null;
+    }
+
+    getLevel() {
+        if (this._owner !== null) {return this._owner.getLevel();}
+        return null;
+    }
+
+};
+
+RG.Mixin.Locatable = (superclass) => class extends superclass {
+
+    constructor(args) {
+        super(args);
+        this._x = null;
+        this._y = null;
+        this._level = null;
+    }
+
+    setX(x) {this._x = x; }
+    setY(y) {this._y = y; }
+    getX() {return this._x;}
+    getY() {return this._y;}
+
+    getXY() {
+        return [this._x, this._y];
+    }
+
+    /* Simple getters/setters for coordinates.*/
+    setXY(x, y) {
+        this._x = x;
+        this._y = y;
+    }
+
+    /* Accessing the current cell of object. */
+    getCell() {
+        return this._level.getMap().getCell(this._x, this._y);
+    }
+
+    /* Sets the level of this locatable object.*/
+    setLevel(level) {
+        this._level = level;
+        RG.nullOrUndefError('Object.Locatable: setLevel', 'arg |level|', level);
+    }
+
+    /* Unsets the level to null. Throws error if level already null. */
+    unsetLevel() {
+        if (this._level) {
+            this._level = null;
+        }
+        else {
+            RG.err('Object.Locatable', 'unsetLevel',
+                'Trying to unset already null level.');
+        }
+    }
+
+    getLevel() {
+        return this._level;
+    }
+
+    /* Returns true if object is located at a position on a level.*/
+    isLocated() {
+        return (this._x !== null) && (this._y !== null)
+            && (this._level !== null);
+    }
+
+    /* Returns true if locatables are in same position.*/
+    isSamePos(obj) {
+        if (this._x !== obj.getX()) {return false;}
+        if (this._y !== obj.getY()) {return false;}
+        if (this._level !== obj.getLevel()) {return false;}
+        return true;
+    }
+
+};
+
 RG.Mixin.CombatAttr = (superclass) => class extends superclass {
 
     constructor(args) {

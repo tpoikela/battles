@@ -798,15 +798,21 @@ RG.ObjectShell.Parser = function() {
     this.storeRenderingInfo = (categ, obj) => {
         if (obj.hasOwnProperty('char')) {
             if (obj.hasOwnProperty('name')) {
-                RG.addCharStyle(categ, obj.name, obj['char']);
+                RG.addCharStyle(categ, obj.name, obj.char);
+                if (obj.dontCreate) {
+                    RG.addCharStyle(categ, obj.type, obj.char);
+                }
             }
             else {
-                RG.addCharStyle(categ, obj.type, obj['char']);
+                RG.addCharStyle(categ, obj.type, obj.char);
             }
         }
         if (obj.hasOwnProperty('className')) {
             if (obj.hasOwnProperty('name')) {
                 RG.addCellStyle(categ, obj.name, obj.className);
+                if (obj.dontCreate) {
+                    RG.addCellStyle(categ, obj.type, obj.className);
+                }
             }
             else {
                 RG.addCellStyle(categ, obj.type, obj.className);

@@ -429,16 +429,16 @@ RG.Component.Attack = function(target) {
 RG.extend2(RG.Component.Attack, RG.Component.Base);
 
 /* Transient component added to a moving entity.*/
-RG.Component.Movement = function(x, y, level) {
-    RG.Object.Locatable.call(this);
-    RG.Component.Base.call(this, 'Movement');
+class RGComponentMovement extends Mixin.Locatable(RG.Component.Base) {
+    constructor(x, y, level) {
+        super('Movement');
+        this.setXY(x, y);
+        this.setLevel(level);
+    }
+}
+RG.extend2(RGComponentMovement, RG.Component.Base);
 
-    this.setXY(x, y);
-    this.setLevel(level);
-
-};
-RG.extend2(RG.Component.Movement, RG.Object.Locatable);
-RG.extend2(RG.Component.Movement, RG.Component.Base);
+RG.Component.Movement = RGComponentMovement;
 
 /* Added to entities which must act as missiles flying through cells.*/
 RG.Component.Missile = function(source) {

@@ -139,7 +139,7 @@ RG.Map.Cell.prototype.setProp = function(prop, obj) {
     if (!this._p.hasOwnProperty(prop)) {this._p[prop] = [];}
     if (this._p.hasOwnProperty(prop)) {
         this._p[prop].push(obj);
-        if (obj.hasOwnProperty('setOwner')) {
+        if (obj.isOwnable) {
             obj.setOwner(this);
         }
     }
@@ -726,7 +726,7 @@ RG.Map.Level = function() { // {{{2
     this._addPropToLevelXY = function(propType, obj, x, y) {
         if (_p.hasOwnProperty(propType)) {
             _p[propType].push(obj);
-            if (!obj.hasOwnProperty('getOwner')) {
+            if (!obj.isOwnable) {
                 obj.setXY(x, y);
                 obj.setLevel(this);
             }
@@ -750,7 +750,7 @@ RG.Map.Level = function() { // {{{2
 
             if (index >= 0) {
                 _p[propType].splice(index, 1);
-                if (!obj.hasOwnProperty('getOwner')) {
+                if (!obj.getOwner) {
                     obj.setXY(null, null);
                     obj.unsetLevel();
                 }

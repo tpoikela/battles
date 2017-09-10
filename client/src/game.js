@@ -4,6 +4,8 @@ RG.System = require('./system.js');
 RG.Map = require('./map.js');
 RG.Time = require('./time.js');
 
+import Entity from './entity';
+
 RG.Game = {};
 
 /* Game engine which handles turn scheduling, systems updates and in-game
@@ -618,7 +620,7 @@ RG.Game.Main = function() {
             levels,
             places,
             lastLevelID: RG.Map.Level.prototype.idCount,
-            lastEntityID: RG.Entity.prototype.idCount
+            lastEntityID: Entity.getIDCount()
         };
 
         const player = this.getPlayer();

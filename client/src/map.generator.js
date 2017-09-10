@@ -163,7 +163,7 @@ RG.Map.Generator = function() { // {{{2
             'No free coordinates');
         }
 
-        const coordObj = freeCoord.reduce((acc, item, index) => {
+        const coordObj = freeCoord.reduce((acc, item) => {
             acc[item[0] + ',' + item[1]] = item;
             return acc;
         }, {});

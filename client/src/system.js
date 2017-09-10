@@ -219,7 +219,6 @@ RG.System.Missile = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.MISSILE, compTypes);
 
     this.updateEntity = function(ent) {
-        console.log('System.Missile in effect now.');
         const mComp = ent.get('Missile');
         const level = mComp.getLevel();
         const map = level.getMap();
@@ -456,6 +455,10 @@ RG.System.Damage = function(compTypes) {
             const defDanger = def.get('Experience').getDanger();
             const expPoints = new RG.Component.ExpPoints(defLevel + defDanger);
             att.add('ExpPoints', expPoints);
+        }
+        else {
+            RG.warn('System.Damage', '_giveExpToSource',
+                'att is null. Cannot assign exp.');
         }
     };
 

@@ -4,6 +4,8 @@ RG.Factory = require('./factory');
 RG.Game = require('./game');
 RG.Element = require('./element');
 
+import Entity from './entity';
+
 RG.Game.FromJSON = require('./game.fromjson');
 
 const OW = require('./overworld.map');
@@ -358,12 +360,12 @@ RG.Factory.Game = function() {
             }
             level.getActors().forEach(actor => {
                 if (actor.getID() < RG.ENTITY_ID_ADD) {
-                    actor.setID(RG.Entity.createEntityID());
+                    actor.setID(Entity.createEntityID());
                 }
             });
             level.getItems().forEach(item => {
                 if (item.getID() < RG.ENTITY_ID_ADD) {
-                    item.setID(RG.Entity.createEntityID());
+                    item.setID(Entity.createEntityID());
                 }
             });
 
