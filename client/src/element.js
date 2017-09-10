@@ -4,7 +4,6 @@
  */
 
 const RG = require('./rg.js');
-RG.Object = require('./object.js');
 const Mixin = require('./mixin');
 
 RG.Element = {};

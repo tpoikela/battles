@@ -1,7 +1,6 @@
 
 
 const RG = require('./rg.js');
-RG.Object = require('./object.js');
 RG.Component = require('./component.js');
 
 const Mixin = require('./mixin');

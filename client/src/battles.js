@@ -9,7 +9,6 @@ RG.Verify = require('./verify.js');
 RG.Random = require('./random.js');
 RG.Mixin = require('./mixin.js');
 RG.Geometry = require('./geometry.js');
-RG.Object = require('./object.js');
 RG.Time = require('./time.js');
 RG.Template = require('./template.js');
 RG.Animation = require('./animation.js');

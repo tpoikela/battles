@@ -3,7 +3,6 @@ const RG = require('./rg.js');
 
 import Entity from './entity';
 
-RG.Object = require('./object.js');
 RG.Component = require('./component.js');
 RG.Brain = require('./brain.js');
 RG.Brain.Player = require('./brain.player.js');
