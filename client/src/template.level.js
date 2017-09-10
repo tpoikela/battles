@@ -1,11 +1,8 @@
 
 const RG = require('./rg');
 RG.Random = require('./random');
-
 const debug = require('debug')('bitn:Template.Level');
-
 RG.Template = require('./template');
-
 const Crypt = require('../data/tiles.crypt');
 
 const fillerTempl = Crypt.tiles.filler;
@@ -15,9 +12,9 @@ const fillerTempl = Crypt.tiles.filler;
  * tiles
  * should be described properly. See files in '../data/tiles.*'.
  *
- // Original algorithm can be found from "Procedural Generation in
- // Game Design" chapter 7, by Jim Shepard.
- */
+    // Original algorithm can be found from "Procedural Generation in
+    // Game Design" chapter 7, by Jim Shepard.
+    */
 RG.Template.Level = function(tilesX, tilesY) {
     this.tilesX = tilesX;
     this.tilesY = tilesY;
@@ -54,7 +51,7 @@ RG.Template.Level = function(tilesX, tilesY) {
     };
 
     /* Sets the target room count. -1 fills until no more well-connected
-    * rooms are possible. */
+     * rooms are possible. */
     this.setRoomCount = function(count) {
         this.roomCount = count;
     };
@@ -90,7 +87,7 @@ RG.Template.Level = function(tilesX, tilesY) {
     };
 
     /* Creates the level. Result is in this.map.
-    * Main function you want to call. */
+     * Main function you want to call. */
     this.create = function() {
 
         if (this.templates.length === 0) {
@@ -262,6 +259,17 @@ RG.Template.Level = function(tilesX, tilesY) {
         }
     };
 
+    /* Adds a room (template) to fixed position. This can be called from user
+     * callbacks. */
+    this.addRoom = function(templ, x, y) {
+        const room = {x, y, room: templ};
+        this._addRoomData(room);
+        this._checkAbuttingRooms(room);
+        this._removeBorderExits(room);
+        this.templMap[x][y] = templ;
+    };
+
+
     //----------------------------------------------------------------
     // PRIVATE
     //----------------------------------------------------------------
@@ -399,11 +407,14 @@ RG.Template.Level = function(tilesX, tilesY) {
     };
 
     this._addRoomData = function(room) {
-        this._unusedExits.push(room);
-        const exits = room.room.getProp('dir').split('');
-        const key = room.x + ',' + room.y;
-        this.freeExits[key] = exits;
-        debug('>>> Added room ' + JSON.stringify(room));
+        const dirProp = room.room.getProp('dir');
+        if (dirProp) {
+            this._unusedExits.push(room);
+            const exits = dirProp.split('');
+            const key = room.x + ',' + room.y;
+            this.freeExits[key] = exits;
+            debug('>>> Added room ' + JSON.stringify(room));
+        }
     };
 
     this.getMatchingExit = function(chosen) {
@@ -435,7 +446,7 @@ RG.Template.Level = function(tilesX, tilesY) {
     };
 
     /* Removes exits from tiles which are placed in any borders of the map.
-    *  Prevents out-of-bounds expansion. */
+     *  Prevents out-of-bounds expansion. */
     this._removeBorderExits = function(room) {
         const {x, y} = room;
         if (x === 0) {
@@ -538,6 +549,5 @@ RG.Template.Level = function(tilesX, tilesY) {
     };
 
 };
-
 
 module.exports = RG.Template.Level;
