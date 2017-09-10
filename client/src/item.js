@@ -185,18 +185,11 @@ RG.Item.Corpse = RGItemCorpse;
 //------------------
 /* RGItemWeapon */
 //------------------
-class RGItemWeapon extends ItemBase {
+class RGItemWeapon extends Mixin.Damage(ItemBase) {
 
     constructor(name) {
         super(name);
-        RG.Object.Damage.call(this);
         this.setType(RG.ITEM_WEAPON);
-    }
-
-    toString() {
-        let msg = super.toString();
-        msg += RG.Object.Damage.prototype.toString.call(this);
-        return msg;
     }
 
     clone() {
@@ -205,27 +198,7 @@ class RGItemWeapon extends ItemBase {
         return weapon;
     }
 
-    copy(rhs) {
-        super.copy(rhs);
-        RG.Object.Damage.prototype.copy.call(this, rhs);
-    }
-
-    equals(rhs) {
-        let res = super.equals(rhs);
-        res = res && RG.Object.Damage.prototype.equals.call(this, rhs);
-        return res;
-    }
-
-    toJSON() {
-        const json = super.toJSON();
-        const json2 = RG.Object.Damage.prototype.toJSON.call(this);
-        Object.keys(json2).forEach(p => {
-            json[p] = json2[p];
-        });
-        return json;
-    }
 }
-RG.extend2(RGItemWeapon, RG.Object.Damage);
 
 RG.Item.Weapon = RGItemWeapon;
 
@@ -256,16 +229,6 @@ class RGItemAmmo extends RGItemWeapon {
         return ammo;
     }
 
-    copy(rhs) {
-        super.copy(rhs);
-        RG.Object.Damage.prototype.copy.call(this, rhs);
-    }
-
-    equals(rhs) {
-        let res = super.equals(rhs);
-        res = res && RG.Object.Damage.prototype.equals.call(this, rhs);
-        return res;
-    }
 }
 
 RG.Item.Ammo = RGItemAmmo;
@@ -273,11 +236,10 @@ RG.Item.Ammo = RGItemAmmo;
 //-------------------------------------------
 /* RGItemArmour Object for armour items. */
 //-------------------------------------------
-class RGItemArmour extends ItemBase {
+class RGItemArmour extends Mixin.Defense(ItemBase) {
 
     constructor(name) {
         super(name);
-        RG.Object.Defense.call(this);
         this.setType(RG.ITEM_ARMOUR);
         this._armourType = null;
 
@@ -293,27 +255,21 @@ class RGItemArmour extends ItemBase {
 
     copy(rhs) {
         super.copy(rhs);
-        RG.Object.Defense.prototype.copy.call(this, rhs);
         this.setArmourType(rhs.getArmourType());
     }
 
     equals(rhs) {
         let res = super.equals(rhs);
-        res = res && RG.Object.Defense.prototype.equals.call(this, rhs);
+        res = res && this._armourType === rhs.getArmourType();
         return res;
     }
 
     toJSON() {
         const json = super.toJSON();
-        const json2 = RG.Object.Defense.prototype.toJSON.call(this);
-        Object.keys(json2).forEach(p => {
-            json[p] = json2[p];
-        });
         json.setArmourType = this.getArmourType();
         return json;
     }
 }
-RG.extend2(RGItemArmour, RG.Object.Defense);
 
 RG.Item.Armour = RGItemArmour;
 
@@ -408,10 +364,9 @@ RG.Item.Rune = RGItemRune;
 //----------------------------------------------
 /* RGItemMissile Object for thrown missile. */
 //----------------------------------------------
-class RGItemMissile extends ItemBase {
+class RGItemMissile extends Mixin.Damage(ItemBase) {
     constructor(name) {
         super(name);
-        RG.Object.Damage.call(this);
         this.setType(RG.ITEM_MISSILE);
     }
 
@@ -421,28 +376,7 @@ class RGItemMissile extends ItemBase {
         return weapon;
     }
 
-    copy(rhs) {
-        super.copy(rhs);
-        RG.Object.Damage.prototype.copy.call(this, rhs);
-    }
-
-    equals(rhs) {
-        let res = super.equals(rhs);
-        res = res && RG.Object.Damage.prototype.equals.call(this, rhs);
-        return res;
-
-    }
-
-    toJSON() {
-        const json = super.toJSON();
-        const json2 = RG.Object.Damage.prototype.toJSON.call(this);
-        Object.keys(json2).forEach(p => {
-            json[p] = json2[p];
-        });
-        return json;
-    }
 }
-RG.extend2(RGItemMissile, RG.Object.Damage);
 
 RG.Item.Missile = RGItemMissile;
 
@@ -683,54 +617,13 @@ RG.Item.GoldCoin = RGItemGoldCoin;
 /* RGItemSpiritGem for capturing spirits. */
 //-------------------------------------------
 class RGItemSpiritGem extends ItemBase {
+
     constructor(name) {
         super(name);
         this.setType(RG.ITEM_SPIRITGEM);
 
-        let _spirit = null;
-        let _hasSpirit = false;
-        this.getArmourType = () => 'spiritgem';
-
-        this.hasSpirit = () => _hasSpirit;
-        this.getSpirit = () => _spirit;
-
-        this.setSpirit = spirit => {
-            if (!_hasSpirit) {
-                _hasSpirit = true;
-                _spirit = spirit;
-            }
-            else {
-                RG.err('Item.Spirit', 'setSpirit', 'Tried to overwrite spirit');
-            }
-        };
-
-        /* Used for capturing the spirits inside the gem.*/
-        this.useItem = function(obj) {
-            if (!_hasSpirit) {
-                const cell = obj.target;
-                const spirits = cell.getPropType('spirit');
-                if (spirits.length > 0) {
-                    const spirit = spirits[0];
-                    // spirit.remove("Action"); // Trapped spirit cannot act
-                    spirit.get('Action').disable(); // Trapped spirit cannot act
-                    // if (spirit.has("Movement")) spirit.remove("Movement");
-                    const level = spirit.getLevel();
-                    level.removeActor(spirit);
-                    _spirit = spirit;
-                    _hasSpirit = true;
-                }
-                else if (cell.hasActors()) {
-                        RG.gameWarn(
-                            'That thing there is something else than spirit.');
-                    }
-                    else {
-                        RG.gameWarn('There are no spirits there to be trapped');
-                    }
-            }
-            else {
-                RG.gameWarn(this.getName() + ' already traps a spirit');
-            }
-        };
+        this._spirit = null;
+        this._hasSpirit = false;
 
         // Generate getters which access spirit's Stats component
         const _getters =
@@ -739,8 +632,8 @@ class RGItemSpiritGem extends ItemBase {
         const createGetFunc = i => {
             const funcName = _getters[i];
             return () => {
-                if (!_hasSpirit) {return 0;}
-                return _spirit.get('Stats')[funcName]();
+                if (!this._hasSpirit) {return 0;}
+                return this._spirit.get('Stats')[funcName]();
             };
         };
 
@@ -748,6 +641,47 @@ class RGItemSpiritGem extends ItemBase {
             this[_getters[i]] = createGetFunc(i);
         }
 
+    }
+
+    getArmourType() {return 'spiritgem';}
+
+    hasSpirit() {return this._hasSpirit;}
+    getSpirit() {return this._spirit;}
+
+    setSpirit(spirit) {
+        if (!this._hasSpirit) {
+            this._hasSpirit = true;
+            this._spirit = spirit;
+        }
+        else {
+            RG.err('Item.Spirit', 'setSpirit', 'Tried to overwrite spirit');
+        }
+    }
+
+    /* Used for capturing the spirits inside the gem.*/
+    useItem(obj) {
+        if (!this._hasSpirit) {
+            const cell = obj.target;
+            const spirits = cell.getPropType('spirit');
+            if (spirits.length > 0) {
+                const spirit = spirits[0];
+                spirit.get('Action').disable(); // Trapped spirit cannot act
+                const level = spirit.getLevel();
+                level.removeActor(spirit);
+                this._spirit = spirit;
+                this._hasSpirit = true;
+            }
+            else if (cell.hasActors()) {
+                    RG.gameWarn(
+                        'That thing there is something else than spirit.');
+                }
+                else {
+                    RG.gameWarn('There are no spirits there to be trapped');
+                }
+        }
+        else {
+            RG.gameWarn(this.getName() + ' already traps a spirit');
+        }
     }
 
     clone() {
