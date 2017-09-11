@@ -31,26 +31,38 @@ GetOptions(
 
 clean_cov() if defined $opt{clean};
 
-my $exclude = '-x "**/rot.js"';
-my $source = "tests/client/**/*.spec.js";
-my $serial_src = "tests/client/functional/*.js";
-my $serial_mocha = "node_modules/serial-mocha/bin/cli.js";
+my $nyc_bak = ".nyc_output_bak";
+mkdir($nyc_bak) unless -d $nyc_bak;
+
+my $nyc = "node_modules/.bin/nyc";
 
 print STDERR "Running coverage for unit tests.\n";
-my $cmd = "";
-$cmd = "istanbul cover $exclude node_modules/.bin/_mocha $source";
+my $cmd = "$nyc mocha --compilers babel-core/register tests/client/src";
+system($cmd);
+system("cp .nyc_output/*.json $nyc_bak");
+
+print STDERR "Running coverage for GUI unit tests.\n";
+$cmd = "$nyc mocha --compilers babel-core/register tests/client/gui";
+system($cmd);
+system("cp .nyc_output/*.json $nyc_bak");
+
+print STDERR "Running coverage for functional tests.\n";
+$cmd = "$nyc mocha --compilers babel-core/register tests/client/functional";
 system($cmd);
 
-# TODO does not work at the moment, reports only "no coverage collected"
-#print STDERR "Running coverage for functional tests.\n";
-#$cmd = "istanbul cover $exclude $serial_mocha $serial_src";
-#system($cmd);
+# Copy .json files back and do report
+system("cp $nyc_bak/* .nyc_output");
+system("$nyc report -r text -r lcov");
 
-print STDERR "Now producing the coverage report.\n";
-system("istanbul report --root coverage html");
+#print STDERR "Now producing the coverage report.\n";
+#system("istanbul report --root coverage html");
+#
+system("$nyc check-coverage --lines 95 --functions 95 --branches 95");
 
+# Cleans up the coverage reports
 sub clean_cov {
     system("rm -rf coverage") if -d "coverage";
+    system("rm -rf .nyc_output") if -d ".nyc_output";
     print STDERR "Cleaned up coverage.\n";
     exit 0;
 }
