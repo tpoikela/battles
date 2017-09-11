@@ -1,0 +1,10 @@
+---
+# Config file for instanbul coverage
+verbose: true
+
+instrumentation:
+    excludes: ['./lib/rot.js']
+
+reporting:
+    reports:
+        - html
