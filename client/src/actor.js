@@ -7,6 +7,7 @@ RG.Component = require('./component.js');
 RG.Brain = require('./brain.js');
 RG.Brain.Player = require('./brain.player.js');
 RG.Inv = require('./inv.js');
+RG.Spell = require('./spell.js');
 const Mixin = require('./mixin');
 
 RG.Actor = {};
