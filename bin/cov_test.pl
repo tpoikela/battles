@@ -42,16 +42,16 @@ mkdir($nyc_bak);
 
 my $nyc = "node_modules/.bin/nyc";
 
-my $cmd = "$nyc mocha $comp_babel tests/client/src";
+my $cmd = "$nyc -n client/src mocha $comp_babel tests/client/src";
 _cmd($cmd, "Running coverage for unit tests.");
 
-$cmd = "$nyc mocha $comp_babel tests/client/gui";
+$cmd = "$nyc -n client/gui mocha $comp_babel tests/client/gui";
 _cmd($cmd,  "Running coverage for GUI unit tests.");
 
-$cmd = "$nyc -e .jsx mocha --require tests/helpers/browser.js $comp_babel tests/client/jsx/*.jsx";
+$cmd = "$nyc -n client/jsx -e .jsx mocha --require tests/helpers/browser.js $comp_babel tests/client/jsx/*.jsx";
 _cmd($cmd,  "Running coverage for jsx component unit tests.");
 
-$cmd = "$nyc mocha $comp_babel tests/client/functional";
+$cmd = "$nyc -n client/src mocha $comp_babel tests/client/functional";
 _cmd($cmd,  "Running coverage for functional tests.");
 
 # Copy .json files back and do report
