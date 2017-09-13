@@ -1,9 +1,10 @@
 
-const React = require('react');
-const ModalHeader = require('./modal-header');
+import React, {Component} from 'react';
+import PropTypes from 'prop-types';
+import ModalHeader from './modal-header';
 
 /* This component shows the game overworld map in a modal. */
-class GameOverWorldMap extends React.Component {
+export default class GameOverWorldMap extends Component {
 
   shouldComponentUpdate(nextProps) {
     if (nextProps.ow !== this.props.ow) {
@@ -68,9 +69,7 @@ class GameOverWorldMap extends React.Component {
 
 }
 
-
 GameOverWorldMap.propTypes = {
-  ow: React.PropTypes.object
+  ow: PropTypes.object
 };
 
-module.exports = GameOverWorldMap;

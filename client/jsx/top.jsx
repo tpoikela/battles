@@ -10,12 +10,12 @@ const $ = require('jquery');
 
 // Subcomponents for the GUI
 const GameStartScreen = require('./game-start-screen');
-const GamePanel = require('./game-panel');
-const GameMessages = require('./game-messages');
 const GameStats = require('./game-stats');
-const GameMenu = require('./game-menu');
-const GameOverWorldMap = require('./game-overworld-map');
 
+import GamePanel from './game-panel';
+import GameMenu from './game-menu';
+import GameMessages from './game-messages';
+import GameOverWorldMap from'./game-overworld-map';
 import GameHelpScreen from './game-help-screen';
 import GameBoard from './game-board';
 import GameInventory from './game-inventory';
@@ -29,58 +29,58 @@ const GameEditor = require('../editor/game-editor');
 /* Contains logic that is not tightly coupled to the GUI.*/
 class TopLogic {
 
-    describeCell(cell, seenCells) {
-        var index = seenCells.indexOf(cell);
-        if (index !== -1) {
-            if (cell.hasActors()) {
-                const actor = cell.getProp('actors')[0];
-                const msg = 'You see ' + actor.getName();
-                RG.gameMsg(msg);
-            }
-            else if (cell.hasProp('items')) {
-                    const items = cell.getProp('items');
-                    if (items.length > 1) {
-                        RG.gameMsg('There are several items there');
-                        RG.gameMsg('You see ' + items[0].getName() + ' on top');
-                    }
-                    else {
-                        RG.gameMsg('You see ' + items[0].getName()
-                            + ' lying there.');
-                    }
-                }
-                else if (cell.hasPropType('door')) {
-                    RG.gameMsg('You see a door there.');
-                }
-                else {
-                    RG.gameMsg('There is nothing there.');
-                }
+  describeCell(cell, seenCells) {
+    var index = seenCells.indexOf(cell);
+    if (index !== -1) {
+      if (cell.hasActors()) {
+        const actor = cell.getProp('actors')[0];
+        const msg = 'You see ' + actor.getName();
+        RG.gameMsg(msg);
+      }
+      else if (cell.hasProp('items')) {
+        const items = cell.getProp('items');
+        if (items.length > 1) {
+          RG.gameMsg('There are several items there');
+          RG.gameMsg('You see ' + items[0].getName() + ' on top');
         }
         else {
-            RG.gameWarn('You cannot see there.');
+          RG.gameMsg('You see ' + items[0].getName()
+            + ' lying there.');
         }
+      }
+      else if (cell.hasPropType('door')) {
+        RG.gameMsg('You see a door there.');
+      }
+      else {
+        RG.gameMsg('There is nothing there.');
+      }
     }
+    else {
+      RG.gameWarn('You cannot see there.');
+    }
+  }
 
 
-    getAdjacentCell(player, code) {
-        if (RG.KeyMap.inMoveCodeMap(code) || RG.KeyMap.isRest(code)) {
-            const x = player.getX();
-            const y = player.getY();
-            const diffXY = RG.KeyMap.getDiff(code, x, y);
-            if (diffXY !== null) {
-                return player.getLevel().getMap().getCell(diffXY[0], diffXY[1]);
-            }
-        }
-        return null;
+  getAdjacentCell(player, code) {
+    if (RG.KeyMap.inMoveCodeMap(code) || RG.KeyMap.isRest(code)) {
+      const x = player.getX();
+      const y = player.getY();
+      const diffXY = RG.KeyMap.getDiff(code, x, y);
+      if (diffXY !== null) {
+        return player.getLevel().getMap().getCell(diffXY[0], diffXY[1]);
+      }
     }
+    return null;
+  }
 
 }
 
 const ProxyListener = function(cbNotify) {
-    this.hasNotify = true;
+  this.hasNotify = true;
 
-    this.notify = function(evtName, obj) {
-        cbNotify(evtName, obj);
-    };
+  this.notify = function(evtName, obj) {
+    cbNotify(evtName, obj);
+  };
 
 };
 
