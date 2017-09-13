@@ -9,6 +9,16 @@ import PropTypes from 'prop-types';
 /** Component renders the player inventory.*/
 export default class GameInventory extends Component {
 
+  constructor(props) {
+    super(props);
+    this.dropItem = this.dropItem.bind(this);
+    this.equipItem = this.equipItem.bind(this);
+    this.unequipItem = this.unequipItem.bind(this);
+    this.useItem = this.useItem.bind(this);
+    this.setSelectedItem = this.setSelectedItem.bind(this);
+    this.setEquipSelected = this.setEquipSelected.bind(this);
+  }
+
   /* Called when "Drop" is clicked. Drops item to the ground.*/
   dropItem() {
     if (this.props.selectedItem !== null) {
