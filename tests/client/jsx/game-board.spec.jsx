@@ -40,6 +40,11 @@ describe('Component <GameBoard>', () => {
         const wrapper = mount(<GameBoard {...props} />);
         const divs = wrapper.find('div');
         expect(divs).to.have.length(3);
+
+        wrapper.find('.game-board').simulate('click');
+        expect(resXY).to.have.length(1);
+        wrapper.find('.game-board').simulate('click');
+        expect(resXY).to.have.length(2);
     });
 
 });
