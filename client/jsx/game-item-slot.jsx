@@ -6,6 +6,11 @@ import PropTypes from 'prop-types';
  * clicked.*/
 export default class GameItemSlot extends Component {
 
+  constructor(props) {
+    super(props);
+    this.setSelectedItem = this.setSelectedItem.bind(this);
+  }
+
   setSelectedItem() {
     this.props.setSelectedItem(this.props.item);
   }
