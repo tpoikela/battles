@@ -1,20 +1,13 @@
-
 /* eslint max-len: [2, 100, 2] */
-const React = require('react');
+
+
+import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 
 /** A row component which holds a number of cells. {{{2 */
-const GameRow = React.createClass({
+class GameRow extends Component {
 
-    propTypes: {
-        rowClasses: React.PropTypes.array,
-        rowChars: React.PropTypes.array,
-        y: React.PropTypes.number,
-        startX: React.PropTypes.number,
-        rowClass: React.PropTypes.string,
-        useRLE: React.PropTypes.bool
-    },
-
-    shouldComponentUpdate: function(nextProps) {
+    shouldComponentUpdate(nextProps) {
         if (this.props.rowClass !== nextProps.rowClass) {
             return true;
         }
@@ -64,9 +57,9 @@ const GameRow = React.createClass({
             return false;
         }
         return true;
-    },
+    }
 
-    render: function() {
+    render() {
         const y = this.props.y;
         const rowClass = this.props.rowClass;
 
@@ -107,7 +100,16 @@ const GameRow = React.createClass({
         );
     }
 
-}); // }}} GameRow
+}
+
+GameRow.propTypes = {
+    rowChars: PropTypes.array,
+    rowClass: PropTypes.string,
+    rowClasses: PropTypes.array,
+    startX: PropTypes.number,
+    useRLE: PropTypes.bool,
+    y: PropTypes.number
+};
 
 module.exports = GameRow;
 

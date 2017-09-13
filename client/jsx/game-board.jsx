@@ -1,9 +1,10 @@
 
 'use strict';
 
-const React = require('react');
+import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 const ReactDOM = require('react-dom');
-const GameRow = require('./game-row');
+import GameRow from './game-row';
 
 const eventToPosition = (e, elem, props) => {
     // Where the mouse was clicked
@@ -31,40 +32,27 @@ const eventToPosition = (e, elem, props) => {
 };
 
 /** Component which renders the game rows. {{{2 */
-const GameBoard = React.createClass({
+class GameBoard extends Component {
 
-    propTypes: {
-        boardClassName: React.PropTypes.string,
-        charRows: React.PropTypes.arrayOf(String),
-        classRows: React.PropTypes.arrayOf(String),
-        endY: React.PropTypes.number,
-        onCellClick: React.PropTypes.func,
-        rowClass: React.PropTypes.string,
-        useRLE: React.PropTypes.bool,
-        sizeX: React.PropTypes.number,
-        startX: React.PropTypes.number,
-        startY: React.PropTypes.number
-    },
-
-	componentDidMount: function() {
+	componentDidMount() {
         ReactDOM.findDOMNode(this).addEventListener(
 			'click', this.onCellClick);
-    },
+    }
 
-    componentWillUnmount: function() {
+    componentWillUnmount() {
         ReactDOM.findDOMNode(this).removeEventListener(
 			'click', this.onCellClick);
-    },
+    }
 
-	onCellClick: function(evt) {
+	onCellClick(evt) {
         // this.board specified using react ref=
         const xy = eventToPosition(evt, this.board, this.props);
         console.log(`eventToPosition returned ${xy}`);
         this.props.onCellClick(xy[0], xy[1]);
-	},
+	}
 
 
-    render: function() {
+    render() {
         const rowsHTML = [];
         // Build the separate cell rows
         for (let y = this.props.startY; y <= this.props.endY; ++y) {
@@ -93,6 +81,20 @@ const GameBoard = React.createClass({
             </div>
         );
     }
-}); // }}} Gameboard
+
+}
+
+GameBoard.propTypes = {
+    boardClassName: PropTypes.string,
+    charRows: PropTypes.arrayOf(String),
+    classRows: PropTypes.arrayOf(String),
+    endY: PropTypes.number,
+    onCellClick: PropTypes.func,
+    rowClass: PropTypes.string,
+    useRLE: PropTypes.bool,
+    sizeX: PropTypes.number,
+    startX: PropTypes.number,
+    startY: PropTypes.number
+};
 
 module.exports = GameBoard;
