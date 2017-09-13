@@ -1,9 +1,10 @@
 
-const React = require('react');
+import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 
 /** Can be used to create radio buttons for different types of selections.
  * Callback must be given, and the button name is passed into this callback.*/
-class RadioButtons extends React.Component {
+export default class RadioButtons extends Component {
 
     constructor(props) {
         super(props);
@@ -57,10 +58,9 @@ class RadioButtons extends React.Component {
 }
 
 RadioButtons.propTypes = {
-    buttons: React.PropTypes.array,
-    callback: React.PropTypes.func,
-    currValue: React.PropTypes.string,
-    titleName: React.PropTypes.string
+    buttons: PropTypes.array,
+    callback: PropTypes.func,
+    currValue: PropTypes.string,
+    titleName: PropTypes.string
 };
 
-module.exports = RadioButtons;
