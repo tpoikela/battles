@@ -1,14 +1,16 @@
 
-const React = require('react');
+import React, {Component} from 'react';
+import PropTypes from 'prop-types';
+
+import GameBoard from '../jsx/game-board';
+import GameMessages from '../jsx/game-messages';
+import Capital from '../data/capital';
+
 const ROT = require('../../lib/rot');
 ROT.Map.Wall = require('../../lib/map.wall');
 
 const FileSaver = require('file-saver');
 
-const GameBoard = require('../jsx/game-board');
-const GameMessages = require('../jsx/game-messages');
-
-const RG = require('../src/battles');
 const Screen = require('../gui/screen');
 
 const RGEffects = require('../data/effects');
@@ -16,12 +18,12 @@ const RGObjects = require('../data/battles_objects');
 
 const NO_VISIBLE_CELLS = [];
 
+const RG = require('../src/rg');
 const OW = require('../src/overworld.map');
 RG.getOverWorld = require('../src//overworld');
 
 const WorldConf = require('../src/world.creator');
 
-import Capital from '../data/capital';
 
 /*
  * Sketch to specify the menus in more sane way than jsx.
@@ -80,7 +82,7 @@ const updateLevelAndErrorMsg = (level, msg) => (
 );
 
 /* Component for game/level editor. */
-class GameEditor extends React.Component {
+export default class GameEditor extends Component {
 
   constructor(props) {
     super(props);
@@ -1461,10 +1463,14 @@ class GameEditor extends React.Component {
               <span>dX/dY:</span>
                 <input
                   name='cell-select-diff-x'
+                  readOnly
+                  type='text'
                   value={this.state.selectDiffX}
                 />
                 <input
                   name='cell-select-diff-x'
+                  readOnly
+                  type='text'
                   value={this.state.selectDiffY}
                 />
             </div>
@@ -1590,8 +1596,7 @@ class GameEditor extends React.Component {
 }
 
 GameEditor.propTypes = {
-  mapShown: React.PropTypes.bool,
-  toggleEditor: React.PropTypes.func
+  mapShown: PropTypes.bool,
+  toggleEditor: PropTypes.func
 };
 
-module.exports = GameEditor;
