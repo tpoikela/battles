@@ -34,6 +34,11 @@ const eventToPosition = (e, elem, props) => {
 /** Component which renders the game rows. {{{2 */
 export default class GameBoard extends Component {
 
+    constructor(props) {
+        super(props);
+        this.onCellClick = this.onCellClick.bind(this);
+    }
+
     componentDidMount() {
         ReactDOM.findDOMNode(this).addEventListener(
             'click', this.onCellClick);
