@@ -1,5 +1,6 @@
 'use strict';
-const React = require('react');
+
+import React, {Component} from 'react';
 
 const ROT = require('../../lib/rot');
 const RG = require('../src/rg.js');
@@ -9,9 +10,8 @@ const md5 = require('js-md5');
 const $ = require('jquery');
 
 // Subcomponents for the GUI
-const GameStartScreen = require('./game-start-screen');
-const GameStats = require('./game-stats');
-
+import GameStats from './game-stats';
+import GameStartScreen from './game-start-screen';
 import GamePanel from './game-panel';
 import GameMenu from './game-menu';
 import GameMessages from './game-messages';
