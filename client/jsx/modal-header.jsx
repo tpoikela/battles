@@ -1,6 +1,7 @@
 'use strict';
 
-const React = require('react');
+import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 
 /* Header component for modals.*/
 const ModalHeader = props => (
@@ -18,9 +19,9 @@ const ModalHeader = props => (
 );
 
 ModalHeader.propTypes = {
-    id: React.PropTypes.string,
-    text: React.PropTypes.string
-
+    id: PropTypes.string,
+    text: PropTypes.string
 };
 
-module.exports = ModalHeader;
+export default ModalHeader;
+
