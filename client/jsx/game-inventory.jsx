@@ -66,7 +66,7 @@ export default class GameInventory extends Component {
 
   /* Called when "Remove" button is clicked to remove an equipped item.*/
   unequipItem() {
-    if (this.props.equipSelected !== null) {
+    if (this.props.equipSelected) {
       const name = this.props.equipSelected.slotName;
       const cmd = {cmd: 'unequip', slot: name};
       cmd.callback = function(obj) {
@@ -191,7 +191,7 @@ export default class GameInventory extends Component {
 
 };
 
-GameInventory.applypropTypes = {
+GameInventory.propTypes = {
   doInvCmd: PropTypes.func.isRequired,
   equipSelected: PropTypes.object,
   player: PropTypes.object,
