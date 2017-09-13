@@ -2,11 +2,14 @@
 
 /* eslint max-len: 100 */
 
-const React = require('react');
-const RG = require('../src/rg.js');
-const ModalHeader = require('./modal-header');
+import React, {Component} from 'react';
+import PropTypes from 'prop-types';
+import ModalHeader from './modal-header';
 
-const TextHelp = props => (
+const RG = require('../src/rg.js');
+
+/* Small helper component. */
+export const TextHelp = props => (
   <p>
     <span className='text-primary'>{props.char}</span>
     {'- ' + props.descr}
@@ -14,8 +17,8 @@ const TextHelp = props => (
 );
 
 TextHelp.propTypes = {
-  char: React.PropTypes.string,
-  descr: React.PropTypes.string
+  char: PropTypes.string,
+  descr: PropTypes.string
 };
 
 const cmdDescr = [
@@ -39,13 +42,13 @@ const cmdDescr = [
 ];
 
 /** This component contains short info on keys and how to play the game.*/
-const GameHelpScreen = React.createClass({
+export default class GameHelpScreen extends Component {
 
-  shouldComponentUpdate: function() {
+  shouldComponentUpdate() {
     return false;
-  },
+  }
 
-  render: function() {
+  render() {
     return (
       <div
         aria-hidden='true'
@@ -105,6 +108,5 @@ const GameHelpScreen = React.createClass({
     );
   }
 
-});
+};
 
-module.exports = GameHelpScreen;

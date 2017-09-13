@@ -3,7 +3,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 
 /** Component for one equipment slot.*/
-class GameEquipSlot extends Component {
+export default class GameEquipSlot extends Component {
 
   constructor(props) {
     super(props);
@@ -38,5 +38,3 @@ GameEquipSlot.propTypes = {
   item: PropTypes.object,
   slotNumber: PropTypes.number
 };
-
-module.exports = GameEquipSlot;

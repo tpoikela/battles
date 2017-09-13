@@ -3,7 +3,7 @@
 
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-const ReactDOM = require('react-dom');
+import ReactDOM from 'react-dom';
 import GameRow from './game-row';
 
 const eventToPosition = (e, elem, props) => {
@@ -32,24 +32,24 @@ const eventToPosition = (e, elem, props) => {
 };
 
 /** Component which renders the game rows. {{{2 */
-class GameBoard extends Component {
+export default class GameBoard extends Component {
 
-	componentDidMount() {
+    componentDidMount() {
         ReactDOM.findDOMNode(this).addEventListener(
-			'click', this.onCellClick);
+            'click', this.onCellClick);
     }
 
     componentWillUnmount() {
         ReactDOM.findDOMNode(this).removeEventListener(
-			'click', this.onCellClick);
+            'click', this.onCellClick);
     }
 
-	onCellClick(evt) {
+    onCellClick(evt) {
         // this.board specified using react ref=
         const xy = eventToPosition(evt, this.board, this.props);
         console.log(`eventToPosition returned ${xy}`);
         this.props.onCellClick(xy[0], xy[1]);
-	}
+    }
 
 
     render() {
@@ -97,4 +97,3 @@ GameBoard.propTypes = {
     startY: PropTypes.number
 };
 
-module.exports = GameBoard;
