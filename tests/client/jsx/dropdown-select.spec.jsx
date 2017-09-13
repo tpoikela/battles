@@ -32,9 +32,11 @@ describe('Component <DropdownSelect>', () => {
         let selOpt = null;
         const props = {options: ['a', 'b'],
             callback: (opt) => {selOpt = opt;},
-            currValue: 'xxx'
+            currValue: 'a'
         };
         const wrapper = shallow(<DropdownSelect {...props} />);
         expect(wrapper.find('select')).to.have.length(1);
+
+        expect(wrapper.find('option').get(0)).to.be.selected;
     });
 });
