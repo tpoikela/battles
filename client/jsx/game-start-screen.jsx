@@ -1,16 +1,17 @@
 
-const React = require('react');
+import React, {Component} from 'react';
+import PropTypes from 'prop-types';
+
 const RG = require('../src/rg.js');
 
-const ModalHeader = require('./modal-header');
-const RadioButtons = require('./radio-buttons');
-
+import ModalHeader from './modal-header';
+import RadioButtons from './radio-buttons';
 import DropdownSelect from './dropdown-select';
 
 /** Component for the game startup screen Prints game title and gives some
  * customisation options for the game.
  */
-class GameStartScreen extends React.Component {
+export default class GameStartScreen extends React.Component {
 
   constructor(props) {
     super(props);
@@ -287,28 +288,26 @@ class GameStartScreen extends React.Component {
 }
 
 GameStartScreen.propTypes = {
-  settings: React.PropTypes.object,
-  deleteGame: React.PropTypes.func.isRequired,
-  loadGame: React.PropTypes.func.isRequired,
-  savedPlayerList: React.PropTypes.array,
-  setPlayerName: React.PropTypes.func.isRequired,
-  playerName: React.PropTypes.string,
-  seedName: React.PropTypes.string,
-  setSeedName: React.PropTypes.func.isRequired,
-  setLoot: React.PropTypes.func.isRequired,
-  setMonsters: React.PropTypes.func.isRequired,
-  setLevelSize: React.PropTypes.func.isRequired,
-  setPlayerLevel: React.PropTypes.func.isRequired,
-  setGameLength: React.PropTypes.func.isRequired,
-  setPlayMode: React.PropTypes.func.isRequired,
-  setPlayerClass: React.PropTypes.func.isRequired,
+  settings: PropTypes.object,
+  deleteGame: PropTypes.func.isRequired,
+  loadGame: PropTypes.func.isRequired,
+  savedPlayerList: PropTypes.array,
+  setPlayerName: PropTypes.func.isRequired,
+  playerName: PropTypes.string,
+  seedName: PropTypes.string,
+  setSeedName: PropTypes.func.isRequired,
+  setLoot: PropTypes.func.isRequired,
+  setMonsters: PropTypes.func.isRequired,
+  setLevelSize: PropTypes.func.isRequired,
+  setPlayerLevel: PropTypes.func.isRequired,
+  setGameLength: PropTypes.func.isRequired,
+  setPlayMode: PropTypes.func.isRequired,
+  setPlayerClass: PropTypes.func.isRequired,
 
-  newGame: React.PropTypes.func.isRequired,
-  selectedGame: React.PropTypes.string,
-  selectGame: React.PropTypes.func.isRequired,
+  newGame: PropTypes.func.isRequired,
+  selectedGame: PropTypes.string,
+  selectGame: PropTypes.func.isRequired,
 
-  toggleEditor: React.PropTypes.func.isRequired
+  toggleEditor: PropTypes.func.isRequired
 };
-
-module.exports = GameStartScreen;
 
