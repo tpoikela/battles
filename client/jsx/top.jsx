@@ -10,14 +10,15 @@ const $ = require('jquery');
 
 // Subcomponents for the GUI
 const GameStartScreen = require('./game-start-screen');
-const GameHelpScreen = require('./game-help-screen');
-const GameInventory = require('./game-inventory');
 const GamePanel = require('./game-panel');
 const GameMessages = require('./game-messages');
 const GameStats = require('./game-stats');
-const GameBoard = require('./game-board');
 const GameMenu = require('./game-menu');
 const GameOverWorldMap = require('./game-overworld-map');
+
+import GameHelpScreen from './game-help-screen';
+import GameBoard from './game-board';
+import GameInventory from './game-inventory';
 
 const Screen = require('../gui/screen');
 const Persist = require('../src/persist');
@@ -606,6 +607,7 @@ class BattlesTop extends React.Component {
                     toggleEditor={this.toggleEditor}
                 />
                 }
+
                 <GameHelpScreen />
 
                 <GameOverWorldMap ow={overworld} />
