@@ -19,12 +19,12 @@ import GameOverWorldMap from'./game-overworld-map';
 import GameHelpScreen from './game-help-screen';
 import GameBoard from './game-board';
 import GameInventory from './game-inventory';
+import GameEditor from '../editor/game-editor';
 
 const Screen = require('../gui/screen');
 const Persist = require('../src/persist');
 const worldConf = require('../data/conf.world');
 
-const GameEditor = require('../editor/game-editor');
 
 /* Contains logic that is not tightly coupled to the GUI.*/
 class TopLogic {
