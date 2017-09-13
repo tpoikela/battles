@@ -1,5 +1,6 @@
 
-import React, {Component} from'react';
+import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 
 export default class DropdownSelect extends Component {
 
@@ -39,9 +40,9 @@ export default class DropdownSelect extends Component {
 }
 
 DropdownSelect.propTypes = {
-  options: React.PropTypes.array,
-  callback: React.PropTypes.func,
-  currValue: React.PropTypes.string,
-  titleName: React.PropTypes.string
+  options: PropTypes.array,
+  callback: PropTypes.func,
+  currValue: PropTypes.string,
+  titleName: PropTypes.string
 };
 
