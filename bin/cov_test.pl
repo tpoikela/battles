@@ -27,36 +27,37 @@ use Getopt::Long;
 my %opt;
 GetOptions(
     clean => \$opt{clean},
+    "t|tests=s" => \$opt{tests}
 );
+
+my $comp_babel = "--compilers babel-core/register";
 
 clean_cov() if defined $opt{clean};
 
 my $nyc_bak = ".nyc_output_bak";
-mkdir($nyc_bak) unless -d $nyc_bak;
+if (-d $nyc_bak) {
+    system("rm -rf $nyc_bak");
+}
+mkdir($nyc_bak);
 
 my $nyc = "node_modules/.bin/nyc";
 
-print STDERR "Running coverage for unit tests.\n";
-my $cmd = "$nyc mocha --compilers babel-core/register tests/client/src";
-system($cmd);
-system("cp .nyc_output/*.json $nyc_bak");
+my $cmd = "$nyc mocha $comp_babel tests/client/src";
+_cmd($cmd, "Running coverage for unit tests.");
 
-print STDERR "Running coverage for GUI unit tests.\n";
-$cmd = "$nyc mocha --compilers babel-core/register tests/client/gui";
-system($cmd);
-system("cp .nyc_output/*.json $nyc_bak");
+$cmd = "$nyc mocha $comp_babel tests/client/gui";
+_cmd($cmd,  "Running coverage for GUI unit tests.");
 
-print STDERR "Running coverage for functional tests.\n";
-$cmd = "$nyc mocha --compilers babel-core/register tests/client/functional";
-system($cmd);
+$cmd = "$nyc -e .jsx mocha --require tests/helpers/browser.js $comp_babel tests/client/jsx/*.jsx";
+_cmd($cmd,  "Running coverage for jsx component unit tests.");
+
+$cmd = "$nyc mocha $comp_babel tests/client/functional";
+_cmd($cmd,  "Running coverage for functional tests.");
 
 # Copy .json files back and do report
 system("cp $nyc_bak/* .nyc_output");
-system("$nyc report -r text -r lcov");
+system("$nyc report -r text -r lcov -r html");
 
-#print STDERR "Now producing the coverage report.\n";
-#system("istanbul report --root coverage html");
-#
 system("$nyc check-coverage --lines 95 --functions 95 --branches 95");
 
 # Cleans up the coverage reports
@@ -66,3 +67,14 @@ sub clean_cov {
     print STDERR "Cleaned up coverage.\n";
     exit 0;
 }
+
+sub _cmd {
+    my ($cmd, $msg) = @_;
+    my $execute = $cmd =~ qr/$opt{tests}/ or $opt{tests} =~ /all/;
+    if ($execute) {
+        print STDERR "TESTS: $msg\n";
+        system($cmd);
+        system("cp .nyc_output/*.json $nyc_bak");
+    }
+}
+
