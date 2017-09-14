@@ -70,6 +70,12 @@ const Items = [
         weight: 0.2, value: value(10)
     },
     {
+        name: 'Tomahawk', base: 'MeleeWeaponBase',
+        material: ['wood', 'stone', 'leather'],
+        damage: '1d7', attack: 1, defense: 1,
+        weight: 0.7, value: value(35)
+    },
+    {
         name: 'Pick-axe', base: 'MeleeWeaponBase',
         damage: '1d8', attack: 1, defense: 2,
         weight: 2.3, value: value(50), use: 'digger'
@@ -92,8 +98,8 @@ const Items = [
         weight: 0.8, value: value(75)
     },
     {
-        name: 'Tomahawk', base: 'MeleeWeaponBase',
-        material: ['wood', 'stone', 'leather'],
+        name: 'Morningstar', base: 'MeleeWeaponBase',
+        material: ['wood', 'iron'],
         damage: '1d9 + 2', attack: 2, defense: 3,
         weight: 0.7, value: value(75)
     },
