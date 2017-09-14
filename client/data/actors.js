@@ -379,6 +379,33 @@ const Actors = [
 
     },
 
+    // HYRKHIANS
+    {
+      name: 'HyrkhianBase', dontCreate: true, className: 'cell-actor-hyrkh',
+      noRandom: true, char: '@', enemies: ['undead', 'demon', 'animal'],
+      brain: 'Human'
+    },
+    {
+      name: 'Hyrkhian footman', base: 'HyrkhianBase',
+      attack: 4, defense: 4, protection: 2, hp: 20, danger: 5,
+      equip: ['Spear']
+    },
+    {
+      name: 'Hyrkhian archer', base: 'HyrkhianBase',
+      attack: 4, defense: 4, protection: 2, hp: 20, brain: 'Archer',
+      equip: ['Bow', {name: 'Arrow', count: 15}], danger: 6
+    },
+    {
+      name: 'Hyrkhian elite', base: 'HyrkhianBase',
+      attack: 6, defense: 6, protection: 3, hp: 35, brain: 'Human',
+      equip: ['Longsword', 'Chain armour', 'Chain helmet'], danger: 8
+    },
+    {
+      name: 'Hyrkhian commander', base: 'HyrkhianBase',
+      attack: 8, defense: 8, protection: 4, hp: 50, brain: 'Human',
+      equip: ['Battle axe', 'Steel armour', 'Steel helmet'], danger: 10
+    },
+
     // UNIQUES
     {
         name: 'UniqueBase', dontCreate: true, className: 'cell-actor-unique',
