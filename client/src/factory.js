@@ -149,21 +149,21 @@ RG.Factory.Actor = function() {
 
     /* Factory method for non-player actors. */
     this.createActor = function(name, obj = {}) {
-        const monster = new RG.Actor.Rogue(name);
-        monster.setType(name);
+        const actor = new RG.Actor.Rogue(name);
+        actor.setType(name);
 
         const brain = obj.brain;
-        _initCombatant(monster, obj);
+        _initCombatant(actor, obj);
         if (!RG.isNullOrUndef([brain])) {
             if (typeof brain === 'object') {
-                monster.setBrain(brain);
+                actor.setBrain(brain);
             }
             else { // If brain is string, use factory to create a new one
-                const newBrain = this.createBrain(monster, brain);
-                monster.setBrain(newBrain);
+                const newBrain = this.createBrain(actor, brain);
+                actor.setBrain(newBrain);
             }
         }
-        return monster;
+        return actor;
     };
 
     /* Factory method for AI brain creation.*/
@@ -422,16 +422,12 @@ RG.Factory.Base = function() { // {{{2
         _verif.verifyConf('addNRandItems', conf, ['func', 'maxValue']);
         // Generate the items randomly for this level
 
-        const freeCells = level.getMap().getFree();
+        const items = [];
         for (let j = 0; j < conf.itemsPerLevel; j++) {
-            const index = RG.RAND.randIndex(freeCells);
-            const cell = freeCells[index];
-
             const item = parser.createRandomItem({func: conf.func});
             if (item) {
                 _doItemSpecificAdjustments(item, conf.maxValue);
-                level.addItem(item, cell.getX(), cell.getY());
-                freeCells.splice(index, 1); // remove used cell
+                items.push(item);
             }
         }
 
@@ -441,16 +437,15 @@ RG.Factory.Base = function() { // {{{2
             });
 
             if (food) {
-                const index = RG.RAND.randIndex(freeCells);
-                const foodCell = freeCells[index];
                 _doItemSpecificAdjustments(food, conf.maxValue);
-                level.addItem(food, foodCell.getX(), foodCell.getY());
+                items.push(food);
             }
             else {
                 RG.warn('Factory.Base', 'addNRandItems',
                     'Item.Food was not created properly.');
             }
         }
+        this.addToFreeCells(level, items, RG.TYPE_ITEM);
     };
 
     /* Adds N random monsters to the level based on given danger level.*/
@@ -460,55 +455,67 @@ RG.Factory.Base = function() { // {{{2
         // Generate the monsters randomly for this level
         const maxDanger = conf.maxDanger;
 
-        const freeCells = level.getMap().getFree();
+        const actors = [];
         for (let i = 0; i < conf.actorsPerLevel; i++) {
-            const index = RG.RAND.randIndex(freeCells);
-            const cell = freeCells[index];
 
             // Generic randomization with danger level
-            let monster = null;
+            let actor = null;
             if (!conf.func) {
-                monster = parser.createRandomActorWeighted(1, maxDanger,
+                actor = parser.createRandomActorWeighted(1, maxDanger,
                     {func: function(actor) {return actor.danger <= maxDanger;}}
                 );
             }
             else {
-                monster = parser.createRandomActor({
+                actor = parser.createRandomActor({
                     func: (actor) => (conf.func(actor) &&
                         actor.danger <= maxDanger)
                 });
             }
 
-            if (monster) {
+            if (actor) {
                 // This levels up the actor to match current danger level
-                const objShell = parser.dbGet('actors', monster.getName());
+                const objShell = parser.dbGet('actors', actor.getName());
                 const expLevel = maxDanger - objShell.danger;
                 if (expLevel > 1) {
-                    RG.levelUpActor(monster, expLevel);
+                    RG.levelUpActor(actor, expLevel);
                 }
-                level.addActor(monster, cell.getX(), cell.getY());
+                actors.push(actor);
             }
             else {
                 RG.err('Factory.Zone', 'addNRandActors',
-                    `Generated monster null. Conf: ${JSON.stringify(conf)}`);
+                    `Generated actor null. Conf: ${JSON.stringify(conf)}`);
             }
 
-            freeCells.splice(index, 1); // remove used cell
+        }
+        this.addToFreeCells(level, actors, RG.TYPE_ACTOR);
+    };
+
+    this.addToFreeCells = function(level, props, type) {
+        const freeCells = level.getMap().getFree();
+        for (let i = 0; i < props.length; i++) {
+            if (freeCells.length > 0) {
+                const index = RG.RAND.randIndex(freeCells);
+                const cell = freeCells[index];
+                if (type === RG.TYPE_ACTOR) {
+                    level.addActor(props[i], cell.getX(), cell.getY());
+                }
+                else if (type === RG.TYPE_ITEM) {
+                    level.addItem(props[i], cell.getX(), cell.getY());
+                }
+                freeCells.splice(index, 1); // remove used cell
+            }
         }
     };
 
     /* Adds a random number of gold coins to the level. */
     this.addRandomGold = (level, parser, conf) => {
-        const freeCells = level.getMap().getFree();
+        const goldItems = [];
         for (let i = 0; i < conf.goldPerLevel; i++) {
-            const index = RG.RAND.randIndex(freeCells);
-            const cell = freeCells[index];
-
             const gold = parser.createActualObj(RG.TYPE_ITEM, 'Gold coin');
             _doItemSpecificAdjustments(gold, conf.nLevel);
-            level.addItem(gold, cell.getX(), cell.getY());
-            freeCells.splice(index, 1); // remove used cell
+            goldItems.push(gold);
         }
+        this.addToFreeCells(level, goldItems, RG.TYPE_ITEM);
     };
 
     /* Called for random items. Adjusts some of their attributes randomly.*/
