@@ -35,25 +35,46 @@ export default class Capital {
 
     // const wallSize = 2 * 7;
 
+    const subLevels = [];
     for (let i = 0; i < subLevelPos.length - 1; i++) {
       const y0 = Math.floor(rows * subLevelPos[i]);
       const y1 = Math.floor(rows * subLevelPos[i + 1]);
       const levelRows = y1 - y0;
 
       const levelCols = Math.floor(widths[i] * cols);
-      const offsetX = Math.floor((cols - levelCols) / 2);
-      const x0 = offsetX;
-      console.log(`SubL[${i}]: ${levelCols} x ${levelRows}`);
+      // const offsetX = Math.floor((cols - levelCols) / 2);
+      // const x0 = offsetX;
+      // console.log(`SubL[${i}]: ${levelCols} x ${levelRows}`);
 
       levelConf[i].nHouses = Math.floor(
         levelCols * levelRows / 500);
 
       const level = RG.FACT.createLevel(
         'townwithwall', levelCols, levelRows, levelConf[i]);
-
-      RG.Geometry.insertSubLevel(mainLevel, level, x0, y0);
+      subLevels.push(level);
     }
 
+    const y0 = subLevelPos[0] * cols;
+    const tileConf = {x: 0, y: y0, centerX: true};
+    RG.Geometry.tileLevels(mainLevel, subLevels, tileConf);
+
+    // Create the actors for this level
+    const actorConf = {
+        footman: 100,
+        archer: 50,
+        elite: 25,
+        commander: 5
+    };
+    const actors = [];
+    Object.keys(actorConf).forEach(key => {
+      const name = `Hyrkhian ${key}`;
+      const num = actorConf[key];
+      for (let i = 0; i < num; i++) {
+          const actor = parser.createActor(name);
+          actors.push(actor);
+      }
+    });
+    RG.FACT.addToFreeCells(mainLevel, actors, RG.TYPE_ACTOR);
     this.level = mainLevel;
   }
 
