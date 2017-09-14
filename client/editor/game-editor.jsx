@@ -1064,8 +1064,6 @@ export default class GameEditor extends Component {
   /* Starts a simulation of the level. No player support yet. */
   simulateLevel() {
     if (!this.state.simulationStarted) {
-      const id = this.state.level.getID();
-      console.log('Starting sim with level ' + id);
 
       this.game = new RG.Game.Main();
 
@@ -1078,9 +1076,7 @@ export default class GameEditor extends Component {
       levelClone.editorID = this.state.idCount++;
 
       const nActors = levelClone.getActors().length;
-      console.log('Cloned level has ' + nActors + ' actors');
 
-      // RG.POOL = new RG.EventPool(); // Dangerous, global objects
       this.game.addLevel(levelClone);
       this.game.addActiveLevel(levelClone);
       if (this.state.showAnimations) {
@@ -1088,8 +1084,6 @@ export default class GameEditor extends Component {
       }
 
       const startTime = new Date().getTime();
-      console.log('Game has ' + this.game.getLevels().length + ' levels');
-
       this.setState(startSimulation(startTime, levelClone));
       this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
     }
@@ -1160,6 +1154,7 @@ export default class GameEditor extends Component {
     this.setState({simulationPaused: true});
   }
 
+  /* Stops the simulation and deletes the game. */
   stopSimulation() {
     if (this.state.simulationStarted) {
       if (this.intervalID) {
@@ -1170,7 +1165,6 @@ export default class GameEditor extends Component {
         cancelAnimationFrame(this.frameID);
         this.frameID = null;
       }
-      console.log('Stopped simulation.');
       this.game = null;
       delete this.game;
       const shownLevel = this.state.levelList[this.state.levelIndex];
@@ -1204,7 +1198,7 @@ export default class GameEditor extends Component {
   // JSX GENERATING METHODS
   //--------------------------------------------------------------
 
-  /* Returns the level config configuration shown directly under level
+  /* Returns the config element shown directly under level
    * generation. */
   getConfElement(id, levelConf) {
     let elem = null;
