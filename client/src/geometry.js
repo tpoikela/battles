@@ -256,6 +256,18 @@ RG.Geometry = {
         return levels;
     },
 
+    tileLevels: function(l1, levels, conf) {
+      const {x, y} = conf;
+      let currX = x;
+      let currY = y;
+      if (conf.alignLeft) {
+        levels.forEach(level => {
+          this.insertSubLevel(l1, level, currX, currY);
+          currY += level.getMap().rows;
+        });
+      }
+    },
+
     /* Inserts a level inside another one. Function works only for elements, and
      * sets map cells only. */
     insertSubLevel: function(l1, l2, startX, startY) {
