@@ -11,8 +11,8 @@ const Game = require('../../../client/src/game.js');
 const Actor = require('../../../client/src/actor');
 
 /* Creates a game engine with 2 actors scheduled for actions.*/
-const setupEngineWithActors = function() {
-    this.engine = new Game.Engine();
+const setupEngineWithActors = function(pool) {
+    this.engine = new Game.Engine(pool);
     this.actor = new Actor.Rogue('TestActor');
     this.actor2 = new Actor.Rogue('TestActor2');
 
@@ -27,14 +27,17 @@ const setupEngineWithActors = function() {
 describe('Game.Engine', () => {
     let eng = null;
     let engine = null;
+    let pool = null;
 
     beforeEach( () => {
-        eng = new setupEngineWithActors();
+        pool = new RG.EventPool();
+        RG.resetEventPools();
+        RG.pushEventPool(pool);
+        eng = new setupEngineWithActors(pool);
         engine = eng.engine;
     });
 
     it('has game messages', () => {
-        const pool = RG.POOL;
         let msg = engine.getMessages();
         expect(msg).to.have.length(0);
 
