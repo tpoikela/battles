@@ -65,6 +65,22 @@ const topMenuConf = {
         'game-board-player-view-xl'
       ];
 
+/* Returns all cells in a box between cells c1,c2 on the given map. */
+const getSelection = (c0, c1, map) => {
+    const [x0, y0] = [c0.getX(), c0.getY()];
+    const [x1, y1] = [c1.getX(), c1.getY()];
+    if (x0 === x1 && y0 === y1) {
+      return [c0];
+    }
+    const bb = RG.Geometry.getBoxCornersForCells(c0, c1);
+    const coord = RG.Geometry.getBox(bb.ulx, bb.uly, bb.lrx, bb.lry);
+    const res = [];
+    coord.forEach(xy => {
+      res.push(map.getCell(xy[0], xy[1]));
+    });
+    return res;
+}
+
 const startSimulation = (startTime, level) =>
   () => (
     {
@@ -273,7 +289,7 @@ export default class GameEditor extends Component {
         if (map.hasXY(newX, newY)) {
           const newCell = map.getCell(newX, newY);
           if (this.state.selectMode) {
-            const selectedCells = this.getSelection(this.state.selectBegin,
+            const selectedCells = getSelection(this.state.selectBegin,
               newCell, map);
             const dX = newX - this.state.selectBegin.getX();
             const dY = newY - this.state.selectBegin.getY();
@@ -303,21 +319,6 @@ export default class GameEditor extends Component {
     }
   }
 
-  /* Returns all cells in the current selection. */
-  getSelection(c0, c1, map) {
-    const [x0, y0] = [c0.getX(), c0.getY()];
-    const [x1, y1] = [c1.getX(), c1.getY()];
-    if (x0 === x1 && y0 === y1) {
-      return [c0];
-    }
-    const bb = RG.Geometry.getBoxCornersForCells(c0, c1);
-    const coord = RG.Geometry.getBox(bb.ulx, bb.uly, bb.lrx, bb.lry);
-    const res = [];
-    coord.forEach(xy => {
-      res.push(map.getCell(xy[0], xy[1]));
-    });
-    return res;
-  }
 
   /* Returns current level */
   getLevel() {
@@ -370,8 +371,8 @@ export default class GameEditor extends Component {
     }
   }
 
-  /* Loads a user file and converts that into a level, which will be shown
-   * if the loading was successful. */
+  /* Loads a user file and converts that into a level object, which will be
+   * shown if the loading was successful. */
   loadLevel() {
     const fileList = document.querySelector('#level-file-input').files;
     console.log('Filelist has ' + fileList.length + ' files');
@@ -670,8 +671,6 @@ export default class GameEditor extends Component {
     if (this.state.boardClassName === 'game-board-map-view-xxxs') {
       rowClass = 'cell-row-div-map-view-xxxs';
     }
-
-    console.log('editor rendering()');
 
     let map = null;
     let mapSizeX = null;
@@ -1068,6 +1067,8 @@ export default class GameEditor extends Component {
       const id = this.state.level.getID();
       console.log('Starting sim with level ' + id);
 
+      this.game = new RG.Game.Main();
+
       const fromJSON = new RG.Game.FromJSON();
       const json = this.state.level.toJSON();
       const levelClone = fromJSON.restoreLevel(json);
@@ -1079,8 +1080,7 @@ export default class GameEditor extends Component {
       const nActors = levelClone.getActors().length;
       console.log('Cloned level has ' + nActors + ' actors');
 
-      RG.POOL = new RG.EventPool(); // Dangerous, global objects
-      this.game = new RG.Game.Main();
+      // RG.POOL = new RG.EventPool(); // Dangerous, global objects
       this.game.addLevel(levelClone);
       this.game.addActiveLevel(levelClone);
       if (this.state.showAnimations) {
@@ -1090,9 +1090,6 @@ export default class GameEditor extends Component {
       const startTime = new Date().getTime();
       console.log('Game has ' + this.game.getLevels().length + ' levels');
 
-      // const newLevel = this.game.getLevels()[0];
-      // this.setState({level: levelClone, frameCount: 0,
-      // startTime, simulationStarted: true});
       this.setState(startSimulation(startTime, levelClone));
       this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
     }
