@@ -524,8 +524,8 @@ RG.Map.Generator = function() { // {{{2
     };
 
     this.createTownWithWall = function(cols, rows, conf = {}) {
-        const tilesX = Math.ceil(cols / 7) + 2;
-        const tilesY = Math.ceil(rows / 7) + 2;
+        const tilesX = Math.ceil(cols / 7);
+        const tilesY = Math.ceil(rows / 7);
         const level = new TemplateLevel(tilesX, tilesY);
         level.use(Castle);
         level.setTemplates(Castle.Models.outerWall);
@@ -543,7 +543,9 @@ RG.Map.Generator = function() { // {{{2
         castleMapObj.tiles = level.xyToBbox;
 
         conf.levelType = 'empty' || conf.levelType;
-        const townMapObj = this.createTown(cols, rows, conf);
+        const colsTown = (tilesX - 2) * 7;
+        const rowsTown = (tilesY - 2) * 7;
+        const townMapObj = this.createTown(colsTown, rowsTown, conf);
 
         const finalMap = castleMapObj.map;
         RG.Geometry.mergeMaps(finalMap, townMapObj.map, 7, 7);
