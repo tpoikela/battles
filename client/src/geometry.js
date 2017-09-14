@@ -266,6 +266,14 @@ RG.Geometry = {
           currY += level.getMap().rows;
         });
       }
+      else if (conf.centerX) {
+        const midX = Math.round(l1.getMap().cols / 2);
+        levels.forEach(level => {
+          currX = midX - Math.round(level.getMap().cols / 2);
+          this.insertSubLevel(l1, level, currX, currY);
+          currY += level.getMap().rows;
+        });
+      }
     },
 
     /* Inserts a level inside another one. Function works only for elements, and

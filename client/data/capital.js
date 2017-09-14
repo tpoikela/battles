@@ -18,6 +18,8 @@ export default class Capital {
     };
     const mainLevel = RG.FACT.createLevel('wall', cols, rows, wallOpts);
 
+    // Not exact position, but give proportions
+
     const subLevelPos = [0.03, 0.20, 0.75, 0.95];
     const widths = [0.5, 0.80, 0.6];
 
@@ -31,10 +33,10 @@ export default class Capital {
       {nShops: 1, parser, nGates: 2}
     ];
 
-    const wallSize = 2 * 7;
+    // const wallSize = 2 * 7;
 
     for (let i = 0; i < subLevelPos.length - 1; i++) {
-      const y0 = Math.floor(rows * subLevelPos[i]) + wallSize;
+      const y0 = Math.floor(rows * subLevelPos[i]);
       const y1 = Math.floor(rows * subLevelPos[i + 1]);
       const levelRows = y1 - y0;
 
