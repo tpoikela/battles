@@ -10,7 +10,7 @@ RG.Game = {};
 
 /* Game engine which handles turn scheduling, systems updates and in-game
  * messaging between objects. */
-RG.Game.Engine = function() {
+RG.Game.Engine = function(eventPool) {
 
     // Ignore GUI commands by default
     this.isGUICommand = () => false;
@@ -24,6 +24,7 @@ RG.Game.Engine = function() {
     const _activeLevels = []; // Only these levels are simulated
     const _scheduler = new RG.Time.Scheduler();
     const _msg = new RG.MessageHandler();
+    const _eventPool = eventPool;
 
     this.getMessages = () => _msg.getMessages();
     this.hasNewMessages = () => _msg.hasNew();
@@ -146,7 +147,7 @@ RG.Game.Engine = function() {
         }
         else {
             this.clearMessages();
-            RG.POOL.emitEvent(RG.EVT_MSG, {msg: 'GAME OVER!'});
+            _eventPool.emitEvent(RG.EVT_MSG, {msg: 'GAME OVER!'});
             this.simulateGame();
         }
     };
@@ -156,7 +157,6 @@ RG.Game.Engine = function() {
     this.updateGameLoop = function(obj) {
         this.playerCommand(obj);
         this.currPlayer = this.nextActor;
-        console.log('updateGameLoop acting ' + this.currPlayer.getName());
         this.nextActor = this.getNextActor();
 
         // Next/act until player found, then go back waiting for key...
@@ -183,6 +183,7 @@ RG.Game.Engine = function() {
     /* Simulates the game without a player.*/
     this.simulateGame = function() {
         this.nextActor = this.getNextActor();
+
         if (!this.nextActor.isPlayer()) {
             const action = this.nextActor.nextAction();
             this.doAction(action);
@@ -369,15 +370,14 @@ RG.Game.Engine = function() {
             }
         }
     };
-    RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this);
-    RG.POOL.listenEvent(RG.EVT_ACT_COMP_ADDED, this);
-    RG.POOL.listenEvent(RG.EVT_ACT_COMP_REMOVED, this);
-    RG.POOL.listenEvent(RG.EVT_ACT_COMP_ENABLED, this);
-    RG.POOL.listenEvent(RG.EVT_ACT_COMP_DISABLED, this);
-    RG.POOL.listenEvent(RG.EVT_LEVEL_PROP_ADDED, this);
-    RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this);
-    RG.POOL.listenEvent(RG.EVT_ANIMATION, this);
-
+    _eventPool.listenEvent(RG.EVT_DESTROY_ITEM, this);
+    _eventPool.listenEvent(RG.EVT_ACT_COMP_ADDED, this);
+    _eventPool.listenEvent(RG.EVT_ACT_COMP_REMOVED, this);
+    _eventPool.listenEvent(RG.EVT_ACT_COMP_ENABLED, this);
+    _eventPool.listenEvent(RG.EVT_ACT_COMP_DISABLED, this);
+    _eventPool.listenEvent(RG.EVT_LEVEL_PROP_ADDED, this);
+    _eventPool.listenEvent(RG.EVT_LEVEL_CHANGED, this);
+    _eventPool.listenEvent(RG.EVT_ANIMATION, this);
 
     this.hasAnimation = function() {
         return this.animation !== null &&
@@ -399,7 +399,7 @@ RG.Game.Main = function() {
     RG.resetEventPools();
     RG.pushEventPool(_eventPool);
 
-    const _engine = new RG.Game.Engine();
+    const _engine = new RG.Game.Engine(_eventPool);
 
     this.shownLevel = () => _shownLevel;
     this.setShownLevel = level => {_shownLevel = level;};
@@ -586,8 +586,8 @@ RG.Game.Main = function() {
             }
         }
     };
-    RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
-    RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this);
+    _eventPool.listenEvent(RG.EVT_ACTOR_KILLED, this);
+    _eventPool.listenEvent(RG.EVT_LEVEL_CHANGED, this);
 
     /* Adds one battle to the game. */
     this.addBattle = battle => {
@@ -597,7 +597,6 @@ RG.Game.Main = function() {
 
     this.getOverWorld = () => this._overworld;
     this.setOverWorld = (ow) => {
-      console.log('Overworld was set in game.');
       this._overworld = ow;
     };
 
