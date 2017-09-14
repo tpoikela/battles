@@ -26,13 +26,15 @@ use Getopt::Long;
 
 my %opt;
 GetOptions(
-    clean => \$opt{clean},
+    clean       => \$opt{clean},
     "t|tests=s" => \$opt{tests}
 );
 
 my $comp_babel = "--compilers babel-core/register";
 
 clean_cov() if defined $opt{clean};
+
+my $tests = $opt{tests} ? $opt{tests} : "";
 
 my $nyc_bak = ".nyc_output_bak";
 if (-d $nyc_bak) {
@@ -70,7 +72,7 @@ sub clean_cov {
 
 sub _cmd {
     my ($cmd, $msg) = @_;
-    my $execute = $cmd =~ qr/$opt{tests}/ or $opt{tests} =~ /all/;
+    my $execute = $cmd =~ qr/$tests/ or $tests =~ /all/;
     if ($execute) {
         print STDERR "TESTS: $msg\n";
         system($cmd);
