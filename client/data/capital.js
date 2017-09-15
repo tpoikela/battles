@@ -16,6 +16,14 @@ export default class Capital {
       stdDev: 10,
       filterW: 7
     };
+    if (conf.transpose) {
+      wallOpts.north = true;
+      wallOpts.south = true;
+      wallOpts.east = false;
+      wallOpts.west = false;
+      wallOpts.meanWx = Math.floor(0.9 * cols / 2);
+    }
+
     const mainLevel = RG.FACT.createLevel('wall', cols, rows, wallOpts);
 
     // Not exact position, but give proportions
@@ -33,18 +41,18 @@ export default class Capital {
       {nShops: 1, parser, nGates: 2}
     ];
 
-    // const wallSize = 2 * 7;
-
     const subLevels = [];
     for (let i = 0; i < subLevelPos.length - 1; i++) {
       const y0 = Math.floor(rows * subLevelPos[i]);
       const y1 = Math.floor(rows * subLevelPos[i + 1]);
-      const levelRows = y1 - y0;
-
-      const levelCols = Math.floor(widths[i] * cols);
-      // const offsetX = Math.floor((cols - levelCols) / 2);
-      // const x0 = offsetX;
-      // console.log(`SubL[${i}]: ${levelCols} x ${levelRows}`);
+      let levelRows = y1 - y0;
+      let levelCols = Math.floor(widths[i] * cols);
+      if (conf.transpose) {
+        const x0 = Math.floor(cols * subLevelPos[i]);
+        const x1 = Math.floor(cols * subLevelPos[i + 1]);
+        levelCols = x1 - x0;
+        levelRows = Math.floor(widths[i] * rows);
+      }
 
       levelConf[i].nHouses = Math.floor(
         levelCols * levelRows / 500);
@@ -56,6 +64,12 @@ export default class Capital {
 
     const y0 = subLevelPos[0] * cols;
     const tileConf = {x: 0, y: y0, centerX: true};
+    if (conf.transpose) {
+      tileConf.centerY = true;
+      tileConf.centerX = false;
+      tileConf.y = 0;
+      tileConf.x = subLevelPos[0] * rows;
+    }
     RG.Geometry.tileLevels(mainLevel, subLevels, tileConf);
 
     // Create the actors for this level
