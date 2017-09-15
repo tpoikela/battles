@@ -44,3 +44,22 @@ Finally, serve the static files:
 ```
 
 After this, you should be able to access the game on localhost:8000/index.html.
+
+## Development
+ 
+Clone it:
+```code
+    git clone https://github.com/tpoikela/battles.git
+```
+
+Setup:
+```code
+    npm install
+    gulp watch-dev
+    npm run start
+```
+  
+NOTE: All source code pushed into the repository will be under MIT license.
+ 
+ 
+ 
