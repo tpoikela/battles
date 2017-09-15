@@ -231,6 +231,7 @@ const Items = [
         weight: 1.0, defense: 2, attack: -1,
         armourType: 'shield', value: value(15)
     },
+
     // ARMOUR IRON
     {
         name: 'ChainArmourBase', base: 'ArmourBase', dontCreate: true,
@@ -462,6 +463,11 @@ const Items = [
         attack: 1, damage: '1d8', value: value(20)
     },
     {
+        name: 'Runed arrow', base: 'MissileBase',
+        type: 'ammo', range: 1, weight: 0.2,
+        attack: 4, damage: '2d7', value: value('magic', 50)
+    },
+    {
         name: 'Ruby glass bolt', base: 'MissileBase',
         type: 'ammo', range: 2, weight: 0.05,
         attack: 3, damage: '2d8', value: value('ruby', 60)
@@ -503,6 +509,16 @@ const Items = [
         use: {cure: {effect: 'poison'}}, value: value(80)
     },
     {
+        name: 'Potion of eagle', base: 'PotionBase',
+        use: {addComp: {name: 'Flying', duration: '5d10'}},
+        value: value(80)
+    },
+    {
+        name: 'Potion of paralysis', base: 'PotionBase',
+        use: {addComp: {name: 'Paralysis', duration: '2d5'}},
+        value: value(80)
+    },
+    {
         name: 'Potion of frost poison', base: 'PotionBase',
         use: {poison: {duration: '5d20', damage: '1d6 + 1', prob: '0.2'}},
         value: value(100)
@@ -515,6 +531,12 @@ const Items = [
         name: 'Potion of spirit form', base: 'PotionBase',
         use: {addComp: {name: 'Ethereal', duration: '2d10'}},
         value: value(100)
+    },
+    {
+        name: 'Potion of mana', base: 'PotionBase',
+        use: {addToCompValue: {name: 'SpellPower', set: 'setPP',
+            get: 'getPP', value: '6d5 + 5'}
+        }, value: value(150)
     },
     {
         name: 'Potion of quickness', base: 'PotionBase',
