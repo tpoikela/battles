@@ -157,7 +157,7 @@ const Actors = [
     {
       name: 'bearfolk archer', base: 'BearfolkBase',
       attack: 2, defense: 2, danger: 3, hp: 13,
-      equip: ['Bow', {name: 'Arrow', count: 10}], brain: 'Archer'
+      equip: ['Wooden bow', {name: 'Wooden arrow', count: 10}], brain: 'Archer'
     },
     {
       name: 'bearfolk king', base: 'BearfolkBase',
@@ -343,7 +343,8 @@ const Actors = [
     {
         name: 'wildling archer', base: 'wildling', char: 'F',
         attack: 3, defense: 3, damage: '1d6', hp: 20, danger: 4,
-        equip: ['Bow', {name: 'Arrow', count: 10}], brain: 'Archer'
+        equip: ['Wooden bow', {name: 'Wooden arrow', count: 10}],
+        brain: 'Archer'
     },
     {
         name: 'wildling fighter', base: 'wildling', char: 'F',
@@ -414,7 +415,7 @@ const Actors = [
     {
       name: 'Hyrkhian archer', base: 'HyrkhianBase',
       attack: 4, defense: 4, protection: 2, hp: 20, brain: 'Archer',
-      equip: ['Bow', {name: 'Arrow', count: 15}], danger: 6
+      equip: ['Steel bow', {name: 'Steel arrow', count: 15}], danger: 6
     },
     {
       name: 'Hyrkhian elite', base: 'HyrkhianBase',
