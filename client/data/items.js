@@ -431,36 +431,66 @@ const Items = [
         attack: 0, defense: 0, char: '{'
     },
     {
-        name: 'Bow', base: 'MissileWeaponBase',
-        attack: 1, range: 4, value: value(100)
+        name: 'Wooden bow', base: 'MissileWeaponBase',
+        attack: 1, range: 4, value: value(75),
+        weaponType: 'bow', weight: 1.0
     },
     {
-        name: 'Crossbow', base: 'MissileWeaponBase',
-        attack: 3, range: 6, value: value(250)
+        name: 'Wooden crossbow', base: 'MissileWeaponBase',
+        attack: 3, range: 6, value: value(150),
+        weaponType: 'crossbow', weight: 2.0
+    },
+    {
+        name: 'Steel bow', base: 'MissileWeaponBase',
+        attack: 2, range: 5, value: value(150),
+        weaponType: 'bow', weight: 2.0
+    },
+    {
+        name: 'Steel crossbow', base: 'MissileWeaponBase',
+        attack: 4, range: 7, value: value(250),
+        weaponType: 'crossbow', weight: 3.0
     },
     {
         name: 'Double crossbow', base: 'MissileWeaponBase',
-        attack: 0, range: 5, value: value(400)
+        attack: 0, range: 5, value: value(400),
+        weaponType: 'crossbow', weight: 4.0
     },
     {
         name: 'Bow of Defense', base: 'MissileWeaponBase',
-        attack: 1, range: 4, defense: 6, value: value(500)
+        attack: 1, range: 4, defense: 6, value: value(500),
+        weaponType: 'bow', weight: 1.0
     },
     {
         name: 'Rifle', base: 'MissileWeaponBase',
-        attack: 4, range: 7, value: value(500)
+        attack: 4, range: 7, value: value(500),
+        weaponType: 'rifle', weight: 4.5
+    },
+    {
+        name: 'Dwarven rifle', base: 'MissileWeaponBase',
+        attack: 4, range: 8, damage: '1d6', value: value(500),
+        weaponType: 'rifle', weight: 5.5
     },
 
     // AMMO
     {
-        name: 'Arrow', base: 'MissileBase',
+        name: 'Wooden arrow', base: 'MissileBase',
         type: 'ammo', range: 1, weight: 0.1,
         attack: 0, damage: '1d6', value: value(10)
     },
     {
-        name: 'Bolt', base: 'MissileBase',
+        name: 'Wooden bolt', base: 'MissileBase',
         type: 'ammo', range: 1, weight: 0.1,
-        attack: 1, damage: '1d8', value: value(20)
+        attack: 1, damage: '1d8', value: value(15)
+    },
+    {
+        name: 'Steel arrow', base: 'MissileBase',
+        type: 'ammo', range: 1, weight: 0.1,
+        attack: 0, damage: '1d6', value: value(20)
+    },
+    {
+        name: 'Steel bolt', base: 'MissileBase',
+        type: 'ammo', range: 1, weight: 0.1,
+        attack: 1, damage: '1d8', value: value(25)
     },
     {
         name: 'Runed arrow', base: 'MissileBase',
