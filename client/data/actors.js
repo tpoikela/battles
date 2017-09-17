@@ -58,6 +58,11 @@ const Actors = [
         hp: 20, danger: 4
     },
     {
+        name: 'auroch', char: 'A', base: 'animal',
+        attack: 2, defense: 4, protection: 5, damage: '1d7',
+        hp: 23, danger: 4
+    },
+    {
         name: 'eagle', char: 'E', base: 'animal',
         attack: 4, defense: 4, damage: '1d7',
         hp: 20, danger: 4, addComp: 'Flying'
@@ -78,9 +83,19 @@ const Actors = [
         hp: 25, danger: 5
     },
     {
+        name: 'sabretooth tiger', char: 'f', base: 'animal',
+        attack: 8, defense: 3, damage: '3d3',
+        hp: 25, danger: 5
+    },
+    {
         name: 'griffin', char: 'G', base: 'animal',
         attack: 7, defense: 4, damage: '3d3',
         hp: 35, danger: 6, addComp: 'Flying'
+    },
+    {
+        name: 'mammoth', char: 'M', base: 'animal',
+        attack: 4, defense: 4, protection: 7, damage: '1d9',
+        strength: 30, hp: 40, danger: 8
     },
     {
         name: 'manticore', char: 'M', base: 'animal',
@@ -189,12 +204,13 @@ const Actors = [
     {
         name: 'Crevasse worm', char: 'w', base: 'WinterBeingBase',
         attack: 1, defense: 1, damage: '1d4', speed: 110,
-        danger: 1, hp: 5
+        danger: 1, hp: 5, type: 'animal'
     },
     {
         name: 'Ice bat', char: 'b', base: 'WinterBeingBase',
         attack: 1, defense: 1, damage: '1d6', speed: 110,
-        danger: 2, hp: 8, brain: 'Animal', addComp: 'Flying'
+        danger: 2, hp: 8, brain: 'Animal', addComp: 'Flying',
+        type: 'animal'
     },
     {
         name: 'Frost goblin', char: 'g', base: 'WinterBeingBase',
@@ -204,13 +220,13 @@ const Actors = [
     {
         name: 'Frost viper', char: 's', base: 'WinterBeingBase',
         attack: 3, defense: 3, protection: 3, damage: '1d7', hp: 18,
-        danger: 4,
+        danger: 4, type: 'animal',
         poison: {duration: '1d6 + 5', damage: '1d6', prob: '0.1'}
     },
     {
         name: 'Arctic Wolf', char: 'w', base: 'WinterBeingBase',
         attack: 4, defense: 2, damage: '1d8', brain: 'Animal',
-        hp: 21, danger: 5
+        hp: 21, danger: 5, type: 'animal'
     },
     {
         name: 'Glacial golem', char: 'G', base: 'WinterBeingBase',
@@ -221,6 +237,11 @@ const Actors = [
         name: 'Mighty raven', base: 'WinterBeingBase', char: 'R',
         attack: 4, defense: 8, damage: '2d4 + 2', range: 1, hp: 20,
         danger: 5, brain: 'Animal', addComp: 'Flying'
+    },
+    {
+        name: 'Snow leopard', base: 'WinterBeingBase', char: 'f',
+        attack: 8, defense: 4, damage: '1d6 + 5', range: 1, hp: 25,
+        danger: 5, brain: 'Animal', type: 'animal', speed: 120
     },
     {
         name: 'Cryomancer', base: 'WinterBeingBase', char: '@',
