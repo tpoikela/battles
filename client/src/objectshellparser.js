@@ -59,7 +59,8 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
             weapon: {
                 damage: 'setDamageDie',
                 attack: 'setAttack',
-                defense: 'setDefense'
+                defense: 'setDefense',
+                weaponType: 'setWeaponType'
             },
             missile: {
                 damage: 'setDamageDie',
