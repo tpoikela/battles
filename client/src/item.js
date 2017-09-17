@@ -189,12 +189,27 @@ class RGItemWeapon extends Mixin.Damage(ItemBase) {
     constructor(name) {
         super(name);
         this.setType(RG.ITEM_WEAPON);
+        this._weaponType = '';
     }
 
     clone() {
         const weapon = new RGItemWeapon(this.getName());
         weapon.copy(this);
         return weapon;
+    }
+
+    setWeaponType(type) {
+        this._weaponType = type;
+    }
+
+    getWeaponType() {
+        return this._weaponType;
+    }
+
+    toJSON() {
+        const json = super.toJSON();
+        json.setWeaponType = this._weaponType;
+        return json;
     }
 
 }
