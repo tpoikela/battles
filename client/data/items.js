@@ -47,20 +47,20 @@ const Items = [
     {
         name: 'Dagger', base: 'MeleeWeaponBase',
         material: 'iron',
-        damage: '1d4',
+        damage: '1d4', weaponType: 'dagger',
         weight: 0.2, value: value(5)
     },
     {
         name: 'Bayonette', base: 'MeleeWeaponBase',
         material: 'iron',
-        damage: '1d5',
+        damage: '1d5', weaponType: 'dagger',
         weight: 0.1, value: value(10)
         // TODO combine with rifle
     },
     {
         name: 'Short sword', base: 'MeleeWeaponBase',
         material: 'iron',
-        damage: '1d6',
+        damage: '1d6', weaponType: 'sword',
         weight: 0.5, value: value(20)
     },
     {
@@ -73,40 +73,47 @@ const Items = [
         name: 'Tomahawk', base: 'MeleeWeaponBase',
         material: ['wood', 'stone', 'leather'],
         damage: '1d7', attack: 1, defense: 1,
+        weaponType: 'axe',
         weight: 0.7, value: value(35)
     },
     {
         name: 'Pick-axe', base: 'MeleeWeaponBase',
         damage: '1d8', attack: 1, defense: 2,
+        weaponType: 'axe',
         weight: 2.3, value: value(50), use: 'digger'
     },
     {
         name: 'Saber', base: 'MeleeWeaponBase',
         material: 'iron',
         damage: '2d4 + 1', attack: 2, defense: 1,
+        weaponType: 'sword',
         weight: 0.6, value: value(30)
     },
     {
         name: 'Spear', base: 'MeleeWeaponBase',
         damage: '1d8', attack: 1, defense: 3,
+        weaponType: 'spear',
         weight: 1.2, value: value(50)
     },
     {
         name: 'Longsword', base: 'MeleeWeaponBase',
         material: 'steel',
         damage: '1d8', attack: 2, defense: 2,
+        weaponType: 'sword',
         weight: 0.8, value: value(75)
     },
     {
         name: 'Morningstar', base: 'MeleeWeaponBase',
         material: ['wood', 'iron'],
         damage: '1d9 + 2', attack: 2, defense: 3,
+        weaponType: 'mace',
         weight: 0.7, value: value(75)
     },
     {
         name: 'Battle axe', base: 'MeleeWeaponBase',
         material: 'iron',
         damage: '2d6 + 2', attack: 2, defense: 1,
+        weaponType: 'axe',
         weight: 2.5, value: value(85)
     },
 
@@ -119,19 +126,23 @@ const Items = [
     },
     {
         name: 'Permaice dagger', base: 'IceWeaponBase',
-        damage: '1d4 + 6', defense: 3, weight: 0.6, value: value(100)
+        damage: '1d4 + 6', defense: 3, weight: 0.6, value: value(100),
+        weaponType: 'dagger'
     },
     {
         name: 'Permaice short sword', base: 'IceWeaponBase',
-        damage: '2d5 + 6', defense: 6, weight: 1.5, value: value(300)
+        damage: '2d5 + 6', defense: 6, weight: 1.5, value: value(300),
+        weaponType: 'sword'
     },
     {
         name: 'Permaice long sword', base: 'IceWeaponBase',
-        damage: '4d5 + 6', defense: 8, weight: 3.0, value: value(500)
+        damage: '4d5 + 6', defense: 8, weight: 3.0, value: value(500),
+        weaponType: 'sword'
     },
     {
         name: 'Permaice katana', base: 'IceWeaponBase',
-        damage: '10d3 + 6', defense: 10, weight: 4.0, value: value(750)
+        damage: '10d3 + 6', defense: 10, weight: 4.0, value: value(750),
+        weaponType: 'sword'
     },
 
     // RUBY GLASS WEAPONS
@@ -143,27 +154,32 @@ const Items = [
     {
         name: 'Ruby glass dagger', base: 'RubyWeaponBase',
         damage: '2d5 + 2',
-        attack: 4, defense: 1, weight: 0.1, value: value(100)
+        attack: 4, defense: 1, weight: 0.1, value: value(100),
+        weaponType: 'dagger'
     },
     {
         name: 'Ruby glass short sword', base: 'RubyWeaponBase',
         damage: '3d5 + 2',
-        attack: 3, defense: 2, weight: 0.2, value: value(200)
+        attack: 3, defense: 2, weight: 0.2, value: value(200),
+        weaponType: 'sword'
     },
     {
         name: 'Ruby glass sword', base: 'RubyWeaponBase',
         damage: '4d5 + 2',
-        attack: 5, defense: 2, weight: 0.3, value: value(350)
+        attack: 5, defense: 2, weight: 0.3, value: value(350),
+        weaponType: 'sword'
     },
     {
         name: 'Ruby glass spear', base: 'RubyWeaponBase',
         damage: '3d5 + 2',
-        attack: 3, defense: 6, weight: 0.4, value: value(400)
+        attack: 3, defense: 6, weight: 0.4, value: value(400),
+        weaponType: 'spear'
     },
     {
         name: 'Ruby glass battle axe', base: 'RubyWeaponBase',
         damage: '4d6 + 3',
-        attack: 6, defense: 2, weight: 0.7, value: value(800)
+        attack: 6, defense: 2, weight: 0.7, value: value(800),
+        weaponType: 'axe'
     },
 
     // MAGIC WEAPONS
@@ -175,27 +191,38 @@ const Items = [
     {
         name: 'Magic dagger', base: 'MagicWeaponBase',
         damage: '2d5 + 2',
-        attack: 2, defense: 1, weight: 0.2, value: value(100)
+        attack: 2, defense: 1, weight: 0.2, value: value(100),
+        weaponType: 'dagger'
     },
     {
         name: 'Magic short sword', base: 'MagicWeaponBase',
         damage: '3d5 + 2',
-        attack: 3, defense: 2, weight: 0.5, value: value(300)
+        attack: 3, defense: 2, weight: 0.5, value: value(300),
+        weaponType: 'sword'
     },
     {
         name: 'Magic sword', base: 'MagicWeaponBase',
         damage: '5d5 + 2',
-        attack: 5, defense: 2, weight: 1.0, value: value(500)
+        attack: 5, defense: 2, weight: 1.0, value: value(500),
+        weaponType: 'sword'
+    },
+    {
+        name: 'Magic spear', base: 'MagicWeaponBase',
+        damage: '4d5 + 4',
+        attack: 4, defense: 8, weight: 1.4, value: value(600),
+        weaponType: 'spear'
     },
     {
         name: 'Magic runesword', base: 'MagicWeaponBase',
         damage: '3d10 + 2',
-        attack: 5, defense: 5, weight: 0.8, value: value(750)
+        attack: 5, defense: 5, weight: 0.8, value: value(750),
+        weaponType: 'sword'
     },
     {
         name: 'Wintersbane', base: 'MagicWeaponBase',
         damage: '3d8 + 4',
-        attack: 6, defense: 3, weight: 1.0, value: value(1000)
+        attack: 6, defense: 3, weight: 1.0, value: value(1000),
+        weaponType: 'sword'
     },
 
     // ARMOUR
@@ -426,7 +453,7 @@ const Items = [
     // MISSILE WEAPONS
     {
         name: 'MissileWeaponBase', dontCreate: true,
-        type: 'missileweapon',
+        type: 'missileweapon', fireRate: 1,
         className: 'cell-item-missileweapon',
         attack: 0, defense: 0, char: '{'
     },
@@ -452,7 +479,7 @@ const Items = [
     },
     {
         name: 'Double crossbow', base: 'MissileWeaponBase',
-        attack: 0, range: 5, value: value(400),
+        attack: 0, range: 5, value: value(400), fireRate: 2,
         weaponType: 'crossbow', weight: 4.0
     },
     {
@@ -485,12 +512,12 @@ const Items = [
     {
         name: 'Steel arrow', base: 'MissileBase',
         type: 'ammo', range: 1, weight: 0.1,
-        attack: 0, damage: '1d6', value: value(20)
+        attack: 0, damage: '1d6', value: value('steel', 20)
     },
     {
         name: 'Steel bolt', base: 'MissileBase',
         type: 'ammo', range: 1, weight: 0.1,
-        attack: 1, damage: '1d8', value: value(25)
+        attack: 1, damage: '1d8', value: value('steel', 25)
     },
     {
         name: 'Runed arrow', base: 'MissileBase',
@@ -504,7 +531,7 @@ const Items = [
     },
     {
         name: 'Rifle bullet', base: 'MissileBase',
-        type: 'ammo', range: 1,
+        type: 'ammo', range: 1, weight: 0.05,
         attack: 1, damage: '3d4', value: value(50)
     },
 
@@ -626,6 +653,9 @@ const Items = [
         name: 'Ghost pepper', base: 'FoodBase', energy: 100, value: value(50),
         use: {stun: {duration: '3d3'}}
     },
+    {
+      name: 'Whale fat', base: 'FoodBase', energy: 8000, value: value(100)
+    },
 
     // TOOLS
     // Note: Each tool should have useItem method.
@@ -642,16 +672,24 @@ const Items = [
         weight: 0.1, type: 'spiritgem', dontCreate: true
     },
     {
-        name: 'Lesser gem', base: 'SpiritGemBase', value: value('gem', 30),
-        weight: 3.0
+        name: 'Lesser spirit gem', base: 'SpiritGemBase',
+        value: value('gem', 30), weight: 4.0
     },
     {
-        name: 'Ordinary gem', base: 'SpiritGemBase', value: value('gem', 60),
-        weight: 1.5
+        name: 'Ordinary spirit gem', base: 'SpiritGemBase',
+        value: value('gem', 60), weight: 2.5
     },
     {
-        name: 'Greater gem', base: 'SpiritGemBase', value: value('gem', 100),
-        weight: 0.5
+        name: 'Greater spirit gem', base: 'SpiritGemBase',
+        value: value('gem', 100), weight: 1.5
+    },
+    {
+        name: 'Mystical spirit gem', base: 'SpiritGemBase',
+        value: value('gem', 300), weight: 0.5
+    },
+    {
+        name: 'Mythic spirit gem', base: 'SpiritGemBase',
+        value: value('gem', 500), weight: 0.2
     }
 ];
 
