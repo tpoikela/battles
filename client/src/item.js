@@ -223,6 +223,15 @@ class RGItemMissileWeapon extends RGItemWeapon {
     constructor(name) {
         super(name);
         this.setType(RG.ITEM_MISSILE_WEAPON);
+        this._fireRate = 1;
+    }
+
+    setFireRate(rate) {
+        this._fireRate = rate;
+    }
+
+    getFireRate() {
+        return this._fireRate;
     }
 }
 RG.Item.MissileWeapon = RGItemMissileWeapon;
