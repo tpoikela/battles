@@ -66,12 +66,6 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
         return txt;
     };
 
-    equals(item) {
-        let res = this.getName() === item.getName();
-        res = res && (this.getType() === item.getType());
-        return res;
-    };
-
     copy(rhs) {
         this.setName(rhs.getName());
         this.setType(rhs.getType());
@@ -83,6 +77,12 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
         const newItem = new RG.Item.Base(this.getName());
         newItem.copy(this);
         return newItem;
+    };
+
+    equals(item) {
+        let res = this.getName() === item.getName();
+        res = res && (this.getType() === item.getType());
+        return res;
     };
 
     toJSON() {
@@ -111,52 +111,51 @@ RG.Item.Base = ItemBase;
 /* RGItemFood */
 //----------------
 class RGItemFood extends ItemBase {
+
     constructor(name) {
         super(name);
         this.setType(RG.ITEM_FOOD);
-
         this._energy = 0; // per 0.1 kg
+    }
 
-        this.setEnergy = energy => {this._energy = energy;};
-        this.getEnergy = () => this._energy;
+    setEnergy(energy) {this._energy = energy;}
+    getEnergy() {return this._energy}
 
-        this.getConsumedEnergy = function() {
-            return Math.round( (this.getWeight() * this._energy) / 0.1);
-        };
-
-        /* Uses (eats) the food item.*/
-        this.useItem = function(obj) {
-            if (obj.hasOwnProperty('target')) {
-                const cell = obj.target;
-                if (cell.hasActors()) {
-                    const target = cell.getProp('actors')[0];
-                    if (target.has('Hunger')) {
-                        const totalEnergy = this.getConsumedEnergy();
-                        target.get('Hunger').addEnergy(totalEnergy);
-                        if (this.count === 1) {
-                            const msg = {item: this};
-                            RG.POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
-                            RG.gameMsg(target.getName() + ' consumes ' +
-                                this.getName());
-                        }
-                        else {
-                            this.count -= 1;
-                        }
+    /* Uses (eats) the food item.*/
+    useItem(obj) {
+        if (obj.hasOwnProperty('target')) {
+            const cell = obj.target;
+            if (cell.hasActors()) {
+                const target = cell.getProp('actors')[0];
+                if (target.has('Hunger')) {
+                    const totalEnergy = this.getConsumedEnergy();
+                    target.get('Hunger').addEnergy(totalEnergy);
+                    if (this.count === 1) {
+                        const msg = {item: this};
+                        RG.POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
+                        RG.gameMsg(target.getName() + ' consumes ' +
+                            this.getName());
                     }
                     else {
-                        RG.gameWarn(target.getName() +
-                            ' is not interested in eating.');
+                        this.count -= 1;
                     }
                 }
                 else {
-                    RG.gameWarn("There's no one to give food to.");
+                    RG.gameWarn(target.getName() +
+                        ' is not interested in eating.');
                 }
             }
             else {
-                RG.err('ItemFood', 'useItem', 'No target given in obj.');
+                RG.gameWarn("There's no one to give food to.");
             }
-        };
+        }
+        else {
+            RG.err('ItemFood', 'useItem', 'No target given in obj.');
+        }
+    }
 
+    getConsumedEnergy() {
+        return Math.round(this.getWeight() * this._energy / 0.1);
     }
 
     toJSON() {
@@ -233,6 +232,32 @@ class RGItemMissileWeapon extends RGItemWeapon {
     getFireRate() {
         return this._fireRate;
     }
+
+    copy(rhs) {
+        super.copy(rhs);
+        this.setFireRate(rhs.getFireRate());
+    }
+
+    clone() {
+        const weapon = new RGItemMissileWeapon(this.getName());
+        weapon.copy(this);
+        weapon.setFireRate(this._fireRate);
+        return weapon;
+    }
+
+    equals(rhs) {
+        if (super.equals(rhs)) {
+            return this._fireRate === rhs.getFireRate();
+        }
+        return false;
+    }
+
+    toJSON() {
+        const json = super.toJSON();
+        json.setFireRate = this._fireRate;
+        return json;
+    }
+
 }
 RG.Item.MissileWeapon = RGItemMissileWeapon;
 
@@ -270,15 +295,15 @@ class RGItemArmour extends Mixin.Defense(ItemBase) {
         this.getArmourType = () => this._armourType;
     }
 
+    copy(rhs) {
+        super.copy(rhs);
+        this.setArmourType(rhs.getArmourType());
+    }
+
     clone() {
         const armour = new RGItemArmour(this.getName());
         armour.copy(this);
         return armour;
-    }
-
-    copy(rhs) {
-        super.copy(rhs);
-        this.setArmourType(rhs.getArmourType());
     }
 
     equals(rhs) {
@@ -348,14 +373,13 @@ class RGItemRune extends ItemBase {
         this.setType(RG.ITEM_RUNE);
 
         this._charges = 1;
+    }
 
-        this.getCharges = () => this._charges;
-        this.setCharges = (charges) => {this._charges = charges;};
+    getCharges() {return this._charges;}
+    setCharges(charges) {this._charges = charges;}
 
-        this.useItem = () => {
-            // Various complex effects
-        };
-
+    useItem() {
+        // Various complex effects
     }
 
     clone() {
