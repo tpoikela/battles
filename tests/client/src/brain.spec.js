@@ -72,6 +72,14 @@ describe('Brain.Player', () => {
         const sword = new RG.Item.Weapon('sword');
         brain.decideNextAction({cmd: 'use', item: sword});
         expect(brain.energy).to.equal(0);
+
+        const potion = new RG.Item.Potion('healing potion');
+        player.get('Health').decrHP(5);
+        const hpOld = player.get('Health').getHP();
+        brain.decideNextAction({cmd: 'use', item: potion,
+            target: player.getCell()});
+        const hpNew = player.get('Health').getHP();
+        expect(hpNew, 'Healing pot restores HP').to.be.above(hpOld);
     });
 
     it('has commands for dropping, equipping and unequipping items', () => {
@@ -389,7 +397,7 @@ describe('Brain.SpellCaster', () => {
         wizard.getBrain().addEnemyType('goblin');
         const goblin = new RG.Actor.Rogue('goblin');
         goblin.setType('goblin');
-        const level = RGTest.wrapIntoLevel([wizard, goblin]);
+        RGTest.wrapIntoLevel([wizard, goblin]);
         RGTest.moveEntityTo(wizard, 2, 2);
         RGTest.moveEntityTo(goblin, 4, 4);
 
