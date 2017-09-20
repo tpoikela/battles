@@ -594,7 +594,9 @@ RG.Brain.SpellCaster = function(actor) {
     this.setType('SpellCaster');
     const _actor = actor;
 
-    const _castingProb = 0.2;
+    this._castingProb = 0.2;
+
+    this.setCastProbability = prob => {this._castingProb = prob;};
 
     this.decideNextAction = function() {
         this._seenCached = null;
@@ -612,8 +614,8 @@ RG.Brain.SpellCaster = function(actor) {
 
     /* Returns true if spellcaster can cast a spell. */
     this.canCastSpell = function() {
-        if (_actor.get('SpellPower').getPP() >= this._spell.getPower()) {
-            if (RG.RAND.getUniform() <= _castingProb) {
+        if (actor.get('SpellPower').getPP() >= this._spell.getPower()) {
+            if (RG.RAND.getUniform() <= this._castingProb) {
                 return true;
             }
         }
