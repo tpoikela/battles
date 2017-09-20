@@ -1178,13 +1178,13 @@ RG.System.Animation = function(compTypes) {
     this.missileAnimation = args => {
         const mComp = args.missile;
         const xEnd = args.to[0];
-        const yEnd = args.to[0];
+        const yEnd = args.to[1];
         const xy = mComp.first();
         let xCurr = xy[0];
         let yCurr = xy[1];
 
         const animation = new RG.Animation.Animation();
-        while (xCurr !== xEnd && yCurr !== yEnd) {
+        while (xCurr !== xEnd || yCurr !== yEnd) {
             const frame = {};
             const key = xCurr + ',' + yCurr;
             frame[key] = {};
