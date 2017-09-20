@@ -25,101 +25,99 @@ const MemoryPlayer = function(player) {
 
 };
 
-
 /* This brain is used by the player actor. It simply handles the player input
  * but by having brain, player actor looks like other actors.  */
-var BrainPlayer = function(actor) {
-    this._actor = actor;
-    this._guiCallbacks = {}; // For attaching GUI callbacks
-    this._type = 'player';
-    this._memory = new MemoryPlayer(actor);
-    this.energy = 1; // Consumed energy per action
+class BrainPlayer {
+    constructor(actor) {
+        this._actor = actor;
+        this._guiCallbacks = {}; // For attaching GUI callbacks
+        this._type = 'player';
+        this._memory = new MemoryPlayer(actor);
+        this.energy = 1; // Consumed energy per action
 
-    this._confirmCallback = null;
-    this._wantConfirm = false;
-    this._confirmEnergy = 1;
+        this._confirmCallback = null;
+        this._wantConfirm = false;
+        this._confirmEnergy = 1;
 
-    this._wantSelection = false;
-    this._selectionObject = false;
-    this._isTargeting = false;
-    this._runModeEnabled = false;
+        this._wantSelection = false;
+        this._selectionObject = false;
+        this._isTargeting = false;
+        this._runModeEnabled = false;
 
-    this._fightMode = RG.FMODE_NORMAL;
+        this._fightMode = RG.FMODE_NORMAL;
 
-    this._enemyCells = [];
+        this._enemyCells = [];
 
-    // Not used to store anything, used only to map setters to components
-    this._statBoosts = {
-        CombatMods: {
-            setAttack: 0,
-            setDefense: 0,
-            setProtection: 0
-        },
-        StatsMods: {
-            setSpeed: 0,
-            setAccuracy: 0,
-            setWillpower: 0,
-            setStrength: 0,
-            setAgility: 0
-        }
-    };
-
-    // FUNCTIONS
+        // Not used to store anything, used only to map setters to components
+        this._statBoosts = {
+            CombatMods: {
+                setAttack: 0,
+                setDefense: 0,
+                setProtection: 0
+            },
+            StatsMods: {
+                setSpeed: 0,
+                setAccuracy: 0,
+                setWillpower: 0,
+                setStrength: 0,
+                setAgility: 0
+            }
+        };
+    }
 
     /* For given code, adds a GUI callback. When this keycode is given, a GUI
      * callback is called instead. */
-    this.addGUICallback = (code, callback) => {
+    addGUICallback(code, callback) {
         this._guiCallbacks[code] = callback;
-    };
+    }
 
-    this.getMemory = () => this._memory;
+    getMemory() {return this._memory;}
 
     /* Restores the base speed after run-mode.*/
-    this._restoreBaseSpeed = () => {
+    _restoreBaseSpeed() {
         this._runModeEnabled = false;
         if (this._actor.has('StatsMods')) {
             this._actor.get('StatsMods').setSpeed(0);
         }
-    };
+    }
 
-    this.getType = () => this._type;
+    getType() {return this._type;}
 
-    this.isRunModeEnabled = () => this._runModeEnabled;
+    isRunModeEnabled() {return this._runModeEnabled;}
 
-    this.cmdNotPossible = function(msg) {
+    cmdNotPossible(msg) {
         this.energy = 0;
         RG.gameWarn(msg);
         return null;
-    };
+    }
 
-    this.isMenuShown = () => {
+    isMenuShown() {
         if (this._selectionObject) {
             return this._selectionObject.showMenu();
         }
         return false;
-    };
+    }
 
-    this.getMenu = () => {
+    getMenu() {
         if (this._selectionObject) {
             if (this._selectionObject.showMenu()) {
                 return this._selectionObject.getMenu();
             }
         }
         return null;
-    };
-
+    }
 
     /* Returned for keypresses when no action is taken.*/
-    this.noAction = function() {
+    noAction() {
         this.energy = 0;
         return null; // Null action
-    };
+    }
 
     /* Returns current fighting mode.*/
-    this.getFightMode = () => this._fightMode;
+    getFightMode() {return this._fightMode;}
 
     /* Toggle between walking/running modes.*/
-    this.toggleRunMode = () => {
+    toggleRunMode() {
         if (this._runModeEnabled) {
             this._restoreBaseSpeed();
         }
@@ -129,19 +127,19 @@ var BrainPlayer = function(actor) {
             const speedBoost = Math.floor( 0.5 * baseSpeed);
             this._actor.get('StatsMods').setSpeed(speedBoost);
         }
-    };
+    }
 
     /* Toggles between different fighting modes.*/
-    this.toggleFightMode = () => {
+    toggleFightMode() {
         this._fightMode += 1;
         if (this._fightMode >= RG.FMODES.length) {
           this._fightMode = RG.FMODE_NORMAL;
         }
-    };
+    }
 
     /* Creates the callback for buying an item, and sets up the confirmation
      * request from player.*/
-    this._createBuyConfirmCallback = currCell => {
+    _createBuyConfirmCallback(currCell) {
         const topItem = currCell.getProp('items')[0];
         const shopElem = currCell.getPropType('shop')[0];
         const nCoins = shopElem.getItemPriceForBuying(topItem);
@@ -155,10 +153,10 @@ var BrainPlayer = function(actor) {
         this._confirmCallback = buyItemCallback;
         RG.gameMsg("Press 'y' to buy " + topItem.getName() + ' for ' +
             nCoins + ' gold coins');
-    };
+    }
 
     /* Sets the stats for attack for special modes.*/
-    this._setAttackStats = () => {
+    _setAttackStats() {
         const stats = this._actor.get('Stats');
         const combat = this._actor.get('Combat');
         let speedBoost = 0;
@@ -180,11 +178,11 @@ var BrainPlayer = function(actor) {
         this._actor.get('StatsMods').setSpeed(speedBoost);
         this._actor.get('CombatMods').setAttack(attackBoost);
         this._actor.get('CombatMods').setDamage(damageBoost);
-    };
+    }
 
     /* Handles a complex command.
     * TODO remove if/else and use a dispatch table.*/
-    this.handleCommand = function(obj) {
+    handleCommand(obj) {
         this._restoreBaseSpeed();
         if (obj.cmd === 'missile') {
             const invEq = this._actor.getInvEq();
@@ -332,11 +330,10 @@ var BrainPlayer = function(actor) {
 
         }
         return () => {};
-    };
-
+    }
 
     /* Returns all stats to their nominal values.*/
-    this.resetBoosts = function() {
+    resetBoosts() {
         this.energy = 1;
         for (const compName in this._statBoosts) {
             if (compName) {
@@ -351,19 +348,19 @@ var BrainPlayer = function(actor) {
                 }
             }
         }
-    };
+    }
 
     /* Returns possible target for attack, or null if none are found.*/
-    this._getAttackTarget = (map, x, y) => {
+    _getAttackTarget(map, x, y) {
         const targets = map.getCell(x, y).getProp('actors');
         for (let i = 0; i < targets.length; i++) {
             if (!targets[i].has('Ethereal')) {return targets[i];}
         }
         return null;
-    };
+    }
 
     /* Tries to open/close a door nearby the player.*/
-    this.tryToToggleDoor = function() {
+    tryToToggleDoor() {
         const cellsAround = RG.Brain.getCellsAroundActor(this._actor);
         for (let i = 0; i < cellsAround.length; i++) {
             if (cellsAround[i].hasDoor()) {
@@ -379,18 +376,18 @@ var BrainPlayer = function(actor) {
         }
         return this.cmdNotPossible('There are no doors close by');
 
-    };
+    }
 
     /* Returns true if a player has target selected. */
-    this.hasTargetSelected = function() {
+    hasTargetSelected() {
         if (this._enemyCells) {
             return this._enemyCells.length > 0;
         }
         return false;
-    };
+    }
 
     /* Moves to the next target. */
-    this.nextTarget = function() {
+    nextTarget() {
         if (this._enemyCells.length === 0) {
             this._isTargeting = true;
             const visibleCells =
@@ -405,23 +402,23 @@ var BrainPlayer = function(actor) {
                 this.currEnemyCell = 0;
             }
         }
-    };
+    }
 
     /* Returns the current selected cell for targeting. */
-    this.getTarget = function() {
+    getTarget() {
         if (this.currEnemyCell < this._enemyCells.length) {
             return this._enemyCells[this.currEnemyCell];
         }
         return null;
-    };
+    }
 
-    this.cancelTargeting = function() {
+    cancelTargeting() {
         this._enemyCells = [];
         this._isTargeting = false;
-    };
+    }
 
     /* Picks either last attacked actor, or the first found. */
-    this.selectCellToTarget = function() {
+    selectCellToTarget() {
         const cells = this._enemyCells;
         const lastID = this.getMemory().getLastAttacked();
         for (let i = 0; i < cells.length; i++) {
@@ -433,275 +430,274 @@ var BrainPlayer = function(actor) {
             }
         }
         return 0;
-    };
+    }
 
     /* Required for damage dealing. Does nothing for the player.*/
-    this.addEnemy = () => {};
+    addEnemy() {}
 
-    this.toJSON = function() {
+    toJSON() {
         return {
             type: this.getType()
         };
-    };
-
-}; // Brain.Player
+    }
 
     /* Main function which returns next action as function. TODO: Refactor into
     * something bearable. It's 150 lines now! */
-BrainPlayer.prototype.decideNextAction = function(obj) {
+    decideNextAction(obj) {
 
-  // Workaround at the moment, because missile attacks are GUI-driven
-  if (obj.hasOwnProperty('cmd')) {
-    this.resetBoosts();
-    return this.handleCommand(obj);
-  }
+      // Workaround at the moment, because missile attacks are GUI-driven
+      if (obj.hasOwnProperty('cmd')) {
+        this.resetBoosts();
+        return this.handleCommand(obj);
+      }
 
-  const code = obj.code;
-  if (RG.isNullOrUndef([code])) {
-    RG.err('Brain.Player', 'decideNextAction',
-      `obj.code must exist. Got obj: ${JSON.stringify(obj)}`);
-  }
+      const code = obj.code;
+      if (RG.isNullOrUndef([code])) {
+        RG.err('Brain.Player', 'decideNextAction',
+          `obj.code must exist. Got obj: ${JSON.stringify(obj)}`);
+      }
 
-  // Stop here, if action must be confirmed by player by pressing Y
-  if (this._wantConfirm && this._confirmCallback !== null) {
-    // Want y/n answer
-    this._wantConfirm = false;
-    if (RG.KeyMap.isConfirmYes(code)) {
-      this.energy = this._confirmEnergy;
-      // If confirmed, return action to be done
-      return this._confirmCallback;
-    }
-    RG.gameMsg('You cancel the action.');
-    return this.noAction();
-  }
-
-  // A player must make a selection
-  if (this._wantSelection) {
-    if (this._selectionObject !== null) {
-      const selection = this._selectionObject.select(code);
-      // function terminates the selection
-      if (typeof selection === 'function') {
-        this._wantSelection = false;
-        this._selectionObject = null;
-        return selection;
-      } // object returns another selection
-      else if (selection && typeof selection === 'object') {
-        this._selectionObject = selection;
+      // Stop here, if action must be confirmed by player by pressing Y
+      if (this._wantConfirm && this._confirmCallback !== null) {
+        // Want y/n answer
+        this._wantConfirm = false;
+        if (RG.KeyMap.isConfirmYes(code)) {
+          this.energy = this._confirmEnergy;
+          // If confirmed, return action to be done
+          return this._confirmCallback;
+        }
+        RG.gameMsg('You cancel the action.');
         return this.noAction();
       }
-    }
-    this._wantSelection = false;
-    this._selectionObject = null;
-    RG.gameMsg('You cancel the action.');
-    return this.noAction();
-  }
 
-  // Targeting mode logic
-  if (RG.KeyMap.isTargetMode(code)) {
-    if (this._isTargeting) {
-      const cell = this.getTarget();
-      this.cancelTargeting();
-      if (cell) {
-        return this.handleCommand({cmd: 'missile', target: cell});
-      }
-      RG.gameMsg('No valid targets to attack.');
-      return this.noAction();
-    }
-    else {
-      this.nextTarget();
-      return this.noAction();
-    }
-  }
-  else if (RG.KeyMap.isNextTarget(code)) {
-    if (this._isTargeting) {
-      this.nextTarget();
-      return this.noAction();
-    }
-  }
-  else if (this._isTargeting) {
-    this.cancelTargeting();
-  }
-
-  // Invoke GUI callback with given code
-  if (this._guiCallbacks.hasOwnProperty(code)) {
-    return this._guiCallbacks[code](code);
-  }
-
-  // Enable/disable run mode
-  if (RG.KeyMap.isRunMode(code)) {
-    this.toggleRunMode();
-    return this.noAction();
-  }
-
-  // Enable/disable fight mode
-  if (RG.KeyMap.isFightMode(code)) {
-    this.toggleFightMode();
-    return this.noAction();
-  }
-
-  // Need existing position for move/attack commands
-  const level = this._actor.getLevel();
-  let x = this._actor.getX();
-  let y = this._actor.getY();
-  const currMap = level.getMap();
-  const currCell = currMap.getCell(x, y);
-
-  // For digging through item stack on curr cell
-  if (RG.KeyMap.isNextItem(code)) {
-    this.getNextItemOnTop(currCell);
-    return this.noAction();
-  }
-
-  let cmdType = 'NULL';
-  if (RG.KeyMap.inMoveCodeMap(code)) {
-    const diffXY = RG.KeyMap.getDiff(code, x, y);
-    x = diffXY[0];
-    y = diffXY[1];
-    cmdType = 'MOVE';
-  }
-  else {
-    this._restoreBaseSpeed(); // Speedup only during move
-  }
-
-  if (cmdType === 'NULL') { // Not a move command
-    this.resetBoosts();
-
-    if (RG.KeyMap.isRest(code)) {cmdType = 'REST';}
-
-    if (RG.KeyMap.isPickup(code)) {
-      cmdType = 'PICKUP';
-      if (currCell.hasProp('items')) {
-        if (currCell.hasShop()) {
-          const shop = currCell.getShop();
-          if (!shop.isAbandoned()) {
-            this._createBuyConfirmCallback(currCell);
+      // A player must make a selection
+      if (this._wantSelection) {
+        if (this._selectionObject !== null) {
+          const selection = this._selectionObject.select(code);
+          // function terminates the selection
+          if (typeof selection === 'function') {
+            this._wantSelection = false;
+            this._selectionObject = null;
+            return selection;
+          } // object returns another selection
+          else if (selection && typeof selection === 'object') {
+            this._selectionObject = selection;
             return this.noAction();
           }
-          else {
-            this.energy = RG.energy.PICKUP;
-            return () => {
-              level.pickupItem(this._actor, x, y);
-            };
+        }
+        this._wantSelection = false;
+        this._selectionObject = null;
+        RG.gameMsg('You cancel the action.');
+        return this.noAction();
+      }
+
+      // Targeting mode logic
+      if (RG.KeyMap.isTargetMode(code)) {
+        if (this._isTargeting) {
+          const cell = this.getTarget();
+          this.cancelTargeting();
+          if (cell) {
+            return this.handleCommand({cmd: 'missile', target: cell});
           }
+          RG.gameMsg('No valid targets to attack.');
+          return this.noAction();
         }
         else {
-          this.energy = RG.energy.PICKUP;
-          return () => {
-            level.pickupItem(this._actor, x, y);
-          };
-        }
-      }
-      else {
-        return this.cmdNotPossible(
-          'There are no items to pick up.');
-      }
-    }
-
-    if (RG.KeyMap.isUseStairs(code)) {
-      cmdType = 'STAIRS';
-      if (currCell.hasStairs()) {
-        return () => {level.useStairs(this._actor);};
-      }
-      else if (currCell.hasPassage()) {
-        return () => {level.useStairs(this._actor);};
-      }
-      else {
-        return this.cmdNotPossible(
-          'There are no stairs or passage here.');
-      }
-    }
-
-    if (RG.KeyMap.isToggleDoor(code)) {
-      return this.tryToToggleDoor();
-    }
-
-    if (RG.KeyMap.isUsePower(code)) {
-      this._wantSelection = true;
-      this._selectionObject =
-        this._actor._spellbook.getSelectionObject();
-      RG.gameMsg('Press 0-9 to make a selection.');
-      return this.noAction();
-    }
-  }
-
-  if (cmdType === 'MOVE') {
-    if (currMap.hasXY(x, y)) {
-      if (currMap.isPassable(x, y)) {
-
-        if (this._runModeEnabled) {this.energy = RG.energy.RUN;}
-        else {
-          this.resetBoosts();
-          this.energy = RG.energy.MOVE;
-        }
-
-        return () => {
-          const movComp = new RG.Component.Movement(x, y, level);
-          this._actor.add('Movement', movComp);
-        };
-      }
-      else if (currMap.getCell(x, y).hasProp('actors')) {
-        this._restoreBaseSpeed();
-        const target = this._getAttackTarget(currMap, x, y);
-
-        if (target === null) {
-          RG.err('Brain.Player', 'decideNextAction',
-            'Null target for attack x,y: ' + x + ',' + y);
-        }
-
-        const attackCallback = () => {
-          this._setAttackStats();
-          const attackComp = new RG.Component.Attack(target);
-          this._actor.add('Attack', attackComp);
-        };
-
-        if (target.isEnemy(this._actor)) {
-          this.energy = RG.energy.ATTACK;
-          return attackCallback;
-        }
-        else {
-          this._confirmEnergy = RG.energy.ATTACK;
-          this._wantConfirm = true;
-          this._confirmCallback = attackCallback;
-          RG.gameMsg("Press 'y' to attack non-hostile actor.");
+          this.nextTarget();
           return this.noAction();
         }
       }
-      else {
-        const msg = RG.getImpassableMsg(this._actor,
-          currMap.getCell(x, y), 'You');
-        return this.cmdNotPossible(msg);
+      else if (RG.KeyMap.isNextTarget(code)) {
+        if (this._isTargeting) {
+          this.nextTarget();
+          return this.noAction();
+        }
       }
-    }
-    else {
-      // TODO add moving out of the map
-      return this.cmdNotPossible('You cannot move that way.');
-    }
-  }
-  else if (cmdType === 'REST') {
-    this.energy = RG.energy.REST;
-    return () => {};
-  }
+      else if (this._isTargeting) {
+        this.cancelTargeting();
+      }
 
-  return this.noAction();
-};
+      // Invoke GUI callback with given code
+      if (this._guiCallbacks.hasOwnProperty(code)) {
+        return this._guiCallbacks[code](code);
+      }
 
-/* If there are multiple items per cell, digs next item to the top.*/
-BrainPlayer.prototype.getNextItemOnTop = cell => {
-    if (cell.hasProp('items')) {
-        const items = cell.getProp('items');
-        const name = items[0].getName();
-        if (items.length > 1) {
-            const firstItem = items.shift();
-            items.push(firstItem);
-            RG.gameMsg('You see now ' + name + ' on top of the heap.');
+      // Enable/disable run mode
+      if (RG.KeyMap.isRunMode(code)) {
+        this.toggleRunMode();
+        return this.noAction();
+      }
+
+      // Enable/disable fight mode
+      if (RG.KeyMap.isFightMode(code)) {
+        this.toggleFightMode();
+        return this.noAction();
+      }
+
+      // Need existing position for move/attack commands
+      const level = this._actor.getLevel();
+      let x = this._actor.getX();
+      let y = this._actor.getY();
+      const currMap = level.getMap();
+      const currCell = currMap.getCell(x, y);
+
+      // For digging through item stack on curr cell
+      if (RG.KeyMap.isNextItem(code)) {
+        this.getNextItemOnTop(currCell);
+        return this.noAction();
+      }
+
+      let cmdType = 'NULL';
+      if (RG.KeyMap.inMoveCodeMap(code)) {
+        const diffXY = RG.KeyMap.getDiff(code, x, y);
+        x = diffXY[0];
+        y = diffXY[1];
+        cmdType = 'MOVE';
+      }
+      else {
+        this._restoreBaseSpeed(); // Speedup only during move
+      }
+
+      if (cmdType === 'NULL') { // Not a move command
+        this.resetBoosts();
+
+        if (RG.KeyMap.isRest(code)) {cmdType = 'REST';}
+
+        if (RG.KeyMap.isPickup(code)) {
+          cmdType = 'PICKUP';
+          if (currCell.hasProp('items')) {
+            if (currCell.hasShop()) {
+              const shop = currCell.getShop();
+              if (!shop.isAbandoned()) {
+                this._createBuyConfirmCallback(currCell);
+                return this.noAction();
+              }
+              else {
+                this.energy = RG.energy.PICKUP;
+                return () => {
+                  level.pickupItem(this._actor, x, y);
+                };
+              }
+            }
+            else {
+              this.energy = RG.energy.PICKUP;
+              return () => {
+                level.pickupItem(this._actor, x, y);
+              };
+            }
+          }
+          else {
+            return this.cmdNotPossible(
+              'There are no items to pick up.');
+          }
+        }
+
+        if (RG.KeyMap.isUseStairs(code)) {
+          cmdType = 'STAIRS';
+          if (currCell.hasStairs()) {
+            return () => {level.useStairs(this._actor);};
+          }
+          else if (currCell.hasPassage()) {
+            return () => {level.useStairs(this._actor);};
+          }
+          else {
+            return this.cmdNotPossible(
+              'There are no stairs or passage here.');
+          }
+        }
+
+        if (RG.KeyMap.isToggleDoor(code)) {
+          return this.tryToToggleDoor();
+        }
+
+        if (RG.KeyMap.isUsePower(code)) {
+          this._wantSelection = true;
+          this._selectionObject =
+            this._actor._spellbook.getSelectionObject();
+          RG.gameMsg('Press 0-9 to make a selection.');
+          return this.noAction();
+        }
+      }
+
+      if (cmdType === 'MOVE') {
+        if (currMap.hasXY(x, y)) {
+          if (currMap.isPassable(x, y)) {
+
+            if (this._runModeEnabled) {this.energy = RG.energy.RUN;}
+            else {
+              this.resetBoosts();
+              this.energy = RG.energy.MOVE;
+            }
+
+            return () => {
+              const movComp = new RG.Component.Movement(x, y, level);
+              this._actor.add('Movement', movComp);
+            };
+          }
+          else if (currMap.getCell(x, y).hasProp('actors')) {
+            this._restoreBaseSpeed();
+            const target = this._getAttackTarget(currMap, x, y);
+
+            if (target === null) {
+              RG.err('Brain.Player', 'decideNextAction',
+                'Null target for attack x,y: ' + x + ',' + y);
+            }
+
+            const attackCallback = () => {
+              this._setAttackStats();
+              const attackComp = new RG.Component.Attack(target);
+              this._actor.add('Attack', attackComp);
+            };
+
+            if (target.isEnemy(this._actor)) {
+              this.energy = RG.energy.ATTACK;
+              return attackCallback;
+            }
+            else {
+              this._confirmEnergy = RG.energy.ATTACK;
+              this._wantConfirm = true;
+              this._confirmCallback = attackCallback;
+              RG.gameMsg("Press 'y' to attack non-hostile actor.");
+              return this.noAction();
+            }
+          }
+          else {
+            const msg = RG.getImpassableMsg(this._actor,
+              currMap.getCell(x, y), 'You');
+            return this.cmdNotPossible(msg);
+          }
         }
         else {
-            RG.gameMsg('You see only ' + name + ' here');
+          // TODO add moving out of the map
+          return this.cmdNotPossible('You cannot move that way.');
+        }
+      }
+      else if (cmdType === 'REST') {
+        this.energy = RG.energy.REST;
+        return () => {};
+      }
+
+      return this.noAction();
+    }
+
+    /* If there are multiple items per cell, digs next item to the top.*/
+    getNextItemOnTop(cell) {
+        if (cell.hasProp('items')) {
+            const items = cell.getProp('items');
+            const name = items[0].getName();
+            if (items.length > 1) {
+                const firstItem = items.shift();
+                items.push(firstItem);
+                RG.gameMsg('You see now ' + name + ' on top of the heap.');
+            }
+            else {
+                RG.gameMsg('You see only ' + name + ' here');
+            }
+        }
+        else {
+            RG.gameMsg('There are no items here to look through');
         }
     }
-    else {
-        RG.gameMsg('There are no items here to look through');
-    }
-};
+} // Brain.Player
 
 module.exports = BrainPlayer;
