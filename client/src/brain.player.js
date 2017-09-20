@@ -65,7 +65,7 @@ class CmdMissile {
         else {
             return this.cmdNotPossible('No missile equipped.');
         }
-        return null;
+        return EMPTY_FUNC;
     }
 
 }
