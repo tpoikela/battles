@@ -407,12 +407,17 @@ RG.Geometry = {
         return found;
     },
 
-    /* Returns all coordinates within straight line between two points. Returns
-     * empty array if there is no line. */
-    getStraightLine: function(x0, y0, x1, y1, incEnds = true) {
+    isLine: function(x0, y0, x1, y1) {
         const isLine = x0 === x1 || y0 === y1
             || Math.abs(x1 - x0) === Math.abs(y1 - y0);
-        if (isLine) {
+        return isLine;
+    },
+
+    /* Returns all coordinates within straight line between two points. Returns
+     * empty array if there is no line. Straight means all cardinal directions.
+     */
+    getStraightLine: function(x0, y0, x1, y1, incEnds = true) {
+        if (this.isLine(x0, y0, x1, y1)) {
             const res = [];
             const dX = x1 === x0 ? 0 : (x1 - x0) / Math.abs(x1 - x0);
             const dY = y1 === y0 ? 0 : (y1 - y0) / Math.abs(y1 - y0);
@@ -420,10 +425,11 @@ RG.Geometry = {
             while (x0 !== x1 || y0 !== y1) {
                 if (x0 !== x1) {x0 += dX;}
                 if (y0 !== y1) {y0 += dY;}
-                console.log('x0: ' + x0 + ' x1: ' + x1);
 
-                if (x0 === x1 && y0 === y1 && incEnds) {
-                    res.push([x0, y0]);
+                if (x0 === x1 && y0 === y1) {
+                    if (incEnds) {
+                        res.push([x0, y0]);
+                    }
                 }
                 else {
                     res.push([x0, y0]);
@@ -432,6 +438,96 @@ RG.Geometry = {
             return res;
         }
         return [];
+    },
+
+    getMissilePath: function(x0, y0, x1, y1, incEnds = true) {
+        let res = [];
+        if (this.isLine(x0, y0, x1, y1)) {
+            res = this.getStraightLine(x0, y0, x1, y1, incEnds);
+        }
+        else {
+            if (incEnds) {res.push([x0, y0]);}
+            const dX = x1 - x0;
+            const dY = y1 - y0;
+            const dXAbs = Math.abs(dX);
+            const dYAbs = Math.abs(dY);
+
+            const dirX = dX / dXAbs;
+            const dirY = dY / dYAbs;
+
+            let xLeft = dXAbs;
+            let yLeft = dYAbs;
+            let currX = x0;
+            let currY = y0;
+
+            if (dXAbs > dYAbs) {
+                while (yLeft >= 0 && (xLeft % yLeft !== 0)) {
+                    currX += dirX;
+                    currY += dirY;
+                    console.log(`while currX: ${currX} currY: ${currY}`);
+                    res.push([currX, currY]);
+                    xLeft -= 1;
+                    yLeft -= 1;
+                }
+
+                if (yLeft === 0) { // Finish straight line
+                    while (currX !== x1) {
+                        currX += dirX;
+                        res.push([currX, currY]);
+                    }
+                }
+                else { // remainder 0
+                    const ratio = xLeft / yLeft;
+                    while (currX !== x1 && currY !== y1) {
+                        if (currY !== y1) {
+                            currY += dirY;
+                        }
+                        for (let i = 0; i < ratio; i++) {
+                            if (currX !== x1) {
+                                currX += dirX;
+                                res.push([currX, currY]);
+                                console.log(`rem0 currX: ${currX} currY: ${currY}`);
+                            }
+                        }
+                    }
+                }
+
+            }
+            else if (dYAbs > dXAbs) {
+                while (xLeft >= 0 && (yLeft % xLeft !== 0)) {
+                    currX += dirX;
+                    currY += dirY;
+                    console.log(`while currX: ${currX} currY: ${currY}`);
+                    res.push([currX, currY]);
+                    xLeft -= 1;
+                    yLeft -= 1;
+                }
+
+                if (xLeft === 0) { // Finish straight line
+                    while (currY !== y1) {
+                        currY += dirY;
+                        res.push([currX, currY]);
+                    }
+                }
+                else { // remainder 0
+                    const ratio = yLeft / xLeft;
+                    while (currX !== x1 && currY !== y1) {
+                        if (currX !== x1) {
+                            currX += dirX;
+                        }
+                        for (let i = 0; i < ratio; i++) {
+                            if (currY !== y1) {
+                                currY += dirY;
+                                res.push([currX, currY]);
+                                console.log(`rem0 currX: ${currX} currY: ${currY}`);
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+        return res;
     }
 
 };
