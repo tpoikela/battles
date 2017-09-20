@@ -306,6 +306,13 @@ RG.Mixin.Defense = (superclass) => class extends superclass {
         return res;
     }
 
+    toString() {
+        let msg = super.toString();
+        msg += ` A: ${this.getAttack()}, D: ${this.getDefense()}, `;
+        msg += ` P: ${this.getProtection()}, `;
+        return msg;
+    }
+
     toJSON() {
         const json = super.toJSON();
         json.setAttack = this.getAttack();
@@ -367,9 +374,9 @@ RG.Mixin.Damage = (superclass) => class extends RG.Mixin.Defense(superclass) {
     }
 
     toString() {
-        let msg = ` A: ${this.getAttack()}, D: ${this.getDefense()}, `;
+        let msg = super.toString();
         msg += 'Dmg: ' + this.getDamageDie().toString();
-        msg += ',R:' + this.getAttackRange();
+        msg += ', R:' + this.getAttackRange();
         return msg;
     }
 
