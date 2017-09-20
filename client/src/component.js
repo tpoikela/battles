@@ -474,7 +474,7 @@ RG.Component.Missile = function(source) {
     this.setDamage = dmg => {_dmg = dmg;};
 
     this.setTargetXY = (x, y) => {
-        _path = RG.getShortestPath(_x, _y, x, y);
+        _path = RG.Geometry.getMissilePath(_x, _y, x, y);
         _targetX = x;
         _targetY = y;
         if (_path.length > 0) {_pathIter = 0;}
@@ -490,8 +490,8 @@ RG.Component.Missile = function(source) {
 
     const setValuesFromIterator = () => {
         const coord = _path[_pathIter];
-        _x = coord.x;
-        _y = coord.y;
+        _x = coord[0];
+        _y = coord[1];
     };
 
     /* Resets the path iterator to the first x,y. */
