@@ -1,6 +1,8 @@
 
 const RG = require('./rg');
 
+const EMPTY_FUNC = () => {};
+
 /* Memory object for the player .*/
 const MemoryPlayer = function(player) {
     let _lastAttackedID = null;
@@ -68,7 +70,7 @@ class CmdMissile {
 
 }
 
-/* Executed when player drops an item. */
+/* Executed when player uses an item. */
 class CmdUseItem {
 
     execute(obj) {
@@ -95,7 +97,108 @@ class CmdUseItem {
         else {
             RG.err('Brain.Player', 'handleCommand', 'obj has no item');
         }
-        return null;
+        return EMPTY_FUNC;
+    }
+
+}
+
+class CmdDropItem {
+
+  execute(obj) {
+      const invEq = this._actor.getInvEq();
+      const actorCell = this._actor.getCell();
+      let result = false;
+      let msg = `Failed to drop ${obj.item.getName()}`;
+      if (actorCell.hasShop()) {
+          const shopElem = actorCell.getPropType('shop')[0];
+          const price = shopElem.getItemPriceForSelling(obj.item);
+
+          this._wantConfirm = true;
+          this._confirmCallback = () => {
+              const sellOk = shopElem.sellItem(obj.item, this._actor);
+              if (obj.hasOwnProperty('callback')) {
+                  if (sellOk) {
+                      msg = `${obj.item.getName()} was sold.`;
+                  }
+                  else {
+                      msg = `Cannot sell ${obj.item.getName()}.`;
+                  }
+                  obj.callback({msg: msg, result: sellOk});
+              }
+          };
+
+          msg = `Press y to sell item for ${price} gold coins.`;
+          if (obj.hasOwnProperty('callback')) {
+              obj.callback({msg: msg, result});
+          }
+      }
+      else if (invEq.dropItem(obj.item)) {
+          result = true;
+          msg = 'Item dropped!';
+      }
+      if (obj.hasOwnProperty('callback')) {
+          obj.callback({msg: msg, result});
+      }
+      return EMPTY_FUNC;
+  }
+
+}
+
+class CmdEquipItem {
+
+    execute(obj) {
+        const invEq = this._actor.getInvEq();
+        const item = obj.item;
+        let result = false;
+        let msg = `Failed to equip ${item.getName()}`;
+        if (item.getType() === 'missile') {
+            if (invEq.equipNItems(item, item.count)) {
+                result = true;
+            }
+        }
+        else if (invEq.equipItem(item)) {
+            result = true;
+        }
+        if (obj.hasOwnProperty('callback')) {
+            if (result) {
+                msg = `Equipping ${item.getName()} succeeded!`;
+            }
+            obj.callback({msg: msg, result});
+        }
+        return EMPTY_FUNC;
+    }
+
+}
+
+/* Executed when an actor unequips an item. */
+class CmdUnequipItem {
+
+    execute(obj) {
+        const name = obj.slot;
+        const invEq = this._actor.getInvEq();
+        let result = false;
+        let msg = `Failed to remove item from slot ${name}.`;
+
+        if (name === 'missile') {
+            const eqItem = invEq.getEquipment().getItem('missile');
+
+            if (eqItem !== null) {
+                if (invEq.unequipItem(name, eqItem.count)) {
+                    result = true;
+                }
+            }
+        }
+        else if (invEq.unequipItem(name)) {
+            result = true;
+        }
+
+        if (obj.hasOwnProperty('callback')) {
+            if (result) {
+                msg = `Unequipping from ${name} succeeded!`;
+            }
+            obj.callback({msg: msg, result});
+        }
+        return EMPTY_FUNC;
     }
 
 }
@@ -266,87 +369,13 @@ class BrainPlayer {
             return new CmdUseItem().execute.call(this, obj);
         }
         else if (obj.cmd === 'drop') {
-            const invEq = this._actor.getInvEq();
-            const actorCell = this._actor.getCell();
-            let result = false;
-            let msg = `Failed to drop ${obj.item.getName()}`;
-            if (actorCell.hasShop()) {
-                const shopElem = actorCell.getPropType('shop')[0];
-                const price = shopElem.getItemPriceForSelling(obj.item);
-
-                this._wantConfirm = true;
-                this._confirmCallback = () => {
-                    const sellOk = shopElem.sellItem(obj.item, this._actor);
-                    if (obj.hasOwnProperty('callback')) {
-                        if (sellOk) {
-                            msg = `${obj.item.getName()} was sold.`;
-                        }
-                        else {
-                            msg = `Cannot sell ${obj.item.getName()}.`;
-                        }
-                        obj.callback({msg: msg, result: sellOk});
-                    }
-                };
-
-                msg = `Press y to sell item for ${price} gold coins.`;
-                if (obj.hasOwnProperty('callback')) {
-                    obj.callback({msg: msg, result});
-                }
-            }
-            else if (invEq.dropItem(obj.item)) {
-                result = true;
-                msg = 'Item dropped!';
-            }
-            if (obj.hasOwnProperty('callback')) {
-                obj.callback({msg: msg, result});
-            }
+            return new CmdDropItem().execute.call(this, obj);
         }
         else if (obj.cmd === 'equip') {
-            const invEq = this._actor.getInvEq();
-            const item = obj.item;
-            let result = false;
-            let msg = `Failed to equip ${item.getName()}`;
-            if (item.getType() === 'missile') {
-                if (invEq.equipNItems(item, item.count)) {
-                    result = true;
-                }
-            }
-            else if (invEq.equipItem(item)) {
-                result = true;
-            }
-            if (obj.hasOwnProperty('callback')) {
-                if (result) {
-                    msg = `Equipping ${item.getName()} succeeded!`;
-                }
-                obj.callback({msg: msg, result});
-            }
+            return new CmdEquipItem().execute.call(this, obj);
         }
         else if (obj.cmd === 'unequip') {
-            const name = obj.slot;
-            const invEq = this._actor.getInvEq();
-            let result = false;
-            let msg = `Failed to remove item from slot ${name}.`;
-
-            if (name === 'missile') {
-                const eqItem = invEq.getEquipment().getItem('missile');
-
-                if (eqItem !== null) {
-                    if (invEq.unequipItem(name, eqItem.count)) {
-                        result = true;
-                    }
-                }
-            }
-            else if (invEq.unequipItem(name)) {
-                result = true;
-            }
-
-            if (obj.hasOwnProperty('callback')) {
-                if (result) {
-                    msg = `Unequipping from ${name} succeeded!`;
-                }
-                obj.callback({msg: msg, result});
-            }
-
+            return new CmdUnequipItem().execute.call(this, obj);
         }
         return () => {};
     }
