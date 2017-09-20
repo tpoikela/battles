@@ -57,6 +57,7 @@ RGTest.getMeAWizard = function(conf = {}) {
     const wizard = new RG.Actor.Rogue('wizard');
     wizard.setType(conf.type || 'human');
     const brain = new RG.Brain.SpellCaster(wizard);
+    brain.setCastProbability(1.1);
     wizard.setBrain(brain);
 
     wizard._spellbook = new RG.Spell.SpellBook(wizard);
