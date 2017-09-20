@@ -46,17 +46,17 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
 
     setFOVRange(range) {
         this._fovRange = range;
-    };
+    }
 
     //---------------------------------
-    // Brain-relatd methods
+    // Brain-related methods
     //---------------------------------
 
     addEnemy(actor) {this._brain.addEnemy(actor);}
 
     isEnemy(actor) {
         return this._brain.getMemory().isEnemy(actor);
-    };
+    }
 
     getBrain() {return this._brain;};
 
