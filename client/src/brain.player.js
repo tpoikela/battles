@@ -25,6 +25,81 @@ const MemoryPlayer = function(player) {
 
 };
 
+class CmdMissile {
+
+    execute(obj) {
+        const invEq = this._actor.getInvEq();
+        // TODO changes to fire more than 1 missile
+        const missile = invEq.unequipAndGetItem('missile', 1);
+
+        if (!RG.isNullOrUndef([missile])) {
+
+            // Check for missile weapon for ammunition
+            if (missile.has('Ammo')) {
+                const missWeapon = invEq.getEquipment()
+                    .getEquipped('missileweapon');
+                if (missWeapon === null) {
+                    const msg = 'No missile weapon equipped.';
+                    return this.cmdNotPossible(msg);
+                }
+            }
+
+            if (!RG.isNullOrUndef([obj.target])) {
+                const x = obj.target.getX();
+                const y = obj.target.getY();
+                const mComp = new RG.Component.Missile(this._actor);
+                mComp.setTargetXY(x, y);
+                mComp.setDamage(RG.getMissileDamage(this._actor, missile));
+                mComp.setAttack(RG.getMissileAttack(this._actor, missile));
+                mComp.setRange(RG.getMissileRange(this._actor, missile));
+                missile.add('Missile', mComp);
+                this.energy = RG.energy.MISSILE;
+            }
+            else {
+                RG.err('Brain.Player', 'handleCommand',
+                    'No x,y given for missile.');
+            }
+        }
+        else {
+            return this.cmdNotPossible('No missile equipped.');
+        }
+        return null;
+    }
+
+}
+
+/* Executed when player drops an item. */
+class CmdUseItem {
+
+    execute(obj) {
+        if (obj.hasOwnProperty('item')) {
+            const item = obj.item;
+            let result = false;
+            let msg = `You failed to use ${item.getName()}.`;
+            if (typeof item.useItem === 'function') {
+                this.energy = RG.energy.USE;
+                item.useItem({target: obj.target});
+                result = true;
+            }
+
+            if (obj.hasOwnProperty('callback')) {
+                if (result) {
+                    msg = `You used ${item.getName()}!`;
+                }
+                obj.callback({msg: msg, result});
+            }
+            else if (!result) {
+                return this.cmdNotPossible('You cannot use that item.');
+            }
+        }
+        else {
+            RG.err('Brain.Player', 'handleCommand', 'obj has no item');
+        }
+        return null;
+    }
+
+}
+
 /* This brain is used by the player actor. It simply handles the player input
  * but by having brain, player actor looks like other actors.  */
 class BrainPlayer {
@@ -185,66 +260,10 @@ class BrainPlayer {
     handleCommand(obj) {
         this._restoreBaseSpeed();
         if (obj.cmd === 'missile') {
-            const invEq = this._actor.getInvEq();
-            // TODO changes to fire more than 1 missile
-            const missile = invEq.unequipAndGetItem('missile', 1);
-
-            if (!RG.isNullOrUndef([missile])) {
-
-                // Check for missile weapon for ammunition
-                if (missile.has('Ammo')) {
-                    const missWeapon = invEq.getEquipment()
-                        .getEquipped('missileweapon');
-                    if (missWeapon === null) {
-                        const msg = 'No missile weapon equipped.';
-                        return this.cmdNotPossible(msg);
-                    }
-                }
-
-                if (!RG.isNullOrUndef([obj.target])) {
-                    const x = obj.target.getX();
-                    const y = obj.target.getY();
-                    const mComp = new RG.Component.Missile(this._actor);
-                    mComp.setTargetXY(x, y);
-                    mComp.setDamage(RG.getMissileDamage(this._actor, missile));
-                    mComp.setAttack(RG.getMissileAttack(this._actor, missile));
-                    mComp.setRange(RG.getMissileRange(this._actor, missile));
-                    missile.add('Missile', mComp);
-                    this.energy = RG.energy.MISSILE;
-                }
-                else {
-                    RG.err('Brain.Player', 'handleCommand',
-                        'No x,y given for missile.');
-                }
-            }
-            else {
-                return this.cmdNotPossible('No missile equipped.');
-            }
+            return new CmdMissile().execute.call(this, obj);
         }
         else if (obj.cmd === 'use') {
-            if (obj.hasOwnProperty('item')) {
-                const item = obj.item;
-                let result = false;
-                let msg = `You failed to use ${item.getName()}.`;
-                if (item.hasOwnProperty('useItem')) {
-                    this.energy = RG.energy.USE;
-                    item.useItem({target: obj.target});
-                    result = true;
-                }
-
-                if (obj.hasOwnProperty('callback')) {
-                    if (result) {
-                        msg = `You used ${item.getName()}!`;
-                    }
-                    obj.callback({msg: msg, result});
-                }
-                else if (!result) {
-                    return this.cmdNotPossible('You cannot use that item.');
-                }
-            }
-            else {
-                RG.err('Brain.Player', 'handleCommand', 'obj has no item');
-            }
+            return new CmdUseItem().execute.call(this, obj);
         }
         else if (obj.cmd === 'drop') {
             const invEq = this._actor.getInvEq();
