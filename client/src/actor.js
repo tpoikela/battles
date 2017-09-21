@@ -42,7 +42,11 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
     /* Returns true if actor is a player.*/
     isPlayer() {return this._isPlayer;}
 
-    getFOVRange() {return this._fovRange;}
+    getFOVRange() {
+        let range = this._fovRange;
+        if (this.has('EagleEye')) {range += 2;}
+        return range;
+    }
 
     setFOVRange(range) {
         this._fovRange = range;
@@ -329,6 +333,13 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
         let per = this.get('Stats').getPerception();
         per += this.getInvEq().getEquipment().getPerception();
         if (this.has('StatsMods')) {per += this.get('StatsMods').getPerception();}
+        return per;
+    }
+
+    getMagic() {
+        let per = this.get('Stats').getMagic();
+        per += this.getInvEq().getEquipment().getMagic();
+        if (this.has('StatsMods')) {per += this.get('StatsMods').getMagic();}
         return per;
     }
 }
