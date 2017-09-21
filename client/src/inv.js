@@ -247,7 +247,7 @@ RG.Inv.Equipment = function(actor) {
     // Dynamically generate accessors for different stats
     const _mods = ['getDefense', 'getAttack', 'getProtection',
         'getSpeed', 'getWillpower', 'getPerception',
-        'getAccuracy', 'getAgility', 'getStrength'];
+        'getAccuracy', 'getAgility', 'getStrength', 'getMagic'];
 
     const that = this;
     for (let i = 0; i < _mods.length; i++) {
