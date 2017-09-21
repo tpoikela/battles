@@ -269,7 +269,7 @@ WorldConf.scaleNumFeatures = (type, conf) => {
 * the number of features that should be generated. */
 WorldConf.getNumFeatures = (type, areaConf, conf) => {
     let nFeatures = (areaConf.maxX + 1) * (areaConf.maxY + 1);
-    nFeatures *= WorldConf.scaleNumFeatures(type, conf);
+    nFeatures = Math.ceil(nFeatures * WorldConf.scaleNumFeatures(type, conf));
     // TODO based on type/conf, adjust the number
     nFeatures = RG.RAND.getNormal(nFeatures, WorldConf.featCoeff * nFeatures);
     return nFeatures;
