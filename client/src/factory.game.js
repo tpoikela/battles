@@ -70,6 +70,9 @@ RG.Factory.Game = function() {
                     const actorClass = new ActorClass[obj.playerClass](player);
                     actorClassComp.setClass(actorClass);
                     player.add(actorClassComp);
+                    actorClass.advanceLevel();
+                    actorClass.addStartingItems();
+                    actorClass.setStartingStats();
                 }
                 else {
                     RG.err('Factory.Game', 'createPlayerUnlessLoaded',
@@ -456,6 +459,9 @@ RG.Factory.Game = function() {
         player.add('MasterEquipper', new RG.Component.MasterEquipper());
         player.add('BiDirStrike', new RG.Component.BiDirStrike());
         player.add('CounterAttack', new RG.Component.BiDirStrike());
+
+        // Marksman components
+        player.add(new RG.Component.ThroughShot());
 
         const winCond = new RG.Game.WinCondition('Kill a keeper');
         winCond.addActorKilled(keeper);
