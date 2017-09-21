@@ -16,7 +16,7 @@ const RG = require('./rg');
 RG.Spell = {};
 
 // Defaults (starting values) for spells
-/*const defaults = {
+/* const defaults = {
     FrostBolt: {
         power: 5,
         damage: '4d4 + 4',
@@ -98,6 +98,10 @@ const getDirSpellArgs = (spell, args) => {
 RG.Spell.SpellBook = function(actor) {
     const _actor = actor;
     const _spells = [];
+    if (RG.isNullOrUndef([_actor])) {
+        RG.err('Spell.SpellBook', 'new',
+            'actor must be given.');
+    }
 
     this.getActor = () => _actor;
 
