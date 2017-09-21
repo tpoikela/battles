@@ -7,10 +7,9 @@ const ActorClass = require('../../../client/src/actor-class');
 const RGTest = require('../../roguetest');
 
 describe('ActorClass.Blademaster', () => {
-    it('an actor can be initialized with a class', () => {
+    it('can be added as class to an actor', () => {
         const rogue = new RG.Actor.Rogue('rogue');
         const bm = new ActorClass.Blademaster(rogue);
-        rogue.setActorClass(bm);
         expect(rogue.getActorClass()).to.exist;
 
         RGTest.wrapIntoLevel([rogue]);
@@ -25,5 +24,27 @@ describe('ActorClass.Blademaster', () => {
         rogue.get('Experience').setExpLevel(24);
         bm.advanceLevel();
         expect(rogue.has('Ambidexterity')).to.be.true;
+    });
+});
+
+describe('ActorClass.Marksman', () => {
+    it('adds comps to the actor when advancing levels', () => {
+        const rogue = new RG.Actor.Rogue('archer');
+        const marksmanClass = new ActorClass.Marksman(rogue);
+
+        RGTest.wrapIntoLevel([rogue]);
+        marksmanClass.advanceLevel();
+        expect(rogue.has('EagleEye')).to.be.false;
+        const fovBefore = rogue.getFOVRange();
+
+        rogue.get('Experience').setExpLevel(4);
+        marksmanClass.advanceLevel();
+        expect(rogue.has('EagleEye')).to.be.true;
+        expect(rogue.getFOVRange()).to.equal(fovBefore + 2);
+
+        rogue.get('Experience').setExpLevel(8);
+        marksmanClass.advanceLevel();
+        expect(rogue.has('StrongShot')).to.be.true;
+
     });
 });
