@@ -37,6 +37,8 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
             accuracy: {comp: 'Stats', func: 'setAccuracy'},
             agility: {comp: 'Stats', func: 'setAgility'},
             willpower: {comp: 'Stats', func: 'setWillpower'},
+            perception: {comp: 'Stats', func: 'setPerception'},
+            magic: {comp: 'Stats', func: 'setMagic'},
 
             pp: {comp: 'SpellPower', func: 'setPP'},
             maxPP: {comp: 'SpellPower', func: 'setMaxPP'},
@@ -237,7 +239,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
     };
 
     this.addSpells = (shell, obj) => {
-        obj.setBook(new RG.Spell.SpellBook());
+        obj.setBook(new RG.Spell.SpellBook(obj));
         shell.spells.forEach(spell => {
             obj.getBook().addSpell(new RG.Spell[spell]());
         });
