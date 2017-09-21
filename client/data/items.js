@@ -64,6 +64,13 @@ const Items = [
         weight: 0.5, value: value(20)
     },
     {
+        name: 'Wooden staff', base: 'MeleeWeaponBase',
+        material: 'wood',
+        damage: '1d6', weaponType: 'staff',
+        defense: 1,
+        weight: 1.0, value: value(30)
+    },
+    {
         name: 'Whip', base: 'MeleeWeaponBase',
         material: 'leather',
         damage: '1d6', range: 2, attack: -1,
