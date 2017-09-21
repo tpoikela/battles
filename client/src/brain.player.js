@@ -238,7 +238,8 @@ class BrainPlayer {
                 setAccuracy: 0,
                 setWillpower: 0,
                 setStrength: 0,
-                setAgility: 0
+                setAgility: 0,
+                setMagic: 0
             }
         };
     }
@@ -659,10 +660,15 @@ class BrainPlayer {
         }
 
         if (RG.KeyMap.isUsePower(code)) {
-          this._wantSelection = true;
-          this._selectionObject =
-            this._actor._spellbook.getSelectionObject();
-          RG.gameMsg('Press 0-9 to make a selection.');
+          if (this.hasPowers()) {
+              this._wantSelection = true;
+              this._selectionObject =
+                this._actor.getBook().getSelectionObject();
+              RG.gameMsg('Press 0-9 to make a selection.');
+          }
+          else {
+              RG.gameMsg('You have no powers to use.');
+          }
           return this.noAction();
         }
       }
@@ -726,6 +732,10 @@ class BrainPlayer {
       }
 
       return this.noAction();
+    }
+
+    hasPowers() {
+        return !!this._actor.getBook();
     }
 
     /* If there are multiple items per cell, digs next item to the top.*/
