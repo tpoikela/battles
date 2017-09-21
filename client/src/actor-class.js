@@ -2,15 +2,31 @@
 const ActorClass = {};
 const RG = require('./rg');
 RG.Component = require('./component');
+RG.Spell = require('./spell');
 
 class ActorClassBase {
 
-    constructor(name) {
+    constructor(actor, name) {
+        this._actor = actor;
+        actor.setActorClass(this);
         this._className = name;
     }
 
     getClassName() {
         return this._className;
+    }
+
+    /* Called when a level is advanced by the actor. Checks for messages, and if
+     * the next ability is triggered. */
+    advanceLevel() {
+        const newLevel = this._actor.get('Experience').getExpLevel();
+        if (this._messages.hasOwnProperty(newLevel)) {
+            const cell = this._actor.getCell();
+            RG.gameMsg({cell, msg: this._messages[newLevel]});
+        }
+        if (this._advances.hasOwnProperty(newLevel)) {
+            this._advances[newLevel]();
+        }
     }
 }
 
@@ -20,8 +36,7 @@ class ActorClassBase {
 class Adventurer extends ActorClassBase {
 
     constructor(actor) {
-        super('Adventurer');
-        this._actor = actor;
+        super(actor, 'Adventurer');
     }
 
     /* Called when a level is advanced by the actor. Checks for messages, and if
@@ -48,13 +63,12 @@ class Adventurer extends ActorClassBase {
 ActorClass.Adventurer = Adventurer;
 
 //-------------------------------------------------------------------------
-/* BladeMaster actor class and its experience level-specific features. */
+/* Blademaster actor class and its experience level-specific features. */
 //-------------------------------------------------------------------------
 class Blademaster extends ActorClassBase {
 
     constructor(actor) {
-        super('BladeMaster');
-        this._actor = actor;
+        super(actor, 'Blademaster');
         const _name = actor.getName();
 
         this._messages = {
@@ -100,27 +114,15 @@ class Blademaster extends ActorClassBase {
         };
     }
 
-    /* Called when a level is advanced by the actor. Checks for messages, and if
-     * the next ability is triggered. */
-    advanceLevel() {
-        const newLevel = this._actor.get('Experience').getExpLevel();
-        if (this._messages.hasOwnProperty(newLevel)) {
-            const cell = this._actor.getCell();
-            RG.gameMsg({cell, msg: this._messages[newLevel]});
-        }
-        if (this._advances.hasOwnProperty(newLevel)) {
-            this._advances[newLevel]();
-        }
-    }
 
     /* Called at the creation of the actor. Gives certain set of starting items.
      */
     addStartingItems() {
-
+        // Start with longsword and some armour
     }
 
     setStartingStats() {
-
+        // Add some strength + agi
     }
 
 }
@@ -133,58 +135,64 @@ ActorClass.Blademaster = Blademaster;
 class Cryomancer extends ActorClassBase {
 
     constructor(actor) {
-        super('Cryomancer');
-        this._actor = actor;
+        super(actor, 'Cryomancer');
         const _name = actor.getName();
 
         this._messages = {
-            4: `${_name} gains new skill`,
-            8: `${_name} gains new skill`,
-            12: `${_name} gains new skill`,
-            16: `${_name} gains new skill`,
-            20: `${_name} gains new skill`,
-            24: `${_name} gains new skill`,
-            28: `${_name} gains new skill`,
-            32: `${_name} has become a True Cryomancer`
+            4: `${_name} learns a protection spell`,
+            8: `${_name} learns to attack enemies from distance`,
+            12: `${_name} can freeze enemies on their tracks`,
+            16: `${_name} can summon an ice companion now`,
+            20: `${_name} can drain power from other spellcasters`,
+            24: `${_name} can fire ice arrows towards enemies`,
+            28: `${_name} can control their enemies now`,
+            32: `${_name} has become a True Cryomancer, Bringer of Blizzard`
         };
 
         this._advances = {
             1: () => {
-
+                // Create the spellbook
+                const book = new RG.Spell.SpellBook(this._actor);
+                const grasp = new RG.Spell.GraspOfWinter();
+                book.addSpell(grasp);
+                this._actor.setBook(book);
             },
             4: () => {
-
+                this._actor.getBook().addSpell(new RG.Spell.IceShield());
             },
             8: () => {
-
+                this._actor.getBook().addSpell(new RG.Spell.FrostBolt());
             },
             12: () => {
-
+                this._actor.getBook().addSpell(new RG.Spell.IcyPrison());
             },
             16: () => {
-
+                this._actor.getBook().addSpell(new RG.Spell.SummonIceMinion());
             },
             20: () => {
-
+                this._actor.getBook().addSpell(new RG.Spell.PowerDrain());
             },
             24: () => {
-
+                this._actor.getBook().addSpell(new RG.Spell.IceArrow());
             },
             28: () => {
-
+                this._actor.getBook().addSpell(new RG.Spell.MindControl());
             },
             32: () => {
-
+                this._actor.getBook().addSpell(new RG.Spell.Blizzard());
             }
         };
     }
 
-    addStartingItems() {
-
+    getStartingItems() {
+        return {
+            inventory: [],
+            equipment: []
+        };
     }
 
     setStartingStats() {
-
+        // Add magic
     }
 
 }
@@ -197,8 +205,7 @@ ActorClass.Cryomancer = Cryomancer;
 class Marksman extends ActorClassBase {
 
     constructor(actor) {
-        super('Marksman');
-        this._actor = actor;
+        super(actor, 'Marksman');
         const _name = actor.getName();
 
         this._messages = {
@@ -217,22 +224,22 @@ class Marksman extends ActorClassBase {
 
             },
             4: () => {
-
+                this._actor.add(new RG.Component.EagleEye());
             },
             8: () => {
-
+                this._actor.add(new RG.Component.StrongShot());
             },
             12: () => {
-
+                this._actor.add(new RG.Component.ThroughShot());
             },
             16: () => {
 
             },
             20: () => {
-
+                this._actor.add(new RG.Component.LongRangeShot());
             },
             24: () => {
-
+                this._actor.add(new RG.Component.RangedEvasion());
             },
             28: () => {
 
@@ -260,8 +267,7 @@ ActorClass.Marksman = Marksman;
 class Spellsinger extends ActorClassBase {
 
     constructor(actor) {
-        super('Spellsinger');
-        this._actor = actor;
+        super(actor, 'Spellsinger');
         const _name = actor.getName();
 
         this._messages = {

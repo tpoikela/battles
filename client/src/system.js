@@ -220,15 +220,16 @@ RG.System.Missile = function(compTypes) {
 
     this.updateEntity = function(ent) {
         const mComp = ent.get('Missile');
+        const attacker = mComp.getSource();
         const level = mComp.getLevel();
         const map = level.getMap();
 
         const targetX = mComp.getTargetX();
         const targetY = mComp.getTargetY();
         const targetCell = map.getCell(targetX, targetY);
+
         if (targetCell.hasProp('actors')) {
             const targetActor = targetCell.getProp('actors')[0];
-            const attacker = mComp.getSource();
             attacker.getBrain().getMemory().setLastAttacked(targetActor);
         }
 
@@ -274,7 +275,7 @@ RG.System.Missile = function(compTypes) {
                 else if (!mComp.hasRange()) {
                     this.finishMissileFlight(ent, mComp, currCell);
                     RG.debug(this, 'Missile out of range. Missed entity.');
-                    shownMsg = ent.getName() + ' misses the target';
+                    shownMsg = ent.getName() + ' does not reach the target';
                 }
             }
             else if (mComp.inTarget()) {
@@ -313,11 +314,21 @@ RG.System.Missile = function(compTypes) {
 
     /* Returns true if the target was hit.*/
     this.targetHit = (target, mComp) => {
+        const attacker = mComp.getSource();
+        if (attacker.has('ThroughShot') && !mComp.inTarget()) {
+            return false;
+        }
+
         const attack = mComp.getAttack();
         const defense = target.get('Combat').getDefense();
         const hitProp = attack / (attack + defense);
         const hitRand = RG.RAND.getUniform();
-        if (hitProp > hitRand) {return true;}
+        if (hitProp > hitRand) {
+            if (target.has('RangedEvasion')) {
+                return RG.RAND.getUniform() < 0.5;
+            }
+            return true;
+        }
         return false;
     };
 
@@ -472,23 +483,30 @@ RG.System.ExpPoints = function(compTypes) {
     this.updateEntity = ent => {
         const expComp = ent.get('Experience');
         const expPoints = ent.get('ExpPoints');
-        const expLevel = expComp.getExpLevel();
+        let levelingUp = true;
 
         let exp = expComp.getExp();
         exp += expPoints.getExpPoints();
         expComp.setExp(exp);
 
-        const nextLevel = expLevel + 1;
-        let reqExp = 0;
-        for (let i = 1; i <= nextLevel; i++) {
-            reqExp += (i - 1) * 10;
-        }
+        while (levelingUp) {
+            const currExpLevel = expComp.getExpLevel();
+            const nextExpLevel = currExpLevel + 1;
+            let reqExp = 0;
+            for (let i = 1; i <= nextExpLevel; i++) {
+                reqExp += (i - 1) * 10;
+            }
 
-        if (exp >= reqExp) { // Required exp points exceeded
-            RG.levelUpActor(ent, nextLevel);
-            const name = ent.getName();
-            const msg = `${name} appears to be more experience now.`;
-            RG.gameSuccess({msg: msg, cell: ent.getCell()});
+            if (exp >= reqExp) { // Required exp points exceeded
+                RG.levelUpActor(ent, nextExpLevel);
+                const name = ent.getName();
+                const msg = `${name} appears to be more experience now.`;
+                RG.gameSuccess({msg: msg, cell: ent.getCell()});
+                levelingUp = true;
+            }
+            else {
+                levelingUp = false;
+            }
         }
         ent.remove('ExpPoints');
     };
@@ -953,6 +971,7 @@ RG.System.SpellEffect = function(compTypes) {
         const dY = args.dir[1];
         let rangeLeft = spell.getRange();
         let rangeCrossed = 0;
+
         while (rangeLeft > 0) {
             x += dX;
             y += dY;
@@ -960,18 +979,24 @@ RG.System.SpellEffect = function(compTypes) {
                 const cell = map.getCell(x, y);
                 if (cell.hasActors()) {
                     // Deal some damage etc
-                    const dmg = new RG.Component.Damage();
-                    dmg.setSource(ent);
-                    dmg.setDamageType(args.damageType);
-                    dmg.setDamage(args.damage);
-
                     const actor = cell.getActors()[0];
-                    // TODO add some evasion checks
-                    // TODO add onHit callback for spell because not all spells
-                    // cause damage
-                    actor.add('Damage', dmg);
-                    RG.gameMsg({cell: cell,
-                        msg: `${name} hits ${actor.getName()}`});
+                    if (this.rayHitsActor(actor)) {
+                        const dmg = new RG.Component.Damage();
+                        dmg.setSource(ent);
+                        dmg.setDamageType(args.damageType);
+                        dmg.setDamage(args.damage);
+
+                        // TODO add some evasion checks
+                        // TODO add onHit callback for spell because
+                        // not all spells cause damage
+                        actor.add('Damage', dmg);
+                        RG.gameMsg({cell: cell,
+                            msg: `${name} hits ${actor.getName()}`});
+                    }
+                    else {
+                        RG.gameMsg({cell: cell,
+                            msg: `${name} misses ${actor.getName()}`});
+                    }
                 }
                 if (!cell.isSpellPassable()) {
                     rangeLeft = 0;
@@ -995,6 +1020,13 @@ RG.System.SpellEffect = function(compTypes) {
         };
         const animComp = new RG.Component.Animation(animArgs);
         ent.add('Animation', animComp);
+    };
+
+    this.rayHitsActor = function(actor) {
+        if (actor.has('RangedEvasion')) {
+            return RG.RAND.getUniform() < 0.5;
+        }
+        return true;
     };
 
     this.processSpellCell = function(ent) {

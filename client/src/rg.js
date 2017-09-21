@@ -502,6 +502,9 @@ const RG = { // {{{2
         if (miss.has('Ammo')) {
             dmg += att.getMissileWeapon().rollDamage();
         }
+        if (att.has('StrongShot')) {
+            dmg += this.strengthToDamage(att.getStrength());
+        }
         return dmg;
     },
 
@@ -525,6 +528,8 @@ const RG = { // {{{2
             const weaponRange = missWeapon.getAttackRange();
             range += weaponRange;
         }
+        if (att.has('LongRangeShot')) {range *= 2;}
+        if (att.has('EagleEye')) {range += 2;}
         return range;
     },
 

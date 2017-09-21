@@ -341,6 +341,7 @@ RG.Component.Stats = function() {
     let _strength = 5;
     let _willpower = 5;
     let _perception = 5;
+    let _magic = 5;
     let _speed = 100;
 
     /* These determine the chance of hitting. */
@@ -354,6 +355,8 @@ RG.Component.Stats = function() {
     this.getWillpower = () => _willpower;
     this.setPerception = per => {_perception = per;};
     this.getPerception = () => _perception;
+    this.setMagic = per => {_magic = per;};
+    this.getMagic = () => _magic;
 
     this.setSpeed = speed => {_speed = speed;};
     this.getSpeed = () => _speed;
@@ -374,6 +377,7 @@ RG.Component.Stats.prototype.copy = function(rhs) {
     this.setWillpower(rhs.getWillpower());
     this.setSpeed(rhs.getSpeed());
     this.setPerception(rhs.getPerception());
+    this.setMagic(rhs.getMagic());
 };
 
 RG.Component.Stats.prototype.equals = function(rhs) {
@@ -384,6 +388,7 @@ RG.Component.Stats.prototype.equals = function(rhs) {
     res = res && this.getWillpower() === rhs.getWillpower();
     res = res && this.getSpeed() === rhs.getSpeed();
     res = res && this.getPerception() === rhs.getPerception();
+    res = res && this.getMagic() === rhs.getMagic();
     return res;
 };
 
@@ -394,6 +399,7 @@ RG.Component.Stats.prototype.toString = function() {
     if (this.getStrength()) {txt += ' ,Str: ' + this.getStrength();}
     if (this.getWillpower()) {txt += ' ,Wil: ' + this.getWillpower();}
     if (this.getPerception()) {txt += ' ,Per: ' + this.getPerception();}
+    if (this.getMagic()) {txt += ' ,Mag: ' + this.getMagic();}
     return txt;
 };
 
@@ -409,6 +415,7 @@ RG.Component.StatsMods = function() {
     this.setWillpower(0);
     this.setPerception(0);
     this.setSpeed(0);
+    this.setMagic(0);
 };
 RG.extend2(RG.Component.StatsMods, RG.Component.Stats);
 
@@ -848,6 +855,35 @@ RG.Component.LongReach = function() {
     RG.Component.Base.call(this, 'LongReach');
 };
 RG.extend2(RG.Component.LongReach, RG.Component.Base);
+
+//--------------------------------------------
+// RANGED COMBAT COMPONENTS
+//--------------------------------------------
+
+RG.Component.EagleEye = function() {
+    RG.Component.Base.call(this, 'EagleEye');
+};
+RG.extend2(RG.Component.EagleEye, RG.Component.Base);
+
+RG.Component.StrongShot = function() {
+    RG.Component.Base.call(this, 'StrongShot');
+};
+RG.extend2(RG.Component.StrongShot, RG.Component.Base);
+
+RG.Component.ThroughShot = function() {
+    RG.Component.Base.call(this, 'ThroughShot');
+};
+RG.extend2(RG.Component.ThroughShot, RG.Component.Base);
+
+RG.Component.LongRangeShot = function() {
+    RG.Component.Base.call(this, 'LongRangeShot');
+};
+RG.extend2(RG.Component.LongRangeShot, RG.Component.Base);
+
+RG.Component.RangedEvasion = function() {
+    RG.Component.Base.call(this, 'RangedEvasion');
+};
+RG.extend2(RG.Component.RangedEvasion, RG.Component.Base);
 
 //--------------------------------------------
 // Spellcasting related components
