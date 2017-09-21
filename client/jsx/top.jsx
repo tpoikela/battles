@@ -118,7 +118,7 @@ class BattlesTop extends React.Component {
             levelSize: 'Medium',
             monstType: 'Medium',
             lootType: 'Medium',
-            playerClass: 'Adventurer',
+            playerClass: 'Blademaster',
 
             sqrPerActor: 120,
             sqrPerItem: 120,
