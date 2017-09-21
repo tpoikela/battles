@@ -61,6 +61,7 @@ export default class GameStats extends Component {
       Acc: player.getAccuracy(),
       Wil: player.getWillpower(),
       Per: player.getPerception(),
+      Mag: player.getMagic(),
 
       Speed: player.getSpeed(),
       XP: player.get('Experience').getExp(),
