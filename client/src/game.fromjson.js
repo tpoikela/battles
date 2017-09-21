@@ -118,7 +118,7 @@ RG.Game.FromJSON = function() {
     };
 
     this.createSpells = (json, entity) => {
-        entity._spellbook = new RG.Spell.SpellBook();
+        entity._spellbook = new RG.Spell.SpellBook(entity);
         json.spellbook.spells.forEach(spell => {
             const spellObj = new RG.Spell[spell.new]();
             spellObj.setPower(spell.power);
