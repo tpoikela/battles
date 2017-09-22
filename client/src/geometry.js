@@ -440,6 +440,7 @@ RG.Geometry = {
         return [];
     },
 
+    /* Returns a path from x0,y0 to x1,y1 which resembles "straight" line. */
     getMissilePath: function(x0, y0, x1, y1, incEnds = true) {
         let res = [];
         if (this.isLine(x0, y0, x1, y1)) {
@@ -461,10 +462,12 @@ RG.Geometry = {
             let currY = y0;
 
             if (dXAbs > dYAbs) {
+
+                // Loop until we have straight line, or regular ratio between
+                // x/y distance
                 while (yLeft >= 0 && (xLeft % yLeft !== 0)) {
                     currX += dirX;
                     currY += dirY;
-                    console.log(`while currX: ${currX} currY: ${currY}`);
                     res.push([currX, currY]);
                     xLeft -= 1;
                     yLeft -= 1;
@@ -486,7 +489,6 @@ RG.Geometry = {
                             if (currX !== x1) {
                                 currX += dirX;
                                 res.push([currX, currY]);
-                                console.log(`rem0 currX: ${currX} currY: ${currY}`);
                             }
                         }
                     }
@@ -494,10 +496,12 @@ RG.Geometry = {
 
             }
             else if (dYAbs > dXAbs) {
+
+                // Loop until we have straight line, or regular ratio between
+                // x/y distance
                 while (xLeft >= 0 && (yLeft % xLeft !== 0)) {
                     currX += dirX;
                     currY += dirY;
-                    console.log(`while currX: ${currX} currY: ${currY}`);
                     res.push([currX, currY]);
                     xLeft -= 1;
                     yLeft -= 1;
@@ -519,7 +523,6 @@ RG.Geometry = {
                             if (currY !== y1) {
                                 currY += dirY;
                                 res.push([currX, currY]);
-                                console.log(`rem0 currX: ${currX} currY: ${currY}`);
                             }
                         }
                     }
