@@ -331,7 +331,7 @@ describe('It contains all game content info', () => {
 
     it('should parse/create missile weapons and ammo', () => {
         const rifle = parser.createActualObj('items', 'Rifle');
-        const bullet = parser.createActualObj('items', 'Rifle bullet');
+        const bullet = parser.createActualObj('items', 'Steel bullet');
 
         expect(rifle.getAttackRange()).to.equal(7);
         expect(bullet.getAttackRange()).to.equal(1);
