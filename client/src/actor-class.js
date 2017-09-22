@@ -209,13 +209,13 @@ class Marksman extends ActorClassBase {
         const _name = actor.getName();
 
         this._messages = {
-            4: `${_name} gains new skill`,
-            8: `${_name} gains new skill`,
-            12: `${_name} gains new skill`,
-            16: `${_name} gains new skill`,
-            20: `${_name} gains new skill`,
-            24: `${_name} gains new skill`,
-            28: `${_name} gains new skill`,
+            4: `${_name} can now see and shoot further`,
+            8: `${_name} deals now more damage with shots`,
+            12: `${_name} can bypass enemies with ranged attacks`,
+            16: `${_name} can use arrows/bolts interchangeably`,
+            20: `${_name} can shoot even further`,
+            24: `${_name} can evade ranged attacks`,
+            28: `${_name} can shoot enemies critically`,
             32: `${_name} has become a True Marksman`
         };
 
@@ -233,7 +233,7 @@ class Marksman extends ActorClassBase {
                 this._actor.add(new RG.Component.ThroughShot());
             },
             16: () => {
-
+                this._actor.add(new RG.Component.MixedShot());
             },
             20: () => {
                 this._actor.add(new RG.Component.LongRangeShot());
@@ -242,10 +242,10 @@ class Marksman extends ActorClassBase {
                 this._actor.add(new RG.Component.RangedEvasion());
             },
             28: () => {
-
+                this._actor.add(new RG.Component.CriticalShot());
             },
             32: () => {
-
+                this._actor.add(new RG.Component.DoubleShot());
             }
         };
     }
