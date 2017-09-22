@@ -44,6 +44,23 @@ class CmdMissile {
                     const msg = 'No missile weapon equipped.';
                     return this.cmdNotPossible(msg);
                 }
+                else { // Check ammo/weapon compatibility
+                    const ammoType = missile.getAmmoType();
+                    const weaponType = missWeapon.getWeaponType();
+                    if (this._actor.has('MixedShot')) {
+                        const re = /bow/;
+                        if (!re.test(ammoType) || !re.test(weaponType)) {
+                            if (ammoType !== weaponType) {
+                                const msg = 'Ammo/weapon not compatible.';
+                                return this.cmdNotPossible(msg);
+                            }
+                        }
+                    }
+                    else if (ammoType !== weaponType) {
+                        const msg = 'Ammo/weapon not compatible.';
+                        return this.cmdNotPossible(msg);
+                    }
+                }
             }
 
             if (!RG.isNullOrUndef([obj.target])) {
