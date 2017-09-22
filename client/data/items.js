@@ -237,6 +237,21 @@ const Items = [
         name: 'ArmourBase', type: 'armour', className: 'cell-item-armour',
         char: '[', dontCreate: true, attack: 0, defense: 0, protection: 0
     },
+    // ARMOUR MISC
+    {
+        name: 'Robe', base: 'ArmourBase', className: 'cell-item-cloth',
+        weight: 1.0, defense: 1, armourType: 'chest', value: value(15)
+    },
+    {
+        name: 'Robe of defense', base: 'ArmourBase',
+        className: 'cell-item-cloth',
+        weight: 0.9, defense: 4, armourType: 'chest', value: value(200)
+    },
+    {
+        name: 'Robe of protection', base: 'ArmourBase',
+        className: 'cell-item-cloth',
+        weight: 0.8, protection: 4, armourType: 'chest', value: value(200)
+    },
 
     // ARMOUR LEATHER
     {
