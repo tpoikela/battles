@@ -51,12 +51,21 @@ class Adventurer extends ActorClassBase {
 
     /* Called at the creation of the actor. Gives certain set of starting items.
      */
-    addStartingItems() {
+    getStartingItems() {
+        return [
+            {name: 'Ration', count: 2}
+        ];
+    }
 
+    getStartingEquipment() {
+        return [
+            {name: 'Short sword', count: 1},
+            {name: 'Leather armour', count: 1}
+        ];
     }
 
     setStartingStats() {
-
+        // const stats = this._actor.get('Stats');
     }
 }
 
@@ -117,12 +126,23 @@ class Blademaster extends ActorClassBase {
 
     /* Called at the creation of the actor. Gives certain set of starting items.
      */
-    addStartingItems() {
-        // Start with longsword and some armour
+    getStartingItems() {
+        return [
+            {name: 'Ration', count: 1}
+        ];
+    }
+
+    getStartingEquipment() {
+        return [
+            {name: 'Longsword', count: 1},
+            {name: 'Chain armour', count: 1}
+        ];
     }
 
     setStartingStats() {
-        // Add some strength + agi
+        const stats = this._actor.get('Stats');
+        stats.incrStat('strength', 3);
+        stats.incrStat('magic', -3);
     }
 
 }
@@ -185,14 +205,24 @@ class Cryomancer extends ActorClassBase {
     }
 
     getStartingItems() {
-        return {
-            inventory: [],
-            equipment: []
-        };
+        return [
+            {name: 'Ration', count: 1},
+            {name: 'Potion of power', count: 1}
+        ];
+    }
+
+    getStartingEquipment() {
+        return [
+            {name: 'Robe', count: 1},
+            {name: 'Wooden staff', count: 1}
+        ];
+
     }
 
     setStartingStats() {
-        // Add magic
+        const stats = this._actor.get('Stats');
+        stats.incrStat('strength', -2);
+        stats.incrStat('magic', 3);
     }
 
 }
@@ -250,12 +280,26 @@ class Marksman extends ActorClassBase {
         };
     }
 
-    addStartingItems() {
+    getStartingItems() {
+        return [
+            {name: 'Ration', count: 1}
+        ];
+    }
+
+    getStartingEquipment() {
+        return [
+            {name: 'Leather armour', count: 1},
+            {name: 'Wooden bow', count: 1},
+            {name: 'Wooden arrow', count: 15}
+        ];
 
     }
 
     setStartingStats() {
-
+        const stats = this._actor.get('Stats');
+        stats.incrStat('accuracy', 3);
+        stats.incrStat('perception', 2);
+        stats.incrStat('magic', -3);
     }
 
 }
@@ -312,8 +356,12 @@ class Spellsinger extends ActorClassBase {
         };
     }
 
-    addStartingItems() {
+    getStartingItems() {
         // Starting instrument
+
+    }
+
+    getStartingEquipment() {
 
     }
 
