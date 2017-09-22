@@ -875,6 +875,11 @@ RG.Component.ThroughShot = function() {
 };
 RG.extend2(RG.Component.ThroughShot, RG.Component.Base);
 
+RG.Component.MixedShot = function() {
+    RG.Component.Base.call(this, 'MixedShot');
+};
+RG.extend2(RG.Component.MixedShot, RG.Component.Base);
+
 RG.Component.LongRangeShot = function() {
     RG.Component.Base.call(this, 'LongRangeShot');
 };
@@ -885,6 +890,15 @@ RG.Component.RangedEvasion = function() {
 };
 RG.extend2(RG.Component.RangedEvasion, RG.Component.Base);
 
+RG.Component.CriticalShot = function() {
+    RG.Component.Base.call(this, 'CriticalShot');
+};
+RG.extend2(RG.Component.CriticalShot, RG.Component.Base);
+
+RG.Component.DoubleShot = function() {
+    RG.Component.Base.call(this, 'DoubleShot');
+};
+RG.extend2(RG.Component.DoubleShot, RG.Component.Base);
 //--------------------------------------------
 // Spellcasting related components
 //--------------------------------------------
