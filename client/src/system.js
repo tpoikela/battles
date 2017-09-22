@@ -606,10 +606,6 @@ RG.System.Movement = function(compTypes) {
                 else {RG.gameMsg('It is for sale');}
             }
         }
-        else {
-            console.log('No items in the cell');
-
-        }
 
         if (!prevCell.hasShop() && newCell.hasShop()) {
             RG.gameMsg('You have entered a shop.');
