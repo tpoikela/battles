@@ -361,6 +361,14 @@ RG.Component.Stats = function() {
     this.setSpeed = speed => {_speed = speed;};
     this.getSpeed = () => _speed;
 
+    /* Convenience function for increase a stat. */
+    this.incrStat = (statName, addValue) => {
+        const setter = 'set' + statName.capitalize();
+        const getter = 'get' + statName.capitalize();
+        const currValue = this[getter]();
+        this[setter](currValue + addValue);
+    };
+
 };
 
 RG.Component.Stats.prototype.clone = function() {
