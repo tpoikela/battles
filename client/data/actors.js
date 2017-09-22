@@ -277,17 +277,22 @@ const Actors = [
         range: 1, hp: 20, danger: 3, enemies: ['human', 'undead', 'demon']
     },
     {
-        name: 'dwarven axeman',
+        name: 'dwarven fighter', base: 'dwarf',
+        attack: 4, defense: 4, damage: '1d7',
+        range: 1, hp: 30, danger: 4,
+        equip: ['Spear']
+    },
+    {
+        name: 'dwarven axeman', base: 'dwarf',
         attack: 4, defense: 4, damage: '1d8',
         range: 1, hp: 40, danger: 5,
         equip: ['Battle axe', 'Chain armour']
-
     },
     {
-        name: 'dwarven rifleman',
+        name: 'dwarven rifleman', base: 'dwarf',
         attack: 4, defense: 4, damage: '1d8',
         range: 1, hp: 40, danger: 7,
-        equip: ['Rifle', {name: 'Rifle bullet', count: 10}],
+        equip: ['Rifle', {name: 'Steel bullet', count: 10}],
         brain: 'Archer'
     },
     // HUMANS
