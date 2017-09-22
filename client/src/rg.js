@@ -778,24 +778,16 @@ RG.levelUpActor = (actor, newLevel) => {
         if (currLevel < newLevel) {
             while (currLevel < newLevel) {
                 const nextLevel = currLevel + 1;
+                ++currLevel;
+                actor.get('Experience').setExpLevel(nextLevel);
+
+                if (actor.has('ActorClass')) {
+                    actor.get('ActorClass').getClass().advanceLevel();
+                    continue; // Skip other functions
+                }
 
                 // Level up the Combat component
-                if (actor.has('Combat')) {
-                    const combatComp = actor.get('Combat');
-                    combatComp.setAttack(combatComp.getAttack() + 1);
-                    combatComp.setDefense(combatComp.getDefense() + 1);
-                    if (nextLevel % 3 === 0) {
-                        const prot = combatComp.getProtection();
-                        combatComp.setProtection(prot + 1);
-                    }
-
-                    // Upgrade damage die was well
-                    const dmgDie = combatComp.getDamageDie();
-                    dmgDie.setDice( dmgDie.getDice() + 1);
-                    if (nextLevel % 3 === 0) {
-                        dmgDie.setMod( dmgDie.getMod() + 1);
-                    }
-                }
+                RG.levelUpCombatStats(nextLevel, actor);
 
                 // Level up the Health
                 if (actor.has('Health')) {
@@ -805,10 +797,8 @@ RG.levelUpActor = (actor, newLevel) => {
                     hComp.setMaxHP(hComp.getMaxHP() + incr);
                     hComp.setHP(hComp.getHP() + incr);
                 }
-                ++currLevel;
 
             }
-            actor.get('Experience').setExpLevel(newLevel);
         }
         else {
             RG.err('RG', 'levelUpActor', 'New level must be > current level.');
@@ -817,6 +807,30 @@ RG.levelUpActor = (actor, newLevel) => {
     else {
         RG.err('RG', 'levelUpActor', 'No exp. component found.');
 
+    }
+};
+
+RG.levelUpCombatStats = function(nextLevel, actor) {
+    if (actor.has('Combat')) {
+        const combatComp = actor.get('Combat');
+
+        const incrAtt = 1;
+        combatComp.setAttack(combatComp.getAttack() + incrAtt);
+
+        const incrDef = 1;
+        combatComp.setDefense(combatComp.getDefense() + incrDef);
+
+        if (nextLevel % 3 === 0) {
+            const prot = combatComp.getProtection();
+            combatComp.setProtection(prot + 1);
+        }
+
+        // Upgrade damage die was well
+        const dmgDie = combatComp.getDamageDie();
+        dmgDie.setDice( dmgDie.getDice() + 1);
+        if (nextLevel % 3 === 0) {
+            dmgDie.setMod( dmgDie.getMod() + 1);
+        }
     }
 };
 
