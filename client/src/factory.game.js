@@ -59,37 +59,18 @@ RG.Factory.Game = function() {
 
             player.setType('player');
             player.add('Health', new RG.Component.Health(pConf.hp));
-            const startingWeapon = _parser.createActualObj(
-                'items', pConf.Weapon);
-            player.getInvEq().addItem(startingWeapon);
-            player.getInvEq().equipItem(startingWeapon);
-
-            if (obj.playerClass) {
-                if (ActorClass.hasOwnProperty(obj.playerClass)) {
-                    const actorClassComp = new RG.Component.ActorClass();
-                    const actorClass = new ActorClass[obj.playerClass](player);
-                    actorClassComp.setClass(actorClass);
-                    player.add(actorClassComp);
-                    actorClass.advanceLevel();
-                    actorClass.addStartingItems();
-                    actorClass.setStartingStats();
-                }
-                else {
-                    RG.err('Factory.Game', 'createPlayerUnlessLoaded',
-                        `${obj.playerClass} not found in ActorClass.`);
-                }
-            }
+            this.addActorClass(obj, player);
         }
 
         if (!player.has('Hunger')) {
             const hunger = new RG.Component.Hunger(20000);
-            player.add('Hunger', hunger);
+            player.add(hunger);
         }
         else {
             // Notify Hunger system only
             const hunger = player.get('Hunger');
             player.remove('Hunger');
-            player.add('Hunger', hunger);
+            player.add(hunger);
         }
         const regenPlayer = new RG.Time.RegenEvent(player,
             20 * RG.ACTION_DUR);
@@ -98,6 +79,45 @@ RG.Factory.Game = function() {
         game.addEvent(regenPlayer);
         game.addEvent(regenPlayerPP);
         return player;
+    };
+
+    /* Adds the actor class to player, and creates starting equipment. */
+    this.addActorClass = function(obj, player) {
+        if (obj.playerClass) {
+            if (ActorClass.hasOwnProperty(obj.playerClass)) {
+                const actorClassComp = new RG.Component.ActorClass();
+                const actorClass = new ActorClass[obj.playerClass](player);
+                actorClassComp.setClass(actorClass);
+                player.add(actorClassComp);
+
+                const items = actorClass.getStartingItems();
+                const eqs = actorClass.getStartingEquipment();
+
+                // Create starting inventory
+                items.forEach(item => {
+                    const itemObj = _parser.createItem(item.name);
+                    itemObj.count = item.count || 1;
+                    player.getInvEq().addItem(itemObj);
+
+                });
+
+                // Create starting equipment
+                eqs.forEach(item => {
+                    const itemObj = _parser.createItem(item.name);
+                    itemObj.count = item.count || 1;
+                    player.getInvEq().addItem(itemObj);
+                    player.getInvEq().equipNItems(itemObj, item.count);
+                });
+
+                actorClass.setStartingStats();
+                actorClass.advanceLevel(); // Advance to level 1
+            }
+            else {
+                RG.err('Factory.Game', 'createPlayerUnlessLoaded',
+                    `${obj.playerClass} not found in ActorClass.`);
+            }
+        }
+
     };
 
     const that = this; // For private objects/functions
