@@ -191,6 +191,11 @@ class RGItemWeapon extends Mixin.Damage(ItemBase) {
         this._weaponType = '';
     }
 
+    copy(rhs) {
+        super.copy(rhs);
+        this._weaponType = rhs.getWeaponType();
+    }
+
     clone() {
         const weapon = new RGItemWeapon(this.getName());
         weapon.copy(this);
@@ -241,7 +246,6 @@ class RGItemMissileWeapon extends RGItemWeapon {
     clone() {
         const weapon = new RGItemMissileWeapon(this.getName());
         weapon.copy(this);
-        weapon.setFireRate(this._fireRate);
         return weapon;
     }
 
@@ -269,12 +273,34 @@ class RGItemAmmo extends RGItemWeapon {
         super(name);
         this.setType(RG.ITEM_MISSILE);
         this.add('Ammo', new RG.Component.Ammo());
+        this._ammoType = '';
+    }
+
+    setAmmoType(type) {this._ammoType = type;}
+    getAmmoType() {return this._ammoType;}
+
+    copy(rhs) {
+        super.copy(rhs);
+        this.setAmmoType(rhs.getAmmoType());
     }
 
     clone() {
         const ammo = new RGItemAmmo(this.getName());
         ammo.copy(this);
         return ammo;
+    }
+
+    equals(rhs) {
+        if (super.equals(rhs)) {
+            return this._ammoType === rhs.getAmmoType();
+        }
+        return false;
+    }
+
+    toJSON() {
+        const json = super.toJSON();
+        json.setAmmoType = this._ammoType;
+        return json;
     }
 
 }
