@@ -392,6 +392,73 @@ class Spellsinger extends ActorClassBase {
 }
 ActorClass.Spellsinger = Spellsinger;
 
+//-------------------------------------------------------------------------
+/* Spiritcrafter actor class and its experience level-specific features. */
+//-------------------------------------------------------------------------
+class Spiritcrafter extends ActorClassBase {
+
+    constructor(actor) {
+        super(actor, 'Spiritcrafter');
+        const _name = actor.getName();
+
+        this._messages = {
+            4: `${_name} gains new skill`,
+            8: `${_name} gains new skill`,
+            12: `${_name} gains new skill`,
+            16: `${_name} gains new skill`,
+            20: `${_name} gains new skill`,
+            24: `${_name} gains new skill`,
+            28: `${_name} gains new skill`,
+            32: `${_name} has become a Mighty Spiritcrafter`
+        };
+
+        this._advances = {
+            1: () => {
+
+            },
+            4: () => {
+
+            },
+            8: () => {
+
+            },
+            12: () => {
+
+            },
+            16: () => {
+
+            },
+            20: () => {
+
+            },
+            24: () => {
+
+            },
+            28: () => {
+
+            },
+            32: () => {
+
+            }
+        };
+    }
+
+    getStartingItems() {
+        // Starting instrument
+
+    }
+
+    getStartingEquipment() {
+
+    }
+
+    setStartingStats() {
+
+    }
+
+}
+ActorClass.Spiritcrafter = Spiritcrafter;
+
 RG.ACTOR_CLASSES = Object.keys(ActorClass);
 
 module.exports = ActorClass;
