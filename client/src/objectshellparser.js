@@ -62,7 +62,8 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
                 damage: 'setDamageDie',
                 attack: 'setAttack',
                 defense: 'setDefense',
-                weaponType: 'setWeaponType'
+                weaponType: 'setWeaponType',
+                range: 'setAttackRange'
             },
             missile: {
                 damage: 'setDamageDie',
@@ -75,8 +76,10 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
         }
     };
 
-    _propToCall.items.missileweapon = _propToCall.items.missile;
+    _propToCall.items.missileweapon = _propToCall.items.weapon;
+    _propToCall.items.missileweapon.fireRate = 'setFireRate';
     _propToCall.items.ammo = _propToCall.items.missile;
+    _propToCall.items.ammo.ammoType = 'setAmmoType';
 
     /* Returns an object shell, given category and name.*/
     this.get = (categ, name) => {
