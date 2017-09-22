@@ -508,37 +508,37 @@ const Items = [
     // AMMO
     {
         name: 'Wooden arrow', base: 'MissileBase',
-        type: 'ammo', range: 1, weight: 0.1,
+        type: 'ammo', range: 1, weight: 0.1, ammoType: 'bow',
         attack: 0, damage: '1d6', value: value(10)
     },
     {
         name: 'Wooden bolt', base: 'MissileBase',
-        type: 'ammo', range: 1, weight: 0.1,
+        type: 'ammo', range: 1, weight: 0.1, ammoType: 'crossbow',
         attack: 1, damage: '1d8', value: value(15)
     },
     {
         name: 'Steel arrow', base: 'MissileBase',
-        type: 'ammo', range: 1, weight: 0.1,
+        type: 'ammo', range: 1, weight: 0.1, ammoType: 'arrow',
         attack: 0, damage: '1d6', value: value('steel', 20)
     },
     {
         name: 'Steel bolt', base: 'MissileBase',
-        type: 'ammo', range: 1, weight: 0.1,
+        type: 'ammo', range: 1, weight: 0.1, ammoType: 'crossbow',
         attack: 1, damage: '1d8', value: value('steel', 25)
     },
     {
         name: 'Runed arrow', base: 'MissileBase',
-        type: 'ammo', range: 1, weight: 0.2,
+        type: 'ammo', range: 1, weight: 0.2, ammoType: 'bow',
         attack: 4, damage: '2d7', value: value('magic', 50)
     },
     {
         name: 'Ruby glass bolt', base: 'MissileBase',
-        type: 'ammo', range: 2, weight: 0.05,
+        type: 'ammo', range: 2, weight: 0.05, ammoType: 'crossbow',
         attack: 3, damage: '2d8', value: value('ruby', 60)
     },
     {
-        name: 'Rifle bullet', base: 'MissileBase',
-        type: 'ammo', range: 1, weight: 0.05,
+        name: 'Steel bullet', base: 'MissileBase',
+        type: 'ammo', range: 1, weight: 0.05, ammoType: 'rifle',
         attack: 1, damage: '3d4', value: value(50)
     },
 
