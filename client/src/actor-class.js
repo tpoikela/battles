@@ -27,6 +27,25 @@ class ActorClassBase {
         if (this._advances.hasOwnProperty(newLevel)) {
             this._advances[newLevel]();
         }
+        this.incrStats();
+    }
+
+    incrStats() {
+        const actor = this._actor;
+
+        const hComp = actor.get('Health');
+        const incr = Math.ceil(actor.getStrength() / 2);
+        hComp.setMaxHP(hComp.getMaxHP() + incr);
+        hComp.setHP(hComp.getHP() + incr);
+
+        if (actor.has('SpellPower')) {
+            const ppIncr = Math.ceil(actor.getMagic() / 2);
+            const ppComp = actor.get('SpellPower');
+            ppComp.setMaxPP(ppComp.getMaxPP() + ppIncr);
+            ppComp.addPP(ppIncr);
+        }
+
+        RG.levelUpCombatStats(actor);
     }
 }
 
@@ -42,6 +61,7 @@ class Adventurer extends ActorClassBase {
     /* Called when a level is advanced by the actor. Checks for messages, and if
      * the next ability is triggered. */
     advanceLevel() {
+        super.advanceLevel();
         const newLevel = this._actor.get('Experience').getExpLevel();
         if (newLevel % 4 === 0) {
             // Get other random actor class
