@@ -327,7 +327,7 @@ const Actors = [
     },
     {
         name: 'shopkeeper', char: '@', base: 'human', hp: 50,
-        attack: 10, defense: 10, damage: '3d3',
+        attack: 10, defense: 10, protection: 5, damage: '3d3',
         className: 'cell-actor-shopkeeper',
         danger: 6, inv: [{name: 'Gold coin', count: 100}]
     },
