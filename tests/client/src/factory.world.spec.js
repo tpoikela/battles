@@ -191,4 +191,44 @@ describe('Factory.World', function() {
 
     });
 
+    it('can create a city with preset levels/created stairs', () => {
+        const level = RG.FACT.createLevel('arena', 20, 20, {});
+        const stairs1 = new RG.Element.Stairs(true, level);
+        const stairs2 = new RG.Element.Stairs(false, level);
+        level.addStairs(stairs1, 1, 1);
+        level.addStairs(stairs2, 15, 15);
+
+        const cityConf = {
+            name: 'CapitalCity',
+            x: 0, y: 0,
+            nQuarters: 1,
+            presetLevels: {
+                'CapitalCity.MainQuarter': {nLevel: 0, level}
+            },
+            quarter: [
+                {name: 'MainQuarter', nLevels: 1}
+            ],
+            connectToXY: [
+                {levelX: 0, levelY: 1, name: 'MainQuarter', nLevel: 0,
+                    stairs: stairs1},
+                {levelX: 3, levelY: 4, name: 'MainQuarter', nLevel: 0,
+                    stairs: stairs2}
+            ]
+        };
+        const areaConf = {
+            name: 'Area1x1', maxX: 1, maxY: 1, nCities: 1,
+            city: [cityConf]
+        };
+        const fact = new RG.Factory.World();
+        const area = fact.createArea(areaConf);
+        expect(area.getCities()).to.have.length(1);
+        const city = area.getCities()[0];
+        expect(city.getLevels()).to.have.length(1);
+
+        const stairs = level.getStairs();
+        stairs.forEach(s => {expect(s.isConnected()).to.be.true;});
+
+    });
+
+
 });
