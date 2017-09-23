@@ -49,6 +49,7 @@ RG.elementsCreated = 0;
 /* Object models stairs connecting two levels. Stairs are one-way, thus
  * connecting 2 levels requires two stair objects. */
 class RGElementStairs extends Mixin.Locatable(RGElementBase) {
+
     constructor(down, srcLevel, targetLevel) {
         if (down) {super('stairsDown');}
         else {super('stairsUp');}
@@ -57,65 +58,78 @@ class RGElementStairs extends Mixin.Locatable(RGElementBase) {
         this._srcLevel = srcLevel;
         this._targetLevel = targetLevel;
         this._targetStairs = null;
-
-        this.getSrcLevel = () => this._srcLevel;
-
-        this.setSrcLevel = src => {
-            if (!RG.isNullOrUndef([src])) {
-                this._srcLevel = src;
-            }
-            else {
-                RG.err('Element.Stairs', 'setSrcLevel',
-                    'Cannot set null/undefined level');
-            }
-        };
-
-        this.getTargetLevel = () => this._targetLevel;
-        this.setTargetLevel = target => {
-            if (!RG.isNullOrUndef([target])) {
-                this._targetLevel = target;
-            }
-            else {
-                RG.err('Element.Stairs', 'setTargetLevel',
-                    'Cannot set null/undefined level.');
-            }
-        };
-
-        /* Sets target stairs for this object. Also sets the level if target
-         * stairs
-         * have one specified. */
-        this.setTargetStairs = function(stairs) {
-            if (!RG.isNullOrUndef([stairs])) {
-                this._targetStairs = stairs;
-                const targetLevel = stairs.getSrcLevel();
-                if (!RG.isNullOrUndef([targetLevel])) {
-                    this.setTargetLevel(targetLevel);
-                }
-            }
-            else {
-                RG.err('Element.Stairs', 'setTargetStairs',
-                    'Cannot set null/undefined stairs.');
-            }
-        };
-        this.getTargetStairs = () => this._targetStairs;
-
-        /* Connects to stairs together. */
-        this.connect = function(stairs) {
-            this.setTargetStairs(stairs);
-            stairs.setTargetStairs(this);
-            this.setTargetLevel(stairs.getSrcLevel());
-            stairs.setTargetLevel(this.getSrcLevel());
-        };
-
-        /* Unique ID can be formed by levelID,x,y. */
-        this.getID = function() {
-            const x = this.getX();
-            const y = this.getY();
-            const id = this._srcLevel.getID();
-            return `${id},${x},${y}`;
-        };
-
     }
+
+    /* Returns true if the stairs are connected. */
+    isConnected() {
+        return !RG.isNullOrUndef([
+            this._srcLevel, this._targetLevel, this._targetLevel
+        ]);
+    }
+
+    /* Sets the source level for the stairs. */
+    setSrcLevel(src) {
+        if (!RG.isNullOrUndef([src])) {
+            this._srcLevel = src;
+        }
+        else {
+            RG.err('Element.Stairs', 'setSrcLevel',
+                'Cannot set null/undefined level');
+        }
+    }
+
+    getSrcLevel() {return this._srcLevel;}
+
+    /* Sets the target level for the stairs. */
+    setTargetLevel(target) {
+        if (!RG.isNullOrUndef([target])) {
+            this._targetLevel = target;
+        }
+        else {
+            RG.err('Element.Stairs', 'setTargetLevel',
+                'Cannot set null/undefined level.');
+        }
+    }
+
+    getTargetLevel() {return this._targetLevel;}
+
+    /* Sets target stairs for this object. Also sets the level if target
+     * stairs
+     * have one specified. */
+    setTargetStairs(stairs) {
+        if (!RG.isNullOrUndef([stairs])) {
+            this._targetStairs = stairs;
+            const targetLevel = stairs.getSrcLevel();
+            if (!RG.isNullOrUndef([targetLevel])) {
+                this.setTargetLevel(targetLevel);
+            }
+        }
+        else {
+            RG.err('Element.Stairs', 'setTargetStairs',
+                'Cannot set null/undefined stairs.');
+        }
+    }
+
+    getTargetStairs() {return this._targetStairs;}
+
+
+    /* Returns unique ID for the stairs.
+     * Unique ID can be formed by levelID,x,y. */
+    getID() {
+        const x = this.getX();
+        const y = this.getY();
+        const id = this._srcLevel.getID();
+        return `${id},${x},${y}`;
+    }
+
+    /* Connects to stairs together. */
+    connect(stairs) {
+        this.setTargetStairs(stairs);
+        stairs.setTargetStairs(this);
+        this.setTargetLevel(stairs.getSrcLevel());
+        stairs.setTargetLevel(this.getSrcLevel());
+    }
+
 
     isDown() {return this._down;}
 
@@ -140,30 +154,25 @@ class RGElementStairs extends Mixin.Locatable(RGElementBase) {
 
     /* Serializes the Stairs object. */
     toJSON() {
-        if (this.getTargetStairs()) {
-            if (this.getTargetLevel()) {
-                return {
-                    targetLevel: this.getTargetLevel().getID(),
-                    srcLevel: this.getSrcLevel().getID(),
-                    targetStairs: {
-                        x: this.getTargetStairs().getX(),
-                        y: this.getTargetStairs().getY()
-                    },
-                    isDown: this.isDown(),
-                    type: this.getType()
-                };
-            }
-            else {
-                RG.err('Element.Stairs', 'toJSON',
-                    'Target level missing. Cannot serialize.');
-            }
+        const json = {
+            isDown: this.isDown(),
+            type: this.getType()
+        };
+        if (this._srcLevel) {
+            json.srcLevel = this.getSrcLevel().getID();
         }
-        else {
-            RG.err('Element.Stairs', 'toJSON',
-                'Target stairs missing. Cannot serialize.');
+        if (this._targetLevel) {
+            json.targetLevel = this.getTargetLevel().getID();
         }
-        return null;
+        if (this._targetStairs) {
+            json.targetStairs = {
+                x: this.getTargetStairs().getX(),
+                y: this.getTargetStairs().getY()
+            };
+        }
+        return json;
     }
+
 }
 
 RG.Element.Stairs = RGElementStairs;
