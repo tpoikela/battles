@@ -27,10 +27,10 @@ class ActorClassBase {
         if (this._advances.hasOwnProperty(newLevel)) {
             this._advances[newLevel]();
         }
-        this.incrStats();
+        this.incrStats(newLevel);
     }
 
-    incrStats() {
+    incrStats(newLevel) {
         const actor = this._actor;
 
         const hComp = actor.get('Health');
@@ -45,7 +45,7 @@ class ActorClassBase {
             ppComp.addPP(ppIncr);
         }
 
-        RG.levelUpCombatStats(actor);
+        RG.levelUpCombatStats(actor, newLevel);
     }
 }
 
@@ -347,7 +347,8 @@ class Spellsinger extends ActorClassBase {
 
         this._advances = {
             1: () => {
-
+                const book = new RG.Spell.SpellBook(this._actor);
+                this._actor.setBook(book);
             },
             4: () => {
 
@@ -414,7 +415,8 @@ class Spiritcrafter extends ActorClassBase {
 
         this._advances = {
             1: () => {
-
+                const book = new RG.Spell.SpellBook(this._actor);
+                this._actor.setBook(book);
             },
             4: () => {
 
