@@ -27,6 +27,8 @@ RG.LevelGen = require('../data/level-gen');
 
 const OW = require('./overworld.map');
 
+import Capital from '../data/capital';
+
 const $DEBUG = false;
 
 RG.OverWorld = {};
@@ -673,6 +675,9 @@ RG.OverWorld.createWorldConf = (ow, subLevels, areaX, areaY) => {
                             `coord must exist. feat: ${JSON.stringify(feat)}`);
                     }
 
+                    if (feat.type === 'capital') {
+                        addCapitalConfToArea(feat, coordObj, areaConf);
+                    }
                     if (cityTypesRe.test(feat.type)) {
                         addCityConfToArea(feat, coordObj, areaConf);
                     }
@@ -737,22 +742,32 @@ function mapY(y, slY, subSizeY) {
     return null;
 }
 
+function addCapitalConfToArea(feat, coordObj, areaConf) {
+    const capitalConf = {
+
+    };
+    const capitalLevel = new Capital(200, 600, capitalConf);
+
+    const cityConf = {
+        name: 'Blashyrkh',
+        nQuarters: 1,
+        quarter: [{name: 'Main area', nLevels: 1}]
+    };
+    cityConf.presetLevels = {
+        'Blashyrkh.Main area': [{nLevel: 0, level: capitalLevel}]
+    };
+
+    addLocationToZoneConf(feat, coordObj, cityConf);
+    areaConf.nCities += 1;
+    areaConf.city.push(cityConf);
+}
+
 /* Adds a city configuration to the area. */
 function addCityConfToArea(feat, coordObj, areaConf) {
-    const {x, y, slX, slY, aX, aY, subX, subY} = coordObj;
+    const {slX, slY, subX, subY} = coordObj;
     const coord = feat.coord;
     const nLevels = coord.length;
-    const lastCoord = nLevels - 1;
     feat.nLevels = nLevels;
-
-    // Where 1st (main) entrance is located on Map.Level
-    const featX = mapX(coord[lastCoord][0], slX, subX);
-    let featY = mapY(coord[lastCoord][1], slY, subY) + 1;
-    if (featY >= 100) {
-        const msg = `subXY ${x},${y}, tileXY: ${aX},${aY}`;
-        console.log(`${msg} reduce the featY for ${feat.type}`);
-        featY -= 1;
-    }
 
     const cName = RG.Names.getUniqueCityName();
     const cityConf = RG.LevelGen.getCityConf(cName, feat);
@@ -773,14 +788,35 @@ function addCityConfToArea(feat, coordObj, areaConf) {
     }
 
     cityConf.groupType = feat.type;
-    cityConf.x = aX;
-    cityConf.y = aY;
-    cityConf.levelX = featX;
-    cityConf.levelY = featY;
+    addLocationToZoneConf(feat, coordObj, cityConf);
     cityConf.alignment = feat.alignment
         || getRandIn(RG.ALIGNMENTS);
     areaConf.nCities += 1;
     areaConf.city.push(cityConf);
+
+}
+
+/* Adds location info the zone config. This info specifies where the zone is
+ * located in the overworld map. */
+function addLocationToZoneConf(feat, coordObj, zoneConf) {
+    const {x, y, slX, slY, aX, aY, subX, subY} = coordObj;
+    const coord = feat.coord;
+    const nLevels = coord.length;
+    const lastCoord = nLevels - 1;
+
+    // Where 1st (main) entrance is located on Map.Level
+    const featX = mapX(coord[lastCoord][0], slX, subX);
+    let featY = mapY(coord[lastCoord][1], slY, subY) + 1;
+    if (featY >= 100) {
+        const msg = `subXY ${x},${y}, tileXY: ${aX},${aY}`;
+        console.log(`${msg} reduce the featY for ${feat.type}`);
+        featY -= 1;
+    }
+
+    zoneConf.x = aX;
+    zoneConf.y = aY;
+    zoneConf.levelX = featX;
+    zoneConf.levelY = featY;
 
 }
 
