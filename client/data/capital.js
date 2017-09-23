@@ -4,8 +4,9 @@ const RG = require('../src/rg');
 RG.Factory = require('../src/factory');
 
 RG.ObjectShell = require('../src/objectshellparser');
-const Objects = require('../data/battles_objects.js');
-RG.Effects = require('../data/effects.js');
+const Objects = require('../data/battles_objects');
+RG.Effects = require('../data/effects');
+RG.Element = require('../src/element');
 
 /* Class to create the capital city of the game. */
 export default class Capital {
@@ -23,8 +24,6 @@ export default class Capital {
       wallOpts.west = false;
       wallOpts.meanWx = Math.floor(0.9 * cols / 2);
     }
-
-    const mainLevel = RG.FACT.createLevel('wall', cols, rows, wallOpts);
 
     // Not exact position, but give proportions
 
@@ -70,7 +69,25 @@ export default class Capital {
       tileConf.y = 0;
       tileConf.x = subLevelPos[0] * rows;
     }
+
+    const mainLevel = RG.FACT.createLevel('wall', cols, rows, wallOpts);
     RG.Geometry.tileLevels(mainLevel, subLevels, tileConf);
+
+    // Add entrance stairs
+    if (conf.transpose) {
+        const midY = Math.floor(rows / 2);
+        const stairsWest = new RG.Element.Stairs(false, mainLevel);
+        mainLevel.addStairs(stairsWest, 0, midY);
+        const stairsEast = new RG.Element.Stairs(false, mainLevel);
+        mainLevel.addStairs(stairsEast, cols - 1, midY);
+    }
+    else {
+        const midX = Math.floor(cols / 2);
+        const stairsNorth = new RG.Element.Stairs(false, mainLevel);
+        mainLevel.addStairs(stairsNorth, midX, 0);
+        const stairsSouth = new RG.Element.Stairs(false, mainLevel);
+        mainLevel.addStairs(stairsSouth, midX, rows - 1);
+    }
 
     // Create the actors for this level
     const actorConf = {
