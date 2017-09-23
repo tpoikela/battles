@@ -981,7 +981,7 @@ RG.Factory.World = function() {
             const dungeon = this.createDungeon(dungeonConf);
             area.addDungeon(dungeon);
             if (!this.id2levelSet) {
-                this.createConnection(area, dungeon, dungeonConf);
+                this.createAreaZoneConnection(area, dungeon, dungeonConf);
             }
         }
 
@@ -990,7 +990,7 @@ RG.Factory.World = function() {
             const mountain = this.createMountain(mountainConf);
             area.addMountain(mountain);
             if (!this.id2levelSet) {
-                this.createConnection(area, mountain, mountainConf);
+                this.createAreaZoneConnection(area, mountain, mountainConf);
             }
         }
 
@@ -999,7 +999,7 @@ RG.Factory.World = function() {
             const city = this.createCity(cityConf);
             area.addCity(city);
             if (!this.id2levelSet) {
-                this.createConnection(area, city, cityConf);
+                this.createAreaZoneConnection(area, city, cityConf);
             }
         }
         this.popScope(conf);
@@ -1118,13 +1118,7 @@ RG.Factory.World = function() {
             this.setLevelConstraints(levelConf);
 
             // First try to find a preset level
-            let level = null;
-            if (presetLevels.length > 0) {
-                const levelObj = presetLevels.find(lv => lv.nLevel === i);
-                if (levelObj) {
-                    level = levelObj.level;
-                }
-            }
+            let level = this.getFromPresetLevels(i, presetLevels);
 
             // If preset not found, either restore or create a new one
             if (!level) {
@@ -1154,6 +1148,19 @@ RG.Factory.World = function() {
 
         this.popScope(conf);
         return branch;
+    };
+
+    /* Returns a level from presetLevels if any exist for the current level
+     * number. */
+    this.getFromPresetLevels = function(i, presetLevels) {
+        let level = null;
+        if (presetLevels.length > 0) {
+            const levelObj = presetLevels.find(lv => lv.nLevel === i);
+            if (levelObj) {
+                level = levelObj.level;
+            }
+        }
+        return level;
     };
 
     /* Sets the randomization constraints for the level based on current
@@ -1235,11 +1242,23 @@ RG.Factory.World = function() {
 
     /* Returns preset levels (if any) for the current zone. */
     this.getPresetLevels = function(hierName) {
+        // 1st check the global preset levels
         const keys = Object.keys(this.presetLevels);
-        const foundKey = keys.find(item => new RegExp(item).test(hierName));
+        let foundKey = keys.find(item => new RegExp(item).test(hierName));
         if (foundKey) {
             return this.presetLevels[foundKey];
         }
+
+        // Then check the configuration
+        const presetLevels = this.getConf('presetLevels');
+        if (presetLevels) {
+            const names = Object.keys(presetLevels);
+            foundKey = names.find(item => new RegExp(item).test(hierName));
+            if (foundKey) {
+                return presetLevels[foundKey];
+            }
+        }
+
         return [];
     };
 
@@ -1331,6 +1350,7 @@ RG.Factory.World = function() {
             _verif.verifyConf('createCity',
                 conf, ['name', 'nQuarters']);
         }
+
         this.pushScope(conf);
         const city = new RG.World.City(conf.name);
         city.setHierName(this.getHierName());
@@ -1376,6 +1396,8 @@ RG.Factory.World = function() {
         const hierName = this.getHierName();
         quarter.setHierName(hierName);
 
+        const presetLevels = this.getPresetLevels(hierName);
+
         const cityLevelConf = {
             x: conf.x || 80, y: conf.y || 40,
             nShops: conf.nShops || 1,
@@ -1387,19 +1409,26 @@ RG.Factory.World = function() {
         this.setLevelConstraints(cityLevelConf);
 
         for (let i = 0; i < conf.nLevels; i++) {
-            let level = null;
+            let level = this.getFromPresetLevels(i, presetLevels);
+
+            if (!level) {
+                if (!this.id2levelSet) {
+                    level = this.factZone.createCityLevel(i, cityLevelConf);
+                    this.addFixedFeatures(i, level, quarter);
+                }
+                else {
+                    const id = conf.levels[i];
+                    level = this.id2level[id];
+                }
+            }
+
+            // Need to add the shops to the quarter
             if (!this.id2levelSet) {
-                level = this.factZone.createCityLevel(i, cityLevelConf);
-                this.addFixedFeatures(i, level, quarter);
                 if (level.shops) {
                     level.shops.forEach(shop => {
                         quarter.addShop(shop);
                     });
                 }
-            }
-            else {
-                const id = conf.levels[i];
-                level = this.id2level[id];
             }
             quarter.addLevel(level);
         }
@@ -1421,8 +1450,8 @@ RG.Factory.World = function() {
     /* Creates a connection between an area and a zone such as city, mountain
      * or dungeon. Unless configured, connects the zone entrance to a random
      * location in the area. */
-    this.createConnection = (area, zone, conf) => {
-        _verif.verifyConf('createConnection', conf, ['x', 'y']);
+    this.createAreaZoneConnection = (area, zone, conf) => {
+        _verif.verifyConf('createAreaZoneConnection', conf, ['x', 'y']);
 
         const x = conf.x;
         const y = conf.y;
@@ -1452,14 +1481,14 @@ RG.Factory.World = function() {
                 tileLevel.addStairs(tileStairs, tileStairsX, tileStairsY);
                 tileStairs.connect(entranceStairs);
             }
-            else {
+            else if (!conf.hasOwnProperty('connectToXY')) {
                 const msg = `No entrances in ${zone.getHierName()}.`;
-                RG.err('Factory.World', 'createConnection',
+                RG.err('Factory.World', 'createAreaZoneConnection',
                     `${msg}. Cannot connect to tile.`);
             }
         }
         else { // No entrance for zone, what to do?
-            RG.err('Factory.World', 'createConnection',
+            RG.err('Factory.World', 'createAreaZoneConnection',
                 'No getEntrances method for zone.');
         }
 
@@ -1475,22 +1504,28 @@ RG.Factory.World = function() {
 
                 const zoneLevel = zone.findLevel(name, nLevel);
                 if (zoneLevel) {
-                    // Create 2 new stairs, add 1st to the area level, and 2nd
-                    // to the zone level
-                    const freeCell = zoneLevel.getFreeRandCell();
-                    const zoneX = freeCell.getX();
-                    const zoneY = freeCell.getY();
 
+                    // Create new stairs for zone, unless connect obj has stairs
+                    // property.
+                    let zoneStairs = conn.stairs || null;
+                    if (!zoneStairs) {
+                        const freeCell = zoneLevel.getFreeRandCell();
+                        const zoneX = freeCell.getX();
+                        const zoneY = freeCell.getY();
+                        zoneStairs = new Stairs(false, zoneLevel, tileLevel);
+                        zoneLevel.addStairs(zoneStairs, zoneX, zoneY);
+                    }
+
+                    // Create stairs for tileLevel and connect them to the zone
+                    // stairs
                     const tileStairs = new Stairs(true, tileLevel, zoneLevel);
-                    const featStairs = new Stairs(false, zoneLevel, tileLevel);
                     tileLevel.addStairs(tileStairs, x, y);
-                    zoneLevel.addStairs(featStairs, zoneX, zoneY);
-                    tileStairs.connect(featStairs);
+                    tileStairs.connect(zoneStairs);
                 }
                 else {
                     let msg = `connectToXY: ${JSON.stringify(conn)}`;
                     msg += `zoneConf: ${JSON.stringify(conf)}`;
-                    RG.err('Factory.World', 'createConnection',
+                    RG.err('Factory.World', 'createAreaZoneConnection',
                         `No level found. ${msg}`);
 
                 }
