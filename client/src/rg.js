@@ -787,7 +787,7 @@ RG.levelUpActor = (actor, newLevel) => {
                 }
 
                 // Level up the Combat component
-                RG.levelUpCombatStats(nextLevel, actor);
+                RG.levelUpCombatStats(actor, nextLevel);
 
                 // Level up the Health
                 if (actor.has('Health')) {
@@ -810,7 +810,7 @@ RG.levelUpActor = (actor, newLevel) => {
     }
 };
 
-RG.levelUpCombatStats = function(nextLevel, actor) {
+RG.levelUpCombatStats = function(actor, nextLevel) {
     if (actor.has('Combat')) {
         const combatComp = actor.get('Combat');
 
