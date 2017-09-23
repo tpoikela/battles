@@ -216,7 +216,8 @@ RG.Factory.Base = function() { // {{{2
     this.createActor = (name, obj = {}) => _actorFact.createActor(name, obj);
 
     /* Factory method for AI brain creation.*/
-    this.createBrain = (actor, brainName) => _actorFact.createBrain(actor, brainName);
+    this.createBrain = (actor, brainName) =>
+        _actorFact.createBrain(actor, brainName);
 
     /* Factory method for AI brain creation.*/
     this.createSpell = name => _actorFact.createSpell(name);
@@ -232,11 +233,14 @@ RG.Factory.Base = function() { // {{{2
         }
     };
 
-    this.createFloorCell = (x, y) => new RG.Map.Cell(x, y, new RG.Element.Base('floor'));
+    this.createFloorCell = (x, y) =>
+        new RG.Map.Cell(x, y, new RG.Element.Base('floor'));
 
-    this.createWallCell = (x, y) => new RG.Map.Cell(x, y, new RG.Element.Base('wall'));
+    this.createWallCell = (x, y) =>
+        new RG.Map.Cell(x, y, new RG.Element.Base('wall'));
 
-    this.createSnowCell = (x, y) => new RG.Map.Cell(x, y, new RG.Element.Base('snow'));
+    this.createSnowCell = (x, y) =>
+        new RG.Map.Cell(x, y, new RG.Element.Base('snow'));
 
     /* Factory method for creating levels.*/
     this.createLevel = function(levelType, cols, rows, conf) {
@@ -335,9 +339,16 @@ RG.Factory.Base = function() { // {{{2
                 const door = new RG.Element.Door(true);
                 level.addElement(door, doorXY[0], doorXY[1]);
 
-                const keeper = this.createActor('shopkeeper', {brain: 'Human'});
+                let keeper = null;
+                if (conf.parser) {
+                    keeper = conf.parser.createActor('shopkeeper');
+                }
+                else {
+                    keeper = this.createActor('shopkeeper', {brain: 'Human'});
+                }
+
                 const gold = new RG.Item.GoldCoin('Gold coin');
-                gold.count = 100;
+                gold.count = RG.RAND.getUniformInt(50, 200);
                 keeper.getInvEq().addItem(gold);
 
                 const shopCoord = [];
