@@ -19,7 +19,7 @@ describe('RG.Factory.ItemRandomizer', () => {
 
 const MockParser = function() {
     this.createRandomItem = () => new RG.Item.Food('testFood');
-
+    this.createActor = () => new RG.Actor.Rogue('shopkeeper');
 };
 
 describe('RG.Factory.Base', () => {
