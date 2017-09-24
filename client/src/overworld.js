@@ -21,13 +21,12 @@
  *    2  #### <-(lrx, lry)
  */
 
+import Capital from '../data/capital';
+
 const RG = require('./rg');
 RG.Names = require('../data/name-gen');
 RG.LevelGen = require('../data/level-gen');
-
 const OW = require('./overworld.map');
-
-import Capital from '../data/capital';
 
 const $DEBUG = false;
 
@@ -186,14 +185,14 @@ RG.OverWorld.createOverWorldLevel = (overworld, conf) => {
     const worldY = conf.worldY || 400;
 
     // This will most likely fail, unless values have been set explicitly
-    const areaX = conf.areaX || worldX / 100;
-    const areaY = conf.areaY || worldY / 100;
+    const nTilesX = conf.nTilesX || worldX / 100;
+    const nTilesY = conf.nTilesY || worldY / 100;
 
     const xMap = Math.floor(worldX / overworld.getSizeX());
     const yMap = Math.floor(worldY / overworld.getSizeY());
 
-    const worldLevelAndConf = createOverWorldLevel(
-        overworld, worldX, worldY, xMap, yMap, areaX, areaY);
+    const worldLevelAndConf = buildMapLevel(
+        overworld, worldX, worldY, xMap, yMap, nTilesX, nTilesY);
 
     return worldLevelAndConf;
 
@@ -201,7 +200,7 @@ RG.OverWorld.createOverWorldLevel = (overworld, conf) => {
 
 
 /* Creates the overworld level. Returns RG.Map.Level. */
-function createOverWorldLevel(ow, worldX, worldY, xMap, yMap, areaX, areaY) {
+function buildMapLevel(ow, worldX, worldY, xMap, yMap, nTilesX, nTilesY) {
     const map = ow.getMap();
     const sizeY = map[0].length;
     const sizeX = map.length;
@@ -221,7 +220,10 @@ function createOverWorldLevel(ow, worldX, worldY, xMap, yMap, areaX, areaY) {
         }
     }
 
-    const conf = RG.OverWorld.createWorldConf(ow, subLevels, areaX, areaY);
+    const conf = RG.OverWorld.createWorldConf(ow, subLevels, nTilesX, nTilesY);
+
+    // Some global features (like roads) need to be added
+    addGlobalFeatures(ow, level, conf);
 
     return [level, conf];
 }
@@ -596,14 +598,14 @@ function addVillageToSubLevel(feat, owSubLevel, subLevel) {
  * the final game overworld with features, actors and items.
  *
  * Maps an MxN array of sub-levels (each |subX| X |subY|) into
- * |areaX| X |areaY| array of World.AreaTile levels.
+ * |nTilesX| X |nTilesY| array of World.AreaTile levels.
  * Both levels are RG.Map.Level objects.
  */
-RG.OverWorld.createWorldConf = (ow, subLevels, areaX, areaY) => {
+RG.OverWorld.createWorldConf = (ow, subLevels, nTilesX, nTilesY) => {
     const worldConf = {
         name: 'The North',
         nAreas: 1,
-        area: [{name: 'The Northern Realm', maxX: areaX, maxY: areaY,
+        area: [{name: 'The Northern Realm', maxX: nTilesX, maxY: nTilesY,
             biome: {},
             dungeon: [],
             mountain: [],
@@ -623,12 +625,12 @@ RG.OverWorld.createWorldConf = (ow, subLevels, areaX, areaY) => {
             `Illegal num of sublevels: ${msg}`);
     }
 
-    const xMap = nSubLevelsX / areaX; // SubLevels per tile level in x-dir
-    const yMap = nSubLevelsY / areaY; // SubLevels per tile level in y-dir
+    const xMap = nSubLevelsX / nTilesX; // SubLevels per tile level in x-dir
+    const yMap = nSubLevelsY / nTilesY; // SubLevels per tile level in y-dir
 
     if ($DEBUG) {
-        console.log(`nSubLevelsX: ${nSubLevelsX}, areaX: ${areaX}`);
-        console.log(`nSubLevelsY: ${nSubLevelsY}, areaY: ${areaY}`);
+        console.log(`nSubLevelsX: ${nSubLevelsX}, nTilesX: ${nTilesX}`);
+        console.log(`nSubLevelsY: ${nSubLevelsY}, nTilesY: ${nTilesY}`);
         console.log(`MapX: ${xMap} levels to one tile`);
         console.log(`MapY: ${yMap} levels to one tile`);
     }
@@ -637,11 +639,11 @@ RG.OverWorld.createWorldConf = (ow, subLevels, areaX, areaY) => {
     // the map values, just throw error
     if (!Number.isInteger(xMap)) {
         RG.err('OverWorld', 'createWorldConf',
-            `xMap not int: ${xMap}, sub X :${nSubLevelsX}, areaX: ${areaX}`);
+            `xMap not int: ${xMap}, sub X :${nSubLevelsX}, nTilesX: ${nTilesX}`);
     }
     if (!Number.isInteger(yMap)) {
         RG.err('OverWorld', 'createWorldConf',
-            `yMap not int: ${yMap}, sub Y :${nSubLevelsY}, areaY: ${areaY}`);
+            `yMap not int: ${yMap}, sub Y :${nSubLevelsY}, nTilesY: ${nTilesY}`);
     }
 
     // Map values are OK, this loops through smaller overworld sublevels, which
@@ -678,7 +680,7 @@ RG.OverWorld.createWorldConf = (ow, subLevels, areaX, areaY) => {
                     if (feat.type === 'capital') {
                         addCapitalConfToArea(feat, coordObj, areaConf);
                     }
-                    if (cityTypesRe.test(feat.type)) {
+                    else if (cityTypesRe.test(feat.type)) {
                         addCityConfToArea(feat, coordObj, areaConf);
                     }
                     else if (feat.type === 'dungeon') {
@@ -746,46 +748,42 @@ function addCapitalConfToArea(feat, coordObj, areaConf) {
     const capitalConf = {
 
     };
-    const capitalLevel = new Capital(200, 600, capitalConf);
+    const capitalLevel = new Capital(200, 600, capitalConf).getLevel();
 
     const cityConf = {
         name: 'Blashyrkh',
         nQuarters: 1,
         quarter: [{name: 'Main area', nLevels: 1}]
     };
+
     cityConf.presetLevels = {
         'Blashyrkh.Main area': [{nLevel: 0, level: capitalLevel}]
     };
 
     addLocationToZoneConf(feat, coordObj, cityConf);
+    const mainConn = {
+        name: 'Main area',
+        levelX: cityConf.levelX,
+        levelY: cityConf.levelY,
+        nLevel: 0,
+        stairs: capitalLevel.getStairs()[0]
+    };
+
+    cityConf.connectToXY[0].stairs = capitalLevel.getStairs()[0];
+    cityConf.connectToXY.push(mainConn);
     areaConf.nCities += 1;
     areaConf.city.push(cityConf);
 }
 
 /* Adds a city configuration to the area. */
 function addCityConfToArea(feat, coordObj, areaConf) {
-    const {slX, slY, subX, subY} = coordObj;
+    // const {slX, slY, subX, subY} = coordObj;
     const coord = feat.coord;
     const nLevels = coord.length;
     feat.nLevels = nLevels;
 
     const cName = RG.Names.getUniqueCityName();
     const cityConf = RG.LevelGen.getCityConf(cName, feat);
-
-    // Extra connection because fort has 2 exits/entrances
-    // Where 2nd (exit) entrance is located on Map.Level
-    if (twoEntranceCityRe.test(feat)) {
-        const connX = mapX(coord[0][0], slX, subX);
-        const connY = mapY(coord[0][1], slY, subY) - 1;
-        const nLast = cityConf.nQuarters - 1;
-
-        cityConf.connectToXY = [{
-            name: cityConf.quarter[nLast].name,
-            levelX: connX,
-            levelY: connY,
-            nLevel: 0
-        }];
-    }
 
     cityConf.groupType = feat.type;
     addLocationToZoneConf(feat, coordObj, cityConf);
@@ -813,6 +811,21 @@ function addLocationToZoneConf(feat, coordObj, zoneConf) {
         featY -= 1;
     }
 
+    // Extra connection because fort has 2 exits/entrances
+    // Where 2nd (exit) entrance is located on Map.Level
+    if (twoEntranceCityRe.test(feat.type)) {
+        const connX = mapX(coord[0][0], slX, subX);
+        const connY = mapY(coord[0][1], slY, subY) - 1;
+        const nLast = zoneConf.nQuarters - 1;
+
+        zoneConf.connectToXY = [{
+            name: zoneConf.quarter[nLast].name,
+            levelX: connX,
+            levelY: connY,
+            nLevel: 0
+        }];
+    }
+
     zoneConf.x = aX;
     zoneConf.y = aY;
     zoneConf.levelX = featX;
@@ -831,8 +844,8 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
         const msg = 'xy null/undef. feat: ' + JSON.stringify(feat);
         RG.err('overworld.js', 'addBlackTowerConfToArea', msg);
     }
-    const featX = mapX(xy[0], slX, subX);
-    const featY = mapY(xy[1], slY, subY);
+    // const featX = mapX(xy[0], slX, subX);
+    // const featY = mapY(xy[1], slY, subY);
     const tName = 'Elder raventhrone';
 
     const midX = Math.floor(nSubLevelsX / xMap / 2);
@@ -840,6 +853,7 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
 
     const dungeonConf = RG.LevelGen.getDungeonConf(tName);
     Object.assign(dungeonConf,
+        // TODO change after debugging is done
         // {x: aX, y: aY, levelX: featX, levelY: featY});
         {x: midX, y: yPos, levelX: 1, levelY: 1});
     dungeonConf.dungeonType = 'castle';
@@ -867,7 +881,7 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
     areaConf.dungeon.push(dungeonConf);
 }
 
-/* Map biomes from overworld into areaX * areaY space. */
+/* Map biomes from overworld into nTilesX * nTilesY space. */
 function addBiomeLocations(ow, areaConf) {
     const owSizeX = ow.getSizeX();
     const owSizeY = ow.getSizeY();
@@ -894,6 +908,14 @@ function getSubBoxForAreaTile(x, y, xMap, yMap) {
     const ry = y * yMap;
     const ly = ry + yMap - 1;
     return [lx, ly, rx, ry];
+}
+
+function addGlobalFeatures(ow, level, conf) {
+
+    // Find player x,y on level
+    // Find capital x,y on level
+    // Connect with road
+
 }
 
 module.exports = RG.OverWorld;
