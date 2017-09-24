@@ -2,8 +2,8 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 
-import GameBoard from '../jsx/game-board';
-import GameMessages from '../jsx/game-messages';
+import GameBoard from '../jsx/game-board.jsx';
+import GameMessages from '../jsx/game-messages.jsx';
 import Capital from '../data/capital';
 
 const ROT = require('../../lib/rot');
@@ -79,7 +79,7 @@ const getSelection = (c0, c1, map) => {
       res.push(map.getCell(xy[0], xy[1]));
     });
     return res;
-}
+};
 
 const startSimulation = (startTime, level) =>
   () => (
@@ -463,6 +463,8 @@ export default class GameEditor extends Component {
     if (this.state.levelConf.hasOwnProperty(levelType)) {
       conf = this.state.levelConf[levelType];
     }
+
+    conf.transpose = false;
 
     const [cols, rows] = [this.state.levelX, this.state.levelY];
 
@@ -1075,8 +1077,6 @@ export default class GameEditor extends Component {
       levelClone.getMap()._optimizeForRowAccess();
       levelClone.editorID = this.state.idCount++;
 
-      const nActors = levelClone.getActors().length;
-
       this.game.addLevel(levelClone);
       this.game.addActiveLevel(levelClone);
       if (this.state.showAnimations) {
@@ -1454,13 +1454,13 @@ export default class GameEditor extends Component {
               <span>dX/dY:</span>
                 <input
                   name='cell-select-diff-x'
-                  readOnly
+                  readOnly={true}
                   type='text'
                   value={this.state.selectDiffX}
                 />
                 <input
                   name='cell-select-diff-x'
-                  readOnly
+                  readOnly={true}
                   type='text'
                   value={this.state.selectDiffY}
                 />
