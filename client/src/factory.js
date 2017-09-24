@@ -704,7 +704,6 @@ RG.Factory.Zone = function() {
         if (levelConf.groupType) {
             switch (levelConf.groupType) {
                 case 'village': {
-                    console.log('Creating village level now');
                     cityLevel = this.createVillageLevel(x, y, levelConf);
                     break;
                 }
