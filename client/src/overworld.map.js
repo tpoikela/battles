@@ -333,6 +333,11 @@ OW.Map = function() {
         return this._subLevels[xy[0]][xy[1]];
     };
 
+    this.getSubLevelsWithFeature = function(type) {
+        const featXY = this.getFeaturesByType(type);
+        return featXY.map(xy => this.getSubLevel(xy));
+    };
+
     this.getAreaXY = function() {
         return this.getSizeX() * this.getSizeY();
     };
