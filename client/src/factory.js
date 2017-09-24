@@ -1155,6 +1155,7 @@ RG.Factory.World = function() {
     this.getFromPresetLevels = function(i, presetLevels) {
         let level = null;
         if (presetLevels.length > 0) {
+            console.log('len > 0: ' + presetLevels.length);
             const levelObj = presetLevels.find(lv => lv.nLevel === i);
             if (levelObj) {
                 level = levelObj.level;
@@ -1220,7 +1221,6 @@ RG.Factory.World = function() {
                         this.factZone.addActorToLevel(actorName, level);
                     }
                     else {
-                        console.log('Creating ' + createActor.name);
                         this.factZone.addActorToLevel(actorName, level);
                     }
                 }
@@ -1242,21 +1242,26 @@ RG.Factory.World = function() {
 
     /* Returns preset levels (if any) for the current zone. */
     this.getPresetLevels = function(hierName) {
-        // 1st check the global preset levels
-        const keys = Object.keys(this.presetLevels);
-        let foundKey = keys.find(item => new RegExp(item).test(hierName));
-        if (foundKey) {
-            return this.presetLevels[foundKey];
-        }
 
-        // Then check the configuration
+        // First check the configuration
         const presetLevels = this.getConf('presetLevels');
         if (presetLevels) {
             const names = Object.keys(presetLevels);
-            foundKey = names.find(item => new RegExp(item).test(hierName));
+            foundKey = names.find(item => {
+                return new RegExp(item + '$').test(hierName);
+            });
             if (foundKey) {
+                console.log('Found levels (in Conf) for hierName ' + hierName);
                 return presetLevels[foundKey];
             }
+        }
+
+        // Then check the global preset levels
+        const keys = Object.keys(this.presetLevels);
+        let foundKey = keys.find(item => new RegExp(item + '$').test(hierName));
+        if (foundKey) {
+            console.log('Found levels for hierName ' + hierName);
+            return this.presetLevels[foundKey];
         }
 
         return [];
@@ -1412,6 +1417,7 @@ RG.Factory.World = function() {
             let level = this.getFromPresetLevels(i, presetLevels);
 
             if (!level) {
+
                 if (!this.id2levelSet) {
                     level = this.factZone.createCityLevel(i, cityLevelConf);
                     this.addFixedFeatures(i, level, quarter);
@@ -1420,6 +1426,9 @@ RG.Factory.World = function() {
                     const id = conf.levels[i];
                     level = this.id2level[id];
                 }
+            }
+            else {
+                console.log(`cityQuarter ${hierName} ${i} from preset level`);
             }
 
             // Need to add the shops to the quarter
