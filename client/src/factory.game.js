@@ -6,6 +6,7 @@ RG.Factory = require('./factory');
 RG.Game = require('./game');
 RG.Element = require('./element');
 RG.Game.FromJSON = require('./game.fromjson');
+RG.Verify = require('./verify');
 
 const OW = require('./overworld.map');
 RG.getOverWorld = require('./overworld');
@@ -311,8 +312,10 @@ RG.Factory.Game = function() {
 
         player.setFOVRange(10);
         game.addPlayer(player); // Player already placed to level
+        RG.Verify.verifyStairsConnections(game, 'Factory.Game');
         return game;
     };
+
 
     this.createWorldWithCreator = function(obj, game, player) {
         const creator = new Creator();
