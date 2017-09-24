@@ -173,34 +173,6 @@ const RG = { // {{{2
         return this.charStyles.elements[baseType];
     },
 
-    getShortestPassablePath: function(map, x0, y0, x1, y1) {
-        const coords = [];
-        const passableCallback = (x, y) => map.isPassable(x, y);
-        const finder = new ROT.Path.AStar(x1, y1, passableCallback);
-        finder.compute(x0, y0, (x, y) => {
-            coords.push({x, y});
-        });
-        return coords;
-    },
-
-    /* Returns shortest path (array of x,y pairs) between two points. Does not
-    * check if any of the cells are passable. */
-    getShortestPath: function(x0, y0, x1, y1) {
-        const coords = [];
-        const passableCallback = () => true;
-        // const finder = new ROT.Path.Dijkstra(x1, y1, passableCallback);
-        const finder = new ROT.Path.AStar(x1, y1, passableCallback);
-        finder.compute(x0, y0, (x, y) => {
-            coords.push({x, y});
-        });
-        return coords;
-    },
-
-    /* Returns shortest distance (in cells) between two points.*/
-    shortestDist: function(x0, y0, x1, y1) {
-        const coords = this.getShortestPath(x0, y0, x1, y1);
-        return coords.length - 1; // Subtract one because starting cell included
-    },
 
     /* Adds a CSS class for given prop and type. For example, "actors", "wolf",
      * "cell-actor-wolf" uses CSS class .cell-actor-wolf to style cells with
