@@ -46,6 +46,7 @@ export default class Capital {
       const y1 = Math.floor(rows * subLevelPos[i + 1]);
       let levelRows = y1 - y0;
       let levelCols = Math.floor(widths[i] * cols);
+
       if (conf.transpose) {
         const x0 = Math.floor(cols * subLevelPos[i]);
         const x1 = Math.floor(cols * subLevelPos[i + 1]);
@@ -106,6 +107,10 @@ export default class Capital {
       }
     });
     RG.FACT.addToFreeCells(mainLevel, actors, RG.TYPE_ACTOR);
+
+    const items = [parser.createItem('Longsword')];
+    RG.FACT.addToFreeCells(mainLevel, items, RG.TYPE_ITEM);
+
     this.level = mainLevel;
   }
 
