@@ -923,9 +923,15 @@ RG.World.CityQuarter = function(name) {
     this.getLevels = () => (_levels);
 
     this.addLevel = function(level) {
-        level.setLevelNumber(_numCount++);
-        _levels.push(level);
-        level.setParent(this.getName());
+        if (!RG.isNullOrUndef([level])) {
+            level.setLevelNumber(_numCount++);
+            _levels.push(level);
+            level.setParent(this.getName());
+        }
+        else {
+            RG.err('CityQuarter', 'addLevel',
+                'Level is not defined.');
+        }
     };
 
     this.getStairsOther = function() {
