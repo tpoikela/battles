@@ -2,6 +2,7 @@
 const RG = require('./rg.js');
 const ROT = require('../../lib/rot.js');
 RG.Map = require('./map');
+RG.Path = require('./path');
 
 const TemplateLevel = require('./template.level');
 const Crypt = require('../data/tiles.crypt');
@@ -407,61 +408,14 @@ RG.Map.Generator = function() { // {{{2
 
             // Compute 2 paths: Shortest and shortest passable. Then calculate
             // weights. Choose one with lower weight.
-            const coordPassable = RG.getShortestPassablePath(map,
-                x0, yLow, x1, yHigh);
-            const coordShortest = RG.getShortestPath(x0, yLow, x1, yHigh);
-            const passableWeight = this.getPathWeight(map, coordPassable);
-            const shortestWeight = this.getPathWeight(map, coordShortest);
-
-            let coord = null;
-            if (coordPassable.length === 0) {
-                coord = coordShortest;
-            }
-            else {
-                coord = passableWeight >= shortestWeight ? coordShortest
-                    : coordPassable;
-            }
-
-            const chosenCoord = [];
-            for (let j = 0; j < coord.length; j++) {
-                const c = coord[j];
-                if (map.hasXY(c.x, c.y)) {
-                    const baseElem = map.getBaseElemXY(c.x, c.y);
-                    if (baseElem.getType() === 'chasm') {
-                        map.setBaseElemXY(c.x, c.y, RG.ELEM.BRIDGE);
-                    }
-                    else if (baseElem.getType() === 'stone') {
-                        // TODO add mountain path
-                        map.setBaseElemXY(c.x, c.y, RG.ELEM.ROAD);
-                    }
-                    else {
-                        map.setBaseElemXY(c.x, c.y, RG.ELEM.ROAD);
-                    }
-                    inBounds = true;
-                    chosenCoord.push(c);
-                }
-            }
+            const coord = RG.Path.getMinWeightPath(map, x0, yLow, x1, yHigh);
+            const chosenCoord = RG.Path.addPathToMap(map, coord);
+            if (chosenCoord.length > 0) {inBounds = true;}
             paths.push(chosenCoord);
         }
 
     };
 
-    this.getPathWeight = (map, coord) => {
-        let w = 0;
-        coord.forEach(c => {
-            if (map.hasXY(c.x, c.y)) {
-                const elem = map.getBaseElemXY(c.x, c.y);
-                switch (elem.getType()) {
-                    case 'floor': w += 1; break;
-                    case 'stone': w += 2; break;
-                    case 'highrock': w += 4; break;
-                    case 'chasm': w += 5; break;
-                    default: w += 0; break;
-                }
-            }
-        });
-        return w;
-    };
 
     /* Creates a single cave level. */
     this.createCave = (cols, rows, conf) => {
