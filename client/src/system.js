@@ -1,5 +1,6 @@
 
 const RG = require('./rg.js');
+RG.Path = require('./path');
 
 RG.SYS = {};
 RG.SYS.ANIMATION = Symbol();
@@ -915,7 +916,7 @@ RG.System.SpellCast = function(compTypes) {
         drainers.forEach(ent => {
             const drainX = ent.getX();
             const drainY = ent.getY();
-            const dist = RG.shortestDist(casterX, casterY, drainX, drainY);
+            const dist = RG.Path.shortestDist(casterX, casterY, drainX, drainY);
             if (dist <= ent.get('PowerDrain').drainDist) {
                 ent.remove('PowerDrain');
                 isDrained = true;
