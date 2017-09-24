@@ -1,15 +1,15 @@
 
+import Entity from './entity';
+
 const RG = require('./rg');
 RG.Factory = require('./factory');
 RG.Game = require('./game');
 RG.Element = require('./element');
-
-import Entity from './entity';
-
 RG.Game.FromJSON = require('./game.fromjson');
 
 const OW = require('./overworld.map');
 RG.getOverWorld = require('./overworld');
+
 const Creator = require('./world.creator');
 
 const RGObjects = require('../data/battles_objects.js');
@@ -253,8 +253,8 @@ RG.Factory.Game = function() {
             worldY: mult * 400,
             nLevelsX: mult * 8,
             nLevelsY: mult * 4,
-            areaX: mult * 8,
-            areaY: mult * 4
+            nTilesX: mult * 8,
+            nTilesY: mult * 4
         };
 
         const overworld = OW.createOverWorld(owConf);
@@ -341,8 +341,6 @@ RG.Factory.Game = function() {
         const world = fact.createWorld(worldConf);
         const levels = world.getLevels();
 
-        console.log('The world has ' + levels.length + ' levels now');
-
         let playerStart = {place: worldConf.name, x: 0, y: 0};
         if (worldConf.playerStart) {
             playerStart = worldConf.playerStart;
@@ -366,9 +364,10 @@ RG.Factory.Game = function() {
         if (conf.hasOwnProperty('presetLevels')) {
             const keys = Object.keys(conf.presetLevels);
             keys.forEach(name => {
-                console.log('processPresetLevels for ' + name);
                 this.presetLevels[name] =
                     this.createPresetLevels(conf.presetLevels[name]);
+                // Replace json with Map.Level
+                conf.presetLevels[name] = this.presetLevels[name];
             });
         }
     };
@@ -376,6 +375,11 @@ RG.Factory.Game = function() {
     this.createPresetLevels = arr => {
         const fromJSON = new RG.Game.FromJSON();
         return arr.map(item => {
+            // Return the item itself if it's already Map.Level
+            if (typeof item.level.getID === 'function') {
+                return item;
+            }
+
             const level = fromJSON.restoreLevel(item.level);
             // Need to reset level + actors IDs for this game
             if (level.getID() < RG.LEVEL_ID_ADD) {
