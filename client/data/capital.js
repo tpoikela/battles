@@ -2,6 +2,7 @@
 
 const RG = require('../src/rg');
 RG.Factory = require('../src/factory');
+RG.Path = require('../src/path');
 
 RG.ObjectShell = require('../src/objectshellparser');
 const Objects = require('../data/battles_objects');
@@ -73,6 +74,7 @@ export default class Capital {
 
     const mainLevel = RG.FACT.createLevel('wall', cols, rows, wallOpts);
     RG.Geometry.tileLevels(mainLevel, subLevels, tileConf);
+    const mainMap = mainLevel.getMap();
 
     // Add entrance stairs
     if (conf.transpose) {
@@ -81,6 +83,9 @@ export default class Capital {
         mainLevel.addStairs(stairsWest, 0, midY);
         const stairsEast = new RG.Element.Stairs(false, mainLevel);
         mainLevel.addStairs(stairsEast, cols - 1, midY);
+
+        const path = RG.Path.getMinWeightPath(mainMap, 0, midY, cols - 1, midY);
+        RG.Path.addPathToMap(mainMap, path);
     }
     else {
         const midX = Math.floor(cols / 2);
@@ -88,6 +93,10 @@ export default class Capital {
         mainLevel.addStairs(stairsNorth, midX, 0);
         const stairsSouth = new RG.Element.Stairs(false, mainLevel);
         mainLevel.addStairs(stairsSouth, midX, rows - 1);
+
+        const path = RG.Path.getMinWeightPath(mainMap, midX, 0, midX, rows - 1,
+            RG.Path.getShortestPassablePathWithDoors);
+        RG.Path.addPathToMap(mainMap, path);
     }
 
     // Create the actors for this level
