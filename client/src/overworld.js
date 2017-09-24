@@ -26,6 +26,7 @@ import Capital from '../data/capital';
 const RG = require('./rg');
 RG.Names = require('../data/name-gen');
 RG.LevelGen = require('../data/level-gen');
+RG.Path = require('./path');
 const OW = require('./overworld.map');
 
 const $DEBUG = false;
@@ -189,10 +190,10 @@ RG.OverWorld.SubLevel = function(level) {
  */
 const CoordMap = function() {
     // Size of the large overworld Map.Level
-    this.worldX = 0;
-    this.worldY = 0;
+    this.worldCols = 0;
+    this.worldRows = 0;
 
-    // Size of each AreaTile Map.Level
+    // Number of area tiles per x/y
     this.nTilesX = 0;
     this.nTilesY = 0;
 
@@ -200,7 +201,21 @@ const CoordMap = function() {
     this.xMap = 0;
     this.yMap = 0;
 
+    this.getAreaLevelCols = function() {
+        return this.worldCols / this.nTilesX;
+    };
+
+    this.getAreaLevelRows = function() {
+        return this.worldRows / this.nTilesY;
+    };
+
+    this.toOwLevelXY = function(subTileXY, subLevelXY) {
+        const x = subTileXY[0] * this.xMap + subLevelXY[0];
+        const y = subTileXY[1] * this.xMap + subLevelXY[1];
+        return [x, y];
+    };
 };
+RG.OverWorld.CoordMap = CoordMap;
 
 /* Factory function to construct the overworld. Generally you want to call this
  * method.
@@ -213,15 +228,14 @@ RG.OverWorld.createOverWorld = (conf = {}) => {
 
 RG.OverWorld.createOverWorldLevel = (overworld, conf) => {
     const coordMap = new CoordMap();
-    coordMap.worldX = conf.worldX || 400;
-    coordMap.worldY = conf.worldY || 400;
+    coordMap.worldCols = conf.worldX || 400;
+    coordMap.worldRows = conf.worldY || 400;
 
-    // This will most likely fail, unless values have been set explicitly
-    coordMap.nTilesX = conf.nTilesX || coordMap.worldX / 100;
-    coordMap.nTilesY = conf.nTilesY || coordMap.worldY / 100;
+    coordMap.nTilesX = conf.nTilesX || coordMap.worldCols / 100;
+    coordMap.nTilesY = conf.nTilesY || coordMap.worldRows / 100;
 
-    coordMap.xMap = Math.floor(coordMap.worldX / overworld.getSizeX());
-    coordMap.yMap = Math.floor(coordMap.worldY / overworld.getSizeY());
+    coordMap.xMap = Math.floor(coordMap.worldCols / overworld.getSizeX());
+    coordMap.yMap = Math.floor(coordMap.worldRows / overworld.getSizeY());
 
     const worldLevelAndConf = buildMapLevel(overworld, coordMap);
     return worldLevelAndConf;
@@ -230,15 +244,14 @@ RG.OverWorld.createOverWorldLevel = (overworld, conf) => {
 
 /* Creates the overworld level. Returns RG.Map.Level. */
 function buildMapLevel(ow, coordMap) {
-    const {worldX, worldY, xMap, yMap, nTilesX, nTilesY} = coordMap;
+    const {worldCols, worldRows, xMap, yMap, nTilesX, nTilesY} = coordMap;
 
-    const map = ow.getMap();
-    const sizeY = map[0].length;
-    const sizeX = map.length;
-    const owLevel = RG.FACT.createLevel(RG.LEVEL_EMPTY, worldX, worldY);
+    const sizeX = ow.getSizeX();
+    const sizeY = ow.getSizeY();
+    const owLevel = RG.FACT.createLevel(RG.LEVEL_EMPTY, worldCols, worldRows);
 
     const subLevels = [];
-    // Build the world level in smaller pieces, and then insert the
+    // Build the overworld level in smaller pieces, and then insert the
     // small levels into the large level.
     for (let x = 0; x < sizeX; x++) {
         subLevels[x] = [];
@@ -254,7 +267,7 @@ function buildMapLevel(ow, coordMap) {
     const conf = RG.OverWorld.createWorldConf(ow, subLevels, nTilesX, nTilesY);
 
     // Some global features (like roads) need to be added
-    addGlobalFeatures(ow, owLevel, conf);
+    addGlobalFeatures(ow, owLevel, conf, coordMap);
 
     return [owLevel, conf];
 }
@@ -779,25 +792,25 @@ function addCapitalConfToArea(feat, coordObj, areaConf) {
     const capitalConf = {
 
     };
-    const capitalLevel = new Capital(200, 600, capitalConf).getLevel();
+    const capitalLevel = new Capital(200, 500, capitalConf).getLevel();
 
     const cityConf = {
         name: 'Blashyrkh',
         nQuarters: 1,
-        quarter: [{name: 'Main area', nLevels: 1}]
+        quarter: [{name: 'Capital cave', nLevels: 1}]
     };
 
     cityConf.presetLevels = {
-        'Blashyrkh.Main area': [{nLevel: 0, level: capitalLevel}]
+        'Blashyrkh.Capital cave': [{nLevel: 0, level: capitalLevel}]
     };
 
     addLocationToZoneConf(feat, coordObj, cityConf);
     const mainConn = {
-        name: 'Main area',
+        name: 'Capital cave',
         levelX: cityConf.levelX,
         levelY: cityConf.levelY,
         nLevel: 0,
-        stairs: capitalLevel.getStairs()[0]
+        stairs: capitalLevel.getStairs()[1]
     };
 
     cityConf.connectToXY[0].stairs = capitalLevel.getStairs()[0];
@@ -942,14 +955,31 @@ function getSubBoxForAreaTile(x, y, xMap, yMap) {
 }
 
 /* Adds global features like roads to the overworld level map. */
-function addGlobalFeatures(ow, level, conf) {
+function addGlobalFeatures(ow, owLevel, conf, coordMap) {
 
     // Find player x,y on level
+    const playerX = coordMap.nTilesX / 2 * 100;
+    const playerY = coordMap.worldRows - 50;
+
     // Find capital x,y on level
-    const capLevel = ow.getSubLevelsWithFeature(OW.WCAPITAL)[0];
+    const subTileXY = ow.getFeaturesByType(OW.WCAPITAL)[0];
+    const capLevel = ow.getSubLevel(subTileXY);
     const capFeat = capLevel.getFeaturesByType('capital')[0];
-    const capXY = capFeat.getLastCoord();
+    const subLevelXY = capFeat.getLastCoord();
+    const owLevelXY = coordMap.toOwLevelXY(subTileXY, subLevelXY);
+
+    console.log(`World size: ${coordMap.worldCols}, ${coordMap.worldRows}`);
+    console.log(`Player x,y: ${playerX}, ${playerY}`);
+    console.log(`Capital x,y: ${owLevelXY}`);
+
     // Connect with road
+    const path = RG.Path.getMinWeightPath(owLevel.getMap(),
+        playerX, playerY, owLevelXY[0], owLevelXY[1]);
+    if (path.length === 0) {
+        RG.err('overworld.js', 'addGlobalFeatures',
+            'No path from player to capital.');
+    }
+    owLevel.getMap().setBaseElems(path.map(xy => [xy.x, xy.y]), RG.ELEM.ROAD);
 
 }
 
