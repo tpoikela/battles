@@ -1,8 +1,7 @@
 
-const RG = require('./rg.js');
-
 import Entity from './entity';
 
+const RG = require('./rg.js');
 RG.Component = require('./component.js');
 RG.Brain = require('./brain.js');
 RG.Brain.Player = require('./brain.player.js');
@@ -62,51 +61,51 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
         return this._brain.getMemory().isEnemy(actor);
     }
 
-    getBrain() {return this._brain;};
+    getBrain() {return this._brain;}
 
     setBrain(brain) {
         this._brain = brain;
         this._brain.setActor(this);
-    };
+    }
 
     //---------------------------------
     // Equipment related methods
     //---------------------------------
 
-    getInvEq() { return this._invEq; };
+    getInvEq() { return this._invEq; }
 
     /* Returns weapon that is wielded by the actor.*/
-    getWeapon() {return this._invEq.getWeapon();};
+    getWeapon() {return this._invEq.getWeapon();}
 
     /* Returns weapon that is wielded by the actor.*/
     getMissileWeapon() {
         return this._invEq.getMissileWeapon();
-    };
+    }
 
     /* Returns missile equipped by the player.*/
     getMissile() {
         return this._invEq.getEquipment().getItem('missile');
-    };
+    }
 
     getEquipAttack() {
         return this._invEq.getEquipment().getAttack();
-    };
+    }
 
     getEquipDefense() {
         return this._invEq.getEquipment().getDefense();
-    };
+    }
 
     getEquipProtection() {
         return this._invEq.getEquipment().getProtection();
-    };
+    }
 
     setActorClass(classObj) {
         this._actorClass = classObj;
-    };
+    }
 
     getActorClass() {
         return this._actorClass;
-    };
+    }
 
     setBook(book) {
         this._spellbook = book;
@@ -171,7 +170,8 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
 
         if (cb !== null) {
             const speed = this.getSpeed();
-            const duration = parseInt(RG.BASE_SPEED / speed * RG.ACTION_DUR, 10);
+            const duration = parseInt(
+                RG.BASE_SPEED / speed * RG.ACTION_DUR, 10);
             action = new RG.Time.RogueAction(duration, cb, {});
         }
         else {
@@ -285,7 +285,9 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
         let strength = this.getStrength();
         strength += this.getInvEq().getEquipment().getStrength();
         damage += RG.strengthToDamage(strength);
-        if (this.has('CombatMods')) {damage += this.get('CombatMods').getDamage();}
+        if (this.has('CombatMods')) {
+            damage += this.get('CombatMods').getDamage();
+        }
         return damage;
 
     }
@@ -318,7 +320,9 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
     getWillpower() {
         let wil = this.get('Stats').getWillpower();
         wil += this.getInvEq().getEquipment().getWillpower();
-        if (this.has('StatsMods')) {wil += this.get('StatsMods').getWillpower();}
+        if (this.has('StatsMods')) {
+            wil += this.get('StatsMods').getWillpower();
+        }
         return wil;
     }
 
@@ -332,7 +336,9 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
     getPerception() {
         let per = this.get('Stats').getPerception();
         per += this.getInvEq().getEquipment().getPerception();
-        if (this.has('StatsMods')) {per += this.get('StatsMods').getPerception();}
+        if (this.has('StatsMods')) {
+            per += this.get('StatsMods').getPerception();
+        }
         return per;
     }
 
@@ -357,7 +363,7 @@ class RGActorSpirit extends RGActorRogue {
         this.setBrain(new RG.Brain.Spirit(this));
     }
 
-};
+}
 
 RG.Actor.Spirit = RGActorSpirit;
 
