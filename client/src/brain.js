@@ -2,6 +2,7 @@
 const ROT = require('../../lib/rot.js');
 const RG = require('./rg.js');
 const BTree = require('./aisequence');
+RG.Path = require('./path');
 
 const Models = BTree.Models;
 
@@ -265,7 +266,7 @@ RG.Brain.Rogue = function(actor) {
         const actorX = _actor.getX();
         const actorY = _actor.getY();
         const attackRange = _actor.get('Combat').getAttackRange();
-        const getDist = RG.shortestDist(x, y, actorX, actorY);
+        const getDist = RG.Path.shortestDist(x, y, actorX, actorY);
         if (getDist <= attackRange) {return true;}
         return false;
     };
@@ -561,7 +562,7 @@ RG.Brain.Archer = function(actor) {
         const miss = _actor.getInvEq().getEquipment().getItem('missile');
         if (miss) {
             const range = RG.getMissileRange(_actor, miss);
-            const getDist = RG.shortestDist(x, y, actorX, actorY);
+            const getDist = RG.Path.shortestDist(x, y, actorX, actorY);
             if (getDist <= range) {return true;}
             // TODO test for a clean shot
         }
