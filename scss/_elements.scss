@@ -125,9 +125,9 @@ $door-bg-color: $floor-bg-color;
 }
 
 .cell-element-road {
-    // background-color: $floor-bg-color;
-    background-color: $white;
-    color: $brown;
+    background-color: $floor-bg-color;
+    //background-color: $white;
+    color: $red;
 }
 
 .cell-element-chasm {
