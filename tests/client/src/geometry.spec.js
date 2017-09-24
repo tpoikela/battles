@@ -51,12 +51,10 @@ describe('RG.Geometry', () => {
         path = RG.Geometry.getMissilePath(x, y, xEnd, yEnd);
 
         expect(path).to.have.length(7);
-        console.log(JSON.stringify(path));
 
         const [xx, yy] = [1, 7];
         const [xxEnd, yyEnd] = [8, 3];
         path = RG.Geometry.getMissilePath(xx, yy, xxEnd, yyEnd);
         expect(path).to.have.length(8 - 1 + 1);
-        console.log(JSON.stringify(path));
     });
 });
