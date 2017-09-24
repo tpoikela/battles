@@ -36,6 +36,10 @@ RG.OverWorld = {};
 const cityTypesRe = /(capital|city|fort|stronghold|village)/;
 const twoEntranceCityRe = /(fort|stronghold|capital)/;
 
+// Used for debugging only
+const playerTileX = 1;
+const playerTileY = 1;
+
 const getRandIn = RG.RAND.arrayGetRand.bind(RG.RAND);
 
 /* Wall object inside the Overworld. Wall here means a huge wall of mountains.
@@ -683,11 +687,13 @@ RG.OverWorld.createWorldConf = (ow, subLevels, nTilesX, nTilesY) => {
     // the map values, just throw error
     if (!Number.isInteger(xMap)) {
         RG.err('OverWorld', 'createWorldConf',
-            `xMap not int: ${xMap}, sub X :${nSubLevelsX}, nTilesX: ${nTilesX}`);
+            `xMap not int: ${xMap}, ` +
+            `sub X :${nSubLevelsX}, nTilesX: ${nTilesX}`);
     }
     if (!Number.isInteger(yMap)) {
         RG.err('OverWorld', 'createWorldConf',
-            `yMap not int: ${yMap}, sub Y :${nSubLevelsY}, nTilesY: ${nTilesY}`);
+            `yMap not int: ${yMap}, ` +
+            `sub Y :${nSubLevelsY}, nTilesY: ${nTilesY}`);
     }
 
     // Map values are OK, this loops through smaller overworld sublevels, which
@@ -899,7 +905,7 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
     Object.assign(dungeonConf,
         // TODO change after debugging is done
         // {x: aX, y: aY, levelX: featX, levelY: featY});
-        {x: midX, y: yPos, levelX: 1, levelY: 1});
+        {x: midX, y: yPos, levelX: playerTileX, levelY: playerTileY});
     dungeonConf.dungeonType = 'castle';
     dungeonConf.wallType = 'wallice';
     dungeonConf.tilesX = 20;
@@ -958,7 +964,7 @@ function getSubBoxForAreaTile(x, y, xMap, yMap) {
 function addGlobalFeatures(ow, owLevel, conf, coordMap) {
 
     // Find player x,y on level
-    const playerX = coordMap.nTilesX / 2 * 100;
+    const playerX = playerTileX * 100 + 50;
     const playerY = coordMap.worldRows - 50;
 
     // Find capital x,y on level
@@ -975,11 +981,13 @@ function addGlobalFeatures(ow, owLevel, conf, coordMap) {
     // Connect with road
     const path = RG.Path.getMinWeightPath(owLevel.getMap(),
         playerX, playerY, owLevelXY[0], owLevelXY[1]);
+
     if (path.length === 0) {
         RG.err('overworld.js', 'addGlobalFeatures',
             'No path from player to capital.');
     }
-    owLevel.getMap().setBaseElems(path.map(xy => [xy.x, xy.y]), RG.ELEM.ROAD);
+    RG.Path.addPathToMap(owLevel.getMap(), path);
+    // owLevel.getMap().setBaseElems(path.map(xy => [xy.x, xy.y]), RG.ELEM.ROAD);
 
 }
 
