@@ -54,6 +54,13 @@ describe('Map.Cell', () => {
         expect(cellWithFloor.hasProp('actors')).to.equal(true);
         expect(cellWithFloor.hasProp('items')).to.equal(false);
     });
+
+    it('can have doors', () => {
+        const cell = new Cell(0, 0, new Element('floor'));
+        const door = new RG.Element.Door();
+        cell.setProp(RG.TYPE_ELEM, door);
+        expect(cell.hasDoor(), 'Cell should have a door').to.be.true;
+    });
 });
 
 describe('RG.getStyleClassForCell()', () => {
