@@ -203,7 +203,7 @@ describe('Factory.World', function() {
             x: 0, y: 0,
             nQuarters: 1,
             presetLevels: {
-                'CapitalCity.MainQuarter': {nLevel: 0, level}
+                'CapitalCity.MainQuarter': [{nLevel: 0, level}]
             },
             quarter: [
                 {name: 'MainQuarter', nLevels: 1}
@@ -215,8 +215,13 @@ describe('Factory.World', function() {
                     stairs: stairs2}
             ]
         };
+        const areaLevel = RG.FACT.createLevel('empty', 100, 100, {});
+        const areaLevels = [[areaLevel]];
         const areaConf = {
             name: 'Area1x1', maxX: 1, maxY: 1, nCities: 1,
+            presetLevels: {
+                Area1x1: areaLevels
+            },
             city: [cityConf]
         };
         const fact = new RG.Factory.World();
@@ -227,6 +232,9 @@ describe('Factory.World', function() {
 
         const stairs = level.getStairs();
         stairs.forEach(s => {expect(s.isConnected()).to.be.true;});
+
+        const cityLevel = city.getLevels()[0];
+        expect(cityLevel.getID()).to.equal(level.getID());
 
     });
 
