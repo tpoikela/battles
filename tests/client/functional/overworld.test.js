@@ -25,11 +25,13 @@ describe('How Game is created from Overworld', function() {
         const places = game.getPlaces();
         expect(Object.keys(places)).to.have.length(1);
 
-
         const levels = game.getLevels();
         levels.forEach(level => {
-            expect(level.getActors()).to.have.length.above(0);
-            expect(level.getItems()).to.have.length.above(0);
+            const msg = level.getParent() + ' ' + level.getID();
+            expect(level.getActors(),
+                `${msg} > 0 actors`).to.have.length.above(0);
+            expect(level.getItems(),
+                `${msg} > 0 items`).to.have.length.above(0);
         });
     });
 });
