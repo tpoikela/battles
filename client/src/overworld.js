@@ -113,6 +113,13 @@ RG.OverWorld.SubFeature = function(type, coord) {
             'coord must be an array.');
     }
 
+    this.getLastCoord = function() {
+        if (this.coord.length > 0) {
+            return this.coord[this.coord.length - 1];
+        }
+        return [];
+    };
+
 };
 
 /* Data struct which is tied to 'RG.Map.Level'. Contains more high-level
@@ -169,6 +176,30 @@ RG.OverWorld.SubLevel = function(level) {
         });
     };
 
+    this.getFeaturesByType = function(type) {
+        if (this._features.hasOwnProperty(type)) {
+            return this._features[type];
+        }
+        return [];
+    };
+
+};
+
+/* Object to translate coordinates between different maps and levels.
+ */
+const CoordMap = function() {
+    // Size of the large overworld Map.Level
+    this.worldX = 0;
+    this.worldY = 0;
+
+    // Size of each AreaTile Map.Level
+    this.nTilesX = 0;
+    this.nTilesY = 0;
+
+    // How many cols/rows one overworld square is in overworld Map.Level
+    this.xMap = 0;
+    this.yMap = 0;
+
 };
 
 /* Factory function to construct the overworld. Generally you want to call this
@@ -181,30 +212,30 @@ RG.OverWorld.createOverWorld = (conf = {}) => {
 };
 
 RG.OverWorld.createOverWorldLevel = (overworld, conf) => {
-    const worldX = conf.worldX || 400;
-    const worldY = conf.worldY || 400;
+    const coordMap = new CoordMap();
+    coordMap.worldX = conf.worldX || 400;
+    coordMap.worldY = conf.worldY || 400;
 
     // This will most likely fail, unless values have been set explicitly
-    const nTilesX = conf.nTilesX || worldX / 100;
-    const nTilesY = conf.nTilesY || worldY / 100;
+    coordMap.nTilesX = conf.nTilesX || coordMap.worldX / 100;
+    coordMap.nTilesY = conf.nTilesY || coordMap.worldY / 100;
 
-    const xMap = Math.floor(worldX / overworld.getSizeX());
-    const yMap = Math.floor(worldY / overworld.getSizeY());
+    coordMap.xMap = Math.floor(coordMap.worldX / overworld.getSizeX());
+    coordMap.yMap = Math.floor(coordMap.worldY / overworld.getSizeY());
 
-    const worldLevelAndConf = buildMapLevel(
-        overworld, worldX, worldY, xMap, yMap, nTilesX, nTilesY);
-
+    const worldLevelAndConf = buildMapLevel(overworld, coordMap);
     return worldLevelAndConf;
-
 };
 
 
 /* Creates the overworld level. Returns RG.Map.Level. */
-function buildMapLevel(ow, worldX, worldY, xMap, yMap, nTilesX, nTilesY) {
+function buildMapLevel(ow, coordMap) {
+    const {worldX, worldY, xMap, yMap, nTilesX, nTilesY} = coordMap;
+
     const map = ow.getMap();
     const sizeY = map[0].length;
     const sizeX = map.length;
-    const level = RG.FACT.createLevel(RG.LEVEL_EMPTY, worldX, worldY);
+    const owLevel = RG.FACT.createLevel(RG.LEVEL_EMPTY, worldX, worldY);
 
     const subLevels = [];
     // Build the world level in smaller pieces, and then insert the
@@ -216,16 +247,16 @@ function buildMapLevel(ow, worldX, worldY, xMap, yMap, nTilesX, nTilesY) {
             const x0 = x * xMap;
             const y0 = y * yMap;
             subLevels[x][y] = subLevel;
-            RG.Geometry.insertSubLevel(level, subLevel, x0, y0);
+            RG.Geometry.insertSubLevel(owLevel, subLevel, x0, y0);
         }
     }
 
     const conf = RG.OverWorld.createWorldConf(ow, subLevels, nTilesX, nTilesY);
 
     // Some global features (like roads) need to be added
-    addGlobalFeatures(ow, level, conf);
+    addGlobalFeatures(ow, owLevel, conf);
 
-    return [level, conf];
+    return [owLevel, conf];
 }
 
 /* Returns a subLevel created based on the tile type. */
@@ -910,10 +941,14 @@ function getSubBoxForAreaTile(x, y, xMap, yMap) {
     return [lx, ly, rx, ry];
 }
 
+/* Adds global features like roads to the overworld level map. */
 function addGlobalFeatures(ow, level, conf) {
 
     // Find player x,y on level
     // Find capital x,y on level
+    const capLevel = ow.getSubLevelsWithFeature(OW.WCAPITAL)[0];
+    const capFeat = capLevel.getFeaturesByType('capital')[0];
+    const capXY = capFeat.getLastCoord();
     // Connect with road
 
 }
