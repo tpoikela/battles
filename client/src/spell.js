@@ -254,7 +254,6 @@ RG.Spell.FrostBolt = function() {
                 spellCast.setSpell(this);
                 spellCast.setArgs(args);
                 actor.add('SpellCast', spellCast);
-                console.log('Added SpellCast comp');
             };
         }
         return null;
@@ -489,7 +488,6 @@ RG.Spell.Blizzard = function() {
     };
 
     this.getSelectionObject = function(actor) {
-        console.log('Blizzard getSelectionObject');
         return RG.Spell.getSelectionObjectSelf(this, actor);
     };
 };
