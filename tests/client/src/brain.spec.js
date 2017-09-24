@@ -294,7 +294,7 @@ describe('RG.Brain.Rogue', () => {
         arena.addActor(player, 1, 1);
         player.setIsPlayer(true);
 
-        let currDist = RG.shortestDist(rogueX, rogueY, 1, 1);
+        let currDist = RG.Path.shortestDist(rogueX, rogueY, 1, 1);
         let prevDist = currDist;
         for (let i = 3; i < 9; i++) {
             const action = rogue.nextAction();
@@ -302,7 +302,7 @@ describe('RG.Brain.Rogue', () => {
             movSys.update();
             const rogueX = rogue.getX();
             const rogueY = rogue.getY();
-            currDist = RG.shortestDist(rogueX, rogueY, 1, 1);
+            currDist = RG.Path.shortestDist(rogueX, rogueY, 1, 1);
             expect(currDist).to.be.above(prevDist);
             prevDist = currDist;
         }
