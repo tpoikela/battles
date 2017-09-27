@@ -56,6 +56,8 @@ class Adventurer extends ActorClassBase {
 
     constructor(actor) {
         super(actor, 'Adventurer');
+        this._messages = {};
+        this._advances = {};
     }
 
     /* Called when a level is advanced by the actor. Checks for messages, and if
