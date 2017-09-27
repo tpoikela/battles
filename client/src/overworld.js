@@ -218,6 +218,7 @@ const CoordMap = function() {
         const y = subTileXY[1] * this.xMap + subLevelXY[1];
         return [x, y];
     };
+
 };
 RG.OverWorld.CoordMap = CoordMap;
 
@@ -576,7 +577,7 @@ function addTowerToSubLevel(feat, owSubLevel, subLevel) {
 function getAlignment(feat) {
     switch (feat) {
         case OW.BCAPITAL: // fallthrough
-        case OW.BTOWER:  // fallthrough
+        case OW.BTOWER: // fallthrough
         case OW.BVILLAGE: return RG.ALIGN_EVIL;
         case OW.WCAPITAL: // fallthrough
         case OW.WTOWER: // fallthrough
@@ -962,17 +963,18 @@ function getSubBoxForAreaTile(x, y, xMap, yMap) {
 
 /* Adds global features like roads to the overworld level map. */
 function addGlobalFeatures(ow, owLevel, conf, coordMap) {
+    console.log('Starting to add global features');
 
     // Find player x,y on level
     const playerX = playerTileX * 100 + 50;
     const playerY = coordMap.worldRows - 50;
 
     // Find capital x,y on level
-    const subTileXY = ow.getFeaturesByType(OW.WCAPITAL)[0];
-    const capLevel = ow.getSubLevel(subTileXY);
+    const capSubTileXY = ow.getFeaturesByType(OW.WCAPITAL)[0];
+    const capLevel = ow.getSubLevel(capSubTileXY);
     const capFeat = capLevel.getFeaturesByType('capital')[0];
     const subLevelXY = capFeat.getLastCoord();
-    const owLevelXY = coordMap.toOwLevelXY(subTileXY, subLevelXY);
+    const owLevelXY = coordMap.toOwLevelXY(capSubTileXY, subLevelXY);
 
     console.log(`World size: ${coordMap.worldCols}, ${coordMap.worldRows}`);
     console.log(`Player x,y: ${playerX}, ${playerY}`);
@@ -987,7 +989,23 @@ function addGlobalFeatures(ow, owLevel, conf, coordMap) {
             'No path from player to capital.');
     }
     RG.Path.addPathToMap(owLevel.getMap(), path);
-    // owLevel.getMap().setBaseElems(path.map(xy => [xy.x, xy.y]), RG.ELEM.ROAD);
+
+    // Create road from capital north to wtower south
+    const capExitXY = capFeat.coord[0];
+    const owLevelCapExitXY = coordMap.toOwLevelXY(capSubTileXY, capExitXY);
+    const wTowerSubTileXY = ow.getFeaturesByType(OW.WTOWER)[0];
+    const wTowerLevel = ow.getSubLevel(wTowerSubTileXY);
+    const wTowerFeat = wTowerLevel.getFeaturesByType('fort')[0];
+    const wTowerSubLevelXY = wTowerFeat.getLastCoord();
+    const wTowerLevelXY = coordMap.toOwLevelXY(wTowerSubTileXY,
+        wTowerSubLevelXY);
+
+    const pathCapWTower = RG.Path.getMinWeightPath(owLevel.getMap(),
+        owLevelCapExitXY[0], owLevelCapExitXY[1],
+        wTowerLevelXY[0], wTowerLevelXY[1]);
+    RG.Path.addPathToMap(owLevel.getMap(), pathCapWTower);
+
+    console.log('Finished adding global features');
 
 }
 
