@@ -19,9 +19,6 @@ Path.getShortestPassablePathWithDoors = function(map, x0, y0, x1, y1) {
     const coords = [];
     const passableCbDoor = (x, y) => {
         if (map.hasXY(x, y)) {
-            if (map.getCell(x, y).hasDoor()) {
-                console.log('Found door at ' + x + ',' + y);
-            }
             return map.isPassable(x, y) || map.getCell(x, y).hasDoor();
         }
         return false;
@@ -30,7 +27,6 @@ Path.getShortestPassablePathWithDoors = function(map, x0, y0, x1, y1) {
     finder.compute(x0, y0, (x, y) => {
         coords.push({x, y});
     });
-    console.log('Path with doors length: ' + coords.length);
     return coords;
 };
 
