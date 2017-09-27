@@ -433,7 +433,7 @@ RG.Factory.Game = function() {
         level.addItem(curePoison, 3, 2);
 
         const rifle = _parser.createActualObj('items', 'Rifle');
-        const ammo = _parser.createActualObj('items', 'Rifle bullet');
+        const ammo = _parser.createActualObj('items', 'Steel bullet');
         ammo.setCount(100);
         level.addItem(rifle, 1, 1);
         level.addItem(ammo, 1, 1);
@@ -496,6 +496,13 @@ RG.Factory.Game = function() {
         player.get('SpellPower').setPP(100);
         player.get('SpellPower').setMaxPP(100);
         game.addPlayer(player);
+
+        const eq = player.getInvEq().getEquipment();
+        eq.addSlot('spiritgem', new RG.Inv.EquipSlot(eq, 'spiritgem'));
+        const gem1 = _parser.createItem('Lesser spirit gem');
+        const gem2 = _parser.createItem('Greater spirit gem');
+        player.getInvEq().addItem(gem1);
+        player.getInvEq().addItem(gem2);
         return game;
     };
 
