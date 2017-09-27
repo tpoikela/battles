@@ -641,6 +641,18 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
 
     this.getTiles = () => _tiles;
 
+    /* Returns tile X,Y which has the level with given ID. */
+    this.findTileXYById = id => {
+        for (let x = 0; x < _tiles.length; x++) {
+            for (let y = 0; y < _tiles[x].length; y++) {
+                if (_tiles[x][y].getLevel().getID() === id) {
+                    return [x, y];
+                }
+            }
+        }
+        return null;
+    };
+
     this.getTileXY = function(x, y) {
         if (x >= 0 && x < this.getMaxX() && y >= 0 && y < this.getMaxY()) {
             return _tiles[x][y];
