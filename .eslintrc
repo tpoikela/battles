@@ -23,10 +23,14 @@
       "node_modules",
       "\\.json$"
     ],
-    "import/extensions": [
-      ".js",
-      ".jsx"
-    ]
+    "import/resolver": {
+      "node": {
+        "extensions": [
+          ".js",
+          ".jsx"
+        ]
+      }
+    }
   },
   "globals": {
     "Promise": true,
