@@ -1,9 +1,9 @@
 
-import React, {Component} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import GameEquipSlot from './game-equip-slot';
 
-/** Component which shows the equipment of the player.*/
+/* Component which shows the equipment of the player.*/
 const GameEquipment = (props) => {
   const eq = props.eq;
   const slots = eq.getSlotTypes();
@@ -55,7 +55,7 @@ const GameEquipment = (props) => {
       {equipped}
     </div>
   );
-}
+};
 
 GameEquipment.propTypes = {
   eq: PropTypes.object,
