@@ -542,6 +542,12 @@ const Items = [
         attack: 1, damage: '1d8', value: value('steel', 25)
     },
     {
+        name: 'Stone bullet', base: 'MissileBase',
+        type: 'ammo', range: 1, weight: 0.10, ammoType: 'rifle',
+        attack: -1, damage: '2d4', value: value(30)
+
+    },
+    {
         name: 'Runed arrow', base: 'MissileBase',
         type: 'ammo', range: 1, weight: 0.2, ammoType: 'bow',
         attack: 4, damage: '2d7', value: value('magic', 50)
