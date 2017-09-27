@@ -2,6 +2,18 @@
 
 import React, {Component} from 'react';
 
+// Subcomponents for the GUI
+import GameStats from './game-stats';
+import GameStartScreen from './game-start-screen';
+import GamePanel from './game-panel';
+import GameMenu from './game-menu';
+import GameMessages from './game-messages';
+import GameOverWorldMap from './game-overworld-map';
+import GameHelpScreen from './game-help-screen';
+import GameBoard from './game-board';
+import GameInventory from './game-inventory';
+import GameEditor from '../editor/game-editor';
+
 const ROT = require('../../lib/rot');
 const RG = require('../src/rg.js');
 RG.Game = require('../src/game.js');
@@ -9,22 +21,9 @@ RG.Game = require('../src/game.js');
 const md5 = require('js-md5');
 const $ = require('jquery');
 
-// Subcomponents for the GUI
-import GameStats from './game-stats';
-import GameStartScreen from './game-start-screen';
-import GamePanel from './game-panel';
-import GameMenu from './game-menu';
-import GameMessages from './game-messages';
-import GameOverWorldMap from'./game-overworld-map';
-import GameHelpScreen from './game-help-screen';
-import GameBoard from './game-board';
-import GameInventory from './game-inventory';
-import GameEditor from '../editor/game-editor';
-
 const Screen = require('../gui/screen');
 const Persist = require('../src/persist');
 const worldConf = require('../data/conf.world');
-
 
 /* Contains logic that is not tightly coupled to the GUI.*/
 class TopLogic {
@@ -85,7 +84,7 @@ const ProxyListener = function(cbNotify) {
 };
 
 /* Top-level Component for the Battles GUI.*/
-class BattlesTop extends React.Component {
+class BattlesTop extends Component {
 
     constructor(props) {
         super(props);
@@ -118,7 +117,7 @@ class BattlesTop extends React.Component {
             levelSize: 'Medium',
             monstType: 'Medium',
             lootType: 'Medium',
-            playerClass: 'Blademaster',
+            playerClass: 'Adventurer',
 
             sqrPerActor: 120,
             sqrPerItem: 120,
@@ -535,6 +534,7 @@ class BattlesTop extends React.Component {
         let rowClass = '';
         let overworld = null;
         let showGameMenu = false;
+        let playerOwPos = null;
 
         let gameValid = false;
         if (this.game) {
@@ -569,6 +569,9 @@ class BattlesTop extends React.Component {
             gameValid = true;
 
             showGameMenu = this.game.isMenuShown();
+            if (overworld) {
+                playerOwPos = this.getPlayerOwPos(overworld);
+            }
         }
 
         const settings = {
@@ -610,7 +613,10 @@ class BattlesTop extends React.Component {
 
                 <GameHelpScreen />
 
-                <GameOverWorldMap ow={overworld} />
+                <GameOverWorldMap
+                    ow={overworld}
+                    playerOwPos={playerOwPos}
+                />
 
                 {gameValid && !this.state.showEditor &&
                 <GameInventory
@@ -1012,6 +1018,26 @@ class BattlesTop extends React.Component {
 
         this.getNextTargetCell = this.getNextTargetCell.bind(this);
 
+    }
+
+    /* Returns the player tile position in overworld. */
+    getPlayerOwPos(overworld) {
+        const player = this.game.getPlayer();
+        const world = Object.values(this.game.getPlaces())[0];
+        const area = world.getAreas()[0];
+        const xy = area.findTileXYById(player.getLevel().getID());
+
+        if (!xy) {return null;}
+
+        const [nTilesX, nTilesY] = [overworld.getSizeX(), overworld.getSizeY()];
+
+        const xMap = 800 / nTilesX;
+        const yMap = 400 / nTilesY;
+
+        const coordX = xy[0] * 100 + player.getX();
+        const coordY = xy[1] * 100 + player.getY();
+
+        return [Math.ceil(coordX / xMap), Math.ceil(coordY / yMap)];
     }
 
 }
