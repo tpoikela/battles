@@ -10,6 +10,15 @@ export default class GameOverWorldMap extends Component {
     if (nextProps.ow !== this.props.ow) {
       return true;
     }
+
+    if (this.props.playerOwPos) {
+      if (nextProps.playerOwPos[0] !== this.props.playerOwPos[0]) {
+        return true;
+      }
+      if (nextProps.playerOwPos[1] !== this.props.playerOwPos[1]) {
+        return true;
+      }
+    }
     return false;
   }
 
@@ -17,7 +26,16 @@ export default class GameOverWorldMap extends Component {
     let mapStr = 'No map generated.';
 
     if (this.props.ow) {
-      mapStr = this.props.ow.mapToString().join('\n');
+      const map = this.props.ow.mapToString().slice();
+
+      // Add player @ to the correct row
+      if (this.props.playerOwPos) {
+        const [x, y] = this.props.playerOwPos;
+        let line = map[y];
+        line = line.substr(0, x - 1) + '@' + line.substr(x + 1);
+        map[y] = line;
+      }
+      mapStr = map.join('\n');
     }
     else {
       console.log('this.props.ow is null.');
@@ -70,6 +88,7 @@ export default class GameOverWorldMap extends Component {
 }
 
 GameOverWorldMap.propTypes = {
-  ow: PropTypes.object
+  ow: PropTypes.object,
+  playerOwPos: PropTypes.array
 };
 
