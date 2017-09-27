@@ -272,10 +272,10 @@ RG.Map.CellList = function(cols, rows) { // {{{2
             'Map.CellList(rows, cols) expects 2 integers.');
     }
 
+    // Initialize cells with floor
     for (let x = 0; x < this.cols; x++) {
         this._map.push([]);
         for (let y = 0; y < this.rows; y++) {
-            // const elem = new RG.Element.Base('floor');
             const elem = RG.ELEM.FLOOR;
             this._map[x].push(new RG.Map.Cell(x, y, elem));
         }
