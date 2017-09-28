@@ -462,6 +462,13 @@ RG.Map.Generator = function() { // {{{2
         level.use(Castle);
         level.setTemplates(Castle.Models.full);
 
+        if (conf.nGates === 2) {
+          level.setStartRoomFunc(Castle.startFuncTwoGates);
+        }
+        else if (conf.startRoomFunc) {
+          level.setStartRoomFunc(conf.startRoomFunc);
+        }
+
         const genParams = conf.genParams || [1, 1, 1, 1];
         const roomCount = conf.roomCount || 40;
         level.setGenParams(genParams);
@@ -486,6 +493,9 @@ RG.Map.Generator = function() { // {{{2
         level.setFiller(Castle.tiles.fillerFloor);
         if (conf.nGates === 2) {
           level.setStartRoomFunc(Castle.startFuncTwoGates);
+        }
+        else if (conf.startRoomFunc) {
+          level.setStartRoomFunc(conf.startRoomFunc);
         }
         level.create();
 
