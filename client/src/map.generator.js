@@ -484,7 +484,7 @@ RG.Map.Generator = function() { // {{{2
         return mapObj;
     };
 
-    this.createTownWithWall = function(cols, rows, conf = {}) {
+    this.createCastleWall = function(cols, rows, conf = {}) {
         const tilesX = Math.ceil(cols / 7);
         const tilesY = Math.ceil(rows / 7);
         const level = new TemplateLevel(tilesX, tilesY);
@@ -505,6 +505,13 @@ RG.Map.Generator = function() { // {{{2
         };
         const castleMapObj = this.createMapFromAsciiMap(level.map, asciiToElem);
         castleMapObj.tiles = level.xyToBbox;
+        return castleMapObj;
+    };
+
+    this.createTownWithWall = function(cols, rows, conf = {}) {
+        const tilesX = Math.ceil(cols / 7);
+        const tilesY = Math.ceil(rows / 7);
+        const castleMapObj = this.createCastleWall(cols, rows, conf);
 
         conf.levelType = 'empty' || conf.levelType;
         const colsTown = (tilesX - 2) * 7;
