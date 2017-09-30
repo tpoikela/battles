@@ -16,7 +16,6 @@ describe('How items are typed, physical entities', () => {
         });
     });
 
-
     it('Has weight and size', () => {
         const item = new Item('TestItem');
         expect(item.has('Physical')).to.equal(true);
@@ -42,6 +41,22 @@ describe('How items are typed, physical entities', () => {
         const arrow1 = new RG.Item.Missile('Arrow');
         const arrow2 = new RG.Item.Missile('Steel arrow');
         expect(arrow1.equals(arrow2)).to.be.false;
+    });
+
+    it('can be cloned with components', () => {
+        const item = new RG.Item.Base('some item');
+        const stats = new RG.Component.Stats();
+        stats.setAccuracy(10);
+        item.add(stats);
+        const statsMods = new RG.Component.StatsMods();
+        item.add(statsMods);
+
+        const itemClone = item.clone();
+        expect(itemClone.has('Stats')).to.equal(true);
+        expect(itemClone.has('StatsMods')).to.equal(true);
+
+        expect(itemClone.get('Stats').getAccuracy()).to.equal(10);
+
     });
 });
 

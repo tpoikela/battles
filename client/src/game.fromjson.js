@@ -148,8 +148,13 @@ RG.Game.FromJSON = function() {
             else if (func === 'components') {
                 this.addCompsToEntity(newObj, obj.components);
             }
-            else {
+            else if (typeof newObj[func] === 'function') {
                 newObj[func](item[func]); // Use setter
+            }
+            else {
+                const json = JSON.stringify(newObj);
+                RG.err('Game.FromJSON', 'createItem',
+                  `${func} not func in ${json}`);
             }
         }
         return newObj;

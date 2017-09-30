@@ -1,11 +1,11 @@
 
+import Entity from './entity';
 
 const RG = require('./rg.js');
 RG.Component = require('./component.js');
 
 const Mixin = require('./mixin');
 
-import Entity from './entity';
 
 // Constants for different item types
 RG.ITEM_ITEM = 'item';
@@ -41,19 +41,19 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
     }
 
 
-    setName(name) {this._name = name;};
+    setName(name) {this._name = name;}
     getName() {return this._name;}
 
     setWeight(weight) {
         this.get('Physical').setWeight(weight);
-    };
+    }
 
-    getWeight() {return this.get('Physical').getWeight();};
+    getWeight() {return this.get('Physical').getWeight();}
 
-    setValue(value) {this._value = value;};
+    setValue(value) {this._value = value;}
     getValue() {return this._value;}
 
-    setCount(count) {this.count = count;};
+    setCount(count) {this.count = count;}
 
     /* Used when showing the item in inventory lists etc. */
     toString() {
@@ -64,26 +64,31 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
             txt = this.count + ' x ' + txt;
         }
         return txt;
-    };
+    }
 
     copy(rhs) {
         this.setName(rhs.getName());
         this.setType(rhs.getType());
         this.setWeight(rhs.getWeight());
         this.setValue(rhs.getValue());
-    };
+
+        const comps = Object.values(rhs.getComponents());
+        comps.forEach(comp => {
+            this.add(comp.clone());
+        });
+    }
 
     clone() {
         const newItem = new RG.Item.Base(this.getName());
         newItem.copy(this);
         return newItem;
-    };
+    }
 
     equals(item) {
         let res = this.getName() === item.getName();
         res = res && (this.getType() === item.getType());
         return res;
-    };
+    }
 
     toJSON() {
         const json = {
@@ -102,7 +107,7 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
         });
         json.components = components;
         return json;
-    };
+    }
 
 }
 RG.Item.Base = ItemBase;
@@ -119,7 +124,7 @@ class RGItemFood extends ItemBase {
     }
 
     setEnergy(energy) {this._energy = energy;}
-    getEnergy() {return this._energy}
+    getEnergy() {return this._energy;}
 
     /* Uses (eats) the food item.*/
     useItem(obj) {
@@ -271,7 +276,7 @@ RG.Item.MissileWeapon = RGItemMissileWeapon;
 class RGItemAmmo extends RGItemWeapon {
     constructor(name) {
         super(name);
-        this.setType(RG.ITEM_MISSILE);
+        this.setType(RG.ITEM_AMMUNITION);
         this.add('Ammo', new RG.Component.Ammo());
         this._ammoType = '';
     }
@@ -683,7 +688,7 @@ class RGItemGoldCoin extends RGItemGold {
 		this._purity = 1.0;
 		this.setWeight(0.03);
 	}
-};
+}
 RG.Item.GoldCoin = RGItemGoldCoin;
 
 //-------------------------------------------

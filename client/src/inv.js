@@ -4,69 +4,71 @@ RG.Item = require('./item.js');
 
 RG.Inv = {};
 
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------
 // EQUIPMENT AND INVENTORY
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------
 
 /* Models one slot in the inventory. */
 RG.Inv.EquipSlot = function(eq, type, stacked) {
 
-    let _item = null;
-    let _hasItem = false;
-    let _unequipped = null;
-    let _stacked = false;
+    this._type = type;
+    this._item = null;
+    this._hasItem = false;
+    this._unequipped = null;
+    this._stacked = false;
 
-    if (!RG.isNullOrUndef([stacked])) {_stacked = stacked;}
+    if (!RG.isNullOrUndef([stacked])) {this._stacked = stacked;}
 
-    this.isStacked = () => _stacked;
+    this.isStacked = () => this._stacked;
 
-    this.getUnequipped = () => _unequipped;
+    this.getUnequipped = () => this._unequipped;
 
     /* Returns the equipped item for this slot.*/
     this.getItem = () => {
-        if (_hasItem) {return _item;}
+        if (this._hasItem) {return this._item;}
         return null;
     };
 
     /* Equips given item to first available place in slot.*/
     this.equipItem = function(item) {
         if (this.canEquip(item)) {
-            if (!_stacked || !_hasItem) {
+            if (!this._stacked || !this._hasItem) {
                 item.setOwner(this);
-                _item = item;
-                _hasItem = true;
+                this._item = item;
+                this._hasItem = true;
             }
-            else if (RG.addStackedItems(_item, item)) {
-                _hasItem = true;
+            else if (RG.addStackedItems(this._item, item)) {
+                this._hasItem = true;
             }
-            return _hasItem;
+            return this._hasItem;
         }
         return false;
     };
 
     /* Unequips N items from the slot. */
     this.unequipItem = n => {
-        if (_hasItem) {
-            if (!_stacked) {
-                _hasItem = false;
-                _unequipped = _item;
+        if (this._hasItem) {
+            if (!this._stacked) {
+                this._hasItem = false;
+                this._unequipped = this._item;
                 return true;
             }
             else if (n > 0) {
-                    _unequipped = RG.removeStackedItems(_item, n);
-                    if (_item.count === 0) {_hasItem = false;}
-                    return true;
-                }
+                this._unequipped = RG.removeStackedItems(this._item, n);
+                if (this._item.count === 0) {this._hasItem = false;}
+                return true;
+            }
         }
         return false;
     };
 
     this.canEquip = item => {
-        if (!_hasItem) {
+        if (!this._hasItem) {
             return true;
         }
-        else if (_stacked) { // Can only equip same items to the stack
-            return item.equals(_item);
+        else if (this._stacked) {
+            // Can only equip same items to the stack
+            return item.equals(this._item);
         }
         return false;
     };
@@ -76,9 +78,9 @@ RG.Inv.EquipSlot = function(eq, type, stacked) {
 /* Models equipment on an actor.*/
 RG.Inv.Equipment = function(actor) {
 
-    const _equipped = [];
+    this._equipped = [];
 
-    const _slots = {
+    this._slots = {
         hand: new RG.Inv.EquipSlot(this, 'hand'),
         shield: new RG.Inv.EquipSlot(this, 'shield'),
         head: new RG.Inv.EquipSlot(this, 'head'),
@@ -90,13 +92,29 @@ RG.Inv.Equipment = function(actor) {
         spiritgem: new RG.Inv.EquipSlot(this, 'spiritgem')
     };
 
-    const _hasSlot = slotType => _slots.hasOwnProperty(slotType);
+    this.addSlot = function(slotType, slotObj) {
+        if (this._hasSlot(slotType)) {
+            if (Array.isArray(this._slots[slotType])) {
+                this._slots[slotType].push(slotObj);
+            }
+            else {
+                const slotArr = [this._slots[slotType]];
+                slotArr.push(slotObj);
+                this._slots[slotType] = slotArr;
+            }
+        }
+        else {
+            this._slots[slotType] = slotObj;
+        }
+    };
+
+    this._hasSlot = slotType => this._slots.hasOwnProperty(slotType);
 
     /* Returns the total weight of the equipment. */
     this.getWeight = () => {
         let total = 0;
-        for (let i = 0; i < _equipped.length; i++) {
-            total += _equipped[i].getWeight() * _equipped[i].count;
+        for (let i = 0; i < this._equipped.length; i++) {
+            total += this._equipped[i].getWeight() * this._equipped[i].count;
         }
         if (actor.has('MasterEquipper')) {
             total *= actor.get('MasterEquipper').getFactor();
@@ -104,14 +122,39 @@ RG.Inv.Equipment = function(actor) {
         return total;
     };
 
-    this.getSlotTypes = () => Object.keys(_slots);
+    /* Returns the number of slots for given type. */
+    this.getNumSlots = function(slotType) {
+        if (this._hasSlot(slotType)) {
+            if (Array.isArray(this._slots[slotType])) {
+                return this._slots[slotType].length;
+            }
+            return 1;
+        }
+        return 0;
+    };
 
-    this.getItems = () => _equipped;
+    this.getSlotTypes = () => Object.keys(this._slots);
+
+    this.getItems = (slotType) => {
+        if (this._hasSlot(slotType)) {
+            if (Array.isArray(this._slots[slotType])) {
+                return this._slots[slotType];
+            }
+            return [this._slots[slotType]];
+        }
+        return this._equipped;
+    };
 
     /* Returns last unequipped item for the slot.*/
-    this.getUnequipped = slotType => {
-        if (_hasSlot(slotType)) {
-            return _slots[slotType].getUnequipped();
+    this.getUnequipped = (slotType, index) => {
+        if (this._hasSlot(slotType)) {
+            const slot = this._slots[slotType];
+            if (Array.isArray(slot)) {
+                return slot[index].getUnequipped();
+            }
+            else {
+                return this._slots[slotType].getUnequipped();
+            }
         }
         else {
             RG.err('Equipment', 'getUnequipped',
@@ -121,9 +164,13 @@ RG.Inv.Equipment = function(actor) {
     };
 
     /* Returns an item in the given slot.*/
-    this.getItem = slot => {
-        if (_slots.hasOwnProperty(slot)) {
-            return _slots[slot].getItem();
+    this.getItem = slotType => {
+        if (this._hasSlot(slotType)) {
+            const slot = this._slots[slotType];
+            if (Array.isArray(slot)) {
+                return slot.map(itemSlot => itemSlot.getItem());
+            }
+            return this._slots[slotType].getItem();
         }
         return null;
     };
@@ -131,27 +178,37 @@ RG.Inv.Equipment = function(actor) {
     /* Equips given item. Slot is chosen automatically from suitable available
      * ones.*/
     this.equipItem = item => {
-        if (item.hasOwnProperty('getArmourType')) {
-            if (_slots[item.getArmourType()].equipItem(item)) {
-                _equipped.push(item);
-                return true;
-            }
+        if (item.getArmourType) {
+            return this._equipToSlotType(item.getArmourType(), item);
         }
         // No equip property, can only equip to hand
-        else if (item.getType() === 'missile') {
-            if (_slots.missile.equipItem(item)) {
+        else if (/^(missile|ammo)$/.test(item.getType())) {
+            if (this._slots.missile.equipItem(item)) {
                 _addStackedItem(item);
                 return true;
             }
         }
         else if (item.getType() === 'missileweapon') {
-            if (_slots.missileweapon.equipItem(item)) {
-                _equipped.push(item);
-                return true;
+            return this._equipToSlotType('missileweapon', item);
+        }
+        else {
+            return this._equipToSlotType('hand', item);
+        }
+        return false;
+    };
+
+    this._equipToSlotType = function(slotType, item) {
+        const slot = this._slots[slotType];
+        if (Array.isArray(slot)) {
+            for (let i = 0; i < slot.length; i++) {
+                if (slot[i].equipItem(item)) {
+                    this._equipped.push(item);
+                    return true;
+                }
             }
         }
-        else if (_slots.hand.equipItem(item)) {
-            _equipped.push(item);
+        else if (slot.equipItem(item)) {
+            this._equipped.push(item);
             return true;
         }
         return false;
@@ -159,41 +216,41 @@ RG.Inv.Equipment = function(actor) {
 
     const _addStackedItem = item => {
         let matchFound = false;
-        for (let i = 0; i < _equipped.length; i++) {
-            if (_equipped[i].equals(item)) {
+        for (let i = 0; i < this._equipped.length; i++) {
+            if (this._equipped[i].equals(item)) {
                 matchFound = true;
                 break;
             }
         }
-        if (!matchFound) {_equipped.push(item);}
+        if (!matchFound) {this._equipped.push(item);}
     };
 
     /* Removes an item, or n items if specified.*/
     const _removeItem = (item, n) => {
-        const index = _equipped.indexOf(item);
+        const index = this._equipped.indexOf(item);
         if (index >= 0) {
             if (n > 0) {
-                if (_equipped[index].hasOwnProperty('count')) {
-                    if (_equipped[index].count === 0) {
-                        _equipped.splice(index, 1);
+                if (this._equipped[index].hasOwnProperty('count')) {
+                    if (this._equipped[index].count === 0) {
+                        this._equipped.splice(index, 1);
                     }
                 }
                 return true;
             }
             else {
-                _equipped.splice(index, 1);
+                this._equipped.splice(index, 1);
                 return true;
             }
         }
         else {
-            RG.err('Equipment', 'unequipItem', 'Index < 0. Horribly wrong.');
+            RG.err('Equipment', '_removeItem', 'Index < 0. Horribly wrong.');
         }
         return false;
     };
 
     /* Returns true if given item is equipped.*/
     this.isEquipped = item => {
-        const index = _equipped.indexOf(item);
+        const index = this._equipped.indexOf(item);
         return index !== -1;
     };
 
@@ -202,11 +259,30 @@ RG.Inv.Equipment = function(actor) {
     };
 
     /* Unequips given slotType and index. */
-    this.unequipItem = (slotType, n) => {
-        if (_hasSlot(slotType)) {
-            const item = _slots[slotType].getItem();
-            if (_slots[slotType].unequipItem(n)) {
-                return _removeItem(item, n);
+    this.unequipItem = (slotType, n, index) => {
+        if (this._hasSlot(slotType)) {
+            const slot = this._slots[slotType];
+            if (Array.isArray(slot)) {
+                if (index >= 0) {
+                    const item = slot[index].getItem();
+                    if (slot[index].unequipItem(n)) {
+                        return _removeItem(item, n);
+                    }
+                }
+                else {
+                    for (let i = 0; i < slot.length; i++) {
+                        const item = slot[i].getItem();
+                        if (slot[i].unequipItem(n)) {
+                            return _removeItem(item, n);
+                        }
+                    }
+                }
+            }
+            else {
+                const item = this._slots[slotType].getItem();
+                if (this._slots[slotType].unequipItem(n)) {
+                    return _removeItem(item, n);
+                }
             }
         }
         else {
@@ -216,30 +292,40 @@ RG.Inv.Equipment = function(actor) {
         return false;
     };
 
+    /* Calls given funcname for each item in slot, and sums the results
+     * of the function together. */
     this.propertySum = function(funcname) {
         let result = 0;
-        const slotKeys = Object.keys(_slots);
-        slotKeys.forEach(slot => {
-            const item = this.getItem(slot);
-            if (item !== null) {
-                if (typeof item[funcname] === 'function') {
-                    result += item[funcname]();
-                }
-                else if (item.has('Stats')) {
-                    const sComp = item.get('Stats');
-                    if (typeof sComp[funcname] === 'function') {
-                        result += sComp[funcname]();
+        const slotKeys = Object.keys(this._slots);
+        slotKeys.forEach(slotName => {
+            const slotObj = this._slots[slotName];
+            let slots = slotObj;
+            if (!Array.isArray(slots)) {
+                slots = [slots];
+            }
+
+            slots.forEach(slot => {
+                const item = slot.getItem();
+                if (item !== null) {
+                    if (typeof item[funcname] === 'function') {
+                        result += item[funcname]();
+                    }
+                    else if (item.has('Stats')) {
+                        const sComp = item.get('Stats');
+                        if (typeof sComp[funcname] === 'function') {
+                            result += sComp[funcname]();
+                        }
                     }
                 }
-            }
+            });
         });
         return result;
     };
 
     this.toJSON = () => {
         const json = [];
-        for (let i = 0; i < _equipped.length; i++) {
-            json.push(_equipped[i].toJSON());
+        for (let i = 0; i < this._equipped.length; i++) {
+            json.push(this._equipped[i].toJSON());
         }
         return json;
     };
@@ -373,11 +459,11 @@ RG.Inv.Inventory = function(actor) {
     };
 
     /* Unequips item and puts it back to inventory.*/
-    this.unequipItem = function(slotType, n) {
+    this.unequipItem = function(slotType, n, slotNumber) {
         const eqItem = _eq.getItem(slotType);
         if (!RG.isNullOrUndef([eqItem])) {
-            if (_eq.unequipItem(slotType, n)) {
-                const rmvItems = _eq.getUnequipped(slotType);
+            if (_eq.unequipItem(slotType, n, slotNumber)) {
+                const rmvItems = _eq.getUnequipped(slotType, slotNumber);
                 if (rmvItems !== null) {
                     this.addItem(rmvItems);
                     return true;
@@ -388,11 +474,11 @@ RG.Inv.Inventory = function(actor) {
     };
 
     /* Unequips and returns N items. Doesn't add to inv.*/
-    this.unequipAndGetItem = (slotType, n) => {
+    this.unequipAndGetItem = (slotType, n, slotNumber) => {
         const eqItem = _eq.getItem(slotType);
         if (!RG.isNullOrUndef([eqItem])) {
             if (_eq.unequipItem(slotType, n)) {
-                return _eq.getUnequipped(slotType);
+                return _eq.getUnequipped(slotType, slotNumber);
             }
         }
         return null;

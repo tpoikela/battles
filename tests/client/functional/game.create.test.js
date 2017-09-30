@@ -1,8 +1,9 @@
+
+import Entity from '../../../client/src/entity';
+
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 const RGTest = require('../../roguetest');
-
-import Entity from '../../../client/src/entity';
 
 const worldConf = require('../../../client/data/conf.world');
 

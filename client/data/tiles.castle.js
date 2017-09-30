@@ -169,7 +169,21 @@ Y......
 .##+##.
 Y#...##
 #.....#
-##...##`
+##...##`,
+
+`
+dir:NSW
+name:entrance_w
+X=#
+Y=#
+
+##X..X#
+Y.##..#
+...##.#
+....+.#
+...##.#
+Y.##..#
+###...#`
 ];
 
 // Entrances
@@ -200,7 +214,21 @@ Y.....#
 .##+##.
 Y#...##
 #.....#
-#.....#`
+#.....#`,
+
+`
+dir:NSW
+name:entrance_w
+X=#
+Y=#
+
+##X..X#
+Y.##..#
+...##.#
+....+.#
+...##.#
+Y.##..#
+###...#`
 ];
 
 // Corridors
@@ -427,6 +455,15 @@ Castle.startRoomFunc = function() {
     return {
         x: midX, y, room: templ
     };
+};
+
+Castle.startRoomFuncWest = function() {
+  const y = Math.floor(this.tilesY / 2);
+  const x = 0;
+  const templ = this.findTemplate({name: 'entrance_w'});
+  return {
+      x, y, room: templ
+  };
 };
 
 /* Start function if two fixed entrances are required. */

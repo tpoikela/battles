@@ -68,7 +68,8 @@ export default class GameInventory extends Component {
   unequipItem() {
     if (this.props.equipSelected) {
       const name = this.props.equipSelected.slotName;
-      const cmd = {cmd: 'unequip', slot: name};
+      const slotNumber = this.props.equipSelected.slotNumber;
+      const cmd = {cmd: 'unequip', slot: name, slotNumber};
       cmd.callback = function(obj) {
         let msgStyle = 'text-success';
         if (!obj.result) {

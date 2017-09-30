@@ -10,7 +10,7 @@ export default class GameEquipSlot extends Component {
     this.setEquipSelected = this.setEquipSelected.bind(this);
   }
 
-  setEquipSelected(evt) {
+  setEquipSelected() {
     if (this.props.item !== null) {
       const selection = {
         slotName: this.props.slotName,
@@ -27,13 +27,17 @@ export default class GameEquipSlot extends Component {
     let msg = 'Empty';
     if (item !== null) {msg = item.toString();}
     return (
-      <div onClick={this.setEquipSelected} className='inv-equip-slot'>{slotName} {msg}</div>
+      <div
+        className='inv-equip-slot'
+        onClick={this.setEquipSelected}
+      >{slotName} {msg}</div>
     );
   }
 
 }
 
 GameEquipSlot.propTypes = {
+  setEquipSelected: PropTypes.func,
   slotName: PropTypes.string,
   item: PropTypes.object,
   slotNumber: PropTypes.number

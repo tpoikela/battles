@@ -30,6 +30,14 @@ describe('RG.Game.FromJSON', function() {
         expect(newItem.getValue()).to.equal(100);
     });
 
+    it('Converts Ammo to JSON and back', () => {
+        const arrow = new RG.Item.Ammo('Steel arrow');
+        const json = arrow.toJSON();
+        console.log(json);
+        const newArrow = fromJSON.createItem(json);
+        expect(arrow.equals(newArrow)).to.equal(true);
+    });
+
     it('Converts level.map JSON back to RG.Map', () => {
         const level = RGTest.createLevel('arena', 20, 20);
         const json = level.toJSON();

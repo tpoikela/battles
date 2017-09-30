@@ -192,6 +192,7 @@ class CmdUnequipItem {
 
     execute(obj) {
         const name = obj.slot;
+        const slotNumber = obj.slotNumber;
         const invEq = this._actor.getInvEq();
         let result = false;
         let msg = `Failed to remove item from slot ${name}.`;
@@ -205,7 +206,7 @@ class CmdUnequipItem {
                 }
             }
         }
-        else if (invEq.unequipItem(name)) {
+        else if (invEq.unequipItem(name, 1, slotNumber)) {
             result = true;
         }
 

@@ -2,9 +2,10 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 
-import GameBoard from '../jsx/game-board.jsx';
-import GameMessages from '../jsx/game-messages.jsx';
+import GameBoard from '../jsx/game-board';
+import GameMessages from '../jsx/game-messages';
 import Capital from '../data/capital';
+import AbandonedFort from '../data/abandoned-fort';
 
 const ROT = require('../../lib/rot');
 ROT.Map.Wall = require('../../lib/map.wall');
@@ -24,6 +25,14 @@ RG.getOverWorld = require('../src//overworld');
 
 const WorldConf = require('../src/world.creator');
 
+const editorLevelTypes = [
+  'abandoned_fort',
+  'arena', 'castle', 'capital', 'cellular', 'cave', 'crypt',
+  'digger', 'divided',
+  'dungeon', 'eller', 'empty', 'forest', 'icey', 'miner',
+  'mountain', 'uniform', 'rogue',
+  'ruins', 'rooms', 'town', 'townwithwall', 'wall'
+];
 
 /*
  * Sketch to specify the menus in more sane way than jsx.
@@ -472,6 +481,9 @@ export default class GameEditor extends Component {
     let level = null;
     if (levelType === 'capital') {
       level = new Capital(cols, rows, conf).getLevel();
+    }
+    else if (levelType === 'abandoned_fort') {
+      level = new AbandonedFort(cols, rows, conf).getLevel();
     }
     else {
       level = RG.FACT.createLevel(
@@ -1232,14 +1244,7 @@ export default class GameEditor extends Component {
   }
 
   getLevelSelectElement() {
-    const types = [
-      'arena', 'castle', 'capital', 'cellular', 'cave', 'crypt',
-      'digger', 'divided',
-      'dungeon', 'eller', 'empty', 'forest', 'icey', 'miner',
-      'mountain', 'uniform', 'rogue',
-      'ruins', 'rooms', 'town', 'townwithwall', 'wall'
-    ];
-    const elem = types.map(type => {
+    const elem = editorLevelTypes.map(type => {
       const key = 'key-sel-type-' + type;
       return <option key={key} value={type}>{type}</option>;
     });

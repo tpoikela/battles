@@ -45,6 +45,10 @@ RG.Template.Level = function(tilesX, tilesY) {
         this.templates = asciiTiles.map(t => RG.Template.createTemplate(t));
     };
 
+    this.addTemplate = function(asciiTile) {
+      this.templates.push(RG.Template.createTemplate(asciiTile));
+    };
+
     /* Sets the generator parameters for expansion. */
     this.setGenParams = function(arr) {
         this.genParams = arr;

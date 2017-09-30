@@ -15,7 +15,6 @@ Path.getShortestPassablePath = function(map, x0, y0, x1, y1) {
 };
 
 Path.getShortestPassablePathWithDoors = function(map, x0, y0, x1, y1) {
-    console.log('BEGIN getShortestPassablePathWithDoors');
     const coords = [];
     const passableCbDoor = (x, y) => {
         if (map.hasXY(x, y)) {
@@ -74,7 +73,6 @@ Path.getPathWeight = (map, coord) => {
 Path.getMinWeightPath = function(map, x0, y0, x1, y1, pathFunc) {
     let coordPassable = [];
     if (pathFunc) {
-        console.log('pathFunc given. Using it now');
         coordPassable = pathFunc(map, x0, y0, x1, y1);
     }
     else {
@@ -84,9 +82,6 @@ Path.getMinWeightPath = function(map, x0, y0, x1, y1, pathFunc) {
     const coordShortest = Path.getShortestPath(x0, y0, x1, y1);
     const passableWeight = Path.getPathWeight(map, coordPassable);
     const shortestWeight = Path.getPathWeight(map, coordShortest);
-
-    console.log(`passableWeight: ${passableWeight}`);
-    console.log(`shortestWeight: ${shortestWeight}`);
 
     let coord = null;
     if (coordPassable.length === 0) {

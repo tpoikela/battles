@@ -17,12 +17,13 @@ const GameEquipment = (props) => {
 
   // Creates the equipment slots based on whether they have items or not.
   for (let i = 0; i < slots.length; i++) {
-    const item = eq.getEquipped(slots[i]);
-    const items = [];
-    if (item !== null) {items.push(item);}
+    let items = eq.getEquipped(slots[i]);
+    if (items !== null && !Array.isArray(items)) {
+      items = [items];
+    }
 
     let key = i;
-    if (items.length > 0) {
+    if (items && items.length > 0) {
       for (let j = 0; j < items.length; j++) {
         key += ',' + j;
         equipped.push(

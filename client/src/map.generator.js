@@ -462,6 +462,13 @@ RG.Map.Generator = function() { // {{{2
         level.use(Castle);
         level.setTemplates(Castle.Models.full);
 
+        if (conf.nGates === 2) {
+          level.setStartRoomFunc(Castle.startFuncTwoGates);
+        }
+        else if (conf.startRoomFunc) {
+          level.setStartRoomFunc(conf.startRoomFunc);
+        }
+
         const genParams = conf.genParams || [1, 1, 1, 1];
         const roomCount = conf.roomCount || 40;
         level.setGenParams(genParams);
@@ -477,7 +484,7 @@ RG.Map.Generator = function() { // {{{2
         return mapObj;
     };
 
-    this.createTownWithWall = function(cols, rows, conf = {}) {
+    this.createCastleWall = function(cols, rows, conf = {}) {
         const tilesX = Math.ceil(cols / 7);
         const tilesY = Math.ceil(rows / 7);
         const level = new TemplateLevel(tilesX, tilesY);
@@ -487,6 +494,9 @@ RG.Map.Generator = function() { // {{{2
         if (conf.nGates === 2) {
           level.setStartRoomFunc(Castle.startFuncTwoGates);
         }
+        else if (conf.startRoomFunc) {
+          level.setStartRoomFunc(conf.startRoomFunc);
+        }
         level.create();
 
         const asciiToElem = {
@@ -495,6 +505,13 @@ RG.Map.Generator = function() { // {{{2
         };
         const castleMapObj = this.createMapFromAsciiMap(level.map, asciiToElem);
         castleMapObj.tiles = level.xyToBbox;
+        return castleMapObj;
+    };
+
+    this.createTownWithWall = function(cols, rows, conf = {}) {
+        const tilesX = Math.ceil(cols / 7);
+        const tilesY = Math.ceil(rows / 7);
+        const castleMapObj = this.createCastleWall(cols, rows, conf);
 
         conf.levelType = 'empty' || conf.levelType;
         const colsTown = (tilesX - 2) * 7;
