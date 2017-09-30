@@ -57,9 +57,6 @@ Setup:
     npm install
     gulp watch-dev
     npm run start
-```
-  
-NOTE: All source code pushed into the repository will be under MIT license.
- 
+``` 
  
  
