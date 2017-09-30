@@ -11,6 +11,15 @@ describe('Function: Creating game world from a file', function() {
     this.timeout(60000);
     it('can create world from external config object', () => {
         const fact = new RG.Factory.World();
+
+        const fromJSON = new RG.Game.FromJSON();
+        Object.values(worldConf.presetLevels).forEach(arr => {
+            arr.forEach((obj, index) => {
+                obj.level = fromJSON.restoreLevel(obj.level);
+                obj.level.setID(666666 + index);
+            });
+        });
+
         const world = fact.createWorld(worldConf);
         expect(world.getAreas()).to.have.length(worldConf.nAreas);
         expect(world.getName()).to.equal(worldConf.name);
