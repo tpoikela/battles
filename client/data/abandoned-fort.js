@@ -23,6 +23,19 @@ export default class AbandonedFort {
 
     const mainLevel = RG.FACT.createLevel('empty', cols, rows);
 
+    const mapGen = new RG.Map.Generator();
+    const outerWallConf = {
+        startRoomFunc: Castle.startRoomFuncWest
+    };
+    const outerCols = Math.round(0.4 * cols);
+    const outerRows = Math.round(0.4 * rows);
+    const outerWall = mapGen.createCastleWall(outerCols, outerRows,
+        outerWallConf);
+
+    const outerX = Math.round(0.4 * cols);
+    const outerY = Math.round(rows / 2 - outerWall.map.rows / 2);
+    RG.Geometry.mergeMaps(mainLevel.getMap(), outerWall.map, outerX, outerY);
+
     const wallCols = Math.floor(cols / 2);
     const mountWall = RG.FACT.createLevel('wall', wallCols, rows,
       mainWallOpts);
@@ -40,19 +53,17 @@ export default class AbandonedFort {
     };
 
     const castle = RG.FACT.createLevel('castle', castleCols,
-        castleRows, castleOpts);
+      castleRows, castleOpts);
     const castleX = cols - castle.getMap().cols;
     const castleY = Math.round((rows - castle.getMap().rows) / 2);
     console.log(`castle X,Y ${castleX},${castleY}`);
     RG.Geometry.insertSubLevel(mainLevel, castle, castleX, castleY);
-
 
     this.level = mainLevel;
   }
 
   getLevel() {
     return this.level;
-
   }
 
 }
