@@ -182,7 +182,7 @@ RG.Inv.Equipment = function(actor) {
             return this._equipToSlotType(item.getArmourType(), item);
         }
         // No equip property, can only equip to hand
-        else if (item.getType() === 'missile') {
+        else if (/^(missile|ammo)$/.test(item.getType())) {
             if (this._slots.missile.equipItem(item)) {
                 _addStackedItem(item);
                 return true;
