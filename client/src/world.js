@@ -354,9 +354,16 @@ RG.World.Branch = function(name) {
 
     this.addLevel = function(level) {
         if (!this.hasLevel(level)) {
-            level.setLevelNumber(_numCount++);
-            _levels.push(level);
-            level.setParent(this.getName());
+            if (level.setLevelNumber) {
+                level.setLevelNumber(_numCount++);
+                _levels.push(level);
+                level.setParent(this.getName());
+            }
+            else {
+                console.error(level);
+                RG.err('World.Branch', 'addLevel',
+                    'setLevelNumber() not a func.');
+            }
         }
         else {
             RG.err('World.Branch', 'addLevel',
