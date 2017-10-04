@@ -59,6 +59,29 @@ export default class AbandonedFort {
     console.log(`castle X,Y ${castleX},${castleY}`);
     RG.Geometry.insertSubLevel(mainLevel, castle, castleX, castleY);
 
+    // Add stairs for entrance and exit
+    const midY = Math.floor(rows / 2);
+    const stairsWest = new RG.Element.Stairs(false, mainLevel);
+    mainLevel.addStairs(stairsWest, 0, midY);
+
+    const mainMap = mainLevel.getMap();
+
+    // Exit stairs are added to right-most coordinates
+    const y0 = castleY;
+    const y1 = castleY + (castleRows - 1);
+    console.log(`eastStairs range y ${y0} -> ${y1}`);
+    const eastCell = mainMap.getFirstFreeFromRight(y0, y1);
+    const [sX, sY] = [eastCell.getX(), eastCell.getY()];
+    const stairsEast = new RG.Element.Stairs(true, mainLevel);
+    mainLevel.addStairs(stairsEast, sX, sY);
+
+    const castleBbox = {ulx: castleX, uly: castleY,
+        lrx: castleX + castleCols - 1, lry: castleY + castleRows - 1
+    };
+    const castleFreeCells = mainMap.getFreeInBbox(castleBbox);
+
+    // Add items to free cells inside the castle
+
     this.level = mainLevel;
   }
 
