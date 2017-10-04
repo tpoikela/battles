@@ -22,6 +22,7 @@
  */
 
 import Capital from '../data/capital';
+import AbandonedFort from '../data/abandoned-fort';
 
 const RG = require('./rg');
 RG.Names = require('../data/name-gen');
@@ -33,8 +34,8 @@ const $DEBUG = false;
 
 RG.OverWorld = {};
 
-const cityTypesRe = /(capital|city|fort|stronghold|village)/;
-const twoEntranceCityRe = /(fort|stronghold|capital)/;
+const cityTypesRe = /(capital|city|abandoned fort|fort|village)/;
+const twoEntranceCityRe = /(dwarven city|abandoned fort|capital)/;
 
 // Used for debugging only
 const playerTileX = 1;
@@ -496,6 +497,7 @@ function addSubLevelFeatures(ow, owX, owY, subLevel) {
 
     if (!features) {return;}
 
+    let numSkipped = 0;
     features.forEach(feat => {
         if (feat === OW.WCAPITAL) {
             addMountainFortToSubLevel(feat, owSubLevel, subLevel);
@@ -512,8 +514,16 @@ function addSubLevelFeatures(ow, owX, owY, subLevel) {
         else if (feat === OW.WVILLAGE) {
             addVillageToSubLevel(feat, owSubLevel, subLevel);
         }
+        else {
+            const msg = `Base: ${base}, ${feat}`;
+            console.log('Skipping feature: ' + msg);
+            ++numSkipped;
+        }
     });
 
+    if (numSkipped > 0) {
+        console.log(`Skipped ${numSkipped} features in addSubLevelFeatures`);
+    }
 }
 
 function isMountainFort(base, feat) {
@@ -521,6 +531,8 @@ function isMountainFort(base, feat) {
         (feat === OW.BTOWER || feat === OW.WTOWER);
 }
 
+/* Creates a fort which goes through a mountain wall. Adds also fort elements
+ * into the Map.Level. */
 function addMountainFortToSubLevel(feat, owSubLevel, subLevel) {
     const wall = owSubLevel.getWall();
     const start = wall.getWallStart();
@@ -528,8 +540,15 @@ function addMountainFortToSubLevel(feat, owSubLevel, subLevel) {
     const randPos = RG.RAND.getUniformInt(start, end);
     const coord = wall.getCoordAt(randPos);
 
-    let type = feat === OW.WTOWER ? 'fort' : 'stronghold';
-    type = feat === OW.WCAPITAL ? 'capital' : type;
+    let type = null;
+    switch (feat) {
+        case OW.WTOWER: type = 'dwarven city'; break;
+        case OW.BTOWER: type = 'abandoned fort'; break;
+        case OW.WCAPITAL: type = 'capital'; break;
+        case OW.BCAPITAL: type = 'dark city'; break;
+        default: RG.err('overworld.js', 'addMountainFortToSubLevel',
+            `Type ${feat} not supported`);
+    }
 
     // Tile is a list of x,y coordinates
     subLevel.getMap().setBaseElems(coord, RG.ELEM.FORT);
@@ -729,7 +748,26 @@ RG.OverWorld.createWorldConf = (ow, subLevels, nTilesX, nTilesY) => {
                     }
 
                     if (feat.type === 'capital') {
+                        console.log('Adding capital now');
                         addCapitalConfToArea(feat, coordObj, areaConf);
+                    }
+                    else if (feat.type === 'dwarven city') { // WTOWER
+                        // TODO
+                        addCityConfToArea(feat, coordObj, areaConf);
+                        // addDwarvenCityConfToArea(feat, coordObj, areaConf);
+                    }
+                    else if (feat.type === 'abandoned fort') {
+                        // TODO
+                        // addCityConfToArea(feat, coordObj, areaConf);
+                        console.log('Adding abandoned fort');
+                        addAbandonedFortToArea(feat, coordObj, areaConf);
+                    }
+                    else if (feat.type === 'dark city') {
+                        addCityConfToArea(feat, coordObj, areaConf);
+                    }
+                    else if (feat.type === 'blacktower') {
+                        // TODO
+                        addCityConfToArea(feat, coordObj, areaConf);
                     }
                     else if (cityTypesRe.test(feat.type)) {
                         addCityConfToArea(feat, coordObj, areaConf);
@@ -826,6 +864,40 @@ function addCapitalConfToArea(feat, coordObj, areaConf) {
     areaConf.city.push(cityConf);
 }
 
+/*
+function addDwarvenCityConfToArea(feat, coordObj, areaConf) {
+
+}
+*/
+
+function addAbandonedFortToArea(feat, coordObj, areaConf) {
+    const fortConf = {};
+    const fortLevel = new AbandonedFort(500, 200, fortConf).getLevel();
+    const cityConf = {
+        name: 'Abandoned fort',
+        nQuarters: 1,
+        quarter: [{name: 'Fort ground level', nLevels: 1}]
+    };
+
+    cityConf.presetLevels = {
+        'Abandoned fort.Fort ground level': [{nLevel: 0, level: fortLevel}]
+    };
+    addLocationToZoneConf(feat, coordObj, cityConf);
+    const mainConn = {
+        name: 'Fort ground level',
+        levelX: cityConf.levelX,
+        levelY: cityConf.levelY,
+        nLevel: 0,
+        stairs: fortLevel.getStairs()[1]
+    };
+
+    cityConf.connectToXY[0].stairs = fortLevel.getStairs()[0];
+    cityConf.connectToXY.push(mainConn);
+    areaConf.nCities += 1;
+    areaConf.city.push(cityConf);
+
+}
+
 /* Adds a city configuration to the area. */
 function addCityConfToArea(feat, coordObj, areaConf) {
     // const {slX, slY, subX, subY} = coordObj;
@@ -886,8 +958,8 @@ function addLocationToZoneConf(feat, coordObj, zoneConf) {
 
 /* Adds the black tower configuration to area. */
 function addBlackTowerConfToArea(feat, coordObj, areaConf) {
-    const {xMap, yMap, nSubLevelsX, nSubLevelsY,
-        x, y, slX, slY, aX, aY, subX, subY} = coordObj;
+    // const {xMap, yMap, nSubLevelsX, nSubLevelsY,
+        // x, y, slX, slY, aX, aY, subX, subY} = coordObj;
     const coord = feat.coord;
 
     const xy = coord[7];
@@ -899,14 +971,10 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
     // const featY = mapY(xy[1], slY, subY);
     const tName = 'Elder raventhrone';
 
-    const midX = Math.floor(nSubLevelsX / xMap / 2);
-    const yPos = nSubLevelsY / yMap - 1;
-
     const dungeonConf = RG.LevelGen.getDungeonConf(tName);
-    Object.assign(dungeonConf,
-        // TODO change after debugging is done
+    addToPlayerPosition(dungeonConf, coordObj);
+    // Object.assign(dungeonConf,
         // {x: aX, y: aY, levelX: featX, levelY: featY});
-        {x: midX, y: yPos, levelX: playerTileX, levelY: playerTileY});
     dungeonConf.dungeonType = 'castle';
     dungeonConf.wallType = 'wallice';
     dungeonConf.tilesX = 20;
@@ -930,6 +998,16 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
     };
     areaConf.nDungeons += 1;
     areaConf.dungeon.push(dungeonConf);
+}
+
+/* For debuging. Adds the feature close to player starting position. */
+function addToPlayerPosition(zoneConf, coordObj) {
+    const {xMap, yMap, nSubLevelsX, nSubLevelsY} = coordObj;
+    const midX = Math.floor(nSubLevelsX / xMap / 2);
+    const yPos = nSubLevelsY / yMap - 1;
+    Object.assign(zoneConf,
+        {x: midX, y: yPos, levelX: playerTileX, levelY: playerTileY});
+
 }
 
 /* Map biomes from overworld into nTilesX * nTilesY space. */
@@ -995,7 +1073,7 @@ function addGlobalFeatures(ow, owLevel, conf, coordMap) {
     const owLevelCapExitXY = coordMap.toOwLevelXY(capSubTileXY, capExitXY);
     const wTowerSubTileXY = ow.getFeaturesByType(OW.WTOWER)[0];
     const wTowerLevel = ow.getSubLevel(wTowerSubTileXY);
-    const wTowerFeat = wTowerLevel.getFeaturesByType('fort')[0];
+    const wTowerFeat = wTowerLevel.getFeaturesByType('dwarven city')[0];
     const wTowerSubLevelXY = wTowerFeat.getLastCoord();
     const wTowerLevelXY = coordMap.toOwLevelXY(wTowerSubTileXY,
         wTowerSubLevelXY);
