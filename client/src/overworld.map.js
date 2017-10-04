@@ -715,9 +715,6 @@ function addOverWorldFeatures(ow, conf) {
         addFeatureToWall(ow, ow._vWalls[0], OW.BCAPITAL);
     }
 
-    // TODO list for features:
-
-    // Add the main roads for most important places
     const cmdBetweenHWalls = {y: {start: ['wall', 0], end: ['wall', 1]}};
     const cmdAboveNorthWall = {y: {start: 'N', end: 'wall'}};
     const cmdSouthernArea = {y: {start: ['wall', 1], end: 'S'}};
@@ -736,12 +733,12 @@ function addOverWorldFeatures(ow, conf) {
     addDungeonsToOverWorld(ow, nDungeonsCenter, cmdBetweenHWalls);
     addDungeonsToOverWorld(ow, nDungeonsNorth, cmdAboveNorthWall);
 
-    // Distribute mountains
-
     // Distribute cities and villages etc settlements
     addVillagesToOverWorld(ow, 10, bBox(1, sizeY - 2, sizeX - 2, sizeY - 10));
     addVillagesToOverWorld(ow, 2, cmdBetweenHWalls);
 
+    // TODO:
+    // Distribute mountains
     // Adds roads for created features
 }
 
@@ -781,6 +778,7 @@ function addFeatureToWall(ow, wall, type) {
         const uly = wall.y[0];
         const lry = wall.y[wall.y.length - 1];
         xy = findCellRandXYInBox(map, bBox(wall.x, uly, wall.x, lry), OW.LL_NS);
+        console.log(`Added ${type} to ${xy} in vwall`);
     }
 
     ow.addFeature(xy, type);
