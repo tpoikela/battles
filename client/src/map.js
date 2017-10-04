@@ -341,6 +341,33 @@ RG.Map.CellList = function(cols, rows) { // {{{2
         return freeCells;
     };
 
+    /* Returns the first free cell starting from right edge of the level.
+    * Range of y-coord is optional.
+    */
+    this.getFirstFreeFromRight = function(y0 = 0, y1 = this.rows) {
+        for (let x = this.cols - 1; x >= 0; x--) {
+            for (let y = y0; y < y1; y++) {
+                if (this._map[x][y].isFree()) {
+                    return this._map[x][y];
+                }
+            }
+        }
+        return null;
+    };
+
+    /* Returns all free cells in the given bounding box. */
+    this.getFreeInBbox = function(bbox) {
+        const freeCells = [];
+        for (let x = bbox.ulx; x <= bbox.lrx; x++) {
+            for (let y = bbox.uly; y < bbox.lry; y++) {
+                if (this._map[x][y].isFree()) {
+                    freeCells.push(this._map[x][y]);
+                }
+            }
+        }
+        return freeCells;
+    };
+
     /* Returns all empty cells. Cell is empty, if it has only the base
      * element, but no props. */
     this.getEmptyCells = function() {
