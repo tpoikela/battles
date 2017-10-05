@@ -61,6 +61,28 @@ const levelSizes = {
 };
 
 
+RG.Factory.addPropsToFreeCells = function(level, props, type) {
+    const freeCells = level.getMap().getFree();
+    RG.Factory.addPropsToCells(level, freeCells, props, type);
+};
+
+RG.Factory.addPropsToCells = function(level, cells, props, type) {
+    for (let i = 0; i < props.length; i++) {
+        if (cells.length > 0) {
+            const index = RG.RAND.randIndex(cells);
+            const cell = cells[index];
+            if (type === RG.TYPE_ACTOR) {
+                level.addActor(props[i], cell.getX(), cell.getY());
+            }
+            else if (type === RG.TYPE_ITEM) {
+                level.addItem(props[i], cell.getX(), cell.getY());
+            }
+            cells.splice(index, 1); // remove used cell
+        }
+    }
+};
+
+
 //---------------------------------------------------------------------------
 // FACTORY OBJECTS
 //---------------------------------------------------------------------------
@@ -98,15 +120,9 @@ RG.Factory.ItemRandomizer = function() {
         }
     };
 
-    const _adjustMissile = (missile, nLevel) => {
-        if (!RG.isNullOrUndef([nLevel])) {
-            // TODO use distribution to generate the count
-            missile.setCount(10);
-        }
-        else {
-            RG.err('Factory.ItemRandomizer', '_adjustMissile',
-                'nLevel is not defined.');
-        }
+    const _adjustMissile = (missile) => {
+        const count = RG.RAND.getUniformInt(5, 15);
+        missile.setCount(count);
     };
 
     /* LUT for functions to call on specific items.*/
@@ -191,14 +207,103 @@ RG.Factory.Actor = function() {
 
 };
 
+/* Factory object for creating items. */
+RG.Factory.Item = function() {
+    const _itemRandomizer = new RG.Factory.ItemRandomizer();
+
+    /* Called for random items. Adjusts some of their attributes randomly.*/
+    const _doItemSpecificAdjustments = (item, val) => {
+        _itemRandomizer.adjustItem(item, val);
+    };
+
+    this.addNRandItems = (level, parser, conf) => {
+        const items = this.generateItems(parser, conf);
+
+        if (typeof conf.food === 'function' && conf.food()) {
+            const food = parser.createRandomItem({
+                func: item => item.type === 'food'
+            });
+
+            if (food) {
+                _doItemSpecificAdjustments(food, conf.maxValue);
+                items.push(food);
+            }
+            else {
+                RG.warn('Factory.Base', 'addNRandItems',
+                    'Item.Food was not created properly.');
+            }
+        }
+        RG.Factory.addPropsToFreeCells(level, items, RG.TYPE_ITEM);
+    };
+
+    this.generateItems = function(parser, conf) {
+        const items = [];
+        for (let j = 0; j < conf.itemsPerLevel; j++) {
+            const item = parser.createRandomItem({func: conf.func});
+            if (item) {
+                _doItemSpecificAdjustments(item, conf.maxValue);
+                items.push(item);
+            }
+        }
+        return items;
+    };
+
+    /* Adds a random number of gold coins to the level. */
+    this.addRandomGold = (level, parser, conf) => {
+        const goldItems = [];
+        for (let i = 0; i < conf.goldPerLevel; i++) {
+            const gold = parser.createActualObj(RG.TYPE_ITEM, 'Gold coin');
+            _doItemSpecificAdjustments(gold, conf.nLevel);
+            goldItems.push(gold);
+        }
+        RG.Factory.addPropsToFreeCells(level, goldItems, RG.TYPE_ITEM);
+    };
+
+    /* Returns a shop item based on the configuration. */
+    this.getShopItem = (n, conf) => {
+        let item = null;
+        if (conf.shopFunc) {
+            if (typeof conf.shopFunc[n] === 'function') {
+                item = conf.parser.createRandomItem({
+                    func: conf.shopFunc[n]
+                });
+            }
+            else {
+                RG.err('Factory.Base', 'createShop -> getShopItem',
+                    'shopFunc must be a function.');
+            }
+        }
+        else if (Array.isArray(conf.shopType)) {
+            item = conf.parser.createRandomItem({
+                func: item => item.type === conf.shopType[n]
+            });
+        }
+        else if (typeof conf.shopType === 'string') {
+            item = conf.parser.createRandomItem({
+                func: item => item.type === conf.shopType
+            });
+        }
+        else { // Fallback, if no config
+            item = conf.parser.createRandomItem({
+                func: item => item.value <= 50 + n * 100
+            });
+        }
+        return item;
+    };
+
+    this.addItemsToCells = function(level, parser, cells, conf) {
+        const items = this.generateItems(parser, conf);
+        RG.Factory.addPropsToCells(level, cells, items, RG.TYPE_ITEM);
+    };
+};
+
 /* Factory object for creating some commonly used objects. Because this is a
 * global object RG.FACT, no state should be used. */
 RG.Factory.Base = function() { // {{{2
     const _verif = new RG.Verify.Conf('Factory.Base');
-    const _itemRandomizer = new RG.Factory.ItemRandomizer();
 
     const _actorFact = new RG.Factory.Actor();
-
+    const _itemFact = new RG.Factory.Item();
 
     /* Creates a new die object from array or die expression '2d4 + 3' etc.*/
     this.createDie = strOrArray => {
@@ -360,7 +465,7 @@ RG.Factory.Base = function() { // {{{2
                     level.addElement(shopElem, xy[0], xy[1]);
 
                     if (conf.hasOwnProperty('parser')) {
-                        const item = this.getShopItem(n, conf);
+                        const item = _itemFact.getShopItem(n, conf);
 
                         if (!item) {
                             const msg = 'item null. ' +
@@ -388,37 +493,6 @@ RG.Factory.Base = function() { // {{{2
 
     };
 
-    /* Returns a shop item based on the configuration. */
-    this.getShopItem = (n, conf) => {
-        let item = null;
-        if (conf.shopFunc) {
-            if (typeof conf.shopFunc[n] === 'function') {
-                item = conf.parser.createRandomItem({
-                    func: conf.shopFunc[n]
-                });
-            }
-            else {
-                RG.err('Factory.Base', 'createShop -> getShopItem',
-                    'shopFunc must be a function.');
-            }
-        }
-        else if (Array.isArray(conf.shopType)) {
-            item = conf.parser.createRandomItem({
-                func: item => item.type === conf.shopType[n]
-            });
-        }
-        else if (typeof conf.shopType === 'string') {
-            item = conf.parser.createRandomItem({
-                func: item => item.type === conf.shopType
-            });
-        }
-        else { // Fallback, if no config
-            item = conf.parser.createRandomItem({
-                func: item => item.value <= 50 + n * 100
-            });
-        }
-        return item;
-    };
 
     /* Creates a randomized level for the game. Danger level controls how the
      * randomization is done. */
@@ -432,31 +506,8 @@ RG.Factory.Base = function() { // {{{2
     this.addNRandItems = (level, parser, conf) => {
         _verif.verifyConf('addNRandItems', conf, ['func', 'maxValue']);
         // Generate the items randomly for this level
+        _itemFact.addNRandItems(level, parser, conf);
 
-        const items = [];
-        for (let j = 0; j < conf.itemsPerLevel; j++) {
-            const item = parser.createRandomItem({func: conf.func});
-            if (item) {
-                _doItemSpecificAdjustments(item, conf.maxValue);
-                items.push(item);
-            }
-        }
-
-        if (typeof conf.food === 'function' && conf.food()) {
-            const food = parser.createRandomItem({
-                func: item => item.type === 'food'
-            });
-
-            if (food) {
-                _doItemSpecificAdjustments(food, conf.maxValue);
-                items.push(food);
-            }
-            else {
-                RG.warn('Factory.Base', 'addNRandItems',
-                    'Item.Food was not created properly.');
-            }
-        }
-        this.addToFreeCells(level, items, RG.TYPE_ITEM);
     };
 
     /* Adds N random monsters to the level based on given danger level.*/
@@ -493,45 +544,18 @@ RG.Factory.Base = function() { // {{{2
                 actors.push(actor);
             }
             else {
-                RG.err('Factory.Zone', 'addNRandActors',
+                RG.err('Factory.Base', 'addNRandActors',
                     `Generated actor null. Conf: ${JSON.stringify(conf)}`);
             }
 
         }
-        this.addToFreeCells(level, actors, RG.TYPE_ACTOR);
+        RG.Factory.addPropsToFreeCells(level, actors, RG.TYPE_ACTOR);
     };
 
-    this.addToFreeCells = function(level, props, type) {
-        const freeCells = level.getMap().getFree();
-        for (let i = 0; i < props.length; i++) {
-            if (freeCells.length > 0) {
-                const index = RG.RAND.randIndex(freeCells);
-                const cell = freeCells[index];
-                if (type === RG.TYPE_ACTOR) {
-                    level.addActor(props[i], cell.getX(), cell.getY());
-                }
-                else if (type === RG.TYPE_ITEM) {
-                    level.addItem(props[i], cell.getX(), cell.getY());
-                }
-                freeCells.splice(index, 1); // remove used cell
-            }
-        }
-    };
 
     /* Adds a random number of gold coins to the level. */
     this.addRandomGold = (level, parser, conf) => {
-        const goldItems = [];
-        for (let i = 0; i < conf.goldPerLevel; i++) {
-            const gold = parser.createActualObj(RG.TYPE_ITEM, 'Gold coin');
-            _doItemSpecificAdjustments(gold, conf.nLevel);
-            goldItems.push(gold);
-        }
-        this.addToFreeCells(level, goldItems, RG.TYPE_ITEM);
-    };
-
-    /* Called for random items. Adjusts some of their attributes randomly.*/
-    const _doItemSpecificAdjustments = (item, val) => {
-        _itemRandomizer.adjustItem(item, val);
+        _itemFact.addRandomGold(level, parser, conf);
     };
 
 
