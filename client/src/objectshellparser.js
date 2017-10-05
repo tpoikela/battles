@@ -1,7 +1,19 @@
 
 const RG = require('./rg.js');
+const Objects = require('../data/battles_objects');
+RG.Effects = require('../data/effects');
 
 RG.ObjectShell = {};
+
+RG.ObjectShell.getParser = function() {
+    if (!RG.ObjectShell.parserInstance) {
+        const parser = new RG.ObjectShell.Parser();
+        parser.parseShellData(RG.Effects);
+        parser.parseShellData(Objects);
+        RG.ObjectShell.parserInstance = parser;
+    }
+    return RG.ObjectShell.parserInstance;
+};
 
 RG.ObjectShell.Creator = function(db, dbNoRandom) {
     const _db = db;
