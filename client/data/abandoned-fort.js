@@ -5,8 +5,6 @@ RG.Factory = require('../src/factory');
 RG.Path = require('../src/path');
 
 RG.ObjectShell = require('../src/objectshellparser');
-// const Objects = require('../data/battles_objects');
-RG.Effects = require('../data/effects');
 RG.Element = require('../src/element');
 const Castle = require('../data/tiles.castle');
 
@@ -22,6 +20,7 @@ export default class AbandonedFort {
     };
 
     const mainLevel = RG.FACT.createLevel('empty', cols, rows);
+    RG.Map.Generator.addRandomSnow(mainLevel.getMap(), 0.3);
 
     const mapGen = new RG.Map.Generator();
     const outerWallConf = {
@@ -41,6 +40,7 @@ export default class AbandonedFort {
       mainWallOpts);
     const wallX = cols - mountWall.getMap().cols;
     const wallY = 0;
+    RG.Map.Generator.addRandomSnow(mountWall.getMap(), 0.3);
     RG.Geometry.insertSubLevel(mainLevel, mountWall, wallX, wallY);
 
     const castleRows = Math.floor(0.6 * rows);
@@ -78,9 +78,26 @@ export default class AbandonedFort {
     const castleBbox = {ulx: castleX, uly: castleY,
         lrx: castleX + castleCols - 1, lry: castleY + castleRows - 1
     };
-    const castleFreeCells = mainMap.getFreeInBbox(castleBbox);
+
+    const parser = RG.ObjectShell.getParser();
+    const itemFact = new RG.Factory.Item();
 
     // Add items to free cells inside the castle
+    const castleFreeCells = mainMap.getFreeInBbox(castleBbox);
+    const itemConf = {
+        itemsPerLevel: 50, nLevel: 0,
+        func: item => item.value >= 100 && item.value <= 200
+    };
+    itemFact.addItemsToCells(mainLevel, parser, castleFreeCells, itemConf);
+
+    const fortActors = {'Mighty raven': true, 'Winter demon': true,
+        Cryomancer: true};
+    const actorConf = {
+        actorsPerLevel: 500,
+        func: actor => fortActors.hasOwnProperty(actor.name),
+        maxDanger: 10
+    };
+    RG.FACT.addNRandActors(mainLevel, parser, actorConf);
 
     this.level = mainLevel;
   }
