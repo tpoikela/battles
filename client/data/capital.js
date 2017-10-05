@@ -5,8 +5,6 @@ RG.Factory = require('../src/factory');
 RG.Path = require('../src/path');
 
 RG.ObjectShell = require('../src/objectshellparser');
-const Objects = require('../data/battles_objects');
-RG.Effects = require('../data/effects');
 RG.Element = require('../src/element');
 
 /* Class to create the capital city of the game. */
@@ -31,9 +29,7 @@ export default class Capital {
     const subLevelPos = [0.03, 0.20, 0.75, 0.95];
     const widths = [0.5, 0.80, 0.6];
 
-    const parser = new RG.ObjectShell.Parser();
-    parser.parseShellData(RG.Effects);
-    parser.parseShellData(Objects);
+    const parser = RG.ObjectShell.getParser();
 
     const levelConf = [
       {nShops: 1, parser, nGates: 2},
@@ -115,10 +111,10 @@ export default class Capital {
           actors.push(actor);
       }
     });
-    RG.FACT.addToFreeCells(mainLevel, actors, RG.TYPE_ACTOR);
+    RG.Factory.addPropsToFreeCells(mainLevel, actors, RG.TYPE_ACTOR);
 
     const items = [parser.createItem('Longsword')];
-    RG.FACT.addToFreeCells(mainLevel, items, RG.TYPE_ITEM);
+    RG.Factory.addPropsToFreeCells(mainLevel, items, RG.TYPE_ITEM);
 
     this.level = mainLevel;
   }
