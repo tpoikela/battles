@@ -123,6 +123,13 @@ const Items = [
         weaponType: 'axe',
         weight: 2.5, value: value(85)
     },
+    {
+        name: 'Great battle axe', base: 'MeleeWeaponBase',
+        material: 'steel',
+        damage: '2d7 + 4', attack: 3, defense: 0,
+        weaponType: 'axe',
+        weight: 4.5, value: value(130)
+    },
 
     // ICE WEAPONS (not easy to hit with, do lots of damage)
     {
