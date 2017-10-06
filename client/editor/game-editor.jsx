@@ -5,7 +5,8 @@ import PropTypes from 'prop-types';
 import GameBoard from '../jsx/game-board';
 import GameMessages from '../jsx/game-messages';
 import Capital from '../data/capital';
-import AbandonedFort from '../data/abandoned-fort';
+import AbandonedFort, {abandonedFortConf} from '../data/abandoned-fort';
+import DwarvenCity, {dwarvenCityConf} from '../data/dwarven-city';
 
 const ROT = require('../../lib/rot');
 ROT.Map.Wall = require('../../lib/map.wall');
@@ -28,8 +29,8 @@ const WorldConf = require('../src/world.creator');
 const editorLevelTypes = [
   'abandoned_fort',
   'arena', 'castle', 'capital', 'cellular', 'cave', 'crypt',
-  'digger', 'divided',
-  'dungeon', 'eller', 'empty', 'forest', 'icey', 'miner',
+  'digger', 'divided', 'dungeon', 'dwarven_city',
+  'eller', 'empty', 'forest', 'icey', 'miner',
   'mountain', 'uniform', 'rogue',
   'ruins', 'rooms', 'town', 'townwithwall', 'wall'
 ];
@@ -65,14 +66,14 @@ const topMenuConf = {
 };
 */
 
-      const boardViews = [
-        'game-board-map-view-xxxxs',
-        'game-board-map-view-xxxs',
-        'game-board-map-view-xs',
-        'game-board-map-view',
-        'game-board-player-view',
-        'game-board-player-view-xl'
-      ];
+const boardViews = [
+  'game-board-map-view-xxxxs',
+  'game-board-map-view-xxxs',
+  'game-board-map-view-xs',
+  'game-board-map-view',
+  'game-board-player-view',
+  'game-board-player-view-xl'
+];
 
 /* Returns all cells in a box between cells c1,c2 on the given map. */
 const getSelection = (c0, c1, map) => {
@@ -485,6 +486,9 @@ export default class GameEditor extends Component {
     else if (levelType === 'abandoned_fort') {
       level = new AbandonedFort(cols, rows, conf).getLevel();
     }
+    else if (levelType === 'dwarven_city') {
+      level = new DwarvenCity(cols, rows, conf).getLevel();
+    }
     else {
       level = RG.FACT.createLevel(
         levelType, this.state.levelX, this.state.levelY, conf);
@@ -863,6 +867,14 @@ export default class GameEditor extends Component {
       levelConf.wall = wallGen._options;
       levelConf.shown = 'wall';
     }
+    else if (value === 'abandoned_fort') {
+      levelConf['abandoned_fort'] = abandonedFortConf;
+      levelConf.shown = 'abandoned_fort';
+    }
+    else if (value === 'dwarven_city') {
+      levelConf['dwarven_city'] = dwarvenCityConf;
+      levelConf.shown = 'dwarven_city';
+    }
     else {
       levelConf[value] = {};
       levelConf.shown = value;
@@ -1216,12 +1228,16 @@ export default class GameEditor extends Component {
     let elem = null;
     const confType = levelConf.shown;
     if (confType.length > 0) {
+      if (!levelConf.hasOwnProperty(confType)) {
+        console.error(`No conf for level type ${confType}`);
+      }
       const conf = levelConf[confType];
       elem = Object.keys(conf).map(key => {
         const currVal = levelConf[confType][key];
         const newValue = currVal ? currVal : conf[key];
         const onChangeFunc =
           this.onChangeLevelConf.bind(this, confType, key, id);
+
         if (typeof conf[key] !== 'function') {
           return (
             <label key={`${confType}--${key}`}>{key}
@@ -1231,8 +1247,7 @@ export default class GameEditor extends Component {
                 onChange={onChangeFunc}
                 value={newValue}
               />
-          </label>
-
+            </label>
           );
         }
         else {
