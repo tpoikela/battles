@@ -183,7 +183,21 @@ Y.##..#
 ....+.#
 ...##.#
 Y.##..#
-###...#`
+###...#`,
+
+`
+dir:NSE
+name:entrance_e
+X=#
+Y=#
+
+#.X..X#
+Y.##.##
+#..#.#.
+#....+.
+#..#.#.
+Y.##.##
+#.....#`
 ];
 
 // Entrances
@@ -228,7 +242,21 @@ Y.##..#
 ....+.#
 ...##.#
 Y.##..#
-###...#`
+###...#`,
+
+`
+dir:NSE
+name:entrance_e
+X=.
+Y=#
+
+#.X..X#
+Y.##.##
+...#.#.
+.....+.
+...#.#.
+Y.##.##
+#.....#`
 ];
 
 // Corridors
@@ -466,6 +494,15 @@ Castle.startRoomFuncWest = function() {
   };
 };
 
+Castle.startRoomFuncEast = function() {
+  const y = Math.floor(this.tilesY / 2);
+  const x = this.tilesX - 1;
+  const templ = this.findTemplate({name: 'entrance_e'});
+  return {
+      x, y, room: templ
+  };
+};
+
 /* Start function if two fixed entrances are required. */
 Castle.startFuncTwoGates = function() {
   const midX = Math.floor(this.tilesX / 2);
@@ -477,7 +514,25 @@ Castle.startFuncTwoGates = function() {
   return {
     x: midX, y: this.tilesY - 1, room: gateS
   };
+};
 
+/* Start function if two fixed entrances are required. */
+Castle.startFuncFourGates = function() {
+  const midX = Math.floor(this.tilesX / 2);
+  const midY = Math.floor(this.tilesY / 2);
+
+  const gateN = this.findTemplate({name: 'entrance_n'});
+  const gateS = this.findTemplate({name: 'entrance_s'});
+  const gateE = this.findTemplate({name: 'entrance_e'});
+  const gateW = this.findTemplate({name: 'entrance_w'});
+
+  this.addRoom(gateN, midX, 0);
+  this.addRoom(gateE, this.tilesX - 1, midY);
+  this.addRoom(gateW, 0, midY);
+
+  return {
+    x: midX, y: this.tilesY - 1, room: gateS
+  };
 };
 
 /* Constraint function how to generate the castle level. */
