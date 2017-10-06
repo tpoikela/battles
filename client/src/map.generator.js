@@ -518,34 +518,35 @@ RG.Map.Generator = function() { // {{{2
     };
 
     this.createTownWithWall = function(cols, rows, conf = {}) {
-        const tilesX = Math.ceil(cols / 7);
-        const tilesY = Math.ceil(rows / 7);
+        const tileSize = 7;
+        const tilesX = Math.ceil(cols / tileSize);
+        const tilesY = Math.ceil(rows / tileSize);
         const castleMapObj = this.createCastleWall(cols, rows, conf);
 
         conf.levelType = 'empty' || conf.levelType;
-        const colsTown = (tilesX - 2) * 7;
-        const rowsTown = (tilesY - 2) * 7;
+        const colsTown = (tilesX - 2) * tileSize;
+        const rowsTown = (tilesY - 2) * tileSize;
         const townMapObj = this.createTown(colsTown, rowsTown, conf);
 
         const finalMap = castleMapObj.map;
-        RG.Geometry.mergeMaps(finalMap, townMapObj.map, 7, 7);
+        RG.Geometry.mergeMaps(finalMap, townMapObj.map, tileSize, tileSize);
 
         // Adjust house coordinates due to map merging
         const houses = townMapObj.houses;
         houses.forEach(house => {
-            house.ulx += 7;
-            house.uly += 7;
-            house.lrx += 7;
-            house.lry += 7;
+            house.ulx += tileSize;
+            house.uly += tileSize;
+            house.lrx += tileSize;
+            house.lry += tileSize;
             house.walls = house.walls.map(w => {
-                w[0] += 7; w[1] += 7;
+                w[0] += tileSize; w[1] += tileSize;
                 return w;
             });
             house.floor = house.floor.map(f => {
-                f[0] += 7; f[1] += 7;
+                f[0] += tileSize; f[1] += tileSize;
                 return f;
             });
-            house.door[0] += 7; house.door[1] += 7;
+            house.door[0] += tileSize; house.door[1] += tileSize;
         });
 
         return {
