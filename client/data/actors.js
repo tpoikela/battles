@@ -295,6 +295,18 @@ const Actors = [
         equip: ['Rifle', {name: 'Steel bullet', count: 10}],
         brain: 'Archer'
     },
+    {
+        name: 'dwarven elite', base: 'dwarf',
+        attack: 5, defense: 6, damage: '2d5',
+        range: 1, hp: 50, danger: 8,
+        equip: ['Battle axe', 'Steel armour']
+    },
+    {
+        name: 'dwarven commander', base: 'dwarf',
+        attack: 8, defense: 8, damage: '2d5',
+        range: 1, hp: 60, danger: 9,
+        equip: ['Great battle axe', 'Steel armour']
+    },
     // HUMANS
     {
         name: 'human', char: '@', type: 'human',
