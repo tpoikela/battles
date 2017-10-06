@@ -8,30 +8,52 @@ RG.ObjectShell = require('../src/objectshellparser');
 RG.Element = require('../src/element');
 const Castle = require('../data/tiles.castle');
 
+const abandonedFortConf = {
+    outerColsRatio: 0.4,
+    outerRowsRatio: 0.4,
+    outerStartXRatio: 0.4,
+    mountainWallRatio: 0.3,
+    castleRowsRatio: 0.6,
+    castleColsRatio: 0.6
+};
+export {abandonedFortConf};
+
 export default class AbandonedFort {
 
-  constructor(cols, rows, conf = {}) {
+  constructor(cols, rows, conf) {
+    if (!conf) {
+        conf = abandonedFortConf;
+    }
+    const outerColsRatio = conf.outerColsRatio || 0.4;
+    const outerRowsRatio = conf.outerRowsRatio || 0.4;
+    const outerStartXRatio = conf.outerStartXRatio || 0.4;
+    const mountainWallRatio = conf.mountainWallRatio || 0.3;
+    const castleRowsRatio = conf.castleRowsRatio || 0.6;
+    const castleColsRatio = conf.castleColsRatio || 0.6;
+
     const mainWallOpts = {
-      meanWx: Math.floor(0.3 * cols),
+      meanWx: Math.floor(mountainWallRatio * cols),
       stdDev: 10,
       filterW: 7,
       north: true, south: true, east: false, west: false,
       alignHorizontal: 'right'
     };
 
-    const mainLevel = RG.FACT.createLevel('empty', cols, rows);
-    RG.Map.Generator.addRandomSnow(mainLevel.getMap(), 0.3);
+    const mountConf = {
+        nRoadTurns: 0, snowRatio: 0.3
+    };
+    const mainLevel = RG.FACT.createLevel('mountain', cols, rows, mountConf);
 
     const mapGen = new RG.Map.Generator();
     const outerWallConf = {
         startRoomFunc: Castle.startRoomFuncWest
     };
-    const outerCols = Math.round(0.4 * cols);
-    const outerRows = Math.round(0.4 * rows);
+    const outerCols = Math.round(outerColsRatio * cols);
+    const outerRows = Math.round(outerRowsRatio * rows);
     const outerWall = mapGen.createCastleWall(outerCols, outerRows,
         outerWallConf);
 
-    const outerX = Math.round(0.4 * cols);
+    const outerX = Math.round(outerStartXRatio * cols);
     const outerY = Math.round(rows / 2 - outerWall.map.rows / 2);
     RG.Geometry.mergeMaps(mainLevel.getMap(), outerWall.map, outerX, outerY);
 
@@ -43,8 +65,8 @@ export default class AbandonedFort {
     RG.Map.Generator.addRandomSnow(mountWall.getMap(), 0.3);
     RG.Geometry.insertSubLevel(mainLevel, mountWall, wallX, wallY);
 
-    const castleRows = Math.floor(0.6 * rows);
-    const castleCols = Math.floor(0.5 * cols);
+    const castleRows = Math.floor(castleRowsRatio * rows);
+    const castleCols = Math.floor(castleColsRatio * cols);
     const castleOpts = {
       tilesX: Math.round(castleCols / 7),
       tilesY: Math.round(castleRows / 7),
