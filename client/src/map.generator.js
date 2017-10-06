@@ -369,6 +369,7 @@ RG.Map.Generator = function() { // {{{2
         if (!conf.hasOwnProperty('stoneThr')) {conf.stoneThr = 0.4;}
         if (!conf.hasOwnProperty('chasmThr')) {conf.chasmThr = -0.3;}
         if (!conf.hasOwnProperty('nRoadTurns')) {conf.nRoadTurns = 4;}
+        if (!conf.hasOwnProperty('snowRatio')) {conf.nSnowRatio = 0.0;}
 
         _mapGen = new ROT.Map.Mountain(this.cols, this.rows, conf);
         _mapGen.create((x, y, val) => {
@@ -382,11 +383,19 @@ RG.Map.Generator = function() { // {{{2
                 map.setBaseElemXY(x, y, RG.ELEM.CHASM);
             }
             else {
-                map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
+                const addSnow = RG.RAND.getUniform();
+                if (addSnow < conf.snowRatio) {
+                    map.setBaseElemXY(x, y, RG.ELEM.SNOW);
+                }
+                else {
+                    map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
+                }
             }
         });
         const paths = [];
-        this.createMountainPath(map, paths, conf);
+        if (conf.nRoadTurns > 0) {
+            this.createMountainPath(map, paths, conf);
+        }
         return {map, paths};
     };
 
