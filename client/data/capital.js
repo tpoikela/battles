@@ -11,6 +11,8 @@ RG.Element = require('../src/element');
 export default class Capital {
 
   constructor(cols, rows, conf = {}) {
+
+    // Generate the main level with mountain wall
     const wallOpts = {
       meanWy: Math.floor(0.9 * rows / 2),
       stdDev: 10,
@@ -23,20 +25,21 @@ export default class Capital {
       wallOpts.west = false;
       wallOpts.meanWx = Math.floor(0.9 * cols / 2);
     }
+    const mainLevel = RG.FACT.createLevel('wall', cols, rows, wallOpts);
+    const mainMap = mainLevel.getMap();
 
-    // Not exact position, but give proportions
-
+    // Not exact position, but give proportions for sub-levels
     const subLevelPos = [0.03, 0.20, 0.75, 0.95];
     const widths = [0.5, 0.80, 0.6];
 
     const parser = RG.ObjectShell.getParser();
-
     const levelConf = [
       {nShops: 1, parser, nGates: 2},
       {nShops: 5, parser, nGates: 2},
       {nShops: 1, parser, nGates: 2}
     ];
 
+    // Create subLevels for each interval in subLevelPos array
     const subLevels = [];
     for (let i = 0; i < subLevelPos.length - 1; i++) {
       const y0 = Math.floor(rows * subLevelPos[i]);
@@ -59,6 +62,8 @@ export default class Capital {
       subLevels.push(level);
     }
 
+
+    // Calculate position and tile sub-levels into main level
     const y0 = subLevelPos[0] * cols;
     const tileConf = {x: 0, y: y0, centerX: true};
     if (conf.transpose) {
@@ -67,12 +72,9 @@ export default class Capital {
       tileConf.y = 0;
       tileConf.x = subLevelPos[0] * rows;
     }
-
-    const mainLevel = RG.FACT.createLevel('wall', cols, rows, wallOpts);
     RG.Geometry.tileLevels(mainLevel, subLevels, tileConf);
-    const mainMap = mainLevel.getMap();
 
-    // Add entrance stairs
+    // Add entrance stairs and create path through the level
     if (conf.transpose) {
         const midY = Math.floor(rows / 2);
         const stairsWest = new RG.Element.Stairs(false, mainLevel);
@@ -95,7 +97,7 @@ export default class Capital {
         RG.Path.addPathToMap(mainMap, path);
     }
 
-    // Create the actors for this level
+    // Create the actors and items for this level
     const actorConf = {
         footman: 100,
         archer: 50,
