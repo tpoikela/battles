@@ -72,6 +72,26 @@ export default class DwarvenCity {
       RG.Geometry.tileLevels(mainLevel,
         [mainFortLevel, entrFortLevel], tileConf);
 
+      const parser = RG.ObjectShell.getParser();
+      // Create the actors and items for this level
+      const actorConf = {
+          fighter: 100,
+          axeman: 50,
+          elite: 25,
+          rifleman: 25,
+          commander: 5
+      };
+      const actors = [];
+      Object.keys(actorConf).forEach(key => {
+        const name = `dwarven ${key}`;
+        const num = actorConf[key];
+        for (let i = 0; i < num; i++) {
+            const actor = parser.createActor(name);
+            actors.push(actor);
+        }
+      });
+      RG.Factory.addPropsToFreeCells(mainLevel, actors, RG.TYPE_ACTOR);
+
       this.level = mainLevel;
     }
 
