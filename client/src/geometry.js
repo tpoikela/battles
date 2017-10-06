@@ -285,6 +285,28 @@ RG.Geometry = {
       }
     },
 
+    /* Wraps given array of levels into new super level. */
+    wrapAsLevel: function(levels, conf) {
+      const maxCallback = (acc, curr) => Math.max(acc, curr);
+      const levelCols = levels.map(l => l.getMap().cols);
+      const levelRows = levels.map(l => l.getMap().rows);
+      let level = null;
+
+      if (conf.centerY) {
+        const rowsMax = levelRows.reduce(maxCallback);
+        const colsTotal = levelCols.reduce((sum, value) => sum + value, 0);
+        level = RG.FACT.createLevel('empty', colsTotal, rowsMax);
+        this.tileLevels(level, levels, {centerY: true, x: 0, y: 0});
+      }
+      else if (conf.centerX) {
+        const rowsTotal = levelRows.reduce((sum, value) => sum + value, 0);
+        const colsMax = levelCols.reduce(maxCallback);
+        level = RG.FACT.createLevel('empty', colsMax, rowsTotal);
+        this.tileLevels(level, levels, {centerX: true, x: 0, y: 0});
+      }
+      return level;
+    },
+
     /* Inserts a level inside another one. Function works only for elements, and
      * sets map cells only. */
     insertSubLevel: function(l1, l2, startX, startY) {
