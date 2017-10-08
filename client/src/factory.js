@@ -229,7 +229,7 @@ RG.Factory.Item = function() {
                 items.push(food);
             }
             else {
-                RG.warn('Factory.Base', 'addNRandItems',
+                RG.warn('Factory.Item', 'addNRandItems',
                     'Item.Food was not created properly.');
             }
         }
