@@ -9,7 +9,7 @@ import 'babel-polyfill';
 import { JSDOM } from 'jsdom';
 import indexedDB from 'fake-indexeddb';
 import now from 'performance-now';
-// import MockStorage from './mockstorage';
+import MockStorage from './mockstorage';
 import requestAnimFrame from './requestAnimFrame';
 
 const dom = new JSDOM(`
@@ -43,5 +43,5 @@ global.navigator = {
 global.window.indexedDB = indexedDB;
 global.performance = { now };
 global.MathJax = { Hub: { Config: () => {}, Queue: () => {} } };
-// global.window.localStorage = new MockStorage();
+global.localStorage = new MockStorage();
 
