@@ -15,9 +15,6 @@ const FileSaver = require('file-saver');
 
 const Screen = require('../gui/screen');
 
-const RGEffects = require('../data/effects');
-const RGObjects = require('../data/battles_objects');
-
 const NO_VISIBLE_CELLS = [];
 
 const RG = require('../src/rg');
@@ -183,9 +180,7 @@ export default class GameEditor extends Component {
 
     this.state = state;
 
-    this.parser = new RG.ObjectShell.Parser();
-    this.parser.parseShellData(RGEffects);
-    this.parser.parseShellData(RGObjects);
+    this.parser = RG.ObjectShell.getParser();
 
     this.intervalID = null;
     this.frameID = null;
@@ -615,7 +610,9 @@ export default class GameEditor extends Component {
   }
 
   debugMsg(msg) {
-    console.log('[DEBUG] ' + msg);
+    if (this.state.debug) {
+      console.log('[DEBUG] ' + msg);
+    }
   }
 
   getBBoxForInsertion() {
@@ -625,12 +622,16 @@ export default class GameEditor extends Component {
       return RG.Geometry.getBoxCornersForCells(c0, c1);
     }
     else {
-      const ulx = this.getSelectedCell().getX();
-      const uly = this.getSelectedCell().getY();
-      const lrx = this.state.insertXWidth + ulx - 1;
-      const lry = this.state.insertYWidth + uly - 1;
-      return {ulx, uly, lrx, lry};
+      const selCell = this.getSelectedCell();
+      if (selCell) {
+        const ulx = selCell.getX();
+        const uly = selCell.getY();
+        const lrx = this.state.insertXWidth + ulx - 1;
+        const lry = this.state.insertYWidth + uly - 1;
+        return {ulx, uly, lrx, lry};
+      }
     }
+    return {ulx: 0, uly: 0, lrx: 0, lry: 0};
   }
 
   insertElement() {
@@ -780,7 +781,10 @@ export default class GameEditor extends Component {
           {simulationButtons}
 
           <div className='btn-div'>
-            <button onClick={this.saveLevel}>Save</button>
+            <button
+              id='btn-save-level'
+              onClick={this.saveLevel}
+            >Save</button>
             <input
               id='level-file-input'
               onChange={this.loadLevel}
@@ -1202,11 +1206,16 @@ export default class GameEditor extends Component {
     this.setState({level: level, levelIndex: i});
   }
 
-  /* When delete cross is pressed, deletes the level. */
+  /* When delete X button is pressed, deletes the level. */
   deleteLevel(evt) {
-    evt.stopPropagation();
+    if (evt) {
+      evt.stopPropagation();
+    }
+
     const {id} = evt.target;
-    const i = parseInt(id, 10);
+    let i = id.match(/(\d+)$/)[1];
+    i = parseInt(id, 10);
+
     const levelList = this.state.levelList;
     levelList.splice(i, 1);
     const shownLevel = levelList.length > 0 ? levelList[0] : null;
@@ -1318,15 +1327,29 @@ export default class GameEditor extends Component {
           <div className='col-md-6'>
 
             <div className='btn-div'>
-              <button onClick={this.generateWorld}>OverWorld!</button>
+              <button
+                id='btn-gen-world'
+                onClick={this.generateWorld}
+              >OverWorld!</button>
+
               <span>Zoom In/Out:
-                <button onClick={this.zoom.bind(this, '+')}>+</button>
-                <button onClick={this.zoom.bind(this, '-')}>-</button>
+                <button
+                  id='btn-zoom-in'
+                  onClick={this.zoom.bind(this, '+')}
+                >+</button>
+                <button
+                  id='btn-zoom-out'
+                  onClick={this.zoom.bind(this, '-')}
+                >-</button>
               </span>
             </div>
 
             <div className='btn-div'>
-              <button onClick={this.generateZone}>Zone!</button>
+              <button
+                id='btn-gen-zone'
+                onClick={this.generateZone}
+              >Zone!</button>
+
               <select
                 name='feature-type'
                 onChange={this.onChangeZoneType}
@@ -1337,7 +1360,10 @@ export default class GameEditor extends Component {
             </div>
 
             <div className='btn-div'>
-              <button onClick={this.generateLevel}>Level!</button>
+              <button
+                id='btn-gen-level'
+                onClick={this.generateLevel}
+              >Level!</button>
               <select
                 name='level-type'
                 onChange={this.onChangeMapType}
@@ -1397,8 +1423,15 @@ export default class GameEditor extends Component {
             </div>
 
             <div className='btn-div'>
-              <button onClick={this.generateActors}>Actors!</button>
-              <button onClick={this.generateItems}>Items!</button>
+              <button
+                id='btn-gen-actors'
+                onClick={this.generateActors}
+              >Actors!</button>
+
+              <button
+                id='btn-gen-items'
+                onClick={this.generateItems}
+              >Items!</button>
               <input
                 name='gen-num-entities'
                 onChange={this.onChangeNumEntities}
@@ -1407,14 +1440,20 @@ export default class GameEditor extends Component {
             </div>
 
             <div className='btn-div'>
-              <button onClick={this.insertElement}>Insert element</button>
+              <button
+                id='btn-insert-element'
+                onClick={this.insertElement}
+              >Insert element</button>
               <select
                 name='insert-element'
                 onChange={this.onChangeElement}
                 value={this.state.elementType}
               >{elementSelectElem}
               </select>
-              <button onClick={this.insertActor}>Insert actor</button>
+              <button
+                id='btn-insert-actor'
+                onClick={this.insertActor}
+              >Insert actor</button>
               <select
                 name='insert-actor'
                 onChange={this.onChangeActor}
@@ -1424,7 +1463,10 @@ export default class GameEditor extends Component {
             </div>
 
             <div className='btn-div'>
-              <button onClick={this.insertItem}>Insert item</button>
+              <button
+                id='btn-insert-item'
+                onClick={this.insertItem}
+              >Insert item</button>
               <select
                 name='insert-item'
                 onChange={this.onChangeItem}
@@ -1569,7 +1611,7 @@ export default class GameEditor extends Component {
           {nItemsShow}
           <button
             className='btn-xs btn-danger pull-right'
-            id={i}
+            id={'btn-delete-level-' + i}
             onClick={this.deleteLevel}
           >X</button>
         </a>
