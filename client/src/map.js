@@ -259,7 +259,7 @@ RG.Map.Cell.prototype.getProp = function(prop) {
  * rendering
  * while the level contains actual information about game elements such as
  * monsters and items.  */
-RG.Map.CellList = function(cols, rows) { // {{{2
+RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
     this._map = [];
     this.cols = cols;
     this.rows = rows;
@@ -276,7 +276,7 @@ RG.Map.CellList = function(cols, rows) { // {{{2
     for (let x = 0; x < this.cols; x++) {
         this._map.push([]);
         for (let y = 0; y < this.rows; y++) {
-            const elem = RG.ELEM.FLOOR;
+            const elem = baseElem;
             this._map[x].push(new RG.Map.Cell(x, y, elem));
         }
     }
