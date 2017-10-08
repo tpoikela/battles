@@ -18,7 +18,7 @@ export default class DwarvenCity {
 
     constructor(cols, rows, conf = dwarvenCityConf) {
       const wallOpts = {
-        meanWy: Math.floor(0.9 * rows / 2),
+        meanWy: Math.floor(0.85 * rows / 2),
         stdDev: 10,
         filterW: 7
       };
@@ -26,21 +26,106 @@ export default class DwarvenCity {
 
       const outerColsRatio = conf.outerColsRatio || 0.35;
       const outerRowsRatio = conf.outerRowsRatio || 0.35;
-
-      const mapGen = new RG.Map.Generator();
-      const outerFortConf = {
-          startRoomFunc: Castle.startFuncFourGates
-      };
       let outerCols = Math.round(outerColsRatio * cols);
       let outerRows = Math.round(outerRowsRatio * rows);
       outerCols = this.adjustToTileSize(outerCols);
       outerRows = this.adjustToTileSize(outerRows);
 
-      const outerFort = mapGen.createCastleWall(outerCols, outerRows,
+      const entrFortLevel = this.createEntryFortLevel(outerCols, outerRows);
+
+      const mainCols = outerCols + 2 * 7;
+      const mainRows = outerRows + 2 * 7;
+      const mainFortLevel = this.createMainFortLevel(mainCols, mainRows);
+
+      const fortStartY = 10;
+      const fortEndY = mainRows + outerRows;
+      const fortStartX = Math.ceil((cols - mainFortLevel.getMap().cols) / 2);
+      const fortEndX = fortStartX + mainCols;
+
+      // Tile all levels together into mainLevel
+      const tileConf = {
+        centerY: false, centerX: true,
+        y: fortStartY, x: 0
+      };
+      RG.Geometry.tileLevels(mainLevel,
+        [mainFortLevel, entrFortLevel], tileConf);
+
+      const bbox = {
+          ulx: fortStartX, uly: fortStartY,
+          lrx: fortEndX, lry: fortEndY
+      };
+      this.addItemsAndActors(mainLevel, bbox);
+
+      this.level = mainLevel;
+    }
+
+    adjustToTileSize(number) {
+      while (number % TILE_SIZE !== 0) {
+        ++number;
+      }
+      if (number % 2 * TILE_SIZE === 0) {number += TILE_SIZE;}
+      return number;
+    }
+
+    /* Returns the main fort level with created side-castles. Dimensions of the
+     * main fort must be given. */
+    createMainFortLevel(cols, rows) {
+      const fortConf = {
+          startRoomFunc: Castle.startFuncFourGates
+      };
+      const mapGen = new RG.Map.Generator();
+
+      const mainFort = mapGen.createCastleWall(cols, rows, fortConf);
+
+      const castleCols = cols - 6 * 7;
+      const castleRows = rows - 4 * 7;
+      const innerCastle = mapGen.createCastle(castleCols, castleRows,
+        {roomCount: -1, nGates: 2});
+      const castleLevel = new RG.Map.Level(10, 10);
+      castleLevel.setMap(innerCastle.map);
+      RG.Geometry.mergeMaps(mainFort.map, innerCastle.map, 3 * 7, 2 * 7);
+
+      const mainFortLevel = new RG.Map.Level(10, 10);
+      mainFortLevel.setMap(mainFort.map);
+
+      const mainFortWest = mapGen.createCastle(7 * 7, 5 * 7,
+          {startRoomFunc: Castle.startRoomFuncEast,
+              roomCount: -1}
+      );
+      const mainFortEast = mapGen.createCastle(7 * 7, 5 * 7,
+          {startRoomFunc: Castle.startRoomFuncWest,
+              roomCount: -1}
+      );
+
+      const mainFortWestLevel = new RG.Map.Level(10, 10);
+      mainFortWestLevel.setMap(mainFortWest.map);
+      const mainFortEastLevel = new RG.Map.Level(10, 10);
+      mainFortEastLevel.setMap(mainFortEast.map);
+
+      const mainFortLevels = [mainFortWestLevel, mainFortLevel,
+        mainFortEastLevel];
+
+      const wrapConf = {centerY: true, baseElem: RG.ELEM.WALL};
+      return RG.Geometry.wrapAsLevel(mainFortLevels, wrapConf);
+    }
+
+    /* Returns the first entrance fort. */
+    createEntryFortLevel(cols, rows) {
+      const mapGen = new RG.Map.Generator();
+      const outerFortConf = {
+          startRoomFunc: Castle.startFuncFourGates
+      };
+
+      const outerFort = mapGen.createCastleWall(cols, rows,
         outerFortConf);
 
-      const mainFort = mapGen.createCastleWall(outerCols, outerRows,
-        outerFortConf);
+      const castleCols = cols - 6 * 7;
+      const castleRows = rows - 6 * 7;
+      const innerCastle = mapGen.createCastle(castleCols, castleRows,
+        {nGates: 2, roomCount: -1});
+      const castleLevel = new RG.Map.Level(10, 10);
+      castleLevel.setMap(innerCastle.map);
+      RG.Geometry.mergeMaps(outerFort.map, innerCastle.map, 3 * 7, 3 * 7);
 
       const smallFortWest = mapGen.createCastleWall(3 * 7, 3 * 7,
         {startRoomFunc: Castle.startRoomFuncEast}
@@ -49,36 +134,29 @@ export default class DwarvenCity {
         {startRoomFunc: Castle.startRoomFuncWest}
       );
 
-      const outerFortLevel = new RG.Map.Level(10, 10);
-      outerFortLevel.setMap(outerFort.map);
-
-      const mainFortLevel = new RG.Map.Level(10, 10);
-      mainFortLevel.setMap(mainFort.map);
+      const entryFortLevel = new RG.Map.Level(10, 10);
+      entryFortLevel.setMap(outerFort.map);
 
       const fortWestLevel = new RG.Map.Level(10, 10);
       fortWestLevel.setMap(smallFortWest.map);
       const fortEastLevel = new RG.Map.Level(10, 10);
       fortEastLevel.setMap(smallFortEast.map);
 
-      const subLevels = [fortWestLevel, outerFortLevel, fortEastLevel];
-      const tileConf = {
-        centerY: false,
-        centerX: true,
-        y: 10,
-        // x: Math.floor((cols - outerCols) / 2)
-        x: 0
-      };
-      const entrFortLevel = RG.Geometry.wrapAsLevel(subLevels, {centerY: true});
-      RG.Geometry.tileLevels(mainLevel,
-        [mainFortLevel, entrFortLevel], tileConf);
+      const subLevels = [fortWestLevel, entryFortLevel, fortEastLevel];
+      const wrapConf = {centerY: true, baseElem: RG.ELEM.WALL};
+      return RG.Geometry.wrapAsLevel(subLevels, wrapConf);
 
+    }
+
+    /* Adds actors and items into the level using bbox as constraint.
+     * This guarantees that everything's placed inside the fort. */
+    addItemsAndActors(level, bbox) {
       const parser = RG.ObjectShell.getParser();
-      // Create the actors and items for this level
+      const freeCells = level.getMap().getFreeInBbox(bbox);
+
       const actorConf = {
-          fighter: 100,
-          axeman: 50,
-          elite: 25,
-          rifleman: 25,
+          fighter: 100, axeman: 50,
+          elite: 25, rifleman: 25,
           commander: 5
       };
       const actors = [];
@@ -90,17 +168,9 @@ export default class DwarvenCity {
             actors.push(actor);
         }
       });
-      RG.Factory.addPropsToFreeCells(mainLevel, actors, RG.TYPE_ACTOR);
+      RG.Factory.addPropsToCells(level, freeCells, actors, RG.TYPE_ACTOR);
 
-      this.level = mainLevel;
-    }
-
-    adjustToTileSize(number) {
-      while (number % TILE_SIZE !== 0) {
-        ++number;
-      }
-      if (number % 2 * TILE_SIZE === 0) {number += TILE_SIZE;}
-      return number;
+      // Add items, avoid placing anything to "hallways" of castles
     }
 
     getLevel() {
