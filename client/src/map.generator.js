@@ -465,8 +465,9 @@ RG.Map.Generator = function() { // {{{2
     };
 
     this.createCastle = function(cols, rows, conf = {}) {
-        const tilesX = conf.tilesX || 12;
-        const tilesY = conf.tilesY || 8;
+        const tilesX = conf.tilesX || Math.ceil(cols / 7);
+        const tilesY = conf.tilesY || Math.ceil(rows / 7);
+
         const level = new TemplateLevel(tilesX, tilesY);
         level.use(Castle);
         level.setTemplates(Castle.Models.full);
