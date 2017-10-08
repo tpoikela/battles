@@ -13,8 +13,8 @@ describe('Function: Creating game world from a file', function() {
         const fact = new RG.Factory.World();
 
         const fromJSON = new RG.Game.FromJSON();
-        Object.values(worldConf.presetLevels).forEach(arr => {
-            arr.forEach((obj, index) => {
+        Object.values(worldConf.presetLevels).forEach(hierName => {
+            hierName.forEach((obj, index) => {
                 obj.level = fromJSON.restoreLevel(obj.level);
                 obj.level.setID(666666 + index);
             });
