@@ -4,14 +4,13 @@ import PropTypes from 'prop-types';
 
 import GameBoard from '../jsx/game-board';
 import GameMessages from '../jsx/game-messages';
+import LevelSaveLoad from './level-save-load';
 import Capital from '../data/capital';
 import AbandonedFort, {abandonedFortConf} from '../data/abandoned-fort';
 import DwarvenCity, {dwarvenCityConf} from '../data/dwarven-city';
 
 const ROT = require('../../lib/rot');
 ROT.Map.Wall = require('../../lib/map.wall');
-
-const FileSaver = require('file-saver');
 
 const Screen = require('../gui/screen');
 
@@ -186,6 +185,8 @@ export default class GameEditor extends Component {
     this.frameID = null;
 
     // Bind functions for callbacks
+    this.setMsg = this.setMsg.bind(this);
+
     this.generateWorld = this.generateWorld.bind(this);
     this.generateZone = this.generateZone.bind(this);
     this.onChangeZoneType = this.onChangeZoneType.bind(this);
@@ -205,9 +206,6 @@ export default class GameEditor extends Component {
     this.generateActors = this.generateActors.bind(this);
     this.generateItems = this.generateItems.bind(this);
     this.onChangeNumEntities = this.onChangeNumEntities.bind(this);
-
-    this.saveLevel = this.saveLevel.bind(this);
-    this.loadLevel = this.loadLevel.bind(this);
 
     this.onCellClick = this.onCellClick.bind(this);
     this.onChangeCellSelectX = this.onChangeCellSelectX.bind(this);
@@ -352,74 +350,6 @@ export default class GameEditor extends Component {
     }
   }
 
-  /* Converts the rendered level to JSON and puts that into localStorage.*/
-  saveLevel() {
-    const json = this.state.level.toJSON();
-    try {
-      /* eslint-disable */
-      const isFileSaverSupported = !!new Blob;
-      /* eslint-enable */
-      if (isFileSaverSupported) {
-        const date = new Date().getTime();
-        const fname = `${date}_${this.state.savedLevelName}.json`;
-        const text = JSON.stringify(json);
-        const blob = new Blob([text],
-          {type: 'text/plain;charset=utf-8'});
-        FileSaver.saveAs(blob, fname);
-      }
-    }
-    catch (e) {
-      let msg = 'No Blob support in browser. Saving to localStorage.\n';
-      msg += 'You can visit /level.html to view the JSON.';
-      localStorage.setItem('savedLevel', JSON.stringify(json));
-      this.setState({errorMsg: msg});
-    }
-  }
-
-  /* Loads a user file and converts that into a level object, which will be
-   * shown if the loading was successful. */
-  loadLevel() {
-    const fileList = document.querySelector('#level-file-input').files;
-    console.log('Filelist has ' + fileList.length + ' files');
-
-    const file = fileList[0];
-    for (const f in file) {
-      if (f) {
-        console.log(f + '->' + JSON.stringify(file[f]));
-      }
-    }
-    if (file) {
-      console.log(JSON.stringify(file));
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const text = reader.result;
-
-        console.log('FileReader text: ' + text);
-        try {
-          // Many things can go wrong: Not JSON, not a valid level..
-          const json = JSON.parse(text);
-          const fromJSON = new RG.Game.FromJSON();
-          const level = fromJSON.restoreLevel(json);
-          fromJSON.restoreEntityData();
-          this.addLevelToEditor(level);
-        }
-        catch (e) {
-          const msg = 'File: Not valid JSON or level: ' + e.message;
-          this.setState({errorMsg: msg});
-        }
-      };
-      reader.onerror = (e) => {
-        const msg = 'Filereader error: ' + e;
-        this.setState({errorMsg: msg});
-      };
-
-      reader.readAsText(file);
-    }
-    else {
-      const msg = 'Could not get the file.';
-      this.setState({errorMsg: msg});
-    }
-  }
 
   /* Generates a world scale map using overworld algorithm and adds it to the
    * editor. Does not generate any sublevels or zones. */
@@ -444,7 +374,6 @@ export default class GameEditor extends Component {
 
   generateZone() {
     const zoneType = this.state.zoneType;
-    console.log('Adding feature type ' + zoneType);
     const fact = new RG.Factory.World();
     const featConf = this.state.zoneConf[zoneType];
 
@@ -525,8 +454,6 @@ export default class GameEditor extends Component {
     const levelType = this.state.subLevelType;
     let conf = {};
 
-    console.log('Subgenerating...');
-
     if (this.state.subLevelConf.hasOwnProperty(levelType)) {
       conf = this.state.subLevelConf[levelType];
     }
@@ -548,7 +475,6 @@ export default class GameEditor extends Component {
             const subLevel = RG.FACT.createLevel(
               levelType, subWidth, this.state.subLevelY, conf);
             RG.Geometry.insertSubLevel(level, subLevel, xSub, ySub);
-            console.log('Inserted a sublevel');
           }
         }
       }
@@ -558,9 +484,6 @@ export default class GameEditor extends Component {
       }
 
       level.getMap()._optimizeForRowAccess();
-
-      console.log('Calling setState now');
-      // this.setState({level: level, errorMsg});
       this.setState(updateLevelAndErrorMsg(level, errorMsg));
     }
     else {
@@ -683,6 +606,10 @@ export default class GameEditor extends Component {
     this.setStateWithLevel(level);
   }
 
+  setMsg(msg) {
+    this.setState({errorMsg: msg});
+  }
+
   render() {
     const mapShown = this.props.mapShown;
     let rowClass = 'cell-row-div-player-view';
@@ -711,7 +638,6 @@ export default class GameEditor extends Component {
       }
     }
     else {
-      console.log('Clearing the screen');
       this.screen.clear();
     }
 
@@ -751,7 +677,6 @@ export default class GameEditor extends Component {
         }
 
         <div className='row'>
-
           <div className='col-md-2'>
             <div className='list-group'>
               List of levels:
@@ -775,21 +700,19 @@ export default class GameEditor extends Component {
               />
             </div>
           </div>
-
         </div>
+
         <div className='game-editor-bottom-btn'>
           {simulationButtons}
 
           <div className='btn-div'>
-            <button
-              id='btn-save-level'
-              onClick={this.saveLevel}
-            >Save</button>
-            <input
-              id='level-file-input'
-              onChange={this.loadLevel}
-              type='file'
+            <LevelSaveLoad
+                addLevelToEditor={this.addLevelToEditor}
+                level={this.state.level}
+                levelName={this.state.savedLevelName}
+                setMsg={this.setMsg}
             />
+
             <div>
               <button
                 className='btn btn-danger btn-lg'
@@ -1075,9 +998,7 @@ export default class GameEditor extends Component {
   //----------------------------------------------------------------
 
   playAnimation() {
-    console.log('Animation start');
     if (this.game.hasAnimation()) {
-      console.log('\tAnimation frame');
       const anim = this.game.getAnimationFrame();
       this.setState({render: true, animation: anim});
       this.animationID = requestAnimationFrame(
@@ -1085,7 +1006,6 @@ export default class GameEditor extends Component {
     }
     else {
       // Animation is finished
-      console.log('\tAnimation finished');
       this.setState({render: true, animation: null});
       this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
     }
