@@ -27,14 +27,14 @@ describe('RG.Geometry', () => {
         const x2 = 1 + 10;
         const y2 = 1 + 10 + 10;
         const cellType2 = superLevel.getMap().getBaseElemXY(x2, y2).getType();
-        superLevel.getMap().debugPrintInASCII();
+        // superLevel.getMap().debugPrintInASCII();
         expect(cellType2).to.equal('wall');
     });
 
     it('can center the tiled levels.', () => {
         const conf = {x: 1, y: 1, centerX: true};
         RG.Geometry.tileLevels(superLevel, levels, conf);
-        superLevel.getMap().debugPrintInASCII();
+        // superLevel.getMap().debugPrintInASCII();
     });
 
     it('can generate "straight" paths for missiles', () => {
@@ -56,5 +56,39 @@ describe('RG.Geometry', () => {
         const [xxEnd, yyEnd] = [8, 3];
         path = RG.Geometry.getMissilePath(xx, yy, xxEnd, yyEnd);
         expect(path).to.have.length(8 - 1 + 1);
+    });
+
+    it('can do a full merge for two levels', () => {
+        const l1 = RG.FACT.createLevel('empty', 40, 40);
+        const l2 = RG.FACT.createLevel('arena', 20, 20);
+
+        const actor2 = new RG.Actor.Rogue('rat');
+        l2.addActor(actor2, 1, 2);
+
+        const item2 = new RG.Item.Weapon('sword');
+        l2.addItem(item2, 4, 5);
+
+        const stairs2 = new RG.Element.Stairs(true, l2);
+        l2.addStairs(stairs2, 7, 8);
+
+        const mX = 2;
+        const mY = 3;
+        RG.Geometry.mergeLevels(l1, l2, mX, mY);
+
+        const wallElem = l1.getMap().getBaseElemXY(mX, mY);
+        expect(wallElem.getType()).to.match(/wall/);
+
+        const actor2Merged = l1.getActors()[0];
+        expect(actor2Merged.getX()).to.equal(1 + mX);
+        expect(actor2Merged.getY()).to.equal(2 + mY);
+
+        const item2Merged = l1.getItems()[0];
+        expect(item2Merged.getX()).to.equal(4 + mX);
+        expect(item2Merged.getY()).to.equal(5 + mY);
+
+        const stairsMerged = l1.getStairs()[0];
+        expect(stairsMerged.getX()).to.equal(7 + mX);
+        expect(stairsMerged.getY()).to.equal(8 + mY);
+        expect(stairsMerged.getSrcLevel().getID()).to.equal(l1.getID());
     });
 });
