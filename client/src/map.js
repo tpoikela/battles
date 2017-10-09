@@ -658,6 +658,10 @@ RG.Map.Level = function() { // {{{2
         return this._addPropToLevelXY(RG.TYPE_ELEM, elem, x, y);
     };
 
+    this.removeElement = function(elem, x, y) {
+        return this._removePropFromLevelXY(RG.TYPE_ELEM, elem, x, y);
+    };
+
     //---------------------------------------------------------------------
     // ITEM RELATED FUNCTIONS
     //---------------------------------------------------------------------
