@@ -40,7 +40,7 @@ export default class DwarvenCity {
       const fortStartY = 10;
       const fortEndY = mainRows + outerRows;
       const fortStartX = Math.ceil((cols - mainFortLevel.getMap().cols) / 2);
-      const fortEndX = fortStartX + mainCols;
+      const fortEndX = cols - fortStartX;
 
       // Tile all levels together into mainLevel
       const tileConf = {
@@ -56,6 +56,8 @@ export default class DwarvenCity {
           lrx: fortEndX, lry: fortEndY
       };
       this.addItemsAndActors(mainLevel, bbox);
+
+      this.addStairsToLevel(cols, rows, mainLevel);
 
       this.level = mainLevel;
     }
@@ -156,9 +158,9 @@ export default class DwarvenCity {
       const freeCells = level.getMap().getFreeInBbox(bbox);
 
       const actorConf = {
-          fighter: 100, axeman: 50,
-          elite: 25, rifleman: 25,
-          commander: 5
+          fighter: 200, axeman: 100,
+          elite: 50, rifleman: 50,
+          commander: 20
       };
       const actors = [];
       Object.keys(actorConf).forEach(key => {
@@ -176,6 +178,14 @@ export default class DwarvenCity {
 
     getLevel() {
       return this.level;
+    }
+
+    addStairsToLevel(cols, rows, level) {
+        const midX = Math.floor(cols / 2);
+        const stairsNorth = new RG.Element.Stairs(false, level);
+        level.addStairs(stairsNorth, midX, 0);
+        const stairsSouth = new RG.Element.Stairs(false, level);
+        level.addStairs(stairsSouth, midX, rows - 1);
     }
 
 }
