@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { mount, shallow } from 'enzyme';
+import { shallow, mount } from 'enzyme';
 import chaiEnzyme from 'chai-enzyme';
 import chai, { expect } from 'chai';
 
@@ -22,7 +22,7 @@ describe('Component <GameEditor>', function() {
     });
 
     it('should respond correctly to button onClick-callbacks', () => {
-        const wrapper = shallow(<GameEditor {...props} />);
+        const wrapper = mount(<GameEditor {...props} />);
         expect(wrapper, 'Component must render with mount').to.have.length(1);
 
         const genActorsBtn = wrapper.find('#btn-gen-actors');
@@ -71,18 +71,24 @@ describe('Component <GameEditor>', function() {
         const buttons = ['#btn-insert-item', '#btn-insert-element',
             '#btn-insert-actor'];
 
-        wrapper.setState({actorName: 'dwarven elite', itemName: 'dagger'});
+        const currLevel = wrapper.state('level');
+        let insertX = 1;
+        let insertY = 1;
+        wrapper.setState({actorName: 'dwarven elite', itemName: 'Dagger'});
+
         buttons.forEach(btnID => {
+            const cell = currLevel.getMap().getCell(insertX++, insertY++);
+            wrapper.setState({selectBegin: cell, selectEnd: cell,
+                selectMode: true});
             const button = wrapper.find(btnID);
             button.simulate('click');
             expect(wrapper.state('errorMsg')).to.equal('');
         });
-        const currLevel = wrapper.state('level');
+
         expect(currLevel.getActors(), 'Level has 1 actor')
             .to.have.length(1);
-        // expect(currLevel.getItems(), 'Level has 1 item')
-        // .to.have.length(1);
-
+        expect(currLevel.getItems(), 'Level has 1 item')
+            .to.have.length(1);
     });
 
 });
