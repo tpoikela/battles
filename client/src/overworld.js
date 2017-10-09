@@ -21,8 +21,9 @@
  *    2  #### <-(lrx, lry)
  */
 
-import Capital from '../data/capital';
 import AbandonedFort from '../data/abandoned-fort';
+import Capital from '../data/capital';
+import DwarvenCity from '../data/dwarven-city';
 
 const RG = require('./rg');
 RG.Names = require('../data/name-gen');
@@ -753,8 +754,8 @@ RG.OverWorld.createWorldConf = (ow, subLevels, nTilesX, nTilesY) => {
                     }
                     else if (feat.type === 'dwarven city') { // WTOWER
                         // TODO
-                        addCityConfToArea(feat, coordObj, areaConf);
-                        // addDwarvenCityConfToArea(feat, coordObj, areaConf);
+                        // addCityConfToArea(feat, coordObj, areaConf);
+                        addDwarvenCityConfToArea(feat, coordObj, areaConf);
                     }
                     else if (feat.type === 'abandoned fort') {
                         // TODO
@@ -864,11 +865,33 @@ function addCapitalConfToArea(feat, coordObj, areaConf) {
     areaConf.city.push(cityConf);
 }
 
-/*
 function addDwarvenCityConfToArea(feat, coordObj, areaConf) {
+    const fortConf = {};
+    const dwarvenCity = new DwarvenCity(300, 250, fortConf).getLevel();
+    const cityConf = {
+        name: 'Dwarven City',
+        nQuarters: 1,
+        quarter: [{name: 'Fort main level', nLevels: 1}]
+    };
+    cityConf.presetLevels = {
+        'Dwarven City.Fort main level': [{nLevel: 0, level: dwarvenCity}]
+    };
+    addLocationToZoneConf(feat, coordObj, cityConf);
 
+    addLocationToZoneConf(feat, coordObj, cityConf);
+    const mainConn = {
+        name: 'Fort main level',
+        levelX: cityConf.levelX,
+        levelY: cityConf.levelY,
+        nLevel: 0,
+        stairs: dwarvenCity.getStairs()[1]
+    };
+
+    cityConf.connectToXY[0].stairs = dwarvenCity.getStairs()[0];
+    cityConf.connectToXY.push(mainConn);
+    areaConf.nCities += 1;
+    areaConf.city.push(cityConf);
 }
-*/
 
 function addAbandonedFortToArea(feat, coordObj, areaConf) {
     const fortConf = {};
