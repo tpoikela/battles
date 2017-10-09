@@ -43,6 +43,7 @@ export default class AbandonedFort {
         nRoadTurns: 0, snowRatio: 0.3
     };
     const mainLevel = RG.FACT.createLevel('mountain', cols, rows, mountConf);
+    const mainMap = mainLevel.getMap();
 
     const mapGen = new RG.Map.Generator();
     const outerWallConf = {
@@ -55,7 +56,7 @@ export default class AbandonedFort {
 
     const outerX = Math.round(outerStartXRatio * cols);
     const outerY = Math.round(rows / 2 - outerWall.map.rows / 2);
-    RG.Geometry.mergeMaps(mainLevel.getMap(), outerWall.map, outerX, outerY);
+    RG.Geometry.mergeMapElems(mainMap, outerWall.map, outerX, outerY);
 
     const wallCols = Math.floor(cols / 2);
     const mountWall = RG.FACT.createLevel('wall', wallCols, rows,
@@ -86,7 +87,6 @@ export default class AbandonedFort {
     const stairsWest = new RG.Element.Stairs(false, mainLevel);
     mainLevel.addStairs(stairsWest, 0, midY);
 
-    const mainMap = mainLevel.getMap();
 
     // Exit stairs are added to right-most coordinates
     const y0 = castleY;
