@@ -530,7 +530,7 @@ RG.Map.Generator = function() { // {{{2
         const townMapObj = this.createTown(colsTown, rowsTown, conf);
 
         const finalMap = castleMapObj.map;
-        RG.Geometry.mergeMaps(finalMap, townMapObj.map, tileSize, tileSize);
+        RG.Geometry.mergeMapElems(finalMap, townMapObj.map, tileSize, tileSize);
 
         // Adjust house coordinates due to map merging
         const houses = townMapObj.houses;
