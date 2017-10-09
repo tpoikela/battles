@@ -293,18 +293,60 @@ RG.Geometry = {
     insertSubLevel: function(l1, l2, startX, startY) {
         const m1 = l1.getMap();
         const m2 = l2.getMap();
-        this.mergeMaps(m1, m2, startX, startY);
+        this.mergeMapElems(m1, m2, startX, startY);
     },
 
-    mergeMaps: function(m1, m2, startX, startY) {
+    /* Does a full Map.Level merge. Actors, items and elements included. */
+    mergeLevels: function(l1, l2, startX, startY) {
+        const m1 = l1.getMap();
+        const m2 = l2.getMap();
+        const actors = l2.getActors();
+        const items = l2.getItems();
+        const elements = l2.getElements();
+
+        const getNewXY = prop => [prop.getX() + startX, prop.getY() + startY];
+
+        actors.forEach(actor => {
+            const [x, y] = getNewXY(actor);
+            if (m1.hasXY(x, y)) {
+                if (l2.removeActor(actor)) {
+                    l1.addActor(actor, x, y);
+                }
+            }
+        });
+        items.forEach(item => {
+            const [x0, y0] = [item.getX(), item.getY()];
+            const [x, y] = getNewXY(item);
+            if (m1.hasXY(x, y)) {
+                if (l2.removeItem(item, x0, y0)) {
+                    l1.addItem(item, x, y);
+                }
+            }
+        });
+
+        elements.forEach(elem => {
+            const [x0, y0] = [elem.getX(), elem.getY()];
+            const [x, y] = getNewXY(elem);
+            if (m1.hasXY(x, y)) {
+                if (l2.removeElement(elem, x0, y0)) {
+                    l1.addElement(elem, x, y);
+                }
+            }
+        });
+
+        this.mergeMapElems(m1, m2, startX, startY);
+    },
+
+    /* Merges m2 into m1 starting from x,y in m1. Does not move items/actors. */
+    mergeMapElems: function(m1, m2, startX, startY) {
         if (m1.cols < m2.cols) {
             const got = `m1: ${m1.cols} m2: ${m2.cols}`;
-            RG.err('Geometry', 'mergeMaps',
+            RG.err('Geometry', 'mergeMapElems',
                 'Cols: m2 cols must be smaller/equal: ' + got);
         }
         if (m1.rows < m2.rows) {
             const got = `m1: ${m1.rows} m2: ${m2.rows}`;
-            RG.err('Geometry', 'mergeMaps',
+            RG.err('Geometry', 'mergeMapElems',
                 'Rows: m2 rows must be smaller/equal: ' + got);
         }
         const endX = startX + m2.cols - 1;
@@ -351,6 +393,7 @@ RG.Geometry = {
         const m1 = l1.getMap();
         this.iterateMapWithBBox(m1, bbox, (x, y) => {
             if (m1.getCell(x, y).isFree()) {
+                console.log('Adding actor to ' + x + ',' + y);
                 const actor = parser.createActualObj(RG.TYPE_ACTOR,
                     actorName);
                 l1.addActor(actor, x, y);
@@ -363,7 +406,9 @@ RG.Geometry = {
     insertItems: function(l1, itemName, bbox, parser) {
         const m1 = l1.getMap();
         this.iterateMapWithBBox(m1, bbox, (x, y) => {
+            console.log('Trying to add item to ' + x + ',' + y);
             if (m1.getCell(x, y).isFree()) {
+                console.log('Adding item to ' + x + ',' + y);
                 const item = parser.createActualObj(RG.TYPE_ITEM, itemName);
                 l1.addItem(item, x, y);
             }
