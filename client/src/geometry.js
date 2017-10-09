@@ -291,9 +291,7 @@ RG.Geometry = {
     /* Inserts a level inside another one. Function works only for elements, and
      * sets map cells only. */
     insertSubLevel: function(l1, l2, startX, startY) {
-        const m1 = l1.getMap();
-        const m2 = l2.getMap();
-        this.mergeMapElems(m1, m2, startX, startY);
+        this.mergeLevels(l1, l2, startX, startY);
     },
 
     /* Does a full Map.Level merge. Actors, items and elements included. */
