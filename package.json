@@ -16,6 +16,7 @@
     "js-md5": "^0.6.0",
     "prop-types": "^15.5.10",
     "react": "^15.4.2",
+    "react-bootstrap": "^0.31.3",
     "react-dom": "^15.4.2",
     "uglify-es": "^3.0.25",
     "vinyl-source-stream": "^1.1.0",
