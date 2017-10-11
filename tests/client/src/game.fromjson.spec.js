@@ -1,4 +1,6 @@
 
+import Capital from '../../../client/data/capital';
+
 const expect = require('chai').expect;
 
 const RG = require('../../../client/src/battles');
@@ -194,7 +196,7 @@ describe('RG.Game.FromJSON', function() {
         expect(newMountain.getLevels()).to.have.length(2);
     });
 
-    it('can convert spellcaster actors', () => {
+    it('can serialize/de-serialize spellcaster actors', () => {
         const wizard = RGTest.getMeAWizard();
         const json = wizard.toJSON();
         expect(json).to.have.property('spellbook');
@@ -210,6 +212,16 @@ describe('RG.Game.FromJSON', function() {
 
         const damageDie = restSpell.getDice()[0];
         expect(damageDie.toJSON()).to.deep.equal([1, 2, 3]);
+    });
+
+    it('can serialize/de-serialize Capital', () => {
+        const capitalLevel = new Capital(200, 400).getLevel();
+        const nActorsBefore = capitalLevel.getActors().length;
+        const json = capitalLevel.toJSON();
+
+        const newLevel = fromJSON.restoreLevel(json);
+        const nActorsAfter = newLevel.getActors().length;
+        expect(nActorsAfter).to.equal(nActorsBefore);
     });
 
 });
