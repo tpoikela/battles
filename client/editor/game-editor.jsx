@@ -2,6 +2,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 
+import EditorTopMenu from './editor-top-menu';
 import GameBoard from '../jsx/game-board';
 import GameMessages from '../jsx/game-messages';
 import LevelSaveLoad from './level-save-load';
@@ -30,37 +31,6 @@ const editorLevelTypes = [
   'mountain', 'uniform', 'rogue',
   'ruins', 'rooms', 'town', 'townwithwall', 'wall'
 ];
-
-/*
- * Sketch to specify the menus in more sane way than jsx.
- */
-/*
-const topMenuConf = {
-    File: {
-        Save: 'callback1',
-        Load: 'callback2',
-        Quit: 'callback3'
-    },
-    Edit: {
-
-    },
-    Select: {
-    },
-    View: {
-      // No actual zooming supported
-        'Size +':
-        'Size -':
-        'Size fit':
-        'Size max':
-        'Size min':
-    },
-    Tools: {
-    },
-    Settings: {
-
-    }
-};
-*/
 
 const boardViews = [
   'game-board-map-view-xxxxs',
@@ -169,10 +139,12 @@ export default class GameEditor extends Component {
     };
 
     this.screen = new Screen(state.levelX, state.levelY);
+
+
+    // Create empty level and add to the editor
     const level = RG.FACT.createLevel(state.levelType,
       state.levelX, state.levelY);
     level.getMap()._optimizeForRowAccess();
-
     level.editorID = state.idCount++;
     state.level = level;
     state.levelList.push(level);
@@ -345,7 +317,7 @@ export default class GameEditor extends Component {
 
       this.setState({
         selectedCell: [cell], cellSelectX: cell.getX(),
-        cellSelectY: cell.getY()
+        cellSelectY: cell.getY(), selectMode: false
       });
     }
   }
@@ -387,7 +359,7 @@ export default class GameEditor extends Component {
       case 'quarter': feat = fact.createCityQuarter(featConf); break;
       default: console.log('No legal zoneType given');
     }
-    this.addFeatureToEditor(zoneType, feat);
+    this.addZoneToEditor(zoneType, feat);
   }
 
   /* Generates a new level map and adds it to the editor.  */
@@ -433,7 +405,7 @@ export default class GameEditor extends Component {
     this.setState({level: level, levelList, levelIndex});
   }
 
-  addFeatureToEditor(type, feat) {
+  addZoneToEditor(type, feat) {
     const levels = feat.getLevels();
     const levelList = this.state.levelList;
     levels.forEach(level => {
@@ -664,6 +636,7 @@ export default class GameEditor extends Component {
         <p className='text-primary'>
           Battles Game Editor: {errorMsg}
         </p>
+        <EditorTopMenu/>
 
         {renderPanel && editorPanelElem}
 
