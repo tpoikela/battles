@@ -1,10 +1,11 @@
 
+import Entity from './entity';
+
 const RG = require('./rg.js');
 RG.System = require('./system.js');
 RG.Map = require('./map.js');
 RG.Time = require('./time.js');
 
-import Entity from './entity';
 
 RG.Game = {};
 
@@ -389,9 +390,9 @@ RG.Game.Engine = function(eventPool) {
 /* Top-level main object for the game.  */
 RG.Game.Main = function() {
 
-    const _players = [];   // List of players
-    const _levels = [];   // List of all levels
-    const _places = {};   // List of all places
+    const _players = []; // List of players
+    const _levels = []; // List of all levels
+    const _places = {}; // List of all places
     let _shownLevel = null; // One per game only
     let _gameOver = false;
 
@@ -452,6 +453,30 @@ RG.Game.Main = function() {
         }
 
         return levelOK;
+    };
+
+    /* Moves player to specified area tile. */
+    this.movePlayer = function(tileX, tileY) {
+        const player = this.getPlayer();
+        const world = Object.values(_places)[0];
+        const area = world.getAreas()[0];
+        const tile = area.getTileXY(tileX, tileY);
+        const newLevel = tile.getLevel();
+        const currLevel = player.getLevel();
+
+        const [x0, y0] = [player.getX(), player.getY()];
+        if (currLevel.removeActor(player)) {
+            if (newLevel.addActorToFreeCell(player)) {
+                RG.POOL.emitEvent(RG.EVT_LEVEL_CHANGED,
+                    {target: newLevel,
+                        src: currLevel, actor: player});
+                RG.POOL.emitEvent(RG.EVT_LEVEL_ENTERED,
+                    {actor: player, target: newLevel});
+            }
+            else {
+                currLevel.addActor(player, x0, y0);
+            }
+        }
     };
 
     const _addPlayerToFirstLevel = (player, levels) => {
