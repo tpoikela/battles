@@ -252,7 +252,7 @@ export default class GameEditor extends Component {
   }
 
   /* Returns the first selected cell. */
-  getSelectedCell() {
+  getFirstSelectedCell() {
     if (this.state.selectedCell) {
       if (this.state.selectedCell.length > 0) {
         return this.state.selectedCell[0];
@@ -278,7 +278,7 @@ export default class GameEditor extends Component {
         mult = 10;
       }
 
-      let cell = this.getSelectedCell();
+      let cell = this.getFirstSelectedCell();
       if (this.state.selectMode) {
         cell = this.state.selectEnd;
       }
@@ -309,7 +309,7 @@ export default class GameEditor extends Component {
       }
     }
     else if (keyCode === RG.VK_s) {
-      const cell = this.getSelectedCell();
+      const cell = this.getFirstSelectedCell();
       const selectMode = !this.state.selectMode;
       if (!this.state.selectMode) {
         if (cell) {
@@ -323,7 +323,7 @@ export default class GameEditor extends Component {
   }
 
 
-  /* Returns current level */
+  /* Returns current level. */
   getLevel() {
     if (this.state.levelList.length) {
       return this.state.levelList[this.state.levelIndex];
@@ -461,8 +461,8 @@ export default class GameEditor extends Component {
     const subHeight = this.state.subLevelY;
 
     if (this.state.selectedCell) {
-      const x0 = this.getSelectedCell.getX();
-      const y0 = this.getSelectedCell.getY();
+      const x0 = this.getFirstSelectedCell.getX();
+      const y0 = this.getFirstSelectedCell.getY();
 
       // Iterate through tiles in x-direction (tx) and tiles in
       // y-direction (ty). Compute upper left x,y for each sub-level.
@@ -545,7 +545,7 @@ export default class GameEditor extends Component {
       return RG.Geometry.getBoxCornersForCells(c0, c1);
     }
     else {
-      const selCell = this.getSelectedCell();
+      const selCell = this.getFirstSelectedCell();
       if (selCell) {
         const ulx = selCell.getX();
         const uly = selCell.getY();
@@ -625,6 +625,8 @@ export default class GameEditor extends Component {
     }
 
     if (this.state.selectedCell) {
+      console.log('Selected cell:');
+      console.log(this.state.selectedCell);
       this.screen.setSelectedCell(this.state.selectedCell);
     }
 
@@ -967,13 +969,16 @@ export default class GameEditor extends Component {
 
   onChangeCellSelectX(evt) {
     const newX = this.getInt(evt.target.value, 10);
-    const cell = this.getSelectedCell();
+    console.log(newX);
+    const cell = this.getFirstSelectedCell();
     const update = {cellSelectX: newX};
     const map = this.state.level.getMap();
-    if (cell) {
+    if (Number.isInteger(newX) && cell) {
       if (map.hasXY(newX, cell.getY())) {
         const newCell = map.getCell(newX, cell.getY());
-        update.selectedCell = newCell;
+        if (newCell) {
+          update.selectedCell = [newCell];
+        }
       }
     }
     this.setState(update);
@@ -981,13 +986,15 @@ export default class GameEditor extends Component {
 
   onChangeCellSelectY(evt) {
     const newY = this.getInt(evt.target.value, 10);
-    const cell = this.getSelectedCell();
+    const cell = this.getFirstSelectedCell();
     const update = {cellSelectY: newY};
     const map = this.state.level.getMap();
-    if (cell) {
+    if (Number.isInteger(newY) && cell) {
       if (map.hasXY(cell.getX(), newY)) {
         const newCell = map.getCell(cell.getX(), newY);
-        update.selectedCell = newCell;
+        if (newCell) {
+          update.selectedCell = [newCell];
+        }
       }
     }
     this.setState(update);
@@ -1115,7 +1122,7 @@ export default class GameEditor extends Component {
       }
       this.game = null;
       delete this.game;
-      const shownLevel = this.state.levelList[this.state.levelIndex];
+      const shownLevel = this.getLevel();
       this.setState({level: shownLevel,
         simulationStarted: false, simulationPaused: false});
     }
