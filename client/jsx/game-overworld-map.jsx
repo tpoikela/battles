@@ -11,7 +11,7 @@ export default class GameOverWorldMap extends Component {
       return true;
     }
 
-    if (this.props.playerOwPos) {
+    if (this.props.playerOwPos && nextProps.playerOwPos) {
       if (nextProps.playerOwPos[0] !== this.props.playerOwPos[0]) {
         return true;
       }
