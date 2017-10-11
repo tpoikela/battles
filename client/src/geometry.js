@@ -233,6 +233,10 @@ RG.Geometry = {
         return levels;
     },
 
+    /* Tiles the list of levels to main level l1. Tiled levels placed
+     * side-by-side and aligned based on the conf. 'alignRight' will be
+     * implemented when needed.
+     */
     tileLevels: function(l1, levels, conf) {
       const {x, y} = conf;
       let currX = x;
@@ -298,12 +302,13 @@ RG.Geometry = {
     mergeLevels: function(l1, l2, startX, startY) {
         const m1 = l1.getMap();
         const m2 = l2.getMap();
-        const actors = l2.getActors();
-        const items = l2.getItems();
-        const elements = l2.getElements();
+
+        // Need copies of lists, originals modified in foreach-loops
+        const actors = l2.getActors().slice();
+        const items = l2.getItems().slice();
+        const elements = l2.getElements().slice();
 
         const getNewXY = prop => [prop.getX() + startX, prop.getY() + startY];
-
         actors.forEach(actor => {
             const [x, y] = getNewXY(actor);
             if (m1.hasXY(x, y)) {
@@ -312,6 +317,7 @@ RG.Geometry = {
                 }
             }
         });
+
         items.forEach(item => {
             const [x0, y0] = [item.getX(), item.getY()];
             const [x, y] = getNewXY(item);
@@ -391,7 +397,6 @@ RG.Geometry = {
         const m1 = l1.getMap();
         this.iterateMapWithBBox(m1, bbox, (x, y) => {
             if (m1.getCell(x, y).isFree()) {
-                console.log('Adding actor to ' + x + ',' + y);
                 const actor = parser.createActualObj(RG.TYPE_ACTOR,
                     actorName);
                 l1.addActor(actor, x, y);
@@ -404,9 +409,7 @@ RG.Geometry = {
     insertItems: function(l1, itemName, bbox, parser) {
         const m1 = l1.getMap();
         this.iterateMapWithBBox(m1, bbox, (x, y) => {
-            console.log('Trying to add item to ' + x + ',' + y);
             if (m1.getCell(x, y).isFree()) {
-                console.log('Adding item to ' + x + ',' + y);
                 const item = parser.createActualObj(RG.TYPE_ITEM, itemName);
                 l1.addItem(item, x, y);
             }
