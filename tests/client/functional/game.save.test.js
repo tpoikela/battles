@@ -1,4 +1,6 @@
 
+import MockStorage from '../../helpers/mockstorage';
+
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 
@@ -39,10 +41,19 @@ describe('Function: Saving/restoring a game', function() {
         const levelIDsBefore = game.getLevels().map(level => level.getID());
         console.log('Now serializing the game.');
         let json = game.toJSON();
-        // console.log(JSON.stringify(json, null, ' '));
+
         const levelIDsJSON = json.levels.map(level => level.id);
         expect(levelIDsJSON, 'Level IDs in JSON are preserved')
             .to.deep.equal(levelIDsBefore);
+
+        console.log('Converting serialized object to string...');
+        let jsonStr = JSON.stringify(json);
+        let strLen = jsonStr.length;
+        console.log(`Length of serialized string ${jsonStr.length}`);
+        const storage = new MockStorage();
+        storage.setItem('game_data', jsonStr);
+        const newStr = storage.getItem('game_data');
+        json = JSON.parse(newStr);
 
         for (let i = 0; i < 2; i++) {
             const fromJSON = new RG.Game.FromJSON();
@@ -76,6 +87,10 @@ describe('Function: Saving/restoring a game', function() {
             console.log('Now serializing the game.');
             json = restGame.toJSON();
             // console.log(JSON.stringify(json, null, ' '));
+            jsonStr = JSON.stringify(json);
+            strLen = jsonStr.length;
+            console.log(`Length of serialized string ${jsonStr.length}`);
+            json = JSON.parse(jsonStr);
         }
     });
 });
