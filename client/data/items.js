@@ -103,6 +103,12 @@ const Items = [
         weight: 1.2, value: value(50)
     },
     {
+        name: 'Iron axe', base: 'MeleeWeaponBase',
+        damage: '1d8', attack: 3, defense: 1,
+        weaponType: 'axe',
+        weight: 1.5, value: value(60)
+    },
+    {
         name: 'Longsword', base: 'MeleeWeaponBase',
         material: 'steel',
         damage: '1d8', attack: 2, defense: 2,
@@ -147,6 +153,12 @@ const Items = [
         name: 'Permaice short sword', base: 'IceWeaponBase',
         damage: '2d5 + 6', defense: 6, weight: 1.5, value: value(300),
         weaponType: 'sword'
+    },
+    {
+        name: 'Permaice axe', base: 'IceWeaponBase',
+        damage: '3d6 + 6', defense: 7,
+        weaponType: 'axe',
+        weight: 4.5, value: value(400)
     },
     {
         name: 'Permaice long sword', base: 'IceWeaponBase',
@@ -213,6 +225,12 @@ const Items = [
         damage: '3d5 + 2',
         attack: 3, defense: 2, weight: 0.5, value: value(300),
         weaponType: 'sword'
+    },
+    {
+        name: 'Magic axe', base: 'MagicWeaponBase',
+        damage: '4d5 + 2',
+        attack: 4, defense: 2, weight: 1.5, value: value(400),
+        weaponType: 'axe'
     },
     {
         name: 'Magic sword', base: 'MagicWeaponBase',
