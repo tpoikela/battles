@@ -1037,7 +1037,7 @@ class BattlesTop extends Component {
         const coordX = xy[0] * 100 + player.getX();
         const coordY = xy[1] * 100 + player.getY();
 
-        return [Math.ceil(coordX / xMap), Math.ceil(coordY / yMap)];
+        return [Math.floor(coordX / xMap), Math.floor(coordY / yMap)];
     }
 
 }
