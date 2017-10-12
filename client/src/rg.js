@@ -637,7 +637,7 @@ const RG = { // {{{2
     GOLD_COIN_NAME: 'Gold coins',
 
     HUNGER_PROB: 0.10, // Prob. of starvation to cause damage every turn
-    HUNGER_DMG: 1,     // Damage caused by starvation kicking in
+    HUNGER_DMG: 1, // Damage caused by starvation kicking in
 
     // This is a subset of ITEM_TYPES, excluding gold items
     SHOP_TYPES: ['ammo', 'armour', 'food',
@@ -667,7 +667,11 @@ const RG = { // {{{2
         POISON: 'POISON',
         ICE: 'ICE',
         HUNGER: 'HUNGER'
-    }
+    },
+
+    STATS: [
+        'Strength', 'Accuracy', 'Agility', 'Willpower', 'Perception', 'Magic'
+    ]
 
 }; // / }}} RG
 
@@ -741,6 +745,20 @@ RG.valueToGoldWeight = value => {
     }
     const adjValue = slope * value + 10;
     return adjValue / 1000;
+};
+
+/* Scales (up) the value of item is any extra bonuses or modifiers are added to
+ * it. */
+RG.scaleItemValue = (type, bonus, item) => {
+    const currValue = item.getValue();
+    let mult = 1;
+    switch (type) {
+        case 'combat': mult *= (1.0 + 0.1 * bonus); break;
+        case 'stats': mult *= (1.0 + 0.2 * bonus); break;
+        default: mult = 1;
+    }
+    const newValue = Math.floor(currValue * mult);
+    item.setValue(newValue);
 };
 
 /* Given an actor, scales its attributes based on new experience level.*/
