@@ -251,9 +251,15 @@ const Actors = [
         brain: 'SpellCaster'
     },
     {
-        name: 'Winter demon', type: 'demon', char: 'D',
+        name: 'Winter demon', type: 'demon', char: '&',
         attack: 5, defense: 5, protection: 2, damage: '3d3', range: 1,
-        hp: 30, danger: 12, brain: 'Demon', base: 'WinterBeingBase'
+        hp: 30, danger: 10, brain: 'Demon', base: 'WinterBeingBase'
+    },
+    {
+        name: 'Stormrider', type: 'demon', char: '&',
+        attack: 6, defense: 6, protection: 3, damage: '3d3', range: 1,
+        hp: 40, danger: 12, brain: 'Demon', base: 'WinterBeingBase',
+        equip: ['Permaice short sword']
     },
     {
         name: 'Blizzard beast', type: 'demon', char: 'B',
