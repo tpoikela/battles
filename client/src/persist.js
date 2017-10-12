@@ -36,7 +36,7 @@ function operateOnIDB(name, IDB, operation, data) {
             case 'PUT':
                 console.log('Persist data to store length: '
                     + JSON.stringify(data).length);
-                verifySaveData(data);
+                // verifySaveData(data);
                 request = store.put(data);
                 request.onsuccess = () => resolve(request.result);
                 request.onerror = () => reject(request.error);
@@ -52,15 +52,23 @@ function operateOnIDB(name, IDB, operation, data) {
     });
 }
 
+/* Checks that data to be saved does not contain any functions or circular
+ * references. */
 function verifySaveData(data) {
     traverseObj(data);
 }
 
 const stack = [];
+const maxStack = 100;
 function traverseObj(obj) {
 	for (const prop in obj) {
 		if (obj.hasOwnProperty(prop)) {
             stack.push(prop);
+            if (stack.length >= maxStack) {
+                let msg = 'Error. Max stack reached. Probably circular ref.';
+                msg += `Prop stack: ${JSON.stringify(stack)}`;
+                throw new Error(msg);
+            }
 			if (typeof obj[prop] === 'object') {
 				traverseObj(obj[prop]);
 			}
