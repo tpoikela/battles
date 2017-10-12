@@ -753,21 +753,15 @@ RG.OverWorld.createWorldConf = (ow, subLevels, nTilesX, nTilesY) => {
                         addCapitalConfToArea(feat, coordObj, areaConf);
                     }
                     else if (feat.type === 'dwarven city') { // WTOWER
-                        // TODO
-                        // addCityConfToArea(feat, coordObj, areaConf);
                         addDwarvenCityConfToArea(feat, coordObj, areaConf);
                     }
                     else if (feat.type === 'abandoned fort') {
-                        // TODO
-                        // addCityConfToArea(feat, coordObj, areaConf);
-                        console.log('Adding abandoned fort');
                         addAbandonedFortToArea(feat, coordObj, areaConf);
                     }
                     else if (feat.type === 'dark city') {
                         addCityConfToArea(feat, coordObj, areaConf);
                     }
                     else if (feat.type === 'blacktower') {
-                        // TODO
                         addCityConfToArea(feat, coordObj, areaConf);
                     }
                     else if (cityTypesRe.test(feat.type)) {
@@ -905,16 +899,16 @@ function addAbandonedFortToArea(feat, coordObj, areaConf) {
     cityConf.presetLevels = {
         'Abandoned fort.Fort ground level': [{nLevel: 0, level: fortLevel}]
     };
-    addLocationToZoneConf(feat, coordObj, cityConf);
+    addLocationToZoneConf(feat, coordObj, cityConf, false);
     const mainConn = {
         name: 'Fort ground level',
         levelX: cityConf.levelX,
         levelY: cityConf.levelY,
         nLevel: 0,
-        stairs: fortLevel.getStairs()[1]
+        stairs: fortLevel.getStairs()[0]
     };
 
-    cityConf.connectToXY[0].stairs = fortLevel.getStairs()[0];
+    cityConf.connectToXY[0].stairs = fortLevel.getStairs()[1];
     cityConf.connectToXY.push(mainConn);
     areaConf.nCities += 1;
     areaConf.city.push(cityConf);
@@ -942,15 +936,19 @@ function addCityConfToArea(feat, coordObj, areaConf) {
 
 /* Adds location info the zone config. This info specifies where the zone is
  * located in the overworld map. */
-function addLocationToZoneConf(feat, coordObj, zoneConf) {
+function addLocationToZoneConf(feat, coordObj, zoneConf, vert = true) {
     const {x, y, slX, slY, aX, aY, subX, subY} = coordObj;
     const coord = feat.coord;
     const nLevels = coord.length;
     const lastCoord = nLevels - 1;
 
     // Where 1st (main) entrance is located on Map.Level
-    const featX = mapX(coord[lastCoord][0], slX, subX);
+    let featX = mapX(coord[lastCoord][0], slX, subX);
     let featY = mapY(coord[lastCoord][1], slY, subY) + 1;
+    if (!vert) {
+      featX = mapX(coord[0][0], slX, subX) - 1;
+      featY = mapY(coord[0][1], slY, subY);
+    }
     if (featY >= 100) {
         const msg = `subXY ${x},${y}, tileXY: ${aX},${aY}`;
         console.log(`${msg} reduce the featY for ${feat.type}`);
@@ -960,8 +958,12 @@ function addLocationToZoneConf(feat, coordObj, zoneConf) {
     // Extra connection because fort has 2 exits/entrances
     // Where 2nd (exit) entrance is located on Map.Level
     if (twoEntranceCityRe.test(feat.type)) {
-        const connX = mapX(coord[0][0], slX, subX);
-        const connY = mapY(coord[0][1], slY, subY) - 1;
+        let connX = mapX(coord[0][0], slX, subX);
+        let connY = mapY(coord[0][1], slY, subY) - 1;
+        if (!vert) {
+          connX = mapX(coord[lastCoord][0], slX, subX) + 1;
+          connY = mapY(coord[lastCoord][1], slY, subY);
+        }
         const nLast = zoneConf.nQuarters - 1;
 
         zoneConf.connectToXY = [{
