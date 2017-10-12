@@ -32,7 +32,7 @@ export default class GameOverWorldMap extends Component {
       if (this.props.playerOwPos) {
         const [x, y] = this.props.playerOwPos;
         let line = map[y];
-        line = line.substr(0, x - 1) + '@' + line.substr(x + 1);
+        line = line.substr(0, x) + '@' + line.substr(x + 1);
         map[y] = line;
       }
       mapStr = map.join('\n');
