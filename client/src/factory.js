@@ -120,16 +120,70 @@ RG.Factory.ItemRandomizer = function() {
         }
     };
 
-    const _adjustMissile = (missile) => {
+    const _adjustMissile = missile => {
         const count = RG.RAND.getUniformInt(5, 15);
         missile.setCount(count);
+    };
+
+    const _isCombatMod = val => val >= 0.0 && val <= 0.02;
+    const _isStatsMod = val => val >= 0.1 && val <= 0.12;
+
+    const _getRandStat = () => RG.RAND.arrayGetRand(RG.STATS);
+
+    /* Adjust damage, attack, defense and value of a weapon. */
+    const _adjustWeapon = weapon => {
+        const randVal = RG.RAND.getUniform();
+        if (_isCombatMod(randVal)) {
+            const bonus = RG.RAND.getUniformInt(1, 5);
+            const type = RG.RAND.getUniformInt(0, 4);
+            switch (type) {
+                case 0: // Fall through
+                case 1: {
+                    weapon.setAttack(weapon.getAttack() + bonus);
+                    break;
+                }
+                case 2: // Fall through
+                case 3: {
+                    weapon.setDefense(weapon.getDefense() + bonus);
+                    break;
+                }
+                case 4: {
+                    weapon.setProtection(weapon.getProtection() + bonus);
+                    break;
+                }
+                default: break;
+            }
+            RG.scaleItemValue('combat', bonus, weapon);
+        }
+        else if (_isStatsMod(randVal)) {
+            const bonus = RG.RAND.getUniformInt(1, 3);
+            let stats = null;
+            if (weapon.has('Stats')) {
+                stats = weapon.get('Stats');
+            }
+            else {
+                stats = new RG.Component.Stats();
+                weapon.add(stats);
+            }
+            const randStat = _getRandStat();
+            const getName = 'get' + randStat;
+            const setName = 'set' + randStat;
+            stats[setName](stats[getName] + bonus);
+            RG.scaleItemValue('stats', bonus, weapon);
+        }
+    };
+
+    const _adjustArmour = armour => {
+        _adjustWeapon(armour); // The same function works fine for this
     };
 
     /* LUT for functions to call on specific items.*/
     const _adjustFunctions = {
         food: _adjustFoodItem,
         goldcoin: _adjustGoldCoin,
-        missile: _adjustMissile
+        missile: _adjustMissile,
+        weapon: _adjustWeapon,
+        armour: _adjustArmour
     };
 
 };
@@ -1178,7 +1232,6 @@ RG.Factory.World = function() {
     this.getFromPresetLevels = function(i, presetLevels) {
         let level = null;
         if (presetLevels.length > 0) {
-            console.log('len > 0: ' + presetLevels.length);
             const levelObj = presetLevels.find(lv => lv.nLevel === i);
             if (levelObj) {
                 level = levelObj.level;
