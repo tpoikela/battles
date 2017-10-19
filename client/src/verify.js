@@ -69,4 +69,29 @@ RG.Verify.Conf = function(objName) {
 
 };
 
+RG.Verify.verifySaveData = function(data) {
+    traverseObj(data);
+};
+
+const stack = [];
+const maxStack = 20;
+function traverseObj(obj) {
+	for (const prop in obj) {
+		if (obj.hasOwnProperty(prop)) {
+            stack.push(prop);
+            if (stack.length < maxStack) {
+                if (typeof obj[prop] === 'object') {
+				traverseObj(obj[prop]);
+                }
+                else if (typeof obj[prop] === 'function') {
+                    const msg = `Error. Func in ${JSON.stringify(stack)}`;
+                    throw new Error(msg);
+                }
+            }
+            stack.pop();
+		}
+	}
+}
+
+
 module.exports = RG.Verify;
