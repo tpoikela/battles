@@ -15,8 +15,9 @@ import GameInventory from './game-inventory';
 import GameEditor from '../editor/game-editor';
 
 const ROT = require('../../lib/rot');
-const RG = require('../src/rg.js');
-RG.Game = require('../src/game.js');
+const RG = require('../src/rg');
+RG.Game = require('../src/game');
+RG.Verify = require('../src/verify');
 
 const md5 = require('js-md5');
 const $ = require('jquery');
@@ -288,6 +289,7 @@ class BattlesTop extends Component {
         return new Promise((resolve, reject) => {
             try {
                 const json = this.game.toJSON();
+                RG.Verify.verifySaveData(json);
                 resolve(json);
             }
             catch (e) {
