@@ -256,6 +256,7 @@ export default class GameStartScreen extends React.Component {
                 <button
                   className='btn btn-success'
                   data-dismiss='modal'
+                  id='embark-button'
                   onClick={newGame}
                   type='button'
                 >Embark!</button>
