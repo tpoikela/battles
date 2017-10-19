@@ -991,6 +991,16 @@ RG.Component.SpellArea = function() {
 RG.extend2(RG.Component.SpellArea, RG.Component.SpellBase);
 
 //--------------------------------------------
+// Adventurer components
+//--------------------------------------------
+
+/* Triples the energy gained from eating foods. */
+RG.Component.NourishedOne = function() {
+    RG.Component.Base.call(this, 'NourishedOne');
+};
+RG.extend2(RG.Component.NourishedOne, RG.Component.Base);
+
+//--------------------------------------------
 // Comps that add or remove other components
 //--------------------------------------------
 
