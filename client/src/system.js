@@ -16,7 +16,6 @@ RG.SYS.SPELL_CAST = Symbol();
 RG.SYS.SPELL_EFFECT = Symbol();
 RG.SYS.TIME_EFFECTS = Symbol();
 
-
 //---------------------------------------------------------------------------
 // ECS SYSTEMS {{{1
 //---------------------------------------------------------------------------
@@ -30,9 +29,9 @@ RG.System.Base = function(type, compTypes) {
             '2nd arg must be an array of component types');
     }
 
-    this.type = type;           // Type of the system
+    this.type = type; // Type of the system
     this.compTypes = compTypes; // Required comps in entity
-    this.entities = {};         // Entities requiring processing
+    this.entities = {}; // Entities requiring processing
 
     // If set to true, only one comp has to match the compTypes, otherwise all
     // components in compTypes must be present
