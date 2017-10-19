@@ -611,6 +611,8 @@ RG.Map.Level = function() { // {{{2
         if (!RG.isNullOrUndef([x, y])) {
             if (_map.hasXY(x, y)) {
               stairs.setSrcLevel(this);
+              // Prevents stairs on impassable squares
+              _map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
               return this._addPropToLevelXY(RG.TYPE_ELEM, stairs, x, y);
             }
             else {
