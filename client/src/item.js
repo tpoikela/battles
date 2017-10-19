@@ -133,7 +133,10 @@ class RGItemFood extends ItemBase {
             if (cell.hasActors()) {
                 const target = cell.getProp('actors')[0];
                 if (target.has('Hunger')) {
-                    const totalEnergy = this.getConsumedEnergy();
+                    let totalEnergy = this.getConsumedEnergy();
+                    if (target.has('NourishedOne')) {
+                        totalEnergy *= 3;
+                    }
                     target.get('Hunger').addEnergy(totalEnergy);
                     if (this.count === 1) {
                         const msg = {item: this};
