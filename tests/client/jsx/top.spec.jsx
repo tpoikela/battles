@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { shallow, mount, render } from 'enzyme';
+import { shallow, mount } from 'enzyme';
 import chaiEnzyme from 'chai-enzyme';
 import chai, { expect } from 'chai';
 
@@ -22,4 +22,16 @@ describe('Component <BattlesTop>', () => {
         const wrapper = mount(<BattlesTop />);
         expect(wrapper, 'Component must render with mount').to.have.length(1);
     });
+
+    it('should create game and be able to save it', () => {
+        const wrapper = mount(<BattlesTop />);
+        expect(wrapper, 'Component must render with mount').to.have.length(1);
+        wrapper.setState({playMode: 'OverWorld'});
+
+        const startButton = wrapper.find('#embark-button');
+        startButton.simulate('click');
+        const saveButton = wrapper.find('#save-button');
+        saveButton.simulate('click');
+    });
 });
+
