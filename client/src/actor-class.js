@@ -4,6 +4,8 @@ const RG = require('./rg');
 RG.Component = require('./component');
 RG.Spell = require('./spell');
 
+/* Used by different in-game classes for actors. Provides basic getters and
+ * progress functions to increase stats etc on level up. */
 class ActorClassBase {
 
     constructor(actor, name) {
@@ -57,7 +59,15 @@ class Adventurer extends ActorClassBase {
     constructor(actor) {
         super(actor, 'Adventurer');
         this._messages = {};
-        this._advances = {};
+        this._advances = {
+            1: () => {
+                const book = new RG.Spell.SpellBook(this._actor);
+                this._actor.setBook(book);
+            },
+            4: () => {
+                this._actor.add(new RG.Component.NourishedOne());
+            }
+        };
     }
 
     /* Called when a level is advanced by the actor. Checks for messages, and if
@@ -252,7 +262,7 @@ class Cryomancer extends ActorClassBase {
 ActorClass.Cryomancer = Cryomancer;
 
 //-------------------------------------------------------------------------
-/* Cryomancer actor class and its experience level-specific features. */
+/* Marksman actor class and its experience level-specific features. */
 //-------------------------------------------------------------------------
 class Marksman extends ActorClassBase {
 
@@ -405,7 +415,7 @@ class Spiritcrafter extends ActorClassBase {
         const _name = actor.getName();
 
         this._messages = {
-            4: `${_name} gains new skill`,
+            4: `${_name} can now equip 2 spirit gems`,
             8: `${_name} gains new skill`,
             12: `${_name} gains new skill`,
             16: `${_name} gains new skill`,
