@@ -73,7 +73,7 @@ export default class GamePanel extends Component {
     );
   }
 
-};
+}
 
 GamePanel.propTypes = {
   saveGame: PropTypes.func.isRequired,
