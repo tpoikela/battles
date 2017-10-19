@@ -1,6 +1,9 @@
 
+// import {verifySaveData} from '../../../client/src/persist';
+
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
+RG.Verify = require('../../../client/src/verify');
 
 RG.Factory.Game = require('../../../client/src/factory.game');
 
@@ -29,9 +32,23 @@ describe('How Game is created from Overworld', function() {
         levels.forEach(level => {
             const msg = level.getParent() + ' ' + level.getID();
             expect(level.getActors(),
-                `${msg} > 0 actors`).to.have.length.above(0);
-            expect(level.getItems(),
-                `${msg} > 0 items`).to.have.length.above(0);
+                `${msg}: > 0 actors`).to.have.length.above(0);
+            //expect(level.getItems(),
+                //`${msg}: > 0 items`).to.have.length.above(0);
         });
+
+        const json = game.toJSON();
+        const jsonStr = JSON.stringify(json);
+        const jsonParsed = JSON.parse(jsonStr);
+
+        const fromJSON = new RG.Game.FromJSON();
+        const newGame = fromJSON.createGame(jsonParsed);
+
+        const levelIDsBefore = game.getLevels().map(l => l.getID());
+        const levelIDsAfter = newGame.getLevels().map(l => l.getID());
+
+        expect(RG.Verify.verifySaveData.bind(json)).to.not.throw;
+
+        expect(levelIDsAfter).to.deep.equal(levelIDsBefore);
     });
 });
