@@ -384,14 +384,23 @@ RG.Inv.Inventory = function(actor) {
     this.dropItem = item => {
         if (_inv.removeItem(item)) {
             const level = _actor.getLevel();
-            if (level.addItem(item, _actor.getX(), _actor.getY())) {
+            const droppedItem = this.getRemovedItem();
+            if (level.addItem(droppedItem, _actor.getX(), _actor.getY())) {
                 return true;
             }
             else {
-                _inv.addItem(item);
+                _inv.addItem(droppedItem);
             }
         }
         return false;
+    };
+
+    /* Removes and item and returns it. */
+    this.removeAndGetItem = item => {
+        if (_inv.removeItem(item)) {
+            return this.getRemovedItem();
+        }
+        return null;
     };
 
     this.getInventory = () => _inv;
