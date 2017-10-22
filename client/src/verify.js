@@ -69,13 +69,14 @@ RG.Verify.Conf = function(objName) {
 
 };
 
-RG.Verify.verifySaveData = function(data) {
-    traverseObj(data);
+RG.Verify.verifySaveData = function(data, failFast = true) {
+    traverseObj(data, failFast);
 };
 
 const stack = [];
 const maxStack = 20;
-function traverseObj(obj) {
+function traverseObj(obj, failFast) {
+    const allErrors = [];
 	for (const prop in obj) {
 		if (obj.hasOwnProperty(prop)) {
             stack.push(prop);
@@ -85,12 +86,21 @@ function traverseObj(obj) {
                 }
                 else if (typeof obj[prop] === 'function') {
                     const msg = `Error. Func in ${JSON.stringify(stack)}`;
-                    throw new Error(msg);
+                    if (failFast) {
+                        throw new Error(msg);
+                    }
+                    else {
+                        allErrors.push(msg);
+                    }
                 }
             }
             stack.pop();
 		}
 	}
+    if (allErrors.length > 0) {
+        const msg = allErrors.join('\n');
+        throw new Error(msg);
+    }
 }
 
 
