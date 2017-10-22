@@ -69,7 +69,15 @@ RG.Game.FromJSON = function() {
                 const newCompObj = new RG.Component[name]();
                 for (const fname in comp) {
                     if (typeof newCompObj[fname] === 'function') {
-                        newCompObj[fname](comp[fname]);
+                        const valueToSet = comp[fname];
+                        if (valueToSet.createFunc) {
+                            const createdObj =
+                                this[valueToSet.createFunc](valueToSet.value);
+                            newCompObj[fname](createdObj);
+                        }
+                        else {
+                            newCompObj[fname](valueToSet);
+                        }
                     }
                     else {
                         const json = JSON.stringify(comp);
