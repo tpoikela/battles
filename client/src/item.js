@@ -93,7 +93,7 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
         }
         let res = this.getName() === item.getName();
         res = res && (this.getType() === item.getType());
-        res = !this.has('GemBound') && !item.has('GemBound');
+        res = res && !(this.has('GemBound') && item.has('GemBound'));
         return res;
     }
 
