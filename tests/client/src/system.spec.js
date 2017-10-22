@@ -203,3 +203,58 @@ describe('System.Disability', () => {
         expect(walker.getY()).to.equal(3);
     });
 });
+
+describe('System.SpiritBind', () => {
+    it('is used to bind spirits into spirit gems', () => {
+        const spiritSys = new RG.System.SpiritBind(['SpiritBind']);
+
+        const binder = new RG.Actor.Rogue('shaman');
+        const spirit = new RG.Actor.Spirit('Evil spirit');
+        RGTest.wrapIntoLevel([binder, spirit]);
+
+        const gem = new RG.Item.SpiritGem('Great gem');
+        binder.getInvEq().addItem(gem);
+        gem.useItem({target: spirit.getCell()});
+
+        expect(gem.has('SpiritBind')).to.equal(true);
+        expect(gem.hasSpirit()).to.equal(false);
+
+        updateSystems([spiritSys]);
+
+        expect(gem.hasSpirit()).to.equal(true);
+        expect(gem.has('SpiritBind')).to.equal(false);
+    });
+
+    it('is used to bind gems into items', () => {
+        const spiritSys = new RG.System.SpiritBind(['SpiritBind']);
+
+        const binder = new RG.Actor.Rogue('shaman');
+        const spirit = new RG.Actor.Spirit('Evil spirit');
+        spirit.get('Stats').setStrength(10);
+        const gem = new RG.Item.SpiritGem('Great gem');
+        gem.setSpirit(spirit);
+        binder.getInvEq().addItem(gem);
+
+        const sword = new RG.Item.Weapon('sword');
+        const cell = RGTest.wrapObjWithCell(sword);
+
+        expect(gem.getStrength()).to.equal(10);
+        expect(RG.getItemStat('getStrength', gem)).to.equal(10);
+
+        // 1st attempt, no item binding skill
+        gem.useItem({target: cell});
+        updateSystems([spiritSys]);
+        expect(sword.has('GemBound')).to.equal(false);
+
+        // 2nd attempt, crafting skill added
+        binder.add(new RG.Component.SpiritItemCrafter());
+        gem.useItem({target: cell});
+        updateSystems([spiritSys]);
+        expect(sword.has('GemBound')).to.equal(true);
+
+        expect(RG.getItemStat('getStrength', sword)).to.equal(10);
+
+    });
+
+});
+
