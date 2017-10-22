@@ -31,8 +31,9 @@ Object.keys(global.window).forEach(property => {
   }
 });
 
-if (global.window.requestAnimationFrame === undefined) {
-  requestAnimFrame(); // polyfill
+if (!global.requestAnimationFrame) {
+    console.log('xxx polyfill');
+  requestAnimFrame(global); // polyfill
 }
 /*
 global.navigator = {
