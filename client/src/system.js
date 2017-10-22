@@ -715,6 +715,7 @@ RG.extend2(RG.System.Disability, RG.System.Base);
  * added to the component. */
 RG.System.SpiritBind = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.SPIRIT, compTypes);
+    this.compTypesAny = true;
 
     this.updateEntity = ent => {
         if (ent.has('SpiritBind')) {
@@ -743,18 +744,32 @@ RG.System.SpiritBind = function(compTypes) {
                 const msg = `${spirit.getName()} was bound to gem by ${bName}`;
                 RG.gameMsg({cell: targetCell, msg});
             }
+            else {
+                const msg = 'There are no spirits to capture there!';
+                RG.gameMsg({cell: targetCell, msg});
+            }
         }
         else if (targetCell.hasItems()) {
             if (binder.has('SpiritItemCrafter')) {
+                console.log('Binding to item now!');
                 const topItem = targetCell.getItems()[0];
-                const gemBindComp = new RG.Component.GemBound();
-                gemBindComp.setGem(ent);
-                topItem.add(gemBindComp);
-
                 const iName = topItem.getName();
-                const gemName = ent.getName();
-                const msg = `${gemName} was bound to ${iName} by ${bName}`;
-                RG.gameMsg({cell: targetCell, msg});
+                if (!topItem.has('GemBound')) {
+                    const gemBindComp = new RG.Component.GemBound();
+                    const boundGem = binder.getInvEq().removeAndGetItem(ent);
+                    gemBindComp.setGem(boundGem);
+                    const xxx = `id1: ${ent.getID()}, id2: ${boundGem.getID()}`;
+                    console.log(xxx);
+                    topItem.add(gemBindComp);
+
+                    const gemName = ent.getName();
+                    const msg = `${gemName} was bound to ${iName} by ${bName}`;
+                    RG.gameMsg({cell: targetCell, msg});
+                }
+                else {
+                    const msg = `${iName} has already a gem bound to it.`;
+                    RG.gameMsg({cell: targetCell, msg});
+                }
             }
             else {
                 const msg = `${bName} cannot bind gems to items.`;
