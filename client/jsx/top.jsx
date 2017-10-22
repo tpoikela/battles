@@ -289,7 +289,7 @@ class BattlesTop extends Component {
         return new Promise((resolve, reject) => {
             try {
                 const json = this.game.toJSON();
-                RG.Verify.verifySaveData(json);
+                RG.Verify.verifySaveData(json, false);
                 resolve(json);
             }
             catch (e) {
