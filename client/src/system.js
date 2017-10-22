@@ -14,6 +14,7 @@ RG.SYS.MISSILE = Symbol();
 RG.SYS.MOVEMENT = Symbol();
 RG.SYS.SPELL_CAST = Symbol();
 RG.SYS.SPELL_EFFECT = Symbol();
+RG.SYS.SPIRIT = Symbol();
 RG.SYS.TIME_EFFECTS = Symbol();
 
 //---------------------------------------------------------------------------
@@ -708,6 +709,48 @@ RG.System.Disability = function(compTypes) {
 
 };
 RG.extend2(RG.System.Disability, RG.System.Base);
+
+/* System for spirit binding actions. Note: SpiritBind component is added to the
+ * gem always. The action performer (binder) and target entity (item/actor) are
+ * added to the component. */
+RG.System.SpiritBind = function(compTypes) {
+    RG.System.Base.call(this, RG.SYS.SPIRIT, compTypes);
+
+    this.updateEntity = ent => {
+        const bindComp = ent.get('SpiritBind');
+        const binder = bindComp.getBinder();
+        const targetCell = bindComp.getTarget();
+
+        if (!ent.hasSpirit()) {
+            const spirits = targetCell.getPropType('spirit');
+            if (spirits.length > 0) {
+                const spirit = spirits[0];
+                spirit.get('Action').disable(); // Trapped spirit cannot act
+                const level = spirit.getLevel();
+                level.removeActor(spirit);
+                ent.setSpirit(spirit);
+            }
+        }
+        else if (targetCell.hasItems()) {
+            console.log('GOT HERE');
+            if (binder.has('SpiritItemCrafter')) {
+                console.log('BINDING item now');
+                const topItem = targetCell.getItems()[0];
+                const gemBindComp = new RG.Component.GemBound();
+                gemBindComp.setGem(ent);
+                topItem.add(gemBindComp);
+            }
+            else {
+                const msg = `${binder.getName()} cannot bind gems to items.`;
+                RG.gameMsg({cell: targetCell, msg});
+            }
+
+        }
+
+        ent.remove('SpiritBind');
+    };
+};
+RG.extend2(RG.System.SpiritBind, RG.System.Base);
 
 /* Processes entities with hunger component.*/
 RG.System.Hunger = function(compTypes) {
