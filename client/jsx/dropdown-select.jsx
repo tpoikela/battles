@@ -19,6 +19,7 @@ export default class DropdownSelect extends Component {
     return (
       <label>{this.props.titleName}
         <select
+          id={this.props.id}
           name={`name-${this.props.titleName}`}
           onChange={this.onChange}
           value={this.props.currValue}
@@ -40,6 +41,7 @@ export default class DropdownSelect extends Component {
 }
 
 DropdownSelect.propTypes = {
+  id: PropTypes.string,
   options: PropTypes.array,
   callback: PropTypes.func,
   currValue: PropTypes.string,
