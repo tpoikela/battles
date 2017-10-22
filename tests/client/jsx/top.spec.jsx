@@ -12,7 +12,9 @@ window.localStorage = window.localStorage || new Storage();
 
 chai.use(chaiEnzyme());
 
-describe('Component <BattlesTop>', () => {
+describe('Component <BattlesTop>', function() {
+    this.timeout(30000);
+
     it('should render with shallow', () => {
         const wrapper = shallow(<BattlesTop />);
         expect(wrapper, 'Component must render with shallow').to.have.length(1);
@@ -27,6 +29,9 @@ describe('Component <BattlesTop>', () => {
         const wrapper = mount(<BattlesTop />);
         expect(wrapper, 'Component must render with mount').to.have.length(1);
         wrapper.setState({playMode: 'OverWorld'});
+
+        const selPlayMode = wrapper.find('#dropdown-select-playmode');
+        selPlayMode.simulate('change', {target: {value: 'OverWorld'}});
 
         const startButton = wrapper.find('#embark-button');
         startButton.simulate('click');
