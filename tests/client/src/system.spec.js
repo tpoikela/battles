@@ -241,10 +241,12 @@ describe('System.SpiritBind', () => {
         expect(gem.getStrength()).to.equal(10);
         expect(RG.getItemStat('getStrength', gem)).to.equal(10);
 
+        let items = binder.getInvEq().getInventory().getItems();
         // 1st attempt, no item binding skill
         gem.useItem({target: cell});
         updateSystems([spiritSys]);
         expect(sword.has('GemBound')).to.equal(false);
+        expect(items).to.have.length(1);
 
         // 2nd attempt, crafting skill added
         binder.add(new RG.Component.SpiritItemCrafter());
@@ -252,7 +254,25 @@ describe('System.SpiritBind', () => {
         updateSystems([spiritSys]);
         expect(sword.has('GemBound')).to.equal(true);
 
+        items = binder.getInvEq().getInventory().getItems();
+        expect(items).to.have.length(0);
+
         expect(RG.getItemStat('getStrength', sword)).to.equal(10);
+
+        binder.getInvEq().addItem(sword);
+        binder.getInvEq().equipItem(sword);
+
+        const eq = binder.getInvEq().getEquipment();
+        expect(eq.getStrength()).to.equal(10);
+
+        // Try toJSON/restoring while we're here
+        const json = sword.toJSON();
+        const newSword = new RG.Game.FromJSON().createItem(json);
+
+        expect(newSword.has('GemBound')).to.equal(true);
+        const restGem = newSword.get('GemBound').getGem();
+        expect(restGem.hasSpirit()).to.equal(true);
+        expect(restGem.getStrength()).to.equal(10);
 
     });
 
