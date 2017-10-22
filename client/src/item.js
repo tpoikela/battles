@@ -63,6 +63,9 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
         if (this.hasOwnProperty('count')) {
             txt = this.count + ' x ' + txt;
         }
+        if (this.has('GemBound')) {
+            txt += ' (Bound)';
+        }
         return txt;
     }
 
@@ -85,8 +88,12 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
     }
 
     equals(item) {
+        if (this.getID() === item.getID()) {
+            return true;
+        }
         let res = this.getName() === item.getName();
         res = res && (this.getType() === item.getType());
+        res = !this.has('GemBound') && !item.has('GemBound');
         return res;
     }
 
