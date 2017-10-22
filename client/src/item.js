@@ -707,8 +707,10 @@ class RGItemSpiritGem extends ItemBase {
         this._hasSpirit = false;
 
         // Generate getters which access spirit's Stats component
-        const _getters =
-            ['getStrength', 'getWillpower', 'getAccuracy', 'getAgility'];
+        const _getters = [
+            'getStrength', 'getWillpower', 'getAccuracy', 'getAgility',
+            'getMagic', 'getPerception'
+        ];
 
         const createGetFunc = i => {
             const funcName = _getters[i];
@@ -741,27 +743,16 @@ class RGItemSpiritGem extends ItemBase {
 
     /* Used for capturing the spirits inside the gem.*/
     useItem(obj) {
-        if (!this._hasSpirit) {
-            const cell = obj.target;
-            const spirits = cell.getPropType('spirit');
-            if (spirits.length > 0) {
-                const spirit = spirits[0];
-                spirit.get('Action').disable(); // Trapped spirit cannot act
-                const level = spirit.getLevel();
-                level.removeActor(spirit);
-                this._spirit = spirit;
-                this._hasSpirit = true;
-            }
-            else if (cell.hasActors()) {
-                    RG.gameWarn(
-                        'That thing there is something else than spirit.');
-                }
-                else {
-                    RG.gameWarn('There are no spirits there to be trapped');
-                }
+        const binder = this.getOwner().getOwner();
+        if (binder) {
+            const bindComp = new RG.Component.SpiritBind();
+            bindComp.setTarget(obj.target);
+            bindComp.setBinder(binder);
+            this.add(bindComp);
         }
         else {
-            RG.gameWarn(this.getName() + ' already traps a spirit');
+            const msg = `binder is null. obj: ${JSON.stringify(obj)}`;
+            RG.err('Item.SpiritGem', 'useItem', msg);
         }
     }
 
