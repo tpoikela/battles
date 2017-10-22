@@ -776,7 +776,9 @@ RG.getItemStat = (getFuncName, item) => {
     }
     if (item.has('GemBound')) {
         const gem = item.get('GemBound').getGem();
-        result += gem[getFuncName]();
+        if (typeof gem[getFuncName] === 'function') {
+            result += gem[getFuncName]();
+        }
     }
     return result;
 
