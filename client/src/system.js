@@ -717,37 +717,53 @@ RG.System.SpiritBind = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.SPIRIT, compTypes);
 
     this.updateEntity = ent => {
+        if (ent.has('SpiritBind')) {
+            this._doSpiritBind(ent);
+        }
+    };
+
+    /* Called when spirit bind is attempted by a binder. */
+    this._doSpiritBind = ent => {
         const bindComp = ent.get('SpiritBind');
         const binder = bindComp.getBinder();
+        const bName = binder.getName();
         const targetCell = bindComp.getTarget();
 
         if (!ent.hasSpirit()) {
             const spirits = targetCell.getPropType('spirit');
+            // TODO add some kind of power checks, binding should not always
+            // succeed ie. weak binder (and gem) vs strong spirit
             if (spirits.length > 0) {
                 const spirit = spirits[0];
                 spirit.get('Action').disable(); // Trapped spirit cannot act
                 const level = spirit.getLevel();
                 level.removeActor(spirit);
                 ent.setSpirit(spirit);
+
+                const msg = `${spirit.getName()} was bound to gem by ${bName}`;
+                RG.gameMsg({cell: targetCell, msg});
             }
         }
         else if (targetCell.hasItems()) {
-            console.log('GOT HERE');
             if (binder.has('SpiritItemCrafter')) {
-                console.log('BINDING item now');
                 const topItem = targetCell.getItems()[0];
                 const gemBindComp = new RG.Component.GemBound();
                 gemBindComp.setGem(ent);
                 topItem.add(gemBindComp);
-            }
-            else {
-                const msg = `${binder.getName()} cannot bind gems to items.`;
+
+                const iName = topItem.getName();
+                const gemName = ent.getName();
+                const msg = `${gemName} was bound to ${iName} by ${bName}`;
                 RG.gameMsg({cell: targetCell, msg});
             }
-
+            else {
+                const msg = `${bName} cannot bind gems to items.`;
+                RG.gameMsg({cell: targetCell, msg});
+            }
         }
 
         ent.remove('SpiritBind');
+
     };
 };
 RG.extend2(RG.System.SpiritBind, RG.System.Base);
