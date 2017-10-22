@@ -443,7 +443,7 @@ class Spiritcrafter extends ActorClassBase {
 
             },
             20: () => {
-
+                this._actor.add(new RG.Component.SpiritItemCrafter());
             },
             24: () => {
 
