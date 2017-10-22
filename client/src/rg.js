@@ -761,6 +761,27 @@ RG.scaleItemValue = (type, bonus, item) => {
     item.setValue(newValue);
 };
 
+RG.getItemStat = (getFuncName, item) => {
+    if (!item) {return 0;}
+
+    let result = 0;
+    if (typeof item[getFuncName] === 'function') {
+        result += item[getFuncName]();
+    }
+    if (item.has('Stats')) {
+        const sComp = item.get('Stats');
+        if (typeof sComp[getFuncName] === 'function') {
+            result += sComp[getFuncName]();
+        }
+    }
+    if (item.has('GemBound')) {
+        const gem = item.get('GemBound').getGem();
+        result += gem[getFuncName]();
+    }
+    return result;
+
+};
+
 /* Given an actor, scales its attributes based on new experience level.*/
 RG.levelUpActor = (actor, newLevel) => {
     if (actor.has('Experience')) {

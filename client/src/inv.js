@@ -306,17 +306,7 @@ RG.Inv.Equipment = function(actor) {
 
             slots.forEach(slot => {
                 const item = slot.getItem();
-                if (item !== null) {
-                    if (typeof item[funcname] === 'function') {
-                        result += item[funcname]();
-                    }
-                    else if (item.has('Stats')) {
-                        const sComp = item.get('Stats');
-                        if (typeof sComp[funcname] === 'function') {
-                            result += sComp[funcname]();
-                        }
-                    }
-                }
+                result += RG.getItemStat(funcname, item);
             });
         });
         return result;
