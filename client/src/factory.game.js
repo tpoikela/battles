@@ -503,6 +503,7 @@ RG.Factory.Game = function() {
         const gem2 = _parser.createItem('Greater spirit gem');
         player.getInvEq().addItem(gem1);
         player.getInvEq().addItem(gem2);
+        player.add(new RG.Component.SpiritItemCrafter());
         return game;
     };
 
