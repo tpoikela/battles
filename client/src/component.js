@@ -1029,7 +1029,10 @@ RG.Component.GemBound = function() {
 
     this.toJSON = function() {
         return {
-            setGem: _gem.getID()
+            setGem: {
+                createFunc: 'createItem',
+                value: _gem.toJSON()
+            }
         };
     };
 };
