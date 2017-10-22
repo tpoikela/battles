@@ -7,10 +7,10 @@ describe('OverWorld.createOverWorld', function() {
 
     it('can create an overworld with features', () => {
         const owConf = {
-            owTilesX: 40,
-            owTilesY: 20,
-            worldX: 400,
-            worldY: 200,
+            owTilesX: 20,
+            owTilesY: 10,
+            worldX: 200,
+            worldY: 100,
             nLevelsX: 4,
             nLevelsY: 2,
             areaX: 4,
@@ -20,7 +20,6 @@ describe('OverWorld.createOverWorld', function() {
         const [world, worldConf] = RG.OverWorld.createOverWorld(owConf);
         expect(world).to.exist;
         expect(worldConf).to.exist;
-        console.log(worldConf);
 
         const area = worldConf.area[0];
         expect(area.nCities).to.be.above(5);
