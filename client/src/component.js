@@ -1001,6 +1001,47 @@ RG.Component.NourishedOne = function() {
 RG.extend2(RG.Component.NourishedOne, RG.Component.Base);
 
 //--------------------------------------------
+// Spirit-related components
+//--------------------------------------------
+
+RG.Component.SpiritBind = function() {
+    RG.Component.Base.call(this, 'SpiritBind');
+
+    let _binder = null;
+    let _target = null;
+
+    this.getTarget = () => _target;
+    this.getBinder = () => _binder;
+    this.setTarget = (target) => {_target = target;};
+    this.setBinder = (binder) => {_binder = binder;};
+
+};
+RG.extend2(RG.Component.SpiritBind, RG.Component.Base);
+
+/* This component enables entity to bind gems into items. */
+RG.Component.GemBound = function() {
+    RG.Component.Base.call(this, 'GemBound');
+
+    let _gem = null;
+
+    this.setGem = gem => {_gem = gem;};
+    this.getGem = () => _gem;
+
+    this.toJSON = function() {
+        return {
+            setGem: _gem.getID()
+        };
+    };
+};
+RG.extend2(RG.Component.GemBound, RG.Component.Base);
+
+/* This component enables entity to bind gems into items. */
+RG.Component.SpiritItemCrafter = function() {
+    RG.Component.Base.call(this, 'SpiritItemCrafter');
+};
+RG.extend2(RG.Component.SpiritItemCrafter, RG.Component.Base);
+
+//--------------------------------------------
 // Comps that add or remove other components
 //--------------------------------------------
 
