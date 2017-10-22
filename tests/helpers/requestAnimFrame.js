@@ -7,7 +7,7 @@
 
 // made into exportable, removing IIFE - Tim Chiang 5/21/17
 
-export default function requestAnimFrame () {
+export default function requestAnimFrame (window) {
   var lastTime = 0;
   var vendors = ['ms', 'moz', 'webkit', 'o'];
   for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
