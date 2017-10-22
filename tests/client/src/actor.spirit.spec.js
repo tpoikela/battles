@@ -33,8 +33,8 @@ describe('RG.Actor.Spirit', () => {
         expect(spiritGem.getStrength()).to.equal(0);
         spirit.get('Stats').setStrength(66);
 
+        actor.getInvEq().addItem(spiritGem);
         spiritGem.useItem({target: spiritCell});
-        expect(spiritCell.getProp('actors').length).to.equal(1);
-        expect(spiritGem.getStrength()).to.equal(66);
+        expect(spiritGem.has('SpiritBind')).to.equal(true);
     });
 });
