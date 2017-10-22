@@ -1175,7 +1175,7 @@ RG.World.Shop.prototype.refreshShopItems = function(newItems) {
 RG.World.Shop.prototype.toJSON = function() {
     return {
         isAbandoned: this._isAbandoned,
-        shopkeeper: this._shopkeeper
+        shopkeeper: this._shopkeeper.getID()
     };
 };
 
