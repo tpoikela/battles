@@ -1,17 +1,16 @@
 
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import ModalHeader from './modal-header';
+import DropdownSelect from './dropdown-select';
 
 const RG = require('../src/rg.js');
 
-import ModalHeader from './modal-header';
-import RadioButtons from './radio-buttons';
-import DropdownSelect from './dropdown-select';
 
 /** Component for the game startup screen Prints game title and gives some
  * customisation options for the game.
  */
-export default class GameStartScreen extends React.Component {
+export default class GameStartScreen extends Component {
 
   constructor(props) {
     super(props);
@@ -67,7 +66,7 @@ export default class GameStartScreen extends React.Component {
         </div>);
     });
 
-    const playerClassOptions = this.getPlayerClassOptElems();
+    // const playerClassOptions = this.getPlayerClassOptElems();
 
     var newGame = this.props.newGame;
     var titleTextLoad = RG.gameTitle + ' Load a game';
@@ -236,6 +235,7 @@ export default class GameStartScreen extends React.Component {
                   <DropdownSelect
                     callback={setPlayMode}
                     currValue={this.props.settings.playMode}
+                    id='dropdown-select-playmode'
                     options={['Arena', 'Dungeon', 'Battle',
                       'Creator', 'World', 'OverWorld']}
                     titleName='Play mode'
