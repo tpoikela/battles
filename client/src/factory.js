@@ -1206,6 +1206,9 @@ RG.Factory.World = function() {
                     level = this.factZone.createDungeonLevel(levelConf);
                     // For creating 'fixed' items and actors
                     this.addFixedFeatures(i, level, branch);
+                    if (i === (conf.nLevels - 1)) {
+                        this.addLastLevelFeatures(i, level, levelConf);
+                    }
                 }
             }
 
@@ -1283,7 +1286,7 @@ RG.Factory.World = function() {
     };
 
     /* Adds fixed features such as stairs, actors and items into the level. */
-    this.addFixedFeatures = function(nLevel, level, feat) {
+    this.addFixedFeatures = function(nLevel, level, zone) {
         const create = this.getConf('create');
 
         // Actor creation
@@ -1293,7 +1296,7 @@ RG.Factory.World = function() {
                 if (createActor.nLevel === nLevel) {
                     const actorName = createActor.name;
                     if (createActor.hasOwnProperty('target') &&
-                        feat.getName() === createActor.target) {
+                        zone.getName() === createActor.target) {
                         this.factZone.addActorToLevel(actorName, level);
                     }
                     else {
@@ -1314,6 +1317,14 @@ RG.Factory.World = function() {
                 }
             });
         }
+    };
+
+    /* Adds special features to the last level of the zone. */
+    this.addLastLevelFeatures = function(nLevel, level, conf) {
+        const exploreElem = new RG.Element.Exploration();
+        const expPoints = 10 * (nLevel + 1) * conf.maxDanger;
+        exploreElem.setExp(expPoints);
+        level.addElement(exploreElem);
     };
 
     /* Returns preset levels (if any) for the current zone. */
