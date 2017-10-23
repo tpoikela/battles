@@ -568,8 +568,8 @@ RG.System.Movement = function(compTypes) {
     this._processExploreElem = (ent, cell) => {
         const level = ent.getLevel();
         const [x, y] = [cell.getX(), cell.getY()];
-        const expElem = cell.getPropType()[0];
-        if (level.removeElement(expElem.getPropType(), x, y)) {
+        const expElem = cell.getPropType('exploration')[0];
+        if (level.removeElement(expElem, x, y)) {
             const givenExp = expElem.getExp();
             const expPoints = new RG.Component.ExpPoints(givenExp);
             ent.add(expPoints);
