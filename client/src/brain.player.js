@@ -729,7 +729,8 @@ class BrainPlayer {
               this._confirmEnergy = RG.energy.ATTACK;
               this._wantConfirm = true;
               this._confirmCallback = attackCallback;
-              RG.gameMsg("Press 'y' to attack non-hostile actor.");
+              const msg = `Press 'y' to attack non-hostile ${target.getName()}`;
+              RG.gameMsg(msg);
               return this.noAction();
             }
           }
@@ -741,7 +742,8 @@ class BrainPlayer {
         }
         else {
           // TODO add moving out of the map
-          return this.cmdNotPossible('You cannot move that way.');
+          const msg = 'You cannot move there (Use < or > to change location).';
+          return this.cmdNotPossible(msg);
         }
       }
       else if (cmdType === 'REST') {
