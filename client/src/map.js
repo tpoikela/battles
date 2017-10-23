@@ -657,7 +657,11 @@ RG.Map.Level = function() { // {{{2
         if (_isStairs(elem)) {
             return this.addStairs(elem, x, y);
         }
-        return this._addPropToLevelXY(RG.TYPE_ELEM, elem, x, y);
+        if (!RG.isNullOrUndef([x, y])) {
+            return this._addPropToLevelXY(RG.TYPE_ELEM, elem, x, y);
+        }
+        const [xCell, yCell] = this._getFreeCellXY();
+        return this._addPropToLevelXY(RG.TYPE_ELEM, elem, xCell, yCell);
     };
 
     this.removeElement = function(elem, x, y) {
@@ -673,16 +677,8 @@ RG.Map.Level = function() { // {{{2
         if (!RG.isNullOrUndef([x, y])) {
             return this._addPropToLevelXY(RG.TYPE_ITEM, item, x, y);
         }
-        else {
-            const freeCells = _map.getFree();
-            if (freeCells.length > 0) {
-                const xCell = freeCells[0].getX();
-                const yCell = freeCells[0].getY();
-                return this._addPropToLevelXY(RG.TYPE_ITEM, item, xCell, yCell);
-            }
-
-        }
-        return false;
+        const [xCell, yCell] = this._getFreeCellXY();
+        return this._addPropToLevelXY(RG.TYPE_ITEM, item, xCell, yCell);
     };
 
     /* Removes an item from the level in x,y position.*/
@@ -933,6 +929,16 @@ RG.Map.Level = function() { // {{{2
         });
 
         return obj;
+    };
+
+    this._getFreeCellXY = function() {
+        const freeCells = _map.getFree();
+        if (freeCells.length > 0) {
+            const xCell = freeCells[0].getX();
+            const yCell = freeCells[0].getY();
+            return [xCell, yCell];
+        }
+        return [null, null];
     };
 
 }; // }}} Level
