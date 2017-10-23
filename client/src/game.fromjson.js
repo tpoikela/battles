@@ -111,6 +111,11 @@ RG.Game.FromJSON = function() {
 
                 memJSON.enemies.forEach(enemyID => {
                     const enemy = id2entity[enemyID];
+                    if (!enemy) {
+                        console.log('ENEMY NULL. ENTITY IS:');
+                        console.log(ent);
+                        console.log(ent.toJSON());
+                    }
                     memObj.addEnemy(enemy);
                 });
             }
