@@ -394,6 +394,33 @@ class RGElementShop extends Mixin.Locatable(RGElementBase) {
 
 RG.Element.Shop = RGElementShop;
 
+/* An experience element which is found in the dungeons. */
+class RGElementExploration extends Mixin.Locatable(RGElementBase) {
+    constructor() {
+        super('exploration');
+        this.exp = 0;
+        this.msg = '';
+    }
+
+    setExp(exp) {
+        this.exp = exp;
+    }
+
+    getExp() {
+        return this.exp;
+    }
+
+    setMsg(msg) {
+        this.msg = msg;
+    }
+
+    getMsg() {
+        return this.msg;
+    }
+
+}
+RG.Element.Exploration = RGElementExploration;
+
 /* A tree element. */
 class RGElementTree extends RGElementBase {
     constructor() {
