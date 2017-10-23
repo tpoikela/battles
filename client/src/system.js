@@ -540,6 +540,9 @@ RG.System.Movement = function(compTypes) {
 
                 if (ent.isPlayer) {
                     if (ent.isPlayer()) {
+                        if (cell.hasPropType('exploration')) {
+                            this._processExploreElem(ent, cell);
+                        }
                         this.checkMessageEmits(prevCell, cell);
                     }
                 }
@@ -558,6 +561,25 @@ RG.System.Movement = function(compTypes) {
         }
         ent.remove('Movement');
         return false;
+    };
+
+    /* When player enters exploration element cell, function processes this. At
+    *  the moment, this gives only exp to player. */
+    this._processExploreElem = (ent, cell) => {
+        const level = ent.getLevel();
+        const [x, y] = [cell.getX(), cell.getY()];
+        const expElem = cell.getPropType()[0];
+        if (level.removeElement(expElem.getPropType(), x, y)) {
+            const givenExp = expElem.getExp();
+            const expPoints = new RG.Component.ExpPoints(givenExp);
+            ent.add(expPoints);
+
+            let msg = expElem.getMsg();
+            if (msg.length === 0) {
+                msg = `${ent.getName()} has explored zone thoroughly.`;
+                RG.gameInfo({cell, msg});
+            }
+        }
     };
 
     /* If player moved to the square, checks if any messages must
