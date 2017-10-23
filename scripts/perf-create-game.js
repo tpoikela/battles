@@ -1,6 +1,9 @@
 /* A script for profiling the game creation with large number of
  * tiles/features.  */
 
+require('babel-register');
+
+
 const RG = require('../client/src/battles');
 const worldConf = require('../client/data/conf.world');
 
@@ -12,9 +15,9 @@ const gameConf = {
     cols: 80,
     rows: 28,
     playerLevel: 'Medium',
-    sqrPerMonster: 40,
+    sqrPerActor: 100,
     sqrPerItem: 100,
-    debugMode: 'OverWorld',
+    playMode: 'OverWorld',
     loadedPlayer: null,
     loadedLevel: null,
     playerName: 'Player1',
@@ -45,3 +48,4 @@ console.log('The game has ' + nItems + ' items.');
 console.log('Elements created: ' + RG.elementsCreated);
 
 // console.log(JSON.stringify(game.toJSON()));
+

@@ -1,5 +1,7 @@
 /* A short script to check the performance of Screen.render. */
 
+require('babel-register');
+
 const RG = require('../client/src/battles');
 const Screen = require('../client/gui/screen');
 
