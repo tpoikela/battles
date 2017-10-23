@@ -204,6 +204,28 @@ describe('System.Disability', () => {
     });
 });
 
+describe('System.Movement', () => {
+    it('handles actor movement', () => {
+        const movSystem = new RG.System.Movement(['Movement']);
+        const player = new RG.Actor.Rogue('player name');
+        player.setIsPlayer(true);
+        const level = RG.FACT.createLevel('arena', 20, 20);
+        level.addActor(player, 1, 1);
+
+        const expElem = new RG.Element.Exploration();
+        expElem.setExp(100);
+        level.addElement(expElem, 2, 2);
+        const movComp = new RG.Component.Movement(2, 2, level);
+        player.add(movComp);
+
+        expect(level.getElements()).to.have.length(1);
+        updateSystems([movSystem]);
+
+        expect(player.has('ExpPoints')).to.equal(true);
+        expect(level.getElements()).to.have.length(0);
+    });
+});
+
 describe('System.SpiritBind', () => {
     it('is used to bind spirits into spirit gems', () => {
         const spiritSys = new RG.System.SpiritBind(['SpiritBind']);
