@@ -504,6 +504,11 @@ RG.Factory.Game = function() {
         player.getInvEq().addItem(gem1);
         player.getInvEq().addItem(gem2);
         player.add(new RG.Component.SpiritItemCrafter());
+
+        const exploreElem = new RG.Element.Exploration();
+        exploreElem.setExp(100);
+        level.addElement(exploreElem, 1, 20);
+
         return game;
     };
 
