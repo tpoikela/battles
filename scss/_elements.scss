@@ -39,6 +39,11 @@ $door-bg-color: $floor-bg-color;
     color: $door-color;
 }
 
+.cell-element-exploration {
+    background-color: $brown;
+    color: $yellow;
+}
+
 .cell-element-floor {
     background-color: $floor-bg-color;
 }
