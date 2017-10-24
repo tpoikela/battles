@@ -3,6 +3,7 @@ const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 
 const RGTest = require('../../roguetest');
+const ROT = require('../../../lib/rot');
 
 /* Updates given systems in given order.*/
 const updateSystems = systems => {
@@ -223,6 +224,36 @@ describe('System.Movement', () => {
 
         expect(player.has('ExpPoints')).to.equal(true);
         expect(level.getElements()).to.have.length(0);
+    });
+});
+
+describe('System.Chat', () => {
+    it('description', () => {
+        const chatter = new RG.Actor.Rogue('chatter');
+        chatter.setIsPlayer(true);
+        const chattee = new RG.Actor.Rogue('chattee');
+        const level = RGTest.wrapIntoLevel([chatter, chattee]);
+        const chatSys = new RG.System.Chat(['Chat']);
+
+        RGTest.moveEntityTo(chatter, 1, 1);
+        RGTest.moveEntityTo(chattee, 2, 2);
+        const chatComp = new RG.Component.Chat();
+        const args = {dir: [1, 1]};
+        chatComp.setArgs(args);
+        chatter.add(chatComp);
+
+        const trainComp = new RG.Component.Trainer();
+        const chatObj = new RG.Chat.Trainer();
+        chatObj.setTrainer(chattee);
+        chattee.add(trainComp);
+
+        updateSystems([chatSys]);
+
+        const brain = chatter.getBrain();
+        expect(brain._wantSelection).to.equal(true);
+        expect(chatter.has('Chat')).to.equal(false);
+
+        brain.decideNextAction({code: ROT.VK_0});
     });
 });
 
