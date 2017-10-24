@@ -5,6 +5,7 @@ RG.Path = require('./path');
 RG.SYS = {};
 RG.SYS.ANIMATION = Symbol();
 RG.SYS.ATTACK = Symbol();
+RG.SYS.CHAT = Symbol();
 RG.SYS.COMMUNICATION = Symbol();
 RG.SYS.DAMAGE = Symbol();
 RG.SYS.DISABILITY = Symbol();
@@ -515,6 +516,48 @@ RG.System.ExpPoints = function(compTypes) {
 };
 
 RG.extend2(RG.System.ExpPoints, RG.System.Base);
+
+/* This system handles all entity movement.*/
+RG.System.Chat = function(compTypes) {
+    RG.System.Base.call(this, RG.SYS.CHAT, compTypes);
+
+    this.updateEntity = function(ent) {
+        const args = ent.get('Chat').getArgs();
+        const dir = args.dir;
+        const [dX, dY] = [dir[0], dir[1]];
+        const x = ent.getX() + dX;
+        const y = ent.getY() + dY;
+        const map = ent.getLevel().getMap();
+        if (map.hasXY(x, y)) {
+            const cell = map.getCell(x, y);
+            if (cell.hasActors()) {
+                const actor = cell.getActors()[0];
+                if (actor.has('Trainer')) {
+                    const chatObj = actor.get('Trainer').getChatObj();
+                    chatObj.setTarget(ent);
+                    const selObj = chatObj.getSelectionObject();
+                    const entBrain = ent.getBrain();
+                    entBrain.setSelectionObject(selObj);
+                }
+                const msg = `You chat with ${actor} for a while.`;
+                RG.gameMsg({cell, msg});
+            }
+            else {
+                const msg = 'There is no one to talk to.';
+                RG.gameMsg({cell, msg});
+            }
+
+        }
+        else {
+            const msg = 'There is no one to talk to.';
+            RG.gameMsg({cell: ent.getCell(), msg});
+        }
+        ent.remove('Chat');
+    };
+
+};
+RG.extend2(RG.System.Chat, RG.System.Base);
+
 
 /* This system handles all entity movement.*/
 RG.System.Movement = function(compTypes) {
