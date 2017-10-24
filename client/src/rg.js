@@ -986,6 +986,7 @@ RG.KeyMap = {
     isUsePower: function(code) {return code === RG.KEY.POWER;},
     isTargetMode: function(code) {return code === RG.KEY.TARGET;},
     isNextTarget: function(code) {return code === RG.KEY.NEXT;},
+    isChat: function(code) {return code === RG.KEY.CHAT;},
 
     /* Based on keycode, computes and returns a new x,y pair. If code is
      * invalid, returns null. */
@@ -1056,6 +1057,7 @@ RG.KEY.LOOK = ROT.VK_L + 32;
 RG.KEY.POWER = ROT.VK_P + 32;
 RG.KEY.TARGET = RG.VK_t;
 RG.KEY.NEXT = RG.VK_n;
+RG.KEY.CHAT = ROT.VK_C;
 RG.KeyMap.initMap();
 
 RG.isValidKey = keyCode => {
