@@ -3,6 +3,28 @@ const RG = require('./rg');
 
 const EMPTY_FUNC = () => {};
 
+const chatSelObject = player => {
+    const msg = 'Select direction for chatting:';
+    RG.gameMsg(msg);
+    return {
+        select: (code) => {
+            const args = {};
+            args.dir = RG.KeyMap.getDir(code);
+            if (args.dir) {
+                args.src = player;
+                return () => {
+                    const chatComp = new RG.Component.Chat();
+                    chatComp.setArgs(args);
+                    player.add(chatComp);
+                };
+            }
+            return null;
+        },
+        showMenu: () => false
+    };
+
+};
+
 /* Memory object for the player .*/
 const MemoryPlayer = function(player) {
     let _lastAttackedID = null;
@@ -502,6 +524,12 @@ class BrainPlayer {
     /* Required for damage dealing. Does nothing for the player.*/
     addEnemy() {}
 
+    /* Sets the selection object (for chats/trainers/etc) */
+    setSelectionObject(obj) {
+        this._wantSelection = true;
+        this._selectionObject = obj;
+    }
+
     toJSON() {
         return {
             type: this.getType()
@@ -688,6 +716,12 @@ class BrainPlayer {
               RG.gameMsg('You have no powers to use.');
           }
           return this.noAction();
+        }
+
+        if (RG.KeyMap.isChat(code)) {
+          // RG.gameMsg('You try chatting around.');
+          this._wantSelection = true;
+          this._selectionObject = chatSelObject(this._actor);
         }
       }
 
