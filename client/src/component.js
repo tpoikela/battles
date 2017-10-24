@@ -2,6 +2,8 @@
 const RG = require('./rg.js');
 const Mixin = require('./mixin');
 
+RG.Chat = require('./chat');
+
 //---------------------------------------------------------------------------
 // ECS COMPONENTS
 //---------------------------------------------------------------------------
@@ -452,6 +454,27 @@ class RGComponentMovement extends Mixin.Locatable(RG.Component.Base) {
 RG.extend2(RGComponentMovement, RG.Component.Base);
 
 RG.Component.Movement = RGComponentMovement;
+
+/* Transient component representing a chat action between actors. */
+RG.Component.Chat = function() {
+    RG.Component.Base.call(this, 'Chat');
+
+    let _args = null;
+    this.setArgs = args => {_args = args;};
+    this.getArgs = () => _args;
+
+};
+RG.extend2(RG.Component.Chat, RG.Component.Base);
+
+/* Transient component representing a chat action between actors. */
+RG.Component.Trainer = function() {
+    RG.Component.Base.call(this, 'Trainer');
+
+    const _chatObj = new RG.Chat.Trainer();
+    this.getChatObj = () => _chatObj;
+
+};
+RG.extend2(RG.Component.Trainer, RG.Component.Base);
 
 /* Added to entities which must act as missiles flying through cells.*/
 RG.Component.Missile = function(source) {
