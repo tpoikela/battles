@@ -773,12 +773,38 @@ RG.hasEnoughGold = (actor, goldWeight) => {
     for (let i = 0; i < items.length; i++) {
         if (items[i].getType() === 'goldcoin') {
             if (items[i].count >= ncoins) {
-                items[i].count -= ncoins;
+                // items[i].count -= ncoins;
                 return true;
             }
         }
     }
     return false;
+};
+
+/* Tries to remove given amount of gold coins from the actor. Returns the number
+ * of coins removed. */
+RG.removeNCoins = (actor, ncoins) => {
+    let ncoinsRemoved = 0;
+    const items = actor.getInvEq().getInventory().getItems();
+    let coinsFound = null;
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].getType() === 'goldcoin') {
+            if (items[i].count > ncoins) {
+                ncoinsRemoved = ncoins;
+                items[i].count -= ncoins;
+            }
+            else {
+                coinsFound = items[i];
+                ncoinsRemoved = coinsFound.count;
+                coinsFound.count = 0;
+            }
+        }
+    }
+    // Need to remove coins item from buyer inventory
+    if (coinsFound !== null) {
+        actor.getInvEq().removeItem(coinsFound);
+    }
+    return ncoinsRemoved;
 };
 
 /* Returns the total stat value of the given stat. Note that stat must be given
