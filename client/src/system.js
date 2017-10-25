@@ -539,7 +539,7 @@ RG.System.Chat = function(compTypes) {
                     const entBrain = ent.getBrain();
                     entBrain.setSelectionObject(selObj);
                 }
-                const msg = `You chat with ${actor} for a while.`;
+                const msg = `You chat with ${actor.getName()} for a while.`;
                 RG.gameMsg({cell, msg});
             }
             else {
