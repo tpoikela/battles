@@ -268,7 +268,7 @@ class RGElementShop extends Mixin.Locatable(RGElementBase) {
 
         if (this.hasEnoughGold(buyer, goldWeight)) {
             const coins = new RG.Item.GoldCoin();
-            coins.count = nCoins;
+            coins.count = RG.removeNCoins(buyer, nCoins);
             this._shopkeeper.getInvEq().addItem(coins);
             item.getOwner().removeProp('items', item);
             buyer.getInvEq().addItem(item);
@@ -300,7 +300,7 @@ class RGElementShop extends Mixin.Locatable(RGElementBase) {
         if (this.hasEnoughGold(this._shopkeeper, goldWeight)) {
             if (seller.getInvEq().dropItem(item)) {
                 const coins = new RG.Item.GoldCoin();
-                coins.count = nCoins;
+                coins.count = RG.removeNCoins(this._shopkeeper, nCoins);
                 seller.getInvEq().addItem(coins);
                 item.add('Unpaid', new RG.Component.Unpaid());
                 RG.gameMsg({cell: sellerCell, msg: seller.getName() +
