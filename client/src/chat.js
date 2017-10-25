@@ -73,9 +73,8 @@ class ChatTrainer {
             else {
                 const nCoins = RG.getGoldInCoins(gw);
                 const coins = new RG.Item.GoldCoin();
-                coins.count = nCoins;
+                coins.count = RG.removeNCoins(this.target, nCoins);
                 this.trainer.getInvEq().addItem(coins);
-
             }
 
             const targetStats = this.target.get('Stats');
