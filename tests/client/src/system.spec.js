@@ -232,6 +232,10 @@ describe('System.Chat', () => {
     it('handles chat actions between player and NPC', () => {
         const chatter = new RG.Actor.Rogue('chatter');
         chatter.setIsPlayer(true);
+        const coins = new RG.Item.GoldCoin();
+        coins.count = 1000;
+        chatter.getInvEq().addItem(coins);
+
         const trainer = new RG.Actor.Rogue('trainer');
         RGTest.wrapIntoLevel([chatter, trainer]);
         const chatSys = new RG.System.Chat(['Chat']);
