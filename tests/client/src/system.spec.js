@@ -228,24 +228,28 @@ describe('System.Movement', () => {
 });
 
 describe('System.Chat', () => {
-    it('description', () => {
+
+    it('handles chat actions between player and NPC', () => {
         const chatter = new RG.Actor.Rogue('chatter');
         chatter.setIsPlayer(true);
-        const chattee = new RG.Actor.Rogue('chattee');
-        const level = RGTest.wrapIntoLevel([chatter, chattee]);
+        const trainer = new RG.Actor.Rogue('trainer');
+        RGTest.wrapIntoLevel([chatter, trainer]);
         const chatSys = new RG.System.Chat(['Chat']);
 
+        trainer.get('Stats').setAccuracy(20);
+
+        const accBefore = chatter.get('Stats').getAccuracy();
+
         RGTest.moveEntityTo(chatter, 1, 1);
-        RGTest.moveEntityTo(chattee, 2, 2);
+        RGTest.moveEntityTo(trainer, 2, 2);
         const chatComp = new RG.Component.Chat();
         const args = {dir: [1, 1]};
         chatComp.setArgs(args);
         chatter.add(chatComp);
 
         const trainComp = new RG.Component.Trainer();
-        const chatObj = new RG.Chat.Trainer();
-        chatObj.setTrainer(chattee);
-        chattee.add(trainComp);
+        trainComp.getChatObj().setTrainer(trainer);
+        trainer.add(trainComp);
 
         updateSystems([chatSys]);
 
@@ -253,7 +257,13 @@ describe('System.Chat', () => {
         expect(brain._wantSelection).to.equal(true);
         expect(chatter.has('Chat')).to.equal(false);
 
-        brain.decideNextAction({code: ROT.VK_0});
+        const actionCb = brain.decideNextAction({code: ROT.VK_0});
+        expect(brain._wantSelection).to.equal(false);
+
+        actionCb();
+
+        const accAfter = chatter.get('Stats').getAccuracy();
+        expect(accAfter).to.equal(accBefore + 1);
     });
 });
 
