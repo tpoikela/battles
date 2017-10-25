@@ -615,7 +615,8 @@ RG.Game.Main = function() {
     _eventPool.listenEvent(RG.EVT_ACTOR_KILLED, this);
     _eventPool.listenEvent(RG.EVT_LEVEL_CHANGED, this);
 
-    /* Adds one battle to the game. */
+    /* Adds one battle to the game. This adds battle directly to the list of
+    * active levels. */
     this.addBattle = battle => {
         const level = battle.getLevel();
         _engine.addActiveLevel(level);
