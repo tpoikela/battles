@@ -256,17 +256,7 @@ class RGElementShop extends Mixin.Locatable(RGElementBase) {
     }
 
     hasEnoughGold(actor, goldWeight) {
-        const ncoins = RG.getGoldInCoins(goldWeight);
-        const items = actor.getInvEq().getInventory().getItems();
-        for (let i = 0; i < items.length; i++) {
-            if (items[i].getType() === 'goldcoin') {
-                if (items[i].count >= ncoins) {
-                    items[i].count -= ncoins;
-                    return true;
-                }
-            }
-        }
-        return false;
+        return RG.hasEnoughGold(actor, goldWeight);
     }
 
     /* Function for buying an item.*/

@@ -672,7 +672,7 @@ const RG = { // {{{2
     },
 
     STATS: [
-        'Strength', 'Accuracy', 'Agility', 'Willpower', 'Perception', 'Magic'
+        'Accuracy', 'Agility', 'Magic', 'Perception', 'Strength', 'Willpower'
     ]
 
 }; // / }}} RG
@@ -737,6 +737,10 @@ RG.getGoldCoinCountDistr = nLevel => {
     return dist;
 };
 
+//--------------------------------
+// Value/gold/buy/sell functions
+//--------------------------------
+
 /* Converts abstract value into gold weight. */
 RG.valueToGoldWeight = value => {
     let currVal = value;
@@ -749,7 +753,7 @@ RG.valueToGoldWeight = value => {
     return adjValue / 1000;
 };
 
-/* Scales (up) the value of item is any extra bonuses or modifiers are added to
+/* Scales (up) the value of item if any extra bonuses or modifiers are added to
  * it. */
 RG.scaleItemValue = (type, bonus, item) => {
     const currValue = item.getValue();
@@ -763,6 +767,22 @@ RG.scaleItemValue = (type, bonus, item) => {
     item.setValue(newValue);
 };
 
+RG.hasEnoughGold = (actor, goldWeight) => {
+    const ncoins = RG.getGoldInCoins(goldWeight);
+    const items = actor.getInvEq().getInventory().getItems();
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].getType() === 'goldcoin') {
+            if (items[i].count >= ncoins) {
+                items[i].count -= ncoins;
+                return true;
+            }
+        }
+    }
+    return false;
+};
+
+/* Returns the total stat value of the given stat. Note that stat must be given
+ * in getter format ie 'getStrength', not Strength. */
 RG.getItemStat = (getFuncName, item) => {
     if (!item) {return 0;}
 
