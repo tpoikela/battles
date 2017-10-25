@@ -175,4 +175,15 @@ RGTest.equipItems = function(ent, items) {
     });
 };
 
+/* Can be used to catch the emitted game messages. */
+RGTest.MsgCatcher = function() {
+
+    this.hasNotify = true;
+    this.notify = (evtName, msg) => {
+        console.log('\tMsg: |' + msg.msg + '|');
+    };
+
+    RG.POOL.listenEvent(RG.EVT_MSG, this);
+};
+
 module.exports = RGTest;
