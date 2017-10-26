@@ -408,6 +408,15 @@ class RGElementExploration extends Mixin.Locatable(RGElementBase) {
         return this.msg;
     }
 
+    toJSON() {
+        const json = {
+            type: this.getType(),
+            setMsg: this.getMsg(),
+            setExp: this.getExp()
+        };
+        return json;
+    }
+
 }
 RG.Element.Exploration = RGElementExploration;
 
