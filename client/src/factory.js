@@ -1325,6 +1325,23 @@ RG.Factory.World = function() {
         const expPoints = 10 * (nLevel + 1) * conf.maxDanger;
         exploreElem.setExp(expPoints);
         level.addElement(exploreElem);
+
+        const parser = RG.ObjectShell.getParser();
+        const bossDanger = conf.maxDanger + 2;
+        const bossActor = parser.createRandomActor(
+            {func: actor => (
+                actor.danger <= bossDanger && actor.danger >= conf.maxDanger
+            )}
+        );
+        if (bossActor) {
+            level.addActorToFreeCell(bossActor);
+        }
+
+        const prizeValue = conf.maxValue * 2;
+        const prizeItem = parser.createRandomItem(
+            {func: item => item.value <= prizeValue}
+        );
+        level.addItem(prizeItem);
     };
 
     /* Returns preset levels (if any) for the current zone. */
