@@ -37,7 +37,8 @@ RG.Game.Engine = function(eventPool) {
 
     // These systems updated after each action. Order is important, for example,
     // animations should be seen before actors are killed
-    this.systemOrder = ['Disability', 'SpiritBind', 'Attack', 'SpellCast',
+    this.systemOrder = ['Disability', 'SpiritBind', 'Attack', 'Chat',
+        'SpellCast',
         'SpellEffect', 'Missile', 'Movement', 'Animation', 'Damage',
         'ExpPoints', 'Communication'];
 
@@ -45,6 +46,7 @@ RG.Game.Engine = function(eventPool) {
     this.systems.Disability = new RG.System.Disability(
         ['Stun', 'Paralysis']);
     this.systems.SpiritBind = new RG.System.SpiritBind(['SpiritBind']);
+    this.systems.Chat = new RG.System.Chat(['Chat']);
     this.systems.Attack = new RG.System.Attack(['Attack']);
     this.systems.Missile = new RG.System.Missile(['Missile']);
     this.systems.Movement = new RG.System.Movement(['Movement']);
