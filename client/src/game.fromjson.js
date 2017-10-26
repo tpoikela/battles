@@ -252,7 +252,7 @@ RG.Game.FromJSON = function() {
             }
             else {
                 RG.err('FromJSON', 'restoreLevel',
-                    `Elem ${JSON.stringify(elem)} returned null`);
+                    `createElement ${JSON.stringify(elem)} returned null`);
             }
         });
 
@@ -308,6 +308,13 @@ RG.Game.FromJSON = function() {
         }
         else if (type === 'door') {
             return new RG.Element.Door(elemObj.closed);
+        }
+        else if (type === 'exploration') {
+            const expElem = new RG.Element.Exploration();
+            expElem.setExp(elemObj.setExp);
+            expElem.setMsg(elemObj.setMsg);
+            return expElem;
+
         }
         return null;
     };
