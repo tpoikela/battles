@@ -303,6 +303,10 @@ RG.Geometry = {
         const m1 = l1.getMap();
         const m2 = l2.getMap();
 
+        const numActors1 = l1.getActors().length;
+        const numActors2 = l2.getActors().length;
+        const numExpActors = numActors1 + numActors2;
+
         // Need copies of lists, originals modified in foreach-loops
         const actors = l2.getActors().slice();
         const items = l2.getItems().slice();
@@ -338,19 +342,25 @@ RG.Geometry = {
             }
         });
 
-        this.mergeMapElems(m1, m2, startX, startY);
+        this.mergeMapBaseElems(m1, m2, startX, startY);
+
+        const numActorsNew1 = l1.getActors().length;
+        if (numActorsNew1 !== numExpActors) {
+            RG.err('RG.Geometry', 'mergeLevels',
+                `Num actors new: ${numActorsNew1}, exp: ${numExpActors}`);
+        }
     },
 
     /* Merges m2 into m1 starting from x,y in m1. Does not move items/actors. */
-    mergeMapElems: function(m1, m2, startX, startY) {
+    mergeMapBaseElems: function(m1, m2, startX, startY) {
         if (m1.cols < m2.cols) {
             const got = `m1: ${m1.cols} m2: ${m2.cols}`;
-            RG.err('Geometry', 'mergeMapElems',
+            RG.err('Geometry', 'mergeMapBaseElems',
                 'Cols: m2 cols must be smaller/equal: ' + got);
         }
         if (m1.rows < m2.rows) {
             const got = `m1: ${m1.rows} m2: ${m2.rows}`;
-            RG.err('Geometry', 'mergeMapElems',
+            RG.err('Geometry', 'mergeMapBaseElems',
                 'Rows: m2 rows must be smaller/equal: ' + got);
         }
         const endX = startX + m2.cols - 1;
@@ -358,9 +368,8 @@ RG.Geometry = {
         for (let x = startX; x <= endX; x++) {
             for (let y = startY; y <= endY; y++) {
                 if (m1.hasXY(x, y)) {
-                    m1._map[x][y] = m2._map[x - startX][y - startY];
-                    m1._map[x][y].setX(x);
-                    m1._map[x][y].setY(y);
+                    const cell = m2.getCell(x - startX, y - startY);
+                    m1._map[x][y].setBaseElem(cell.getBaseElem());
                 }
             }
         }
