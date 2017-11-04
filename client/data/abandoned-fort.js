@@ -56,7 +56,7 @@ export default class AbandonedFort {
 
     const outerX = Math.round(outerStartXRatio * cols);
     const outerY = Math.round(rows / 2 - outerWall.map.rows / 2);
-    RG.Geometry.mergeMapElems(mainMap, outerWall.map, outerX, outerY);
+    RG.Geometry.mergeMapBaseElems(mainMap, outerWall.map, outerX, outerY);
 
     const wallCols = Math.floor(cols / 2);
     const mountWall = RG.FACT.createLevel('wall', wallCols, rows,
