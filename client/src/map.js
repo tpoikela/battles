@@ -255,6 +255,20 @@ RG.Map.Cell.prototype.getProp = function(prop) {
     return null;
 };
 
+/* For debugging to find a given object. */
+RG.Map.Cell.prototype.findObj = function(filterFunc) {
+    const result = [];
+    Object.keys(this._p).forEach(propType => {
+        const props = this._p[propType];
+        props.forEach(propObj => {
+            if (filterFunc(propObj)) {
+                result.push(propObj);
+            }
+        });
+    });
+    return result;
+};
+
 /* Map cell list object which contains a number of cells. A map is used for
  * rendering
  * while the level contains actual information about game elements such as
@@ -470,6 +484,18 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
      * function is used. */
     this.getCellRowFast = function(y) {
         return this._rowMap[y];
+    };
+
+    /* Slow find for debugging. Tries to find all objects matching the
+     * filterFunc. */
+    this.findObj = function(filterFunc) {
+        let result = [];
+        for (let x = 0; x < this.cols; x++) {
+            for (let y = 0; y < this.rows; y++) {
+                result = result.concat(this._map[x][y].findObj(filterFunc));
+            }
+        }
+        return result;
     };
 
 
