@@ -263,8 +263,11 @@ class BattlesTop extends Component {
 
     /* Called when "Embark" button is clicked to create a new game.*/
     newGame() {
+        const startTime = new Date().getTime();
         this.setState({creatingGame: true, showStartScreen: false});
         this.createNewGameAsync().then(() => {
+            const dur = new Date().getTime() - startTime;
+            console.log(`Creating game took ${dur} ms`);
             this.setState({render: true,
                 creatingGame: false});
         });
@@ -537,6 +540,10 @@ class BattlesTop extends Component {
         let overworld = null;
         let showGameMenu = false;
         let playerOwPos = null;
+
+        if (this.state.creatingGame) {
+            console.log('state.creatingGame true');
+        }
 
         let gameValid = false;
         if (this.game) {
