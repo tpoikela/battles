@@ -35,7 +35,6 @@ describe('RG.Game.FromJSON', function() {
     it('Converts Ammo to JSON and back', () => {
         const arrow = new RG.Item.Ammo('Steel arrow');
         const json = arrow.toJSON();
-        console.log(json);
         const newArrow = fromJSON.createItem(json);
         expect(arrow.equals(newArrow)).to.equal(true);
     });
@@ -216,12 +215,24 @@ describe('RG.Game.FromJSON', function() {
 
     it('can serialize/de-serialize Capital', () => {
         const capitalLevel = new Capital(200, 400).getLevel();
-        const nActorsBefore = capitalLevel.getActors().length;
+        const allActors = capitalLevel.getActors();
+        const shopKeepers = allActors.filter(ent =>
+            ent.getName() === 'shopkeeper');
+
+        expect(shopKeepers.length).to.equal(9);
+
+        const nActorsBefore = allActors.length;
         const json = capitalLevel.toJSON();
 
         const newLevel = fromJSON.restoreLevel(json);
         const nActorsAfter = newLevel.getActors().length;
         expect(nActorsAfter).to.equal(nActorsBefore);
+
+        const game = new RG.Game.Main();
+        game.addActiveLevel(newLevel);
+        for (let i = 0; i < 50; i++) {
+            game.simulateGame();
+        }
     });
 
 });
