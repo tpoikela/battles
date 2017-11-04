@@ -566,6 +566,7 @@ RG.System.Movement = function(compTypes) {
     this.updateEntity = function(ent) {
         const x = ent.get('Movement').getX();
         const y = ent.get('Movement').getY();
+
         const level = ent.get('Movement').getLevel();
         const map = level.getMap();
         const cell = map.getCell(x, y);
@@ -595,6 +596,10 @@ RG.System.Movement = function(compTypes) {
             }
             else {
                 const coord = xOld + ', ' + yOld;
+                RG.diag('\n\nSystem.Movement list of actors:');
+                RG.printObjList(level.getActors(),
+                    ['getID', 'getName', 'getX', 'getY']);
+                this._diagnoseRemovePropError(xOld, yOld, map, ent);
                 RG.err('MovementSystem', 'moveActorTo',
                     "Couldn't remove ent |" + ent.getName() + '| @ ' + coord);
             }
@@ -683,15 +688,60 @@ RG.System.Movement = function(compTypes) {
         const baseType = newCell.getBaseElem().getType();
         let baseMsg = '';
         switch (baseType) {
-            case 'tree': baseMsg = 'There is a tree here.'; break;
+            case 'bridge': baseMsg = 'You are standing on a bridge.'; break;
             case 'grass': baseMsg = 'You see some grass.'; break;
-            case 'snow': baseMsg = 'Ground is covered with snow.'; break;
             case 'road': baseMsg = 'You tread lightly on the road.'; break;
+            case 'snow': baseMsg = 'Ground is covered with snow.'; break;
+            case 'tree': baseMsg = 'There is a tree here.'; break;
             default: break;
         }
         if (baseMsg.length > 0) {
             RG.gameMsg(baseMsg);
         }
+    };
+
+
+    /* If removal of moved entity fails, tries to diagnose the error. */
+    this._diagnoseRemovePropError = function(xTry, yTry, map, ent) {
+        const propType = ent.getPropType();
+        let xFound = -1;
+        let yFound = -1;
+        for (let x = 0; x < map.cols; x++) {
+            for (let y = 0; y < map.rows; y++) {
+                if (map.removeProp(x, y, propType, ent)) {
+                    xFound = x;
+                    yFound = y;
+                }
+            }
+        }
+
+        const cell = map.getCell(xTry, yTry);
+        RG.diag(`Cell at ${xTry},${yTry}:`);
+        RG.diag(cell);
+
+        const entCell = ent.getCell();
+        RG.diag('Cell of the entity:');
+        RG.diag(entCell);
+
+        RG.diag('System.Movement: diagnoseRemovePropError:');
+        const name = ent.getName();
+        if (xFound >= 0 && yFound >= 0) {
+            const xy = `${xFound},${yFound} instead of ${xTry},${yTry}.`;
+            const msg = `\tEnt |${name}| found from |${xy}|`;
+            RG.diag(msg);
+        }
+        else {
+            const msg = `\tNo ent |${name}| found on entire map.`;
+            RG.diag(msg);
+        }
+
+        // Last resort, try find.
+        RG.diag('map.Find list of objects: ');
+        const objects = map.findObj(obj => {
+            return obj.getName && obj.getName().match(/keeper/);
+        });
+        RG.diag(objects);
+
     };
 
 };
@@ -816,7 +866,6 @@ RG.System.SpiritBind = function(compTypes) {
         }
         else if (targetCell.hasItems()) {
             if (binder.has('SpiritItemCrafter')) {
-                console.log('Binding to item now!');
                 const topItem = targetCell.getItems()[0];
                 const iName = topItem.getName();
                 if (!topItem.has('GemBound')) {
@@ -906,7 +955,7 @@ RG.System.Communication = function(compTypes) {
         const msgObj = {cell: ent.getCell(),
             msg: `${srcName} seems to communicate with ${ent.getName()}`
         };
-        RG.gameDanger(msgObj);
+        RG.gameInfo(msgObj);
     };
 
     // Dispatch table for different messages
