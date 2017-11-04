@@ -200,16 +200,15 @@ RG.Game.Engine = function(eventPool) {
 
     this.playerCommand = function(obj) {
         if (this.nextActor.isPlayer() === false) {
+            let msg = '';
             if (this.nextActor.hasOwnProperty('isEvent')) {
-                RG.err('Engine', 'playerCommand',
-                    'Expected player, got an event');
-
+                msg = 'Expected player, got an event: ';
             }
             else {
-                RG.err('Engine', 'playerCommand',
-                    'Expected player, got: ' + this.nextActor.getName()
-                );
+                msg = 'Expected player, got: ' + this.nextActor.getName();
             }
+            msg += '\n' + JSON.stringify(this.nextActor);
+            RG.err('Engine', 'playerCommand', msg);
         }
         const action = this.nextActor.nextAction(obj);
         this.doAction(action);
@@ -269,7 +268,7 @@ RG.Game.Engine = function(eventPool) {
             }
         }
 
-        // This is a new level, enable all actors by adding Action comp
+        // This is a new level, enable all actors by enabling Action comp
         if (index === -1) {
             _activeLevels.unshift(levelID);
             const actActors = level.getActors();
