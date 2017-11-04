@@ -315,6 +315,12 @@ const RG = { // {{{2
         }
     },
 
+    diag: function(obj) {
+        if (!this.suppressDiagnosticMessages) {
+            console.info(obj);
+        }
+    },
+
 
     /* Used to inherit from a prototype. Supports multiple inheritance but
      * sacrifices instanceof.*/
@@ -893,6 +899,74 @@ RG.levelUpCombatStats = function(actor, nextLevel) {
             dmgDie.setMod( dmgDie.getMod() + 1);
         }
     }
+};
+
+/* Prints the given object using console.log. Calls all accessor functions
+ * given in 'funcs' list and prints their value. If no list is given, prints the
+ * full object directly using console.log(obj). */
+RG.printObj = function(obj, funcs) {
+
+    const printVal = (value, func) => {
+        if (typeof value === 'object') {
+            console.log('\t## ' + func);
+            console.log(value);
+        }
+        else {
+            console.log('\t## ' + func + ' -> ' + value);
+        }
+    };
+
+    if (funcs) {
+        if (Array.isArray(funcs)) {
+            funcs.forEach(func => {
+                if (typeof obj[func] === 'function') {
+                    const value = obj[func]();
+                    printVal(value, func);
+                }
+                else {
+                    const json = JSON.stringify(obj);
+                    RG.err('RG', 'printObjList',
+                        `No func ${funcs} in object ${json}`);
+                }
+
+            });
+        }
+        else if (typeof funcs === 'string') {
+            if (typeof obj[funcs] === 'function') {
+                const value = obj[funcs]();
+                printVal(value, funcs);
+            }
+            else {
+                RG.err('RG', 'printObjList',
+                    `No func ${funcs} in object ${JSON.stringify(obj)}`);
+            }
+        }
+    }
+    else {
+        console.log(obj);
+    }
+};
+
+/* Prints the given object list. For each object, calls all accessor functions
+ * given in 'funcs' list and prints their value. If no list is given, prints the
+ * full object directly using console.log(obj). filterFunc can be given to
+ * filter the list. */
+RG.printObjList = function(list, funcs, filterFunc) {
+    const numObjs = list.length;
+    console.log(`List has ${numObjs} objects`);
+
+    list.forEach((obj, index) => {
+        if (typeof filterFunc === 'function') {
+            if (filterFunc(obj)) {
+                console.log(`Object [${index}]: `);
+                RG.printObj(obj, funcs);
+            }
+        }
+        else {
+            console.log(`Object [${index}]: `);
+            RG.printObj(obj, funcs);
+        }
+    });
 };
 
 // Regexp for parsing dice expressions '2d4' or '1d6 + 1' etc.
