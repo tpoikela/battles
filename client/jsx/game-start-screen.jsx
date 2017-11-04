@@ -68,8 +68,8 @@ export default class GameStartScreen extends Component {
 
     // const playerClassOptions = this.getPlayerClassOptElems();
 
-    var newGame = this.props.newGame;
-    var titleTextLoad = RG.gameTitle + ' Load a game';
+    const newGame = this.props.newGame;
+    const titleTextLoad = RG.gameTitle + ' Load a game';
     return (
       <div id='game-start-screen'>
 
