@@ -59,7 +59,7 @@ describe('RG.Geometry', () => {
     });
 
     it('can do a full merge for two levels', () => {
-        const l1 = RG.FACT.createLevel('empty', 40, 40);
+        const l1 = RG.FACT.createLevel('empty', 40, 50);
         const l2 = RG.FACT.createLevel('arena', 20, 20);
 
         const actor2 = new RG.Actor.Rogue('rat');
@@ -90,5 +90,54 @@ describe('RG.Geometry', () => {
         expect(stairsMerged.getX()).to.equal(7 + mX);
         expect(stairsMerged.getY()).to.equal(8 + mY);
         expect(stairsMerged.getSrcLevel().getID()).to.equal(l1.getID());
+
+        const map1 = l1.getMap();
+        for (let x = 0; x < 40; x++) {
+            for (let y = 0; y < 50; y++) {
+                const cell = map1.getCell(x, y);
+                expect(cell.getX()).to.equal(x);
+                expect(cell.getY()).to.equal(y);
+            }
+        }
     });
+
+    it('can merge a level with shopkeeper properly', () => {
+        const subLevels = [];
+        const cols = 100;
+        const rows = 100;
+        const mainRows = 3 * rows;
+        const mainCols = 2 * cols;
+
+        let nKeepers = 0;
+
+        const parser = RG.ObjectShell.getParser();
+        for (let i = 0; i < 2; i++) {
+            const levelConf = {nShops: i + 1, nGates: 2, nHouses: 20, parser};
+            const town = RG.FACT.createLevel('townwithwall', cols, rows,
+                levelConf);
+            subLevels.push(town);
+            nKeepers += i + 1;
+        }
+
+        const subLevelPos = [0.03, 0.07];
+        const mainLevel = RG.FACT.createLevel('empty', mainCols, mainRows, {});
+
+        // Calculate position and tile sub-levels into main level
+        const y0 = subLevelPos[0] * 3 * cols;
+        const tileConf = {x: 0, y: y0, centerX: true};
+        RG.Geometry.tileLevels(mainLevel, subLevels, tileConf);
+
+        const mainMap = mainLevel.getMap();
+        const keepers = mainMap.findObj(obj =>
+            obj.getName && obj.getName().match(/keeper/));
+
+        const actors = mainLevel.getActors();
+
+        expect(actors, 'Actors has correct length').to.have.length(nKeepers);
+        expect(keepers, 'Correct num of keepers with findObj')
+            .to.have.length(nKeepers);
+
+    });
+
+
 });
