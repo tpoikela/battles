@@ -513,10 +513,14 @@ RG.Factory.Base = function() { // {{{2
                 const shopCoord = [];
                 for (let i = 0; i < floor.length; i++) {
                     const xy = floor[i];
-                    if (i === 0) {level.addActor(keeper, xy[0], xy[1]);}
+
                     const shopElem = new RG.Element.Shop();
                     shopElem.setShopkeeper(keeper);
                     level.addElement(shopElem, xy[0], xy[1]);
+
+                    if (i === 0) {
+                        level.addActor(keeper, xy[0], xy[1]);
+                    }
 
                     if (conf.hasOwnProperty('parser')) {
                         const item = _itemFact.getShopItem(n, conf);
