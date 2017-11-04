@@ -11,6 +11,10 @@ RG.Element = require('../src/element');
 export default class Capital {
 
   constructor(cols, rows, conf = {}) {
+    if (RG.isNullOrUndef([cols, rows])) {
+        RG.err('Capital', 'constructor',
+            'Use new Capital(cols, rows, conf?)');
+    }
 
     // Generate the main level with mountain wall
     const wallOpts = {
@@ -34,9 +38,9 @@ export default class Capital {
 
     const parser = RG.ObjectShell.getParser();
     const levelConf = [
-      {nShops: 1, parser, nGates: 2},
+      {nShops: 2, parser, nGates: 2},
       {nShops: 5, parser, nGates: 2},
-      {nShops: 1, parser, nGates: 2}
+      {nShops: 2, parser, nGates: 2}
     ];
 
     // Create subLevels for each interval in subLevelPos array
@@ -60,17 +64,18 @@ export default class Capital {
       const level = RG.FACT.createLevel(
         'townwithwall', levelCols, levelRows, levelConf[i]);
       subLevels.push(level);
+
     }
 
 
     // Calculate position and tile sub-levels into main level
-    const y0 = subLevelPos[0] * cols;
+    const y0 = Math.floor(subLevelPos[0] * cols);
     const tileConf = {x: 0, y: y0, centerX: true};
     if (conf.transpose) {
       tileConf.centerY = true;
       tileConf.centerX = false;
       tileConf.y = 0;
-      tileConf.x = subLevelPos[0] * rows;
+      tileConf.x = Math.floor(subLevelPos[0] * rows);
     }
     RG.Geometry.tileLevels(mainLevel, subLevels, tileConf);
 
