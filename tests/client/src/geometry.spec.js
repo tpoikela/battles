@@ -133,7 +133,8 @@ describe('RG.Geometry', () => {
 
         const actors = mainLevel.getActors();
 
-        expect(actors, 'Actors has correct length').to.have.length(nKeepers);
+        expect(actors.length, 'Actors has correct length')
+            .to.be.at.least(nKeepers);
         expect(keepers, 'Correct num of keepers with findObj')
             .to.have.length(nKeepers);
 
