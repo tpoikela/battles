@@ -473,6 +473,11 @@ RG.Component.Trainer = function() {
     const _chatObj = new RG.Chat.Trainer();
     this.getChatObj = () => _chatObj;
 
+    const _addCb = () => {
+      _chatObj.setTrainer(this.getEntity());
+    };
+
+    this.addCallback('onAdd', _addCb);
 };
 RG.extend2(RG.Component.Trainer, RG.Component.Base);
 
