@@ -38,28 +38,27 @@ RG.Game.FromJSON = function() {
         id2entity[obj.id] = player;
         _dungeonLevel = obj.dungeonLevel;
 
-        this.addCompsToEntity(player, obj.components);
-        this.createInventory(obj, player);
-        this.createEquipment(obj, player);
-        if (obj.fovRange) {
-            player.setFOVRange(obj.fovRange);
-        }
+        this._addEntityFeatures(obj, player);
         return player;
     };
 
     /* Restores all data for already created entity. */
     this.restoreEntity = function(obj, entity) {
+        this.createBrain(obj.brain, entity);
+        this._addEntityFeatures(obj, entity);
+        return entity;
+    };
+
+    this._addEntityFeatures = function(obj, entity) {
         this.addCompsToEntity(entity, obj.components);
         this.createInventory(obj, entity);
         this.createEquipment(obj, entity);
-        this.createBrain(obj.brain, entity);
         if (obj.fovRange) {
             entity.setFOVRange(obj.fovRange);
         }
         if (obj.spellbook) {
             this.createSpells(obj, entity);
         }
-        return entity;
     };
 
     this.addCompsToEntity = (ent, comps) => {
@@ -111,12 +110,9 @@ RG.Game.FromJSON = function() {
 
                 memJSON.enemies.forEach(enemyID => {
                     const enemy = id2entity[enemyID];
-                    if (!enemy) {
-                        console.log('ENEMY NULL. ENTITY IS:');
-                        console.log(ent);
-                        console.log(ent.toJSON());
+                    if (enemy) {
+                        memObj.addEnemy(enemy);
                     }
-                    memObj.addEnemy(enemy);
                 });
             }
             else if (type === 'Rogue') {
@@ -131,22 +127,29 @@ RG.Game.FromJSON = function() {
     };
 
     this.createSpells = (json, entity) => {
+        console.log('XXX Restoring spells');
         entity._spellbook = new RG.Spell.SpellBook(entity);
         json.spellbook.spells.forEach(spell => {
-            const spellObj = new RG.Spell[spell.new]();
-            spellObj.setPower(spell.power);
-            if (spell.range) {
-                spellObj.setRange(spell.range);
+            if (RG.Spell.hasOwnProperty(spell.new)) {
+                const spellObj = new RG.Spell[spell.new]();
+                spellObj.setPower(spell.power);
+                if (spell.range) {
+                    spellObj.setRange(spell.range);
+                }
+                // If spell has damage/duration etc dice, restore them
+                if (spell.dice) {
+                    const dice = [];
+                    spell.dice.forEach(die => {
+                        dice.push(RG.FACT.createDie(die));
+                    });
+                    spellObj.setDice(dice);
+                }
+                entity._spellbook.addSpell(spellObj);
             }
-            // If spell has damage/duration etc dice, restore them
-            if (spell.dice) {
-                const dice = [];
-                spell.dice.forEach(die => {
-                    dice.push(RG.FACT.createDie(die));
-                });
-                spellObj.setDice(dice);
+            else {
+                RG.err('FromJSON', 'createSpells',
+                    `No spell ${spell.new} found in RG.Spell`);
             }
-            entity._spellbook.addSpell(spellObj);
         });
     };
 
