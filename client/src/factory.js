@@ -413,12 +413,14 @@ RG.Factory.Base = function() { // {{{2
             level.setMap(mapObj.map);
             this.createHouseElements(level, mapObj, conf);
             this.createShops(level, mapObj, conf);
+            this.createTrainers(level, conf);
         }
         else if (levelType === 'townwithwall') {
             mapObj = mapgen.createTownWithWall(cols, rows, conf);
             level.setMap(mapObj.map);
             this.createHouseElements(level, mapObj, conf);
             this.createShops(level, mapObj, conf);
+            this.createTrainers(level, conf);
         }
         else if (levelType === 'forest') {
             mapObj = mapgen.createForest(conf);
@@ -551,6 +553,22 @@ RG.Factory.Base = function() { // {{{2
 
     };
 
+    /* Creates trainers for the given level. */
+    this.createTrainers = function(level, conf) {
+        if (RG.RAND.getUniform() < RG.TRAINER_PROB) {
+            let trainer = null;
+            if (conf.parser) {
+                trainer = conf.parser.createActor('trainer');
+            }
+            else {
+                trainer = this.createActor('trainer', {brain: 'Human'});
+                const trainComp = new RG.Component.Trainer();
+                trainer.add(trainComp);
+            }
+            const cell = level.getFreeRandCell();
+            level.addActor(trainer, cell.getX(), cell.getY());
+        }
+    };
 
     /* Creates a randomized level for the game. Danger level controls how the
      * randomization is done. */
