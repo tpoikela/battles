@@ -128,14 +128,9 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
             this._isPlayer = isPlayer;
             this._brain = new RG.Brain.Player(this);
             this.setType('player');
-            this.add('StatsMods', new RG.Component.StatsMods());
-            this.add('CombatMods', new RG.Component.CombatMods());
-
-            this._spellbook = new RG.Spell.SpellBook(this);
-            RG.Spell.addAllSpells(this._spellbook);
-
-            this.add('SpellPower', new RG.Component.SpellPower());
-            this.get('SpellPower').setPP(100);
+            this.add(new RG.Component.StatsMods());
+            this.add(new RG.Component.CombatMods());
+            this.add(new RG.Component.SpellPower());
         }
         else {
             RG.err('Actor.Rogue', 'setIsPlayer',
@@ -143,16 +138,16 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
         }
     }
 
-    /* Used when controlling other actors the "real player" actor .*/
+    /* Used when controlling other actors with the "real player" actor .*/
     setPlayerCtrl(isPlayer) {
         if (isPlayer) {
             this._isPlayer = true;
             this._brain = new RG.Brain.Player(this);
             if (!this.has('StatsMods')) {
-                this.add('StatsMods', new RG.Component.StatsMods());
+                this.add(new RG.Component.StatsMods());
             }
             if (!this.has('CombatMods')) {
-                this.add('CombatMods', new RG.Component.CombatMods());
+                this.add(new RG.Component.CombatMods());
             }
         }
         else {
@@ -225,9 +220,10 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
         obj.components = components;
         */
 
-        const simpleComps = ['Hunger', 'Flying', 'Defender', 'Attacker',
+        const simpleComps = ['ActorClass', 'Hunger', 'Flying', 'Defender',
+            'Attacker',
             'CounterAttack', 'BiDirStrike', 'MasterEquipper', 'SpellPower',
-            'SpiritItemCrafter'];
+            'SpiritItemCrafter', 'Trainer'];
         simpleComps.forEach(compName => {
             if (this.has(compName)) {
                 obj.components[compName] = this.get(compName).toJSON();
