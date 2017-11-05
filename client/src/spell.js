@@ -146,11 +146,19 @@ RG.Spell.Base = function(name, power) {
     const _name = name;
     let _power = power || 5;
 
+    const nameSplit = name.split(/\s+/);
+    const capNames = [];
+    console.log('NameSplit: ' + nameSplit);
+    nameSplit.forEach(name => {
+        capNames.push(name.capitalize());
+    });
+    this._new = capNames.join('');
+    console.log('this._new in spell: ' + this._new);
+
     this.getName = () => _name;
 
     this.getPower = () => _power;
     this.setPower = power => {_power = power;};
-
 
 };
 
@@ -161,6 +169,8 @@ RG.Spell.Base.prototype.toString = function() {
 
 RG.Spell.Base.prototype.toJSON = function() {
     return {
+        name: this.getName(),
+        new: this._new,
         power: this.getPower()
     };
 };
@@ -190,13 +200,10 @@ RG.Spell.Ranged.prototype.toString = function() {
 };
 
 RG.Spell.Ranged.prototype.toJSON = function() {
-    return {
-        name: this.getName(),
-        power: this.getPower(),
-        range: this.getRange(),
-        dice: [this.getDice()[0].toJSON()]
-        // new: should be added by child classes
-    };
+    const json = RG.Spell.Base.prototype.toJSON.call(this);
+    json.range = this.getRange();
+    json.dice = [this.getDice()[0].toJSON()];
+    return json;
 };
 
 /* A spell for melee combat using grasp of winter. */
@@ -257,16 +264,6 @@ RG.Spell.FrostBolt = function() {
             };
         }
         return null;
-    };
-
-    this.toJSON = function() {
-        return {
-            name: this.getName(),
-            power: this.getPower(),
-            range: this.getRange(),
-            dice: [this.getDice()[0].toJSON()],
-            new: 'FrostBolt'
-        };
     };
 
     this.aiShouldCastSpell = args => {
