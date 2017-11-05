@@ -44,7 +44,7 @@ RG.Factory.Game = function() {
     RG.Factory.Base.call(this);
 
     const _verif = new RG.Verify.Conf('Factory.Game');
-    const _parser = new RG.ObjectShell.Parser();
+    const _parser = RG.ObjectShell.getParser();
     this.presetLevels = {};
 
     /* Creates a player actor and starting inventory unless a game has been
@@ -74,12 +74,18 @@ RG.Factory.Game = function() {
             player.remove('Hunger');
             player.add(hunger);
         }
+
+        // Add HP regeneration
         const regenPlayer = new RG.Time.RegenEvent(player,
             20 * RG.ACTION_DUR);
-        const regenPlayerPP = new RG.Time.RegenPPEvent(player,
-            30 * RG.ACTION_DUR);
         game.addEvent(regenPlayer);
-        game.addEvent(regenPlayerPP);
+
+        // Add PP regeneration (if needed)
+        if (player.has('SpellPower')) {
+            const regenPlayerPP = new RG.Time.RegenPPEvent(player,
+                30 * RG.ACTION_DUR);
+            game.addEvent(regenPlayerPP);
+        }
         return player;
     };
 
