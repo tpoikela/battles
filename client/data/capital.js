@@ -81,25 +81,25 @@ export default class Capital {
 
     // Add entrance stairs and create path through the level
     if (conf.transpose) {
-        const midY = Math.floor(rows / 2);
-        const stairsWest = new RG.Element.Stairs(false, mainLevel);
-        mainLevel.addStairs(stairsWest, 0, midY);
-        const stairsEast = new RG.Element.Stairs(false, mainLevel);
-        mainLevel.addStairs(stairsEast, cols - 1, midY);
+      const midY = Math.floor(rows / 2);
+      const stairsWest = new RG.Element.Stairs(false, mainLevel);
+      mainLevel.addStairs(stairsWest, 0, midY);
+      const stairsEast = new RG.Element.Stairs(false, mainLevel);
+      mainLevel.addStairs(stairsEast, cols - 1, midY);
 
-        const path = RG.Path.getMinWeightPath(mainMap, 0, midY, cols - 1, midY);
-        RG.Path.addPathToMap(mainMap, path);
+      const path = RG.Path.getMinWeightPath(mainMap, 0, midY, cols - 1, midY);
+      RG.Path.addPathToMap(mainMap, path);
     }
     else {
-        const midX = Math.floor(cols / 2);
-        const stairsNorth = new RG.Element.Stairs(false, mainLevel);
-        mainLevel.addStairs(stairsNorth, midX, 0);
-        const stairsSouth = new RG.Element.Stairs(false, mainLevel);
-        mainLevel.addStairs(stairsSouth, midX, rows - 1);
+      const midX = Math.floor(cols / 2);
+      const stairsNorth = new RG.Element.Stairs(false, mainLevel);
+      mainLevel.addStairs(stairsNorth, midX, 0);
+      const stairsSouth = new RG.Element.Stairs(false, mainLevel);
+      mainLevel.addStairs(stairsSouth, midX, rows - 1);
 
-        const path = RG.Path.getMinWeightPath(mainMap, midX, 0, midX, rows - 1,
-            RG.Path.getShortestPassablePathWithDoors);
-        RG.Path.addPathToMap(mainMap, path);
+      const path = RG.Path.getMinWeightPath(mainMap, midX, 0, midX, rows - 1,
+          RG.Path.getShortestPassablePathWithDoors);
+      RG.Path.addPathToMap(mainMap, path);
     }
 
     // Create the actors and items for this level
@@ -114,10 +114,17 @@ export default class Capital {
       const name = `Hyrkhian ${key}`;
       const num = actorConf[key];
       for (let i = 0; i < num; i++) {
-          const actor = parser.createActor(name);
-          actors.push(actor);
+        const actor = parser.createActor(name);
+        actors.push(actor);
       }
     });
+
+    const nTrainers = 3;
+    for (let i = 0; i < nTrainers; i++) {
+      const trainer = parser.createActor('trainer');
+      actors.push(trainer);
+    }
+
     RG.Factory.addPropsToFreeCells(mainLevel, actors, RG.TYPE_ACTOR);
 
     const items = [parser.createItem('Longsword')];
