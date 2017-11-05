@@ -252,7 +252,6 @@ describe('System.Chat', () => {
         chatter.add(chatComp);
 
         const trainComp = new RG.Component.Trainer();
-        trainComp.getChatObj().setTrainer(trainer);
         trainer.add(trainComp);
 
         updateSystems([chatSys]);
