@@ -347,7 +347,8 @@ const Actors = [
         name: 'trainer', char: '@', base: 'human', hp: 50,
         attack: 10, defense: 10, protection: 5, damage: '3d3',
         className: 'cell-actor-trainer', noRandom: true,
-        danger: 6, inv: [{name: 'Gold coin', count: 50}]
+        danger: 6, inv: [{name: 'Gold coin', count: 50}],
+        addComp: 'Trainer'
     },
     {
         name: 'shopkeeper', char: '@', base: 'human', hp: 50,
