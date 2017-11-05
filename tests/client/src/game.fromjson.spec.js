@@ -235,4 +235,93 @@ describe('RG.Game.FromJSON', function() {
         }
     });
 
+    it('can serialize/de-serialize game after fighting', () => {
+        const game = new RG.Game.Main();
+        const level = RG.FACT.createLevel('arena', 80, 40);
+        const parser = RG.ObjectShell.getParser();
+
+        const actors = [];
+
+
+        // Create some demons and fighters
+        for (let i = 0; i < 50; i++) {
+            const demon = parser.createActor('Winter demon');
+            const fighter = parser.createActor('fighter');
+            actors.push(demon);
+            actors.push(fighter);
+        }
+
+        // Create a spirit gem for hero
+        const gem = RGTest.createBoundGem();
+
+        // Create hero with a spirit gem
+        const hero = parser.createActor('fighter');
+        hero.setName('hero');
+        hero.get('Health').setHP(200);
+        hero.getInvEq().addItem(gem);
+        hero.getInvEq().equipItem(gem);
+        actors.push(hero);
+
+        RG.Factory.addPropsToFreeCells(level, actors, RG.TYPE_ACTOR);
+        game.addActiveLevel(level);
+        game.addLevel(level);
+        for (let i = 0; i < 500; i++) {
+            game.simulateGame();
+        }
+
+        const json = game.toJSON();
+        const newGame = fromJSON.createGame(json);
+
+        for (let i = 0; i < 500; i++) {
+            newGame.simulateGame();
+        }
+
+        const map = newGame.getLevels()[0].getMap();
+        const newHero = map.findObj(obj =>
+            obj.getName && obj.getName() === 'hero')[0];
+        const invHero = newHero.getInvEq().getInventory();
+        const eqHero = newHero.getInvEq().getEquipment();
+        expect(invHero.getItems()).to.have.length(0);
+        expect(eqHero.getItems()).to.have.length(1);
+    });
+
+    it('serializes/de-serializes player with complex stats/objects', () => {
+        const factGame = new RG.Factory.Game();
+        const game = new RG.Game.Main();
+        const level = RGTest.createLevel('arena', 10, 10);
+        const player = new RG.Actor.Rogue('MyPlayer');
+        player.setType('player');
+        player.setIsPlayer(true);
+        game.addLevel(level);
+        game.addPlayer(player);
+        const invEq = player.getInvEq();
+
+        // Add complex objects here
+        const gem = RGTest.createBoundGem();
+        invEq.addItem(gem);
+        invEq.equipItem(gem);
+
+        const gameConf = {
+            playerClass: 'Cryomancer'
+        };
+        expect(player.getBook()).to.be.empty;
+        factGame.addActorClass(gameConf, player);
+        expect(player.getBook()).to.not.be.empty;
+
+        const json = game.toJSON();
+        const newGame = fromJSON.createGame(json);
+        const newPlayer = newGame.getPlayer();
+        expect(newPlayer.getName()).to.equal('MyPlayer');
+
+        const newInvEq = newPlayer.getInvEq();
+        const invItems = newInvEq.getInventory().getItems();
+        const eqItems = newInvEq.getEquipment().getItems();
+        expect(invItems).to.have.length(2);
+        expect(eqItems).to.have.length(3);
+
+        const spellbook = newPlayer.getBook();
+        expect(spellbook).to.not.be.empty;
+        expect(newPlayer.has('ActorClass')).to.be.true;
+    });
+
 });
