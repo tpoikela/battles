@@ -186,4 +186,13 @@ RGTest.MsgCatcher = function() {
     RG.POOL.listenEvent(RG.EVT_MSG, this);
 };
 
+RGTest.createBoundGem = function() {
+    const gem = new RG.Item.SpiritGem('Great gem');
+    const spirit = new RG.Actor.Spirit('Legend spirit');
+    spirit.get('Stats').setStrength(100);
+    spirit.get('Stats').setAgility(100);
+    gem.setSpirit(spirit);
+    return gem;
+};
+
 module.exports = RGTest;
