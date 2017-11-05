@@ -89,8 +89,6 @@ const DebugGame = function(fact, parser) {
         const winCond = new RG.Game.WinCondition('Kill a keeper');
         winCond.addActorKilled(keeper);
 
-        player.get('SpellPower').setPP(100);
-        player.get('SpellPower').setMaxPP(100);
         game.addPlayer(player);
 
         const eq = player.getInvEq().getEquipment();
@@ -111,6 +109,14 @@ const DebugGame = function(fact, parser) {
         const coins = new RG.Item.GoldCoin();
         coins.count = 600;
         player.getInvEq().addItem(coins);
+
+        if (!player.getBook()) {
+            const spellbook = new RG.Spell.SpellBook(player);
+            player.setBook(spellbook);
+            RG.Spell.addAllSpells(this._spellbook);
+            player.add(new RG.Component.SpellPower());
+            player.get('SpellPower').setPP(100);
+        }
 
         return game;
     };
