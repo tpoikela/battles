@@ -183,6 +183,7 @@ describe('Brain.Player', () => {
 
     it('has commands for using spellpowers', () => {
         const brain = new Brain.Player(player);
+        player.setBook(new RG.Spell.SpellBook(player));
         let func = brain.decideNextAction({code: RG.KEY.POWER});
         expect(func).to.be.null;
         expect(brain.isMenuShown()).to.equal(true);
