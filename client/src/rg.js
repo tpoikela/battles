@@ -641,6 +641,8 @@ const RG = { // {{{2
     // 0.0 = uniform dist, higher number assigns more weight to median values
     DANGER_ADJ_FACTOR: 1.4,
 
+    TRAINER_PROB: 0.2,
+
     GOLD_COIN_WEIGHT: 0.03, // kg
     GOLD_COIN_NAME: 'Gold coins',
 
