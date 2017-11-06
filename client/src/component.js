@@ -3,6 +3,7 @@ const RG = require('./rg.js');
 const Mixin = require('./mixin');
 
 RG.Chat = require('./chat');
+RG.ActorClass = require('./actor-class');
 
 //---------------------------------------------------------------------------
 // ECS COMPONENTS
@@ -830,12 +831,21 @@ RG.Component.ActorClass = function() {
     RG.Component.Base.call(this, 'ActorClass');
 
     let _class = null;
+    let _className = null;
 
-    this.setClass = classObj => {
-        _class = classObj;
+    this.setClassName = name => {
+        _className = name;
     };
 
+    this.getClassName = () => _className;
+
     this.getClass = () => _class;
+
+    const _addCb = () => {
+        _class = RG.ActorClass.create(_className, this.getEntity());
+    };
+
+    this.addCallback('onAdd', _addCb);
 };
 RG.extend2(RG.Component.ActorClass, RG.Component.Base);
 
