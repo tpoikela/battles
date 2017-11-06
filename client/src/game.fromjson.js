@@ -355,6 +355,7 @@ RG.Game.FromJSON = function() {
         const sObj = new RG.Element.Stairs(elemObj.isDown);
         stairsInfo[stairsId] = {targetLevel: elemObj.targetLevel,
             targetStairs: elemObj.targetStairs};
+        sObj.setType(elemObj.type);
         return sObj;
     };
 
