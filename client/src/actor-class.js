@@ -4,6 +4,21 @@ const RG = require('./rg');
 RG.Component = require('./component');
 RG.Spell = require('./spell');
 
+/* Factory function for actor classes. */
+ActorClass.create = function(name, entity) {
+    if (ActorClass.hasOwnProperty(name)) {
+        const actorClass = new ActorClass[name](entity);
+        return actorClass;
+    }
+    else {
+        RG.diag('Called with entity:');
+        RG.diag(entity);
+        RG.err('ActorClass', 'create',
+            `No class ${name} in ActorClass`);
+    }
+    return null;
+};
+
 /* Used by different in-game classes for actors. Provides basic getters and
  * progress functions to increase stats etc on level up. */
 class ActorClassBase {
