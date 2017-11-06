@@ -94,9 +94,9 @@ RG.Factory.Game = function() {
         if (obj.playerClass) {
             if (ActorClass.hasOwnProperty(obj.playerClass)) {
                 const actorClassComp = new RG.Component.ActorClass();
-                const actorClass = new ActorClass[obj.playerClass](player);
-                actorClassComp.setClass(actorClass);
+                actorClassComp.setClassName(obj.playerClass);
                 player.add(actorClassComp);
+                const actorClass = actorClassComp.getClass();
 
                 const items = actorClass.getStartingItems();
                 const eqs = actorClass.getStartingEquipment();
