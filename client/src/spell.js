@@ -148,12 +148,10 @@ RG.Spell.Base = function(name, power) {
 
     const nameSplit = name.split(/\s+/);
     const capNames = [];
-    console.log('NameSplit: ' + nameSplit);
     nameSplit.forEach(name => {
         capNames.push(name.capitalize());
     });
     this._new = capNames.join('');
-    console.log('this._new in spell: ' + this._new);
 
     this.getName = () => _name;
 
