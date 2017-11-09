@@ -14,11 +14,22 @@ export default class Entity {
     getID() {return this._id;}
     setID(id) {this._id = id;}
 
+    /* Gets component with given name. If entity has multiple of them, returns
+     * the first found. */
     get(name) {
-        if (this._comps.hasOwnProperty(name)) {return this._comps[name];}
+        const compList = this.getList(name);
+        if (compList.length > 0) {
+            return compList[0];
+        }
         return null;
     }
 
+    getList(typeName) {
+        const comps = Object.values(this._comps);
+        return comps.filter(comp => comp.getType() === typeName);
+    }
+
+    /* Adds a new component into the entity. */
     add(nameOrComp, comp) {
         let compName = nameOrComp;
         let compObj = comp;
@@ -26,21 +37,56 @@ export default class Entity {
             compObj = nameOrComp;
             compName = nameOrComp.getType();
         }
-        this._comps[compName] = compObj;
+        this._comps[compObj.getID()] = compObj;
         compObj.entityAddCallback(this);
         RG.POOL.emitEvent(compName, {entity: this, add: true});
     }
 
     has(name) {
-        return this._comps.hasOwnProperty(name);
+        const compList = this.getList(name);
+        return compList.length > 0;
     }
 
-    remove(name) {
-        if (this._comps.hasOwnProperty(name)) {
-            const comp = this._comps[name];
-            comp.entityRemoveCallback(this);
-            delete this._comps[name];
-            RG.POOL.emitEvent(name, {entity: this, remove: true});
+    /* Removes given component type or component. If string is given, removes
+     * the first matching, otherwise removes by comp ID. 
+     */
+    remove(nameOrComp) {
+        if (typeof nameOrComp === 'object') {
+            const id = nameOrComp.getID();
+            if (this._comps.hasOwnProperty(id)) {
+                const comp = this._comps[id];
+                const compName = comp.getType();
+                comp.entityRemoveCallback(this);
+                delete this._comps[id];
+                RG.POOL.emitEvent(compName, {entity: this, remove: true});
+            }
+        }
+        else {
+            const compList = this.getList(nameOrComp);
+            if (compList.length > 0) {
+                this.remove(compList[0]);
+            }
+        }
+    }
+
+    /* Removes all components of the given type. */
+    removeAll(nameOrComp) {
+        let compName = nameOrComp;
+        if (typeof nameOrComp === 'object') {
+            compName = nameOrComp.getType();
+        }
+        const list = this.getList(compName);
+        list.forEach(comp => {this.remove(comp);});
+    }
+
+    /* Replaces ALL components of given type. */
+    replace(nameOrComp, comp) {
+        this.removeAll(nameOrComp);
+        if (comp) {
+            this.add(nameOrComp, comp);
+        }
+        else {
+            this.add(nameOrComp);
         }
     }
 
