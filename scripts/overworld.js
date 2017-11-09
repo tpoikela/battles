@@ -49,5 +49,3 @@ const endTime = new Date().getTime();
 const dur = endTime - startTime;
 console.log('Creating overworld took ' + dur + 'ms');
 
-console.log(JSON.stringify(levelAndConf[1]));
-
