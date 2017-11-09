@@ -290,8 +290,7 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
     for (let x = 0; x < this.cols; x++) {
         this._map.push([]);
         for (let y = 0; y < this.rows; y++) {
-            const elem = baseElem;
-            this._map[x].push(new RG.Map.Cell(x, y, elem));
+            this._map[x].push(new RG.Map.Cell(x, y, baseElem));
         }
     }
 
