@@ -127,7 +127,6 @@ RG.Game.FromJSON = function() {
     };
 
     this.createSpells = (json, entity) => {
-        console.log('XXX Restoring spells');
         entity._spellbook = new RG.Spell.SpellBook(entity);
         json.spellbook.spells.forEach(spell => {
             if (RG.Spell.hasOwnProperty(spell.new)) {
