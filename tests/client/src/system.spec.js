@@ -35,6 +35,9 @@ describe('How items/loot is dropped by monsters', () => {
 
         const monsterStats = {hp: 5, att: 1, def: 1, prot: 1};
         const monster = RG.FACT.createActor('TestMonster', monsterStats);
+        let hList = monster.getList('Health');
+        expect(hList).to.have.length(1);
+
         const humanStats = {hp: 5, att: 1, def: 1, prot: 1};
         const human = RG.FACT.createActor('Human', humanStats);
 
@@ -58,6 +61,10 @@ describe('How items/loot is dropped by monsters', () => {
         expect(lootItem.getOwner()).to.equal(null);
         expect(lootCell.hasProp('items')).to.equal(false);
         updateSystems(systems);
+
+        hList = monster.getList('Health');
+        expect(hList).to.have.length(1);
+
         expect(monster.get('Health').getHP()).to.equal(0);
         expect(lootItem.getOwner()).to.equal(lootCell);
         expect(lootCell.hasProp('items')).to.equal(true);
