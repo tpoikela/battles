@@ -18,15 +18,21 @@ RG.ActorClass = require('./actor-class');
 
 RG.Component = {};
 
+RG.Component.idCount = 0;
+
 /* Base class for all components. Provides callback hooks, copying and cloning.
  * */
 RG.Component.Base = function(type) {
     this._type = type;
     this._entity = null;
+    this._id = RG.Component.idCount++;
 
     this._onAddCallbacks = [];
     this._onRemoveCallbacks = [];
 };
+
+RG.Component.Base.prototype.getID = function() {return this._id;};
+RG.Component.Base.prototype.setID = function(id) {this._id = id;};
 
 RG.Component.Base.prototype.getEntity = function() {return this._entity;};
 RG.Component.Base.prototype.setEntity = function(entity) {
@@ -318,7 +324,6 @@ class Combat extends Mixin.CombatAttr(Mixin.DamageRoll(RG.Component.Base)) {
         this._range = 1;
     }
 
-
 }
 RG.Component.Combat = Combat;
 
@@ -332,6 +337,7 @@ class CombatMods extends Mixin.CombatAttr(RG.Component.Base) {
 
     setDamage(dmg) {this._damage = dmg;}
     getDamage() {return this._damage;}
+
 }
 RG.Component.CombatMods = CombatMods;
 
