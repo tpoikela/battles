@@ -118,7 +118,7 @@ class BattlesTop extends Component {
             levelSize: 'Medium',
             monstType: 'Medium',
             lootType: 'Medium',
-            playerClass: 'Adventurer',
+            playerClass: RG.ACTOR_CLASSES[0],
 
             sqrPerActor: 120,
             sqrPerItem: 120,
@@ -285,6 +285,9 @@ class BattlesTop extends Component {
                 this.savedPlayerList = this.gameSave.getPlayersAsList();
                 RG.gameMsg('Your progress has been saved.');
                 this.setState({render: true, saveInProgress: false});
+            })
+            .catch(() => {
+                RG.gameDanger('Cannot save the game. Check devtools console.');
             });
     }
 
@@ -392,6 +395,7 @@ class BattlesTop extends Component {
         this.game = gameFactory.createNewGame(this.gameConf);
         this.game.setGUICallbacks(this.isGUICommand, this.doGUICommand);
         this.game.setAnimationCallback(this.playAnimation.bind(this));
+        window.RG = RG;
         window.GAME = this.game; // For debugging
 
         const player = this.game.getPlayer();
@@ -1038,10 +1042,7 @@ class BattlesTop extends Component {
 
         if (!xy) {return null;}
 
-        const [nTilesX, nTilesY] = [overworld.getSizeX(), overworld.getSizeY()];
-
-        const xMap = 800 / nTilesX;
-        const yMap = 400 / nTilesY;
+        const {xMap, yMap} = overworld.coordMap;
 
         const coordX = xy[0] * 100 + player.getX();
         const coordY = xy[1] * 100 + player.getY();
