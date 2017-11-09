@@ -493,6 +493,7 @@ RG.ELEM.CHASM = Object.freeze(new RG.Element.Chasm());
 RG.ELEM.FLOOR = Object.freeze(new RGElementBase('floor'));
 RG.ELEM.FLOOR_CAVE = Object.freeze(new RGElementBase('floorcave'));
 RG.ELEM.FLOOR_CRYPT = Object.freeze(new RGElementBase('floorcrypt'));
+RG.ELEM.FLOOR_HOUSE = Object.freeze(new RGElementBase('floorhouse'));
 RG.ELEM.GRASS = Object.freeze(new RG.Element.Grass());
 RG.ELEM.HIGH_ROCK = Object.freeze(new RG.Element.HighRock());
 RG.ELEM.ROAD = Object.freeze(new RGElementBase('road'));
