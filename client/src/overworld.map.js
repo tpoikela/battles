@@ -118,7 +118,7 @@ OW.CAN_CONNECT = {
                // ═
 
         E: OW.E_HAS_CONN, // e═
-        W: OW.W_HAS_CONN  // ═e
+        W: OW.W_HAS_CONN // ═e
     },
     [OW.LL_NS]: {
         N: OW.N_HAS_CONN, // ║
@@ -127,7 +127,7 @@ OW.CAN_CONNECT = {
         S: OW.S_HAS_CONN, // e
                        // ║
         E: [], // e║
-        W: []  // ║e
+        W: [] // ║e
     },
 
     // Corners
@@ -153,7 +153,7 @@ OW.CAN_CONNECT = {
     [OW.CC_SE]: { // ╝
         N: [],
         S: OW.S_HAS_CONN,
-        E: OW.E_HAS_CONN,  // e╝
+        E: OW.E_HAS_CONN, // e╝
         W: [] // ╝e
     },
 
@@ -174,7 +174,7 @@ OW.CAN_CONNECT = {
         N: OW.N_HAS_CONN,
         S: OW.S_HAS_CONN,
         E: [], // e╠
-        W: OW.W_HAS_CONN  // ╠e
+        W: OW.W_HAS_CONN // ╠e
     },
     [OW.TT_E]: { // ╣
         N: OW.N_HAS_CONN,
