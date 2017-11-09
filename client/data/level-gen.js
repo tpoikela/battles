@@ -102,11 +102,14 @@ const addShopConstraints = (qConf, conf) => {
             if (shopTypeConf !== 'random' && i === 0) {
                 shopType = shopTypeConf;
             }
-            const shopFunc = (item) => (
+            const shopFunc = item => (
                 item.type === shopType && item.value <= maxValue
             );
-            qConf.push(shopFunc);
+            qConf.shop.push(shopFunc);
         }
+    }
+    else {
+        qConf.nShops = 1;
     }
 };
 
@@ -144,7 +147,7 @@ LevelGen.getCityConf = (cityName, conf) => {
     else if (conf.type === 'village') {
         cityType = RG.Names.getVillageType();
     }
-    const nQuarters = getNumQuarters(cityType, conf);
+    const nQuarters = getNumQuarters(cityType);
     const quarters = getQuarterConf(nQuarters, conf);
     const connect = WorldConf.createQuarterConnections(quarters);
     const obj = {
