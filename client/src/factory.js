@@ -183,7 +183,8 @@ RG.Factory.ItemRandomizer = function() {
         goldcoin: _adjustGoldCoin,
         missile: _adjustMissile,
         weapon: _adjustWeapon,
-        armour: _adjustArmour
+        armour: _adjustArmour,
+        ammo: _adjustMissile
     };
 
 };
@@ -342,6 +343,7 @@ RG.Factory.Item = function() {
                 func: item => item.value <= 50 + n * 100
             });
         }
+        _doItemSpecificAdjustments(item, 50 + n * 100);
         return item;
     };
 
@@ -1363,7 +1365,7 @@ RG.Factory.World = function() {
         const prizeItem = parser.createRandomItem(
             {func: item => item.value <= prizeValue}
         );
-        level.addItem(prizeItem);
+        bossActor.getInvEq().addItem(prizeItem);
     };
 
     /* Returns preset levels (if any) for the current zone. */
@@ -1529,11 +1531,14 @@ RG.Factory.World = function() {
 
         const presetLevels = this.getPresetLevels(hierName);
 
+        // const randType = RG.RAND.arrayGetRand(RG.SHOP_TYPES);
         const cityLevelConf = {
             x: conf.x || 80, y: conf.y || 40,
             nShops: conf.nShops || 1,
-            shopFunc: conf.shop || [(item) => (item.type === 'food')]
+            shopFunc: conf.shop ||
+                [item => (item.value <= (50 + 50 * conf.nLevels))]
         };
+        if (conf.nShops === 0) {cityLevelConf.nShops = 0;}
 
         // This bunch of data must be passed in conf because featFact does not
         // have access to it via getConf
