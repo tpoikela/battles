@@ -259,6 +259,7 @@ RG.Map.Generator = function() { // {{{2
 
         const wallElem = this.getWallElem(wallType);
         map.setBaseElems(possibleRoom, wallElem);
+        map.setBaseElems(floorCoords, RG.ELEM.FLOOR_HOUSE);
 
         // Create the halo, prevents houses being too close to each other
         const haloX0 = x0 - 1;
