@@ -488,6 +488,6 @@ class Spiritcrafter extends ActorClassBase {
 }
 ActorClass.Spiritcrafter = Spiritcrafter;
 
-RG.ACTOR_CLASSES = Object.keys(ActorClass);
+RG.ACTOR_CLASSES = ['Cryomancer', 'Blademaster'];
 
 module.exports = ActorClass;
