@@ -193,21 +193,27 @@ RG.Factory.ItemRandomizer = function() {
 RG.Factory.Actor = function() {
 
     const _initCombatant = (comb, obj) => {
-        const hp = obj.hp;
-        const att = obj.att;
-        const def = obj.def;
-        const prot = obj.prot;
+        const {hp, att, def, prot} = obj;
 
         if (!RG.isNullOrUndef([hp])) {
-            comb.add('Health', new RG.Component.Health(hp));
+            const hComp = comb.get('Health');
+            hComp.setHP(hp);
+            hComp.setMaxHP(hp);
         }
-        const combatComp = new RG.Component.Combat();
+
+        let combatComp = null;
+        if (!comb.has('Combat')) {
+            combatComp = new RG.Component.Combat();
+            comb.add('Combat', combatComp);
+        }
+        else {
+            combatComp = comb.get('Combat');
+        }
 
         if (!RG.isNullOrUndef([att])) {combatComp.setAttack(att);}
         if (!RG.isNullOrUndef([def])) {combatComp.setDefense(def);}
         if (!RG.isNullOrUndef([prot])) {combatComp.setProtection(prot);}
 
-        comb.add('Combat', combatComp);
     };
 
     /* Creates a player actor. */
