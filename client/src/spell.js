@@ -44,7 +44,12 @@ const addToExpirationComp = (actor, comp, dur) => {
         expComp.addEffect(comp, dur);
         actor.add(expComp);
     }
-    actor.add(comp);
+    if (actor.has(comp.getName())) {
+        actor.appendComp(comp);
+    }
+    else {
+        actor.add(comp);
+    }
 };
 
 RG.Spell.getSelectionObjectSelf = (spell, actor) => {
