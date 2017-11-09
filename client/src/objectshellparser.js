@@ -54,7 +54,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
 
             pp: {comp: 'SpellPower', func: 'setPP'},
             maxPP: {comp: 'SpellPower', func: 'setMaxPP'},
-            hp: {comp: 'Health'},
+            hp: {comp: 'Health', func: ['setHP', 'setMaxHP']},
             danger: {comp: 'Experience', func: 'setDanger'},
             brain: {func: 'setBrain', factory: RG.FACT.createBrain}
         },
@@ -301,23 +301,42 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
      * component if it exists already.*/
     this.addCompToObj = function(newObj, compData, val) {
         if (compData.hasOwnProperty('func')) {
-            const fname = compData.func;
-            const compName = compData.comp;
-            if (newObj.has(compName)) {
-                // 1. Call existing comp with setter (fname)
-                newObj.get(compName)[fname](val);
+            if (Array.isArray(compData.func)) {
+                compData.func.forEach(fname => {
+                    const compName = compData.comp;
+                    if (newObj.has(compName)) {
+                        // 1. Call existing comp with setter (fname)
+                        newObj.get(compName)[fname](val);
+                    }
+                    else { // 2. Or create a new component
+                        const comp = this.createComponent(compName);
+                        comp[fname](val); // Then call comp setter
+                        newObj.add(compName, comp);
+                    }
+                });
             }
-            else { // 2. Or create a new component
-                const comp = this.createComponent(compName);
-                comp[fname](val); // Then call comp setter
-                newObj.add(compName, comp);
+            else {
+                const fname = compData.func;
+                const compName = compData.comp;
+                if (newObj.has(compName)) {
+                    // 1. Call existing comp with setter (fname)
+                    newObj.get(compName)[fname](val);
+                }
+                else { // 2. Or create a new component
+                    const comp = this.createComponent(compName);
+                    comp[fname](val); // Then call comp setter
+                    newObj.add(compName, comp);
+                }
             }
+        }
+        else if (newObj.has(compData.comp)) {
+            RG.err('ObjectShellParser', 'xxx',
+                'Not implemented');
         }
         else {
             newObj.add(compData.comp,
                 this.createComponent(compData.comp, val));
         }
-
     };
 
     /* This function makes a pile of mess if used on non-entities. */
