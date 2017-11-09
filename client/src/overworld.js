@@ -244,6 +244,8 @@ RG.OverWorld.createOverWorldLevel = (overworld, conf) => {
     coordMap.xMap = Math.floor(coordMap.worldCols / overworld.getSizeX());
     coordMap.yMap = Math.floor(coordMap.worldRows / overworld.getSizeY());
 
+    overworld.coordMap = coordMap;
+
     const worldLevelAndConf = buildMapLevel(overworld, coordMap);
     return worldLevelAndConf;
 };
@@ -923,6 +925,7 @@ function addCityConfToArea(feat, coordObj, areaConf) {
     feat.nLevels = nLevels;
 
     const cName = RG.Names.getUniqueCityName();
+    console.log(`Adding city ${cName} to conf area`);
     const cityConf = RG.LevelGen.getCityConf(cName, feat);
 
     cityConf.groupType = feat.type;
