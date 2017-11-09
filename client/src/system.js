@@ -425,14 +425,20 @@ RG.System.Damage = function(compTypes) {
         const y = cell.getY();
         const invEq = actor.getInvEq();
         const items = invEq.getInventory().getItems();
+        const actorLevel = actor.getLevel();
+
         items.forEach(item => {
             if (invEq.removeNItems(item, item.count)) {
                 const rmvItem = invEq.getRemovedItem();
-                actor.getLevel().addItem(rmvItem, x, y);
+                actorLevel.addItem(rmvItem, x, y);
             }
         });
 
         // TODO remove equipped items and drop to ground.
+        const eqItems = invEq.getEquipment().getItems();
+        eqItems.forEach(item => {
+            actorLevel.addItem(item, x, y);
+        });
     };
 
     /* Removes actor from current level and emits Actor killed event.*/
