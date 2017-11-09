@@ -371,6 +371,11 @@ const Actors = [
         hp: 15, danger: 3, enemies: ['player', 'human']
     },
     {
+        name: 'wildling hunter', base: 'wildling', char: 'F',
+        attack: 3, defense: 3, damage: '1d6', hp: 20, danger: 3,
+        equip: ['Tomahawk']
+    },
+    {
         name: 'wildling archer', base: 'wildling', char: 'F',
         attack: 3, defense: 3, damage: '1d6', hp: 20, danger: 4,
         equip: ['Wooden bow', {name: 'Wooden arrow', count: 10}],
@@ -379,6 +384,10 @@ const Actors = [
     {
         name: 'wildling fighter', base: 'wildling', char: 'F',
         attack: 4, defense: 3, damage: '1d9', hp: 25, danger: 5
+    },
+    {
+        name: 'wildling elite', base: 'wildling', char: 'F',
+        attack: 5, defense: 3, damage: '1d10', hp: 32, danger: 6
     },
     {
         name: 'wildling warlord', base: 'wildling', char: 'W',
