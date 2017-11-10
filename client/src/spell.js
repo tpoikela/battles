@@ -35,23 +35,6 @@ const compareSpells = (s1, s2) => {
     return 0;
 };
 
-const addToExpirationComp = (actor, comp, dur) => {
-    if (actor.has('Expiration')) {
-        actor.get('Expiration').addEffect(comp, dur);
-    }
-    else {
-        const expComp = new RG.Component.Expiration();
-        expComp.addEffect(comp, dur);
-        actor.add(expComp);
-    }
-    if (actor.has(comp.getName())) {
-        actor.appendComp(comp);
-    }
-    else {
-        actor.add(comp);
-    }
-};
-
 RG.Spell.getSelectionObjectSelf = (spell, actor) => {
     const func = () => {
         const spellCast = new RG.Component.SpellCast();
@@ -298,7 +281,7 @@ RG.Spell.IceShield = function() {
         const dur = _duration.roll();
         const combatMods = new RG.Component.CombatMods();
         combatMods.setDefense(_defenseDie.roll());
-        addToExpirationComp(actor, combatMods, dur);
+        RG.Component.addToExpirationComp(actor, combatMods, dur);
         RG.gameMsg('You feel a boost to your defense.');
     };
 
@@ -383,7 +366,7 @@ RG.Spell.PowerDrain = function() {
         const actor = args.src;
         const dur = _duration.roll();
         const drainComp = new RG.Component.PowerDrain();
-        addToExpirationComp(actor, drainComp, dur);
+        RG.Component.addToExpirationComp(actor, drainComp, dur);
         RG.gameMsg('You feel protected against magic.');
     };
 
