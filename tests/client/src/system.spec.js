@@ -1,4 +1,6 @@
 
+import Entity from '../../../client/src/entity';
+
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 
@@ -351,3 +353,41 @@ describe('System.SpiritBind', () => {
 
 });
 
+describe('System.TimeEffects', () => {
+
+    it('removes components from entities', () => {
+        const expirSys = new RG.System.TimeEffects(['Expiration']);
+        const entity = new Entity();
+        const expComp = new RG.Component.Expiration();
+        expect(entity.has('StatsMods')).to.equal(false);
+        const statsMods = new RG.Component.StatsMods();
+        expComp.addEffect(statsMods, 10);
+        entity.add(statsMods);
+        expect(entity.has('StatsMods')).to.equal(true);
+        entity.add(expComp);
+
+        const statsMods2 = new RG.Component.StatsMods();
+        expComp.addEffect(statsMods2, 20);
+        entity.add(statsMods2);
+        let modsList = entity.getList('StatsMods');
+        expect(modsList).to.have.length(2);
+
+        for (let i = 0; i < 10; i++) {
+            updateSystems([expirSys]);
+        }
+        expect(entity.has('Expiration')).to.equal(true);
+        expect(entity.has('StatsMods')).to.equal(true);
+
+        modsList = entity.getList('StatsMods');
+        expect(modsList).to.have.length(1);
+        const sMods2 = entity.get('StatsMods');
+        expect(sMods2.getID()).to.equal(statsMods2.getID());
+
+        for (let i = 0; i < 10; i++) {
+            updateSystems([expirSys]);
+        }
+        expect(entity.has('Expiration')).to.equal(false);
+        expect(entity.has('StatsMods')).to.equal(false);
+    });
+
+});
