@@ -1018,7 +1018,7 @@ RG.System.TimeEffects = function(compTypes) {
 
         // Remove Expiration only if other components are removed
         if (!tEff.hasEffects()) {
-            _expiredEffects.push(['Expiration', ent]);
+            _expiredEffects.push([tEff.getID(), ent]);
         }
     };
 
@@ -1028,7 +1028,7 @@ RG.System.TimeEffects = function(compTypes) {
         const poison = ent.get('Poison');
 
         if (ent.get('Health').isDead()) {
-            _expiredEffects.push(['Poison', ent]);
+            _expiredEffects.push([poison.getID(), ent]);
             if (ent.has('Expiration')) {
                 const te = ent.get('Expiration');
                 if (te.hasEffect(poison)) {
