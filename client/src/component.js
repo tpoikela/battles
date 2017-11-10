@@ -750,28 +750,30 @@ RG.Component.Expiration = function() {
 
     /* Adds one effect to time-based components.*/
     this.addEffect = function(comp, dur) {
-        const type = comp.getType();
-        if (!this._duration.hasOwnProperty(type)) {
-            this._duration[type] = dur;
+        const compID = comp.getID();
+        if (!this._duration.hasOwnProperty(compID)) {
+            this._duration[compID] = dur;
 
             comp.addCallback('onRemove', () => {
                 this.removeEffect(comp);
             });
         }
         else { // increase existing duration
-            this._duration[type] += dur;
+            this._duration[compID] += dur;
         }
     };
 
     /* Decreases duration of all time-based effects.*/
     this.decrDuration = function() {
-        for (const compType in this._duration) {
-            if (compType) {
-                this._duration[compType] -= 1;
-                if (this._duration[compType] === 0) {
+        for (const compID in this._duration) {
+            if (compID >= 0) {
+                this._duration[compID] -= 1;
+                if (this._duration[compID] === 0) {
+                    console.log(`compID ${compID} expired`);
                     const ent = this.getEntity();
-                    ent.remove(compType);
-                    delete this._duration[compType];
+                    const compIDInt = parseInt(compID, 10);
+                    ent.remove(compIDInt);
+                    delete this._duration[compID];
                 }
             }
         }
@@ -783,19 +785,22 @@ RG.Component.Expiration = function() {
     };
 
     this.hasEffect = function(comp) {
-        const compType = comp.getType();
-        return this._duration.hasOwnProperty(compType);
+        const compID = comp.getID();
+        return this._duration.hasOwnProperty(compID);
     };
 
-    /* SHould be called to remove a specific effect, for example upon death of
+    /* Should be called to remove a specific effect, for example upon death of
      * an actor. */
     this.removeEffect = function(comp) {
-        const compType = comp.getType();
-        if (this._duration.hasOwnProperty(compType)) {
-            delete this._duration[compType];
+        const compID = comp.getID();
+        console.log(`CompExp removeEffect ID ${compID}`);
+        if (this._duration.hasOwnProperty(compID)) {
+            delete this._duration[compID];
         }
-
     };
+
+    this.getDuration = () => this._duration;
+    this.setDuration = duration => {this._duration = duration;};
 };
 RG.extend2(RG.Component.Expiration, RG.Component.Base);
 
@@ -1112,5 +1117,19 @@ RG.Component.Animation = function(args) {
 
 };
 RG.extend2(RG.Component.Animation, RG.Component.Base);
+
+/* Adds a component into expiration component for given entity. */
+RG.Component.addToExpirationComp = (entity, comp, dur) => {
+    if (entity.has('Expiration')) {
+        entity.get('Expiration').addEffect(comp, dur);
+    }
+    else {
+        const expComp = new RG.Component.Expiration();
+        expComp.addEffect(comp, dur);
+        entity.add(expComp);
+    }
+    entity.add(comp);
+};
+
 
 module.exports = RG.Component;
