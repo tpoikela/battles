@@ -51,17 +51,32 @@ export default class Entity {
      * the first matching, otherwise removes by comp ID. 
      */
     remove(nameOrComp) {
+        console.log('remove called with XXX:');
+        console.log(nameOrComp);
         if (typeof nameOrComp === 'object') {
             const id = nameOrComp.getID();
+            console.log(`entity.remove object ${id}`);
             if (this._comps.hasOwnProperty(id)) {
                 const comp = this._comps[id];
                 const compName = comp.getType();
+                console.log(`Removing comp type ${compName} with id ${id}`);
                 comp.entityRemoveCallback(this);
                 delete this._comps[id];
                 RG.POOL.emitEvent(compName, {entity: this, remove: true});
             }
         }
+        else if (Number.isInteger(nameOrComp)) {
+            const compID = nameOrComp;
+            console.log(`entity.remoeByID ${compID}`);
+            if (this._comps[compID]) {
+                console.log(`\tentity.remoeByID ${compID}`);
+                this.remove(this._comps[compID]);
+            }
+        }
         else {
+            console.log(`went to compList with ${nameOrComp}`);
+            console.log(Number.isInteger(nameOrComp));
+            console.log('type is ' + typeof nameOrComp);
             const compList = this.getList(nameOrComp);
             if (compList.length > 0) {
                 this.remove(compList[0]);
