@@ -475,8 +475,12 @@ const Items = [
         damage: '1d6', range: 3, value: value(20)
     },
     {
-        name: 'Dart', base: 'MissileBase',
+        name: 'Iron dart', base: 'MissileBase',
         damage: '1d6 + 1', range: 4, value: value(40)
+    },
+    {
+        name: 'Steel dart', base: 'MissileBase',
+        damage: '1d6 + 3', range: 4, value: value(50)
     },
     {
         name: 'Throwing axe', base: 'MissileBase',
