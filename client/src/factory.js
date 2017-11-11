@@ -628,12 +628,15 @@ RG.Factory.Base = function() { // {{{2
                 actors.push(actor);
             }
             else {
-                RG.err('Factory.Base', 'addNRandActors',
-                    `Generated actor null. Conf: ${JSON.stringify(conf)}`);
+                RG.diag('Could not meet constraints for actor gen');
+                return false;
+                // RG.err('Factory.Base', 'addNRandActors',
+                    // `Generated actor null. Conf: ${JSON.stringify(conf)}`);
             }
 
         }
         RG.Factory.addPropsToFreeCells(level, actors, RG.TYPE_ACTOR);
+        return true;
     };
 
 
@@ -891,7 +894,7 @@ RG.Factory.Zone = function() {
             this.populateWithHumans(level, levelConf);
         }
         else if (alignment === RG.ALIGN_EVIL) {
-            this.populateWithNonHumans(level, levelConf);
+            this.populateWithEvil(level, levelConf);
         }
         else {
             this.populateWithNeutral(level, levelConf);
@@ -911,26 +914,30 @@ RG.Factory.Zone = function() {
         this.addNRandActors(level, _parser, actorConf);
     };
 
-    this.populateWithNonHumans = function(level, levelConf) {
-        const actorConf = {
-            actorsPerLevel: levelConf.actorsPerLevel || 100,
-            maxDanger: levelConf.maxDanger || 10,
-            func: actor => (
-                actor.type !== 'human'
-            )
-        };
-        if (levelConf.func) {actorConf.func = levelConf.func;}
-        this.addNRandActors(level, _parser, actorConf);
+    this.populateWithEvil = function(level, levelConf) {
+        let allOK = false;
+        while (!allOK) {
+            const raceType = RG.RAND.arrayGetRand(RG.EVIL_RACES);
+            console.log(`Race was chosen to be ${raceType}`);
+            const actorConf = {
+                actorsPerLevel: levelConf.actorsPerLevel || 100,
+                maxDanger: levelConf.maxDanger || 10,
+                func: actor => (
+                    actor.type === raceType
+                )
+            };
+            if (levelConf.func) {actorConf.func = levelConf.func;}
+            allOK = this.addNRandActors(level, _parser, actorConf);
+        }
     };
 
     this.populateWithNeutral = function(level, levelConf) {
+        const raceType = RG.RAND.arrayGetRand(RG.NEUTRAL_RACES);
         const actorConf = {
             actorsPerLevel: levelConf.actorsPerLevel || 100,
             maxDanger: levelConf.maxDanger || 10,
             func: actor => (
-                actor.type === 'dwarf' ||
-                actor.type === 'spirit' ||
-                actor.type === 'bearfolk'
+                actor.type === raceType
             )
         };
         if (levelConf.func) {actorConf.func = levelConf.func;}
