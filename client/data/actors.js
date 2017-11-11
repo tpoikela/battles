@@ -398,6 +398,65 @@ const Actors = [
         attack: 8, defense: 5, damage: '1d15', hp: 50, danger: 10
     },
 
+    // CATFOLK
+    {
+        name: 'CatfolkBase', char: 'f', className: 'cell-actor-catfolk',
+        type: 'catfolk', dontCreate: true,
+        attack: 1, defense: 1, damage: '1d6', range: 1,
+        hp: 10, danger: 1, enemies: ['player', 'human', 'dogfolk', 'wolfclan']
+    },
+    {
+        name: 'catfolk hunter', base: 'CatfolkBase',
+        attack: 1, defense: 4, damage: '3d2', hp: 15, danger: 2
+    },
+    {
+        name: 'catfolk warrior', base: 'CatfolkBase',
+        attack: 2, defense: 5, damage: '4d2', hp: 20, danger: 4
+    },
+    {
+        name: 'catfolk elite', base: 'CatfolkBase',
+        attack: 3, defense: 7, damage: '5d2', hp: 27, danger: 5
+    },
+    {
+        name: 'catfolk warlord', base: 'CatfolkBase',
+        attack: 4, defense: 8, damage: '6d2', hp: 35, danger: 7
+    },
+    {
+        name: 'catfolk king', base: 'CatfolkBase',
+        attack: 6, defense: 12, damage: '7d3', hp: 40, danger: 10
+    },
+
+    // WOLFCLAN
+    {
+        name: 'WolfclanBase', dontCreate: true, danger: 3,
+        attack: 3, defense: 3, damage: '1d8', range: 1,
+        className: 'cell-actor-wolfclan', char: 'w',
+        type: 'wolfclan',
+        enemies: ['player', 'human', 'catfolk', 'dogfolk', 'bearfolk']
+    },
+    {
+        name: 'wolfclan brave', base: 'WolfclanBase'
+    },
+    {
+        name: 'wolfclan skirmisher', base: 'WolfclanBase'
+    },
+    {
+        name: 'wolfclan scourger', base: 'WolfclanBase'
+    },
+    {
+        name: 'wolfclan mage', base: 'WolfclanBase'
+    },
+    {
+        name: 'wolfclan elite', base: 'WolfclanBase'
+    },
+
+    // DOGFOLK
+    {
+        name: 'DogfolkBase', dontCreate: true,
+        className: 'cell-actor-dogfolk', char: 'd',
+        enemies: ['player', 'catfolk', 'wolfclan']
+    },
+
     // SPIRITS
     {
         name: 'SpiritBase', char: 'Q', className: 'cell-actor-spirit',
