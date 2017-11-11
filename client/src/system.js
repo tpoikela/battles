@@ -878,8 +878,6 @@ RG.System.SpiritBind = function(compTypes) {
                     const gemBindComp = new RG.Component.GemBound();
                     const boundGem = binder.getInvEq().removeAndGetItem(ent);
                     gemBindComp.setGem(boundGem);
-                    const xxx = `id1: ${ent.getID()}, id2: ${boundGem.getID()}`;
-                    console.log(xxx);
                     topItem.add(gemBindComp);
 
                     const gemName = ent.getName();

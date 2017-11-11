@@ -769,7 +769,6 @@ RG.Component.Expiration = function() {
             if (compID >= 0) {
                 this._duration[compID] -= 1;
                 if (this._duration[compID] === 0) {
-                    console.log(`compID ${compID} expired`);
                     const ent = this.getEntity();
                     const compIDInt = parseInt(compID, 10);
                     ent.remove(compIDInt);
@@ -793,7 +792,6 @@ RG.Component.Expiration = function() {
      * an actor. */
     this.removeEffect = function(comp) {
         const compID = comp.getID();
-        console.log(`CompExp removeEffect ID ${compID}`);
         if (this._duration.hasOwnProperty(compID)) {
             delete this._duration[compID];
         }
