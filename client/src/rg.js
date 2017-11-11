@@ -661,6 +661,11 @@ const RG = { // {{{2
     ALIGN_EVIL: 'ALIGN_EVIL',
     ALIGN_NEUTRAL: 'ALIGN_NEUTRAL',
 
+    GOOD_RACES: ['human', 'spirit'],
+    EVIL_RACES: ['catfolk', 'dogfolk', 'wolfclan', 'wildling', 'undead',
+        'goblin'],
+    NEUTRAL_RACES: ['dwarf', 'bearfolk', 'animal'],
+
     // Constants for movement directions
     DIR: {
         N: [0, -1],
