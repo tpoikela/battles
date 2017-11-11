@@ -168,7 +168,7 @@ const Actors = [
     {
         name: 'UndeadBase', className: 'cell-actor-undead',
         dontCreate: true, addComp: 'Undead', brain: 'Undead',
-        range: 1, enemies: ['player', 'human'], type: 'undead'
+        range: 1, enemies: ['player', 'human', 'dwarf'], type: 'undead'
     },
     {
         name: 'skeletal dog', char: 'z', base: 'UndeadBase',
@@ -410,6 +410,11 @@ const Actors = [
         attack: 1, defense: 4, damage: '3d2', hp: 15, danger: 2
     },
     {
+        name: 'catfolk darter', base: 'CatfolkBase',
+        attack: 1, defense: 4, damage: '3d2', hp: 15, danger: 3,
+        brain: 'Archer', equip: [{name: 'Iron dart', count: 9}]
+    },
+    {
         name: 'catfolk warrior', base: 'CatfolkBase',
         attack: 2, defense: 5, damage: '4d2', hp: 20, danger: 4
     },
@@ -435,26 +440,54 @@ const Actors = [
         enemies: ['player', 'human', 'catfolk', 'dogfolk', 'bearfolk']
     },
     {
-        name: 'wolfclan brave', base: 'WolfclanBase'
+        name: 'wolfclan brave', base: 'WolfclanBase', danger: 4,
+        attack: 4, defense: 3, damage: '2d4', hp: 25
     },
     {
-        name: 'wolfclan skirmisher', base: 'WolfclanBase'
+        name: 'wolfclan skirmisher', base: 'WolfclanBase', danger: 5,
+        attack: 5, defense: 4, damage: '2d4+3', hp: 30
     },
     {
-        name: 'wolfclan scourger', base: 'WolfclanBase'
+        name: 'wolfclan scourger', base: 'WolfclanBase', danger: 6,
+        attack: 7, defense: 5, damage: '2d4+7', hp: 35
     },
     {
-        name: 'wolfclan mage', base: 'WolfclanBase'
+        name: 'wolfclan mage', base: 'WolfclanBase', danger: 7,
+        attack: 7, defense: 5, damage: '2d4+7', hp: 35,
+        spells: ['PowerDrain'], maxPP: 30, pp: 30,
+        brain: 'SpellCaster'
     },
     {
-        name: 'wolfclan elite', base: 'WolfclanBase'
+        name: 'wolfclan elite', base: 'WolfclanBase', danger: 8,
+        attack: 8, defense: 5, damage: '2d4+10', hp: 50
+    },
+    {
+        name: 'wolfclan king', base: 'WolfclanBase', danger: 10,
+        attack: 10, defense: 5, damage: '4d4+10', hp: 60
     },
 
     // DOGFOLK
     {
         name: 'DogfolkBase', dontCreate: true,
-        className: 'cell-actor-dogfolk', char: 'd',
+        className: 'cell-actor-dogfolk', char: 'd', type: 'dogfolk',
         enemies: ['player', 'catfolk', 'wolfclan']
+    },
+    {
+        name: 'dogfolk hunter', base: 'DogfolkBase',
+        attack: 2, defense: 3, damage: '6d1', hp: 15, danger: 2
+    },
+    {
+        name: 'dogfolk thrower', base: 'DogfolkBase',
+        attack: 2, defense: 3, damage: '6d1+1', hp: 15, danger: 3,
+        brain: 'Archer', equip: [{name: 'Throwing axe', count: 7}]
+    },
+    {
+        name: 'dogfolk skirmisher', base: 'DogfolkBase', danger: 5,
+        attack: 4, defense: 3, damage: '9d1+3', hp: 25
+    },
+    {
+        name: 'dogfolk elite', base: 'DogfolkBase', danger: 8,
+        attack: 6, defense: 6, damage: '8d2+4', hp: 35
     },
 
     // SPIRITS
@@ -503,7 +536,7 @@ const Actors = [
     {
       name: 'HyrkhianBase', dontCreate: true, className: 'cell-actor-hyrkh',
       noRandom: true, char: '@', enemies: ['undead', 'demon', 'animal'],
-      brain: 'Human'
+      brain: 'Human', type: 'hyrkhian'
     },
     {
       name: 'Hyrkhian footman', base: 'HyrkhianBase',
@@ -536,8 +569,17 @@ const Actors = [
         char: '@', danger: 100, enemies: ['human'],
         spells: ['FrostBolt'], pp: 100, brain: 'SpellCaster',
         strength: 30, accuracy: 15, agility: 20, willpower: 20, perception: 15,
-        attack: 20, defense: 20, protection: 5,
+        magic: 30, attack: 20, defense: 20, protection: 5,
         equip: ['Permaice katana', 'Permaice armour']
+    },
+    {
+        name: 'Hag of North', type: 'wolfclan', base: 'UniqueBase',
+        char: '@', danger: 100,
+        damage: '4d4+5', pp: 50, brain: 'SpellCaster', spells: ['FrostBolt'],
+        strength: 15, accuracy: 15, agility: 15, willpower: 30, perception: 25,
+        magic: 25, attack: 15, defense: 15, protection: 5,
+        equip: ['Ruby glass armour', 'Ruby glass collar']
+
     }
 ];
 
