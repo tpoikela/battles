@@ -47,7 +47,7 @@ const getClassesAndChars = function(seen, cells, selCell) {
     return [cssClasses, asciiChars];
 };
 
-const getClassesAndCharsWithRLE = function(seen, cells, selCell, anim) {
+const getClassesAndCharsWithRLE = function(seen, cells, selCell, anim, styles = {}) {
     let prevChar = null;
     let prevClass = null;
     let charRL = 0;
@@ -96,7 +96,12 @@ const getClassesAndCharsWithRLE = function(seen, cells, selCell, anim) {
         }
 
         if (cell.isAtXY(selX, selY)) {
-            cellClass = 'cell-target-selected';
+            if (styles.selectedCell) {
+                cellClass = styles.selectedCell;
+            }
+            else {
+                cellClass = 'cell-target-selected';
+            }
         }
 
         if (!visibleToPlayer) {
@@ -224,7 +229,7 @@ const Screen = function(viewX, viewY) {
     this.viewportX = viewX;
     this.viewportY = viewY;
     this.selectedCell = null;
-
+    this.styles = {};
     let _charRows = [];
     let _classRows = [];
     let _mapShown = false;
@@ -304,7 +309,7 @@ const Screen = function(viewX, viewY) {
         for (let y = this.viewport.startY; y <= this.viewport.endY; ++y) {
             const rowCellData = this.viewport.getCellRow(y);
             const classesChars = getClassesAndCharsWithRLE(visibleCells,
-                rowCellData, this.selectedCell, anim);
+                rowCellData, this.selectedCell, anim, this.styles);
 
             _classRows[yCount] = classesChars[0];
             _charRows[yCount] = classesChars[1];
@@ -351,6 +356,11 @@ const Screen = function(viewX, viewY) {
         this.endX = -1;
         this.startY = 0;
         this.endY = -1;
+        this.styles = {};
+    };
+
+    this.setStyle = function(name, value) {
+        this.styles[name] = value;
     };
 
 };
