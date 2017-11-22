@@ -232,7 +232,8 @@ class RGElementShop extends Mixin.Locatable(RGElementBase) {
     /* Returns the price in gold coins for item in the cell.*/
     getItemPriceForBuying(item) {
         if (item.has('Unpaid')) {
-            const value = item.getValue() * this._costFactorSell;
+            let value = item.getValue() * this._costFactorSell;
+            value *= item.count;
             const goldWeight = RG.valueToGoldWeight(value);
             const ncoins = RG.getGoldInCoins(goldWeight);
             if (ncoins === 0) {
@@ -249,7 +250,8 @@ class RGElementShop extends Mixin.Locatable(RGElementBase) {
 
     /* Returns the price for selling the item. */
     getItemPriceForSelling(item) {
-        const value = item.getValue() * this._costFactorBuy;
+        let value = item.getValue() * this._costFactorBuy;
+        value *= item.count;
         const goldWeight = RG.valueToGoldWeight(value);
         const ncoins = RG.getGoldInCoins(goldWeight);
         return ncoins;
