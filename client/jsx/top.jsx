@@ -13,6 +13,7 @@ import GameHelpScreen from './game-help-screen';
 import GameBoard from './game-board';
 import GameInventory from './game-inventory';
 import GameEditor from '../editor/game-editor';
+import GameCharInfo from './game-char-info';
 
 const ROT = require('../../lib/rot');
 const RG = require('../src/rg');
@@ -187,7 +188,8 @@ class BattlesTop extends Component {
             autoTarget: false,
             visibleCells: [],
             useModeEnabled: false,
-            isTargeting: false
+            isTargeting: false,
+            targetInRange: false
         };
     }
 
@@ -497,10 +499,17 @@ class BattlesTop extends Component {
             }
             else {
                 const player = this.game.getPlayer();
+                const brain = player.getBrain();
                 const updates = {render: true, showGameMenu: false};
-                if (player.getBrain().hasTargetSelected()) {
-                    updates.selectedCell = player.getBrain().getTarget();
+                if (brain.hasTargetSelected()) {
+                    updates.selectedCell = brain.getTarget();
                     this.screen.setSelectedCell(updates.selectedCell);
+                    if (!brain.isTargetInRange()) {
+                        this.screen.setStyle('selectedCell', 'cell-not-in-range');
+                    }
+                    else {
+                        this.screen.setStyle('selectedCell', 'cell-target-selected');
+                    }
                     this.gameState.isTargeting = true;
                 }
                 else {
@@ -646,6 +655,9 @@ class BattlesTop extends Component {
                     selectItemTop={this.selectItemTop}
                     setInventoryMsg={this.setInventoryMsg}
                 />
+                }
+                {gameValid && !this.state.showEditor &&
+                    <GameCharInfo player={player}/>
                 }
 
                 {!this.state.showEditor &&
