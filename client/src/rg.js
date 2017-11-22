@@ -765,7 +765,7 @@ RG.valueToGoldWeight = value => {
         ++slope;
     }
     const adjValue = slope * value + 10;
-    return adjValue / 1000;
+    return adjValue / 200;
 };
 
 /* Scales (up) the value of item if any extra bonuses or modifiers are added to
@@ -782,6 +782,7 @@ RG.scaleItemValue = (type, bonus, item) => {
     item.setValue(newValue);
 };
 
+/* Returns true if given actor has gold at least equal to given gold weight. */
 RG.hasEnoughGold = (actor, goldWeight) => {
     const ncoins = RG.getGoldInCoins(goldWeight);
     const items = actor.getInvEq().getInventory().getItems();
@@ -1034,7 +1035,7 @@ RG.destroyItemIfNeeded = item => {
 };
 
 /* Given gold weight, returns the equivalent in coins.*/
-RG.getGoldInCoins = weight => Math.floor(weight / RG.GOLD_COIN_WEIGHT);
+RG.getGoldInCoins = weight => Math.round(weight / RG.GOLD_COIN_WEIGHT);
 
 /* eslint-disable */
 RG.VK_a = ROT.VK_A + 32;
