@@ -131,6 +131,14 @@ export default class GameStats extends Component {
         </button>
         <button
           className='btn btn-xs btn-rg btn-info'
+          data-target='#char-info-modal'
+          data-toggle='modal'
+          id='stats-button'
+        >
+          CharInfo
+        </button>
+        <button
+          className='btn btn-xs btn-rg btn-info'
           id='map-player-button'
           onClick={this.changeMapView}
         >
