@@ -190,7 +190,7 @@ class CmdEquipItem {
         const item = obj.item;
         let result = false;
         let msg = `Failed to equip ${item.getName()}`;
-        if (item.getType() === 'missile') {
+        if (item.getType().match(/^(missile|ammo)$/)) {
             if (invEq.equipNItems(item, item.count)) {
                 result = true;
             }
@@ -499,6 +499,32 @@ class BrainPlayer {
             return this._enemyCells[this.currEnemyCell];
         }
         return null;
+    }
+
+    /* Returns true if chosen target is within attack range. */
+    isTargetInRange() {
+        const cell = this.getTarget();
+        if (cell) {
+            console.log(cell);
+            const [tx, ty] = [cell.getX(), cell.getY()];
+            const [ax, ay] = [this._actor.getX(), this._actor.getY()];
+            const path = RG.Geometry.getMissilePath(ax, ay, tx, ty);
+
+            const invEq = this._actor.getInvEq();
+            const missile = invEq.getEquipped('missile');
+            if (missile) {
+
+                const missRange = RG.getMissileRange(this._actor, missile);
+
+                console.log(`Path length ${path.length}`);
+                console.log(`Computed range ${missRange}`);
+
+                if ((path.length - 1) <= missRange) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     cancelTargeting() {
