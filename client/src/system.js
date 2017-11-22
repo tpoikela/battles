@@ -303,7 +303,22 @@ RG.System.Missile = function(compTypes) {
 
         if (!mComp.destroyItem) {
             const level = mComp.getLevel();
-            level.addItem(ent, currCell.getX(), currCell.getY());
+            let addedToStack = false;
+
+            // Check if missile/ammo should be stacked
+            if (currCell.hasItems()) {
+                const cellItems = currCell.getItems();
+
+                cellItems.forEach(item => {
+                    if (!addedToStack) {
+                        addedToStack = RG.addStackedItems(item, ent);
+                    }
+                });
+            }
+
+            if (!addedToStack) {
+                level.addItem(ent, currCell.getX(), currCell.getY());
+            }
         }
 
         const args = {
