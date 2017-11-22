@@ -718,7 +718,12 @@ RG.Map.Level = function() { // {{{2
             if (actor.getInvEq().canCarryItem(item)) {
                 actor.getInvEq().addItem(item);
                 this.removeItem(item, x, y);
-                RG.gameMsg(actor.getName() + ' picked up ' + item.getName());
+
+                let itemStr = item.getName();
+                if (item.count > 1) {
+                    itemStr += ' x' + item.count;
+                }
+                RG.gameMsg(actor.getName() + ' picked up ' + itemStr);
             }
             else {
                 RG.gameMsg(actor.getName() + ' cannot carry more weight');
