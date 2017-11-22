@@ -1,6 +1,6 @@
 'use strict';
 
-import React, {Component} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 
 /* Header component for modals.*/
