@@ -142,9 +142,102 @@ Y.....#
 #######`
 ];
 
+Vault.tiles.wall = [
+`
+name:vault_n_wall
+X=#
+Y=.
+
+#X###X#
+Y......
+.......
+.......
+.......
+Y......
+.......`,
+`
+name:vault_e_wall
+X=.
+Y=.
+
+.X...X#
+Y.....#
+......#
+......#
+......#
+Y.....#
+......#`,
+`
+name:vault_w_wall
+X=.
+Y=#
+
+#X...X.
+Y......
+#......
+#......
+#......
+Y......
+#......`,
+`
+name:vault_s_wall
+X=.
+Y=.
+
+.X...X.
+Y......
+.......
+.......
+.......
+Y......
+##...##`
+];
+
+Vault.tiles.center = [
+`
+name:vault_center1
+X=.
+Y=.
+
+.X...X.
+Y......
+.......
+.......
+.......
+Y......
+.......`,
+
+`
+name:vault_center2
+X=.
+Y=.
+
+.X...X.
+Y..#...
+...#...
+.#####.
+...#...
+Y..#...
+.......`,
+`
+name:vault_center3
+X=#
+Y=#
+
+.X...X.
+Y..#..#
+...#...
+.#####.
+...#...
+Y..#..#
+.#...#.`
+];
+
+
 Vault.func = {};
 
-/* Creates a medium vault to the given location. */
+/* Creates a medium vault to the given location. If connecting tile is given,
+* it's added below the vault. */
 Vault.func.createMediumVault = (x, y, templLevel, connTile) => {
   const vaultN = templLevel.findTemplate({name: 'vault_medium_n'});
   const vaultS = templLevel.findTemplate({name: 'vault_medium_s'});
@@ -170,6 +263,39 @@ Vault.func.createLargeVault = (x, y, templLevel, connTile) => {
 
   if (connTile) {
     templLevel.addRoom(connTile, x, y + 2);
+  }
+
+};
+
+Vault.func.createHugeVault = (x, y, templLevel, centerName, connTile) => {
+  // Add vault corners first
+  const vaultNW = templLevel.findTemplate({name: 'vault_nw_corner'});
+  const vaultNE = templLevel.findTemplate({name: 'vault_ne_corner'});
+  const vaultSW = templLevel.findTemplate({name: 'vault_sw_corner'});
+  const vaultSE = templLevel.findTemplate({name: 'vault_se_corner'});
+
+  templLevel.addRoom(vaultNW, x, y);
+  templLevel.addRoom(vaultNE, x + 2, y);
+  templLevel.addRoom(vaultSW, x, y + 2);
+  templLevel.addRoom(vaultSE, x + 2, y + 2);
+
+  // Vault center is picked using the given string
+  const vaultCenter = templLevel.findTemplate({name: centerName});
+  templLevel.addRoom(vaultCenter, x + 1, y + 1);
+
+  // Finally, add vault walls
+  const vaultWallN = templLevel.findTemplate({name: 'vault_n_wall'});
+  const vaultWallE = templLevel.findTemplate({name: 'vault_e_wall'});
+  const vaultWallW = templLevel.findTemplate({name: 'vault_w_wall'});
+  const vaultWallS = templLevel.findTemplate({name: 'vault_s_wall'});
+
+  templLevel.addRoom(vaultWallN, x + 1, y);
+  templLevel.addRoom(vaultWallE, x + 2, y + 1);
+  templLevel.addRoom(vaultWallW, x, y + 1);
+  templLevel.addRoom(vaultWallS, x + 1, y + 2);
+
+  if (connTile) {
+    templLevel.addRoom(connTile, x + 1, y + 3);
   }
 
 };
