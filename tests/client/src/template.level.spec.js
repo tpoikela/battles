@@ -65,13 +65,13 @@ describe('Template.Level', () => {
         level.setFiller(Castle.tiles.fillerWall);
         level.setTemplates(Castle.Models.full);
 
-        level.setGenParams([1, 1, 1, 1]);
+        level.setGenParams([2, 2, 2, 2]);
         level.create();
 
-        expect(level.map).to.have.length(7 * 12);
-        expect(level.map[0]).to.have.length(7 * 6);
+        expect(level.map).to.have.length(9 * 12);
+        expect(level.map[0]).to.have.length(9 * 6);
 
-        // RG.printMap(level.map);
+        RG.printMap(level.map);
     });
 
     it('can also remove templates after creation', () => {
