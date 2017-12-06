@@ -48,19 +48,13 @@ export default class GameCharInfo extends Component {
   render() {
     const shownMessage = 'Placeholder';
     const shownTabElement = this.renderTabElement();
+    const tabButtons = this.renderTabButtons();
 
     return (
       <Modal id='char-info-modal' labelId='char-info-modal-label'>
         <ModalHeader id='char-info-modal-label' text='Character info'/>
 
-        <ul className='modal-tab-list'>
-          <button
-            onClick={this.selectTab.bind(this, 'CharInfo')}
-          >CharInfo</button>
-          <button
-            onClick={this.selectTab.bind(this, 'Components')}
-          >Components</button>
-        </ul>
+        {tabButtons}
 
         {shownTabElement}
 
@@ -127,6 +121,26 @@ export default class GameCharInfo extends Component {
       );
     }
     return null;
+  }
+
+
+  renderTabButtons() {
+      const buttonElems = (
+      <ul className='modal-tab-list'>
+        <button
+          onClick={this.selectTab.bind(this, 'CharInfo')}
+        >CharInfo</button>
+        <button
+          onClick={this.selectTab.bind(this, 'Components')}
+        >Components</button>
+      </ul>
+      );
+
+      return (
+        <ul>
+          {buttonElems}
+        </ul>
+      );
   }
 
 }
