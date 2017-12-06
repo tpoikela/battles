@@ -386,7 +386,7 @@ describe('Element.Shop', () => {
 
         expect(shopCell.hasProp('items')).to.equal(true);
         expect(soldItem.has('Unpaid')).to.equal(true);
-        expect(shopElem.getItemPriceForBuying(soldItem)).to.equal(40);
+        expect(shopElem.getItemPriceForBuying(soldItem)).to.be.above(100);
 
         let advItems = adventurer.getInvEq().getInventory().getItems();
         const coinsBeforeBuy = advItems[1];
