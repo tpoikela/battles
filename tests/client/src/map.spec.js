@@ -368,7 +368,7 @@ describe('Element.Shop', () => {
             adventurer.getInvEq().addItem(goldCoin);
         }
         const hundredCoins = new RG.Item.GoldCoin();
-        hundredCoins.count = 100;
+        hundredCoins.count = 300;
         adventurer.getInvEq().addItem(hundredCoins);
 
         const shopElem = new RG.Element.Shop();
