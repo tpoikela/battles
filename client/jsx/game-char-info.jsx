@@ -83,6 +83,8 @@ export default class GameCharInfo extends Component {
     const compNames = comps.map((c, index) => <p key={index}>{c.getType()}</p>);
 
     if (this.state.tabShown === 'CharInfo') {
+      const expLevel = actor.get('Experience').getExpLevel();
+      const expPoints = actor.get('Experience').getExp();
       return (
         <div>
           <div className='modal-body row'>
@@ -90,8 +92,9 @@ export default class GameCharInfo extends Component {
               <h2>General info</h2>
               <p>Name: {actor.getName()}</p>
               <p>Class: {actorClassName}</p>
+              <p>Exp. level: {expLevel}</p>
+              <p>Exp. points: {expPoints}</p>
             </div>
-
           </div>
 
           <div className='modal-body row'>
