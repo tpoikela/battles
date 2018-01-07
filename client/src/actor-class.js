@@ -207,7 +207,7 @@ class Cryomancer extends ActorClassBase {
 
         this._messages = {
             4: `${_name} learns a protection spell`,
-            8: `${_name} learns to attack enemies from distance`,
+            8: `${_name} learns a spell to attack enemies from distance`,
             12: `${_name} can freeze enemies on their tracks`,
             16: `${_name} can summon an ice companion now`,
             20: `${_name} can drain power from other spellcasters`,
@@ -287,7 +287,7 @@ class Marksman extends ActorClassBase {
 
         this._messages = {
             4: `${_name} can now see and shoot further`,
-            8: `${_name} deals now more damage with shots`,
+            8: `${_name} deals now more damage with each shot`,
             12: `${_name} can bypass enemies with ranged attacks`,
             16: `${_name} can use arrows/bolts interchangeably`,
             20: `${_name} can shoot even further`,
