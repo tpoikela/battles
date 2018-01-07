@@ -613,7 +613,7 @@ RG.Factory.Base = function() { // {{{2
             }
             else {
                 actor = parser.createRandomActor({
-                    func: (actor) => (conf.func(actor) &&
+                    func: actor => (conf.func(actor) &&
                         actor.danger <= maxDanger)
                 });
             }
@@ -628,7 +628,7 @@ RG.Factory.Base = function() { // {{{2
                 actors.push(actor);
             }
             else {
-                RG.diag('Could not meet constraints for actor gen');
+                RG.diag('RG.Factory Could not meet constraints for actor gen');
                 return false;
                 // RG.err('Factory.Base', 'addNRandActors',
                     // `Generated actor null. Conf: ${JSON.stringify(conf)}`);
@@ -851,8 +851,12 @@ RG.Factory.Zone = function() {
         levelConf.levelType = 'empty';
         levelConf.wallType = 'wooden';
         const level = this.createLevel('town', cols, rows, levelConf);
-        levelConf.actorsPerLevel = 30;
-        levelConf.maxDanger = 3;
+        if (!levelConf.actorsPerLevel) {
+            levelConf.actorsPerLevel = 30;
+        }
+        if (!levelConf.maxDanger) {
+            levelConf.maxDanger = 3;
+        }
         this.populateCityLevel(level, levelConf);
         return level;
     };
@@ -890,6 +894,7 @@ RG.Factory.Zone = function() {
         if (!alignment) {
             alignment = RG.RAND.arrayGetRand(RG.ALIGNMENTS);
         }
+
         if (alignment === RG.ALIGN_GOOD) {
             this.populateWithHumans(level, levelConf);
         }
@@ -918,7 +923,6 @@ RG.Factory.Zone = function() {
         let allOK = false;
         while (!allOK) {
             const raceType = RG.RAND.arrayGetRand(RG.EVIL_RACES);
-            console.log(`Race was chosen to be ${raceType}`);
             const actorConf = {
                 actorsPerLevel: levelConf.actorsPerLevel || 100,
                 maxDanger: levelConf.maxDanger || 10,
@@ -1392,7 +1396,6 @@ RG.Factory.World = function() {
                 return new RegExp(item + '$').test(hierName);
             });
             if (foundKey) {
-                console.log('Found levels (in Conf) for hierName ' + hierName);
                 return presetLevels[foundKey];
             }
         }
@@ -1401,7 +1404,6 @@ RG.Factory.World = function() {
         const keys = Object.keys(this.presetLevels);
         let foundKey = keys.find(item => new RegExp(item + '$').test(hierName));
         if (foundKey) {
-            console.log('Found levels for hierName ' + hierName);
             return this.presetLevels[foundKey];
         }
 
