@@ -146,7 +146,7 @@ const Actors = [
     // BEARFOLK
     {
         name: 'BearfolkBase', char: 'B', className: 'cell-actor-bearfolk',
-        dontCreate: true, brain: 'Bearfolk',
+        dontCreate: true, brain: 'Bearfolk', type: 'bearfolk',
         attack: 1, defense: 1, damage: '1d5 + 1', range: 1, hp: 10,
         danger: 1, enemies: ['goblin', 'dwarf', 'undead', 'demon']
     },
