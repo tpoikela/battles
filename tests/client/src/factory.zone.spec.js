@@ -9,12 +9,15 @@ describe('Factory.Zone', () => {
             x: 80, y: 28,
             cityType: 'Village',
             groupType: 'village',
-            quarterType: ''
+            quarterType: '',
+            maxDanger: 5
         };
 
         const village = fact.createCityLevel(0, villageConf);
         expect(village).to.exist;
-        expect(village.getActors()).to.have.length.above(5);
+
+        const actors = village.getActors();
+        expect(actors).to.have.length.above(5);
     });
 
     it('can create the capital level', () => {
@@ -60,4 +63,5 @@ describe('Factory.Zone', () => {
             expect(actor.getType()).to.equal('undead');
         });
     });
+
 });
