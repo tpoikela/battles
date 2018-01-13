@@ -132,6 +132,9 @@ class CmdUseItem {
             else if (!result) {
                 return this.cmdNotPossible('You cannot use that item.');
             }
+            else {
+              RG.gameMsg(`You used ${item.getName()}!`);
+            }
         }
         else {
             RG.err('Brain.Player', 'handleCommand', 'obj has no item');
@@ -193,7 +196,6 @@ class CmdEquipItem {
         let result = false;
         let msg = `Failed to equip ${item.getName()}`;
         if (item.getType().match(/^(missile|ammo)$/)) {
-          console.log('Equipping now ' + obj.count + ' items');
             if (invEq.equipNItems(item, obj.count)) {
                 result = true;
             }
@@ -825,10 +827,11 @@ class BrainPlayer {
     getNextItemOnTop(cell) {
         if (cell.hasProp('items')) {
             const items = cell.getProp('items');
-            const name = items[0].getName();
+            let name = items[0].getName();
             if (items.length > 1) {
                 const firstItem = items.shift();
                 items.push(firstItem);
+                name = items[0].getName();
                 RG.gameMsg('You see now ' + name + ' on top of the heap.');
             }
             else {
