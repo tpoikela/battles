@@ -84,6 +84,13 @@ RG.Map.Cell.prototype.getStairs = function() {
     return null;
 };
 
+RG.Map.Cell.prototype.getConnection = function() {
+  if (this.hasStairs()) {
+    return this.getStairs();
+  }
+  return this.getPassage();
+};
+
 /* Returns passage in this cell, or null if not found. */
 RG.Map.Cell.prototype.getPassage = function() {
     if (this.hasPropType('passage')) {
@@ -593,7 +600,24 @@ RG.Map.Level = function() { // {{{2
         return res;
     };
 
+    this.getPassages = () => {
+        const res = [];
+        _p.elements.forEach(elem => {
+            if (elem.type === 'passage') {
+                res.push(elem);
+            }
+        });
+        return res;
+    };
+
+    this.getConnections = () => {
+      let conn = this.getStairs();
+      conn = conn.concat(this.getPassages());
+      return conn;
+    };
+
     const _isStairs = elem => (/stairs(Down|Up)/).test(elem.getType());
+    const _isPassage = elem => elem.getType() === 'passage';
 
     this.setMap = map => {_map = map;};
     this.getMap = () => _map;
@@ -679,7 +703,7 @@ RG.Map.Level = function() { // {{{2
 
     /* Adds one element into the level. */
     this.addElement = function(elem, x, y) {
-        if (_isStairs(elem)) {
+        if (_isStairs(elem) || _isPassage(elem)) {
             return this.addStairs(elem, x, y);
         }
         if (!RG.isNullOrUndef([x, y])) {
