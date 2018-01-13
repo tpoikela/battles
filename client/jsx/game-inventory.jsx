@@ -28,11 +28,21 @@ export default class GameInventory extends Component {
     this.setState({count: value});
   }
 
+  getCount() {
+    const count = parseInt(this.state.count, 10);
+    if (Number.isInteger(count)) {
+      if (count > 0) {
+        return count;
+      }
+    }
+    return 1;
+  }
+
   /* Called when "Drop" is clicked. Drops item to the ground.*/
   dropItem() {
     if (this.props.selectedItem !== null) {
       const cmd = {cmd: 'drop', item: this.props.selectedItem,
-        count: this.state.count};
+        count: this.getCount()};
       cmd.callback = function(obj) {
         let msgStyle = 'text-success';
         if (!obj.result) {
@@ -56,7 +66,7 @@ export default class GameInventory extends Component {
     const item = this.props.selectedItem;
     if (item !== null) {
       const cmd = {cmd: 'equip', item: this.props.selectedItem,
-        count: this.state.count};
+        count: this.getCount()};
       cmd.callback = function(obj) {
         let msgStyle = 'text-success';
         if (!obj.result) {
@@ -81,7 +91,7 @@ export default class GameInventory extends Component {
       const name = this.props.equipSelected.slotName;
       const slotNumber = this.props.equipSelected.slotNumber;
       const cmd = {cmd: 'unequip', slot: name, slotNumber,
-        count: this.state.count};
+        count: this.getCount()};
       cmd.callback = function(obj) {
         let msgStyle = 'text-success';
         if (!obj.result) {
@@ -189,11 +199,9 @@ export default class GameInventory extends Component {
             <div className='modal-footer row'>
               <div className='col-md-6'>
                 <p className={this.props.msgStyle}>{this.props.invMsg}</p>
-                {onlyItemSelected &&
-                    <div>Count:
-                      <input onChange={this.onChangeCount} value={this.state.count} />
-                    </div>
-                }
+                <div>Count:
+                  <input onChange={this.onChangeCount} value={this.state.count} />
+                </div>
               </div>
               <div className='col-md-6'>
                 <button type='button' className={dropButtonClass} onClick={this.dropItem}>Drop</button>
