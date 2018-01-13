@@ -249,11 +249,7 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
     getAttack() {
         let attack = this.get('Combat').getAttack();
         attack += this.getEquipAttack();
-
-        if (this.has('CombatMods')) {
-            attack += this.get('CombatMods').getAttack();
-        }
-
+        attack += this._addFromCompList('CombatMods', 'getAttack');
         attack += Math.floor(this.getAccuracy() / 2);
         return attack;
     }
@@ -261,9 +257,7 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
     getDefense() {
         let defense = this.get('Combat').getDefense();
         defense += this.getEquipDefense();
-        if (this.has('CombatMods')) {
-            defense += this.get('CombatMods').getDefense();
-        }
+        defense += this._addFromCompList('CombatMods', 'getDefense');
         defense += Math.floor(this.getAgility() / 2);
         return defense;
     }
@@ -271,9 +265,7 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
     getProtection() {
         let protection = this.get('Combat').getProtection();
         protection += this.getEquipProtection();
-        if (this.has('CombatMods')) {
-            protection += this.get('CombatMods').getProtection();
-        }
+        protection += this._addFromCompList('CombatMods', 'getProtection');
         return protection;
     }
 
@@ -282,11 +274,23 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
         let strength = this.getStrength();
         strength += this.getInvEq().getEquipment().getStrength();
         damage += RG.strengthToDamage(strength);
-        if (this.has('CombatMods')) {
-            damage += this.get('CombatMods').getDamage();
-        }
+        damage += this._addFromCompList('CombatMods', 'getDamage');
         return damage;
 
+    }
+
+    getCombatBonus(funcName) {
+        return this._addFromCompList('CombatMods', funcName);
+    }
+
+    _addFromCompList(compType, func) {
+        if (this.has(compType)) {
+            const compList = this.getList(compType);
+            return compList.reduce((acc, val) => {
+                return acc + val[func]();
+            }, 0);
+        }
+        return 0;
     }
 
     //-------------------------------------------------------------
@@ -296,54 +300,55 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
     getAccuracy() {
         let acc = this.get('Stats').getAccuracy();
         acc += this.getInvEq().getEquipment().getAccuracy();
-        if (this.has('StatsMods')) {acc += this.get('StatsMods').getAccuracy();}
+        acc += this._addFromCompList('StatsMods', 'getAccuracy');
         return acc;
     }
 
     getAgility() {
         let agi = this.get('Stats').getAgility();
         agi += this.getInvEq().getEquipment().getAgility();
-        if (this.has('StatsMods')) {agi += this.get('StatsMods').getAgility();}
+        agi += this._addFromCompList('StatsMods', 'getAgility');
         return agi;
     }
 
     getStrength() {
         let str = this.get('Stats').getStrength();
         str += this.getInvEq().getEquipment().getStrength();
-        if (this.has('StatsMods')) {str += this.get('StatsMods').getStrength();}
+        str += this._addFromCompList('StatsMods', 'getStrength');
         return str;
     }
 
     getWillpower() {
         let wil = this.get('Stats').getWillpower();
         wil += this.getInvEq().getEquipment().getWillpower();
-        if (this.has('StatsMods')) {
-            wil += this.get('StatsMods').getWillpower();
-        }
+        wil += this._addFromCompList('StatsMods', 'getWillpower');
         return wil;
     }
 
     getSpeed() {
         let speed = this.get('Stats').getSpeed();
         speed += this.getInvEq().getEquipment().getSpeed();
-        if (this.has('StatsMods')) {speed += this.get('StatsMods').getSpeed();}
+        speed += this._addFromCompList('StatsMods', 'getSpeed');
         return speed;
     }
 
     getPerception() {
         let per = this.get('Stats').getPerception();
         per += this.getInvEq().getEquipment().getPerception();
-        if (this.has('StatsMods')) {
-            per += this.get('StatsMods').getPerception();
-        }
+        per += this._addFromCompList('StatsMods', 'getPerception');
         return per;
     }
 
     getMagic() {
-        let per = this.get('Stats').getMagic();
-        per += this.getInvEq().getEquipment().getMagic();
-        if (this.has('StatsMods')) {per += this.get('StatsMods').getMagic();}
-        return per;
+        let mag = this.get('Stats').getMagic();
+        mag += this.getInvEq().getEquipment().getMagic();
+        mag += this._addFromCompList('StatsMods', 'getMagic');
+        return mag;
+    }
+
+    /* Returns bonuses applied to given stat. */
+    getStatBonus(funcName) {
+        return this._addFromCompList('StatsMods', funcName);
     }
 }
 
