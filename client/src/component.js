@@ -640,6 +640,7 @@ RG.extend2(RG.Component.Communication, RG.Component.Base);
 /* Entities with physical components have weight and size.*/
 RG.Component.Physical = function() {
     RG.Component.Base.call(this, 'Physical');
+    this._isUnique = true;
 
     let _weight = 1; // in kg
     let _size = 1; // abstract unit
