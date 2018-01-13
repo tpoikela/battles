@@ -26,6 +26,7 @@ RG.Component.Base = function(type) {
     this._type = type;
     this._entity = null;
     this._id = RG.Component.idCount++;
+    this._isUnique = false;
 
     this._onAddCallbacks = [];
     this._onRemoveCallbacks = [];
@@ -46,6 +47,8 @@ RG.Component.Base.prototype.setEntity = function(entity) {
         RG.err('Component.Base', 'setEntity', 'Entity already set.');
     }
 };
+
+RG.Component.Base.prototype.isUnique = function() {return this._isUnique;};
 
 RG.Component.Base.prototype.getType = function() {return this._type;};
 RG.Component.Base.prototype.setType = function(type) {this._type = type;};
@@ -224,6 +227,7 @@ RG.extend2(RG.Component.Hunger, RG.Component.Base);
 /* Health component takes care of HP and such. */
 RG.Component.Health = function(hp) {
     RG.Component.Base.call(this, 'Health');
+    this._isUnique = true;
 
     let _hp = hp;
     let _maxHP = hp;
@@ -274,6 +278,7 @@ RG.extend2(RG.Component.Damage, RG.Component.Base);
 /* Component used in entities gaining experience.*/
 RG.Component.Experience = function() {
     RG.Component.Base.call(this, 'Experience');
+    this._isUnique = true;
 
     let _exp = 0;
     let _expLevel = 1;
@@ -318,6 +323,7 @@ class Combat extends Mixin.CombatAttr(Mixin.DamageRoll(RG.Component.Base)) {
 
     constructor() {
         super('Combat');
+        this._isUnique = true;
         this._attack = 1;
         this._defense = 1;
         this._protection = 0;
@@ -344,6 +350,7 @@ RG.Component.CombatMods = CombatMods;
 /* This component stores entity stats like speed, agility etc.*/
 RG.Component.Stats = function() {
     RG.Component.Base.call(this, 'Stats');
+    this._isUnique = true;
 
     let _accuracy = 5;
     let _agility = 5;
