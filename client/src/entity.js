@@ -37,6 +37,9 @@ export default class Entity {
             compObj = nameOrComp;
             compName = nameOrComp.getType();
         }
+        if (compObj.isUnique() && this.has(compName)) {
+            this.removeAll(compName);
+        }
         this._comps[compObj.getID()] = compObj;
         compObj.entityAddCallback(this);
         RG.POOL.emitEvent(compName, {entity: this, add: true});
