@@ -263,6 +263,10 @@ class RGElementShop extends Mixin.Locatable(RGElementBase) {
 
     /* Function for buying an item.*/
     buyItem(item, buyer) {
+        if (!buyer.getInvEq().canCarryItem(item)) {
+          RG.gameMsg(buyer.getName() + ' cannot carry more weight');
+          return false;
+        }
         const buyerCell = buyer.getCell();
         const value = item.getValue() * this._costFactorSell;
         const goldWeight = RG.valueToGoldWeight(value);
