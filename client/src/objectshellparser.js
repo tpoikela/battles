@@ -898,6 +898,14 @@ RG.ObjectShell.Parser = function() {
         return this.createActualObj(RG.TYPE_ITEM, name);
     };
 
+    this.hasItem = function(name) {
+        return this.hasObj(RG.TYPE_ITEM, name);
+    };
+
+    this.hasObj = function(categ, name) {
+        return this.dbExists(categ, name);
+    };
+
     /* Returns an actual game object when given category and name. Note that
      * the shell must exist already in the database (shell must have
      * been parser before). */
