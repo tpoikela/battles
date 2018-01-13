@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import PlayerStats from './player-stats';
 
 const RG = require('../src/rg.js');
 
@@ -22,8 +23,6 @@ export default class GameStats extends Component {
 
   render() {
     const player = this.props.player;
-    const dungeonLevel = player.getLevel().getLevelNumber();
-    const location = player.getLevel().getParent();
     const selectedItem = this.props.selectedItem;
     const selectedCell = this.props.selectedCell;
 
@@ -39,52 +38,6 @@ export default class GameStats extends Component {
         selCellDescr = 'Cell: ' + actorName;
       }
     }
-
-    let PP = null;
-    if (player.has('SpellPower')) {
-      PP = player.get('SpellPower').getPP() + '/'
-      + player.get('SpellPower').getMaxPP();
-    }
-
-    // Compile final stats information
-    const stats = {
-      HP: player.get('Health').getHP() + '/'
-      + player.get('Health').getMaxHP(),
-      PP,
-
-      Att: player.getAttack(),
-      Def: player.getDefense(),
-      Pro: player.getProtection(),
-
-      Str: player.getStrength(),
-      Agi: player.getAgility(),
-      Acc: player.getAccuracy(),
-      Wil: player.getWillpower(),
-      Per: player.getPerception(),
-      Mag: player.getMagic(),
-
-      Speed: player.getSpeed(),
-      XP: player.get('Experience').getExp(),
-      XL: player.get('Experience').getExpLevel(),
-      DL: dungeonLevel,
-      Loc: location
-    };
-
-    if (player.has('Hunger')) {
-      stats.E = player.get('Hunger').getEnergy();
-    }
-
-    // Create HTML for showing stats
-    const statsHTML = [];
-    let index = 0;
-    for (const key in stats) {
-      if (key) {
-        const val = stats[key];
-        statsHTML.push(<li key={key + ',' + index}>{key}: {val}</li>);
-        ++index;
-      }
-    }
-
     // Create HTML for showing movement mode
     let moveStatus = 'Move: ';
     let moveClassName = 'text-info';
@@ -113,7 +66,7 @@ export default class GameStats extends Component {
 
     return (
       <div className='game-stats'>
-        <ul className='game-stats-list'>{statsHTML}</ul>
+        <PlayerStats player={player} />
         <ul className='player-mode-list'>
           <li className={moveClassName}>{moveStatus}</li>
           <li className='text-primary'>{fightModeStatus}</li>
@@ -165,7 +118,7 @@ export default class GameStats extends Component {
       stat.push(<p key='stat-stun' className='text-danger'>Stunned</p>);
     }
     if (player.has('Ethereal')) {
-      stat.push(<p key='stat-ethereal' className='text-danger'>Ethereal</p>);
+      stat.push(<p key='stat-ethereal' className='text-info'>Ethereal</p>);
     }
     if (player.has('PowerDrain')) {
       stat.push(<p key='stat-power-drain' className='text-success'>Power drain</p>);
@@ -174,13 +127,13 @@ export default class GameStats extends Component {
   }
 
 
-};
+}
 
 GameStats.propTypes = {
-  showMap: React.PropTypes.bool.isRequired,
-  player: React.PropTypes.object.isRequired,
-  selectedItem: React.PropTypes.object,
-  setViewType: React.PropTypes.func.isRequired,
-  selectedCell: React.PropTypes.object
+  showMap: PropTypes.bool.isRequired,
+  player: PropTypes.object.isRequired,
+  selectedItem: PropTypes.object,
+  setViewType: PropTypes.func.isRequired,
+  selectedCell: PropTypes.object
 };
 
