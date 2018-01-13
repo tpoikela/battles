@@ -523,7 +523,7 @@ RG.System.ExpPoints = function(compTypes) {
             if (exp >= reqExp) { // Required exp points exceeded
                 RG.levelUpActor(ent, nextExpLevel);
                 const name = ent.getName();
-                const msg = `${name} appears to be more experience now.`;
+                const msg = `${name} appears to be more experienced now.`;
                 RG.gameSuccess({msg: msg, cell: ent.getCell()});
                 levelingUp = true;
             }
