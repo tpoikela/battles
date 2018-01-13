@@ -351,7 +351,7 @@ class BattlesTop extends Component {
         this.game = game;
         this.game.setGUICallbacks(this.isGUICommand, this.doGUICommand);
         this.game.setAnimationCallback(this.playAnimation.bind(this));
-
+        this.setDebugRefsToWindow();
         const player = this.game.getPlayer();
         this.gameState.visibleCells = player.getLevel().exploreCells(player);
         RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this.listener);
@@ -397,16 +397,20 @@ class BattlesTop extends Component {
         this.game = gameFactory.createNewGame(this.gameConf);
         this.game.setGUICallbacks(this.isGUICommand, this.doGUICommand);
         this.game.setAnimationCallback(this.playAnimation.bind(this));
-        window.RG = RG;
-        window.GAME = this.game; // For debugging
+        this.setDebugRefsToWindow();
 
         const player = this.game.getPlayer();
-        window.PLAYER = player; // For debugging
-
         this.gameState.visibleCells = player.getLevel().exploreCells(player);
         RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this.listener);
         RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this.listener);
         this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
+    }
+
+    setDebugRefsToWindow() {
+        window.RG = RG;
+        window.GAME = this.game; // For debugging
+        const player = this.game.getPlayer();
+        window.PLAYER = player; // For debugging
     }
 
     selectItemTop(item) {
