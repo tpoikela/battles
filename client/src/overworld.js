@@ -21,6 +21,10 @@
  *    2  #### <-(lrx, lry)
  */
 
+//-------------------
+// imports/requires
+//-------------------
+
 import AbandonedFort from '../data/abandoned-fort';
 import Capital from '../data/capital';
 import DwarvenCity from '../data/dwarven-city';
@@ -30,6 +34,10 @@ RG.Names = require('../data/name-gen');
 RG.LevelGen = require('../data/level-gen');
 RG.Path = require('./path');
 const OW = require('./overworld.map');
+
+//-------------------
+// Variables
+//-------------------
 
 const $DEBUG = false;
 
@@ -44,8 +52,10 @@ const playerTileY = 1;
 
 const getRandIn = RG.RAND.arrayGetRand.bind(RG.RAND);
 
+//---------------------------------------------------------------------------
 /* Wall object inside the Overworld. Wall here means a huge wall of mountains.
- * */
+ */
+//---------------------------------------------------------------------------
 const Wall = function(type) {
     this.type = type; // vertical/horizontal/etc
     this.coord = []; // 2-d array of coordinates
@@ -99,8 +109,10 @@ const Wall = function(type) {
     };
 };
 
+//---------------------------------------------------------------------------
 /* Feature has type and a list of coordinates. It can be for example a fort
  * occupying several squares. */
+//---------------------------------------------------------------------------
 RG.OverWorld.SubFeature = function(type, coord) {
     this.type = type;
     this.coord = coord;
@@ -129,9 +141,11 @@ RG.OverWorld.SubFeature = function(type, coord) {
 
 };
 
+//---------------------------------------------------------------------------
 /* Data struct which is tied to 'RG.Map.Level'. Contains more high-level
  * information like positions of walls and other features. Essentially a wrapper
  * around Map.Level, to keep feature creep out of the Map.Level. */
+//---------------------------------------------------------------------------
 RG.OverWorld.SubLevel = function(level) {
     this._level = level;
     this._hWalls = [];
@@ -192,8 +206,10 @@ RG.OverWorld.SubLevel = function(level) {
 
 };
 
+//---------------------------------------------------------------------------
 /* Object to translate coordinates between different maps and levels.
  */
+//---------------------------------------------------------------------------
 const CoordMap = function() {
     // Size of the large overworld Map.Level
     this.worldCols = 0;
@@ -224,6 +240,10 @@ const CoordMap = function() {
 };
 RG.OverWorld.CoordMap = CoordMap;
 
+//---------------------------------------------------------------------------
+// RG.OverWorld FUNCTIONS (Imported)
+//---------------------------------------------------------------------------
+
 /* Factory function to construct the overworld. Generally you want to call this
  * method.
  * @return RG.Map.Level.
@@ -233,6 +253,8 @@ RG.OverWorld.createOverWorld = (conf = {}) => {
     return RG.OverWorld.createOverWorldLevel(overworld, conf);
 };
 
+/* Creates/returns Map.Level object of overworld, and a configuration to
+ * build the features using Factory.World. */
 RG.OverWorld.createOverWorldLevel = (overworld, conf) => {
     const coordMap = new CoordMap();
     coordMap.worldCols = conf.worldX || 400;
@@ -250,6 +272,9 @@ RG.OverWorld.createOverWorldLevel = (overworld, conf) => {
     return worldLevelAndConf;
 };
 
+//---------------------------------------------------------------------------
+// Private FUNCTIONS
+//---------------------------------------------------------------------------
 
 /* Creates the overworld level. Returns RG.Map.Level. */
 function buildMapLevel(ow, coordMap) {
@@ -751,7 +776,6 @@ RG.OverWorld.createWorldConf = (ow, subLevels, nTilesX, nTilesY) => {
                     }
 
                     if (feat.type === 'capital') {
-                        console.log('Adding capital now');
                         addCapitalConfToArea(feat, coordObj, areaConf);
                     }
                     else if (feat.type === 'dwarven city') { // WTOWER
@@ -763,9 +787,10 @@ RG.OverWorld.createWorldConf = (ow, subLevels, nTilesX, nTilesY) => {
                     else if (feat.type === 'dark city') {
                         addCityConfToArea(feat, coordObj, areaConf);
                     }
-                    else if (feat.type === 'blacktower') {
+                    /* else if (feat.type === 'blacktower') {
+                        console.log('Adding blacktower now');
                         addCityConfToArea(feat, coordObj, areaConf);
-                    }
+                    }*/
                     else if (cityTypesRe.test(feat.type)) {
                         addCityConfToArea(feat, coordObj, areaConf);
                     }
@@ -783,6 +808,7 @@ RG.OverWorld.createWorldConf = (ow, subLevels, nTilesX, nTilesY) => {
                         areaConf.dungeon.push(dungeonConf);
                     }
                     else if (feat.type === 'blacktower') {
+                        console.log('Adding final blacktower now');
                         addBlackTowerConfToArea(feat, coordObj, areaConf);
                     }
                 });
@@ -831,10 +857,7 @@ function mapY(y, slY, subSizeY) {
 }
 
 function addCapitalConfToArea(feat, coordObj, areaConf) {
-    const capitalConf = {
-
-    };
-    const capitalLevel = new Capital(200, 500, capitalConf).getLevel();
+    const capitalLevel = new Capital(200, 500, {}).getLevel();
 
     const cityConf = {
         name: 'Blashyrkh',
@@ -872,7 +895,6 @@ function addDwarvenCityConfToArea(feat, coordObj, areaConf) {
     cityConf.presetLevels = {
         'Dwarven City.Fort main level': [{nLevel: 0, level: dwarvenCity}]
     };
-    addLocationToZoneConf(feat, coordObj, cityConf);
 
     addLocationToZoneConf(feat, coordObj, cityConf);
     const mainConn = {
@@ -917,7 +939,7 @@ function addAbandonedFortToArea(feat, coordObj, areaConf) {
 
 }
 
-/* Adds a city configuration to the area. */
+/* Adds a (normal) city configuration to the area. */
 function addCityConfToArea(feat, coordObj, areaConf) {
     // const {slX, slY, subX, subY} = coordObj;
     const coord = feat.coord;
@@ -925,7 +947,6 @@ function addCityConfToArea(feat, coordObj, areaConf) {
     feat.nLevels = nLevels;
 
     const cName = RG.Names.getUniqueCityName();
-    console.log(`Adding city ${cName} to conf area`);
     const cityConf = RG.LevelGen.getCityConf(cName, feat);
 
     cityConf.groupType = feat.type;
@@ -940,7 +961,7 @@ function addCityConfToArea(feat, coordObj, areaConf) {
 /* Adds location info the zone config. This info specifies where the zone is
  * located in the overworld map. */
 function addLocationToZoneConf(feat, coordObj, zoneConf, vert = true) {
-    const {x, y, slX, slY, aX, aY, subX, subY} = coordObj;
+    const {slX, slY, aX, aY, subX, subY} = coordObj;
     const coord = feat.coord;
     const nLevels = coord.length;
     const lastCoord = nLevels - 1;
@@ -953,8 +974,7 @@ function addLocationToZoneConf(feat, coordObj, zoneConf, vert = true) {
       featY = mapY(coord[0][1], slY, subY);
     }
     if (featY >= 100) {
-        const msg = `subXY ${x},${y}, tileXY: ${aX},${aY}`;
-        console.log(`${msg} reduce the featY for ${feat.type}`);
+        // const msg = `subXY ${x},${y}, tileXY: ${aX},${aY}`;
         featY -= 1;
     }
 
@@ -1018,10 +1038,18 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
     );
     dungeonConf.constraint.food = () => false;
     dungeonConf.constraint.gold = () => false;
+
+    const nLastLevel = dungeonConf.branch[0].nLevels - 1;
     dungeonConf.branch[0].create = {
-        actor: [{
-            name: 'Thabba, Son of Ice',
-            nLevel: dungeonConf.branch[0].nLevels - 1}
+        actor: [
+            {
+                name: 'Thabba, Son of Ice',
+                nLevel: nLastLevel
+            },
+            {
+                name: 'Zamoned, Son of Frost',
+                nLevel: nLastLevel
+            }
         ]
     };
     areaConf.nDungeons += 1;
@@ -1069,7 +1097,6 @@ function getSubBoxForAreaTile(x, y, xMap, yMap) {
 
 /* Adds global features like roads to the overworld level map. */
 function addGlobalFeatures(ow, owLevel, conf, coordMap) {
-    console.log('Starting to add global features');
 
     // Find player x,y on level
     const playerX = playerTileX * 100 + 50;
@@ -1082,9 +1109,11 @@ function addGlobalFeatures(ow, owLevel, conf, coordMap) {
     const subLevelXY = capFeat.getLastCoord();
     const owLevelXY = coordMap.toOwLevelXY(capSubTileXY, subLevelXY);
 
+    /*
     console.log(`World size: ${coordMap.worldCols}, ${coordMap.worldRows}`);
     console.log(`Player x,y: ${playerX}, ${playerY}`);
     console.log(`Capital x,y: ${owLevelXY}`);
+    */
 
     // Connect with road
     const path = RG.Path.getMinWeightPath(owLevel.getMap(),
@@ -1110,9 +1139,6 @@ function addGlobalFeatures(ow, owLevel, conf, coordMap) {
         owLevelCapExitXY[0], owLevelCapExitXY[1],
         wTowerLevelXY[0], wTowerLevelXY[1]);
     RG.Path.addPathToMap(owLevel.getMap(), pathCapWTower);
-
-    console.log('Finished adding global features');
-
 }
 
 module.exports = RG.OverWorld;
