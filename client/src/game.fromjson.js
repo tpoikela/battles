@@ -11,6 +11,8 @@ RG.Game.FromJSON = function() {
 
     let _dungeonLevel = 1;
 
+    const _parser = RG.ObjectShell.getParser();
+
     // Lookup table for mapping level ID to Map.Level object
     let id2level = {};
     let id2entity = {};
@@ -155,8 +157,18 @@ RG.Game.FromJSON = function() {
 
     this.createItem = function(obj) {
         const item = obj;
-        const typeCapitalized = this.getItemObjectType(item);
-        const newObj = new RG.Item[typeCapitalized]();
+
+        // Try to create object using ObjectShell.Parser, if it fails, fallback
+        // to default constructor in RG.Item
+        let newObj = null;
+        if (_parser.hasItem(obj.setName)) {
+            newObj = _parser.createItem(obj.setName);
+        }
+        else {
+            const typeCapitalized = this.getItemObjectType(item);
+            newObj = new RG.Item[typeCapitalized]();
+        }
+
         for (const func in item) {
             if (func === 'setSpirit') {
                 newObj[func](this.createSpirit(item[func]));
