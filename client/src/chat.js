@@ -7,6 +7,7 @@ const Chat = {};
 
 const stats = RG.STATS;
 
+/* Chat Object for trainers in the game. */
 class ChatTrainer {
 
     constructor() {
