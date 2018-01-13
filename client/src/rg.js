@@ -646,7 +646,7 @@ const RG = { // {{{2
     TRAINER_PROB: 0.2,
 
     GOLD_COIN_WEIGHT: 0.03, // kg
-    GOLD_COIN_NAME: 'Gold coins',
+    GOLD_COIN_NAME: 'Gold coin',
 
     HUNGER_PROB: 0.10, // Prob. of starvation to cause damage every turn
     HUNGER_DMG: 1, // Damage caused by starvation kicking in
