@@ -37,7 +37,7 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
         this._name = name;
         this._value = 1;
         this.count = 1; // Number of items
-        this.add('Physical', new RG.Component.Physical());
+        this.add(new RG.Component.Physical());
     }
 
 
