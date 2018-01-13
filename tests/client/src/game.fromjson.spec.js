@@ -197,6 +197,8 @@ describe('RG.Game.FromJSON', function() {
 
     it('can serialize/de-serialize spellcaster actors', () => {
         const wizard = RGTest.getMeAWizard();
+        wizard.get('Health').setHP(33);
+        wizard.get('Stats').setMagic(22);
         const json = wizard.toJSON();
         expect(json).to.have.property('spellbook');
         expect(json.spellbook.spells).to.have.length(1);
@@ -211,7 +213,20 @@ describe('RG.Game.FromJSON', function() {
 
         const damageDie = restSpell.getDice()[0];
         expect(damageDie.toJSON()).to.deep.equal([1, 2, 3]);
+        expect(restWizard.get('Health').getHP())
+            .to.equal(wizard.get('Health').getHP());
+        expect(restWizard.get('Stats').getMagic())
+            .to.equal(wizard.get('Stats').getMagic());
+
+        const compsToCheck = ['Health', 'Stats', 'Combat', 'Experience'];
+        compsToCheck.forEach(cName => {
+            const msg = `Only 1 component ${cName}`;
+            const hList = wizard.getList(cName);
+            const newhList = restWizard.getList(cName);
+            expect(newhList.length, msg).to.equal(hList.length);
+        });
     });
+
 
     it('can serialize/de-serialize Capital', () => {
         const capitalLevel = new Capital(200, 400).getLevel();
