@@ -171,7 +171,7 @@ class CmdDropItem {
               obj.callback({msg: msg, result});
           }
       }
-      else if (invEq.dropItem(obj.item)) {
+      else if (invEq.dropNItems(obj.item, obj.count)) {
           result = true;
           msg = 'Item dropped!';
       }
