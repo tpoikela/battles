@@ -313,7 +313,8 @@ RG.Factory.Item = function() {
     this.addRandomGold = (level, parser, conf) => {
         const goldItems = [];
         for (let i = 0; i < conf.goldPerLevel; i++) {
-            const gold = parser.createActualObj(RG.TYPE_ITEM, 'Gold coin');
+            const gold = parser.createActualObj(RG.TYPE_ITEM,
+                RG.GOLD_COIN_NAME);
             _doItemSpecificAdjustments(gold, conf.nLevel);
             goldItems.push(gold);
         }
@@ -516,7 +517,7 @@ RG.Factory.Base = function() { // {{{2
                     keeper = this.createActor('shopkeeper', {brain: 'Human'});
                 }
 
-                const gold = new RG.Item.GoldCoin('Gold coin');
+                const gold = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
                 gold.count = RG.RAND.getUniformInt(50, 200);
                 keeper.getInvEq().addItem(gold);
 
