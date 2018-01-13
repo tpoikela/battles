@@ -61,14 +61,15 @@ RG.Game.FromJSON = function() {
         }
     };
 
+    /* Adds given components into Entity object. */
     this.addCompsToEntity = (ent, comps) => {
         for (const name in comps) {
             if (name) {
-                const comp = comps[name];
+                const compJSON = comps[name];
                 const newCompObj = new RG.Component[name]();
-                for (const fname in comp) {
+                for (const fname in compJSON) {
                     if (typeof newCompObj[fname] === 'function') {
-                        const valueToSet = comp[fname];
+                        const valueToSet = compJSON[fname];
                         if (valueToSet.createFunc) {
                             const createdObj =
                                 this[valueToSet.createFunc](valueToSet.value);
@@ -79,7 +80,7 @@ RG.Game.FromJSON = function() {
                         }
                     }
                     else {
-                        const json = JSON.stringify(comp);
+                        const json = JSON.stringify(compJSON);
                         RG.err('FromJSON', 'addCompsToEntity',
                             `${fname} not function in ${name}. Comp: ${json}`);
 
@@ -460,7 +461,7 @@ RG.Game.FromJSON = function() {
     this.connectGameLevels = game => {
         const levels = game.getLevels();
         levels.forEach(level => {
-            const stairsList = level.getStairs();
+            const stairsList = level.getConnections();
 
             stairsList.forEach(s => {
                 const connObj = stairsInfo[s.getID()];
@@ -471,7 +472,7 @@ RG.Game.FromJSON = function() {
                 if (targetLevel) {
                     s.setTargetLevel(targetLevel);
                     const targetStairs = targetLevel
-                        .getMap().getCell(x, y).getStairs();
+                        .getMap().getCell(x, y).getConnection();
                     if (targetStairs) {
                         s.connect(targetStairs);
                     }
