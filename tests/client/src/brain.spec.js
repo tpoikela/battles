@@ -86,7 +86,7 @@ describe('Brain.Player', () => {
         const brain = new Brain.Player(player);
         const sword = new RG.Item.Weapon('sword');
         player.getInvEq().addItem(sword);
-        const dropCmd = {cmd: 'drop', item: sword};
+        const dropCmd = {cmd: 'drop', item: sword, count: 1};
         expect(level.getItems()).to.have.length(0);
         brain.decideNextAction(dropCmd);
         expect(level.getItems()).to.have.length(1);
