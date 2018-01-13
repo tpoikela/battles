@@ -226,7 +226,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
         }
 
         if (shell.hasOwnProperty('spells')) {
-            this.addSpells(shell, newObj);
+            this.addSpellbookAndSpells(shell, newObj);
         }
 
         // TODO map different props to function calls
@@ -253,10 +253,17 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
         });
     };
 
-    this.addSpells = (shell, obj) => {
+    /* Creates a spellbook and adds specified spells into it. */
+    this.addSpellbookAndSpells = (shell, obj) => {
         obj.setBook(new RG.Spell.SpellBook(obj));
         shell.spells.forEach(spell => {
-            obj.getBook().addSpell(new RG.Spell[spell]());
+            if (RG.Spell[spell]) {
+                obj.getBook().addSpell(new RG.Spell[spell]());
+            }
+            else {
+                const msg = `Spell |${spell}| does not exist.`;
+                RG.err('ObjectShell.Creator', 'addSpellbookAndSpells', msg);
+            }
         });
     };
 
