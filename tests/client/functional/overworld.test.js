@@ -44,8 +44,25 @@ describe('How Game is created from Overworld', function() {
         const fromJSON = new RG.Game.FromJSON();
         const newGame = fromJSON.createGame(jsonParsed);
 
+        const checkedID = game.getLevels()[0].getID();
+
         const levelIDsBefore = game.getLevels().map(l => l.getID());
         const levelIDsAfter = newGame.getLevels().map(l => l.getID());
+
+        const oldLevel = game.getLevels()[0];
+        const newLevel = newGame.getLevels().filter(
+            l => l.getID() === checkedID[0]
+        );
+
+        const actorsOld = oldLevel.getActors();
+        const actorsNew = newLevel.getActors();
+
+        actorsOld.forEach((actorOld, i) => {
+            expect(actorsNew[i].get('Health').getHP())
+                .to.equal(actorOld.get('Health').getHP());
+        });
+
+        expect(actorsNew.length).to.equal(actorsOld.length);
 
         expect(RG.Verify.verifySaveData.bind(json)).to.not.throw;
 
