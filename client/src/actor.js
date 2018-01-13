@@ -27,11 +27,11 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
         this._maxWeight = 10.0;
 
         // Components for this entity
-        this.add('Action', new RG.Component.Action());
-        this.add('Experience', new RG.Component.Experience());
-        this.add('Combat', new RG.Component.Combat());
-        this.add('Stats', new RG.Component.Stats());
-        this.add('Health', new RG.Component.Health(50));
+        this.add(new RG.Component.Action());
+        this.add(new RG.Component.Experience());
+        this.add(new RG.Component.Combat());
+        this.add(new RG.Component.Stats());
+        this.add(new RG.Component.Health(50));
 
     }
 
@@ -361,7 +361,7 @@ class RGActorSpirit extends RGActorRogue {
     constructor(name) {
         super(name);
         this.setType('spirit');
-        this.add('Ethereal', new RG.Component.Ethereal());
+        this.add(new RG.Component.Ethereal());
         this.setBrain(new RG.Brain.Spirit(this));
     }
 
