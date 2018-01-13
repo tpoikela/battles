@@ -170,6 +170,8 @@ export default class GameInventory extends Component {
     const useButtonClass = this.props.selectedItem
       ? activebuttonClass : disabledButtonClass;
 
+    const useButtonText = this.getUseButtonText();
+
     /* eslint-disable */
     return (
       <div className='modal fade' role='dialog' id='inventoryModal' tabIndex='-1' role='dialog' aria-labelledby='inventory-modal-label' aria-hidden='true'>
@@ -207,7 +209,7 @@ export default class GameInventory extends Component {
                 <button type='button' className={dropButtonClass} onClick={this.dropItem}>Drop</button>
                 <button type='button' className={equipButtonClass} onClick={this.equipItem}>Equip</button>
                 <button type='button' className={unequipButtonClass} onClick={this.unequipItem}>Remove</button>
-                <button type='button' className={useButtonClass} onClick={this.useItem}>Use</button>
+                <button type='button' className={useButtonClass} onClick={this.useItem}>{useButtonText}</button>
                 <button type='button' className='btn btn-danger' data-dismiss='modal'>Close</button>
               </div>
             </div>
@@ -215,6 +217,16 @@ export default class GameInventory extends Component {
         </div>
       </div>
     );
+  }
+
+  getUseButtonText() {
+    if (this.props.selectedItem) {
+      const type = this.props.selectedItem.getType();
+      if (type === 'food') {return 'Eat';}
+      if (type === 'potion') {return 'Drink';}
+    }
+    return 'Use';
+
   }
 
 };
