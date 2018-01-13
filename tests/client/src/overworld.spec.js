@@ -3,7 +3,7 @@ const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 
 describe('OverWorld.createOverWorld', function() {
-    this.timeout(5000);
+    this.timeout(7000);
 
     it('can create an overworld with features', () => {
         const owConf = {
