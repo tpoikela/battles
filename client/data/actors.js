@@ -566,20 +566,29 @@ const Actors = [
     },
     {
         name: 'Thabba, Son of Ice', base: 'UniqueBase',
-        char: '@', danger: 100, enemies: ['human'],
-        spells: ['FrostBolt'], pp: 100, brain: 'SpellCaster',
+        char: '@', danger: 100, enemies: ['human'], type: 'finalboss',
+        spells: ['FrostBolt'], hp: 100, pp: 100, brain: 'SpellCaster',
         strength: 30, accuracy: 15, agility: 20, willpower: 20, perception: 15,
-        magic: 30, attack: 20, defense: 20, protection: 5,
+        magic: 30, attack: 20, defense: 20, protection: 10,
         equip: ['Permaice katana', 'Permaice armour']
+    },
+    {
+        name: 'Zamoned, Son of Frost', base: 'UniqueBase',
+        char: '@', danger: 100, enemies: ['human'], type: 'finalboss',
+        hp: 150, pp: 100, brain: 'Archer',
+        strength: 20, accuracy: 25, agility: 35, willpower: 15, perception: 25,
+        magic: 10, attack: 20, defense: 20, protection: 10,
+        equip: ['Permaice axe', 'Permaice armour', 'Bow of Defense',
+            {name: 'Runed arrow', count: 100}]
     },
     {
         name: 'Hag of North', type: 'wolfclan', base: 'UniqueBase',
         char: '@', danger: 100,
-        damage: '4d4+5', pp: 50, brain: 'SpellCaster', spells: ['FrostBolt'],
+        damage: '4d4+5', hp: 75, pp: 50, brain: 'SpellCaster',
+        spells: ['FrostBolt'],
         strength: 15, accuracy: 15, agility: 15, willpower: 30, perception: 25,
         magic: 25, attack: 15, defense: 15, protection: 5,
         equip: ['Ruby glass armour', 'Ruby glass collar']
-
     }
 ];
 
