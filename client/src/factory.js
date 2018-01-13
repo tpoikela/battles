@@ -10,9 +10,6 @@ RG.Map.Generator = require('./map.generator');
 RG.Verify = require('./verify');
 RG.World = require('./world');
 
-const RGObjects = require('../data/battles_objects.js');
-RG.Effects = require('../data/effects.js');
-
 const Stairs = RG.Element.Stairs;
 
 RG.Factory = {};
@@ -703,10 +700,7 @@ RG.Factory.Zone = function() {
     RG.Factory.Base.call(this);
 
     const _verif = new RG.Verify.Conf('Factory.Zone');
-
-    const _parser = new RG.ObjectShell.Parser();
-    _parser.parseShellData(RG.Effects);
-    _parser.parseShellData(RGObjects);
+    const _parser = RG.ObjectShell.getParser();
 
     this.getRandLevelType = () => {
         const type = ['rooms', 'rogue', 'digger'];
