@@ -257,7 +257,6 @@ describe('RG.Game.FromJSON', function() {
 
         const actors = [];
 
-
         // Create some demons and fighters
         for (let i = 0; i < 50; i++) {
             const demon = parser.createActor('Winter demon');
@@ -337,6 +336,23 @@ describe('RG.Game.FromJSON', function() {
         const spellbook = newPlayer.getBook();
         expect(spellbook).to.not.be.empty;
         expect(newPlayer.has('ActorClass')).to.be.true;
+    });
+
+    it('can serialize/de-serialize pick-axe', () => {
+        const parser = RG.ObjectShell.getParser();
+        const pickaxe = parser.createItem('Pick-axe');
+        expect(typeof pickaxe.useItem).to.equal('function');
+        const json = pickaxe.toJSON();
+
+        const restPickaxe = fromJSON.createItem(json);
+        expect(typeof restPickaxe.useItem).to.equal('function');
+
+        const oldComps = pickaxe.getComponents();
+        const newComps = restPickaxe.getComponents();
+        const oldCompNames = Object.keys(oldComps);
+        const newCompNames = Object.keys(newComps);
+
+        expect(newCompNames.length).to.equal(oldCompNames.length);
     });
 
 });
