@@ -17,12 +17,22 @@ export default class GameInventory extends Component {
     this.useItem = this.useItem.bind(this);
     this.setSelectedItem = this.setSelectedItem.bind(this);
     this.setEquipSelected = this.setEquipSelected.bind(this);
+    this.onChangeCount = this.onChangeCount.bind(this);
+    this.state = {
+      count: 0
+    };
+  }
+
+  onChangeCount(evt) {
+    const value = evt.target.value;
+    this.setState({count: value});
   }
 
   /* Called when "Drop" is clicked. Drops item to the ground.*/
   dropItem() {
     if (this.props.selectedItem !== null) {
-      const cmd = {cmd: 'drop', item: this.props.selectedItem};
+      const cmd = {cmd: 'drop', item: this.props.selectedItem,
+        count: this.state.count};
       cmd.callback = function(obj) {
         let msgStyle = 'text-success';
         if (!obj.result) {
@@ -45,7 +55,8 @@ export default class GameInventory extends Component {
   equipItem() {
     const item = this.props.selectedItem;
     if (item !== null) {
-      const cmd = {cmd: 'equip', item: this.props.selectedItem};
+      const cmd = {cmd: 'equip', item: this.props.selectedItem,
+        count: this.state.count};
       cmd.callback = function(obj) {
         let msgStyle = 'text-success';
         if (!obj.result) {
@@ -69,7 +80,8 @@ export default class GameInventory extends Component {
     if (this.props.equipSelected) {
       const name = this.props.equipSelected.slotName;
       const slotNumber = this.props.equipSelected.slotNumber;
-      const cmd = {cmd: 'unequip', slot: name, slotNumber};
+      const cmd = {cmd: 'unequip', slot: name, slotNumber,
+        count: this.state.count};
       cmd.callback = function(obj) {
         let msgStyle = 'text-success';
         if (!obj.result) {
@@ -115,12 +127,14 @@ export default class GameInventory extends Component {
     const msg = 'Inventory Selected: ' + item.toString();
     this.props.selectItemTop(item);
     this.props.setInventoryMsg({invMsg: msg, msgStyle: 'text-info'});
+    this.setState({count: item.count});
   }
 
   setEquipSelected(selection) {
     const msg = 'Equipment Selected: ' + selection.item.toString();
     this.props.selectEquipTop(selection);
     this.props.setInventoryMsg({invMsg: msg, msgStyle: 'text-info'});
+    this.setState({count: selection.item.count});
   }
 
   render() {
@@ -175,6 +189,11 @@ export default class GameInventory extends Component {
             <div className='modal-footer row'>
               <div className='col-md-6'>
                 <p className={this.props.msgStyle}>{this.props.invMsg}</p>
+                {onlyItemSelected &&
+                    <div>Count:
+                      <input onChange={this.onChangeCount} value={this.state.count} />
+                    </div>
+                }
               </div>
               <div className='col-md-6'>
                 <button type='button' className={dropButtonClass} onClick={this.dropItem}>Drop</button>
