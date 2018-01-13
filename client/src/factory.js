@@ -1376,13 +1376,19 @@ RG.Factory.World = function() {
         );
         if (bossActor) {
             level.addActorToFreeCell(bossActor);
+
+            const prizeValue = conf.maxValue * 2;
+            const prizeItem = parser.createRandomItem(
+                {func: item => item.value <= prizeValue}
+            );
+            bossActor.getInvEq().addItem(prizeItem);
+        }
+        else {
+            let msg = `Failed to created boss. nLevel: ${nLevel}`;
+            msg += ` Level parent: ${level.getParent()}`;
+            RG.debug({}, msg);
         }
 
-        const prizeValue = conf.maxValue * 2;
-        const prizeItem = parser.createRandomItem(
-            {func: item => item.value <= prizeValue}
-        );
-        bossActor.getInvEq().addItem(prizeItem);
     };
 
     /* Returns preset levels (if any) for the current zone. */
