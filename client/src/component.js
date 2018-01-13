@@ -432,6 +432,7 @@ RG.extend2(RG.Component.Stats, RG.Component.Base);
 /* Stats modifier component. */
 RG.Component.StatsMods = function() {
     RG.Component.Stats.call(this);
+    this._isUnique = false;
     this.setType('StatsMods');
     this.setAccuracy(0);
     this.setAgility(0);
