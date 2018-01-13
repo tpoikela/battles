@@ -566,7 +566,7 @@ const Actors = [
     },
     {
         name: 'Thabba, Son of Ice', base: 'UniqueBase',
-        char: '@', danger: 100, enemies: ['human'], type: 'finalboss',
+        char: '@', danger: 200, enemies: ['human'], type: 'finalboss',
         spells: ['FrostBolt'], hp: 100, pp: 100, brain: 'SpellCaster',
         strength: 30, accuracy: 15, agility: 20, willpower: 20, perception: 15,
         magic: 30, attack: 20, defense: 20, protection: 10,
@@ -574,7 +574,7 @@ const Actors = [
     },
     {
         name: 'Zamoned, Son of Frost', base: 'UniqueBase',
-        char: '@', danger: 100, enemies: ['human'], type: 'finalboss',
+        char: '@', danger: 200, enemies: ['human'], type: 'finalboss',
         hp: 150, pp: 100, brain: 'Archer',
         strength: 20, accuracy: 25, agility: 35, willpower: 15, perception: 25,
         magic: 10, attack: 20, defense: 20, protection: 10,
@@ -592,16 +592,32 @@ const Actors = [
     }
 ];
 
-// TODO add a function to scale values easily
-const scaleValue = function(valName, multiply) {
+// Multiplies each given value in all actors
+Actors.scaleValue = function(valName, multiply) {
     Actors.forEach(actor => {
         if (Number.isInteger(actor[valName])) {
-            actor[valName] *= multiply;
+            actor[valName] = Math.round(multiply * actor[valName]);
         }
     });
 };
 
-scaleValue('danger', 1);
+// Adds to the given value in all actors
+Actors.addValue = function(valName, addedVal) {
+    Actors.forEach(actor => {
+        if (Number.isInteger(actor[valName])) {
+            actor[valName] += addedVal;
+        }
+    });
+};
+
+Actors.scale = {
+    danger: 1,
+    hp: 1
+};
+
+Object.keys(Actors.scale).forEach(item => {
+    Actors.scaleValue(item, Actors.scale[item]);
+});
 
 module.exports = Actors;
 
