@@ -148,6 +148,8 @@ class CmdDropItem {
       const actorCell = this._actor.getCell();
       let result = false;
       let msg = `Failed to drop ${obj.item.getName()}`;
+      const dropCount = obj.count <= obj.item.count ? obj.count
+        : obj.item.count;
       if (actorCell.hasShop()) {
           const shopElem = actorCell.getPropType('shop')[0];
           const price = shopElem.getItemPriceForSelling(obj.item);
@@ -171,7 +173,7 @@ class CmdDropItem {
               obj.callback({msg: msg, result});
           }
       }
-      else if (invEq.dropNItems(obj.item, obj.count)) {
+      else if (invEq.dropNItems(obj.item, dropCount)) {
           result = true;
           msg = 'Item dropped!';
       }
@@ -191,7 +193,8 @@ class CmdEquipItem {
         let result = false;
         let msg = `Failed to equip ${item.getName()}`;
         if (item.getType().match(/^(missile|ammo)$/)) {
-            if (invEq.equipNItems(item, item.count)) {
+          console.log('Equipping now ' + obj.count + ' items');
+            if (invEq.equipNItems(item, obj.count)) {
                 result = true;
             }
         }
@@ -223,7 +226,7 @@ class CmdUnequipItem {
             const eqItem = invEq.getEquipment().getItem('missile');
 
             if (eqItem !== null) {
-                if (invEq.unequipItem(name, eqItem.count)) {
+                if (invEq.unequipItem(name, obj.count)) {
                     result = true;
                 }
             }
