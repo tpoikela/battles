@@ -323,6 +323,7 @@ RG.System.Missile = function(compTypes) {
 
         const args = {
             missile: mComp,
+            item: ent,
             to: [currCell.getX(), currCell.getY()]
         };
         const animComp = new RG.Component.Animation(args);
@@ -397,13 +398,13 @@ RG.System.Damage = function(compTypes) {
         if (src !== null) {ent.addEnemy(src);}
 
         // Deal with "internal" damage bypassing protection here
-        if (dmgComp.getDamageType() === 'poison') {
+        if (dmgComp.getDamageType() === RG.DMG.POISON) {
             const cell = ent.getCell();
             const msg = 'Poison is gnawing inside ' + ent.getName();
             RG.gameDanger({cell, msg});
             return dmg;
         }
-        else if (dmgComp.getDamageType() === 'hunger') {
+        else if (dmgComp.getDamageType() === RG.DMG.HUNGER) {
             return dmg;
         }
 
@@ -1418,13 +1419,18 @@ RG.System.Animation = function(compTypes) {
         let xCurr = xy[0];
         let yCurr = xy[1];
 
+        // Grab correct ascii char/css style for the missile
+        const missEnt = args.item;
+        const char = RG.getChar(RG.TYPE_ITEM, missEnt.getName());
+        const cssClass = RG.getCssClass(RG.TYPE_ITEM, missEnt.getName());
+
         const animation = new RG.Animation.Animation();
         while (xCurr !== xEnd || yCurr !== yEnd) {
             const frame = {};
             const key = xCurr + ',' + yCurr;
             frame[key] = {};
-            frame[key].char = '/';
-            frame[key].className = 'cell-item-missile';
+            frame[key].char = char;
+            frame[key].className = cssClass;
             animation.addFrame(frame);
 
             if (mComp.next()) {
