@@ -391,3 +391,32 @@ describe('System.TimeEffects', () => {
     });
 
 });
+
+describe('System.Skills', () => {
+    it('description', () => {
+        const skillsSys = new RG.System.Skills(['SkillsExp']);
+        const entity = new RG.Actor.Rogue('rogue');
+        RGTest.wrapIntoLevel([entity]);
+
+        const skillComp = new RG.Component.Skills();
+        entity.add(skillComp);
+
+        const expComp = new RG.Component.SkillsExp();
+        expComp.setSkill('Melee');
+        expComp.setPoints(10);
+        entity.add(expComp);
+
+        for (let i = 0; i < 3; i++) {
+            const expCompSpells = new RG.Component.SkillsExp();
+            expCompSpells.setSkill('SpellCasting');
+            expCompSpells.setPoints(10);
+            entity.add(expCompSpells);
+        }
+
+        expect(entity.has('Skills')).to.equal(true);
+        updateSystems([skillsSys]);
+
+        expect(skillComp.getLevel('Melee')).to.equal(2);
+        expect(skillComp.getLevel('SpellCasting')).to.equal(3);
+    });
+});
