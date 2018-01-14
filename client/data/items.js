@@ -471,19 +471,19 @@ const Items = [
         char: '*', damage: '1d4', range: 5, value: value(10), weight: 0.2
     },
     {
-        name: 'Shuriken', base: 'MissileBase',
+        name: 'Shuriken', base: 'MissileBase', className: 'cell-item-iron',
         damage: '1d6', range: 3, value: value(20)
     },
     {
-        name: 'Iron dart', base: 'MissileBase',
+        name: 'Iron dart', base: 'MissileBase', className: 'cell-item-iron',
         damage: '1d6 + 1', range: 4, value: value(40)
     },
     {
-        name: 'Steel dart', base: 'MissileBase',
+        name: 'Steel dart', base: 'MissileBase', className: 'cell-item-steel',
         damage: '1d6 + 3', range: 4, value: value(50)
     },
     {
-        name: 'Throwing axe', base: 'MissileBase',
+        name: 'Throwing axe', base: 'MissileBase', className: 'cell-item-iron',
         attack: 2, damage: '1d8 + 1', range: 3, value: value(60), weight: 0.3
     },
     {
@@ -498,6 +498,7 @@ const Items = [
     },
     {
         name: 'Throwing axe of death', base: 'MissileBase',
+        className: 'cell-item-magic',
         attack: 5, damage: '2d10 + 3', range: 3, value: value(200), weight: 0.5
     },
 
@@ -510,41 +511,49 @@ const Items = [
     },
     {
         name: 'Wooden bow', base: 'MissileWeaponBase',
+        className: 'cell-item-wooden',
         attack: 1, range: 4, value: value(75),
         weaponType: 'bow', weight: 1.0
     },
     {
         name: 'Wooden crossbow', base: 'MissileWeaponBase',
+        className: 'cell-item-wooden',
         attack: 3, range: 6, value: value(150),
         weaponType: 'crossbow', weight: 2.0
     },
     {
         name: 'Steel bow', base: 'MissileWeaponBase',
+        className: 'cell-item-steel',
         attack: 2, range: 5, value: value(150),
         weaponType: 'bow', weight: 2.0
     },
     {
         name: 'Steel crossbow', base: 'MissileWeaponBase',
+        className: 'cell-item-steel',
         attack: 4, range: 7, value: value(250),
         weaponType: 'crossbow', weight: 3.0
     },
     {
         name: 'Double crossbow', base: 'MissileWeaponBase',
+        className: 'cell-item-steel',
         attack: 0, range: 5, value: value(400), fireRate: 2,
         weaponType: 'crossbow', weight: 4.0
     },
     {
         name: 'Bow of Defense', base: 'MissileWeaponBase',
+        className: 'cell-item-magic',
         attack: 1, range: 4, defense: 6, value: value(500),
         weaponType: 'bow', weight: 1.0
     },
     {
         name: 'Rifle', base: 'MissileWeaponBase',
+        className: 'cell-item-steel',
         attack: 4, range: 7, value: value(500),
         weaponType: 'rifle', weight: 4.5
     },
     {
         name: 'Dwarven rifle', base: 'MissileWeaponBase',
+        className: 'cell-item-steel',
         attack: 4, range: 8, damage: '1d6', value: value(500),
         weaponType: 'rifle', weight: 5.5
     },
@@ -552,42 +561,49 @@ const Items = [
     // AMMO
     {
         name: 'Wooden arrow', base: 'MissileBase',
+        className: 'cell-item-wooden',
         type: 'ammo', range: 1, weight: 0.1, ammoType: 'bow',
         attack: 0, damage: '1d6', value: value(10)
     },
     {
         name: 'Wooden bolt', base: 'MissileBase',
+        className: 'cell-item-wooden',
         type: 'ammo', range: 1, weight: 0.1, ammoType: 'crossbow',
         attack: 1, damage: '1d8', value: value(15)
     },
     {
         name: 'Steel arrow', base: 'MissileBase',
+        className: 'cell-item-steel',
         type: 'ammo', range: 1, weight: 0.1, ammoType: 'arrow',
         attack: 0, damage: '1d6', value: value('steel', 20)
     },
     {
         name: 'Steel bolt', base: 'MissileBase',
+        className: 'cell-item-steel',
         type: 'ammo', range: 1, weight: 0.1, ammoType: 'crossbow',
         attack: 1, damage: '1d8', value: value('steel', 25)
     },
     {
         name: 'Stone bullet', base: 'MissileBase',
+        className: 'cell-item-rock',
         type: 'ammo', range: 1, weight: 0.10, ammoType: 'rifle',
         attack: -1, damage: '2d4', value: value(30)
-
     },
     {
         name: 'Runed arrow', base: 'MissileBase',
+        className: 'cell-item-magic',
         type: 'ammo', range: 1, weight: 0.2, ammoType: 'bow',
         attack: 4, damage: '2d7', value: value('magic', 50)
     },
     {
         name: 'Ruby glass bolt', base: 'MissileBase',
+        className: 'cell-item-ruby-glass',
         type: 'ammo', range: 2, weight: 0.05, ammoType: 'crossbow',
         attack: 3, damage: '2d8', value: value('ruby', 60)
     },
     {
         name: 'Steel bullet', base: 'MissileBase',
+        className: 'cell-item-steel',
         type: 'ammo', range: 1, weight: 0.05, ammoType: 'rifle',
         attack: 1, damage: '3d4', value: value(50)
     },
