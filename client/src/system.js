@@ -13,6 +13,7 @@ RG.SYS.EXP_POINTS = Symbol();
 RG.SYS.HUNGER = Symbol();
 RG.SYS.MISSILE = Symbol();
 RG.SYS.MOVEMENT = Symbol();
+RG.SYS.SKILLS = Symbol();
 RG.SYS.SPELL_CAST = Symbol();
 RG.SYS.SPELL_EFFECT = Symbol();
 RG.SYS.SPIRIT = Symbol();
@@ -171,6 +172,7 @@ RG.System.Attack = function(compTypes) {
             const totalDamage = att.getDamage();
             if (totalDamage > 0) {
                 this.doDamage(att, def, totalDamage);
+                this._addSkillsExp(att);
             }
             else {
                 RG.gameMsg({cell: att.getCell,
@@ -208,6 +210,15 @@ RG.System.Attack = function(compTypes) {
             }
         }
         return null;
+    };
+
+    this._addSkillsExp = function(att) {
+        if (att.has('Skills')) {
+            const comp = new RG.Component.SkillsExp();
+            comp.setSkill('Melee');
+            comp.setPoints(1);
+            att.add(comp);
+        }
     };
 };
 RG.extend2(RG.System.Attack, RG.System.Base);
@@ -479,7 +490,7 @@ RG.System.Damage = function(compTypes) {
             RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor});
         }
         else {
-            RG.err('System.Combat', 'killActor', "Couldn't remove actor");
+            RG.err('System.Damage', 'killActor', "Couldn't remove actor");
         }
     };
 
@@ -1489,6 +1500,44 @@ RG.System.Animation = function(compTypes) {
     };
 };
 RG.extend2(RG.System.Animation, RG.System.Base);
+
+/* System which handles the skill advancement. */
+RG.System.Skills = function(compTypes) {
+    RG.System.Base.call(this, RG.SYS.SKILLS, compTypes);
+
+    this.updateEntity = function(ent) {
+        const comps = ent.getList('SkillsExp');
+        const entSkills = ent.get('Skills');
+        const cell = ent.getCell();
+
+        comps.forEach(comp => {
+            const skillName = comp.getSkill();
+            if (!entSkills.hasSkill(skillName)) {
+                entSkills.addSkill(skillName);
+                RG.gameSuccess({cell,
+                    msg: `${ent.getName()} learns a skill ${skillName}`});
+            }
+            const points = comp.getPoints();
+
+            entSkills.addPoints(skillName, points);
+
+            const currPoints = entSkills.getPoints(skillName);
+            const currLevel = entSkills.getLevel(skillName);
+
+            // TODO make a proper function to check the skill threshold
+            if (currPoints >= (10 * currLevel)) {
+                entSkills.setLevel(skillName, currLevel + 1);
+                entSkills.resetPoints(skillName);
+                RG.gameSuccess({cell,
+                    msg: `${ent.getName()} advances a skill ${skillName}`});
+            }
+
+            ent.remove(comp);
+        });
+    };
+
+};
+RG.extend2(RG.System.Skills, RG.System.Base);
 
 // }}} SYSTEMS
 
