@@ -60,8 +60,9 @@ RG.Factory.Game = function() {
             });
 
             player.setType('player');
-            player.add('Health', new RG.Component.Health(pConf.hp));
+            player.add(new RG.Component.Health(pConf.hp));
             this.addActorClass(obj, player);
+            player.add(new RG.Component.Skills());
         }
 
         if (!player.has('Hunger')) {
