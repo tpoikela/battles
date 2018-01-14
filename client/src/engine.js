@@ -35,7 +35,7 @@ const Engine = function(eventPool) {
     this.systemOrder = ['Disability', 'SpiritBind', 'Attack', 'Chat',
         'SpellCast',
         'SpellEffect', 'Missile', 'Movement', 'Animation', 'Damage',
-        'ExpPoints', 'Communication'];
+        'Skills', 'ExpPoints', 'Communication'];
 
     this.systems = {};
     this.systems.Disability = new RG.System.Disability(
@@ -52,6 +52,7 @@ const Engine = function(eventPool) {
     this.systems.Animation = new RG.System.Animation(
         ['Animation']);
     this.systems.Damage = new RG.System.Damage(['Damage', 'Health']);
+    this.systems.Skills = new RG.System.Skills(['SkillsExp']);
     this.systems.ExpPoints = new RG.System.ExpPoints(
         ['ExpPoints', 'Experience']);
     this.systems.Communication = new RG.System.Communication(
