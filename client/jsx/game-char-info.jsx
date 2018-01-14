@@ -1,36 +1,8 @@
 
 import React, {Component} from 'react';
+import Modal from './modal';
 import ModalHeader from './modal-header';
 import PropTypes from 'prop-types';
-
-class Modal extends Component {
-
-  render() {
-    return (
-      <div
-        aria-hidden='true'
-        aria-labelledby={this.props.labelId}
-        className='modal fade'
-        id={this.props.id}
-        role='dialog'
-        tabIndex='-1'
-      >
-        <div className='modal-dialog modal-lg'>
-          <div className='modal-content'>
-            {this.props.children}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-}
-
-Modal.propTypes = {
-  id: PropTypes.string,
-  labelId: PropTypes.string,
-  children: PropTypes.array.isRequired
-};
 
 export default class GameCharInfo extends Component {
 
@@ -123,6 +95,18 @@ export default class GameCharInfo extends Component {
 
       );
     }
+    else if (this.state.tabShown === 'Skills') {
+      const skills = Object.keys(actor.get('Skills').getSkills());
+      const skillElem = skills.map(s => <li key={s}>{s}</li>);
+      return (
+        <div className='modal-body row'>
+          <div className='col-md-6' id='char-info-box'>
+            <h2>List of Skills</h2>
+            <ul>{skillElem}</ul>
+          </div>
+        </div>
+      );
+    }
     return null;
   }
 
@@ -136,6 +120,9 @@ export default class GameCharInfo extends Component {
         <button
           onClick={this.selectTab.bind(this, 'Components')}
         >Components</button>
+        <button
+          onClick={this.selectTab.bind(this, 'Skills')}
+        >Skills</button>
       </ul>
       );
 
