@@ -223,7 +223,7 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
         const simpleComps = ['ActorClass', 'Hunger', 'Flying', 'Defender',
             'Attacker',
             'CounterAttack', 'BiDirStrike', 'MasterEquipper', 'SpellPower',
-            'SpiritItemCrafter', 'Trainer'];
+            'SpiritItemCrafter', 'Trainer', 'Skills'];
         simpleComps.forEach(compName => {
             if (this.has(compName)) {
                 obj.components[compName] = this.get(compName).toJSON();
