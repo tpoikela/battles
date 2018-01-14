@@ -30,8 +30,8 @@ const getClassesAndChars = function(seen, cells, selCell) {
         const cellIndex = seen.indexOf(cell);
         const visibleToPlayer = cellIndex < 0 ? false : true;
 
-        let cellClass = RG.getClassName(cell, visibleToPlayer);
-        const cellChar = RG.getChar(cell, visibleToPlayer);
+        let cellClass = RG.getCssClassForCell(cell, visibleToPlayer);
+        const cellChar = RG.getCharForCell(cell, visibleToPlayer);
 
         if (selX === cell.getX() && selY === cell.getY()) {
             cellClass = 'cell-target-selected';
@@ -83,8 +83,8 @@ const getClassesAndCharsWithRLE = function(seen, cells, selCell, anim, styles = 
         const cellIndex = seen.indexOf(cell);
         const visibleToPlayer = cellIndex < 0 ? false : true;
 
-        cellClass = RG.getClassName(cell, visibleToPlayer);
-        cellChar = RG.getChar(cell, visibleToPlayer);
+        cellClass = RG.getCssClassForCell(cell, visibleToPlayer);
+        cellChar = RG.getCharForCell(cell, visibleToPlayer);
 
         // Useless to animate non-visible cells
         if (visibleToPlayer && anim) {
@@ -150,7 +150,7 @@ const getClassesAndCharsFullMap = function(cells, selCell) {
     for (let i = 0; i < cells.length; i++) {
         const cell = cells[i];
 
-        let cellClass = RG.getClassNameFullMap(cell);
+        let cellClass = RG.getCssClassFullMap(cell);
         const cellChar = RG.getCharFullMap(cell);
 
         if (selX === cell.getX() && selY === cell.getY()) {
@@ -188,7 +188,7 @@ const getClassesAndCharsFullMapWithRLE = function(cells, selCell) {
     for (let i = 0; i < cells.length; i++) {
         const cell = cells[i];
 
-        cellClass = RG.getClassNameFullMap(cell);
+        cellClass = RG.getCssClassFullMap(cell);
         cellChar = RG.getCharFullMap(cell);
 
         if (selMap) {
