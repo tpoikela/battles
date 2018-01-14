@@ -15,7 +15,7 @@ const RG = { // {{{2
     cellRenderAlways: ['items', 'traps', 'elements'],
 
     /* Given Map.Cell, returns CSS classname used for styling that cell. */
-    getClassName: function(cell, isVisible) {
+    getCssClassForCell: function(cell, isVisible) {
         if (isVisible) {this.cellRenderArray = this.cellRenderVisible;}
         else {this.cellRenderArray = this.cellRenderAlways;}
         const className = this.getStyleClassForCell(cell);
@@ -24,7 +24,7 @@ const RG = { // {{{2
     },
 
     /* Same as getClassName, but optimized for viewing the full map. */
-    getClassNameFullMap: function(cell) {
+    getCssClassFullMap: function(cell) {
         this.cellRenderArray = this.cellRenderVisible;
 
         if (!cell.hasProps()) {
@@ -44,7 +44,7 @@ const RG = { // {{{2
     },
 
     /* Given Map.Cell, returns a char that is rendered for the cell. */
-    getChar: function(cell, isVisible) {
+    getCharForCell: function(cell, isVisible) {
         if (isVisible) {this.cellRenderArray = this.cellRenderVisible;}
         else {this.cellRenderArray = this.cellRenderAlways;}
         const cellChar = this.getCellChar(cell);
@@ -195,6 +195,26 @@ const RG = { // {{{2
         else {
             this.err('RG', 'addCharStyle', 'Unknown prop type: ' + prop);
         }
+    },
+
+    getChar: function(prop, name, state = null) {
+        if (this.charStyles.hasOwnProperty(prop)) {
+            if (state) {
+                return this.charStyles[prop][name][state];
+            }
+            return this.charStyles[prop][name];
+        }
+        return 'X';
+    },
+
+    getCssClass: function(prop, name, state = null) {
+        if (this.cellStyles.hasOwnProperty(prop)) {
+            if (state) {
+                return this.cellStyles[prop][name][state];
+            }
+            return this.cellStyles[prop][name];
+        }
+        return '';
     },
 
     // These are used to select rendered characters for map cells.
