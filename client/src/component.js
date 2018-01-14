@@ -1101,6 +1101,52 @@ RG.Component.SpiritItemCrafter = function() {
 RG.extend2(RG.Component.SpiritItemCrafter, RG.Component.Base);
 
 //--------------------------------------------
+// Comps related to the skill system
+//--------------------------------------------
+
+RG.Component.Skills = function() {
+    RG.Component.Base.call(this, 'Skills');
+    this._isUnique = true;
+
+    this._skills = {};
+
+    this.hasSkill = skill => this._skills.hasOwnProperty(skill);
+    this.addSkill = skill => {
+        this._skills[skill] = {name: skill, level: 1, points: 0};
+    };
+
+    this.getLevel = skill => this._skills[skill].level;
+    this.setLevel = (skill, level) => {this._skills[skill].level = level;};
+    this.getPoints = skill => this._skills[skill].points;
+
+    this.resetPoints = skill => {this._skills[skill].points = 0;};
+    this.addPoints = (skill, points) => {
+        if (this.hasSkill(skill)) {
+            this._skills[skill].points += points;
+            console.log('Points now: ' + this._skills[skill].points);
+        }
+    };
+
+    this.getSkills = () => this._skills;
+    this.setSkills = skills => {this._skills = skills;};
+};
+RG.extend2(RG.Component.Skills, RG.Component.Base);
+
+RG.Component.SkillsExp = function() {
+    RG.Component.Base.call(this, 'SkillsExp');
+
+    this._skill = '';
+    this._points = 0;
+
+    this.getSkill = () => this._skill;
+    this.getPoints = () => this._points;
+    this.setSkill = skill => {this._skill = skill;};
+    this.setPoints = points => {this._points = points;};
+
+};
+RG.extend2(RG.Component.SkillsExp, RG.Component.Base);
+
+//--------------------------------------------
 // Comps that add or remove other components
 //--------------------------------------------
 
