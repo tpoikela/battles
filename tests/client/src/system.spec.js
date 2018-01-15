@@ -392,8 +392,27 @@ describe('System.TimeEffects', () => {
 
 });
 
+
+describe('System.Experience', () => {
+    it('checks gained exp points and gives exp levels', () => {
+        const expSys = new RG.System.ExpPoints(['ExpPoints']);
+        const actor = new RG.Actor.Rogue('rogue');
+        RGTest.wrapIntoLevel([actor]);
+
+        const compExp = actor.get('Experience');
+        expect(compExp.getExp()).to.equal(0);
+        for (let i = 1; i <= 4; i++) {
+            actor.add(new RG.Component.ExpPoints(i * 10));
+        }
+
+        updateSystems([expSys]);
+        expect(compExp.getExp()).to.equal(100);
+    });
+
+});
+
 describe('System.Skills', () => {
-    it('description', () => {
+    it('it handles skill progression of actors', () => {
         const skillsSys = new RG.System.Skills(['SkillsExp']);
         const entity = new RG.Actor.Rogue('rogue');
         RGTest.wrapIntoLevel([entity]);
