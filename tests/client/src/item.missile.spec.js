@@ -139,6 +139,7 @@ describe('How missile is fired and hits a wall', () => {
         const targetHP = targetEnt.get('Health').getHP();
 
         targetEnt.get('Combat').setDefense(0);
+        targetEnt.get('Stats').setAgility(0);
         level.addActor(targetEnt, 1, 6);
 
         // const mEnt = new RG.Item.Missile('missile');
