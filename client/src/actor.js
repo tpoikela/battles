@@ -88,15 +88,35 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
     }
 
     getEquipAttack() {
-        return this._invEq.getEquipment().getAttack();
+        let att = this._invEq.getEquipment().getAttack();
+        if (this.has('Skills')) {
+            att += this.get('Skills').getLevel('Melee');
+        }
+        return att;
     }
 
     getEquipDefense() {
-        return this._invEq.getEquipment().getDefense();
+        let def = this._invEq.getEquipment().getDefense();
+        if (this.has('Skills')) {
+            def += this.get('Skills').getLevel('Shields');
+        }
+        return def;
     }
 
     getEquipProtection() {
         return this._invEq.getEquipment().getProtection();
+    }
+
+    getShieldDefense() {
+        const shield = this._invEq.getEquipment().getEquipped('shield');
+        let bonus = 0;
+        if (shield) {
+            bonus = shield.getDefense();
+            if (this.has('Skills')) {
+                bonus += this.get('Skills').getLevel('Shields');
+            }
+        }
+        return bonus;
     }
 
     setActorClass(classObj) {
