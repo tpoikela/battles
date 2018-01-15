@@ -58,7 +58,7 @@ export default class GameMessages extends Component {
     );
   }
 
-};
+}
 
 GameMessages.propTypes = {
   message: PropTypes.array,
