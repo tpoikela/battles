@@ -70,6 +70,24 @@ describe('RG.Inv.Equipment', () => {
 
     });
 
+    it('can have a shield equipped', () => {
+        const shield = new RG.Item.Armour('shield');
+        shield.setArmourType('shield');
+        shield.setDefense(10);
+        const actor = new RG.Actor.Rogue('shielder');
+        const invEq = actor.getInvEq();
+        invEq.addItem(shield);
+        invEq.equipItem(shield);
+        expect(actor.getShieldDefense()).to.equal(10);
+
+        const skills = new RG.Component.Skills();
+        skills.addSkill('Shields');
+        skills.setLevel('Shields', 5);
+        actor.add(skills);
+        expect(actor.getShieldDefense()).to.equal(15);
+
+    });
+
 });
 
 describe('RG.Inv.Inventory', () => {
