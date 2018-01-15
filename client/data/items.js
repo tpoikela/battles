@@ -574,7 +574,7 @@ const Items = [
     {
         name: 'Steel arrow', base: 'MissileBase',
         className: 'cell-item-steel',
-        type: 'ammo', range: 1, weight: 0.1, ammoType: 'arrow',
+        type: 'ammo', range: 1, weight: 0.1, ammoType: 'bow',
         attack: 0, damage: '1d6', value: value('steel', 20)
     },
     {
