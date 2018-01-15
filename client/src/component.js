@@ -1158,6 +1158,18 @@ RG.Component.SkillsExp = function() {
 };
 RG.extend2(RG.Component.SkillsExp, RG.Component.Base);
 
+/* Component which models a shop transaction. */
+RG.Component.Transaction = function() {
+    RG.Component.Base.call(this, 'Transaction');
+
+    this._args = null;
+
+    this.setArgs = args => {this._args = args;};
+    this.getArgs = () => this._args;
+
+};
+RG.extend2(RG.Component.Transaction, RG.Component.Base);
+
 //--------------------------------------------
 // Comps that add or remove other components
 //--------------------------------------------
