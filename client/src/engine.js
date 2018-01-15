@@ -33,7 +33,7 @@ const Engine = function(eventPool) {
     // These systems updated after each action. Order is important, for example,
     // animations should be seen before actors are killed
     this.systemOrder = ['Disability', 'SpiritBind', 'Attack', 'Chat',
-        'SpellCast',
+        'Shop', 'SpellCast',
         'SpellEffect', 'Missile', 'Movement', 'Animation', 'Damage',
         'Skills', 'ExpPoints', 'Communication'];
 
@@ -42,6 +42,7 @@ const Engine = function(eventPool) {
         ['Stun', 'Paralysis']);
     this.systems.SpiritBind = new RG.System.SpiritBind(['SpiritBind']);
     this.systems.Chat = new RG.System.Chat(['Chat']);
+    this.systems.Shop = new RG.System.Shop(['Transaction']);
     this.systems.Attack = new RG.System.Attack(['Attack']);
     this.systems.Missile = new RG.System.Missile(['Missile']);
     this.systems.Movement = new RG.System.Movement(['Movement']);
@@ -125,6 +126,8 @@ const Engine = function(eventPool) {
     // GAME LOOPS
     //--------------------------------------------------------------
 
+    /* Main update command. Call this either with cmd to perform, or object
+     * containing the pressed keycode. */
     this.update = function(obj) {
         if (!this.isGameOver()) {
             this.clearMessages();
@@ -148,7 +151,7 @@ const Engine = function(eventPool) {
         else {
             this.clearMessages();
             _eventPool.emitEvent(RG.EVT_MSG, {msg: 'GAME OVER!'});
-            this.simulateGame();
+            this.simulateGame(100);
         }
     };
 
@@ -181,16 +184,19 @@ const Engine = function(eventPool) {
     };
 
     /* Simulates the game without a player.*/
-    this.simulateGame = function() {
-        this.nextActor = this.getNextActor();
+    this.simulateGame = function(nTurns = 1) {
+        for (let i = 0; i < nTurns; i++) {
+            this.nextActor = this.getNextActor();
 
-        if (!this.nextActor.isPlayer()) {
-            const action = this.nextActor.nextAction();
-            this.doAction(action);
-            this.updateSystems();
-        }
-        else {
-            RG.err('Engine', 'simulateGame', "Doesn't work with player.");
+            if (!this.nextActor.isPlayer()) {
+                const action = this.nextActor.nextAction();
+                this.doAction(action);
+                this.updateSystems();
+            }
+            else {
+                RG.err('Engine', 'simulateGame',
+                    "Doesn't work with player.");
+            }
         }
     };
 
