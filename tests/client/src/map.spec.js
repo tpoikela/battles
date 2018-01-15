@@ -382,36 +382,10 @@ describe('Element.Shop', () => {
         soldItem.add('Unpaid', new RG.Component.Unpaid());
         level.addItem(soldItem, 1, 1);
 
-        console.log('Owner' + soldItem.getOwner());
-
         expect(shopCell.hasProp('items')).to.equal(true);
         expect(soldItem.has('Unpaid')).to.equal(true);
         expect(shopElem.getItemPriceForBuying(soldItem)).to.be.above(100);
 
-        let advItems = adventurer.getInvEq().getInventory().getItems();
-        const coinsBeforeBuy = advItems[1];
-        const nCoinsBeforeBuy = coinsBeforeBuy.count;
-
-        expect(shopElem.buyItem(soldItem, adventurer)).to.equal(true);
-        expect(shopCell.hasProp('items')).to.equal(false);
-        expect(soldItem.has('Unpaid')).to.equal(false);
-
-        const coinsAfterBuy = advItems[1];
-        const ncoinsAfterBuy = coinsAfterBuy.count;
-
-        expect(ncoinsAfterBuy).to.be.below(nCoinsBeforeBuy);
-
-        const soldShield = new RG.Item.Armour('Gleaming shield');
-        soldShield.setValue(100);
-        adventurer.getInvEq().addItem(soldShield);
-        expect(shopElem.sellItem(soldShield, adventurer)).to.equal(true);
-
-        advItems = adventurer.getInvEq().getInventory().getItems();
-        const coinsAfterSale = advItems[1];
-        const ncoinsAfterSale = coinsAfterSale.count;
-
-        expect(shopCell.hasProp('items')).to.equal(true);
-        expect(ncoinsAfterSale > ncoinsAfterBuy).to.equal(true);
     });
 });
 
