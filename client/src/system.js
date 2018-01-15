@@ -23,6 +23,16 @@ RG.SYS.TIME_EFFECTS = Symbol();
 // ECS SYSTEMS {{{1
 //---------------------------------------------------------------------------
 
+/* For adding skills experience components. */
+function addSkillsExp(att, skill, pts = 1) {
+    if (att.has('Skills')) {
+        const comp = new RG.Component.SkillsExp();
+        comp.setSkill(skill);
+        comp.setPoints(pts);
+        att.add(comp);
+    }
+}
+
 RG.System = {};
 
 /* Base class for all systems in ECS framework.*/
@@ -157,22 +167,24 @@ RG.System.Attack = function(compTypes) {
     };
 
     this.performAttack = function(att, def, aName, dName) {
-        let totalAttack = RG.getMeleeAttack(att);
+        let totalAtt = RG.getMeleeAttack(att);
         if (att.has('Attacker')) {
-            totalAttack += this.addAttackerBonus(att);
+            totalAtt += this.addAttackerBonus(att);
         }
 
-        let totalDefense = def.getDefense();
+        let totalDef = def.getDefense();
         if (def.has('Defender')) {
-            totalDefense += this.addDefenderBonus(def);
+            totalDef += this.addDefenderBonus(def);
         }
-        const hitChance = totalAttack / (totalAttack + totalDefense);
 
-        if (hitChance > RG.RAND.getUniform()) {
+        const hitChance = totalAtt / (totalAtt + totalDef);
+        const hitThreshold = RG.RAND.getUniform();
+
+        if (hitChance > hitThreshold) {
             const totalDamage = att.getDamage();
             if (totalDamage > 0) {
                 this.doDamage(att, def, totalDamage);
-                this._addSkillsExp(att);
+                addSkillsExp(att, 'Melee', 1);
             }
             else {
                 RG.gameMsg({cell: att.getCell,
@@ -180,6 +192,7 @@ RG.System.Attack = function(compTypes) {
             }
         }
         else {
+            this.checkForShieldSkill(hitThreshold, totalAtt, totalDef, def);
             RG.gameMsg({cell: att.getCell(),
                 msg: aName + ' misses ' + dName});
         }
@@ -212,14 +225,18 @@ RG.System.Attack = function(compTypes) {
         return null;
     };
 
-    this._addSkillsExp = function(att) {
-        if (att.has('Skills')) {
-            const comp = new RG.Component.SkillsExp();
-            comp.setSkill('Melee');
-            comp.setPoints(1);
-            att.add(comp);
+    /* Checks if Shields skill should be increased. */
+    this.checkForShieldSkill = (thr, totalAtt, totalDef, def) => {
+        if (def.has('Skills')) {
+            const shieldBonus = def.getShieldDefense();
+            const defNoShield = totalDef - shieldBonus;
+            const hitChange = totalAtt / (totalAtt + defNoShield);
+            if (hitChange > thr) { // Would've hit without shield
+                addSkillsExp(def, 'Shields', 1);
+            }
         }
     };
+
 };
 RG.extend2(RG.System.Attack, RG.System.Base);
 
@@ -279,6 +296,7 @@ RG.System.Missile = function(compTypes) {
                     actor.add('Damage', damageComp);
                     RG.debug(this, 'Hit an actor');
                     shownMsg = ent.getName() + ' hits ' + actor.getName();
+                    addSkillsExp(attacker, 'Archery', 1);
                 }
                 else if (mComp.inTarget()) {
                     this.finishMissileFlight(ent, mComp, currCell);
@@ -1110,13 +1128,16 @@ RG.System.SpellCast = function(compTypes) {
 
                 if (drainers.length === 0) {
                     spell.cast(args);
+                    addSkillsExp(ent, 'SpellCasting', 1);
                 }
                 else if (this._checkPowerDrain(spell, args, drainers)) {
                     const msg = 'Spell was canceled by power drain.';
                     RG.gameMsg({cell: cell, msg: msg});
                 }
                 else {
+                    // Spell drain check succeeded, can cast
                     spell.cast(args);
+                    addSkillsExp(ent, 'SpellCasting', 1);
                 }
             }
             else {
