@@ -509,10 +509,12 @@ class BattlesTop extends Component {
                     updates.selectedCell = brain.getTarget();
                     this.screen.setSelectedCell(updates.selectedCell);
                     if (!brain.isTargetInRange()) {
-                        this.screen.setStyle('selectedCell', 'cell-not-in-range');
+                        this.screen.setStyle('selectedCell',
+                            'cell-not-in-range');
                     }
                     else {
-                        this.screen.setStyle('selectedCell', 'cell-target-selected');
+                        this.screen.setStyle('selectedCell',
+                            'cell-target-selected');
                     }
                     this.gameState.isTargeting = true;
                 }
@@ -557,12 +559,8 @@ class BattlesTop extends Component {
         let overworld = null;
         let showGameMenu = false;
         let playerOwPos = null;
-
-        if (this.state.creatingGame) {
-            console.log('state.creatingGame true');
-        }
-
         let gameValid = false;
+
         if (this.game) {
             map = this.game.getVisibleMap();
             player = this.game.getPlayer();
