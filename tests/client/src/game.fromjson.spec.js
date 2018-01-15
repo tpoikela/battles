@@ -355,4 +355,23 @@ describe('RG.Game.FromJSON', function() {
         expect(newCompNames.length).to.equal(oldCompNames.length);
     });
 
+    it('can serialize/de-serialize actor with skills', () => {
+        const actor = new RG.Actor.Rogue('skilled one');
+        const skills = new RG.Component.Skills();
+        actor.add(skills);
+        expect(actor.has('Skills'), 'Has skills').to.equal(true);
+        skills.addSkill('Melee');
+        skills.addSkill('Archery');
+        skills.setLevel('Archery', 10);
+
+        const json = actor.toJSON();
+
+        const newActor = fromJSON.createActor(json);
+        fromJSON.restoreEntityData();
+
+        expect(newActor.has('Skills'), 'Has skills').to.equal(true);
+        expect(newActor.get('Skills').getLevel('Archery'),
+            'Has 10 level archery').to.equal(10);
+    });
+
 });
