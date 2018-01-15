@@ -1324,19 +1324,6 @@ RG.setAllExplored = (level, isExplored) => {
     }
 };
 
-RG.addCompToEntAfterHit = (comp, ent) => {
-    const compClone = comp.clone();
-
-    if (comp.hasOwnProperty('duration')) {
-        const compDur = compClone.rollDuration();
-        const expiration = new RG.Component.Expiration();
-        expiration.addEffect(compClone, compDur);
-        ent.add('Expiration', expiration);
-    }
-
-    ent.add(compClone.getType(), compClone);
-};
-
 /* Returns a game message for cell which cannot be travelled. */
 RG.getImpassableMsg = (actor, cell, str) => {
     const type = cell.getBaseElem().getType();
