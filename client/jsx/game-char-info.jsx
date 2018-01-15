@@ -96,8 +96,13 @@ export default class GameCharInfo extends Component {
       );
     }
     else if (this.state.tabShown === 'Skills') {
-      const skills = Object.keys(actor.get('Skills').getSkills());
-      const skillElem = skills.map(s => <li key={s}>{s}</li>);
+      const skillComp = actor.get('Skills');
+      const skills = Object.keys(skillComp.getSkills());
+      const skillElem = skills.map(s => (
+        <li key={s}>
+          {s} L: {skillComp.getLevel(s)} P: {skillComp.getPoints(s)}
+        </li>
+      ));
       return (
         <div className='modal-body row'>
           <div className='col-md-6' id='char-info-box'>
