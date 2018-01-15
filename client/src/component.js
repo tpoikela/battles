@@ -1135,6 +1135,12 @@ RG.Component.Skills = function() {
 
     this.getSkills = () => this._skills;
     this.setSkills = skills => {this._skills = skills;};
+
+    this.toJSON = () => {
+        return {
+            setSkills: this._skills
+        };
+    };
 };
 RG.extend2(RG.Component.Skills, RG.Component.Base);
 
