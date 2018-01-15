@@ -382,9 +382,9 @@ RG.System.Missile = function(compTypes) {
         }
 
         const attack = mComp.getAttack();
-        let defense = target.get('Combat').getDefense();
+        let defense = target.getDefense();
         if (target.has('Skills')) {
-            defense += target.get('Skills').getLevel('Skills');
+            defense += target.get('Skills').getLevel('Dodge');
         }
         const hitProp = attack / (attack + defense);
         const hitRand = RG.RAND.getUniform();
