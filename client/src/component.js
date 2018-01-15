@@ -1115,7 +1115,13 @@ RG.Component.Skills = function() {
         this._skills[skill] = {name: skill, level: 1, points: 0};
     };
 
-    this.getLevel = skill => this._skills[skill].level;
+    /* Returns the skill level, or 0 if no skill exists. */
+    this.getLevel = skill => {
+        if (this.hasSkill(skill)) {
+            return this._skills[skill].level;
+        }
+        return 0;
+    };
     this.setLevel = (skill, level) => {this._skills[skill].level = level;};
     this.getPoints = skill => this._skills[skill].points;
 
