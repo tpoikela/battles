@@ -301,7 +301,7 @@ RG.System.Missile = function(compTypes) {
             else if (currCell.hasProp('actors')) {
                 const actor = currCell.getProp('actors')[0];
                 // Check hit and miss
-                if (this.targetHit(actor, mComp)) {
+                if (this.targetHit(ent, actor, mComp)) {
                     this.finishMissileFlight(ent, mComp, currCell);
                     const dmg = mComp.getDamage();
                     const damageComp = new RG.Component.Damage(dmg,
@@ -311,7 +311,14 @@ RG.System.Missile = function(compTypes) {
                     actor.add('Damage', damageComp);
                     RG.debug(this, 'Hit an actor');
                     shownMsg = ent.getName() + ' hits ' + actor.getName();
-                    addSkillsExp(attacker, 'Archery', 1);
+                    if (ent.getType() === 'missile') {
+                        addSkillsExp(attacker, 'Throwing', 1);
+                    }
+                    else if (ent.getType() === 'ammo') {
+                        addSkillsExp(attacker, 'Archery', 1);
+                    }
+                    RG.gameWarn({cell: currCell, msg: shownMsg});
+                    shownMsg = '';
                 }
                 else if (mComp.inTarget()) {
                     this.finishMissileFlight(ent, mComp, currCell);
@@ -375,13 +382,23 @@ RG.System.Missile = function(compTypes) {
     };
 
     /* Returns true if the target was hit.*/
-    this.targetHit = (target, mComp) => {
+    this.targetHit = (ent, target, mComp) => {
         const attacker = mComp.getSource();
         if (attacker.has('ThroughShot') && !mComp.inTarget()) {
             return false;
         }
 
-        const attack = mComp.getAttack();
+        const isThrown = ent.getType() === 'missile';
+
+        let attack = mComp.getAttack();
+        if (attacker.has('Skills')) {
+            if (isThrown) {
+                attack += attacker.get('Skills').getLevel('Throwing');
+            }
+            else {
+                attack += attacker.get('Skills').getLevel('Archery');
+            }
+        }
         let defense = target.getDefense();
         if (target.has('Skills')) {
             defense += target.get('Skills').getLevel('Dodge');
