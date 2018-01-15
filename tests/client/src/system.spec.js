@@ -439,3 +439,50 @@ describe('System.Skills', () => {
         expect(skillComp.getLevel('SpellCasting')).to.equal(3);
     });
 });
+
+describe('System.Shop', () => {
+
+    let shopSys = null;
+    let shopkeeper = null;
+    let shopCell = null;
+    let shopElem = null;
+    let actor = null;
+
+    beforeEach(() => {
+        shopSys = new RG.System.Shop(['Transaction']);
+        shopkeeper = new RG.Actor.Rogue('shopkeeper');
+        actor = new RG.Actor.Rogue('buyer');
+
+        shopCell = new RG.Map.Cell();
+        shopElem = new RG.Element.Shop();
+        shopCell.setProp(RG.TYPE_ELEM, shopElem);
+        RGTest.wrapIntoLevel([shopkeeper, actor]);
+
+    });
+
+    it('it handles buying transactions', () => {
+        const catcher = new RGTest.MsgCatcher();
+        const item = new RG.Item.Weapon('sword');
+        item.setValue(100);
+        item.add(new RG.Component.Unpaid());
+        shopCell.setProp(RG.TYPE_ITEM, item);
+        const coins = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
+        coins.count = 100;
+
+        const buyer = actor;
+        buyer.getInvEq().addItem(coins);
+
+        const trans = new RG.Component.Transaction();
+        trans.setArgs({
+            item, buyer, seller: shopkeeper, shop: shopElem
+        });
+        buyer.add(trans);
+
+        updateSystems([shopSys]);
+        expect(item.has('Unpaid'), 'Item not unpaid').to.equal(false);
+    });
+
+    it('handles selling transactions', () => {
+
+    });
+});
