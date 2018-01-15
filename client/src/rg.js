@@ -532,6 +532,14 @@ const RG = { // {{{2
         }
         if (att.has('LongRangeShot')) {range *= 2;}
         if (att.has('EagleEye')) {range += 2;}
+        if (att.has('Skills')) {
+            if (miss.has('Ammo')) {
+                range += att.get('Skills').getLevel('Archery');
+            }
+            else {
+                range += att.get('Skills').getLevel('Throwing');
+            }
+        }
         return range;
     },
 
