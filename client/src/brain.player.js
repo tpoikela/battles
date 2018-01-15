@@ -49,6 +49,9 @@ const MemoryPlayer = function(player) {
 
 };
 
+// Note: All CmdXXX classes are used from Brain.Player. this is bound to the
+// Brain.Player object by using execute.call(this)
+
 class CmdMissile {
 
     execute(obj) {
@@ -159,16 +162,12 @@ class CmdDropItem {
 
           this._wantConfirm = true;
           this._confirmCallback = () => {
-              const sellOk = shopElem.sellItem(obj.item, this._actor);
-              if (obj.hasOwnProperty('callback')) {
-                  if (sellOk) {
-                      msg = `${obj.item.getName()} was sold.`;
-                  }
-                  else {
-                      msg = `Cannot sell ${obj.item.getName()}.`;
-                  }
-                  obj.callback({msg: msg, result: sellOk});
-              }
+              // const sellOk = shopElem.sellItem(obj.item, this._actor);
+              const trans = new RG.Component.Transaction();
+              trans.setArgs({item: obj.item, seller: this._actor,
+                  shop: shopElem, callback: obj.callback,
+                  buyer: shopElem.getShopkeeper()});
+              this._actor.add(trans);
           };
 
           msg = `Press y to sell item for ${price} gold coins.`;
@@ -369,7 +368,10 @@ class BrainPlayer {
         const nCoins = shopElem.getItemPriceForBuying(topItem);
 
         const buyItemCallback = () => {
-            shopElem.buyItem(topItem, this._actor);
+            const trans = new RG.Component.Transaction();
+            trans.setArgs({item: topItem, buyer: this._actor,
+              shop: shopElem, seller: shopElem.getShopkeeper()});
+            this._actor.add(trans);
         };
 
         this._confirmEnergy = 0;
