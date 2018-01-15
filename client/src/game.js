@@ -279,6 +279,7 @@ RG.Game.Main = function() {
         return obj;
     };
 
+    /* Returns true if the menu is shown instead of the level. */
     this.isMenuShown = function() {
         const player = this.getPlayer();
         if (player) {
@@ -287,6 +288,7 @@ RG.Game.Main = function() {
         return false;
     };
 
+    /* Returns the current menu object. */
     this.getMenu = function() {
         const player = this.getPlayer();
         if (player) {
@@ -295,6 +297,7 @@ RG.Game.Main = function() {
         return null;
     };
 
+    /* Sets the function to be called for animations. */
     this.setAnimationCallback = cb => {
         if (typeof cb === 'function') {
             _engine.animationCallback = cb;
