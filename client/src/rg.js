@@ -535,6 +535,10 @@ const RG = { // {{{2
         return range;
     },
 
+    strengthToDamage: function(str) {
+        return Math.round(str / 4);
+    },
+
     /* Given actor and cells it sees, returns first enemy cell found.*/
     findEnemyCellForPlayer: function(actor, seenCells) {
         const res = [];
@@ -551,10 +555,6 @@ const RG = { // {{{2
             }
         }
         return res;
-    },
-
-    strengthToDamage: function(str) {
-        return Math.round(str / 4);
     },
 
     // Event pool -related stuff
