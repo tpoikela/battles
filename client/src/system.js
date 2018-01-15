@@ -20,7 +20,7 @@ RG.SYS.SPIRIT = Symbol();
 RG.SYS.TIME_EFFECTS = Symbol();
 
 //---------------------------------------------------------------------------
-// ECS SYSTEMS {{{1
+// ECS SYSTEMS
 //---------------------------------------------------------------------------
 
 /* For adding skills experience components. */
@@ -32,6 +32,21 @@ function addSkillsExp(att, skill, pts = 1) {
         att.add(comp);
     }
 }
+
+/* After succesful hit, adds the given comp to specified entity ent. */
+function addCompToEntAfterHit(comp, ent) {
+    const compClone = comp.clone();
+
+    if (comp.hasOwnProperty('duration')) {
+        const compDur = compClone.rollDuration();
+        const expiration = new RG.Component.Expiration();
+        expiration.addEffect(compClone, compDur);
+        ent.add('Expiration', expiration);
+    }
+
+    ent.add(compClone.getType(), compClone);
+}
+
 
 RG.System = {};
 
@@ -367,7 +382,10 @@ RG.System.Missile = function(compTypes) {
         }
 
         const attack = mComp.getAttack();
-        const defense = target.get('Combat').getDefense();
+        let defense = target.get('Combat').getDefense();
+        if (target.has('Skills')) {
+            defense += target.get('Skills').getLevel('Skills');
+        }
         const hitProp = attack / (attack + defense);
         const hitRand = RG.RAND.getUniform();
         if (hitProp > hitRand) {
@@ -375,6 +393,9 @@ RG.System.Missile = function(compTypes) {
                 return RG.RAND.getUniform() < 0.5;
             }
             return true;
+        }
+        else {
+            addSkillsExp(target, 'Dodge', 1);
         }
         return false;
     };
@@ -452,14 +473,14 @@ RG.System.Damage = function(compTypes) {
         if (weapon) { // Attack was done using weapon
             if (weapon.has('AddOnHit')) {
                 const comp = weapon.get('AddOnHit').getComp();
-                RG.addCompToEntAfterHit(comp, ent);
+                addCompToEntAfterHit(comp, ent);
             }
         }
         else { // No weapon was used
             const src = dmgComp.getSource();
             if (src && src.has('AddOnHit')) {
                 const comp = src.get('AddOnHit').getComp();
-                RG.addCompToEntAfterHit(comp, ent);
+                addCompToEntAfterHit(comp, ent);
             }
         }
     };
@@ -534,34 +555,37 @@ RG.System.ExpPoints = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.EXP_POINTS, compTypes);
 
     this.updateEntity = ent => {
-        const expComp = ent.get('Experience');
-        const expPoints = ent.get('ExpPoints');
-        let levelingUp = true;
+        const expList = ent.getList('ExpPoints');
+        expList.forEach(expPoints => {
 
-        let exp = expComp.getExp();
-        exp += expPoints.getExpPoints();
-        expComp.setExp(exp);
+            const expComp = ent.get('Experience');
+            let levelingUp = true;
 
-        while (levelingUp) {
-            const currExpLevel = expComp.getExpLevel();
-            const nextExpLevel = currExpLevel + 1;
-            let reqExp = 0;
-            for (let i = 1; i <= nextExpLevel; i++) {
-                reqExp += (i - 1) * 10;
-            }
+            let exp = expComp.getExp();
+            exp += expPoints.getExpPoints();
+            expComp.setExp(exp);
 
-            if (exp >= reqExp) { // Required exp points exceeded
-                RG.levelUpActor(ent, nextExpLevel);
-                const name = ent.getName();
-                const msg = `${name} appears to be more experienced now.`;
-                RG.gameSuccess({msg: msg, cell: ent.getCell()});
-                levelingUp = true;
+            while (levelingUp) {
+                const currExpLevel = expComp.getExpLevel();
+                const nextExpLevel = currExpLevel + 1;
+                let reqExp = 0;
+                for (let i = 1; i <= nextExpLevel; i++) {
+                    reqExp += (i - 1) * 10;
+                }
+
+                if (exp >= reqExp) { // Required exp points exceeded
+                    RG.levelUpActor(ent, nextExpLevel);
+                    const name = ent.getName();
+                    const msg = `${name} appears to be more experienced now.`;
+                    RG.gameSuccess({msg: msg, cell: ent.getCell()});
+                    levelingUp = true;
+                }
+                else {
+                    levelingUp = false;
+                }
             }
-            else {
-                levelingUp = false;
-            }
-        }
-        ent.remove('ExpPoints');
+            ent.remove(expPoints);
+        });
     };
 
 };
@@ -1216,7 +1240,7 @@ RG.System.SpellEffect = function(compTypes) {
                 if (cell.hasActors()) {
                     // Deal some damage etc
                     const actor = cell.getActors()[0];
-                    if (this.rayHitsActor(actor)) {
+                    if (this.rayHitsActor(actor, rangeLeft)) {
                         const dmg = new RG.Component.Damage();
                         dmg.setSource(ent);
                         dmg.setDamageType(args.damageType);
@@ -1258,11 +1282,25 @@ RG.System.SpellEffect = function(compTypes) {
         ent.add('Animation', animComp);
     };
 
-    this.rayHitsActor = function(actor) {
-        if (actor.has('RangedEvasion')) {
-            return RG.RAND.getUniform() < 0.5;
+    this.rayHitsActor = function(actor, rangeLeft) {
+        let evasion = actor.get('Stats').getAgility();
+        if (actor.has('Skills')) {
+            evasion += actor.get('Skills').get('Dodge');
         }
-        return true;
+        evasion -= rangeLeft;
+        if (evasion < 0) {evasion = 0;}
+
+        const hitChance = (100 - evasion) / 100;
+        if (hitChance > RG.RAND.getUniform()) {
+            if (actor.has('RangedEvasion')) {
+                return RG.RAND.getUniform() < 0.5;
+            }
+            return true;
+        }
+        else {
+            addSkillsExp(actor, 'Dodge', 1);
+            return false;
+        }
     };
 
     this.processSpellCell = function(ent) {
@@ -1547,10 +1585,16 @@ RG.System.Skills = function(compTypes) {
 
             // TODO make a proper function to check the skill threshold
             if (currPoints >= (10 * currLevel)) {
+                const name = ent.getName();
                 entSkills.setLevel(skillName, currLevel + 1);
                 entSkills.resetPoints(skillName);
                 RG.gameSuccess({cell,
-                    msg: `${ent.getName()} advances a skill ${skillName}`});
+                    msg: `${name} advances a skill ${skillName}`});
+
+                const expPts = new RG.Component.ExpPoints(10 * currLevel);
+                ent.add(expPts);
+                RG.gameSuccess({cell,
+                    msg: `${name} gains experience from skill ${skillName}`});
             }
 
             ent.remove(comp);
@@ -1559,7 +1603,5 @@ RG.System.Skills = function(compTypes) {
 
 };
 RG.extend2(RG.System.Skills, RG.System.Base);
-
-// }}} SYSTEMS
 
 module.exports = RG.System;
