@@ -177,7 +177,7 @@ describe('Factory.World', function() {
 
         fact.setGlobalConf({});
         const world = fact.createWorld(worldConf);
-        expect(world.getCities()).to.have.length(1);
+        expect(world.getZones('City')).to.have.length(1);
 
         const areaLevel = world.getAreas()[0].getTileXY(0, 0).getLevel();
         const stairs0 = areaLevel.getStairs()[0];
@@ -226,8 +226,8 @@ describe('Factory.World', function() {
         };
         const fact = new RG.Factory.World();
         const area = fact.createArea(areaConf);
-        expect(area.getCities()).to.have.length(1);
-        const city = area.getCities()[0];
+        expect(area.getZones('City')).to.have.length(1);
+        const city = area.getZones('City')[0];
         expect(city.getLevels()).to.have.length(1);
 
         const stairs = level.getStairs();
