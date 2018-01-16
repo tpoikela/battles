@@ -1170,7 +1170,7 @@ RG.Factory.World = function() {
                     conf.connect.forEach(conn => {
                         if (conn.length === 4) {
                             // conn has len 4, spread it out
-                            dungeon.connectBranches(...conn);
+                            dungeon.connectSubZones(...conn);
                         }
                         else {
                             RG.err('Factory.World', 'createDungeon',
@@ -1419,7 +1419,7 @@ RG.Factory.World = function() {
         for (let i = 0; i < conf.nFaces; i++) {
             const faceConf = conf.face[i];
             const mountainFace = this.createMountainFace(faceConf);
-            mountain.addFace(mountainFace);
+            mountain.addSubZone(mountainFace);
         }
 
         if (!this.id2levelSet) {
@@ -1428,7 +1428,7 @@ RG.Factory.World = function() {
                     conf.connect.forEach(conn => {
                         if (conn.length === 4) {
                             // conn has len 4, spread it out
-                            mountain.connectFaces(...conn);
+                            mountain.connectSubZones(...conn);
                         }
                         else {
                             RG.err('Factory.World', 'createMountain',
@@ -1506,7 +1506,7 @@ RG.Factory.World = function() {
         for (let i = 0; i < conf.nQuarters; i++) {
             const qConf = conf.quarter[i];
             const quarter = this.createCityQuarter(qConf);
-            city.addQuarter(quarter);
+            city.addSubZone(quarter);
         }
 
         // Connect city quarters according to configuration
@@ -1516,7 +1516,7 @@ RG.Factory.World = function() {
                     conf.connect.forEach(conn => {
                         if (conn.length === 4) {
                             // conn has len 4, spread it out
-                            city.connectQuarters(...conn);
+                            city.connectSubZones(...conn);
                         }
                         else {
                             RG.err('Factory.World', 'createCity',
