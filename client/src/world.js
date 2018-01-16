@@ -583,9 +583,11 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
     const _tiles = [];
 
     // All zones inside this tile
-    this.dungeons = [];
-    this.mountains = [];
-    this.cities = [];
+    this.zones = {
+        Dungeon: [],
+        Mountain: [],
+        City: []
+    };
 
     this._init = function() {
         // Create the tiles
@@ -640,9 +642,9 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
                 res.push(_tiles[x][y].getLevel());
             }
         }
-        this.dungeons.forEach(d => {res = res.concat(d.getLevels());});
-        this.mountains.forEach(d => {res = res.concat(d.getLevels());});
-        this.cities.forEach(d => {res = res.concat(d.getLevels());});
+        this.zones.Dungeon.forEach(d => {res = res.concat(d.getLevels());});
+        this.zones.Mountain.forEach(d => {res = res.concat(d.getLevels());});
+        this.zones.City.forEach(d => {res = res.concat(d.getLevels());});
         return res;
     };
 
@@ -673,22 +675,18 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
         return null;
     };
 
-    this.getDungeons = function() {return this.dungeons;};
-    this.getMountains = function() {return this.mountains;};
-    this.getCities = function() {return this.cities;};
-
-    this.addDungeon = function(dungeon) {
-        this.dungeons.push(dungeon);
+    this.addZone = function(type, zone) {
+        if (!this.zones[type]) {
+            this.zones[type] = [];
+        }
+        this.zones[type].push(zone);
     };
 
-    this.addMountain = function(mountain) {
-        this.mountains.push(mountain);
+    this.getZones = function(type) {
+        return this.zones[type];
     };
 
-    this.addCity = function(city) {
-        this.cities.push(city);
-    };
-
+    /* Serializes the Area into JSON. */
     this.toJSON = function() {
         const tilesJSON = [];
         _tiles.forEach(tileCol => {
@@ -702,12 +700,12 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
             maxX: _sizeX, maxY: _sizeY,
             cols: _cols, rows: _rows,
             tiles: tilesJSON,
-            nDungeons: this.dungeons.length,
-            dungeon: this.dungeons.map(dg => dg.toJSON()),
-            nMountains: this.mountains.length,
-            mountain: this.mountains.map(mt => mt.toJSON()),
-            nCities: this.cities.length,
-            city: this.cities.map(city => city.toJSON())
+            nDungeons: this.zones.Dungeon.length,
+            dungeon: this.zones.Dungeon.map(dg => dg.toJSON()),
+            nMountains: this.zones.Mountain.length,
+            mountain: this.zones.Mountain.map(mt => mt.toJSON()),
+            nCities: this.zones.City.length,
+            city: this.zones.City.map(city => city.toJSON())
         };
     };
 
@@ -1024,17 +1022,11 @@ RG.World.Top = function(name) {
 
     const _allLevels = {}; // Lookup table for all levels
     const _areas = [];
-    let _dungeons = [];
-    let _mountains = [];
-    let _cities = [];
 
     /* Adds an area into the world. */
     this.addArea = function(area) {
         _areas.push(area);
         this.addLevels(area.getLevels());
-        _dungeons = _dungeons.concat(area.getDungeons());
-        _mountains = _mountains.concat(area.getMountains());
-        _cities = _cities.concat(area.getCities());
     };
 
     /* Adds the array of levels to the global map. */
@@ -1054,13 +1046,15 @@ RG.World.Top = function(name) {
     this.getLevels = () => Object.keys(_allLevels).map(key => _allLevels[key]);
 
     this.getAreas = () => (_areas);
-    // TODO these functions should directly query the areas.
-    this.getDungeons = () => (_dungeons);
-    this.getMountains = () => (_mountains);
-    this.getCities = () => (_cities);
-    this.getZones = () => (
-        _dungeons.concat(_mountains).concat(_cities)
-    );
+
+    /* Returns all zones of given type. */
+    this.getZones = type => {
+        let zones = [];
+        _areas.forEach(a => {
+            zones = zones.concat(a.getZones(type));
+        });
+        return zones;
+    };
 
     /* Returns all stairs in the world. */
     this.getStairs = () => {
