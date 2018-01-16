@@ -1020,7 +1020,7 @@ RG.Factory.World = function() {
         debug('globalConf set to ' + JSON.stringify(this.globalConf));
     };
 
-    /* Returns config value. */
+    /* Returns a config value. */
     this.getConf = function(keys) {
         // First travel the config stack from the top
         for (let i = this.confStack.length - 1; i >= 0; i--) {
@@ -1085,12 +1085,23 @@ RG.Factory.World = function() {
             area.connectTiles();
         }
         area.setHierName(this.getHierName());
+        // TODO Instead of creating all zones, store area name and configuration
+        // When player enters a given area tile, create zones for that tile
+        // saveAreaData(area, conf);
         this._createAllZones(area, conf);
         this.popScope(conf);
         return area;
     };
 
-    this._createAllZones = function(area, conf) {
+    /* Creates zones for given area tile x,y with located in area areaName. */
+    this.createZonesForTile = function(x, y, areaName) {
+        // Setup the scope & conf stacks
+        // const {area, conf} = this.restoreAreaData(areaName);
+        // this._createAllZones(area, conf, x, y);
+        // Cleanup the scope & conf stacks
+    };
+
+    this._createAllZones = function(area, conf, tx = -1, ty = -1) {
         const types = ['City', 'Mountain', 'Dungeon'];
         types.forEach(type => {
             const typeLc = type.toLowerCase();
@@ -1101,10 +1112,13 @@ RG.Factory.World = function() {
             for (let i = 0; i < nZones; i++) {
                 const zoneConf = conf[typeLc][i];
                 const createFunc = 'create' + type;
-                const zone = this[createFunc](zoneConf);
-                area.addZone(type, zone);
-                if (!this.id2levelSet) {
-                    this.createAreaZoneConnection(area, zone, zoneConf);
+                const {x, y} = zoneConf;
+                if ((tx === -1 || tx === x) && (ty === -1 || ty === y)) {
+                    const zone = this[createFunc](zoneConf);
+                    area.addZone(type, zone);
+                    if (!this.id2levelSet) {
+                        this.createAreaZoneConnection(area, zone, zoneConf);
+                    }
                 }
             }
 
