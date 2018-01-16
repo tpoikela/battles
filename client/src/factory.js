@@ -1406,8 +1406,15 @@ RG.Factory.World = function() {
     this.createMountain = function(conf) {
         _verif.verifyConf('createMountain', conf, ['name', 'nFaces']);
         this.pushScope(conf);
+
         const mountain = new RG.World.Mountain(conf.name);
         mountain.setHierName(this.getHierName());
+
+        if (conf.nFaces !== conf.face.length) {
+            const len = conf.face.length;
+            RG.err('Factory.World', 'createMountain',
+                `Face number mismatch [] = ${len}, n: ${conf.nFaces}`);
+        }
 
         for (let i = 0; i < conf.nFaces; i++) {
             const faceConf = conf.face[i];
@@ -1483,18 +1490,19 @@ RG.Factory.World = function() {
 
     /* Creates a City and all its sub-zones. */
     this.createCity = function(conf) {
-        if (this.id2levelSet) {
-            _verif.verifyConf('createCity',
-                conf, ['name', 'nQuarters']);
-        }
-        else {
-            _verif.verifyConf('createCity',
-                conf, ['name', 'nQuarters']);
-        }
-
+        _verif.verifyConf('createCity',
+            conf, ['name', 'nQuarters']);
         this.pushScope(conf);
+
         const city = new RG.World.City(conf.name);
         city.setHierName(this.getHierName());
+
+        if (conf.nQuarters !== conf.quarter.length) {
+            const len = conf.quarter.length;
+            RG.err('Factory.World', 'createCity',
+                `Quarter number mismatch [] = ${len}, n: ${conf.nQuarters}`);
+        }
+
         for (let i = 0; i < conf.nQuarters; i++) {
             const qConf = conf.quarter[i];
             const quarter = this.createCityQuarter(qConf);
