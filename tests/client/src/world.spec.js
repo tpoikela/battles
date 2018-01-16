@@ -63,7 +63,7 @@ describe('World.Dungeon', () => {
             expect(level).not.to.be.empty;
         });
 
-        dungeon.connectBranches(branches[0], branches[1], 1, 2);
+        dungeon.connectSubZones(branches[0], branches[1], 1, 2);
     });
 });
 
@@ -171,10 +171,10 @@ describe('World.Mountain', () => {
         const faces = mountain.getFaces();
         expect(faces).to.have.length(4);
         for (let i = 0; i < 5; i++) {
-            mountain.connectFaces('north', 'south', 0, 0);
+            mountain.connectSubZones('north', 'south', 0, 0);
         }
         expectConnected(faces[0], faces[1], 5);
-        mountain.connectFaces('east', 'west', 0, 0);
+        mountain.connectSubZones('east', 'west', 0, 0);
         expectConnected(faces[2], faces[3], 1);
 
         const summit = new RG.World.MountainFace('North summit');

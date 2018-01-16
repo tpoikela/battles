@@ -170,7 +170,7 @@ describe('RG.Game.FromJSON', function() {
         f2.addLevel(l2);
         mountain.addFace(f1);
         mountain.addFace(f2);
-        mountain.connectFaces('f1', 'f2', 0, 0);
+        mountain.connectSubZones('f1', 'f2', 0, 0);
 
         const jsonL1 = l1.toJSON();
         const jsonL2 = l2.toJSON();
