@@ -445,12 +445,6 @@ RG.World.Dungeon = function(name) {
         return res;
     };
 
-    /* Connects two branches b1 and b2 together from specified level
-     * numbers l1 and l2. */
-    this.connectBranches = function(b1Arg, b2Arg, l1, l2) {
-        connectSubZones(this._subZones, b1Arg, b2Arg, l1, l2);
-    };
-
     this.toJSON = function() {
         const obj2 = {
             name: this.getName(),
@@ -760,12 +754,6 @@ from-the-side view. Bit weird but should be fine.
     this.getFaces = () => this._subZones;
     this.getSummits = () => _summits;
 
-    /* Connects two faces b1 and b2 together from specified level
-     * numbers l1 and l2. */
-    this.connectFaces = function(f1Arg, f2Arg, l1, l2) {
-        connectSubZones(this._subZones, f1Arg, f2Arg, l1, l2);
-    };
-
     this.connectFaceAndSummit = function(face, summit, l1, l2) {
         const faceObj = this._subZones.find(f => f.getName() === face);
         const summitObj = _summits.find(s => s.getName() === summit);
@@ -900,11 +888,6 @@ RG.World.City = function(name) {
 
     this.hasQuarter = function(q) {
         return this.hasSubZone(q);
-    };
-
-    /* Connects two city quarters together. */
-    this.connectQuarters = function(q1Arg, q2Arg, l1, l2) {
-        connectSubZones(this._subZones, q1Arg, q2Arg, l1, l2);
     };
 
     this.toJSON = function() {
