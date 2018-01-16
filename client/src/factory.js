@@ -1085,38 +1085,30 @@ RG.Factory.World = function() {
             area.connectTiles();
         }
         area.setHierName(this.getHierName());
-        const nDungeons = conf.nDungeons || 0;
-        const nMountains = conf.nMountains || 0;
-        const nCities = conf.nCities || 0;
-
-        for (let i = 0; i < nDungeons; i++) {
-            const dungeonConf = conf.dungeon[i];
-            const dungeon = this.createDungeon(dungeonConf);
-            area.addDungeon(dungeon);
-            if (!this.id2levelSet) {
-                this.createAreaZoneConnection(area, dungeon, dungeonConf);
-            }
-        }
-
-        for (let i = 0; i < nMountains; i++) {
-            const mountainConf = conf.mountain[i];
-            const mountain = this.createMountain(mountainConf);
-            area.addMountain(mountain);
-            if (!this.id2levelSet) {
-                this.createAreaZoneConnection(area, mountain, mountainConf);
-            }
-        }
-
-        for (let i = 0; i < nCities; i++) {
-            const cityConf = conf.city[i];
-            const city = this.createCity(cityConf);
-            area.addCity(city);
-            if (!this.id2levelSet) {
-                this.createAreaZoneConnection(area, city, cityConf);
-            }
-        }
+        this._createAllZones(area, conf);
         this.popScope(conf);
         return area;
+    };
+
+    this._createAllZones = function(area, conf) {
+        const types = ['City', 'Mountain', 'Dungeon'];
+        types.forEach(type => {
+            const typeLc = type.toLowerCase();
+            let nZones = 0;
+            if (Array.isArray(conf[typeLc])) {
+                nZones = conf[typeLc].length;
+            }
+            for (let i = 0; i < nZones; i++) {
+                const zoneConf = conf[typeLc][i];
+                const createFunc = 'create' + type;
+                const zone = this[createFunc](zoneConf);
+                area.addZone(type, zone);
+                if (!this.id2levelSet) {
+                    this.createAreaZoneConnection(area, zone, zoneConf);
+                }
+            }
+
+        });
     };
 
     /* Used when creating area from existing levels. Uses id2level lookup table
@@ -1643,7 +1635,7 @@ RG.Factory.World = function() {
                     `${msg}. Cannot connect to tile.`);
             }
         }
-        else { // No entrance for zone, what to do?
+        else { // No entrance for zone, error out
             RG.err('Factory.World', 'createAreaZoneConnection',
                 'No getEntrances method for zone.');
         }
