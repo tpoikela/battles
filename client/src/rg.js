@@ -616,6 +616,7 @@ const RG = { // {{{2
 
     EVT_LEVEL_CHANGED: Symbol(),
     EVT_LEVEL_ENTERED: Symbol(),
+    EVT_TILE_CHANGED: Symbol(),
 
     EVT_LEVEL_PROP_ADDED: Symbol(),
     EVT_LEVEL_PROP_REMOVED: Symbol(),
