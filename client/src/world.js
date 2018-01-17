@@ -576,6 +576,10 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
     this.getMaxY = () => (_sizeY);
     const _tiles = [];
 
+    this._conf = {};
+    this.setConf = conf => {this._conf = conf;};
+    this.getConf = () => this._conf;
+
     // All zones inside this tile
     this.zones = {
         Dungeon: [],
@@ -583,11 +587,15 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
         City: []
     };
 
+    // Control which tile has its zones created
+    this.zonesCreated = {};
+
     this._init = function() {
         // Create the tiles
         for (let x = 0; x < _sizeX; x++) {
             const tileColumn = [];
             for (let y = 0; y < _sizeY; y++) {
+                this.zonesCreated[x + ',' + y] = false;
                 const newTile = new RG.World.AreaTile(x, y, this);
 
                 // Scale the forest gen based on tile size
@@ -621,6 +629,17 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
             this.connectTiles();
         }
     };
+
+    this.markAllZonesCreated = () => {
+        Object.keys(this.zonesCreated).forEach(key => {
+            this.zonesCreated[key] = true;
+        });
+    };
+
+    this.markTileZonesCreated = (x, y) => {
+        this.zonesCreated[x + ',' + y] = true;
+    };
+    this.tileHasZonesCreated = (x, y) => this.zonesCreated[x + ',' + y];
 
     /* Connects all tiles together from the sides. */
     this.connectTiles = () => {
@@ -690,6 +709,7 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
 
         return {
             name: this.getName(),
+            conf: this.getConf(),
             hierName: this.getHierName(),
             maxX: _sizeX, maxY: _sizeY,
             cols: _cols, rows: _rows,
@@ -699,7 +719,8 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
             nMountains: this.zones.Mountain.length,
             mountain: this.zones.Mountain.map(mt => mt.toJSON()),
             nCities: this.zones.City.length,
-            city: this.zones.City.map(city => city.toJSON())
+            city: this.zones.City.map(city => city.toJSON()),
+            zonesCreated: this.zonesCreated
         };
     };
 
@@ -997,6 +1018,7 @@ RG.extend2(RG.World.CityQuarter, RG.World.Base);
 //-----------------------------
 // RG.World.Top
 //-----------------------------
+
 /* Largest place at the top of hierarchy. Contains a number of areas,
  * mountains, dungeons and cities. */
 RG.World.Top = function(name) {
@@ -1005,6 +1027,10 @@ RG.World.Top = function(name) {
 
     const _allLevels = {}; // Lookup table for all levels
     const _areas = [];
+
+    this._conf = {};
+    this.getConf = () => this._conf;
+    this.setConf = conf => {this._conf = conf;};
 
     /* Adds an area into the world. */
     this.addArea = function(area) {
@@ -1056,6 +1082,7 @@ RG.World.Top = function(name) {
         const area = _areas.map(area => area.toJSON());
         return {
             name: this.getName(),
+            conf: this.getConf(),
             hierName: this.getHierName(),
             nAreas: _areas.length,
             area
