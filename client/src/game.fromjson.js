@@ -419,6 +419,9 @@ RG.Game.FromJSON = function() {
 
     this.createGame = function(json) {
         const game = new RG.Game.Main();
+        if (json.globalConf) {
+            game.setGlobalConf(json.globalConf);
+        }
 
         // Levels must be created before the actual world, because the World
         // object contains only level IDs
