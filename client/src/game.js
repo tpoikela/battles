@@ -25,6 +25,10 @@ RG.Game.Main = function() {
 
     const _engine = new RG.Game.Engine(_eventPool);
 
+    this.globalConf = {};
+    this.setGlobalConf = conf => {this.globalConf = conf;};
+    this.getGlobalConf = () => this.globalConf;
+
     this.shownLevel = () => _shownLevel;
     this.setShownLevel = level => {_shownLevel = level;};
 
@@ -55,12 +59,14 @@ RG.Game.Main = function() {
     this.addPlayer = function(player, obj) {
         let levelOK = false;
         if (!RG.isNullOrUndef([player.getLevel()])) {
+            console.log('Player already added to level');
             levelOK = true;
         }
         else if (RG.isNullOrUndef([obj])) {
             levelOK = _addPlayerToFirstLevel(player, _levels);
         }
         else {
+            console.log('Adding player through place now');
             levelOK = _addPlayerToPlace(player, obj);
         }
 
@@ -95,6 +101,8 @@ RG.Game.Main = function() {
                         src: currLevel, actor: player});
                 RG.POOL.emitEvent(RG.EVT_LEVEL_ENTERED,
                     {actor: player, target: newLevel});
+                RG.POOL.emitEvent(RG.EVT_TILE_CHANGED,
+                    {actor: player, target: newLevel});
             }
             else {
                 currLevel.addActor(player, x0, y0);
@@ -108,6 +116,11 @@ RG.Game.Main = function() {
             levelOK = levels[0].addActorToFreeCell(player);
             if (!levelOK) {
                 RG.err('Game', 'addPlayer', 'Failed to add the player.');
+            }
+            else {
+                console.log('_addPlayerToFirstLevel tile changed');
+                RG.POOL.emitEvent(RG.EVT_TILE_CHANGED,
+                    {actor: player, target: levels[0]});
             }
         }
         else {
@@ -233,9 +246,25 @@ RG.Game.Main = function() {
                 _shownLevel = actor.getLevel();
             }
         }
+        else if (evtName === RG.EVT_TILE_CHANGED) {
+            const {actor, target} = args;
+            if (actor.isPlayer()) {
+                console.log('Respond to TILE_CHANGED');
+                const levelID = target.getID();
+                // TODO add support for multiple places/worlds
+                const world = Object.values(_places)[0];
+                const area = world.getAreas()[0];
+                const [x, y] = area.findTileXYById(levelID);
+                console.log(`Creating zones for tile ${x},${y}`);
+                const fact = new RG.Factory.World();
+                fact.setGlobalConf(this.getGlobalConf());
+                fact.createZonesForTile(world, area, x, y);
+            }
+        }
     };
     _eventPool.listenEvent(RG.EVT_ACTOR_KILLED, this);
     _eventPool.listenEvent(RG.EVT_LEVEL_CHANGED, this);
+    _eventPool.listenEvent(RG.EVT_TILE_CHANGED, this);
 
     /* Adds one battle to the game. This adds battle directly to the list of
     * active levels. */
@@ -268,7 +297,8 @@ RG.Game.Main = function() {
             levels,
             places,
             lastLevelID: RG.Map.Level.prototype.idCount,
-            lastEntityID: Entity.getIDCount()
+            lastEntityID: Entity.getIDCount(),
+            globalConf: this.globalConf
         };
 
         const player = this.getPlayer();
