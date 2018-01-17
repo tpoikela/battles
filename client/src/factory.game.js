@@ -303,8 +303,6 @@ RG.Factory.Game = function() {
             }
         }
 
-        splitLevels[midX][owConf.nLevelsY - 1].addActorToFreeCell(player);
-
         const worldArea = new RG.World.Area('Ravendark', owConf.nLevelsX,
             owConf.nLevelsY, 100, 100, splitLevels);
         worldArea.connectTiles();
@@ -312,11 +310,19 @@ RG.Factory.Game = function() {
         const fact = new RG.Factory.World();
         fact.setPresetLevels({Realm: splitLevels});
         fact.setGlobalConf(obj);
+        game.setGlobalConf(obj);
 
         const worldConf = worldAndConf[1];
+        fact.createZones = false;
         const world = fact.createWorld(worldConf);
         game.addPlace(world);
         game.setOverWorld(overworld);
+
+        const playerLevel = splitLevels[midX][owConf.nLevelsY - 1];
+        playerLevel.addActorToFreeCell(player);
+        RG.POOL.emitEvent(RG.EVT_TILE_CHANGED, {actor: player,
+            target: playerLevel});
+
 
         player.setFOVRange(10);
         game.addPlayer(player); // Player already placed to level
