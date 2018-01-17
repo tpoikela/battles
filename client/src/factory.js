@@ -962,6 +962,9 @@ RG.Factory.World = function() {
     const _verif = new RG.Verify.Conf('Factory.World');
     this.factZone = new RG.Factory.Zone();
 
+    // Creates all zones when the area is created if true.
+    this.createZones = true;
+
     // Used for generating levels, if more specific settings not given
     this.globalConf = {
         dungeonX: RG.LEVEL_MEDIUM_X,
@@ -970,30 +973,39 @@ RG.Factory.World = function() {
 
     this.presetLevels = {};
 
-    this.setPresetLevels = function(levels) {
-        this.presetLevels = levels;
-    };
+    this.scope = []; // Keeps track of hierarchical names of places
+    this.confStack = [];
 
     // Can be used to pass already created levels to different zones. For
     // example, after restore game, no new levels should be created
     this.id2level = {};
     this.id2levelSet = false;
 
+    //----------------------------------------------------------------------
+    // FUNCTIONS
+    //----------------------------------------------------------------------
+
+    this.setPresetLevels = function(levels) {
+        this.presetLevels = levels;
+    };
+
     /* If id2level is set, factory does not construct any levels. It uses
-     * id2level as a lookup table instead. */
+     * id2level as a lookup table instead. This is mainly used when restoring a
+     * saved game. */
     this.setId2Level = function(id2level) {
         this.id2level = id2level;
         this.id2levelSet = true;
     };
 
-    this.scope = []; // Keeps track of hierarchical names of places
-    this.confStack = [];
-
+    /* Pushes the hier name and configuration on the stack. Config can be
+    * queried with getConf(). */
     this.pushScope = function(conf) {
         this.scope.push(conf.name);
         this.confStack.push(conf);
     };
 
+    /* Removes given config and the name it contains from stacks. Reports an
+    * error if removed name does not match the name in conf. */
     this.popScope = function(conf) {
         const name = conf.name;
         const poppedName = this.scope.pop();
@@ -1033,6 +1045,8 @@ RG.Factory.World = function() {
         if (this.globalConf.hasOwnProperty(keys)) {
             return this.globalConf[keys];
         }
+
+        console.warn(`getConf null for key |${keys}|.`);
         return null;
     };
 
@@ -1047,6 +1061,7 @@ RG.Factory.World = function() {
         }
         this.pushScope(conf);
         const world = new RG.World.Top(conf.name);
+        world.setConf(conf);
         for (let i = 0; i < conf.nAreas; i++) {
             const areaConf = conf.area[i];
             const area = this.createArea(areaConf);
@@ -1081,34 +1096,52 @@ RG.Factory.World = function() {
 
         const area = new RG.World.Area(conf.name, conf.maxX, conf.maxY,
             conf.cols, conf.rows, areaLevels);
+        area.setConf(conf);
         if (needsConnect) {
             area.connectTiles();
         }
         area.setHierName(this.getHierName());
-        // TODO Instead of creating all zones, store area name and configuration
+
         // When player enters a given area tile, create zones for that tile
-        // saveAreaData(area, conf);
-        this._createAllZones(area, conf);
+        if (this.createZones) {
+            this._createAllZones(area, conf);
+            area.markAllZonesCreated();
+        }
+        else {
+            console.log('Skipping the zone creating due to creatZones false');
+        }
         this.popScope(conf);
         return area;
     };
 
     /* Creates zones for given area tile x,y with located in area areaName. */
-    this.createZonesForTile = function(x, y, areaName) {
+    this.createZonesForTile = function(world, area, x, y) {
         // Setup the scope & conf stacks
-        // const {area, conf} = this.restoreAreaData(areaName);
-        // this._createAllZones(area, conf, x, y);
-        // Cleanup the scope & conf stacks
+        if (!area.tileHasZonesCreated(x, y)) {
+            const worldConf = world.getConf();
+            this.pushScope(worldConf);
+            const areaConf = area.getConf();
+            this.pushScope(areaConf);
+
+            this._createAllZones(area, areaConf, x, y);
+            area.markTileZonesCreated(x, y);
+
+            // Cleanup the scope & conf stacks
+            this.popScope(areaConf);
+            this.popScope(worldConf);
+        }
     };
 
     this._createAllZones = function(area, conf, tx = -1, ty = -1) {
         const types = ['City', 'Mountain', 'Dungeon'];
+        console.log(`_createAllZones ${tx}, ${ty}`);
         types.forEach(type => {
             const typeLc = type.toLowerCase();
             let nZones = 0;
             if (Array.isArray(conf[typeLc])) {
                 nZones = conf[typeLc].length;
             }
+            console.log('\tnZones is now ' + nZones);
             for (let i = 0; i < nZones; i++) {
                 const zoneConf = conf[typeLc][i];
                 const createFunc = 'create' + type;
