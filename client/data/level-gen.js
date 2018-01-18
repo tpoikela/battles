@@ -42,6 +42,13 @@ const convertToImplemented = function(name) {
     }
 };
 
+const getMountainSizeXY = function(name) {
+    switch (name) {
+        default: return [80, 240];
+    }
+
+};
+
 //---------------------------------------------------------------------------
 // DUNGEON GENERATION
 //---------------------------------------------------------------------------
@@ -65,6 +72,23 @@ LevelGen.getDungeonConf = dungeonName => {
     }
 
     return obj;
+};
+
+//---------------------------------------------------------------------------
+// MOUNTAIN GENERATION
+//---------------------------------------------------------------------------
+
+LevelGen.getMountainConf = mountainName => {
+    const nLevels = 1;
+    const [x, y] = getMountainSizeXY(mountainName);
+    const conf = {
+        name: mountainName,
+        nFaces: nLevels,
+        face: [
+            {name: mountainName, nLevels, entranceLevel: 0, x, y}
+        ]
+    };
+    return conf;
 };
 
 //---------------------------------------------------------------------------
