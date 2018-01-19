@@ -794,6 +794,7 @@ RG.extend2(RG.World.Mountain, RG.World.ZoneBase);
 
 RG.World.Mountain.prototype.toJSON = function() {
     const obj = {
+        x: this.tileX, y: this.tileY,
         name: this.getName(),
         type: this.getType(),
         nFaces: this._subZones.length,
@@ -921,6 +922,7 @@ RG.World.City = function(name) {
 
     this.toJSON = function() {
         const obj = {
+            x: this.tileX, y: this.tileY,
             name: this.getName(),
             type: this.getType(),
             hierName: this.getHierName(),
