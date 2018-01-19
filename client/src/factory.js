@@ -1,4 +1,6 @@
 
+import LevelFactory from '../data/level-factory';
+
 const RG = require('./rg.js');
 const debug = require('debug')('bitn:factory');
 
@@ -963,7 +965,7 @@ RG.Factory.World = function() {
     this.factZone = new RG.Factory.Zone();
 
     // Creates all zones when the area is created if true.
-    this.createZones = true;
+    this.createAllZones = true;
 
     // Used for generating levels, if more specific settings not given
     this.globalConf = {
@@ -1046,7 +1048,6 @@ RG.Factory.World = function() {
             return this.globalConf[keys];
         }
 
-        console.warn(`getConf null for key |${keys}|.`);
         return null;
     };
 
@@ -1059,12 +1060,19 @@ RG.Factory.World = function() {
         if (!this.globalConf.set) {
             this.setGlobalConf({});
         }
+        if (conf.hasOwnProperty('createAllZones')) {
+            this.createAllZones = conf.createAllZones;
+            debug('createAllZones set to ' + this.createAllZones);
+        }
         this.pushScope(conf);
         const world = new RG.World.Top(conf.name);
         world.setConf(conf);
         for (let i = 0; i < conf.nAreas; i++) {
             const areaConf = conf.area[i];
             const area = this.createArea(areaConf);
+            if (areaConf.zonesCreated) { // Only during restore game
+                this.restoreCreatedZones(world, area, areaConf);
+            }
             world.addArea(area);
         }
         this.popScope(conf);
@@ -1076,6 +1084,20 @@ RG.Factory.World = function() {
         _verif.verifyConf('createArea', conf,
             ['name', 'maxX', 'maxY']);
         this.pushScope(conf);
+
+        // This block for reporting purposes only
+        let zonesPreCreated = 0;
+        if (conf.zonesCreated) {
+            const val = Object.values(conf.zonesCreated);
+            zonesPreCreated = val.reduce((acc, val) => {
+                acc += val;
+                return acc;
+            }, 0);
+            const n = zonesPreCreated;
+            if (n > 0) {
+                console.log(`There are ${n} zones created`);
+            }
+        }
 
         const hierName = this.getHierName();
 
@@ -1103,15 +1125,27 @@ RG.Factory.World = function() {
         area.setHierName(this.getHierName());
 
         // When player enters a given area tile, create zones for that tile
-        if (this.createZones) {
+        if (this.createAllZones) {
             this._createAllZones(area, conf);
             area.markAllZonesCreated();
         }
         else {
-            console.log('Skipping the zone creating due to creatZones false');
+            console.log('Skipping the zone creating due to createZones=false');
         }
         this.popScope(conf);
         return area;
+    };
+
+    this.restoreCreatedZones = (world, area, areaConf) => {
+        console.log('Restoring created zones..');
+        Object.keys(areaConf.zonesCreated).forEach(xy => {
+            const [xStr, yStr] = xy.split(',');
+            const [x, y] = [parseInt(xStr, 10), parseInt(yStr, 10)];
+            if (areaConf.zonesCreated[xy]) {
+                console.log(`\tRestoring created zones for tile ${x},${y}`);
+                this.createZonesForTile(world, area, x, y);
+            }
+        });
     };
 
     /* Creates zones for given area tile x,y with located in area areaName. */
@@ -1134,20 +1168,23 @@ RG.Factory.World = function() {
 
     this._createAllZones = function(area, conf, tx = -1, ty = -1) {
         const types = ['City', 'Mountain', 'Dungeon'];
-        console.log(`_createAllZones ${tx}, ${ty}`);
+        console.log(`Factory _createAllZones ${tx}, ${ty}`);
         types.forEach(type => {
             const typeLc = type.toLowerCase();
             let nZones = 0;
             if (Array.isArray(conf[typeLc])) {
                 nZones = conf[typeLc].length;
             }
-            console.log('\tnZones is now ' + nZones);
+            console.log(`\tnZones (${type}) is now ${nZones}`);
             for (let i = 0; i < nZones; i++) {
                 const zoneConf = conf[typeLc][i];
                 const createFunc = 'create' + type;
                 const {x, y} = zoneConf;
+
                 if ((tx === -1 || tx === x) && (ty === -1 || ty === y)) {
                     const zone = this[createFunc](zoneConf);
+                    zone.setTileXY(x, y);
+                    console.log(`\t\tCreated zone of type ${type}`);
                     area.addZone(type, zone);
                     if (!this.id2levelSet) {
                         this.createAreaZoneConnection(area, zone, zoneConf);
@@ -1279,6 +1316,8 @@ RG.Factory.World = function() {
                 }
                 else {
                     level = this.factZone.createDungeonLevel(levelConf);
+                    const id = level.getID();
+                    console.log(`>> Creating dungeon level ID ${id}`);
                     // For creating 'fixed' items and actors
                     this.addFixedFeatures(i, level, branch);
                     if (i === (conf.nLevels - 1)) {
@@ -1621,6 +1660,14 @@ RG.Factory.World = function() {
                     level = this.id2level[id];
                 }
             }
+            else if (level.stub) {
+                const levelFact = new LevelFactory();
+                level = levelFact.create(level.new, level.args);
+                if (!level) {
+                    RG.err('Factory', 'createCityQuarter',
+                        'Stub found but cannot create level');
+                }
+            }
             else {
                 console.log(`cityQuarter ${hierName} ${i} from preset level`);
             }
@@ -1711,6 +1758,13 @@ RG.Factory.World = function() {
                     // Create new stairs for zone, unless connect obj has stairs
                     // property.
                     let zoneStairs = conn.stairs || null;
+
+                    // zoneStairs is either Element.Stairs or object telling
+                    // where stairs are found
+                    if (typeof zoneStairs.getStairs !== 'function') {
+                        zoneStairs = zoneLevel.getStairs()[zoneStairs.getStairs];
+                    }
+
                     if (!zoneStairs) {
                         const freeCell = zoneLevel.getFreeRandCell();
                         const zoneX = freeCell.getX();
