@@ -1,6 +1,15 @@
 
 const RG = require('./rg');
 
+/* This class creates constraint functions from config objects. A single
+ * constrains is defined by the following object:
+ * {op: OPERATION,
+ *  prop: PROPERTY TO COMPARE
+ *  value: VALUE TO COMPARE AGAINTS USING op
+ * }
+ * For example: {op: 'eq', prop: 'name', value: 'Giant rat'} checks that
+ * entity's name is equal to 'Giant rat'.
+ */
 export default class Constraints {
 
     getConstraints(objOrArray) {
@@ -26,8 +35,8 @@ export default class Constraints {
                 this.getFunc(op, prop, val)
             ));
             return function(obj) {
-                let res = true;
-                funcs.forEach(f => {res = res && f(obj);});
+                let res = false;
+                funcs.forEach(f => {res = res || f(obj);});
                 return res;
             };
         }
