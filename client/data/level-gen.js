@@ -22,10 +22,10 @@ const getNumLevels = function(name) {
 const getConstraint = function(name) {
     switch (name) {
         case 'Cave': return {
-            actor: actor => actor.type === 'animal' || actor.type === 'goblin'
+            actor: {op: 'eq', prop: 'type', value: ['animal', 'goblin']}
         };
         case 'Crypt': return {
-            actor: actor => actor.type === 'undead'
+            actor: {op: 'eq', prop: 'type', value: 'undead'}
         };
         default: return null;
     }
@@ -55,7 +55,6 @@ const getMountainSizeXY = function(name) {
 
 LevelGen.getDungeonConf = dungeonName => {
     const usedName = convertToImplemented(dungeonName);
-    // const brName = RG.Names.getGenericPlaceName('branch');
     const nLevels = getNumLevels(usedName);
     const constraint = getConstraint(usedName);
     const obj = {
@@ -118,7 +117,7 @@ const addShopConstraints = (qConf, conf) => {
     if (qName === 'Market' || qName === 'Bazaar') {
         const nShops = RG.RAND.getUniformInt(1, 3);
         qConf.nShops = nShops;
-        qConf.shop = [];
+        qConf.constraint.shop = [];
         for (let i = 0; i < nShops; i++) {
             let shopType = getRandomShopType();
 
@@ -126,10 +125,11 @@ const addShopConstraints = (qConf, conf) => {
             if (shopTypeConf !== 'random' && i === 0) {
                 shopType = shopTypeConf;
             }
-            const shopFunc = item => (
-                item.type === shopType && item.value <= maxValue
-            );
-            qConf.shop.push(shopFunc);
+            const shopConstr = [
+                {op: 'eq', prop: 'type', value: shopType},
+                {op: 'lte', prop: 'value', value: maxValue}
+            ];
+            qConf.constraint.shop.push(shopConstr);
         }
     }
     else {
@@ -144,7 +144,8 @@ const getQuarterConf = (nQuarters, conf) => {
         const qName = RG.Names.getGenericPlaceName('quarter');
         const qConf = {
             name: qName,
-            nLevels: 1
+            nLevels: 1,
+            constraint: {}
         };
         if (i === 0) {
             qConf.entranceLevel = 0;
