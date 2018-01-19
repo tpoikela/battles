@@ -169,7 +169,7 @@ RG.Factory.ItemRandomizer = function() {
             const randStat = _getRandStat();
             const getName = 'get' + randStat;
             const setName = 'set' + randStat;
-            stats[setName](stats[getName] + bonus);
+            stats[setName](stats[getName]() + bonus);
             RG.scaleItemValue('stats', bonus, weapon);
         }
     };
@@ -600,7 +600,7 @@ RG.Factory.Base = function() { // {{{2
     this.addNRandActors = (level, parser, conf) => {
         _verif.verifyConf('addNRandActors', conf,
             ['maxDanger', 'actorsPerLevel']);
-        // Generate the monsters randomly for this level
+        // Generate the enemies randomly for this level
         const maxDanger = conf.maxDanger;
 
         const actors = [];
@@ -753,6 +753,8 @@ RG.Factory.Zone = function() {
         if (conf.actor) {
             if (typeof conf.actor === 'function') {
                 actorConf.func = conf.actor;
+                console.log('XYZ Using actor func:');
+                console.log(actorConf.func.toString());
             }
             else {
                 RG.err('Factory.Zone', 'addItemsAndActors',
