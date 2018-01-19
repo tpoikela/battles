@@ -212,7 +212,7 @@ describe('Factory.World', function() {
                 {levelX: 0, levelY: 1, name: 'MainQuarter', nLevel: 0,
                     stairs: stairs1},
                 {levelX: 3, levelY: 4, name: 'MainQuarter', nLevel: 0,
-                    stairs: stairs2}
+                    stairs: {getStairs: 1}}
             ]
         };
         const areaLevel = RG.FACT.createLevel('empty', 100, 100, {});
