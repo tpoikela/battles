@@ -46,8 +46,8 @@ describe('Factory.Zone', () => {
             sqrPerItem: 20,
             nLevel: 0,
             maxValue: 1000,
-            food: () => false,
-            gold: () => false
+            food: false,
+            gold: false
         };
 
         fact.addItemsAndActors(level, conf);
