@@ -74,7 +74,7 @@ RG.Verify.verifySaveData = function(data, failFast = true) {
 };
 
 const stack = [];
-const maxStack = 20;
+const maxStack = 30;
 function traverseObj(obj, failFast) {
     const allErrors = [];
 	for (const prop in obj) {
