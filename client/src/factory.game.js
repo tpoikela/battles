@@ -300,6 +300,9 @@ RG.Factory.Game = function() {
                 };
                 this.addNRandActors(splitLevels[x][y], _parser, actorConf);
 
+                const id = splitLevels[x][y].getID();
+                console.log(`Tile[${x}][${y}] ID: ${id}`);
+
             }
         }
 
@@ -313,7 +316,7 @@ RG.Factory.Game = function() {
         game.setGlobalConf(obj);
 
         const worldConf = worldAndConf[1];
-        fact.createZones = false;
+        worldConf.createAllZones = false;
         const world = fact.createWorld(worldConf);
         game.addPlace(world);
         game.setOverWorld(overworld);
@@ -322,7 +325,6 @@ RG.Factory.Game = function() {
         playerLevel.addActorToFreeCell(player);
         RG.POOL.emitEvent(RG.EVT_TILE_CHANGED, {actor: player,
             target: playerLevel});
-
 
         player.setFOVRange(10);
         game.addPlayer(player); // Player already placed to level
