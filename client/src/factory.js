@@ -1761,7 +1761,7 @@ RG.Factory.World = function() {
 
                     // zoneStairs is either Element.Stairs or object telling
                     // where stairs are found
-                    if (typeof zoneStairs.getStairs !== 'function') {
+                    if (zoneStairs && zoneStairs.getStairs) {
                         zoneStairs = zoneLevel.getStairs()[zoneStairs.getStairs];
                     }
 
