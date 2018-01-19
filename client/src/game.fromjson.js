@@ -443,6 +443,14 @@ RG.Game.FromJSON = function() {
             game.setOverWorld(overworld);
         }
 
+        // 'Integrity' check that correct number of levels restored
+        const nLevels = game.getLevels().length;
+        if (nLevels !== json.levels.length) {
+            const exp = json.levels.length;
+            RG.err('Game.FromJSON', 'createGame',
+                `Exp. ${exp} levels, after restore ${nLevels}`);
+        }
+
         // Connect levels using id2level + stairsInfo
         this.connectGameLevels(game);
 
@@ -497,8 +505,10 @@ RG.Game.FromJSON = function() {
                     }
                 }
                 else {
+                    // this.reportMissingLevel(connObj);
+                    const id = connObj.targetLevel;
                     RG.err('Game.FromJSON', 'connectGameLevels',
-                        'Target level null. Cannot connect.');
+                        `Target level ${id} null. Cannot connect.`);
                 }
             });
         });
@@ -529,6 +539,14 @@ RG.Game.FromJSON = function() {
             const entity = id2entity[id];
             this.restoreEntity(obj, entity);
         });
+    };
+
+    this.reportMissingLevel = function(connObj) {
+        let msg = `connObj: ${JSON.stringify(connObj)}`;
+        Object.keys(id2level).forEach(id => {
+            msg += `\n\t${id}`;
+        });
+        console.log(msg + '\n');
     };
 
 };
