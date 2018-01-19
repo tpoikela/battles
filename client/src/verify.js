@@ -85,7 +85,8 @@ function traverseObj(obj, failFast) {
 				traverseObj(obj[prop]);
                 }
                 else if (typeof obj[prop] === 'function') {
-                    const msg = `Error. Func in ${JSON.stringify(stack)}`;
+                    let msg = `Error. Func in ${JSON.stringify(stack)}`;
+                    msg += `\n\tProp: ${prop}`;
                     if (failFast) {
                         throw new Error(msg);
                     }
