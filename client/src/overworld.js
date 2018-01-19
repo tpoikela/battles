@@ -21,14 +21,6 @@
  *    2  #### <-(lrx, lry)
  */
 
-//-------------------
-// imports/requires
-//-------------------
-
-import AbandonedFort from '../data/abandoned-fort';
-import Capital from '../data/capital';
-import DwarvenCity from '../data/dwarven-city';
-
 const RG = require('./rg');
 RG.Names = require('../data/name-gen');
 RG.LevelGen = require('../data/level-gen');
@@ -53,8 +45,7 @@ const playerTileY = 1;
 const getRandIn = RG.RAND.arrayGetRand.bind(RG.RAND);
 
 //---------------------------------------------------------------------------
-/* Wall object inside the Overworld. Wall here means a huge wall of mountains.
- */
+// Wall object inside the Overworld. Wall here means a huge wall of mountains.
 //---------------------------------------------------------------------------
 const Wall = function(type) {
     this.type = type; // vertical/horizontal/etc
@@ -900,7 +891,7 @@ function mapY(y, slY, subSizeY) {
 }
 
 function addCapitalConfToArea(feat, coordObj, areaConf) {
-    const capitalLevel = new Capital(200, 500, {}).getLevel();
+    const capitalLevel = {stub: true, new: 'Capital', args: [200, 500, {}]};
 
     const cityConf = {
         name: 'Blashyrkh',
@@ -918,10 +909,10 @@ function addCapitalConfToArea(feat, coordObj, areaConf) {
         levelX: cityConf.levelX,
         levelY: cityConf.levelY,
         nLevel: 0,
-        stairs: capitalLevel.getStairs()[1]
+        stairs: {getStairs: 1}
     };
 
-    cityConf.connectToXY[0].stairs = capitalLevel.getStairs()[0];
+    cityConf.connectToXY[0].stairs = {getStairs: 0};
     cityConf.connectToXY.push(mainConn);
     areaConf.nCities += 1;
     areaConf.city.push(cityConf);
@@ -929,7 +920,8 @@ function addCapitalConfToArea(feat, coordObj, areaConf) {
 
 function addDwarvenCityConfToArea(feat, coordObj, areaConf) {
     const fortConf = {};
-    const dwarvenCity = new DwarvenCity(300, 250, fortConf).getLevel();
+    const dwarvenCity = {stub: true, new: 'DwarvenCity',
+        args: [300, 250, fortConf]};
     const cityConf = {
         name: 'Dwarven City',
         nQuarters: 1,
@@ -945,10 +937,10 @@ function addDwarvenCityConfToArea(feat, coordObj, areaConf) {
         levelX: cityConf.levelX,
         levelY: cityConf.levelY,
         nLevel: 0,
-        stairs: dwarvenCity.getStairs()[1]
+        stairs: {getStairs: 1}
     };
 
-    cityConf.connectToXY[0].stairs = dwarvenCity.getStairs()[0];
+    cityConf.connectToXY[0].stairs = {getStairs: 0};
     cityConf.connectToXY.push(mainConn);
     areaConf.nCities += 1;
     areaConf.city.push(cityConf);
@@ -956,7 +948,8 @@ function addDwarvenCityConfToArea(feat, coordObj, areaConf) {
 
 function addAbandonedFortToArea(feat, coordObj, areaConf) {
     const fortConf = {};
-    const fortLevel = new AbandonedFort(500, 200, fortConf).getLevel();
+    const fortLevel = {stub: true, new: 'AbandonedFort',
+        args: [500, 200, fortConf]};
     const cityConf = {
         name: 'Abandoned fort',
         nQuarters: 1,
@@ -972,10 +965,12 @@ function addAbandonedFortToArea(feat, coordObj, areaConf) {
         levelX: cityConf.levelX,
         levelY: cityConf.levelY,
         nLevel: 0,
-        stairs: fortLevel.getStairs()[0]
+        stairs: {getStairs: 0}
+        // stairs: fortLevel.getStairs()[0]
     };
 
-    cityConf.connectToXY[0].stairs = fortLevel.getStairs()[1];
+    // cityConf.connectToXY[0].stairs = fortLevel.getStairs()[1];
+    cityConf.connectToXY[0].stairs = {getStairs: 1};
     cityConf.connectToXY.push(mainConn);
     areaConf.nCities += 1;
     areaConf.city.push(cityConf);

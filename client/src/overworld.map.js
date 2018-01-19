@@ -38,6 +38,7 @@ OW.BCAPITAL = '\u265A';
 OW.BTOWER = '\u265C';
 OW.WTOWER = '\u2656';
 OW.WDUNGEON = '\u2616';
+OW.MOUNTAIN = '^'; // TODO find better char
 // OW.VILLAGE = '\u27F0';
 OW.BVILLAGE = '\u25B2';
 OW.WVILLAGE = '\u25B3';
@@ -702,6 +703,8 @@ function addOverWorldFeatures(ow, conf) {
     const nDungeonsSouth = conf.nDungeonsSouth || Math.floor(area / 40);
     const nDungeonsCenter = conf.nDungeonsCenter || Math.floor(area / 80);
     const nDungeonsNorth = conf.nDungeonsNorth || Math.floor(area / 80);
+
+    const nMountainsSouth = conf.nMountainsSouth || Math.floor(area / 40);
     // Add final tower
     addFeatureToAreaByDir(ow, 'NE', 0.5, OW.BTOWER);
 
@@ -739,6 +742,7 @@ function addOverWorldFeatures(ow, conf) {
 
     // TODO:
     // Distribute mountains
+    addMountainsToOverWorld(ow, nMountainsSouth, cmdSouthernArea);
     // Adds roads for created features
 }
 
@@ -805,6 +809,15 @@ function addDungeonsToOverWorld(ow, nDungeons, cmd) {
     }
 }
 
+function addMountainsToOverWorld(ow, nMountains, cmd) {
+    const bbox = getBoundingBox(ow, cmd);
+    for (let i = 0; i < nMountains; i++) {
+        const xy = findCellRandXYInBox(ow.getMap(), bbox, [OW.TERM]);
+        ow.addFeature(xy, OW.MOUNTAIN);
+    }
+
+}
+
 /* Adds villages into the overworld. Can be bounded using using coordinates. */
 function addVillagesToOverWorld(ow, nDungeons, cmd) {
     const bbox = getBoundingBox(ow, cmd);
@@ -833,7 +846,8 @@ function cellMatches(type, listOrStr) {
     return matchFound >= 0;
 }
 
-/* Finds a random cell of given type from the box of coordinates. */
+/* Finds a random cell of given type from the box of coordinates. listOrStr
+ * should contain cells which are allowed. */
 function findCellRandXYInBox(map, bbox, listOrStr) {
     const {ulx, uly, lrx, lry} = bbox;
 
