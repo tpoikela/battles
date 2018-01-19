@@ -82,7 +82,7 @@ function traverseObj(obj, failFast) {
             stack.push(prop);
             if (stack.length < maxStack) {
                 if (typeof obj[prop] === 'object') {
-				traverseObj(obj[prop]);
+                    traverseObj(obj[prop]);
                 }
                 else if (typeof obj[prop] === 'function') {
                     let msg = `Error. Func in ${JSON.stringify(stack)}`;
@@ -94,6 +94,14 @@ function traverseObj(obj, failFast) {
                     else {
                         allErrors.push(msg);
                     }
+                }
+                else if (typeof obj[prop] === 'string') {
+                    if (/function/.test(obj[prop])) {
+                        let msg = `function in string <<${obj[prop]}>>\n`;
+                        msg += `\tStack is ${stack.join('.')}`;
+                        throw new Error(msg);
+                    }
+
                 }
             }
             stack.pop();
