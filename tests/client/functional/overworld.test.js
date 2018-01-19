@@ -8,8 +8,9 @@ RG.Verify = require('../../../client/src/verify');
 RG.Factory.Game = require('../../../client/src/factory.game');
 
 describe('How Game is created from Overworld', function() {
-    this.timeout(45000);
+    this.timeout(90000);
     it('is created using factory from game/player objects', () => {
+        RG.RAND.setSeed(0);
         const gameFact = new RG.Factory.Game();
 
         const conf = {
@@ -33,26 +34,38 @@ describe('How Game is created from Overworld', function() {
             const msg = level.getParent() + ' ' + level.getID();
             expect(level.getActors(),
                 `${msg}: > 0 actors`).to.have.length.above(0);
-            //expect(level.getItems(),
-                //`${msg}: > 0 items`).to.have.length.above(0);
+            // expect(level.getItems(),
+                // `${msg}: > 0 items`).to.have.length.above(0);
         });
+
+        const nLevels = game.getLevels().length;
+        console.log('Before save, game has ' + nLevels + ' levels');
 
         const json = game.toJSON();
         const jsonStr = JSON.stringify(json);
+        // console.log(jsonStr);
+        // RG.Verify.verifySaveData(jsonStr, false);
         const jsonParsed = JSON.parse(jsonStr);
 
         const fromJSON = new RG.Game.FromJSON();
+        console.log('== Restoring the game from JSON ==');
         const newGame = fromJSON.createGame(jsonParsed);
 
         const checkedID = game.getLevels()[0].getID();
+        console.log(`Checked level ID is now ${checkedID}`);
 
         const levelIDsBefore = game.getLevels().map(l => l.getID());
         const levelIDsAfter = newGame.getLevels().map(l => l.getID());
+        expect(levelIDsAfter).to.deep.equal(levelIDsBefore);
+        console.log(`After restore ${levelIDsAfter.length} levels`);
 
         const oldLevel = game.getLevels()[0];
         const newLevel = newGame.getLevels().filter(
-            l => l.getID() === checkedID[0]
-        );
+            l => l.getID() === checkedID
+        )[0];
+
+        const msg = `Level with ID ${checkedID} exists after restore.`;
+        expect(newLevel, msg).not.to.be.empty;
 
         const actorsOld = oldLevel.getActors();
         const actorsNew = newLevel.getActors();
@@ -66,6 +79,5 @@ describe('How Game is created from Overworld', function() {
 
         expect(RG.Verify.verifySaveData.bind(json)).to.not.throw;
 
-        expect(levelIDsAfter).to.deep.equal(levelIDsBefore);
     });
 });
