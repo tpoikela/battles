@@ -187,6 +187,14 @@ RG.Game.Main = function() {
         }
     };
 
+    /* Adds given level to the game unless it already exists. */
+    this.addLevelUnlessExists = level => {
+        if (!_engine.hasLevel(level)) {
+            _levels.push(level);
+            _engine.addLevel(level);
+        }
+    };
+
     /* Adds a place (dungeon/area) containing several levels.*/
     this.addPlace = function(place) {
         if (place.hasOwnProperty('getLevels')) {
@@ -249,16 +257,22 @@ RG.Game.Main = function() {
         else if (evtName === RG.EVT_TILE_CHANGED) {
             const {actor, target} = args;
             if (actor.isPlayer()) {
-                console.log('Respond to TILE_CHANGED');
                 const levelID = target.getID();
                 // TODO add support for multiple places/worlds
+
                 const world = Object.values(_places)[0];
-                const area = world.getAreas()[0];
-                const [x, y] = area.findTileXYById(levelID);
-                console.log(`Creating zones for tile ${x},${y}`);
-                const fact = new RG.Factory.World();
-                fact.setGlobalConf(this.getGlobalConf());
-                fact.createZonesForTile(world, area, x, y);
+                // TODO add newly created levels into game (for scheduling etc)
+                if (world && world.getAreas) {
+                    const area = world.getAreas()[0];
+                    const [x, y] = area.findTileXYById(levelID);
+                    const fact = new RG.Factory.World();
+                    fact.setGlobalConf(this.getGlobalConf());
+                    fact.createZonesForTile(world, area, x, y);
+
+                    const levels = world.getLevels();
+                    console.log(`Game.Main adding ${levels.length} levels`);
+                    levels.forEach(l => {this.addLevelUnlessExists(l);});
+                }
             }
         }
     };
