@@ -1,5 +1,6 @@
 
 import LevelFactory from '../data/level-factory';
+import Constraints from './constraints';
 
 const RG = require('./rg.js');
 const debug = require('debug')('bitn:factory');
@@ -23,6 +24,7 @@ RG.Factory.cityConfBase = conf => {
         nHouses: 10, minHouseX: 5, maxHouseX: 10, minHouseY: 5,
         maxHouseY: 10, nShops: 1,
         shopFunc: [
+            // {op: 'eq', prop: 'type', value: RG.RAND.arrayGetRand(RG.SHOP_TYPES)}
             item => item.type === RG.RAND.arrayGetRand(RG.SHOP_TYPES)
         ],
         shopType: '', levelType: 'arena'
@@ -279,7 +281,7 @@ RG.Factory.Item = function() {
     this.addNRandItems = (level, parser, conf) => {
         const items = this.generateItems(parser, conf);
 
-        if (typeof conf.food === 'function' && conf.food()) {
+        if (conf.food) {
             const food = parser.createRandomItem({
                 func: item => item.type === 'food'
             });
@@ -729,13 +731,13 @@ RG.Factory.Zone = function() {
             itemsPerLevel,
             func: itemConstraint(conf.maxValue),
             maxValue: conf.maxValue,
-            food: () => true,
-            gold: () => true
+            food: true,
+            gold: true
         };
-        if (conf.food) {
+        if (conf.hasOwnProperty('food')) {
             itemConf.food = conf.food;
         }
-        if (conf.gold) {
+        if (conf.hasOwnProperty('gold')) {
             itemConf.gold = conf.gold;
         }
         if (conf.item) {
@@ -759,7 +761,7 @@ RG.Factory.Zone = function() {
         }
         this.addNRandActors(level, _parser, actorConf);
 
-        if (itemConf.gold()) {
+        if (itemConf.gold) {
             const goldConf = {
                 goldPerLevel,
                 nLevel: conf.nLevel + 1
@@ -1357,31 +1359,52 @@ RG.Factory.World = function() {
         return level;
     };
 
+    const _errorOnFunc = val => {
+        if (typeof val === 'function') {
+            RG.err('Factory', '_errorOnFunc',
+                `Function constraint not supported anymore: ${val.toString}`);
+        }
+    };
+
     /* Sets the randomization constraints for the level based on current
      * configuration. */
     this.setLevelConstraints = function(levelConf) {
         const constraint = this.getConf('constraint');
+        const constrFact = new Constraints();
         if (constraint) {
             const hierName = this.getHierName();
             if (constraint.actor) {
-                levelConf.actor = constraint.actor;
+                _errorOnFunc(constraint.actor);
+                levelConf.actor = constrFact.getConstraints(constraint.actor);
                 const str = constraint.actor.toString();
                 debug(`Found actor constraint for ${hierName}: ${str}`);
             }
             if (constraint.item) {
-                levelConf.item = constraint.item;
+                _errorOnFunc(constraint.item);
+                levelConf.item = constrFact.getConstraints(constraint.item);
                 const str = constraint.item.toString();
                 debug(`Found item constraint for ${hierName}: ${str}`);
             }
             if (constraint.food) {
-                levelConf.food = constraint.food;
+                _errorOnFunc(constraint.food);
+                levelConf.food = constrFact.getConstraints(constraint.food);
                 const str = constraint.food.toString();
                 debug(`Found food constraint for ${hierName}: ${str}`);
             }
             if (constraint.gold) {
-                levelConf.gold = constraint.gold;
+                _errorOnFunc(constraint.gold);
+                levelConf.gold = constrFact.getConstraints(constraint.gold);
                 const str = constraint.gold.toString();
                 debug(`Found gold constraint for ${hierName}: ${str}`);
+            }
+            if (constraint.shop) {
+                const shopFunc = [];
+                constraint.shop.forEach(con => {
+                    shopFunc.push(constrFact.getConstraints(con));
+                });
+                levelConf.shopFunc = shopFunc;
+                const str = JSON.stringify(constraint.shop);
+                debug(`Found shop constraint for ${hierName}: ${str}`);
             }
         }
 
