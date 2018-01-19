@@ -542,6 +542,9 @@ function addSubLevelFeatures(ow, owX, owY, subLevel) {
         else if (feat === OW.WVILLAGE) {
             addVillageToSubLevel(feat, owSubLevel, subLevel);
         }
+        else if (feat === OW.MOUNTAIN) {
+            addMountainToSubLevel(owSubLevel, subLevel);
+        }
         else {
             const msg = `Base: ${base}, ${feat}`;
             console.log('Skipping feature: ' + msg);
@@ -670,6 +673,33 @@ function addDungeonToSubLevel(owSubLevel, subLevel) {
         const dungeon = new RG.OverWorld.SubFeature('dungeon', coord);
         owSubLevel.addFeature(dungeon);
     }
+}
+
+/* Adds a mountain to the given sub-level. Each mountain is placed on free map
+ * cell. */
+function addMountainToSubLevel(owSubLevel, subLevel) {
+    let placed = false;
+    const map = subLevel.getMap();
+    const freeCells = map.getFree();
+    const freeXY = freeCells.map(cell => [cell.getX(), cell.getY()]);
+
+    let coord = [];
+    let watchdog = 1000;
+    while (!placed) {
+        const xy = getRandIn(freeXY);
+        coord = [xy];
+        placed = true;
+        if (watchdog === 0) {
+            break;
+        }
+        --watchdog;
+    }
+
+    if (placed) {
+        const mountain = new RG.OverWorld.SubFeature('mountain', coord);
+        owSubLevel.addFeature(mountain);
+    }
+
 }
 
 /* Adds a village to the free square of the sub-level. */
@@ -806,6 +836,19 @@ RG.OverWorld.createWorldConf = (ow, subLevels, nTilesX, nTilesY) => {
                             {x: aX, y: aY, levelX: featX, levelY: featY});
                         areaConf.nDungeons += 1;
                         areaConf.dungeon.push(dungeonConf);
+                    }
+                    else if (feat.type === 'mountain') {
+                        const coord = feat.coord;
+
+                        const featX = mapX(coord[0][0], slX, subX);
+                        const featY = mapY(coord[0][1], slY, subY);
+                        const mName = RG.Names.getGenericPlaceName('mountain');
+
+                        const mountConf = RG.LevelGen.getMountainConf(mName);
+                        Object.assign(mountConf,
+                            {x: aX, y: aY, levelX: featX, levelY: featY});
+                        areaConf.nMountain += 1;
+                        areaConf.mountain.push(mountConf);
                     }
                     else if (feat.type === 'blacktower') {
                         console.log('Adding final blacktower now');
