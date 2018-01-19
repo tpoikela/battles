@@ -10,7 +10,7 @@ RG.Factory.Game = require('../../../client/src/factory.game');
 describe('How Game is created from Overworld', function() {
     this.timeout(90000);
     it('is created using factory from game/player objects', () => {
-        RG.RAND.setSeed(0);
+        RG.RAND.setSeed(1234);
         const gameFact = new RG.Factory.Game();
 
         const conf = {
