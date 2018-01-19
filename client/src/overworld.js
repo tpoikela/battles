@@ -1067,15 +1067,18 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
     dungeonConf.tilesY = 20;
     dungeonConf.maxDanger = 50;
     dungeonConf.constraint = {};
-    dungeonConf.constraint.actor = actor => (
-        actor.type !== 'human' && actor.danger >= 6 &&
-        actor.base === 'WinterBeingBase'
-    );
-    dungeonConf.constraint.item = item => (
-        item.value >= 65 || (/Gold/).test(item.name)
-    );
-    dungeonConf.constraint.food = () => false;
-    dungeonConf.constraint.gold = () => false;
+    dungeonConf.constraint.actor = [
+        {op: 'neq', prop: 'type', value: 'human'},
+        {op: 'eq', prop: 'base', value: 'WinterBeingBase'},
+        {op: 'gte', prop: 'danger', value: 6}
+    ];
+
+    dungeonConf.constraint.item = [
+        {op: 'gte', prop: 'value', value: 65},
+        {op: 'match', prop: 'name', value: 'Gold'}
+    ];
+    dungeonConf.constraint.food = false;
+    dungeonConf.constraint.gold = false;
 
     const nLastLevel = dungeonConf.branch[0].nLevels - 1;
     dungeonConf.branch[0].create = {
