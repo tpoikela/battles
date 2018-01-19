@@ -44,7 +44,7 @@ describe('How Game is created from Overworld', function() {
         const json = game.toJSON();
         const jsonStr = JSON.stringify(json);
         // console.log(jsonStr);
-        // RG.Verify.verifySaveData(jsonStr, false);
+        RG.Verify.verifySaveData(json, false);
         const jsonParsed = JSON.parse(jsonStr);
 
         const fromJSON = new RG.Game.FromJSON();
