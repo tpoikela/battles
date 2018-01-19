@@ -213,6 +213,11 @@ RG.World.ZoneBase = function(name) {
 };
 RG.extend2(RG.World.ZoneBase, RG.World.Base);
 
+RG.World.ZoneBase.prototype.setTileXY = function(x, y) {
+    this.tileX = x;
+    this.tileY = y;
+};
+
 RG.World.ZoneBase.prototype.addSubZone = function(subZone) {
     if (!RG.isNullOrUndef([subZone])) {
         this._subZones.push(subZone);
@@ -447,6 +452,7 @@ RG.World.Dungeon = function(name) {
 
     this.toJSON = function() {
         const obj2 = {
+            x: this.tileX, y: this.tileY,
             name: this.getName(),
             type: this.getType(),
             entranceNames: this._entranceNames,
@@ -714,6 +720,8 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
             maxX: _sizeX, maxY: _sizeY,
             cols: _cols, rows: _rows,
             tiles: tilesJSON,
+
+            // TODO split somehow between created/not created zones
             nDungeons: this.zones.Dungeon.length,
             dungeon: this.zones.Dungeon.map(dg => dg.toJSON()),
             nMountains: this.zones.Mountain.length,
@@ -1025,7 +1033,7 @@ RG.World.Top = function(name) {
     RG.World.Base.call(this, name);
     this.setType('world');
 
-    const _allLevels = {}; // Lookup table for all levels
+    // const _allLevels = {}; // Lookup table for all levels
     const _areas = [];
 
     this._conf = {};
@@ -1035,25 +1043,15 @@ RG.World.Top = function(name) {
     /* Adds an area into the world. */
     this.addArea = function(area) {
         _areas.push(area);
-        this.addLevels(area.getLevels());
     };
 
-    /* Adds the array of levels to the global map. */
-    this.addLevels = levels => {
-        levels.forEach(level => {
-            const id = level.getID();
-            if (!_allLevels.hasOwnProperty(id)) {
-                _allLevels[id] = level;
-            }
-            else {
-                RG.err('World.Top', 'addLevels',
-                    `Level ID ${id} already exists.`);
-            }
+    this.getLevels = () => {
+        let levels = [];
+        _areas.map(area => {
+            levels = levels.concat(area.getLevels());
         });
+        return levels;
     };
-
-    this.getLevels = () => Object.keys(_allLevels).map(key => _allLevels[key]);
-
     this.getAreas = () => (_areas);
 
     /* Returns all zones of given type. */
@@ -1080,12 +1078,17 @@ RG.World.Top = function(name) {
 
     this.toJSON = function() {
         const area = _areas.map(area => area.toJSON());
+        let createAllZones = true;
+        if (this.getConf().hasOwnProperty('createAllZones')) {
+            createAllZones = this.getConf().createAllZones;
+        }
         return {
             name: this.getName(),
             conf: this.getConf(),
             hierName: this.getHierName(),
             nAreas: _areas.length,
-            area
+            area,
+            createAllZones
         };
     };
 };
