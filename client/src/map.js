@@ -955,7 +955,7 @@ RG.Map.Level = function() { // {{{2
             items: [],
             elements: [],
             map: this.getMap().toJSON(),
-            cbState: JSON.stringify(_cbState)
+            cbState: _cbState
         };
 
         const parent = this.getParent();
