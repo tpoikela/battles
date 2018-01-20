@@ -615,8 +615,15 @@ Actors.scale = {
     hp: 1
 };
 
+Actors.add = {
+    attack: 4
+};
+
 Object.keys(Actors.scale).forEach(item => {
     Actors.scaleValue(item, Actors.scale[item]);
+});
+Object.keys(Actors.add).forEach(item => {
+    Actors.addValue(item, Actors.add[item]);
 });
 
 module.exports = Actors;
