@@ -4,14 +4,13 @@
  *   1. cast()
  *   2. getSelectionObject()
  *   3. aiShouldCastSpell (optional)
- *   4. getCastFunc (optional)
+ *     - Return true if spell should be cast
+ *     - Set also args for the spell (dir, target etc)
  *
- * where 3&4 are used with spellcaster AI. Without these, the spell cannot be
- * used by AI.
- *
+ * where 3 is used with spellcaster AI. Without this, the spell cannot be
+ * used by the AI.
  */
 const RG = require('./rg');
-// const Mixin = require('./mixin');
 
 RG.Spell = {};
 
@@ -35,6 +34,7 @@ const compareSpells = (s1, s2) => {
     return 0;
 };
 
+/* Returns selection object for spell which is cast on self. */
 RG.Spell.getSelectionObjectSelf = (spell, actor) => {
     const func = () => {
         const spellCast = new RG.Component.SpellCast();
@@ -146,6 +146,20 @@ RG.Spell.Base = function(name, power) {
     this.getPower = () => _power;
     this.setPower = power => {_power = power;};
 
+    this.getCastFunc = function(actor, args) {
+        if (args.dir) {
+            args.src = actor;
+            return () => {
+                const spellCast = new RG.Component.SpellCast();
+                spellCast.setSource(actor);
+                spellCast.setSpell(this);
+                spellCast.setArgs(args);
+                actor.add('SpellCast', spellCast);
+            };
+        }
+        return null;
+    };
+
 };
 
 RG.Spell.Base.prototype.toString = function() {
@@ -226,7 +240,6 @@ RG.Spell.FrostBolt = function() {
         args.src.add('SpellRay', rayComp);
     };
 
-
     this.getSelectionObject = function(actor) {
         RG.gameMsg('Select a direction for firing:');
         return {
@@ -236,20 +249,6 @@ RG.Spell.FrostBolt = function() {
             },
             showMenu: () => false
         };
-    };
-
-    this.getCastFunc = function(actor, args) {
-        if (args.dir) {
-            args.src = actor;
-            return () => {
-                const spellCast = new RG.Component.SpellCast();
-                spellCast.setSource(actor);
-                spellCast.setSpell(this);
-                spellCast.setArgs(args);
-                actor.add('SpellCast', spellCast);
-            };
-        }
-        return null;
     };
 
     this.aiShouldCastSpell = args => {
@@ -373,6 +372,7 @@ RG.Spell.PowerDrain = function() {
     this.getSelectionObject = function(actor) {
         return RG.Spell.getSelectionObjectSelf(this, actor);
     };
+
 
     /* TODO: Change to LOS or something more effective. */
     this.aiShouldCastSpell = args => {
