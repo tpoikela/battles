@@ -14,6 +14,7 @@ import GameBoard from './game-board';
 import GameInventory from './game-inventory';
 import GameEditor from '../editor/game-editor';
 import GameCharInfo from './game-char-info';
+import LevelSaveLoad from '../editor/level-save-load';
 
 const ROT = require('../../lib/rot');
 const RG = require('../src/rg');
@@ -549,6 +550,15 @@ class BattlesTop extends Component {
         }
     }
 
+    onLoadCallback(data) {
+        const fromJSON = new RG.Game.FromJSON();
+        const restGame = fromJSON.createGame(data);
+        const player = restGame.getPlayer();
+        if (player !== null) {
+            this.initRestoredGame(restGame);
+        }
+    }
+
     render() {
         let map = null;
         let player = null;
@@ -683,6 +693,12 @@ class BattlesTop extends Component {
                                 selectedItem={this.state.selectedItem}
                                 setViewType={this.setViewType}
                                 showMap={this.state.showMap}
+                            />
+                            <LevelSaveLoad
+                                objData={this.game}
+                                onLoadCallback={this.onLoadCallback}
+                                savedObjName={'saveGame_' + player.getName()}
+                                setMsg={msg => console.log(msg)}
                             />
                         </div>
                         }
@@ -1049,6 +1065,7 @@ class BattlesTop extends Component {
 
         this.getNextTargetCell = this.getNextTargetCell.bind(this);
 
+        this.onLoadCallback = this.onLoadCallback.bind(this);
     }
 
     /* Returns the player tile position in overworld. */
