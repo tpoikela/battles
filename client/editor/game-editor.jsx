@@ -208,6 +208,7 @@ export default class GameEditor extends Component {
     this.handleKeyDown = this.handleKeyDown.bind(this);
 
     this.deleteLevel = this.deleteLevel.bind(this);
+    this.onLoadCallback = this.onLoadCallback.bind(this);
   }
 
   componentDidMount() {
@@ -682,9 +683,9 @@ export default class GameEditor extends Component {
 
           <div className='btn-div'>
             <LevelSaveLoad
-                addLevelToEditor={this.addLevelToEditor}
-                level={this.state.level}
-                levelName={this.state.savedLevelName}
+                objData={this.state.level}
+                onLoadCallback={this.onLoadCallback}
+                savedObjName={this.state.savedLevelName}
                 setMsg={this.setMsg}
             />
 
@@ -701,6 +702,13 @@ export default class GameEditor extends Component {
         </div>
       </div>
     );
+  }
+
+  onLoadCallback(data) {
+    const fromJSON = new RG.Game.FromJSON();
+    const level = fromJSON.restoreLevel(data);
+    fromJSON.restoreEntityData();
+    this.addLevelToEditor(level);
   }
 
   getEditorMsg() {
