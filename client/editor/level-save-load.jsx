@@ -17,18 +17,21 @@ export default class LevelSaveLoad extends Component {
 
   /* Converts the rendered level to JSON and puts that into localStorage.*/
   saveLevel() {
-    const json = this.props.level.toJSON();
+    const json = this.props.objData.toJSON();
     try {
       /* eslint-disable */
       const isFileSaverSupported = !!new Blob;
       /* eslint-enable */
       if (isFileSaverSupported) {
         const date = new Date().getTime();
-        const fname = `${date}_${this.props.savedLevelName}.json`;
-        const text = JSON.stringify(json);
+        const fname = `${date}_${this.props.savedObjName}.json`;
+        const text = JSON.stringify(json, null, ' ');
         const blob = new Blob([text],
           {type: 'text/plain;charset=utf-8'});
         FileSaver.saveAs(blob, fname);
+        if (this.props.onSaveCallback) {
+            this.props.onSaveCallback(json);
+        }
       }
     }
     catch (e) {
@@ -45,7 +48,6 @@ export default class LevelSaveLoad extends Component {
     const fileList = document.querySelector('#level-file-input').files;
 
     const file = fileList[0];
-    console.log('file is ' + file);
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -54,10 +56,9 @@ export default class LevelSaveLoad extends Component {
         try {
           // Many things can go wrong: Not JSON, not a valid level..
           const json = JSON.parse(text);
-          const fromJSON = new RG.Game.FromJSON();
-          const level = fromJSON.restoreLevel(json);
-          fromJSON.restoreEntityData();
-          this.props.addLevelToEditor(level);
+          if (this.props.onLoadCallback) {
+              this.props.onLoadCallback(json);
+          }
         }
         catch (e) {
           const msg = 'File: Not valid JSON or level: ' + e.message;
@@ -95,8 +96,9 @@ export default class LevelSaveLoad extends Component {
 }
 
 LevelSaveLoad.propTypes = {
-  addLevelToEditor: PropTypes.func,
-  level: PropTypes.object,
-  savedLevelName: PropTypes.string,
+  onLoadCallback: PropTypes.func,
+  objData: PropTypes.object,
+  onSaveCallback: PropTypes.func,
+  savedObjName: PropTypes.string,
   setMsg: PropTypes.func
 };
