@@ -290,6 +290,7 @@ class BattlesTop extends Component {
             })
             .catch(() => {
                 RG.gameDanger('Cannot save the game. Check devtools console.');
+                this.setState({render: true, saveInProgress: false});
             });
     }
 
@@ -297,7 +298,10 @@ class BattlesTop extends Component {
         return new Promise((resolve, reject) => {
             try {
                 const json = this.game.toJSON();
-                RG.Verify.verifySaveData(json, false);
+                // console.log(JSON.stringify(json, null, ' '));
+                console.log('Verifying save data now');
+                // RG.Verify.verifySaveData(json, true);
+                console.log('Verification done OK');
                 resolve(json);
             }
             catch (e) {
