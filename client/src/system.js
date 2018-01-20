@@ -1303,7 +1303,7 @@ RG.System.SpellEffect = function(compTypes) {
     this.rayHitsActor = function(actor, rangeLeft) {
         let evasion = actor.get('Stats').getAgility();
         if (actor.has('Skills')) {
-            evasion += actor.get('Skills').get('Dodge');
+            evasion += actor.get('Skills').getLevel('Dodge');
         }
         evasion -= rangeLeft;
         if (evasion < 0) {evasion = 0;}
