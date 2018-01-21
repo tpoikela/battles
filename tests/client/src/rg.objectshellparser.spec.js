@@ -290,7 +290,6 @@ describe('It contains all game content info', () => {
         expect(ratObj.get('Combat').getAttack()).to.equal(1);
         expect(ratObj.get('Combat').getDefense()).to.equal(1);
         expect(ratObj.get('Stats').getSpeed()).to.equal(100);
-        console.log('ratObj: ' + JSON.stringify(ratObj));
         RGTest.checkChar(ratObj, 'r');
         RGTest.checkCSSClassName(ratObj, 'cell-actor-animal');
 
@@ -308,7 +307,6 @@ describe('It contains all game content info', () => {
         const rubySwordShell = parser.get('items', 'Ruby glass sword');
         const rubySwordObj = parser.createActualObj('items',
             'Ruby glass sword');
-
         expect(rubySwordShell.attack).to.equal(rubySwordObj.getAttack());
     });
 
