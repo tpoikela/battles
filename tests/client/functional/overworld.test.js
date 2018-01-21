@@ -1,6 +1,4 @@
 
-// import {verifySaveData} from '../../../client/src/persist';
-
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 RG.Verify = require('../../../client/src/verify');
@@ -10,7 +8,7 @@ RG.Factory.Game = require('../../../client/src/factory.game');
 describe('How Game is created from Overworld', function() {
     this.timeout(90000);
     it('is created using factory from game/player objects', () => {
-        RG.RAND.setSeed(12345678);
+        RG.RAND.setSeed(6666);
         const gameFact = new RG.Factory.Game();
 
         const conf = {
