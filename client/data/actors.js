@@ -621,10 +621,10 @@ Actors.add = {
 
 /* Should be called to apply the adjusted values. */
 Actors.adjustActorValues = actors => {
-    Object.keys(actors.scale).forEach(item => {
+    Object.keys(Actors.scale).forEach(item => {
         Actors.scaleValue(actors, item, Actors.scale[item]);
     });
-    Object.keys(actors.add).forEach(item => {
+    Object.keys(Actors.add).forEach(item => {
         Actors.addValue(actors, item, Actors.add[item]);
     });
 };
