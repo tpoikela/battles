@@ -1,15 +1,67 @@
 
 import Entity from './entity';
 
-const RG = require('./rg.js');
-RG.Component = require('./component.js');
-RG.Brain = require('./brain.js');
-RG.Brain.Player = require('./brain.player.js');
-RG.Inv = require('./inv.js');
-RG.Spell = require('./spell.js');
+const RG = require('./rg');
+RG.Component = require('./component');
+RG.Brain = require('./brain.virtual');
+RG.Brain.Player = require('./brain.player');
+RG.Inv = require('./inv');
+RG.Spell = require('./spell');
 const Mixin = require('./mixin');
 
 RG.Actor = {};
+
+/* Virtual actor can be used to spawn more entities or for AI-like effects
+ * inside a level. */
+class VirtualActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
+
+    constructor(name) { // {{{2
+        super({propType: RG.TYPE_ACTOR, type: null});
+        this._name = name;
+        this.add(new RG.Component.Action());
+        this._speed = 100;
+        this._brain = new RG.Brain.Virtual(this);
+    }
+
+    isPlayer() {return false;}
+
+    setName(name) {this._name = name;}
+    getName() {return this._name;}
+
+    getBrain() {return this._brain;}
+
+    setBrain(brain) {
+        this._brain = brain;
+        this._brain.setActor(this);
+    }
+
+    getSpeed() {return this._speed;}
+
+    /* Returns the next action for this actor.*/
+    nextAction(obj) {
+        // Use actor brain to determine the action
+        const cb = this._brain.decideNextAction(obj);
+        let action = null;
+
+        if (cb !== null) {
+            const speed = this.getSpeed();
+            const duration = parseInt(
+                RG.BASE_SPEED / speed * RG.ACTION_DUR, 10);
+            action = new RG.Time.RogueAction(duration, cb, {});
+        }
+        else {
+            action = new RG.Time.RogueAction(0, () => {}, {});
+        }
+
+        if (this._brain.hasOwnProperty('energy')) {
+            action.energy = this._brain.energy;
+        }
+        action.actor = this;
+        return action;
+    }
+
+}
+RG.Actor.Virtual = VirtualActor;
 
 /* Object representing a game actor who takes actions.  */
 class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
