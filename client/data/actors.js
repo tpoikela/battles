@@ -593,8 +593,8 @@ const Actors = [
 ];
 
 // Multiplies each given value in all actors
-Actors.scaleValue = function(valName, multiply) {
-    Actors.forEach(actor => {
+Actors.scaleValue = function(actors, valName, multiply) {
+    actors.forEach(actor => {
         if (Number.isInteger(actor[valName])) {
             actor[valName] = Math.round(multiply * actor[valName]);
         }
@@ -602,8 +602,8 @@ Actors.scaleValue = function(valName, multiply) {
 };
 
 // Adds to the given value in all actors
-Actors.addValue = function(valName, addedVal) {
-    Actors.forEach(actor => {
+Actors.addValue = function(actors, valName, addedVal) {
+    actors.forEach(actor => {
         if (Number.isInteger(actor[valName])) {
             actor[valName] += addedVal;
         }
@@ -619,12 +619,15 @@ Actors.add = {
     attack: 4
 };
 
-Object.keys(Actors.scale).forEach(item => {
-    Actors.scaleValue(item, Actors.scale[item]);
-});
-Object.keys(Actors.add).forEach(item => {
-    Actors.addValue(item, Actors.add[item]);
-});
+/* Should be called to apply the adjusted values. */
+Actors.adjustActorValues = actors => {
+    Object.keys(actors.scale).forEach(item => {
+        Actors.scaleValue(actors, item, Actors.scale[item]);
+    });
+    Object.keys(actors.add).forEach(item => {
+        Actors.addValue(actors, item, Actors.add[item]);
+    });
+};
 
 module.exports = Actors;
 
