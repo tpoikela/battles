@@ -11,7 +11,6 @@ const Models = BTree.Models;
 const ACTION_ALREADY_DONE = () => {};
 const NO_ACTION_TAKEN = () => {};
 
-
 //---------------------------------------------------------------------------
 // BRAINS
 //---------------------------------------------------------------------------
@@ -129,6 +128,25 @@ RG.Brain.Memory = function() {
             obj.lastAttackedID = _lastAttackedID;
         }
         return obj;
+    };
+
+};
+
+/* Base class for actor brains. */
+RG.Brain.Base = function(actor) {
+    this._actor = actor;
+    this._type = null;
+
+    this.setActor = actor => {this._actor = actor;};
+    this.getActor = () => this._actor;
+    this.getType = () => this._type;
+    this.setType = type => {this._type = type;};
+
+    /* Main function for retrieving the actionable callback. Acting actor must
+     * be passed in. */
+    this.decideNextAction = function() {
+      RG.err('Brain.Base', 'decideNextAction',
+          'Not implemented. Do in derived class');
     };
 
 };
