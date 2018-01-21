@@ -118,6 +118,11 @@ const DebugGame = function(fact, parser) {
             player.get('SpellPower').setPP(100);
         }
 
+        const vActor = new RG.Actor.Virtual('spawner');
+        const spawnBrain = new RG.Brain.Spawner(vActor);
+        vActor.setBrain(spawnBrain);
+        level.addActor(vActor, 0, 0);
+
         return game;
     };
 
