@@ -25,7 +25,14 @@ export default class LevelSaveLoad extends Component {
       if (isFileSaverSupported) {
         const date = new Date().getTime();
         const fname = `${date}_${this.props.savedObjName}.json`;
-        const text = JSON.stringify(json, null, ' ');
+
+        let text = null;
+        if (this.props.pretty) {
+          text = JSON.stringify(json, null, ' ');
+        }
+        else {
+          text = JSON.stringify(json);
+        }
         const blob = new Blob([text],
           {type: 'text/plain;charset=utf-8'});
         FileSaver.saveAs(blob, fname);
@@ -99,6 +106,8 @@ LevelSaveLoad.propTypes = {
   onLoadCallback: PropTypes.func,
   objData: PropTypes.object,
   onSaveCallback: PropTypes.func,
+  pretty: PropTypes.bool,
   savedObjName: PropTypes.string,
   setMsg: PropTypes.func
+
 };
