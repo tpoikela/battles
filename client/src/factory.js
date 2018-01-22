@@ -24,7 +24,6 @@ RG.Factory.cityConfBase = conf => {
         nHouses: 10, minHouseX: 5, maxHouseX: 10, minHouseY: 5,
         maxHouseY: 10, nShops: 1,
         shopFunc: [
-            // {op: 'eq', prop: 'type', value: RG.RAND.arrayGetRand(RG.SHOP_TYPES)}
             item => item.type === RG.RAND.arrayGetRand(RG.SHOP_TYPES)
         ],
         shopType: '', levelType: 'arena'
@@ -968,7 +967,8 @@ RG.Factory.World = function() {
     const _verif = new RG.Verify.Conf('Factory.World');
     this.factZone = new RG.Factory.Zone();
 
-    // Creates all zones when the area is created if true.
+    // Creates all zones when the area is created if true. Setting it to true
+    // makes creation of game very slow, as the full game is built in one go
     this.createAllZones = true;
 
     // Used for generating levels, if more specific settings not given
