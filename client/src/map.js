@@ -825,6 +825,22 @@ RG.Map.Level = function() { // {{{2
         return false;
     };
 
+    /* Adds virtual prop not associated with x,y position or a cell. */
+    this.addVirtualProp = function(propType, obj) {
+        if (_p.hasOwnProperty(propType)) {
+            _p[propType].push(obj);
+            obj.setLevel(this);
+            RG.POOL.emitEvent(RG.EVT_LEVEL_PROP_ADDED, {level: this, obj,
+                propType});
+            return true;
+        }
+        else {
+            RG.err('Map.Level', 'addVirtualProp',
+                `No prop ${propType} supported. Obj: ${JSON.stringify(obj)}`);
+        }
+        return false;
+    };
+
     /* Removes a prop 'obj' to level location x,y. Returns true on success,
      * false on failure.*/
     this._removePropFromLevelXY = function(propType, obj, x, y) {
@@ -844,13 +860,26 @@ RG.Map.Level = function() { // {{{2
             else {
                 RG.err('Map.Level', '_removePropFromLevelXY',
                     `Obj index not found in list _p[${propType}]`);
-
             }
             return false;
         }
         else {
             RG.err('Map.Level', '_removePropFromLevelXY',
                 `No prop ${propType} supported. Obj: ${JSON.stringify(obj)}`);
+        }
+        return false;
+    };
+
+    /* Removes a virtual property. */
+    this.removeVirtualProp = function(propType, obj) {
+        if (_p.hasOwnProperty(propType)) {
+            const index = _p[propType].indexOf(obj);
+            if (index >= 0) {
+                _p[propType].splice(index, 1);
+                RG.POOL.emitEvent(RG.EVT_LEVEL_PROP_REMOVED,
+                    {level: this, obj, propType});
+                return true;
+            }
         }
         return false;
     };
