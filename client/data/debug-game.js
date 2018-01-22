@@ -120,6 +120,7 @@ const DebugGame = function(fact, parser) {
 
         const vActor = new RG.Actor.Virtual('spawner');
         const spawnBrain = new RG.Brain.Spawner(vActor);
+        spawnBrain.setConstraint({op: 'lt', prop: 'danger', value: 10});
         vActor.setBrain(spawnBrain);
         level.addVirtualProp(RG.TYPE_ACTOR, vActor);
 
