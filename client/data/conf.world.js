@@ -23,10 +23,15 @@ const cities = {
     { x: 2, y: 2, name: 'Blashyrkh', nQuarters: 1,
         quarter: [
             {name: 'Center', nLevels: 1, entranceLevel: 0, nShops: 2,
-                shop: [
-                    item => item.type === 'food',
-                    item => item.value < 100 && item.type === 'weapon',
-                ]
+                constraint: {
+                  shop: [
+                      {op: 'eq', prop: 'type', value: 'food'},
+                      [
+                        {op: 'eq', prop: 'type', value: 'weapon'},
+                        {op: 'lt', prop: 'value', value: 100},
+                      ]
+                  ]
+                }
             },
         ],
     },
@@ -35,9 +40,7 @@ const cities = {
 const dungeons = {
     beastDungeon: { x: 0, y: 0, name: 'Beast dungeon', nBranches: 1,
         constraint: {
-            actor: actor => {
-                return (actor.type === 'animal');
-            }
+          actor: {op: 'eq', prop: 'type', value: 'animal'},
         },
         create: {
             actor: [{name: 'goblin', target: 'Animals', nLevel: 4}]
@@ -50,7 +53,6 @@ const dungeons = {
         ],
     },
     smallDungeon: { x: 0, y: 0, name: 'Small dungeon', nBranches: 1,
-        // constraint: {actor: actor => (actor.type === 'animal')},
         branch: [{name: 'main', nLevels: 5, entranceLevel: 0}],
     },
 };
@@ -66,7 +68,7 @@ RG.WorldConf = {
         // be 5 by 5. No support for individual levels for areas.
     },
 
-    // Specifies a tile where player is placed at the start
+    // Specifies place and tile where player is placed at the start
     playerStart: {place: 'The North', x: 2, y: 4},
 
     nAreas: 1,
