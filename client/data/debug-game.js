@@ -121,7 +121,7 @@ const DebugGame = function(fact, parser) {
         const vActor = new RG.Actor.Virtual('spawner');
         const spawnBrain = new RG.Brain.Spawner(vActor);
         vActor.setBrain(spawnBrain);
-        level.addActor(vActor, 0, 0);
+        level.addVirtualProp(RG.TYPE_ACTOR, vActor);
 
         return game;
     };
