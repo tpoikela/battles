@@ -9,6 +9,7 @@ RG.Time = require('./time.js');
 RG.Game = {};
 
 RG.Game.Engine = require('./engine.js');
+RG.Game.Master = require('./game.master.js');
 
 /* Top-level main object for the game.  */
 RG.Game.Main = function() {
@@ -24,6 +25,7 @@ RG.Game.Main = function() {
     RG.pushEventPool(_eventPool);
 
     const _engine = new RG.Game.Engine(_eventPool);
+    const _master = new RG.Game.Master(_eventPool, this);
 
     this.globalConf = {};
     this.setGlobalConf = conf => {this.globalConf = conf;};
@@ -58,6 +60,7 @@ RG.Game.Main = function() {
      * player has no level yet.*/
     this.addPlayer = function(player, obj) {
         let levelOK = false;
+        _master.setPlayer(player);
         if (!RG.isNullOrUndef([player.getLevel()])) {
             console.log('Player already added to level');
             levelOK = true;
@@ -258,10 +261,8 @@ RG.Game.Main = function() {
             const {actor, target} = args;
             if (actor.isPlayer()) {
                 const levelID = target.getID();
-                // TODO add support for multiple places/worlds
 
                 const world = Object.values(_places)[0];
-                // TODO add newly created levels into game (for scheduling etc)
                 if (world && world.getAreas) {
                     const area = world.getAreas()[0];
                     const [x, y] = area.findTileXYById(levelID);
@@ -270,7 +271,6 @@ RG.Game.Main = function() {
                     fact.createZonesForTile(world, area, x, y);
 
                     const levels = world.getLevels();
-                    console.log(`Game.Main adding ${levels.length} levels`);
                     levels.forEach(l => {this.addLevelUnlessExists(l);});
                 }
             }
@@ -284,6 +284,7 @@ RG.Game.Main = function() {
     * active levels. */
     this.addBattle = battle => {
         const level = battle.getLevel();
+        this.addLevel(level);
         _engine.addActiveLevel(level);
     };
 
