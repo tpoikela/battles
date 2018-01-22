@@ -97,10 +97,15 @@ RG.Game.FromJSON = function() {
         const type = brainJSON.type;
         if (RG.Brain[type]) {
             const brainObj = new RG.Brain[type](ent);
-            const memObj = brainObj.getMemory();
-            const memJSON = brainJSON.memory;
             ent.setBrain(brainObj);
 
+            if (brainJSON.constraint) {
+                brainObj.setConstraint(brainJSON.constraint);
+            }
+
+            // Create the memory (if any)
+            const memObj = brainObj.getMemory();
+            const memJSON = brainJSON.memory;
             if (memJSON) {
                 memJSON.enemyTypes.forEach(type => {
                     brainObj.addEnemyType(type);
@@ -121,7 +126,6 @@ RG.Game.FromJSON = function() {
             else if (type === 'Rogue') {
                 brainObj.getMemory().addEnemyType('player');
             }
-            // TODO reconstruct memory
         }
         else {
             RG.err('FromJSON', 'createBrain',
