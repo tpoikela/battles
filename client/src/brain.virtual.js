@@ -1,6 +1,8 @@
 
 /* This file contains Brain objects for virtual actors such as spawners. */
 
+import Constraints from './constraints';
+
 const RG = require('./rg');
 RG.Brain = require('./brain');
 
@@ -11,29 +13,45 @@ RG.Brain.Virtual = function(actor) {
 };
 RG.extend2(RG.Brain.Virtual, RG.Brain.Base);
 
+/* Brain object used by Spawner virtual actors. */
 RG.Brain.Spawner = function(actor) {
     RG.Brain.Virtual.call(this, actor);
     this.setType('Spawner');
 
+    this.constraint = null;
+    this._constraintFunc = null;
+
+    this.setConstraint = constraint => {
+        this.constraint = constraint;
+        this._constraintFunc = new Constraints().getConstraints(constraint);
+    };
+
     /* Spawns an actor to the current level (if any). */
     this.decideNextAction = function() {
-      const spawnOK = RG.RAND.getUniform();
-      console.log(`spawnOk is ${spawnOK}`);
-      if (spawnOK < 0.10) {
-        console.log(`spawnOk is ${spawnOK}`);
-        return () => {
-          const level = this.getActor().getLevel();
-          const freeCell = level.getFreeRandCell();
-          const [x, y] = [freeCell.getX(), freeCell.getY()];
+        const spawnOK = RG.RAND.getUniform();
+        if (spawnOK < 0.10) {
+            return () => {
+                const level = this.getActor().getLevel();
+                const freeCell = level.getFreeRandCell();
+                const [x, y] = [freeCell.getX(), freeCell.getY()];
 
-          const parser = RG.ObjectShell.getParser();
-          const newActor = parser.createActor('goblin');
-          level.addActor(newActor, x, y);
-          RG.gameMsg(`You feel danger at ${x}, ${y}`);
+                const parser = RG.ObjectShell.getParser();
+                const newActor = parser.createRandomActor(
+                    {func: this._constraintFunc});
+                if (newActor) {
+                    level.addActor(newActor, x, y);
+                    RG.gameMsg(`You feel danger at ${x}, ${y}`);
+                }
+            };
+        }
+        return () => {};
+    };
+
+    this.toJSON = function() {
+        return {
+            type: this.getType(),
+            constraint: this.constraint
         };
-      }
-      console.log('Spawner: Return empty event');
-      return () => {};
     };
 
 };
