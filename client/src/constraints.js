@@ -23,10 +23,15 @@ export default class Constraints {
                 return res;
             };
         }
-        else {
+        else if (typeof objOrArray === 'object') {
             const {op, prop, value} = objOrArray;
             return this.getFunc(op, prop, value);
         }
+        else {
+            const msg = `Param must be array/object. Got: ${objOrArray}`;
+            RG.err('Constrains', 'getConstraints', msg);
+        }
+        return null;
     }
 
     getFunc(op, prop, value) {
