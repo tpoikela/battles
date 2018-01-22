@@ -596,14 +596,13 @@ const RG = { // {{{2
     // CONSTANTS
     //--------------------------------------------------------------
 
-    // Default FOV range for actors
-    FOV_RANGE: 4,
-    ACTION_DUR: 100,
-    BASE_SPEED: 100,
+    FOV_RANGE: 4, // Default FOV range for actors
+    ACTION_DUR: 100, // Base duration of action
+    BASE_SPEED: 100, // Base speed of actors
     DEFAULT_HP: 50,
 
     // How many levels are simulated at once, having more adds realism
-    // but slows down the game
+    // but slows down the game, affects Game.Engine
     MAX_ACTIVE_LEVELS: 3,
 
     //----------------------
@@ -629,6 +628,8 @@ const RG = { // {{{2
     EVT_WIN_COND_TRUE: Symbol(),
 
     EVT_ANIMATION: Symbol(),
+
+    EVT_BATTLE_OVER: Symbol(),
 
     //----------------------------
     // Different entity/prop types
