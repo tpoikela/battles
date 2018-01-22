@@ -60,6 +60,28 @@ class VirtualActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
         return action;
     }
 
+    /* Serializes the virtual actor. */
+    toJSON() {
+        let levelID = null;
+        if (this.getLevel()) {
+            levelID = this.getLevel().getID();
+        }
+        const obj = {
+            id: this.getID(),
+            name: this.getName(),
+            type: this.getType(),
+            levelID,
+            brain: this._brain.toJSON()
+        };
+
+        if (obj.type === null) {
+            RG.err('Actor.Virtual', 'toJSON',
+                `Type null for ${JSON.stringify(obj)}`);
+        }
+
+        return obj;
+    }
+
 }
 RG.Actor.Virtual = VirtualActor;
 
