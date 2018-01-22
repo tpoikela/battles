@@ -573,7 +573,7 @@ class BrainPlayer {
     * something bearable. It's 150 lines now! */
     decideNextAction(obj) {
 
-      // Workaround at the moment, because missile attacks are GUI-driven
+      // Workaround at the moment, because some commands are GUI-driven
       if (obj.hasOwnProperty('cmd')) {
         this.resetBoosts();
         return this.handleCommand(obj);
@@ -582,7 +582,7 @@ class BrainPlayer {
       const code = obj.code;
       if (RG.isNullOrUndef([code])) {
         RG.err('Brain.Player', 'decideNextAction',
-          `obj.code must exist. Got obj: ${JSON.stringify(obj)}`);
+          `obj.code or obj.cmd must exist. Got obj: ${JSON.stringify(obj)}`);
       }
 
       // Stop here, if action must be confirmed by player by pressing Y
@@ -807,10 +807,17 @@ class BrainPlayer {
             return this.cmdNotPossible(msg);
           }
         }
+        else if (this._actor.getCell().hasPassage()) {
+            this._confirmEnergy = RG.energy.MOVE;
+            this._wantConfirm = true;
+            this._confirmCallback = () => {level.useStairs(this._actor);};
+            const msg = "Press 'y' to move to another area";
+            RG.gameMsg(msg);
+            return this.noAction();
+        }
         else {
-          // TODO add moving out of the map
-          const msg = 'You cannot move there (Use < or > to change location).';
-          return this.cmdNotPossible(msg);
+            const msg = 'You cannot move there.';
+            return this.cmdNotPossible(msg);
         }
       }
       else if (cmdType === 'REST') {
