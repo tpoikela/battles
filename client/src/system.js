@@ -714,6 +714,7 @@ RG.System.Movement = function(compTypes) {
             const givenExp = expElem.getExp();
             const expPoints = new RG.Component.ExpPoints(givenExp);
             ent.add(expPoints);
+            addSkillsExp(ent, 'Exploration', 1);
 
             let msg = expElem.getMsg();
             if (msg.length === 0) {
