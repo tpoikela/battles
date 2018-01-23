@@ -393,7 +393,8 @@ RG.Game.Army = function(name) {
     this.getActors = () => _actors;
 
     this.hasActor = actor => {
-        const index = _actors.indexOf(actor);
+        const id = actor.getID();
+        const index = _actors.findIndex(actor => actor.getID() === id);
         return index >= 0;
     };
 
@@ -434,6 +435,10 @@ RG.Game.Army = function(name) {
                 }
                 else {
                     ++_casualties;
+                    const armyObj = {
+                        type: 'Actor killed', army: this
+                    };
+                    RG.POOL.emitEvent(RG.EVT_ARMY_EVENT, armyObj);
                 }
             }
         }
@@ -463,14 +468,20 @@ RG.Game.Battle = function(name) {
 
     this.getStats = () => _stats;
 
-
     /* Adds an army to given x,y location.*/
-    this.addArmy = (army, x, y) => {
+    this.addArmy = (army, x, y, horizontal = true) => {
         if (!RG.isNullOrUndef([_level])) {
             _armies.push(army);
             const actors = army.getActors();
-            for (let i = 0; i < actors.length; i++) {
-                _level.addActor(actors[i], x + i, y);
+            if (horizontal) {
+                for (let i = 0; i < actors.length; i++) {
+                    _level.addActor(actors[i], x + i, y);
+                }
+            }
+            else {
+                for (let i = 0; i < actors.length; i++) {
+                    _level.addActor(actors[i], x, y + i);
+                }
             }
         }
         else {
@@ -482,8 +493,15 @@ RG.Game.Battle = function(name) {
     /* Returns true if the battle is over.*/
     this.isOver = () => {
         if (_armies.length > 1) {
-            if (_armies[0].isDefeated()) {return true;}
-            if (_armies[1].isDefeated()) {return true;}
+            let numArmies = 0;
+            _armies.forEach(army => {
+                if (!army.isDefeated()) {
+                    ++numArmies;
+                }
+            });
+            if (numArmies <= 1) {
+                return true;
+            }
         }
         else {
             RG.err('Game.Battle', 'isOver', 'Battle should have >= 2 armies.');
@@ -491,9 +509,25 @@ RG.Game.Battle = function(name) {
         return false;
     };
 
+    this.hasNotify = true;
+    this.notify = function(evtName, msg) {
+        if (evtName === RG.EVT_ARMY_EVENT) {
+            const {type, army} = msg;
+            if (type === 'Actor killed') {
+                console.log('Actor killed from army ' + army.getName());
+                if (this.isOver()) {
+                    console.log(`Battle ${this.getName()} is over!`);
+                    RG.POOL.removeListener(this);
+                    _armies.forEach(army => {
+                        RG.POOL.removeListener(army);
+                    });
+                }
+            }
+        }
+    };
+    RG.POOL.listenEvent(RG.EVT_ARMY_EVENT, this);
 
 };
-
 
 /* An object for saving the game in specified storage (local/etc..) or restoring
 * the game from saved format. GUI should use this object. */
