@@ -2,6 +2,7 @@
 const RG = require('./rg');
 
 RG.Factory = require('./factory');
+RG.Factory.Battle = require('./factory.battle');
 
 /* GameMaster objects reacts to various events caused by player and other
  * actors, and shapes the game world based on them. For example,
