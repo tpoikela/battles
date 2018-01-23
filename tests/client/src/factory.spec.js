@@ -15,6 +15,10 @@ describe('RG.Factory.ItemRandomizer', () => {
         const weightAfter = food.getWeight();
         expect(weightBefore !== weightAfter).to.equal(true);
     });
+
+    it('can add Stats components to items', () => {
+
+    });
 });
 
 const MockParser = function() {
@@ -41,8 +45,6 @@ describe('RG.Factory.Base', () => {
 
         expect(actors.length).to.equal(2);
         expect(keeper.getName()).to.equal('shopkeeper');
-
-
     });
 });
 
@@ -103,7 +105,9 @@ describe('RG.Factory.Game', () => {
         conf.playMode = 'World';
         const game = gameFactory.createNewGame(conf);
         expect(game).to.exist;
-        expect(game.getLevels()).to.have.length(3);
+
+        const levels = game.getLevels();
+        expect(levels).to.have.length(4);
 
         const presetLevel = game.getLevels().find(level => (
             level.getID() === temple.id
