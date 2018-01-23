@@ -43,7 +43,9 @@ const GameMaster = function(pool, game) {
                 this.battles[id] = 1;
                 // TODO refactor into factory method createBattle()
                 const battle = new RG.Game.Battle('Battle of level ' + id);
-                const battleLevel = RG.FACT.createLevel('arena', 80, 30);
+                const forestConf = RG.getForestConf(80, 40);
+                const battleLevel = RG.FACT.createLevel('forest', 80, 40,
+                    forestConf);
                 battle.setLevel(battleLevel);
                 const stairsBattle = new RG.Element.Stairs(false);
                 battleLevel.addElement(stairsBattle, 1, 1);
@@ -57,7 +59,7 @@ const GameMaster = function(pool, game) {
                     army2.addActor(fighter);
                 }
                 battle.addArmy(army1, 10, 10);
-                battle.addArmy(army2, 40, 40);
+                battle.addArmy(army2, 20, 20);
 
                 const stairsArea = new RG.Element.Stairs(true);
                 level.addElement(stairsArea, 4, 4);
@@ -65,9 +67,14 @@ const GameMaster = function(pool, game) {
                 this.game.addBattle(battle);
             }
         }
+        else if (evtName === RG.EVT_BATTLE_OVER) {
+            console.log('GameMaster registered battle over');
+            RG.gameMsg('Battle is over!');
+        }
     };
     RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this);
     RG.POOL.listenEvent(RG.EVT_TILE_CHANGED, this);
+    RG.POOL.listenEvent(RG.EVT_BATTLE_OVER, this);
 
     this.toJSON = function() {
         return {
