@@ -630,6 +630,7 @@ const RG = { // {{{2
     EVT_ANIMATION: Symbol(),
 
     EVT_BATTLE_OVER: Symbol(),
+    EVT_ARMY_EVENT: Symbol(),
 
     //----------------------------
     // Different entity/prop types
@@ -722,6 +723,20 @@ const RG = { // {{{2
 
 }; // / }}} RG
 
+
+/* Returns a forest level configuration scaled to the size of the level. */
+RG.getForestConf = function(cols, rows) {
+    const xMult = cols / RG.LEVEL_MEDIUM_X;
+    const yMult = rows / RG.LEVEL_MEDIUM_Y;
+    const mult = xMult * yMult;
+
+    const levelConf = {
+        ratio: 0.5,
+        nForests: Math.floor(mult * 30),
+        forestSize: 100
+    };
+    return levelConf;
+};
 
 RG.cellRenderArray = RG.cellRenderVisible;
 
@@ -1439,6 +1454,17 @@ RG.EventPool = function() { // {{{2
         else {
             RG.err('EventPool', 'listenEvent', 'Event name not well defined.');
         }
+    };
+
+    /* Removes the object from a list of event listeners. */
+    this.removeListener = obj => {
+        Object.keys(_listeners).forEach(evt => {
+            const index = _listeners[evt].indexOf(obj);
+            if (index >= 0) {
+                _listeners[evt].splice(index, 1);
+            }
+        });
+
     };
 };
 RG.POOL = new RG.EventPool(); // Dangerous, global objects
