@@ -261,19 +261,20 @@ const Actors = [
         hp: 40, danger: 12, brain: 'Demon', base: 'WinterBeingBase',
         equip: ['Permaice short sword']
     },
+    // TODO: Ice djinn
     {
         name: 'Blizzard beast', type: 'demon', char: 'B',
-        attack: 7, defense: 6, protection: 4, damage: '3d4', range: 1,
+        attack: 7, defense: 6, protection: 4, damage: '3d5+5', range: 1,
         hp: 50, danger: 16, brain: 'Demon', base: 'WinterBeingBase'
     },
     {
         name: 'Frost Titan', type: 'giant', char: 'H',
-        attack: 7, defense: 7, protection: 10, damage: '4d4', range: 1,
+        attack: 7, defense: 7, protection: 10, damage: '5d5', range: 1,
         hp: 80, danger: 18, brain: 'Demon', base: 'WinterBeingBase'
     },
     {
         name: 'Frostburn monarch', type: 'demon', char: 'M',
-        attack: 7, defense: 6, protection: 6, damage: '3d4', range: 1,
+        attack: 7, defense: 6, protection: 6, damage: '4d5', range: 1,
         hp: 70, danger: 20, brain: 'Demon', base: 'WinterBeingBase'
     },
     // DWARVES
