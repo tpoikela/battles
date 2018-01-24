@@ -166,10 +166,11 @@ const Battle = function(name) {
                 console.log('Actor killed from army ' + army.getName());
                 if (this.isOver()) {
                     console.log(`Battle |${this.getName()}| is over!`);
+                    console.log('\tRemoving all event listeners');
                     RG.POOL.removeListener(this);
-                    _armies.forEach(army => {
-                        RG.POOL.removeListener(army);
-                    });
+                    for (let i = 0; i < _armies.length; i++) {
+                        RG.POOL.removeListener(_armies[i]);
+                    }
                     const obj = {battle: this};
                     RG.POOL.emitEvent(RG.EVT_BATTLE_OVER, obj);
                 }
