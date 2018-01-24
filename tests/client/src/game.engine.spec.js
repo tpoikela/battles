@@ -7,12 +7,12 @@
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 
-const Game = require('../../../client/src/game.js');
+const Engine = require('../../../client/src/engine');
 const Actor = require('../../../client/src/actor');
 
 /* Creates a game engine with 2 actors scheduled for actions.*/
-const setupEngineWithActors = function(pool) {
-    this.engine = new Game.Engine(pool);
+const EngineWithActors = function(pool) {
+    this.engine = new Engine(pool);
     this.actor = new Actor.Rogue('TestActor');
     this.actor2 = new Actor.Rogue('TestActor2');
 
@@ -33,7 +33,7 @@ describe('Game.Engine', () => {
         pool = new RG.EventPool();
         RG.resetEventPools();
         RG.pushEventPool(pool);
-        eng = new setupEngineWithActors(pool);
+        eng = new EngineWithActors(pool);
         engine = eng.engine;
     });
 
