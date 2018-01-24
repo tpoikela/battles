@@ -63,10 +63,29 @@ describe('How events bubble in the system', () => {
     });
 
     it('can have its listeners removed', () => {
+        const listeners = [];
+        for (let i = 0; i < 10; i++) {
+            const listener = new Listener('ActualEvent');
+            listeners.push(listener);
+            pool.listenEvent(listener.eventName, listener);
+        }
+
         pool.removeListener(listener);
         expect(listener.notified).to.equal(false);
         emitter.emit('ActualEvent', {data: 'abcd'});
         expect(listener.notified).to.equal(false);
+
+        listeners.forEach(listener => {
+            expect(listener.notified).to.equal(true);
+            pool.removeListener(listener);
+            listener.clearNotify();
+        });
+
+        emitter.emit('ActualEvent', {data: 'abcd'});
+        listeners.forEach(listener => {
+            expect(listener.notified).to.equal(false);
+        });
+
     });
 });
 
