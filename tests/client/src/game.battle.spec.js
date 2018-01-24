@@ -31,6 +31,11 @@ describe('Game.Battle', () => {
 
         const survivors = areaLevel.getActors();
         expect(survivors.length).to.be.above(0);
+
+        const func = () => {
+            RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: survivors[0]});
+        };
+        expect(func).not.to.throw();
     });
 
 });
