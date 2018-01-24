@@ -10,7 +10,12 @@ describe('Game.Battle', () => {
         const areaLevel = RG.FACT.createLevel('arena', 40, 40);
         const game = new Game.Main();
         game.addLevel(areaLevel);
-        const battle = new BattleFact(game).createBattle(areaLevel);
+
+        const conf = {
+            cols: 20, rows: 10,
+            armySize: 10
+        };
+        const battle = new BattleFact(game).createBattle(areaLevel, conf);
 
         expect(areaLevel.getActors().length).to.equal(0);
         expect(battle.isOver()).to.equal(false);
