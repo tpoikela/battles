@@ -249,7 +249,7 @@ RG.Factory.Game = function() {
 
     this.createOverWorld = function(obj, game, player) {
         const mult = 1;
-        const xMult = 2;
+        const xMult = 1;
         const owConf = {
             yFirst: false,
             topToBottom: false,
