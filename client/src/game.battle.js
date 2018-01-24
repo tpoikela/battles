@@ -6,7 +6,7 @@ const RG = require('./rg');
  *  battle commanders to have access to their full army. */
 const Army = function(name) {
     const _name = name;
-    const _actors = []; // All actors inside this army
+    let _actors = []; // All actors inside this army
 
     let _battle = null;
     let _casualties = 0;
