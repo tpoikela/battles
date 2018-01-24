@@ -167,6 +167,10 @@ RG.Component.Action = function() {
                 {actor: this.getEntity()});
             _active = true;
         }
+        else {
+            console.log('Action already active for '
+                + this.getEntity().getName());
+        }
     };
 
     this.disable = function() {
@@ -1129,7 +1133,6 @@ RG.Component.Skills = function() {
     this.addPoints = (skill, points) => {
         if (this.hasSkill(skill)) {
             this._skills[skill].points += points;
-            console.log('Points now: ' + this._skills[skill].points);
         }
     };
 
@@ -1169,6 +1172,46 @@ RG.Component.Transaction = function() {
 
 };
 RG.extend2(RG.Component.Transaction, RG.Component.Base);
+
+
+//--------------------------------------------
+// Battle-related components
+//--------------------------------------------
+
+// Added to all entities inside a battle
+RG.Component.InBattle = function() {
+    RG.Component.Base.call(this, 'InBattle');
+};
+RG.extend2(RG.Component.InBattle, RG.Component.Base);
+
+RG.Component.BattleExp = function() {
+    RG.Component.Base.call(this, 'BattleExp');
+
+    let _type = null;
+    let _data = null;
+
+    this.setType = type => {_type = type;};
+    this.getType = () => _type;
+
+    this.setData = data => {_data = data;};
+    this.getData = () => _data;
+
+};
+RG.extend2(RG.Component.BattleExp, RG.Component.Base);
+
+RG.Component.BattleBadge = function() {
+    RG.Component.Base.call(this, 'BattleBadge');
+
+    let _status = null;
+    let _data = null;
+
+    this.setStatus = status => {_status = status;};
+    this.getStatus = () => _status;
+
+    this.setData = data => {_data = data;};
+    this.getData = () => _data;
+};
+RG.extend2(RG.Component.BattleBadge, RG.Component.Base);
 
 //--------------------------------------------
 // Comps that add or remove other components
