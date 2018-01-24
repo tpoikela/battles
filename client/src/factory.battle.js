@@ -71,7 +71,7 @@ RG.Factory.Battle = function(game) {
         // Make army actors into each others enemies
         armies.forEach(army1 => {
             armies.forEach(army2 => {
-                if (army1 !== army2) {
+                if (army1.getName() !== army2.getName()) {
                     army1.getActors().forEach(a1 => {
                         army2.getActors().forEach(a2 => {
                             a1.addEnemy(a2);
