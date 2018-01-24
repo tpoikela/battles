@@ -7,9 +7,9 @@ RG.Time = {};
 /* Models an action. Each action has a duration and a callback.  */
 RG.Time.RogueAction = function(dur, cb, obj) { // {{{2
 
-    var _duration = dur;
-    var _cb = cb; // Action callback
-    var _energy = 0;
+    const _duration = dur;
+    const _cb = cb; // Action callback
+    let _energy = 0;
 
     this.setEnergy = en => {_energy = en;};
     this.getEnergy = () => _energy;
@@ -95,16 +95,15 @@ RG.Time.OneShotEvent = function(cb, offset, msg) {
 };
 RG.extend2(RG.Time.OneShotEvent, RG.Time.GameEvent);
 
-
 /* Scheduler for the game actions.  */
 RG.Time.Scheduler = function() { // {{{2
 
     // Internally use ROT scheduler
-    var _scheduler = new ROT.Scheduler.Action();
+    const _scheduler = new ROT.Scheduler.Action();
 
     // Store the scheduled events
-    var _events = [];
-    var _actors = [];
+    const _events = [];
+    const _actors = [];
 
     /* Adds an actor or event to the scheduler.*/
     this.add = (actOrEvent, repeat, offset) => {
@@ -142,7 +141,7 @@ RG.Time.Scheduler = function() { // {{{2
 
     /* Removes an event from the scheduler. Returns true on success.*/
     this.removeEvent = actOrEvent => {
-        var index = -1;
+        let index = -1;
         if (actOrEvent.hasOwnProperty('isEvent')) {
             index = _events.indexOf(actOrEvent);
             if (index !== -1) {
@@ -150,7 +149,6 @@ RG.Time.Scheduler = function() { // {{{2
             }
         }
         return _scheduler.remove(actOrEvent);
-
     };
 
     this.getTime = () => _scheduler.getTime();
