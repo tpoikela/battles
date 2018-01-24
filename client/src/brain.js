@@ -89,7 +89,9 @@ RG.Brain.Memory = function() {
     this.addEnemy = function(actor) {
         if (!this.isEnemy(actor)) {
             _enemies.push(actor);
-            _communications = []; // Invalidate communications
+            if (_communications.length > 0) {
+                _communications = []; // Invalidate communications
+            }
         }
     };
 
