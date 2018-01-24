@@ -1405,9 +1405,9 @@ RG.Die = function(num, dice, mod) {
  * This decouples the emitter and listener from each other.  */
 RG.EventPool = function() { // {{{2
     const _listeners = {};
-    let _eventsNoListener = 0;
+    let _nListeners = 0;
 
-    this.getNumListeners = () => _eventsNoListener;
+    this.getNumListeners = () => _nListeners;
 
     /* Emits an event with given name. args must be in object-notation ie.
      * {data: "abcd"} */
@@ -1420,7 +1420,7 @@ RG.EventPool = function() { // {{{2
                 }
             }
             else {
-                ++_eventsNoListener;
+                ++_nListeners;
             }
         }
         else {
@@ -1461,7 +1461,11 @@ RG.EventPool = function() { // {{{2
         Object.keys(_listeners).forEach(evt => {
             const index = _listeners[evt].indexOf(obj);
             if (index >= 0) {
+                console.log('<> Removing listeners');
                 _listeners[evt].splice(index, 1);
+            }
+            else {
+                console.log('<> No index for listener. Cannot remove');
             }
         });
 
