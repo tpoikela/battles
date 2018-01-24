@@ -3,45 +3,29 @@ const expect = require('chai').expect;
 const RG = require('../../../client/src/battles.js');
 const Game = require('../../..//client/src/game.js');
 
-const RGObjects = require('../../../client/data/battles_objects.js');
-RG.Effects = require('../../../client/data/effects.js');
-
-const globalParser = new RG.ObjectShell.Parser();
-globalParser.parseShellData(RG.Effects);
-globalParser.parseShellData(RGObjects);
-
-const addActors = (army, num, name) => {
-    for (let i = 0; i < num; i++) {
-        const actor = globalParser.createActualObj('actors', name);
-        actor.setFOVRange(10);
-        army.addActor(actor);
-    }
-};
+const BattleFact = require('../../../client/src/factory.battle');
 
 describe('Game.Battle', () => {
     it('It is fought until end condition', () => {
+        const areaLevel = RG.FACT.createLevel('arena', 40, 40);
         const game = new Game.Main();
-        const battle = new Game.Battle('Battle of ice kingdoms');
-        const army1 = new Game.Army('Blue army');
-        const army2 = new Game.Army('Red army');
+        game.addLevel(areaLevel);
+        const battle = new BattleFact(game).createBattle(areaLevel);
 
-        addActors(army1, 10, 'warlord');
-        addActors(army2, 10, 'Winter demon');
-
-        const battleLevel = RG.FACT.createLevel('arena', 12, 4);
-        battle.setLevel(battleLevel);
-        battle.addArmy(army1, 1, 1);
-        battle.addArmy(army2, 1, 2);
-
-        game.addBattle(battle);
-
+        expect(areaLevel.getActors().length).to.equal(0);
         expect(battle.isOver()).to.equal(false);
 
         let count = 0;
-        while (!battle.isOver() && count < 1000) {
+        while (!battle.isOver() && count < 10000) {
             game.simulateGame();
             ++count;
         }
         expect(battle.isOver()).to.equal(true);
+
+        expect(battle.getLevel().getActors().length).to.be.equal(0);
+
+        const survivors = areaLevel.getActors();
+        expect(survivors.length).to.be.above(0);
     });
+
 });
