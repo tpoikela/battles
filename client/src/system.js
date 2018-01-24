@@ -5,6 +5,7 @@ RG.Path = require('./path');
 RG.SYS = {};
 RG.SYS.ANIMATION = Symbol();
 RG.SYS.ATTACK = Symbol();
+RG.SYS.BATTLE = Symbol();
 RG.SYS.CHAT = Symbol();
 RG.SYS.COMMUNICATION = Symbol();
 RG.SYS.DAMAGE = Symbol();
@@ -1712,5 +1713,20 @@ RG.System.Shop = function(compTypes) {
 
 };
 RG.extend2(RG.System.Shop, RG.System.Base);
+
+/* Battle system handles battle-related components such as badges from battle
+ * survivors etc. */
+RG.System.Battle = function(compTypes) {
+    RG.System.Base.call(this, RG.SYS.BATTLE, compTypes);
+
+    this.updateEntity = function(ent) {
+        const compList = ent.getList('BattleExp');
+        compList.forEach(badge => {
+
+            ent.remove(badge);
+        });
+    };
+};
+RG.extend2(RG.System.Battle, RG.System.Base);
 
 module.exports = RG.System;
