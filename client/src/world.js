@@ -694,7 +694,14 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
     };
 
     this.getZones = function(type) {
-        return this.zones[type];
+        if (type) {
+            return this.zones[type];
+        }
+        let zones = [];
+        Object.keys(this.zones).forEach(type => {
+            zones = zones.concat(this.zones[type]);
+        });
+        return zones;
     };
 
     /* Serializes the Area into JSON. */
