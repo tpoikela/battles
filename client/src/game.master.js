@@ -29,16 +29,19 @@ const GameMaster = function(pool, game) {
     this.notify = (evtName, args) => {
         if (evtName === RG.EVT_LEVEL_CHANGED) {
             console.log('GameMaster EVT_LEVEL_CHANGED triggered');
-            const actor = args.actor;
+            const {actor, target, src} = args;
             if (actor.isPlayer()) {
-                const id = actor.getLevel().getID();
-                if (this.battles.hasOwnProperty(id)) {
-                    // Entered a battle
-                    console.log('Player entered battle. Getting sel obj');
-                    actor.add(new RG.Component.InBattle());
-                    // Get army selection object
-                    const obj = this.getSelectionObject(actor, this.battles[id]);
-                    actor.getBrain().setSelectionObject(obj);
+                const srcID = src.getID();
+                if (this.battles.hasOwnProperty(srcID)) {
+                    const battleLevel = this.battles.getLevel().getID();
+                    if (battleLevel.getID() === target.getID()) {
+                        // Entered a battle
+                        console.log('Player entered battle. Getting sel obj');
+                        actor.add(new RG.Component.InBattle());
+                        // Get army selection object
+                        const obj = this.getSelectionObject(actor, this.battles[srcID]);
+                        actor.getBrain().setSelectionObject(obj);
+                    }
                 }
             }
         }
