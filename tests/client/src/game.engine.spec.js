@@ -30,9 +30,7 @@ describe('Game.Engine', () => {
     let pool = null;
 
     beforeEach( () => {
-        pool = new RG.EventPool();
-        RG.resetEventPools();
-        RG.pushEventPool(pool);
+        pool = RG.POOL;
         eng = new EngineWithActors(pool);
         engine = eng.engine;
     });
