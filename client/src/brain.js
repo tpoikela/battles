@@ -75,6 +75,13 @@ RG.Brain.Memory = function() {
         _enemyTypes.push(type);
     };
 
+    this.removeEnemyType = type => {
+        const index = _enemyTypes.indexOf(type);
+        if (index >= 0) {
+            _enemyTypes.splice(index, 1);
+        }
+    };
+
     /* Checks if given actor is an enemy. */
     this.isEnemy = actor => {
         let index = _enemies.indexOf(actor);
