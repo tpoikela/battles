@@ -60,6 +60,15 @@ describe('How events bubble in the system', () => {
         listener.clearNotify();
         expect(listener.notified).to.equal(false);
         emitter.emit('RandomEvent', {data: 'abcd'});
+
+        // Works also with symbols
+        const symEvent = Symbol();
+        const symListener = new Listener(symEvent);
+        pool.listenEvent(symListener.eventName, symListener);
+
+        expect(symListener.notified).to.equal(false);
+        emitter.emit(symEvent, {data: 'sym data'});
+        expect(symListener.notified).to.equal(true);
     });
 
     it('can have its listeners removed', () => {
@@ -70,10 +79,18 @@ describe('How events bubble in the system', () => {
             pool.listenEvent(listener.eventName, listener);
         }
 
+        const EVENT = Symbol();
+        for (let i = 0; i < 10; i++) {
+            const listener = new Listener(EVENT);
+            listeners.push(listener);
+            pool.listenEvent(listener.eventName, listener);
+        }
+
         pool.removeListener(listener);
         expect(listener.notified).to.equal(false);
         emitter.emit('ActualEvent', {data: 'abcd'});
         expect(listener.notified).to.equal(false);
+        emitter.emit(EVENT, {data: 'abcd'});
 
         listeners.forEach(listener => {
             expect(listener.notified).to.equal(true);
