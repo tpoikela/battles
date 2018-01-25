@@ -21,8 +21,7 @@ RG.Game.Main = function() {
     let _gameOver = false;
 
     const _eventPool = new RG.EventPool();
-    RG.resetEventPools();
-    RG.pushEventPool(_eventPool);
+    RG.POOL = _eventPool;
 
     const _engine = new Engine(_eventPool);
     const _master = new GameMaster(_eventPool, this);
