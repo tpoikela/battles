@@ -53,11 +53,12 @@ describe('Function: Creating game world from a file', function() {
         const world = fact.createWorld(worldConf);
         expect(world.getName()).to.equal('w1');
         expect(world.getAreas()).to.have.length(2);
-        expect(world.getAreas()[0].getDungeons()).to.have.length(1);
-        expect(world.getDungeons(), 'Found 1 dungeon').to.have.length(1);
-        expect(world.getMountains(), 'Found 1 mountain').to.have.length(1);
+        expect(world.getAreas()[0].getZones('Dungeon')).to.have.length(1);
+        expect(world.getZones('Dungeon'), 'Found 1 dungeon').to.have.length(1);
+        expect(world.getZones('Mountain'),
+            'Found 1 mountain').to.have.length(1);
 
-        expect(world.getDungeons()[0].getName(),
+        expect(world.getZones('Dungeon')[0].getName(),
             'Dungeon name OK.').to.equal('d1.1');
     });
 
@@ -89,7 +90,7 @@ describe('Function: Creating game world from a file', function() {
                 ]
             }]
         };
-        const numLevels = 2 * 2 + 2 + 1 + 1;
+        const numLevels = 2 * 2 + 2 + 1 + 1 + 1;
 
         // Create game, world and player first
         const game = new RG.Game.Main();
@@ -122,10 +123,11 @@ describe('Function: Creating game world from a file', function() {
 
         // Verify that world zones have been restored
         const newWorld = newGame.getPlaces()['Ice Kingdom'];
-        const dungeons = newWorld.getDungeons();
+        const dungeons = newWorld.getZones('Dungeon');
         expect(dungeons, 'World has 1 dungeon').to.have.length(1);
 
-        expect(newWorld.getZones()).to.have.length(3);
+        const worldZones = newWorld.getZones();
+        expect(worldZones).to.have.length(3);
 
         // Verify stairs connectivity
         const allStairsInWorld = newWorld.getStairs();
@@ -142,7 +144,7 @@ describe('Function: Creating game world from a file', function() {
         expect(b1.getDungeon()).not.to.be.empty;
 
         // Verify mountain restoration
-        const mountains = newWorld.getMountains();
+        const mountains = newWorld.getZones('Mountain');
         expect(mountains).to.have.length(1);
         const m1 = mountains[0];
         expect(m1.getName()).to.equal('Cliff');
@@ -151,7 +153,7 @@ describe('Function: Creating game world from a file', function() {
         expect(f1.getEntrance()).not.to.be.empty;
 
         // Verify that city is restored correctly
-        const cities = newWorld.getCities();
+        const cities = newWorld.getZones('City');
         expect(cities, 'World has one city').to.have.length(1);
         const c1 = cities[0];
         expect(c1.getEntrances()[0]).to.not.be.empty;
