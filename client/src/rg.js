@@ -1382,7 +1382,7 @@ RG.EventPool = function() { // {{{2
     const _listeners = {};
     let _nListeners = 0;
 
-    const _poolID = RG.EventPool.id;
+    // const _poolID = RG.EventPool.id;
     let _listenerID = 0;
 
     this.getNumListeners = () => _nListeners;
