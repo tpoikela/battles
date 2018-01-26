@@ -79,6 +79,16 @@ RG.Factory.Battle = function() {
                     });
                 }
             });
+
+            // Make the actors in army friends
+            army1.getActors().forEach(actor1 => {
+                army1.getActors().forEach(actor2 => {
+                    if (actor1.getID() !== actor2.getID()) {
+                        actor1.addFriend(actor2);
+                        actor2.addFriend(actor1);
+                    }
+                });
+            });
         });
 
         // Add connecting stairs between battle and area
