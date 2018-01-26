@@ -9,6 +9,9 @@ const RGTest = require('../../roguetest');
 
 const FromJSON = Game.FromJSON;
 
+RG.Factory = require('../../../client/src/factory');
+RG.Factory.Battle = require('../../../client/src/factory.battle');
+
 describe('RG.Game.FromJSON', function() {
     this.timeout(4000);
     let fromJSON = null;
@@ -372,6 +375,37 @@ describe('RG.Game.FromJSON', function() {
         expect(newActor.has('Skills'), 'Has skills').to.equal(true);
         expect(newActor.get('Skills').getLevel('Archery'),
             'Has 10 level archery').to.equal(10);
+    });
+
+    it('can serialize/de-serialize battles', () => {
+        const level = RG.FACT.createLevel('arena', 80, 30);
+        const battle = new RG.Factory.Battle().createBattle(level);
+        const armies = battle.getArmies();
+        const game = new RG.Game.Main();
+        game.addBattle(battle);
+
+        let actors = [];
+        armies.forEach(army => {
+            actors = actors.concat(army.getActors());
+        });
+
+        // const newGame = fromJSON.createGame(game.toJSON());
+        const battleLevel = battle.getLevel();
+        expect(actors.length).to.equal(battleLevel.getActors().length);
+        const newLevel = fromJSON.restoreLevel(battleLevel.toJSON());
+
+        const army = armies[0];
+        const armyJSON = army.toJSON();
+        const newArmy = fromJSON.restoreArmy(armyJSON);
+        expect(newArmy.getName()).to.equal(army.getName());
+
+        const json = battle.toJSON();
+        const newBattle = fromJSON.restoreBattle(json);
+
+        const nArmies = battle.getArmies().length;
+        const nArmiesNew = newBattle.getArmies().length;
+        expect(nArmiesNew).to.equal(nArmies);
+
     });
 
 });
