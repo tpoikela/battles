@@ -48,7 +48,6 @@ describe('Function: Saving/restoring a game', function() {
 
         console.log('Converting serialized object to string...');
         let jsonStr = JSON.stringify(json);
-        let strLen = jsonStr.length;
         console.log(`Length of serialized string ${jsonStr.length}`);
         const storage = new MockStorage();
         storage.setItem('game_data', jsonStr);
@@ -88,7 +87,6 @@ describe('Function: Saving/restoring a game', function() {
             json = restGame.toJSON();
             // console.log(JSON.stringify(json, null, ' '));
             jsonStr = JSON.stringify(json);
-            strLen = jsonStr.length;
             console.log(`Length of serialized string ${jsonStr.length}`);
             json = JSON.parse(jsonStr);
         }
