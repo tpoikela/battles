@@ -24,7 +24,7 @@ RG.Game.Main = function() {
     RG.POOL = _eventPool;
 
     const _engine = new Engine(_eventPool);
-    const _master = new GameMaster(_eventPool, this);
+    let _master = new GameMaster(_eventPool, this);
 
     this.globalConf = {};
     this.setGlobalConf = conf => {this.globalConf = conf;};
@@ -287,6 +287,11 @@ RG.Game.Main = function() {
         _engine.addActiveLevel(level);
     };
 
+    this.getGameMaster = () => _master;
+    this.setGameMaster = master => {
+      _master = master;
+    };
+
     this.getOverWorld = () => this._overworld;
     this.setOverWorld = (ow) => {
       this._overworld = ow;
@@ -310,6 +315,7 @@ RG.Game.Main = function() {
             engine: {},
             levels,
             places,
+            gameMaster: _master.toJSON(),
             lastLevelID: RG.Map.Level.prototype.idCount,
             lastEntityID: Entity.getIDCount(),
             globalConf: this.globalConf
