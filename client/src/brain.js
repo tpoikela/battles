@@ -71,10 +71,12 @@ RG.Brain.Memory = function() {
 
     // TODO add memory of player closing a door/using stairs
 
+    /* Adds a generic enemy type. */
     this.addEnemyType = type => {
         _enemyTypes.push(type);
     };
 
+    /* Removes a generic enemy type. */
     this.removeEnemyType = type => {
         const index = _enemyTypes.indexOf(type);
         if (index >= 0) {
@@ -96,6 +98,16 @@ RG.Brain.Memory = function() {
         return false;
     };
 
+    /* Checks if actor is a friend. */
+    this.isFriend = function(actor) {
+        if (_actors.hasOwnProperty('friends')) {
+            const index = _actors.friends.indexOf(actor);
+            return index >= 0;
+        }
+        return false;
+    };
+
+    /* Adds an actor friend. */
     this.addFriend = function(actor) {
         if (this.isEnemy(actor)) {
             this.removeEnemy(actor);
@@ -106,14 +118,6 @@ RG.Brain.Memory = function() {
         if (!this.isFriend(actor)) {
             _actors.friends.push(actor);
         }
-    };
-
-    this.isFriend = function(actor) {
-        if (_actors.hasOwnProperty('friends')) {
-            const index = _actors.friends.indexOf(actor);
-            return index >= 0;
-        }
-        return false;
     };
 
     /* Adds given actor as (personal) enemy.*/
