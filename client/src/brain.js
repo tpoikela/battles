@@ -240,6 +240,7 @@ RG.Brain.Rogue = function(actor) {
     this.getActor = () => _actor;
 
     this.addEnemy = actor => {_memory.addEnemy(actor);};
+    this.addFriend = actor => {_memory.addFriend(actor);};
     this.addEnemyType = type => {_memory.addEnemyType(type);};
 
     this._seenCached = null;
