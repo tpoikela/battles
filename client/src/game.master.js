@@ -34,12 +34,13 @@ const GameMaster = function(pool, game) {
                 const srcID = src.getID();
                 if (this.battles.hasOwnProperty(srcID)) {
                     const battleLevel = this.battles[srcID].getLevel();
+
                     if (battleLevel.getID() === target.getID()) {
                         // Entered a battle
                         console.log('Player entered battle. Getting sel obj');
                         actor.add(new RG.Component.InBattle());
                         // Get army selection object
-                        const obj = this.getSelectionObject(actor, this.battles[srcID]);
+                        const obj = this.getSelArmyObject(actor, this.battles[srcID]);
                         actor.getBrain().setSelectionObject(obj);
                     }
                 }
@@ -127,13 +128,19 @@ const GameMaster = function(pool, game) {
         armies.forEach(army => {
             const actors = army.getActors();
             actors.forEach(actor => {
-                if (level.removeActor(actor)) {
-                    targetLevel.addActorToFreeCell(actor);
+                if (!actor.isPlayer()) {
+                    if (level.removeActor(actor)) {
+                        targetLevel.addActorToFreeCell(actor);
+                    }
+                    else {
+                        const json = JSON.stringify(actor.toJSON());
+                        RG.err('Game.Master', 'moveActorsOutOfBattle',
+                            `removeActor failed for actor ${json}`);
+                    }
                 }
                 else {
-                    const json = JSON.stringify(actor.toJSON());
-                    RG.err('Game.Master', 'moveActorsOutOfBattle',
-                        `removeActor failed for actor ${json}`);
+                    const selObj = this.getSelLeaveBattle(actor, level);
+                    actor.getBrain().setSelectionObject(selObj);
                 }
             });
         });
@@ -141,7 +148,7 @@ const GameMaster = function(pool, game) {
     };
 
     /* Returns the selection object for player to select an army. */
-    this.getSelectionObject = function(player, battle) {
+    this.getSelArmyObject = function(player, battle) {
         return {
             showMenu: () => true,
             getMenu: () => {
@@ -158,9 +165,41 @@ const GameMaster = function(pool, game) {
                 const selection = RG.codeToIndex(code);
                 const armies = battle.getArmies();
                 if (selection < armies.length) {
+                    const army = armies[selection];
                     return () => {
-                        armies[selection].addActor(player);
+                        army.addActor(player);
+                        const actors = army.getActors();
+                        actors.forEach(actor => {
+                            actor.addFriend(player);
+                        });
                     };
+                }
+                return null;
+            }
+        };
+    };
+
+    this.getSelLeaveBattle = function(player, level) {
+        return {
+            showMenu: () => true,
+            getMenu: () => {
+                RG.gameMsg('Battle is over! Do you want to leave battle?');
+                return {
+                    0: 'Leave immediately',
+                    1: 'Stay behind to scavenge the bodies of the dead.'
+                };
+            },
+            select: code => {
+                if (parseInt(code, 10) === 0) {
+                    const stairs = level.getStairs()[0];
+                    if (!stairs.useStairs(player)) {
+                        RG.err('GameMaster', 'moveActorsOutOfBattle',
+                            'Cannot move player out of battle via useStairs');
+                    }
+                    else {
+                        const name = player.getName();
+                        RG.gameMsg(`${name} leaves the battlefield`);
+                    }
                 }
                 return null;
             }
