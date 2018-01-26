@@ -15,23 +15,31 @@ describe('Game.Battle', () => {
             cols: 20, rows: 10,
             armySize: 10
         };
-        const battle = new BattleFact(game).createBattle(areaLevel, conf);
+        const battle = new BattleFact().createBattle(areaLevel, conf);
+        game.addBattle(battle);
+
+        const armies = battle.getArmies();
+        armies.forEach(army => {
+            army.setDefeatThreshold(0);
+        });
 
         expect(areaLevel.getActors().length).to.equal(0);
         expect(battle.isOver()).to.equal(false);
 
         let count = 0;
-        while (!battle.isOver() && count < 10000) {
+        const turnLimit = 10000;
+        while (!battle.isOver() && count < turnLimit) {
             game.simulateGame();
             ++count;
         }
-        expect(battle.isOver()).to.equal(true);
 
+        expect(battle.isOver()).to.equal(true);
         expect(battle.getLevel().getActors().length).to.be.equal(0);
 
         const survivors = areaLevel.getActors();
         expect(survivors.length).to.be.above(0);
 
+        // Check that event listeners are properly cleaned up
         const func = () => {
             RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: survivors[0]});
         };
