@@ -3,6 +3,9 @@ const RG = require('./rg');
 RG.Game = require('./game');
 
 const OW = require('./overworld.map');
+const Battle = require('./game.battle').Battle;
+const Army = require('./game.battle').Army;
+const GameMaster = require('./game.master');
 
 /* Object for converting serialized JSON objects to game objects. Note that all
  * actor/level ID info is stored between uses. If you call restoreLevel() two
@@ -475,7 +478,12 @@ RG.Game.FromJSON = function() {
             }
         }
 
+        // Entity data cannot be restored earlier because not all object refs
+        // exist when entities are created
         this.restoreEntityData();
+
+        const gameMaster = this.restoreGameMaster(json.gameMaster);
+        game.setGameMaster(gameMaster);
 
         // Restore the ID counters for levels and entities, otherwise duplicate
         // IDs will appear when new levels/entities are created
@@ -485,6 +493,8 @@ RG.Game.FromJSON = function() {
         return game;
     };
 
+    /* Connects all game levels together after they've been created as Map.Level
+     * objects. */
     this.connectGameLevels = game => {
         const levels = game.getLevels();
         levels.forEach(level => {
@@ -516,6 +526,40 @@ RG.Game.FromJSON = function() {
                 }
             });
         });
+    };
+
+    this.restoreGameMaster = function(json) {
+        const gameMaster = new GameMaster();
+        const battles = {};
+        Object.keys(json.battles).forEach(id => {
+            const battle = this.restoreBattle(json.battles[id]);
+            battles[id] = battle;
+        });
+        gameMaster.battles = battles;
+        return gameMaster;
+    };
+
+    this.restoreBattle = function(json) {
+        const battle = new Battle(json.name);
+        battle.setLevel(id2level[json.level]);
+        battle.setStats(json.stats);
+        const armies = [];
+        json.armies.forEach(armyJSON => {
+            armies.push(this.restoreArmy(armyJSON));
+        });
+        battle.setArmies(armies);
+        return battle;
+    };
+
+    this.restoreArmy = function(json) {
+        const army = new Army(json.name);
+        console.log(Object.keys(id2entity));
+
+        json.actors.forEach(id => {
+            army.addActor(id2entity[id]);
+        });
+
+        return army;
     };
 
     /* Assume the place is World object for now. */
