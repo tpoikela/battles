@@ -8,8 +8,7 @@ RG.Game.Battle = require('./game.battle').Battle;
 RG.Game.Army = require('./game.battle').Army;
 
 /* Factory used for creating battles. */
-RG.Factory.Battle = function(game) {
-    this.game = game;
+RG.Factory.Battle = function() {
 
     /* Creates one battle into the level. TODO: Decide how to modify difficulty
      * etc. TODO: Refactor into Factory.Battle. */
@@ -92,7 +91,6 @@ RG.Factory.Battle = function(game) {
         level.addElement(stairsArea, 4, 4);
 
         stairsArea.connect(stairsBattle);
-        this.game.addBattle(battle);
         return battle;
     };
 
