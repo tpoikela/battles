@@ -325,7 +325,15 @@ RG.System.Missile = function(compTypes) {
                 else if (mComp.inTarget()) {
                     this.finishMissileFlight(ent, mComp, currCell);
                     RG.debug(this, 'In target cell, and missed an entity');
-                    shownMsg = ent.getName() + ' misses the target';
+
+                    const actor = currCell.getFirstActor();
+                    if (actor) {
+                        const targetName = actor.getName();
+                        shownMsg = ent.getName() + ' misses ' + targetName;
+                    }
+                    else {
+                        shownMsg = ent.getName() + ' misses the target';
+                    }
                 }
                 else if (!mComp.hasRange()) {
                     this.finishMissileFlight(ent, mComp, currCell);
@@ -1192,21 +1200,24 @@ RG.System.SpellCast = function(compTypes) {
         }
     };
 
+    /* Checks if any power drainer managers to cancel the spell. */
     this._checkPowerDrain = (spell, args, drainers) => {
         let isDrained = false;
-        const casterX = args.src.getX();
-        const casterY = args.src.getY();
+        const srcX = args.src.getX();
+        const srcY = args.src.getY();
         drainers.forEach(ent => {
-            const drainX = ent.getX();
-            const drainY = ent.getY();
-            const dist = RG.Path.shortestDist(casterX, casterY, drainX, drainY);
-            if (dist <= ent.get('PowerDrain').drainDist) {
-                ent.remove('PowerDrain');
-                isDrained = true;
-                if (ent.has('SpellPower')) {
-                    ent.get('SpellPower').addPP(spell.getPower());
+            if (ent.getLevel().getID() === args.src.getLevel().getID()) {
+                const drainX = ent.getX();
+                const drainY = ent.getY();
+                const dist = RG.Path.shortestDist(srcX, srcY, drainX, drainY);
+                if (dist <= ent.get('PowerDrain').drainDist) {
+                    ent.remove('PowerDrain');
+                    isDrained = true;
+                    if (ent.has('SpellPower')) {
+                        ent.get('SpellPower').addPP(spell.getPower());
+                    }
+                    return;
                 }
-                return;
             }
         });
         return isDrained;
