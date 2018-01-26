@@ -119,12 +119,22 @@ RG.Game.FromJSON = function() {
                     memObj.setLastAttacked(entity);
                 }
 
-                memJSON.enemies.forEach(enemyID => {
-                    const enemy = id2entity[enemyID];
-                    if (enemy) {
-                        memObj.addEnemy(enemy);
-                    }
-                });
+                if (memJSON.enemies) {
+                    memJSON.enemies.forEach(enemyID => {
+                        const enemy = id2entity[enemyID];
+                        if (enemy) {
+                            memObj.addEnemy(enemy);
+                        }
+                    });
+                }
+                if (memJSON.friends) {
+                    memJSON.friends.forEach(friendID => {
+                        const friend = id2entity[friendID];
+                        if (friend) {
+                            memObj.addFriend(friend);
+                        }
+                    });
+                }
             }
             else if (type === 'Rogue') {
                 brainObj.getMemory().addEnemyType('player');
