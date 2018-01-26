@@ -33,7 +33,7 @@ const GameMaster = function(pool, game) {
             if (actor.isPlayer()) {
                 const srcID = src.getID();
                 if (this.battles.hasOwnProperty(srcID)) {
-                    const battleLevel = this.battles.getLevel().getID();
+                    const battleLevel = this.battles[srcID].getLevel();
                     if (battleLevel.getID() === target.getID()) {
                         // Entered a battle
                         console.log('Player entered battle. Getting sel obj');
