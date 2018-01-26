@@ -690,10 +690,14 @@ const Items = [
     },
     {
         name: 'Potion of accuracy', base: 'PotionBase',
-        use: {modifyStat: {value: 1, statName: 'accurary'}},
+        use: {modifyStat: {value: 1, statName: 'accuracy'}},
         value: value(300)
     },
-
+    {
+        name: 'Potion of magic', base: 'PotionBase',
+        use: {modifyStat: {value: 1, statName: 'magic'}},
+        value: value(300)
+    },
     // FOOD
     // Note: Food has energy X kcal/100g * 10. Food items can have weight,
     // but if they don't, weight is then generated randomly. Value is also per
