@@ -290,7 +290,7 @@ RG.Game.FromJSON = function() {
             }
         });
 
-        // Duplicate level IDs are very bad
+        // Duplicate level IDs are very, very bad
         if (!id2level.hasOwnProperty(json.id)) {
             id2level[json.id] = level;
         }
@@ -553,8 +553,6 @@ RG.Game.FromJSON = function() {
 
     this.restoreArmy = function(json) {
         const army = new Army(json.name);
-        console.log(Object.keys(id2entity));
-
         json.actors.forEach(id => {
             army.addActor(id2entity[id]);
         });
