@@ -10,6 +10,7 @@ const Models = BTree.Models;
 // changing action without callback.
 const ACTION_ALREADY_DONE = () => {};
 const NO_ACTION_TAKEN = () => {};
+const MEM_NO_ACTORS = Object.freeze([]);
 
 //---------------------------------------------------------------------------
 // BRAINS
@@ -63,10 +64,9 @@ RG.Brain.getEnemyCellsAround = actor => {
  * It's a separate object from decision-making brain.*/
 RG.Brain.Memory = function() {
 
-    const _enemies = []; // List of enemies for this actor
+    const _actors = {};
     const _enemyTypes = []; // List of enemy types for this actor
     let _communications = [];
-
     let _lastAttackedID = null;
 
     // TODO add memory of player closing a door/using stairs
@@ -84,25 +84,74 @@ RG.Brain.Memory = function() {
 
     /* Checks if given actor is an enemy. */
     this.isEnemy = actor => {
-        let index = _enemies.indexOf(actor);
-        if (index !== -1) {return true;}
-        const type = actor.getType();
-        index = _enemyTypes.indexOf(type);
-        if (index !== -1) {return true;}
+        if (_actors.hasOwnProperty('enemies')) {
+            const index = _actors.enemies.indexOf(actor);
+            if (index !== -1) {return true;}
+        }
+        if (!this.isFriend(actor)) {
+            const type = actor.getType();
+            const index = _enemyTypes.indexOf(type);
+            if (index !== -1) {return true;}
+        }
+        return false;
+    };
+
+    this.addFriend = function(actor) {
+        if (this.isEnemy(actor)) {
+            this.removeEnemy(actor);
+        }
+        if (!_actors.hasOwnProperty('friends')) {
+            _actors.friends = [];
+        }
+        if (!this.isFriend(actor)) {
+            _actors.friends.push(actor);
+        }
+    };
+
+    this.isFriend = function(actor) {
+        if (_actors.hasOwnProperty('friends')) {
+            const index = _actors.friends.indexOf(actor);
+            return index >= 0;
+        }
         return false;
     };
 
     /* Adds given actor as (personal) enemy.*/
     this.addEnemy = function(actor) {
         if (!this.isEnemy(actor)) {
-            _enemies.push(actor);
+            if (this.isFriend(actor)) {
+                this.removeFriend(actor);
+            }
+            if (!_actors.hasOwnProperty('enemies')) {
+                _actors.enemies = [];
+            }
+            _actors.enemies.push(actor);
             if (_communications.length > 0) {
                 _communications = []; // Invalidate communications
             }
         }
     };
 
-    this.getEnemies = () => _enemies;
+    this.removeEnemy = function(actor) {
+        if (_actors.hasOwnProperty('enemies')) {
+            const index = _actors.enemies.indexOf(actor);
+            if (index >= 0) {
+                _actors.enemies.splice(index, 1);
+            }
+        }
+    };
+
+    this.removeFriend = function(actor) {
+        if (_actors.hasOwnProperty('friends')) {
+            const index = _actors.friends.indexOf(actor);
+            if (index >= 0) {
+                _actors.friends.splice(index, 1);
+            }
+        }
+    };
+
+    this.getEnemies = () => _actors.enemies || MEM_NO_ACTORS;
+    this.getFriends = () => _actors.friends || MEM_NO_ACTORS;
 
     /* Adds a communication with given actor. */
     this.addCommunicationWith = function(actor) {
@@ -111,11 +160,15 @@ RG.Brain.Memory = function() {
         }
     };
 
+    /* Sets last attacked actor. This is used to prevent actor from switching
+     * target between attacks (which is ineffective to kill anything). */
     this.setLastAttacked = actor => {
         if (actor) {
             _lastAttackedID = actor.getID();
         }
         else {
+            // When restoring game, actor can be null (ie it was killed), but
+            // this actor does not know it
             _lastAttackedID = null;
         }
     };
@@ -130,9 +183,14 @@ RG.Brain.Memory = function() {
 
     this.toJSON = () => {
         const obj = {
-            enemies: _enemies.map(enemy => enemy.getID()),
             enemyTypes: _enemyTypes
         };
+        if (_actors.hasOwnProperty('enemies')) {
+            obj.enemies = _actors.enemies.map(enemy => enemy.getID());
+        }
+        if (_actors.hasOwnProperty('friends')) {
+            obj.friends = _actors.friends.map(enemy => enemy.getID());
+        }
         if (_lastAttackedID) {
             obj.lastAttackedID = _lastAttackedID;
         }
