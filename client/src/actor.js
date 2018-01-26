@@ -130,6 +130,7 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
     //---------------------------------
 
     addEnemy(actor) {this._brain.addEnemy(actor);}
+    addFriend(actor) {this._brain.addFriend(actor);}
 
     isEnemy(actor) {
         return this._brain.getMemory().isEnemy(actor);
