@@ -180,17 +180,18 @@ const GameMaster = function(pool, game) {
     };
 
     this.getSelLeaveBattle = function(player, level) {
-        return {
-            showMenu: () => true,
-            getMenu: () => {
+        const selObj = function() {
+            this.showMenu = () => true;
+            this.getMenu = () => {
                 RG.gameMsg('Battle is over! Do you want to leave battle?');
                 return {
                     0: 'Leave immediately',
                     1: 'Stay behind to scavenge the bodies of the dead.'
                 };
-            },
-            select: code => {
-                if (parseInt(code, 10) === 0) {
+            };
+            this.select = code => {
+                const selection = RG.codeToIndex(code);
+                if (selection === 0) {
                     const stairs = level.getStairs()[0];
                     if (!stairs.useStairs(player)) {
                         RG.err('GameMaster', 'moveActorsOutOfBattle',
@@ -201,9 +202,15 @@ const GameMaster = function(pool, game) {
                         RG.gameMsg(`${name} leaves the battlefield`);
                     }
                 }
-                return null;
-            }
+                if (selection === 1) {
+                    // TODO add some dishonor for the player or some necromancy
+                    // effect etc
+                    return null;
+                }
+                return this;
+            };
         };
+        return new selObj();
     };
 
     /* Serializes the object into JSON. */
