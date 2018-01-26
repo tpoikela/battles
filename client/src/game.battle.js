@@ -88,22 +88,30 @@ const Army = function(name) {
     };
     RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
 
+
+    this.toJSON = function() {
+        return {
+            name: _name,
+            actors: _actors.map(actor => actor.getID())
+        };
+    };
 };
 
 /* Battle is "mini-game" which uses its own scheduling and engine.*/
 const Battle = function(name) {
 
     const _name = name;
-    const _armies = [];
+    let _armies = [];
     let _level = null;
 
     // Keeps track of battles statistics
-    const _stats = {
+    let _stats = {
         duration: 0,
         casualties: 0,
         survivors: 0
     };
     this.getArmies = () => _armies;
+    this.setArmies = armies => {_armies = armies;};
 
     this.getName = () => _name;
 
@@ -111,6 +119,7 @@ const Battle = function(name) {
     this.getLevel = () => _level;
 
     this.getStats = () => _stats;
+    this.setStats = stats => {_stats = stats;};
 
     /* Adds an army to given x,y location.*/
     this.addArmy = (army, x, y, horizontal = true) => {
@@ -178,6 +187,16 @@ const Battle = function(name) {
         }
     };
     RG.POOL.listenEvent(RG.EVT_ARMY_EVENT, this);
+
+    /* Serialies the object into JSON. */
+    this.toJSON = function() {
+        return {
+            name: _name,
+            level: _level.getID(),
+            armies: _armies.map(army => army.toJSON()),
+            stats: _stats
+        };
+    };
 
 };
 
