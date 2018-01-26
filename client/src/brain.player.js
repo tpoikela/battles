@@ -554,8 +554,9 @@ class BrainPlayer {
         return 0;
     }
 
-    /* Required for damage dealing. Does nothing for the player.*/
+    /* Required for various functions. Does nothing for the player.*/
     addEnemy() {}
+    addFriend() {}
 
     /* Sets the selection object (for chats/trainers/etc) */
     setSelectionObject(obj) {
