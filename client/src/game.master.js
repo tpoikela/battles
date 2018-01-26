@@ -57,6 +57,7 @@ const GameMaster = function(pool, game) {
             const id = level.getID();
             if (!this.battles.hasOwnProperty(id)) {
                 this.battles[id] = this.fact.createBattle(level);
+                this.game.addBattle(this.battles[id]);
             }
         }
         else if (evtName === RG.EVT_BATTLE_OVER) {
@@ -166,9 +167,15 @@ const GameMaster = function(pool, game) {
         };
     };
 
+    /* Serializes the object into JSON. */
     this.toJSON = function() {
+        const keys = Object.keys(this.battles);
+        const battles = {};
+        keys.forEach(id => {
+            battles[id] = this.battles[id].toJSON();
+        });
         return {
-            battles: this.battles
+            battles
         };
     };
 };
