@@ -86,7 +86,16 @@ Names.place.unique = {
             'minster', 'swallow', 'grasp', 'cliff', 'cross', 'host', 'barrow',
             'vein', 'view', 'home'
         ]
-    },
+    }
+};
+
+Names.place.unique.mountain = {
+    first: Names.place.unique.city.first,
+    second: Names.place.generic.mountain.map(name => ' ' + name.toLowerCase())
+};
+Names.place.unique.dungeon = {
+    first: Names.place.unique.city.first,
+    second: Names.place.generic.dungeon.map(name => ' ' + name.toLowerCase())
 };
 
 Names.actor = {
@@ -101,10 +110,18 @@ Names.getVillageType = () => {
     return RG.RAND.arrayGetRand(['Village', 'Hamlet', 'Town', 'Township']);
 };
 
-Names.getUniqueCityName = () => {
-    const first = RG.RAND.arrayGetRand(Names.place.unique.city.first);
-    const second = RG.RAND.arrayGetRand(Names.place.unique.city.second);
-    return first + second;
+Names.getUniqueName = type => {
+    const names = Names.place.unique[type];
+    if (names) {
+        const first = RG.RAND.arrayGetRand(names.first);
+        const second = RG.RAND.arrayGetRand(names.second);
+        return first + second;
+    }
+    else {
+        RG.err('name-gen.js', 'Names.getUniqueName',
+          `No unique names for type ${type}`);
+    }
+    return '';
 };
 
 Names.getGenericPlaceName = (type) => {
