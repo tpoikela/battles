@@ -107,12 +107,7 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
             setType: this.getType(),
             setCount: this.count
         };
-        const components = {};
-        const thisComps = this.getComponents();
-        Object.keys(thisComps).forEach(name => {
-            components[thisComps[name].getType()] = thisComps[name].toJSON();
-        });
-        json.components = components;
+        json.components = RG.Component.compsToJSON(this);
         return json;
     }
 
