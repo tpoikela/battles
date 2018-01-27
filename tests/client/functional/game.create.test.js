@@ -102,6 +102,11 @@ describe('Function: Creating game world from a file', function() {
         game.addPlayer(player, {place: 'Ice Kingdom'});
         let gameLevels = game.getLevels();
 
+        const badge = new RG.Component.BattleBadge();
+        badge.setStatus('Won');
+        badge.setData({killed: 10});
+        player.add(badge);
+
         // Verify correct number of levels before serialisation
         expect(gameLevels).to.have.length(numLevels);
 
@@ -170,6 +175,23 @@ describe('Function: Creating game world from a file', function() {
         expect(cities, 'World has one city').to.have.length(1);
         const c1 = cities[0];
         expect(c1.getEntrances()[0]).to.not.be.empty;
+
+        // Verify that player is restored properly
+        const newPlayer = newGame.getPlayer();
+        const playerComps = player.getComponents();
+        const newPlayerComps = newPlayer.getComponents();
+
+        const compIDs = Object.keys(playerComps);
+        const newCompIDs = Object.keys(newPlayerComps);
+
+        const cNames = Object.values(playerComps).map(c => c.getType());
+        const cNamesNew = Object.values(newPlayerComps).map(c => c.getType());
+
+        console.log(cNames);
+        console.log(cNamesNew);
+        expect(cNamesNew.length).to.equal(cNames.length);
+
+        // expect(newCompIDs).to.deep.equal(compIDs);
 
     });
 });
