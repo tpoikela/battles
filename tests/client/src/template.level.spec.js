@@ -71,7 +71,7 @@ describe('Template.Level', () => {
         expect(level.map).to.have.length(9 * 12);
         expect(level.map[0]).to.have.length(9 * 6);
 
-        RG.printMap(level.map);
+        // RG.printMap(level.map);
     });
 
     it('can also remove templates after creation', () => {
