@@ -740,8 +740,10 @@ RG.System.Movement = function(compTypes) {
             const stairs = newCell.getStairs();
             const level = stairs.getTargetLevel();
             let msg = 'You see stairs here';
-            if (level.getParent()) {
-                const name = level.getParent();
+
+            const parent = level.getParent();
+            if (parent) {
+                const name = RG.formatLocationName(level);
                 msg += `. They seem to be leading to ${name}`;
             }
             RG.gameMsg(msg);
