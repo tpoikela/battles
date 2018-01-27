@@ -5,18 +5,43 @@ const Mixin = require('./mixin');
 RG.Chat = require('./chat');
 RG.ActorClass = require('./actor-class');
 
+const NO_SERIALISATION = () => null;
+
 //---------------------------------------------------------------------------
 // ECS COMPONENTS
 //---------------------------------------------------------------------------
 
-/* Important Guidelines: Each component constructor must NOT take any
- * parameters. Call Base constructor with the type. (which must be identical
- * to the Object type).
- * To benefit from serialisation, all methods should be named:
- * setXXX - getXXX
+/* Important Guidelines:
+ *
+ *  Each component constructor must NOT take any
+ *  parameters. Call Base constructor with the type. (which must be identical
+ *  to the Object type).
+ *  To benefit from serialisation, all methods should be named:
+ *  setXXX - getXXX
+ *  Note that if you have any methods starting with set/get, these are used in
+ *  the serialisation UNLESS you override toJSON() method.
+ *
+ *  If only one instance of component should exist for an entity, set
+ *  this._unique to true.
+ *
+ *  If serialisation using toJSON is completely undesirable, use the following:
+ *    this.toJSON = NO_SERIALISATION;
+ *  inside your component.
  */
 
 RG.Component = {};
+
+RG.Component.compsToJSON = ent => {
+    const components = {};
+    const thisComps = ent.getComponents();
+    Object.keys(thisComps).forEach(name => {
+        const compJson = thisComps[name].toJSON();
+        if (compJson) {
+            components[thisComps[name].getType()] = compJson;
+        }
+    });
+    return components;
+};
 
 RG.Component.idCount = 0;
 
@@ -180,6 +205,8 @@ RG.Component.Action = function() {
             _active = false;
         }
     };
+
+    this.toJSON = NO_SERIALISATION;
 
 };
 RG.extend2(RG.Component.Action, RG.Component.Base);
@@ -752,7 +779,6 @@ RG.Component.Unpaid = function() {
 };
 RG.extend2(RG.Component.Unpaid, RG.Component.Base);
 
-
 /* Expiration component handles expiration of time-based effects. Any component
  * can be made transient by using this Expiration component. For example, to
  * have transient, non-persistent Ethereal, you can use this component. */
@@ -973,6 +999,7 @@ RG.extend2(RG.Component.DoubleShot, RG.Component.Base);
 
 RG.Component.SpellPower = function(maxPP) {
     RG.Component.Base.call(this, 'SpellPower');
+    this._isUnique = true;
 
     let _maxPP = maxPP || 10;
     let _pp = _maxPP;
