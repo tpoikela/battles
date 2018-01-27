@@ -179,13 +179,25 @@ RG.Game.Main = function() {
 
     /* Adds one level to the game.*/
     this.addLevel = level => {
+        console.log('>>> Game.addLevel id ' + level.getID());
         if (!_engine.hasLevel(level)) {
             _levels.push(level);
             _engine.addLevel(level);
         }
         else {
-            RG.err('Game.Main', 'addLevel',
-                'Duplicate level ID ' + level.getID());
+            const parent = level.getParent();
+            const json = level.toJSON();
+            delete json.elements;
+            delete json.map.cells;
+            let msg = '';
+            if (parent) {
+                const name = RG.formatLocationName(level);
+                msg = `Parent: ${name}| `;
+            }
+            msg += 'Duplicate level ID ' + level.getID();
+            msg += ' JSON: ' + JSON.stringify(json, null, 1);
+
+            RG.err('Game.Main', 'addLevel', msg);
         }
     };
 
