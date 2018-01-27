@@ -33,15 +33,20 @@ const GameMaster = function(pool, game) {
             if (actor.isPlayer()) {
                 const srcID = src.getID();
                 if (this.battles.hasOwnProperty(srcID)) {
-                    const battleLevel = this.battles[srcID].getLevel();
+                    const battle = this.battles[srcID];
+                    if (!battle.isOver()) {
+                        const battleLevel = battle.getLevel();
 
-                    if (battleLevel.getID() === target.getID()) {
-                        // Entered a battle
-                        console.log('Player entered battle. Getting sel obj');
-                        actor.add(new RG.Component.InBattle());
-                        // Get army selection object
-                        const obj = this.getSelArmyObject(actor, this.battles[srcID]);
-                        actor.getBrain().setSelectionObject(obj);
+                        if (battleLevel.getID() === target.getID()) {
+                            // Entered a battle
+                            actor.add(new RG.Component.InBattle());
+                            // Get army selection object
+                            const obj = this.getSelArmyObject(actor, battle);
+                            actor.getBrain().setSelectionObject(obj);
+                        }
+                    }
+                    else {
+                        RG.gameMsg('Looks like the battle is already fought..');
                     }
                 }
             }
