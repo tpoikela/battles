@@ -38,6 +38,10 @@ RG.Game.FromJSON = function() {
     this.restorePlayer = function(obj) {
         const player = new RG.Actor.Rogue(obj.name);
         player.setIsPlayer(true);
+        // TODO hack for now, these are restored later
+        player.remove('StatsMods');
+        player.remove('CombatMods');
+
         player.setType('player');
         player.setID(obj.id);
         id2entity[obj.id] = player;
@@ -75,13 +79,21 @@ RG.Game.FromJSON = function() {
                 for (const fname in compJSON) {
                     if (typeof newCompObj[fname] === 'function') {
                         const valueToSet = compJSON[fname];
-                        if (valueToSet.createFunc) {
-                            const createdObj =
-                                this[valueToSet.createFunc](valueToSet.value);
-                            newCompObj[fname](createdObj);
+                        if (!RG.isNullOrUndef([valueToSet])) {
+                            if (valueToSet.createFunc) {
+                                const createdObj =
+                                    this[valueToSet.createFunc](valueToSet.value);
+                                newCompObj[fname](createdObj);
+                            }
+                            else {
+                                newCompObj[fname](valueToSet);
+                            }
                         }
                         else {
-                            newCompObj[fname](valueToSet);
+                            const jsonStr = JSON.stringify(compJSON);
+                            let msg = `valueToSet ${valueToSet}. fname ${fname} `;
+                            msg += `Comp ${name}, json: ${jsonStr}`;
+                            RG.err('FromJSON', 'addCompsToEntity', msg);
                         }
                     }
                     else {
