@@ -987,6 +987,10 @@ RG.Map.Level = function() { // {{{2
             cbState: _cbState
         };
 
+        if (_parent) {
+            obj.parent = _parent.getName();
+        }
+
         // Must store x, y for each prop as well
         const props = ['actors', 'items', 'elements'];
         props.forEach(propType => {
