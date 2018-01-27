@@ -970,6 +970,7 @@ RG.Factory.World = function() {
     // Creates all zones when the area is created if true. Setting it to true
     // makes creation of game very slow, as the full game is built in one go
     this.createAllZones = true;
+    this.worldElemByID = {}; // Stores world elements by ID
 
     // Used for generating levels, if more specific settings not given
     this.globalConf = {
@@ -1245,6 +1246,7 @@ RG.Factory.World = function() {
             const branchConf = conf.branch[i];
             const branch = this.createBranch(branchConf);
             dungeon.addBranch(branch);
+            this.addWorldID(branchConf, branch);
         }
 
         if (conf.entrance) {
@@ -1531,6 +1533,7 @@ RG.Factory.World = function() {
             const faceConf = conf.face[i];
             const mountainFace = this.createMountainFace(faceConf);
             mountain.addSubZone(mountainFace);
+            this.addWorldID(faceConf, mountainFace);
         }
 
         if (!this.id2levelSet) {
@@ -1618,6 +1621,7 @@ RG.Factory.World = function() {
             const qConf = conf.quarter[i];
             const quarter = this.createCityQuarter(qConf);
             city.addSubZone(quarter);
+            this.addWorldID(qConf, quarter);
         }
 
         // Connect city quarters according to configuration
@@ -1815,6 +1819,13 @@ RG.Factory.World = function() {
         }
 
 
+    };
+
+    this.addWorldID = function(conf, worldElem) {
+      if (!RG.isNullOrUndef([conf.id])) {
+          worldElem.setID(conf.id);
+      }
+      this.worldElemByID[worldElem.getID()] = worldElem;
     };
 };
 
