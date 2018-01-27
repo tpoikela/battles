@@ -118,6 +118,7 @@ RG.Spell.SpellBook = function(actor) {
                 powerSorted.forEach((spell, index) => {
                     obj[indices[index]] = spell.toString();
                 });
+                obj.pre = ['You know the following spells:'];
                 return obj;
             },
             showMenu: () => true
