@@ -223,8 +223,12 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
             this._isPlayer = isPlayer;
             this._brain = new RG.Brain.Player(this);
             this.setType('player');
-            this.add(new RG.Component.StatsMods());
-            this.add(new RG.Component.CombatMods());
+            if (!this.has('StatsMods')) {
+                this.add(new RG.Component.StatsMods());
+            }
+            if (!this.has('CombatMods')) {
+                this.add(new RG.Component.CombatMods());
+            }
             this.add(new RG.Component.SpellPower());
         }
         else {
@@ -295,35 +299,12 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
             y: this.getY(),
             fovRange: this.getFOVRange(),
             levelID,
-            components: {
-                Combat: this.get('Combat').toJSON(),
-                Experience: this.get('Experience').toJSON(),
-                Health: this.get('Health').toJSON(),
-                Stats: this.get('Stats').toJSON()
-            },
             inventory: this.getInvEq().getInventory().toJSON(),
             equipment: this.getInvEq().getEquipment().toJSON(),
             brain: this._brain.toJSON()
         };
 
-        /* TODO: Using this crashes the game unfortunately
-        const components = {};
-        const thisComps = this.getComponents();
-        Object.keys(thisComps).forEach(name => {
-            components[thisComps[name].getType()] = thisComps[name].toJSON();
-        });
-        obj.components = components;
-        */
-
-        const simpleComps = ['ActorClass', 'BattleBadge', 'Hunger', 'Flying',
-            'Defender', 'Attacker',
-            'CounterAttack', 'BiDirStrike', 'MasterEquipper', 'SpellPower',
-            'SpiritItemCrafter', 'Trainer', 'Skills'];
-        simpleComps.forEach(compName => {
-            if (this.has(compName)) {
-                obj.components[compName] = this.get(compName).toJSON();
-            }
-        });
+        obj.components = RG.Component.compsToJSON(this);
 
         if (obj.type === null) {
             RG.err('Actor.Rogue', 'toJSON',
