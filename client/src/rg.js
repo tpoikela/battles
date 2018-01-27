@@ -1331,6 +1331,25 @@ RG.getImpassableMsg = (actor, cell, str) => {
     return `${str} ${cellMsg}`;
 };
 
+RG.formatLocationName = level => {
+    const feat = level.getParent();
+    if (!feat) {return '';}
+    switch (feat.getType()) {
+        case 'branch': // Fall through
+        case 'face': // Fall through
+        case 'quarter': {
+            const parent = feat.getParent();
+            const subName = feat.getName();
+            const zoneName = parent.getName();
+            if (subName === zoneName) {
+                return subName;
+            }
+            return `${subName} of ${zoneName}`;
+        }
+        default: return feat.getName();
+    }
+};
+
 /* Each die has number of throws, type of dice (d6, d20, d200...) and modifier
  * which is +/- X. */
 RG.Die = function(num, dice, mod) {
