@@ -2,6 +2,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+const RG = require('../src/rg');
+
 /* Component which renders the player stats into the left panel. */
 export default class PlayerStats extends React.Component {
 
@@ -12,7 +14,7 @@ export default class PlayerStats extends React.Component {
     render() {
         const player = this.props.player;
         const dungeonLevel = player.getLevel().getLevelNumber();
-        const location = player.getLevel().getParent();
+        const location = RG.formatLocationName(player.getLevel());
 
         let PP = null;
         if (player.has('SpellPower')) {
