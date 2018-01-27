@@ -146,10 +146,6 @@ class RGElementStairs extends Mixin.Locatable(RGElementBase) {
                     RG.POOL.emitEvent(RG.EVT_LEVEL_ENTERED,
                         {actor, target: this._targetLevel});
 
-                    if (this.getType() === 'passage') {
-                        RG.POOL.emitEvent(RG.EVT_TILE_CHANGED,
-                            {actor, target: this._targetLevel});
-                    }
                     return true;
                 }
             }

@@ -238,6 +238,14 @@ RG.Game.Main = function() {
      * actions are executed after the player action.*/
     this.update = obj => {_engine.update(obj);};
 
+    this.getArea = (index) => {
+        const world = Object.values(_places)[0];
+        if (world && typeof world.getAreas === 'function') {
+            return world.getAreas()[index];
+        }
+        return null;
+    };
+
     /* Used by the event pool. Game receives notifications about different
      * game events from child components. */
     this.hasNotify = true;
@@ -254,6 +262,12 @@ RG.Game.Main = function() {
             const actor = args.actor;
             if (actor.isPlayer()) {
                 _shownLevel = actor.getLevel();
+                const {src, target} = args;
+                const area = this.getArea(0);
+                if (area && area.hasTiles([src, target])) {
+                    RG.POOL.emitEvent(RG.EVT_TILE_CHANGED,
+                        {actor, target, src});
+                }
             }
         }
         else if (evtName === RG.EVT_TILE_CHANGED) {
