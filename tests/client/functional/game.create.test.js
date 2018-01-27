@@ -122,11 +122,17 @@ describe('Function: Creating game world from a file', function() {
             JSON.stringify(gameLevels.map(l => l.getID())));
 
         const oldWorld = game.getPlaces()['Ice Kingdom'];
+        const oldArea = oldWorld.getAreas()[0];
         const oldMountains = oldWorld.getZones('Mountain');
         const oldM1 = oldMountains[0];
+        const oldF1 = oldM1.getFaces()[0];
 
         // Verify that world zones have been restored
         const newWorld = newGame.getPlaces()['Ice Kingdom'];
+        expect(newWorld.getID(), 'World ID same').to.equal(oldWorld.getID());
+
+        const newArea = newWorld.getAreas()[0];
+        expect(newArea.getID(), 'Area ID same').to.equal(oldArea.getID());
         const dungeons = newWorld.getZones('Dungeon');
         expect(dungeons, 'World has 1 dungeon').to.have.length(1);
 
@@ -152,11 +158,12 @@ describe('Function: Creating game world from a file', function() {
         expect(mountains).to.have.length(1);
         const m1 = mountains[0];
         expect(m1.getName()).to.equal('Cliff');
-        expect(m1.getParent()).to.equal('Area51');
+        expect(m1.getParent().getName()).to.equal('Area51');
         expect(m1.getID()).to.equal(oldM1.getID());
 
         const f1 = m1.getFaces()[0];
         expect(f1.getEntrance()).not.to.be.empty;
+        expect(f1.getID()).to.equal(oldF1.getID());
 
         // Verify that city is restored correctly
         const cities = newWorld.getZones('City');
