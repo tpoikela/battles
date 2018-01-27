@@ -1,6 +1,7 @@
 /* Contains code related to in-game battles. */
 
 const RG = require('./rg');
+const debug = require('debug')('bitn:game.battle');
 
 /* Army is a collection of actors associated with a battle. This is useful for
  *  battle commanders to have access to their full army. */
@@ -172,10 +173,9 @@ const Battle = function(name) {
         if (evtName === RG.EVT_ARMY_EVENT) {
             const {type, army} = msg;
             if (this.armyInThisBattle(army) && type === 'Actor killed') {
-                console.log('Actor killed from army ' + army.getName());
                 if (this.isOver()) {
-                    console.log(`Battle |${this.getName()}| is over!`);
-                    console.log('\tRemoving all event listeners');
+                    debug(`Battle |${this.getName()}| is over!`);
+                    debug('\tRemoving all event listeners');
                     RG.POOL.removeListener(this);
                     for (let i = 0; i < _armies.length; i++) {
                         RG.POOL.removeListener(_armies[i]);
