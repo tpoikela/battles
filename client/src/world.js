@@ -252,6 +252,7 @@ RG.World.ZoneBase.prototype.setTileXY = function(x, y) {
 
 RG.World.ZoneBase.prototype.addSubZone = function(subZone) {
     if (!RG.isNullOrUndef([subZone])) {
+        subZone.setParent(this);
         this._subZones.push(subZone);
         return true;
     }
@@ -401,7 +402,7 @@ RG.World.Branch = function(name) {
             if (level.setLevelNumber) {
                 level.setLevelNumber(_numCount++);
                 _levels.push(level);
-                level.setParent(this.getName());
+                level.setParent(this);
             }
             else {
                 console.error(level);
@@ -465,6 +466,7 @@ RG.World.Dungeon = function(name) {
         if (!this.hasBranch(branch)) {
             this._subZones.push(branch);
             branch.setDungeon(this);
+            branch.setParent(this);
 
             // By default, have at least one entrance
             if (this._subZones.length === 1) {
@@ -650,7 +652,7 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
                     level = RG.FACT.createLevel('forest',
                         _cols, _rows, forestConf);
                 }
-                level.setParent(this.getName());
+                level.setParent(this);
                 newTile.setLevel(level);
                 tileColumn.push(newTile);
             }
@@ -754,6 +756,7 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
             this.zones[type] = [];
         }
         this.zones[type].push(zone);
+        zone.setParent(this);
     };
 
     this.getZones = function(type) {
@@ -834,11 +837,12 @@ from-the-side view. Bit weird but should be fine.
         return level;
     };
 
-    this.addSummit = (summit) => {
+    this.addSummit = summit => {
         _summits.push(summit);
+        summit.setParent(this);
     };
 
-    this.addFace = (face) => {
+    this.addFace = face => {
         this.addSubZone(face);
     };
 
@@ -877,7 +881,7 @@ RG.World.MountainFace = function(name) {
 
     this.addLevel = function(level) {
         _levels.push(level);
-        level.setParent(this.getName());
+        level.setParent(this);
     };
 
     /* Entrance is created at the bottom by default. */
@@ -1013,7 +1017,7 @@ RG.World.CityQuarter = function(name) {
         if (!RG.isNullOrUndef([level])) {
             level.setLevelNumber(_numCount++);
             _levels.push(level);
-            level.setParent(this.getName());
+            level.setParent(this);
         }
         else {
             RG.err('CityQuarter', 'addLevel',
@@ -1099,6 +1103,7 @@ RG.World.Top = function(name) {
 
     /* Adds an area into the world. */
     this.addArea = function(area) {
+        area.setParent(this);
         _areas.push(area);
     };
 
