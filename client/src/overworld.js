@@ -833,7 +833,7 @@ RG.OverWorld.createWorldConf = (ow, subLevels, nTilesX, nTilesY) => {
 
                         const featX = mapX(coord[0][0], slX, subX);
                         const featY = mapY(coord[0][1], slY, subY);
-                        const mName = RG.Names.getGenericPlaceName('mountain');
+                        const mName = RG.Names.getUniqueName('mountain');
 
                         const mountConf = RG.LevelGen.getMountainConf(mName);
                         Object.assign(mountConf,
@@ -984,7 +984,7 @@ function addCityConfToArea(feat, coordObj, areaConf) {
     const nLevels = coord.length;
     feat.nLevels = nLevels;
 
-    const cName = RG.Names.getUniqueCityName();
+    const cName = RG.Names.getUniqueName('city');
     const cityConf = RG.LevelGen.getCityConf(cName, feat);
 
     cityConf.groupType = feat.type;
