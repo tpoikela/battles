@@ -24,7 +24,8 @@ function getPaddingLines(width, lineCount) {
 }
 
 /* Component is used to show in-game menus, for example when a player must
- * make a decision about something. */
+ * make a decision about something. Each menu can contain pre-selection text,
+ * the actual selection list and post-selection text. */
 export default class GameMenu extends Component {
 
   render() {
@@ -38,22 +39,62 @@ export default class GameMenu extends Component {
     const paddingBottom = getPaddingLines(width, bottomLineCount);
 
     const menuElem = Object.keys(menuObj).map(item => {
-      const text = padToWidth(width, `[${item}] - ${menuObj[item]} `, 3);
-      return (
-        <div className='cell-row-div-player-view' key={item}>
-          <span className='game-menu-text-span'
-            dangerouslySetInnerHTML={{__html: text}}
-          />
-        </div>
-      );
+      if (item !== 'pre' && item !== 'post') {
+        const text = padToWidth(width, `[${item}] - ${menuObj[item]} `, 3);
+        return (
+          <div className='cell-row-div-player-view' key={item}>
+            <span className='game-menu-text-span'
+              dangerouslySetInnerHTML={{__html: text}}
+            />
+          </div>
+        );
+      }
+      return null;
     });
+
+    // Create pre-selection text element
+    let preMenu = null;
+    if (menuObj.hasOwnProperty('pre')) {
+      if (Array.isArray(menuObj.pre)) {
+        preMenu = menuObj.pre.map(item => {
+          const text = padToWidth(width, `${item}`, 3);
+          return (
+            <div className='cell-row-div-player-view' key={item}>
+              <span className='game-menu-text-span'
+                dangerouslySetInnerHTML={{__html: text}}
+              />
+            </div>
+          );
+
+        });
+      }
+    }
+
+    // Create post-selection text element
+    let postMenu = null;
+    if (menuObj.hasOwnProperty('post')) {
+      if (Array.isArray(menuObj.post)) {
+        postMenu = menuObj.post.map(item => {
+          const text = padToWidth(width, `${item}`, 3);
+          return (
+            <div className='cell-row-div-player-view' key={item}>
+              <span className='game-menu-text-span'
+                dangerouslySetInnerHTML={{__html: text}}
+              />
+            </div>
+          );
+        });
+      }
+    }
 
     return (
       <div
         className='game-board game-board-player-view'
       >
         {paddingTop}
+        {preMenu}
         {menuElem}
+        {postMenu}
         {paddingBottom}
       </div>
     );
