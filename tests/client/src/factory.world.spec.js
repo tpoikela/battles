@@ -59,6 +59,8 @@ describe('Factory.World', function() {
         const qs = city.getQuarters();
         expect(qs).to.have.length(2);
         expectConnected(qs[0], qs[1], 1);
+
+        expect(qs[0].getParent().getName()).to.equal('Arkham');
     });
 
     it('can create Branch using config object', () => {
@@ -122,6 +124,7 @@ describe('Factory.World', function() {
         expect(dungeon.getEntrances()[0]).not.to.be.empty;
         expectConnected(branches[0], branches[1], 1);
         expectConnected(branches[1], branches[2], 1);
+        expect(branches[0].getParent().getName()).to.equal('Cave');
     });
 
     it('creates properly connected dungeons with branches', () => {
@@ -177,9 +180,15 @@ describe('Factory.World', function() {
 
         fact.setGlobalConf({});
         const world = fact.createWorld(worldConf);
-        expect(world.getZones('City')).to.have.length(1);
 
-        const areaLevel = world.getAreas()[0].getTileXY(0, 0).getLevel();
+        const cities = world.getZones('City');
+        expect(cities).to.have.length(1);
+
+        expect(cities[0].getParent().getName()).to.equal('a1');
+
+        const area = world.getAreas()[0];
+        expect(area.getParent().getName()).to.equal('ww');
+        const areaLevel = area.getTileXY(0, 0).getLevel();
         const stairs0 = areaLevel.getStairs()[0];
         expect(stairs0.getX()).to.equal(4);
         expect(stairs0.getY()).to.equal(7);
