@@ -1325,8 +1325,6 @@ RG.Factory.World = function() {
                 }
                 else {
                     level = this.factZone.createDungeonLevel(levelConf);
-                    const id = level.getID();
-                    console.log(`>> Creating dungeon level ID ${id}`);
                     // For creating 'fixed' items and actors
                     this.addFixedFeatures(i, level, branch);
                     if (i === (conf.nLevels - 1)) {
