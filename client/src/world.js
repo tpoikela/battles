@@ -673,6 +673,33 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
         return null;
     };
 
+    /* Returns true if the area has given level as a tile level. */
+    this.hasTileWithId = id => {
+        for (let x = 0; x < _tiles.length; x++) {
+            for (let y = 0; y < _tiles[x].length; y++) {
+                if (_tiles[x][y].getLevel().getID() === id) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    /* Returns true if the area has tiles with given levels or level IDs. */
+    this.hasTiles = arr => {
+        let result = true;
+        arr.forEach(level => {
+            if (typeof level.getID === 'function') {
+                result = result && this.hasTileWithId(level.getID());
+            }
+            else if (Math.isInteger(level)) {
+                result = result && this.hasTileWithId(level);
+            }
+
+        });
+        return result;
+    };
+
     this.getTileXY = function(x, y) {
         if (x >= 0 && x < this.getMaxX() && y >= 0 && y < this.getMaxY()) {
             return _tiles[x][y];
