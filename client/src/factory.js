@@ -1079,8 +1079,10 @@ RG.Factory.World = function() {
                 this.restoreCreatedZones(world, area, areaConf);
             }
             world.addArea(area);
+            this.addWorldID(areaConf, area);
         }
         this.popScope(conf);
+        this.addWorldID(conf, world);
         return world;
     };
 
@@ -1191,6 +1193,7 @@ RG.Factory.World = function() {
                     zone.setTileXY(x, y);
                     console.log(`\t\tCreated zone of type ${type}`);
                     area.addZone(type, zone);
+                    this.addWorldID(zoneConf, zone);
                     if (!this.id2levelSet) {
                         this.createAreaZoneConnection(area, zone, zoneConf);
                     }
@@ -1817,7 +1820,6 @@ RG.Factory.World = function() {
                 }
             });
         }
-
 
     };
 
