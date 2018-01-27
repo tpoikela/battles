@@ -315,8 +315,8 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
         obj.components = components;
         */
 
-        const simpleComps = ['ActorClass', 'Hunger', 'Flying', 'Defender',
-            'Attacker',
+        const simpleComps = ['ActorClass', 'BattleBadge', 'Hunger', 'Flying',
+            'Defender', 'Attacker',
             'CounterAttack', 'BiDirStrike', 'MasterEquipper', 'SpellPower',
             'SpiritItemCrafter', 'Trainer', 'Skills'];
         simpleComps.forEach(compName => {
