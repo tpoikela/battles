@@ -121,6 +121,10 @@ describe('Function: Creating game world from a file', function() {
         console.log('Level IDs: ' +
             JSON.stringify(gameLevels.map(l => l.getID())));
 
+        const oldWorld = game.getPlaces()['Ice Kingdom'];
+        const oldMountains = oldWorld.getZones('Mountain');
+        const oldM1 = oldMountains[0];
+
         // Verify that world zones have been restored
         const newWorld = newGame.getPlaces()['Ice Kingdom'];
         const dungeons = newWorld.getZones('Dungeon');
@@ -148,6 +152,8 @@ describe('Function: Creating game world from a file', function() {
         expect(mountains).to.have.length(1);
         const m1 = mountains[0];
         expect(m1.getName()).to.equal('Cliff');
+        expect(m1.getParent()).to.equal('Area51');
+        expect(m1.getID()).to.equal(oldM1.getID());
 
         const f1 = m1.getFaces()[0];
         expect(f1.getEntrance()).not.to.be.empty;
