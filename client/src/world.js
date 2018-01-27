@@ -176,11 +176,14 @@ RG.World = {};
 // RG.World.Base
 //----------------
 
+
 /* Base class for world places. Each place has name and type + full hierarchical
 * name to trace where the place is in hierarchy. */
 RG.World.Base = function(name) {
     this.name = name;
     this.type = 'base';
+    this.worldID = RG.World.Base.id++;
+    this.parent = null;
 };
 
 RG.World.Base.prototype.getName = function() {
@@ -202,6 +205,35 @@ RG.World.Base.prototype.getType = function() {
 RG.World.Base.prototype.setType = function(type) {
     this.type = type;
 };
+
+RG.World.Base.prototype.getID = function() {
+    return this.worldID;
+};
+
+RG.World.Base.prototype.setID = function(id) {
+    this.worldID = id;
+};
+
+RG.World.Base.prototype.getParent = function() {
+    return this.parent;
+};
+
+RG.World.Base.prototype.setParent = function(parent) {
+    this.parent = parent;
+};
+
+RG.World.Base.prototype.toJSON = function() {
+    return {
+        name: this.name,
+        hierName: this.hierName,
+        type: this.type,
+        id: this.worldID,
+        parent: this.parent
+    };
+};
+
+// ID counter for world elements
+RG.World.Base.id = 0;
 
 //---------------------
 // RG.World.ZoneBase
@@ -259,6 +291,13 @@ RG.World.ZoneBase.prototype.getEntrances = function() {
         }
     });
     return entrances;
+};
+
+RG.World.ZoneBase.prototype.toJSON = function() {
+    const json = RG.World.Base.prototype.toJSON.call(this);
+    json.x = this.tileX;
+    json.y = this.tileY;
+    return json;
 };
 
 //--------------------------
@@ -382,16 +421,15 @@ RG.World.Branch = function(name) {
     };
 
     this.toJSON = function() {
+        const json = RG.World.Base.prototype.toJSON.call(this);
         const obj = {
-            name: this.getName(),
-            hierName: this.getHierName(),
             nLevels: _levels.length,
             levels: _levels.map(level => level.getID())
         };
         if (_entrance) {
             obj.entrance = _entrance;
         }
-        return obj;
+        return Object.assign(obj, json);
     };
 
 };
@@ -451,15 +489,13 @@ RG.World.Dungeon = function(name) {
     };
 
     this.toJSON = function() {
-        const obj2 = {
-            x: this.tileX, y: this.tileY,
-            name: this.getName(),
-            type: this.getType(),
+        const json = RG.World.ZoneBase.prototype.toJSON.call(this);
+        const obj = {
             entranceNames: this._entranceNames,
             nBranches: this._subZones.length,
             branch: this._subZones.map(br => br.toJSON())
         };
-        return obj2;
+        return Object.assign(obj, json);
     };
 
 };
@@ -733,16 +769,15 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
 
     /* Serializes the Area into JSON. */
     this.toJSON = function() {
+        const json = RG.World.Base.prototype.toJSON.call(this);
         const tilesJSON = [];
         _tiles.forEach(tileCol => {
             const tileColJSON = tileCol.map(tile => tile.toJSON());
             tilesJSON.push(tileColJSON);
         });
 
-        return {
-            name: this.getName(),
+        const obj = {
             conf: this.getConf(),
-            hierName: this.getHierName(),
             maxX: _sizeX, maxY: _sizeY,
             cols: _cols, rows: _rows,
             tiles: tilesJSON,
@@ -756,6 +791,7 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
             city: this.zones.City.map(city => city.toJSON()),
             zonesCreated: this.zonesCreated
         };
+        return Object.assign(obj, json);
     };
 
 };
@@ -819,16 +855,14 @@ from-the-side view. Bit weird but should be fine.
 RG.extend2(RG.World.Mountain, RG.World.ZoneBase);
 
 RG.World.Mountain.prototype.toJSON = function() {
+    const json = RG.World.ZoneBase.prototype.toJSON.call(this);
     const obj = {
-        x: this.tileX, y: this.tileY,
-        name: this.getName(),
-        type: this.getType(),
         nFaces: this._subZones.length,
         face: this._subZones.map(face => face.toJSON()),
         nSummits: this.getSummits().length,
         summit: this.getSummits().map(summit => summit.toJSON())
     };
-    return obj;
+    return Object.assign(obj, json);
 };
 
 /* One side (face) of the mountain. Each side consists of stages, of X by 1
@@ -910,16 +944,15 @@ RG.World.MountainFace = function(name) {
     };
 
     this.toJSON = function() {
+        const json = RG.World.Base.prototype.toJSON.call(this);
         const obj = {
-            name: this.getName(),
-            hierName: this.getHierName(),
             nLevels: _levels.length,
             levels: _levels.map(level => level.getID())
         };
         if (_entrance) {
             obj.entrance = _entrance;
         }
-        return obj;
+        return Object.assign(obj, json);
     };
 
 };
@@ -947,15 +980,12 @@ RG.World.City = function(name) {
     };
 
     this.toJSON = function() {
+        const json = RG.World.ZoneBase.prototype.toJSON.call(this);
         const obj = {
-            x: this.tileX, y: this.tileY,
-            name: this.getName(),
-            type: this.getType(),
-            hierName: this.getHierName(),
             nQuarters: this._subZones.length,
             quarter: this._subZones.map(q => q.toJSON())
         };
-        return obj;
+        return Object.assign(obj, json);
     };
 
 };
@@ -1036,9 +1066,8 @@ RG.World.CityQuarter = function(name) {
     };
 
     this.toJSON = function() {
+        const json = RG.World.Base.prototype.toJSON.call(this);
         const obj = {
-            name: this.getName(),
-            hierName: this.getHierName(),
             nLevels: _levels.length,
             levels: _levels.map(level => level.getID()),
             shops: _shops.map(shop => shop.toJSON())
@@ -1046,7 +1075,7 @@ RG.World.CityQuarter = function(name) {
         if (_entrance) {
             obj.entrance = _entrance;
         }
-        return obj;
+        return Object.assign(obj, json);
     };
 };
 RG.extend2(RG.World.CityQuarter, RG.World.Base);
@@ -1105,19 +1134,19 @@ RG.World.Top = function(name) {
     };
 
     this.toJSON = function() {
+        const json = RG.World.Base.prototype.toJSON.call(this);
         const area = _areas.map(area => area.toJSON());
         let createAllZones = true;
         if (this.getConf().hasOwnProperty('createAllZones')) {
             createAllZones = this.getConf().createAllZones;
         }
-        return {
-            name: this.getName(),
+        const obj = {
             conf: this.getConf(),
-            hierName: this.getHierName(),
             nAreas: _areas.length,
             area,
             createAllZones
         };
+        return Object.assign(obj, json);
     };
 };
 RG.extend2(RG.World.Top, RG.World.Base);
