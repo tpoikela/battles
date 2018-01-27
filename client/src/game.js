@@ -179,7 +179,6 @@ RG.Game.Main = function() {
 
     /* Adds one level to the game.*/
     this.addLevel = level => {
-        console.log('>>> Game.addLevel id ' + level.getID());
         if (!_engine.hasLevel(level)) {
             _levels.push(level);
             _engine.addLevel(level);
