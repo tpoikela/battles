@@ -29,25 +29,13 @@ const GameMaster = function(pool, game) {
     this.notify = (evtName, args) => {
         if (evtName === RG.EVT_LEVEL_CHANGED) {
             console.log('GameMaster EVT_LEVEL_CHANGED triggered');
-            const {actor, target, src} = args;
+            const {actor} = args;
             if (actor.isPlayer()) {
-                const srcID = src.getID();
-                if (this.battles.hasOwnProperty(srcID)) {
-                    const battle = this.battles[srcID];
-                    if (!battle.isOver()) {
-                        const battleLevel = battle.getLevel();
-
-                        if (battleLevel.getID() === target.getID()) {
-                            // Entered a battle
-                            actor.add(new RG.Component.InBattle());
-                            // Get army selection object
-                            const obj = this.getSelArmyObject(actor, battle);
-                            actor.getBrain().setSelectionObject(obj);
-                        }
-                    }
-                    else {
-                        RG.gameMsg('Looks like the battle is already fought..');
-                    }
+                if (!actor.has('InBattle')) {
+                    this.addPlayerToBattle(args);
+                }
+                else {
+                    this.removePlayerFromBattle(args);
                 }
             }
         }
@@ -71,6 +59,8 @@ const GameMaster = function(pool, game) {
             if (battle) {
                 this.addBadgesForActors(battle);
                 this.moveActorsOutOfBattle(battle);
+                const bName = battle.getName();
+                RG.gameMsg(`Battle ${bName} is over!`);
             }
             else {
                 const json = JSON.stringify(args);
@@ -78,13 +68,62 @@ const GameMaster = function(pool, game) {
                     `Args ${json} does not contain "battle"`);
             }
             console.log('GameMaster registered battle over');
-            RG.gameMsg('Battle is over!');
             // TODO delete the battle (but keep the level)
         }
     };
     RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this);
     RG.POOL.listenEvent(RG.EVT_TILE_CHANGED, this);
     RG.POOL.listenEvent(RG.EVT_BATTLE_OVER, this);
+
+    /* Adds player to the battle level. */
+    this.addPlayerToBattle = function(args) {
+        const {actor, target, src} = args;
+        const srcID = src.getID();
+        if (this.battles.hasOwnProperty(srcID)) {
+            const battle = this.battles[srcID];
+            if (!battle.isOver()) {
+                const battleLevel = battle.getLevel();
+
+                if (battleLevel.getID() === target.getID()) {
+                    // Entered a battle
+                    const comp = new RG.Component.InBattle();
+                    comp.setData({name: battle.getName()});
+                    actor.add(comp);
+                    // Get army selection object
+                    const obj = this.getSelArmyObject(actor, battle);
+                    actor.getBrain().setSelectionObject(obj);
+                }
+            }
+            else {
+                RG.gameMsg('Looks like the battle is already fought..');
+            }
+        }
+
+    };
+
+    this.removePlayerFromBattle = function(args) {
+        const {actor, target, src} = args;
+        const areaID = target.getID();
+        const srcID = src.getID();
+        const battleLevID = battle.getLevel().getID();
+        const battle = this.battles[areaID];
+
+        const inBattleComp = actor.get('InBattle');
+        const battleData = inBattleComp.getData();
+
+        if (srcID !== battleLevID) {
+            const msg = `Level ID mismatch: ${srcID} !== ${battleLevID}`;
+            RG.err('GameMaster', 'removePlayerFromBattle', msg);
+        }
+        if (!battle.isOver() && battleData.army) {
+            const badge = new RG.Component.BattleBadge();
+            badge.setStatus('Fled');
+            badge.setData({name: battle.getName(), army: battleData.army});
+            actor.add(badge);
+            actor.remove('InBattle');
+            actor.add(new RG.Component.BattleOver());
+        }
+    };
 
     /* Adds BattleBadges after a battle is over. */
     this.addBadgesForActors = battle => {
@@ -95,22 +134,17 @@ const GameMaster = function(pool, game) {
 
             actors.forEach(actor => {
                 const badge = new RG.Component.BattleBadge();
-                if (army.isDefeated()) {
-                    badge.setStatus('Defeated');
-                }
-                else {
-                    badge.setStatus('Won');
-                }
                 const battleData = {
                     name: battle.getName(),
-                    allies: ids
+                    army: army.getName(),
+                    allies: ids,
+                    status: army.isDefeated() ? 'Lost' : 'Won'
                 };
                 badge.setData(battleData);
                 actor.add(badge);
 
-                let name = actor.getName();
-                name = `Battle-tested ${name}`;
-                actor.setName(name);
+                actor.remove('InBattle');
+                actor.add(new RG.Component.BattleOver());
             });
         });
     };
@@ -173,6 +207,7 @@ const GameMaster = function(pool, game) {
                     const army = armies[selection];
                     return () => {
                         army.addActor(player);
+                        player.get('InBattle').updateData({army: army.getName});
                         const actors = army.getActors();
                         actors.forEach(actor => {
                             actor.addFriend(player);
