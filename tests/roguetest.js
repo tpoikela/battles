@@ -179,8 +179,12 @@ RGTest.equipItems = function(ent, items) {
 RGTest.MsgCatcher = function() {
 
     this.hasNotify = true;
-    this.notify = (evtName, msg) => {
-        console.log('\tMsg: |' + msg.msg + '|');
+    this.notify = (evtName, msgObj) => {
+        const {msg, cell} = msgObj;
+        console.log('\tMsg: |' + msg + '|');
+        if (cell) {
+            console.log('\tFrom cell: |' + JSON.stringify(cell) + '|');
+        }
     };
 
     RG.POOL.listenEvent(RG.EVT_MSG, this);
