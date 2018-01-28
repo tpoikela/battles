@@ -81,10 +81,9 @@ const GameMaster = function(pool, game) {
         const srcID = src.getID();
         if (this.battles.hasOwnProperty(srcID)) {
             const battle = this.battles[srcID];
-            if (!battle.isOver()) {
-                const battleLevel = battle.getLevel();
-
-                if (battleLevel.getID() === target.getID()) {
+            const battleLevel = battle.getLevel();
+            if (battleLevel.getID() === target.getID()) {
+                if (!battle.isOver()) {
                     // Entered a battle
                     const comp = new RG.Component.InBattle();
                     comp.setData({name: battle.getName()});
@@ -93,9 +92,9 @@ const GameMaster = function(pool, game) {
                     const obj = this.getSelArmyObject(actor, battle);
                     actor.getBrain().setSelectionObject(obj);
                 }
-            }
-            else {
-                RG.gameMsg('Looks like the battle is already fought..');
+                else {
+                    RG.gameMsg('Looks like the battle is already fought..');
+                }
             }
         }
 
