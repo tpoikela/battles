@@ -5,6 +5,9 @@ const Mixin = require('./mixin');
 RG.Chat = require('./chat');
 RG.ActorClass = require('./actor-class');
 
+// Used by components which cannot be serialized
+// In your component, add the following:
+//   this.toJSON = NO_SERIALISATION;
 const NO_SERIALISATION = () => null;
 
 //---------------------------------------------------------------------------
@@ -12,25 +15,33 @@ const NO_SERIALISATION = () => null;
 //---------------------------------------------------------------------------
 
 /* Important Guidelines:
+ * =====================
  *
- *  Each component constructor must NOT take any
+ *  A component constructor must NOT take any
  *  parameters. Call Base constructor with the type. (which must be identical
- *  to the Object type).
+ *  to the Object type). Don't forget extend2() at the end. See existing comps
+ *  for details.
+ *
  *  To benefit from serialisation, all methods should be named:
- *  setXXX - getXXX
+ *    setXXX - getXXX
  *  Note that if you have any methods starting with set/get, these are used in
  *  the serialisation UNLESS you override toJSON() method.
  *
  *  If only one instance of component should exist for an entity, set
- *  this._unique to true.
+ *    this._unique = true.
+ *  inside the component.
  *
  *  If serialisation using toJSON is completely undesirable, use the following:
  *    this.toJSON = NO_SERIALISATION;
  *  inside your component.
+ *
+ *  WARNING: don't mess with or override getType/setType functions. This will
+ *  almost certainly break the logic.
  */
 
 RG.Component = {};
 
+/* Given an entity, serializes its components. */
 RG.Component.compsToJSON = ent => {
     const components = {};
     const thisComps = ent.getComponents();
@@ -159,6 +170,8 @@ RG.Component.Base.prototype.toJSON = function() {
                 if (typeof this[getter] === 'function') {
                     const setter = getter.replace('get', 'set');
                     if (typeof this[setter] === 'function') {
+                        // To de-serialize, we can then do
+                        //   obj[setter](obj[setter])
                         obj[setter] = this[getter]();
                     }
                 }
@@ -704,6 +717,11 @@ RG.Component.Stun = function() {
     this.getSource = () => _src;
     this.setSource = src => {_src = src;};
 
+    this.toJSON = () => {
+        const obj = RG.Component.Base.prototype.toJSON.call(this);
+        obj.setSource = RG.getObjRef('entity', _src);
+    };
+
 };
 RG.extend2(RG.Component.Stun, RG.Component.Base);
 
@@ -715,6 +733,11 @@ RG.Component.Paralysis = function() {
     let _src = null;
     this.getSource = () => _src;
     this.setSource = src => {_src = src;};
+
+    this.toJSON = () => {
+        const obj = RG.Component.Base.prototype.toJSON.call(this);
+        obj.setSource = RG.getObjRef('entity', _src);
+    };
 
 };
 RG.extend2(RG.Component.Paralysis, RG.Component.Base);
@@ -741,6 +764,11 @@ RG.Component.MindControl = function() {
 
     this.addCallback('onAdd', _addCb);
     this.addCallback('onRemove', _removeCb);
+
+    this.toJSON = () => {
+        const obj = RG.Component.Base.prototype.toJSON.call(this);
+        obj.setSource = RG.getObjRef(_src);
+    };
 };
 RG.extend2(RG.Component.MindControl, RG.Component.Base);
 
@@ -763,6 +791,14 @@ class Poison extends Mixin.DurationRoll(Mixin.DamageRoll(RG.Component.Base)) {
         super.copy(rhs);
         this._prob = rhs.getProb();
         this._src = rhs.getSource();
+    }
+
+    toJSON() {
+        const obj = super.toJSON();
+        obj.setType = this.getType();
+        obj.setProb = this._prob;
+        obj.setSource = RG.getObjRef('entity', this._src);
+        return obj;
     }
 }
 RG.Component.Poison = Poison;
@@ -1208,35 +1244,44 @@ RG.extend2(RG.Component.Transaction, RG.Component.Base);
 // Added to all entities inside a battle
 RG.Component.InBattle = function() {
     RG.Component.Base.call(this, 'InBattle');
+    let _data = null;
+    this.setData = data => {_data = data;};
+    this.getData = () => _data;
+    this.updateData = data => {_data = Object.assign(_data, data);};
 };
 RG.extend2(RG.Component.InBattle, RG.Component.Base);
 
+/* Added to entity once it uses a skill or destroys an opposing actor inside a
+ * battle. */
 RG.Component.BattleExp = function() {
     RG.Component.Base.call(this, 'BattleExp');
 
-    let _type = null;
     let _data = null;
-
-    this.setType = type => {_type = type;};
-    this.getType = () => _type;
 
     this.setData = data => {_data = data;};
     this.getData = () => _data;
+    this.updateData = data => {_data = Object.assign(_data, data);};
 
 };
 RG.extend2(RG.Component.BattleExp, RG.Component.Base);
 
+/* This component is placed on entities when the battle is over. It signals to
+ * the Battle.System that experience should be processed now. After this, the
+ * system processed and removed this and BattleExp components. */
+RG.Component.BattleOver = function() {
+    RG.Component.Base.call(this, 'BattleOver');
+};
+RG.extend2(RG.Component.BattleOver, RG.Component.Base);
+
+/* Badges are placed on entities that survived a battle. */
 RG.Component.BattleBadge = function() {
     RG.Component.Base.call(this, 'BattleBadge');
 
-    let _status = null;
     let _data = null;
-
-    this.setStatus = status => {_status = status;};
-    this.getStatus = () => _status;
 
     this.setData = data => {_data = data;};
     this.getData = () => _data;
+    this.updateData = data => {_data = Object.assign(_data, data);};
 };
 RG.extend2(RG.Component.BattleBadge, RG.Component.Base);
 
@@ -1251,9 +1296,13 @@ RG.Component.AddOnHit = function() {
 
     this.setComp = comp => {_comp = comp;};
     this.getComp = () => _comp;
+
+    this.toJSON = () => {
+        const json = _comp.toJSON();
+        return {setComp: {createComp: json}};
+    };
 };
 RG.extend2(RG.Component.AddOnHit, RG.Component.Base);
-
 
 RG.Component.Animation = function(args) {
     RG.Component.Base.call(this, 'Animation');
@@ -1277,6 +1326,5 @@ RG.Component.addToExpirationComp = (entity, comp, dur) => {
     }
     entity.add(comp);
 };
-
 
 module.exports = RG.Component;
