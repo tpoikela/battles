@@ -223,13 +223,16 @@ RG.World.Base.prototype.setParent = function(parent) {
 };
 
 RG.World.Base.prototype.toJSON = function() {
-    return {
+    const obj = {
         name: this.name,
         hierName: this.hierName,
         type: this.type,
-        id: this.worldID,
-        parent: this.parent
+        id: this.worldID
     };
+    if (this.parent) {
+        obj.parent = this.parent.getID();
+    }
+    return obj;
 };
 
 // ID counter for world elements
