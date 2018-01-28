@@ -120,9 +120,11 @@ RG.Game.Main = function() {
                 RG.err('Game', 'addPlayer', 'Failed to add the player.');
             }
             else {
-                console.log('_addPlayerToFirstLevel tile changed');
+                this.checkIfTileChanged({actor: player, src: null,
+                    target: levels[0]});
+                /* console.log('_addPlayerToFirstLevel tile changed');
                 RG.POOL.emitEvent(RG.EVT_TILE_CHANGED,
-                    {actor: player, target: levels[0]});
+                    {actor: player, target: levels[0]});*/
             }
         }
         else {
@@ -160,6 +162,23 @@ RG.Game.Main = function() {
             RG.err('Game.Main', '_addPlayerToPlace', 'obj.place must exist.');
         }
         return false;
+    };
+
+
+    /* Checks if player moved to a tile (from tile or was added). */
+    this.checkIfTileChanged = args => {
+        const {actor, src, target} = args;
+
+        const areaLevels = [target];
+        if (!RG.isNullOrUndef([src])) {
+            areaLevels.push(src);
+        }
+
+        const area = this.getArea(0);
+        if (area && area.hasTiles(areaLevels)) {
+            RG.POOL.emitEvent(RG.EVT_TILE_CHANGED,
+                {actor, target, src});
+        }
     };
 
     this.getMessages = () => _engine.getMessages();
@@ -270,15 +289,10 @@ RG.Game.Main = function() {
             }
         }
         else if (evtName === RG.EVT_LEVEL_CHANGED) {
-            const actor = args.actor;
+            const {actor} = args;
             if (actor.isPlayer()) {
                 _shownLevel = actor.getLevel();
-                const {src, target} = args;
-                const area = this.getArea(0);
-                if (area && area.hasTiles([src, target])) {
-                    RG.POOL.emitEvent(RG.EVT_TILE_CHANGED,
-                        {actor, target, src});
-                }
+                this.checkIfTileChanged(args);
             }
         }
         else if (evtName === RG.EVT_TILE_CHANGED) {
