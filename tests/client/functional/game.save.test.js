@@ -46,6 +46,7 @@ describe('Function: Saving/restoring a game', function() {
         expect(levelIDsJSON, 'Level IDs in JSON are preserved')
             .to.deep.equal(levelIDsBefore);
 
+        RG.Verify.verifySaveData(json, true);
         console.log('Converting serialized object to string...');
         let jsonStr = JSON.stringify(json);
         console.log(`Length of serialized string ${jsonStr.length}`);
