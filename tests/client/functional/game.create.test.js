@@ -103,8 +103,7 @@ describe('Function: Creating game world from a file', function() {
         let gameLevels = game.getLevels();
 
         const badge = new RG.Component.BattleBadge();
-        badge.setStatus('Won');
-        badge.setData({killed: 10});
+        badge.setData({status: 'Won', killed: 10});
         player.add(badge);
 
         // Verify correct number of levels before serialisation
