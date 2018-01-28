@@ -178,6 +178,7 @@ const GameMaster = function(pool, game) {
                     }
                 }
                 else {
+                    console.log('moveActorsOutOfBattle isPlayer true');
                     const selObj = this.getSelLeaveBattle(actor, level);
                     actor.getBrain().setSelectionObject(selObj);
                 }
@@ -232,15 +233,17 @@ const GameMaster = function(pool, game) {
             this.select = code => {
                 const selection = RG.codeToIndex(code);
                 if (selection === 0) {
-                    const stairs = level.getStairs()[0];
-                    if (!stairs.useStairs(player)) {
-                        RG.err('GameMaster', 'moveActorsOutOfBattle',
-                            'Cannot move player out of battle via useStairs');
-                    }
-                    else {
-                        const name = player.getName();
-                        RG.gameMsg(`${name} leaves the battlefield`);
-                    }
+                    return () => {
+                        const stairs = level.getStairs()[0];
+                        if (!stairs.useStairs(player)) {
+                            RG.err('GameMaster', 'moveActorsOutOfBattle',
+                                'Cannot move player out of battle via useStairs');
+                        }
+                        else {
+                            const name = player.getName();
+                            RG.gameMsg(`${name} leaves the battlefield`);
+                        }
+                    };
                 }
                 if (selection === 1) {
                     // TODO add some dishonor for the player or some necromancy
