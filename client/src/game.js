@@ -103,8 +103,6 @@ RG.Game.Main = function() {
                         src: currLevel, actor: player});
                 RG.POOL.emitEvent(RG.EVT_LEVEL_ENTERED,
                     {actor: player, target: newLevel});
-                RG.POOL.emitEvent(RG.EVT_TILE_CHANGED,
-                    {actor: player, target: newLevel});
             }
             else {
                 currLevel.addActor(player, x0, y0);
