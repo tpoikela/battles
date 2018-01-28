@@ -363,6 +363,13 @@ const Screen = function(viewX, viewY) {
         this.styles[name] = value;
     };
 
+    /* Prints the chars in screen. */
+    this.printRenderedChars = () => {
+      _charRows.forEach(row => {
+        console.log(row.join(''));
+      });
+    };
+
 };
 
 module.exports = Screen;
