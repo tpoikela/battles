@@ -112,6 +112,27 @@ export default class GameCharInfo extends Component {
         </div>
       );
     }
+    else if (this.state.tabShown === 'Battles') {
+      const badges = actor.getList('BattleBadge');
+      const battlesElem = badges.map(badge => (
+        <li key={badge.getID()}>
+          <p>
+            Name: {badge.getData().name},
+            Status: {badge.getData().status},
+            Kills: {badge.getData().kill}
+          </p>
+        </li>
+      ));
+
+      return (
+        <div className='modal-body row'>
+          <div className='col-md-6' id='char-info-box'>
+            <h2>List of Battles fought</h2>
+            <ul>{battlesElem}</ul>
+          </div>
+        </div>
+      );
+    }
     return null;
   }
 
@@ -128,6 +149,9 @@ export default class GameCharInfo extends Component {
         <button
           onClick={this.selectTab.bind(this, 'Skills')}
         >Skills</button>
+        <button
+          onClick={this.selectTab.bind(this, 'Battles')}
+        >Battles</button>
       </ul>
       );
 
