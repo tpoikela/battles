@@ -75,37 +75,82 @@ RG.Game.FromJSON = function() {
         for (const name in comps) {
             if (name) {
                 const compJSON = comps[name];
-                const newCompObj = new RG.Component[name]();
-                for (const fname in compJSON) {
-                    if (typeof newCompObj[fname] === 'function') {
-                        const valueToSet = compJSON[fname];
-                        if (!RG.isNullOrUndef([valueToSet])) {
-                            if (valueToSet.createFunc) {
-                                const createdObj =
-                                    this[valueToSet.createFunc](valueToSet.value);
-                                newCompObj[fname](createdObj);
-                            }
-                            else {
-                                newCompObj[fname](valueToSet);
-                            }
-                        }
-                        else {
-                            const jsonStr = JSON.stringify(compJSON);
-                            let msg = `valueToSet ${valueToSet}. fname ${fname} `;
-                            msg += `Comp ${name}, json: ${jsonStr}`;
-                            RG.err('FromJSON', 'addCompsToEntity', msg);
-                        }
-                    }
-                    else {
-                        const json = JSON.stringify(compJSON);
-                        RG.err('FromJSON', 'addCompsToEntity',
-                            `${fname} not function in ${name}. Comp: ${json}`);
-
-                    }
-                }
+                // const newCompObj = new RG.Component[name]();
+                const newCompObj = this.createComponent(name, compJSON);
                 ent.add(name, newCompObj);
             }
         }
+    };
+
+    /* Creates the component with given name. */
+    this.createComponent = (name, compJSON) => {
+        const newCompObj = new RG.Component[name]();
+        for (const setFunc in compJSON) {
+            if (typeof newCompObj[setFunc] === 'function') {
+                const valueToSet = compJSON[setFunc];
+
+                // valueToSet can be any of following:
+                //   1. Contains create function of this object (FromJSON)
+                //     - Call function then sets the result of func call
+                //     - Function is called with valueToSet.value
+                //   2. Sub-component given with createComp
+                //     - Need to call createComponent recursively
+                //   3. Can be an objRef
+                //   4. Can be scalar/object literal which is set is setFunc
+                if (!RG.isNullOrUndef([valueToSet])) {
+                    if (valueToSet.createFunc) {
+                        const createdObj =
+                            this[valueToSet.createFunc](valueToSet.value);
+                        newCompObj[setFunc](createdObj);
+                    }
+                    else if (valueToSet.createComp) {
+                        const compType = valueToSet.createComp.setType;
+                        // Danger of infinite recursion
+                        const newSubComp = this.createComponent(compType,
+                            valueToSet.createComp);
+                        newCompObj[setFunc](newSubComp);
+                    }
+                    else if (valueToSet.objRef) {
+                        const objToSet = this.getObjRef(valueToSet.objRef);
+                        if (objToSet) {
+                            newCompObj[setFunc](objToSet);
+                        }
+                        else {
+                            const refJson = JSON.stringify(valueToSet.objRef);
+                            const msg = `Null obj for objRef ${refJson}`;
+                            RG.err('FromJSON', 'createComponent', msg);
+                        }
+                    }
+                    else {
+                        newCompObj[setFunc](valueToSet);
+                    }
+                }
+                else {
+                    const jsonStr = JSON.stringify(compJSON);
+                    let msg = `valueToSet ${valueToSet}. setFunc ${setFunc} `;
+                    msg += `Comp ${name}, json: ${jsonStr}`;
+                    RG.err('FromJSON', 'addCompsToEntity', msg);
+                }
+            }
+            else {
+                const json = JSON.stringify(compJSON);
+                RG.err('FromJSON', 'addCompsToEntity',
+                    `${setFunc} not function in ${name}. Comp: ${json}`);
+
+            }
+        }
+        return newCompObj;
+    };
+
+    /* Returns an object of requested type. */
+    this.getObjRef = requestObj => {
+        if (requestObj.type === 'entity') {
+            return id2entity[requestObj.id];
+        }
+        else if (requestObj.type === 'level') {
+            return id2level[requestObj.id];
+        }
+        return null;
     };
 
     this.createBrain = (brainJSON, ent) => {
@@ -472,13 +517,6 @@ RG.Game.FromJSON = function() {
             game.setOverWorld(overworld);
         }
 
-        // 'Integrity' check that correct number of levels restored
-        const nLevels = game.getLevels().length;
-        if (nLevels !== json.levels.length) {
-            const exp = json.levels.length;
-            RG.err('Game.FromJSON', 'createGame',
-                `Exp. ${exp} levels, after restore ${nLevels}`);
-        }
 
         // Connect levels using id2level + stairsInfo
         this.connectGameLevels(game);
@@ -504,8 +542,16 @@ RG.Game.FromJSON = function() {
         // exist when entities are created
         this.restoreEntityData();
 
-        const gameMaster = this.restoreGameMaster(json.gameMaster);
+        const gameMaster = this.restoreGameMaster(game, json.gameMaster);
         game.setGameMaster(gameMaster);
+
+        // 'Integrity' check that correct number of levels restored
+        const nLevels = game.getLevels().length;
+        if (nLevels !== json.levels.length) {
+            const exp = json.levels.length;
+            RG.err('Game.FromJSON', 'createGame',
+                `Exp. ${exp} levels, after restore ${nLevels}`);
+        }
 
         // Restore the ID counters for levels and entities, otherwise duplicate
         // IDs will appear when new levels/entities are created
@@ -550,12 +596,13 @@ RG.Game.FromJSON = function() {
         });
     };
 
-    this.restoreGameMaster = function(json) {
+    this.restoreGameMaster = function(game, json) {
         const gameMaster = new GameMaster();
         const battles = {};
         Object.keys(json.battles).forEach(id => {
             const battle = this.restoreBattle(json.battles[id]);
             battles[id] = battle;
+            game.addLevel(battle.getLevel());
         });
         gameMaster.battles = battles;
         return gameMaster;
@@ -563,7 +610,8 @@ RG.Game.FromJSON = function() {
 
     this.restoreBattle = function(json) {
         const battle = new Battle(json.name);
-        battle.setLevel(id2level[json.level]);
+        const battleLevel = id2level[json.level];
+        battle.setLevel(battleLevel);
         battle.setStats(json.stats);
         const armies = [];
         json.armies.forEach(armyJSON => {
