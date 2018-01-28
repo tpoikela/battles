@@ -36,7 +36,7 @@ RG.Factory.Battle = function() {
 
         const armySize = conf.armySize || 20;
         const numArmies = conf.numArmies || 2;
-        const facts = [fact1, fact2];
+        const facts = conf.armies || [fact1, fact2];
         const maxDanger = conf.danger || 5;
 
         // Generate all armies based on constraints
@@ -51,10 +51,17 @@ RG.Factory.Battle = function() {
             for (let i = 0; i < armySize; i++) {
                 const actor = parser.createRandomActor({func: actorFunc});
                 if (actor) {
-                    actor.add(new RG.Component.InBattle());
+                    const comp = new RG.Component.InBattle();
+                    comp.setData({name: battle.getName(),
+                        army: army.getName()});
+                    actor.add(comp);
                     army.addActor(actor);
                 }
             }
+
+            // Army loses if 10% of actors remain, this gives some losing
+            // survivors, makes things more interesting
+            army.setDefeatThreshold(Math.round(0.1 * armySize));
 
             // Assign random but legal coords to the army
             let armyX = RG.RAND.getUniformInt(0, cols - 1);
