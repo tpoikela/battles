@@ -1165,12 +1165,54 @@ RG.KeyMap = {
         }
     },
 
+    /* Returns a direction vector for given keycode. */
     getDir: function(code) {
         if (this.moveKeyMap.hasOwnProperty(code)) {
             return ROT.DIRS[8][this.moveKeyMap[code]];
         }
         else if (this.isRest(code)) {
             return [0, 0];
+        }
+        return null;
+    },
+
+    /* Converts a direction vector to keycode. */
+    dirToKeyCode: function(dXArg, dYArg) {
+        // Normalize first to unit vector (-1,0 or 1)
+        let dX = dXArg;
+        let dY = dYArg;
+        if (dX !== 0) {dX = dX / Math.abs(dX);}
+        if (dY !== 0) {dY = dY / Math.abs(dY);}
+        switch (dX) {
+            case -1:
+                switch (dY) {
+                    case -1: return RG.KEY.MOVE_NW;
+                    case 0: return RG.KEY.MOVE_W;
+                    case 1: return RG.KEY.MOVE_SW;
+                    default: RG.err('RG.KeyMap', 'dirToKeyCode',
+                        `Dir ${dX},${dY} not supported`);
+                }
+                break;
+            case 0:
+                switch (dY) {
+                    case -1: return RG.KEY.MOVE_N;
+                    case 0: return RG.KEY.REST;
+                    case 1: return RG.KEY.MOVE_S;
+                    default: RG.err('RG.KeyMap', 'dirToKeyCode',
+                        `Dir ${dX},${dY} not supported`);
+                }
+                break;
+            case 1:
+                switch (dY) {
+                    case -1: return RG.KEY.MOVE_NE;
+                    case 0: return RG.KEY.MOVE_E;
+                    case 1: return RG.KEY.MOVE_SE;
+                    default: RG.err('RG.KeyMap', 'dirToKeyCode',
+                        `Dir ${dX},${dY} not supported`);
+                }
+                break;
+            default: RG.err('RG.KeyMap', 'dirToKeyCode',
+                `Dir ${dX},${dY} not supported`);
         }
         return null;
     }
@@ -1182,6 +1224,7 @@ RG.menuIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'a', 'b', 'c', 'd', 'e', 'f',
     'u', 'v', 'w', 'x', 'y', 'z'
 ];
 
+/* Converts the keycode into a selection index starting from 0. */
 RG.codeToIndex = code => {
     if (code >= ROT.VK_0 && code <= ROT.VK_9) {
         return code - ROT.VK_0;
