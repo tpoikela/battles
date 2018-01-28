@@ -94,6 +94,7 @@ const RG = { // {{{2
         const objType = propObj.getType();
 
         // Return by name, this is for object shells generally
+        // Elements don't have name, type only
         if (propObj.getName) {
             const name = propObj.getName();
             if (styles.hasOwnProperty(name)) {
@@ -698,6 +699,15 @@ const RG = { // {{{2
 
 }; // / }}} RG
 
+RG.getObjRef = (type, obj) => {
+    if (type === 'entity') {
+        return {objRef: {type, id: obj.getID()}};
+    }
+    const json = obj.toJSON();
+    RG.err('RG', 'getObjRef',
+        `Type ${type} not supported. Obj: ${json}`);
+    return null;
+};
 
 /* Returns a forest level configuration scaled to the size of the level. */
 RG.getForestConf = function(cols, rows) {
