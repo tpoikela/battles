@@ -125,6 +125,8 @@ describe('Function: All small game features', function() {
         game.update(confirmKey);
         expect(p1Inv.getItems(), 'Two items after selling').to.have.length(2);
 
+        expect(l1.getItems(), 'Level has 1 item after sale').to.have.length(1);
+
         //-------------------------------------
         // Fun starts after restoring
         //-------------------------------------
@@ -152,7 +154,7 @@ describe('Function: All small game features', function() {
         expect(inv.getInventory().getItems(), 'Player has one item')
             .to.have.length(2);
 
-        expect(l1.getItems(), 'Level has 2 items').to.have.length(2);
+        expect(l1.getItems(), 'Level has 2 items').to.have.length(1);
 
         expect(hum.isEnemy(p1), 'Humanoid is enemy').to.equal(true);
         expect(sk.isEnemy(p1), 'shopkeeper not enemy').to.equal(false);
