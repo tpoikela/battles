@@ -31,9 +31,9 @@ Path.getShortestPassablePathWithDoors = function(map, x0, y0, x1, y1) {
 
 /* Returns shortest path (array of x,y pairs) between two points. Does not
 * check if any of the cells are passable. */
-Path.getShortestPath = function(x0, y0, x1, y1) {
+Path.getShortestPath = function(x0, y0, x1, y1, cb = () => true) {
     const coords = [];
-    const passableCallback = () => true;
+    const passableCallback = cb;
     const finder = new ROT.Path.AStar(x1, y1, passableCallback);
     finder.compute(x0, y0, (x, y) => {
         coords.push({x, y});
