@@ -989,6 +989,10 @@ RG.Map.Level = function() { // {{{2
 
         if (_parent) {
             obj.parent = _parent.getName();
+            if (typeof obj.parent !== 'string') {
+                RG.err('Map.Level', 'toJSON',
+                    'Parent name not a string');
+            }
         }
 
         // Must store x, y for each prop as well
