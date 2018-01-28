@@ -63,7 +63,7 @@ RG.WorldConf = {
     name: 'The North',
 
     presetLevels: {
-        'Beast dungeon.Animals': [{nLevel: 0, level: temple}]
+        // 'Beast dungeon.Animals': [{nLevel: 0, level: temple}]
         // for area: 'Area name': [levels], must match x by y, in this would
         // be 5 by 5. No support for individual levels for areas.
     },
