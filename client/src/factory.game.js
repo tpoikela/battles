@@ -249,7 +249,8 @@ RG.Factory.Game = function() {
 
     this.createOverWorld = function(obj, game, player) {
         const mult = 1;
-        const xMult = 1;
+        const xMult = obj.xMult || 1;
+        const yMult = obj.yMult || 1;
         const owConf = {
             yFirst: false,
             topToBottom: false,
@@ -258,13 +259,13 @@ RG.Factory.Game = function() {
             // nHWalls: 2,
             nVWalls: [0.8],
             owTilesX: xMult * mult * 40,
-            owTilesY: mult * 40,
+            owTilesY: yMult * mult * 40,
             worldX: xMult * mult * 800,
-            worldY: mult * 800,
+            worldY: yMult * mult * 800,
             nLevelsX: xMult * mult * 8,
-            nLevelsY: mult * 8,
+            nLevelsY: yMult * mult * 8,
             nTilesX: xMult * mult * 8,
-            nTilesY: mult * 8
+            nTilesY: yMult * mult * 8
         };
 
         const overworld = OW.createOverWorld(owConf);
