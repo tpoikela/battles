@@ -567,11 +567,28 @@ RG.System.Damage = function(compTypes) {
             const defDanger = def.get('Experience').getDanger();
             const expPoints = new RG.Component.ExpPoints(defLevel + defDanger);
             att.add('ExpPoints', expPoints);
+
+            // Give additional battle experience
+            if (att.has('InBattle')) {
+                _giveBattleExpToSource(att, def);
+            }
         }
         else {
             RG.warn('System.Damage', '_giveExpToSource',
                 'att is null. Cannot assign exp.');
         }
+    };
+
+    /* Adds additional battle experience given if actor is in a battle. */
+    const _giveBattleExpToSource = (att) => {
+        if (!att.has('BattleExp')) {
+            const inBattleComp = att.get('InBattle');
+            const name = inBattleComp.getData().name;
+            const comp = new RG.Component.BattleExp();
+            comp.setData({kill: 0, name});
+            att.add(comp);
+        }
+        att.get('BattleExp').getData().kill += 1;
     };
 
 };
@@ -1733,11 +1750,25 @@ RG.System.Battle = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.BATTLE, compTypes);
 
     this.updateEntity = function(ent) {
-        const compList = ent.getList('BattleExp');
-        compList.forEach(badge => {
-
-            ent.remove(badge);
-        });
+        const comp = ent.get('BattleOver');
+        if (ent.has('BattleExp')) {
+            const data = ent.get('BattleExp').getData();
+            const bName = data.name;
+            if (data.kill > 0) {
+                addSkillsExp(ent, 'Battle', data.kill);
+                const badges = ent.getList('BattleBadge');
+                const badge = badges.filter(b => b.getData().name === bName)[0];
+                if (badge) {
+                    badge.updateData({kill: data.kill});
+                }
+                else {
+                    const msg = `No badge found for battle ${msg}`;
+                    RG.err('System.Battle', 'updateEntity', msg);
+                }
+            }
+            ent.remove('BattleExp');
+        }
+        ent.remove(comp);
     };
 };
 RG.extend2(RG.System.Battle, RG.System.Base);
