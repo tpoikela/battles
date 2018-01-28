@@ -116,7 +116,10 @@ const Battle = function(name) {
 
     this.getName = () => _name;
 
-    this.setLevel = level => {_level = level;};
+    this.setLevel = level => {
+        _level = level;
+        _level.setParent(this);
+    };
     this.getLevel = () => _level;
 
     this.getStats = () => _stats;
