@@ -33,6 +33,10 @@ describe('Game.Battle', () => {
             ++count;
         }
 
+        for (let i = 0; i < 10; i++) {
+            game.simulateGame();
+        }
+
         expect(battle.isOver()).to.equal(true);
         expect(battle.getLevel().getActors().length).to.be.equal(0);
 
@@ -44,6 +48,12 @@ describe('Game.Battle', () => {
             RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: survivors[0]});
         };
         expect(func).not.to.throw();
+
+        survivors.forEach(actor => {
+            expect(actor.has('BattleBadge')).to.equal(true);
+            expect(actor.has('InBattle')).to.equal(false);
+            expect(actor.has('BattleOver')).to.equal(false);
+        });
     });
 
 });
