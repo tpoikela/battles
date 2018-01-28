@@ -613,14 +613,14 @@ RG.World.AreaTile = function(x, y, area) {
 RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
     RG.World.Base.call(this, name);
     this.setType('area');
-    const _sizeX = sizeX;
-    const _sizeY = sizeY;
+    const _sizeX = parseInt(sizeX, 10);
+    const _sizeY = parseInt(sizeY, 10);
 
     const _cols = cols || 30;
     const _rows = rows || 30;
 
-    this.getMaxX = () => (_sizeX);
-    this.getMaxY = () => (_sizeY);
+    this.getMaxX = () => _sizeX;
+    this.getMaxY = () => _sizeY;
     const _tiles = [];
 
     this._conf = {};
