@@ -105,6 +105,8 @@ const Battle = function(name) {
     let _armies = [];
     let _level = null;
 
+    this.getType = () => 'battle';
+
     // Keeps track of battles statistics
     let _stats = {
         duration: 0,
