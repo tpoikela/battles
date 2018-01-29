@@ -84,7 +84,7 @@ RG.WorldConf = {
                 dungeons.smallDungeon,
                 dungeons.beastDungeon,
                 { x: 0, y: 0, name: 'BranchTest', nBranches: 2,
-                    connect: [
+                    connectLevels: [
                         ['main', 'side', 0, 0]
                     ],
                     branch: [
@@ -94,7 +94,7 @@ RG.WorldConf = {
                 },
                 /*
                 { x: 1, y: 1, name: 'Large dungeon', nBranches: 3,
-                    connect: [
+                    connectLevels: [
                         ['main', 'side', 6, 0],
                         ['main', 'side2', 6, 0],
                     ],
@@ -123,7 +123,7 @@ RG.WorldConf = {
                     ],
                 },
                 { x: 2, y: 4, name: 'Perilous Needle', nFaces: 2,
-                    connect: [
+                    connectLevels: [
                         ['north', 'east', 0, 0]
                     ],
                     face: [
