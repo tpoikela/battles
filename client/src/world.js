@@ -42,6 +42,13 @@ function findLevel(name, zones, nLevel) {
     return null;
 }
 
+function findSubZone(name, subZones) {
+    const subZone = subZones.find(subZone => (
+        subZone.getName() === name
+    ));
+    return subZone;
+}
+
 /* Does linear connection of levels to given direction. */
 function connectLevels(_levels) {
     const nLevels = _levels.length;
@@ -283,6 +290,11 @@ RG.World.ZoneBase.prototype.connectSubZones = function(
 RG.World.ZoneBase.prototype.findLevel = function(name, nLevel) {
     const level = findLevel(name, this._subZones, nLevel);
     return level;
+};
+
+RG.World.ZoneBase.prototype.findSubZone = function(name) {
+    const subZone = findSubZone(name, this._subZones);
+    return subZone;
 };
 
 /* Returns each entrance in each subzone. */
