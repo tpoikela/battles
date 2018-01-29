@@ -912,8 +912,8 @@ function addCapitalConfToArea(feat, coordObj, areaConf) {
         stairs: {getStairs: 1}
     };
 
-    cityConf.connectToXY[0].stairs = {getStairs: 0};
-    cityConf.connectToXY.push(mainConn);
+    cityConf.connectToAreaXY[0].stairs = {getStairs: 0};
+    cityConf.connectToAreaXY.push(mainConn);
     areaConf.nCities += 1;
     areaConf.city.push(cityConf);
 }
@@ -940,8 +940,8 @@ function addDwarvenCityConfToArea(feat, coordObj, areaConf) {
         stairs: {getStairs: 1}
     };
 
-    cityConf.connectToXY[0].stairs = {getStairs: 0};
-    cityConf.connectToXY.push(mainConn);
+    cityConf.connectToAreaXY[0].stairs = {getStairs: 0};
+    cityConf.connectToAreaXY.push(mainConn);
     areaConf.nCities += 1;
     areaConf.city.push(cityConf);
 }
@@ -969,9 +969,9 @@ function addAbandonedFortToArea(feat, coordObj, areaConf) {
         // stairs: fortLevel.getStairs()[0]
     };
 
-    // cityConf.connectToXY[0].stairs = fortLevel.getStairs()[1];
-    cityConf.connectToXY[0].stairs = {getStairs: 1};
-    cityConf.connectToXY.push(mainConn);
+    // cityConf.connectToAreaXY[0].stairs = fortLevel.getStairs()[1];
+    cityConf.connectToAreaXY[0].stairs = {getStairs: 1};
+    cityConf.connectToAreaXY.push(mainConn);
     areaConf.nCities += 1;
     areaConf.city.push(cityConf);
 
@@ -1027,7 +1027,7 @@ function addLocationToZoneConf(feat, coordObj, zoneConf, vert = true) {
         }
         const nLast = zoneConf.nQuarters - 1;
 
-        zoneConf.connectToXY = [{
+        zoneConf.connectToAreaXY = [{
             name: zoneConf.quarter[nLast].name,
             levelX: connX,
             levelY: connY,
