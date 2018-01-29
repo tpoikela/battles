@@ -1807,7 +1807,16 @@ RG.Factory.World = function() {
                     // stairs
                     const tileStairs = new Stairs(true, tileLevel, zoneLevel);
                     tileLevel.addStairs(tileStairs, x, y);
-                    tileStairs.connect(zoneStairs);
+                    try {
+                        tileStairs.connect(zoneStairs);
+                    }
+                    catch (e) {
+                        console.error(e);
+                        const jsonStr = JSON.stringify(zoneLevel);
+                        const msg = `zoneLevel: ${jsonStr}`;
+                        RG.err('Factory.World', 'createAreaZoneConnection',
+                            msg);
+                    }
                 }
                 else {
                     let msg = `connectToXY: ${JSON.stringify(conn)}`;
