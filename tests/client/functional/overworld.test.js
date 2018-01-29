@@ -5,6 +5,7 @@ RG.Verify = require('../../../client/src/verify');
 const RGTest = require('../../roguetest');
 RG.Factory.Game = require('../../../client/src/factory.game');
 
+const ROT = require('../../../lib/rot.js');
 const PlayerDriver = require('../../helpers/player-driver');
 const fs = require('fs');
 
@@ -15,6 +16,7 @@ describe('How Game is created from Overworld', function() {
     let game = null;
 
     beforeEach(() => {
+        ROT.RNG.setSeed(0);
         RG.Rand = new RG.Random();
         RG.RAND.setSeed(0);
         const conf = {
