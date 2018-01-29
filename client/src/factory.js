@@ -1259,8 +1259,8 @@ RG.Factory.World = function() {
         // Connect branches according to configuration
         if (!this.id2levelSet) {
             if (conf.nBranches > 1) {
-                if (conf.connect) {
-                    conf.connect.forEach(conn => {
+                if (conf.connectLevels) {
+                    conf.connectLevels.forEach(conn => {
                         if (conn.length === 4) {
                             // conn has len 4, spread it out
                             dungeon.connectSubZones(...conn);
@@ -1273,7 +1273,7 @@ RG.Factory.World = function() {
                 }
                 else {
                     RG.err('Factory.World', 'createDungeon',
-                        'nBranches > 1, but no conf.connect.');
+                        'nBranches > 1, but no conf.connectLevels.');
                 }
             }
         }
@@ -1539,8 +1539,8 @@ RG.Factory.World = function() {
 
         if (!this.id2levelSet) {
             if (conf.nFaces > 1) {
-                if (conf.connect) {
-                    conf.connect.forEach(conn => {
+                if (conf.connectLevels) {
+                    conf.connectLevels.forEach(conn => {
                         if (conn.length === 4) {
                             // conn has len 4, spread it out
                             mountain.connectSubZones(...conn);
@@ -1555,7 +1555,7 @@ RG.Factory.World = function() {
                 }
                 else {
                     RG.err('Factory.World', 'createMountain',
-                        'nBranches > 1, but no conf.connect.');
+                        'nFaces > 1, but no conf.connectLevels.');
                 }
             }
         }
@@ -1628,8 +1628,8 @@ RG.Factory.World = function() {
         // Connect city quarters according to configuration
         if (!this.id2levelSet) {
             if (conf.nQuarters > 1) {
-                if (conf.connect) {
-                    conf.connect.forEach(conn => {
+                if (conf.connectLevels) {
+                    conf.connectLevels.forEach(conn => {
                         if (conn.length === 4) {
                             // conn has len 4, spread it out
                             city.connectSubZones(...conn);
@@ -1642,7 +1642,7 @@ RG.Factory.World = function() {
                 }
                 else {
                     RG.err('Factory.World', 'createCity',
-                        'nBranches > 1, but no conf.connect.');
+                        'nQuarters > 1, but no conf.connectLevels.');
                 }
             }
         }
@@ -1691,12 +1691,13 @@ RG.Factory.World = function() {
                 }
             }
             else if (level.stub) {
-                const levelFact = new LevelFactory();
+                const levelFact = new LevelFactory(this);
                 level = levelFact.create(level.new, level.args);
                 if (!level) {
                     RG.err('Factory', 'createCityQuarter',
                         'Stub found but cannot create level');
                 }
+               debug('Creating level from stub ' + JSON.stringify(level.stub));
             }
             else {
                 console.log(`cityQuarter ${hierName} ${i} from preset level`);
@@ -1761,7 +1762,7 @@ RG.Factory.World = function() {
                 tileLevel.addStairs(tileStairs, tileStairsX, tileStairsY);
                 tileStairs.connect(entranceStairs);
             }
-            else if (!conf.hasOwnProperty('connectToXY')) {
+            else if (!conf.hasOwnProperty('connectToAreaXY')) {
                 const msg = `No entrances in ${zone.getHierName()}.`;
                 RG.err('Factory.World', 'createAreaZoneConnection',
                     `${msg}. Cannot connect to tile.`);
@@ -1775,7 +1776,12 @@ RG.Factory.World = function() {
         // Make extra connections between the area and zone. This is useful
         // if city/dungeon needs to have 2 or more entrances
         if (conf.hasOwnProperty('connectToXY')) {
-            const connectionsXY = conf.connectToXY;
+            // Obsolete feature
+            RG.err('Factory.World', 'createAreaZoneConnection',
+              'Deprecated! connectToXY not supported. Use connectToAreaXY');
+        }
+        else if (conf.hasOwnProperty('connectToAreaXY')) {
+            const connectionsXY = conf.connectToAreaXY;
             connectionsXY.forEach(conn => {
                 const nLevel = conn.nLevel;
                 const x = conn.levelX;
@@ -1791,8 +1797,13 @@ RG.Factory.World = function() {
 
                     // zoneStairs is either Element.Stairs or object telling
                     // where stairs are found
-                    if (zoneStairs && zoneStairs.getStairs) {
-                        zoneStairs = zoneLevel.getStairs()[zoneStairs.getStairs];
+                    if (zoneStairs && !RG.isNullOrUndef([zoneStairs.getStairs])) {
+                        const stairsIndex = zoneStairs.getStairs;
+                        zoneStairs = zoneLevel.getStairs()[stairsIndex];
+                        if (!zoneStairs) {
+                          RG.err('xxx', 'yyy', 'kkk');
+
+                        }
                     }
 
                     if (!zoneStairs) {
@@ -1801,6 +1812,11 @@ RG.Factory.World = function() {
                         const zoneY = freeCell.getY();
                         zoneStairs = new Stairs(false, zoneLevel, tileLevel);
                         zoneLevel.addStairs(zoneStairs, zoneX, zoneY);
+                    }
+                    else if (typeof zoneStairs.getSrcLevel !== 'function') {
+                        const json = JSON.stringify(zoneStairs);
+                        RG.err('Factory.World', 'createAreaZoneConnection',
+                            `zoneStairs not a proper stairs object ${json}`);
                     }
 
                     // Create stairs for tileLevel and connect them to the zone
@@ -1812,14 +1828,15 @@ RG.Factory.World = function() {
                     }
                     catch (e) {
                         console.error(e);
-                        const jsonStr = JSON.stringify(zoneLevel);
-                        const msg = `zoneLevel: ${jsonStr}`;
+                        const jsonStr = JSON.stringify(zoneLevel, null, 1);
+                        let msg = `zoneLevel: ${jsonStr}`;
+                        msg += `\n\tzoneStairs: ${JSON.stringify(zoneStairs)}`;
                         RG.err('Factory.World', 'createAreaZoneConnection',
                             msg);
                     }
                 }
                 else {
-                    let msg = `connectToXY: ${JSON.stringify(conn)}`;
+                    let msg = `connectToAreaXY: ${JSON.stringify(conn)}`;
                     msg += `zoneConf: ${JSON.stringify(conf)}`;
                     RG.err('Factory.World', 'createAreaZoneConnection',
                         `No level found. ${msg}`);
