@@ -45,7 +45,7 @@ describe('Factory.World', function() {
     it('can create cities', () => {
         const cityConf = {
             name: 'Arkham', nQuarters: 2,
-            connect: [
+            connectLevels: [
                 ['Q1', 'Q2', 0, 0]
             ],
             quarter: [
@@ -105,7 +105,7 @@ describe('Factory.World', function() {
             entrance: 'br2',
             sqrPerActor: 50,
             sqrPerItem: 50,
-            connect: [
+            connectLevels: [
                 // Each connection is branch1, branch2, level1, level2
                 ['br1', 'br2', 0, 1],
                 ['br3', 'br2', 2, 0]
@@ -134,7 +134,7 @@ describe('Factory.World', function() {
             sqrPerItem: 100,
             sqrPerActor: 100,
             nBranches: 3,
-            connect: [
+            connectLevels: [
                 ['main', 'side', 0, 0],
                 ['main', 'side2', 0, 0]
             ],
@@ -166,7 +166,7 @@ describe('Factory.World', function() {
                     city: [
                         { x: 0, y: 0, levelX: 4, levelY: 7,
                             name: 'Ravendark', nQuarters: 1,
-                            connectToXY: [
+                            connectToAreaXY: [
                                 {name: 'Q1', nLevel: 1, levelX: 8, levelY: 9}
                             ],
                             quarter: [
@@ -207,21 +207,30 @@ describe('Factory.World', function() {
         level.addStairs(stairs1, 1, 1);
         level.addStairs(stairs2, 15, 15);
 
+        const levelStub = {stub: true, new: 'arena', args: [40, 40]};
+
         const cityConf = {
             name: 'CapitalCity',
             x: 0, y: 0,
-            nQuarters: 1,
+            nQuarters: 2,
             presetLevels: {
-                'CapitalCity.MainQuarter': [{nLevel: 0, level}]
+                'CapitalCity.MainQuarter': [{nLevel: 0, level}],
+                'CapitalCity.SideQuarter': [{nLevel: 0, levelStub}]
             },
             quarter: [
-                {name: 'MainQuarter', nLevels: 1}
+                {name: 'MainQuarter', nLevels: 1},
+                {name: 'SideQuarter', nLevels: 2}
             ],
-            connectToXY: [
+            connectLevels: [
+                ['MainQuarter', 'SideQuarter', 0, 1]
+            ],
+            connectToAreaXY: [
                 {levelX: 0, levelY: 1, name: 'MainQuarter', nLevel: 0,
                     stairs: stairs1},
                 {levelX: 3, levelY: 4, name: 'MainQuarter', nLevel: 0,
-                    stairs: {getStairs: 1}}
+                    stairs: {getStairs: 1}},
+                {levelX: 4, levelY: 4, name: 'SideQuarter', nLevel: 0,
+                    stairs: {getStairs: 0}}
             ]
         };
         const areaLevel = RG.FACT.createLevel('empty', 100, 100, {});
@@ -237,13 +246,24 @@ describe('Factory.World', function() {
         const area = fact.createArea(areaConf);
         expect(area.getZones('City')).to.have.length(1);
         const city = area.getZones('City')[0];
-        expect(city.getLevels()).to.have.length(1);
+        expect(city.getLevels()).to.have.length(3);
 
         const stairs = level.getStairs();
         stairs.forEach(s => {expect(s.isConnected()).to.be.true;});
 
         const cityLevel = city.getLevels()[0];
         expect(cityLevel.getID()).to.equal(level.getID());
+
+        const qSide = city.findSubZone('SideQuarter');
+        const l0 = qSide.getLevels()[0];
+        const l1 = qSide.getLevels()[1];
+
+        expect(l0.getStairs()).to.have.length(1);
+        expect(l1.getStairs()).to.have.length(2);
+
+        const qStairs = l1.getStairs();
+        console.log(JSON.stringify(qStairs[0]));
+        console.log(JSON.stringify(qStairs[1]));
 
     });
 
