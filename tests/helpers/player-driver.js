@@ -12,10 +12,16 @@ const shortestPath = Path.getShortestPath;
 
 const debug = require('debug')('bitn:PlayerDriver');
 
-/* Can be used to simulate player actions in the world. */
+const MOVE_DIRS = [-1, 0, 1];
+
+/* This object can be used to simulate player actions in the world. It has 2
+ * main uses:
+ *  1. An AI to play the game and simulate player actions to find bugs
+ *  2. 
+ * */
 const PlayerDriver = function(player) {
 
-    this.cmds = [];
+    this.cmds = []; // Stores each command executed
     this.path = [];
     let action = '';
     this.screen = new Screen(30, 14);
@@ -79,7 +85,9 @@ const PlayerDriver = function(player) {
 
         const map = player.getLevel().getMap();
         const hp = player.get('Health').getHP();
-        debug(`T: ${this.nTurns} @${pX},${pY} | HP: ${hp} | level: ${level.getID()}`);
+
+        const pos = `@${pX},${pY} ID: ${level.getID()}`;
+        debug(`T: ${this.nTurns} ${pos} | HP: ${hp}`);
 
         if (this.nTurns % this.screenPeriod === 0) {
             this.screen.render(pX, pY, map, visible);
@@ -336,6 +344,7 @@ const PlayerDriver = function(player) {
     /* Returns the command (or code) give to game.update(). */
     this.getPlayerCmd = (enemy) => {
         let result = null;
+        const map = player.getLevel().getMap();
         const [pX, pY] = player.getXY();
         if (action === 'attack') {
             const [eX, eY] = [enemy.getX(), enemy.getY()];
@@ -345,12 +354,50 @@ const PlayerDriver = function(player) {
             result = {code};
         }
         else if (action === 'flee') {
-            const [eX, eY] = [enemy.getX(), enemy.getY()];
-            // Invert direction for escape
-            const dX = -1 * (eX - pX);
-            const dY = -1 * (eY - pY);
-            const code = RG.KeyMap.dirToKeyCode(dX, dY);
-            result = {code};
+            const pCell = player.getCell();
+            if (pCell.hasPassage()) {
+                result = {code: RG.KEY.USE_STAIRS_DOWN};
+            }
+            else {
+                const [eX, eY] = [enemy.getX(), enemy.getY()];
+                // Invert direction for escape
+                let dX = -1 * (eX - pX);
+                let dY = -1 * (eY - pY);
+                const newX = pX + dX;
+                const newY = pY + dY;
+                if (map.isPassable(newX, newY)) {
+                    const code = RG.KeyMap.dirToKeyCode(dX, dY);
+                    result = {code};
+                }
+                else { // Pick a random direction
+                    let randX = RG.RAND.arrayGetRand(MOVE_DIRS);
+                    let randY = RG.RAND.arrayGetRand(MOVE_DIRS);
+                    const maxTries = 20;
+                    let tries = 0;
+                    while (!map.isPassable(randX, randY) && tries < maxTries) {
+                        randX = RG.RAND.arrayGetRand(MOVE_DIRS);
+                        randY = RG.RAND.arrayGetRand(MOVE_DIRS);
+                        ++tries;
+                    }
+
+                    if (map.isPassable(randX, randY)) {
+                        dX = randX - pX;
+                        dY = randY - pY;
+                        const code = RG.KeyMap.dirToKeyCode(dX, dY);
+                        result = {code};
+                    }
+                    else {
+                        // can't escape, just attack
+                        const [eX, eY] = [enemy.getX(), enemy.getY()];
+                        const eName = enemy.getName();
+                        debug(`No escape! Attack ${eName} @${eX},${eY}`);
+                        const dX = eX - pX;
+                        const dY = eY - pY;
+                        const code = RG.KeyMap.dirToKeyCode(dX, dY);
+                        result = {code};
+                    }
+                }
+            }
         }
         else if (action === 'move north') {
             result = {code: RG.KEY.MOVE_N};
@@ -376,6 +423,19 @@ const PlayerDriver = function(player) {
         }
 
         return result;
+    };
+
+    /* Can be used to serialize the driver object. */
+    this.toJSON = () => {
+        const visited = {};
+        const seen = {};
+        return {
+            visited,
+            seen,
+            cmds: this.cmds,
+            path: this.path,
+            nTurns: this.nTurns
+        };
     };
 
 };
