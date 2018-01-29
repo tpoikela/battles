@@ -15,6 +15,8 @@ describe('How Game is created from Overworld', function() {
     let game = null;
 
     beforeEach(() => {
+        RG.Rand = new RG.Random();
+        RG.RAND.setSeed(0);
         const conf = {
             playMode: 'OverWorld',
             playerLevel: 'Medium',
@@ -23,7 +25,6 @@ describe('How Game is created from Overworld', function() {
             yMult: 0.5,
             playerClass: 'Blademaster'
         };
-        RG.RAND.setSeed(6666);
         const gameFact = new RG.Factory.Game();
         game = gameFact.createNewGame(conf);
     });
