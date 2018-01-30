@@ -65,7 +65,7 @@ describe('How Game is created from Overworld', function() {
         console.log('== Restoring the game from JSON ==');
         const newGame = fromJSON.createGame(jsonParsed);
         */
-        const newGame = game;
+        let newGame = game;
 
         const checkedID = game.getLevels()[0].getID();
         console.log(`Checked level ID is now ${checkedID}`);
@@ -110,12 +110,25 @@ describe('How Game is created from Overworld', function() {
         // game.movePlayer(aX - 1, 0);
 
         // Execute game in try-catch so we can dump data upon failure
-        const maxTurns = 20000;
+        const maxTurns = 100000;
         try {
             for (let i = 0; i < maxTurns; i++) {
                 if (i % 50 === 0) {
                     game.getPlayerOwPos();
                     console.log(`[TURN ${i}, ${i / maxTurns * 100}% completed`);
+                }
+                if (i > 0 && (i % 10000 === 0)) {
+                    console.log('Saving/restoring game on turn ' + i);
+                    const json = newGame.toJSON();
+                    const jsonStr = JSON.stringify(json);
+                    const fname = `save_dumps/temp${i}.json`;
+                    fs.writeFileSync(fname, jsonStr);
+                    const jsonParsed = JSON.parse(jsonStr);
+
+                    const fromJSON = new RG.Game.FromJSON();
+                    newGame = fromJSON.createGame(jsonParsed);
+                    driver.setPlayer(newGame.getPlayer());
+
                 }
                 newGame.update(driver.nextCmd());
                 if (newGame.isGameOver()) {
