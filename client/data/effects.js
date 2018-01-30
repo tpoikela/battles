@@ -99,10 +99,10 @@ RG.Effects = {
 
             },
         },
-        // Adds an effect to component.
+        // Adds a value to specified component value.
         // Given use: {addToCompValue: {name: 'Health', set: 'setHP', get:
-        // 'getHP',
-        // value: -1}}, one can be subtracted from hp of Health component.
+        // 'getHP', value: -1}},
+        // one can be subtracted from hp of Health component.
         {
             name: 'addToCompValue',
             requires: ['name', 'set', 'get', 'value'],
@@ -157,7 +157,7 @@ RG.Effects = {
                     const cell = obj.target;
                     if (cell.getBaseElem().getType() === 'wall') {
                         const owner = this.getOwner();
-                        cell.getBaseElem().setType('floor');
+                        cell.setBaseElem(RG.ELEM.FLOOR);
                         RG.gameMsg(owner.getName() +
                             ' digs through stone with ' + this.getName());
                         return true;
