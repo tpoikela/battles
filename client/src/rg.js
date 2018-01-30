@@ -1437,6 +1437,10 @@ RG.Die = function(num, dice, mod) {
         _mod = rhs.getMod();
     };
 
+    this.clone = () => {
+        return new RG.Die(_num, _dice, mod);
+    };
+
     /* Returns true if dice are equal.*/
     this.equals = rhs => {
         let res = _num === rhs.getNum();
