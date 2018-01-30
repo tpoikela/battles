@@ -22,6 +22,7 @@ const MOVE_DIRS = [-1, 0, 1];
 const PlayerDriver = function(player) {
 
     this.cmds = []; // Stores each command executed
+    this.actions = ['']; // Stores each action taken
     this.path = [];
     let action = '';
     this.screen = new Screen(30, 14);
@@ -94,10 +95,9 @@ const PlayerDriver = function(player) {
             this.screen.printRenderedChars();
         }
         ++this.nTurns;
-        this.tryExploringAround(visible);
+        if (action === '') {this.tryExploringAround(visible);}
 
         let result = this.getPlayerCmd(enemy);
-
         if (!result) {result = {code: RG.KEY.REST};}
 
         const cmdJson = JSON.stringify(result);
@@ -105,6 +105,7 @@ const PlayerDriver = function(player) {
         debug('>>> PlayerDriver ' + msg);
 
         this.cmds.push(result);
+        this.actions.push(action);
         return result;
     };
 
@@ -112,10 +113,13 @@ const PlayerDriver = function(player) {
         const map = player.getLevel().getMap();
         const pCell = player.getCell();
         const [pX, pY] = [pCell.getX(), pCell.getY()];
-        if (action === '' && this.path.length === 0) {
+        if (this.path.length === 0) {
             const nX = pX;
             const nY = pY - 1;
-            if (!this.usePassage && nY >= 0) { // Player not at the top
+            if (pCell.hasItems() && this.getLastAction() !== 'pickup') {
+                action = 'pickup';
+            }
+            else if (!this.usePassage && nY >= 0) { // Player not at the top
                 const nCell = map.getCell(nX, nY);
                 if (nCell.isPassable() && !this.cellVisited(nCell)) {
                     action = 'move north';
@@ -136,7 +140,7 @@ const PlayerDriver = function(player) {
                 this.tryToFindPassage(visible);
             }
         }
-        else if (action === '') { // Move using pre-computed path
+        else { // Move using pre-computed path
             action = 'path';
         }
     };
@@ -353,6 +357,9 @@ const PlayerDriver = function(player) {
             const code = RG.KeyMap.dirToKeyCode(dX, dY);
             result = {code};
         }
+        else if (action === 'pickup') {
+            result = {code: RG.KEY.PICKUP};
+        }
         else if (action === 'flee') {
             const pCell = player.getCell();
             if (pCell.hasPassage()) {
@@ -423,6 +430,10 @@ const PlayerDriver = function(player) {
         }
 
         return result;
+    };
+
+    this.getLastAction = () => {
+        return this.actions[this.actions.length - 1];
     };
 
     /* Can be used to serialize the driver object. */
