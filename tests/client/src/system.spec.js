@@ -128,6 +128,8 @@ describe('System.Damage', () => {
         const beastAddOnHit = new RG.Component.AddOnHit();
         const beastDmgComp = new RG.Component.Damage(10, 'slash');
         const beastPoisonComp = new RG.Component.Poison();
+        beastPoisonComp.setDamageDie('1d4');
+        beastPoisonComp.setDurationDie('1d4');
         beastAddOnHit.setComp(beastPoisonComp);
         beast.add('AddOnHit', beastAddOnHit);
 
