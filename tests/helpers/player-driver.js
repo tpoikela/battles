@@ -21,6 +21,7 @@ const MOVE_DIRS = [-1, 0, 1];
  * */
 const PlayerDriver = function(player) {
 
+    let _player = player;
     this.cmds = []; // Stores each command executed
     this.actions = ['']; // Stores each action taken
     this.path = [];
@@ -36,13 +37,15 @@ const PlayerDriver = function(player) {
     this.nTurns = 0;
     this.screenPeriod = 100;
 
+    this.setPlayer = player => {_player = player;};
+
     const _passableCallback = (x, y) => {
-        const map = player.getLevel().getMap();
+        const map = _player.getLevel().getMap();
         let res = map.isPassable(x, y);
 
         // Actor cell must be always passable, otherwise no path found
         if (!res) {
-            res = (x === player.getX()) && (y === player.getY());
+            res = (x === _player.getX()) && (y === _player.getY());
         }
         return res;
     };
@@ -51,9 +54,9 @@ const PlayerDriver = function(player) {
     //   Prefer going to north always if possible
     //   If any passages in sight, and level not visited, go there
     this.nextCmd = () => {
-        const brain = player.getBrain();
-        const visible = player.getLevel().getMap().getVisibleCells(player);
-        const around = RG.Brain.getCellsAroundActor(player);
+        const brain = _player.getBrain();
+        const visible = _player.getLevel().getMap().getVisibleCells(_player);
+        const around = RG.Brain.getCellsAroundActor(_player);
         const actorsAround = around.map(cell => cell.getFirstActor());
         action = '';
 
@@ -61,7 +64,7 @@ const PlayerDriver = function(player) {
         let enemy = null;
         actorsAround.forEach(actor => {
             if (enemy === null) {
-                if (actor && actor.isEnemy(player)) {
+                if (actor && actor.isEnemy(_player)) {
                     enemy = actor;
                     if (this.hasEnoughHealth()) {
                         action = 'attack';
@@ -80,12 +83,12 @@ const PlayerDriver = function(player) {
             action = 'rest';
         }
 
-        const [pX, pY] = [player.getX(), player.getY()];
-        const level = player.getLevel();
+        const [pX, pY] = [_player.getX(), _player.getY()];
+        const level = _player.getLevel();
         this.addVisited(level, pX, pY);
 
-        const map = player.getLevel().getMap();
-        const hp = player.get('Health').getHP();
+        const map = _player.getLevel().getMap();
+        const hp = _player.get('Health').getHP();
 
         const pos = `@${pX},${pY} ID: ${level.getID()}`;
         debug(`T: ${this.nTurns} ${pos} | HP: ${hp}`);
@@ -110,8 +113,8 @@ const PlayerDriver = function(player) {
     };
 
     this.tryExploringAround = visible => {
-        const map = player.getLevel().getMap();
-        const pCell = player.getCell();
+        const map = _player.getLevel().getMap();
+        const pCell = _player.getCell();
         const [pX, pY] = [pCell.getX(), pCell.getY()];
         if (this.path.length === 0) {
             const nX = pX;
@@ -119,7 +122,7 @@ const PlayerDriver = function(player) {
             if (pCell.hasItems() && this.getLastAction() !== 'pickup') {
                 action = 'pickup';
             }
-            else if (!this.usePassage && nY >= 0) { // Player not at the top
+            else if (!this.usePassage && nY >= 0) { // _player not at the top
                 const nCell = map.getCell(nX, nY);
                 if (nCell.isPassable() && !this.cellVisited(nCell)) {
                     action = 'move north';
@@ -147,8 +150,8 @@ const PlayerDriver = function(player) {
 
 
     this.tryToSetPathToCell = cells => {
-        // const map = player.getLevel().getMap();
-        const [pX, pY] = player.getXY();
+        // const map = _player.getLevel().getMap();
+        const [pX, pY] = _player.getXY();
         this.path = [];
         cells.forEach(pCell => {
             if (this.path.length === 0) {
@@ -167,7 +170,7 @@ const PlayerDriver = function(player) {
 
     /* Tries to find a path to from current direction. */
     this.findPathToMove = (visible, acceptVisited = false) => {
-        const [pX, pY] = player.getXY();
+        const [pX, pY] = _player.getXY();
         const nCells = visible.filter(cell => (
             cell.getY() < pY && cell.isPassable()
             && (acceptVisited || !this.cellVisited(cell))
@@ -229,7 +232,7 @@ const PlayerDriver = function(player) {
     };
 
     this.cellVisited = cell => {
-        const id = player.getLevel().getID();
+        const id = _player.getLevel().getID();
         if (this.visited.hasOwnProperty(id)) {
             const [x, y] = [cell.getX(), cell.getY()];
             return this.visited[id].hasOwnProperty(x + ',' + y);
@@ -237,17 +240,17 @@ const PlayerDriver = function(player) {
         return false;
     };
 
-    /* Adds a visited cell for the player. */
+    /* Adds a visited cell for the _player. */
     this.addVisited = (level, x, y) => {
         const id = level.getID();
         if (!this.visited.hasOwnProperty(id)) {
             this.visited[id] = {};
         }
-        this.visited[id][x + ',' + y] = player.getCell();
+        this.visited[id][x + ',' + y] = _player.getCell();
     };
 
     this.hasEnoughHealth = function() {
-        const health = player.get('Health');
+        const health = _player.get('Health');
         const maxHP = health.getMaxHP();
         const hp = health.getHP();
         if (hp > Math.round(this.hpLow * maxHP)) {
@@ -257,14 +260,14 @@ const PlayerDriver = function(player) {
     };
 
     this.shouldRest = function() {
-        const health = player.get('Health');
+        const health = _player.get('Health');
         const maxHP = health.getMaxHP();
         const hp = health.getHP();
         return hp < maxHP;
     };
 
     this.tryToFindPassage = (visible, moveAfter = true) => {
-        // const level = player.getLevel();
+        // const level = _player.getLevel();
         // const maxY = level.getMap().rows - 1;
         debug('> Looking for north passage cells');
         const passageCells = visible.filter(cell => (
@@ -317,7 +320,7 @@ const PlayerDriver = function(player) {
 
     this.findAlreadySeenPassage = () => {
         debug('Looking at remembered passages');
-        const id = player.getLevel().getID();
+        const id = _player.getLevel().getID();
         const cells = Object.values(this.visited[id]);
         const newPassages = cells.filter(cell => (
             cell.hasPassage() && !this.passageVisited(cell)
@@ -348,8 +351,8 @@ const PlayerDriver = function(player) {
     /* Returns the command (or code) give to game.update(). */
     this.getPlayerCmd = (enemy) => {
         let result = null;
-        const map = player.getLevel().getMap();
-        const [pX, pY] = player.getXY();
+        const map = _player.getLevel().getMap();
+        const [pX, pY] = _player.getXY();
         if (action === 'attack') {
             const [eX, eY] = [enemy.getX(), enemy.getY()];
             const dX = eX - pX;
@@ -361,7 +364,7 @@ const PlayerDriver = function(player) {
             result = {code: RG.KEY.PICKUP};
         }
         else if (action === 'flee') {
-            const pCell = player.getCell();
+            const pCell = _player.getCell();
             if (pCell.hasPassage()) {
                 result = {code: RG.KEY.USE_STAIRS_DOWN};
             }
