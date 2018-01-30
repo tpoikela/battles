@@ -69,6 +69,7 @@ export default class LevelSaveLoad extends Component {
         }
         catch (e) {
           const msg = 'File: Not valid JSON or level: ' + e.message;
+          console.log(e);
           this.props.setMsg({errorMsg: msg});
         }
       };
