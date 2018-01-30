@@ -249,6 +249,7 @@ OW.createOverWorld = (conf = {}) => {
 
 OW.Map = function() {
     this._baseMap = [];
+    this._explored = {};
     this._subLevels = [];
 
     this._hWalls = [];
@@ -358,6 +359,10 @@ OW.Map = function() {
         }
     };
 
+    this.setExplored = function(xy) {
+        this._explored[xy[0] + ',' + xy[1]] = true;
+    };
+
     this.toJSON = function() {
         const json = {
             baseMap: this._baseMap,
@@ -365,7 +370,9 @@ OW.Map = function() {
             features: this._features,
             featuresByXY: this._featuresByXY,
             vWalls: this._vWalls,
-            hWalls: this._hWalls
+            hWalls: this._hWalls,
+            explored: this._explored,
+            coordMap: this.coordMap.toJSON()
         };
         return json;
     };
@@ -373,7 +380,7 @@ OW.Map = function() {
 };
 
 /* Converts the OW.Map into string. */
-OW.Map.prototype.mapToString = function() {
+OW.Map.prototype.mapToString = function(useExplored = false) {
     const map = JSON.parse(JSON.stringify(this._baseMap));
     const sizeY = map[0].length;
     const sizeX = map.length;
@@ -385,6 +392,16 @@ OW.Map.prototype.mapToString = function() {
             map[xy[0]][xy[1]] = type;
         });
     });
+
+    if (useExplored) {
+      for (let x = 0; x < sizeX; x++) {
+        for (let y = 0; y < sizeY; y++) {
+          if (!this._explored[x + ',' + y]) {
+            map[x][y] = '?';
+          }
+        }
+      }
+    }
 
     const lines = [];
     for (let y = 0; y < sizeY; y++) {

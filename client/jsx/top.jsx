@@ -608,7 +608,7 @@ class BattlesTop extends Component {
 
             showGameMenu = this.game.isMenuShown();
             if (overworld) {
-                playerOwPos = this.getPlayerOwPos(overworld);
+                playerOwPos = this.game.getPlayerOwPos();
             }
         }
 
@@ -1069,22 +1069,6 @@ class BattlesTop extends Component {
         this.onLoadCallback = this.onLoadCallback.bind(this);
     }
 
-    /* Returns the player tile position in overworld. */
-    getPlayerOwPos(overworld) {
-        const player = this.game.getPlayer();
-        const world = Object.values(this.game.getPlaces())[0];
-        const area = world.getAreas()[0];
-        const xy = area.findTileXYById(player.getLevel().getID());
-
-        if (!xy) {return null;}
-
-        const {xMap, yMap} = overworld.coordMap;
-
-        const coordX = xy[0] * 100 + player.getX();
-        const coordY = xy[1] * 100 + player.getY();
-
-        return [Math.floor(coordX / xMap), Math.floor(coordY / yMap)];
-    }
 
 }
 

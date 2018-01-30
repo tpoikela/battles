@@ -228,6 +228,17 @@ const CoordMap = function() {
         return [x, y];
     };
 
+    this.toJSON = function() {
+        return {
+            worldCols: this.worldCols,
+            worldRows: this.worldRows,
+            nTilesX: this.nTilesX,
+            nTilesY: this.nTilesY,
+            xMap: this.xMap,
+            yMap: this.yMap
+        };
+    };
+
 };
 RG.OverWorld.CoordMap = CoordMap;
 

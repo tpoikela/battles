@@ -26,7 +26,7 @@ export default class GameOverWorldMap extends Component {
     let mapStr = 'No map generated.';
 
     if (this.props.ow) {
-      const map = this.props.ow.mapToString().slice();
+      const map = this.props.ow.mapToString(true).slice();
 
       // Add player @ to the correct row
       if (this.props.playerOwPos) {
