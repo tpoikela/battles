@@ -75,6 +75,7 @@ describe('Component.Poison', () => {
         const p1 = new RG.Component.Poison();
         p1.setProb(0.01);
         p1.setDamageDie('1d6 + 4');
+        p1.setDurationDie('3d5 + 15');
         const p2 = p1.clone();
 
         expect(p2.getProb()).to.equal(0.01);
