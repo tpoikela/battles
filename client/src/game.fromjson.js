@@ -517,7 +517,6 @@ RG.Game.FromJSON = function() {
             game.setOverWorld(overworld);
         }
 
-
         // Connect levels using id2level + stairsInfo
         this.connectGameLevels(game);
 
@@ -613,11 +612,21 @@ RG.Game.FromJSON = function() {
         const battleLevel = id2level[json.level];
         battle.setLevel(battleLevel);
         battle.setStats(json.stats);
+        battle.finished = json.finished;
         const armies = [];
         json.armies.forEach(armyJSON => {
             armies.push(this.restoreArmy(armyJSON));
         });
         battle.setArmies(armies);
+
+        // Need to remove the event listeners if battle over
+        if (battle.finished) {
+            console.log('#### RM LISTENERS');
+            RG.POOL.removeListener(battle);
+            armies.forEach(army => {
+                RG.POOL.removeListener(army);
+            });
+        }
         return battle;
     };
 
