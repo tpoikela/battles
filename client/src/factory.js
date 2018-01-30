@@ -1188,10 +1188,11 @@ RG.Factory.World = function() {
                 const createFunc = 'create' + type;
                 const {x, y} = zoneConf;
 
+                // If tx,ty given, create only zones for tile tx,ty
+                // Otherwise, create zones for all tiles
                 if ((tx === -1 || tx === x) && (ty === -1 || ty === y)) {
                     const zone = this[createFunc](zoneConf);
                     zone.setTileXY(x, y);
-                    console.log(`\t\tCreated zone of type ${type}`);
                     area.addZone(type, zone);
                     this.addWorldID(zoneConf, zone);
                     if (!this.id2levelSet) {
