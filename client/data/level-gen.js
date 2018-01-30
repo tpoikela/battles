@@ -181,7 +181,7 @@ LevelGen.getCityConf = (cityName, conf) => {
         quarter: quarters
     };
 
-    if (connect) {obj.connect = connect;}
+    if (connect) {obj.connectLevels = connect;}
     return obj;
 };
 
