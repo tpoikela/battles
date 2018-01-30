@@ -362,6 +362,9 @@ RG.Game.Main = function() {
         if (player) {
             obj.player = player.toJSON();
         }
+        if (this._overworld) {
+            obj.overworld = this._overworld.toJSON();
+        }
 
         return obj;
     };
@@ -400,6 +403,32 @@ RG.Game.Main = function() {
 
     /* Gets the next animation frame. */
     this.getAnimationFrame = () => _engine.animation.nextFrame();
+
+    /* Returns the player tile position in overworld map. */
+    this.getPlayerOwPos = function() {
+        if (!this._overworld) {
+            return [];
+        }
+        const overworld = this._overworld;
+        const player = this.getPlayer();
+        const world = Object.values(this.getPlaces())[0];
+        const area = world.getAreas()[0];
+        const xy = area.findTileXYById(player.getLevel().getID());
+
+        if (!xy) {return null;}
+
+        const {xMap, yMap} = overworld.coordMap;
+
+        const coordX = xy[0] * 100 + player.getX();
+        const coordY = xy[1] * 100 + player.getY();
+
+        const pX = Math.floor(coordX / xMap);
+        const pY = Math.floor(coordY / yMap);
+
+        overworld.setExplored([pX, pY]);
+
+        return [pX, pY];
+    };
 
 }; // }}} Game.Main
 
@@ -589,6 +618,7 @@ RG.Game.WinCondition = function(name) {
             }
         }
     };
+
 
 };
 
