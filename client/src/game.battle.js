@@ -114,6 +114,7 @@ const Battle = function(name) {
     const _name = name;
     let _armies = [];
     let _level = null;
+    this.finished = false;
 
     this.getType = () => 'battle';
 
@@ -198,11 +199,9 @@ const Battle = function(name) {
                     debug(`Battle |${this.getName()}| is over!`);
                     debug('\tRemoving all event listeners');
                     RG.POOL.removeListener(this);
-                    /* for (let i = 0; i < _armies.length; i++) {
-                        RG.POOL.removeListener(_armies[i]);
-                    }*/
                     const obj = {battle: this};
                     RG.POOL.emitEvent(RG.EVT_BATTLE_OVER, obj);
+                    this.finished = true;
                 }
             }
         }
@@ -215,7 +214,8 @@ const Battle = function(name) {
             name: _name,
             level: _level.getID(),
             armies: _armies.map(army => army.toJSON()),
-            stats: _stats
+            stats: _stats,
+            finished: this.finished
         };
     };
 
