@@ -55,7 +55,9 @@ const Army = function(name) {
 
     /* Removes an actor from the army.*/
     this.removeActor = actor => {
-        const index = _actors.indexOf(actor);
+        const index = _actors.findIndex(
+            a => a.getID() === actor.getID()
+        );
         if (index >= 0) {
             _actors.splice(index, 1);
             return true;
@@ -74,26 +76,34 @@ const Army = function(name) {
             const actor = msg.actor;
             if (this.hasActor(actor)) {
                 if (!this.removeActor(actor)) {
-                    RG.err('Game.Army', 'notify',
-                        "Couldn't remove the actor " + actor.getName());
+                    const bName = this.getBattle().getName();
+                    let msg = 'Battle: ' + bName;
+                    msg += "Couldn't remove the actor " + actor.getName();
+                    RG.err('Game.Army', 'notify', msg);
                 }
                 else {
                     ++_casualties;
+                    console.log(`\tCasualties: ${_casualties}`);
                     const armyObj = {
                         type: 'Actor killed', army: this
                     };
                     RG.POOL.emitEvent(RG.EVT_ARMY_EVENT, armyObj);
+                    if (_actors.length === 0) {
+                        console.log('<><> Army ' + _name + ' decimated');
+                        console.log(`\tCasualties: ${_casualties}`);
+                        RG.POOL.removeListener(this);
+                    }
                 }
             }
         }
     };
     RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
 
-
     this.toJSON = function() {
         return {
             name: _name,
-            actors: _actors.map(actor => actor.getID())
+            actors: _actors.map(actor => actor.getID()),
+            defeatThreshold: _defeatThreshold
         };
     };
 };
@@ -114,7 +124,12 @@ const Battle = function(name) {
         survivors: 0
     };
     this.getArmies = () => _armies;
-    this.setArmies = armies => {_armies = armies;};
+    this.setArmies = armies => {
+        _armies = armies;
+        _armies.forEach(army => {
+            army.setBattle(this);
+        });
+    };
 
     this.getName = () => _name;
 
@@ -147,6 +162,7 @@ const Battle = function(name) {
             RG.err('Game.Battle', 'addArmy',
                 'Level must exist before adding army.');
         }
+        army.setBattle(this);
     };
 
     this.armyInThisBattle = army => {
@@ -182,9 +198,9 @@ const Battle = function(name) {
                     debug(`Battle |${this.getName()}| is over!`);
                     debug('\tRemoving all event listeners');
                     RG.POOL.removeListener(this);
-                    for (let i = 0; i < _armies.length; i++) {
+                    /* for (let i = 0; i < _armies.length; i++) {
                         RG.POOL.removeListener(_armies[i]);
-                    }
+                    }*/
                     const obj = {battle: this};
                     RG.POOL.emitEvent(RG.EVT_BATTLE_OVER, obj);
                 }
