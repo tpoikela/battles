@@ -206,8 +206,10 @@ RG.Component.Action = function() {
             _active = true;
         }
         else {
-            console.log('Action already active for '
-                + this.getEntity().getName());
+            const name = this.getEntity().getName();
+            const id = this.getEntity().getID();
+            const entInfo = `${name} ${id}`;
+            console.log(`Action already active for ${entInfo}`);
         }
     };
 
