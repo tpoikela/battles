@@ -93,42 +93,60 @@ describe('How Game is created from Overworld', function() {
 
         expect(actorsNew.length).to.equal(actorsOld.length);
 
-        // Create some aid for the player
-        const player = newGame.getPlayer();
-        player.setName('Xanthur');
-        player.remove('Hunger');
         /* const parser = RG.ObjectShell.getParser();
         const magicSword = parser.createItem('Magic sword');
         player.getInvEq().addItem(magicSword);
         player.getInvEq().equipItem(magicSword);*/
 
-        console.log('===== Game simulation =====');
+        // To load previous stage quickly
+        const loadGame = false;
+        const pName = 'Xanthur';
+        const loadTurn = 10000;
+
+        if (loadGame) {
+            const fname = `save_dumps/${pName}_temp_${loadTurn}.json`;
+            const buf = fs.readFileSync(fname);
+            const jsonParsed = JSON.parse(buf.toString());
+            const fromJSON = new RG.Game.FromJSON();
+            newGame = fromJSON.createGame(jsonParsed);
+            console.log(`===== Game Loaded from turn ${loadTurn}`);
+        }
+
+        const player = newGame.getPlayer();
+        player.setName(pName);
+        player.remove('Hunger'); // AI not smart enough yet to deal with this
+
+        console.log('===== Begin Game simulation =====');
         const driver = new PlayerDriver(player);
+        driver.nTurns = loadGame ? loadTurn : 0;
         const catcher = new RGTest.MsgCatcher();
         // const area = game.getArea(0);
         // const [aX, aY] = [area.getMaxX(), area.getMaxY()];
         // game.movePlayer(aX - 1, 0);
 
-        // Execute game in try-catch so we can dump data upon failure
-        const maxTurns = 100000;
+        // Execute game in try-catch so we can dump save data on failure
+        const mult = 4;
+        const maxTurns = mult * 10000;
         try {
-            for (let i = 0; i < maxTurns; i++) {
+            const startI = loadGame ? loadTurn : 0;
+            for (let i = startI; i < maxTurns; i++) {
                 if (i % 50 === 0) {
-                    game.getPlayerOwPos();
+                    newGame.getPlayerOwPos();
                     console.log(`[TURN ${i}, ${i / maxTurns * 100}% completed`);
                 }
-                if (i > 0 && (i % 10000 === 0)) {
+
+                // Save the game between certain intervals
+                if (i > startI && (i % (mult * 1000) === 0)) {
                     console.log('Saving/restoring game on turn ' + i);
                     const json = newGame.toJSON();
                     const jsonStr = JSON.stringify(json);
-                    const fname = `save_dumps/temp${i}.json`;
+                    const fname = `save_dumps/${pName}_temp_${i}.json`;
                     fs.writeFileSync(fname, jsonStr);
                     const jsonParsed = JSON.parse(jsonStr);
 
                     const fromJSON = new RG.Game.FromJSON();
                     newGame = fromJSON.createGame(jsonParsed);
                     driver.setPlayer(newGame.getPlayer());
-
                 }
                 newGame.update(driver.nextCmd());
                 if (newGame.isGameOver()) {
@@ -155,10 +173,13 @@ describe('How Game is created from Overworld', function() {
         console.log('Simulation OK. Saving final state');
         const json = newGame.toJSON();
         const jsonStr = JSON.stringify(json);
-        const fname = 'save_dumps/game_final_' + driver.nTurns + '.json';
+
+        const nTurns = driver.nTurns;
+        const fname = `save_dumps/${pName}_game_final_${nTurns}.json`;
         fs.writeFileSync(fname, jsonStr);
         console.log('Final state saved to file ' + fname);
 
         catcher.hasNotify = false;
+        console.log('===== End Game simulation =====');
     });
 });
