@@ -110,13 +110,18 @@ describe('How Game is created from Overworld', function() {
         // game.movePlayer(aX - 1, 0);
 
         // Execute game in try-catch so we can dump data upon failure
+        const maxTurns = 20000;
         try {
-            for (let i = 0; i < 25000; i++) {
-               newGame.update(driver.nextCmd());
-               if (newGame.isGameOver()) {
-                   console.log('>>> GAME OVER <<<');
-                   break;
-               }
+            for (let i = 0; i < maxTurns; i++) {
+                if (i % 50 === 0) {
+                    game.getPlayerOwPos();
+                    console.log(`[TURN ${i}, ${i / maxTurns * 100}% completed`);
+                }
+                newGame.update(driver.nextCmd());
+                if (newGame.isGameOver()) {
+                    console.log('>>> GAME OVER <<<');
+                    break;
+                }
             }
         }
         catch (e) {
@@ -130,14 +135,16 @@ describe('How Game is created from Overworld', function() {
                 console.log(e2);
                 jsonStr = JSON.stringify(driver);
             }
-            fs.writeFileSync('battles_game_dump.json', jsonStr);
+            const fname = 'save_dumps/battles_game_error_dump.json';
+            fs.writeFileSync(fname, jsonStr);
         }
 
         console.log('Simulation OK. Saving final state');
         const json = newGame.toJSON();
         const jsonStr = JSON.stringify(json);
-        const fname = 'game_final_' + driver.nTurns + '.json';
+        const fname = 'save_dumps/game_final_' + driver.nTurns + '.json';
         fs.writeFileSync(fname, jsonStr);
+        console.log('Final state saved to file ' + fname);
 
         catcher.hasNotify = false;
     });
