@@ -624,8 +624,11 @@ RG.Game.FromJSON = function() {
     this.restoreArmy = function(json) {
         const army = new Army(json.name);
         json.actors.forEach(id => {
-            army.addActor(id2entity[id]);
+            if (id2entity[id]) {
+                army.addActor(id2entity[id]);
+            }
         });
+        army.setDefeatThreshold(json.defeatThreshold);
 
         return army;
     };
@@ -646,6 +649,14 @@ RG.Game.FromJSON = function() {
         ow._vWalls = json.vWalls;
         ow._hWalls = json.hWalls;
         ow._biomeMap = json.biomeMap;
+        ow._explored = json.explored;
+        const coordMap = new RG.OverWorld.CoordMap();
+        for (const p in json.coordMap) {
+            if (json.coordMap.hasOwnProperty(p)) {
+                coordMap[p] = json.coordMap[p];
+            }
+        }
+        ow.coordMap = coordMap;
         return ow;
     };
 
