@@ -220,7 +220,7 @@ RG.Mixin.DamageRoll = (superclass) => class extends superclass {
 
     copy(rhs) {
         super.copy(rhs);
-        this.damageDie = rhs.getDamageDie();
+        this.damageDie = rhs.getDamageDie().clone();
     }
 
     toJSON() {
@@ -234,12 +234,21 @@ RG.Mixin.DamageRoll = (superclass) => class extends superclass {
 /* Adds a duration and accessor functions to given component. */
 RG.Mixin.DurationRoll = (superclass) => class extends superclass {
 
+    constructor(args) {
+        super(args);
+    }
+
     rollDuration() {
         return this.duration.roll();
     }
 
-    setDurationDie(die) {
-        this.duration = die;
+    setDurationDie(strOrDie) {
+        if (typeof strOrDie === 'string') {
+            this.duration = RG.FACT.createDie(strOrDie);
+        }
+        else {
+            this.duration = strOrDie;
+        }
     }
 
     getDurationDie() {
@@ -248,7 +257,7 @@ RG.Mixin.DurationRoll = (superclass) => class extends superclass {
 
     copy(rhs) {
         super.copy(rhs);
-        this.duration = rhs.getDurationDie();
+        this.duration = rhs.getDurationDie().clone();
     }
 
     toJSON() {
@@ -359,8 +368,7 @@ RG.Mixin.Damage = (superclass) => class extends RG.Mixin.Defense(superclass) {
     copy(rhs) {
         super.copy(rhs);
         this.setAttackRange(rhs.getAttackRange());
-        const die = new RG.Die();
-        die.copy(rhs.getDamageDie());
+        const die = rhs.getDamageDie().clone();
         this.setDamageDie(die);
     }
 
