@@ -87,15 +87,15 @@ const Army = function(name) {
                     const bName = this.getBattle().getName();
                     let msg = `Battle: ${bName}, Army ${_name}`;
                     msg += ` Actor: ${actor.getID()}`;
-                    console.log(`\tCasualties: ${_casualties} ${msg}`);
+                    debug(`\tCasualties: ${_casualties} ${msg}`);
                     const armyObj = {
                         type: 'Actor killed', army: this
                     };
                     debug(`${_name} emit EVT_ARMY_EVENT`);
                     RG.POOL.emitEvent(RG.EVT_ARMY_EVENT, armyObj);
                     if (_actors.length === 0) {
-                        console.log('<><> Army ' + _name + ' decimated');
-                        console.log(`\tCasualties: ${_casualties}`);
+                        debug('<>Army<> ' + _name + ' decimated');
+                        debug(`\tCasualties: ${_casualties}`);
                         RG.POOL.removeListener(this);
                     }
                 }
