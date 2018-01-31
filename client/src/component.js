@@ -5,6 +5,8 @@ const Mixin = require('./mixin');
 RG.Chat = require('./chat');
 RG.ActorClass = require('./actor-class');
 
+const debug = require('debug')('bitn:Component');
+
 // Used by components which cannot be serialized
 // In your component, add the following:
 //   this.toJSON = NO_SERIALISATION;
@@ -209,7 +211,7 @@ RG.Component.Action = function() {
             const name = this.getEntity().getName();
             const id = this.getEntity().getID();
             const entInfo = `${name} ${id}`;
-            console.log(`Action already active for ${entInfo}`);
+            debug(`Action already active for ${entInfo}`);
         }
     };
 
