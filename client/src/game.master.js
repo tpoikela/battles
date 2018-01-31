@@ -13,8 +13,7 @@ const debug = require('debug')('bitn:GameMaster');
  *   - spawn special events and actors
  *   - spawn special items etc.
  */
-const GameMaster = function(pool, game) {
-    this.eventPool = pool;
+const GameMaster = function(game) {
     this.player = null;
     this.game = game;
     this.fact = new RG.Factory.Battle(game);
@@ -23,6 +22,9 @@ const GameMaster = function(pool, game) {
     this.battles = {};
 
     this.battlesDone = {};
+
+    this.setPool = pool => {this.pool = pool;};
+    this.setGame = game => {this.game = game;};
 
     this.setPlayer = player => {
         this.player = player;
@@ -62,7 +64,11 @@ const GameMaster = function(pool, game) {
             const {battle} = args;
             debug(`EVT_BATTLE_OVER: ${battle.getName()}`);
             const id = battle.getLevel().getID();
+            debug(`1. battlesDone for ${id}: ${this.battlesDone[id]}`);
             if (!this.battlesDone[id] && battle) {
+                debug(`2. battlesDone for ${id}: ${this.battlesDone[id]}`);
+                this.battlesDone[id] = true;
+                debug(`3. battlesDone for ${id}: ${this.battlesDone[id]}`);
                 this.addBadgesForActors(battle);
                 this.moveActorsOutOfBattle(battle);
                 const bName = battle.getName();
@@ -89,7 +95,7 @@ const GameMaster = function(pool, game) {
             const battle = this.battles[srcID];
             const battleLevel = battle.getLevel();
             if (battleLevel.getID() === target.getID()) {
-                if (!battle.isOver()) {
+                if (this.actorCanEnter(actor, battle)) {
                     // Entered a battle
                     const comp = new RG.Component.InBattle();
                     comp.setData({name: battle.getName()});
@@ -98,20 +104,32 @@ const GameMaster = function(pool, game) {
                     const obj = this.getSelArmyObject(actor, battle);
                     actor.getBrain().setSelectionObject(obj);
                 }
-                else {
+                else if (battle.isOver()) {
                     RG.gameMsg('Looks like the battle is already fought..');
+                }
+                else {
+                    RG.gameMsg('You cannot join the fight anymore, deserter.');
                 }
             }
         }
 
     };
 
+    /* Returns true if the actor can still enter the battle as an army member.
+     * */
+    this.actorCanEnter = (actor, battle) => {
+        if (battle.isOver()) {return false;}
+        if (this.actorDesertedBattle(actor, battle)) {return false;}
+        return true;
+    };
+
+    /* Removes the player from a battle. */
     this.removePlayerFromBattle = function(args) {
         const {actor, target, src} = args;
         const areaID = target.getID();
         const srcID = src.getID();
-        const battleLevID = battle.getLevel().getID();
         const battle = this.battles[areaID];
+        const battleLevID = battle.getLevel().getID();
 
         const inBattleComp = actor.get('InBattle');
         const battleData = inBattleComp.getData();
@@ -120,10 +138,12 @@ const GameMaster = function(pool, game) {
             const msg = `Level ID mismatch: ${srcID} !== ${battleLevID}`;
             RG.err('GameMaster', 'removePlayerFromBattle', msg);
         }
+
+        // Mark player as deserter, TODO add confirm object
         if (!battle.isOver() && battleData.army) {
             const badge = new RG.Component.BattleBadge();
-            badge.setStatus('Fled');
-            badge.setData({name: battle.getName(), army: battleData.army});
+            badge.setData({status: 'Fled', name: battle.getName(),
+                army: battleData.army});
             actor.add(badge);
             actor.remove('InBattle');
             actor.add(new RG.Component.BattleOver());
@@ -138,20 +158,31 @@ const GameMaster = function(pool, game) {
             const ids = actors.map(actor => actor.getID());
 
             actors.forEach(actor => {
-                const badge = new RG.Component.BattleBadge();
-                const battleData = {
-                    name: battle.getName(),
-                    army: army.getName(),
-                    allies: ids,
-                    status: army.isDefeated() ? 'Lost' : 'Won'
-                };
-                badge.setData(battleData);
-                actor.add(badge);
+                if (!this.actorDesertedBattle(actor, battle)) {
+                    const badge = new RG.Component.BattleBadge();
+                    const battleData = {
+                        name: battle.getName(),
+                        army: army.getName(),
+                        allies: ids,
+                        status: army.isDefeated() ? 'Lost' : 'Won'
+                    };
+                    badge.setData(battleData);
+                    actor.add(badge);
 
-                actor.remove('InBattle');
-                actor.add(new RG.Component.BattleOver());
+                    actor.remove('InBattle');
+                    actor.add(new RG.Component.BattleOver());
+                }
             });
         });
+    };
+
+    this.actorDesertedBattle = (actor, battle) => {
+        const badgeList = actor.getList('BattleBadge');
+        const badge = badgeList.find(b => (
+            b.getData().name === battle.getName()
+        ));
+        if (badge) {return true;}
+        return false;
     };
 
     /* Moves actors out of the battle level into the parent level of the battle
@@ -159,18 +190,6 @@ const GameMaster = function(pool, game) {
     this.moveActorsOutOfBattle = battle => {
         const level = battle.getLevel();
         const conns = level.getConnections();
-
-        const id = level.getID();
-        console.log(`moveActorsOut ${id}, ${battle.getName()}`);
-        if (this.battlesDone.hasOwnProperty(id)) {
-            const jsonStr = JSON.stringify(battle);
-            RG.err('GameMaster', 'moveActorsOutOfBattle',
-                `Battle 2nd time removal ${jsonStr}`);
-        }
-        else {
-            debug(`${battle.getName()}, level ${id} is done`);
-            this.battlesDone[id] = true;
-        }
 
         if (!conns || conns.length === 0) {
             RG.err('Game.Master', 'moveActorsOutOfBattle',
@@ -186,7 +205,7 @@ const GameMaster = function(pool, game) {
             actors.forEach(actor => {
                 if (!actor.isPlayer()) {
                     if (level.removeActor(actor)) {
-                        console.log(`Removed actor ${actor.getID()},${actor.getName()}`);
+                        debug(`Removed actor ${actor.getID()},${actor.getName()}`);
                         targetLevel.addActorToFreeCell(actor);
                     }
                     else {
