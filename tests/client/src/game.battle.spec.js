@@ -5,6 +5,19 @@ const Game = require('../../..//client/src/game.js');
 
 const BattleFact = require('../../../client/src/factory.battle');
 
+const {Army} = require('../../../client/src/game.battle');
+
+describe('Game.Army', () => {
+    it('it has actors', () => {
+        const army = new Army();
+        const a1 = new RG.Actor.Rogue('soldier');
+        const a2 = new RG.Actor.Rogue('pacifist');
+        a1.addActor(a1);
+        expect(army.hasActor(a1)).to.equal(true);
+        expect(army.hasActor(a2)).to.equal(false);
+    });
+});
+
 describe('Game.Battle', () => {
     it('It is fought until end condition', () => {
         const areaLevel = RG.FACT.createLevel('arena', 40, 40);
