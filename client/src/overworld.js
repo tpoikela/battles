@@ -26,12 +26,11 @@ RG.Names = require('../data/name-gen');
 RG.LevelGen = require('../data/level-gen');
 RG.Path = require('./path');
 const OW = require('./overworld.map');
+const debug = require('debug')('bitn:overworld');
 
 //-------------------
 // Variables
 //-------------------
-
-const $DEBUG = false;
 
 RG.OverWorld = {};
 
@@ -549,13 +548,13 @@ function addSubLevelFeatures(ow, owX, owY, subLevel) {
         }
         else {
             const msg = `Base: ${base}, ${feat}`;
-            console.log('Skipping feature: ' + msg);
+            debug('addSubLevelFeat Skipped: ' + msg);
             ++numSkipped;
         }
     });
 
     if (numSkipped > 0) {
-        console.log(`Skipped ${numSkipped} features in addSubLevelFeatures`);
+        debug(`Skipped ${numSkipped} features in addSubLevelFeatures`);
     }
 }
 
@@ -602,7 +601,7 @@ function addTowerToSubLevel(feat, owSubLevel, subLevel) {
             placed = true;
         }
         if (coord.length < 9) {
-            console.log('addTowerToSubLevel. Too few coords. Retrying.');
+            debug('addTowerToSubLevel. Too few coords. Retrying.');
             placed = false;
             coord = [];
         }
@@ -615,7 +614,7 @@ function addTowerToSubLevel(feat, owSubLevel, subLevel) {
     const type = feat === OW.BTOWER ? 'blacktower' : 'whitetower';
 
     if (placed) {
-        console.log('addTowerToSubLevel feat placed with ' +
+        debug('addTowerToSubLevel feat placed with ' +
             JSON.stringify(coord));
         subLevel.getMap().setBaseElems(coord, RG.ELEM.FORT);
         const tower = new RG.OverWorld.SubFeature(type, coord);
@@ -756,12 +755,10 @@ RG.OverWorld.createWorldConf = (ow, subLevels, nTilesX, nTilesY) => {
     const xMap = nSubLevelsX / nTilesX; // SubLevels per tile level in x-dir
     const yMap = nSubLevelsY / nTilesY; // SubLevels per tile level in y-dir
 
-    if ($DEBUG) {
-        console.log(`nSubLevelsX: ${nSubLevelsX}, nTilesX: ${nTilesX}`);
-        console.log(`nSubLevelsY: ${nSubLevelsY}, nTilesY: ${nTilesY}`);
-        console.log(`MapX: ${xMap} levels to one tile`);
-        console.log(`MapY: ${yMap} levels to one tile`);
-    }
+    debug(`nSubLevelsX: ${nSubLevelsX}, nTilesX: ${nTilesX}`);
+    debug(`nSubLevelsY: ${nSubLevelsY}, nTilesY: ${nTilesY}`);
+    debug(`MapX: ${xMap} levels to one tile`);
+    debug(`MapY: ${yMap} levels to one tile`);
 
     // if xMap/yMap not integers, mapping will be wrong, thus we cannot round
     // the map values, just throw error
@@ -853,7 +850,7 @@ RG.OverWorld.createWorldConf = (ow, subLevels, nTilesX, nTilesY) => {
                         areaConf.mountain.push(mountConf);
                     }
                     else if (feat.type === 'blacktower') {
-                        console.log('Adding final blacktower now');
+                        debug('Adding final blacktower now');
                         addBlackTowerConfToArea(feat, coordObj, areaConf);
                     }
                 });
@@ -875,7 +872,7 @@ function mapX(x, slX, subSizeX) {
     if (Number.isInteger(x)) {
         const res = x + slX * subSizeX;
         if (res >= 100 ) {
-            console.log(`WARNING mapX: ${res}, ${x}, ${slX}, ${subSizeX}`);
+            console.warn(`WARNING mapX: ${res}, ${x}, ${slX}, ${subSizeX}`);
         }
         return res;
     }
@@ -915,6 +912,9 @@ function addCapitalConfToArea(feat, coordObj, areaConf) {
     };
 
     addLocationToZoneConf(feat, coordObj, cityConf);
+
+    const {x, y} = cityConf;
+    debug(`Added capital to area x,y ${x},${y}`);
     const mainConn = {
         name: 'Capital cave',
         levelX: cityConf.levelX,
