@@ -833,6 +833,14 @@ class BrainPlayer {
         return !!this._actor.getBook();
     }
 
+    /* Sets the action to be confirmed using callback. Emits an optional
+     * messages to ask for confirmation. */
+    setWantConfirm(confirmCallback, msg = '') {
+        this._wantConfirm = true;
+        this._confirmCallback = confirmCallback;
+        if (msg !== '') {RG.gameMsg(msg);}
+    }
+
     /* If there are multiple items per cell, digs next item to the top.*/
     getNextItemOnTop(cell) {
         if (cell.hasProp('items')) {
