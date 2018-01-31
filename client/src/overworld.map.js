@@ -371,9 +371,11 @@ OW.Map = function() {
             featuresByXY: this._featuresByXY,
             vWalls: this._vWalls,
             hWalls: this._hWalls,
-            explored: this._explored,
-            coordMap: this.coordMap.toJSON()
+            explored: this._explored
         };
+        if (this.coordMap) {
+            json.coordMap = this.coordMap.toJSON();
+        }
         return json;
     };
 
