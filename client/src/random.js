@@ -13,6 +13,10 @@ RG.Random.prototype.setSeed = function(seed) {
     this.rng.setSeed(seed);
 };
 
+RG.Random.prototype.setState = function(state) {
+    this.rng.setState(state);
+};
+
 /* Return random property from the object.*/
 RG.Random.prototype.randProp = function(obj) {
     const keys = Object.keys(obj);

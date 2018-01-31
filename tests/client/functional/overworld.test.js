@@ -101,10 +101,11 @@ describe('How Game is created from Overworld', function() {
         // To load previous stage quickly
         const loadGame = false;
         const pName = 'Xanthur';
-        const loadTurn = 10000;
+        const loadTurn = 12000;
 
         if (loadGame) {
             const fname = `save_dumps/${pName}_temp_${loadTurn}.json`;
+            // const fname = 'save_dumps/remove_bug.json';
             const buf = fs.readFileSync(fname);
             const jsonParsed = JSON.parse(buf.toString());
             const fromJSON = new RG.Game.FromJSON();

@@ -73,6 +73,7 @@ const Army = function(name) {
     this.hasNotify = true;
     this.notify = function(evtName, msg) {
         if (evtName === RG.EVT_ACTOR_KILLED) {
+            debug(`${_name} got EVT_ACTOR_KILLED`);
             const actor = msg.actor;
             if (this.hasActor(actor)) {
                 if (!this.removeActor(actor)) {
@@ -83,10 +84,14 @@ const Army = function(name) {
                 }
                 else {
                     ++_casualties;
-                    console.log(`\tCasualties: ${_casualties}`);
+                    const bName = this.getBattle().getName();
+                    let msg = `Battle: ${bName}, Army ${_name}`;
+                    msg += ` Actor: ${actor.getID()}`;
+                    console.log(`\tCasualties: ${_casualties} ${msg}`);
                     const armyObj = {
                         type: 'Actor killed', army: this
                     };
+                    debug(`${_name} emit EVT_ARMY_EVENT`);
                     RG.POOL.emitEvent(RG.EVT_ARMY_EVENT, armyObj);
                     if (_actors.length === 0) {
                         console.log('<><> Army ' + _name + ' decimated');
@@ -193,13 +198,16 @@ const Battle = function(name) {
     this.hasNotify = true;
     this.notify = function(evtName, msg) {
         if (evtName === RG.EVT_ARMY_EVENT) {
+            const bName = this.getName();
+            debug(`${bName} got EVT_ARMY_EVENT`);
             const {type, army} = msg;
             if (this.armyInThisBattle(army) && type === 'Actor killed') {
-                if (this.isOver()) {
-                    debug(`Battle |${this.getName()}| is over!`);
+                if (!this.finished && this.isOver()) {
+                    debug(`Battle |${bName}| is over!`);
                     debug('\tRemoving all event listeners');
                     RG.POOL.removeListener(this);
                     const obj = {battle: this};
+                    debug(`${bName} emit EVT_BATTLE_OVER`);
                     RG.POOL.emitEvent(RG.EVT_BATTLE_OVER, obj);
                     this.finished = true;
                 }

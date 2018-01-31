@@ -355,7 +355,8 @@ RG.Game.Main = function() {
             gameMaster: _master.toJSON(),
             lastLevelID: RG.Map.Level.prototype.idCount,
             lastEntityID: Entity.getIDCount(),
-            globalConf: this.globalConf
+            globalConf: this.globalConf,
+            rng: RG.RAND.toJSON()
         };
 
         const player = this.getPlayer();

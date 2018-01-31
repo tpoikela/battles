@@ -7,6 +7,8 @@ const Battle = require('./game.battle').Battle;
 const Army = require('./game.battle').Army;
 const GameMaster = require('./game.master');
 
+const debug = require('debug')('bitn:Game.FromJSON');
+
 /* Object for converting serialized JSON objects to game objects. Note that all
  * actor/level ID info is stored between uses. If you call restoreLevel() two
  * times, all data from 1st is preserved. Call reset() to clear data. */
@@ -557,6 +559,11 @@ RG.Game.FromJSON = function() {
         // RG.Map.Level.prototype.idCount = json.lastLevelID;
         // RG.Entity.prototype.idCount = json.lastEntityID;
 
+        if (json.rng) {
+            RG.RAND = new RG.Random();
+            RG.RAND.setState(json.rng.state);
+        }
+
         return game;
     };
 
@@ -604,6 +611,9 @@ RG.Game.FromJSON = function() {
             game.addLevel(battle.getLevel());
         });
         gameMaster.battles = battles;
+        if (json.battlesDone) {
+            gameMaster.battlesDone = json.battlesDone;
+        }
         return gameMaster;
     };
 
@@ -621,7 +631,7 @@ RG.Game.FromJSON = function() {
 
         // Need to remove the event listeners if battle over
         if (battle.finished) {
-            console.log('#### RM LISTENERS');
+            debug(`${json.name} finished. rm listeners`);
             RG.POOL.removeListener(battle);
             armies.forEach(army => {
                 RG.POOL.removeListener(army);

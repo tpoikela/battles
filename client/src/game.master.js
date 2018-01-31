@@ -4,6 +4,8 @@ const RG = require('./rg');
 RG.Factory = require('./factory');
 RG.Factory.Battle = require('./factory.battle');
 
+const debug = require('debug')('bitn:GameMaster');
+
 /* GameMaster objects reacts to various events caused by player and other
  * actors, and shapes the game world based on them. For example,
  * GameMaster can:
@@ -20,6 +22,8 @@ const GameMaster = function(pool, game) {
     // Lookup table for battles by level ID
     this.battles = {};
 
+    this.battlesDone = {};
+
     this.setPlayer = player => {
         this.player = player;
     };
@@ -28,7 +32,7 @@ const GameMaster = function(pool, game) {
     this.hasNotify = true;
     this.notify = (evtName, args) => {
         if (evtName === RG.EVT_LEVEL_CHANGED) {
-            console.log('GameMaster EVT_LEVEL_CHANGED triggered');
+            debug('EVT_LEVEL_CHANGED');
             const {actor} = args;
             if (actor.isPlayer()) {
                 if (!actor.has('InBattle')) {
@@ -40,13 +44,13 @@ const GameMaster = function(pool, game) {
             }
         }
         else if (evtName === RG.EVT_TILE_CHANGED) {
-            console.log('EVT_TILE_CHANGED triggered');
+            debug('EVT_TILE_CHANGED');
             // Should spawn battle etc event
             if (!this.player) {
-                console.log('\tBut player is NULL for the moment');
+                debug('\tBut player is NULL for the moment');
                 return;
             }
-            console.log('\tPlayer not null. Creating battle');
+            debug('\tPlayer not null. Creating battle');
             const level = this.player.getLevel();
             const id = level.getID();
             if (!this.battles.hasOwnProperty(id)) {
@@ -56,7 +60,9 @@ const GameMaster = function(pool, game) {
         }
         else if (evtName === RG.EVT_BATTLE_OVER) {
             const {battle} = args;
-            if (battle) {
+            debug(`EVT_BATTLE_OVER: ${battle.getName()}`);
+            const id = battle.getLevel().getID();
+            if (!this.battlesDone[id] && battle) {
                 this.addBadgesForActors(battle);
                 this.moveActorsOutOfBattle(battle);
                 const bName = battle.getName();
@@ -67,7 +73,7 @@ const GameMaster = function(pool, game) {
                 RG.err('Game.Master', 'notify',
                     `Args ${json} does not contain "battle"`);
             }
-            console.log('GameMaster registered battle over');
+            debug('GameMaster registered battle over');
             // TODO delete the battle (but keep the level)
         }
     };
@@ -154,6 +160,18 @@ const GameMaster = function(pool, game) {
         const level = battle.getLevel();
         const conns = level.getConnections();
 
+        const id = level.getID();
+        console.log(`moveActorsOut ${id}, ${battle.getName()}`);
+        if (this.battlesDone.hasOwnProperty(id)) {
+            const jsonStr = JSON.stringify(battle);
+            RG.err('GameMaster', 'moveActorsOutOfBattle',
+                `Battle 2nd time removal ${jsonStr}`);
+        }
+        else {
+            debug(`${battle.getName()}, level ${id} is done`);
+            this.battlesDone[id] = true;
+        }
+
         if (!conns || conns.length === 0) {
             RG.err('Game.Master', 'moveActorsOutOfBattle',
                 'No exit connnection in level');
@@ -168,12 +186,13 @@ const GameMaster = function(pool, game) {
             actors.forEach(actor => {
                 if (!actor.isPlayer()) {
                     if (level.removeActor(actor)) {
+                        console.log(`Removed actor ${actor.getID()},${actor.getName()}`);
                         targetLevel.addActorToFreeCell(actor);
                     }
                     else {
                         const json = JSON.stringify(actor.toJSON());
                         RG.err('Game.Master', 'moveActorsOutOfBattle',
-                            `removeActor failed for actor ${json}`);
+                            `level.removeActor failed for actor ${json}`);
                     }
                 }
                 else {
@@ -263,7 +282,8 @@ const GameMaster = function(pool, game) {
             battles[id] = this.battles[id].toJSON();
         });
         return {
-            battles
+            battles,
+            battlesDone: this.battlesDone
         };
     };
 };

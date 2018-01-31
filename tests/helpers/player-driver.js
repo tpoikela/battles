@@ -371,29 +371,31 @@ const PlayerDriver = function(player) {
             else {
                 const [eX, eY] = [enemy.getX(), enemy.getY()];
                 // Invert direction for escape
-                let dX = -1 * (eX - pX);
-                let dY = -1 * (eY - pY);
+                const dX = -1 * (eX - pX);
+                const dY = -1 * (eY - pY);
                 const newX = pX + dX;
                 const newY = pY + dY;
                 if (map.isPassable(newX, newY)) {
                     const code = RG.KeyMap.dirToKeyCode(dX, dY);
+                    console.log(`flee to dx,dy ${dX},${dY}`);
                     result = {code};
                 }
                 else { // Pick a random direction
+                    console.log('Pick random direction for fleeing');
                     let randX = RG.RAND.arrayGetRand(MOVE_DIRS);
                     let randY = RG.RAND.arrayGetRand(MOVE_DIRS);
                     const maxTries = 20;
                     let tries = 0;
-                    while (!map.isPassable(randX, randY) && tries < maxTries) {
+                    while (!map.isPassable(pX + randX, pY + randY)) {
                         randX = RG.RAND.arrayGetRand(MOVE_DIRS);
                         randY = RG.RAND.arrayGetRand(MOVE_DIRS);
                         ++tries;
+                        if (tries >= maxTries) {break;}
                     }
 
                     if (map.isPassable(randX, randY)) {
-                        dX = randX - pX;
-                        dY = randY - pY;
-                        const code = RG.KeyMap.dirToKeyCode(dX, dY);
+                        console.log(`flee rand dir to dx,dy ${randX},${randY}`);
+                        const code = RG.KeyMap.dirToKeyCode(randX, randY);
                         result = {code};
                     }
                     else {
