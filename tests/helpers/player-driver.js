@@ -14,20 +14,45 @@ const debug = require('debug')('bitn:PlayerDriver');
 
 const MOVE_DIRS = [-1, 0, 1];
 
+/**
+ * Possible player states:
+ * S_EXPLORE - Finding things based on priority list
+ * S_PATH - Following a given path
+ *
+ */
+const S_EXPLORE = 'S_EXPLORE';
+/*
+const S_PATH = 'S_PATH';
+const S_STAIRS = 'S_STAIRS';
+const S_PASSAGE = 'S_PASSAGE';
+const S_FLEE = 'S_FLEE';
+*/
+
 /* This object can be used to simulate player actions in the world. It has 2
  * main uses:
  *  1. An AI to play the game and simulate player actions to find bugs
- *  2. 
+ *  2. A driver to automate some player actions like path-finding
  * */
 const PlayerDriver = function(player) {
 
     let _player = player;
+    this.action = '';
+    this.state = S_EXPLORE;
+
     this.cmds = []; // Stores each command executed
     this.actions = ['']; // Stores each action taken
-    this.path = [];
-    let action = '';
+    this.path = []; // Stores calculated paths
     this.screen = new Screen(30, 14);
     this.usePassage = false;
+    this.useStairs = false;
+
+    // To keep track of stairs used for returning
+    this.stairsStack = [];
+    this.exploreTurns = 0;
+    this.maxExploreTurns = 500; // Turns to spend in one level
+
+    // To prevent double visits of dungeons etc
+    this.visitedStairs = {};
 
     this.hpLow = 0.3;
 
@@ -39,6 +64,7 @@ const PlayerDriver = function(player) {
 
     this.setPlayer = player => {_player = player;};
 
+    /* Used by the path-finding algorith. */
     const _passableCallback = (x, y) => {
         const map = _player.getLevel().getMap();
         let res = map.isPassable(x, y);
@@ -51,6 +77,7 @@ const PlayerDriver = function(player) {
     };
 
     // Few simple guidelines:
+    //   Attack/flee behaviour has priority
     //   Prefer going to north always if possible
     //   If any passages in sight, and level not visited, go there
     this.nextCmd = () => {
@@ -58,7 +85,7 @@ const PlayerDriver = function(player) {
         const visible = _player.getLevel().getMap().getVisibleCells(_player);
         const around = RG.Brain.getCellsAroundActor(_player);
         const actorsAround = around.map(cell => cell.getFirstActor());
-        action = '';
+        this.action = '';
 
         // Only attack enemies very close
         let enemy = null;
@@ -67,48 +94,42 @@ const PlayerDriver = function(player) {
                 if (actor && actor.isEnemy(_player)) {
                     enemy = actor;
                     if (this.hasEnoughHealth()) {
-                        action = 'attack';
+                        this.action = 'attack';
                     }
                     else if (!brain.isRunModeEnabled()) {
-                        action = 'run';
+                        this.action = 'run';
                     }
                     else {
-                        action = 'flee';
+                        this.action = 'flee';
                     }
                     this.path = [];
                 }
             }
         });
-        if (action === '' && this.shouldRest()) {
-            action = 'rest';
+        if (this.action === '' && this.shouldRest()) {
+            this.action = 'rest';
         }
 
-        const [pX, pY] = [_player.getX(), _player.getY()];
+        const [pX, pY] = _player.getXY();
         const level = _player.getLevel();
         this.addVisited(level, pX, pY);
+        this.printTurnInfo(visible);
 
-        const map = _player.getLevel().getMap();
-        const hp = _player.get('Health').getHP();
-
-        const pos = `@${pX},${pY} ID: ${level.getID()}`;
-        debug(`T: ${this.nTurns} ${pos} | HP: ${hp}`);
-
-        if (this.nTurns % this.screenPeriod === 0) {
-            this.screen.render(pX, pY, map, visible);
-            this.screen.printRenderedChars();
-        }
         ++this.nTurns;
-        if (action === '') {this.tryExploringAround(visible);}
+        if (this.action === '') {this.tryExploringAround(visible);}
 
+        //-------------------------------------------------------
+        // Command post-processing, get command for Brain.Player
+        //-------------------------------------------------------
         let result = this.getPlayerCmd(enemy);
         if (!result) {result = {code: RG.KEY.REST};}
 
         const cmdJson = JSON.stringify(result);
-        const msg = `Action: |${action}|, cmd: ${cmdJson}`;
+        const msg = `action: |${this.action}|, cmd: ${cmdJson}`;
         debug('>>> PlayerDriver ' + msg);
 
         this.cmds.push(result);
-        this.actions.push(action);
+        this.actions.push(this.action);
         return result;
     };
 
@@ -116,27 +137,41 @@ const PlayerDriver = function(player) {
         const map = _player.getLevel().getMap();
         const pCell = _player.getCell();
         const [pX, pY] = [pCell.getX(), pCell.getY()];
+        --this.exploreTurns;
         if (this.path.length === 0) {
             const nX = pX;
             const nY = pY - 1;
             if (pCell.hasItems() && this.getLastAction() !== 'pickup') {
-                action = 'pickup';
+                this.action = 'pickup';
             }
-            else if (!this.usePassage && nY >= 0) { // _player not at the top
+            else if (this.shouldReturnBackUp()) {
+                this.useStairs = true;
+            }
+            else if (!this.movingToConnect() && this.newStairsSeen(visible)) {
+                this.useStairs = true;
+                this.exploreTurns = this.maxExploreTurns;
+            }
+            // _player not at the top of area tile yet
+            else if (!this.movingToConnect() && nY >= 0) {
                 const nCell = map.getCell(nX, nY);
                 if (nCell.isPassable() && !this.cellVisited(nCell)) {
-                    action = 'move north';
+                    this.action = 'move north';
                 }
                 else { // Try to find more complex path to north
                     this.findPathToMove(visible);
                 }
             }
+            else if (this.useStairs && pCell.hasStairs()) {
+                this.useStairs = false;
+                this.action = 'stairs';
+                this.addUsedStairs(pCell);
+            }
             else if (this.usePassage && pCell.hasPassage()) {
                 this.usePassage = false;
-                action = 'stairs';
+                this.action = 'stairs';
             }
             else if (pCell.hasPassage() && !this.passageVisited(pCell)) {
-                action = 'stairs';
+                this.action = 'stairs';
             }
             else {
                 // Try to passage out
@@ -144,13 +179,11 @@ const PlayerDriver = function(player) {
             }
         }
         else { // Move using pre-computed path
-            action = 'path';
+            this.action = 'path';
         }
     };
 
-
     this.tryToSetPathToCell = cells => {
-        // const map = _player.getLevel().getMap();
         const [pX, pY] = _player.getXY();
         this.path = [];
         cells.forEach(pCell => {
@@ -162,7 +195,7 @@ const PlayerDriver = function(player) {
                     debug('Found a non-zero path');
                     this.path = path;
                     this.path.shift(); // Discard 1st coord
-                    action = 'path';
+                    this.action = 'path';
                 }
             }
         });
@@ -171,44 +204,44 @@ const PlayerDriver = function(player) {
     /* Tries to find a path to from current direction. */
     this.findPathToMove = (visible, acceptVisited = false) => {
         const [pX, pY] = _player.getXY();
-        const nCells = visible.filter(cell => (
+        const northCells = visible.filter(cell => (
             cell.getY() < pY && cell.isPassable()
             && (acceptVisited || !this.cellVisited(cell))
         ));
         let ind = '';
         if (acceptVisited) {ind = '>>>>';}
-        this.tryToSetPathToCell(nCells);
+        this.tryToSetPathToCell(northCells);
         debug(ind + '> Looking path to North');
-        if (this.path.length > 0) {action = 'path';}
+        if (this.path.length > 0) {this.action = 'path';}
         else {
-            const wCells = visible.filter(cell => (
+            const westCells = visible.filter(cell => (
                 cell.getX() < pX && cell.isPassable()
                 && (acceptVisited || !this.cellVisited(cell))
             ));
-            this.tryToSetPathToCell(wCells);
+            this.tryToSetPathToCell(westCells);
             debug(ind + '>> Looking path to west');
-            if (this.path.length > 0) {action = 'path';}
+            if (this.path.length > 0) {this.action = 'path';}
             else {
-                const eCells = visible.filter(cell => (
+                const eastCells = visible.filter(cell => (
                     cell.getX() > pX && cell.isPassable()
                     && (acceptVisited || !this.cellVisited(cell))
                 ));
-                this.tryToSetPathToCell(eCells);
+                this.tryToSetPathToCell(eastCells);
                 debug(ind + '>>> Looking path to east');
-                if (this.path.length > 0) {action = 'path';}
+                if (this.path.length > 0) {this.action = 'path';}
                 else {
-                    const sCells = visible.filter(cell => (
+                    const southCells = visible.filter(cell => (
                         cell.getY() > pY && cell.isPassable()
                         && (acceptVisited || !this.cellVisited(cell))
                     ));
-                    this.tryToSetPathToCell(sCells);
+                    this.tryToSetPathToCell(southCells);
                     debug(ind + '>>> Looking path to south east');
-                    if (this.path.length > 0) {action = 'path';}
+                    if (this.path.length > 0) {this.action = 'path';}
                     else if (acceptVisited) {
                         debug('We are screwed');
                     }
                     else {
-                        // Still hope to home
+                        // Still some hope left
                         debug(ind + '>>>> Looking passage out');
                         this.tryToFindPassage(visible, false);
                         if (this.path.length === 0) {
@@ -219,7 +252,7 @@ const PlayerDriver = function(player) {
                             }
                         }
                         else {
-                            action = 'path';
+                            this.action = 'path';
                         }
                     }
                 }
@@ -266,6 +299,30 @@ const PlayerDriver = function(player) {
         return hp < maxHP;
     };
 
+    /* Tries to find unvisited stairs from visible cells and calculate a path
+     * there. */
+    this.newStairsSeen = visible => {
+        const levelID = _player.getLevel().getID();
+        const cellStairs = visible.find(cell => {
+            const [x, y] = [cell.getX(), cell.getY()];
+            if (!this.visitedStairs.hasOwnProperty(levelID)) {
+                return cell.hasStairs();
+            }
+            else if (!this.visitedStairs[levelID][x + ',' + y]) {
+                return cell.hasStairs();
+            }
+            return false;
+        });
+        if (cellStairs) {
+            this.tryToSetPathToCell([cellStairs]);
+            if (this.path.length > 0) {
+                debug('Found path to stairs. Going there.');
+                return true;
+            }
+        }
+        return false;
+    };
+
     this.tryToFindPassage = (visible, moveAfter = true) => {
         // const level = _player.getLevel();
         // const maxY = level.getMap().rows - 1;
@@ -278,7 +335,7 @@ const PlayerDriver = function(player) {
         this.tryToSetPathToCell(passageCells);
         if (this.path.length > 0) {
             this.usePassage = true;
-            action = 'path';
+            this.action = 'path';
         }
         else {
             debug('>> Looking for west passage cells');
@@ -289,7 +346,7 @@ const PlayerDriver = function(player) {
             this.tryToSetPathToCell(wPassageCells);
             if (this.path.length > 0) {
                 this.usePassage = true;
-                action = 'path';
+                this.action = 'path';
             }
             else {
                 debug('>> Looking for any passage cells');
@@ -299,7 +356,7 @@ const PlayerDriver = function(player) {
                 this.tryToSetPathToCell(anyPassageCell);
                 if (this.path.length > 0) {
                     this.usePassage = true;
-                    action = 'path';
+                    this.action = 'path';
                 }
                 else if (moveAfter) {
                     debug('>>> No passages. Trying to move.');
@@ -329,7 +386,7 @@ const PlayerDriver = function(player) {
         this.tryToSetPathToCell(newPassages);
         if (this.path.length > 0) {
             this.usePassage = true;
-            action = 'path';
+            this.action = 'path';
         }
         else {
             debug('Looking at visited passages');
@@ -339,7 +396,7 @@ const PlayerDriver = function(player) {
             this.tryToSetPathToCell(allPassages);
             if (this.path.length > 0) {
                 this.usePassage = true;
-                action = 'path';
+                this.action = 'path';
             }
             else {
                 debug('Nothing found among passages. Screwed!');
@@ -353,17 +410,17 @@ const PlayerDriver = function(player) {
         let result = null;
         const map = _player.getLevel().getMap();
         const [pX, pY] = _player.getXY();
-        if (action === 'attack') {
+        if (this.action === 'attack') {
             const [eX, eY] = [enemy.getX(), enemy.getY()];
             const dX = eX - pX;
             const dY = eY - pY;
             const code = RG.KeyMap.dirToKeyCode(dX, dY);
             result = {code};
         }
-        else if (action === 'pickup') {
+        else if (this.action === 'pickup') {
             result = {code: RG.KEY.PICKUP};
         }
-        else if (action === 'flee') {
+        else if (this.action === 'flee') {
             const pCell = _player.getCell();
             if (pCell.hasPassage()) {
                 result = {code: RG.KEY.USE_STAIRS_DOWN};
@@ -411,26 +468,26 @@ const PlayerDriver = function(player) {
                 }
             }
         }
-        else if (action === 'move north') {
+        else if (this.action === 'move north') {
             result = {code: RG.KEY.MOVE_N};
         }
-        else if (action === 'stairs') {
+        else if (this.action === 'stairs') {
             result = {code: RG.KEY.USE_STAIRS_DOWN};
         }
-        else if (action === 'path') {
+        else if (this.action === 'path') {
             let {x, y} = this.path.shift();
             x = parseInt(x, 10);
             y = parseInt(y, 10);
             const dX = x - pX;
             const dY = y - pY;
-            debug(`Taking action path ${x},${y}, dX,dY ${dX},${dY}`);
+            debug(`Taking this.action path ${x},${y}, dX,dY ${dX},${dY}`);
             const code = RG.KeyMap.dirToKeyCode(dX, dY);
             result = {code};
             if (this.path.length === 0) {
                 debug('PlayerDriver finished a path');
             }
         }
-        else if (action === 'run') {
+        else if (this.action === 'run') {
             result = {code: RG.KEY.RUN};
         }
 
@@ -439,6 +496,68 @@ const PlayerDriver = function(player) {
 
     this.getLastAction = () => {
         return this.actions[this.actions.length - 1];
+    };
+
+
+    this.printTurnInfo = visible => {
+        const [pX, pY] = _player.getXY();
+        const level = _player.getLevel();
+        const map = level.getMap();
+        const hp = _player.get('Health').getHP();
+
+        const pos = `@${pX},${pY} ID: ${level.getID()}`;
+        debug(`T: ${this.nTurns} ${pos} | HP: ${hp}`);
+
+        if (this.nTurns % this.screenPeriod === 0) {
+            this.screen.render(pX, pY, map, visible);
+            this.screen.printRenderedChars();
+        }
+
+    };
+
+    this.addUsedStairs = cell => {
+        const stairs = cell.getStairs();
+        const targetStairs = stairs.getTargetStairs();
+        const targetLevel = stairs.getTargetLevel();
+        const targetID = targetLevel.getID();
+        const id = _player.getLevel().getID();
+        if (!this.visitedStairs.hasOwnProperty(id)) {
+            this.visitedStairs[id] = {};
+        }
+
+        const [sx, sy] = [stairs.getX(), stairs.getY()];
+        this.visitedStairs[id][sx + ',' + sy] = [sx, sy];
+
+        const [tx, ty] = [targetStairs.getX(), targetStairs.getY()];
+        this.stairsStack.push([targetID, tx, ty]);
+        if (!this.visitedStairs[targetID]) {
+            this.visitedStairs[targetID] = {};
+        }
+        // Prevent immediate return
+        this.visitedStairs[targetID][tx + ',' + ty] = [targetID, tx, ty];
+
+    };
+
+    this.movingToConnect = () => (
+        this.useStairs || this.usePassage
+    );
+
+    /* Checks if actor has explored a level long enough. */
+    this.shouldReturnBackUp = () => {
+        if (this.stairsStack.length > 0 && this.exploreTurns <= 0) {
+            const stairsXY = this.stairsStack[this.stairsStack.length - 1];
+            const x = stairsXY[1];
+            const y = stairsXY[2];
+            const cell = _player.getLevel().getMap().getCell(x, y);
+            this.tryToSetPathToCell([cell]);
+            if (this.path.length > 0) {
+                this.action = 'path';
+                debug('Returning back up the stairs now');
+                return true;
+            }
+        }
+        return false;
+
     };
 
     /* Can be used to serialize the driver object. */
@@ -450,10 +569,11 @@ const PlayerDriver = function(player) {
             seen,
             cmds: this.cmds,
             path: this.path,
-            nTurns: this.nTurns
+            nTurns: this.nTurns,
+            stairsStack: this.stairsStack,
+            visitedStairs: this.visitedStairs
         };
     };
-
 };
 
 module.exports = PlayerDriver;
