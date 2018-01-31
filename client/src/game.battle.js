@@ -32,7 +32,7 @@ const Army = function(name) {
 
     this.getCasualties = () => _casualties;
 
-    this.getActors = () => _actors;
+    this.getActors = () => _actors.slice();
 
     this.hasActor = actor => {
         const id = actor.getID();
@@ -129,7 +129,7 @@ const Battle = function(name) {
         casualties: 0,
         survivors: 0
     };
-    this.getArmies = () => _armies;
+    this.getArmies = () => _armies.slice();
     this.setArmies = armies => {
         _armies = armies;
         _armies.forEach(army => {
