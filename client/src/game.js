@@ -6,6 +6,8 @@ RG.System = require('./system');
 RG.Map = require('./map');
 RG.Time = require('./time');
 
+RG.EventPool = require('./eventpool');
+
 RG.Game = {};
 
 const Engine = require('./engine');
@@ -24,7 +26,7 @@ RG.Game.Main = function() {
     RG.POOL = _eventPool;
 
     const _engine = new Engine(_eventPool);
-    let _master = new GameMaster(_eventPool, this);
+    let _master = new GameMaster(this);
 
     this.globalConf = {};
     this.setGlobalConf = conf => {this.globalConf = conf;};
@@ -89,7 +91,7 @@ RG.Game.Main = function() {
     /* Moves player to specified area tile. */
     this.movePlayer = function(tileX, tileY) {
         const player = this.getPlayer();
-        const world = Object.values(_places)[0];
+        const world = this.getCurrentWorld();
         const area = world.getAreas()[0];
         const tile = area.getTileXY(tileX, tileY);
         const newLevel = tile.getLevel();
@@ -267,7 +269,7 @@ RG.Game.Main = function() {
     this.update = obj => {_engine.update(obj);};
 
     this.getArea = (index) => {
-        const world = Object.values(_places)[0];
+        const world = this.getCurrentWorld();
         if (world && typeof world.getAreas === 'function') {
             return world.getAreas()[index];
         }
@@ -326,7 +328,11 @@ RG.Game.Main = function() {
 
     this.getGameMaster = () => _master;
     this.setGameMaster = master => {
-      _master = master;
+        _master = master;
+        _master.setPlayer(this.getPlayer());
+        const world = Object.values(_places)[0];
+        _master.setWorld(world);
+        _master.setGame(this);
     };
 
     this.getOverWorld = () => this._overworld;
@@ -412,7 +418,7 @@ RG.Game.Main = function() {
         }
         const overworld = this._overworld;
         const player = this.getPlayer();
-        const world = Object.values(this.getPlaces())[0];
+        const world = this.getCurrentWorld();
         const area = world.getAreas()[0];
         const xy = area.findTileXYById(player.getLevel().getID());
 
@@ -429,6 +435,16 @@ RG.Game.Main = function() {
         overworld.setExplored([pX, pY]);
 
         return [pX, pY];
+    };
+
+    /* Returns the current world where the player is .*/
+    this.getCurrentWorld = function() {
+        const currPlaceIndex = 0; // Add support for more worlds
+        const places = Object.values(this.getPlaces());
+        if (places.length > currPlaceIndex) {
+            return places[currPlaceIndex];
+        }
+        return null;
     };
 
 }; // }}} Game.Main
