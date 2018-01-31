@@ -522,6 +522,7 @@ RG.Game.FromJSON = function() {
         // Player created separately from other actors for now
         if (json.player) {
             const player = this.restorePlayer(json.player);
+            this._addRegenEvents(game, player);
             const id = json.player.levelID;
             const level = game.getLevels().find(item => item.getID() === id);
             if (level) {
@@ -690,6 +691,22 @@ RG.Game.FromJSON = function() {
             msg += `\n\t${id}`;
         });
         console.log(msg + '\n');
+    };
+
+    /* Re-schedules the HP/PP regeneration for an actor */
+    this._addRegenEvents = (game, actor) => {
+        // Add HP regeneration
+        const regenPlayer = new RG.Time.RegenEvent(actor,
+            20 * RG.ACTION_DUR);
+        game.addEvent(regenPlayer);
+
+        // Add PP regeneration (if needed)
+        if (actor.has('SpellPower')) {
+            const regenPlayerPP = new RG.Time.RegenPPEvent(actor,
+                30 * RG.ACTION_DUR);
+            game.addEvent(regenPlayerPP);
+        }
+
     };
 
 };
