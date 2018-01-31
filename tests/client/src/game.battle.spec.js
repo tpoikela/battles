@@ -12,9 +12,24 @@ describe('Game.Army', () => {
         const army = new Army();
         const a1 = new RG.Actor.Rogue('soldier');
         const a2 = new RG.Actor.Rogue('pacifist');
-        a1.addActor(a1);
+        army.addActor(a1);
         expect(army.hasActor(a1)).to.equal(true);
         expect(army.hasActor(a2)).to.equal(false);
+    });
+
+    it('responds to ACTOR_KILLED events', () => {
+        const MockBattle = {getName: () => 'MockBattle'};
+        const army = new Army();
+        const a1 = new RG.Actor.Rogue('soldier');
+        const a2 = new RG.Actor.Rogue('pacifist');
+        army.addActor(a1);
+        army.setBattle(MockBattle);
+
+        RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: a2});
+        expect(army.isDefeated()).to.equal(false);
+
+        RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: a1});
+        expect(army.isDefeated()).to.equal(true);
     });
 });
 
