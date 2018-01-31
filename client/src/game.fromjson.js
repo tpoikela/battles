@@ -1,12 +1,9 @@
 
 const RG = require('./rg');
 RG.Game = require('./game');
-
 const OW = require('./overworld.map');
 const Battle = require('./game.battle').Battle;
 const Army = require('./game.battle').Army;
-const GameMaster = require('./game.master');
-
 const debug = require('debug')('bitn:Game.FromJSON');
 
 /* Object for converting serialized JSON objects to game objects. Note that all
@@ -603,7 +600,7 @@ RG.Game.FromJSON = function() {
     };
 
     this.restoreGameMaster = function(game, json) {
-        const gameMaster = new GameMaster();
+        const gameMaster = game.getGameMaster();
         const battles = {};
         Object.keys(json.battles).forEach(id => {
             const battle = this.restoreBattle(json.battles[id]);
