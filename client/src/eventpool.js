@@ -98,6 +98,13 @@ const EventPool = function() { // {{{2
         }
         return [];
     };
+
+    this.printListeners = () => {
+        Reflect.ownKeys(_listeners).forEach(evt => {
+            console.log(`Listeners for event ${evt}`);
+            console.log(_listeners[evt]);
+        });
+    };
 };
 RG.POOL = new EventPool(); // Dangerous, global objects
 EventPool.id = 0;
