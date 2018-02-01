@@ -1055,8 +1055,8 @@ function addLocationToZoneConf(feat, coordObj, zoneConf, vert = true) {
 
 /* Adds the black tower configuration to area. */
 function addBlackTowerConfToArea(feat, coordObj, areaConf) {
-    // const {xMap, yMap, nSubLevelsX, nSubLevelsY,
-        // x, y, slX, slY, aX, aY, subX, subY} = coordObj;
+    const {xMap, yMap, nSubLevelsX, nSubLevelsY,
+        x, y, slX, slY, aX, aY, subX, subY} = coordObj;
     const coord = feat.coord;
 
     const xy = coord[7];
@@ -1064,14 +1064,14 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
         const msg = 'xy null/undef. feat: ' + JSON.stringify(feat);
         RG.err('overworld.js', 'addBlackTowerConfToArea', msg);
     }
-    // const featX = mapX(xy[0], slX, subX);
-    // const featY = mapY(xy[1], slY, subY);
+    const featX = mapX(xy[0], slX, subX);
+    const featY = mapY(xy[1], slY, subY);
     const tName = 'Elder raventhrone';
 
     const dungeonConf = RG.LevelGen.getDungeonConf(tName);
-    addToPlayerPosition(dungeonConf, coordObj);
-    // Object.assign(dungeonConf,
-        // {x: aX, y: aY, levelX: featX, levelY: featY});
+    // addToPlayerPosition(dungeonConf, coordObj);
+    Object.assign(dungeonConf,
+        {x: aX, y: aY, levelX: featX, levelY: featY});
     dungeonConf.dungeonType = 'castle';
     dungeonConf.wallType = 'wallice';
     dungeonConf.tilesX = 20;
