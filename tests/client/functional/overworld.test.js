@@ -138,16 +138,18 @@ describe('How Game is created from Overworld', function() {
 
                 // Save the game between certain intervals
                 if (i > startI && (i % (mult * 1000) === 0)) {
-                    console.log('Saving/restoring game on turn ' + i);
-                    const json = newGame.toJSON();
-                    const jsonStr = JSON.stringify(json);
-                    const fname = `save_dumps/${pName}_temp_${i}.json`;
-                    fs.writeFileSync(fname, jsonStr);
-                    const jsonParsed = JSON.parse(jsonStr);
+                    if (maxTurns >= 8000) {
+                        const json = newGame.toJSON();
+                        const jsonStr = JSON.stringify(json);
+                        const fname = `save_dumps/${pName}_temp_${i}.json`;
+                        console.log(`Saving/restoring game to ${fname}`);
+                        fs.writeFileSync(fname, jsonStr);
+                        const jsonParsed = JSON.parse(jsonStr);
 
-                    const fromJSON = new RG.Game.FromJSON();
-                    newGame = fromJSON.createGame(jsonParsed);
-                    driver.setPlayer(newGame.getPlayer());
+                        const fromJSON = new RG.Game.FromJSON();
+                        newGame = fromJSON.createGame(jsonParsed);
+                        driver.setPlayer(newGame.getPlayer());
+                    }
                 }
                 newGame.update(driver.nextCmd());
                 if (newGame.isGameOver()) {

@@ -64,103 +64,103 @@ RG.Brain.getEnemyCellsAround = actor => {
  * It's a separate object from decision-making brain.*/
 RG.Brain.Memory = function() {
 
-    const _actors = {};
-    const _enemyTypes = []; // List of enemy types for this actor
-    let _communications = [];
-    let _lastAttackedID = null;
+    this._actors = {};
+    this._enemyTypes = []; // List of enemy types for this actor
+    this._communications = [];
+    this._lastAttackedID = null;
 
     // TODO add memory of player closing a door/using stairs
 
     /* Adds a generic enemy type. */
     this.addEnemyType = type => {
-        _enemyTypes.push(type);
+        this._enemyTypes.push(type);
     };
 
     /* Removes a generic enemy type. */
     this.removeEnemyType = type => {
-        const index = _enemyTypes.indexOf(type);
+        const index = this._enemyTypes.indexOf(type);
         if (index >= 0) {
-            _enemyTypes.splice(index, 1);
+            this._enemyTypes.splice(index, 1);
         }
     };
 
     /* Checks if given actor is an enemy. */
     this.isEnemy = actor => {
-        if (_actors.hasOwnProperty('enemies')) {
-            const index = _actors.enemies.indexOf(actor);
+        if (this._actors.hasOwnProperty('enemies')) {
+            const index = this._actors.enemies.indexOf(actor);
             if (index !== -1) {return true;}
         }
         if (!this.isFriend(actor)) {
             const type = actor.getType();
-            const index = _enemyTypes.indexOf(type);
+            const index = this._enemyTypes.indexOf(type);
             if (index !== -1) {return true;}
         }
         return false;
     };
 
     /* Checks if actor is a friend. */
-    this.isFriend = function(actor) {
-        if (_actors.hasOwnProperty('friends')) {
-            const index = _actors.friends.indexOf(actor);
+    this.isFriend = actor => {
+        if (this._actors.hasOwnProperty('friends')) {
+            const index = this._actors.friends.indexOf(actor);
             return index >= 0;
         }
         return false;
     };
 
     /* Adds an actor friend. */
-    this.addFriend = function(actor) {
+    this.addFriend = actor => {
         if (this.isEnemy(actor)) {
             this.removeEnemy(actor);
         }
-        if (!_actors.hasOwnProperty('friends')) {
-            _actors.friends = [];
+        if (!this._actors.hasOwnProperty('friends')) {
+            this._actors.friends = [];
         }
         if (!this.isFriend(actor)) {
-            _actors.friends.push(actor);
+            this._actors.friends.push(actor);
         }
     };
 
     /* Adds given actor as (personal) enemy.*/
-    this.addEnemy = function(actor) {
+    this.addEnemy = actor => {
         if (!this.isEnemy(actor)) {
             if (this.isFriend(actor)) {
                 this.removeFriend(actor);
             }
-            if (!_actors.hasOwnProperty('enemies')) {
-                _actors.enemies = [];
+            if (!this._actors.hasOwnProperty('enemies')) {
+                this._actors.enemies = [];
             }
-            _actors.enemies.push(actor);
-            if (_communications.length > 0) {
-                _communications = []; // Invalidate communications
+            this._actors.enemies.push(actor);
+            if (this._communications.length > 0) {
+                this._communications = []; // Invalidate communications
             }
         }
     };
 
-    this.removeEnemy = function(actor) {
-        if (_actors.hasOwnProperty('enemies')) {
-            const index = _actors.enemies.indexOf(actor);
+    this.removeEnemy = actor => {
+        if (this._actors.hasOwnProperty('enemies')) {
+            const index = this._actors.enemies.indexOf(actor);
             if (index >= 0) {
-                _actors.enemies.splice(index, 1);
+                this._actors.enemies.splice(index, 1);
             }
         }
     };
 
-    this.removeFriend = function(actor) {
-        if (_actors.hasOwnProperty('friends')) {
-            const index = _actors.friends.indexOf(actor);
+    this.removeFriend = actor => {
+        if (this._actors.hasOwnProperty('friends')) {
+            const index = this._actors.friends.indexOf(actor);
             if (index >= 0) {
-                _actors.friends.splice(index, 1);
+                this._actors.friends.splice(index, 1);
             }
         }
     };
 
-    this.getEnemies = () => _actors.enemies || MEM_NO_ACTORS;
-    this.getFriends = () => _actors.friends || MEM_NO_ACTORS;
+    this.getEnemies = () => this._actors.enemies || MEM_NO_ACTORS;
+    this.getFriends = () => this._actors.friends || MEM_NO_ACTORS;
 
     /* Adds a communication with given actor. */
-    this.addCommunicationWith = function(actor) {
+    this.addCommunicationWith = actor => {
         if (!this.hasCommunicatedWith(actor)) {
-            _communications.push(actor);
+            this._communications.push(actor);
         }
     };
 
@@ -168,35 +168,35 @@ RG.Brain.Memory = function() {
      * target between attacks (which is ineffective to kill anything). */
     this.setLastAttacked = actor => {
         if (actor) {
-            _lastAttackedID = actor.getID();
+            this._lastAttackedID = actor.getID();
         }
         else {
             // When restoring game, actor can be null (ie it was killed), but
             // this actor does not know it
-            _lastAttackedID = null;
+            this._lastAttackedID = null;
         }
     };
 
-    this.wasLastAttacked = actor => _lastAttackedID === actor.getID();
+    this.wasLastAttacked = actor => this._lastAttackedID === actor.getID();
 
     /* Returns true if has communicated with given actor.*/
     this.hasCommunicatedWith = actor => {
-        const index = _communications.indexOf(actor);
+        const index = this._communications.indexOf(actor);
         return index !== -1;
     };
 
     this.toJSON = () => {
         const obj = {
-            enemyTypes: _enemyTypes
+            enemyTypes: this._enemyTypes
         };
-        if (_actors.hasOwnProperty('enemies')) {
-            obj.enemies = _actors.enemies.map(enemy => enemy.getID());
+        if (this._actors.hasOwnProperty('enemies')) {
+            obj.enemies = this._actors.enemies.map(enemy => enemy.getID());
         }
-        if (_actors.hasOwnProperty('friends')) {
-            obj.friends = _actors.friends.map(enemy => enemy.getID());
+        if (this._actors.hasOwnProperty('friends')) {
+            obj.friends = this._actors.friends.map(enemy => enemy.getID());
         }
-        if (_lastAttackedID) {
-            obj.lastAttackedID = _lastAttackedID;
+        if (this._lastAttackedID) {
+            obj.lastAttackedID = this._lastAttackedID;
         }
         return obj;
     };
@@ -208,10 +208,10 @@ RG.Brain.Base = function(actor) {
     this._actor = actor;
     this._type = null;
 
-    this.setActor = actor => {this._actor = actor;};
-    this.getActor = () => this._actor;
-    this.getType = () => this._type;
-    this.setType = type => {this._type = type;};
+    this.setActor = actor => {this.this._actor = actor;};
+    this.getActor = () => this.this._actor;
+    this.getType = () => this.this._type;
+    this.setType = type => {this.this._type = type;};
 
     /* Main function for retrieving the actionable callback. Acting actor must
      * be passed in. */
@@ -225,30 +225,29 @@ RG.Brain.Base = function(actor) {
 /* Brain is used by the AI to perform and decide on actions. Brain returns
  * actionable callbacks but doesn't know Action objects.  */
 RG.Brain.Rogue = function(actor) {
-    let _actor = actor; // Owner of the brain
-    const _explored = {}; // Memory of explored cells
-    let _type = 'Rogue';
+    this._actor = actor; // Owner of the brain
+    this._explored = {}; // Memory of explored cells
+    this._type = 'Rogue';
+    this._memory = new RG.Brain.Memory(this);
 
-    const _memory = new RG.Brain.Memory(this);
+    this.getType = () => this._type;
+    this.setType = type => {this._type = type;};
 
-    this.getType = () => _type;
-    this.setType = type => {_type = type;};
+    this.getMemory = () => this._memory;
 
-    this.getMemory = () => _memory;
+    this.setActor = actor => {this._actor = actor;};
+    this.getActor = () => this._actor;
 
-    this.setActor = actor => {_actor = actor;};
-    this.getActor = () => _actor;
-
-    this.addEnemy = actor => {_memory.addEnemy(actor);};
-    this.addFriend = actor => {_memory.addFriend(actor);};
-    this.addEnemyType = type => {_memory.addEnemyType(type);};
+    this.addEnemy = actor => {this._memory.addEnemy(actor);};
+    this.addFriend = actor => {this._memory.addFriend(actor);};
+    this.addEnemyType = type => {this._memory.addEnemyType(type);};
 
     this._seenCached = null;
 
     /* Callback used for actor's path finding. */
-    const _passableCallback = (x, y) => {
-        const map = _actor.getLevel().getMap();
-        const hasFlying = _actor.has('Flying');
+    this._passableCallback = (x, y) => {
+        const map = this._actor.getLevel().getMap();
+        const hasFlying = this._actor.has('Flying');
         if (!RG.isNullOrUndef([map])) {
             let res = false;
             if (hasFlying) {
@@ -258,7 +257,7 @@ RG.Brain.Rogue = function(actor) {
                 res = map.isPassable(x, y);
             }
             if (!res) {
-                res = (x === _actor.getX()) && (y === _actor.getY());
+                res = (x === this._actor.getX()) && (y === this._actor.getY());
             }
             return res;
         }
@@ -268,195 +267,215 @@ RG.Brain.Rogue = function(actor) {
         return false;
     };
 
-    // Returns cells seen by this actor
-    this.getSeenCells = function() {
-        if (this._seenCached) {
-            return this._seenCached;
-        }
-        this._seenCached = _actor.getLevel().getMap().getVisibleCells(_actor);
-        return this._seenCached;
-    };
-
     /* Main function for retrieving the actionable callback. Acting actor must
      * be passed in. */
     this.decideNextAction = function() {
         this._seenCached = null;
-        return BTree.startBehavTree(Models.Rogue.tree, _actor)[0];
-    };
-
-    /* Takes action towards given enemy cell.*/
-    this.actionTowardsEnemy = function(enemyCell) {
-        const level = _actor.getLevel();
-        const playX = enemyCell.getX();
-        const playY = enemyCell.getY();
-        if (this.canAttack(playX, playY)) {
-            return () => {
-                const cell = level.getMap().getCell(playX, playY);
-                const target = cell.getProp('actors')[0];
-                const attackComp = new RG.Component.Attack(target);
-                _actor.add('Attack', attackComp);
-            };
-        }
-        else { // Move closer
-            return this.tryToMoveTowardsCell(enemyCell);
-        }
-    };
-
-    /* Based on seenCells, AI explores the unexplored free cells, or picks on
-     * cell randomly, if everything's explored.*/
-    this.exploreLevel = function(seenCells) {
-        // Wander around exploring
-        let index = -1;
-        let perms = [];
-        for (let j = 0; j < seenCells.length; j++) {perms.push(j);}
-        perms = perms.randomize();
-
-        for (let i = 0, ll = perms.length; i < ll; i++) {
-            const ci = perms[i];
-            const cell = seenCells[ci];
-            if (cell.isFree()) {
-                const xy = cell.getX() + ',' + cell.getY();
-                if (!_explored.hasOwnProperty(xy)) {
-                    _explored[xy] = true;
-                    index = ci;
-                    break;
-                }
-            }
-            else if (cell.hasDoor()) {
-                const door = cell.getPropType('door')[0];
-                if (door.isClosed) {door.openDoor();}
-            }
-        }
-
-        if (index === -1) { // Everything explored, choose random cell
-            index = RG.RAND.randIndex(seenCells);
-        }
-        return this.tryToMoveTowardsCell(seenCells[index]);
-
-    };
-
-    this.tryToMoveTowardsCell = function(cell) {
-        const pathCells = this.getShortestPathTo(cell);
-        if (pathCells.length > 1) {
-            const level = _actor.getLevel();
-            const x = pathCells[1].getX();
-            const y = pathCells[1].getY();
-            return () => {
-                const movComp = new RG.Component.Movement(x, y, level);
-                _actor.add('Movement', movComp);
-            };
-        }
-        else {
-            return NO_ACTION_TAKEN; // Don't move, rest
-        }
-    };
-
-    /* Checks if the actor can attack given x,y coordinate.*/
-    this.canAttack = (x, y) => {
-        const actorX = _actor.getX();
-        const actorY = _actor.getY();
-        const attackRange = _actor.get('Combat').getAttackRange();
-        const getDist = RG.Path.shortestDist(x, y, actorX, actorY);
-        if (getDist <= attackRange) {return true;}
-        return false;
-    };
-
-
-    /* Given a list of cells, returns a cell with an enemy in it or null.*/
-    this.findEnemyCell = seenCells => {
-        const enemyCells = [];
-        const cells = RG.Brain.findCellsWithActors(_actor, seenCells);
-        for (let i = 0; i < cells.length; i++) {
-            const actors = cells[i].getActors();
-            if (_memory.isEnemy(actors[0])) {
-                if (_memory.wasLastAttacked(actors[0])) {
-                    return cells[i];
-                }
-                else {
-                    enemyCells.push(cells[i]);
-                }
-            }
-        }
-        // Return random enemy cell to make behav less predictable
-        if (enemyCells.length > 0) {return RG.RAND.arrayGetRand(enemyCells);}
-        return null;
-    };
-
-    /* Finds a friend cell among seen cells.*/
-    this.findFriendCell = function(seenCells) {
-        const memory = this.getMemory();
-        const cells = RG.Brain.findCellsWithActors(_actor, seenCells);
-        for (let i = 0; i < cells.length; i++) {
-            const actors = cells[i].getActors();
-            if (!memory.isEnemy(actors[0])) {return cells[i];}
-        }
-        return null;
-    };
-
-    /* Flees from the given cell or explores randomly if cannot. */
-    this.fleeFromCell = function(cell, seenCells) {
-        const x = cell.getX();
-        const y = cell.getY();
-        const thisX = _actor.getX();
-        const thisY = _actor.getY();
-        const deltaX = x - thisX;
-        const deltaY = y - thisY;
-        // delta determines the direction to flee
-        const newX = thisX - deltaX;
-        const newY = thisY - deltaY;
-        if (_actor.getLevel().getMap().hasXY(newX, newY)) {
-            const newCell = _actor.getLevel().getMap().getCell(newX, newY);
-            if (newCell.isPassable()) {
-                return this.tryToMoveTowardsCell(newCell);
-            }
-            else if (_actor.has('Flying') && newCell.isPassableByAir()) {
-                return this.tryToMoveTowardsCell(newCell);
-            }
-        }
-        return this.exploreLevel(seenCells);
-    };
-
-    /* Returns shortest path from actor to the given cell. Resulting cells are
-     * returned in order: closest to the actor first. Thus moving to the
-     * next cell can be done by taking the first returned cell.*/
-    this.getShortestPathTo = cell => {
-        const path = [];
-        const toX = cell.getX();
-        const toY = cell.getY();
-        const pathFinder = new ROT.Path.AStar(toX, toY, _passableCallback);
-        const map = _actor.getLevel().getMap();
-        const sourceX = _actor.getX();
-        const sourceY = _actor.getY();
-
-        if (RG.isNullOrUndef([toX, toY, sourceX, sourceY])) {
-            RG.err('Brain', 'getShortestPathTo', 'Null/undef coords.');
-        }
-
-        pathFinder.compute(sourceX, sourceY, (x, y) => {
-            if (map.hasXY(x, y)) {
-                path.push(map.getCell(x, y));
-            }
-        });
-        return path;
-    };
-
-    this.toJSON = function() {
-        return {
-            type: this.getType(),
-            memory: this.getMemory().toJSON()
-        };
+        return BTree.startBehavTree(Models.Rogue.tree, this._actor)[0];
     };
 
 }; // RogueBrain
+
+// Returns cells seen by this actor
+RG.Brain.Rogue.prototype.getSeenCells = function() {
+    if (this._seenCached) {
+        return this._seenCached;
+    }
+    const map = this._actor.getLevel().getMap();
+    this._seenCached = map.getVisibleCells(this._actor);
+    return this._seenCached;
+};
+
+
+/* Checks if the actor can attack given x,y coordinate.*/
+RG.Brain.Rogue.prototype.canAttack = function(x, y) {
+    const actorX = this._actor.getX();
+    const actorY = this._actor.getY();
+    const attackRange = this._actor.get('Combat').getAttackRange();
+    const getDist = RG.Path.shortestDist(x, y, actorX, actorY);
+    if (getDist <= attackRange) {return true;}
+    return false;
+};
+
+
+/* Given a list of cells, returns a cell with an enemy in it or null.*/
+RG.Brain.Rogue.prototype.findEnemyCell = function(seenCells) {
+    const enemyCells = [];
+    const cells = RG.Brain.findCellsWithActors(this._actor, seenCells);
+    for (let i = 0; i < cells.length; i++) {
+        const actors = cells[i].getActors();
+        if (this._memory.isEnemy(actors[0])) {
+            if (this._memory.wasLastAttacked(actors[0])) {
+                return cells[i];
+            }
+            else {
+                enemyCells.push(cells[i]);
+            }
+        }
+    }
+    // Return random enemy cell to make behav less predictable
+    if (enemyCells.length > 0) {return RG.RAND.arrayGetRand(enemyCells);}
+    return null;
+};
+
+/* Finds a friend cell among seen cells.*/
+RG.Brain.Rogue.prototype.findFriendCell = function(seenCells) {
+    const memory = this.getMemory();
+    const cells = RG.Brain.findCellsWithActors(this._actor, seenCells);
+    for (let i = 0; i < cells.length; i++) {
+        const actors = cells[i].getActors();
+        if (!memory.isEnemy(actors[0])) {return cells[i];}
+    }
+    return null;
+};
+
+RG.Brain.Rogue.prototype.toJSON = function() {
+    return {
+        type: this.getType(),
+        memory: this.getMemory().toJSON()
+    };
+};
+
+/* Takes action towards given enemy cell.*/
+RG.Brain.Rogue.prototype.actionTowardsEnemy = function(enemyCell) {
+    const level = this._actor.getLevel();
+    const playX = enemyCell.getX();
+    const playY = enemyCell.getY();
+    if (this.canAttack(playX, playY)) {
+        return () => {
+            const cell = level.getMap().getCell(playX, playY);
+            const target = cell.getProp('actors')[0];
+            const attackComp = new RG.Component.Attack(target);
+            this._actor.add('Attack', attackComp);
+        };
+    }
+    else { // Move closer
+        return this.tryToMoveTowardsCell(enemyCell);
+    }
+};
+
+RG.Brain.Rogue.prototype.tryToMoveTowardsCell = function(cell) {
+    // Simple dX,dY computation as first option
+    const level = this._actor.getLevel();
+    const [aX, aY] = this._actor.getXY();
+    const [cX, cY] = [cell.getX(), cell.getY()];
+    let [dX, dY] = [cX - aX, cY - aY];
+    dX = dX !== 0 ? dX / Math.abs(dX) : 0;
+    dY = dY !== 0 ? dY / Math.abs(dY) : 0;
+
+    const [newX, newY] = [aX + dX, aY + dY];
+    const newCell = level.getMap().getCell(newX, newY);
+    if (newCell.isPassable()) {
+        return () => {
+            const movComp = new RG.Component.Movement(newX, newY, level);
+            this._actor.add('Movement', movComp);
+        };
+    }
+
+    // If simple option fails, resort to path finding
+    const pathCells = this.getShortestPathTo(cell);
+    if (pathCells.length > 1) {
+        const x = pathCells[1].getX();
+        const y = pathCells[1].getY();
+        return () => {
+            const movComp = new RG.Component.Movement(x, y, level);
+            this._actor.add('Movement', movComp);
+        };
+    }
+    else {
+        return NO_ACTION_TAKEN; // Don't move, rest
+    }
+};
+
+/* Based on seenCells, AI explores the unexplored free cells, or picks on
+ * cell randomly, if everything's explored.*/
+RG.Brain.Rogue.prototype.exploreLevel = function(seenCells) {
+    // Wander around exploring
+    let index = -1;
+    let perms = [];
+    for (let j = 0; j < seenCells.length; j++) {perms.push(j);}
+    perms = perms.randomize();
+
+    for (let i = 0, ll = perms.length; i < ll; i++) {
+        const ci = perms[i];
+        const cell = seenCells[ci];
+        if (cell.isFree()) {
+            const xy = cell.getX() + ',' + cell.getY();
+            if (!this._explored.hasOwnProperty(xy)) {
+                this._explored[xy] = true;
+                index = ci;
+                break;
+            }
+        }
+        else if (cell.hasDoor()) {
+            const door = cell.getPropType('door')[0];
+            if (door.isClosed) {
+                return () => {door.openDoor();};
+            }
+        }
+    }
+
+    if (index === -1) { // Everything explored, choose random cell
+        index = RG.RAND.randIndex(seenCells);
+    }
+    return this.tryToMoveTowardsCell(seenCells[index]);
+
+};
+
+/* Returns shortest path from actor to the given cell. Resulting cells are
+ * returned in order: closest to the actor first. Thus moving to the
+ * next cell can be done by taking the first returned cell.*/
+RG.Brain.Rogue.prototype.getShortestPathTo = function(cell) {
+    const path = [];
+    const toX = cell.getX();
+    const toY = cell.getY();
+    const pathFinder = new ROT.Path.AStar(toX, toY, this._passableCallback);
+    const map = this._actor.getLevel().getMap();
+    const sourceX = this._actor.getX();
+    const sourceY = this._actor.getY();
+
+    if (RG.isNullOrUndef([toX, toY, sourceX, sourceY])) {
+        RG.err('Brain', 'getShortestPathTo', 'Null/undef coords.');
+    }
+
+    pathFinder.compute(sourceX, sourceY, (x, y) => {
+        if (map.hasXY(x, y)) {
+            path.push(map.getCell(x, y));
+        }
+    });
+    return path;
+};
+
+/* Flees from the given cell or explores randomly if cannot. */
+RG.Brain.Rogue.prototype.fleeFromCell = function(cell, seenCells) {
+    const x = cell.getX();
+    const y = cell.getY();
+    const thisX = this._actor.getX();
+    const thisY = this._actor.getY();
+    const deltaX = x - thisX;
+    const deltaY = y - thisY;
+    // delta determines the direction to flee
+    const newX = thisX - deltaX;
+    const newY = thisY - deltaY;
+    if (this._actor.getLevel().getMap().hasXY(newX, newY)) {
+        const newCell = this._actor.getLevel().getMap().getCell(newX, newY);
+        if (newCell.isPassable()) {
+            return this.tryToMoveTowardsCell(newCell);
+        }
+        else if (this._actor.has('Flying') && newCell.isPassableByAir()) {
+            return this.tryToMoveTowardsCell(newCell);
+        }
+    }
+    return this.exploreLevel(seenCells);
+};
+
 
 /* Brain used by most of the animals. TODO: Add some corpse eating behaviour. */
 RG.Brain.Animal = function(actor) {
     RG.Brain.Rogue.call(this, actor);
     this.setType('Animal');
-
-    const _memory = this.getMemory();
-    _memory.addEnemyType('player');
-    _memory.addEnemyType('human');
+    this._memory.addEnemyType('player');
+    this._memory.addEnemyType('human');
 
 };
 RG.extend2(RG.Brain.Animal, RG.Brain.Rogue);
@@ -465,29 +484,19 @@ RG.extend2(RG.Brain.Animal, RG.Brain.Rogue);
 RG.Brain.Demon = function(actor) {
     RG.Brain.Rogue.call(this, actor);
     this.setType('Demon');
-
-    const _memory = this.getMemory();
-    _memory.addEnemyType('player');
-    _memory.addEnemyType('human');
+    this._memory.addEnemyType('player');
+    this._memory.addEnemyType('human');
 
 };
 RG.extend2(RG.Brain.Demon, RG.Brain.Rogue);
-
-RG.Brain.Zombie = function(actor) {
-    RG.Brain.Rogue.call(this, actor);
-    this.setType('Zombie');
-};
-RG.extend2(RG.Brain.Zombie, RG.Brain.Rogue);
 
 /* Brain object used by Undead. */
 RG.Brain.Undead = function(actor) {
     RG.Brain.Rogue.call(this, actor);
     this.setType('Undead');
-
-    const _memory = this.getMemory();
-    _memory.addEnemyType('player');
-    _memory.addEnemyType('human');
-    _memory.addEnemyType('dwarf');
+    this._memory.addEnemyType('player');
+    this._memory.addEnemyType('human');
+    this._memory.addEnemyType('dwarf');
 };
 RG.extend2(RG.Brain.Undead, RG.Brain.Rogue);
 
@@ -496,17 +505,15 @@ RG.Brain.Summoner = function(actor) {
     RG.Brain.Rogue.call(this, actor);
     this.setType('Summoner');
 
-    const _actor = actor;
     this.numSummoned = 0;
     this.maxSummons = 20;
     this.summonProbability = 0.2;
 
-    const _memory = this.getMemory();
-    _memory.addEnemyType('player');
+    this._memory.addEnemyType('player');
 
     this.decideNextAction = function() {
         this._seenCached = null;
-        return BTree.startBehavTree(Models.Summoner.tree, _actor)[0];
+        return BTree.startBehavTree(Models.Summoner.tree, this._actor)[0];
     };
 
     /* Returns true if the summoner will summon on this action. */
@@ -521,7 +528,7 @@ RG.Brain.Summoner = function(actor) {
 
     /* Tries to summon a monster to a nearby cell. Returns true if success.*/
     this.summonMonster = function() {
-        const level = _actor.getLevel();
+        const level = this._actor.getLevel();
         const cellsAround = this.getFreeCellsAround();
         if (cellsAround.length > 0) {
             const freeX = cellsAround[0].getX();
@@ -530,19 +537,19 @@ RG.Brain.Summoner = function(actor) {
                 {hp: 15, att: 7, def: 7});
             summoned.get('Experience').setExpLevel(5);
             level.addActor(summoned, freeX, freeY);
-            RG.gameMsg(_actor.getName() + ' summons some help');
+            RG.gameMsg(this._actor.getName() + ' summons some help');
             this.numSummoned += 1;
         }
         else {
             const txt = ' screamed an incantation but nothing happened';
-            RG.gameMsg(_actor.getName() + txt);
+            RG.gameMsg(this._actor.getName() + txt);
         }
         return ACTION_ALREADY_DONE;
     };
 
     /* Returns all free cells around the actor owning the brain.*/
     this.getFreeCellsAround = () => {
-        const cellsAround = RG.Brain.getCellsAroundActor(_actor);
+        const cellsAround = RG.Brain.getCellsAroundActor(this._actor);
         return cellsAround.filter(cell => cell.isFree());
     };
 
@@ -634,11 +641,10 @@ RG.extend2(RG.Brain.Spirit, RG.Brain.Rogue);
 RG.Brain.Archer = function(actor) {
     RG.Brain.Rogue.call(this, actor);
     this.setType('Archer');
-    const _actor = actor;
 
     this.decideNextAction = function() {
         this._seenCached = null;
-        return BTree.startBehavTree(Models.Archer.tree, _actor)[0];
+        return BTree.startBehavTree(Models.Archer.tree, this._actor)[0];
     };
 
     /* Checks if the actor can attack given x,y coordinate.*/
@@ -647,11 +653,11 @@ RG.Brain.Archer = function(actor) {
         const enemy = this.findEnemyCell(seenCells);
         const x = enemy.getX();
         const y = enemy.getY();
-        const actorX = _actor.getX();
-        const actorY = _actor.getY();
-        const miss = _actor.getInvEq().getEquipment().getItem('missile');
+        const actorX = this._actor.getX();
+        const actorY = this._actor.getY();
+        const miss = this._actor.getInvEq().getEquipment().getItem('missile');
         if (miss) {
-            const range = RG.getMissileRange(_actor, miss);
+            const range = RG.getMissileRange(this._actor, miss);
             const getDist = RG.Path.shortestDist(x, y, actorX, actorY);
             if (getDist <= range) {return true;}
             // TODO test for a clean shot
@@ -666,12 +672,14 @@ RG.Brain.Archer = function(actor) {
         return () => {
             const x = enemy.getX();
             const y = enemy.getY();
-            const mComp = new RG.Component.Missile(_actor);
-            const missile = _actor.getInvEq().unequipAndGetItem('missile', 1);
+            const mComp = new RG.Component.Missile(this._actor);
+
+            const invEq = this._actor.getInvEq();
+            const missile = invEq.unequipAndGetItem('missile', 1);
             mComp.setTargetXY(x, y);
-            mComp.setDamage(RG.getMissileDamage(_actor, missile));
-            mComp.setAttack(RG.getMissileAttack(_actor, missile));
-            mComp.setRange(RG.getMissileRange(_actor, missile));
+            mComp.setDamage(RG.getMissileDamage(this._actor, missile));
+            mComp.setAttack(RG.getMissileAttack(this._actor, missile));
+            mComp.setRange(RG.getMissileRange(this._actor, missile));
             missile.add('Missile', mComp);
         };
     };
@@ -683,7 +691,6 @@ RG.extend2(RG.Brain.Archer, RG.Brain.Rogue);
 RG.Brain.SpellCaster = function(actor) {
     RG.Brain.Rogue.call(this, actor);
     this.setType('SpellCaster');
-    const _actor = actor;
 
     this._castingProb = 0.2;
 
@@ -693,12 +700,13 @@ RG.Brain.SpellCaster = function(actor) {
         this._seenCached = null;
         this._spell = this.getRandomSpell();
         this._spellDir = null;
-        return BTree.startBehavTree(Models.SpellCaster.tree, _actor)[0];
+        return BTree.startBehavTree(Models.SpellCaster.tree, this._actor)[0];
     };
 
     this.getRandomSpell = () => {
-        if (_actor.getBook() && _actor.getBook().getSpells().length > 0) {
-            return RG.RAND.arrayGetRand(_actor.getBook().getSpells());
+        const book = this._actor.getBook();
+        if (book && book.getSpells().length > 0) {
+            return RG.RAND.arrayGetRand(book.getSpells());
         }
         return null;
     };
@@ -717,13 +725,13 @@ RG.Brain.SpellCaster = function(actor) {
     this.shouldCastSpell = function() {
         const seenCells = this.getSeenCells();
         const enemy = this.findEnemyCell(seenCells).getActors()[0];
-        const args = {enemy, actor: _actor};
+        const args = {enemy, actor: this._actor};
         return this._spell.aiShouldCastSpell(args);
     };
 
     /* Casts a spell. */
     this.castSpell = function() {
-        return this._spell.getCastFunc(_actor, this._spellArgs);
+        return this._spell.getCastFunc(this._actor, this._spellArgs);
     };
 
     /* Sets the arguments for spell to be cast. */

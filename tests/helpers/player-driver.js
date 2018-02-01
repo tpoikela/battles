@@ -126,7 +126,7 @@ const PlayerDriver = function(player) {
 
         const cmdJson = JSON.stringify(result);
         const msg = `action: |${this.action}|, cmd: ${cmdJson}`;
-        debug('>>> PlayerDriver ' + msg);
+        this.debug('>>> PlayerDriver ' + msg);
 
         this.cmds.push(result);
         this.actions.push(this.action);
@@ -189,10 +189,10 @@ const PlayerDriver = function(player) {
         cells.forEach(pCell => {
             if (this.path.length === 0) {
                 const [cX, cY] = [pCell.getX(), pCell.getY()];
-                debug(`>> Looking for shortest path to cell ${cX},${cY}`);
+                this.debug(`>> Looking for shortest path to cell ${cX},${cY}`);
                 const path = shortestPath(pX, pY, cX, cY, _passableCallback);
                 if (path.length > 1) {
-                    debug('Found a non-zero path');
+                    this.debug('Found a non-zero path');
                     this.path = path;
                     this.path.shift(); // Discard 1st coord
                     this.action = 'path';
@@ -211,7 +211,7 @@ const PlayerDriver = function(player) {
         let ind = '';
         if (acceptVisited) {ind = '>>>>';}
         this.tryToSetPathToCell(northCells);
-        debug(ind + '> Looking path to North');
+        this.debug(ind + '> Looking path to North');
         if (this.path.length > 0) {this.action = 'path';}
         else {
             const westCells = visible.filter(cell => (
@@ -219,7 +219,7 @@ const PlayerDriver = function(player) {
                 && (acceptVisited || !this.cellVisited(cell))
             ));
             this.tryToSetPathToCell(westCells);
-            debug(ind + '>> Looking path to west');
+            this.debug(ind + '>> Looking path to west');
             if (this.path.length > 0) {this.action = 'path';}
             else {
                 const eastCells = visible.filter(cell => (
@@ -227,7 +227,7 @@ const PlayerDriver = function(player) {
                     && (acceptVisited || !this.cellVisited(cell))
                 ));
                 this.tryToSetPathToCell(eastCells);
-                debug(ind + '>>> Looking path to east');
+                this.debug(ind + '>>> Looking path to east');
                 if (this.path.length > 0) {this.action = 'path';}
                 else {
                     const southCells = visible.filter(cell => (
@@ -235,17 +235,17 @@ const PlayerDriver = function(player) {
                         && (acceptVisited || !this.cellVisited(cell))
                     ));
                     this.tryToSetPathToCell(southCells);
-                    debug(ind + '>>> Looking path to south east');
+                    this.debug(ind + '>>> Looking path to south east');
                     if (this.path.length > 0) {this.action = 'path';}
                     else if (acceptVisited) {
-                        debug('We are screwed');
+                        this.debug('We are screwed');
                     }
                     else {
                         // Still some hope left
-                        debug(ind + '>>>> Looking passage out');
+                        this.debug(ind + '>>>> Looking passage out');
                         this.tryToFindPassage(visible, false);
                         if (this.path.length === 0) {
-                            debug(ind + '>>>>> Looking visited cells now');
+                            this.debug(ind + '>>>>> Looking visited cells now');
                             this.findAlreadySeenPassage();
                             if (this.path.length === 0) {
                                 this.findPathToMove(visible, true);
@@ -316,7 +316,7 @@ const PlayerDriver = function(player) {
         if (cellStairs) {
             this.tryToSetPathToCell([cellStairs]);
             if (this.path.length > 0) {
-                debug('Found path to stairs. Going there.');
+                this.debug('Found path to stairs. Going there.');
                 return true;
             }
         }
@@ -326,19 +326,19 @@ const PlayerDriver = function(player) {
     this.tryToFindPassage = (visible, moveAfter = true) => {
         // const level = _player.getLevel();
         // const maxY = level.getMap().rows - 1;
-        debug('> Looking for north passage cells');
+        this.debug('> Looking for north passage cells');
         const passageCells = visible.filter(cell => (
             cell.hasPassage() && cell.getY() === 0
             && !this.passageVisited(cell)
         ));
-        debug('> N passageCells' + passageCells.length);
+        this.debug('> N passageCells' + passageCells.length);
         this.tryToSetPathToCell(passageCells);
         if (this.path.length > 0) {
             this.usePassage = true;
             this.action = 'path';
         }
         else {
-            debug('>> Looking for west passage cells');
+            this.debug('>> Looking for west passage cells');
             const wPassageCells = visible.filter(cell => (
                 cell.hasPassage() && cell.getX() === 0
                 && !this.passageVisited(cell)
@@ -349,7 +349,7 @@ const PlayerDriver = function(player) {
                 this.action = 'path';
             }
             else {
-                debug('>> Looking for any passage cells');
+                this.debug('>> Looking for any passage cells');
                 const anyPassageCell = visible.filter(cell => (
                     cell.hasPassage() && !this.passageVisited(cell)
                 ));
@@ -359,11 +359,11 @@ const PlayerDriver = function(player) {
                     this.action = 'path';
                 }
                 else if (moveAfter) {
-                    debug('>>> No passages. Trying to move.');
+                    this.debug('>>> No passages. Trying to move.');
                     this.findPathToMove(visible);
                 }
                 else {
-                    debug('>>> No passages. Terminating.');
+                    this.debug('>>> No passages. Terminating.');
                 }
             }
         }
@@ -376,20 +376,20 @@ const PlayerDriver = function(player) {
     };
 
     this.findAlreadySeenPassage = () => {
-        debug('Looking at remembered passages');
+        this.debug('Looking at remembered passages');
         const id = _player.getLevel().getID();
         const cells = Object.values(this.visited[id]);
         const newPassages = cells.filter(cell => (
             cell.hasPassage() && !this.passageVisited(cell)
         ));
-        debug('Looking at non-visited passages');
+        this.debug('Looking at non-visited passages');
         this.tryToSetPathToCell(newPassages);
         if (this.path.length > 0) {
             this.usePassage = true;
             this.action = 'path';
         }
         else {
-            debug('Looking at visited passages');
+            this.debug('Looking at visited passages');
             const allPassages = cells.filter(cell => (
                 cell.hasPassage()
             ));
@@ -399,7 +399,7 @@ const PlayerDriver = function(player) {
                 this.action = 'path';
             }
             else {
-                debug('Nothing found among passages. Screwed!');
+                this.debug('Nothing found among passages. Screwed!');
             }
         }
 
@@ -434,11 +434,11 @@ const PlayerDriver = function(player) {
                 const newY = pY + dY;
                 if (map.isPassable(newX, newY)) {
                     const code = RG.KeyMap.dirToKeyCode(dX, dY);
-                    console.log(`flee to dx,dy ${dX},${dY}`);
+                    this.debug(`flee to dx,dy ${dX},${dY}`);
                     result = {code};
                 }
                 else { // Pick a random direction
-                    console.log('Pick random direction for fleeing');
+                    this.debug('Pick random direction for fleeing');
                     let randX = RG.RAND.arrayGetRand(MOVE_DIRS);
                     let randY = RG.RAND.arrayGetRand(MOVE_DIRS);
                     const maxTries = 20;
@@ -451,7 +451,7 @@ const PlayerDriver = function(player) {
                     }
 
                     if (map.isPassable(randX, randY)) {
-                        console.log(`flee rand dir to dx,dy ${randX},${randY}`);
+                        this.debug(`flee rand dir to dx,dy ${randX},${randY}`);
                         const code = RG.KeyMap.dirToKeyCode(randX, randY);
                         result = {code};
                     }
@@ -459,7 +459,7 @@ const PlayerDriver = function(player) {
                         // can't escape, just attack
                         const [eX, eY] = [enemy.getX(), enemy.getY()];
                         const eName = enemy.getName();
-                        debug(`No escape! Attack ${eName} @${eX},${eY}`);
+                        this.debug(`No escape! Attack ${eName} @${eX},${eY}`);
                         const dX = eX - pX;
                         const dY = eY - pY;
                         const code = RG.KeyMap.dirToKeyCode(dX, dY);
@@ -480,11 +480,11 @@ const PlayerDriver = function(player) {
             y = parseInt(y, 10);
             const dX = x - pX;
             const dY = y - pY;
-            debug(`Taking this.action path ${x},${y}, dX,dY ${dX},${dY}`);
+            this.debug(`Taking this.action path ${x},${y}, dX,dY ${dX},${dY}`);
             const code = RG.KeyMap.dirToKeyCode(dX, dY);
             result = {code};
             if (this.path.length === 0) {
-                debug('PlayerDriver finished a path');
+                this.debug('PlayerDriver finished a path');
             }
         }
         else if (this.action === 'run') {
@@ -506,7 +506,7 @@ const PlayerDriver = function(player) {
         const hp = _player.get('Health').getHP();
 
         const pos = `@${pX},${pY} ID: ${level.getID()}`;
-        debug(`T: ${this.nTurns} ${pos} | HP: ${hp}`);
+        this.debug(`T: ${this.nTurns} ${pos} | HP: ${hp}`);
 
         if (this.nTurns % this.screenPeriod === 0) {
             this.screen.render(pX, pY, map, visible);
@@ -552,7 +552,7 @@ const PlayerDriver = function(player) {
             this.tryToSetPathToCell([cell]);
             if (this.path.length > 0) {
                 this.action = 'path';
-                debug('Returning back up the stairs now');
+                this.debug('Returning back up the stairs now');
                 return true;
             }
         }
@@ -574,6 +574,16 @@ const PlayerDriver = function(player) {
             visitedStairs: this.visitedStairs
         };
     };
+
+    this.debug = (msg, obj = null) => {
+        if (debug.enabled) {
+            const pre = `T${this.nTurns}: `;
+            let post = '';
+            if (obj) {post = '\n' + JSON.stringify(obj);}
+            debug(`${pre}${msg}${post}`);
+        }
+    };
+
 };
 
 module.exports = PlayerDriver;
