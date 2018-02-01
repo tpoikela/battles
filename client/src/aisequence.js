@@ -118,6 +118,47 @@ Models.Rogue.ifEnemyIsInSight = actor => {
     return playerCell !== null;
 };
 
+/* eslint no-unused-vars: 0 */
+Models.Rogue.ifItemIsInSight = actor => {
+    // TODO
+};
+
+Models.Rogue.pickupItem = actor => {
+    // TODO
+};
+
+Models.Rogue.canEquipItem = actor => {
+    // TODO
+};
+
+Models.Rogue.equipBestItem = actor => {
+    // TODO
+};
+
+Models.Rogue.ifShopIsInSight = actor => {
+    // TODO
+};
+
+Models.Rogue.moveToNearestShop = actor => {
+    // TODO
+};
+
+Models.Rogue.sellItem = actor => {
+    // TODO
+};
+
+Models.Rogue.ifStairsInSight = actor => {
+    // TODO
+};
+
+Models.Rogue.ifPassageInSight = actor => {
+    // TODO
+};
+
+Models.Rogue.useStairs = actor => {
+    // TODO
+};
+
 Models.Rogue.attackEnemy = actor => {
     const brain = actor.getBrain();
     const seenCells = brain.getSeenCells();
@@ -212,6 +253,18 @@ Models.Summoner.tree =
 /* Archer models for AI. */
 //------------------------------
 Models.Archer = {};
+
+Models.Archer.isOutOfAmmo = actor => {
+
+};
+
+Models.Archer.canSeeAmmo = actor => {
+
+};
+
+Models.Archer.pickupNearestAmmo = actor => {
+
+};
 
 Models.Archer.canDoRangedAttack = actor => actor.getBrain().canDoRangedAttack();
 
