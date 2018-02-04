@@ -111,6 +111,11 @@ const Actors = [
         danger: 2, enemies: ['human', 'player']
     },
     {
+        name: 'smart goblin slinger', base: 'goblin',
+        attack: 2, defense: 1, hp: 8,
+        equip: [{name: 'Rock', count: 10}], brain: 'GoalOriented'
+    },
+    {
         name: 'goblin slinger', base: 'goblin',
         attack: 2, defense: 1, hp: 8,
         equip: [{name: 'Rock', count: 10}], brain: 'Archer'
