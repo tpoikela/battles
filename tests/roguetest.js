@@ -4,6 +4,7 @@
 
 const RG = require('../client/src/battles');
 const expect = require('chai').expect;
+const Screen = require('../client/gui/screen');
 
 const RGTest = {};
 
@@ -197,6 +198,16 @@ RGTest.createBoundGem = function() {
     spirit.get('Stats').setAgility(100);
     gem.setSpirit(spirit);
     return gem;
+};
+
+RGTest.printScreen = function(actor) {
+    const screen = new Screen(30, 14);
+    const visible = actor.getBrain().getSeenCells();
+    const map = actor.getLevel().getMap();
+    actor.getLevel().exploreCells(actor);
+    const [pX, pY] = actor.getXY();
+    screen.render(pX, pY, map, visible);
+    screen.printRenderedChars();
 };
 
 module.exports = RGTest;

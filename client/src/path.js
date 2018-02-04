@@ -14,6 +14,30 @@ Path.getShortestPassablePath = function(map, x0, y0, x1, y1) {
     return coords;
 };
 
+Path.getShortestActorPath = function(map, x0, y0, x1, y1) {
+    const coords = [];
+    const passableCbDoor = (x, y) => {
+        if (map.hasXY(x, y)) {
+            return (
+                map.isPassable(x, y) || (x === x0 && y === y0)
+                || (x === x1 && y === y1)
+            );
+        }
+        return false;
+    };
+    const finder = new ROT.Path.AStar(x1, y1, passableCbDoor);
+    finder.compute(x0, y0, (x, y) => {
+        coords.push({x, y});
+    });
+
+    if (coords.length > 1) {
+        coords.shift(); // Remove source x,y
+        coords.pop(); // Remove target x,y
+    }
+    return coords;
+
+};
+
 Path.getShortestPassablePathWithDoors = function(map, x0, y0, x1, y1) {
     const coords = [];
     const passableCbDoor = (x, y) => {

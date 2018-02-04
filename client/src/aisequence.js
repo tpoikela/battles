@@ -8,7 +8,7 @@
  *  for roguelike Battles in the North
  *
  * First inspired by the simplicity of
- * http:// stackoverflow.com/questions/4241824/creating-an-ai-behavior-tree-in-c-sharp-how
+ * http://stackoverflow.com/questions/4241824/creating-an-ai-behavior-tree-in-c-sharp-how
  *
  */
 
@@ -39,7 +39,7 @@ function SequencerRandomNode(actionArray) {
 
 function startBehavTree(behaviourTreeNode, actor) {
     const resArray = [];
-    debug('startBehavTree for actor ' + actor.getName());
+    if (actor) {debug('startBehavTree for actor ' + actor.getName());}
     execBehavTree(behaviourTreeNode, actor, resArray);
     return resArray;
 }
@@ -120,11 +120,23 @@ Models.Rogue.ifEnemyIsInSight = actor => {
 
 /* eslint no-unused-vars: 0 */
 Models.Rogue.ifItemIsInSight = actor => {
-    // TODO
+    const brain = actor.getBrain();
+    const itemCells = brain.findSeenCell(cell => cell.hasItems());
+    return itemCells.length > 0;
+};
+
+Models.Rogue.moveToItem = actor => {
+    const brain = actor.getBrain();
+    const itemCells = brain.findSeenCell(cell => cell.hasItems());
+    return brain.tryToMoveTowardsCell(itemCells[0]);
+};
+
+Models.Rogue.canPickupItem = actor => {
+    return actor.getBrain().canPickupItem();
 };
 
 Models.Rogue.pickupItem = actor => {
-    // TODO
+    return actor.getBrain().pickupItem();
 };
 
 Models.Rogue.canEquipItem = actor => {
@@ -143,6 +155,10 @@ Models.Rogue.moveToNearestShop = actor => {
     // TODO
 };
 
+Models.Rogue.buyItem = actor => {
+    // TODO
+};
+
 Models.Rogue.sellItem = actor => {
     // TODO
 };
@@ -156,6 +172,10 @@ Models.Rogue.ifPassageInSight = actor => {
 };
 
 Models.Rogue.useStairs = actor => {
+    // TODO
+};
+
+Models.Rogue.usePassage = actor => {
     // TODO
 };
 
@@ -193,6 +213,17 @@ Models.Rogue.Nodes.combat =
         Models.Rogue.ifSeriouslyWounded,
         Models.Rogue.flee,
         Models.Rogue.attackEnemy
+    );
+
+Models.Rogue.Nodes.exploreItems =
+    new SelectorNode(
+        Models.Rogue.canPickupItem,
+        Models.Rogue.pickupItem,
+        new SelectorNode(
+            Models.Rogue.ifItemIsInSight,
+            Models.Rogue.moveToItem,
+            Models.Rogue.exploreLevel
+        )
     );
 
 Models.Rogue.tree =
@@ -255,11 +286,15 @@ Models.Summoner.tree =
 Models.Archer = {};
 
 Models.Archer.isOutOfAmmo = actor => {
-
+    const miss = actor.getInvEq().getEquipment().getItem('missile');
+    if (!miss) {return true;}
+    return false;
 };
 
 Models.Archer.canSeeAmmo = actor => {
-
+    const brain = actor.getBrain();
+    const itemCells = brain.findSeenCell(cell => cell.hasItems());
+    return itemCells.length > 0;
 };
 
 Models.Archer.pickupNearestAmmo = actor => {

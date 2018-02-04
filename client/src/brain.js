@@ -3,6 +3,7 @@ const ROT = require('../../lib/rot.js');
 const RG = require('./rg.js');
 const BTree = require('./aisequence');
 RG.Path = require('./path');
+const Goal = require('./goals');
 
 const Models = BTree.Models;
 
@@ -288,7 +289,7 @@ RG.Brain.Rogue.prototype.getSeenCells = function() {
 
 
 /* Checks if the actor can attack given x,y coordinate.*/
-RG.Brain.Rogue.prototype.canAttack = function(x, y) {
+RG.Brain.Rogue.prototype.canMeleeAttack = function(x, y) {
     const actorX = this._actor.getX();
     const actorY = this._actor.getY();
     const attackRange = this._actor.get('Combat').getAttackRange();
@@ -297,6 +298,26 @@ RG.Brain.Rogue.prototype.canAttack = function(x, y) {
     return false;
 };
 
+RG.Brain.Rogue.prototype.findSeenCell = function(func) {
+    const seenCells = this.getSeenCells();
+    return seenCells.filter(func);
+};
+
+/* Returns true if this actor can see the given actor. */
+RG.Brain.Rogue.prototype.canSeeActor = function(actor) {
+    const seenCells = this.getSeenCells();
+    const cells = RG.Brain.findCellsWithActors(this._actor, seenCells);
+    let canSee = false;
+    cells.forEach(cell => {
+        const actors = cell.getActors();
+        actors.forEach(a => {
+            if (a.getID() === actor.getID()) {
+                canSee = true;
+            }
+        });
+    });
+    return canSee;
+};
 
 /* Given a list of cells, returns a cell with an enemy in it or null.*/
 RG.Brain.Rogue.prototype.findEnemyCell = function(seenCells) {
@@ -336,12 +357,29 @@ RG.Brain.Rogue.prototype.toJSON = function() {
     };
 };
 
+RG.Brain.Rogue.prototype.canPickupItem = function() {
+    const cell = this._actor.getCell();
+    if (cell.hasItems()) {
+        const topItem = cell.getItems()[0];
+        return this._actor.getInvEq().canCarryItem(topItem);
+    }
+    return false;
+};
+
+RG.Brain.Rogue.prototype.pickupItem = function() {
+    return () => {
+        const [x, y] = this._actor.getXY();
+        const level = this._actor.getLevel();
+        level.pickupItem(this._actor, x, y);
+    };
+};
+
 /* Takes action towards given enemy cell.*/
 RG.Brain.Rogue.prototype.actionTowardsEnemy = function(enemyCell) {
     const level = this._actor.getLevel();
     const playX = enemyCell.getX();
     const playY = enemyCell.getY();
-    if (this.canAttack(playX, playY)) {
+    if (this.canMeleeAttack(playX, playY)) {
         return () => {
             const cell = level.getMap().getCell(playX, playY);
             const target = cell.getProp('actors')[0];
@@ -741,6 +779,24 @@ RG.Brain.SpellCaster = function(actor) {
 
 };
 RG.extend2(RG.Brain.SpellCaster, RG.Brain.Rogue);
+
+/* Brain object for testing goal-based actors. */
+RG.Brain.GoalOriented = function(actor) {
+    RG.Brain.Rogue.call(this, actor);
+    this.setType('GoalOriented');
+
+    this.goal = new Goal.ThinkBasic(actor);
+
+    /* Must return function. */
+    this.decideNextAction = function() {
+        this._seenCached = null;
+        const status = this.goal.process();
+        console.log(`Brain.GoalOriented process() status ${status}`);
+        return () => {};
+    };
+
+};
+RG.extend2(RG.Brain.GoalOriented, RG.Brain.Rogue);
 
 
 module.exports = RG.Brain;
