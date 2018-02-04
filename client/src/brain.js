@@ -3,7 +3,8 @@ const ROT = require('../../lib/rot.js');
 const RG = require('./rg.js');
 const BTree = require('./aisequence');
 RG.Path = require('./path');
-const Goal = require('./goals');
+
+const GoalsTop = require('./goals-top');
 
 const Models = BTree.Models;
 
@@ -507,6 +508,12 @@ RG.Brain.Rogue.prototype.fleeFromCell = function(cell, seenCells) {
     return this.exploreLevel(seenCells);
 };
 
+/* Returns all free cells around the actor owning the brain.*/
+RG.Brain.Rogue.prototype.getFreeCellsAround = () => {
+    const cellsAround = RG.Brain.getCellsAroundActor(this._actor);
+    return cellsAround.filter(cell => cell.isFree());
+};
+
 
 /* Brain used by most of the animals. TODO: Add some corpse eating behaviour. */
 RG.Brain.Animal = function(actor) {
@@ -585,11 +592,6 @@ RG.Brain.Summoner = function(actor) {
         return ACTION_ALREADY_DONE;
     };
 
-    /* Returns all free cells around the actor owning the brain.*/
-    this.getFreeCellsAround = () => {
-        const cellsAround = RG.Brain.getCellsAroundActor(this._actor);
-        return cellsAround.filter(cell => cell.isFree());
-    };
 
 };
 RG.extend2(RG.Brain.Summoner, RG.Brain.Rogue);
@@ -785,7 +787,7 @@ RG.Brain.GoalOriented = function(actor) {
     RG.Brain.Rogue.call(this, actor);
     this.setType('GoalOriented');
 
-    this.goal = new Goal.ThinkBasic(actor);
+    this.goal = new GoalsTop.ThinkBasic(actor);
 
     /* Must return function. */
     this.decideNextAction = function() {
@@ -794,6 +796,9 @@ RG.Brain.GoalOriented = function(actor) {
         console.log(`Brain.GoalOriented process() status ${status}`);
         return () => {};
     };
+
+    this.getGoal = () => this.goal;
+    this.setGoal = goal => {this.goal = goal;};
 
 };
 RG.extend2(RG.Brain.GoalOriented, RG.Brain.Rogue);
