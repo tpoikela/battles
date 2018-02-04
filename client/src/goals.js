@@ -2,14 +2,21 @@
 const Path = require('./path');
 const RG = require('./rg');
 
-const GOAL_ACTIVE = 'GOAL_ACTIVE';
-const GOAL_COMPLETED = 'GOAL_COMPLETED';
-const GOAL_INACTIVE = 'GOAL_INACTIVE';
-const GOAL_FAILED = 'GOAL_FAILED';
-
 const Component = require('./component');
 
 const Goal = {};
+
+Goal.GOAL_ACTIVE = 'GOAL_ACTIVE';
+Goal.GOAL_COMPLETED = 'GOAL_COMPLETED';
+Goal.GOAL_INACTIVE = 'GOAL_INACTIVE';
+Goal.GOAL_FAILED = 'GOAL_FAILED';
+
+const {
+    GOAL_ACTIVE,
+    GOAL_COMPLETED,
+    GOAL_INACTIVE,
+    GOAL_FAILED
+} = Goal;
 
 const DIRS = [-1, 0, 1];
 const DIRS_NO_ZERO = [-1, 1];
@@ -81,10 +88,6 @@ class GoalBase {
             if (this.subGoals.length > 0) {
                 const status = this.subGoals[0].process();
 
-                /* if (this.subGoals[0].isCompleted() || this.subGoals[0].hasFailed()) {
-                    this.subGoals.shift();
-                }*/
-
                 if (status === GOAL_COMPLETED && this.subGoals.length > 1) {
                     return GOAL_ACTIVE;
                 }
@@ -129,6 +132,20 @@ class GoalBase {
 
     isCompleted() {
         return this.status === GOAL_COMPLETED;
+    }
+
+    /* Prevents double addition of same type of goal. Ignores failed/completed
+     * goals. */
+    isGoalPresent(goalType) {
+        if (Array.isArray(this.subGoals)) {
+            const goal = this.subGoals.find(g => g.getType() === goalType);
+            if (goal && (!goal.hasFailed() && !goal.isCompleted())) {
+                debug(`${this.getType()} subGoal ${goalType} already present.`);
+                debug(`  Its status: ${goal.status}`);
+                return true;
+            }
+        }
+        return false;
     }
 }
 Goal.Base = GoalBase;
@@ -190,6 +207,29 @@ class GoalFollowPath extends GoalBase {
 }
 Goal.FollowPath = GoalFollowPath;
 
+/* Goal used for patrolling between a list of coordinates. */
+class GoalPatrol extends GoalBase {
+
+    constructor(actor, coords) {
+        super(actor);
+        this.setType('GoalPatrol');
+        this.coords = coords;
+    }
+
+    /* Calculates the points for patrolling. */
+    activate() {
+
+    }
+
+    process() {
+        this.activateIfInactive();
+
+    }
+
+}
+Goal.Patrol = GoalPatrol;
+
+/* Goal to attack the given actor. */
 class GoalAttackActor extends GoalBase {
 
     constructor(actor, targetActor) {
@@ -314,92 +354,63 @@ class GoalExplore extends GoalBase {
     }
 
 }
+Goal.Explore = GoalExplore;
 
-//---------------------------------------------------------------------------
-// TOP-LEVEL GOALS
-//---------------------------------------------------------------------------
+/* Goal for fleeing from a given actor. */
+class GoalFleeFromActor extends GoalBase {
 
-/* Top-level goal for actors. Arbitrates each turn with a number of lower level
- * goals. */
-class GoalThinkBasic extends GoalBase {
-
-    constructor(actor) {
+    constructor(actor, targetActor) {
         super(actor);
+        this.setType('GoalFleeFromActor');
+        this.targetActor = targetActor;
     }
 
     activate() {
-        this.arbitrate();
-    }
-
-    arbitrate() {
         const brain = this.actor.getBrain();
         const seenCells = brain.getSeenCells();
-
-        // Arbitrate goal based on what's seen
-
-        // If enemy seen
-        const enemyCell = brain.findEnemyCell(seenCells);
-        if (enemyCell) {
-            debug(`${this.getType()} enemy is seen`);
-            const targetActor = enemyCell.getActors()[0];
-            const attackGoal = new GoalAttackActor(this.actor, targetActor);
-            this.addGoal(attackGoal);
+        const actorCells = RG.Brain.findCellsWithActors(this.actor, seenCells);
+        let foundCell = null;
+        actorCells.forEach(cell => {
+            const actors = cell.getActors();
+            if (actors) {
+                actors.forEach(actor => {
+                    if (actor.getID() === this.targetActor.getID()) {
+                        foundCell = cell;
+                    }
+                });
+            }
+        });
+        if (foundCell) {
+            const [x, y] = [foundCell.getX(), foundCell.getY()];
+            const thisX = this.actor.getX();
+            const thisY = this.actor.getY();
+            const dX = x - thisX;
+            const dY = y - thisY;
+            const newX = thisX - dX;
+            const newY = thisY - dY;
+            const level = this.actor.getLevel();
+            if (level.getMap().isPassable(newX, newY)) {
+                const movComp = new Component.Movement(newX, newY, level);
+                debug(`${this.getType()} movComp to ${newX},${newY}`);
+                this.actor.add(movComp);
+                this.status = GOAL_COMPLETED;
+            }
+            else {
+                this.status = GOAL_FAILED;
+            }
         }
         else {
-            const exploreGoal = new GoalExplore(this.actor);
-            this.addGoal(exploreGoal);
+            this.status = GOAL_FAILED;
         }
-
     }
 
     process() {
         this.activateIfInactive();
-        const status = this.processSubGoals();
-        if (status === GOAL_COMPLETED || status === GOAL_FAILED) {
-            return GOAL_INACTIVE;
-        }
-        debug(`ThinkBasic process() got status ${status}`);
-        return status;
-    }
-
-    /* Prevents double addition of same type of goal. */
-    isGoalPresent(goalType) {
-        if (Array.isArray(this.subGoals)) {
-            const goal = this.subGoals.find(g => g.getType() === goalType);
-            if (goal && (!goal.hasFailed() && !goal.isCompleted())) {
-                debug(`${this.getType()} subGoal ${goalType} already present.`);
-                debug(`  Its status: ${goal.status}`);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    addGoal(goal) {
-        const type = goal.getType();
-        debug(`${this.getType()} addGoal() ${type}`);
-        switch (type) {
-            case 'GoalExplore': if (!this.isGoalPresent(type)) {
-                this.removeAllSubGoals();
-                this.addSubGoal(goal);
-            }
-                break;
-            case 'GoalAttackActor': if (!this.isGoalPresent(type)) {
-                this.removeAllSubGoals();
-                this.addSubGoal(goal);
-            }
-                break;
-            default: {
-                console.log('No type ' + type);
-            }
-        }
-    }
-
-    queueGoal(goal) {
-        this.subGoals.push(goal);
+        return this.status;
     }
 
 }
-Goal.ThinkBasic = GoalThinkBasic;
+Goal.Flee = GoalFleeFromActor;
+
 
 module.exports = Goal;

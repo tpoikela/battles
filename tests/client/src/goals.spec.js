@@ -23,12 +23,14 @@ describe('Goal', () => {
         RGTest.moveEntityTo(actor, 5, 5);
         RGTest.moveEntityTo(actor, 17, 17);
 
-        const [x, y] = actor.getXY();
+        let [x, y] = actor.getXY();
         let action = actor.nextAction();
         action.doAction();
         systems.forEach(sys => {sys.update();});
 
         const [nX, nY] = actor.getXY();
+        console.log(`Actor at nX,nY ${nX},${nY}`);
+
         const coordSame = x === nX && y === nY;
         expect(coordSame).not.to.equal(true);
 
@@ -46,6 +48,17 @@ describe('Goal', () => {
         // RGTest.printScreen(actor);
         const endHP = enemy.get('Health').getHP();
         expect(endHP).to.be.below(startHP);
+
+        [x, y] = actor.getXY();
+        expect([x, y]).to.deep.equal([4, 4]);
+        actor.get('Health').setHP(5);
+        for (let i = 0; i < 1; i++) {
+            action = actor.nextAction();
+            action.doAction();
+            systems.forEach(sys => {sys.update();});
+            [x, y] = actor.getXY();
+            expect([x, y]).to.deep.equal([3, 3]);
+        }
 
     });
 });

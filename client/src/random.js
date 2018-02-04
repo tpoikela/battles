@@ -43,6 +43,13 @@ RG.Random.prototype.getUniform = function() {
     return this.rng.getUniform();
 };
 
+RG.Random.prototype.getUniformRange = function(min, max) {
+    const span = max - min;
+    const uniform = this.getUniform();
+    console.log(`span: ${span}, uniform: ${uniform}`);
+    return min + span * uniform;
+};
+
 RG.Random.prototype.getNormal = function(mean, stddev) {
     return this.rng.getNormal(mean, stddev);
 };
