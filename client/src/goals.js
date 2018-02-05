@@ -307,22 +307,28 @@ class GoalAttackActor extends GoalBase {
             this.status = GOAL_COMPLETED;
         }
         else {
-            const [aX, aY] = this.targetActor.getXY();
+            const [eX, eY] = this.targetActor.getXY();
             // const level = this.actor.getLevel();
 
             // If actor disappears, check last seen square
             // If in attack range, add subgoal to attack the target
-            if (brain.canMeleeAttack(aX, aY)) {
+            if (brain.canMeleeAttack(eX, eY)) {
                 this.removeAllSubGoals();
                 debug(`${this.getType()} canMeleeAttack()`);
                 const hitGoal = new GoalHitActor(this.actor, this.targetActor);
                 this.addSubGoal(hitGoal);
             }
+            else if (this.canMissileAttack()) {
+                this.removeAllSubGoals();
+                debug(`${this.getType()} canMissileAttack()`);
+                const shotGoal = new GoalShootActor(this.actor, this.targetActor);
+                this.addSubGoal(shotGoal);
+            }
             // If actor visible, add subgoal to move closer
             else if (brain.canSeeActor(this.targetActor)) {
                 this.removeAllSubGoals();
                 debug(`${this.getType()} subGoal FollowPath`);
-                const pathGoal = new GoalFollowPath(this.actor, [aX, aY]);
+                const pathGoal = new GoalFollowPath(this.actor, [eX, eY]);
                 this.addSubGoal(pathGoal);
             }
             // If not visible, try to hunt the target
@@ -341,6 +347,19 @@ class GoalAttackActor extends GoalBase {
         this.status = GOAL_COMPLETED;
     }
 
+    canMissileAttack() {
+        const [eX, eY] = this.targetActor.getXY();
+        const [aX, aY] = this.actor.getXY();
+        const miss = this.actor.getInvEq().getEquipment().getItem('missile');
+        if (miss) {
+            const range = RG.getMissileRange(this.actor, miss);
+            const getDist = RG.Path.shortestDist(eX, eY, aX, aY);
+            if (getDist <= range) {return true;}
+            // TODO test for a clean shot
+        }
+        return false;
+    }
+
 }
 Goal.AttackActor = GoalAttackActor;
 
@@ -351,7 +370,7 @@ class GoalHitActor extends GoalBase {
 
     constructor(actor, targetActor) {
         super(actor);
-        this.setType('GoalAttackActor');
+        this.setType('GoalHitActor');
         this.targetActor = targetActor;
     }
 
@@ -364,6 +383,40 @@ class GoalHitActor extends GoalBase {
         const attackComp = new RG.Component.Attack(target);
         this.actor.add('Attack', attackComp);
         debug(`${this.getType()} added Attack comp`);
+        this.status = GOAL_ACTIVE;
+    }
+
+    process() {
+        this.activateIfInactive();
+        this.status = GOAL_COMPLETED;
+        return this.status;
+    }
+
+}
+
+//---------------------------------------------------------------------------
+/* A goal to shoot an actor. */
+//---------------------------------------------------------------------------
+class GoalShootActor extends GoalBase {
+
+    constructor(actor, targetActor) {
+        super(actor);
+        this.setType('GoalShootActor');
+        this.targetActor = targetActor;
+    }
+
+    activate() {
+        const [eX, eY] = this.targetActor.getXY();
+        const mComp = new RG.Component.Missile(this.actor);
+        const invEq = this.actor.getInvEq();
+        const shotItem = invEq.unequipAndGetItem('missile', 1);
+
+        mComp.setTargetXY(eX, eY);
+        mComp.setDamage(RG.getMissileDamage(this.actor, shotItem));
+        mComp.setAttack(RG.getMissileAttack(this.actor, shotItem));
+        mComp.setRange(RG.getMissileRange(this.actor, shotItem));
+        shotItem.add('Missile', mComp);
+        debug(`${this.getType()} added Missile comp`);
         this.status = GOAL_ACTIVE;
     }
 

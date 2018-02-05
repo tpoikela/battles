@@ -115,7 +115,7 @@ class EvaluatorPatrol extends EvaluatorBase {
 
     constructor(actorBias) {
         super(actorBias);
-        this.coords = [[2, 2], [20, 2], [10, 10]];
+        this.coords = [[2, 2], [40, 10], [20, 20]];
     }
 
     setCoords(coords) {

@@ -547,6 +547,10 @@ RG.extend2(RG.Component.Trainer, RG.Component.Base);
 /* Added to entities which must act as missiles flying through cells.*/
 RG.Component.Missile = function(source) {
     RG.Component.Base.call(this, 'Missile');
+    if (!source) {
+        RG.err('Component.Missile', 'constructor',
+            'Source must not be falsy (ie null/undef..)');
+    }
 
     let _x = source.getX();
     let _y = source.getY();

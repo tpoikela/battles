@@ -509,7 +509,7 @@ RG.Brain.Rogue.prototype.fleeFromCell = function(cell, seenCells) {
 };
 
 /* Returns all free cells around the actor owning the brain.*/
-RG.Brain.Rogue.prototype.getFreeCellsAround = () => {
+RG.Brain.Rogue.prototype.getFreeCellsAround = function() {
     const cellsAround = RG.Brain.getCellsAroundActor(this._actor);
     return cellsAround.filter(cell => cell.isFree());
 };
@@ -709,19 +709,18 @@ RG.Brain.Archer = function(actor) {
     this.doRangedAttack = function() {
         const seenCells = this.getSeenCells();
         const enemy = this.findEnemyCell(seenCells);
-        return () => {
-            const x = enemy.getX();
-            const y = enemy.getY();
-            const mComp = new RG.Component.Missile(this._actor);
+        const x = enemy.getX();
+        const y = enemy.getY();
+        const mComp = new RG.Component.Missile(this._actor);
 
-            const invEq = this._actor.getInvEq();
-            const missile = invEq.unequipAndGetItem('missile', 1);
-            mComp.setTargetXY(x, y);
-            mComp.setDamage(RG.getMissileDamage(this._actor, missile));
-            mComp.setAttack(RG.getMissileAttack(this._actor, missile));
-            mComp.setRange(RG.getMissileRange(this._actor, missile));
-            missile.add('Missile', mComp);
-        };
+        const invEq = this._actor.getInvEq();
+        const missile = invEq.unequipAndGetItem('missile', 1);
+        mComp.setTargetXY(x, y);
+        mComp.setDamage(RG.getMissileDamage(this._actor, missile));
+        mComp.setAttack(RG.getMissileAttack(this._actor, missile));
+        mComp.setRange(RG.getMissileRange(this._actor, missile));
+        missile.add('Missile', mComp);
+        return ACTION_ALREADY_DONE;
     };
 };
 RG.extend2(RG.Brain.Archer, RG.Brain.Rogue);
@@ -793,8 +792,7 @@ RG.Brain.GoalOriented = function(actor) {
     this.decideNextAction = function() {
         this._seenCached = null;
         const status = this.goal.process();
-        console.log(`Brain.GoalOriented process() status ${status}`);
-        return () => {};
+        return ACTION_ALREADY_DONE;
     };
 
     this.getGoal = () => this.goal;

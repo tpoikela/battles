@@ -112,7 +112,7 @@ const Actors = [
     },
     {
         name: 'smart goblin slinger', base: 'goblin',
-        attack: 2, defense: 1, hp: 8,
+        attack: 2, defense: 1, hp: 80,
         equip: [{name: 'Rock', count: 10}], brain: 'GoalOriented'
     },
     {
