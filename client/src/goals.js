@@ -23,7 +23,9 @@ const DIRS_NO_ZERO = [-1, 1];
 
 const debug = require('debug')('bitn:Goal');
 
+//---------------------------------------------------------------------------
 /* Base class for all actor goals. */
+//---------------------------------------------------------------------------
 class GoalBase {
 
     constructor(actor) {
@@ -150,7 +152,9 @@ class GoalBase {
 }
 Goal.Base = GoalBase;
 
+//---------------------------------------------------------------------------
 /* A goal for an actor to follow path from its current location to x,y */
+//---------------------------------------------------------------------------
 class GoalFollowPath extends GoalBase {
 
     constructor(actor, xy) {
@@ -185,51 +189,107 @@ class GoalFollowPath extends GoalBase {
                 this.actor.add(movComp);
                 this.path.shift();
                 const n = this.path.length;
-                debug(`${this.getType()} process() ret GOAL_ACTIVE, path ${n}`);
                 if (this.path.length === 0) {
+                    debug(`${this.getType()} process() ret GOAL_COMPL, path ${n}`);
+                    this.status = GOAL_COMPLETED;
                     return GOAL_COMPLETED;
                 }
+                debug(`${this.getType()} process() ret GOAL_ACTIVE, path ${n}`);
+                this.status = GOAL_ACTIVE;
                 return GOAL_ACTIVE;
             }
             else {
                 debug(`${this.getType()} process() ret GOAL_FAILED`);
+                this.status = GOAL_FAILED;
                 return GOAL_FAILED;
             }
         }
         debug(`${this.getType()} process() ret GOAL_COMPLETED`);
+        this.status = GOAL_COMPLETED;
         return GOAL_COMPLETED;
-    }
-
-    terminate() {
-
     }
 
 }
 Goal.FollowPath = GoalFollowPath;
 
+//---------------------------------------------------------------------------
 /* Goal used for patrolling between a list of coordinates. */
+//---------------------------------------------------------------------------
 class GoalPatrol extends GoalBase {
 
     constructor(actor, coords) {
         super(actor);
         this.setType('GoalPatrol');
+
         this.coords = coords;
+        if (this.coords.length < 2) {
+            RG.err('GoalPatrol', 'constructor',
+                `Provide >= 2 coords for patrolling. Got ${coords}`);
+        }
+        this.currIndex = 0;
+        this.currTarget = coords[this.currIndex];
+        this.patrolDist = 3;
     }
 
     /* Calculates the points for patrolling. */
     activate() {
-
+        // Calculate path from current point to patrol point
+        debug(`${this.getType()} activate()`);
+        this.recomputePatrolPath();
     }
 
     process() {
         this.activateIfInactive();
+        this.status = this.processSubGoals();
+        console.log(`GoalPatrol process(), got subStatus: ${this.status}`);
+        const firstGoal = this.subGoals[0];
+        if (firstGoal.isCompleted()) {
+            this.nextPatrolPoint();
+        }
+        else if (firstGoal.hasFailed()) {
+            console.log('GoalPatrol GOT FAILED');
+            debug(`${this.getType()} process() path failed`);
+            const [x, y] = this.actor.getXY();
+            const [patrolX, patrolY] = this.currTarget;
+            const dist = Path.shortestDist(x, y, patrolX, patrolY);
+            // Could not get all the way there, but close enough
+            if (dist <= this.patrolDist) {
+                this.nextPatrolPoint();
+            }
+            else {
+                this.recomputePatrolPath();
+            }
+        }
+        else {
+            debug(`${this.getType()} XXX NOT HERE!`);
 
+        }
+        return this.status;
+    }
+
+    nextPatrolPoint() {
+        ++this.currIndex;
+        if (this.currIndex >= this.coords.length) {
+            this.currIndex = 0;
+        }
+        this.currTarget = this.coords[this.currIndex];
+        this.addSubGoal(new GoalFollowPath(this.actor, this.currTarget));
+        debug(`${this.getType()} next patrol point ${this.currTarget}`);
+        this.status = GOAL_ACTIVE;
+    }
+
+    recomputePatrolPath() {
+        this.addSubGoal(new GoalFollowPath(this.actor, this.currTarget));
+        debug(`${this.getType()} recompute to point ${this.currTarget}`);
+        this.status = GOAL_ACTIVE;
     }
 
 }
 Goal.Patrol = GoalPatrol;
 
+//---------------------------------------------------------------------------
 /* Goal to attack the given actor. */
+//---------------------------------------------------------------------------
 class GoalAttackActor extends GoalBase {
 
     constructor(actor, targetActor) {
@@ -284,7 +344,9 @@ class GoalAttackActor extends GoalBase {
 }
 Goal.AttackActor = GoalAttackActor;
 
-
+//---------------------------------------------------------------------------
+/* A goal to (melee) hit an actor. */
+//---------------------------------------------------------------------------
 class GoalHitActor extends GoalBase {
 
     constructor(actor, targetActor) {
@@ -313,7 +375,9 @@ class GoalHitActor extends GoalBase {
 
 }
 
-
+//---------------------------------------------------------------------------
+/* An actor goal to explore the given area. */
+//---------------------------------------------------------------------------
 class GoalExplore extends GoalBase {
 
     constructor(actor) {
@@ -356,7 +420,9 @@ class GoalExplore extends GoalBase {
 }
 Goal.Explore = GoalExplore;
 
+//---------------------------------------------------------------------------
 /* Goal for fleeing from a given actor. */
+//---------------------------------------------------------------------------
 class GoalFleeFromActor extends GoalBase {
 
     constructor(actor, targetActor) {

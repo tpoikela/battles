@@ -28,13 +28,15 @@ class GoalThinkBasic extends Goal.Base {
         const [lowRange, hiRange] = [0.5, 1.5];
 
         const attackBias = RG.RAND.getUniformRange(lowRange, hiRange);
-        const fleeBias = RG.RAND.getUniformRange(lowRange, hiRange);
-        const exploreBias = RG.RAND.getUniformRange(lowRange, hiRange);
-        console.log([attackBias, fleeBias, exploreBias]);
+        // const fleeBias = RG.RAND.getUniformRange(lowRange, hiRange);
+        // const exploreBias = RG.RAND.getUniformRange(lowRange, hiRange);
+        const patrolBias = 1.0;
+        // console.log([attackBias, fleeBias, exploreBias]);
 
         this.evaluators.push(new Evaluator.AttackActor(attackBias));
         this.evaluators.push(new Evaluator.Flee(0.2));
-        this.evaluators.push(new Evaluator.Explore(exploreBias));
+        // this.evaluators.push(new Evaluator.Explore(exploreBias));
+        this.evaluators.push(new Evaluator.Patrol(patrolBias));
     }
 
     activate() {
@@ -47,7 +49,6 @@ class GoalThinkBasic extends Goal.Base {
 
         this.evaluators.forEach(evaluator => {
             const desirability = evaluator.calculateDesirability(this.actor);
-            console.log(`evals best ${bestRated}, curr: ${desirability}`);
             if (bestRated < desirability) {
                 chosenEval = evaluator;
                 bestRated = desirability;
@@ -57,32 +58,10 @@ class GoalThinkBasic extends Goal.Base {
         if (chosenEval) {
             chosenEval.setGoal(this.actor);
         }
-
-        /*
-        const brain = this.actor.getBrain();
-        const seenCells = brain.getSeenCells();
-
-        // Arbitrate goal based on what's seen
-
-        // If enemy seen
-        const enemyCell = brain.findEnemyCell(seenCells);
-        if (enemyCell) {
-            const targetActor = enemyCell.getActors()[0];
-            if (this.tooWounded()) {
-                const fleeGoal = new Goal.FleeFromActor(this.actor, targetActor);
-                this.addGoal(fleeGoal);
-            }
-            else {
-                debug(`${this.getType()} enemy is seen`);
-                const attackGoal = new Goal.AttackActor(this.actor, targetActor);
-                this.addGoal(attackGoal);
-            }
-        }
         else {
-            const exploreGoal = new Goal.Explore(this.actor);
-            this.addGoal(exploreGoal);
+            RG.err('GoalThinkBasic', 'arbitrate',
+                'No next goal found');
         }
-        */
 
     }
 
@@ -107,7 +86,7 @@ class GoalThinkBasic extends Goal.Base {
             }
                 break;
             case 'GoalAttackActor': if (!this.isGoalPresent(type)) {
-                this.removeAllSubGoals();
+                // this.removeAllSubGoals();
                 this.addSubGoal(goal);
             }
                 break;
@@ -116,8 +95,14 @@ class GoalThinkBasic extends Goal.Base {
                 this.addSubGoal(goal);
             }
                 break;
+            case 'GoalPatrol': if (!this.isGoalPresent(type)) {
+                this.removeAllSubGoals();
+                this.addSubGoal(goal);
+            }
+                break;
             default: {
-                console.log('No type ' + type);
+                RG.err('GoalThinkBasic', 'addGoal',
+                `No case for goal type |${type}| in switch`);
             }
         }
     }

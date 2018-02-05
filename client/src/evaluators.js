@@ -110,4 +110,29 @@ class EvaluatorFlee extends EvaluatorBase {
 }
 Evaluator.Flee = EvaluatorFlee;
 
+/* Evaluator to check if actor should flee from a fight. */
+class EvaluatorPatrol extends EvaluatorBase {
+
+    constructor(actorBias) {
+        super(actorBias);
+        this.coords = [[2, 2], [20, 2], [10, 10]];
+    }
+
+    setCoords(coords) {
+        this.coords = coords;
+    }
+
+    calculateDesirability(actor) {
+        return this.actorBias;
+    }
+
+    setGoal(actor) {
+        const topGoal = actor.getBrain().getGoal();
+        const coords = this.coords;
+        const goal = new Goal.Patrol(actor, coords);
+        topGoal.addGoal(goal);
+    }
+}
+Evaluator.Patrol = EvaluatorPatrol;
+
 module.exports = Evaluator;
