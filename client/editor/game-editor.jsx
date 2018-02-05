@@ -598,8 +598,8 @@ export default class GameEditor extends Component {
     }
 
     if (this.state.selectedCell) {
-      console.log('Selected cell:');
-      console.log(this.state.selectedCell);
+      /* console.log('Selected cell:');
+      console.log(this.state.selectedCell); */
       this.screen.setSelectedCell(this.state.selectedCell);
     }
 
