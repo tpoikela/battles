@@ -4,6 +4,8 @@ const RG = require('./rg');
 
 const Path = {};
 
+/* NOTE: This has problem that if x0,y0 or x1,y1 have actors, returns no path at
+ * all. */
 Path.getShortestPassablePath = function(map, x0, y0, x1, y1) {
     const coords = [];
     const passableCallback = (x, y) => map.isPassable(x, y);
@@ -14,9 +16,11 @@ Path.getShortestPassablePath = function(map, x0, y0, x1, y1) {
     return coords;
 };
 
-Path.getShortestActorPath = function(map, x0, y0, x1, y1) {
+/* Returns shortest actor to actor path. Returns shortest path between two
+ * actors excluding the source and destination points. */
+Path.getActorToActorPath = function(map, x0, y0, x1, y1) {
     const coords = [];
-    const passableCbDoor = (x, y) => {
+    const passableCb = (x, y) => {
         if (map.hasXY(x, y)) {
             return (
                 map.isPassable(x, y) || (x === x0 && y === y0)
@@ -25,7 +29,7 @@ Path.getShortestActorPath = function(map, x0, y0, x1, y1) {
         }
         return false;
     };
-    const finder = new ROT.Path.AStar(x1, y1, passableCbDoor);
+    const finder = new ROT.Path.AStar(x1, y1, passableCb);
     finder.compute(x0, y0, (x, y) => {
         coords.push({x, y});
     });
@@ -35,7 +39,29 @@ Path.getShortestActorPath = function(map, x0, y0, x1, y1) {
         coords.pop(); // Remove target x,y
     }
     return coords;
+};
 
+/* Returns shortest path for actor in x0,y0, excluding the source point. If
+ * destination point is impassable, returns an empty array. */
+Path.getShortestActorPath = function(map, x0, y0, x1, y1) {
+    const coords = [];
+    const passableCb = (x, y) => {
+        if (map.hasXY(x, y)) {
+            return (
+                map.isPassable(x, y) || (x === x0 && y === y0)
+            );
+        }
+        return false;
+    };
+    const finder = new ROT.Path.AStar(x1, y1, passableCb);
+    finder.compute(x0, y0, (x, y) => {
+        coords.push({x, y});
+    });
+
+    if (coords.length > 0) {
+        coords.shift(); // Remove source x,y
+    }
+    return coords;
 };
 
 Path.getShortestPassablePathWithDoors = function(map, x0, y0, x1, y1) {
