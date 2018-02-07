@@ -1,6 +1,8 @@
 
-/** Note: This file doesn't contain any unit tests. It has some architecture for
- * performing common test function.*/
+/** Note: This file doesn't contain any unit tests. It has utility functions and
+ * logic for performing common things required in unit tests. An example is
+ * creating a level and adding a list of actors automatically there.
+ */
 
 const RG = require('../client/src/battles');
 const expect = require('chai').expect;
@@ -134,7 +136,7 @@ RGTest.expectConnected = function(b1, b2, nConns) {
         .to.equal(nConns);
 };
 
-/* Adds each entity into the level. */
+/* Adds each entity into the level into a random location. */
 RGTest.wrapIntoLevel = function(arr) {
     const level = RG.FACT.createLevel('empty', 20, 20);
     arr.forEach(ent => {
@@ -208,6 +210,22 @@ RGTest.printScreen = function(actor) {
     const [pX, pY] = actor.getXY();
     screen.render(pX, pY, map, visible);
     screen.printRenderedChars();
+};
+
+/* A function to run game simulation using a list of actors and a list of
+ * systems. */
+RGTest.updateGame = (actors, systems, nTurns = 1) => {
+    let simActors = actors;
+    if (!Array.isArray(actors)) {
+        simActors = [actors];
+    }
+    for (let i = 0; i < nTurns; i++) {
+        simActors.forEach(actor => {
+            const action = actor.nextAction();
+            action.doAction();
+            systems.forEach(sys => {sys.update();});
+        });
+    }
 };
 
 module.exports = RGTest;
