@@ -113,6 +113,10 @@ RG.Map.Cell.prototype.isPassableByAir = function() {
     return this._baseElem.isPassableByAir();
 };
 
+RG.Map.Cell.prototype.hasObstacle = function() {
+    this._baseElem.isObstacle();
+};
+
 RG.Map.Cell.prototype.isSpellPassable = function() {
     return this._baseElem.isSpellPassable();
 };

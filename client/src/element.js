@@ -9,6 +9,7 @@ const Mixin = require('./mixin');
 RG.Element = {};
 
 const wallRegexp = /wall/;
+const obstacleRegexp = /(highrock|water|chasm|wall)/;
 
 /* Element is a wall or other obstacle or a feature in the map. It's not
  * necessarily blocking movement.  */
@@ -16,6 +17,10 @@ class RGElementBase extends Mixin.Typed(Mixin.Base) {
     constructor(elemType) {
         super({propType: RG.TYPE_ELEM, type: elemType});
         RG.elementsCreated += 1; // Used for debugging only
+    }
+
+    isObstacle() {
+        return obstacleRegexp.test(this.getType());
     }
 
     isPassable() {
