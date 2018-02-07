@@ -247,6 +247,54 @@ class GoalFollowPath extends GoalBase {
 }
 Goal.FollowPath = GoalFollowPath;
 
+function getNextCoord(actor, dir) {
+    const [x, y] = actor.getXY();
+    return [x + dir[0], y + dir[1]];
+
+}
+
+/* Movement goal which does not fail/complete when blocked by friend actors.
+ * terminates when enemy is seen or the actor hits a hard obstacle such as wall
+ * or water.
+ */
+class GoalMoveUntilEnemy extends GoalBase {
+
+    constructor(actor, dir) {
+        super(actor);
+        this.setType('GoalGotoActor');
+        this.dir = dir;
+    }
+
+    activate() {
+        this.status = GOAL_ACTIVE;
+    }
+
+    process() {
+        this.activateIfInactive();
+        const brain = this.actor.getBrain();
+        const seenCells = brain.getSeenCells();
+        const enemy = this.findEnemyCell(seenCells).getActors()[0];
+        const [nextX, nextY] = getNextCoord(this.actor, this.dir);
+        const map = this.actor.getLevel().getMap();
+
+        if (enemy) {
+            this.status = GOAL_COMPLETED;
+        }
+        else if (map.hasObstacle(nextX, nextY)) {
+            this.status = GOAL_FAILED;
+        }
+        else if (map.isPassable(nextX, nextY)) {
+            const level = this.actor.getLevel();
+            const movComp = new RG.Component.Movement(nextX, nextY, level);
+            this.actor.add('Movement', movComp);
+        }
+        // else IDLE here until cell is passable
+
+        return this.status;
+    }
+
+}
+Goal.MoveUntilEnemy = GoalMoveUntilEnemy;
 
 /* Variation of follow path where the target (actor) coordinate is excluded from
  * the path. */
