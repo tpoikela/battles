@@ -2,6 +2,9 @@
 const RG = require('./rg');
 const ROT = require('../../lib/rot');
 
+const DIRS = [-1, 0, 1];
+const DIRS_NO_ZERO = [-1, 1];
+
 /* A OO wrapper around ROT.RNG. Adds method for serialisation. */
 RG.Random = function() {
     this.seed = 0;
@@ -74,6 +77,15 @@ RG.Random.prototype.toJSON = function() {
         seed: this.seed,
         state: this.rng.getState()
     };
+};
+
+RG.Random.prototype.getRandDir = function() {
+    const dX = this.arrayGetRand(DIRS);
+    let dY = this.arrayGetRand(DIRS);
+    if (dX === 0) {
+        dY = RG.RAND.arrayGetRand(DIRS_NO_ZERO);
+    }
+    return [dX, dY];
 };
 
 /*
