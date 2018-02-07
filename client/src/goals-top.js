@@ -5,8 +5,6 @@ const RG = require('./rg');
 const Goal = require('./goals');
 const Evaluator = require('./evaluators');
 
-const debug = require('debug')('bitn:goals-top');
-
 const {
     GOAL_COMPLETED,
     GOAL_INACTIVE,
@@ -18,25 +16,23 @@ const GoalsTop = {};
 // TOP-LEVEL GOALS
 //---------------------------------------------------------------------------
 
-/* Top-level goal for actors. Arbitrates each turn with a number of lower level
- * goals. */
-class GoalThinkBasic extends Goal.Base {
+/* Base class for all top-level goals. Includes evaluator logic and goal
+ * arbitration.
+ */
+class GoalTop extends Goal.Base {
 
     constructor(actor) {
         super(actor);
+        this.setType('GoalTop');
         this.evaluators = [];
-        const [lowRange, hiRange] = [0.5, 1.5];
+    }
 
-        const attackBias = RG.RAND.getUniformRange(lowRange, hiRange);
-        // const fleeBias = RG.RAND.getUniformRange(lowRange, hiRange);
-        // const exploreBias = RG.RAND.getUniformRange(lowRange, hiRange);
-        const patrolBias = 1.0;
-        // console.log([attackBias, fleeBias, exploreBias]);
+    removeEvaluators() {
+        this.evaluators = [];
+    }
 
-        this.evaluators.push(new Evaluator.AttackActor(attackBias));
-        this.evaluators.push(new Evaluator.Flee(0.2));
-        // this.evaluators.push(new Evaluator.Explore(exploreBias));
-        this.evaluators.push(new Evaluator.Patrol(patrolBias));
+    addEvaluator(evaluator) {
+        this.evaluators.push(evaluator);
     }
 
     activate() {
@@ -44,24 +40,30 @@ class GoalThinkBasic extends Goal.Base {
     }
 
     arbitrate() {
+        this.dbg('arbitrate() started');
+        if (this.evaluators.length === 0) {
+            RG.err('GoalTop', 'arbitrate',
+                `No evaluators in ${this.getType}, actor: ${this.actor}`);
+        }
         let bestRated = 0;
         let chosenEval = null;
 
         this.evaluators.forEach(evaluator => {
             const desirability = evaluator.calculateDesirability(this.actor);
-            if (bestRated < desirability) {
+            if (bestRated < desirability || chosenEval === null) {
                 chosenEval = evaluator;
                 bestRated = desirability;
             }
         });
 
         if (chosenEval) {
-            chosenEval.setGoal(this.actor);
+            chosenEval.setActorGoal(this.actor);
         }
         else {
-            RG.err('GoalThinkBasic', 'arbitrate',
+            RG.err('GoalTop', 'arbitrate',
                 'No next goal found');
         }
+        this.dbg('arbitrate() finished');
 
     }
 
@@ -71,14 +73,61 @@ class GoalThinkBasic extends Goal.Base {
         if (status === GOAL_COMPLETED || status === GOAL_FAILED) {
             return GOAL_INACTIVE;
         }
-        debug(`ThinkBasic process() got status ${status}`);
+        this.removeFinishedOrFailed();
+        this.dbg(`process() got status ${status}`);
         return status;
+    }
+
+}
+GoalsTop.Top = GoalTop;
+
+/* Top-level goal for actors. Arbitrates each turn with a number of lower level
+ * goals. */
+class GoalThinkBasic extends GoalTop {
+
+    constructor(actor) {
+        super(actor);
+        this.setType('GoalThinkBasic');
+        const [lowRange, hiRange] = [0.5, 1.5];
+
+        this.bias = {
+            attack: RG.RAND.getUniformRange(lowRange, hiRange),
+            explore: 0.5,
+            flee: 0.2,
+            order: 0.7,
+            patrol: 1.0
+        };
+
+        // const fleeBias = RG.RAND.getUniformRange(lowRange, hiRange);
+        // const exploreBias = RG.RAND.getUniformRange(lowRange, hiRange);
+        // console.log([attackBias, fleeBias, exploreBias]);
+
+        this.evaluators.push(new Evaluator.AttackActor(this.bias.attack));
+        this.evaluators.push(new Evaluator.Flee(this.bias.flee));
+        this.evaluators.push(new Evaluator.Explore(this.bias.explore));
+        // this.evaluators.push(new Evaluator.Patrol(this.bias.patrol));
+    }
+
+    /* Can be used to "inject" goals for the actor. The actor uses
+     * Evaluator.Orders to check if it will obey the order. */
+    giveOrders(evaluator) {
+        // const orderEvaluator = new Evaluator.Orders(this.bias.order);
+        // evaluator.setSubEvaluator(orderEvaluator);
+        this.addEvaluator(evaluator);
     }
 
 
     addGoal(goal) {
         const type = goal.getType();
-        debug(`${this.getType()} addGoal() ${type}`);
+        this.dbg(`addGoal() ${type}`);
+        if (!this.isGoalPresent(type)) {
+            // this.removeAllSubGoals();
+            this.addSubGoal(goal);
+            console.log('Actor subgoals are now: '
+                + this.subGoals.map(g => g.getType()));
+        }
+
+        /*
         switch (type) {
             case 'GoalExplore': if (!this.isGoalPresent(type)) {
                 this.removeAllSubGoals();
@@ -105,6 +154,7 @@ class GoalThinkBasic extends Goal.Base {
                 `No case for goal type |${type}| in switch`);
             }
         }
+        */
     }
 
     queueGoal(goal) {
