@@ -7,7 +7,7 @@ const RG = require('../../../client/src/battles');
 const Goal = require('../../../client/src/goals');
 const Evaluator = require('../../../client/src/evaluators');
 
-describe('Goal', () => {
+describe('Actor Goal', () => {
 
     let movSys = null;
     let attSys = null;
@@ -90,6 +90,21 @@ describe('Goal', () => {
 
         const sXY = soldier.getXY();
         expect(sXY).to.deep.equal([10, 10]);
+    });
+
+    it('can be Commander Battle goal', () => {
+        const commander = new RG.Actor.Rogue('commander');
+        commander.setBrain(new RG.Brain.Commander(commander));
+        const soldiers = [];
+        for (let i = 0; i < 10; i++) {
+            const soldier = new RG.Actor.Rogue('soldier' + i);
+            soldier.setBrain(new RG.Brain.GoalOriented(soldier));
+            soldiers.push(soldier);
+        }
+        const actors = [commander].concat(soldiers);
+
+        RGTest.updateGame(actors, systems, 11);
+
     });
 
 });
