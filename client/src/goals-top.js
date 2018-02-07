@@ -3,6 +3,8 @@
 
 const RG = require('./rg');
 const Goal = require('./goals');
+
+const GoalsBattle = require('./goals-battle');
 const Evaluator = require('./evaluators');
 
 const {
@@ -111,8 +113,7 @@ class GoalThinkBasic extends GoalTop {
     /* Can be used to "inject" goals for the actor. The actor uses
      * Evaluator.Orders to check if it will obey the order. */
     giveOrders(evaluator) {
-        // const orderEvaluator = new Evaluator.Orders(this.bias.order);
-        // evaluator.setSubEvaluator(orderEvaluator);
+        // TODO remove this evaluator after the check
         this.addEvaluator(evaluator);
     }
 
@@ -126,42 +127,28 @@ class GoalThinkBasic extends GoalTop {
             console.log('Actor subgoals are now: '
                 + this.subGoals.map(g => g.getType()));
         }
-
-        /*
-        switch (type) {
-            case 'GoalExplore': if (!this.isGoalPresent(type)) {
-                this.removeAllSubGoals();
-                this.addSubGoal(goal);
-            }
-                break;
-            case 'GoalAttackActor': if (!this.isGoalPresent(type)) {
-                // this.removeAllSubGoals();
-                this.addSubGoal(goal);
-            }
-                break;
-            case 'GoalFleeFromActor': if (!this.isGoalPresent(type)) {
-                this.removeAllSubGoals();
-                this.addSubGoal(goal);
-            }
-                break;
-            case 'GoalPatrol': if (!this.isGoalPresent(type)) {
-                this.removeAllSubGoals();
-                this.addSubGoal(goal);
-            }
-                break;
-            default: {
-                RG.err('GoalThinkBasic', 'addGoal',
-                `No case for goal type |${type}| in switch`);
-            }
-        }
-        */
-    }
-
-    queueGoal(goal) {
-        this.subGoals.push(goal);
     }
 
 }
 GoalsTop.ThinkBasic = GoalThinkBasic;
+
+class GoalThinkCommander extends GoalThinkBasic {
+
+    constructor(actor) {
+        super(actor);
+        this.setType('GoalThinkCommander');
+
+        this.bias.winBattle = 0.7;
+        this.bias.retreat = 0.3;
+
+        const winBattleEval = new Evaluator.WinBattle(this.bias.cmdBias);
+        this.evaluators.push(winBattleEval);
+
+        const retreatEval = new Evaluator.Retreat(this.bias.retreat);
+        this.evaluators.push(retreatEval);
+    }
+
+}
+GoalsTop.ThinkCommander = GoalThinkCommander;
 
 module.exports = GoalsTop;
