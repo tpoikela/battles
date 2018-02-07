@@ -101,9 +101,19 @@ describe('Actor Goal', () => {
             soldier.setBrain(new RG.Brain.GoalOriented(soldier));
             soldiers.push(soldier);
         }
+
         const actors = [commander].concat(soldiers);
+        RGTest.wrapIntoLevel(actors);
+        soldiers.forEach((soldier, i) => {
+            RGTest.moveEntityTo(soldier, 3, 5 + i);
+        });
+        RGTest.moveEntityTo(commander, 2, 10);
 
         RGTest.updateGame(actors, systems, 11);
+
+        soldiers.forEach(soldier => {
+            expect(soldier.getX()).to.be.above(5);
+        });
 
     });
 
