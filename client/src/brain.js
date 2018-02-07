@@ -227,6 +227,11 @@ RG.Brain.Base = function(actor) {
 /* Brain is used by the AI to perform and decide on actions. Brain returns
  * actionable callbacks but doesn't know Action objects.  */
 RG.Brain.Rogue = function(actor) {
+    if (RG.isNullOrUndef([actor])) {
+        RG.err('Brain.Rogue', 'constructor',
+            'Actor must not be null.');
+    }
+
     this._actor = actor; // Owner of the brain
     this._explored = {}; // Memory of explored cells
     this._type = 'Rogue';
@@ -785,13 +790,14 @@ RG.extend2(RG.Brain.SpellCaster, RG.Brain.Rogue);
 RG.Brain.GoalOriented = function(actor) {
     RG.Brain.Rogue.call(this, actor);
     this.setType('GoalOriented');
-
     this.goal = new GoalsTop.ThinkBasic(actor);
+
 
     /* Must return function. */
     this.decideNextAction = function() {
         this._seenCached = null;
-        const status = this.goal.process();
+        // const status = this.goal.process();
+        this.goal.process();
         return ACTION_ALREADY_DONE;
     };
 
@@ -801,5 +807,24 @@ RG.Brain.GoalOriented = function(actor) {
 };
 RG.extend2(RG.Brain.GoalOriented, RG.Brain.Rogue);
 
+/* Brain object for testing goal-based actors. */
+RG.Brain.Commander = function(actor) {
+    RG.Brain.Rogue.call(this, actor);
+    this.setType('Commander');
+    this.goal = new GoalsTop.ThinkCommander(actor);
+
+    /* Must return function. */
+    this.decideNextAction = function() {
+        this._seenCached = null;
+        // const status = this.goal.process();
+        this.goal.process();
+        return ACTION_ALREADY_DONE;
+    };
+
+    this.getGoal = () => this.goal;
+    this.setGoal = goal => {this.goal = goal;};
+
+};
+RG.extend2(RG.Brain.Commander, RG.Brain.Rogue);
 
 module.exports = RG.Brain;
