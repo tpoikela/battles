@@ -7,7 +7,7 @@
 
 const RG = require('./rg');
 const Goal = require('./goals');
-const GoalsBattle = require('./goals-battle');
+// const GoalsBattle = require('./goals-battle');
 
 const Evaluator = {};
 
@@ -188,65 +188,5 @@ class EvaluatorOrders extends EvaluatorBase {
 
 }
 Evaluator.Orders = EvaluatorOrders;
-
-//---------------------------------------------------------------------------
-// BATTLE EVALUATORS
-//---------------------------------------------------------------------------
-
-/* Evaluator for taking on command goal. */
-class EvaluatorWinBattle extends EvaluatorBase {
-
-    constructor(actorBias) {
-        super(actorBias);
-        this.cooldown = 20;
-    }
-
-    calculateDesirability() {
-        if (this.cooldown === 0) {
-            // can see an army?
-            // required to adjust previous command or not
-            return this.actorBias;
-        }
-        else {
-            --this.cooldown;
-        }
-        return 0;
-    }
-
-    setActorGoal(actor) {
-        const topGoal = actor.getBrain().getGoal();
-        const goal = new GoalsBattle.WinBattle(actor);
-        topGoal.addGoal(goal);
-    }
-}
-Evaluator.WinBattle = EvaluatorWinBattle;
-
-/* Evaluator for retreating from battle command. */
-class EvaluatorRetreat extends EvaluatorBase {
-
-    constructor(actorBias) {
-        super(actorBias);
-        this.cooldown = 5;
-    }
-
-    calculateDesirability() {
-        if (this.cooldown === 0) {
-            // can see an army?
-            // required to adjust previous command or not
-            return this.actorBias;
-        }
-        else {
-            --this.cooldown;
-        }
-        return 0;
-    }
-
-    setActorGoal(actor) {
-        const topGoal = actor.getBrain().getGoal();
-        const goal = new GoalsBattle.Retreat(actor);
-        topGoal.addGoal(goal);
-    }
-}
-Evaluator.Retreat = EvaluatorRetreat;
 
 module.exports = Evaluator;
