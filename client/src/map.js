@@ -417,6 +417,13 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
         return false;
     };
 
+    this.hasObstacle = function(x, y) {
+        if (_hasXY(x, y)) {
+            return this._map[x][y].hasObstacle();
+        }
+        return false;
+    };
+
     this.isPassable = function(x, y) {
         if (_hasXY(x, y)) {
             return this._map[x][y].isPassable();
