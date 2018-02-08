@@ -4,8 +4,9 @@
 const RG = require('./rg');
 const Goal = require('./goals');
 
-const GoalsBattle = require('./goals-battle');
+// const GoalsBattle = require('./goals-battle');
 const Evaluator = require('./evaluators');
+const EvaluatorsBattle = require('./evaluators-battle');
 
 const {
     GOAL_COMPLETED,
@@ -83,8 +84,10 @@ class GoalTop extends Goal.Base {
 }
 GoalsTop.Top = GoalTop;
 
+//---------------------------------------------------------------------------
 /* Top-level goal for actors. Arbitrates each turn with a number of lower level
  * goals. */
+//---------------------------------------------------------------------------
 class GoalThinkBasic extends GoalTop {
 
     constructor(actor) {
@@ -94,7 +97,7 @@ class GoalThinkBasic extends GoalTop {
 
         this.bias = {
             attack: RG.RAND.getUniformRange(lowRange, hiRange),
-            explore: 0.5,
+            explore: 0.2,
             flee: 0.2,
             order: 0.7,
             patrol: 1.0
@@ -141,10 +144,11 @@ class GoalThinkCommander extends GoalThinkBasic {
         this.bias.winBattle = 0.7;
         this.bias.retreat = 0.3;
 
-        const winBattleEval = new Evaluator.WinBattle(this.bias.cmdBias);
+        const winBattleEval = new EvaluatorsBattle.WinBattle(
+            this.bias.winBattle);
         this.evaluators.push(winBattleEval);
 
-        const retreatEval = new Evaluator.Retreat(this.bias.retreat);
+        const retreatEval = new EvaluatorsBattle.Retreat(this.bias.retreat);
         this.evaluators.push(retreatEval);
     }
 
