@@ -21,9 +21,12 @@ class GoalWinBattle extends Goal.Base {
 
     activate() {
         this.addSubGoal(new GoalFindEnemyArmy(this.actor));
+        this.status = GOAL_ACTIVE;
+        this.dbg('Activated goal. Added FindEnemyArmy');
     }
 
     process() {
+        this.dbg('process() begin');
         this.activateIfInactive();
         this.status = this.processSubGoals();
         return this.status;
@@ -70,7 +73,6 @@ class GoalFindEnemyArmy extends Goal.Base {
 
     activate() {
         const brain = this.actor.getBrain();
-        this.status = GOAL_ACTIVE;
 
         const cmdDir = [1, 0];
         const level = this.actor.getLevel();
@@ -81,23 +83,29 @@ class GoalFindEnemyArmy extends Goal.Base {
         if (y < level.getMap().rows / 2 ) {cmdDir[1] = 1;}
         else {cmdDir[1] = -1;}
 
+        this.dbg(`Cmd army to move to dir ${cmdDir}`);
         // If enemy not seen, order move until found
         const actors = brain.getMemory().getFriends();
+        this.dbg(`${actors.length} friends found for command`);
         actors.forEach(actor => {
             const orderBias = 1.0;
             const orderEval = new Evaluator.Orders(orderBias);
-            const ordersGoal = new Goal.MoveUntilEnemy(this.actor, cmdDir);
+            const ordersGoal = new Goal.MoveUntilEnemy(actor, cmdDir);
             orderEval.setArgs({srcActor: this.actor, goal: ordersGoal});
 
             const topGoal = actor.getBrain().getGoal();
             topGoal.giveOrders(orderEval);
-
         });
         this.status = GOAL_ACTIVE;
     }
 
     process() {
         this.activateIfInactive();
+
+        const enemyFound = false;
+        if (enemyFound) {
+            this.status = GOAL_COMPLETED;
+        }
 
         // Set to GOAL_COMPLETE when enemy found
         // Otherwise keep this active
