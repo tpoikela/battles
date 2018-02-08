@@ -94,12 +94,18 @@ describe('Actor Goal', () => {
 
     it('can be Commander Battle goal', () => {
         const commander = new RG.Actor.Rogue('commander');
+        const inBattleComp = new RG.Component.InBattle();
+        commander.add(new RG.Component.Commander());
+        commander.add(inBattleComp);
         commander.setBrain(new RG.Brain.Commander(commander));
         const soldiers = [];
         for (let i = 0; i < 10; i++) {
             const soldier = new RG.Actor.Rogue('soldier' + i);
             soldier.setBrain(new RG.Brain.GoalOriented(soldier));
             soldiers.push(soldier);
+
+            soldier.addFriend(commander);
+            commander.addFriend(soldier);
         }
 
         const actors = [commander].concat(soldiers);
