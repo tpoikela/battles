@@ -74,14 +74,21 @@ class GoalFindEnemyArmy extends Goal.Base {
     activate() {
         const brain = this.actor.getBrain();
 
-        const cmdDir = [1, 0];
+        const cmdDir = [0, 0];
         const level = this.actor.getLevel();
         const [x, y] = this.actor.getXY();
 
-        if (x < level.getMap().cols / 2) {cmdDir[0] = 1;}
-        else {cmdDir[0] = -1;}
-        if (y < level.getMap().rows / 2 ) {cmdDir[1] = 1;}
-        else {cmdDir[1] = -1;}
+        // Choose the army movement direction based on 3x3 grid of the level
+        // Always move towards center
+        const xLowLimit = level.getMap().cols / 3;
+        const xHiLimit = 2 * level.getMap().cols / 3;
+        const yLowLimit = level.getMap().rows / 3;
+        const yHiLimit = 2 * level.getMap().rows / 3;
+
+        if (x < xLowLimit) {cmdDir[0] = 1;}
+        else if (x > xHiLimit) {cmdDir[0] = -1;}
+        if (y < yLowLimit) {cmdDir[1] = 1;}
+        else if (y > yHiLimit) {cmdDir[1] = -1;}
 
         this.dbg(`Cmd army to move to dir ${cmdDir}`);
         // If enemy not seen, order move until found
