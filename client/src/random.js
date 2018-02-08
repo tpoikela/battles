@@ -49,7 +49,6 @@ RG.Random.prototype.getUniform = function() {
 RG.Random.prototype.getUniformRange = function(min, max) {
     const span = max - min;
     const uniform = this.getUniform();
-    console.log(`span: ${span}, uniform: ${uniform}`);
     return min + span * uniform;
 };
 
