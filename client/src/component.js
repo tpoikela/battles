@@ -1293,6 +1293,11 @@ RG.Component.BattleBadge = function() {
 };
 RG.extend2(RG.Component.BattleBadge, RG.Component.Base);
 
+RG.Component.Commander = function() {
+    RG.Component.Base.call(this, 'Commander');
+};
+RG.extend2(RG.Component.Commander, RG.Component.Base);
+
 //--------------------------------------------
 // Comps that add or remove other components
 //--------------------------------------------
