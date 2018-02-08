@@ -43,7 +43,8 @@ class GoalBase {
     dbg(msg) {
         if (debug.enabled) {
             const ind = '  '.repeat(IND);
-            debug(`${ind}[${this.getType()}] ${this.status} ${msg}`);
+            const name = this.actor.getName();
+            debug(`${ind}[${this.getType()}] ${this.status} ${name} ${msg}`);
         }
     }
 
@@ -261,7 +262,7 @@ class GoalMoveUntilEnemy extends GoalBase {
 
     constructor(actor, dir) {
         super(actor);
-        this.setType('GoalGotoActor');
+        this.setType('GoalMoveUntilEnemy');
         this.dir = dir;
     }
 
@@ -273,11 +274,12 @@ class GoalMoveUntilEnemy extends GoalBase {
         this.activateIfInactive();
         const brain = this.actor.getBrain();
         const seenCells = brain.getSeenCells();
-        const enemy = this.findEnemyCell(seenCells).getActors()[0];
+        const enemyCell = brain.findEnemyCell(seenCells);
+
         const [nextX, nextY] = getNextCoord(this.actor, this.dir);
         const map = this.actor.getLevel().getMap();
 
-        if (enemy) {
+        if (enemyCell) {
             this.status = GOAL_COMPLETED;
         }
         else if (map.hasObstacle(nextX, nextY)) {
