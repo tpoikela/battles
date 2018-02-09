@@ -79,6 +79,7 @@ export default class EditorTopMenu extends Component {
       </Nav>
 
       <TopMenuLogic
+          addLevel={this.props.addLevel}
           level={this.props.level}
           onRef={ref => {this.menuLogic = ref;}}
       />
@@ -89,6 +90,7 @@ export default class EditorTopMenu extends Component {
 }
 
 EditorTopMenu.propTypes = {
+    addLevel: PropTypes.func.isRequired,
     level: PropTypes.objectOf(RG.Map.Level),
     menuCallback: PropTypes.func.isRequired
 };
