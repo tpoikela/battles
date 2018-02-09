@@ -13,10 +13,11 @@ RG.Factory.Battle = function() {
     /* Creates one battle into the level. TODO: Decide how to modify difficulty
      * etc. TODO: Refactor into Factory.Battle. */
     this.createBattle = function(level, conf = {}) {
-        const id = level.getID();
         const cols = conf.cols || 80;
         const rows = conf.cols || 40;
         const levelType = conf.levelType || 'forest';
+
+        const id = level ? level.getID() : 0;
         const name = conf.name || 'Battle of level ' + id;
 
         const battle = new RG.Game.Battle(name);
@@ -98,16 +99,19 @@ RG.Factory.Battle = function() {
             });
         });
 
-        // Add connecting stairs between battle and area
-        const stairsBattle = new RG.Element.Stairs(false);
-        battleLevel.addElement(stairsBattle, 1, 1);
-        const stairsArea = new RG.Element.Stairs(true);
+        if (level) {
+            // Add connecting stairs between battle and area
+            const stairsBattle = new RG.Element.Stairs(false);
+            battleLevel.addElement(stairsBattle, 1, 1);
+            const stairsArea = new RG.Element.Stairs(true);
 
-        // const randCell = level.getFreeRandCell();
-        // level.addElement(stairsArea, randCell.getX(), randCell.getY());
-        level.addElement(stairsArea, 4, 4);
+            // const randCell = level.getFreeRandCell();
+            // level.addElement(stairsArea, randCell.getX(), randCell.getY());
 
-        stairsArea.connect(stairsBattle);
+            level.addElement(stairsArea, 4, 4);
+
+            stairsArea.connect(stairsBattle);
+        }
         return battle;
     };
 
