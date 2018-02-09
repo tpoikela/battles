@@ -209,6 +209,8 @@ export default class GameEditor extends Component {
 
     this.deleteLevel = this.deleteLevel.bind(this);
     this.onLoadCallback = this.onLoadCallback.bind(this);
+
+    this.menuCallback = this.menuCallback.bind(this);
   }
 
   componentDidMount() {
@@ -637,7 +639,11 @@ export default class GameEditor extends Component {
         <p className='text-primary'>
           Battles Game Editor: {errorMsg}
         </p>
-        <EditorTopMenu/>
+
+        <EditorTopMenu
+            level={this.state.level}
+            menuCallback={this.menuCallback}
+        />
 
         {renderPanel && editorPanelElem}
 
@@ -1552,6 +1558,10 @@ export default class GameEditor extends Component {
     catch (e) {
       this.setState({errorMsg: e.message});
     }
+  }
+
+  menuCallback() {
+
   }
 
 }
