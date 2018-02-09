@@ -18,6 +18,7 @@
     "react": "^15.4.2",
     "react-bootstrap": "^0.31.3",
     "react-dom": "^15.4.2",
+    "react-modal": "^3.1.12",
     "uglify-es": "^3.0.25",
     "vinyl-source-stream": "^1.1.0",
     "why-did-you-update": "0.0.8"
