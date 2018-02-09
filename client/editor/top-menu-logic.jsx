@@ -133,16 +133,19 @@ export default class TopMenuLogic extends Component {
     /* Creates a new battle using current level. */
     newBattle(conf) {
       debug('TopMenuLogic newBattle() begin');
-      const level = this.props.level;
+      // const level = this.props.level;
       const fact = new FactoryBattle();
-      const battle = fact.createBattle(level, conf);
+      const battle = fact.createBattle(null, conf);
+      const level = battle.getLevel();
       this.battles.push(battle);
+      this.props.addLevel(level);
       debug('TopMenuLogic newBattle() end');
     }
 
 }
 
 TopMenuLogic.propTypes = {
+  addLevel: PropTypes.func.isRequired,
   level: PropTypes.objectOf(RG.Map.Level),
   onRef: PropTypes.func
 };
