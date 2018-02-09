@@ -211,6 +211,7 @@ export default class GameEditor extends Component {
     this.onLoadCallback = this.onLoadCallback.bind(this);
 
     this.menuCallback = this.menuCallback.bind(this);
+    this.addLevelToEditor = this.addLevelToEditor.bind(this);
   }
 
   componentDidMount() {
@@ -641,6 +642,7 @@ export default class GameEditor extends Component {
         </p>
 
         <EditorTopMenu
+            addLevel={this.addLevelToEditor}
             level={this.state.level}
             menuCallback={this.menuCallback}
         />
