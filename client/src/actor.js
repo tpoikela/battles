@@ -222,7 +222,6 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
         if (isPlayer) {
             this._isPlayer = isPlayer;
             this._brain = new RG.Brain.Player(this);
-            this.setType('player');
             if (!this.has('StatsMods')) {
                 this.add(new RG.Component.StatsMods());
             }
@@ -241,6 +240,7 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
     setPlayerCtrl(isPlayer) {
         if (isPlayer) {
             this._isPlayer = true;
+            this._actualBrain = this._brain;
             this._brain = new RG.Brain.Player(this);
             if (!this.has('StatsMods')) {
                 this.add(new RG.Component.StatsMods());
@@ -248,11 +248,15 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
             if (!this.has('CombatMods')) {
                 this.add(new RG.Component.CombatMods());
             }
+            this.add(new RG.Component.Possessed());
         }
         else {
             this._isPlayer = false;
             this.remove('StatsMods');
             this.remove('CombatMods');
+            this.remove('Possessed');
+            this._brain = this._actualBrain;
+            delete this._actualBrain;
         }
     }
 
@@ -313,6 +317,12 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
 
         if (this._spellbook) {
             obj.spellbook = this._spellbook.toJSON();
+        }
+        if (this._isPlayer) {
+            obj.isPlayer = true;
+        }
+        if (this._actualBrain) {
+            obj.actualBrain = this._actualBrain.toJSON();
         }
 
         return obj;
