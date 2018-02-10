@@ -64,6 +64,7 @@ export default class GameCharInfo extends Component {
               <h2>General info</h2>
               <p>Name: {actor.getName()}</p>
               <p>Class: {actorClassName}</p>
+              <p>Race: {actor.getType()}</p>
               <p>Exp. level: {expLevel}</p>
               <p>Exp. points: {expPoints}</p>
             </div>
