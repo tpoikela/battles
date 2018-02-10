@@ -1224,6 +1224,25 @@ RG.menuIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'a', 'b', 'c', 'd', 'e', 'f',
     'u', 'v', 'w', 'x', 'y', 'z'
 ];
 
+/* Convert a selection index into a keycode. For example, if user presses 'a',
+ * this function should return keycode for a, ie RG.VK_a. */
+RG.selectIndexToCode = indexChar => {
+    const arrayIndex = RG.menuIndices.findIndex(val => val === indexChar);
+    if (arrayIndex >= 0) {
+        if (arrayIndex >= 0 && arrayIndex <= 9) {
+            return ROT.VK_0 + arrayIndex;
+        }
+        else {
+            const addToCode = arrayIndex - 10; // Offset in menuIndices
+            return RG.VK_a + addToCode;
+        }
+    }
+    RG.err('RG', 'selectIndexToCode',
+        `Inv. select index |${indexChar}|`);
+    return -1;
+
+};
+
 /* Converts the keycode into a selection index starting from 0. */
 RG.codeToIndex = code => {
     if (code >= ROT.VK_0 && code <= ROT.VK_9) {
