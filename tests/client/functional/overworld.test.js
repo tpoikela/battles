@@ -102,6 +102,7 @@ describe('How Game is created from Overworld', function() {
         const loadGame = false;
         const pName = 'Xanthur';
         const loadTurn = 12000;
+        const saveGameEnabled = false;
 
         if (loadGame) {
             const fname = `save_dumps/${pName}_temp_${loadTurn}.json`;
@@ -127,7 +128,7 @@ describe('How Game is created from Overworld', function() {
 
         // Execute game in try-catch so we can dump save data on failure
         const mult = 4;
-        const maxTurns = mult * 10000;
+        const maxTurns = mult * 1000;
         try {
             const startI = loadGame ? loadTurn : 0;
             for (let i = startI; i < maxTurns; i++) {
@@ -137,18 +138,20 @@ describe('How Game is created from Overworld', function() {
                 }
 
                 // Save the game between certain intervals
-                if (i > startI && (i % (mult * 1000) === 0)) {
-                    if (maxTurns >= 8000) {
-                        const json = newGame.toJSON();
-                        const jsonStr = JSON.stringify(json);
-                        const fname = `save_dumps/${pName}_temp_${i}.json`;
-                        console.log(`Saving/restoring game to ${fname}`);
-                        fs.writeFileSync(fname, jsonStr);
-                        const jsonParsed = JSON.parse(jsonStr);
+                if (saveGameEnabled) {
+                    if (i > startI && (i % (mult * 1000) === 0)) {
+                        if (maxTurns >= 8000) {
+                            const json = newGame.toJSON();
+                            const jsonStr = JSON.stringify(json);
+                            const fname = `save_dumps/${pName}_temp_${i}.json`;
+                            console.log(`Saving/restoring game to ${fname}`);
+                            fs.writeFileSync(fname, jsonStr);
+                            const jsonParsed = JSON.parse(jsonStr);
 
-                        const fromJSON = new RG.Game.FromJSON();
-                        newGame = fromJSON.createGame(jsonParsed);
-                        driver.setPlayer(newGame.getPlayer());
+                            const fromJSON = new RG.Game.FromJSON();
+                            newGame = fromJSON.createGame(jsonParsed);
+                            driver.setPlayer(newGame.getPlayer());
+                        }
                     }
                 }
                 newGame.update(driver.nextCmd());
