@@ -78,6 +78,7 @@ const PlayerDriver = function(player) {
         return res;
     };
 
+    // Returns the next command given to game.update().
     // Few simple guidelines:
     //   1. Attack/flee behaviour has priority
     //   2. Prefer going to north always if possible
@@ -490,7 +491,7 @@ const PlayerDriver = function(player) {
             y = parseInt(y, 10);
             const dX = x - pX;
             const dY = y - pY;
-            this.debug(`Taking this.action path ${x},${y}, dX,dY ${dX},${dY}`);
+            this.debug(`Taking action path ${x},${y}, dX,dY ${dX},${dY}`);
             const code = RG.KeyMap.dirToKeyCode(dX, dY);
             keycodeOrCmd = {code};
             if (this.path.length === 0) {
