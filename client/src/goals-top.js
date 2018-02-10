@@ -7,6 +7,7 @@ const Goal = require('./goals');
 // const GoalsBattle = require('./goals-battle');
 const Evaluator = require('./evaluators');
 const EvaluatorsBattle = require('./evaluators-battle');
+const debug = require('debug')('bitn:goals-top');
 
 const {
     GOAL_COMPLETED,
@@ -127,8 +128,10 @@ class GoalThinkBasic extends GoalTop {
         if (!this.isGoalPresent(type)) {
             // this.removeAllSubGoals();
             this.addSubGoal(goal);
-            console.log('Actor subgoals are now: '
-                + this.subGoals.map(g => g.getType()));
+            if (debug.enabled) {
+                console.log('Actor subgoals are now: '
+                    + this.subGoals.map(g => g.getType()));
+            }
         }
     }
 
