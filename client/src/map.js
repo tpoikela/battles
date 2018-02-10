@@ -2,6 +2,8 @@
 const ROT = require('../../lib/rot.js');
 const RG = require('./rg.js');
 
+const {TYPE_ACTOR, TYPE_ELEM, TYPE_ITEM} = RG;
+
 RG.Element = require('./element.js');
 
 RG.Map = {};
@@ -33,18 +35,18 @@ RG.Map.Cell.prototype.setBaseElem = function(elem) { this._baseElem = elem; };
 RG.Map.Cell.prototype.getBaseElem = function() { return this._baseElem; };
 
 /* Returns true if cell has any actors.*/
-RG.Map.Cell.prototype.hasActors = function() {return this.hasProp('actors');};
-RG.Map.Cell.prototype.getActors = function() {return this.getProp('actors');};
+RG.Map.Cell.prototype.hasActors = function() {return this.hasProp(TYPE_ACTOR);};
+RG.Map.Cell.prototype.getActors = function() {return this.getProp(TYPE_ACTOR);};
 RG.Map.Cell.prototype.getFirstActor = function() {
-    const actors = this.getProp('actors');
+    const actors = this.getProp(TYPE_ACTOR);
     if (actors && actors.length > 0) {
         return actors[0];
     }
     return null;
 };
 
-RG.Map.Cell.prototype.hasItems = function() {return this.hasProp('items');};
-RG.Map.Cell.prototype.getItems = function() {return this.getProp('items');};
+RG.Map.Cell.prototype.hasItems = function() {return this.hasProp(TYPE_ITEM);};
+RG.Map.Cell.prototype.getItems = function() {return this.getProp(TYPE_ITEM);};
 
 /* Returns true if cell has any props. */
 RG.Map.Cell.prototype.hasProps = function() {
@@ -127,7 +129,7 @@ RG.Map.Cell.prototype.isExplored = function() {return this._explored;};
 
 /* Returns true if it's possible to move to this cell.*/
 RG.Map.Cell.prototype.isFree = function(isFlying = false) {
-    if (this.hasProp('actors')) {
+    if (this.hasProp(TYPE_ACTOR)) {
         for (let i = 0; i < this._p.actors.length; i++) {
             if (!this._p.actors[i].has('Ethereal')) {return false;}
         }
@@ -1007,7 +1009,7 @@ RG.Map.Level = function() { // {{{2
         }
 
         // Must store x, y for each prop as well
-        const props = ['actors', 'items', 'elements'];
+        const props = [TYPE_ACTOR, TYPE_ITEM, TYPE_ELEM];
         props.forEach(propType => {
             _p[propType].forEach(prop => {
                 const propObj = {
@@ -1016,10 +1018,10 @@ RG.Map.Level = function() { // {{{2
                     obj: prop.toJSON()
                 };
                 // Avoid storing player twice (stored in Game.Main already)
-                if (!propType === 'actors') {
+                if (!propType === RG.TYPE_ACTOR) {
                     obj[propType].push(propObj);
                 }
-                else if (propObj.obj.type !== 'player') {
+                else if (!propObj.obj.isPlayer) {
                     obj[propType].push(propObj);
                 }
             });
