@@ -75,14 +75,19 @@ describe('RG.getStyleClassForCell()', () => {
         expect(RG.getStyleClassForCell(wallCell)).to.equal('cell-element-wall');
         expect(RG.getCellChar(wallCell)).to.equal(RG.charStyles.elements.wall);
 
+        const stylesCopy = JSON.parse(JSON.stringify(RG.cellStyles));
+        stylesCopy[RG.TYPE_ACTOR]['Player'] = 'cell-actor-player';
+
         const floorCell = new Cell(0, 0, new Element('floor'));
         const actor = Factory.createPlayer('Player', 50);
         floorCell.setExplored();
         expect(RG.getStyleClassForCell(floorCell))
             .to.equal('cell-element-floor');
         floorCell.setProp('actors', actor);
-        expect(RG.getStyleClassForCell(floorCell))
-            .to.equal('cell-actor-player');
+
+        const playerCss = RG.getPropClassOrChar(
+            stylesCopy[RG.TYPE_ACTOR], actor);
+        expect(playerCss).to.equal('cell-actor-player');
     });
 });
 
