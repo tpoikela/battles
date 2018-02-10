@@ -90,8 +90,8 @@ const RG = { // {{{2
         return this.cellStyles.elements[baseType];
     },
 
+    /* styles is either a LUT of chars or LUT of CSS classnames. */
     getPropClassOrChar: function(styles, propObj) {
-        const objType = propObj.getType();
 
         // Return by name, this is for object shells generally
         // Elements don't have name, type only
@@ -102,6 +102,7 @@ const RG = { // {{{2
             }
         }
 
+        const objType = propObj.getType();
         // By type is usually for basic elements
         if (styles.hasOwnProperty(objType)) {
             if (typeof styles[objType] === 'object') {
@@ -673,6 +674,9 @@ const RG = { // {{{2
         'goblin'],
     NEUTRAL_RACES: ['dwarf', 'bearfolk', 'animal'],
 
+    ACTOR_RACES: ['catfolk', 'dogfolk', 'wolfclan', 'wildling', 'goblin',
+        'bearfolk', 'dwarf', 'human', 'hyrkhian'],
+
     // Constants for movement directions
     DIR: {
         N: [0, -1],
@@ -698,6 +702,7 @@ const RG = { // {{{2
     ]
 
 }; // / }}} RG
+RG.ACTOR_RACES = RG.ACTOR_RACES.sort();
 
 RG.getObjRef = (type, obj) => {
     if (type === 'entity') {
