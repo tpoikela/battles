@@ -178,14 +178,23 @@ describe('How combat should evolve', () => {
     });
 });
 
+
 describe('How AI brain works', () => {
-    const cols = 30;
-    const rows = 20;
-    const level = getNewLevel(cols, rows);
-    const mons1 = new Actor('Monster');
-    const player = new Actor('Player');
-    player.setType('player');
-    player.setIsPlayer(true);
+
+    let level = null;
+    let mons1 = null;
+    let player = null;
+
+
+    beforeEach(() => {
+        const cols = 30;
+        const rows = 20;
+        level = getNewLevel(cols, rows);
+        mons1 = new Actor('Monster');
+        player = new Actor('Player');
+        player.setIsPlayer(true);
+        mons1.addEnemy(player);
+    });
 
     it('Brain should find player cell', () => {
         expect(level.addActor(player, 2, 2)).to.equal(true);
