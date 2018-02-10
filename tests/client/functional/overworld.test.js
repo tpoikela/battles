@@ -102,7 +102,7 @@ describe('How Game is created from Overworld', function() {
         const loadGame = false;
         const pName = 'Xanthur';
         const loadTurn = 12000;
-        const saveGameEnabled = false;
+        const saveGameEnabled = true;
 
         if (loadGame) {
             const fname = `save_dumps/${pName}_temp_${loadTurn}.json`;
@@ -128,7 +128,7 @@ describe('How Game is created from Overworld', function() {
 
         // Execute game in try-catch so we can dump save data on failure
         const mult = 4;
-        const maxTurns = mult * 1000;
+        const maxTurns = mult * 10000;
         try {
             const startI = loadGame ? loadTurn : 0;
             for (let i = startI; i < maxTurns; i++) {
