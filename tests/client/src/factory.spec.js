@@ -63,7 +63,8 @@ describe('RG.Factory.Game', () => {
             playMode: 'Dungeon',
             loadedPlayer: null,
             loadedLevel: null,
-            playerName: 'Player Hero'
+            playerName: 'Player Hero',
+            playerRace: 'Zork'
         };
     });
 
