@@ -96,6 +96,9 @@ RG.Brain.Memory = function() {
             const type = actor.getType();
             const index = this._enemyTypes.indexOf(type);
             if (index !== -1) {return true;}
+            if (actor.isPlayer()) {
+                return this._enemyTypes.indexOf('player') >= 0;
+            }
         }
         return false;
     };
