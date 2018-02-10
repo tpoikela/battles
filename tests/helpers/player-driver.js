@@ -84,9 +84,8 @@ const PlayerDriver = function(player) {
         const visible = _player.getLevel().getMap().getVisibleCells(_player);
         this.printTurnInfo(visible);
 
-        // Only attack enemies very close
-        this.checkForEnemies();
-
+        this.checkForSelection();
+        if (this.action === '') {this.checkForEnemies();}
         if (this.action === '') {this.tryExploringAround(visible);}
 
         //-------------------------------------------------------
@@ -103,6 +102,13 @@ const PlayerDriver = function(player) {
         this.cmds.push(keycodeOrCmd);
         this.actions.push(this.action);
         return keycodeOrCmd;
+    };
+
+    this.checkForSelection = () => {
+        const brain = _player.getBrain();
+        if (brain.isMenuShown()) {
+            this.action = 'selection';
+        }
     };
 
     /* Checks for surrounding enemies and whether to attack or not. Checks also
@@ -511,6 +517,10 @@ const PlayerDriver = function(player) {
         }
         else if (this.action === 'run') {
             keycodeOrCmd = {code: RG.KEY.RUN};
+        }
+        else if (this.action === 'selection') {
+            // Always choose the first option
+            keycodeOrCmd = {code: RG.selectIndexToCode(0)};
         }
 
         return keycodeOrCmd;
