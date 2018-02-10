@@ -13,6 +13,7 @@ const shortestPath = Path.getShortestPath;
 const debug = require('debug')('bitn:PlayerDriver');
 
 const MOVE_DIRS = [-1, 0, 1];
+const LINE = '='.repeat(78);
 
 /**
  * Possible player states:
@@ -37,6 +38,7 @@ const PlayerDriver = function(player) {
 
     let _player = player;
     this.action = '';
+    this.enemy = null;
     this.state = S_EXPLORE;
 
     this.cmds = []; // Stores each command executed
@@ -60,7 +62,7 @@ const PlayerDriver = function(player) {
     this.seen = {};
 
     this.nTurns = 0;
-    this.screenPeriod = 100;
+    this.screenPeriod = 1;
 
     this.setPlayer = player => {_player = player;};
 
@@ -77,22 +79,51 @@ const PlayerDriver = function(player) {
     };
 
     // Few simple guidelines:
-    //   Attack/flee behaviour has priority
-    //   Prefer going to north always if possible
-    //   If any passages in sight, and level not visited, go there
+    //   1. Attack/flee behaviour has priority
+    //   2. Prefer going to north always if possible
+    //   3. If any passages in sight, and level not visited, go there
+    //      - Start a counter. When that expires, go back up.
     this.nextCmd = () => {
-        const brain = _player.getBrain();
-        const visible = _player.getLevel().getMap().getVisibleCells(_player);
-        const around = RG.Brain.getCellsAroundActor(_player);
-        const actorsAround = around.map(cell => cell.getFirstActor());
         this.action = '';
 
+        // Record current x,y as visited
+        const [pX, pY] = _player.getXY();
+        const level = _player.getLevel();
+        this.addVisited(level, pX, pY);
+
+        const visible = _player.getLevel().getMap().getVisibleCells(_player);
+        this.printTurnInfo(visible);
+
         // Only attack enemies very close
-        let enemy = null;
+        this.checkForEnemies();
+
+        if (this.action === '') {this.tryExploringAround(visible);}
+
+        //-------------------------------------------------------
+        // Command post-processing, get command for Brain.Player
+        //-------------------------------------------------------
+        let keycodeOrCmd = this.getPlayerCmd();
+        if (!keycodeOrCmd) {keycodeOrCmd = {code: RG.KEY.REST};}
+
+        const cmdJson = JSON.stringify(keycodeOrCmd);
+        const msg = `action: |${this.action}|, cmd: ${cmdJson}`;
+        this.debug('>>> PlayerDriver ' + msg);
+
+        ++this.nTurns;
+        this.cmds.push(keycodeOrCmd);
+        this.actions.push(this.action);
+        return keycodeOrCmd;
+    };
+
+    this.checkForEnemies = () => {
+        const brain = _player.getBrain();
+        const around = RG.Brain.getCellsAroundActor(_player);
+        const actorsAround = around.map(cell => cell.getFirstActor());
+        this.enemy = null;
         actorsAround.forEach(actor => {
-            if (enemy === null) {
+            if (this.enemy === null) {
                 if (actor && actor.isEnemy(_player)) {
-                    enemy = actor;
+                    this.enemy = actor;
                     if (this.hasEnoughHealth()) {
                         this.action = 'attack';
                     }
@@ -109,28 +140,6 @@ const PlayerDriver = function(player) {
         if (this.action === '' && this.shouldRest()) {
             this.action = 'rest';
         }
-
-        const [pX, pY] = _player.getXY();
-        const level = _player.getLevel();
-        this.addVisited(level, pX, pY);
-        this.printTurnInfo(visible);
-
-        ++this.nTurns;
-        if (this.action === '') {this.tryExploringAround(visible);}
-
-        //-------------------------------------------------------
-        // Command post-processing, get command for Brain.Player
-        //-------------------------------------------------------
-        let result = this.getPlayerCmd(enemy);
-        if (!result) {result = {code: RG.KEY.REST};}
-
-        const cmdJson = JSON.stringify(result);
-        const msg = `action: |${this.action}|, cmd: ${cmdJson}`;
-        this.debug('>>> PlayerDriver ' + msg);
-
-        this.cmds.push(result);
-        this.actions.push(this.action);
-        return result;
     };
 
     this.tryExploringAround = visible => {
@@ -406,8 +415,9 @@ const PlayerDriver = function(player) {
     };
 
     /* Returns the command (or code) give to game.update(). */
-    this.getPlayerCmd = (enemy) => {
-        let result = null;
+    this.getPlayerCmd = () => {
+        const enemy = this.enemy;
+        let keycodeOrCmd = null;
         const map = _player.getLevel().getMap();
         const [pX, pY] = _player.getXY();
         if (this.action === 'attack') {
@@ -415,15 +425,15 @@ const PlayerDriver = function(player) {
             const dX = eX - pX;
             const dY = eY - pY;
             const code = RG.KeyMap.dirToKeyCode(dX, dY);
-            result = {code};
+            keycodeOrCmd = {code};
         }
         else if (this.action === 'pickup') {
-            result = {code: RG.KEY.PICKUP};
+            keycodeOrCmd = {code: RG.KEY.PICKUP};
         }
         else if (this.action === 'flee') {
             const pCell = _player.getCell();
             if (pCell.hasPassage()) {
-                result = {code: RG.KEY.USE_STAIRS_DOWN};
+                keycodeOrCmd = {code: RG.KEY.USE_STAIRS_DOWN};
             }
             else {
                 const [eX, eY] = [enemy.getX(), enemy.getY()];
@@ -435,7 +445,7 @@ const PlayerDriver = function(player) {
                 if (map.isPassable(newX, newY)) {
                     const code = RG.KeyMap.dirToKeyCode(dX, dY);
                     this.debug(`flee to dx,dy ${dX},${dY}`);
-                    result = {code};
+                    keycodeOrCmd = {code};
                 }
                 else { // Pick a random direction
                     this.debug('Pick random direction for fleeing');
@@ -453,7 +463,7 @@ const PlayerDriver = function(player) {
                     if (map.isPassable(randX, randY)) {
                         this.debug(`flee rand dir to dx,dy ${randX},${randY}`);
                         const code = RG.KeyMap.dirToKeyCode(randX, randY);
-                        result = {code};
+                        keycodeOrCmd = {code};
                     }
                     else {
                         // can't escape, just attack
@@ -463,16 +473,16 @@ const PlayerDriver = function(player) {
                         const dX = eX - pX;
                         const dY = eY - pY;
                         const code = RG.KeyMap.dirToKeyCode(dX, dY);
-                        result = {code};
+                        keycodeOrCmd = {code};
                     }
                 }
             }
         }
         else if (this.action === 'move north') {
-            result = {code: RG.KEY.MOVE_N};
+            keycodeOrCmd = {code: RG.KEY.MOVE_N};
         }
         else if (this.action === 'stairs') {
-            result = {code: RG.KEY.USE_STAIRS_DOWN};
+            keycodeOrCmd = {code: RG.KEY.USE_STAIRS_DOWN};
         }
         else if (this.action === 'path') {
             let {x, y} = this.path.shift();
@@ -482,16 +492,16 @@ const PlayerDriver = function(player) {
             const dY = y - pY;
             this.debug(`Taking this.action path ${x},${y}, dX,dY ${dX},${dY}`);
             const code = RG.KeyMap.dirToKeyCode(dX, dY);
-            result = {code};
+            keycodeOrCmd = {code};
             if (this.path.length === 0) {
                 this.debug('PlayerDriver finished a path');
             }
         }
         else if (this.action === 'run') {
-            result = {code: RG.KEY.RUN};
+            keycodeOrCmd = {code: RG.KEY.RUN};
         }
 
-        return result;
+        return keycodeOrCmd;
     };
 
     this.getLastAction = () => {
@@ -506,6 +516,10 @@ const PlayerDriver = function(player) {
         const hp = _player.get('Health').getHP();
 
         const pos = `@${pX},${pY} ID: ${level.getID()}`;
+        if (debug.enabled) {
+            console.log(LINE);
+
+        }
         this.debug(`T: ${this.nTurns} ${pos} | HP: ${hp}`);
 
         if (this.nTurns % this.screenPeriod === 0) {
@@ -554,6 +568,9 @@ const PlayerDriver = function(player) {
                 this.action = 'path';
                 this.debug('Returning back up the stairs now');
                 return true;
+            }
+            else {
+                this.debug('Cannot find path to return back');
             }
         }
         return false;
