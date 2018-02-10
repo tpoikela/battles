@@ -4,6 +4,9 @@ import PlayerStats from './player-stats';
 
 const RG = require('../src/rg.js');
 
+export const VIEW_MAP = 0;
+export const VIEW_PLAYER = 1;
+
 /** Component for displaying character stats.*/
 export default class GameStats extends Component {
 
@@ -14,10 +17,10 @@ export default class GameStats extends Component {
 
   changeMapView() {
     if (this.props.showMap) {
-      this.props.setViewType('player');
+      this.props.setViewType(VIEW_PLAYER);
     }
     else {
-      this.props.setViewType('map');
+      this.props.setViewType(VIEW_MAP);
     }
   }
 
@@ -110,22 +113,22 @@ export default class GameStats extends Component {
   }
 
   getPlayerStatus(player) {
-    var stat = [];
+    const stat = [];
     if (player.has('Poison')) {
-      stat.push(<p key='stat-poison' className='text-danger'>Poisoned</p>);
+      stat.push(<p className='text-danger' key='stat-poison'>Poisoned</p>);
     }
     if (player.has('Stun')) {
-      stat.push(<p key='stat-stun' className='text-danger'>Stunned</p>);
+      stat.push(<p className='text-danger' key='stat-stun'>Stunned</p>);
     }
     if (player.has('Ethereal')) {
-      stat.push(<p key='stat-ethereal' className='text-info'>Ethereal</p>);
+      stat.push(<p className='text-info' key='stat-ethereal'>Ethereal</p>);
     }
     if (player.has('PowerDrain')) {
-      stat.push(<p key='stat-power-drain' className='text-success'>Power drain</p>);
+      stat.push(
+        <p className='text-success' key='stat-power-drain'>Power drain</p>);
     }
     return stat;
   }
-
 
 }
 
