@@ -3,7 +3,7 @@
 import React, {Component} from 'react';
 
 // Subcomponents for the GUI
-import GameStats from './game-stats';
+// import GameStats from './game-stats';
 import GameStartScreen from './game-start-screen';
 import GamePanel from './game-panel';
 import GameMenu from './game-menu';
@@ -15,6 +15,8 @@ import GameInventory from './game-inventory';
 import GameEditor from '../editor/game-editor';
 import GameCharInfo from './game-char-info';
 import LevelSaveLoad from '../editor/level-save-load';
+
+import GameStats, {VIEW_MAP, VIEW_PLAYER} from './game-stats';
 
 const ROT = require('../../lib/rot');
 const RG = require('../src/rg');
@@ -121,6 +123,7 @@ class BattlesTop extends Component {
             monstType: 'Medium',
             lootType: 'Medium',
             playerClass: RG.ACTOR_CLASSES[0],
+            playerRace: RG.ACTOR_RACES[0],
 
             sqrPerActor: 120,
             sqrPerItem: 120,
@@ -225,7 +228,7 @@ class BattlesTop extends Component {
 
     /* Toggles view between normal view and zoomed out map view. */
     setViewType(type) {
-        if (type === 'map') {
+        if (type === VIEW_MAP) {
            this.viewportPlayerX = this.viewportX;
            this.viewportPlayerY = this.viewportY;
            this.viewportX = this.game.getPlayer().getLevel().getMap().cols;
@@ -239,7 +242,7 @@ class BattlesTop extends Component {
                showMap: true
            });
         }
-        else if (type === 'player') {
+        else if (type === VIEW_PLAYER) {
             this.viewportX = this.viewportPlayerX;
             this.viewportY = this.viewportPlayerY;
             this.screen.setMapShown(false);
@@ -614,6 +617,7 @@ class BattlesTop extends Component {
 
         const settings = {
             playerClass: this.state.playerClass,
+            playerRace: this.state.playerRace,
             playerLevel: this.state.playerLevel,
             gameLength: this.state.gameLength,
             levelSize: this.state.levelSize,
@@ -642,6 +646,7 @@ class BattlesTop extends Component {
                     setPlayerClass={this.setPlayerClass}
                     setPlayerLevel={this.setPlayerLevel}
                     setPlayerName={this.setPlayerName}
+                    setPlayerRace={this.setPlayerRace}
                     setPlayMode={this.setPlayMode}
                     setSeedName={this.setSeedName}
                     settings={settings}
@@ -986,6 +991,11 @@ class BattlesTop extends Component {
         this.setState({playerClass: className});
     }
 
+    setPlayerRace(raceName) {
+        this.gameConf.playerRace = raceName;
+        this.setState({playerRace: raceName});
+    }
+
     setGameLength(length) {
         switch (length) {
             case 'Short': this.gameConf.levels = 5; break;
@@ -1026,6 +1036,7 @@ class BattlesTop extends Component {
         this.setPlayerName = this.setPlayerName.bind(this);
         this.setSeedName = this.setSeedName.bind(this);
         this.setPlayerClass = this.setPlayerClass.bind(this);
+        this.setPlayerRace = this.setPlayerRace.bind(this);
 
         // GamePanel callbacks
         this.setViewSize = this.setViewSize.bind(this);
