@@ -3,6 +3,8 @@
  * elements like stairs.
  */
 
+import Entity from './entity';
+
 const RG = require('./rg.js');
 const Mixin = require('./mixin');
 
@@ -13,7 +15,7 @@ const obstacleRegexp = /(highrock|water|chasm|wall)/;
 
 /* Element is a wall or other obstacle or a feature in the map. It's not
  * necessarily blocking movement.  */
-class RGElementBase extends Mixin.Typed(Mixin.Base) {
+class RGElementBase extends Mixin.Typed(Entity) {
     constructor(elemType) {
         super({propType: RG.TYPE_ELEM, type: elemType});
         RG.elementsCreated += 1; // Used for debugging only
@@ -42,9 +44,17 @@ class RGElementBase extends Mixin.Typed(Mixin.Base) {
     /* Should be enough for stateless elements.
      * Does not work for doors or stairs etc. */
     toJSON() {
-        return {
-            type: this.getType()
+        const components = RG.Component.compsToJSON(this);
+        const obj = {
+            id: this.getID(),
+            type: this.getType(),
+            components
         };
+        if (components.length > 0) {
+            obj.components = components;
+        }
+        return obj;
+
     }
 }
 
@@ -134,7 +144,6 @@ class RGElementStairs extends Mixin.Locatable(RGElementBase) {
         this.setTargetLevel(stairs.getSrcLevel());
         stairs.setTargetLevel(this.getSrcLevel());
     }
-
 
     isDown() {return this._down;}
 
