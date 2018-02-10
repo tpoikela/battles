@@ -1,5 +1,21 @@
 /* Contains the in-game actors. */
 
+const defaultBrain = 'GoalOriented';
+
+/* Instructions:
+ *   base: 'baseName' inherits all properties from the base object (expect
+ *   the special property dontCreate). You can chain as many base objects and
+ *   use multiple bases but the order is important in that case. The base
+ *   objects have to be specified before the objects using them as base.
+ *
+ * dontCreate: true prevents creation of Actor objects from object. This is
+ * useful for "base" objects.
+ *
+ * noRandom: true  excludes the actor from random generation. This is useful for
+ * bosses etc fixed actors.
+ *
+ */
+
 const Actors = [
 
     // ANIMALS
@@ -108,12 +124,13 @@ const Actors = [
         name: 'goblin', char: 'g', type: 'goblin',
         className: 'cell-actor-goblin',
         attack: 1, defense: 1, damage: '1d4', range: 1, hp: 5,
-        danger: 2, enemies: ['human', 'player']
+        danger: 2, enemies: ['human', 'player'],
+        brain: defaultBrain
     },
     {
         name: 'smart goblin slinger', base: 'goblin',
         attack: 2, defense: 1, hp: 80,
-        equip: [{name: 'Rock', count: 10}], brain: 'GoalOriented'
+        equip: [{name: 'Rock', count: 10}]
     },
     {
         name: 'goblin slinger', base: 'goblin',
@@ -145,15 +162,16 @@ const Actors = [
     {
         name: 'humanoid', char: 'h', type: 'humanoid',
         attack: 1, defense: 1, damage: '1d4', range: 1, hp: 10,
-        danger: 2
+        danger: 2, brain: defaultBrain
     },
 
     // BEARFOLK
     {
         name: 'BearfolkBase', char: 'B', className: 'cell-actor-bearfolk',
-        dontCreate: true, brain: 'Bearfolk', type: 'bearfolk',
+        dontCreate: true, type: 'bearfolk',
         attack: 1, defense: 1, damage: '1d5 + 1', range: 1, hp: 10,
-        danger: 1, enemies: ['goblin', 'dwarf', 'undead', 'demon']
+        danger: 1, enemies: ['goblin', 'dwarf', 'undead', 'demon'],
+        brain: defaultBrain
     },
     {
       name: 'bearfolk fighter', base: 'BearfolkBase',
@@ -220,7 +238,7 @@ const Actors = [
     {
         name: 'Frost goblin', char: 'g', base: 'WinterBeingBase',
         attack: 3, defense: 3, protection: 1, damage: '1d7', hp: 12,
-        danger: 3
+        danger: 3, type: 'goblin', brain: defaultBrain
     },
     {
         name: 'Frost viper', char: 's', base: 'WinterBeingBase',
@@ -286,7 +304,8 @@ const Actors = [
     {
         name: 'dwarf', char: 'h', type: 'dwarf',
         attack: 2, defense: 2, damage: '1d4',
-        range: 1, hp: 20, danger: 3, enemies: ['human', 'undead', 'demon']
+        range: 1, hp: 20, danger: 3, enemies: ['human', 'undead', 'demon'],
+        brain: defaultBrain
     },
     {
         name: 'dwarven fighter', base: 'dwarf',
@@ -323,7 +342,8 @@ const Actors = [
     {
         name: 'human', char: '@', type: 'human',
         attack: 2, defense: 2, damage: '1d4',
-        range: 1, hp: 20, danger: 3, brain: 'Human'
+        range: 1, hp: 20, danger: 3,
+        brain: defaultBrain
     },
     {
         name: 'townsfolk', base: 'human',
@@ -372,7 +392,7 @@ const Actors = [
     // WILDLINGS
     {
         name: 'wildling', char: 'I', className: 'cell-actor-wildling',
-        type: 'wildling',
+        type: 'wildling', brain: defaultBrain,
         attack: 2, defense: 1, damage: '1d6', range: 1,
         hp: 15, danger: 3, enemies: ['player', 'human']
     },
@@ -409,7 +429,8 @@ const Actors = [
         name: 'CatfolkBase', char: 'f', className: 'cell-actor-catfolk',
         type: 'catfolk', dontCreate: true,
         attack: 1, defense: 1, damage: '1d6', range: 1,
-        hp: 10, danger: 1, enemies: ['player', 'human', 'dogfolk', 'wolfclan']
+        hp: 10, danger: 1, enemies: ['player', 'human', 'dogfolk', 'wolfclan'],
+        brain: defaultBrain
     },
     {
         name: 'catfolk hunter', base: 'CatfolkBase',
@@ -443,7 +464,8 @@ const Actors = [
         attack: 3, defense: 3, damage: '1d8', range: 1,
         className: 'cell-actor-wolfclan', char: 'w',
         type: 'wolfclan',
-        enemies: ['player', 'human', 'catfolk', 'dogfolk', 'bearfolk']
+        enemies: ['player', 'human', 'catfolk', 'dogfolk', 'bearfolk'],
+        brain: defaultBrain
     },
     {
         name: 'wolfclan brave', base: 'WolfclanBase', danger: 4,
@@ -476,7 +498,8 @@ const Actors = [
     {
         name: 'DogfolkBase', dontCreate: true,
         className: 'cell-actor-dogfolk', char: 'd', type: 'dogfolk',
-        enemies: ['player', 'catfolk', 'wolfclan']
+        enemies: ['player', 'catfolk', 'wolfclan'],
+        brain: defaultBrain
     },
     {
         name: 'dogfolk hunter', base: 'DogfolkBase',
@@ -542,7 +565,7 @@ const Actors = [
     {
       name: 'HyrkhianBase', dontCreate: true, className: 'cell-actor-hyrkh',
       noRandom: true, char: '@', enemies: ['undead', 'demon', 'animal'],
-      brain: 'Human', type: 'hyrkhian'
+      type: 'hyrkhian', brain: defaultBrain
     },
     {
       name: 'Hyrkhian footman', base: 'HyrkhianBase',
@@ -598,6 +621,12 @@ const Actors = [
     }
 ];
 
+//---------------------------------------------------------------------------
+// HELPER FUNCTIONS
+// These are used to scale the values of all actors. This is useful for
+// fine-tuning the game balance.
+//---------------------------------------------------------------------------
+
 // Multiplies each given value in all actors
 Actors.scaleValue = function(actors, valName, multiply) {
     actors.forEach(actor => {
@@ -607,7 +636,7 @@ Actors.scaleValue = function(actors, valName, multiply) {
     });
 };
 
-// Adds to the given value in all actors
+// Adds to the given value in all actors (subtract by giving negative number)
 Actors.addValue = function(actors, valName, addedVal) {
     actors.forEach(actor => {
         if (Number.isInteger(actor[valName])) {
@@ -621,11 +650,15 @@ Actors.scale = {
     hp: 1
 };
 
+// Adds the given value for
 Actors.add = {
     attack: 4
 };
 
-/* Should be called to apply the adjusted values. */
+/* Should be called to apply the adjusted values. It's not called by default, as
+ * changing the values breaks unit tests fairly easily. If
+ * RG.ObjectShell.getParser()
+ * is used (recommended), the adjustment is applied automatically. */
 Actors.adjustActorValues = actors => {
     Object.keys(Actors.scale).forEach(item => {
         Actors.scaleValue(actors, item, Actors.scale[item]);
