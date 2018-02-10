@@ -59,7 +59,7 @@ RG.Factory.Game = function() {
                 att: pConf.att, def: pConf.def, prot: pConf.prot
             });
 
-            player.setType('player');
+            player.setType(obj.playerRace);
             player.add(new RG.Component.Health(pConf.hp));
             this.addActorClass(obj, player);
             player.add(new RG.Component.Skills());
@@ -87,6 +87,10 @@ RG.Factory.Game = function() {
                 30 * RG.ACTION_DUR);
             game.addEvent(regenPlayerPP);
         }
+
+        // Add to the CSS class table
+        RG.addCellStyle(RG.TYPE_ACTOR, player.getName(), 'cell-actor-player');
+
         return player;
     };
 
@@ -122,7 +126,7 @@ RG.Factory.Game = function() {
                 actorClass.advanceLevel(); // Advance to level 1
             }
             else {
-                RG.err('Factory.Game', 'createPlayerUnlessLoaded',
+                RG.err('Factory.Game', 'addActorClass',
                     `${obj.playerClass} not found in ActorClass.`);
             }
         }
