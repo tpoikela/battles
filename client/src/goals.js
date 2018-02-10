@@ -312,7 +312,7 @@ class GoalGotoActor extends GoalFollowPath {
     activate() {
         const [x, y] = this.xy;
         const [aX, aY] = [this.actor.getX(), this.actor.getY()];
-        console.log(`${this.getType()} ${aX},${aY} -> ${x},${y}`);
+        this.dbg(`${this.getType()} ${aX},${aY} -> ${x},${y}`);
         const map = this.actor.getLevel().getMap();
         const path = Path.getActorToActorPath(map, aX, aY, x, y);
         this.dbg(`activate() path length: ${path.length}`);
@@ -353,13 +353,12 @@ class GoalPatrol extends GoalBase {
     process() {
         this.activateIfInactive();
         this.status = this.processSubGoals();
-        console.log(`GoalPatrol process(), got subStatus: ${this.status}`);
+        this.dbg(`GoalPatrol process(), got subStatus: ${this.status}`);
         const firstGoal = this.subGoals[0];
         if (firstGoal.isCompleted()) {
             this.nextPatrolPoint();
         }
         else if (firstGoal.hasFailed()) {
-            console.log('GoalPatrol GOT FAILED');
             this.dbg(`${this.getType()} process() path failed`);
             const [x, y] = this.actor.getXY();
             const [patrolX, patrolY] = this.currTarget;
