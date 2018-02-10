@@ -90,7 +90,7 @@ describe('How Game is created from Overworld', function() {
         // To load previous stage quickly
         const loadGame = true;
         const pName = 'Xanthur';
-        const loadTurn = 8000;
+        const loadTurn = 85000;
         const saveGameEnabled = true;
         let driver = new PlayerDriver();
 
@@ -120,8 +120,8 @@ describe('How Game is created from Overworld', function() {
         // game.movePlayer(aX - 1, 0);
 
         // Execute game in try-catch so we can dump save data on failure
-        const mult = 4;
-        const maxTurns = mult * 2500;
+        const mult = 5;
+        const maxTurns = mult * 20000;
         try {
             const startI = loadGame ? loadTurn : 0;
             for (let nTurn = startI; nTurn < maxTurns; nTurn++) {
@@ -134,7 +134,7 @@ describe('How Game is created from Overworld', function() {
                 // Save the game between certain intervals
                 if (saveGameEnabled) {
                     if (nTurn > startI && (nTurn % (mult * 1000) === 0)) {
-                        if (maxTurns >= 8000) {
+                        if (maxTurns >= 8000) { // Don't save for short games
                             const json = newGame.toJSON();
                             json.driver = driver.toJSON();
                             const jsonStr = JSON.stringify(json);
