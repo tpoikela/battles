@@ -170,7 +170,7 @@ export default class GameStartScreen extends Component {
                     value={this.props.playerName}
                   />
                 </label>
-                <label>Enter a word:
+                <label>You can enter a seed here (optional):
                     <input
                         onChange={this.onSeedChange}
                         type='text'
@@ -228,6 +228,12 @@ export default class GameStartScreen extends Component {
                     currValue={this.props.settings.playerClass}
                     options={RG.ACTOR_CLASSES}
                     titleName='Player class'
+                  />
+                  <DropdownSelect
+                    callback={this.props.setPlayerRace}
+                    currValue={this.props.settings.playerRace}
+                    options={RG.ACTOR_RACES}
+                    titleName='Player race'
                   />
                 </div>
 
@@ -304,6 +310,7 @@ GameStartScreen.propTypes = {
   setGameLength: PropTypes.func.isRequired,
   setPlayMode: PropTypes.func.isRequired,
   setPlayerClass: PropTypes.func.isRequired,
+  setPlayerRace: PropTypes.func.isRequired,
 
   newGame: PropTypes.func.isRequired,
   selectedGame: PropTypes.string,
