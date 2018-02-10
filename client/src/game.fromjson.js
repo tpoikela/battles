@@ -41,11 +41,12 @@ RG.Game.FromJSON = function() {
         player.remove('StatsMods');
         player.remove('CombatMods');
 
-        player.setType('player');
+        player.setType(obj.type);
         player.setID(obj.id);
         id2entity[obj.id] = player;
         _dungeonLevel = obj.dungeonLevel;
 
+        RG.addCellStyle(RG.TYPE_ACTOR, obj.name, 'cell-actor-player');
         this._addEntityFeatures(obj, player);
         return player;
     };
