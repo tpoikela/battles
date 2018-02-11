@@ -631,7 +631,7 @@ RG.Map.Level = function() { // {{{2
     this.getConnections = () => {
         const conn = [];
         _p.elements.forEach(elem => {
-            if (elem.type === 'connection') {
+            if (elem.getType() === 'connection') {
                 conn.push(elem);
             }
         });
@@ -639,7 +639,6 @@ RG.Map.Level = function() { // {{{2
     };
 
     const _isStairs = elem => (/stairs(Down|Up)/).test(elem.getName());
-    const _isPassage = elem => elem.getName() === 'passage';
 
     this.setMap = map => {_map = map;};
     this.getMap = () => _map;
@@ -702,22 +701,13 @@ RG.Map.Level = function() { // {{{2
     /* Uses stairs for given actor if it's on top of the stairs.*/
     this.useStairs = actor => {
         const cell = _map.getCell(actor.getX(), actor.getY());
-        if (cell.hasStairs()) {
-            const stairs = cell.getStairs();
-            if (stairs.useStairs(actor)) {
+        if (cell.hasConnection()) {
+            const connection = cell.getConnection();
+            if (connection.useStairs(actor)) {
                 return true;
             }
             else {
-                RG.err('Level', 'useStairs', 'Failed to use the stairs.');
-            }
-        }
-        else if (cell.hasPassage()) {
-            const passage = cell.getPassage();
-            if (passage.useStairs(actor)) {
-                return true;
-            }
-            else {
-                RG.err('Level', 'useStairs', 'Failed to use the passage.');
+                RG.err('Level', 'useStairs', 'Failed to use connection.');
             }
         }
         return false;
@@ -725,7 +715,7 @@ RG.Map.Level = function() { // {{{2
 
     /* Adds one element into the level. */
     this.addElement = function(elem, x, y) {
-        if (_isStairs(elem) || _isPassage(elem)) {
+        if (elem.getType() === 'connection') {
             return this.addStairs(elem, x, y);
         }
         if (!RG.isNullOrUndef([x, y])) {
