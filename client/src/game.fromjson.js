@@ -372,10 +372,7 @@ RG.Game.FromJSON = function() {
     this.createElement = function(elem) {
         const elemObj = elem.obj;
         const type = elemObj.type;
-        if (/stairs/.test(type)) {
-            return this.createUnconnectedStairs(elem);
-        }
-        else if (type === 'passage') {
+        if (type === 'connection') {
             return this.createUnconnectedStairs(elem);
         }
         else if (type === 'shop') {
@@ -433,15 +430,13 @@ RG.Game.FromJSON = function() {
      * targetLevel (level ID) and targetStairs (x, y coordinates).
      */
     this.createUnconnectedStairs = elem => {
-        const x = elem.x;
-        const y = elem.y;
+        const {x, y} = elem;
         const id = elem.obj.srcLevel;
         const stairsId = `${id},${x},${y}`;
         const elemObj = elem.obj;
-        const sObj = new RG.Element.Stairs(elemObj.isDown);
+        const sObj = new RG.Element.Stairs(elemObj.name);
         stairsInfo[stairsId] = {targetLevel: elemObj.targetLevel,
             targetStairs: elemObj.targetStairs};
-        sObj.setType(elemObj.type);
         return sObj;
     };
 
