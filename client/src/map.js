@@ -55,12 +55,19 @@ RG.Map.Cell.prototype.hasProps = function() {
 
 /* Returns true if cell has stairs.*/
 RG.Map.Cell.prototype.hasStairs = function() {
-    return this.hasPropType('stairsUp') || this.hasPropType('stairsDown');
+    const propType = this.getConnection();
+    if (propType) {
+        const name = propType.getName();
+        return (/stairs(Up|Down)/).test(name);
+    }
+    return false;
 };
 
 /* Returns true if cell has passage to another tile. */
 RG.Map.Cell.prototype.hasPassage = function() {
-    return this.hasPropType('passage');
+    const propType = this.getConnection();
+    if (propType) {return propType.getName() === 'passage';}
+    return false;
 };
 
 RG.Map.Cell.prototype.hasShop = function() {
@@ -75,28 +82,29 @@ RG.Map.Cell.prototype.hasDoor = function() {
     return this.hasPropType('door');
 };
 
+RG.Map.Cell.prototype.hasConnection = function() {
+    return this.hasPropType('connection');
+};
+
 /* Return stairs in this cell, or null if there are none.*/
 RG.Map.Cell.prototype.getStairs = function() {
-    if (this.hasPropType('stairsUp')) {
-        return this.getPropType('stairsUp')[0];
-    }
-    else if (this.hasPropType('stairsDown')) {
-        return this.getPropType('stairsDown')[0];
+    if (this.hasStairs()) {
+        return this.getConnection();
     }
     return null;
 };
 
 RG.Map.Cell.prototype.getConnection = function() {
-  if (this.hasStairs()) {
-    return this.getStairs();
-  }
-  return this.getPassage();
+    if (this.hasPropType('connection')) {
+        return this.getPropType('connection')[0];
+    }
+    return null;
 };
 
 /* Returns passage in this cell, or null if not found. */
 RG.Map.Cell.prototype.getPassage = function() {
-    if (this.hasPropType('passage')) {
-        return this.getPropType('passage')[0];
+    if (this.hasPassage()) {
+        return this.getConnection();
     }
     return null;
 };
@@ -232,16 +240,13 @@ RG.Map.Cell.prototype.hasPropType = function(propType) {
 
     const keys = Object.keys(this._p);
     for (let i = 0; i < keys.length; i++) {
-    // for (const prop in this._p) {
-        // if (this._p.hasOwnProperty(prop)) {
-            const prop = keys[i];
-            const arrProps = this._p[prop];
-            for (let i = 0; i < arrProps.length; i++) {
-                if (arrProps[i].getType() === propType) {
-                    return true;
-                }
+        const prop = keys[i];
+        const arrProps = this._p[prop];
+        for (let j = 0; j < arrProps.length; j++) {
+            if (arrProps[j].getType() === propType) {
+                return true;
             }
-        // }
+        }
     }
     return false;
 };
@@ -616,7 +621,7 @@ RG.Map.Level = function() { // {{{2
     this.getPassages = () => {
         const res = [];
         _p.elements.forEach(elem => {
-            if (elem.type === 'passage') {
+            if (elem.getName() === 'passage') {
                 res.push(elem);
             }
         });
@@ -624,13 +629,17 @@ RG.Map.Level = function() { // {{{2
     };
 
     this.getConnections = () => {
-      let conn = this.getStairs();
-      conn = conn.concat(this.getPassages());
-      return conn;
+        const conn = [];
+        _p.elements.forEach(elem => {
+            if (elem.type === 'connection') {
+                conn.push(elem);
+            }
+        });
+        return conn;
     };
 
-    const _isStairs = elem => (/stairs(Down|Up)/).test(elem.getType());
-    const _isPassage = elem => elem.getType() === 'passage';
+    const _isStairs = elem => (/stairs(Down|Up)/).test(elem.getName());
+    const _isPassage = elem => elem.getName() === 'passage';
 
     this.setMap = map => {_map = map;};
     this.getMap = () => _map;
