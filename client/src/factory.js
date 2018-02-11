@@ -1018,7 +1018,7 @@ RG.Factory.World = function() {
         }
         else {
             const currConf = this.confStack.pop();
-            debug('Popped scope: ' + currConf.name);
+            this.debug('Popped scope: ' + currConf.name);
         }
     };
 
@@ -1032,7 +1032,7 @@ RG.Factory.World = function() {
         this.globalConf.sqrPerActor = sqrPerActor;
         this.globalConf.sqrPerItem = conf.sqrPerItem || RG.LOOT_MEDIUM_SQR;
         this.globalConf.set = true;
-        debug('globalConf set to ' + JSON.stringify(this.globalConf));
+        this.debug('globalConf set to ' + JSON.stringify(this.globalConf));
     };
 
     /* Returns a config value. */
@@ -1615,7 +1615,8 @@ RG.Factory.World = function() {
                     conf.connectLevels.forEach(conn => {
                         if (conn.length === 4) {
                             // conn has len 4, spread it out
-                            city.connectSubZones(...conn);
+                            // city.connectSubZones(...conn);
+                            city.abutQuarters(...conn);
                         }
                         else {
                             RG.err('Factory.World', 'createCity',
@@ -1716,6 +1717,7 @@ RG.Factory.World = function() {
      * location in the area. */
     this.createAreaZoneConnection = (area, zone, conf) => {
         _verif.verifyConf('createAreaZoneConnection', conf, ['x', 'y']);
+        this.debug('Creating area-zone connections');
 
         const x = conf.x;
         const y = conf.y;
@@ -1735,21 +1737,38 @@ RG.Factory.World = function() {
             tileStairsY = conf.levelY;
         }
 
-        // createZoneEntranceConnection(tileLevel, zone)
         if (typeof zone.getEntrances === 'function') {
             const entrances = zone.getEntrances();
             if (entrances.length > 0) {
-                const entranceStairs = entrances[0];
-                const entranceLevel = entranceStairs.getSrcLevel();
+                this.debug('Connecting area-zone by entrance');
+                let entryStairs = entrances[0];
+                const entryLevel = entryStairs.getSrcLevel();
+                const zoneType = zone.getType();
 
-                const isDown = !entranceStairs.isDown();
-                let name = isDown ? 'stairsDown' : 'stairsUp';
-                if (zone.getType() === 'city') {name = 'town';}
-                else if (zone.getType() === 'mountain') {name = 'mountain';}
+                if (zoneType === 'city' || zoneType === 'mountain') {
+                    const zoneStairs = this.createNewZoneConnects(zone,
+                        entryLevel);
+                    // Connection OK, remove the stairs
+                    if (zoneStairs.length > 0) {
+                        const sX = entryStairs.getX();
+                        const sY = entryStairs.getY();
+                        if (entryLevel.removeElement(entryStairs, sX, sY)) {
+                            entryStairs = zoneStairs;
+                        }
+                    }
+                }
 
-                const tileStairs = new Stairs(name, tileLevel, entranceLevel);
+                let name = '';
+                if (zoneType === 'city') {name = 'town';}
+                else if (zoneType === 'mountain') {name = 'mountain';}
+                else {
+                    const isDown = !entryStairs.isDown();
+                    name = isDown ? 'stairsDown' : 'stairsUp';
+                }
+
+                const tileStairs = new Stairs(name, tileLevel, entryLevel);
                 tileLevel.addStairs(tileStairs, tileStairsX, tileStairsY);
-                tileStairs.connect(entranceStairs);
+                tileStairs.connect(entryStairs);
             }
             else if (!conf.hasOwnProperty('connectToAreaXY')) {
                 const msg = `No entrances in ${zone.getHierName()}.`;
@@ -1772,69 +1791,125 @@ RG.Factory.World = function() {
         else if (conf.hasOwnProperty('connectToAreaXY')) {
             const connectionsXY = conf.connectToAreaXY;
             connectionsXY.forEach(conn => {
-                const nLevel = conn.nLevel;
-                const x = conn.levelX;
-                const y = conn.levelY;
-                const name = conn.name;
-
-                const zoneLevel = zone.findLevel(name, nLevel);
-                if (zoneLevel) {
-
-                    // Create new stairs for zone, unless connect obj has stairs
-                    // property.
-                    let zoneStairs = conn.stairs || null;
-
-                    // zoneStairs is either Element.Stairs or object telling
-                    // where stairs are found
-                    if (zoneStairs && !RG.isNullOrUndef([zoneStairs.getStairs])) {
-                        const stairsIndex = zoneStairs.getStairs;
-                        zoneStairs = zoneLevel.getStairs()[stairsIndex];
-                        if (!zoneStairs) {
-                            RG.err('xxx', 'yyy', 'kkk');
-                        }
-                    }
-
-                    if (!zoneStairs) {
-                        const freeCell = zoneLevel.getFreeRandCell();
-                        const zoneX = freeCell.getX();
-                        const zoneY = freeCell.getY();
-                        zoneStairs = new Stairs('stairsUp', zoneLevel, tileLevel);
-                        zoneLevel.addStairs(zoneStairs, zoneX, zoneY);
-                    }
-                    else if (typeof zoneStairs.getSrcLevel !== 'function') {
-                        const json = JSON.stringify(zoneStairs);
-                        RG.err('Factory.World', 'createAreaZoneConnection',
-                            `zoneStairs not a proper stairs object ${json}`);
-                    }
-
-                    // Create stairs for tileLevel and connect them to the zone
-                    // stairs
-                    let name = 'stairsDown'; // Default for dungeon
-                    if (zone.getType() === 'city') {name = 'town';}
-                    else if (zone.getType() === 'mountain') {name = 'mountain';}
-                    const tileStairs = new Stairs(name, tileLevel, zoneLevel);
-                    tileLevel.addStairs(tileStairs, x, y);
-                    try {
-                        tileStairs.connect(zoneStairs);
-                    }
-                    catch (e) {
-                        console.error(e);
-                        const jsonStr = JSON.stringify(zoneLevel, null, 1);
-                        let msg = `zoneLevel: ${jsonStr}`;
-                        msg += `\n\tzoneStairs: ${JSON.stringify(zoneStairs)}`;
-                        RG.err('Factory.World', 'createAreaZoneConnection',
-                            msg);
-                    }
-                }
-                else {
-                    let msg = `connectToAreaXY: ${JSON.stringify(conn)}`;
-                    msg += `zoneConf: ${JSON.stringify(conf)}`;
-                    RG.err('Factory.World', 'createAreaZoneConnection',
-                        `No level found. ${msg}`);
-                }
+                this.processConnObject(conn, zone, tileLevel);
             });
         }
 
+    };
+
+
+    /* Processes each 'connectToAreaXY' object. Requires current zone and tile
+     * level we are connecting to. Connection type depends on the type of zone.
+     */
+    this.processConnObject = (conn, zone, tileLevel) => {
+        const nLevel = conn.nLevel;
+        const x = conn.levelX;
+        const y = conn.levelY;
+        const name = conn.name;
+        this.debug(`Processing connection obj ${name}: ${x},${y}`);
+
+        const zoneLevel = zone.findLevel(name, nLevel);
+        if (zoneLevel) {
+
+            // Create new stairs for zone, unless connect obj has stairs
+            // property.
+            let zoneStairs = conn.stairs || null;
+
+            // zoneStairs is either Element.Stairs or object telling
+            // where stairs are found
+            if (zoneStairs && !RG.isNullOrUndef([zoneStairs.getStairs])) {
+                const stairsIndex = zoneStairs.getStairs;
+                zoneStairs = zoneLevel.getStairs()[stairsIndex];
+                if (!zoneStairs) {
+                    RG.err('xxx', 'yyy', 'kkk');
+                }
+                else {
+                    this.debug('conn found via getStairs connObject');
+                }
+            }
+
+            if (!zoneStairs) {
+                zoneStairs = this.createNewZoneConnects(zone, zoneLevel);
+            }
+            else if (typeof zoneStairs.getSrcLevel !== 'function') {
+                const json = JSON.stringify(zoneStairs);
+                RG.err('Factory.World', 'createAreaZoneConnection',
+                    `zoneStairs not a proper stairs object ${json}`);
+            }
+
+            // Create stairs for tileLevel and connect them to the zone
+            // stairs
+            let name = 'stairsDown'; // Default for dungeon
+            if (zone.getType() === 'city') {name = 'town';}
+            else if (zone.getType() === 'mountain') {name = 'mountain';}
+            const tileStairs = new Stairs(name, tileLevel, zoneLevel);
+            tileLevel.addStairs(tileStairs, x, y);
+
+            // zoneStairs can be either a single connection or an array of
+            // connections (for example for a city)
+            try {
+                tileStairs.connect(zoneStairs);
+            }
+            catch (e) {
+                console.error(e);
+                const jsonStr = JSON.stringify(zoneLevel, null, 1);
+                let msg = `zoneLevel: ${jsonStr}`;
+                msg += `\n\tzoneStairs: ${JSON.stringify(zoneStairs)}`;
+                RG.err('Factory.World', 'createAreaZoneConnection',
+                    msg);
+            }
+        }
+        else {
+            let msg = `connectToAreaXY: ${JSON.stringify(conn)}`;
+            msg += `zone: ${JSON.stringify(zone)}`;
+            RG.err('Factory.World', 'createAreaZoneConnection',
+                `No level found. ${msg}`);
+        }
+
+    };
+
+    /* Creates the actual connection objects such as stairs or passages, and
+     * adds them into the zone level. Returns the created objects for connecting
+     * them into the tile level. */
+    this.createNewZoneConnects = (zone, zoneLevel) => {
+        let zoneStairs = null;
+        if (zone.getType() === 'dungeon') {
+            this.debug('Creating dungeon connection');
+            const freeCell = zoneLevel.getFreeRandCell();
+            const zoneX = freeCell.getX();
+            const zoneY = freeCell.getY();
+            zoneStairs = new Stairs('stairsUp', zoneLevel);
+            zoneLevel.addStairs(zoneStairs, zoneX, zoneY);
+        }
+        else if (zone.getType() === 'city') {
+            this.debug('Creating new city edge connection');
+            let edge1 = RG.RAND.arrayGetRand(RG.CARDINAL_DIR);
+            let numTries = 10;
+            while (RG.World.edgeHasConnections(zoneLevel, edge1)) {
+                edge1 = RG.RAND.arrayGetRand(RG.CARDINAL_DIR);
+                --numTries;
+                if (numTries === 0) {
+                    RG.warn('Factory', 'createNewZoneConnects',
+                        'Could not connect level edge for city');
+                    break;
+                }
+            }
+            zoneStairs = RG.World.addExitsToEdge(zoneLevel, 'passage', edge1);
+            // Connection failed, resort to single point connection
+            if (zoneStairs.length === 0) {
+                const freeCell = zoneLevel.getFreeRandCell();
+                const zoneX = freeCell.getX();
+                const zoneY = freeCell.getY();
+                zoneStairs = new Stairs('stairsUp', zoneLevel);
+                zoneLevel.addStairs(zoneStairs, zoneX, zoneY);
+                this.debug('City edge connection failed. Added stairs');
+            }
+        }
+        else if (zone.getType() === 'mountain') {
+            this.debug('Creating new mountain south connection');
+            zoneStairs = RG.World.addExitsToEdge(zoneLevel, 'passage', 'south');
+        }
+        return zoneStairs;
     };
 
     this.addWorldID = function(conf, worldElem) {
@@ -1842,6 +1917,13 @@ RG.Factory.World = function() {
           worldElem.setID(conf.id);
       }
       this.worldElemByID[worldElem.getID()] = worldElem;
+    };
+
+    this.debug = msg => {
+        if (debug.enabled) {
+            const scope = this.getHierName();
+            debug(`|${scope}| ${msg}`);
+        }
     };
 };
 
