@@ -25,7 +25,8 @@ describe('How Game is created from Overworld', function() {
             sqrPerItem: 100,
             sqrPerActor: 100,
             yMult: 0.5,
-            playerClass: 'Blademaster'
+            playerClass: 'Blademaster',
+            playerRace: 'human'
         };
         const gameFact = new RG.Factory.Game();
         game = gameFact.createNewGame(conf);
@@ -88,7 +89,7 @@ describe('How Game is created from Overworld', function() {
         player.getInvEq().equipItem(magicSword);*/
 
         // To load previous stage quickly
-        const loadGame = true;
+        const loadGame = false;
         const pName = 'Xanthur';
         const loadTurn = 85000;
         const saveGameEnabled = true;
@@ -121,7 +122,7 @@ describe('How Game is created from Overworld', function() {
 
         // Execute game in try-catch so we can dump save data on failure
         const mult = 5;
-        const maxTurns = mult * 20000;
+        const maxTurns = mult * 30000;
         try {
             const startI = loadGame ? loadTurn : 0;
             for (let nTurn = startI; nTurn < maxTurns; nTurn++) {
@@ -134,11 +135,11 @@ describe('How Game is created from Overworld', function() {
                 // Save the game between certain intervals
                 if (saveGameEnabled) {
                     if (nTurn > startI && (nTurn % (mult * 1000) === 0)) {
+                        const fname = `save_dumps/${pName}_temp_${nTurn}.json`;
                         if (maxTurns >= 8000) { // Don't save for short games
                             const json = newGame.toJSON();
                             json.driver = driver.toJSON();
                             const jsonStr = JSON.stringify(json);
-                            const fname = `save_dumps/${pName}_temp_${nTurn}.json`;
                             console.log(`Saving/restoring game to ${fname}`);
                             fs.writeFileSync(fname, jsonStr);
                             const jsonParsed = JSON.parse(jsonStr);
