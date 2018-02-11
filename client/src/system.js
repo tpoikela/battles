@@ -772,6 +772,19 @@ RG.System.Movement = function(compTypes) {
             const msg = `You see a passage here leading to ${dir}.`;
             RG.gameMsg(msg);
         }
+        else if (newCell.hasConnection()) {
+            const connection = newCell.getConnection();
+            const level = connection.getTargetLevel();
+            let msg = 'You see an entrance here';
+
+            const parent = level.getParent();
+            if (parent) {
+                const name = RG.formatLocationName(level);
+                msg += `. It seems to be leading to ${name}`;
+            }
+            RG.gameMsg(msg);
+
+        }
 
         if (newCell.hasItems()) {
             const items = newCell.getProp('items');
