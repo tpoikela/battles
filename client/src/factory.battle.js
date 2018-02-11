@@ -6,6 +6,8 @@ RG.Factory = require('./factory');
 RG.Game = require('./game');
 RG.Game.Battle = require('./game.battle').Battle;
 RG.Game.Army = require('./game.battle').Army;
+RG.World = require('./world');
+
 
 /* Factory used for creating battles. */
 RG.Factory.Battle = function() {
@@ -101,16 +103,25 @@ RG.Factory.Battle = function() {
 
         if (level) {
             // Add connecting stairs between battle and area
-            const stairsBattle = new RG.Element.Stairs('stairsUp');
-            battleLevel.addElement(stairsBattle, 1, 1);
-            const stairsArea = new RG.Element.Stairs('stairsDown');
+            // TODO add passage tiling for the level
+            // const stairsBattle = new RG.Element.Stairs('stairsUp');
+            // battleLevel.addElement(stairsBattle, 1, 1);
+            const stairsArea = new RG.Element.Stairs('battle', level);
 
             // const randCell = level.getFreeRandCell();
             // level.addElement(stairsArea, randCell.getX(), randCell.getY());
 
             level.addElement(stairsArea, 4, 4);
 
-            stairsArea.connect(stairsBattle);
+            RG.World.addExitsToEdge(battleLevel);
+
+            const battleExits = battleLevel.getConnections();
+            stairsArea.connect(battleExits[0]);
+            for (let i = 1; i < battleExits.length; i++) {
+                battleExits[i].setTargetLevel(level);
+                battleExits[i].setTargetStairs(stairsArea);
+            }
+
         }
         return battle;
     };
