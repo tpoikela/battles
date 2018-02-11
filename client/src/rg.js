@@ -97,6 +97,9 @@ const RG = { // {{{2
         let lookupKey = null;
         if (propObj.getName) {
             lookupKey = propObj.getName();
+            if (!styles.hasOwnProperty(lookupKey)) {
+                lookupKey = propObj.getType();
+            }
         }
         else {
             lookupKey = propObj.getType();
