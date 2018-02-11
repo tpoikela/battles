@@ -151,12 +151,23 @@ class RGElementStairs extends Mixin.Locatable(RGElementBase) {
         return `${id},${x},${y}`;
     }
 
-    /* Connects to stairs together. */
+    /* Connects to stairs together. Creates multiple connections if given array
+     * of stairs. */
     connect(stairs) {
-        this.setTargetStairs(stairs);
-        stairs.setTargetStairs(this);
-        this.setTargetLevel(stairs.getSrcLevel());
-        stairs.setTargetLevel(this.getSrcLevel());
+        if (Array.isArray(stairs)) {
+            stairs.forEach(ss => {
+                ss.setTargetStairs(this);
+                ss.setTargetLevel(this.getSrcLevel());
+            });
+            this.setTargetStairs(stairs[0]);
+            this.setTargetLevel(stairs[0].getSrcLevel());
+        }
+        else {
+            this.setTargetStairs(stairs);
+            stairs.setTargetStairs(this);
+            this.setTargetLevel(stairs.getSrcLevel());
+            stairs.setTargetLevel(this.getSrcLevel());
+        }
     }
 
     isDown() {return (/stairsDown/).test(this.getName());}
