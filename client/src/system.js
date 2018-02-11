@@ -769,7 +769,12 @@ RG.System.Movement = function(compTypes) {
             const passage = newCell.getPassage();
             const level = passage.getSrcLevel();
             const dir = RG.getCardinalDirection(level, newCell);
-            const msg = `You see a passage here leading to ${dir}.`;
+            let msg = `You see a passage ${dir} here.`;
+            const parent = level.getParent();
+            if (parent) {
+                const name = RG.formatLocationName(level);
+                msg += `. It seems to be leading to ${name}`;
+            }
             RG.gameMsg(msg);
         }
         else if (newCell.hasConnection()) {
