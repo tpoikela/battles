@@ -94,31 +94,30 @@ const RG = { // {{{2
     getPropClassOrChar: function(styles, propObj) {
 
         // Return by name, this is for object shells generally
-        // Elements don't have name, type only
+        let lookupKey = null;
         if (propObj.getName) {
-            const name = propObj.getName();
-            if (styles.hasOwnProperty(name)) {
-                return styles[name];
-            }
+            lookupKey = propObj.getName();
+        }
+        else {
+            lookupKey = propObj.getType();
         }
 
-        const objType = propObj.getType();
         // By type is usually for basic elements
-        if (styles.hasOwnProperty(objType)) {
-            if (typeof styles[objType] === 'object') {
+        if (styles.hasOwnProperty(lookupKey)) {
+            if (typeof styles[lookupKey] === 'object') {
                 // Invoke a state querying function
-                for (const p in styles[objType]) {
+                for (const p in styles[lookupKey]) {
                     if (p !== 'default') {
                         const funcToCall = p;
                         if (propObj[funcToCall]()) {
-                            return styles[objType][p];
+                            return styles[lookupKey][p];
                         }
                     }
                 }
-                return styles[objType]['default'];
+                return styles[lookupKey]['default'];
 
             }
-            return styles[objType];
+            return styles[lookupKey];
         }
         else {
             return styles['default'];
@@ -222,6 +221,7 @@ const RG = { // {{{2
     // These are used to select rendered characters for map cells.
     charStyles: {
         elements: {
+            battle: 'o',
             bridge: '=',
             chasm: '~',
             default: '.',
@@ -233,6 +233,7 @@ const RG = { // {{{2
             fort: '#',
             grass: '"',
             highrock: '^',
+            mountain: '^',
             passage: '.',
             road: '.',
             shop: ':',
@@ -240,6 +241,7 @@ const RG = { // {{{2
             stairsDown: '>',
             stairsUp: '<',
             stone: '^',
+            town: 'o',
             tree: 'T',
             wall: '#',
             wallcave: '#',
@@ -273,6 +275,7 @@ const RG = { // {{{2
     // These are used to select the CSS class for map cells.
     cellStyles: {
         elements: {
+            battle: 'cell-element-battle',
             bridge: 'cell-element-bridge',
             chasm: 'cell-element-chasm',
             default: 'cell-element-default',
@@ -285,11 +288,13 @@ const RG = { // {{{2
             fort: 'cell-element-fort',
             grass: 'cell-element-grass',
             highrock: 'cell-element-highrock',
+            mountain: 'cell-element-mountain',
             passage: 'cell-element-passage',
             road: 'cell-element-road',
             shop: 'cell-element-shop',
             snow: 'cell-element-snow',
             stone: 'cell-element-stone',
+            town: 'cell-element-town',
             tree: 'cell-element-tree',
             wall: 'cell-element-wall',
             wallcave: 'cell-element-wall-cave',
