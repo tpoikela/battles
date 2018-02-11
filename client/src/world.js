@@ -249,8 +249,8 @@ function connectSubZoneEdges(subZones, sz1Arg, sz2Arg, l1, l2) {
     /* sz1Level.getMap().debugPrintInASCII();
     sz2Level.getMap().debugPrintInASCII();*/
 
-    const newExits1 = addExitsToEdge(sz1Level, 'passage', edge1, true);
-    const newExits2 = addExitsToEdge(sz2Level, 'passage', edge2, true);
+    const newExits1 = addExitsToEdge(sz1Level, 'exit', edge1, true);
+    const newExits2 = addExitsToEdge(sz2Level, 'exit', edge2, true);
 
     /* sz1Level.getMap().debugPrintInASCII();
     sz2Level.getMap().debugPrintInASCII();*/
