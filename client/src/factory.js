@@ -1436,7 +1436,8 @@ RG.Factory.World = function() {
             createStairs.forEach(sConf => {
                 if (sConf.nLevel === nLevel) {
                     const {x, y, isDown} = sConf;
-                    const stairs = new Stairs(isDown, level);
+                    const name = isDown ? 'stairsDown' : 'stairsUp';
+                    const stairs = new Stairs(name, level);
                     level.addStairs(stairs, x, y);
                 }
             });
@@ -1740,8 +1741,13 @@ RG.Factory.World = function() {
             if (entrances.length > 0) {
                 const entranceStairs = entrances[0];
                 const entranceLevel = entranceStairs.getSrcLevel();
+
                 const isDown = !entranceStairs.isDown();
-                const tileStairs = new Stairs(isDown, tileLevel, entranceLevel);
+                let name = isDown ? 'stairsDown' : 'stairsUp';
+                if (zone.getType() === 'city') {name = 'town';}
+                else if (zone.getType() === 'mountain') {name = 'mountain';}
+
+                const tileStairs = new Stairs(name, tileLevel, entranceLevel);
                 tileLevel.addStairs(tileStairs, tileStairsX, tileStairsY);
                 tileStairs.connect(entranceStairs);
             }
@@ -1792,7 +1798,7 @@ RG.Factory.World = function() {
                         const freeCell = zoneLevel.getFreeRandCell();
                         const zoneX = freeCell.getX();
                         const zoneY = freeCell.getY();
-                        zoneStairs = new Stairs(false, zoneLevel, tileLevel);
+                        zoneStairs = new Stairs('stairsUp', zoneLevel, tileLevel);
                         zoneLevel.addStairs(zoneStairs, zoneX, zoneY);
                     }
                     else if (typeof zoneStairs.getSrcLevel !== 'function') {
@@ -1803,7 +1809,10 @@ RG.Factory.World = function() {
 
                     // Create stairs for tileLevel and connect them to the zone
                     // stairs
-                    const tileStairs = new Stairs(true, tileLevel, zoneLevel);
+                    let name = 'stairsDown'; // Default for dungeon
+                    if (zone.getType() === 'city') {name = 'town';}
+                    else if (zone.getType() === 'mountain') {name = 'mountain';}
+                    const tileStairs = new Stairs(name, tileLevel, zoneLevel);
                     tileLevel.addStairs(tileStairs, x, y);
                     try {
                         tileStairs.connect(zoneStairs);
