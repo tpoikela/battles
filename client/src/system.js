@@ -767,9 +767,9 @@ RG.System.Movement = function(compTypes) {
         }
         else if (newCell.hasPassage()) {
             const passage = newCell.getPassage();
-            const level = passage.getSrcLevel();
+            const level = passage.getTargetLevel();
             const dir = RG.getCardinalDirection(level, newCell);
-            let msg = `You see a passage ${dir} here.`;
+            let msg = `You see a passage to ${dir} here.`;
             const parent = level.getParent();
             if (parent) {
                 const name = RG.formatLocationName(level);
