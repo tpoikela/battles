@@ -3,6 +3,40 @@
  * dungeons, dungeon branches etc.
  */
 
+const addExitsToEdge = (level, edge = 'any') => {
+    const map = level.getMap();
+    const cols = map.cols;
+    const rows = map.rows;
+    for (let row = 0; row < rows; row++) {
+        if (edge === 'any' || edge === 'west') {
+            if (map.isPassable(0, row)) {
+                const exitWest = new RG.Element.Stairs('passage', level);
+                level.addElement(exitWest, 0, row);
+            }
+        }
+        if (edge === 'any' || edge === 'east') {
+            if (map.isPassable(cols - 1, row)) {
+                const exitEast = new RG.Element.Stairs('passage', level);
+                level.addElement(exitEast, cols - 1, row);
+            }
+        }
+    }
+    for (let col = 0; col < cols; col++) {
+        if (edge === 'any' || edge === 'north') {
+            if (map.isPassable(col, 0)) {
+                const exitNorth = new RG.Element.Stairs('passage', level);
+                level.addElement(exitNorth, col, 0);
+            }
+        }
+        if (edge === 'any' || edge === 'south') {
+            if (map.isPassable(col, rows - 1)) {
+                const exitSouth = new RG.Element.Stairs('passage', level);
+                level.addElement(exitSouth, col, rows - 1);
+            }
+        }
+    }
+};
+
 /* Returns stairs leading to other zones. Used only for testing
 * purposes. */
 function getStairsOther(name, levels) {
@@ -61,7 +95,7 @@ function connectLevels(_levels) {
         // Create stairs down
         if (nl < nLevels - 1) {
             const targetDown = _levels[nl + 1];
-            const stairsDown = new Stairs(true, src, targetDown);
+            const stairsDown = new Stairs('stairsDown', src, targetDown);
             const stairCell = src.getFreeRandCell();
             src.addStairs(stairsDown, stairCell.getX(), stairCell.getY());
             arrStairsDown.push(stairsDown);
@@ -70,7 +104,7 @@ function connectLevels(_levels) {
         // Create stairs up
         if (nl > 0) {
             const targetUp = _levels[nl - 1];
-            const stairsUp = new Stairs(false, src, targetUp);
+            const stairsUp = new Stairs('stairsUp', src, targetUp);
             const stairCell = src.getFreeRandCell();
             src.addStairs(stairsUp, stairCell.getX(), stairCell.getY());
             arrStairsUp.push(stairsUp);
@@ -93,7 +127,8 @@ function connectLevelToStairs(levels, nLevel, stairs) {
 
         if (!RG.isNullOrUndef([otherQuartLevel])) {
             const down = !stairs.isDown();
-            const newStairs = new Stairs(down,
+            const name = down ? 'stairsDown' : 'stairsUp';
+            const newStairs = new Stairs(name,
                 level, otherQuartLevel);
             const cell = level.getFreeRandCell();
             level.addStairs(newStairs, cell.getX(), cell.getY());
@@ -131,7 +166,8 @@ function connectSubZones(subZones, q1Arg, q2Arg, l1, l2) {
 
     let s2IsDown = true;
     if (l1 > l2) {s2IsDown = false;}
-    const b2Stairs = new Stairs(s2IsDown);
+    const name = s2IsDown ? 'stairsDown' : 'stairsUp';
+    const b2Stairs = new Stairs(name);
     const b2Levels = q2.getLevels();
     if (l2 < b2Levels.length) {
         const cell = b2Levels[l2].getFreeRandCell();
@@ -178,6 +214,7 @@ RG.Factory = require('./factory');
 const Stairs = RG.Element.Stairs;
 
 RG.World = {};
+RG.World.addExitsToEdge = addExitsToEdge;
 
 //----------------
 // RG.World.Base
@@ -365,7 +402,7 @@ RG.World.Branch = function(name) {
     };
 
     this.addEntrance = function(levelNumber) {
-        const entrStairs = new Stairs(false);
+        const entrStairs = new Stairs('stairsUp');
         this.setEntrance(entrStairs, levelNumber);
     };
 
@@ -570,13 +607,10 @@ RG.World.AreaTile = function(x, y, area) {
                 const cellEast = mapEast.getCell(0, y);
 
                 if (cell.isFree() && cellEast.isFree()) {
-                    const stairs = new Stairs(true, _level, levelEast);
-                    const stairsEast = new Stairs(false, levelEast, _level);
+                    const stairs = new Stairs('passage', _level, levelEast);
+                    const stairsEast = new Stairs('passage', levelEast, _level);
                     stairs.setTargetStairs(stairsEast);
                     stairsEast.setTargetStairs(stairs);
-
-                    stairs.setType('passage');
-                    stairsEast.setType('passage');
 
                     _level.addStairs(stairs, lastX, y);
                     levelEast.addStairs(stairsEast, 0, y);
@@ -596,13 +630,10 @@ RG.World.AreaTile = function(x, y, area) {
                 const cellSouth = mapSouth.getCell(x, 0);
 
                 if (cell.isFree() && cellSouth.isFree()) {
-                    const stairs = new Stairs(true, _level, levelSouth);
-                    const stairsSouth = new Stairs(false, levelSouth, _level);
+                    const stairs = new Stairs('passage', _level, levelSouth);
+                    const stairsSouth = new Stairs('passage', levelSouth, _level);
                     stairs.setTargetStairs(stairsSouth);
                     stairsSouth.setTargetStairs(stairs);
-
-                    stairs.setType('passage');
-                    stairsSouth.setType('passage');
 
                     _level.addStairs(stairs, x, lastY);
                     levelSouth.addStairs(stairsSouth, x, 0);
@@ -903,7 +934,7 @@ RG.World.MountainFace = function(name) {
     this.addEntrance = levelNumber => {
         if (_entrance === null) {
             const level = _levels[levelNumber];
-            const stairs = new Stairs(true, level);
+            const stairs = new Stairs('stairsDown', level);
             const map = level.getMap();
             const midX = Math.floor(map.cols / 2);
             const maxY = map.rows - 1;
@@ -1060,7 +1091,7 @@ RG.World.CityQuarter = function(name) {
     this.addEntrance = levelNumber => {
         if (_entrance === null) {
             const level = _levels[levelNumber];
-            const stairs = new Stairs(true, level);
+            const stairs = new Stairs('stairsDown', level);
             level.addStairs(stairs, 1, 1);
             _entrance = {levelNumber, x: 1, y: 1};
         }
