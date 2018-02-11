@@ -1883,18 +1883,17 @@ RG.Factory.World = function() {
         }
         else if (zone.getType() === 'city') {
             this.debug('Creating new city edge connection');
-            let edge1 = RG.RAND.arrayGetRand(RG.CARDINAL_DIR);
-            let numTries = 10;
-            while (RG.World.edgeHasConnections(zoneLevel, edge1)) {
-                edge1 = RG.RAND.arrayGetRand(RG.CARDINAL_DIR);
-                --numTries;
-                if (numTries === 0) {
-                    RG.warn('Factory', 'createNewZoneConnects',
-                        'Could not connect level edge for city');
-                    break;
+            let allEdgeExits = [];
+            RG.CARDINAL_DIR.forEach(dir => {
+                if (!RG.World.edgeHasConnections(zoneLevel, dir)) {
+                    const exits = RG.World.addExitsToEdge(zoneLevel,
+                        'passage', dir);
+                    if (exits.length > 0) {
+                        allEdgeExits = allEdgeExits.concat(exits);
+                    }
                 }
-            }
-            zoneStairs = RG.World.addExitsToEdge(zoneLevel, 'passage', edge1);
+            });
+            zoneStairs = allEdgeExits;
             // Connection failed, resort to single point connection
             if (zoneStairs.length === 0) {
                 const freeCell = zoneLevel.getFreeRandCell();
@@ -1907,7 +1906,8 @@ RG.Factory.World = function() {
         }
         else if (zone.getType() === 'mountain') {
             this.debug('Creating new mountain south connection');
-            zoneStairs = RG.World.addExitsToEdge(zoneLevel, 'passage', 'south');
+            zoneStairs = RG.World.addExitsToEdge(zoneLevel,
+                'passage', 'south', true);
         }
         return zoneStairs;
     };

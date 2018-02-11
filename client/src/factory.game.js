@@ -306,9 +306,6 @@ RG.Factory.Game = function() {
                 };
                 this.addNRandActors(splitLevels[x][y], _parser, actorConf);
 
-                const id = splitLevels[x][y].getID();
-                console.log(`Tile[${x}][${y}] ID: ${id}`);
-
             }
         }
 
