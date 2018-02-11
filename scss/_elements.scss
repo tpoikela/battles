@@ -67,7 +67,6 @@ $door-bg-color: $floor-bg-color;
     color: $black;
 }
 
-
 .cell-element-shop {
     background-color: $shop-bg-color;
     color: $white;
@@ -150,8 +149,27 @@ $door-bg-color: $floor-bg-color;
     color: $white;
 }
 
+//----------------------
+// CONNECTIONS/STAIRS
+//----------------------
+
+.cell-element-battle {
+    background-color: $ground-color;
+    color: $blue;
+}
+
 .cell-element-passage {
     background-color: $floor-bg-color;
     color: $white;
+}
+
+.cell-element-mountain {
+    background-color: $ground-color;
+    color: $white;
+}
+
+.cell-element-town {
+    background-color: $ground-color;
+    color: $brown;
 }
 
