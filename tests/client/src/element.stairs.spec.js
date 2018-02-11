@@ -9,18 +9,19 @@ const Stairs = RG.Element.Stairs;
 
 describe('Element.Stairs', () => {
     it('has down-attr, prop type, type and name', () => {
-        const s = new Stairs(true);
+        const s = new Stairs('stairsDown');
 
         expect(s.isDown()).to.equal(true);
         expect(s.getPropType()).to.equal(RG.TYPE_ELEM);
 
         expect(s.getType()).to.not.be.empty;
-        expect(s.getType()).to.equal('stairsDown');
+        expect(s.getType()).to.equal('connection');
+        expect(s.getName()).to.equal('stairsDown');
     });
 
     it('can be connected to other stairs', () => {
-        const s1 = new Stairs(true);
-        const s2 = new Stairs(false);
+        const s1 = new Stairs('stairsDown');
+        const s2 = new Stairs('stairsUp');
 
         const l1 = RGTest.createLevel('arena', 20, 20);
         const l2 = RGTest.createLevel('arena', 20, 20);
@@ -35,8 +36,8 @@ describe('Element.Stairs', () => {
     });
 
     it('can be serialized', () => {
-        const s1 = new Stairs(true);
-        const s2 = new Stairs(false);
+        const s1 = new Stairs('stairsDown');
+        const s2 = new Stairs('stairsUp');
 
         const l1 = RGTest.createLevel('arena', 20, 20);
         const l2 = RGTest.createLevel('arena', 20, 20);
@@ -56,5 +57,11 @@ describe('Element.Stairs', () => {
         const fromJSON = new FromJSON();
         const s3 = fromJSON.createUnconnectedStairs(jsonWithXY);
         expect(s3.isDown()).to.equal(s1.isDown());
+    });
+
+    it('can represent a generic passage', () => {
+        const s1 = new Stairs('passage');
+        expect(s1.getType()).to.equal('connection');
+        expect(s1.isConnected()).to.equal(false);
     });
 });

@@ -294,8 +294,8 @@ describe('Moving actors around in the game', () => {
         const level2 = Factory.createLevel('arena', 20, 20);
         const player = Factory.createPlayer('Player', {});
 
-        const stairs1 = new Stairs(true, level1, level2);
-        const stairs2 = new Stairs(false, level2, level1);
+        const stairs1 = new Stairs('stairsDown', level1, level2);
+        const stairs2 = new Stairs('stairsUp', level2, level1);
         stairs1.setTargetStairs(stairs2);
         stairs2.setTargetStairs(stairs1);
 
@@ -304,14 +304,19 @@ describe('Moving actors around in the game', () => {
 
         const map1 = level1.getMap();
         const map2 = level2.getMap();
-        expect(map1.getCell(2, 2).hasPropType('stairsDown')).to.equal(false);
-        expect(map2.getCell(10, 10).hasPropType('stairsUp')).to.equal(false);
+        expect(map1.getCell(2, 2).hasPropType('connection')).to.equal(false);
+        expect(map2.getCell(10, 10).hasPropType('connection')).to.equal(false);
 
         // Now add stairs and check they exist in the cells
         level1.addStairs(stairs1, 2, 2);
         level2.addStairs(stairs2, 10, 10);
-        expect(map1.getCell(2, 2).hasPropType('stairsDown')).to.equal(true);
-        expect(map2.getCell(10, 10).hasPropType('stairsUp')).to.equal(true);
+
+        const cell22 = map1.getCell(2, 2);
+        expect(cell22.hasStairs()).to.equal(true);
+        expect(cell22.hasConnection()).to.equal(true);
+        expect(cell22.hasPassage()).to.equal(false);
+        expect(cell22.hasPropType('connection')).to.equal(true);
+        expect(map2.getCell(10, 10).hasPropType('connection')).to.equal(true);
 
         const refStairs1 = level1.getMap().getCell(2, 2).getStairs();
         expect(refStairs1).to.equal(stairs1);
@@ -335,8 +340,8 @@ describe('Moving actors around in the game', () => {
 
         // Check level with two stairs to different levels
         const level3 = Factory.createLevel('arena', 30, 30);
-        const stairsDown23 = new Stairs(true, level2, level3);
-        const stairsUp32 = new Stairs(false, level2, level3);
+        const stairsDown23 = new Stairs('stairsDown', level2, level3);
+        const stairsUp32 = new Stairs('stairsUp', level2, level3);
         level2.addStairs(stairsDown23, 12, 13);
         level3.addStairs(stairsUp32, 6, 7);
         stairsDown23.setTargetStairs(stairsUp32);

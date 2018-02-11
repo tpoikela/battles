@@ -75,7 +75,7 @@ describe('Map.Level', () => {
 
     it('has a list of elements', () => {
         const level1 = RGTest.createLevel('arena', 20, 20);
-        const stairs = new Stairs('true', level1);
+        const stairs = new Stairs('stairsDown', level1);
         const elem1 = new Door(true);
         level1.addElement(elem1, 2, 2);
         level1.addElement(stairs, 3, 3);
@@ -86,7 +86,7 @@ describe('Map.Level', () => {
     it('has stairs as elements', () => {
         const level1 = RGTest.createLevel('arena', 20, 20);
         const level2 = RGTest.createLevel('arena', 20, 20);
-        const stairs = new Stairs(true, level1, level2);
+        const stairs = new Stairs('stairsDown', level1, level2);
         level1.addStairs(stairs, 5, 5);
 
         let sList = level1.getElements();
@@ -107,8 +107,8 @@ describe('Map.Level', () => {
     it('can be serialized with objects', () => {
         const level1 = RGTest.createLevel('arena', 20, 20);
         const level2 = RGTest.createLevel('arena', 20, 20);
-        const stairs = new Stairs(true, level1, level2);
-        const stairs2 = new Stairs(false, level2, level1);
+        const stairs = new Stairs('stairsDown', level1, level2);
+        const stairs2 = new Stairs('stairsUp', level2, level1);
 
         expect(level1.addStairs(stairs, 2, 2)).to.be.true;
         expect(level2.addStairs(stairs2, 3, 4)).to.be.true;

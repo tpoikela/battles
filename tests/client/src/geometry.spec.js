@@ -68,7 +68,7 @@ describe('RG.Geometry', () => {
         const item2 = new RG.Item.Weapon('sword');
         l2.addItem(item2, 4, 5);
 
-        const stairs2 = new RG.Element.Stairs(true, l2);
+        const stairs2 = new RG.Element.Stairs('stairsDown', l2);
         l2.addStairs(stairs2, 7, 8);
 
         const mX = 2;

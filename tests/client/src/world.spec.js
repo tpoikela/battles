@@ -49,7 +49,7 @@ describe('World.Dungeon', () => {
             dungeon.addBranch(branch);
             branches.push(branch);
             branchNames.push(brName);
-            const entrStairs = new RG.Element.Stairs(false);
+            const entrStairs = new RG.Element.Stairs('stairsUp');
             branch.setEntrance(entrStairs, 0);
         }
         expect(branches[0].getDungeon()).to.equal(dungeon);
@@ -150,7 +150,8 @@ describe('World.Mountain', () => {
         face.addLevel(level);
         expect(face.getEntrance()).to.be.null;
         face.addEntrance(0);
-        expect(face.getEntrance().getType()).to.match(/stairs/);
+        expect(face.getEntrance().getName()).to.match(/stairs/);
+        expect(face.getEntrance().getType()).to.equal('connection');
         expect(face.getLevels()).to.have.length(1);
 
         mountain.addFace(face);
@@ -195,7 +196,7 @@ describe('World.CityQuarter', () => {
         q.addLevel(level);
         expect(q.getLevels()).to.have.length(1);
         q.addEntrance(0);
-        expect(q.getEntrance().getType()).to.match(/stairs/);
+        expect(q.getEntrance().getName()).to.match(/stairs/);
 
     });
 });

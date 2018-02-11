@@ -117,8 +117,8 @@ describe('RG.Game.FromJSON', function() {
         const game = new RG.Game.Main();
         const level1 = RGTest.createLevel('arena', 10, 10);
         const level2 = RGTest.createLevel('arena', 10, 10);
-        const s1 = new RG.Element.Stairs(true, level1, level2);
-        const s2 = new RG.Element.Stairs(false, level2, level1);
+        const s1 = new RG.Element.Stairs('stairsDown', level1, level2);
+        const s2 = new RG.Element.Stairs('stairsUp', level2, level1);
         s1.connect(s2);
         level1.addStairs(s1, 1, 1);
         level2.addStairs(s2, 2, 2);

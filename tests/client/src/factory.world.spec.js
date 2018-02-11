@@ -189,21 +189,24 @@ describe('Factory.World', function() {
         const area = world.getAreas()[0];
         expect(area.getParent().getName()).to.equal('ww');
         const areaLevel = area.getTileXY(0, 0).getLevel();
-        const stairs0 = areaLevel.getStairs()[0];
-        expect(stairs0.getX()).to.equal(4);
-        expect(stairs0.getY()).to.equal(7);
 
-        const stairs1 = areaLevel.getStairs()[1];
-        expect(stairs1.getX()).to.equal(8);
-        expect(stairs1.getY()).to.equal(9);
+        const townConnect0 = areaLevel.getConnections()[0];
+        expect(townConnect0.getX()).to.equal(4);
+        expect(townConnect0.getY()).to.equal(7);
+        expect(townConnect0.getName()).to.equal('town');
+
+        const townConnect1 = areaLevel.getConnections()[1];
+        expect(townConnect1.getX()).to.equal(8);
+        expect(townConnect1.getY()).to.equal(9);
+        expect(townConnect1.getName()).to.equal('town');
 
 
     });
 
     it('can create a city with preset levels/created stairs', () => {
         const level = RG.FACT.createLevel('arena', 20, 20, {});
-        const stairs1 = new RG.Element.Stairs(true, level);
-        const stairs2 = new RG.Element.Stairs(false, level);
+        const stairs1 = new RG.Element.Stairs('stairsDown', level);
+        const stairs2 = new RG.Element.Stairs('stairsUp', level);
         level.addStairs(stairs1, 1, 1);
         level.addStairs(stairs2, 15, 15);
 
