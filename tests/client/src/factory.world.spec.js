@@ -262,7 +262,10 @@ describe('Factory.World', function() {
         const l1 = qSide.getLevels()[1];
 
         expect(l0.getStairs()).to.have.length(1);
-        expect(l1.getStairs()).to.have.length(2);
+        expect(l1.getStairs()).to.have.length(1);
+
+        // expect(l0.getConnections().length).to.be.above(10);
+        expect(l1.getConnections().length).to.be.above(10);
 
         const qStairs = l1.getStairs();
         console.log(JSON.stringify(qStairs[0]));
