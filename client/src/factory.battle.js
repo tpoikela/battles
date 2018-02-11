@@ -101,9 +101,9 @@ RG.Factory.Battle = function() {
 
         if (level) {
             // Add connecting stairs between battle and area
-            const stairsBattle = new RG.Element.Stairs(false);
+            const stairsBattle = new RG.Element.Stairs('stairsUp');
             battleLevel.addElement(stairsBattle, 1, 1);
-            const stairsArea = new RG.Element.Stairs(true);
+            const stairsArea = new RG.Element.Stairs('stairsDown');
 
             // const randCell = level.getFreeRandCell();
             // level.addElement(stairsArea, randCell.getX(), randCell.getY());
