@@ -111,7 +111,7 @@ RG.Factory.Battle = function() {
             // const randCell = level.getFreeRandCell();
             // level.addElement(stairsArea, randCell.getX(), randCell.getY());
 
-            level.addElement(stairsArea, 4, 4);
+            level.addStairs(stairsArea, 4, 4);
 
             RG.World.addExitsToEdge(battleLevel);
 
