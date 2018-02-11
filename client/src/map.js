@@ -495,9 +495,12 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
             let row = '';
             for (let x = 0; x < this.cols; x++) {
                 const cell = this._map[x][y];
+                const baseType = cell.getBaseElem().getType();
                 if (cell.getStairs() !== null) {row += '>';}
-                else if (cell.getBaseElem().getType() === 'floor') {row += '.';}
-                else {row += '#';}
+                else if ((/floor/).test(baseType)) {row += '.';}
+                else if ((/water/).test(baseType)) {row += '~';}
+                else if ((/wall/).test(baseType)) {row += '#';}
+                else {row += '?';}
             }
             mapInASCII += row + '\n';
         }
