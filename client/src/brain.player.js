@@ -757,6 +757,50 @@ class BrainPlayer {
       }
 
       if (cmdType === 'MOVE') {
+          return this.moveCmd(level, currMap, x, y);
+      }
+      else if (cmdType === 'REST') {
+        this.energy = RG.energy.REST;
+        return () => {};
+      }
+
+      return this.noAction();
+    }
+
+    hasPowers() {
+        return !!this._actor.getBook();
+    }
+
+    /* Sets the action to be confirmed using callback. Emits an optional
+     * messages to ask for confirmation. */
+    setWantConfirm(confirmCallback, msg = '') {
+        this._wantConfirm = true;
+        this._confirmCallback = confirmCallback;
+        if (msg !== '') {RG.gameMsg(msg);}
+    }
+
+    /* If there are multiple items per cell, digs next item to the top.*/
+    getNextItemOnTop(cell) {
+        if (cell.hasProp('items')) {
+            const items = cell.getProp('items');
+            let name = items[0].getName();
+            if (items.length > 1) {
+                const firstItem = items.shift();
+                items.push(firstItem);
+                name = items[0].getName();
+                RG.gameMsg('You see now ' + name + ' on top of the heap.');
+            }
+            else {
+                RG.gameMsg('You see only ' + name + ' here');
+            }
+        }
+        else {
+            RG.gameMsg('There are no items here to look through');
+        }
+    }
+
+    /* Executes the move command/attack command for the player. */
+    moveCmd(level, currMap, x, y) {
         if (currMap.hasXY(x, y)) {
           if (currMap.isPassable(x, y)) {
 
@@ -799,6 +843,14 @@ class BrainPlayer {
               return this.noAction();
             }
           }
+          else if (this._actor.has('Flying') && currMap.isPassableByAir(x, y)) {
+            this.resetBoosts();
+            this.energy = RG.energy.MOVE;
+            return () => {
+              const movComp = new RG.Component.Movement(x, y, level);
+              this._actor.add('Movement', movComp);
+            };
+          }
           else {
             const msg = RG.getImpassableMsg(this._actor,
               currMap.getCell(x, y), 'You');
@@ -816,45 +868,6 @@ class BrainPlayer {
         else {
             const msg = 'You cannot move there.';
             return this.cmdNotPossible(msg);
-        }
-      }
-      else if (cmdType === 'REST') {
-        this.energy = RG.energy.REST;
-        return () => {};
-      }
-
-      return this.noAction();
-    }
-
-    hasPowers() {
-        return !!this._actor.getBook();
-    }
-
-    /* Sets the action to be confirmed using callback. Emits an optional
-     * messages to ask for confirmation. */
-    setWantConfirm(confirmCallback, msg = '') {
-        this._wantConfirm = true;
-        this._confirmCallback = confirmCallback;
-        if (msg !== '') {RG.gameMsg(msg);}
-    }
-
-    /* If there are multiple items per cell, digs next item to the top.*/
-    getNextItemOnTop(cell) {
-        if (cell.hasProp('items')) {
-            const items = cell.getProp('items');
-            let name = items[0].getName();
-            if (items.length > 1) {
-                const firstItem = items.shift();
-                items.push(firstItem);
-                name = items[0].getName();
-                RG.gameMsg('You see now ' + name + ' on top of the heap.');
-            }
-            else {
-                RG.gameMsg('You see only ' + name + ' here');
-            }
-        }
-        else {
-            RG.gameMsg('There are no items here to look through');
         }
     }
 } // Brain.Player
