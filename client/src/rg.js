@@ -686,6 +686,8 @@ const RG = { // {{{2
         'bearfolk', 'dwarf', 'human', 'hyrkhian'],
 
     // Constants for movement directions
+    CARDINAL_DIR: Object.freeze(['north', 'south', 'east', 'west']),
+
     DIR: {
         N: [0, -1],
         S: [0, 1],
