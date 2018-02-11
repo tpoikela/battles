@@ -162,7 +162,8 @@ const Actors = [
     {
         name: 'humanoid', char: 'h', type: 'humanoid',
         attack: 1, defense: 1, damage: '1d4', range: 1, hp: 10,
-        danger: 2, brain: defaultBrain
+        danger: 2, brain: defaultBrain,
+        enemies: ['human', 'player']
     },
 
     // BEARFOLK
