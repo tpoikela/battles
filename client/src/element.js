@@ -16,10 +16,26 @@ const obstacleRegexp = /(highrock|water|chasm|wall)/;
 /* Element is a wall or other obstacle or a feature in the map. It's not
  * necessarily blocking movement.  */
 class RGElementBase extends Mixin.Typed(Entity) {
-    constructor(elemType) {
-        super({propType: RG.TYPE_ELEM, type: elemType});
+    constructor(elemName, elemType) {
+        let name = null;
+        let type = null;
+        // To support args passing via Mixin
+        if (typeof elemName === 'object') {
+            name = elemName.name;
+            type = elemName.type;
+        }
+        else { // To allow name/type without object
+            name = elemName;
+            type = elemType;
+        }
+        type = type || name;
+        super({propType: RG.TYPE_ELEM, type});
         RG.elementsCreated += 1; // Used for debugging only
+        this._name = name;
     }
+
+    getName() {return this._name;}
+    setName(name) {this._name = name;}
 
     isObstacle() {
         return obstacleRegexp.test(this.getType());
@@ -47,6 +63,7 @@ class RGElementBase extends Mixin.Typed(Entity) {
         const components = RG.Component.compsToJSON(this);
         const obj = {
             id: this.getID(),
+            name: this.getName(),
             type: this.getType(),
             components
         };
@@ -65,11 +82,8 @@ RG.elementsCreated = 0;
  * connecting 2 levels requires two stair objects. */
 class RGElementStairs extends Mixin.Locatable(RGElementBase) {
 
-    constructor(down, srcLevel, targetLevel) {
-        if (down) {super('stairsDown');}
-        else {super('stairsUp');}
-
-        this._down = down;
+    constructor(name, srcLevel, targetLevel) {
+        super({name, type: 'connection'});
         this._srcLevel = srcLevel;
         this._targetLevel = targetLevel;
         this._targetStairs = null;
@@ -145,7 +159,7 @@ class RGElementStairs extends Mixin.Locatable(RGElementBase) {
         stairs.setTargetLevel(this.getSrcLevel());
     }
 
-    isDown() {return this._down;}
+    isDown() {return (/stairsDown/).test(this.getName());}
 
     /* Target actor uses the stairs.*/
     useStairs(actor) {
@@ -170,7 +184,7 @@ class RGElementStairs extends Mixin.Locatable(RGElementBase) {
     /* Serializes the Stairs object. */
     toJSON() {
         const json = {
-            isDown: this.isDown(),
+            name: this.getName(),
             type: this.getType()
         };
         if (this._srcLevel) {
