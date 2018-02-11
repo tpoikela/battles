@@ -271,8 +271,8 @@ const GameMaster = function(game) {
                 const selection = RG.codeToIndex(code);
                 if (selection === 0) {
                     return () => {
-                        const stairs = level.getStairs()[0];
-                        if (!stairs.useStairs(player)) {
+                        const exit = level.getConnections()[0];
+                        if (!exit.useStairs(player)) {
                             RG.err('GameMaster', 'moveActorsOutOfBattle',
                                 'Cannot move player out of battle via useStairs');
                         }
