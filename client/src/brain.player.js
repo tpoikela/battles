@@ -723,10 +723,7 @@ class BrainPlayer {
 
         if (RG.KeyMap.isUseStairs(code)) {
           cmdType = 'STAIRS';
-          if (currCell.hasStairs()) {
-            return () => {level.useStairs(this._actor);};
-          }
-          else if (currCell.hasPassage()) {
+          if (currCell.hasConnection()) {
             return () => {level.useStairs(this._actor);};
           }
           else {
