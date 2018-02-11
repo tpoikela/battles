@@ -163,6 +163,11 @@ $door-bg-color: $floor-bg-color;
     color: $white;
 }
 
+.cell-element-exit {
+    background-color: $floor-bg-color;
+    color: $yellow;
+}
+
 .cell-element-mountain {
     background-color: $floor-bg-color;
     color: $white;
