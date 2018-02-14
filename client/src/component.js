@@ -1298,6 +1298,18 @@ RG.Component.Commander = function() {
 };
 RG.extend2(RG.Component.Commander, RG.Component.Base);
 
+
+RG.Component.Reputation = function() {
+    RG.Component.Base.call(this, 'Reputation');
+
+    let _data = null;
+
+    this.setData = data => {_data = data;};
+    this.getData = () => _data;
+    this.updateData = data => {_data = Object.assign(_data, data);};
+};
+RG.extend2(RG.Component.Reputation, RG.Component.Base);
+
 //--------------------------------------------
 // Comps that add or remove other components
 //--------------------------------------------
