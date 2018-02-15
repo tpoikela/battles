@@ -180,17 +180,49 @@ RGTest.equipItems = function(ent, items) {
 
 /* Can be used to catch the emitted game messages. */
 RGTest.MsgCatcher = function() {
+    this.filters = [];
 
     this.hasNotify = true;
+    this.enabled = true;
     this.notify = (evtName, msgObj) => {
+        if (!this.enabled) {return;}
+
         const {msg, cell} = msgObj;
-        console.log('\tMsg: |' + msg + '|');
+        let hasMatch = false;
+
+        if (this.filters.length > 0) {
+            this.filters.forEach(filter => {
+                if (filter.test(msg)) {
+                    hasMatch = true;
+                }
+            });
+        }
+        else {
+            hasMatch = true;
+        }
+
+        if (hasMatch) {
+            console.log('\tMsg: |' + msg + '|');
+        }
         if (cell) {
             console.log('\tFrom cell: |' + JSON.stringify(cell) + '|');
         }
     };
 
     RG.POOL.listenEvent(RG.EVT_MSG, this);
+
+    /* Adds a message filter to select which messages to print. */
+    this.addFilter = filter => {
+        if (typeof filter === 'string') {
+            this.filters.push(new RegExp(filter));
+        }
+        else {
+            this.filters.push(filter);
+        }
+
+    };
+
+    this.disable = () => {this.enabled = false;};
 };
 
 RGTest.createBoundGem = function() {
