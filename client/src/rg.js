@@ -252,6 +252,7 @@ const RG = { // {{{2
             wallcrypt: '#',
             wallice: '#',
             wallwooden: '#',
+            wallmount: '^',
             water: '~',
             // Elements with different states
             door: {
@@ -306,6 +307,7 @@ const RG = { // {{{2
             wallcrypt: 'cell-element-wall-crypt',
             wallice: 'cell-element-wall-ice',
             wallwooden: 'cell-element-wall-wooden',
+            wallmount: 'cell-element-wall-mount',
             water: 'cell-element-water'
         },
         actors: {
@@ -1411,6 +1413,10 @@ RG.setAllExplored = (level, isExplored) => {
             cell.setExplored(isExplored);
         }
     }
+};
+
+RG.inSameLevel = (ent1, ent2) => {
+    return ent1.getLevel().getID() === ent2.getLevel().getID();
 };
 
 /* Returns a game message for cell which cannot be travelled. */
