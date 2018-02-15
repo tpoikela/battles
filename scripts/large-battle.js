@@ -21,6 +21,9 @@ const battleName = 'Demon war';
 const battle = new RG.Game.Battle(battleName);
 battle.setLevel(level);
 
+const gameMaster = game.getGameMaster();
+RG.POOL.removeListener(gameMaster);
+
 const armyDemons = new RG.Game.Army('Demons');
 const armyHumans = new RG.Game.Army('Humans');
 
