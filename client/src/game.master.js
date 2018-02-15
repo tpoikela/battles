@@ -56,7 +56,8 @@ const GameMaster = function(game) {
             const level = this.player.getLevel();
             const id = level.getID();
             if (!this.battles.hasOwnProperty(id)) {
-                this.battles[id] = this.fact.createBattle(level);
+                const battle = this.fact.createBattle(level);
+                this.battles[id] = battle;
                 this.game.addBattle(this.battles[id]);
             }
         }
@@ -64,11 +65,6 @@ const GameMaster = function(game) {
             const {battle} = args;
             debug(`EVT_BATTLE_OVER: ${battle.getName()}`);
             const id = battle.getLevel().getID();
-            const parentId = battle.getLevel().getParent();
-
-            if (!this.battles.hasOwnProperty(parentId)) {
-                return;
-            }
 
             debug(`1. battlesDone for ${id}: ${this.battlesDone[id]}`);
             if (!this.battlesDone[id] && battle) {
