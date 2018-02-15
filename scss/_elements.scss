@@ -105,6 +105,10 @@ $door-bg-color: $floor-bg-color;
     color: $white;
 };
 
+.cell-element-wall-mount {
+    background-color: $floor-bg-color;
+    color: $brown;
+};
 
 .cell-element-water {
     background-color: $floor-bg-color;
@@ -155,7 +159,7 @@ $door-bg-color: $floor-bg-color;
 
 .cell-element-battle {
     background-color: $floor-bg-color;
-    color: $blue;
+    color: $red;
 }
 
 .cell-element-passage {
