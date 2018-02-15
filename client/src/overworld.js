@@ -426,7 +426,7 @@ function addSubLevelWalls(type, owSubLevel, subLevel) {
             const tile = [];
             if (width === 1) {width = MEAN_WX;}
             for (let x = midX - (width - 1); x <= midX + (width - 1); x++) {
-                map.setBaseElemXY(x, y, RG.ELEM.WALL);
+                map.setBaseElemXY(x, y, RG.ELEM.WALL_MOUNT);
                 tile.push([x, y]);
             }
             wall.addWallCoord(tile);
@@ -457,7 +457,7 @@ function addSubLevelWalls(type, owSubLevel, subLevel) {
             const tile = [];
             if (width === 1) {width = MEAN_WY;}
             for (let y = midY - (width - 1); y <= midY + (width - 1); y++) {
-                map.setBaseElemXY(x, y, RG.ELEM.WALL);
+                map.setBaseElemXY(x, y, RG.ELEM.WALL_MOUNT);
                 tile.push([x, y]);
             }
             wall.addWallCoord(tile);
