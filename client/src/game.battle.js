@@ -149,7 +149,7 @@ const Battle = function(name) {
     this.setStats = stats => {_stats = stats;};
 
     /* Adds an army to given x,y location.*/
-    this.addArmy = (army, x, y, conf) => {
+    this.addArmy = (army, x, y, conf = {}) => {
         const horizontal = conf.horizontal ? true : false;
         const numRows = conf.numRows > 0 ? conf.numRows : 1;
 
