@@ -37,6 +37,8 @@ RG.OverWorld = {};
 const cityTypesRe = /(capital|city|abandoned fort|fort|village)/;
 const twoEntranceCityRe = /(dwarven city|abandoned fort|capital)/;
 
+const MOUNTAIN_TYPE = RG.ELEM.WALL_MOUNT.getType();
+
 // Used for debugging only
 const playerTileX = 1;
 const playerTileY = 1;
@@ -654,7 +656,7 @@ function addDungeonToSubLevel(owSubLevel, subLevel) {
             if (!placed) {
                 if (map.hasXY(xyBox[0], xyBox[1])) {
                     const elem = map.getBaseElemXY(xyBox[0], xyBox[1]);
-                    if (elem.getType() === 'wall') {
+                    if (elem.getType() === MOUNTAIN_TYPE) {
                         coord = [xyBox];
                         placed = true;
                         map.setBaseElemXY(xyBox[0], xyBox[1], RG.ELEM.FLOOR);
