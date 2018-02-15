@@ -224,7 +224,7 @@ const RG = { // {{{2
     // These are used to select rendered characters for map cells.
     charStyles: {
         elements: {
-            battle: 'o',
+            battle: 'X',
             bridge: '=',
             chasm: '~',
             default: '.',
