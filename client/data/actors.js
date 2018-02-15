@@ -1,6 +1,7 @@
 /* Contains the in-game actors. */
 
 const defaultBrain = 'GoalOriented';
+const demonBrain = 'GoalOriented';
 
 /* Instructions:
  *   base: 'baseName' inherits all properties from the base object (expect
@@ -277,29 +278,33 @@ const Actors = [
     {
         name: 'Winter demon', type: 'demon', char: '&',
         attack: 5, defense: 5, protection: 2, damage: '3d3', range: 1,
-        hp: 30, danger: 10, brain: 'Demon', base: 'WinterBeingBase'
+        hp: 30, danger: 10, brain: demonBrain, base: 'WinterBeingBase'
     },
     {
         name: 'Stormrider', type: 'demon', char: '&',
         attack: 6, defense: 6, protection: 3, damage: '3d3', range: 1,
-        hp: 40, danger: 12, brain: 'Demon', base: 'WinterBeingBase',
+        hp: 40, danger: 12, brain: demonBrain, base: 'WinterBeingBase',
         equip: ['Permaice short sword']
     },
-    // TODO: Ice djinn
+    {
+        name: 'Ice djinn', type: 'demon', char: '&',
+        attack: 7, defense: 6, protection: 6, damage: '3d5+5', range: 1,
+        hp: 45, danger: 14, brain: demonBrain, base: 'WinterBeingBase'
+    },
     {
         name: 'Blizzard beast', type: 'demon', char: 'B',
-        attack: 7, defense: 6, protection: 4, damage: '3d5+5', range: 1,
-        hp: 50, danger: 16, brain: 'Demon', base: 'WinterBeingBase'
+        attack: 7, defense: 6, protection: 8, damage: '3d5+5', range: 1,
+        hp: 50, danger: 16, brain: demonBrain, base: 'WinterBeingBase'
     },
     {
         name: 'Frost Titan', type: 'giant', char: 'H',
-        attack: 7, defense: 7, protection: 10, damage: '5d5', range: 1,
-        hp: 80, danger: 18, brain: 'Demon', base: 'WinterBeingBase'
+        attack: 8, defense: 7, protection: 12, damage: '5d5', range: 1,
+        hp: 80, danger: 18, brain: demonBrain, base: 'WinterBeingBase'
     },
     {
         name: 'Frostburn monarch', type: 'demon', char: 'M',
-        attack: 7, defense: 6, protection: 6, damage: '4d5', range: 1,
-        hp: 70, danger: 20, brain: 'Demon', base: 'WinterBeingBase'
+        attack: 10, defense: 10, protection: 10, damage: '4d5', range: 1,
+        hp: 70, danger: 20, brain: demonBrain, base: 'WinterBeingBase'
     },
     // DWARVES
     {
@@ -565,7 +570,7 @@ const Actors = [
     // HYRKHIANS
     {
       name: 'HyrkhianBase', dontCreate: true, className: 'cell-actor-hyrkh',
-      noRandom: true, char: '@', enemies: ['undead', 'demon', 'animal'],
+      noRandom: true, char: 'H', enemies: ['undead', 'demon', 'animal'],
       type: 'hyrkhian', brain: defaultBrain
     },
     {
