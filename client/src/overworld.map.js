@@ -1,4 +1,10 @@
 
+/* This file contains the first layer of overworld generation. It generates tile
+ * map where each tile represents an area of Map.Cells, for example 10x10.
+ * This tile map has one feature (town/mountain/dungeon) per tile, to keep the
+ * overworld map useful for navigation and seeing details.
+ */
+
 const RG = require('./rg');
 RG.Random = require('./random');
 
