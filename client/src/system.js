@@ -2,6 +2,8 @@
 const RG = require('./rg.js');
 RG.Path = require('./path');
 
+const debug = require('debug')('bitn:System');
+
 RG.SYS = {};
 RG.SYS.ANIMATION = Symbol();
 RG.SYS.ATTACK = Symbol();
@@ -119,6 +121,15 @@ RG.System.Base = function(type, compTypes) {
         }
     };
 
+    /* For printing out debug information. */
+    this.dbg = msg => {
+        if (debug.enabled) {
+            const nEnt = Object.keys(this.entities).length;
+            let descr = `[System ${this.type}]`;
+            descr += ` nEntities: ${nEnt}`;
+            console.log(`${descr} ${msg}`);
+        }
+    };
 };
 
 /* Processes entities with attack-related components.*/
@@ -583,10 +594,18 @@ RG.System.Damage = function(compTypes) {
     const _giveBattleExpToSource = (att) => {
         if (!att.has('BattleExp')) {
             const inBattleComp = att.get('InBattle');
-            const name = inBattleComp.getData().name;
-            const comp = new RG.Component.BattleExp();
-            comp.setData({kill: 0, name});
-            att.add(comp);
+            const data = inBattleComp.getData();
+            if (data) {
+                const name = data.name;
+                const comp = new RG.Component.BattleExp();
+                comp.setData({kill: 0, name});
+                att.add(comp);
+            }
+            else {
+                const msg = `Actor: ${JSON.stringify(att)}`;
+                RG.err('System.Damage', '_giveBattleExpToSource',
+                    `InBattle data is null. Actor: ${msg}`);
+            }
         }
         att.get('BattleExp').getData().kill += 1;
     };
@@ -1772,10 +1791,9 @@ RG.System.Battle = function(compTypes) {
         if (ent.has('BattleExp')) {
             const data = ent.get('BattleExp').getData();
             const bName = data.name;
+            const badge = this._getBadgeForBattle(bName, ent);
             if (data.kill > 0) {
                 addSkillsExp(ent, 'Battle', data.kill);
-                const badges = ent.getList('BattleBadge');
-                const badge = badges.filter(b => b.getData().name === bName)[0];
                 if (badge) {
                     badge.updateData({kill: data.kill});
                 }
@@ -1783,10 +1801,28 @@ RG.System.Battle = function(compTypes) {
                     const msg = `No badge found for battle ${msg}`;
                     RG.err('System.Battle', 'updateEntity', msg);
                 }
+
             }
+
+            // Add some reputation for winner
+            if (badge.isWon()) {
+                let rep = null;
+                if (!ent.has('Reputation')) {
+                    rep = new RG.Component.Reputation();
+                    ent.add(rep);
+                }
+                rep.addToFame(1);
+            }
+
             ent.remove('BattleExp');
         }
         ent.remove(comp);
+    };
+
+    this._getBadgeForBattle = (bName, ent) => {
+        const badges = ent.getList('BattleBadge');
+        const badge = badges.find(b => b.getData().name === bName);
+        return badge;
     };
 };
 RG.extend2(RG.System.Battle, RG.System.Base);
