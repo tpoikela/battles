@@ -33,6 +33,7 @@ RG.Factory.Battle = function() {
 
         const [fact1, fact2] = this.getFactions(conf);
 
+        const numRows = conf.numRows || 2;
         const armySize = conf.armySize || 20;
         const numArmies = conf.numArmies || 2;
         const facts = conf.armies || [fact1, fact2];
@@ -44,12 +45,16 @@ RG.Factory.Battle = function() {
 
             // Assign random but legal coords to the army
             let armyX = RG.RAND.getUniformInt(0, cols - 1);
-            const armyY = RG.RAND.getUniformInt(0, rows - 1);
+            let armyY = RG.RAND.getUniformInt(0, rows - 1);
             if ((armyX + armySize) > (cols - 1)) {
                 armyX = cols - armySize;
             }
+            if ((armyY + numRows) > (rows - 1)) {
+                armyY = rows - 1 - numRows;
+            }
 
-            battle.addArmy(army, armyX, armyY);
+            const battleConf = {horizontal: true, numRows};
+            battle.addArmy(army, armyX, armyY, battleConf);
             armies.push(army);
         }
 
