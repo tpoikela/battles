@@ -1320,6 +1320,7 @@ RG.Component.Reputation = function() {
     this.updateData = data => {_data = Object.assign(_data, data);};
 
     this.addToFame = nFame => {
+        if (!_data) {_data = {};}
         if (_data.hasOwnProperty('fame')) {
             _data.fame += nFame;
         }
