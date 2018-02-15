@@ -11,8 +11,10 @@ const Goal = require('./goals');
 
 const Evaluator = {};
 
+// Should be returned if evaluator is not applicable to current situation
 Evaluator.NOT_POSSIBLE = -1;
 
+/* Base class for all evaluators. Provides only the basic constructor. */
 class EvaluatorBase {
 
     constructor(actorBias) {
@@ -26,6 +28,8 @@ class EvaluatorBase {
     setActorGoal() {
         throw new Error('Pure virtual function');
     }
+
+    isOrder() {return false;}
 
 }
 Evaluator.Base = EvaluatorBase;
@@ -163,7 +167,8 @@ class EvaluatorOrders extends EvaluatorBase {
         // Evaluate difficulty of goal
         const commanderMult = 1.0;
         const goalCateg = this.goal.getCategory();
-        const mult = goalCateg === Goal.Types.Kill ? 0.5 : 1.0;
+        let mult = goalCateg === Goal.Types.Kill ? 0.5 : 1.0;
+        mult *= this.actorBias;
         if (this.srcActor.has('Commander')) {
             return mult * commanderMult;
         }
@@ -185,6 +190,7 @@ class EvaluatorOrders extends EvaluatorBase {
         this.subEval = evaluator;
     }
 
+    isOrder() {return true;}
 
 }
 Evaluator.Orders = EvaluatorOrders;
