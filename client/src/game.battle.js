@@ -149,18 +149,33 @@ const Battle = function(name) {
     this.setStats = stats => {_stats = stats;};
 
     /* Adds an army to given x,y location.*/
-    this.addArmy = (army, x, y, horizontal = true) => {
+    this.addArmy = (army, x, y, conf) => {
+        const horizontal = conf.horizontal ? true : false;
+        const numRows = conf.numRows > 0 ? conf.numRows : 1;
+
         if (!RG.isNullOrUndef([_level])) {
             _armies.push(army);
             const actors = army.getActors();
+            const actorsPerRow = Math.ceil(actors.length / numRows);
+
             if (horizontal) {
-                for (let i = 0; i < actors.length; i++) {
-                    _level.addActor(actors[i], x + i, y);
+                let i = 0;
+                for (let row = 0; row < numRows; row++) {
+                    for (let xPos = 0; xPos < actorsPerRow; xPos++) {
+                        if (i < actors.length) {
+                            _level.addActor(actors[i++], x + xPos, y + row);
+                        }
+                    }
                 }
             }
             else {
-                for (let i = 0; i < actors.length; i++) {
-                    _level.addActor(actors[i], x, y + i);
+                let i = 0;
+                for (let row = 0; row < numRows; row++) {
+                    for (let yPos = 0; yPos < actorsPerRow; yPos++) {
+                        if (i < actors.length) {
+                            _level.addActor(actors[i++], x + row, y + yPos);
+                        }
+                    }
                 }
             }
         }
