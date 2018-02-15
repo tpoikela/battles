@@ -4,6 +4,7 @@ const RG = require('../../../client/src/battles.js');
 const Game = require('../../..//client/src/game.js');
 
 const BattleFact = require('../../../client/src/factory.battle');
+// const RGTest = require('../../roguetest');
 
 const {Army} = require('../../../client/src/game.battle');
 
@@ -41,9 +42,10 @@ describe('Game.Battle', () => {
 
         const conf = {
             cols: 20, rows: 10,
-            armySize: 10
+            armySize: 10, centerX: true, centerY: true
         };
         const battle = new BattleFact().createBattle(areaLevel, conf);
+        battle.getLevel().setParent(areaLevel);
         game.addBattle(battle);
 
         const armies = battle.getArmies();
