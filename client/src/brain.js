@@ -125,7 +125,11 @@ RG.Brain.Memory = function() {
         }
     };
 
-    /* Adds given actor as (personal) enemy.*/
+    this.addEnemySeenCell = cell => {
+        this._actors.enemySeen = [cell.getX(), cell.getY()];
+    };
+
+    /* Adds given actor as (personal) enemy. */
     this.addEnemy = actor => {
         if (!this.isEnemy(actor)) {
             if (this.isFriend(actor)) {
@@ -336,6 +340,7 @@ RG.Brain.Rogue.prototype.findEnemyCell = function(seenCells) {
         const actors = cells[i].getActors();
         if (this._memory.isEnemy(actors[0])) {
             if (this._memory.wasLastAttacked(actors[0])) {
+                this._memory.addEnemySeenCell(cells[i]);
                 return cells[i];
             }
             else {
@@ -344,7 +349,11 @@ RG.Brain.Rogue.prototype.findEnemyCell = function(seenCells) {
         }
     }
     // Return random enemy cell to make behav less predictable
-    if (enemyCells.length > 0) {return RG.RAND.arrayGetRand(enemyCells);}
+    if (enemyCells.length > 0) {
+        const randEnemyCell = RG.RAND.arrayGetRand(enemyCells);
+        this._memory.addEnemySeenCell(randEnemyCell);
+        return randEnemyCell;
+    }
     return null;
 };
 
@@ -432,6 +441,36 @@ RG.Brain.Rogue.prototype.tryToMoveTowardsCell = function(cell) {
     else {
         return NO_ACTION_TAKEN; // Don't move, rest
     }
+};
+
+/* Returns all friends that are visible to the brain's actor. */
+RG.Brain.Rogue.prototype.getSeenFriends = function() {
+    const friends = [];
+    const memory = this.getMemory();
+    const seenCells = this.getSeenCells();
+    const cells = RG.Brain.findCellsWithActors(this._actor, seenCells);
+    for (let i = 0; i < cells.length; i++) {
+        const actors = cells[i].getActors();
+        if (memory.isFriend(actors[0])) {
+            friends.push(actors[0]);
+        }
+    }
+    return friends;
+};
+
+/* Returns all enemies that are visible to the brain's actor. */
+RG.Brain.Rogue.prototype.getSeenEnemies = function() {
+    const enemies = [];
+    const memory = this.getMemory();
+    const seenCells = this.getSeenCells();
+    const cells = RG.Brain.findCellsWithActors(this._actor, seenCells);
+    for (let i = 0; i < cells.length; i++) {
+        const actors = cells[i].getActors();
+        if (memory.isEnemy(actors[0])) {
+            enemies.push(actors[0]);
+        }
+    }
+    return enemies;
 };
 
 /* Based on seenCells, AI explores the unexplored free cells, or picks on
@@ -794,7 +833,6 @@ RG.Brain.GoalOriented = function(actor) {
     RG.Brain.Rogue.call(this, actor);
     this.setType('GoalOriented');
     this.goal = new GoalsTop.ThinkBasic(actor);
-
 
     /* Must return function. */
     this.decideNextAction = function() {
