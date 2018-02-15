@@ -53,6 +53,15 @@ RG.Factory.Battle = function() {
                 armyY = rows - 1 - numRows;
             }
 
+            if (conf.centerX) {
+                armyX = Math.floor(cols / 2);
+                armyX -= Math.floor(armySize / numRows / 2);
+            }
+            if (conf.centerY) {
+                armyY = Math.floor(rows / 2);
+                armyY -= i * (numRows + 2);
+            }
+
             const battleConf = {horizontal: true, numRows};
             battle.addArmy(army, armyX, armyY, battleConf);
             armies.push(army);
