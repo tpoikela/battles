@@ -44,7 +44,8 @@ class GoalBase {
         if (debug.enabled) {
             const ind = '  '.repeat(IND);
             const name = this.actor.getName();
-            debug(`${ind}[${this.getType()}] ${this.status} ${name} ${msg}`);
+            const typeAndStat = `[${this.getType()}] ${this.status}`;
+            console.log(`${ind}${typeAndStat} ${name} ${msg}`);
         }
     }
 
@@ -94,6 +95,8 @@ class GoalBase {
     }
 
     terminate() {
+        this.dbg('Goal terminated!');
+        this.status = GOAL_COMPLETED;
     }
 
     handleMsg(obj) {
@@ -105,6 +108,8 @@ class GoalBase {
     processSubGoals() {
         ++IND;
         let status = '';
+        this.dbg('Start processSubGoals()');
+
         if (Array.isArray(this.subGoals)) {
             // Clean up any failed/completed goals
             this.removeFinishedOrFailed();
@@ -121,8 +126,11 @@ class GoalBase {
             }
         }
         else {
-            throw new Error('No subgoals in atomic goal');
+            const name = this.actor.getName();
+            const msg = `Type: ${this.type}, actor: ${name}`;
+            throw new Error(`${msg} No subgoals in atomic goal`);
         }
+
         --IND;
         this.dbg(`End processSubGoals() with status ${status}`);
         if (debug.enabled) {
@@ -145,7 +153,7 @@ class GoalBase {
             this.subGoals.forEach(goal => {goal.terminate();});
             this.subGoals = [];
         }
-        this.dbg(`${this.type} removed all subGoals`);
+        this.dbg('Removed all subGoals');
     }
 
     addSubGoal(goal) {
@@ -153,7 +161,7 @@ class GoalBase {
             this.subGoals = [];
         }
         this.subGoals.unshift(goal);
-        this.dbg(`${this.type} added subGoal ${goal.getType()}`);
+        this.dbg(`Added subGoal ${goal.getType()}`);
         this.dbg(`   Subgoals are now: ${this.subGoals.map(g => g.getType())}`);
     }
 
@@ -267,6 +275,7 @@ class GoalMoveUntilEnemy extends GoalBase {
     }
 
     activate() {
+        this.timeout = 100;
         this.status = GOAL_ACTIVE;
     }
 
@@ -280,17 +289,28 @@ class GoalMoveUntilEnemy extends GoalBase {
         const map = this.actor.getLevel().getMap();
 
         if (enemyCell) {
+            const [eX, eY] = [enemyCell.getX(), enemyCell.getY()];
+            this.dbg(`Has moved enough. Enemy found @${eX},${eY}`);
             this.status = GOAL_COMPLETED;
         }
         else if (map.hasObstacle(nextX, nextY)) {
             this.status = GOAL_FAILED;
+            this.dbg('OBSTACLE ENCOUNTERED');
+        }
+        else if (this.timeout === 0) {
+            this.status = GOAL_FAILED;
+            this.dbg('TIMEOUT REACHED');
         }
         else if (map.isPassable(nextX, nextY)) {
             const level = this.actor.getLevel();
             const movComp = new RG.Component.Movement(nextX, nextY, level);
             this.actor.add('Movement', movComp);
+
+            const name = this.actor.getName();
+            this.dbg(`Moving ${name} to ${nextX},${nextY}`);
         }
         // else IDLE here until cell is passable
+        --this.timeout;
 
         return this.status;
     }
@@ -410,46 +430,41 @@ class GoalAttackActor extends GoalBase {
     }
 
     activate() {
-        const brain = this.actor.getBrain();
-        this.dbg(`${this.getType()} activate() called`);
+        this.dbg('activate() called');
 
         // targetActor.isDead() -> completed
-        if (this.targetActor.get('Health').isDead()) {
-            this.status = GOAL_COMPLETED;
-        }
-        else {
-            const [eX, eY] = this.targetActor.getXY();
-
-            // If actor disappears, check last seen square
-            // If in attack range, add subgoal to attack the target
-            if (brain.canMeleeAttack(eX, eY)) {
-                this.removeAllSubGoals();
-                this.dbg(`${this.getType()} canMeleeAttack() OK`);
-                const hitGoal = new GoalHitActor(this.actor, this.targetActor);
-                this.addSubGoal(hitGoal);
-            }
-            else if (this.canMissileAttack()) {
-                this.removeAllSubGoals();
-                this.dbg(`${this.getType()} canMissileAttack() OK`);
-                const goal = new GoalShootActor(this.actor, this.targetActor);
-                this.addSubGoal(goal);
-            }
-            // If actor visible, add subgoal to move closer
-            else if (brain.canSeeActor(this.targetActor)) {
-                this.removeAllSubGoals();
-                this.dbg(`${this.getType()} subGoal GoalGotoActor`);
-                const goal = new GoalGotoActor(this.actor, this.targetActor);
-                this.addSubGoal(goal);
-            }
-            // If not visible, try to hunt the target
-        }
+        this.selectSubGoal();
         this.status = GOAL_ACTIVE;
-
     }
 
     process() {
         this.activateIfInactive();
-        this.status = this.processSubGoals();
+
+        // Need to recompute if a different enemy than current target
+        // gets closer
+        const brain = this.actor.getBrain();
+        const seenCells = brain.getSeenCells();
+        const enemyCell = brain.findEnemyCell(seenCells);
+        if (enemyCell) {
+            const actor = enemyCell.getActors()[0];
+            if (this.targetActor.getID() !== actor.getID()) {
+                if (this.print) {
+                    const name = this.actor.getName();
+                    const old = this.targetActor.getName();
+                    const newName = actor.getName();
+                    console.log(`${name}:: Recomp target ${old} -> ${newName}`);
+                }
+                this.targetActor = actor;
+                brain.getMemory().setLastAttacked(actor);
+                this.selectSubGoal();
+            }
+        }
+        else {
+            this.checkTargetStatus();
+        }
+        if (!this.isCompleted() && !this.hasFailed()) {
+            this.status = this.processSubGoals();
+        }
         return this.status;
     }
 
@@ -469,6 +484,55 @@ class GoalAttackActor extends GoalBase {
             // TODO test for a clean shot
         }
         return false;
+    }
+
+    selectSubGoal() {
+        const brain = this.actor.getBrain();
+        this.checkTargetStatus();
+        if (!this.isCompleted()) {
+            const [eX, eY] = this.targetActor.getXY();
+
+            // If actor disappears, check last seen square
+            // If in attack range, add subgoal to attack the target
+            if (brain.canMeleeAttack(eX, eY)) {
+                this.removeAllSubGoals();
+                this.dbg('canMeleeAttack() OK');
+                const hitGoal = new GoalHitActor(this.actor, this.targetActor);
+                this.addSubGoal(hitGoal);
+            }
+            else if (this.canMissileAttack()) {
+                this.removeAllSubGoals();
+                this.dbg('canMissileAttack() OK');
+                const goal = new GoalShootActor(this.actor, this.targetActor);
+                this.addSubGoal(goal);
+            }
+            // If actor visible, add subgoal to move closer
+            else if (brain.canSeeActor(this.targetActor)) {
+                this.removeAllSubGoals();
+                this.dbg('canSeeActor subGoal GoalGotoActor');
+                const goal = new GoalGotoActor(this.actor, this.targetActor);
+                this.addSubGoal(goal);
+            }
+            // If not visible, try to hunt the target
+            else {
+                this.removeAllSubGoals();
+                this.dbg('Moving blind subGoal GoalGotoActor');
+                const goal = new GoalGotoActor(this.actor, this.targetActor);
+                this.addSubGoal(goal);
+            }
+        }
+
+    }
+
+    checkTargetStatus() {
+        if (this.targetActor.get('Health').isDead()) {
+            this.removeAllSubGoals();
+            this.status = GOAL_COMPLETED;
+        }
+        else if (!RG.inSameLevel(this.actor, this.targetActor)) {
+            this.removeAllSubGoals();
+            this.status = GOAL_COMPLETED;
+        }
     }
 
 }
