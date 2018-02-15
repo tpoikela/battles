@@ -68,7 +68,6 @@ class GoalTop extends Goal.Base {
                 'No next goal found');
         }
         this.dbg('arbitrate() finished');
-
     }
 
     process() {
@@ -104,29 +103,42 @@ class GoalThinkBasic extends GoalTop {
             patrol: 1.0
         };
 
-        // const fleeBias = RG.RAND.getUniformRange(lowRange, hiRange);
-        // const exploreBias = RG.RAND.getUniformRange(lowRange, hiRange);
-        // console.log([attackBias, fleeBias, exploreBias]);
+        this.updateEvaluators();
+        // this.evaluators.push(new Evaluator.Patrol(this.bias.patrol));
+    }
 
+    updateEvaluators() {
+        this.removeEvaluators();
         this.evaluators.push(new Evaluator.AttackActor(this.bias.attack));
         this.evaluators.push(new Evaluator.Flee(this.bias.flee));
         this.evaluators.push(new Evaluator.Explore(this.bias.explore));
-        // this.evaluators.push(new Evaluator.Patrol(this.bias.patrol));
     }
 
     /* Can be used to "inject" goals for the actor. The actor uses
      * Evaluator.Orders to check if it will obey the order. */
     giveOrders(evaluator) {
         // TODO remove this evaluator after the check
+        this.dbg('Received an order!!', evaluator);
         this.addEvaluator(evaluator);
     }
 
+    /* Clears the given orders. Useful if a new order needs to be issued to
+     * override the existing one. */
+    clearOrders() {
+        const orders = this.evaluators.filter(ev => ev.isOrder());
+        orders.forEach(order => {
+            if (order.goal.isActive()) {
+                order.goal.terminate();
+            }
+            const index = this.evaluators.indexOf(order);
+            this.evaluators.splice(index, 1);
+        });
+    }
 
     addGoal(goal) {
         const type = goal.getType();
         this.dbg(`addGoal() ${type}`);
         if (!this.isGoalPresent(type)) {
-            // this.removeAllSubGoals();
             this.addSubGoal(goal);
             if (debug.enabled) {
                 console.log('Actor subgoals are now: '
@@ -138,15 +150,21 @@ class GoalThinkBasic extends GoalTop {
 }
 GoalsTop.ThinkBasic = GoalThinkBasic;
 
+/* Top goal used by commanders in battles. */
 class GoalThinkCommander extends GoalThinkBasic {
 
     constructor(actor) {
         super(actor);
         this.setType('GoalThinkCommander');
 
-        this.bias.winBattle = 0.7;
+        this.bias.attack = 0.1;
+        this.bias.winBattle = 0.8;
         this.bias.retreat = 0.3;
+        this.updateEvaluators();
+    }
 
+    updateEvaluators() {
+        super.updateEvaluators();
         const winBattleEval = new EvaluatorsBattle.WinBattle(
             this.bias.winBattle);
         this.evaluators.push(winBattleEval);
