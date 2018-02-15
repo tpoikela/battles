@@ -484,6 +484,7 @@ RG.ELEM.WALL_CAVE = Object.freeze(new RGElementBase('wallcave'));
 RG.ELEM.WALL_CRYPT = Object.freeze(new RGElementBase('wallcrypt'));
 RG.ELEM.WALL_ICE = Object.freeze(new RGElementBase('wallice'));
 RG.ELEM.WALL_WOODEN = Object.freeze(new RGElementBase('wallwooden'));
+RG.ELEM.WALL_MOUNT = Object.freeze(new RGElementBase('wallmount'));
 RG.ELEM.WATER = Object.freeze(new RG.Element.Water());
 RG.ELEM.FORT = Object.freeze(new RG.Element.Fort());
 
