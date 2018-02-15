@@ -98,6 +98,7 @@ describe('Actor Goal', () => {
         commander.add(new RG.Component.Commander());
         commander.add(inBattleComp);
         commander.setBrain(new RG.Brain.Commander(commander));
+        commander.setFOVRange(10);
         const soldiers = [];
         for (let i = 0; i < 10; i++) {
             const soldier = new RG.Actor.Rogue('soldier' + i);
@@ -109,17 +110,20 @@ describe('Actor Goal', () => {
         }
 
         const actors = [commander].concat(soldiers);
-        RGTest.wrapIntoLevel(actors);
+        const level = RGTest.wrapIntoLevel(actors);
         soldiers.forEach((soldier, i) => {
             RGTest.moveEntityTo(soldier, 3, 5 + i);
         });
         RGTest.moveEntityTo(commander, 2, 10);
 
+        // RGTest.printLevel(level);
         RGTest.updateGame(actors, systems, 11);
 
         soldiers.forEach(soldier => {
             expect(soldier.getX()).to.be.above(5);
         });
+        expect(level.getActors().length).to.equal(11);
+        // RGTest.printLevel(level);
 
     });
 
