@@ -262,6 +262,7 @@ RG.Game.Main = function() {
         return map;
     };
 
+    this.simulate = () => {_engine.simulateGame();};
     this.simulateGame = () => {_engine.simulateGame();};
 
     /* Must be called to advance the game by one player action. Non-player
