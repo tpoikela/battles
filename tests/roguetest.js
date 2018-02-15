@@ -246,7 +246,7 @@ RGTest.printScreen = function(actor) {
 
 /* A function to run game simulation using a list of actors and a list of
  * systems. */
-RGTest.updateGame = (actors, systems, nTurns = 1) => {
+RGTest.updateGame = (actors, systems, nTurns = 1, cb) => {
     let simActors = actors;
     if (!Array.isArray(actors)) {
         simActors = [actors];
@@ -257,7 +257,19 @@ RGTest.updateGame = (actors, systems, nTurns = 1) => {
             action.doAction();
             systems.forEach(sys => {sys.update();});
         });
+        if (typeof cb === 'function') {
+            cb();
+        }
     }
+};
+
+/* Prints the given level as ASCII. */
+RGTest.printLevel = level => {
+    const [cols, rows] = [level.getMap().cols, level.getMap().rows];
+    const screen = new Screen(cols / 2, rows / 2);
+    level.getMap()._optimizeForRowAccess();
+    screen.renderFullMap(level.getMap());
+    screen.printRenderedChars();
 };
 
 module.exports = RGTest;
