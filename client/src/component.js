@@ -39,6 +39,10 @@ const NO_SERIALISATION = () => null;
  *
  *  WARNING: don't mess with or override getType/setType functions. This will
  *  almost certainly break the logic.
+ *
+ *  If the component requires refs to other custom objects (ie Entities, Comps),
+ *  you must write custom toJSON(), and use RG.getObjRef() for serialize those
+ *  fields.
  */
 
 RG.Component = {};
@@ -775,7 +779,7 @@ RG.Component.MindControl = function() {
 
     this.toJSON = () => {
         const obj = RG.Component.Base.prototype.toJSON.call(this);
-        obj.setSource = RG.getObjRef(_src);
+        obj.setSource = RG.getObjRef('entity', _src);
     };
 };
 RG.extend2(RG.Component.MindControl, RG.Component.Base);
@@ -1252,10 +1256,11 @@ RG.extend2(RG.Component.Transaction, RG.Component.Base);
 // Added to all entities inside a battle
 RG.Component.InBattle = function() {
     RG.Component.Base.call(this, 'InBattle');
+    this._isUnique = true;
     let _data = null;
     this.setData = data => {_data = data;};
     this.getData = () => _data;
-    this.updateData = data => {_data = Object.assign(_data, data);};
+    this.updateData = data => {_data = Object.assign(_data || {}, data);};
 };
 RG.extend2(RG.Component.InBattle, RG.Component.Base);
 
@@ -1278,6 +1283,7 @@ RG.extend2(RG.Component.BattleExp, RG.Component.Base);
  * system processed and removed this and BattleExp components. */
 RG.Component.BattleOver = function() {
     RG.Component.Base.call(this, 'BattleOver');
+    this._isUnique = true;
 };
 RG.extend2(RG.Component.BattleOver, RG.Component.Base);
 
@@ -1290,15 +1296,20 @@ RG.Component.BattleBadge = function() {
     this.setData = data => {_data = data;};
     this.getData = () => _data;
     this.updateData = data => {_data = Object.assign(_data, data);};
+
+    this.isWon = () => _data.status === 'Won';
+    this.isLost = () => _data.status === 'Lost';
 };
 RG.extend2(RG.Component.BattleBadge, RG.Component.Base);
 
+/* Used for battle commanders. */
 RG.Component.Commander = function() {
     RG.Component.Base.call(this, 'Commander');
 };
 RG.extend2(RG.Component.Commander, RG.Component.Base);
 
-
+/* This component is added to entity when it gains reputation in some event, and
+ * it keeps track of the amount and type of reputation. */
 RG.Component.Reputation = function() {
     RG.Component.Base.call(this, 'Reputation');
 
@@ -1307,6 +1318,15 @@ RG.Component.Reputation = function() {
     this.setData = data => {_data = data;};
     this.getData = () => _data;
     this.updateData = data => {_data = Object.assign(_data, data);};
+
+    this.addToFame = nFame => {
+        if (_data.hasOwnProperty('fame')) {
+            _data.fame += nFame;
+        }
+        else {
+            _data.fame = nFame;
+        }
+    };
 };
 RG.extend2(RG.Component.Reputation, RG.Component.Base);
 
