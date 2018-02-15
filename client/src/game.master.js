@@ -64,6 +64,12 @@ const GameMaster = function(game) {
             const {battle} = args;
             debug(`EVT_BATTLE_OVER: ${battle.getName()}`);
             const id = battle.getLevel().getID();
+            const parentId = battle.getLevel().getParent();
+
+            if (!this.battles.hasOwnProperty(parentId)) {
+                return;
+            }
+
             debug(`1. battlesDone for ${id}: ${this.battlesDone[id]}`);
             if (!this.battlesDone[id] && battle) {
                 debug(`2. battlesDone for ${id}: ${this.battlesDone[id]}`);
@@ -215,7 +221,6 @@ const GameMaster = function(game) {
                     }
                 }
                 else {
-                    console.log('moveActorsOutOfBattle isPlayer true');
                     const selObj = this.getSelLeaveBattle(actor, level);
                     actor.getBrain().setSelectionObject(selObj);
                 }
