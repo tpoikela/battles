@@ -14,6 +14,10 @@ $success-color-on-gray: #066;
 
 @import 'colors';
 
+//----------------------------
+// MIXINS
+//----------------------------
+
 @mixin fonts {
     font-family: 'Josefin Sans', sans-serif;
 }
@@ -64,9 +68,14 @@ $success-color-on-gray: #066;
     }
 }
 
+//------------------------------------------------------------------
+// STYLING STARTS
+//------------------------------------------------------------------
+
 body {
     @include fonts;
 };
+
 
 .container {
     margin: 0;
