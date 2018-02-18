@@ -9,6 +9,7 @@ RG.SYS = {};
 RG.SYS.ANIMATION = Symbol();
 RG.SYS.ATTACK = Symbol();
 RG.SYS.BATTLE = Symbol();
+RG.SYS.BASE_ACTION = Symbol();
 RG.SYS.CHAT = Symbol();
 RG.SYS.COMMUNICATION = Symbol();
 RG.SYS.DAMAGE = Symbol();
@@ -133,6 +134,35 @@ RG.System.Base = function(type, compTypes) {
         }
     };
 };
+
+/* Processes entities with attack-related components.*/
+RG.System.BaseAction = function(compTypes) {
+    RG.System.Base.call(this, RG.SYS.BASE_ACTION, compTypes);
+
+    const handledComps = [
+        'Pickup'
+    ];
+
+    this.updateEntity = function(ent) {
+        console.log('XXX TRIGGERED');
+        handledComps.forEach(compType => {
+            if (ent.has(compType)) {
+                this._dtable[compType](ent);
+            }
+        });
+    };
+
+    this._handlePickup = ent => {
+        const [x, y] = [ent.getX(), ent.getY()];
+        const level = ent.getLevel();
+        level.pickupItem(ent, x, y);
+    };
+
+    this._dtable = {
+        Pickup: this._handlePickup
+    };
+};
+RG.extend2(RG.System.BaseAction, RG.System.Base);
 
 /* Processes entities with attack-related components.*/
 RG.System.Attack = function(compTypes) {
@@ -1829,7 +1859,9 @@ RG.System.Battle = function(compTypes) {
 };
 RG.extend2(RG.System.Battle, RG.System.Base);
 
-/* System which handles events such as actorKilled, onPickup etc. */
+/* System which handles events such as actorKilled, onPickup etc. This system
+ * must be updated after most of the other systems have been processed, up to
+ * System.Damage. */
 RG.System.Events = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.EVENTS, compTypes);
 
@@ -1838,8 +1870,8 @@ RG.System.Events = function(compTypes) {
     this.eventRadiusPerID = {
     };
 
+    // Global radius, if level-specific value not given
     this.eventRadius = 10;
-
 
     this.addLevel = (level, radius) => {
         this.eventRadiusPerID[level.getID()] = radius;
@@ -1874,6 +1906,7 @@ RG.System.Events = function(compTypes) {
                         if (canSee) {
                             const name = actor.getName();
                             console.log(`${name} saw event in ${x0},${y0}`);
+                            // Call the handler function from dispatch table
                             this._dtable[type](evt);
                         }
                     });
@@ -1882,23 +1915,39 @@ RG.System.Events = function(compTypes) {
         });
     };
 
+    /* Returns the radius which is used to calculate the event propagation
+     * distance. */
     this._getEventRadius = function(ent) {
         const id = ent.getLevel().getID();
         if (this.eventRadiusPerID.hasOwnProperty(id)) {
             return this.eventRadiusPerID[id];
         }
+        // No level specific radius given, resort to global radius
         return this.eventRadius;
-
     };
 
     this._handleActorKilled = evt => {
         console.log('handleActorKilled called: ' + evt);
-
     };
 
-    // Maps event types to functions
+    this._handleItemPickedUp = evt => {
+        console.log('handleItemPickedUp called: ' + evt);
+    };
+
+    this._handleActorDamaged = evt => {
+        console.log('handleActorDamaged called: ' + evt);
+    };
+
+    this._handleActorAttacked = evt => {
+        console.log('handleActorDamaged called: ' + evt);
+    };
+
+    // Maps event types to handler functions
     this._dtable = {
-        [RG.EVT_ACTOR_KILLED]: this._handleActorKilled
+        [RG.EVT_ACTOR_KILLED]: this._handleActorKilled,
+        [RG.EVT_ITEM_PICKED_UP]: this._handleItemPickedUp,
+        [RG.EVT_ACTOR_DAMAGED]: this._handleActorDamaged,
+        [RG.EVT_ACTOR_ATTACKED]: this._handleActorAttacked
         // ACTOR_KILLED: this._handleActorKilled.bind(this)
     };
 
