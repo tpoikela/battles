@@ -704,14 +704,16 @@ class BrainPlayer {
               else {
                 this.energy = RG.energy.PICKUP;
                 return () => {
-                  level.pickupItem(this._actor, x, y);
+                  const pickup = new RG.Component.Pickup();
+                  this._actor.add(pickup);
                 };
               }
             }
             else {
               this.energy = RG.energy.PICKUP;
               return () => {
-                level.pickupItem(this._actor, x, y);
+                const pickup = new RG.Component.Pickup();
+                this._actor.add(pickup);
               };
             }
           }
