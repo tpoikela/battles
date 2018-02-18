@@ -66,6 +66,9 @@ RG.Factory.addPropsToFreeCells = function(level, props, type) {
     RG.Factory.addPropsToCells(level, freeCells, props, type);
 };
 
+/* Adds to the given level, and its cells, all props given in the list. Assumes
+ * that all props are of given type (placement function is different for
+ * different types. */
 RG.Factory.addPropsToCells = function(level, cells, props, type) {
     for (let i = 0; i < props.length; i++) {
         if (cells.length > 0) {
@@ -76,6 +79,10 @@ RG.Factory.addPropsToCells = function(level, cells, props, type) {
             }
             else if (type === RG.TYPE_ITEM) {
                 level.addItem(props[i], cell.getX(), cell.getY());
+            }
+            else {
+                RG.err('RG.Factory', 'addPropsToCells',
+                    `Type ${type} not supported`);
             }
             cells.splice(index, 1); // remove used cell
         }
@@ -854,6 +861,7 @@ RG.Factory.Zone = function() {
             levelConf.maxDanger = 3;
         }
         this.populateCityLevel(level, levelConf);
+        this.addItemsToCityLevel(level, levelConf);
         return level;
     };
 
@@ -900,6 +908,20 @@ RG.Factory.Zone = function() {
         else {
             this.populateWithNeutral(level, levelConf);
         }
+    };
+
+    /* Adds items to the city level in a reasonable way. */
+    this.addItemsToCityLevel = function(level, levelConf) {
+        const map = level.getMap();
+        const floorCells = map.getCells(cell => (
+            cell.getBaseElem().getType() === 'floorhouse'
+        ));
+        const factItem = new RG.Factory.Item();
+        const parser = RG.ObjectShell.getParser();
+        const conf = {
+            func: item => item.value <= (levelConf.maxDanger * 10)
+        };
+        factItem.addItemsToCells(level, parser, floorCells, conf);
     };
 
     this.populateWithHumans = function(level, levelConf) {
