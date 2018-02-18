@@ -622,6 +622,8 @@ const RG = { // {{{2
     EVT_ARMY_EVENT: Symbol(),
 
     EVT_ITEM_PICKED_UP: Symbol(),
+    EVT_ACTOR_DAMAGED: Symbol(),
+    EVT_ACTOR_ATTACKED: Symbol(),
 
     //----------------------------
     // Different entity/prop types
