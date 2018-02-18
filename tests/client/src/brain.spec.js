@@ -153,17 +153,22 @@ describe('Brain.Player', () => {
     });
 
     it('handles picking up of items', () => {
+        const baseSys = new RG.System.BaseAction(['Pickup']);
         const brain = new Brain.Player(player);
         const food = new RG.Item.Food('food');
         const weapon = new RG.Item.Weapon('weapon');
         level.addItem(food, 1, 1);
         level.addItem(weapon, 1, 1);
+
+        expect(level.getItems().length).to.equal(2);
         brain.decideNextAction({code: RG.KEY.NEXT_ITEM});
         expect(brain.energy).to.equal(0);
 
-        brain.decideNextAction({code: RG.KEY.PICKUP});
+        const actionFunc = brain.decideNextAction({code: RG.KEY.PICKUP});
         expect(brain.energy).to.equal(RG.energy.PICKUP);
-
+        actionFunc();
+        RGTest.updateSystems([baseSys]);
+        expect(level.getItems().length).to.equal(1);
     });
 
     it('can have GUI callbacks added to it', () => {
