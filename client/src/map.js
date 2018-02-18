@@ -415,32 +415,32 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
     };
 
     /* Returns true if the this._map has a cell in given x,y location.*/
-    const _hasXY = (x, y) => (x >= 0) && (x < _cols) && (y >= 0) && (y < _rows);
+    this._hasXY = (x, y) => (x >= 0) && (x < _cols) && (y >= 0) && (y < _rows);
 
     /* Returns true if light passes through this cell.*/
     const lightPasses = function(x, y) {
-        if (_hasXY(x, y)) {
+        if (this._hasXY(x, y)) {
             return this._map[x][y].lightPasses(); // delegate to cell
         }
         return false;
     };
 
     this.hasObstacle = function(x, y) {
-        if (_hasXY(x, y)) {
+        if (this._hasXY(x, y)) {
             return this._map[x][y].hasObstacle();
         }
         return false;
     };
 
     this.isPassable = function(x, y) {
-        if (_hasXY(x, y)) {
+        if (this._hasXY(x, y)) {
             return this._map[x][y].isPassable();
         }
         return false;
     };
 
     this.isPassableByAir = function(x, y) {
-        if (_hasXY(x, y)) {
+        if (this._hasXY(x, y)) {
             return this._map[x][y].isPassableByAir();
         }
         return false;
@@ -458,7 +458,7 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
                 const range = actor.getFOVRange();
                 fov.compute(xActor, yActor, range, (x, y, r, visibility) => {
                     if (visibility) {
-                        if (_hasXY(x, y)) {
+                        if (this._hasXY(x, y)) {
                             cells.push(this._map[x][y]);
                         }
                     }
@@ -549,7 +549,9 @@ RG.Map.CellList.prototype.getCells = function(filter) {
 RG.Map.CellList.prototype.getCellsWithCoord = function(coord) {
     const result = [];
     coord.forEach(xy => {
-        result.push(this._map[xy[0]][xy[1]]);
+        if (this._hasXY(xy[0], xy[1])) {
+            result.push(this._map[xy[0]][xy[1]]);
+        }
     });
     return result;
 };
