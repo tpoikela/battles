@@ -1340,6 +1340,13 @@ RG.Component.Event = function(args) {
 
 };
 RG.extend2(RG.Component.Event, RG.Component.Base);
+
+/* Added to entity when it's picking up something. */
+RG.Component.Pickup = function() {
+    RG.Component.Base.call(this, 'Pickup');
+};
+RG.extend2(RG.Component.Pickup, RG.Component.Base);
+
 //--------------------------------------------
 // Comps that add or remove other components
 //--------------------------------------------
