@@ -373,11 +373,12 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
     };
 
     /* Returns the first free cell starting from right edge of the level.
-    * Range of y-coord is optional.
+    * Range of y-coord can be given, if not, searches all y-coordinates starting
+    * from 0.
     */
-    this.getFirstFreeFromRight = function(y0 = 0, y1 = this.rows) {
+    this.getFirstFreeFromRight = function(y0 = 0, y1 = this.rows - 1) {
         for (let x = this.cols - 1; x >= 0; x--) {
-            for (let y = y0; y < y1; y++) {
+            for (let y = y0; y <= y1; y++) {
                 if (this._map[x][y].isFree()) {
                     return this._map[x][y];
                 }
@@ -527,6 +528,31 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
 
 
 }; // }}} this._map.CellList
+
+/* Get cells that return true for the given filter function. For example:
+ *   cell => cell.hasActors()
+ * OR
+ *   cell => cell.getBaseElem().getType() === 'floor'
+ */
+RG.Map.CellList.prototype.getCells = function(filter) {
+    const result = [];
+    for (let x = 0; x < this.cols; x++) {
+        for (let y = 0; y < this.rows; y++) {
+            if (filter(this._map[x][y])) {
+                result.push(this._map[x][y]);
+            }
+        }
+    }
+    return result;
+};
+
+RG.Map.CellList.prototype.getCellsWithCoord = function(coord) {
+    const result = [];
+    coord.forEach(xy => {
+        result.push(this._map[xy[0]][xy[1]]);
+    });
+    return result;
+};
 
 RG.Map.CellList.prototype.setBaseElems = function(coord, elem) {
     coord.forEach(xy => {
@@ -885,7 +911,7 @@ RG.Map.Level = function() { // {{{2
         return false;
     };
 
-    /* Removes a virtual property. */
+    /* Removes a virtual property (virtual prop has no x,y position). */
     this.removeVirtualProp = function(propType, obj) {
         if (_p.hasOwnProperty(propType)) {
             const index = _p[propType].indexOf(obj);
