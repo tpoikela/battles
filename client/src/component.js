@@ -1331,6 +1331,15 @@ RG.Component.Reputation = function() {
 };
 RG.extend2(RG.Component.Reputation, RG.Component.Base);
 
+RG.Component.Event = function(args) {
+    RG.Component.Base.call(this, 'Event');
+    let _args = args;
+
+    this.getArgs = () => _args;
+    this.setArgs = args => {_args = args;};
+
+};
+RG.extend2(RG.Component.Event, RG.Component.Base);
 //--------------------------------------------
 // Comps that add or remove other components
 //--------------------------------------------
