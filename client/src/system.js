@@ -1,6 +1,7 @@
 
 const RG = require('./rg.js');
 RG.Path = require('./path');
+RG.Geometry = require('./geometry');
 
 const debug = require('debug')('bitn:System');
 
@@ -12,6 +13,7 @@ RG.SYS.CHAT = Symbol();
 RG.SYS.COMMUNICATION = Symbol();
 RG.SYS.DAMAGE = Symbol();
 RG.SYS.DISABILITY = Symbol();
+RG.SYS.EVENTS = Symbol();
 RG.SYS.EXP_POINTS = Symbol();
 RG.SYS.HUNGER = Symbol();
 RG.SYS.MISSILE = Symbol();
@@ -1826,5 +1828,81 @@ RG.System.Battle = function(compTypes) {
     };
 };
 RG.extend2(RG.System.Battle, RG.System.Base);
+
+/* System which handles events such as actorKilled, onPickup etc. */
+RG.System.Events = function(compTypes) {
+    RG.System.Base.call(this, RG.SYS.EVENTS, compTypes);
+
+    /* Stores event radius per level ID. Can be used to fine-tune/reduce event
+     * radius for active levels. */
+    this.eventRadiusPerID = {
+    };
+
+    this.eventRadius = 10;
+
+
+    this.addLevel = (level, radius) => {
+        this.eventRadiusPerID[level.getID()] = radius;
+    };
+
+    this.removeLevel = level => {
+        delete this.eventRadiusPerID[level.getID()];
+    };
+
+    this.updateEntity = function(ent) {
+        const evtList = ent.getList('Event');
+        evtList.forEach(evt => {
+            const args = evt.getArgs();
+            const {type} = args;
+
+            const srcCell = ent.getCell();
+            const radius = this._getEventRadius(ent);
+            const [x0, y0] = [srcCell.getX(), srcCell.getY()];
+            const cellCoords = RG.Geometry.getBoxAround(x0, y0, radius, true);
+            const cells = ent.getLevel().getMap().getCellsWithCoord(cellCoords);
+
+            // Search for entity which could react to this event for each cell
+            // Right now, only actors are interested in events
+            cells.forEach(cell => {
+                const actors = cell.getActors();
+                if (actors) {
+                    actors.forEach(actor => {
+                        const seenCells = actor.getBrain().getSeenCells();
+                        const canSee = seenCells.find(cell => (
+                            cell.getX() === x0 && cell.getY() === y0
+                        ));
+                        if (canSee) {
+                            const name = actor.getName();
+                            console.log(`${name} saw event in ${x0},${y0}`);
+                            this._dtable[type](evt);
+                        }
+                    });
+                }
+            });
+        });
+    };
+
+    this._getEventRadius = function(ent) {
+        const id = ent.getLevel().getID();
+        if (this.eventRadiusPerID.hasOwnProperty(id)) {
+            return this.eventRadiusPerID[id];
+        }
+        return this.eventRadius;
+
+    };
+
+    this._handleActorKilled = evt => {
+        console.log('handleActorKilled called: ' + evt);
+
+    };
+
+    // Maps event types to functions
+    this._dtable = {
+        [RG.EVT_ACTOR_KILLED]: this._handleActorKilled
+        // ACTOR_KILLED: this._handleActorKilled.bind(this)
+    };
+
+};
+RG.extend2(RG.System.Events, RG.System.Base);
 
 module.exports = RG.System;
