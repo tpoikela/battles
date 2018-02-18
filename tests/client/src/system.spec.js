@@ -8,11 +8,7 @@ const RGTest = require('../../roguetest');
 const ROT = require('../../../lib/rot');
 
 /* Updates given systems in given order.*/
-const updateSystems = systems => {
-    for (let i = 0; i < systems.length; i++) {
-        systems[i].update();
-    }
-};
+const updateSystems = RGTest.updateSystems;
 
 describe('System.Hunger', () => {
     it('Subtracts energy from actors with hunger', () => {
@@ -486,5 +482,29 @@ describe('System.Shop', () => {
 
     it('handles selling transactions', () => {
 
+    });
+});
+
+describe('System.Event', () => {
+    it('It responds to entities with Component.Event', () => {
+        const eventSys = new RG.System.Events(['Event']);
+        const evt = new RG.Component.Event();
+        const actor = new RG.Actor.Rogue('killed one');
+        const killer = new RG.Actor.Rogue('killer');
+        const clueless = new RG.Actor.Rogue('clueless');
+
+        const level = RGTest.wrapIntoLevel([actor, killer, clueless]);
+        RGTest.moveEntityTo(actor, 2, 2);
+        RGTest.moveEntityTo(killer, 3, 3);
+        RGTest.moveEntityTo(clueless, 5, 5);
+        eventSys.addLevel(level, 2);
+
+        const args = {
+            type: RG.EVT_ACTOR_KILLED,
+            actor,
+            cause: killer};
+        evt.setArgs(args);
+        actor.add(evt);
+        updateSystems([eventSys]);
     });
 });
