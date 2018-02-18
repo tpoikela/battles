@@ -597,6 +597,11 @@ RG.System.Damage = function(compTypes) {
 
             RG.gameDanger({cell, msg: killMsg});
             RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor});
+
+            const evtComp = new RG.Component.Event();
+            evtComp.setArgs({type: RG.EVT_ACTOR_KILLED,
+                cause: src});
+            actor.add(evtComp);
         }
         else {
             RG.err('System.Damage', 'killActor', "Couldn't remove actor");
@@ -1904,8 +1909,7 @@ RG.System.Events = function(compTypes) {
                             cell.getX() === x0 && cell.getY() === y0
                         ));
                         if (canSee) {
-                            const name = actor.getName();
-                            console.log(`${name} saw event in ${x0},${y0}`);
+                            // const name = actor.getName();
                             // Call the handler function from dispatch table
                             this._dtable[type](evt);
                         }
