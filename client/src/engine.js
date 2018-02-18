@@ -32,16 +32,18 @@ const Engine = function(eventPool) {
 
     // These systems updated after each action. Order is important, for example,
     // animations should be seen before actors are killed
-    this.systemOrder = ['Disability', 'SpiritBind', 'Attack', 'Chat',
+    this.systemOrder = ['Disability', 'SpiritBind', 'BaseAction',
+        'Attack', 'Chat',
         'Shop', 'SpellCast',
         'SpellEffect', 'Missile', 'Movement', 'Animation', 'Damage',
-        'Battle',
-        'Skills', 'ExpPoints', 'Communication'];
+        'Battle', 'Skills', 'ExpPoints', 'Communication',
+        'Events'];
 
     this.systems = {};
     this.systems.Disability = new RG.System.Disability(
         ['Stun', 'Paralysis']);
     this.systems.SpiritBind = new RG.System.SpiritBind(['SpiritBind']);
+    this.systems.BaseAction = new RG.System.BaseAction(['Pickup']);
     this.systems.Chat = new RG.System.Chat(['Chat']);
     this.systems.Shop = new RG.System.Shop(['Transaction']);
     this.systems.Attack = new RG.System.Attack(['Attack']);
@@ -60,6 +62,7 @@ const Engine = function(eventPool) {
         ['ExpPoints', 'Experience']);
     this.systems.Communication = new RG.System.Communication(
         ['Communication']);
+    this.systems.Events = new RG.System.Events(['Event']);
 
     // Systems updated once each game loop (once for each player action)
     this.loopSystemOrder = ['Hunger'];
