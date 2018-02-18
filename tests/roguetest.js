@@ -272,4 +272,10 @@ RGTest.printLevel = level => {
     screen.printRenderedChars();
 };
 
+RGTest.updateSystems = systems => {
+    for (let i = 0; i < systems.length; i++) {
+        systems[i].update();
+    }
+};
+
 module.exports = RGTest;
