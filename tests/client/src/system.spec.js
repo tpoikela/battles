@@ -493,8 +493,13 @@ describe('System.Event', () => {
         const killer = new RG.Actor.Rogue('killer');
         const clueless = new RG.Actor.Rogue('clueless');
 
-        const level = RGTest.wrapIntoLevel([actor, killer, clueless]);
+        const player = new RG.Actor.Rogue('player hero');
+        player.setIsPlayer(true);
+
+        const actors = [actor, killer, clueless, player];
+        const level = RGTest.wrapIntoLevel(actors);
         RGTest.moveEntityTo(actor, 2, 2);
+        RGTest.moveEntityTo(player, 2, 3);
         RGTest.moveEntityTo(killer, 3, 3);
         RGTest.moveEntityTo(clueless, 5, 5);
         eventSys.addLevel(level, 2);
@@ -506,5 +511,6 @@ describe('System.Event', () => {
         evt.setArgs(args);
         actor.add(evt);
         updateSystems([eventSys]);
+        expect(actor.has('Event')).to.equal(false);
     });
 });
