@@ -217,10 +217,10 @@ RG.Brain.Base = function(actor) {
     this._actor = actor;
     this._type = null;
 
-    this.setActor = actor => {this.this._actor = actor;};
-    this.getActor = () => this.this._actor;
-    this.getType = () => this.this._type;
-    this.setType = type => {this.this._type = type;};
+    this.setActor = actor => {this._actor = actor;};
+    this.getActor = () => this._actor;
+    this.getType = () => this._type;
+    this.setType = type => {this._type = type;};
 
     /* Main function for retrieving the actionable callback. Acting actor must
      * be passed in. */
