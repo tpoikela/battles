@@ -242,8 +242,7 @@ export default class GameStartScreen extends Component {
                     callback={setPlayMode}
                     currValue={this.props.settings.playMode}
                     id='dropdown-select-playmode'
-                    options={['Arena', 'Dungeon', 'Battle',
-                      'Creator', 'World', 'OverWorld']}
+                    options={['OverWorld', 'Arena']}
                     titleName='Play mode'
                   />
                 </div>
