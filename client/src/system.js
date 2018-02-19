@@ -96,7 +96,7 @@ RG.System.Base = function(type, compTypes) {
     };
 
     /* Returns true if entity has all required component types, or if
-     * compTypesAny if set, if entity has any required component.*/
+     * compTypesAny if set, if entity has any required component. */
     this.hasCompTypes = function(entity) {
         if (this.compTypesAny === false) { // All types must be present
             for (let i = 0; i < compTypes.length; i++) {
@@ -138,28 +138,56 @@ RG.System.Base = function(type, compTypes) {
 /* Processes entities with attack-related components.*/
 RG.System.BaseAction = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.BASE_ACTION, compTypes);
+    this.compTypesAny = true;
 
     const handledComps = [
-        'Pickup'
+        'Pickup', 'UseStairs'
     ];
 
     this.updateEntity = function(ent) {
-        console.log('XXX TRIGGERED');
         handledComps.forEach(compType => {
             if (ent.has(compType)) {
                 this._dtable[compType](ent);
+                ent.remove(compType);
             }
         });
     };
 
+
+    /* Handles pickup command. */
     this._handlePickup = ent => {
         const [x, y] = [ent.getX(), ent.getY()];
         const level = ent.getLevel();
+        // TODO move logic from level to here, need access to the picked up item
         level.pickupItem(ent, x, y);
+        const evtArgs = {
+            type: RG.EVT_ITEM_PICKED_UP
+        };
+        this._createEventComp(ent, evtArgs);
     };
 
+    /* Handles command when actor uses stairs. */
+    this._handleUseStairs = ent => {
+        const level = ent.getLevel();
+        const cell = ent.getCell();
+        level.useStairs(ent);
+        const evtArgs = {
+            type: RG.EVT_ACTOR_USED_STAIRS,
+            cell
+        };
+        this._createEventComp(ent, evtArgs);
+    };
+
+    // Initialisation of dispatch table for handler functions
     this._dtable = {
-        Pickup: this._handlePickup
+        Pickup: this._handlePickup,
+        UseStairs: this._handleUseStairs
+    };
+
+    this._createEventComp = (ent, args) => {
+        const evtComp = new RG.Component.Event();
+        evtComp.setArgs(args);
+        ent.add(evtComp);
     };
 };
 RG.extend2(RG.System.BaseAction, RG.System.Base);
@@ -405,8 +433,8 @@ RG.System.Missile = function(compTypes) {
         mComp.stopMissile(); // Target reached, stop missile
         ent.remove('Missile');
 
+        const level = mComp.getLevel();
         if (!mComp.destroyItem) {
-            const level = mComp.getLevel();
             let addedToStack = false;
 
             // Check if missile/ammo should be stacked
@@ -428,7 +456,8 @@ RG.System.Missile = function(compTypes) {
         const args = {
             missile: mComp,
             item: ent,
-            to: [currCell.getX(), currCell.getY()]
+            to: [currCell.getX(), currCell.getY()],
+            level
         };
         const animComp = new RG.Component.Animation(args);
         ent.add('Animation', animComp);
@@ -1400,7 +1429,8 @@ RG.System.SpellEffect = function(compTypes) {
             ray: true,
             from: args.from,
             range: rangeCrossed,
-            style: args.damageType
+            style: args.damageType,
+            level: ent.getLevel()
         };
         const animComp = new RG.Component.Animation(animArgs);
         ent.add('Animation', animComp);
@@ -1510,7 +1540,8 @@ RG.System.SpellEffect = function(compTypes) {
             const animArgs = {
                 cell: true,
                 coord: [[x, y]],
-                style: args.damageType || ''
+                style: args.damageType || '',
+                level: ent.getLevel()
             };
             const animComp = new RG.Component.Animation(animArgs);
             ent.add('Animation', animComp);
@@ -1566,7 +1597,8 @@ RG.System.SpellEffect = function(compTypes) {
         const animArgs = {
             cell: true,
             coord: coord,
-            style: args.damageType || ''
+            style: args.damageType || '',
+            level: ent.getLevel()
         };
         const animComp = new RG.Component.Animation(animArgs);
         ent.add('Animation', animComp);
@@ -1593,19 +1625,19 @@ RG.System.Animation = function(compTypes) {
         const animComp = ent.get('Animation');
         const args = animComp.getArgs();
         if (args.dir) {
-            this.lineAnimation(args);
+            this.lineAnimation(ent, args);
         }
         else if (args.missile) {
-            this.missileAnimation(args);
+            this.missileAnimation(ent, args);
         }
         else if (args.cell) {
-            this.cellAnimation(args);
+            this.cellAnimation(ent, args);
         }
         ent.remove('Animation');
     };
 
     /* Construct a missile animation from Missile component. */
-    this.missileAnimation = args => {
+    this.missileAnimation = (ent, args) => {
         const mComp = args.missile;
         const xEnd = args.to[0];
         const yEnd = args.to[1];
@@ -1618,7 +1650,7 @@ RG.System.Animation = function(compTypes) {
         const char = RG.getChar(RG.TYPE_ITEM, missEnt.getName());
         const cssClass = RG.getCssClass(RG.TYPE_ITEM, missEnt.getName());
 
-        const animation = new RG.Animation.Animation();
+        const animation = this._createAnimation(args);
         while (xCurr !== xEnd || yCurr !== yEnd) {
             const frame = {};
             const key = xCurr + ',' + yCurr;
@@ -1638,15 +1670,15 @@ RG.System.Animation = function(compTypes) {
         RG.POOL.emitEvent(RG.EVT_ANIMATION, {animation});
     };
 
-    /* Constructs line animation (a bolt etc). */
-    this.lineAnimation = args => {
+    /* Constructs line animation (a bolt etc continuous thing). */
+    this.lineAnimation = (ent, args) => {
         let x = args.from[0];
         let y = args.from[1];
         const dX = args.dir[0];
         const dY = args.dir[1];
         let rangeLeft = args.range;
 
-        const animation = new RG.Animation.Animation();
+        const animation = this._createAnimation(args);
         const frame = {};
         if (args.ray) {
             while (rangeLeft > 0) {
@@ -1659,7 +1691,6 @@ RG.System.Animation = function(compTypes) {
 
                 const frameCopy = Object.assign({}, frame);
                 animation.addFrame(frameCopy);
-
                 --rangeLeft;
             }
         }
@@ -1667,8 +1698,8 @@ RG.System.Animation = function(compTypes) {
         RG.POOL.emitEvent(RG.EVT_ANIMATION, {animation});
     };
 
-    this.cellAnimation = args => {
-        const animation = new RG.Animation.Animation();
+    this.cellAnimation = (ent, args) => {
+        const animation = this._createAnimation(args);
         const frame = {};
         animation.slowDown = 10;
         args.coord.forEach(xy => {
@@ -1680,6 +1711,12 @@ RG.System.Animation = function(compTypes) {
 
         animation.addFrame(frame);
         RG.POOL.emitEvent(RG.EVT_ANIMATION, {animation});
+    };
+
+    this._createAnimation = args => {
+        const animation = new RG.Animation.Animation();
+        animation.setLevel(args.level);
+        return animation;
     };
 };
 RG.extend2(RG.System.Animation, RG.System.Base);
@@ -1892,7 +1929,13 @@ RG.System.Events = function(compTypes) {
             const args = evt.getArgs();
             const {type} = args;
 
-            const srcCell = ent.getCell();
+            // Usually cell is entity's current cell, but if args.cell is
+            // specified, use that instead (currently true for UseStairs)
+            let srcCell = ent.getCell();
+            if (args.cell) {
+                srcCell = args.cell;
+            }
+
             const radius = this._getEventRadius(ent);
             const [x0, y0] = [srcCell.getX(), srcCell.getY()];
             const cellCoords = RG.Geometry.getBoxAround(x0, y0, radius, true);
@@ -1904,18 +1947,21 @@ RG.System.Events = function(compTypes) {
                 const actors = cell.getActors();
                 if (actors) {
                     actors.forEach(actor => {
-                        const seenCells = actor.getBrain().getSeenCells();
-                        const canSee = seenCells.find(cell => (
-                            cell.getX() === x0 && cell.getY() === y0
-                        ));
-                        if (canSee) {
-                            // const name = actor.getName();
-                            // Call the handler function from dispatch table
-                            this._dtable[type](evt);
+                        if (!actor.isPlayer()) {
+                            const seenCells = actor.getBrain().getSeenCells();
+                            const canSee = seenCells.find(cell => (
+                                cell.getX() === x0 && cell.getY() === y0
+                            ));
+                            if (canSee) {
+                                // const name = actor.getName();
+                                // Call the handler function from dispatch table
+                                this._dtable[type](ent, evt, actor);
+                            }
                         }
                     });
                 }
             });
+            ent.remove(evt);
         });
     };
 
@@ -1930,20 +1976,31 @@ RG.System.Events = function(compTypes) {
         return this.eventRadius;
     };
 
-    this._handleActorKilled = evt => {
-        console.log('handleActorKilled called: ' + evt);
+    this._handleActorKilled = (ent, evt, actor) => {
+        /* console.log('handleActorKilled called: ' + evt);
+        const id = actor.getID();
+        console.log('Perceiving actor: ' + actor.getName() + ' id: ' + id);
+        */
     };
 
-    this._handleItemPickedUp = evt => {
+    this._handleItemPickedUp = (ent, evt, actor) => {
         console.log('handleItemPickedUp called: ' + evt);
+        console.log('Perceiving actor: ' + actor.getName());
     };
 
-    this._handleActorDamaged = evt => {
+    this._handleActorDamaged = (ent, evt, actor) => {
         console.log('handleActorDamaged called: ' + evt);
+        console.log('Perceiving actor: ' + actor.getName());
     };
 
-    this._handleActorAttacked = evt => {
-        console.log('handleActorDamaged called: ' + evt);
+    this._handleActorAttacked = (ent, evt, actor) => {
+        console.log('handleActorAttacked called: ' + evt);
+        console.log('Perceiving actor: ' + actor.getName());
+    };
+
+    this._handleActorUsedStairs = (ent, evt, actor) => {
+        console.log('handleActorUsedStairs called: ' + evt);
+        RG.gameMsg(`${actor.getName()} saw ${ent.getName()} using stairs.`);
     };
 
     // Maps event types to handler functions
@@ -1951,7 +2008,8 @@ RG.System.Events = function(compTypes) {
         [RG.EVT_ACTOR_KILLED]: this._handleActorKilled,
         [RG.EVT_ITEM_PICKED_UP]: this._handleItemPickedUp,
         [RG.EVT_ACTOR_DAMAGED]: this._handleActorDamaged,
-        [RG.EVT_ACTOR_ATTACKED]: this._handleActorAttacked
+        [RG.EVT_ACTOR_ATTACKED]: this._handleActorAttacked,
+        [RG.EVT_ACTOR_USED_STAIRS]: this._handleActorUsedStairs
         // ACTOR_KILLED: this._handleActorKilled.bind(this)
     };
 
