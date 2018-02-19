@@ -1347,6 +1347,12 @@ RG.Component.Pickup = function() {
 };
 RG.extend2(RG.Component.Pickup, RG.Component.Base);
 
+/* Added to entity when it's using stairs to move to another level. */
+RG.Component.UseStairs = function() {
+    RG.Component.Base.call(this, 'UseStairs');
+};
+RG.extend2(RG.Component.UseStairs, RG.Component.Base);
+
 //--------------------------------------------
 // Comps that add or remove other components
 //--------------------------------------------
