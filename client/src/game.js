@@ -43,6 +43,7 @@ RG.Game.Main = function() {
 
     this.playerCommandCallback = function(actor) {
         this.visibleCells = this.shownLevel().exploreCells(actor);
+        _engine.setVisibleArea(this.shownLevel(), this.visibleCells);
     };
     _engine.playerCommandCallback = this.playerCommandCallback.bind(this);
 
