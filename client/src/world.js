@@ -259,8 +259,8 @@ function connectSubZoneEdges(subZones, sz1Arg, sz2Arg, l1, l2) {
         return false;
     }
 
-    const conn1 = sz1Level.getConnections();
-    const conn2 = sz2Level.getConnections();
+    const conn1 = newExits1;
+    const conn2 = newExits2;
 
     const conn1Len = conn1.length;
     const conn2Len = conn2.length;
@@ -1128,7 +1128,8 @@ RG.World.City = function(name) {
     };
 
     this.abutQuarters = function(q1, q2, l1, l2) {
-        return connectSubZoneEdges(this._subZones, q1, q2, l1, l2);
+        const res = connectSubZoneEdges(this._subZones, q1, q2, l1, l2);
+        return res;
     };
 
     this.hasQuarter = function(q) {
@@ -1330,7 +1331,6 @@ RG.World.Shop = function() {
     this.notify = function(evtName, args) {
         if (this._shopkeeper) {
             if (args.actor.getID() === this._shopkeeper.getID()) {
-                console.log('Abandoning the shop now.');
                 this.setShopAbandoned();
             }
         }
@@ -1354,7 +1354,6 @@ RG.World.Shop.prototype.setShopAbandoned = function() {
         const items = cell.getItems();
         const shop = cell.getShop();
         items.forEach(item => {
-            console.log('Abandon shop at ' + xy[0] + ',' + xy[1]);
             shop.abandonShop(item);
         });
     });
