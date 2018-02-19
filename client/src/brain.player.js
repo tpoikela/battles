@@ -726,7 +726,10 @@ class BrainPlayer {
         if (RG.KeyMap.isUseStairs(code)) {
           cmdType = 'STAIRS';
           if (currCell.hasConnection()) {
-            return () => {level.useStairs(this._actor);};
+            return () => {
+                const stairsComp = new RG.Component.UseStairs();
+                this._actor.add(stairsComp);
+            };
           }
           else {
             return this.cmdNotPossible(
@@ -862,7 +865,10 @@ class BrainPlayer {
         else if (this._actor.getCell().hasPassage()) {
             this._confirmEnergy = RG.energy.MOVE;
             this._wantConfirm = true;
-            this._confirmCallback = () => {level.useStairs(this._actor);};
+            this._confirmCallback = () => {
+                const stairsComp = new RG.Component.UseStairs();
+                this._actor.add(stairsComp);
+            };
             const msg = "Press 'y' to move to another area";
             RG.gameMsg(msg);
             return this.noAction();
