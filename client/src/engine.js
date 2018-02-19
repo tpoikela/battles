@@ -22,6 +22,8 @@ const Engine = function(eventPool) {
     const _msg = new RG.MessageHandler();
     const _eventPool = eventPool;
 
+    this.visibleCells = [];
+
     this.getMessages = () => _msg.getMessages();
     this.hasNewMessages = () => _msg.hasNew();
     this.clearMessages = () => { _msg.clear();};
@@ -43,7 +45,7 @@ const Engine = function(eventPool) {
     this.systems.Disability = new RG.System.Disability(
         ['Stun', 'Paralysis']);
     this.systems.SpiritBind = new RG.System.SpiritBind(['SpiritBind']);
-    this.systems.BaseAction = new RG.System.BaseAction(['Pickup']);
+    this.systems.BaseAction = new RG.System.BaseAction(['Pickup', 'UseStairs']);
     this.systems.Chat = new RG.System.Chat(['Chat']);
     this.systems.Shop = new RG.System.Shop(['Transaction']);
     this.systems.Attack = new RG.System.Attack(['Attack']);
@@ -374,9 +376,11 @@ const Engine = function(eventPool) {
             }
         }
         else if (evtName === RG.EVT_ANIMATION) {
-            if (this.animationCallback) {
-                this.animation = args.animation;
-                this.animationCallback(this.animation);
+            if (this.canPlayerSeeAnimation(args.animation)) {
+                if (this.animationCallback) {
+                    this.animation = args.animation;
+                    this.animationCallback(this.animation);
+                }
             }
         }
     };
@@ -392,6 +396,19 @@ const Engine = function(eventPool) {
     this.hasAnimation = function() {
         return this.animation !== null &&
             this.animation.hasFrames();
+    };
+
+    this.setVisibleCells = cells => {
+        this.visibleCells = cells;
+    };
+
+    /* Returns true if player can see the given animation. In general, true
+     * whenever animation contains at least one cell visible to the player. */
+    this.canPlayerSeeAnimation = animation => {
+        const coordList = this.visibleCells.map(cell => (
+            [cell.getX(), cell.getY()]
+        ));
+        return animation.hasCoord(coordList);
     };
 
 };
