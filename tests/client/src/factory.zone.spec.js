@@ -64,4 +64,20 @@ describe('Factory.Zone', () => {
         });
     });
 
+    it('can create villages/town with items inside houses', () => {
+        const fact = new RG.Factory.Zone();
+        const townConf = {
+            x: 80, y: 28,
+            cityType: 'Village',
+            groupType: 'village',
+            quarterType: '',
+            maxDanger: 5,
+            itemsPerLevel: 40
+        };
+        const townLevel = fact.createCityLevel(0, townConf);
+
+        const items = townLevel.getItems();
+        expect(items.length).to.be.at.least(townConf.itemsPerLevel);
+    });
+
 });
