@@ -49,13 +49,12 @@ RG.Animation.Animation = function() {
 
 /* Returns true if any frame in the animation contains at least one coordinates
  * from the given list. */
-RG.Animation.Animation.prototype.hasCoord = function(coord) {
-    const nCoord = coord.length;
-    for (let i = 0; i < this.numFrames; i++) {
-        const frame = this.frames[i];
-        for (let j = 0; j < nCoord; j++) {
-            const key = coord[j][0] + ',' + coord[j][1];
-            if (frame[i][key]) {
+RG.Animation.Animation.prototype.hasCoord = function(coordMap) {
+    const nFrames = this.frames.length;
+    for (let n = 0; n < nFrames; n++) {
+        const frame = this.frames[n];
+        for (const key in frame) {
+            if (coordMap[key]) {
                 return true;
             }
         }
