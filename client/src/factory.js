@@ -363,6 +363,10 @@ RG.Factory.Item = function() {
     };
 
     this.addItemsToCells = function(level, parser, cells, conf) {
+        if (!conf.maxValue) {
+            RG.err('Factory.Item', 'addItemsToCells',
+                'conf is missing maxValue');
+        }
         const items = this.generateItems(parser, conf);
         RG.Factory.addPropsToCells(level, cells, items, RG.TYPE_ITEM);
     };
@@ -860,6 +864,9 @@ RG.Factory.Zone = function() {
         if (!levelConf.maxDanger) {
             levelConf.maxDanger = 3;
         }
+        if (!levelConf.itemsPerLevel) {
+            levelConf.itemsPerLevel = levelConf.maxDanger * 2;
+        }
         this.populateCityLevel(level, levelConf);
         this.addItemsToCityLevel(level, levelConf);
         return level;
@@ -919,7 +926,8 @@ RG.Factory.Zone = function() {
         const factItem = new RG.Factory.Item();
         const parser = RG.ObjectShell.getParser();
         const itemConf = {
-            func: item => item.value <= (levelConf.maxDanger * 10)
+            func: item => item.value <= (levelConf.maxDanger * 10),
+            maxValue: levelConf.maxDanger * 50
         };
         if (!RG.isNullOrUndef([levelConf.itemsPerLevel])) {
             itemConf.itemsPerLevel = levelConf.itemsPerLevel;
@@ -1942,11 +1950,16 @@ RG.Factory.World = function() {
             zoneStairs = allEdgeExits;
             // Connection failed, resort to single point connection
             if (zoneStairs.length === 0) {
-                /* const freeCell = zoneLevel.getFreeRandCell();
+                zoneLevel.getMap().debugPrintInASCII();
+
+                // XXX this one is shaky
+                const freeCell = zoneLevel.getFreeRandCell();
                 const zoneX = freeCell.getX();
                 const zoneY = freeCell.getY();
                 zoneStairs = new Stairs('stairsUp', zoneLevel);
-                zoneLevel.addStairs(zoneStairs, zoneX, zoneY);*/
+                zoneLevel.addStairs(zoneStairs, zoneX, zoneY);
+                zoneStairs = [zoneStairs];
+
                 this.debug('City edge connection failed. Added stairs');
             }
         }
