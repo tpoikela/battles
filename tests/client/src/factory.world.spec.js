@@ -58,7 +58,16 @@ describe('Factory.World', function() {
 
         const qs = city.getQuarters();
         expect(qs).to.have.length(2);
-        expectConnected(qs[0], qs[1], 1);
+
+        const q1l0 = qs[0].getLevels()[0];
+        const q2l0 = qs[1].getLevels()[0];
+
+        const exitFilter = c => c.getName() === 'exit';
+        const exits1 = q1l0.getConnections().filter(exitFilter);
+        const exits2 = q2l0.getConnections().filter(exitFilter);
+
+        RGTest.verifyConnectivity(exits1);
+        RGTest.verifyConnectivity(exits2);
 
         expect(qs[0].getParent().getName()).to.equal('Arkham');
     });
