@@ -127,7 +127,7 @@ class BattlesTop extends Component {
 
             sqrPerActor: 120,
             sqrPerItem: 120,
-            playMode: 'Arena',
+            playMode: 'OverWorld',
             loadedPlayer: null,
             loadedLevel: null,
             playerName: 'Player',
@@ -146,7 +146,7 @@ class BattlesTop extends Component {
         this.state = {
             boardClassName: 'game-board-player-view',
             creatingGame: false,
-            playMode: 'Arena',
+            playMode: 'OverWorld',
             equipSelected: null,
             gameLength: 'Medium',
             invMsg: '',
