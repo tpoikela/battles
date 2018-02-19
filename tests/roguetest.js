@@ -109,7 +109,21 @@ RGTest.verifyStairsConnectivity = function(stairs) {
     console.log(`verifyStairsConnectivity ${connVerified} connections OK`);
 };
 
-// Expect that branches b1 and b2 are connected by number of connections
+RGTest.verifyConnectivity = function(stairs) {
+    let connVerified = 0;
+    stairs.forEach(s => {
+        let str = `x, y: ${s.getX()}, ${s.getY()} `;
+        str += JSON.stringify(s);
+        expect(s.getTargetStairs(), str).to.exist;
+        expect(s.getTargetLevel(), str).to.exist;
+        expect(s.getSrcLevel(), str).to.exist;
+        ++connVerified;
+    });
+    console.log(`verifyConnectivity ${connVerified} connections OK`);
+    expect(connVerified, 'At least one connection exists').to.be.above(0);
+};
+
+// Expect that subzones b1 and b2 are connected by number of connections
 // given by nConns.
 RGTest.expectConnected = function(b1, b2, nConns) {
     let connFound = 0;
