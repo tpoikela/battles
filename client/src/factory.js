@@ -918,10 +918,14 @@ RG.Factory.Zone = function() {
         ));
         const factItem = new RG.Factory.Item();
         const parser = RG.ObjectShell.getParser();
-        const conf = {
+        const itemConf = {
             func: item => item.value <= (levelConf.maxDanger * 10)
         };
-        factItem.addItemsToCells(level, parser, floorCells, conf);
+        if (!RG.isNullOrUndef([levelConf.itemsPerLevel])) {
+            itemConf.itemsPerLevel = levelConf.itemsPerLevel;
+        }
+
+        factItem.addItemsToCells(level, parser, floorCells, itemConf);
     };
 
     this.populateWithHumans = function(level, levelConf) {
