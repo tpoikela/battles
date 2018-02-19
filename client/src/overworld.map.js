@@ -729,6 +729,8 @@ function addOverWorldFeatures(ow, conf) {
     const nDungeonsCenter = conf.nDungeonsCenter || Math.floor(area / 80);
     const nDungeonsNorth = conf.nDungeonsNorth || Math.floor(area / 80);
 
+    const nMountainsNorth = conf.nMountainsNorth || Math.floor(area / 20);
+    const nMountainsMiddle = conf.nMountainsMiddle || Math.floor(area / 30);
     const nMountainsSouth = conf.nMountainsSouth || Math.floor(area / 40);
     // Add final tower
     addFeatureToAreaByDir(ow, 'NE', 0.5, OW.BTOWER);
@@ -768,6 +770,8 @@ function addOverWorldFeatures(ow, conf) {
     // TODO:
     // Distribute mountains
     addMountainsToOverWorld(ow, nMountainsSouth, cmdSouthernArea);
+    addMountainsToOverWorld(ow, nMountainsMiddle, cmdBetweenHWalls);
+    addMountainsToOverWorld(ow, nMountainsNorth, cmdAboveNorthWall);
     // Adds roads for created features
 }
 
