@@ -1766,20 +1766,33 @@ RG.Factory.World = function() {
         if (typeof zone.getEntrances === 'function') {
             const entrances = zone.getEntrances();
             if (entrances.length > 0) {
-                this.debug('Connecting area-zone by entrance');
                 let entryStairs = entrances[0];
                 const entryLevel = entryStairs.getSrcLevel();
                 const zoneType = zone.getType();
 
+                this.debug('Connecting area-zone by entrance');
+
+                let conns = null;
                 if (zoneType === 'city' || zoneType === 'mountain') {
+
+                    if (debug.enabled) {
+                        conns = entryLevel.getConnections();
+                        this.debug(`conn length before: ${conns.length}`);
+                    }
+
                     const zoneStairs = this.createNewZoneConnects(zone,
                         entryLevel);
-                    // Connection OK, remove the stairs
+                    // Connection OK, remove the stairs, otherwise use the
+                    // existing entrance
                     if (zoneStairs.length > 0) {
                         const sX = entryStairs.getX();
                         const sY = entryStairs.getY();
                         if (entryLevel.removeElement(entryStairs, sX, sY)) {
                             entryStairs = zoneStairs;
+                        }
+                        else {
+                            RG.err('Factory.World', 'createAreaZoneConnection',
+                                'Cannot remove entryStairs');
                         }
                     }
                 }
@@ -1795,6 +1808,13 @@ RG.Factory.World = function() {
                 const tileStairs = new Stairs(name, tileLevel, entryLevel);
                 tileLevel.addStairs(tileStairs, tileStairsX, tileStairsY);
                 tileStairs.connect(entryStairs);
+
+                if (debug.enabled && zoneType === 'city') {
+                    conns = entryLevel.getConnections();
+                    const jsonStr = JSON.stringify(conns, null, 1);
+                    this.debug(jsonStr);
+                    this.debug(`conn length after: ${conns.length}`);
+                }
             }
             else if (!conf.hasOwnProperty('connectToAreaXY')) {
                 const msg = `No entrances in ${zone.getHierName()}.`;
@@ -1922,11 +1942,11 @@ RG.Factory.World = function() {
             zoneStairs = allEdgeExits;
             // Connection failed, resort to single point connection
             if (zoneStairs.length === 0) {
-                const freeCell = zoneLevel.getFreeRandCell();
+                /* const freeCell = zoneLevel.getFreeRandCell();
                 const zoneX = freeCell.getX();
                 const zoneY = freeCell.getY();
                 zoneStairs = new Stairs('stairsUp', zoneLevel);
-                zoneLevel.addStairs(zoneStairs, zoneX, zoneY);
+                zoneLevel.addStairs(zoneStairs, zoneX, zoneY);*/
                 this.debug('City edge connection failed. Added stairs');
             }
         }

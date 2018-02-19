@@ -31,6 +31,7 @@ describe('Function: Saving/restoring a game', function() {
             world: worldConf,
             playerRace: 'human'
         };
+
         const gameFactory = new RG.Factory.Game();
         console.log('Now creating a new game');
         const game = gameFactory.createNewGame(gameConf);
