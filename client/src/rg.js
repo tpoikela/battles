@@ -585,7 +585,9 @@ const RG = { // {{{2
     // CONSTANTS
     //--------------------------------------------------------------
 
-    FOV_RANGE: 4, // Default FOV range for actors
+    PLAYER_FOV_RANGE: 10,
+    NPC_FOV_RANGE: 5, // Default FOV range for actors
+
     ACTION_DUR: 100, // Base duration of action
     BASE_SPEED: 100, // Base speed of actors
     DEFAULT_HP: 50,
@@ -621,9 +623,11 @@ const RG = { // {{{2
     EVT_BATTLE_OVER: Symbol(),
     EVT_ARMY_EVENT: Symbol(),
 
+    // Mostly used at low-level by System.Event
     EVT_ITEM_PICKED_UP: Symbol(),
     EVT_ACTOR_DAMAGED: Symbol(),
     EVT_ACTOR_ATTACKED: Symbol(),
+    EVT_ACTOR_USED_STAIRS: Symbol(),
 
     //----------------------------
     // Different entity/prop types
