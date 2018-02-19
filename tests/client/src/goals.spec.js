@@ -47,7 +47,7 @@ describe('Actor Goal', () => {
         RGTest.moveEntityTo(actor, 2, 2);
         RGTest.moveEntityTo(enemy, 5, 5);
 
-        RGTest.updateGame(actor, systems, 5);
+        RGTest.updateGame(actor, systems, 10);
         // RGTest.printScreen(actor);
         const endHP = enemy.get('Health').getHP();
         expect(endHP, 'Health must decrease').to.be.below(startHP);
