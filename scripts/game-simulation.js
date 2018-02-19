@@ -71,7 +71,8 @@ const catcher = new RGTest.MsgCatcher();
 
 // Execute game in try-catch so we can dump save data on failure
 const mult = 6;
-const maxTurns = mult * 20000;
+const maxTurns = mult * 4000;
+
 try {
     const startI = loadGame ? loadTurn : 0;
     for (let nTurn = startI; nTurn < maxTurns; nTurn++) {
@@ -83,7 +84,10 @@ try {
 
         // Save the game between certain intervals
         if (saveGameEnabled) {
+            console.log('saveGameEnabled. Checking turn number');
+            console.log(nTurn % (mult * 1000));
             if (nTurn > startI && (nTurn % (mult * 1000) === 0)) {
+                console.log('\tsaveGameEnabled. Turn check OK.');
                 const fname = `save_dumps/${pName}_temp_${nTurn}.json`;
                 if (maxTurns >= 8000) { // Don't save for short games
                     const json = newGame.toJSON();
