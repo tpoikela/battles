@@ -572,6 +572,11 @@ RG.Game.FromJSON = function() {
                 const connObj = stairsInfo[s.getID()];
                 const targetLevel = id2level[connObj.targetLevel];
                 const targetStairsXY = connObj.targetStairs;
+                if (!targetStairsXY) {
+                    console.log(JSON.stringify(level, null, 1));
+                    console.log(connObj);
+                    console.log('Parent: ' + level.getParent().getName());
+                }
                 const x = targetStairsXY.x;
                 const y = targetStairsXY.y;
                 if (targetLevel) {
