@@ -24,6 +24,8 @@ const Engine = function(eventPool) {
 
     this.visibleCells = [];
 
+    this._cache = {};
+
     this.getMessages = () => _msg.getMessages();
     this.hasNewMessages = () => _msg.hasNew();
     this.clearMessages = () => { _msg.clear();};
@@ -175,8 +177,6 @@ const Engine = function(eventPool) {
             this.doAction(action);
 
             this.updateSystems(); // All systems for each actor
-
-            // TODO check any animations that should be shown
 
             this.nextActor = this.getNextActor();
             if (RG.isNullOrUndef([this.nextActor])) {
@@ -398,17 +398,25 @@ const Engine = function(eventPool) {
             this.animation.hasFrames();
     };
 
-    this.setVisibleCells = cells => {
+    this.setVisibleArea = (level, cells) => {
+        this.visibleLevelID = level.getID();
         this.visibleCells = cells;
+        this._cache.visibleCoord = {};
     };
 
     /* Returns true if player can see the given animation. In general, true
      * whenever animation contains at least one cell visible to the player. */
     this.canPlayerSeeAnimation = animation => {
-        const coordList = this.visibleCells.map(cell => (
-            [cell.getX(), cell.getY()]
-        ));
-        return animation.hasCoord(coordList);
+        if (animation.levelID === this.visibleLevelID) {
+            if (Object.keys(this._cache.visibleCoord).length === 0) {
+                this.visibleCells.forEach(cell => {
+                    const [x, y] = [cell.getX(), cell.getY()];
+                    this._cache.visibleCoord[x + ',' + y] = true;
+                });
+            }
+            return animation.hasCoord(this._cache.visibleCoord);
+        }
+        return false;
     };
 
 };
