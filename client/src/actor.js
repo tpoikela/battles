@@ -95,7 +95,7 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
 
         this._name = name;
         this._isPlayer = false;
-        this._fovRange = RG.FOV_RANGE;
+        this._fovRange = RG.NPC_FOV_RANGE;
 
         this._invEq = new RG.Inv.Inventory(this);
         this._maxWeight = 10.0;
