@@ -61,6 +61,12 @@ OW.biomeTypeMap = {
     grassland: 5
 };
 
+OW.BIOME = {};
+OW.BIOME.ALPINE = 'alpine';
+OW.BIOME.ARCTIC = 'arctic';
+OW.BIOME.TUNDRA = 'tundra';
+OW.BIOME.TAIGA = 'taiga';
+
 OW.ILLEGAL_POS = -1;
 OW.CELL_ANY = 'OW.CELL_ANY'; // Used in matching functions only
 
@@ -750,10 +756,11 @@ function addOverWorldFeatures(ow, conf) {
     const cmdSouthernArea = {y: {start: ['wall', 1], end: 'S'}};
 
     // Create biomes for actor generation of overworld
-    addBiomeToOverWorld(ow, cmdAboveNorthWall, 'alpine');
-    addBiomeToOverWorld(ow, {x: {start: ['wall', 0], end: 'E'}}, 'arctic');
-    addBiomeToOverWorld(ow, cmdBetweenHWalls, 'tundra');
-    addBiomeToOverWorld(ow, cmdSouthernArea, 'taiga');
+    addBiomeToOverWorld(ow, cmdAboveNorthWall, OW.BIOME.ALPINE);
+    addBiomeToOverWorld(ow, {x: {start: ['wall', 0], end: 'E'}},
+        OW.BIOME.ARCTIC);
+    addBiomeToOverWorld(ow, cmdBetweenHWalls, OW.BIOME.TUNDRA);
+    addBiomeToOverWorld(ow, cmdSouthernArea, OW.BIOME.TAIGA);
 
     // Create forests and lakes (sort of done in sub-level generation)
 
