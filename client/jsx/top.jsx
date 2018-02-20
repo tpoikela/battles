@@ -452,6 +452,10 @@ class BattlesTop extends Component {
                 this.setState({selectedCell: cell});
             }
             console.log(`Cell: ${JSON.stringify(cell)}`);
+            if (cell.hasActors()) {
+                const actors = cell.getActors();
+                console.log(`Actors: ${JSON.stringify(actors)}`);
+            }
         }
         else {
             RG.warn('BattlesTop', 'onCellClick',
@@ -612,7 +616,6 @@ class BattlesTop extends Component {
             showGameMenu = this.game.isMenuShown();
             if (overworld) {
                 playerOwPos = this.game.getPlayerOwPos();
-                console.log('playerOwPos: ' + playerOwPos);
                 if (playerOwPos) {
                     this.game.setOverWorldExplored(playerOwPos);
                 }
