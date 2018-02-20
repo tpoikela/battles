@@ -419,6 +419,14 @@ const Engine = function(eventPool) {
         return false;
     };
 
+    this.enableAnimations = () => {
+        this.systems['Animation'].disableAnimations();
+    };
+
+    this.disableAnimations = () => {
+        this.systems['Animation'].disableAnimations();
+    };
+
 };
 
 module.exports = Engine;
