@@ -161,6 +161,13 @@ RG.Spell.Base = function(name, power) {
         return null;
     };
 
+    this._setAISpellArgs = function(actor, args) {
+        const brain = actor.getBrain();
+        if (typeof brain.setSpellArgs === 'function') {
+            actor.getBrain().setSpellArgs(args);
+        }
+    };
+
 };
 
 RG.Spell.Base.prototype.toString = function() {
@@ -252,7 +259,7 @@ RG.Spell.FrostBolt = function() {
         };
     };
 
-    this.aiShouldCastSpell = args => {
+    this.aiShouldCastSpell = (args, cb) => {
         const {actor, enemy} = args;
         const [x0, y0] = [actor.getX(), actor.getY()];
         const [x1, y1] = [enemy.getX(), enemy.getY()];
@@ -260,7 +267,13 @@ RG.Spell.FrostBolt = function() {
         if (lineXY.length > 1) {
             const dX = lineXY[1][0] - lineXY[0][0];
             const dY = lineXY[1][1] - lineXY[0][1];
-            actor.getBrain().setSpellArgs({dir: [dX, dY]});
+            const args = {dir: [dX, dY]};
+            if (typeof cb === 'function') {
+                cb(actor, args);
+            }
+            else {
+                this._setAISpellArgs(actor, args);
+            }
             return true;
         }
         return false;
