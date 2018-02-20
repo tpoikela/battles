@@ -798,6 +798,17 @@ RG.Map.Level = function() { // {{{2
         }
     };
 
+    /* Moves the given object to x,y. */
+    this.moveActorTo = function(obj, x, y) {
+        const level = obj.getLevel();
+        const [oX, oY] = [obj.getX(), obj.getY()];
+        const propType = obj.getPropType();
+        if (level._removePropFromLevelXY(propType, obj, oX, oY)) {
+            return this._addPropToLevelXY(propType, obj, x, y);
+        }
+        return false;
+    };
+
     //---------------------------------------------------------------------
     // ACTOR RELATED FUNCTIONS
     //---------------------------------------------------------------------
