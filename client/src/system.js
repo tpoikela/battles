@@ -130,7 +130,7 @@ RG.System.Base = function(type, compTypes) {
             const nEnt = Object.keys(this.entities).length;
             let descr = `[System ${this.type}]`;
             descr += ` nEntities: ${nEnt}`;
-            console.log(`${descr} ${msg}`);
+            debug(`${descr} ${msg}`);
         }
     };
 };
@@ -141,7 +141,7 @@ RG.System.BaseAction = function(compTypes) {
     this.compTypesAny = true;
 
     const handledComps = [
-        'Pickup', 'UseStairs'
+        'Pickup', 'UseStairs', 'OpenDoor'
     ];
 
     this.updateEntity = function(ent) {
@@ -178,12 +178,25 @@ RG.System.BaseAction = function(compTypes) {
         this._createEventComp(ent, evtArgs);
     };
 
+    /* Handles command to open door and execute possible triggers like traps. */
+    this._handleOpenDoor = ent => {
+        const door = ent.get('OpenDoor').getDoor();
+        if (door.isOpen()) {
+            door.closeDoor();
+        }
+        else {
+            door.openDoor();
+        }
+    };
+
     // Initialisation of dispatch table for handler functions
     this._dtable = {
         Pickup: this._handlePickup,
-        UseStairs: this._handleUseStairs
+        UseStairs: this._handleUseStairs,
+        OpenDoor: this._handleOpenDoor
     };
 
+    /* Used to create events in response to specific actions. */
     this._createEventComp = (ent, args) => {
         const evtComp = new RG.Component.Event();
         evtComp.setArgs(args);
@@ -267,6 +280,8 @@ RG.System.Attack = function(compTypes) {
 
         const hitChance = totalAtt / (totalAtt + totalDef);
         const hitThreshold = RG.RAND.getUniform();
+
+        this.dbg(`hitChange is ${hitChance}, threshold ${hitThreshold}`);
 
         if (hitChance > hitThreshold) {
             const totalDamage = att.getDamage();
@@ -1621,17 +1636,23 @@ RG.extend2(RG.System.SpellEffect, RG.System.Base);
 RG.System.Animation = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.ANIMATION, compTypes);
 
+    this._enabled = true;
+    this.enableAnimations = () => {this._enabled = true;};
+    this.disableAnimations = () => {this._enabled = false;};
+
     this.updateEntity = function(ent) {
-        const animComp = ent.get('Animation');
-        const args = animComp.getArgs();
-        if (args.dir) {
-            this.lineAnimation(ent, args);
-        }
-        else if (args.missile) {
-            this.missileAnimation(ent, args);
-        }
-        else if (args.cell) {
-            this.cellAnimation(ent, args);
+        if (this._enabled) {
+            const animComp = ent.get('Animation');
+            const args = animComp.getArgs();
+            if (args.dir) {
+                this.lineAnimation(ent, args);
+            }
+            else if (args.missile) {
+                this.missileAnimation(ent, args);
+            }
+            else if (args.cell) {
+                this.cellAnimation(ent, args);
+            }
         }
         ent.remove('Animation');
     };
@@ -1977,6 +1998,7 @@ RG.System.Events = function(compTypes) {
     };
 
     this._handleActorKilled = (ent, evt, actor) => {
+        // React to friend/non-hostile being killed
         /* console.log('handleActorKilled called: ' + evt);
         const id = actor.getID();
         console.log('Perceiving actor: ' + actor.getName() + ' id: ' + id);
