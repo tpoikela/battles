@@ -799,9 +799,11 @@ RG.Brain.SpellCaster = function(actor) {
 
     /* Returns true if spellcaster can cast a spell. */
     this.canCastSpell = function() {
-        if (actor.get('SpellPower').getPP() >= this._spell.getPower()) {
-            if (RG.RAND.getUniform() <= this._castingProb) {
-                return true;
+        if (actor.has('SpellPower')) {
+            if (actor.get('SpellPower').getPP() >= this._spell.getPower()) {
+                if (RG.RAND.getUniform() <= this._castingProb) {
+                    return true;
+                }
             }
         }
         return false;
@@ -815,7 +817,9 @@ RG.Brain.SpellCaster = function(actor) {
         return this._spell.aiShouldCastSpell(args);
     };
 
-    /* Casts a spell. */
+    /* Casts a spell. this._spellsArgs is set in
+     * spell.aiShouldCastSpell. Need to find better architecture.
+     * */
     this.castSpell = function() {
         return this._spell.getCastFunc(this._actor, this._spellArgs);
     };
