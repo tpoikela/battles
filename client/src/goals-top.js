@@ -150,6 +150,20 @@ class GoalThinkBasic extends GoalTop {
 }
 GoalsTop.ThinkBasic = GoalThinkBasic;
 
+/* Top-level goal for spell casters. */
+class GoalThinkSpellcaster extends GoalThinkBasic {
+
+    constructor(actor) {
+        super(actor);
+        this.setType('GoalThinkSpellcaster');
+
+        this.bias.castSpell = 1.0;
+        this.evaluators.push(new Evaluator.CastSpell(this.bias.castSpell));
+    }
+
+}
+GoalsTop.ThinkSpellcaster = GoalThinkSpellcaster;
+
 /* Top goal used by commanders in battles. */
 class GoalThinkCommander extends GoalThinkBasic {
 
