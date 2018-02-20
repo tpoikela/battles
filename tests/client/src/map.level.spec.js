@@ -97,6 +97,21 @@ describe('Map.Level', () => {
         expect(sList).to.have.length(0);
     });
 
+    it('has function to move objects around', () => {
+        const level1 = RGTest.createLevel('arena', 20, 20);
+        const level2 = RGTest.createLevel('arena', 20, 20);
+        const actor = new RG.Actor.Rogue('mover');
+        level1.addActor(actor, 1, 1);
+
+        level1.moveActorTo(actor, 3, 7);
+        expect(actor.getXY()).to.deep.equal([3, 7]);
+        expect(actor.getLevel().getID()).to.equal(level1.getID());
+
+        level2.moveActorTo(actor, 8, 9);
+        expect(actor.getXY()).to.deep.equal([8, 9]);
+        expect(actor.getLevel().getID()).to.equal(level2.getID());
+    });
+
     it('can be serialized to JSON', () => {
         const level1 = RGTest.createLevel('arena', 20, 20);
         const json = level1.toJSON();
