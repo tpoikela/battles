@@ -16,27 +16,32 @@ const FACTIONS = ['human', 'dwarf', 'dogfolk', 'wolfclan', 'goblin',
 RG.Factory.Battle = function() {
 
     /* Creates one battle into the level. TODO: Decide how to modify difficulty
-     * etc. TODO: Refactor into Factory.Battle. */
-    this.createBattle = function(level, conf = {}) {
+     * etc. */
+    this.createBattle = function(parentLevel, conf = {}) {
         const cols = conf.cols || 80;
-        const rows = conf.cols || 40;
-        const levelType = conf.levelType || 'forest';
+        const rows = conf.rows || 40;
 
-        const id = level ? level.getID() : 0;
+        const id = parentLevel ? parentLevel.getID() : 0;
         const name = conf.name || 'Battle of level ' + id;
 
         const battle = new RG.Game.Battle(name);
-        const forestConf = RG.getForestConf(cols, rows);
-        const battleLevel = RG.FACT.createLevel(levelType, cols, rows,
-            forestConf);
+        const battleLevel = this.createBattleLevel(cols, rows, conf);
         battle.setLevel(battleLevel);
 
         const [fact1, fact2] = this.getFactions(conf);
 
-        const numRows = conf.numRows || 2;
+        let numRows = conf.numRows || 2;
         const armySize = conf.armySize || 20;
         const numArmies = conf.numArmies || 2;
         const facts = conf.armies || [fact1, fact2];
+
+        // Scale army X size to fit into the level
+        let armySizeX = Math.ceil(armySize / numRows);
+        while (armySizeX > cols) {
+            ++numRows;
+            armySizeX = Math.ceil(armySize / numRows);
+        }
+        console.log(`armyX scaled to ${armySizeX}, row ${numRows}`);
 
         // Generate all armies based on constraints
         const armies = [];
@@ -46,8 +51,8 @@ RG.Factory.Battle = function() {
             // Assign random but legal coords to the army
             let armyX = RG.RAND.getUniformInt(0, cols - 1);
             let armyY = RG.RAND.getUniformInt(0, rows - 1);
-            if ((armyX + armySize) > (cols - 1)) {
-                armyX = cols - armySize;
+            if ((armyX + armySizeX) > (cols - 1)) {
+                armyX = cols - armySizeX;
             }
             if ((armyY + numRows) > (rows - 1)) {
                 armyY = rows - 1 - numRows;
@@ -62,6 +67,16 @@ RG.Factory.Battle = function() {
                 armyY -= i * (numRows + 2);
             }
 
+            // Check that the placement is legal
+            if (armyX > (cols - 1) || armyX < 0) {
+                RG.err('Factory.Battle', 'createBattle',
+                    `armyX ${armyX} out of bounds 0-${cols - 1}`);
+            }
+            if (armyY > (rows - 1) || armyY < 0) {
+                RG.err('Factory.Battle', 'createBattle',
+                    `armyY ${armyY} out of bounds 0-${rows - 1}`);
+            }
+
             const battleConf = {horizontal: true, numRows};
             battle.addArmy(army, armyX, armyY, battleConf);
             armies.push(army);
@@ -69,25 +84,19 @@ RG.Factory.Battle = function() {
 
         this.makeArmiesAsEnemies(armies);
 
-
-        if (level) {
+        if (parentLevel) {
             // Add connecting stairs between battle and area
-            // TODO add passage tiling for the level
-            // const stairsBattle = new RG.Element.Stairs('stairsUp');
-            // battleLevel.addElement(stairsBattle, 1, 1);
-            const stairsArea = new RG.Element.Stairs('battle', level);
+            const stairsArea = new RG.Element.Stairs('battle', parentLevel);
 
-            // const randCell = level.getFreeRandCell();
-            // level.addElement(stairsArea, randCell.getX(), randCell.getY());
-
-            level.addStairs(stairsArea, 4, 4);
+            // TODO randomize this position
+            parentLevel.addStairs(stairsArea, 4, 4);
 
             RG.World.addExitsToEdge(battleLevel);
 
             const battleExits = battleLevel.getConnections();
             stairsArea.connect(battleExits[0]);
             for (let i = 1; i < battleExits.length; i++) {
-                battleExits[i].setTargetLevel(level);
+                battleExits[i].setTargetLevel(parentLevel);
                 battleExits[i].setTargetStairs(stairsArea);
             }
 
@@ -164,6 +173,14 @@ RG.Factory.Battle = function() {
                 });
             });
         });
+    };
+
+    this.createBattleLevel = (cols, rows, conf) => {
+        const levelType = conf.levelType || 'forest';
+        const forestConf = RG.getForestConf(cols, rows);
+        const battleLevel = RG.FACT.createLevel(levelType, cols, rows,
+            forestConf);
+        return battleLevel;
     };
 
 };
