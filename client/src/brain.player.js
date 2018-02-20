@@ -1,13 +1,14 @@
 
 const RG = require('./rg');
 
-const EMPTY_FUNC = () => {};
+const ACTION_ALREADY_DONE = () => {};
+const ACTION_ZERO_ENERGY = null;
 
 const chatSelObject = player => {
     const msg = 'Select direction for chatting:';
     RG.gameMsg(msg);
     return {
-        select: (code) => {
+        select: code => {
             const args = {};
             args.dir = RG.KeyMap.getDir(code);
             if (args.dir) {
@@ -22,7 +23,6 @@ const chatSelObject = player => {
         },
         showMenu: () => false
     };
-
 };
 
 /* Memory object for the player .*/
@@ -107,7 +107,7 @@ class CmdMissile {
         else {
             return this.cmdNotPossible('No missile equipped.');
         }
-        return EMPTY_FUNC;
+        return ACTION_ALREADY_DONE;
     }
 
 }
@@ -142,7 +142,7 @@ class CmdUseItem {
         else {
             RG.err('Brain.Player', 'handleCommand', 'obj has no item');
         }
-        return EMPTY_FUNC;
+        return ACTION_ALREADY_DONE;
     }
 
 }
@@ -182,7 +182,7 @@ class CmdDropItem {
       if (obj.hasOwnProperty('callback')) {
           obj.callback({msg: msg, result});
       }
-      return EMPTY_FUNC;
+      return ACTION_ALREADY_DONE;
   }
 
 }
@@ -208,7 +208,7 @@ class CmdEquipItem {
             }
             obj.callback({msg: msg, result});
         }
-        return EMPTY_FUNC;
+        return ACTION_ALREADY_DONE;
     }
 
 }
@@ -242,7 +242,7 @@ class CmdUnequipItem {
             }
             obj.callback({msg: msg, result});
         }
-        return EMPTY_FUNC;
+        return ACTION_ALREADY_DONE;
     }
 
 }
@@ -311,7 +311,7 @@ class BrainPlayer {
     cmdNotPossible(msg) {
         this.energy = 0;
         RG.gameWarn(msg);
-        return null;
+        return ACTION_ZERO_ENERGY;
     }
 
     isMenuShown() {
@@ -333,7 +333,7 @@ class BrainPlayer {
     /* Returned for keypresses when no action is taken.*/
     noAction() {
         this.energy = 0;
-        return null; // Null action
+        return ACTION_ZERO_ENERGY;
     }
 
     /* Returns current fighting mode.*/
@@ -455,23 +455,20 @@ class BrainPlayer {
         return null;
     }
 
-    /* Tries to open/close a door nearby the player.*/
+    /* Tries to open/close a door nearby the player. TODO: Handle multiple
+     * doors. */
     tryToToggleDoor() {
         const cellsAround = RG.Brain.getCellsAroundActor(this._actor);
         for (let i = 0; i < cellsAround.length; i++) {
             if (cellsAround[i].hasDoor()) {
                 const door = cellsAround[i].getPropType('door')[0];
-                if (door.isOpen()) {
-                    door.closeDoor();
-                }
-                else {
-                    door.openDoor();
-                }
-                return () => {};
+                const comp = new RG.Component.OpenDoor();
+                comp.setDoor(door);
+                this._actor.add(comp);
+                return ACTION_ALREADY_DONE;
             }
         }
-        return this.cmdNotPossible('There are no doors close by');
-
+        return this.cmdNotPossible('There are no doors to open or close');
     }
 
     /* Returns true if a player has target selected. */
@@ -505,7 +502,7 @@ class BrainPlayer {
         if (this.currEnemyCell < this._enemyCells.length) {
             return this._enemyCells[this.currEnemyCell];
         }
-        return null;
+        return ACTION_ZERO_ENERGY;
     }
 
     /* Returns true if chosen target is within attack range. */
