@@ -13,6 +13,8 @@ RG.Map.Generator = require('./map.generator');
 RG.Verify = require('./verify');
 RG.World = require('./world');
 
+const GoalsTop = require('./goals-top');
+
 const Stairs = RG.Element.Stairs;
 
 RG.Factory = {};
@@ -259,7 +261,13 @@ RG.Factory.Actor = function() {
             case 'GoalOriented': return new RG.Brain.GoalOriented(actor);
             // case 'Goblin': return new RG.Brain.Goblin(actor);
             case 'Human': return new RG.Brain.Human(actor);
-            case 'SpellCaster': return new RG.Brain.SpellCaster(actor);
+            // case 'SpellCaster': return new RG.Brain.SpellCaster(actor);
+            case 'SpellCaster': {
+                const brain = new RG.Brain.GoalOriented(actor);
+                const topGoal = new GoalsTop.ThinkSpellcaster(actor);
+                brain.setGoal(topGoal);
+                return brain;
+            }
             case 'Summoner': return new RG.Brain.Summoner(actor);
             case 'Undead': return new RG.Brain.Undead(actor);
             case 'Zombie': return new RG.Brain.Zombie(actor);
@@ -463,6 +471,9 @@ RG.Factory.Base = function() { // {{{2
         }
         else if (levelType === 'wall') {
             mapObj = mapgen.createWall(cols, rows, conf);
+        }
+        else if (levelType === 'arctic') {
+            mapObj = mapgen.createArctic(cols, rows, conf);
         }
         else {
             mapObj = mapgen.getMap();
