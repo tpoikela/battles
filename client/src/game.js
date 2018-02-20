@@ -320,12 +320,14 @@ RG.Game.Main = function() {
     _eventPool.listenEvent(RG.EVT_LEVEL_CHANGED, this);
     _eventPool.listenEvent(RG.EVT_TILE_CHANGED, this);
 
-    /* Adds one battle to the game. This adds battle directly to the list of
-    * active levels. */
-    this.addBattle = battle => {
+    /* Adds one battle to the game. If active = true, battle level is activated
+     * and battle started immediately. */
+    this.addBattle = (battle, active = false) => {
         const level = battle.getLevel();
         this.addLevel(level);
-        _engine.addActiveLevel(level);
+        if (active) {
+            _engine.addActiveLevel(level);
+        }
     };
 
     this.getGameMaster = () => _master;
@@ -413,6 +415,9 @@ RG.Game.Main = function() {
     /* Gets the next animation frame. */
     this.getAnimationFrame = () => _engine.animation.nextFrame();
 
+    this.enableAnimations = () => {_engine.enableAnimations();};
+    this.disableAnimations = () => {_engine.disableAnimations();};
+
     /* Returns the player tile position in overworld map. */
     this.getPlayerOwPos = function() {
         if (!this._overworld) {
@@ -434,9 +439,13 @@ RG.Game.Main = function() {
         const pX = Math.floor(coordX / xMap);
         const pY = Math.floor(coordY / yMap);
 
-        overworld.setExplored([pX, pY]);
+        // overworld.setExplored([pX, pY]);
 
         return [pX, pY];
+    };
+
+    this.setOverWorldExplored = xy => {
+        this._overworld.setExplored(xy);
     };
 
     /* Returns the current world where the player is .*/
