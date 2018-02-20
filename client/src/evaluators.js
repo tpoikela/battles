@@ -195,4 +195,76 @@ class EvaluatorOrders extends EvaluatorBase {
 }
 Evaluator.Orders = EvaluatorOrders;
 
+/* Calculates the desirability to cast a certain spell. */
+class EvaluatorCastSpell extends EvaluatorBase {
+
+    constructor(actorBias) {
+        super(actorBias);
+        this._castingProb = 0.2;
+    }
+
+    calculateDesirability(actor) {
+        this.spell = this.getRandomSpell(actor);
+        if (!this.spell) {return 0;}
+
+        if (this.canCastSpell(actor)) {
+            if (this.shouldCastSpell(actor)) {
+                return this.actorBias;
+            }
+        }
+        return 0;
+    }
+
+    setActorGoal(actor) {
+        if (this.spell) {
+            const topGoal = actor.getBrain().getGoal();
+            const goal = new Goal.CastSpell(actor, this.spell, this.spellArgs);
+            topGoal.addGoal(goal);
+        }
+        else {
+            RG.err('EvaluatorFlee', 'setActorGoal',
+                'Enemy actor is null. Cannot flee.');
+        }
+    }
+
+    getRandomSpell(actor) {
+        const book = actor.getBook();
+        if (book && book.getSpells().length > 0) {
+            return RG.RAND.arrayGetRand(book.getSpells());
+        }
+        return null;
+    }
+
+    /* Returns true if spellcaster can cast a spell. */
+    canCastSpell(actor) {
+        if (actor.has('SpellPower')) {
+            if (actor.get('SpellPower').getPP() >= this.spell.getPower()) {
+                if (RG.RAND.getUniform() <= this._castingProb) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /* Returns true if spellcaster should cast the spell. */
+    shouldCastSpell(actor) {
+        const brain = actor.getBrain();
+        const seenCells = brain.getSeenCells();
+        const enemyCell = brain.findEnemyCell(seenCells);
+        if (enemyCell) {
+            const enemy = enemyCell.getActors()[0];
+            const args = {enemy, actor};
+            return this.spell.aiShouldCastSpell(args, (actor, args) => {
+                const sName = this.spell.getName();
+                console.log('Setting args in callback: ' + sName);
+                this.spellArgs = args;
+            });
+        }
+        return false;
+    }
+
+}
+Evaluator.CastSpell = EvaluatorCastSpell;
+
 module.exports = Evaluator;
