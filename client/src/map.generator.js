@@ -559,6 +559,13 @@ RG.Map.Generator = function() { // {{{2
         };
     };
 
+    this.createArctic = function(cols, rows, conf = {}) {
+        this.setGen('empty', cols, rows);
+        const map = this.getMap();
+        RG.Map.Generator.addRandomSnow(map, 1.0);
+        return {map};
+    };
+
     /* Given 2-d ascii map, and mapping from ascii to Element, constructs the
      * map of base elements, and returns it. */
     this.createMapFromAsciiMap = (asciiMap, asciiToElem) => {
