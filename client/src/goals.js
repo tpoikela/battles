@@ -702,6 +702,30 @@ class GoalFleeFromActor extends GoalBase {
 }
 Goal.Flee = GoalFleeFromActor;
 
+/* Goal used when actor is casting a spell. Spell is always an instantaneous
+ * goal taking exactly one turn to process. */
+class GoalCastSpell extends GoalBase {
+
+    constructor(actor, spell, spellArgs) {
+        super(actor);
+        this.setType('GoalCastSpell');
+        this.spell = spell;
+        this.spellArgs = spellArgs;
+    }
+
+    activate() {
+        const castFunc = this.spell.getCastFunc(this.actor, this.spellArgs);
+        castFunc();
+        this.status = GOAL_COMPLETED;
+    }
+
+    process() {
+        this.activateIfInactive();
+        return this.status;
+    }
+}
+Goal.CastSpell = GoalCastSpell;
+
 //---------------------------------------------------------------------------
 /* An actor goal to explore the given area. */
 //---------------------------------------------------------------------------
