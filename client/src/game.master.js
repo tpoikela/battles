@@ -3,6 +3,7 @@ const RG = require('./rg');
 
 RG.Factory = require('./factory');
 RG.Factory.Battle = require('./factory.battle');
+const OW = require('./overworld.map');
 
 const debug = require('debug')('bitn:GameMaster');
 
@@ -55,8 +56,33 @@ const GameMaster = function(game) {
             debug('\tPlayer not null. Creating battle');
             const level = this.player.getLevel();
             const id = level.getID();
+
+            const ow = this.game.getOverWorld();
+            let maxDanger = 4;
+            let armySize = 20;
+            const battleConf = {};
+            let levelType = 'forest';
+            if (ow) {
+                const world = this.game.getCurrentWorld();
+                const area = world.getAreas()[0];
+                const xy = area.findTileXYById(id);
+                // TODO use actual starting position
+                const startX = 2;
+                const startY = ow.getSizeY() - 1;
+                const dX = Math.abs(startX - xy[0]);
+                const dY = Math.abs(startY - xy[1]);
+                maxDanger += dX + dY;
+                armySize += 10 * dY + 5 * dX;
+                console.log('armySize will be ' + armySize);
+                const biome = ow.getBiome(xy[0], xy[1]);
+                levelType = this.biomeToLevelType(biome);
+            }
+            battleConf.maxDanger = maxDanger;
+            battleConf.armySize = armySize;
+            battleConf.levelType = levelType;
+
             if (!this.battles.hasOwnProperty(id)) {
-                const battle = this.fact.createBattle(level);
+                const battle = this.fact.createBattle(level, battleConf);
                 this.battles[id] = battle;
                 this.game.addBattle(this.battles[id]);
             }
@@ -207,7 +233,7 @@ const GameMaster = function(game) {
             actors.forEach(actor => {
                 if (!actor.isPlayer()) {
                     if (level.removeActor(actor)) {
-                        debug(`Removed actor ${actor.getID()},${actor.getName()}`);
+                        debug(`Rm actor ${actor.getID()},${actor.getName()}`);
                         targetLevel.addActorToFreeCell(actor);
                     }
                     else {
@@ -245,12 +271,39 @@ const GameMaster = function(game) {
                 if (selection < armies.length) {
                     const army = armies[selection];
                     return () => {
+                        const battleLevel = battle.getLevel();
+                        let armyActors = army.getActors();
+                        const nActors = armyActors.length;
+                        const pIndex = RG.RAND.getUniformInt(0, nActors);
+                        const replacedActor = armyActors[pIndex];
+                        const [pX, pY] = replacedActor.getXY();
+
+                        // Remove substituted actor from army/level
+                        replacedActor.get('Action').disable();
+                        army.removeActor(replacedActor);
+                        battleLevel.removeActor(replacedActor);
+
+                        armyActors = army.getActors();
                         army.addActor(player);
+
                         player.get('InBattle').updateData({army: army.getName});
-                        const actors = army.getActors();
-                        actors.forEach(actor => {
+                        armyActors.forEach(actor => {
                             actor.addFriend(player);
                         });
+
+                        armies.forEach(enemyArmy => {
+                            if (enemyArmy !== army) {
+                                const enemies = enemyArmy.getActors();
+                                enemies.forEach(enemy => {
+                                    enemy.addEnemy(player);
+                                });
+                            }
+                        });
+
+                        if (!battleLevel.moveActorTo(player, pX, pY)) {
+                            RG.err('GameMaster', 'getSelArmyObject',
+                                `Could not move player to ${pX},${pY}`);
+                        }
                     };
                 }
                 return null;
@@ -275,7 +328,7 @@ const GameMaster = function(game) {
                         const exit = level.getConnections()[0];
                         if (!exit.useStairs(player)) {
                             RG.err('GameMaster', 'moveActorsOutOfBattle',
-                                'Cannot move player out of battle via useStairs');
+                                'Cannot move player via useStairs');
                         }
                         else {
                             const name = player.getName();
@@ -305,6 +358,16 @@ const GameMaster = function(game) {
             battles,
             battlesDone: this.battlesDone
         };
+    };
+
+    this.biomeToLevelType = function(biome) {
+        switch (biome) {
+            case OW.BIOME.ARCTIC: return 'arctic';
+            case OW.BIOME.TUNDRA: return 'arctic';
+            case OW.BIOME.ALPINE: return 'mountain';
+            case OW.BIOME.TAIGA: return 'forest';
+            default: return 'forest';
+        }
     };
 };
 
