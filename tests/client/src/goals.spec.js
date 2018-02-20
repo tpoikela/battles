@@ -22,7 +22,6 @@ describe('Actor Goal', () => {
     });
 
     it('it indicates to actor what to do', () => {
-
         const actor = new RG.Actor.Rogue('thinker');
         const enemy = new RG.Actor.Rogue('enemy');
         actor.setBrain(new RG.Brain.GoalOriented(actor));
@@ -30,25 +29,35 @@ describe('Actor Goal', () => {
         actor.addEnemy(enemy);
         enemy.addEnemy(actor);
         const startHP = enemy.get('Health').getHP();
-        RGTest.wrapIntoLevel([actor, enemy]);
+        /* const level = */ RGTest.wrapIntoLevel([actor, enemy]);
         RGTest.moveEntityTo(actor, 5, 5);
         RGTest.moveEntityTo(actor, 17, 17);
 
+        enemy.get('Combat').setDefense(0);
+        enemy.get('Stats').setAgility(1);
+
         let [x, y] = actor.getXY();
-        let action = actor.nextAction();
-        action.doAction();
-        systems.forEach(sys => {sys.update();});
+        const [oX, oY] = [x, y];
+        let action;
+        for (let i = 0; i < 5; i++) {
+            [x, y] = actor.getXY();
+            action = actor.nextAction();
+            action.doAction();
+            systems.forEach(sys => {sys.update();});
+        }
 
         const [nX, nY] = actor.getXY();
 
-        const coordSame = x === nX && y === nY;
+        const coordSame = oX === nX && oY === nY;
         expect(coordSame).not.to.equal(true);
 
         RGTest.moveEntityTo(actor, 2, 2);
         RGTest.moveEntityTo(enemy, 5, 5);
 
+        const catcher = new RGTest.MsgCatcher();
         RGTest.updateGame(actor, systems, 10);
         // RGTest.printScreen(actor);
+        // RGTest.printLevel(level);
         const endHP = enemy.get('Health').getHP();
         expect(endHP, 'Health must decrease').to.be.below(startHP);
 
