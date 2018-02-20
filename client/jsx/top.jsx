@@ -612,6 +612,10 @@ class BattlesTop extends Component {
             showGameMenu = this.game.isMenuShown();
             if (overworld) {
                 playerOwPos = this.game.getPlayerOwPos();
+                console.log('playerOwPos: ' + playerOwPos);
+                if (playerOwPos) {
+                    this.game.setOverWorldExplored(playerOwPos);
+                }
             }
         }
 
