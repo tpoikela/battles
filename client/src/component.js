@@ -1341,18 +1341,6 @@ RG.Component.Event = function(args) {
 };
 RG.extend2(RG.Component.Event, RG.Component.Base);
 
-/* Added to entity when it's picking up something. */
-RG.Component.Pickup = function() {
-    RG.Component.Base.call(this, 'Pickup');
-};
-RG.extend2(RG.Component.Pickup, RG.Component.Base);
-
-/* Added to entity when it's using stairs to move to another level. */
-RG.Component.UseStairs = function() {
-    RG.Component.Base.call(this, 'UseStairs');
-};
-RG.extend2(RG.Component.UseStairs, RG.Component.Base);
-
 //--------------------------------------------
 // Comps that add or remove other components
 //--------------------------------------------
@@ -1394,5 +1382,38 @@ RG.Component.addToExpirationComp = (entity, comp, dur) => {
     }
     entity.add(comp);
 };
+
+//---------------------------------------------------------------------------
+// BASE ACTIONS (transient components, not serialized, stored ever)
+//---------------------------------------------------------------------------
+
+/* Added to entity when it's picking up something. */
+RG.Component.Pickup = function() {
+    RG.Component.Base.call(this, 'Pickup');
+    this.toJSON = NO_SERIALISATION;
+};
+RG.extend2(RG.Component.Pickup, RG.Component.Base);
+
+/* Added to entity when it's using stairs to move to another level. */
+RG.Component.UseStairs = function() {
+    RG.Component.Base.call(this, 'UseStairs');
+    this.toJSON = NO_SERIALISATION;
+};
+RG.extend2(RG.Component.UseStairs, RG.Component.Base);
+
+/* Added to entity when it's opening a door. */
+RG.Component.Door = function() {
+    RG.Component.Base.call(this, 'Door');
+    this.toJSON = NO_SERIALISATION;
+
+    this._door = null;
+
+    this.setDoor = door => {
+        this._door = door;
+    };
+
+    this.getDoor = () => this._door;
+};
+RG.extend2(RG.Component.Door, RG.Component.Base);
 
 module.exports = RG.Component;
