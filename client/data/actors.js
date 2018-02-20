@@ -136,7 +136,7 @@ const Actors = [
     {
         name: 'goblin slinger', base: 'goblin',
         attack: 2, defense: 1, hp: 8,
-        equip: [{name: 'Rock', count: 10}], brain: 'Archer'
+        equip: [{name: 'Rock', count: 10}]
     },
     {
         name: 'goblin fighter', base: 'goblin',
@@ -182,7 +182,7 @@ const Actors = [
     {
       name: 'bearfolk archer', base: 'BearfolkBase',
       attack: 2, defense: 2, danger: 3, hp: 13,
-      equip: ['Wooden bow', {name: 'Wooden arrow', count: 10}], brain: 'Archer'
+      equip: ['Wooden bow', {name: 'Wooden arrow', count: 10}]
     },
     {
       name: 'bearfolk king', base: 'BearfolkBase',
@@ -329,8 +329,7 @@ const Actors = [
         name: 'dwarven rifleman', base: 'dwarf',
         attack: 4, defense: 4, damage: '1d8',
         range: 1, hp: 40, danger: 7,
-        equip: ['Rifle', {name: 'Steel bullet', count: 10}],
-        brain: 'Archer'
+        equip: ['Rifle', {name: 'Steel bullet', count: 10}]
     },
     {
         name: 'dwarven elite', base: 'dwarf',
@@ -411,7 +410,7 @@ const Actors = [
         name: 'wildling archer', base: 'wildling', char: 'F',
         attack: 3, defense: 3, damage: '1d6', hp: 20, danger: 4,
         equip: ['Wooden bow', {name: 'Wooden arrow', count: 10}],
-        brain: 'Archer'
+        brain: defaultBrain
     },
     {
         name: 'wildling fighter', base: 'wildling', char: 'F',
@@ -445,7 +444,7 @@ const Actors = [
     {
         name: 'catfolk darter', base: 'CatfolkBase',
         attack: 1, defense: 4, damage: '3d2', hp: 15, danger: 3,
-        brain: 'Archer', equip: [{name: 'Iron dart', count: 9}]
+        brain: defaultBrain, equip: [{name: 'Iron dart', count: 9}]
     },
     {
         name: 'catfolk warrior', base: 'CatfolkBase',
@@ -514,7 +513,7 @@ const Actors = [
     {
         name: 'dogfolk thrower', base: 'DogfolkBase',
         attack: 2, defense: 3, damage: '6d1+1', hp: 15, danger: 3,
-        brain: 'Archer', equip: [{name: 'Throwing axe', count: 7}]
+        equip: [{name: 'Throwing axe', count: 7}]
     },
     {
         name: 'dogfolk skirmisher', base: 'DogfolkBase', danger: 5,
@@ -580,7 +579,7 @@ const Actors = [
     },
     {
       name: 'Hyrkhian archer', base: 'HyrkhianBase',
-      attack: 4, defense: 4, protection: 2, hp: 20, brain: 'Archer',
+      attack: 4, defense: 4, protection: 2, hp: 20,
       equip: ['Steel bow', {name: 'Steel arrow', count: 15}], danger: 6
     },
     {
