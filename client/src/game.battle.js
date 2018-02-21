@@ -190,10 +190,13 @@ const Battle = function(name) {
      * would get stuck otherwise. */
     this.addActor = (actor, x, y) => {
         const cell = _level.getMap().getCell(x, y);
-        _level.addActor(actor, x, y);
         // TODO workaround for mountain level
         if (!cell.isPassable()) {
             cell.setBaseElem(RG.ELEM.FLOOR);
+        }
+        if (!_level.addActor(actor, x, y)) {
+            RG.err('Game.Battle', 'addActor',
+                `Cannot add ${actor} to ${x},${y}`);
         }
     };
 
