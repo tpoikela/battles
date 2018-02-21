@@ -395,10 +395,18 @@ describe('Brain.Archer', () => {
 });
 
 describe('Brain.SpellCaster', () => {
-    it('casts spells towards enemy', () => {
-        const spellSystem = new RG.System.SpellCast(['SpellCast']);
-        const effectSystem = new RG.System.SpellEffect(['SpellRay']);
 
+    let spellSystem = null;
+    let effectSystem = null;
+    let systems = null;
+
+    beforeEach(() => {
+        spellSystem = new RG.System.SpellCast(['SpellCast']);
+        effectSystem = new RG.System.SpellEffect(['SpellRay']);
+        systems = [spellSystem, effectSystem];
+    });
+
+    it('decides when to cast spells towards enemy', () => {
         const wizard = RGTest.getMeAWizard();
         wizard.getBrain().addEnemyType('goblin');
         const goblin = new RG.Actor.Rogue('goblin');
@@ -410,10 +418,8 @@ describe('Brain.SpellCaster', () => {
         const action = wizard.nextAction();
         action.doAction();
 
-        spellSystem.update();
-        effectSystem.update();
+        RGTest.updateSystems(systems);
         expect(goblin.has('Damage')).to.be.true;
         expect(goblin.get('Damage').getDamageType()).to.equal(RG.DMG.ICE);
-
     });
 });
