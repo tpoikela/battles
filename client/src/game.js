@@ -89,8 +89,9 @@ RG.Game.Main = function() {
         return levelOK;
     };
 
-    /* Moves player to specified area tile. */
-    this.movePlayer = function(tileX, tileY) {
+    /* Moves player to specified area tile. This is used for debugging purposes
+     * mainly. Maybe to be used with quick travel. */
+    this.movePlayer = function(tileX, tileY, levelX = 0, levelY = 0) {
         const player = this.getPlayer();
         const world = this.getCurrentWorld();
         const area = world.getAreas()[0];
@@ -100,7 +101,14 @@ RG.Game.Main = function() {
 
         const [x0, y0] = [player.getX(), player.getY()];
         if (currLevel.removeActor(player)) {
-            if (newLevel.addActorToFreeCell(player)) {
+            if (newLevel.addActor(player, levelX, levelY)) {
+                RG.POOL.emitEvent(RG.EVT_LEVEL_CHANGED,
+                    {target: newLevel,
+                        src: currLevel, actor: player});
+                RG.POOL.emitEvent(RG.EVT_LEVEL_ENTERED,
+                    {actor: player, target: newLevel});
+            }
+            else if (newLevel.addActorToFreeCell(player)) {
                 RG.POOL.emitEvent(RG.EVT_LEVEL_CHANGED,
                     {target: newLevel,
                         src: currLevel, actor: player});
