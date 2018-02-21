@@ -84,7 +84,7 @@ export default class AbandonedFort {
 
     // Add stairs for entrance and exit
     const midY = Math.floor(rows / 2);
-    const stairsWest = new RG.Element.Stairs(false, mainLevel);
+    const stairsWest = new RG.Element.Stairs('stairsUp', mainLevel);
     mainLevel.addStairs(stairsWest, 0, midY);
 
 
@@ -94,7 +94,7 @@ export default class AbandonedFort {
     console.log(`eastStairs range y ${y0} -> ${y1}`);
     const eastCell = mainMap.getFirstFreeFromRight(y0, y1);
     const [sX, sY] = [eastCell.getX(), eastCell.getY()];
-    const stairsEast = new RG.Element.Stairs(true, mainLevel);
+    const stairsEast = new RG.Element.Stairs('stairsDown', mainLevel);
     mainLevel.addStairs(stairsEast, sX, sY);
 
     const castleBbox = {ulx: castleX, uly: castleY,
@@ -108,7 +108,8 @@ export default class AbandonedFort {
     const castleFreeCells = mainMap.getFreeInBbox(castleBbox);
     const itemConf = {
         itemsPerLevel: 50, nLevel: 0,
-        func: item => item.value >= 100 && item.value <= 200
+        func: item => item.value >= 100 && item.value <= 200,
+        maxValue: 500
     };
     itemFact.addItemsToCells(mainLevel, parser, castleFreeCells, itemConf);
 
