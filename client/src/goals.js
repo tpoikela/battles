@@ -224,11 +224,24 @@ class GoalFollowPath extends GoalBase {
     /* Should check the next coordinate, and if actor can move to it. */
     process() {
         this.activateIfInactive();
-        const level = this.actor.getLevel();
         if (this.path.length > 0) {
-            const {x, y} = this.path[0];
-            const [nextX, nextY] = [x, y];
-            if (level.getMap().isPassable(nextX, nextY)) {
+            return this.followPath();
+        }
+        this.dbg('process() ret GOAL_COMPLETED');
+        this.status = GOAL_COMPLETED;
+        return GOAL_COMPLETED;
+    }
+
+    followPath() {
+        const level = this.actor.getLevel();
+        const [aX, aY] = this.actor.getXY();
+        const {x, y} = this.path[0];
+        const [nextX, nextY] = [x, y];
+        if (level.getMap().isPassable(nextX, nextY)) {
+            const dX = Math.abs(aX - x);
+            const dY = Math.abs(aY - y);
+
+            if (dX <= 1 && dY <= 1) {
                 const movComp = new Component.Movement(nextX, nextY, level);
                 this.actor.add(movComp);
                 this.path.shift();
@@ -243,14 +256,17 @@ class GoalFollowPath extends GoalBase {
                 return GOAL_ACTIVE;
             }
             else {
-                this.dbg('process() ret GOAL_FAILED');
+                // Strayed from the path, mark as failed
                 this.status = GOAL_FAILED;
                 return GOAL_FAILED;
             }
         }
-        this.dbg('process() ret GOAL_COMPLETED');
-        this.status = GOAL_COMPLETED;
-        return GOAL_COMPLETED;
+        else {
+            this.dbg('process() ret GOAL_FAILED');
+            this.status = GOAL_FAILED;
+            return GOAL_FAILED;
+        }
+
     }
 
 }
@@ -326,6 +342,7 @@ class GoalGotoActor extends GoalFollowPath {
         super(actor);
         this.setType('GoalGotoActor');
         this.xy = targetActor.getXY();
+        this.targetActor = targetActor;
     }
 
     /* If activated, will compute actor's path from current location to x,y */
@@ -339,6 +356,25 @@ class GoalGotoActor extends GoalFollowPath {
         this.path = path;
         this.status = GOAL_ACTIVE;
         this.dbg(`activate() path length: ${this.path.length}`);
+    }
+
+    process() {
+        this.activateIfInactive();
+        const [tX, tY] = [this.targetActor.getX(), this.targetActor.getY()];
+        const [x, y] = this.xy;
+        const dX = Math.abs(tX - x);
+        const dY = Math.abs(tY - y);
+        if (dX > 1 || dY > 1) {
+            this.followPath();
+            this.status = GOAL_FAILED;
+            return GOAL_FAILED;
+        }
+        else if (this.path.length > 0) {
+            return this.followPath();
+        }
+        this.dbg('process() ret GOAL_COMPLETED');
+        this.status = GOAL_COMPLETED;
+        return GOAL_COMPLETED;
     }
 
 }
