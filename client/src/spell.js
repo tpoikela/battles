@@ -383,7 +383,7 @@ RG.Spell.PowerDrain = function() {
 
 
     /* TODO: Change to LOS or something more effective. */
-    this.aiShouldCastSpell = args => {
+    this.aiShouldCastSpell = (args, cb) => {
         const {actor, enemy} = args;
         if (!actor.has('PowerDrain')) {
             const [x0, y0] = [actor.getX(), actor.getY()];
@@ -392,7 +392,8 @@ RG.Spell.PowerDrain = function() {
             if (lineXY.length > 1) {
                 const dX = lineXY[1][0] - lineXY[0][0];
                 const dY = lineXY[1][1] - lineXY[0][1];
-                actor.getBrain().setSpellArgs({dir: [dX, dY]});
+                const args = {dir: [dX, dY]};
+                cb(actor, args);
                 return true;
             }
         }
@@ -521,6 +522,14 @@ RG.Spell.Heal = function() {
         const msg = 'Select a direction for healing:';
         return RG.Spell.getSelectionObjectDir(this, actor, msg);
     };
+
+    /* this.aiShouldCastSpell = (args, cb) => {
+        const {actor} = args;
+        // 1. Get surrounding actors
+        // 2. If any are friends and wounded, cast spell
+
+    };*/
+
 };
 RG.extend2(RG.Spell.Heal, RG.Spell.Base);
 
