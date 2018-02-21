@@ -626,17 +626,20 @@ RG.System.Damage = function(compTypes) {
         const dmgComp = actor.get('Damage');
         const level = actor.getLevel();
         const cell = actor.getCell();
+        const [x, y] = actor.getXY();
         if (level.removeActor(actor)) {
+            const nameKilled = actor.getName();
+
             if (actor.has('Experience')) {
                 _giveExpToSource(src, actor);
             }
             const dmgType = dmgComp.getDamageType();
             if (dmgType === 'poison') {
                 RG.gameDanger({cell,
-                    msg: actor.getName() + ' dies horribly of poisoning!'});
+                    msg: nameKilled + ' dies horribly of poisoning!'});
             }
 
-            let killMsg = actor.getName() + ' was killed';
+            let killMsg = nameKilled + ' was killed';
             if (src !== null) {killMsg += ' by ' + src.getName();}
 
             RG.gameDanger({cell, msg: killMsg});
@@ -646,6 +649,12 @@ RG.System.Damage = function(compTypes) {
             evtComp.setArgs({type: RG.EVT_ACTOR_KILLED,
                 cause: src});
             actor.add(evtComp);
+
+            // Finally drop a corpse
+            const corpse = new RG.Item.Corpse(nameKilled + ' corpse');
+            const cssClass = RG.getCssClass(RG.TYPE_ACTOR, nameKilled);
+            RG.addCellStyle(RG.TYPE_ITEM, corpse.getName(), cssClass);
+            level.addItem(corpse, x, y);
         }
         else {
             RG.err('System.Damage', 'killActor', "Couldn't remove actor");
@@ -1905,6 +1914,9 @@ RG.System.Battle = function(compTypes) {
                 if (!ent.has('Reputation')) {
                     rep = new RG.Component.Reputation();
                     ent.add(rep);
+                }
+                else {
+                    rep = ent.get('Reputation');
                 }
                 rep.addToFame(1);
             }
