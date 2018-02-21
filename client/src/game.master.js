@@ -68,13 +68,15 @@ const GameMaster = function(game) {
                 const xy = area.findTileXYById(id);
                 // TODO use actual starting position
                 const startX = 2;
-                const startY = ow.getSizeY() - 1;
+                const startY = area.getMaxY() - 1;
                 const dX = Math.abs(startX - xy[0]);
                 const dY = Math.abs(startY - xy[1]);
                 maxDanger += dX + dY;
                 armySize += 10 * dY + 5 * dX;
                 console.log('armySize will be ' + armySize);
-                const biome = ow.getBiome(xy[0], xy[1]);
+
+                const owPos = this.game.getPlayerOwPos();
+                const biome = ow.getBiome(owPos[0], owPos[1]);
                 levelType = this.biomeToLevelType(biome);
             }
             battleConf.maxDanger = maxDanger;
@@ -368,6 +370,15 @@ const GameMaster = function(game) {
             case OW.BIOME.TAIGA: return 'forest';
             default: return 'forest';
         }
+    };
+
+    this.getBattleLevels = function() {
+        const levels = [];
+        Object.values(this.battles).forEach(battle => {
+            levels.push(battle.getLevel());
+        });
+        return levels;
+
     };
 };
 
