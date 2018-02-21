@@ -252,7 +252,7 @@ class EvaluatorCastSpell extends EvaluatorBase {
         const brain = actor.getBrain();
         const seenCells = brain.getSeenCells();
         const enemyCell = brain.findEnemyCell(seenCells);
-        const actorsAround = RG.Brain.getActorsCellsAround(actor);
+        const actorsAround = RG.Brain.getActorCellsAround(actor);
         if (enemyCell) {
             const enemy = enemyCell.getActors()[0];
             const args = {enemy, actor, actorsAround};
