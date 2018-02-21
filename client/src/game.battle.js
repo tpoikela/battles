@@ -163,7 +163,7 @@ const Battle = function(name) {
                 for (let row = 0; row < numRows; row++) {
                     for (let xPos = 0; xPos < actorsPerRow; xPos++) {
                         if (i < actors.length) {
-                            _level.addActor(actors[i++], x + xPos, y + row);
+                            this.addActor(actors[i++], x + xPos, y + row);
                         }
                     }
                 }
@@ -173,7 +173,7 @@ const Battle = function(name) {
                 for (let row = 0; row < numRows; row++) {
                     for (let yPos = 0; yPos < actorsPerRow; yPos++) {
                         if (i < actors.length) {
-                            _level.addActor(actors[i++], x + row, y + yPos);
+                            this.addActor(actors[i++], x + row, y + yPos);
                         }
                     }
                 }
@@ -184,6 +184,17 @@ const Battle = function(name) {
                 'Level must exist before adding army.');
         }
         army.setBattle(this);
+    };
+
+    /* Adds actor to the battle level. Changes underlying base element if actor
+     * would get stuck otherwise. */
+    this.addActor = (actor, x, y) => {
+        const cell = _level.getMap().getCell(x, y);
+        _level.addActor(actor, x, y);
+        // TODO workaround for mountain level
+        if (!cell.isPassable()) {
+            cell.setBaseElem(RG.ELEM.FLOOR);
+        }
     };
 
     this.armyInThisBattle = army => {
