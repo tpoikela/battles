@@ -140,12 +140,15 @@ class GoalBase {
     }
 
     removeFinishedOrFailed() {
-        while (this.subGoals.length > 0 && (this.subGoals[0].isCompleted()
+        /* while (this.subGoals.length > 0 && (this.subGoals[0].isCompleted()
             || this.subGoals[0].hasFailed())) {
             this.dbg(`Removing subGoal ${this.subGoals[0].getType()}`);
             this.subGoals[0].terminate();
             this.subGoals.shift();
-        }
+        }*/
+        this.subGoals = this.subGoals.filter(goal => (
+            !goal.isCompleted() && !goal.hasFailed()
+        ));
     }
 
     removeAllSubGoals() {
