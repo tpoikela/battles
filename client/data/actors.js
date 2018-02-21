@@ -309,6 +309,7 @@ const Actors = [
     // DWARVES
     {
         name: 'dwarf', char: 'h', type: 'dwarf',
+        className: 'cell-actor-dwarf',
         attack: 2, defense: 2, damage: '1d4',
         range: 1, hp: 20, danger: 3, enemies: ['human', 'undead', 'demon'],
         brain: defaultBrain
@@ -346,6 +347,7 @@ const Actors = [
     // HUMANS
     {
         name: 'human', char: '@', type: 'human',
+        className: 'cell-actor-human',
         attack: 2, defense: 2, damage: '1d4',
         range: 1, hp: 20, danger: 3,
         brain: defaultBrain
