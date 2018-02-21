@@ -814,7 +814,9 @@ RG.Brain.SpellCaster = function(actor) {
         const seenCells = this.getSeenCells();
         const enemy = this.findEnemyCell(seenCells).getActors()[0];
         const args = {enemy, actor: this._actor};
-        return this._spell.aiShouldCastSpell(args);
+        return this._spell.aiShouldCastSpell(args, (actor, args) => {
+            this._spellArgs = args;
+        });
     };
 
     /* Casts a spell. this._spellsArgs is set in
@@ -822,11 +824,6 @@ RG.Brain.SpellCaster = function(actor) {
      * */
     this.castSpell = function() {
         return this._spell.getCastFunc(this._actor, this._spellArgs);
-    };
-
-    /* Sets the arguments for spell to be cast. */
-    this.setSpellArgs = function(args) {
-        this._spellArgs = args;
     };
 
 };
