@@ -3,6 +3,7 @@ import MockStorage from '../../helpers/mockstorage';
 
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
+const RGTest = require('../../roguetest');
 
 const worldConf = require('../../../client/data/conf.world');
 
@@ -38,9 +39,16 @@ describe('Function: Saving/restoring a game', function() {
         game.setGUICallbacks(isGUICommand, doGUICommand);
         game.getPlayer().setFOVRange(11);
 
-        const parentsBefore = game.getLevels().map(level => level.getParent());
-        const numLevelsBefore = game.getLevels().length;
-        const levelIDsBefore = game.getLevels().map(level => level.getID());
+        const levelsBefore = game.getLevels();
+        const parentsBefore = levelsBefore.map(level => level.getParent());
+        const numLevelsBefore = levelsBefore.length;
+        const levelIDsBefore = levelsBefore.map(level => level.getID());
+
+        verifyBattleLevelConnectivity(game, 'Original game');
+
+        const connBefore = levelsBefore.map(l => l.getConnections())
+            .reduce((acc, cur) => acc.concat(cur), []);
+
         console.log('Now serializing the game.');
         let json = game.toJSON();
 
@@ -49,6 +57,8 @@ describe('Function: Saving/restoring a game', function() {
             .to.deep.equal(levelIDsBefore);
 
         RG.Verify.verifySaveData(json, true);
+
+
         console.log('Converting serialized object to string...');
         let jsonStr = JSON.stringify(json);
         console.log(`Length of serialized string ${jsonStr.length}`);
@@ -86,6 +96,18 @@ describe('Function: Saving/restoring a game', function() {
             expect(Object.keys(places)).to.have.length(1);
             const world = places[worldConf.name];
             expect(world.getName()).to.equal(worldConf.name);
+
+            verifyBattleLevelConnectivity(restGame, 'Restored game');
+
+            const connAfter = levelsBefore.map(l => l.getConnections())
+                .reduce((acc, cur) => acc.concat(cur), []);
+
+            expect(connAfter.length).to.equal(connBefore.length);
+
+            //------------------------------
+            // Serialize again
+            //------------------------------
+
             console.log('Now serializing the game.');
             json = restGame.toJSON();
             // console.log(JSON.stringify(json, null, ' '));
@@ -95,3 +117,14 @@ describe('Function: Saving/restoring a game', function() {
         }
     });
 });
+
+function verifyBattleLevelConnectivity(game, msg) {
+    const master = game.getGameMaster();
+    const battleLevels = master.getBattleLevels();
+    expect(battleLevels.length).to.be.above(0);
+
+    for (let j = 0; j < battleLevels.length; j++) {
+        const level = battleLevels[j];
+        RGTest.verifyConnectivity(level.getConnections(), msg);
+    }
+}
