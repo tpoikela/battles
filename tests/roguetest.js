@@ -109,14 +109,16 @@ RGTest.verifyStairsConnectivity = function(stairs) {
     console.log(`verifyStairsConnectivity ${connVerified} connections OK`);
 };
 
-RGTest.verifyConnectivity = function(stairs) {
+/* Verifies that all given stairs in the array are connected. On failure, prints
+ * the optional error msg. */
+RGTest.verifyConnectivity = function(stairs, msg = '') {
     let connVerified = 0;
     stairs.forEach(s => {
-        let str = `x, y: ${s.getX()}, ${s.getY()} `;
+        let str = `${msg} x, y: ${s.getX()}, ${s.getY()} `;
         str += JSON.stringify(s);
-        expect(s.getTargetStairs(), str).to.exist;
-        expect(s.getTargetLevel(), str).to.exist;
-        expect(s.getSrcLevel(), str).to.exist;
+        expect(s.getTargetStairs(), str + ' targetStairs').to.exist;
+        expect(s.getTargetLevel(), str + ' targetLevel').to.exist;
+        expect(s.getSrcLevel(), str + ' srcLevel').to.exist;
         ++connVerified;
     });
     console.log(`verifyConnectivity ${connVerified} connections OK`);
