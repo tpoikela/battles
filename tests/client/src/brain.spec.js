@@ -35,7 +35,7 @@ describe('Brain.Player', () => {
         const brain = new Brain.Player(player);
 
         brain.decideNextAction({code: RG.VK_r});
-        expect(player.getSpeed()).to.equal(150);
+        expect(player.getSpeed()).to.equal(120);
         expect(brain.isRunModeEnabled()).to.equal(true);
         expect(brain.energy).to.equal(0);
         brain.decideNextAction({code: RG.VK_s});
