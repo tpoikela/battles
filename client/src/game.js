@@ -458,6 +458,27 @@ RG.Game.Main = function() {
         return null;
     };
 
+    /* Generic find function for debugging. */
+    this.find = (filter, levelId = -1, filterFunc = 'find') => {
+        if (levelId === -1) {
+            const level = this.getPlayer().getLevel();
+            return level.getActors()[filterFunc](filter);
+        }
+        else if (Number.isInteger(levelId)) {
+            const level = _levels.find(l => l.getID() === levelId);
+            if (level) {
+                return level.getActors()[filterFunc](filter);
+            }
+        }
+        else { // Search all levels (slow)
+            for (let i = 0; i < _levels.length; i++) {
+                const found = _levels[i].getActors()[filterFunc](filter);
+                if (found) {return found;}
+            }
+        }
+        return null;
+    };
+
 }; // }}} Game.Main
 
 
