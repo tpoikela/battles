@@ -20,14 +20,15 @@ const MEM_NO_ACTORS = Object.freeze([]);
 
 RG.Brain = {};
 
-/* Returns a list of cells in 3x3 around the actor with the brain.*/
-RG.Brain.getCellsAroundActor = actor => {
+/* Returns a list of cells around the actor. The distance d can be specified.
+* For example, d=1 gives 3x3 region, d=2 5x5 region, d=3 7x7 ... */
+RG.Brain.getCellsAroundActor = (actor, d = 1) => {
     const map = actor.getLevel().getMap();
     const x = actor.getX();
     const y = actor.getY();
     const cells = [];
-    for (let xx = x - 1; xx <= x + 1; xx++) {
-        for (let yy = y - 1; yy <= y + 1; yy++) {
+    for (let xx = x - d; xx <= x + d; xx++) {
+        for (let yy = y - d; yy <= y + d; yy++) {
             if (map.hasXY(xx, yy)) {
                 if (xx !== x || yy !== y) {
                     cells.push(map.getCell(xx, yy));
@@ -38,7 +39,7 @@ RG.Brain.getCellsAroundActor = actor => {
     return cells;
 };
 
-/* Returns all cells with actors in them. */
+/* Returns all cells with actors in them from list of seen cells. */
 RG.Brain.findCellsWithActors = (actor, seenCells) => {
     const cells = [];
     for (let i = 0, iMax = seenCells.length; i < iMax; i++) {
@@ -53,11 +54,27 @@ RG.Brain.findCellsWithActors = (actor, seenCells) => {
     return cells;
 };
 
+/* Returns all cells with actors in them around the actor. */
+RG.Brain.getActorCellsAround = actor => {
+    const cellsAround = RG.Brain.getCellsAroundActor(actor);
+    const res = cellsAround.filter(cell => cell.hasActors());
+    return res;
+};
+
 RG.Brain.getEnemyCellsAround = actor => {
     const cellsAround = RG.Brain.getCellsAroundActor(actor);
     const res = cellsAround.filter(cell => (
         cell.hasActors() &&
             actor.getBrain().getMemory().isEnemy(cell.getActors()[0])
+    ));
+    return res;
+};
+
+RG.Brain.getFriendCellsAround = actor => {
+    const cellsAround = RG.Brain.getCellsAroundActor(actor);
+    const res = cellsAround.filter(cell => (
+        cell.hasActors() &&
+            actor.getBrain().getMemory().isFriend(cell.getActors()[0])
     ));
     return res;
 };
