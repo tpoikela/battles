@@ -216,7 +216,9 @@ const RG = { // {{{2
             if (state) {
                 return this.cellStyles[prop][name][state];
             }
-            return this.cellStyles[prop][name];
+            if (this.cellStyles[prop].hasOwnProperty(name)) {
+                return this.cellStyles[prop][name];
+            }
         }
         return '';
     },
