@@ -818,10 +818,6 @@ RG.OverWorld.createWorldConf = (ow, subLevels, nTilesX, nTilesY) => {
                     else if (feat.type === 'dark city') {
                         addCityConfToArea(feat, coordObj, areaConf);
                     }
-                    /* else if (feat.type === 'blacktower') {
-                        console.log('Adding blacktower now');
-                        addCityConfToArea(feat, coordObj, areaConf);
-                    }*/
                     else if (cityTypesRe.test(feat.type)) {
                         addCityConfToArea(feat, coordObj, areaConf);
                     }
@@ -1052,6 +1048,7 @@ function addLocationToZoneConf(feat, coordObj, zoneConf, vert = true) {
     zoneConf.y = aY;
     zoneConf.levelX = featX;
     zoneConf.levelY = featY;
+    debug(`Feat: ${feat.type}, ${aX},${aY} : ${featX},${featY}`);
 
 }
 
@@ -1074,6 +1071,7 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
     // addToPlayerPosition(dungeonConf, coordObj);
     Object.assign(dungeonConf,
         {x: aX, y: aY, levelX: featX, levelY: featY});
+    debug(`BlackTower: ${aX},${aY}, x,y ${featX},${featY}`);
     dungeonConf.dungeonType = 'castle';
     dungeonConf.wallType = 'wallice';
     dungeonConf.tilesX = 20;
