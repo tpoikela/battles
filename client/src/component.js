@@ -1402,8 +1402,8 @@ RG.Component.UseStairs = function() {
 RG.extend2(RG.Component.UseStairs, RG.Component.Base);
 
 /* Added to entity when it's opening a door. */
-RG.Component.Door = function() {
-    RG.Component.Base.call(this, 'Door');
+RG.Component.OpenDoor = function() {
+    RG.Component.Base.call(this, 'OpenDoor');
     this.toJSON = NO_SERIALISATION;
 
     this._door = null;
@@ -1414,6 +1414,6 @@ RG.Component.Door = function() {
 
     this.getDoor = () => this._door;
 };
-RG.extend2(RG.Component.Door, RG.Component.Base);
+RG.extend2(RG.Component.OpenDoor, RG.Component.Base);
 
 module.exports = RG.Component;
