@@ -344,6 +344,7 @@ RG.Game.Main = function() {
       this._overworld = ow;
     };
 
+    /* Serializes the game object into JSON. */
     this.toJSON = function() {
         const levels = [];
         _levels.forEach(level => {
@@ -366,7 +367,9 @@ RG.Game.Main = function() {
             lastLevelID: RG.Map.Level.prototype.idCount,
             lastEntityID: Entity.getIDCount(),
             globalConf: this.globalConf,
-            rng: RG.RAND.toJSON()
+            rng: RG.RAND.toJSON(),
+            charStyles: RG.charStyles,
+            cellStyles: RG.cellStyles
         };
 
         const player = this.getPlayer();
