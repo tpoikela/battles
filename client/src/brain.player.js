@@ -347,7 +347,7 @@ class BrainPlayer {
         else {
             this._runModeEnabled = true;
             const baseSpeed = this._actor.get('Stats').getSpeed();
-            const speedBoost = Math.floor( 0.5 * baseSpeed);
+            const speedBoost = Math.floor(0.2 * baseSpeed);
             this._actor.get('StatsMods').setSpeed(speedBoost);
         }
     }
