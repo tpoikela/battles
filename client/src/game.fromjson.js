@@ -491,12 +491,15 @@ RG.Game.FromJSON = function() {
         if (json.globalConf) {
             game.setGlobalConf(json.globalConf);
         }
+        const allLevels = [];
 
         // Levels must be created before the actual world, because the World
         // object contains only level IDs
         json.levels.forEach(levelJson => {
             const level = this.restoreLevel(levelJson);
+            allLevels.push(level);
             if (!levelJson.parent) {
+                console.log('ADDING GAME in fromJSON');
                 game.addLevel(level); // remove once world is properly created
             }
         });
@@ -513,7 +516,7 @@ RG.Game.FromJSON = function() {
         }
 
         // Connect levels using id2level + stairsInfo
-        this.connectGameLevels(game);
+        this.connectGameLevels(allLevels);
 
         // Player created separately from other actors for now
         if (json.player) {
@@ -563,8 +566,7 @@ RG.Game.FromJSON = function() {
 
     /* Connects all game levels together after they've been created as Map.Level
      * objects. */
-    this.connectGameLevels = game => {
-        const levels = game.getLevels();
+    this.connectGameLevels = levels => {
         levels.forEach(level => {
             const stairsList = level.getConnections();
 
