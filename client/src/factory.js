@@ -1886,7 +1886,9 @@ RG.Factory.World = function() {
                 const stairsIndex = zoneStairs.getStairs;
                 zoneStairs = zoneLevel.getStairs()[stairsIndex];
                 if (!zoneStairs) {
-                    RG.err('xxx', 'yyy', 'kkk');
+                    let msg = `zoneStairs null, index: ${stairsIndex}`;
+                    msg += `\tPoss: ${JSON.stringify(zoneLevel.getStairs())}`;
+                    RG.err('Factory.World', 'processConnObject', msg);
                 }
                 else {
                     this.debug('conn found via getStairs connObject');
