@@ -72,8 +72,10 @@ const GameMaster = function(game) {
                 const dX = Math.abs(startX - xy[0]);
                 const dY = Math.abs(startY - xy[1]);
                 maxDanger += dX + dY;
-                armySize += 10 * dY + 5 * dX;
-                console.log('armySize will be ' + armySize);
+                armySize += 20 * dY + 10 * dX;
+
+                const msg = `dx,dy: ${dX},${dY} armySize ${armySize}`;
+                console.log(`${msg} , danger: ${maxDanger}`);
 
                 const owPos = this.game.getPlayerOwPos();
                 const biome = ow.getBiome(owPos[0], owPos[1]);
