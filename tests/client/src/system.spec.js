@@ -69,7 +69,7 @@ describe('How items/loot is dropped by monsters', () => {
 
         // Check for the dropped inventory item
         const items = lootCell.getProp(RG.TYPE_ITEM);
-        expect(items).to.have.length(2);
+        expect(items).to.have.length(3);
     });
 });
 
