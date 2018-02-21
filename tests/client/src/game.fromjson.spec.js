@@ -378,8 +378,8 @@ describe('RG.Game.FromJSON', function() {
     });
 
     it('can serialize/de-serialize battles', () => {
-        const level = RG.FACT.createLevel('arena', 80, 30);
-        const battle = new RG.Factory.Battle().createBattle(level);
+        const parentLevel = RG.FACT.createLevel('arena', 80, 30);
+        const battle = new RG.Factory.Battle().createBattle(parentLevel);
         const armies = battle.getArmies();
         const game = new RG.Game.Main();
         game.addBattle(battle);
@@ -391,8 +391,14 @@ describe('RG.Game.FromJSON', function() {
 
         // const newGame = fromJSON.createGame(game.toJSON());
         const battleLevel = battle.getLevel();
+        const connsBefore = battleLevel.getConnections();
+        expect(connsBefore.length).to.be.above(50);
         expect(actors.length).to.equal(battleLevel.getActors().length);
         const newLevel = fromJSON.restoreLevel(battleLevel.toJSON());
+
+        const connsAfter = newLevel.getConnections();
+        expect(connsAfter.length).to.be.above(50);
+        expect(connsAfter.length).to.equal(connsBefore.length);
 
         const army = armies[0];
         const armyJSON = army.toJSON();
@@ -405,7 +411,6 @@ describe('RG.Game.FromJSON', function() {
         const nArmies = battle.getArmies().length;
         const nArmiesNew = newBattle.getArmies().length;
         expect(nArmiesNew).to.equal(nArmies);
-
     });
 
 });
