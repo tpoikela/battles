@@ -42,6 +42,7 @@ RG.Map.Generator = function() { // {{{2
         type = type.toLowerCase();
         _mapType = type;
         switch (type) {
+            case 'arctic': _mapGen = new ROT.Map.Dungeon(cols, rows); break;
             case 'arena': _mapGen = new ROT.Map.Arena(cols, rows); break;
             case 'cave': _mapGen = new ROT.Map.Miner(cols, rows); break;
             case 'cellular': _mapGen = this.createCellular(cols, rows); break;
@@ -561,7 +562,7 @@ RG.Map.Generator = function() { // {{{2
 
     this.createArctic = function(cols, rows, conf = {}) {
         this.setGen('empty', cols, rows);
-        const map = this.getMap();
+        const map = new RG.Map.CellList(cols, rows);
         RG.Map.Generator.addRandomSnow(map, 1.0);
         return {map};
     };
