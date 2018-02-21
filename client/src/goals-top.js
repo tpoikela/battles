@@ -139,6 +139,7 @@ class GoalThinkBasic extends GoalTop {
         const type = goal.getType();
         this.dbg(`addGoal() ${type}`);
         if (!this.isGoalPresent(type)) {
+            this.removeSubGoalsOfType(type);
             this.addSubGoal(goal);
             if (debug.enabled) {
                 console.log('Actor subgoals are now: '

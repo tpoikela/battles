@@ -156,6 +156,22 @@ class GoalBase {
         this.dbg('Removed all subGoals');
     }
 
+    /* Removes all subGoals of given type. */
+    removeSubGoalsOfType(type) {
+        let nRemoved = 0;
+        if (Array.isArray(this.subGoals)) {
+            let index = this.subGoals.findIndex(g => g.type === type);
+            while (index >= 0) {
+                this.subGoals[index].terminate();
+                this.subGoals.splice(index, 1);
+                ++nRemoved;
+                index = this.subGoals.findIndex(g => g.type === type);
+            }
+        }
+        return nRemoved;
+
+    }
+
     addSubGoal(goal) {
         if (!Array.isArray(this.subGoals)) {
             this.subGoals = [];
