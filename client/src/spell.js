@@ -161,13 +161,6 @@ RG.Spell.Base = function(name, power) {
         return null;
     };
 
-    this._setAISpellArgs = function(actor, args) {
-        const brain = actor.getBrain();
-        if (typeof brain.setSpellArgs === 'function') {
-            actor.getBrain().setSpellArgs(args);
-        }
-    };
-
 };
 
 RG.Spell.Base.prototype.toString = function() {
@@ -272,7 +265,8 @@ RG.Spell.FrostBolt = function() {
                 cb(actor, args);
             }
             else {
-                this._setAISpellArgs(actor, args);
+                RG.err('Spell.FrostBolt', 'aiShouldCastSpell',
+                    'No callback function given!');
             }
             return true;
         }
