@@ -491,6 +491,12 @@ RG.Game.FromJSON = function() {
         if (json.globalConf) {
             game.setGlobalConf(json.globalConf);
         }
+        if (json.cellStyles) {
+            RG.cellStyles = json.cellStyles;
+        }
+        if (json.charStyles) {
+            RG.charStyles = json.charStyles;
+        }
         const allLevels = [];
 
         // Levels must be created before the actual world, because the World
