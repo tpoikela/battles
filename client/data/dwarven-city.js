@@ -184,9 +184,9 @@ export default class DwarvenCity {
 
     addStairsToLevel(cols, rows, level) {
         const midX = Math.floor(cols / 2);
-        const stairsNorth = new RG.Element.Stairs(false, level);
+        const stairsNorth = new RG.Element.Stairs('stairsUp', level);
         level.addStairs(stairsNorth, midX, 0);
-        const stairsSouth = new RG.Element.Stairs(false, level);
+        const stairsSouth = new RG.Element.Stairs('stairsUp', level);
         level.addStairs(stairsSouth, midX, rows - 1);
     }
 
