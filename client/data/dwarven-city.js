@@ -3,7 +3,7 @@ const RG = require('../src/rg');
 const Castle = require('../data/tiles.castle');
 
 const dwarvenCityConf = {
-  outerColsRatio: 0.4,
+  outerColsRatio: 0.45,
   outerRowsRatio: 0.4,
   outerStartXRatio: 0.3
 };
@@ -24,6 +24,7 @@ export default class DwarvenCity {
       };
       const mainLevel = RG.FACT.createLevel('wall', cols, rows, wallOpts);
 
+      // Entrance level (southern fortress)
       const outerColsRatio = conf.outerColsRatio || 0.35;
       const outerRowsRatio = conf.outerRowsRatio || 0.35;
       let outerCols = Math.round(outerColsRatio * cols);
@@ -33,6 +34,7 @@ export default class DwarvenCity {
 
       const entrFortLevel = this.createEntryFortLevel(outerCols, outerRows);
 
+      // Main level (northern fortress)
       const mainCols = outerCols + 2 * 7;
       const mainRows = outerRows + 2 * 7;
       const mainFortLevel = this.createMainFortLevel(mainCols, mainRows);
@@ -42,13 +44,16 @@ export default class DwarvenCity {
       const fortStartX = Math.ceil((cols - mainFortLevel.getMap().cols) / 2);
       const fortEndX = cols - fortStartX;
 
+      // Empty level to ensure city can be accessed
+      const passageLevel = RG.FACT.createLevel('empty', 14, 50);
+
       // Tile all levels together into mainLevel
       const tileConf = {
         centerY: false, centerX: true,
         y: fortStartY, x: 0
       };
       RG.Geometry.tileLevels(mainLevel,
-        [mainFortLevel, entrFortLevel], tileConf);
+        [mainFortLevel, entrFortLevel, passageLevel], tileConf);
 
       // Bounding box for fort levels
       const bbox = {
