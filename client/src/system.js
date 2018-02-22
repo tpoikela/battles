@@ -300,6 +300,12 @@ RG.System.Attack = function(compTypes) {
                 msg: aName + ' misses ' + dName});
         }
         def.addEnemy(att);
+        if (att.isPlayer()) { // Emitted only for player for efficiency reasons
+            const evtComp = new RG.Component.Event();
+            evtComp.setArgs({type: RG.EVT_ACTOR_ATTACKED,
+                cause: att});
+            def.add(evtComp);
+        }
     };
 
     /* Gets an enemy target for bi-directional strike, if any. */
@@ -2028,6 +2034,11 @@ RG.System.Events = function(compTypes) {
     };
 
     this._handleActorAttacked = (ent, evt, actor) => {
+        const args = evt.getArgs();
+        const {cause} = args;
+        if (ent.getType() === actor.getType()) {
+            actor.addEnemy(cause);
+        }
         console.log('handleActorAttacked called: ' + evt);
         console.log('Perceiving actor: ' + actor.getName());
     };
