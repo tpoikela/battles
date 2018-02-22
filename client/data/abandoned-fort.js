@@ -146,8 +146,22 @@ export default class AbandonedFort {
     const x1 = castleX + 1;
     const y0 = Math.floor(map.rows / 2);
     const y1 = Math.floor(map.rows / 2);
-    const coord = RG.Path.getMinWeightPath(map, x0, y0, x1, y1);
-    const chosenCoord = RG.Path.addPathToMap(map, coord);
+    /* const coord = RG.Path.getMinWeightPath(map, x0, y0, x1, y1);
+    const chosenCoord = RG.Path.addPathToMap(map, coord); */
+    this.createVariedPath(map, {x0, x1, y0, y1});
+  }
+
+  createVariedPath(map, confObj) {
+      const {x0, y0, x1, y1} = confObj;
+      const dx = 20;
+      let coord = [];
+      for (let x = x0; x < x1; x += dx) {
+        let xEnd = x + dx;
+        if (xEnd > x1) {xEnd = x1;}
+        const segCoord = RG.Path.getMinWeightPath(map, x, y0, xEnd, y1);
+        coord = coord.concat(segCoord);
+      }
+      RG.Path.addPathToMap(map, coord);
   }
 
   getLevel() {
