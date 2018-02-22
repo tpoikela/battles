@@ -172,6 +172,7 @@ RG.Factory.ItemRandomizer = function() {
             }
             else {
                 stats = new RG.Component.Stats();
+                stats.clearValues();
                 weapon.add(stats);
             }
             const randStat = _getRandStat();
