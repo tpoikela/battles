@@ -300,7 +300,9 @@ RG.System.Attack = function(compTypes) {
                 msg: aName + ' misses ' + dName});
         }
         def.addEnemy(att);
-        if (att.isPlayer()) { // Emitted only for player for efficiency reasons
+
+        // Emitted only for player for efficiency reasons
+        if (att.isPlayer() || def.isPlayer()) {
             const evtComp = new RG.Component.Event();
             evtComp.setArgs({type: RG.EVT_ACTOR_ATTACKED,
                 cause: att});
@@ -405,6 +407,7 @@ RG.System.Missile = function(compTypes) {
                     actor.add('Damage', damageComp);
                     RG.debug(this, 'Hit an actor');
                     shownMsg = ent.getName() + ' hits ' + actor.getName();
+
                     if (ent.getType() === 'missile') {
                         addSkillsExp(attacker, 'Throwing', 1);
                     }
@@ -544,6 +547,7 @@ RG.System.Damage = function(compTypes) {
                 health.decrHP(totalDmg);
             }
 
+            const damageSrc = ent.get('Damage').getSource();
             if (health.isDead()) {
                 if (ent.has('Loot')) {
                     const entCell = ent.getCell();
@@ -551,9 +555,21 @@ RG.System.Damage = function(compTypes) {
                 }
                 _dropInvAndEq(ent);
 
-                const src = ent.get('Damage').getSource();
-                _killActor(src, ent);
+                _killActor(damageSrc, ent);
             }
+
+            // Emit ACTOR_DAMAGED
+            // Emitted only for player for efficiency reasons
+
+            if (damageSrc.isPlayer() || ent.isPlayer()) {
+                if (!RG.isNullOrUndef([damageSrc, ent])) {
+                    const evtComp = new RG.Component.Event();
+                    evtComp.setArgs({type: RG.EVT_ACTOR_DAMAGED,
+                        cause: damageSrc});
+                    ent.add(evtComp);
+                }
+            }
+
             ent.remove('Damage'); // After dealing damage, remove comp
         }
     };
@@ -2029,18 +2045,15 @@ RG.System.Events = function(compTypes) {
     };
 
     this._handleActorDamaged = (ent, evt, actor) => {
-        console.log('handleActorDamaged called: ' + evt);
-        console.log('Perceiving actor: ' + actor.getName());
+        const args = evt.getArgs();
+        const {cause} = args;
+        this._addActorAsEnemy(cause, ent, actor);
     };
 
     this._handleActorAttacked = (ent, evt, actor) => {
         const args = evt.getArgs();
         const {cause} = args;
-        if (ent.getType() === actor.getType()) {
-            actor.addEnemy(cause);
-        }
-        console.log('handleActorAttacked called: ' + evt);
-        console.log('Perceiving actor: ' + actor.getName());
+        this._addActorAsEnemy(cause, ent, actor);
     };
 
     this._handleActorUsedStairs = (ent, evt, actor) => {
@@ -2056,6 +2069,23 @@ RG.System.Events = function(compTypes) {
         [RG.EVT_ACTOR_ATTACKED]: this._handleActorAttacked,
         [RG.EVT_ACTOR_USED_STAIRS]: this._handleActorUsedStairs
         // ACTOR_KILLED: this._handleActorKilled.bind(this)
+    };
+
+    /* Decides if attacker must be added as enemy of the perceiving actor. */
+    this._addActorAsEnemy = (aggressor, victim, perceiver) => {
+        if (victim.getType() === perceiver.getType()) {
+            if (!perceiver.isEnemy(victim)) {
+                if (perceiver.isFriend(aggressor)) {
+                    perceiver.getBrain().getMemory().removeFriend(aggressor);
+                }
+                else {
+                    perceiver.addEnemy(aggressor);
+                }
+            }
+        }
+        else if (perceiver.isFriend(victim)) {
+            perceiver.addEnemy(aggressor);
+        }
     };
 
 };
