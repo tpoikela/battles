@@ -8,6 +8,8 @@ RG.ObjectShell = require('../src/objectshellparser');
 RG.Element = require('../src/element');
 const Castle = require('../data/tiles.castle');
 
+const TILE_SIZE = 7;
+
 const abandonedFortConf = {
     outerColsRatio: 0.4,
     outerRowsRatio: 0.4,
@@ -28,8 +30,6 @@ export default class AbandonedFort {
     const outerRowsRatio = conf.outerRowsRatio || 0.4;
     const outerStartXRatio = conf.outerStartXRatio || 0.4;
     const mountainWallRatio = conf.mountainWallRatio || 0.3;
-    const castleRowsRatio = conf.castleRowsRatio || 0.6;
-    const castleColsRatio = conf.castleColsRatio || 0.6;
 
     const mainWallOpts = {
       meanWx: Math.floor(mountainWallRatio * cols),
@@ -66,20 +66,9 @@ export default class AbandonedFort {
     RG.Map.Generator.addRandomSnow(mountWall.getMap(), 0.3);
     RG.Geometry.insertSubLevel(mainLevel, mountWall, wallX, wallY);
 
-    const castleRows = Math.floor(castleRowsRatio * rows);
-    const castleCols = Math.floor(castleColsRatio * cols);
-    const castleOpts = {
-      tilesX: Math.round(castleCols / 7),
-      tilesY: Math.round(castleRows / 7),
-      roomCount: 100,
-      startRoomFunc: Castle.startRoomFuncWest
-    };
-
-    const castle = RG.FACT.createLevel('castle', castleCols,
-      castleRows, castleOpts);
+    const castle = this.getCastleLevel(rows, cols, conf);
     const castleX = cols - castle.getMap().cols;
     const castleY = Math.round((rows - castle.getMap().rows) / 2);
-    console.log(`castle X,Y ${castleX},${castleY}`);
     RG.Geometry.insertSubLevel(mainLevel, castle, castleX, castleY);
 
     // Add stairs for entrance and exit
@@ -87,11 +76,16 @@ export default class AbandonedFort {
     const stairsWest = new RG.Element.Stairs('stairsUp', mainLevel);
     mainLevel.addStairs(stairsWest, 0, midY);
 
-
     // Exit stairs are added to right-most coordinates
-    const y0 = castleY;
-    const y1 = castleY + (castleRows - 1);
-    console.log(`eastStairs range y ${y0} -> ${y1}`);
+    const castleRows = castle.getMap().rows;
+    const castleCols = castle.getMap().cols;
+
+    let y0 = castleY;
+    let y1 = castleY + (castleRows - 1);
+    // Offset by castle corridor
+    y0 += TILE_SIZE;
+    y1 -= TILE_SIZE;
+
     const eastCell = mainMap.getFirstFreeFromRight(y0, y1);
     const [sX, sY] = [eastCell.getX(), eastCell.getY()];
     const stairsEast = new RG.Element.Stairs('stairsDown', mainLevel);
@@ -123,7 +117,37 @@ export default class AbandonedFort {
     };
     RG.FACT.addNRandActors(mainLevel, parser, actorConf);
 
+    this.createPathToFort(mainLevel, castleX);
+
     this.level = mainLevel;
+  }
+
+  getCastleLevel(rows, cols, conf) {
+    const castleRowsRatio = conf.castleRowsRatio || 0.6;
+    const castleColsRatio = conf.castleColsRatio || 0.6;
+    const castleRows = Math.floor(castleRowsRatio * rows);
+    const castleCols = Math.floor(castleColsRatio * cols);
+    const castleOpts = {
+      tilesX: Math.round(castleCols / 7),
+      tilesY: Math.round(castleRows / 7),
+      roomCount: 200,
+      startRoomFunc: Castle.startRoomFuncWest
+    };
+
+    const castle = RG.FACT.createLevel('castle', castleCols,
+      castleRows, castleOpts);
+    return castle;
+
+  }
+
+  createPathToFort(level, castleX) {
+    const map = level.getMap();
+    const x0 = 0;
+    const x1 = castleX + 1;
+    const y0 = Math.floor(map.rows / 2);
+    const y1 = Math.floor(map.rows / 2);
+    const coord = RG.Path.getMinWeightPath(map, x0, y0, x1, y1);
+    const chosenCoord = RG.Path.addPathToMap(map, coord);
   }
 
   getLevel() {
