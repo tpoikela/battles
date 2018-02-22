@@ -412,6 +412,16 @@ RG.Component.Stats = function() {
     let _magic = 5;
     let _speed = 100;
 
+    this.clearValues = () => {
+        this.setAccuracy(0);
+        this.setAgility(0);
+        this.setStrength(0);
+        this.setWillpower(0);
+        this.setPerception(0);
+        this.setSpeed(0);
+        this.setMagic(0);
+    };
+
     /* These determine the chance of hitting. */
     this.setAccuracy = accu => {_accuracy = accu;};
     this.getAccuracy = () => _accuracy;
@@ -486,13 +496,7 @@ RG.Component.StatsMods = function() {
     RG.Component.Stats.call(this);
     this._isUnique = false;
     this.setType('StatsMods');
-    this.setAccuracy(0);
-    this.setAgility(0);
-    this.setStrength(0);
-    this.setWillpower(0);
-    this.setPerception(0);
-    this.setSpeed(0);
-    this.setMagic(0);
+    this.clearValues();
 };
 RG.extend2(RG.Component.StatsMods, RG.Component.Stats);
 
