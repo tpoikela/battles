@@ -6,6 +6,7 @@ const Battle = require('./game.battle').Battle;
 const Army = require('./game.battle').Army;
 const debug = require('debug')('bitn:Game.FromJSON');
 
+const IND = 0;
 /* Object for converting serialized JSON objects to game objects. Note that all
  * actor/level ID info is stored between uses. If you call restoreLevel() two
  * times, all data from 1st is preserved. Call reset() to clear data. */
@@ -489,6 +490,8 @@ RG.Game.FromJSON = function() {
     this.createGame = function(json) {
         const game = new RG.Game.Main();
         if (json.globalConf) {
+            this.dbg('Setting globalConf for game: '
+                + JSON.stringify(json.globalConf, null, 1));
             game.setGlobalConf(json.globalConf);
         }
         if (json.cellStyles) {
@@ -661,10 +664,17 @@ RG.Game.FromJSON = function() {
     };
 
     /* Assume the place is World object for now. */
-    this.restorePlace = place => {
+    this.restorePlace = (place) => {
         const fact = new RG.Factory.World();
         fact.setId2Level(id2level);
-        const world = fact.createWorld(place);
+        let world = null;
+        if (place.conf) {
+            this.dbg('Creating a restored world now');
+            world = fact.createRestoredWorld(place);
+        }
+        else {
+            world = fact.createWorld(place);
+        }
         return world;
     };
 
@@ -719,6 +729,37 @@ RG.Game.FromJSON = function() {
 
     };
 
+    this.dbg = msg => {
+        if (debug.enabled) {
+          const indStr = ' '.repeat(IND);
+          debug(`${indStr}FromJSON: ${msg}`);
+        }
+    };
+
+
+    // decorateObjThisFuncs(this);
 };
+
+/*
+function decorateObjThisFuncs(obj) {
+    if (debug.enabled) {
+      for (const prop in obj) {
+        if (obj.hasOwnProperty(prop)) {
+          if (typeof obj[prop] === 'function' && prop !== 'dbg') {
+            const func = () => {
+              ++IND;
+              console.log('IND is now ' + IND);
+              const result = obj[prop].apply(obj, arguments);
+              --IND;
+              console.log('IND is now ' + IND);
+              return result;
+            };
+            obj[prop] = func;
+          }
+        }
+      }
+    }
+}
+*/
 
 module.exports = RG.Game.FromJSON;
