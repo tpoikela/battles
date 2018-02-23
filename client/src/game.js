@@ -64,14 +64,12 @@ RG.Game.Main = function() {
         let levelOK = false;
         _master.setPlayer(player);
         if (!RG.isNullOrUndef([player.getLevel()])) {
-            console.log('Player already added to level');
             levelOK = true;
         }
         else if (RG.isNullOrUndef([obj])) {
             levelOK = _addPlayerToFirstLevel(player, _levels);
         }
         else {
-            console.log('Adding player through place now');
             levelOK = _addPlayerToPlace(player, obj);
         }
 
@@ -80,7 +78,6 @@ RG.Game.Main = function() {
             this.currPlayer = player;
             if (_shownLevel === null) {_shownLevel = player.getLevel();}
             _players.push(player);
-            RG.debug(this, 'Added a player to the Game.');
             _engine.addActiveLevel(player.getLevel());
             player.getLevel().onEnter();
             player.getLevel().onFirstEnter();
@@ -131,9 +128,6 @@ RG.Game.Main = function() {
             else {
                 this.checkIfTileChanged({actor: player, src: null,
                     target: levels[0]});
-                /* console.log('_addPlayerToFirstLevel tile changed');
-                RG.POOL.emitEvent(RG.EVT_TILE_CHANGED,
-                    {actor: player, target: levels[0]});*/
             }
         }
         else {
