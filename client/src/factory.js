@@ -1128,6 +1128,22 @@ RG.Factory.World = function() {
         return world;
     };
 
+    this.createRestoredWorld = function(worldConf) {
+        if (!worldConf.conf) {
+          RG.err('Factory', 'createRestoredWorld',
+            'No worldConf.conf. Does not look like restored world.');
+        }
+        const world = this.createWorld(worldConf);
+        // Need to restore configurations here
+        world.setConf(worldConf.conf);
+
+        const areas = world.getAreas();
+        areas.forEach((area, i) => {
+            area.setConf(worldConf.conf.area[i]);
+        });
+        return world;
+    };
+
     /* Creates an area which can be added to a world. */
     this.createArea = function(conf) {
         _verif.verifyConf('createArea', conf,
@@ -1186,6 +1202,7 @@ RG.Factory.World = function() {
     this.createZonesForTile = function(world, area, x, y) {
         // Setup the scope & conf stacks
         if (!area.tileHasZonesCreated(x, y)) {
+            debug(`Creating Area ${x},${y} zones`);
             const worldConf = world.getConf();
             this.pushScope(worldConf);
             const areaConf = area.getConf();
@@ -1197,6 +1214,9 @@ RG.Factory.World = function() {
             // Cleanup the scope & conf stacks
             this.popScope(areaConf);
             this.popScope(worldConf);
+        }
+        else {
+            debug(`Area ${x},${y} zones already created`);
         }
     };
 
