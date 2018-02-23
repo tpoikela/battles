@@ -39,17 +39,41 @@ describe('How Game is created from Overworld', function() {
         const fromJSON = new RG.Game.FromJSON();
         const newGame = fromJSON.createGame(json);
         const newWorldConf = newGame.getCurrentWorld().getConf();
-        // expect(worldConf).to.deep.equal(newWorldConf);
 
-        const cityConf = worldConf.area[0].city;
-        const newCityConf = newWorldConf.area[0].city;
+        const areaConf = worldConf.area[0];
+        const newAreaConf = newWorldConf.area[0];
+
+        verifyConf(areaConf, newAreaConf);
+
+        const cityConf = areaConf.city;
+        const newCityConf = newAreaConf.city;
+
+        expect(newCityConf.length).to.equal(cityConf.length);
 
         const capitalConf = cityConf.find(c => c.name === 'Blashyrkh');
-        const newCapitalConf = newCityConf.find(c => c.name === 'Blashyrkh');
-
+        const newCapitalConf = newCityConf.find(c => (
+            (/Blashyrkh/).test(c.name)
+        ));
         expect(newCapitalConf).to.deep.equal(capitalConf);
+
+        const newWorld = newGame.getCurrentWorld();
+        const newArea = newWorld.getAreas()[0];
+        const newAreaConfObj = newArea.getConf();
+        verifyConf(areaConf, newAreaConfObj);
 
     });
 
 });
 
+function verifyConf(areaConf, newAreaConf) {
+    for (const prop in areaConf) {
+        if (Array.isArray(areaConf[prop])) {
+            const msg = `${prop} must have same length`;
+            expect(newAreaConf[prop]).to.be.an.array;
+
+            const len = areaConf[prop].length;
+            const newLen = newAreaConf[prop].length;
+            expect(newLen, msg).to.equal(len);
+        }
+    }
+}
