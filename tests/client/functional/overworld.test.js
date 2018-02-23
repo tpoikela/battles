@@ -17,7 +17,7 @@ describe('How Game is created from Overworld', function() {
 
     beforeEach(() => {
         ROT.RNG.setSeed(0);
-        RG.Rand = new RG.Random();
+        RG.RAND = new RG.Random();
         RG.RAND.setSeed(0);
         const conf = {
             playMode: 'OverWorld',
@@ -37,7 +37,6 @@ describe('How Game is created from Overworld', function() {
     });
 
     it('is created using factory from game/player objects', () => {
-
         expect(game).to.exist;
 
         const places = game.getPlaces();
