@@ -329,7 +329,6 @@ RG.Factory.Game = function() {
         RG.POOL.emitEvent(RG.EVT_TILE_CHANGED, {actor: player,
             target: playerLevel});
 
-        console.log('Setting player FOV to 10');
         player.setFOVRange(RG.PLAYER_FOV_RANGE);
         game.addPlayer(player); // Player already placed to level
         RG.Verify.verifyStairsConnections(game, 'Factory.Game');

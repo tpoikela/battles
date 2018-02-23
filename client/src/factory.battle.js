@@ -41,7 +41,6 @@ RG.Factory.Battle = function() {
             ++numRows;
             armySizeX = Math.ceil(armySize / numRows);
         }
-        console.log(`armyX scaled to ${armySizeX}, row ${numRows}`);
 
         // Generate all armies based on constraints
         const armies = [];
