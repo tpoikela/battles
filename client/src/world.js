@@ -660,25 +660,25 @@ RG.extend2(RG.World.Dungeon, RG.World.ZoneBase);
 
 /* Area-tile is a level which has entry/exit points on a number of edges.*/
 RG.World.AreaTile = function(x, y, area) {
-    const _tileX = x;
-    const _tileY = y;
-    const _area = area;
+    this._tileX = x;
+    this._tileY = y;
+    this._area = area;
 
     this.cols = null;
     this.rows = null;
 
-    let _level = null;
+    this._level = null;
 
     /* Sets the level for this tile.*/
     this.setLevel = function(level) {
-        _level = level;
-        this.cols = _level.getMap().cols;
-        this.rows = _level.getMap().rows;
+        this._level = level;
+        this.cols = this._level.getMap().cols;
+        this.rows = this._level.getMap().rows;
     };
 
-    this.getLevel = () => _level;
-    this.getTileX = () => _tileX;
-    this.getTileY = () => _tileY;
+    this.getLevel = () => this._level;
+    this.getTileX = () => this._tileX;
+    this.getTileY = () => this._tileY;
 
     /* Returns true for edge tiles.*/
     this.isEdge = function() {
@@ -689,10 +689,10 @@ RG.World.AreaTile = function(x, y, area) {
         return false;
     };
 
-    this.isNorthEdge = () => _tileY === 0;
-    this.isSouthEdge = () => _tileY === (_area.getSizeY() - 1);
-    this.isWestEdge = () => _tileX === 0;
-    this.isEastEdge = () => _tileX === (_area.getSizeX() - 1);
+    this.isNorthEdge = () => this._tileY === 0;
+    this.isSouthEdge = () => this._tileY === (this._area.getSizeY() - 1);
+    this.isWestEdge = () => this._tileX === 0;
+    this.isEastEdge = () => this._tileX === (this._area.getSizeX() - 1);
 
     /* Connect this tile to east and south tiles */
     this.connect = function(eastTile, southTile) {
@@ -702,7 +702,7 @@ RG.World.AreaTile = function(x, y, area) {
         // Connect to east tile
         if (!RG.isNullOrUndef([eastTile])) {
             const levelEast = eastTile.getLevel();
-            const map = _level.getMap();
+            const map = this._level.getMap();
             const mapEast = levelEast.getMap();
 
             for (let y = 1; y <= lastY - 1; y++) {
@@ -710,12 +710,14 @@ RG.World.AreaTile = function(x, y, area) {
                 const cellEast = mapEast.getCell(0, y);
 
                 if (cell.isFree() && cellEast.isFree()) {
-                    const stairs = new Stairs('passage', _level, levelEast);
-                    const stairsEast = new Stairs('passage', levelEast, _level);
+                    const stairs = new Stairs('passage',
+                        this._level, levelEast);
+                    const stairsEast = new Stairs('passage',
+                        levelEast, this._level);
                     stairs.setTargetStairs(stairsEast);
                     stairsEast.setTargetStairs(stairs);
 
-                    _level.addStairs(stairs, lastX, y);
+                    this._level.addStairs(stairs, lastX, y);
                     levelEast.addStairs(stairsEast, 0, y);
                 }
             }
@@ -725,7 +727,7 @@ RG.World.AreaTile = function(x, y, area) {
         // Connect to south tile
         if (!RG.isNullOrUndef([southTile])) {
             const levelSouth = southTile.getLevel();
-            const map = _level.getMap();
+            const map = this._level.getMap();
             const mapSouth = levelSouth.getMap();
 
             for (let x = 1; x <= lastX - 1; x++) {
@@ -733,22 +735,72 @@ RG.World.AreaTile = function(x, y, area) {
                 const cellSouth = mapSouth.getCell(x, 0);
 
                 if (cell.isFree() && cellSouth.isFree()) {
-                    const stairs = new Stairs('passage', _level, levelSouth);
-                    const connSouth = new Stairs('passage', levelSouth, _level);
+                    const stairs = new Stairs('passage',
+                        this._level, levelSouth);
+                    const connSouth = new Stairs('passage',
+                        levelSouth, this._level);
                     stairs.setTargetStairs(connSouth);
                     connSouth.setTargetStairs(stairs);
 
-                    _level.addStairs(stairs, x, lastY);
+                    this._level.addStairs(stairs, x, lastY);
                     levelSouth.addStairs(connSouth, x, 0);
                 }
             }
         }
     };
 
+    this.addZone = function(type, zone) {
+        if (RG.isNullOrUndef([zone.tileX, zone.tileY])) {
+            RG.err('World.AreaTile', 'addZone',
+                'No tileX/tileY given!');
+        }
+        if (!this.zones[type]) {
+            this.zones[type] = [];
+        }
+        this.zones[type].push(zone);
+    };
+
+    this.getZones = function(type) {
+        if (type) {
+            return this.zones[type];
+        }
+        let zones = [];
+        Object.keys(this.zones).forEach(type => {
+            zones = zones.concat(this.zones[type]);
+        });
+        return zones;
+    };
+
+    this.getLevels = () => {
+        let res = [this._level];
+        Object.keys(this.zones).forEach(type => {
+            this.zones[type].forEach(z => {res = res.concat(z.getLevels());});
+        });
+        return res;
+    };
+
+    // All zones inside this tile
+    this.zones = {
+        Dungeon: [],
+        Mountain: [],
+        City: [],
+        BattleZone: []
+    };
+
     this.toJSON = () => ({
-        x: _tileX,
-        y: _tileY,
-        level: _level.getID()
+        x: this._tileX,
+        y: this._tileY,
+        level: this._level.getID(),
+        // TODO split somehow between created/not created zones
+        nDungeons: this.zones.Dungeon.length,
+        dungeon: this.getZones('Dungeon').map(dg => dg.toJSON()),
+        nMountains: this.zones.Mountain.length,
+        mountain: this.getZones('Mountain').map(mt => mt.toJSON()),
+        nCities: this.zones.City.length,
+        city: this.getZones('City').map(city => city.toJSON()),
+        nBattleZones: this.zones.BattleZone.length,
+        battlezone: this.getZones('BattleZone').map(
+            battle => battle.toJSON())
     });
 };
 
@@ -772,14 +824,6 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
     this._conf = {};
     this.setConf = conf => {this._conf = conf;};
     this.getConf = () => this._conf;
-
-    // All zones inside this tile
-    this.zones = {
-        Dungeon: [],
-        Mountain: [],
-        City: [],
-        BattleZone: []
-    };
 
     // Control which tile has its zones created
     this.zonesCreated = {};
@@ -838,12 +882,9 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
         let res = [];
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
-                res.push(this._tiles[x][y].getLevel());
+                res = res.concat(this._tiles[x][y].getLevels());
             }
         }
-        Object.keys(this.zones).forEach(type => {
-            this.zones[type].forEach(z => {res = res.concat(z.getLevels());});
-        });
         return res;
     };
 
@@ -906,23 +947,18 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
             RG.err('World.Area', 'addZone',
                 'No tileX/tileY given!');
         }
-
-        if (!this.zones[type]) {
-            this.zones[type] = [];
-        }
-        this.zones[type].push(zone);
+        this._tiles[zone.tileX][zone.tileY].addZone(type, zone);
         zone.setParent(this);
     };
 
     this.getZones = function(type) {
-        if (type) {
-            return this.zones[type];
+        let res = [];
+        for (let x = 0; x < this._tiles.length; x++) {
+            for (let y = 0; y < this._tiles[x].length; y++) {
+                res = res.concat(this._tiles[x][y].getZones(type));
+            }
         }
-        let zones = [];
-        Object.keys(this.zones).forEach(type => {
-            zones = zones.concat(this.zones[type]);
-        });
-        return zones;
+        return res;
     };
 
     /* Serializes the Area into JSON. */
@@ -941,15 +977,6 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
             tiles: tilesJSON,
             levels: this.getLevels().map(l => l.toJSON()),
 
-            // TODO split somehow between created/not created zones
-            nDungeons: this.zones.Dungeon.length,
-            dungeon: this.getZones('Dungeon').map(dg => dg.toJSON()),
-            nMountains: this.zones.Mountain.length,
-            mountain: this.getZones('Mountain').map(mt => mt.toJSON()),
-            nCities: this.zones.City.length,
-            city: this.getZones('City').map(city => city.toJSON()),
-            battlezone: this.getZones('BattleZone').map(
-                battle => battle.toJSON()),
             zonesCreated: this.zonesCreated
         };
         return Object.assign(obj, json);
