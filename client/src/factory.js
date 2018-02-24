@@ -1691,8 +1691,9 @@ RG.Factory.World = function() {
                     });
                 }
                 else {
-                    RG.err('Factory.World', 'createCity',
-                        'nQuarters > 1, but no conf.connectLevels.');
+                    let msg = 'nQuarters > 1, but no conf.connectLevels.';
+                    msg += `cityConf: ${JSON.stringify(conf)}`;
+                    RG.err('Factory.World', 'createCity', msg);
                 }
             }
         }
