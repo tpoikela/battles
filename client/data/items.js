@@ -472,7 +472,7 @@ const Items = [
     },
     {
         name: 'Shuriken', base: 'MissileBase', className: 'cell-item-iron',
-        damage: '1d6', range: 3, value: value(20)
+        char: '*', damage: '1d6', range: 3, value: value(20)
     },
     {
         name: 'Iron dart', base: 'MissileBase', className: 'cell-item-iron',
@@ -493,7 +493,7 @@ const Items = [
     },
     {
         name: 'Magic Shuriken', base: 'MissileBase',
-        attack: 3, className: 'cell-item-magic', material: 'forium',
+        attack: 3, className: 'cell-item-magic', char: '*', material: 'forium',
         damage: '3d4 + 2', range: 5, value: value(100), weight: 0.1
     },
     {
