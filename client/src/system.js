@@ -128,7 +128,7 @@ RG.System.Base = function(type, compTypes) {
     this.dbg = msg => {
         if (debug.enabled) {
             const nEnt = Object.keys(this.entities).length;
-            let descr = `[System ${this.type}]`;
+            let descr = `[System ${this.type.toString()}]`;
             descr += ` nEntities: ${nEnt}`;
             debug(`${descr} ${msg}`);
         }
@@ -545,6 +545,12 @@ RG.System.Damage = function(compTypes) {
             else {
                 _applyAddOnHitComp(ent);
                 health.decrHP(totalDmg);
+                if (debug.enabled) {
+                    const hpMax = health.getMaxHP();
+                    const hp = health.getHP();
+                    const msg = `(${totalDmg}),(${hp}/${hpMax})`;
+                    RG.gameDanger({msg, cell: ent.getCell()});
+                }
             }
 
             const damageSrc = ent.get('Damage').getSource();
@@ -561,12 +567,14 @@ RG.System.Damage = function(compTypes) {
             // Emit ACTOR_DAMAGED
             // Emitted only for player for efficiency reasons
 
-            if (damageSrc.isPlayer() || ent.isPlayer()) {
-                if (!RG.isNullOrUndef([damageSrc, ent])) {
-                    const evtComp = new RG.Component.Event();
-                    evtComp.setArgs({type: RG.EVT_ACTOR_DAMAGED,
-                        cause: damageSrc});
-                    ent.add(evtComp);
+            if (damageSrc) {
+                if (damageSrc.isPlayer() || ent.isPlayer()) {
+                    if (!RG.isNullOrUndef([damageSrc, ent])) {
+                        const evtComp = new RG.Component.Event();
+                        evtComp.setArgs({type: RG.EVT_ACTOR_DAMAGED,
+                            cause: damageSrc});
+                        ent.add(evtComp);
+                    }
                 }
             }
 
