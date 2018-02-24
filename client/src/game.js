@@ -308,7 +308,12 @@ RG.Game.Main = function() {
                     const fact = new RG.Factory.World();
                     fact.setGlobalConf(this.getGlobalConf());
 
-                    // this._chunkManager.setPlayerTile(x, y);
+                    let oldX = null;
+                    let oldY = null;
+                    if (args.src) {
+                        [oldX, oldY] = area.findTileXYById(args.src.getID());
+                    }
+                    // this._chunkManager.setPlayerTile(x, y, oldX, oldY);
 
                     fact.createZonesForTile(world, area, x, y);
                     const levels = world.getLevels();
