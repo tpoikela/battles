@@ -5,6 +5,8 @@ const RG = require('./rg.js');
 
 RG.Verify = require('./verify.js');
 
+RG.EventPool = require('./eventpool');
+
 // No deps to RG.SubElems
 RG.Random = require('./random.js');
 RG.Mixin = require('./mixin.js');
