@@ -6,6 +6,7 @@ import DropdownSelect from './dropdown-select';
 
 const RG = require('../src/rg.js');
 
+const config = require('../../public/config.js');
 
 /** Component for the game startup screen Prints game title and gives some
  * customisation options for the game.
@@ -252,12 +253,14 @@ export default class GameStartScreen extends Component {
 
             <div className='modal-footer row'>
               <div className='col-md-6'>
+                {config.isDevel &&
                 <button
                   className='btn btn-primary'
                   data-dismiss='modal'
                   onClick={this.props.toggleEditor}
                   type='button'
                 >Editor</button>
+                }
                 <button
                   className='btn btn-success'
                   data-dismiss='modal'
