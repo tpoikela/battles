@@ -1304,6 +1304,7 @@ RG.World.Top = function(name) {
     // const _allLevels = {}; // Lookup table for all levels
     const _areas = [];
 
+    this.currAreaIndex = 0;
     this._conf = {};
     this.getConf = () => this._conf;
     this.setConf = conf => {this._conf = conf;};
@@ -1343,6 +1344,10 @@ RG.World.Top = function(name) {
             )
         );
         return res;
+    };
+
+    this.getCurrentArea = () => {
+        return _areas[this.currAreaIndex];
     };
 
     this.toJSON = function() {
