@@ -310,7 +310,7 @@ WorldConf.createSingleDungeonConf = (areaConf, conf) => {
         nBranches: branches.length,
         branch: branches
     };
-    if (connect) {obj.connect = connect;}
+    if (connect) {obj.connectLevels = connect;}
     return obj;
 };
 
@@ -484,7 +484,7 @@ WorldConf.Creator = function() {
             nQuarters: quarters.length,
             quarter: quarters
         };
-        if (connect) {obj.connect = connect;}
+        if (connect) {obj.connectLevels = connect;}
         return obj;
     };
 
@@ -535,7 +535,7 @@ WorldConf.Creator = function() {
             nFaces: faces.length,
             face: faces
         };
-        if (connect) {obj.connect = connect;}
+        if (connect) {obj.connectLevels = connect;}
         return obj;
     };
 
