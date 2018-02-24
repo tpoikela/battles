@@ -54,8 +54,8 @@ const GameMaster = function(game) {
                 return;
             }
             debug('\tPlayer not null. Creating battle');
-            const level = this.player.getLevel();
-            const id = level.getID();
+            const parentLevel = this.player.getLevel();
+            const parentId = parentLevel.getID();
 
             const ow = this.game.getOverWorld();
             let maxDanger = 4;
@@ -65,7 +65,7 @@ const GameMaster = function(game) {
             if (ow) {
                 const world = this.game.getCurrentWorld();
                 const area = world.getAreas()[0];
-                const xy = area.findTileXYById(id);
+                const xy = area.findTileXYById(parentId);
                 // TODO use actual starting position
                 const startX = 2;
                 const startY = area.getSizeY() - 1;
@@ -85,10 +85,10 @@ const GameMaster = function(game) {
             battleConf.armySize = armySize;
             battleConf.levelType = levelType;
 
-            if (!this.battles.hasOwnProperty(id)) {
-                const battle = this.fact.createBattle(level, battleConf);
-                this.battles[id] = battle;
-                this.game.addBattle(id, this.battles[id]);
+            if (!this.battles.hasOwnProperty(parentId)) {
+                const battle = this.fact.createBattle(parentLevel, battleConf);
+                this.battles[parentId] = battle;
+                this.game.addBattle(this.battles[parentId], parentId);
             }
         }
         else if (evtName === RG.EVT_BATTLE_OVER) {
