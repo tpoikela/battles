@@ -4,16 +4,17 @@
 const spawn = require('child_process').spawn;
 
 const gulp = require('gulp');
+
 const sass = require('gulp-sass');
 const rename = require('gulp-rename');
+const notify = require('gulp-notify');
+const nodemon = require('gulp-nodemon');
 
 const babelify = require('babelify');
 const browserify = require('browserify');
 const browserifyInc = require('browserify-incremental');
 
 const source = require('vinyl-source-stream');
-const notify = require('gulp-notify');
-const nodemon = require('gulp-nodemon');
 
 const port = process.env.PORT || 8080;
 const isProduction = process.env.NODE_ENV === 'production';
@@ -36,7 +37,7 @@ const paths = {
 const browserifyOpts = {
     entries: paths.jsxDir + '/app.jsx',
     extensions: ['.jsx'],
-    debug: true
+    debug: !isProduction
 };
 
 gulp.task('create-config', function() {
@@ -53,11 +54,14 @@ gulp.task('create-config', function() {
 });
 
 gulp.task('build-js', ['create-config'], function() {
-    return browserify(browserifyOpts)
-        .transform(babelify)
+    const bundler = browserify(browserifyOpts)
+        .transform(babelify);
+
+    bundler
         .bundle()
         .on('error', handleErrors)
         .pipe(source('./bundle.js'))
+        .on('error', handleErrors)
         .pipe(gulp.dest('build'));
 });
 
@@ -232,6 +236,7 @@ function handleErrors() {
         title: 'Compile Error',
         message: '<%= error.message %>'
     }).apply(this, args);
+    console.error(arguments);
     this.emit('end'); // Keep gulp from hanging on this task
 }
 
