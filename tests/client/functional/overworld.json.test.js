@@ -33,7 +33,16 @@ describe('How Game is created from Overworld', function() {
     it('is created using factory from game/player objects', () => {
         expect(game).to.exist;
 
+        game.movePlayer(0, 0);
+        game.movePlayer(0, 1);
+
         const worldConf = game.getCurrentWorld().getConf();
+
+        const area = game.getCurrentWorld().getAreas()[0];
+        const battles = area.getZones('BattleZone');
+        expect(battles.length).to.be.above(0);
+        const nBattles = battles.length;
+
         const json = game.toJSON();
 
         const fromJSON = new RG.Game.FromJSON();
@@ -60,6 +69,9 @@ describe('How Game is created from Overworld', function() {
         const newArea = newWorld.getAreas()[0];
         const newAreaConfObj = newArea.getConf();
         verifyConf(areaConf, newAreaConfObj);
+
+        const nBattlesNew = newArea.getZones('BattleZone').length;
+        expect(nBattlesNew).to.equal(nBattles);
 
     });
 
