@@ -777,7 +777,8 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
     this.zones = {
         Dungeon: [],
         Mountain: [],
-        City: []
+        City: [],
+        BattleZone: []
     };
 
     // Control which tile has its zones created
@@ -840,9 +841,9 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
                 res.push(this._tiles[x][y].getLevel());
             }
         }
-        this.zones.Dungeon.forEach(d => {res = res.concat(d.getLevels());});
-        this.zones.Mountain.forEach(d => {res = res.concat(d.getLevels());});
-        this.zones.City.forEach(d => {res = res.concat(d.getLevels());});
+        Object.keys(this.zones).forEach(type => {
+            this.zones[type].forEach(z => {res = res.concat(z.getLevels());});
+        });
         return res;
     };
 
@@ -938,6 +939,7 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
             maxX: this._sizeX, maxY: this._sizeY,
             cols: this._cols, rows: this._rows,
             tiles: tilesJSON,
+            levels: this.getLevels().map(l => l.toJSON()),
 
             // TODO split somehow between created/not created zones
             nDungeons: this.zones.Dungeon.length,
@@ -946,6 +948,8 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
             mountain: this.getZones('Mountain').map(mt => mt.toJSON()),
             nCities: this.zones.City.length,
             city: this.getZones('City').map(city => city.toJSON()),
+            battlezone: this.getZones('BattleZone').map(
+                battle => battle.toJSON()),
             zonesCreated: this.zonesCreated
         };
         return Object.assign(obj, json);
@@ -1152,6 +1156,26 @@ RG.World.City = function(name) {
 
 };
 RG.extend2(RG.World.City, RG.World.ZoneBase);
+
+/* A battle zone encapsulates battle construct, armies and the battle level. */
+RG.World.BattleZone = function(name) {
+    RG.World.ZoneBase.call(this, name);
+    this.setType('battle');
+
+    this._levels = [];
+
+    this.addLevel = level => {this._levels.push(level);};
+    this.getLevels = () => this._levels;
+
+    this.toJSON = function() {
+        const json = RG.World.ZoneBase.prototype.toJSON.call(this);
+        const obj = {
+        };
+        return Object.assign(obj, json);
+    };
+
+};
+RG.extend2(RG.World.BattleZone, RG.World.ZoneBase);
 
 //-----------------------------
 // RG.World.CityQuarter
