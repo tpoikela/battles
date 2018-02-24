@@ -46,11 +46,11 @@ export default class ChunkManager {
             for (let y = 0; y < this.sizeY; y++) {
                 if (this.inLoadRange(px, py, x, y)) {
                     if (!this.isLoaded(x, y)) {
-                        this.loadTile(x, y);
+                        this.loadTile(px, py, x, y);
                     }
                 }
                 else if (this.isLoaded(x, y)) {
-                    this.unloadTile(x, y);
+                    this.unloadTile(px, py, x, y);
                 }
             }
         }
@@ -73,19 +73,32 @@ export default class ChunkManager {
 
     loadAllTiles() {
         this.setLoadStateAll(LOAD.LOADED);
-
     }
 
     /* Loads the serialized/on-disk tile. */
-    loadTile(tx, ty) {
+    loadTile(px, py, tx, ty) {
+        const [dx, dy] = [px - tx, py - ty];
         this.state[tx][ty].loadState = LOAD.LOADED;
-        // TODO
+        const areaTiles = this.area.getTiles();
+        areaTiles[tx][ty] = this.createTile(areaTiles[tx][ty]);
+
+        // Need to create the connections on adjacent tiles
+        if (dx > 0 || dy > 0) {
+
+        }
     }
 
     /* Unloads the tile from memory. */
-    unloadTile(tx, ty) {
+    unloadTile(px, py, tx, ty) {
+        const [dx, dy] = [px - tx, py - ty];
+        const areaTiles = this.area.getTiles();
         this.state[tx][ty].loadState = LOAD.JSON;
-        // TODO
+        areaTiles[tx][ty] = areaTiles[tx][ty].toJSON();
+
+        // Need to replace connections on adjacent tiles
+        if (dx > 0 || dy > 0) {
+
+        }
     }
 
     getLoadState(x, y) {
@@ -97,7 +110,13 @@ export default class ChunkManager {
         const levels = this.area.getLevels();
         this.game.removeLevels(levels);
         this.levels = levels.map(l => l.toJSON());
-        this.area = this.area.toJSON();
+        const tiles = this.area.getTiles();
+        tiles.forEach(tileCol => {
+            tileCol.forEach(tile => {
+                const currTile = tile;
+                tile = currTile.toJSON();
+            });
+        });
     }
 
     toJSON() {
@@ -119,6 +138,10 @@ export default class ChunkManager {
         if (evtName === RG.EVT_TILE_CHANGED) {
             console.log(args);
         }
+    }
+
+    createTile(json) {
+
     }
 
 }
