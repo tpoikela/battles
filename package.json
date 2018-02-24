@@ -40,6 +40,7 @@
     "eslint-plugin-react": "^6.9.0",
     "eslint_d": "^5.1.0",
     "fake-indexeddb": "^2.0.3",
+    "gulp-rename": "^1.2.2",
     "istanbul": "~0.4.5",
     "jsctags": "git://github.com/ramitos/jsctags.git",
     "mocha": "~3.1",
