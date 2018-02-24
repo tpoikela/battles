@@ -750,7 +750,11 @@ RG.Game.FromJSON = function() {
             const place = json.places[name];
             if (place.area) {
                 place.area.forEach(area => {
-                    levels = levels.concat(area.levels);
+                    area.tiles.forEach(tileCol => {
+                        tileCol.forEach(tile => {
+                            levels = levels.concat(tile.levels);
+                        });
+                    });
                 });
             }
         });
