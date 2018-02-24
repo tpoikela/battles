@@ -46,7 +46,7 @@ describe('Game.Battle', () => {
         };
         const battle = new BattleFact().createBattle(areaLevel, conf);
         battle.getLevel().setParent(areaLevel);
-        game.addBattle(battle, true);
+        game.addBattle(battle, -1, true);
 
         const armies = battle.getArmies();
         armies.forEach(army => {
