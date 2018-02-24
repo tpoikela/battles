@@ -1221,7 +1221,7 @@ RG.Factory.World = function() {
     };
 
     this._createAllZones = function(area, conf, tx = -1, ty = -1) {
-        const types = ['City', 'Mountain', 'Dungeon'];
+        const types = ['City', 'Mountain', 'Dungeon', 'BattleZone'];
         debug(`Factory _createAllZones ${tx}, ${ty}`);
         types.forEach(type => {
             const typeLc = type.toLowerCase();
@@ -1777,6 +1777,22 @@ RG.Factory.World = function() {
         }
         this.popScope(conf);
         return quarter;
+    };
+
+    this.createBattleZone = conf => {
+        this.pushScope(conf);
+        const battleZone = new RG.World.BattleZone(conf.name);
+        if (!this.id2levelSet) {
+            RG.err('Factory', 'createBattleZone',
+                'Can create BattleZones only during restore');
+        }
+        for (let i = 0; i < conf.nLevels; i++) {
+            const id = conf.levels[i];
+            const level = this.id2level[id];
+            battleZone.addLevel(level);
+        }
+        this.popScope(conf);
+        return battleZone;
     };
 
     /* Creates a connection between an area and a zone such as city, mountain
