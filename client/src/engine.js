@@ -234,6 +234,8 @@ const Engine = function(eventPool) {
 
     this.hasLevel = level => _levelMap.hasOwnProperty(level.getID());
 
+    this.getLevels = () => Object.values(_levelMap);
+
     /* Adds one level to the game database.*/
     this.addLevel = level => {
         const id = level.getID();
@@ -246,6 +248,22 @@ const Engine = function(eventPool) {
         }
     };
 
+    this.removeLevels = levels => {
+        levels.forEach(level => {
+            const id = level.getID();
+            if (_levelMap.hasOwnProperty(id)) {
+                delete _levelMap[id];
+                const index = _activeLevels.indexOf(id);
+                if (index >= 0) {
+                    _activeLevels.splice(index, 1);
+                }
+            }
+            else {
+                RG.err('Game.Engine', 'removeLevels',
+                    `No level with ID ${id}`);
+            }
+        });
+    };
 
     /* Adds an active level. Only these levels are simulated.*/
     this.addActiveLevel = function(level) {
