@@ -5,6 +5,7 @@ const spawn = require('child_process').spawn;
 
 const gulp = require('gulp');
 const sass = require('gulp-sass');
+const rename = require('gulp-rename');
 
 const babelify = require('babelify');
 const browserify = require('browserify');
@@ -15,6 +16,7 @@ const notify = require('gulp-notify');
 const nodemon = require('gulp-nodemon');
 
 const port = process.env.PORT || 8080;
+const isProduction = process.env.NODE_ENV === 'production';
 
 // Define paths for all source files here
 const paths = {
@@ -37,7 +39,20 @@ const browserifyOpts = {
     debug: true
 };
 
-gulp.task('build-js', function() {
+gulp.task('create-config', function() {
+    if (isProduction) {
+        return gulp.src('./client/config/production.js')
+            .pipe(rename('config.js'))
+            .pipe(gulp.dest('public'));
+    }
+    else {
+        return gulp.src('./client/config/devel.js')
+            .pipe(rename('config.js'))
+            .pipe(gulp.dest('public'));
+    }
+});
+
+gulp.task('build-js', ['create-config'], function() {
     return browserify(browserifyOpts)
         .transform(babelify)
         .bundle()
@@ -47,7 +62,7 @@ gulp.task('build-js', function() {
 });
 
 // Incrementally building the js
-gulp.task('build-js-inc', function() {
+gulp.task('build-js-inc', ['create-config'], function() {
     const b = browserify(Object.assign({}, browserifyInc.args,
         browserifyOpts
     ));
@@ -60,16 +75,6 @@ gulp.task('build-js-inc', function() {
         .pipe(source('./bundle.js'))
         .pipe(gulp.dest('build'));
 
-});
-
-gulp.task('build-test', function() {
-    return browserify({entries:
-        ['./client/common/ajax-functions.js', 'test/ajaxFunctionsTest.js'],
-        extensions: ['.js'], debug: true})
-        .transform(babelify)
-        .bundle()
-        .pipe(source('./bundleTests.js'))
-        .pipe(gulp.dest('build'));
 });
 
 gulp.task('build-sass', function() {
@@ -173,7 +178,6 @@ gulp.task('tags', function() {
         );
     }
 });
-
 
 gulp.task('apply-prod-environment', function() {
     process.env.NODE_ENV = 'production';
