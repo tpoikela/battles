@@ -111,7 +111,7 @@ describe('World.AreaTile', () => {
         const tileLevel = RG.FACT.createLevel('ruins', 10, 10);
         areaTile.setLevel(tileLevel);
         const json = areaTile.toJSON();
-        expect(json.level).to.equal(tileLevel.getID());
+        expect(json.levels[0].id).to.equal(tileLevel.getID());
         expect(json.x).to.equal(0);
         expect(json.y).to.equal(1);
     });
