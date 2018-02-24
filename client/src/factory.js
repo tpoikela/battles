@@ -1228,7 +1228,8 @@ RG.Factory.World = function() {
             this.createZonesFromArea(area, conf, tx, ty);
         }
         else {
-            this.createZonesFromTile(area, conf, tx, ty);
+            const areaTileConf = conf.tiles[tx][ty];
+            this.createZonesFromTile(area, areaTileConf, tx, ty);
         }
     };
 
@@ -1261,12 +1262,13 @@ RG.Factory.World = function() {
         });
     };
 
-    this.createZonesFromTile = function(area, conf, tx, ty) {
+    /* Used when 'tiles' exists inside areaConf. Usually when restoring a saved
+     * game. */
+    this.createZonesFromTile = function(area, areaTileConf, tx, ty) {
         if (tx < 0 || ty < 0) {
             RG.err('Factory', 'createZonesFromTile',
                 'Cannot use -1 to create all tiles here');
         }
-        const areaTileConf = conf.tiles[tx][ty];
         ZONE_TYPES.forEach(type => {
             const typeLc = type.toLowerCase();
             let nZones = 0;
