@@ -791,6 +791,7 @@ RG.World.AreaTile = function(x, y, area) {
         x: this._tileX,
         y: this._tileY,
         level: this._level.getID(),
+        levels: this.getLevels().map(l => l.toJSON()),
         // TODO split somehow between created/not created zones
         nDungeons: this.zones.Dungeon.length,
         dungeon: this.getZones('Dungeon').map(dg => dg.toJSON()),
@@ -975,7 +976,6 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
             maxX: this._sizeX, maxY: this._sizeY,
             cols: this._cols, rows: this._rows,
             tiles: tilesJSON,
-            levels: this.getLevels().map(l => l.toJSON()),
 
             zonesCreated: this.zonesCreated
         };
