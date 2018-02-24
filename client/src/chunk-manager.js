@@ -1,5 +1,6 @@
 
 const RG = require('./rg');
+const FromJSON = require('./game.fromjson');
 
 export const LOAD = Object.freeze(
     {EMPTY: 'EMPTY', LOADED: 'LOADED', JSON: 'JSON', ON_DISK: 'ON_DISK'});
@@ -11,7 +12,7 @@ export const CREATE = Object.freeze(
  * */
 export default class ChunkManager {
 
-    constructor(game, area) {
+    constructor(game, area, loadState) {
         const [sizeX, sizeY] = [area.getSizeX(), area.getSizeY()];
         this.sizeX = sizeX;
         this.sizeY = sizeY;
@@ -21,13 +22,10 @@ export default class ChunkManager {
         for (let x = 0; x < sizeX; x++) {
             this.state[x] = [];
             for (let y = 0; y < sizeY; y++) {
-                const chunkState = {loadState: LOAD.LOADED,
-                    createState: CREATE.CREATED};
+                const chunkState = {loadState};
                 this.state[x].push(chunkState);
             }
         }
-        this.hasNotify = true;
-        game.getPool().listenEvent(RG.EVT_TILE_CHANGED, this);
 
         // From how far the levels are loaded
         this.loadDistX = 1;
@@ -37,22 +35,24 @@ export default class ChunkManager {
         this.onDiskDistY = sizeY;
     }
 
-    getCreateState(x, y) {
-        return this.state[x][y].createState;
-    }
-
-    setPlayerTile(px, py) {
+    setPlayerTile(px, py, oldX, oldY) {
+        const moveDir = this.getMoveDir(px, py, oldX, oldY);
+        const loadedTiles = [];
         for (let x = 0; x < this.sizeX; x++) {
             for (let y = 0; y < this.sizeY; y++) {
                 if (this.inLoadRange(px, py, x, y)) {
                     if (!this.isLoaded(x, y)) {
-                        this.loadTile(px, py, x, y);
+                        // this.loadTile(px, py, x, y, moveDir);
+                        loadedTiles.push([x, y]);
                     }
                 }
                 else if (this.isLoaded(x, y)) {
-                    this.unloadTile(px, py, x, y);
+                    this.unloadTile(px, py, x, y, moveDir);
                 }
             }
+        }
+        if (loadedTiles.length > 0) {
+            this.loadTiles(px, py, loadedTiles, moveDir);
         }
     }
 
@@ -76,28 +76,79 @@ export default class ChunkManager {
     }
 
     /* Loads the serialized/on-disk tile. */
-    loadTile(px, py, tx, ty) {
-        const [dx, dy] = [px - tx, py - ty];
-        this.state[tx][ty].loadState = LOAD.LOADED;
+    loadTiles(px, py, loadedTilesXY, moveDir) {
         const areaTiles = this.area.getTiles();
-        areaTiles[tx][ty] = this.createTile(areaTiles[tx][ty]);
+        // areaTiles[tx][ty] = this.createTile(areaTiles[tx][ty]);
+        const loadedAreaTiles = loadedTilesXY.map(
+            xy => areaTiles[xy[0]][xy[1]]);
+        this.createTiles(loadedAreaTiles);
 
-        // Need to create the connections on adjacent tiles
-        if (dx > 0 || dy > 0) {
+        loadedTilesXY.forEach(xy => {
+            const [tx, ty] = xy;
+            this.state[tx][ty].loadState = LOAD.LOADED;
+            // Need to create the connections on adjacent tiles
+            if (moveDir === 'WEST') {
+                const newX = tx - 1;
+                if (newX < this.area.getSizeX()) {
+                    this.addConnections('WEST', areaTiles[tx][tx - 1]);
+                }
+            }
+            else if (moveDir === 'EAST') {
+                const newX = tx + 1;
+                if (newX < this.area.getSizeX()) {
+                    this.addConnections('EAST', areaTiles[tx][tx + 1]);
+                }
 
-        }
+            }
+            else if (moveDir === 'SOUTH') {
+                const newY = ty - 1;
+                if (newY >= 0) {
+                    this.addConnections('SOUTH', areaTiles[tx][ty - 1]);
+                }
+            }
+            else if (moveDir === 'NORTH') {
+                const newY = ty + 1;
+                if (newY < this.area.getSizeY) {
+                    this.addConnections('NORTH', areaTiles[tx][ty + 1]);
+                }
+            }
+        });
     }
 
     /* Unloads the tile from memory. */
-    unloadTile(px, py, tx, ty) {
-        const [dx, dy] = [px - tx, py - ty];
+    unloadTile(px, py, tx, ty, moveDir) {
         const areaTiles = this.area.getTiles();
         this.state[tx][ty].loadState = LOAD.JSON;
+
+        const levels = areaTiles[tx][ty].getLevels();
+        this.game.removeLevels(levels);
+
         areaTiles[tx][ty] = areaTiles[tx][ty].toJSON();
 
         // Need to replace connections on adjacent tiles
-        if (dx > 0 || dy > 0) {
-
+        if (moveDir === 'WEST') {
+            const newX = tx - 1;
+            if (newX < this.area.getSizeX()) {
+                this.removeConnections('EAST', areaTiles[tx][tx - 1]);
+            }
+        }
+        else if (moveDir === 'EAST') {
+            const newX = tx + 1;
+            if (newX < this.area.getSizeX()) {
+                this.removeConnections('WEST', areaTiles[tx][tx + 1]);
+            }
+        }
+        else if (moveDir === 'NORTH') {
+            const newY = ty - 1;
+            if (newY >= 0) {
+                this.removeConnections('SOUTH', areaTiles[tx][ty - 1]);
+            }
+        }
+        else if (moveDir === 'SOUTH') {
+            const newY = ty + 1;
+            if (newY < this.area.getSizeY) {
+                this.removeConnections('NORTH', areaTiles[tx][ty + 1]);
+            }
         }
     }
 
@@ -111,12 +162,11 @@ export default class ChunkManager {
         this.game.removeLevels(levels);
         this.levels = levels.map(l => l.toJSON());
         const tiles = this.area.getTiles();
-        tiles.forEach(tileCol => {
-            tileCol.forEach(tile => {
-                const currTile = tile;
-                tile = currTile.toJSON();
-            });
-        });
+        for (let x = 0; x < this.sizeX; x++) {
+            for (let y = 0; y < this.sizeY; y++) {
+                tiles[x][y] = tiles[x][y].toJSON();
+            }
+        }
     }
 
     toJSON() {
@@ -133,17 +183,62 @@ export default class ChunkManager {
         });
     }
 
-    /* Whenever a tile changes, need to get x,y and serialize + load. */
-    notify(evtName, args) {
-        if (evtName === RG.EVT_TILE_CHANGED) {
-            console.log(args);
+    createTiles(tilesJSON) {
+        const fromJSON = new FromJSON();
+        fromJSON.chunkMode = true;
+        fromJSON.createTiles(this.game, tilesJSON);
+    }
+
+    addConnections(dir, tile) {
+        const addedConns = this.getReplacedConnections(dir, tile);
+    }
+
+    removeConnections(dir, tile) {
+        const replacedConns = this.getReplacedConnections(dir, tile);
+        replacedConns.forEach(conn => {
+            conn.setTargetLevel(conn.getTargetLevel().getID());
+            conn.setTargetStairs(conn.getTargetStairs().getID());
+        });
+    }
+
+    getReplacedConnections(dir, tile) {
+        const level = tile.getLevel();
+        const conns = level.getConnections();
+        let replacedConns = [];
+        if (dir === 'SOUTH') {
+            replacedConns = conns.filter(conn => conn.getY() === tile.rows - 1);
         }
+        else if (dir === 'NORTH') {
+            replacedConns = conns.filter(conn => conn.getY() === 0);
+        }
+        else if (dir === 'EAST') {
+            replacedConns = conns.filter(conn => conn.getX() === tile.cols - 1);
+        }
+        else if (dir === 'WEST') {
+            replacedConns = conns.filter(conn => conn.getX() === 0);
+        }
+        return replacedConns;
     }
 
-    createTile(json) {
 
+    /* Returns the player movement direction. */
+    getMoveDir(px, py, oldX, oldY) {
+        let [dx, dy] = [0, 0];
+        let moveDir = '';
+        if (!RG.isNullOrUndef([oldX, oldY])) {
+            dx = px - oldX;
+            dy = py - oldY;
+            if (dx !== 0 && dy !== 0) {
+                RG.err('ChunkManager', 'setPlayerTile',
+                    'Diagonal move not supported');
+            }
+            if (dx > 0) {moveDir = 'EAST';}
+            else if (dx < 0) {moveDir = 'WEST';}
+            if (dy > 0) {moveDir = 'SOUTH';}
+            else if (dy < 0) {moveDir = 'NORTH';}
+        }
+        return moveDir;
     }
-
 }
 
 
