@@ -19,6 +19,8 @@ const Stairs = RG.Element.Stairs;
 
 RG.Factory = {};
 
+const ZONE_TYPES = ['City', 'Mountain', 'Dungeon', 'BattleZone'];
+
 /* Returns a basic configuration for a city level. */
 RG.Factory.cityConfBase = conf => {
     const userConf = conf || {};
@@ -1221,9 +1223,17 @@ RG.Factory.World = function() {
     };
 
     this._createAllZones = function(area, conf, tx = -1, ty = -1) {
-        const types = ['City', 'Mountain', 'Dungeon', 'BattleZone'];
         debug(`Factory _createAllZones ${tx}, ${ty}`);
-        types.forEach(type => {
+        if (!conf.tiles) {
+            this.createZonesFromArea(area, conf, tx, ty);
+        }
+        else {
+            this.createZonesFromTile(area, conf, tx, ty);
+        }
+    };
+
+    this.createZonesFromArea = function(area, conf, tx = -1, ty = -1) {
+        ZONE_TYPES.forEach(type => {
             const typeLc = type.toLowerCase();
             let nZones = 0;
             if (Array.isArray(conf[typeLc])) {
@@ -1232,6 +1242,40 @@ RG.Factory.World = function() {
             debug(`\tnZones (${type}) is now ${nZones}`);
             for (let i = 0; i < nZones; i++) {
                 const zoneConf = conf[typeLc][i];
+                const createFunc = 'create' + type;
+                const {x, y} = zoneConf;
+
+                // If tx,ty given, create only zones for tile tx,ty
+                // Otherwise, create zones for all tiles
+                if ((tx === -1 || tx === x) && (ty === -1 || ty === y)) {
+                    const zone = this[createFunc](zoneConf);
+                    zone.setTileXY(x, y);
+                    area.addZone(type, zone);
+                    this.addWorldID(zoneConf, zone);
+                    if (!this.id2levelSet) {
+                        this.createAreaZoneConnection(area, zone, zoneConf);
+                    }
+                }
+            }
+
+        });
+    };
+
+    this.createZonesFromTile = function(area, conf, tx, ty) {
+        if (tx < 0 || ty < 0) {
+            RG.err('Factory', 'createZonesFromTile',
+                'Cannot use -1 to create all tiles here');
+        }
+        const areaTileConf = conf.tiles[tx][ty];
+        ZONE_TYPES.forEach(type => {
+            const typeLc = type.toLowerCase();
+            let nZones = 0;
+            if (Array.isArray(areaTileConf[typeLc])) {
+                nZones = areaTileConf[typeLc].length;
+            }
+            debug(`\tnZones (${type}) is now ${nZones}`);
+            for (let i = 0; i < nZones; i++) {
+                const zoneConf = areaTileConf[typeLc][i];
                 const createFunc = 'create' + type;
                 const {x, y} = zoneConf;
 
