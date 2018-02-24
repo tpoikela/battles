@@ -1,5 +1,6 @@
 
 import Entity from './entity';
+import ChunkManager from './chunk-manager';
 
 const RG = require('./rg');
 RG.System = require('./system');
@@ -21,6 +22,7 @@ RG.Game.Main = function() {
     this._shownLevel = null; // One per game only
     let _gameOver = false;
 
+    this._chunkManager = ChunkManager;
     this._eventPool = new RG.EventPool();
     RG.POOL = this._eventPool;
 
@@ -299,14 +301,16 @@ RG.Game.Main = function() {
             if (actor.isPlayer()) {
                 const levelID = target.getID();
 
-                const world = Object.values(this._places)[0];
+                const world = this.getCurrentWorld();
                 if (world && world.getAreas) {
                     const area = world.getAreas()[0];
                     const [x, y] = area.findTileXYById(levelID);
                     const fact = new RG.Factory.World();
                     fact.setGlobalConf(this.getGlobalConf());
-                    fact.createZonesForTile(world, area, x, y);
 
+                    // this._chunkManager.setPlayerTile(x, y);
+
+                    fact.createZonesForTile(world, area, x, y);
                     const levels = world.getLevels();
                     levels.forEach(l => {this.addLevelUnlessExists(l);});
                 }
@@ -319,13 +323,13 @@ RG.Game.Main = function() {
 
     /* Adds one battle to the game. If active = true, battle level is activated
      * and battle started immediately. */
-    this.addBattle = (id, battle, active = false) => {
+    this.addBattle = (battle, id = -1, active = false) => {
         const level = battle.getLevel();
         this.addLevel(level);
         if (active) {
             this._engine.addActiveLevel(level);
         }
-        if (this.hasPlaces()) {
+        if (this.hasPlaces() && id > -1) {
             this._addBattleZoneToArea(id, battle);
         }
     };
