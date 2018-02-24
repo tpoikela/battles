@@ -361,6 +361,7 @@ RG.Game.FromJSON = function() {
         // Duplicate level IDs are very, very bad
         if (!id2level.hasOwnProperty(json.id)) {
             id2level[json.id] = level;
+            console.log(`Added level ${json.id} to id2level`);
         }
         else {
             RG.err('FromJSON', 'restoreLevel',
@@ -581,8 +582,8 @@ RG.Game.FromJSON = function() {
         return game;
     };
 
-    /* Connects all game levels together after they've been created as Map.Level
-     * objects. */
+    /* Makes all connections in given levels after they've been created as
+     * Map.Level objects. */
     this.connectGameLevels = levels => {
         levels.forEach(level => {
             const stairsList = level.getConnections();
@@ -590,6 +591,8 @@ RG.Game.FromJSON = function() {
             stairsList.forEach(s => {
                 const connObj = stairsInfo[s.getID()];
                 const targetLevel = id2level[connObj.targetLevel];
+                if (!targetLevel && this.chunkMode) {return;}
+
                 const targetStairsXY = connObj.targetStairs;
                 if (!targetStairsXY) {
                     console.log(JSON.stringify(level, null, 1));
@@ -759,6 +762,65 @@ RG.Game.FromJSON = function() {
             }
         });
         return levels;
+    };
+
+    /* Given a list of JSON World.AreaTiles, creates the objects and level
+     * connections, and attaches them to area in current game. */
+    this.createTiles = function(game, jsonTiles) {
+        const allLevels = game.getLevels();
+        this.addLevels(allLevels);
+
+        // Levels must be created before the actual world, because the World
+        // object contains only level IDs
+        let levelsJson = [];
+        jsonTiles.forEach(json => {
+            levelsJson = levelsJson.concat(json.levels);
+        });
+        const restoredLevels = [];
+
+        levelsJson.forEach(json => {
+            const level = this.restoreLevel(json);
+            restoredLevels.push(level);
+            allLevels.push(level);
+        });
+
+        // Connect levels using id2level + stairsInfo
+        this.connectGameLevels(restoredLevels);
+
+        // Entity data cannot be restored earlier because not all object refs
+        // exist when entities are created
+        this.restoreEntityData();
+
+        const area = game.getCurrentWorld().getCurrentArea();
+        const fact = new RG.Factory.World();
+        fact.setId2Level(id2level);
+
+        jsonTiles.forEach(json => {
+            const [tx, ty] = [json.x, json.y];
+            const tile = new RG.World.AreaTile(tx, ty, area);
+
+            const tileLevel = id2level[json.level];
+            tile.setLevel(tileLevel);
+            game.addLevel(tileLevel);
+
+            const jsonCopy = JSON.parse(JSON.stringify(json));
+            area.getTiles()[tx][ty] = tile;
+            fact.createZonesFromTile(area, jsonCopy, tx, ty);
+        });
+
+    };
+
+    this.addLevels = levels => {
+        levels.forEach(level => {
+            id2level[level.getID()] = level;
+
+            // const conns = level.getConnections();
+            /* conns.forEach(conn => {
+                const connId = conn.getID();
+                // stairsInfo[connId] = {targetLevel: elemObj.targetLevel,
+                    // targetStairs: elemObj.targetStairs};
+            }); */
+        });
     };
 
     // decorateObjThisFuncs(this);
