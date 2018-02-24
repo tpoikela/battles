@@ -500,16 +500,22 @@ RG.Game.FromJSON = function() {
         if (json.charStyles) {
             RG.charStyles = json.charStyles;
         }
+
         const allLevels = [];
 
         // Levels must be created before the actual world, because the World
         // object contains only level IDs
-        json.levels.forEach(levelJson => {
+        let levelsToRestore = [];
+        if (json.levels) {levelsToRestore = json.levels;}
+        else {
+            levelsToRestore = this.getLevelsToRestore(json);
+        }
+
+        levelsToRestore.forEach(levelJson => {
             const level = this.restoreLevel(levelJson);
             allLevels.push(level);
             if (!levelJson.parent) {
-                console.log('ADDING GAME in fromJSON');
-                game.addLevel(level); // remove once world is properly created
+                game.addLevel(level);
             }
         });
 
@@ -554,10 +560,12 @@ RG.Game.FromJSON = function() {
 
         // 'Integrity' check that correct number of levels restored
         const nLevels = game.getLevels().length;
-        if (nLevels !== json.levels.length) {
-            const exp = json.levels.length;
-            RG.err('Game.FromJSON', 'createGame',
-                `Exp. ${exp} levels, after restore ${nLevels}`);
+        if (json.levels) {
+            if (nLevels !== json.levels.length) {
+                const exp = json.levels.length;
+                RG.err('Game.FromJSON', 'createGame',
+                    `Exp. ${exp} levels, after restore ${nLevels}`);
+            }
         }
 
         // Restore the ID counters for levels and entities, otherwise duplicate
@@ -736,6 +744,18 @@ RG.Game.FromJSON = function() {
         }
     };
 
+    this.getLevelsToRestore = json => {
+        let levels = [];
+        Object.keys(json.places).forEach(name => {
+            const place = json.places[name];
+            if (place.area) {
+                place.area.forEach(area => {
+                    levels = levels.concat(area.levels);
+                });
+            }
+        });
+        return levels;
+    };
 
     // decorateObjThisFuncs(this);
 };
