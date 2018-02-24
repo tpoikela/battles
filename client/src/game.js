@@ -77,7 +77,9 @@ RG.Game.Main = function() {
         if (levelOK) {
             this._engine.nextActor = player;
             this.currPlayer = player;
-            if (this._shownLevel === null) {this._shownLevel = player.getLevel();}
+            if (this._shownLevel === null) {
+                this._shownLevel = player.getLevel();
+            }
             _players.push(player);
             this._engine.addActiveLevel(player.getLevel());
             player.getLevel().onEnter();
@@ -206,19 +208,7 @@ RG.Game.Main = function() {
             this._engine.addLevel(level);
         }
         else {
-            const parent = level.getParent();
-            const json = level.toJSON();
-            delete json.elements;
-            delete json.map.cells;
-            let msg = '';
-            if (parent) {
-                const name = RG.formatLocationName(level);
-                msg = `Parent: ${name}| `;
-            }
-            msg += 'Duplicate level ID ' + level.getID();
-            msg += ' JSON: ' + JSON.stringify(json, null, 1);
-
-            RG.err('Game.Main', 'addLevel', msg);
+            this.errorDuplicateLevel('addLevel', level);
         }
     };
 
@@ -260,6 +250,8 @@ RG.Game.Main = function() {
                 'Added place must have getLevels()');
         }
     };
+
+    this.hasPlaces = () => Object.keys(this._places).length > 0;
 
     /* Returns the visible map to be rendered by the GUI. */
     this.getVisibleMap = () => {
@@ -327,12 +319,29 @@ RG.Game.Main = function() {
 
     /* Adds one battle to the game. If active = true, battle level is activated
      * and battle started immediately. */
-    this.addBattle = (battle, active = false) => {
+    this.addBattle = (id, battle, active = false) => {
         const level = battle.getLevel();
         this.addLevel(level);
         if (active) {
             this._engine.addActiveLevel(level);
         }
+        if (this.hasPlaces()) {
+            this._addBattleZoneToArea(id, battle);
+        }
+    };
+
+    /* Creates a new zone and adds it into area. */
+    this._addBattleZoneToArea = (parentID, battle) => {
+        const level = battle.getLevel();
+        const zoneName = 'Zone of ' + battle.getName();
+        const battleZone = new RG.World.BattleZone(zoneName);
+        battleZone.addLevel(level);
+
+        const world = this.getCurrentWorld();
+        const area = world.getAreas()[0];
+        const xy = area.findTileXYById(parentID);
+        battleZone.setTileXY(xy[0], xy[1]);
+        area.addZone('BattleZone', battleZone);
     };
 
     this.getGameMaster = () => this._master;
@@ -351,24 +360,8 @@ RG.Game.Main = function() {
 
     /* Serializes the game object into JSON. */
     this.toJSON = () => {
-        const levels = [];
-        const _levels = this._engine.getLevels();
-        _levels.forEach(level => {
-            levels.push(level.toJSON());
-        });
-
-        const places = { };
-        Object.keys(this._places).forEach(name => {
-            const place = this._places[name];
-            places[name] = place.toJSON();
-        });
-
-        // TODO places should store their own levels
-
         const obj = {
             engine: {},
-            levels,
-            places,
             gameMaster: this._master.toJSON(),
             lastLevelID: RG.Map.Level.prototype.idCount,
             lastEntityID: Entity.getIDCount(),
@@ -378,6 +371,25 @@ RG.Game.Main = function() {
             cellStyles: RG.cellStyles
         };
 
+        if (!this.hasPlaces()) {
+            const levels = [];
+            const _levels = this._engine.getLevels();
+            _levels.forEach(level => {
+                levels.push(level.toJSON());
+            });
+            obj.levels = levels;
+            obj.places = {};
+        }
+        else {
+            const places = { };
+            Object.keys(this._places).forEach(name => {
+                const place = this._places[name];
+                places[name] = place.toJSON();
+            });
+            obj.places = places;
+        }
+
+        // TODO places should store their own levels
         const player = this.getPlayer();
         if (player) {
             obj.player = player.toJSON();
@@ -487,6 +499,22 @@ RG.Game.Main = function() {
             }
         }
         return null;
+    };
+
+    this.errorDuplicateLevel = (funcName, level) => {
+        const parent = level.getParent();
+        const json = level.toJSON();
+        delete json.elements;
+        delete json.map.cells;
+        let msg = '';
+        if (parent) {
+            const name = RG.formatLocationName(level);
+            msg = `Parent: ${name}| `;
+        }
+        msg += 'Duplicate level ID ' + level.getID();
+        msg += ' JSON: ' + JSON.stringify(json, null, 1);
+
+        RG.err('Game.Main', funcName, msg);
     };
 
 }; // }}} Game.Main
