@@ -71,14 +71,21 @@ export default class ChunkManager {
         return false;
     }
 
+    loadAllTiles() {
+        this.setLoadStateAll(LOAD.LOADED);
+
+    }
+
     /* Loads the serialized/on-disk tile. */
     loadTile(tx, ty) {
         this.state[tx][ty].loadState = LOAD.LOADED;
+        // TODO
     }
 
     /* Unloads the tile from memory. */
     unloadTile(tx, ty) {
         this.state[tx][ty].loadState = LOAD.JSON;
+        // TODO
     }
 
     getLoadState(x, y) {
@@ -86,11 +93,7 @@ export default class ChunkManager {
     }
 
     serializeArea() {
-        this.state.forEach((col, x) => {
-            col.forEach((tile, y) => {
-                this.state[x][y].loadState = LOAD.JSON;
-            });
-        });
+        this.setLoadStateAll(LOAD.JSON);
         const levels = this.area.getLevels();
         this.game.removeLevels(levels);
         this.levels = levels.map(l => l.toJSON());
@@ -101,6 +104,14 @@ export default class ChunkManager {
         return {
             state: this.state
         };
+    }
+
+    setLoadStateAll(state) {
+        this.state.forEach((col, x) => {
+            col.forEach((tile, y) => {
+                this.state[x][y].loadState = state;
+            });
+        });
     }
 
     /* Whenever a tile changes, need to get x,y and serialize + load. */
