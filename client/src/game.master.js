@@ -68,7 +68,7 @@ const GameMaster = function(game) {
                 const xy = area.findTileXYById(id);
                 // TODO use actual starting position
                 const startX = 2;
-                const startY = area.getMaxY() - 1;
+                const startY = area.getSizeY() - 1;
                 const dX = Math.abs(startX - xy[0]);
                 const dY = Math.abs(startY - xy[1]);
                 maxDanger += dX + dY;
@@ -88,7 +88,7 @@ const GameMaster = function(game) {
             if (!this.battles.hasOwnProperty(id)) {
                 const battle = this.fact.createBattle(level, battleConf);
                 this.battles[id] = battle;
-                this.game.addBattle(this.battles[id]);
+                this.game.addBattle(id, this.battles[id]);
             }
         }
         else if (evtName === RG.EVT_BATTLE_OVER) {
