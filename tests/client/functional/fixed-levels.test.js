@@ -1,8 +1,8 @@
 
-
 import AbandonedFort from '../../../client/data/abandoned-fort';
 
 const expect = require('chai').expect;
+const RG = require('../../../client/src/battles');
 
 describe('Abandoned Fort', () => {
     it('contains items and actors', () => {
