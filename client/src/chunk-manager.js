@@ -7,6 +7,28 @@ export const LOAD = Object.freeze(
 export const CREATE = Object.freeze(
     {EMPTY: 'EMPTY', CREATED: 'CREATED', POPULATED: 'POPULATED'});
 
+export function printTileConnections(msg, tileToConnect, id = -1) {
+    console.log(msg);
+    if (typeof tileToConnect.getLevel === 'function') {
+        if (tileToConnect.getLevel().getID() === id || id === -1) {
+            const conns0 = tileToConnect.getLevel().getConnections();
+            conns0.forEach(c => {
+                const targetLevel = c.getTargetLevel();
+                if (Number.isInteger(targetLevel)) {
+                    console.log(`\tTarget ID ${targetLevel} found`);
+                }
+                else {
+                    console.log(`\tMap.Level ${targetLevel.getID()} found`);
+                }
+            });
+        }
+    }
+    else {
+        console.log('Skipping printTileConnections due to json input');
+
+    }
+}
+
 /* Chunk manager handles loading/saving of world chunks (World.AreaTiles)
  * from/to memory/disk. It also keeps track of the state of each chunk.
  * */
@@ -37,6 +59,8 @@ export default class ChunkManager {
 
     setPlayerTile(px, py, oldX, oldY) {
         const moveDir = this.getMoveDir(px, py, oldX, oldY);
+        // printTileConnections('setPlayerTile XXX',
+        // this.area.getTiles()[1][0], 4);
         const loadedTiles = [];
         for (let x = 0; x < this.sizeX; x++) {
             for (let y = 0; y < this.sizeY; y++) {
@@ -76,27 +100,40 @@ export default class ChunkManager {
     }
 
     /* Loads the serialized/on-disk tile. */
-    loadTiles(px, py, loadedTilesXY, moveDir) {
+    loadTiles(px, py, loadedTilesXY) {
         const areaTiles = this.area.getTiles();
-        // areaTiles[tx][ty] = this.createTile(areaTiles[tx][ty]);
+        console.log('loadFIles: ' + JSON.stringify(loadedTilesXY));
         const loadedAreaTiles = loadedTilesXY.map(
-            xy => areaTiles[xy[0]][xy[1]]);
+            xy => areaTiles[xy[0]][xy[1]]
+        );
+
+        // const tile10 = areaTiles[1][0];
+        // printTileConnections('loadTiles XXX before', tile10, 4);
+
         this.createTiles(loadedAreaTiles);
 
+        // printTileConnections('loadTiles XXX after', tile10, 4);
+
         loadedTilesXY.forEach(xy => {
+            console.log(`ChunkManager load now tile ${xy}`);
             const [tx, ty] = xy;
             this.state[tx][ty].loadState = LOAD.LOADED;
             // Need to create the connections on adjacent tiles
+            /*
+            const newTile = areaTiles[tx][ty];
+
             if (moveDir === 'WEST') {
-                const newX = tx - 1;
+                const newX = tx + 1;
+                const tileToConnect = areaTiles[tx + 1][ty];
                 if (newX < this.area.getSizeX()) {
-                    this.addConnections('WEST', areaTiles[tx][tx - 1]);
+                    this.addConnections('WEST', tileToConnect, newTile);
                 }
             }
             else if (moveDir === 'EAST') {
-                const newX = tx + 1;
+                const newX = tx - 1;
+                const tileToConnect = areaTiles[tx - 1][ty];
                 if (newX < this.area.getSizeX()) {
-                    this.addConnections('EAST', areaTiles[tx][tx + 1]);
+                    this.addConnections('EAST', tileToConnect, newTile);
                 }
 
             }
@@ -112,6 +149,7 @@ export default class ChunkManager {
                     this.addConnections('NORTH', areaTiles[tx][ty + 1]);
                 }
             }
+            */
         });
     }
 
@@ -129,13 +167,13 @@ export default class ChunkManager {
         if (moveDir === 'WEST') {
             const newX = tx - 1;
             if (newX < this.area.getSizeX()) {
-                this.removeConnections('EAST', areaTiles[tx][tx - 1]);
+                this.removeConnections('EAST', areaTiles[tx - 1][ty]);
             }
         }
         else if (moveDir === 'EAST') {
             const newX = tx + 1;
             if (newX < this.area.getSizeX()) {
-                this.removeConnections('WEST', areaTiles[tx][tx + 1]);
+                this.removeConnections('WEST', areaTiles[tx + 1][ty]);
             }
         }
         else if (moveDir === 'NORTH') {
@@ -189,21 +227,37 @@ export default class ChunkManager {
         fromJSON.createTiles(this.game, tilesJSON);
     }
 
-    addConnections(dir, tile) {
-        const addedConns = this.getReplacedConnections(dir, tile);
+    addConnections(dir, tileToConnect, newTile) {
+        printTileConnections('XXX', tileToConnect);
+        const oppositeDir = this.getOpposite(dir);
+        const addedConns = this.getReplacedConnections(dir, tileToConnect);
+        const newConns = this.getReplacedConnections(oppositeDir, newTile);
+        const fromJSON = new FromJSON();
+        const conns = addedConns.concat(newConns);
+        const levels = [tileToConnect.getLevel(), newTile.getLevel()];
+        fromJSON.connectTileLevels(levels, conns);
     }
 
     removeConnections(dir, tile) {
         const replacedConns = this.getReplacedConnections(dir, tile);
         replacedConns.forEach(conn => {
-            conn.setTargetLevel(conn.getTargetLevel().getID());
-            conn.setTargetStairs(conn.getTargetStairs().getID());
+            const targetConn = conn.getTargetStairs();
+            const connObj = {
+                targetLevel: conn.getTargetLevel().getID(),
+                targetStairs: {x: targetConn.getX(), y: targetConn.getY()}
+            };
+
+            conn.setConnObj(connObj);
         });
     }
 
     getReplacedConnections(dir, tile) {
         const level = tile.getLevel();
         const conns = level.getConnections();
+        if (conns.length === 0) {
+            RG.err('ChunkManager', 'getReplacedConnections',
+                'No connections found.');
+        }
         let replacedConns = [];
         if (dir === 'SOUTH') {
             replacedConns = conns.filter(conn => conn.getY() === tile.rows - 1);
@@ -220,6 +274,17 @@ export default class ChunkManager {
         return replacedConns;
     }
 
+    getOpposite(dir) {
+        switch (dir) {
+            case 'NORTH': return 'SOUTH';
+            case 'SOUTH': return 'NORTH';
+            case 'EAST': return 'WEST';
+            case 'WEST': return 'EAST';
+            default: RG.err('ChunkManager', 'getOpposite',
+                `Illegal dir ${dir} given.`);
+        }
+        return '';
+    }
 
     /* Returns the player movement direction. */
     getMoveDir(px, py, oldX, oldY) {
