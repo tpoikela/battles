@@ -127,50 +127,13 @@ export default class ChunkManager {
             xy => areaTiles[xy[0]][xy[1]]
         );
 
-        // const tile10 = areaTiles[1][0];
-        // printTileConnections('loadTiles XXX before', tile10, 4);
-
         this.createTiles(loadedAreaTiles);
-
-        // printTileConnections('loadTiles XXX after', tile10, 4);
 
         loadedTilesXY.forEach(xy => {
             debug(`ChunkManager load now tile ${xy}`);
             const [tx, ty] = xy;
             this.state[tx][ty].loadState = LOAD.LOADED;
             this.area.setLoaded(tx, ty);
-            // Need to create the connections on adjacent tiles
-            /*
-            const newTile = areaTiles[tx][ty];
-
-            if (moveDir === 'WEST') {
-                const newX = tx + 1;
-                const tileToConnect = areaTiles[tx + 1][ty];
-                if (newX < this.area.getSizeX()) {
-                    this.addConnections('WEST', tileToConnect, newTile);
-                }
-            }
-            else if (moveDir === 'EAST') {
-                const newX = tx - 1;
-                const tileToConnect = areaTiles[tx - 1][ty];
-                if (newX < this.area.getSizeX()) {
-                    this.addConnections('EAST', tileToConnect, newTile);
-                }
-
-            }
-            else if (moveDir === 'SOUTH') {
-                const newY = ty - 1;
-                if (newY >= 0) {
-                    this.addConnections('SOUTH', areaTiles[tx][ty - 1]);
-                }
-            }
-            else if (moveDir === 'NORTH') {
-                const newY = ty + 1;
-                if (newY < this.area.getSizeY) {
-                    this.addConnections('NORTH', areaTiles[tx][ty + 1]);
-                }
-            }
-            */
         });
     }
 
