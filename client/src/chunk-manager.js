@@ -4,7 +4,8 @@ const FromJSON = require('./game.fromjson');
 const debug = require('debug')('bitn:ChunkManager');
 
 export const LOAD = Object.freeze(
-    {EMPTY: 'EMPTY', LOADED: 'LOADED', JSON: 'JSON', ON_DISK: 'ON_DISK'});
+    {EMPTY: 'EMPTY', LOADED: 'LOADED', JSON: 'JSON', ON_DISK: 'ON_DISK',
+        LOADED2JSON: 'LOADED2JSON'});
 export const CREATE = Object.freeze(
     {EMPTY: 'EMPTY', CREATED: 'CREATED', POPULATED: 'POPULATED'});
 
@@ -42,6 +43,7 @@ export default class ChunkManager {
         this.area = area;
         this.game = game;
         this.state = [];
+
         for (let x = 0; x < sizeX; x++) {
             this.state[x] = [];
             for (let y = 0; y < sizeY; y++) {
@@ -141,7 +143,7 @@ export default class ChunkManager {
     unloadTile(px, py, tx, ty, moveDir) {
         debug(`Unloading tile ${tx},${ty}`);
         const areaTiles = this.area.getTiles();
-        this.state[tx][ty].loadState = LOAD.JSON;
+        this.state[tx][ty].loadState = LOAD.LOADED2JSON;
         this.area.setUnloaded(tx, ty);
 
         const levels = areaTiles[tx][ty].getLevels();
@@ -152,28 +154,33 @@ export default class ChunkManager {
         // Need to replace connections on adjacent tiles
         if (moveDir === 'WEST') {
             const newX = tx - 1;
+            debug(`Removing connections from tile ${tx - 1},${ty}`);
             if (newX < this.area.getSizeX()) {
                 this.removeConnections('EAST', areaTiles[tx - 1][ty]);
             }
         }
         else if (moveDir === 'EAST') {
             const newX = tx + 1;
+            debug(`Removing connections from tile ${tx + 1},${ty}`);
             if (newX < this.area.getSizeX()) {
                 this.removeConnections('WEST', areaTiles[tx + 1][ty]);
             }
         }
         else if (moveDir === 'NORTH') {
             const newY = ty - 1;
+            debug(`Removing connections from tile ${tx},${ty - 1}`);
             if (newY >= 0) {
                 this.removeConnections('SOUTH', areaTiles[tx][ty - 1]);
             }
         }
         else if (moveDir === 'SOUTH') {
             const newY = ty + 1;
+            debug(`Removing connections from tile ${tx},${ty + 1}`);
             if (newY < this.area.getSizeY) {
                 this.removeConnections('NORTH', areaTiles[tx][ty + 1]);
             }
         }
+        this.state[tx][ty].loadState = LOAD.JSON;
     }
 
     getLoadState(x, y) {
@@ -313,6 +320,7 @@ export default class ChunkManager {
             case LOAD.JSON: return 'J';
             case LOAD.ON_DISK: return 'D';
             case LOAD.EMPTY: return 'E';
+            case LOAD.LOADED2JSON: return '*';
             default: return '';
         }
     }
