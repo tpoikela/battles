@@ -159,6 +159,13 @@ RG.Map.Cell.prototype.isFree = function(isFlying = false) {
 RG.Map.Cell.prototype.setProp = function(prop, obj) {
     if (!this._p.hasOwnProperty(prop)) {this._p[prop] = [];}
     if (this._p.hasOwnProperty(prop)) {
+        if (this.hasConnection() && obj.getType() === 'connection') {
+            let msg = `${this._x},${this._y}`;
+            msg += `\nExisting: ${JSON.stringify(this.getConnection())}`;
+            msg += `\nTried to add: ${JSON.stringify(obj)}`;
+            RG.err('Cell', 'setProp',
+                `Tried to add 2nd connection: ${msg}`);
+        }
         this._p[prop].push(obj);
         if (obj.isOwnable) {
             obj.setOwner(this);
@@ -534,7 +541,7 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
  * OR
  *   cell => cell.getBaseElem().getType() === 'floor'
  */
-RG.Map.CellList.prototype.getCells = function(filter) {
+RG.Map.CellList.prototype.getCells = function(filter = () => true) {
     const result = [];
     for (let x = 0; x < this.cols; x++) {
         for (let y = 0; y < this.rows; y++) {
