@@ -6,18 +6,34 @@ import ChunkManager, {LOAD} from '../../../client/src/chunk-manager';
 const RG = require('../../../client/src/battles');
 RG.World = require('../../../client/src/world');
 
+// const memwatch = require('memwatch-next');
+
 const RGTest = require('../../roguetest');
 
-describe('ChunkManager', () => {
+function printMemUsage(msg) {
+    const used = process.memoryUsage().heapUsed / 1024 / 1024;
+    const usedMb = Math.round(used * 100) / 100;
+    console.log(`${msg} The script uses approximately ${usedMb} MB`);
+}
+
+describe('ChunkManager', function() {
+    this.timeout(60000);
 
     let game = null;
     let area = null;
     let world = null;
     let player = null;
+    const sizeX = 4;
+    const sizeY = 4;
+    const cols = 100;
+    const rows = 100;
 
     beforeEach(() => {
+        // memwatch.on('leak', function(info) { console.log(info);});
+        // memwatch.on('stats', function(stats) { console.log(stats);});
+        printMemUsage('BEFORE_EACH');
         game = new RG.Game.Main();
-        area = new RG.World.Area('north', 4, 4, 100, 100);
+        area = new RG.World.Area('north', sizeX, sizeY, cols, rows);
         world = new RG.World.Top('World');
         player = new RG.Actor.Rogue('player');
         player.setIsPlayer(true);
@@ -27,10 +43,9 @@ describe('ChunkManager', () => {
     });
 
     it('stores the state of world area/chunks ', () => {
-        // game.addPlayer(player);
-
+        printMemUsage('START');
         const manager = new ChunkManager(game, area);
-        expect(game.getLevels().length).to.equal(16);
+        expect(game.getLevels().length).to.equal(sizeX * sizeY);
 
         const tiles = area.getTiles();
         let level0 = tiles[0][0].getLevel();
@@ -76,6 +91,26 @@ describe('ChunkManager', () => {
 
         manager.setPlayerTile(2, 1, 2, 0);
         expect(game.getLevels().length).to.equal(9);
+
+        let [prevX, prevY] = [null, null];
+
+        for (let x = 0; x < sizeX; x++) {
+            for (let y = 0; y < sizeY; y++) {
+                if (y > 0) {
+                    manager.setPlayerTile(x, y, prevX, prevY);
+                }
+                else {
+                    manager.setPlayerTile(x, y);
+                }
+                const numLoaded = manager.getNumInState(LOAD.LOADED);
+                expect(numLoaded).to.be.at.most(10);
+                // manager.debugPrint();
+                [prevX, prevY] = [x, y];
+                printMemUsage(`setPlayerTile ${x},${y}`);
+            }
+        }
+
+        printMemUsage('END');
     });
 
     it('loads/restores chunks when player moves', () => {
@@ -122,13 +157,13 @@ describe('ChunkManager', () => {
 
         world.getConf().createAllZones = false;
 
-        const json = game.toJSON();
+        let json = game.toJSON();
 
-        const fromJSON = new RG.Game.FromJSON();
+        let fromJSON = new RG.Game.FromJSON();
         fromJSON.setChunkMode(true);
 
         console.log('Creating new game now');
-        const newGame = fromJSON.createGame(json);
+        let newGame = fromJSON.createGame(json);
         expect(newGame).to.exist;
 
         const newManager = newGame.getChunkManager();
@@ -137,19 +172,51 @@ describe('ChunkManager', () => {
         expect(newLevels).to.have.length(9);
         expect(newNumLoaded).to.equal(9);
 
+        /*
         const newGameMaster = newGame.getGameMaster();
         let battle = newGameMaster.battles[0];
         expect(battle.getLevel).not.to.exist;
+        */
 
         game.movePlayer(2, 1);
         game.movePlayer(1, 1);
         levels = newGame.getLevels();
         expect(levels.length).to.equal(10);
 
+        /*
         battle = newGameMaster.battles[0];
         const battleLevel = battle.getLevel();
         expect(battleLevel).to.exist;
+        */
+        fromJSON = new RG.Game.FromJSON();
+        fromJSON.setChunkMode(true);
+        newGame = fromJSON.createGame(json);
+
+        game.movePlayer(2, 1);
+        game.movePlayer(3, 1);
+        game.movePlayer(3, 2);
+        game.movePlayer(3, 1);
+
+        levels = newGame.getLevels();
+        const conns = levels.map(l => l.getConnections());
+        const nConns = conns.reduce((acc, val) => {acc += val.length;}, 0);
+
+        json = newGame.toJSON();
+        fromJSON = new RG.Game.FromJSON();
+        fromJSON.setChunkMode(true);
+        newGame = fromJSON.createGame(json);
+
+        levels = newGame.getLevels();
+        const newConns = levels.map(l => l.getConnections());
+        const nConnsAfter = newConns.reduce(
+            (acc, val) => {acc += val.length;}, 0);
+        expect(nConns).to.equal(nConnsAfter);
+
+        game.movePlayer(3, 2);
+        game.movePlayer(3, 1);
 
     });
 
 });
+
+
