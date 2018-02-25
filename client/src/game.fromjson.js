@@ -52,6 +52,22 @@ RG.Game.FromJSON = function() {
         return player;
     };
 
+    this.addRestoredPlayerToGame = function(player, game, json) {
+        this._addRegenEvents(game, player);
+        const id = json.player.levelID;
+        const level = game.getLevels().find(item => item.getID() === id);
+        if (level) {
+            const x = json.player.x;
+            const y = json.player.y;
+            level.addActor(player, x, y);
+            game.addPlayer(player);
+        }
+        else {
+            RG.err('Game.FromJSON', 'addRestoredPlayerToGame',
+                `Cannot find player level object with level ID ${id}`);
+        }
+    };
+
     /* Restores all data for already created entity. */
     this.restoreEntity = function(obj, entity) {
         this.createBrain(obj.brain, entity);
@@ -361,7 +377,7 @@ RG.Game.FromJSON = function() {
         // Duplicate level IDs are very, very bad
         if (!id2level.hasOwnProperty(json.id)) {
             id2level[json.id] = level;
-            console.log(`Added level ${json.id} to id2level`);
+            debug(`Added level ${json.id} to id2level`);
         }
         else {
             RG.err('FromJSON', 'restoreLevel',
@@ -488,46 +504,35 @@ RG.Game.FromJSON = function() {
         return null;
     };
 
-    this.createGame = function(json) {
+    /* Main function to call when restoring a game. When given Game.Main in
+     * serialized JSON, returns the restored Game.Main object. */
+    this.createGame = function(gameJSON) {
         const game = new RG.Game.Main();
-        if (json.globalConf) {
-            this.dbg('Setting globalConf for game: '
-                + JSON.stringify(json.globalConf, null, 1));
-            game.setGlobalConf(json.globalConf);
-        }
-        if (json.cellStyles) {
-            RG.cellStyles = json.cellStyles;
-        }
-        if (json.charStyles) {
-            RG.charStyles = json.charStyles;
-        }
+        this.setGlobalConfAndObjects(game, gameJSON);
 
         const allLevels = [];
 
+        const levelsToRestore = this.getLevelsToRestore(gameJSON);
+
         // Levels must be created before the actual world, because the World
         // object contains only level IDs
-        let levelsToRestore = [];
-        if (json.levels) {levelsToRestore = json.levels;}
-        else {
-            levelsToRestore = this.getLevelsToRestore(json);
-        }
-
         levelsToRestore.forEach(levelJson => {
             const level = this.restoreLevel(levelJson);
             allLevels.push(level);
             if (!levelJson.parent) {
+                console.log('>> Adding level ' + level.getID());
                 game.addLevel(level);
             }
         });
 
-        Object.keys(json.places).forEach(name => {
-            const place = json.places[name];
+        Object.keys(gameJSON.places).forEach(name => {
+            const place = gameJSON.places[name];
             const placeObj = this.restorePlace(place);
             game.addPlace(placeObj);
         });
 
-        if (json.overworld) {
-            const overworld = this.restoreOverWorld(json.overworld);
+        if (gameJSON.overworld) {
+            const overworld = this.restoreOverWorld(gameJSON.overworld);
             game.setOverWorld(overworld);
         }
 
@@ -535,51 +540,45 @@ RG.Game.FromJSON = function() {
         this.connectGameLevels(allLevels);
 
         // Player created separately from other actors for now
-        if (json.player) {
-            const player = this.restorePlayer(json.player);
-            this._addRegenEvents(game, player);
-            const id = json.player.levelID;
-            const level = game.getLevels().find(item => item.getID() === id);
-            if (level) {
-                const x = json.player.x;
-                const y = json.player.y;
-                level.addActor(player, x, y);
-                game.addPlayer(player);
-            }
-            else {
-                RG.err('Game.FromJSON', 'createGame',
-                    `Cannot find player level object with level ID ${id}`);
-            }
+        if (gameJSON.player) {
+            const player = this.restorePlayer(gameJSON.player);
+            this.addRestoredPlayerToGame(player, game, gameJSON);
         }
 
         // Entity data cannot be restored earlier because not all object refs
         // exist when entities are created
         this.restoreEntityData();
 
-        const gameMaster = this.restoreGameMaster(game, json.gameMaster);
+        const gameMaster = this.restoreGameMaster(game, gameJSON.gameMaster);
         game.setGameMaster(gameMaster);
 
-        // 'Integrity' check that correct number of levels restored
-        const nLevels = game.getLevels().length;
-        if (json.levels) {
-            if (nLevels !== json.levels.length) {
-                const exp = json.levels.length;
-                RG.err('Game.FromJSON', 'createGame',
-                    `Exp. ${exp} levels, after restore ${nLevels}`);
-            }
-        }
+        this.checkNumOfLevels(game, gameJSON);
 
         // Restore the ID counters for levels and entities, otherwise duplicate
         // IDs will appear when new levels/entities are created
-        // RG.Map.Level.prototype.idCount = json.lastLevelID;
-        // RG.Entity.prototype.idCount = json.lastEntityID;
+        // RG.Map.Level.prototype.idCount = gameJSON.lastLevelID;
+        // RG.Entity.prototype.idCount = gameJSON.lastEntityID;
 
-        if (json.rng) {
+        if (gameJSON.rng) {
             RG.RAND = new RG.Random();
-            RG.RAND.setState(json.rng.state);
+            RG.RAND.setState(gameJSON.rng.state);
         }
 
         return game;
+    };
+
+    this.setGlobalConfAndObjects = (game, gameJSON) => {
+        if (gameJSON.globalConf) {
+            this.dbg('Setting globalConf for game: '
+                + JSON.stringify(gameJSON.globalConf, null, 1));
+            game.setGlobalConf(gameJSON.globalConf);
+        }
+        if (gameJSON.cellStyles) {
+            RG.cellStyles = gameJSON.cellStyles;
+        }
+        if (gameJSON.charStyles) {
+            RG.charStyles = gameJSON.charStyles;
+        }
     };
 
     /* Makes all connections in given levels after they've been created as
@@ -603,6 +602,7 @@ RG.Game.FromJSON = function() {
                     console.log('Parent: ' + level.getParent().getName());
                     console.log(JSON.stringify(s));
                 }
+
                 const x = targetStairsXY.x;
                 const y = targetStairsXY.y;
                 if (targetLevel) {
@@ -752,6 +752,7 @@ RG.Game.FromJSON = function() {
 
     this.getLevelsToRestore = json => {
         let levels = [];
+        if (json.levels) {return json.levels;}
         Object.keys(json.places).forEach(name => {
             const place = json.places[name];
             if (place.area) {
@@ -806,18 +807,9 @@ RG.Game.FromJSON = function() {
             tile.setLevel(tileLevel);
             game.addLevel(tileLevel);
 
-            if (tileLevel.getID() === 4) {
-                const conns0 = tileLevel.getConnections();
-                conns0.forEach(c => {
-                    const targetLevel = c.getTargetLevel();
-                    if (Number.isInteger(targetLevel)) {
-                        console.log(`Target ID ${targetLevel} found`);
-                    }
-                });
-            }
-
             const jsonCopy = JSON.parse(JSON.stringify(json));
             area.getTiles()[tx][ty] = tile;
+            tileLevel.setParent(area);
             fact.createZonesFromTile(area, jsonCopy, tx, ty);
         });
 
@@ -834,12 +826,6 @@ RG.Game.FromJSON = function() {
         conns.forEach(conn => {
             const stairsId = conn.getID();
             const targetLevel = conn.getTargetLevel();
-            if (Number.isInteger(targetLevel)) {
-                console.log(`Target ID number ${targetLevel} found`);
-            }
-            else {
-                console.log(`Map.Level ${targetLevel.getID()} found`);
-            }
             stairsInfo[stairsId] = {
                 targetLevel,
                 targetStairs: conn.getTargetStairs()
@@ -851,14 +837,8 @@ RG.Game.FromJSON = function() {
 
     this.connectConnections = conns => {
         conns.forEach(s => {
-            console.log(`Looking for ${s.getID()}`);
-            console.log(`\tSource level ${s.getSrcLevel().getID()}`);
             const connObj = stairsInfo[s.getID()];
             const targetLevel = id2level[connObj.targetLevel];
-
-            if (!targetLevel) {
-                console.log(`ID could be ${connObj.targetLevel.getID()}`);
-            }
 
             const targetStairsXY = connObj.targetStairs;
             const {x, y} = targetStairsXY;
@@ -880,6 +860,18 @@ RG.Game.FromJSON = function() {
                     `Target level ${id} null. Cannot connect.`);
             }
         });
+    };
+
+    // 'Integrity' check that correct number of levels restored
+    this.checkNumOfLevels = (game, gameJSON) => {
+        const nLevels = game.getLevels().length;
+        if (gameJSON.levels) {
+            if (nLevels !== gameJSON.levels.length) {
+                const exp = gameJSON.levels.length;
+                RG.err('Game.FromJSON', 'checkNumOfLevels',
+                    `Exp. ${exp} levels, after restore ${nLevels}`);
+            }
+        }
     };
 
     // decorateObjThisFuncs(this);
