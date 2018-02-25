@@ -17,6 +17,7 @@ coverage
 
 # nyc test coverage
 .nyc_output
+.nyc_output_bak/
 
 # node-waf configuration
 .lock-wscript
@@ -51,4 +52,6 @@ jsctags
 
 vimproject
 
-
+# For some game specific custom files
+tmp
+save_dumps
