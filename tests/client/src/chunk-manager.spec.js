@@ -108,10 +108,13 @@ describe('ChunkManager', () => {
         });
     });
 
-    it.skip('prevents loading of the full world after restore', () => {
+    it('prevents loading of the full world after restore', () => {
         game.addPlayer(player);
         const manager = game.getChunkManager();
         expect(manager).to.exist;
+
+        let levels = game.getLevels();
+        expect(levels.length).to.equal(5);
 
         game.movePlayer(2, 2);
         const numLoaded = manager.getNumInState(LOAD.LOADED);
@@ -122,6 +125,8 @@ describe('ChunkManager', () => {
         const json = game.toJSON();
 
         const fromJSON = new RG.Game.FromJSON();
+        fromJSON.setChunkMode(true);
+
         console.log('Creating new game now');
         const newGame = fromJSON.createGame(json);
         expect(newGame).to.exist;
@@ -131,6 +136,19 @@ describe('ChunkManager', () => {
         const newLevels = newGame.getLevels();
         expect(newLevels).to.have.length(9);
         expect(newNumLoaded).to.equal(9);
+
+        const newGameMaster = newGame.getGameMaster();
+        let battle = newGameMaster.battles[0];
+        expect(battle.getLevel).not.to.exist;
+
+        game.movePlayer(2, 1);
+        game.movePlayer(1, 1);
+        levels = newGame.getLevels();
+        expect(levels.length).to.equal(10);
+
+        battle = newGameMaster.battles[0];
+        const battleLevel = battle.getLevel();
+        expect(battleLevel).to.exist;
 
     });
 
