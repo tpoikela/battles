@@ -323,6 +323,7 @@ RG.Factory.Game = function() {
         const world = fact.createWorld(worldConf);
         game.addPlace(world);
         game.setOverWorld(overworld);
+        game.setEnableChunkUnload(true);
 
         const playerLevel = splitLevels[midX][owConf.nLevelsY - 1];
         playerLevel.addActorToFreeCell(player);
