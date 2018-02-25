@@ -24,7 +24,7 @@ export default class LevelSaveLoad extends Component {
       /* eslint-enable */
       if (isFileSaverSupported) {
         const date = new Date().getTime();
-        const fname = `${date}_${this.props.savedObjName}.json`;
+        const fname = `bsave_${date}_${this.props.savedObjName}.json`;
 
         let text = null;
         if (this.props.pretty) {
