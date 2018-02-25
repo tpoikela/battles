@@ -723,10 +723,14 @@ const RG = { // {{{2
 
     STATS: [
         'Accuracy', 'Agility', 'Magic', 'Perception', 'Strength', 'Willpower'
-    ]
+    ],
+
+    // Load status when using chunk unloading
+    LEVEL_NOT_LOADED: 'LEVEL_NOT_LOADED',
+    TILE_NOT_LOADED: 'TILE_NOT_LOADED'
 
 }; // / }}} RG
-RG.ACTOR_RACES = RG.ACTOR_RACES.sort();
+RG.ACTOR_RACES = RG.ACTOR_RACES.sort(); // Too lazy to manually order them
 
 RG.getObjRef = (type, obj) => {
     if (type === 'entity') {
