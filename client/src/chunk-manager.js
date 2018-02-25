@@ -1,6 +1,7 @@
 
 const RG = require('./rg');
 const FromJSON = require('./game.fromjson');
+const debug = require('debug')('bitn:ChunkManager');
 
 export const LOAD = Object.freeze(
     {EMPTY: 'EMPTY', LOADED: 'LOADED', JSON: 'JSON', ON_DISK: 'ON_DISK'});
@@ -34,7 +35,7 @@ export function printTileConnections(msg, tileToConnect, id = -1) {
  * */
 export default class ChunkManager {
 
-    constructor(game, area, loadState) {
+    constructor(game, area, loadState = LOAD.LOADED) {
         const [sizeX, sizeY] = [area.getSizeX(), area.getSizeY()];
         this.sizeX = sizeX;
         this.sizeY = sizeY;
@@ -99,10 +100,23 @@ export default class ChunkManager {
         this.setLoadStateAll(LOAD.LOADED);
     }
 
+    /* Returns number of tiles in given load state. */
+    getNumInState(loadState) {
+        let num = 0;
+        for (let x = 0; x < this.sizeX; x++) {
+            for (let y = 0; y < this.sizeY; y++) {
+                if (this.state[x][y].loadState === loadState) {
+                    ++num;
+                }
+            }
+        }
+        return num;
+    }
+
     /* Loads the serialized/on-disk tile. */
     loadTiles(px, py, loadedTilesXY) {
         const areaTiles = this.area.getTiles();
-        console.log('loadFIles: ' + JSON.stringify(loadedTilesXY));
+        debug('loadTiles: ' + JSON.stringify(loadedTilesXY));
         const loadedAreaTiles = loadedTilesXY.map(
             xy => areaTiles[xy[0]][xy[1]]
         );
@@ -115,9 +129,10 @@ export default class ChunkManager {
         // printTileConnections('loadTiles XXX after', tile10, 4);
 
         loadedTilesXY.forEach(xy => {
-            console.log(`ChunkManager load now tile ${xy}`);
+            debug(`ChunkManager load now tile ${xy}`);
             const [tx, ty] = xy;
             this.state[tx][ty].loadState = LOAD.LOADED;
+            this.area.setLoaded(tx, ty);
             // Need to create the connections on adjacent tiles
             /*
             const newTile = areaTiles[tx][ty];
@@ -155,8 +170,10 @@ export default class ChunkManager {
 
     /* Unloads the tile from memory. */
     unloadTile(px, py, tx, ty, moveDir) {
+        debug(`Unloading tile ${tx},${ty}`);
         const areaTiles = this.area.getTiles();
         this.state[tx][ty].loadState = LOAD.JSON;
+        this.area.setUnloaded(tx, ty);
 
         const levels = areaTiles[tx][ty].getLevels();
         this.game.removeLevels(levels);
@@ -228,7 +245,7 @@ export default class ChunkManager {
     }
 
     addConnections(dir, tileToConnect, newTile) {
-        printTileConnections('XXX', tileToConnect);
+        // printTileConnections('XXX', tileToConnect);
         const oppositeDir = this.getOpposite(dir);
         const addedConns = this.getReplacedConnections(dir, tileToConnect);
         const newConns = this.getReplacedConnections(oppositeDir, newTile);
@@ -303,6 +320,32 @@ export default class ChunkManager {
             else if (dy < 0) {moveDir = 'NORTH';}
         }
         return moveDir;
+    }
+
+    /* Prints the state in concise format. */
+    debugPrint() {
+        let result = '';
+        for (let y = 0; y < this.sizeY; y++) {
+            for (let x = 0; x < this.sizeX; x++) {
+                result += ' ' + this.stateToChar(this.state[x][y]);
+            }
+            result += ` - ${y} \n`;
+        }
+        result += '\n\tNum loaded: ' + this.getNumInState(LOAD.LOADED);
+        result += '\n\tNum serialized: ' + this.getNumInState(LOAD.JSON);
+        result += '\n\tNum on disk: ' + this.getNumInState(LOAD.ON_DISK);
+        return result;
+    }
+
+    /* Converts current state into a single char. */
+    stateToChar(state) {
+        switch (state.loadState) {
+            case LOAD.LOADED: return 'L';
+            case LOAD.JSON: return 'J';
+            case LOAD.ON_DISK: return 'D';
+            case LOAD.EMPTY: return 'E';
+            default: return '';
+        }
     }
 }
 
