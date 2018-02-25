@@ -35,7 +35,7 @@ export function printTileConnections(msg, tileToConnect, id = -1) {
  * */
 export default class ChunkManager {
 
-    constructor(game, area, loadState = LOAD.LOADED) {
+    constructor(game, area) {
         const [sizeX, sizeY] = [area.getSizeX(), area.getSizeY()];
         this.sizeX = sizeX;
         this.sizeY = sizeY;
@@ -45,8 +45,14 @@ export default class ChunkManager {
         for (let x = 0; x < sizeX; x++) {
             this.state[x] = [];
             for (let y = 0; y < sizeY; y++) {
-                const chunkState = {loadState};
-                this.state[x].push(chunkState);
+                if (area.isLoaded(x, y)) {
+                    const chunkState = {loadState: LOAD.LOADED};
+                    this.state[x].push(chunkState);
+                }
+                else {
+                    const chunkState = {loadState: LOAD.JSON};
+                    this.state[x].push(chunkState);
+                }
             }
         }
 
@@ -240,7 +246,7 @@ export default class ChunkManager {
 
     createTiles(tilesJSON) {
         const fromJSON = new FromJSON();
-        fromJSON.chunkMode = true;
+        fromJSON.setChunkMode(true);
         fromJSON.createTiles(this.game, tilesJSON);
     }
 
