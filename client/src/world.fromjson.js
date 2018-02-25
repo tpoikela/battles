@@ -2,8 +2,16 @@
 const RG = require('./rg');
 const debug = require('debug')('bitn:WorldFromJSON');
 
-/* This class converts a serialized world back to World.Top object. It supports 
- * unloaded AreaTiles, and does not create them as objects. */
+/* This class converts a serialized world back to World.Top object. It supports
+ * unloaded AreaTiles, and does not create them as objects when
+ * tilesLoaded[x][y] is false for that tile.
+ *
+ * This class resembles Factory.World (it's a partial copy-paste), but there
+ * are intricacies when
+ * restoring an existing game, which have been added. Do NOT try to refactor
+ * these into single class!
+ *
+ */
 export default class WorldFromJSON {
 
     constructor(id2level) {
@@ -15,6 +23,7 @@ export default class WorldFromJSON {
         this._IND = 0; // Used for indenting debug messages
     }
 
+    /* Main function to call with a serialized JSON of World.Top. */
     createWorld(placeJSON) {
         let world = null;
         if (placeJSON.conf) {
@@ -23,6 +32,7 @@ export default class WorldFromJSON {
         }
         else {
             RG.err('WorldFromJSON', 'Should not be called at all.', 'ERROR');
+            // TODO branch will be removed completely after verification
             this.dbg('Creating world using Factory.World fully');
             const fact = new RG.Factory.World();
             fact.setId2Level(this.id2level);
@@ -31,8 +41,8 @@ export default class WorldFromJSON {
         return world;
     }
 
-    /* Given a serialized world in JSON, returns the created World.Top object.
-     * */
+    /* Given a serialized WorldTop in JSON, returns the created
+     * World.Top object. */
     createRestoredWorld(worldJSON) {
         if (!worldJSON.conf) {
             RG.err('WorldFromJSON', 'createRestoredWorld',
@@ -91,11 +101,9 @@ export default class WorldFromJSON {
             this.printKeys('areaJSON keys', areaJSON);
             const area = this.createArea(areaJSON);
 
-            // >>>>>>>>>>>>>>>>>>>>>> Factory.World START
             if (areaJSON.zonesCreated) { // Only during restore game
-                this.fact.restoreCreatedZones(world, area, areaJSON);
+                this.restoreCreatedZones(world, area, areaJSON);
             }
-            // >>>>>>>>>>>>>>>>>>>>>> Factory.World END
 
             world.addArea(area);
             this.addWorldID(areaJSON, area);
@@ -133,6 +141,19 @@ export default class WorldFromJSON {
         }
         this.popScope(areaJSON);
         return area;
+    }
+
+    restoreCreatedZones(world, area, areaJSON) {
+        Object.keys(areaJSON.zonesCreated).forEach(xy => {
+            const [xStr, yStr] = xy.split(',');
+            const [x, y] = [parseInt(xStr, 10), parseInt(yStr, 10)];
+            if (areaJSON.zonesCreated[xy] && areaJSON.tilesLoaded[x][y]) {
+                this.dbg(`\tRestoring created zones for tile ${x},${y}`);
+                // >>>>>>>>>>>>>>>>>>>>>> Factory.World START
+                this.fact.createZonesForTile(world, area, x, y);
+                // >>>>>>>>>>>>>>>>>>>>>> Factory.World END
+            }
+        });
     }
 
     /* Used when creating area from existing levels. Uses id2level lookup table
