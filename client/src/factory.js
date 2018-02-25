@@ -21,8 +21,6 @@ RG.Factory = {};
 
 const ZONE_TYPES = ['City', 'Mountain', 'Dungeon', 'BattleZone'];
 
-const LEVEL_NOT_LOADED = 'LEVEL_NOT_LOADED';
-
 /* Returns a basic configuration for a city level. */
 RG.Factory.cityConfBase = conf => {
     const userConf = conf || {};
@@ -1003,6 +1001,73 @@ RG.Factory.Zone = function() {
 };
 RG.extend2(RG.Factory.Zone, RG.Factory.Base);
 
+/* An Object for managing configuration/scope stacks when creating a world. */
+const ConfStack = function() {
+
+    this.globalConf = {};
+    this.scope = [];
+    this.confStack = [];
+
+    this.setGlobalConf = function(conf) {
+        this.globalConf = conf;
+    };
+
+    this.getGlobalConf = function() {
+        return this.globalConf;
+    };
+
+    this.getScope = function() {
+        return this.scope;
+    };
+
+    /* Pushes the hier name and configuration on the stack. Config can be
+    * queried with getConf(). */
+    this.pushScope = function(conf) {
+        this.scope.push(conf.name);
+        this.confStack.push(conf);
+    };
+
+    /* Removes given config and the name it contains from stacks. Reports an
+    * error if removed name does not match the name in conf. */
+    this.popScope = function(conf) {
+        const name = conf.name;
+        const poppedName = this.scope.pop();
+        if (poppedName !== name) {
+            RG.err('Factory.ConfStack', 'popScope',
+                `Popped: ${poppedName}, Expected: ${name}`);
+        }
+        else {
+            const currConf = this.confStack.pop();
+            this.debug('Popped scope: ' + currConf.name);
+        }
+    };
+
+    /* Returns a config value. */
+    this.getConf = function(keys) {
+        // First travel the config stack from the top
+        for (let i = this.confStack.length - 1; i >= 0; i--) {
+            if (this.confStack[i].hasOwnProperty(keys)) {
+                return this.confStack[i][keys];
+            }
+        }
+
+        // If nothing found, try the global configuration
+        if (this.globalConf.hasOwnProperty(keys)) {
+            return this.globalConf[keys];
+        }
+
+        return null;
+    };
+
+    this.debug = function(msg) {
+        if (debug.enabled) {
+            console.log(msg);
+        }
+    };
+
+};
+RG.Factory.ConfStack = ConfStack;
+
 /* Factory object for creating worlds and zones. Uses conf object which is
  * somewhat involved. For an example, see ../data/conf.world.js. This Factory
  * does not have any procedural generation. The configuration object can be
@@ -1026,8 +1091,9 @@ RG.Factory.World = function() {
 
     this.presetLevels = {};
 
-    this.scope = []; // Keeps track of hierarchical names of places
-    this.confStack = [];
+    this._conf = new ConfStack();
+    // this.scope = []; // Keeps track of hierarchical names of places
+    // this.confStack = [];
 
     // Can be used to pass already created levels to different zones. For
     // example, after restore game, no new levels should be created
@@ -1053,14 +1119,16 @@ RG.Factory.World = function() {
     /* Pushes the hier name and configuration on the stack. Config can be
     * queried with getConf(). */
     this.pushScope = function(conf) {
-        this.scope.push(conf.name);
-        this.confStack.push(conf);
+        this._conf.pushScope(conf);
+        /* this.scope.push(conf.name);
+        this.confStack.push(conf);*/
     };
 
     /* Removes given config and the name it contains from stacks. Reports an
     * error if removed name does not match the name in conf. */
     this.popScope = function(conf) {
-        const name = conf.name;
+        this._conf.popScope(conf);
+        /* const name = conf.name;
         const poppedName = this.scope.pop();
         if (poppedName !== name) {
             RG.err('Factory.World', 'popScope',
@@ -1069,26 +1137,33 @@ RG.Factory.World = function() {
         else {
             const currConf = this.confStack.pop();
             this.debug('Popped scope: ' + currConf.name);
-        }
+        }*/
     };
 
     /* Initializes the global configuration such as level size. */
     this.setGlobalConf = function(conf) {
         const levelSize = conf.levelSize || 'Medium';
         const sqrPerActor = conf.sqrPerActor || RG.ACTOR_MEDIUM_SQR;
-        this.globalConf.levelSize = levelSize;
-        this.globalConf.dungeonX = levelSizes.dungeon[levelSize].x;
-        this.globalConf.dungeonY = levelSizes.dungeon[levelSize].y;
-        this.globalConf.sqrPerActor = sqrPerActor;
-        this.globalConf.sqrPerItem = conf.sqrPerItem || RG.LOOT_MEDIUM_SQR;
-        this.globalConf.set = true;
-        this.debug('globalConf set to ' + JSON.stringify(this.globalConf));
+        const globalConf = {};
+        globalConf.levelSize = levelSize;
+        globalConf.dungeonX = levelSizes.dungeon[levelSize].x;
+        globalConf.dungeonY = levelSizes.dungeon[levelSize].y;
+        globalConf.sqrPerActor = sqrPerActor;
+        globalConf.sqrPerItem = conf.sqrPerItem || RG.LOOT_MEDIUM_SQR;
+        globalConf.set = true;
+        this._conf.setGlobalConf(globalConf);
+        this.debug('globalConf set to ' + JSON.stringify(globalConf));
+    };
+
+    this.getGlobalConf = function() {
+        return this._conf.getGlobalConf();
     };
 
     /* Returns a config value. */
     this.getConf = function(keys) {
         // First travel the config stack from the top
-        for (let i = this.confStack.length - 1; i >= 0; i--) {
+        return this._conf.getConf(keys);
+        /* for (let i = this.confStack.length - 1; i >= 0; i--) {
             if (this.confStack[i].hasOwnProperty(keys)) {
                 return this.confStack[i][keys];
             }
@@ -1099,16 +1174,16 @@ RG.Factory.World = function() {
             return this.globalConf[keys];
         }
 
-        return null;
+        return null;*/
     };
 
     /* Returns the full hierarchical name of the zone. */
-    this.getHierName = () => this.scope.join('.');
+    this.getHierName = () => this._conf.getScope().join('.');
 
     /* Creates a world using given configuration. */
     this.createWorld = function(conf) {
         _verif.verifyConf('createWorld', conf, ['name', 'nAreas']);
-        if (!this.globalConf.set) {
+        if (!this.getGlobalConf().set) {
             this.setGlobalConf({});
         }
         if (conf.hasOwnProperty('createAllZones')) {
@@ -1132,29 +1207,6 @@ RG.Factory.World = function() {
         return world;
     };
 
-    this.createRestoredWorld = function(worldConf) {
-        if (!worldConf.conf) {
-          RG.err('Factory', 'createRestoredWorld',
-            'No worldConf.conf. Does not look like restored world.');
-        }
-        const world = this.createWorld(worldConf);
-        // Need to restore configurations here
-        world.setConf(worldConf.conf);
-
-        const areas = world.getAreas();
-        if (areas.length > 0) {
-            const keys = `${Object.keys(worldConf.conf)}`;
-            if (!worldConf.conf.hasOwnProperty('area')) {
-                RG.err('Factory', 'createRestoredWorld',
-                    `No prop 'area' in ${worldConf.conf}. Props ${keys}`);
-            }
-        }
-
-        areas.forEach((area, i) => {
-            area.setConf(worldConf.conf.area[i]);
-        });
-        return world;
-    };
 
     /* Creates an area which can be added to a world. */
     this.createArea = function(conf) {
@@ -1312,9 +1364,9 @@ RG.Factory.World = function() {
     this.getAreaLevels = function(conf) {
         const levels = [];
         if (conf.tiles) {
-            conf.tiles.forEach((tileCol, x) => {
+            conf.tiles.forEach((tileCol) => {
                 const levelCol = [];
-                tileCol.forEach((tile, y) => {
+                tileCol.forEach((tile) => {
                     const level = this.id2level[tile.level];
                     if (level) {
                         levelCol.push(level);
