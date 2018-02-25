@@ -34,6 +34,10 @@ RG.Game.FromJSON = function() {
         stairsInfo = {};
     };
 
+    this.setChunkMode = (enable) => {
+        this.chunkMode = enable;
+    };
+
     this.getDungeonLevel = () => _dungeonLevel;
 
     /* Handles creation of restored player from JSON.*/
@@ -553,6 +557,7 @@ RG.Game.FromJSON = function() {
 
         const gameMaster = this.restoreGameMaster(game, gameJSON.gameMaster);
         game.setGameMaster(gameMaster);
+        this.restoreChunkManager(game, gameJSON);
 
         this.checkNumOfLevels(game, gameJSON);
 
@@ -633,9 +638,15 @@ RG.Game.FromJSON = function() {
         const gameMaster = game.getGameMaster();
         const battles = {};
         Object.keys(json.battles).forEach(id => {
-            const battle = this.restoreBattle(json.battles[id]);
-            battles[id] = battle;
-            game.addLevel(battle.getLevel());
+            if (id2level[id]) {
+                const battle = this.restoreBattle(json.battles[id]);
+                battles[id] = battle;
+                game.addLevel(battle.getLevel());
+            }
+            else {
+                console.log(`FromJSON Battle ${id} not created`);
+                battles[id] = json.battles[id];
+            }
         });
         gameMaster.battles = battles;
         if (json.battlesDone) {
@@ -855,6 +866,13 @@ RG.Game.FromJSON = function() {
                     `Target level ${id} null. Cannot connect.`);
             }
         });
+    };
+
+
+    this.restoreChunkManager = (game, gameJSON) => {
+        if (gameJSON.chunkManager) {
+            game.setEnableChunkUnload(true);
+        }
     };
 
     // 'Integrity' check that correct number of levels restored
