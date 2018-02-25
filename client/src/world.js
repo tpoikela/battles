@@ -873,6 +873,7 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
         }
     };
 
+    this.isLoaded = (x, y) => this.tilesLoaded[x][y];
     this.setLoaded = (x, y) => {this.tilesLoaded[x][y] = true;};
     this.setUnloaded = (x, y) => {this.tilesLoaded[x][y] = false;};
 
