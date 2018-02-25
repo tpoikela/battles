@@ -515,6 +515,9 @@ RG.Game.FromJSON = function() {
     this.createGame = function(gameJSON) {
         const game = new RG.Game.Main();
         this.setGlobalConfAndObjects(game, gameJSON);
+        if (gameJSON.chunkManager) {
+            this.setChunkMode(true);
+        }
 
         const allLevels = [];
 
