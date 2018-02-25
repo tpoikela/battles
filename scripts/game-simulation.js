@@ -34,21 +34,22 @@ console.log('Before save, game has ' + nLevels + ' levels');
 
 let newGame = game;
 
-const checkedID = game.getLevels()[0].getID();
-console.log(`Checked level ID is now ${checkedID}`);
-
 // To load previous stage quickly
-const loadGame = false;
+const loadGame = true;
 const pName = 'Xanthur';
-const loadTurn = 85000;
+// const pName = 'Tunas';
+const loadTurn = 2000;
 const saveGameEnabled = true;
 let driver = new PlayerDriver();
+const fname = `save_dumps/${pName}_temp_${loadTurn}.json`;
+// const fname = 'save_dumps/1519583443971_saveGame_Tunas.json';
+// const fname = 'save_dumps/bsave_1519586656174_saveGame_Tunas.json';
 
 if (loadGame) {
-    const fname = `save_dumps/${pName}_temp_${loadTurn}.json`;
     // const fname = 'save_dumps/remove_bug.json';
     const buf = fs.readFileSync(fname);
-    const jsonParsed = JSON.parse(buf.toString());
+    // const jsonParsed = JSON.parse(buf.toString());
+    const jsonParsed = JSON.parse(buf);
     if (jsonParsed.driver) {
         driver = PlayerDriver.fromJSON(jsonParsed.driver);
     }
@@ -70,7 +71,7 @@ const catcher = new RGTest.MsgCatcher();
 // game.movePlayer(aX - 1, 0);
 
 // Execute game in try-catch so we can dump save data on failure
-const mult = 6;
+const mult = 2;
 const maxTurns = mult * 4000;
 
 try {
@@ -84,12 +85,12 @@ try {
 
         // Save the game between certain intervals
         if (saveGameEnabled) {
-            console.log('saveGameEnabled. Checking turn number');
-            console.log(nTurn % (mult * 1000));
+            // console.log('saveGameEnabled. Checking turn number');
+            // console.log(nTurn % (mult * 1000));
             if (nTurn > startI && (nTurn % (mult * 1000) === 0)) {
                 console.log('\tsaveGameEnabled. Turn check OK.');
                 const fname = `save_dumps/${pName}_temp_${nTurn}.json`;
-                if (maxTurns >= 8000) { // Don't save for short games
+                if (maxTurns >= 1000) { // Don't save for short games
                     const json = newGame.toJSON();
                     json.driver = driver.toJSON();
                     const jsonStr = JSON.stringify(json);
@@ -131,9 +132,9 @@ const json = newGame.toJSON();
 const jsonStr = JSON.stringify(json);
 
 const nTurns = driver.nTurns;
-const fname = `save_dumps/${pName}_game_final_${nTurns}.json`;
-fs.writeFileSync(fname, jsonStr);
-console.log('Final state saved to file ' + fname);
+const finalFname = `save_dumps/${pName}_game_final_${nTurns}.json`;
+fs.writeFileSync(finalFname, jsonStr);
+console.log('Final state saved to file ' + finalFname);
 
 catcher.hasNotify = false;
 console.log('===== End Game simulation =====');
