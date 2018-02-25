@@ -1192,10 +1192,10 @@ RG.Factory.World = function() {
         else {
             console.log('WENT HERE XXX');
             areaLevels = this.getPresetLevels(hierName);
-            if (areaLevels.length === 0) {
+            console.log(areaLevels);
+            if (!areaLevels || areaLevels.length === 0) {
                 areaLevels = null;
-            }
-            else {
+                console.log('Needs connect. No preset levels');
                 needsConnect = true;
             }
         }
@@ -1924,13 +1924,15 @@ RG.Factory.World = function() {
                     if (zoneStairs.length > 0) {
                         const sX = entryStairs.getX();
                         const sY = entryStairs.getY();
-                        if (entryLevel.removeElement(entryStairs, sX, sY)) {
-                            entryStairs = zoneStairs;
+
+                        // Stairs could've been removed by zone edge connection
+                        if (entryLevel.getElements().indexOf(entryStairs) >= 0) {
+                            if (!entryLevel.removeElement(entryStairs, sX, sY)) {
+                                RG.err('Factory.World', 'createAreaZoneConnection',
+                                    'Cannot remove entryStairs');
+                            }
                         }
-                        else {
-                            RG.err('Factory.World', 'createAreaZoneConnection',
-                                'Cannot remove entryStairs');
-                        }
+                        entryStairs = zoneStairs;
                     }
                 }
 
