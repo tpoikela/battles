@@ -80,6 +80,7 @@ describe('Factory.World', function() {
             sqrPerItem: 20,
             sqrPerActor: 20
         };
+        fact.setGlobalConf({});
         const br = fact.createBranch(brConf);
         expect(br.getName()).to.equal(brConf.name);
         expect(br.getEntrance()).to.not.be.empty;
@@ -101,6 +102,7 @@ describe('Factory.World', function() {
                 stairs: [{nLevel: 1, isDown: false, x: 10, y: 10}]
             }
         };
+        fact.setGlobalConf({});
         const br = fact.createBranch(brConf);
         const l1 = br.getLevels()[1];
         const stairsL1 = l1.getStairs();
@@ -125,6 +127,7 @@ describe('Factory.World', function() {
                 { name: 'br3', nLevels: 3 }
             ]
         };
+        fact.setGlobalConf({});
         const dungeon = fact.createDungeon(dungeonConf);
         const branches = dungeon.getBranches();
         expect(dungeon.getName()).to.equal('Cave');
@@ -153,6 +156,7 @@ describe('Factory.World', function() {
                 {name: 'side2', nLevels: 1, entranceLevel: 0}
             ]
         };
+        fact.setGlobalConf({}); // Use default configs
         const dungeon = fact.createDungeon(dConf);
         const branches = dungeon.getBranches();
         expectConnected(branches[0], branches[1], 1);
