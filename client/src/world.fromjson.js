@@ -119,6 +119,8 @@ export default class WorldFromJSON {
         area.setConf(areaJSON);
         area.setHierName(this.getHierName());
 
+        this.setTileJSONForUnloadedTiles(area, areaJSON);
+
         // When player enters a given area tile, create zones for that tile
         if (this.createAllZones) {
         // >>>>>>>>>>>>>>>>>> Factory.World START
@@ -156,6 +158,7 @@ export default class WorldFromJSON {
                     }
                     else {
                         this.dbg(`Will NOT load Tile ${x},${y}`);
+                        levelCol.push(RG.LEVEL_NOT_LOADED);
                     }
                 });
                 levels.push(levelCol);
@@ -167,6 +170,17 @@ export default class WorldFromJSON {
         }
         --this._IND;
         return levels;
+    }
+
+    setTileJSONForUnloadedTiles(area, areaJSON) {
+        const tiles = area.getTiles();
+        tiles.forEach((tileCol, x) => {
+            tileCol.forEach((tile, y) => {
+                if (tiles[x][y] === RG.TILE_NOT_LOADED) {
+                    tiles[x][y] = areaJSON.tiles[x][y];
+                }
+            });
+        });
     }
 
     /* Adds a world ID to given world element. */
