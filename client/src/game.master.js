@@ -235,7 +235,7 @@ const GameMaster = function(game) {
         armies.forEach(army => {
             const actors = army.getActors();
             actors.forEach(actor => {
-                if (!actor.isPlayer()) {
+                if (!actor.isPlayer() && actor.has('InBattle')) {
                     if (level.removeActor(actor)) {
                         debug(`Rm actor ${actor.getID()},${actor.getName()}`);
                         targetLevel.addActorToFreeCell(actor);
@@ -246,7 +246,7 @@ const GameMaster = function(game) {
                             `level.removeActor failed for actor ${json}`);
                     }
                 }
-                else {
+                else if (actor.has('InBattle')) {
                     const selObj = this.getSelLeaveBattle(actor, level);
                     actor.getBrain().setSelectionObject(selObj);
                 }
