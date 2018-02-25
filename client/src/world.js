@@ -839,7 +839,6 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
             this.tilesLoaded.push([]);
             for (let y = 0; y < this._sizeY; y++) {
                 this.zonesCreated[x + ',' + y] = false;
-                this.tilesLoaded[x][y] = true;
                 const newTile = new RG.World.AreaTile(x, y, this);
 
                 // Scale the forest gen based on tile size
@@ -852,9 +851,17 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
                     level = RG.FACT.createLevel('forest',
                         this._cols, this._rows, forestConf);
                 }
-                level.setParent(this);
-                newTile.setLevel(level);
-                tileColumn.push(newTile);
+
+                if (level !== RG.LEVEL_NOT_LOADED) {
+                    this.tilesLoaded[x][y] = true;
+                    level.setParent(this);
+                    newTile.setLevel(level);
+                    tileColumn.push(newTile);
+                }
+                else {
+                    this.tilesLoaded[x][y] = false;
+                    tileColumn.push(RG.TILE_NOT_LOADED);
+                }
             }
             this._tiles.push(tileColumn);
         }
