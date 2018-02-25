@@ -829,12 +829,17 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
     // Control which tile has its zones created
     this.zonesCreated = {};
 
+    // Keeps track which tiles contains real AreaTile objects
+    this.tilesLoaded = [];
+
     this._init = function() {
         // Create the tiles
         for (let x = 0; x < this._sizeX; x++) {
             const tileColumn = [];
+            this.tilesLoaded.push([]);
             for (let y = 0; y < this._sizeY; y++) {
                 this.zonesCreated[x + ',' + y] = false;
+                this.tilesLoaded[x][y] = true;
                 const newTile = new RG.World.AreaTile(x, y, this);
 
                 // Scale the forest gen based on tile size
@@ -861,6 +866,9 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
         }
     };
 
+    this.setLoaded = (x, y) => {this.tilesLoaded[x][y] = true;};
+    this.setUnloaded = (x, y) => {this.tilesLoaded[x][y] = false;};
+
     this.markAllZonesCreated = () => {
         Object.keys(this.zonesCreated).forEach(key => {
             this.zonesCreated[key] = true;
@@ -883,7 +891,10 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
         let res = [];
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
-                res = res.concat(this._tiles[x][y].getLevels());
+                // If tile is in-memory/not serialized, query levels
+                if (this.tilesLoaded[x][y]) {
+                    res = res.concat(this._tiles[x][y].getLevels());
+                }
             }
         }
         return res;
@@ -895,8 +906,10 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
     this.findTileXYById = id => {
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
-                if (this._tiles[x][y].getLevel().getID() === id) {
-                    return [x, y];
+                if (this.tilesLoaded[x][y]) {
+                    if (this._tiles[x][y].getLevel().getID() === id) {
+                        return [x, y];
+                    }
                 }
             }
         }
@@ -907,8 +920,10 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
     this.hasTileWithId = id => {
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
-                if (this._tiles[x][y].getLevel().getID() === id) {
-                    return true;
+                if (this.tilesLoaded[x][y]) {
+                    if (this._tiles[x][y].getLevel().getID() === id) {
+                        return true;
+                    }
                 }
             }
         }
@@ -966,8 +981,15 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
     this.toJSON = function() {
         const json = RG.World.Base.prototype.toJSON.call(this);
         const tilesJSON = [];
-        this._tiles.forEach(tileCol => {
-            const tileColJSON = tileCol.map(tile => tile.toJSON());
+        this._tiles.forEach((tileCol, x) => {
+            const tileColJSON = tileCol.map((tile, y) => {
+                if (this.tilesLoaded[x][y]) {
+                    return tile.toJSON();
+                }
+                else {
+                    return tile;
+                }
+            });
             tilesJSON.push(tileColJSON);
         });
 
@@ -976,10 +998,18 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
             maxX: this._sizeX, maxY: this._sizeY,
             cols: this._cols, rows: this._rows,
             tiles: tilesJSON,
-
+            tilesLoaded: this.tilesLoaded,
             zonesCreated: this.zonesCreated
         };
         return Object.assign(obj, json);
+    };
+
+    this.createAreaConfig = () => {
+        return {
+            name: this.getName(),
+            maxX: this._sizeX,
+            maxY: this._sizeY
+        };
     };
 
 };
@@ -1011,6 +1041,7 @@ RG.World.Mountain = function(name) {
 Summit is top-down view, while face is more of climbing,
 from-the-side view. Bit weird but should be fine.
 
+Not implemented yet.
 */
 
     this.findLevel = (name, nLevel) => {
@@ -1363,7 +1394,19 @@ RG.World.Top = function(name) {
             area,
             createAllZones
         };
+        if (!obj.conf.area) {
+            obj.conf.area = this.createAreaConfig();
+        }
         return Object.assign(obj, json);
+    };
+
+    /* Creates config for each area. This is mainly required for testing. */
+    this.createAreaConfig = () => {
+        const areaConf = [];
+        _areas.forEach(area => {
+            areaConf.push(area.createAreaConfig());
+        });
+        return areaConf;
     };
 };
 RG.extend2(RG.World.Top, RG.World.Base);
