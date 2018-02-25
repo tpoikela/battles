@@ -153,14 +153,14 @@ class RGElementStairs extends Mixin.Locatable(RGElementBase) {
 
     /* Connects to stairs together. Creates multiple connections if given array
      * of stairs. */
-    connect(stairs) {
+    connect(stairs, index = 0) {
         if (Array.isArray(stairs)) {
             stairs.forEach(ss => {
                 ss.setTargetStairs(this);
                 ss.setTargetLevel(this.getSrcLevel());
             });
-            this.setTargetStairs(stairs[0]);
-            this.setTargetLevel(stairs[0].getSrcLevel());
+            this.setTargetStairs(stairs[index]);
+            this.setTargetLevel(stairs[index].getSrcLevel());
         }
         else {
             this.setTargetStairs(stairs);
@@ -172,7 +172,7 @@ class RGElementStairs extends Mixin.Locatable(RGElementBase) {
 
     isDown() {return (/stairsDown/).test(this.getName());}
 
-    /* Target actor uses the stairs.*/
+    /* Target actor uses the stairs to move to their target.*/
     useStairs(actor) {
         if (!RG.isNullOrUndef([this._targetStairs, this._targetLevel])) {
             const newX = this._targetStairs.getX();
@@ -192,6 +192,24 @@ class RGElementStairs extends Mixin.Locatable(RGElementBase) {
         return false;
     }
 
+    /* Sets target level/stairs using a connection object. This is useful when
+     * target is known but does not exist (due to target level not being
+     * loaded).*/
+    setConnObj(connObj) {
+        this._targetStairs = connObj.targetStairs;
+        this._targetLevel = connObj.targetLevel;
+    }
+
+    getConnObj() {
+        return {
+            targetStairs: {
+                x: this.getTargetStairs().getX(),
+                y: this.getTargetStairs().getY()
+            },
+            targetLevel: this.getTargetLevel().getID()
+        };
+    }
+
     /* Serializes the Stairs object. */
     toJSON() {
         const json = {
@@ -201,14 +219,24 @@ class RGElementStairs extends Mixin.Locatable(RGElementBase) {
         if (this._srcLevel) {
             json.srcLevel = this.getSrcLevel().getID();
         }
-        if (this._targetLevel) {
+
+        if (Number.isInteger(this._targetLevel)) {
+            json.targetLevel = this._targetLevel;
+        }
+        else if (this._targetLevel) {
             json.targetLevel = this.getTargetLevel().getID();
         }
+
         if (this._targetStairs) {
-            json.targetStairs = {
-                x: this.getTargetStairs().getX(),
-                y: this.getTargetStairs().getY()
-            };
+            if (this._targetStairs.getX) {
+                json.targetStairs = {
+                    x: this.getTargetStairs().getX(),
+                    y: this.getTargetStairs().getY()
+                };
+            }
+            else {
+                json.targetStairs = this._targetStairs;
+            }
         }
         return json;
     }
