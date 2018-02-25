@@ -252,8 +252,10 @@ RG.Game.Main = function() {
                 }
                 this._places[name] = place;
 
-                const area = this.getCurrentWorld().getCurrentArea();
-                this._chunkManager = new ChunkManager(this, area);
+                if (this.getArea(0)) {
+                    const area = this.getCurrentWorld().getCurrentArea();
+                    this._chunkManager = new ChunkManager(this, area);
+                }
             }
             else {
                 RG.err('Game.Main', 'addPlace',
