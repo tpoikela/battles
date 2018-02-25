@@ -23,6 +23,7 @@ describe('ChunkManager', () => {
         player.setIsPlayer(true);
         world.addArea(area);
         game.addPlace(world);
+        game.setEnableChunkUnload(true);
     });
 
     it('stores the state of world area/chunks ', () => {
@@ -107,7 +108,7 @@ describe('ChunkManager', () => {
         });
     });
 
-    it('prevents loading of the full world after restore', () => {
+    it.skip('prevents loading of the full world after restore', () => {
         game.addPlayer(player);
         const manager = game.getChunkManager();
         expect(manager).to.exist;
@@ -121,11 +122,14 @@ describe('ChunkManager', () => {
         const json = game.toJSON();
 
         const fromJSON = new RG.Game.FromJSON();
+        console.log('Creating new game now');
         const newGame = fromJSON.createGame(json);
         expect(newGame).to.exist;
 
         const newManager = newGame.getChunkManager();
         const newNumLoaded = newManager.getNumInState(LOAD.LOADED);
+        const newLevels = newGame.getLevels();
+        expect(newLevels).to.have.length(9);
         expect(newNumLoaded).to.equal(9);
 
     });
