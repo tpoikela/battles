@@ -345,6 +345,7 @@ RG.Game.Main = function() {
                         [oldX, oldY] = area.findTileXYById(args.src.getID());
                     }
                     if (this._enableChunkUnload) {
+                        console.log(`TILE CHANGED ${oldX},${oldY}->${x},${y}`);
                         this._chunkManager.setPlayerTile(x, y, oldX, oldY);
                     }
 
