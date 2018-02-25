@@ -314,9 +314,9 @@ RG.Factory.Game = function() {
         worldArea.connectTiles();
 
         const fact = new RG.Factory.World();
-        fact.setPresetLevels({Realm: splitLevels});
         fact.setGlobalConf(obj);
         game.setGlobalConf(obj);
+        fact.setPresetLevels({Realm: splitLevels});
 
         const worldConf = worldAndConf[1];
         worldConf.createAllZones = false;
