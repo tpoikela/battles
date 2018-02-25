@@ -21,6 +21,8 @@ RG.Factory = {};
 
 const ZONE_TYPES = ['City', 'Mountain', 'Dungeon', 'BattleZone'];
 
+const LEVEL_NOT_LOADED = 'LEVEL_NOT_LOADED';
+
 /* Returns a basic configuration for a city level. */
 RG.Factory.cityConfBase = conf => {
     const userConf = conf || {};
@@ -1111,7 +1113,7 @@ RG.Factory.World = function() {
         }
         if (conf.hasOwnProperty('createAllZones')) {
             this.createAllZones = conf.createAllZones;
-            debug('createAllZones set to ' + this.createAllZones);
+            this.debug('createAllZones set to ' + this.createAllZones);
         }
         this.pushScope(conf);
         const world = new RG.World.Top(conf.name);
@@ -1191,7 +1193,7 @@ RG.Factory.World = function() {
             area.markAllZonesCreated();
         }
         else {
-            debug('Skipping the zone creating due to createZones=false');
+            this.debug('Skipping the zone creating due to createZones=false');
         }
         this.popScope(conf);
         return area;
@@ -1202,7 +1204,7 @@ RG.Factory.World = function() {
             const [xStr, yStr] = xy.split(',');
             const [x, y] = [parseInt(xStr, 10), parseInt(yStr, 10)];
             if (areaConf.zonesCreated[xy]) {
-                debug(`\tRestoring created zones for tile ${x},${y}`);
+                this.debug(`\tRestoring created zones for tile ${x},${y}`);
                 this.createZonesForTile(world, area, x, y);
             }
         });
@@ -1212,7 +1214,7 @@ RG.Factory.World = function() {
     this.createZonesForTile = function(world, area, x, y) {
         // Setup the scope & conf stacks
         if (!area.tileHasZonesCreated(x, y)) {
-            debug(`Creating Area ${x},${y} zones`);
+            this.debug(`Creating Area ${x},${y} zones`);
             const worldConf = world.getConf();
             this.pushScope(worldConf);
             const areaConf = area.getConf();
@@ -1226,12 +1228,12 @@ RG.Factory.World = function() {
             this.popScope(worldConf);
         }
         else {
-            debug(`Area ${x},${y} zones already created`);
+            this.debug(`Area ${x},${y} zones already created`);
         }
     };
 
     this._createAllZones = function(area, conf, tx = -1, ty = -1) {
-        debug(`Factory _createAllZones ${tx}, ${ty}`);
+        this.debug(`_createAllZones ${tx}, ${ty}`);
         if (!conf.tiles) {
             this.createZonesFromArea(area, conf, tx, ty);
         }
@@ -1252,7 +1254,7 @@ RG.Factory.World = function() {
             if (Array.isArray(conf[typeLc])) {
                 nZones = conf[typeLc].length;
             }
-            debug(`\tnZones (${type}) is now ${nZones}`);
+            this.debug(`\tnZones (${type}) is now ${nZones}`);
             for (let i = 0; i < nZones; i++) {
                 const zoneConf = conf[typeLc][i];
                 const createFunc = 'create' + type;
@@ -1283,7 +1285,7 @@ RG.Factory.World = function() {
             if (Array.isArray(areaTileConf[typeLc])) {
                 nZones = areaTileConf[typeLc].length;
             }
-            debug(`\tnZones (${type}) is now ${nZones}`);
+           this.debug(`\tnZones (${type}) is now ${nZones}`);
             for (let i = 0; i < nZones; i++) {
                 const zoneConf = areaTileConf[typeLc][i];
                 const createFunc = 'create' + type;
@@ -1310,9 +1312,9 @@ RG.Factory.World = function() {
     this.getAreaLevels = function(conf) {
         const levels = [];
         if (conf.tiles) {
-            conf.tiles.forEach(tileCol => {
+            conf.tiles.forEach((tileCol, x) => {
                 const levelCol = [];
-                tileCol.forEach(tile => {
+                tileCol.forEach((tile, y) => {
                     const level = this.id2level[tile.level];
                     if (level) {
                         levelCol.push(level);
@@ -1484,25 +1486,25 @@ RG.Factory.World = function() {
                 _errorOnFunc(constraint.actor);
                 levelConf.actor = constrFact.getConstraints(constraint.actor);
                 const str = constraint.actor.toString();
-                debug(`Found actor constraint for ${hierName}: ${str}`);
+                this.debug(`Found actor constraint for ${hierName}: ${str}`);
             }
             if (constraint.item) {
                 _errorOnFunc(constraint.item);
                 levelConf.item = constrFact.getConstraints(constraint.item);
                 const str = constraint.item.toString();
-                debug(`Found item constraint for ${hierName}: ${str}`);
+                this.debug(`Found item constraint for ${hierName}: ${str}`);
             }
             if (constraint.food) {
                 _errorOnFunc(constraint.food);
                 levelConf.food = constrFact.getConstraints(constraint.food);
                 const str = constraint.food.toString();
-                debug(`Found food constraint for ${hierName}: ${str}`);
+                this.debug(`Found food constraint for ${hierName}: ${str}`);
             }
             if (constraint.gold) {
                 _errorOnFunc(constraint.gold);
                 levelConf.gold = constrFact.getConstraints(constraint.gold);
                 const str = constraint.gold.toString();
-                debug(`Found gold constraint for ${hierName}: ${str}`);
+                this.debug(`Found gold constraint for ${hierName}: ${str}`);
             }
             if (constraint.shop) {
                 const shopFunc = [];
@@ -1511,7 +1513,7 @@ RG.Factory.World = function() {
                 });
                 levelConf.shopFunc = shopFunc;
                 const str = JSON.stringify(constraint.shop);
-                debug(`Found shop constraint for ${hierName}: ${str}`);
+                this.debug(`Found shop constraint for ${hierName}: ${str}`);
             }
         }
 
@@ -1802,10 +1804,13 @@ RG.Factory.World = function() {
                     RG.err('Factory', 'createCityQuarter',
                         'Stub found but cannot create level');
                 }
-               debug('Creating level from stub ' + JSON.stringify(level.stub));
+                if (debug.enabled) {
+                    this.debug('Creating level from stub ' +
+                        JSON.stringify(level.stub));
+                }
             }
             else {
-                debug(`cityQuarter ${hierName} ${i} from preset level`);
+                this.debug(`cityQuarter ${hierName} ${i} from preset level`);
             }
 
             // Need to add the shops to the quarter
@@ -2085,7 +2090,8 @@ RG.Factory.World = function() {
 
     this.debug = msg => {
         if (debug.enabled) {
-            const scope = this.getHierName();
+            let scope = this.getHierName();
+            if (!scope) {scope = 'EMPTY';}
             debug(`|${scope}| ${msg}`);
         }
     };
