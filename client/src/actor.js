@@ -294,6 +294,13 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
         return this.getLevel().getMap().getCell(x, y);
     }
 
+    isInLevel(level) {
+        if (this.getLevel()) {
+            return this.getLevel().getID() === level.getID();
+        }
+        return false;
+    }
+
     toJSON() {
         let levelID = null;
         if (this.getLevel()) {
