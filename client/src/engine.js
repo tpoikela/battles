@@ -16,8 +16,8 @@ const Engine = function(eventPool) {
     this.animation = null;
     this.animationCallback = null;
 
-    const _levelMap = {}; // All levels, ID -> level
-    const _activeLevels = []; // Only these levels are simulated
+    this._levelMap = {}; // All levels, ID -> level
+    this._activeLevels = []; // Only these levels are simulated
     const _scheduler = new RG.Time.Scheduler();
     const _msg = new RG.MessageHandler();
     const _eventPool = eventPool;
@@ -230,17 +230,17 @@ const Engine = function(eventPool) {
     // MANAGING ACTIVE LEVELS
     //--------------------------------------------------------------
 
-    this.numActiveLevels = () => _activeLevels.length;
+    this.numActiveLevels = () => this._activeLevels.length;
 
-    this.hasLevel = level => _levelMap.hasOwnProperty(level.getID());
+    this.hasLevel = level => this._levelMap.hasOwnProperty(level.getID());
 
-    this.getLevels = () => Object.values(_levelMap);
+    this.getLevels = () => Object.values(this._levelMap);
 
     /* Adds one level to the game database.*/
     this.addLevel = level => {
         const id = level.getID();
-        if (!_levelMap.hasOwnProperty(id)) {
-            _levelMap[level.getID()] = level;
+        if (!this._levelMap.hasOwnProperty(id)) {
+            this._levelMap[level.getID()] = level;
         }
         else {
             RG.err('Game.Engine', 'addLevel',
@@ -251,11 +251,11 @@ const Engine = function(eventPool) {
     this.removeLevels = levels => {
         levels.forEach(level => {
             const id = level.getID();
-            if (_levelMap.hasOwnProperty(id)) {
-                delete _levelMap[id];
-                const index = _activeLevels.indexOf(id);
+            if (this._levelMap.hasOwnProperty(id)) {
+                delete this._levelMap[id];
+                const index = this._activeLevels.indexOf(id);
                 if (index >= 0) {
-                    _activeLevels.splice(index, 1);
+                    this._activeLevels.splice(index, 1);
                 }
             }
             else {
@@ -268,13 +268,13 @@ const Engine = function(eventPool) {
     /* Adds an active level. Only these levels are simulated.*/
     this.addActiveLevel = function(level) {
         const levelID = level.getID();
-        const index = _activeLevels.indexOf(levelID);
+        const index = this._activeLevels.indexOf(levelID);
 
         // Check if a level must be removed
-        if (_activeLevels.length === (RG.MAX_ACTIVE_LEVELS)) {
+        if (this._activeLevels.length === (RG.MAX_ACTIVE_LEVELS)) {
             if (index === -1) { // No room for new level, pop one
-                const removedLevelID = _activeLevels.pop();
-                const removedLevel = _levelMap[removedLevelID];
+                const removedLevelID = this._activeLevels.pop();
+                const removedLevel = this._levelMap[removedLevelID];
                 if (removedLevel) {
                     const rmvActors = removedLevel.getActors();
                     for (let i = 0; i < rmvActors.length; i++) {
@@ -283,22 +283,22 @@ const Engine = function(eventPool) {
                     RG.debug(this, 'Removed active level to make space...');
                 }
                 else {
-                    const levelIDs = Object.keys(_levelMap).join(', ');
+                    const levelIDs = Object.keys(this._levelMap).join(', ');
                     RG.err('Game.Engine', 'addActiveLevel',
                         `Failed to remove level ID ${removedLevelID}.
                         IDs: ${levelIDs}`);
                 }
             }
             else { // Level already in actives, move to the front only
-                _activeLevels.splice(index, 1);
-                _activeLevels.unshift(levelID);
+                this._activeLevels.splice(index, 1);
+                this._activeLevels.unshift(levelID);
                 RG.debug(this, 'Moved level to the front of active levels.');
             }
         }
 
         // This is a new level, enable all actors by enabling Action comp
         if (index === -1) {
-            _activeLevels.unshift(levelID);
+            this._activeLevels.unshift(levelID);
             const actActors = level.getActors();
             for (let j = 0; j < actActors.length; j++) {
                 actActors[j].get('Action').enable();
@@ -309,7 +309,7 @@ const Engine = function(eventPool) {
     this.isGameOver = () => false;
 
     this.isActiveLevel = level => {
-        const index = _activeLevels.indexOf(level.getID());
+        const index = this._activeLevels.indexOf(level.getID());
         return index >= 0;
     };
 
