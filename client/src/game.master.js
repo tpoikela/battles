@@ -62,10 +62,12 @@ const GameMaster = function(game) {
             let armySize = 20;
             const battleConf = {};
             let levelType = 'forest';
+
             if (ow) {
                 const world = this.game.getCurrentWorld();
                 const area = world.getAreas()[0];
                 const xy = area.findTileXYById(parentId);
+
                 // TODO use actual starting position
                 const startX = 2;
                 const startY = area.getSizeY() - 1;
@@ -80,6 +82,7 @@ const GameMaster = function(game) {
                 const owPos = this.game.getPlayerOwPos();
                 const biome = ow.getBiome(owPos[0], owPos[1]);
                 levelType = this.biomeToLevelType(biome);
+                console.log('Creating battle on tile ' + xy);
             }
             battleConf.maxDanger = maxDanger;
             battleConf.armySize = armySize;
@@ -235,7 +238,7 @@ const GameMaster = function(game) {
         armies.forEach(army => {
             const actors = army.getActors();
             actors.forEach(actor => {
-                if (!actor.isPlayer() && actor.has('InBattle')) {
+                if (!actor.isPlayer()) {
                     if (level.removeActor(actor)) {
                         debug(`Rm actor ${actor.getID()},${actor.getName()}`);
                         targetLevel.addActorToFreeCell(actor);
