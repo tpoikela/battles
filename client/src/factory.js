@@ -1083,17 +1083,9 @@ RG.Factory.World = function() {
     this.createAllZones = true;
     this.worldElemByID = {}; // Stores world elements by ID
 
-    // Used for generating levels, if more specific settings not given
-    this.globalConf = {
-        dungeonX: RG.LEVEL_MEDIUM_X,
-        dungeonY: RG.LEVEL_MEDIUM_Y
-    };
-
     this.presetLevels = {};
 
     this._conf = new ConfStack();
-    // this.scope = []; // Keeps track of hierarchical names of places
-    // this.confStack = [];
 
     // Can be used to pass already created levels to different zones. For
     // example, after restore game, no new levels should be created
@@ -1120,28 +1112,16 @@ RG.Factory.World = function() {
     * queried with getConf(). */
     this.pushScope = function(conf) {
         this._conf.pushScope(conf);
-        /* this.scope.push(conf.name);
-        this.confStack.push(conf);*/
     };
 
     /* Removes given config and the name it contains from stacks. Reports an
     * error if removed name does not match the name in conf. */
     this.popScope = function(conf) {
         this._conf.popScope(conf);
-        /* const name = conf.name;
-        const poppedName = this.scope.pop();
-        if (poppedName !== name) {
-            RG.err('Factory.World', 'popScope',
-                `Popped: ${poppedName}, Expected: ${name}`);
-        }
-        else {
-            const currConf = this.confStack.pop();
-            this.debug('Popped scope: ' + currConf.name);
-        }*/
     };
 
     /* Initializes the global configuration such as level size. */
-    this.setGlobalConf = function(conf) {
+    this.setGlobalConf = function(conf = {}) {
         const levelSize = conf.levelSize || 'Medium';
         const sqrPerActor = conf.sqrPerActor || RG.ACTOR_MEDIUM_SQR;
         const globalConf = {};
@@ -1161,20 +1141,7 @@ RG.Factory.World = function() {
 
     /* Returns a config value. */
     this.getConf = function(keys) {
-        // First travel the config stack from the top
         return this._conf.getConf(keys);
-        /* for (let i = this.confStack.length - 1; i >= 0; i--) {
-            if (this.confStack[i].hasOwnProperty(keys)) {
-                return this.confStack[i][keys];
-            }
-        }
-
-        // If nothing found, try the global configuration
-        if (this.globalConf.hasOwnProperty(keys)) {
-            return this.globalConf[keys];
-        }
-
-        return null;*/
     };
 
     /* Returns the full hierarchical name of the zone. */
@@ -1219,9 +1186,11 @@ RG.Factory.World = function() {
         let areaLevels = null;
         let needsConnect = false;
         if (this.id2levelSet) {
+            console.log('TOOK THIS BRANCH XXX');
             areaLevels = this.getAreaLevels(conf);
         }
         else {
+            console.log('WENT HERE XXX');
             areaLevels = this.getPresetLevels(hierName);
             if (areaLevels.length === 0) {
                 areaLevels = null;
