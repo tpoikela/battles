@@ -639,12 +639,14 @@ RG.Game.FromJSON = function() {
         const battles = {};
         Object.keys(json.battles).forEach(id => {
             if (id2level[id]) {
+                console.log(`FromJSON Restoring Battle ${id}`);
                 const battle = this.restoreBattle(json.battles[id]);
                 battles[id] = battle;
                 game.addLevel(battle.getLevel());
             }
             else {
                 console.log(`FromJSON Battle ${id} not created`);
+                console.log(json.battles[id]);
                 battles[id] = json.battles[id];
             }
         });
@@ -817,8 +819,20 @@ RG.Game.FromJSON = function() {
             area.getTiles()[tx][ty] = tile;
             tileLevel.setParent(area);
             fact.createZonesFromTile(area, jsonCopy, tx, ty);
+            this.restoreSerializedBattles(game, tile);
         });
 
+        // Need to check for battles that should be restored
+
+    };
+
+    this.restoreSerializedBattles = (game, tile) => {
+        const id = tile.getLevel().getID();
+        const master = game.getGameMaster();
+        if (master.battles[id]) {
+            const battle = this.restoreBattle(master.battles[id]);
+            master.battles[id] = battle;
+        }
     };
 
     this.addLevels = levels => {
@@ -887,29 +901,6 @@ RG.Game.FromJSON = function() {
         }
     };
 
-    // decorateObjThisFuncs(this);
 };
-
-/*
-function decorateObjThisFuncs(obj) {
-    if (debug.enabled) {
-      for (const prop in obj) {
-        if (obj.hasOwnProperty(prop)) {
-          if (typeof obj[prop] === 'function' && prop !== 'dbg') {
-            const func = () => {
-              ++IND;
-              console.log('IND is now ' + IND);
-              const result = obj[prop].apply(obj, arguments);
-              --IND;
-              console.log('IND is now ' + IND);
-              return result;
-            };
-            obj[prop] = func;
-          }
-        }
-      }
-    }
-}
-*/
 
 module.exports = RG.Game.FromJSON;
