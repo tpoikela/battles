@@ -12,6 +12,7 @@ export default class WorldFromJSON {
         this._verif = new RG.Verify.Conf('WorldFromJSON');
         this.worldElemByID = {}; // Stores world elements by ID
         this.createAllZones = true;
+        this._IND = 0; // Used for indenting debug messages
     }
 
     createWorld(placeJSON) {
@@ -60,11 +61,13 @@ export default class WorldFromJSON {
     pushScope(json) {
         this._conf.pushScope(json);
         this.fact.pushScope(json);
+        ++this.IND;
     }
 
     popScope(json) {
         this._conf.popScope(json);
         this.fact.popScope(json);
+        --this.IND;
     }
 
     getHierName() {return this._conf.getScope().join('.');}
@@ -84,18 +87,18 @@ export default class WorldFromJSON {
         const world = new RG.World.Top(worldJSON.name);
         world.setConf(worldJSON);
         for (let i = 0; i < worldJSON.nAreas; i++) {
-            const areaConf = worldJSON.area[i];
+            const areaJSON = worldJSON.area[i];
+            this.printKeys('areaJSON keys', areaJSON);
+            const area = this.createArea(areaJSON);
 
-            // Factory.World START
-            const area = this.fact.createArea(areaConf);
-
-            if (areaConf.zonesCreated) { // Only during restore game
-                this.fact.restoreCreatedZones(world, area, areaConf);
+            // >>>>>>>>>>>>>>>>>>>>>> Factory.World START
+            if (areaJSON.zonesCreated) { // Only during restore game
+                this.fact.restoreCreatedZones(world, area, areaJSON);
             }
-            // Factory.World END
+            // >>>>>>>>>>>>>>>>>>>>>> Factory.World END
 
             world.addArea(area);
-            this.addWorldID(areaConf, area);
+            this.addWorldID(areaJSON, area);
         }
         this.popScope(worldJSON);
         this.addWorldID(worldJSON, world);
@@ -103,33 +106,67 @@ export default class WorldFromJSON {
     }
 
     /* Creates an area which can be added to a world. */
-    createArea(conf) {
-        this.verify('createArea', conf,
+    createArea(areaJSON) {
+        this.verify('createArea', areaJSON,
             ['name', 'maxX', 'maxY']);
-        this.pushScope(conf);
+        this.pushScope(areaJSON);
 
-        // >>>>>>>>>>>>>>>>>> Factory.World START
-        let areaLevels = null;
-        if (this.id2levelSet) {
-            areaLevels = this.fact.getAreaLevels(conf);
-        }
+        const areaLevels = this.getAreaLevels(areaJSON);
 
-        const area = new RG.World.Area(conf.name, conf.maxX, conf.maxY,
-            conf.cols, conf.rows, areaLevels);
-        area.setConf(conf);
+        const {name, maxX, maxY, cols, rows} = areaJSON;
+        const area = new RG.World.Area(name, maxX, maxY, cols, rows,
+            areaLevels);
+        area.setConf(areaJSON);
         area.setHierName(this.getHierName());
 
         // When player enters a given area tile, create zones for that tile
         if (this.createAllZones) {
-            this.fact._createAllZones(area, conf);
+        // >>>>>>>>>>>>>>>>>> Factory.World START
+            this.fact._createAllZones(area, areaJSON);
         // >>>>>>>>>>>>>>>>>> Factory.World END
             area.markAllZonesCreated();
         }
         else {
             this.dbg('Skipping the zone creating due to createZones=false');
         }
-        this.popScope(conf);
+        this.popScope(areaJSON);
         return area;
+    }
+
+    /* Used when creating area from existing levels. Uses id2level lookup table
+     * to construct 2-d array of levels.*/
+    getAreaLevels(areaJSON) {
+        this.verify('getAreaLevels', areaJSON, ['tilesLoaded']);
+        ++this._IND;
+        const levels = [];
+        if (areaJSON.tiles) {
+            areaJSON.tiles.forEach((tileCol, x) => {
+                const levelCol = [];
+                tileCol.forEach((tile, y) => {
+                    if (areaJSON.tilesLoaded[x][y]) {
+                        this.dbg(`Tile ${x},${y} is loaded`);
+                        const level = this.id2level[tile.level];
+                        if (level) {
+                            levelCol.push(level);
+                        }
+                        else {
+                            RG.err('WorldFromJSON', 'getAreaLevels',
+                                `No level ID ${tile.level} in id2level`);
+                        }
+                    }
+                    else {
+                        this.dbg(`Will NOT load Tile ${x},${y}`);
+                    }
+                });
+                levels.push(levelCol);
+            });
+        }
+        else {
+            RG.err('WorldFromJSON', 'getAreaLevels',
+                'areaJSON.tiles cannot be null/undefined');
+        }
+        --this._IND;
+        return levels;
     }
 
     /* Adds a world ID to given world element. */
@@ -142,13 +179,19 @@ export default class WorldFromJSON {
 
     dbg(msg) {
         if (debug.enabled) {
-            console.log(msg);
+            const ind = ' '.repeat(this._IND);
+            console.log(ind + msg);
         }
     }
 
     /* Verifies that given config is OK. */
     verify(funcName, conf, list) {
         this._verif.verifyConf(funcName, conf, list);
+    }
+
+    printKeys(msg, obj) {
+        console.log(msg);
+        console.log(Object.keys(obj));
     }
 
 }
