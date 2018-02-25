@@ -1,4 +1,6 @@
 
+import WorldFromJSON from './world.fromjson';
+
 const RG = require('./rg');
 RG.Game = require('./game');
 const OW = require('./overworld.map');
@@ -678,18 +680,9 @@ RG.Game.FromJSON = function() {
     };
 
     /* Assume the place is World object for now. */
-    this.restorePlace = (place) => {
-        const fact = new RG.Factory.World();
-        fact.setId2Level(id2level);
-        let world = null;
-        if (place.conf) {
-            this.dbg('Creating a restored world now');
-            world = fact.createRestoredWorld(place);
-        }
-        else {
-            world = fact.createWorld(place);
-        }
-        return world;
+    this.restorePlace = place => {
+        const worldJSON = new WorldFromJSON(id2level);
+        return worldJSON.createWorld(place);
     };
 
     this.restoreOverWorld = json => {
@@ -750,16 +743,18 @@ RG.Game.FromJSON = function() {
         }
     };
 
-    this.getLevelsToRestore = json => {
+    this.getLevelsToRestore = gameJSON => {
         let levels = [];
-        if (json.levels) {return json.levels;}
-        Object.keys(json.places).forEach(name => {
-            const place = json.places[name];
+        if (gameJSON.levels) {return gameJSON.levels;}
+        Object.keys(gameJSON.places).forEach(name => {
+            const place = gameJSON.places[name];
             if (place.area) {
                 place.area.forEach(area => {
-                    area.tiles.forEach(tileCol => {
-                        tileCol.forEach(tile => {
-                            levels = levels.concat(tile.levels);
+                    area.tiles.forEach((tileCol, x) => {
+                        tileCol.forEach((tile, y) => {
+                            if (area.tilesLoaded[x][y]) {
+                                levels = levels.concat(tile.levels);
+                            }
                         });
                     });
                 });
