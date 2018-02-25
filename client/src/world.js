@@ -7,6 +7,15 @@ const oppositeEdge = {
     north: 'south', south: 'north', east: 'west', west: 'east'
 };
 
+function removeExistingConnection(level, x, y) {
+    const cell = level.getMap().getCell(x, y);
+    if (cell.hasConnection()) {
+        const conn = cell.getConnection();
+        console.log(`Removing conn@${x},${y}`);
+        level.removeElement(conn, x, y);
+    }
+}
+
 /* Adds exits (ie passages/stairs) to the given edge (or any edge) of the level.
  * Returns an array of created connections. */
 const addExitsToEdge = (
@@ -19,6 +28,7 @@ const addExitsToEdge = (
         if (edge === 'any' || edge === 'west') {
             if (map.isPassable(0, row) || overwrite) {
                 const exitWest = new RG.Element.Stairs(exitType, level);
+                removeExistingConnection(level, 0, row);
                 if (!overwrite) {level.addElement(exitWest, 0, row);}
                 else {level.addStairs(exitWest, 0, row);}
                 exitsAdded.push(exitWest);
@@ -27,6 +37,7 @@ const addExitsToEdge = (
         if (edge === 'any' || edge === 'east') {
             if (map.isPassable(cols - 1, row) || overwrite) {
                 const exitEast = new RG.Element.Stairs(exitType, level);
+                removeExistingConnection(level, cols - 1, row);
                 if (!overwrite) {level.addElement(exitEast, cols - 1, row);}
                 else {level.addStairs(exitEast, cols - 1, row);}
                 exitsAdded.push(exitEast);
@@ -37,6 +48,7 @@ const addExitsToEdge = (
         if (edge === 'any' || edge === 'north') {
             if (map.isPassable(col, 0) || overwrite) {
                 const exitNorth = new RG.Element.Stairs(exitType, level);
+                removeExistingConnection(level, col, 0);
                 if (!overwrite) {level.addElement(exitNorth, col, 0);}
                 else {level.addStairs(exitNorth, col, 0);}
                 exitsAdded.push(exitNorth);
@@ -45,6 +57,7 @@ const addExitsToEdge = (
         if (edge === 'any' || edge === 'south') {
             if (map.isPassable(col, rows - 1) || overwrite) {
                 const exitSouth = new RG.Element.Stairs(exitType, level);
+                removeExistingConnection(level, col, rows - 1);
                 if (!overwrite) {level.addElement(exitSouth, col, rows - 1);}
                 else {level.addStairs(exitSouth, col, rows - 1);}
                 exitsAdded.push(exitSouth);
@@ -284,6 +297,7 @@ function getEntrance(levels, entrance) {
 function connectTiles(tiles, sizeX, sizeY) {
     for (let x = 0; x < sizeX; x++) {
         for (let y = 0; y < sizeY; y++) {
+            console.log(`Connecting tile ${x},${y} now`);
             if (x < sizeX - 1 && y < sizeY - 1) {
                 tiles[x][y].connect(
                     tiles[x + 1][y], tiles[x][y + 1]);
