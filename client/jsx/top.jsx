@@ -709,7 +709,7 @@ class BattlesTop extends Component {
                             <LevelSaveLoad
                                 objData={this.game}
                                 onLoadCallback={this.onLoadCallback}
-                                pretty={false}
+                                pretty={true}
                                 savedObjName={'saveGame_' + player.getName()}
                                 setMsg={msg => console.log(msg)}
                             />
