@@ -238,20 +238,23 @@ const GameMaster = function(game) {
         armies.forEach(army => {
             const actors = army.getActors();
             actors.forEach(actor => {
-                if (!actor.isPlayer()) {
-                    if (level.removeActor(actor)) {
-                        debug(`Rm actor ${actor.getID()},${actor.getName()}`);
-                        targetLevel.addActorToFreeCell(actor);
+                if (actor.isInLevel(level)) {
+
+                    if (!actor.isPlayer()) {
+                        if (level.removeActor(actor)) {
+                            targetLevel.addActorToFreeCell(actor);
+                        }
+                        else {
+                            const json = JSON.stringify(actor.toJSON());
+                            RG.err('Game.Master', 'moveActorsOutOfBattle',
+                                `level.removeActor failed for actor ${json}`);
+                        }
+
                     }
                     else {
-                        const json = JSON.stringify(actor.toJSON());
-                        RG.err('Game.Master', 'moveActorsOutOfBattle',
-                            `level.removeActor failed for actor ${json}`);
+                        const selObj = this.getSelLeaveBattle(actor, level);
+                        actor.getBrain().setSelectionObject(selObj);
                     }
-                }
-                else if (actor.has('InBattle')) {
-                    const selObj = this.getSelLeaveBattle(actor, level);
-                    actor.getBrain().setSelectionObject(selObj);
                 }
             });
         });
@@ -359,7 +362,16 @@ const GameMaster = function(game) {
         const keys = Object.keys(this.battles);
         const battles = {};
         keys.forEach(id => {
-            battles[id] = this.battles[id].toJSON();
+            if (typeof this.battles[id].toJSON === 'function') {
+                battles[id] = this.battles[id].toJSON();
+            }
+            else if (this.battles[id].name) {
+                battles[id] = this.battles[id];
+            }
+            else {
+                RG.err('GameMaster', 'toJSON',
+                    'Does not look like proper battle object.');
+            }
         });
         return {
             battles,
