@@ -37,7 +37,7 @@ describe('RG.Effects', () => {
         actor.get('Health').setHP(10);
         const hpBefore = actor.get('Health').getHP();
 
-        const cell = new RG.Map.Cell();
+        const cell = new RG.Map.Cell(0, 0, RG.ELEM.FLOOR);
         cell.setProp('actors', actor);
 
         potion.use({target: cell});
@@ -61,7 +61,7 @@ describe('RG.Effects', () => {
         const actor = new RG.Actor.Rogue('Healed one');
         actor.getInvEq().addItem(potion);
 
-        const cell = new RG.Map.Cell();
+        const cell = new RG.Map.Cell(0, 0, RG.ELEM.FLOOR);
         cell.setProp('actors', actor);
 
         expect(actor.has('Stun')).to.equal(false);
@@ -88,7 +88,7 @@ describe('RG.Effects', () => {
         const actor = new RG.Actor.Rogue('Ethereal one');
         actor.getInvEq().addItem(sword);
 
-        const cell = new RG.Map.Cell();
+        const cell = new RG.Map.Cell(0, 0, RG.ELEM.FLOOR);
         cell.setProp('actors', actor);
 
         expect(actor.has('Ethereal')).to.equal(false);

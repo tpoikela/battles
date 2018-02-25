@@ -452,6 +452,7 @@ describe('System.Shop', () => {
         actor = new RG.Actor.Rogue('buyer');
 
         shopCell = new RG.Map.Cell();
+        shopCell.setBaseElem(RG.ELEM.FLOOR);
         shopElem = new RG.Element.Shop();
         shopCell.setProp(RG.TYPE_ELEM, shopElem);
         RGTest.wrapIntoLevel([shopkeeper, actor]);
