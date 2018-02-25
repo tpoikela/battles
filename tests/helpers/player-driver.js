@@ -547,6 +547,7 @@ const PlayerDriver = function(player) {
         if (this.nTurns % this.screenPeriod === 0) {
             this.screen.render(pX, pY, map, visible);
             this.screen.printRenderedChars();
+            console.log('='.repeat(78) + '\n');
         }
 
     };
