@@ -591,7 +591,10 @@ RG.Game.FromJSON = function() {
             stairsList.forEach(s => {
                 const connObj = stairsInfo[s.getID()];
                 const targetLevel = id2level[connObj.targetLevel];
-                if (!targetLevel && this.chunkMode) {return;}
+                if (!targetLevel && this.chunkMode) {
+                    s.setConnObj(connObj);
+                    return;
+                }
 
                 const targetStairsXY = connObj.targetStairs;
                 if (!targetStairsXY) {
@@ -803,6 +806,16 @@ RG.Game.FromJSON = function() {
             tile.setLevel(tileLevel);
             game.addLevel(tileLevel);
 
+            if (tileLevel.getID() === 4) {
+                const conns0 = tileLevel.getConnections();
+                conns0.forEach(c => {
+                    const targetLevel = c.getTargetLevel();
+                    if (Number.isInteger(targetLevel)) {
+                        console.log(`Target ID ${targetLevel} found`);
+                    }
+                });
+            }
+
             const jsonCopy = JSON.parse(JSON.stringify(json));
             area.getTiles()[tx][ty] = tile;
             fact.createZonesFromTile(area, jsonCopy, tx, ty);
@@ -813,13 +826,59 @@ RG.Game.FromJSON = function() {
     this.addLevels = levels => {
         levels.forEach(level => {
             id2level[level.getID()] = level;
+            debug('FromJSON added level ' + level.getID());
+        });
+    };
 
-            // const conns = level.getConnections();
-            /* conns.forEach(conn => {
-                const connId = conn.getID();
-                // stairsInfo[connId] = {targetLevel: elemObj.targetLevel,
-                    // targetStairs: elemObj.targetStairs};
-            }); */
+    this.connectTileLevels = (levels, conns) => {
+        conns.forEach(conn => {
+            const stairsId = conn.getID();
+            const targetLevel = conn.getTargetLevel();
+            if (Number.isInteger(targetLevel)) {
+                console.log(`Target ID number ${targetLevel} found`);
+            }
+            else {
+                console.log(`Map.Level ${targetLevel.getID()} found`);
+            }
+            stairsInfo[stairsId] = {
+                targetLevel,
+                targetStairs: conn.getTargetStairs()
+            };
+        });
+        this.addLevels(levels);
+        this.connectConnections(conns);
+    };
+
+    this.connectConnections = conns => {
+        conns.forEach(s => {
+            console.log(`Looking for ${s.getID()}`);
+            console.log(`\tSource level ${s.getSrcLevel().getID()}`);
+            const connObj = stairsInfo[s.getID()];
+            const targetLevel = id2level[connObj.targetLevel];
+
+            if (!targetLevel) {
+                console.log(`ID could be ${connObj.targetLevel.getID()}`);
+            }
+
+            const targetStairsXY = connObj.targetStairs;
+            const {x, y} = targetStairsXY;
+            if (targetLevel) {
+                s.setTargetLevel(targetLevel);
+                const targetStairs = targetLevel
+                    .getMap().getCell(x, y).getConnection();
+                if (targetStairs) {
+                    s.connect(targetStairs);
+                }
+                else {
+                    RG.err('Game.FromJSON', 'connectConnections',
+                        'Target stairs was null. Cannot connect.');
+                }
+            }
+            else {
+                const id = connObj.targetLevel;
+                RG.err('Game.FromJSON', 'connectConnections',
+                    `Target level ${id} null. Cannot connect.`);
+            }
         });
     };
 
