@@ -844,7 +844,7 @@ RG.OverWorld.createWorldConf = (ow, subLevels, nTilesX, nTilesY) => {
                         const mountConf = RG.LevelGen.getMountainConf(mName);
                         Object.assign(mountConf,
                             {x: aX, y: aY, levelX: featX, levelY: featY});
-                        areaConf.nMountain += 1;
+                        areaConf.nMountains += 1;
                         areaConf.mountain.push(mountConf);
                     }
                     else if (feat.type === 'blacktower') {
