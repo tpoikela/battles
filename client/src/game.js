@@ -22,7 +22,7 @@ RG.Game.Main = function() {
     this._shownLevel = null; // One per game only
     let _gameOver = false;
 
-    this._chunkManager = ChunkManager;
+    this._chunkManager = null;
     this._eventPool = new RG.EventPool();
     RG.POOL = this._eventPool;
 
@@ -97,7 +97,16 @@ RG.Game.Main = function() {
         const player = this.getPlayer();
         const world = this.getCurrentWorld();
         const area = world.getAreas()[0];
-        const tile = area.getTileXY(tileX, tileY);
+
+        let tile = null;
+        if (this._chunkManager.isLoaded(tileX, tileY)) {
+            tile = area.getTileXY(tileX, tileY);
+        }
+        else {
+            this._chunkManager.setPlayerTile(tileX, tileY);
+            tile = area.getTileXY(tileX, tileY);
+        }
+
         const newLevel = tile.getLevel();
         const currLevel = player.getLevel();
 
@@ -109,6 +118,7 @@ RG.Game.Main = function() {
                         src: currLevel, actor: player});
                 RG.POOL.emitEvent(RG.EVT_LEVEL_ENTERED,
                     {actor: player, target: newLevel});
+
             }
             else if (newLevel.addActorToFreeCell(player)) {
                 RG.POOL.emitEvent(RG.EVT_LEVEL_CHANGED,
@@ -241,6 +251,9 @@ RG.Game.Main = function() {
                         `Place ${name} has no levels!`);
                 }
                 this._places[name] = place;
+
+                const area = this.getCurrentWorld().getCurrentArea();
+                this._chunkManager = new ChunkManager(this, area);
             }
             else {
                 RG.err('Game.Main', 'addPlace',
@@ -313,7 +326,7 @@ RG.Game.Main = function() {
                     if (args.src) {
                         [oldX, oldY] = area.findTileXYById(args.src.getID());
                     }
-                    // this._chunkManager.setPlayerTile(x, y, oldX, oldY);
+                    this._chunkManager.setPlayerTile(x, y, oldX, oldY);
 
                     fact.createZonesForTile(world, area, x, y);
                     const levels = world.getLevels();
@@ -352,6 +365,8 @@ RG.Game.Main = function() {
         battleZone.setTileXY(xy[0], xy[1]);
         area.addZone('BattleZone', battleZone);
     };
+
+    this.getChunkManager = () => this._chunkManager;
 
     this.getGameMaster = () => this._master;
     this.setGameMaster = master => {
