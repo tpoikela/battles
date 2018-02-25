@@ -22,6 +22,7 @@ RG.Game.Main = function() {
     this._shownLevel = null; // One per game only
     let _gameOver = false;
 
+    this._enableChunkUnload = false;
     this._chunkManager = null;
     this._eventPool = new RG.EventPool();
     RG.POOL = this._eventPool;
@@ -55,6 +56,14 @@ RG.Game.Main = function() {
 
     this.getLevels = () => this._engine.getLevels();
     this.getPlaces = () => this._places;
+
+    this.setEnableChunkUnload = (enable = true) => {
+        this._enableChunkUnload = enable;
+        if (enable && this.getArea(0)) {
+            const area = this.getArea(0);
+            this._chunkManager = new ChunkManager(this, area);
+        }
+    };
 
     /* Returns player(s) of the game.*/
     this.getPlayer = () => {
@@ -99,11 +108,16 @@ RG.Game.Main = function() {
         const area = world.getAreas()[0];
 
         let tile = null;
-        if (this._chunkManager.isLoaded(tileX, tileY)) {
-            tile = area.getTileXY(tileX, tileY);
+        if (this._enableChunkUnload) {
+            if (this._chunkManager.isLoaded(tileX, tileY)) {
+                tile = area.getTileXY(tileX, tileY);
+            }
+            else {
+                this._chunkManager.setPlayerTile(tileX, tileY);
+                tile = area.getTileXY(tileX, tileY);
+            }
         }
         else {
-            this._chunkManager.setPlayerTile(tileX, tileY);
             tile = area.getTileXY(tileX, tileY);
         }
 
@@ -254,7 +268,9 @@ RG.Game.Main = function() {
 
                 if (this.getArea(0)) {
                     const area = this.getCurrentWorld().getCurrentArea();
-                    this._chunkManager = new ChunkManager(this, area);
+                    if (this._enableChunkUnload && !this._chunkManager) {
+                        this._chunkManager = new ChunkManager(this, area);
+                    }
                 }
             }
             else {
@@ -328,7 +344,9 @@ RG.Game.Main = function() {
                     if (args.src) {
                         [oldX, oldY] = area.findTileXYById(args.src.getID());
                     }
-                    this._chunkManager.setPlayerTile(x, y, oldX, oldY);
+                    if (this._enableChunkUnload) {
+                        this._chunkManager.setPlayerTile(x, y, oldX, oldY);
+                    }
 
                     fact.createZonesForTile(world, area, x, y);
                     const levels = world.getLevels();
@@ -422,6 +440,9 @@ RG.Game.Main = function() {
         }
         if (this._overworld) {
             obj.overworld = this._overworld.toJSON();
+        }
+        if (this._chunkManager) {
+            obj.chunkManager = this._chunkManager.toJSON();
         }
 
         return obj;
