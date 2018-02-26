@@ -88,8 +88,8 @@ describe('RG.Factory.Game', () => {
             area: [
                 {
                     name: 'Ravendark',
-                    maxX: 1,
-                    maxY: 1,
+                    maxX: 2,
+                    maxY: 2,
                     cols: 70, rows: 30,
                     nDungeons: 1,
                     dungeon: [
@@ -108,7 +108,7 @@ describe('RG.Factory.Game', () => {
         expect(game).to.exist;
 
         const levels = game.getLevels();
-        expect(levels).to.have.length(4);
+        expect(levels).to.have.length(7);
 
         const presetLevel = game.getLevels().find(level => (
             level.getID() === temple.id
