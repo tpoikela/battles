@@ -1186,13 +1186,12 @@ RG.Factory.World = function() {
         let areaLevels = null;
         let needsConnect = false;
         if (this.id2levelSet) {
-            console.log('TOOK THIS BRANCH XXX');
+            console.log('Factory TOOK THIS BRANCH XXX');
             areaLevels = this.getAreaLevels(conf);
         }
         else {
-            console.log('WENT HERE XXX');
+            console.log('Factory WENT HERE XXX');
             areaLevels = this.getPresetLevels(hierName);
-            console.log(areaLevels);
             if (!areaLevels || areaLevels.length === 0) {
                 areaLevels = null;
                 console.log('Needs connect. No preset levels');
@@ -1204,7 +1203,7 @@ RG.Factory.World = function() {
             conf.cols, conf.rows, areaLevels);
         area.setConf(conf);
         if (needsConnect) {
-            area.connectTiles();
+            // area.connectTiles();
         }
         area.setHierName(this.getHierName());
 
