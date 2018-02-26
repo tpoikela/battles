@@ -175,7 +175,7 @@ describe('Factory.World', function() {
             name: 'ww',
             nAreas: 1,
             area: [
-                { name: 'a1', maxX: 1, maxY: 1, nCities: 1,
+                { name: 'a1', maxX: 2, maxY: 2, nCities: 1,
                     city: [
                         { x: 0, y: 0, levelX: 4, levelY: 7,
                             name: 'Ravendark', nQuarters: 1,
@@ -202,13 +202,18 @@ describe('Factory.World', function() {
         const area = world.getAreas()[0];
         expect(area.getParent().getName()).to.equal('ww');
         const areaLevel = area.getTileXY(0, 0).getLevel();
+        areaLevel.debugPrintInASCII();
 
-        const townConnect0 = areaLevel.getConnections()[0];
+        const areaConns = areaLevel.getConnections();
+        expect(areaConns.length).to.be.above(20);
+
+        const cityConns = areaConns.filter(c => c.getName() === 'town');
+        const townConnect0 = cityConns[0];
         expect(townConnect0.getX()).to.equal(4);
         expect(townConnect0.getY()).to.equal(7);
         expect(townConnect0.getName()).to.equal('town');
 
-        const townConnect1 = areaLevel.getConnections()[1];
+        const townConnect1 = cityConns[1];
         expect(townConnect1.getX()).to.equal(8);
         expect(townConnect1.getY()).to.equal(9);
         expect(townConnect1.getName()).to.equal('town');
