@@ -17,10 +17,14 @@ const cmdLineArgs = require('command-line-args');
 const optDefs = [
   {name: 'name', type: String,
       descr: 'Name of the character' },
-  {name: 'load', type: String,
-      descr: 'Loads the game'},
-  {name: 'nturns', type: Number,
-      descr: 'Number of turn to load'}
+  {name: 'load', type: Boolean,
+      descr: 'Load game from the file'},
+  {name: 'loadturn', type: Number,
+      descr: 'Number of turn to load (optional)'},
+  {name: 'maxturns', type: Number,
+      descr: 'Turns to simulate'},
+  {name: 'nosave', type: Boolean,
+    descr: 'Disables saving during the simulation'}
 ];
 let opts = cmdLineArgs(optDefs);
 opts = getDefaults(opts);
@@ -43,10 +47,10 @@ const gameFact = new RG.Factory.Game();
 let newGame = gameFact.createNewGame(conf);
 
 // To load previous stage quickly
-const loadGame = opts.load;
+const loadGame = opts.load ? true : false;
 const pName = opts.name;
-let loadTurn = opts.nturns ? opts.nturns : 0;
-const saveGameEnabled = true;
+let loadTurn = opts.loadturn ? opts.loadturn : 0;
+const saveGameEnabled = !opts.nosave;
 let driver = new PlayerDriver();
 const fname = `save_dumps/${pName}_temp_${loadTurn}.json`;
 // const fname = 'save_dumps/1519583443971_saveGame_Tunas.json';
@@ -85,7 +89,7 @@ const catcher = new RGTest.MsgCatcher();
 
 // Execute game in try-catch so we can dump save data on failure
 const mult = 2;
-const maxTurns = mult * 20000;
+const maxTurns = loadTurn + opts.maxturns;
 
 try {
     const startI = loadGame ? loadTurn : 0;
@@ -98,7 +102,7 @@ try {
 
         // Save the game between certain intervals
         if (saveGameEnabled) {
-            if (nTurn > startI && (nTurn % (mult * 2000) === 0)) {
+            if (nTurn > startI && (nTurn % (mult * 1000) === 0)) {
                 if (maxTurns >= 1000) { // Don't save for short games
                     [newGame, driver] = saveGameToFile(nTurn, newGame, driver);
                 }
@@ -146,6 +150,7 @@ console.log('===== End Game simulation =====');
 function getDefaults(opt) {
     const obj = Object.assign({}, opt);
     obj.name = obj.name || 'Xanthur';
+    obj.maxturns = obj.maxturns || 10000;
     return obj;
 }
 
