@@ -346,7 +346,7 @@ const PlayerDriver = function(player) {
             cell.hasPassage() && cell.getY() === 0
             && !this.passageVisited(cell)
         ));
-        this.debug('> N passageCells' + passageCells.length);
+        this.debug('> N passageCells ' + passageCells.length);
         this.tryToSetPathToCell(passageCells);
         if (this.state.path.length > 0) {
             this.setState({usePassage: true}, 'north passage');
