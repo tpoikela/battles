@@ -25,11 +25,10 @@ const optDefs = [
 let opts = cmdLineArgs(optDefs);
 opts = getDefaults(opts);
 
-let game = null;
-
 ROT.RNG.setSeed(0);
 RG.Rand = new RG.Random();
 RG.RAND.setSeed(0);
+
 const conf = {
     playMode: 'OverWorld',
     playerLevel: 'Medium',
@@ -39,18 +38,14 @@ const conf = {
     playerClass: 'Blademaster',
     playerRace: 'human'
 };
+
 const gameFact = new RG.Factory.Game();
-game = gameFact.createNewGame(conf);
-
-const nLevels = game.getLevels().length;
-console.log('Before save, game has ' + nLevels + ' levels');
-
-let newGame = game;
+let newGame = gameFact.createNewGame(conf);
 
 // To load previous stage quickly
 const loadGame = opts.load;
-const pName = 'Xanthur';
-let loadTurn = 2000;
+const pName = opts.name;
+let loadTurn = opts.nturns ? opts.nturns : 0;
 const saveGameEnabled = true;
 let driver = new PlayerDriver();
 const fname = `save_dumps/${pName}_temp_${loadTurn}.json`;
@@ -90,7 +85,7 @@ const catcher = new RGTest.MsgCatcher();
 
 // Execute game in try-catch so we can dump save data on failure
 const mult = 2;
-const maxTurns = mult * 10000;
+const maxTurns = mult * 20000;
 
 try {
     const startI = loadGame ? loadTurn : 0;
@@ -103,14 +98,13 @@ try {
 
         // Save the game between certain intervals
         if (saveGameEnabled) {
-            // console.log('saveGameEnabled. Checking turn number');
-            // console.log(nTurn % (mult * 1000));
             if (nTurn > startI && (nTurn % (mult * 2000) === 0)) {
                 if (maxTurns >= 1000) { // Don't save for short games
                     [newGame, driver] = saveGameToFile(nTurn, newGame, driver);
                 }
             }
         }
+
         newGame.update(driver.nextCmd());
         if (newGame.isGameOver()) {
             console.log('>>> GAME OVER <<<');
@@ -145,10 +139,14 @@ console.log('Final state saved to file ' + finalFname);
 catcher.hasNotify = false;
 console.log('===== End Game simulation =====');
 
+//---------------------------------------------------------------------------
+// END OF SCRIPT, HELPER FUNCTIONS
+//---------------------------------------------------------------------------
 
 function getDefaults(opt) {
     const obj = Object.assign({}, opt);
     obj.name = obj.name || 'Xanthur';
+    return obj;
 }
 
 // Saves the game, returns new game and driver objects
