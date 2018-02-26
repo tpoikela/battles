@@ -11,7 +11,7 @@ function removeExistingConnection(level, x, y) {
     const cell = level.getMap().getCell(x, y);
     if (cell.hasConnection()) {
         const conn = cell.getConnection();
-        console.log(`Removing conn@${x},${y}`);
+        console.log(`world.js Removing conn@${x},${y}`);
         level.removeElement(conn, x, y);
     }
 }
@@ -295,17 +295,24 @@ function getEntrance(levels, entrance) {
 
 /* Connects given array of area tiles together. */
 function connectTiles(tiles, sizeX, sizeY) {
+    if (sizeX === 1 || sizeY === 1) {
+        RG.err('world.js', 'connectTiles',
+            'sizeX or sizeY == 1 not implemented.');
+    }
     for (let x = 0; x < sizeX; x++) {
         for (let y = 0; y < sizeY; y++) {
-            console.log(`Connecting tile ${x},${y} now`);
+            console.log(`Trying to connect tile ${x},${y} now`);
             if (x < sizeX - 1 && y < sizeY - 1) {
+                console.log(`>> Connecting tile ${x},${y} now`);
                 tiles[x][y].connect(
                     tiles[x + 1][y], tiles[x][y + 1]);
             }
             else if (x < sizeX - 1) {
+                console.log(`>> Connecting tile ${x},${y} now`);
                 tiles[x][y].connect(tiles[x + 1][y], null);
             }
             else if (y < sizeY - 1) {
+                console.log(`>> Connecting tile ${x},${y} now`);
                 tiles[x][y].connect(null, tiles[x][y + 1]);
             }
         }
@@ -713,7 +720,7 @@ RG.World.AreaTile = function(x, y, area) {
         const lastX = this.cols - 1;
         const lastY = this.rows - 1;
 
-        // Connect to east tile
+        // Connect to east tile, in y-direction
         if (!RG.isNullOrUndef([eastTile])) {
             const levelEast = eastTile.getLevel();
             const map = this._level.getMap();
@@ -738,7 +745,7 @@ RG.World.AreaTile = function(x, y, area) {
 
         }
 
-        // Connect to south tile
+        // Connect to south tile, in x-direction
         if (!RG.isNullOrUndef([southTile])) {
             const levelSouth = southTile.getLevel();
             const map = this._level.getMap();
@@ -839,7 +846,6 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
     this._conf = {};
     this.setConf = conf => {this._conf = conf;};
     this.getConf = () => this._conf;
-    this._isConnected = false;
 
     // Control which tile has its zones created
     this.zonesCreated = {};
@@ -886,9 +892,6 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
         if (!levels) {
             this.connectTiles();
         }
-        else {
-            this._isConnected = true;
-        }
     };
 
     this.isLoaded = (x, y) => this.tilesLoaded[x][y];
@@ -908,10 +911,7 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
 
     /* Connects all tiles together from the sides. */
     this.connectTiles = () => {
-        if (!this._isConnected) {
-            this._isConnected = true;
-            connectTiles(this._tiles, this._sizeX, this._sizeY);
-        }
+        connectTiles(this._tiles, this._sizeX, this._sizeY);
     };
 
     this._init();
@@ -928,8 +928,6 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
         }
         return res;
     };
-
-    this.isConnected = () => this._isConnected;
 
     this.getTiles = () => this._tiles;
 
