@@ -505,9 +505,12 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
                 const cell = this._map[x][y];
                 const baseType = cell.getBaseElem().getType();
                 if (cell.getStairs() !== null) {row += '>';}
+                else if (cell.hasConnection()) {row += 'c';}
                 else if ((/floor/).test(baseType)) {row += '.';}
                 else if ((/water/).test(baseType)) {row += '~';}
                 else if ((/wall/).test(baseType)) {row += '#';}
+                else if ((/tree/).test(baseType)) {row += 'T';}
+                else if ((/grass/).test(baseType)) {row += '"';}
                 else {row += '?';}
             }
             mapInASCII += row + '\n';
@@ -1086,6 +1089,10 @@ RG.Map.Level = function() { // {{{2
             return [xCell, yCell];
         }
         return [null, null];
+    };
+
+    this.debugPrintInASCII = () => {
+        this.getMap().debugPrintInASCII();
     };
 
 }; // }}} Level
