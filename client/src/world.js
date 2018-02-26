@@ -839,6 +839,7 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
     this._conf = {};
     this.setConf = conf => {this._conf = conf;};
     this.getConf = () => this._conf;
+    this._isConnected = false;
 
     // Control which tile has its zones created
     this.zonesCreated = {};
@@ -885,6 +886,9 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
         if (!levels) {
             this.connectTiles();
         }
+        else {
+            this._isConnected = true;
+        }
     };
 
     this.isLoaded = (x, y) => this.tilesLoaded[x][y];
@@ -904,7 +908,10 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
 
     /* Connects all tiles together from the sides. */
     this.connectTiles = () => {
-        connectTiles(this._tiles, this._sizeX, this._sizeY);
+        if (!this._isConnected) {
+            this._isConnected = true;
+            connectTiles(this._tiles, this._sizeX, this._sizeY);
+        }
     };
 
     this._init();
@@ -921,6 +928,8 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
         }
         return res;
     };
+
+    this.isConnected = () => this._isConnected;
 
     this.getTiles = () => this._tiles;
 
