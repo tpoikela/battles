@@ -11,6 +11,19 @@ RG.Factory.Game = require('../client/src/factory.game');
 const ROT = require('../lib/rot.js');
 const PlayerDriver = require('../tests/helpers/player-driver');
 const fs = require('fs');
+const cmdLineArgs = require('command-line-args');
+
+// Parse command line args
+const optDefs = [
+  {name: 'name', type: String,
+      descr: 'Name of the character' },
+  {name: 'load', type: String,
+      descr: 'Loads the game'},
+  {name: 'nturns', type: Number,
+      descr: 'Number of turn to load'}
+];
+let opts = cmdLineArgs(optDefs);
+opts = getDefaults(opts);
 
 let game = null;
 
@@ -35,23 +48,28 @@ console.log('Before save, game has ' + nLevels + ' levels');
 let newGame = game;
 
 // To load previous stage quickly
-const loadGame = true;
+const loadGame = opts.load;
 const pName = 'Xanthur';
-// const pName = 'Tunas';
-const loadTurn = 2000;
+let loadTurn = 2000;
 const saveGameEnabled = true;
 let driver = new PlayerDriver();
 const fname = `save_dumps/${pName}_temp_${loadTurn}.json`;
 // const fname = 'save_dumps/1519583443971_saveGame_Tunas.json';
 // const fname = 'save_dumps/bsave_1519586656174_saveGame_Tunas.json';
+// const fname = 'save_dumps/remove_bug.json';
 
 if (loadGame) {
-    // const fname = 'save_dumps/remove_bug.json';
     const buf = fs.readFileSync(fname);
     // const jsonParsed = JSON.parse(buf.toString());
     const jsonParsed = JSON.parse(buf);
     if (jsonParsed.driver) {
         driver = PlayerDriver.fromJSON(jsonParsed.driver);
+    }
+    if (jsonParsed.nTurns) {
+        loadTurn = jsonParsed.nTurns;
+    }
+    else {
+        console.warn('No nTurns found in same. Give it with -nturns');
     }
     const fromJSON = new RG.Game.FromJSON();
     newGame = fromJSON.createGame(jsonParsed);
@@ -72,7 +90,7 @@ const catcher = new RGTest.MsgCatcher();
 
 // Execute game in try-catch so we can dump save data on failure
 const mult = 2;
-const maxTurns = mult * 4000;
+const maxTurns = mult * 10000;
 
 try {
     const startI = loadGame ? loadTurn : 0;
@@ -87,21 +105,9 @@ try {
         if (saveGameEnabled) {
             // console.log('saveGameEnabled. Checking turn number');
             // console.log(nTurn % (mult * 1000));
-            if (nTurn > startI && (nTurn % (mult * 1000) === 0)) {
-                console.log('\tsaveGameEnabled. Turn check OK.');
-                const fname = `save_dumps/${pName}_temp_${nTurn}.json`;
+            if (nTurn > startI && (nTurn % (mult * 2000) === 0)) {
                 if (maxTurns >= 1000) { // Don't save for short games
-                    const json = newGame.toJSON();
-                    json.driver = driver.toJSON();
-                    const jsonStr = JSON.stringify(json);
-                    console.log(`Saving/restoring game to ${fname}`);
-                    fs.writeFileSync(fname, jsonStr);
-                    const jsonParsed = JSON.parse(jsonStr);
-
-                    const fromJSON = new RG.Game.FromJSON();
-                    newGame = fromJSON.createGame(jsonParsed);
-                    driver = PlayerDriver.fromJSON(jsonParsed.driver);
-                    driver.setPlayer(newGame.getPlayer());
+                    [newGame, driver] = saveGameToFile(nTurn, newGame, driver);
                 }
             }
         }
@@ -138,3 +144,30 @@ console.log('Final state saved to file ' + finalFname);
 
 catcher.hasNotify = false;
 console.log('===== End Game simulation =====');
+
+
+function getDefaults(opt) {
+    const obj = Object.assign({}, opt);
+    obj.name = obj.name || 'Xanthur';
+}
+
+// Saves the game, returns new game and driver objects
+// ie {newgame, newdriver} = saveGameToFile(game, driver)
+function saveGameToFile(nTurn, game, driver) {
+    console.log('\tsaveGameEnabled. Turn check OK.');
+    const fname = `save_dumps/${pName}_temp_${nTurn}.json`;
+    const json = newGame.toJSON();
+    json.nTurns = nTurn;
+    json.driver = driver.toJSON();
+    const jsonStr = JSON.stringify(json);
+    console.log(`Saving/restoring game to ${fname}`);
+    fs.writeFileSync(fname, jsonStr);
+    const jsonParsed = JSON.parse(jsonStr);
+
+    const fromJSON = new RG.Game.FromJSON();
+    newGame = fromJSON.createGame(jsonParsed);
+    driver = PlayerDriver.fromJSON(jsonParsed.driver);
+    driver.setPlayer(newGame.getPlayer());
+
+    return [newGame, driver];
+}
