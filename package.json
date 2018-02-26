@@ -6,6 +6,7 @@
     "babel-preset-es2015": "^6.22.0",
     "babel-preset-react": "^6.22.0",
     "blanket": "^1.2.3",
+    "command-line-args": "^5.0.2",
     "eslint": "^4.7.2",
     "file-saver": "^1.3.3",
     "gulp-cached": "^1.1.1",
