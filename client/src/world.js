@@ -3,6 +3,10 @@
  * dungeons, dungeon branches etc.
  */
 
+const RG = require('./rg.js');
+RG.Factory = require('./factory');
+const debug = require('debug')('bitn:world');
+
 const oppositeEdge = {
     north: 'south', south: 'north', east: 'west', west: 'east'
 };
@@ -11,7 +15,7 @@ function removeExistingConnection(level, x, y) {
     const cell = level.getMap().getCell(x, y);
     if (cell.hasConnection()) {
         const conn = cell.getConnection();
-        console.log(`world.js Removing conn@${x},${y}`);
+        debug(`world.js Removing conn@${x},${y}`);
         level.removeElement(conn, x, y);
     }
 }
@@ -301,32 +305,30 @@ function connectTiles(tiles, sizeX, sizeY) {
     }
     for (let x = 0; x < sizeX; x++) {
         for (let y = 0; y < sizeY; y++) {
-            console.log(`Trying to connect tile ${x},${y} now`);
+            debug(`Trying to connect tile ${x},${y} now`);
             if (x < sizeX - 1 && y < sizeY - 1) {
-                console.log(`>> Connecting tile ${x},${y} now`);
+                debug(`>> Connecting tile ${x},${y} now`);
                 tiles[x][y].connect(
                     tiles[x + 1][y], tiles[x][y + 1]);
             }
             else if (x < sizeX - 1) {
-                console.log(`>> Connecting tile ${x},${y} now`);
+                debug(`>> Connecting tile ${x},${y} now`);
                 tiles[x][y].connect(tiles[x + 1][y], null);
             }
             else if (y < sizeY - 1) {
-                console.log(`>> Connecting tile ${x},${y} now`);
+                debug(`>> Connecting tile ${x},${y} now`);
                 tiles[x][y].connect(null, tiles[x][y + 1]);
             }
         }
     }
 }
 
-const RG = require('./rg.js');
-RG.Factory = require('./factory');
-
 const Stairs = RG.Element.Stairs;
 
 RG.World = {};
 RG.World.addExitsToEdge = addExitsToEdge;
 RG.World.edgeHasConnections = edgeHasConnections;
+
 //----------------
 // RG.World.Base
 //----------------
