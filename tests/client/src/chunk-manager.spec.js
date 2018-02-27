@@ -172,22 +172,19 @@ describe('ChunkManager', function() {
         expect(newLevels).to.have.length(9);
         expect(newNumLoaded).to.equal(9);
 
-        /*
         const newGameMaster = newGame.getGameMaster();
-        let battle = newGameMaster.battles[0];
+        let battle = Object.values(newGameMaster.battles)[0];
         expect(battle.getLevel).not.to.exist;
-        */
 
         game.movePlayer(2, 1);
         game.movePlayer(1, 1);
         levels = newGame.getLevels();
-        expect(levels.length).to.equal(10);
+        expect(levels.length).to.equal(11);
 
-        /*
-        battle = newGameMaster.battles[0];
+        battle = Object.values(newGameMaster.battles)[0];
         const battleLevel = battle.getLevel();
         expect(battleLevel).to.exist;
-        */
+
         fromJSON = new RG.Game.FromJSON();
         fromJSON.setChunkMode(true);
         newGame = fromJSON.createGame(json);
