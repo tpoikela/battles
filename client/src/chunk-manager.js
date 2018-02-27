@@ -149,6 +149,12 @@ export default class ChunkManager {
         const levels = areaTiles[tx][ty].getLevels();
         this.game.removeLevels(levels);
 
+        // Unload battles associated with this tile
+        const battleLevel = areaTiles[tx][ty].getLevel();
+        debug(`\tUnloading tile ${tx},${ty}, id: ${battleLevel.getID()}`);
+        const gameMaster = this.game.getGameMaster();
+        gameMaster.unloadBattles(battleLevel);
+
         areaTiles[tx][ty] = areaTiles[tx][ty].toJSON();
 
         // Need to replace connections on adjacent tiles
