@@ -8,7 +8,6 @@ const Battle = require('./game.battle').Battle;
 const Army = require('./game.battle').Army;
 const debug = require('debug')('bitn:Game.FromJSON');
 
-const IND = 0;
 /* Object for converting serialized JSON objects to game objects. Note that all
  * actor/level ID info is stored between uses. If you call restoreLevel() two
  * times, all data from 1st is preserved. Call reset() to clear data. */
@@ -25,6 +24,8 @@ RG.Game.FromJSON = function() {
 
     // Stores connection information for stairs
     let stairsInfo = {};
+
+    this.IND = 0; // For debug msg indenting
 
     /* Resets internal data of this object. */
     this.reset = () => {
@@ -383,7 +384,7 @@ RG.Game.FromJSON = function() {
         // Duplicate level IDs are very, very bad
         if (!id2level.hasOwnProperty(json.id)) {
             id2level[json.id] = level;
-            debug(`Added level ${json.id} to id2level`);
+            this.dbg(`Added level ${json.id} to id2level`);
         }
         else {
             RG.err('FromJSON', 'restoreLevel',
@@ -513,6 +514,9 @@ RG.Game.FromJSON = function() {
     /* Main function to call when restoring a game. When given Game.Main in
      * serialized JSON, returns the restored Game.Main object. */
     this.createGame = function(gameJSON) {
+        this.dbg('createGame: Restoring now full game');
+        this.IND = 1;
+
         const game = new RG.Game.Main();
         this.setGlobalConfAndObjects(game, gameJSON);
         if (gameJSON.chunkManager) {
@@ -573,7 +577,7 @@ RG.Game.FromJSON = function() {
             RG.RAND = new RG.Random();
             RG.RAND.setState(gameJSON.rng.state);
         }
-
+        this.IND = 0;
         return game;
     };
 
@@ -638,20 +642,21 @@ RG.Game.FromJSON = function() {
     };
 
     this.restoreGameMaster = function(game, json) {
+        ++this.IND;
         const gameMaster = game.getGameMaster();
         const battles = {};
         Object.keys(json.battles).forEach(id => {
-            if (id2level[id]) {
-                debug(`FromJSON Restoring Battle ${id}`);
+            if (id2level[id]) { // Tile level exists
+                this.dbg(`FromJSON Restoring Battle ${id}`);
                 const battle = this.restoreBattle(json.battles[id]);
                 battles[id] = battle;
-                if (!battle.isJSON) {
+                /* if (!battle.isJSON) {
                     game.addLevel(battle.getLevel());
-                }
+                }*/
             }
             else {
-                debug(`FromJSON Battle ${id} not created`);
-                debug(json.battles[id]);
+                this.dbg(`FromJSON Battle ${id} not created`);
+                this.dbg(json.battles[id]);
                 battles[id] = json.battles[id];
             }
         });
@@ -659,12 +664,15 @@ RG.Game.FromJSON = function() {
         if (json.battlesDone) {
             gameMaster.battlesDone = json.battlesDone;
         }
+        --this.IND;
         return gameMaster;
     };
 
     this.restoreBattle = function(json) {
         const battleLevel = id2level[json.level];
         if (battleLevel) {
+            ++this.IND;
+            this.dbg(`\trestoreBattle found level ID ${json.level}`);
             const battle = new Battle(json.name);
             battle.setLevel(battleLevel);
             battle.setStats(json.stats);
@@ -683,6 +691,7 @@ RG.Game.FromJSON = function() {
                     RG.POOL.removeListener(army);
                 });
             }
+            --this.IND;
             return battle;
         }
         console.log(JSON.stringify(id2level[json.level]));
@@ -767,13 +776,14 @@ RG.Game.FromJSON = function() {
 
     this.dbg = msg => {
         if (debug.enabled) {
-          const indStr = ' '.repeat(IND);
-          debug(`${indStr}FromJSON: ${msg}`);
+          const indStr = '>'.repeat(this.IND);
+          debug(`${indStr} FromJSON: ${msg}`);
         }
     };
 
     this.getLevelsToRestore = gameJSON => {
         let levels = [];
+        let numLevels = 0;
         if (gameJSON.levels) {return gameJSON.levels;}
         Object.keys(gameJSON.places).forEach(name => {
             const place = gameJSON.places[name];
@@ -782,6 +792,7 @@ RG.Game.FromJSON = function() {
                     area.tiles.forEach((tileCol, x) => {
                         tileCol.forEach((tile, y) => {
                             if (area.tilesLoaded[x][y]) {
+                                numLevels += tile.levels.length;
                                 levels = levels.concat(tile.levels);
                             }
                         });
@@ -789,6 +800,7 @@ RG.Game.FromJSON = function() {
                 });
             }
         });
+        this.dbg(`Restoring ${levels.length} out of ${numLevels}`);
         return levels;
     };
 
@@ -843,18 +855,18 @@ RG.Game.FromJSON = function() {
     };
 
     this.restoreSerializedBattles = (game, tile) => {
-        const id = tile.getLevel().getID();
+        const tileId = tile.getLevel().getID();
         const master = game.getGameMaster();
-        if (master.battles[id]) {
-            const battle = this.restoreBattle(master.battles[id]);
-            master.battles[id] = battle;
+        if (master.battles[tileId]) {
+            const battle = this.restoreBattle(master.battles[tileId]);
+            master.battles[tileId] = battle;
         }
     };
 
     this.addLevels = levels => {
         levels.forEach(level => {
             id2level[level.getID()] = level;
-            debug('FromJSON added level ' + level.getID());
+            this.dbg('FromJSON added level ' + level.getID());
         });
     };
 
