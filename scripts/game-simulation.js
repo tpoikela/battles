@@ -1,4 +1,5 @@
 
+/* eslint no-process-exit: 0 */
 /* A script to simulate actual game player with a player driver. */
 
 require('babel-register');
@@ -17,6 +18,8 @@ const cmdLineArgs = require('command-line-args');
 const optDefs = [
   {name: 'name', type: String,
       descr: 'Name of the character' },
+  {name: 'frame_period', type: Number,
+      descr: 'Print every Nth frame' },
   {name: 'load', type: Boolean,
       descr: 'Load game from the file'},
   {name: 'loadturn', type: Number,
@@ -26,10 +29,15 @@ const optDefs = [
   {name: 'nosave', type: Boolean,
     descr: 'Disables saving during the simulation'},
   {name: 'save_period', type: Number,
-    descr: 'Number of turns between saves'}
+    descr: 'Number of turns between saves'},
+  {name: 'help', alias: 'h', type: Boolean,
+    descr: 'Prints help message'}
 ];
 let opts = cmdLineArgs(optDefs);
 opts = getDefaults(opts);
+if (opts.help) {
+    usage();
+}
 
 ROT.RNG.setSeed(0);
 RG.Rand = new RG.Random();
@@ -81,6 +89,7 @@ const player = newGame.getPlayer();
 player.setName(pName);
 player.remove('Hunger'); // AI not smart enough yet to deal with this
 driver.setPlayer(player);
+driver.screenPeriod = opts.framePeriod;
 
 console.log('===== Begin Game simulation =====');
 driver.nTurns = loadGame ? loadTurn : 0;
@@ -107,6 +116,7 @@ try {
             if (nTurn > startI && (nTurn % (savePeriod) === 0)) {
                 if (maxTurns >= 1000) { // Don't save for short games
                     [newGame, driver] = saveGameToFile(nTurn, newGame, driver);
+                    driver.screenPeriod = opts.framePeriod;
                 }
             }
         }
@@ -153,6 +163,7 @@ function getDefaults(opt) {
     const obj = Object.assign({}, opt);
     obj.name = obj.name || 'Xanthur';
     obj.maxturns = obj.maxturns || 10000;
+    obj.framePeriod = obj.frame_period || 1;
     return obj;
 }
 
@@ -178,4 +189,12 @@ function saveGameToFile(nTurn, game, driver) {
     driver.setPlayer(newGame.getPlayer());
 
     return [newGame, driver];
+}
+
+function usage() {
+    optDefs.forEach(opt => {
+        const str = JSON.stringify(opt);
+        console.log(str);
+    });
+    process.exit(0);
 }
