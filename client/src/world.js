@@ -971,6 +971,9 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
                         return true;
                     }
                 }
+                else if (this._tiles[x][y].level === id) {
+                    return true;
+                }
             }
         }
         return false;
@@ -978,15 +981,19 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
 
     /* Returns true if the area has tiles with given levels or level IDs. */
     this.hasTiles = arr => {
-        let result = true;
+        let result = arr.length > 0;
         arr.forEach(level => {
             if (typeof level.getID === 'function') {
                 result = result && this.hasTileWithId(level.getID());
             }
-            else if (Math.isInteger(level)) {
+            else if (Number.isInteger(level)) {
                 result = result && this.hasTileWithId(level);
             }
-
+            else {
+                const str = JSON.stringify(level);
+                RG.err('World.Area', 'hasTiles',
+                    `Invalid level given ${str}. Must be Map.Level/ID`);
+            }
         });
         return result;
     };
@@ -1017,7 +1024,9 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
         let res = [];
         for (let x = 0; x < this._tiles.length; x++) {
             for (let y = 0; y < this._tiles[x].length; y++) {
-                res = res.concat(this._tiles[x][y].getZones(type));
+                if (this.tilesLoaded[x][y]) {
+                    res = res.concat(this._tiles[x][y].getZones(type));
+                }
             }
         }
         return res;
