@@ -818,7 +818,6 @@ function addFeatureToWall(ow, wall, type) {
         const uly = wall.y[0];
         const lry = wall.y[wall.y.length - 1];
         xy = findCellRandXYInBox(map, bBox(wall.x, uly, wall.x, lry), OW.LL_NS);
-        console.log(`Added ${type} to ${xy} in vwall`);
     }
 
     ow.addFeature(xy, type);
