@@ -1944,8 +1944,14 @@ RG.Factory.World = function() {
                 }
 
                 const tileStairs = new Stairs(name, tileLevel, entryLevel);
-                tileLevel.addStairs(tileStairs, tileStairsX, tileStairsY);
-                tileStairs.connect(entryStairs);
+                try {
+                    tileLevel.addStairs(tileStairs, tileStairsX, tileStairsY);
+                    tileStairs.connect(entryStairs);
+                }
+                catch (e) {
+                    console.log(JSON.stringify(conf));
+                    throw e;
+                }
 
                 if (debug.enabled && zoneType === 'city') {
                     conns = entryLevel.getConnections();
