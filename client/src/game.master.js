@@ -128,6 +128,9 @@ const GameMaster = function(game) {
         const srcID = src.getID();
         if (this.battles.hasOwnProperty(srcID)) {
             const battle = this.battles[srcID];
+            if (battle.isJSON) {
+                return; // Cannot join serialized battle anyway
+            }
             const battleLevel = battle.getLevel();
             if (battleLevel.getID() === target.getID()) {
                 if (this.actorCanEnter(actor, battle)) {
