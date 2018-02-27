@@ -379,6 +379,14 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
         return freeCells;
     };
 
+    this.getFreeNotOnEdge = function() {
+        const freeCells = this.getFree();
+        return freeCells.filter(c => (
+            c._x > 0 && c._x < (this.cols - 1) &&
+            c._y > 0 && c._y < (this.rows - 1)
+        ));
+    };
+
     /* Returns the first free cell starting from right edge of the level.
     * Range of y-coord can be given, if not, searches all y-coordinates starting
     * from 0.
