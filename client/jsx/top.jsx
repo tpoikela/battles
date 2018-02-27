@@ -456,6 +456,10 @@ class BattlesTop extends Component {
                 const actors = cell.getActors();
                 console.log(`Actors: ${JSON.stringify(actors)}`);
             }
+            if (cell.hasConnection()) {
+                const conns = cell.getPropType('connection');
+                console.log(`Actors: ${JSON.stringify(conns)}`);
+            }
         }
         else {
             RG.warn('BattlesTop', 'onCellClick',
