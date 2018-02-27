@@ -799,7 +799,23 @@ RG.World.AreaTile = function(x, y, area) {
         Object.keys(this.zones).forEach(type => {
             this.zones[type].forEach(z => {res = res.concat(z.getLevels());});
         });
+
+        if (debug.enabled) {
+            let msg = this.toString();
+            msg = ` Tile ${msg} has ${res.length} levels from toJSON()`;
+            if (this._level.getID() === 1344) {
+                msg += `\tLevels: ${res.map(l => l.getID())}`;
+            }
+            console.error(msg);
+        }
+
         return res;
+    };
+
+    this.toString = () => {
+        let msg = `${this._tileX},${this._tileY}, ID: ${this._level.getID()}`;
+        msg += ` nZones: ${this.getZones().length}`;
+        return msg;
     };
 
     // All zones inside this tile
@@ -823,8 +839,7 @@ RG.World.AreaTile = function(x, y, area) {
         nCities: this.zones.City.length,
         city: this.getZones('City').map(city => city.toJSON()),
         nBattleZones: this.zones.BattleZone.length,
-        battlezone: this.getZones('BattleZone').map(
-            battle => battle.toJSON())
+        battlezone: this.getZones('BattleZone').map(bz => bz.toJSON())
     });
 };
 
@@ -1259,6 +1274,8 @@ RG.World.BattleZone = function(name) {
     this.toJSON = function() {
         const json = RG.World.ZoneBase.prototype.toJSON.call(this);
         const obj = {
+          nLevels: this._levels.length,
+          levels: this._levels.map(l => l.getID())
         };
         return Object.assign(obj, json);
     };
