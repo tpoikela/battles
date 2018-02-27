@@ -50,6 +50,7 @@ describe('How Game is created from Overworld', function() {
 
         const json = game.toJSON();
 
+        game = null;
         const fromJSON = new RG.Game.FromJSON();
         const newGame = fromJSON.createGame(json);
         const newWorldConf = newGame.getCurrentWorld().getConf();
@@ -70,8 +71,16 @@ describe('How Game is created from Overworld', function() {
         ));
         expect(newCapitalConf).to.deep.equal(capitalConf);
 
+        const {x, y} = newCapitalConf;
+        console.log(`Moving player ot tile ${x},${y}`);
+        newGame.movePlayer(x, y);
+
         const newWorld = newGame.getCurrentWorld();
         const newArea = newWorld.getAreas()[0];
+
+        const tileCap = newArea.getTileXY(x, y);
+        const cities = tileCap.getZones('City');
+        expect(cities.length).to.be.at.least(1);
 
         const nZonesNew = {};
         zoneTypes.forEach(type => {
@@ -80,10 +89,10 @@ describe('How Game is created from Overworld', function() {
         const newAreaConfObj = newArea.getConf();
         verifyConf(areaConf, newAreaConfObj);
 
+        /*
         Object.keys(nZonesNew).forEach(key => {
             expect(nZonesNew[key], `Zone ${key}`).to.equal(nZones[key]);
-
-        });
+        });*/
 
     });
 
