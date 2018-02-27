@@ -45,6 +45,10 @@ const playerTileY = 1;
 
 const getRandIn = RG.RAND.arrayGetRand.bind(RG.RAND);
 
+RG.OverWorld.TILE_SIZE_X = 100;
+RG.OverWorld.TILE_SIZE_Y = 100;
+const {TILE_SIZE_X, TILE_SIZE_Y} = RG.OverWorld;
+
 //---------------------------------------------------------------------------
 // Wall object inside the Overworld. Wall here means a huge wall of mountains.
 //---------------------------------------------------------------------------
@@ -263,8 +267,8 @@ RG.OverWorld.createOverWorldLevel = (overworld, conf) => {
     coordMap.worldCols = conf.worldX || 400;
     coordMap.worldRows = conf.worldY || 400;
 
-    coordMap.nTilesX = conf.nTilesX || coordMap.worldCols / 100;
-    coordMap.nTilesY = conf.nTilesY || coordMap.worldRows / 100;
+    coordMap.nTilesX = conf.nTilesX || coordMap.worldCols / TILE_SIZE_X;
+    coordMap.nTilesY = conf.nTilesY || coordMap.worldRows / TILE_SIZE_Y;
 
     coordMap.xMap = Math.floor(coordMap.worldCols / overworld.getSizeX());
     coordMap.yMap = Math.floor(coordMap.worldRows / overworld.getSizeY());
@@ -683,7 +687,7 @@ function addDungeonToSubLevel(owSubLevel, subLevel) {
 function addMountainToSubLevel(owSubLevel, subLevel) {
     let placed = false;
     const map = subLevel.getMap();
-    const freeCells = map.getFree();
+    const freeCells = map.getFreeNotOnEdge();
     const freeXY = freeCells.map(cell => [cell.getX(), cell.getY()]);
 
     let coord = [];
@@ -824,8 +828,9 @@ RG.OverWorld.createWorldConf = (ow, subLevels, nTilesX, nTilesY) => {
                     else if (feat.type === 'dungeon') {
                         const coord = feat.coord;
 
-                        const featX = mapX(coord[0][0], slX, subX);
-                        const featY = mapY(coord[0][1], slY, subY);
+                        let featX = mapX(coord[0][0], slX, subX);
+                        let featY = mapY(coord[0][1], slY, subY);
+                        [featX, featY] = legalizeXY([featX, featY]);
                         const dName = RG.Names.getGenericPlaceName('dungeon');
 
                         const dungeonConf = RG.LevelGen.getDungeonConf(dName);
@@ -869,7 +874,7 @@ RG.OverWorld.createWorldConf = (ow, subLevels, nTilesX, nTilesY) => {
 function mapX(x, slX, subSizeX) {
     if (Number.isInteger(x)) {
         const res = x + slX * subSizeX;
-        if (res >= 100 ) {
+        if (res >= TILE_SIZE_X) {
             console.warn(`WARNING mapX: ${res}, ${x}, ${slX}, ${subSizeX}`);
         }
         return res;
@@ -908,11 +913,9 @@ function addCapitalConfToArea(feat, coordObj, areaConf) {
     cityConf.presetLevels = {
         'Blashyrkh.Capital cave': [{nLevel: 0, level: capitalLevel}]
     };
-
     addLocationToZoneConf(feat, coordObj, cityConf);
 
-    const {x, y} = cityConf;
-    debug(`Added capital to area x,y ${x},${y}`);
+    // const {x, y} = cityConf;
     const mainConn = {
         name: 'Capital cave',
         levelX: cityConf.levelX,
@@ -1015,12 +1018,12 @@ function addLocationToZoneConf(feat, coordObj, zoneConf, vert = true) {
 
     // Where 1st (main) entrance is located on Map.Level
     let featX = mapX(coord[lastCoord][0], slX, subX);
-    let featY = mapY(coord[lastCoord][1], slY, subY) + 1;
+    let featY = mapY(coord[lastCoord][1], slY, subY);
     if (!vert) {
       featX = mapX(coord[0][0], slX, subX) - 1;
       featY = mapY(coord[0][1], slY, subY);
     }
-    if (featY >= 100) {
+    if (featY >= TILE_SIZE_Y) {
         // const msg = `subXY ${x},${y}, tileXY: ${aX},${aY}`;
         featY -= 1;
     }
@@ -1029,7 +1032,7 @@ function addLocationToZoneConf(feat, coordObj, zoneConf, vert = true) {
     // Where 2nd (exit) entrance is located on Map.Level
     if (twoEntranceCityRe.test(feat.type)) {
         let connX = mapX(coord[0][0], slX, subX);
-        let connY = mapY(coord[0][1], slY, subY) - 1;
+        let connY = mapY(coord[0][1], slY, subY);
         if (!vert) {
           connX = mapX(coord[lastCoord][0], slX, subX) + 1;
           connY = mapY(coord[lastCoord][1], slY, subY);
@@ -1145,6 +1148,15 @@ function getSubBoxForAreaTile(x, y, xMap, yMap) {
     const ry = y * yMap;
     const ly = ry + yMap - 1;
     return [lx, ly, rx, ry];
+}
+
+function legalizeXY(xy) {
+    let [x, y] = xy;
+    if (x === 0) {x = 1;}
+    if (x === TILE_SIZE_X - 1) {x -= 1;}
+    if (y === 0) {y = 1;}
+    if (y === TILE_SIZE_Y - 1) {y -= 1;}
+    return [x, y];
 }
 
 /* Adds global features like roads to the overworld level map. */
