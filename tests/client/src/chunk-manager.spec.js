@@ -106,7 +106,7 @@ describe('ChunkManager', function() {
                 expect(numLoaded).to.be.at.most(10);
                 // manager.debugPrint();
                 [prevX, prevY] = [x, y];
-                printMemUsage(`setPlayerTile ${x},${y}`);
+                // printMemUsage(`setPlayerTile ${x},${y}`);
             }
         }
 
@@ -169,7 +169,7 @@ describe('ChunkManager', function() {
         const newManager = newGame.getChunkManager();
         const newNumLoaded = newManager.getNumInState(LOAD.LOADED);
         const newLevels = newGame.getLevels();
-        expect(newLevels).to.have.length(9);
+        expect(newLevels).to.have.length(10);
         expect(newNumLoaded).to.equal(9);
 
         const newGameMaster = newGame.getGameMaster();
