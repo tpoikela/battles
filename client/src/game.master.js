@@ -77,12 +77,12 @@ const GameMaster = function(game) {
                 armySize += 20 * dY + 10 * dX;
 
                 const msg = `dx,dy: ${dX},${dY} armySize ${armySize}`;
-                console.log(`${msg} , danger: ${maxDanger}`);
+                debug(`${msg} , danger: ${maxDanger}`);
 
                 const owPos = this.game.getPlayerOwPos();
                 const biome = ow.getBiome(owPos[0], owPos[1]);
                 levelType = this.biomeToLevelType(biome);
-                console.log('Creating battle on tile ' + xy);
+                debug('Creating battle on tile ' + xy);
             }
             battleConf.maxDanger = maxDanger;
             battleConf.armySize = armySize;
