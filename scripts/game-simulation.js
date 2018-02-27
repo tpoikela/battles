@@ -24,7 +24,9 @@ const optDefs = [
   {name: 'maxturns', type: Number,
       descr: 'Turns to simulate'},
   {name: 'nosave', type: Boolean,
-    descr: 'Disables saving during the simulation'}
+    descr: 'Disables saving during the simulation'},
+  {name: 'save_period', type: Number,
+    descr: 'Number of turns between saves'}
 ];
 let opts = cmdLineArgs(optDefs);
 opts = getDefaults(opts);
@@ -87,10 +89,10 @@ const catcher = new RGTest.MsgCatcher();
 // const [aX, aY] = [area.getMaxX(), area.getMaxY()];
 // game.movePlayer(aX - 1, 0);
 
-// Execute game in try-catch so we can dump save data on failure
-const mult = 2;
 const maxTurns = loadTurn + opts.maxturns;
+const savePeriod = opts.save_period ? opts.save_period : 2000;
 
+// Execute game in try-catch so we can dump save data on failure
 try {
     const startI = loadGame ? loadTurn : 0;
     for (let nTurn = startI; nTurn < maxTurns; nTurn++) {
@@ -102,7 +104,7 @@ try {
 
         // Save the game between certain intervals
         if (saveGameEnabled) {
-            if (nTurn > startI && (nTurn % (mult * 1000) === 0)) {
+            if (nTurn > startI && (nTurn % (savePeriod) === 0)) {
                 if (maxTurns >= 1000) { // Don't save for short games
                     [newGame, driver] = saveGameToFile(nTurn, newGame, driver);
                 }
@@ -158,6 +160,9 @@ function getDefaults(opt) {
 // ie {newgame, newdriver} = saveGameToFile(game, driver)
 function saveGameToFile(nTurn, game, driver) {
     console.log('\tsaveGameEnabled. Turn check OK.');
+    console.log('\tDumping chunk load status now:');
+    game.getChunkManager().debugPrint();
+
     const fname = `save_dumps/${pName}_temp_${nTurn}.json`;
     const json = newGame.toJSON();
     json.nTurns = nTurn;
