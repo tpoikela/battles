@@ -226,3 +226,16 @@ describe('World.City', () => {
     });
 });
 
+describe('World.BattleZone', () => {
+    it('can contain levels', () => {
+        const bz = new RG.World.BattleZone('Terrain 666');
+        const arena = RG.FACT.createLevel('arena', 30, 30);
+        bz.addLevel(arena);
+        expect(bz.getLevels()).to.have.length(1);
+
+        const levels = bz.toJSON().levels;
+        expect(bz.toJSON().levels).to.have.length(1);
+        expect(levels[0]).to.equal(arena.getID());
+    });
+});
+
