@@ -294,4 +294,11 @@ RGTest.updateSystems = systems => {
     }
 };
 
+
+RGTest.printMemUsage = msg => {
+    const used = process.memoryUsage().heapUsed / 1024 / 1024;
+    const usedMb = Math.round(used * 100) / 100;
+    console.log(`${msg} The script uses approximately ${usedMb} MB`);
+};
+
 module.exports = RGTest;

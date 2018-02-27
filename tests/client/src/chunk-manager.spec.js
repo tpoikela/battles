@@ -6,15 +6,7 @@ import ChunkManager, {LOAD} from '../../../client/src/chunk-manager';
 const RG = require('../../../client/src/battles');
 RG.World = require('../../../client/src/world');
 
-// const memwatch = require('memwatch-next');
-
 const RGTest = require('../../roguetest');
-
-function printMemUsage(msg) {
-    const used = process.memoryUsage().heapUsed / 1024 / 1024;
-    const usedMb = Math.round(used * 100) / 100;
-    console.log(`${msg} The script uses approximately ${usedMb} MB`);
-}
 
 describe('ChunkManager', function() {
     this.timeout(60000);
@@ -31,7 +23,7 @@ describe('ChunkManager', function() {
     beforeEach(() => {
         // memwatch.on('leak', function(info) { console.log(info);});
         // memwatch.on('stats', function(stats) { console.log(stats);});
-        printMemUsage('BEFORE_EACH');
+        RGTest.printMemUsage('BEFORE_EACH');
         game = new RG.Game.Main();
         area = new RG.World.Area('north', sizeX, sizeY, cols, rows);
         world = new RG.World.Top('World');
@@ -43,7 +35,7 @@ describe('ChunkManager', function() {
     });
 
     it('stores the state of world area/chunks ', () => {
-        printMemUsage('START');
+        RGTest.printMemUsage('START');
         const manager = new ChunkManager(game, area);
         expect(game.getLevels().length).to.equal(sizeX * sizeY);
 
@@ -106,11 +98,11 @@ describe('ChunkManager', function() {
                 expect(numLoaded).to.be.at.most(10);
                 // manager.debugPrint();
                 [prevX, prevY] = [x, y];
-                // printMemUsage(`setPlayerTile ${x},${y}`);
+                // RGTest.printMemUsage(`setPlayerTile ${x},${y}`);
             }
         }
 
-        printMemUsage('END');
+        RGTest.printMemUsage('END');
     });
 
     it('loads/restores chunks when player moves', () => {
