@@ -642,14 +642,16 @@ RG.Game.FromJSON = function() {
         const battles = {};
         Object.keys(json.battles).forEach(id => {
             if (id2level[id]) {
-                console.log(`FromJSON Restoring Battle ${id}`);
+                debug(`FromJSON Restoring Battle ${id}`);
                 const battle = this.restoreBattle(json.battles[id]);
                 battles[id] = battle;
-                game.addLevel(battle.getLevel());
+                if (!battle.isJSON) {
+                    game.addLevel(battle.getLevel());
+                }
             }
             else {
-                console.log(`FromJSON Battle ${id} not created`);
-                console.log(json.battles[id]);
+                debug(`FromJSON Battle ${id} not created`);
+                debug(json.battles[id]);
                 battles[id] = json.battles[id];
             }
         });
@@ -661,26 +663,37 @@ RG.Game.FromJSON = function() {
     };
 
     this.restoreBattle = function(json) {
-        const battle = new Battle(json.name);
         const battleLevel = id2level[json.level];
-        battle.setLevel(battleLevel);
-        battle.setStats(json.stats);
-        battle.finished = json.finished;
-        const armies = [];
-        json.armies.forEach(armyJSON => {
-            armies.push(this.restoreArmy(armyJSON));
-        });
-        battle.setArmies(armies);
-
-        // Need to remove the event listeners if battle over
-        if (battle.finished) {
-            debug(`${json.name} finished. rm listeners`);
-            RG.POOL.removeListener(battle);
-            armies.forEach(army => {
-                RG.POOL.removeListener(army);
+        if (battleLevel) {
+            const battle = new Battle(json.name);
+            battle.setLevel(battleLevel);
+            battle.setStats(json.stats);
+            battle.finished = json.finished;
+            const armies = [];
+            json.armies.forEach(armyJSON => {
+                armies.push(this.restoreArmy(armyJSON));
             });
+            battle.setArmies(armies);
+
+            // Need to remove the event listeners if battle over
+            if (battle.finished) {
+                debug(`${json.name} finished. rm listeners`);
+                RG.POOL.removeListener(battle);
+                armies.forEach(army => {
+                    RG.POOL.removeListener(army);
+                });
+            }
+            return battle;
         }
-        return battle;
+        console.log(JSON.stringify(id2level[json.level]));
+        /*
+        else if (this.chunkMode) {
+            return json;
+        }
+        */
+        RG.err('Game.FromJSON', 'restoreBattle',
+            `No level for battle ID's ${json.level}`);
+        return null;
     };
 
     this.restoreArmy = function(json) {
