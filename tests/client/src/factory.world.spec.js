@@ -276,18 +276,22 @@ describe('Factory.World', function() {
         expect(cityLevel.getID()).to.equal(level.getID());
 
         const qSide = city.findSubZone('SideQuarter');
-        const l0 = qSide.getLevels()[0];
-        const l1 = qSide.getLevels()[1];
+        const ql0 = qSide.getLevels()[0];
+        const ql1 = qSide.getLevels()[1];
 
-        expect(l0.getStairs()).to.have.length(1);
-        expect(l1.getStairs()).to.have.length(1);
+        expect(ql0.getStairs()).to.have.length(1);
+        expect(ql1.getStairs()).to.have.length(1);
 
         // expect(l0.getConnections().length).to.be.above(10);
-        expect(l1.getConnections().length).to.be.above(10);
+        expect(ql1.getConnections().length).to.be.above(10);
 
-        const qStairs = l1.getStairs();
-        console.log(JSON.stringify(qStairs[0]));
-        console.log(JSON.stringify(qStairs[1]));
+        const qStairs = ql1.getStairs();
+
+        const tile00 = area.getTileXY(0, 0);
+        const tileLevel = tile00.getLevel();
+        const tileConns = tileLevel.getConnections();
+        const townConns = tileConns.filter(c => c.getName() === 'town');
+        expect(townConns).to.have.length(3);
 
     });
 
