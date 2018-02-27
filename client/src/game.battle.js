@@ -248,6 +248,7 @@ const Battle = function(name) {
     /* Serialies the object into JSON. */
     this.toJSON = function() {
         return {
+            isJSON: true,
             name: _name,
             level: _level.getID(),
             armies: _armies.map(army => army.toJSON()),
