@@ -712,7 +712,7 @@ function addMountainToSubLevel(owSubLevel, subLevel) {
 /* Adds a village to the free square of the sub-level. */
 function addVillageToSubLevel(feat, owSubLevel, subLevel) {
     const map = subLevel.getMap();
-    const freeCells = map.getFree();
+    const freeCells = map.getFreeNotOnEdge();
     if (freeCells.length > 0) {
         const freeXY = freeCells.map(cell => [cell.getX(), cell.getY()]);
         const coord = RG.RAND.arrayGetRand(freeXY);
