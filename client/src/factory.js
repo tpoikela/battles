@@ -1955,8 +1955,11 @@ RG.Factory.World = function() {
 
                 if (debug.enabled && zoneType === 'city') {
                     conns = entryLevel.getConnections();
-                    const jsonStr = JSON.stringify(conns, null, 1);
-                    this.debug(jsonStr);
+                    let jsonStr = JSON.stringify(conns[0], null, 1);
+                    if (conns.length > 1) {
+                        jsonStr += JSON.stringify(conns[conns.length - 1], null, 1);
+                    }
+                    this.debug(`First/last conn: ${jsonStr}`);
                     this.debug(`conn length after: ${conns.length}`);
                 }
             }
