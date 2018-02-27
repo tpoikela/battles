@@ -379,6 +379,19 @@ const GameMaster = function(game) {
         };
     };
 
+    this.unloadBattles = tileLevel => {
+        const id = tileLevel.getID();
+        if (this.battles.hasOwnProperty(id)) {
+            if (typeof this.battles[id].toJSON === 'function') {
+                this.battles[id] = this.battles[id].toJSON();
+            }
+            else {
+                RG.err('GameMaster', 'unloadBattle',
+                    `Unload for level ${id} failed`);
+            }
+        }
+    };
+
     this.biomeToLevelType = function(biome) {
         switch (biome) {
             case OW.BIOME.ARCTIC: return 'arctic';
