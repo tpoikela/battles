@@ -145,6 +145,9 @@ RG.Game.Main = function() {
                 currLevel.addActor(player, x0, y0);
             }
         }
+        else {
+            console.error('Could not remove player from level');
+        }
     };
 
     const _addPlayerToFirstLevel = (player, levels) => {
@@ -342,10 +345,12 @@ RG.Game.Main = function() {
                     let oldX = null;
                     let oldY = null;
                     if (args.src) {
-                        [oldX, oldY] = area.findTileXYById(args.src.getID());
+                        const xy = area.findTileXYById(args.src.getID());
+                        if (xy) {
+                            [oldX, oldY] = xy;
+                        }
                     }
                     if (this._enableChunkUnload) {
-                        console.log(`TILE CHANGED ${oldX},${oldY}->${x},${y}`);
                         this._chunkManager.setPlayerTile(x, y, oldX, oldY);
                     }
 
