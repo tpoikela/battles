@@ -719,7 +719,7 @@ RG.Game.FromJSON = function() {
 
     /* Assume the place is World object for now. */
     this.restorePlace = place => {
-        const worldJSON = new WorldFromJSON(id2level);
+        const worldJSON = new WorldFromJSON(id2level, id2entity);
         return worldJSON.createWorld(place);
     };
 
