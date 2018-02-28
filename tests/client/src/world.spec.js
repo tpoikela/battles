@@ -72,18 +72,18 @@ describe('World.AreaTile', () => {
         const cols = 20;
         const rows = 20;
 
-        let testArea = new World.Area('TestArea', 1, 1);
-        const areaTile = new World.AreaTile(0, 0, testArea);
+        let testArea = new World.Area('TestArea', 2, 2);
+        const areaTile = testArea.getTileXY(0, 0);
         const tileLevel = RG.FACT.createLevel('ruins', cols, rows);
         areaTile.setLevel(tileLevel);
         expect(areaTile.isNorthEdge()).to.equal(true);
-        expect(areaTile.isSouthEdge()).to.equal(true);
-        expect(areaTile.isEastEdge()).to.equal(true);
+        expect(areaTile.isSouthEdge()).to.equal(false);
+        expect(areaTile.isEastEdge()).to.equal(false);
         expect(areaTile.isWestEdge()).to.equal(true);
         expect(areaTile.cols).to.equal(cols);
 
         testArea = new World.Area('TestArea', 3, 3);
-        const tile11 = new World.AreaTile(1, 1, testArea);
+        const tile11 = testArea.getTileXY(1, 1);
         const level11 = RG.FACT.createLevel('ruins', cols, rows);
         tile11.setLevel(level11);
         expect(tile11.isNorthEdge()).to.equal(false);
@@ -106,7 +106,7 @@ describe('World.AreaTile', () => {
     });
 
     it('can be serialized to JSON', () => {
-        const testArea = new World.Area('TestArea', 1, 2);
+        const testArea = new World.Area('TestArea', 2, 2);
         const areaTile = new World.AreaTile(0, 1, testArea);
         const tileLevel = RG.FACT.createLevel('ruins', 10, 10);
         areaTile.setLevel(tileLevel);
@@ -133,7 +133,7 @@ describe('World.Area', () => {
     });
 
     it('can be serialized to JSON', () => {
-        const area = new World.Area('SwampArea', 1, 2);
+        const area = new World.Area('SwampArea', 2, 2);
         const json = area.toJSON();
         expect(json.tiles[0][0]).to.exist;
         expect(json.tiles[0][1]).to.exist;
@@ -236,6 +236,21 @@ describe('World.BattleZone', () => {
         const levels = bz.toJSON().levels;
         expect(bz.toJSON().levels).to.have.length(1);
         expect(levels[0]).to.equal(arena.getID());
+    });
+});
+
+describe('World.Shop', () => {
+    it('can be set abandoned', () => {
+        const parser = RG.ObjectShell.getParser();
+        const shopLevel = RG.FACT.createLevel('town', 80, 40, {nShops: 1});
+        const shop = new RG.World.Shop();
+        const keeper = parser.createActor('shopkeeper');
+        shop.setLevel(shopLevel);
+        shop.setShopkeeper(keeper);
+        shop.setShopAbandoned();
+
+        expect(shop.getShopkeeper()).to.be.null;
+
     });
 });
 
