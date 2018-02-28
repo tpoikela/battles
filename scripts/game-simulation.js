@@ -14,6 +14,9 @@ const PlayerDriver = require('../tests/helpers/player-driver');
 const fs = require('fs');
 const cmdLineArgs = require('command-line-args');
 
+
+function main() {
+
 // Parse command line args
 const optDefs = [
   {name: 'name', type: String,
@@ -36,7 +39,7 @@ const optDefs = [
 let opts = cmdLineArgs(optDefs);
 opts = getDefaults(opts);
 if (opts.help) {
-    usage();
+    usage(optDefs);
 }
 
 ROT.RNG.setSeed(0);
@@ -59,15 +62,18 @@ let newGame = gameFact.createNewGame(conf);
 // To load previous stage quickly
 const loadGame = opts.load ? true : false;
 const pName = opts.name;
-let loadTurn = opts.loadturn ? opts.loadturn : 0;
+const loadTurn = opts.loadturn ? opts.loadturn : 0;
 const saveGameEnabled = !opts.nosave;
 let driver = new PlayerDriver();
-const fname = `save_dumps/${pName}_temp_${loadTurn}.json`;
+const fname = getFilename(pName, loadTurn);
+// const fname = `save_dumps/${pName}_temp_${loadTurn}.json`;
 // const fname = 'save_dumps/1519583443971_saveGame_Tunas.json';
 // const fname = 'save_dumps/bsave_1519586656174_saveGame_Tunas.json';
 // const fname = 'save_dumps/remove_bug.json';
 
 if (loadGame) {
+    [newGame, driver] = restoreGameFromFile(fname);
+    /*
     const buf = fs.readFileSync(fname);
     // const jsonParsed = JSON.parse(buf.toString());
     const jsonParsed = JSON.parse(buf);
@@ -82,6 +88,7 @@ if (loadGame) {
     }
     const fromJSON = new RG.Game.FromJSON();
     newGame = fromJSON.createGame(jsonParsed);
+    */
     console.log(`===== Game Loaded from turn ${loadTurn}`);
 }
 
@@ -115,7 +122,9 @@ try {
         if (saveGameEnabled) {
             if (nTurn > startI && (nTurn % (savePeriod) === 0)) {
                 if (maxTurns >= 1000) { // Don't save for short games
-                    [newGame, driver] = saveGameToFile(nTurn, newGame, driver);
+                    const fname = getFilename(pName, nTurn);
+                    saveGameToFile(fname, nTurn, newGame, driver);
+                    [newGame, driver] = restoreGameFromFile(fname);
                     driver.screenPeriod = opts.framePeriod;
                 }
             }
@@ -160,6 +169,9 @@ console.log('Final state saved to file ' + finalFname);
 
 catcher.hasNotify = false;
 console.log('===== End Game simulation =====');
+}
+
+main();
 
 //---------------------------------------------------------------------------
 // END OF SCRIPT, HELPER FUNCTIONS
@@ -173,31 +185,37 @@ function getDefaults(opt) {
     return obj;
 }
 
+function getFilename(pName, nTurn) {
+    const fname = `save_dumps/${pName}_temp_${nTurn}.json`;
+    return fname;
+}
+
 // Saves the game, returns new game and driver objects
 // ie {newgame, newdriver} = saveGameToFile(game, driver)
-function saveGameToFile(nTurn, game, driver) {
+function saveGameToFile(fname, nTurn, game, driver) {
     console.log('\tsaveGameEnabled. Turn check OK.');
     console.log('\tDumping chunk load status now:');
     game.getChunkManager().debugPrint();
 
-    const fname = `save_dumps/${pName}_temp_${nTurn}.json`;
     const json = game.toJSON();
     json.nTurns = nTurn;
     json.driver = driver.toJSON();
     const jsonStr = JSON.stringify(json);
     console.log(`Saving/restoring game to ${fname}`);
     fs.writeFileSync(fname, jsonStr);
-    const jsonParsed = JSON.parse(jsonStr);
-
-    const fromJSON = new RG.Game.FromJSON();
-    game = fromJSON.createGame(jsonParsed);
-    driver = PlayerDriver.fromJSON(jsonParsed.driver);
-    driver.setPlayer(newGame.getPlayer());
-
-    return [newGame, driver];
 }
 
-function usage() {
+function restoreGameFromFile(fname) {
+    const buf = fs.readFileSync(fname);
+    const jsonParsed = JSON.parse(buf);
+    const fromJSON = new RG.Game.FromJSON();
+    const game = fromJSON.createGame(jsonParsed);
+    const driver = PlayerDriver.fromJSON(jsonParsed.driver);
+    driver.setPlayer(game.getPlayer());
+    return [game, driver];
+}
+
+function usage(optDefs) {
     optDefs.forEach(opt => {
         const str = JSON.stringify(opt);
         console.log(str);
