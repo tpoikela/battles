@@ -251,6 +251,8 @@ describe('World.Shop', () => {
 
         expect(shop.getShopkeeper()).to.be.null;
 
+        const json = shop.toJSON();
+        expect(json.level).to.equal(shopLevel.getID());
     });
 });
 
