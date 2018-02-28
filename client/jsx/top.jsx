@@ -377,15 +377,11 @@ class BattlesTop extends Component {
     deleteGame(name) {
         if (name) {
             const persist = new Persist(name);
-            try {
-                persist.deleteStorage();
+            persist.deleteStorage(() => {
                 this.gameSave.deletePlayer(name);
                 this.savedPlayerList = this.gameSave.getPlayersAsList();
                 this.setState({render: true, selectedGame: null});
-            }
-            catch (e) {
-                console.error(e.message);
-            }
+            });
         }
     }
 
