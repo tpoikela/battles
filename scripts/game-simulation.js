@@ -181,7 +181,7 @@ function saveGameToFile(nTurn, game, driver) {
     game.getChunkManager().debugPrint();
 
     const fname = `save_dumps/${pName}_temp_${nTurn}.json`;
-    const json = newGame.toJSON();
+    const json = game.toJSON();
     json.nTurns = nTurn;
     json.driver = driver.toJSON();
     const jsonStr = JSON.stringify(json);
@@ -190,7 +190,7 @@ function saveGameToFile(nTurn, game, driver) {
     const jsonParsed = JSON.parse(jsonStr);
 
     const fromJSON = new RG.Game.FromJSON();
-    newGame = fromJSON.createGame(jsonParsed);
+    game = fromJSON.createGame(jsonParsed);
     driver = PlayerDriver.fromJSON(jsonParsed.driver);
     driver.setPlayer(newGame.getPlayer());
 
