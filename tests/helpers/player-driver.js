@@ -41,6 +41,7 @@ const PlayerDriver = function(player) {
         exitZone: false,
         path: [],
         stairsStack: [],
+        tilesVisited: {},
         visitedStairs: {},
         visited: {} // cell: id,x,y
     };
@@ -149,7 +150,6 @@ const PlayerDriver = function(player) {
             console.log('ZERO EXPLORE TURNS NOW');
         }
 
-        const exploreDone = this.state.exploreTurns <= 0;
         if (this.state.path.length === 0) {
             const nX = pX;
             const nY = pY - 1;
@@ -159,7 +159,7 @@ const PlayerDriver = function(player) {
             else if (this.shouldReturnBackUp()) {
                 this.setState({useStairs: true}, 'Return up true');
             }
-            else if (exploreDone && !this.movingToConnect() && this.newStairsSeen(visible)) {
+            else if (this.levelExploredEnough(visible)) {
                 this.setState({useStairs: true}, 'new Stairs seen');
                 this.state.exploreTurns = this.maxExploreTurns;
             }
@@ -643,6 +643,29 @@ const PlayerDriver = function(player) {
         });
 
     };
+
+    this.levelExploredEnough = visible => {
+        const exploreDone = this.state.exploreTurns <= 0;
+        return (
+            exploreDone && !this.movingToConnect() &&
+            this.newStairsSeen(visible)
+        );
+    };
+
+    this.hasNotify = true;
+    this.notify = (evtName, args) => {
+        if (evtName === RG.EVT_TILE_CHANGED) {
+            const {actor, target} = args;
+            if (actor === player) {
+                const id = target.getID();
+                if (!this.state.tilesVisited[id]) {
+                    this.state.tilesVisited[id] = 0;
+                }
+                this.state.tilesVisited[id] += 1;
+            }
+        }
+    };
+    RG.POOL.listenEvent(RG.EVT_TILE_CHANGED, this);
 
 };
 
