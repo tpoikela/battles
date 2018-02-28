@@ -163,7 +163,12 @@ function connectLevels(levels) {
         if (nl < nLevels - 1) {
             const targetDown = levels[nl + 1];
             const stairsDown = new Stairs('stairsDown', src, targetDown);
-            const stairCell = src.getFreeRandCell();
+
+            let stairCell = src.getFreeRandCell();
+            while (stairCell.hasConnection()) {
+                stairCell = src.getFreeRandCell();
+            }
+
             src.addStairs(stairsDown, stairCell.getX(), stairCell.getY());
             arrStairsDown.push(stairsDown);
         }
@@ -172,7 +177,12 @@ function connectLevels(levels) {
         if (nl > 0) {
             const targetUp = levels[nl - 1];
             const stairsUp = new Stairs('stairsUp', src, targetUp);
-            const stairCell = src.getFreeRandCell();
+
+            let stairCell = src.getFreeRandCell();
+            while (stairCell.hasConnection()) {
+                stairCell = src.getFreeRandCell();
+            }
+
             src.addStairs(stairsUp, stairCell.getX(), stairCell.getY());
             arrStairsUp.push(stairsUp);
         }
