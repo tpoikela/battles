@@ -3,6 +3,8 @@
 
 const RG = require('./rg.js');
 
+import ChunkManager from './chunk-manager';
+
 RG.Verify = require('./verify.js');
 
 RG.EventPool = require('./eventpool');
@@ -44,6 +46,8 @@ RG.Overworld = require('./overworld.js');
 RG.Game.FromJSON = require('./game.fromjson.js');
 
 RG.Factory.Game = require('./factory.game.js');
+
+RG.ChunkManager = ChunkManager;
 
 module.exports = RG;
 
