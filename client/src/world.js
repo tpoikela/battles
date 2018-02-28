@@ -1503,10 +1503,10 @@ RG.World.Shop = function() {
         if (this._shopkeeper) {
             if (args.actor.getID() === this._shopkeeper.getID()) {
                 this.setShopAbandoned();
+                RG.POOL.removeListener(this);
             }
         }
     };
-    RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
 };
 
 RG.World.Shop.prototype.getShopkeeper = function() {
@@ -1515,6 +1515,7 @@ RG.World.Shop.prototype.getShopkeeper = function() {
 
 RG.World.Shop.prototype.setShopkeeper = function(keeper) {
     this._shopkeeper = keeper;
+    RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
 };
 
 RG.World.Shop.prototype.setShopAbandoned = function() {
@@ -1562,10 +1563,15 @@ RG.World.Shop.prototype.refreshShopItems = function(newItems) {
 };
 
 RG.World.Shop.prototype.toJSON = function() {
-    return {
+    const obj = {
         isAbandoned: this._isAbandoned,
-        shopkeeper: this._shopkeeper.getID()
+        level: this._level.getID(),
+        coord: this._coord
     };
+    if (!this._isAbandoned) {
+        obj.shopkeeper = this._shopkeeper.getID();
+    }
+    return obj;
 };
 
 module.exports = RG.World;
