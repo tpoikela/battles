@@ -2,6 +2,7 @@
 /* Contains all logic to interface with the IndexDB. */
 
 const IDB_VERSION = 1;
+const localforage = require('localforage');
 
 function connectToIDB(name, version) {
     return new Promise((resolve, reject) => {
@@ -70,8 +71,17 @@ async function operateWithIDB(store, operation, data) {
     }
 }
 
-module.exports = function Persist(storeName) {
-    this.fromStorage = () => operateWithIDB(storeName, 'GET', null);
-    this.toStorage = data => operateWithIDB(storeName, 'PUT', data);
-    this.deleteStorage = () => operateWithIDB(storeName, 'DELETE');
+module.exports = function Persist(playerName) {
+    // this.fromStorage = () => operateWithIDB(playerName, 'GET', null);
+    this.fromStorage = (cb) => {
+        return localforage.getItem(playerName, cb);
+    };
+    // this.toStorage = data => operateWithIDB(playerName, 'PUT', data);
+    this.toStorage = (data, cb) => {
+        localforage.setItem(playerName, data, cb);
+    };
+    // this.deleteStorage = () => operateWithIDB(playerName, 'DELETE');
+    this.deleteStorage = cb => {
+        localforage.removeItem(playerName, cb);
+    };
 };

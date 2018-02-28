@@ -285,7 +285,17 @@ class BattlesTop extends Component {
         const persist = new Persist(name);
         this.setState({saveInProgress: true});
 
-        this.gameToJSON().then(persist.toStorage)
+        this.gameToJSON().then(json => {
+            persist.toStorage(json, () => {
+                this.gameSave.save(this.game, this.gameConf);
+                this.savedPlayerList = this.gameSave.getPlayersAsList();
+                RG.gameMsg('Your progress has been saved.');
+                this.setState({saveInProgress: false});
+            });
+        });
+
+
+        /* this.gameToJSON().then(persist.toStorage)
             .then(() => {
                 this.gameSave.save(this.game, this.gameConf);
                 this.savedPlayerList = this.gameSave.getPlayersAsList();
@@ -295,17 +305,13 @@ class BattlesTop extends Component {
             .catch(() => {
                 RG.gameDanger('Cannot save the game. Check devtools console.');
                 this.setState({render: true, saveInProgress: false});
-            });
+            });*/
     }
 
     gameToJSON() {
         return new Promise((resolve, reject) => {
             try {
                 const json = this.game.toJSON();
-                // console.log(JSON.stringify(json, null, ' '));
-                console.log('Verifying save data now');
-                // RG.Verify.verifySaveData(json, true);
-                console.log('Verification done OK');
                 resolve(json);
             }
             catch (e) {
@@ -324,12 +330,12 @@ class BattlesTop extends Component {
                 const fromJSON = new RG.Game.FromJSON();
 
                 // Pick JSON matching the selected player name
-                let json = null;
-                result.forEach(res => {
+                const json = result;
+                /* result.forEach(res => {
                     if (res.player.name === playerName) {
                         json = res;
                     }
-                });
+                });*/
 
                 const restGame = fromJSON.createGame(json);
                 const player = restGame.getPlayer();
