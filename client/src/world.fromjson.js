@@ -14,8 +14,9 @@ const debug = require('debug')('bitn:WorldFromJSON');
  */
 export default class WorldFromJSON {
 
-    constructor(id2level) {
+    constructor(id2level, id2entity) {
         this.id2level = id2level;
+        this.id2entity = id2entity;
         this._conf = new RG.Factory.ConfStack();
         this._verif = new RG.Verify.Conf('WorldFromJSON');
         this.worldElemByID = {}; // Stores world elements by ID
@@ -85,6 +86,7 @@ export default class WorldFromJSON {
     createWorldFromJSON(worldJSON) {
         const fact = new RG.Factory.World();
         fact.setId2Level(this.id2level);
+        fact.id2entity = this.id2entity;
         this.fact = fact;
 
         this.verify('createWorld', worldJSON, ['name', 'nAreas']);
