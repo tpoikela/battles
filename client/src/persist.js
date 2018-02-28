@@ -82,6 +82,6 @@ module.exports = function Persist(playerName) {
     };
     // this.deleteStorage = () => operateWithIDB(playerName, 'DELETE');
     this.deleteStorage = cb => {
-        localforage.removeItem(playerName, cb);
+        localforage.removeItem(playerName).then(cb);
     };
 };
