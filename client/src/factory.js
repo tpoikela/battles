@@ -1091,6 +1091,7 @@ RG.Factory.World = function() {
     // example, after restore game, no new levels should be created
     this.id2level = {};
     this.id2levelSet = false;
+    this.id2entity = {};
 
     //----------------------------------------------------------------------
     // FUNCTIONS
@@ -1854,6 +1855,23 @@ RG.Factory.World = function() {
         else if (conf.hasOwnProperty('entrance')) {
             quarter.setEntranceLocation(conf.entrance);
         }
+
+        // Only during restore game
+        if (conf.hasOwnProperty('shops')) {
+            conf.shops.forEach(shop => {
+                const shopObj = new RG.World.Shop();
+                shopObj.setLevel(this.id2level[shop.level]);
+                shopObj.setCoord(shop.coord);
+                shopObj._isAbandoned = shop.isAbandoned;
+                if (!shop.isAbandoned) {
+                    const keeper = this.id2entity[shop.shopkeeper];
+                    shopObj.setShopkeeper(keeper);
+                }
+                console.log('Restored shop OK');
+                quarter.addShop(shopObj);
+            });
+        }
+
         this.popScope(conf);
         return quarter;
     };
