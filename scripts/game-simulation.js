@@ -143,11 +143,17 @@ catch (e) {
     fs.writeFileSync(fname, jsonStr);
 }
 
+const nTiles = Object.keys(driver.state.tilesVisited).length;
+console.log(`Player visited ${nTiles} different tiles`);
+
 console.log('Simulation OK. Saving final state');
 const json = newGame.toJSON();
 const jsonStr = JSON.stringify(json);
 
 const nTurns = driver.nTurns;
+json.nTurns = nTurns;
+json.driver = driver;
+
 const finalFname = `save_dumps/${pName}_game_final_${nTurns}.json`;
 fs.writeFileSync(finalFname, jsonStr);
 console.log('Final state saved to file ' + finalFname);
