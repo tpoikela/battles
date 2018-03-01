@@ -73,7 +73,7 @@ else { // Otherwise just restore
     }
     if (fs.existsSync(fname)) {
         [newGame, driver] = restoreGameFromFile(fname);
-        console.log(`===== Game Loaded from turn ${loadTurn}`);
+        console.log(`===== Game Loaded from turn ${driver.nTurns}`);
     }
     else {
         const err = new Error(`${fname} does not exist.`);
