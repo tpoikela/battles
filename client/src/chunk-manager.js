@@ -66,10 +66,14 @@ export default class ChunkManager {
         this.onDiskDistY = sizeY;
     }
 
+    /* Must be called when player enters a new tile. Loads/unloads the tiles
+     * based on old & new tile coordinates. */
     setPlayerTile(px, py, oldX, oldY) {
         const moveDir = this.getMoveDir(px, py, oldX, oldY);
-        // printTileConnections('setPlayerTile XXX',
-        // this.area.getTiles()[1][0], 4);
+        if (debug.enabled) {
+            debug(`## setPlayerTile START ${oldX},${oldY}->${px},${py}`);
+            this.debugPrint();
+        }
         const loadedTiles = [];
         for (let x = 0; x < this.sizeX; x++) {
             for (let y = 0; y < this.sizeY; y++) {
@@ -86,6 +90,11 @@ export default class ChunkManager {
         }
         if (loadedTiles.length > 0) {
             this.loadTiles(px, py, loadedTiles, moveDir);
+        }
+
+        if (debug.enabled) {
+            debug(`## setPlayerTile END ${oldX},${oldY}->${px},${py}`);
+            this.debugPrint();
         }
     }
 
@@ -151,9 +160,14 @@ export default class ChunkManager {
 
         // Unload battles associated with this tile
         const battleLevel = areaTiles[tx][ty].getLevel();
-        debug(`\tUnloading tile ${tx},${ty}, id: ${battleLevel.getID()}`);
+        debug(`\tUnloading battles @ ${tx},${ty}, id: ${battleLevel.getID()}`);
         const gameMaster = this.game.getGameMaster();
         gameMaster.unloadBattles(battleLevel);
+
+        if (debug.enabled) {
+            const lStr = areaTiles[tx][ty].getLevels().map(l => l.getID());
+            debug(`\t-- Unloading levels ${lStr}`);
+        }
 
         areaTiles[tx][ty] = areaTiles[tx][ty].toJSON();
 
@@ -316,7 +330,17 @@ export default class ChunkManager {
         result += '\n\tNum loaded: ' + this.getNumInState(LOAD.LOADED);
         result += '\n\tNum serialized: ' + this.getNumInState(LOAD.JSON);
         result += '\n\tNum on disk: ' + this.getNumInState(LOAD.ON_DISK);
-        return result;
+        result += '\n';
+
+        for (let y = 0; y < this.area._sizeY; y++) {
+            for (let x = 0; x < this.area._sizeX; x++) {
+                const isCreated = this.area.zonesCreated[x + ',' + y];
+                const val = isCreated ? ' X ' : ' - ';
+                result += `${x},${y}: ` + val + '|';
+            }
+            result += '\n';
+        }
+        console.log(result);
     }
 
     /* Converts current state into a single char. */
