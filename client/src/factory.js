@@ -1865,7 +1865,14 @@ RG.Factory.World = function() {
                 shopObj._isAbandoned = shop.isAbandoned;
                 if (!shop.isAbandoned) {
                     const keeper = this.id2entity[shop.shopkeeper];
-                    shopObj.setShopkeeper(keeper);
+                    if (keeper) {
+                        shopObj.setShopkeeper(keeper);
+                    }
+                    else {
+                        const id = shop.shopkeeper;
+                        RG.err('Factory', 'createCityQuarter',
+                            `Cannot find shopkeeper ID ${id}`);
+                    }
                 }
                 console.log('Restored shop OK');
                 quarter.addShop(shopObj);
