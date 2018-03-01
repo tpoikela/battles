@@ -101,10 +101,10 @@ export default class WorldFromJSON {
         for (let i = 0; i < worldJSON.nAreas; i++) {
             const areaJSON = worldJSON.area[i];
             this.printKeys('areaJSON keys', areaJSON);
-            const area = this.createArea(areaJSON);
+            const area = this.restoreAreaFromJSON(areaJSON);
 
             if (areaJSON.zonesCreated) { // Only during restore game
-                this.restoreCreatedZones(world, area, areaJSON);
+                this.restoreCreatedZones(world, area);
             }
 
             world.addArea(area);
@@ -115,9 +115,9 @@ export default class WorldFromJSON {
         return world;
     }
 
-    /* Creates an area which can be added to a world. */
-    createArea(areaJSON) {
-        this.verify('createArea', areaJSON,
+    /* Restores World.Area from JSON. */
+    restoreAreaFromJSON(areaJSON) {
+        this.verify('restoreAreaFromJSON', areaJSON,
             ['name', 'maxX', 'maxY']);
         this.pushScope(areaJSON);
 
@@ -128,6 +128,10 @@ export default class WorldFromJSON {
             areaLevels);
         area.setConf(areaJSON);
         area.setHierName(this.getHierName());
+
+        // Restore zone state variables
+        area.tilesLoaded = areaJSON.tilesLoaded;
+        area.zonesCreated = areaJSON.zonesCreated;
 
         this.setTileJSONForUnloadedTiles(area, areaJSON);
 
@@ -145,11 +149,11 @@ export default class WorldFromJSON {
         return area;
     }
 
-    restoreCreatedZones(world, area, areaJSON) {
-        Object.keys(areaJSON.zonesCreated).forEach(xy => {
+    restoreCreatedZones(world, area) {
+        Object.keys(area.zonesCreated).forEach(xy => {
             const [xStr, yStr] = xy.split(',');
             const [x, y] = [parseInt(xStr, 10), parseInt(yStr, 10)];
-            if (areaJSON.zonesCreated[xy] && areaJSON.tilesLoaded[x][y]) {
+            if (area.zonesCreated[xy] && area.tilesLoaded[x][y]) {
                 this.dbg(`\tRestoring created zones for tile ${x},${y}`);
                 // >>>>>>>>>>>>>>>>>>>>>> Factory.World START
                 this.fact.createZonesForTile(world, area, x, y);
