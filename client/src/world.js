@@ -1283,7 +1283,7 @@ RG.extend2(RG.World.City, RG.World.ZoneBase);
 /* A battle zone encapsulates battle construct, armies and the battle level. */
 RG.World.BattleZone = function(name) {
     RG.World.ZoneBase.call(this, name);
-    this.setType('battle');
+    this.setType('battlezone');
 
     this._levels = [];
 
@@ -1292,10 +1292,18 @@ RG.World.BattleZone = function(name) {
 
     this.toJSON = function() {
         const json = RG.World.ZoneBase.prototype.toJSON.call(this);
+        const nLevels = this._levels.length;
         const obj = {
-          nLevels: this._levels.length,
+          nLevels,
           levels: this._levels.map(l => l.getID())
         };
+        if (nLevels === 0) {
+            RG.err('World.BattleZone', 'toJSON',
+                `Bz ${this.getName()} called without levels`);
+        }
+        if (this._levels[0].getID() === 1360) {
+            console.log('XYZZZ BattleZone of ID 1360 toJSON()');
+        }
         return Object.assign(obj, json);
     };
 
