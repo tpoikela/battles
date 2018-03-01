@@ -368,6 +368,7 @@ RG.System.Missile = function(compTypes) {
         const targetX = mComp.getTargetX();
         const targetY = mComp.getTargetY();
         const targetCell = map.getCell(targetX, targetY);
+        const firedMsg = this._formatFiredMsg(ent, attacker);
 
         if (targetCell.hasProp('actors')) {
             const targetActor = targetCell.getProp('actors')[0];
@@ -392,7 +393,7 @@ RG.System.Missile = function(compTypes) {
 
                 this.finishMissileFlight(ent, mComp, prevCell);
                 RG.debug(this, 'Stopped missile to wall');
-                shownMsg = ent.getName() + ' thuds to the wall';
+                shownMsg = firedMsg + ' thuds to the wall';
             }
             else if (currCell.hasProp('actors')) {
                 const actor = currCell.getProp('actors')[0];
@@ -406,7 +407,7 @@ RG.System.Missile = function(compTypes) {
                     damageComp.setDamage(mComp.getDamage());
                     actor.add('Damage', damageComp);
                     RG.debug(this, 'Hit an actor');
-                    shownMsg = ent.getName() + ' hits ' + actor.getName();
+                    shownMsg = firedMsg + ' hits ' + actor.getName();
 
                     if (ent.getType() === 'missile') {
                         addSkillsExp(attacker, 'Throwing', 1);
@@ -424,10 +425,10 @@ RG.System.Missile = function(compTypes) {
                     const actor = currCell.getFirstActor();
                     if (actor) {
                         const targetName = actor.getName();
-                        shownMsg = ent.getName() + ' misses ' + targetName;
+                        shownMsg = firedMsg + ' misses ' + targetName;
                     }
                     else {
-                        shownMsg = ent.getName() + ' misses the target';
+                        shownMsg = firedMsg + ' misses the target';
                     }
                 }
                 else if (!mComp.hasRange()) {
@@ -485,6 +486,12 @@ RG.System.Missile = function(compTypes) {
         };
         const animComp = new RG.Component.Animation(args);
         ent.add('Animation', animComp);
+    };
+
+    this._formatFiredMsg = (ent, att) => {
+        let verb = 'thrown';
+        if (ent.has('Ammo')) {verb = 'shot';}
+        return `${ent.getName()} ${verb} by ${att.getName()}`;
     };
 
     /* Returns true if the target was hit.*/
