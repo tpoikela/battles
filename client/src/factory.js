@@ -1870,8 +1870,10 @@ RG.Factory.World = function() {
                     }
                     else {
                         const id = shop.shopkeeper;
+                        const ids = Object.keys(this.id2entity);
+                        const str = `Possible IDs: ${ids}`;
                         RG.err('Factory', 'createCityQuarter',
-                            `Cannot find shopkeeper ID ${id}`);
+                            `Cannot find shopkeeper ID ${id}. ${str}`);
                     }
                 }
                 console.log('Restored shop OK');
