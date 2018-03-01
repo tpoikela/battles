@@ -19,6 +19,7 @@ function main() {
 
 // Parse command line args
 const optDefs = [
+  {name: 'debug', alias: 'd', type: Boolean, descr: 'Run in debug mode' },
   {name: 'file', type: String, descr: 'File to load' },
   {name: 'frame_period', type: Number, descr: 'Print every Nth frame' },
   {name: 'help', alias: 'h', type: Boolean, descr: 'Prints help message'},
@@ -26,6 +27,7 @@ const optDefs = [
   {name: 'loadturn', type: Number, descr: 'Num of turns to load (optional)'},
   {name: 'maxturns', type: Number, descr: 'Turns to simulate'},
   {name: 'name', type: String, descr: 'Name of the character' },
+  {name: 'nomsg', type: Boolean, descr: 'Disables game messages'},
   {name: 'nosave', type: Boolean, descr: 'Disables save during simulation'},
   {name: 'save_period', type: Number, descr: 'Number of turns between saves'},
   {name: 'seed', type: Number, descr: 'Seed for the RNGs'}
@@ -49,6 +51,7 @@ const loadTurn = opts.loadturn ? opts.loadturn : 0;
 
 // Create new game only if not loading
 if (!opts.load && !opts.file) {
+
     const conf = {
         playMode: 'OverWorld',
         playerLevel: 'Medium',
@@ -89,7 +92,10 @@ const saveGameEnabled = !opts.nosave;
 driver.screenPeriod = opts.framePeriod;
 
 console.log('===== Begin Game simulation =====');
-const catcher = new RGTest.MsgCatcher();
+let catcher = null;
+if (!opts.nomsg) {
+    catcher = new RGTest.MsgCatcher();
+}
 
 const maxTurns = driver.nTurns + opts.maxturns;
 const savePeriod = opts.save_period ? opts.save_period : 2000;
@@ -148,7 +154,9 @@ const finalFname = `save_dumps/${pName}_game_final_${nTurns}.json`;
 saveGameToFile(finalFname, nTurns, newGame, driver);
 console.log('Final state saved to file ' + finalFname);
 
-catcher.hasNotify = false;
+if (catcher) {
+    catcher.hasNotify = false;
+}
 console.log('===== End Game simulation =====');
 }
 
@@ -182,6 +190,7 @@ function saveGameToFile(fname, nTurn, game, driver) {
     const json = game.toJSON();
     json.nTurns = driver.nTurns;
     json.driver = driver.toJSON();
+    json.rotRNGState = ROT.RNG.getState();
     const jsonStr = JSON.stringify(json);
     console.log(`Saving/restoring game to ${fname}`);
     fs.writeFileSync(fname, jsonStr);
@@ -201,6 +210,9 @@ function restoreGameFromFile(fname) {
     }
     else {
         throw new Error('driver could not be restored.');
+    }
+    if (jsonParsed.rotRNGState) {
+        ROT.RNG.setState(jsonParsed.rotRNGState);
     }
     return [game, driver];
 }
