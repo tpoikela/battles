@@ -27,7 +27,8 @@ const optDefs = [
   {name: 'maxturns', type: Number, descr: 'Turns to simulate'},
   {name: 'name', type: String, descr: 'Name of the character' },
   {name: 'nosave', type: Boolean, descr: 'Disables save during simulation'},
-  {name: 'save_period', type: Number, descr: 'Number of turns between saves'}
+  {name: 'save_period', type: Number, descr: 'Number of turns between saves'},
+  {name: 'seed', type: Number, descr: 'Seed for the RNGs'}
 ];
 let opts = cmdLineArgs(optDefs);
 opts = getDefaults(opts);
@@ -35,9 +36,9 @@ if (opts.help) {
     usage(optDefs);
 }
 
-ROT.RNG.setSeed(0);
-RG.Rand = new RG.Random();
-RG.RAND.setSeed(0);
+ROT.RNG.setSeed(opts.seed);
+RG.RAND = new RG.Random();
+RG.RAND.setSeed(opts.seed);
 
 let newGame = null;
 let driver = null;
@@ -162,6 +163,7 @@ function getDefaults(opt) {
     obj.name = obj.name || 'Xanthur';
     obj.maxturns = obj.maxturns || 10000;
     obj.framePeriod = obj.frame_period || 1;
+    obj.seed = obj.seed || 0;
     return obj;
 }
 
@@ -207,7 +209,9 @@ function usage(optDefs) {
     optDefs.forEach(opt => {
         let type = opt.type.toString();
         type = (/(\w+)\(\)/).exec(type)[1];
-        const str = `--${opt.name}:\t<${type}>\t${opt.descr}`;
+
+        const ind = opt.name.length >= 6 ? '\t' : '\t\t';
+        const str = `--${opt.name}:${ind}<${type}>\t${opt.descr}`;
         console.log(str);
     });
     process.exit(0);
