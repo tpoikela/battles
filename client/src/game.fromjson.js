@@ -447,6 +447,9 @@ RG.Game.FromJSON = function() {
         entity.setID(obj.id);
         id2entity[entity.getID()] = entity;
         id2EntityJson[obj.id] = obj;
+        if (obj.id === 15162) {
+            console.log('Restored ' + JSON.stringify(obj));
+        }
         return entity;
     };
 
@@ -834,6 +837,7 @@ RG.Game.FromJSON = function() {
         const area = game.getCurrentWorld().getCurrentArea();
         const fact = new RG.Factory.World();
         fact.setId2Level(id2level);
+        fact.id2entity = id2entity;
 
         jsonTiles.forEach(json => {
             const [tx, ty] = [json.x, json.y];
