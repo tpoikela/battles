@@ -1876,7 +1876,6 @@ RG.Factory.World = function() {
                             `Cannot find shopkeeper ID ${id}. ${str}`);
                     }
                 }
-                console.log('Restored shop OK');
                 quarter.addShop(shopObj);
             });
         }
@@ -1888,6 +1887,7 @@ RG.Factory.World = function() {
     this.createBattleZone = conf => {
         this.pushScope(conf);
         const battleZone = new RG.World.BattleZone(conf.name);
+        console.log('XYZ now restoring battle zone ' + conf.name);
         if (!this.id2levelSet) {
             RG.err('Factory', 'createBattleZone',
                 'Can create BattleZones only during restore');
@@ -1895,7 +1895,13 @@ RG.Factory.World = function() {
         for (let i = 0; i < conf.nLevels; i++) {
             const id = conf.levels[i];
             const level = this.id2level[id];
-            battleZone.addLevel(level);
+            if (level) {
+                battleZone.addLevel(level);
+            }
+            else {
+                RG.err('Factory', 'createBattleZone',
+                    `Cannot find level ID ${id} for BattleZone`);
+            }
         }
         this.popScope(conf);
         return battleZone;
@@ -1912,6 +1918,7 @@ RG.Factory.World = function() {
         const y = conf.y;
         const tile = area.getTileXY(x, y);
         const tileLevel = tile.getLevel();
+        debugPrintConfAndTile(conf, tileLevel, ' CALL 1');
 
         let tileStairsX = -1;
         let tileStairsY = -1;
@@ -1970,13 +1977,14 @@ RG.Factory.World = function() {
                     name = isDown ? 'stairsDown' : 'stairsUp';
                 }
 
+                debugPrintConfAndTile(conf, tileLevel, ' CALL 2');
                 const tileStairs = new Stairs(name, tileLevel, entryLevel);
                 try {
                     tileLevel.addStairs(tileStairs, tileStairsX, tileStairsY);
                     tileStairs.connect(entryStairs);
                 }
                 catch (e) {
-                    console.log(JSON.stringify(conf));
+                    console.log('Given conf: ' + JSON.stringify(conf));
                     throw e;
                 }
 
@@ -2017,7 +2025,6 @@ RG.Factory.World = function() {
 
     };
 
-
     /* Processes each 'connectToAreaXY' object. Requires current zone and tile
      * level we are connecting to. Connection type depends on the type of zone.
      */
@@ -2055,7 +2062,7 @@ RG.Factory.World = function() {
             }
             else if (typeof zoneStairs.getSrcLevel !== 'function') {
                 const json = JSON.stringify(zoneStairs);
-                RG.err('Factory.World', 'createAreaZoneConnection',
+                RG.err('Factory.World', 'processConnObject',
                     `zoneStairs not a proper stairs object ${json}`);
             }
 
@@ -2087,7 +2094,6 @@ RG.Factory.World = function() {
             RG.err('Factory.World', 'createAreaZoneConnection',
                 `No level found. ${msg}`);
         }
-
     };
 
     /* Creates the actual connection objects such as stairs or passages, and
@@ -2139,6 +2145,7 @@ RG.Factory.World = function() {
         return zoneStairs;
     };
 
+    /* Adds a world ID to the given element. */
     this.addWorldID = function(conf, worldElem) {
       if (!RG.isNullOrUndef([conf.id])) {
           worldElem.setID(conf.id);
@@ -2146,6 +2153,8 @@ RG.Factory.World = function() {
       this.worldElemByID[worldElem.getID()] = worldElem;
     };
 
+    /* Used for printing debug messages only. Can be enabled with
+     * DEBUG= env var. */
     this.debug = msg => {
         if (debug.enabled) {
             let scope = this.getHierName();
@@ -2154,5 +2163,18 @@ RG.Factory.World = function() {
         }
     };
 };
+
+function debugPrintConfAndTile(conf, tileLevel, tag) {
+    if (conf.name === 'Iron hills') {
+        console.log(tag + ' XXYYZZ Creating iron hills connection now');
+        const tConns = tileLevel.getConnections();
+        const mConns = tConns.filter(c => c.getName() === 'mountain');
+        console.log('\t## Ex. conns: ' + JSON.stringify(mConns));
+        if (mConns.length > 0) {
+            const target = mConns[0].getTargetLevel();
+            console.log('\t## Parent: ' + target.getParent().getName());
+        }
+    }
+}
 
 module.exports = RG.Factory;
