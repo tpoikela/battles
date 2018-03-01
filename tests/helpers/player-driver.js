@@ -153,7 +153,7 @@ const PlayerDriver = function(player) {
         if (this.state.path.length === 0) {
             const nX = pX;
             const nY = pY - 1;
-            if (pCell.hasItems() && this.getLastAction() !== 'pickup') {
+            if (this.shouldPickupFromCell(pCell)) {
                 this.action = 'pickup';
             }
             else if (this.shouldReturnBackUp()) {
@@ -650,6 +650,17 @@ const PlayerDriver = function(player) {
             exploreDone && !this.movingToConnect() &&
             this.newStairsSeen(visible)
         );
+    };
+
+    /* Returns true if player should pick up item from this cell. */
+    this.shouldPickupFromCell = pCell => {
+        if (pCell.hasItems()) {
+            const items = pCell.getPropType(RG.TYPE_ITEM);
+            if (items[0].getType() !== RG.ITEM_CORPSE) {
+                return this.getLastAction() !== 'pickup';
+            }
+        }
+        return false;
     };
 
     this.hasNotify = true;
