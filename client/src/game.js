@@ -413,7 +413,7 @@ RG.Game.Main = function() {
         const obj = {
             engine: {},
             gameMaster: this._master.toJSON(),
-            lastLevelID: RG.Map.Level.prototype.idCount,
+            lastLevelID: RG.Map.Level.idCount,
             lastEntityID: Entity.getIDCount(),
             globalConf: this.globalConf,
             rng: RG.RAND.toJSON(),

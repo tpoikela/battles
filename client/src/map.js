@@ -624,7 +624,7 @@ RG.Map.CellList.prototype.toJSON = function() {
 /* Object for the game levels. Contains map, actors and items.  */
 RG.Map.Level = function() { // {{{2
     let _map = null;
-    let _id = RG.Map.Level.prototype.idCount++;
+    let _id = RG.Map.Level.idCount++;
     let _parent = null; // Reference to dungeon,city,mountain...
 
     // Level properties
@@ -1104,11 +1104,11 @@ RG.Map.Level = function() { // {{{2
     };
 
 }; // }}} Level
-RG.Map.Level.prototype.idCount = 0;
+RG.Map.Level.idCount = 0;
 
 RG.Map.Level.createLevelID = () => {
-    const id = RG.Map.Level.prototype.idCount;
-    RG.Map.Level.prototype.idCount += 1;
+    const id = RG.Map.Level.idCount;
+    RG.Map.Level.idCount += 1;
     return id;
 };
 
