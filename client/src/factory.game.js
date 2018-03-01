@@ -277,6 +277,7 @@ RG.Factory.Game = function() {
           overworld, owConf);
         const worldLevel = worldAndConf[0];
 
+        RG.Map.Level.idCount = 0;
         const splitLevels = RG.Geometry.splitLevel(worldLevel, owConf);
         const midX = Math.floor(owConf.nLevelsX / 2);
 
@@ -309,6 +310,7 @@ RG.Factory.Game = function() {
             }
         }
 
+        RG.Map.Level.idCount = 1000;
         const worldArea = new RG.World.Area('Ravendark', owConf.nLevelsX,
             owConf.nLevelsY, 100, 100, splitLevels);
         worldArea.connectTiles();
