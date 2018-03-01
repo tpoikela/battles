@@ -1,5 +1,6 @@
 
 import WorldFromJSON from './world.fromjson';
+import Entity from './entity';
 
 const RG = require('./rg');
 RG.Game = require('./game');
@@ -383,8 +384,7 @@ RG.Game.FromJSON = function() {
 
         // Duplicate level IDs are very, very bad
         if (!id2level.hasOwnProperty(json.id)) {
-            id2level[json.id] = level;
-            this.dbg(`Added level ${json.id} to id2level`);
+            this.addLevels([level], 'restoreLevel');
         }
         else {
             RG.err('FromJSON', 'restoreLevel',
@@ -447,9 +447,6 @@ RG.Game.FromJSON = function() {
         entity.setID(obj.id);
         id2entity[entity.getID()] = entity;
         id2EntityJson[obj.id] = obj;
-        if (obj.id === 15162) {
-            console.log('Restored ' + JSON.stringify(obj));
-        }
         return entity;
     };
 
@@ -573,8 +570,12 @@ RG.Game.FromJSON = function() {
 
         // Restore the ID counters for levels and entities, otherwise duplicate
         // IDs will appear when new levels/entities are created
-        // RG.Map.Level.prototype.idCount = gameJSON.lastLevelID;
-        // RG.Entity.prototype.idCount = gameJSON.lastEntityID;
+        RG.Map.Level.idCount = gameJSON.lastLevelID;
+        Entity.idCount = gameJSON.lastEntityID;
+        if (debug.enabled) {
+            this.dbg(`Restored level ID count to ${RG.Map.Level.idCount}`);
+            this.dbg(`Restored entity ID count to ${Entity.idCount}`);
+        }
 
         if (gameJSON.rng) {
             RG.RAND = new RG.Random();
@@ -659,7 +660,7 @@ RG.Game.FromJSON = function() {
             }
             else {
                 this.dbg(`FromJSON Battle ${id} not created`);
-                this.dbg(json.battles[id]);
+                this.dbg(JSON.stringify(json.battles[id]));
                 battles[id] = json.battles[id];
             }
         });
@@ -672,7 +673,7 @@ RG.Game.FromJSON = function() {
     };
 
     this.restoreBattle = function(json) {
-        const battleLevel = id2level[json.level];
+        const battleLevel = this.getLevelOrFatal(json.level, 'restoreBattle');
         if (battleLevel) {
             ++this.IND;
             this.dbg(`\trestoreBattle found level ID ${json.level}`);
@@ -697,12 +698,6 @@ RG.Game.FromJSON = function() {
             --this.IND;
             return battle;
         }
-        console.log(JSON.stringify(id2level[json.level]));
-        /*
-        else if (this.chunkMode) {
-            return json;
-        }
-        */
         RG.err('Game.FromJSON', 'restoreBattle',
             `No level for battle ID's ${json.level}`);
         return null;
@@ -780,7 +775,7 @@ RG.Game.FromJSON = function() {
     this.dbg = msg => {
         if (debug.enabled) {
           const indStr = '>'.repeat(this.IND);
-          debug(`${indStr} FromJSON: ${msg}`);
+          debug(`${indStr} ${msg}`);
         }
     };
 
@@ -811,7 +806,7 @@ RG.Game.FromJSON = function() {
      * connections, and attaches them to area in current game. */
     this.createTiles = function(game, jsonTiles) {
         const allLevels = game.getLevels();
-        this.addLevels(allLevels);
+        this.addLevels(allLevels, 'createTiles');
 
         // Levels must be created before the actual world, because the World
         // object contains only level IDs
@@ -867,10 +862,11 @@ RG.Game.FromJSON = function() {
         }
     };
 
-    this.addLevels = levels => {
+    this.addLevels = (levels, msg = '') => {
         levels.forEach(level => {
-            id2level[level.getID()] = level;
-            this.dbg('FromJSON added level ' + level.getID());
+            const id = level.getID();
+            id2level[id] = level;
+            this.dbg(`Added level ${id} to id2level ${msg}`);
         });
     };
 
@@ -883,7 +879,7 @@ RG.Game.FromJSON = function() {
                 targetStairs: conn.getTargetStairs()
             };
         });
-        this.addLevels(levels);
+        this.addLevels(levels, 'connectTileLevels');
         this.connectConnections(conns);
     };
 
@@ -931,6 +927,18 @@ RG.Game.FromJSON = function() {
                     `Exp. ${exp} levels, after restore ${nLevels}`);
             }
         }
+    };
+
+    /* Returns the level with given ID. Or throws an error if the level is not
+     * found. */
+    this.getLevelOrFatal = (id, funcName) => {
+        if (id2level.hasOwnProperty(id)) {
+            return id2level[id];
+        }
+        let msg = `No level with ID ${id}.`;
+        msg += ` Available: ${Object.keys(id2level)}`;
+        RG.err('Game.FromJSON', funcName, msg);
+        return null;
     };
 
 };
