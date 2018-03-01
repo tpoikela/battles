@@ -655,7 +655,7 @@ const PlayerDriver = function(player) {
     /* Returns true if player should pick up item from this cell. */
     this.shouldPickupFromCell = pCell => {
         if (pCell.hasItems()) {
-            const items = pCell.getPropType(RG.TYPE_ITEM);
+            const items = pCell.getItems();
             if (items[0].getType() !== RG.ITEM_CORPSE) {
                 return this.getLastAction() !== 'pickup';
             }
