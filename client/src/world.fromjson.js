@@ -155,11 +155,24 @@ export default class WorldFromJSON {
             const [x, y] = [parseInt(xStr, 10), parseInt(yStr, 10)];
             if (area.zonesCreated[xy] && area.tilesLoaded[x][y]) {
                 this.dbg(`\tRestoring created zones for tile ${x},${y}`);
-                // >>>>>>>>>>>>>>>>>>>>>> Factory.World START
-                this.fact.createZonesForTile(world, area, x, y);
-                // >>>>>>>>>>>>>>>>>>>>>> Factory.World END
+                this.restoreZonesForTile(world, area, x, y);
             }
         });
+    }
+
+    restoreZonesForTile(world, area, x, y) {
+        const worldConf = world.getConf();
+        this.pushScope(worldConf);
+        const areaConf = area.getConf();
+        this.pushScope(areaConf);
+
+        // >>>>>>>>>>>>>>>>>>>>>> Factory.World START
+        this.fact._createAllZones(area, areaConf, x, y);
+        // >>>>>>>>>>>>>>>>>>>>>> Factory.World END
+
+        // Cleanup the scope & conf stacks
+        this.popScope(areaConf);
+        this.popScope(worldConf);
     }
 
     /* Used when creating area from existing levels. Uses id2level lookup table
@@ -218,10 +231,11 @@ export default class WorldFromJSON {
         this.worldElemByID[worldElem.getID()] = worldElem;
     }
 
+    /* For printing debug messages. */
     dbg(msg) {
         if (debug.enabled) {
             const ind = ' '.repeat(this._IND);
-            console.log(ind + msg);
+            console.log(ind + 'WorldFromJSON: ' + msg);
         }
     }
 
