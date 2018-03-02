@@ -871,55 +871,12 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
     this._tiles = [];
 
     this._conf = {};
-    this.setConf = conf => {this._conf = conf;};
-    this.getConf = () => this._conf;
 
     // Control which tile has its zones created
     this.zonesCreated = {};
 
     // Keeps track which tiles contains real AreaTile objects
     this.tilesLoaded = [];
-
-    this._init = function() {
-        // Create the tiles
-        for (let x = 0; x < this._sizeX; x++) {
-            const tileColumn = [];
-            this.tilesLoaded.push([]);
-            for (let y = 0; y < this._sizeY; y++) {
-                this.zonesCreated[x + ',' + y] = false;
-                const newTile = new RG.World.AreaTile(x, y, this);
-
-                // Scale the forest gen based on tile size
-                const forestConf = RG.getForestConf(this._cols, this._rows);
-                let level = null;
-                if (levels) {
-                    level = levels[x][y];
-                }
-                else {
-                    level = RG.FACT.createLevel('forest',
-                        this._cols, this._rows, forestConf);
-                }
-
-                if (level !== RG.LEVEL_NOT_LOADED) {
-                    this.tilesLoaded[x][y] = true;
-                    level.setParent(this);
-                    newTile.setLevel(level);
-                    tileColumn.push(newTile);
-                }
-                else {
-                    this.tilesLoaded[x][y] = false;
-                    tileColumn.push(RG.TILE_NOT_LOADED);
-                }
-            }
-            this._tiles.push(tileColumn);
-        }
-
-        // Connect the tiles, unless levels already given (and connected)
-        // If levels are not connect, need to call connectTiles() manually
-        if (!levels) {
-            this.connectTiles();
-        }
-    };
 
     this.isLoaded = (x, y) => this.tilesLoaded[x][y];
     this.setLoaded = (x, y) => {this.tilesLoaded[x][y] = true;};
@@ -936,149 +893,200 @@ RG.World.Area = function(name, sizeX, sizeY, cols, rows, levels) {
     };
     this.tileHasZonesCreated = (x, y) => this.zonesCreated[x + ',' + y];
 
-    /* Connects all tiles together from the sides. */
-    this.connectTiles = () => {
-        connectTiles(this._tiles, this._sizeX, this._sizeY);
-    };
-
-    this._init();
-
-    this.getLevels = function() {
-        let res = [];
-        for (let x = 0; x < this._tiles.length; x++) {
-            for (let y = 0; y < this._tiles[x].length; y++) {
-                // If tile is in-memory/not serialized, query levels
-                if (this.tilesLoaded[x][y]) {
-                    res = res.concat(this._tiles[x][y].getLevels());
-                }
-            }
-        }
-        return res;
-    };
-
-    this.getTiles = () => this._tiles;
-
-    /* Returns tile X,Y which has the level with given ID. */
-    this.findTileXYById = id => {
-        for (let x = 0; x < this._tiles.length; x++) {
-            for (let y = 0; y < this._tiles[x].length; y++) {
-                if (this.tilesLoaded[x][y]) {
-                    if (this._tiles[x][y].getLevel().getID() === id) {
-                        return [x, y];
-                    }
-                }
-            }
-        }
-        return null;
-    };
-
-    /* Returns true if the area has given level as a tile level. */
-    this.hasTileWithId = id => {
-        for (let x = 0; x < this._tiles.length; x++) {
-            for (let y = 0; y < this._tiles[x].length; y++) {
-                if (this.tilesLoaded[x][y]) {
-                    if (this._tiles[x][y].getLevel().getID() === id) {
-                        return true;
-                    }
-                }
-                else if (this._tiles[x][y].level === id) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    };
-
-    /* Returns true if the area has tiles with given levels or level IDs. */
-    this.hasTiles = arr => {
-        let result = arr.length > 0;
-        arr.forEach(level => {
-            if (typeof level.getID === 'function') {
-                result = result && this.hasTileWithId(level.getID());
-            }
-            else if (Number.isInteger(level)) {
-                result = result && this.hasTileWithId(level);
-            }
-            else {
-                const str = JSON.stringify(level);
-                RG.err('World.Area', 'hasTiles',
-                    `Invalid level given ${str}. Must be Map.Level/ID`);
-            }
-        });
-        return result;
-    };
-
-    this.getTileXY = function(x, y) {
-        if (x >= 0 && x < this.getSizeX() && y >= 0 && y < this.getSizeY()) {
-            return this._tiles[x][y];
-        }
-        else {
-            const sizeX = this.getSizeX();
-            const sizeY = this.getSizeY();
-            RG.err('World.Area', 'getTileXY',
-                `Tile x,y (${x}, ${y}) is out of bounds (${sizeX}, ${sizeY}).`);
-        }
-        return null;
-    };
-
-    this.addZone = function(type, zone) {
-        if (RG.isNullOrUndef([zone.tileX, zone.tileY])) {
-            RG.err('World.Area', 'addZone',
-                'No tileX/tileY given!');
-        }
-        this._tiles[zone.tileX][zone.tileY].addZone(type, zone);
-        zone.setParent(this);
-    };
-
-    this.getZones = function(type) {
-        let res = [];
-        for (let x = 0; x < this._tiles.length; x++) {
-            for (let y = 0; y < this._tiles[x].length; y++) {
-                if (this.tilesLoaded[x][y]) {
-                    res = res.concat(this._tiles[x][y].getZones(type));
-                }
-            }
-        }
-        return res;
-    };
-
-    /* Serializes the Area into JSON. */
-    this.toJSON = function() {
-        const json = RG.World.Base.prototype.toJSON.call(this);
-        const tilesJSON = [];
-        this._tiles.forEach((tileCol, x) => {
-            const tileColJSON = tileCol.map((tile, y) => {
-                if (this.tilesLoaded[x][y]) {
-                    return tile.toJSON();
-                }
-                else {
-                    return tile;
-                }
-            });
-            tilesJSON.push(tileColJSON);
-        });
-
-        const obj = {
-            conf: this.getConf(),
-            maxX: this._sizeX, maxY: this._sizeY,
-            cols: this._cols, rows: this._rows,
-            tiles: tilesJSON,
-            tilesLoaded: this.tilesLoaded,
-            zonesCreated: this.zonesCreated
-        };
-        return Object.assign(obj, json);
-    };
-
-    this.createAreaConfig = () => {
-        return {
-            name: this.getName(),
-            maxX: this._sizeX,
-            maxY: this._sizeY
-        };
-    };
+    this._init(levels);
 
 };
 RG.extend2(RG.World.Area, RG.World.Base);
+
+RG.World.Area.prototype.getTiles = function() {
+    return this._tiles;
+};
+
+RG.World.Area.prototype.setConf = function(conf) {
+    this._conf = conf;
+};
+
+RG.World.Area.prototype.getConf = function() {
+    return this._conf;
+};
+
+RG.World.Area.prototype._init = function(levels) {
+    // Create the tiles
+    for (let x = 0; x < this._sizeX; x++) {
+        const tileColumn = [];
+        this.tilesLoaded.push([]);
+        for (let y = 0; y < this._sizeY; y++) {
+            this.zonesCreated[x + ',' + y] = false;
+            const newTile = new RG.World.AreaTile(x, y, this);
+
+            // Scale the forest gen based on tile size
+            const forestConf = RG.getForestConf(this._cols, this._rows);
+            let level = null;
+            if (levels) {
+                level = levels[x][y];
+            }
+            else {
+                level = RG.FACT.createLevel('forest',
+                    this._cols, this._rows, forestConf);
+            }
+
+            if (level !== RG.LEVEL_NOT_LOADED) {
+                this.tilesLoaded[x][y] = true;
+                level.setParent(this);
+                newTile.setLevel(level);
+                tileColumn.push(newTile);
+            }
+            else {
+                this.tilesLoaded[x][y] = false;
+                tileColumn.push(RG.TILE_NOT_LOADED);
+            }
+        }
+        this._tiles.push(tileColumn);
+    }
+
+    // Connect the tiles, unless levels already given (and connected)
+    // If levels are not connect, need to call connectTiles() manually
+    if (!levels) {
+        this.connectTiles();
+    }
+};
+
+/* Connects all tiles together from the sides. */
+RG.World.Area.prototype.connectTiles = function() {
+    connectTiles(this._tiles, this._sizeX, this._sizeY);
+};
+
+RG.World.Area.prototype.getLevels = function() {
+    let res = [];
+    for (let x = 0; x < this._tiles.length; x++) {
+        for (let y = 0; y < this._tiles[x].length; y++) {
+            // If tile is in-memory/not serialized, query levels
+            if (this.tilesLoaded[x][y]) {
+                res = res.concat(this._tiles[x][y].getLevels());
+            }
+        }
+    }
+    return res;
+};
+
+/* Returns tile X,Y which has the level with given ID. */
+RG.World.Area.prototype.findTileXYById = function(id) {
+    for (let x = 0; x < this._tiles.length; x++) {
+        for (let y = 0; y < this._tiles[x].length; y++) {
+            if (this.tilesLoaded[x][y]) {
+                if (this._tiles[x][y].getLevel().getID() === id) {
+                    return [x, y];
+                }
+            }
+        }
+    }
+    return null;
+};
+
+/* Returns true if the area has given level as a tile level. */
+RG.World.Area.prototype.hasTileWithId = function(id) {
+    for (let x = 0; x < this._tiles.length; x++) {
+        for (let y = 0; y < this._tiles[x].length; y++) {
+            if (this.tilesLoaded[x][y]) {
+                if (this._tiles[x][y].getLevel().getID() === id) {
+                    return true;
+                }
+            }
+            else if (this._tiles[x][y].level === id) {
+                return true;
+            }
+        }
+    }
+    return false;
+};
+
+/* Returns true if the area has tiles with given levels or level IDs. */
+RG.World.Area.prototype.hasTiles = function(arr) {
+    let result = arr.length > 0;
+    arr.forEach(level => {
+        if (typeof level.getID === 'function') {
+            result = result && this.hasTileWithId(level.getID());
+        }
+        else if (Number.isInteger(level)) {
+            result = result && this.hasTileWithId(level);
+        }
+        else {
+            const str = JSON.stringify(level);
+            RG.err('World.Area', 'hasTiles',
+                `Invalid level given ${str}. Must be Map.Level/ID`);
+        }
+    });
+    return result;
+};
+
+RG.World.Area.prototype.getTileXY = function(x, y) {
+    if (x >= 0 && x < this.getSizeX() && y >= 0 && y < this.getSizeY()) {
+        return this._tiles[x][y];
+    }
+    else {
+        const sizeX = this.getSizeX();
+        const sizeY = this.getSizeY();
+        RG.err('World.Area', 'getTileXY',
+            `Tile x,y (${x}, ${y}) is out of bounds (${sizeX}, ${sizeY}).`);
+    }
+    return null;
+};
+
+RG.World.Area.prototype.addZone = function(type, zone) {
+    if (RG.isNullOrUndef([zone.tileX, zone.tileY])) {
+        RG.err('World.Area', 'addZone',
+            'No tileX/tileY given!');
+    }
+    this._tiles[zone.tileX][zone.tileY].addZone(type, zone);
+    zone.setParent(this);
+};
+
+RG.World.Area.prototype.getZones = function(type) {
+    let res = [];
+    for (let x = 0; x < this._tiles.length; x++) {
+        for (let y = 0; y < this._tiles[x].length; y++) {
+            if (this.tilesLoaded[x][y]) {
+                res = res.concat(this._tiles[x][y].getZones(type));
+            }
+        }
+    }
+    return res;
+};
+
+RG.World.Area.prototype.createAreaConfig = function() {
+    return {
+        name: this.getName(),
+        maxX: this._sizeX,
+        maxY: this._sizeY
+    };
+};
+
+/* Serializes the Area into JSON. */
+RG.World.Area.prototype.toJSON = function() {
+    const json = RG.World.Base.prototype.toJSON.call(this);
+    const tilesJSON = [];
+    this._tiles.forEach((tileCol, x) => {
+        const tileColJSON = tileCol.map((tile, y) => {
+            if (this.tilesLoaded[x][y]) {
+                return tile.toJSON();
+            }
+            else {
+                return tile;
+            }
+        });
+        tilesJSON.push(tileColJSON);
+    });
+
+    const obj = {
+        conf: this.getConf(),
+        maxX: this._sizeX, maxY: this._sizeY,
+        cols: this._cols, rows: this._rows,
+        tiles: tilesJSON,
+        tilesLoaded: this.tilesLoaded,
+        zonesCreated: this.zonesCreated
+    };
+    return Object.assign(obj, json);
+};
 
 /* Mountains are places consisting of tiles and dungeons. Mountain has few
  * special * tiles representing the summit.
@@ -1405,7 +1413,7 @@ RG.World.Top = function(name) {
     this.setType('world');
 
     // const _allLevels = {}; // Lookup table for all levels
-    const _areas = [];
+    this._areas = [];
 
     this.currAreaIndex = 0;
     this._conf = {};
@@ -1415,22 +1423,22 @@ RG.World.Top = function(name) {
     /* Adds an area into the world. */
     this.addArea = function(area) {
         area.setParent(this);
-        _areas.push(area);
+        this._areas.push(area);
     };
 
     this.getLevels = () => {
         let levels = [];
-        _areas.map(area => {
+        this._areas.map(area => {
             levels = levels.concat(area.getLevels());
         });
         return levels;
     };
-    this.getAreas = () => (_areas);
+    this.getAreas = () => (this._areas);
 
     /* Returns all zones of given type. */
     this.getZones = type => {
         let zones = [];
-        _areas.forEach(a => {
+        this._areas.forEach(a => {
             zones = zones.concat(a.getZones(type));
         });
         return zones;
@@ -1450,19 +1458,19 @@ RG.World.Top = function(name) {
     };
 
     this.getCurrentArea = () => {
-        return _areas[this.currAreaIndex];
+        return this._areas[this.currAreaIndex];
     };
 
     this.toJSON = function() {
         const json = RG.World.Base.prototype.toJSON.call(this);
-        const area = _areas.map(area => area.toJSON());
+        const area = this._areas.map(area => area.toJSON());
         let createAllZones = true;
         if (this.getConf().hasOwnProperty('createAllZones')) {
             createAllZones = this.getConf().createAllZones;
         }
         const obj = {
             conf: this.getConf(),
-            nAreas: _areas.length,
+            nAreas: this._areas.length,
             area,
             createAllZones
         };
@@ -1472,16 +1480,17 @@ RG.World.Top = function(name) {
         return Object.assign(obj, json);
     };
 
-    /* Creates config for each area. This is mainly required for testing. */
-    this.createAreaConfig = () => {
-        const areaConf = [];
-        _areas.forEach(area => {
-            areaConf.push(area.createAreaConfig());
-        });
-        return areaConf;
-    };
 };
 RG.extend2(RG.World.Top, RG.World.Base);
+
+/* Creates config for each area. This is mainly required for testing. */
+RG.World.Top.prototype.createAreaConfig = function() {
+    const areaConf = [];
+    this._areas.forEach(function(area) {
+        areaConf.push(area.createAreaConfig());
+    });
+    return areaConf;
+};
 
 //---------------------------------------------------------------------------
 // LEVEL FEATURES
