@@ -191,25 +191,25 @@ RG.Component.Base.prototype.toJSON = function() {
 RG.Component.Action = function() {
     RG.Component.Base.call(this, 'Action');
 
-    let _energy = 0;
-    let _active = false;
-    this.getEnergy = () => _energy;
-    this.setEnergy = energy => {_energy = energy;};
+    this._energy = 0;
+    this._active = false;
+    this.getEnergy = () => this._energy;
+    this.setEnergy = energy => {this._energy = energy;};
 
-    this.getActive = () => _active;
-    this.setActive = active => {_active = active;};
+    this.getActive = () => this._active;
+    this.setActive = active => {this._active = active;};
 
     this.addEnergy = energy => {
-        _energy += energy;
+        this._energy += energy;
     };
 
-    this.resetEnergy = () => {_energy = 0;};
+    this.resetEnergy = () => {this._energy = 0;};
 
     this.enable = function() {
-        if (_active === false) {
+        if (this._active === false) {
             RG.POOL.emitEvent(RG.EVT_ACT_COMP_ENABLED,
                 {actor: this.getEntity()});
-            _active = true;
+            this._active = true;
         }
         else {
             const name = this.getEntity().getName();
@@ -220,10 +220,10 @@ RG.Component.Action = function() {
     };
 
     this.disable = function() {
-        if (_active === true) {
+        if (this._active === true) {
             RG.POOL.emitEvent(RG.EVT_ACT_COMP_DISABLED,
                 {actor: this.getEntity()});
-            _active = false;
+            this._active = false;
         }
     };
 
