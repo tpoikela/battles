@@ -232,12 +232,16 @@ const Engine = function(eventPool) {
 
     this.numActiveLevels = () => this._activeLevels.length;
 
-    this.hasLevel = level => this._levelMap.hasOwnProperty(level.getID());
+    this.hasLevel = function(level) {
+        return this._levelMap.hasOwnProperty(level.getID());
+    };
 
-    this.getLevels = () => Object.values(this._levelMap);
+    this.getLevels = function() {
+        return Object.values(this._levelMap);
+    };
 
     /* Adds one level to the game database.*/
-    this.addLevel = level => {
+    this.addLevel = function(level) {
         const id = level.getID();
         if (!this._levelMap.hasOwnProperty(id)) {
             this._levelMap[level.getID()] = level;
@@ -248,7 +252,7 @@ const Engine = function(eventPool) {
         }
     };
 
-    this.removeLevels = levels => {
+    this.removeLevels = function(levels) {
         levels.forEach(level => {
             const id = level.getID();
             if (this._levelMap.hasOwnProperty(id)) {
