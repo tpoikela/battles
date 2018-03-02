@@ -18,17 +18,17 @@ const Engine = function(eventPool) {
 
     this._levelMap = {}; // All levels, ID -> level
     this._activeLevels = []; // Only these levels are simulated
-    const _scheduler = new RG.Time.Scheduler();
-    const _msg = new RG.MessageHandler();
-    const _eventPool = eventPool;
+    this._scheduler = new RG.Time.Scheduler();
+    this._msg = new RG.MessageHandler();
+    this._eventPool = eventPool;
 
     this.visibleCells = [];
 
     this._cache = {};
 
-    this.getMessages = () => _msg.getMessages();
-    this.hasNewMessages = () => _msg.hasNew();
-    this.clearMessages = () => { _msg.clear();};
+    this.getMessages = () => this._msg.getMessages();
+    this.hasNewMessages = () => this._msg.hasNew();
+    this.clearMessages = () => { this._msg.clear();};
 
     //--------------------------------------------------------------
     // ECS SYSTEMS
@@ -99,28 +99,28 @@ const Engine = function(eventPool) {
     //--------------------------------------------------------------
 
     /* Returns next actor from the scheduling queue.*/
-    this.getNextActor = () => _scheduler.next();
+    this.getNextActor = () => this._scheduler.next();
 
     /* Adds an actor to the scheduler. */
     this.addActor = actor => {
-        _scheduler.add(actor, true, 0);
+        this._scheduler.add(actor, true, 0);
     };
 
     /* Removes an actor from a scheduler.*/
     this.removeActor = actor => {
-        _scheduler.remove(actor);
+        this._scheduler.remove(actor);
     };
 
     /* Adds an event to the scheduler.*/
     this.addEvent = gameEvent => {
         const repeat = gameEvent.getRepeat();
         const offset = gameEvent.getOffset();
-        _scheduler.add(gameEvent, repeat, offset);
+        this._scheduler.add(gameEvent, repeat, offset);
     };
 
     /* Performs one game action.*/
     this.doAction = action => {
-        _scheduler.setAction(action);
+        this._scheduler.setAction(action);
         action.doAction();
         if (action.hasOwnProperty('energy')) {
             if (action.hasOwnProperty('actor')) {
@@ -160,7 +160,7 @@ const Engine = function(eventPool) {
         }
         else {
             this.clearMessages();
-            _eventPool.emitEvent(RG.EVT_MSG, {msg: 'GAME OVER!'});
+            this._eventPool.emitEvent(RG.EVT_MSG, {msg: 'GAME OVER!'});
             this.simulateGame(100);
         }
     };
@@ -403,14 +403,14 @@ const Engine = function(eventPool) {
             }
         }
     };
-    _eventPool.listenEvent(RG.EVT_DESTROY_ITEM, this);
-    _eventPool.listenEvent(RG.EVT_ACT_COMP_ADDED, this);
-    _eventPool.listenEvent(RG.EVT_ACT_COMP_REMOVED, this);
-    _eventPool.listenEvent(RG.EVT_ACT_COMP_ENABLED, this);
-    _eventPool.listenEvent(RG.EVT_ACT_COMP_DISABLED, this);
-    _eventPool.listenEvent(RG.EVT_LEVEL_PROP_ADDED, this);
-    _eventPool.listenEvent(RG.EVT_LEVEL_CHANGED, this);
-    _eventPool.listenEvent(RG.EVT_ANIMATION, this);
+    this._eventPool.listenEvent(RG.EVT_DESTROY_ITEM, this);
+    this._eventPool.listenEvent(RG.EVT_ACT_COMP_ADDED, this);
+    this._eventPool.listenEvent(RG.EVT_ACT_COMP_REMOVED, this);
+    this._eventPool.listenEvent(RG.EVT_ACT_COMP_ENABLED, this);
+    this._eventPool.listenEvent(RG.EVT_ACT_COMP_DISABLED, this);
+    this._eventPool.listenEvent(RG.EVT_LEVEL_PROP_ADDED, this);
+    this._eventPool.listenEvent(RG.EVT_LEVEL_CHANGED, this);
+    this._eventPool.listenEvent(RG.EVT_ANIMATION, this);
 
     this.hasAnimation = function() {
         return this.animation !== null &&
