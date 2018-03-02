@@ -623,28 +623,28 @@ RG.Map.CellList.prototype.toJSON = function() {
 
 /* Object for the game levels. Contains map, actors and items.  */
 RG.Map.Level = function() { // {{{2
-    let _map = null;
-    let _id = RG.Map.Level.idCount++;
-    let _parent = null; // Reference to dungeon,city,mountain...
+    this._map = null;
+    this._id = RG.Map.Level.idCount++;
+    this._parent = null; // Reference to dungeon,city,mountain...
 
     // Level properties
-    const _p = {
+    this._p = {
         actors: [],
         items: [],
         elements: []
     };
 
-    let _levelNo = 0;
-    this.setLevelNumber = no => {_levelNo = no;};
-    this.getLevelNumber = () => _levelNo;
+    this._levelNo = 0;
+    this.setLevelNumber = no => {this._levelNo = no;};
+    this.getLevelNumber = () => this._levelNo;
 
-    this.getID = () => _id;
-    this.setID = id => {_id = id;};
+    this.getID = () => this._id;
+    this.setID = id => {this._id = id;};
 
-    this.getParent = () => _parent;
+    this.getParent = () => this._parent;
     this.setParent = parent => {
         if (!RG.isNullOrUndef([parent])) {
-            _parent = parent;
+            this._parent = parent;
         }
         else {
             RG.err('Map.Level', 'setParent',
@@ -652,14 +652,14 @@ RG.Map.Level = function() { // {{{2
         }
     };
 
-    this.getActors = () => _p.actors;
-    this.getItems = () => _p.items;
-    this.getElements = () => _p.elements;
+    this.getActors = () => this._p.actors;
+    this.getItems = () => this._p.items;
+    this.getElements = () => this._p.elements;
 
     /* Returns all stairs elements. */
     this.getStairs = () => {
         const res = [];
-        _p.elements.forEach(elem => {
+        this._p.elements.forEach(elem => {
             if (_isStairs(elem)) {
                 res.push(elem);
             }
@@ -669,7 +669,7 @@ RG.Map.Level = function() { // {{{2
 
     this.getPassages = () => {
         const res = [];
-        _p.elements.forEach(elem => {
+        this._p.elements.forEach(elem => {
             if (elem.getName() === 'passage') {
                 res.push(elem);
             }
@@ -679,7 +679,7 @@ RG.Map.Level = function() { // {{{2
 
     this.getConnections = () => {
         const conn = [];
-        _p.elements.forEach(elem => {
+        this._p.elements.forEach(elem => {
             if (elem.getType() === 'connection') {
                 conn.push(elem);
             }
@@ -689,8 +689,8 @@ RG.Map.Level = function() { // {{{2
 
     const _isStairs = elem => (/stairs(Down|Up)/).test(elem.getName());
 
-    this.setMap = map => {_map = map;};
-    this.getMap = () => _map;
+    this.setMap = map => {this._map = map;};
+    this.getMap = () => this._map;
 
     /* Given a level, returns stairs which lead to that level.*/
     this.getStairsToLevel = function(level) {
@@ -728,16 +728,16 @@ RG.Map.Level = function() { // {{{2
     /* Adds stairs for this level.*/
     this.addStairs = function(stairs, x, y) {
         if (!RG.isNullOrUndef([x, y])) {
-            if (_map.hasXY(x, y)) {
+            if (this._map.hasXY(x, y)) {
               stairs.setSrcLevel(this);
               // Prevents stairs on impassable squares
-              _map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
+              this._map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
               return this._addPropToLevelXY(RG.TYPE_ELEM, stairs, x, y);
             }
             else {
               const msg = `x,y ${x},${y} out of map bounds.`;
                 RG.err('Map.Level', 'addStairs',
-                  `${msg}: cols ${_map.cols}, rows: ${_map.rows}`);
+                  `${msg}: cols ${this._map.cols}, rows: ${this._map.rows}`);
             }
         }
         else {
@@ -749,7 +749,7 @@ RG.Map.Level = function() { // {{{2
 
     /* Uses stairs for given actor if it's on top of the stairs.*/
     this.useStairs = actor => {
-        const cell = _map.getCell(actor.getX(), actor.getY());
+        const cell = this._map.getCell(actor.getX(), actor.getY());
         if (cell.hasConnection()) {
             const connection = cell.getConnection();
             if (connection.useStairs(actor)) {
@@ -797,7 +797,7 @@ RG.Map.Level = function() { // {{{2
     };
 
     this.pickupItem = function(actor, x, y) {
-        const cell = _map.getCell(x, y);
+        const cell = this._map.getCell(x, y);
         if (cell.hasProp(RG.TYPE_ITEM)) {
             const item = cell.getProp(RG.TYPE_ITEM)[0];
             if (actor.getInvEq().canCarryItem(item)) {
@@ -837,7 +837,7 @@ RG.Map.Level = function() { // {{{2
     this.addActor = function(actor, x, y) {
         RG.debug(this, 'addActor called with x,y ' + x + ', ' + y);
         if (!RG.isNullOrUndef([x, y])) {
-            if (_map.hasXY(x, y)) {
+            if (this._map.hasXY(x, y)) {
                 this._addPropToLevelXY(RG.TYPE_ACTOR, actor, x, y);
                 RG.debug(this, 'Added actor to map x: ' + x + ' y: ' + y);
                 return true;
@@ -860,7 +860,7 @@ RG.Map.Level = function() { // {{{2
      * always preferred. */
     this.addActorToFreeCell = function(actor) {
         RG.debug(this, 'Adding actor to free slot');
-        const freeCells = _map.getFree();
+        const freeCells = this._map.getFree();
         if (freeCells.length > 0) {
             const xCell = freeCells[0].getX();
             const yCell = freeCells[0].getY();
@@ -879,13 +879,13 @@ RG.Map.Level = function() { // {{{2
     /* Adds a prop 'obj' to level location x,y. Returns true on success,
      * false on failure.*/
     this._addPropToLevelXY = function(propType, obj, x, y) {
-        if (_p.hasOwnProperty(propType)) {
-            _p[propType].push(obj);
+        if (this._p.hasOwnProperty(propType)) {
+            this._p[propType].push(obj);
             if (!obj.isOwnable) {
                 obj.setXY(x, y);
                 obj.setLevel(this);
             }
-            _map.setProp(x, y, propType, obj);
+            this._map.setProp(x, y, propType, obj);
             RG.POOL.emitEvent(RG.EVT_LEVEL_PROP_ADDED, {level: this, obj,
                 propType});
             return true;
@@ -899,8 +899,8 @@ RG.Map.Level = function() { // {{{2
 
     /* Adds virtual prop not associated with x,y position or a cell. */
     this.addVirtualProp = function(propType, obj) {
-        if (_p.hasOwnProperty(propType)) {
-            _p[propType].push(obj);
+        if (this._p.hasOwnProperty(propType)) {
+            this._p[propType].push(obj);
             obj.setLevel(this);
             RG.POOL.emitEvent(RG.EVT_LEVEL_PROP_ADDED, {level: this, obj,
                 propType});
@@ -916,22 +916,22 @@ RG.Map.Level = function() { // {{{2
     /* Removes a prop 'obj' to level location x,y. Returns true on success,
      * false on failure.*/
     this._removePropFromLevelXY = function(propType, obj, x, y) {
-        if (_p.hasOwnProperty(propType)) {
-            const index = _p[propType].indexOf(obj);
+        if (this._p.hasOwnProperty(propType)) {
+            const index = this._p[propType].indexOf(obj);
 
             if (index >= 0) {
-                _p[propType].splice(index, 1);
+                this._p[propType].splice(index, 1);
                 if (!obj.getOwner) {
                     obj.setXY(null, null);
                     obj.unsetLevel();
                 }
                 RG.POOL.emitEvent(RG.EVT_LEVEL_PROP_REMOVED,
                     {level: this, obj, propType});
-                return _map.removeProp(x, y, propType, obj);
+                return this._map.removeProp(x, y, propType, obj);
             }
             else {
                 RG.err('Map.Level', '_removePropFromLevelXY',
-                    `Obj index not found in list _p[${propType}]`);
+                    `Obj index not found in list this._p[${propType}]`);
             }
             return false;
         }
@@ -944,10 +944,10 @@ RG.Map.Level = function() { // {{{2
 
     /* Removes a virtual property (virtual prop has no x,y position). */
     this.removeVirtualProp = function(propType, obj) {
-        if (_p.hasOwnProperty(propType)) {
-            const index = _p[propType].indexOf(obj);
+        if (this._p.hasOwnProperty(propType)) {
+            const index = this._p[propType].indexOf(obj);
             if (index >= 0) {
-                _p[propType].splice(index, 1);
+                this._p[propType].splice(index, 1);
                 RG.POOL.emitEvent(RG.EVT_LEVEL_PROP_REMOVED,
                     {level: this, obj, propType});
                 return true;
@@ -958,11 +958,11 @@ RG.Map.Level = function() { // {{{2
 
     /* Removes given actor from level. Returns true if successful.*/
     this.removeActor = actor => {
-        const index = _p.actors.indexOf(actor);
+        const index = this._p.actors.indexOf(actor);
         const x = actor.getX();
         const y = actor.getY();
-        if (_map.removeProp(x, y, RG.TYPE_ACTOR, actor)) {
-            _p.actors.splice(index, 1);
+        if (this._map.removeProp(x, y, RG.TYPE_ACTOR, actor)) {
+            this._p.actors.splice(index, 1);
             return true;
         }
         else {
@@ -973,7 +973,7 @@ RG.Map.Level = function() { // {{{2
     /* Explores the level from given actor's viewpoint. Sets new cells as
      * explored. There's no exploration tracking per actor.*/
     this.exploreCells = actor => {
-        const visibleCells = _map.getVisibleCells(actor);
+        const visibleCells = this._map.getVisibleCells(actor);
         if (actor.isPlayer()) {
             for (let i = 0; i < visibleCells.length; i++) {
                 visibleCells[i].setExplored();
@@ -983,7 +983,7 @@ RG.Map.Level = function() { // {{{2
     };
 
     /* Returns all explored cells in the map.*/
-    this.getExploredCells = () => _map.getExploredCells();
+    this.getExploredCells = () => this._map.getExploredCells();
 
     //-----------------------------------------------------------------
     // CALLBACKS
@@ -1059,8 +1059,8 @@ RG.Map.Level = function() { // {{{2
             cbState: _cbState
         };
 
-        if (_parent) {
-            obj.parent = _parent.getName();
+        if (this._parent) {
+            obj.parent = this._parent.getName();
             if (typeof obj.parent !== 'string') {
                 RG.err('Map.Level', 'toJSON',
                     'Parent name not a string');
@@ -1070,7 +1070,7 @@ RG.Map.Level = function() { // {{{2
         // Must store x, y for each prop as well
         const props = [TYPE_ACTOR, TYPE_ITEM, TYPE_ELEM];
         props.forEach(propType => {
-            _p[propType].forEach(prop => {
+            this._p[propType].forEach(prop => {
                 const propObj = {
                     x: prop.getX(),
                     y: prop.getY(),
@@ -1090,7 +1090,7 @@ RG.Map.Level = function() { // {{{2
     };
 
     this._getFreeCellXY = function() {
-        const freeCells = _map.getFree();
+        const freeCells = this._map.getFree();
         if (freeCells.length > 0) {
             const xCell = freeCells[0].getX();
             const yCell = freeCells[0].getY();
@@ -1105,6 +1105,7 @@ RG.Map.Level = function() { // {{{2
 
 }; // }}} Level
 RG.Map.Level.idCount = 0;
+
 
 RG.Map.Level.createLevelID = () => {
     const id = RG.Map.Level.idCount;
