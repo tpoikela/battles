@@ -99,30 +99,30 @@ RG.extend2(RG.Time.OneShotEvent, RG.Time.GameEvent);
 RG.Time.Scheduler = function() { // {{{2
 
     // Internally use ROT scheduler
-    const _scheduler = new ROT.Scheduler.Action();
+    this._scheduler = new ROT.Scheduler.Action();
 
     // Store the scheduled events
-    const _events = [];
-    const _actors = [];
+    this._events = [];
+    this._actors = [];
 
     /* Adds an actor or event to the scheduler.*/
-    this.add = (actOrEvent, repeat, offset) => {
-        _scheduler.add(actOrEvent, repeat, offset);
+    this.add = function(actOrEvent, repeat, offset) {
+        this._scheduler.add(actOrEvent, repeat, offset);
         if (actOrEvent.hasOwnProperty('isEvent')) {
-            _events.push(actOrEvent);
+            this._events.push(actOrEvent);
         }
         else {
-            _actors.push(actOrEvent);
+            this._actors.push(actOrEvent);
         }
     };
 
     // Returns next actor/event or null if no next actor exists.
-    this.next = () => _scheduler.next();
+    this.next = function() {return this._scheduler.next();};
 
     /* Must be called after next() to re-schedule next slot for the
      * actor/event.*/
-    this.setAction = action => {
-        _scheduler.setDuration(action.getDuration());
+    this.setAction = function(action) {
+        this._scheduler.setDuration(action.getDuration());
     };
 
     /* Tries to remove an actor/event, Return true if success.*/
@@ -131,41 +131,41 @@ RG.Time.Scheduler = function() { // {{{2
             return this.removeEvent(actOrEvent);
         }
         else {
-            const index = _actors.indexOf(actOrEvent);
+            const index = this._actors.indexOf(actOrEvent);
             if (index !== -1) {
-                _actors.splice(index, 1);
+                this._actors.splice(index, 1);
             }
         }
-        return _scheduler.remove(actOrEvent);
+        return this._scheduler.remove(actOrEvent);
     };
 
     /* Removes an event from the scheduler. Returns true on success.*/
-    this.removeEvent = actOrEvent => {
+    this.removeEvent = function(actOrEvent) {
         let index = -1;
         if (actOrEvent.hasOwnProperty('isEvent')) {
-            index = _events.indexOf(actOrEvent);
+            index = this._events.indexOf(actOrEvent);
             if (index !== -1) {
-                _events.splice(index, 1);
+                this._events.splice(index, 1);
             }
         }
-        return _scheduler.remove(actOrEvent);
+        return this._scheduler.remove(actOrEvent);
     };
 
-    this.getTime = () => _scheduler.getTime();
+    this.getTime = function() {return this._scheduler.getTime();};
 
     /* Hooks to the event system. When an actor is killed, removes it from the
      * scheduler.*/
     this.hasNotify = true;
-    this.notify = function(evtName, args) {
-        if (evtName === RG.EVT_ACTOR_KILLED) {
-            if (args.hasOwnProperty('actor')) {
-                this.remove(args.actor);
-            }
-        }
-    };
     RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
 
-
 }; // }}} Scheduler
+
+RG.Time.Scheduler.prototype.notify = function(evtName, args) {
+    if (evtName === RG.EVT_ACTOR_KILLED) {
+        if (args.hasOwnProperty('actor')) {
+            this.remove(args.actor);
+        }
+    }
+};
 
 module.exports = RG.Time;
