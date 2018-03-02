@@ -1301,9 +1301,6 @@ RG.World.BattleZone = function(name) {
             RG.err('World.BattleZone', 'toJSON',
                 `Bz ${this.getName()} called without levels`);
         }
-        if (this._levels[0].getID() === 1360) {
-            console.log('XYZZZ BattleZone of ID 1360 toJSON()');
-        }
         return Object.assign(obj, json);
     };
 
