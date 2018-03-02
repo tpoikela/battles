@@ -169,6 +169,7 @@ export default class ChunkManager {
             debug(`\t-- Unloading levels ${lStr}`);
         }
 
+        areaTiles[tx][ty].removeListeners();
         areaTiles[tx][ty] = areaTiles[tx][ty].toJSON();
 
         // Need to replace connections on adjacent tiles
@@ -211,10 +212,10 @@ export default class ChunkManager {
         this.setLoadStateAll(LOAD.JSON);
         const levels = this.area.getLevels();
         this.game.removeLevels(levels);
-        this.levels = levels.map(l => l.toJSON());
         const tiles = this.area.getTiles();
         for (let x = 0; x < this.sizeX; x++) {
             for (let y = 0; y < this.sizeY; y++) {
+                tiles[x][y].removeListeners();
                 tiles[x][y] = tiles[x][y].toJSON();
             }
         }
