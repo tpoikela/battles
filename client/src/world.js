@@ -864,8 +864,10 @@ RG.World.AreaTile = function(x, y, area) {
 };
 
 RG.World.AreaTile.prototype.removeListeners = function() {
-    this.zones.forEach(zone => {
-        zone.removeListeners();
+    Object.values(this.zones).forEach(zoneList => {
+        zoneList.forEach(zone => {
+            zone.removeListeners();
+        });
     });
 };
 
@@ -1343,9 +1345,9 @@ RG.World.CityQuarter = function(name) {
     let _entrance = null;
     let _numCount = 1;
 
-    const _shops = [];
-    this.addShop = shop => _shops.push(shop);
-    this.getShops = () => _shops;
+    this._shops = [];
+    this.addShop = shop => this._shops.push(shop);
+    this.getShops = () => this._shops;
 
 
     this.addLevel = function(level) {
@@ -1409,7 +1411,7 @@ RG.World.CityQuarter = function(name) {
         const obj = {
             nLevels: this._levels.length,
             levels: this._levels.map(level => level.getID()),
-            shops: _shops.map(shop => shop.toJSON())
+            shops: this._shops.map(shop => shop.toJSON())
         };
         if (_entrance) {
             obj.entrance = _entrance;
@@ -1418,6 +1420,12 @@ RG.World.CityQuarter = function(name) {
     };
 };
 RG.extend2(RG.World.CityQuarter, RG.World.SubZoneBase);
+
+RG.World.CityQuarter.prototype.removeListeners = function() {
+    this._shops.forEach(shop => {
+        RG.POOL.removeListener(shop);
+    });
+};
 
 //-----------------------------
 // RG.World.Top
