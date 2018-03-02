@@ -71,8 +71,10 @@ RG.Game.FromJSON = function() {
             game.addPlayer(player);
         }
         else {
+            const levelIDs = game.getLevels().map(l => l.getID());
+            const msg = `IDs available: ${levelIDs}`;
             RG.err('Game.FromJSON', 'addRestoredPlayerToGame',
-                `Cannot find player level object with level ID ${id}`);
+                `Cannot find player level object with level ID ${id}. ${msg}`);
         }
     };
 
@@ -918,6 +920,7 @@ RG.Game.FromJSON = function() {
     };
 
     // 'Integrity' check that correct number of levels restored
+    // TODO does not work/check anything with the new world architecture
     this.checkNumOfLevels = (game, gameJSON) => {
         const nLevels = game.getLevels().length;
         if (gameJSON.levels) {
