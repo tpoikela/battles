@@ -3,6 +3,8 @@ const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 const ROT = require('../../../lib/rot.js');
 
+const fs = require('fs');
+
 describe('How Game is created from Overworld', function() {
 
     this.timeout(5 * 3600 * 1000); // 5 hours
@@ -18,6 +20,7 @@ describe('How Game is created from Overworld', function() {
             playerLevel: 'Medium',
             sqrPerItem: 100,
             sqrPerActor: 100,
+            xMult: 0.5,
             yMult: 0.5,
             playerClass: 'Blademaster',
             playerRace: 'human'
@@ -28,6 +31,26 @@ describe('How Game is created from Overworld', function() {
 
     afterEach(() => {
         game = null;
+    });
+
+    it('can restore zones properly after moving around', () => {
+        const cm = game.getChunkManager();
+        cm.debugPrint();
+
+        game.movePlayer(0, 0);
+        game.movePlayer(2, 3);
+
+        const json = game.toJSON();
+        game = null;
+        const fromJSON = new RG.Game.FromJSON();
+        const newGame = fromJSON.createGame(json);
+
+        const area = newGame.getArea(0);
+        const t43 = area.getTileXY(2, 3);
+        expect(t43.getZones('BattleZone').length).to.equal(1);
+
+        newGame.movePlayer(0, 0);
+        newGame.movePlayer(2, 3);
     });
 
     it('is created using factory from game/player objects', () => {
@@ -45,14 +68,15 @@ describe('How Game is created from Overworld', function() {
 
         const worldConf = game.getCurrentWorld().getConf();
 
-        const battles = area.getZones('BattleZone');
-        expect(battles.length).to.be.above(0);
+        const battleZones = area.getZones('BattleZone');
+        expect(battleZones.length).to.be.above(0);
+        console.log('## battleZones: ' + JSON.stringify(battleZones));
 
         const json = game.toJSON();
 
         game = null;
-        const fromJSON = new RG.Game.FromJSON();
-        const newGame = fromJSON.createGame(json);
+        let fromJSON = new RG.Game.FromJSON();
+        let newGame = fromJSON.createGame(json);
         const newWorldConf = newGame.getCurrentWorld().getConf();
 
         const areaConf = worldConf.area[0];
@@ -71,12 +95,16 @@ describe('How Game is created from Overworld', function() {
         ));
         expect(newCapitalConf).to.deep.equal(capitalConf);
 
-        const {x, y} = newCapitalConf;
+        let {x, y} = newCapitalConf;
         console.log(`Moving player ot tile ${x},${y}`);
         newGame.movePlayer(x, y);
 
         const newWorld = newGame.getCurrentWorld();
         const newArea = newWorld.getAreas()[0];
+
+        const newBzs = newArea.getZones('BattleZone');
+        expect(newBzs.length).to.be.above(0);
+        console.log('## newBzs: ' + JSON.stringify(newBzs));
 
         const tileCap = newArea.getTileXY(x, y);
         const cities = tileCap.getZones('City');
@@ -94,6 +122,19 @@ describe('How Game is created from Overworld', function() {
             expect(nZonesNew[key], `Zone ${key}`).to.equal(nZones[key]);
         });*/
 
+        const newJson = newGame.toJSON();
+        fromJSON = new RG.Game.FromJSON();
+        newGame = fromJSON.createGame(newJson);
+
+        while (--x >= 0) {
+            console.log(`Move player to tile ${x},${y}`);
+            newGame.movePlayer(x, y);
+        }
+        while (++x < 4) {
+            console.log(`Move player to tile ${x},${y}`);
+            newGame.movePlayer(x, y);
+        }
+        y = 2;
     });
 
 });
