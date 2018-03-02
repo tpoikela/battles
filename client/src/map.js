@@ -635,355 +635,6 @@ RG.Map.Level = function() { // {{{2
     };
 
     this._levelNo = 0;
-    this.setLevelNumber = no => {this._levelNo = no;};
-    this.getLevelNumber = () => this._levelNo;
-
-    this.getID = () => this._id;
-    this.setID = id => {this._id = id;};
-
-    this.getParent = () => this._parent;
-    this.setParent = parent => {
-        if (!RG.isNullOrUndef([parent])) {
-            this._parent = parent;
-        }
-        else {
-            RG.err('Map.Level', 'setParent',
-                'Parent is not defined.');
-        }
-    };
-
-    this.getActors = () => this._p.actors;
-    this.getItems = () => this._p.items;
-    this.getElements = () => this._p.elements;
-
-    /* Returns all stairs elements. */
-    this.getStairs = () => {
-        const res = [];
-        this._p.elements.forEach(elem => {
-            if (_isStairs(elem)) {
-                res.push(elem);
-            }
-        });
-        return res;
-    };
-
-    this.getPassages = () => {
-        const res = [];
-        this._p.elements.forEach(elem => {
-            if (elem.getName() === 'passage') {
-                res.push(elem);
-            }
-        });
-        return res;
-    };
-
-    this.getConnections = () => {
-        const conn = [];
-        this._p.elements.forEach(elem => {
-            if (elem.getType() === 'connection') {
-                conn.push(elem);
-            }
-        });
-        return conn;
-    };
-
-    const _isStairs = elem => (/stairs(Down|Up)/).test(elem.getName());
-
-    this.setMap = map => {this._map = map;};
-    this.getMap = () => this._map;
-
-    /* Given a level, returns stairs which lead to that level.*/
-    this.getStairsToLevel = function(level) {
-        if (RG.isNullOrUndef([level])) {
-            RG.err('Map.Level', 'getStairs', 'arg |level| required.');
-        }
-
-        const allStairs = this.getStairs();
-        for (let i = 0; i < allStairs.length; i++) {
-            if (allStairs[i].getTargetLevel() === level) {
-                return allStairs[i];
-            }
-        }
-        return null;
-    };
-
-    //---------------------------------------------------------------------
-    // GENERIC ADD METHOD
-    //---------------------------------------------------------------------
-    this.addToRandomCell = function(obj) {
-        const cell = this.getFreeRandCell();
-        switch (obj.getPropType()) {
-            case RG.TYPE_ITEM:
-                this.addItem(obj, cell.getX(), cell.getY());
-                break;
-            default: RG.err('Map.Level', 'addToRandomCell',
-                `No known propType |${obj.getPropType()}|`);
-        }
-    };
-
-    //---------------------------------------------------------------------
-    // STAIRS RELATED FUNCTIONS
-    //---------------------------------------------------------------------
-
-    /* Adds stairs for this level.*/
-    this.addStairs = function(stairs, x, y) {
-        if (!RG.isNullOrUndef([x, y])) {
-            if (this._map.hasXY(x, y)) {
-              stairs.setSrcLevel(this);
-              // Prevents stairs on impassable squares
-              this._map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
-              return this._addPropToLevelXY(RG.TYPE_ELEM, stairs, x, y);
-            }
-            else {
-              const msg = `x,y ${x},${y} out of map bounds.`;
-                RG.err('Map.Level', 'addStairs',
-                  `${msg}: cols ${this._map.cols}, rows: ${this._map.rows}`);
-            }
-        }
-        else {
-            RG.err('Map.Level', 'addStairs',
-                'Cannot add stairs. x, y missing.');
-        }
-        return false;
-    };
-
-    /* Uses stairs for given actor if it's on top of the stairs.*/
-    this.useStairs = actor => {
-        const cell = this._map.getCell(actor.getX(), actor.getY());
-        if (cell.hasConnection()) {
-            const connection = cell.getConnection();
-            if (connection.useStairs(actor)) {
-                return true;
-            }
-            else {
-                RG.err('Level', 'useStairs', 'Failed to use connection.');
-            }
-        }
-        return false;
-    };
-
-    /* Adds one element into the level. */
-    this.addElement = function(elem, x, y) {
-        if (elem.getType() === 'connection') {
-            return this.addStairs(elem, x, y);
-        }
-        if (!RG.isNullOrUndef([x, y])) {
-            return this._addPropToLevelXY(RG.TYPE_ELEM, elem, x, y);
-        }
-        const [xCell, yCell] = this._getFreeCellXY();
-        return this._addPropToLevelXY(RG.TYPE_ELEM, elem, xCell, yCell);
-    };
-
-    this.removeElement = function(elem, x, y) {
-        return this._removePropFromLevelXY(RG.TYPE_ELEM, elem, x, y);
-    };
-
-    //---------------------------------------------------------------------
-    // ITEM RELATED FUNCTIONS
-    //---------------------------------------------------------------------
-
-    /* Adds one item to the given location on the level.*/
-    this.addItem = function(item, x, y) {
-        if (!RG.isNullOrUndef([x, y])) {
-            return this._addPropToLevelXY(RG.TYPE_ITEM, item, x, y);
-        }
-        const [xCell, yCell] = this._getFreeCellXY();
-        return this._addPropToLevelXY(RG.TYPE_ITEM, item, xCell, yCell);
-    };
-
-    /* Removes an item from the level in x,y position.*/
-    this.removeItem = function(item, x, y) {
-        return this._removePropFromLevelXY(RG.TYPE_ITEM, item, x, y);
-    };
-
-    this.pickupItem = function(actor, x, y) {
-        const cell = this._map.getCell(x, y);
-        if (cell.hasProp(RG.TYPE_ITEM)) {
-            const item = cell.getProp(RG.TYPE_ITEM)[0];
-            if (actor.getInvEq().canCarryItem(item)) {
-                actor.getInvEq().addItem(item);
-                this.removeItem(item, x, y);
-
-                let itemStr = item.getName();
-                if (item.count > 1) {
-                    itemStr += ' x' + item.count;
-                }
-                RG.gameMsg(actor.getName() + ' picked up ' + itemStr);
-            }
-            else {
-                RG.gameMsg(actor.getName() + ' cannot carry more weight');
-            }
-        }
-    };
-
-    /* Moves the given object to x,y. */
-    this.moveActorTo = function(obj, x, y) {
-        const level = obj.getLevel();
-        const [oX, oY] = [obj.getX(), obj.getY()];
-        const propType = obj.getPropType();
-        if (level._removePropFromLevelXY(propType, obj, oX, oY)) {
-            return this._addPropToLevelXY(propType, obj, x, y);
-        }
-        return false;
-    };
-
-    //---------------------------------------------------------------------
-    // ACTOR RELATED FUNCTIONS
-    //---------------------------------------------------------------------
-
-    /* Adds an actor to the level. If x,y is given, tries to add there. If not,
-     * finds first free cells and adds there. Returns true on success.
-     */
-    this.addActor = function(actor, x, y) {
-        RG.debug(this, 'addActor called with x,y ' + x + ', ' + y);
-        if (!RG.isNullOrUndef([x, y])) {
-            if (this._map.hasXY(x, y)) {
-                this._addPropToLevelXY(RG.TYPE_ACTOR, actor, x, y);
-                RG.debug(this, 'Added actor to map x: ' + x + ' y: ' + y);
-                return true;
-            }
-            else {
-                RG.err('Level', 'addActor',
-                    'No coordinates ' + x + ', ' + y + ' in the map.');
-                return false;
-            }
-        }
-        else {
-            RG.nullOrUndefError('Map.Level: addActor', 'arg |x|', x);
-            RG.nullOrUndefError('Map.Level: addActor', 'arg |y|', y);
-            return false;
-        }
-    };
-
-    /* Using this method, actor can be added to a free cell without knowing the
-     * exact x,y coordinates. This is not random, such that top-left (0,0) is
-     * always preferred. */
-    this.addActorToFreeCell = function(actor) {
-        RG.debug(this, 'Adding actor to free slot');
-        const freeCells = this._map.getFree();
-        if (freeCells.length > 0) {
-            const xCell = freeCells[0].getX();
-            const yCell = freeCells[0].getY();
-            if (this._addPropToLevelXY(RG.TYPE_ACTOR, actor, xCell, yCell)) {
-                RG.debug(this,
-                    'Added actor to free cell in ' + xCell + ', ' + yCell);
-                return true;
-            }
-        }
-        else {
-            RG.err('Level', 'addActor', 'No free cells for the actor.');
-        }
-        return false;
-    };
-
-    /* Adds a prop 'obj' to level location x,y. Returns true on success,
-     * false on failure.*/
-    this._addPropToLevelXY = function(propType, obj, x, y) {
-        if (this._p.hasOwnProperty(propType)) {
-            this._p[propType].push(obj);
-            if (!obj.isOwnable) {
-                obj.setXY(x, y);
-                obj.setLevel(this);
-            }
-            this._map.setProp(x, y, propType, obj);
-            RG.POOL.emitEvent(RG.EVT_LEVEL_PROP_ADDED, {level: this, obj,
-                propType});
-            return true;
-        }
-        else {
-            RG.err('Map.Level', '_addPropToLevelXY',
-                `No prop ${propType} supported. Obj: ${JSON.stringify(obj)}`);
-        }
-        return false;
-    };
-
-    /* Adds virtual prop not associated with x,y position or a cell. */
-    this.addVirtualProp = function(propType, obj) {
-        if (this._p.hasOwnProperty(propType)) {
-            this._p[propType].push(obj);
-            obj.setLevel(this);
-            RG.POOL.emitEvent(RG.EVT_LEVEL_PROP_ADDED, {level: this, obj,
-                propType});
-            return true;
-        }
-        else {
-            RG.err('Map.Level', 'addVirtualProp',
-                `No prop ${propType} supported. Obj: ${JSON.stringify(obj)}`);
-        }
-        return false;
-    };
-
-    /* Removes a prop 'obj' to level location x,y. Returns true on success,
-     * false on failure.*/
-    this._removePropFromLevelXY = function(propType, obj, x, y) {
-        if (this._p.hasOwnProperty(propType)) {
-            const index = this._p[propType].indexOf(obj);
-
-            if (index >= 0) {
-                this._p[propType].splice(index, 1);
-                if (!obj.getOwner) {
-                    obj.setXY(null, null);
-                    obj.unsetLevel();
-                }
-                RG.POOL.emitEvent(RG.EVT_LEVEL_PROP_REMOVED,
-                    {level: this, obj, propType});
-                return this._map.removeProp(x, y, propType, obj);
-            }
-            else {
-                RG.err('Map.Level', '_removePropFromLevelXY',
-                    `Obj index not found in list this._p[${propType}]`);
-            }
-            return false;
-        }
-        else {
-            RG.err('Map.Level', '_removePropFromLevelXY',
-                `No prop ${propType} supported. Obj: ${JSON.stringify(obj)}`);
-        }
-        return false;
-    };
-
-    /* Removes a virtual property (virtual prop has no x,y position). */
-    this.removeVirtualProp = function(propType, obj) {
-        if (this._p.hasOwnProperty(propType)) {
-            const index = this._p[propType].indexOf(obj);
-            if (index >= 0) {
-                this._p[propType].splice(index, 1);
-                RG.POOL.emitEvent(RG.EVT_LEVEL_PROP_REMOVED,
-                    {level: this, obj, propType});
-                return true;
-            }
-        }
-        return false;
-    };
-
-    /* Removes given actor from level. Returns true if successful.*/
-    this.removeActor = actor => {
-        const index = this._p.actors.indexOf(actor);
-        const x = actor.getX();
-        const y = actor.getY();
-        if (this._map.removeProp(x, y, RG.TYPE_ACTOR, actor)) {
-            this._p.actors.splice(index, 1);
-            return true;
-        }
-        else {
-            return false;
-        }
-    };
-
-    /* Explores the level from given actor's viewpoint. Sets new cells as
-     * explored. There's no exploration tracking per actor.*/
-    this.exploreCells = actor => {
-        const visibleCells = this._map.getVisibleCells(actor);
-        if (actor.isPlayer()) {
-            for (let i = 0; i < visibleCells.length; i++) {
-                visibleCells[i].setExplored();
-            }
-        }
-        return visibleCells;
-    };
-
-    /* Returns all explored cells in the map.*/
-    this.getExploredCells = () => this._map.getExploredCells();
 
     //-----------------------------------------------------------------
     // CALLBACKS
@@ -1106,6 +757,367 @@ RG.Map.Level = function() { // {{{2
 }; // }}} Level
 RG.Map.Level.idCount = 0;
 
+RG.Map.Level.prototype.setLevelNumber = function(no) {this._levelNo = no;};
+RG.Map.Level.prototype.getLevelNumber = function() {
+    return this._levelNo;
+};
+
+RG.Map.Level.prototype.getID = function() {
+    return this._id;
+};
+
+RG.Map.Level.prototype.setID = function(id) {this._id = id;};
+
+RG.Map.Level.prototype.getParent = function() {
+    return this._parent;
+};
+
+RG.Map.Level.prototype.setParent = function(parent) {
+    if (!RG.isNullOrUndef([parent])) {
+        this._parent = parent;
+    }
+    else {
+        RG.err('Map.Level', 'setParent',
+            'Parent is not defined.');
+    }
+};
+
+RG.Map.Level.prototype.getActors = function() {return this._p.actors;};
+RG.Map.Level.prototype.getItems = function() {return this._p.items;};
+RG.Map.Level.prototype.getElements = function() {return this._p.elements;};
+
+/* Returns all stairs elements. */
+RG.Map.Level.prototype.getStairs = function() {
+    const res = [];
+    this._p.elements.forEach(elem => {
+        if (this._isStairs(elem)) {
+            res.push(elem);
+        }
+    });
+    return res;
+};
+
+RG.Map.Level.prototype.getPassages = function() {
+    const res = [];
+    this._p.elements.forEach(elem => {
+        if (elem.getName() === 'passage') {
+            res.push(elem);
+        }
+    });
+    return res;
+};
+
+RG.Map.Level.prototype.getConnections = function() {
+    const conn = [];
+    this._p.elements.forEach(elem => {
+        if (elem.getType() === 'connection') {
+            conn.push(elem);
+        }
+    });
+    return conn;
+};
+
+RG.Map.Level.prototype._isStairs = function(elem) {
+    return (/stairs(Down|Up)/).test(elem.getName());
+};
+
+RG.Map.Level.prototype.setMap = function(map) {this._map = map;};
+RG.Map.Level.prototype.getMap = function() {return this._map;};
+
+/* Given a level, returns stairs which lead to that level.*/
+RG.Map.Level.prototype.getStairsToLevel = function(level) {
+    if (RG.isNullOrUndef([level])) {
+        RG.err('Map.Level', 'getStairs', 'arg |level| required.');
+    }
+
+    const allStairs = this.getStairs();
+    for (let i = 0; i < allStairs.length; i++) {
+        if (allStairs[i].getTargetLevel() === level) {
+            return allStairs[i];
+        }
+    }
+    return null;
+};
+
+//---------------------------------------------------------------------
+// GENERIC ADD METHOD
+//---------------------------------------------------------------------
+RG.Map.Level.prototype.addToRandomCell = function(obj) {
+    const cell = this.getFreeRandCell();
+    switch (obj.getPropType()) {
+        case RG.TYPE_ITEM:
+            this.addItem(obj, cell.getX(), cell.getY());
+            break;
+        default: RG.err('Map.Level', 'addToRandomCell',
+            `No known propType |${obj.getPropType()}|`);
+    }
+};
+
+//---------------------------------------------------------------------
+// STAIRS RELATED FUNCTIONS
+//---------------------------------------------------------------------
+
+/* Adds stairs for this level.*/
+RG.Map.Level.prototype.addStairs = function(stairs, x, y) {
+    if (!RG.isNullOrUndef([x, y])) {
+        if (this._map.hasXY(x, y)) {
+          stairs.setSrcLevel(this);
+          // Prevents stairs on impassable squares
+          this._map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
+          return this._addPropToLevelXY(RG.TYPE_ELEM, stairs, x, y);
+        }
+        else {
+          const msg = `x,y ${x},${y} out of map bounds.`;
+            RG.err('Map.Level', 'addStairs',
+              `${msg}: cols ${this._map.cols}, rows: ${this._map.rows}`);
+        }
+    }
+    else {
+        RG.err('Map.Level', 'addStairs',
+            'Cannot add stairs. x, y missing.');
+    }
+    return false;
+};
+
+/* Uses stairs for given actor if it's on top of the stairs.*/
+RG.Map.Level.prototype.useStairs = function(actor) {
+    const cell = this._map.getCell(actor.getX(), actor.getY());
+    if (cell.hasConnection()) {
+        const connection = cell.getConnection();
+        if (connection.useStairs(actor)) {
+            return true;
+        }
+        else {
+            RG.err('Level', 'useStairs', 'Failed to use connection.');
+        }
+    }
+    return false;
+};
+
+/* Adds one element into the level. */
+RG.Map.Level.prototype.addElement = function(elem, x, y) {
+    if (elem.getType() === 'connection') {
+        return this.addStairs(elem, x, y);
+    }
+    if (!RG.isNullOrUndef([x, y])) {
+        return this._addPropToLevelXY(RG.TYPE_ELEM, elem, x, y);
+    }
+    const [xCell, yCell] = this._getFreeCellXY();
+    return this._addPropToLevelXY(RG.TYPE_ELEM, elem, xCell, yCell);
+};
+
+RG.Map.Level.prototype.removeElement = function(elem, x, y) {
+    return this._removePropFromLevelXY(RG.TYPE_ELEM, elem, x, y);
+};
+
+//---------------------------------------------------------------------
+// ITEM RELATED FUNCTIONS
+//---------------------------------------------------------------------
+
+/* Adds one item to the given location on the level.*/
+RG.Map.Level.prototype.addItem = function(item, x, y) {
+    if (!RG.isNullOrUndef([x, y])) {
+        return this._addPropToLevelXY(RG.TYPE_ITEM, item, x, y);
+    }
+    const [xCell, yCell] = this._getFreeCellXY();
+    return this._addPropToLevelXY(RG.TYPE_ITEM, item, xCell, yCell);
+};
+
+/* Removes an item from the level in x,y position.*/
+RG.Map.Level.prototype.removeItem = function(item, x, y) {
+    return this._removePropFromLevelXY(RG.TYPE_ITEM, item, x, y);
+};
+
+RG.Map.Level.prototype.pickupItem = function(actor, x, y) {
+    const cell = this._map.getCell(x, y);
+    if (cell.hasProp(RG.TYPE_ITEM)) {
+        const item = cell.getProp(RG.TYPE_ITEM)[0];
+        if (actor.getInvEq().canCarryItem(item)) {
+            actor.getInvEq().addItem(item);
+            this.removeItem(item, x, y);
+
+            let itemStr = item.getName();
+            if (item.count > 1) {
+                itemStr += ' x' + item.count;
+            }
+            RG.gameMsg(actor.getName() + ' picked up ' + itemStr);
+        }
+        else {
+            RG.gameMsg(actor.getName() + ' cannot carry more weight');
+        }
+    }
+};
+
+    /* Moves the given object to x,y. */
+RG.Map.Level.prototype.moveActorTo = function(obj, x, y) {
+    const level = obj.getLevel();
+    const [oX, oY] = [obj.getX(), obj.getY()];
+    const propType = obj.getPropType();
+    if (level._removePropFromLevelXY(propType, obj, oX, oY)) {
+        return this._addPropToLevelXY(propType, obj, x, y);
+    }
+    return false;
+};
+
+//---------------------------------------------------------------------
+// ACTOR RELATED FUNCTIONS
+//---------------------------------------------------------------------
+
+/* Adds an actor to the level. If x,y is given, tries to add there. If not,
+ * finds first free cells and adds there. Returns true on success.
+ */
+RG.Map.Level.prototype.addActor = function(actor, x, y) {
+    RG.debug(this, 'addActor called with x,y ' + x + ', ' + y);
+    if (!RG.isNullOrUndef([x, y])) {
+        if (this._map.hasXY(x, y)) {
+            this._addPropToLevelXY(RG.TYPE_ACTOR, actor, x, y);
+            RG.debug(this, 'Added actor to map x: ' + x + ' y: ' + y);
+            return true;
+        }
+        else {
+            RG.err('Level', 'addActor',
+                'No coordinates ' + x + ', ' + y + ' in the map.');
+            return false;
+        }
+    }
+    else {
+        RG.nullOrUndefError('Map.Level: addActor', 'arg |x|', x);
+        RG.nullOrUndefError('Map.Level: addActor', 'arg |y|', y);
+        return false;
+    }
+};
+
+/* Using this method, actor can be added to a free cell without knowing the
+ * exact x,y coordinates. This is not random, such that top-left (0,0) is
+ * always preferred. */
+RG.Map.Level.prototype.addActorToFreeCell = function(actor) {
+    RG.debug(this, 'Adding actor to free slot');
+    const freeCells = this._map.getFree();
+    if (freeCells.length > 0) {
+        const xCell = freeCells[0].getX();
+        const yCell = freeCells[0].getY();
+        if (this._addPropToLevelXY(RG.TYPE_ACTOR, actor, xCell, yCell)) {
+            RG.debug(this,
+                'Added actor to free cell in ' + xCell + ', ' + yCell);
+            return true;
+        }
+    }
+    else {
+        RG.err('Level', 'addActor', 'No free cells for the actor.');
+    }
+    return false;
+};
+
+/* Adds a prop 'obj' to level location x,y. Returns true on success,
+ * false on failure.*/
+RG.Map.Level.prototype._addPropToLevelXY = function(propType, obj, x, y) {
+    if (this._p.hasOwnProperty(propType)) {
+        this._p[propType].push(obj);
+        if (!obj.isOwnable) {
+            obj.setXY(x, y);
+            obj.setLevel(this);
+        }
+        this._map.setProp(x, y, propType, obj);
+        RG.POOL.emitEvent(RG.EVT_LEVEL_PROP_ADDED, {level: this, obj,
+            propType});
+        return true;
+    }
+    else {
+        RG.err('Map.Level', '_addPropToLevelXY',
+            `No prop ${propType} supported. Obj: ${JSON.stringify(obj)}`);
+    }
+    return false;
+};
+
+/* Adds virtual prop not associated with x,y position or a cell. */
+RG.Map.Level.prototype.addVirtualProp = function(propType, obj) {
+    if (this._p.hasOwnProperty(propType)) {
+        this._p[propType].push(obj);
+        obj.setLevel(this);
+        RG.POOL.emitEvent(RG.EVT_LEVEL_PROP_ADDED, {level: this, obj,
+            propType});
+        return true;
+    }
+    else {
+        RG.err('Map.Level', 'addVirtualProp',
+            `No prop ${propType} supported. Obj: ${JSON.stringify(obj)}`);
+    }
+    return false;
+};
+
+/* Removes a prop 'obj' to level location x,y. Returns true on success,
+ * false on failure.*/
+RG.Map.Level.prototype._removePropFromLevelXY = function(propType, obj, x, y) {
+    if (this._p.hasOwnProperty(propType)) {
+        const index = this._p[propType].indexOf(obj);
+
+        if (index >= 0) {
+            this._p[propType].splice(index, 1);
+            if (!obj.getOwner) {
+                obj.setXY(null, null);
+                obj.unsetLevel();
+            }
+            RG.POOL.emitEvent(RG.EVT_LEVEL_PROP_REMOVED,
+                {level: this, obj, propType});
+            return this._map.removeProp(x, y, propType, obj);
+        }
+        else {
+            RG.err('Map.Level', '_removePropFromLevelXY',
+                `Obj index not found in list this._p[${propType}]`);
+        }
+        return false;
+    }
+    else {
+        RG.err('Map.Level', '_removePropFromLevelXY',
+            `No prop ${propType} supported. Obj: ${JSON.stringify(obj)}`);
+    }
+    return false;
+};
+
+/* Removes a virtual property (virtual prop has no x,y position). */
+RG.Map.Level.prototype.removeVirtualProp = function(propType, obj) {
+    if (this._p.hasOwnProperty(propType)) {
+        const index = this._p[propType].indexOf(obj);
+        if (index >= 0) {
+            this._p[propType].splice(index, 1);
+            RG.POOL.emitEvent(RG.EVT_LEVEL_PROP_REMOVED,
+                {level: this, obj, propType});
+            return true;
+        }
+    }
+    return false;
+};
+
+/* Removes given actor from level. Returns true if successful.*/
+RG.Map.Level.prototype.removeActor = function(actor) {
+    const index = this._p.actors.indexOf(actor);
+    const x = actor.getX();
+    const y = actor.getY();
+    if (this._map.removeProp(x, y, RG.TYPE_ACTOR, actor)) {
+        this._p.actors.splice(index, 1);
+        return true;
+    }
+    else {
+        return false;
+    }
+};
+
+/* Explores the level from given actor's viewpoint. Sets new cells as
+ * explored. There's no exploration tracking per actor.*/
+RG.Map.Level.prototype.exploreCells = function(actor) {
+    const visibleCells = this._map.getVisibleCells(actor);
+    if (actor.isPlayer()) {
+        for (let i = 0; i < visibleCells.length; i++) {
+            visibleCells[i].setExplored();
+        }
+    }
+    return visibleCells;
+};
+
+/* Returns all explored cells in the map.*/
+RG.Map.Level.prototype.getExploredCells = function() {
+    return this._map.getExploredCells();
+};
 
 RG.Map.Level.createLevelID = () => {
     const id = RG.Map.Level.idCount;
