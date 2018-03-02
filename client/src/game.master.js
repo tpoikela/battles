@@ -386,6 +386,7 @@ const GameMaster = function(game) {
         const id = tileLevel.getID();
         if (this.battles.hasOwnProperty(id)) {
             if (typeof this.battles[id].toJSON === 'function') {
+                this.battles[id].removeListeners();
                 this.battles[id] = this.battles[id].toJSON();
             }
             else {
