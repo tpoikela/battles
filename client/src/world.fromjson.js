@@ -1,6 +1,9 @@
 
 const RG = require('./rg');
 const debug = require('debug')('bitn:WorldFromJSON');
+const ConfStack = require('./conf-stack');
+
+RG.Factory = require('./factory');
 
 /* This class converts a serialized world back to World.Top object. It supports
  * unloaded AreaTiles, and does not create them as objects when
@@ -17,7 +20,7 @@ export default class WorldFromJSON {
     constructor(id2level, id2entity) {
         this.id2level = id2level;
         this.id2entity = id2entity;
-        this._conf = new RG.Factory.ConfStack();
+        this._conf = new ConfStack();
         this._verif = new RG.Verify.Conf('WorldFromJSON');
         this.worldElemByID = {}; // Stores world elements by ID
         this.createAllZones = true;
