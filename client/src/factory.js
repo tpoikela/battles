@@ -1187,11 +1187,9 @@ RG.Factory.World = function() {
         let areaLevels = null;
         let needsConnect = false;
         if (this.id2levelSet) {
-            console.log('Factory TOOK THIS BRANCH XXX');
             areaLevels = this.getAreaLevels(conf);
         }
         else {
-            console.log('Factory WENT HERE XXX');
             areaLevels = this.getPresetLevels(hierName);
             if (!areaLevels || areaLevels.length === 0) {
                 areaLevels = null;
@@ -1306,7 +1304,7 @@ RG.Factory.World = function() {
             if (Array.isArray(areaTileConf[typeLc])) {
                 nZones = areaTileConf[typeLc].length;
             }
-           this.debug(`\tnZones (${type}) is now ${nZones}`);
+           this.debug(`\t[${tx}][${ty}]: nZones (${type}) is now ${nZones}`);
             for (let i = 0; i < nZones; i++) {
                 const zoneConf = areaTileConf[typeLc][i];
                 const createFunc = 'create' + type;
