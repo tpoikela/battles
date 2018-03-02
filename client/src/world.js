@@ -469,6 +469,12 @@ RG.World.ZoneBase.prototype.getEntrances = function() {
     return entrances;
 };
 
+RG.World.ZoneBase.prototype.removeListeners = function() {
+    this._subZones.forEach(sz => {
+        sz.removeListeners();
+    });
+};
+
 RG.World.ZoneBase.prototype.toJSON = function() {
     const json = RG.World.Base.prototype.toJSON.call(this);
     json.x = this.tileX;
@@ -498,6 +504,10 @@ RG.World.SubZoneBase.prototype.addLevelFeature = function(feat) {
         this._levelFeatures[type] = [];
     }
     this._levelFeatures[type].push(feat);
+};
+
+RG.World.SubZoneBase.prototype.removeListeners = function() {
+    // Should be implemented in the derived class
 };
 
 RG.World.SubZoneBase.prototype.getLevel = function(nLevel) {
@@ -853,6 +863,12 @@ RG.World.AreaTile = function(x, y, area) {
     });
 };
 
+RG.World.AreaTile.prototype.removeListeners = function() {
+    this.zones.forEach(zone => {
+        zone.removeListeners();
+    });
+};
+
 /* Area is N x M area of tiles, with no linear progression like in dungeons.
  * Moving between tiles of areas happens by travelling to the edges of a tile.
  * Each tile is a level with special edge tiles.
@@ -1087,6 +1103,7 @@ RG.World.Area.prototype.toJSON = function() {
     };
     return Object.assign(obj, json);
 };
+
 
 /* Mountains are places consisting of tiles and dungeons. Mountain has few
  * special * tiles representing the summit.
@@ -1506,21 +1523,25 @@ RG.World.Shop = function() {
         this._level = level;
     };
 
-    this.getLevel = () => this._level;
 
     this.setCoord = function(coord) {
         this._coord = coord;
     };
 
     this.hasNotify = true;
-    this.notify = function(evtName, args) {
-        if (this._shopkeeper) {
-            if (args.actor.getID() === this._shopkeeper.getID()) {
-                this.setShopAbandoned();
-                RG.POOL.removeListener(this);
-            }
+};
+
+RG.World.Shop.prototype.notify = function(evtName, args) {
+    if (this._shopkeeper) {
+        if (args.actor.getID() === this._shopkeeper.getID()) {
+            this.setShopAbandoned();
+            RG.POOL.removeListener(this);
         }
-    };
+    }
+};
+
+RG.World.Shop.prototype.getLevel = function() {
+    return this._level;
 };
 
 RG.World.Shop.prototype.getShopkeeper = function() {
