@@ -79,7 +79,6 @@ export default class ChunkManager {
             for (let y = 0; y < this.sizeY; y++) {
                 if (this.inLoadRange(px, py, x, y)) {
                     if (!this.isLoaded(x, y)) {
-                        // this.loadTile(px, py, x, y, moveDir);
                         loadedTiles.push([x, y]);
                     }
                 }
@@ -131,7 +130,7 @@ export default class ChunkManager {
     }
 
     /* Loads the serialized/on-disk tile. */
-    loadTiles(px, py, loadedTilesXY) {
+    loadTiles(px, py, loadedTilesXY, moveDir) {
         const areaTiles = this.area.getTiles();
         debug('loadTiles: ' + JSON.stringify(loadedTilesXY));
         const loadedAreaTiles = loadedTilesXY.map(
@@ -145,7 +144,48 @@ export default class ChunkManager {
             const [tx, ty] = xy;
             this.state[tx][ty].loadState = LOAD.LOADED;
             this.area.setLoaded(tx, ty);
+
+            if (moveDir === '') {
+                debug(`Rm adjacent conns to ${tx},${ty}`);
+                this.removeAdjacentConnections(areaTiles, px, py, tx, ty);
+            }
         });
+    }
+
+    // The only case where this is used is when player enters the game, or
+    // moves via debugging functions such as Game.movePlayer()
+    removeAdjacentConnections(areaTiles, px, py, tx, ty) {
+        // 1. If cell to north not in range, unload north conns
+        if (!this.inLoadRange(px, py, tx, ty - 1)) {
+            if ((ty - 1) >= 0) {
+                debug(`Rm NORTH conns from ${tx},${ty}`);
+                this.removeConnections('NORTH', areaTiles[tx][ty]);
+            }
+        }
+
+        // 2. If cell to south not in range, unload south conns
+        if (!this.inLoadRange(px, py, tx, ty + 1)) {
+            if ((ty + 1) < this.area.getSizeY()) {
+                debug(`Rm SOUTH conns from ${tx},${ty}`);
+                this.removeConnections('SOUTH', areaTiles[tx][ty]);
+            }
+        }
+
+        // 3. If cell to east not in range, unload east conns
+        if (!this.inLoadRange(px, py, tx + 1, ty)) {
+            if ((tx + 1) < this.area.getSizeX()) {
+                debug(`Rm EAST conns from ${tx},${ty}`);
+                this.removeConnections('EAST', areaTiles[tx][ty]);
+            }
+        }
+
+        // 4. If cell to west not in range, unload west conns
+        if (!this.inLoadRange(px, py, tx - 1, ty)) {
+            if ((tx - 1) >= 0) {
+                debug(`Rm WEST conns from ${tx},${ty}`);
+                this.removeConnections('WEST', areaTiles[tx][ty]);
+            }
+        }
     }
 
     /* Unloads the tile from memory. */
@@ -197,28 +237,58 @@ export default class ChunkManager {
         else if (moveDir === 'SOUTH') {
             const newY = ty + 1;
             debug(`Removing connections from tile ${tx},${ty + 1}`);
-            if (newY < this.area.getSizeY) {
+            if (newY < this.area.getSizeY()) {
                 this.removeConnections('NORTH', areaTiles[tx][ty + 1]);
             }
+        }
+        else { // Usually starting position, player just appears
+
+            // 1. If cell to north is loaded, rm its south conns
+            if (this.inLoadRange(px, py, tx, ty - 1)) {
+                if ((ty - 1) >= 0) {
+                    if (this.isLoaded(tx, ty - 1)) {
+                        debug(`Rm SOUTH conns from ${tx},${ty - 1}`);
+                        this.removeConnections('SOUTH', areaTiles[tx][ty - 1]);
+                    }
+                }
+            }
+
+            // 2. If cell to south is loaded, rm its north conns
+            if (this.inLoadRange(px, py, tx, ty + 1)) {
+                if ((ty + 1) < this.area.getSizeY()) {
+                    if (this.isLoaded(tx, ty + 1)) {
+                        debug(`Rm NORTH conns from ${tx},${ty + 1}`);
+                        this.removeConnections('NORTH', areaTiles[tx][ty + 1]);
+                    }
+                }
+            }
+
+            // 3. If cell to east is loaded, rm its west conns
+            if (this.inLoadRange(px, py, tx + 1, ty)) {
+                if ((tx + 1) < this.area.getSizeX()) {
+                    if (this.isLoaded(tx + 1, ty)) {
+                        debug(`Rm WEST conns from ${tx + 1},${ty}`);
+                        this.removeConnections('WEST', areaTiles[tx + 1][ty]);
+                    }
+                }
+            }
+
+            // 4. If cell to west is loaded, rm its east conns
+            if (this.inLoadRange(px, py, tx - 1, ty)) {
+                if ((tx - 1) >= 0) {
+                    if (this.isLoaded(tx - 1, ty)) {
+                        debug(`Rm EAST conns from ${tx - 1},${ty}`);
+                        this.removeConnections('EAST', areaTiles[tx - 1][ty]);
+                    }
+                }
+            }
+
         }
         this.state[tx][ty].loadState = LOAD.JSON;
     }
 
     getLoadState(x, y) {
         return this.state[x][y].loadState;
-    }
-
-    serializeArea() {
-        this.setLoadStateAll(LOAD.JSON);
-        const levels = this.area.getLevels();
-        this.game.removeLevels(levels);
-        const tiles = this.area.getTiles();
-        for (let x = 0; x < this.sizeX; x++) {
-            for (let y = 0; y < this.sizeY; y++) {
-                tiles[x][y].removeListeners();
-                tiles[x][y] = tiles[x][y].toJSON();
-            }
-        }
     }
 
     toJSON() {
@@ -242,7 +312,6 @@ export default class ChunkManager {
     }
 
     addConnections(dir, tileToConnect, newTile) {
-        // printTileConnections('XXX', tileToConnect);
         const oppositeDir = this.getOpposite(dir);
         const addedConns = this.getReplacedConnections(dir, tileToConnect);
         const newConns = this.getReplacedConnections(oppositeDir, newTile);
@@ -256,12 +325,14 @@ export default class ChunkManager {
         const replacedConns = this.getReplacedConnections(dir, tile);
         replacedConns.forEach(conn => {
             const targetConn = conn.getTargetStairs();
-            const connObj = {
-                targetLevel: conn.getTargetLevel().getID(),
-                targetStairs: {x: targetConn.getX(), y: targetConn.getY()}
-            };
 
-            conn.setConnObj(connObj);
+            if (typeof conn.getTargetLevel().getID === 'function') {
+                const connObj = {
+                    targetLevel: conn.getTargetLevel().getID(),
+                    targetStairs: {x: targetConn.getX(), y: targetConn.getY()}
+                };
+                conn.setConnObj(connObj);
+            }
         });
     }
 
@@ -308,7 +379,7 @@ export default class ChunkManager {
             dx = px - oldX;
             dy = py - oldY;
             if (dx !== 0 && dy !== 0) {
-                RG.err('ChunkManager', 'setPlayerTile',
+                RG.err('ChunkManager', 'getMoveDir',
                     'Diagonal move not supported');
             }
             if (dx > 0) {moveDir = 'EAST';}
