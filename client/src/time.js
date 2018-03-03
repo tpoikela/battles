@@ -95,7 +95,8 @@ RG.Time.OneShotEvent = function(cb, offset, msg) {
 };
 RG.extend2(RG.Time.OneShotEvent, RG.Time.GameEvent);
 
-/* Scheduler for the game actions.  */
+/* Scheduler for the game actions. Time-based scheduler where each actor/event
+* is scheduled based on speed.  */
 RG.Time.Scheduler = function() { // {{{2
 
     // Internally use ROT scheduler
@@ -105,60 +106,64 @@ RG.Time.Scheduler = function() { // {{{2
     this._events = [];
     this._actors = [];
 
-    /* Adds an actor or event to the scheduler.*/
-    this.add = function(actOrEvent, repeat, offset) {
-        this._scheduler.add(actOrEvent, repeat, offset);
-        if (actOrEvent.hasOwnProperty('isEvent')) {
-            this._events.push(actOrEvent);
-        }
-        else {
-            this._actors.push(actOrEvent);
-        }
-    };
-
-    // Returns next actor/event or null if no next actor exists.
-    this.next = function() {return this._scheduler.next();};
-
-    /* Must be called after next() to re-schedule next slot for the
-     * actor/event.*/
-    this.setAction = function(action) {
-        this._scheduler.setDuration(action.getDuration());
-    };
-
-    /* Tries to remove an actor/event, Return true if success.*/
-    this.remove = function(actOrEvent) {
-        if (actOrEvent.hasOwnProperty('isEvent')) {
-            return this.removeEvent(actOrEvent);
-        }
-        else {
-            const index = this._actors.indexOf(actOrEvent);
-            if (index !== -1) {
-                this._actors.splice(index, 1);
-            }
-        }
-        return this._scheduler.remove(actOrEvent);
-    };
-
-    /* Removes an event from the scheduler. Returns true on success.*/
-    this.removeEvent = function(actOrEvent) {
-        let index = -1;
-        if (actOrEvent.hasOwnProperty('isEvent')) {
-            index = this._events.indexOf(actOrEvent);
-            if (index !== -1) {
-                this._events.splice(index, 1);
-            }
-        }
-        return this._scheduler.remove(actOrEvent);
-    };
-
-    this.getTime = function() {return this._scheduler.getTime();};
-
-    /* Hooks to the event system. When an actor is killed, removes it from the
-     * scheduler.*/
     this.hasNotify = true;
+
+    // When an actor is killed, removes it from the scheduler.*/
     RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
 
 }; // }}} Scheduler
+
+/* Adds an actor or event to the scheduler.*/
+RG.Time.Scheduler.prototype.add = function(actOrEvent, repeat, offset) {
+    this._scheduler.add(actOrEvent, repeat, offset);
+    if (actOrEvent.hasOwnProperty('isEvent')) {
+        this._events.push(actOrEvent);
+    }
+    else {
+        this._actors.push(actOrEvent);
+    }
+};
+
+// Returns next actor/event or null if no next actor exists.
+RG.Time.Scheduler.prototype.next = function() {
+    return this._scheduler.next();
+};
+
+/* Must be called after next() to re-schedule next slot for the
+ * actor/event.*/
+RG.Time.Scheduler.prototype.setAction = function(action) {
+    this._scheduler.setDuration(action.getDuration());
+};
+
+/* Tries to remove an actor/event, Return true if success.*/
+RG.Time.Scheduler.prototype.remove = function(actOrEvent) {
+    if (actOrEvent.hasOwnProperty('isEvent')) {
+        return this.removeEvent(actOrEvent);
+    }
+    else {
+        const index = this._actors.indexOf(actOrEvent);
+        if (index !== -1) {
+            this._actors.splice(index, 1);
+        }
+    }
+    return this._scheduler.remove(actOrEvent);
+};
+
+/* Removes an event from the scheduler. Returns true on success.*/
+RG.Time.Scheduler.prototype.removeEvent = function(actOrEvent) {
+    let index = -1;
+    if (actOrEvent.hasOwnProperty('isEvent')) {
+        index = this._events.indexOf(actOrEvent);
+        if (index !== -1) {
+            this._events.splice(index, 1);
+        }
+    }
+    return this._scheduler.remove(actOrEvent);
+};
+
+RG.Time.Scheduler.prototype.getTime = function() {
+    return this._scheduler.getTime();
+};
 
 RG.Time.Scheduler.prototype.notify = function(evtName, args) {
     if (evtName === RG.EVT_ACTOR_KILLED) {
