@@ -34,6 +34,17 @@ describe('ChunkManager', function() {
         game.setEnableChunkUnload(true);
     });
 
+    it('manager stuff correctly', () => {
+        const manager = new ChunkManager(game, area);
+        const func = () => {
+            manager.setPlayerTile(0, 0);
+            manager.setPlayerTile(0, 1, 0, 0);
+            manager.setPlayerTile(0, 2, 0, 1);
+            manager.setPlayerTile(1, 2, 0, 2);
+        };
+        expect(func).not.to.throw();
+    });
+
     it('stores the state of world area/chunks ', () => {
         RGTest.printMemUsage('START');
         const manager = new ChunkManager(game, area);
@@ -46,11 +57,12 @@ describe('ChunkManager', function() {
         expect(nConns).to.be.above(50);
         RGTest.verifyConnectivity(conns, 'Tile level 0,0 OK');
 
-        manager.serializeArea();
-        expect(game.getLevels().length).to.equal(0);
-        expect(manager.getLoadState(0, 0)).to.equal(LOAD.JSON);
-
+        // manager.serializeArea();
         manager.setPlayerTile(0, 0);
+        expect(game.getLevels().length).to.equal(2 * 2);
+        expect(manager.getLoadState(2, 2)).to.equal(LOAD.JSON);
+        expect(manager.getLoadState(3, 3)).to.equal(LOAD.JSON);
+
         expect(manager.getLoadState(0, 0)).to.equal(LOAD.LOADED);
         expect(manager.getLoadState(0, 1)).to.equal(LOAD.LOADED);
         expect(manager.getLoadState(1, 0)).to.equal(LOAD.LOADED);
