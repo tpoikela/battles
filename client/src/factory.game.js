@@ -324,6 +324,7 @@ RG.Factory.Game = function() {
         worldConf.createAllZones = false;
         const world = fact.createWorld(worldConf);
         game.addPlace(world);
+        overworld.clearSubLevels();
         game.setOverWorld(overworld);
         game.setEnableChunkUnload(true);
 
