@@ -47,7 +47,8 @@ const getClassesAndChars = function(seen, cells, selCell) {
     return [cssClasses, asciiChars];
 };
 
-const getClassesAndCharsWithRLE = function(seen, cells, selCell, anim, styles = {}) {
+const getClassesAndCharsWithRLE = function(
+    seen, cells, selCell, anim, styles = {}) {
     let prevChar = null;
     let prevClass = null;
     let charRL = 0;
@@ -230,146 +231,148 @@ const Screen = function(viewX, viewY) {
     this.viewportY = viewY;
     this.selectedCell = null;
     this.styles = {};
-    let _charRows = [];
-    let _classRows = [];
-    let _mapShown = false;
+    this._charRows = [];
+    this._classRows = [];
+    this._mapShown = false;
 
     this.viewport = new Viewport(viewX, viewY);
 
+
+};
+
     /* Returns the leftmost X-coordinate of the viewport. */
-    this.getStartX = function() {
-        return this.viewport.startX;
-    };
+Screen.prototype.getStartX = function() {
+    return this.viewport.startX;
+};
 
-    this.setSelectedCell = function(cell) {
-        this.selectedCell = cell;
-    };
+Screen.prototype.setSelectedCell = function(cell) {
+    this.selectedCell = cell;
+};
 
-    this.setViewportXY = function(x, y) {
-        this.viewportX = x;
-        this.viewportY = y;
-        this.viewport.setViewportXY(x, y);
+Screen.prototype.setViewportXY = function(x, y) {
+    this.viewportX = x;
+    this.viewportY = y;
+    this.viewport.setViewportXY(x, y);
 
-        _charRows = [];
-        _classRows = [];
-        for (let yy = 0; yy < y; yy++) {
-            _charRows.push([]);
-            _classRows.push([]);
-        }
-    };
+    this._charRows = [];
+    this._classRows = [];
+    for (let yy = 0; yy < y; yy++) {
+        this._charRows.push([]);
+        this._classRows.push([]);
+    }
+};
 
-    this.setMapShown = function(mapShown) {
-        _mapShown = mapShown;
-    };
+Screen.prototype.setMapShown = function(mapShown) {
+    this._mapShown = mapShown;
+};
 
-    this.getCharRows = function() {
-        return _charRows;
-    };
+Screen.prototype.getCharRows = function() {
+    return this._charRows;
+};
 
-    this.getClassRows = function() {
-        return _classRows;
-    };
+Screen.prototype.getClassRows = function() {
+    return this._classRows;
+};
 
-    this._initRender = function(playX, playY, map) {
-        if (!_mapShown) {
-            this.setViewportXY(this.viewportX,
-                this.viewportY);
-        }
-        else {
-            this.setViewportXY(map.cols, map.rows);
-        }
-        this.viewport.getCellsInViewPort(playX, playY, map);
+Screen.prototype._initRender = function(playX, playY, map) {
+    if (!this._mapShown) {
+        this.setViewportXY(this.viewportX,
+            this.viewportY);
+    }
+    else {
+        this.setViewportXY(map.cols, map.rows);
+    }
+    this.viewport.getCellsInViewPort(playX, playY, map);
 
-        this.startX = this.viewport.startX;
-        this.endX = this.viewport.endX;
-        this.startY = this.viewport.startY;
-        this.endY = this.viewport.endY;
-    };
+    this.startX = this.viewport.startX;
+    this.endX = this.viewport.endX;
+    this.startY = this.viewport.startY;
+    this.endY = this.viewport.endY;
+};
 
     /* 'Renders' the ASCII screen and style classes based on player's
      * coordinate, map and visible cells. */
-    this.render = function(playX, playY, map, visibleCells) {
-        this._initRender(playX, playY, map);
-        let yCount = 0;
-        for (let y = this.viewport.startY; y <= this.viewport.endY; ++y) {
-            const rowCellData = this.viewport.getCellRow(y);
-            const classesChars = getClassesAndChars(visibleCells,
-                rowCellData, this.selectedCell);
+Screen.prototype.render = function(playX, playY, map, visibleCells) {
+    this._initRender(playX, playY, map);
+    let yCount = 0;
+    for (let y = this.viewport.startY; y <= this.viewport.endY; ++y) {
+        const rowCellData = this.viewport.getCellRow(y);
+        const classesChars = getClassesAndChars(visibleCells,
+            rowCellData, this.selectedCell);
 
-            _classRows[yCount] = classesChars[0];
-            _charRows[yCount] = classesChars[1];
-            ++yCount;
-        }
+        this._classRows[yCount] = classesChars[0];
+        this._charRows[yCount] = classesChars[1];
+        ++yCount;
+    }
 
-    };
+};
 
-    this.renderWithRLE = function(playX, playY, map, visibleCells, anim) {
-        this._initRender(playX, playY, map);
-        let yCount = 0;
-        for (let y = this.viewport.startY; y <= this.viewport.endY; ++y) {
-            const rowCellData = this.viewport.getCellRow(y);
-            const classesChars = getClassesAndCharsWithRLE(visibleCells,
-                rowCellData, this.selectedCell, anim, this.styles);
+Screen.prototype.renderWithRLE = function(
+    playX, playY, map, visibleCells, anim) {
+    this._initRender(playX, playY, map);
+    let yCount = 0;
+    for (let y = this.viewport.startY; y <= this.viewport.endY; ++y) {
+        const rowCellData = this.viewport.getCellRow(y);
+        const classesChars = getClassesAndCharsWithRLE(visibleCells,
+            rowCellData, this.selectedCell, anim, this.styles);
 
-            _classRows[yCount] = classesChars[0];
-            _charRows[yCount] = classesChars[1];
-            ++yCount;
-        }
-    };
+        this._classRows[yCount] = classesChars[0];
+        this._charRows[yCount] = classesChars[1];
+        ++yCount;
+    }
+};
 
     /* Renders the full map as visible. */
-    this.renderFullMap = function(map) {
-        this.startX = 0;
-        this.endX = map.cols - 1;
-        this.startY = 0;
-        this.endY = map.rows - 1;
+Screen.prototype.renderFullMap = function(map) {
+    this.startX = 0;
+    this.endX = map.cols - 1;
+    this.startY = 0;
+    this.endY = map.rows - 1;
 
-        for (let y = 0; y < map.rows; ++y) {
-            const classesChars = getClassesAndCharsFullMap(
-                map.getCellRowFast(y), this.selectedCell);
+    for (let y = 0; y < map.rows; ++y) {
+        const classesChars = getClassesAndCharsFullMap(
+            map.getCellRowFast(y), this.selectedCell);
 
-            _classRows[y] = classesChars[0];
-            _charRows[y] = classesChars[1];
-        }
-    };
+        this._classRows[y] = classesChars[0];
+        this._charRows[y] = classesChars[1];
+    }
+};
 
-    this.renderFullMapWithRLE = function(map) {
-        this.startX = 0;
-        this.endX = map.cols - 1;
-        this.startY = 0;
-        this.endY = map.rows - 1;
+Screen.prototype.renderFullMapWithRLE = function(map) {
+    this.startX = 0;
+    this.endX = map.cols - 1;
+    this.startY = 0;
+    this.endY = map.rows - 1;
 
-        for (let y = 0; y < map.rows; ++y) {
-            const classesChars = getClassesAndCharsFullMapWithRLE(
-                map.getCellRowFast(y), this.selectedCell);
+    for (let y = 0; y < map.rows; ++y) {
+        const classesChars = getClassesAndCharsFullMapWithRLE(
+            map.getCellRowFast(y), this.selectedCell);
 
-            _classRows[y] = classesChars[0];
-            _charRows[y] = classesChars[1];
-        }
-    };
+        this._classRows[y] = classesChars[0];
+        this._charRows[y] = classesChars[1];
+    }
+};
 
-    this.clear = function() {
-        _classRows = [];
-        _charRows = [];
-        this.selectedCell = null;
-        this.startX = 0;
-        this.endX = -1;
-        this.startY = 0;
-        this.endY = -1;
-        this.styles = {};
-    };
+Screen.prototype.clear = function() {
+    this._classRows = [];
+    this._charRows = [];
+    this.selectedCell = null;
+    this.startX = 0;
+    this.endX = -1;
+    this.startY = 0;
+    this.endY = -1;
+    this.styles = {};
+};
 
-    this.setStyle = function(name, value) {
-        this.styles[name] = value;
-    };
+Screen.prototype.setStyle = function(name, value) {
+    this.styles[name] = value;
+};
 
     /* Prints the chars in screen. */
-    this.printRenderedChars = () => {
-      _charRows.forEach(row => {
-        console.log(row.join(''));
-      });
-    };
-
+Screen.prototype.printRenderedChars = () => {
+  this._charRows.forEach(row => {
+    console.log(row.join(''));
+  });
 };
 
 module.exports = Screen;
