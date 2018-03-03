@@ -93,45 +93,6 @@ const Engine = function(eventPool) {
         }
     };
 
-
-    //--------------------------------------------------------------
-    // SCHEDULING/ACTIONS
-    //--------------------------------------------------------------
-
-    /* Returns next actor from the scheduling queue.*/
-    this.getNextActor = () => this._scheduler.next();
-
-    /* Adds an actor to the scheduler. */
-    this.addActor = actor => {
-        this._scheduler.add(actor, true, 0);
-    };
-
-    /* Removes an actor from a scheduler.*/
-    this.removeActor = actor => {
-        this._scheduler.remove(actor);
-    };
-
-    /* Adds an event to the scheduler.*/
-    this.addEvent = gameEvent => {
-        const repeat = gameEvent.getRepeat();
-        const offset = gameEvent.getOffset();
-        this._scheduler.add(gameEvent, repeat, offset);
-    };
-
-    /* Performs one game action.*/
-    this.doAction = action => {
-        this._scheduler.setAction(action);
-        action.doAction();
-        if (action.hasOwnProperty('energy')) {
-            if (action.hasOwnProperty('actor')) {
-                const actor = action.actor;
-                if (actor.has('Action')) {
-                    actor.get('Action').addEnergy(action.energy);
-                }
-            }
-        }
-    };
-
     //--------------------------------------------------------------
     // GAME LOOPS
     //--------------------------------------------------------------
@@ -450,6 +411,47 @@ const Engine = function(eventPool) {
         this.systems['Animation'].disableAnimations();
     };
 
+};
+
+
+//--------------------------------------------------------------
+// SCHEDULING/ACTIONS
+//--------------------------------------------------------------
+
+/* Returns next actor from the scheduling queue.*/
+Engine.prototype.getNextActor = function() {
+    return this._scheduler.next();
+};
+
+/* Adds an actor to the scheduler. */
+Engine.prototype.addActor = function(actor) {
+    this._scheduler.add(actor, true, 0);
+};
+
+/* Removes an actor from a scheduler.*/
+Engine.prototype.removeActor = function(actor) {
+    this._scheduler.remove(actor);
+};
+
+/* Adds an event to the scheduler.*/
+Engine.prototype.addEvent = function(gameEvent) {
+    const repeat = gameEvent.getRepeat();
+    const offset = gameEvent.getOffset();
+    this._scheduler.add(gameEvent, repeat, offset);
+};
+
+/* Performs one game action.*/
+Engine.prototype.doAction = function(action) {
+    this._scheduler.setAction(action);
+    action.doAction();
+    if (action.hasOwnProperty('energy')) {
+        if (action.hasOwnProperty('actor')) {
+            const actor = action.actor;
+            if (actor.has('Action')) {
+                actor.get('Action').addEnergy(action.energy);
+            }
+        }
+    }
 };
 
 module.exports = Engine;
