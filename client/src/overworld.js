@@ -55,54 +55,54 @@ const {TILE_SIZE_X, TILE_SIZE_Y} = RG.OverWorld;
 const Wall = function(type) {
     this.type = type; // vertical/horizontal/etc
     this.coord = []; // 2-d array of coordinates
+};
 
-    this.addWallCoord = function(tile) {
-        this.coord.push(tile);
-    };
+Wall.prototype.addWallCoord = function(tile) {
+    this.coord.push(tile);
+};
 
-    this.getCoordAt = function(n) {
-        return this.coord[n];
-    };
+Wall.prototype.getCoordAt = function(n) {
+    return this.coord[n];
+};
 
-    /* Returns the y-pos for horizontal and x-pos for vertical walls. */
-    this.getWallPos = function() {
-        if (type === 'vertical') {
-            return this.coord[0][0][0];
-        }
-        if (type === 'horizontal') {
-            return this.coord[0][0][1];
-        }
-        return OW.ILLEGAL_POS;
-    };
+/* Returns the y-pos for horizontal and x-pos for vertical walls. */
+Wall.prototype.getWallPos = function() {
+    if (this.type === 'vertical') {
+        return this.coord[0][0][0];
+    }
+    if (this.type === 'horizontal') {
+        return this.coord[0][0][1];
+    }
+    return OW.ILLEGAL_POS;
+};
 
-    this.getWallStart = function() {
-        if (type === 'vertical') {
-            return this.coord[0][0][1];
-        }
-        if (type === 'horizontal') {
-            return this.coord[0][0][0];
-        }
-        return OW.ILLEGAL_POS;
-    };
+Wall.prototype.getWallStart = function() {
+    if (this.type === 'vertical') {
+        return this.coord[0][0][1];
+    }
+    if (this.type === 'horizontal') {
+        return this.coord[0][0][0];
+    }
+    return OW.ILLEGAL_POS;
+};
 
-    this.getWallEnd = function() {
-        const last = this.coord.length - 1;
-        if (type === 'vertical') {
-            return this.coord[last][0][1];
-        }
-        if (type === 'horizontal') {
-            return this.coord[last][0][0];
-        }
-        return -1;
-    };
+Wall.prototype.getWallEnd = function() {
+    const last = this.coord.length - 1;
+    if (this.type === 'vertical') {
+        return this.coord[last][0][1];
+    }
+    if (this.type === 'horizontal') {
+        return this.coord[last][0][0];
+    }
+    return -1;
+};
 
-    this.toString = function() {
-        let str = `Type: ${this.type} `;
-        str += `Length: ${this.coord.length}\n`;
-        str += `Start: ${this.getWallStart()} End: ${this.getWallEnd()}\n`;
-        str += `Tiles: ${JSON.stringify(this.coord)}`;
-        return str;
-    };
+Wall.prototype.toString = function() {
+    let str = `type: ${this.type} `;
+    str += `Length: ${this.coord.length}\n`;
+    str += `Start: ${this.getWallStart()} End: ${this.getWallEnd()}\n`;
+    str += `Tiles: ${JSON.stringify(this.coord)}`;
+    return str;
 };
 
 //---------------------------------------------------------------------------
@@ -128,13 +128,13 @@ RG.OverWorld.SubFeature = function(type, coord) {
             'coord must be an array.');
     }
 
-    this.getLastCoord = function() {
-        if (this.coord.length > 0) {
-            return this.coord[this.coord.length - 1];
-        }
-        return [];
-    };
+};
 
+RG.OverWorld.SubFeature.prototype.getLastCoord = function() {
+    if (this.coord.length > 0) {
+        return this.coord[this.coord.length - 1];
+    }
+    return [];
 };
 
 //---------------------------------------------------------------------------
@@ -151,55 +151,64 @@ RG.OverWorld.SubLevel = function(level) {
 
     // Store any number of different type of features by type
     this._features = {};
-    this.getFeatures = () => this._features;
-
-    this.getSubX = () => this._subX;
-    this.getSubY = () => this._subY;
 
     // Stores one feature per coordinate location
     this._featuresByXY = {};
 
-    this.addWall = function(wall) {
-        if (wall.type === 'vertical') {
-            this._vWalls.push(wall);
-        }
-        else if (wall.type === 'horizontal') {
-            this._hWalls.push(wall);
-        }
-    };
+};
 
-    /* Returns one wall (or null) if none found. */
-    this.getWall = function() {
-        const hLen = this._hWalls.length;
-        const vLen = this._vWalls.length;
-        if (hLen === 0 && vLen === 0) {return null;}
-        if (hLen === 0) {return this._vWalls[0];}
-        if (vLen === 0) {return this._hWalls[0];}
-        RG.warn('OverWorld.SubLevel', 'getWall',
-            `Return hor wall. Too many walls: vLen: ${vLen}, hLen: ${hLen}`);
-        return this._hWalls[0];
-    };
+RG.OverWorld.SubLevel.prototype.getFeatures = function() {
+    return this._features;
+};
 
-    this.addFeature = function(feature) {
-        const type = feature.type;
-        if (!this._features.hasOwnProperty(type)) {
-            this._features[type] = [];
-        }
-        this._features[type].push(feature);
+RG.OverWorld.SubLevel.prototype.getSubX = function() {
+    return this._subX;
+};
 
-        feature.coord.forEach(xy => {
-            const keyXY = xy[0] + ',' + xy[1];
-            this._featuresByXY[keyXY] = type;
-        });
-    };
+RG.OverWorld.SubLevel.prototype.getSubY = function() {
+    return this._subY;
+};
 
-    this.getFeaturesByType = function(type) {
-        if (this._features.hasOwnProperty(type)) {
-            return this._features[type];
-        }
-        return [];
-    };
+RG.OverWorld.SubLevel.prototype.addWall = function(wall) {
+    if (wall.type === 'vertical') {
+        this._vWalls.push(wall);
+    }
+    else if (wall.type === 'horizontal') {
+        this._hWalls.push(wall);
+    }
+};
 
+/* Returns one wall (or null) if none found. */
+RG.OverWorld.SubLevel.prototype.getWall = function() {
+    const hLen = this._hWalls.length;
+    const vLen = this._vWalls.length;
+    if (hLen === 0 && vLen === 0) {return null;}
+    if (hLen === 0) {return this._vWalls[0];}
+    if (vLen === 0) {return this._hWalls[0];}
+    RG.warn('OverWorld.SubLevel', 'getWall',
+        `Return hor wall. Too many walls: vLen: ${vLen}, hLen: ${hLen}`);
+    return this._hWalls[0];
+};
+
+RG.OverWorld.SubLevel.prototype.addFeature = function(feature) {
+    const type = feature.type;
+    if (!this._features.hasOwnProperty(type)) {
+        this._features[type] = [];
+    }
+    this._features[type].push(feature);
+
+    feature.coord.forEach(xy => {
+        const keyXY = xy[0] + ',' + xy[1];
+        this._featuresByXY[keyXY] = type;
+    });
+};
+
+
+RG.OverWorld.SubLevel.prototype.getFeaturesByType = function(type) {
+    if (this._features.hasOwnProperty(type)) {
+        return this._features[type];
+    }
+    return [];
 };
 
 //---------------------------------------------------------------------------
@@ -291,21 +300,19 @@ function buildMapLevel(ow, coordMap) {
     const sizeY = ow.getSizeY();
     const owLevel = RG.FACT.createLevel(RG.LEVEL_EMPTY, worldCols, worldRows);
 
-    const subLevels = [];
     // Build the overworld level in smaller pieces, and then insert the
     // small levels into the large level.
     for (let x = 0; x < sizeX; x++) {
-        subLevels[x] = [];
         for (let y = 0; y < sizeY; y++) {
             const subLevel = createSubLevel(ow, x, y, xMap, yMap);
             const x0 = x * xMap;
             const y0 = y * yMap;
-            subLevels[x][y] = subLevel;
             RG.Geometry.insertSubLevel(owLevel, subLevel, x0, y0);
         }
     }
 
-    const conf = RG.OverWorld.createWorldConf(ow, subLevels, nTilesX, nTilesY);
+    const conf = RG.OverWorld.createWorldConf(ow,
+        sizeX, sizeY, nTilesX, nTilesY);
 
     // Some global features (like roads) need to be added
     addGlobalFeatures(ow, owLevel, conf, coordMap);
@@ -734,7 +741,8 @@ function addVillageToSubLevel(feat, owSubLevel, subLevel) {
  * |nTilesX| X |nTilesY| array of World.AreaTile levels.
  * Both levels are RG.Map.Level objects.
  */
-RG.OverWorld.createWorldConf = (ow, subLevels, nTilesX, nTilesY) => {
+RG.OverWorld.createWorldConf = function(
+    ow, nSubLevelsX, nSubLevelsY, nTilesX, nTilesY) {
     const worldConf = {
         name: 'The North',
         nAreas: 1,
@@ -750,8 +758,8 @@ RG.OverWorld.createWorldConf = (ow, subLevels, nTilesX, nTilesY) => {
     };
     const areaConf = worldConf.area[0];
 
-    const nSubLevelsX = subLevels.length;
-    const nSubLevelsY = subLevels[0].length;
+    // const nSubLevelsX = subLevels.length;
+    // const nSubLevelsY = subLevels[0].length;
     if (!nSubLevelsX || !nSubLevelsY) {
         const msg = `levels in X: ${nSubLevelsX}, Y: ${nSubLevelsY}`;
         RG.err('OverWorld', 'createWorldConf',
