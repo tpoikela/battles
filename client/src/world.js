@@ -556,7 +556,10 @@ RG.World.Branch = function(name) {
     this.setEntrance = (stairs, levelNumber) => {
         if (levelNumber < this._levels.length) {
             const level = this._levels[levelNumber];
-            const cell = level.getFreeRandCell();
+            let cell = level.getFreeRandCell();
+            while (cell.hasConnection()) {
+                cell = level.getFreeRandCell();
+            }
             const x = cell.getX();
             const y = cell.getY();
             level.addStairs(stairs, x, y);
