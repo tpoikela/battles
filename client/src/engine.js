@@ -217,11 +217,19 @@ const Engine = function(eventPool) {
         levels.forEach(level => {
             const id = level.getID();
             if (this._levelMap.hasOwnProperty(id)) {
-                delete this._levelMap[id];
                 const index = this._activeLevels.indexOf(id);
                 if (index >= 0) {
                     this._activeLevels.splice(index, 1);
+
+                    const removedLevel = this._levelMap[id];
+                    if (removedLevel) {
+                        const rmvActors = removedLevel.getActors();
+                        for (let i = 0; i < rmvActors.length; i++) {
+                            rmvActors[i].get('Action').disable();
+                        }
+                    }
                 }
+                delete this._levelMap[id];
             }
             else {
                 RG.err('Game.Engine', 'removeLevels',
