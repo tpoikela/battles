@@ -272,126 +272,144 @@ OW.Map = function() {
 
     this._biomeMap = {};
 
-    this.getBiome = function(x, y) {
-        const key = x + ',' + y;
-        if (this._biomeMap.hasOwnProperty(key)) {
-            return this._biomeMap[x + ',' + y];
-        }
-        else {
-            RG.err('OW.Map', 'getBiome',
-                `No biome set for x,y ${x},${y}`);
-        }
-        return '';
-    };
-
-    this.getMap = () => this._baseMap;
-    this.getCell = (xy) => this._baseMap[xy[0]][xy[1]];
-
-    this.numHWalls = () => this._hWalls.length;
-    this.numVWalls = () => this._vWalls.length;
-    this.getHWalls = () => this._hWalls;
-    this.getVWalls = () => this._vWalls;
-
-    this.setMap = function(map) {
-        const sizeX = map.length;
-        this._baseMap = map;
-        for (let x = 0; x < sizeX; x++) {
-            this._subLevels[x] = [];
-        }
-    };
-
-    this.addBiome = function(x, y, biomeType) {
-        const key = x + ',' + y;
-        this._biomeMap[key] = biomeType;
-    };
-
-    this.addVWall = function(wall) {
-        wall.type = 'vertical';
-        this._vWalls.push(wall);
-    };
-
-    this.addHWall = function(wall) {
-        wall.type = 'horizontal';
-        this._hWalls.push(wall);
-    };
-
-    this.addFeature = function(xy, type) {
-        const keyXY = xy[0] + ',' + xy[1];
-        if (!this._features.hasOwnProperty(type)) {
-            this._features[type] = [];
-        }
-        if (!this._featuresByXY.hasOwnProperty(keyXY)) {
-            this._featuresByXY[keyXY] = [];
-        }
-        this._features[type].push(xy);
-        this._featuresByXY[keyXY].push(type);
-    };
-
-    this.getFeaturesByType = function(type) {
-        if (!this._features.hasOwnProperty(type)) {
-            return [];
-        }
-        return this._features[type];
-    };
-
-    this.getFeaturesByXY = function(xy) {
-        const keyXY = xy[0] + ',' + xy[1];
-        return this._featuresByXY[keyXY];
-    };
-
-    this.addSubLevel = function(xy, level) {
-        this._subLevels[xy[0]][xy[1]] = level;
-    };
-
-    this.getSubLevel = function(xy) {
-        return this._subLevels[xy[0]][xy[1]];
-    };
-
-    this.getSubLevelsWithFeature = function(type) {
-        const featXY = this.getFeaturesByType(type);
-        return featXY.map(xy => this.getSubLevel(xy));
-    };
-
-    this.getAreaXY = function() {
-        return this.getSizeX() * this.getSizeY();
-    };
-
-    this.getSizeX = function() {
-        return this._baseMap.length;
-    };
-
-    this.getSizeY = function() {
-        if (this._baseMap[0].length > 0) {
-            return this._baseMap[0].length;
-        }
-        else {
-            RG.warn('OW.Map', 'getSizeY',
-                'Y-size requested but returning zero value');
-            return 0;
-        }
-    };
-
-    this.setExplored = function(xy) {
-        this._explored[xy[0] + ',' + xy[1]] = true;
-    };
-
-    this.toJSON = function() {
-        const json = {
-            baseMap: this._baseMap,
-            biomeMap: this._biomeMap,
-            features: this._features,
-            featuresByXY: this._featuresByXY,
-            vWalls: this._vWalls,
-            hWalls: this._hWalls,
-            explored: this._explored
-        };
-        if (this.coordMap) {
-            json.coordMap = this.coordMap.toJSON();
-        }
-        return json;
-    };
-
 };
+
+OW.Map.prototype.getBiome = function(x, y) {
+    const key = x + ',' + y;
+    if (this._biomeMap.hasOwnProperty(key)) {
+        return this._biomeMap[x + ',' + y];
+    }
+    else {
+        RG.err('OW.Map', 'getBiome',
+            `No biome set for x,y ${x},${y}`);
+    }
+    return '';
+};
+
+OW.Map.prototype.getMap = function() {
+    return this._baseMap;
+};
+
+OW.Map.prototype.getCell = function(xy) {
+    return this._baseMap[xy[0]][xy[1]];
+};
+
+OW.Map.prototype.numHWalls = function() {
+    return this._hWalls.length;
+};
+OW.Map.prototype.numVWalls = function() {
+    return this._vWalls.length;
+};
+OW.Map.prototype.getHWalls = function() {
+    return this._hWalls;
+};
+OW.Map.prototype.getVWalls = function() {
+    return this._vWalls;
+};
+
+OW.Map.prototype.setMap = function(map) {
+    const sizeX = map.length;
+    this._baseMap = map;
+    for (let x = 0; x < sizeX; x++) {
+        this._subLevels[x] = [];
+    }
+};
+
+OW.Map.prototype.addBiome = function(x, y, biomeType) {
+    const key = x + ',' + y;
+    this._biomeMap[key] = biomeType;
+};
+
+OW.Map.prototype.addVWall = function(wall) {
+    wall.type = 'vertical';
+    this._vWalls.push(wall);
+};
+
+OW.Map.prototype.addHWall = function(wall) {
+    wall.type = 'horizontal';
+    this._hWalls.push(wall);
+};
+
+OW.Map.prototype.addFeature = function(xy, type) {
+    const keyXY = xy[0] + ',' + xy[1];
+    if (!this._features.hasOwnProperty(type)) {
+        this._features[type] = [];
+    }
+    if (!this._featuresByXY.hasOwnProperty(keyXY)) {
+        this._featuresByXY[keyXY] = [];
+    }
+    this._features[type].push(xy);
+    this._featuresByXY[keyXY].push(type);
+};
+
+OW.Map.prototype.getFeaturesByType = function(type) {
+    if (!this._features.hasOwnProperty(type)) {
+        return [];
+    }
+    return this._features[type];
+};
+
+OW.Map.prototype.getFeaturesByXY = function(xy) {
+    const keyXY = xy[0] + ',' + xy[1];
+    return this._featuresByXY[keyXY];
+};
+
+OW.Map.prototype.addSubLevel = function(xy, level) {
+    this._subLevels[xy[0]][xy[1]] = level;
+};
+
+OW.Map.prototype.getSubLevel = function(xy) {
+    return this._subLevels[xy[0]][xy[1]];
+};
+
+OW.Map.prototype.clearSubLevels = function() {
+    this._subLevels = [];
+};
+
+OW.Map.prototype.getSubLevelsWithFeature = function(type) {
+    const featXY = this.getFeaturesByType(type);
+    return featXY.map(xy => this.getSubLevel(xy));
+};
+
+OW.Map.prototype.getAreaXY = function() {
+    return this.getSizeX() * this.getSizeY();
+};
+
+OW.Map.prototype.getSizeX = function() {
+    return this._baseMap.length;
+};
+
+OW.Map.prototype.getSizeY = function() {
+    if (this._baseMap[0].length > 0) {
+        return this._baseMap[0].length;
+    }
+    else {
+        RG.warn('OW.Map', 'getSizeY',
+            'Y-size requested but returning zero value');
+        return 0;
+    }
+};
+
+OW.Map.prototype.setExplored = function(xy) {
+    this._explored[xy[0] + ',' + xy[1]] = true;
+};
+
+OW.Map.prototype.toJSON = function() {
+    const json = {
+        baseMap: this._baseMap,
+        biomeMap: this._biomeMap,
+        features: this._features,
+        featuresByXY: this._featuresByXY,
+        vWalls: this._vWalls,
+        hWalls: this._hWalls,
+        explored: this._explored
+    };
+    if (this.coordMap) {
+        json.coordMap = this.coordMap.toJSON();
+    }
+    return json;
+};
+
 
 /* Converts the OW.Map into string. */
 OW.Map.prototype.mapToString = function(useExplored = false) {
