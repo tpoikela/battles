@@ -5,23 +5,21 @@ const RG = require('./rg.js');
 RG.Time = {};
 
 /* Models an action. Each action has a duration and a callback.  */
-RG.Time.RogueAction = function(dur, cb, obj) { // {{{2
+RG.Time.RogueAction = function(dur, cb, obj) {
 
-    const _duration = dur;
-    const _cb = cb; // Action callback
-    let _energy = 0;
+    this._duration = dur;
+    this._cb = cb; // Action callback
+    this._energy = 0;
+    this._obj = obj;
 
-    this.setEnergy = en => {_energy = en;};
-    this.getEnergy = () => _energy;
+};
 
-
-    this.getDuration = () => _duration;
-
-    this.doAction = () => {
-        _cb(obj);
-    };
-
-}; // }}} Action
+RG.Time.RogueAction.prototype.setEnergy = function(en) {this._energy = en;};
+RG.Time.RogueAction.prototype.getEnergy = function() {return this._energy;};
+RG.Time.RogueAction.prototype.getDuration = function() {return this._duration;};
+RG.Time.RogueAction.prototype.doAction = function() {
+    this._cb(this._obj);
+};
 
 //---------------------------------------------------------------------------
 // GAME EVENTS
