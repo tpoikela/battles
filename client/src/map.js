@@ -217,7 +217,7 @@ RG.Map.Cell.prototype.toString = function() {
 
 RG.Map.Cell.prototype.toJSON = function() {
     const json = {
-        type: this._baseElem.getType(),
+        t: RG.elemTypeToIndex[this._baseElem.getType()],
         x: this._x,
         y: this._y
     };
@@ -233,7 +233,9 @@ RG.Map.Cell.prototype.toJSON = function() {
                 elements.push(elem.toJSON());
             }
         });
-        json.elements = elements;
+        if (elements.length > 0) {
+            json.elements = elements;
+        }
     }
     return json;
 };
@@ -311,11 +313,13 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
             'Map.CellList(rows, cols) expects 2 integers.');
     }
 
+    this._map = new Array(this.cols);
     // Initialize cells with floor
     for (let x = 0; x < this.cols; x++) {
-        this._map.push([]);
+        // this._map.push([]);
+        this._map[x] = new Array(this.rows);
         for (let y = 0; y < this.rows; y++) {
-            this._map[x].push(new RG.Map.Cell(x, y, baseElem));
+            this._map[x][y] = new RG.Map.Cell(x, y, baseElem);
         }
     }
 
@@ -607,9 +611,9 @@ RG.Map.CellList.prototype._optimizeForRowAccess = function() {
 };
 
 RG.Map.CellList.prototype.toJSON = function() {
-    const map = [];
+    const map = new Array(this.cols);
     for (let x = 0; x < this.cols; x++) {
-        map.push([]);
+        map[x] = new Array(this.rows);
         for (let y = 0; y < this.rows; y++) {
             map[x][y] = this.getCell(x, y).toJSON();
         }
