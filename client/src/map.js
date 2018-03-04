@@ -217,9 +217,9 @@ RG.Map.Cell.prototype.toString = function() {
 
 RG.Map.Cell.prototype.toJSON = function() {
     const json = {
-        t: RG.elemTypeToIndex[this._baseElem.getType()],
-        x: this._x,
-        y: this._y
+        t: RG.elemTypeToIndex[this._baseElem.getType()]
+        // x: this._x,
+        // y: this._y
     };
 
     if (this._explored) {
