@@ -473,21 +473,20 @@ RG.Game.FromJSON = function() {
             col.forEach((cell, y) => {
                 const baseElem = this.createBaseElem(cell);
                 mapObj.setBaseElemXY(x, y, baseElem);
-                if (cell.ex) {
-                    mapObj.getCell(x, y).setExplored(true);
-                }
-                if (cell.elements) {
-                    cell.elements.forEach(elem => {
-                        mapObj.setElemXY(x, y, this.createBaseElem(elem));
-                    });
-                }
             });
+        });
+        map.explored.forEach(explXY => {
+            mapObj.getCell(explXY[0], explXY[1]).setExplored(true);
+        });
+        Object.keys(map.elements).forEach(key => {
+            const [x, y] = key.split(',');
+            mapObj.setElemXY(x, y, this.createBaseElem(map.elements[key]));
         });
         return mapObj;
     };
 
     this.createBaseElem = cell => {
-        const type = RG.elemIndexToType[cell.t];
+        const type = RG.elemIndexToType[cell];
         switch (type) {
             case '#': // wall
             case 'wall': return RG.ELEM.WALL;
