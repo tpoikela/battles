@@ -369,7 +369,7 @@ Screen.prototype.setStyle = function(name, value) {
 };
 
     /* Prints the chars in screen. */
-Screen.prototype.printRenderedChars = () => {
+Screen.prototype.printRenderedChars = function() {
   this._charRows.forEach(row => {
     console.log(row.join(''));
   });
