@@ -40,7 +40,6 @@ function main() {
     const conns = level0.getConnections();
     RGTest.verifyConnectivity(conns, 'Tile level 0,0 OK');
 
-    manager.serializeArea();
     manager.setPlayerTile(0, 0);
     level0 = manager.area.getTiles()[1][0].getLevel();
     // const tile10 = manager.area.getTiles()[1][0];
