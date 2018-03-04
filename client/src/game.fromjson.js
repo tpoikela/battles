@@ -487,7 +487,8 @@ RG.Game.FromJSON = function() {
     };
 
     this.createBaseElem = cell => {
-        switch (cell.type) {
+        const type = RG.elemIndexToType[cell.t];
+        switch (type) {
             case '#': // wall
             case 'wall': return RG.ELEM.WALL;
             case '.': // floor
@@ -501,12 +502,12 @@ RG.Game.FromJSON = function() {
             case 'highrock': return RG.ELEM.HIGH_ROCK;
             case 'bridge': return RG.ELEM.BRIDGE;
             default: {
-                if (RG.elemTypeToObj[cell.type]) {
-                    return RG.elemTypeToObj[cell.type];
+                if (RG.elemTypeToObj[type]) {
+                    return RG.elemTypeToObj[type];
                 }
                 else {
                     RG.err('Game.fromJSON', 'createBaseElem',
-                        `Unknown type ${cell.type}`);
+                        `Unknown type ${type}`);
                 }
             }
         }
