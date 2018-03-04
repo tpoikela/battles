@@ -1171,8 +1171,8 @@ function legalizeXY(xy) {
 function addGlobalFeatures(ow, owLevel, conf, coordMap) {
 
     // Find player x,y on level
-    const playerX = playerTileX * 100 + 50;
-    const playerY = coordMap.worldRows - 50;
+    const playerX = playerTileX * TILE_SIZE_X + Math.floor(TILE_SIZE_X / 2);
+    const playerY = coordMap.worldRows - Math.floor(TILE_SIZE_Y / 2);
 
     // Find capital x,y on level
     const capSubTileXY = ow.getFeaturesByType(OW.WCAPITAL)[0];
