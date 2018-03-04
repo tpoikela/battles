@@ -517,8 +517,17 @@ RG.ELEM.WATER = Object.freeze(new RG.Element.Water());
 RG.ELEM.FORT = Object.freeze(new RG.Element.Fort());
 
 RG.elemTypeToObj = {};
+RG.elemTypeToIndex = {};
+RG.elemIndexToType = {};
+RG.elemIndexToElemObj = {};
+let elemIndex = 1;
 Object.keys(RG.ELEM).forEach(key => {
-    RG.elemTypeToObj[RG.ELEM[key].getType()] = RG.ELEM[key];
+    const type = RG.ELEM[key].getType();
+    RG.elemTypeToObj[type] = RG.ELEM[key];
+    RG.elemTypeToIndex[type] = elemIndex;
+    RG.elemIndexToType[elemIndex] = type;
+    RG.elemIndexToElemObj[elemIndex] = RG.ELEM[key];
+    ++elemIndex;
 });
 
 module.exports = RG.Element;
