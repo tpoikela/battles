@@ -218,8 +218,6 @@ RG.Map.Cell.prototype.toString = function() {
 RG.Map.Cell.prototype.toJSON = function() {
     const json = {
         t: RG.elemTypeToIndex[this._baseElem.getType()]
-        // x: this._x,
-        // y: this._y
     };
 
     if (this._explored) {
@@ -612,16 +610,25 @@ RG.Map.CellList.prototype._optimizeForRowAccess = function() {
 
 RG.Map.CellList.prototype.toJSON = function() {
     const map = new Array(this.cols);
+    const elements = {};
+    const explored = [];
     for (let x = 0; x < this.cols; x++) {
         map[x] = new Array(this.rows);
         for (let y = 0; y < this.rows; y++) {
-            map[x][y] = this.getCell(x, y).toJSON();
+            const json = this.getCell(x, y).toJSON();
+            map[x][y] = json.t;
+            if (json.ex) {explored.push([x, y]);}
+            if (json.elements) {
+                elements[x + ',' + y] = elements;
+            }
         }
     }
     return {
         cols: this.cols,
         rows: this.rows,
-        cells: map
+        cells: map,
+        explored,
+        elements
     };
 };
 
