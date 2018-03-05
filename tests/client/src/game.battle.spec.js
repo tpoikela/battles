@@ -80,9 +80,10 @@ describe('Game.Battle', () => {
         expect(func).not.to.throw();
 
         survivors.forEach(actor => {
-            expect(actor.has('BattleBadge')).to.equal(true);
-            expect(actor.has('InBattle')).to.equal(false);
-            expect(actor.has('BattleOver')).to.equal(false);
+            const msg = `Actor: ${actor.getName()}`;
+            expect(actor.has('BattleBadge'), msg).to.equal(true);
+            expect(actor.has('InBattle'), msg).to.equal(false);
+            expect(actor.has('BattleOver'), msg).to.equal(false);
         });
     });
 
