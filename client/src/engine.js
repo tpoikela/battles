@@ -61,7 +61,7 @@ const Engine = function(eventPool) {
     this.systems.Animation = new RG.System.Animation(
         ['Animation']);
     this.systems.Damage = new RG.System.Damage(['Damage', 'Health']);
-    this.systems.Battle = new RG.System.Battle(['BattleOver']);
+    this.systems.Battle = new RG.System.Battle(['BattleOver', 'BattleOrder']);
     this.systems.Skills = new RG.System.Skills(['SkillsExp']);
     this.systems.ExpPoints = new RG.System.ExpPoints(
         ['ExpPoints', 'Experience']);
