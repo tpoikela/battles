@@ -1306,6 +1306,17 @@ RG.Component.BattleBadge = function() {
 };
 RG.extend2(RG.Component.BattleBadge, RG.Component.Base);
 
+/* An order given during battle. Used to give order to player at the moment. */
+RG.Component.BattleOrder = function() {
+    RG.Component.Base.call(this, 'BattleOrder');
+
+    let _args = null;
+    this.getArgs = () => _args;
+    this.setArgs = args => {_args = args;};
+
+};
+RG.extend2(RG.Component.BattleOrder, RG.Component.Base);
+
 /* Used for battle commanders. */
 RG.Component.Commander = function() {
     RG.Component.Base.call(this, 'Commander');
