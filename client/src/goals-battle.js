@@ -1,7 +1,7 @@
 
 /* This file contains Battle-related goals used by NPC actors. */
 
-// const RG = require('./rg');
+const RG = require('./rg');
 const Goal = require('./goals');
 const Evaluator = require('./evaluators');
 
@@ -13,9 +13,19 @@ const orderWithGoal = (actor, obj) => {
     const {bias} = obj;
     const orderEval = new Evaluator.Orders(bias);
     orderEval.setArgs({srcActor: obj.src, goal: obj.goal});
-    const topGoal = actor.getBrain().getGoal();
-    topGoal.clearOrders();
-    topGoal.giveOrders(orderEval);
+    if (!actor.isPlayer()) {
+        const topGoal = actor.getBrain().getGoal();
+        topGoal.clearOrders();
+        topGoal.giveOrders(orderEval);
+    }
+    else {
+        const orderComp = new RG.Component.BattleOrder();
+        const args = {
+            srcActor: obj.src
+        };
+        orderComp.setArgs(args);
+        actor.add(orderComp);
+    }
 };
 
 //---------------------------------------------------------------------------
