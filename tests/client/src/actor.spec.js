@@ -50,7 +50,6 @@ describe('Rogue.Actor', () => {
 
     it('has different stats', () => {
         const actor = new Actor.Rogue('player hero');
-        actor.setIsPlayer(true);
 
         const prot = actor.getProtection();
         expect(prot).to.equal(0);
@@ -61,6 +60,16 @@ describe('Rogue.Actor', () => {
         const dmg = actor.getDamage();
         expect(dmg > 0, 'More than 0 damage').to.equal(true);
 
+    });
+
+    it('has methods for getting combat damage', () => {
+        const actor = new Actor.Rogue('fighter');
+        const sword = new RG.Item.Weapon('sword');
+        sword.setDamageDie('10d1 + 3');
+        actor.getInvEq().addItem(sword);
+        actor.getInvEq().equipItem(sword);
+        const dmg = actor.getDamage();
+        expect(dmg).to.be.at.least(13);
     });
 
     it('can have CombatMods added', () => {
@@ -107,5 +116,13 @@ describe('Rogue.Actor', () => {
         statMods.setAgility(10);
         const newAgi = mob.getAgility();
         expect(newAgi).to.equal(oldAgi + 10);
+    });
+
+    it('can have an actor class', () => {
+        const archer = new RG.Actor.Rogue('archer');
+        const actorClass = new RG.Component.ActorClass();
+        actorClass.setClassName('Marksman');
+        archer.add(actorClass);
+        RG.levelUpActor(archer, 2);
     });
 });
