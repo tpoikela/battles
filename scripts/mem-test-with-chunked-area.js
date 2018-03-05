@@ -20,6 +20,9 @@ function main() {
     const cols = 100;
     const rows = 100;
 
+    // Set to true if heap snapshot is required
+    const takeADump = false;
+
     // memwatch.on('leak', function(info) { console.log(info);});
     // memwatch.on('stats', function(stats) { console.log(stats);});
     RGTest.printMemUsage('BEFORE_EACH');
@@ -57,27 +60,28 @@ function main() {
 
     let [prevX, prevY] = [null, null];
 
-    for (let x = 0; x < sizeX; x++) {
-    // for (let x = 0; x < 1; x++) {
-        for (let y = 0; y < sizeY; y++) {
-            if (y > 0) {
-                manager.setPlayerTile(x, y, prevX, prevY);
+    for (let i = 0; i < 10; i++) {
+        for (let x = 0; x < sizeX; x++) {
+            for (let y = 0; y < sizeY; y++) {
+                if (y > 0) {
+                    manager.setPlayerTile(x, y, prevX, prevY);
+                }
+                else {
+                    manager.setPlayerTile(x, y);
+                }
+                [prevX, prevY] = [x, y];
+                RGTest.printMemUsage(`setPlayerTile ${x},${y}`);
             }
-            else {
-                manager.setPlayerTile(x, y);
+            if (takeADump && sizeX === 4) {
+                heapdump.writeSnapshot(function(err, fname) {
+                    if (err) {throw err;}
+                    console.log('Heap dump written to ' + fname);
+                });
             }
-            // manager.debugPrint();
-            [prevX, prevY] = [x, y];
-            RGTest.printMemUsage(`setPlayerTile ${x},${y}`);
-        }
-        if (sizeX === 4) {
-            heapdump.writeSnapshot(function(err, fname) {
-                if (err) {throw err;}
-                console.log('Heap dump written to ' + fname);
-            });
         }
     }
 
     RGTest.printMemUsage('END');
 }
+
 main();
