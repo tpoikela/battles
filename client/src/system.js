@@ -1926,6 +1926,7 @@ RG.extend2(RG.System.Shop, RG.System.Base);
  * survivors etc. */
 RG.System.Battle = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.BATTLE, compTypes);
+    this.compTypesAny = true; // Triggered on at least one component
 
     this.updateEntity = function(ent) {
         if (ent.has('BattleOver')) {
