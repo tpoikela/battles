@@ -368,6 +368,10 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
 
     getDamage() {
         let damage = this.get('Combat').rollDamage();
+        const weapon = this.getWeapon();
+        if (weapon) {
+            damage = weapon.rollDamage();
+        }
         const strength = this.getStrength();
         damage += RG.strengthToDamage(strength);
         damage += this._addFromCompList('CombatMods', 'getDamage');
