@@ -14,9 +14,15 @@ const orderWithGoal = (actor, obj) => {
     const orderEval = new Evaluator.Orders(bias);
     orderEval.setArgs({srcActor: obj.src, goal: obj.goal});
     if (!actor.isPlayer()) {
-        const topGoal = actor.getBrain().getGoal();
-        topGoal.clearOrders();
-        topGoal.giveOrders(orderEval);
+        if (typeof actor.getBrain().getGoal === 'function') {
+            const topGoal = actor.getBrain().getGoal();
+            topGoal.clearOrders();
+            topGoal.giveOrders(orderEval);
+        }
+        else {
+            const msg = 'Actor without getGoal: ' + JSON.stringify(actor);
+            RG.warn('goals-battle.js', 'orderWithGoal', msg);
+        }
     }
     else {
         const orderComp = new RG.Component.BattleOrder();
