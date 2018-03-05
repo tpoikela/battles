@@ -561,9 +561,10 @@ RG.Map.Generator = function() { // {{{2
     };
 
     this.createArctic = function(cols, rows, conf = {}) {
+        const snowRatio = conf.snowRatio || 1.0;
         this.setGen('empty', cols, rows);
         const map = new RG.Map.CellList(cols, rows);
-        RG.Map.Generator.addRandomSnow(map, 1.0);
+        RG.Map.Generator.addRandomSnow(map, snowRatio);
         return {map};
     };
 
