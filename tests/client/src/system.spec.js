@@ -1,11 +1,15 @@
 
 import Entity from '../../../client/src/entity';
 
-const expect = require('chai').expect;
+const chai = require('chai');
 const RG = require('../../../client/src/battles');
 
 const RGTest = require('../../roguetest');
 const ROT = require('../../../lib/rot');
+const chaiBattles = require('../../helpers/chai-battles.js');
+
+const expect = chai.expect;
+chai.use(chaiBattles);
 
 /* Updates given systems in given order.*/
 const updateSystems = RGTest.updateSystems;
@@ -19,7 +23,7 @@ describe('System.Hunger', () => {
         player.add('Hunger', hunger);
         player.add('Action', action);
         action.addEnergy(100);
-        expect(player.has('Hunger')).to.equal(true);
+        expect(player).to.have.component('Hunger');
         expect(system.entities[player.getID()]).to.equal(player);
         expect(player.get('Action').getEnergy()).to.equal(100);
         system.update();
@@ -49,7 +53,7 @@ describe('How items/loot is dropped by monsters', () => {
 
         monster.getInvEq().addItem(invItem);
         monster.add('Loot', loot);
-        const dmgComp = new RG.Component.Damage(6, 'fire');
+        const dmgComp = new RG.Component.Damage(6, RG.DMG.FIRE);
         dmgComp.setSource(human);
         monster.add('Damage', dmgComp);
         expect(dSystem.entities.hasOwnProperty(monster.getID())).to.equal(true);
@@ -63,7 +67,8 @@ describe('How items/loot is dropped by monsters', () => {
         hList = monster.getList('Health');
         expect(hList).to.have.length(1);
 
-        expect(monster.get('Health').getHP()).to.equal(0);
+        // expect(monster.get('Health').isDead()).to.be.true;
+        expect(monster).to.be.dead;
         expect(lootItem.getOwner()).to.equal(lootCell);
         expect(lootCell.hasProp('items')).to.equal(true);
 
@@ -74,28 +79,54 @@ describe('How items/loot is dropped by monsters', () => {
 });
 
 describe('System.Attack', () => {
-    it('handles attacks between actors and adds Damage', () => {
-        const attackSystem = new RG.System.Attack(['Attack']);
-        const systems = [attackSystem];
 
+    let attackSystem = null;
+    let systems = null;
+    let human = null;
+    let beast = null;
+
+    beforeEach(() => {
+        attackSystem = new RG.System.Attack(['Attack']);
+        systems = [attackSystem];
+        human = new RG.Actor.Rogue('Human');
+        beast = new RG.Actor.Rogue('Beast');
+        RGTest.wrapIntoLevel([human, beast]);
+    });
+
+    it('handles attacks between actors and adds Damage', () => {
         const sword = new RG.Item.Weapon('Sword');
         sword.setDamageDie('10d10 + 10');
         sword.setAttack(100);
-        const human = new RG.Actor.Rogue('Human');
         human.get('Combat').setAttack(100);
         human.getInvEq().addItem(sword);
         human.getInvEq().equipItem(sword);
         expect(human.getEquipAttack()).to.equal(100);
-        const beast = new RG.Actor.Rogue('Beast');
         beast.get('Combat').setDefense(0);
-
-        RGTest.wrapIntoLevel([human, beast]);
 
         const attackComp = new RG.Component.Attack(beast);
         human.add('Attack', attackComp);
         updateSystems(systems);
 
-        expect(beast.has('Damage'), 'Beast was dealt damage').to.be.true;
+        expect(beast).to.be.an.entity;
+        expect(beast, 'Beast was dealt damage').to.have.component('Damage');
+    });
+
+    it('takes into account hits bypassing protection', () => {
+        const damageSystem = new RG.System.Damage(['Damage']);
+        systems.push(damageSystem);
+
+        const bypassComp = new RG.Component.BypassProtection();
+        bypassComp.setChance(1.0);
+        beast.add(bypassComp);
+        const attackComp = new RG.Component.Attack(human);
+        beast.add('Attack', attackComp);
+
+        human.get('Combat').setProtection(100);
+
+        const hpBefore = human.get('Health').getHP();
+        updateSystems(systems);
+        const hpAfter = human.get('Health').getHP();
+        expect(hpAfter).to.be.below(hpBefore);
     });
 });
 
@@ -133,15 +164,15 @@ describe('System.Damage', () => {
         human.add('Damage', beastDmgComp);
 
         updateSystems(systems);
-        expect(beast.has('Poison')).to.equal(true);
-        expect(human.has('Poison')).to.equal(true);
+        expect(beast).to.have.component('Poison');
+        expect(human).to.have.component('Poison');
 
         const dmg2 = new RG.Component.Damage(5, 'slash');
         dmg2.setSource(beast);
         human.add('Damage', dmg2);
         updateSystems(systems);
-        expect(beast.has('Poison')).to.equal(true);
-        expect(human.has('Poison')).to.equal(true);
+        expect(beast).to.have.component('Poison');
+        expect(human).to.have.component('Poison');
     });
 });
 
@@ -229,7 +260,7 @@ describe('System.Movement', () => {
         expect(level.getElements()).to.have.length(1);
         updateSystems([movSystem]);
 
-        expect(player.has('ExpPoints')).to.equal(true);
+        expect(player).to.have.component('ExpPoints');
         expect(level.getElements()).to.have.length(0);
     });
 });
@@ -265,15 +296,14 @@ describe('System.Chat', () => {
 
         const brain = chatter.getBrain();
         expect(brain._wantSelection).to.equal(true);
-        expect(chatter.has('Chat')).to.equal(false);
+        expect(chatter).not.to.have.component('Chat');
 
         const actionCb = brain.decideNextAction({code: ROT.VK_0});
         expect(brain._wantSelection).to.equal(false);
 
         actionCb();
 
-        const accAfter = chatter.get('Stats').getAccuracy();
-        expect(accAfter).to.equal(accBefore + 1);
+        expect(chatter).to.have.accuracy(accBefore + 1);
     });
 });
 
@@ -289,13 +319,13 @@ describe('System.SpiritBind', () => {
         binder.getInvEq().addItem(gem);
         gem.useItem({target: spirit.getCell()});
 
-        expect(gem.has('SpiritBind')).to.equal(true);
+        expect(gem).to.have.component('SpiritBind');
         expect(gem.hasSpirit()).to.equal(false);
 
         updateSystems([spiritSys]);
 
         expect(gem.hasSpirit()).to.equal(true);
-        expect(gem.has('SpiritBind')).to.equal(false);
+        expect(gem).not.to.have.component('SpiritBind');
     });
 
     it('is used to bind gems into items', () => {
@@ -318,14 +348,14 @@ describe('System.SpiritBind', () => {
         // 1st attempt, no item binding skill
         gem.useItem({target: cell});
         updateSystems([spiritSys]);
-        expect(sword.has('GemBound')).to.equal(false);
+        expect(sword).not.to.have.component('GemBound');
         expect(items).to.have.length(1);
 
         // 2nd attempt, crafting skill added
         binder.add(new RG.Component.SpiritItemCrafter());
         gem.useItem({target: cell});
         updateSystems([spiritSys]);
-        expect(sword.has('GemBound')).to.equal(true);
+        expect(sword).to.have.component('GemBound');
 
         items = binder.getInvEq().getInventory().getItems();
         expect(items).to.have.length(0);
@@ -342,7 +372,7 @@ describe('System.SpiritBind', () => {
         const json = sword.toJSON();
         const newSword = new RG.Game.FromJSON().createItem(json);
 
-        expect(newSword.has('GemBound')).to.equal(true);
+        expect(newSword).to.have.component('GemBound');
         const restGem = newSword.get('GemBound').getGem();
         expect(restGem.hasSpirit()).to.equal(true);
         expect(restGem.getStrength()).to.equal(10);
@@ -357,11 +387,11 @@ describe('System.TimeEffects', () => {
         const expirSys = new RG.System.TimeEffects(['Expiration']);
         const entity = new Entity();
         const expComp = new RG.Component.Expiration();
-        expect(entity.has('StatsMods')).to.equal(false);
+        expect(entity).not.to.have.component('StatsMods');
         const statsMods = new RG.Component.StatsMods();
         expComp.addEffect(statsMods, 10);
         entity.add(statsMods);
-        expect(entity.has('StatsMods')).to.equal(true);
+        expect(entity).to.have.component('StatsMods');
         entity.add(expComp);
 
         const statsMods2 = new RG.Component.StatsMods();
@@ -373,8 +403,8 @@ describe('System.TimeEffects', () => {
         for (let i = 0; i < 10; i++) {
             updateSystems([expirSys]);
         }
-        expect(entity.has('Expiration')).to.equal(true);
-        expect(entity.has('StatsMods')).to.equal(true);
+        expect(entity).to.have.component('Expiration');
+        expect(entity).to.have.component('StatsMods');
 
         modsList = entity.getList('StatsMods');
         expect(modsList).to.have.length(1);
@@ -384,8 +414,8 @@ describe('System.TimeEffects', () => {
         for (let i = 0; i < 10; i++) {
             updateSystems([expirSys]);
         }
-        expect(entity.has('Expiration')).to.equal(false);
-        expect(entity.has('StatsMods')).to.equal(false);
+        expect(entity).not.to.have.component('Expiration');
+        expect(entity).not.to.have.component('StatsMods');
     });
 
 });
@@ -430,7 +460,7 @@ describe('System.Skills', () => {
             entity.add(expCompSpells);
         }
 
-        expect(entity.has('Skills')).to.equal(true);
+        expect(entity).to.have.component('Skills');
         updateSystems([skillsSys]);
 
         expect(skillComp.getLevel('Melee')).to.equal(2);
@@ -460,7 +490,6 @@ describe('System.Shop', () => {
     });
 
     it('it handles buying transactions', () => {
-        const catcher = new RGTest.MsgCatcher();
         const item = new RG.Item.Weapon('sword');
         item.setValue(100);
         item.add(new RG.Component.Unpaid());
@@ -482,14 +511,30 @@ describe('System.Shop', () => {
     });
 
     it('handles selling transactions', () => {
+        const item = new RG.Item.Weapon('sword');
+        item.setValue(100);
 
+        const coins = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
+        coins.count = 100;
+        shopkeeper.getInvEq().addItem(coins);
+
+        const seller = actor;
+        seller.getInvEq().addItem(item);
+
+        const trans = new RG.Component.Transaction();
+        trans.setArgs({
+            item, buyer: shopkeeper, seller, shop: shopElem
+        });
+        seller.add(trans);
+
+        updateSystems([shopSys]);
+        expect(item).to.have.component('Unpaid');
     });
 });
 
 describe('System.Event', () => {
     it('It responds to entities with Component.Event', () => {
         const eventSys = new RG.System.Events(['Event']);
-        const evt = new RG.Component.Event();
         const actor = new RG.Actor.Rogue('killed one');
         const killer = new RG.Actor.Rogue('killer');
         const clueless = new RG.Actor.Rogue('clueless');
@@ -505,13 +550,16 @@ describe('System.Event', () => {
         RGTest.moveEntityTo(clueless, 5, 5);
         eventSys.addLevel(level, 2);
 
+        const evt = new RG.Component.Event();
         const args = {
             type: RG.EVT_ACTOR_KILLED,
             actor,
             cause: killer};
         evt.setArgs(args);
         actor.add(evt);
+        expect(actor).to.have.component('Event');
+
         updateSystems([eventSys]);
-        expect(actor.has('Event')).to.equal(false);
+        expect(actor).not.to.have.component('Event');
     });
 });
