@@ -2,6 +2,7 @@
 
 const defaultBrain = 'GoalOriented';
 const demonBrain = 'GoalOriented';
+const undeadBrain = 'GoalOriented';
 
 /* Instructions:
  *   base: 'baseName' inherits all properties from the base object (expect
@@ -192,17 +193,19 @@ const Actors = [
     // UNDEAD
     {
         name: 'UndeadBase', className: 'cell-actor-undead',
-        dontCreate: true, addComp: 'Undead', brain: 'Undead',
+        dontCreate: true, addComp: 'Undead', brain: undeadBrain,
         range: 1, enemies: ['player', 'human', 'dwarf'], type: 'undead'
     },
     {
         name: 'skeletal dog', char: 'z', base: 'UndeadBase',
         attack: 1, defense: 1, damage: '1d6', danger: 1,
+        brain: 'Animal',
         hp: 6
     },
     {
         name: 'skeletal spider', char: 'S', base: 'UndeadBase',
         attack: 2, defense: 1, damage: '1d4', danger: 1, hp: 5,
+        brain: 'Animal',
         poison: {duration: '2d10', damage: '1d2', prob: '0.2'}
     },
     {
