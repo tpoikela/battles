@@ -15,6 +15,7 @@ import GameInventory from './game-inventory';
 import GameEditor from '../editor/game-editor';
 import GameCharInfo from './game-char-info';
 import LevelSaveLoad from '../editor/level-save-load';
+import CellClickHandler from '../gui/cell-click-handler';
 
 import GameStats, {VIEW_MAP, VIEW_PLAYER} from './game-stats';
 
@@ -135,6 +136,8 @@ class BattlesTop extends Component {
         };
 
         this.keyPending = false;
+        this.autoModeKeyBuffer = [];
+        this.ctrlMode = 'MANUAL';
 
         this.hasNotify = true;
         this.notify = this.notify.bind(this);
@@ -437,6 +440,11 @@ class BattlesTop extends Component {
         }
     }
 
+    setAutoMode(keyBuf) {
+        this.ctrlMode = 'AUTOMATIC';
+        this.autoModeKeyBuffer = keyBuf;
+    }
+
     /* When a cell is clicked, perform a command/show debug info. */
     onCellClick(x, y) {
         const map = this.game.getPlayer().getLevel().getMap();
@@ -452,6 +460,10 @@ class BattlesTop extends Component {
             else {
                 this.logic.describeCell(cell, this.gameState.visibleCells);
                 this.setState({selectedCell: cell});
+
+                const player = this.game.getPlayer();
+                const keyBuf = new CellClickHandler().moveTo(player, x, y);
+                this.setAutoMode(keyBuf);
             }
             console.log(`Cell: ${JSON.stringify(cell)}`);
             if (cell.hasActors()) {
@@ -510,9 +522,36 @@ class BattlesTop extends Component {
         }
     }
 
+    /* Test method for checking if player can be controlled. */
+    walkEast() {
+        for (let i = 0; i < 5; i++) {
+            this.autoModeKeyBuffer.push(RG.VK_d);
+        }
+        this.ctrlMode = 'AUTOMATIC';
+    }
+
+    getNextCode() {
+        if (this.ctrlMode === 'AUTOMATIC') {
+            const nextCode = this.autoModeKeyBuffer.pop();
+            return nextCode;
+        }
+        else {
+            return this.nextCode;
+        }
+    }
+
+    /* Checks and makes adjustments if auto-ctrl mode should be terminated.
+     * Usually this happens when auto-mode command fails or if enemy is
+     * seen. */
+    checkIfAutoModeDone() {
+        if (this.autoModeKeyBuffer.length === 0) {
+            this.ctrlMode = 'MANUAL';
+        }
+    }
+
     mainLoop() {
-        if (this.keyPending === true) {
-            const code = this.nextCode;
+        if (this.keyPending === true || this.ctrlMode === 'AUTOMATIC') {
+            const code = this.getNextCode();
             this.game.update({code});
             this.gameState.visibleCells = this.game.visibleCells;
 
@@ -544,6 +583,7 @@ class BattlesTop extends Component {
                 this.setState(updates);
             }
             this.keyPending = false;
+            this.checkIfAutoModeDone();
         }
         this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
     }
@@ -759,6 +799,7 @@ class BattlesTop extends Component {
                     </div>
                     }
 
+                    <button onClick={this.walkEast}>Walk East</button>
                 </div>
                 }
 
@@ -1091,6 +1132,8 @@ class BattlesTop extends Component {
         this.getNextTargetCell = this.getNextTargetCell.bind(this);
 
         this.onLoadCallback = this.onLoadCallback.bind(this);
+
+        this.walkEast = this.walkEast.bind(this);
     }
 
 
