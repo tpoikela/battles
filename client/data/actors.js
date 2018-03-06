@@ -209,6 +209,11 @@ const Actors = [
         poison: {duration: '2d10', damage: '1d2', prob: '0.2'}
     },
     {
+        name: 'necrowyrm', char: 'w', base: 'UndeadBase',
+        attack: 1, defense: 1, damage: '1d7', danger: 2,
+        brain: 'Animal', speed: 125, hp: 6
+    },
+    {
         name: 'skeleton', char: 'z', base: 'UndeadBase',
         attack: 2, defense: 1, damage: '1d5', danger: 1,
         hp: 9
@@ -217,6 +222,19 @@ const Actors = [
         name: 'zombie', char: 'z', base: 'UndeadBase',
         attack: 2, defense: 2, damage: '1d6', danger: 2,
         hp: 12
+    },
+    {
+        name: 'wraith', char: 'Z', base: 'UndeadBase',
+        attack: 5, defense: 5, damage: '2d5 + 2', danger: 6,
+        // Drain strength (temporary)
+        hp: 25
+    },
+    {
+        name: 'specter', char: 'Z', base: 'UndeadBase',
+        attack: 6, defense: 6, damage: '2d5 + 2', danger: 7,
+        addComp: 'Flying',
+        // TODO Drain mana or disable spells
+        hp: 25
     },
     {
         name: 'lich', char: 'L', base: 'UndeadBase',
