@@ -220,7 +220,7 @@ RG.System.Attack = function(compTypes) {
                 msg: 'Attack of ' + aName + ' passes through ' + dName});
         }
         else {
-            // Actual hit change calculation
+            // Actual hit chance calculation
             this.performAttack(att, def, aName, dName);
             if (def.has('CounterAttack')) {
                 const msg = `${dName} seems to counter attack.`;
@@ -249,14 +249,6 @@ RG.System.Attack = function(compTypes) {
         ent.remove('Attack');
     };
 
-    this.doDamage = (att, def, dmg) => {
-        const dmgComp = new RG.Component.Damage(dmg, RG.DMG.MELEE);
-        dmgComp.setSource(att);
-        def.add('Damage', dmgComp);
-        RG.gameWarn({cell: att.getCell(),
-            msg: att.getName() + ' hits ' + def.getName()});
-    };
-
     this.addAttackerBonus = att => {
         const cells = RG.Brain.getEnemyCellsAround(att);
         return cells.length;
@@ -280,8 +272,7 @@ RG.System.Attack = function(compTypes) {
 
         const hitChance = totalAtt / (totalAtt + totalDef);
         const hitThreshold = RG.RAND.getUniform();
-
-        this.dbg(`hitChange is ${hitChance}, threshold ${hitThreshold}`);
+        this.dbg(`hitChance is ${hitChance}, threshold ${hitThreshold}`);
 
         if (hitChance > hitThreshold) {
             const totalDamage = att.getDamage();
@@ -309,6 +300,15 @@ RG.System.Attack = function(compTypes) {
             def.add(evtComp);
         }
     };
+
+    this.doDamage = (att, def, dmg) => {
+        const dmgComp = new RG.Component.Damage(dmg, RG.DMG.MELEE);
+        dmgComp.setSource(att);
+        def.add('Damage', dmgComp);
+        RG.gameWarn({cell: att.getCell(),
+            msg: att.getName() + ' hits ' + def.getName()});
+    };
+
 
     /* Gets an enemy target for bi-directional strike, if any. */
     this.getBiDirTarget = (att, def) => {
@@ -594,18 +594,25 @@ RG.System.Damage = function(compTypes) {
     const _getDamageReduced = ent => {
         const dmgComp = ent.get('Damage');
         const dmg = dmgComp.getDamage();
+        const dmgType = dmgComp.getDamageType();
         const src = dmgComp.getSource();
 
         if (src !== null) {ent.addEnemy(src);}
 
         // Deal with "internal" damage bypassing protection here
-        if (dmgComp.getDamageType() === RG.DMG.POISON) {
+        if (dmgType === RG.DMG.POISON) {
             const cell = ent.getCell();
             const msg = 'Poison is gnawing inside ' + ent.getName();
             RG.gameDanger({cell, msg});
             return dmg;
         }
-        else if (dmgComp.getDamageType() === RG.DMG.HUNGER) {
+        else if (dmgType === RG.DMG.HUNGER) {
+            return dmg;
+        }
+        else if (this.bypassProtection(ent, src)) {
+            const cell = ent.getCell();
+            const msg = `${src.getName()} hits ${ent.getName()} through armor.`;
+            RG.gameDanger({cell, msg});
             return dmg;
         }
 
@@ -615,6 +622,15 @@ RG.System.Damage = function(compTypes) {
         const protTotal = protEquip + protStats;
         const totalDmg = dmg - protTotal;
         return totalDmg;
+    };
+
+    /* Returns true if the hit bypasses defender's protection completely. */
+    this.bypassProtection = (ent, src) => {
+        const bypassChance = RG.RAND.getUniform();
+        if (src && src.has('BypassProtection')) {
+            return bypassChance <= src.get('BypassProtection').getChance();
+        }
+        return bypassChance <= RG.PROT_BYPASS_CHANCE;
     };
 
     /* Applies add-on hit effects such as poison, frost or others. */
@@ -1832,7 +1848,7 @@ RG.System.Skills = function(compTypes) {
 };
 RG.extend2(RG.System.Skills, RG.System.Base);
 
-/* Processes entities with attack-related components.*/
+/* Processes entities with transaction-related components.*/
 RG.System.Shop = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.SHOP, compTypes);
 
@@ -1879,6 +1895,7 @@ RG.System.Shop = function(compTypes) {
     };
 
     this.sellItem = function(args) {
+        console.log('XXX SELLING');
         const {item, buyer, seller, shop} = args;
         if (!seller) {
             RG.err('System.Shop', 'sellItem',
@@ -1892,6 +1909,7 @@ RG.System.Shop = function(compTypes) {
 
         if (RG.hasEnoughGold(buyer, goldWeight)) {
             if (seller.getInvEq().dropItem(item)) {
+                console.log('XXX SOLD ITEM');
                 const coins = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
                 coins.count = RG.removeNCoins(buyer, nCoins);
                 seller.getInvEq().addItem(coins);
