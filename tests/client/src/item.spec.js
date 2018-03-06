@@ -58,6 +58,13 @@ describe('How items are typed, physical entities', () => {
         expect(itemClone.get('Stats').getAccuracy()).to.equal(10);
 
     });
+
+    it('has a value depending on count', () => {
+        const arrow = new RG.Item.Ammo('arrow');
+        arrow.setValue(100);
+        arrow.count = 10;
+        expect(arrow.getValue()).to.equal(100);
+    });
 });
 
 describe('How items are stacked', () => {
@@ -146,7 +153,6 @@ describe('How stackes are broken into multiple items', () => {
 });
 
 describe('How inventory container works', () => {
-
 
     it('Checks items by reference for existence', () => {
         const player = new RG.Actor.Rogue('player');
@@ -320,7 +326,7 @@ const ItemDestroyer = function() {
     RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this);
 };
 
-describe('How one-shot items are removed after their use', () => {
+describe('Usable one-shot items', () => {
     it('Player uses a potion and it is destroyed after this.', () => {
         const potion = new RG.Item.Potion('potion');
         const player = new Actor('Player');
