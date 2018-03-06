@@ -1002,6 +1002,16 @@ RG.Component.LongReach = function() {
 };
 RG.extend2(RG.Component.LongReach, RG.Component.Base);
 
+/* Component which gives an actor chance to bypass armor. */
+RG.Component.BypassProtection = function() {
+    RG.Component.Base.call(this, 'BypassProtection');
+
+    let _change = 0.0;
+    this.setChance = change => {_change = change;};
+    this.getChance = () => _change;
+};
+RG.extend2(RG.Component.BypassProtection, RG.Component.Base);
+
 //--------------------------------------------
 // RANGED COMBAT COMPONENTS
 //--------------------------------------------
