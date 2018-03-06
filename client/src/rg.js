@@ -670,6 +670,8 @@ const RG = { // {{{2
     FMODE_FAST: 1,
     FMODE_SLOW: 2,
 
+    PROT_BYPASS_CHANCE: 0.05,
+
     // 0.0 = uniform dist, higher number assigns more weight to median values
     DANGER_ADJ_FACTOR: 1.4,
 
@@ -718,6 +720,7 @@ const RG = { // {{{2
         MISSILE: 'MISSILE',
         POISON: 'POISON',
         ICE: 'ICE',
+        FIRE: 'FIRE',
         HUNGER: 'HUNGER'
     },
 
