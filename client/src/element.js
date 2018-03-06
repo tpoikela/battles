@@ -288,8 +288,8 @@ class RGElementShop extends Mixin.Locatable(RGElementBase) {
     constructor() {
         super('shop');
         this._shopkeeper = null;
-        this._costFactorSell = 1.0;
-        this._costFactorBuy = 0.5;
+        this._costFactorShopSells = 1.0;
+        this._costFactorShopBuys = 0.5;
         this._isAbandoned = false;
     }
 
@@ -300,10 +300,11 @@ class RGElementShop extends Mixin.Locatable(RGElementBase) {
     /* Returns the price in gold coins for item in the cell.*/
     getItemPriceForBuying(item) {
         if (item.has('Unpaid')) {
-            let value = item.getValue() * this._costFactorSell;
-            value *= item.count;
+            const value = item.getValue();
             const goldWeight = RG.valueToGoldWeight(value);
-            const ncoins = RG.getGoldInCoins(goldWeight);
+            let ncoins = RG.getGoldInCoins(goldWeight);
+            ncoins *= item.count;
+            ncoins = Math.ceil(this._costFactorShopSells * ncoins);
             if (ncoins === 0) {
                 return 1;
             }
@@ -318,10 +319,11 @@ class RGElementShop extends Mixin.Locatable(RGElementBase) {
 
     /* Returns the price for selling the item. */
     getItemPriceForSelling(item) {
-        let value = item.getValue() * this._costFactorBuy;
-        value *= item.count;
+        const value = item.getValue();
         const goldWeight = RG.valueToGoldWeight(value);
-        const ncoins = RG.getGoldInCoins(goldWeight);
+        let ncoins = RG.getGoldInCoins(goldWeight);
+        ncoins *= item.count;
+        ncoins = Math.floor(this._costFactorShopBuys * ncoins);
         return ncoins;
     }
 
@@ -352,8 +354,8 @@ class RGElementShop extends Mixin.Locatable(RGElementBase) {
     /* Sets the cost factors for selling and buying. .*/
     setCostFactor(buy, sell) {
         if (!RG.isNullOrUndef([buy, sell])) {
-            this._costFactorSell = sell;
-            this._costFactorBuy = buy;
+            this._costFactorShopSells = sell;
+            this._costFactorShopBuys = buy;
         }
         else {
             RG.err('Element.Shop', 'setCostFactor',
@@ -363,12 +365,12 @@ class RGElementShop extends Mixin.Locatable(RGElementBase) {
 
     /* Returns the cost factor for selling. .*/
     getCostFactorSell() {
-        return this._costFactorSell;
+        return this._costFactorShopSells;
     }
 
     /* Returns the cost factor for buying. .*/
     getCostFactorBuy() {
-        return this._costFactorBuy;
+        return this._costFactorShopBuys;
     }
 
     toJSON() {
@@ -379,8 +381,8 @@ class RGElementShop extends Mixin.Locatable(RGElementBase) {
         const obj = {
             type: 'shop',
             isAbandoned: this._isAbandoned,
-            costFactorSell: this._costFactorSell,
-            costFactorBuy: this._costFactorBuy
+            costFactorSell: this._costFactorShopSells,
+            costFactorBuy: this._costFactorShopBuys
         };
         if (shopkeeperID !== null) {
             obj.shopkeeper = shopkeeperID;
