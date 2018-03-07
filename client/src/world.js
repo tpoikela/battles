@@ -150,6 +150,14 @@ function findSubZone(name, subZones) {
     return subZone;
 }
 
+function getFreeCellWithoutConnection(level) {
+    let stairCell = level.getFreeRandCell();
+    while (stairCell.hasConnection()) {
+        stairCell = level.getFreeRandCell();
+    }
+    return stairCell;
+}
+
 /* Does linear connection of levels to given direction. */
 function connectLevelsLinear(levels) {
     const nLevels = levels.length;
@@ -164,10 +172,7 @@ function connectLevelsLinear(levels) {
             const targetDown = levels[nl + 1];
             const stairsDown = new Stairs('stairsDown', src, targetDown);
 
-            let stairCell = src.getFreeRandCell();
-            while (stairCell.hasConnection()) {
-                stairCell = src.getFreeRandCell();
-            }
+            const stairCell = getFreeCellWithoutConnection(src);
 
             src.addStairs(stairsDown, stairCell.getX(), stairCell.getY());
             arrStairsDown.push(stairsDown);
@@ -178,10 +183,7 @@ function connectLevelsLinear(levels) {
             const targetUp = levels[nl - 1];
             const stairsUp = new Stairs('stairsUp', src, targetUp);
 
-            let stairCell = src.getFreeRandCell();
-            while (stairCell.hasConnection()) {
-                stairCell = src.getFreeRandCell();
-            }
+            const stairCell = getFreeCellWithoutConnection(src);
 
             src.addStairs(stairsUp, stairCell.getX(), stairCell.getY());
             arrStairsUp.push(stairsUp);
@@ -196,7 +198,8 @@ function connectLevelsLinear(levels) {
     }
 }
 
-/* Tries to connect stairs to level N in given levels. */
+/* Tries to connect stairs to level N in the given list of levels. This creates
+ * a new connection element into the target level. */
 function connectLevelToStairs(levels, nLevel, stairs) {
     if (nLevel < levels.length) {
         const level = levels[nLevel];
@@ -207,7 +210,8 @@ function connectLevelToStairs(levels, nLevel, stairs) {
             const name = down ? 'stairsDown' : 'stairsUp';
             const newStairs = new Stairs(name,
                 level, otherQuartLevel);
-            const cell = level.getFreeRandCell();
+
+            const cell = getFreeCellWithoutConnection(level);
             level.addStairs(newStairs, cell.getX(), cell.getY());
             newStairs.connect(stairs);
             return true;
@@ -587,10 +591,9 @@ RG.World.Branch = function(name) {
     this.setEntrance = (stairs, levelNumber) => {
         if (levelNumber < this._levels.length) {
             const level = this._levels[levelNumber];
-            let cell = level.getFreeRandCell();
-            while (cell.hasConnection()) {
-                cell = level.getFreeRandCell();
-            }
+
+            const cell = getFreeCellWithoutConnection(level);
+
             const x = cell.getX();
             const y = cell.getY();
             level.addStairs(stairs, x, y);
@@ -641,6 +644,9 @@ RG.World.Branch = function(name) {
 };
 RG.extend2(RG.World.Branch, RG.World.SubZoneBase);
 
+//------------------
+// RG.World.Dungeon
+//------------------
 /* Dungeons is a collection of branches.*/
 RG.World.Dungeon = function(name) {
     RG.World.ZoneBase.call(this, name);
@@ -708,6 +714,9 @@ RG.World.Dungeon = function(name) {
 };
 RG.extend2(RG.World.Dungeon, RG.World.ZoneBase);
 
+//------------------
+// RG.World.AreaTile
+//------------------
 /* Area-tile is a level which has entry/exit points on a number of edges.*/
 RG.World.AreaTile = function(x, y, area) {
     this._tileX = x;
@@ -771,7 +780,6 @@ RG.World.AreaTile = function(x, y, area) {
                     levelEast.addStairs(stairsEast, 0, y);
                 }
             }
-
         }
 
         // Connect to south tile, in x-direction
@@ -878,6 +886,9 @@ RG.World.AreaTile.prototype.removeListeners = function() {
     });
 };
 
+//------------------
+// RG.World.Area
+//------------------
 /* Area is N x M area of tiles, with no linear progression like in dungeons.
  * Moving between tiles of areas happens by travelling to the edges of a tile.
  * Each tile is a level with special edge tiles.
@@ -1114,6 +1125,9 @@ RG.World.Area.prototype.toJSON = function() {
 };
 
 
+//------------------
+// RG.World.Mountain
+//------------------
 /* Mountains are places consisting of tiles and dungeons. Mountain has few
  * special * tiles representing the summit.
  */
@@ -1185,6 +1199,9 @@ RG.World.Mountain.prototype.toJSON = function() {
     return Object.assign(obj, json);
 };
 
+//----------------------
+// RG.World.MountainFace
+//----------------------
 /* One side (face) of the mountain. Each side consists of stages, of X by 1
  * Areas. This is also re-used as a mountain summit because internally it's the
  * same. */
@@ -1261,6 +1278,10 @@ RG.World.MountainFace = function(name) {
 };
 RG.extend2(RG.World.MountainFace, RG.World.SubZoneBase);
 
+//-------------------------
+// RG.World.MountainSummit
+//-------------------------
+/* A summit of the mountain consisting of at least one Map.Level. */
 RG.World.MountainSummit = function(name) {
     RG.World.SubZoneBase.call(this, name);
     this.setType('summit');
@@ -1268,6 +1289,9 @@ RG.World.MountainSummit = function(name) {
 };
 RG.extend2(RG.World.MountainSummit, RG.World.SubZoneBase);
 
+//-------------------------
+// RG.World.City
+//-------------------------
 /* A city in the world. A special features of the city can be queried through
 * this object. */
 RG.World.City = function(name) {
@@ -1305,33 +1329,6 @@ RG.World.City = function(name) {
 
 };
 RG.extend2(RG.World.City, RG.World.ZoneBase);
-
-/* A battle zone encapsulates battle construct, armies and the battle level. */
-RG.World.BattleZone = function(name) {
-    RG.World.ZoneBase.call(this, name);
-    this.setType('battlezone');
-
-    this._levels = [];
-
-    this.addLevel = level => {this._levels.push(level);};
-    this.getLevels = () => this._levels;
-
-    this.toJSON = function() {
-        const json = RG.World.ZoneBase.prototype.toJSON.call(this);
-        const nLevels = this._levels.length;
-        const obj = {
-          nLevels,
-          levels: this._levels.map(l => l.getID())
-        };
-        if (nLevels === 0) {
-            RG.err('World.BattleZone', 'toJSON',
-                `Bz ${this.getName()} called without levels`);
-        }
-        return Object.assign(obj, json);
-    };
-
-};
-RG.extend2(RG.World.BattleZone, RG.World.ZoneBase);
 
 //-----------------------------
 // RG.World.CityQuarter
@@ -1406,10 +1403,39 @@ RG.World.CityQuarter.prototype.removeListeners = function() {
     });
 };
 
+//-------------------------
+// RG.World.BattleZone
+//-------------------------
+/* A battle zone encapsulates battle construct, armies and the battle level. */
+RG.World.BattleZone = function(name) {
+    RG.World.ZoneBase.call(this, name);
+    this.setType('battlezone');
+
+    this._levels = [];
+
+    this.addLevel = level => {this._levels.push(level);};
+    this.getLevels = () => this._levels;
+
+    this.toJSON = function() {
+        const json = RG.World.ZoneBase.prototype.toJSON.call(this);
+        const nLevels = this._levels.length;
+        const obj = {
+          nLevels,
+          levels: this._levels.map(l => l.getID())
+        };
+        if (nLevels === 0) {
+            RG.err('World.BattleZone', 'toJSON',
+                `Bz ${this.getName()} called without levels`);
+        }
+        return Object.assign(obj, json);
+    };
+
+};
+RG.extend2(RG.World.BattleZone, RG.World.ZoneBase);
+
 //-----------------------------
 // RG.World.Top
 //-----------------------------
-
 /* Largest place at the top of hierarchy. Contains a number of areas,
  * mountains, dungeons and cities. */
 RG.World.Top = function(name) {
