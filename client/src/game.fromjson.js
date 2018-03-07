@@ -574,6 +574,8 @@ RG.Game.FromJSON = function() {
         // IDs will appear when new levels/entities are created
         RG.Map.Level.idCount = gameJSON.lastLevelID;
         Entity.idCount = gameJSON.lastEntityID;
+        RG.Component.idCount = gameJSON.lastComponentID;
+
         if (debug.enabled) {
             this.dbg(`Restored level ID count to ${RG.Map.Level.idCount}`);
             this.dbg(`Restored entity ID count to ${Entity.idCount}`);
