@@ -87,6 +87,11 @@ RG.Random.prototype.getRandDir = function() {
     return [dX, dY];
 };
 
+/* Returns a random direction using weights for directions. */
+RG.Random.prototype.getRandDirWeighted = function() {
+    // TODO
+};
+
 /*
  * From http://stackoverflow.com/questions/2450954/
  * how-to-randomize-shuffle-a-javascript-array
