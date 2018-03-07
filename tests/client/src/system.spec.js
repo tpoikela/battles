@@ -120,6 +120,8 @@ describe('System.Attack', () => {
         beast.add(bypassComp);
         const attackComp = new RG.Component.Attack(human);
         beast.add('Attack', attackComp);
+        beast.get('Combat').setAttack(100);
+        human.get('Combat').setDefense(0);
 
         human.get('Combat').setProtection(100);
 
