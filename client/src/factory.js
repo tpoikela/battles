@@ -462,7 +462,10 @@ RG.Factory.Base = function() { // {{{2
             mapObj = mapgen.createLakes(conf);
         }
         else if (levelType === 'mountain') {
-            mapObj = mapgen.createMountain(conf);
+            mapObj = mapgen.createMountain(cols, rows, conf);
+        }
+        else if (levelType === 'summit') {
+            mapObj = mapgen.createSummit(cols, rows, conf);
         }
         else if (levelType === 'crypt') {
             mapObj = mapgen.createCryptNew(cols, rows, conf);

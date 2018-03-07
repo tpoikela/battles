@@ -29,7 +29,7 @@ const editorLevelTypes = [
   'digger', 'divided', 'dungeon', 'dwarven_city',
   'eller', 'empty', 'forest', 'icey', 'miner',
   'mountain', 'uniform', 'rogue',
-  'ruins', 'rooms', 'town', 'townwithwall', 'wall'
+  'ruins', 'rooms', 'summit', 'town', 'townwithwall', 'wall'
 ];
 
 const boardViews = [
