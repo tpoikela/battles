@@ -1895,7 +1895,6 @@ RG.System.Shop = function(compTypes) {
     };
 
     this.sellItem = function(args) {
-        console.log('XXX SELLING');
         const {item, buyer, seller, shop} = args;
         if (!seller) {
             RG.err('System.Shop', 'sellItem',
@@ -1909,7 +1908,6 @@ RG.System.Shop = function(compTypes) {
 
         if (RG.hasEnoughGold(buyer, goldWeight)) {
             if (seller.getInvEq().dropItem(item)) {
-                console.log('XXX SOLD ITEM');
                 const coins = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
                 coins.count = RG.removeNCoins(buyer, nCoins);
                 seller.getInvEq().addItem(coins);
