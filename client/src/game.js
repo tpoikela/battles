@@ -415,6 +415,7 @@ RG.Game.Main = function() {
             gameMaster: this._master.toJSON(),
             lastLevelID: RG.Map.Level.idCount,
             lastEntityID: Entity.getIDCount(),
+            lastComponentID: RG.Component.idCount,
             globalConf: this.globalConf,
             rng: RG.RAND.toJSON(),
             charStyles: RG.charStyles,
@@ -512,14 +513,14 @@ RG.Game.Main = function() {
 
         const pX = Math.floor(coordX / xMap);
         const pY = Math.floor(coordY / yMap);
-
-        // overworld.setExplored([pX, pY]);
-
         return [pX, pY];
     };
 
     this.setOverWorldExplored = xy => {
-        this._overworld.setExplored(xy);
+        const box = RG.Geometry.getBoxAround(xy[0], xy[1], 1, true);
+        box.forEach(coord => {
+            this._overworld.setExplored(coord);
+        });
     };
 
     /* Returns the current world where the player is .*/
