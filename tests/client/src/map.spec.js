@@ -423,9 +423,11 @@ describe('Map.Generator', () => {
         };
 
         for (let i = 0; i < 1; i++) {
-            const obj = mapgen.createMountain(conf);
+            const obj = mapgen.createMountain(50, 200, conf);
             const map = obj.map;
             expect(map).to.exist;
+            expect(map.cols).to.equal(50);
+            expect(map.rows).to.equal(200);
         }
 
     });
