@@ -151,7 +151,7 @@ function findSubZone(name, subZones) {
 }
 
 /* Does linear connection of levels to given direction. */
-function connectLevels(levels) {
+function connectLevelsLinear(levels) {
     const nLevels = levels.length;
     const arrStairsDown = [];
     const arrStairsUp = [];
@@ -559,6 +559,13 @@ RG.World.SubZoneBase.prototype.addLevel = function(level) {
     }
 };
 
+RG.World.SubZoneBase.prototype.toJSON = function() {
+    const json = RG.World.Base.prototype.toJSON.call(this);
+    json.nLevels = this._levels.length;
+    json.levels = this._levels.map(level => level.getID());
+    return json;
+};
+
 //------------------
 // RG.World.Branch
 //------------------
@@ -619,15 +626,12 @@ RG.World.Branch = function(name) {
 
     /* Connects the added levels together.*/
     this.connectLevels = () => {
-        connectLevels(this._levels);
+        connectLevelsLinear(this._levels);
     };
 
     this.toJSON = function() {
-        const json = RG.World.Base.prototype.toJSON.call(this);
-        const obj = {
-            nLevels: this._levels.length,
-            levels: this._levels.map(level => level.getID())
-        };
+        const json = RG.World.SubZoneBase.prototype.toJSON.call(this);
+        const obj = {};
         if (this._entrance) {
             obj.entrance = this._entrance;
         }
@@ -1246,11 +1250,8 @@ RG.World.MountainFace = function(name) {
     };
 
     this.toJSON = function() {
-        const json = RG.World.Base.prototype.toJSON.call(this);
-        const obj = {
-            nLevels: this._levels.length,
-            levels: this._levels.map(level => level.getID())
-        };
+        const json = RG.World.SubZoneBase.prototype.toJSON.call(this);
+        const obj = {};
         if (this._entrance) {
             obj.entrance = this._entrance;
         }
@@ -1383,14 +1384,12 @@ RG.World.CityQuarter = function(name) {
 
     /* Connects levels in linear fashion 0->1->2->...->N. */
     this.connectLevels = () => {
-        connectLevels(this._levels);
+        connectLevelsLinear(this._levels);
     };
 
     this.toJSON = function() {
-        const json = RG.World.Base.prototype.toJSON.call(this);
+        const json = RG.World.SubZoneBase.prototype.toJSON.call(this);
         const obj = {
-            nLevels: this._levels.length,
-            levels: this._levels.map(level => level.getID()),
             shops: this._shops.map(shop => shop.toJSON())
         };
         if (this._entrance) {
