@@ -463,7 +463,9 @@ class BattlesTop extends Component {
 
                 const player = this.game.getPlayer();
                 const keyBuf = new CellClickHandler().moveTo(player, x, y);
-                this.setAutoMode(keyBuf);
+                if (keyBuf.length > 0) {
+                    this.setAutoMode(keyBuf);
+                }
             }
             console.log(`Cell: ${JSON.stringify(cell)}`);
             if (cell.hasActors()) {
@@ -532,7 +534,10 @@ class BattlesTop extends Component {
 
     getNextCode() {
         if (this.ctrlMode === 'AUTOMATIC') {
-            const nextCode = this.autoModeKeyBuffer.pop();
+            const nextCode = this.autoModeKeyBuffer.shift();
+            const dirStr = RG.KeyMap.keyCodeToCardinalDir(nextCode);
+            console.log('getNextCode() is ' + dirStr);
+            console.log('Remaining in keybuf: ' + this.autoModeKeyBuffer);
             return nextCode;
         }
         else {
@@ -1136,8 +1141,8 @@ class BattlesTop extends Component {
         this.walkEast = this.walkEast.bind(this);
     }
 
-
 }
+
 
 module.exports = BattlesTop;
 
