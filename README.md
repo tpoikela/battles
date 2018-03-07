@@ -1,4 +1,4 @@
-[![Coverage Status](https://coveralls.io/repos/tpoikela/battles/badge.svg?branch=master)](https://coveralls.io/r/tpoikela/battles?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/tpoikela/battles/badge.svg?branch=master)](https://coveralls.io/github/tpoikela/battles?branch=master)
 
 # battles
 Roguelike-game Battles in the North
