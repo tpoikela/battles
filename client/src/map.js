@@ -351,6 +351,10 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
         return this._map[x][y];
     };
 
+    this.isExplored = function(x, y) {
+        return this._map[x][y].isExplored();
+    };
+
     this.getBaseElemRow = function(y) {
         const row = [];
         for (let i = 0; i < this.cols; ++i) {
