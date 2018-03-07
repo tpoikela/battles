@@ -440,9 +440,8 @@ class BattlesTop extends Component {
         }
     }
 
-    setAutoMode(keyBuf) {
+    setAutoMode() {
         this.ctrlMode = 'AUTOMATIC';
-        this.autoModeKeyBuffer = keyBuf;
     }
 
     /* When a cell is clicked, perform a command/show debug info. */
@@ -460,11 +459,13 @@ class BattlesTop extends Component {
             else {
                 this.logic.describeCell(cell, this.gameState.visibleCells);
                 this.setState({selectedCell: cell});
+                this.clickHandler = new CellClickHandler(this.game);
+                this.clickHandler.handleClick(x, y, cell);
 
-                const player = this.game.getPlayer();
-                const keyBuf = new CellClickHandler().moveTo(player, x, y);
-                if (keyBuf.length > 0) {
-                    this.setAutoMode(keyBuf);
+                // const player = this.game.getPlayer();
+                // const keyBuf = new CellClickHandler().moveTo(player, x, y);
+                if (this.clickHandler.hasKeys()) {
+                    this.setAutoMode();
                 }
             }
             console.log(`Cell: ${JSON.stringify(cell)}`);
@@ -524,17 +525,9 @@ class BattlesTop extends Component {
         }
     }
 
-    /* Test method for checking if player can be controlled. */
-    walkEast() {
-        for (let i = 0; i < 5; i++) {
-            this.autoModeKeyBuffer.push(RG.VK_d);
-        }
-        this.ctrlMode = 'AUTOMATIC';
-    }
-
     getNextCode() {
         if (this.ctrlMode === 'AUTOMATIC') {
-            const nextCode = this.autoModeKeyBuffer.shift();
+            const nextCode = this.clickHandler.getNextCode();
             const dirStr = RG.KeyMap.keyCodeToCardinalDir(nextCode);
             console.log('getNextCode() is ' + dirStr);
             console.log('Remaining in keybuf: ' + this.autoModeKeyBuffer);
@@ -549,8 +542,10 @@ class BattlesTop extends Component {
      * Usually this happens when auto-mode command fails or if enemy is
      * seen. */
     checkIfAutoModeDone() {
-        if (this.autoModeKeyBuffer.length === 0) {
-            this.ctrlMode = 'MANUAL';
+        if (this.clickHandler) {
+            if (!this.clickHandler.hasKeys()) {
+                this.ctrlMode = 'MANUAL';
+            }
         }
     }
 
@@ -804,7 +799,6 @@ class BattlesTop extends Component {
                     </div>
                     }
 
-                    <button onClick={this.walkEast}>Walk East</button>
                 </div>
                 }
 
@@ -832,6 +826,7 @@ class BattlesTop extends Component {
         // this.guiCommands[RG.VK_n] = this.GUINextTarget;
         this.guiCommands[RG.VK_l] = this.GUILook;
         this.guiCommands[RG.VK_u] = this.GUIUseItem;
+        this.guiCommands[ROT.VK_I] = this.GUICharInfo;
     }
 
     /* Returns true if given command is a GUI command. */
@@ -852,6 +847,10 @@ class BattlesTop extends Component {
 
     GUIHelp() {
         $('#help-button').trigger('click');
+    }
+
+    GUICharInfo() {
+        $('#stats-button').trigger('click');
     }
 
     /* GameInventory should add a callback which updates the GUI (via props) */
@@ -1137,8 +1136,6 @@ class BattlesTop extends Component {
         this.getNextTargetCell = this.getNextTargetCell.bind(this);
 
         this.onLoadCallback = this.onLoadCallback.bind(this);
-
-        this.walkEast = this.walkEast.bind(this);
     }
 
 }
