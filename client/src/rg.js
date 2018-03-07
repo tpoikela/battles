@@ -1251,6 +1251,21 @@ RG.KeyMap = {
                 `Dir ${dX},${dY} not supported`);
         }
         return null;
+    },
+
+    keyCodeToCardinalDir: function(code) {
+        switch (code) {
+            case RG.KEY.MOVE_NW: return 'NW';
+            case RG.KEY.MOVE_W: return 'W';
+            case RG.KEY.MOVE_SW: return 'SW';
+            case RG.KEY.MOVE_N: return 'N';
+            case RG.KEY.REST: return 'REST';
+            case RG.KEY.MOVE_S: return 'S';
+            case RG.KEY.MOVE_NE: return 'NE';
+            case RG.KEY.MOVE_E: return 'E';
+            case RG.KEY.MOVE_SE: return 'SE';
+            default: return '';
+        }
     }
 
 };
