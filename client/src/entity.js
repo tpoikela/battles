@@ -1,7 +1,8 @@
-/* Base class foe entities such as actors and items in the game. Each entity can
+/* Base class for entities such as actors and items in the game. Each entity can
  * contain any number of components. The base class provides functionality such
  * as emitting specific events when component is added/removed. Each entity has
- * also unique ID which is preserved throughout single game. */
+ * also unique ID which is preserved throughout a single game (including
+ * saving/restoring the game). */
 
 const RG = require('./rg');
 
