@@ -52,7 +52,7 @@ describe('World.Dungeon', () => {
             const entrStairs = new RG.Element.Stairs('stairsUp');
             branch.setEntrance(entrStairs, 0);
         }
-        expect(branches[0].getDungeon()).to.equal(dungeon);
+        expect(branches[0].getParent()).to.equal(dungeon);
 
         dungeon.setEntrance(branchNames);
         const entrances = dungeon.getEntrances();
