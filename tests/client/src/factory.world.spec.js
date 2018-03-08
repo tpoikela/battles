@@ -285,13 +285,33 @@ describe('Factory.World', function() {
         // expect(l0.getConnections().length).to.be.above(10);
         expect(ql1.getConnections().length).to.be.above(10);
 
-        const qStairs = ql1.getStairs();
+        // const qStairs = ql1.getStairs();
 
         const tile00 = area.getTileXY(0, 0);
         const tileLevel = tile00.getLevel();
         const tileConns = tileLevel.getConnections();
         const townConns = tileConns.filter(c => c.getName() === 'town');
         expect(townConns).to.have.length(3);
+
+    });
+
+    it.only('can create mountains with faces and summits', () => {
+        const mountainConf = {
+            name: 'Stormy Tower',
+            nFaces: 1,
+            nSummits: 1,
+            face: [
+                {x: 50, y: 100, nLevels: 1, name: 'North face'}
+            ],
+            summit: [
+                {cols: 80, rows: 50, name: 'Summit'}
+            ]
+        };
+        const fact = new RG.Factory.World();
+        const mountain = fact.createMountain(mountainConf);
+
+        const levels = mountain.getLevels();
+        expect(levels, 'Face and summit created').to.have.length(2);
 
     });
 

@@ -828,6 +828,20 @@ RG.Factory.Zone = function() {
         return mountainLevel;
     };
 
+    this.createSummitLevel = function(conf) {
+        const summitConf = {
+            maxValue: 100,
+            sqrPerActor: 20,
+            sqrPerItem: 200,
+            nLevel: 4
+        };
+        const summitLevel = this.createLevel('summit',
+            conf.cols, conf.rows, summitConf);
+        debug(`Creating summit level with ${conf}`);
+        this.addItemsAndActors(summitLevel, summitConf);
+        return summitLevel;
+    };
+
     //---------------------------
     // CITY LEVELS
     //---------------------------
@@ -1580,7 +1594,7 @@ RG.Factory.World = function() {
     };
 
     this.createMountain = function(conf) {
-        _verif.verifyConf('createMountain', conf, ['name', 'nFaces']);
+        _verif.verifyConf('createMountain', conf, ['name', 'nFaces', 'face']);
         this.pushScope(conf);
 
         const mountain = new RG.World.Mountain(conf.name);
@@ -1597,6 +1611,13 @@ RG.Factory.World = function() {
             const mountainFace = this.createMountainFace(faceConf);
             mountain.addSubZone(mountainFace);
             this.addWorldID(faceConf, mountainFace);
+        }
+
+        for (let i = 0; i < conf.nSummits; i++) {
+            const summitConf = conf.summit[i];
+            const mountainSummit = this.createSummit(summitConf);
+            mountain.addSubZone(mountainSummit);
+            this.addWorldID(summitConf, mountainSummit);
         }
 
         if (!this.id2levelSet) {
@@ -1654,15 +1675,42 @@ RG.Factory.World = function() {
             face.addLevel(level);
         }
 
-        if (conf.hasOwnProperty('entranceLevel')) {
-            face.addEntrance(conf.entranceLevel);
-        }
-        else if (conf.hasOwnProperty('entrance')) {
-            face.setEntranceLocation(conf.entrance);
-        }
-
+        this._addEntranceToSubZone(face, conf);
         this.popScope(conf);
         return face;
+    };
+
+    this.createSummit = function(conf) {
+        this.pushScope(conf);
+        const summit = new RG.World.MountainSummit(conf.name);
+
+        const summitLevelConf = {};
+        this.setLevelConstraints(summitLevelConf);
+
+        for (let i = 0; i < conf.nLevels; i++) {
+            let level = null;
+            if (!this.id2levelSet) {
+                level = this.factZone.createSummitLevel(summitLevelConf);
+            }
+            else {
+                const id = conf.levels[i];
+                level = this.id2level[id];
+            }
+            summit.addLevel(level);
+        }
+
+        this._addEntranceToSubZone(summit, conf);
+        this.popScope(conf);
+        return summit;
+    };
+
+    this._addEntranceToSubZone = function(subZone, conf) {
+        if (conf.hasOwnProperty('entranceLevel')) {
+            subZone.addEntrance(conf.entranceLevel);
+        }
+        else if (conf.hasOwnProperty('entrance')) {
+            subZone.setEntranceLocation(conf.entrance);
+        }
     };
 
     /* Creates a City and all its sub-zones. */
