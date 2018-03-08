@@ -384,14 +384,7 @@ RG.Game.FromJSON = function() {
             }
         });
 
-        // Duplicate level IDs are very, very bad
-        if (!id2level.hasOwnProperty(json.id)) {
-            this.addLevels([level], 'restoreLevel');
-        }
-        else {
-            RG.err('FromJSON', 'restoreLevel',
-                `Duplicate level ID detected ${json.id}`);
-        }
+        this.addLevels([level], 'restoreLevel');
         return level;
     };
 
@@ -866,11 +859,19 @@ RG.Game.FromJSON = function() {
         }
     };
 
+    /* Adds the array of levels into the internal storage. */
     this.addLevels = (levels, msg = '') => {
         levels.forEach(level => {
             const id = level.getID();
-            id2level[id] = level;
-            this.dbg(`Added level ${id} to id2level ${msg}`);
+            if (!id2level.hasOwnProperty(id)) {
+                id2level[id] = level;
+                this.dbg(`Added level ${id} to id2level ${msg}`);
+            }
+            else {
+                console.log(level);
+                RG.err('Game.FromJSON', `addLevels - ${msg}`,
+                `Duplicate level ID detected ${id}`);
+            }
         });
     };
 
