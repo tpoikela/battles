@@ -59,6 +59,7 @@ describe('GUI.Screen', () => {
         const screen = new Screen(20, 20);
         screen.setViewportXY(10, 10);
         const actor = new RG.Actor.Rogue('rogue');
+        actor.setType('player');
         actor.setIsPlayer(true);
         actor.setFOVRange(5);
         level.addActor(actor, 1, 1);
