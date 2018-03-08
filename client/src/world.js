@@ -464,10 +464,10 @@ RG.World.ZoneBase.prototype.findSubZone = function(name) {
 /* Returns each entrance in each subzone. */
 RG.World.ZoneBase.prototype.getEntrances = function() {
     const entrances = [];
-    this._subZones.forEach(q => {
-        const qEntr = q.getEntrance();
-        if (qEntr) {
-            entrances.push(qEntr);
+    this._subZones.forEach(sz => {
+        const szEntr = sz.getEntrance();
+        if (szEntr) {
+            entrances.push(szEntr);
         }
     });
     return entrances;
@@ -1173,7 +1173,10 @@ Not implemented yet.
         this.addSubZone(face);
     };
 
-    this.getFaces = () => this._subZones.filter(sz => sz.getType() === 'face');
+    this.getFaces = () => (
+        this._subZones.filter(sz => sz.getType() === 'face')
+    );
+
     this.getSummits = () => (
         this._subZones.filter(sz => sz.getType() === 'summit')
     );
@@ -1191,8 +1194,8 @@ RG.extend2(RG.World.Mountain, RG.World.ZoneBase);
 RG.World.Mountain.prototype.toJSON = function() {
     const json = RG.World.ZoneBase.prototype.toJSON.call(this);
     const obj = {
-        nFaces: this._subZones.length,
-        face: this._subZones.map(face => face.toJSON()),
+        nFaces: this.getFaces().length,
+        face: this.getFaces().map(face => face.toJSON()),
         nSummits: this.getSummits().length,
         summit: this.getSummits().map(summit => summit.toJSON())
     };
@@ -1285,6 +1288,12 @@ RG.extend2(RG.World.MountainFace, RG.World.SubZoneBase);
 RG.World.MountainSummit = function(name) {
     RG.World.SubZoneBase.call(this, name);
     this.setType('summit');
+
+    this.getEntrance = () => null;
+
+    this.toJSON = function() {
+        return RG.World.SubZoneBase.prototype.toJSON.call(this);
+    };
 
 };
 RG.extend2(RG.World.MountainSummit, RG.World.SubZoneBase);
