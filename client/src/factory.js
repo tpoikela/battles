@@ -1621,7 +1621,7 @@ RG.Factory.World = function() {
         }
 
         if (!this.id2levelSet) {
-            if (conf.nFaces > 1) {
+            if (conf.nFaces > 1 || conf.nFaces === 1 && conf.nSummits > 0) {
                 if (conf.connectLevels) {
                     conf.connectLevels.forEach(conn => {
                         if (conn.length === 4) {
@@ -1681,10 +1681,11 @@ RG.Factory.World = function() {
     };
 
     this.createSummit = function(conf) {
+        _verif.verifyConf('createSummit', conf, ['name', 'nLevels']);
         this.pushScope(conf);
         const summit = new RG.World.MountainSummit(conf.name);
 
-        const summitLevelConf = {};
+        const summitLevelConf = Object.assign({}, conf);
         this.setLevelConstraints(summitLevelConf);
 
         for (let i = 0; i < conf.nLevels; i++) {
