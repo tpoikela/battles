@@ -1606,6 +1606,7 @@ RG.Factory.World = function() {
                 `Face number mismatch [] = ${len}, n: ${conf.nFaces}`);
         }
 
+        // Create the faces of the mountain
         for (let i = 0; i < conf.nFaces; i++) {
             const faceConf = conf.face[i];
             const mountainFace = this.createMountainFace(faceConf);
@@ -1613,6 +1614,7 @@ RG.Factory.World = function() {
             this.addWorldID(faceConf, mountainFace);
         }
 
+        // Create the mountain summits
         for (let i = 0; i < conf.nSummits; i++) {
             const summitConf = conf.summit[i];
             const mountainSummit = this.createSummit(summitConf);
