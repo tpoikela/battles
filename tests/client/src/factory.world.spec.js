@@ -304,14 +304,28 @@ describe('Factory.World', function() {
                 {x: 50, y: 100, nLevels: 1, name: 'North face'}
             ],
             summit: [
-                {cols: 80, rows: 50, name: 'Summit'}
+                {cols: 80, rows: 50, name: 'Summit', nLevels: 1}
+            ],
+            connectLevels: [
+                ['North face', 'Summit', 0, 0]
             ]
         };
         const fact = new RG.Factory.World();
         const mountain = fact.createMountain(mountainConf);
 
+        const summits = mountain.getSummits();
+        const faces = mountain.getFaces();
+        expect(summits[0].getName()).to.equal('Summit');
+        expect(faces[0].getName()).to.equal('North face');
+
         const levels = mountain.getLevels();
         expect(levels, 'Face and summit created').to.have.length(2);
+
+        const summitLevel = mountain.findLevel('Summit', 0);
+        const faceLevel = mountain.findLevel('North face', 0);
+
+        expect(summitLevel.getConnections()).to.have.length(1);
+        expect(faceLevel.getConnections()).to.have.length(1);
 
     });
 
