@@ -295,7 +295,7 @@ describe('Factory.World', function() {
 
     });
 
-    it.only('can create mountains with faces and summits', () => {
+    it('can create mountains with faces and summits', () => {
         const mountainConf = {
             name: 'Stormy Tower',
             nFaces: 1,
