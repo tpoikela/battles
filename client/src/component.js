@@ -447,6 +447,17 @@ RG.Component.Stats = function() {
         this[setter](currValue + addValue);
     };
 
+    this.toString = () => {
+        let result = '';
+        RG.GET_STATS.forEach((getter, i) => {
+            const value = this[getter];
+            if (value !== 0) { // Show also neg. values
+                result += RG.STATS_ABBR[i] + ': ' + value;
+            }
+        });
+        return result;
+    };
+
 };
 
 RG.Component.Stats.prototype.clone = function() {
