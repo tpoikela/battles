@@ -2,7 +2,7 @@
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 RG.Verify = require('../../../client/src/verify');
-const RGTest = require('../../roguetest');
+// const RGTest = require('../../roguetest');
 RG.Factory.Game = require('../../../client/src/factory.game');
 
 const ROT = require('../../../lib/rot.js');
@@ -82,17 +82,13 @@ describe('How Game is created from Overworld', function() {
 
         expect(actorsNew.length).to.equal(actorsOld.length);
 
-        /* const parser = RG.ObjectShell.getParser();
-        const magicSword = parser.createItem('Magic sword');
-        player.getInvEq().addItem(magicSword);
-        player.getInvEq().equipItem(magicSword);*/
-
         // To load previous stage quickly
         const loadGame = false;
         const pName = 'Xanthur';
         const loadTurn = 85000;
         const saveGameEnabled = true;
         let driver = new PlayerDriver();
+        driver.screenPeriod = 10000;
 
         if (loadGame) {
             const fname = `save_dumps/${pName}_temp_${loadTurn}.json`;
@@ -114,14 +110,14 @@ describe('How Game is created from Overworld', function() {
 
         console.log('===== Begin Game simulation =====');
         driver.nTurns = loadGame ? loadTurn : 0;
-        const catcher = new RGTest.MsgCatcher();
+        // const catcher = new RGTest.MsgCatcher();
         // const area = game.getArea(0);
         // const [aX, aY] = [area.getMaxX(), area.getMaxY()];
         // game.movePlayer(aX - 1, 0);
 
         // Execute game in try-catch so we can dump save data on failure
         const mult = 5;
-        const maxTurns = mult * 30000;
+        const maxTurns = mult * 3000;
         try {
             const startI = loadGame ? loadTurn : 0;
             for (let nTurn = startI; nTurn < maxTurns; nTurn++) {
@@ -181,7 +177,7 @@ describe('How Game is created from Overworld', function() {
         fs.writeFileSync(fname, jsonStr);
         console.log('Final state saved to file ' + fname);
 
-        catcher.hasNotify = false;
+        // catcher.hasNotify = false;
         console.log('===== End Game simulation =====');
     });
 });
