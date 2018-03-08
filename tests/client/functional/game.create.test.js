@@ -40,7 +40,7 @@ describe('Function: Creating game world from a file', function() {
                         }
                     ]
                 },
-                { name: 'a2', maxX: 1, maxY: 3, nMountains: 1,
+                { name: 'a2', maxX: 2, maxY: 3, nMountains: 1,
                     cols: 80, rows: 28,
                     mountain: [{x: 0, y: 1, name: 'm2.1', nFaces: 1,
                         face: [{name: 'Steep', nLevels: 1, x: 50, y: 100,
@@ -111,7 +111,7 @@ describe('Function: Creating game world from a file', function() {
 
         // Serialise and check ID counters
         const json = game.toJSON();
-        expect(json.lastLevelID).to.equal(RG.Map.Level.prototype.idCount);
+        expect(json.lastLevelID).to.equal(RG.Map.Level.idCount);
         expect(json.lastEntityID).to.equal(Entity.getIDCount());
 
         console.log('Creating new game now');
