@@ -1129,13 +1129,11 @@ RG.World.Area.prototype.toJSON = function() {
 // RG.World.Mountain
 //------------------
 /* Mountains are places consisting of tiles and dungeons. Mountain has few
- * special * tiles representing the summit.
+ * special tiles representing the summit.
  */
 RG.World.Mountain = function(name) {
     RG.World.ZoneBase.call(this, name);
     this.setType('mountain');
-
-    this._summits = [];
 
 /* MountainFace, 5 stages:
         |       <- Summit
@@ -1152,35 +1150,37 @@ RG.World.Mountain = function(name) {
     4. Central tiles (connect on all sides)
 
 Summit is top-down view, while face is more of climbing,
-from-the-side view. Bit weird but should be fine.
+from-the-angle view. Bit weird but should be fine.
 
 Not implemented yet.
 */
 
     this.findLevel = (name, nLevel) => {
-        const level = RG.World.ZoneBase.prototype.findLevel(
-            name, nLevel);
-        if (level === null) {
-            return findLevel(name, this._summits, nLevel);
+        const faces = this.getFaces();
+        const summits = this.getSummits();
+        let level = findLevel(name, faces, nLevel);
+        if (!level) {
+            level = findLevel(name, summits, nLevel);
         }
         return level;
     };
 
     this.addSummit = summit => {
-        this._summits.push(summit);
-        summit.setParent(this);
+        this.addSubZone(summit);
     };
 
     this.addFace = face => {
         this.addSubZone(face);
     };
 
-    this.getFaces = () => this._subZones;
-    this.getSummits = () => this._summits;
+    this.getFaces = () => this._subZones.filter(sz => sz.getType() === 'face');
+    this.getSummits = () => (
+        this._subZones.filter(sz => sz.getType() === 'summit')
+    );
 
     this.connectFaceAndSummit = function(face, summit, l1, l2) {
-        const faceObj = this._subZones.find(f => f.getName() === face);
-        const summitObj = this._summits.find(s => s.getName() === summit);
+        const faceObj = this.getFaces().find(f => f.getName() === face);
+        const summitObj = this.getSummits().find(s => s.getName() === summit);
         connectSubZones([faceObj, summitObj], face, summit, l1, l2);
     };
 
