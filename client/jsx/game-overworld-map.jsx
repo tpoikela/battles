@@ -6,6 +6,7 @@ import ModalHeader from './modal-header';
 /* This component shows the game overworld map in a modal. */
 export default class GameOverWorldMap extends Component {
 
+  /* Don't update unless player's position has changed. */
   shouldComponentUpdate(nextProps) {
     if (nextProps.ow !== this.props.ow) {
       return true;
@@ -28,7 +29,8 @@ export default class GameOverWorldMap extends Component {
     if (this.props.ow) {
       const map = this.props.ow.mapToString(true).slice();
 
-      // Add player @ to the correct row
+      // Add player @ to the correct row, this could be done
+      // more easily directly inside overworld.Map mapToString
       if (this.props.playerOwPos) {
         const [x, y] = this.props.playerOwPos;
         let line = map[y];
@@ -36,9 +38,6 @@ export default class GameOverWorldMap extends Component {
         map[y] = line;
       }
       mapStr = map.join('\n');
-    }
-    else {
-      console.log('this.props.ow is null.');
     }
 
     return (
