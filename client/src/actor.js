@@ -11,6 +11,13 @@ const Mixin = require('./mixin');
 
 RG.Actor = {};
 
+const ACTOR_NO_ACTION = () => {};
+
+class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
+
+}
+RG.Actor.Base = BaseActor;
+
 /* Virtual actor can be used to spawn more entities or for AI-like effects
  * inside a level. */
 class VirtualActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
@@ -50,7 +57,7 @@ class VirtualActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
             action = new RG.Time.RogueAction(duration, cb, {});
         }
         else {
-            action = new RG.Time.RogueAction(0, () => {}, {});
+            action = new RG.Time.RogueAction(0, ACTOR_NO_ACTION, {});
         }
 
         if (this._brain.hasOwnProperty('energy')) {
@@ -277,7 +284,7 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
             action = new RG.Time.RogueAction(duration, cb, {});
         }
         else {
-            action = new RG.Time.RogueAction(0, () => {}, {});
+            action = new RG.Time.RogueAction(0, ACTOR_NO_ACTION, {});
         }
 
         if (this._brain.hasOwnProperty('energy')) {
