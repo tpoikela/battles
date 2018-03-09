@@ -677,6 +677,8 @@ const RG = { // {{{2
     // 0.0 = uniform dist, higher number assigns more weight to median values
     DANGER_ADJ_FACTOR: 1.4,
     DAMAGE_ADJ_FACTOR: 2,
+    PLAYER_HP_REGEN_PERIOD: 40,
+    PLAYER_PP_REGEN_PERIOD: 40,
 
     TRAINER_PROB: 0.2,
 

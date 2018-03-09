@@ -78,13 +78,13 @@ RG.Factory.Game = function() {
 
         // Add HP regeneration
         const regenPlayer = new RG.Time.RegenEvent(player,
-            20 * RG.ACTION_DUR);
+            RG.PLAYER_HP_REGEN_PERIOD * RG.ACTION_DUR);
         game.addEvent(regenPlayer);
 
         // Add PP regeneration (if needed)
         if (player.has('SpellPower')) {
             const regenPlayerPP = new RG.Time.RegenPPEvent(player,
-                30 * RG.ACTION_DUR);
+                RG.PLAYER_PP_REGEN_PERIOD * RG.ACTION_DUR);
             game.addEvent(regenPlayerPP);
         }
 
