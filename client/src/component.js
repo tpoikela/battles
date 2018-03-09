@@ -12,6 +12,19 @@ const debug = require('debug')('bitn:Component');
 //   this.toJSON = NO_SERIALISATION;
 const NO_SERIALISATION = () => null;
 
+/* Can be used to create simple Component object constructors with no other data
+ * fields. Example: 
+ *   const MyComponent = TagComponent('MyComponent');
+ *   const compInst = new MyComponent();
+ */
+const TagComponent = type => {
+    const CompDecl = function() {
+        RG.Component.Base.call(this, type);
+    };
+    RG.extend2(CompDecl, RG.Component.Base);
+    return CompDecl;
+};
+
 //---------------------------------------------------------------------------
 // ECS COMPONENTS
 //---------------------------------------------------------------------------
@@ -110,7 +123,6 @@ RG.Component.Base.prototype.entityRemoveCallback = function() {
     }
     this.setEntity(null);
 };
-
 
 RG.Component.Base.prototype.addCallback = function(name, cb) {
     if (name === 'onAdd') {this._onAddCallbacks.push(cb);}
@@ -904,38 +916,13 @@ RG.Component.Expiration = function() {
 };
 RG.extend2(RG.Component.Expiration, RG.Component.Base);
 
-RG.Component.Indestructible = function() {
-    RG.Component.Base.call(this, 'Indestructible');
-};
-RG.extend2(RG.Component.Indestructible, RG.Component.Base);
-
-RG.Component.Ammo = function() {
-    RG.Component.Base.call(this, 'Ammo');
-};
-RG.extend2(RG.Component.Ammo, RG.Component.Base);
-
-/* Component added to anything that flies. */
-RG.Component.Flying = function() {
-    RG.Component.Base.call(this, 'Flying');
-};
-RG.extend2(RG.Component.Flying, RG.Component.Base);
-
-/* Component added to anything Undead. */
-RG.Component.Undead = function() {
-    RG.Component.Base.call(this, 'Undead');
-};
-RG.extend2(RG.Component.Undead, RG.Component.Base);
-
-/* Component added to summoned entities. */
-RG.Component.Summoned = function() {
-    RG.Component.Base.call(this, 'Summoned');
-};
-RG.extend2(RG.Component.Summoned, RG.Component.Base);
-
-RG.Component.Sharpener = function() {
-    RG.Component.Base.call(this, 'Sharpener');
-};
-RG.extend2(RG.Component.Sharpener, RG.Component.Base);
+RG.Component.Indestructible = TagComponent('Indestructible');
+RG.Component.Ammo = TagComponent('Ammo');
+RG.Component.Flying = TagComponent('Flying');
+RG.Component.Undead = TagComponent('Undead');
+RG.Component.Summoned = TagComponent('Summoned');
+RG.Component.Fire = TagComponent('Fire');
+RG.Component.Sharpener = TagComponent('Sharpener');
 
 /* Component which stores the actor class object. */
 RG.Component.ActorClass = function() {
@@ -963,30 +950,22 @@ RG.extend2(RG.Component.ActorClass, RG.Component.Base);
 //---------------------------------------------------------------------------
 // MELEE COMBAT COMPONENTS
 //---------------------------------------------------------------------------
-
-/* Component which gives a defender bonus (+1 for each enemy). */
-RG.Component.Defender = function() {
-    RG.Component.Base.call(this, 'Defender');
+const componentsMelee = {
+    Defender: 'Gives a defender bonus (+1 Def for each enemy).',
+    Attacker: 'Gives an attack bonus (+1 Att for each enemy).',
+    BiDirStrike: 'Gives bi-directional melee strike',
+    CounterAttack: 'Gives a counter attack ability',
+    Ambidexterity: 'Gives ability to wield two weapons',
+    LongReach: 'Gives +1 to range of melee attacks.',
+    FirstStrike: 'Gives a counter attack that hits first.'
 };
-RG.extend2(RG.Component.Defender, RG.Component.Base);
-
-/* Component which gives an attack bonus (+1 for each enemy). */
-RG.Component.Attacker = function() {
-    RG.Component.Base.call(this, 'Attacker');
-};
-RG.extend2(RG.Component.Attacker, RG.Component.Base);
-
-/* Component which gives an actor bi-directional melee strike. */
-RG.Component.BiDirStrike = function() {
-    RG.Component.Base.call(this, 'BiDirStrike');
-};
-RG.extend2(RG.Component.BiDirStrike, RG.Component.Base);
-
-/* Component which gives an actor bi-directional melee strike. */
-RG.Component.CounterAttack = function() {
-    RG.Component.Base.call(this, 'CounterAttack');
-};
-RG.extend2(RG.Component.CounterAttack, RG.Component.Base);
+RG.Component.Defender = TagComponent('Defender');
+RG.Component.Attacker = TagComponent('Attacker');
+RG.Component.BiDirStrike = TagComponent('BiDirStrike');
+RG.Component.CounterAttack = TagComponent('CounterAttack');
+RG.Component.Ambidexterity = TagComponent('Ambidexterity');
+RG.Component.LongReach = TagComponent('LongReach');
+RG.Component.FirstStrike = TagComponent('FirstStrike');
 
 /* Component which gives reduces equipment weight by 50%. */
 RG.Component.MasterEquipper = function() {
@@ -998,20 +977,6 @@ RG.Component.MasterEquipper = function() {
 
 };
 RG.extend2(RG.Component.MasterEquipper, RG.Component.Base);
-
-/* Component which gives an actor power to wield two weapons (if not using
- * shield). */
-RG.Component.Ambidexterity = function() {
-    RG.Component.Base.call(this, 'Ambidexterity');
-};
-RG.extend2(RG.Component.Ambidexterity, RG.Component.Base);
-
-/* Gives ability to strike melee hits from distance (generally with a range of 2
- * instead of 1. */
-RG.Component.LongReach = function() {
-    RG.Component.Base.call(this, 'LongReach');
-};
-RG.extend2(RG.Component.LongReach, RG.Component.Base);
 
 /* Component which gives an actor chance to bypass armor. */
 RG.Component.BypassProtection = function() {
@@ -1027,45 +992,15 @@ RG.extend2(RG.Component.BypassProtection, RG.Component.Base);
 // RANGED COMBAT COMPONENTS
 //--------------------------------------------
 
-RG.Component.EagleEye = function() {
-    RG.Component.Base.call(this, 'EagleEye');
-};
-RG.extend2(RG.Component.EagleEye, RG.Component.Base);
+RG.Component.EagleEye = TagComponent('EagleEye');
+RG.Component.StrongShot = TagComponent('StrongShot');
+RG.Component.ThroughShot = TagComponent('ThroughShot');
+RG.Component.MixedShot = TagComponent('MixedShot');
+RG.Component.LongRangeShot = TagComponent('LongRangeShot');
+RG.Component.RangedEvasion = TagComponent('RangedEvasion');
+RG.Component.CriticalShot = TagComponent('CriticalShot');
+RG.Component.DoubleShot = TagComponent('DoubleShot');
 
-RG.Component.StrongShot = function() {
-    RG.Component.Base.call(this, 'StrongShot');
-};
-RG.extend2(RG.Component.StrongShot, RG.Component.Base);
-
-RG.Component.ThroughShot = function() {
-    RG.Component.Base.call(this, 'ThroughShot');
-};
-RG.extend2(RG.Component.ThroughShot, RG.Component.Base);
-
-RG.Component.MixedShot = function() {
-    RG.Component.Base.call(this, 'MixedShot');
-};
-RG.extend2(RG.Component.MixedShot, RG.Component.Base);
-
-RG.Component.LongRangeShot = function() {
-    RG.Component.Base.call(this, 'LongRangeShot');
-};
-RG.extend2(RG.Component.LongRangeShot, RG.Component.Base);
-
-RG.Component.RangedEvasion = function() {
-    RG.Component.Base.call(this, 'RangedEvasion');
-};
-RG.extend2(RG.Component.RangedEvasion, RG.Component.Base);
-
-RG.Component.CriticalShot = function() {
-    RG.Component.Base.call(this, 'CriticalShot');
-};
-RG.extend2(RG.Component.CriticalShot, RG.Component.Base);
-
-RG.Component.DoubleShot = function() {
-    RG.Component.Base.call(this, 'DoubleShot');
-};
-RG.extend2(RG.Component.DoubleShot, RG.Component.Base);
 //--------------------------------------------
 // Spellcasting related components
 //--------------------------------------------
