@@ -701,6 +701,8 @@ RG.Factory.World = function() {
         return face;
     };
 
+    /* Creates a subzone for mountain summit. Creates the levels contained in
+     * that subzone. */
     this.createSummit = function(conf) {
         _verif.verifyConf('createSummit', conf, ['name', 'nLevels']);
         this.pushScope(conf);
@@ -713,6 +715,9 @@ RG.Factory.World = function() {
             let level = null;
             if (!this.id2levelSet) {
                 level = this.factZone.createSummitLevel(summitLevelConf);
+                if (i === (conf.nLevels - 1)) {
+                    this.addLastLevelFeatures(i, level, summitLevelConf);
+                }
             }
             else {
                 const id = conf.levels[i];
