@@ -7,6 +7,7 @@ const debug = require('debug')('bitn:System');
 
 RG.SYS = {};
 RG.SYS.ANIMATION = Symbol();
+RG.SYS.AREA_EFFECTS = Symbol();
 RG.SYS.ATTACK = Symbol();
 RG.SYS.BATTLE = Symbol();
 RG.SYS.BASE_ACTION = Symbol();
@@ -2136,5 +2137,17 @@ RG.System.Events = function(compTypes) {
 
 };
 RG.extend2(RG.System.Events, RG.System.Base);
+
+RG.System.AreaEffects = function(compTypes) {
+    RG.System.Base.call(this, RG.SYS.AREA_EFFECTS, compTypes);
+
+    this.updateEntity = function(ent) {
+        const fireComps = ent.getList('Fire');
+        fireComps.forEach(comp => {
+
+        });
+    };
+};
+RG.extend2(RG.System.AreaEffects, RG.System.Base);
 
 module.exports = RG.System;
