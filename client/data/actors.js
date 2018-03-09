@@ -130,11 +130,6 @@ const Actors = [
         brain: defaultBrain
     },
     {
-        name: 'smart goblin slinger', base: 'goblin',
-        attack: 2, defense: 1, hp: 80,
-        equip: [{name: 'Rock', count: 10}]
-    },
-    {
         name: 'goblin slinger', base: 'goblin',
         attack: 2, defense: 1, hp: 8,
         equip: [{name: 'Rock', count: 10}]
