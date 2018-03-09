@@ -254,7 +254,7 @@ RG.Game.Main = function() {
 
     /* Adds a place (dungeon/area) containing several levels.*/
     this.addPlace = function(place) {
-        if (place.hasOwnProperty('getLevels')) {
+        if (typeof place.getLevels === 'function') {
             const name = place.getName();
             if (!this._places.hasOwnProperty(name) ) {
                 const levels = place.getLevels();

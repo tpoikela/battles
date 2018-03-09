@@ -85,6 +85,13 @@ LevelGen.getMountainConf = mountainName => {
         nFaces: nLevels,
         face: [
             {name: mountainName, nLevels, entranceLevel: 0, x, y}
+        ],
+        nSummits: 1,
+        summit: [
+            {name: 'Summit', nLevels: 1, cols: 80, rows: 50}
+        ],
+        connectLevels: [
+            [mountainName, 'Summit', 0, 0]
         ]
     };
     return conf;

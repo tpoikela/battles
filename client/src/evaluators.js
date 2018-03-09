@@ -257,8 +257,6 @@ class EvaluatorCastSpell extends EvaluatorBase {
             const enemy = enemyCell.getActors()[0];
             const args = {enemy, actor, actorsAround};
             return this.spell.aiShouldCastSpell(args, (actor, args) => {
-                const sName = this.spell.getName();
-                console.log('Setting args in callback: ' + sName);
                 this.spellArgs = args;
             });
         }

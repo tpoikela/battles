@@ -120,6 +120,8 @@ describe('System.Attack', () => {
         beast.add(bypassComp);
         const attackComp = new RG.Component.Attack(human);
         beast.add('Attack', attackComp);
+        beast.get('Combat').setAttack(100);
+        human.get('Combat').setDefense(0);
 
         human.get('Combat').setProtection(100);
 
@@ -145,12 +147,14 @@ describe('System.Damage', () => {
         const human = new RG.Actor.Rogue('Human');
         human.getInvEq().addItem(poisonSword);
         human.getInvEq().equipItem(poisonSword);
-        const beast = new RG.Actor.Rogue('Beast');
 
+        const beast = new RG.Actor.Rogue('Beast');
         const dmgComp = new RG.Component.Damage(10, 'slash');
         dmgComp.setSource(human);
         dmgComp.setWeapon(poisonSword);
         beast.add('Damage', dmgComp);
+
+        RGTest.wrapIntoLevel([human, beast]);
 
         const beastAddOnHit = new RG.Component.AddOnHit();
         const beastDmgComp = new RG.Component.Damage(10, 'slash');

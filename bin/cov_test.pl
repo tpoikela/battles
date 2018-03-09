@@ -43,6 +43,9 @@ if (-d $nyc_bak) {
 mkdir($nyc_bak);
 
 my $nyc = "node_modules/.bin/nyc";
+if (not -e $nyc) {
+    die("Cannot find nyc exec in $nyc.");
+}
 
 my $cmd = "$nyc -n client/src mocha $comp_babel tests/client/src";
 _cmd($cmd, "Running coverage for unit tests.");

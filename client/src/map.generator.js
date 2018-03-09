@@ -67,6 +67,7 @@ RG.Map.Generator = function() { // {{{2
             case 'rooms': _mapGen = this.createRooms(cols, rows); break;
             case 'town': _mapGen = new ROT.Map.Arena(cols, rows); break;
             case 'townwithwall': break;
+            case 'summit': break;
             case 'wall': _mapGen = new ROT.Map.Wall(cols, rows); break;
             default: RG.err('MapGen',
                 'setGen', '_mapGen type ' + type + ' is unknown');
@@ -362,8 +363,8 @@ RG.Map.Generator = function() { // {{{2
         return {map};
     };
 
-    this.createMountain = function(conf) {
-        const map = new RG.Map.CellList(this.cols, this.rows);
+    this.createMountain = function(cols, rows, conf) {
+        const map = new RG.Map.CellList(cols, rows);
         if (!conf) {
             conf = {};
         }
@@ -425,6 +426,38 @@ RG.Map.Generator = function() { // {{{2
             paths.push(chosenCoord);
         }
 
+    };
+
+    /* Creates a mountain summit. */
+    this.createSummit = function(cols, rows, conf) {
+        const map = new RG.Map.CellList(cols, rows, RG.ELEM.SKY);
+
+        const ratio = conf.ratio || 0.3;
+        let [cX, cY] = [Math.floor(cols / 2), Math.floor(rows / 2)];
+        const totalCells = cols * rows;
+
+        const placedCoord = [[cX, cY]];
+        map.setBaseElemXY(cX, cY, RG.ELEM.FLOOR);
+        let placedCells = 1;
+
+        let watchdog = 10000;
+        while (placedCells / totalCells < ratio) {
+            [cX, cY] = RG.RAND.arrayGetRand(placedCoord);
+            const [dX, dY] = RG.RAND.getRandDir();
+            cX += dX;
+            cY += dY;
+            if (map.hasXY(cX, cY)) {
+                if (map.getBaseElemXY(cX, cY).getType() === 'sky') {
+                    placedCoord.push([cX, cY]);
+                    ++placedCells;
+                    map.setBaseElemXY(cX, cY, RG.ELEM.FLOOR);
+                }
+            }
+            --watchdog;
+            if (watchdog <= 0) {break;}
+        }
+
+        return {map};
     };
 
 

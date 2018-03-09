@@ -52,7 +52,7 @@ describe('World.Dungeon', () => {
             const entrStairs = new RG.Element.Stairs('stairsUp');
             branch.setEntrance(entrStairs, 0);
         }
-        expect(branches[0].getDungeon()).to.equal(dungeon);
+        expect(branches[0].getParent()).to.equal(dungeon);
 
         dungeon.setEntrance(branchNames);
         const entrances = dungeon.getEntrances();
@@ -178,10 +178,14 @@ describe('World.Mountain', () => {
         mountain.connectSubZones('east', 'west', 0, 0);
         expectConnected(faces[2], faces[3], 1);
 
-        const summit = new RG.World.MountainFace('North summit');
+        const summit = new RG.World.MountainSummit('North summit');
         const summitLevel = RG.FACT.createLevel('empty', 10, 10);
         summit.addLevel(summitLevel);
         mountain.addSummit(summit);
+
+        mountain.connectSubZones('North summit', 'south', 0, 0);
+        expectConnected(faces[1], mountain.getSummits()[0], 1);
+
         mountain.connectFaceAndSummit('north', 'North summit', 0, 0);
         expectConnected(faces[0], mountain.getSummits()[0], 1);
     });

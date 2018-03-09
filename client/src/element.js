@@ -484,6 +484,16 @@ class RGElementWater extends RGElementBase {
 }
 RG.Element.Water = RGElementWater;
 
+/* A sky element. */
+class RGElementSky extends RGElementBase {
+    constructor() {
+        super('sky');
+    }
+
+    isPassable() {return false;}
+}
+RG.Element.Sky = RGElementSky;
+
 /* A fort element. */
 class RGElementFort extends RGElementBase {
     constructor() {
@@ -506,6 +516,7 @@ RG.ELEM.FLOOR_HOUSE = Object.freeze(new RGElementBase('floorhouse'));
 RG.ELEM.GRASS = Object.freeze(new RG.Element.Grass());
 RG.ELEM.HIGH_ROCK = Object.freeze(new RG.Element.HighRock());
 RG.ELEM.ROAD = Object.freeze(new RGElementBase('road'));
+RG.ELEM.SKY = Object.freeze(new RG.Element.Sky());
 RG.ELEM.SNOW = Object.freeze(new RGElementBase('snow'));
 RG.ELEM.STONE = Object.freeze(new RG.Element.Stone());
 RG.ELEM.TREE = Object.freeze(new RG.Element.Tree());

@@ -24,6 +24,7 @@ RG.Map.Cell = function(x, y, elem) { // {{{2
 
 RG.Map.Cell.prototype.getX = function() {return this._x;};
 RG.Map.Cell.prototype.getY = function() {return this._y;};
+RG.Map.Cell.prototype.getXY = function() {return [this._x, this._y];};
 RG.Map.Cell.prototype.setX = function(x) {this._x = x;};
 RG.Map.Cell.prototype.setY = function(y) {this._y = y;};
 RG.Map.Cell.prototype.isAtXY = function(x, y) {

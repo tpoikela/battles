@@ -285,13 +285,47 @@ describe('Factory.World', function() {
         // expect(l0.getConnections().length).to.be.above(10);
         expect(ql1.getConnections().length).to.be.above(10);
 
-        const qStairs = ql1.getStairs();
+        // const qStairs = ql1.getStairs();
 
         const tile00 = area.getTileXY(0, 0);
         const tileLevel = tile00.getLevel();
         const tileConns = tileLevel.getConnections();
         const townConns = tileConns.filter(c => c.getName() === 'town');
         expect(townConns).to.have.length(3);
+
+    });
+
+    it('can create mountains with faces and summits', () => {
+        const mountainConf = {
+            name: 'Stormy Tower',
+            nFaces: 1,
+            nSummits: 1,
+            face: [
+                {x: 50, y: 100, nLevels: 1, name: 'North face'}
+            ],
+            summit: [
+                {cols: 80, rows: 50, name: 'Summit', nLevels: 1}
+            ],
+            connectLevels: [
+                ['North face', 'Summit', 0, 0]
+            ]
+        };
+        const fact = new RG.Factory.World();
+        const mountain = fact.createMountain(mountainConf);
+
+        const summits = mountain.getSummits();
+        const faces = mountain.getFaces();
+        expect(summits[0].getName()).to.equal('Summit');
+        expect(faces[0].getName()).to.equal('North face');
+
+        const levels = mountain.getLevels();
+        expect(levels, 'Face and summit created').to.have.length(2);
+
+        const summitLevel = mountain.findLevel('Summit', 0);
+        const faceLevel = mountain.findLevel('North face', 0);
+
+        expect(summitLevel.getConnections()).to.have.length(1);
+        expect(faceLevel.getConnections()).to.have.length(1);
 
     });
 
