@@ -109,10 +109,10 @@ const getClassesAndCharsWithRLE = function(
             if (cell.isExplored()) {cellClass += ' cell-not-seen';}
         }
 
-        const finishRLE = (cellClass !== prevClass) && prevClass
+        const finishCurrentRLE = (cellClass !== prevClass) && prevClass
             || (cellChar !== prevChar) && prevChar;
 
-        if (finishRLE) {
+        if (finishCurrentRLE) {
             cssClasses.push([classRL, prevClass]);
             classRL = 1;
             asciiChars.push([charRL, prevChar]);
@@ -199,10 +199,10 @@ const getClassesAndCharsFullMapWithRLE = function(cells, selCell) {
             }
         }
 
-        const finishRLE = (cellClass !== prevClass) && prevClass
+        const finishCurrentRLE = (cellClass !== prevClass) && prevClass
             || (cellChar !== prevChar) && prevChar;
 
-        if (finishRLE) {
+        if (finishCurrentRLE) {
             cssClasses.push([classRL, prevClass]);
             classRL = 1;
             asciiChars.push([charRL, prevChar]);
@@ -225,6 +225,9 @@ const getClassesAndCharsFullMapWithRLE = function(cells, selCell) {
 
 };
 
+//----------------
+// Screen
+//----------------
 /* Creates a screen with viewport set to given parameters. */
 const Screen = function(viewX, viewY) {
     this.viewportX = viewX;
@@ -237,10 +240,9 @@ const Screen = function(viewX, viewY) {
 
     this.viewport = new Viewport(viewX, viewY);
 
-
 };
 
-    /* Returns the leftmost X-coordinate of the viewport. */
+/* Returns the leftmost X-coordinate of the viewport. */
 Screen.prototype.getStartX = function() {
     return this.viewport.startX;
 };
@@ -290,8 +292,8 @@ Screen.prototype._initRender = function(playX, playY, map) {
     this.endY = this.viewport.endY;
 };
 
-    /* 'Renders' the ASCII screen and style classes based on player's
-     * coordinate, map and visible cells. */
+/* 'Renders' the ASCII screen and style classes based on player's
+ * coordinate, map and visible cells. */
 Screen.prototype.render = function(playX, playY, map, visibleCells) {
     this._initRender(playX, playY, map);
     let yCount = 0;
@@ -322,7 +324,7 @@ Screen.prototype.renderWithRLE = function(
     }
 };
 
-    /* Renders the full map as visible. */
+/* Renders the full map as visible. */
 Screen.prototype.renderFullMap = function(map) {
     this.startX = 0;
     this.endX = map.cols - 1;
