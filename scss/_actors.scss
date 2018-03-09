@@ -59,3 +59,39 @@
     background-color: $blue;
     color: $yellow;
 }
+
+.cell-actor-wolfclan {
+    background-color: $red;
+    color: $black;
+}
+
+.cell-actor-catfolk {
+    background-color: $yellow;
+    color: $brown;
+}
+
+.cell-actor-bearfolk {
+    background-color: $cyan;
+    color: $brown;
+}
+
+.cell-actor-dogfolk {
+    background-color: $azure;
+    color: $brown;
+}
+
+.cell-actor-undead {
+    background-color: $black;
+    color: $white;
+}
+
+.cell-actor-goblin {
+    background-color: darken($yellow, 20%);
+    color: $blue;
+}
+
+/* .cell-actor-wildling {
+    background-color:
+    color: 
+} */
+

@@ -36,6 +36,7 @@ RG.ObjectShell = require('./objectshellparser.js');
 
 RG.Game = require('./game.js');
 RG.Factory = require('./factory.js');
+RG.Factory.World = require('./factory.world.js');
 
 RG.Names = require('../data/name-gen.js');
 RG.LevelGen = require('../data/level-gen.js');

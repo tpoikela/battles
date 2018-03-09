@@ -198,6 +198,25 @@ function connectLevelsLinear(levels) {
     }
 }
 
+function connectLevelsConstrained(conf1, conf2) {
+    const level1 = conf1.level;
+    const level2 = conf2.level;
+    const x1 = Math.floor(level1.getMap().cols / 2);
+    const y1 = conf1.y();
+
+    const freeCells2 = level2.getMap().getCells(c => (
+        c.getBaseElem().getType() !== 'sky'
+    ));
+    const cell2 = RG.RAND.arrayGetRand(freeCells2);
+    const [x2, y2] = [cell2.getX(), cell2.getY()];
+
+    const l1Stairs = new Stairs('stairsUp', level1, level2);
+    const l2Stairs = new Stairs('stairsDown', level2, level1);
+    l1Stairs.connect(l2Stairs);
+    level1.addStairs(l1Stairs, x1, y1);
+    level2.addStairs(l2Stairs, x2, y2);
+}
+
 /* Tries to connect stairs to level N in the given list of levels. This creates
  * a new connection element into the target level. */
 function connectLevelToStairs(levels, nLevel, stairs) {
@@ -231,8 +250,8 @@ function getSubZoneArgs(subZones, sz1Arg, sz2Arg) {
 
     // Lookup objects by name if they are string
     if (typeof sz1Arg === 'string' && typeof sz2Arg === 'string') {
-        sz1 = subZones.find(q => q.getName() === sz1Arg);
-        sz2 = subZones.find(q => q.getName() === sz2Arg);
+        sz1 = subZones.find(sz => sz.getName() === sz1Arg);
+        sz2 = subZones.find(sz => sz.getName() === sz2Arg);
     }
     return [sz1, sz2];
 }
@@ -419,6 +438,10 @@ RG.World.ZoneBase = function(name) {
 };
 RG.extend2(RG.World.ZoneBase, RG.World.Base);
 
+RG.World.ZoneBase.prototype.getSubZoneArgs = function(s1Arg, s2Arg) {
+    return getSubZoneArgs(this._subZones, s1Arg, s2Arg);
+};
+
 RG.World.ZoneBase.prototype.setTileXY = function(x, y) {
     this.tileX = x;
     this.tileY = y;
@@ -501,8 +524,19 @@ RG.World.SubZoneBase = function(name) {
 };
 RG.extend2(RG.World.SubZoneBase, RG.World.Base);
 
-RG.World.SubZoneBase.prototype.getLevels = function() {
-    return this._levels;
+RG.World.SubZoneBase.prototype.getLevels = function(nLevel) {
+    if (RG.isNullOrUndef([nLevel])) {
+        return this._levels;
+    }
+    else if (nLevel < this._levels.length) {
+        return this._levels[nLevel];
+    }
+    else {
+        const nLevels = this._levels.length;
+        RG.err('World.SubZoneBase', 'getLevels',
+            `No nLevel ${nLevel} found. Max: ${nLevels}`);
+    }
+    return null;
 };
 
 RG.World.SubZoneBase.prototype.hasLevel = function(level) {
@@ -1182,9 +1216,38 @@ Not implemented yet.
     );
 
     this.connectFaceAndSummit = function(face, summit, l1, l2) {
-        const faceObj = this.getFaces().find(f => f.getName() === face);
-        const summitObj = this.getSummits().find(s => s.getName() === summit);
-        connectSubZones([faceObj, summitObj], face, summit, l1, l2);
+        const [sz1, sz2] = this.getSubZoneArgs(face, summit);
+        if (sz2.getType() !== 'summit') {
+            const type = sz2.getType();
+            RG.err('World.Mountain', 'connectFaceAndSummit',
+                `Expected 2nd arg summit, got: ${type}`);
+        }
+        const level1 = sz1.getLevels(l1);
+        const level2 = sz2.getLevels(l2);
+        const connFace = {y: () => 0, level: level1};
+        const connSummit = {level: level2};
+        connectLevelsConstrained(connFace, connSummit);
+    };
+
+    this.connectSubZones = function(s1Arg, s2Arg, l1, l2) {
+        const [sz1, sz2] = this.getSubZoneArgs(s1Arg, s2Arg);
+        // const sz1 = this.findSubZone(s1Arg);
+        // const sz2 = this.findSubZone(s2Arg);
+        if (sz1.getType() === 'face') {
+            if (sz2.getType() === 'summit') {
+                this.connectFaceAndSummit(sz1, sz2, l1, l2);
+                return;
+            }
+        }
+        else if (sz1.getType() === 'summit') {
+            if (sz2.getType() === 'face') {
+                // Note the re-ordered args here
+                this.connectFaceAndSummit(sz2, sz1, l2, l1);
+                return;
+            }
+        }
+        RG.World.ZoneBase.prototype.connectSubZones.call(
+            this, s1Arg, s2Arg, l1, l2);
     };
 
 };

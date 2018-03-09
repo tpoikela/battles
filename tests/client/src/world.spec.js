@@ -182,6 +182,10 @@ describe('World.Mountain', () => {
         const summitLevel = RG.FACT.createLevel('empty', 10, 10);
         summit.addLevel(summitLevel);
         mountain.addSummit(summit);
+
+        mountain.connectSubZones('North summit', 'south', 0, 0);
+        expectConnected(faces[1], mountain.getSummits()[0], 1);
+
         mountain.connectFaceAndSummit('north', 'North summit', 0, 0);
         expectConnected(faces[0], mountain.getSummits()[0], 1);
     });
