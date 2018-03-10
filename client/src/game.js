@@ -17,10 +17,10 @@ const GameMaster = require('./game.master');
 /* Top-level main object for the game.  */
 RG.Game.Main = function() {
 
-    const _players = []; // List of players
+    this._players = []; // List of players
     this._places = {}; // List of all places
     this._shownLevel = null; // One per game only
-    let _gameOver = false;
+    this._gameOver = false;
 
     this._enableChunkUnload = false;
     this._chunkManager = null;
@@ -51,7 +51,7 @@ RG.Game.Main = function() {
     };
     this._engine.playerCommandCallback = this.playerCommandCallback.bind(this);
 
-    this.isGameOver = () => _gameOver;
+    this.isGameOver = () => this._gameOver;
     this._engine.isGameOver = this.isGameOver;
 
     this.getLevels = () => this._engine.getLevels();
@@ -91,7 +91,7 @@ RG.Game.Main = function() {
             if (this._shownLevel === null) {
                 this._shownLevel = player.getLevel();
             }
-            _players.push(player);
+            this._players.push(player);
             this._engine.addActiveLevel(player.getLevel());
             player.getLevel().onEnter();
             player.getLevel().onFirstEnter();
@@ -317,9 +317,14 @@ RG.Game.Main = function() {
     this.notify = (evtName, args) => {
         if (evtName === RG.EVT_ACTOR_KILLED) {
             if (args.actor.isPlayer()) {
-                if (_players.length === 1) {
-                    _gameOver = true;
-                    RG.gameMsg('GAME OVER!');
+                const {actor} = args;
+                const index = this._players.indexOf(actor);
+                if (index >= 0) {
+                    if (this._players.length === 1) {
+                        this._gameOver = true;
+                        RG.gameMsg('GAME OVER!');
+                    }
+                    this._players.splice(index, 1);
                 }
             }
         }
