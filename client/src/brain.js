@@ -794,54 +794,17 @@ RG.extend2(RG.Brain.Archer, RG.Brain.Rogue);
 RG.Brain.SpellCaster = function(actor) {
     RG.Brain.Rogue.call(this, actor);
     this.setType('SpellCaster');
-
-    this._castingProb = 0.2;
-
-    this.setCastProbability = prob => {this._castingProb = prob;};
+    this.goal = new GoalsTop.ThinkSpellcaster(actor);
+    this.goal.setBias({CastSpell: 1.2, AttackActor: 0.8});
 
     this.decideNextAction = function() {
         this._seenCached = null;
-        this._spell = this.getRandomSpell();
-        this._spellDir = null;
-        return BTree.startBehavTree(Models.SpellCaster.tree, this._actor)[0];
+        this.goal.process();
+        return ACTION_ALREADY_DONE;
     };
 
-    this.getRandomSpell = () => {
-        const book = this._actor.getBook();
-        if (book && book.getSpells().length > 0) {
-            return RG.RAND.arrayGetRand(book.getSpells());
-        }
-        return null;
-    };
-
-    /* Returns true if spellcaster can cast a spell. */
-    this.canCastSpell = function() {
-        if (actor.has('SpellPower')) {
-            if (actor.get('SpellPower').getPP() >= this._spell.getPower()) {
-                if (RG.RAND.getUniform() <= this._castingProb) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    };
-
-    /* Returns true if spellcaster should cast the spell. */
-    this.shouldCastSpell = function() {
-        const seenCells = this.getSeenCells();
-        const enemy = this.findEnemyCell(seenCells).getActors()[0];
-        const args = {enemy, actor: this._actor};
-        return this._spell.aiShouldCastSpell(args, (actor, args) => {
-            this._spellArgs = args;
-        });
-    };
-
-    /* Casts a spell. this._spellsArgs is set in
-     * spell.aiShouldCastSpell. Need to find better architecture.
-     * */
-    this.castSpell = function() {
-        return this._spell.getCastFunc(this._actor, this._spellArgs);
-    };
+    this.getGoal = () => this.goal;
+    this.setGoal = goal => {this.goal = goal;};
 
 };
 RG.extend2(RG.Brain.SpellCaster, RG.Brain.Rogue);
@@ -855,7 +818,6 @@ RG.Brain.GoalOriented = function(actor) {
     /* Must return function. */
     this.decideNextAction = function() {
         this._seenCached = null;
-        // const status = this.goal.process();
         this.goal.process();
         return ACTION_ALREADY_DONE;
     };
