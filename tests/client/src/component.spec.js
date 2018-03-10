@@ -3,6 +3,7 @@ import Entity from '../../../client/src/entity';
 
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles.js');
+RG.Component = require('../../../client/src/component');
 
 const {NO_SERIALISATION} = RG.Component;
 
@@ -117,6 +118,17 @@ describe('RG.DataComponent', () => {
             Immunity = RG.DataComponent('Immunity', ['type']);
         };
         expect(createFunc).to.throw(Error);
+    });
+
+});
+
+describe('Component.Action', () => {
+
+    it('active status and energy', () => {
+        const action = new RG.Component.Action();
+        expect(action.getEnergy()).to.equal(0);
+        expect(action.getActive()).to.equal(false);
+
     });
 
 });
