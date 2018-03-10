@@ -13,7 +13,7 @@ RG.Actor = {};
 
 const ACTOR_NO_ACTION = Object.freeze(() => {});
 const EMPTY_ARGS = Object.freeze({});
-const SPEED_COEFF = RG.BASE_SPEED / RG.ACTION_DUR;
+const SPEED_COEFF = RG.BASE_SPEED * RG.ACTION_DUR;
 
 class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
 
@@ -46,7 +46,7 @@ class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
         let action = null;
 
         if (cb !== null) {
-            const duration = Math.round(SPEED_COEFF * this.getSpeed());
+            const duration = Math.round(SPEED_COEFF / this.getSpeed());
             action = new RG.Time.RogueAction(duration, cb, EMPTY_ARGS);
         }
         else {
