@@ -19,6 +19,7 @@ class EvaluatorBase {
 
     constructor(actorBias) {
         this.actorBias = actorBias;
+        this.type = 'Base';
     }
 
     calculateDesirability() {
@@ -31,6 +32,19 @@ class EvaluatorBase {
 
     isOrder() {return false;}
 
+    getType() {return this.type;}
+
+    setBias(bias) {
+        this.actorBias = bias;
+    }
+
+    toJSON() {
+        return {
+            type: this.getType(),
+            bias: this.actorBias
+        };
+    }
+
 }
 Evaluator.Base = EvaluatorBase;
 
@@ -39,6 +53,7 @@ class EvaluatorAttackActor extends EvaluatorBase {
 
     constructor(actorBias) {
         super(actorBias);
+        this.type = 'AttackActor';
     }
 
     calculateDesirability(actor) {
@@ -67,6 +82,7 @@ class EvaluatorExplore extends EvaluatorBase {
 
     constructor(actorBias) {
         super(actorBias);
+        this.type = 'Explore';
     }
 
     calculateDesirability(actor) {
@@ -91,6 +107,7 @@ class EvaluatorFlee extends EvaluatorBase {
 
     constructor(actorBias) {
         super(actorBias);
+        this.type = 'Flee';
     }
 
     calculateDesirability(actor) {
@@ -128,6 +145,7 @@ class EvaluatorPatrol extends EvaluatorBase {
 
     constructor(actorBias) {
         super(actorBias);
+        this.type = 'Patrol';
         this.coords = [[2, 2], [40, 10], [20, 20]];
     }
 
@@ -153,6 +171,7 @@ class EvaluatorOrders extends EvaluatorBase {
 
     constructor(actorBias) {
         super(actorBias);
+        this.type = 'Orders';
         this.goal = null;
     }
 
@@ -200,7 +219,16 @@ class EvaluatorCastSpell extends EvaluatorBase {
 
     constructor(actorBias) {
         super(actorBias);
+        this.type = 'CastSpell';
         this._castingProb = 0.2;
+    }
+
+    setCastingProbability(prob) {
+        this._castingProb = prob;
+    }
+
+    getCastingProbability() {
+        return this._castingProb;
     }
 
     calculateDesirability(actor) {
