@@ -24,6 +24,7 @@ const TagComponent = type => {
     RG.extend2(CompDecl, RG.Component.Base);
     return CompDecl;
 };
+RG.TagComponent = TagComponent;
 
 //---------------------------------------------------------------------------
 // ECS COMPONENTS
@@ -523,6 +524,15 @@ RG.Component.StatsMods = function() {
 };
 RG.extend2(RG.Component.StatsMods, RG.Component.Stats);
 
+RG.Component.Perception = function() {
+    RG.Component.Base.call(this, 'Perception');
+    let _fovRange = RG.NPC_FOV_RANGE;
+
+    this.setFOVRange = range => {_fovRange = range;};
+    this.getFOVRange = () => _fovRange;
+
+};
+RG.extend2(RG.Component.Perception, RG.Component.Base);
 
 /* Attack component is added to the actor when it attacks. Thus, source of the
  * attack is the entity having Attack component. */
@@ -923,6 +933,7 @@ RG.Component.Undead = TagComponent('Undead');
 RG.Component.Summoned = TagComponent('Summoned');
 RG.Component.Fire = TagComponent('Fire');
 RG.Component.Sharpener = TagComponent('Sharpener');
+RG.Component.Possessed = TagComponent('Possessed');
 
 /* Component which stores the actor class object. */
 RG.Component.ActorClass = function() {
