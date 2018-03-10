@@ -611,6 +611,13 @@ const Actors = [
       equip: ['Battle axe', 'Steel armour', 'Steel helmet'], danger: 10
     },
 
+    // SPECIAL ACTORS
+    {
+      name: 'Fire', className: 'cell-actor-fire',
+      noRandom: true, char: '*', enemies: [],
+      type: 'fire', brain: 'BrainFire'
+    },
+
     // UNIQUES
     {
         name: 'UniqueBase', dontCreate: true, className: 'cell-actor-unique',

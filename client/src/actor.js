@@ -15,19 +15,10 @@ const ACTOR_NO_ACTION = () => {};
 
 class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
 
-}
-RG.Actor.Base = BaseActor;
-
-/* Virtual actor can be used to spawn more entities or for AI-like effects
- * inside a level. */
-class VirtualActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
-
     constructor(name) { // {{{2
         super({propType: RG.TYPE_ACTOR, type: null});
         this._name = name;
         this.add(new RG.Component.Action());
-        this._speed = 100;
-        this._brain = new RG.Brain.Virtual(this);
     }
 
     isPlayer() {return false;}
@@ -42,7 +33,9 @@ class VirtualActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
         this._brain.setActor(this);
     }
 
-    getSpeed() {return this._speed;}
+    getSpeed() {
+        return RG.BASE_SPEED;
+    }
 
     /* Returns the next action for this actor.*/
     nextAction(obj) {
@@ -65,6 +58,18 @@ class VirtualActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
         }
         action.actor = this;
         return action;
+    }
+
+}
+RG.Actor.Base = BaseActor;
+
+/* Virtual actor can be used to spawn more entities or for AI-like effects
+ * inside a level. */
+class VirtualActor extends BaseActor {
+
+    constructor(name) { // {{{2
+        super(name);
+        this._brain = new RG.Brain.Virtual(this);
     }
 
     /* Serializes the virtual actor. */
