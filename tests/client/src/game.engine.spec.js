@@ -135,4 +135,29 @@ describe('Game.Engine', () => {
         engine.update({code: RG.KEY.REST});
         expect(engine.nextActor).to.not.be.null;
     });
+
+    it('takes actor speed into account when scheduling', () => {
+        engine.simulateGame();
+        let nextActor = engine.nextActor;
+        while (!nextActor.get) {
+            engine.simulateGame();
+            nextActor = engine.nextActor;
+        }
+        nextActor.get('Stats').setSpeed(200);
+
+        const fastID = nextActor.getID();
+        const hist = {[fastID]: 0};
+        let numIters = 0;
+        while (numIters < 100) {
+            engine.simulateGame();
+            nextActor = engine.nextActor;
+            if (nextActor.getID) {
+                const id = nextActor.getID();
+                ++numIters;
+                hist[id] += 1;
+            }
+        }
+        expect(hist[fastID]).to.be.above(60);
+        expect(hist[fastID]).to.be.below(70);
+    });
 });
