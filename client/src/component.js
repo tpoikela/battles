@@ -11,20 +11,83 @@ const debug = require('debug')('bitn:Component');
 // In your component, add the following:
 //   this.toJSON = NO_SERIALISATION;
 const NO_SERIALISATION = () => null;
+RG.Component.NO_SERIALISATION = NO_SERIALISATION;
 
 /* Can be used to create simple Component object constructors with no other data
- * fields. Example: 
+ * fields. Usage:
  *   const MyComponent = TagComponent('MyComponent');
  *   const compInst = new MyComponent();
  */
-const TagComponent = type => {
+const TagComponent = (type, obj = {}) => {
     const CompDecl = function() {
         RG.Component.Base.call(this, type);
+        Object.keys(obj).forEach(key => {
+            this[key] = obj[key];
+        });
     };
     RG.extend2(CompDecl, RG.Component.Base);
     return CompDecl;
 };
 RG.TagComponent = TagComponent;
+
+/* Can be used to create simple data components with setters/getters.
+ * Usage:
+ *   const Immunity = DataComponent('Immunity', ['value', 'dmgType']);
+ *   const immunityComp = new Immunity();
+ *   immunityComp.setDmgType('Fire')
+ *   ...etc
+ */
+const DataComponent = (type, members, obj = {}) => {
+    const CompDecl = function() {
+        RG.Component.Base.call(this, type);
+        Object.keys(obj).forEach(key => {
+            this[key] = obj[key];
+        });
+    };
+    RG.extend2(CompDecl, RG.Component.Base);
+
+    // Create the member functions for prototype
+    members.forEach(member => {
+        // Check that we are not overwriting anything in base class
+        if (RG.Component.Base.prototype.hasOwnProperty(member)) {
+            RG.err('component.js', 'DataComponent',
+                `${member} is reserved in Component.Base`);
+        }
+
+        // Create the getter method unless it exists in Base
+        const setter = 'set' + member.capitalize();
+        if (RG.Component.Base.prototype.hasOwnProperty(setter)) {
+            RG.err('component.js', 'DataComponent',
+                `${setter} is reserved in Component.Base`);
+        }
+        CompDecl.prototype[setter] = function(value) {
+            this[member] = value;
+        };
+
+        // Create the getter method unless it exists in Base
+        const getter = 'get' + member.capitalize();
+        if (RG.Component.Base.prototype.hasOwnProperty(setter)) {
+            RG.err('component.js', 'DataComponent',
+                `${getter} is reserved in Component.Base`);
+        }
+        CompDecl.prototype[getter] = function() {
+            return this[member];
+        };
+    });
+    return CompDecl;
+};
+RG.DataComponent = DataComponent;
+
+/* Same as TagComponent but adds some properties of a transient component. */
+const TransientTagComponent = type => {
+    return RG.TagComponent(type, {toJSON: NO_SERIALISATION});
+};
+RG.TransientTagComponent = TransientTagComponent;
+
+const TransientDataComponent = (type, members) => {
+    return RG.DataComponent(type, members, {toJSON: NO_SERIALISATION});
+};
+RG.TransientDataComponent = TransientDataComponent;
 
 //---------------------------------------------------------------------------
 // ECS COMPONENTS
@@ -556,7 +619,6 @@ class RGComponentMovement extends Mixin.Locatable(RG.Component.Base) {
     }
 }
 RG.extend2(RGComponentMovement, RG.Component.Base);
-
 RG.Component.Movement = RGComponentMovement;
 
 /* Transient component representing a chat action between actors. */
@@ -1370,32 +1432,12 @@ RG.Component.addToExpirationComp = (entity, comp, dur) => {
 //---------------------------------------------------------------------------
 
 /* Added to entity when it's picking up something. */
-RG.Component.Pickup = function() {
-    RG.Component.Base.call(this, 'Pickup');
-    this.toJSON = NO_SERIALISATION;
-};
-RG.extend2(RG.Component.Pickup, RG.Component.Base);
+RG.Component.Pickup = TransientTagComponent('Pickup');
 
 /* Added to entity when it's using stairs to move to another level. */
-RG.Component.UseStairs = function() {
-    RG.Component.Base.call(this, 'UseStairs');
-    this.toJSON = NO_SERIALISATION;
-};
-RG.extend2(RG.Component.UseStairs, RG.Component.Base);
+RG.Component.UseStairs = TransientTagComponent('UseStairs');
 
 /* Added to entity when it's opening a door. */
-RG.Component.OpenDoor = function() {
-    RG.Component.Base.call(this, 'OpenDoor');
-    this.toJSON = NO_SERIALISATION;
-
-    this._door = null;
-
-    this.setDoor = door => {
-        this._door = door;
-    };
-
-    this.getDoor = () => this._door;
-};
-RG.extend2(RG.Component.OpenDoor, RG.Component.Base);
+RG.Component.OpenDoor = TransientDataComponent('OpenDoor', ['door']);
 
 module.exports = RG.Component;
