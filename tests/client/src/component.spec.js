@@ -3,7 +3,10 @@ import Entity from '../../../client/src/entity';
 
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles.js');
+
 RG.Component = require('../../../client/src/component');
+
+const {TagComponent, DataComponent} = RG.Component;
 
 const {NO_SERIALISATION} = RG.Component;
 
@@ -77,7 +80,7 @@ describe('RG.TagComponent', () => {
 
     it('is used to create comp declarations with no data fields', () => {
         const conf = {_privateField: true, falseField: false};
-        const Undead = RG.TagComponent('Undead', conf);
+        const Undead = TagComponent('Undead', conf);
         const undeadComp = new Undead();
         expect(undeadComp.getType()).to.equal('Undead');
         expect(undeadComp._privateField).to.exist;
@@ -90,7 +93,7 @@ describe('RG.TagComponent', () => {
     });
 
     it('can be used for non-serialisable components as well', () => {
-        const FastFlight = RG.TagComponent('FastFlight',
+        const FastFlight = TagComponent('FastFlight',
             {toJSON: NO_SERIALISATION});
         const flight = new FastFlight();
         expect(flight.toJSON).to.equal(NO_SERIALISATION);
@@ -101,7 +104,7 @@ describe('RG.TagComponent', () => {
 describe('RG.DataComponent', () => {
 
     it('is used to create new data component declarations', () => {
-        const Immunity = RG.DataComponent('Immunity',
+        const Immunity = DataComponent('Immunity',
             {ratio: 0, dmgType: ''});
 
         const immunComp = new Immunity();
@@ -115,7 +118,7 @@ describe('RG.DataComponent', () => {
     it('cannot overwrite Component.Base methods', () => {
         let Immunity = null;
         const createFunc = () => {
-            Immunity = RG.DataComponent('Immunity', ['type']);
+            Immunity = DataComponent('Immunity', ['type']);
         };
         expect(createFunc).to.throw(Error);
     });
