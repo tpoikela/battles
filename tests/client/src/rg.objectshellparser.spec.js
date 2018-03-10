@@ -5,7 +5,11 @@ const RGTest = require('../../roguetest.js');
 
 const Effects = require('../../../client/data/effects.js');
 
-const expect = require('chai').expect;
+const chai = require('chai');
+const chaiBattles = require('../../helpers/chai-battles.js');
+
+const expect = chai.expect;
+chai.use(chaiBattles);
 
 const Parser = RG.ObjectShell.Parser;
 const Creator = RG.ObjectShell.Creator;
@@ -517,6 +521,14 @@ describe('Data query functions for objects', () => {
 
         const spellbook = cryomancer.getBook();
         expect(spellbook.getSpells()).to.have.length(1);
+    });
+
+    it('can create actors with different actorTypes', () => {
+        const fireActor = parser.createActor('Fire');
+        expect(fireActor.getBrain().getType()).to.equal('Fire');
+        expect(fireActor).not.to.have.component('Stats');
+        expect(fireActor).not.to.have.component('Health');
+        expect(fireActor).not.to.have.component('Experience');
     });
 });
 
