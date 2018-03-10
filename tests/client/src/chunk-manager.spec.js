@@ -21,8 +21,7 @@ describe('ChunkManager', function() {
     const rows = 100;
 
     beforeEach(() => {
-        // memwatch.on('leak', function(info) { console.log(info);});
-        // memwatch.on('stats', function(stats) { console.log(stats);});
+        RGTest.enablePrint = false;
         RGTest.printMemUsage('BEFORE_EACH');
         game = new RG.Game.Main();
         area = new RG.World.Area('north', sizeX, sizeY, cols, rows);
@@ -32,6 +31,10 @@ describe('ChunkManager', function() {
         world.addArea(area);
         game.addPlace(world);
         game.setEnableChunkUnload(true);
+    });
+
+    afterEach(() => {
+        RGTest.enablePrint = true;
     });
 
     it('manager stuff correctly', () => {
@@ -166,7 +169,6 @@ describe('ChunkManager', function() {
         let fromJSON = new RG.Game.FromJSON();
         fromJSON.setChunkMode(true);
 
-        console.log('Creating new game now');
         let newGame = fromJSON.createGame(json);
         expect(newGame).to.exist;
 
