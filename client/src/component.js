@@ -91,6 +91,11 @@ const DataComponent = (type, members, specialProps = {}) => {
 };
 RG.DataComponent = DataComponent;
 
+const UniqueDataComponent = (type, members) => {
+    return DataComponent(type, members, {_isUnique: true});
+};
+RG.UniqueDataComponent = UniqueDataComponent;
+
 /* Same as TagComponent but adds some properties of a transient component. */
 const TransientTagComponent = type => {
     return RG.TagComponent(type, {toJSON: NO_SERIALISATION});
@@ -277,56 +282,8 @@ RG.Component.Base.prototype.toJSON = function() {
 };
 
 /* Action component is added to all schedulable acting entities.*/
-RG.Component.Action = function() {
-    RG.Component.Base.call(this, 'Action');
-
-    this.energy = 0;
-    this.active = false;
-    this.getEnergy = () => this.energy;
-    this.setEnergy = energy => {this.energy = energy;};
-
-    this.getActive = () => this.active;
-    this.setActive = active => {this.active = active;};
-
-    /*
-    this.addEnergy = energy => {
-        this.energy += energy;
-    };
-
-    this.resetEnergy = () => {this.energy = 0;};
-    */
-
-    this.enable = function() {
-        if (this.active === false) {
-            RG.POOL.emitEvent(RG.EVT_ACT_COMP_ENABLED,
-                {actor: this.getEntity()});
-            this.active = true;
-        }
-        else {
-            const name = this.getEntity().getName();
-            const id = this.getEntity().getID();
-            const entInfo = `${name} ${id}`;
-            debug(`Action already active for ${entInfo}`);
-        }
-    };
-
-    this.disable = function() {
-        if (this.active === true) {
-            RG.POOL.emitEvent(RG.EVT_ACT_COMP_DISABLED,
-                {actor: this.getEntity()});
-            this.active = false;
-        }
-    };
-
-    this.toJSON = NO_SERIALISATION;
-
-};
-RG.extend2(RG.Component.Action, RG.Component.Base);
-
-/*
 RG.Component.Action = TransientDataComponent('Action',
-    {energy: 0}, {active: false});
-    */
+    {energy: 0, active: false});
 
 RG.Component.Action.prototype.addEnergy = function(energy) {
     this.energy += energy;
@@ -334,7 +291,6 @@ RG.Component.Action.prototype.addEnergy = function(energy) {
 
 RG.Component.Action.prototype.resetEnergy = function() {this.energy = 0;};
 
-/*
 RG.Component.Action.prototype.enable = function() {
     if (this.active === false) {
         RG.POOL.emitEvent(RG.EVT_ACT_COMP_ENABLED,
@@ -356,7 +312,6 @@ RG.Component.Action.prototype.disable = function() {
         this.active = false;
     }
 };
-*/
 
 RG.Component.Action.prototype.entityAddCallback = function(entity) {
     RG.Component.Base.prototype.entityAddCallback.call(this, entity);
@@ -1073,7 +1028,7 @@ RG.extend2(RG.Component.ActorClass, RG.Component.Base);
 //---------------------------------------------------------------------------
 // MELEE COMBAT COMPONENTS
 //---------------------------------------------------------------------------
-const componentsMelee = {
+/* const componentsMelee = {
     Defender: 'Gives a defender bonus (+1 Def for each enemy).',
     Attacker: 'Gives an attack bonus (+1 Att for each enemy).',
     BiDirStrike: 'Gives bi-directional melee strike',
@@ -1081,7 +1036,7 @@ const componentsMelee = {
     Ambidexterity: 'Gives ability to wield two weapons',
     LongReach: 'Gives +1 to range of melee attacks.',
     FirstStrike: 'Gives a counter attack that hits first.'
-};
+};*/
 RG.Component.Defender = TagComponent('Defender');
 RG.Component.Attacker = TagComponent('Attacker');
 RG.Component.BiDirStrike = TagComponent('BiDirStrike');
