@@ -27,6 +27,8 @@ RG.SYS.SPELL_EFFECT = Symbol();
 RG.SYS.SPIRIT = Symbol();
 RG.SYS.TIME_EFFECTS = Symbol();
 
+const NO_DAMAGE_SRC = null;
+
 //---------------------------------------------------------------------------
 // ECS SYSTEMS
 //---------------------------------------------------------------------------
@@ -601,8 +603,8 @@ RG.System.Damage = function(compTypes) {
         if (src !== null) {ent.addEnemy(src);}
 
         // Deal with "internal" damage bypassing protection here
+        const cell = ent.getCell();
         if (dmgType === RG.DMG.POISON) {
-            const cell = ent.getCell();
             const msg = 'Poison is gnawing inside ' + ent.getName();
             RG.gameDanger({cell, msg});
             return dmg;
@@ -610,8 +612,12 @@ RG.System.Damage = function(compTypes) {
         else if (dmgType === RG.DMG.HUNGER) {
             return dmg;
         }
+        else if (dmgType === RG.DMG.FIRE) {
+            const msg = `Fire is burning ${ent.getName()}.`;
+            RG.gameDanger({cell, msg});
+            return dmg;
+        }
         else if (this.bypassProtection(ent, src)) {
-            const cell = ent.getCell();
             const msg = `${src.getName()} hits ${ent.getName()} through armor.`;
             RG.gameDanger({cell, msg});
             return dmg;
@@ -694,7 +700,7 @@ RG.System.Damage = function(compTypes) {
             }
 
             let killMsg = nameKilled + ' was killed';
-            if (src !== null) {killMsg += ' by ' + src.getName();}
+            if (src !== NO_DAMAGE_SRC) {killMsg += ' by ' + src.getName();}
 
             RG.gameDanger({cell, msg: killMsg});
             RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor});
@@ -717,7 +723,7 @@ RG.System.Damage = function(compTypes) {
 
     /* When an actor is killed, gives experience to damage's source.*/
     const _giveExpToSource = (att, def) => {
-        if (att !== null) {
+        if (att !== NO_DAMAGE_SRC) {
             const defLevel = def.get('Experience').getExpLevel();
             const defDanger = def.get('Experience').getDanger();
             const expPoints = new RG.Component.ExpPoints(defLevel + defDanger);
@@ -727,10 +733,6 @@ RG.System.Damage = function(compTypes) {
             if (att.has('InBattle')) {
                 _giveBattleExpToSource(att, def);
             }
-        }
-        else {
-            RG.warn('System.Damage', '_giveExpToSource',
-                'att is null. Cannot assign exp.');
         }
     };
 
@@ -2049,7 +2051,7 @@ RG.System.Events = function(compTypes) {
                 const actors = cell.getActors();
                 if (actors) {
                     actors.forEach(actor => {
-                        if (!actor.isPlayer()) {
+                        if (!actor.isPlayer() && actor.has('Perception')) {
                             const seenCells = actor.getBrain().getSeenCells();
                             const canSee = seenCells.find(cell => (
                                 cell.getX() === x0 && cell.getY() === y0
@@ -2143,9 +2145,14 @@ RG.System.AreaEffects = function(compTypes) {
 
     this.updateEntity = function(ent) {
         const fireComps = ent.getList('Fire');
-        fireComps.forEach(comp => {
-
-        });
+        if (ent.has('Health')) {
+            fireComps.forEach(() => {
+                const dmgComp = new RG.Component.Damage(1, RG.DMG.FIRE);
+                dmgComp.setSource(NO_DAMAGE_SRC);
+                ent.add(dmgComp);
+            });
+        }
+        ent.remove('Fire');
     };
 };
 RG.extend2(RG.System.AreaEffects, RG.System.Base);
