@@ -224,6 +224,7 @@ RG.Factory.Actor = function() {
             case 'Animal': return new RG.Brain.Animal(actor);
             case 'Archer': return new RG.Brain.Archer(actor);
             case 'Demon': return new RG.Brain.Demon(actor);
+            case 'Fire': return new RG.Brain.Fire(actor);
             case 'GoalOriented': return new RG.Brain.GoalOriented(actor);
             // case 'Goblin': return new RG.Brain.Goblin(actor);
             case 'Human': return new RG.Brain.Human(actor);
@@ -237,7 +238,14 @@ RG.Factory.Actor = function() {
             case 'Summoner': return new RG.Brain.Summoner(actor);
             case 'Undead': return new RG.Brain.Undead(actor);
             case 'Zombie': return new RG.Brain.Zombie(actor);
-            default: return new RG.Brain.Rogue(actor);
+            default: {
+                if (brainName && brainName !== '') {
+                    let msg = `Warning. No brain type ${brainName} found`;
+                    msg += 'Using the default Brain.Rogue instead.';
+                    console.warn(msg);
+                }
+                return new RG.Brain.Rogue(actor);
+            }
         }
     };
 
