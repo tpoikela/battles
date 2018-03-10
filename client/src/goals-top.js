@@ -43,6 +43,10 @@ class GoalTop extends Goal.Base {
         this.arbitrate();
     }
 
+    getEvaluator(type) {
+        return this.evaluators.find(e => e.getType() === type);
+    }
+
     arbitrate() {
         this.dbg('arbitrate() started');
         if (this.evaluators.length === 0) {
@@ -79,6 +83,20 @@ class GoalTop extends Goal.Base {
         this.removeFinishedOrFailed();
         this.dbg(`process() got status ${status}`);
         return status;
+    }
+
+    setBias(biases) {
+        Object.keys(biases).forEach(bias => {
+            const evaluator = this.evaluators.find(e => e.getType() === bias);
+            if (evaluator) {
+                evaluator.setBias(biases[bias]);
+            }
+            else {
+                const list = this.evaluators.map(e => e.getType());
+                const msg = `Bias ${bias} not matching any evaluator: ${list}`;
+                RG.warn('GoalTop', 'setBias', msg);
+            }
+        });
     }
 
 }
