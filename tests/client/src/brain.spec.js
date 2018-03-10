@@ -1,10 +1,14 @@
 
-const expect = require('chai').expect;
+const chai = require('chai');
+const chaiBattles = require('../../helpers/chai-battles.js');
 
 const RG = require('../../../client/src/battles');
 const ROT = require('../../../lib/rot');
 
 const RGTest = require('../../roguetest.js');
+
+const expect = chai.expect;
+chai.use(chaiBattles);
 
 const Brain = RG.Brain;
 
@@ -409,6 +413,11 @@ describe('Brain.SpellCaster', () => {
     it('decides when to cast spells towards enemy', () => {
         const wizard = RGTest.getMeAWizard();
         wizard.getBrain().addEnemyType('goblin');
+
+        const goal = wizard.getBrain().getGoal();
+        goal.setBias({CastSpell: 2.0, AttackActor: 0.3});
+        goal.getEvaluator('CastSpell').setCastingProbability(1.0);
+
         const goblin = new RG.Actor.Rogue('goblin');
         goblin.setType('goblin');
         RGTest.wrapIntoLevel([wizard, goblin]);
@@ -419,7 +428,7 @@ describe('Brain.SpellCaster', () => {
         action.doAction();
 
         RGTest.updateSystems(systems);
-        expect(goblin.has('Damage')).to.be.true;
+        expect(goblin).to.have.component('Damage');
         expect(goblin.get('Damage').getDamageType()).to.equal(RG.DMG.ICE);
     });
 });
