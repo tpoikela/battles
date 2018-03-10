@@ -176,6 +176,12 @@ class RGItemFood extends ItemBase {
         json.setEnergy = this.getEnergy();
         return json;
     }
+
+    clone() {
+        const newFood = new RG.Item.Food(this.getName());
+        newFood.copy(this);
+        return newFood;
+    }
 }
 
 RG.Item.Food = RGItemFood;
@@ -398,6 +404,12 @@ class RGItemPotion extends ItemBase {
             RG.err('ItemPotion', 'useItem', 'No target given in obj.');
         }
         return false;
+    }
+
+    clone() {
+        const newPotion = new RG.Item.Potion(this.getName());
+        newPotion.copy(this);
+        return newPotion;
     }
 }
 
