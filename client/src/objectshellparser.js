@@ -280,7 +280,13 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
                 const type = obj.type;
                 switch (type) {
                     case 'spirit': return new RG.Actor.Spirit(obj.name);
-                    default: return new RG.Actor.Rogue(obj.name);
+                    default: {
+                        switch (obj.actorType) {
+                            case 'BaseActor':
+                                return new RG.Actor.Base(obj.name);
+                            default: return new RG.Actor.Rogue(obj.name);
+                        }
+                    }
                 }
             case RG.TYPE_ITEM:
                 const subtype = obj.type;
