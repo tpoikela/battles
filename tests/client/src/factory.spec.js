@@ -41,7 +41,7 @@ describe('RG.Factory.Base', () => {
             ]
         };
 
-        const townLevel = factory.createLevel('town', 80, 80, conf);
+        const townLevel = factory.createLevel('town', 80, 40, conf);
         const actors = townLevel.getActors();
         const keeper = actors[0];
 
