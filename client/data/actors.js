@@ -613,9 +613,11 @@ const Actors = [
 
     // SPECIAL ACTORS
     {
-      name: 'Fire', className: 'cell-actor-fire',
-      noRandom: true, char: '*', enemies: [],
-      type: 'fire', brain: 'BrainFire'
+        name: 'SpecialBase', noRandom: true, actorType: 'BaseActor'
+    },
+    {
+      name: 'Fire', className: 'cell-actor-fire', base: 'SpecialBase',
+      char: '*', type: 'fire', brain: 'Fire', addComp: 'Ethereal'
     },
 
     // UNIQUES
