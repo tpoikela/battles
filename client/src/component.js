@@ -32,46 +32,59 @@ RG.TagComponent = TagComponent;
 
 /* Can be used to create simple data components with setters/getters.
  * Usage:
- *   const Immunity = DataComponent('Immunity', ['value', 'dmgType']);
+ *   const Immunity = DataComponent('Immunity', {value: 1, dmgType: 'Fire'});
  *   const immunityComp = new Immunity();
  *   immunityComp.setDmgType('Fire')
  *   ...etc
+ * NOTE: There's difference between members and specialProps. Special props are
+ * things like serialisation and uniqueness (only one comp per entity of that
+ * type).
  */
-const DataComponent = (type, members, obj = {}) => {
+
+const DataComponent = (type, members, specialProps = {}) => {
+    if (typeof members !== 'object' || Array.isArray(members)) {
+        RG.err('component.js', `DataComponent: ${type}`,
+            'Members must be given as key/value pairs.');
+    }
+
+    // This is the constructor function to be returned
     const CompDecl = function() {
         RG.Component.Base.call(this, type);
-        Object.keys(obj).forEach(key => {
-            this[key] = obj[key];
+        Object.keys(specialProps).forEach(key => {
+            this[key] = specialProps[key];
+        });
+        Object.keys(members).forEach(key => {
+            this[key] = members[key];
         });
     };
     RG.extend2(CompDecl, RG.Component.Base);
 
     // Create the member functions for prototype
-    members.forEach(member => {
+    Object.keys(members).forEach(propName => {
         // Check that we are not overwriting anything in base class
-        if (RG.Component.Base.prototype.hasOwnProperty(member)) {
-            RG.err('component.js', 'DataComponent',
-                `${member} is reserved in Component.Base`);
+        if (RG.Component.Base.prototype.hasOwnProperty(propName)) {
+            RG.err('component.js', `DataComponent: ${type}`,
+                `${propName} is reserved in Component.Base`);
         }
 
         // Create the getter method unless it exists in Base
-        const setter = 'set' + member.capitalize();
+        const setter = 'set' + propName.capitalize();
         if (RG.Component.Base.prototype.hasOwnProperty(setter)) {
-            RG.err('component.js', 'DataComponent',
+            RG.err('component.js', `DataComponent: ${type}`,
                 `${setter} is reserved in Component.Base`);
         }
         CompDecl.prototype[setter] = function(value) {
-            this[member] = value;
+            this[propName] = value;
         };
 
         // Create the getter method unless it exists in Base
-        const getter = 'get' + member.capitalize();
+        const getter = 'get' + propName.capitalize();
         if (RG.Component.Base.prototype.hasOwnProperty(setter)) {
-            RG.err('component.js', 'DataComponent',
+            RG.err('component.js', `DataComponent: ${type}`,
                 `${getter} is reserved in Component.Base`);
         }
         CompDecl.prototype[getter] = function() {
-            return this[member];
+            return this[propName];
         };
     });
     return CompDecl;
@@ -267,25 +280,27 @@ RG.Component.Base.prototype.toJSON = function() {
 RG.Component.Action = function() {
     RG.Component.Base.call(this, 'Action');
 
-    this._energy = 0;
-    this._active = false;
-    this.getEnergy = () => this._energy;
-    this.setEnergy = energy => {this._energy = energy;};
+    this.energy = 0;
+    this.active = false;
+    this.getEnergy = () => this.energy;
+    this.setEnergy = energy => {this.energy = energy;};
 
-    this.getActive = () => this._active;
-    this.setActive = active => {this._active = active;};
+    this.getActive = () => this.active;
+    this.setActive = active => {this.active = active;};
 
+    /*
     this.addEnergy = energy => {
-        this._energy += energy;
+        this.energy += energy;
     };
 
-    this.resetEnergy = () => {this._energy = 0;};
+    this.resetEnergy = () => {this.energy = 0;};
+    */
 
     this.enable = function() {
-        if (this._active === false) {
+        if (this.active === false) {
             RG.POOL.emitEvent(RG.EVT_ACT_COMP_ENABLED,
                 {actor: this.getEntity()});
-            this._active = true;
+            this.active = true;
         }
         else {
             const name = this.getEntity().getName();
@@ -296,10 +311,10 @@ RG.Component.Action = function() {
     };
 
     this.disable = function() {
-        if (this._active === true) {
+        if (this.active === true) {
             RG.POOL.emitEvent(RG.EVT_ACT_COMP_DISABLED,
                 {actor: this.getEntity()});
-            this._active = false;
+            this.active = false;
         }
     };
 
@@ -307,6 +322,41 @@ RG.Component.Action = function() {
 
 };
 RG.extend2(RG.Component.Action, RG.Component.Base);
+
+/*
+RG.Component.Action = TransientDataComponent('Action',
+    {energy: 0}, {active: false});
+    */
+
+RG.Component.Action.prototype.addEnergy = function(energy) {
+    this.energy += energy;
+};
+
+RG.Component.Action.prototype.resetEnergy = function() {this.energy = 0;};
+
+/*
+RG.Component.Action.prototype.enable = function() {
+    if (this.active === false) {
+        RG.POOL.emitEvent(RG.EVT_ACT_COMP_ENABLED,
+            {actor: this.getEntity()});
+        this.active = true;
+    }
+    else {
+        const name = this.getEntity().getName();
+        const id = this.getEntity().getID();
+        const entInfo = `${name} ${id}`;
+        debug(`Action already active for ${entInfo}`);
+    }
+};
+
+RG.Component.Action.prototype.disable = function() {
+    if (this.active === true) {
+        RG.POOL.emitEvent(RG.EVT_ACT_COMP_DISABLED,
+            {actor: this.getEntity()});
+        this.active = false;
+    }
+};
+*/
 
 RG.Component.Action.prototype.entityAddCallback = function(entity) {
     RG.Component.Base.prototype.entityAddCallback.call(this, entity);
@@ -1438,6 +1488,6 @@ RG.Component.Pickup = TransientTagComponent('Pickup');
 RG.Component.UseStairs = TransientTagComponent('UseStairs');
 
 /* Added to entity when it's opening a door. */
-RG.Component.OpenDoor = TransientDataComponent('OpenDoor', ['door']);
+RG.Component.OpenDoor = TransientDataComponent('OpenDoor', {door: null});
 
 module.exports = RG.Component;
