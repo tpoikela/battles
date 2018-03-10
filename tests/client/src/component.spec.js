@@ -1,8 +1,10 @@
 
+import Entity from '../../../client/src/entity';
+
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles.js');
 
-import Entity from '../../../client/src/entity';
+const {NO_SERIALISATION} = RG.Component;
 
 describe('Component.Base', () => {
 
@@ -68,6 +70,55 @@ describe('Component.Base', () => {
         expect(calledRemove).to.be.true;
         expect(calledIllegal).to.be.false;
     });
+});
+
+describe('RG.TagComponent', () => {
+
+    it('is used to create comp declarations with no data fields', () => {
+        const conf = {_privateField: true, falseField: false};
+        const Undead = RG.TagComponent('Undead', conf);
+        const undeadComp = new Undead();
+        expect(undeadComp.getType()).to.equal('Undead');
+        expect(undeadComp._privateField).to.exist;
+        expect(undeadComp.falseField).to.be.false;
+
+        expect(undeadComp.toJSON).to.be.a('function');
+        expect(undeadComp.getType).to.be.a('function');
+        expect(undeadComp.getID).to.be.a('function');
+        expect(undeadComp.getEntity).to.be.a('function');
+    });
+
+    it('can be used for non-serialisable components as well', () => {
+        const FastFlight = RG.TagComponent('FastFlight',
+            {toJSON: NO_SERIALISATION});
+        const flight = new FastFlight();
+        expect(flight.toJSON).to.equal(NO_SERIALISATION);
+    });
+
+});
+
+describe('RG.DataComponent', () => {
+
+    it('is used to create new data component declarations', () => {
+        const Immunity = RG.DataComponent('Immunity',
+            {ratio: 0, dmgType: ''});
+
+        const immunComp = new Immunity();
+        expect(immunComp.getType()).to.equal('Immunity');
+        expect(immunComp.getRatio()).to.equal(0);
+
+        immunComp.setDmgType('Fire');
+        expect(immunComp.getDmgType()).to.equal('Fire');
+    });
+
+    it('cannot overwrite Component.Base methods', () => {
+        let Immunity = null;
+        const createFunc = () => {
+            Immunity = RG.DataComponent('Immunity', ['type']);
+        };
+        expect(createFunc).to.throw(Error);
+    });
+
 });
 
 describe('Component.Poison', () => {
