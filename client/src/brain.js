@@ -886,4 +886,20 @@ RG.Brain.Commander = function(actor) {
 };
 RG.extend2(RG.Brain.Commander, RG.Brain.Rogue);
 
+/* Simple brain used by the non-moving fire elements. */
+RG.Brain.Fire = function(actor) {
+    RG.Brain.Rogue.call(this, actor);
+    this.setType('Fire');
+
+    this.decideNextAction = function() {
+        const cell = this._actor.getCell();
+        const actors = cell.getActors();
+        actors.forEach(actor => {
+            actor.add(new RG.Component.Fire());
+        });
+        return ACTION_ALREADY_DONE;
+    };
+};
+RG.extend2(RG.Brain.Fire, RG.Brain.Rogue);
+
 module.exports = RG.Brain;
