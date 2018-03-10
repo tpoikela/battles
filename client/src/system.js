@@ -1771,7 +1771,7 @@ RG.System.Animation = function(compTypes) {
                 x += dX;
                 y += dY;
                 frame[x + ',' + y] = {
-                    char: 'X',
+                    char: args.lineChar || '*',
                     className: 'cell-ray'
                 };
 
@@ -1790,7 +1790,7 @@ RG.System.Animation = function(compTypes) {
         animation.slowDown = 10;
         args.coord.forEach(xy => {
             frame[xy[0] + ',' + xy[1]] = {
-                char: '*',
+                char: args.cellChar || '*',
                 className: 'cell-animation'
             };
         });
