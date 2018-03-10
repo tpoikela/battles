@@ -50,7 +50,7 @@ describe('Game.Battle', () => {
 
         const armies = battle.getArmies();
         armies.forEach(army => {
-            army.setDefeatThreshold(0);
+            army.setDefeatThreshold(2);
         });
 
         expect(areaLevel.getActors().length).to.equal(0);
@@ -71,7 +71,7 @@ describe('Game.Battle', () => {
         expect(battle.getLevel().getActors().length).to.be.equal(0);
 
         const survivors = areaLevel.getActors();
-        expect(survivors.length).to.be.above(0);
+        expect(survivors.length).to.be.at.least(4);
 
         // Check that event listeners are properly cleaned up
         const func = () => {
