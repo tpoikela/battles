@@ -8,6 +8,8 @@ const DebugGame = function(fact, parser) {
 
     this.create = function(obj, game, player) {
         const sqrPerItem = obj.sqrPerItem;
+        obj.cols = 100;
+        obj.rows = 100;
         const level = _fact.createLastBattle(game, obj);
 
         const spirit = new RG.Actor.Spirit('Wolf spirit');
@@ -123,6 +125,9 @@ const DebugGame = function(fact, parser) {
         spawnBrain.setConstraint({op: 'lt', prop: 'danger', value: 10});
         vActor.setBrain(spawnBrain);
         level.addVirtualProp(RG.TYPE_ACTOR, vActor);
+
+        const fire = _parser.createActor('Fire');
+        level.addActor(fire, 7, 1);
 
         return game;
     };
