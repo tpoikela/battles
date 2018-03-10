@@ -414,10 +414,6 @@ describe('Brain.SpellCaster', () => {
         const wizard = RGTest.getMeAWizard();
         wizard.getBrain().addEnemyType('goblin');
 
-        const goal = wizard.getBrain().getGoal();
-        goal.setBias({CastSpell: 2.0, AttackActor: 0.3});
-        goal.getEvaluator('CastSpell').setCastingProbability(1.0);
-
         const goblin = new RG.Actor.Rogue('goblin');
         goblin.setType('goblin');
         RGTest.wrapIntoLevel([wizard, goblin]);
