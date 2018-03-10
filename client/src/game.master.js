@@ -385,9 +385,12 @@ const GameMaster = function(game) {
     this.unloadBattles = tileLevel => {
         const id = tileLevel.getID();
         if (this.battles.hasOwnProperty(id)) {
-            if (typeof this.battles[id].toJSON === 'function') {
-                this.battles[id].removeListeners();
-                this.battles[id] = this.battles[id].toJSON();
+            const battle = this.battles[id];
+            if (typeof battle.toJSON === 'function') {
+                if (!battle.isOver()) {
+                    battle.removeListeners();
+                }
+                this.battles[id] = battle.toJSON();
             }
             else {
                 RG.err('GameMaster', 'unloadBattle',
