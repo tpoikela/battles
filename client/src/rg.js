@@ -365,6 +365,15 @@ const RG = { // {{{2
     /* Used to inherit from a prototype. Supports multiple inheritance but
      * sacrifices instanceof.*/
     extend2: function(Child, Parent) {
+        if (RG.isNullOrUndef([Child])) {
+            RG.err('RG', 'extend2',
+                `Child not defined. Parent: ${Parent}`);
+        }
+        if (RG.isNullOrUndef([Parent])) {
+            RG.err('RG', 'extend2',
+                `Parent not defined. Child: ${Child}`);
+        }
+
         const p = Parent.prototype;
         const c = Child.prototype;
         for (const i in p) {
