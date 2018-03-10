@@ -277,7 +277,7 @@ RG.System.Attack = function(compTypes) {
         const hitThreshold = RG.RAND.getUniform();
         this.dbg(`hitChance is ${hitChance}, threshold ${hitThreshold}`);
 
-        if (hitChance > hitThreshold) {
+        if (hitChance >= hitThreshold) {
             const totalDamage = att.getDamage();
             if (totalDamage > 0) {
                 this.doDamage(att, def, totalDamage);
