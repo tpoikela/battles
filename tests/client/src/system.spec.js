@@ -567,3 +567,13 @@ describe('System.Event', () => {
         expect(actor).not.to.have.component('Event');
     });
 });
+
+describe('System.AreaEffects', () => {
+    it('handles Fire components in cells', () => {
+        const areaSys = new RG.System.AreaEffects(['Fire']);
+        const fireActor = new RG.Actor.Rogue('fire');
+        const fireComp = new RG.Component.Fire();
+        fireActor.add(fireComp);
+        updateSystems([areaSys]);
+    });
+});
