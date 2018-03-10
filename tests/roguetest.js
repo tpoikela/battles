@@ -60,7 +60,6 @@ RGTest.getMeAWizard = function(conf = {}) {
     const wizard = new RG.Actor.Rogue('wizard');
     wizard.setType(conf.type || 'human');
     const brain = new RG.Brain.SpellCaster(wizard);
-    brain.setCastProbability(1.1);
     wizard.setBrain(brain);
 
     wizard._spellbook = new RG.Spell.SpellBook(wizard);
@@ -69,6 +68,11 @@ RGTest.getMeAWizard = function(conf = {}) {
     spell.setRange(conf.range || 7);
     spell.setDice([RG.FACT.createDie([1, 2, 3])]);
     wizard._spellbook.addSpell(spell);
+
+    // Adjust evaluators and casting probability
+    const goal = wizard.getBrain().getGoal();
+    goal.setBias({CastSpell: 2.0, AttackActor: 0.3});
+    goal.getEvaluator('CastSpell').setCastingProbability(1.0);
 
     const spellPower = new RG.Component.SpellPower();
     spellPower.setPP(30);
@@ -106,7 +110,6 @@ RGTest.verifyStairsConnectivity = function(stairs) {
         expect(s.getSrcLevel()).not.to.be.empty;
         ++connVerified;
     });
-    console.log(`verifyStairsConnectivity ${connVerified} connections OK`);
 };
 
 /* Verifies that all given stairs in the array are connected. On failure, prints
@@ -121,7 +124,6 @@ RGTest.verifyConnectivity = function(stairs, msg = '') {
         expect(s.getSrcLevel(), str + ' srcLevel').to.exist;
         ++connVerified;
     });
-    console.log(`verifyConnectivity ${connVerified} connections OK`);
     expect(connVerified, 'At least one connection exists').to.be.above(0);
 };
 
@@ -294,11 +296,14 @@ RGTest.updateSystems = systems => {
     }
 };
 
+RGTest.enablePrint = true;
 
 RGTest.printMemUsage = msg => {
     const used = process.memoryUsage().heapUsed / 1024 / 1024;
     const usedMb = Math.round(used * 100) / 100;
-    console.log(`${msg} The script uses approximately ${usedMb} MB`);
+    if (RGTest.enablePrint) {
+        console.log(`${msg} The script uses approximately ${usedMb} MB`);
+    }
 };
 
 module.exports = RGTest;
