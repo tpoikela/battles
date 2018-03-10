@@ -11,7 +11,9 @@ const Mixin = require('./mixin');
 
 RG.Actor = {};
 
-const ACTOR_NO_ACTION = () => {};
+const ACTOR_NO_ACTION = Object.freeze(() => {});
+const EMPTY_ARGS = Object.freeze({});
+const SPEED_COEFF = RG.BASE_SPEED / RG.ACTION_DUR;
 
 class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
 
@@ -44,13 +46,11 @@ class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
         let action = null;
 
         if (cb !== null) {
-            const speed = this.getSpeed();
-            const duration = parseInt(
-                RG.BASE_SPEED / speed * RG.ACTION_DUR, 10);
-            action = new RG.Time.RogueAction(duration, cb, {});
+            const duration = Math.round(SPEED_COEFF * this.getSpeed());
+            action = new RG.Time.RogueAction(duration, cb, EMPTY_ARGS);
         }
         else {
-            action = new RG.Time.RogueAction(0, ACTOR_NO_ACTION, {});
+            action = new RG.Time.RogueAction(0, ACTOR_NO_ACTION, EMPTY_ARGS);
         }
 
         if (this._brain.hasOwnProperty('energy')) {
@@ -58,18 +58,6 @@ class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
         }
         action.actor = this;
         return action;
-    }
-
-}
-RG.Actor.Base = BaseActor;
-
-/* Virtual actor can be used to spawn more entities or for AI-like effects
- * inside a level. */
-class VirtualActor extends BaseActor {
-
-    constructor(name) { // {{{2
-        super(name);
-        this._brain = new RG.Brain.Virtual(this);
     }
 
     /* Serializes the virtual actor. */
@@ -95,46 +83,58 @@ class VirtualActor extends BaseActor {
     }
 
 }
+RG.Actor.Base = BaseActor;
+
+/* Virtual actor can be used to spawn more entities or for AI-like effects
+ * inside a level. */
+class VirtualActor extends BaseActor {
+
+    constructor(name) { // {{{2
+        super(name);
+        this._brain = new RG.Brain.Virtual(this);
+    }
+
+
+}
 RG.Actor.Virtual = VirtualActor;
 
 /* Object representing a game actor who takes actions.  */
-class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
+class RGActorRogue extends BaseActor {
     constructor(name) { // {{{2
-        super({propType: RG.TYPE_ACTOR, type: null});
+        super(name);
 
         this._brain = new RG.Brain.Rogue(this);
         this._brain.getMemory().addEnemyType('player');
 
-        this._name = name;
         this._isPlayer = false;
-        this._fovRange = RG.NPC_FOV_RANGE;
+        // this._fovRange = RG.NPC_FOV_RANGE;
 
         this._invEq = new RG.Inv.Inventory(this);
         this._maxWeight = 10.0;
 
         // Components for this entity
-        this.add(new RG.Component.Action());
         this.add(new RG.Component.Experience());
         this.add(new RG.Component.Combat());
         this.add(new RG.Component.Stats());
         this.add(new RG.Component.Health(50));
 
-    }
+        const perception = new RG.Component.Perception();
+        perception.setFOVRange(RG.NPC_FOV_RANGE);
+        this.add(new RG.Component.Perception());
 
-    setName(name) {this._name = name;}
-    getName() {return this._name;}
+    }
 
     /* Returns true if actor is a player.*/
     isPlayer() {return this._isPlayer;}
 
     getFOVRange() {
-        let range = this._fovRange;
+        let range = this.get('Perception').getFOVRange();
         if (this.has('EagleEye')) {range += 2;}
         return range;
     }
 
     setFOVRange(range) {
-        this._fovRange = range;
+        this.get('Perception').setFOVRange(range);
     }
 
     //---------------------------------
@@ -150,13 +150,6 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
 
     isFriend(actor) {
         return this._brain.getMemory().isFriend(actor);
-    }
-
-    getBrain() {return this._brain;}
-
-    setBrain(brain) {
-        this._brain = brain;
-        this._brain.setActor(this);
     }
 
     //---------------------------------
@@ -276,28 +269,6 @@ class RGActorRogue extends Mixin.Locatable(Mixin.Typed(Entity)) {
         }
     }
 
-    /* Returns the next action for this actor.*/
-    nextAction(obj) {
-        // Use actor brain to determine the action
-        const cb = this._brain.decideNextAction(obj);
-        let action = null;
-
-        if (cb !== null) {
-            const speed = this.getSpeed();
-            const duration = parseInt(
-                RG.BASE_SPEED / speed * RG.ACTION_DUR, 10);
-            action = new RG.Time.RogueAction(duration, cb, {});
-        }
-        else {
-            action = new RG.Time.RogueAction(0, ACTOR_NO_ACTION, {});
-        }
-
-        if (this._brain.hasOwnProperty('energy')) {
-            action.energy = this._brain.energy;
-        }
-        action.actor = this;
-        return action;
-    }
 
     /* Returns the cell where this actor is located at.*/
     getCell() {
