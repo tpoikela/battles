@@ -4,322 +4,14 @@ const Mixin = require('./mixin');
 
 RG.Chat = require('./chat');
 RG.ActorClass = require('./actor-class');
+RG.Component = require('./component.base');
 
-const debug = require('debug')('bitn:Component');
-
-// Used by components which cannot be serialized
-// In your component, add the following:
-//   this.toJSON = NO_SERIALISATION;
-const NO_SERIALISATION = () => null;
-RG.Component.NO_SERIALISATION = NO_SERIALISATION;
-
-/* Can be used to create simple Component object constructors with no other data
- * fields. Usage:
- *   const MyComponent = TagComponent('MyComponent');
- *   const compInst = new MyComponent();
- */
-const TagComponent = (type, obj = {}) => {
-    const CompDecl = function() {
-        RG.Component.Base.call(this, type);
-        Object.keys(obj).forEach(key => {
-            this[key] = obj[key];
-        });
-    };
-    RG.extend2(CompDecl, RG.Component.Base);
-    return CompDecl;
-};
-RG.TagComponent = TagComponent;
-
-/* Can be used to create simple data components with setters/getters.
- * Usage:
- *   const Immunity = DataComponent('Immunity', {value: 1, dmgType: 'Fire'});
- *   const immunityComp = new Immunity();
- *   immunityComp.setDmgType('Fire')
- *   ...etc
- * NOTE: There's difference between members and specialProps. Special props are
- * things like serialisation and uniqueness (only one comp per entity of that
- * type).
- */
-
-const DataComponent = (type, members, specialProps = {}) => {
-    if (typeof members !== 'object' || Array.isArray(members)) {
-        RG.err('component.js', `DataComponent: ${type}`,
-            'Members must be given as key/value pairs.');
-    }
-
-    // This is the constructor function to be returned
-    const CompDecl = function() {
-        RG.Component.Base.call(this, type);
-        Object.keys(specialProps).forEach(key => {
-            this[key] = specialProps[key];
-        });
-        Object.keys(members).forEach(key => {
-            this[key] = members[key];
-        });
-    };
-    RG.extend2(CompDecl, RG.Component.Base);
-
-    // Create the member functions for prototype
-    Object.keys(members).forEach(propName => {
-        // Check that we are not overwriting anything in base class
-        if (RG.Component.Base.prototype.hasOwnProperty(propName)) {
-            RG.err('component.js', `DataComponent: ${type}`,
-                `${propName} is reserved in Component.Base`);
-        }
-
-        // Create the getter method unless it exists in Base
-        const setter = 'set' + propName.capitalize();
-        if (RG.Component.Base.prototype.hasOwnProperty(setter)) {
-            RG.err('component.js', `DataComponent: ${type}`,
-                `${setter} is reserved in Component.Base`);
-        }
-        CompDecl.prototype[setter] = function(value) {
-            this[propName] = value;
-        };
-
-        // Create the getter method unless it exists in Base
-        const getter = 'get' + propName.capitalize();
-        if (RG.Component.Base.prototype.hasOwnProperty(setter)) {
-            RG.err('component.js', `DataComponent: ${type}`,
-                `${getter} is reserved in Component.Base`);
-        }
-        CompDecl.prototype[getter] = function() {
-            return this[propName];
-        };
-    });
-    return CompDecl;
-};
-RG.DataComponent = DataComponent;
-
-const UniqueDataComponent = (type, members) => {
-    return DataComponent(type, members, {_isUnique: true});
-};
-RG.UniqueDataComponent = UniqueDataComponent;
-
-/* Same as TagComponent but adds some properties of a transient component. */
-const TransientTagComponent = type => {
-    return RG.TagComponent(type, {toJSON: NO_SERIALISATION});
-};
-RG.TransientTagComponent = TransientTagComponent;
-
-const TransientDataComponent = (type, members) => {
-    return RG.DataComponent(type, members, {toJSON: NO_SERIALISATION});
-};
-RG.TransientDataComponent = TransientDataComponent;
-
-//---------------------------------------------------------------------------
-// ECS COMPONENTS
-//---------------------------------------------------------------------------
-
-/* Important Guidelines:
- * =====================
- *
- *  A component constructor must NOT take any
- *  parameters. Call Base constructor with the type. (which must be identical
- *  to the Object type). Don't forget extend2() at the end. See existing comps
- *  for details.
- *
- *  To benefit from serialisation, all methods should be named:
- *    setXXX - getXXX
- *  Note that if you have any methods starting with set/get, these are used in
- *  the serialisation UNLESS you override toJSON() method.
- *
- *  If only one instance of component should exist for an entity, set
- *    this._unique = true.
- *  inside the component.
- *
- *  If serialisation using toJSON is completely undesirable, use the following:
- *    this.toJSON = NO_SERIALISATION;
- *  inside your component.
- *
- *  WARNING: don't mess with or override getType/setType functions. This will
- *  almost certainly break the logic.
- *
- *  If the component requires refs to other custom objects (ie Entities, Comps),
- *  you must write custom toJSON(), and use RG.getObjRef() for serialize those
- *  fields.
- */
-
-RG.Component = {};
-
-/* Given an entity, serializes its components. */
-RG.Component.compsToJSON = ent => {
-    const components = {};
-    const thisComps = ent.getComponents();
-    Object.keys(thisComps).forEach(name => {
-        const compJson = thisComps[name].toJSON();
-        if (compJson) {
-            components[thisComps[name].getType()] = compJson;
-        }
-    });
-    return components;
-};
-
-RG.Component.idCount = 0;
-
-/* Base class for all components. Provides callback hooks, copying and cloning.
- * */
-RG.Component.Base = function(type) {
-    this._type = type;
-    this._entity = null;
-    this._id = RG.Component.idCount++;
-    this._isUnique = false;
-
-    this._onAddCallbacks = [];
-    this._onRemoveCallbacks = [];
-};
-
-RG.Component.Base.prototype.getID = function() {return this._id;};
-RG.Component.Base.prototype.setID = function(id) {this._id = id;};
-
-RG.Component.Base.prototype.getEntity = function() {return this._entity;};
-RG.Component.Base.prototype.setEntity = function(entity) {
-    if (this._entity === null && entity !== null) {
-        this._entity = entity;
-    }
-    else if (entity === null) {
-        this._entity = null;
-    }
-    else {
-        RG.err('Component.Base', 'setEntity', 'Entity already set.');
-    }
-};
-
-RG.Component.Base.prototype.isUnique = function() {return this._isUnique;};
-
-RG.Component.Base.prototype.getType = function() {return this._type;};
-RG.Component.Base.prototype.setType = function(type) {this._type = type;};
-
-// Called when a component is added to the entity
-RG.Component.Base.prototype.entityAddCallback = function(entity) {
-    this.setEntity(entity);
-    for (let i = 0; i < this._onAddCallbacks.length; i++) {
-        this._onAddCallbacks[i]();
-    }
-};
-
-// Called when a component is removed from the entity
-RG.Component.Base.prototype.entityRemoveCallback = function() {
-    for (let i = 0; i < this._onRemoveCallbacks.length; i++) {
-        this._onRemoveCallbacks[i]();
-    }
-    this.setEntity(null);
-};
-
-RG.Component.Base.prototype.addCallback = function(name, cb) {
-    if (name === 'onAdd') {this._onAddCallbacks.push(cb);}
-    else if (name === 'onRemove') {this._onRemoveCallbacks.push(cb);}
-    else {
-        RG.err('Component.Base',
-            'addCallback', 'CB name ' + name + ' invalid.');
-    }
-};
-
-/* Works correctly for any component having only simple getters and setters. For
- * more complex components, roll out a separate clone function. */
-RG.Component.Base.prototype.clone = function() {
-    const compType = this.getType();
-    if (RG.Component.hasOwnProperty(compType)) {
-        const comp = new RG.Component[compType]();
-        comp.copy(this);
-        return comp;
-    }
-    else {
-        RG.err('Component.Base', 'clone',
-            `No type |${compType}| in RG.Component.`);
-    }
-    return null;
-};
-
-/* Works for any component implementing getXXX/setXXX functions. Does a shallow
- * copy of properties only though. */
-RG.Component.Base.prototype.copy = function(rhs) {
-    for (const p in this) {
-        if (/^get/.test(p)) {
-            const getter = p;
-            if (getter !== 'getEntity') {
-                const setter = getter.replace('get', 'set');
-                if (typeof rhs[getter] === 'function') {
-                    if (typeof this[setter] === 'function') {
-                        const attrVal = rhs[getter]();
-                        this[setter](attrVal);
-                    }
-                }
-            }
-        }
-    }
-};
-
-RG.Component.Base.prototype.equals = function(rhs) {
-    return this.getType() === rhs.getType();
-};
-
-RG.Component.Base.prototype.toString = function() {
-    return 'Component: ' + this.getType();
-};
-
-/* Creates a simple JSON representation of the component. NOTE: This relies on
- * getters and setters being named identically! Don't rely on this function if
- * you need something more sophisticated. */
-RG.Component.Base.prototype.toJSON = function() {
-    const obj = {};
-    for (const p in this) {
-        if (/^get/.test(p)) {
-            const getter = p;
-            if (getter !== 'getEntity' && getter !== 'getType') {
-                if (typeof this[getter] === 'function') {
-                    const setter = getter.replace('get', 'set');
-                    if (typeof this[setter] === 'function') {
-                        // To de-serialize, we can then do
-                        //   obj[setter](obj[setter])
-                        obj[setter] = this[getter]();
-                    }
-                }
-            }
-        }
-    }
-    return obj;
-};
-
-/* Action component is added to all schedulable acting entities.*/
-RG.Component.Action = TransientDataComponent('Action',
-    {energy: 0, active: false});
-
-RG.Component.Action.prototype.addEnergy = function(energy) {
-    this.energy += energy;
-};
-
-RG.Component.Action.prototype.resetEnergy = function() {this.energy = 0;};
-
-RG.Component.Action.prototype.enable = function() {
-    if (this.active === false) {
-        RG.POOL.emitEvent(RG.EVT_ACT_COMP_ENABLED,
-            {actor: this.getEntity()});
-        this.active = true;
-    }
-    else {
-        const name = this.getEntity().getName();
-        const id = this.getEntity().getID();
-        const entInfo = `${name} ${id}`;
-        debug(`Action already active for ${entInfo}`);
-    }
-};
-
-RG.Component.Action.prototype.disable = function() {
-    if (this.active === true) {
-        RG.POOL.emitEvent(RG.EVT_ACT_COMP_DISABLED,
-            {actor: this.getEntity()});
-        this.active = false;
-    }
-};
-
-RG.Component.Action.prototype.entityAddCallback = function(entity) {
-    RG.Component.Base.prototype.entityAddCallback.call(this, entity);
-};
-
-RG.Component.Action.prototype.entityRemoveCallback = function(entity) {
-    RG.Component.Base.prototype.entityRemoveCallback.call(this, entity);
-};
+const DataComponent = RG.Component.DataComponent;
+const UniqueDataComponent = RG.Component.UniqueDataComponent;
+const TransientDataComponent = RG.Component.TransientDataComponent;
+const TransientTagComponent = RG.Component.TransientTagComponent;
+const TagComponent = RG.Component.TagComponent;
+const UniqueTagComponent = RG.Component.UniqueTagComponent;
 
 /* Component which takes care of hunger and satiation. */
 RG.Component.Hunger = function(energy) {
@@ -409,27 +101,8 @@ RG.Component.Damage = function(dmg, type) {
 RG.extend2(RG.Component.Damage, RG.Component.Base);
 
 /* Component used in entities gaining experience.*/
-RG.Component.Experience = function() {
-    RG.Component.Base.call(this, 'Experience');
-    this._isUnique = true;
-
-    let _exp = 0;
-    let _expLevel = 1;
-
-    let _danger = 1;
-
-    /* Experience-level methods.*/
-    this.setExp = exp => {_exp = exp;};
-    this.getExp = () => _exp;
-    this.addExp = nExp => {_exp += nExp;};
-    this.setExpLevel = expLevel => {_expLevel = expLevel;};
-    this.getExpLevel = () => _expLevel;
-
-    this.setDanger = danger => {_danger = danger;};
-    this.getDanger = () => _danger;
-
-};
-RG.extend2(RG.Component.Experience, RG.Component.Base);
+RG.Component.Experience = UniqueDataComponent('Experience',
+    {exp: 0, expLevel: 1, danger: 1});
 
 /* This component is added when entity gains experience. It is removed after
 * system evaluation and added to Experience component. */
@@ -1319,11 +992,7 @@ RG.extend2(RG.Component.BattleExp, RG.Component.Base);
 /* This component is placed on entities when the battle is over. It signals to
  * the Battle.System that experience should be processed now. After this, the
  * system processed and removed this and BattleExp components. */
-RG.Component.BattleOver = function() {
-    RG.Component.Base.call(this, 'BattleOver');
-    this._isUnique = true;
-};
-RG.extend2(RG.Component.BattleOver, RG.Component.Base);
+RG.Component.BattleOver = UniqueTagComponent('BattleOver');
 
 /* Badges are placed on entities that survived a battle. */
 RG.Component.BattleBadge = function() {
@@ -1341,21 +1010,10 @@ RG.Component.BattleBadge = function() {
 RG.extend2(RG.Component.BattleBadge, RG.Component.Base);
 
 /* An order given during battle. Used to give order to player at the moment. */
-RG.Component.BattleOrder = function() {
-    RG.Component.Base.call(this, 'BattleOrder');
-
-    let _args = null;
-    this.getArgs = () => _args;
-    this.setArgs = args => {_args = args;};
-
-};
-RG.extend2(RG.Component.BattleOrder, RG.Component.Base);
+RG.Component.BattleOrder = DataComponent('BattleOrder', {args: null});
 
 /* Used for battle commanders. */
-RG.Component.Commander = function() {
-    RG.Component.Base.call(this, 'Commander');
-};
-RG.extend2(RG.Component.Commander, RG.Component.Base);
+RG.Component.Commander = TagComponent('Commander');
 
 /* This component is added to entity when it gains reputation in some event, and
  * it keeps track of the amount and type of reputation. */
@@ -1446,3 +1104,4 @@ RG.Component.UseStairs = TransientTagComponent('UseStairs');
 RG.Component.OpenDoor = TransientDataComponent('OpenDoor', {door: null});
 
 module.exports = RG.Component;
+
