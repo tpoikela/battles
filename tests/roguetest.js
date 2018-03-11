@@ -102,7 +102,7 @@ RGTest.expectEqualHealth = function(o1, o2) {
     expect(o1.get('Health').getHP()).to.equal(o2.get('Health').getHP());
 };
 
-RGTest.verifyStairsConnectivity = function(stairs) {
+RGTest.verifyStairsConnectivity = function(stairs, numExp = -1) {
     let connVerified = 0;
     stairs.forEach(s => {
         expect(s.getTargetStairs()).not.to.be.empty;
@@ -110,6 +110,12 @@ RGTest.verifyStairsConnectivity = function(stairs) {
         expect(s.getSrcLevel()).not.to.be.empty;
         ++connVerified;
     });
+    if (numExp >= 0) {
+        expect(connVerified, `Exp ${numExp} conns`).to.equal(numExp);
+    }
+    else {
+        expect(connVerified, 'At least one conn verified').to.be.above(0);
+    }
 };
 
 /* Verifies that all given stairs in the array are connected. On failure, prints
@@ -304,6 +310,27 @@ RGTest.printMemUsage = msg => {
     if (RGTest.enablePrint) {
         console.log(`${msg} The script uses approximately ${usedMb} MB`);
     }
+};
+
+
+/* Can be used to destroy items during testing. */
+RGTest.ItemDestroyer = function(pool) {
+
+    this.numCalls = 0;
+    this.numDestroyed = 0;
+
+    this.hasNotify = true;
+    this.notify = (evtName, obj) => {
+        if (evtName === RG.EVT_DESTROY_ITEM) {
+            const item = obj.item;
+            const owner = item.getOwner().getOwner();
+            ++this.numCalls;
+            if (owner.getInvEq().removeItem(item)) {
+                ++this.numDestroyed;
+            }
+        }
+    };
+    pool.listenEvent(RG.EVT_DESTROY_ITEM, this);
 };
 
 module.exports = RGTest;
