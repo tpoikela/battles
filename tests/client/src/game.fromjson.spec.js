@@ -413,4 +413,22 @@ describe('RG.Game.FromJSON', function() {
         expect(nArmiesNew).to.equal(nArmies);
     });
 
+    it('can serialize/de-serialize items with complex components', () => {
+        const magicSword = new RG.Item.Weapon('Magic sword');
+        const addOnHit = new RG.Component.AddOnHit();
+        const poisonComp = new RG.Component.Poison();
+        poisonComp.setDurationDie('1d6');
+        poisonComp.setDamageDie('1d8 + 4');
+        addOnHit.setComp(poisonComp);
+        magicSword.add(addOnHit);
+
+        const json = magicSword.toJSON();
+
+        const newSword = fromJSON.createItem(json);
+        expect(newSword.getID()).to.equal(magicSword.getID());
+
+        const newJSON = newSword.toJSON();
+        expect(newJSON).to.deep.equal(json);
+    });
+
 });
