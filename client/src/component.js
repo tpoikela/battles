@@ -541,7 +541,9 @@ class Poison extends Mixin.DurationRoll(Mixin.DamageRoll(RG.Component.Base)) {
         const obj = super.toJSON();
         obj.setType = this.getType();
         obj.setProb = this._prob;
-        obj.setSource = RG.getObjRef('entity', this._src);
+        if (this._src) { // May not be present in items etc
+            obj.setSource = RG.getObjRef('entity', this._src);
+        }
         return obj;
     }
 }
