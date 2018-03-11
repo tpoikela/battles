@@ -653,6 +653,11 @@ const RG = { // {{{2
     ITEM_TYPES: ['ammo', 'armour', 'food', 'gold', 'goldcoin',
         'missile', 'missileweapon', 'potion', 'spiritgem', 'weapon'],
 
+    USE: {
+        DRINK: 'DRINK',
+        DIG: 'DIG'
+    },
+
     LEVEL_ID_ADD: 1000000000,
     ENTITY_ID_ADD: 1000000000,
 
