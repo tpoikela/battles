@@ -898,7 +898,6 @@ RG.Factory.World = function() {
     this.createBattleZone = conf => {
         this.pushScope(conf);
         const battleZone = new RG.World.BattleZone(conf.name);
-        console.log('XYZ now restoring battle zone ' + conf.name);
         if (!this.id2levelSet) {
             RG.err('Factory', 'createBattleZone',
                 'Can create BattleZones only during restore');
