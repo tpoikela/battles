@@ -197,13 +197,11 @@ RG.System.BaseAction = function(compTypes) {
         const item = useItemComp.getItem();
         if (item.has('OneShot')) {
             if (item.count === 1) {
-                console.log('Destroying the item now');
                 const msg = {item};
                 RG.POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
             }
             else {
                 item.count -= 1;
-                console.log('Decreased item count to ' + item.count);
             }
         }
         this._checkUseItemMsgEmit(ent, useItemComp);
@@ -226,10 +224,11 @@ RG.System.BaseAction = function(compTypes) {
 
     this._checkUseItemMsgEmit = (ent, comp) => {
         if (comp.getUseType() === RG.USE.DRINK) {
+            const item = comp.getItem();
             const target = comp.getTarget();
             const cell = target.getCell();
             const msg = target.getName() + ' drinks '
-                + this.getName();
+                + item.getName();
             RG.gameMsg({cell, msg});
         }
     };
@@ -805,10 +804,7 @@ RG.System.ExpPoints = function(compTypes) {
             while (levelingUp) {
                 const currExpLevel = expComp.getExpLevel();
                 const nextExpLevel = currExpLevel + 1;
-                let reqExp = 0;
-                for (let i = 1; i <= nextExpLevel; i++) {
-                    reqExp += (i - 1) * 10;
-                }
+                const reqExp = RG.getExpRequired(nextExpLevel);
 
                 if (exp >= reqExp) { // Required exp points exceeded
                     RG.levelUpActor(ent, nextExpLevel);
@@ -935,11 +931,18 @@ RG.System.Movement = function(compTypes) {
             ent.add(expPoints);
             addSkillsExp(ent, 'Exploration', 1);
 
+            if (expElem.hasData()) {
+                const expData = expElem.getData();
+                if (expData.zoneType) {
+                    ent.get('GameInfo').addZoneType(expData.zoneType);
+                }
+            }
+
             let msg = expElem.getMsg();
             if (msg.length === 0) {
                 msg = `${ent.getName()} has explored zone thoroughly.`;
-                RG.gameInfo({cell, msg});
             }
+            RG.gameInfo({cell, msg});
         }
     };
 
