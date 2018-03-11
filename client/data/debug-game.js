@@ -132,6 +132,9 @@ const DebugGame = function(fact, parser) {
         fire.add(fadingComp);
         level.addActor(fire, 7, 1);
 
+        const thunderbird = _parser.createActor('thunderbird');
+        level.addActor(thunderbird, 20, 1);
+
         return game;
     };
 
