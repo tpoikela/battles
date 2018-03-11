@@ -4,6 +4,11 @@ const RG = require('../src/rg');
 RG.Component = require('../src/component.js');
 
 const getTargetActor = (obj) => {
+    if (!obj) {
+        const msg = 'Possibly missing args for useItem().';
+        RG.err('effects.js', 'getTargetActor',
+            `Given object was null/undefined. ${msg}`);
+    }
     if (obj.hasOwnProperty('target')) {
         const cell = obj.target;
         if (cell.hasActors()) {
@@ -11,6 +16,15 @@ const getTargetActor = (obj) => {
         }
     }
     return null;
+};
+
+const createUseItemComp = (item, target) => {
+    const useItem = new RG.Component.UseItem();
+    useItem.setTarget(target);
+    useItem.setItem(item);
+    const useType = RG.getItemUseType(item, target);
+    useItem.setUseType(useType);
+    item.getOwner().add(useItem);
 };
 
 const valueToNumber = function(value) {
@@ -116,6 +130,8 @@ RG.Effects = {
                         const value = this.useArgs.value;
                         const numValue = valueToNumber(value);
                         comp[this.useArgs.set](currValue + numValue);
+                        createUseItemComp(this, actor);
+                        // RG.destroyItemIfNeeded(this);
                     }
                 }
                 return false;
