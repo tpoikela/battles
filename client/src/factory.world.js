@@ -156,7 +156,6 @@ RG.Factory.World = function() {
         const hierName = this.getHierName();
 
         let areaLevels = null;
-        let needsConnect = false;
         if (this.id2levelSet) {
             areaLevels = this.getAreaLevels(conf);
         }
@@ -164,17 +163,12 @@ RG.Factory.World = function() {
             areaLevels = this.getPresetLevels(hierName);
             if (!areaLevels || areaLevels.length === 0) {
                 areaLevels = null;
-                console.log('Needs connect. No preset levels');
-                needsConnect = true;
             }
         }
 
         const area = new RG.World.Area(conf.name, conf.maxX, conf.maxY,
             conf.cols, conf.rows, areaLevels);
         area.setConf(conf);
-        if (needsConnect) {
-            // area.connectTiles();
-        }
         area.setHierName(this.getHierName());
 
         // When player enters a given area tile, create zones for that tile
