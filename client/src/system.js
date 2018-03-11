@@ -1691,8 +1691,9 @@ RG.System.SpellEffect = function(compTypes) {
         const spellComp = ent.get('SpellMissile');
         const args = spellComp.getArgs();
         const spell = args.spell;
+        const parser = RG.ObjectShell.getParser();
 
-        const iceArrow = new RG.Item.Ammo('Ice arrow');
+        const spellArrow = parser.createItem(spell.getAmmoName());
         const mComp = new RG.Component.Missile(args.src);
         mComp.setTargetXY(args.to[0], args.to[1]);
         mComp.destroyItem = true;
@@ -1700,7 +1701,7 @@ RG.System.SpellEffect = function(compTypes) {
         mComp.setAttack(60);
         mComp.setRange(spell.getRange());
 
-        iceArrow.add(mComp);
+        spellArrow.add(mComp);
         ent.remove('SpellMissile');
     };
 
