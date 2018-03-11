@@ -17,7 +17,7 @@ export default class GameMessages extends Component {
 
     let msgList = <span>Saving the game...</span>;
     if (!this.props.saveInProgress) {
-      msgList = message.map( function(val, itemIndex) {
+        msgList = message.map((val, itemIndex) => {
         const className = styles[val.style];
         let index = 1;
 
