@@ -180,6 +180,7 @@ class RGItemFood extends ItemBase {
     clone() {
         const newFood = new RG.Item.Food(this.getName());
         newFood.copy(this);
+        newFood.setEnergy(this.getEnergy());
         return newFood;
     }
 }
@@ -384,15 +385,12 @@ class RGItemPotion extends ItemBase {
                 const pt = die.roll();
                 if (target.has('Health')) {
                     target.get('Health').addHP(pt);
-                    if (this.count === 1) {
-                        const msg = {item: this};
-                        RG.POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
-                        RG.gameMsg(target.getName() + ' drinks '
-                            + this.getName());
-                    }
-                    else {
-                        this.count -= 1;
-                    }
+                    const owner = this.getOwner().getOwner();
+                    const useItemComp = new RG.Component.UseItem();
+                    useItemComp.setTarget(target);
+                    useItemComp.setItem(this);
+                    useItemComp.setUseType(RG.USE.DRINK);
+                    owner.add(useItemComp);
                     return false;
                 }
             }
@@ -532,6 +530,11 @@ class RGItemContainer extends ItemBase {
 
         /* Adds an item. Container becomes item's owner.*/
     addItem(item) {
+        if (item.count <= 0) {
+            const str = JSON.stringify(item);
+            RG.err('RGItemContainer', 'addItem',
+                `Possible bug. Tried to add item with count 0: ${str}`);
+        }
         if (item.getType() === 'container') {
             if (this.getOwner() !== item) {
                 this._addItem(item);
