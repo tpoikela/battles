@@ -795,7 +795,7 @@ RG.Brain.SpellCaster = function(actor) {
     RG.Brain.Rogue.call(this, actor);
     this.setType('SpellCaster');
     this.goal = new GoalsTop.ThinkSpellcaster(actor);
-    this.goal.setBias({CastSpell: 1.2, AttackActor: 0.8});
+    this.goal.setBias({CastSpell: 1.7, AttackActor: 0.7});
 
     this.decideNextAction = function() {
         this._seenCached = null;
