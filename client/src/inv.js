@@ -228,16 +228,25 @@ RG.Inv.Equipment = function(actor) {
     /* Removes an item, or n items if specified.*/
     const _removeItem = (item, n) => {
         const index = this._equipped.indexOf(item);
+        console.log('rmvItem XXX index is ' + index);
         if (index >= 0) {
             if (n > 0) {
+                console.log('>> rmvItem XXX n is ' + n);
                 if (this._equipped[index].hasOwnProperty('count')) {
+                    console.log('>> rmv XXX n is ' + n);
                     if (this._equipped[index].count === 0) {
+                        console.log('>>> rmv XXX splicing now count 0');
+                        this._equipped.splice(index, 1);
+                    }
+                    else if (n === 1 && this._equipped[index].count === 1) {
+                        console.log('>>> rmv XXX splicing now n = 1');
                         this._equipped.splice(index, 1);
                     }
                 }
                 return true;
             }
             else {
+                console.log('>>> XXX splicing now no N');
                 this._equipped.splice(index, 1);
                 return true;
             }
@@ -343,22 +352,21 @@ RG.Inv.Equipment = function(actor) {
 /* Object models inventory items and equipment on actor. This object handles
  * movement of items between inventory and equipment. */
 RG.Inv.Inventory = function(actor) {
-    const _actor = actor;
-
-    const _inv = new RG.Item.Container(actor);
-    const _eq = new RG.Inv.Equipment(actor);
+    this._actor = actor;
+    this._inv = new RG.Item.Container(actor);
+    this._eq = new RG.Inv.Equipment(actor);
 
     // Wrappers for container methods
-    this.addItem = item => {_inv.addItem(item);};
-    this.hasItem = item => _inv.hasItem(item);
-    this.removeItem = item => _inv.removeItem(item);
+    this.addItem = item => {this._inv.addItem(item);};
+    this.hasItem = item => this._inv.hasItem(item);
+    this.removeItem = item => this._inv.removeItem(item);
 
-    this.removeNItems = (item, n) => _inv.removeNItems(item, n);
+    this.removeNItems = (item, n) => this._inv.removeNItems(item, n);
 
-    this.getRemovedItem = () => _inv.getRemovedItem();
+    this.getRemovedItem = () => this._inv.getRemovedItem();
 
     this.useItem = (item, obj) => {
-        if (_inv.hasItem(item)) {
+        if (this._inv.hasItem(item)) {
             if (item.useItem) {
                 item.useItem(obj);
                 return true;
@@ -372,24 +380,25 @@ RG.Inv.Inventory = function(actor) {
 
     /* Returns true if given item can be carried.*/
     this.canCarryItem = item => {
-        const eqWeight = _eq.getWeight();
-        const invWeight = _inv.getWeight();
+        const eqWeight = this._eq.getWeight();
+        const invWeight = this._inv.getWeight();
         const newWeight = eqWeight + invWeight + item.getWeight();
-        const maxWeight = _actor.getMaxWeight();
+        const maxWeight = this._actor.getMaxWeight();
         if (newWeight > maxWeight) {return false;}
         return true;
     };
 
     /* Drops selected item to the actor's current location.*/
     this.dropItem = item => {
-        if (_inv.removeItem(item)) {
-            const level = _actor.getLevel();
+        if (this._inv.removeItem(item)) {
+            const level = this._actor.getLevel();
             const droppedItem = this.getRemovedItem();
-            if (level.addItem(droppedItem, _actor.getX(), _actor.getY())) {
+            const [x, y] = this._actor.getXY();
+            if (level.addItem(droppedItem, x, y)) {
                 return true;
             }
             else {
-                _inv.addItem(droppedItem);
+                this._inv.addItem(droppedItem);
             }
         }
         return false;
@@ -397,13 +406,14 @@ RG.Inv.Inventory = function(actor) {
 
     this.dropNItems = (item, n) => {
         if (this.removeNItems(item, n)) {
-            const level = _actor.getLevel();
+            const level = this._actor.getLevel();
             const droppedItem = this.getRemovedItem();
-            if (level.addItem(droppedItem, _actor.getX(), _actor.getY())) {
+            const [x, y] = this._actor.getXY();
+            if (level.addItem(droppedItem, x, y)) {
                 return true;
             }
             else {
-                _inv.addItem(droppedItem);
+                this._inv.addItem(droppedItem);
             }
         }
         return false;
@@ -411,18 +421,18 @@ RG.Inv.Inventory = function(actor) {
 
     /* Removes and item and returns it. */
     this.removeAndGetItem = item => {
-        if (_inv.removeItem(item)) {
+        if (this._inv.removeItem(item)) {
             return this.getRemovedItem();
         }
         return null;
     };
 
-    this.getInventory = () => _inv;
-    this.getEquipment = () => _eq;
+    this.getInventory = () => this._inv;
+    this.getEquipment = () => this._eq;
 
     /* Removes item from inventory and equips it.*/
     this.equipItem = item => {
-        if (_inv.hasItem(item)) {
+        if (this._inv.hasItem(item)) {
             // If item has count > 2, can't use the same item ref
             const eqItem = _getItemToEquip(item);
             if (RG.isNullOrUndef[eqItem]) {
@@ -431,11 +441,11 @@ RG.Inv.Inventory = function(actor) {
                 return false; // For suppressed errors
             }
 
-            if (_eq.equipItem(eqItem)) {
+            if (this._eq.equipItem(eqItem)) {
                 return true;
             }
             else {
-                _inv.addItem(eqItem); // Failed, add back to inv
+                this._inv.addItem(eqItem); // Failed, add back to inv
             }
         }
         else {
@@ -446,9 +456,9 @@ RG.Inv.Inventory = function(actor) {
     };
 
     const _getItemToEquip = item => {
-        const res = _inv.removeItem(item);
+        const res = this._inv.removeItem(item);
         if (res) {
-            const rmvItem = _inv.getRemovedItem();
+            const rmvItem = this._inv.getRemovedItem();
             return rmvItem;
         }
         return null;
@@ -456,15 +466,15 @@ RG.Inv.Inventory = function(actor) {
 
     /* Equips up to N items of given type. */
     this.equipNItems = (item, n) => {
-        if (_inv.hasItem(item)) {
-            const res = _inv.removeNItems(item, n);
+        if (this._inv.hasItem(item)) {
+            const res = this._inv.removeNItems(item, n);
             if (res) {
-                const removedItem = _inv.getRemovedItem();
-                if (_eq.equipItem(removedItem)) {
+                const removedItem = this._inv.getRemovedItem();
+                if (this._eq.equipItem(removedItem)) {
                     return true;
                 }
                 else {
-                    _inv.addItem(removedItem);
+                    this._inv.addItem(removedItem);
                 }
             }
         }
@@ -473,10 +483,15 @@ RG.Inv.Inventory = function(actor) {
 
     /* Unequips item and puts it back to inventory.*/
     this.unequipItem = function(slotType, n, slotNumber) {
-        const eqItem = _eq.getItem(slotType);
+        if (RG.isNullOrUndef([slotType, n, slotNumber])) {
+            let msg = 'Some params null/undef: ';
+            msg += `type: |${slotType}| n: |${n}| number: |${slotNumber}|`;
+            RG.err('InvInventory', 'unequipItem', msg);
+        }
+        const eqItem = this._eq.getItem(slotType);
         if (!RG.isNullOrUndef([eqItem])) {
-            if (_eq.unequipItem(slotType, n, slotNumber)) {
-                const rmvItems = _eq.getUnequipped(slotType, slotNumber);
+            if (this._eq.unequipItem(slotType, n, slotNumber)) {
+                const rmvItems = this._eq.getUnequipped(slotType, slotNumber);
                 if (rmvItems !== null) {
                     this.addItem(rmvItems);
                     return true;
@@ -488,28 +503,28 @@ RG.Inv.Inventory = function(actor) {
 
     /* Unequips and returns N items. Doesn't add to inv.*/
     this.unequipAndGetItem = (slotType, n, slotNumber) => {
-        const eqItem = _eq.getItem(slotType);
+        const eqItem = this._eq.getItem(slotType);
         if (!RG.isNullOrUndef([eqItem])) {
-            if (_eq.unequipItem(slotType, n)) {
-                return _eq.getUnequipped(slotType, slotNumber);
+            if (this._eq.unequipItem(slotType, n)) {
+                return this._eq.getUnequipped(slotType, slotNumber);
             }
         }
         return null;
     };
 
     this.getWeapon = () => {
-        const item = _eq.getItem('hand');
+        const item = this._eq.getItem('hand');
         if (!RG.isNullOrUndef([item])) {return item;}
         return null;
     };
 
     this.getMissileWeapon = () => {
-        const item = _eq.getItem('missileweapon');
+        const item = this._eq.getItem('missileweapon');
         if (!RG.isNullOrUndef([item])) {return item;}
         return null;
     };
 
-    this.getEquipped = slotType => _eq.getItem(slotType);
+    this.getEquipped = slotType => this._eq.getItem(slotType);
 
 
 };
