@@ -14,40 +14,30 @@ const TagComponent = RG.Component.TagComponent;
 const UniqueTagComponent = RG.Component.UniqueTagComponent;
 
 /* Component which takes care of hunger and satiation. */
-RG.Component.Hunger = function(energy) {
-    RG.Component.Base.call(this, 'Hunger');
+RG.Component.Hunger = UniqueDataComponent('Hunger',
+    {energy: 20000, maxEnergy: 20000, minEnergy: -5000});
 
-    let _currEnergy = 20000;
-    let _maxEnergy = 20000;
-    const _minEnergy = -5000;
-
-    this.getEnergy = () => _currEnergy;
-    this.getMaxEnergy = () => _maxEnergy;
-
-    this.setEnergy = energy => {_currEnergy = energy;};
-    this.setMaxEnergy = energy => {_maxEnergy = energy;};
-
-    if (!RG.isNullOrUndef([energy])) {
-        _currEnergy = energy;
-        _maxEnergy = energy;
+RG.Component.Hunger.prototype.addEnergy = function(energy) {
+    this.energy += energy;
+    if (this.energy > this.maxEnergy) {
+        this.energy = this.maxEnergy;
     }
-
-    this.addEnergy = energy => {
-        _currEnergy += energy;
-        if (_currEnergy > _maxEnergy) {_currEnergy = _maxEnergy;}
-    };
-
-    this.decrEnergy = energy => {
-        _currEnergy -= energy;
-        if (_currEnergy < _minEnergy) {_currEnergy = _minEnergy;}
-    };
-
-    this.isStarving = () => _currEnergy <= 0;
-
-    this.isFull = () => _currEnergy === _maxEnergy;
-
 };
-RG.extend2(RG.Component.Hunger, RG.Component.Base);
+
+RG.Component.Hunger.prototype.decrEnergy = function(energy) {
+    this.energy -= energy;
+    if (this.energy < this.minEnergy) {
+        this.energy = this.minEnergy;
+    }
+};
+
+RG.Component.Hunger.prototype.isStarving = function() {
+    return this.energy <= 0;
+};
+
+RG.Component.Hunger.prototype.isFull = function() {
+    return this.energy === this.maxEnergy;
+};
 
 /* Health component takes care of HP and such. */
 RG.Component.Health = function(hp) {
@@ -79,6 +69,7 @@ RG.extend2(RG.Component.Health, RG.Component.Base);
 /* Component which is used to deal damage.*/
 RG.Component.Damage = function(dmg, type) {
     RG.Component.Base.call(this, 'Damage');
+    this.toJSON = RG.Component.NO_SERIALISATION;
 
     let _dmg = dmg;
     let _dmgType = type;
