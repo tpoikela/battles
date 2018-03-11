@@ -127,6 +127,9 @@ const DebugGame = function(fact, parser) {
         level.addVirtualProp(RG.TYPE_ACTOR, vActor);
 
         const fire = _parser.createActor('Fire');
+        const fadingComp = new RG.Component.Fading();
+        fadingComp.setDuration(20);
+        fire.add(fadingComp);
         level.addActor(fire, 7, 1);
 
         return game;
