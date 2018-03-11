@@ -6,6 +6,8 @@ import GameItems from './game-items';
 import GameEquipment from './game-equipment';
 import PropTypes from 'prop-types';
 
+const RG = require('../src/rg');
+
 /** Component renders the player inventory.*/
 export default class GameInventory extends Component {
 
@@ -41,8 +43,7 @@ export default class GameInventory extends Component {
   /* Called when "Drop" is clicked. Drops item to the ground.*/
   dropItem() {
     if (this.props.selectedItem !== null) {
-      const cmd = {cmd: 'drop', item: this.props.selectedItem,
-        count: this.getCount()};
+      const cmd = RG.getDropCmd(this.props.selectedItem, this.getCount());
       cmd.callback = function(obj) {
         let msgStyle = 'text-success';
         if (!obj.result) {
@@ -65,8 +66,8 @@ export default class GameInventory extends Component {
   equipItem() {
     const item = this.props.selectedItem;
     if (item !== null) {
-      const cmd = {cmd: 'equip', item: this.props.selectedItem,
-        count: this.getCount()};
+      const cmd = RG.getEquipCmd(this.props.selectedItem, this.getCount());
+
       cmd.callback = function(obj) {
         let msgStyle = 'text-success';
         if (!obj.result) {
@@ -76,6 +77,7 @@ export default class GameInventory extends Component {
           {invMsg: obj.msg, msgStyle: msgStyle});
         this.props.selectItemTop(null);
       }.bind(this);
+
       this.props.doInvCmd(cmd);
     }
     else {
@@ -90,8 +92,8 @@ export default class GameInventory extends Component {
     if (this.props.equipSelected) {
       const name = this.props.equipSelected.slotName;
       const slotNumber = this.props.equipSelected.slotNumber;
-      const cmd = {cmd: 'unequip', slot: name, slotNumber,
-        count: this.getCount()};
+      const cmd = RG.getUnequipCmd(name, slotNumber, this.getCount());
+
       cmd.callback = function(obj) {
         let msgStyle = 'text-success';
         if (!obj.result) {
@@ -101,6 +103,7 @@ export default class GameInventory extends Component {
           {invMsg: obj.msg, msgStyle: msgStyle});
         this.props.selectEquipTop(null);
       }.bind(this);
+
       this.props.doInvCmd(cmd);
     }
     else {
@@ -113,8 +116,10 @@ export default class GameInventory extends Component {
    * item. */
   useItem() {
     if (this.props.selectedItem !== null) {
-      const cmd = {cmd: 'use', item: this.props.selectedItem,
-        target: this.props.player.getCell()};
+
+      const target = this.props.player.getCell();
+      const cmd = RG.getUseCmd(this.props.selectedItem, target);
+
       cmd.callback = function(obj) {
         let msgStyle = 'text-success';
         if (!obj.result) {
