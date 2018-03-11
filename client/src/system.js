@@ -144,7 +144,7 @@ RG.System.BaseAction = function(compTypes) {
     this.compTypesAny = true;
 
     const handledComps = [
-        'Pickup', 'UseStairs', 'OpenDoor'
+        'Pickup', 'UseStairs', 'OpenDoor', 'UseItem'
     ];
 
     this.updateEntity = function(ent) {
@@ -192,11 +192,29 @@ RG.System.BaseAction = function(compTypes) {
         }
     };
 
+    this._handleUseItem = ent => {
+        const useItemComp = ent.get('UseItem');
+        const item = useItemComp.getItem();
+        if (item.has('OneShot')) {
+            if (item.count === 1) {
+                console.log('Destroying the item now');
+                const msg = {item};
+                RG.POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
+            }
+            else {
+                item.count -= 1;
+                console.log('Decreased item count to ' + item.count);
+            }
+        }
+        this._checkUseItemMsgEmit(ent, useItemComp);
+    };
+
     // Initialisation of dispatch table for handler functions
     this._dtable = {
         Pickup: this._handlePickup,
         UseStairs: this._handleUseStairs,
-        OpenDoor: this._handleOpenDoor
+        OpenDoor: this._handleOpenDoor,
+        UseItem: this._handleUseItem
     };
 
     /* Used to create events in response to specific actions. */
@@ -204,6 +222,16 @@ RG.System.BaseAction = function(compTypes) {
         const evtComp = new RG.Component.Event();
         evtComp.setArgs(args);
         ent.add(evtComp);
+    };
+
+    this._checkUseItemMsgEmit = (ent, comp) => {
+        if (comp.getUseType() === RG.USE.DRINK) {
+            const target = comp.getTarget();
+            const cell = target.getCell();
+            const msg = target.getName() + ' drinks '
+                + this.getName();
+            RG.gameMsg({cell, msg});
+        }
     };
 };
 RG.extend2(RG.System.BaseAction, RG.System.Base);
