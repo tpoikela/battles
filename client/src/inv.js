@@ -225,28 +225,24 @@ RG.Inv.Equipment = function(actor) {
         if (!matchFound) {this._equipped.push(item);}
     };
 
-    /* Removes an item, or n items if specified.*/
+    /* Removes an item, or n items if specified. The item object count has
+     * already been changed, so this method only removes the item from internal
+     * array. */
     const _removeItem = (item, n) => {
         const index = this._equipped.indexOf(item);
-        console.log('rmvItem XXX index is ' + index);
         if (index >= 0) {
             if (n > 0) {
-                console.log('>> rmvItem XXX n is ' + n);
                 if (this._equipped[index].hasOwnProperty('count')) {
-                    console.log('>> rmv XXX n is ' + n);
                     if (this._equipped[index].count === 0) {
-                        console.log('>>> rmv XXX splicing now count 0');
                         this._equipped.splice(index, 1);
                     }
-                    else if (n === 1 && this._equipped[index].count === 1) {
-                        console.log('>>> rmv XXX splicing now n = 1');
+                    /* else if (n === 1 && this._equipped[index].count === 1) {
                         this._equipped.splice(index, 1);
-                    }
+                    }*/
                 }
                 return true;
-            }
+            } // n not given, just remove from the found index
             else {
-                console.log('>>> XXX splicing now no N');
                 this._equipped.splice(index, 1);
                 return true;
             }
@@ -275,14 +271,24 @@ RG.Inv.Equipment = function(actor) {
                 if (index >= 0) {
                     const item = slot[index].getItem();
                     if (slot[index].unequipItem(n)) {
-                        return _removeItem(item, n);
+                        if (slot[index].isStacked()) {
+                            return _removeItem(item, n);
+                        }
+                        else {
+                            return _removeItem(item);
+                        }
                     }
                 }
                 else {
                     for (let i = 0; i < slot.length; i++) {
                         const item = slot[i].getItem();
                         if (slot[i].unequipItem(n)) {
-                            return _removeItem(item, n);
+                            if (slot[i].isStacked()) {
+                                return _removeItem(item, n);
+                            }
+                            else {
+                                return _removeItem(item);
+                            }
                         }
                     }
                 }
@@ -290,7 +296,12 @@ RG.Inv.Equipment = function(actor) {
             else {
                 const item = this._slots[slotType].getItem();
                 if (this._slots[slotType].unequipItem(n)) {
-                    return _removeItem(item, n);
+                    if (this._slots[slotType].isStacked()) {
+                        return _removeItem(item, n);
+                    }
+                    else {
+                        return _removeItem(item);
+                    }
                 }
             }
         }
@@ -483,7 +494,7 @@ RG.Inv.Inventory = function(actor) {
 
     /* Unequips item and puts it back to inventory.*/
     this.unequipItem = function(slotType, n, slotNumber) {
-        if (RG.isNullOrUndef([slotType, n, slotNumber])) {
+        if (RG.isNullOrUndef([slotType])) {
             let msg = 'Some params null/undef: ';
             msg += `type: |${slotType}| n: |${n}| number: |${slotNumber}|`;
             RG.err('InvInventory', 'unequipItem', msg);
