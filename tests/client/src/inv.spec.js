@@ -85,7 +85,31 @@ describe('RG.Inv.Equipment', () => {
         skills.setLevel('Shields', 5);
         actor.add(skills);
         expect(actor.getShieldDefense()).to.equal(15);
+    });
 
+    it.only('can have equipped items removed and re-equipped', () => {
+        const shield = new RG.Item.Armour('shield');
+        shield.setArmourType('shield');
+
+        const actor = new RG.Actor.Rogue('equipper');
+        const invEq = actor.getInvEq();
+        invEq.addItem(shield);
+        invEq.equipItem(shield);
+        invEq.unequipItem('shield', 1, 0);
+
+        const eq = invEq.getEquipment();
+        const eqItems = eq.getItems();
+        expect(eqItems).to.have.length(0);
+
+        const arrows = new RG.Item.Ammo('arrow');
+        arrows.count = 10;
+        invEq.addItem(arrows);
+        invEq.equipNItems(arrows, 10);
+        expect(eqItems).to.have.length(1);
+        invEq.unequipItem('missile', 5, 0);
+        expect(eqItems).to.have.length(1);
+        invEq.unequipItem('missile', 5, 0);
+        expect(eqItems).to.have.length(0);
     });
 
 });
