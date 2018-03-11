@@ -796,54 +796,29 @@ RG.extend2(RG.Component.SpellArea, RG.Component.SpellBase);
 //--------------------------------------------
 
 /* Triples the energy gained from eating foods. */
-RG.Component.NourishedOne = function() {
-    RG.Component.Base.call(this, 'NourishedOne');
-};
-RG.extend2(RG.Component.NourishedOne, RG.Component.Base);
+RG.Component.NourishedOne = UniqueTagComponent('NourishedOne');
 
 //--------------------------------------------
 // Spirit-related components
 //--------------------------------------------
 
-RG.Component.SpiritBind = function() {
-    RG.Component.Base.call(this, 'SpiritBind');
-
-    let _binder = null;
-    let _target = null;
-
-    this.getTarget = () => _target;
-    this.getBinder = () => _binder;
-    this.setTarget = (target) => {_target = target;};
-    this.setBinder = (binder) => {_binder = binder;};
-
-};
-RG.extend2(RG.Component.SpiritBind, RG.Component.Base);
+/* Used when gem binding into item is attempted. */
+RG.Component.SpiritBind = TransientDataComponent('SpiritBind',
+    {binder: null, target: null});
 
 /* This component enables entity to bind gems into items. */
-RG.Component.GemBound = function() {
-    RG.Component.Base.call(this, 'GemBound');
-
-    let _gem = null;
-
-    this.setGem = gem => {_gem = gem;};
-    this.getGem = () => _gem;
-
-    this.toJSON = function() {
-        return {
-            setGem: {
-                createFunc: 'createItem',
-                value: _gem.toJSON()
-            }
-        };
+RG.Component.GemBound = UniqueDataComponent('GemBound', {gem: null});
+RG.Component.GemBound.prototype.toJSON = function() {
+    return {
+        setGem: {
+            createFunc: 'createItem',
+            value: this.getGem().toJSON()
+        }
     };
 };
-RG.extend2(RG.Component.GemBound, RG.Component.Base);
 
 /* This component enables entity to bind gems into items. */
-RG.Component.SpiritItemCrafter = function() {
-    RG.Component.Base.call(this, 'SpiritItemCrafter');
-};
-RG.extend2(RG.Component.SpiritItemCrafter, RG.Component.Base);
+RG.Component.SpiritItemCrafter = UniqueTagComponent('SpiritItemCrafter');
 
 //--------------------------------------------
 // Comps related to the skill system
@@ -890,20 +865,6 @@ RG.extend2(RG.Component.Skills, RG.Component.Base);
 
 RG.Component.SkillsExp = TransientDataComponent('SkillsExp',
     {skill: '', points: 0});
-/* RG.Component.SkillsExp = function() {
-    RG.Component.Base.call(this, 'SkillsExp');
-
-    this._skill = '';
-    this._points = 0;
-
-    this.getSkill = () => this._skill;
-    this.getPoints = () => this._points;
-    this.setSkill = skill => {this._skill = skill;};
-    this.setPoints = points => {this._points = points;};
-
-};
-RG.extend2(RG.Component.SkillsExp, RG.Component.Base);
-*/
 
 /* Component which models a shop transaction. */
 RG.Component.Transaction = TransientDataComponent('Transaction', {args: null});
