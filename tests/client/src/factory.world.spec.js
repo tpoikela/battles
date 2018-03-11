@@ -202,7 +202,7 @@ describe('Factory.World', function() {
         const area = world.getAreas()[0];
         expect(area.getParent().getName()).to.equal('ww');
         const areaLevel = area.getTileXY(0, 0).getLevel();
-        areaLevel.debugPrintInASCII();
+        // areaLevel.debugPrintInASCII();
 
         const areaConns = areaLevel.getConnections();
         expect(areaConns.length).to.be.above(20);
