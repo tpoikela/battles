@@ -1015,5 +1015,25 @@ RG.Component.OpenDoor = TransientDataComponent('OpenDoor', {door: null});
 RG.Component.UseItem = TransientDataComponent('UseItem',
     {item: null, useType: '', target: null});
 
+/* Added to player to record various event in the game. */
+RG.Component.GameInfo = UniqueDataComponent('GameInfo', {
+    data: {zones: {}}
+});
+
+/* Updates the data with given object. */
+RG.Component.GameInfo.prototype.updateData = function(data) {
+    this.data = Object.assign(this.data, data);
+};
+
+RG.Component.GameInfo.prototype.addZoneType = function(type) {
+    const data = this.data;
+    if (!data.zones.hasOwnProperty(type)) {
+        data.zones[type] = 1;
+    }
+    else {
+        data.zones[type] += 1;
+    }
+};
+
 module.exports = RG.Component;
 
