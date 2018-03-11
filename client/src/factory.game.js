@@ -49,7 +49,7 @@ RG.Factory.Game = function() {
 
     /* Creates a player actor and starting inventory unless a game has been
      * restored. */
-    this.createPlayerUnlessLoaded = function(game, obj) {
+    this.createPlayerUnlessLoaded = function(obj) {
         let player = obj.loadedPlayer;
         if (RG.isNullOrUndef([player])) {
             const expLevel = obj.playerLevel;
@@ -63,6 +63,7 @@ RG.Factory.Game = function() {
             player.add(new RG.Component.Health(pConf.hp));
             this.addActorClass(obj, player);
             player.add(new RG.Component.Skills());
+            player.add(new RG.Component.GameInfo());
         }
 
         if (!player.has('Hunger')) {
@@ -76,6 +77,13 @@ RG.Factory.Game = function() {
             player.add(hunger);
         }
 
+        // Add to the CSS class table
+        RG.addCellStyle(RG.TYPE_ACTOR, player.getName(), 'cell-actor-player');
+
+        return player;
+    };
+
+    this.createPlayerRegenEvents = function(game, player) {
         // Add HP regeneration
         const regenPlayer = new RG.Time.RegenEvent(player,
             RG.PLAYER_HP_REGEN_PERIOD * RG.ACTION_DUR);
@@ -87,11 +95,6 @@ RG.Factory.Game = function() {
                 RG.PLAYER_PP_REGEN_PERIOD * RG.ACTION_DUR);
             game.addEvent(regenPlayerPP);
         }
-
-        // Add to the CSS class table
-        RG.addCellStyle(RG.TYPE_ACTOR, player.getName(), 'cell-actor-player');
-
-        return player;
     };
 
     /* Adds the actor class to player, and creates starting equipment. */
@@ -227,7 +230,8 @@ RG.Factory.Game = function() {
         _parser.parseShellData(RGObjects);
 
         const game = new RG.Game.Main();
-        const player = this.createPlayerUnlessLoaded(game, obj);
+        const player = this.createPlayerUnlessLoaded(obj);
+        this.createPlayerRegenEvents(game, player);
 
         if (obj.playMode === 'Arena') {
             return this.createArenaDebugGame(obj, game, player);
