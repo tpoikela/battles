@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { shallow, render } from 'enzyme';
+import { shallow } from 'enzyme';
 import chaiEnzyme from 'chai-enzyme';
 import chai, { expect } from 'chai';
 
@@ -12,8 +12,8 @@ chai.use(chaiEnzyme());
 // Props with non-default values passes to the component
 const props = {
     eq: {
-        getEquipped: () => {toString: () => 'xxx'},
-        getSlotTypes: () => ['hand', 'feet'],
+        getEquipped: () => ({toString: () => 'xxx'}),
+        getSlotTypes: () => ['hand', 'feet']
     },
     setEquipSelected: () => true
 };
