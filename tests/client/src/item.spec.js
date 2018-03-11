@@ -1,7 +1,11 @@
 
-const expect = require('chai').expect;
+const chai = require('chai');
+const chaiBattles = require('../../helpers/chai-battles.js');
 const RG = require('../../../client/src/battles');
+const RGTest = require('../../roguetest');
 
+chai.use(chaiBattles);
+const expect = chai.expect;
 const Actor = RG.Actor.Rogue;
 const Item = RG.Item.Base;
 
@@ -313,31 +317,32 @@ describe('How item stacks work with equipped missiles', () => {
 
 });
 
-const ItemDestroyer = function() {
-
-    this.hasNotify = true;
-    this.notify = (evtName, obj) => {
-        if (evtName === RG.EVT_DESTROY_ITEM) {
-            const item = obj.item;
-            const owner = item.getOwner().getOwner();
-            owner.getInvEq().removeItem(item);
-        }
-    };
-    RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this);
-};
 
 describe('Usable one-shot items', () => {
+
+    let itemDestroy = null;
+    let pool = null;
+
+    beforeEach(() => {
+        pool = new RG.EventPool();
+        itemDestroy = new RGTest.ItemDestroyer(pool);
+    });
+
+    afterEach(() => {
+        pool.removeListener(itemDestroy);
+        itemDestroy = null;
+        pool = null;
+    });
+
+
     it('Player uses a potion and it is destroyed after this.', () => {
         const potion = new RG.Item.Potion('potion');
+        potion.count = 1;
         const player = new Actor('Player');
         const cell = RG.FACT.createFloorCell();
         cell.setProp('actors', player);
         expect(cell.hasProp('actors')).to.equal(true);
         const invEq = player.getInvEq();
-
-        /* eslint-disable */
-        const itemDestroy = new ItemDestroyer();
-        /* eslint-enable */
 
         invEq.addItem(potion);
 
@@ -347,10 +352,32 @@ describe('Usable one-shot items', () => {
         const currHP = player.get('Health').getHP();
 
         expect(invEq.hasItem(potion)).to.equal(true);
-        expect(player.getInvEq().useItem(potion,
+        expect(invEq.removeItem(potion)).to.equal(true);
+        expect(invEq.hasItem(potion)).to.equal(false);
+
+        const newPotion = invEq.getRemovedItem();
+        invEq.addItem(newPotion);
+        expect(invEq.getInventory().hasItemRef(potion)).to.equal(false);
+        expect(invEq.getInventory().hasItemRef(newPotion)).to.equal(true);
+
+        expect(player.getInvEq().useItem(newPotion,
             {target: cell})).to.equal(true);
         expect(player.get('Health').getHP() !== currHP).to.equal(true);
+
+        expect(player).to.have.component('UseItem');
+        const useItemComp = player.get('UseItem');
+        const usedItem = useItemComp.getItem();
+        if (usedItem.count === 1) {
+            pool.emitEvent(RG.EVT_DESTROY_ITEM, {item: usedItem});
+        }
+        else {
+            usedItem.count -= 1;
+        }
+
         expect(invEq.hasItem(potion)).to.equal(false);
+
+        expect(itemDestroy.numCalls).to.equal(1);
+        expect(itemDestroy.numDestroyed).to.equal(1);
     });
 });
 
