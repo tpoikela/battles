@@ -132,23 +132,27 @@ RG.Spell.SpellBook = function(actor) {
 
 /* Base object for all spells. */
 RG.Spell.Base = function(name, power) {
-    const _name = name;
-    let _power = power || 5;
+    this._name = name;
+    this._power = power || 5;
 
-    const nameSplit = name.split(/\s+/);
-    const capNames = [];
-    nameSplit.forEach(name => {
-        capNames.push(name.capitalize());
-    });
-    this._new = capNames.join('');
+    this.setName = name => {
+        const nameSplit = name.split(/\s+/);
+        const capNames = [];
+        nameSplit.forEach(name => {
+            capNames.push(name.capitalize());
+        });
+        this._new = capNames.join('');
 
-    this.getName = () => _name;
+    };
+    this.setName(name);
 
-    this.getPower = () => _power;
-    this.setPower = power => {_power = power;};
+    this.getName = () => this._name;
+
+    this.getPower = () => this._power;
+    this.setPower = power => {this._power = power;};
 
     this.getCastFunc = function(actor, args) {
-        if (args.dir) {
+        if (args.dir || args.target) {
             args.src = actor;
             return () => {
                 const spellCast = new RG.Component.SpellCast();
@@ -331,6 +335,8 @@ RG.extend2(RG.Spell.IcyPrison, RG.Spell.Base);
 RG.Spell.SummonIceMinion = function() {
     RG.Spell.Base.call(this, 'Summon ice minion', 14);
 
+    this.summonType = 'Ice minion';
+
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
 
@@ -338,14 +344,18 @@ RG.Spell.SummonIceMinion = function() {
         obj.callback = cell => {
             if (cell.isFree()) {
                 const [x, y] = [cell.getX(), cell.getY()];
-                const level = args.src.getLevel();
+                const caster = args.src;
+                const level = caster.getLevel();
 
                 // TODO create proper minion
-                const minion = new RG.Actor.Rogue('Ice minion');
+                const parser = RG.ObjectShell.getParser();
+                const minion = parser.createActor(this.summonType);
                 level.addActor(minion, x, y);
+                minion.addFriend(caster);
+                caster.addFriend(minion);
 
-                const name = args.src.getName();
-                const msg = `${name} summons an ice minion!`;
+                const name = caster.getName();
+                const msg = `${name} summons ${this.summonType}!`;
                 RG.gameMsg({cell, msg});
             }
         };
@@ -403,10 +413,12 @@ RG.Spell.PowerDrain = function() {
 };
 RG.extend2(RG.Spell.PowerDrain, RG.Spell.Base);
 
-/* IceArrow spell fires a missile to specified square. */
-RG.Spell.IceArrow = function() {
-    RG.Spell.Ranged.call(this, 'IceArrow', 20);
-    this.setRange(9);
+/* Base class for Spell missiles. */
+RG.Spell.Missile = function(name, power) {
+    RG.Spell.Ranged.call(this, name, power);
+    this.ammoName = '';
+
+    this.getAmmoName = () => this.ammoName;
 
     this.cast = function(args) {
         const [x, y] = [args.src.getX(), args.src.getY()];
@@ -417,7 +429,7 @@ RG.Spell.IceArrow = function() {
             src: args.src,
             to: [args.target.getX(), args.target.getY()]
         };
-        obj.damageType = RG.DMG.ICE;
+        obj.damageType = this.damageType;
         obj.damage = this.getDice()[0].roll();
         const missComp = new RG.Component.SpellMissile();
         missComp.setArgs(obj);
@@ -452,8 +464,40 @@ RG.Spell.IceArrow = function() {
             showMenu: () => false
         };
     };
+
+    this.aiShouldCastSpell = (args, cb) => {
+        const {actor, enemy} = args;
+        const [eX, eY] = enemy.getXY();
+        const [aX, aY] = actor.getXY();
+        const getDist = RG.Path.shortestDist(eX, eY, aX, aY);
+        if (getDist <= this.getRange()) {
+            const spellArgs = {target: enemy, src: actor};
+            cb(actor, spellArgs);
+            return true;
+        }
+        return false;
+    };
+
 };
-RG.extend2(RG.Spell.IceArrow, RG.Spell.Ranged);
+RG.extend2(RG.Spell.Missile, RG.Spell.Ranged);
+
+/* IceArrow spell fires a missile to specified square. */
+RG.Spell.IceArrow = function() {
+    RG.Spell.Missile.call(this, 'IceArrow', 20);
+    this.setRange(9);
+    this.damageType = RG.DMG.ICE;
+    this.ammoName = 'Lightning arrow';
+};
+RG.extend2(RG.Spell.IceArrow, RG.Spell.Missile);
+
+/* Lighting arrow spell fires a missile to specified cell. */
+RG.Spell.LightningArrow = function() {
+    RG.Spell.Missile.call(this, 'LightningArrow', 1);
+    this.setRange(8);
+    this.damageType = RG.DMG.LIGHTNING;
+    this.ammoName = 'Lightning arrow';
+};
+RG.extend2(RG.Spell.LightningArrow, RG.Spell.Missile);
 
 /* MindControl spell takes over an enemy for a certain number of turns. */
 RG.Spell.MindControl = function() {
