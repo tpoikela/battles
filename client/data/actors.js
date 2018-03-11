@@ -116,8 +116,14 @@ const Actors = [
         strength: 30, hp: 40, danger: 8
     },
     {
+        name: 'thunderbird', char: 'G', base: 'animal',
+        attack: 7, defense: 7, damage: '2d8',
+        hp: 50, danger: 10, addComp: 'Flying', brain: 'SpellCaster',
+        spells: ['LightningArrow'], maxPP: 30, pp: 30
+    },
+    {
         name: 'manticore', char: 'M', base: 'animal',
-        attack: 7, defense: 7, damage: '1d10',
+        attack: 7, defense: 7, damage: '2d10',
         hp: 50, danger: 10, addComp: 'Flying'
     },
 
@@ -272,11 +278,16 @@ const Actors = [
     {
         name: 'Glacial golem', char: 'G', base: 'WinterBeingBase',
         attack: 4, defense: 4, protection: 3, damage: '2d4', speed: 90,
-        danger: 10, hp: 30
+        danger: 5, hp: 30
+    },
+    {
+        name: 'Ice minion', base: 'WinterBeingBase', char: 'm',
+        attack: 4, defense: 4, protection: 2, damage: '2d4',
+        hp: 20, danger: 5, type: 'demon'
     },
     {
         name: 'Mighty raven', base: 'WinterBeingBase', char: 'R',
-        attack: 4, defense: 8, damage: '2d4 + 2', range: 1, hp: 20,
+        attack: 4, defense: 10, damage: '2d4 + 2', range: 1, hp: 20,
         danger: 5, brain: 'Animal', addComp: 'Flying'
     },
     {
@@ -298,7 +309,7 @@ const Actors = [
     },
     {
         name: 'Stormrider', type: 'demon', char: '&',
-        attack: 6, defense: 6, protection: 3, damage: '3d3', range: 1,
+        attack: 6, defense: 6, protection: 3, damage: '4d3', range: 1,
         hp: 40, danger: 12, brain: demonBrain, base: 'WinterBeingBase',
         equip: ['Permaice short sword']
     },
@@ -414,7 +425,7 @@ const Actors = [
 
     // WILDLINGS
     {
-        name: 'wildling', char: 'I', className: 'cell-actor-wildling',
+        name: 'wildling', char: 'F', className: 'cell-actor-wildling',
         type: 'wildling', brain: defaultBrain,
         attack: 2, defense: 1, damage: '1d6', range: 1,
         hp: 15, danger: 3, enemies: ['player', 'human']
@@ -470,7 +481,8 @@ const Actors = [
     },
     {
         name: 'catfolk elite', base: 'CatfolkBase',
-        attack: 3, defense: 7, damage: '5d2', hp: 27, danger: 5
+        attack: 3, defense: 7, damage: '5d2', hp: 27, danger: 5,
+        addComp: 'CounterAttack'
     },
     {
         name: 'catfolk warlord', base: 'CatfolkBase',
@@ -510,11 +522,16 @@ const Actors = [
     },
     {
         name: 'wolfclan elite', base: 'WolfclanBase', danger: 8,
-        attack: 8, defense: 5, damage: '2d4+10', hp: 50
+        attack: 8, defense: 5, damage: '2d4+10', hp: 50,
+        addComp: 'CounterAttack'
     },
     {
-        name: 'wolfclan king', base: 'WolfclanBase', danger: 10,
+        name: 'wolfclan commander', base: 'WolfclanBase', danger: 10,
         attack: 10, defense: 5, damage: '4d4+10', hp: 60
+    },
+    {
+        name: 'wolfclan king', base: 'WolfclanBase', danger: 14,
+        attack: 10, defense: 10, damage: '5d4+10', hp: 75
     },
 
     // DOGFOLK
@@ -534,12 +551,25 @@ const Actors = [
         equip: [{name: 'Throwing axe', count: 7}]
     },
     {
+        name: 'dogfolk warrior', base: 'DogfolkBase', danger: 4,
+        attack: 3, defense: 3, damage: '7d1+3', hp: 20
+    },
+    {
         name: 'dogfolk skirmisher', base: 'DogfolkBase', danger: 5,
         attack: 4, defense: 3, damage: '9d1+3', hp: 25
     },
     {
         name: 'dogfolk elite', base: 'DogfolkBase', danger: 8,
-        attack: 6, defense: 6, damage: '8d2+4', hp: 35
+        attack: 6, defense: 6, damage: '8d2+4', hp: 35,
+        addComp: 'CounterAttack'
+    },
+    {
+        name: 'dogfolk commander', base: 'DogfolkBase', danger: 10,
+        attack: 8, defense: 8, damage: '8d3+4', hp: 50
+    },
+    {
+        name: 'dogfolk king', base: 'DogfolkBase', danger: 13,
+        attack: 12, defense: 8, damage: '8d3+8', hp: 65
     },
 
     // SPIRITS
