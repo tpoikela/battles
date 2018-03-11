@@ -275,7 +275,7 @@ function connectSubZones(subZones, sz1Arg, sz2Arg, l1, l2) {
     const b2Stairs = new Stairs(name);
     const sz2Levels = sz2.getLevels();
     if (l2 < sz2Levels.length) {
-        const cell = sz2Levels[l2].getFreeRandCell();
+        const cell = getFreeCellWithoutConnection(sz2Levels[l2]);
         sz2Levels[l2].addStairs(b2Stairs, cell.getX(), cell.getY());
         b2Stairs.setSrcLevel(sz2Levels[l2]);
         sz1.connectLevelToStairs(l1, b2Stairs);
