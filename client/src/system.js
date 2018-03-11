@@ -1372,7 +1372,33 @@ RG.System.TimeEffects = function(compTypes) {
         }
     };
 
+    const _applyFading = ent => {
+        const fadingComp = ent.get('Fading');
+        fadingComp.decrDuration();
+        console.log('Duration is now: ' + fadingComp.duration);
+        if (fadingComp.getDuration() <= 0) {
+            if (RG.isActor(ent)) {
+                console.log('Emitting actor killed');
+                const level = ent.getLevel();
+                if (level.removeActor(ent)) {
+                    RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: ent});
+                }
+                else {
+                    const json = ent.toJSON();
+                    RG.err('System.TimeEffects', '_applyFading',
+                        `Could not remove actor from level: ${json}`);
+                }
+            }
+            else {
+                RG.err('System.TimeEffects', '_applyFading',
+                    'Fading not handled for non-actors yet.');
+            }
+            ent.remove(fadingComp);
+        }
+    };
+
     _dtable.Poison = _applyPoison;
+    _dtable.Fading = _applyFading;
 
     /* Used for debug printing.*/
     this.printMatchedType = function(ent) {
