@@ -17,7 +17,9 @@ const updateSystems = RGTest.updateSystems;
 describe('System.Hunger', () => {
     it('Subtracts energy from actors with hunger', () => {
         const system = new RG.System.Hunger(['Hunger', 'Action']);
-        const hunger = new RG.Component.Hunger(2000);
+        const hunger = new RG.Component.Hunger();
+        hunger.setEnergy(2000);
+        hunger.setMaxEnergy(2000);
         const action = new RG.Component.Action();
         const player = RG.FACT.createPlayer('Player', {});
         player.add('Hunger', hunger);
