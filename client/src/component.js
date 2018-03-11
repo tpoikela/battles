@@ -145,64 +145,38 @@ class CombatMods extends Mixin.CombatAttr(RG.Component.Base) {
 RG.Component.CombatMods = CombatMods;
 
 /* This component stores entity stats like speed, agility etc.*/
-RG.Component.Stats = function() {
-    RG.Component.Base.call(this, 'Stats');
-    this._isUnique = true;
+RG.Component.Stats = UniqueDataComponent('Stats', {
+    accuracy: 5, agility: 5, strength: 5,
+    willpower: 5, perception: 5, magic: 5, speed: 100
+});
 
-    let _accuracy = 5;
-    let _agility = 5;
-    let _strength = 5;
-    let _willpower = 5;
-    let _perception = 5;
-    let _magic = 5;
-    let _speed = 100;
+RG.Component.Stats.prototype.clearValues = function() {
+    this.setAccuracy(0);
+    this.setAgility(0);
+    this.setStrength(0);
+    this.setWillpower(0);
+    this.setPerception(0);
+    this.setSpeed(0);
+    this.setMagic(0);
+};
 
-    this.clearValues = () => {
-        this.setAccuracy(0);
-        this.setAgility(0);
-        this.setStrength(0);
-        this.setWillpower(0);
-        this.setPerception(0);
-        this.setSpeed(0);
-        this.setMagic(0);
-    };
+/* Convenience function for increase a stat. */
+RG.Component.Stats.prototype.incrStat = function(statName, addValue) {
+    const setter = 'set' + statName.capitalize();
+    const getter = 'get' + statName.capitalize();
+    const currValue = this[getter]();
+    this[setter](currValue + addValue);
+};
 
-    /* These determine the chance of hitting. */
-    this.setAccuracy = accu => {_accuracy = accu;};
-    this.getAccuracy = () => _accuracy;
-    this.setAgility = agil => {_agility = agil;};
-    this.getAgility = () => _agility;
-    this.setStrength = str => {_strength = str;};
-    this.getStrength = () => _strength;
-    this.setWillpower = wp => {_willpower = wp;};
-    this.getWillpower = () => _willpower;
-    this.setPerception = per => {_perception = per;};
-    this.getPerception = () => _perception;
-    this.setMagic = per => {_magic = per;};
-    this.getMagic = () => _magic;
-
-    this.setSpeed = speed => {_speed = speed;};
-    this.getSpeed = () => _speed;
-
-    /* Convenience function for increase a stat. */
-    this.incrStat = (statName, addValue) => {
-        const setter = 'set' + statName.capitalize();
-        const getter = 'get' + statName.capitalize();
-        const currValue = this[getter]();
-        this[setter](currValue + addValue);
-    };
-
-    this.toString = () => {
-        let result = '';
-        RG.GET_STATS.forEach((getter, i) => {
-            const value = this[getter];
-            if (value !== 0) { // Show also neg. values
-                result += RG.STATS_ABBR[i] + ': ' + value;
-            }
-        });
-        return result;
-    };
-
+RG.Component.Stats.prototype.toString = function() {
+    let result = '';
+    RG.GET_STATS.forEach((getter, i) => {
+        const value = this[getter];
+        if (value !== 0) { // Show also neg. values
+            result += RG.STATS_ABBR[i] + ': ' + value;
+        }
+    });
+    return result;
 };
 
 RG.Component.Stats.prototype.clone = function() {
@@ -233,19 +207,6 @@ RG.Component.Stats.prototype.equals = function(rhs) {
     res = res && this.getMagic() === rhs.getMagic();
     return res;
 };
-
-RG.Component.Stats.prototype.toString = function() {
-    let txt = '';
-    if (this.getAccuracy()) {txt += 'Acc: ' + this.getAccuracy();}
-    if (this.getAgility()) {txt += ' ,Agi: ' + this.getAgility();}
-    if (this.getStrength()) {txt += ' ,Str: ' + this.getStrength();}
-    if (this.getWillpower()) {txt += ' ,Wil: ' + this.getWillpower();}
-    if (this.getPerception()) {txt += ' ,Per: ' + this.getPerception();}
-    if (this.getMagic()) {txt += ' ,Mag: ' + this.getMagic();}
-    return txt;
-};
-
-RG.extend2(RG.Component.Stats, RG.Component.Base);
 
 /* Stats modifier component. */
 RG.Component.StatsMods = function() {
@@ -927,7 +888,9 @@ RG.Component.Skills = function() {
 };
 RG.extend2(RG.Component.Skills, RG.Component.Base);
 
-RG.Component.SkillsExp = function() {
+RG.Component.SkillsExp = TransientDataComponent('SkillsExp',
+    {skill: '', points: 0});
+/* RG.Component.SkillsExp = function() {
     RG.Component.Base.call(this, 'SkillsExp');
 
     this._skill = '';
@@ -940,19 +903,10 @@ RG.Component.SkillsExp = function() {
 
 };
 RG.extend2(RG.Component.SkillsExp, RG.Component.Base);
+*/
 
 /* Component which models a shop transaction. */
-RG.Component.Transaction = function() {
-    RG.Component.Base.call(this, 'Transaction');
-
-    this._args = null;
-
-    this.setArgs = args => {this._args = args;};
-    this.getArgs = () => this._args;
-
-};
-RG.extend2(RG.Component.Transaction, RG.Component.Base);
-
+RG.Component.Transaction = TransientDataComponent('Transaction', {args: null});
 
 //--------------------------------------------
 // Battle-related components
@@ -978,7 +932,7 @@ RG.Component.BattleExp = function() {
 
     this.setData = data => {_data = data;};
     this.getData = () => _data;
-    this.updateData = data => {_data = Object.assign(_data, data);};
+    this.updateData = data => {_data = Object.assign(_data || {}, data);};
 
 };
 RG.extend2(RG.Component.BattleExp, RG.Component.Base);
