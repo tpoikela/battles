@@ -54,7 +54,11 @@ function findItem(level, query) {
     return found;
 }
 
-describe('Function: All small game features', function() {
+/* These tests check especially features which have been found buggy. It is
+ * easier to add test cases here, than to always write full test case with
+ * tedious setup for each bug. Many bugs require the full game + engine +
+ * systems to be reproduced. */
+describe('A full game', function() {
     this.timeout(60000);
 
     let game = null;
@@ -75,7 +79,7 @@ describe('Function: All small game features', function() {
         fromJSON = null;
     });
 
-    it('Devil is in the details. After a bug appears: Fix -> Verify ', () => {
+    it('it has lots of details to test', () => {
         let l1 = new RG.FACT.createLevel('arena', 20, 20);
         let p1 = new RG.Actor.Rogue('Player1');
         const p1Inv = p1.getInvEq().getInventory();
@@ -168,5 +172,32 @@ describe('Function: All small game features', function() {
         const price = newShop.getItemPriceForSelling(newDagger);
         expect(price).to.be.above(0);
 
+        testPotionDestroyAfterUse(newGame);
+
     });
 });
+
+/* DATE: Sun 11 Mar 2018 12:54:02 PM CET
+* Test for bug fix where Potion was not destroyed after player's use. */
+function testPotionDestroyAfterUse(game) {
+    const player = game.getPlayer();
+    const parser = RG.ObjectShell.getParser();
+
+    const potName = 'Potion of power';
+    const powerPotion = parser.createItem(potName);
+    powerPotion.count = 4;
+    player.getInvEq().addItem(powerPotion);
+
+    const targetCell = player.getCell();
+    const useCmd = RG.getUseCmd(powerPotion, targetCell);
+
+    const inv = player.getInvEq().getInventory();
+    game.update(useCmd);
+
+    const potion = inv.getItems().find(i => i.getName() === potName);
+    expect(potion).to.exist;
+    expect(potion.getName()).to.equal(potName);
+    expect(potion.count).to.equal(3);
+}
+
+
