@@ -532,7 +532,7 @@ class RGItemContainer extends ItemBase {
     addItem(item) {
         if (item.count <= 0) {
             const str = JSON.stringify(item);
-            RG.err('RGItemContainer', 'addItem',
+            RG.warn('RGItemContainer', 'addItem',
                 `Possible bug. Tried to add item with count 0: ${str}`);
         }
         if (item.getType() === 'container') {
