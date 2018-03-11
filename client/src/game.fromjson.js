@@ -528,7 +528,7 @@ RG.Game.FromJSON = function() {
             const level = this.restoreLevel(levelJson);
             allLevels.push(level);
             if (!levelJson.parent) {
-                console.log('>> Adding level ' + level.getID());
+                this.dbg('>> No parent. Adding directly ' + level.getID());
                 game.addLevel(level);
             }
         });
