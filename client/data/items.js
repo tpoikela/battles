@@ -767,6 +767,16 @@ const Items = [
     {
         name: 'Mythic spirit gem', base: 'SpiritGemBase',
         value: value('gem', 500), weight: 0.2
+    },
+
+    // SPECIAL ITEMS (not generated procedurally)
+    {
+        name: 'Ice arrow', noRandom: true,
+        type: 'ammo', char: '/', className: 'cell-item-ice'
+    },
+    {
+        name: 'Lightning arrow', noRandom: true,
+        type: 'ammo', char: '/', className: 'cell-item-lightning'
     }
 ];
 
