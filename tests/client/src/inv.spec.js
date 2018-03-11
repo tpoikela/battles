@@ -87,18 +87,26 @@ describe('RG.Inv.Equipment', () => {
         expect(actor.getShieldDefense()).to.equal(15);
     });
 
-    it.only('can have equipped items removed and re-equipped', () => {
+    it('can have equipped items removed and re-equipped', () => {
         const shield = new RG.Item.Armour('shield');
         shield.setArmourType('shield');
 
         const actor = new RG.Actor.Rogue('equipper');
         const invEq = actor.getInvEq();
-        invEq.addItem(shield);
-        invEq.equipItem(shield);
-        invEq.unequipItem('shield', 1, 0);
-
         const eq = invEq.getEquipment();
         const eqItems = eq.getItems();
+        invEq.addItem(shield);
+        invEq.equipItem(shield);
+        invEq.unequipItem('shield');
+        expect(eqItems).to.have.length(0);
+
+        expect(invEq.equipItem(shield)).to.be.true;
+        expect(eqItems).to.have.length(1);
+        invEq.unequipItem('shield', 1);
+        expect(eqItems).to.have.length(0);
+        invEq.equipItem(shield);
+        expect(eqItems).to.have.length(1);
+        invEq.unequipItem('shield', 1, 0);
         expect(eqItems).to.have.length(0);
 
         const arrows = new RG.Item.Ammo('arrow');
@@ -108,7 +116,9 @@ describe('RG.Inv.Equipment', () => {
         expect(eqItems).to.have.length(1);
         invEq.unequipItem('missile', 5, 0);
         expect(eqItems).to.have.length(1);
-        invEq.unequipItem('missile', 5, 0);
+        invEq.unequipItem('missile', 4, 0);
+        expect(eqItems).to.have.length(1);
+        invEq.unequipItem('missile', 1, 0);
         expect(eqItems).to.have.length(0);
     });
 
