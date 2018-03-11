@@ -1,8 +1,10 @@
 
 import React from 'react';
-import { shallow, render } from 'enzyme';
+import { shallow } from 'enzyme';
 import chaiEnzyme from 'chai-enzyme';
 import chai, { expect } from 'chai';
+import GameItems from '../../../client/jsx/game-items';
+import GameInventory from '../../../client/jsx/game-inventory';
 
 const RG = {};
 RG.Inv = require('../../../client/src/inv');
@@ -11,8 +13,6 @@ RG.Actor = require('../../../client/src/actor');
 RG.Factory = require('../../../client/src/factory');
 const RGTest = require('../../roguetest');
 
-import GameItems from '../../../client/jsx/game-items';
-import GameInventory from '../../../client/jsx/game-inventory';
 
 chai.use(chaiEnzyme());
 
