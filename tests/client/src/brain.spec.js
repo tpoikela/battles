@@ -80,6 +80,7 @@ describe('Brain.Player', () => {
         const potion = new RG.Item.Potion('healing potion');
         player.get('Health').decrHP(5);
         const hpOld = player.get('Health').getHP();
+        player.getInvEq().addItem(potion);
         brain.decideNextAction({cmd: 'use', item: potion,
             target: player.getCell()});
         const hpNew = player.get('Health').getHP();
