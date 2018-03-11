@@ -70,9 +70,7 @@ RGTest.getMeAWizard = function(conf = {}) {
     wizard._spellbook.addSpell(spell);
 
     // Adjust evaluators and casting probability
-    const goal = wizard.getBrain().getGoal();
-    goal.setBias({CastSpell: 2.0, AttackActor: 0.3});
-    goal.getEvaluator('CastSpell').setCastingProbability(1.0);
+    RGTest.ensureSpellCast(wizard);
 
     const spellPower = new RG.Component.SpellPower();
     spellPower.setPP(30);
@@ -80,6 +78,12 @@ RGTest.getMeAWizard = function(conf = {}) {
     wizard.add('SpellPower', spellPower);
     return wizard;
 
+};
+
+RGTest.ensureSpellCast = function(actor) {
+    const goal = actor.getBrain().getGoal();
+    goal.setBias({CastSpell: 2.0, AttackActor: 0.3});
+    goal.getEvaluator('CastSpell').setCastingProbability(1.0);
 };
 
 RGTest.checkActorXY = function(actor, x, y) {
