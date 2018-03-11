@@ -937,6 +937,14 @@ RG.getItemStat = (getFuncName, item) => {
 
 };
 
+RG.getExpRequired = (newLevel) => {
+    let reqExp = 0;
+    for (let i = 1; i <= newLevel; i++) {
+        reqExp += (i - 1) * 10;
+    }
+    return reqExp;
+};
+
 /* Given an actor, scales its attributes based on new experience level.*/
 RG.levelUpActor = (actor, newLevel) => {
     if (actor.has('Experience')) {
@@ -1068,6 +1076,23 @@ RG.printObjList = function(list, funcs, filterFunc) {
     });
 };
 
+// To create player commands
+RG.getUseCmd = function(item, target) {
+    return {cmd: 'use', item, target};
+};
+
+RG.getDropCmd = function(item, count) {
+    return {cmd: 'drop', item, count};
+};
+
+RG.getEquipCmd = function(item, count) {
+    return {cmd: 'equip', item, count};
+};
+
+RG.getUnequipCmd = function(name, slotNumber, count) {
+    return {cmd: 'unequip', slot: name, slotNumber, count};
+};
+
 // Regexp for parsing dice expressions '2d4' or '1d6 + 1' etc.
 RG.DIE_RE = /\s*(\d+)d(\d+)\s*(\+|-)?\s*(\d+)?/;
 
@@ -1121,6 +1146,28 @@ RG.destroyItemIfNeeded = item => {
             item.count -= 1;
         }
     }
+};
+
+RG.isActor = obj => {
+    if (obj && obj.getPropType) {
+        return obj.getPropType() === RG.TYPE_ACTOR;
+    }
+    return false;
+};
+
+/* Returns the use type (ie drink or dig or hit...) for a item/target pair. */
+RG.getItemUseType = (item, target) => {
+    const itemType = item.getType();
+    switch (itemType) {
+        case 'potion': {
+            if (RG.isActor(target)) {
+                return RG.USE.DRINK;
+            }
+            break;
+        }
+        default: return '';
+    }
+    return '';
 };
 
 /* Given gold weight, returns the equivalent in coins.*/
