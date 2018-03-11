@@ -612,7 +612,7 @@ const Items = [
     // Note: Each potion should define useItem method. See examples below.
     {
         name: 'PotionBase', className: 'cell-item-potion', char: '!',
-        type: 'potion', dontCreate: true, weight: 0.1
+        type: 'potion', dontCreate: true, weight: 0.1, addComp: 'OneShot'
     },
     {
         name: 'Healing potion', base: 'PotionBase',
