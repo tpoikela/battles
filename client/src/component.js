@@ -470,6 +470,9 @@ RG.Component.Communication = function() {
 };
 RG.extend2(RG.Component.Communication, RG.Component.Base);
 
+/* Added to entities which are destroyed after use. */
+RG.Component.OneShot = TagComponent('OneShot');
+
 /* Entities with physical components have weight and size.*/
 RG.Component.Physical = function() {
     RG.Component.Base.call(this, 'Physical');
@@ -1102,6 +1105,9 @@ RG.Component.UseStairs = TransientTagComponent('UseStairs');
 
 /* Added to entity when it's opening a door. */
 RG.Component.OpenDoor = TransientDataComponent('OpenDoor', {door: null});
+
+RG.Component.UseItem = TransientDataComponent('UseItem',
+    {item: null, useType: '', target: null});
 
 module.exports = RG.Component;
 
