@@ -134,6 +134,8 @@ const Engine = function(eventPool) {
         this.currPlayer = this.nextActor;
         this.nextActor = this.getNextActor();
 
+        this.updateLoopSystems(); // Loop systems once per player action
+
         // Next/act until player found, then go back waiting for key...
         while (!this.nextActor.isPlayer() && !this.isGameOver()) {
             const action = this.nextActor.nextAction();
@@ -148,8 +150,6 @@ const Engine = function(eventPool) {
                 break; // if errors suppressed (testing), breaks the loop
             }
         }
-
-        this.updateLoopSystems(); // Loop systems once per player action
 
     };
 
