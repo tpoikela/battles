@@ -13,7 +13,6 @@ RG.Factory = require('./factory');
  * are intricacies when
  * restoring an existing game, which have been added. Do NOT try to refactor
  * these into single class!
- *
  */
 export default class WorldFromJSON {
 
@@ -103,7 +102,9 @@ export default class WorldFromJSON {
         world.setConf(worldJSON);
         for (let i = 0; i < worldJSON.nAreas; i++) {
             const areaJSON = worldJSON.area[i];
-            this.printKeys('areaJSON keys', areaJSON);
+            if (debug.enabled) {
+                this.printKeys('areaJSON keys', areaJSON);
+            }
             const area = this.restoreAreaFromJSON(areaJSON);
 
             if (areaJSON.zonesCreated) { // Only during restore game
