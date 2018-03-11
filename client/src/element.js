@@ -401,6 +401,17 @@ class RGElementExploration extends Mixin.Locatable(RGElementBase) {
         this.msg = '';
     }
 
+    setData(data) {
+        this.data = data;
+    }
+
+    getData() {return this.data;}
+
+    hasData() {
+        if (this.data) {return true;}
+        return false;
+    }
+
     setExp(exp) {
         this.exp = exp;
     }
@@ -423,6 +434,9 @@ class RGElementExploration extends Mixin.Locatable(RGElementBase) {
             setMsg: this.getMsg(),
             setExp: this.getExp()
         };
+        if (this.hasData()) {
+            json.data = this.data;
+        }
         return json;
     }
 
