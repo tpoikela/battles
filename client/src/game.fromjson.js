@@ -419,8 +419,8 @@ RG.Game.FromJSON = function() {
             const expElem = new RG.Element.Exploration();
             expElem.setExp(elemObj.setExp);
             expElem.setMsg(elemObj.setMsg);
+            if (elemObj.data) {expElem.setData(elemObj.data);}
             return expElem;
-
         }
         return null;
     };
