@@ -1037,5 +1037,12 @@ RG.Component.GameInfo.prototype.addZoneType = function(type) {
     }
 };
 
+/* Fading component is added to entities which disappear eventually */
+RG.Component.Fading = DataComponent('Fading', {duration: 0});
+
+RG.Component.Fading.prototype.decrDuration = function() {
+    this.duration -= 1;
+};
+
 module.exports = RG.Component;
 
