@@ -78,7 +78,8 @@ const Engine = function(eventPool) {
     // Time-based systems are added to the scheduler directly
     this.timeSystems = {};
 
-    const effects = new RG.System.TimeEffects(['Expiration', 'Poison']);
+    const effects = new RG.System.TimeEffects(
+        ['Expiration', 'Poison', 'Fading']);
 
     this.updateSystems = function() {
         for (let i = 0; i < this.systemOrder.length; i++) {
