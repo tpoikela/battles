@@ -47,7 +47,7 @@ function addSkillsExp(att, skill, pts = 1) {
 function addCompToEntAfterHit(comp, ent) {
     const compClone = comp.clone();
 
-    if (comp.hasOwnProperty('duration')) {
+    if (compClone.hasOwnProperty('duration')) {
         const compDur = compClone.rollDuration();
         const expiration = new RG.Component.Expiration();
         expiration.addEffect(compClone, compDur);
