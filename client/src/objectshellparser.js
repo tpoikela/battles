@@ -235,6 +235,10 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
             this.addSpellbookAndSpells(shell, newObj);
         }
 
+        if (shell.hasOwnProperty('onHit')) {
+            this.addOnHitProperties(shell, newObj);
+        }
+
         // TODO map different props to function calls
         return newObj;
     };
@@ -251,6 +255,39 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
         const addOnHit = new RG.Component.AddOnHit();
         addOnHit.setComp(poisonComp);
         obj.add('AddOnHit', addOnHit);
+    };
+
+    this.addOnHitProperties = (shell, obj) => {
+        shell.onHit.forEach(onHit => {
+            if (onHit.addComp) {
+                const comp = this.createComponent(onHit.addComp);
+                onHit.func.forEach(func => {
+                    if (typeof comp[func.setter] === 'function') {
+                        comp[func.setter](func.value);
+                    }
+                    else {
+                        const str = comp.toJSON();
+                        RG.err('ObjectShellParser', 'addOnHitProperties',
+                            `Not a func: ${func.setter} in comp ${str}`);
+                    }
+                    const addedComp = comp;
+                    const addOnHit = new RG.Component.AddOnHit();
+
+                    if (onHit.duration) {
+                        const arr = RG.parseDieSpec(onHit.duration);
+                        const durDie = new RG.Die(arr[0], arr[1], arr[2]);
+                        const durComponent = new RG.Component.Duration();
+                        durComponent.setDurationDie(durDie);
+                        durComponent.setComp(addedComp);
+                        addOnHit.setComp(durComponent);
+                    }
+                    else {
+                        addOnHit.setComp(addedComp);
+                    }
+                    obj.add('AddOnHit', addOnHit);
+                });
+            }
+        });
     };
 
     this.addEnemies = (shell, obj) => {
