@@ -530,6 +530,76 @@ describe('Data query functions for objects', () => {
         expect(fireActor).not.to.have.component('Health');
         expect(fireActor).not.to.have.component('Experience');
     });
+
+    it('can create actors with addOnHit capabilites for any component', () => {
+        const wraith = parser.createActor('wraith');
+        expect(wraith).to.have.component('AddOnHit');
+
+        const addOnHit = wraith.get('AddOnHit');
+        const addedComp = addOnHit.getComp();
+        expect(addedComp.getType()).to.equal('Duration');
+
+        const statsComp = addedComp.getComp();
+        expect(statsComp.getType()).to.equal('StatsMods');
+        expect(statsComp.getStrength()).to.equal(-1);
+
+        const json = addOnHit.toJSON();
+
+        const fromJSON = new RG.Game.FromJSON();
+        const newAddOnHitComp = fromJSON.createComponent('AddOnHit', json);
+        expect(newAddOnHitComp.getType()).to.equal('AddOnHit');
+
+        const newDurComp = newAddOnHitComp.getComp();
+        expect(newDurComp.getType()).to.equal('Duration');
+        const newStatsComp = newDurComp.getComp();
+        expect(newStatsComp.getType()).to.equal('StatsMods');
+        expect(newStatsComp.getStrength()).to.equal(-1);
+
+        expect(newAddOnHitComp.toJSON()).to.deep.equal(json);
+
+        let newDurClone = newDurComp.clone();
+        expect(newDurClone.getID()).not.to.equal(newDurComp.getID());
+
+        const victim = new RG.Actor.Rogue('victim');
+        expect(victim).not.to.have.component('StatsMods');
+        console.log('First time adding newDurClone');
+        victim.add(newDurClone);
+        expect(victim).to.have.component('StatsMods');
+        expect(victim).to.have.component('Duration');
+        victim.remove('StatsMods');
+        expect(victim).to.have.component('Duration');
+        victim.remove('Duration');
+        expect(victim).not.to.have.component('StatsMods');
+
+        /* victim.add(newDurClone);
+        expect(victim).to.have.component('StatsMods');
+        victim.remove('Duration');
+        expect(victim).not.to.have.component('StatsMods');
+        */
+        newDurClone = newDurComp.clone();
+        console.log('Second time adding newDurClone');
+        victim.add(newDurClone);
+        let victimJSON = victim.toJSON();
+        let newVictim = fromJSON.createActor(victimJSON);
+        fromJSON.restoreEntityData();
+
+        expect(newVictim).to.have.component('Duration');
+        expect(newVictim).to.have.component('StatsMods');
+        expect(newVictim.getList('Duration')).to.have.length(1);
+        expect(newVictim.getList('StatsMods')).to.have.length(1);
+
+        newDurClone = newDurComp.clone();
+        console.log('Third time adding newDurClone');
+        newVictim.add(newDurClone);
+        expect(newVictim.getList('Duration')).to.have.length(2);
+        expect(newVictim.getList('StatsMods')).to.have.length(2);
+
+        victimJSON = newVictim.toJSON();
+        newVictim = fromJSON.createActor(victimJSON);
+        fromJSON.restoreEntityData();
+        expect(newVictim.getList('Duration')).to.have.length(2);
+        expect(newVictim.getList('StatsMods')).to.have.length(2);
+    });
 });
 
 describe('ObjectShell.Parser error handling', () => {
