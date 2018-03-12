@@ -89,19 +89,19 @@ RG.Effects = {
                 if (actor) {
                 const name = this.useArgs.name.capitalize();
                     if (RG.Component.hasOwnProperty(name)) {
-                        const comp = new RG.Component[name]();
+                        const compToAdd = new RG.Component[name]();
 
                         const arr = RG.parseDieSpec(this.useArgs.duration);
                         const durDie = new RG.Die(arr[0], arr[1], arr[2]);
                         const dur = durDie.roll();
 
                         const expiration = new RG.Component.Expiration();
-                        expiration.addEffect(comp, dur);
+                        expiration.addEffect(compToAdd, dur);
 
-                        actor.add(comp.getType(), comp);
-                        actor.add('Expiration', expiration);
+                        actor.add(compToAdd);
+                        actor.add(expiration);
 
-                        RG.destroyItemIfNeeded(this);
+                        createUseItemComp(this, actor);
                         return true;
                     }
                     else {
@@ -131,7 +131,6 @@ RG.Effects = {
                         const numValue = valueToNumber(value);
                         comp[this.useArgs.set](currValue + numValue);
                         createUseItemComp(this, actor);
-                        // RG.destroyItemIfNeeded(this);
                     }
                 }
                 return false;
@@ -157,7 +156,7 @@ RG.Effects = {
                     else {
                         RG.gameMsg(this.getName() + ' was wasted');
                     }
-                    RG.destroyItemIfNeeded(this);
+                    createUseItemComp(this, actor);
                     return true;
                 }
                 return false;
@@ -199,7 +198,7 @@ RG.Effects = {
                     const pt = die.roll();
                     if (actor.has('Health')) {
                         actor.get('Health').addHP(pt);
-                        RG.destroyItemIfNeeded(this);
+                        createUseItemComp(this, actor);
                         RG.gameMsg(actor.getName() +
                             ' drinks ' + this.getName());
                         return true;
@@ -244,7 +243,7 @@ RG.Effects = {
                     poisonComp.setProb(this.useArgs.prob);
                     actor.add('Poison', poisonComp);
                     actor.add('Expiration', expiration);
-                    RG.destroyItemIfNeeded(this);
+                    createUseItemComp(this, actor);
                     return true;
                 }
                 return false;
@@ -273,7 +272,7 @@ RG.Effects = {
 
                     actor.add('Stun', stunComp);
                     actor.add('Expiration', expiration);
-                    RG.destroyItemIfNeeded(this);
+                    createUseItemComp(this, actor);
                     RG.gameMsg(actor.getName() +
                         ' is stunned by ' + this.getName());
                     return true;
@@ -295,9 +294,9 @@ RG.Effects = {
                     const stats = actor.get('Stats');
                     const currVal = stats[getFunc]();
                     stats[setFunc](currVal + value);
+                    createUseItemComp(this, actor);
                 }
                 return false;
-
             }
         },
 
