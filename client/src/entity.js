@@ -46,17 +46,23 @@ export default class Entity {
         RG.POOL.emitEvent(compName, {entity: this, add: true});
     }
 
-    has(name) {
-        const compList = this.getList(name);
+    /* Returns true if entity has given component. Lookup by ID is much faster
+     * than with name. */
+    has(nameOrId) {
+        if (this._comps.hasOwnProperty(nameOrId)) {
+            return true;
+
+        }
+        const compList = this.getList(nameOrId);
         return compList.length > 0;
     }
 
     /* Removes given component type or component. If string is given, removes
      * the first matching, otherwise removes by comp ID. 
      */
-    remove(nameOrComp) {
-        if (typeof nameOrComp === 'object') {
-            const id = nameOrComp.getID();
+    remove(nameOrCompOrId) {
+        if (typeof nameOrCompOrId === 'object') {
+            const id = nameOrCompOrId.getID();
             if (this._comps.hasOwnProperty(id)) {
                 const comp = this._comps[id];
                 const compName = comp.getType();
@@ -65,14 +71,14 @@ export default class Entity {
                 RG.POOL.emitEvent(compName, {entity: this, remove: true});
             }
         }
-        else if (Number.isInteger(nameOrComp)) {
-            const compID = nameOrComp;
+        else if (Number.isInteger(nameOrCompOrId)) {
+            const compID = nameOrCompOrId;
             if (this._comps[compID]) {
                 this.remove(this._comps[compID]);
             }
         }
         else {
-            const compList = this.getList(nameOrComp);
+            const compList = this.getList(nameOrCompOrId);
             if (compList.length > 0) {
                 this.remove(compList[0]);
             }
