@@ -676,9 +676,11 @@ RG.Game.Save = function() {
         let dbString = _storageRef.getItem(_playerList);
         let dbObj = JSON.parse(dbString);
         if (dbObj === null) {dbObj = {};}
+        const expComp = Object.values(obj.components).find(
+            c => c.setType === 'Experience');
         dbObj[name] = {
             name,
-            expLevel: obj.components.Experience.setExpLevel,
+            expLevel: expComp.setExpLevel,
             dungeonLevel: obj.dungeonLevel
         };
         // Capture also game config settings (cols,rows,loot etc)
