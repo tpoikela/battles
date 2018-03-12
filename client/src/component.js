@@ -179,23 +179,6 @@ RG.Component.Stats.prototype.toString = function() {
     return result;
 };
 
-RG.Component.Stats.prototype.clone = function() {
-    const comp = new RG.Component.Stats();
-    comp.copy(this);
-    return comp;
-};
-
-RG.Component.Stats.prototype.copy = function(rhs) {
-    RG.Component.Base.prototype.copy.call(this, rhs);
-    this.setAccuracy(rhs.getAccuracy());
-    this.setAgility(rhs.getAgility());
-    this.setStrength(rhs.getStrength());
-    this.setWillpower(rhs.getWillpower());
-    this.setSpeed(rhs.getSpeed());
-    this.setPerception(rhs.getPerception());
-    this.setMagic(rhs.getMagic());
-};
-
 RG.Component.Stats.prototype.equals = function(rhs) {
     let res = this.getType() === rhs.getType();
     res = res && this.getAccuracy() === rhs.getAccuracy();
@@ -464,6 +447,7 @@ RG.Component.Stun = function() {
     this.toJSON = () => {
         const obj = RG.Component.Base.prototype.toJSON.call(this);
         obj.setSource = RG.getObjRef('entity', _src);
+        return obj;
     };
 
 };
@@ -481,6 +465,7 @@ RG.Component.Paralysis = function() {
     this.toJSON = () => {
         const obj = RG.Component.Base.prototype.toJSON.call(this);
         obj.setSource = RG.getObjRef('entity', _src);
+        return obj;
     };
 
 };
@@ -512,6 +497,7 @@ RG.Component.MindControl = function() {
     this.toJSON = () => {
         const obj = RG.Component.Base.prototype.toJSON.call(this);
         obj.setSource = RG.getObjRef('entity', _src);
+        return obj;
     };
 };
 RG.extend2(RG.Component.MindControl, RG.Component.Base);
@@ -812,6 +798,8 @@ RG.Component.SpiritBind = TransientDataComponent('SpiritBind',
 RG.Component.GemBound = UniqueDataComponent('GemBound', {gem: null});
 RG.Component.GemBound.prototype.toJSON = function() {
     return {
+        setID: this.getID(),
+        setType: 'GemBound',
         setGem: {
             createFunc: 'createItem',
             value: this.getGem().toJSON()
@@ -859,6 +847,8 @@ RG.Component.Skills = function() {
 
     this.toJSON = () => {
         return {
+            setID: this.getID(),
+            setType: this.getType(),
             setSkills: this._skills
         };
     };
@@ -965,15 +955,18 @@ RG.extend2(RG.Component.Event, RG.Component.Base);
 
 RG.Component.AddOnHit = function() {
     RG.Component.Base.call(this, 'AddOnHit');
-
     let _comp = null;
 
     this.setComp = comp => {_comp = comp;};
     this.getComp = () => _comp;
 
     this.toJSON = () => {
-        const json = _comp.toJSON();
-        return {setComp: {createComp: json}};
+        const jsonComp = _comp.toJSON();
+        return {
+            setID: this.getID(),
+            setType: this.getType(),
+            setComp: {createComp: jsonComp}
+        };
     };
 };
 RG.extend2(RG.Component.AddOnHit, RG.Component.Base);
@@ -1043,6 +1036,75 @@ RG.Component.Fading = DataComponent('Fading', {duration: 0});
 RG.Component.Fading.prototype.decrDuration = function() {
     this.duration -= 1;
 };
+
+/* This component can be added to any other component to make that component
+ * stay for a specific duration only. */
+class Duration extends Mixin.DurationRoll(RG.Component.Base) {
+
+    constructor() {
+        super('Duration');
+        this._comp = null;
+        // Behaves differently when on actor
+        this._addedOnActor = false;
+    }
+
+    setComp(comp) {
+        this._comp = comp;
+        if (!this._addedOnActor) {
+            const _addCb = () => {
+                this.getEntity().add(this._comp);
+                this._comp = this._comp.getID();
+                this._addedOnActor = true;
+                this.removeCallbacks('onAdd');
+            };
+            this.addCallback('onAdd', _addCb);
+        }
+
+        const _removeCb = () => {
+            // Comp might've been removed due to cure
+            if (this.getEntity().has(this._comp)) {
+                this.getEntity().remove(this._comp);
+            }
+        };
+
+        this.addCallback('onRemove', _removeCb);
+    }
+
+    getComp() {return this._comp;}
+
+    copy(rhs) {
+        super.copy(rhs);
+        const comp = rhs.getComp().clone();
+        this.setComp(comp);
+    }
+
+    clone() {
+        const newComp = super.clone();
+        newComp.copy(this);
+        return newComp;
+    }
+
+    setAddedOnActor(added) {
+        this._addedOnActor = added;
+    }
+
+    getAddedOnActor() {return this._addedOnActor;}
+
+    toJSON() {
+        const json = super.toJSON();
+        if (!this._addedOnActor) {
+            const jsonComp = this._comp.toJSON();
+            return Object.assign(json, {setComp: {createComp: jsonComp}});
+        }
+        else {
+            return Object.assign(json, {setAddedOnActor: true,
+                setComp: this._comp});
+        }
+    }
+
+
+}
+RG.Component.Duration = Duration;
 
 module.exports = RG.Component;
 
