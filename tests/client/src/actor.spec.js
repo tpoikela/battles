@@ -36,7 +36,7 @@ describe('Rogue.Actor', () => {
         const actor = new Actor.Rogue('player hero');
         actor.setIsPlayer(true);
 
-        const hunger = new RG.Component.Hunger(100);
+        const hunger = new RG.Component.Hunger();
         actor.add('Hunger', hunger);
 
         const actorJSON = actor.toJSON();
@@ -44,7 +44,10 @@ describe('Rogue.Actor', () => {
 
         expect(actorJSON).to.have.property('components');
 
-        expect(actorJSON.components.Hunger).to.exist;
+        const hungerJSON = Object.values(actorJSON.components).find(
+            c => c.setType === 'Hunger'
+        );
+        expect(hungerJSON).to.exist;
 
     });
 
