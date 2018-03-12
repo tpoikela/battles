@@ -227,6 +227,10 @@ const Actors = [
     {
         name: 'wraith', char: 'Z', base: 'UndeadBase',
         attack: 5, defense: 5, damage: '2d5 + 2', danger: 6,
+        onHit: [
+            {addComp: 'StatsMods', func: [{setter: 'setStrength', value: -1}],
+                duration: '1d10'}
+        ],
         // Drain strength (temporary)
         hp: 25
     },
