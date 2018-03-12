@@ -146,10 +146,10 @@ RG.Component.TransientDataComponent = TransientDataComponent;
 RG.Component.compsToJSON = ent => {
     const components = {};
     const thisComps = ent.getComponents();
-    Object.keys(thisComps).forEach(name => {
-        const compJson = thisComps[name].toJSON();
+    Object.keys(thisComps).forEach(id => {
+        const compJson = thisComps[id].toJSON();
         if (compJson) {
-            components[thisComps[name].getType()] = compJson;
+            components[id] = compJson;
         }
     });
     return components;
@@ -215,13 +215,25 @@ RG.Component.Base.prototype.addCallback = function(name, cb) {
     }
 };
 
+/* Removes all callbacks of given type. */
+RG.Component.Base.prototype.removeCallbacks = function(name) {
+    if (name === 'onAdd') {
+        this._onAddCallbacks = [];
+    }
+    else if (name === 'onRemove') {
+        this._onRemoveCallbacks = [];
+    }
+};
+
 /* Works correctly for any component having only simple getters and setters. For
  * more complex components, roll out a separate clone function. */
 RG.Component.Base.prototype.clone = function() {
     const compType = this.getType();
     if (RG.Component.hasOwnProperty(compType)) {
         const comp = new RG.Component[compType]();
+        // const newID = comp.getID();
         comp.copy(this);
+        // comp.setID(newID);
         return comp;
     }
     else {
@@ -237,7 +249,7 @@ RG.Component.Base.prototype.copy = function(rhs) {
     for (const p in this) {
         if (/^get/.test(p)) {
             const getter = p;
-            if (getter !== 'getEntity') {
+            if (getter !== 'getEntity' && getter !== 'getID') {
                 const setter = getter.replace('get', 'set');
                 if (typeof rhs[getter] === 'function') {
                     if (typeof this[setter] === 'function') {
@@ -266,7 +278,7 @@ RG.Component.Base.prototype.toJSON = function() {
     for (const p in this) {
         if (/^get/.test(p)) {
             const getter = p;
-            if (getter !== 'getEntity' && getter !== 'getType') {
+            if (getter !== 'getEntity') {
                 if (typeof this[getter] === 'function') {
                     const setter = getter.replace('get', 'set');
                     if (typeof this[setter] === 'function') {
