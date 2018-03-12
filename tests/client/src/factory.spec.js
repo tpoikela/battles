@@ -18,14 +18,14 @@ describe('RG.Factory.ItemRandomizer', () => {
         expect(weightBefore !== weightAfter).to.equal(true);
     });
 
-    it('can add Stats components to items', () => {
+    /* it('can add Stats components to items', () => {
 
-    });
+    });*/
 });
 
 const MockParser = function() {
     this.createRandomItem = () => new RG.Item.Food('testFood');
-    this.createActor = () => new RG.Actor.Rogue('shopkeeper');
+    this.createActor = name => new RG.Actor.Rogue(name);
 };
 
 describe('RG.Factory.Base', () => {
@@ -44,9 +44,13 @@ describe('RG.Factory.Base', () => {
         const townLevel = factory.createLevel('town', 80, 40, conf);
         const actors = townLevel.getActors();
         const keeper = actors[0];
-
-        expect(actors.length).to.equal(2);
         expect(keeper.getName()).to.equal('shopkeeper');
+
+        const keepers = actors.filter(a => a.getName() === 'shopkeeper');
+        expect(keepers).to.have.length(2);
+        if (actors.length > 2) {
+            expect(actors[2].getName()).to.equal('trainer');
+        }
     });
 });
 
