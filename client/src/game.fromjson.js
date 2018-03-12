@@ -99,10 +99,14 @@ RG.Game.FromJSON = function() {
 
     /* Adds given components into Entity object. */
     this.addCompsToEntity = (ent, comps) => {
-        for (const name in comps) {
-            if (name) {
-                const compJSON = comps[name];
-                // const newCompObj = new RG.Component[name]();
+        for (const id in comps) {
+            if (id) {
+                const compJSON = comps[id];
+                const name = compJSON.setType;
+                if (!name) {
+                    RG.err('XXX', 'YYY', JSON.stringify(compJSON));
+
+                }
                 const newCompObj = this.createComponent(name, compJSON);
                 ent.add(name, newCompObj);
             }
