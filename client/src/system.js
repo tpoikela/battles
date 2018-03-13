@@ -6,26 +6,26 @@ RG.Geometry = require('./geometry');
 const debug = require('debug')('bitn:System');
 
 RG.SYS = {};
-RG.SYS.ANIMATION = Symbol();
-RG.SYS.AREA_EFFECTS = Symbol();
-RG.SYS.ATTACK = Symbol();
-RG.SYS.BATTLE = Symbol();
-RG.SYS.BASE_ACTION = Symbol();
-RG.SYS.CHAT = Symbol();
-RG.SYS.COMMUNICATION = Symbol();
-RG.SYS.DAMAGE = Symbol();
-RG.SYS.DISABILITY = Symbol();
-RG.SYS.EVENTS = Symbol();
-RG.SYS.EXP_POINTS = Symbol();
-RG.SYS.HUNGER = Symbol();
-RG.SYS.MISSILE = Symbol();
-RG.SYS.MOVEMENT = Symbol();
-RG.SYS.SHOP = Symbol();
-RG.SYS.SKILLS = Symbol();
-RG.SYS.SPELL_CAST = Symbol();
-RG.SYS.SPELL_EFFECT = Symbol();
-RG.SYS.SPIRIT = Symbol();
-RG.SYS.TIME_EFFECTS = Symbol();
+RG.SYS.ANIMATION = Symbol('ANIMATION');
+RG.SYS.AREA_EFFECTS = Symbol('AREA_EFFECTS');
+RG.SYS.ATTACK = Symbol('ATTACK');
+RG.SYS.BATTLE = Symbol('BATTLE');
+RG.SYS.BASE_ACTION = Symbol('BASE_ACTION');
+RG.SYS.CHAT = Symbol('CHAT');
+RG.SYS.COMMUNICATION = Symbol('COMMUNICATION');
+RG.SYS.DAMAGE = Symbol('DAMAGE');
+RG.SYS.DISABILITY = Symbol('DISABILITY');
+RG.SYS.EVENTS = Symbol('EVENTS');
+RG.SYS.EXP_POINTS = Symbol('EXP_POINTS');
+RG.SYS.HUNGER = Symbol('HUNGER');
+RG.SYS.MISSILE = Symbol('MISSILE');
+RG.SYS.MOVEMENT = Symbol('MOVEMENT');
+RG.SYS.SHOP = Symbol('SHOP');
+RG.SYS.SKILLS = Symbol('SKILLS');
+RG.SYS.SPELL_CAST = Symbol('SPELL_CAST');
+RG.SYS.SPELL_EFFECT = Symbol('SPELL_EFFECT');
+RG.SYS.SPIRIT = Symbol('SPIRIT');
+RG.SYS.TIME_EFFECTS = Symbol('TIME_EFFECTS');
 
 const NO_DAMAGE_SRC = null;
 
@@ -80,6 +80,8 @@ RG.System.Base = function(type, compTypes) {
     };
 
     this.removeEntity = function(entity) {
+        console.log(this.type.toString()
+            + ' removing entity ' + entity.getID());
         delete this.entities[entity.getID()];
     };
 
@@ -92,6 +94,7 @@ RG.System.Base = function(type, compTypes) {
         else if (obj.hasOwnProperty('remove')) {
             // Must check if any needed comps are still present, before removing
             // the entity
+            console.log('Checking comp types for evt ' + evtName);
             if (!this.hasCompTypes(obj.entity)) {
                 this.removeEntity(obj.entity);
             }
@@ -644,6 +647,11 @@ RG.System.Damage = function(compTypes) {
             RG.gameDanger({cell, msg});
             return dmg;
         }
+        else if (dmgType === RG.DMG.COLD) {
+            const msg = `${ent.getName()} is extremely hypothermic`;
+            RG.gameInfo({cell, msg});
+            return dmg;
+        }
         else if (this.bypassProtection(ent, src)) {
             const msg = `${src.getName()} hits ${ent.getName()} through armor.`;
             RG.gameDanger({cell, msg});
@@ -742,6 +750,7 @@ RG.System.Damage = function(compTypes) {
             const cssClass = RG.getCssClass(RG.TYPE_ACTOR, nameKilled);
             RG.addCellStyle(RG.TYPE_ITEM, corpse.getName(), cssClass);
             level.addItem(corpse, x, y);
+
         }
         else {
             RG.err('System.Damage', 'killActor', "Couldn't remove actor");
@@ -1315,6 +1324,7 @@ RG.System.TimeEffects = function(compTypes) {
         for (const e in this.entities) {
             if (!e) {continue;}
             const ent = this.entities[e];
+            console.log('Entity ' + ent.getID() + ' in TimeEffects');
 
             // Process timed effects like poison etc.
             for (let i = 0; i < compTypes.length; i++) {
@@ -1409,9 +1419,22 @@ RG.System.TimeEffects = function(compTypes) {
         ent.removeAll('Heat');
     };
 
+    // TODO
+    const _applyColdness = ent => {
+        if (ent.has('BodyTemp')) {
+            const tempComp = ent.get('BodyTemp');
+            tempComp.decr();
+            if (tempComp.isFrozen()) {
+                const dmgComp = new RG.Component.Damage(1, RG.DMG.COLD);
+                ent.add(dmgComp);
+            }
+        }
+    };
+
     _dtable.Poison = _applyPoison;
     _dtable.Fading = _applyFading;
     _dtable.Heat = _applyHeat;
+    _dtable.Coldness = _applyColdness;
 
     /* Used for debug printing.*/
     this.printMatchedType = function(ent) {
@@ -2223,23 +2246,23 @@ RG.System.AreaEffects = function(compTypes) {
                 const dmgComp = new RG.Component.Damage(1, RG.DMG.FIRE);
                 dmgComp.setSource(NO_DAMAGE_SRC);
                 ent.add(dmgComp);
-                this._createHeatComps(ent);
             });
         }
+        this._createHeatComps(ent);
         ent.remove('Fire');
     };
 
-    this._createHeatComp = function(ent) {
+    this._createHeatComps = function(ent) {
         const map = ent.getLevel().getMap();
         const cell = ent.getCell();
         const [x, y] = cell.getXY();
         const heatBox = RG.Geometry.getBoxAround(x, y, this.heatRange);
         heatBox.forEach(xy => {
-            const cell = map.getCellXY(xy[0], xy[1]);
+            const cell = map.getCell(xy[0], xy[1]);
             if (cell.hasActors()) {
                 const actors = cell.getActors();
                 actors.forEach(actor => {
-                    actor.add(RG.Component.Heat());
+                    actor.add(new RG.Component.Heat());
                 });
             }
         });
