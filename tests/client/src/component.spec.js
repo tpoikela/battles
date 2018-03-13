@@ -161,3 +161,33 @@ describe('Component.Combat', () => {
         expect(player.get('Combat').rollDamage() <= 4).to.equal(true);
     });
 });
+
+describe('Component.Physical', () => {
+
+    it('stores size and weight of an entity', () => {
+        const phyComp = new RG.Component.Physical();
+        phyComp.setWeight(20);
+        const phyComp2 = new RG.Component.Physical();
+        phyComp2.setWeight(10);
+
+        expect(phyComp.getWeight()).to.equal(20);
+        expect(phyComp2.getWeight()).to.equal(10);
+    });
+
+});
+
+describe('Component.Expiration', () => {
+    it('it manages other components inside entity', () => {
+        const expComp = new RG.Component.Expiration();
+        expComp.addEffect(new RG.Component.StatsMods(), 10);
+
+        const expComp2 = new RG.Component.Expiration();
+        expComp2.addEffect(new RG.Component.StatsMods(), 10);
+
+        const duration = expComp.getDuration();
+        const duration2 = expComp2.getDuration();
+        expect(Object.values(duration)).to.have.length(1);
+        expect(Object.values(duration2)).to.have.length(1);
+
+    });
+});
