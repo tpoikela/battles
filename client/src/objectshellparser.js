@@ -261,31 +261,39 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
         shell.onHit.forEach(onHit => {
             if (onHit.addComp) {
                 const comp = this.createComponent(onHit.addComp);
-                onHit.func.forEach(func => {
-                    if (typeof comp[func.setter] === 'function') {
-                        comp[func.setter](func.value);
-                    }
-                    else {
-                        const str = comp.toJSON();
-                        RG.err('ObjectShellParser', 'addOnHitProperties',
-                            `Not a func: ${func.setter} in comp ${str}`);
-                    }
-                    const addedComp = comp;
-                    const addOnHit = new RG.Component.AddOnHit();
+                if (comp.setSource) {comp.setSource(obj);}
 
-                    if (onHit.duration) {
-                        const arr = RG.parseDieSpec(onHit.duration);
-                        const durDie = new RG.Die(arr[0], arr[1], arr[2]);
-                        const durComponent = new RG.Component.Duration();
-                        durComponent.setDurationDie(durDie);
-                        durComponent.setComp(addedComp);
-                        addOnHit.setComp(durComponent);
-                    }
-                    else {
-                        addOnHit.setComp(addedComp);
-                    }
-                    obj.add('AddOnHit', addOnHit);
-                });
+                // Set the values of added component using functions provided in
+                // func array
+                if (Array.isArray(onHit.func)) {
+                    onHit.func.forEach(func => {
+                        if (typeof comp[func.setter] === 'function') {
+                            comp[func.setter](func.value);
+                        }
+                        else {
+                            const str = comp.toJSON();
+                            RG.err('ObjectShellParser', 'addOnHitProperties',
+                                `Not a func: ${func.setter} in comp ${str}`);
+                        }
+                    });
+                }
+
+                // Then create the AddOnHit component and wrap the original
+                // component into Duration to make it transient
+                const addedComp = comp;
+                const addOnHit = new RG.Component.AddOnHit();
+                if (onHit.duration) {
+                    const arr = RG.parseDieSpec(onHit.duration);
+                    const durDie = new RG.Die(arr[0], arr[1], arr[2]);
+                    const durComponent = new RG.Component.Duration();
+                    durComponent.setDurationDie(durDie);
+                    durComponent.setComp(addedComp);
+                    addOnHit.setComp(durComponent);
+                }
+                else {
+                    addOnHit.setComp(addedComp);
+                }
+                obj.add('AddOnHit', addOnHit);
             }
         });
     };
