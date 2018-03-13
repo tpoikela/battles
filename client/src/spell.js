@@ -334,7 +334,6 @@ RG.extend2(RG.Spell.IcyPrison, RG.Spell.Base);
 /* A spell to summon an ice minion to fight for the caster. */
 RG.Spell.SummonIceMinion = function() {
     RG.Spell.Base.call(this, 'Summon ice minion', 14);
-
     this.summonType = 'Ice minion';
 
     this.cast = function(args) {
@@ -368,6 +367,26 @@ RG.Spell.SummonIceMinion = function() {
     this.getSelectionObject = function(actor) {
         const msg = 'Select a free cell for summoning:';
         return RG.Spell.getSelectionObjectDir(this, actor, msg);
+    };
+
+    this.aiShouldCastSpell = (args, cb) => {
+        const {actor, enemy} = args;
+        const friends = RG.Brain.getFriendCellsAround(actor);
+        if (friends === 0) {
+            if (typeof cb === 'function') {
+                const summonCell = actor.getBrain().getRandAdjacentFreeCell();
+                if (summonCell) {
+                    args.dir = RG.dXdY(summonCell, actor);
+                    cb(actor, args);
+                    return true;
+                }
+            }
+            else {
+                RG.err('Spell.SummonIceMinion', 'aiShouldCastSpell',
+                    `No callback function given! enemy: ${enemy}`);
+            }
+        }
+        return false;
     };
 
 };
