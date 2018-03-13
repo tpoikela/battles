@@ -125,7 +125,7 @@ export default class GameEditor extends Component {
       levelList: [],
       levelIndex: 0,
 
-      showAnimations: false,
+      showAnimations: true,
       frameCount: 0,
       fps: 0,
       simulationStarted: false,
@@ -148,6 +148,7 @@ export default class GameEditor extends Component {
     level.editorID = state.idCount++;
     state.level = level;
     state.levelList.push(level);
+    window.LEVEL = level;
 
     this.state = state;
 
@@ -406,7 +407,7 @@ export default class GameEditor extends Component {
     levelList.push(level);
     // Show the newly added level immediately
     const levelIndex = levelList.length - 1;
-    this.setState({level: level, levelList, levelIndex});
+    this.setShownLevel({level: level, levelList, levelIndex});
   }
 
   addZoneToEditor(type, feat) {
@@ -420,7 +421,7 @@ export default class GameEditor extends Component {
     const zoneConf = this.state.zoneConf;
     zoneConf.shown = type;
     const levelIndex = this.state.levelIndex + 1;
-    this.setState({level: levels[0], levelList, levelIndex, zoneConf});
+    this.setShownLevel({level: levels[0], levelList, levelIndex, zoneConf});
   }
 
   /* Inserts a sub-map into the current level. This overwrites all
@@ -1003,7 +1004,7 @@ export default class GameEditor extends Component {
     else {
       // Animation is finished
       this.setState({render: true, animation: null});
-      this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
+      // this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
     }
   }
 
@@ -1012,6 +1013,7 @@ export default class GameEditor extends Component {
     if (!this.state.simulationStarted) {
 
       this.game = new RG.Game.Main();
+      window.GAME = this.game;
 
       const fromJSON = new RG.Game.FromJSON();
       const json = this.state.level.toJSON();
@@ -1052,7 +1054,7 @@ export default class GameEditor extends Component {
     for (let i = 0; i < this.state.turnsPerSec; i++) {
       this.game.simulateGame();
     }
-    this.setState({level: this.game.getLevels()[0]});
+    this.setShownLevel({level: this.game.getLevels()[0]});
   }
 
   playSimulation() {
@@ -1110,16 +1112,16 @@ export default class GameEditor extends Component {
         this.frameID = null;
       }
       this.game = null;
+      window.GAME = null;
       delete this.game;
-      const shownLevel = this.getLevel();
-      this.setState({level: shownLevel,
+      this.setShownLevel({level: this.getLevel(),
         simulationStarted: false, simulationPaused: false});
     }
   }
 
   /* Called when a level is selected from level list. */
   selectLevel(level, i) {
-    this.setState({level: level, levelIndex: i});
+    this.setShownLevel({level: level, levelIndex: i});
   }
 
   /* When delete X button is pressed, deletes the level. */
@@ -1136,11 +1138,16 @@ export default class GameEditor extends Component {
     levelList.splice(i, 1);
     const shownLevel = levelList.length > 0 ? levelList[0] : null;
     if (shownLevel === null) {
-      this.setState({level: null, levelIndex: -1, levelList});
+      this.setShownLevel({level: null, levelIndex: -1, levelList});
     }
     else {
-      this.setState({level: shownLevel, levelIndex: 0, levelList});
+      this.setShownLevel({level: shownLevel, levelIndex: 0, levelList});
     }
+  }
+
+  setShownLevel(args) {
+    window.LEVEL = args.level;
+    this.setState(args);
   }
 
   //--------------------------------------------------------------
