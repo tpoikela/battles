@@ -505,6 +505,29 @@ RG.Component.Poison = Poison;
 RG.Component.Coldness = TagComponent('Coldness');
 RG.Component.Heat = TagComponent('Heat');
 
+RG.Component.BodyTemp = UniqueDataComponent('BodyTemp',
+    {temp: 100, maxTemp: 100, minTemp: -100});
+
+RG.Component.BodyTemp.prototype.incr = function() {
+    if (this.temp < this.maxTemp) {
+        this.temp += 1;
+    }
+};
+
+RG.Component.BodyTemp.prototype.decr = function() {
+    if (this.temp > this.minTemp) {
+        this.temp -= 1;
+    }
+};
+
+RG.Component.BodyTemp.prototype.isFreezing = function() {
+    return this.temp <= 0;
+};
+
+RG.Component.BodyTemp.prototype.isFrozen = function() {
+    return this.temp === this.minTemp;
+};
+
 /* For branding entity belonging to certain other entity. */
 RG.Component.Owned = UniqueDataComponent('Owned', {owner: null});
 
