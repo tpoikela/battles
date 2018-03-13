@@ -97,6 +97,13 @@ const Items = [
         weight: 0.6, value: value(30)
     },
     {
+        name: 'Mace', base: 'MeleeWeaponBase',
+        material: 'iron',
+        damage: '2d4 + 2', attack: 2, defense: 0,
+        weaponType: 'mace',
+        weight: 0.8, value: value(35)
+    },
+    {
         name: 'Spear', base: 'MeleeWeaponBase',
         damage: '1d8', attack: 1, defense: 3,
         weaponType: 'spear',
@@ -146,7 +153,7 @@ const Items = [
     },
     {
         name: 'Permaice dagger', base: 'IceWeaponBase',
-        damage: '1d4 + 6', defense: 3, weight: 0.6, value: value(100),
+        damage: '1d4 + 9', defense: 3, weight: 0.6, value: value(100),
         weaponType: 'dagger'
     },
     {
@@ -276,6 +283,12 @@ const Items = [
         name: 'Robe of protection', base: 'ArmourBase',
         className: 'cell-item-cloth',
         weight: 0.8, protection: 4, armourType: 'chest', value: value(200)
+    },
+    {
+        name: 'Runed robe', base: 'ArmourBase',
+        className: 'cell-item-cloth',
+        weight: 0.7, defense: 4, protection: 4, armourType: 'chest',
+        value: value(350)
     },
 
     // ARMOUR LEATHER
@@ -635,6 +648,12 @@ const Items = [
         }, value: value(50)
     },
     {
+        name: 'Potion of nourishment', base: 'PotionBase',
+        use: {addToCompValue: {name: 'Hunger', set: 'setEnergy',
+            get: 'getEnergy', value: '10000'}
+        }, value: value(50)
+    },
+    {
         name: 'Potion of cure poison', base: 'PotionBase',
         use: {cure: {effect: 'poison'}}, value: value(80)
     },
@@ -681,22 +700,22 @@ const Items = [
     {
         name: 'Potion of strength', base: 'PotionBase',
         use: {modifyStat: {value: 1, statName: 'strength'}},
-        value: value(300)
+        value: value(200)
     },
     {
         name: 'Potion of agility', base: 'PotionBase',
         use: {modifyStat: {value: 1, statName: 'agility'}},
-        value: value(300)
+        value: value(200)
     },
     {
         name: 'Potion of accuracy', base: 'PotionBase',
         use: {modifyStat: {value: 1, statName: 'accuracy'}},
-        value: value(300)
+        value: value(200)
     },
     {
         name: 'Potion of magic', base: 'PotionBase',
         use: {modifyStat: {value: 1, statName: 'magic'}},
-        value: value(300)
+        value: value(200)
     },
     // FOOD
     // Note: Food has energy X kcal/100g * 10. Food items can have weight,
