@@ -502,6 +502,9 @@ class Poison extends Mixin.DurationRoll(Mixin.DamageRoll(RG.Component.Base)) {
 }
 RG.Component.Poison = Poison;
 
+RG.Component.Coldness = TagComponent('Coldness');
+RG.Component.Heat = TagComponent('Heat');
+
 /* For branding entity belonging to certain other entity. */
 RG.Component.Owned = UniqueDataComponent('Owned', {owner: null});
 
