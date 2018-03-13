@@ -352,7 +352,10 @@ const Actors = [
     {
         name: 'Frostburn monarch', type: 'demon', char: 'M',
         attack: 10, defense: 10, protection: 10, damage: '4d5', range: 1,
-        hp: 70, danger: 20, brain: demonBrain, base: 'WinterBeingBase'
+        hp: 70, danger: 20, brain: 'SpellCaster', base: 'WinterBeingBase',
+        onHit: [{addComp: 'Coldness'}], spells: ['FrostBolt',
+            'SummonIceMinion'],
+        pp: 50, maxPP: 50
     },
     // DWARVES
     {
