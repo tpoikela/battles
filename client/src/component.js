@@ -200,28 +200,12 @@ RG.Component.StatsMods = function() {
 };
 RG.extend2(RG.Component.StatsMods, RG.Component.Stats);
 
-RG.Component.Perception = function() {
-    RG.Component.Base.call(this, 'Perception');
-    let _fovRange = RG.NPC_FOV_RANGE;
-
-    this.setFOVRange = range => {_fovRange = range;};
-    this.getFOVRange = () => _fovRange;
-
-};
-RG.extend2(RG.Component.Perception, RG.Component.Base);
+RG.Component.Perception = UniqueDataComponent('Perception',
+    {FOVRange: RG.NPC_FOV_RANGE});
 
 /* Attack component is added to the actor when it attacks. Thus, source of the
  * attack is the entity having Attack component. */
-RG.Component.Attack = function(target) {
-    RG.Component.Base.call(this, 'Attack');
-
-    let _target = target;
-
-    this.setTarget = t => {_target = t;};
-    this.getTarget = () => _target;
-
-};
-RG.extend2(RG.Component.Attack, RG.Component.Base);
+RG.Component.Attack = TransientDataComponent('Attack', {target: null});
 
 /* Transient component added to a moving entity.*/
 class RGComponentMovement extends Mixin.Locatable(RG.Component.Base) {
@@ -235,15 +219,7 @@ RG.extend2(RGComponentMovement, RG.Component.Base);
 RG.Component.Movement = RGComponentMovement;
 
 /* Transient component representing a chat action between actors. */
-RG.Component.Chat = function() {
-    RG.Component.Base.call(this, 'Chat');
-
-    let _args = null;
-    this.setArgs = args => {_args = args;};
-    this.getArgs = () => _args;
-
-};
-RG.extend2(RG.Component.Chat, RG.Component.Base);
+RG.Component.Chat = TransientDataComponent('Chat', {args: null});
 
 /* Transient component representing a chat action between actors. */
 RG.Component.Trainer = function() {
@@ -358,7 +334,7 @@ RG.Component.Loot = function(lootEntity) {
     RG.Component.Base.call(this, 'Loot');
 
     // This will be dropped as loot
-    const _lootEntity = lootEntity;
+    let _lootEntity = lootEntity;
 
     /* Drops the loot to the given cell.*/
     this.dropLoot = function(cell) {
@@ -385,6 +361,16 @@ RG.Component.Loot = function(lootEntity) {
         }
     };
 
+    this.setLootEntity = function(lootEntity) {
+        _lootEntity = lootEntity;
+    };
+
+    this.toJSON = function() {
+        const json = RG.Component.Base.toJSON.call(this);
+        json.setLootEntity = _lootEntity.toJSON();
+        return json;
+    };
+
 };
 RG.extend2(RG.Component.Loot, RG.Component.Base);
 
@@ -409,31 +395,12 @@ RG.extend2(RG.Component.Communication, RG.Component.Base);
 RG.Component.OneShot = TagComponent('OneShot');
 
 /* Entities with physical components have weight and size.*/
-RG.Component.Physical = function() {
-    RG.Component.Base.call(this, 'Physical');
-    this._isUnique = true;
-
-    let _weight = 1; // in kg
-    let _size = 1; // abstract unit
-
-    this.setWeight = weight => {
-        _weight = weight;
-    };
-
-    this.getWeight = () => _weight;
-    this.setSize = size => {_size = size;};
-    this.getSize = () => _size;
-
-};
-RG.extend2(RG.Component.Physical, RG.Component.Base);
+RG.Component.Physical = UniqueDataComponent('Physical',
+    {weight: 1, size: 1});
 
 /* Ethereal entities are visible but don't have normal interaction with
  * matter. */
-RG.Component.Ethereal = function() {
-    RG.Component.Base.call(this, 'Ethereal');
-
-};
-RG.extend2(RG.Component.Ethereal, RG.Component.Base);
+RG.Component.Ethereal = TagComponent('Ethereal');
 
 /* Stun component prevents actor from taking many actions like moving and
  * attacking. */
@@ -535,79 +502,73 @@ class Poison extends Mixin.DurationRoll(Mixin.DamageRoll(RG.Component.Base)) {
 }
 RG.Component.Poison = Poison;
 
+/* For branding entity belonging to certain other entity. */
+RG.Component.Owned = UniqueDataComponent('Owned', {owner: null});
+
 /* For branding stolen goods.*/
-RG.Component.Stolen = function() {
-    RG.Component.Base.call(this, 'Stolen');
-};
-RG.extend2(RG.Component.Stolen, RG.Component.Base);
+RG.Component.Stolen = TagComponent('Stolen');
 
 /* Added to unpaid items in shops. Removed once the purchase is done.*/
-RG.Component.Unpaid = function() {
-    RG.Component.Base.call(this, 'Unpaid');
-};
-RG.extend2(RG.Component.Unpaid, RG.Component.Base);
+RG.Component.Unpaid = TagComponent('Unpaid');
 
 /* Expiration component handles expiration of time-based effects. Any component
  * can be made transient by using this Expiration component. For example, to
  * have transient, non-persistent Ethereal, you can use this component. */
-RG.Component.Expiration = function() {
-    RG.Component.Base.call(this, 'Expiration');
+RG.Component.Expiration = DataComponent('Expiration', {duration: null});
 
-    this._duration = {};
+/* Adds one effect to time-based components.*/
+RG.Component.Expiration.prototype.addEffect = function(comp, dur) {
+    if (!this.duration) {this.duration = {};}
+    const compID = comp.getID();
+    if (!this.duration.hasOwnProperty(compID)) {
+        this.duration[compID] = dur;
 
-    /* Adds one effect to time-based components.*/
-    this.addEffect = function(comp, dur) {
-        const compID = comp.getID();
-        if (!this._duration.hasOwnProperty(compID)) {
-            this._duration[compID] = dur;
+        comp.addCallback('onRemove', () => {
+            this.removeEffect(comp);
+        });
+    }
+    else { // increase existing duration
+        this.duration[compID] += dur;
+    }
+};
 
-            comp.addCallback('onRemove', () => {
-                this.removeEffect(comp);
-            });
-        }
-        else { // increase existing duration
-            this._duration[compID] += dur;
-        }
-    };
-
-    /* Decreases duration of all time-based effects.*/
-    this.decrDuration = function() {
-        for (const compID in this._duration) {
-            if (compID >= 0) {
-                this._duration[compID] -= 1;
-                if (this._duration[compID] === 0) {
-                    const ent = this.getEntity();
-                    const compIDInt = parseInt(compID, 10);
-                    ent.remove(compIDInt);
-                    delete this._duration[compID];
-                }
+/* Decreases duration of all time-based effects.*/
+RG.Component.Expiration.prototype.decrDuration = function() {
+    console.log('Expir ' + this.getID() + ' decrDuration');
+    for (const compID in this.duration) {
+        if (compID >= 0) {
+            this.duration[compID] -= 1;
+            console.log('\t>>> XXX decreased duration for comp ' + compID);
+            if (this.duration[compID] === 0) {
+                console.log('\t>>> XXX duration 0 for comp ' + compID);
+                const ent = this.getEntity();
+                const compIDInt = parseInt(compID, 10);
+                ent.remove(compIDInt);
+                delete this.duration[compID];
             }
         }
-    };
-
-    /* Returns true if component has any time-effects with non-zero duration.*/
-    this.hasEffects = function() {
-        return Object.keys(this._duration).length > 0;
-    };
-
-    this.hasEffect = function(comp) {
-        const compID = comp.getID();
-        return this._duration.hasOwnProperty(compID);
-    };
-
-    /* Should be called to remove a specific effect, for example upon death of
-     * an actor. */
-    this.removeEffect = function(comp) {
-        const compID = comp.getID();
-        if (this._duration.hasOwnProperty(compID)) {
-            delete this._duration[compID];
-        }
-    };
-
-    this.getDuration = () => this._duration;
-    this.setDuration = duration => {this._duration = duration;};
+    }
 };
-RG.extend2(RG.Component.Expiration, RG.Component.Base);
+
+/* Returns true if component has any time-effects with non-zero duration.*/
+RG.Component.Expiration.prototype.hasEffects = function() {
+    return Object.keys(this.duration).length > 0;
+};
+
+RG.Component.Expiration.prototype.hasEffect = function(comp) {
+    const compID = comp.getID();
+    return this.duration.hasOwnProperty(compID);
+};
+
+/* Should be called to remove a specific effect, for example upon death of
+ * an actor. */
+RG.Component.Expiration.prototype.removeEffect = function(comp) {
+    const compID = comp.getID();
+    console.log('XXX Removing now comp with ID ' + compID);
+    if (this.duration.hasOwnProperty(compID)) {
+        delete this.duration[compID];
+    }
+};
 
 RG.Component.Indestructible = TagComponent('Indestructible');
 RG.Component.Ammo = TagComponent('Ammo');
@@ -662,25 +623,12 @@ RG.Component.LongReach = TagComponent('LongReach');
 RG.Component.FirstStrike = TagComponent('FirstStrike');
 
 /* Component which gives reduces equipment weight by 50%. */
-RG.Component.MasterEquipper = function() {
-    RG.Component.Base.call(this, 'MasterEquipper');
-
-    let _factor = 0.5;
-    this.setFactor = factor => {_factor = factor;};
-    this.getFactor = () => _factor;
-
-};
-RG.extend2(RG.Component.MasterEquipper, RG.Component.Base);
+RG.Component.MasterEquipper = DataComponent('MasterEquipper',
+    {factor: 0.5});
 
 /* Component which gives an actor chance to bypass armor. */
-RG.Component.BypassProtection = function() {
-    RG.Component.Base.call(this, 'BypassProtection');
-
-    let _change = 0.0;
-    this.setChance = change => {_change = change;};
-    this.getChance = () => _change;
-};
-RG.extend2(RG.Component.BypassProtection, RG.Component.Base);
+RG.Component.BypassProtection = DataComponent('BypassProtection',
+    {chance: 0.0});
 
 //--------------------------------------------
 // RANGED COMBAT COMPONENTS
@@ -1012,7 +960,7 @@ RG.Component.UseItem = TransientDataComponent('UseItem',
 
 /* Added to player to record various event in the game. */
 RG.Component.GameInfo = UniqueDataComponent('GameInfo', {
-    data: {zones: {}}
+    data: {zones: {}} // TODO will break if multiple GameInfo created
 });
 
 /* Updates the data with given object. */
