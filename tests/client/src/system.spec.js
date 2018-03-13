@@ -443,6 +443,26 @@ describe('System.TimeEffects', () => {
         expect(entity).not.to.have.component('StatsMods');
     });
 
+    it('processes Coldness effects into damage', () => {
+        const actor = new RG.Actor.Rogue('frozen');
+        const bodyTemp = new RG.Component.BodyTemp();
+        bodyTemp.setTemp(-90);
+        actor.add(bodyTemp);
+        actor.get('Health').setHP(10);
+        RGTest.wrapIntoLevel([actor]);
+
+        const timeSys = new RG.System.TimeEffects(['Coldness']);
+        const damageSystem = new RG.System.Damage(['Damage']);
+
+        actor.add(new RG.Component.Coldness());
+
+        for (let i = 0; i < 25; i++) {
+            updateSystems([timeSys, damageSystem]);
+        }
+
+        // expect(actor.get('Health').isDead()).to.equal(true);
+    });
+
 });
 
 
