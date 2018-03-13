@@ -1341,13 +1341,15 @@ RG.System.TimeEffects = function(compTypes) {
 
     /* Decreases the remaining duration in the component by one.*/
     const _decreaseDuration = ent => {
-        const tEff = ent.get('Expiration');
-        tEff.decrDuration();
+        const expirComps = ent.getList('Expiration');
+        expirComps.forEach(tEff => {
+            tEff.decrDuration();
 
-        // Remove Expiration only if other components are removed
-        if (!tEff.hasEffects()) {
-            _expiredEffects.push([tEff.getID(), ent]);
-        }
+            // Remove Expiration only if other components are removed
+            if (!tEff.hasEffects()) {
+                _expiredEffects.push([tEff.getID(), ent]);
+            }
+        });
     };
 
 
