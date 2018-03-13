@@ -135,6 +135,8 @@ const DebugGame = function(fact, parser) {
         const thunderbird = _parser.createActor('thunderbird');
         level.addActor(thunderbird, 20, 1);
 
+        player.add(new RG.Component.Coldness());
+
         return game;
     };
 
