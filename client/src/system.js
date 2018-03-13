@@ -1399,8 +1399,19 @@ RG.System.TimeEffects = function(compTypes) {
         }
     };
 
+    const _applyHeat = ent => {
+        if (ent.has('Coldness')) {
+            const cell = ent.getCell();
+            ent.removeAll('Coldness');
+            const msg = `Thanks to heat, ${ent.getName()} stops shivering`;
+            RG.gameMsg({cell, msg});
+        }
+        ent.removeAll('Heat');
+    };
+
     _dtable.Poison = _applyPoison;
     _dtable.Fading = _applyFading;
+    _dtable.Heat = _applyHeat;
 
     /* Used for debug printing.*/
     this.printMatchedType = function(ent) {
@@ -2183,7 +2194,7 @@ RG.System.Events = function(compTypes) {
     /* Decides if attacker must be added as enemy of the perceiving actor. */
     this._addActorAsEnemy = (aggressor, victim, perceiver) => {
         if (victim.getType() === perceiver.getType()) {
-            if (!perceiver.isEnemy(victim)) {
+            if (!perceiver.isEnemy(victim) && !victim.isEnemy(perceiver)) {
                 if (perceiver.isFriend(aggressor)) {
                     perceiver.getBrain().getMemory().removeFriend(aggressor);
                 }
@@ -2203,6 +2214,8 @@ RG.extend2(RG.System.Events, RG.System.Base);
 RG.System.AreaEffects = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.AREA_EFFECTS, compTypes);
 
+    this.heatRange = 1;
+
     this.updateEntity = function(ent) {
         const fireComps = ent.getList('Fire');
         if (ent.has('Health')) {
@@ -2210,10 +2223,28 @@ RG.System.AreaEffects = function(compTypes) {
                 const dmgComp = new RG.Component.Damage(1, RG.DMG.FIRE);
                 dmgComp.setSource(NO_DAMAGE_SRC);
                 ent.add(dmgComp);
+                this._createHeatComps(ent);
             });
         }
         ent.remove('Fire');
     };
+
+    this._createHeatComp = function(ent) {
+        const map = ent.getLevel().getMap();
+        const cell = ent.getCell();
+        const [x, y] = cell.getXY();
+        const heatBox = RG.Geometry.getBoxAround(x, y, this.heatRange);
+        heatBox.forEach(xy => {
+            const cell = map.getCellXY(xy[0], xy[1]);
+            if (cell.hasActors()) {
+                const actors = cell.getActors();
+                actors.forEach(actor => {
+                    actor.add(RG.Component.Heat());
+                });
+            }
+        });
+    };
+
 };
 RG.extend2(RG.System.AreaEffects, RG.System.Base);
 
