@@ -105,7 +105,7 @@ describe('System.Attack', () => {
         expect(human.getEquipAttack()).to.equal(100);
         beast.get('Combat').setDefense(0);
 
-        const attackComp = new RG.Component.Attack(beast);
+        const attackComp = new RG.Component.Attack({target: beast});
         human.add('Attack', attackComp);
         updateSystems(systems);
 
@@ -120,7 +120,7 @@ describe('System.Attack', () => {
         const bypassComp = new RG.Component.BypassProtection();
         bypassComp.setChance(1.0);
         beast.add(bypassComp);
-        const attackComp = new RG.Component.Attack(human);
+        const attackComp = new RG.Component.Attack({target: human});
         beast.add('Attack', attackComp);
         beast.get('Combat').setAttack(100);
         human.get('Combat').setDefense(0);
@@ -417,8 +417,10 @@ describe('System.TimeEffects', () => {
         expComp2.addEffect(durComp, duration);
         entity.add(durComp);
         entity.add(expComp2);
+
         modsList = entity.getList('StatsMods');
         expect(modsList).to.have.length(3);
+        expect(entity).to.have.component('StatsMods');
 
         for (let i = 0; i < 10; i++) {
             updateSystems([expirSys]);
