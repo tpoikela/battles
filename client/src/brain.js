@@ -418,7 +418,7 @@ RG.Brain.Rogue.prototype.actionTowardsEnemy = function(enemyCell) {
         return () => {
             const cell = level.getMap().getCell(playX, playY);
             const target = cell.getProp('actors')[0];
-            const attackComp = new RG.Component.Attack(target);
+            const attackComp = new RG.Component.Attack({target});
             this._actor.add('Attack', attackComp);
         };
     }
