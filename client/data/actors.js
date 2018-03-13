@@ -225,20 +225,37 @@ const Actors = [
         hp: 12
     },
     {
+        name: 'skeleton warrior', char: 'z', base: 'UndeadBase',
+        attack: 3, defense: 3, damage: '1d8 + 2', danger: 4,
+        hp: 20
+    },
+    {
+        name: 'skeleton berserker', char: 'z', base: 'UndeadBase',
+        attack: 6, defense: 1, damage: '1d10 + 4', danger: 5,
+        hp: 15
+    },
+    {
+        name: 'ghoul', char: 'z', base: 'UndeadBase',
+        attack: 3, defense: 3, damage: '1d7 + 2', danger: 5,
+        hp: 15, onHit: [{addComp: 'Paralysis', duration: '1d4'}]
+    },
+    {
         name: 'wraith', char: 'Z', base: 'UndeadBase',
         attack: 5, defense: 5, damage: '2d5 + 2', danger: 6,
         onHit: [
             {addComp: 'StatsMods', func: [{setter: 'setStrength', value: -1}],
-                duration: '1d10'}
+                duration: '2d10'}
         ],
-        // Drain strength (temporary)
         hp: 25
     },
     {
         name: 'specter', char: 'Z', base: 'UndeadBase',
         attack: 6, defense: 6, damage: '2d5 + 2', danger: 7,
         addComp: 'Flying',
-        // TODO Drain mana or disable spells
+        onHit: [
+            {addComp: 'StatsMods', func: [{setter: 'setMagic', value: -1}],
+                duration: '2d10'}
+        ],
         hp: 25
     },
     {
