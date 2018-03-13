@@ -738,6 +738,7 @@ const RG = { // {{{2
         MELEE: 'MELEE',
         MISSILE: 'MISSILE',
         POISON: 'POISON',
+        COLD: 'COLD',
         ICE: 'ICE',
         FIRE: 'FIRE',
         HUNGER: 'HUNGER'
