@@ -127,6 +127,9 @@ export default class GameStats extends Component {
       stat.push(
         <p className='text-success' key='stat-power-drain'>Power drain</p>);
     }
+    if (player.has('Coldness')) {
+      stat.push(<p className='text-primary' key='stat-coldness'>Cold</p>);
+    }
     return stat;
   }
 
