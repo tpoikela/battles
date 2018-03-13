@@ -131,7 +131,7 @@ describe('How combat should evolve', () => {
         level.addActor(attacker, 1, 1);
         level.addActor(defender, 2, 2);
 
-        const attackComp = new RG.Component.Attack(defender);
+        const attackComp = new RG.Component.Attack({target: defender});
         attacker.add('Attack', attackComp);
         comSystem.update();
         expect(defender.has('Damage')).to.equal(true);
@@ -144,7 +144,7 @@ describe('How combat should evolve', () => {
         const def2 = new Actor('defender2');
         level.addActor(def2, 2, 2);
 
-        const attComp2 = new RG.Component.Attack(def2);
+        const attComp2 = new RG.Component.Attack({target: def2});
         attacker.add('Attack', attComp2);
 
         def2.get('Health').setHP(20);
