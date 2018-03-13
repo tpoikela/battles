@@ -828,7 +828,7 @@ class BrainPlayer {
 
             const attackCallback = () => {
               this._setAttackStats();
-              const attackComp = new RG.Component.Attack(target);
+              const attackComp = new RG.Component.Attack({target});
               this._actor.add('Attack', attackComp);
             };
 
