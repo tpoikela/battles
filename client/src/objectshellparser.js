@@ -243,6 +243,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
         return newObj;
     };
 
+    /* Adds Poison as addOnHit property. */
     this.addPoison = (shell, obj) => {
         const poison = shell.poison;
         const poisonComp = new RG.Component.Poison();
@@ -257,6 +258,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
         obj.add('AddOnHit', addOnHit);
     };
 
+    /* Adds any component as AddOnHit property. */
     this.addOnHitProperties = (shell, obj) => {
         shell.onHit.forEach(onHit => {
             if (onHit.addComp) {
