@@ -578,6 +578,14 @@ RG.Brain.Rogue.prototype.getFreeCellsAround = function() {
     return cellsAround.filter(cell => cell.isFree());
 };
 
+RG.Brain.Rogue.prototype.getRandAdjacentFreeCell = function() {
+    const cellsAround = this.getFreeCellsAround();
+    if (cellsAround.length > 0) {
+        return RG.RAND.arrayGetRand(cellsAround);
+    }
+    return null;
+};
+
 
 /* Brain used by most of the animals. TODO: Add some corpse eating behaviour. */
 RG.Brain.Animal = function(actor) {
@@ -795,7 +803,8 @@ RG.Brain.SpellCaster = function(actor) {
     RG.Brain.Rogue.call(this, actor);
     this.setType('SpellCaster');
     this.goal = new GoalsTop.ThinkSpellcaster(actor);
-    this.goal.setBias({CastSpell: 1.7, AttackActor: 0.7});
+    this.goal.setBias({CastSpell: 2.0, AttackActor: 0.7});
+    this.goal.getEvaluator('CastSpell').setCastingProbability(0.8);
 
     this.decideNextAction = function() {
         this._seenCached = null;
