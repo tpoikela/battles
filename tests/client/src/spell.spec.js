@@ -7,6 +7,8 @@ const chaiBattles = require('../../helpers/chai-battles.js');
 const expect = chai.expect;
 chai.use(chaiBattles);
 
+const spellComps = ['SpellRay', 'SpellCell', 'SpellMissile', 'SpellArea'];
+
 describe('Spell.IcyPrison', () => {
 
     it('adds paralysis for an actor', () => {
@@ -49,6 +51,28 @@ describe('Spell.LightningArrow', () => {
 
         thunderbird.nextAction();
         expect(thunderbird).to.have.component('SpellCast');
+        RGTest.updateSystems(systems);
+
+    });
+});
+
+describe('Spell.SummonIceMinion', () => {
+    it('can be cast by AI', () => {
+        const castSystem = new RG.System.SpellCast(['SpellCast']);
+        const effSystem = new RG.System.SpellEffect(spellComps);
+        const systems = [castSystem, effSystem];
+
+        const parser = RG.ObjectShell.getParser();
+        const monarch = parser.createActor('Frostburn monarch');
+        RGTest.ensureSpellCast(monarch);
+
+        const human = parser.createActor('human');
+        RGTest.wrapIntoLevel([monarch, human]);
+        RGTest.moveEntityTo(monarch, 2, 2);
+        RGTest.moveEntityTo(human, 5, 5);
+
+        monarch.nextAction();
+        expect(monarch).to.have.component('SpellCast');
         RGTest.updateSystems(systems);
 
     });
