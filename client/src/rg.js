@@ -945,6 +945,30 @@ RG.getExpRequired = (newLevel) => {
     return reqExp;
 };
 
+/* Returns the dX,dY of two coordinates or objects. */
+RG.dXdY = (dest, src) => {
+    let [xDest, yDest, xSrc, ySrc] = [0, 0, 0, 0];
+    if (Array.isArray(dest)) {
+        xDest = dest[0];
+        yDest = dest[1];
+    }
+    else if (src.getX) {
+        xDest = dest.getX();
+        yDest = dest.getY();
+    }
+
+    if (Array.isArray(src)) {
+        xSrc = src[0];
+        ySrc = src[1];
+    }
+    else if (src.getX) {
+        xSrc = src.getX();
+        ySrc = src.getY();
+    }
+
+    return [xDest - xSrc, yDest - ySrc];
+};
+
 /* Given an actor, scales its attributes based on new experience level.*/
 RG.levelUpActor = (actor, newLevel) => {
     if (actor.has('Experience')) {
