@@ -1332,9 +1332,9 @@ RG.System.TimeEffects = function(compTypes) {
         // Remove expired effects (mutates this.entities, so done outside for)
         // Removes Expiration, as well as comps like Poison/Stun/Disease etc.
         for (let j = 0; j < _expiredEffects.length; j++) {
-            const compName = _expiredEffects[j][0];
+            const compID = _expiredEffects[j][0];
             const entRem = _expiredEffects[j][1];
-            entRem.remove(compName);
+            entRem.remove(compID);
         }
         _expiredEffects = [];
     };
