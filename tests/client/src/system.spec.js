@@ -406,14 +406,31 @@ describe('System.TimeEffects', () => {
         let modsList = entity.getList('StatsMods');
         expect(modsList).to.have.length(2);
 
+        const durComp = new RG.Component.Duration();
+        durComp.setDurationDie('8d1 + 4');
+        const statsComp3 = new RG.Component.StatsMods();
+        statsComp3.setMagic(2);
+        statsComp3.setWillpower(-2);
+        durComp.setComp(statsComp3);
+        const expComp2 = new RG.Component.Expiration();
+        const duration = durComp.rollDuration();
+        expComp2.addEffect(durComp, duration);
+        entity.add(durComp);
+        entity.add(expComp2);
+        modsList = entity.getList('StatsMods');
+        expect(modsList).to.have.length(3);
+
         for (let i = 0; i < 10; i++) {
             updateSystems([expirSys]);
         }
         expect(entity).to.have.component('Expiration');
         expect(entity).to.have.component('StatsMods');
 
+        modsList = entity.getList('Expiration');
+        expect(modsList).to.have.length(2);
+
         modsList = entity.getList('StatsMods');
-        expect(modsList).to.have.length(1);
+        expect(modsList).to.have.length(2);
         const sMods2 = entity.get('StatsMods');
         expect(sMods2.getID()).to.equal(statsMods2.getID());
 
