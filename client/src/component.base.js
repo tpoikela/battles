@@ -45,14 +45,24 @@ const DataComponent = (type, members, specialProps = {}) => {
     }
 
     // This is the constructor function to be returned
-    const CompDecl = function() {
+    const CompDecl = function(args) {
         RG.Component.Base.call(this, type);
         Object.keys(specialProps).forEach(key => {
             this[key] = specialProps[key];
         });
         Object.keys(members).forEach(key => {
-            this[key] = members[key];
+            if (args && args.hasOwnProperty(key)) {
+                this[key] = args[key];
+            }
+            else {
+                this[key] = members[key];
+            }
         });
+        // User can defined _init function if complex initialisation required
+        // For example, onAdd/onRemove callbacks can be given here
+        if (this._init && typeof this._init === 'function') {
+            this._init(args);
+        }
     };
     RG.extend2(CompDecl, RG.Component.Base);
 
