@@ -610,7 +610,7 @@ class GoalHitActor extends GoalBase {
         // const brain = this.actor.getBrain();
         const cell = level.getMap().getCell(aX, aY);
         const target = cell.getProp('actors')[0];
-        const attackComp = new RG.Component.Attack(target);
+        const attackComp = new RG.Component.Attack({target});
         this.actor.add('Attack', attackComp);
         this.dbg(`${this.getType()} added Attack comp`);
         this.status = GOAL_ACTIVE;
