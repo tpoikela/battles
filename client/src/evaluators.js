@@ -258,7 +258,8 @@ class EvaluatorCastSpell extends EvaluatorBase {
     getRandomSpell(actor) {
         const book = actor.getBook();
         if (book && book.getSpells().length > 0) {
-            return RG.RAND.arrayGetRand(book.getSpells());
+            const spell = RG.RAND.arrayGetRand(book.getSpells());
+            return spell;
         }
         return null;
     }
