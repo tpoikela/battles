@@ -559,6 +559,9 @@ function addSubLevelFeatures(ow, owX, owY, subLevel) {
         else if (feat === OW.MOUNTAIN) {
             addMountainToSubLevel(owSubLevel, subLevel);
         }
+        else if (feat === OW.VTUNNEL) {
+            addVertTunnelToSubLevel(owSubLevel, subLevel);
+        }
         else {
             const msg = `Base: ${base}, ${feat}`;
             debug('addSubLevelFeat Skipped: ' + msg);
@@ -656,11 +659,24 @@ function addDungeonToSubLevel(owSubLevel, subLevel) {
     const freeCells = map.getFree();
     const freeXY = freeCells.map(cell => [cell.getX(), cell.getY()]);
 
+    // Sometimes no free cells are found, just skip this
+    if (freeXY.length === 0) {
+        return;
+    }
+
     let coord = [];
     let watchdog = 1000;
     while (!placed) {
         const xy = getRandIn(freeXY);
-        const box = RG.Geometry.getBoxAround(xy[0], xy[1], 1);
+        let box = [];
+        try {
+            box = RG.Geometry.getBoxAround(xy[0], xy[1], 1);
+        }
+        catch (e) {
+            console.log(e);
+            console.log(freeXY);
+            map.debugPrintInASCII();
+        }
 
         /* eslint-disable */
         box.forEach(xyBox => {
@@ -697,6 +713,11 @@ function addMountainToSubLevel(owSubLevel, subLevel) {
     const freeCells = map.getFreeNotOnEdge();
     const freeXY = freeCells.map(cell => [cell.getX(), cell.getY()]);
 
+    // Sometimes no free cells are found, just skip this
+    if (freeXY.length === 0) {
+        return;
+    }
+
     let coord = [];
     let watchdog = 1000;
     while (!placed) {
@@ -714,6 +735,20 @@ function addMountainToSubLevel(owSubLevel, subLevel) {
         owSubLevel.addFeature(mountain);
     }
 
+}
+
+/* This creates a tunnel through mountain wall. This cannot fail, otherwise game
+ * is unplayable. */
+function addVertTunnelToSubLevel(owSubLevel, subLevel) {
+    // let placed = false;
+    const map = subLevel.getMap();
+    const cols = map.cols;
+    const tunnelX = RG.RAND.getUniformInt(0, cols - 1);
+    for (let y = 0; y < map.rows; y++) {
+        map.setBaseElemXY(tunnelX, y, RG.ELEM.FLOOR);
+    }
+    console.log(`Placed vertical tunnel at X ${tunnelX}`);
+    map.debugPrintInASCII();
 }
 
 /* Adds a village to the free square of the sub-level. */
