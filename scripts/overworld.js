@@ -26,22 +26,23 @@ let conf = {
     worldY: mult * 400
 };
 
-mult = 2;
+mult = 1;
 conf = {
     yFirst: false,
     topToBottom: false,
     // stopOnWall: 'random',
-    stopOnWall: true,
-    // nHWalls: 2,
+    stopOnWall: 'random',
+    nHWalls: 3,
+    // nVWalls: 4,
     nVWalls: [0.8],
-    owTilesX: mult * 40,
-    owTilesY: mult * 20,
+    owTilesX: mult * 80,
+    owTilesY: mult * 80,
     worldX: mult * 800,
-    worldY: mult * 400,
+    worldY: mult * 800,
     nLevelsX: mult * 8,
-    nLevelsY: mult * 4,
+    nLevelsY: mult * 8,
     areaX: mult * 8,
-    areaY: mult * 4,
+    areaY: mult * 8,
     printResult: true
 };
 
