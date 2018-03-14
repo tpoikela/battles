@@ -598,7 +598,7 @@ RG.Component.Expiration.prototype.removeEffect = function(comp) {
 RG.Component.Expiration.prototype.cleanup = function() {
     const entity = this.getEntity();
     Object.keys(this.duration).forEach(compID => {
-        entity.remove(compID);
+        entity.remove(parseInt(compID, 10));
     });
 };
 
