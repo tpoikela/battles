@@ -1179,17 +1179,20 @@ function addGlobalFeatures(ow, owLevel, conf, coordMap) {
     const capLevel = ow.getSubLevel(capSubTileXY);
     const capFeat = capLevel.getFeaturesByType('capital')[0];
     const subLevelXY = capFeat.getLastCoord();
-    const owLevelXY = coordMap.toOwLevelXY(capSubTileXY, subLevelXY);
+    const [capX, capY] = coordMap.toOwLevelXY(capSubTileXY, subLevelXY);
 
     /*
     console.log(`World size: ${coordMap.worldCols}, ${coordMap.worldRows}`);
     console.log(`Player x,y: ${playerX}, ${playerY}`);
     console.log(`Capital x,y: ${owLevelXY}`);
     */
+    const nPathSeg = 5;
 
     // Connect with road
-    const path = RG.Path.getMinWeightPath(owLevel.getMap(),
-        playerX, playerY, owLevelXY[0], owLevelXY[1]);
+    /* const path = RG.Path.getMinWeightPath(owLevel.getMap(),
+        playerX, playerY, capX, capY);*/
+    const path = RG.Path.getWeightPathSegmented(owLevel.getMap(),
+        playerX, playerY, capX, capY, nPathSeg);
 
     if (path.length === 0) {
         RG.err('overworld.js', 'addGlobalFeatures',
@@ -1207,9 +1210,12 @@ function addGlobalFeatures(ow, owLevel, conf, coordMap) {
     const wTowerLevelXY = coordMap.toOwLevelXY(wTowerSubTileXY,
         wTowerSubLevelXY);
 
-    const pathCapWTower = RG.Path.getMinWeightPath(owLevel.getMap(),
+    /* const pathCapWTower = RG.Path.getMinWeightPath(owLevel.getMap(),
         owLevelCapExitXY[0], owLevelCapExitXY[1],
-        wTowerLevelXY[0], wTowerLevelXY[1]);
+        wTowerLevelXY[0], wTowerLevelXY[1]);*/
+    const pathCapWTower = RG.Path.getWeightPathSegmented(owLevel.getMap(),
+        owLevelCapExitXY[0], owLevelCapExitXY[1],
+        wTowerLevelXY[0], wTowerLevelXY[1], nPathSeg);
     RG.Path.addPathToMap(owLevel.getMap(), pathCapWTower);
 }
 
