@@ -342,8 +342,9 @@ export default class GameEditor extends Component {
       topToBottom: false,
       stopOnWall: true,
       nVWalls: [0.8],
+      nHWalls: 3,
       owTilesX: mult * 40,
-      owTilesY: mult * 20
+      owTilesY: mult * 40
     };
     const overworld = OW.createOverWorld(owConf);
     const worldAndConf = RG.OverWorld.createOverWorldLevel(
