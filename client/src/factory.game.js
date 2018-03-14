@@ -265,10 +265,10 @@ RG.Factory.Game = function() {
             topToBottom: false,
             // stopOnWall: 'random',
             stopOnWall: true,
-            // nHWalls: 2,
+            // nHWalls: 3,
             nVWalls: [0.8],
-            owTilesX: xMult * mult * 40,
-            owTilesY: yMult * mult * 40,
+            owTilesX: xMult * mult * 80,
+            owTilesY: yMult * mult * 80,
             worldX: xMult * mult * 800,
             worldY: yMult * mult * 800,
             nLevelsX: xMult * mult * 8,
@@ -560,10 +560,7 @@ RG.Factory.Game = function() {
             }
         }
         game.addPlayer(player, {place: 'StartBranch'});
-
         return game;
-
-
     };
 
     this.addActorsToArmy = (army, num, name) => {
