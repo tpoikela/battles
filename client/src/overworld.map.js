@@ -8,6 +8,8 @@
 const RG = require('./rg');
 RG.Random = require('./random');
 
+const debug = require('debug')('bitn:OW');
+
 const OW = {};
 
 const getRandIn = RG.RAND.arrayGetRand.bind(RG.RAND);
@@ -49,6 +51,8 @@ OW.MOUNTAIN = '^'; // TODO find better char
 OW.BVILLAGE = '\u25B2';
 OW.WVILLAGE = '\u25B3';
 // const CITY = '\u1CC1';
+OW.VTUNNEL = '|'; // Tunnel between two walls
+OW.HTUNNEL = '-'; // Tunnel between two walls
 
 OW.PROB_BVILLAGE = 0.25;
 
@@ -540,14 +544,18 @@ function addWallsIfAny(ow, map, conf) {
     if (Number.isInteger(conf.nHWalls)) {
         nHWalls = [];
         for (let i = 0; i < conf.nHWalls; i++) {
-            nHWalls.push(RG.RAND.getUniform());
+            const pos = RG.RAND.getUniformInt(1, 19);
+            nHWalls.push(pos * 0.05);
         }
+        nHWalls = nHWalls.sort();
     }
     if (Number.isInteger(conf.nVWalls)) {
         nVWalls = [];
         for (let i = 0; i < conf.nVWalls; i++) {
-            nVWalls.push(RG.RAND.getUniform());
+            const pos = RG.RAND.getUniformInt(1, 19);
+            nVWalls.push(pos * 0.05);
         }
+        nVWalls = nHWalls.sort();
     }
 
     // Add horizontal and vertical "walls"
@@ -759,14 +767,24 @@ function addOverWorldFeatures(ow, conf) {
     // Add final tower
     addFeatureToAreaByDir(ow, 'NE', 0.5, OW.BTOWER);
 
+    const numHorWalls = ow.numHWalls();
+
     // City of B, + other wall fortresses
-    if (ow.numHWalls() > 1) {
+    if (numHorWalls > 1) {
         addFeatureToWall(ow, ow._hWalls[1], OW.WCAPITAL);
         addFeatureToWall(ow, ow._hWalls[0], OW.WTOWER);
     }
-    if (ow.numVWalls() > 0) {
-        addFeatureToWall(ow, ow._vWalls[0], OW.BTOWER);
-        addFeatureToWall(ow, ow._vWalls[0], OW.BCAPITAL);
+    if (numHorWalls > 2) {
+        for (let i = 2; i < numHorWalls; i++) {
+            addFeatureToWall(ow, ow._hWalls[i], OW.VTUNNEL);
+        }
+    }
+
+    const numVerWalls = ow.numVWalls();
+
+    if (numVerWalls > 0) {
+        addFeatureToWall(ow, ow._vWalls[numVerWalls - 1], OW.BTOWER);
+        addFeatureToWall(ow, ow._vWalls[numVerWalls - 1], OW.BCAPITAL);
     }
 
     const cmdBetweenHWalls = {y: {start: ['wall', 0], end: ['wall', 1]}};
@@ -792,11 +810,11 @@ function addOverWorldFeatures(ow, conf) {
     addVillagesToOverWorld(ow, 10, bBox(1, sizeY - 2, sizeX - 2, sizeY - 10));
     addVillagesToOverWorld(ow, 2, cmdBetweenHWalls);
 
-    // TODO:
     // Distribute mountains
     addMountainsToOverWorld(ow, nMountainsSouth, cmdSouthernArea);
     addMountainsToOverWorld(ow, nMountainsMiddle, cmdBetweenHWalls);
     addMountainsToOverWorld(ow, nMountainsNorth, cmdAboveNorthWall);
+
     // Adds roads for created features
 }
 
@@ -838,6 +856,7 @@ function addFeatureToWall(ow, wall, type) {
         xy = findCellRandXYInBox(map, bBox(wall.x, uly, wall.x, lry), OW.LL_NS);
     }
 
+    debug(`Placed feature ${type} to ${xy}`);
     ow.addFeature(xy, type);
 }
 
