@@ -590,10 +590,16 @@ RG.Component.Expiration.prototype.hasEffect = function(comp) {
  * an actor. */
 RG.Component.Expiration.prototype.removeEffect = function(comp) {
     const compID = comp.getID();
-    console.log('XXX Removing now comp with ID ' + compID);
     if (this.duration.hasOwnProperty(compID)) {
         delete this.duration[compID];
     }
+};
+
+RG.Component.Expiration.prototype.cleanup = function() {
+    const entity = this.getEntity();
+    Object.keys(this.duration).forEach(compID => {
+        entity.remove(compID);
+    });
 };
 
 RG.Component.Indestructible = TagComponent('Indestructible');

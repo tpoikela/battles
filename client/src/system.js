@@ -750,7 +750,7 @@ RG.System.Damage = function(compTypes) {
             const cssClass = RG.getCssClass(RG.TYPE_ACTOR, nameKilled);
             RG.addCellStyle(RG.TYPE_ITEM, corpse.getName(), cssClass);
             level.addItem(corpse, x, y);
-
+            _cleanUpComponents(actor);
         }
         else {
             RG.err('System.Damage', 'killActor', "Couldn't remove actor");
@@ -790,6 +790,19 @@ RG.System.Damage = function(compTypes) {
             }
         }
         att.get('BattleExp').getData().kill += 1;
+    };
+
+    const _cleanUpComponents = actor => {
+        const compTypes = ['Coldness', 'Expiration'];
+        compTypes.forEach(compType => {
+            const compList = actor.getList(compType);
+            compList.forEach(comp => {
+                if (typeof comp.cleanup === 'function') {
+                    comp.cleanup();
+                }
+                actor.remove(comp);
+            });
+        });
     };
 
 };

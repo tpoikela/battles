@@ -443,24 +443,36 @@ describe('System.TimeEffects', () => {
         expect(entity).not.to.have.component('StatsMods');
     });
 
-    it('processes Coldness effects into damage', () => {
+    it.only('processes Coldness effects into damage', () => {
+        const timeSys = new RG.System.TimeEffects(['Expiration', 'Coldness']);
+        const damageSystem = new RG.System.Damage(['Damage']);
+
         const actor = new RG.Actor.Rogue('frozen');
         const bodyTemp = new RG.Component.BodyTemp();
-        bodyTemp.setTemp(-90);
+        bodyTemp.setTemp(-95);
         actor.add(bodyTemp);
-        actor.get('Health').setHP(10);
+        actor.get('Health').setHP(5);
         RGTest.wrapIntoLevel([actor]);
 
-        const timeSys = new RG.System.TimeEffects(['Coldness']);
-        const damageSystem = new RG.System.Damage(['Damage']);
+        const expirComp = new RG.Component.Expiration();
+        const paralComp = new RG.Component.Paralysis();
+        expirComp.addEffect(paralComp, 15);
+        actor.add(expirComp);
+        actor.add(paralComp);
 
         actor.add(new RG.Component.Coldness());
 
-        for (let i = 0; i < 25; i++) {
+        for (let i = 0; i < 13; i++) {
             updateSystems([timeSys, damageSystem]);
         }
+        expect(actor.get('Health').isDead()).to.equal(true);
+        expect(actor).not.to.have.component('Coldness');
+        expect(actor).not.to.have.component('Expiration');
+        expect(actor).not.to.have.component('Paralysis');
 
-        // expect(actor.get('Health').isDead()).to.equal(true);
+        for (let i = 0; i < 5; i++) {
+            updateSystems([timeSys, damageSystem]);
+        }
     });
 
 });
