@@ -372,7 +372,7 @@ RG.Spell.SummonIceMinion = function() {
     this.aiShouldCastSpell = (args, cb) => {
         const {actor, enemy} = args;
         const friends = RG.Brain.getFriendCellsAround(actor);
-        if (friends === 0) {
+        if (friends.length === 0) {
             if (typeof cb === 'function') {
                 const summonCell = actor.getBrain().getRandAdjacentFreeCell();
                 if (summonCell) {
@@ -417,13 +417,15 @@ RG.Spell.PowerDrain = function() {
         if (!actor.has('PowerDrain')) {
             const [x0, y0] = [actor.getX(), actor.getY()];
             const [x1, y1] = [enemy.getX(), enemy.getY()];
-            const lineXY = RG.Geometry.getStraightLine(x0, y0, x1, y1);
-            if (lineXY.length > 1) {
-                const dX = lineXY[1][0] - lineXY[0][0];
-                const dY = lineXY[1][1] - lineXY[0][1];
-                const args = {dir: [dX, dY]};
-                cb(actor, args);
-                return true;
+            if (enemy.has('SpellPower')) {
+                const lineXY = RG.Geometry.getStraightLine(x0, y0, x1, y1);
+                if (lineXY.length > 1) {
+                    const dX = lineXY[1][0] - lineXY[0][0];
+                    const dY = lineXY[1][1] - lineXY[0][1];
+                    const args = {dir: [dX, dY]};
+                    cb(actor, args);
+                    return true;
+                }
             }
         }
         return false;
@@ -544,7 +546,7 @@ RG.Spell.MindControl = function() {
 };
 RG.extend2(RG.Spell.MindControl, RG.Spell.Base);
 
-/* MindControl spell takes over an enemy for a certain number of turns. */
+/* Blizzard spell produce damaging effect over certain area. */
 RG.Spell.Blizzard = function() {
     RG.Spell.Ranged.call(this, 'Blizzard', 35);
 
@@ -556,7 +558,10 @@ RG.Spell.Blizzard = function() {
         const spellComp = new RG.Component.SpellArea();
         spellComp.setArgs(obj);
         args.src.add(spellComp);
-        RG.gameMsg('Your surroundings are engulfed in blizzard!');
+
+        const name = args.src.getName();
+        const msg = `Huge blizzard emanates from ${name}`;
+        RG.gameMsg({msg, cell: args.src.getCell()});
     };
 
     this.getSelectionObject = function(actor) {
@@ -587,10 +592,15 @@ RG.Spell.Heal = function() {
     };
 
     /* this.aiShouldCastSpell = (args, cb) => {
-        const {actor} = args;
+        const {actor, actorsAround} = args;
         // 1. Get surrounding actors
         // 2. If any are friends and wounded, cast spell
+        if (hasWoundedFriends(actorsAround)) {
 
+        }
+        else if (itselfWoundedBadly()) {
+
+        }
     };*/
 
 };
@@ -608,6 +618,7 @@ RG.Spell.addAllSpells = book => {
     book.addSpell(new RG.Spell.MindControl());
     book.addSpell(new RG.Spell.Blizzard());
     book.addSpell(new RG.Spell.Heal());
+    book.addSpell(new RG.Spell.LightningArrow());
 };
 
 module.exports = RG.Spell;
