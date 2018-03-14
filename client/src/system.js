@@ -80,8 +80,8 @@ RG.System.Base = function(type, compTypes) {
     };
 
     this.removeEntity = function(entity) {
-        console.log(this.type.toString()
-            + ' removing entity ' + entity.getID());
+        /* console.log('System: removeEntity(): ' + this.type.toString()
+            + ' removing entity ' + entity.getID());*/
         delete this.entities[entity.getID()];
     };
 
@@ -94,7 +94,6 @@ RG.System.Base = function(type, compTypes) {
         else if (obj.hasOwnProperty('remove')) {
             // Must check if any needed comps are still present, before removing
             // the entity
-            console.log('Checking comp types for evt ' + evtName);
             if (!this.hasCompTypes(obj.entity)) {
                 this.removeEntity(obj.entity);
             }
@@ -571,55 +570,58 @@ RG.System.Damage = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.DAMAGE, compTypes);
 
     this.updateEntity = ent => {
-        if (ent.has('Health')) {
-            const health = ent.get('Health');
-            let totalDmg = _getDamageReduced(ent);
+        const dmgComps = ent.getList('Damage');
+        dmgComps.forEach(dmgComp => {
+            if (ent.has('Health')) {
+                const health = ent.get('Health');
+                let totalDmg = _getDamageReduced(ent);
 
-            // Check if any damage was done at all
-            if (totalDmg <= 0) {
-                totalDmg = 0;
-                const msg = "Attack doesn't penetrate protection of "
-                    + ent.getName();
-                RG.gameMsg({msg, cell: ent.getCell()});
-            }
-            else {
-                _applyAddOnHitComp(ent);
-                health.decrHP(totalDmg);
-                if (debug.enabled) {
-                    const hpMax = health.getMaxHP();
-                    const hp = health.getHP();
-                    const msg = `(${totalDmg}),(${hp}/${hpMax})`;
-                    RG.gameDanger({msg, cell: ent.getCell()});
+                // Check if any damage was done at all
+                if (totalDmg <= 0) {
+                    totalDmg = 0;
+                    const msg = "Attack doesn't penetrate protection of "
+                        + ent.getName();
+                    RG.gameMsg({msg, cell: ent.getCell()});
                 }
-            }
-
-            const damageSrc = ent.get('Damage').getSource();
-            if (health.isDead()) {
-                if (ent.has('Loot')) {
-                    const entCell = ent.getCell();
-                    ent.get('Loot').dropLoot(entCell);
-                }
-                _dropInvAndEq(ent);
-
-                _killActor(damageSrc, ent);
-            }
-
-            // Emit ACTOR_DAMAGED
-            // Emitted only for player for efficiency reasons
-
-            if (damageSrc) {
-                if (damageSrc.isPlayer() || ent.isPlayer()) {
-                    if (!RG.isNullOrUndef([damageSrc, ent])) {
-                        const evtComp = new RG.Component.Event();
-                        evtComp.setArgs({type: RG.EVT_ACTOR_DAMAGED,
-                            cause: damageSrc});
-                        ent.add(evtComp);
+                else {
+                    _applyAddOnHitComp(ent);
+                    health.decrHP(totalDmg);
+                    if (debug.enabled) {
+                        const hpMax = health.getMaxHP();
+                        const hp = health.getHP();
+                        const msg = `(${totalDmg}),(${hp}/${hpMax})`;
+                        RG.gameDanger({msg, cell: ent.getCell()});
                     }
                 }
-            }
 
-            ent.remove('Damage'); // After dealing damage, remove comp
-        }
+                const damageSrc = ent.get('Damage').getSource();
+                if (health.isDead()) {
+                    if (ent.has('Loot')) {
+                        const entCell = ent.getCell();
+                        ent.get('Loot').dropLoot(entCell);
+                    }
+                    _dropInvAndEq(ent);
+
+                    _killActor(damageSrc, ent);
+                }
+
+                // Emit ACTOR_DAMAGED
+                // Emitted only for player for efficiency reasons
+
+                if (damageSrc) {
+                    if (damageSrc.isPlayer() || ent.isPlayer()) {
+                        if (!RG.isNullOrUndef([damageSrc, ent])) {
+                            const evtComp = new RG.Component.Event();
+                            evtComp.setArgs({type: RG.EVT_ACTOR_DAMAGED,
+                                cause: damageSrc});
+                            ent.add(evtComp);
+                        }
+                    }
+                }
+
+                ent.remove(dmgComp); // After dealing damage, remove comp
+            }
+        });
     };
 
     /* Checks if protection checks can be applied to the damage caused. For
@@ -1337,7 +1339,6 @@ RG.System.TimeEffects = function(compTypes) {
         for (const e in this.entities) {
             if (!e) {continue;}
             const ent = this.entities[e];
-            console.log('Entity ' + ent.getID() + ' in TimeEffects');
 
             // Process timed effects like poison etc.
             for (let i = 0; i < compTypes.length; i++) {
@@ -1400,10 +1401,8 @@ RG.System.TimeEffects = function(compTypes) {
     const _applyFading = ent => {
         const fadingComp = ent.get('Fading');
         fadingComp.decrDuration();
-        console.log('Duration is now: ' + fadingComp.duration);
         if (fadingComp.getDuration() <= 0) {
             if (RG.isActor(ent)) {
-                console.log('Emitting actor killed');
                 const level = ent.getLevel();
                 if (level.removeActor(ent)) {
                     RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: ent});
@@ -2255,14 +2254,14 @@ RG.System.AreaEffects = function(compTypes) {
     this.updateEntity = function(ent) {
         const fireComps = ent.getList('Fire');
         if (ent.has('Health')) {
-            fireComps.forEach(() => {
+            fireComps.forEach(fireComp => {
                 const dmgComp = new RG.Component.Damage(1, RG.DMG.FIRE);
                 dmgComp.setSource(NO_DAMAGE_SRC);
                 ent.add(dmgComp);
+                ent.remove(fireComp);
             });
         }
         this._createHeatComps(ent);
-        ent.remove('Fire');
     };
 
     this._createHeatComps = function(ent) {
@@ -2271,12 +2270,14 @@ RG.System.AreaEffects = function(compTypes) {
         const [x, y] = cell.getXY();
         const heatBox = RG.Geometry.getBoxAround(x, y, this.heatRange);
         heatBox.forEach(xy => {
-            const cell = map.getCell(xy[0], xy[1]);
-            if (cell.hasActors()) {
-                const actors = cell.getActors();
-                actors.forEach(actor => {
-                    actor.add(new RG.Component.Heat());
-                });
+            if (map.hasXY(xy[0], xy[1])) {
+                const cell = map.getCell(xy[0], xy[1]);
+                if (cell.hasActors()) {
+                    const actors = cell.getActors();
+                    actors.forEach(actor => {
+                        actor.add(new RG.Component.Heat());
+                    });
+                }
             }
         });
     };
