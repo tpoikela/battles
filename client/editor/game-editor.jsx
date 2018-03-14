@@ -3,7 +3,9 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 
 import EditorTopMenu from './editor-top-menu';
-import GameBoard from '../jsx/game-board';
+import EditorGameBoard from './editor-game-board';
+import EditorLevelList from './editor-level-list';
+
 import GameMessages from '../jsx/game-messages';
 import LevelSaveLoad from './level-save-load';
 import Capital from '../data/capital';
@@ -133,6 +135,7 @@ export default class GameEditor extends Component {
       turnsPerSec: 1000,
       turnsPerFrame: 1,
       idCount: 0,
+      updateMap: true,
 
       useRLE: true,
       savedLevelName: 'saved_level_from_editor.json'
@@ -183,6 +186,7 @@ export default class GameEditor extends Component {
     this.onCellClick = this.onCellClick.bind(this);
     this.onChangeCellSelectX = this.onChangeCellSelectX.bind(this);
     this.onChangeCellSelectY = this.onChangeCellSelectY.bind(this);
+    this.onChangeUpdateMap = this.onChangeUpdateMap.bind(this);
 
     this.insertElement = this.insertElement.bind(this);
     this.onChangeElement = this.onChangeElement.bind(this);
@@ -208,7 +212,6 @@ export default class GameEditor extends Component {
 
     this.handleKeyDown = this.handleKeyDown.bind(this);
 
-    this.deleteLevel = this.deleteLevel.bind(this);
     this.onLoadCallback = this.onLoadCallback.bind(this);
 
     this.menuCallback = this.menuCallback.bind(this);
@@ -621,11 +624,8 @@ export default class GameEditor extends Component {
     }
 
     const errorMsg = this.getEditorMsg();
-    const charRows = this.screen.getCharRows();
-    const classRows = this.screen.getClassRows();
     const editorPanelElem = this.getEditorPanelElement();
     const simulationButtons = this.getSimulationButtons();
-    const gameEditorLevelList = this.getLevelList();
 
     let message = [];
     if (this.state.simulationStarted) {
@@ -663,24 +663,22 @@ export default class GameEditor extends Component {
 
         <div className='row'>
           <div className='col-md-2'>
-            <div className='list-group'>
-              List of levels:
-              {gameEditorLevelList}
-            </div>
+              <EditorLevelList
+                  levelList={this.state.levelIndex}
+                  levelList={this.state.levelList}
+                  setShownLevel={this.setShownLevel.bind(this)}
+              />
           </div>
 
           <div className='col-md-10'>
             <div className='game-editor-board-div'>
-              <GameBoard
+              <EditorGameBoard
                 boardClassName={this.state.boardClassName}
-                charRows={charRows}
-                classRows={classRows}
-                endY={this.screen.endY}
                 onCellClick={this.onCellClick}
                 rowClass={rowClass}
+                screen={this.screen}
                 sizeX={mapSizeX}
-                startX={0}
-                startY={0}
+                updateMap={this.state.updateMap}
                 useRLE={this.state.useRLE}
               />
             </div>
@@ -822,6 +820,10 @@ export default class GameEditor extends Component {
   //----------------------------------------------------------------
   // onChangeXXX callbacks for <input> fields
   //----------------------------------------------------------------
+
+  onChangeUpdateMap() {
+      this.setState({updateMap: !this.state.updateMap});
+  }
 
   onChangeLevelConf(confType, key, idHead) {
     const id = `#${idHead}--${confType}--${key}`;
@@ -1119,32 +1121,6 @@ export default class GameEditor extends Component {
     }
   }
 
-  /* Called when a level is selected from level list. */
-  selectLevel(level, i) {
-    this.setShownLevel({level: level, levelIndex: i});
-  }
-
-  /* When delete X button is pressed, deletes the level. */
-  deleteLevel(evt) {
-    if (evt) {
-      evt.stopPropagation();
-    }
-
-    const {id} = evt.target;
-    let i = id.match(/(\d+)$/)[1];
-    i = parseInt(id, 10);
-
-    const levelList = this.state.levelList;
-    levelList.splice(i, 1);
-    const shownLevel = levelList.length > 0 ? levelList[0] : null;
-    if (shownLevel === null) {
-      this.setShownLevel({level: null, levelIndex: -1, levelList});
-    }
-    else {
-      this.setShownLevel({level: shownLevel, levelIndex: 0, levelList});
-    }
-  }
-
   setShownLevel(args) {
     window.LEVEL = args.level;
     this.setState(args);
@@ -1253,7 +1229,7 @@ export default class GameEditor extends Component {
               <button
                 id='btn-gen-world'
                 onClick={this.generateWorld}
-              >OverWorld!</button>
+              >OverWorld</button>
 
               <span>Zoom In/Out:
                 <button
@@ -1264,6 +1240,15 @@ export default class GameEditor extends Component {
                   id='btn-zoom-out'
                   onClick={this.zoom.bind(this, '-')}
                 >-</button>
+                <label>
+                <input
+                    checked={this.state.updateMap}
+                    onChange={this.onChangeUpdateMap}
+                    type='checkbox'
+                    value='update-map-checkbox'
+                />
+                Update map
+                </label>
               </span>
             </div>
 
@@ -1509,38 +1494,6 @@ export default class GameEditor extends Component {
       </div>
 
     );
-  }
-
-  /* Creates the LHS panel for browsing levels. */
-  getLevelList() {
-    const levelList = this.state.levelList.map((level, i) => {
-      const selectLevel = this.selectLevel.bind(this, level, i);
-      const className = this.state.levelIndex === i
-        ? 'list-group-item list-group-item-info' : 'list-group-item';
-
-      const nActors = level.getActors().length;
-      const nActorsShow = nActors ? 'A:' + nActors : '';
-      const nItems = level.getItems().length;
-      const nItemsShow = nItems ? 'I:' + nItems : '';
-
-      return (
-        <a className={className}
-          href='#'
-          key={level.getID()}
-          onClick={selectLevel}
-        >
-          L{level.getID()}:
-          {level.getMap().cols}x{level.getMap().rows}|{nActorsShow}|
-          {nItemsShow}
-          <button
-            className='btn-xs btn-danger pull-right'
-            id={'btn-delete-level-' + i}
-            onClick={this.deleteLevel}
-          >X</button>
-        </a>
-      );
-    });
-    return levelList;
   }
 
   //-----------------------------
