@@ -8,7 +8,8 @@ import {
   Nav, NavDropdown, MenuItem
 } from 'react-bootstrap';
 
-const RG = require('../src/rg');
+// const RG = require('../src/rg');
+const Level = require('../src/level');
 
 export default class EditorTopMenu extends Component {
 
@@ -91,6 +92,6 @@ export default class EditorTopMenu extends Component {
 
 EditorTopMenu.propTypes = {
     addLevel: PropTypes.func.isRequired,
-    level: PropTypes.objectOf(RG.Map.Level),
+    level: PropTypes.objectOf(Level),
     menuCallback: PropTypes.func.isRequired
 };
