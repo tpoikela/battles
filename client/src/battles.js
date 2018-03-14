@@ -29,6 +29,7 @@ RG.Actor = require('./actor.js');
 RG.Element = require('./element.js');
 
 RG.Map = require('./map.js');
+RG.Map.Level = require('./level.js');
 RG.World = require('./world.js');
 
 RG.Effects = require('../data/effects.js');
