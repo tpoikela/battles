@@ -144,6 +144,28 @@ Path.getMinWeightPath = function(map, x0, y0, x1, y1, pathFunc) {
     return coord;
 };
 
+/* This algorithm divides the path into nSegments, then computes minimum
+ * weighted path for each of those segments. This makes the
+ * path look more realistic, but of course less optimal.
+ */
+Path.getWeightPathSegmented = function(map, x0, y0, x1, y1, nSeg, pathFunc) {
+    const dX = x1 - x0;
+    const dY = y1 - y0;
+    const segX = RG.Path.getPathSeg(dX, nSeg);
+    const segY = RG.Path.getPathSeg(dY, nSeg);
+    let finalPath = [];
+
+    let [startX, startY] = [x0, y0];
+    for (let i = 0; i < nSeg; i++) {
+        const [endX, endY] = [startX + segX[i], startY + segY[i]];
+        const segmentPath = Path.getMinWeightPath(map, startX, startY,
+            endX, endY, pathFunc);
+        [startX, startY] = [endX, endY];
+        finalPath = finalPath.concat(segmentPath);
+    }
+    return finalPath;
+};
+
 Path.addPathToMap = function(map, coord) {
     const chosenCoord = [];
     for (let j = 0; j < coord.length; j++) {
@@ -164,6 +186,20 @@ Path.addPathToMap = function(map, coord) {
         }
     }
     return chosenCoord;
+};
+
+/* Returns the path segment sizes. For example, dist=17, nSeg=4,
+ * produces [4, 4, 4, 5] */
+Path.getPathSeg = function(dist, nSeg) {
+    let remain = dist;
+    const result = [];
+    const segSize = Math.floor(dist / nSeg);
+    for (let i = 0; i < nSeg - 1; i++) {
+        result.push(segSize);
+        remain -= segSize;
+    }
+    result.push(remain);
+    return result;
 };
 
 module.exports = Path;
