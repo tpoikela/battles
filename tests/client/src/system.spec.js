@@ -443,10 +443,11 @@ describe('System.TimeEffects', () => {
         expect(entity).not.to.have.component('StatsMods');
     });
 
-    it.only('processes Coldness effects into damage', () => {
+    it('processes Coldness effects into damage', () => {
         const timeSys = new RG.System.TimeEffects(['Expiration', 'Coldness']);
         const damageSystem = new RG.System.Damage(['Damage']);
 
+        const ghoul = new RG.Actor.Rogue('ghoul');
         const actor = new RG.Actor.Rogue('frozen');
         const bodyTemp = new RG.Component.BodyTemp();
         bodyTemp.setTemp(-95);
@@ -456,6 +457,7 @@ describe('System.TimeEffects', () => {
 
         const expirComp = new RG.Component.Expiration();
         const paralComp = new RG.Component.Paralysis();
+        paralComp.setSource(ghoul);
         expirComp.addEffect(paralComp, 15);
         actor.add(expirComp);
         actor.add(paralComp);
