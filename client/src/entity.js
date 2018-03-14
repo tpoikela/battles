@@ -57,8 +57,12 @@ export default class Entity {
         return compList.length > 0;
     }
 
-    /* Removes given component type or component. If string is given, removes
-     * the first matching, otherwise removes by comp ID. 
+    /* Removes given component type or component.
+     * 1. If object is given, retrieves its id using getID().
+     * 2. If integer given, uses it as ID to remove the component.
+     * 3. If string is given, either
+     *    a) removes first comp of matching type.
+     *    b) Uses parseInt() to convert it to ID, then uses this ID.
      */
     remove(nameOrCompOrId) {
         if (typeof nameOrCompOrId === 'object') {
@@ -81,6 +85,17 @@ export default class Entity {
             const compList = this.getList(nameOrCompOrId);
             if (compList.length > 0) {
                 this.remove(compList[0]);
+            }
+            else {
+                const compID = parseInt(nameOrCompOrId, 10);
+                if (compID) {
+                    this.remove(compID);
+                }
+                else {
+                    const type = typeof nameOrCompOrId;
+                    RG.warn('Entity', 'remove',
+                        `No comp found ->  |${nameOrCompOrId}|, type: ${type}`);
+                }
             }
         }
     }
