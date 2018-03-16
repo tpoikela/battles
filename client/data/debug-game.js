@@ -135,6 +135,9 @@ const DebugGame = function(fact, parser) {
         const thunderbird = _parser.createActor('thunderbird');
         level.addActor(thunderbird, 20, 1);
 
+        const firekit = parser.createEntity('firemaking kit');
+        player.getInvEq().addItem(firekit);
+
         player.add(new RG.Component.Coldness());
 
         return game;
