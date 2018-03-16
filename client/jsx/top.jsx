@@ -862,15 +862,18 @@ class BattlesTop extends Component {
     doGUICommand(code) {
          if (this.gameState.useModeEnabled) {
             this.gameState.useModeEnabled = false;
-            if (this.state.selectedItem !== null) {
+            const item = this.state.selectedItem;
+            if (item !== null) {
 
                 const player = this.game.getPlayer();
                 const cell = this.logic.getAdjacentCell(player, code);
                 if (cell !== null) {
                     this.game.update({
-                        cmd: 'use', target: cell, item: this.state.selectedItem
+                        cmd: 'use', target: cell, item
                     });
-                    this.setState({selectedItem: null});
+                    if (item.has('OneShot')) {
+                        this.setState({selectedItem: null});
+                    }
                 }
                 else {
                     RG.gameWarn('There are no targets there.');
