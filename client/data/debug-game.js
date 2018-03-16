@@ -112,13 +112,13 @@ const DebugGame = function(fact, parser) {
         coins.count = 600;
         player.getInvEq().addItem(coins);
 
-        if (!player.getBook()) {
+        // if (!player.getBook()) {
             const spellbook = new RG.Spell.SpellBook(player);
             player.setBook(spellbook);
-            RG.Spell.addAllSpells(this._spellbook);
+            RG.Spell.addAllSpells(spellbook);
             player.add(new RG.Component.SpellPower());
             player.get('SpellPower').setPP(100);
-        }
+        // }
 
         const vActor = new RG.Actor.Virtual('spawner');
         const spawnBrain = new RG.Brain.Spawner(vActor);
