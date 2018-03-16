@@ -735,6 +735,7 @@ const RG = { // {{{2
     },
 
     DMG: {
+        ENERGY: 'ENERGY',
         MELEE: 'MELEE',
         MISSILE: 'MISSILE',
         POISON: 'POISON',
