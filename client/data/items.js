@@ -84,6 +84,13 @@ const Items = [
         weight: 0.7, value: value(35)
     },
     {
+        name: 'Iron staff', base: 'MeleeWeaponBase',
+        material: 'iron',
+        damage: '1d8', weaponType: 'staff',
+        defense: 2,
+        weight: 1.9, value: value(40)
+    },
+    {
         name: 'Pick-axe', base: 'MeleeWeaponBase',
         damage: '1d8', attack: 1, defense: 2,
         weaponType: 'axe',
@@ -162,6 +169,12 @@ const Items = [
         weaponType: 'sword'
     },
     {
+        name: 'Permaice staff', base: 'IceWeaponBase',
+        damage: '3d5', weaponType: 'staff',
+        defense: 7,
+        weight: 3.8, value: value(300)
+    },
+    {
         name: 'Permaice axe', base: 'IceWeaponBase',
         damage: '3d6 + 6', defense: 7,
         weaponType: 'axe',
@@ -195,6 +208,12 @@ const Items = [
         damage: '3d5 + 2',
         attack: 3, defense: 2, weight: 0.2, value: value(200),
         weaponType: 'sword'
+    },
+    {
+        name: 'Ruby glass staff', base: 'RubyWeaponBase',
+        damage: '3d5', weaponType: 'staff',
+        attack: 4, defense: 5,
+        weight: 0.4, value: value(300)
     },
     {
         name: 'Ruby glass sword', base: 'RubyWeaponBase',
@@ -238,6 +257,12 @@ const Items = [
         damage: '4d5 + 2',
         attack: 4, defense: 2, weight: 1.5, value: value(400),
         weaponType: 'axe'
+    },
+    {
+        name: 'Magic staff', base: 'MagicWeaponBase',
+        damage: '4d5', weaponType: 'staff',
+        attack: 2, defense: 9,
+        weight: 2.0, value: value(400)
     },
     {
         name: 'Magic sword', base: 'MagicWeaponBase',
@@ -800,7 +825,13 @@ const Items = [
     {
         name: 'Lightning arrow', noRandom: true,
         type: 'ammo', char: '/', className: 'cell-item-lightning'
+    },
+    {
+        name: 'Energy arrow', noRandom: true,
+        type: 'ammo', char: '/', className: 'cell-item-energy'
     }
+
+    // ARTIFACT ITEMS
 ];
 
 module.exports = Items;
