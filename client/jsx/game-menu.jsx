@@ -4,7 +4,8 @@ import PropTypes from 'prop-types';
 
 function padToWidth(w, text, marginLeft, padChar = '&nbsp;') {
   const textLen = text.length;
-  const marginRight = w - textLen - marginLeft;
+  let marginRight = w - textLen - marginLeft;
+  if (marginRight < 0) {marginRight = 0;}
   return padChar.repeat(marginLeft) + text + padChar.repeat(marginRight);
 }
 
@@ -57,15 +58,17 @@ export default class GameMenu extends Component {
     if (menuObj.hasOwnProperty('pre')) {
       if (Array.isArray(menuObj.pre)) {
         preMenu = menuObj.pre.map(item => {
-          const text = padToWidth(width, `${item}`, 3);
-          return (
-            <div className='cell-row-div-player-view' key={item}>
-              <span className='game-menu-text-span'
-                dangerouslySetInnerHTML={{__html: text}}
-              />
-            </div>
-          );
-
+          const lines = item.split('\n');
+          lines.forEach(textLine => {
+            const text = padToWidth(width, `${textLine}`, 3);
+            return (
+              <div className='cell-row-div-player-view' key={item}>
+                <span className='game-menu-text-span'
+                  dangerouslySetInnerHTML={{__html: text}}
+                />
+              </div>
+            );
+          });
         });
       }
     }
@@ -75,14 +78,17 @@ export default class GameMenu extends Component {
     if (menuObj.hasOwnProperty('post')) {
       if (Array.isArray(menuObj.post)) {
         postMenu = menuObj.post.map(item => {
-          const text = padToWidth(width, `${item}`, 3);
-          return (
-            <div className='cell-row-div-player-view' key={item}>
-              <span className='game-menu-text-span'
-                dangerouslySetInnerHTML={{__html: text}}
-              />
-            </div>
-          );
+          const lines = item.split('\n');
+          lines.forEach(textLine => {
+            const text = padToWidth(width, `${textLine}`, 3);
+            return (
+              <div className='cell-row-div-player-view' key={item}>
+                <span className='game-menu-text-span'
+                  dangerouslySetInnerHTML={{__html: text}}
+                />
+              </div>
+            );
+          });
         });
       }
     }
