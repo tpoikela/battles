@@ -600,6 +600,25 @@ describe('Data query functions for objects', () => {
         expect(newVictim.getList('Duration')).to.have.length(2);
         expect(newVictim.getList('StatsMods')).to.have.length(2);
     });
+
+    it('can create firemaking kits and other tools', () => {
+        const firekit = parser.createEntity('firemaking kit');
+        expect(firekit).to.have.property('useItem');
+        const level = RG.FACT.createLevel('arena', 20, 20);
+        const cell = level.getMap().getCell(1, 1);
+        const fireStarter = new RG.Actor.Rogue('firestarted');
+        level.addActor(fireStarter, 1, 2);
+        fireStarter.getInvEq().addItem(firekit);
+
+        firekit.useItem({target: cell});
+
+        expect(cell.hasActors()).to.equal(true);
+
+        const clonedKit = firekit.clone();
+        expect(clonedKit.useArgs).to.exist;
+        expect(clonedKit.useItem).to.be.a.function;
+
+    });
 });
 
 describe('ObjectShell.Parser error handling', () => {

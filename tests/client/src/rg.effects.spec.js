@@ -97,4 +97,9 @@ describe('RG.Effects', () => {
         expect(actor.has('Ethereal')).to.equal(true);
         expect(actor.has('Expiration')).to.equal(true);
     });
+
+    it('has a firemaking effect', () => {
+        const fireEffect = getEffectByName(Effects, 'addEntity');
+
+    });
 });
