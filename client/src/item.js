@@ -78,6 +78,13 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
         this.setWeight(rhs.getWeight());
         this.setValue(rhs.getValue());
 
+        if (rhs.useArgs) {
+            this.useArgs = rhs.useArgs;
+        }
+        if (rhs.useItem) {
+            this.useItem = rhs.useItem.bind(this);
+        }
+
         const comps = Object.values(rhs.getComponents());
         comps.forEach(comp => {
             this.add(comp.clone());
