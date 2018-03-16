@@ -949,6 +949,18 @@ RG.ObjectShell.Parser = function() {
     //   these would break the API in major way)
     //---------------------------------------------------------------
 
+    this.createEntity = function(name) {
+        if (this.hasObj(RG.TYPE_ITEM, name)) {
+            return this.createActualObj(RG.TYPE_ITEM, name);
+        }
+        else if (this.hasObj(RG.TYPE_ACTOR, name)) {
+            return this.createActualObj(RG.TYPE_ACTOR, name);
+        }
+        console.log('XXX here');
+        return null;
+
+    };
+
     this.createActor = function(name) {
         return this.createActualObj(RG.TYPE_ACTOR, name);
     };
