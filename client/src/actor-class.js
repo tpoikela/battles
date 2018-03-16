@@ -62,6 +62,10 @@ class ActorClassBase {
             ppComp.addPP(ppIncr);
         }
 
+        // Random stat increase
+        const statName = RG.RAND.arrayGetRand(RG.STATS);
+        actor.get('Stats').incrStat(statName, 1);
+
         RG.levelUpCombatStats(actor, newLevel);
     }
 }
@@ -113,6 +117,12 @@ class Adventurer extends ActorClassBase {
 
     setStartingStats() {
         // const stats = this._actor.get('Stats');
+    }
+
+    incrStats(newLevel) {
+        super.incrStats(newLevel);
+        const statName = RG.RAND.arrayGetRand(RG.STATS);
+        this._actor.get('Stats').incrStat(statName, 1);
     }
 }
 
@@ -192,6 +202,17 @@ class Blademaster extends ActorClassBase {
         stats.incrStat('magic', -3);
     }
 
+
+    incrStats(newLevel) {
+        const stats = this._actor.get('Stats');
+        super.incrStats(newLevel);
+        if (newLevel % 3 !== 0) {
+            stats.incrStat('strength', 1);
+        }
+        if (newLevel % 3 === 0) {
+            stats.incrStat('accuracy', 1);
+        }
+    }
 }
 
 ActorClass.Blademaster = Blademaster;
@@ -272,6 +293,17 @@ class Cryomancer extends ActorClassBase {
         stats.incrStat('magic', 3);
     }
 
+    incrStats(newLevel) {
+        const stats = this._actor.get('Stats');
+        super.incrStats(newLevel);
+        if (newLevel % 3 !== 0) {
+            stats.incrStat('magic', 1);
+        }
+        if (newLevel % 3 === 0) {
+            stats.incrStat('willpower', 1);
+        }
+    }
+
 }
 
 ActorClass.Cryomancer = Cryomancer;
@@ -347,6 +379,20 @@ class Marksman extends ActorClassBase {
         stats.incrStat('accuracy', 3);
         stats.incrStat('perception', 2);
         stats.incrStat('magic', -3);
+    }
+
+    incrStats(newLevel) {
+        const stats = this._actor.get('Stats');
+        super.incrStats(newLevel);
+        if (newLevel % 3 !== 0) {
+            stats.incrStat('accuracy', 1);
+        }
+        if (newLevel % 3 === 0) {
+            stats.incrStat('perception', 1);
+        }
+        if (newLevel % 3 === 1) {
+            stats.incrStat('agility', 1);
+        }
     }
 
 }
