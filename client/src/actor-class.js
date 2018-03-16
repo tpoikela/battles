@@ -19,6 +19,32 @@ ActorClass.create = function(name, entity) {
     return null;
 };
 
+ActorClass.getLevelUpObject = function(level, actorClass) {
+    const selObj = function() {
+        this.showMenu = () => true;
+        this.getMenu = () => {
+            const actor = actorClass.getActor();
+            const className = actorClass.getClassName();
+            const levelMsg = actorClass.getLevelUpMsg(level);
+            RG.gameMsg(`${actor.getName()} advances to level ${level}`);
+            const obj = {
+                0: 'Back to game.'
+            };
+            obj.pre = [`${actor.getName()} is now level ${level} ${className}`];
+            obj.pre.push(levelMsg);
+            return obj;
+        };
+        this.select = code => {
+            const selection = RG.codeToIndex(code);
+            if (selection === 0) {
+                return null;
+            }
+            return this;
+        };
+    };
+    return new selObj();
+};
+
 /* Used by different in-game classes for actors. Provides basic getters and
  * progress functions to increase stats etc on level up. */
 class ActorClassBase {
@@ -29,8 +55,19 @@ class ActorClassBase {
         this._className = name;
     }
 
+    getActor() {return this._actor;}
+
     getClassName() {
         return this._className;
+    }
+
+    getLevelUpMsg(level) {
+        let msg = '';
+        if (this._messages.hasOwnProperty(level)) {
+            msg += this._messages[level];
+        }
+        msg += `\n${this._lastStateIncr} was increased.`;
+        return msg;
     }
 
     /* Called when a level is advanced by the actor. Checks for messages, and if
@@ -49,6 +86,7 @@ class ActorClassBase {
 
     incrStats(newLevel) {
         const actor = this._actor;
+        this._lastStateIncr = '';
 
         const hComp = actor.get('Health');
         const incr = Math.ceil(actor.getStrength() / 2);
@@ -64,6 +102,7 @@ class ActorClassBase {
 
         // Random stat increase
         const statName = RG.RAND.arrayGetRand(RG.STATS);
+        this._lastStateIncr = statName;
         actor.get('Stats').incrStat(statName, 1);
 
         RG.levelUpCombatStats(actor, newLevel);
@@ -104,7 +143,8 @@ class Adventurer extends ActorClassBase {
      */
     getStartingItems() {
         return [
-            {name: 'Ration', count: 2}
+            {name: 'Ration', count: 2},
+            {name: 'firemaking kit'}
         ];
     }
 
@@ -116,12 +156,18 @@ class Adventurer extends ActorClassBase {
     }
 
     setStartingStats() {
-        // const stats = this._actor.get('Stats');
+        const stats = this._actor.get('Stats');
+        for (let i = 0; i < 3; i++) {
+            let statName = RG.RANG.arrayGetRand(RG.STATS);
+            statName = statName.toLowerCase();
+            stats.incrStat(statName, RG.RAND.getUniformInt(1, 3));
+        }
     }
 
     incrStats(newLevel) {
         super.incrStats(newLevel);
         const statName = RG.RAND.arrayGetRand(RG.STATS);
+        this._lastStateIncr += `\n${statName} was increased.`;
         this._actor.get('Stats').incrStat(statName, 1);
     }
 }
@@ -202,15 +248,21 @@ class Blademaster extends ActorClassBase {
         stats.incrStat('magic', -3);
     }
 
+    getLevelUpMsg(level) {
+        const msg = super.getLevelUpMsg(level);
+        return msg;
+    }
 
     incrStats(newLevel) {
         const stats = this._actor.get('Stats');
         super.incrStats(newLevel);
         if (newLevel % 3 !== 0) {
             stats.incrStat('strength', 1);
+            this._lastStateIncr += '\nStrength was increased.';
         }
         if (newLevel % 3 === 0) {
             stats.incrStat('accuracy', 1);
+            this._lastStateIncr += '\nAccuracy was increased.';
         }
     }
 }
@@ -234,7 +286,7 @@ class Cryomancer extends ActorClassBase {
             20: `${_name} can drain power from other spellcasters`,
             24: `${_name} can fire ice arrows towards enemies`,
             28: `${_name} can control their enemies now`,
-            32: `${_name} has become a True Cryomancer, Bringer of Blizzard`
+            32: `${_name} has become a True Cryomancer, Harbinger of Blizzard`
         };
 
         this._advances = {
@@ -298,9 +350,11 @@ class Cryomancer extends ActorClassBase {
         super.incrStats(newLevel);
         if (newLevel % 3 !== 0) {
             stats.incrStat('magic', 1);
+            this._lastStateIncr += '\nMagic was increased.';
         }
         if (newLevel % 3 === 0) {
             stats.incrStat('willpower', 1);
+            this._lastStateIncr += '\nWillpower was increased.';
         }
     }
 
@@ -386,12 +440,15 @@ class Marksman extends ActorClassBase {
         super.incrStats(newLevel);
         if (newLevel % 3 !== 0) {
             stats.incrStat('accuracy', 1);
+            this._lastStateIncr += '\nAccuracy was increased.';
         }
         if (newLevel % 3 === 0) {
             stats.incrStat('perception', 1);
+            this._lastStateIncr += '\nPerception was increased.';
         }
         if (newLevel % 3 === 1) {
             stats.incrStat('agility', 1);
+            this._lastStateIncr += '\nAgility was increased.';
         }
     }
 
@@ -424,19 +481,19 @@ class Spellsinger extends ActorClassBase {
                 this._actor.setBook(book);
             },
             4: () => {
-
+                this._actor.getBook().addSpell(new RG.Spell.Paralysis());
             },
             8: () => {
-
+                this._actor.getBook().addSpell(new RG.Spell.Heal());
             },
             12: () => {
-
+                this._actor.getBook().addSpell(new RG.Spell.Flying());
             },
             16: () => {
 
             },
             20: () => {
-
+                this._actor.getBook().addSpell(new RG.Spell.LightningArrow());
             },
             24: () => {
 
@@ -451,16 +508,36 @@ class Spellsinger extends ActorClassBase {
     }
 
     getStartingItems() {
-        // Starting instrument
-
+        return [
+            {name: 'Ration', count: 1},
+            {name: 'Potion of eagle', count: 1}
+        ];
     }
 
     getStartingEquipment() {
-
+        return [
+            {name: 'Iron staff', count: 1},
+            {name: 'Leather armour', count: 1}
+        ];
     }
 
     setStartingStats() {
+        const stats = this._actor.get('Stats');
+        stats.incrStat('perception', 2);
+        stats.incrStat('magic', 2);
+    }
 
+    incrStats(newLevel) {
+        const stats = this._actor.get('Stats');
+        super.incrStats(newLevel);
+        if (newLevel % 3 !== 0) {
+            stats.incrStat('magic', 1);
+            this._lastStateIncr += '\nMagic was increased.';
+        }
+        if (newLevel % 3 === 0) {
+            stats.incrStat('perception', 1);
+            this._lastStateIncr += '\nPerception was increased.';
+        }
     }
 
 }
@@ -477,11 +554,11 @@ class Spiritcrafter extends ActorClassBase {
 
         this._messages = {
             4: `${_name} can now equip 2 spirit gems`,
-            8: `${_name} gains new skill`,
+            8: `${_name} learns to project small amounts of energy`,
             12: `${_name} gains new skill`,
-            16: `${_name} gains new skill`,
-            20: `${_name} gains new skill`,
-            24: `${_name} gains new skill`,
+            16: `${_name} can now equip 3 spirit gems`,
+            20: `${_name} can now bind spirit gems to items`,
+            24: `${_name} can take a spirit form now`,
             28: `${_name} gains new skill`,
             32: `${_name} has become a Mighty Spiritcrafter`
         };
@@ -492,22 +569,24 @@ class Spiritcrafter extends ActorClassBase {
                 this._actor.setBook(book);
             },
             4: () => {
-
+                const eq = this.getActor().getInvEq().getEquipment();
+                eq.addSlot('spiritgem', new RG.Inv.EquipSlot(eq, 'spiritgem'));
             },
             8: () => {
-
+                this._actor.getBook().addSpell(new RG.Spell.EnergyArrow());
             },
             12: () => {
 
             },
             16: () => {
-
+                const eq = this.getActor().getInvEq().getEquipment();
+                eq.addSlot('spiritgem', new RG.Inv.EquipSlot(eq, 'spiritgem'));
             },
             20: () => {
                 this._actor.add(new RG.Component.SpiritItemCrafter());
             },
             24: () => {
-
+                this._actor.getBook().addSpell(new RG.Spell.SpiritForm());
             },
             28: () => {
 
@@ -519,21 +598,43 @@ class Spiritcrafter extends ActorClassBase {
     }
 
     getStartingItems() {
-        // Starting instrument
-
+        return [
+            {name: 'Ration', count: 1},
+            {name: 'Ordinary spirit gem'},
+            {name: 'Potion of spirit form'}
+        ];
     }
 
     getStartingEquipment() {
-
+        return [
+            {name: 'Robe', count: 1},
+            {name: 'Mace', count: 1}
+        ];
     }
 
     setStartingStats() {
+        const stats = this._actor.get('Stats');
+        stats.incrStat('willpower', 4);
+        stats.incrStat('magic', 2);
+    }
 
+    incrStats(newLevel) {
+        const stats = this._actor.get('Stats');
+        super.incrStats(newLevel);
+        if (newLevel % 3 !== 0) {
+            stats.incrStat('willpower', 1);
+            this._lastStateIncr += '\nWillpower was increased.';
+        }
+        if (newLevel % 3 === 0) {
+            stats.incrStat('magic', 1);
+            this._lastStateIncr += '\nMagic was increased.';
+        }
     }
 
 }
 ActorClass.Spiritcrafter = Spiritcrafter;
 
-RG.ACTOR_CLASSES = ['Cryomancer', 'Blademaster', 'Marksman'];
+RG.ACTOR_CLASSES = ['Cryomancer', 'Blademaster', 'Marksman', 'Spiritcrafter',
+    'Adventurer', 'Spellsinger'];
 
 module.exports = ActorClass;
