@@ -18,6 +18,13 @@ const getTargetActor = (obj) => {
     return null;
 };
 
+const getTargetCell = obj => {
+    if (obj.hasOwnProperty('target')) {
+        return obj.target;
+    }
+    return null;
+};
+
 const createUseItemComp = (item, target) => {
     const useItem = new RG.Component.UseItem();
     useItem.setTarget(target);
@@ -280,6 +287,7 @@ RG.Effects = {
                 return false;
             }
         }, // stun
+
         // Modifies of the actor stats with given value
         {
             name: 'modifyStat',
@@ -295,6 +303,37 @@ RG.Effects = {
                     const currVal = stats[getFunc]();
                     stats[setFunc](currVal + value);
                     createUseItemComp(this, actor);
+                    return true;
+                }
+                return false;
+            }
+        },
+
+        // Adds an entity into a cell
+        {
+            name: 'addEntity',
+            requires: ['entityName'],
+            func: function(obj) {
+                const cell = getTargetCell(obj);
+                const parser = RG.ObjectShell.getParser();
+                const entity = parser.createEntity(this.useArgs.entityName);
+                if (entity) {
+                    const [x, y] = [cell.getX(), cell.getY()];
+                    const owner = this.getOwner();
+                    const level = owner.getLevel();
+                    if (level.addEntity(entity, x, y)) {
+                        if (this.useArgs.duration) {
+                            const fadingComp = new RG.Component.Fading();
+                            const {duration} = this.useArgs;
+                            fadingComp.setDuration(duration);
+                        }
+                        createUseItemComp(this, cell);
+                        return true;
+                    }
+                }
+                else {
+                    RG.err('effects.js', 'effect: addEntity',
+                      'Created entity was null');
                 }
                 return false;
             }
