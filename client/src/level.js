@@ -292,6 +292,27 @@ Level.prototype.removeElement = function(elem, x, y) {
     return this._removePropFromLevelXY(RG.TYPE_ELEM, elem, x, y);
 };
 
+
+Level.prototype.addEntity = function(ent, x, y) {
+    if (ent.getPropType) {
+        const type = ent.getPropType();
+        if (type === RG.TYPE_ACTOR) {
+            return this.addActor(ent, x, y);
+        }
+        else if (type === RG.TYPE_ITEM) {
+              return this.addItem(ent, x, y);
+        }
+        else if (type === RG.TYPE_ELEM) {
+              return this.addElement(ent, x, y);
+        }
+    }
+    else {
+        RG.err('Level', 'addEntity',
+            'No support for ents without getPropType');
+    }
+    return false;
+};
+
 //---------------------------------------------------------------------
 // ITEM RELATED FUNCTIONS
 //---------------------------------------------------------------------
