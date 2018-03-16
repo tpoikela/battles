@@ -115,10 +115,11 @@ export default class GameInventory extends Component {
   /* Called when Use button is clicked. If an item is selected, uses that
    * item. */
   useItem() {
-    if (this.props.selectedItem !== null) {
+    const item = this.props.selectedItem;
+    if (!RG.isNullOrUndef([item])) {
 
       const target = this.props.player.getCell();
-      const cmd = RG.getUseCmd(this.props.selectedItem, target);
+      const cmd = RG.getUseCmd(item, target);
 
       cmd.callback = function(obj) {
         let msgStyle = 'text-success';
@@ -127,7 +128,9 @@ export default class GameInventory extends Component {
         }
         this.props.setInventoryMsg(
           {invMsg: obj.msg, msgStyle: msgStyle});
-        this.props.selectItemTop(null);
+        if (item.has('OneShot')) {
+          this.props.selectItemTop(null);
+        }
       }.bind(this);
       this.props.doInvCmd(cmd);
     }
