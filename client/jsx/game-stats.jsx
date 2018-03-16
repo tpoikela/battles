@@ -130,6 +130,9 @@ export default class GameStats extends Component {
     if (player.has('Coldness')) {
       stat.push(<p className='text-primary' key='stat-coldness'>Cold</p>);
     }
+    if (player.has('Flying')) {
+      stat.push(<p className='text-primary' key='stat-flying'>Cold</p>);
+    }
     return stat;
   }
 
