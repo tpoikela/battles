@@ -180,6 +180,60 @@ RG.Spell.Base.prototype.toJSON = function() {
     };
 };
 
+/* Base class for spells which add components to entities. */
+RG.Spell.AddComponent = function(name, power) {
+    RG.Spell.Base.call(this, name, power);
+
+    let _compName = '';
+    let _duration = RG.FACT.createDie('1d6 + 3');
+
+    this.setDuration = die => {_duration = die;};
+    this.setCompName = name => {_compName = name;};
+    this.getCompName = () => _compName;
+
+    this.cast = function(args) {
+        const obj = getDirSpellArgs(this, args);
+        const dur = _duration.roll();
+
+        const compToAdd = new RG.Component[_compName]();
+        if (compToAdd.setSource) {
+            compToAdd.setSource(args.src);
+        }
+        obj.addComp = {comp: compToAdd, duration: dur};
+
+        const spellComp = new RG.Component.SpellCell();
+        spellComp.setArgs(obj);
+        args.src.add('SpellCell', spellComp);
+    };
+
+    this.getSelectionObject = function(actor) {
+        const msg = 'Select a direction for the spell:';
+        return RG.Spell.getSelectionObjectDir(this, actor, msg);
+    };
+
+};
+RG.extend2(RG.Spell.AddComponent, RG.Spell.Base);
+
+RG.Spell.Flying = function() {
+    RG.Spell.AddComponent.call(this, 'Flying', 5);
+    this.setCompName('Flying');
+};
+RG.extend2(RG.Spell.Flying, RG.Spell.AddComponent);
+
+RG.Spell.Paralysis = function() {
+    RG.Spell.AddComponent.call(this, 'Paralysis', 7);
+    this.setCompName('Paralysis');
+    this.setDuration(RG.FACT.createDie('1d6 + 2'));
+};
+RG.extend2(RG.Spell.Flying, RG.Spell.AddComponent);
+
+RG.Spell.SpiritForm = function() {
+    RG.Spell.AddComponent.call(this, 'SpiritForm', 10);
+    this.setCompName('Ethereal');
+    this.setDuration(RG.FACT.createDie('1d6 + 4'));
+};
+RG.extend2(RG.Spell.SpiritForm, RG.Spell.AddComponent);
+
 /* Base class for ranged spells. */
 RG.Spell.Ranged = function(name, power) {
     RG.Spell.Base.call(this, name, power);
@@ -513,10 +567,20 @@ RG.extend2(RG.Spell.IceArrow, RG.Spell.Missile);
 
 /* Lighting arrow spell fires a missile to specified cell. */
 RG.Spell.LightningArrow = function() {
-    RG.Spell.Missile.call(this, 'LightningArrow', 1);
+    RG.Spell.Missile.call(this, 'LightningArrow', 17);
     this.setRange(8);
     this.damageType = RG.DMG.LIGHTNING;
     this.ammoName = 'Lightning arrow';
+};
+RG.extend2(RG.Spell.LightningArrow, RG.Spell.Missile);
+
+/* Energy arrow spell fires a missile to specified cell. */
+RG.Spell.EnergyArrow = function() {
+    RG.Spell.Missile.call(this, 'EnergyArrow', 2);
+    this.setRange(5);
+    this.setDice([RG.FACT.createDie('1d4 + 1')]);
+    this.damageType = RG.DMG.ENERGY;
+    this.ammoName = 'Energy arrow';
 };
 RG.extend2(RG.Spell.LightningArrow, RG.Spell.Missile);
 
@@ -619,6 +683,7 @@ RG.Spell.addAllSpells = book => {
     book.addSpell(new RG.Spell.Blizzard());
     book.addSpell(new RG.Spell.Heal());
     book.addSpell(new RG.Spell.LightningArrow());
+    book.addSpell(new RG.Spell.Flying());
 };
 
 module.exports = RG.Spell;
