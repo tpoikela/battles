@@ -1,7 +1,9 @@
 
+
 const RG = require('./rg.js');
 RG.Path = require('./path');
 RG.Geometry = require('./geometry');
+const ActorClass = require('./actor-class');
 
 const debug = require('debug')('bitn:System');
 
@@ -833,8 +835,16 @@ RG.System.ExpPoints = function(compTypes) {
                 if (exp >= reqExp) { // Required exp points exceeded
                     RG.levelUpActor(ent, nextExpLevel);
                     const name = ent.getName();
-                    const msg = `${name} appears to be more experienced now.`;
-                    RG.gameSuccess({msg: msg, cell: ent.getCell()});
+                    if (ent.isPlayer() && ent.has('ActorClass')) {
+                        const actorClass = ent.get('ActorClass').getClass();
+                        const menuObj = ActorClass.getLevelUpObject(
+                            nextExpLevel, actorClass);
+                        ent.getBrain().setSelectionObject(menuObj);
+                    }
+                    else {
+                        const msg = `${name} appears to be more experienced now.`;
+                        RG.gameSuccess({msg: msg, cell: ent.getCell()});
+                    }
                     levelingUp = true;
                 }
                 else {
