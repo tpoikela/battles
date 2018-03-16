@@ -759,7 +759,11 @@ const Items = [
         name: 'tool', type: 'tool', uses: 10
     },
     {
-        name: 'Trapmaking kit', base: 'tool'
+        name: 'trapmaking kit', base: 'tool'
+    },
+    {
+        name: 'firemaking kit', base: 'tool',
+        use: {addEntity: {entityName: 'Fire', duration: 20}}
     },
 
     // SPIRIT GEMS
