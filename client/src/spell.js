@@ -95,6 +95,7 @@ RG.Spell.SpellBook = function(actor) {
 
     this.addSpell = spell => {
         _spells.push(spell);
+        spell.setCaster(this.getActor());
     };
 
     this.getSpells = () => _spells;
@@ -134,6 +135,10 @@ RG.Spell.SpellBook = function(actor) {
 RG.Spell.Base = function(name, power) {
     this._name = name;
     this._power = power || 5;
+    this._caster = null;
+
+    this.setCaster = caster => {this._caster = caster;};
+    this.getCaster = () => this._caster;
 
     this.setName = name => {
         const nameSplit = name.split(/\s+/);
@@ -214,6 +219,7 @@ RG.Spell.AddComponent = function(name, power) {
 };
 RG.extend2(RG.Spell.AddComponent, RG.Spell.Base);
 
+
 RG.Spell.Flying = function() {
     RG.Spell.AddComponent.call(this, 'Flying', 5);
     this.setCompName('Flying');
@@ -234,7 +240,46 @@ RG.Spell.SpiritForm = function() {
 };
 RG.extend2(RG.Spell.SpiritForm, RG.Spell.AddComponent);
 
+//------------------------------------------------------
+/* Base class for spells removing other components. */
+//------------------------------------------------------
+RG.Spell.RemoveComponent = function(name, power) {
+    RG.Spell.Base.call(this, name, power);
+
+    let _compNames = [];
+
+    this.setCompNames = comps => {_compNames = comps;};
+    this.getCompNames = () => _compNames;
+
+    this.cast = function(args) {
+        const obj = getDirSpellArgs(this, args);
+        // const dur = _duration.roll();
+
+        obj.removeComp = _compNames;
+
+        const spellComp = new RG.Component.SpellCell();
+        spellComp.setArgs(obj);
+        args.src.add('SpellCell', spellComp);
+    };
+
+    this.getSelectionObject = function(actor) {
+        const msg = 'Select a direction for the spell:';
+        return RG.Spell.getSelectionObjectDir(this, actor, msg);
+    };
+
+};
+RG.extend2(RG.Spell.RemoveComponent, RG.Spell.Base);
+
+RG.Spell.DispelMagic = function() {
+    RG.Spell.RemoveComponent.call(this, 'DispelMagic', 8);
+    this.setCompNames('Duration');
+
+};
+RG.extend2(RG.Spell.DispelMagic, RG.Spell.RemoveComponent);
+
+//------------------------------------------------------
 /* Base class for ranged spells. */
+//------------------------------------------------------
 RG.Spell.Ranged = function(name, power) {
     RG.Spell.Base.call(this, name, power);
 
@@ -385,10 +430,14 @@ RG.Spell.IcyPrison = function() {
 };
 RG.extend2(RG.Spell.IcyPrison, RG.Spell.Base);
 
-/* A spell to summon an ice minion to fight for the caster. */
-RG.Spell.SummonIceMinion = function() {
-    RG.Spell.Base.call(this, 'Summon ice minion', 14);
-    this.summonType = 'Ice minion';
+/* Base spell for summoning other actors for help. */
+RG.Spell.SummonBase = function(name, power) {
+    RG.Spell.Base.call(this, name, power);
+    this.summonType = '';
+
+    this.setSummonType = type => {
+        this.summonType = type;
+    };
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
@@ -402,7 +451,15 @@ RG.Spell.SummonIceMinion = function() {
 
                 // TODO create proper minion
                 const parser = RG.ObjectShell.getParser();
-                const minion = parser.createActor(this.summonType);
+
+                let minion = null;
+                if (this.summonType !== '') {
+                    minion = parser.createActor(this.summonType);
+                }
+                else if (this.summonFunc) {
+                    minion = parser.createRandomActor({func: this.summonFunc});
+                }
+
                 level.addActor(minion, x, y);
                 minion.addFriend(caster);
                 caster.addFriend(minion);
@@ -436,7 +493,7 @@ RG.Spell.SummonIceMinion = function() {
                 }
             }
             else {
-                RG.err('Spell.SummonIceMinion', 'aiShouldCastSpell',
+                RG.err(`Spell.${this.getName()}`, 'aiShouldCastSpell',
                     `No callback function given! enemy: ${enemy}`);
             }
         }
@@ -444,7 +501,26 @@ RG.Spell.SummonIceMinion = function() {
     };
 
 };
-RG.extend2(RG.Spell.SummonIceMinion, RG.Spell.Base);
+RG.extend2(RG.Spell.SummonBase, RG.Spell.Base);
+
+/* A spell to summon an ice minion to fight for the caster. */
+RG.Spell.SummonIceMinion = function() {
+    RG.Spell.SummonBase.call(this, 'SummonIceMinion', 14);
+    this.summonType = 'Ice minion';
+
+};
+RG.extend2(RG.Spell.SummonIceMinion, RG.Spell.SummonBase);
+
+/* A spell to summon an animal to fight for the caster. */
+RG.Spell.SummonAnimal = function() {
+    RG.Spell.SummonBase.call(this, 'SummonAnimal', 10);
+    this.summonFunc = actor => (
+        actor.type === 'animal' && (2 * actor.danger)
+            <= this.getCaster().get('Experience').getExpLevel()
+    );
+
+};
+RG.extend2(RG.Spell.SummonIceMinion, RG.Spell.SummonBase);
 
 /* PowerDrain spell which cancels enemy spell and gives power to the caster of
 * this spell. */
