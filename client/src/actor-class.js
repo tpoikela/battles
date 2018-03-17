@@ -102,7 +102,7 @@ class ActorClassBase {
 
         // Random stat increase
         const statName = RG.RAND.arrayGetRand(RG.STATS);
-        this._lastStateIncr = statName;
+        this._lastStateIncr = `${statName} was increased`;
         actor.get('Stats').incrStat(statName, 1);
 
         RG.levelUpCombatStats(actor, newLevel);
@@ -133,18 +133,24 @@ class Adventurer extends ActorClassBase {
     advanceLevel() {
         super.advanceLevel();
         const newLevel = this._actor.get('Experience').getExpLevel();
-        if (newLevel % 4 === 0) {
-            // Get other random actor class
-            // Use it to add new abilities to the actor
+        if (newLevel % 4 === 0 && !this._advances.hasOwnProperty(newLevel)) {
+            const className = getRandExcludeAdventurer();
+            const actorClass = new ActorClass[className](this.getActor());
+            actorClass.advanceLevel();
+            // Copy also the level up message from other class
+            this._messages[newLevel] = actorClass._messages[newLevel];
         }
     }
 
     /* Called at the creation of the actor. Gives certain set of starting items.
      */
     getStartingItems() {
+        const parser = RG.ObjectShell.getParser();
+        const potion = parser.createRandomItem(item => item.type === 'potion');
         return [
             {name: 'Ration', count: 2},
-            {name: 'firemaking kit'}
+            {name: 'firemaking kit', count: 1},
+            {name: potion.getName(), count: 1}
         ];
     }
 
@@ -465,11 +471,11 @@ class Spellsinger extends ActorClassBase {
         const _name = actor.getName();
 
         this._messages = {
-            4: `${_name} gains new skill`,
-            8: `${_name} gains new skill`,
-            12: `${_name} gains new skill`,
-            16: `${_name} gains new skill`,
-            20: `${_name} gains new skill`,
+            4: `${_name} can now summon animals`,
+            8: `${_name} can heal wounds`,
+            12: `${_name} can fly like an eagle`,
+            16: `${_name} can now paralyse enemies`,
+            20: `${_name} can summon lightning on enemies`,
             24: `${_name} gains new skill`,
             28: `${_name} gains new skill`,
             32: `${_name} has become a Mighty Spellsinger`
@@ -481,7 +487,7 @@ class Spellsinger extends ActorClassBase {
                 this._actor.setBook(book);
             },
             4: () => {
-                this._actor.getBook().addSpell(new RG.Spell.Paralysis());
+                this._actor.getBook().addSpell(new RG.Spell.SummonAnimal());
             },
             8: () => {
                 this._actor.getBook().addSpell(new RG.Spell.Heal());
@@ -490,7 +496,7 @@ class Spellsinger extends ActorClassBase {
                 this._actor.getBook().addSpell(new RG.Spell.Flying());
             },
             16: () => {
-
+                this._actor.getBook().addSpell(new RG.Spell.Paralysis());
             },
             20: () => {
                 this._actor.getBook().addSpell(new RG.Spell.LightningArrow());
@@ -636,5 +642,11 @@ ActorClass.Spiritcrafter = Spiritcrafter;
 
 RG.ACTOR_CLASSES = ['Cryomancer', 'Blademaster', 'Marksman', 'Spiritcrafter',
     'Adventurer', 'Spellsinger'];
+
+RG.ACTOR_CLASSES_NO_ADV = RG.ACTOR_CLASSES.filter(ac => ac !== 'Adventurer');
+
+function getRandExcludeAdventurer() {
+    return RG.RAND.arrayGetRand(RG.ACTOR_CLASSES_NO_ADV);
+}
 
 module.exports = ActorClass;
