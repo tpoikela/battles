@@ -1721,6 +1721,13 @@ RG.System.SpellEffect = function(compTypes) {
                     const msg = `${actor.getName()} seems to have ${compType}`;
                     RG.gameMsg({cell: actor.getCell(), msg});
                 }
+                else if (args.removeComp) {
+                    args.removeComp.forEach(compName => {
+                        if (actor.has(compName)) {
+                            actor.removeAll(compName);
+                        }
+                    });
+                }
                 else {
                     // Deal some damage etc
                     this._addDamageToActor(actor, args);
