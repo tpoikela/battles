@@ -4,6 +4,7 @@ const RG = require('./rg');
 RG.Factory = require('./factory');
 RG.Factory.Battle = require('./factory.battle');
 const OW = require('./overworld.map');
+const Menu = require('./menu');
 
 const debug = require('debug')('bitn:GameMaster');
 
@@ -266,73 +267,81 @@ const GameMaster = function(game) {
 
     /* Returns the selection object for player to select an army. */
     this.getSelArmyObject = function(player, battle) {
-        return {
-            showMenu: () => true,
-            getMenu: () => {
-                RG.gameMsg('Please select an army to join:');
-                const armies = battle.getArmies();
-                const menuObj = {};
-                armies.forEach((army, i) => {
-                    menuObj[i] = ' Army ' + army.getName();
-                });
-                menuObj['Any other key'] = 'Take no side';
-                return menuObj;
-            },
-            select: code => {
-                const selection = RG.codeToIndex(code);
-                const armies = battle.getArmies();
-                if (selection < armies.length) {
-                    const army = armies[selection];
-                    return () => {
-                        const battleLevel = battle.getLevel();
-                        let armyActors = army.getActors();
-                        const nActors = armyActors.length;
-                        const pIndex = RG.RAND.getUniformInt(0, nActors);
-                        const replacedActor = armyActors[pIndex];
-                        const [pX, pY] = replacedActor.getXY();
+        const armies = battle.getArmies();
+        const selArmyFunc = selection => {
+            const army = armies[selection];
+            const battleLevel = battle.getLevel();
+            let armyActors = army.getActors();
+            const nActors = armyActors.length;
+            const pIndex = RG.RAND.getUniformInt(0, nActors);
+            const replacedActor = armyActors[pIndex];
+            const [pX, pY] = replacedActor.getXY();
 
-                        // Remove substituted actor from army/level
-                        replacedActor.get('Action').disable();
-                        army.removeActor(replacedActor);
-                        battleLevel.removeActor(replacedActor);
+            // Remove substituted actor from army/level
+            replacedActor.get('Action').disable();
+            army.removeActor(replacedActor);
+            battleLevel.removeActor(replacedActor);
 
-                        armyActors = army.getActors();
-                        army.addActor(player);
+            armyActors = army.getActors();
+            army.addActor(player);
 
-                        player.get('InBattle').updateData({army: army.getName});
-                        armyActors.forEach(actor => {
-                            actor.addFriend(player);
-                        });
+            player.get('InBattle').updateData({army: army.getName});
+            armyActors.forEach(actor => {
+                actor.addFriend(player);
+            });
 
-                        armies.forEach(enemyArmy => {
-                            if (enemyArmy !== army) {
-                                const enemies = enemyArmy.getActors();
-                                enemies.forEach(enemy => {
-                                    enemy.addEnemy(player);
-                                });
-                            }
-                        });
-
-                        if (!battleLevel.moveActorTo(player, pX, pY)) {
-                            RG.err('GameMaster', 'getSelArmyObject',
-                                `Could not move player to ${pX},${pY}`);
-                        }
-                    };
+            armies.forEach(enemyArmy => {
+                if (enemyArmy !== army) {
+                    const enemies = enemyArmy.getActors();
+                    enemies.forEach(enemy => {
+                        enemy.addEnemy(player);
+                    });
                 }
-                return null;
+            });
+
+            if (!battleLevel.moveActorTo(player, pX, pY)) {
+                RG.err('GameMaster', 'getSelArmyObject',
+                    `Could not move player to ${pX},${pY}`);
             }
         };
+
+        const choices = armies.map((army, i) => {
+            return [' Army ' + army.getName(), selArmyFunc.bind(this, i)];
+        });
+        choices.push(['Take no side', Menu.EXIT_MENU]);
+        const menu = new Menu.SelectRequired(choices);
+        menu.addPre('Please select an army to join:');
+        return menu;
     };
 
     this.getSelLeaveBattle = function(player, level) {
+        const leaveFunc = () => {
+          const exit = level.getConnections()[0];
+          if (!exit.useStairs(player)) {
+            RG.err('GameMaster', 'moveActorsOutOfBattle',
+              'Cannot move player via useStairs');
+          }
+          else {
+            const name = player.getName();
+            RG.gameMsg(`${name} leaves the battlefield`);
+          }
+        };
+        const choices = [
+          ['Leave immediately', leaveFunc],
+          ['Stay behind to scavenge the bodies of the dead.', Menu.EXIT_MENU]
+        ];
+        const menu = new Menu.SelectRequired(choices);
+        menu.addPre('Battle is over! Do you want to leave battle?');
+        return menu;
+        /*
         const selObj = function() {
             this.showMenu = () => true;
             this.getMenu = () => {
-                RG.gameMsg('Battle is over! Do you want to leave battle?');
-                return {
+                const obj = {
                     0: 'Leave immediately',
                     1: 'Stay behind to scavenge the bodies of the dead.'
                 };
+                obj.pre = ['Battle is over! Do you want to leave battle?'];
             };
             this.select = code => {
                 const selection = RG.codeToIndex(code);
@@ -358,6 +367,7 @@ const GameMaster = function(game) {
             };
         };
         return new selObj();
+        */
     };
 
     /* Serializes the object into JSON. */
