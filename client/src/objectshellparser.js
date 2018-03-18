@@ -707,7 +707,11 @@ RG.ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
      */
     this.getRandomItem = function(obj) {
         if (obj.hasOwnProperty('func')) {
-            const res = this.filterCategWithFunc('items', obj.func);
+            const res = this.filterCategWithFunc(RG.TYPE_ITEM, obj.func);
+            return RG.RAND.arrayGetRand(res);
+        }
+        else if (typeof obj === 'function') {
+            const res = this.filterCategWithFunc(RG.TYPE_ITEM, obj);
             return RG.RAND.arrayGetRand(res);
         }
         else {
