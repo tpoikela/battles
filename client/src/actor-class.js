@@ -1,6 +1,7 @@
 
 const ActorClass = {};
 const RG = require('./rg');
+const Menu = require('./menu');
 RG.Component = require('./component');
 RG.Spell = require('./spell');
 
@@ -19,30 +20,16 @@ ActorClass.create = function(name, entity) {
     return null;
 };
 
+/* Returns the object used to render level up menu. This shows messages related
+ * to the level up such as stats increases. */
 ActorClass.getLevelUpObject = function(level, actorClass) {
-    const selObj = function() {
-        this.showMenu = () => true;
-        this.getMenu = () => {
-            const actor = actorClass.getActor();
-            const className = actorClass.getClassName();
-            const levelMsg = actorClass.getLevelUpMsg(level);
-            console.log('level up msg: |' + levelMsg + '|');
-            const obj = {
-                0: 'Back to game.'
-            };
-            obj.pre = [`${actor.getName()} is now level ${level} ${className}`];
-            obj.pre.push(levelMsg);
-            return obj;
-        };
-        this.select = code => {
-            const selection = RG.codeToIndex(code);
-            if (selection === 0) {
-                return null;
-            }
-            return this;
-        };
-    };
-    return new selObj();
+    const selObj = new Menu.InfoOnly();
+    const actor = actorClass.getActor();
+    const className = actorClass.getClassName();
+    const levelMsg = actorClass.getLevelUpMsg(level);
+    selObj.addPre([`${actor.getName()} is now level ${level} ${className}`]);
+    selObj.addPre(levelMsg);
+    return selObj;
 };
 
 /* Used by different in-game classes for actors. Provides basic getters and
