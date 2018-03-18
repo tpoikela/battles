@@ -58,17 +58,7 @@ export default class GameMenu extends Component {
     if (menuObj.hasOwnProperty('pre')) {
       if (Array.isArray(menuObj.pre)) {
         preMenu = menuObj.pre.map(item => {
-          const lines = item.split('\n');
-          lines.forEach(textLine => {
-            const text = padToWidth(width, `${textLine}`, 3);
-            return (
-              <div className='cell-row-div-player-view' key={item}>
-                <span className='game-menu-text-span'
-                  dangerouslySetInnerHTML={{__html: text}}
-                />
-              </div>
-            );
-          });
+          return this.renderMenuLines(item);
         });
       }
     }
@@ -78,17 +68,7 @@ export default class GameMenu extends Component {
     if (menuObj.hasOwnProperty('post')) {
       if (Array.isArray(menuObj.post)) {
         postMenu = menuObj.post.map(item => {
-          const lines = item.split('\n');
-          lines.forEach(textLine => {
-            const text = padToWidth(width, `${textLine}`, 3);
-            return (
-              <div className='cell-row-div-player-view' key={item}>
-                <span className='game-menu-text-span'
-                  dangerouslySetInnerHTML={{__html: text}}
-                />
-              </div>
-            );
-          });
+          return this.renderMenuLines(item);
         });
       }
     }
@@ -106,6 +86,22 @@ export default class GameMenu extends Component {
     );
 
   }
+
+  renderMenuLines(item) {
+    const lines = item.split('\n');
+    const {width} = this.props;
+    return lines.map(textLine => {
+      const text = padToWidth(width, `${textLine}`, 3);
+      return (
+        <div className='cell-row-div-player-view' key={item}>
+          <span className='game-menu-text-span'
+            dangerouslySetInnerHTML={{__html: text}}
+          />
+        </div>
+      );
+    });
+  }
+
 }
 
 GameMenu.propTypes = {
