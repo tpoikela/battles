@@ -219,7 +219,6 @@ RG.Spell.AddComponent = function(name, power) {
 };
 RG.extend2(RG.Spell.AddComponent, RG.Spell.Base);
 
-
 RG.Spell.Flying = function() {
     RG.Spell.AddComponent.call(this, 'Flying', 5);
     this.setCompName('Flying');
@@ -748,18 +747,23 @@ RG.extend2(RG.Spell.Heal, RG.Spell.Base);
 
 /* Used for testing the spells. Adds all spells to given SpellBook. */
 RG.Spell.addAllSpells = book => {
-    book.addSpell(new RG.Spell.FrostBolt());
-    book.addSpell(new RG.Spell.IceShield());
-    book.addSpell(new RG.Spell.GraspOfWinter());
-    book.addSpell(new RG.Spell.IcyPrison());
-    book.addSpell(new RG.Spell.SummonIceMinion());
-    book.addSpell(new RG.Spell.PowerDrain());
-    book.addSpell(new RG.Spell.IceArrow());
-    book.addSpell(new RG.Spell.MindControl());
     book.addSpell(new RG.Spell.Blizzard());
-    book.addSpell(new RG.Spell.Heal());
-    book.addSpell(new RG.Spell.LightningArrow());
+    book.addSpell(new RG.Spell.DispelMagic());
+    book.addSpell(new RG.Spell.EnergyArrow());
     book.addSpell(new RG.Spell.Flying());
+    book.addSpell(new RG.Spell.FrostBolt());
+    book.addSpell(new RG.Spell.GraspOfWinter());
+    book.addSpell(new RG.Spell.Heal());
+    book.addSpell(new RG.Spell.IceArrow());
+    book.addSpell(new RG.Spell.IceShield());
+    book.addSpell(new RG.Spell.IcyPrison());
+    book.addSpell(new RG.Spell.LightningArrow());
+    book.addSpell(new RG.Spell.MindControl());
+    book.addSpell(new RG.Spell.Paralysis());
+    book.addSpell(new RG.Spell.PowerDrain());
+    book.addSpell(new RG.Spell.SpiritForm());
+    book.addSpell(new RG.Spell.SummonAnimal());
+    book.addSpell(new RG.Spell.SummonIceMinion());
 };
 
 module.exports = RG.Spell;
