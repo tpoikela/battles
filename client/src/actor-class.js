@@ -26,7 +26,7 @@ ActorClass.getLevelUpObject = function(level, actorClass) {
             const actor = actorClass.getActor();
             const className = actorClass.getClassName();
             const levelMsg = actorClass.getLevelUpMsg(level);
-            RG.gameMsg(`${actor.getName()} advances to level ${level}`);
+            console.log('level up msg: |' + levelMsg + '|');
             const obj = {
                 0: 'Back to game.'
             };
@@ -66,7 +66,7 @@ class ActorClassBase {
         if (this._messages.hasOwnProperty(level)) {
             msg += this._messages[level];
         }
-        msg += `\n${this._lastStateIncr} was increased.`;
+        msg += `\n${this._lastStateIncr}`;
         return msg;
     }
 
@@ -146,7 +146,8 @@ class Adventurer extends ActorClassBase {
      */
     getStartingItems() {
         const parser = RG.ObjectShell.getParser();
-        const potion = parser.createRandomItem(item => item.type === 'potion');
+        const potion = parser.createRandomItem(
+            item => item.type === 'potion');
         return [
             {name: 'Ration', count: 2},
             {name: 'firemaking kit', count: 1},
@@ -164,7 +165,7 @@ class Adventurer extends ActorClassBase {
     setStartingStats() {
         const stats = this._actor.get('Stats');
         for (let i = 0; i < 3; i++) {
-            let statName = RG.RANG.arrayGetRand(RG.STATS);
+            let statName = RG.RAND.arrayGetRand(RG.STATS);
             statName = statName.toLowerCase();
             stats.incrStat(statName, RG.RAND.getUniformInt(1, 3));
         }
