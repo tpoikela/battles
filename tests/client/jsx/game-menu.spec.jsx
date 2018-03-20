@@ -36,41 +36,45 @@ describe('Component <GameMenu>', () => {
 
     it('shows the level info when leveling up', () => {
         const actor = new RG.Actor.Rogue('leveler');
-        actor.get('Experience').setExpLevel(4);
         const actorClass = new ActorClass.Adventurer(actor);
-        actorClass.advanceLevel();
-
-        const menuObjItem = ActorClass.getLevelUpObject(4, actorClass);
-        const menuObj = menuObjItem.getMenu();
-        menuObj.post = ['Rendered as post-menu item', 'Another post-menu item'];
         const props = {
-            width: 80, height: 28, menuObj
+            width: 80, height: 28, menuObj: {}
         };
-
-        const reToMatch = [
-            {match: false, re: /was increased/},
-            {match: false, re: /leveler is/},
-            {match: false, re: /Rendered as post-menu item/},
-            {match: false, re: /Another post-menu item/}
-        ];
-
         const wrapper = shallow(<GameMenu {...props} />);
-        const spanElems = wrapper.find('span');
-        for (let i = 0; i < 10; i++) {
-            const spanElem = spanElems.get(i);
-            const text = spanElem.props.dangerouslySetInnerHTML.__html;
+
+        for (let level = 2; level <= 5; level++) {
+            const reToMatch = [
+                {match: false, re: /was increased/},
+                {match: false, re: /leveler is/},
+                {match: false, re: /Rendered as post-menu item/},
+                {match: false, re: /Another post-menu item/}
+            ];
+
+            actor.get('Experience').setExpLevel(level);
+            actorClass.advanceLevel();
+            const menuObjItem = ActorClass.getLevelUpObject(level, actorClass);
+            const menuObj = menuObjItem.getMenu();
+            menuObj.post = ['Rendered as post-menu item',
+                'Another post-menu item'];
+
+            props.menuObj = menuObj;
+            wrapper.setProps(props);
+
+            const spanElems = wrapper.find('span');
+            for (let i = 0; i < 10; i++) {
+                const spanElem = spanElems.get(i);
+                const text = spanElem.props.dangerouslySetInnerHTML.__html;
+                reToMatch.forEach(reProp => {
+                    if (reProp.re.test(text)) {
+                        reProp.match = true;
+                    }
+                });
+            }
+
             reToMatch.forEach(reProp => {
-                if (reProp.re.test(text)) {
-                    reProp.match = true;
-                }
+                expect(reProp.match, reProp.re).to.equal(true);
             });
         }
-
-        reToMatch.forEach(reProp => {
-            expect(reProp.match, reProp.re).to.equal(true);
-
-        });
-
 
     });
 });
