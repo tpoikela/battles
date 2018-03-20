@@ -115,6 +115,11 @@ RG.Game.FromJSON = function() {
 
     /* Creates the component with given name. */
     this.createComponent = (name, compJSON) => {
+        if (!RG.Component.hasOwnProperty(name)) {
+            let msg = `No ${name} in RG.Component.`;
+            msg += ` compJSON: ${JSON.stringify(compJSON)}`;
+            RG.err('Game.FromJSON', 'createComponent', msg);
+        }
         const newCompObj = new RG.Component[name]();
         for (const setFunc in compJSON) {
             if (typeof newCompObj[setFunc] === 'function') {
@@ -440,6 +445,7 @@ RG.Game.FromJSON = function() {
         let entity = null;
         switch (obj.type) {
             case 'spirit': entity = new RG.Actor.Spirit(obj.name); break;
+            case 'fire': entity = new RG.Actor.Base(obj.name); break;
             default: entity = new RG.Actor.Rogue(obj.name);
         }
         entity.setType(obj.type);
