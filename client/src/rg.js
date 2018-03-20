@@ -1,7 +1,6 @@
 
 const $DEBUG = 0;
 
-const KeyMap = require('./keymap');
 
 /* Main object of the package for encapsulating all other objects. */
 const RG = { // {{{2
@@ -582,8 +581,10 @@ const RG = { // {{{2
                 const actors = seenCells[i].getProp('actors');
                 for (let j = 0; j < actors.length; j++) {
                     if (actor !== actors[j]) {
-                        if (actors[j].isEnemy(actor)) {
-                            res.push(seenCells[i]);
+                        if (typeof actors[j].isEnemy === 'function') {
+                            if (actors[j].isEnemy(actor)) {
+                                res.push(seenCells[i]);
+                            }
                         }
                     }
                 }
@@ -1439,7 +1440,8 @@ RG.MessageHandler = function() { // {{{2
 
 }; // }}} Messages
 
-Object.assign(RG, KeyMap);
+/* eslint no-unused-vars: 0 */
+const ROT = require('../../lib/rot.js');
 
 module.exports = RG;
 
