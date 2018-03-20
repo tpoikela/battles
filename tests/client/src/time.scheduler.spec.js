@@ -6,7 +6,7 @@ const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 
 const Actor = RG.Actor.Rogue;
-const Action = RG.Time.RogueAction;
+const Action = RG.Time.Action;
 
 describe('Basic functions for actors', () => {
     it('Acts like Locatable', () => {
