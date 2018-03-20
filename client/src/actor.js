@@ -7,6 +7,7 @@ RG.Brain = require('./brain.virtual');
 RG.Brain.Player = require('./brain.player');
 RG.Inv = require('./inv');
 RG.Spell = require('./spell');
+RG.Time = require('./time');
 const Mixin = require('./mixin');
 
 RG.Actor = {};
@@ -47,10 +48,10 @@ class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
 
         if (cb !== null) {
             const duration = Math.round(SPEED_COEFF / this.getSpeed());
-            action = new RG.Time.RogueAction(duration, cb, EMPTY_ARGS);
+            action = new RG.Time.Action(duration, cb, EMPTY_ARGS);
         }
         else {
-            action = new RG.Time.RogueAction(0, ACTOR_NO_ACTION, EMPTY_ARGS);
+            action = new RG.Time.Action(0, ACTOR_NO_ACTION, EMPTY_ARGS);
         }
 
         if (this._brain.hasOwnProperty('energy')) {
