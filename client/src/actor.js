@@ -75,6 +75,8 @@ class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
             brain: this._brain.toJSON()
         };
 
+        obj.components = RG.Component.compsToJSON(this);
+
         if (obj.type === null) {
             RG.err('Actor.Virtual', 'toJSON',
                 `Type null for ${JSON.stringify(obj)}`);
