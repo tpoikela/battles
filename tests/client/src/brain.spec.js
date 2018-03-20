@@ -4,8 +4,10 @@ const chaiBattles = require('../../helpers/chai-battles.js');
 
 const RG = require('../../../client/src/battles');
 const ROT = require('../../../lib/rot');
-
 const RGTest = require('../../roguetest.js');
+const Keys = require('../../../client/src/keymap');
+
+const {KEY} = Keys;
 
 const expect = chai.expect;
 chai.use(chaiBattles);
@@ -38,29 +40,29 @@ describe('Brain.Player', () => {
     it('Accepts key commands', () => {
         const brain = new Brain.Player(player);
 
-        brain.decideNextAction({code: RG.VK_r});
+        brain.decideNextAction({code: Keys.VK_r});
         expect(player.getSpeed()).to.equal(120);
         expect(brain.isRunModeEnabled()).to.equal(true);
         expect(brain.energy).to.equal(0);
-        brain.decideNextAction({code: RG.VK_s});
+        brain.decideNextAction({code: Keys.VK_s});
         expect(brain.isRunModeEnabled()).to.equal(false);
         expect(brain.energy).to.equal(RG.energy.REST);
 
-        brain.decideNextAction({code: RG.VK_c});
+        brain.decideNextAction({code: Keys.VK_c});
         expect(brain.energy).to.equal(RG.energy.MOVE);
 
-        brain.decideNextAction({code: RG.VK_x});
+        brain.decideNextAction({code: Keys.VK_x});
         expect(brain.energy).to.equal(RG.energy.ATTACK);
 
-        brain.decideNextAction({code: RG.VK_r}); // Enable run mode
-        brain.decideNextAction({code: RG.VK_c}); // Move
+        brain.decideNextAction({code: Keys.VK_r}); // Enable run mode
+        brain.decideNextAction({code: Keys.VK_c}); // Move
         expect(brain.energy).to.equal(RG.energy.RUN);
 
     });
 
     it('Has cmds for more complex things', () => {
         const brain = new Brain.Player(player);
-        brain.decideNextAction({code: RG.VK_s});
+        brain.decideNextAction({code: Keys.VK_s});
         expect(brain.energy).to.equal(RG.energy.REST);
 
         // No missile equipped
@@ -115,14 +117,14 @@ describe('Brain.Player', () => {
         // var speed = player.getSpeed();
 
         expect(brain.energy).to.equal(1);
-        let attackCallback = brain.decideNextAction({code: RG.VK_x});
+        let attackCallback = brain.decideNextAction({code: Keys.VK_x});
         expect(brain.energy).to.equal(RG.energy.ATTACK);
         attackCallback();
         expect(player.get('StatsMods').getSpeed()).to.equal(20);
         expect(player.getSpeed()).to.equal(120);
 
         brain.toggleFightMode();
-        attackCallback = brain.decideNextAction({code: RG.VK_x});
+        attackCallback = brain.decideNextAction({code: Keys.VK_x});
         attackCallback();
         expect(player.getSpeed()).to.equal(80);
     });
@@ -131,13 +133,13 @@ describe('Brain.Player', () => {
         level.addActor(human, 2, 2);
         const brain = new Brain.Player(player);
 
-        brain.decideNextAction({code: RG.KEY.MOVE_SE});
+        brain.decideNextAction({code: KEY.MOVE_SE});
         expect(brain.energy).to.equal(0);
-        brain.decideNextAction({code: RG.KEY.REST});
+        brain.decideNextAction({code: KEY.REST});
         expect(brain.energy).to.equal(0);
 
-        brain.decideNextAction({code: RG.KEY.MOVE_SE});
-        brain.decideNextAction({code: RG.KEY.YES});
+        brain.decideNextAction({code: KEY.MOVE_SE});
+        brain.decideNextAction({code: KEY.YES});
         expect(brain.energy).to.equal(RG.energy.ATTACK);
     });
 
@@ -145,14 +147,14 @@ describe('Brain.Player', () => {
         const brain = new Brain.Player(player);
         let fightMode = brain.getFightMode();
         expect(fightMode).to.equal(RG.FMODE_NORMAL);
-        brain.decideNextAction({code: RG.KEY.FIGHT});
+        brain.decideNextAction({code: KEY.FIGHT});
         fightMode = brain.getFightMode();
         expect(fightMode).to.equal(RG.FMODE_FAST);
 
-        brain.decideNextAction({code: RG.KEY.FIGHT});
+        brain.decideNextAction({code: KEY.FIGHT});
         fightMode = brain.getFightMode();
         expect(fightMode).to.equal(RG.FMODE_SLOW);
-        brain.decideNextAction({code: RG.KEY.FIGHT});
+        brain.decideNextAction({code: KEY.FIGHT});
         fightMode = brain.getFightMode();
         expect(fightMode).to.equal(RG.FMODE_NORMAL);
     });
@@ -166,10 +168,10 @@ describe('Brain.Player', () => {
         level.addItem(weapon, 1, 1);
 
         expect(level.getItems().length).to.equal(2);
-        brain.decideNextAction({code: RG.KEY.NEXT_ITEM});
+        brain.decideNextAction({code: KEY.NEXT_ITEM});
         expect(brain.energy).to.equal(0);
 
-        const actionFunc = brain.decideNextAction({code: RG.KEY.PICKUP});
+        const actionFunc = brain.decideNextAction({code: KEY.PICKUP});
         expect(brain.energy).to.equal(RG.energy.PICKUP);
         actionFunc();
         RGTest.updateSystems([baseSys]);
@@ -194,13 +196,13 @@ describe('Brain.Player', () => {
     it('has commands for using spellpowers', () => {
         const brain = new Brain.Player(player);
         player.setBook(new RG.Spell.SpellBook(player));
-        let func = brain.decideNextAction({code: RG.KEY.POWER});
+        let func = brain.decideNextAction({code: KEY.POWER});
         expect(func).to.be.null;
         expect(brain.isMenuShown()).to.equal(true);
         func = brain.decideNextAction({code: ROT.VK_0});
         expect(func).to.be.null;
         expect(brain.isMenuShown()).to.equal(false);
-        func = brain.decideNextAction({code: RG.VK_a});
+        func = brain.decideNextAction({code: Keys.VK_a});
         expect(func).to.be.function;
     });
 
@@ -219,19 +221,19 @@ describe('Brain.Player', () => {
 
         const brain = player.getBrain();
         expect(brain.hasTargetSelected()).to.be.false;
-        brain.decideNextAction({code: RG.KEY.TARGET});
+        brain.decideNextAction({code: KEY.TARGET});
         expect(brain.hasTargetSelected()).to.be.true;
 
         const firstID = brain.getTarget().getFirstActor().getID();
         const firstNumCell = brain.currEnemyCell;
-        brain.decideNextAction({code: RG.KEY.NEXT});
+        brain.decideNextAction({code: KEY.NEXT});
 
         const nextNumCell = brain.currEnemyCell;
         const nextID = brain.getTarget().getFirstActor().getID();
         expect(firstNumCell).not.to.equal(nextNumCell);
         expect(firstID).to.equal(nextID);
 
-        brain.decideNextAction({code: RG.KEY.NEXT});
+        brain.decideNextAction({code: KEY.NEXT});
         const thirdID = brain.getTarget().getFirstActor().getID();
         expect(firstID).not.to.equal(thirdID);
     });
