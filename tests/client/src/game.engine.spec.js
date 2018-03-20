@@ -9,6 +9,7 @@ const RG = require('../../../client/src/battles');
 
 const Engine = require('../../../client/src/engine');
 const Actor = require('../../../client/src/actor');
+const Keys = require('../../../client/src/keymap');
 
 /* Creates a game engine with 2 actors scheduled for actions.*/
 const EngineWithActors = function(pool) {
@@ -132,7 +133,7 @@ describe('Game.Engine', () => {
         engine.simulateGame();
         expect(engine.nextActor).to.not.be.null;
         engine.nextActor = player;
-        engine.update({code: RG.KEY.REST});
+        engine.update({code: Keys.KEY.REST});
         expect(engine.nextActor).to.not.be.null;
     });
 
