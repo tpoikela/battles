@@ -19,8 +19,8 @@ import CellClickHandler from '../gui/cell-click-handler';
 
 import GameStats, {VIEW_MAP, VIEW_PLAYER} from './game-stats';
 
-const ROT = require('../../lib/rot');
 const RG = require('../src/rg');
+const Keys = require('../src/keymap');
 RG.Game = require('../src/game');
 RG.Verify = require('../src/verify');
 
@@ -506,9 +506,9 @@ class BattlesTop extends Component {
     }
 
     isValidKey(keyCode) {
-        return RG.isValidKey(keyCode) ||
+        return Keys.isValidKey(keyCode) ||
             this.guiCommands[keyCode] ||
-            (keyCode >= ROT.VK_0 && keyCode <= ROT.VK_9);
+            Keys.isNumeric(keyCode);
     }
 
     /* Listens for player key presses and handles them.*/
@@ -819,20 +819,20 @@ class BattlesTop extends Component {
     /* GUI command keybindings are specified here. */
     initGUICommandTable() {
         this.guiCommands = {};
-        this.guiCommands[ROT.VK_H] = this.GUIHelp;
-        this.guiCommands[RG.VK_i] = this.GUIInventory;
-        this.guiCommands[RG.VK_m] = this.GUIMap;
-        this.guiCommands[ROT.VK_M] = this.GUIOverWorldMap;
-        // this.guiCommands[RG.VK_n] = this.GUINextTarget;
-        this.guiCommands[RG.VK_l] = this.GUILook;
-        this.guiCommands[RG.VK_u] = this.GUIUseItem;
-        this.guiCommands[ROT.VK_I] = this.GUICharInfo;
+        this.guiCommands[Keys.GUI.Help] = this.GUIHelp;
+        this.guiCommands[Keys.GUI.Inv] = this.GUIInventory;
+        this.guiCommands[Keys.GUI.Map] = this.GUIMap;
+        this.guiCommands[Keys.GUI.OwMap] = this.GUIOverWorldMap;
+        // this.guiCommands[Keys.VK_n] = this.GUINextTarget;
+        this.guiCommands[Keys.GUI.Look] = this.GUILook;
+        this.guiCommands[Keys.GUI.Use] = this.GUIUseItem;
+        this.guiCommands[Keys.GUI.CharInfo] = this.GUICharInfo;
     }
 
     /* Returns true if given command is a GUI command. */
     isGUICommand(code) {
         if (this.gameState) {
-            if (this.gameState.autoTarget && code === RG.VK_t) {
+            if (this.gameState.autoTarget && code === Keys.VK_t) {
                 return false;
             }
             else if (this.gameState.useModeEnabled) {
