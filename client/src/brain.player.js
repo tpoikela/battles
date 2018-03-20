@@ -1,6 +1,10 @@
 
 const RG = require('./rg');
 const Menu = require('./menu');
+const Keys = require('./keymap');
+const GoalsBattle = require('./goals-battle');
+
+RG.KeyMap = Keys.KeyMap;
 
 const ACTION_ALREADY_DONE = () => {};
 const ACTION_ZERO_ENERGY = null;
@@ -518,7 +522,6 @@ class BrainPlayer {
     isTargetInRange() {
         const cell = this.getTarget();
         if (cell) {
-            console.log(cell);
             const [tx, ty] = [cell.getX(), cell.getY()];
             const [ax, ay] = [this._actor.getX(), this._actor.getY()];
             const path = RG.Geometry.getMissilePath(ax, ay, tx, ty);
@@ -528,9 +531,6 @@ class BrainPlayer {
             if (missile) {
 
                 const missRange = RG.getMissileRange(this._actor, missile);
-
-                console.log(`Path length ${path.length}`);
-                console.log(`Computed range ${missRange}`);
 
                 if ((path.length - 1) <= missRange) {
                     return true;
@@ -811,11 +811,15 @@ class BrainPlayer {
 
     processMenuSelection(code) {
         if (this._selectionObject !== null) {
+          if (this._selectionObject.showMsg) {
+              this._selectionObject.showMsg();
+          }
           const selection = this._selectionObject.select(code);
           console.log('processMenuSelection return from select():');
           console.log(selection);
           // function terminates the selection
           if (typeof selection === 'function') {
+            console.log('\t>> Returning function. Select done');
             this.selectionDone();
             return selection;
           } // object returns another selection
@@ -911,7 +915,7 @@ class BrainPlayer {
         ];
         const orderMenuSelectOrder = new Menu.WithQuit(orderMenuArgs);
         const cellMenuArgs = [
-            {key: RG.KEY.SELECT, menu: orderMenuSelectOrder}
+            {key: Keys.KEY.SELECT, menu: orderMenuSelectOrder}
         ];
 
         RG.gameMsg('Select a target, then press s to select it');
@@ -926,10 +930,9 @@ class BrainPlayer {
         const cell = this.selectedCell;
         if (cell.hasActors()) {
             const target = cell.getActors()[0];
-            if (target) {
-                const commander = this._actor;
-                console.log('Target is ' + target.getName());
-                console.log('Commander is ' + commander.getName());
+            if (target && target.getBrain().getGoal) {
+                const args = {bias: 2.0, commander: this._actor};
+                GoalsBattle.giveFollowOrder(target, args);
             }
         }
         else {
