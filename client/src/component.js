@@ -560,13 +560,10 @@ RG.Component.Expiration.prototype.addEffect = function(comp, dur) {
 
 /* Decreases duration of all time-based effects.*/
 RG.Component.Expiration.prototype.decrDuration = function() {
-    console.log('Expir ' + this.getID() + ' decrDuration');
     for (const compID in this.duration) {
         if (compID >= 0) {
             this.duration[compID] -= 1;
-            console.log('\t>>> XXX decreased duration for comp ' + compID);
             if (this.duration[compID] === 0) {
-                console.log('\t>>> XXX duration 0 for comp ' + compID);
                 const ent = this.getEntity();
                 const compIDInt = parseInt(compID, 10);
                 ent.remove(compIDInt);
