@@ -782,6 +782,46 @@ class GoalCastSpell extends GoalBase {
 Goal.CastSpell = GoalCastSpell;
 
 //---------------------------------------------------------------------------
+/* An actor goal to follow a specific actor */
+//---------------------------------------------------------------------------
+class GoalFollow extends GoalBase {
+
+    constructor(actor, targetActor) {
+        super(actor);
+        this.setType('GoalFollow');
+        this.targetActor = targetActor;
+    }
+
+    activate() {
+        if (this.actor.getBrain().canSeeActor(this.targetActor)) {
+            this.status = GOAL_ACTIVE;
+        }
+    }
+
+    process() {
+        this.activateIfInactive();
+        const brain = this.actor.getBrain();
+        if (brain.canSeeActor(this.targetActor)) {
+            const [dx, dy] = RG.dXdY(this.targetActor, this.actor);
+            const newX = this.actor.getX() - dx;
+            const newY = this.actor.getY() - dy;
+            const level = this.targetActor.getLevel();
+            const map = level.getMap();
+            if (map.hasXY(newX, newY)) {
+                const movComp = new Component.Movement(newX, newY, level);
+                this.actor.add(movComp);
+            }
+        }
+        else {
+            this.status = GOAL_FAILED;
+        }
+        return this.status;
+    }
+
+}
+Goal.Follow = GoalFollow;
+
+//---------------------------------------------------------------------------
 /* An actor goal to explore the given area. */
 //---------------------------------------------------------------------------
 class GoalOrders extends GoalBase {
