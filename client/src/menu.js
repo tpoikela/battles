@@ -23,6 +23,9 @@
  */
 
 const RG = require('./rg');
+const Keys = require('./keymap');
+
+const {KeyMap} = Keys;
 
 const Menu = {};
 Menu.EXIT_MENU = null;
@@ -32,13 +35,14 @@ Menu.EXIT_MENU = null;
 //------------------------------
 const MenuBase = function(args = []) {
     this.table = {};
+    this.msg = '';
 
     this.parent = null; // Parent menu for this object
 
     args.forEach((item, i) => {
-        const index = RG.menuIndices[i];
+        const index = Keys.menuIndices[i];
         if (item.key) {
-            const index = RG.codeToIndex(item.key);
+            const index = Keys.codeToIndex(item.key);
             this.table[index] = item.menu;
         }
         else if (item.length === 2) {
@@ -50,6 +54,16 @@ const MenuBase = function(args = []) {
             RG.err('MenuBase', 'constructor', msg);
         }
     });
+
+    this.setMsg = msg => {
+        this.msg = msg;
+    };
+
+    this.showMsg = () => {
+        if (this.msg.length > 0) {
+            RG.gameMsg(this.msg);
+        }
+    };
 
     this.pre = [];
     this.post = [];
@@ -65,7 +79,7 @@ const MenuBase = function(args = []) {
     this.getMenu = () => {
         const obj = {};
         Object.keys(this.table).forEach(index => {
-            const char = RG.menuIndices[index];
+            const char = Keys.menuIndices[index];
             obj[char] = this.table[index][0];
         });
         obj.pre = this.pre;
@@ -110,7 +124,7 @@ const MenuInfoOnly = function() {
     };
 
     this.select = code => {
-        const selection = RG.codeToIndex(code);
+        const selection = Keys.codeToIndex(code);
         if (selection === 0) {
             return Menu.EXIT_MENU;
         }
@@ -123,11 +137,11 @@ Menu.InfoOnly = MenuInfoOnly;
 /* This menu can be used when quit option is required. */
 const MenuWithQuit = function(args) {
     MenuBase.call(this, args);
-    const quitIndex = RG.codeToIndex(RG.KEY.QUIT_MENU);
+    const quitIndex = Keys.codeToIndex(Keys.KEY.QUIT_MENU);
     this.table[quitIndex] = ['Quit menu', Menu.EXIT_MENU];
 
     this.select = code => {
-        const selection = RG.codeToIndex(code);
+        const selection = Keys.codeToIndex(code);
         console.log('MenuWithQuit selection ' + selection);
         console.log(this.table);
         if (this.table.hasOwnProperty(selection)) {
@@ -145,7 +159,7 @@ const MenuSelectRequired = function(args) {
     MenuBase.call(this, args);
 
     this.select = code => {
-        const selection = RG.codeToIndex(code);
+        const selection = Keys.codeToIndex(code);
         if (this.table.hasOwnProperty(selection)) {
             return this.table[selection][1];
         }
@@ -166,12 +180,12 @@ const MenuSelectCell = function(args) {
     this.showMenu = () => false;
 
     this.select = code => {
-        if (RG.KeyMap.inMoveCodeMap(code)) {
+        if (KeyMap.inMoveCodeMap(code)) {
             this.callback(code);
             return this;
         }
-        else if (RG.KeyMap.isSelect(code)) {
-            const keyIndex = RG.codeToIndex(code);
+        else if (KeyMap.isSelect(code)) {
+            const keyIndex = Keys.codeToIndex(code);
             return this.table[keyIndex];
         }
         return null;
