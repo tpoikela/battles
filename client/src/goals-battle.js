@@ -33,6 +33,19 @@ const orderWithGoal = (actor, obj) => {
         actor.add(orderComp);
     }
 };
+GoalsBattle.orderWithGoal = orderWithGoal;
+
+const giveFollowOrder = (target, args) => {
+    if (target && target.getBrain().getGoal) {
+        const followGoal = new Goal.Follow(target, args.commander);
+        const orderEval = new Evaluator.Orders(args.bias);
+        orderEval.setArgs({srcActor: args.commander, goal: followGoal});
+        const goal = target.getBrain().getGoal();
+        goal.clearOrders();
+        goal.giveOrders(orderEval);
+    }
+};
+GoalsBattle.giveFollowOrder = giveFollowOrder;
 
 //---------------------------------------------------------------------------
 // COMPOSITE GOALS
