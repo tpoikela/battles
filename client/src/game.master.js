@@ -333,41 +333,6 @@ const GameMaster = function(game) {
         const menu = new Menu.SelectRequired(choices);
         menu.addPre('Battle is over! Do you want to leave battle?');
         return menu;
-        /*
-        const selObj = function() {
-            this.showMenu = () => true;
-            this.getMenu = () => {
-                const obj = {
-                    0: 'Leave immediately',
-                    1: 'Stay behind to scavenge the bodies of the dead.'
-                };
-                obj.pre = ['Battle is over! Do you want to leave battle?'];
-            };
-            this.select = code => {
-                const selection = RG.codeToIndex(code);
-                if (selection === 0) {
-                    return () => {
-                        const exit = level.getConnections()[0];
-                        if (!exit.useStairs(player)) {
-                            RG.err('GameMaster', 'moveActorsOutOfBattle',
-                                'Cannot move player via useStairs');
-                        }
-                        else {
-                            const name = player.getName();
-                            RG.gameMsg(`${name} leaves the battlefield`);
-                        }
-                    };
-                }
-                if (selection === 1) {
-                    // TODO add some dishonor for the player or some necromancy
-                    // effect etc
-                    return null;
-                }
-                return this;
-            };
-        };
-        return new selObj();
-        */
     };
 
     /* Serializes the object into JSON. */
