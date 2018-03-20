@@ -74,8 +74,7 @@ RG.Verify.verifySaveData = function(data, failFast = true) {
 };
 
 const stack = [];
-const maxStack = 30;
-function traverseObj(obj, failFast) {
+function traverseObj(obj, failFast, maxStack = 30) {
     const allErrors = [];
 	for (const prop in obj) {
 		if (obj.hasOwnProperty(prop)) {
@@ -113,5 +112,6 @@ function traverseObj(obj, failFast) {
     }
 }
 
+RG.Verify.traverseObj = traverseObj;
 
 module.exports = RG.Verify;
