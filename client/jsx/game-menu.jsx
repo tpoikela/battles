@@ -84,17 +84,17 @@ export default class GameMenu extends Component {
         {paddingBottom}
       </div>
     );
-
   }
 
   renderMenuLines(item) {
     const lines = item.split('\n');
     const {width} = this.props;
-    return lines.map(textLine => {
+    return lines.map((textLine, i) => {
       const text = padToWidth(width, `${textLine}`, 3);
       return (
-        <div className='cell-row-div-player-view' key={item}>
-          <span className='game-menu-text-span'
+        <div className='cell-row-div-player-view' key={'menu_line_' + i}>
+          <span
+            className='game-menu-text-span'
             dangerouslySetInnerHTML={{__html: text}}
           />
         </div>
@@ -106,7 +106,7 @@ export default class GameMenu extends Component {
 
 GameMenu.propTypes = {
   height: PropTypes.number,
-  menuObj: PropTypes.object,
+  menuObj: PropTypes.object.isRequired,
   width: PropTypes.number
 };
 
