@@ -35,8 +35,8 @@ describe('Component <BattlesTop>', function() {
 
         const startButton = wrapper.find('#embark-button');
         startButton.simulate('click');
-        const saveButton = wrapper.find('#save-button');
-        saveButton.simulate('click');
+        // const saveButton = wrapper.find('#save-button');
+        // saveButton.simulate('click');
     });
 });
 
