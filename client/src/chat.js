@@ -2,6 +2,7 @@
 /* This file contains objecsts for chat interactions between player and NPCs. */
 
 const RG = require('./rg');
+const Keys = require('./keymap');
 
 const Chat = {};
 
@@ -15,7 +16,7 @@ class ChatTrainer {
             showMenu: () => true,
             getMenu: () => {
                 RG.gameMsg('Please select a stat to train:');
-                const indices = RG.menuIndices.slice(0, 6);
+                const indices = Keys.menuIndices.slice(0, 6);
                 const menuObj = {};
                 stats.forEach((stat, index) => {
                     menuObj[indices[index]] = stats[index];
@@ -25,7 +26,7 @@ class ChatTrainer {
 
             },
             select: code => {
-                const selection = RG.codeToIndex(code);
+                const selection = Keys.codeToIndex(code);
                 if (selection < stats.length) {
                     const statSel = stats[selection];
                     const cost = this.costs[selection];
