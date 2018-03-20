@@ -337,4 +337,42 @@ RGTest.ItemDestroyer = function(pool) {
     pool.listenEvent(RG.EVT_DESTROY_ITEM, this);
 };
 
+RGTest.ObjToString = function() {
+    const stack = [];
+    let msg = '';
+
+    this.toString = (obj, maxStack = 10) => {
+        for (const prop in obj) {
+            if (obj.hasOwnProperty(prop)) {
+                stack.push(prop);
+                if (stack.length < maxStack) {
+                    if (typeof obj[prop] === 'object') {
+                        this.toString(obj[prop], maxStack - 1);
+                    }
+                    else if (typeof obj[prop] === 'function') {
+                        // msg += `Func in ${JSON.stringify(stack)}`;
+                        msg += `\n\tFunction: ${prop}`;
+                        // msg += `\n\tValue: ${obj[prop].toString()}`;
+                    }
+                    else if (obj[prop].toString) {
+                        msg += obj[prop].toString();
+                    }
+                    else {
+                        msg += obj[prop];
+                    }
+                }
+                stack.pop();
+            }
+        }
+    };
+
+    this.getMsg = () => msg;
+};
+
+RGTest.elemString = function(elem, depth = 5) {
+    const objToStr = new RGTest.ObjToString();
+    objToStr.toString(elem, depth);
+    return objToStr.getMsg();
+};
+
 module.exports = RGTest;
