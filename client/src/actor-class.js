@@ -473,6 +473,7 @@ class Spellsinger extends ActorClassBase {
             1: () => {
                 const book = new RG.Spell.SpellBook(this._actor);
                 this._actor.setBook(book);
+                this._actor.getBook().addSpell(new RG.Spell.MagicArmor());
             },
             4: () => {
                 this._actor.getBook().addSpell(new RG.Spell.SummonAnimal());
