@@ -436,13 +436,13 @@ RG.Spell.MagicArmor = function() {
     RG.Spell.Base.call(this, 'MagicArmor', 5);
 
     this._duration = RG.FACT.createDie('5d5 + 5');
-    const _protectionDie = RG.FACT.createDie('2d6 + 1');
+    this._protDie = RG.FACT.createDie('2d6 + 1');
 
     this.cast = args => {
         const actor = args.src;
         const dur = this._duration.roll();
         const combatMods = new RG.Component.CombatMods();
-        combatMods.setProtection(_protectionDie.roll());
+        combatMods.setProtection(this._protDie.roll());
         RG.Component.addToExpirationComp(actor, combatMods, dur);
         RG.gameMsg('You feel a much more protected.');
     };
@@ -453,6 +453,12 @@ RG.Spell.MagicArmor = function() {
 
 };
 RG.extend2(RG.Spell.MagicArmor, RG.Spell.Base);
+
+RG.Spell.MagicArmor.prototype.toString = function() {
+    let str = RG.Spell.Base.prototype.toString.call(this);
+    str += ` Pro: ${this._protDie.toString()}`;
+    return str;
+};
 
 
 /* IcyPrison spell which paralyses actors for a certain duration. */
