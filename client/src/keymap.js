@@ -4,7 +4,13 @@
 
 const ROT = require('../../lib/rot.js');
 
-const RG = {};
+const RG = {
+    err: function(obj, fun, msg) {
+        const formattedMsg = `[ERROR]: ${obj} ${fun} -> |${msg}|`;
+        console.error(formattedMsg);
+        throw new Error(formattedMsg);
+    }
+};
 
 /* eslint-disable */
 RG.VK_a = ROT.VK_A + 32;
@@ -86,6 +92,8 @@ RG.KeyMap = {
     isTargetMode: function(code) {return code === RG.KEY.TARGET;},
     isNextTarget: function(code) {return code === RG.KEY.NEXT;},
     isChat: function(code) {return code === RG.KEY.CHAT;},
+    isIssueOrder: function(code) {return code === RG.KEY.ORDER;},
+    isSelect: function(code) {return code === RG.KEY.SELECT;},
 
     /* Based on keycode, computes and returns a new x,y pair. If code is
      * invalid, returns null. */
@@ -178,6 +186,12 @@ RG.menuIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'a', 'b', 'c', 'd', 'e', 'f',
     'u', 'v', 'w', 'x', 'y', 'z'
 ];
 
+/* Given key code, returns the corresponding character in menu indices. */
+RG.codeToMenuChar = code => {
+    const index = RG.codeToIndex(code);
+    return RG.menuIndices[index];
+};
+
 /* Convert a selection index into a keycode. For example, if user presses 'a',
  * this function should return keycode for a, ie RG.VK_a. */
 RG.selectIndexToCode = indexChar => {
@@ -220,20 +234,23 @@ RG.KEY.MOVE_SW = ROT.VK_Z + 32;
 RG.KEY.MOVE_W = ROT.VK_A + 32;
 RG.KEY.MOVE_NW = ROT.VK_Q + 32;
 
-RG.KEY.PICKUP = RG.VK_COMMA;
-RG.KEY.USE_STAIRS_UP = RG.VK_LT;
-RG.KEY.USE_STAIRS_DOWN = RG.VK_GT;
-RG.KEY.RUN = ROT.VK_R + 32;
-RG.KEY.FIGHT = ROT.VK_F + 32;
-RG.KEY.YES = ROT.VK_Y + 32;
-RG.KEY.NEXT_ITEM = ROT.VK_H + 32;
-RG.KEY.DOOR = ROT.VK_O + 32;
-RG.KEY.REST = ROT.VK_S + 32;
-RG.KEY.LOOK = ROT.VK_L + 32;
-RG.KEY.POWER = ROT.VK_P + 32;
-RG.KEY.TARGET = RG.VK_t;
-RG.KEY.NEXT = RG.VK_n;
 RG.KEY.CHAT = ROT.VK_C;
+RG.KEY.DOOR = ROT.VK_O + 32;
+RG.KEY.FIGHT = ROT.VK_F + 32;
+RG.KEY.LOOK = ROT.VK_L + 32;
+RG.KEY.NEXT = RG.VK_n;
+RG.KEY.NEXT_ITEM = ROT.VK_H + 32;
+RG.KEY.ORDER = ROT.VK_O;
+RG.KEY.PICKUP = RG.VK_COMMA;
+RG.KEY.POWER = ROT.VK_P + 32;
+RG.KEY.QUIT_MENU = RG.VK_q;
+RG.KEY.REST = ROT.VK_S + 32;
+RG.KEY.RUN = ROT.VK_R + 32;
+RG.KEY.SELECT = RG.VK_s;
+RG.KEY.TARGET = RG.VK_t;
+RG.KEY.USE_STAIRS_DOWN = RG.VK_GT;
+RG.KEY.USE_STAIRS_UP = RG.VK_LT;
+RG.KEY.YES = ROT.VK_Y + 32;
 RG.KeyMap.initMap();
 
 RG.isValidKey = keyCode => {
