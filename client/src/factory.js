@@ -8,6 +8,7 @@ RG.Component = require('./component.js');
 RG.Brain = require('./brain.js');
 RG.Map = require('./map.js');
 RG.Map.Generator = require('./map.generator');
+RG.Map.Level = require('./level');
 RG.Verify = require('./verify');
 RG.World = require('./world');
 
