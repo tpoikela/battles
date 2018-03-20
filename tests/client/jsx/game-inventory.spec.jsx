@@ -16,25 +16,37 @@ const RGTest = require('../../roguetest');
 
 chai.use(chaiEnzyme());
 
-
 describe('Component <GameInventory>', () => {
 
     let numClicks = 0;
     const resCmds = [];
+    let state = null;
+    let props = null;
+    let player = null;
 
-    // Props with non-default values passes to the component
-    const player = new RG.Actor.Rogue('player');
-    RGTest.wrapIntoLevel([player]);
-    const props = {
-        doInvCmd: cmd => {
-            ++numClicks;
-            resCmds.push(cmd);
-        },
-        player,
-        eq: new RG.Inv.Equipment(player),
-        inv: new RG.Item.Container(player),
-        equipSelected: {slotName: 'hand'}
-    };
+    beforeEach(() => {
+        // Props with non-default values passes to the component
+        player = new RG.Actor.Rogue('player');
+        RGTest.wrapIntoLevel([player]);
+        state = {
+            invMsg: ''
+        };
+        props = {
+            doInvCmd: cmd => {
+                ++numClicks;
+                resCmds.push(cmd);
+            },
+            player,
+            eq: new RG.Inv.Equipment(player),
+            inv: new RG.Item.Container(player),
+            equipSelected: {slotName: 'hand'},
+            setInventoryMsg: msg => {state.invMsg = msg;},
+            selectItemTop: () => {},
+            selectEquipTop: () => {},
+            msgStyle: '',
+            invMsg: ''
+        };
+    });
 
     it('should render', () => {
         const wrapper = shallow(<GameInventory {...props} />);
@@ -49,7 +61,11 @@ describe('Component <GameInventory>', () => {
     it('has buttons for manipulating items', () => {
         const wrapper = shallow(<GameInventory {...props} />);
         const buttons = wrapper.find('button');
-        buttons.forEach(btn => btn.simulate('click'));
+        buttons.forEach(btn => {
+            btn.simulate('click');
+            expect(state.invMsg, RGTest.elemString(btn))
+                .to.have.length.above(0);
+        });
         expect(numClicks).to.equal(4);
 
         resCmds.forEach(cmd => {
