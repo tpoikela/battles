@@ -225,6 +225,12 @@ const Actors = [
         hp: 12
     },
     {
+        name: 'skeleton archer', char: 'z', base: 'UndeadBase',
+        attack: 4, defense: 2, damage: '1d8', danger: 4,
+        hp: 15,
+        equip: ['Wooden bow', {name: 'Wooden arrow', count: 5}]
+    },
+    {
         name: 'skeleton warrior', char: 'z', base: 'UndeadBase',
         attack: 3, defense: 3, damage: '1d8 + 2', danger: 4,
         hp: 20
