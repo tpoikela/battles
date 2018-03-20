@@ -1632,6 +1632,10 @@ RG.System.SpellEffect = function(compTypes) {
     };
 
     this.rayHitsActor = function(actor, rangeLeft) {
+        if (!actor.has('Health')) {
+            return false;
+        }
+
         let evasion = actor.get('Stats').getAgility();
         if (actor.has('Skills')) {
             evasion += actor.get('Skills').getLevel('Dodge');
