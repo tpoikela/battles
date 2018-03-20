@@ -1,5 +1,6 @@
 
 const RG = require('./rg');
+const Menu = require('./menu');
 
 const ACTION_ALREADY_DONE = () => {};
 const ACTION_ZERO_ENERGY = null;
@@ -473,7 +474,10 @@ class BrainPlayer {
 
     /* Returns true if a player has target selected. */
     hasTargetSelected() {
-        if (this._enemyCells) {
+        if (this.selectedCell) {
+            return true;
+        }
+        else if (this._enemyCells) {
             return this._enemyCells.length > 0;
         }
         return false;
@@ -499,8 +503,13 @@ class BrainPlayer {
 
     /* Returns the current selected cell for targeting. */
     getTarget() {
-        if (this.currEnemyCell < this._enemyCells.length) {
-            return this._enemyCells[this.currEnemyCell];
+        if (this._enemyCells.length > 0) {
+            if (this.currEnemyCell < this._enemyCells.length) {
+                return this._enemyCells[this.currEnemyCell];
+            }
+        }
+        else {
+            return this.selectedCell;
         }
         return ACTION_ZERO_ENERGY;
     }
@@ -567,6 +576,12 @@ class BrainPlayer {
         };
     }
 
+    selectionDone() {
+        // this.selectedCell = null;
+        this._wantSelection = false;
+        this._selectionObject = null;
+    }
+
     /* Main function which returns next action as function. TODO: Refactor into
     * something bearable. It's 150 lines now! */
     decideNextAction(obj) {
@@ -585,36 +600,12 @@ class BrainPlayer {
 
       // Stop here, if action must be confirmed by player by pressing Y
       if (this._wantConfirm && this._confirmCallback !== null) {
-        // Want y/n answer
-        this._wantConfirm = false;
-        if (RG.KeyMap.isConfirmYes(code)) {
-          this.energy = this._confirmEnergy;
-          // If confirmed, return action to be done
-          return this._confirmCallback;
-        }
-        RG.gameMsg('You cancel the action.');
-        return this.noAction();
+          return this.processConfirm(code);
       }
 
       // A player must make a selection
       if (this._wantSelection) {
-        if (this._selectionObject !== null) {
-          const selection = this._selectionObject.select(code);
-          // function terminates the selection
-          if (typeof selection === 'function') {
-            this._wantSelection = false;
-            this._selectionObject = null;
-            return selection;
-          } // object returns another selection
-          else if (selection && typeof selection === 'object') {
-            this._selectionObject = selection;
-            return this.noAction();
-          }
-        }
-        this._wantSelection = false;
-        this._selectionObject = null;
-        RG.gameMsg('You cancel the action.');
-        return this.noAction();
+          return this.processMenuSelection(code);
       }
 
       // Targeting mode logic
@@ -658,6 +649,11 @@ class BrainPlayer {
       if (RG.KeyMap.isFightMode(code)) {
         this.toggleFightMode();
         return this.noAction();
+      }
+
+      if (RG.KeyMap.isIssueOrder(code)) {
+          this.issueOrderCmd();
+          return this.noAction();
       }
 
       // Need existing position for move/attack commands
@@ -801,6 +797,39 @@ class BrainPlayer {
         }
     }
 
+    /* Called when Y/N choice required from player. */
+    processConfirm(code) {
+        this._wantConfirm = false;
+        if (RG.KeyMap.isConfirmYes(code)) {
+          this.energy = this._confirmEnergy;
+          // If confirmed, return action to be done
+          return this._confirmCallback;
+        }
+        RG.gameMsg('You cancel the action.');
+        return this.noAction();
+    }
+
+    processMenuSelection(code) {
+        if (this._selectionObject !== null) {
+          const selection = this._selectionObject.select(code);
+          console.log('processMenuSelection return from select():');
+          console.log(selection);
+          // function terminates the selection
+          if (typeof selection === 'function') {
+            this.selectionDone();
+            return selection;
+          } // object returns another selection
+          else if (selection && typeof selection === 'object') {
+            console.log('\t>> Nested menu detected');
+            this._selectionObject = selection;
+            return this.noAction();
+          }
+        }
+        this.selectionDone();
+        RG.gameMsg('You cancel the action.');
+        return this.noAction();
+    }
+
     /* Executes the move command/attack command for the player. */
     moveCmd(level, currMap, x, y) {
         if (currMap.hasXY(x, y)) {
@@ -875,6 +904,59 @@ class BrainPlayer {
             return this.cmdNotPossible(msg);
         }
     }
+
+    issueOrderCmd() {
+        const orderMenuArgs = [
+            ['Follow me', this.funcFollowOrder.bind(this)]
+        ];
+        const orderMenuSelectOrder = new Menu.WithQuit(orderMenuArgs);
+        const cellMenuArgs = [
+            {key: RG.KEY.SELECT, menu: orderMenuSelectOrder}
+        ];
+
+        RG.gameMsg('Select a target, then press s to select it');
+
+        const orderMenuSelectCell = new Menu.SelectCell(cellMenuArgs);
+        orderMenuSelectCell.setCallback(this.selectCell.bind(this));
+        this.setSelectionObject(orderMenuSelectCell);
+        this.selectCell();
+    }
+
+    funcFollowOrder() {
+        const cell = this.selectedCell;
+        if (cell.hasActors()) {
+            const target = cell.getActors()[0];
+            if (target) {
+                const commander = this._actor;
+                console.log('Target is ' + target.getName());
+                console.log('Commander is ' + commander.getName());
+            }
+        }
+        else {
+            RG.gameDanger('This cell has no valid targets');
+        }
+        this.selectedCell = null;
+    }
+
+    setSelectedCell(cell) {
+        this.selectedCell = cell;
+    }
+
+    selectCell(code) {
+        if (RG.isNullOrUndef([code])) {
+            this.selectedCell = this._actor.getCell();
+        }
+        else {
+            const cell = this.selectedCell;
+            const map = this._actor.getLevel().getMap();
+            const [x, y] = [cell.getX(), cell.getY()];
+            const [newX, newY] = RG.KeyMap.getDiff(code, x, y);
+            if (map.hasXY(newX, newY)) {
+                this.selectedCell = map.getCell(newX, newY);
+            }
+        }
+    }
+
 } // Brain.Player
 
 module.exports = BrainPlayer;
