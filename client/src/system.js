@@ -530,6 +530,10 @@ RG.System.Missile = function(compTypes) {
 
     /* Returns true if the target was hit.*/
     this.targetHit = (ent, target, mComp) => {
+        if (target.has('Ethereal')) {
+            return false;
+        }
+
         const attacker = mComp.getSource();
         if (attacker.has('ThroughShot') && !mComp.inTarget()) {
             return false;
