@@ -5,7 +5,7 @@ const RG = require('./rg.js');
 RG.Time = {};
 
 /* Models an action. Each action has a duration and a callback.  */
-RG.Time.RogueAction = function(dur, cb, obj) {
+RG.Time.Action = function(dur, cb, obj) {
 
     this._duration = dur;
     this._cb = cb; // Action callback
@@ -14,10 +14,10 @@ RG.Time.RogueAction = function(dur, cb, obj) {
 
 };
 
-RG.Time.RogueAction.prototype.setEnergy = function(en) {this._energy = en;};
-RG.Time.RogueAction.prototype.getEnergy = function() {return this._energy;};
-RG.Time.RogueAction.prototype.getDuration = function() {return this._duration;};
-RG.Time.RogueAction.prototype.doAction = function() {
+RG.Time.Action.prototype.setEnergy = function(en) {this._energy = en;};
+RG.Time.Action.prototype.getEnergy = function() {return this._energy;};
+RG.Time.Action.prototype.getDuration = function() {return this._duration;};
+RG.Time.Action.prototype.doAction = function() {
     this._cb(this._obj);
 };
 
@@ -30,18 +30,18 @@ RG.Time.RogueAction.prototype.doAction = function() {
 RG.Time.GameEvent = function(dur, cb, repeat, offset) {
 
     // var _cb = cb;
-    var _repeat = repeat;
+    let _repeat = repeat;
     // var _nTimes = 1;
-    var _offset = offset;
+    let _offset = offset;
 
-    var _level = null; // Level associated with the event, if null, global
+    let _level = null; // Level associated with the event, if null, global
 
     this.isEvent = true; // Needed for the scheduler
 
     /* Clunky for events, but must implement for the scheduler.*/
     this.isPlayer = () => false;
 
-    this.nextAction = () => new RG.Time.RogueAction(dur, cb, {});
+    this.nextAction = () => new RG.Time.Action(dur, cb, {});
 
     this.getRepeat = () => _repeat;
     this.setRepeat = repeat => {_repeat = repeat;};
