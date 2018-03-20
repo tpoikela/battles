@@ -11,6 +11,10 @@
  * used by the AI.
  */
 const RG = require('./rg');
+// const Menu = require('./menu');
+const Keys = require('./keymap');
+
+const {KeyMap} = Keys;
 
 RG.Spell = {};
 
@@ -24,7 +28,7 @@ RG.Spell = {};
 };*/
 
 /* Used for sorting the spells by spell power. */
-const compareSpells = (s1, s2) => {
+function compareSpells(s1, s2) {
     if (s1.getPower() < s2.getPower()) {
         return -1;
     }
@@ -32,7 +36,7 @@ const compareSpells = (s1, s2) => {
         return 1;
     }
     return 0;
-};
+}
 
 /* Returns selection object for spell which is cast on self. */
 RG.Spell.getSelectionObjectSelf = (spell, actor) => {
@@ -49,9 +53,10 @@ RG.Spell.getSelectionObjectSelf = (spell, actor) => {
 RG.Spell.getSelectionObjectDir = (spell, actor, msg) => {
     RG.gameMsg(msg);
     return {
+        // showMsg: () => RG.gameMsg(msg),
         select: (code) => {
             const args = {};
-            args.dir = RG.KeyMap.getDir(code);
+            args.dir = KeyMap.getDir(code);
             if (args.dir) {
                 args.src = actor;
                 return () => {
@@ -103,10 +108,12 @@ RG.Spell.SpellBook = function(actor) {
     /* Returns the object which is used in Brain.Player to make the player
      * selection of spell casting. */
     this.getSelectionObject = () => {
-        const powerSorted = _spells.sort(compareSpells);
+        const powerSorted = _spells;
+        console.log(powerSorted);
         return {
+            // showMsg: () => RG.gameMsg(msg),
             select: function(code) {
-                const selection = RG.codeToIndex(code);
+                const selection = Keys.codeToIndex(code);
                 if (selection < powerSorted.length) {
                     return powerSorted[selection].getSelectionObject(actor);
                 }
@@ -114,7 +121,7 @@ RG.Spell.SpellBook = function(actor) {
             },
             getMenu: function() {
                 RG.gameMsg('Please select a spell to cast:');
-                const indices = RG.menuIndices.slice(0, _spells.length);
+                const indices = Keys.menuIndices.slice(0, _spells.length);
                 const obj = {};
                 powerSorted.forEach((spell, index) => {
                     obj[indices[index]] = spell.toString();
@@ -173,7 +180,10 @@ RG.Spell.Base = function(name, power) {
 };
 
 RG.Spell.Base.prototype.toString = function() {
-    const str = `${this.getName()} - ${this.getPower()}PP`;
+    let str = `${this.getName()} - ${this.getPower()}PP`;
+    if (this._duration) {
+        str += ` Dur: ${this._duration.toString()}`;
+    }
     return str;
 };
 
@@ -190,15 +200,15 @@ RG.Spell.AddComponent = function(name, power) {
     RG.Spell.Base.call(this, name, power);
 
     let _compName = '';
-    let _duration = RG.FACT.createDie('1d6 + 3');
+    this._duration = RG.FACT.createDie('1d6 + 3');
 
-    this.setDuration = die => {_duration = die;};
+    this.setDuration = die => {this._duration = die;};
     this.setCompName = name => {_compName = name;};
     this.getCompName = () => _compName;
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
-        const dur = _duration.roll();
+        const dur = this._duration.roll();
 
         const compToAdd = new RG.Component[_compName]();
         if (compToAdd.setSource) {
@@ -222,6 +232,7 @@ RG.extend2(RG.Spell.AddComponent, RG.Spell.Base);
 RG.Spell.Flying = function() {
     RG.Spell.AddComponent.call(this, 'Flying', 5);
     this.setCompName('Flying');
+    this._duration = RG.FACT.createDie('10d5 + 5');
 };
 RG.extend2(RG.Spell.Flying, RG.Spell.AddComponent);
 
@@ -259,7 +270,7 @@ RG.Spell.RemoveComponent = function(name, power) {
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
-        // const dur = _duration.roll();
+        // const dur = this._duration.roll();
 
         obj.removeComp = _compNames;
 
@@ -289,21 +300,21 @@ RG.extend2(RG.Spell.DispelMagic, RG.Spell.RemoveComponent);
 RG.Spell.Ranged = function(name, power) {
     RG.Spell.Base.call(this, name, power);
 
-    let _damageDie = RG.FACT.createDie('4d4 + 4');
+    this._damageDie = RG.FACT.createDie('4d4 + 4');
     let _range = 5;
 
     this.getRange = () => _range;
     this.setRange = range => {_range = range;};
     this.setDice = dice => {
-        _damageDie = dice[0];
+        this._damageDie = dice[0];
     };
-    this.getDice = () => [_damageDie];
+    this.getDice = () => [this._damageDie];
 
 };
 RG.extend2(RG.Spell.Ranged, RG.Spell.Base);
 
 RG.Spell.Ranged.prototype.toString = function() {
-    let str = `${this.getName()} - ${this.getPower()} pp`;
+    let str = RG.Spell.Base.prototype.toString.call(this);
     str += ` D: ${this.getDice()[0].toString()} R: ${this.getRange()}`;
     return str;
 };
@@ -318,12 +329,12 @@ RG.Spell.Ranged.prototype.toJSON = function() {
 /* A spell for melee combat using grasp of winter. */
 RG.Spell.GraspOfWinter = function() {
     RG.Spell.Base.call(this, 'Grasp of winter');
-    const _damageDie = RG.FACT.createDie('4d4 + 4');
+    this._damageDie = RG.FACT.createDie('4d4 + 4');
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
         obj.damageType = RG.DMG.ICE;
-        obj.damage = _damageDie.roll();
+        obj.damage = this._damageDie.roll();
         const spellComp = new RG.Component.SpellCell();
         spellComp.setArgs(obj);
         args.src.add('SpellCell', spellComp);
@@ -335,6 +346,12 @@ RG.Spell.GraspOfWinter = function() {
     };
 };
 RG.extend2(RG.Spell.GraspOfWinter, RG.Spell.Base);
+
+RG.Spell.GraspOfWinter.prototype.toString = function() {
+    let str = RG.Spell.Base.prototype.toString.call(this);
+    str += ` D: ${this._damageDie.toString()}`;
+    return str;
+};
 
 /* Class Frost bolt which shoots a ray to one direction from the caster. */
 RG.Spell.FrostBolt = function() {
@@ -353,7 +370,8 @@ RG.Spell.FrostBolt = function() {
         RG.gameMsg('Select a direction for firing:');
         return {
             select: (code) => {
-                const dir = RG.KeyMap.getDir(code);
+                console.log('select() in FrostBolt');
+                const dir = KeyMap.getDir(code);
                 return this.getCastFunc(actor, {dir});
             },
             showMenu: () => false
@@ -388,14 +406,14 @@ RG.extend2(RG.Spell.FrostBolt, RG.Spell.Ranged);
 RG.Spell.IceShield = function() {
     RG.Spell.Base.call(this, 'Ice shield', 7);
 
-    const _duration = RG.FACT.createDie('5d5 + 5');
-    const _defenseDie = RG.FACT.createDie('1d6 + 1');
+    this._duration = RG.FACT.createDie('5d5 + 5');
+    this._defenseDie = RG.FACT.createDie('1d6 + 1');
 
     this.cast = args => {
         const actor = args.src;
-        const dur = _duration.roll();
+        const dur = this._duration.roll();
         const combatMods = new RG.Component.CombatMods();
-        combatMods.setDefense(_defenseDie.roll());
+        combatMods.setDefense(this._defenseDie.roll());
         RG.Component.addToExpirationComp(actor, combatMods, dur);
         RG.gameMsg('You feel a boost to your defense.');
     };
@@ -407,16 +425,22 @@ RG.Spell.IceShield = function() {
 };
 RG.extend2(RG.Spell.IceShield, RG.Spell.Base);
 
+RG.Spell.IceShield.prototype.toString = function() {
+    let str = RG.Spell.Base.prototype.toString.call(this);
+    str += ` Def: ${this._defenseDie.toString()}`;
+    return str;
+};
+
 /* Magic armor increases the protection of the caster temporarily. */
 RG.Spell.MagicArmor = function() {
     RG.Spell.Base.call(this, 'MagicArmor', 5);
 
-    const _duration = RG.FACT.createDie('5d5 + 5');
+    this._duration = RG.FACT.createDie('5d5 + 5');
     const _protectionDie = RG.FACT.createDie('2d6 + 1');
 
     this.cast = args => {
         const actor = args.src;
-        const dur = _duration.roll();
+        const dur = this._duration.roll();
         const combatMods = new RG.Component.CombatMods();
         combatMods.setProtection(_protectionDie.roll());
         RG.Component.addToExpirationComp(actor, combatMods, dur);
@@ -435,11 +459,11 @@ RG.extend2(RG.Spell.MagicArmor, RG.Spell.Base);
 RG.Spell.IcyPrison = function() {
     RG.Spell.Base.call(this, 'Icy prison', 10);
 
-    const _duration = RG.FACT.createDie('1d6 + 1');
+    this._duration = RG.FACT.createDie('1d6 + 1');
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
-        const dur = _duration.roll();
+        const dur = this._duration.roll();
 
         const paralysis = new RG.Component.Paralysis();
         paralysis.setSource(args.src);
@@ -493,7 +517,8 @@ RG.Spell.SummonBase = function(name, power) {
                 caster.addFriend(minion);
 
                 const name = caster.getName();
-                const msg = `${name} summons ${this.summonType}!`;
+                const summonName = minion.getName();
+                const msg = `${name} summons ${summonName}!`;
                 RG.gameMsg({cell, msg});
             }
         };
@@ -542,23 +567,28 @@ RG.extend2(RG.Spell.SummonIceMinion, RG.Spell.SummonBase);
 /* A spell to summon an animal to fight for the caster. */
 RG.Spell.SummonAnimal = function() {
     RG.Spell.SummonBase.call(this, 'SummonAnimal', 10);
-    this.summonFunc = actor => (
-        actor.type === 'animal' && (2 * actor.danger)
-            <= this.getCaster().get('Experience').getExpLevel()
-    );
+
+    this.summonFunc = actor => {
+        const casterLevel = this.getCaster().get('Experience').getExpLevel();
+        const minDanger = Math.round(casterLevel / 3) || 1;
+        const maxDanger = Math.round(casterLevel / 2);
+        return (actor.type === 'animal' &&
+            (actor.danger >= minDanger && actor.danger <= maxDanger)
+        );
+    };
 
 };
-RG.extend2(RG.Spell.SummonIceMinion, RG.Spell.SummonBase);
+RG.extend2(RG.Spell.SummonAnimal, RG.Spell.SummonBase);
 
 /* PowerDrain spell which cancels enemy spell and gives power to the caster of
 * this spell. */
 RG.Spell.PowerDrain = function() {
     RG.Spell.Base.call(this, 'PowerDrain', 15);
-    const _duration = RG.FACT.createDie('20d5 + 10');
+    this._duration = RG.FACT.createDie('20d5 + 10');
 
     this.cast = args => {
         const actor = args.src;
-        const dur = _duration.roll();
+        const dur = this._duration.roll();
         const drainComp = new RG.Component.PowerDrain();
         RG.Component.addToExpirationComp(actor, drainComp, dur);
         RG.gameMsg('You feel protected against magic.');
@@ -616,17 +646,19 @@ RG.Spell.Missile = function(name, power) {
     };
 
     this.getSelectionObject = function(actor) {
-        RG.gameMsg('Press [n] for next target. [t] to fire.');
+        const msg = 'Press [n] for next target. [t] to fire.';
+        RG.gameMsg(msg);
         actor.getBrain().nextTarget();
         const spell = this;
         return {
+            // showMsg: () => RG.gameMsg(msg),
             select: function(code) {
                 switch (code) {
-                    case RG.VK_n: {
+                    case Keys.KEY.NEXT: {
                         actor.getBrain().nextTarget();
                         return this;
                     }
-                    case RG.VK_t: return () => {
+                    case Keys.KEY.TARGET: return () => {
                         const target = actor.getBrain().getTarget();
                         const spellCast = new RG.Component.SpellCast();
                         spellCast.setSource(actor);
@@ -686,16 +718,16 @@ RG.Spell.EnergyArrow = function() {
     this.damageType = RG.DMG.ENERGY;
     this.ammoName = 'Energy arrow';
 };
-RG.extend2(RG.Spell.LightningArrow, RG.Spell.Missile);
+RG.extend2(RG.Spell.EnergyArrow, RG.Spell.Missile);
 
 /* MindControl spell takes over an enemy for a certain number of turns. */
 RG.Spell.MindControl = function() {
     RG.Spell.Base.call(this, 'MindControl', 25);
-    const _duration = RG.FACT.createDie('1d6 + 3');
+    this._duration = RG.FACT.createDie('1d6 + 3');
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
-        const dur = _duration.roll();
+        const dur = this._duration.roll();
 
         const mindControl = new RG.Component.MindControl();
         mindControl.setSource(args.src);
