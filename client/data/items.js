@@ -819,16 +819,20 @@ const Items = [
 
     // SPECIAL ITEMS (not generated procedurally)
     {
-        name: 'Ice arrow', noRandom: true,
-        type: 'ammo', char: '/', className: 'cell-item-ice'
+        name: 'MagicalAmmoBase', noRandom: true,
+        type: 'ammo', char: '/', addComp: 'Magical'
     },
     {
-        name: 'Lightning arrow', noRandom: true,
-        type: 'ammo', char: '/', className: 'cell-item-lightning'
+        name: 'Ice arrow', base: 'MagicalAmmoBase',
+        className: 'cell-item-ice'
     },
     {
-        name: 'Energy arrow', noRandom: true,
-        type: 'ammo', char: '/', className: 'cell-item-energy'
+        name: 'Lightning arrow', base: 'MagicalAmmoBase',
+        className: 'cell-item-lightning'
+    },
+    {
+        name: 'Energy arrow', base: 'MagicalAmmoBase',
+        className: 'cell-item-energy'
     }
 
     // ARTIFACT ITEMS
