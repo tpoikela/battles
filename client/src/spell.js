@@ -230,7 +230,7 @@ RG.Spell.Paralysis = function() {
     this.setCompName('Paralysis');
     this.setDuration(RG.FACT.createDie('1d6 + 2'));
 };
-RG.extend2(RG.Spell.Flying, RG.Spell.AddComponent);
+RG.extend2(RG.Spell.Paralysis, RG.Spell.AddComponent);
 
 RG.Spell.SpiritForm = function() {
     RG.Spell.AddComponent.call(this, 'SpiritForm', 10);
@@ -247,7 +247,14 @@ RG.Spell.RemoveComponent = function(name, power) {
 
     let _compNames = [];
 
-    this.setCompNames = comps => {_compNames = comps;};
+    this.setCompNames = comps => {
+        if (typeof comps === 'string') {
+            _compNames = [comps];
+        }
+        else {
+            _compNames = comps;
+        }
+    };
     this.getCompNames = () => _compNames;
 
     this.cast = function(args) {
@@ -291,7 +298,6 @@ RG.Spell.Ranged = function(name, power) {
         _damageDie = dice[0];
     };
     this.getDice = () => [_damageDie];
-
 
 };
 RG.extend2(RG.Spell.Ranged, RG.Spell.Base);
@@ -400,6 +406,29 @@ RG.Spell.IceShield = function() {
 
 };
 RG.extend2(RG.Spell.IceShield, RG.Spell.Base);
+
+/* Magic armor increases the protection of the caster temporarily. */
+RG.Spell.MagicArmor = function() {
+    RG.Spell.Base.call(this, 'MagicArmor', 5);
+
+    const _duration = RG.FACT.createDie('5d5 + 5');
+    const _protectionDie = RG.FACT.createDie('2d6 + 1');
+
+    this.cast = args => {
+        const actor = args.src;
+        const dur = _duration.roll();
+        const combatMods = new RG.Component.CombatMods();
+        combatMods.setProtection(_protectionDie.roll());
+        RG.Component.addToExpirationComp(actor, combatMods, dur);
+        RG.gameMsg('You feel a much more protected.');
+    };
+
+    this.getSelectionObject = function(actor) {
+        return RG.Spell.getSelectionObjectSelf(this, actor);
+    };
+
+};
+RG.extend2(RG.Spell.MagicArmor, RG.Spell.Base);
 
 
 /* IcyPrison spell which paralyses actors for a certain duration. */
