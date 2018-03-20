@@ -608,6 +608,10 @@ RG.Component.Fire = TagComponent('Fire');
 RG.Component.Sharpener = TagComponent('Sharpener');
 RG.Component.Possessed = TagComponent('Possessed');
 
+/* Used currently for magical arrows to distinguish them from shot/thrown
+ * projectiles. */
+RG.Component.Magical = TagComponent('Magical');
+
 /* Component which stores the actor class object. */
 RG.Component.ActorClass = function() {
     RG.Component.Base.call(this, 'ActorClass');
