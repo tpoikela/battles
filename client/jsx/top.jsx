@@ -565,13 +565,15 @@ class BattlesTop extends Component {
                 if (brain.hasTargetSelected()) {
                     updates.selectedCell = brain.getTarget();
                     this.screen.setSelectedCell(updates.selectedCell);
-                    if (!brain.isTargetInRange()) {
-                        this.screen.setStyle('selectedCell',
-                            'cell-not-in-range');
-                    }
-                    else {
-                        this.screen.setStyle('selectedCell',
-                            'cell-target-selected');
+                    if (brain.isTargeting()) {
+                        if (!brain.isTargetInRange()) {
+                            this.screen.setStyle('selectedCell',
+                                'cell-not-in-range');
+                        }
+                        else {
+                            this.screen.setStyle('selectedCell',
+                                'cell-target-selected');
+                        }
                     }
                     this.gameState.isTargeting = true;
                 }
@@ -679,6 +681,8 @@ class BattlesTop extends Component {
             playMode: this.state.playMode
         };
 
+        const oneSelectedCell = this.getOneSelectedCell();
+
         return (
             <div className='container main-div' id='main-div' >
 
@@ -747,7 +751,7 @@ class BattlesTop extends Component {
                         <div className='text-left game-stats-div'>
                             <GameStats
                                 player={player}
-                                selectedCell={this.state.selectedCell}
+                                selectedCell={oneSelectedCell}
                                 selectedItem={this.state.selectedItem}
                                 setViewType={this.setViewType}
                                 showMap={this.state.showMap}
@@ -811,6 +815,12 @@ class BattlesTop extends Component {
         );
     }
 
+    getOneSelectedCell() {
+        if (Array.isArray(this.state.selectedCell)) {
+            return this.state.selectedCell[0];
+        }
+        return this.state.selectedCell;
+    }
 
     //-------------------------------------------------------------
     // GUI-RELATED COMMANDS
