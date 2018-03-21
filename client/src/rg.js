@@ -3,758 +3,757 @@ const $DEBUG = 0;
 
 
 /* Main object of the package for encapsulating all other objects. */
-const RG = { // {{{2
+const RG = {};
 
-    gameTitle: 'Battles in the North (BitN)',
+RG.gameTitle = 'Battles in the North (BitN)';
 
-    // Can be set to true for testing, when error conditions are checked
-    suppressErrorMessages: false,
+// Can be set to true for testing, when error conditions are checked
+RG.suppressErrorMessages = false;
 
-    cellRenderVisible: ['actors', 'items', 'traps', 'elements'],
-    cellRenderAlways: ['items', 'traps', 'elements'],
+RG.cellRenderVisible = ['actors', 'items', 'traps', 'elements'];
+RG.cellRenderAlways = ['items', 'traps', 'elements'];
 
-    /* Given Map.Cell, returns CSS classname used for styling that cell. */
-    getCssClassForCell: function(cell, isVisible) {
-        if (isVisible) {this.cellRenderArray = this.cellRenderVisible;}
-        else {this.cellRenderArray = this.cellRenderAlways;}
-        const className = this.getStyleClassForCell(cell);
-        this.cellRenderArray = this.cellRenderVisible;
-        return className;
-    },
+/* Given Map.Cell, returns CSS classname used for styling that cell. */
+RG.getCssClassForCell = function(cell, isVisible) {
+    if (isVisible) {this.cellRenderArray = this.cellRenderVisible;}
+    else {this.cellRenderArray = this.cellRenderAlways;}
+    const className = this.getStyleClassForCell(cell);
+    this.cellRenderArray = this.cellRenderVisible;
+    return className;
+};
 
-    /* Same as getClassName, but optimized for viewing the full map. */
-    getCssClassFullMap: function(cell) {
-        this.cellRenderArray = this.cellRenderVisible;
+/* Same as getClassName, but optimized for viewing the full map. */
+RG.getCssClassFullMap = function(cell) {
+    this.cellRenderArray = this.cellRenderVisible;
 
-        if (!cell.hasProps()) {
-            const baseType = cell.getBaseElem().getType();
-            return this.cellStyles.elements[baseType];
-        }
-
-        for (let i = 0; i < 4; i++) {
-            const propType = this.cellRenderVisible[i];
-            if (cell.hasProp(propType)) {
-                const props = cell.getProp(propType);
-                const styles = this.cellStyles[propType];
-                return this.getPropClassOrCharFullMap(styles, props[0]);
-            }
-        }
-        return null;
-    },
-
-    /* Given Map.Cell, returns a char that is rendered for the cell. */
-    getCharForCell: function(cell, isVisible) {
-        if (isVisible) {this.cellRenderArray = this.cellRenderVisible;}
-        else {this.cellRenderArray = this.cellRenderAlways;}
-        const cellChar = this.getCellChar(cell);
-        this.cellRenderArray = this.cellRenderVisible;
-        return cellChar;
-    },
-
-    /* Same as getChar, but optimized for full map viewing. */
-    getCharFullMap: function(cell) {
-        this.cellRenderArray = this.cellRenderVisible;
-
-        if (!cell.hasProps()) {
-            const baseType = cell.getBaseElem().getType();
-            return this.charStyles.elements[baseType];
-        }
-
-        for (let i = 0; i < 4; i++) {
-            if (cell.hasProp(this.cellRenderVisible[i])) {
-                const props = cell.getProp(this.cellRenderVisible[i]);
-                const styles = this.charStyles[this.cellRenderVisible[i]];
-                return this.getPropClassOrCharFullMap(styles, props[0]);
-            }
-        }
-        return null;
-    },
-
-    /* Maps a cell to specific object in stylesheet. For rendering purposes
-     * only.*/
-    getStyleClassForCell: function(cell) {
-        if (!cell.isExplored()) { return 'cell-not-explored';}
-
-        for (let i = 0; i < this.cellRenderArray.length; i++) {
-            const propType = this.cellRenderArray[i];
-            if (cell.hasProp(propType)) {
-                const props = cell.getProp(propType);
-                const styles = this.cellStyles[propType];
-                const propObj = props[0];
-                return this.getPropClassOrChar(styles, propObj);
-            }
-        }
-
+    if (!cell.hasProps()) {
         const baseType = cell.getBaseElem().getType();
         return this.cellStyles.elements[baseType];
-    },
+    }
 
-    /* styles is either a LUT of chars or LUT of CSS classnames. */
-    getPropClassOrChar: function(styles, propObj) {
-
-        // Return by name, this is for object shells generally
-        let lookupKey = null;
-        if (propObj.getName) {
-            lookupKey = propObj.getName();
-            if (!styles.hasOwnProperty(lookupKey)) {
-                lookupKey = propObj.getType();
-            }
+    for (let i = 0; i < 4; i++) {
+        const propType = this.cellRenderVisible[i];
+        if (cell.hasProp(propType)) {
+            const props = cell.getProp(propType);
+            const styles = this.cellStyles[propType];
+            return this.getPropClassOrCharFullMap(styles, props[0]);
         }
-        else {
-            lookupKey = propObj.getType();
-        }
+    }
+    return null;
+};
 
-        // By type is usually for basic elements
-        if (styles.hasOwnProperty(lookupKey)) {
-            if (typeof styles[lookupKey] === 'object') {
-                // Invoke a state querying function
-                for (const p in styles[lookupKey]) {
-                    if (p !== 'default') {
-                        const funcToCall = p;
-                        if (propObj[funcToCall]()) {
-                            return styles[lookupKey][p];
-                        }
-                    }
-                }
-                return styles[lookupKey]['default'];
+/* Given Map.Cell, returns a char that is rendered for the cell. */
+RG.getCharForCell = function(cell, isVisible) {
+    if (isVisible) {this.cellRenderArray = this.cellRenderVisible;}
+    else {this.cellRenderArray = this.cellRenderAlways;}
+    const cellChar = this.getCellChar(cell);
+    this.cellRenderArray = this.cellRenderVisible;
+    return cellChar;
+};
 
-            }
-            return styles[lookupKey];
-        }
-        else {
-            return styles['default'];
-        }
-    },
+/* Same as getChar, but optimized for full map viewing. */
+RG.getCharFullMap = function(cell) {
+    this.cellRenderArray = this.cellRenderVisible;
 
-    getPropClassOrCharFullMap: function(styles, propObj) {
-        // Return by name, this is for object shells generally
-        if (propObj.getName) {
-            const name = propObj.getName();
-            if (styles.hasOwnProperty(name)) {
-                return styles[name];
-            }
-        }
-
-        const objType = propObj.getType();
-        // By type is usually for basic elements
-        if (styles.hasOwnProperty(objType)) {
-            if (typeof styles[objType] === 'object') {
-                // Invoke a state querying function
-                for (const p in styles[objType]) {
-                    if (p !== 'default') {
-                        const funcToCall = p;
-                        if (propObj[funcToCall]()) {
-                            return styles[objType][p];
-                        }
-                    }
-                }
-                return styles[objType]['default'];
-
-            }
-            return styles[objType];
-        }
-        else {
-            return styles['default'];
-        }
-    },
-
-    /* Returns char which is rendered on the map cell based on cell contents.*/
-    getCellChar: function(cell) {
-        if (!cell.isExplored()) {return 'X';}
-
-        for (let i = 0; i < this.cellRenderArray.length; i++) {
-            // const propType = this.cellRenderArray[i];
-            if (cell.hasProp(this.cellRenderArray[i])) {
-                const props = cell.getProp(this.cellRenderArray[i]);
-                const styles = this.charStyles[this.cellRenderArray[i]];
-                const propObj = props[0];
-                return this.getPropClassOrChar(styles, propObj);
-            }
-        }
-
+    if (!cell.hasProps()) {
         const baseType = cell.getBaseElem().getType();
         return this.charStyles.elements[baseType];
-    },
+    }
 
+    for (let i = 0; i < 4; i++) {
+        if (cell.hasProp(this.cellRenderVisible[i])) {
+            const props = cell.getProp(this.cellRenderVisible[i]);
+            const styles = this.charStyles[this.cellRenderVisible[i]];
+            return this.getPropClassOrCharFullMap(styles, props[0]);
+        }
+    }
+    return null;
+};
 
-    /* Adds a CSS class for given prop and type. For example, "actors", "wolf",
-     * "cell-actor-wolf" uses CSS class .cell-actor-wolf to style cells with
-     * wolves in them. */
-    addCellStyle: function(prop, type, className) {
-        if (this.cellStyles.hasOwnProperty(prop)) {
-            this.cellStyles[prop][type] = className;
-        }
-        else {
-            this.err('RG', 'addCellStyle', 'Unknown prop type: ' + prop);
-        }
-    },
+/* Maps a cell to specific object in stylesheet. For rendering purposes
+ * only.*/
+RG.getStyleClassForCell = function(cell) {
+    if (!cell.isExplored()) { return 'cell-not-explored';}
 
-    /* Adds a char to render for given prop and type. Example: "actors",
-     * "wolf", "w" renders 'w' for cells containing wolves.*/
-    addCharStyle: function(prop, type, charName) {
-        if (this.charStyles.hasOwnProperty(prop)) {
-            this.charStyles[prop][type] = charName;
+    for (let i = 0; i < this.cellRenderArray.length; i++) {
+        const propType = this.cellRenderArray[i];
+        if (cell.hasProp(propType)) {
+            const props = cell.getProp(propType);
+            const styles = this.cellStyles[propType];
+            const propObj = props[0];
+            return this.getPropClassOrChar(styles, propObj);
         }
-        else {
-            this.err('RG', 'addCharStyle', 'Unknown prop type: ' + prop);
-        }
-    },
+    }
 
-    getChar: function(prop, name, state = null) {
-        if (this.charStyles.hasOwnProperty(prop)) {
-            if (state) {
-                return this.charStyles[prop][name][state];
+    const baseType = cell.getBaseElem().getType();
+    return this.cellStyles.elements[baseType];
+};
+
+/* styles is either a LUT of chars or LUT of CSS classnames. */
+RG.getPropClassOrChar = function(styles, propObj) {
+
+    // Return by name, this is for object shells generally
+    let lookupKey = null;
+    if (propObj.getName) {
+        lookupKey = propObj.getName();
+        if (!styles.hasOwnProperty(lookupKey)) {
+            lookupKey = propObj.getType();
+        }
+    }
+    else {
+        lookupKey = propObj.getType();
+    }
+
+    // By type is usually for basic elements
+    if (styles.hasOwnProperty(lookupKey)) {
+        if (typeof styles[lookupKey] === 'object') {
+            // Invoke a state querying function
+            for (const p in styles[lookupKey]) {
+                if (p !== 'default') {
+                    const funcToCall = p;
+                    if (propObj[funcToCall]()) {
+                        return styles[lookupKey][p];
+                    }
+                }
             }
-            return this.charStyles[prop][name];
-        }
-        return 'X';
-    },
+            return styles[lookupKey]['default'];
 
-    getCssClass: function(prop, name, state = null) {
-        if (this.cellStyles.hasOwnProperty(prop)) {
-            if (state) {
-                return this.cellStyles[prop][name][state];
+        }
+        return styles[lookupKey];
+    }
+    else {
+        return styles['default'];
+    }
+};
+
+RG.getPropClassOrCharFullMap = function(styles, propObj) {
+    // Return by name, this is for object shells generally
+    if (propObj.getName) {
+        const name = propObj.getName();
+        if (styles.hasOwnProperty(name)) {
+            return styles[name];
+        }
+    }
+
+    const objType = propObj.getType();
+    // By type is usually for basic elements
+    if (styles.hasOwnProperty(objType)) {
+        if (typeof styles[objType] === 'object') {
+            // Invoke a state querying function
+            for (const p in styles[objType]) {
+                if (p !== 'default') {
+                    const funcToCall = p;
+                    if (propObj[funcToCall]()) {
+                        return styles[objType][p];
+                    }
+                }
             }
-            if (this.cellStyles[prop].hasOwnProperty(name)) {
-                return this.cellStyles[prop][name];
-            }
+            return styles[objType]['default'];
+
         }
-        return '';
-    },
+        return styles[objType];
+    }
+    else {
+        return styles['default'];
+    }
+};
 
-    // These are used to select rendered characters for map cells.
-    charStyles: {
-        elements: {
-            battle: 'X',
-            bridge: '=',
-            chasm: '~',
-            default: '.',
-            exit: '.',
-            exploration: '?',
-            floor: '.',
-            floorcave: '.',
-            floorcrypt: '.',
-            floorhouse: '.',
-            fort: '#',
-            grass: '"',
-            highrock: '^',
-            mountain: '^',
-            passage: '.',
-            sky: '~',
-            road: '.',
-            shop: ':',
-            snow: '.',
-            stairsDown: '>',
-            stairsUp: '<',
-            stone: '^',
-            town: 'o',
-            tree: 'T',
-            wall: '#',
-            wallcave: '#',
-            wallcrypt: '#',
-            wallice: '#',
-            wallwooden: '#',
-            wallmount: '^',
-            water: '~',
-            // Elements with different states
-            door: {
-                isClosed: '+', // if isClosed() returns true
-                default: '/'
-            }
-        },
-        actors: {
-            default: 'X',
-            monster: '@',
-            player: '@',
-            spirit: 'Q',
-            summoner: 'Z',
-            wolf: 'w'
-        },
-        items: {
-            default: '?',
-            corpse: '§',
-            potion: '!',
-            spiritgem: '*'
-        },
-        traps: {}
-    },
+/* Returns char which is rendered on the map cell based on cell contents.*/
+RG.getCellChar = function(cell) {
+    if (!cell.isExplored()) {return 'X';}
 
-    // These are used to select the CSS class for map cells.
-    cellStyles: {
-        elements: {
-            battle: 'cell-element-battle',
-            bridge: 'cell-element-bridge',
-            chasm: 'cell-element-chasm',
-            default: 'cell-element-default',
-            door: 'cell-element-door',
-            exit: 'cell-element-exit',
-            exploration: 'cell-element-exploration',
-            floor: 'cell-element-floor',
-            floorcave: 'cell-element-floor-cave',
-            floorcrypt: 'cell-element-floor-crypt',
-            floorhouse: 'cell-element-floor-house',
-            fort: 'cell-element-fort',
-            grass: 'cell-element-grass',
-            highrock: 'cell-element-highrock',
-            mountain: 'cell-element-mountain',
-            passage: 'cell-element-passage',
-            road: 'cell-element-road',
-            sky: 'cell-element-sky',
-            shop: 'cell-element-shop',
-            snow: 'cell-element-snow',
-            stone: 'cell-element-stone',
-            town: 'cell-element-town',
-            tree: 'cell-element-tree',
-            wall: 'cell-element-wall',
-            wallcave: 'cell-element-wall-cave',
-            wallcrypt: 'cell-element-wall-crypt',
-            wallice: 'cell-element-wall-ice',
-            wallwooden: 'cell-element-wall-wooden',
-            wallmount: 'cell-element-wall-mount',
-            water: 'cell-element-water'
-        },
-        actors: {
-            default: 'cell-actor-default',
-            player: 'cell-actor-player',
-            monster: 'cell-actor-monster',
-            summoner: 'cell-actor-summoner',
-            wolf: 'cell-actor-animal',
-            spirit: 'cell-actor-spirit'
-        },
-        items: {
-            potion: 'cell-item-potion',
-            spiritgem: 'cell-item-spiritgem',
-            default: 'cell-item-default'
-        },
-        traps: {
-            default: 'cell-traps'
+    for (let i = 0; i < this.cellRenderArray.length; i++) {
+        // const propType = this.cellRenderArray[i];
+        if (cell.hasProp(this.cellRenderArray[i])) {
+            const props = cell.getProp(this.cellRenderArray[i]);
+            const styles = this.charStyles[this.cellRenderArray[i]];
+            const propObj = props[0];
+            return this.getPropClassOrChar(styles, propObj);
         }
-    },
+    }
 
-    debug: function(obj, msg) {
-        if ($DEBUG) {
-            const inst = typeof obj;
-            const json = JSON.stringify(obj);
-            console.log(`[DEBUG]: Type: ${inst} ${json} |${msg}|`);
+    const baseType = cell.getBaseElem().getType();
+    return this.charStyles.elements[baseType];
+};
+
+
+/* Adds a CSS class for given prop and type. For example, "actors", "wolf",
+ * "cell-actor-wolf" uses CSS class .cell-actor-wolf to style cells with
+ * wolves in them. */
+RG.addCellStyle = function(prop, type, className) {
+    if (this.cellStyles.hasOwnProperty(prop)) {
+        this.cellStyles[prop][type] = className;
+    }
+    else {
+        this.err('RG', 'addCellStyle', 'Unknown prop type: ' + prop);
+    }
+};
+
+/* Adds a char to render for given prop and type. Example: "actors",
+ * "wolf", "w" renders 'w' for cells containing wolves.*/
+RG.addCharStyle = function(prop, type, charName) {
+    if (this.charStyles.hasOwnProperty(prop)) {
+        this.charStyles[prop][type] = charName;
+    }
+    else {
+        this.err('RG', 'addCharStyle', 'Unknown prop type: ' + prop);
+    }
+};
+
+RG.getChar = function(prop, name, state = null) {
+    if (this.charStyles.hasOwnProperty(prop)) {
+        if (state) {
+            return this.charStyles[prop][name][state];
+        }
+        return this.charStyles[prop][name];
+    }
+    return 'X';
+};
+
+RG.getCssClass = function(prop, name, state = null) {
+    if (this.cellStyles.hasOwnProperty(prop)) {
+        if (state) {
+            return this.cellStyles[prop][name][state];
+        }
+        if (this.cellStyles[prop].hasOwnProperty(name)) {
+            return this.cellStyles[prop][name];
+        }
+    }
+    return '';
+};
+
+// These are used to select rendered characters for map cells.
+RG.charStyles = {
+    elements: {
+        battle: 'X',
+        bridge: '=',
+        chasm: '~',
+        default: '.',
+        exit: '.',
+        exploration: '?',
+        floor: '.',
+        floorcave: '.',
+        floorcrypt: '.',
+        floorhouse: '.',
+        fort: '#',
+        grass: '"',
+        highrock: '^',
+        mountain: '^',
+        passage: '.',
+        sky: '~',
+        road: '.',
+        shop: ':',
+        snow: '.',
+        stairsDown: '>',
+        stairsUp: '<',
+        stone: '^',
+        town: 'o',
+        tree: 'T',
+        wall: '#',
+        wallcave: '#',
+        wallcrypt: '#',
+        wallice: '#',
+        wallwooden: '#',
+        wallmount: '^',
+        water: '~',
+        // Elements with different states
+        door: {
+            isClosed: '+', // if isClosed() returns true
+            default: '/'
         }
     },
+    actors: {
+        default: 'X',
+        monster: '@',
+        player: '@',
+        spirit: 'Q',
+        summoner: 'Z',
+        wolf: 'w'
+    },
+    items: {
+        default: '?',
+        corpse: '§',
+        potion: '!',
+        spiritgem: '*'
+    },
+    traps: {}
+};
 
-    err: function(obj, fun, msg) {
-        if (!this.suppressErrorMessages) {
-            const formattedMsg = `[ERROR]: ${obj} ${fun} -> |${msg}|`;
-            console.error(formattedMsg);
-            throw new Error(formattedMsg);
+// These are used to select the CSS class for map cells.
+RG.cellStyles = {
+    elements: {
+        battle: 'cell-element-battle',
+        bridge: 'cell-element-bridge',
+        chasm: 'cell-element-chasm',
+        default: 'cell-element-default',
+        door: 'cell-element-door',
+        exit: 'cell-element-exit',
+        exploration: 'cell-element-exploration',
+        floor: 'cell-element-floor',
+        floorcave: 'cell-element-floor-cave',
+        floorcrypt: 'cell-element-floor-crypt',
+        floorhouse: 'cell-element-floor-house',
+        fort: 'cell-element-fort',
+        grass: 'cell-element-grass',
+        highrock: 'cell-element-highrock',
+        mountain: 'cell-element-mountain',
+        passage: 'cell-element-passage',
+        road: 'cell-element-road',
+        sky: 'cell-element-sky',
+        shop: 'cell-element-shop',
+        snow: 'cell-element-snow',
+        stone: 'cell-element-stone',
+        town: 'cell-element-town',
+        tree: 'cell-element-tree',
+        wall: 'cell-element-wall',
+        wallcave: 'cell-element-wall-cave',
+        wallcrypt: 'cell-element-wall-crypt',
+        wallice: 'cell-element-wall-ice',
+        wallwooden: 'cell-element-wall-wooden',
+        wallmount: 'cell-element-wall-mount',
+        water: 'cell-element-water'
+    },
+    actors: {
+        default: 'cell-actor-default',
+        player: 'cell-actor-player',
+        monster: 'cell-actor-monster',
+        summoner: 'cell-actor-summoner',
+        wolf: 'cell-actor-animal',
+        spirit: 'cell-actor-spirit'
+    },
+    items: {
+        potion: 'cell-item-potion',
+        spiritgem: 'cell-item-spiritgem',
+        default: 'cell-item-default'
+    },
+    traps: {
+        default: 'cell-traps'
+    }
+};
+
+RG.debug = function(obj, msg) {
+    if ($DEBUG) {
+        const inst = typeof obj;
+        const json = JSON.stringify(obj);
+        console.log(`[DEBUG]: Type: ${inst} ${json} |${msg}|`);
+    }
+};
+
+RG.err = function(obj, fun, msg) {
+    if (!this.suppressErrorMessages) {
+        const formattedMsg = `[ERROR]: ${obj} ${fun} -> |${msg}|`;
+        console.error(formattedMsg);
+        throw new Error(formattedMsg);
+    }
+};
+
+RG.warn = function(obj, fun, msg) {
+    if (!this.suppressWarningMessages) {
+        const formattedMsg = `[WARN]: ${obj} ${fun} -> |${msg}|`;
+        console.error(formattedMsg);
+    }
+};
+
+RG.diag = function(obj) {
+    if (!this.suppressDiagnosticMessages) {
+        console.info(obj);
+    }
+};
+
+
+/* Used to inherit from a prototype. Supports multiple inheritance but
+ * sacrifices instanceof.*/
+RG.extend2 = function(Child, Parent) {
+    if (RG.isNullOrUndef([Child])) {
+        RG.err('RG', 'extend2',
+            `Child not defined. Parent: ${Parent}`);
+    }
+    if (RG.isNullOrUndef([Parent])) {
+        RG.err('RG', 'extend2',
+            `Parent not defined. Child: ${Child}`);
+    }
+
+    const p = Parent.prototype;
+    const c = Child.prototype;
+    for (const i in p) {
+        if (!c.hasOwnProperty(i)) {
+            c[i] = p[i];
         }
-    },
+    }
+    if (c.hasOwnProperty('uber')) {
+        const ubers = [c.uber];
+        ubers.push(p);
+        c.uber = ubers;
+    }
+    else {
+        c.uber = [];
+        c.uber.push(p);
+    }
+};
 
-    warn: function(obj, fun, msg) {
-        if (!this.suppressWarningMessages) {
-            const formattedMsg = `[WARN]: ${obj} ${fun} -> |${msg}|`;
-            console.error(formattedMsg);
-        }
-    },
+/* Prints an error into console if 'val' is null or undefined.*/
+RG.nullOrUndefError = function(name, msg, val) {
+    if (this.isNullOrUndef([val])) {
+        const formattedMsg = `nullOrUndef ${name} ${msg}`;
+        console.error(formattedMsg);
+        throw new Error(formattedMsg);
+    }
+};
 
-    diag: function(obj) {
-        if (!this.suppressDiagnosticMessages) {
-            console.info(obj);
-        }
-    },
-
-
-    /* Used to inherit from a prototype. Supports multiple inheritance but
-     * sacrifices instanceof.*/
-    extend2: function(Child, Parent) {
-        if (RG.isNullOrUndef([Child])) {
-            RG.err('RG', 'extend2',
-                `Child not defined. Parent: ${Parent}`);
-        }
-        if (RG.isNullOrUndef([Parent])) {
-            RG.err('RG', 'extend2',
-                `Parent not defined. Child: ${Child}`);
-        }
-
-        const p = Parent.prototype;
-        const c = Child.prototype;
-        for (const i in p) {
-            if (!c.hasOwnProperty(i)) {
-                c[i] = p[i];
-            }
-        }
-        if (c.hasOwnProperty('uber')) {
-            const ubers = [c.uber];
-            ubers.push(p);
-            c.uber = ubers;
-        }
-        else {
-            c.uber = [];
-            c.uber.push(p);
-        }
-    },
-
-    /* Prints an error into console if 'val' is null or undefined.*/
-    nullOrUndefError: function(name, msg, val) {
-        if (this.isNullOrUndef([val])) {
-            const formattedMsg = `nullOrUndef ${name} ${msg}`;
-            console.error(formattedMsg);
-            throw new Error(formattedMsg);
-        }
-    },
-
-    /* Returns true if anything in the list is null or undefined.*/
-    isNullOrUndef: function(list) {
-        for (let i = 0; i < list.length; i++) {
-            if (list[i] === null || typeof list[i] === 'undefined' ||
-                typeof list === 'undefined') {
-                return true;
-            }
-        }
-        return false;
-    },
-
-    // -------------------------------------------------
-    // Functions for emitting in-game messages to player
-    // -------------------------------------------------
-
-    // Accepts 2 different arguments:
-    // 1. A simple string messages
-    // 2. {msg: "Your message", cell: Origin cell of messaage}
-    // Using 2. messages can be easily filtered by position.
-    gameMsg: function(msg) {
-        this.emitMsgEvent('prim', msg);
-    },
-
-    gameInfo: function(msg) {
-        this.emitMsgEvent('info', msg);
-    },
-
-    gameDescr: function(msg) {
-        this.emitMsgEvent('descr', msg);
-    },
-
-    gameSuccess: function(msg) {
-        this.emitMsgEvent('success', msg);
-    },
-
-    gameWarn: function(msg) {
-        this.emitMsgEvent('warn', msg);
-    },
-
-    gameDanger: function(msg) {
-        this.emitMsgEvent('danger', msg);
-    },
-
-    /* Emits message event with cell origin, style and message. */
-    emitMsgEvent: function(style, msg) {
-        let newMsg = '';
-        if (typeof msg === 'object') {
-            const cell = msg.cell;
-            newMsg = msg.msg;
-            newMsg = newMsg[0].toUpperCase() + newMsg.substring(1);
-
-            const msgObject = {cell, msg: newMsg, style};
-            this.POOL.emitEvent(this.EVT_MSG, msgObject);
-        }
-        else {
-            newMsg = msg[0].toUpperCase() + msg.substring(1);
-            this.POOL.emitEvent(this.EVT_MSG, {msg: newMsg, style});
-        }
-
-    },
-
-    /* Tries to add item2 to item1 stack. Returns true on success.*/
-    addStackedItems: function(item1, item2) {
-        if (item1.equals(item2)) {
-            let countToAdd = 1;
-            if (item2.count) {
-                countToAdd = item2.count;
-            }
-
-            // Check if item1 already stacked
-            if (item1.count) {
-                item1.count += countToAdd;
-            }
-            else {
-                item1.count = 1 + countToAdd;
-            }
+/* Returns true if anything in the list is null or undefined.*/
+RG.isNullOrUndef = function(list) {
+    for (let i = 0; i < list.length; i++) {
+        if (list[i] === null || typeof list[i] === 'undefined' ||
+            typeof list === 'undefined') {
             return true;
         }
-        return false;
-    },
+    }
+    return false;
+};
 
-    /* Removes N items from the stack and returns them. Returns null if the
-     * stack is not changed.*/
-    removeStackedItems: function(itemStack, n) {
-        if (n > 0) {
-            let rmvItem = null;
-            if (itemStack.count) {
-                if (n <= itemStack.count) {
-                    itemStack.count -= n;
-                    rmvItem = itemStack.clone();
-                    rmvItem.count = n;
-                    return rmvItem;
-                }
-                else {
-                    rmvItem = itemStack.clone();
-                    rmvItem.count = itemStack.count;
-                    itemStack.count = 0;
-                    return rmvItem;
-                }
-            }
-            else { // Remove all
-                itemStack.count = 0;
+// -------------------------------------------------
+// Functions for emitting in-game messages to player
+// -------------------------------------------------
+
+// Accepts 2 different arguments:
+// 1. A simple string messages
+// 2. {msg: "Your message", cell: Origin cell of messaage}
+// Using 2. messages can be easily filtered by position.
+RG.gameMsg = function(msg) {
+    this.emitMsgEvent('prim', msg);
+};
+
+RG.gameInfo = function(msg) {
+    this.emitMsgEvent('info', msg);
+};
+
+RG.gameDescr = function(msg) {
+    this.emitMsgEvent('descr', msg);
+};
+
+RG.gameSuccess = function(msg) {
+    this.emitMsgEvent('success', msg);
+};
+
+RG.gameWarn = function(msg) {
+    this.emitMsgEvent('warn', msg);
+};
+
+RG.gameDanger = function(msg) {
+    this.emitMsgEvent('danger', msg);
+};
+
+/* Emits message event with cell origin, style and message. */
+RG.emitMsgEvent = function(style, msg) {
+    let newMsg = '';
+    if (typeof msg === 'object') {
+        const cell = msg.cell;
+        newMsg = msg.msg;
+        newMsg = newMsg[0].toUpperCase() + newMsg.substring(1);
+
+        const msgObject = {cell, msg: newMsg, style};
+        this.POOL.emitEvent(this.EVT_MSG, msgObject);
+    }
+    else {
+        newMsg = msg[0].toUpperCase() + msg.substring(1);
+        this.POOL.emitEvent(this.EVT_MSG, {msg: newMsg, style});
+    }
+
+};
+
+/* Tries to add item2 to item1 stack. Returns true on success.*/
+RG.addStackedItems = function(item1, item2) {
+    if (item1.equals(item2)) {
+        let countToAdd = 1;
+        if (item2.count) {
+            countToAdd = item2.count;
+        }
+
+        // Check if item1 already stacked
+        if (item1.count) {
+            item1.count += countToAdd;
+        }
+        else {
+            item1.count = 1 + countToAdd;
+        }
+        return true;
+    }
+    return false;
+};
+
+/* Removes N items from the stack and returns them. Returns null if the
+ * stack is not changed.*/
+RG.removeStackedItems = function(itemStack, n) {
+    if (n > 0) {
+        let rmvItem = null;
+        if (itemStack.count) {
+            if (n <= itemStack.count) {
+                itemStack.count -= n;
                 rmvItem = itemStack.clone();
-                rmvItem.count = 1;
+                rmvItem.count = n;
+                return rmvItem;
+            }
+            else {
+                rmvItem = itemStack.clone();
+                rmvItem.count = itemStack.count;
+                itemStack.count = 0;
                 return rmvItem;
             }
         }
-        return null;
-    },
+        else { // Remove all
+            itemStack.count = 0;
+            rmvItem = itemStack.clone();
+            rmvItem.count = 1;
+            return rmvItem;
+        }
+    }
+    return null;
+};
 
-    //--------------------------------------------------------------
-    // COMBAT-RELATED FUNCTIONS
-    //--------------------------------------------------------------
+//--------------------------------------------------------------
+// COMBAT-RELATED FUNCTIONS
+//--------------------------------------------------------------
 
-    getMeleeAttack: function(att) {
-        let attack = att.getAttack();
-        const missile = att.getInvEq().getEquipment().getItem('missile');
-        const missWeapon = att.getInvEq().getMissileWeapon();
-        if (missile) {attack -= missile.getAttack();}
-        if (missWeapon) {attack -= missWeapon.getAttack();}
-        return attack;
-    },
+RG.getMeleeAttack = function(att) {
+    let attack = att.getAttack();
+    const missile = att.getInvEq().getEquipment().getItem('missile');
+    const missWeapon = att.getInvEq().getMissileWeapon();
+    if (missile) {attack -= missile.getAttack();}
+    if (missWeapon) {attack -= missWeapon.getAttack();}
+    return attack;
+};
 
 
-    getMissileDamage: function(att, miss) {
-        let dmg = miss.rollDamage();
-        dmg += Math.round(att.get('Stats').getAgility() / 3);
+RG.getMissileDamage = function(att, miss) {
+    let dmg = miss.rollDamage();
+    dmg += Math.round(att.get('Stats').getAgility() / 3);
+    if (miss.has('Ammo')) {
+        dmg += att.getMissileWeapon().rollDamage();
+    }
+    if (att.has('StrongShot')) {
+        dmg += this.strengthToDamage(att.getStrength());
+    }
+    return dmg;
+};
+
+RG.getMissileAttack = function(att) {
+    let attack = att.get('Combat').getAttack();
+    attack += att.getInvEq().getEquipment().getAttack();
+    attack += att.get('Stats').getAccuracy() / 2;
+    attack += att.getInvEq().getEquipment().getAccuracy() / 2;
+
+    // Subtract melee weapon
+    const weapon = att.getWeapon();
+    if (weapon) {attack -= weapon.getAttack();}
+
+    return attack;
+};
+
+RG.getMissileRange = function(att, miss) {
+    let range = miss.getAttackRange();
+    if (miss.has('Ammo')) {
+        const missWeapon = att.getMissileWeapon();
+        const weaponRange = missWeapon.getAttackRange();
+        range += weaponRange;
+    }
+    if (att.has('LongRangeShot')) {range *= 2;}
+    if (att.has('EagleEye')) {range += 2;}
+    if (att.has('Skills')) {
         if (miss.has('Ammo')) {
-            dmg += att.getMissileWeapon().rollDamage();
+            range += att.get('Skills').getLevel('Archery');
         }
-        if (att.has('StrongShot')) {
-            dmg += this.strengthToDamage(att.getStrength());
+        else {
+            range += att.get('Skills').getLevel('Throwing');
         }
-        return dmg;
-    },
+    }
+    return range;
+};
 
-    getMissileAttack: function(att) {
-        let attack = att.get('Combat').getAttack();
-        attack += att.getInvEq().getEquipment().getAttack();
-        attack += att.get('Stats').getAccuracy() / 2;
-        attack += att.getInvEq().getEquipment().getAccuracy() / 2;
+RG.strengthToDamage = function(str) {
+    return Math.round(str / 4);
+};
 
-        // Subtract melee weapon
-        const weapon = att.getWeapon();
-        if (weapon) {attack -= weapon.getAttack();}
-
-        return attack;
-    },
-
-    getMissileRange: function(att, miss) {
-        let range = miss.getAttackRange();
-        if (miss.has('Ammo')) {
-            const missWeapon = att.getMissileWeapon();
-            const weaponRange = missWeapon.getAttackRange();
-            range += weaponRange;
-        }
-        if (att.has('LongRangeShot')) {range *= 2;}
-        if (att.has('EagleEye')) {range += 2;}
-        if (att.has('Skills')) {
-            if (miss.has('Ammo')) {
-                range += att.get('Skills').getLevel('Archery');
-            }
-            else {
-                range += att.get('Skills').getLevel('Throwing');
-            }
-        }
-        return range;
-    },
-
-    strengthToDamage: function(str) {
-        return Math.round(str / 4);
-    },
-
-    /* Given actor and cells it sees, returns first enemy cell found.*/
-    findEnemyCellForPlayer: function(actor, seenCells) {
-        const res = [];
-        for (let i = 0; i < seenCells.length; i++) {
-            if (seenCells[i].hasActors()) {
-                const actors = seenCells[i].getProp('actors');
-                for (let j = 0; j < actors.length; j++) {
-                    if (actor !== actors[j]) {
-                        if (typeof actors[j].isEnemy === 'function') {
-                            if (actors[j].isEnemy(actor)) {
-                                res.push(seenCells[i]);
-                            }
+/* Given actor and cells it sees, returns first enemy cell found.*/
+RG.findEnemyCellForPlayer = function(actor, seenCells) {
+    const res = [];
+    for (let i = 0; i < seenCells.length; i++) {
+        if (seenCells[i].hasActors()) {
+            const actors = seenCells[i].getProp('actors');
+            for (let j = 0; j < actors.length; j++) {
+                if (actor !== actors[j]) {
+                    if (typeof actors[j].isEnemy === 'function') {
+                        if (actors[j].isEnemy(actor)) {
+                            res.push(seenCells[i]);
                         }
                     }
                 }
             }
         }
-        return res;
-    },
+    }
+    return res;
+};
 
-    POOL: null, // Global event pool
+RG.POOL = null; // Global event pool
 
-    //--------------------------------------------------------------
-    // CONSTANTS
-    //--------------------------------------------------------------
+//--------------------------------------------------------------
+// CONSTANTS
+//--------------------------------------------------------------
 
-    PLAYER_FOV_RANGE: 10,
-    NPC_FOV_RANGE: 5, // Default FOV range for actors
+RG.PLAYER_FOV_RANGE = 10;
+RG.NPC_FOV_RANGE = 5; // Default FOV range for actor
 
-    ACTION_DUR: 100, // Base duration of action
-    BASE_SPEED: 100, // Base speed of actors
-    DEFAULT_HP: 50,
+RG.ACTION_DUR = 100; // Base duration of action
+RG.BASE_SPEED = 100; // Base speed of actors
+RG.DEFAULT_HP = 50;
 
-    // How many levels are simulated at once, having more adds realism
-    // but slows down the game, affects Game.Engine
-    MAX_ACTIVE_LEVELS: 3,
+// How many levels are simulated at once, having more adds realism
+// but slows down the game, affects Game.Engine
+RG.MAX_ACTIVE_LEVELS = 3;
 
-    //----------------------
-    // Different game events
-    //----------------------
-    EVT_ACTOR_CREATED: Symbol(),
-    EVT_ACTOR_KILLED: Symbol(),
-    EVT_DESTROY_ITEM: Symbol(),
-    EVT_MSG: Symbol(),
+//----------------------
+// Different game events
+//----------------------
+RG.EVT_ACTOR_CREATED = Symbol();
+RG.EVT_ACTOR_KILLED = Symbol();
+RG.EVT_DESTROY_ITEM = Symbol();
+RG.EVT_MSG = Symbol();
 
-    EVT_LEVEL_CHANGED: Symbol(),
-    EVT_LEVEL_ENTERED: Symbol(),
-    EVT_TILE_CHANGED: Symbol(),
+RG.EVT_LEVEL_CHANGED = Symbol();
+RG.EVT_LEVEL_ENTERED = Symbol();
+RG.EVT_TILE_CHANGED = Symbol();
 
-    EVT_LEVEL_PROP_ADDED: Symbol(),
-    EVT_LEVEL_PROP_REMOVED: Symbol(),
+RG.EVT_LEVEL_PROP_ADDED = Symbol();
+RG.EVT_LEVEL_PROP_REMOVED = Symbol();
 
-    EVT_ACT_COMP_ADDED: Symbol(),
-    EVT_ACT_COMP_REMOVED: Symbol(),
-    EVT_ACT_COMP_ENABLED: Symbol(),
-    EVT_ACT_COMP_DISABLED: Symbol(),
+RG.EVT_ACT_COMP_ADDED = Symbol();
+RG.EVT_ACT_COMP_REMOVED = Symbol();
+RG.EVT_ACT_COMP_ENABLED = Symbol();
+RG.EVT_ACT_COMP_DISABLED = Symbol();
 
-    EVT_WIN_COND_TRUE: Symbol(),
+RG.EVT_WIN_COND_TRUE = Symbol();
 
-    EVT_ANIMATION: Symbol(),
+RG.EVT_ANIMATION = Symbol();
 
-    EVT_BATTLE_OVER: Symbol(),
-    EVT_ARMY_EVENT: Symbol(),
+RG.EVT_BATTLE_OVER = Symbol();
+RG.EVT_ARMY_EVENT = Symbol();
 
-    // Mostly used at low-level by System.Event
-    EVT_ITEM_PICKED_UP: Symbol(),
-    EVT_ACTOR_DAMAGED: Symbol(),
-    EVT_ACTOR_ATTACKED: Symbol(),
-    EVT_ACTOR_USED_STAIRS: Symbol(),
+// Mostly used at low-level by System.Event
+RG.EVT_ITEM_PICKED_UP = Symbol();
+RG.EVT_ACTOR_DAMAGED = Symbol();
+RG.EVT_ACTOR_ATTACKED = Symbol();
+RG.EVT_ACTOR_USED_STAIRS = Symbol();
 
-    //----------------------------
-    // Different entity/prop types
-    //----------------------------
-    TYPE_ACTOR: 'actors',
-    TYPE_ELEM: 'elements',
-    TYPE_ITEM: 'items',
-    TYPE_TRAP: 'traps',
+//----------------------------
+// Different entity/prop types
+//----------------------------
+RG.TYPE_ACTOR = 'actors';
+RG.TYPE_ELEM = 'elements';
+RG.TYPE_ITEM = 'items';
+RG.TYPE_TRAP = 'traps';
 
-    ITEM_TYPES: ['ammo', 'armour', 'food', 'gold', 'goldcoin',
-        'missile', 'missileweapon', 'potion', 'spiritgem', 'weapon'],
+RG.ITEM_TYPES = ['ammo', 'armour', 'food', 'gold', 'goldcoin',
+    'missile', 'missileweapon', 'potion', 'spiritgem', 'weapon'];
 
-    USE: {
-        DRINK: 'DRINK',
-        DIG: 'DIG'
-    },
+RG.USE = {
+    DRINK: 'DRINK',
+    DIG: 'DIG'
+};
 
-    LEVEL_ID_ADD: 1000000000,
-    ENTITY_ID_ADD: 1000000000,
+RG.LEVEL_ID_ADD = 1000000000;
+RG.ENTITY_ID_ADD = 1000000000;
 
-    //----------------------------
-    // Different level types
-    //----------------------------
+//----------------------------
+// Different level types
+//----------------------------
 
-    LEVEL_EMPTY: 'empty',
-    LEVEL_FOREST: 'forest',
-    LEVEL_MOUNTAIN: 'mountain',
+RG.LEVEL_EMPTY = 'empty';
+RG.LEVEL_FOREST = 'forest';
+RG.LEVEL_MOUNTAIN = 'mountain';
 
-    // Energy per action
-    energy: {
-        DEFAULT: 5,
-        REST: 5,
-        USE: 5,
-        PICKUP: 5,
-        MISSILE: 10,
-        MOVE: 10,
-        ATTACK: 15,
-        RUN: 20
-    },
+// Energy per action
+RG.energy = {
+    DEFAULT: 5,
+    REST: 5,
+    USE: 5,
+    PICKUP: 5,
+    MISSILE: 10,
+    MOVE: 10,
+    ATTACK: 15,
+    RUN: 20
+};
 
-    // Different fighting modes
-    FMODE_NORMAL: 0,
-    FMODE_FAST: 1,
-    FMODE_SLOW: 2,
+// Different fighting modes
+RG.FMODE_NORMAL = 0;
+RG.FMODE_FAST = 1;
+RG.FMODE_SLOW = 2;
 
-    PROT_BYPASS_CHANCE: 0.05,
+RG.PROT_BYPASS_CHANCE = 0.05;
 
-    // 0.0 = uniform dist, higher number assigns more weight to median values
-    DANGER_ADJ_FACTOR: 1.4,
-    DAMAGE_ADJ_FACTOR: 2,
-    PLAYER_HP_REGEN_PERIOD: 40,
-    PLAYER_PP_REGEN_PERIOD: 40,
+// 0.0 = uniform dist, higher number assigns more weight to median values
+RG.DANGER_ADJ_FACTOR = 1.4;
+RG.DAMAGE_ADJ_FACTOR = 2;
+RG.PLAYER_HP_REGEN_PERIOD = 40;
+RG.PLAYER_PP_REGEN_PERIOD = 40;
 
-    TRAINER_PROB: 0.2,
+RG.TRAINER_PROB = 0.2;
 
-    GOLD_COIN_WEIGHT: 0.03, // kg
-    GOLD_COIN_NAME: 'Gold coin',
+RG.GOLD_COIN_WEIGHT = 0.03; // kg
+RG.GOLD_COIN_NAME = 'Gold coin';
 
-    HUNGER_PROB: 0.10, // Prob. of starvation to cause damage every turn
-    HUNGER_DMG: 1, // Damage caused by starvation kicking in
+RG.HUNGER_PROB = 0.10; // Prob. of starvation to cause damage every turn
+RG.HUNGER_DMG = 1; // Damage caused by starvation kicking in
 
-    // This is a subset of ITEM_TYPES, excluding gold items
-    SHOP_TYPES: ['ammo', 'armour', 'food',
-        'missile', 'missileweapon', 'potion', 'spiritgem', 'weapon'
-    ],
+// This is a subset of ITEM_TYPES, excluding gold items
+RG.SHOP_TYPES = ['ammo', 'armour', 'food',
+    'missile', 'missileweapon', 'potion', 'spiritgem', 'weapon'
+];
 
-    // Alignments (TODO make more diverse)
-    ALIGN_GOOD: 'ALIGN_GOOD',
-    ALIGN_EVIL: 'ALIGN_EVIL',
-    ALIGN_NEUTRAL: 'ALIGN_NEUTRAL',
+// Alignments (TODO make more diverse)
+RG.ALIGN_GOOD = 'ALIGN_GOOD';
+RG.ALIGN_EVIL = 'ALIGN_EVIL';
+RG.ALIGN_NEUTRAL = 'ALIGN_NEUTRAL';
 
-    GOOD_RACES: ['human', 'spirit'],
-    EVIL_RACES: ['catfolk', 'dogfolk', 'wolfclan', 'wildling', 'undead',
-        'goblin'],
-    NEUTRAL_RACES: ['dwarf', 'bearfolk', 'animal'],
+RG.GOOD_RACES = ['human', 'spirit'];
+RG.EVIL_RACES = ['catfolk', 'dogfolk', 'wolfclan', 'wildling', 'undead',
+    'goblin'];
+RG.NEUTRAL_RACES = ['dwarf', 'bearfolk', 'animal'];
 
-    ACTOR_RACES: ['catfolk', 'dogfolk', 'wolfclan', 'wildling', 'goblin',
-        'bearfolk', 'dwarf', 'human', 'hyrkhian'],
+RG.ACTOR_RACES = ['catfolk', 'dogfolk', 'wolfclan', 'wildling', 'goblin',
+    'bearfolk', 'dwarf', 'human', 'hyrkhian'];
 
-    // Constants for movement directions
-    CARDINAL_DIR: Object.freeze(['north', 'south', 'east', 'west']),
+// Constants for movement directions
+RG.CARDINAL_DIR = Object.freeze(['north', 'south', 'east', 'west']);
 
-    DIR: {
-        N: [0, -1],
-        S: [0, 1],
-        E: [1, 0],
-        W: [-1, 0],
-        NE: [1, -1],
-        SE: [1, 1],
-        NW: [-1, -1],
-        SW: [1, -1]
-    },
+RG.DIR = {
+    N: [0, -1],
+    S: [0, 1],
+    E: [1, 0],
+    W: [-1, 0],
+    NE: [1, -1],
+    SE: [1, 1],
+    NW: [-1, -1],
+    SW: [1, -1]
+};
 
-    DMG: {
-        ENERGY: 'ENERGY',
-        MELEE: 'MELEE',
-        MISSILE: 'MISSILE',
-        POISON: 'POISON',
-        COLD: 'COLD',
-        ICE: 'ICE',
-        FIRE: 'FIRE',
-        HUNGER: 'HUNGER'
-    },
+RG.DMG = {
+    ENERGY: 'ENERGY',
+    MELEE: 'MELEE',
+    MISSILE: 'MISSILE',
+    POISON: 'POISON',
+    COLD: 'COLD',
+    ICE: 'ICE',
+    FIRE: 'FIRE',
+    HUNGER: 'HUNGER'
+};
 
-    STATS: [
-        'Accuracy', 'Agility', 'Magic', 'Perception', 'Strength', 'Willpower'
-    ],
+RG.STATS = [
+    'Accuracy', 'Agility', 'Magic', 'Perception', 'Strength', 'Willpower'
+];
 
-    // Load status when using chunk unloading
-    LEVEL_NOT_LOADED: 'LEVEL_NOT_LOADED',
-    TILE_NOT_LOADED: 'TILE_NOT_LOADED'
+// Load status when using chunk unloading
+RG.LEVEL_NOT_LOADED = 'LEVEL_NOT_LOADED';
+RG.TILE_NOT_LOADED = 'TILE_NOT_LOADED';
 
-}; // / }}} RG
 RG.ACTOR_RACES = RG.ACTOR_RACES.sort(); // Too lazy to manually order them
 
 RG.STATS_ABBR = RG.STATS.map(stat => stat.substr(0, 3));
