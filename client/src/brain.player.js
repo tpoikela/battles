@@ -478,7 +478,7 @@ class BrainPlayer {
 
     /* Returns true if a player has target selected. */
     hasTargetSelected() {
-        if (this.selectedCell) {
+        if (this.selectedCells) {
             return true;
         }
         else if (this._enemyCells) {
@@ -487,12 +487,15 @@ class BrainPlayer {
         return false;
     }
 
+    getVisibleCells() {
+        return this._actor.getLevel().exploreCells(this._actor);
+    }
+
     /* Moves to the next target. */
     nextTarget() {
         if (this._enemyCells.length === 0) {
             this._isTargeting = true;
-            const visibleCells =
-                this._actor.getLevel().exploreCells(this._actor);
+            const visibleCells = this.getVisibleCells();
             this._enemyCells = RG.findEnemyCellForActor(
                 this._actor, visibleCells);
             this.currEnemyCell = this.getCellIndexToTarget(this._enemyCells);
@@ -513,7 +516,7 @@ class BrainPlayer {
             }
         }
         else {
-            return this.selectedCell;
+            return this.selectedCells;
         }
         return ACTION_ZERO_ENERGY;
     }
@@ -521,7 +524,7 @@ class BrainPlayer {
     /* Returns true if chosen target is within attack range. */
     isTargetInRange() {
         const cell = this.getTarget();
-        if (cell) {
+        if (cell && cell.getX) {
             const [tx, ty] = [cell.getX(), cell.getY()];
             const [ax, ay] = [this._actor.getX(), this._actor.getY()];
             const path = RG.Geometry.getMissilePath(ax, ay, tx, ty);
@@ -543,6 +546,10 @@ class BrainPlayer {
     cancelTargeting() {
         this._enemyCells = [];
         this._isTargeting = false;
+    }
+
+    isTargeting() {
+        return this._isTargeting;
     }
 
     /* Picks either last attacked actor, or the first found. */
@@ -576,7 +583,6 @@ class BrainPlayer {
     }
 
     selectionDone() {
-        // this.selectedCell = null;
         this._wantSelection = false;
         this._selectionObject = null;
     }
@@ -922,28 +928,31 @@ class BrainPlayer {
         RG.gameMsg('Select a target, then press s to select it');
 
         const orderMenuSelectCell = new Menu.SelectCell(cellMenuArgs);
+        orderMenuSelectCell.enableSelectAll();
         orderMenuSelectCell.setCallback(this.selectCell.bind(this));
         this.setSelectionObject(orderMenuSelectCell);
         this.selectCell();
     }
 
     giveOrder(orderType) {
-        const cell = this.selectedCell;
-        if (cell.hasActors()) {
-            const target = cell.getActors()[0];
-            if (target && target.getBrain().getGoal) {
-                switch (orderType) {
-                    case 'Follow': this.giveFollowOrder(target); break;
-                    case 'Forget': this.forgetOrders(target); break;
-                    case 'Attack': this.giveOrderAttack(target); break;
-                    default: break;
+        const cells = this.selectedCells;
+        cells.forEach(cell => {
+            if (cell.hasActors()) {
+                const target = cell.getActors()[0];
+                if (target && target.getBrain().getGoal) {
+                    switch (orderType) {
+                        case 'Follow': this.giveFollowOrder(target); break;
+                        case 'Forget': this.forgetOrders(target); break;
+                        case 'Attack': this.giveOrderAttack(target); break;
+                        default: break;
+                    }
                 }
             }
-        }
-        else {
-            RG.gameDanger('This cell has no valid targets');
-        }
-        this.selectedCell = null;
+            else if (cells.length === 1) {
+                RG.gameDanger('This cell has no valid targets');
+            }
+        });
+        this.selectedCells = null;
     }
 
     giveFollowOrder(target) {
@@ -960,8 +969,7 @@ class BrainPlayer {
     }
 
     giveOrderAttack(target) {
-        const visibleCells =
-            this._actor.getLevel().exploreCells(this._actor);
+        const visibleCells = this.getVisibleCells();
         const cells = RG.findEnemyCellForActor(
             this._actor, visibleCells);
         if (cells.length === 0) {
@@ -989,25 +997,33 @@ class BrainPlayer {
         return 0.7;
     }
 
-    setSelectedCell(cell) {
-        this.selectedCell = cell;
+    setSelectedCells(cells) {
+        if (!Array.isArray(cells)) {
+            this.selectedCells = [cells];
+        }
+        else {
+            this.selectedCells = cells;
+        }
     }
 
     selectCell(code) {
         if (RG.isNullOrUndef([code])) {
-            this.selectedCell = this._actor.getCell();
+            this.setSelectedCells(this._actor.getCell());
         }
-        else if (Keys.KEY.SELECT_ALL) {
-            // Find all actors with some algorithm
-
+        else if (code === Keys.KEY.SELECT_ALL) {
+            console.log('SELECT_ALL');
+            const visibleCells = this.getVisibleCells();
+            const friends = RG.Brain.findCellsWithFriends(this._actor,
+                visibleCells);
+            this.setSelectedCells(friends);
         }
         else {
-            const cell = this.selectedCell;
+            const cell = this.selectedCells[0];
             const map = this._actor.getLevel().getMap();
             const [x, y] = [cell.getX(), cell.getY()];
             const [newX, newY] = RG.KeyMap.getDiff(code, x, y);
             if (map.hasXY(newX, newY)) {
-                this.selectedCell = map.getCell(newX, newY);
+                this.setSelectedCells(map.getCell(newX, newY));
             }
         }
     }
