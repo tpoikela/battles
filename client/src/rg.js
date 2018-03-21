@@ -1337,50 +1337,52 @@ RG.formatLocationName = level => {
 /* Each die has number of throws, type of dice (d6, d20, d200...) and modifier
  * which is +/- X. */
 RG.Die = function(num, dice, mod) {
-    let _num = parseInt(num, 10);
-    let _dice = parseInt(dice, 10);
-    let _mod = parseInt(mod, 10);
+    this._num = parseInt(num, 10);
+    this._dice = parseInt(dice, 10);
+    this._mod = parseInt(mod, 10);
+};
 
-    this.getNum = () => _num;
-    this.setNum = num => {_num = num;};
-    this.getDice = () => _dice;
-    this.setDice = dice => {_dice = dice;};
-    this.getMod = () => _mod;
-    this.setMod = mod => {_mod = mod;};
+RG.Die.prototype.getNum = function() {return this._num;};
+RG.Die.prototype.setNum = function(num) {this._num = num;};
+RG.Die.prototype.getDice = function() {return this._dice;};
+RG.Die.prototype.setDice = function(dice) {this._dice = dice;};
+RG.Die.prototype.getMod = function() {return this._mod;};
+RG.Die.prototype.setMod = function(mod) {this._mod = mod;};
 
-    this.roll = () => {
-        let res = 0;
-        for (let i = 0; i < _num; i++) {
-            res += RG.RAND.getUniformInt(1, _dice);
-        }
-        return res + _mod;
-    };
+RG.Die.prototype.roll = function() {
+    let res = 0;
+    for (let i = 0; i < this._num; i++) {
+        res += RG.RAND.getUniformInt(1, this._dice);
+    }
+    return res + this._mod;
+};
 
-    this.toString = () => {
-        let sign = '+';
-        if (mod < 0) {sign = '-';}
-        return _num + 'd' + _dice + ' ' + sign + ' ' + _mod;
-    };
+RG.Die.prototype.toString = function() {
+    let sign = '+';
+    if (this._mod < 0) {sign = '-';}
+    return this._num + 'd' + this._dice + ' ' + sign + ' ' + this._mod;
+};
 
-    this.copy = rhs => {
-        _num = rhs.getNum();
-        _dice = rhs.getDice();
-        _mod = rhs.getMod();
-    };
+RG.Die.prototype.copy = function(rhs) {
+    this._num = rhs.getNum();
+    this._dice = rhs.getDice();
+    this._mod = rhs.getMod();
+};
 
-    this.clone = () => {
-        return new RG.Die(_num, _dice, mod);
-    };
+RG.Die.prototype.clone = function() {
+    return new RG.Die(this._num, this._dice, this._mod);
+};
 
-    /* Returns true if dice are equal.*/
-    this.equals = rhs => {
-        let res = _num === rhs.getNum();
-        res = res && (_dice === rhs.getDice());
-        res = res && (_mod === rhs.getMod());
-        return res;
-    };
+/* Returns true if dice are equal.*/
+RG.Die.prototype.equals = function(rhs) {
+    let res = this._num === rhs.getNum();
+    res = res && (this._dice === rhs.getDice());
+    res = res && (this._mod === rhs.getMod());
+    return res;
+};
 
-    this.toJSON = () => [_num, _dice, _mod];
+RG.Die.prototype.toJSON = function() {
+    return [this._num, this._dice, this._mod];
 };
 
 //---------------------------------------------------------------------------
@@ -1438,6 +1440,55 @@ RG.MessageHandler = function() { // {{{2
     };
 
 }; // }}} Messages
+
+/* A debug function which prints info about given entity. */
+RG.ent = function(whatever) {
+    if (window.PLAYER) {
+        const level = window.PLAYER.getLevel();
+        if (Number.isInteger(whatever)) {
+            const actor = level.getActors().find(a => a.getID() === whatever);
+            if (actor) {
+                const name = actor.getName();
+                console.log(`RG.ent: Found ${name} with ID ${whatever}`);
+                console.log(JSON.stringify(actor));
+                return actor;
+            }
+            const item = level.getItems().find(i => i.getID() === whatever);
+            if (item) {
+                const name = item.getName();
+                console.log(`RG.ent: Item Found ${name} with ID ${whatever}`);
+                console.log(JSON.stringify(item));
+                return item;
+            }
+        }
+    }
+    return null;
+};
+
+RG.comp = function(compID, entID = -1) {
+    let entity = null;
+    if (entID >= 0) {
+        entity = RG.ent(entID);
+    }
+    if (entity) {
+        const comps = entity.getComponents();
+        if (comps[compID]) {
+            const comp = comps[compID];
+            const type = comp.getType();
+            console.log(`RG.comp: Found ${type} with ID ${compID}`);
+            const json = comp.toJSON();
+            if (json) {
+                console.log(JSON.stringify(json));
+            }
+            else {
+                console.log('Not serialisable');
+                console.log(comp);
+            }
+            return comp;
+        }
+    }
+    return null;
+};
 
 /* eslint no-unused-vars: 0 */
 const ROT = require('../../lib/rot.js');
