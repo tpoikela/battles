@@ -90,6 +90,7 @@ Keys.KeyMap = {
     isChat: function(code) {return code === Keys.KEY.CHAT;},
     isIssueOrder: function(code) {return code === Keys.KEY.ORDER;},
     isSelect: function(code) {return code === Keys.KEY.SELECT;},
+    isSelectAll: function(code) {return code === Keys.KEY.SELECT_ALL;},
 
     /* Based on keycode, computes and returns a new x,y pair. If code is
      * invalid, returns null. */
