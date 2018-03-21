@@ -9,6 +9,9 @@ RG.KeyMap = Keys.KeyMap;
 const ACTION_ALREADY_DONE = () => {};
 const ACTION_ZERO_ENERGY = null;
 
+const selectTargetMsg =
+    'Select a target (all with "A"), then press "s" to choose it';
+
 const chatSelObject = player => {
     const msg = 'Select direction for chatting:';
     RG.gameMsg(msg);
@@ -925,7 +928,7 @@ class BrainPlayer {
             {key: Keys.KEY.SELECT, menu: orderMenuSelectOrder}
         ];
 
-        RG.gameMsg('Select a target, then press s to select it');
+        RG.gameMsg(selectTargetMsg);
 
         const orderMenuSelectCell = new Menu.SelectCell(cellMenuArgs);
         orderMenuSelectCell.enableSelectAll();
