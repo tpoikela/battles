@@ -172,12 +172,20 @@ Menu.SelectRequired = MenuSelectRequired;
 /* This menu can be used when a cell needs to be selected. */
 const MenuSelectCell = function(args) {
     MenuBase.call(this, args);
+    this._enableSelectAll = false;
+    if (args.enableSelectAll) {
+        this.enableSelectAll = args.enableSelectAll;
+    }
 
     this.setCallback = cb => {
         this.callback = cb;
     };
 
     this.showMenu = () => false;
+
+    this.enableSelectAll = () => {
+        this._enableSelectAll = true;
+    };
 
     this.select = code => {
         if (KeyMap.inMoveCodeMap(code)) {
@@ -187,6 +195,10 @@ const MenuSelectCell = function(args) {
         else if (KeyMap.isSelect(code)) {
             const keyIndex = Keys.codeToIndex(code);
             return this.table[keyIndex];
+        }
+        else if (this._enableSelectAll && KeyMap.isSelectAll(code)) {
+            this.callback(code);
+            return this;
         }
         return null;
     };
