@@ -37,15 +37,27 @@ GoalsBattle.orderWithGoal = orderWithGoal;
 
 const giveFollowOrder = (target, args) => {
     if (target && target.getBrain().getGoal) {
-        const followGoal = new Goal.Follow(target, args.commander);
+        const followGoal = new Goal.Follow(target, args.src);
         const orderEval = new Evaluator.Orders(args.bias);
-        orderEval.setArgs({srcActor: args.commander, goal: followGoal});
+        orderEval.setArgs({srcActor: args.src, goal: followGoal});
         const goal = target.getBrain().getGoal();
         goal.clearOrders();
         goal.giveOrders(orderEval);
     }
 };
 GoalsBattle.giveFollowOrder = giveFollowOrder;
+
+const giveAttackOrder = (target, args) => {
+    if (target && target.getBrain().getGoal) {
+        const attackGoal = new Goal.AttackActor(target, args.enemy);
+        const orderEval = new Evaluator.Orders(args.bias);
+        orderEval.setArgs({srcActor: args.src, goal: attackGoal});
+        const goal = target.getBrain().getGoal();
+        goal.clearOrders();
+        goal.giveOrders(orderEval);
+    }
+};
+GoalsBattle.giveAttackOrder = giveAttackOrder;
 
 //---------------------------------------------------------------------------
 // COMPOSITE GOALS
