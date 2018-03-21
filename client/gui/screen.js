@@ -57,12 +57,24 @@ const getClassesAndCharsWithRLE = function(
     const cssClasses = [];
     const asciiChars = [];
 
-    let selX = -1;
+    /* let selX = -1;
     let selY = -1;
 
     if (selCell) {
         selX = selCell.getX();
         selY = selCell.getY();
+    }*/
+    let selMap = null;
+    if (selCell) {
+        selMap = new Map();
+        if (Array.isArray(selCell)) {
+            selCell.forEach(cell => {
+                selMap.set(cell.getX() + ',' + cell.getY(), cell);
+            });
+        }
+        else {
+            selMap.set(selCell.getX() + ',' + selCell.getY(), selCell);
+        }
     }
 
     // TODO: Prevents a bug, if player wants to see inventory right after
@@ -96,6 +108,19 @@ const getClassesAndCharsWithRLE = function(
             }
         }
 
+        if (selMap) {
+            const [x, y] = [cell.getX(), cell.getY()];
+            if (selMap.has(x + ',' + y)) {
+                if (styles.selectedCell) {
+                    cellClass = styles.selectedCell;
+                }
+                else {
+                    cellClass = 'cell-target-selected';
+                }
+            }
+        }
+
+        /*
         if (cell.isAtXY(selX, selY)) {
             if (styles.selectedCell) {
                 cellClass = styles.selectedCell;
@@ -104,6 +129,7 @@ const getClassesAndCharsWithRLE = function(
                 cellClass = 'cell-target-selected';
             }
         }
+        */
 
         if (!visibleToPlayer) {
             if (cell.isExplored()) {cellClass += ' cell-not-seen';}
