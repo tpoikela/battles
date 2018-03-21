@@ -188,10 +188,21 @@ class EvaluatorOrders extends EvaluatorBase {
         const goalCateg = this.goal.getCategory();
         let mult = goalCateg === Goal.Types.Kill ? 0.5 : 1.0;
         mult *= this.actorBias;
-        if (this.srcActor.has('Commander')) {
+        if (this.acceptsOrdersFromSource()) {
             return mult * commanderMult;
         }
         return 0;
+    }
+
+    acceptsOrdersFromSource() {
+        if (this.srcActor.has('Commander')) {
+            return true;
+        }
+        else if (this.srcActor.isPlayer()) {
+            return true;
+        }
+        console.log('Order evaluator returning false');
+        return false;
     }
 
     setActorGoal(actor) {
