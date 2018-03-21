@@ -911,7 +911,9 @@ class BrainPlayer {
 
     issueOrderCmd() {
         const orderMenuArgs = [
-            ['Follow me', this.funcFollowOrder.bind(this)]
+            ['Follow me', this.funcFollowOrder.bind(this)],
+            ['Attack enemy', this.funcAttackEnemy.bind(this)],
+            ['Forget my orders', this.funcForgetOrders.bind(this)]
         ];
         const orderMenuSelectOrder = new Menu.WithQuit(orderMenuArgs);
         const cellMenuArgs = [
@@ -931,7 +933,7 @@ class BrainPlayer {
         if (cell.hasActors()) {
             const target = cell.getActors()[0];
             if (target && target.getBrain().getGoal) {
-                const args = {bias: 2.0, commander: this._actor};
+                const args = {bias: 0.7, commander: this._actor};
                 GoalsBattle.giveFollowOrder(target, args);
             }
         }
@@ -939,6 +941,25 @@ class BrainPlayer {
             RG.gameDanger('This cell has no valid targets');
         }
         this.selectedCell = null;
+    }
+
+    funcForgetOrders() {
+        const cell = this.selectedCell;
+        if (cell.hasActors()) {
+            const target = cell.getActors()[0];
+            if (target && target.getBrain().getGoal) {
+                const topGoal = target.getBrain().getGoal();
+                topGoal.clearOrders();
+            }
+        }
+        else {
+            RG.gameDanger('This cell has no valid targets');
+        }
+        this.selectedCell = null;
+    }
+
+    funcAttackEnemy() {
+
     }
 
     setSelectedCell(cell) {
