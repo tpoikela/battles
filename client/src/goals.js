@@ -593,6 +593,9 @@ class GoalAttackActor extends GoalBase {
 }
 Goal.AttackActor = GoalAttackActor;
 
+
+//---------------------------------------------------------------------------
+
 //---------------------------------------------------------------------------
 /* A goal to (melee) hit an actor. */
 //---------------------------------------------------------------------------
@@ -640,6 +643,10 @@ class GoalShootActor extends GoalBase {
         const mComp = new RG.Component.Missile(this.actor);
         const invEq = this.actor.getInvEq();
         const shotItem = invEq.unequipAndGetItem('missile', 1);
+
+        if (!shotItem) {
+            return;
+        }
 
         mComp.setTargetXY(eX, eY);
         mComp.setDamage(RG.getMissileDamage(this.actor, shotItem));
