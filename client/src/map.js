@@ -46,6 +46,11 @@ RG.Map.Cell.prototype.getFirstActor = function() {
     return null;
 };
 
+RG.Map.Cell.prototype.getSentientActors = function() {
+    const actors = this.getActors();
+    return actors.filter(actor => !actor.has('NonSentient'));
+};
+
 RG.Map.Cell.prototype.hasItems = function() {return this.hasProp(TYPE_ITEM);};
 RG.Map.Cell.prototype.getItems = function() {return this.getProp(TYPE_ITEM);};
 
