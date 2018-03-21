@@ -852,12 +852,12 @@ class GoalFollow extends GoalBase {
         this.activateIfInactive();
         const brain = this.actor.getBrain();
         if (brain.canSeeActor(this.targetActor)) {
-            const [dx, dy] = RG.dXdY(this.targetActor, this.actor);
-            const newX = this.actor.getX() - dx;
-            const newY = this.actor.getY() - dy;
+            const [dx, dy] = RG.dXdYUnit(this.targetActor, this.actor);
+            const newX = this.actor.getX() + dx;
+            const newY = this.actor.getY() + dy;
             const level = this.targetActor.getLevel();
             const map = level.getMap();
-            if (map.hasXY(newX, newY)) {
+            if (map.isPassable(newX, newY)) {
                 const movComp = new Component.Movement(newX, newY, level);
                 this.actor.add(movComp);
             }
