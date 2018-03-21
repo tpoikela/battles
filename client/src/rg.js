@@ -574,7 +574,7 @@ RG.strengthToDamage = function(str) {
 };
 
 /* Given actor and cells it sees, returns first enemy cell found.*/
-RG.findEnemyCellForPlayer = function(actor, seenCells) {
+RG.findEnemyCellForActor = function(actor, seenCells) {
     const res = [];
     for (let i = 0; i < seenCells.length; i++) {
         if (seenCells[i].hasActors()) {
