@@ -54,6 +54,23 @@ RG.Brain.findCellsWithActors = (actor, seenCells) => {
     return cells;
 };
 
+RG.Brain.findCellsWithFriends = (actor, seenCells) => {
+    const cells = [];
+    for (let i = 0, iMax = seenCells.length; i < iMax; i++) {
+        if (seenCells[i].hasActors()) {
+            const actors = seenCells[i].getSentientActors();
+            actors.forEach(actorFound => {
+                if (actorFound.getID() !== actor.getID()) {
+                    if (!actorFound.isEnemy(actor)) {
+                        cells.push(seenCells[i]);
+                    }
+                }
+            });
+        }
+    }
+    return cells;
+};
+
 /* Returns all cells with actors in them around the actor. */
 RG.Brain.getActorCellsAround = actor => {
     const cellsAround = RG.Brain.getCellsAroundActor(actor);
