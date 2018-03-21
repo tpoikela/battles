@@ -493,9 +493,9 @@ class BrainPlayer {
             this._isTargeting = true;
             const visibleCells =
                 this._actor.getLevel().exploreCells(this._actor);
-            this._enemyCells = RG.findEnemyCellForPlayer(
+            this._enemyCells = RG.findEnemyCellForActor(
                 this._actor, visibleCells);
-            this.currEnemyCell = this.selectCellToTarget();
+            this.currEnemyCell = this.getCellIndexToTarget(this._enemyCells);
         }
         else {
             ++this.currEnemyCell;
@@ -546,8 +546,7 @@ class BrainPlayer {
     }
 
     /* Picks either last attacked actor, or the first found. */
-    selectCellToTarget() {
-        const cells = this._enemyCells;
+    getCellIndexToTarget(cells) {
         const lastID = this.getMemory().getLastAttacked();
         for (let i = 0; i < cells.length; i++) {
             const actors = cells[i].getProp('actors');
@@ -911,9 +910,9 @@ class BrainPlayer {
 
     issueOrderCmd() {
         const orderMenuArgs = [
-            ['Follow me', this.funcFollowOrder.bind(this)],
-            ['Attack enemy', this.funcAttackEnemy.bind(this)],
-            ['Forget my orders', this.funcForgetOrders.bind(this)]
+            ['Follow me', this.giveOrder.bind(this, 'Follow')],
+            ['Attack enemy', this.giveOrder.bind(this, 'Attack')],
+            ['Forget my orders', this.giveOrder.bind(this, 'Forget')]
         ];
         const orderMenuSelectOrder = new Menu.WithQuit(orderMenuArgs);
         const cellMenuArgs = [
@@ -928,13 +927,17 @@ class BrainPlayer {
         this.selectCell();
     }
 
-    funcFollowOrder() {
+    giveOrder(orderType) {
         const cell = this.selectedCell;
         if (cell.hasActors()) {
             const target = cell.getActors()[0];
             if (target && target.getBrain().getGoal) {
-                const args = {bias: 0.7, commander: this._actor};
-                GoalsBattle.giveFollowOrder(target, args);
+                switch (orderType) {
+                    case 'Follow': this.giveFollowOrder(target); break;
+                    case 'Forget': this.forgetOrders(target); break;
+                    case 'Attack': this.giveOrderAttack(target); break;
+                    default: break;
+                }
             }
         }
         else {
@@ -943,23 +946,47 @@ class BrainPlayer {
         this.selectedCell = null;
     }
 
-    funcForgetOrders() {
-        const cell = this.selectedCell;
-        if (cell.hasActors()) {
-            const target = cell.getActors()[0];
-            if (target && target.getBrain().getGoal) {
-                const topGoal = target.getBrain().getGoal();
-                topGoal.clearOrders();
-            }
-        }
-        else {
-            RG.gameDanger('This cell has no valid targets');
-        }
-        this.selectedCell = null;
+    giveFollowOrder(target) {
+        const name = target.getName();
+        const args = {bias: this.getOrderBias(), src: this._actor};
+        GoalsBattle.giveFollowOrder(target, args);
+        RG.gameMsg(`You tell ${name} to follow you`);
     }
 
-    funcAttackEnemy() {
+    forgetOrders(target) {
+        const topGoal = target.getBrain().getGoal();
+        topGoal.clearOrders();
+        RG.gameMsg(`You tell ${name} to forget your orders`);
+    }
 
+    giveOrderAttack(target) {
+        const visibleCells =
+            this._actor.getLevel().exploreCells(this._actor);
+        const cells = RG.findEnemyCellForActor(
+            this._actor, visibleCells);
+        if (cells.length === 0) {
+            RG.gameMsg('There are no enemies around.');
+            return;
+        }
+
+        const cellIndex = this.getCellIndexToTarget(cells);
+        const enemyCell = cells[cellIndex];
+
+        if (enemyCell) {
+            const name = target.getName();
+            const enemy = enemyCell.getActors()[0];
+            const enemyName = enemy.getName();
+            const args = {bias: this.getOrderBias(), enemy, src: this._actor};
+            GoalsBattle.giveAttackOrder(target, args);
+            RG.gameMsg(`You tell ${name} to attack ${enemyName}`);
+        }
+        else {
+            RG.gameMsg('There are no enemies around.');
+        }
+    }
+
+    getOrderBias() {
+        return 0.7;
     }
 
     setSelectedCell(cell) {
@@ -969,6 +996,10 @@ class BrainPlayer {
     selectCell(code) {
         if (RG.isNullOrUndef([code])) {
             this.selectedCell = this._actor.getCell();
+        }
+        else if (Keys.KEY.SELECT_ALL) {
+            // Find all actors with some algorithm
+
         }
         else {
             const cell = this.selectedCell;
