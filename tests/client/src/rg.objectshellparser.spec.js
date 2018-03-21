@@ -529,6 +529,8 @@ describe('Data query functions for objects', () => {
         expect(fireActor).not.to.have.component('Stats');
         expect(fireActor).not.to.have.component('Health');
         expect(fireActor).not.to.have.component('Experience');
+        expect(fireActor).to.have.component('Ethereal');
+        expect(fireActor).to.have.component('NonSentient');
     });
 
     it('can create actors with addOnHit capabilites for any component', () => {
@@ -562,7 +564,7 @@ describe('Data query functions for objects', () => {
 
         const victim = new RG.Actor.Rogue('victim');
         expect(victim).not.to.have.component('StatsMods');
-        console.log('First time adding newDurClone');
+
         victim.add(newDurClone);
         expect(victim).to.have.component('StatsMods');
         expect(victim).to.have.component('Duration');
@@ -571,13 +573,7 @@ describe('Data query functions for objects', () => {
         victim.remove('Duration');
         expect(victim).not.to.have.component('StatsMods');
 
-        /* victim.add(newDurClone);
-        expect(victim).to.have.component('StatsMods');
-        victim.remove('Duration');
-        expect(victim).not.to.have.component('StatsMods');
-        */
         newDurClone = newDurComp.clone();
-        console.log('Second time adding newDurClone');
         victim.add(newDurClone);
         let victimJSON = victim.toJSON();
         let newVictim = fromJSON.createActor(victimJSON);
@@ -589,7 +585,6 @@ describe('Data query functions for objects', () => {
         expect(newVictim.getList('StatsMods')).to.have.length(1);
 
         newDurClone = newDurComp.clone();
-        console.log('Third time adding newDurClone');
         newVictim.add(newDurClone);
         expect(newVictim.getList('Duration')).to.have.length(2);
         expect(newVictim.getList('StatsMods')).to.have.length(2);
