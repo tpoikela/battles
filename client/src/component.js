@@ -612,6 +612,9 @@ RG.Component.Possessed = TagComponent('Possessed');
  * projectiles. */
 RG.Component.Magical = TagComponent('Magical');
 
+/* Used for non-sentient actors such as fire and moving doors. */
+RG.Component.NonSentient = UniqueTagComponent('NonSentient');
+
 /* Component which stores the actor class object. */
 RG.Component.ActorClass = function() {
     RG.Component.Base.call(this, 'ActorClass');
