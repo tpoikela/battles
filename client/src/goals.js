@@ -669,15 +669,34 @@ class GoalExplore extends GoalBase {
     }
 
     activate() {
-        const [dX, dY] = RG.RAND.getRandDir();
+        this.setNewPassableDir();
+        this.dbg(`activate Explore dX,dY: ${this.dX},${this.dY}`);
+        this.status = GOAL_ACTIVE;
+    }
+
+    setNewPassableDir() {
+        let maxTries = 5;
+        let [dX, dY] = RG.RAND.getRandDir();
+        while (maxTries > 0 && !this.isDirPassable(dX, dY)) {
+            [dX, dY] = RG.RAND.getRandDir();
+            --maxTries;
+        }
         this.dX = dX;
         this.dY = dY;
-        this.dbg(`activate Explore dX,dY: ${dX},${dY}`);
-        this.status = GOAL_ACTIVE;
+    }
+
+    /* Returns true if given dX,dY is passable direction from actor's current
+     * location. */
+    isDirPassable(dX, dY) {
+        const [aX, aY] = this.actor.getXY();
+        const newX = aX + dX;
+        const newY = aY + dY;
+        return this.actor.getLevel().getMap().isPassable(newX, newY);
     }
 
     process() {
         this.activateIfInactive();
+        this.checkChangeDir();
         const [aX, aY] = this.actor.getXY();
         const newX = aX + this.dX;
         const newY = aY + this.dY;
@@ -687,9 +706,40 @@ class GoalExplore extends GoalBase {
             this.actor.add('Movement', movComp);
         }
         else {
-            this.status = GOAL_COMPLETED;
+            this.setNewPassableDir();
+            // this.status = GOAL_COMPLETED;
         }
         return this.status;
+    }
+
+    /* Checks if the actor should change movement direction. */
+    checkChangeDir() {
+        const changeDir = RG.RAND.getUniform();
+        if (changeDir <= 0.07) {
+            const newDx = this.changeDir(this.dX, this.dY);
+            if (this.isDirPassable(newDx, this.dY)) {
+                if (newDx !== 0 || this.dY !== 0) {
+                    this.dX = newDx;
+                }
+            }
+        }
+        else if (changeDir <= 0.14) {
+            const newDy = this.changeDir(this.dY, this.dX);
+            if (this.isDirPassable(this.dX, newDy)) {
+                if (newDy !== 0 || this.dX !== 0) {
+                    this.dY = newDy;
+                }
+            }
+        }
+    }
+
+    changeDir(dir) {
+        switch (dir) {
+            case 0: return RG.RAND.arrayGetRand([-1, 1]);
+            case 1: return 0;
+            case -1: return 0;
+            default: return dir;
+        }
     }
 
     terminate() {
