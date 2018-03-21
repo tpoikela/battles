@@ -248,6 +248,7 @@ Keys.KEY.QUIT_MENU = Keys.VK_q;
 Keys.KEY.REST = ROT.VK_S + 32;
 Keys.KEY.RUN = ROT.VK_R + 32;
 Keys.KEY.SELECT = Keys.VK_s;
+Keys.KEY.SELECT_ALL = ROT.VK_A;
 Keys.KEY.TARGET = Keys.VK_t;
 Keys.KEY.USE_STAIRS_DOWN = Keys.VK_GT;
 Keys.KEY.USE_STAIRS_UP = Keys.VK_LT;
