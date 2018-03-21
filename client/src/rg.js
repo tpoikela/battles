@@ -971,6 +971,20 @@ RG.dXdY = (dest, src) => {
     return [xDest - xSrc, yDest - ySrc];
 };
 
+/* Returns the unit vector for direction between two objects.
+ * Examples:
+ *   1. Given 2 objects at (0,0) and (2,3), returns [-1,-1].
+ *   2. Given 2 objects at (2,3) and (0,0), returns [1,1].
+ *   3. Given 2 objects at (0,4) and (0,1), returns [0,1].
+ *   4. Given 2 objects at (4,0) and (2,0), returns [1,0].
+ */
+RG.dXdYUnit = (dest, src) => {
+    const [dX, dY] = RG.dXdY(dest, src);
+    const dXUnit = dX === 0 ? 0 : dX / Math.abs(dX);
+    const dYUnit = dY === 0 ? 0 : dY / Math.abs(dY);
+    return [dXUnit, dYUnit];
+};
+
 /* Given an actor, scales its attributes based on new experience level.*/
 RG.levelUpActor = (actor, newLevel) => {
     if (actor.has('Experience')) {
