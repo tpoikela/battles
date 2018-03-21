@@ -87,7 +87,8 @@ export default class GameMenu extends Component {
   }
 
   renderMenuLines(item) {
-    const lines = item.split('\n');
+    const lines = item.split('\n').filter(line => line.length > 0);
+    console.log(item + ' => ' + lines);
     const {width} = this.props;
     return lines.map((textLine, i) => {
       const text = padToWidth(width, `${textLine}`, 3);
