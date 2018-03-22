@@ -522,6 +522,21 @@ Level.prototype.getExploredCells = function() {
     return this._map.getExploredCells();
 };
 
+/* Can be used to add additional data to the level. Currently, this is used in
+ * level generation only. */
+Level.prototype.setExtras = function(extras) {
+    this._extras = extras;
+};
+
+Level.prototype.getExtras = function() {
+    return this._extras;
+};
+
+Level.prototype.hasExtras = function() {
+    return !RG.isNullOrUndef([this._extras]) &&
+        Object.keys(this._extras).length > 0;
+};
+
 Level.createLevelID = () => {
     const id = Level.idCount;
     Level.idCount += 1;
