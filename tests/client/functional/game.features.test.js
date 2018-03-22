@@ -8,9 +8,13 @@ const RG = require('../../../client/src/battles');
 const RGObjects = require('../../../client/data/battles_objects');
 RG.Effects = require('../../../client/data/effects');
 
-const downKey = {code: RG.KEY.MOVE_S};
-const pickupKey = {code: RG.KEY.PICKUP};
-const confirmKey = {code: RG.KEY.YES};
+const RGTest = require('../../roguetest');
+const Keys = require('../../../client/src/keymap');
+
+const downKey = {code: Keys.KEY.MOVE_S};
+const pickupKey = {code: Keys.KEY.PICKUP};
+const confirmKey = {code: Keys.KEY.YES};
+const stairsKey = {code: Keys.KEY.USE_STAIRS_DOWN};
 
 /* AI for driving the player with commands. */
 RG.PlayerDriver = function(player) {
@@ -80,7 +84,7 @@ describe('A full game', function() {
     });
 
     it('it has lots of details to test', () => {
-        let l1 = new RG.FACT.createLevel('arena', 20, 20);
+        let l1 = RG.FACT.createLevel('arena', 20, 20);
         let p1 = new RG.Actor.Rogue('Player1');
         const p1Inv = p1.getInvEq().getInventory();
         const shopkeeper = parser.createActualObj(RG.TYPE_ACTOR, 'shopkeeper');
@@ -174,6 +178,8 @@ describe('A full game', function() {
 
         testPotionDestroyAfterUse(newGame);
 
+        testActorsFollowsPlayerUsingStairs(newGame);
+
     });
 });
 
@@ -200,4 +206,33 @@ function testPotionDestroyAfterUse(game) {
     expect(potion.count).to.equal(3);
 }
 
+function testActorsFollowsPlayerUsingStairs(game) {
+    const player = game.getPlayer();
+    const l2 = RG.FACT.createLevel('empty', 20, 20);
+    const l1 = game.getLevels()[0];
+    game.addLevel(l2);
+    RG.World.connectLevelsLinear([l1, l2]);
+
+    // Find new stairs, place player on top of them
+    const srcStairs = l1.getConnections()[0];
+    RGTest.addOnTop(player, srcStairs);
+
+    // Add follower next to player
+    const follower = new RG.Actor.Rogue('Follower');
+    l1.addActor(follower, player.getX(), player.getY() - 1);
+    const observer = new RG.Actor.Rogue('Observer');
+    l1.addActor(observer, player.getX(), player.getY() - 2);
+
+    game.update(stairsKey);
+
+    let l2Actors = l2.getActors();
+    expect(l2Actors.length).to.equal(2);
+    game.update(stairsKey);
+    l2Actors = l2.getActors();
+    expect(l2Actors.length).to.equal(0);
+    game.update(stairsKey);
+    l2Actors = l2.getActors();
+    expect(l2Actors.length).to.equal(2);
+
+}
 
