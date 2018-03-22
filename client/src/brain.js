@@ -78,6 +78,16 @@ RG.Brain.getActorCellsAround = actor => {
     return res;
 };
 
+/* Returns all cells with actors in them around the actor. */
+RG.Brain.getActorsAround = actor => {
+    const cellsAround = RG.Brain.getCellsAroundActor(actor);
+    let actors = [];
+    cellsAround.forEach(c => {
+        if (c.hasActors()) {actors = actors.concat(c.getActors());}
+    });
+    return actors;
+};
+
 RG.Brain.getEnemyCellsAround = actor => {
     const cellsAround = RG.Brain.getCellsAroundActor(actor);
     const res = cellsAround.filter(cell => (
