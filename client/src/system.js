@@ -177,21 +177,23 @@ RG.System.BaseAction = function(compTypes) {
     this._handleUseStairs = ent => {
         const level = ent.getLevel();
         const cell = ent.getCell();
-        const actorsAround = RG.Brain.getActorCellsAround(ent);
         if (level.useStairs(ent)) {
+
+            // Check if any actors should follow the player
+            const actorsAround = RG.Brain.getActorsAround(ent);
             if (actorsAround.length > 0) {
                 const [newX, newY] = ent.getXY();
                 const newLevel = ent.getLevel();
                 const newMap = newLevel.getMap();
+
+                // Grab free cells around the player in the new level, and try
+                // to place actors into them
                 let coordAround = RG.Geometry.getBoxAround(newX, newY, 1);
                 coordAround = coordAround.filter(xy => (
                     newMap.hasXY(xy[0], xy[1])
                 ));
-                console.log(coordAround);
                 let cells = coordAround.map(xy => newMap.getCell(xy[0], xy[1]));
                 cells = cells.filter(cell => cell.isFree());
-                console.log(cells);
-                console.log('There were ' + actorsAround.length + ' actors');
 
                 while (actorsAround.length > 0 && cells.length > 0) {
                     const nextActor = actorsAround.pop();
@@ -203,7 +205,10 @@ RG.System.BaseAction = function(compTypes) {
                         RG.gameMsg(`${name} follows ${ent.getName()}`);
                     }
                     else {
-                        console.log('Could not remove the actor');
+                        // Failing not a fatal error, there might not be space
+                        const json = JSON.stringify(nextActor);
+                        RG.warn('System.BaseAction', '_handleUseStairs',
+                            'Could not remove the actor: ' + json);
                     }
                 }
             }
@@ -876,7 +881,7 @@ RG.System.ExpPoints = function(compTypes) {
                         ent.getBrain().setSelectionObject(menuObj);
                     }
                     else {
-                        const msg = `${name} appears to be more experienced now.`;
+                        const msg = `${name} is more experienced now.`;
                         RG.gameSuccess({msg: msg, cell: ent.getCell()});
                     }
                     levelingUp = true;
@@ -2243,10 +2248,13 @@ RG.System.Events = function(compTypes) {
 
     this._handleActorKilled = (ent, evt, actor) => {
         // React to friend/non-hostile being killed
-        /* console.log('handleActorKilled called: ' + evt);
-        const id = actor.getID();
-        console.log('Perceiving actor: ' + actor.getName() + ' id: ' + id);
-        */
+        if (ent.isPlayer()) {
+            const src = evt.src;
+            const name = actor.getName();
+            const victim = ent.getName();
+            const msg = `${name} saw ${src.getName()} killing ${victim}`;
+            RG.gameMsg({cell: ent.getCell, msg});
+        }
     };
 
     this._handleItemPickedUp = (ent, evt, actor) => {
