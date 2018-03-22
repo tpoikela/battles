@@ -457,8 +457,21 @@ RG.Factory.Base = function() { // {{{2
             RG.err('Factory.Base', 'createLevel',
                 `mapObj is null. type: ${levelType}. ${msg}`);
         }
+        this.setLevelExtras(level, mapObj);
 
         return level;
+    };
+
+    this.setLevelExtras = (level, mapObj) => {
+        const extras = {};
+        const possibleExtras = ['rooms', 'corridors', 'vaults', 'houses',
+            'paths'];
+        possibleExtras.forEach(extra => {
+            if (mapObj.hasOwnProperty(extra)) {
+                extras[extra] = mapObj[extra];
+            }
+        });
+        level.setExtras(extras);
     };
 
     this.createHouseElements = (level, mapObj) => {
