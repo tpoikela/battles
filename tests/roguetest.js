@@ -375,4 +375,15 @@ RGTest.elemString = function(elem, depth = 5) {
     return objToStr.getMsg();
 };
 
+RGTest.addOnTop = function(toAdd, locObj) {
+    const [x, y] = [locObj.getX(), locObj.getY()];
+    if (toAdd.getLevel().getID() === locObj.getLevel().getID()) {
+        RGTest.moveEntityTo(toAdd, x, y);
+    }
+    else {
+        RG.err('RGTest', 'addOnTop',
+            'Does not work on objects on different levels yet');
+    }
+};
+
 module.exports = RGTest;
