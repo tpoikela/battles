@@ -7,6 +7,8 @@ const RG = require('./rg.js');
 RG.Factory = require('./factory');
 const debug = require('debug')('bitn:world');
 
+RG.World = {};
+
 const oppositeEdge = {
     north: 'south', south: 'north', east: 'west', west: 'east'
 };
@@ -197,6 +199,7 @@ function connectLevelsLinear(levels) {
         }
     }
 }
+RG.World.connectLevelsLinear = connectLevelsLinear;
 
 function connectLevelsConstrained(conf1, conf2) {
     const level1 = conf1.level;
@@ -358,7 +361,6 @@ function connectTiles(tiles, sizeX, sizeY) {
 
 const Stairs = RG.Element.Stairs;
 
-RG.World = {};
 RG.World.addExitsToEdge = addExitsToEdge;
 RG.World.edgeHasConnections = edgeHasConnections;
 
