@@ -177,12 +177,42 @@ RG.System.BaseAction = function(compTypes) {
     this._handleUseStairs = ent => {
         const level = ent.getLevel();
         const cell = ent.getCell();
-        level.useStairs(ent);
-        const evtArgs = {
-            type: RG.EVT_ACTOR_USED_STAIRS,
-            cell
-        };
-        this._createEventComp(ent, evtArgs);
+        const actorsAround = RG.Brain.getActorCellsAround(ent);
+        if (level.useStairs(ent)) {
+            if (actorsAround.length > 0) {
+                const [newX, newY] = ent.getXY();
+                const newLevel = ent.getLevel();
+                const newMap = newLevel.getMap();
+                let coordAround = RG.Geometry.getBoxAround(newX, newY, 1);
+                coordAround = coordAround.filter(xy => (
+                    newMap.hasXY(xy[0], xy[1])
+                ));
+                console.log(coordAround);
+                let cells = coordAround.map(xy => newMap.getCell(xy[0], xy[1]));
+                cells = cells.filter(cell => cell.isFree());
+                console.log(cells);
+                console.log('There were ' + actorsAround.length + ' actors');
+
+                while (actorsAround.length > 0 && cells.length > 0) {
+                    const nextActor = actorsAround.pop();
+                    const nextCell = cells.pop();
+                    if (level.removeActor(nextActor)) {
+                        const [x, y] = [nextCell.getX(), nextCell.getY()];
+                        newLevel.addActor(nextActor, x, y);
+                        const name = nextActor.getName();
+                        RG.gameMsg(`${name} follows ${ent.getName()}`);
+                    }
+                    else {
+                        console.log('Could not remove the actor');
+                    }
+                }
+            }
+            const evtArgs = {
+                type: RG.EVT_ACTOR_USED_STAIRS,
+                cell
+            };
+            this._createEventComp(ent, evtArgs);
+        }
     };
 
     /* Handles command to open door and execute possible triggers like traps. */
