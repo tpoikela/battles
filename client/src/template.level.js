@@ -73,8 +73,8 @@ RG.Template.Level = function(tilesX, tilesY) {
 
     /* Calls as many setters above as possible from given object. */
     this.use = function(obj) {
-        const props = ['constraintFunc', 'startRoomFunc', 'roomCount'];
-        props.forEach(p => {
+        const setterList = ['constraintFunc', 'startRoomFunc', 'roomCount'];
+        setterList.forEach(p => {
             if (obj.hasOwnProperty(p)) {
                 const setter = 'set' + p.capitalize();
                 this[setter](obj[p]);
@@ -91,7 +91,7 @@ RG.Template.Level = function(tilesX, tilesY) {
     };
 
     /* Creates the level. Result is in this.map.
-     * Main function you want to call. */
+     * This is the Main function you want to call. */
     this.create = function() {
 
         if (this.templates.length === 0) {
