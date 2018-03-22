@@ -561,7 +561,8 @@ Crypt.templates.start = Crypt.tiles.start.map(tile => {
     return RG.Template.createTemplate(tile);
 });
 
-/* Returns the starting room for the crypt generation. */
+/* Returns the starting room for the crypt generation. Note that 'this' should
+ * be bound to RG.Template.Level object. */
 Crypt.startRoomFunc = function() {
     const tile = RG.RAND.arrayGetRand(Crypt.templates.start);
     let x = RG.RAND.getUniformInt(0, this.tilesX - 1);
@@ -609,7 +610,8 @@ Crypt.startRoomFunc = function() {
 
 Crypt.Models = {};
 
-// Note that the starting rooms are not included in this list
+// Note that the starting rooms are not included in this list, thus they'll be
+// placed only by the startRoomFunc
 Crypt.Models.default = []
     .concat(Crypt.tiles.corner)
     .concat(Crypt.tiles.corridor)
