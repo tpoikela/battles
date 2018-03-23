@@ -210,8 +210,8 @@ describe('System.SpellCast', () => {
 
         updateSystems(systems);
 
-        expect(orc.get('Health').getHP()).to.be.below(startHP);
         expect(mage.get('SpellPower').getPP()).to.be.below(20);
+        expect(orc.get('Health').getHP()).to.be.below(startHP);
     });
 });
 
