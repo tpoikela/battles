@@ -206,7 +206,7 @@ describe('Brain.Player', () => {
         expect(func).to.be.function;
     });
 
-    it('has commands for shooting and targeting', () => {
+    it.only('has commands for shooting and targeting', () => {
         const player = new RG.Actor.Rogue('player');
         player.setIsPlayer(true);
         const orc = new RG.Actor.Rogue('orc');
@@ -225,17 +225,22 @@ describe('Brain.Player', () => {
         expect(brain.hasTargetSelected()).to.be.true;
 
         const firstID = brain.getTarget().getFirstActor().getID();
-        const firstNumCell = brain.currEnemyCell;
         brain.decideNextAction({code: KEY.NEXT});
 
-        const nextNumCell = brain.currEnemyCell;
-        const nextID = brain.getTarget().getFirstActor().getID();
-        expect(firstNumCell).not.to.equal(nextNumCell);
-        expect(firstID).to.equal(nextID);
+        const selectedCell = brain.getTarget();
+        const nextID = selectedCell.getFirstActor().getID();
+        expect(firstID).to.not.equal(nextID);
 
         brain.decideNextAction({code: KEY.NEXT});
         const thirdID = brain.getTarget().getFirstActor().getID();
-        expect(firstID).not.to.equal(thirdID);
+        expect(firstID).to.equal(thirdID);
+
+        for (let i = 0; i < 20; i++) {
+            const prevID = brain.getTarget().getFirstActor().getID();
+            brain.decideNextAction({code: KEY.NEXT});
+            const currID = brain.getTarget().getFirstActor().getID();
+            expect(prevID).to.not.equal(currID);
+        }
     });
 });
 
