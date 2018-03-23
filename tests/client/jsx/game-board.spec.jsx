@@ -62,11 +62,17 @@ describe('Component <GameBoard>', () => {
       const map = crypt.getMap();
       const screen = new Screen(map.cols, map.rows);
       screen.renderFullMapWithRLE(map);
+
       const newProps = Object.assign({}, props);
       newProps.charRows = screen.getCharRows();
       newProps.classRows = screen.getClassRows();
+      newProps.useRLE = true;
+
+      // console.log(JSON.stringify(newProps.rowChars, null, 1));
+      // console.log(JSON.stringify(newProps.classRows, null, 1));
       newProps.startY = 0;
-      newProps.endY = map.cols - 1;
+      newProps.endY = map.rows - 1;
+
       const wrapper = mount(<GameBoard {...newProps} />);
       const rows = wrapper.find('GameRow');
       expect(rows.length).to.be.above(20);
