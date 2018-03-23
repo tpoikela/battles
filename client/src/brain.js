@@ -39,6 +39,20 @@ RG.Brain.getCellsAroundActor = (actor, d = 1) => {
     return cells;
 };
 
+RG.Brain.getBoxOfFreeCellsAround = (actor, d) => {
+    const map = actor.getLevel().getMap();
+    const [x, y] = actor.getXY();
+    // Grab free cells around the player in the new level, and try
+    // to place actors into them
+    let coordAround = RG.Geometry.getBoxAround(x, y, d);
+    coordAround = coordAround.filter(xy => (
+        map.hasXY(xy[0], xy[1])
+    ));
+    let cells = coordAround.map(xy => map.getCell(xy[0], xy[1]));
+    cells = cells.filter(cell => cell.isFree());
+    return cells;
+};
+
 /* Returns all cells with actors in them from list of seen cells. */
 RG.Brain.findCellsWithActors = (actor, seenCells) => {
     const cells = [];
