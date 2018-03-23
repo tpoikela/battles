@@ -525,12 +525,10 @@ class BattlesTop extends Component {
         }
     }
 
+    /* Returns the next key, either from player or from click handler. */
     getNextCode() {
         if (this.ctrlMode === 'AUTOMATIC') {
             const nextCode = this.clickHandler.getNextCode();
-            const dirStr = RG.KeyMap.keyCodeToCardinalDir(nextCode);
-            console.log('getNextCode() is ' + dirStr);
-            console.log('Remaining in keybuf: ' + this.autoModeKeyBuffer);
             return nextCode;
         }
         else {
