@@ -67,7 +67,7 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
             txt += ' (Bound)';
         }
         if (this.has('Stats')) {
-            txt += this.get('Stats').toString();
+            txt += ' ' + this.get('Stats').toString();
         }
         return txt;
     }
