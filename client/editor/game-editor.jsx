@@ -769,7 +769,7 @@ export default class GameEditor extends Component {
     else if (value === 'crypt' || value === 'castle') {
       const conf = {
         tilesX: 12, tilesY: 7, roomCount: 30,
-        genParams: [1, 1, 1, 1]
+        genParams: [2, 2, 2, 2]
       };
       if (value === 'crypt' && !levelConf.crypt) {
         levelConf.crypt = conf;
@@ -1013,7 +1013,11 @@ export default class GameEditor extends Component {
 
   /* Starts a simulation of the level. No player support yet. */
   simulateLevel() {
-    if (!this.state.simulationStarted) {
+    if (!this.state.level) {
+      const msg = 'You must create a level before simulation!';
+      this.setState({errorMsg: msg});
+    }
+    else if (!this.state.simulationStarted) {
 
       this.game = new RG.Game.Main();
       window.GAME = this.game;
