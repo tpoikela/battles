@@ -36,7 +36,7 @@ RG.getCssClassFullMap = function(cell) {
         if (cell.hasProp(propType)) {
             const props = cell.getProp(propType);
             const styles = this.cellStyles[propType];
-            return this.getPropClassOrCharFullMap(styles, props[0]);
+            return this.getPropClassOrChar(styles, props[0]);
         }
     }
     return null;
@@ -64,7 +64,7 @@ RG.getCharFullMap = function(cell) {
         if (cell.hasProp(this.cellRenderVisible[i])) {
             const props = cell.getProp(this.cellRenderVisible[i]);
             const styles = this.charStyles[this.cellRenderVisible[i]];
-            return this.getPropClassOrCharFullMap(styles, props[0]);
+            return this.getPropClassOrChar(styles, props[0]);
         }
     }
     return null;
@@ -120,38 +120,6 @@ RG.getPropClassOrChar = function(styles, propObj) {
 
         }
         return styles[lookupKey];
-    }
-    else {
-        return styles['default'];
-    }
-};
-
-RG.getPropClassOrCharFullMap = function(styles, propObj) {
-    // Return by name, this is for object shells generally
-    if (propObj.getName) {
-        const name = propObj.getName();
-        if (styles.hasOwnProperty(name)) {
-            return styles[name];
-        }
-    }
-
-    const objType = propObj.getType();
-    // By type is usually for basic elements
-    if (styles.hasOwnProperty(objType)) {
-        if (typeof styles[objType] === 'object') {
-            // Invoke a state querying function
-            for (const p in styles[objType]) {
-                if (p !== 'default') {
-                    const funcToCall = p;
-                    if (propObj[funcToCall]()) {
-                        return styles[objType][p];
-                    }
-                }
-            }
-            return styles[objType]['default'];
-
-        }
-        return styles[objType];
     }
     else {
         return styles['default'];
