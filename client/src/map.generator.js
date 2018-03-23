@@ -479,11 +479,12 @@ RG.Map.Generator = function() { // {{{2
     /* Creates a single crypt level. */
     this.createCryptNew = function(cols, rows, conf = {}) {
         const tilesX = conf.tilesX || 12;
-        const tilesY = conf.tilesY || 8;
+        const tilesY = conf.tilesY || 7;
         const level = new TemplateLevel(tilesX, tilesY);
         level.use(Crypt);
 
-        const genParams = conf.genParams || [1, 1, 1, 1];
+        // const genParams = conf.genParams || [1, 1, 1, 1];
+        const genParams = conf.genParams || [2, 2, 2, 2];
         const roomCount = conf.roomCount || 40;
         level.setGenParams(genParams);
         level.setRoomCount(roomCount);
