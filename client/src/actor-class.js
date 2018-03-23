@@ -103,7 +103,10 @@ class Adventurer extends ActorClassBase {
 
     constructor(actor) {
         super(actor, 'Adventurer');
-        this._messages = {};
+        const name = actor.getName();
+        this._messages = {
+            4: `Food is now more nourishing for ${name}`
+        };
         this._advances = {
             1: () => {
                 const book = new RG.Spell.SpellBook(this._actor);
