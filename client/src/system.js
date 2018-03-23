@@ -2240,10 +2240,12 @@ RG.System.Events = function(compTypes) {
         // React to friend/non-hostile being killed
         if (ent.isPlayer()) {
             const src = evt.cause;
-            const name = actor.getName();
-            const victim = ent.getName();
-            const msg = `${name} saw ${src.getName()} killing ${victim}`;
-            RG.gameMsg({cell: ent.getCell, msg});
+            if (src) {
+                const name = actor.getName();
+                const victim = ent.getName();
+                const msg = `${name} saw ${src.getName()} killing ${victim}`;
+                RG.gameMsg({cell: ent.getCell, msg});
+            }
         }
     };
 
