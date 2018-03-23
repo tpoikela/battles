@@ -478,8 +478,7 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
     /* Returns visible cells for given actor.*/
     this.getVisibleCells = function(actor) {
         const cells = [];
-        const xActor = actor.getX();
-        const yActor = actor.getY();
+        const [xActor, yActor] = actor.getXY();
         if (actor.isLocated()) {
             if (actor.getLevel().getMap() === this) {
                 const range = actor.getFOVRange();
