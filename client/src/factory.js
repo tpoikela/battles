@@ -778,9 +778,10 @@ RG.Factory.Zone = function() {
     /* Creates dungeon level. Unless levelType is given, chooses the type
      * randomly. */
     this.createDungeonLevel = function(conf) {
+        _verif.verifyConf('createDungeonLevel', conf, ['x', 'y']);
         let level = null;
         let levelType = this.getRandLevelType();
-        if (conf.dungeonType) {
+        if (conf.dungeonType && conf.dungeonType !== '') {
             levelType = conf.dungeonType;
         }
         debug(`dungeonLevel: ${levelType}, ${JSON.stringify(conf)}`);
