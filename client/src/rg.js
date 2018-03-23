@@ -544,20 +544,22 @@ RG.strengthToDamage = function(str) {
 /* Given actor and cells it sees, returns first enemy cell found.*/
 RG.findEnemyCellForActor = function(actor, seenCells) {
     const res = [];
-    for (let i = 0; i < seenCells.length; i++) {
-        if (seenCells[i].hasActors()) {
-            const actors = seenCells[i].getProp('actors');
-            for (let j = 0; j < actors.length; j++) {
-                if (actor !== actors[j]) {
-                    if (typeof actors[j].isEnemy === 'function') {
-                        if (actors[j].isEnemy(actor)) {
-                            res.push(seenCells[i]);
-                        }
+    const actorCells = seenCells.filter(c => c.hasActors());
+    console.log(actorCells);
+    actorCells.forEach(cell => {
+        const actors = cell.getActors();
+        let found = false;
+        for (let j = 0; j < actors.length; j++) {
+            if (actor !== actors[j]) {
+                if (typeof actors[j].isEnemy === 'function') {
+                    if (actors[j].isEnemy(actor)) {
+                        found = true;
                     }
                 }
             }
         }
-    }
+        if (found) {res.push(cell);}
+    });
     return res;
 };
 
