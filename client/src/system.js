@@ -2239,7 +2239,7 @@ RG.System.Events = function(compTypes) {
     this._handleActorKilled = (ent, evt, actor) => {
         // React to friend/non-hostile being killed
         if (ent.isPlayer()) {
-            const src = evt.src;
+            const src = evt.cause;
             const name = actor.getName();
             const victim = ent.getName();
             const msg = `${name} saw ${src.getName()} killing ${victim}`;
