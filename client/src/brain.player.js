@@ -511,11 +511,21 @@ class BrainPlayer {
         }
     }
 
+    prevTarget() {
+        if (this._enemyCells.length > 0) {
+            --this.currEnemyCell;
+            if (this.currEnemyCell < 0) {
+                this.currEnemyCell = this._enemyCells.length - 1;
+            }
+        }
+    }
+
     /* Returns the current selected cell for targeting. */
     getTarget() {
         if (this._enemyCells.length > 0) {
             if (this.currEnemyCell < this._enemyCells.length) {
-                return this._enemyCells[this.currEnemyCell];
+                const cell = this._enemyCells[this.currEnemyCell];
+                return cell;
             }
         }
         else {
@@ -638,8 +648,13 @@ class BrainPlayer {
           return this.noAction();
         }
       }
+      else if (this._isTargeting && RG.KeyMap.isPrevTarget(code)) {
+          this.prevTarget();
+          return this.noAction();
+      }
       else if (this._isTargeting) {
-        this.cancelTargeting();
+          this.cancelTargeting();
+          return this.noAction();
       }
 
       // Invoke GUI callback with given code
