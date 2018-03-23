@@ -334,6 +334,13 @@ WorldConf.createBranchesConf = (dungeonConf, conf) => {
 WorldConf.createSingleBranchConf = () => {
     const nLevels = WorldConf.getNumLevels('dungeon');
     return {
+        dungeonX: 80,
+        dungeonY: 28,
+        sqrPerItem: 40,
+        sqrPerActor: 40,
+        maxDanger: 2,
+        maxValue: 100,
+        dungeonType: 'digger',
         name: Names.getGenericPlaceName('branch'),
         nLevels
     };
