@@ -39,6 +39,83 @@ const levelSizes = {
     }
 };
 
+/* Used to add details like bosses and distinct room features into dungeon
+ * levels. */
+const DungeonFeatures = function() {
+
+    /* Adds special features to the last level of the zone. */
+    this.addLastLevelFeatures = function(nLevel, level, conf) {
+        const exploreElem = new RG.Element.Exploration();
+        const expPoints = 10 * (nLevel + 1) * conf.maxDanger;
+        exploreElem.setExp(expPoints);
+        level.addElement(exploreElem);
+
+        const bossActor = this.generateBoss(nLevel, level, conf);
+
+        if (bossActor) {
+            this.addMinions(bossActor, nLevel, level, conf);
+        }
+        else {
+            let msg = `Failed to created boss. nLevel: ${nLevel}`;
+            msg += ` Level parent: ${level.getParent()}`;
+            RG.debug({}, msg);
+        }
+
+    };
+
+    this.generateBoss = (nLevel, level, conf) => {
+        const parser = RG.ObjectShell.getParser();
+        const bossDanger = conf.maxDanger + 2;
+        const bossActor = parser.createRandomActor(
+            {func: actor => (
+                actor.danger <= bossDanger && actor.danger >= conf.maxDanger
+            )}
+        );
+        if (bossActor) {
+            level.addActorToFreeCell(bossActor);
+            const prizeValue = conf.maxValue * 2;
+            const prizeItem = parser.createRandomItem(
+                {func: item => item.value <= prizeValue}
+            );
+            bossActor.getInvEq().addItem(prizeItem);
+
+        }
+        return bossActor;
+    };
+
+    this.addMinions = (boss, nLevel, level, conf) => {
+        const parser = RG.ObjectShell.getParser();
+        const bossType = boss.getType();
+        const isSwarm = RG.RAND.getUniform() <= 0.5;
+        let numMinions = nLevel + 1;
+        let dangerMinion = conf.maxDanger;
+        if (isSwarm) {
+            numMinions *= 2;
+            dangerMinion -= 1;
+        }
+        const dist = Math.round(Math.sqrt(numMinions)) + 1;
+        const cells = RG.Brain.getBoxOfFreeCellsAround(boss, dist);
+        RG.RAND.shuffle(cells);
+
+        const minionFunc = actor => (
+            actor.danger <= dangerMinion && actor.type === bossType
+        );
+
+        while (cells.length > 0 && numMinions > 0) {
+            const currCell = cells.pop();
+            --numMinions;
+            console.log('currCell: ' + JSON.stringify(currCell));
+            const minion = parser.createRandomActor({func: minionFunc});
+            if (minion) {
+                const [x, y] = [currCell.getX(), currCell.getY()];
+                level.addActor(minion, x, y);
+            }
+        }
+
+    };
+
+};
+
 /* Factory object for creating worlds and zones. Uses conf object which is
  * somewhat involved. For an example, see ../data/conf.world.js. This Factory
  * does not have any procedural generation. The configuration object can be
@@ -415,8 +492,9 @@ RG.Factory.World = function() {
                     level = this.factZone.createDungeonLevel(levelConf);
                     // For creating 'fixed' items and actors
                     this.addFixedFeatures(i, level, branch);
+                    const dungFeat = new DungeonFeatures();
                     if (i === (conf.nLevels - 1)) {
-                        this.addLastLevelFeatures(i, level, levelConf);
+                        dungFeat.addLastLevelFeatures(i, level, levelConf);
                     }
                 }
             }
@@ -550,37 +628,6 @@ RG.Factory.World = function() {
         }
     };
 
-    /* Adds special features to the last level of the zone. */
-    this.addLastLevelFeatures = function(nLevel, level, conf) {
-        const exploreElem = new RG.Element.Exploration();
-        const expPoints = 10 * (nLevel + 1) * conf.maxDanger;
-        exploreElem.setExp(expPoints);
-        level.addElement(exploreElem);
-
-        const parser = RG.ObjectShell.getParser();
-        const bossDanger = conf.maxDanger + 2;
-        const bossActor = parser.createRandomActor(
-            {func: actor => (
-                actor.danger <= bossDanger && actor.danger >= conf.maxDanger
-            )}
-        );
-        if (bossActor) {
-            level.addActorToFreeCell(bossActor);
-
-            const prizeValue = conf.maxValue * 2;
-            const prizeItem = parser.createRandomItem(
-                {func: item => item.value <= prizeValue}
-            );
-            bossActor.getInvEq().addItem(prizeItem);
-        }
-        else {
-            let msg = `Failed to created boss. nLevel: ${nLevel}`;
-            msg += ` Level parent: ${level.getParent()}`;
-            RG.debug({}, msg);
-        }
-
-    };
-
     /* Returns preset levels (if any) for the current zone. */
     this.getPresetLevels = function(hierName) {
 
@@ -709,8 +756,9 @@ RG.Factory.World = function() {
             let level = null;
             if (!this.id2levelSet) {
                 level = this.factZone.createSummitLevel(summitLevelConf);
+                const dungFeat = new DungeonFeatures();
                 if (i === (conf.nLevels - 1)) {
-                    this.addLastLevelFeatures(i, level, summitLevelConf);
+                    dungFeat.addLastLevelFeatures(i, level, summitLevelConf);
                 }
             }
             else {
