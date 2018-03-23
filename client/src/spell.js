@@ -652,7 +652,7 @@ RG.Spell.Missile = function(name, power) {
     };
 
     this.getSelectionObject = function(actor) {
-        const msg = 'Press [n] for next target. [t] to fire.';
+        const msg = 'Press [n/p] for next/prev target. [t] to fire.';
         RG.gameMsg(msg);
         actor.getBrain().nextTarget();
         const spell = this;
@@ -664,14 +664,20 @@ RG.Spell.Missile = function(name, power) {
                         actor.getBrain().nextTarget();
                         return this;
                     }
+                    case Keys.KEY.PREV: {
+                        actor.getBrain().prevTarget();
+                        return this;
+                    }
                     case Keys.KEY.TARGET: return () => {
                         const target = actor.getBrain().getTarget();
-                        const spellCast = new RG.Component.SpellCast();
-                        spellCast.setSource(actor);
-                        spellCast.setSpell(spell);
-                        spellCast.setArgs({src: actor, target});
-                        actor.add(spellCast);
-                        actor.getBrain().cancelTargeting();
+                        if (target) {
+                            const spellCast = new RG.Component.SpellCast();
+                            spellCast.setSource(actor);
+                            spellCast.setSpell(spell);
+                            spellCast.setArgs({src: actor, target});
+                            actor.add(spellCast);
+                            actor.getBrain().cancelTargeting();
+                        }
                     };
                     default: {
                         return null;
