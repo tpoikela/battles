@@ -545,7 +545,6 @@ RG.strengthToDamage = function(str) {
 RG.findEnemyCellForActor = function(actor, seenCells) {
     const res = [];
     const actorCells = seenCells.filter(c => c.hasActors());
-    console.log(actorCells);
     actorCells.forEach(cell => {
         const actors = cell.getActors();
         let found = false;
