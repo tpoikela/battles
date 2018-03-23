@@ -177,23 +177,13 @@ RG.System.BaseAction = function(compTypes) {
     this._handleUseStairs = ent => {
         const level = ent.getLevel();
         const cell = ent.getCell();
+        // Check if any actors should follow the player
+        const actorsAround = RG.Brain.getActorsAround(ent);
+
         if (level.useStairs(ent)) {
-
-            // Check if any actors should follow the player
-            const actorsAround = RG.Brain.getActorsAround(ent);
             if (actorsAround.length > 0) {
-                const [newX, newY] = ent.getXY();
                 const newLevel = ent.getLevel();
-                const newMap = newLevel.getMap();
-
-                // Grab free cells around the player in the new level, and try
-                // to place actors into them
-                let coordAround = RG.Geometry.getBoxAround(newX, newY, 1);
-                coordAround = coordAround.filter(xy => (
-                    newMap.hasXY(xy[0], xy[1])
-                ));
-                let cells = coordAround.map(xy => newMap.getCell(xy[0], xy[1]));
-                cells = cells.filter(cell => cell.isFree());
+                const cells = RG.Brain.getBoxOfFreeCellsAround(ent, 1);
 
                 while (actorsAround.length > 0 && cells.length > 0) {
                     const nextActor = actorsAround.pop();
