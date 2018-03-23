@@ -833,7 +833,7 @@ export default class GameEditor extends Component {
     let conf = null;
 
     if (idHead === 'main') {conf = this.state.levelConf;}
-    else if (idHead === 'feature') {conf = this.state.zoneConf;}
+    else if (idHead === 'zone') {conf = this.state.zoneConf;}
     else {conf = this.state.subLevelConf;}
 
     if (key.match(/(\w+)Func/)) {
@@ -849,7 +849,7 @@ export default class GameEditor extends Component {
     if (idHead === 'main') {
       this.setState({levelConf: conf});
     }
-    else if (idHead === 'feature') {
+    else if (idHead === 'zone') {
       this.setState({zoneConf: conf});
     }
     else {
@@ -1208,6 +1208,8 @@ export default class GameEditor extends Component {
 
   }
 
+    /* Returns the markup for editor panel containing all selection and
+     * configuration options. */
   getEditorPanelElement() {
     const zoneSelectElem = this.getZoneSelectElem();
     const zoneConfElem = this.getConfElement('zone',
