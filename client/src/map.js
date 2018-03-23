@@ -541,6 +541,7 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
     /* Queries a row of cells. _optimizeForRowAccess must be called before this
      * function is used. */
     this.getCellRowFast = function(y) {
+        if (!this._isRowOptimized) {this._optimizeForRowAccess();}
         return this._rowMap[y];
     };
 
@@ -616,6 +617,7 @@ RG.Map.CellList.prototype._optimizeForRowAccess = function() {
             this._rowMap[y][x] = this._map[x][y];
         }
     }
+    this._isRowOptimized = true;
 };
 
 RG.Map.CellList.prototype.toJSON = function() {
