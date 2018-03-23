@@ -78,6 +78,7 @@ RG.Random.prototype.toJSON = function() {
     };
 };
 
+/* Returns random direction [x, y] while excluding [0, 0]. */
 RG.Random.prototype.getRandDir = function() {
     const dX = this.arrayGetRand(DIRS);
     let dY = this.arrayGetRand(DIRS);
@@ -97,7 +98,9 @@ RG.Random.prototype.getRandDirWeighted = function() {
  * how-to-randomize-shuffle-a-javascript-array
  */
 RG.Random.prototype.shuffle = function(array) {
-    let currentIndex = array.length, temporaryValue, randomIndex;
+    if (array.length <= 1) {return array;}
+    let currentIndex = array.length - 1;
+    let temporaryValue, randomIndex;
 
     // While there remain elements to shuffle...
     while (0 !== currentIndex) {
