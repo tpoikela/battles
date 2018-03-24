@@ -11,8 +11,9 @@ describe('BSP', () => {
         const cols = 80;
         const rows = 50;
         const iter = 5;
+        const bspGen = new BSP.BSPGen();
         const mainContainer = new BSP.Container(0, 0, cols, rows);
-        const containerTree = BSP.splitContainer(mainContainer, iter);
+        const containerTree = bspGen.splitContainer(mainContainer, iter);
 
         const leafs = containerTree.getLeafs();
         leafs.forEach(leaf => {
@@ -39,6 +40,9 @@ describe('DungeonBSP', () => {
                 else {
                     console.log(`${x},${y} out of bounds`);
                 }
+            }
+            else if (val === 2) {
+                map.setBaseElemXY(x, y, RG.ELEM.STONE);
             }
         });
 
