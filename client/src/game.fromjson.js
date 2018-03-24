@@ -57,7 +57,18 @@ RG.Game.FromJSON = function() {
 
         RG.addCellStyle(RG.TYPE_ACTOR, obj.name, 'cell-actor-player');
         this._addEntityFeatures(obj, player);
+        this.restorePlayerBrain(player, obj.brain);
         return player;
+    };
+
+    this.restorePlayerBrain = function(player, brainJSON) {
+        const brain = player.getBrain();
+        const memory = brain.getMemory();
+        const memJSON = brainJSON.memory;
+        console.log(brainJSON);
+        Object.keys(memJSON).forEach(setter => {
+            memory[setter](memJSON[setter]);
+        });
     };
 
     this.addRestoredPlayerToGame = function(player, game, json) {
@@ -200,6 +211,7 @@ RG.Game.FromJSON = function() {
             }
 
             // Create the memory (if any)
+            console.log(brainObj);
             const memObj = brainObj.getMemory();
             const memJSON = brainJSON.memory;
             if (memJSON) {
@@ -361,7 +373,12 @@ RG.Game.FromJSON = function() {
         json.actors.forEach(actor => {
             const actorObj = this.createActor(actor.obj);
             if (actorObj !== null) {
-                level.addActor(actorObj, actor.x, actor.y);
+                if (!RG.isNullOrUndef([actor.x, actor.y])) {
+                    level.addActor(actorObj, actor.x, actor.y);
+                }
+                else {
+                    level.addVirtualProp(RG.TYPE_ACTOR, actorObj);
+                }
             }
             else {
                 RG.err('FromJSON', 'restoreLevel',
