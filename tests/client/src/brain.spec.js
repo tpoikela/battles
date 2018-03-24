@@ -206,7 +206,7 @@ describe('Brain.Player', () => {
         expect(func).to.be.function;
     });
 
-    it.only('has commands for shooting and targeting', () => {
+    it('has commands for shooting and targeting', () => {
         const player = new RG.Actor.Rogue('player');
         player.setIsPlayer(true);
         const orc = new RG.Actor.Rogue('orc');
