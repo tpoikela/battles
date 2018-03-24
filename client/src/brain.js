@@ -14,6 +14,8 @@ const ACTION_ALREADY_DONE = () => {};
 const NO_ACTION_TAKEN = () => {};
 const MEM_NO_ACTORS = Object.freeze([]);
 
+const NO_MEMORY = null;
+
 //---------------------------------------------------------------------------
 // BRAINS
 //---------------------------------------------------------------------------
@@ -279,6 +281,8 @@ RG.Brain.Base = function(actor) {
     this.getActor = () => this._actor;
     this.getType = () => this._type;
     this.setType = type => {this._type = type;};
+
+    this.getMemory = () => NO_MEMORY;
 
     /* Main function for retrieving the actionable callback. Acting actor must
      * be passed in. */
