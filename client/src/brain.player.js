@@ -3,11 +3,13 @@ const RG = require('./rg');
 const Menu = require('./menu');
 const Keys = require('./keymap');
 const GoalsBattle = require('./goals-battle');
+const Cmd = require('./cmd-player');
 
 RG.KeyMap = Keys.KeyMap;
 
-const ACTION_ALREADY_DONE = () => {};
-const ACTION_ZERO_ENERGY = null;
+const {
+    ACTION_ALREADY_DONE,
+    ACTION_ZERO_ENERGY } = Cmd;
 
 const selectTargetMsg =
     'Select a target (all with "A"), then press "s" to choose it';
@@ -39,7 +41,12 @@ const MemoryPlayer = function(player) {
 
     /* Sets the last attacked actor. */
     this.setLastAttacked = actor => {
-        _lastAttackedID = actor.getID();
+        if (Number.isInteger(actor)) {
+            _lastAttackedID = actor;
+        }
+        else if (actor) {
+            _lastAttackedID = actor.getID();
+        }
     };
 
     this.getLastAttacked = () => _lastAttackedID;
@@ -55,205 +62,16 @@ const MemoryPlayer = function(player) {
         return actor.getBrain().getMemory().isEnemy(player);
     };
 
+    this.toJSON = () => {
+        const json = {};
+        if (!RG.isNullOrUndef([_lastAttackedID])) {
+            json.setLastAttacked = _lastAttackedID;
+        }
+        return json;
+    };
+
 };
 
-// Note: All CmdXXX classes are used from Brain.Player. this is bound to the
-// Brain.Player object by using execute.call(this)
-
-class CmdMissile {
-
-    execute(obj) {
-        const invEq = this._actor.getInvEq();
-        // TODO changes to fire more than 1 missile
-        const missile = invEq.unequipAndGetItem('missile', 1);
-
-        if (!RG.isNullOrUndef([missile])) {
-
-            // Check for missile weapon for ammunition
-            if (missile.has('Ammo')) {
-                const missWeapon = invEq.getEquipment()
-                    .getEquipped('missileweapon');
-                if (missWeapon === null) {
-                    const msg = 'No missile weapon equipped.';
-                    return this.cmdNotPossible(msg);
-                }
-                else { // Check ammo/weapon compatibility
-                    const ammoType = missile.getAmmoType();
-                    const weaponType = missWeapon.getWeaponType();
-                    if (this._actor.has('MixedShot')) {
-                        const re = /bow/;
-                        if (!re.test(ammoType) || !re.test(weaponType)) {
-                            if (ammoType !== weaponType) {
-                                const msg = 'Ammo/weapon not compatible.';
-                                return this.cmdNotPossible(msg);
-                            }
-                        }
-                    }
-                    else if (ammoType !== weaponType) {
-                        const msg = 'Ammo/weapon not compatible.';
-                        return this.cmdNotPossible(msg);
-                    }
-                }
-            }
-
-            if (!RG.isNullOrUndef([obj.target])) {
-                const x = obj.target.getX();
-                const y = obj.target.getY();
-                const mComp = new RG.Component.Missile(this._actor);
-                mComp.setTargetXY(x, y);
-                mComp.setDamage(RG.getMissileDamage(this._actor, missile));
-                mComp.setAttack(RG.getMissileAttack(this._actor, missile));
-                mComp.setRange(RG.getMissileRange(this._actor, missile));
-                missile.add('Missile', mComp);
-                this.energy = RG.energy.MISSILE;
-            }
-            else {
-                RG.err('Brain.Player', 'handleCommand',
-                    'No x,y given for missile.');
-            }
-        }
-        else {
-            return this.cmdNotPossible('No missile equipped.');
-        }
-        return ACTION_ALREADY_DONE;
-    }
-
-}
-
-/* Executed when player uses an item. */
-class CmdUseItem {
-
-    execute(obj) {
-        if (obj.hasOwnProperty('item')) {
-            const item = obj.item;
-            let result = false;
-            let msg = `You failed to use ${item.getName()}.`;
-            if (typeof item.useItem === 'function') {
-                this.energy = RG.energy.USE;
-                item.useItem({target: obj.target});
-                result = true;
-            }
-
-            if (obj.hasOwnProperty('callback')) {
-                if (result) {
-                    msg = `You used ${item.getName()}!`;
-                }
-                obj.callback({msg: msg, result});
-            }
-            else if (!result) {
-                return this.cmdNotPossible('You cannot use that item.');
-            }
-            else {
-              RG.gameMsg(`You used ${item.getName()}!`);
-            }
-        }
-        else {
-            RG.err('Brain.Player', 'handleCommand', 'obj has no item');
-        }
-        return ACTION_ALREADY_DONE;
-    }
-
-}
-
-class CmdDropItem {
-
-  execute(obj) {
-      const invEq = this._actor.getInvEq();
-      const actorCell = this._actor.getCell();
-      let result = false;
-      let msg = `Failed to drop ${obj.item.getName()}`;
-      const dropCount = obj.count <= obj.item.count ? obj.count
-        : obj.item.count;
-      if (actorCell.hasShop()) {
-          const shopElem = actorCell.getPropType('shop')[0];
-          const price = shopElem.getItemPriceForSelling(obj.item);
-
-          this._wantConfirm = true;
-          this._confirmCallback = () => {
-              // const sellOk = shopElem.sellItem(obj.item, this._actor);
-              const trans = new RG.Component.Transaction();
-              trans.setArgs({item: obj.item, seller: this._actor,
-                  shop: shopElem, callback: obj.callback,
-                  buyer: shopElem.getShopkeeper()});
-              this._actor.add(trans);
-          };
-
-          msg = `Press y to sell item for ${price} gold coins.`;
-          if (obj.hasOwnProperty('callback')) {
-              obj.callback({msg: msg, result});
-          }
-      }
-      else if (invEq.dropNItems(obj.item, dropCount)) {
-          result = true;
-          msg = 'Item dropped!';
-      }
-      if (obj.hasOwnProperty('callback')) {
-          obj.callback({msg: msg, result});
-      }
-      return ACTION_ALREADY_DONE;
-  }
-
-}
-
-class CmdEquipItem {
-
-    execute(obj) {
-        const invEq = this._actor.getInvEq();
-        const item = obj.item;
-        let result = false;
-        let msg = `Failed to equip ${item.getName()}`;
-        if (item.getType().match(/^(missile|ammo)$/)) {
-            if (invEq.equipNItems(item, obj.count)) {
-                result = true;
-            }
-        }
-        else if (invEq.equipItem(item)) {
-            result = true;
-        }
-        if (obj.hasOwnProperty('callback')) {
-            if (result) {
-                msg = `Equipping ${item.getName()} succeeded!`;
-            }
-            obj.callback({msg: msg, result});
-        }
-        return ACTION_ALREADY_DONE;
-    }
-
-}
-
-/* Executed when an actor unequips an item. */
-class CmdUnequipItem {
-
-    execute(obj) {
-        const name = obj.slot;
-        const slotNumber = obj.slotNumber;
-        const invEq = this._actor.getInvEq();
-        let result = false;
-        let msg = `Failed to remove item from slot ${name}.`;
-
-        if (name === 'missile') {
-            const eqItem = invEq.getEquipment().getItem('missile');
-
-            if (eqItem !== null) {
-                if (invEq.unequipItem(name, obj.count)) {
-                    result = true;
-                }
-            }
-        }
-        else if (invEq.unequipItem(name, 1, slotNumber)) {
-            result = true;
-        }
-
-        if (obj.hasOwnProperty('callback')) {
-            if (result) {
-                msg = `Unequipping from ${name} succeeded!`;
-            }
-            obj.callback({msg: msg, result});
-        }
-        return ACTION_ALREADY_DONE;
-    }
-
-}
 
 const S_IDLE = Symbol();
 const S_TARGETING = Symbol();
@@ -439,12 +257,9 @@ class BrainPlayer {
 
         this._wantSelection = false;
         this._selectionObject = false;
-        this._isTargeting = false;
         this._runModeEnabled = false;
 
         this._fightMode = RG.FMODE_NORMAL;
-
-        this._targetList = [];
 
         this._fsm = new TargetingFSM(this);
 
@@ -589,19 +404,19 @@ class BrainPlayer {
     handleCommand(obj) {
         this._restoreBaseSpeed();
         if (obj.cmd === 'missile') {
-            return new CmdMissile().execute.call(this, obj);
+            return new Cmd.Missile().execute.call(this, obj);
         }
         else if (obj.cmd === 'use') {
-            return new CmdUseItem().execute.call(this, obj);
+            return new Cmd.UseItem().execute.call(this, obj);
         }
         else if (obj.cmd === 'drop') {
-            return new CmdDropItem().execute.call(this, obj);
+            return new Cmd.DropItem().execute.call(this, obj);
         }
         else if (obj.cmd === 'equip') {
-            return new CmdEquipItem().execute.call(this, obj);
+            return new Cmd.EquipItem().execute.call(this, obj);
         }
         else if (obj.cmd === 'unequip') {
-            return new CmdUnequipItem().execute.call(this, obj);
+            return new Cmd.UnequipItem().execute.call(this, obj);
         }
         return () => {};
     }
@@ -687,7 +502,6 @@ class BrainPlayer {
             const invEq = this._actor.getInvEq();
             const missile = invEq.getEquipped('missile');
             if (missile) {
-
                 const missRange = RG.getMissileRange(this._actor, missile);
 
                 if ((path.length - 1) <= missRange) {
@@ -719,12 +533,6 @@ class BrainPlayer {
     setSelectionObject(obj) {
         this._wantSelection = true;
         this._selectionObject = obj;
-    }
-
-    toJSON() {
-        return {
-            type: this.getType()
-        };
     }
 
     selectionDone() {
@@ -1123,6 +931,13 @@ class BrainPlayer {
 
     selectCell(code) {
         this._fsm.selectCell(code);
+    }
+
+    toJSON() {
+        return {
+            type: this.getType(),
+            memory: this._memory.toJSON()
+        };
     }
 
 } // Brain.Player
