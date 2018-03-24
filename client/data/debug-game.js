@@ -139,6 +139,8 @@ const DebugGame = function(fact, parser) {
         player.getInvEq().addItem(firekit);
 
         player.add(new RG.Component.Coldness());
+        player.get('SpellPower').setPP(100);
+        player.get('SpellPower').setMaxPP(100);
 
         return game;
     };
