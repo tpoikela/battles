@@ -182,13 +182,8 @@ RGTest.wrapIntoLevel = function(arr) {
 
 /* Moves entity from its current position to x,y. */
 RGTest.moveEntityTo = function(ent, x, y) {
-    const map = ent.getLevel().getMap();
-    const xOld = ent.getX();
-    const yOld = ent.getY();
-    const propType = ent.getPropType();
-    if (map.removeProp(xOld, yOld, propType, ent)) {
-        map.setProp(x, y, propType, ent);
-        ent.setXY(x, y);
+    const level = ent.getLevel();
+    if (level.moveActorTo(ent, x, y)) {
         return true;
     }
     throw new Error(`Cannot move entity to ${x}, ${y}`);
