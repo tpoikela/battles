@@ -76,3 +76,8 @@
     background-color: $black;
     color: $gray;
 };
+
+.cell-item-rune {
+    background-color: darken($gray, 20%);
+    color: $red;
+};
