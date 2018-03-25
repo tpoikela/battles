@@ -75,6 +75,13 @@ RG.Effects = {
         {
             name: 'use',
             func: function(obj) {
+                if (this.getCharges) {
+                    if (this.getCharges() === 0) {
+                        const name = this.getName();
+                        RG.gameMsg(`${name} does not have any charges left`);
+                        return false;
+                    }
+                }
                 for (let i = 0; i < this.useFuncs.length; i++) {
                     if (this.useFuncs[i].call(this, obj)) {
                         return true;
@@ -88,15 +95,38 @@ RG.Effects = {
         // Example: {addComp: {name: "Ethereal", duration: "3d3"}}
         // In fact, addComp: {name: "Stun", duration: "1d6"} is identical to
         // 'stun' effect.
+        //
+        // To create temporary boosts, you can use the following:
+        // use: {addComp:
+        //    {name: 'CombatMods', setters: {setDefense: 5}, duration: '2d4'}
+        // }
         {
             name: 'addComp',
             requires: ['name', 'duration'],
+            optional: ['setters'],
             func: function(obj) {
                 const actor = getTargetActor(obj);
                 if (actor) {
                 const name = this.useArgs.name.capitalize();
                     if (RG.Component.hasOwnProperty(name)) {
                         const compToAdd = new RG.Component[name]();
+
+                        // Process optional setters for component values
+                        if (this.useArgs.setters) {
+                            const setters = this.useArgs.setters;
+                            Object.keys(setters).forEach(setFunc => {
+                                if (typeof compToAdd[setFunc] === 'function') {
+                                    const valueToSet = setters[setFunc];
+                                    const numValue = valueToNumber(valueToSet);
+                                    compToAdd[setFunc](numValue);
+                                }
+                                else {
+                                    const json = JSON.stringify(compToAdd);
+                                    RG.err('useEffect', 'addComp',
+                                        `No ${setFunc} in comp ${json}`);
+                                }
+                            });
+                        }
 
                         const arr = RG.parseDieSpec(this.useArgs.duration);
                         const durDie = new RG.Die(arr[0], arr[1], arr[2]);
