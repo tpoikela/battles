@@ -110,6 +110,7 @@ const Engine = function(eventPool) {
                     const code = obj.code;
                     if (this.isGUICommand(code)) {
                         this.doGUICommand(code);
+                        this.playerCommandCallback(this.nextActor);
                     }
                     else {
                         this.updateGameLoop({code});

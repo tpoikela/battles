@@ -291,18 +291,20 @@ class BattlesTop extends Component {
 
     /* Saves the game position.*/
     saveGame() {
-        const name = this.game.getPlayer().getName();
-        const persist = new Persist(name);
-        this.setState({saveInProgress: true});
+        if (this.game) {
+            const name = this.game.getPlayer().getName();
+            const persist = new Persist(name);
+            this.setState({saveInProgress: true});
 
-        this.gameToJSON().then(json => {
-            persist.toStorage(json, () => {
-                this.gameSave.save(this.game, this.gameConf);
-                this.savedPlayerList = this.gameSave.getPlayersAsList();
-                RG.gameMsg('Your progress has been saved.');
-                this.setState({saveInProgress: false});
+            this.gameToJSON().then(json => {
+                persist.toStorage(json, () => {
+                    this.gameSave.save(this.game, this.gameConf);
+                    this.savedPlayerList = this.gameSave.getPlayersAsList();
+                    RG.gameMsg('Your progress has been saved.');
+                    this.setState({saveInProgress: false});
+                });
             });
-        });
+        }
     }
 
     /* Converts the current game into JSON. */
@@ -970,7 +972,7 @@ class BattlesTop extends Component {
         }
         else {
             this.gameState.isTargeting = true;
-            this.gameState.enemyCells = RG.findEnemyCellForPlayer(
+            this.gameState.enemyCells = RG.findEnemyCellForActor(
                 this.game.getPlayer(), this.gameState.visibleCells);
             this.gameState.numCurrCell = 0;
             let msg = 'You do not see any enemies nearby.';
