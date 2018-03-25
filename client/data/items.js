@@ -748,7 +748,7 @@ const Items = [
     // 100g. Energy should be generally between 0 - 9000
     {
         name: 'FoodBase', className: 'cell-item-food', char: '%',
-        weight: 0.1, type: 'food', dontCreate: true
+        weight: 0.1, type: 'food', dontCreate: true, addComp: 'OneShot'
     },
     {
         name: 'Berries', base: 'FoodBase', energy: 1700, value: value(30)
