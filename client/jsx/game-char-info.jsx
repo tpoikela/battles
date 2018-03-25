@@ -1,10 +1,10 @@
 
 import React, {Component} from 'react';
-import Modal from './modal';
 import ModalHeader from './modal-header';
 import PropTypes from 'prop-types';
 
 const RG = require('../src/rg');
+const Modal = require('react-bootstrap-modal');
 
 export default class GameCharInfo extends Component {
 
@@ -19,13 +19,23 @@ export default class GameCharInfo extends Component {
     this.setState({tabShown: tabName});
   }
 
+  toggleScreen(type) {
+      this.props.toggleScreen(type);
+  }
+
   render() {
     const shownMessage = 'Placeholder';
     const shownTabElement = this.renderTabElement();
     const tabButtons = this.renderTabButtons();
 
     return (
-      <Modal id='char-info-modal' labelId='char-info-modal-label'>
+      <Modal
+        aria-labelledby='char-info-modal-label'
+        id='char-info-modal'
+        large={true}
+        onHide={this.toggleScreen.bind(this, 'CharInfo')}
+        show={this.props.showCharInfo}
+      >
         <ModalHeader id='char-info-modal-label' text='Character info'/>
 
         {tabButtons}
@@ -39,7 +49,7 @@ export default class GameCharInfo extends Component {
           <div className='col-md-6'>
             <button
               className='btn btn-danger'
-              data-dismiss='modal'
+              onClick={this.toggleScreen.bind(this, 'CharInfo')}
               type='button'
             >Close</button>
           </div>
@@ -228,5 +238,7 @@ export default class GameCharInfo extends Component {
 }
 
 GameCharInfo.propTypes = {
-  player: PropTypes.object
+  player: PropTypes.object,
+  showCharInfo: PropTypes.bool.isRequired,
+  toggleScreen: PropTypes.func.isRequired
 };
