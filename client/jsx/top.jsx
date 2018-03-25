@@ -366,6 +366,7 @@ class BattlesTop extends Component {
         this.gameState.visibleCells = player.getLevel().exploreCells(player);
         RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this.listener);
         RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this.listener);
+        this.enableKeys();
         this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
         this.setState({render: true, loadInProgress: false});
     }
@@ -499,7 +500,6 @@ class BattlesTop extends Component {
 
     enableKeys() {
       if (!this.keysEnabled) {
-        console.log('Adding event listeners');
         document.addEventListener('keypress', this.handleKeyDown, true);
         this.keysEnabled = true;
       }
@@ -507,7 +507,6 @@ class BattlesTop extends Component {
 
     disableKeys() {
       if (this.keysEnabled) {
-        console.log('Removing event listeners');
         document.removeEventListener('keypress', this.handleKeyDown);
         this.keysEnabled = false;
       }
@@ -857,14 +856,14 @@ class BattlesTop extends Component {
     /* GUI command keybindings are specified here. */
     initGUICommandTable() {
         this.guiCommands = {};
-        this.guiCommands[Keys.GUI.Help] = this.GUIHelp;
+        this.guiCommands[Keys.GUI.Help] = this.GUIHelp.bind(this);
         this.guiCommands[Keys.GUI.Inv] = this.GUIInventory;
         this.guiCommands[Keys.GUI.Map] = this.GUIMap;
-        this.guiCommands[Keys.GUI.OwMap] = this.GUIOverWorldMap;
+        this.guiCommands[Keys.GUI.OwMap] = this.GUIOverWorldMap.bind(this);
         // this.guiCommands[Keys.VK_n] = this.GUINextTarget;
         this.guiCommands[Keys.GUI.Look] = this.GUILook;
         this.guiCommands[Keys.GUI.Use] = this.GUIUseItem;
-        this.guiCommands[Keys.GUI.CharInfo] = this.GUICharInfo;
+        this.guiCommands[Keys.GUI.CharInfo] = this.GUICharInfo.bind(this);
     }
 
     /* Returns true if given command is a GUI command. */
@@ -1200,6 +1199,8 @@ class BattlesTop extends Component {
 
         this.toggleEditor = this.toggleEditor.bind(this);
         this.toggleScreen = this.toggleScreen.bind(this);
+        this.showScreen = this.showScreen.bind(this);
+        this.hideScreen = this.hideScreen.bind(this);
 
         this.showStartScreen = this.showStartScreen.bind(this);
         this.showLoadScreen = this.showLoadScreen.bind(this);
