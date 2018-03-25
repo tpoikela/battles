@@ -9,6 +9,7 @@ export default class GameItems extends Component {
 
   render() {
     const inv = this.props.inv;
+    const filter = this.props.filter;
     const items = [];
     const setSelectedItem = this.props.setSelectedItem;
     let totalWeight = inv.getWeight() + this.props.eqWeight;
@@ -19,11 +20,13 @@ export default class GameItems extends Component {
     let key = 0;
 
     while (item !== null && typeof item !== 'undefined') {
-      items.push(<GameItemSlot
-        item={item}
-        key={key}
-        setSelectedItem={setSelectedItem}
-      />);
+      if (filter === 'All' || item.getType() === filter) {
+        items.push(<GameItemSlot
+          item={item}
+          key={key}
+          setSelectedItem={setSelectedItem}
+        />);
+      }
       item = inv.next();
       ++key;
     }
@@ -39,9 +42,10 @@ export default class GameItems extends Component {
 }
 
 GameItems.propTypes = {
+  eqWeight: PropTypes.number,
+  filter: PropTypes.string.isRequired,
   inv: PropTypes.object,
-  setSelectedItem: PropTypes.func.isRequired,
   maxWeight: PropTypes.number,
-  eqWeight: PropTypes.number
+  setSelectedItem: PropTypes.func.isRequired
 };
 
