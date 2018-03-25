@@ -2147,9 +2147,9 @@ RG.System.Battle = function(compTypes) {
     };
 
     this._emitMsg = (ent, comp) => {
-        const srcName = comp.getArgs().srcActor;
+        const srcName = comp.getArgs().srcActor.getName();
         const cell = ent.getCell();
-        const msg = `${srcName} shouts into your direction.`;
+        const msg = `${srcName} shouts a command into your direction.`;
         RG.gameMsg({msg, cell});
     };
 };
@@ -2314,6 +2314,10 @@ RG.System.AreaEffects = function(compTypes) {
                 ent.remove(fireComp);
             });
         }
+        else {
+            // TODO add damages to doors etc
+            ent.removeAll('Fire');
+        }
         this._createHeatComps(ent);
     };
 
@@ -2328,7 +2332,11 @@ RG.System.AreaEffects = function(compTypes) {
                 if (cell.hasActors()) {
                     const actors = cell.getActors();
                     actors.forEach(actor => {
-                        actor.add(new RG.Component.Heat());
+                        // Name check prevents slow down when lots of fire
+                        // actors are present
+                        if (actor.getName() !== 'Fire') {
+                            actor.add(new RG.Component.Heat());
+                        }
                     });
                 }
             }
