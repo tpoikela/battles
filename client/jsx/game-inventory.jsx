@@ -7,6 +7,7 @@ import GameEquipment from './game-equipment';
 import PropTypes from 'prop-types';
 
 const RG = require('../src/rg');
+const Modal = require('react-bootstrap-modal');
 
 /** Component renders the player inventory.*/
 export default class GameInventory extends Component {
@@ -180,51 +181,79 @@ export default class GameInventory extends Component {
 
     const useButtonText = this.getUseButtonText();
 
-    /* eslint-disable */
     return (
-      <div className='modal fade' role='dialog' id='inventoryModal' tabIndex='-1' role='dialog' aria-labelledby='inventory-modal-label' aria-hidden='true'>
-        <div className='modal-dialog modal-lg'>
-          <div className='modal-content'>
-            <ModalHeader id='inventory-modal-label' text='Inventory'/>
-            <div className='modal-body row'>
+      <Modal
+          aria-labelledby='inventory-modal-label'
+          id='inventoryModal'
+          large={true}
+          show={this.props.showInventory}
+      >
+        <ModalHeader id='inventory-modal-label' text='Inventory'/>
+        <div className='modal-body row'>
 
-              <div className='items-box col-md-6'>
-                <GameItems
-                  eqWeight={eqWeight}
-                  inv={inv}
-                  maxWeight={maxWeight}
-                  setSelectedItem={this.setSelectedItem}
-                />
-              </div>
+          <div className='items-box col-md-6'>
+            <GameItems
+              eqWeight={eqWeight}
+              inv={inv}
+              maxWeight={maxWeight}
+              setSelectedItem={this.setSelectedItem}
+            />
+          </div>
 
-              <div id='equipment-box' className='col-md-6'>
-                <GameEquipment
-                  eq={eq}
-                  isMasterEquipper={isMasterEquipper}
-                  setEquipSelected={this.setEquipSelected}
-                />
-              </div>
+          <div className='col-md-6' id='equipment-box'>
+            <GameEquipment
+              eq={eq}
+              isMasterEquipper={isMasterEquipper}
+              setEquipSelected={this.setEquipSelected}
+            />
+          </div>
 
-            </div>
-            <div className='modal-footer row'>
-              <div className='col-md-6'>
-                <p className={this.props.msgStyle}>{this.props.invMsg}</p>
-                <div>Count:
-                  <input onChange={this.onChangeCount} value={this.state.count} />
-                </div>
-              </div>
-              <div className='col-md-6'>
-                <button type='button' className={dropButtonClass} onClick={this.dropItem}>Drop</button>
-                <button type='button' className={equipButtonClass} onClick={this.equipItem}>Equip</button>
-                <button type='button' className={unequipButtonClass} onClick={this.unequipItem}>Remove</button>
-                <button type='button' className={useButtonClass} onClick={this.useItem}>{useButtonText}</button>
-                <button type='button' className='btn btn-danger' data-dismiss='modal'>Close</button>
-              </div>
+        </div>
+
+        <div className='modal-footer row'>
+          <div className='col-md-6'>
+            <p className={this.props.msgStyle}>{this.props.invMsg}</p>
+            <div>Count:
+              <input onChange={this.onChangeCount} value={this.state.count} />
             </div>
           </div>
+
+          <div className='col-md-6'>
+            <button
+              className={dropButtonClass}
+              onClick={this.dropItem}
+              type='button'
+            >Drop</button>
+            <button
+              className={equipButtonClass}
+              onClick={this.equipItem}
+              type='button'
+            >Equip</button>
+            <button
+              className={unequipButtonClass}
+              onClick={this.unequipItem}
+              type='button'
+            >Remove</button>
+            <button
+              className={useButtonClass}
+              onClick={this.useItem}
+              type='button'
+            >{useButtonText}</button>
+            <button
+                className='btn btn-danger'
+                onClick={this.toggleScreen.bind(this, 'Inventory')}
+                type='button'
+            >Close
+            </button>
+          </div>
+
         </div>
-      </div>
+      </Modal>
     );
+  }
+
+  toggleScreen(type) {
+      this.props.toggleScreen(type);
   }
 
   getUseButtonText() {
@@ -237,20 +266,22 @@ export default class GameInventory extends Component {
 
   }
 
-};
+}
 
 GameInventory.propTypes = {
   doInvCmd: PropTypes.func.isRequired,
-  equipSelected: PropTypes.object,
-  player: PropTypes.object,
-  invMsg: PropTypes.string.isRequired,
-  msgStyle: PropTypes.string.isRequired,
-  setInventoryMsg: PropTypes.func.isRequired,
-  selectedItem: PropTypes.object,
-  selectItemTop: PropTypes.func.isRequired,
-  selectEquipTop: PropTypes.func.isRequired,
-  inv: PropTypes.object,
   eq: PropTypes.object,
-  maxWeight: PropTypes.number
+  equipSelected: PropTypes.object,
+  inv: PropTypes.object,
+  invMsg: PropTypes.string.isRequired,
+  maxWeight: PropTypes.number,
+  msgStyle: PropTypes.string.isRequired,
+  player: PropTypes.object,
+  selectEquipTop: PropTypes.func.isRequired,
+  selectItemTop: PropTypes.func.isRequired,
+  selectedItem: PropTypes.object,
+  setInventoryMsg: PropTypes.func.isRequired,
+  showInventory: PropTypes.bool.isRequired,
+  toggleScreen: PropTypes.func.isRequired
 };
 /* eslint-enable */
