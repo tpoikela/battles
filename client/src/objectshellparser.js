@@ -349,6 +349,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
                         return new RG.Item.MissileWeapon(obj.name);
                     case 'ammo': return new RG.Item.Ammo(obj.name);
                     case 'potion': return new RG.Item.Potion(obj.name);
+                    case 'rune': return new RG.Item.Rune(obj.name);
                     case 'spiritgem': return new RG.Item.SpiritGem(obj.name);
                     case 'weapon': return new RG.Item.Weapon(obj.name);
                     case 'tool': break;
@@ -551,6 +552,14 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
                         Item shell 'use' must be an object.`
                     );
                 }
+            }
+            if (useEffectShell.hasOwnProperty('optional')) {
+                const opts = useEffectShell.optional;
+                opts.forEach(option => {
+                    if (shell.use[useName].hasOwnProperty(option)) {
+                        item.useArgs[option] = shell.use[useName][option];
+                    }
+                });
             }
         }
         else {
