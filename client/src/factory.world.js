@@ -1218,13 +1218,13 @@ RG.Factory.World = function() {
 
 function debugPrintConfAndTile(conf, tileLevel, tag) {
     if (conf.name === 'Iron hills') {
-        console.log(tag + ' XXYYZZ Creating iron hills connection now');
+        RG.diag(tag + ' Creating iron hills connection now');
         const tConns = tileLevel.getConnections();
         const mConns = tConns.filter(c => c.getName() === 'mountain');
-        console.log('\t## Ex. conns: ' + JSON.stringify(mConns));
+        RG.diag('\t## Ex. conns: ' + JSON.stringify(mConns));
         if (mConns.length > 0) {
             const target = mConns[0].getTargetLevel();
-            console.log('\t## Parent: ' + target.getParent().getName());
+            RG.diag('\t## Parent: ' + target.getParent().getName());
         }
     }
 }

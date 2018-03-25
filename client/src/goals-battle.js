@@ -207,8 +207,8 @@ class LevelGrid {
             for (let x = 0; x < this.gridCols; x++) {
                 row += JSON.stringify(this.grid[x][y]) + ' ||';
             }
-            console.log(row);
-            console.log('='.repeat(row.length));
+            RG.diag(row);
+            RG.diag('='.repeat(row.length));
         }
     }
 

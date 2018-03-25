@@ -351,7 +351,7 @@ Level.prototype.pickupItem = function(actor, x, y) {
     }
 };
 
-    /* Moves the given object to x,y. */
+/* Moves the given object to x,y. */
 Level.prototype.moveActorTo = function(obj, x, y) {
     const level = obj.getLevel();
     const [oX, oY] = [obj.getX(), obj.getY()];

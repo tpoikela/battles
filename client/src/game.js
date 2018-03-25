@@ -16,7 +16,6 @@ const GameMaster = require('./game.master');
 
 /* Top-level main object for the game.  */
 RG.Game.Main = function() {
-
     this._players = []; // List of players
     this._places = {}; // List of all places
     this._shownLevel = null; // One per game only

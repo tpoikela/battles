@@ -106,8 +106,8 @@ EventPool.prototype.getListeners = function(evtName) {
 
 EventPool.prototype.printListeners = function() {
     Reflect.ownKeys(this._listeners).forEach(evt => {
-        console.log(`Listeners for event ${evt}`);
-        console.log(this._listeners[evt]);
+        RG.diag(`Listeners for event ${evt}`);
+        RG.diag(this._listeners[evt]);
     });
 };
 

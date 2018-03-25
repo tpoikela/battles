@@ -142,8 +142,6 @@ const MenuWithQuit = function(args) {
 
     this.select = code => {
         const selection = Keys.codeToIndex(code);
-        console.log('MenuWithQuit selection ' + selection);
-        console.log(this.table);
         if (this.table.hasOwnProperty(selection)) {
             return this.table[selection][1];
         }

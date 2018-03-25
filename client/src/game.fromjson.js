@@ -214,7 +214,6 @@ RG.Game.FromJSON = function() {
             }
 
             // Create the memory (if any)
-            console.log(brainObj);
             const memObj = brainObj.getMemory();
             const memJSON = brainJSON.memory;
             if (memJSON) {
@@ -642,10 +641,10 @@ RG.Game.FromJSON = function() {
 
                 const targetStairsXY = connObj.targetStairs;
                 if (!targetStairsXY) {
-                    console.log(JSON.stringify(level, null, 1));
-                    console.log(connObj);
-                    console.log('Parent: ' + level.getParent().getName());
-                    console.log(JSON.stringify(s));
+                    RG.diag(JSON.stringify(level, null, 1));
+                    RG.diag(connObj);
+                    RG.diag('Parent: ' + level.getParent().getName());
+                    RG.diag(JSON.stringify(s));
                 }
 
                 const x = targetStairsXY.x;

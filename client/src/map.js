@@ -523,7 +523,16 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
             for (let x = 0; x < this.cols; x++) {
                 const cell = this._map[x][y];
                 const baseType = cell.getBaseElem().getType();
-                if (cell.getStairs() !== null) {row += '>';}
+                if (cell.hasActors()) {
+                    if (cell.getFirstActor().isPlayer()) {
+                        row += '@';
+                    }
+                    else {
+                        row += 'A';
+                    }
+                }
+                else if (cell.hasItems()) {row += 'I';}
+                else if (cell.getStairs() !== null) {row += '>';}
                 else if (cell.hasConnection()) {row += 'c';}
                 else if ((/floor/).test(baseType)) {row += '.';}
                 else if ((/water/).test(baseType)) {row += '~';}
@@ -534,7 +543,7 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
             }
             mapInASCII += row + '\n';
         }
-        console.log(mapInASCII);
+        RG.diag(mapInASCII);
     };
 
     /* Queries a row of cells. _optimizeForRowAccess must be called before this

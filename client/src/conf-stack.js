@@ -62,7 +62,7 @@ const ConfStack = function() {
 
     this.debug = function(msg) {
         if (debug.enabled) {
-            console.log(msg);
+            RG.diag(msg);
         }
     };
 

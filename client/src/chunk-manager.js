@@ -10,7 +10,7 @@ export const CREATE = Object.freeze(
     {EMPTY: 'EMPTY', CREATED: 'CREATED', POPULATED: 'POPULATED'});
 
 export function printTileConnections(msg, tileToConnect, id = -1) {
-    console.log(msg);
+    RG.diag(msg);
     if (typeof tileToConnect.getLevel === 'function') {
         if (tileToConnect.getLevel().getID() === id || id === -1) {
             const conns0 = tileToConnect.getLevel().getConnections();
@@ -412,7 +412,7 @@ export default class ChunkManager {
             }
             result += '\n';
         }
-        console.log(result);
+        RG.diag(result);
     }
 
     /* Converts current state into a single char. */

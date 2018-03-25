@@ -109,9 +109,7 @@ RG.Spell.SpellBook = function(actor) {
      * selection of spell casting. */
     this.getSelectionObject = () => {
         const powerSorted = _spells;
-        console.log(powerSorted);
         return {
-            // showMsg: () => RG.gameMsg(msg),
             select: function(code) {
                 const selection = Keys.codeToIndex(code);
                 if (selection < powerSorted.length) {

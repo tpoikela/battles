@@ -254,7 +254,7 @@ OW.createOverWorld = (conf = {}) => {
     // High-level overworld generation ends here
 
     if (printResult) {
-        console.log(overworld.mapToString());
+        RG.diag(overworld.mapToString());
     }
     return overworld;
 };
@@ -474,7 +474,7 @@ OW.Map.prototype.printBiomeMap = function() {
         result += rowStr;
     }
     result += '\n' + legend.join('\n');
-    console.log(result);
+    RG.diag(result);
 };
 
 //---------------------------------------------------------------------------
@@ -747,7 +747,7 @@ function printMap(map) {
         for (let x = 0; x < sizeX; x++) {
             line.push(map[x][y]);
         }
-        console.log(line.join(''));
+        RG.diag(line.join(''));
     }
 }
 /* Adds features like water, cities etc into the world. This feature only

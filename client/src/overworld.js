@@ -673,8 +673,8 @@ function addDungeonToSubLevel(owSubLevel, subLevel) {
             box = RG.Geometry.getBoxAround(xy[0], xy[1], 1);
         }
         catch (e) {
-            console.log(e);
-            console.log(freeXY);
+            RG.diag(e);
+            RG.diag(freeXY);
             map.debugPrintInASCII();
         }
 

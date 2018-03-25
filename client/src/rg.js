@@ -324,6 +324,10 @@ RG.warn = function(obj, fun, msg) {
 
 RG.diag = function(obj) {
     if (!this.suppressDiagnosticMessages) {
+        // Supposed to show the filename (of the caller)
+        // With bundling, this does not work very well
+        const linfo = ((new Error().stack).split('at ')[3]).trim();
+        console.info(linfo);
         console.info(obj);
     }
 };
@@ -1019,16 +1023,16 @@ RG.levelUpCombatStats = function(actor, nextLevel) {
 
 /* Prints the given object using console.log. Calls all accessor functions
  * given in 'funcs' list and prints their value. If no list is given, prints the
- * full object directly using console.log(obj). */
-RG.printObj = function(obj, funcs) {
+ * full object directly. */
+RG.printObj = function(obj, funcs, linfo) {
 
     const printVal = (value, func) => {
         if (typeof value === 'object') {
-            console.log('\t## ' + func);
-            console.log(value);
+            RG.diag('\t## ' + func, linfo);
+            RG.diag(value, linfo);
         }
         else {
-            console.log('\t## ' + func + ' -> ' + value);
+            RG.diag('\t## ' + func + ' -> ' + value, linfo);
         }
     };
 
@@ -1059,7 +1063,7 @@ RG.printObj = function(obj, funcs) {
         }
     }
     else {
-        console.log(obj);
+        RG.diag(obj, linfo);
     }
 };
 
@@ -1233,7 +1237,7 @@ RG.printMap = map => {
     if (rowByRow) {
         const sizeY = rowByRow.length;
         for (let y = 0; y < sizeY; y++) {
-            console.log(rowByRow[y].join(''));
+            RG.diag(rowByRow[y].join(''));
         }
     }
 
@@ -1432,15 +1436,15 @@ RG.ent = function(whatever) {
             const actor = level.getActors().find(a => a.getID() === whatever);
             if (actor) {
                 const name = actor.getName();
-                console.log(`RG.ent: Found ${name} with ID ${whatever}`);
-                console.log(JSON.stringify(actor));
+                RG.diag(`RG.ent: Found ${name} with ID ${whatever}`);
+                RG.diag(JSON.stringify(actor));
                 return actor;
             }
             const item = level.getItems().find(i => i.getID() === whatever);
             if (item) {
                 const name = item.getName();
-                console.log(`RG.ent: Item Found ${name} with ID ${whatever}`);
-                console.log(JSON.stringify(item));
+                RG.diag(`RG.ent: Item Found ${name} with ID ${whatever}`);
+                RG.diag(JSON.stringify(item));
                 return item;
             }
         }
@@ -1461,11 +1465,11 @@ RG.comp = function(compID, entID = -1) {
             console.log(`RG.comp: Found ${type} with ID ${compID}`);
             const json = comp.toJSON();
             if (json) {
-                console.log(JSON.stringify(json));
+                RG.diag(JSON.stringify(json));
             }
             else {
-                console.log('Not serialisable');
-                console.log(comp);
+                RG.diag('Not serialisable');
+                RG.diag(comp);
             }
             return comp;
         }

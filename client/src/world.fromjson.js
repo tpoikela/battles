@@ -239,7 +239,7 @@ export default class WorldFromJSON {
     dbg(msg) {
         if (debug.enabled) {
             const ind = ' '.repeat(this._IND);
-            console.log(ind + 'WorldFromJSON: ' + msg);
+            RG.diag(ind + 'WorldFromJSON: ' + msg);
         }
     }
 
@@ -249,8 +249,8 @@ export default class WorldFromJSON {
     }
 
     printKeys(msg, obj) {
-        console.log(msg);
-        console.log(Object.keys(obj));
+        RG.diag(msg);
+        RG.diag(Object.keys(obj));
     }
 
 }
