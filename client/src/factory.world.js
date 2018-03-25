@@ -104,7 +104,6 @@ const DungeonFeatures = function() {
         while (cells.length > 0 && numMinions > 0) {
             const currCell = cells.pop();
             --numMinions;
-            console.log('currCell: ' + JSON.stringify(currCell));
             const minion = parser.createRandomActor({func: minionFunc});
             if (minion) {
                 const [x, y] = [currCell.getX(), currCell.getY()];
