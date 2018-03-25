@@ -369,8 +369,8 @@ class RGActorRogue extends BaseActor {
     }
 
     _addFromCompList(compType, func) {
-        if (this.has(compType)) {
-            const compList = this.getList(compType);
+        const compList = this.getList(compType);
+        if (compList.length > 0) {
             return compList.reduce((acc, val) => {
                 return acc + val[func]();
             }, 0);
