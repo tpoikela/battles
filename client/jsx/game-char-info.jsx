@@ -96,7 +96,10 @@ export default class GameCharInfo extends Component {
 
   /* Returns the general character info tab for rendering. */
   renderCharInfoGeneral(actor) {
-      const actorClassName = actor.get('ActorClass').getClassName();
+      let actorClassName = 'None';
+      if (actor.has('ActorClass')) {
+          actorClassName = actor.get('ActorClass').getClassName();
+      }
       const expLevel = actor.get('Experience').getExpLevel();
       const expPoints = actor.get('Experience').getExp();
       const exploreInfo = this.getExploreInfo(actor);
@@ -153,13 +156,19 @@ export default class GameCharInfo extends Component {
 
   /* Returns the tab showing different players skills. */
   renderSkillsTab(actor) {
-      const skillComp = actor.get('Skills');
-      const skills = Object.keys(skillComp.getSkills());
-      const skillElem = skills.map(s => (
-        <li key={s}>
-          {s} L: {skillComp.getLevel(s)} P: {skillComp.getPoints(s)}
-        </li>
-      ));
+      let skillElem = null;
+      if (!actor.has('Skills')) {
+          skillElem = <li>Actor has no skills.</li>;
+      }
+      else {
+          const skillComp = actor.get('Skills');
+          const skills = Object.keys(skillComp.getSkills());
+          skillElem = skills.map(s => (
+            <li key={s}>
+              {s} L: {skillComp.getLevel(s)} P: {skillComp.getPoints(s)}
+            </li>
+          ));
+      }
       return (
         <div className='modal-body row' id='char-info-skills'>
           <div className='col-md-6' id='char-info-box'>
