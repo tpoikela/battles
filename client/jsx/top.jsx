@@ -3,7 +3,6 @@
 import React, {Component} from 'react';
 
 // Subcomponents for the GUI
-// import GameStats from './game-stats';
 import GameStartScreen from './game-start-screen';
 import GamePanel from './game-panel';
 import GameMenu from './game-menu';
@@ -27,7 +26,6 @@ RG.Game = require('../src/game');
 RG.Verify = require('../src/verify');
 
 const md5 = require('js-md5');
-const $ = require('jquery');
 
 const Screen = require('../gui/screen');
 const Persist = require('../src/persist');
@@ -138,6 +136,7 @@ class BattlesTop extends Component {
             world: worldConf
         };
 
+        this.keysEnabled = false;
         this.keyPending = false;
         this.autoModeKeyBuffer = [];
         this.ctrlMode = 'MANUAL';
@@ -151,7 +150,6 @@ class BattlesTop extends Component {
 
         this.state = {
             boardClassName: 'game-board-player-view',
-            creatingGame: false,
             playMode: 'OverWorld',
             equipSelected: null,
             gameLength: 'Medium',
@@ -281,13 +279,13 @@ class BattlesTop extends Component {
 
     /* Called when "Embark" button is clicked to create a new game.*/
     newGame() {
+        this.enableKeys();
         const startTime = new Date().getTime();
-        this.setState({creatingGame: true, showStartScreen: false});
+        this.hideScreen('StartScreen');
         this.createNewGameAsync().then(() => {
             const dur = new Date().getTime() - startTime;
             console.log(`Creating game took ${dur} ms`);
-            this.setState({render: true,
-                creatingGame: false});
+            this.setState({render: true});
         });
     }
 
@@ -323,7 +321,8 @@ class BattlesTop extends Component {
     /* Loads a saved game from a JSON. */
     loadGame(playerName) {
         if (playerName) {
-            this.setState({loadInProgress: true});
+            this.setState({showLoadScreen: false, showStartScreen: false,
+                loadInProgress: true});
 
             const persist = new Persist(playerName);
             persist.fromStorage().then(result => {
@@ -489,12 +488,27 @@ class BattlesTop extends Component {
     }
 
     componentDidMount() {
-      document.addEventListener('keypress', this.handleKeyDown, true);
-      $('#start-button').trigger('click');
+      // document.addEventListener('keypress', this.handleKeyDown, true);
     }
 
     componentWillUnMount() {
-      document.removeEventListener('keypress', this.handleKeyDown);
+      // document.removeEventListener('keypress', this.handleKeyDown);
+    }
+
+    enableKeys() {
+      if (!this.keysEnabled) {
+        console.log('Adding event listeners');
+        document.addEventListener('keypress', this.handleKeyDown, true);
+        this.keysEnabled = true;
+      }
+    }
+
+    disableKeys() {
+      if (this.keysEnabled) {
+        console.log('Removing event listeners');
+        document.removeEventListener('keypress', this.handleKeyDown);
+        this.keysEnabled = false;
+      }
     }
 
     isValidKey(keyCode) {
@@ -872,7 +886,7 @@ class BattlesTop extends Component {
     }
 
     GUICharInfo() {
-        $('#stats-button').trigger('click');
+      this.showScreen('CharInfo');
     }
 
     /* GameInventory should add a callback which updates the GUI (via props) */
@@ -925,7 +939,12 @@ class BattlesTop extends Component {
 
     /* Toggles the map view. */
     GUIMap() {
-        $('#map-player-button').trigger('click');
+      if (this.state.showMap) {
+        this.setViewType(VIEW_PLAYER);
+      }
+      else {
+        this.setViewType(VIEW_MAP);
+      }
     }
 
     GUIOverWorldMap() {
@@ -970,7 +989,7 @@ class BattlesTop extends Component {
         if (!this.gameState.useModeEnabled) {
             this.gameState.useModeEnabled = true;
             if (this.state.selectedItem === null) {
-                $('#inventory-button').trigger('click');
+                this.showScreen('Inventory');
             }
             RG.gameMsg('Select direction for using the item.');
         }
@@ -1001,6 +1020,7 @@ class BattlesTop extends Component {
 
     showScreen(type) {
         const key = 'show' + type;
+        this.disableKeys();
         if (this.state.hasOwnProperty(key)) {
           this.setState({[key]: true});
         }
@@ -1011,13 +1031,16 @@ class BattlesTop extends Component {
 
     hideScreen(type) {
         const key = 'show' + type;
+        this.enableKeys();
         this.setState({[key]: false});
     }
 
     toggleScreen(type) {
         const key = 'show' + type;
-        const value = this.state[key];
-        this.setState({[key]: !value});
+        const wasShown = this.state[key];
+        if (wasShown) {this.enableKeys();}
+        else {this.disableKeys();}
+        this.setState({[key]: !wasShown});
     }
 
     showStartScreen() {
@@ -1027,10 +1050,7 @@ class BattlesTop extends Component {
     }
 
     showLoadScreen() {
-        if (!this.state.showStartScreen) {
-            $('#load-button').trigger('click');
-            this.setState({showStartScreen: true});
-        }
+      this.setState({showLoadScreen: true});
     }
 
     //--------------------------------
