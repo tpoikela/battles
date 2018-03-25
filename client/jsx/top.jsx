@@ -515,13 +515,13 @@ class BattlesTop extends Component {
     handleKeyDown(evt) {
         const keyCode = typeof evt.which === 'number' ? evt.which : evt.keyCode;
         if (this.keyPending === false) {
-            if (this.isValidKey(keyCode)) {
+            // if (this.isValidKey(keyCode)) {
                 this.keyPending = true;
                 this.nextCode = keyCode;
                 if (!this.isGUICommand(keyCode)) {
                     this.gameState.isTargeting = false;
                 }
-            }
+            // }
         }
     }
 
