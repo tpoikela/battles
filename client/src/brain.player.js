@@ -97,13 +97,7 @@ class TargetingFSM {
     }
 
     nextTarget() {
-        if (this._targetList.length === 0) {
-            this._state = S_TARGETING;
-            this._targetList = this.getTargetList();
-            this.targetIndex = this.getCellIndexToTarget(this._targetList);
-            this.setSelectedCells(this._targetList[this.targetIndex]);
-        }
-        else {
+        if (this.hasTargets()) {
             ++this.targetIndex;
             if (this.targetIndex >= this._targetList.length) {
                 this.targetIndex = 0;
@@ -112,9 +106,18 @@ class TargetingFSM {
         }
     }
 
+    startTargeting() {
+        this._state = S_TARGETING;
+        this._targetList = this.getTargetList();
+        this.targetIndex = this.getCellIndexToTarget(this._targetList);
+        this.setSelectedCells(this._targetList[this.targetIndex]);
+    }
+
     cancelTargeting() {
         this._targetList = [];
         this._state = S_IDLE;
+        this.selectedCells = null;
+        this.targetIndex = -1;
     }
 
     getTargetList() {
@@ -131,7 +134,7 @@ class TargetingFSM {
     }
 
     prevTarget() {
-        if (this._targetList.length > 0) {
+        if (this.hasTargets()) {
             --this.targetIndex;
             if (this.targetIndex < 0) {
                 this.targetIndex = this._targetList.length - 1;
@@ -141,11 +144,13 @@ class TargetingFSM {
     }
 
     setSelectedCells(cells) {
-        if (!Array.isArray(cells)) {
-            this.selectedCells = [cells];
-        }
-        else {
-            this.selectedCells = cells;
+        if (cells) {
+            if (!Array.isArray(cells)) {
+                this.selectedCells = [cells];
+            }
+            else {
+                this.selectedCells = cells;
+            }
         }
     }
 
@@ -200,9 +205,13 @@ class TargetingFSM {
             return true;
         }
         else if (this._targetList) {
-            return this._targetList.length > 0;
+            return this.hasTargets();
         }
         return false;
+    }
+
+    hasTargets() {
+        return this._targetList.length > 0;
     }
 
     processKey(code) {
@@ -218,27 +227,46 @@ class TargetingFSM {
                 return this._brain.noAction();
             }
             else {
-                this.nextTarget();
+                this.startTargeting();
                 return this._brain.noAction();
             }
-        }
-        else if (RG.KeyMap.isNextTarget(code)) {
-            if (this.isTargeting()) {
-                this.nextTarget();
-                return this._brain.noAction();
-            }
-        }
-        else if (this.isTargeting() && RG.KeyMap.isPrevTarget(code)) {
-            this.prevTarget();
-            return this._brain.noAction();
         }
         else if (this.isTargeting()) {
-            this.cancelTargeting();
+            if (RG.KeyMap.isNextTarget(code)) {
+                this.nextTarget();
+            }
+            else if (RG.KeyMap.isPrevTarget(code)) {
+                this.prevTarget();
+            }
+            else {
+                this.cancelTargeting();
+            }
             return this._brain.noAction();
         }
         return FSM_NO_MATCH;
     }
 
+    /* Returns true if chosen target is within attack range. */
+    isTargetInRange() {
+        const cell = this.getTarget();
+        const actor = this._brain._actor;
+        if (cell && cell.getX) {
+            const [tx, ty] = [cell.getX(), cell.getY()];
+            const [ax, ay] = [actor.getX(), actor.getY()];
+            const path = RG.Geometry.getMissilePath(ax, ay, tx, ty);
+
+            const invEq = actor.getInvEq();
+            const missile = invEq.getEquipped('missile');
+            if (missile) {
+                const missRange = RG.getMissileRange(actor, missile);
+
+                if ((path.length - 1) <= missRange) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }
 
 /* This brain is used by the player actor. It simply handles the player input
@@ -457,14 +485,22 @@ class BrainPlayer {
      * doors. */
     tryToToggleDoor() {
         const cellsAround = RG.Brain.getCellsAroundActor(this._actor);
-        for (let i = 0; i < cellsAround.length; i++) {
-            if (cellsAround[i].hasDoor()) {
-                const door = cellsAround[i].getPropType('door')[0];
-                const comp = new RG.Component.OpenDoor();
-                comp.setDoor(door);
-                this._actor.add(comp);
-                return ACTION_ALREADY_DONE;
-            }
+        const doorCells = cellsAround.filter(c => c.hasDoor());
+        let doorCell = null;
+        if (doorCells.length === 1) {
+            doorCell = doorCells[0];
+        }
+        else if (doorCells.length > 1) {
+            // TODO implement direction choice
+            doorCell = RG.RAND.arrayGetRand(doorCells);
+        }
+
+        if (doorCell) {
+            const door = doorCells[0].getPropType('door')[0];
+            const comp = new RG.Component.OpenDoor();
+            comp.setDoor(door);
+            this._actor.add(comp);
+            return ACTION_ALREADY_DONE;
         }
         return this.cmdNotPossible('There are no doors to open or close');
     }
@@ -498,23 +534,7 @@ class BrainPlayer {
 
     /* Returns true if chosen target is within attack range. */
     isTargetInRange() {
-        const cell = this.getTarget();
-        if (cell && cell.getX) {
-            const [tx, ty] = [cell.getX(), cell.getY()];
-            const [ax, ay] = [this._actor.getX(), this._actor.getY()];
-            const path = RG.Geometry.getMissilePath(ax, ay, tx, ty);
-
-            const invEq = this._actor.getInvEq();
-            const missile = invEq.getEquipped('missile');
-            if (missile) {
-                const missRange = RG.getMissileRange(this._actor, missile);
-
-                if ((path.length - 1) <= missRange) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return this._fsm.isTargetInRange();
     }
 
     cancelTargeting() {
