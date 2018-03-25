@@ -110,7 +110,6 @@ class RGActorRogue extends BaseActor {
         this._brain.getMemory().addEnemyType('player');
 
         this._isPlayer = false;
-        // this._fovRange = RG.NPC_FOV_RANGE;
 
         this._invEq = new RG.Inv.Inventory(this);
         this._maxWeight = 10.0;
@@ -128,7 +127,9 @@ class RGActorRogue extends BaseActor {
     }
 
     /* Returns true if actor is a player.*/
-    isPlayer() {return this._isPlayer;}
+    isPlayer() {
+        return this._isPlayer || this.has('PlayerControlled');
+    }
 
     getFOVRange() {
         let range = this.get('Perception').getFOVRange();
@@ -251,7 +252,7 @@ class RGActorRogue extends BaseActor {
     /* Used when controlling other actors with the "real player" actor .*/
     setPlayerCtrl(isPlayer) {
         if (isPlayer) {
-            this._isPlayer = true;
+            this.add(new RG.Component.PlayerControlled());
             this._actualBrain = this._brain;
             this._brain = new RG.Brain.Player(this);
             if (!this.has('StatsMods')) {
@@ -263,7 +264,7 @@ class RGActorRogue extends BaseActor {
             this.add(new RG.Component.Possessed());
         }
         else {
-            this._isPlayer = false;
+            this.remove('PlayerControlled');
             this.remove('StatsMods');
             this.remove('CombatMods');
             this.remove('Possessed');
@@ -319,7 +320,7 @@ class RGActorRogue extends BaseActor {
             obj.isPlayer = true;
         }
         if (this._actualBrain) {
-            obj.actualBrain = this._actualBrain.toJSON();
+            obj.brain = this._actualBrain.toJSON();
         }
 
         return obj;
