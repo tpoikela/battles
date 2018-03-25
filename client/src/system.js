@@ -233,6 +233,9 @@ RG.System.BaseAction = function(compTypes) {
                 item.count -= 1;
             }
         }
+        else if (item.getCharges && item.getCharges() > 0) {
+            item.setCharges(item.getCharges() - 1);
+        }
         this._checkUseItemMsgEmit(ent, useItemComp);
     };
 
