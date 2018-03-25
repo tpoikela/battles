@@ -26,7 +26,7 @@ const Actors = [
         className: 'cell-actor-animal',
         attack: 1, defense: 1, hp: 5,
         range: 1, danger: 1, speed: 100, brain: 'Animal',
-        enemies: ['player', 'human']
+        enemies: ['player', 'human', 'dwarf']
     },
     {
         name: 'rat', char: 'r', base: 'animal'
