@@ -343,6 +343,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
                     case 'food': return new RG.Item.Food(obj.name);
                     case 'gold': return new RG.Item.Gold(obj.name);
                     case 'goldcoin' : return new RG.Item.GoldCoin(obj.name);
+                    case 'mineral': return new RG.Item.Mineral(obj.name);
                     case 'missile': return new RG.Item.Missile(obj.name);
                     case 'missileweapon':
                         return new RG.Item.MissileWeapon(obj.name);
