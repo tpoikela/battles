@@ -142,6 +142,11 @@ const DebugGame = function(fact, parser) {
         player.get('SpellPower').setPP(100);
         player.get('SpellPower').setMaxPP(100);
 
+        const itemRand = new RG.Factory.ItemRandomizer();
+        const runeProt = parser.createItem('rune of protection');
+        itemRand.adjustItem(runeProt, 100);
+        player.getInvEq().addItem(runeProt);
+
         return game;
     };
 
