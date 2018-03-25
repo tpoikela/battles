@@ -971,18 +971,7 @@ RG.Factory.World = function() {
         const tileLevel = tile.getLevel();
         debugPrintConfAndTile(conf, tileLevel, ' CALL 1');
 
-        let tileStairsX = -1;
-        let tileStairsY = -1;
-
-        if (RG.isNullOrUndef([conf.levelX, conf.levelY])) {
-            const freeAreaCell = tileLevel.getEmptyRandCell();
-            tileStairsX = freeAreaCell.getX();
-            tileStairsY = freeAreaCell.getY();
-        }
-        else {
-            tileStairsX = conf.levelX;
-            tileStairsY = conf.levelY;
-        }
+        const [tileSX, tileSY] = this.getTileStairsXY(tileLevel, conf);
 
         if (typeof zone.getEntrances === 'function') {
             const entrances = zone.getEntrances();
@@ -1003,21 +992,8 @@ RG.Factory.World = function() {
 
                     const zoneStairs = this.createNewZoneConnects(zone,
                         entryLevel);
-                    // Connection OK, remove the stairs, otherwise use the
-                    // existing entrance
-                    if (zoneStairs.length > 0) {
-                        const sX = entryStairs.getX();
-                        const sY = entryStairs.getY();
-
-                        // Stairs could've been removed by zone edge connection
-                        if (entryLevel.getElements().indexOf(entryStairs) >= 0) {
-                            if (!entryLevel.removeElement(entryStairs, sX, sY)) {
-                                RG.err('Factory.World', 'createAreaZoneConnection',
-                                    'Cannot remove entryStairs');
-                            }
-                        }
-                        entryStairs = zoneStairs;
-                    }
+                    entryStairs = this.getEntryStairs(entryLevel, entryStairs,
+                        zoneStairs);
                 }
 
                 let name = '';
@@ -1031,7 +1007,7 @@ RG.Factory.World = function() {
                 debugPrintConfAndTile(conf, tileLevel, ' CALL 2');
                 const tileStairs = new Stairs(name, tileLevel, entryLevel);
                 try {
-                    tileLevel.addStairs(tileStairs, tileStairsX, tileStairsY);
+                    tileLevel.addStairs(tileStairs, tileSX, tileSY);
                     tileStairs.connect(entryStairs);
                 }
                 catch (e) {
@@ -1039,15 +1015,7 @@ RG.Factory.World = function() {
                     throw e;
                 }
 
-                if (debug.enabled && zoneType === 'city') {
-                    conns = entryLevel.getConnections();
-                    let jsonStr = JSON.stringify(conns[0], null, 1);
-                    if (conns.length > 1) {
-                        jsonStr += JSON.stringify(conns[conns.length - 1], null, 1);
-                    }
-                    this.debug(`First/last conn: ${jsonStr}`);
-                    this.debug(`conn length after: ${conns.length}`);
-                }
+                this.debugPrintCityConns(zoneType, entryLevel);
             }
             else if (!conf.hasOwnProperty('connectToAreaXY')) {
                 const msg = `No entrances in ${zone.getHierName()}.`;
@@ -1074,6 +1042,48 @@ RG.Factory.World = function() {
             });
         }
 
+    };
+
+    /* Returns x,y coord for stairs placed on the tile level. */
+    this.getTileStairsXY = (level, conf) => {
+        let [tsX, tsY] = [conf.levelX, conf.levelY];
+        const isNull = RG.isNullOrUndef([tsX, tsY]);
+        if (isNull) {
+            const freeAreaCell = level.getEmptyRandCell();
+            tsX = freeAreaCell.getX();
+            tsY = freeAreaCell.getY();
+        }
+
+        let cell = level.getMap().getCell(tsX, tsY);
+        let watchdog = 100;
+        while (cell.hasConnection()) {
+            const freeAreaCell = level.getEmptyRandCell();
+            tsX = freeAreaCell.getX();
+            tsY = freeAreaCell.getY();
+            cell = level.getMap().getCell(tsX, tsY);
+            if (--watchdog <= 0) {break;}
+        }
+
+        return [tsX, tsY];
+    };
+
+    this.getEntryStairs = (entryLevel, entryStairs, zoneStairs) => {
+        // Connection OK, remove the stairs, otherwise use the
+        // existing entrance
+        if (zoneStairs.length > 0) {
+            const sX = entryStairs.getX();
+            const sY = entryStairs.getY();
+
+            // Stairs could've been removed by zone edge connection
+            if (entryLevel.getElements().indexOf(entryStairs) >= 0) {
+                if (!entryLevel.removeElement(entryStairs, sX, sY)) {
+                    RG.err('Factory.World', 'createAreaZoneConnection',
+                        'Cannot remove entryStairs');
+                }
+            }
+            return zoneStairs;
+        }
+        return entryStairs;
     };
 
     /* Processes each 'connectToAreaXY' object. Requires current zone and tile
@@ -1194,6 +1204,18 @@ RG.Factory.World = function() {
                 'passage', 'south', true);
         }
         return zoneStairs;
+    };
+
+    this.debugPrintCityConns = (zoneType, entryLevel) => {
+        if (debug.enabled && zoneType === 'city') {
+            const conns = entryLevel.getConnections();
+            let jsonStr = JSON.stringify(conns[0], null, 1);
+            if (conns.length > 1) {
+                jsonStr += JSON.stringify(conns[conns.length - 1], null, 1);
+            }
+            this.debug(`First/last conn: ${jsonStr}`);
+            this.debug(`conn length after: ${conns.length}`);
+        }
     };
 
     /* Adds a world ID to the given element. */
