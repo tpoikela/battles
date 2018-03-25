@@ -151,7 +151,18 @@ const Engine = function(eventPool) {
                 break; // if errors suppressed (testing), breaks the loop
             }
         }
+        if (!this.isGameOver()) {
+            this.setPlayer(this.nextActor);
+        }
 
+    };
+
+    this.getPlayer = function() {
+        return this.currPlayer;
+    };
+
+    this.setPlayer = function(player) {
+        this.currPlayer = player;
     };
 
     /* Simulates the game without a player.*/
