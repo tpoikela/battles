@@ -244,10 +244,11 @@ class TargetingFSM {
 /* This brain is used by the player actor. It simply handles the player input
  * but by having brain, player actor looks like other actors.  */
 class BrainPlayer {
+
     constructor(actor) {
         this._actor = actor;
         this._guiCallbacks = {}; // For attaching GUI callbacks
-        this._type = 'player';
+        this._type = 'Player';
         this._memory = new MemoryPlayer(actor);
         this.energy = 1; // Consumed energy per action
 
@@ -279,6 +280,10 @@ class BrainPlayer {
                 setMagic: 0
             }
         };
+    }
+
+    setActor(actor) {
+        this._actor = actor;
     }
 
     /* For given code, adds a GUI callback. When this keycode is given, a GUI
