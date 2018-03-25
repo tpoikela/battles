@@ -41,13 +41,15 @@ const levelSizes = {
 
 /* Used to add details like bosses and distinct room features into dungeon
  * levels. */
-const DungeonFeatures = function() {
+const DungeonFeatures = function(zoneType) {
+    this._zoneType = zoneType;
 
     /* Adds special features to the last level of the zone. */
     this.addLastLevelFeatures = function(nLevel, level, conf) {
         const exploreElem = new RG.Element.Exploration();
         const expPoints = 10 * (nLevel + 1) * conf.maxDanger;
         exploreElem.setExp(expPoints);
+        exploreElem.setData({zoneType: this._zoneType});
         level.addElement(exploreElem);
 
         const bossActor = this.generateBoss(nLevel, level, conf);
@@ -491,7 +493,7 @@ RG.Factory.World = function() {
                     level = this.factZone.createDungeonLevel(levelConf);
                     // For creating 'fixed' items and actors
                     this.addFixedFeatures(i, level, branch);
-                    const dungFeat = new DungeonFeatures();
+                    const dungFeat = new DungeonFeatures('dungeon');
                     if (i === (conf.nLevels - 1)) {
                         dungFeat.addLastLevelFeatures(i, level, levelConf);
                     }
@@ -755,7 +757,7 @@ RG.Factory.World = function() {
             let level = null;
             if (!this.id2levelSet) {
                 level = this.factZone.createSummitLevel(summitLevelConf);
-                const dungFeat = new DungeonFeatures();
+                const dungFeat = new DungeonFeatures('mountain');
                 if (i === (conf.nLevels - 1)) {
                     dungFeat.addLastLevelFeatures(i, level, summitLevelConf);
                 }
