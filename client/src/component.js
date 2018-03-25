@@ -936,6 +936,9 @@ RG.extend2(RG.Component.Event, RG.Component.Base);
 /* Can be added to actors when they're under player control. */
 RG.Component.PlayerControlled = UniqueTagComponent('PlayerControlled');
 
+/* Component added only to the actual player actor. */
+RG.Component.Player = UniqueTagComponent('Player');
+
 //--------------------------------------------
 // Comps that add or remove other components
 //--------------------------------------------
