@@ -773,13 +773,6 @@ RG.Brain.Human = function(actor) {
 };
 RG.extend2(RG.Brain.Human, RG.Brain.Rogue);
 
-/* Brain object used by the bearfolk. */
-RG.Brain.Bearfolk = function(actor) {
-    RG.Brain.Rogue.call(this, actor);
-    this.setType('Bearfolk');
-};
-RG.extend2(RG.Brain.Bearfolk, RG.Brain.Rogue);
-
 /* Brain object used by Spirit objects.*/
 RG.Brain.Spirit = function(actor) {
     RG.Brain.Rogue.call(this, actor);
