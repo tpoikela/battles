@@ -151,6 +151,16 @@ RG.Factory.ItemRandomizer = function() {
         _adjustWeapon(armour); // The same function works fine for this
     };
 
+    const _runeWeights = RG.getRuneChargeDistr();
+    const _adjustRune = rune => {
+        const charges = RG.RAND.getWeighted(_runeWeights);
+        rune.setCharges(charges);
+    };
+
+    /* const _adjustMineral = mineral => {
+
+    };*/
+
     /* LUT for functions to call on specific items.*/
     const _adjustFunctions = {
         food: _adjustFoodItem,
@@ -158,7 +168,9 @@ RG.Factory.ItemRandomizer = function() {
         missile: _adjustMissile,
         weapon: _adjustWeapon,
         armour: _adjustArmour,
-        ammo: _adjustMissile
+        ammo: _adjustMissile,
+        rune: _adjustRune
+        // mineral: _adjustMineral
     };
 
 };
