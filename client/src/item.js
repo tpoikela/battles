@@ -435,10 +435,6 @@ class RGItemRune extends ItemBase {
     getCharges() {return this._charges;}
     setCharges(charges) {this._charges = charges;}
 
-    useItem() {
-        // Various complex effects
-    }
-
     clone() {
         const rune = new RGItemRune(this.getName());
         rune.copy(this);
@@ -456,13 +452,18 @@ class RGItemRune extends ItemBase {
         return res;
     }
 
+    toString() {
+        let res = super.toString();
+        res += ` charges: ${this.getCharges()}`;
+        return res;
+    }
+
     toJSON() {
         const json = super.toJSON();
         json.setCharges = this.getCharges();
         return json;
     }
 }
-
 RG.Item.Rune = RGItemRune;
 
 //----------------------------------------------
