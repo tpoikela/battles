@@ -830,6 +830,24 @@ const Items = [
         value: value('gem', 500), weight: 0.2
     },
 
+    // RUNESTONES
+    {
+        name: 'RuneBase', dontCreate: true,
+        type: 'rune', char: '*',
+        className: 'cell-item-rune'
+    },
+    {
+        name: 'rune of healing', base: 'RuneBase',
+        use: {heal: {hp: '4d4'}}, value: value(100)
+    },
+    {
+        name: 'rune of protection', base: 'RuneBase',
+        use: {addComp: {
+            name: 'CombatMods', duration: '10d5 + 10',
+            setters: {setProtection: '2d5'}
+        }}
+    },
+
     // MINERALS
     {
         name: 'MineralBase', dontCreate: true,
