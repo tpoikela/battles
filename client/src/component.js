@@ -392,7 +392,7 @@ RG.Component.Communication = function() {
 RG.extend2(RG.Component.Communication, RG.Component.Base);
 
 /* Added to entities which are destroyed after use. */
-RG.Component.OneShot = TagComponent('OneShot');
+RG.Component.OneShot = UniqueTagComponent('OneShot');
 
 /* Entities with physical components have weight and size.*/
 RG.Component.Physical = UniqueDataComponent('Physical',
