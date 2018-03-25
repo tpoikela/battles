@@ -984,6 +984,9 @@ class BattlesTop extends Component {
                 RG.gameMsg(msg);
                 this.setState({selectedCell: cell});
             }
+            else {
+                RG.gameMsg(msg);
+            }
         }
     }
 
