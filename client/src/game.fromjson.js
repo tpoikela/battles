@@ -65,7 +65,6 @@ RG.Game.FromJSON = function() {
         const brain = player.getBrain();
         const memory = brain.getMemory();
         const memJSON = brainJSON.memory;
-        console.log(brainJSON);
         Object.keys(memJSON).forEach(setter => {
             memory[setter](memJSON[setter]);
         });
@@ -90,9 +89,9 @@ RG.Game.FromJSON = function() {
     };
 
     /* Restores all data for already created entity. */
-    this.restoreEntity = function(obj, entity) {
-        this.createBrain(obj.brain, entity);
-        this._addEntityFeatures(obj, entity);
+    this.restoreEntity = function(json, entity) {
+        this.createBrain(json.brain, entity);
+        this._addEntityFeatures(json, entity);
         return entity;
     };
 
@@ -205,6 +204,10 @@ RG.Game.FromJSON = function() {
         if (RG.Brain[type]) {
             const brainObj = new RG.Brain[type](ent);
             ent.setBrain(brainObj);
+            if (type === 'Player') {
+                this.restorePlayerBrain(ent, brainJSON);
+                return;
+            }
 
             if (brainJSON.constraint) {
                 brainObj.setConstraint(brainJSON.constraint);
