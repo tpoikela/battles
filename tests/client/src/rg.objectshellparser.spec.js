@@ -614,6 +614,14 @@ describe('Data query functions for objects', () => {
         expect(clonedKit.useItem).to.be.a.function;
 
     });
+
+    it('can create runes', () => {
+        const runeProt = parser.createEntity('rune of protection');
+        expect(runeProt).to.have.property('useItem');
+        expect(runeProt).to.have.property('useArgs');
+        console.log(runeProt.useArgs);
+        expect(runeProt.useArgs).to.have.property('setters');
+    });
 });
 
 describe('ObjectShell.Parser error handling', () => {
