@@ -18,11 +18,18 @@ export default class Entity {
     /* Gets component with given name. If entity has multiple of them, returns
      * the first found. */
     get(name) {
-        const compList = this.getList(name);
-        if (compList.length > 0) {
-            return compList[0];
+        const keys = Object.keys(this._comps);
+        for (let i = 0; i < keys.length; i++) {
+            if (this._comps[keys[i]]._type === name) {
+                return this._comps[keys[i]];
+            }
         }
         return null;
+    }
+
+    /* Fast lookup by ID only. Called must check the result. */
+    getByID(compID) {
+        return this._comps[compID];
     }
 
     getList(typeName) {
@@ -51,7 +58,6 @@ export default class Entity {
     has(nameOrId) {
         if (this._comps.hasOwnProperty(nameOrId)) {
             return true;
-
         }
         const compList = this.getList(nameOrId);
         return compList.length > 0;
