@@ -51,9 +51,6 @@ export default class GamePanel extends Component {
 }
 
 GamePanel.propTypes = {
-  saveGame: PropTypes.func.isRequired,
-  setViewSize: PropTypes.func.isRequired,
-  showLoadScreen: PropTypes.func.isRequired,
-  showStartScreen: PropTypes.func.isRequired
+  setViewSize: PropTypes.func.isRequired
 };
 
