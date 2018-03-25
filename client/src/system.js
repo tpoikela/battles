@@ -2244,8 +2244,13 @@ RG.System.Events = function(compTypes) {
     };
 
     this._handleItemPickedUp = (ent, evt, actor) => {
-        console.log('handleItemPickedUp called: ' + evt);
-        console.log('Perceiving actor: ' + actor.getName());
+        if (!actor.isEnemy(ent)) {
+            const cell = ent.getCell();
+            const perceiver = actor.getName();
+            const acting = ent.getName();
+            const msg = `${perceiver} saw ${acting} picking up an item.`;
+            RG.gameMsg({msg, cell});
+        }
     };
 
     this._handleActorDamaged = (ent, evt, actor) => {
@@ -2261,7 +2266,6 @@ RG.System.Events = function(compTypes) {
     };
 
     this._handleActorUsedStairs = (ent, evt, actor) => {
-        console.log('handleActorUsedStairs called: ' + evt);
         RG.gameMsg(`${actor.getName()} saw ${ent.getName()} using stairs.`);
     };
 
