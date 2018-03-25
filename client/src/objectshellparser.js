@@ -66,6 +66,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
         },
         items: {
             // Generic item functions
+            type: 'setType',
             value: 'setValue',
             weight: {comp: 'Physical', func: 'setWeight'},
 
