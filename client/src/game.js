@@ -576,6 +576,10 @@ RG.Game.Main = function() {
         RG.err('Game.Main', funcName, msg);
     };
 
+    this.entityPrint = () => {
+        RG.diag(Entity.num);
+    };
+
 }; // }}} Game.Main
 
 /* An object for saving the game in specified storage (local/etc..) or restoring
@@ -765,7 +769,6 @@ RG.Game.WinCondition = function(name) {
             }
         }
     };
-
 
 };
 
