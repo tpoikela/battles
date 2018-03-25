@@ -222,17 +222,17 @@ function testActorsFollowsPlayerUsingStairs(game) {
     l1.addActor(follower, player.getX(), player.getY() - 1);
     const observer = new RG.Actor.Rogue('Observer');
     l1.addActor(observer, player.getX(), player.getY() - 2);
-
     game.update(stairsKey);
 
     let l2Actors = l2.getActors();
     expect(l2Actors.length).to.equal(2);
     game.update(stairsKey);
+
     l2Actors = l2.getActors();
     expect(l2Actors.length).to.equal(0);
     game.update(stairsKey);
     l2Actors = l2.getActors();
-    expect(l2Actors.length).to.equal(2);
+    expect(l2Actors.length).to.be.within(2, 3);
 
 }
 
