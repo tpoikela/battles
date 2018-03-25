@@ -1055,21 +1055,15 @@ RG.System.Movement = function(compTypes) {
             const topItem = items[0];
             let topItemName = topItem.getName();
             if (topItem.count > 1) {
-                topItemName = topItem.count + ` ${topItemName}`;
-                if (!(/s$/).test(topItemName)) {
-                    topItemName += 's';
-                }
+                topItemName = `${topItemName} (x${topItem.count})`;
             }
 
             if (items.length > 1) {
                 RG.gameMsg('There are several items here. ' +
                     `You see ${topItemName} on top`);
             }
-            else if (topItem.count > 1) {
-                RG.gameMsg(`There are ${topItemName} on the floor`);
-            }
             else {
-                RG.gameMsg(topItemName + ' is on the floor');
+                RG.gameMsg(`You see ${topItemName}` + ' on the floor');
             }
             if (topItem.has('Unpaid')) {
                 if (topItem.count > 1) {RG.gameMsg('They are for sale');}
