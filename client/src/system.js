@@ -515,9 +515,16 @@ RG.System.Missile = function(compTypes) {
 
     this.finishMissileFlight = (ent, mComp, currCell) => {
         mComp.stopMissile(); // Target reached, stop missile
-        ent.remove('Missile');
+        ent.remove(mComp);
 
         const level = mComp.getLevel();
+        let alwaysDestroy = true;
+        if (!mComp.destroyItem) {
+            alwaysDestroy = false;
+            if (!ent.has('Indestructible')) {
+                mComp.destroyItem = this._isItemDestroyed(ent);
+            }
+        }
         if (!mComp.destroyItem) {
             let addedToStack = false;
 
@@ -536,6 +543,10 @@ RG.System.Missile = function(compTypes) {
                 level.addItem(ent, currCell.getX(), currCell.getY());
             }
         }
+        else if (!alwaysDestroy) {
+            const msg = `${ent.getName()} is destroyed!`;
+            RG.gameMsg({cell: currCell, msg});
+        }
 
         const args = {
             missile: mComp,
@@ -545,6 +556,32 @@ RG.System.Missile = function(compTypes) {
         };
         const animComp = new RG.Component.Animation(args);
         ent.add('Animation', animComp);
+    };
+
+    /* Returns true if the ammo/missile is destroyed. */
+    this._isItemDestroyed = ent => {
+        const name = ent.getName();
+        const prob = RG.RAND.getUniform();
+        if (ent.has('Ammo')) {
+            if ((/(magic|ruby|permaice)/i).test(name)) {
+                return prob > 0.95;
+            }
+            else if ((/(iron|steel)/i).test(name)) {
+                return prob > 0.90;
+            }
+            else {
+                return prob > 0.85;
+            }
+        }
+        else if ((/rock/i).test(name)) {
+            return prob > 0.95;
+        }
+        else if ((/(magic|ruby|permaice)/i).test(name)) {
+            return prob > 0.97;
+        }
+        else {
+            return prob > 0.95;
+        }
     };
 
     this._formatFiredMsg = (ent, att) => {
