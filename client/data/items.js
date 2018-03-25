@@ -817,6 +817,32 @@ const Items = [
         value: value('gem', 500), weight: 0.2
     },
 
+    // MINERALS
+    {
+        name: 'MineralBase', dontCreate: true,
+        type: 'mineral', char: ']'
+    },
+    {
+        name: 'iron ore', base: 'MineralBase',
+        weight: 0.3, value: value('mineral', 20),
+        className: 'cell-item-iron'
+    },
+    {
+        name: 'ruby glass ore', base: 'MineralBase',
+        weight: 0.1, value: value('mineral', 100),
+        className: 'cell-item-ruby-glass'
+    },
+    {
+        name: 'permaice ore', base: 'MineralBase',
+        weight: 0.4, value: value('mineral', 150),
+        className: 'cell-item-ice'
+    },
+    {
+        name: 'forium ore', base: 'MineralBase',
+        weight: 0.2, value: value('mineral', 200),
+        className: 'cell-item-magic'
+    },
+
     // SPECIAL ITEMS (not generated procedurally)
     {
         name: 'MagicalAmmoBase', noRandom: true,
