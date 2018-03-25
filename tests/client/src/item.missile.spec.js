@@ -60,6 +60,7 @@ const createSystems = () => {
 
 const createMissile = obj => {
     const mEnt = new RG.Item.Missile('missile');
+    mEnt.add(new RG.Component.Indestructible());
     const mComp = new RG.Component.Missile(obj.src);
     mComp.setDamage(obj.d);
     mEnt.add('Missile', mComp);
@@ -186,11 +187,19 @@ describe('How missile is fired and hits a wall', () => {
         const level = RG.FACT.createLevel('arena', 30, 30);
         const srcEnt = new Actor('archer');
         level.addActor(srcEnt, 1, 1);
+        const etherBeing = new Actor('spirit');
+        etherBeing.add(new RG.Component.Ethereal());
+        level.addActor(etherBeing, 1, 2);
+        const etherCell = etherBeing.getCell();
 
-        const mComp = createMissile({src: srcEnt, x: 1, y: 6, r: 4, d: 5});
+        for (let i = 0; i < 20; i++) {
+            const mComp = createMissile({src: srcEnt, x: 1, y: 4, r: 3, d: 5});
+            updateSystems(systems);
+            const targetCell = level.getMap().getCell(1, 4);
+            expect(targetCell.hasProp('items')).to.equal(true);
+            expect(etherCell.hasProp('items')).to.equal(false);
+        }
 
-        // Create a spirit and normal actor
-        // TODO
     });
 });
 
