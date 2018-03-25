@@ -15,6 +15,10 @@ export default class LevelSaveLoad extends Component {
     this.loadLevel = this.loadLevel.bind(this);
   }
 
+  shouldComponentUpdate() {
+      return false;
+  }
+
   /* Converts the rendered level to JSON and puts that into localStorage.*/
   saveLevel() {
     const json = this.props.objData.toJSON();
@@ -110,5 +114,4 @@ LevelSaveLoad.propTypes = {
   pretty: PropTypes.bool,
   savedObjName: PropTypes.string,
   setMsg: PropTypes.func
-
 };
