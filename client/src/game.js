@@ -67,7 +67,7 @@ RG.Game.Main = function() {
 
     /* Returns player(s) of the game.*/
     this.getPlayer = () => {
-        return this.currPlayer;
+        return this._engine.getPlayer();
     };
 
     /* Adds player to the game. By default, it's added to the first level if
@@ -87,7 +87,8 @@ RG.Game.Main = function() {
 
         if (levelOK) {
             this._engine.nextActor = player;
-            this.currPlayer = player;
+            this._engine.setPlayer(player);
+
             if (this._shownLevel === null) {
                 this._shownLevel = player.getLevel();
             }
