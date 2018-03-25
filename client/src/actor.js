@@ -109,8 +109,6 @@ class RGActorRogue extends BaseActor {
         this._brain = new RG.Brain.Rogue(this);
         this._brain.getMemory().addEnemyType('player');
 
-        this._isPlayer = false;
-
         this._invEq = new RG.Inv.Inventory(this);
         this._maxWeight = 10.0;
 
@@ -128,7 +126,7 @@ class RGActorRogue extends BaseActor {
 
     /* Returns true if actor is a player.*/
     isPlayer() {
-        return this._isPlayer || this.has('PlayerControlled');
+        return this.has('Player') || this.has('PlayerControlled');
     }
 
     getFOVRange() {
@@ -233,7 +231,6 @@ class RGActorRogue extends BaseActor {
     /* Marks actor as player. Cannot unset player.*/
     setIsPlayer(isPlayer) {
         if (isPlayer) {
-            this._isPlayer = isPlayer;
             this._brain = new RG.Brain.Player(this);
             if (!this.has('StatsMods')) {
                 this.add(new RG.Component.StatsMods());
@@ -241,6 +238,7 @@ class RGActorRogue extends BaseActor {
             if (!this.has('CombatMods')) {
                 this.add(new RG.Component.CombatMods());
             }
+            this.add(new RG.Component.Player());
             this.add(new RG.Component.SpellPower());
         }
         else {
@@ -316,7 +314,7 @@ class RGActorRogue extends BaseActor {
         if (this._spellbook) {
             obj.spellbook = this._spellbook.toJSON();
         }
-        if (this._isPlayer) {
+        if (this.has('Player')) {
             obj.isPlayer = true;
         }
         if (this._actualBrain) {
