@@ -599,7 +599,7 @@ RG.Component.Expiration.prototype.cleanup = function() {
     });
 };
 
-RG.Component.Indestructible = TagComponent('Indestructible');
+RG.Component.Indestructible = UniqueTagComponent('Indestructible');
 RG.Component.Ammo = TagComponent('Ammo');
 RG.Component.Flying = TagComponent('Flying');
 RG.Component.Undead = TagComponent('Undead');
