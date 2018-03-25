@@ -18,8 +18,9 @@ export default class Entity {
     /* Gets component with given name. If entity has multiple of them, returns
      * the first found. */
     get(name) {
+        ++Entity.num.get;
         const keys = Object.keys(this._comps);
-        for (let i = 0; i < keys.length; i++) {
+        for (let i = 0, len = keys.length; i < len; i++) {
             if (this._comps[keys[i]]._type === name) {
                 return this._comps[keys[i]];
             }
@@ -32,13 +33,16 @@ export default class Entity {
         return this._comps[compID];
     }
 
+    /* SLOW method to get comps of given type. Don't use in internal methods. */
     getList(typeName) {
+        ++Entity.num.getList;
         const comps = Object.values(this._comps);
         return comps.filter(comp => comp.getType() === typeName);
     }
 
     /* Adds a new component into the entity. */
     add(nameOrComp, comp) {
+        ++Entity.num.add;
         let compName = nameOrComp;
         let compObj = comp;
         if (typeof nameOrComp === 'object') {
@@ -56,11 +60,17 @@ export default class Entity {
     /* Returns true if entity has given component. Lookup by ID is much faster
      * than with name. */
     has(nameOrId) {
+        ++Entity.num.has;
         if (this._comps.hasOwnProperty(nameOrId)) {
             return true;
         }
-        const compList = this.getList(nameOrId);
-        return compList.length > 0;
+        const keys = Object.keys(this._comps);
+        for (let i = 0, len = keys.length; i < len; i++) {
+            if (this._comps[keys[i]]._type === nameOrId) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /* Removes given component type or component.
@@ -71,6 +81,7 @@ export default class Entity {
      *    b) Uses parseInt() to convert it to ID, then uses this ID.
      */
     remove(nameOrCompOrId) {
+        ++Entity.num.remove;
         if (typeof nameOrCompOrId === 'object') {
             const id = nameOrCompOrId.getID();
             if (this._comps.hasOwnProperty(id)) {
@@ -88,9 +99,9 @@ export default class Entity {
             }
         }
         else {
-            const compList = this.getList(nameOrCompOrId);
-            if (compList.length > 0) {
-                this.remove(compList[0]);
+            const compObj = this.get(nameOrCompOrId);
+            if (compObj) {
+                this.remove(compObj);
             }
             else {
                 const compID = parseInt(nameOrCompOrId, 10);
@@ -108,6 +119,7 @@ export default class Entity {
 
     /* Removes all components of the given type. */
     removeAll(nameOrComp) {
+        ++Entity.num.removeAll;
         let compName = nameOrComp;
         if (typeof nameOrComp === 'object') {
             compName = nameOrComp.getType();
@@ -140,4 +152,12 @@ Entity.createEntityID = () => {
 };
 
 Entity.getIDCount = () => Entity.idCount;
+
+Entity.num = {};
+Entity.num.add = 0;
+Entity.num.get = 0;
+Entity.num.getList = 0;
+Entity.num.has = 0;
+Entity.num.remove = 0;
+Entity.num.removeAll = 0;
 
