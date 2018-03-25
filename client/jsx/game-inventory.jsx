@@ -22,7 +22,8 @@ export default class GameInventory extends Component {
     this.setEquipSelected = this.setEquipSelected.bind(this);
     this.onChangeCount = this.onChangeCount.bind(this);
     this.state = {
-      count: 0
+        count: 0,
+        filter: 'All'
     };
   }
 
@@ -180,6 +181,7 @@ export default class GameInventory extends Component {
       ? activebuttonClass : disabledButtonClass;
 
     const useButtonText = this.getUseButtonText();
+    const itemTabs = this.getItemTabs(inv);
 
     return (
       <Modal
@@ -193,8 +195,10 @@ export default class GameInventory extends Component {
         <div className='modal-body row'>
 
           <div className='items-box col-md-6'>
+            {itemTabs}
             <GameItems
               eqWeight={eqWeight}
+              filter={this.state.filter}
               inv={inv}
               maxWeight={maxWeight}
               setSelectedItem={this.setSelectedItem}
@@ -253,8 +257,36 @@ export default class GameInventory extends Component {
     );
   }
 
+  getItemTabs(inv) {
+      const types = {All: true};
+      inv.getItems().forEach(item => {
+          types[item.getType()] = true;
+      });
+      const tabNames = Object.keys(types);
+      const tabElems = tabNames.map(name => {
+          let className = 'btn btn-secondary';
+          if (this.state.filter === name) {
+              className = 'btn btn-primary';
+          }
+          return (
+              <button
+                className={className}
+                key={name}
+                onClick={this.filterItems.bind(this, name)}
+              >{name}</button>
+          );
+      });
+      return (
+          <ul>{tabElems}</ul>
+      );
+  }
+
   toggleScreen(type) {
       this.props.toggleScreen(type);
+  }
+
+  filterItems(type) {
+      this.setState({filter: type});
   }
 
   getUseButtonText() {
