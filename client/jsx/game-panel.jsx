@@ -40,31 +40,6 @@ export default class GamePanel extends Component {
   render() {
     return (
       <div>
-        <button
-          className='btn btn-info'
-          data-target='#gameStartModal'
-          data-toggle='modal'
-          id='start-button'
-          onClick={this.props.showStartScreen}
-        >Start</button>
-        <button
-          className='btn btn-info'
-          data-target='#gameLoadModal'
-          data-toggle='modal'
-          id='load-button'
-          onClick={this.props.showLoadScreen}
-        >Load</button>
-        <button
-          className='btn btn-info'
-          id='save-button'
-          onClick={this.props.saveGame}
-        >Save</button>
-        <button
-          className='btn btn-info'
-          data-target='#gameHelpModal'
-          data-toggle='modal'
-          id='help-button'
-        >Help</button>
         <button onClick={this.setViewSizeXPlus}>+X</button>
         <button onClick={this.setViewSizeXNeg}>-X</button>
         <button onClick={this.setViewSizeYPlus}>+Y</button>

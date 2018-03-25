@@ -3,6 +3,8 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import ModalHeader from './modal-header';
 
+const Modal = require('react-bootstrap-modal');
+
 /* This component shows the game overworld map in a modal. */
 export default class GameOverWorldMap extends Component {
 
@@ -41,53 +43,54 @@ export default class GameOverWorldMap extends Component {
     }
 
     return (
-      <div
-        aria-hidden='true'
+      <Modal
         aria-labelledby='game-overworld-map-modal-label'
-        className='modal fade'
         id='gameOverWorldMapModal'
-        role='dialog'
-        tabIndex='-1'
+        large={true}
+        onHide={this.toggleScreen.bind(this, 'OWMap')}
+        show={this.props.showOWMap}
       >
-        <div className='modal-dialog modal-lg'>
-          <div className='modal-content'>
-            <ModalHeader
-              id='game-overworld-map-modal-label'
-              text={'Overworld'}
-            />
+        <ModalHeader
+          id='game-overworld-map-modal-label'
+          text={'Overworld'}
+        />
 
-            <div className='modal-body row'>
-              <div className='col-md-8'>
-                <pre className='game-overworld-map-pre'>
-                  {mapStr}
-                </pre>
-                <p>This map helps you to navigate in the world. It shows places
-                  of interest as well as the huge mountain walls blocking your
-                  passage.
-                </p>
-              </div>
-            </div>
-
-            <div className='modal-footer row'>
-              <div className='col-md-4'>
-                <button
-                  className='btn btn-secondary'
-                  data-dismiss='modal'
-                  type='button'
-                >Close</button>
-              </div>
-            </div>
-
+        <div className='modal-body row'>
+          <div className='col-md-8'>
+            <pre className='game-overworld-map-pre'>
+              {mapStr}
+            </pre>
+            <p>This map helps you to navigate in the world. It shows places
+              of interest as well as the huge mountain walls blocking your
+              passage.
+            </p>
           </div>
         </div>
-      </div>
+
+        <div className='modal-footer row'>
+          <div className='col-md-4'>
+            <button
+              className='btn btn-secondary'
+              onClick={this.toggleScreen.bind(this, 'OWMap')}
+              type='button'
+            >Close</button>
+          </div>
+        </div>
+
+      </Modal>
     );
+  }
+
+  toggleScreen(type) {
+    this.props.toggleScreen(type);
   }
 
 }
 
 GameOverWorldMap.propTypes = {
   ow: PropTypes.object,
-  playerOwPos: PropTypes.array
+  playerOwPos: PropTypes.array,
+  showOWMap: PropTypes.bool.isRequired,
+  toggleScreen: PropTypes.func.isRequired
 };
 

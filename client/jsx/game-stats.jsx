@@ -77,19 +77,19 @@ export default class GameStats extends Component {
           <li className='text-danger'>{selCellDescr}</li>
         </ul>
         {otherStatus}
+
         <button
           className='btn btn-xs btn-rg btn-info'
-          data-target='#inventoryModal'
-          data-toggle='modal'
           id='inventory-button'
+          onClick={this.toggleScreen.bind(this, 'Inventory')}
         >
           Inventory
         </button>
+
         <button
           className='btn btn-xs btn-rg btn-info'
-          data-target='#char-info-modal'
-          data-toggle='modal'
           id='stats-button'
+          onClick={this.toggleScreen.bind(this, 'CharInfo')}
         >
           CharInfo
         </button>
@@ -102,14 +102,17 @@ export default class GameStats extends Component {
         </button>
         <button
           className='btn btn-xs btn-rg btn-info'
-          data-target='#gameOverWorldMapModal'
-          data-toggle='modal'
           id='show-overworld-button'
+          onClick={this.toggleScreen.bind(this, 'OWMap')}
         >
           Overworld
         </button>
       </div>
     );
+  }
+
+  toggleScreen(type) {
+    this.props.toggleScreen(type);
   }
 
   getPlayerStatus(player) {
@@ -143,6 +146,7 @@ GameStats.propTypes = {
   player: PropTypes.object.isRequired,
   selectedItem: PropTypes.object,
   setViewType: PropTypes.func.isRequired,
-  selectedCell: PropTypes.object
+  selectedCell: PropTypes.object,
+  toggleScreen: PropTypes.func.isRequired
 };
 

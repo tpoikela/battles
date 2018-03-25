@@ -186,6 +186,7 @@ export default class GameInventory extends Component {
           aria-labelledby='inventory-modal-label'
           id='inventoryModal'
           large={true}
+          onHide={this.toggleScreen.bind(this, 'Inventory')}
           show={this.props.showInventory}
       >
         <ModalHeader id='inventory-modal-label' text='Inventory'/>

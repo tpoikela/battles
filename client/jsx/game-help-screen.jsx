@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import ModalHeader from './modal-header';
 
 const RG = require('../src/rg.js');
+const Modal = require('react-bootstrap-modal');
 
 /* Small helper component. */
 export const TextHelp = props => (
@@ -50,63 +51,67 @@ export default class GameHelpScreen extends Component {
 
   render() {
     return (
-      <div
-        aria-hidden='true'
-        aria-labelledby='game-help-modal-label'
-        className='modal fade'
-        id='gameHelpModal'
-        role='dialog'
-        tabIndex='-1'
+      <Modal
+          aria-labelledby='game-help-modal-label'
+          id='gameHelpModal'
+          large={true}
+          onHide={this.toggleScreen.bind(this, 'HelpScreen')}
+          show={this.props.showHelpScreen}
       >
-        <div className='modal-dialog modal-lg'>
-          <div className='modal-content'>
-            <ModalHeader id='game-help-modal-label' text={RG.gameTitle + 'Help'}/>
-            <div className='modal-body row'>
+        <ModalHeader id='game-help-modal-label' text={RG.gameTitle + 'Help'}/>
+        <div className='modal-body row'>
 
-              <div className='col-md-6'>
-                <p>To move around, use:</p>
-                <table className='table table-large mov-buttons-table'>
-                  <thead />
-                  <tbody>
-                    <tr>
-                      <td>{'\u2B09'} q</td>
-                      <td>{'\u2B06'} w</td>
-                      <td>{'\u2B08'} e</td>
-                    </tr>
-                    <tr>
-                      <td>{'\u2B05'} a</td>
-                      <td>Rest: s</td>
-                      <td>{'\u27A1'} d</td>
-                    </tr>
-                    <tr>
-                      <td>{'\u2B0B'} z</td>
-                      <td>{'\u2B07'} x</td>
-                      <td>{'\u2B0A'} c</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+          <div className='col-md-6'>
+            <p>To move around, use:</p>
+            <table className='table table-large mov-buttons-table'>
+              <thead />
+              <tbody>
+                <tr>
+                  <td>{'\u2B09'} q</td>
+                  <td>{'\u2B06'} w</td>
+                  <td>{'\u2B08'} e</td>
+                </tr>
+                <tr>
+                  <td>{'\u2B05'} a</td>
+                  <td>Rest: s</td>
+                  <td>{'\u27A1'} d</td>
+                </tr>
+                <tr>
+                  <td>{'\u2B0B'} z</td>
+                  <td>{'\u2B07'} x</td>
+                  <td>{'\u2B0A'} c</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-              <div className='col-md-6 help-info-buttons'>
-                {cmdDescr}
-              </div>
-            </div>
-
-            <div className='modal-footer row'>
-              <div className='col-md-6'>
-                <button
-                  className='btn btn-secondary'
-                  data-dismiss='modal'
-                  type='button'
-                >Close</button>
-              </div>
-            </div>
-
+          <div className='col-md-6 help-info-buttons'>
+            {cmdDescr}
           </div>
         </div>
-      </div>
+
+        <div className='modal-footer row'>
+          <div className='col-md-6'>
+            <button
+              className='btn btn-secondary'
+              type='button'
+              onClick={this.toggleScreen.bind(this, 'HelpScreen')}
+            >Close</button>
+          </div>
+        </div>
+
+      </Modal>
     );
   }
 
+  toggleScreen(type) {
+      this.props.toggleScreen(type);
+  }
+
+};
+
+GameHelpScreen.propTypes = {
+  showHelpScreen: PropTypes.bool.isRequired,
+  toggleScreen: PropTypes.func.isRequired
 };
 
