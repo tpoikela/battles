@@ -15,8 +15,10 @@ export default class GameTopMenu extends React.Component {
     }
 
     handleSelect(eventKey) {
+      const [cmd, type] = eventKey.split('#');
       console.log('eventKey: ' + eventKey);
-      this.props.menuCallback(eventKey);
+      console.log('cmd-type: ', cmd, type);
+      this.props.menuCallback(cmd, type);
     }
 
     render() {
@@ -24,11 +26,19 @@ export default class GameTopMenu extends React.Component {
       <div>
         <Nav activeKey='1' bsStyle='tabs' onSelect={this.handleSelect}>
           <NavDropdown eventKey='game' id='dropdown-game' title='Game' >
-            <MenuItem eventKey='game-start'>New</MenuItem>
-            <MenuItem eventKey='game-save'>Save</MenuItem>
-            <MenuItem eventKey='game-load'>Load</MenuItem>
-            <MenuItem eventKey='game-import'>Import</MenuItem>
-            <MenuItem eventKey='game-export'>Export</MenuItem>
+            <MenuItem eventKey='showScreen#StartScreen'>New</MenuItem>
+            <MenuItem eventKey='showScreen#LoadScreen'>Load</MenuItem>
+            <MenuItem eventKey='saveGame#saveGame'>Save</MenuItem>
+            <MenuItem eventKey='game-import'>Import JSON</MenuItem>
+            <MenuItem eventKey='game-export'>Export JSON</MenuItem>
+          </NavDropdown>
+          <NavDropdown eventKey='view' id='dropdown-view' title='View' >
+            <MenuItem eventKey='view-TestItem'>TestItem</MenuItem>
+          </NavDropdown>
+          <NavDropdown eventKey='help' id='dropdown-help' title='Help' >
+            <MenuItem eventKey='showScreen#HelpScreen'>Help</MenuItem>
+            <MenuItem eventKey='showScreen#ManualScreen'>Manual</MenuItem>
+            <MenuItem eventKey='showScreen#AboutScreen'>About</MenuItem>
           </NavDropdown>
         </Nav>
       </div>
