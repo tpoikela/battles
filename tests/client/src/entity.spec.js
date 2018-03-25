@@ -19,8 +19,7 @@ describe('Entity', () => {
         entity.add(testComp1);
     });
 
-    it('contains componets', () => {
-
+    it('contains components', () => {
         const compMap = entity.getComponents();
         const compList = Object.values(compMap);
         expect(compList.length).to.equal(2);
@@ -30,6 +29,9 @@ describe('Entity', () => {
 
         const combatComp = entity.get('CombatMods');
         expect(combatComp).not.to.be.empty;
+
+        const combatComp2 = entity.get('CombatMods');
+        expect(combatComp2.getID()).to.equal(combatComp.getID());
 
         const statComp = new RG.Component.StatsMods();
         expect(entity.remove.bind(entity, 'StatsMods')).
