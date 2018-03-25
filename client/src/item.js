@@ -15,6 +15,7 @@ RG.ITEM_WEAPON = 'weapon';
 RG.ITEM_ARMOUR = 'armour';
 RG.ITEM_SPIRITGEM = 'spiritgem';
 RG.ITEM_GOLD = 'gold';
+RG.ITEM_MINERAL = 'mineral';
 RG.ITEM_MISSILE = 'missile';
 RG.ITEM_MISSILE_WEAPON = 'missileweapon';
 RG.ITEM_AMMUNITION = 'ammo';
@@ -205,7 +206,6 @@ class RGItemCorpse extends ItemBase {
         this.setType(RG.ITEM_CORPSE);
     }
 }
-
 RG.Item.Corpse = RGItemCorpse;
 
 //------------------
@@ -822,7 +822,17 @@ class RGItemSpiritGem extends ItemBase {
         return json;
     }
 }
-
 RG.Item.SpiritGem = RGItemSpiritGem;
+
+//------------------
+/* RGItemMineral */
+//------------------
+class RGItemMineral extends ItemBase {
+    constructor(name) {
+        super(name);
+        this.setType(RG.ITEM_MINERAL);
+    }
+}
+RG.Item.Mineral = RGItemMineral;
 
 module.exports = RG.Item;
