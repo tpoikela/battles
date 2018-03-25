@@ -86,21 +86,21 @@ export default class LevelSaveLoad extends Component {
     }
   }
 
-    render() {
-      return (
-        <span>
-          <button
-            id='btn-save-level'
-            onClick={this.saveLevel}
-          >Save</button>
-          <input
-            id='level-file-input'
-            onChange={this.loadLevel}
-            type='file'
-          />
-        </span>
-      );
-    }
+  render() {
+    return (
+      <span>
+        <button
+          id='btn-save-level'
+          onClick={this.saveLevel}
+        >Save</button>
+        <input
+          id='level-file-input'
+          onChange={this.loadLevel}
+          type='file'
+        />
+      </span>
+    );
+  }
 }
 
 LevelSaveLoad.propTypes = {
