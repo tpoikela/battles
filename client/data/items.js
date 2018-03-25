@@ -537,7 +537,8 @@ const Items = [
     {
         name: 'Throwing axe of death', base: 'MissileBase',
         className: 'cell-item-magic',
-        attack: 5, damage: '2d10 + 3', range: 3, value: value(200), weight: 0.5
+        attack: 5, damage: '2d10 + 3', range: 3, value: value(200), weight: 0.5,
+        addComp: 'Indestructible'
     },
 
     // MISSILE WEAPONS
@@ -560,6 +561,12 @@ const Items = [
         weaponType: 'crossbow', weight: 2.0
     },
     {
+        name: 'Iron bow', base: 'MissileWeaponBase',
+        className: 'cell-item-iron',
+        attack: 1, range: 5, value: value(110),
+        weaponType: 'bow', weight: 1.5
+    },
+    {
         name: 'Steel bow', base: 'MissileWeaponBase',
         className: 'cell-item-steel',
         attack: 2, range: 5, value: value(150),
@@ -572,6 +579,12 @@ const Items = [
         weaponType: 'crossbow', weight: 3.0
     },
     {
+        name: 'Ruby glass bow', base: 'MissileWeaponBase',
+        className: 'cell-item-ruby-glass',
+        attack: 6, range: 6, value: value('ruby', 300),
+        weaponType: 'bow', weight: 0.3
+    },
+    {
         name: 'Double crossbow', base: 'MissileWeaponBase',
         className: 'cell-item-steel',
         attack: 0, range: 5, value: value(400), fireRate: 2,
@@ -580,13 +593,13 @@ const Items = [
     {
         name: 'Bow of Defense', base: 'MissileWeaponBase',
         className: 'cell-item-magic',
-        attack: 1, range: 4, defense: 6, value: value(500),
+        attack: 1, range: 4, defense: 6, value: value('magic', 500),
         weaponType: 'bow', weight: 1.0
     },
     {
         name: 'Rifle', base: 'MissileWeaponBase',
         className: 'cell-item-steel',
-        attack: 4, range: 7, value: value(500),
+        attack: 4, range: 7, value: value(350),
         weaponType: 'rifle', weight: 4.5
     },
     {
