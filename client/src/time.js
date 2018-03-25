@@ -99,6 +99,8 @@ RG.Time.Scheduler = function() { // {{{2
 
     // Internally use ROT scheduler
     this._scheduler = new ROT.Scheduler.Action();
+    this._scheduler._defaultDuration = 0;
+    this._scheduler._duration = 0;
 
     // Store the scheduled events
     this._events = [];
