@@ -768,10 +768,7 @@ class BattlesTop extends Component {
                 <div className='row game-panel-div'>
                     <div className='col-md-2'>
                         <GamePanel
-                            saveGame={this.saveGame}
                             setViewSize={this.setViewSize}
-                            showLoadScreen={this.showLoadScreen}
-                            showStartScreen={this.showStartScreen}
                         />
                         {gameValid &&
                         <div className='text-left game-stats-div'>
@@ -788,7 +785,7 @@ class BattlesTop extends Component {
                                 onLoadCallback={this.onLoadCallback}
                                 pretty={false}
                                 savedObjName={'saveGame_' + player.getName()}
-                                setMsg={msg => console.log(msg)}
+                                setMsg={this.showMsg}
                             />
                         </div>
                         }
@@ -1219,6 +1216,10 @@ class BattlesTop extends Component {
         console.error(`${cmd} not a function in Top`);
         console.error(`Called with args ${args}`);
       }
+    }
+
+    showMsg(msg) {
+        console.log('showMsg:', msg);
     }
 
 }
