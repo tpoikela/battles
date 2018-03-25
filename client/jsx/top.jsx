@@ -33,6 +33,8 @@ const Screen = require('../gui/screen');
 const Persist = require('../src/persist');
 const worldConf = require('../data/conf.world');
 
+const INV_SCREEN = 'Inventory';
+
 /* Contains logic that is not tightly coupled to the GUI.*/
 class TopLogic {
 
@@ -66,7 +68,6 @@ class TopLogic {
       RG.gameWarn('You cannot see there.');
     }
   }
-
 
   getAdjacentCell(player, code) {
     if (RG.KeyMap.inMoveCodeMap(code) || RG.KeyMap.isRest(code)) {
@@ -171,7 +172,12 @@ class BattlesTop extends Component {
             showEditor: false,
             showMap: false,
             showGameMenu: false,
-            showStartScreen: true
+            showStartScreen: true,
+            showHelpScreen: false,
+            showLoadScreen: false,
+            showOWMap: false,
+            showInventory: false,
+            showCharInfo: false
         };
 
         // Binding of callbacks
@@ -671,7 +677,7 @@ class BattlesTop extends Component {
             <div className='container main-div' id='main-div' >
                 <GameTopMenu menuCallback={this.topMenuCallback} />
 
-                {this.state.showStartScreen &&
+                {(this.state.showStartScreen || this.state.showLoadScreen) &&
                 <GameStartScreen
                     deleteGame={this.deleteGame}
                     loadGame={this.loadGame}
@@ -692,18 +698,31 @@ class BattlesTop extends Component {
                     setPlayMode={this.setPlayMode}
                     setSeedName={this.setSeedName}
                     settings={settings}
+                    showLoadScreen={this.state.showLoadScreen}
+                    showStartScreen={this.state.showStartScreen}
                     toggleEditor={this.toggleEditor}
+                    toggleScreen={this.toggleScreen}
                 />
                 }
 
-                <GameHelpScreen />
+                {this.state.showHelpScreen &&
+                  <GameHelpScreen
+                    showHelpScreen={this.state.showHelpScreen}
+                    toggleScreen={this.toggleScreen}
+                  />
+                }
 
-                <GameOverWorldMap
+                {this.state.showOWMap &&
+                  <GameOverWorldMap
                     ow={overworld}
                     playerOwPos={playerOwPos}
-                />
+                    showOWMap={this.state.showOWMap}
+                    toggleScreen={this.toggleScreen}
+                  />
+                }
 
                 {gameValid && !this.state.showEditor &&
+                 this.state.showInventory &&
                 <GameInventory
                     doInvCmd={this.doInvCmd}
                     eq={eq}
@@ -717,10 +736,17 @@ class BattlesTop extends Component {
                     selectEquipTop={this.selectEquipTop}
                     selectItemTop={this.selectItemTop}
                     setInventoryMsg={this.setInventoryMsg}
+                    showInventory={this.state.showInventory}
+                    toggleScreen={this.toggleScreen}
                 />
                 }
                 {gameValid && !this.state.showEditor &&
-                    <GameCharInfo player={player}/>
+                 this.state.showCharInfo &&
+                    <GameCharInfo
+                      player={player}
+                      showCharInfo={this.state.showCharInfo}
+                      toggleScreen={this.toggleScreen}
+                    />
                 }
 
                 {!this.state.showEditor &&
@@ -740,6 +766,7 @@ class BattlesTop extends Component {
                                 selectedItem={this.state.selectedItem}
                                 setViewType={this.setViewType}
                                 showMap={this.state.showMap}
+                                toggleScreen={this.toggleScreen}
                             />
                             <LevelSaveLoad
                                 objData={this.game}
@@ -792,9 +819,9 @@ class BattlesTop extends Component {
                 }
 
                 {this.state.showEditor &&
-                    <GameEditor
-                        toggleEditor={this.toggleEditor}
-                    />
+                  <GameEditor
+                      toggleEditor={this.toggleEditor}
+                  />
                 }
             </div>
         );
@@ -841,7 +868,7 @@ class BattlesTop extends Component {
     }
 
     GUIHelp() {
-        $('#help-button').trigger('click');
+      this.showScreen('HelpScreen');
     }
 
     GUICharInfo() {
@@ -893,7 +920,7 @@ class BattlesTop extends Component {
 
     /* Brings up the inventory.*/
     GUIInventory() {
-        $('#inventory-button').trigger('click');
+        this.toggleScreen(INV_SCREEN);
     }
 
     /* Toggles the map view. */
@@ -902,7 +929,7 @@ class BattlesTop extends Component {
     }
 
     GUIOverWorldMap() {
-        $('#show-overworld-button').trigger('click');
+      this.toggleScreen('OWMap');
     }
 
     /* Finds the nearest enemy and shows its name when 'l' is pressed. */
@@ -972,9 +999,29 @@ class BattlesTop extends Component {
         return null;
     }
 
+    showScreen(type) {
+        const key = 'show' + type;
+        if (this.state.hasOwnProperty(key)) {
+          this.setState({[key]: true});
+        }
+        else {
+          console.error(`showScreen: key ${key} not found in state`);
+        }
+    }
+
+    hideScreen(type) {
+        const key = 'show' + type;
+        this.setState({[key]: false});
+    }
+
+    toggleScreen(type) {
+        const key = 'show' + type;
+        const value = this.state[key];
+        this.setState({[key]: !value});
+    }
+
     showStartScreen() {
         if (!this.state.showStartScreen) {
-            $('#start-button').trigger('click');
             this.setState({showStartScreen: true});
         }
     }
@@ -1127,6 +1174,7 @@ class BattlesTop extends Component {
         this.doInvCmd = this.doInvCmd.bind(this);
 
         this.toggleEditor = this.toggleEditor.bind(this);
+        this.toggleScreen = this.toggleScreen.bind(this);
 
         this.showStartScreen = this.showStartScreen.bind(this);
         this.showLoadScreen = this.showLoadScreen.bind(this);
@@ -1137,9 +1185,14 @@ class BattlesTop extends Component {
         this.topMenuCallback = this.topMenuCallback.bind(this);
     }
 
-
-    topMenuCallback(eventKey) {
-      console.log('eventKey: ' + eventKey);
+    topMenuCallback(cmd, args) {
+      if (typeof this[cmd] === 'function') {
+        this[cmd](args);
+      }
+      else {
+        console.error(`${cmd} not a function in Top`);
+        console.error(`Called with args ${args}`);
+      }
     }
 
 }
