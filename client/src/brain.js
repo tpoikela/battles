@@ -633,7 +633,7 @@ RG.Brain.Rogue.prototype.getRandAdjacentFreeCell = function() {
 
 
 /* Brain used by most of the animals. TODO: Add some corpse eating behaviour. */
-RG.Brain.Animal = function(actor) {
+/* RG.Brain.Animal = function(actor) {
     RG.Brain.Rogue.call(this, actor);
     this.setType('Animal');
     this._memory.addEnemyType('player');
@@ -641,6 +641,7 @@ RG.Brain.Animal = function(actor) {
 
 };
 RG.extend2(RG.Brain.Animal, RG.Brain.Rogue);
+*/
 
 /* Brain used by most of the animals. TODO: Add some corpse eating behaviour. */
 RG.Brain.Demon = function(actor) {
@@ -875,6 +876,27 @@ RG.Brain.GoalOriented = function(actor) {
 };
 RG.extend2(RG.Brain.GoalOriented, RG.Brain.Rogue);
 
+/* Brain-object for animals. */
+RG.Brain.Animal = function(actor) {
+    RG.Brain.Rogue.call(this, actor);
+    this.setType('Animal');
+    this.goal = new GoalsTop.ThinkBasic(actor);
+    this._memory.addEnemyType('player');
+    this._memory.addEnemyType('human');
+
+    /* Must return function. */
+    this.decideNextAction = function() {
+        this._seenCached = null;
+        this.goal.process();
+        return ACTION_ALREADY_DONE;
+    };
+
+    this.getGoal = () => this.goal;
+    this.setGoal = goal => {this.goal = goal;};
+
+};
+RG.extend2(RG.Brain.Animal, RG.Brain.Rogue);
+
 /* Brain object for testing goal-based actors. */
 RG.Brain.Commander = function(actor) {
     RG.Brain.Rogue.call(this, actor);
@@ -884,7 +906,6 @@ RG.Brain.Commander = function(actor) {
     /* Must return function. */
     this.decideNextAction = function() {
         this._seenCached = null;
-        // const status = this.goal.process();
         this.goal.process();
         return ACTION_ALREADY_DONE;
     };
