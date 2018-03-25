@@ -16,9 +16,11 @@ import GameEditor from '../editor/game-editor';
 import GameCharInfo from './game-char-info';
 import LevelSaveLoad from '../editor/level-save-load';
 import CellClickHandler from '../gui/cell-click-handler';
+import GameTopMenu from './game-top-menu';
 
 import GameStats, {VIEW_MAP, VIEW_PLAYER} from './game-stats';
 
+const ROT = require('../../lib/rot');
 const RG = require('../src/rg');
 const Keys = require('../src/keymap');
 RG.Game = require('../src/game');
@@ -212,6 +214,7 @@ class BattlesTop extends Component {
             seed = parseInt(hash, 16);
         }
         RG.RAND.setSeed(seed);
+        ROT.RNG.setSeed(seed);
         this.setState({seedName: name});
     }
 
@@ -296,21 +299,9 @@ class BattlesTop extends Component {
                 this.setState({saveInProgress: false});
             });
         });
-
-
-        /* this.gameToJSON().then(persist.toStorage)
-            .then(() => {
-                this.gameSave.save(this.game, this.gameConf);
-                this.savedPlayerList = this.gameSave.getPlayersAsList();
-                RG.gameMsg('Your progress has been saved.');
-                this.setState({render: true, saveInProgress: false});
-            })
-            .catch(() => {
-                RG.gameDanger('Cannot save the game. Check devtools console.');
-                this.setState({render: true, saveInProgress: false});
-            });*/
     }
 
+    /* Converts the current game into JSON. */
     gameToJSON() {
         return new Promise((resolve, reject) => {
             try {
@@ -334,12 +325,6 @@ class BattlesTop extends Component {
 
                 // Pick JSON matching the selected player name
                 const json = result;
-                /* result.forEach(res => {
-                    if (res.player.name === playerName) {
-                        json = res;
-                    }
-                });*/
-
                 const restGame = fromJSON.createGame(json);
                 const player = restGame.getPlayer();
                 if (player !== null) {
@@ -369,6 +354,7 @@ class BattlesTop extends Component {
         this.game.setGUICallbacks(this.isGUICommand, this.doGUICommand);
         this.game.setAnimationCallback(this.playAnimation.bind(this));
         this.setDebugRefsToWindow();
+
         const player = this.game.getPlayer();
         this.gameState.visibleCells = player.getLevel().exploreCells(player);
         RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this.listener);
@@ -377,6 +363,7 @@ class BattlesTop extends Component {
         this.setState({render: true, loadInProgress: false});
     }
 
+    /* Deletes a saved game from the list. */
     deleteGame(name) {
         if (name) {
             const persist = new Persist(name);
@@ -419,6 +406,8 @@ class BattlesTop extends Component {
         this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
     }
 
+        /* Sets some global variables which ease up the debugging with console.
+         * */
     setDebugRefsToWindow() {
         window.RG = RG;
         window.GAME = this.game; // For debugging
@@ -462,8 +451,6 @@ class BattlesTop extends Component {
                 this.clickHandler = new CellClickHandler(this.game);
                 this.clickHandler.handleClick(x, y, cell);
 
-                // const player = this.game.getPlayer();
-                // const keyBuf = new CellClickHandler().moveTo(player, x, y);
                 if (this.clickHandler.hasKeys()) {
                     this.setAutoMode();
                 }
@@ -481,7 +468,6 @@ class BattlesTop extends Component {
         else {
             RG.warn('BattlesTop', 'onCellClick',
                 `No cell ${x},${y} in the map.`);
-
         }
     }
 
@@ -683,6 +669,7 @@ class BattlesTop extends Component {
 
         return (
             <div className='container main-div' id='main-div' >
+                <GameTopMenu menuCallback={this.topMenuCallback} />
 
                 {this.state.showStartScreen &&
                 <GameStartScreen
@@ -1147,6 +1134,12 @@ class BattlesTop extends Component {
         this.getNextTargetCell = this.getNextTargetCell.bind(this);
 
         this.onLoadCallback = this.onLoadCallback.bind(this);
+        this.topMenuCallback = this.topMenuCallback.bind(this);
+    }
+
+
+    topMenuCallback(eventKey) {
+      console.log('eventKey: ' + eventKey);
     }
 
 }
