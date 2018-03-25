@@ -816,6 +816,14 @@ RG.getGoldCoinCountDistr = nLevel => {
     return dist;
 };
 
+RG.getRuneChargeDistr = () => ({
+    1: 10,
+    2: 30,
+    3: 10,
+    4: 5,
+    5: 2
+});
+
 //--------------------------------
 // Value/gold/buy/sell functions
 //--------------------------------
