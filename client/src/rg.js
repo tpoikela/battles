@@ -525,8 +525,13 @@ RG.getMissileRange = function(att, miss) {
     let range = miss.getAttackRange();
     if (miss.has('Ammo')) {
         const missWeapon = att.getMissileWeapon();
-        const weaponRange = missWeapon.getAttackRange();
-        range += weaponRange;
+        if (missWeapon) {
+            const weaponRange = missWeapon.getAttackRange();
+            range += weaponRange;
+        }
+        else {
+            return 0;
+        }
     }
     if (att.has('LongRangeShot')) {range *= 2;}
     if (att.has('EagleEye')) {range += 2;}
