@@ -59,6 +59,16 @@ RG.Mixin.Ownable = (superclass) => class extends superclass {
         }
     }
 
+    /* Returns the top-level owner. Used mainly to recover actor owner of items
+     * inside inventory. */
+    getTopOwner() {
+        let owner = this._owner;
+        while (owner.getOwner) {
+            owner = owner.getOwner();
+        }
+        return owner;
+    }
+
     /* Returns the owner of this object.*/
     getOwner() {return this._owner;}
 
