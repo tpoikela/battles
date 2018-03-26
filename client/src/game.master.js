@@ -273,7 +273,8 @@ const GameMaster = function(game) {
             const battleLevel = battle.getLevel();
             let armyActors = army.getActors();
             const nActors = armyActors.length;
-            const pIndex = RG.RAND.getUniformInt(0, nActors);
+
+            const pIndex = RG.RAND.getUniformInt(0, nActors - 1);
             const replacedActor = armyActors[pIndex];
             const [pX, pY] = replacedActor.getXY();
 
@@ -357,12 +358,15 @@ const GameMaster = function(game) {
         };
     };
 
+    /* Used by the ChunkManager to serialize the battle when player move far
+     * enough from the tile. */
     this.unloadBattles = tileLevel => {
         const id = tileLevel.getID();
         if (this.battles.hasOwnProperty(id)) {
             const battle = this.battles[id];
             if (typeof battle.toJSON === 'function') {
                 if (!battle.isOver()) {
+                    // Important, otherwise cannot be GC'd
                     battle.removeListeners();
                 }
                 this.battles[id] = battle.toJSON();
