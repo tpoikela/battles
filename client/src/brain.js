@@ -290,7 +290,12 @@ RG.Brain.Base = function(actor) {
       RG.err('Brain.Base', 'decideNextAction',
           'Not implemented. Do in derived class');
     };
+};
 
+RG.Brain.NonSentient = function(actor) {
+    RG.Brain.Base.call(this, actor);
+    this.setType('NonSentient');
+    this.decideNextAction = () => NO_ACTION_TAKEN;
 };
 
 /* Brain is used by the AI to perform and decide on actions. Brain returns
