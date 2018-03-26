@@ -834,18 +834,47 @@ const Items = [
     {
         name: 'RuneBase', dontCreate: true,
         type: 'rune', char: '*',
-        className: 'cell-item-rune'
+        className: 'cell-item-rune', weight: 1.0
     },
     {
         name: 'rune of healing', base: 'RuneBase',
-        use: {heal: {hp: '4d4'}}, value: value(100)
+        use: {heal: {hp: '4d4'}}, value: value('rune', 100)
     },
     {
         name: 'rune of protection', base: 'RuneBase',
         use: {addComp: {
             name: 'CombatMods', duration: '10d5 + 10',
             setters: {setProtection: '2d5'}
-        }}
+        }},
+        value: value('rune', 100)
+    },
+    {
+        name: 'rune of defense', base: 'RuneBase',
+        use: {addComp: {
+            name: 'CombatMods', duration: '10d5 + 10',
+            setters: {setProtection: '2d5'}
+        }},
+        value: value('rune', 100)
+    },
+    {
+        name: 'rune of attack', base: 'RuneBase',
+        use: {addComp: {
+            name: 'CombatMods', duration: '10d5 + 10',
+            setters: {setAttack: '2d5'}
+        }},
+        value: value('rune', 100)
+    },
+    {
+        name: 'rune of tunneling', base: 'RuneBase',
+        use: 'digger',
+        value: value('rune', 100)
+    },
+    {
+        name: 'rune of cold', base: 'RuneBase',
+        use: {addComp: {
+            name: 'Coldness', duration: '100d5 + 50'
+        }},
+        value: value('rune', 100)
     },
 
     // MINERALS
