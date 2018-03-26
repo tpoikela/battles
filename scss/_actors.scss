@@ -95,6 +95,11 @@
     color: $red;
 }
 
+.cell-actor-forcefield {
+    background-color: $tangerine;
+    color: lighten($blue, 10%);
+}
+
 .cell-actor-wildling {
     background-color: $wild-pink;
     color: $brown;
