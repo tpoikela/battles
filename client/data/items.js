@@ -876,6 +876,11 @@ const Items = [
         }},
         value: value('rune', 100)
     },
+    {
+        name: 'rune of force', base: 'RuneBase',
+        use: {addEntity: {entityName: 'Forcefield'}},
+        value: value('rune', 100)
+    },
 
     // MINERALS
     {
