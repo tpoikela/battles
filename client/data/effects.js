@@ -208,7 +208,7 @@ RG.Effects = {
                 if (obj.hasOwnProperty('target')) {
                     const cell = obj.target;
                     if (cell.getBaseElem().getType() === 'wall') {
-                        const owner = this.getOwner();
+                        const owner = this.getTopOwner();
                         cell.setBaseElem(RG.ELEM.FLOOR);
                         RG.gameMsg(owner.getName() +
                             ' digs through stone with ' + this.getName());
@@ -271,10 +271,7 @@ RG.Effects = {
                     expiration.addEffect(poisonComp, poisonDur);
 
                     // Need owner to assign exp correctly
-                    let itemOwner = this.getOwner();
-                    while (itemOwner.getOwner) {
-                        itemOwner = itemOwner.getOwner();
-                    }
+                    const itemOwner = this.getTopOwner();
                     poisonComp.setSource(itemOwner);
 
                     poisonComp.setProb(this.useArgs.prob);
@@ -301,10 +298,7 @@ RG.Effects = {
                     const expiration = new RG.Component.Expiration();
                     expiration.addEffect(stunComp, stunDur);
 
-                    let itemOwner = this.getOwner();
-                    while (itemOwner.getOwner) {
-                        itemOwner = itemOwner.getOwner();
-                    }
+                    const itemOwner = this.getTopOwner();
                     stunComp.setSource(itemOwner);
 
                     actor.add('Stun', stunComp);
@@ -343,6 +337,7 @@ RG.Effects = {
         {
             name: 'addEntity',
             requires: ['entityName'],
+            optional: ['duration'],
             func: function(obj) {
                 const cell = getTargetCell(obj);
                 const parser = RG.ObjectShell.getParser();
@@ -356,6 +351,7 @@ RG.Effects = {
                             const fadingComp = new RG.Component.Fading();
                             const {duration} = this.useArgs;
                             fadingComp.setDuration(duration);
+                            entity.add(fadingComp);
                         }
                         createUseItemComp(this, cell);
                         return true;
@@ -368,7 +364,6 @@ RG.Effects = {
                 return false;
             }
         },
-
 
     ],
 
