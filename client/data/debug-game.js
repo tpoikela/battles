@@ -147,6 +147,10 @@ const DebugGame = function(fact, parser) {
         itemRand.adjustItem(runeProt, 100);
         player.getInvEq().addItem(runeProt);
 
+        const runeDig = parser.createItem('rune of tunneling');
+        itemRand.adjustItem(runeDig, 100);
+        player.getInvEq().addItem(runeDig);
+
         return game;
     };
 
