@@ -151,6 +151,10 @@ const DebugGame = function(fact, parser) {
         itemRand.adjustItem(runeDig, 100);
         player.getInvEq().addItem(runeDig);
 
+        const runeForce = parser.createItem('rune of force');
+        itemRand.adjustItem(runeForce, 100);
+        player.getInvEq().addItem(runeForce);
+
         return game;
     };
 
