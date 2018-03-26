@@ -1471,14 +1471,19 @@ RG.System.TimeEffects = function(compTypes) {
         }
     };
 
+    /* Decreases duration in Fading comp, then remove the entity if duration is
+     * 0. */
     const _applyFading = ent => {
         const fadingComp = ent.get('Fading');
         fadingComp.decrDuration();
         if (fadingComp.getDuration() <= 0) {
             if (RG.isActor(ent)) {
+                const cell = ent.getCell();
                 const level = ent.getLevel();
                 if (level.removeActor(ent)) {
                     RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: ent});
+                    const msg = `${ent.getName()} disappears.`;
+                    RG.gameMsg({cell, msg});
                 }
                 else {
                     const json = ent.toJSON();
