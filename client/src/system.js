@@ -327,9 +327,12 @@ RG.System.Attack = function(compTypes) {
             totalAtt += this.addAttackerBonus(att);
         }
 
-        let totalDef = def.getDefense();
-        if (def.has('Defender')) {
-            totalDef += this.addDefenderBonus(def);
+        let totalDef = 0;
+        if (def.getDefense) {
+            totalDef = def.getDefense();
+            if (def.has('Defender')) {
+                totalDef += this.addDefenderBonus(def);
+            }
         }
 
         const hitChance = totalAtt / (totalAtt + totalDef);
@@ -2329,16 +2332,30 @@ RG.System.Events = function(compTypes) {
         if (victim.getType() === perceiver.getType()) {
             if (!perceiver.isEnemy(victim) && !victim.isEnemy(perceiver)) {
                 if (perceiver.isFriend(aggressor)) {
+                    this._emitMsg('seems to dislike action', aggressor, victim,
+                        perceiver);
                     perceiver.getBrain().getMemory().removeFriend(aggressor);
                 }
                 else {
+                    this._emitMsg('shows hatred against action', aggressor,
+                        victim, perceiver);
                     perceiver.addEnemy(aggressor);
                 }
             }
         }
         else if (perceiver.isFriend(victim)) {
+            this._emitMsg('shows hatred against action', aggressor, victim,
+                perceiver);
             perceiver.addEnemy(aggressor);
         }
+    };
+
+    this._emitMsg = (msg, aggr, victim, perc) => {
+        const aggrName = aggr.getName();
+        const cell = victim.getCell();
+        let fullMsg = `${perc.getName()} ${msg} of ${aggrName} `;
+        fullMsg += ` towards ${victim.getName()}`;
+        RG.gameMsg({cell, fullMsg});
     };
 
 };
