@@ -680,6 +680,13 @@ const Actors = [
       char: '*', type: 'fire', brain: 'Fire',
       addComp: ['Ethereal', 'NonSentient']
     },
+    {
+      name: 'Forcefield', className: 'cell-actor-forcefield',
+      base: 'SpecialBase',
+      char: '*', type: 'forcefield', brain: 'NonSentient',
+      speed: 1, hp: 25, defense: 0,
+      addComp: ['Health', 'NonSentient', 'Combat']
+    },
 
     // UNIQUES
     {
