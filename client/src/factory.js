@@ -239,6 +239,7 @@ RG.Factory.Actor = function() {
             case 'GoalOriented': return new RG.Brain.GoalOriented(actor);
             // case 'Goblin': return new RG.Brain.Goblin(actor);
             case 'Human': return new RG.Brain.Human(actor);
+            case 'NonSentient': return new RG.Brain.NonSentient(actor);
             case 'SpellCaster': return new RG.Brain.SpellCaster(actor);
             case 'Summoner': return new RG.Brain.Summoner(actor);
             case 'Undead': return new RG.Brain.Undead(actor);
