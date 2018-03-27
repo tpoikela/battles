@@ -97,6 +97,11 @@ RG.Game.Main = function() {
             player.getLevel().onFirstEnter();
         }
 
+        // Used for debugging purposes only
+        if (levelOK && this._gameOver) {
+            this._gameOver = false;
+        }
+
         return levelOK;
     };
 
