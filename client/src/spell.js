@@ -28,7 +28,7 @@ RG.Spell = {};
 };*/
 
 /* Used for sorting the spells by spell power. */
-function compareSpells(s1, s2) {
+/* function compareSpells(s1, s2) {
     if (s1.getPower() < s2.getPower()) {
         return -1;
     }
@@ -37,6 +37,7 @@ function compareSpells(s1, s2) {
     }
     return 0;
 }
+*/
 
 /* Returns selection object for spell which is cast on self. */
 RG.Spell.getSelectionObjectSelf = (spell, actor) => {
@@ -299,10 +300,10 @@ RG.Spell.Ranged = function(name, power) {
     RG.Spell.Base.call(this, name, power);
 
     this._damageDie = RG.FACT.createDie('4d4 + 4');
-    let _range = 5;
+    this._range = 5;
 
-    this.getRange = () => _range;
-    this.setRange = range => {_range = range;};
+    this.getRange = () => this._range;
+    this.setRange = range => {this._range = range;};
     this.setDice = dice => {
         this._damageDie = dice[0];
     };
@@ -342,6 +343,36 @@ RG.Spell.GraspOfWinter = function() {
         const msg = 'Select a direction for grasping:';
         return RG.Spell.getSelectionObjectDir(this, actor, msg);
     };
+
+    this.aiShouldCastSpell = (args, cb) => {
+        const {actor, actorsAround} = args;
+        let strongest = null;
+        actorsAround.forEach(cell => {
+            const actors = cell.getActors();
+            actors.forEach(otherActor => {
+                if (actor.isEnemy(otherActor)) {
+                    const health = otherActor.get('Health');
+                    if (!strongest) {strongest = otherActor;}
+                    else {
+                        const maxHP = health.getMaxHP();
+                        const strHP = strongest.get('Health').getMaxHP();
+                        if (maxHP > strHP) {strongest = otherActor;}
+                    }
+                }
+            });
+        });
+
+        if (strongest) {
+            const dir = [actor.getX() - strongest.getX(),
+                actor.getY() - strongest.getY()
+            ];
+            const newArgs = {dir, src: actor};
+            cb(actor, newArgs);
+            return true;
+        }
+        console.log('Grasp returning false for AI');
+        return false;
+    };
 };
 RG.extend2(RG.Spell.GraspOfWinter, RG.Spell.Base);
 
@@ -350,6 +381,11 @@ RG.Spell.GraspOfWinter.prototype.toString = function() {
     str += ` D: ${this._damageDie.toString()}`;
     return str;
 };
+
+RG.Spell.BoltBase = function(name, power) {
+    RG.Spell.Ranged.call(this, name, power);
+};
+RG.extend2(RG.Spell.BoltBase, RG.Spell.Ranged);
 
 /* Class Frost bolt which shoots a ray to one direction from the caster. */
 RG.Spell.FrostBolt = function() {
@@ -490,6 +526,7 @@ RG.extend2(RG.Spell.IcyPrison, RG.Spell.Base);
 RG.Spell.SummonBase = function(name, power) {
     RG.Spell.Base.call(this, name, power);
     this.summonType = '';
+    this.nActors = 1;
 
     this.setSummonType = type => {
         this.summonType = type;
@@ -500,30 +537,35 @@ RG.Spell.SummonBase = function(name, power) {
 
         // Will be called by System.SpellEffect
         obj.callback = cell => {
-            if (cell.isFree()) {
-                const [x, y] = [cell.getX(), cell.getY()];
+            if (this.nActors === 1) {
+                if (cell.isFree()) {
+                    this._createAndAddActor(cell, args);
+                }
+            }
+            else {
                 const caster = args.src;
-                const level = caster.getLevel();
+                const map = caster.getLevel().getMap();
+                const [cX, cY] = caster.getXY();
+                const coord = RG.Geometry.getBoxAround(cX, cY, 2);
+                let nPlaced = 0;
+                let watchdog = 30;
 
-                // TODO create proper minion
-                const parser = RG.ObjectShell.getParser();
-
-                let minion = null;
-                if (this.summonType !== '') {
-                    minion = parser.createActor(this.summonType);
+                while (nPlaced < this.nActors) {
+                    const [x, y] = RG.RAND.arrayGetRand(coord);
+                    if (map.hasXY(x, y)) {
+                        const cell = map.getCell(x, y);
+                        if (cell.isFree()) {
+                            this._createAndAddActor(cell, args);
+                            ++nPlaced;
+                        }
+                    }
+                    if (--watchdog === 0) {break;}
                 }
-                else if (this.summonFunc) {
-                    minion = parser.createRandomActor({func: this.summonFunc});
+
+                if (nPlaced < this.nActors) {
+                    const msg = `${caster.getName()} has no space to summon`;
+                    RG.gameMsg({cell: caster.getCell(), msg});
                 }
-
-                level.addActor(minion, x, y);
-                minion.addFriend(caster);
-                caster.addFriend(minion);
-
-                const name = caster.getName();
-                const summonName = minion.getName();
-                const msg = `${name} summons ${summonName}!`;
-                RG.gameMsg({cell, msg});
             }
         };
 
@@ -557,6 +599,32 @@ RG.Spell.SummonBase = function(name, power) {
         return false;
     };
 
+    this._createAndAddActor = (cell, args) => {
+        const [x, y] = [cell.getX(), cell.getY()];
+        const caster = args.src;
+        const level = caster.getLevel();
+
+        // TODO create proper minion
+        const parser = RG.ObjectShell.getParser();
+
+        let minion = null;
+        if (this.summonType !== '') {
+            minion = parser.createActor(this.summonType);
+        }
+        else if (this.summonFunc) {
+            minion = parser.createRandomActor({func: this.summonFunc});
+        }
+
+        level.addActor(minion, x, y);
+        minion.addFriend(caster);
+        caster.addFriend(minion);
+
+        const name = caster.getName();
+        const summonName = minion.getName();
+        const msg = `${name} summons ${summonName}!`;
+        RG.gameMsg({cell, msg});
+    };
+
 };
 RG.extend2(RG.Spell.SummonBase, RG.Spell.Base);
 
@@ -583,6 +651,17 @@ RG.Spell.SummonAnimal = function() {
 
 };
 RG.extend2(RG.Spell.SummonAnimal, RG.Spell.SummonBase);
+
+/* A spell to summon an ice minion to fight for the caster. */
+RG.Spell.SummonDead = function() {
+    RG.Spell.SummonBase.call(this, 'SummonDead', 14);
+    this.nActors = 4;
+    this.summonFunc = actor => {
+        return (actor.type === 'undead' &&
+            actor.name !== this.getCaster().getName());
+    };
+};
+RG.extend2(RG.Spell.SummonDead, RG.Spell.SummonBase);
 
 /* PowerDrain spell which cancels enemy spell and gives power to the caster of
 * this spell. */
@@ -835,6 +914,7 @@ RG.Spell.addAllSpells = book => {
     book.addSpell(new RG.Spell.SpiritForm());
     book.addSpell(new RG.Spell.SummonAnimal());
     book.addSpell(new RG.Spell.SummonIceMinion());
+    book.addSpell(new RG.Spell.SummonDead());
 };
 
 module.exports = RG.Spell;
