@@ -118,7 +118,7 @@ const Actors = [
     {
         name: 'thunderbird', char: 'G', base: 'animal',
         attack: 7, defense: 7, damage: '2d8',
-        hp: 50, danger: 10, addComp: 'Flying', brain: 'SpellCaster',
+        hp: 45, danger: 10, addComp: 'Flying', brain: 'SpellCaster',
         spells: ['LightningArrow'], maxPP: 30, pp: 30
     },
     {
@@ -129,13 +129,19 @@ const Actors = [
     },
 
     // CONSTRUCTS ECT
-    /* {
-        name: 'ConstructBase', type: 'construct'
+    {
+        name: 'ConstructBase', type: 'construct',
+        dontCreate: true,
+        enemies: ['human', 'player']
     },
     {
-        name: 'air elemental',
+        name: 'air elemental', base: 'ConstructBase',
+        char: 'E', className: 'cell-actor-air',
+        attack: 5, defense: 5, protection: 3,
+        hp: 38, danger: 9, damage: '4d4',
         addComp: 'Flying',
-    },*/
+        brain: 'SpellCaster', spells: ['LightningBolt']
+    },
 
     // GOBLINS
     {
