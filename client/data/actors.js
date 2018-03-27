@@ -124,8 +124,18 @@ const Actors = [
     {
         name: 'manticore', char: 'M', base: 'animal',
         attack: 7, defense: 7, damage: '2d10',
-        hp: 50, danger: 10, addComp: 'Flying'
+        hp: 50, danger: 10, addComp: 'Flying',
+        onHit: [{addComp: 'Paralysis', duration: '1d4'}]
     },
+
+    // CONSTRUCTS ECT
+    /* {
+        name: 'ConstructBase', type: 'construct'
+    },
+    {
+        name: 'air elemental',
+        addComp: 'Flying',
+    },*/
 
     // GOBLINS
     {
@@ -147,8 +157,15 @@ const Actors = [
     },
     {
         name: 'goblin sergeant', base: 'goblin',
-        attack: 4, defense: 2, protection: 2, hp: 17,
+        damage: '1d7',
+        attack: 4, defense: 4, protection: 2, hp: 21,
         danger: 4
+    },
+    {
+        name: 'goblin summoner', base: 'goblin',
+        attack: 2, defense: 4, protection: 2, hp: 25,
+        brain: 'SpellCaster', spells: ['SummonAnimal'],
+        danger: 5
     },
     {
         name: 'goblin lord', base: 'goblin',
@@ -179,16 +196,27 @@ const Actors = [
     },
     {
       name: 'bearfolk fighter', base: 'BearfolkBase',
+      damage: '1d8',
       attack: 2, defense: 2, danger: 2, hp: 15
     },
     {
       name: 'bearfolk archer', base: 'BearfolkBase',
+      damage: '1d6',
       attack: 2, defense: 2, danger: 3, hp: 13,
       equip: ['Wooden bow', {name: 'Wooden arrow', count: 10}]
     },
     {
+        name: 'bearfolk elite', base: 'BearfolkBase',
+        damage: '2d6',
+        attack: 5, defense: 5, hp: 37, danger: 5,
+        onHit: [
+            {addComp: 'Stun', duration: '1d4 + 1'}
+        ]
+    },
+    {
       name: 'bearfolk king', base: 'BearfolkBase',
-      attack: 7, defense: 7, protection: 5, danger: 8, hp: 40
+      damage: '3d6', strength: 15,
+      attack: 7, defense: 7, protection: 5, danger: 8, hp: 75
     },
 
     // UNDEAD
@@ -515,6 +543,12 @@ const Actors = [
         addComp: 'CounterAttack'
     },
     {
+        name: 'catfolk wizard', base: 'CatfolkBase',
+        attack: 3, defense: 6, damage: '4d2', hp: 25, danger: 6,
+        brain: 'SpellCaster',
+        spells: ['EnergyArrow'], maxPP: 20, pp: 20
+    },
+    {
         name: 'catfolk warlord', base: 'CatfolkBase',
         attack: 4, defense: 8, damage: '6d2', hp: 35, danger: 7
     },
@@ -673,7 +707,8 @@ const Actors = [
 
     // SPECIAL ACTORS
     {
-        name: 'SpecialBase', noRandom: true, actorType: 'BaseActor'
+        name: 'SpecialBase', noRandom: true, actorType: 'BaseActor',
+        dontCreate: true
     },
     {
       name: 'Fire', className: 'cell-actor-fire', base: 'SpecialBase',
@@ -704,7 +739,7 @@ const Actors = [
     {
         name: 'Zamoned, Son of Frost', base: 'UniqueBase',
         char: '@', danger: 200, enemies: ['human'], type: 'finalboss',
-        hp: 150, pp: 100, brain: 'Archer',
+        hp: 150, pp: 100, brain: defaultBrain,
         strength: 20, accuracy: 25, agility: 35, willpower: 15, perception: 25,
         magic: 10, attack: 20, defense: 20, protection: 10,
         equip: ['Permaice axe', 'Permaice armour', 'Bow of Defense',
