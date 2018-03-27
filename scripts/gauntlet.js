@@ -18,15 +18,23 @@ let matchesLeftOut = 0;
 const nRounds = 2;
 
 const startTime = new Date().getTime();
-const names = Actors.filter(a => a.name);
+const shells = Actors.filter(a => !((/spirit/i).test(a.name)));
+
+const monitorActor = 'lich';
+const monitor = {
+    name: monitorActor,
+    won: {},
+    lost: {},
+    tied: {}
+};
 
 for (let n = 0; n < nRounds; n++) {
     console.error(`Starting round ${n}`);
-    for (let i = 0; i < names.length; i++) {
-        for (let j = 0; j < names.length; j++) {
+    for (let i = 0; i < shells.length; i++) {
+        for (let j = 0; j < shells.length; j++) {
             if (i !== j) {
-                const a1 = Actors[i];
-                const a2 = Actors[j];
+                const a1 = shells[i];
+                const a2 = shells[j];
                 if (validActorsForTest(a1, a2)) {
                     if (nMatches < matchLimit) {
                         runBattleTest(a1, a2);
@@ -69,7 +77,7 @@ function validActorsForTest(a1, a2) {
 function runBattleTest(a1, a2) {
     initHistograms(a1, a2);
 
-    let watchdog = 200;
+    let watchdog = 300;
     const arena = RG.FACT.createLevel('arena', 7, 7);
     const actor1 = parser.createActor(a1.name);
     const actor2 = parser.createActor(a2.name);
@@ -94,14 +102,32 @@ function runBattleTest(a1, a2) {
     if (watchdog === 0) {
         histogram[a1.name].tied += 1;
         histogram[a2.name].tied += 1;
+        if (a1.name === monitorActor) {
+            monitor.tied[a2.name] += 1;
+        }
+        else if (a2.name === monitorActor) {
+            monitor.tiedt[a1.name] += 1;
+        }
     }
     else if (h1.isAlive()) {
         histogram[a1.name].won += 1;
         histogram[a2.name].lost += 1;
+        if (a1.name === monitorActor) {
+            monitor.won[a2.name] += 1;
+        }
+        else if (a2.name === monitorActor) {
+            monitor.lost[a1.name] += 1;
+        }
     }
     else {
         histogram[a1.name].lost += 1;
         histogram[a2.name].won += 1;
+        if (a1.name === monitorActor) {
+            monitor.lost[a2.name] += 1;
+        }
+        else if (a2.name === monitorActor) {
+            monitor.won[a1.name] += 1;
+        }
     }
 
 }
@@ -119,6 +145,8 @@ function printOutputs() {
     console.log('======= RESULTS =======');
     console.log(JSON.stringify(histogram, null, 1));
     console.log('Matches still remaining: ' + matchesLeftOut);
+
+    console.log(JSON.stringify(monitor));
 
     const outputFile = 'actor_fight_results.csv';
     fs.writeFileSync(outputFile, 'Actor,Won,Tied,Lost\n');
