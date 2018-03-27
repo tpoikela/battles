@@ -291,7 +291,7 @@ RG.Factory.Game = function() {
             const xDiff = Math.abs(midX - x);
             for (let y = 0; y < sizeY; y++) {
                 const yDiff = sizeY - y;
-                const itemsPerLevel = 20 + xDiff + 2 * yDiff;
+                const itemsPerLevel = 7 + xDiff + 2 * yDiff;
                 const actorsPerLevel = (yDiff + 1) * 10 + 2 * xDiff;
 
                 const itemConf = {
