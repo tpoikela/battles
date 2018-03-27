@@ -188,7 +188,9 @@ class BattlesTop extends Component {
      * animation. */
     toggleEditor() {
         cancelAnimationFrame(this.frameID);
-        this.setState({showEditor: !this.state.showEditor});
+        const showStartScreen = this.state.showEditor;
+        this.setState({showStartScreen,
+            showEditor: !this.state.showEditor});
     }
 
     selectSaveGame(name) {
