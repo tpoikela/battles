@@ -298,7 +298,6 @@ RG.extend2(RG.Spell.DispelMagic, RG.Spell.RemoveComponent);
 //------------------------------------------------------
 RG.Spell.Ranged = function(name, power) {
     RG.Spell.Base.call(this, name, power);
-
     this._damageDie = RG.FACT.createDie('4d4 + 4');
     this._range = 5;
 
@@ -384,16 +383,10 @@ RG.Spell.GraspOfWinter.prototype.toString = function() {
 
 RG.Spell.BoltBase = function(name, power) {
     RG.Spell.Ranged.call(this, name, power);
-};
-RG.extend2(RG.Spell.BoltBase, RG.Spell.Ranged);
-
-/* Class Frost bolt which shoots a ray to one direction from the caster. */
-RG.Spell.FrostBolt = function() {
-    RG.Spell.Ranged.call(this, 'Frost bolt', 5);
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
-        obj.damageType = RG.DMG.ICE;
+        obj.damageType = this.damageType;
         obj.damage = this.getDice()[0].roll();
         const rayComp = new RG.Component.SpellRay();
         rayComp.setArgs(obj);
@@ -404,7 +397,6 @@ RG.Spell.FrostBolt = function() {
         RG.gameMsg('Select a direction for firing:');
         return {
             select: (code) => {
-                console.log('select() in FrostBolt');
                 const dir = KeyMap.getDir(code);
                 return this.getCastFunc(actor, {dir});
             },
@@ -425,16 +417,31 @@ RG.Spell.FrostBolt = function() {
                 cb(actor, args);
             }
             else {
-                RG.err('Spell.FrostBolt', 'aiShouldCastSpell',
+                RG.err('Spell.BoltBase', 'aiShouldCastSpell',
                     'No callback function given!');
             }
             return true;
         }
         return false;
     };
-
 };
-RG.extend2(RG.Spell.FrostBolt, RG.Spell.Ranged);
+RG.extend2(RG.Spell.BoltBase, RG.Spell.Ranged);
+
+/* Class Frost bolt which shoots a ray to one direction from the caster. */
+RG.Spell.FrostBolt = function() {
+    RG.Spell.BoltBase.call(this, 'Frost bolt', 5);
+    this.damageType = RG.DMG.ICE;
+};
+RG.extend2(RG.Spell.FrostBolt, RG.Spell.BoltBase);
+
+/* Class Frost bolt which shoots a ray to one direction from the caster. */
+RG.Spell.LightningBolt = function() {
+    RG.Spell.BoltBase.call(this, 'Lightning bolt', 8);
+    this.damageType = RG.DMG.LIGHTNING;
+    this.setRange(6);
+    this.setDice([RG.FACT.createDie('6d3 + 3')]);
+};
+RG.extend2(RG.Spell.LightningBolt, RG.Spell.BoltBase);
 
 /* Ice shield increase the defense of the caster temporarily. */
 RG.Spell.IceShield = function() {
@@ -908,6 +915,7 @@ RG.Spell.addAllSpells = book => {
     book.addSpell(new RG.Spell.IceShield());
     book.addSpell(new RG.Spell.IcyPrison());
     book.addSpell(new RG.Spell.LightningArrow());
+    book.addSpell(new RG.Spell.LightningBolt());
     book.addSpell(new RG.Spell.MindControl());
     book.addSpell(new RG.Spell.Paralysis());
     book.addSpell(new RG.Spell.PowerDrain());
