@@ -295,7 +295,8 @@ const Actors = [
     {
         name: 'lich', char: 'L', base: 'UndeadBase',
         attack: 4, defense: 4, damage: '1d8', danger: 10,
-        hp: 50, brain: 'Summoner'
+        hp: 50, brain: 'SpellCaster',
+        spells: ['GraspOfWinter', 'SummonDead'], maxPP: 50, pp: 50
     },
 
     // DEMONS AND WINTRY BEINGS
