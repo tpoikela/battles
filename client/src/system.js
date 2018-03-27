@@ -2355,7 +2355,7 @@ RG.System.Events = function(compTypes) {
         const cell = victim.getCell();
         let fullMsg = `${perc.getName()} ${msg} of ${aggrName} `;
         fullMsg += ` towards ${victim.getName()}`;
-        RG.gameMsg({cell, fullMsg});
+        RG.gameMsg({cell, msg: fullMsg});
     };
 
 };
