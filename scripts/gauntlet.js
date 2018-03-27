@@ -103,30 +103,36 @@ function runBattleTest(a1, a2) {
         histogram[a1.name].tied += 1;
         histogram[a2.name].tied += 1;
         if (a1.name === monitorActor) {
-            monitor.tied[a2.name] += 1;
+            if (!monitor.tied[a2.name]) {monitor.tied[a2.name] = 1;}
+            else {monitor.tied[a2.name] += 1;}
         }
         else if (a2.name === monitorActor) {
-            monitor.tiedt[a1.name] += 1;
+            if (!monitor.tied[a1.name]) {monitor.tied[a1.name] = 1;}
+            else {monitor.tied[a1.name] += 1;}
         }
     }
     else if (h1.isAlive()) {
         histogram[a1.name].won += 1;
         histogram[a2.name].lost += 1;
         if (a1.name === monitorActor) {
-            monitor.won[a2.name] += 1;
+            if (!monitor.won[a2.name]) {monitor.won[a2.name] = 1;}
+            else {monitor.won[a2.name] += 1;}
         }
         else if (a2.name === monitorActor) {
-            monitor.lost[a1.name] += 1;
+            if (!monitor.lost[a1.name]) {monitor.lost[a1.name] = 1;}
+            else {monitor.lost[a1.name] += 1;}
         }
     }
     else {
         histogram[a1.name].lost += 1;
         histogram[a2.name].won += 1;
         if (a1.name === monitorActor) {
-            monitor.lost[a2.name] += 1;
+            if (!monitor.lost[a2.name]) {monitor.lost[a2.name] = 1;}
+            else {monitor.lost[a2.name] += 1;}
         }
         else if (a2.name === monitorActor) {
-            monitor.won[a1.name] += 1;
+            if (!monitor.won[a1.name]) {monitor.won[a1.name] = 1;}
+            else {monitor.won[a1.name] += 1;}
         }
     }
 
@@ -146,7 +152,7 @@ function printOutputs() {
     console.log(JSON.stringify(histogram, null, 1));
     console.log('Matches still remaining: ' + matchesLeftOut);
 
-    console.log(JSON.stringify(monitor));
+    console.log(JSON.stringify(monitor, null, 1));
 
     const outputFile = 'actor_fight_results.csv';
     fs.writeFileSync(outputFile, 'Actor,Won,Tied,Lost\n');
