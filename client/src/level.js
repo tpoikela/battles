@@ -537,6 +537,23 @@ Level.prototype.hasExtras = function() {
         Object.keys(this._extras).length > 0;
 };
 
+/* Returns the bounding box of the level (upper-left and lower-right
+ * coordinates). */
+Level.prototype.getBbox = function() {
+    return {
+        ulx: 0, uly: 0,
+        lrx: this.getMap().cols - 1,
+        lry: this.getMap().rows - 1
+    };
+};
+
+Level.prototype.getColsRows = function() {
+    return [
+        this.getMap().cols,
+        this.getMap().rows
+    ];
+};
+
 Level.createLevelID = () => {
     const id = Level.idCount;
     Level.idCount += 1;
