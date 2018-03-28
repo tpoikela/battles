@@ -370,6 +370,12 @@ const Actors = [
         hp: 30, danger: 10, brain: demonBrain, base: 'WinterBeingBase'
     },
     {
+        name: 'Harbinger of winter', type: 'demon', char: '@',
+        attack: 5, defense: 5, protection: 2, damage: '3d3', range: 1,
+        hp: 35, danger: 10, brain: 'SpellCaster', base: 'WinterBeingBase',
+        spells: ['GraspOfWinter'], maxPP: 30, pp: 30
+    },
+    {
         name: 'Stormrider', type: 'demon', char: '&',
         attack: 6, defense: 6, protection: 3, damage: '4d3', range: 1,
         hp: 40, danger: 12, brain: demonBrain, base: 'WinterBeingBase',
