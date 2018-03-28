@@ -166,6 +166,8 @@ describe('ChunkManager', function() {
 
         let json = game.toJSON();
 
+        console.log(json.gameMaster.battles);
+
         let fromJSON = new RG.Game.FromJSON();
         fromJSON.setChunkMode(true);
 
@@ -187,7 +189,9 @@ describe('ChunkManager', function() {
         levels = newGame.getLevels();
         expect(levels.length).to.equal(11);
 
-        battle = Object.values(newGameMaster.battles)[0];
+        const masterBattles = newGameMaster.battles;
+        const battleArrays = Object.values(masterBattles);
+        battle = battleArrays[0][0];
         const battleLevel = battle.getLevel();
         expect(battleLevel).to.exist;
 
