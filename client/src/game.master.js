@@ -23,6 +23,10 @@ const GameMaster = function(game) {
     // Lookup table for battles by level ID
     this.battles = {};
 
+    this.setBattles = battles => {
+        this.battles = battles;
+    };
+
     this.battlesDone = {};
 
     this.setPool = pool => {this.pool = pool;};
@@ -90,6 +94,7 @@ const GameMaster = function(game) {
             battleConf.levelType = levelType;
 
             if (!this.battles.hasOwnProperty(parentId)) {
+                this.battles[parentId] = [];
                 const battle = this.fact.createBattle(parentLevel, battleConf);
                 this.addBattle(parentId, battle);
                 this.game.addBattle(this.getBattle(parentId), parentId);
@@ -159,16 +164,16 @@ const GameMaster = function(game) {
     };
 
     this.addBattle = function(parentId, battle) {
-        this.battles[parentId] = battle;
+        this.battles[parentId].push(battle);
     };
 
     this.getBattle = function(parentId) {
-        const battle = this.battles[parentId];
+        const battle = this.battles[parentId][0];
         return battle;
     };
 
     this.getBattles = function(parentId) {
-        return [this.battles[parentId]];
+        return this.battles[parentId];
     };
 
     /* Returns true if the actor can still enter the battle as an army member.
@@ -364,12 +369,15 @@ const GameMaster = function(game) {
                     RG.warn('Game.Master', 'toJSON',
                         `Battle for ID ${id} exists already`);
                 }
+                else {
+                    battles[id] = [];
+                }
 
                 if (typeof battle.toJSON === 'function') {
-                    battles[id] = battle.toJSON();
+                    battles[id].push(battle.toJSON());
                 }
                 else if (battle.name) {
-                    battles[id] = battle;
+                    battles[id].push(battle);
                 }
                 else {
                     RG.err('GameMaster', 'toJSON',
@@ -389,13 +397,14 @@ const GameMaster = function(game) {
         const id = tileLevel.getID();
         if (this.battles.hasOwnProperty(id)) {
             const battles = this.getBattles(id);
+            this.battles[id] = [];
             battles.forEach(battle => {
                 if (typeof battle.toJSON === 'function') {
                     if (!battle.isOver()) {
                         // Important, otherwise cannot be GC'd
                         battle.removeListeners();
                     }
-                    this.battles[id] = battle.toJSON();
+                    this.battles[id].push(battle.toJSON());
                 }
                 else {
                     RG.err('GameMaster', 'unloadBattle',

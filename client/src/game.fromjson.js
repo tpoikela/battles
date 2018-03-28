@@ -676,21 +676,27 @@ RG.Game.FromJSON = function() {
         const gameMaster = game.getGameMaster();
         const battles = {};
         Object.keys(json.battles).forEach(id => {
-            if (id2level[id]) { // Tile level exists
-                this.dbg(`FromJSON Restoring Battle ${id}`);
-                const battle = this.restoreBattle(json.battles[id]);
-                battles[id] = battle;
-                /* if (!battle.isJSON) {
-                    game.addLevel(battle.getLevel());
-                }*/
-            }
-            else {
-                this.dbg(`FromJSON Battle ${id} not created`);
-                this.dbg(JSON.stringify(json.battles[id]));
-                battles[id] = json.battles[id];
-            }
+            json.battles[id].forEach(battleJSON => {
+                battles[id] = [];
+                if (id2level[id]) { // Tile level exists
+                    this.dbg(`FromJSON Restoring Battle ${id}`);
+                    const battle = this.restoreBattle(battleJSON);
+                    battles[id].push(battle);
+                    // battles[id] = battle;
+                    /* if (!battle.isJSON) {
+                        game.addLevel(battle.getLevel());
+                    }*/
+                }
+                else {
+                    this.dbg(`FromJSON Battle ${id} not created`);
+                    this.dbg(JSON.stringify(battleJSON));
+                    // battles[id] = json.battles[id];
+                    // gameMaster.addBattle(id, json.battles[id]);
+                    battles[id].push(battleJSON);
+                }
+            });
         });
-        gameMaster.battles = battles;
+        gameMaster.setBattles(battles);
         if (json.battlesDone) {
             gameMaster.battlesDone = json.battlesDone;
         }
@@ -883,8 +889,13 @@ RG.Game.FromJSON = function() {
         const tileId = tile.getLevel().getID();
         const master = game.getGameMaster();
         if (master.battles[tileId]) {
-            const battle = this.restoreBattle(master.battles[tileId]);
-            master.battles[tileId] = battle;
+            const battles = master.battles[tileId];
+            master.battles[tileId] = [];
+            battles.forEach(battleJSON => {
+                const battle = this.restoreBattle(battleJSON);
+                master.battles[tileId].push(battle);
+                // master.battles[tileId] = battle;
+            });
         }
     };
 
@@ -967,6 +978,10 @@ RG.Game.FromJSON = function() {
     /* Returns the level with given ID. Or throws an error if the level is not
      * found. */
     this.getLevelOrFatal = (id, funcName) => {
+        if (!Number.isInteger(id)) {
+            const msg = `ID must be number. Got ${id}`;
+            RG.err('Game.FromJSON', funcName, msg);
+        }
         if (id2level.hasOwnProperty(id)) {
             return id2level[id];
         }
