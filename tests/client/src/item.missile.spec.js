@@ -113,6 +113,7 @@ describe('How missile is fired and hits a wall', () => {
         cell.setProp('elements', wall);
 
         const mEnt = new RG.Item.Missile('missile');
+        mEnt.add(new RG.Component.Indestructible());
         const mComp = new RG.Component.Missile(srcEnt);
         mEnt.add('Missile', mComp);
         mComp.setTargetXY(1, 4);
