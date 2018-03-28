@@ -506,7 +506,7 @@ RG.Spell.MagicArmor.prototype.toString = function() {
 RG.Spell.IcyPrison = function() {
     RG.Spell.Base.call(this, 'Icy prison', 10);
 
-    this._duration = RG.FACT.createDie('1d6 + 1');
+    this._duration = RG.FACT.createDie('1d8 + 1');
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
@@ -661,7 +661,7 @@ RG.extend2(RG.Spell.SummonAnimal, RG.Spell.SummonBase);
 
 /* A spell to summon an ice minion to fight for the caster. */
 RG.Spell.SummonDead = function() {
-    RG.Spell.SummonBase.call(this, 'SummonDead', 14);
+    RG.Spell.SummonBase.call(this, 'SummonDead', 15);
     this.nActors = 4;
     this.summonFunc = actor => {
         return (actor.type === 'undead' &&
