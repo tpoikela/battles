@@ -1002,22 +1002,31 @@ RG.Component.UseItem = TransientDataComponent('UseItem',
 
 /* Added to player to record various event in the game. */
 RG.Component.GameInfo = UniqueDataComponent('GameInfo', {
-    data: {zones: {}} // TODO will break if multiple GameInfo created
-});
+    data: null});
 
 /* Updates the data with given object. */
 RG.Component.GameInfo.prototype.updateData = function(data) {
-    this.data = Object.assign(this.data, data);
+    const oldData = this.data || {zones: {}};
+    this.data = Object.assign(oldData, data);
+};
+
+RG.Component.GameInfo.prototype.addZone = function(id) {
+    this.data.zones[id] = true;
+};
+
+RG.Component.GameInfo.prototype.hasZone = function(id) {
+    return this.data.zones[id];
 };
 
 RG.Component.GameInfo.prototype.addZoneType = function(type) {
-    const data = this.data;
+    const data = this.data || {zones: {}};
     if (!data.zones.hasOwnProperty(type)) {
         data.zones[type] = 1;
     }
     else {
         data.zones[type] += 1;
     }
+    this.data = data;
 };
 
 /* Fading component is added to entities which disappear eventually */
