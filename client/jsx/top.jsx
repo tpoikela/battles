@@ -4,7 +4,6 @@ import React, {Component} from 'react';
 
 // Subcomponents for the GUI
 import GameStartScreen from './game-start-screen';
-import GamePanel from './game-panel';
 import GameMenu from './game-menu';
 import GameMessages from './game-messages';
 import GameOverWorldMap from './game-overworld-map';
@@ -225,7 +224,7 @@ class BattlesTop extends Component {
     }
 
     /* Sets the size of the shown map.*/
-    setViewSize(evt, obj, xOrY) {
+    setViewSize(obj, xOrY) {
         if (obj === '+') {
             if (xOrY === 'X') {this.viewportX += 5;}
             else {this.viewportY += 2;}
@@ -775,9 +774,6 @@ class BattlesTop extends Component {
                 {!this.state.showEditor &&
                 <div className='row game-panel-div'>
                     <div className='col-md-2'>
-                        <GamePanel
-                            setViewSize={this.setViewSize}
-                        />
                         {gameValid &&
                         <div className='text-left game-stats-div'>
                             <GameStats
@@ -1218,7 +1214,17 @@ class BattlesTop extends Component {
 
     topMenuCallback(cmd, args) {
       if (typeof this[cmd] === 'function') {
-        this[cmd](args);
+          if (Array.isArray(args)) {
+              if (args.length === 1) {
+                  this[cmd](args);
+              }
+              else {
+                  this[cmd](...args);
+              }
+          }
+          else {
+              this[cmd](args);
+          }
       }
       else {
         console.error(`${cmd} not a function in Top`);
