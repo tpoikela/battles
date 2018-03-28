@@ -258,6 +258,8 @@ Keys.KEY.USE_STAIRS_UP = Keys.VK_LT;
 Keys.KEY.YES = ROT.VK_Y + 32;
 Keys.KeyMap.initMap();
 
+Keys.KEY.NO_ACTION = ROT.VK_CAPS_LOCK;
+
 // Used in the GUI only
 Keys.GUI = {};
 Keys.GUI.Inv = Keys.VK_i;
