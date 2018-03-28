@@ -68,6 +68,8 @@ const GameMaster = function(game) {
             const battleConf = {};
             let levelType = 'forest';
 
+            let bbox = parentLevel.getBbox();
+
             if (ow) {
                 const world = this.game.getCurrentWorld();
                 const area = world.getAreas()[0];
@@ -88,10 +90,13 @@ const GameMaster = function(game) {
                 const biome = ow.getBiome(owPos[0], owPos[1]);
                 levelType = this.biomeToLevelType(biome);
                 debug('Creating battle on tile ' + xy);
+                bbox = this.getLevelBbox(ow, area, xy, owPos, parentLevel);
+                console.log('Got bbox ' + JSON.stringify(bbox));
             }
             battleConf.maxDanger = maxDanger;
             battleConf.armySize = armySize;
             battleConf.levelType = levelType;
+            battleConf.bbox = bbox;
 
             if (!this.battles.hasOwnProperty(parentId)) {
                 this.battles[parentId] = [];
@@ -131,6 +136,32 @@ const GameMaster = function(game) {
     RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this);
     RG.POOL.listenEvent(RG.EVT_TILE_CHANGED, this);
     RG.POOL.listenEvent(RG.EVT_BATTLE_OVER, this);
+
+    /* Returns the bbox for the battle. This is coordinates for the battle
+     * inside the tile level. It corresponds to player's current owPos. */
+    this.getLevelBbox = function(ow, area, tileXY, owPos, level) {
+        // Info needed:
+        // local ow pos
+        // one ow pos in level cells
+        const [owSizeX, owSizeY] = [ow.getSizeX(), ow.getSizeY()];
+        const [owX, owY] = owPos;
+        const [areaX, areaY] = [area.getSizeX(), area.getSizeY()];
+        const [cols, rows] = level.getColsRows();
+
+        const owTilesPerAreaTileX = owSizeX / areaX;
+        const owTilesPerAreaTileY = owSizeY / areaY;
+        const oneOwTileInCols = areaX * cols / owSizeX;
+        const oneOwTileInRows = areaY * rows / owSizeY;
+        const localOwX = owX / owTilesPerAreaTileX;
+        const localOwY = owY / owTilesPerAreaTileY;
+
+        return {
+            ulx: localOwX * oneOwTileInCols,
+            uly: localOwY * oneOwTileInRows,
+            lrx: (localOwX + 1) * oneOwTileInCols - 1,
+            lry: (localOwY + 1) * oneOwTileInRows - 1
+        };
+    };
 
     /* Adds player to the battle level. */
     this.addPlayerToBattle = function(args) {
