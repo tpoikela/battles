@@ -1044,6 +1044,12 @@ RG.System.Movement = function(compTypes) {
                 }
             }
 
+            // Add level parent ID to the info list
+            const levelParent = level.getParent();
+            if (levelParent) {
+                ent.get('GameInfo').addZone(levelParent.getID());
+            }
+
             let msg = expElem.getMsg();
             if (msg.length === 0) {
                 msg = `${ent.getName()} has explored zone thoroughly.`;
