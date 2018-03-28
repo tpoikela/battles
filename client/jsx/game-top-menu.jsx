@@ -15,10 +15,11 @@ export default class GameTopMenu extends React.Component {
     }
 
     handleSelect(eventKey) {
-      const [cmd, type] = eventKey.split('#');
+      const split = eventKey.split('#');
+      const cmd = split.shift();
       console.log('eventKey: ' + eventKey);
-      console.log('cmd-type: ', cmd, type);
-      this.props.menuCallback(cmd, type);
+      console.log('cmd-type: ', cmd, split);
+      this.props.menuCallback(cmd, split);
     }
 
     render() {
@@ -33,7 +34,10 @@ export default class GameTopMenu extends React.Component {
             <MenuItem eventKey='game-export'>Export JSON</MenuItem>
           </NavDropdown>
           <NavDropdown eventKey='view' id='dropdown-view' title='View' >
-            <MenuItem eventKey='view-TestItem'>TestItem</MenuItem>
+            <MenuItem eventKey='setViewSize#+#X'>Viewport +X</MenuItem>
+            <MenuItem eventKey='setViewSize#-#X'>Viewport -X</MenuItem>
+            <MenuItem eventKey='setViewSize#+#Y'>Viewport +Y</MenuItem>
+            <MenuItem eventKey='setViewSize#-#Y'>Viewport -Y</MenuItem>
           </NavDropdown>
           <NavDropdown eventKey='help' id='dropdown-help' title='Help' >
             <MenuItem eventKey='showScreen#HelpScreen'>Help</MenuItem>
