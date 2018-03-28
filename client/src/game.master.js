@@ -91,9 +91,13 @@ const GameMaster = function(game) {
 
             if (!this.battles.hasOwnProperty(parentId)) {
                 const battle = this.fact.createBattle(parentLevel, battleConf);
-                this.battles[parentId] = battle;
-                this.game.addBattle(this.battles[parentId], parentId);
+                this.addBattle(parentId, battle);
+                this.game.addBattle(this.getBattle(parentId), parentId);
             }
+        }
+        else if (evtName === RG.EVT_EXPLORED_ZONE_LEFT) {
+            // TODO check for creating a new battle on the map
+            RG.diag('Explored zone left');
         }
         else if (evtName === RG.EVT_BATTLE_OVER) {
             const {battle} = args;
@@ -128,7 +132,7 @@ const GameMaster = function(game) {
         const {actor, target, src} = args;
         const srcID = src.getID();
         if (this.battles.hasOwnProperty(srcID)) {
-            const battle = this.battles[srcID];
+            const battle = this.getBattle(srcID);
             if (battle.isJSON) {
                 return; // Cannot join serialized battle anyway
             }
@@ -154,6 +158,19 @@ const GameMaster = function(game) {
 
     };
 
+    this.addBattle = function(parentId, battle) {
+        this.battles[parentId] = battle;
+    };
+
+    this.getBattle = function(parentId) {
+        const battle = this.battles[parentId];
+        return battle;
+    };
+
+    this.getBattles = function(parentId) {
+        return [this.battles[parentId]];
+    };
+
     /* Returns true if the actor can still enter the battle as an army member.
      * */
     this.actorCanEnter = (actor, battle) => {
@@ -167,7 +184,7 @@ const GameMaster = function(game) {
         const {actor, target, src} = args;
         const areaID = target.getID();
         const srcID = src.getID();
-        const battle = this.battles[areaID];
+        const battle = this.getBattle(areaID);
         const battleLevID = battle.getLevel().getID();
 
         const inBattleComp = actor.get('InBattle');
@@ -341,16 +358,24 @@ const GameMaster = function(game) {
         const keys = Object.keys(this.battles);
         const battles = {};
         keys.forEach(id => {
-            if (typeof this.battles[id].toJSON === 'function') {
-                battles[id] = this.battles[id].toJSON();
-            }
-            else if (this.battles[id].name) {
-                battles[id] = this.battles[id];
-            }
-            else {
-                RG.err('GameMaster', 'toJSON',
-                    'Does not look like proper battle object.');
-            }
+            const battlesTile = this.getBattles(id);
+            battlesTile.forEach(battle => {
+                if (battles.hasOwnProperty(id)) {
+                    RG.warn('Game.Master', 'toJSON',
+                        `Battle for ID ${id} exists already`);
+                }
+
+                if (typeof battle.toJSON === 'function') {
+                    battles[id] = battle.toJSON();
+                }
+                else if (battle.name) {
+                    battles[id] = battle;
+                }
+                else {
+                    RG.err('GameMaster', 'toJSON',
+                        'Does not look like proper battle object.');
+                }
+            });
         });
         return {
             battles,
@@ -363,18 +388,20 @@ const GameMaster = function(game) {
     this.unloadBattles = tileLevel => {
         const id = tileLevel.getID();
         if (this.battles.hasOwnProperty(id)) {
-            const battle = this.battles[id];
-            if (typeof battle.toJSON === 'function') {
-                if (!battle.isOver()) {
-                    // Important, otherwise cannot be GC'd
-                    battle.removeListeners();
+            const battles = this.getBattles(id);
+            battles.forEach(battle => {
+                if (typeof battle.toJSON === 'function') {
+                    if (!battle.isOver()) {
+                        // Important, otherwise cannot be GC'd
+                        battle.removeListeners();
+                    }
+                    this.battles[id] = battle.toJSON();
                 }
-                this.battles[id] = battle.toJSON();
-            }
-            else {
-                RG.err('GameMaster', 'unloadBattle',
-                    `Unload for level ${id} failed`);
-            }
+                else {
+                    RG.err('GameMaster', 'unloadBattle',
+                        `Unload for level ${id} failed`);
+                }
+            });
         }
     };
 
