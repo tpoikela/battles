@@ -21,20 +21,20 @@ export default class GamePanel extends Component {
     return false;
   }
 
-  setViewSizeXPlus(evt) {
-    this.props.setViewSize(evt, '+', 'X');
+  setViewSizeXPlus() {
+    this.props.setViewSize('+', 'X');
   }
 
-  setViewSizeXNeg(evt) {
-    this.props.setViewSize(evt, '-', 'X');
+  setViewSizeXNeg() {
+    this.props.setViewSize('-', 'X');
   }
 
-  setViewSizeYPlus(evt) {
-    this.props.setViewSize(evt, '+', 'Y');
+  setViewSizeYPlus() {
+    this.props.setViewSize('+', 'Y');
   }
 
-  setViewSizeYNeg(evt) {
-    this.props.setViewSize(evt, '-', 'Y');
+  setViewSizeYNeg() {
+    this.props.setViewSize('-', 'Y');
   }
 
   render() {
