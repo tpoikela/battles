@@ -91,7 +91,14 @@ RG.Factory.Battle.prototype.createBattle = function(parentLevel, conf = {}) {
         const stairsArea = new RG.Element.Stairs('battle', parentLevel);
 
         // TODO randomize this position
-        parentLevel.addStairs(stairsArea, 4, 4);
+        if (conf.bbox) {
+            const {bbox} = conf;
+            RG.err('Factory.Battle', 'createBattle',
+                'bbox logic not implemented: ' + bbox);
+        }
+        else {
+            parentLevel.addStairs(stairsArea, 4, 4);
+        }
 
         RG.World.addExitsToEdge(battleLevel);
 
