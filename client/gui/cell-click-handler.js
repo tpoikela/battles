@@ -28,6 +28,9 @@ export default class CellClickHandler {
     }
 
     handleClick(x, y, cell) {
+        // Don't react to click if there are already keys
+        if (this.hasKeys()) {return;}
+
         const player = this._game.getPlayer();
         const map = player.getLevel().getMap();
         if (map.hasXY(x, y)) {
