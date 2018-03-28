@@ -538,7 +538,13 @@ class BattlesTop extends Component {
     getNextCode() {
         if (this.ctrlMode === 'AUTOMATIC') {
             const nextCode = this.clickHandler.getNextCode();
-            return nextCode;
+            if (nextCode) {
+                return nextCode;
+            }
+            else {
+                this.ctrlMode = 'MANUAL';
+                return Keys.KEY.NO_ACTION;
+            }
         }
         else {
             return this.nextCode;
