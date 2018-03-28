@@ -1004,9 +1004,13 @@ RG.Component.UseItem = TransientDataComponent('UseItem',
 RG.Component.GameInfo = UniqueDataComponent('GameInfo', {
     data: null});
 
+RG.Component.GameInfo.prototype._init = function() {
+    this.data = {zones: {}};
+};
+
 /* Updates the data with given object. */
 RG.Component.GameInfo.prototype.updateData = function(data) {
-    const oldData = this.data || {zones: {}};
+    const oldData = this.data;
     this.data = Object.assign(oldData, data);
 };
 
@@ -1019,7 +1023,7 @@ RG.Component.GameInfo.prototype.hasZone = function(id) {
 };
 
 RG.Component.GameInfo.prototype.addZoneType = function(type) {
-    const data = this.data || {zones: {}};
+    const data = this.data;
     if (!data.zones.hasOwnProperty(type)) {
         data.zones[type] = 1;
     }
