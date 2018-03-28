@@ -221,6 +221,32 @@ RG.Game.Main = function() {
         }
     };
 
+    this.isTileLevel = level => {
+        const area = this.getArea(0);
+        return area.hasTiles([level]);
+    };
+
+    /* Checks if player exited an explored zone. */
+    this.checkIfExploredZoneLeft = args => {
+        const {actor, src, target} = args;
+        let emitEvent = false;
+        if (actor.has('GameInfo') && src && target) {
+            const srcParent = src.getParent();
+            if (srcParent) {
+                // Check that player has explored the parent
+                const id = srcParent.getID();
+                if (actor.get('GameInfo').hasZone(id)) {
+                    emitEvent = this.isTileLevel(target);
+                }
+            }
+        }
+
+        if (emitEvent) {
+            RG.POOL.emitEvent(RG.EVT_EXPLORED_ZONE_LEFT,
+                {actor, target, src});
+        }
+    };
+
     this.getMessages = () => this._engine.getMessages();
     this.clearMessages = () => { this._engine.clearMessages();};
     this.hasNewMessages = () => this._engine.hasNewMessages();
@@ -338,6 +364,7 @@ RG.Game.Main = function() {
             if (actor.isPlayer()) {
                 this._shownLevel = actor.getLevel();
                 this.checkIfTileChanged(args);
+                this.checkIfExploredZoneLeft(args);
             }
         }
         else if (evtName === RG.EVT_TILE_CHANGED) {
