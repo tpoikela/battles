@@ -36,6 +36,8 @@ describe('Component <GameMenu>', () => {
 
     it('shows the level info when leveling up', () => {
         const actor = new RG.Actor.Rogue('leveler');
+        const level = RG.FACT.createLevel('arena', 10, 10);
+        level.addActor(actor, 1, 1);
         const actorClass = new ActorClass.Adventurer(actor);
         const props = {
             width: 80, height: 28, menuObj: {}
