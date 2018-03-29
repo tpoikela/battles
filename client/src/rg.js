@@ -326,8 +326,11 @@ RG.diag = function(obj) {
     if (!this.suppressDiagnosticMessages) {
         // Supposed to show the filename (of the caller)
         // With bundling, this does not work very well
-        const linfo = ((new Error().stack).split('at ')[3]).trim();
-        console.info(linfo);
+        const split = new Error().stack.split('at ');
+        if (split.length > 3) {
+            const linfo = split[3].trim();
+            console.info(linfo);
+        }
         console.info(obj);
     }
 };
