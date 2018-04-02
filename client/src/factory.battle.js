@@ -89,11 +89,19 @@ RG.Factory.Battle.prototype.createBattle = function(parentLevel, conf = {}) {
     if (parentLevel) {
         // Add connecting stairs between battle and area
         const stairsArea = new RG.Element.Stairs('battle', parentLevel);
+        const map = parentLevel.getMap();
 
         // TODO randomize this position
         if (conf.bbox) {
             const {bbox} = conf;
-            const xy = RG.RAND.getRandInBbox(bbox);
+            let xy = RG.RAND.getRandInBbox(bbox);
+            let cell = map.getCell(xy[0], xy[1]);
+            let watchdog = 100;
+            while (cell.hasProps()) {
+                xy = RG.RAND.getRandInBbox(bbox);
+                cell = map.getCell(xy[0], xy[1]);
+                if (--watchdog === 0) {break;}
+            }
             parentLevel.addStairs(stairsArea, xy[0], xy[1]);
             console.log('Spawned battle stairs ' + xy);
         }
