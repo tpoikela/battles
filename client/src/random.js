@@ -93,6 +93,16 @@ RG.Random.prototype.getRandDirWeighted = function() {
     // TODO
 };
 
+/* Returns a random xy-coord in the given bounding box. */
+RG.Random.prototype.getRandInBbox = function(bbox) {
+    const {ulx, uly, lrx, lry} = bbox;
+    // RG.nullOrUndefError([ulx, uly, lrx, lry]);
+    return [
+        this.getUniformInt(ulx, lrx),
+        this.getUniformInt(uly, lry)
+    ];
+};
+
 /*
  * From http://stackoverflow.com/questions/2450954/
  * how-to-randomize-shuffle-a-javascript-array
