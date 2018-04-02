@@ -338,6 +338,12 @@ const Actors = [
         hp: 21, danger: 5, type: 'animal'
     },
     {
+        name: 'Glacial shaman', char: '@', base: 'WinterBeingBase',
+        attack: 4, defense: 4, protection: 3, damage: '1d7 + 2', type: 'human',
+        danger: 5, hp: 25, spells: ['IcyPrison'], maxPP: 22, pp: 21,
+        brain: 'SpellCaster'
+    },
+    {
         name: 'Glacial golem', char: 'G', base: 'WinterBeingBase',
         attack: 4, defense: 4, protection: 3, damage: '2d4', speed: 90,
         danger: 5, hp: 30
