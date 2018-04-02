@@ -39,6 +39,43 @@ RG.Spell = {};
 }
 */
 
+
+const aiSpellCellEnemy = (args, cb) => {
+    const {actor, actorsAround} = args;
+    let strongest = null;
+    console.log('aiSpellCellEnemy around ' + actorsAround.length);
+    actorsAround.forEach(cell => {
+        const actors = cell.getActors();
+        actors.forEach(otherActor => {
+            if (actor.isEnemy(otherActor)) {
+                const health = otherActor.get('Health');
+                if (!strongest) {
+                    console.log('aiSpellCellEnemy setting strongest');
+                    strongest = otherActor;
+                }
+                else {
+                    const maxHP = health.getMaxHP();
+                    const strHP = strongest.get('Health').getMaxHP();
+                    if (maxHP > strHP) {strongest = otherActor;}
+                }
+            }
+        });
+    });
+
+    if (strongest) {
+        const dir = [actor.getX() - strongest.getX(),
+            actor.getY() - strongest.getY()
+        ];
+        const newArgs = {dir, src: actor};
+        cb(actor, newArgs);
+        console.log('aiSpellCellEnemy returning TRUE for AI');
+        return true;
+    }
+    console.log('aiSpellCellEnemy returning false for AI');
+    return false;
+};
+
+
 /* Returns selection object for spell which is cast on self. */
 RG.Spell.getSelectionObjectSelf = (spell, actor) => {
     const func = () => {
@@ -344,33 +381,7 @@ RG.Spell.GraspOfWinter = function() {
     };
 
     this.aiShouldCastSpell = (args, cb) => {
-        const {actor, actorsAround} = args;
-        let strongest = null;
-        actorsAround.forEach(cell => {
-            const actors = cell.getActors();
-            actors.forEach(otherActor => {
-                if (actor.isEnemy(otherActor)) {
-                    const health = otherActor.get('Health');
-                    if (!strongest) {strongest = otherActor;}
-                    else {
-                        const maxHP = health.getMaxHP();
-                        const strHP = strongest.get('Health').getMaxHP();
-                        if (maxHP > strHP) {strongest = otherActor;}
-                    }
-                }
-            });
-        });
-
-        if (strongest) {
-            const dir = [actor.getX() - strongest.getX(),
-                actor.getY() - strongest.getY()
-            ];
-            const newArgs = {dir, src: actor};
-            cb(actor, newArgs);
-            return true;
-        }
-        console.log('Grasp returning false for AI');
-        return false;
+        return aiSpellCellEnemy(args, cb);
     };
 };
 RG.extend2(RG.Spell.GraspOfWinter, RG.Spell.Base);
@@ -524,6 +535,10 @@ RG.Spell.IcyPrison = function() {
     this.getSelectionObject = function(actor) {
         const msg = 'Select a direction for casting:';
         return RG.Spell.getSelectionObjectDir(this, actor, msg);
+    };
+
+    this.aiShouldCastSpell = (args, cb) => {
+        return aiSpellCellEnemy(args, cb);
     };
 
 };
