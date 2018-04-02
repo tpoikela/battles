@@ -123,7 +123,9 @@ describe('System.Attack', () => {
         const attackComp = new RG.Component.Attack({target: human});
         beast.add('Attack', attackComp);
         beast.get('Combat').setAttack(100);
+
         human.get('Combat').setDefense(0);
+        human.get('Stats').setAgility(0);
 
         human.get('Combat').setProtection(100);
 
