@@ -283,6 +283,11 @@ RG.System.Attack = function(compTypes) {
         }
         else {
             // Actual hit chance calculation
+            if (def.has('FirstStrike')) {
+                const msg = `${dName} seems to strike first.`;
+                RG.gameMsg({cell: def.getCell(), msg});
+                this.performAttack(def, att, dName, aName);
+            }
             this.performAttack(att, def, aName, dName);
             if (def.has('CounterAttack')) {
                 const msg = `${dName} seems to counter attack.`;
