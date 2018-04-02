@@ -609,6 +609,12 @@ const Actors = [
         addComp: 'CounterAttack'
     },
     {
+        name: 'wolfclan judicator', base: 'WolfclanBase', danger: 9,
+        attack: 8, defense: 8, damage: '3d4+6', hp: 55,
+        addComp: 'FirstStrike',
+        equip: ['Steel armour']
+    },
+    {
         name: 'wolfclan commander', base: 'WolfclanBase', danger: 10,
         attack: 10, defense: 5, damage: '4d4+10', hp: 60
     },
