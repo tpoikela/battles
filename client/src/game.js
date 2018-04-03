@@ -105,6 +105,17 @@ RG.Game.Main = function() {
         return levelOK;
     };
 
+    /* Debug function for taking over controls of given actor. */
+    this.useAsPlayer = function(actorOrID) {
+        let actor = actorOrID;
+        if (Number.isInteger(actorOrID)) {
+            actor = RG.ent(actorOrID);
+        }
+        actor.setIsPlayer(true);
+        actor.add(new RG.Component.Player());
+        this.addPlayer(actor);
+    };
+
     /* Moves player to specified area tile. This is used for debugging purposes
      * mainly. Maybe to be used with quick travel. */
     this.movePlayer = function(tileX, tileY, levelX = 0, levelY = 0) {
