@@ -2313,15 +2313,19 @@ RG.System.Events = function(compTypes) {
     };
 
     this._handleActorDamaged = (ent, evt, actor) => {
-        const args = evt.getArgs();
-        const {cause} = args;
-        this._addActorAsEnemy(cause, ent, actor);
+        if (ent.getID() !== actor.getID()) {
+            const args = evt.getArgs();
+            const {cause} = args;
+            this._addActorAsEnemy(cause, ent, actor);
+        }
     };
 
     this._handleActorAttacked = (ent, evt, actor) => {
-        const args = evt.getArgs();
-        const {cause} = args;
-        this._addActorAsEnemy(cause, ent, actor);
+        if (ent.getID() !== actor.getID()) {
+            const args = evt.getArgs();
+            const {cause} = args;
+            this._addActorAsEnemy(cause, ent, actor);
+        }
     };
 
     this._handleActorUsedStairs = (ent, evt, actor) => {
