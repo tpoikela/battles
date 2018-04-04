@@ -74,6 +74,12 @@ RG.Map.Generator = function() { // {{{2
         }
     };
 
+	this.createEmptyMap = function() {
+        const map = new RG.Map.CellList(this.cols, this.rows);
+        const obj = {map};
+        return obj;
+	};
+
     /* Returns an object containing randomized map + all special features
      * based on initialized generator settings. */
     this.getMap = function() {
@@ -302,7 +308,6 @@ RG.Map.Generator = function() { // {{{2
             const yHalo = wallCoords[i][1];
             wallsHalos[xHalo + ',' + yHalo] = true;
         }
-
 
         // Return room object
         return {
