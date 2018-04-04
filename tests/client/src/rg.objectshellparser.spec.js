@@ -457,7 +457,7 @@ describe('It contains all game content info', () => {
     });
 });
 
-describe('Data query functions for objects', () => {
+describe('Data query functions for objects', function() {
 
     let parser = null;
     before(() => {
@@ -621,6 +621,14 @@ describe('Data query functions for objects', () => {
         expect(runeProt).to.have.property('useArgs');
         console.log(runeProt.useArgs);
         expect(runeProt.useArgs).to.have.property('setters');
+    });
+
+    it('can create actors with components and their values set', () => {
+        const avianEmperor = parser.createActor('avian emperor');
+        const bypass = avianEmperor.get('BypassProtection');
+        expect(bypass.getChance()).to.equal(0.15);
+
+        expect(avianEmperor).to.have.component('Flying');
     });
 });
 
