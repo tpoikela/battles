@@ -236,7 +236,6 @@ RG.Factory.Actor = function() {
             case 'Demon': return new RG.Brain.Demon(actor);
             case 'Fire': return new RG.Brain.Fire(actor);
             case 'GoalOriented': return new RG.Brain.GoalOriented(actor);
-            // case 'Goblin': return new RG.Brain.Goblin(actor);
             case 'Human': return new RG.Brain.Human(actor);
             case 'NonSentient': return new RG.Brain.NonSentient(actor);
             case 'SpellCaster': return new RG.Brain.SpellCaster(actor);
@@ -485,7 +484,6 @@ RG.Factory.Base = function() {
             'paths'];
         possibleExtras.forEach(extra => {
             if (mapObj.hasOwnProperty(extra)) {
-                console.log('Setting extras: ' + extra);
                 extras[extra] = mapObj[extra];
             }
         });
@@ -800,7 +798,6 @@ RG.Factory.Zone = function() {
     /* Creates dungeon level. Unless levelType is given, chooses the type
      * randomly. */
     this.createDungeonLevel = function(conf) {
-        console.log(' in factory createDungeonLevel');
         this._verif.verifyConf('createDungeonLevel', conf, ['x', 'y']);
         let level = null;
         let levelType = this.getRandLevelType();
@@ -1044,7 +1041,6 @@ RG.Factory.Zone = function() {
                 'Not enough free cells');
         }
         RG.Factory.addPropsToCells(level, freeCells, actors, RG.TYPE_ACTOR);
-        console.log('addActorsToBbox: Added 4 actors to level');
     };
 
 };
