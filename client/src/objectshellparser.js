@@ -369,7 +369,6 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
     /* Adds a component to the newly created object, or updates existing
      * component if it exists already.*/
     this.addCompToObj = function(newObj, compData, val) {
-        console.log('addCompToObj: ' + JSON.stringify(compData) + ' val: ' + val);
         if (compData.hasOwnProperty('func')) {
             if (Array.isArray(compData.func)) {
                 compData.func.forEach(fname => {
