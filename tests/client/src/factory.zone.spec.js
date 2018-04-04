@@ -80,4 +80,18 @@ describe('Factory.Zone', () => {
         expect(items.length).to.be.at.least(townConf.itemsPerLevel);
     });
 
+    it('can create dungeon levels with special features', () => {
+        const fact = new RG.Factory.Zone();
+        const conf = {
+            dungeonType: 'digger',
+            x: 100, y: 100, nLevel: 5, sqrPerActor: 10000,
+            sqrPerItem: 40, maxValue: 500, maxDanger: 5
+        };
+        const level = fact.createDungeonLevel(conf);
+        expect(level).to.exist;
+
+        const actors = level.getActors();
+        expect(actors.length).to.be.above(3);
+    });
+
 });
