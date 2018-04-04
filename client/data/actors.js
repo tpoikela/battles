@@ -192,6 +192,33 @@ const Actors = [
         enemies: ['human', 'player']
     },
 
+    // AVIAN
+    {
+        name: 'AvianFolkBase', char: 'A', className: 'cell-actor-avianfolk',
+        type: 'avianfolk',
+        enemies: ['player', 'catfolk', 'dogfolk', 'wolfclan'],
+        brain: defaultBrain, addComp: 'Flying',
+        attack: 2, defense: 2, damage: '1d6', range: 1,
+        protection: 1, hp: 15, danger: 2
+    },
+    {
+        name: 'avian duelist', base: 'AvianFolkBase', danger: 8,
+        attack: 7, defense: 10, damage: '3d5', hp: 40,
+        addComp: ['CounterStrike', 'Flying']
+    },
+    {
+        name: 'avian judicator', base: 'AvianFolkBase', danger: 9,
+        attack: 7, defense: 10, damage: '4d4', hp: 45,
+        addComp: ['FirstStrike', 'Flying']
+    },
+    {
+        name: 'avian emperor', base: 'AvianFolkBase', danger: 16,
+        attack: 8, defense: 14, damage: '5d5', hp: 85,
+        addComp: ['Flying',
+            {comp: 'BypassProtection', func: {setChance: 0.15}}
+        ]
+    },
+
     // BEARFOLK
     {
         name: 'BearfolkBase', char: 'B', className: 'cell-actor-bearfolk',
