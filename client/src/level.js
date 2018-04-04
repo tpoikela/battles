@@ -3,8 +3,28 @@ const RG = require('./rg.js');
 
 const {TYPE_ACTOR, TYPE_ELEM, TYPE_ITEM} = RG;
 
+/* Possible callbacks:
+ * showMsg: {msg: 'my msg'}
+ */
+
+/* Possible callbacks for entering/exiting levels. */
+const LevelCallback = function(type) {
+    this.cbType = type;
+};
+
+LevelCallback.prototype.execute = function() {
+    RG.gameMsg(this.msg);
+};
+
+LevelCallback.prototype.toJSON = function() {
+    return {
+        cbType: this.getCbType(),
+        msg: this.msg
+    };
+};
+
 /* Object for the game levels. Contains map, actors and items.  */
-const Level = function() { // {{{2
+const Level = function() {
     this._map = null;
     this._id = Level.idCount++;
     this._parent = null; // Reference to dungeon,city,mountain...
@@ -21,122 +41,14 @@ const Level = function() { // {{{2
     //-----------------------------------------------------------------
     // CALLBACKS
     //----------------------------------------------------------------
-    const _callbacks = {};
+    this._callbacks = {};
 
-    // For setting the callbacks
-    this.setOnEnter = cb => {_callbacks.OnEnter = cb;};
-    this.setOnFirstEnter = cb => {_callbacks.OnFirstEnter = cb;};
-    this.setOnExit = cb => {_callbacks.OnExit = cb;};
-    this.setOnFirstExit = cb => {_callbacks.OnFirstExit = cb;};
-
-    const _cbState = {
+    this._cbState = {
         onFirstEnterDone: false,
         onFirstExitDone: false
     };
 
-    this.onEnter = function() {
-        if (_callbacks.hasOwnProperty('OnEnter')) {_callbacks.OnEnter(this);}
-    };
-
-    this.onFirstEnter = function() {
-        if (!_cbState.onFirstEnterDone) {
-            if (_callbacks.hasOwnProperty('OnFirstEnter')) {
-                _callbacks.OnFirstEnter(this);
-            }
-            _cbState.onFirstEnterDone = true;
-        }
-    };
-
-    this.onExit = function() {
-        if (_callbacks.hasOwnProperty('OnExit')) {_callbacks.OnExit(this);}
-    };
-
-    this.onFirstExit = function() {
-        if (!_cbState.onFirstExitDone) {
-            if (_callbacks.hasOwnProperty('OnFirstExit')) {
-                _callbacks.OnFirstExit(this);
-            }
-            _cbState.onFirstExitDone = true;
-        }
-    };
-
-    /* Return random free cell on a given level.*/
-    this.getFreeRandCell = function() {
-        const freeCells = this.getMap().getFree();
-        if (freeCells.length > 0) {
-            const index = RG.RAND.randIndex(freeCells);
-            return freeCells[index];
-        }
-        return null;
-    };
-
-    /* Returns random empty cells, or null if cannot find any.*/
-    this.getEmptyRandCell = function() {
-        const emptyCells = this.getMap().getEmptyCells();
-        if (emptyCells.length > 0) {
-            const index = RG.RAND.randIndex(emptyCells);
-            return emptyCells[index];
-        }
-        return null;
-    };
-
-    /* Serializes the level object. */
-    this.toJSON = function() {
-        const obj = {
-            id: this.getID(),
-            levelNumber: this.getLevelNumber(),
-            actors: [],
-            items: [],
-            elements: [],
-            map: this.getMap().toJSON(),
-            cbState: _cbState
-        };
-
-        if (this._parent) {
-            obj.parent = this._parent.getName();
-            if (typeof obj.parent !== 'string') {
-                RG.err('Map.Level', 'toJSON',
-                    'Parent name not a string');
-            }
-        }
-
-        // Must store x, y for each prop as well
-        const props = [TYPE_ACTOR, TYPE_ITEM, TYPE_ELEM];
-        props.forEach(propType => {
-            this._p[propType].forEach(prop => {
-                const propObj = {
-                    x: prop.getX(),
-                    y: prop.getY(),
-                    obj: prop.toJSON()
-                };
-                // Avoid storing player twice (stored in Game.Main already)
-                if (!propType === RG.TYPE_ACTOR) {
-                    obj[propType].push(propObj);
-                }
-                else if (!propObj.obj.isPlayer) {
-                    obj[propType].push(propObj);
-                }
-            });
-        });
-
-        return obj;
-    };
-
-    this._getFreeCellXY = function() {
-        const freeCells = this._map.getFree();
-        if (freeCells.length > 0) {
-            const xCell = freeCells[0].getX();
-            const yCell = freeCells[0].getY();
-            return [xCell, yCell];
-        }
-        return [null, null];
-    };
-
-    this.debugPrintInASCII = () => {
-        this.getMap().debugPrintInASCII();
-    };
-
-}; // }}} Level
+};
 Level.idCount = 0;
 
 Level.prototype.setLevelNumber = function(no) {this._levelNo = no;};
@@ -553,6 +465,126 @@ Level.prototype.getColsRows = function() {
         this.getMap().rows
     ];
 };
+
+Level.prototype.setOnEnter = function(cb) {
+    this._callbacks.OnEnter = cb;
+};
+Level.prototype.setOnFirstEnter = function(cb) {
+	this._callbacks.OnFirstEnter = cb;
+};
+Level.prototype.setOnExit = function(cb) {
+	this._callbacks.OnExit = cb;
+};
+Level.prototype.setOnFirstExit = function(cb) {
+	this._callbacks.OnFirstExit = cb;
+};
+
+Level.prototype.onEnter = function() {
+	if (this._callbacks.hasOwnProperty('OnEnter')) {
+		this._callbacks.OnEnter(this);
+	}
+};
+
+Level.prototype.onFirstEnter = function() {
+	if (!this._cbState.onFirstEnterDone) {
+		if (this._callbacks.hasOwnProperty('OnFirstEnter')) {
+			this._callbacks.OnFirstEnter(this);
+		}
+		this._cbState.onFirstEnterDone = true;
+	}
+};
+
+Level.prototype.onExit = function() {
+	if (this._callbacks.hasOwnProperty('OnExit')) {
+		this._callbacks.OnExit(this);
+	}
+};
+
+Level.prototype.onFirstExit = function() {
+	if (!this._cbState.onFirstExitDone) {
+		if (this._callbacks.hasOwnProperty('OnFirstExit')) {
+			this._callbacks.OnFirstExit(this);
+		}
+		this._cbState.onFirstExitDone = true;
+	}
+};
+
+/* Return random free cell on a given level.*/
+Level.prototype.getFreeRandCell = function() {
+	const freeCells = this.getMap().getFree();
+	if (freeCells.length > 0) {
+		const index = RG.RAND.randIndex(freeCells);
+		return freeCells[index];
+	}
+	return null;
+};
+
+/* Returns random empty cells, or null if cannot find any.*/
+Level.prototype.getEmptyRandCell = function() {
+	const emptyCells = this.getMap().getEmptyCells();
+	if (emptyCells.length > 0) {
+		const index = RG.RAND.randIndex(emptyCells);
+		return emptyCells[index];
+	}
+	return null;
+};
+
+Level.prototype._getFreeCellXY = function() {
+	const freeCells = this._map.getFree();
+	if (freeCells.length > 0) {
+		const xCell = freeCells[0].getX();
+		const yCell = freeCells[0].getY();
+		return [xCell, yCell];
+	}
+	return [null, null];
+};
+
+Level.prototype.debugPrintInASCII = () => {
+	this.getMap().debugPrintInASCII();
+};
+
+/* Serializes the level object. */
+Level.prototype.toJSON = function() {
+    const obj = {
+        id: this.getID(),
+        levelNumber: this.getLevelNumber(),
+        actors: [],
+        items: [],
+        elements: [],
+        map: this.getMap().toJSON(),
+        cbState: this._cbState
+    };
+
+    if (this._parent) {
+        obj.parent = this._parent.getName();
+        if (typeof obj.parent !== 'string') {
+            RG.err('Map.Level', 'toJSON',
+                'Parent name not a string');
+        }
+    }
+
+    // Must store x, y for each prop as well
+    const props = [TYPE_ACTOR, TYPE_ITEM, TYPE_ELEM];
+    props.forEach(propType => {
+        this._p[propType].forEach(prop => {
+            const propObj = {
+                x: prop.getX(),
+                y: prop.getY(),
+                obj: prop.toJSON()
+            };
+            // Avoid storing player twice (stored in Game.Main already)
+            if (!propType === RG.TYPE_ACTOR) {
+                obj[propType].push(propObj);
+            }
+            else if (!propObj.obj.isPlayer) {
+                obj[propType].push(propObj);
+            }
+        });
+    });
+
+    return obj;
+};
+
 
 Level.createLevelID = () => {
     const id = Level.idCount;
