@@ -369,6 +369,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
     /* Adds a component to the newly created object, or updates existing
      * component if it exists already.*/
     this.addCompToObj = function(newObj, compData, val) {
+        console.log('addCompToObj: ' + JSON.stringify(compData) + ' val: ' + val);
         if (compData.hasOwnProperty('func')) {
             if (Array.isArray(compData.func)) {
                 compData.func.forEach(fname => {
@@ -393,8 +394,26 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
                 }
                 else { // 2. Or create a new component
                     const comp = this.createComponent(compName);
-                    comp[fname](val); // Then call comp setter
-                    newObj.add(compName, comp);
+                    if (typeof comp[fname] === 'function') {
+                        comp[fname](val); // Then call comp setter
+                        newObj.add(compName, comp);
+                    }
+                    else if (typeof fname === 'object') {
+                        const funcNames = Object.keys(compData.func);
+                        funcNames.forEach(funcName => {
+                            const newCompData = {
+                                func: funcName,
+                                comp: compName
+                            };
+                            const newVal = compData.func[funcName];
+                            this.addCompToObj(newObj, newCompData, newVal);
+                        });
+                    }
+                    else {
+                        console.log(JSON.stringify(fname));
+                        RG.err('ObjectShellParser', 'addCompToObj',
+                            `No function ${fname} in ${compName}`);
+                    }
                 }
             }
         }
@@ -413,18 +432,18 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
         if (typeof shell.addComp === 'string') {
             _addCompFromString(shell.addComp, entity);
         }
-        else if (shell.addComp.hasOwnProperty('length')) {
+        else if (Array.isArray(shell.addComp)) {
             shell.addComp.forEach(comp => {
                 if (typeof comp === 'string') {
                     _addCompFromString(comp, entity);
                 }
                 else {
-                    _addCompFromObj(comp, entity);
+                    _addCompFromObj(entity, comp);
                 }
             });
         }
         else if (typeof shell.addComp === 'object') {
-            _addCompFromObj(shell.addComp, entity);
+            _addCompFromObj(entity, shell.addComp);
         }
         else {
             RG.err('ObjectShell.Creator', 'addComponent',
@@ -445,8 +464,9 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
         }
     };
 
-    const _addCompFromObj = function(compObj, entity) {
-        this.addCompToObj(compObj, entity, null);
+    const _addCompFromObj = (entity, compObj) => {
+        console.log(JSON.stringify(compObj));
+        this.addCompToObj(entity, compObj, null);
     };
 
     // Adds the inventory items for the actors which are specified with 'inv'
