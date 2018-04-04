@@ -57,14 +57,20 @@ LevelGen.getDungeonConf = dungeonName => {
     const usedName = convertToImplemented(dungeonName);
     const nLevels = getNumLevels(usedName);
     const constraint = getConstraint(usedName);
+
+    const dungeonType = usedName.toLowerCase();
     const obj = {
         name: dungeonName,
-        dungeonType: usedName.toLowerCase(),
+        dungeonType: dungeonType,
         nBranches: 1,
         branch: [
             {name: dungeonName, nLevels, entranceLevel: 0}
         ]
     };
+
+    if (dungeonType === 'dungeon') {
+        obj.dungeonType = RG.arrayGetRand(['uniform', 'digger']);
+    }
 
     if (constraint) {
         obj.constraint = constraint;
