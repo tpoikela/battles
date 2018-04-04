@@ -12,9 +12,6 @@ const OW = require('./overworld.map');
 RG.getOverWorld = require('./overworld');
 
 const Creator = require('./world.creator');
-
-const RGObjects = require('../data/battles_objects.js');
-RG.Effects = require('../data/effects.js');
 const ActorClass = require('./actor-class');
 const ArenaDebugGame = require('../data/debug-game');
 
@@ -42,9 +39,8 @@ const MSG = {
  */
 RG.Factory.Game = function() {
     RG.Factory.Base.call(this);
-
-    const _verif = new RG.Verify.Conf('Factory.Game');
-    const _parser = RG.ObjectShell.getParser();
+    this._verif = new RG.Verify.Conf('Factory.Game');
+    this._parser = RG.ObjectShell.getParser();
     this.presetLevels = {};
 
     /* Creates a player actor and starting inventory unless a game has been
@@ -112,7 +108,7 @@ RG.Factory.Game = function() {
 
                 // Create starting inventory
                 items.forEach(item => {
-                    const itemObj = _parser.createItem(item.name);
+                    const itemObj = this._parser.createItem(item.name);
                     itemObj.count = item.count || 1;
                     player.getInvEq().addItem(itemObj);
 
@@ -120,7 +116,7 @@ RG.Factory.Game = function() {
 
                 // Create starting equipment
                 eqs.forEach(item => {
-                    const itemObj = _parser.createItem(item.name);
+                    const itemObj = this._parser.createItem(item.name);
                     itemObj.count = item.count || 1;
                     player.getInvEq().addItem(itemObj);
                     player.getInvEq().equipNItems(itemObj, item.count);
@@ -204,7 +200,7 @@ RG.Factory.Game = function() {
                 () => {}, 35 * 100, MSG.EYE_OF_STORM);
             _game.addEvent(stormEvent);
             const beastEvent = new RG.Time.OneShotEvent(
-                that.createBeastArmy.bind(that, _level, _parser), 50 * 100,
+                that.createBeastArmy.bind(that, _level, this._parser), 50 * 100,
                 'Winter spread by Blizzard Beasts! Hell seems to freeze.');
             _game.addEvent(beastEvent);
         };
@@ -225,10 +221,8 @@ RG.Factory.Game = function() {
 
     /* Creates the game based on the selection. */
     this.createNewGame = function(obj) {
-        _verif.verifyConf('createNewGame', obj, ['sqrPerItem', 'sqrPerActor',
-            'playMode']);
-        _parser.parseShellData(RG.Effects);
-        _parser.parseShellData(RGObjects);
+        this._verif.verifyConf('createNewGame', obj,
+            ['sqrPerItem', 'sqrPerActor', 'playMode']);
 
         const game = new RG.Game.Main();
         const player = this.createPlayerUnlessLoaded(obj);
@@ -304,13 +298,13 @@ RG.Factory.Game = function() {
                     food: () => false,
                     maxValue: 15 * yDiff + 5 * xDiff
                 };
-                this.addNRandItems(splitLevels[x][y], _parser, itemConf);
+                this.addNRandItems(splitLevels[x][y], this._parser, itemConf);
 
                 const actorConf = {
                     actorsPerLevel: actorsPerLevel,
                     maxDanger: yDiff + xDiff
                 };
-                this.addNRandActors(splitLevels[x][y], _parser, actorConf);
+                this.addNRandActors(splitLevels[x][y], this._parser, actorConf);
 
             }
         }
@@ -439,7 +433,7 @@ RG.Factory.Game = function() {
 
     /* Can be used to create a short debugging game for testing.*/
     this.createArenaDebugGame = function(obj, game, player) {
-        return new ArenaDebugGame(this, _parser).create(obj, game, player);
+        return new ArenaDebugGame(this, this._parser).create(obj, game, player);
     };
 
     this.createDebugBattle = function(obj, game, player) {
@@ -491,7 +485,7 @@ RG.Factory.Game = function() {
 
             const potion = new RG.Item.Potion('Healing potion');
             level.addItem(potion);
-            const missile = _parser.createActualObj('items', 'Shuriken');
+            const missile = this._parser.createActualObj('items', 'Shuriken');
             missile.count = 20;
             level.addItem(missile);
 
@@ -501,13 +495,13 @@ RG.Factory.Game = function() {
                 maxValue,
                 food: () => true
             };
-            this.addNRandItems(level, _parser, itemConf);
+            this.addNRandItems(level, this._parser, itemConf);
 
             const actorConf = {
                 actorsPerLevel,
                 maxDanger: nl + 1
             };
-            this.addNRandActors(level, _parser, actorConf);
+            this.addNRandActors(level, this._parser, actorConf);
 
             allLevels.push(level);
         }
@@ -565,7 +559,7 @@ RG.Factory.Game = function() {
 
     this.addActorsToArmy = (army, num, name) => {
         for (let i = 0; i < num; i++) {
-            const actor = _parser.createActualObj('actors', name);
+            const actor = this._parser.createActualObj('actors', name);
             actor.setFOVRange(10);
             army.addActor(actor);
         }
@@ -577,15 +571,15 @@ RG.Factory.Game = function() {
 
     this.createLastBattle = function(game, obj) {
         const levelConf = RG.Factory.cityConfBase({});
-        levelConf.parser = _parser;
+        levelConf.parser = this._parser;
         const level = this.createLevel('town', obj.cols, obj.rows, levelConf);
         _listener = new DemonKillListener(game, level);
 
-        this.createHumanArmy(level, _parser);
+        this.createHumanArmy(level, this._parser);
 
         level.setOnFirstEnter(() => {
             const demonEvent = new RG.Time.OneShotEvent(
-                that.createDemonArmy.bind(that, level, _parser), 100 * 20,
+                that.createDemonArmy.bind(that, level, this._parser), 100 * 20,
                 'Demon hordes are unleashed from the unsilent abyss!');
             game.addEvent(demonEvent);
         });
