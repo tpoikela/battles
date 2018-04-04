@@ -69,7 +69,7 @@ LevelGen.getDungeonConf = dungeonName => {
     };
 
     if (dungeonType === 'dungeon') {
-        obj.dungeonType = RG.arrayGetRand(['uniform', 'digger']);
+        obj.dungeonType = RG.RAND.arrayGetRand(['uniform', 'digger']);
     }
 
     if (constraint) {
