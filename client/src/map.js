@@ -309,10 +309,8 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
     this.cols = cols;
     this.rows = rows;
 
-    const _cols = cols;
-    const _rows = rows;
 
-    if (typeof _cols !== 'number' || typeof _rows !== 'number') {
+    if (typeof this.cols !== 'number' || typeof this.rows !== 'number') {
         RG.err('Map.CellList', 'constructor',
             'Map.CellList(rows, cols) expects 2 integers.');
     }
@@ -442,10 +440,12 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
     };
 
     /* Returns true if the this._map has a cell in given x,y location.*/
-    this._hasXY = (x, y) => (x >= 0) && (x < _cols) && (y >= 0) && (y < _rows);
+    this._hasXY = (x, y) => (
+        (x >= 0) && (x < this.cols) && (y >= 0) && (y < this.rows)
+    );
 
     /* Returns true if light passes through this cell.*/
-    const lightPasses = function(x, y) {
+    this.lightPasses = function(x, y) {
         if (this._hasXY(x, y)) {
             return this._map[x][y].lightPasses(); // delegate to cell
         }
@@ -473,16 +473,17 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
         return false;
     };
 
-    const fov = new ROT.FOV.RecursiveShadowcasting(lightPasses.bind(this));
+    this.fov = new ROT.FOV.RecursiveShadowcasting(
+        this.lightPasses.bind(this));
 
     /* Returns visible cells for given actor.*/
     this.getVisibleCells = function(actor) {
         const cells = [];
-        const [xActor, yActor] = actor.getXY();
+        const [xA, yA] = actor.getXY();
         if (actor.isLocated()) {
             if (actor.getLevel().getMap() === this) {
                 const range = actor.getFOVRange();
-                fov.compute(xActor, yActor, range, (x, y, r, visibility) => {
+                this.fov.compute(xA, yA, range, (x, y, r, visibility) => {
                     if (visibility) {
                         if (this._hasXY(x, y)) {
                             cells.push(this._map[x][y]);
