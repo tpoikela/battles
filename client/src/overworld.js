@@ -740,15 +740,13 @@ function addMountainToSubLevel(owSubLevel, subLevel) {
 /* This creates a tunnel through mountain wall. This cannot fail, otherwise game
  * is unplayable. */
 function addVertTunnelToSubLevel(owSubLevel, subLevel) {
-    // let placed = false;
     const map = subLevel.getMap();
     const cols = map.cols;
     const tunnelX = RG.RAND.getUniformInt(0, cols - 1);
     for (let y = 0; y < map.rows; y++) {
         map.setBaseElemXY(tunnelX, y, RG.ELEM.FLOOR);
     }
-    console.log(`Placed vertical tunnel at X ${tunnelX}`);
-    map.debugPrintInASCII();
+    // map.debugPrintInASCII();
 }
 
 /* Adds a village to the free square of the sub-level. */
