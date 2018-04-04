@@ -27,7 +27,6 @@ RG.Factory.cityConfBase = conf => {
     return result;
 };
 
-
 RG.Factory.addPropsToFreeCells = function(level, props, type) {
     const freeCells = level.getMap().getFree();
     RG.Factory.addPropsToCells(level, freeCells, props, type);
@@ -362,11 +361,10 @@ RG.Factory.Item = function() {
 
 /* Factory object for creating some commonly used objects. Because this is a
 * global object RG.FACT, no state should be used. */
-RG.Factory.Base = function() { // {{{2
-    const _verif = new RG.Verify.Conf('Factory.Base');
-
-    const _actorFact = new RG.Factory.Actor();
-    const _itemFact = new RG.Factory.Item();
+RG.Factory.Base = function() {
+    this._verif = new RG.Verify.Conf('Factory.Base');
+    this._actorFact = new RG.Factory.Actor();
+    this._itemFact = new RG.Factory.Item();
 
     /* Creates a new die object from array or die expression '2d4 + 3' etc.*/
     this.createDie = strOrArray => {
@@ -378,17 +376,19 @@ RG.Factory.Base = function() { // {{{2
     };
 
     /* Factory method for players.*/
-    this.createPlayer = (name, obj) => _actorFact.createPlayer(name, obj);
+    this.createPlayer = (name, obj) => this._actorFact.createPlayer(name, obj);
 
     /* Factory method for monsters.*/
-    this.createActor = (name, obj = {}) => _actorFact.createActor(name, obj);
+    this.createActor = (name, obj = {}) => (
+        this._actorFact.createActor(name, obj)
+    );
 
     /* Factory method for AI brain creation.*/
     this.createBrain = (actor, brainName) =>
-        _actorFact.createBrain(actor, brainName);
+        this._actorFact.createBrain(actor, brainName);
 
     /* Factory method for AI brain creation.*/
-    this.createSpell = name => _actorFact.createSpell(name);
+    this.createSpell = name => this._actorFact.createSpell(name);
 
     this.createElement = elemType => {
         if (RG.elemTypeToObj[elemType]) {
@@ -417,7 +417,11 @@ RG.Factory.Base = function() { // {{{2
         const level = new RG.Map.Level(cols, rows);
 
         mapgen.setGen(levelType, cols, rows);
-        if (levelType === 'town') {
+
+        if (levelType === 'empty') {
+            mapObj = mapgen.createEmptyMap();
+        }
+        else if (levelType === 'town') {
             mapObj = mapgen.createTown(cols, rows, conf);
             level.setMap(mapObj.map);
             this.createHouseElements(level, mapObj, conf);
@@ -481,6 +485,7 @@ RG.Factory.Base = function() { // {{{2
             'paths'];
         possibleExtras.forEach(extra => {
             if (mapObj.hasOwnProperty(extra)) {
+                console.log('Setting extras: ' + extra);
                 extras[extra] = mapObj[extra];
             }
         });
@@ -501,7 +506,7 @@ RG.Factory.Base = function() { // {{{2
      * Level should already contain empty houses where the shop is created at
      * random. */
     this.createShops = function(level, mapObj, conf) {
-        _verif.verifyConf('createShops', conf, ['nShops']);
+        this._verif.verifyConf('createShops', conf, ['nShops']);
         if (mapObj.hasOwnProperty('houses')) {
             const houses = mapObj.houses;
 
@@ -553,7 +558,7 @@ RG.Factory.Base = function() { // {{{2
                     }
 
                     if (conf.hasOwnProperty('parser')) {
-                        const item = _itemFact.getShopItem(n, conf);
+                        const item = this._itemFact.getShopItem(n, conf);
 
                         if (!item) {
                             const msg = 'item null. ' +
@@ -608,32 +613,44 @@ RG.Factory.Base = function() { // {{{2
 
     /* Adds N random items to the level based on maximum value.*/
     this.addNRandItems = (level, parser, conf) => {
-        _verif.verifyConf('addNRandItems', conf, ['func', 'maxValue']);
+        this._verif.verifyConf('addNRandItems', conf, ['func', 'maxValue']);
         // Generate the items randomly for this level
-        _itemFact.addNRandItems(level, parser, conf);
+        this._itemFact.addNRandItems(level, parser, conf);
 
     };
 
     /* Adds N random monsters to the level based on given danger level.*/
     this.addNRandActors = (level, parser, conf) => {
-        _verif.verifyConf('addNRandActors', conf,
+        this._verif.verifyConf('addNRandActors', conf,
             ['maxDanger', 'actorsPerLevel']);
         // Generate the enemies randomly for this level
         const maxDanger = conf.maxDanger;
 
+        const actors = this.generateNActors(conf.actorsPerLevel, conf.func,
+            maxDanger);
+        RG.Factory.addPropsToFreeCells(level, actors, RG.TYPE_ACTOR);
+        return true;
+    };
+
+    this.generateNActors = (nActors, func, maxDanger) => {
+        if (!Number.isInteger(maxDanger)) {
+            RG.err('Factory.Zone', 'generateNActors',
+                'maxDanger must be given. Got: ' + maxDanger);
+        }
+        const parser = this._parser;
         const actors = [];
-        for (let i = 0; i < conf.actorsPerLevel; i++) {
+        for (let i = 0; i < nActors; i++) {
 
             // Generic randomization with danger level
             let actor = null;
-            if (!conf.func) {
+            if (!func) {
                 actor = parser.createRandomActorWeighted(1, maxDanger,
                     {func: function(actor) {return actor.danger <= maxDanger;}}
                 );
             }
             else {
                 actor = parser.createRandomActor({
-                    func: actor => (conf.func(actor) &&
+                    func: actor => (func(actor) &&
                         actor.danger <= maxDanger)
                 });
             }
@@ -650,21 +667,16 @@ RG.Factory.Base = function() { // {{{2
             else {
                 RG.diag('RG.Factory Could not meet constraints for actor gen');
                 return false;
-                // RG.err('Factory.Base', 'addNRandActors',
-                    // `Generated actor null. Conf: ${JSON.stringify(conf)}`);
             }
 
         }
-        RG.Factory.addPropsToFreeCells(level, actors, RG.TYPE_ACTOR);
-        return true;
+        return actors;
     };
-
 
     /* Adds a random number of gold coins to the level. */
     this.addRandomGold = (level, parser, conf) => {
-        _itemFact.addRandomGold(level, parser, conf);
+        this._itemFact.addRandomGold(level, parser, conf);
     };
-
 
     this.createHumanArmy = (level, parser) => {
         for (let y = 0; y < 2; y++) {
@@ -676,7 +688,6 @@ RG.Factory.Base = function() { // {{{2
             const warlord = parser.createActualObj('actors', 'warlord');
             level.addActor(warlord, 10, y + 7);
         }
-
     };
 
     this.createDemonArmy = (level, parser) => {
@@ -716,13 +727,11 @@ RG.Factory.Base = function() { // {{{2
 };
 
 RG.FACT = new RG.Factory.Base();
-// }}}
 
 RG.Factory.Zone = function() {
     RG.Factory.Base.call(this);
-
-    const _verif = new RG.Verify.Conf('Factory.Zone');
-    const _parser = RG.ObjectShell.getParser();
+    this._verif = new RG.Verify.Conf('Factory.Zone');
+    this._parser = RG.ObjectShell.getParser();
 
     this.getRandLevelType = () => {
         const type = ['rooms', 'rogue', 'digger'];
@@ -731,7 +740,7 @@ RG.Factory.Zone = function() {
     };
 
     this.addItemsAndActors = function(level, conf) {
-        _verif.verifyConf('addItemsAndActors', conf,
+        this._verif.verifyConf('addItemsAndActors', conf,
             ['nLevel', 'sqrPerItem', 'sqrPerActor', 'maxValue']);
 
         const numFree = level.getMap().getFree().length;
@@ -762,7 +771,7 @@ RG.Factory.Zone = function() {
             itemConf.func = conf.item;
             debug(`Set itemConf.func to ${conf.item.toString()}`);
         }
-        this.addNRandItems(level, _parser, itemConf);
+        this.addNRandItems(level, this._parser, itemConf);
 
         const actorConf = {
             actorsPerLevel: conf.actorsPerLevel || actorsPerLevel,
@@ -777,21 +786,22 @@ RG.Factory.Zone = function() {
                     'conf.actor must be a function');
             }
         }
-        this.addNRandActors(level, _parser, actorConf);
+        this.addNRandActors(level, this._parser, actorConf);
 
         if (itemConf.gold) {
             const goldConf = {
                 goldPerLevel,
                 nLevel: conf.nLevel + 1
             };
-            this.addRandomGold(level, _parser, goldConf);
+            this.addRandomGold(level, this._parser, goldConf);
         }
     };
 
     /* Creates dungeon level. Unless levelType is given, chooses the type
      * randomly. */
     this.createDungeonLevel = function(conf) {
-        _verif.verifyConf('createDungeonLevel', conf, ['x', 'y']);
+        console.log(' in factory createDungeonLevel');
+        this._verif.verifyConf('createDungeonLevel', conf, ['x', 'y']);
         let level = null;
         let levelType = this.getRandLevelType();
         if (conf.dungeonType && conf.dungeonType !== '') {
@@ -800,6 +810,7 @@ RG.Factory.Zone = function() {
         debug(`dungeonLevel: ${levelType}, ${JSON.stringify(conf)}`);
         level = this.createLevel(levelType, conf.x, conf.y, conf);
         this.addItemsAndActors(level, conf);
+        this.addExtraDungeonFeatures(level, conf);
         return level;
     };
 
@@ -840,7 +851,7 @@ RG.Factory.Zone = function() {
     * functions based on the type of city and quarter. */
     this.createCityLevel = function(nLevel, conf) {
         const levelConf = RG.Factory.cityConfBase(conf);
-        levelConf.parser = _parser;
+        levelConf.parser = this._parser;
         let cityLevel = null;
 
         const {x, y} = conf;
@@ -968,7 +979,7 @@ RG.Factory.Zone = function() {
             )
         };
         if (levelConf.func) {actorConf.func = levelConf.func;}
-        this.addNRandActors(level, _parser, actorConf);
+        this.addNRandActors(level, this._parser, actorConf);
     };
 
     this.populateWithEvil = function(level, levelConf) {
@@ -983,7 +994,7 @@ RG.Factory.Zone = function() {
                 )
             };
             if (levelConf.func) {actorConf.func = levelConf.func;}
-            allOK = this.addNRandActors(level, _parser, actorConf);
+            allOK = this.addNRandActors(level, this._parser, actorConf);
         }
     };
 
@@ -997,13 +1008,43 @@ RG.Factory.Zone = function() {
             )
         };
         if (levelConf.func) {actorConf.func = levelConf.func;}
-        this.addNRandActors(level, _parser, actorConf);
+        this.addNRandActors(level, this._parser, actorConf);
     };
 
     this.addActorToLevel = (actorName, level) => {
-        const actor = _parser.createActor(actorName);
+        const actor = this._parser.createActor(actorName);
         const cell = level.getFreeRandCell();
         level.addActor(actor, cell.getX(), cell.getY());
+    };
+
+    /* Adds some special features to dungeon levels to make them more
+     * interestings. */
+    this.addExtraDungeonFeatures = (level, conf) => {
+        const extras = level.getExtras();
+        if (extras.rooms) {
+            extras.rooms.forEach(room => {
+                room.getDoors((x, y) => {
+                    level.addElement(new RG.Element.Door(), x, y);
+                });
+            });
+
+            const room = RG.RAND.arrayGetRand(extras.rooms);
+            const bbox = room.getBbox();
+            this.addActorsToBbox(level, bbox, conf);
+        }
+    };
+
+    this.addActorsToBbox = (level, bbox, conf) => {
+        const nActors = 4;
+        const {maxDanger, func} = conf;
+        const actors = this.generateNActors(nActors, func, maxDanger);
+        const freeCells = level.getMap().getFreeInBbox(bbox);
+        if (freeCells.length < nActors) {
+            RG.warn('Factory.Zone', 'addActorsToBbox',
+                'Not enough free cells');
+        }
+        RG.Factory.addPropsToCells(level, freeCells, actors, RG.TYPE_ACTOR);
+        console.log('addActorsToBbox: Added 4 actors to level');
     };
 
 };
