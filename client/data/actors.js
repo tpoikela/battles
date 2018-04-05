@@ -140,7 +140,8 @@ const Actors = [
         attack: 5, defense: 5, protection: 3,
         hp: 38, danger: 9, damage: '4d4',
         addComp: 'Flying',
-        brain: 'SpellCaster', spells: ['LightningBolt']
+        brain: 'SpellCaster', spells: ['LightningBolt'],
+        maxPP: 40, pp: 40
     },
 
     // GOBLINS
@@ -170,6 +171,7 @@ const Actors = [
     {
         name: 'goblin summoner', base: 'goblin',
         attack: 2, defense: 4, protection: 2, hp: 25,
+        maxPP: 20, pp: 20,
         brain: 'SpellCaster', spells: ['SummonAnimal'],
         danger: 5
     },
@@ -195,7 +197,7 @@ const Actors = [
     // AVIAN
     {
         name: 'AvianFolkBase', char: 'A', className: 'cell-actor-avianfolk',
-        type: 'avianfolk',
+        type: 'avianfolk', dontCreate: true,
         enemies: ['player', 'catfolk', 'dogfolk', 'wolfclan'],
         brain: defaultBrain, addComp: 'Flying',
         attack: 2, defense: 2, damage: '1d6', range: 1,
@@ -204,12 +206,18 @@ const Actors = [
     {
         name: 'avian duelist', base: 'AvianFolkBase', danger: 8,
         attack: 7, defense: 10, damage: '3d5', hp: 40,
-        addComp: ['CounterStrike', 'Flying']
+        addComp: ['CounterAttack', 'Flying']
     },
     {
         name: 'avian judicator', base: 'AvianFolkBase', danger: 9,
         attack: 7, defense: 10, damage: '4d4', hp: 45,
         addComp: ['FirstStrike', 'Flying']
+    },
+    {
+        name: 'avian archmage', base: 'AvianFolkBase', danger: 11,
+        attack: 5, defense: 10, damage: '3d4', hp: 45,
+        // brain: 'SpellCaster', spells: ['SummonAirElemental'],
+        pp: 40, maxPP: 40
     },
     {
         name: 'avian emperor', base: 'AvianFolkBase', danger: 16,
@@ -638,8 +646,7 @@ const Actors = [
     {
         name: 'wolfclan judicator', base: 'WolfclanBase', danger: 9,
         attack: 8, defense: 8, damage: '3d4+6', hp: 55,
-        addComp: 'FirstStrike',
-        equip: ['Steel armour']
+        addComp: 'FirstStrike' // , equip: ['Steel armour']
     },
     {
         name: 'wolfclan commander', base: 'WolfclanBase', danger: 10,
