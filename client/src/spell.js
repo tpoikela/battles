@@ -658,6 +658,15 @@ RG.Spell.SummonIceMinion = function() {
 };
 RG.extend2(RG.Spell.SummonIceMinion, RG.Spell.SummonBase);
 
+/* A spell to summon an ice minion to fight for the caster. */
+RG.Spell.SummonAirElemental = function() {
+    RG.Spell.SummonBase.call(this, 'SummonAirElemental', 20);
+    this.summonFunc = actor => {
+        return actor.name === 'air elemental';
+    };
+};
+RG.extend2(RG.Spell.SummonAirElemental, RG.Spell.SummonBase);
+
 /* A spell to summon an animal to fight for the caster. */
 RG.Spell.SummonAnimal = function() {
     RG.Spell.SummonBase.call(this, 'SummonAnimal', 10);
@@ -936,6 +945,7 @@ RG.Spell.addAllSpells = book => {
     book.addSpell(new RG.Spell.PowerDrain());
     book.addSpell(new RG.Spell.SpiritForm());
     book.addSpell(new RG.Spell.SummonAnimal());
+    book.addSpell(new RG.Spell.SummonAirElemental());
     book.addSpell(new RG.Spell.SummonIceMinion());
     book.addSpell(new RG.Spell.SummonDead());
 };
