@@ -546,6 +546,7 @@ Level.prototype.debugPrintInASCII = () => {
 /* Serializes the level object. */
 Level.prototype.toJSON = function() {
     const obj = {
+        isJSON: true,
         id: this.getID(),
         levelNumber: this.getLevelNumber(),
         actors: [],
