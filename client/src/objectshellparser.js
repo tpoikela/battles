@@ -464,7 +464,6 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
     };
 
     const _addCompFromObj = (entity, compObj) => {
-        console.log(JSON.stringify(compObj));
         this.addCompToObj(entity, compObj, null);
     };
 
