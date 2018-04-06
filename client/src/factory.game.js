@@ -349,7 +349,7 @@ RG.Factory.Game = function() {
         game.addPlayer(player); // Player already placed to level
         this.progress(obj, 'Player added to the game');
         // RG.Verify.verifyStairsConnections(game, 'Factory.Game');
-        this.progress(obj, 'Stairs connections verified');
+        // this.progress(obj, 'Stairs connections verified');
         return game;
     };
 
@@ -360,6 +360,9 @@ RG.Factory.Game = function() {
             durSec = (timeNow - this.timePrev) / 1000;
         }
         this.timePrev = timeNow;
+        if (obj.progressCallback) {
+            obj.progressCallback(msg);
+        }
         console.log(`${msg} - Time: ${durSec} sec`);
     };
 
