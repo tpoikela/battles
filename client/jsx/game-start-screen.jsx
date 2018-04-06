@@ -70,6 +70,13 @@ export default class GameStartScreen extends Component {
 
     const newGame = this.props.newGame;
     const titleTextLoad = RG.gameTitle + ' Load a game';
+
+    let progressElem = null;
+    if (this.props.progress) {
+        progressElem = (<div>
+            <p className='text-info'>{this.props.progress}</p>
+        </div>);
+    }
     return (
       <div id='game-start-screen'>
 
@@ -242,6 +249,8 @@ export default class GameStartScreen extends Component {
               />
             </div>
 
+            {progressElem}
+
           </div>
           </div>
         </Modal.Body>
@@ -295,28 +304,28 @@ export default class GameStartScreen extends Component {
 }
 
 GameStartScreen.propTypes = {
-  settings: PropTypes.object,
   deleteGame: PropTypes.func.isRequired,
   loadGame: PropTypes.func.isRequired,
-  savedPlayerList: PropTypes.array,
-  setPlayerName: PropTypes.func.isRequired,
+  newGame: PropTypes.func.isRequired,
   playerName: PropTypes.string,
+  progress: PropTypes.string,
+  savedPlayerList: PropTypes.array,
   seedName: PropTypes.string,
-  setSeedName: PropTypes.func.isRequired,
+  selectGame: PropTypes.func.isRequired,
+  selectedGame: PropTypes.string,
+  setGameLength: PropTypes.func.isRequired,
+  setLevelSize: PropTypes.func.isRequired,
   setLoot: PropTypes.func.isRequired,
   setMonsters: PropTypes.func.isRequired,
-  setLevelSize: PropTypes.func.isRequired,
-  setPlayerLevel: PropTypes.func.isRequired,
-  setGameLength: PropTypes.func.isRequired,
   setPlayMode: PropTypes.func.isRequired,
   setPlayerClass: PropTypes.func.isRequired,
+  setPlayerLevel: PropTypes.func.isRequired,
+  setPlayerName: PropTypes.func.isRequired,
   setPlayerRace: PropTypes.func.isRequired,
-
-  newGame: PropTypes.func.isRequired,
-  selectedGame: PropTypes.string,
-  selectGame: PropTypes.func.isRequired,
-  showStartScreen: PropTypes.bool.isRequired,
+  setSeedName: PropTypes.func.isRequired,
+  settings: PropTypes.object,
   showLoadScreen: PropTypes.bool.isRequired,
+  showStartScreen: PropTypes.bool.isRequired,
   toggleEditor: PropTypes.func.isRequired,
   toggleScreen: PropTypes.func.isRequired
 };
