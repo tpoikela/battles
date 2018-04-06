@@ -91,7 +91,6 @@ const GameMaster = function(game) {
                 levelType = this.biomeToLevelType(biome);
                 debug('Creating battle on tile ' + xy);
                 bbox = this.getLevelBbox(ow, area, xy, owPos, parentLevel);
-                console.log('Got bbox ' + JSON.stringify(bbox));
             }
             battleConf.maxDanger = maxDanger;
             battleConf.armySize = armySize;
@@ -152,8 +151,8 @@ const GameMaster = function(game) {
         const owTilesPerAreaTileY = owSizeY / areaY;
         const oneOwTileInCols = areaX * cols / owSizeX;
         const oneOwTileInRows = areaY * rows / owSizeY;
-        const localOwX = owX / owTilesPerAreaTileX;
-        const localOwY = owY / owTilesPerAreaTileY;
+        const localOwX = owX % owTilesPerAreaTileX;
+        const localOwY = owY % owTilesPerAreaTileY;
 
         return {
             ulx: localOwX * oneOwTileInCols,
