@@ -405,6 +405,7 @@ class BattlesTop extends Component {
             delete this.game;
             RG.FACT = new RG.Factory.Base();
         }
+
         this.game = gameFactory.createNewGame(this.gameConf);
         this.game.setGUICallbacks(this.isGUICommand, this.doGUICommand);
         this.game.setAnimationCallback(this.playAnimation.bind(this));
@@ -417,8 +418,8 @@ class BattlesTop extends Component {
         this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
     }
 
-        /* Sets some global variables which ease up the debugging with console.
-         * */
+    /* Sets some global variables which ease up the debugging with console.
+     */
     setDebugRefsToWindow() {
         window.RG = RG;
         window.GAME = this.game; // For debugging
@@ -707,6 +708,7 @@ class BattlesTop extends Component {
                     loadGame={this.loadGame}
                     newGame={this.newGame}
                     playerName={this.state.playerName}
+                    progress={this.state.progress}
                     savedPlayerList={this.savedPlayerList}
                     seedName={this.state.seedName}
                     selectedGame={this.state.selectedGame}
