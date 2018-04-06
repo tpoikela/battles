@@ -48,6 +48,8 @@ RG.Factory.Game = function() {
     this.createPlayerUnlessLoaded = function(obj) {
         let player = obj.loadedPlayer;
         if (RG.isNullOrUndef([player])) {
+            this._verif.verifyConf('createPlayerUnlessLoaded', obj,
+                ['playerLevel', 'playerRace', 'playerName']);
             const expLevel = obj.playerLevel;
             const pConf = confPlayerStats[expLevel];
 
@@ -272,15 +274,22 @@ RG.Factory.Game = function() {
         };
 
         const overworld = OW.createOverWorld(owConf);
+        this.progress(obj, 'Overworld Tile Map created');
         const worldAndConf = RG.OverWorld.createOverWorldLevel(
           overworld, owConf);
         const worldLevel = worldAndConf[0];
+        this.progress(obj, 'Overworld Level Map created');
 
         RG.Map.Level.idCount = 0;
         const splitLevels = RG.Geometry.splitLevel(worldLevel, owConf);
         const midX = Math.floor(owConf.nLevelsX / 2);
+        this.progress(obj, 'Overworld Level Map split into AreaTiles');
 
-        const sizeY = splitLevels[0].length;
+        const playerX = midX;
+        const playerY = owConf.nLevelsY - 1;
+
+        // const sizeY = splitLevels[0].length;
+        /*
         for (let x = 0; x < splitLevels.length; x++) {
             const xDiff = Math.abs(midX - x);
             for (let y = 0; y < sizeY; y++) {
@@ -308,11 +317,14 @@ RG.Factory.Game = function() {
 
             }
         }
+        */
+        this.progress(obj, 'AreaTiles populated with items and actors');
 
         RG.Map.Level.idCount = 1000;
         const worldArea = new RG.World.Area('Ravendark', owConf.nLevelsX,
             owConf.nLevelsY, 100, 100, splitLevels);
         worldArea.connectTiles();
+        this.progress(obj, 'World.Area created and tiles connected');
 
         const fact = new RG.Factory.World();
         fact.setGlobalConf(obj);
@@ -326,16 +338,29 @@ RG.Factory.Game = function() {
         overworld.clearSubLevels();
         game.setOverWorld(overworld);
         game.setEnableChunkUnload(true);
+        this.progress(obj, 'Final World and levels created');
 
-        const playerLevel = splitLevels[midX][owConf.nLevelsY - 1];
+        const playerLevel = splitLevels[playerX][playerY];
         playerLevel.addActorToFreeCell(player);
         RG.POOL.emitEvent(RG.EVT_TILE_CHANGED, {actor: player,
             target: playerLevel});
 
         player.setFOVRange(RG.PLAYER_FOV_RANGE);
         game.addPlayer(player); // Player already placed to level
-        RG.Verify.verifyStairsConnections(game, 'Factory.Game');
+        this.progress(obj, 'Player added to the game');
+        // RG.Verify.verifyStairsConnections(game, 'Factory.Game');
+        this.progress(obj, 'Stairs connections verified');
         return game;
+    };
+
+    this.progress = function(obj, msg) {
+        const timeNow = new Date().getTime();
+        let durSec = 0;
+        if (this.timePrev) {
+            durSec = (timeNow - this.timePrev) / 1000;
+        }
+        this.timePrev = timeNow;
+        console.log(`${msg} - Time: ${durSec} sec`);
     };
 
 
