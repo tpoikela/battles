@@ -26,13 +26,13 @@ let conf = {
     worldY: mult * 400
 };
 
-mult = 1;
+mult = 2;
 conf = {
     yFirst: false,
     topToBottom: false,
     // stopOnWall: 'random',
-    stopOnWall: 'random',
-    nHWalls: 3,
+    stopOnWall: true,
+    // nHWalls: 2,
     // nVWalls: 4,
     nVWalls: [0.8],
     owTilesX: mult * 80,
