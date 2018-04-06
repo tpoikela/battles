@@ -630,10 +630,14 @@ RG.Factory.Base = function() {
         return true;
     };
 
+    this.setParser = parser => {
+        this._parser = parser;
+    };
+
     this.generateNActors = (nActors, func, maxDanger) => {
-        if (!Number.isInteger(maxDanger)) {
+        if (!Number.isInteger(maxDanger) || maxDanger <= 0) {
             RG.err('Factory.Zone', 'generateNActors',
-                'maxDanger must be given. Got: ' + maxDanger);
+                'maxDanger (> 0) must be given. Got: ' + maxDanger);
         }
         const parser = this._parser;
         const actors = [];
