@@ -5,7 +5,7 @@ require('babel-register');
 
 
 const RG = require('../client/src/battles');
-const worldConf = require('../client/data/conf.world');
+// const worldConf = require('../client/data/conf.world');
 
 const factory = new RG.Factory.Game();
 
@@ -21,7 +21,10 @@ const gameConf = {
     loadedPlayer: null,
     loadedLevel: null,
     playerName: 'Player1',
-    world: worldConf
+    // world: worldConf,
+    playerRace: 'goblin',
+    xMult: 2,
+    yMult: 2
 };
 
 const game = factory.createNewGame(gameConf);
