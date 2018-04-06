@@ -780,6 +780,7 @@ RG.cellRenderArray = RG.cellRenderVisible;
 RG.getDangerProb = (min, max) => {
     if (min > max) {
         console.error('RG.getDangerProb param order is min < max');
+        console.error(`\tGot min: ${min}, max: ${max}`);
         return {};
     }
     const level = max + 1;
