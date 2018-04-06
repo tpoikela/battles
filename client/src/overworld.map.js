@@ -101,6 +101,9 @@ OW.ALL_WALLS = [
     OW.LL_WE, OW.LL_NS
 ];
 
+OW.ALL_WALLS_LUT = {};
+OW.ALL_WALLS.forEach(tile => {OW.ALL_WALLS_LUT[tile] = tile;});
+
 // const LINE_WE = [OW.LL_WE, OW.TT_N, OW.TT_S, OW.XX];
 // const LINE_NS = [OW.LL_NS, OW.TT_E, OW.TT_W, OW.XX];
 
@@ -238,6 +241,8 @@ OW.createOverWorld = (conf = {}) => {
     randomizeBorders(owMap);
     addWallsIfAny(overworld, owMap, conf);
 
+    addRandomInnerWalls(overworld, owMap, conf);
+
     if (topToBottom) {
         connectUnconnectedTopBottom(owMap, yFirst);
     }
@@ -254,7 +259,7 @@ OW.createOverWorld = (conf = {}) => {
     // High-level overworld generation ends here
 
     if (printResult) {
-        RG.diag(overworld.mapToString());
+        console.log(overworld.mapToString().join('\n'));
     }
     return overworld;
 };
@@ -276,6 +281,28 @@ OW.Map = function() {
 
     this._biomeMap = {};
 
+};
+
+OW.Map.prototype.getSizeXY = function() {
+    return [this.getSizeX(), this.getSizeY()];
+};
+
+OW.Map.prototype.isWallTile = function(x, y) {
+    const tile = this._baseMap[x][y];
+    return OW.ALL_WALLS_LUT.hasOwnProperty(tile);
+};
+
+OW.Map.prototype.numWallTiles = function() {
+    let numWalls = 0;
+    const [sizeX, sizeY] = this.getSizeXY();
+    for (let x = 0; x < sizeX; x++) {
+        for (let y = 0; y < sizeY; y++) {
+            if (this.isWallTile(x, y)) {
+                ++numWalls;
+            }
+        }
+    }
+    return numWalls;
 };
 
 OW.Map.prototype.getBiome = function(x, y) {
@@ -474,7 +501,7 @@ OW.Map.prototype.printBiomeMap = function() {
         result += rowStr;
     }
     result += '\n' + legend.join('\n');
-    RG.diag(result);
+    console.log(result);
 };
 
 //---------------------------------------------------------------------------
@@ -644,6 +671,22 @@ function addVerticalWallNorthToSouth(ow, x, map, stopOnWall = false) {
     ow.addVWall(wall);
 }
 
+function addRandomInnerWalls(overworld, map, conf) {
+    const sizeY = map[0].length;
+    const sizeX = map.length;
+
+    const ratio = conf.innerWallRatio || 0.07;
+    const nTiles = Math.floor(sizeX * sizeY * ratio);
+
+    for (let i = 0; i < nTiles; i++) {
+        const x = RG.RAND.getUniformInt(2, sizeX - 2);
+        const y = RG.RAND.getUniformInt(2, sizeY - 2);
+        if (map[x][y] === OW.EMPTY) {
+            map[x][y] = RG.RAND.arrayGetRand(OW.ALL_WALLS);
+        }
+    }
+}
+
 /* Connects all unconnected tiles by starting from 0,0 -> 0,N, then
  * moving to 1,0 -> 1,N, and so on.
  * */
@@ -747,7 +790,7 @@ function printMap(map) {
         for (let x = 0; x < sizeX; x++) {
             line.push(map[x][y]);
         }
-        RG.diag(line.join(''));
+        console.log(line.join(''));
     }
 }
 /* Adds features like water, cities etc into the world. This feature only
@@ -757,9 +800,18 @@ function addOverWorldFeatures(ow, conf) {
     const sizeX = ow.getSizeX();
     const sizeY = ow.getSizeY();
     const area = sizeX * sizeY;
+
+    const numWallTiles = ow.numWallTiles();
+    console.log(`Found ${numWallTiles} wall tiles`);
+
+    /*
     const nDungeonsSouth = conf.nDungeonsSouth || Math.floor(area / 40);
     const nDungeonsCenter = conf.nDungeonsCenter || Math.floor(area / 80);
     const nDungeonsNorth = conf.nDungeonsNorth || Math.floor(area / 80);
+    */
+    const nDungeonsSouth = conf.nDungeonsSouth || Math.floor(numWallTiles / 12);
+    const nDungeonsCenter = conf.nDungeonsCenter || Math.floor(numWallTiles / 24);
+    const nDungeonsNorth = conf.nDungeonsNorth || Math.floor(numWallTiles / 24);
 
     const nMountainsNorth = conf.nMountainsNorth || Math.floor(area / 20);
     const nMountainsMiddle = conf.nMountainsMiddle || Math.floor(area / 30);
@@ -801,8 +853,8 @@ function addOverWorldFeatures(ow, conf) {
     // Create forests and lakes (sort of done in sub-level generation)
 
     // Distribute dungeons
-    const bBoxSouth = bBox(1, sizeY - 2, sizeX - 2, sizeY - 10);
-    addDungeonsToOverWorld(ow, nDungeonsSouth, bBoxSouth);
+    // const bBoxSouth = bBox(1, sizeY - 2, sizeX - 2, sizeY - 10);
+    addDungeonsToOverWorld(ow, nDungeonsSouth, cmdSouthernArea);
     addDungeonsToOverWorld(ow, nDungeonsCenter, cmdBetweenHWalls);
     addDungeonsToOverWorld(ow, nDungeonsNorth, cmdAboveNorthWall);
 
