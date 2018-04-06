@@ -276,6 +276,7 @@ RG.Factory.World = function() {
     this.createZonesForTile = function(world, area, x, y) {
         // Setup the scope & conf stacks
         if (!area.tileHasZonesCreated(x, y)) {
+            this.populateAreaLevel(area, x, y);
             this.debug(`Creating Area ${x},${y} zones`);
             const worldConf = world.getConf();
             this.pushScope(worldConf);
@@ -292,6 +293,47 @@ RG.Factory.World = function() {
         else {
             this.debug(`Area ${x},${y} zones already created`);
         }
+    };
+
+    this.populateAreaLevel = function(area, x, y) {
+        console.log(`Populating area [${x}][${y}]`);
+        const playerX = Math.floor(area.getSizeX() / 2);
+        const playerY = area.getSizeY() - 1;
+        const parser = RG.ObjectShell.getParser();
+
+        const level = area.getTileXY(x, y).getLevel();
+
+        const xDiff = Math.abs(playerX - x);
+        const yDiff = playerY - y;
+
+        const itemsPerLevel = 7 + xDiff + 2 * yDiff;
+        const actorsPerLevel = (yDiff + 1) * 10 + 2 * xDiff;
+
+        const fact = new RG.Factory.Base();
+        fact.setParser(parser);
+
+        const itemConf = {
+            itemsPerLevel,
+            func: (item) => (
+                item.value <= 15 * yDiff + 5 * xDiff
+                && item.type !== 'food'
+            ),
+            gold: () => false,
+            food: () => false,
+            maxValue: 15 * yDiff + 5 * xDiff
+        };
+        fact.addNRandItems(level, parser, itemConf);
+
+        let maxDanger = yDiff + xDiff;
+        if (maxDanger < 2) {maxDanger = 2;}
+
+        const actorConf = {
+            actorsPerLevel, maxDanger
+        };
+        fact.addNRandActors(level, parser, actorConf);
+
+        console.log(`Populating area [${x}][${y}] FINISHED`);
+
     };
 
     this._createAllZones = function(area, conf, tx = -1, ty = -1) {
@@ -312,14 +354,16 @@ RG.Factory.World = function() {
     this.createZonesFromArea = function(area, conf, tx = -1, ty = -1) {
         ZONE_TYPES.forEach(type => {
             const typeLc = type.toLowerCase();
+            const createFunc = 'create' + type;
             let nZones = 0;
             if (Array.isArray(conf[typeLc])) {
                 nZones = conf[typeLc].length;
             }
             this.debug(`\tnZones (${type}) is now ${nZones}`);
+            console.log(`Iterating zones ${nZones} of type ${type}`);
             for (let i = 0; i < nZones; i++) {
+                // console.log(`Creating zone ${i} for tile [${tx}][${ty}]`);
                 const zoneConf = conf[typeLc][i];
-                const createFunc = 'create' + type;
                 const {x, y} = zoneConf;
 
                 // If tx,ty given, create only zones for tile tx,ty
@@ -334,6 +378,7 @@ RG.Factory.World = function() {
                     }
                 }
             }
+            console.log(`Iterating DONE for type ${type}`);
 
         });
     };
@@ -349,6 +394,7 @@ RG.Factory.World = function() {
             }
            this.debug(`\t[${tx}][${ty}]: nZones (${type}) is now ${nZones}`);
             for (let i = 0; i < nZones; i++) {
+                console.log(`Creating zone ${i} for tile [${tx}][${ty}`);
                 const zoneConf = areaTileConf[typeLc][i];
                 const createFunc = 'create' + type;
                 const {x, y} = zoneConf;
