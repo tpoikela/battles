@@ -5,7 +5,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import GameRow from './game-row';
 
-const eventToPosition = (e, elem, props) => {
+const eventToPosition = (e, elem, props, elemID) => {
     // Where the mouse was clicked
     const x = e.clientX;
     const y = e.clientY;
@@ -16,7 +16,7 @@ const eventToPosition = (e, elem, props) => {
 
     const rect = elem.getBoundingClientRect();
 
-    const rowElem = document.getElementsByClassName('game-board-row')[0];
+    const rowElem = document.getElementsByClassName(elemID)[0];
     if (rowElem) {
         console.log(`h: ${rowElem.clientHeight} w: ${rowElem.clientWidth}`);
         const sizeX = rowElem.clientWidth / numCells;
@@ -39,15 +39,29 @@ export default class GameBoard extends Component {
     constructor(props) {
         super(props);
         this.onCellClick = this.onCellClick.bind(this);
+        this.onMouseOverCell = this.onMouseOverCell.bind(this);
     }
 
     onCellClick(evt) {
         // this.board specified using react ref=
-        const xy = eventToPosition(evt, this.board, this.props);
+        const xy = eventToPosition(evt, this.board, this.props,
+            'game-board-row');
         console.log(`eventToPosition returned ${xy}`);
         if (xy) {
             this.props.onCellClick(xy[0], xy[1]);
         }
+    }
+
+    getCellXY(evt) {
+      return eventToPosition(evt, this.board, this.boards, 'game-board-row');
+    }
+
+    componentDidMount() {
+      this.board.addEventListener('contextmenu', this.onMouseOverCell, true);
+    }
+
+    componentWillUnmount() {
+      this.board.removeEventListener('contextmenu', this.onMouseOverCell);
     }
 
     render() {
@@ -81,6 +95,17 @@ export default class GameBoard extends Component {
         );
     }
 
+    onMouseOverCell(evt) {
+      evt.preventDefault();
+      console.log('<GameBoard> onMouseOverCell');
+      console.log(evt);
+      const xy = eventToPosition(evt, this.board, this.props,
+          'game-board-row');
+      console.log('<GameBoard> xy is ' + xy);
+      this.props.onMouseOverCell(xy[0], xy[1]);
+      return false; // Prevents standard context menu
+    }
+
 }
 
 GameBoard.propTypes = {
@@ -89,6 +114,7 @@ GameBoard.propTypes = {
     classRows: PropTypes.arrayOf(String),
     endY: PropTypes.number,
     onCellClick: PropTypes.func,
+    onMouseOverCell: PropTypes.func,
     rowClass: PropTypes.string,
     useRLE: PropTypes.bool,
     sizeX: PropTypes.number,
