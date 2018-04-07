@@ -538,6 +538,10 @@ RG.Game.FromJSON = function() {
     /* Main function to call when restoring a game. When given Game.Main in
      * serialized JSON, returns the restored Game.Main object. */
     this.createGame = function(gameJSON) {
+        if (typeof gameJSON === 'string') {
+            RG.err('Game.FromJSON', 'createGame',
+                'An object must be given instead of string');
+        }
         this.dbg('createGame: Restoring now full game');
         this.IND = 1;
 
@@ -562,11 +566,13 @@ RG.Game.FromJSON = function() {
             }
         });
 
-        Object.keys(gameJSON.places).forEach(name => {
-            const place = gameJSON.places[name];
-            const placeObj = this.restorePlace(place);
-            game.addPlace(placeObj);
-        });
+        if (gameJSON.places) {
+            Object.keys(gameJSON.places).forEach(name => {
+                const place = gameJSON.places[name];
+                const placeObj = this.restorePlace(place);
+                game.addPlace(placeObj);
+            });
+        }
 
         if (gameJSON.overworld) {
             const overworld = this.restoreOverWorld(gameJSON.overworld);
@@ -815,6 +821,10 @@ RG.Game.FromJSON = function() {
         let levels = [];
         let numLevels = 0;
         if (gameJSON.levels) {return gameJSON.levels;}
+        if (!gameJSON.places) {
+            return levels;
+        }
+
         Object.keys(gameJSON.places).forEach(name => {
             const place = gameJSON.places[name];
             if (place.area) {
