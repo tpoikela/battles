@@ -511,11 +511,8 @@ class BattlesTop extends Component {
 
     /* Handles right clicks of the context menu. */
     handleRightClick(evt, data, cell) {
-        if (data.type === 'shoot') {
-            const cmd = {cmd: 'missile', target: cell};
-            this.keyPending = true;
-            this.nextCode = cmd;
-        }
+        const [x, y] = cell.getXY();
+        this.useClickHandler(x, y, cell, data.type);
     }
 
     /* When a cell is clicked, perform a command/show debug info. */
@@ -537,12 +534,7 @@ class BattlesTop extends Component {
         else {
             this.logic.describeCell(cell, this.gameState.visibleCells);
             this.setState({selectedCell: cell});
-            this.clickHandler = new CellClickHandler(this.game);
-            this.clickHandler.handleClick(x, y, cell);
-
-            if (this.clickHandler.hasKeys()) {
-                this.setAutoMode();
-            }
+            this.useClickHandler(x, y, cell, 'move');
         }
         console.log(`Cell: ${JSON.stringify(cell)}`);
         if (cell.hasActors()) {
@@ -552,6 +544,15 @@ class BattlesTop extends Component {
         if (cell.hasConnection()) {
             const conns = cell.getPropType('connection');
             console.log(`Actors: ${JSON.stringify(conns)}`);
+        }
+    }
+
+    useClickHandler(x, y, cell, cmd) {
+        this.clickHandler = new CellClickHandler(this.game);
+        this.clickHandler.handleClick(x, y, cell, cmd);
+
+        if (this.clickHandler.hasKeys()) {
+            this.setAutoMode();
         }
     }
 
