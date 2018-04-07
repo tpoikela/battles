@@ -23,16 +23,27 @@ const allMenuItems = {
   hasItems: [
     {text: 'Pick up', type: 'pickup'},
   ],
-  hasPassage: [
-    {text: 'Travel', type: 'usestairs'},
-  ],
-  hasShop: [
-    {text: 'Buy item', type: 'buyitem'},
-    {text: 'Sel item', type: 'sellitem'},
-  ],
-  hasStairs: [
-    {text: 'Stairs', type: 'usestairs'},
-  ]
+  hasConnection: {
+    hasPassage: [
+      {text: 'Travel', type: 'usestairs'},
+    ],
+    hasShop: [
+      {text: 'Buy item', type: 'buyitem'},
+      {text: 'Sell item', type: 'sellitem'},
+    ],
+    hasStairs: [
+      {text: 'Stairs', type: 'usestairs'},
+    ],
+    hasTown: [
+      {text: 'Goto town', type: 'usestairs'},
+    ],
+    hasBattle: [
+      {text: 'Goto battle', type: 'usestairs'},
+    ],
+    hasMountain: [
+      {text: 'Goto mountain', type: 'usestairs'},
+    ],
+  }
 };
 
 export default class GameContextMenu extends React.Component {
@@ -65,7 +76,7 @@ export default class GameContextMenu extends React.Component {
     const items = [];
     Object.keys(allMenuItems).forEach(queryFunc => {
       if (this.isCorrectContext(queryFunc)) {
-        const menuItems = allMenuItems[queryFunc];
+        const menuItems = this.getMenuItems(allMenuItems[queryFunc]);
         menuItems.forEach((item, index) => {
           items.push(
             <MenuItem
@@ -88,6 +99,19 @@ export default class GameContextMenu extends React.Component {
       }
     });
     return items;
+  }
+
+  getMenuItems(items) {
+    let result = [];
+    if (Array.isArray(items)) {
+      return items;
+    }
+    Object.keys(items).forEach(queryFunc => {
+      if (this.isCorrectContext(queryFunc)) {
+        result = result.concat(this.getMenuItems(items[queryFunc]));
+      }
+    });
+    return result;
   }
 
   isCorrectContext(queryFunc) {
