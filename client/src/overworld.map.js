@@ -292,6 +292,19 @@ OW.Map.prototype.isWallTile = function(x, y) {
     return OW.ALL_WALLS_LUT.hasOwnProperty(tile);
 };
 
+OW.Map.prototype.numTiles = function(tile) {
+    let numFound = 0;
+    const [sizeX, sizeY] = this.getSizeXY();
+    for (let x = 0; x < sizeX; x++) {
+        for (let y = 0; y < sizeY; y++) {
+            if (this._baseMap[x][y] === tile) {
+                ++numFound;
+            }
+        }
+    }
+    return numFound;
+};
+
 OW.Map.prototype.numWallTiles = function() {
     let numWalls = 0;
     const [sizeX, sizeY] = this.getSizeXY();
@@ -675,7 +688,7 @@ function addRandomInnerWalls(overworld, map, conf) {
     const sizeY = map[0].length;
     const sizeX = map.length;
 
-    const ratio = conf.innerWallRatio || 0.07;
+    const ratio = conf.innerWallRatio || 0.05;
     const nTiles = Math.floor(sizeX * sizeY * ratio);
 
     for (let i = 0; i < nTiles; i++) {
@@ -801,24 +814,22 @@ function addOverWorldFeatures(ow, conf) {
     const sizeY = ow.getSizeY();
     const area = sizeX * sizeY;
 
+    const numFlatTiles = ow.numTiles(OW.TERM);
     const numWallTiles = ow.numWallTiles();
+    console.log(`Found ${numFlatTiles} flat tiles`);
     console.log(`Found ${numWallTiles} wall tiles`);
 
-    /*
-    const nDungeonsSouth = conf.nDungeonsSouth || Math.floor(area / 40);
-    const nDungeonsCenter = conf.nDungeonsCenter || Math.floor(area / 80);
-    const nDungeonsNorth = conf.nDungeonsNorth || Math.floor(area / 80);
-    */
     const nDungeonsSouth = conf.nDungeonsSouth || Math.floor(numWallTiles / 12);
-    const nDungeonsCenter = conf.nDungeonsCenter || Math.floor(numWallTiles / 24);
+    const nDungeonsCenter = conf.nDungeonsCenter ||
+        Math.floor(numWallTiles / 24);
     const nDungeonsNorth = conf.nDungeonsNorth || Math.floor(numWallTiles / 24);
 
-    const nMountainsNorth = conf.nMountainsNorth || Math.floor(area / 20);
-    const nMountainsMiddle = conf.nMountainsMiddle || Math.floor(area / 30);
-    const nMountainsSouth = conf.nMountainsSouth || Math.floor(area / 40);
+    const nMountainsNorth = conf.nMountainsNorth || Math.floor(area / 40);
+    const nMountainsMiddle = conf.nMountainsMiddle || Math.floor(area / 60);
+    const nMountainsSouth = conf.nMountainsSouth || Math.floor(area / 80);
+
     // Add final tower
     addFeatureToAreaByDir(ow, 'NE', 0.5, OW.BTOWER);
-
     const numHorWalls = ow.numHWalls();
 
     // City of B, + other wall fortresses
@@ -833,7 +844,6 @@ function addOverWorldFeatures(ow, conf) {
     }
 
     const numVerWalls = ow.numVWalls();
-
     if (numVerWalls > 0) {
         addFeatureToWall(ow, ow._vWalls[numVerWalls - 1], OW.BTOWER);
         addFeatureToWall(ow, ow._vWalls[numVerWalls - 1], OW.BCAPITAL);
@@ -858,9 +868,14 @@ function addOverWorldFeatures(ow, conf) {
     addDungeonsToOverWorld(ow, nDungeonsCenter, cmdBetweenHWalls);
     addDungeonsToOverWorld(ow, nDungeonsNorth, cmdAboveNorthWall);
 
+    const nCitySouth = Math.floor(numFlatTiles * 0.5 / 80);
+    const nCityCenter = Math.floor(numFlatTiles * 0.2 / 100);
+    const nCityNorth = Math.floor(numFlatTiles * 0.2 / 80);
+
     // Distribute cities and villages etc settlements
-    addVillagesToOverWorld(ow, 10, bBox(1, sizeY - 2, sizeX - 2, sizeY - 10));
-    addVillagesToOverWorld(ow, 2, cmdBetweenHWalls);
+    addVillagesToOverWorld(ow, nCitySouth, cmdSouthernArea);
+    addVillagesToOverWorld(ow, nCityCenter, cmdBetweenHWalls);
+    addVillagesToOverWorld(ow, nCityNorth, cmdAboveNorthWall);
 
     // Distribute mountains
     addMountainsToOverWorld(ow, nMountainsSouth, cmdSouthernArea);
