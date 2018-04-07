@@ -39,9 +39,16 @@ const twoEntranceCityRe = /(dwarven city|abandoned fort|capital)/;
 
 const MOUNTAIN_TYPE = RG.ELEM.WALL_MOUNT.getType();
 
+// Used in while loops to prevent infinite looping
+const WATCHDOG_MAX = 111;
+
 // Used for debugging only
 const playerTileX = 1;
 const playerTileY = 1;
+
+// When set to 1, builds roads between main features. Currently this feature is
+// very slow on large maps.
+let addMainRoads = false;
 
 const getRandIn = RG.RAND.arrayGetRand.bind(RG.RAND);
 
@@ -284,6 +291,8 @@ RG.OverWorld.createOverWorldLevel = (overworld, conf) => {
 
     overworld.coordMap = coordMap;
 
+    addMainRoads = conf.addMainRoads || addMainRoads;
+
     const worldLevelAndConf = buildMapLevel(overworld, coordMap);
     return worldLevelAndConf;
 };
@@ -292,7 +301,7 @@ RG.OverWorld.createOverWorldLevel = (overworld, conf) => {
 // Private FUNCTIONS
 //---------------------------------------------------------------------------
 
-/* Creates the overworld level. Returns RG.Map.Level. */
+/* Creates the overworld level. Returns RG.Map.Level + conf object. */
 function buildMapLevel(ow, coordMap) {
     const {worldCols, worldRows, xMap, yMap, nTilesX, nTilesY} = coordMap;
 
@@ -360,10 +369,10 @@ function addBiomeFeaturesSubLevel(biomeType, subLevel) {
     }
     else if (biomeType === 'taiga' || biomeType === 'forest') {
         const freeCells = subLevel.getMap().getFree();
-        const conf = {
-            ratio: 0.9
+        const forestConf = {
+            ratio: 0.6
         };
-        const forest = RG.FACT.createLevel('forest', cols, rows, conf);
+        const forest = RG.FACT.createLevel('forest', cols, rows, forestConf);
         const forestMap = forest.getMap();
         freeCells.forEach(cell => {
             cell.setBaseElem(forestMap.getBaseElemXY(cell.getX(), cell.getY()));
@@ -372,7 +381,8 @@ function addBiomeFeaturesSubLevel(biomeType, subLevel) {
         // Add some water
         const addLakes = RG.RAND.getUniform();
         if (addLakes < 0.3) {
-            const lakes = RG.FACT.createLevel('lakes', cols, rows, conf);
+            const lakeConf = {ratio: 0.4};
+            const lakes = RG.FACT.createLevel('lakes', cols, rows, lakeConf);
             const lakesMap = lakes.getMap();
             freeCells.forEach(cell => {
                 cell.setBaseElem(
@@ -611,7 +621,7 @@ function addTowerToSubLevel(feat, owSubLevel, subLevel) {
     const freeXY = freeCells.map(cell => [cell.getX(), cell.getY()]);
     let coord = [];
 
-    let watchdog = 0;
+    let watchdog = WATCHDOG_MAX;
     while (coord.length !== 9) {
         if (RG.Geometry.getFreeArea(freeXY, 3, 3, coord)) {
             placed = true;
@@ -621,10 +631,9 @@ function addTowerToSubLevel(feat, owSubLevel, subLevel) {
             placed = false;
             coord = [];
         }
-        if (watchdog === 100) {
+        if (--watchdog <= 0) {
             break;
         }
-        ++watchdog;
     }
 
     const type = feat === OW.BTOWER ? 'blacktower' : 'whitetower';
@@ -653,6 +662,8 @@ function getAlignment(feat) {
     }
 }
 
+/* Adds a dungeon to given sub-level. Each dungeon must be adjacent to a
+ * mountain.*/
 function addDungeonToSubLevel(owSubLevel, subLevel) {
     let placed = false;
     const map = subLevel.getMap();
@@ -665,7 +676,7 @@ function addDungeonToSubLevel(owSubLevel, subLevel) {
     }
 
     let coord = [];
-    let watchdog = 1000;
+    let watchdog = 10 * WATCHDOG_MAX;
     while (!placed) {
         const xy = getRandIn(freeXY);
         let box = [];
@@ -693,10 +704,9 @@ function addDungeonToSubLevel(owSubLevel, subLevel) {
         });
         /* eslint-enable */
 
-        if (watchdog === 0) {
+        if (--watchdog <= 0) {
             break;
         }
-        --watchdog;
     }
 
     if (placed) {
@@ -719,15 +729,14 @@ function addMountainToSubLevel(owSubLevel, subLevel) {
     }
 
     let coord = [];
-    let watchdog = 1000;
+    let watchdog = 10 * WATCHDOG_MAX;
     while (!placed) {
         const xy = getRandIn(freeXY);
         coord = [xy];
         placed = true;
-        if (watchdog === 0) {
+        if (--watchdog <= 0) {
             break;
         }
-        --watchdog;
     }
 
     if (placed) {
@@ -1204,7 +1213,7 @@ function legalizeXY(xy) {
 function addGlobalFeatures(ow, owLevel, conf, coordMap) {
 
     // Find player x,y on level
-    const playerX = playerTileX * TILE_SIZE_X + Math.floor(TILE_SIZE_X / 2);
+    const playerX = Math.floor(ow.getSizeX() / 2 - 1) * TILE_SIZE_X;
     const playerY = coordMap.worldRows - Math.floor(TILE_SIZE_Y / 2);
 
     // Find capital x,y on level
@@ -1220,18 +1229,20 @@ function addGlobalFeatures(ow, owLevel, conf, coordMap) {
     console.log(`Capital x,y: ${owLevelXY}`);
     */
     const nPathSeg = 5;
+    if (addMainRoads) {
+        // Connect with road
+        /* const path = RG.Path.getMinWeightPath(owLevel.getMap(),
+            playerX, playerY, capX, capY);*/
 
-    // Connect with road
-    /* const path = RG.Path.getMinWeightPath(owLevel.getMap(),
-        playerX, playerY, capX, capY);*/
-    const path = RG.Path.getWeightPathSegmented(owLevel.getMap(),
-        playerX, playerY, capX, capY, nPathSeg);
+        const path = RG.Path.getWeightPathSegmented(owLevel.getMap(),
+            playerX, playerY, capX, capY, nPathSeg);
 
-    if (path.length === 0) {
-        RG.err('overworld.js', 'addGlobalFeatures',
-            'No path from player to capital.');
+        if (path.length === 0) {
+            RG.err('overworld.js', 'addGlobalFeatures',
+                'No path from player to capital.');
+        }
+        RG.Path.addPathToMap(owLevel.getMap(), path);
     }
-    RG.Path.addPathToMap(owLevel.getMap(), path);
 
     // Create road from capital north to wtower south
     const capExitXY = capFeat.coord[0];
@@ -1243,13 +1254,15 @@ function addGlobalFeatures(ow, owLevel, conf, coordMap) {
     const wTowerLevelXY = coordMap.toOwLevelXY(wTowerSubTileXY,
         wTowerSubLevelXY);
 
-    /* const pathCapWTower = RG.Path.getMinWeightPath(owLevel.getMap(),
-        owLevelCapExitXY[0], owLevelCapExitXY[1],
-        wTowerLevelXY[0], wTowerLevelXY[1]);*/
-    const pathCapWTower = RG.Path.getWeightPathSegmented(owLevel.getMap(),
-        owLevelCapExitXY[0], owLevelCapExitXY[1],
-        wTowerLevelXY[0], wTowerLevelXY[1], nPathSeg);
-    RG.Path.addPathToMap(owLevel.getMap(), pathCapWTower);
+    if (addMainRoads) {
+        /* const pathCapWTower = RG.Path.getMinWeightPath(owLevel.getMap(),
+            owLevelCapExitXY[0], owLevelCapExitXY[1],
+            wTowerLevelXY[0], wTowerLevelXY[1]);*/
+        const pathCapWTower = RG.Path.getWeightPathSegmented(owLevel.getMap(),
+            owLevelCapExitXY[0], owLevelCapExitXY[1],
+            wTowerLevelXY[0], wTowerLevelXY[1], nPathSeg);
+        RG.Path.addPathToMap(owLevel.getMap(), pathCapWTower);
+    }
 }
 
 module.exports = RG.OverWorld;
