@@ -96,6 +96,26 @@ RG.Map.Cell.prototype.hasConnection = function() {
     return this.hasPropType('connection');
 };
 
+RG.Map.Cell.prototype.hasConnectionType = function(type) {
+    if (this.hasConnection()) {
+        const connection = this.getConnection();
+        return connection.getName() === type;
+    }
+    return false;
+};
+
+RG.Map.Cell.prototype.hasTown = function() {
+    return this.hasConnectionType('town');
+};
+
+RG.Map.Cell.prototype.hasBattle = function() {
+    return this.hasConnectionType('battle');
+};
+
+RG.Map.Cell.prototype.hasMountain = function() {
+    return this.hasConnectionType('mountain');
+};
+
 /* Return stairs in this cell, or null if there are none.*/
 RG.Map.Cell.prototype.getStairs = function() {
     if (this.hasStairs()) {
