@@ -133,8 +133,8 @@ class BattlesTop extends Component {
             loadedLevel: null,
             playerName: 'Player',
             world: worldConf,
-            xMult: 2,
-            yMult: 2
+            xMult: 4,
+            yMult: 5
         };
 
         this.keysEnabled = false;
