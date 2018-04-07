@@ -1,6 +1,7 @@
 
 const RG = require('../src/rg');
 const Path = require('../src/path');
+const Keys = require('../src/keymap');
 
 const dirToKeyCode = RG.KeyMap.dirToKeyCode;
 
@@ -27,10 +28,21 @@ export default class CellClickHandler {
         return this._keyBuffer.length > 0;
     }
 
-    handleClick(x, y, cell) {
+    handleClick(x, y, cell, cmd) {
         // Don't react to click if there are already keys
         if (this.hasKeys()) {return;}
 
+        console.log('Handling cmd ' + cmd);
+
+        switch (cmd) {
+            case 'move': this.handleMove(x, y, cell); break;
+            case 'pickup': this.handlePickup(x, y, cell); break;
+            default: break;
+        }
+
+    }
+
+    handleMove(x, y, cell) {
         const player = this._game.getPlayer();
         const map = player.getLevel().getMap();
         if (map.hasXY(x, y)) {
@@ -40,6 +52,14 @@ export default class CellClickHandler {
             else {
                 this.moveTo(player, x, y);
             }
+        }
+    }
+
+    handlePickup(x, y, cell) {
+        if (cell.hasItems()) {
+            const player = this._game.getPlayer();
+            this.moveTo(player, x, y);
+            this._keyBuffer.push(Keys.KEY.PICKUP);
         }
     }
 
