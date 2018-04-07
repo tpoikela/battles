@@ -37,6 +37,8 @@ export default class CellClickHandler {
         switch (cmd) {
             case 'move': this.handleMove(x, y, cell); break;
             case 'pickup': this.handlePickup(x, y, cell); break;
+            case 'shoot': this.handleShoot(x, y, cell); break;
+            case 'usestairs': this.handleUseStairs(x, y, cell); break;
             default: break;
         }
 
@@ -61,6 +63,17 @@ export default class CellClickHandler {
             this.moveTo(player, x, y);
             this._keyBuffer.push(Keys.KEY.PICKUP);
         }
+    }
+
+    handleShoot(x, y, cell) {
+        const cmd = {cmd: 'missile', target: cell};
+        this._keyBuffer.push(cmd);
+    }
+
+    handleUseStairs(x, y) {
+        const player = this._game.getPlayer();
+        this.moveTo(player, x, y);
+        this._keyBuffer.push(Keys.KEY.USE_STAIRS_DOWN);
     }
 
     /* Tries to compute a path to given coordinate. Uses 2 different methods. */
