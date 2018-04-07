@@ -66,18 +66,25 @@ export default class GameContextMenu extends React.Component {
     Object.keys(allMenuItems).forEach(queryFunc => {
       if (this.isCorrectContext(queryFunc)) {
         const menuItems = allMenuItems[queryFunc];
-        menuItems.forEach(item => {
+        menuItems.forEach((item, index) => {
           items.push(
             <MenuItem
               data={{type: item.type}}
-              key={item.text}
+              key={index + '-' + item.text}
               onClick={this.handleClick}
             >
               {item.text}
             </MenuItem>
           );
         });
-        items.push(<MenuItem divider={true} />);
+
+        items.push(
+          <MenuItem
+            className='context-menu-divider'
+            divider={true}
+            key={'divider-' + queryFunc}
+          />
+        );
       }
     });
     return items;
