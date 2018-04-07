@@ -263,14 +263,14 @@ RG.Factory.Game = function() {
             stopOnWall: true,
             // nHWalls: 3,
             nVWalls: [0.8],
-            owTilesX: xMult * mult * 80,
-            owTilesY: yMult * mult * 80,
-            worldX: xMult * mult * 800,
-            worldY: yMult * mult * 800,
-            nLevelsX: xMult * mult * 8,
-            nLevelsY: yMult * mult * 8,
-            nTilesX: xMult * mult * 8,
-            nTilesY: yMult * mult * 8
+            owTilesX: xMult * mult * 40,
+            owTilesY: yMult * mult * 40,
+            worldX: xMult * mult * 400,
+            worldY: yMult * mult * 400,
+            nLevelsX: xMult * mult * 4,
+            nLevelsY: yMult * mult * 4,
+            nTilesX: xMult * mult * 4,
+            nTilesY: yMult * mult * 4
         };
 
         const overworld = OW.createOverWorld(owConf);
@@ -288,36 +288,6 @@ RG.Factory.Game = function() {
         const playerX = midX;
         const playerY = owConf.nLevelsY - 1;
 
-        // const sizeY = splitLevels[0].length;
-        /*
-        for (let x = 0; x < splitLevels.length; x++) {
-            const xDiff = Math.abs(midX - x);
-            for (let y = 0; y < sizeY; y++) {
-                const yDiff = sizeY - y;
-                const itemsPerLevel = 7 + xDiff + 2 * yDiff;
-                const actorsPerLevel = (yDiff + 1) * 10 + 2 * xDiff;
-
-                const itemConf = {
-                    itemsPerLevel,
-                    func: (item) => (
-                        item.value <= 15 * yDiff + 5 * xDiff
-                        && item.type !== 'food'
-                    ),
-                    gold: () => false,
-                    food: () => false,
-                    maxValue: 15 * yDiff + 5 * xDiff
-                };
-                this.addNRandItems(splitLevels[x][y], this._parser, itemConf);
-
-                const actorConf = {
-                    actorsPerLevel: actorsPerLevel,
-                    maxDanger: yDiff + xDiff
-                };
-                this.addNRandActors(splitLevels[x][y], this._parser, actorConf);
-
-            }
-        }
-        */
         this.progress(obj, 'AreaTiles populated with items and actors');
 
         RG.Map.Level.idCount = 1000;
