@@ -392,7 +392,6 @@ RG.Factory.World = function() {
             }
            this.debug(`\t[${tx}][${ty}]: nZones (${type}) is now ${nZones}`);
             for (let i = 0; i < nZones; i++) {
-                console.log(`Creating zone ${i} for tile [${tx}][${ty}`);
                 const zoneConf = areaTileConf[typeLc][i];
                 const createFunc = 'create' + type;
                 const {x, y} = zoneConf;
