@@ -4,5 +4,12 @@
 
 .context-menu {
     background-color: $white;
+    border: 1px solid $black;
     color: $black;
+    padding: 2px;
+};
+
+.context-menu-divider {
+    color: $black;
+    height: 1px;
 };
