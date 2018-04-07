@@ -17,6 +17,9 @@ import CellClickHandler from '../gui/cell-click-handler';
 import GameTopMenu from './game-top-menu';
 import GameCreatingScreen from './game-creating-screen';
 
+import GameContextMenu from './context-menu';
+import {ContextMenuTrigger} from 'react-contextmenu';
+
 import GameStats, {VIEW_MAP, VIEW_PLAYER} from './game-stats';
 
 const ROT = require('../../lib/rot');
@@ -136,8 +139,8 @@ class BattlesTop extends Component {
             loadedLevel: null,
             playerName: 'Player',
             world: worldConf,
-            xMult: 4,
-            yMult: 5
+            xMult: 2,
+            yMult: 3
         };
 
         this.keysEnabled = false;
@@ -163,6 +166,7 @@ class BattlesTop extends Component {
             loadInProgress: false,
             lootType: 'Medium',
             monstType: 'Medium',
+            mouseOverCell: null,
             playerLevel: 'Medium',
             playerName: 'Player',
             render: true,
@@ -490,41 +494,64 @@ class BattlesTop extends Component {
         this.ctrlMode = 'AUTOMATIC';
     }
 
-    /* When a cell is clicked, perform a command/show debug info. */
-    onCellClick(x, y) {
+    onMouseOverCell(x, y) {
+        const cell = this.getCellCurrMap(x, y);
+        if (cell) {
+            this.setState({mouseOverCell: cell});
+        }
+    }
+
+    getCellCurrMap(x, y) {
         const map = this.game.getPlayer().getLevel().getMap();
         if (map.hasXY(x, y)) {
-            const cell = map.getCell(x, y);
-            if (this.gameState.isTargeting) {
-                this.game.update({cmd: 'missile', target: cell});
-                this.gameState.visibleCells = this.game.visibleCells;
-                this.screen.setSelectedCell(null);
-                this.setState({selectedCell: null});
-                this.gameState.isTargeting = false;
-            }
-            else {
-                this.logic.describeCell(cell, this.gameState.visibleCells);
-                this.setState({selectedCell: cell});
-                this.clickHandler = new CellClickHandler(this.game);
-                this.clickHandler.handleClick(x, y, cell);
-
-                if (this.clickHandler.hasKeys()) {
-                    this.setAutoMode();
-                }
-            }
-            console.log(`Cell: ${JSON.stringify(cell)}`);
-            if (cell.hasActors()) {
-                const actors = cell.getActors();
-                console.log(`Actors: ${JSON.stringify(actors)}`);
-            }
-            if (cell.hasConnection()) {
-                const conns = cell.getPropType('connection');
-                console.log(`Actors: ${JSON.stringify(conns)}`);
-            }
+            return map.getCell(x, y);
         }
-        else {
+        return null;
+    }
+
+    /* Handles right clicks of the context menu. */
+    handleRightClick(evt, data, cell) {
+        if (data.type === 'shoot') {
+            const cmd = {cmd: 'missile', target: cell};
+            this.keyPending = true;
+            this.nextCode = cmd;
+        }
+    }
+
+    /* When a cell is clicked, perform a command/show debug info. */
+    onCellClick(x, y) {
+        const cell = this.getCellCurrMap(x, y);
+        if (!cell) {
             RG.warn('BattlesTop', 'onCellClick',
                 `No cell ${x},${y} in the map.`);
+            return;
+        }
+
+        if (this.gameState.isTargeting) {
+            this.game.update({cmd: 'missile', target: cell});
+            this.gameState.visibleCells = this.game.visibleCells;
+            this.screen.setSelectedCell(null);
+            this.setState({selectedCell: null});
+            this.gameState.isTargeting = false;
+        }
+        else {
+            this.logic.describeCell(cell, this.gameState.visibleCells);
+            this.setState({selectedCell: cell});
+            this.clickHandler = new CellClickHandler(this.game);
+            this.clickHandler.handleClick(x, y, cell);
+
+            if (this.clickHandler.hasKeys()) {
+                this.setAutoMode();
+            }
+        }
+        console.log(`Cell: ${JSON.stringify(cell)}`);
+        if (cell.hasActors()) {
+            const actors = cell.getActors();
+            console.log(`Actors: ${JSON.stringify(actors)}`);
+        }
+        if (cell.hasConnection()) {
+            const conns = cell.getPropType('connection');
+            console.log(`Actors: ${JSON.stringify(conns)}`);
         }
     }
 
@@ -612,7 +639,11 @@ class BattlesTop extends Component {
     mainLoop() {
         if (this.keyPending === true || this.ctrlMode === 'AUTOMATIC') {
             const code = this.getNextCode();
-            this.game.update({code});
+            if (code.cmd) {
+                console.log('updating game with ' + JSON.stringify(code));
+                this.game.update(code);
+            }
+            else {this.game.update({code});}
             this.gameState.visibleCells = this.game.visibleCells;
 
             if (this.game.isGameOver()) {
@@ -865,18 +896,22 @@ class BattlesTop extends Component {
                         </div>
                         <div className='game-board-div'>
                             {!showGameMenu &&
-                            <GameBoard
-                                boardClassName={this.state.boardClassName}
-                                charRows={charRows}
-                                classRows={classRows}
-                                endY={this.screen.endY}
-                                onCellClick={this.onCellClick}
-                                rowClass={rowClass}
-                                sizeX={2 * this.screen.viewportX + 1}
-                                startX={startX}
-                                startY={this.screen.startY}
-                                useRLE={true}
-                            />
+
+                            <ContextMenuTrigger id='right-click-context-menu'>
+                                <GameBoard
+                                    boardClassName={this.state.boardClassName}
+                                    charRows={charRows}
+                                    classRows={classRows}
+                                    endY={this.screen.endY}
+                                    onCellClick={this.onCellClick}
+                                    onMouseOverCell={this.onMouseOverCell}
+                                    rowClass={rowClass}
+                                    sizeX={2 * this.screen.viewportX + 1}
+                                    startX={startX}
+                                    startY={this.screen.startY}
+                                    useRLE={true}
+                                />
+                            </ContextMenuTrigger>
                             }
                             {showGameMenu &&
                             <GameMenu
@@ -897,6 +932,10 @@ class BattlesTop extends Component {
                       toggleEditor={this.toggleEditor}
                   />
                 }
+                <GameContextMenu
+                    handleRightClick={this.handleRightClick}
+                    mouseOverCell={this.state.mouseOverCell}
+                />
             </div>
         );
     }
@@ -1238,6 +1277,8 @@ class BattlesTop extends Component {
 
         // GameBoard callbacks
         this.onCellClick = this.onCellClick.bind(this);
+        this.handleRightClick = this.handleRightClick.bind(this);
+        this.onMouseOverCell = this.onMouseOverCell.bind(this);
 
         this.GUIHelp = this.GUIHelp.bind(this);
         this.GUIInventory = this.GUIInventory.bind(this);
