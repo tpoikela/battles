@@ -436,22 +436,16 @@ class BrainPlayer {
     * TODO remove if/else and use a dispatch table.*/
     handleCommand(obj) {
         this._restoreBaseSpeed();
-        if (obj.cmd === 'missile') {
-            return new Cmd.Missile().execute.call(this, obj);
+        switch (obj.cmd) {
+            case 'attack': return new Cmd.Attack().execute.call(this, obj);
+            case 'missile': return new Cmd.Missile().execute.call(this, obj);
+            case 'use': return new Cmd.UseItem().execute.call(this, obj);
+            case 'drop': return new Cmd.DropItem().execute.call(this, obj);
+            case 'equip': return new Cmd.EquipItem().execute.call(this, obj);
+            case 'unequip':
+                return new Cmd.UnequipItem().execute.call(this, obj);
+            default: return () => {};
         }
-        else if (obj.cmd === 'use') {
-            return new Cmd.UseItem().execute.call(this, obj);
-        }
-        else if (obj.cmd === 'drop') {
-            return new Cmd.DropItem().execute.call(this, obj);
-        }
-        else if (obj.cmd === 'equip') {
-            return new Cmd.EquipItem().execute.call(this, obj);
-        }
-        else if (obj.cmd === 'unequip') {
-            return new Cmd.UnequipItem().execute.call(this, obj);
-        }
-        return () => {};
     }
 
     /* Returns all stats to their nominal values.*/
