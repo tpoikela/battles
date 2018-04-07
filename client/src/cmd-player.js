@@ -3,6 +3,7 @@
 // Brain.Player object by using execute.call(this)
 
 const RG = require('./rg');
+const Path = require('./path');
 
 const Cmd = {};
 
@@ -10,6 +11,38 @@ const ACTION_ALREADY_DONE = () => {};
 const ACTION_ZERO_ENERGY = null;
 Cmd.ACTION_ALREADY_DONE = ACTION_ALREADY_DONE;
 Cmd.ACTION_ZERO_ENERGY = ACTION_ZERO_ENERGY;
+
+
+/* Executes one attack against target actor/cell. */
+class CmdAttack {
+
+    execute(obj) {
+      let actor = obj.target;
+      if (actor.hasActors) { // We're dealing with cell
+        if (obj.target.hasActors()) {
+          actor = obj.target.getSentientActors()[0];
+        }
+      }
+      if (actor) {
+        const [pX, pY] = this._actor.getXY();
+        const [tX, tY] = actor.getXY();
+        const dist = Path.shortestDist(pX, pY, tX, tY);
+        const attackRange = this._actor.get('Combat').getAttackRange();
+        console.log('CmdAttack dist is ' + dist + ' range: ' + attackRange);
+        if (dist <= attackRange) {
+            const attackComp = new RG.Component.Attack({target: actor});
+            this._actor.add('Attack', attackComp);
+            return ACTION_ALREADY_DONE;
+        }
+        else {
+          return this.cmdNotPossible('Target not within attack range');
+        }
+      }
+      return this.cmdNotPossible('No valid targets for attack');
+    }
+
+}
+Cmd.Attack = CmdAttack;
 
 class CmdMissile {
 
