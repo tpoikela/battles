@@ -22,7 +22,7 @@ describe('OverWorld.createOverWorld', function() {
         expect(worldConf).to.exist;
 
         const area = worldConf.area[0];
-        expect(area.nCities).to.be.above(5);
+        expect(area.nCities).to.be.above(1);
         expect(area.city.length).to.be.equal(area.nCities);
         expect(area.nDungeons).to.be.above(5);
     });
