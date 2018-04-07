@@ -15,6 +15,7 @@ import GameCharInfo from './game-char-info';
 import LevelSaveLoad from '../editor/level-save-load';
 import CellClickHandler from '../gui/cell-click-handler';
 import GameTopMenu from './game-top-menu';
+import GameCreatingScreen from './game-creating-screen';
 
 import GameStats, {VIEW_MAP, VIEW_PLAYER} from './game-stats';
 
@@ -29,6 +30,8 @@ const md5 = require('js-md5');
 const Screen = require('../gui/screen');
 const Persist = require('../src/persist');
 const worldConf = require('../data/conf.world');
+
+const wwork = require('webworkify');
 
 const INV_SCREEN = 'Inventory';
 
@@ -176,7 +179,8 @@ class BattlesTop extends Component {
             showLoadScreen: false,
             showOWMap: false,
             showInventory: false,
-            showCharInfo: false
+            showCharInfo: false,
+            showCreateScreen: false
         };
 
         // Binding of callbacks
@@ -284,7 +288,9 @@ class BattlesTop extends Component {
     newGame() {
         this.enableKeys();
         const startTime = new Date().getTime();
+
         this.hideScreen('StartScreen');
+
         this.createNewGameAsync().then(() => {
             const dur = new Date().getTime() - startTime;
             console.log(`Creating game took ${dur} ms`);
@@ -400,22 +406,61 @@ class BattlesTop extends Component {
         }
 
         this.resetGameState();
-        const gameFactory = new RG.Factory.Game();
         if (this.game !== null) {
             delete this.game;
             RG.FACT = new RG.Factory.Base();
         }
 
-        this.game = gameFactory.createNewGame(this.gameConf);
+        if (typeof window.Worker !== 'undefined') {
+            this.showScreen('CreateScreen');
+            this.createGameWorker();
+        }
+        else {
+            const gameFactory = new RG.Factory.Game();
+            this.game = gameFactory.createNewGame(this.gameConf);
+            this.initBeforeNewGame();
+        }
+    }
+
+    /* Creates the new game using a worker to not block the main thread and
+     * GUI updates. */
+    createGameWorker() {
+        /* eslint global-require: 0 */
+        const worker = wwork(require('../util/worker-create-game.js'));
+        worker.onmessage = (e) => {
+            if (e.data.progress) {
+                this.progress(e.data.progress);
+            }
+            else {
+                const gameJSON = JSON.parse(e.data);
+                const fromJSON = new RG.Game.FromJSON();
+                const game = fromJSON.createGame(gameJSON);
+
+                this.game = game;
+                this.initBeforeNewGame();
+            }
+        };
+        worker.postMessage([this.gameConf]);
+    }
+
+    /* Sets the event listeners, GUI callbacks and debugging refs before
+     * starting the game. */
+    initBeforeNewGame() {
         this.game.setGUICallbacks(this.isGUICommand, this.doGUICommand);
         this.game.setAnimationCallback(this.playAnimation.bind(this));
         this.setDebugRefsToWindow();
 
         const player = this.game.getPlayer();
-        this.gameState.visibleCells = player.getLevel().exploreCells(player);
+        const visibleCells = player.getLevel().exploreCells(player);
+        this.gameState.visibleCells = visibleCells;
         RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this.listener);
         RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this.listener);
         this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
+        this.setState({render: true});
+    }
+
+    progress(msg) {
+        this.setState({progress: msg});
     }
 
     /* Sets some global variables which ease up the debugging with console.
@@ -729,6 +774,15 @@ class BattlesTop extends Component {
                     toggleEditor={this.toggleEditor}
                     toggleScreen={this.toggleScreen}
                 />
+                }
+
+                {this.state.showCreateScreen &&
+                    <GameCreatingScreen
+                        gameCreated={gameValid}
+                        progress={this.state.progress}
+                        showCreateScreen={this.state.showCreateScreen}
+                        toggleScreen={this.toggleScreen}
+                    />
                 }
 
                 {this.state.showHelpScreen &&
