@@ -7,6 +7,8 @@ RG.Game = require('./game');
 RG.Element = require('./element');
 RG.Game.FromJSON = require('./game.fromjson');
 RG.Verify = require('./verify');
+RG.ObjectShell = require('./objectshellparser');
+RG.Factory.World = require('./factory.world');
 
 const OW = require('./overworld.map');
 RG.getOverWorld = require('./overworld');
@@ -273,28 +275,32 @@ RG.Factory.Game = function() {
             nTilesY: yMult * mult * 4
         };
 
+        this.progress(obj, 'Creating Overworld Tile Map...');
         const overworld = OW.createOverWorld(owConf);
-        this.progress(obj, 'Overworld Tile Map created');
+        this.progress(obj, 'DONE');
+
+        this.progress(obj, 'Creating Overworld Level Map...');
         const worldAndConf = RG.OverWorld.createOverWorldLevel(
           overworld, owConf);
         const worldLevel = worldAndConf[0];
-        this.progress(obj, 'Overworld Level Map created');
+        this.progress(obj, 'DONE');
 
+        this.progress(obj, 'Splitting Overworld Level Map into AreaTiles...');
         RG.Map.Level.idCount = 0;
         const splitLevels = RG.Geometry.splitLevel(worldLevel, owConf);
         const midX = Math.floor(owConf.nLevelsX / 2);
-        this.progress(obj, 'Overworld Level Map split into AreaTiles');
+        this.progress(obj, 'DONE');
 
         const playerX = midX;
         const playerY = owConf.nLevelsY - 1;
 
-        this.progress(obj, 'AreaTiles populated with items and actors');
 
+        this.progress(obj, 'Creating and connectting World.Area tiles...');
         RG.Map.Level.idCount = 1000;
         const worldArea = new RG.World.Area('Ravendark', owConf.nLevelsX,
             owConf.nLevelsY, 100, 100, splitLevels);
         worldArea.connectTiles();
-        this.progress(obj, 'World.Area created and tiles connected');
+        this.progress(obj, 'DONE');
 
         const fact = new RG.Factory.World();
         fact.setGlobalConf(obj);
@@ -303,21 +309,24 @@ RG.Factory.Game = function() {
 
         const worldConf = worldAndConf[1];
         worldConf.createAllZones = false;
+        this.progress(obj, 'Creating places and local zones...');
         const world = fact.createWorld(worldConf);
         game.addPlace(world);
         overworld.clearSubLevels();
         game.setOverWorld(overworld);
         game.setEnableChunkUnload(true);
-        this.progress(obj, 'Final World and levels created');
+        this.progress(obj, 'DONE');
 
+        this.progress(obj, 'Adding player to the game...');
         const playerLevel = splitLevels[playerX][playerY];
-        playerLevel.addActorToFreeCell(player);
+        // playerLevel.addActorToFreeCell(player);
+        this.placePlayer(player, playerLevel);
         RG.POOL.emitEvent(RG.EVT_TILE_CHANGED, {actor: player,
             target: playerLevel});
 
         player.setFOVRange(RG.PLAYER_FOV_RANGE);
         game.addPlayer(player); // Player already placed to level
-        this.progress(obj, 'Player added to the game');
+        this.progress(obj, 'DONE');
         // RG.Verify.verifyStairsConnections(game, 'Factory.Game');
         // this.progress(obj, 'Stairs connections verified');
         return game;
@@ -333,7 +342,51 @@ RG.Factory.Game = function() {
         if (obj.progressCallback) {
             obj.progressCallback(msg);
         }
-        console.log(`${msg} - Time: ${durSec} sec`);
+        if (msg === 'DONE') {
+            console.log(`${this.prevMsg} - Time: ${durSec} sec`);
+        }
+        this.prevMsg = msg;
+    };
+
+    /* Places player into a free cell surrounded by other free cells. */
+    this.placePlayer = function(player, level) {
+        const freeCells = level.getMap().getFree();
+        console.log('map has ' + freeCells.length + ' free cells');
+        const freeLUT = {};
+        freeCells.forEach(cell => {
+            freeLUT[cell.getKeyXY()] = true;
+        });
+
+        let cell = null;
+        let found = false;
+        let watchdog = 1000;
+        const bSize = 2;
+        const minFreeCells = ((2 * bSize + 1) ** 2 - 1);
+
+        while (!found) {
+            cell = RG.RAND.arrayGetRand(freeCells);
+            const [x, y] = cell.getXY();
+            const box = RG.Geometry.getBoxAround(x, y, bSize);
+            if (box.length === minFreeCells) {
+                found = true;
+            }
+            for (let i = 0; i < box.length; i++) {
+                const [cx, cy] = box[i];
+                found = found && freeLUT[cx + ',' + cy];
+            }
+
+            if (--watchdog <= 0) {
+                console.log('Timeout reached');
+                break;
+            }
+        }
+
+        if (found) {
+            level.addActor(player, cell.getX(), cell.getY());
+        }
+        else {
+            level.addActorToFreeCell(player);
+        }
     };
 
 
