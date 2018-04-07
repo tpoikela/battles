@@ -35,6 +35,7 @@ export default class CellClickHandler {
         console.log('Handling cmd ' + cmd);
 
         switch (cmd) {
+            case 'attack': this.handleAttack(x, y, cell); break;
             case 'move': this.handleMove(x, y, cell); break;
             case 'pickup': this.handlePickup(x, y, cell); break;
             case 'shoot': this.handleShoot(x, y, cell); break;
@@ -42,6 +43,10 @@ export default class CellClickHandler {
             default: break;
         }
 
+    }
+
+    handleAttack(x, y, cell) {
+        this._keyBuffer.push({cmd: 'attack', target: cell});
     }
 
     handleMove(x, y, cell) {
