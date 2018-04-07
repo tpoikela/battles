@@ -360,9 +360,8 @@ RG.Factory.World = function() {
                 nZones = conf[typeLc].length;
             }
             this.debug(`\tnZones (${type}) is now ${nZones}`);
-            console.log(`Iterating zones ${nZones} of type ${type}`);
+
             for (let i = 0; i < nZones; i++) {
-                // console.log(`Creating zone ${i} for tile [${tx}][${ty}]`);
                 const zoneConf = conf[typeLc][i];
                 const {x, y} = zoneConf;
 
@@ -378,7 +377,6 @@ RG.Factory.World = function() {
                     }
                 }
             }
-            console.log(`Iterating DONE for type ${type}`);
 
         });
     };
