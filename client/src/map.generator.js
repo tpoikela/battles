@@ -341,17 +341,12 @@ RG.Map.Generator = function() { // {{{2
 
     this.createLakes = function(conf) {
         const map = new RG.Map.CellList(this.cols, this.rows);
-        // const ratio = conf.ratio;
         _mapGen = new ROT.Map.Forest(this.cols, this.rows, conf);
         _mapGen.create((x, y, val) => {
             map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
-            // const createDeep = RG.RAND.getUniform() <= ratio;
             if (val === 1 /* && createDeep */) {
                 map.setBaseElemXY(x, y, RG.ELEM.WATER);
             }
-            /* else if (val === 1) {
-                map.setBaseElemXY(x, y, RG.ELEM.GRASS);
-            }*/
         });
         return {map};
     };
