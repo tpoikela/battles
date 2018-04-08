@@ -36,7 +36,8 @@ RG.Component.TagComponent = TagComponent;
  * NOTE: There's difference between members and compAttrib. Component
  * attributes are things like serialisation and uniqueness.
  * (only one comp per entity of that type). There are convenience functions
- * below to define unique and non-serialisable (Transient) components.
+ * below to define unique and non-serialisable (Transient) components. See
+ * TransientTagComponent and TransientDataComponent below.
  */
 
 const DataComponent = (type, members, compAttrib = {}) => {
@@ -109,12 +110,14 @@ const UniqueDataComponent = (type, members) => {
 };
 RG.Component.UniqueDataComponent = UniqueDataComponent;
 
-/* Same as TagComponent but adds some properties of a transient component. */
+/* Same as TagComponent but removes serialisation. This component is used by
+* systems for transient stuff like Attacks, Move and SpellCasting. */
 const TransientTagComponent = type => {
     return TagComponent(type, {toJSON: NO_SERIALISATION});
 };
 RG.Component.TransientTagComponent = TransientTagComponent;
 
+/* Same as TransientTagComponent, but allows specifying data fields. */
 const TransientDataComponent = (type, members) => {
     return DataComponent(type, members, {toJSON: NO_SERIALISATION});
 };
