@@ -106,6 +106,22 @@ RG.Map.Generator = function() { // {{{2
         return obj;
     };
 
+    /* For adding special features to the levels. Works only with types digger
+    * and uniform at the moment. */
+    this.addSpecialRoom = function() {
+        if (_mapType === 'digger' /* || _mapType === 'uniform'*/ ) {
+            // const room = new ROT.Map.Feature.Room(1, 1, 20, this.rows - 2);
+            const room = new ROT.Map.Feature.Room(1, 10, this.cols - 2, 15);
+            _mapGen._options.dugPercentage = 0.4;
+            _mapGen._options.roomDugPercentage = 0.1;
+            _mapGen.startRoom(room);
+
+            // const room2 = new ROT.Map.Feature.Room(1, 30, this.cols - 2, 35);
+            const room2 = new ROT.Map.Feature.Room(50, 1, 55, this.rows - 2);
+            _mapGen.addRoom(room2);
+        }
+    };
+
     /* Creates "ruins" type level with open outer edges and inner
      * "fortress" with some tunnels. */
     this.createRuins = (cols, rows) => {
