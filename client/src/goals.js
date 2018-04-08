@@ -712,11 +712,27 @@ class GoalExplore extends GoalBase {
             const movComp = new RG.Component.Movement(newX, newY, level);
             this.actor.add('Movement', movComp);
         }
-        else {
+        else if (!this.canOpenDoorAt(newX, newY)) {
             this.setNewPassableDir();
-            // this.status = GOAL_COMPLETED;
         }
         return this.status;
+    }
+
+    canOpenDoorAt(x, y) {
+        const map = this.actor.getLevel().getMap();
+        if (map.hasXY(x, y)) {
+            const cell = map.getCell(x, y);
+            if (cell && cell.hasDoor()) {
+                const door = cell.getPropType('door')[0];
+                if (door.canToggle()) {
+                    const comp = new RG.Component.OpenDoor();
+                    comp.setDoor(door);
+                    this.actor.add(comp);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /* Checks if the actor should change movement direction. */
