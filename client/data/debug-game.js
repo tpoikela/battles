@@ -155,6 +155,14 @@ const DebugGame = function(fact, parser) {
         itemRand.adjustItem(runeForce, 100);
         player.getInvEq().addItem(runeForce);
 
+        const lever = new RG.Element.Lever();
+        level.addElement(lever, 2, 1);
+        for (let i = 0; i < 3; i++) {
+            const leverDoor = new RG.Element.LeverDoor();
+            lever.addTarget(leverDoor);
+            level.addElement(leverDoor, 3 + i, 1);
+        }
+
         return game;
     };
 
