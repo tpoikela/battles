@@ -292,10 +292,10 @@ class EvaluatorCastSpell extends EvaluatorBase {
         const brain = actor.getBrain();
         const seenCells = brain.getSeenCells();
         const enemyCell = brain.findEnemyCell(seenCells);
-        const actorsAround = RG.Brain.getActorCellsAround(actor);
+        const actorCellsAround = RG.Brain.getActorCellsAround(actor);
         if (enemyCell) {
             const enemy = enemyCell.getActors()[0];
-            const args = {enemy, actor, actorsAround};
+            const args = {enemy, actor, actorCellsAround};
             return this.spell.aiShouldCastSpell(args, (actor, args) => {
                 this.spellArgs = args;
             });
