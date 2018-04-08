@@ -140,5 +140,35 @@ describe('RG.Geometry', () => {
 
     });
 
+    it('can floodfill a level map', () => {
+        let level = RG.FACT.createLevel('empty', 10, 10);
+        let map = level.getMap();
+        let cell = map.getCell(5, 5);
+        const floorCells = RG.Geometry.floodfill(map, cell, 'floor');
+        expect(floorCells).to.have.length(10 * 10);
+
+        level = RG.FACT.createLevel('arena', 10, 10);
+        map = level.getMap();
+        cell = map.getCell(0, 0);
+        let cells = RG.Geometry.floodfill(map, cell, 'wall');
+        const numWalls = 10 + 8 + 10 + 8;
+        expect(cells).to.have.length(numWalls);
+
+        cell = map.getCell(1, 1);
+        cells = RG.Geometry.floodfill(map, cell, 'floor');
+        expect(cells).to.have.length(100 - numWalls);
+
+        const dungeon = RG.FACT.createLevel('digger', 80, 30);
+        const dungMap = dungeon.getMap();
+        const dungFloorCells = dungMap.getCells(
+            c => c.getBaseElem().getType() === 'floor');
+
+        const startCell = dungFloorCells[0];
+        const floorFill = RG.Geometry.floodfill(dungMap, startCell, 'floor');
+        dungeon.debugPrintInASCII();
+
+        expect(floorFill.length).to.equal(dungFloorCells.length);
+
+    });
 
 });
