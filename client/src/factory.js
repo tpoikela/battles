@@ -414,7 +414,6 @@ RG.Factory.Base = function() {
         const mapgen = new RG.Map.Generator();
         let mapObj = null;
         const level = new RG.Map.Level(cols, rows);
-
         mapgen.setGen(levelType, cols, rows);
 
         if (levelType === 'empty') {
@@ -474,7 +473,6 @@ RG.Factory.Base = function() {
                 `mapObj is null. type: ${levelType}. ${msg}`);
         }
         this.setLevelExtras(level, mapObj);
-
         return level;
     };
 
@@ -736,7 +734,7 @@ RG.Factory.Zone = function() {
     this._parser = RG.ObjectShell.getParser();
 
     this.getRandLevelType = () => {
-        const type = ['rooms', 'rogue', 'digger'];
+        const type = ['uniform', 'rooms', 'rogue', 'digger'];
         const nLevelType = RG.RAND.randIndex(type);
         return type[nLevelType];
     };
