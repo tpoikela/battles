@@ -193,6 +193,7 @@ describe('System.SpellCast', () => {
 
         const mage = new RG.Actor.Rogue('mage');
         const orc = new RG.Actor.Rogue('orc');
+        orc.get('Stats').setAgility(0); // Ensure spell hits
         RGTest.wrapIntoLevel([mage, orc]);
         RGTest.moveEntityTo(mage, 1, 1);
         RGTest.moveEntityTo(orc, 3, 1);
