@@ -206,6 +206,11 @@ RG.charStyles = {
         fort: '#',
         grass: '"',
         highrock: '^',
+        lever: '&',
+        leverdoor: {
+            isClosed: '+', // if isClosed() returns true
+            default: '/'
+        },
         mountain: '^',
         passage: '.',
         sky: '~',
@@ -265,6 +270,8 @@ RG.cellStyles = {
         grass: 'cell-element-grass',
         highrock: 'cell-element-highrock',
         mountain: 'cell-element-mountain',
+        lever: 'cell-element-door',
+        leverdoor: 'cell-element-door',
         passage: 'cell-element-passage',
         road: 'cell-element-road',
         sky: 'cell-element-sky',
@@ -638,7 +645,8 @@ RG.ITEM_TYPES = ['ammo', 'armour', 'food', 'gold', 'goldcoin',
 
 RG.USE = {
     DRINK: 'DRINK',
-    DIG: 'DIG'
+    DIG: 'DIG',
+    LEVER: 'LEVER'
 };
 
 RG.LEVEL_ID_ADD = 1000000000;
@@ -1186,6 +1194,20 @@ RG.destroyItemIfNeeded = item => {
 RG.isActor = obj => {
     if (obj && obj.getPropType) {
         return obj.getPropType() === RG.TYPE_ACTOR;
+    }
+    return false;
+};
+
+RG.isElement = obj => {
+    if (obj && obj.getPropType) {
+        return obj.getPropType() === RG.TYPE_ELEM;
+    }
+    return false;
+};
+
+RG.isItem = obj => {
+    if (obj && obj.getPropType) {
+        return obj.getPropType() === RG.TYPE_ITEM;
     }
     return false;
 };
