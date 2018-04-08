@@ -648,50 +648,84 @@ RG.Geometry.floodfill = function(map, cell, type) {
         // 9. West
         const xWest = x - 1;
         tryToAddCell(xWest, y);
-        /*
-        if (map.hasXY(xWest, y)) {
-            if (!colored[xWest + ',' + y]) {
-                const cellWest = map.getCell(xWest, y);
-                if (cellWest.getBaseElem().getType() === type) {
-                    addCell(cellWest);
-                }
-            }
-        }*/
+
         // 10. East
         const xEast = x + 1;
         tryToAddCell(xEast, y);
-        /* if (map.hasXY(xEast, y)) {
-            if (!colored[xEast + ',' + y]) {
-                const cellEast = map.getCell(xEast, y);
-                if (cellEast.getBaseElem().getType() === type) {
-                    addCell(cellEast);
-                }
-            }
-        }*/
+
         // 11. North
         const yNorth = y - 1;
         tryToAddCell(x, yNorth);
-        /* if (map.hasXY(x, yNorth)) {
-            if (!colored[x + ',' + yNorth]) {
-                const cellNorth = map.getCell(x, yNorth);
-                if (cellNorth.getBaseElem().getType() === type) {
-                    addCell(cellNorth);
-                }
-            }
-        }*/
+
         // 12. South
         const ySouth = y + 1;
         tryToAddCell(x, ySouth);
-        /* if (map.hasXY(x, ySouth)) {
-            if (!colored[x + ',' + ySouth]) {
-                const cellSouth = map.getCell(x, ySouth);
-                if (cellSouth.getBaseElem().getType() === type) {
-                    addCell(cellSouth);
-                }
-            }
-        }*/
 
         currCell = cellsLeft.shift();
+    }
+    return result;
+};
+
+/* Square fill finds the largest square shaped region of a given cell type. */
+RG.Geometry.squareFill = function(map, cell, type, dXdY) {
+    const [endX, endY] = cell.getXY();
+    const [dX, dY] = dXdY;
+    if (dX === 0 || dY === 0) {
+        RG.err('RG.Geometry', 'squareFill',
+            `dx,dy must be -1 or 1. Got ${dXdY}`);
+    }
+    let failed = false;
+    let result = [cell];
+    let currCell = cell;
+    // let prevCell = cell;
+
+    while (!failed) {
+        const round = [];
+        const [cX, cY] = currCell.getXY();
+        const [nX, nY] = [cX + dX, cY + dY];
+        if (map.hasXY(nX, nY)) {
+            const newDiag = map.getCell(nX, nY);
+            // 1. Get new diagonal, test it first
+            if (newDiag.getBaseElem().getType() !== type) {
+                failed = true;
+                break;
+            }
+            round.push(newDiag);
+
+            // 2. Traverse in x-direction
+            let x = nX;
+            do {
+                x += -dX;
+                const cellX = map.getCell(x, nY);
+                if (cellX.getBaseElem().getType() !== type) {
+                    failed = true;
+                    break;
+                }
+                round.push(cellX);
+
+            } while (x !== endX);
+
+            // 3. Traverse in y-direction
+            let y = nY;
+            do {
+                y += -dY;
+                const cellY = map.getCell(nX, y);
+                if (cellY.getBaseElem().getType() !== type) {
+                    failed = true;
+                    break;
+                }
+                round.push(cellY);
+
+            } while (y !== endY);
+
+            if (!failed) {
+                result = result.concat(round);
+            }
+
+            // prevCell = currCell;
+            currCell = newDiag;
+        }
+
     }
     return result;
 };
