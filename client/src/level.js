@@ -539,7 +539,7 @@ Level.prototype._getFreeCellXY = function() {
 	return [null, null];
 };
 
-Level.prototype.debugPrintInASCII = () => {
+Level.prototype.debugPrintInASCII = function() {
 	this.getMap().debugPrintInASCII();
 };
 
