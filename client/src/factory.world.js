@@ -296,7 +296,6 @@ RG.Factory.World = function() {
     };
 
     this.populateAreaLevel = function(area, x, y) {
-        console.log(`Populating area [${x}][${y}]`);
         const playerX = Math.floor(area.getSizeX() / 2);
         const playerY = area.getSizeY() - 1;
         const parser = RG.ObjectShell.getParser();
@@ -331,9 +330,6 @@ RG.Factory.World = function() {
             actorsPerLevel, maxDanger
         };
         fact.addNRandActors(level, parser, actorConf);
-
-        console.log(`Populating area [${x}][${y}] FINISHED`);
-
     };
 
     this._createAllZones = function(area, conf, tx = -1, ty = -1) {
