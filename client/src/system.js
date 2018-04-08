@@ -1646,6 +1646,9 @@ RG.System.SpellEffect = function(compTypes) {
         else if (ent.has('SpellArea')) {
             this.processSpellArea(ent);
         }
+        else if (ent.has('SpellSelf')) {
+            this.processSpellSelf(ent);
+        }
     };
 
     this.processSpellRay = ent => {
@@ -1893,6 +1896,21 @@ RG.System.SpellEffect = function(compTypes) {
         ent.add('Animation', animComp);
         ent.remove('SpellArea');
 
+    };
+
+    /* Used for spell cast on self (or spells not requiring any targets). */
+    this.processSpellSelf = function(ent) {
+        const spellComp = ent.get('SpellSelf');
+        const args = spellComp.getArgs();
+        if (typeof args.callback === 'function') {
+            args.callback();
+        }
+        else {
+            let msg = 'args.callback must be a function. ';
+            msg += 'Got args: ' + JSON.stringify(args);
+            RG.err('System.SpellEffect', 'processSpellSelf', msg);
+        }
+        ent.remove(spellComp);
     };
 
     this._addDamageToActor = (actor, args) => {
