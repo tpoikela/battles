@@ -103,7 +103,6 @@ RG.Factory.Battle.prototype.createBattle = function(parentLevel, conf = {}) {
                 if (--watchdog === 0) {break;}
             }
             parentLevel.addStairs(stairsArea, xy[0], xy[1]);
-            console.log('Spawned battle stairs ' + xy);
         }
         else {
             parentLevel.addStairs(stairsArea, 4, 4);
