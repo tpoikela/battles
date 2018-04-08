@@ -579,6 +579,15 @@ class RGElementFort extends RGElementBase {
 }
 RG.Element.Fort = RGElementFort;
 
+/* Used in proc gen to denote places for actors, items and other elements. For
+* example, different places for stairs can be set, and then one chosen. */
+class RGElementPlaceholder extends Mixin.Locatable(RGElementBase) {
+    constructor() {
+        super('placeholder');
+    }
+}
+RG.Element.PlaceHolder = RGElementPlaceholder;
+
 RG.ELEM = {};
 // Constant elements which can be used by all levels. freeze()
 // used to prevent any mutations. Note that elements with any state
