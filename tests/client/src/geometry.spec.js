@@ -158,7 +158,7 @@ describe('RG.Geometry', () => {
         cells = RG.Geometry.floodfill(map, cell, 'floor');
         expect(cells).to.have.length(100 - numWalls);
 
-        const dungeon = RG.FACT.createLevel('digger', 80, 30);
+        const dungeon = RG.FACT.createLevel('digger', 100, 50);
         const dungMap = dungeon.getMap();
         const dungFloorCells = dungMap.getCells(
             c => c.getBaseElem().getType() === 'floor');
