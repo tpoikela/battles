@@ -46,4 +46,4 @@ if ($err != 0) {
 
 my $end_time = time();
 my $duration = $end_time - $start_time;
-print "Tests too $duration seconds.\n";
+print "Tests took $duration seconds to run.\n";
