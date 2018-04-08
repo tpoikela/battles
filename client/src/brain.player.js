@@ -444,6 +444,8 @@ class BrainPlayer {
             case 'equip': return new Cmd.EquipItem().execute.call(this, obj);
             case 'unequip':
                 return new Cmd.UnequipItem().execute.call(this, obj);
+            case 'use-element':
+                return new Cmd.UseElement().execute.call(this, obj);
             default: return () => {};
         }
     }

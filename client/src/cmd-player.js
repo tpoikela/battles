@@ -141,6 +141,25 @@ class CmdUseItem {
 }
 Cmd.UseItem = CmdUseItem;
 
+/* Command for using an element. */
+class CmdUseElement {
+
+    execute(obj) {
+        const cell = obj.target;
+        const elems = cell.getElements();
+        const useComp = new RG.Component.UseElement();
+        elems.forEach(elem => {
+            if (elem.onUse) {
+                console.log('Setting use element to ' + JSON.stringify(elem));
+                useComp.setElement(elem);
+            }
+        });
+        this._actor.add(useComp);
+        return ACTION_ALREADY_DONE;
+    }
+}
+Cmd.UseElement = CmdUseElement;
+
 class CmdDropItem {
 
   execute(obj) {
