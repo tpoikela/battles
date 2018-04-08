@@ -23,6 +23,9 @@ const allMenuItems = {
   hasItems: [
     {text: 'Pick up', type: 'pickup'},
   ],
+  hasUsable: [
+    {text: 'Use element', type: 'use-element'},
+  ],
   hasConnection: {
     hasPassage: [
       {text: 'Travel', type: 'usestairs'},
