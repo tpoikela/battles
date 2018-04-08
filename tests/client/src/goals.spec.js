@@ -54,7 +54,7 @@ describe('Actor Goal', () => {
         RGTest.moveEntityTo(actor, 2, 2);
         RGTest.moveEntityTo(enemy, 5, 5);
 
-        const catcher = new RGTest.MsgCatcher();
+        // const catcher = new RGTest.MsgCatcher();
         RGTest.updateGame(actor, systems, 10);
         // RGTest.printScreen(actor);
         // RGTest.printLevel(level);
