@@ -253,6 +253,9 @@ class RGElementDoor extends Mixin.Locatable(RGElementBase) {
             ? true : closed;
     }
 
+    /* Checks if door can be manually opened. */
+    canToggle() {return true;}
+
     isOpen() {
         return !this._closed;
     }
@@ -275,13 +278,72 @@ class RGElementDoor extends Mixin.Locatable(RGElementBase) {
 
     toJSON() {
         return {
+            id: this.getID(),
             type: 'door',
             closed: this._closed
         };
     }
 }
-
 RG.Element.Door = RGElementDoor;
+
+/* A door which can be opened using a lever only. */
+class RGElementLeverDoor extends RGElementDoor {
+
+    constructor() {
+        super('leverdoor');
+    }
+
+    canToggle() {return false;}
+
+    onUse() {
+        console.log('LeverDoor onUse now');
+        if (this.isOpen()) {this.closeDoor();}
+        else {this.openDoor();}
+    }
+
+    toJSON() {
+        const json = super.toJSON();
+        json.type = 'leverdoor';
+        return json;
+    }
+}
+RG.Element.LeverDoor = RGElementLeverDoor;
+
+/* Lever element can be used to trigger any target entities having onUse(actor)
+ * function. Targets should be added using addTarget().
+ */
+class RGElementLever extends Mixin.Locatable(RGElementBase) {
+
+    constructor() {
+        super('lever');
+        this._targets = [];
+    }
+
+    getTargets() {
+        return this._targets;
+    }
+
+    addTarget(target) {
+        this._targets.push(target);
+    }
+
+    onUse(actor) {
+        this._targets.forEach(target => {
+            if (target.onUse) {
+                target.onUse(actor);
+            }
+        });
+    }
+
+    toJSON() {
+        return {
+            id: this.getID(),
+            type: 'lever',
+            addTarget: this._targets.map(t => RG.getObjRef('entity', t))
+        };
+    }
+}
+RG.Element.Lever = RGElementLever;
 
 /* A shop element is added to each cell inside a shop.*/
 class RGElementShop extends Mixin.Locatable(RGElementBase) {

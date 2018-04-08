@@ -90,8 +90,13 @@ RG.Game.FromJSON = function() {
 
     /* Restores all data for already created entity. */
     this.restoreEntity = function(json, entity) {
-        this.createBrain(json.brain, entity);
-        this._addEntityFeatures(json, entity);
+        if (RG.isActor(entity)) {
+            this.createBrain(json.brain, entity);
+            this._addEntityFeatures(json, entity);
+        }
+        else if (RG.isElement(entity)) {
+            this.restoreElementEntity(json, entity);
+        }
         return entity;
     };
 
@@ -104,6 +109,18 @@ RG.Game.FromJSON = function() {
         }
         if (obj.spellbook) {
             this.createSpells(obj, entity);
+        }
+    };
+
+    this.restoreElementEntity = function(json, entity) {
+        if (entity.getType() === 'lever') {
+            json.addTarget.forEach(objRef => {
+                const entRef = objRef.objRef;
+                const doorEntity = id2entity[entRef.id];
+                if (doorEntity) {
+                    entity.addTarget(doorEntity);
+                }
+            });
         }
     };
 
@@ -418,46 +435,63 @@ RG.Game.FromJSON = function() {
 
     /* Creates elements such as stairs, doors and shop. */
     this.createElement = function(elem) {
-        const elemObj = elem.obj;
-        const type = elemObj.type;
+        const elemJSON = elem.obj;
+        const type = elemJSON.type;
+        let createdElem = null;
         if (type === 'connection') {
-            return this.createUnconnectedStairs(elem);
+            createdElem = this.createUnconnectedStairs(elem);
         }
         else if (type === 'shop') {
             const shopElem = new RG.Element.Shop();
             let shopkeeper = null;
-            if (!RG.isNullOrUndef([elemObj.shopkeeper])) {
-                shopkeeper = id2entity[elemObj.shopkeeper];
+            if (!RG.isNullOrUndef([elemJSON.shopkeeper])) {
+                shopkeeper = id2entity[elemJSON.shopkeeper];
                 if (shopkeeper) {
                     shopElem.setShopkeeper(shopkeeper);
                 }
                 else {
                     RG.err('Game.FromJSON', 'createElement',
-                        `Shopkeeper with ID ${elemObj.shopkeeper} not found`);
+                        `Shopkeeper with ID ${elemJSON.shopkeeper} not found`);
                 }
             }
-            shopElem.setCostFactor(elemObj.costFactorBuy,
-                elemObj.costFactorSell);
-            return shopElem;
+            shopElem.setCostFactor(elemJSON.costFactorBuy,
+                elemJSON.costFactorSell);
+            createdElem = shopElem;
         }
         else if (type === 'door') {
-            return new RG.Element.Door(elemObj.closed);
+            createdElem = new RG.Element.Door(elemJSON.closed);
+        }
+        else if (type === 'leverdoor') {
+            createdElem = new RG.Element.LeverDoor(elemJSON.closed);
+        }
+        else if (type === 'lever') {
+            createdElem = new RG.Element.Lever();
         }
         else if (type === 'exploration') {
             const expElem = new RG.Element.Exploration();
-            expElem.setExp(elemObj.setExp);
-            expElem.setMsg(elemObj.setMsg);
-            if (elemObj.data) {expElem.setData(elemObj.data);}
-            return expElem;
+            expElem.setExp(elemJSON.setExp);
+            expElem.setMsg(elemJSON.setMsg);
+            if (elemJSON.data) {expElem.setData(elemJSON.data);}
+            createdElem = expElem;
         }
-        return null;
+
+        if (createdElem) {
+            const id = elemJSON.id;
+            if (Number.isInteger(id)) {
+                createdElem.setID(id);
+                id2entity[createdElem.getID()] = createdElem;
+                id2EntityJson[createdElem.getID()] = elemJSON;
+            }
+        }
+
+        return createdElem;
     };
 
     /* Creates the actor and sets entity ID refs, but does not restore all
      * entity data. */
     this.createActor = obj => {
         if (obj.type === null) {
-            RG.err('FromJSON', 'restoreEntity',
+            RG.err('FromJSON', 'createActor',
                 `obj.type null, obj: ${JSON.stringify(obj)}`);
         }
 
