@@ -562,8 +562,11 @@ RG.Brain.Rogue.prototype.exploreLevel = function(seenCells) {
         }
         else if (cell.hasDoor()) {
             const door = cell.getPropType('door')[0];
-            if (door.isClosed) {
-                return () => {door.openDoor();};
+            if (door.canToggle()) {
+                const comp = new RG.Component.OpenDoor();
+                comp.setDoor(door);
+                this._actor.add(comp);
+                return ACTION_ALREADY_DONE;
             }
         }
     }
