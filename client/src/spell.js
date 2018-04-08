@@ -11,21 +11,13 @@
  * used by the AI.
  */
 const RG = require('./rg');
-// const Menu = require('./menu');
 const Keys = require('./keymap');
 
 const {KeyMap} = Keys;
 
-RG.Spell = {};
+// const NO_SELECTION_NEEDED = () => {};
 
-// Defaults (starting values) for spells
-/* const defaults = {
-    FrostBolt: {
-        power: 5,
-        damage: '4d4 + 4',
-        range: 5
-    }
-};*/
+RG.Spell = {};
 
 /* Used for sorting the spells by spell power. */
 /* function compareSpells(s1, s2) {
@@ -39,12 +31,19 @@ RG.Spell = {};
 }
 */
 
+/* Called at the end of AI querying if spell should be cast. */
+const aiSpellCellDone = (actor, target, cb) => {
+    const dir = [actor.getX() - target.getX(),
+        actor.getY() - target.getY()
+    ];
+    const newArgs = {dir, src: actor};
+    cb(actor, newArgs);
+};
 
 const aiSpellCellEnemy = (args, cb) => {
-    const {actor, actorsAround} = args;
+    const {actor, actorCellsAround} = args;
     let strongest = null;
-    console.log('aiSpellCellEnemy around ' + actorsAround.length);
-    actorsAround.forEach(cell => {
+    actorCellsAround.forEach(cell => {
         const actors = cell.getActors();
         actors.forEach(otherActor => {
             if (actor.isEnemy(otherActor)) {
@@ -52,6 +51,11 @@ const aiSpellCellEnemy = (args, cb) => {
                 if (!strongest) {
                     console.log('aiSpellCellEnemy setting strongest');
                     strongest = otherActor;
+                }
+                else if (args.compFunc) {
+                    if (args.compFunc(strongest, otherActor)) {
+                        strongest = otherActor;
+                    }
                 }
                 else {
                     const maxHP = health.getMaxHP();
@@ -63,11 +67,7 @@ const aiSpellCellEnemy = (args, cb) => {
     });
 
     if (strongest) {
-        const dir = [actor.getX() - strongest.getX(),
-            actor.getY() - strongest.getY()
-        ];
-        const newArgs = {dir, src: actor};
-        cb(actor, newArgs);
+        aiSpellCellDone(actor, strongest, cb);
         console.log('aiSpellCellEnemy returning TRUE for AI');
         return true;
     }
@@ -75,6 +75,61 @@ const aiSpellCellEnemy = (args, cb) => {
     return false;
 };
 
+/* Can be used to determine if AI should cast a close proximity spell to a
+ * friendly target. Custom "intelligence" can be provided by giving
+ * args.compFunc which will filter the friend actors.
+ */
+const aiSpellCellFriend = (args, cb) => {
+    const {actor, actorCellsAround} = args;
+    let suitable = null;
+    actorCellsAround.forEach(cell => {
+        const actors = cell.getActors();
+        actors.forEach(otherActor => {
+            if (actor.isFriend(otherActor)) {
+                if (!suitable) {
+                    suitable = otherActor;
+                }
+                else if (args.compFunc) {
+                    if (args.compFunc(suitable, otherActor)) {
+                        suitable = otherActor;
+                    }
+                }
+                else { // If compFunc not given, use default logic
+                    const h1 = suitable.get('Health');
+                    const h2 = otherActor.get('Health');
+                    if (h2.hpLost() > h1.hpLost()) {
+                        suitable = otherActor;
+                    }
+                }
+            }
+        });
+    });
+
+    if (suitable) {
+        aiSpellCellDone(actor, suitable, cb);
+        return true;
+    }
+    return false;
+};
+
+/* Used to determine if AI caster should cast a spell on itself. */
+const aiSpellCellSelf = (args, cb) => {
+    const {actor} = args;
+    let shouldCast = true;
+    if (args.compFunc) {
+        if (args.compFunc(actor)) {
+            shouldCast = true;
+        }
+        else {
+            shouldCast = false;
+        }
+    }
+
+    if (shouldCast) {
+        aiSpellCellDone(actor, actor, cb);
+    }
+    return shouldCast;
+};
 
 /* Returns selection object for spell which is cast on self. */
 RG.Spell.getSelectionObjectSelf = (spell, actor) => {
@@ -269,6 +324,10 @@ RG.Spell.Flying = function() {
     RG.Spell.AddComponent.call(this, 'Flying', 5);
     this.setCompName('Flying');
     this._duration = RG.FACT.createDie('10d5 + 5');
+
+    this.aiShouldCastSpell = (args, cb) => {
+        return aiSpellCellFriend(args, cb);
+    };
 };
 RG.extend2(RG.Spell.Flying, RG.Spell.AddComponent);
 
@@ -276,6 +335,10 @@ RG.Spell.Paralysis = function() {
     RG.Spell.AddComponent.call(this, 'Paralysis', 7);
     this.setCompName('Paralysis');
     this.setDuration(RG.FACT.createDie('1d6 + 2'));
+
+    this.aiShouldCastSpell = (args, cb) => {
+        return aiSpellCellEnemy(args, cb);
+    };
 };
 RG.extend2(RG.Spell.Paralysis, RG.Spell.AddComponent);
 
@@ -283,6 +346,10 @@ RG.Spell.SpiritForm = function() {
     RG.Spell.AddComponent.call(this, 'SpiritForm', 10);
     this.setCompName('Ethereal');
     this.setDuration(RG.FACT.createDie('1d6 + 4'));
+
+    this.aiShouldCastSpell = (args, cb) => {
+        return aiSpellCellFriend(args, cb);
+    };
 };
 RG.extend2(RG.Spell.SpiritForm, RG.Spell.AddComponent);
 
@@ -472,6 +539,10 @@ RG.Spell.IceShield = function() {
 
     this.getSelectionObject = function(actor) {
         return RG.Spell.getSelectionObjectSelf(this, actor);
+    };
+
+    this.aiShouldCastSpell = (args, cb) => {
+        return aiSpellCellFriend(args, cb);
     };
 
 };
@@ -712,25 +783,21 @@ RG.Spell.PowerDrain = function() {
         return RG.Spell.getSelectionObjectSelf(this, actor);
     };
 
-
-    /* TODO: Change to LOS or something more effective. */
     this.aiShouldCastSpell = (args, cb) => {
-        const {actor, enemy} = args;
+        this.compFuncArgs = {enemy: args.enemy};
+        args.compFunc = this.aiCompFunc.bind(this); // Used by aiSpellCellSelf
+        return aiSpellCellSelf(args, cb);
+    };
+
+    this.aiCompFunc = actor => {
+        const {enemy} = this.compFuncArgs;
         if (!actor.has('PowerDrain')) {
-            const [x0, y0] = [actor.getX(), actor.getY()];
-            const [x1, y1] = [enemy.getX(), enemy.getY()];
             if (enemy.has('SpellPower')) {
-                const lineXY = RG.Geometry.getStraightLine(x0, y0, x1, y1);
-                if (lineXY.length > 1) {
-                    const dX = lineXY[1][0] - lineXY[0][0];
-                    const dY = lineXY[1][1] - lineXY[0][1];
-                    const args = {dir: [dX, dY]};
-                    cb(actor, args);
-                    return true;
-                }
+                return true;
             }
         }
         return false;
+
     };
 
 };
@@ -893,14 +960,13 @@ RG.extend2(RG.Spell.Blizzard, RG.Spell.Ranged);
 /* Healing spell, duh. */
 RG.Spell.Heal = function() {
     RG.Spell.Base.call(this, 'Heal', 6);
-
-    const _healingDie = RG.FACT.createDie('2d4');
+    this._healingDie = RG.FACT.createDie('2d4');
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
         obj.targetComp = 'Health';
         obj.set = 'addHP';
-        obj.value = _healingDie.roll();
+        obj.value = this._healingDie.roll();
         const spellComp = new RG.Component.SpellCell();
         spellComp.setArgs(obj);
         args.src.add('SpellCell', spellComp);
@@ -911,20 +977,49 @@ RG.Spell.Heal = function() {
         return RG.Spell.getSelectionObjectDir(this, actor, msg);
     };
 
-    /* this.aiShouldCastSpell = (args, cb) => {
-        const {actor, actorsAround} = args;
-        // 1. Get surrounding actors
-        // 2. If any are friends and wounded, cast spell
-        if (hasWoundedFriends(actorsAround)) {
-
-        }
-        else if (itselfWoundedBadly()) {
-
-        }
-    };*/
+    this.aiShouldCastSpell = (args, cb) => {
+        return aiSpellCellFriend(args, cb);
+    };
 
 };
 RG.extend2(RG.Spell.Heal, RG.Spell.Base);
+
+RG.Spell.RingOfFire = function() {
+    RG.Spell.Base.call(this, 'RingOfFire', 10);
+    this._durationDie = RG.FACT.createDie('10d10');
+    this._range = 2;
+
+    this.cast = function(args) {
+        const obj = getDirSpellArgs(this, args);
+        obj.callback = this.castCallback.bind(this);
+
+        const spellComp = new RG.Component.SpellSelf();
+        spellComp.setArgs(obj);
+        args.src.add(spellComp);
+    };
+
+    this.getSelectionObject = function(actor) {
+        return RG.Spell.getSelectionObjectSelf(this, actor);
+    };
+
+    this.castCallback = () => {
+        const parser = RG.ObjectShell.getParser();
+        const caster = this._caster;
+        const level = caster.getLevel();
+
+        const duration = this._durationDie.roll();
+        const cells = RG.Brain.getCellsAroundActor(caster, this._range);
+        cells.forEach(cell => {
+            if (cell.isPassable() || cell.hasActors()) {
+                const fire = parser.createActor('Fire');
+                level.addActor(fire, cell.getX(), cell.getY());
+                const fadingComp = new RG.Component.Fading();
+                fadingComp.setDuration(duration);
+            }
+        });
+    };
+};
+RG.extend2(RG.Spell.RingOfFire, RG.Spell.Base);
 
 /* Used for testing the spells. Adds all spells to given SpellBook. */
 RG.Spell.addAllSpells = book => {
@@ -943,6 +1038,7 @@ RG.Spell.addAllSpells = book => {
     book.addSpell(new RG.Spell.MindControl());
     book.addSpell(new RG.Spell.Paralysis());
     book.addSpell(new RG.Spell.PowerDrain());
+    book.addSpell(new RG.Spell.RingOfFire());
     book.addSpell(new RG.Spell.SpiritForm());
     book.addSpell(new RG.Spell.SummonAnimal());
     book.addSpell(new RG.Spell.SummonAirElemental());
