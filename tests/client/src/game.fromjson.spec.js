@@ -431,4 +431,28 @@ describe('RG.Game.FromJSON', function() {
         expect(newJSON).to.deep.equal(json);
     });
 
+    it('can restore elements with entity refs', () => {
+        const level = RG.FACT.createLevel('arena', 10, 10);
+        const lever = new RG.Element.Lever();
+        level.addElement(lever, 2, 1);
+        for (let i = 0; i < 3; i++) {
+            const leverDoor = new RG.Element.LeverDoor();
+            lever.addTarget(leverDoor);
+            level.addElement(leverDoor, 3 + i, 1);
+        }
+        expect(lever.getTargets()).to.have.length(3);
+
+        const json = level.toJSON();
+
+        const newLevel = fromJSON.restoreLevel(json);
+        fromJSON.restoreEntityData();
+
+        const elems = newLevel.getElements();
+        expect(elems.length).to.equal(4);
+
+        const newLever = elems.find(elem => elem.getType() === 'lever');
+        expect(newLever.getTargets()).to.have.length(3);
+
+    });
+
 });
