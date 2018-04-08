@@ -49,7 +49,6 @@ const aiSpellCellEnemy = (args, cb) => {
             if (actor.isEnemy(otherActor)) {
                 const health = otherActor.get('Health');
                 if (!strongest) {
-                    console.log('aiSpellCellEnemy setting strongest');
                     strongest = otherActor;
                 }
                 else if (args.compFunc) {
@@ -68,10 +67,8 @@ const aiSpellCellEnemy = (args, cb) => {
 
     if (strongest) {
         aiSpellCellDone(actor, strongest, cb);
-        console.log('aiSpellCellEnemy returning TRUE for AI');
         return true;
     }
-    console.log('aiSpellCellEnemy returning false for AI');
     return false;
 };
 
