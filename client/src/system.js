@@ -148,7 +148,7 @@ RG.System.BaseAction = function(compTypes) {
     this.compTypesAny = true;
 
     const handledComps = [
-        'Pickup', 'UseStairs', 'OpenDoor', 'UseItem'
+        'Pickup', 'UseStairs', 'OpenDoor', 'UseItem', 'UseElement'
     ];
 
     this.updateEntity = function(ent) {
@@ -213,11 +213,18 @@ RG.System.BaseAction = function(compTypes) {
     /* Handles command to open door and execute possible triggers like traps. */
     this._handleOpenDoor = ent => {
         const door = ent.get('OpenDoor').getDoor();
-        if (door.isOpen()) {
-            door.closeDoor();
+        if (door.canToggle()) {
+            if (door.isOpen()) {
+                door.closeDoor();
+            }
+            else {
+                door.openDoor();
+            }
         }
         else {
-            door.openDoor();
+            const [name, cell] = [ent.getName(), ent.getCell()];
+            const msg = `${name} cannot open the door.`;
+            RG.gameMsg({cell, msg});
         }
     };
 
@@ -239,12 +246,23 @@ RG.System.BaseAction = function(compTypes) {
         this._checkUseItemMsgEmit(ent, useItemComp);
     };
 
+    this._handleUseElement = ent => {
+        console.log('Handling useELement in Systrem now');
+        const useComp = ent.get('UseElement');
+        const elem = useComp.getElement();
+        if (elem.onUse) { // Just assume it's a function, what else can it be?
+            elem.onUse(ent);
+        }
+        this._checkUseElementMsgEmit(ent, useComp);
+    };
+
     // Initialisation of dispatch table for handler functions
     this._dtable = {
         Pickup: this._handlePickup,
         UseStairs: this._handleUseStairs,
         OpenDoor: this._handleOpenDoor,
-        UseItem: this._handleUseItem
+        UseItem: this._handleUseItem,
+        UseElement: this._handleUseElement
     };
 
     /* Used to create events in response to specific actions. */
@@ -261,6 +279,15 @@ RG.System.BaseAction = function(compTypes) {
             const cell = target.getCell();
             const msg = target.getName() + ' drinks '
                 + item.getName();
+            RG.gameMsg({cell, msg});
+        }
+    };
+
+    this._checkUseElementMsgEmit = (ent, comp) => {
+        if (comp.getUseType() === RG.USE.LEVER) {
+            const cell = ent.getCell();
+            const name = ent.getName();
+            const msg = `${name} toggles the lever`;
             RG.gameMsg({cell, msg});
         }
     };
@@ -1104,6 +1131,10 @@ RG.System.Movement = function(compTypes) {
 
         }
 
+        if (newCell.hasPropType('lever')) {
+            RG.gameMsg('There is a lever on the floor');
+        }
+
         if (newCell.hasItems()) {
             const items = newCell.getProp('items');
             const topItem = items[0];
@@ -1729,7 +1760,7 @@ RG.System.SpellEffect = function(compTypes) {
         if (evasion < 0) {evasion = 0;}
 
         const hitChance = (100 - evasion) / 100;
-        if (hitChance > RG.RAND.getUniform()) {
+        if (hitChance >= RG.RAND.getUniform()) {
             if (actor.has('RangedEvasion')) {
                 return RG.RAND.getUniform() < 0.5;
             }

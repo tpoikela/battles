@@ -1009,6 +1009,9 @@ RG.Component.OpenDoor = TransientDataComponent('OpenDoor', {door: null});
 RG.Component.UseItem = TransientDataComponent('UseItem',
     {item: null, useType: '', target: null});
 
+RG.Component.UseElement = TransientDataComponent('UseElement',
+    {element: null, useType: ''});
+
 /* Added to player to record various event in the game. */
 RG.Component.GameInfo = UniqueDataComponent('GameInfo', {
     data: null});
