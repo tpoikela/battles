@@ -40,6 +40,7 @@ export default class CellClickHandler {
             case 'pickup': this.handlePickup(x, y, cell); break;
             case 'shoot': this.handleShoot(x, y, cell); break;
             case 'usestairs': this.handleUseStairs(x, y, cell); break;
+            case 'use-element': this.handleUseElement(x, y, cell); break;
             default: break;
         }
 
@@ -79,6 +80,12 @@ export default class CellClickHandler {
         const player = this._game.getPlayer();
         this.moveTo(player, x, y);
         this._keyBuffer.push(Keys.KEY.USE_STAIRS_DOWN);
+    }
+
+    // TODO move this into Player.Brain
+    handleUseElement(x, y, cell) {
+        const cmd = {cmd: 'use-element', target: cell};
+        this._keyBuffer.push(cmd);
     }
 
     /* Tries to compute a path to given coordinate. Uses 2 different methods. */
