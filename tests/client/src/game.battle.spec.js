@@ -68,7 +68,11 @@ describe('Game.Battle', () => {
         }
 
         expect(battle.isOver()).to.equal(true);
-        expect(battle.getLevel().getActors().length).to.be.equal(0);
+        const battleActors = battle.getLevel().getActors();
+        if (battleActors.length > 0) {
+            console.log(JSON.stringify(battleActors));
+        }
+        expect(battleActors.length).to.equal(0);
 
         const survivors = areaLevel.getActors();
         expect(survivors.length).to.be.at.least(4);
