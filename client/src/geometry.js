@@ -593,4 +593,107 @@ RG.Geometry = {
 
 };
 
+
+/* From: https://en.wikipedia.org/wiki/Flood_fill
+Flood-fill (node, target-color, replacement-color):
+  1. If target-color is equal to replacement-color, return.
+  2. If color of node is not equal to target-color, return.
+  3. Set Q to the empty queue.
+  4.  Set the color of node to replacement-color.
+  5. Add node to the end of Q.
+  6. While Q is not empty:
+  7.     Set n equal to the first element of Q.
+  8.     Remove first element from Q.
+  9.     If the color of the node to the west of n is target-color,
+             set the color of that node to replacement-color and
+             add that node to the end of Q.
+ 10.     If the color of the node to the east of n is target-color,
+             set the color of that node to replacement-color and add
+             that node to the end of Q.
+ 11.     If the color of the node to the north of n is target-color,
+             set the color of that node to replacement-color
+             and add that node to the end of Q.
+ 12.    If the color of the node to the south of n is target-color,
+           set the color of that node to replacement-color
+           and add that node to the end of Q.
+ 13. Continue looping until Q is exhausted.
+ 14. Return.
+*/
+
+/* Given a starting cell and type, floodfills the map from that position and
+ * returns all cells included in the floodfill. */
+RG.Geometry.floodfill = function(map, cell, type) {
+    if (cell.getBaseElem().getType() !== type) {return [];}
+    let currCell = cell;
+    const cellsLeft = [];
+    const result = [cell];
+    const colored = {}; // Needed because we're not changing anything
+    colored[cell.getKeyXY()] = true;
+
+    const tryToAddCell = function(x, y) {
+        if (map.hasXY(x, y)) {
+            if (!colored[x + ',' + y]) {
+                const addedCell = map.getCell(x, y);
+                if (addedCell.getBaseElem().getType() === type) {
+                    colored[addedCell.getKeyXY()] = true;
+                    result.push(addedCell);
+                    cellsLeft.push(addedCell);
+                }
+            }
+        }
+    };
+
+    while (currCell) {
+        const [x, y] = currCell.getXY();
+        // 9. West
+        const xWest = x - 1;
+        tryToAddCell(xWest, y);
+        /*
+        if (map.hasXY(xWest, y)) {
+            if (!colored[xWest + ',' + y]) {
+                const cellWest = map.getCell(xWest, y);
+                if (cellWest.getBaseElem().getType() === type) {
+                    addCell(cellWest);
+                }
+            }
+        }*/
+        // 10. East
+        const xEast = x + 1;
+        tryToAddCell(xEast, y);
+        /* if (map.hasXY(xEast, y)) {
+            if (!colored[xEast + ',' + y]) {
+                const cellEast = map.getCell(xEast, y);
+                if (cellEast.getBaseElem().getType() === type) {
+                    addCell(cellEast);
+                }
+            }
+        }*/
+        // 11. North
+        const yNorth = y - 1;
+        tryToAddCell(x, yNorth);
+        /* if (map.hasXY(x, yNorth)) {
+            if (!colored[x + ',' + yNorth]) {
+                const cellNorth = map.getCell(x, yNorth);
+                if (cellNorth.getBaseElem().getType() === type) {
+                    addCell(cellNorth);
+                }
+            }
+        }*/
+        // 12. South
+        const ySouth = y + 1;
+        tryToAddCell(x, ySouth);
+        /* if (map.hasXY(x, ySouth)) {
+            if (!colored[x + ',' + ySouth]) {
+                const cellSouth = map.getCell(x, ySouth);
+                if (cellSouth.getBaseElem().getType() === type) {
+                    addCell(cellSouth);
+                }
+            }
+        }*/
+
+        currCell = cellsLeft.shift();
+    }
+    return result;
+};
+
 module.exports = RG.Geometry;
