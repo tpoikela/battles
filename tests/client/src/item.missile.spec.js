@@ -11,46 +11,6 @@ const updateSystems = systems => {
     }
 };
 
-describe('How dice are cast and what values they give', () => {
-    it('Produces random values based on constructor arguments', () => {
-        const die = new RG.Die(1, 10, 1);
-        for (let i = 0; i < 100; i++) {
-            const val = die.roll();
-            expect(val >= 2).to.equal(true);
-            expect(val <= 11).to.equal(true);
-        }
-
-        const factDie = RG.FACT.createDie('2d4 + 2');
-        for (let i = 0; i < 100; i++) {
-            const val = factDie.roll();
-            expect(val >= 4).to.equal(true);
-            expect(val <= 10).to.equal(true);
-        }
-    });
-
-    it('Works also with string args', () => {
-        const die = new RG.Die('1', '10', '1');
-        for (let i = 0; i < 100; i++) {
-            const val = die.roll();
-            expect(val >= 2).to.equal(true);
-            expect(val <= 11).to.equal(true);
-        }
-
-        const dieStr = die.toString();
-        expect(dieStr).to.equal('1d10 + 1');
-
-        const die2 = new RG.Die(1, 10, 1);
-        expect(die2.equals(die)).to.equal(true);
-        expect(die.equals(die2)).to.equal(true);
-
-
-        const die3 = new RG.Die(0, 0, 0);
-        for (let j = 0; j < 20; j++) {expect(die3.roll()).to.equal(0);}
-
-        die3.copy(die);
-        expect(die3.equals(die)).to.equal(true);
-    });
-});
 
 const createSystems = () => {
     const mSystem = new RG.System.Missile(['Missile']);
