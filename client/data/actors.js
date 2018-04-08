@@ -1,4 +1,5 @@
 /* Contains the in-game actors. */
+/* eslint comma-dangle: 0 */
 
 const defaultBrain = 'GoalOriented';
 const demonBrain = 'GoalOriented';
@@ -128,7 +129,7 @@ const Actors = [
         onHit: [{addComp: 'Paralysis', duration: '1d4'}]
     },
 
-    // CONSTRUCTS ECT
+    // CONSTRUCTS ETC
     {
         name: 'ConstructBase', type: 'construct',
         dontCreate: true,
@@ -161,6 +162,13 @@ const Actors = [
         name: 'goblin fighter', base: 'goblin',
         attack: 2, defense: 3, protection: 1, hp: 12,
         danger: 2
+    },
+    {
+        name: 'goblin healer', base: 'goblin',
+        attack: 2, defense: 4, protection: 2, hp: 15,
+        danger: 3,
+        brain: 'SpellCaster', pp: 18, maxPP: 18,
+        spells: ['Heal']
     },
     {
         name: 'goblin sergeant', base: 'goblin',
@@ -204,6 +212,15 @@ const Actors = [
         protection: 1, hp: 15, danger: 2
     },
     {
+        name: 'avian fighter', base: 'AvianFolkBase', danger: 4,
+        attack: 6, defense: 7, damage: '3d4', hp: 30
+    },
+    {
+        name: 'avian arbalist', base: 'AvianFolkBase', danger: 5,
+        attack: 6, defense: 7, damage: '3d4', hp: 30,
+        equip: ['Wooden crossbow', {name: 'Wooden bolt', count: 10}]
+    },
+    {
         name: 'avian duelist', base: 'AvianFolkBase', danger: 8,
         attack: 7, defense: 10, damage: '3d5', hp: 40,
         addComp: ['CounterAttack', 'Flying']
@@ -216,7 +233,7 @@ const Actors = [
     {
         name: 'avian archmage', base: 'AvianFolkBase', danger: 11,
         attack: 5, defense: 10, damage: '3d4', hp: 45,
-        // brain: 'SpellCaster', spells: ['SummonAirElemental'],
+        brain: 'SpellCaster', spells: ['SummonAirElemental'],
         pp: 40, maxPP: 40
     },
     {
