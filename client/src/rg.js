@@ -1126,7 +1126,7 @@ RG.getUnequipCmd = function(name, slotNumber, count) {
 
 // Regexp for parsing dice expressions '2d4' or '1d6 + 1' etc.
 RG.DIE_RE = /\s*(\d+)d(\d+)\s*(\+|-)?\s*(\d+)?/;
-RG.DIE_NUMBER = /^\s*(\d+)\s*$/;
+RG.DIE_NUMBER = /^\s*(-?\d+)\s*$/;
 
 /* Parses die expression like '2d4' or '3d5 + 4' and returns it as an array [2,
  * 4, 0] or [3, 5, 4]. Returns empty array for invalid expressions.*/
@@ -1144,10 +1144,10 @@ RG.parseDieSpec = strOrArray => {
             let mod = null;
             if (!RG.isNullOrUndef([match[3], match[4]])) {
                 if (match[3] === '+') {mod = match[4];}
-                else {mod = -match[4];}
+                else {mod = '-' + match[4];}
             }
             else {
-                mod = 0;
+                mod = '0';
             }
             return [num, dType, mod];
         }

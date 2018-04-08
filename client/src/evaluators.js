@@ -201,7 +201,6 @@ class EvaluatorOrders extends EvaluatorBase {
         else if (this.srcActor.isPlayer()) {
             return true;
         }
-        console.log('Order evaluator returning false');
         return false;
     }
 

@@ -816,8 +816,6 @@ function addOverWorldFeatures(ow, conf) {
 
     const numFlatTiles = ow.numTiles(OW.TERM);
     const numWallTiles = ow.numWallTiles();
-    console.log(`Found ${numFlatTiles} flat tiles`);
-    console.log(`Found ${numWallTiles} wall tiles`);
 
     const nDungeonsSouth = conf.nDungeonsSouth || Math.floor(numWallTiles / 12);
     const nDungeonsCenter = conf.nDungeonsCenter ||

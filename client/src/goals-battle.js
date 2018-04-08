@@ -136,8 +136,6 @@ class LevelGrid {
         if (cols % xMap !== 0) {++gridCols;}
         if (rows % yMap !== 0) {++gridRows;}
 
-        console.log(`girdCols: ${gridCols}, rows: ${gridRows}`);
-
         this.grid = [];
         for (let x = 0; x < gridCols; x++) {
             this.grid[x] = [];
@@ -167,7 +165,6 @@ class LevelGrid {
         const [x, y] = levelXY;
         const gridX = Math.floor(x / this.xMap);
         const gridY = Math.floor(y / this.yMap);
-        console.log(`getGridXY mapped ${x},${y} -> ${gridX},${gridY}`);
         return [gridX, gridY];
     }
 

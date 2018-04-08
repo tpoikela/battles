@@ -1230,7 +1230,7 @@ RG.Factory.World = function() {
             zoneStairs = allEdgeExits;
             // Connection failed, resort to single point connection
             if (zoneStairs.length === 0) {
-                zoneLevel.getMap().debugPrintInASCII();
+                // zoneLevel.getMap().debugPrintInASCII();
 
                 // XXX this one is shaky
                 const freeCell = zoneLevel.getFreeRandCell();
