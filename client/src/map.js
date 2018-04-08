@@ -2,7 +2,7 @@
 const ROT = require('../../lib/rot.js');
 const RG = require('./rg.js');
 
-const {TYPE_ACTOR, TYPE_ITEM} = RG;
+const {TYPE_ACTOR, TYPE_ITEM, TYPE_ELEM} = RG;
 
 RG.Element = require('./element.js');
 
@@ -38,6 +38,14 @@ RG.Map.Cell.prototype.getKeyXY = function() {
 /* Sets/gets the base element for this cell. There can be only one element.*/
 RG.Map.Cell.prototype.setBaseElem = function(elem) { this._baseElem = elem; };
 RG.Map.Cell.prototype.getBaseElem = function() { return this._baseElem; };
+
+/* Queries cell about possible elements. */
+RG.Map.Cell.prototype.hasElements = function() {
+    return this.hasProp(TYPE_ELEM);
+};
+RG.Map.Cell.prototype.getElements = function() {
+    return this.getProp(TYPE_ELEM);
+};
 
 /* Returns true if cell has any actors.*/
 RG.Map.Cell.prototype.hasActors = function() {return this.hasProp(TYPE_ACTOR);};
@@ -243,6 +251,19 @@ RG.Map.Cell.prototype.toString = function() {
         }
     });
     return str;
+};
+
+/* Returns true if the cell has an usable element. */
+RG.Map.Cell.prototype.hasUsable = function() {
+    const elems = this.getProp(RG.TYPE_ELEM);
+    if (elems) {
+        for (let i = 0; i < elems.length; i++) {
+            if (elems[i].onUse) {
+                return true;
+            }
+        }
+    }
+    return false;
 };
 
 RG.Map.Cell.prototype.toJSON = function() {
