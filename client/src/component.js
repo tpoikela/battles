@@ -63,6 +63,10 @@ RG.Component.Health = function(hp) {
     this.isAlive = () => _hp > 0;
     this.isDead = () => _hp <= 0;
 
+    this.hpLost = () => {
+        return _maxHP - _hp;
+    };
+
 };
 RG.extend2(RG.Component.Health, RG.Component.Base);
 
@@ -650,13 +654,13 @@ RG.extend2(RG.Component.ActorClass, RG.Component.Base);
     LongReach: 'Gives +1 to range of melee attacks.',
     FirstStrike: 'Gives a counter attack that hits first.'
 };*/
-RG.Component.Defender = TagComponent('Defender');
-RG.Component.Attacker = TagComponent('Attacker');
-RG.Component.BiDirStrike = TagComponent('BiDirStrike');
-RG.Component.CounterAttack = TagComponent('CounterAttack');
-RG.Component.Ambidexterity = TagComponent('Ambidexterity');
-RG.Component.LongReach = TagComponent('LongReach');
-RG.Component.FirstStrike = TagComponent('FirstStrike');
+RG.Component.Defender = UniqueTagComponent('Defender');
+RG.Component.Attacker = UniqueTagComponent('Attacker');
+RG.Component.BiDirStrike = UniqueTagComponent('BiDirStrike');
+RG.Component.CounterAttack = UniqueTagComponent('CounterAttack');
+RG.Component.Ambidexterity = UniqueTagComponent('Ambidexterity');
+RG.Component.LongReach = UniqueTagComponent('LongReach');
+RG.Component.FirstStrike = UniqueTagComponent('FirstStrike');
 
 /* Component which gives reduces equipment weight by 50%. */
 RG.Component.MasterEquipper = DataComponent('MasterEquipper',
@@ -762,6 +766,11 @@ RG.Component.SpellArea = function() {
     RG.Component.SpellBase.call(this, 'SpellArea');
 };
 RG.extend2(RG.Component.SpellArea, RG.Component.SpellBase);
+
+RG.Component.SpellSelf = function() {
+    RG.Component.SpellBase.call(this, 'SpellSelf');
+};
+RG.extend2(RG.Component.SpellSelf, RG.Component.SpellBase);
 
 //--------------------------------------------
 // Adventurer components
