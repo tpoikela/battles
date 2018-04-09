@@ -48,6 +48,16 @@ RG.Geometry = {
         return res;
     },
 
+    getCoordBbox: function(bbox) {
+        const {ulx, uly, lrx, lry} = bbox;
+        return this.getBox(ulx, uly, lrx, lry);
+    },
+
+    getBorderForBbox: function(bbox) {
+        const {ulx, uly, lrx, lry} = bbox;
+        return this.getHollowBox(ulx, uly, lrx, lry);
+    },
+
     /* Given two cells, returns bounding box defined by upper-left
      * and lower-right corners.
      */
