@@ -1,7 +1,6 @@
 
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-// import {JSONEditor} from 'react-json-editor-viewer';
 
 import EditorTopMenu from './editor-top-menu';
 import EditorGameBoard from './editor-game-board';
@@ -1425,13 +1424,6 @@ export default class GameEditor extends Component {
               <button onClick={this.importConfig}>Import</button>
               <button onClick={this.exportConfig}>Export</button>
             </div>
-            {/* false &&
-            <JSONEditor
-              collapsible={true}
-              data={this.state.levelConf.shown}
-              onChange={this.onChangeConfJSON}
-            />
-            */}
 
             <div className='cell-selection'>
               <span>Selection:</span>
@@ -1531,7 +1523,7 @@ export default class GameEditor extends Component {
     if (this.state.lastTouchedConf) {
       const shown = this.state.lastTouchedConf.shown;
       const conf = this.state.lastTouchedConf[shown];
-      const str = JSON.stringify(conf);
+      const str = JSON.stringify(conf, null, 1);
       this.setState({confTemplText: str});
     }
   }
@@ -1547,10 +1539,6 @@ export default class GameEditor extends Component {
     catch (e) {
       this.setState({errorMsg: e.message});
     }
-  }
-
-  onChangeConfJSON(key, value, parent, data) {
-
   }
 
   menuCallback() {
