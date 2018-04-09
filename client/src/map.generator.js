@@ -666,6 +666,19 @@ RG.Map.Generator = function() { // {{{2
 
 }; // }}} Map.Generator
 
+RG.Map.Generator.createSplashes = function(cols, rows, conf) {
+    const elem = conf.elem || RG.ELEM.WATER;
+    const map = new RG.Map.CellList(cols, rows);
+    const mapGen = new ROT.Map.Forest(cols, rows, conf);
+    mapGen.create((x, y, val) => {
+        map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
+        if (val === 1) {
+            map.setBaseElemXY(x, y, elem);
+        }
+    });
+    return {map};
+};
+
 /* Decorates the given map with snow. ratio is used to control how much
  * snow to put. */
 RG.Map.Generator.addRandomSnow = (map, ratio) => {
