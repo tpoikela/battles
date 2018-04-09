@@ -7,12 +7,17 @@ RG.DungeonGenerator = require('../../../client/src/dungeon-generator');
 
 describe('DungeonGenerator', () => {
     it('generates dungeon levels', () => {
+        RG.RAND.setSeed(new Date().getTime());
         const gen = new RG.DungeonGenerator();
-        const conf = {bigRooms: 1};
-        const level = gen.create(80, 30, conf);
-
-        level.debugPrintInASCII();
-        expect(level).to.exist;
+        const conf = {
+            nBigRooms: 0,
+            errorOnFailure: true
+        };
+        for (let i = 0; i < 1; i++) {
+            const level = gen.create(100, 50, conf);
+            level.debugPrintInASCII();
+            expect(level).to.exist;
+        }
 
     });
 });
