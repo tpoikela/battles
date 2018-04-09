@@ -580,6 +580,18 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
                 else if (cell.hasItems()) {row += 'I';}
                 else if (cell.getStairs() !== null) {row += '>';}
                 else if (cell.hasConnection()) {row += 'c';}
+                else if (cell.hasElements()) {
+                    const elem = cell.getElements()[0];
+                    if (elem.getType() === 'marker') {
+                        row += elem.char;
+                    }
+                    else if (elem.getType() === 'door') {
+                        row += '+';
+                    }
+                    else {
+                        row += 'E';
+                    }
+                }
                 else if ((/floor/).test(baseType)) {row += '.';}
                 else if ((/water/).test(baseType)) {row += '~';}
                 else if ((/wall/).test(baseType)) {row += '#';}
@@ -645,6 +657,18 @@ RG.Map.CellList.prototype.setBaseElems = function(coord, elem) {
     coord.forEach(xy => {
         this._map[xy[0]][xy[1]].setBaseElem(elem);
     });
+};
+
+RG.Map.CellList.prototype.has = function(xy, query) {
+    const [x, y] = xy;
+    if (this._hasXY(x, y)) {
+        const cell = this.getCell(x, y);
+        if (typeof query === 'string') {
+            const baseElem = cell.getBaseElem();
+            if (baseElem.getType() === query) {return true;}
+        }
+    }
+    return false;
 };
 
 RG.Map.CellList.invertMap = map => {
