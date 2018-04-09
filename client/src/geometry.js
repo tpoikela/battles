@@ -623,18 +623,24 @@ Flood-fill (node, target-color, replacement-color):
 /* Given a starting cell and type, floodfills the map from that position and
  * returns all cells included in the floodfill. */
 RG.Geometry.floodfill = function(map, cell, type) {
-    if (cell.getBaseElem().getType() !== type) {return [];}
+    let filterFunc = type;
+    if (typeof type === 'string') {
+        filterFunc = c => c.getBaseElem().getType() === type;
+    }
+    if (!filterFunc(cell)) {return [];}
+
     let currCell = cell;
     const cellsLeft = [];
     const result = [cell];
     const colored = {}; // Needed because we're not changing anything
     colored[cell.getKeyXY()] = true;
 
+    /* Private func which checks if the cell should be added to floodfill. */
     const tryToAddCell = function(x, y) {
         if (map.hasXY(x, y)) {
             if (!colored[x + ',' + y]) {
                 const addedCell = map.getCell(x, y);
-                if (addedCell.getBaseElem().getType() === type) {
+                if (filterFunc(addedCell)) {
                     colored[addedCell.getKeyXY()] = true;
                     result.push(addedCell);
                     cellsLeft.push(addedCell);
