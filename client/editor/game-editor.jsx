@@ -1,6 +1,7 @@
 
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+// import {JSONEditor} from 'react-json-editor-viewer';
 
 import EditorTopMenu from './editor-top-menu';
 import EditorGameBoard from './editor-game-board';
@@ -11,6 +12,7 @@ import LevelSaveLoad from './level-save-load';
 import Capital from '../data/capital';
 import AbandonedFort, {abandonedFortConf} from '../data/abandoned-fort';
 import DwarvenCity, {dwarvenCityConf} from '../data/dwarven-city';
+
 
 const ROT = require('../../lib/rot');
 ROT.Map.Wall = require('../../lib/map.wall');
@@ -184,7 +186,7 @@ export default class GameEditor extends Component {
     this.generateActors = this.generateActors.bind(this);
     this.generateItems = this.generateItems.bind(this);
     this.onChangeNumEntities = this.onChangeNumEntities.bind(this);
-
+    this.setShownLevel = this.setShownLevel.bind(this);
     this.onCellClick = this.onCellClick.bind(this);
     this.onChangeCellSelectX = this.onChangeCellSelectX.bind(this);
     this.onChangeCellSelectY = this.onChangeCellSelectY.bind(this);
@@ -672,7 +674,7 @@ export default class GameEditor extends Component {
               <EditorLevelList
                   levelList={this.state.levelIndex}
                   levelList={this.state.levelList}
-                  setShownLevel={this.setShownLevel.bind(this)}
+                  setShownLevel={this.setShownLevel}
               />
           </div>
 
@@ -1412,15 +1414,24 @@ export default class GameEditor extends Component {
 
           </div>
           <div className='col-md-6'>
-            <p>Template/Config here</p>
-            <textarea
-              name='conf-template-input'
-              onChange={this.onChangeConfTemplText}
-              rows={5}
-              value={this.state.confTemplText}
+            <div>
+              <p>Template/Config here</p>
+              <textarea
+                name='conf-template-input'
+                onChange={this.onChangeConfTemplText}
+                rows={5}
+                value={this.state.confTemplText}
+              />
+              <button onClick={this.importConfig}>Import</button>
+              <button onClick={this.exportConfig}>Export</button>
+            </div>
+            {/* false &&
+            <JSONEditor
+              collapsible={true}
+              data={this.state.levelConf.shown}
+              onChange={this.onChangeConfJSON}
             />
-            <button onClick={this.importConfig}>Import</button>
-            <button onClick={this.exportConfig}>Export</button>
+            */}
 
             <div className='cell-selection'>
               <span>Selection:</span>
@@ -1536,6 +1547,10 @@ export default class GameEditor extends Component {
     catch (e) {
       this.setState({errorMsg: e.message});
     }
+  }
+
+  onChangeConfJSON(key, value, parent, data) {
+
   }
 
   menuCallback() {
