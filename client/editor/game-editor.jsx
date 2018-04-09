@@ -14,6 +14,7 @@ import DwarvenCity, {dwarvenCityConf} from '../data/dwarven-city';
 
 const ROT = require('../../lib/rot');
 ROT.Map.Wall = require('../../lib/map.wall');
+const DungeonGenerator = require('../src/dungeon-generator');
 
 const Screen = require('../gui/screen');
 
@@ -31,7 +32,8 @@ const editorLevelTypes = [
   'digger', 'divided', 'dungeon', 'dwarven_city',
   'eller', 'empty', 'forest', 'icey', 'miner',
   'mountain', 'uniform', 'rogue',
-  'ruins', 'rooms', 'summit', 'town', 'townwithwall', 'wall'
+  'ruins', 'rooms', 'summit', 'town', 'townwithwall', 'wall',
+  'Dungeon'
 ];
 
 const boardViews = [
@@ -393,6 +395,9 @@ export default class GameEditor extends Component {
     }
     else if (levelType === 'dwarven_city') {
       level = new DwarvenCity(cols, rows, conf).getLevel();
+    }
+    else if (levelType === 'Dungeon') {
+      level = new DungeonGenerator().create(cols, rows, conf);
     }
     else {
       level = RG.FACT.createLevel(
@@ -792,6 +797,10 @@ export default class GameEditor extends Component {
     else if (value === 'dwarven_city') {
       levelConf['dwarven_city'] = dwarvenCityConf;
       levelConf.shown = 'dwarven_city';
+    }
+    else if (value === 'Dungeon') {
+      levelConf['Dungeon'] = DungeonGenerator.getOptions();
+      levelConf.shown = 'Dungeon';
     }
     else {
       levelConf[value] = {};
