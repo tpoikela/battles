@@ -588,6 +588,20 @@ class RGElementPlaceholder extends Mixin.Locatable(RGElementBase) {
 }
 RG.Element.PlaceHolder = RGElementPlaceholder;
 
+/* Used in the debugging of levels only. Can be used to add arbitrary characters
+ * into level maps when debugging. */
+class RGElementMarker extends Mixin.Locatable(RGElementBase) {
+    constructor(char) {
+        super('marker');
+        this.char = char;
+        this.tag = '';
+    }
+
+    setTag(tag) {this.tag = tag;}
+    getTag() {return this.tag;}
+}
+RG.Element.Marker = RGElementMarker;
+
 RG.ELEM = {};
 // Constant elements which can be used by all levels. freeze()
 // used to prevent any mutations. Note that elements with any state
