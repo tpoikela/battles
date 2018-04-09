@@ -22,6 +22,11 @@
     color: $black;
 };
 
+.cell-element-placeholder {
+    background-color: $red;
+    color: $white;
+};
+
 .cell-element-door {
     background-color: $door-bg-color;
     color: $door-color;
