@@ -8,12 +8,30 @@ const MapGen = require('./map.generator');
 
 const WALL = 1;
 
+// Number of cells allowed to be unreachable
+const maxUnreachable = 10;
+
 /*
 const ROOM_CONF = {
     BIG_CENTER_ROOM: 'BIG_CENTER_ROOM'
     CROSS: 'CROSS'
 };
 */
+
+const SPLASH_THEMES = {
+    chasm: {
+        elem: RG.ELEM.CHASM
+    },
+    water: {
+        elem: RG.ELEM.WATER
+    },
+    forest: {
+        elem: RG.ELEM.TREE
+    },
+    fire: {
+        elem: RG.ELEM.LAVA
+    }
+};
 
 const DUG_MAX = 0.75;
 const PROB = {
@@ -37,7 +55,8 @@ const bigRoomType2Feature = {
     'large corridor': {
         special: ['splashes']
     },
-    center: {}
+    center: {
+    }
 };
 
 /* Data struct for big rooms. */
@@ -119,7 +138,8 @@ DungeonGenerator.prototype.create = function(cols, rows, conf) {
 
     // Optional verification of connectivity etc.
     if (conf.rerunOnFailure || conf.errorOnFailure) {
-        if (!this.verifyLevel(mapGen, level, conf)) {
+        const fillDiag = true;
+        if (!this.verifyLevel(mapGen, level, conf, fillDiag)) {
             this.create(cols, rows, conf);
         }
     }
@@ -166,24 +186,22 @@ DungeonGenerator.prototype.addBigRooms = function(mapGen, conf) {
     }
 
     const createBigRoom = RG.RAND.getUniform() <= PROB.BIG_ROOM;
-    if (conf.nBigRooms === 0) {
+    if (createBigRoom && conf.nBigRooms === 0) {
         const bigRoomType = this.getBigRoomType();
         /* eslint no-constant-condition: 0 */
-        if (bigRoomType === 'center') {
+        if (/center/.test(bigRoomType)) {
             bigRoomsCreated = this.addBigCenterRoom(mapGen, conf);
         }
-        if (bigRoomType === 'large corridor') {
+        if (/large corridor/.test(bigRoomType)) {
             bigRoomsCreated = this.addLargeCorridorRoom(mapGen, conf);
         }
-        if (bigRoomType === 'cross') {
+        if (/cross/.test(bigRoomType)) {
             bigRoomsCreated = this.addLargeCross(mapGen, conf);
         }
-        if (bigRoomType === 'vault') {
+        if (/vault/.test(bigRoomType)) {
             bigRoomsCreated = this.addVault(mapGen, conf);
         }
     }
-
-
     return bigRoomsCreated;
 };
 
@@ -402,6 +420,7 @@ DungeonGenerator.prototype.addSpecialFeatures = function(level, conf) {
         }
     }
 
+    /*
     if (extras.corridors) {
         extras.corridors.forEach((corr, i) => {
             const index = i % 10;
@@ -412,6 +431,7 @@ DungeonGenerator.prototype.addSpecialFeatures = function(level, conf) {
             });
         });
     }
+    */
 
     if (extras.rooms) {
         const room = RG.RAND.arrayGetRand(extras.rooms);
@@ -463,8 +483,14 @@ DungeonGenerator.prototype.addBigRoomSpecialFeat = function(
     level, randSpecial, bigRooms) {
     bigRooms.forEach(bigRoom => {
         const room = bigRoom.room; // Unwrap Feature.Room from BigRoom
+        if (!room) {
+            RG.err('DungeonGenerator', 'addBigRoomSpecialFeat',
+                'room is null for ' + JSON.stringify(bigRoom));
+        }
         switch (randSpecial) {
-            case 'splashes': this.addElemSplashes(level, room); break;
+            case 'splashes': {
+                this.addElemSplashes(level, room); break;
+            }
             default: break;
         }
     });
@@ -487,14 +513,19 @@ DungeonGenerator.prototype.addDoorsForRoom = function(level, room) {
  * 1. water - amphibious
  * 2. chasms - flying
  * 3. forest - animals
+ * Make sure  this is same for all rooms.
  */
 DungeonGenerator.prototype.addElemSplashes = function(level, room) {
+    const themeName = RG.RAND.arrayGetRand(Object.keys(SPLASH_THEMES));
+    const theme = SPLASH_THEMES[themeName];
+    const elem = theme.elem;
+
     const x0 = room.getLeft() + 1;
     const y0 = room.getTop() + 1;
     const fCols = room.getWidth();
     const fRows = room.getHeight();
     const {map} = MapGen.createSplashes(fCols, fRows,
-        {nForests: 10, elem: RG.ELEM.TREE});
+        {nForests: 10, elem});
     Geometry.mergeMapBaseElems(level.getMap(), map, x0, y0);
 };
 
@@ -537,6 +568,10 @@ DungeonGenerator.prototype.populateLevel = function(level, conf) {
     console.log('maxDanger is ' + maxDanger);
 
     // Add something nasty into terminal room
+    // Some possible design patterns:
+    //   1. Stairs + guardian
+    //   2. Guardian + strong item
+    //   3. Special feature
     if (extras.terms) {
         extras.terms.forEach(room => {
             const bbox = room.getBbox();
@@ -559,13 +594,20 @@ DungeonGenerator.prototype.verifyLevel = function(mapGen, level, conf) {
     const cell = floorCells[0];
     const floorCellsFilled = Geometry.floodfill(map, cell, filter);
 
-    if (floorCells.length !== floorCellsFilled.length) {
-        if (conf.errorOnFailure) {
-            level.debugPrintInASCII();
-            RG.err('DungeonGenerator', 'verifyLevel',
-                'floodfill cannot reach all cells!');
+    const numTotal = floorCells.length;
+    const numFilled = floorCellsFilled.length;
+
+    if (numFilled !== numTotal) {
+        const diff = numTotal - numFilled;
+        if (diff > maxUnreachable) {
+            if (conf.errorOnFailure) {
+                level.debugPrintInASCII();
+                const msg = `Max: ${maxUnreachable}, got: ${diff}`;
+                RG.err('DungeonGenerator', 'verifyLevel',
+                    'floodfill cannot reach all cells! ' + msg);
+            }
+            return false;
         }
-        return false;
     }
 
     return true;
