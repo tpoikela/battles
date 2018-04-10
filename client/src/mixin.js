@@ -104,6 +104,10 @@ RG.Mixin.Locatable = (superclass) => class extends superclass {
     getX() {return this._x;}
     getY() {return this._y;}
 
+    isAtXY(x, y) {
+        return x === this._x && y === this._y;
+    }
+
     getXY() {
         return [this._x, this._y];
     }
