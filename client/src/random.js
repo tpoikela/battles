@@ -88,6 +88,11 @@ RG.Random.prototype.getRandDir = function() {
     return [dX, dY];
 };
 
+/* Returns randomly one of the 4 cardinal directions. */
+RG.Random.prototype.getCardinalDir = function() {
+    return this.arrayGetRand(RG.CARDINAL_DIR);
+};
+
 /* Returns a random direction using weights for directions. */
 RG.Random.prototype.getRandDirWeighted = function() {
     // TODO
