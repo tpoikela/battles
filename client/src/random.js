@@ -93,6 +93,10 @@ RG.Random.prototype.getCardinalDir = function() {
     return this.arrayGetRand(RG.CARDINAL_DIR);
 };
 
+RG.Random.prototype.getCardinalDirLetter = function() {
+    return this.arrayGetRand(RG.CARDINAL_DIR_ABBR);
+};
+
 /* Returns a random direction using weights for directions. */
 RG.Random.prototype.getRandDirWeighted = function() {
     // TODO
