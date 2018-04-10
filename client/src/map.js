@@ -66,6 +66,21 @@ RG.Map.Cell.prototype.getSentientActors = function() {
 RG.Map.Cell.prototype.hasItems = function() {return this.hasProp(TYPE_ITEM);};
 RG.Map.Cell.prototype.getItems = function() {return this.getProp(TYPE_ITEM);};
 
+/* Checks if this cell has a marker with given tag. */
+RG.Map.Cell.prototype.hasMarker = function(tag) {
+    if (this.hasElements()) {
+        const elems = this.getElements();
+        for (let i = 0; i < elems.length; i++) {
+            if (elems[i].getType() === 'marker') {
+                if (elems[i].getTag() === tag) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+};
+
 /* Returns true if cell has any props. */
 RG.Map.Cell.prototype.hasProps = function() {
     return Object.keys(this._p).length > 0;
