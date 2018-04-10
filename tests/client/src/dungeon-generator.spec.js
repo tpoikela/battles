@@ -12,9 +12,10 @@ describe('DungeonGenerator', function() {
         const gen = new RG.DungeonGenerator();
         const conf = {
             nBigRooms: 0,
-            errorOnFailure: true
+            rerunOnFailure: true
+            // errorOnFailure: true
         };
-        for (let i = 0; i < 1; i++) {
+        for (let i = 0; i < 20; i++) {
             const cols = RG.RAND.getUniformInt(80, 120);
             const rows = RG.RAND.getUniformInt(28, 56);
             const level = gen.create(cols, rows, conf);
