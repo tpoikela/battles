@@ -17,8 +17,27 @@ const ROOM_CONF = {
 
 const DUG_MAX = 0.75;
 const PROB = {
-    BIG_VAULT: 0.1
+    BIG_ROOM: 0.2,
+    bigRoomWeights: {
+        cross: 1,
+        corridor: 1,
+        vault: 1,
+        center: 1
+    }
+};
 
+/* Maps a big room to different possible features. The key is matched using
+* regular expression. This means the keys must be uniquely matchable. */
+const bigRoomType2Feature = {
+    cross: {
+        special: ['splashes']
+    },
+    'small vault': {},
+    'large vault': {},
+    'large corridor': {
+        special: ['splashes']
+    },
+    center: {}
 };
 
 /* Data struct for big rooms. */
@@ -129,9 +148,7 @@ DungeonGenerator.prototype.getMapGen = function(cols, rows, conf) {
  * connected, but this can be checked if necessary.
  */
 DungeonGenerator.prototype.addBigRooms = function(mapGen, conf) {
-    const [cols, rows] = [mapGen.getCols(), mapGen.getRows()];
-    const [cx, cy] = mapGen.getCenterXY();
-    const bigRoomsCreated = [];
+    let bigRoomsCreated = [];
 
     // Generate different options for big rooms:
     //   1. Left/right big corridor [X]
@@ -145,127 +162,33 @@ DungeonGenerator.prototype.addBigRooms = function(mapGen, conf) {
 
     // Customly specified big rooms
     if (conf.nBigRooms > 0) {
-        this.addCustomBigRooms(mapGen, conf);
+        bigRoomsCreated = this.addCustomBigRooms(mapGen, conf);
     }
 
-    /* eslint no-constant-condition: 0 */
-    // Big center room
-    if (0) {
-        const yDiv = RG.RAND.getUniformInt(2, 5);
-        const xDiv = RG.RAND.getUniformInt(2, 6);
-        const roomWidth = [Math.floor(cols / (xDiv + 1 )),
-            Math.floor(cols / xDiv)];
-        const roomHeight = [Math.floor(rows / yDiv), Math.floor(rows / yDiv)];
-        const opts = {roomWidth, roomHeight};
-        const room = ROT.Map.Feature.Room.createCenter(cx, cy, opts);
-        mapGen._options.dugPercentage += 0.2;
-        mapGen.addRoom(room);
-        bigRoomsCreated.push(new BigRoom('center', room));
-    }
-
-    // Large east side corridor
-    if (0) {
-        const xDiv = RG.RAND.getUniformInt(2, 6);
-        const width = Math.floor(cols / xDiv);
-        const room = new ROT.Map.Feature.Room(1, 1, width, rows - 2);
-        mapGen._options.dugPercentage += 0.3;
-        mapGen.addRoom(room);
-        bigRoomsCreated.push(new BigRoom('large corridor E', room));
-    }
-
-    // Large west side corridor
-    if (0) {
-        const xDiv = RG.RAND.getUniformInt(2, 6);
-        const width = Math.floor(cols / xDiv);
-        const x0 = cols - 2 - width;
-        const room = new ROT.Map.Feature.Room(x0, 1, cols - 2, rows - 2);
-        mapGen._options.dugPercentage += 0.3;
-        mapGen.addRoom(room);
-        bigRoomsCreated.push(new BigRoom('large corridor W', room));
-    }
-
-    // Large north side corridor
-    if (0) {
-        const yDiv = RG.RAND.getUniformInt(2, 5);
-        const height = Math.floor(rows / yDiv);
-        const room = new ROT.Map.Feature.Room(1, 1, cols - 2, height);
-        mapGen._options.dugPercentage += 0.3;
-        mapGen.addRoom(room);
-        bigRoomsCreated.push(new BigRoom('large corridor N', room));
-    }
-
-    // Large south side corridor
-    if (0) {
-        const yDiv = RG.RAND.getUniformInt(2, 5);
-        const height = Math.floor(rows / yDiv);
-        const y0 = rows - 2 - height;
-        const room = new ROT.Map.Feature.Room(1, y0, cols - 2, rows - 2);
-        mapGen._options.dugPercentage += 0.20;
-        mapGen.addRoom(room);
-        bigRoomsCreated.push(new BigRoom('large corridor S', room));
-    }
-
-    // Cross
-    if (1) {
-        const div = RG.RAND.getUniformInt(3, 8);
-        const width = Math.floor(cols / div);
-        const height = Math.floor(rows / div);
-        const horOpts = {
-            roomWidth: [cols - 2, cols - 2], roomHeight: [height, height]
-        };
-        const verOpts = {
-            roomHeight: [rows - 2, rows - 2], roomWidth: [width, width]
-        };
-        const roomHor = ROT.Map.Feature.Room.createCenter(cx, cy, horOpts);
-        const roomVer = ROT.Map.Feature.Room.createCenter(cx, cy, verOpts);
-        mapGen.addRoom(roomHor);
-        mapGen.addRoom(roomVer);
-
-        const areaHor = roomHor.getAreaSize();
-        const areaVer = roomVer.getAreaSize();
-        const dug = (areaHor + areaVer) / (cols * rows);
-
-        mapGen._options.dugPercentage += 1.6 * dug;
-        if (mapGen._options.dugPercentage >= DUG_MAX) {
-            mapGen._options.dugPercentage = DUG_MAX;
+    const createBigRoom = RG.RAND.getUniform() <= PROB.BIG_ROOM;
+    if (conf.nBigRooms === 0) {
+        const bigRoomType = this.getBigRoomType();
+        /* eslint no-constant-condition: 0 */
+        if (bigRoomType === 'center') {
+            bigRoomsCreated = this.addBigCenterRoom(mapGen, conf);
         }
-
-        bigRoomsCreated.push(new BigRoom('crossHor', roomHor));
-        bigRoomsCreated.push(new BigRoom('crossVer', roomVer));
-    }
-
-    // Small vault 1/4 of level
-    // Big vault 1/2 of level
-    if (0) {
-        const big = RG.RAND.getUniform() <= PROB.BIG_VAULT;
-        let width = Math.floor(cols / 2);
-        let height = Math.floor(rows / 2);
-        let corners = ['NE', 'NW', 'SW', 'SE'];
-        let type = 'small vault';
-        if (big) {
-            if (RG.RAND.getUniform() <= 0.5) {
-                corners = ['NE', 'NW'];
-                width = Math.floor(cols / 2);
-                height = rows - 2;
-            }
-            else {
-                corners = ['NW', 'SW'];
-                width = cols - 2;
-                height = Math.floor(rows / 2);
-            }
-            mapGen._options.dugPercentage += 0.25;
-            type = 'large vault';
+        if (bigRoomType === 'large corridor') {
+            bigRoomsCreated = this.addLargeCorridorRoom(mapGen, conf);
         }
-        const [x0, y0] = this.getRandCorner(width, height, cols, rows, corners);
-        const x1 = x0 + width - 1;
-        const y1 = y0 + height - 1;
-        const room = new ROT.Map.Feature.Room(x0, y0, x1, y1);
-        mapGen._options.dugPercentage += 0.20;
-        mapGen.addRoom(room);
-        bigRoomsCreated.push(new BigRoom(type, room));
+        if (bigRoomType === 'cross') {
+            bigRoomsCreated = this.addLargeCross(mapGen, conf);
+        }
+        if (bigRoomType === 'vault') {
+            bigRoomsCreated = this.addVault(mapGen, conf);
+        }
     }
+
 
     return bigRoomsCreated;
+};
+
+DungeonGenerator.prototype.getBigRoomType = function() {
+    return RG.RAND.arrayGetRand(Object.keys(bigRoomType2Feature));
 };
 
 /* Adds manually specified custom rooms into the level. */
@@ -319,6 +242,130 @@ DungeonGenerator.prototype.addCustomBigRooms = function(mapGen, conf) {
     return bigRoomsCreated;
 };
 
+DungeonGenerator.prototype.addBigCenterRoom = function(mapGen) {
+    const [cols, rows] = [mapGen.getCols(), mapGen.getRows()];
+    const [cx, cy] = mapGen.getCenterXY();
+
+    const yDiv = RG.RAND.getUniformInt(2, 5);
+    const xDiv = RG.RAND.getUniformInt(2, 6);
+    const roomWidth = [Math.floor(cols / (xDiv + 1 )),
+        Math.floor(cols / xDiv)];
+    const roomHeight = [Math.floor(rows / yDiv), Math.floor(rows / yDiv)];
+
+    const opts = {roomWidth, roomHeight};
+    const room = ROT.Map.Feature.Room.createCenter(cx, cy, opts);
+    mapGen._options.dugPercentage += 0.2;
+    mapGen.addRoom(room);
+    return [new BigRoom('center', room)];
+};
+
+
+DungeonGenerator.prototype.addLargeCorridorRoom = function(mapGen) {
+    const [cols, rows] = [mapGen.getCols(), mapGen.getRows()];
+    const cardinalDir = RG.RAND.getCardinalDir();
+    const roomName = 'large corridor' + cardinalDir;
+
+    // Large east side corridor
+    let room = null;
+    if (cardinalDir === 'E') {
+        const xDiv = RG.RAND.getUniformInt(2, 6);
+        const width = Math.floor(cols / xDiv);
+        room = new ROT.Map.Feature.Room(1, 1, width, rows - 2);
+    }
+
+    // Large west side corridor
+    if (cardinalDir === 'W') {
+        const xDiv = RG.RAND.getUniformInt(2, 6);
+        const width = Math.floor(cols / xDiv);
+        const x0 = cols - 2 - width;
+        room = new ROT.Map.Feature.Room(x0, 1, cols - 2, rows - 2);
+    }
+
+    // Large north side corridor
+    if (cardinalDir === 'N') {
+        const yDiv = RG.RAND.getUniformInt(2, 5);
+        const height = Math.floor(rows / yDiv);
+        room = new ROT.Map.Feature.Room(1, 1, cols - 2, height);
+    }
+
+    // Large south side corridor
+    if (cardinalDir === 'S') {
+        const yDiv = RG.RAND.getUniformInt(2, 5);
+        const height = Math.floor(rows / yDiv);
+        const y0 = rows - 2 - height;
+        room = new ROT.Map.Feature.Room(1, y0, cols - 2, rows - 2);
+    }
+
+    mapGen._options.dugPercentage += 0.20;
+    mapGen.addRoom(room);
+    return [new BigRoom(roomName, room)];
+};
+
+DungeonGenerator.prototype.addLargeCross = function(mapGen) {
+    const [cols, rows] = [mapGen.getCols(), mapGen.getRows()];
+    const [cx, cy] = mapGen.getCenterXY();
+
+    const div = RG.RAND.getUniformInt(3, 8);
+    const width = Math.floor(cols / div);
+    const height = Math.floor(rows / div);
+    const horOpts = {
+        roomWidth: [cols - 2, cols - 2], roomHeight: [height, height]
+    };
+    const verOpts = {
+        roomHeight: [rows - 2, rows - 2], roomWidth: [width, width]
+    };
+    const roomHor = ROT.Map.Feature.Room.createCenter(cx, cy, horOpts);
+    const roomVer = ROT.Map.Feature.Room.createCenter(cx, cy, verOpts);
+    mapGen.addRoom(roomHor);
+    mapGen.addRoom(roomVer);
+
+    const areaHor = roomHor.getAreaSize();
+    const areaVer = roomVer.getAreaSize();
+    const dug = (areaHor + areaVer) / (cols * rows);
+
+    mapGen._options.dugPercentage += 1.6 * dug;
+    if (mapGen._options.dugPercentage >= DUG_MAX) {
+        mapGen._options.dugPercentage = DUG_MAX;
+    }
+
+    return [
+        new BigRoom('crossHor', roomHor),
+        new BigRoom('crossVer', roomVer)
+    ];
+};
+
+DungeonGenerator.prototype.addVault = function(mapGen) {
+    // Small vault 1/4 of level
+    // Big vault 1/2 of level
+    const [cols, rows] = [mapGen.getCols(), mapGen.getRows()];
+    const big = RG.RAND.getUniform() <= PROB.BIG_VAULT;
+    let width = Math.floor(cols / 2);
+    let height = Math.floor(rows / 2);
+    let corners = ['NE', 'NW', 'SW', 'SE'];
+    let type = 'small vault';
+    if (big) {
+        if (RG.RAND.getUniform() <= 0.5) {
+            corners = ['NE', 'NW'];
+            width = Math.floor(cols / 2);
+            height = rows - 2;
+        }
+        else {
+            corners = ['NW', 'SW'];
+            width = cols - 2;
+            height = Math.floor(rows / 2);
+        }
+        mapGen._options.dugPercentage += 0.25;
+        type = 'large vault';
+    }
+    const [x0, y0] = this.getRandCorner(width, height, cols, rows, corners);
+    const x1 = x0 + width - 1;
+    const y1 = y0 + height - 1;
+    const room = new ROT.Map.Feature.Room(x0, y0, x1, y1);
+    mapGen._options.dugPercentage += 0.20;
+    mapGen.addRoom(room);
+    return [new BigRoom(type, room)];
+};
+
 /* Returns a random corner for a feature. */
 DungeonGenerator.prototype.getRandCorner = function(w, h, cols, rows, corners) {
     const corner = RG.RAND.arrayGetRand(corners);
@@ -338,9 +385,21 @@ DungeonGenerator.prototype.addSpecialFeatures = function(level, conf) {
     console.log(conf);
     const extras = level.getExtras();
     const map = level.getMap();
+
+    // Adds a random special feature to the big room
     if (extras.bigRooms) {
-        const room = RG.RAND.arrayGetRand(extras.bigRooms).room;
-        this.addElemSplashes(level, room);
+        const room = extras.bigRooms[0];
+        let features = {};
+        Object.keys(bigRoomType2Feature).forEach(key => {
+            if (new RegExp(key).test(room.type)) {
+                features = bigRoomType2Feature[key];
+            }
+        });
+
+        if (features.special) {
+            const randSpecial = RG.RAND.arrayGetRand(features.special);
+            this.addBigRoomSpecialFeat(level, randSpecial, extras.bigRooms);
+        }
     }
 
     if (extras.corridors) {
@@ -400,6 +459,18 @@ DungeonGenerator.prototype.addSpecialFeatures = function(level, conf) {
     }
 };
 
+DungeonGenerator.prototype.addBigRoomSpecialFeat = function(
+    level, randSpecial, bigRooms) {
+    bigRooms.forEach(bigRoom => {
+        const room = bigRoom.room; // Unwrap Feature.Room from BigRoom
+        switch (randSpecial) {
+            case 'splashes': this.addElemSplashes(level, room); break;
+            default: break;
+        }
+    });
+
+};
+
 DungeonGenerator.prototype.addDoorsForRoom = function(level, room) {
     if (this.addDoors) {
         room.getDoors((x, y) => {
@@ -412,6 +483,11 @@ DungeonGenerator.prototype.addDoorsForRoom = function(level, room) {
     }
 };
 
+/* Different options for splashes:
+ * 1. water - amphibious
+ * 2. chasms - flying
+ * 3. forest - animals
+ */
 DungeonGenerator.prototype.addElemSplashes = function(level, room) {
     const x0 = room.getLeft() + 1;
     const y0 = room.getTop() + 1;
@@ -431,7 +507,7 @@ DungeonGenerator.prototype.addFireToRoom = function(level, room) {
     });
 };
 
-DungeonGenerator.prototype.addStairsLocations = function(level, conf) {
+DungeonGenerator.prototype.addStairsLocations = function(level) {
     // Default is to find rooms that are far away from each other
     const extras = level.getExtras();
     let watchdog = 100;
@@ -457,6 +533,8 @@ DungeonGenerator.prototype.addStairsLocations = function(level, conf) {
 /* Populates the level with actors and items. */
 DungeonGenerator.prototype.populateLevel = function(level, conf) {
     const extras = level.getExtras();
+    const maxDanger = conf.maxDanger || 5;
+    console.log('maxDanger is ' + maxDanger);
 
     // Add something nasty into terminal room
     if (extras.terms) {
