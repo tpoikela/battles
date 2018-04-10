@@ -593,7 +593,7 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
                     }
                 }
                 else if ((/floor/).test(baseType)) {row += '.';}
-                else if ((/water/).test(baseType)) {row += '~';}
+                else if ((/water|chasm|lava/).test(baseType)) {row += '~';}
                 else if ((/wall/).test(baseType)) {row += '#';}
                 else if ((/tree/).test(baseType)) {row += 'T';}
                 else if ((/grass/).test(baseType)) {row += '"';}
