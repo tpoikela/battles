@@ -5,9 +5,11 @@ RG.Map = require('./map.js');
 const Level = require('./level');
 const Geometry = require('./geometry');
 const MapGen = require('./map.generator');
+const Path = require('./path');
 
 const WALL = 1;
 
+const shortestPath = Path.getShortestPath;
 // Number of cells allowed to be unreachable
 const maxUnreachable = 10;
 
@@ -104,14 +106,24 @@ const getRandMapType = () => {
 
 /* Creates the actual Map.Level. */
 DungeonGenerator.prototype.create = function(cols, rows, conf) {
-    const mapGen = this.getMapGen(cols, rows, conf);
-
-    const map = new RG.Map.CellList(cols, rows);
-    mapGen.create((x, y, val) => {
+    const minNumRooms = 3;
+    let mapGen = null;
+    let map = null;
+    const createCb = (x, y, val) => {
         if (val === WALL) {
             map.setBaseElemXY(x, y, RG.ELEM.WALL);
         }
-    });
+    };
+
+    let watchdog = 10;
+    while (!mapGen || mapGen.getRooms().length < minNumRooms) {
+        mapGen = this.getMapGen(cols, rows, conf);
+        map = new RG.Map.CellList(cols, rows);
+        mapGen.create(createCb);
+        if (--watchdog === 0) {
+            break;
+        }
+    }
 
     const level = new Level(cols, rows);
     level.setMap(map);
@@ -130,6 +142,10 @@ DungeonGenerator.prototype.create = function(cols, rows, conf) {
 
     // Determine stairs locations
     this.addStairsLocations(level, conf);
+
+    // Add critical path (player must pass through this, usually), not entirely
+    // true as there are usually many paths from start to end
+    this.addCriticalPath(level);
 
     // Finally, we could populate the level with items/actors here
     this.populateLevel(level, conf);
@@ -280,8 +296,8 @@ DungeonGenerator.prototype.addBigCenterRoom = function(mapGen) {
 
 DungeonGenerator.prototype.addLargeCorridorRoom = function(mapGen) {
     const [cols, rows] = [mapGen.getCols(), mapGen.getRows()];
-    const cardinalDir = RG.RAND.getCardinalDir();
-    const roomName = 'large corridor' + cardinalDir;
+    const cardinalDir = RG.RAND.getCardinalDirLetter();
+    const roomName = 'large corridor ' + cardinalDir;
 
     // Large east side corridor
     let room = null;
@@ -312,6 +328,11 @@ DungeonGenerator.prototype.addLargeCorridorRoom = function(mapGen) {
         const height = Math.floor(rows / yDiv);
         const y0 = rows - 2 - height;
         room = new ROT.Map.Feature.Room(1, y0, cols - 2, rows - 2);
+    }
+
+    if (!room) {
+        RG.err('DungeonGenerator', 'addLargeCorridorRoom',
+            'room null something went wrong');
     }
 
     mapGen._options.dugPercentage += 0.20;
@@ -553,17 +574,132 @@ DungeonGenerator.prototype.addStairsLocations = function(level) {
 
         const [cx1, cy1] = room1.getCenter();
         const [cx2, cy2] = room2.getCenter();
-        const stairsDown = new RG.Element.Marker('>');
-        const stairsUp = new RG.Element.Marker('<');
-        level.addElement(stairsDown, cx1, cy1);
-        level.addElement(stairsUp, cx2, cy2);
 
+        // Store the points to extras
+        extras.startPoint = [cx2, cy2];
+        extras.endPoint = [cx1, cy1];
+
+        const goalPoint = new RG.Element.Marker('>');
+        const startPoint = new RG.Element.Marker('<');
+        level.addElement(goalPoint, cx1, cy1);
+        level.addElement(startPoint, cx2, cy2);
+        room1.addStairs(cx1, cy1, true);
+        room2.addStairs(cx2, cy2, false);
+
+    }
+    else {
+        // Resort to random placement, no worthwhile rooms, although this
+        // raises the question if the whole level should be discarded
+        RG.err('DungeonGenerator', 'addStairsLocations',
+            'Not enough rooms to add stairs');
     }
 };
 
-/* Populates the level with actors and items. */
+
+DungeonGenerator.prototype.addCriticalPath = function(level) {
+    const extras = level.getExtras();
+    const [cx2, cy2] = extras.startPoint;
+    const [cx1, cy1] = extras.endPoint;
+
+    const map = level.getMap();
+    const pathFunc = (x, y) => {
+        return map.isPassable(x, y) || map.getCell(x, y).hasDoor();
+    };
+
+    let criticalPath = Path.getShortestPath(cx2, cy2, cx1, cy1, pathFunc);
+    if (criticalPath.length === 0) {
+        RG.err('DungeonGenerator', 'addStairsLocations',
+            'No path found between stairs');
+    }
+
+    const pathBrokenFunc = (x, y) => {
+        return pathFunc(x, y) &&
+            !map.getCell(x, y).hasMarker('path broken');
+
+    };
+    const minPathLen = 50;
+    let prevPath = criticalPath;
+    while (criticalPath.length < minPathLen) {
+
+        // Break the existing path
+        const pathBroken = this.breakPath(level, criticalPath);
+        if (!pathBroken) {
+            // Could not break, might be in a big room
+            break;
+        }
+
+        // Break OK, find the next path which is shortest
+        criticalPath = shortestPath(cx2, cy2, cx1, cy1, pathBrokenFunc);
+        if (criticalPath.length === 0) {
+            this.restorePath(level, prevPath);
+            criticalPath = prevPath;
+            break;
+        }
+        else {
+            prevPath = criticalPath;
+        }
+    }
+
+    console.log('CRITICAL PATH LENGHT: ' + criticalPath.length);
+
+    criticalPath.forEach(xy => {
+        const critPathElem = new RG.Element.Marker('*');
+        critPathElem.setTag('critical path');
+        level.addElement(critPathElem, xy.x, xy.y);
+    });
+
+    extras.criticalPath = criticalPath;
+};
+
+/* This breaks the path with a wall and by placing a 'path broken' marker to
+ * locate the element later. */
+DungeonGenerator.prototype.breakPath = function(level, path) {
+    for (let i = 0; i < path.length; i++) {
+        const {x, y} = path[i];
+        const cell = level.getMap().getCell(x, y);
+        if (cell.hasDoor()) {
+            const marker = new RG.Element.Marker('X');
+            marker.setTag('path broken');
+            level.addElement(marker, x, y);
+            console.log(`Path BROKEN at ${x},${y}`);
+            return true;
+        }
+    }
+    return false;
+};
+
+/* Restores previous broken path in case no sufficiently long new path is found.
+ * */
+DungeonGenerator.prototype.restorePath = function(level, path) {
+    for (let i = 0; i < path.length; i++) {
+        const {x, y} = path[i];
+        const cell = level.getMap().getCell(x, y);
+        if (cell.hasMarker('path broken')) {
+            const elements = level.getElements();
+            const thisXY = elements.filter(e => e.isAtXY(x, y));
+            thisXY.forEach(elem => {
+                if (elem.getType() === 'marker') {
+                    if (elem.getTag() === 'path broken') {
+                        level.removeElement(elem, x, y);
+                    }
+                }
+            });
+        }
+    }
+    console.log('RESTORED THE PREV PATH');
+};
+
+
+/* Populates the level with actors and items. Some potential features to use
+* here in extras:
+*   1. startPoint: No monsters spawn in vicinity
+*   2. terms: Good items, tough monsters
+*   3. bigRooms: spawn depending on theme
+*   4. Critical path: Gold coins?
+*/
 DungeonGenerator.prototype.populateLevel = function(level, conf) {
     const extras = level.getExtras();
+    console.log('EXTRAS ARE: ' + JSON.stringify(extras));
     const maxDanger = conf.maxDanger || 5;
     console.log('maxDanger is ' + maxDanger);
 
@@ -574,15 +710,17 @@ DungeonGenerator.prototype.populateLevel = function(level, conf) {
     //   3. Special feature
     if (extras.terms) {
         extras.terms.forEach(room => {
-            const bbox = room.getBbox();
-            const coord = Geometry.getCoordBbox(bbox);
-            coord.forEach(xy => {
-                const orc = new RG.Element.Marker('o');
-                orc.setTag('orc');
-                level.addElement(orc, xy[0], xy[1]);
-            });
+            // Don't populate stairs Up room
+            if (!room.hasStairsUp()) {
+                const bbox = room.getBbox();
+                const coord = Geometry.getCoordBbox(bbox);
+                coord.forEach(xy => {
+                    const orc = new RG.Element.Marker('o');
+                    orc.setTag('orc');
+                    level.addElement(orc, xy[0], xy[1]);
+                });
+            }
         });
-
     }
 };
 
