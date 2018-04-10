@@ -632,7 +632,7 @@ Flood-fill (node, target-color, replacement-color):
 
 /* Given a starting cell and type, floodfills the map from that position and
  * returns all cells included in the floodfill. */
-RG.Geometry.floodfill = function(map, cell, type) {
+RG.Geometry.floodfill = function(map, cell, type, diag = false) {
     let filterFunc = type;
     if (typeof type === 'string') {
         filterFunc = c => c.getBaseElem().getType() === type;
@@ -676,6 +676,14 @@ RG.Geometry.floodfill = function(map, cell, type) {
         // 12. South
         const ySouth = y + 1;
         tryToAddCell(x, ySouth);
+
+        // Allow diagonals in fill if requested
+        if (diag) {
+            tryToAddCell(xWest, yNorth);
+            tryToAddCell(xEast, yNorth);
+            tryToAddCell(xWest, ySouth);
+            tryToAddCell(xEast, ySouth);
+        }
 
         currCell = cellsLeft.shift();
     }
