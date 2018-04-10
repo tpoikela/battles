@@ -717,6 +717,7 @@ RG.ACTOR_RACES = ['catfolk', 'dogfolk', 'wolfclan', 'wildling', 'goblin',
 
 // Constants for movement directions
 RG.CARDINAL_DIR = Object.freeze(['north', 'south', 'east', 'west']);
+RG.CARDINAL_DIR_ABBR = Object.freeze(['N', 'S', 'E', 'W']);
 
 RG.DIR = {
     N: [0, -1],
