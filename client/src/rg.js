@@ -206,6 +206,7 @@ RG.charStyles = {
         fort: '#',
         grass: '"',
         highrock: '^',
+        lava: '~',
         lever: '&',
         leverdoor: {
             isClosed: '+', // if isClosed() returns true
@@ -271,6 +272,7 @@ RG.cellStyles = {
         grass: 'cell-element-grass',
         highrock: 'cell-element-highrock',
         mountain: 'cell-element-mountain',
+        lava: 'cell-element-lava',
         lever: 'cell-element-door',
         leverdoor: 'cell-element-door',
         passage: 'cell-element-passage',
