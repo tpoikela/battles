@@ -219,10 +219,18 @@ export default class GameEditor extends Component {
 
     this.menuCallback = this.menuCallback.bind(this);
     this.addLevelToEditor = this.addLevelToEditor.bind(this);
+
+    this.setEditorData = this.setEditorData.bind(this);
   }
 
   componentDidMount() {
     document.addEventListener('keypress', this.handleKeyDown, true);
+    if (this.props.editorData) {
+        const {allLevels} = this.props.editorData;
+        if (allLevels && allLevels.length > 0) {
+            this.state.levelList = allLevels;
+        }
+    }
   }
 
   componentWillUnMount() {
@@ -710,12 +718,22 @@ export default class GameEditor extends Component {
               >
                 Close editor
               </button>
+              <button
+                className='btn btn-success btn-lg'
+                onClick={this.setEditorData}
+              >
+                Set game data
+              </button>
             </div>
           </div>
 
         </div>
       </div>
     );
+  }
+
+  setEditorData() {
+    this.props.setEditorData(this.state.levelList, this.state.levelList);
   }
 
   onLoadCallback(data) {
@@ -1541,14 +1559,31 @@ export default class GameEditor extends Component {
     }
   }
 
-  menuCallback() {
-
+  menuCallback(cmd, args) {
+    if (typeof this[cmd] === 'function') {
+      if (Array.isArray(args)) {
+          if (args.length === 1) {
+              this[cmd](args);
+          }
+          else {
+              this[cmd](...args);
+          }
+      }
+      else {
+          this[cmd](args);
+      }
+    }
+    else {
+      console.error(`${cmd} not a function in Top`);
+      console.error(`Called with args ${args}`);
+    }
   }
 
 }
 
 GameEditor.propTypes = {
+  editorData: PropTypes.object,
   mapShown: PropTypes.bool,
+  setEditorData: PropTypes.func.isRequired,
   toggleEditor: PropTypes.func
 };
-
