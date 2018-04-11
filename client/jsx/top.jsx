@@ -27,6 +27,7 @@ const RG = require('../src/rg');
 const Keys = require('../src/keymap');
 RG.Game = require('../src/game');
 RG.Verify = require('../src/verify');
+const KeyCode = require('../gui/keycode');
 
 const md5 = require('js-md5');
 
@@ -297,6 +298,7 @@ class BattlesTop extends Component {
         this.hideScreen('StartScreen');
 
         if (this.state.loadFromEditor) {
+            console.log('Creating newGame from editor contents');
             this.createGameFromEditor();
         }
         else {
@@ -592,12 +594,17 @@ class BattlesTop extends Component {
         }
     }
 
+    importJSON() {
+        const fInput = document.querySelector('#level-file-input');
+        fInput.click();
+    }
+
     componentDidMount() {
       // document.addEventListener('keypress', this.handleKeyDown, true);
     }
 
     componentWillUnMount() {
-      // document.removeEventListener('keypress', this.handleKeyDown);
+      // document.removeEventListener('keypress', this.handleKeyDown, true);
     }
 
     enableKeys() {
@@ -609,7 +616,7 @@ class BattlesTop extends Component {
 
     disableKeys() {
       if (this.keysEnabled) {
-        document.removeEventListener('keypress', this.handleKeyDown);
+        document.removeEventListener('keypress', this.handleKeyDown, true);
         this.keysEnabled = false;
       }
     }
@@ -622,7 +629,7 @@ class BattlesTop extends Component {
 
     /* Listens for player key presses and handles them.*/
     handleKeyDown(evt) {
-        const keyCode = typeof evt.which === 'number' ? evt.which : evt.keyCode;
+        const keyCode = KeyCode.getKeyCode(evt);
         if (this.keyPending === false) {
             // if (this.isValidKey(keyCode)) {
                 this.keyPending = true;
@@ -900,13 +907,6 @@ class BattlesTop extends Component {
                                 showMap={this.state.showMap}
                                 toggleScreen={this.toggleScreen}
                             />
-                            <LevelSaveLoad
-                                objData={this.game}
-                                onLoadCallback={this.onLoadCallback}
-                                pretty={false}
-                                savedObjName={'saveGame_' + player.getName()}
-                                setMsg={this.showMsg}
-                            />
                         </div>
                         }
                     </div>
@@ -943,6 +943,7 @@ class BattlesTop extends Component {
                             {showGameMenu &&
                             <GameMenu
                                 height={28}
+                                menuItemClicked={this.menuItemClicked}
                                 menuObj={this.game.getMenu()}
                                 width={80}
                             />
@@ -952,6 +953,16 @@ class BattlesTop extends Component {
                     }
 
                 </div>
+                }
+
+                {!this.state.showEditor &&
+                  <LevelSaveLoad
+                    objData={this.game}
+                    onLoadCallback={this.onLoadCallback}
+                    pretty={false}
+                    savedObjName={player ? 'saveGame_' + player.getName() : ''}
+                    setMsg={this.showMsg}
+                  />
                 }
 
                 {this.state.showEditor &&
@@ -967,6 +978,20 @@ class BattlesTop extends Component {
                 />
             </div>
         );
+    }
+
+    /* When an ASCII menu item is clicked, this function should be called. */
+    menuItemClicked(key) {
+      if (key) {
+        if (/\d+/.test(key)) {
+          key = parseInt(key, 10);
+        }
+        const keyCode = Keys.selectIndexToCode(key);
+        if (keyCode >= 0) {
+          this.keyPending = true;
+          this.nextCode = keyCode;
+        }
+      }
     }
 
     setEditorData(levelsToPlay, allLevels) {
@@ -1349,6 +1374,8 @@ class BattlesTop extends Component {
 
         this.onLoadCallback = this.onLoadCallback.bind(this);
         this.topMenuCallback = this.topMenuCallback.bind(this);
+        this.importJSON = this.importJSON.bind(this);
+        this.menuItemClicked = this.menuItemClicked.bind(this);
     }
 
     topMenuCallback(cmd, args) {
