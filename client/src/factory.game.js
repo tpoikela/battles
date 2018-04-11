@@ -247,12 +247,33 @@ RG.Factory.Game = function() {
         else if (obj.playMode === 'OverWorld') {
             return this.createOverWorld(obj, game, player);
         }
-        else { // Dungeon mode
+        else if (obj.playMode === 'Dungeon') {
             return this.createOneDungeonAndBoss(obj, game, player);
+        }
+        else { // Empty game for doing whatever
+            return this.createEmptyGame(obj, game, player);
         }
     };
 
     let _playerFOV = RG.PLAYER_FOV_RANGE;
+
+    this.createEmptyGame = function(obj, game, player) {
+        // Add given levels to the game
+        if (obj.levels) {
+            obj.levels.forEach(level => {
+                const extras = level.getExtras();
+                game.addLevel(level);
+
+                // If startpoint given, use it
+                if (extras.startPoint) {
+                    const [sx, sy] = extras.startPoint;
+                    level.addActor(player, sx, sy);
+                }
+            });
+            game.addPlayer(player);
+        }
+        return game;
+    };
 
     this.createOverWorld = function(obj, game, player) {
         const mult = 1;
