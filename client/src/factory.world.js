@@ -530,10 +530,15 @@ RG.Factory.World = function() {
                     level = this.id2level[conf.levels[i]];
                 }
                 else {
-                    // level = this.factZone.createDungeonLevel(levelConf);
-                    const dungGen = new DungeonGenerator();
-                    const [cols, rows] = [levelConf.x, levelConf.y];
-                    level = dungGen.create(cols, rows, levelConf);
+                    if ((/(cave|crypt)/i).test(dungeonType)) {
+                        // TODO implement Cave and Crypt generators
+                        level = this.factZone.createDungeonLevel(levelConf);
+                    }
+                    else {
+                        const dungGen = new DungeonGenerator();
+                        const [cols, rows] = [levelConf.x, levelConf.y];
+                        level = dungGen.create(cols, rows, levelConf);
+                    }
                     // For creating 'fixed' items and actors
                     this.addFixedFeatures(i, level, branch);
                     const dungFeat = new DungeonFeatures('dungeon');
