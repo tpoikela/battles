@@ -30,7 +30,7 @@ export default class GameTopMenu extends React.Component {
             <MenuItem eventKey='showScreen#StartScreen'>New</MenuItem>
             <MenuItem eventKey='showScreen#LoadScreen'>Load</MenuItem>
             <MenuItem eventKey='saveGame#saveGame'>Save</MenuItem>
-            <MenuItem eventKey='game-import'>Import JSON</MenuItem>
+            <MenuItem eventKey='importJSON'>Import JSON</MenuItem>
             <MenuItem eventKey='game-export'>Export JSON</MenuItem>
           </NavDropdown>
           <NavDropdown eventKey='view' id='dropdown-view' title='View' >
