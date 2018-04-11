@@ -551,6 +551,10 @@ Level.prototype.removeElements = function(filter) {
     });
 };
 
+Level.prototype.getCell = function(x, y) {
+    return this._map.getCell(x, y);
+};
+
 /* Serializes the level object. */
 Level.prototype.toJSON = function() {
     const obj = {
