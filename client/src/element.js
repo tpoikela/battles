@@ -609,6 +609,13 @@ class RGElementMarker extends Mixin.Locatable(RGElementBase) {
 
     setTag(tag) {this.tag = tag;}
     getTag() {return this.tag;}
+
+    toJSON() {
+        const json = super.toJSON();
+        json.char = this.char;
+        json.tag = this.tag;
+        return json;
+    }
 }
 RG.Element.Marker = RGElementMarker;
 
