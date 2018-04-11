@@ -8,6 +8,8 @@ import PropTypes from 'prop-types';
 
 const RG = require('../src/rg');
 const Modal = require('react-bootstrap-modal');
+const KeyCode = require('../gui/keycode');
+const Keys = require('../src/keymap');
 
 /** Component renders the player inventory.*/
 export default class GameInventory extends Component {
@@ -21,10 +23,26 @@ export default class GameInventory extends Component {
     this.setSelectedItem = this.setSelectedItem.bind(this);
     this.setEquipSelected = this.setEquipSelected.bind(this);
     this.onChangeCount = this.onChangeCount.bind(this);
+    this.handleKeyDown = this.handleKeyDown.bind(this);
     this.state = {
         count: 0,
         filter: 'All'
     };
+  }
+
+  componentDidMount() {
+    document.addEventListener('keypress', this.handleKeyDown, true);
+  }
+
+  componentWillUnMount() {
+    document.removeEventListener('keypress', this.handleKeyDown, true);
+  }
+
+  handleKeyDown(evt) {
+      const keyCode = KeyCode.getKeyCode(evt);
+      if (keyCode === Keys.GUI.Inv) {
+          this.toggleScreen('Inventory');
+      }
   }
 
   onChangeCount(evt) {
