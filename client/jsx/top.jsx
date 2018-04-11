@@ -163,6 +163,7 @@ class BattlesTop extends Component {
             invMsg: '',
             invMsgStyle: '',
             levelSize: 'Medium',
+            loadFromEditor: false,
             loadInProgress: false,
             lootType: 'Medium',
             monstType: 'Medium',
@@ -184,7 +185,8 @@ class BattlesTop extends Component {
             showOWMap: false,
             showInventory: false,
             showCharInfo: false,
-            showCreateScreen: false
+            showCreateScreen: false,
+            editorData: {} // Data given to editor
         };
 
         // Binding of callbacks
@@ -292,14 +294,37 @@ class BattlesTop extends Component {
     newGame() {
         this.enableKeys();
         const startTime = new Date().getTime();
-
         this.hideScreen('StartScreen');
 
-        this.createNewGameAsync().then(() => {
-            const dur = new Date().getTime() - startTime;
-            console.log(`Creating game took ${dur} ms`);
-            this.setState({render: true});
-        });
+        if (this.state.loadFromEditor) {
+            this.createGameFromEditor();
+        }
+        else {
+            this.createNewGameAsync().then(() => {
+                const dur = new Date().getTime() - startTime;
+                console.log(`Creating game took ${dur} ms`);
+                this.setState({render: true});
+            });
+        }
+    }
+
+    /* Creates game from editor data. */
+    createGameFromEditor() {
+        if (this.frameID) {
+            cancelAnimationFrame(this.frameID);
+        }
+        this.resetGameState();
+        if (this.game !== null) {
+            delete this.game;
+            RG.FACT = new RG.Factory.Base();
+        }
+        // Prepare game configuration
+        const conf = Object.assign({}, this.gameConf);
+        conf.levels = this.state.editorData.levelsToPlay;
+
+        const gameFactory = new RG.Factory.Game();
+        this.game = gameFactory.createNewGame(conf);
+        this.initBeforeNewGame();
     }
 
     /* Saves the game position.*/
@@ -782,6 +807,7 @@ class BattlesTop extends Component {
                 {(this.state.showStartScreen || this.state.showLoadScreen) &&
                 <GameStartScreen
                     deleteGame={this.deleteGame}
+                    loadFromEditor={this.state.loadFromEditor}
                     loadGame={this.loadGame}
                     newGame={this.newGame}
                     playerName={this.state.playerName}
@@ -930,6 +956,8 @@ class BattlesTop extends Component {
 
                 {this.state.showEditor &&
                   <GameEditor
+                      editorData={this.state.editorData}
+                      setEditorData={this.setEditorData}
                       toggleEditor={this.toggleEditor}
                   />
                 }
@@ -939,6 +967,15 @@ class BattlesTop extends Component {
                 />
             </div>
         );
+    }
+
+    setEditorData(levelsToPlay, allLevels) {
+        const editorData = {
+            levelsToPlay,
+            allLevels
+        };
+        this.setPlayMode('Editor');
+        this.setState({editorData, loadFromEditor: true});
     }
 
     getOneSelectedCell() {
@@ -1242,6 +1279,7 @@ class BattlesTop extends Component {
             case 'Dungeon': this.gameConf.playMode = 'Dungeon'; break;
             case 'OverWorld': this.gameConf.playMode = 'OverWorld'; break;
             case 'World': this.gameConf.playMode = 'World'; break;
+            case 'Editor': this.gameConf.playMode = 'Editor'; break;
             default: console.error('setPlayMode illegal mode ' + mode);
         }
         this.setState({playMode: mode});
@@ -1298,6 +1336,7 @@ class BattlesTop extends Component {
         this.selectItemTop = this.selectItemTop.bind(this);
         this.doInvCmd = this.doInvCmd.bind(this);
 
+        this.setEditorData = this.setEditorData.bind(this);
         this.toggleEditor = this.toggleEditor.bind(this);
         this.toggleScreen = this.toggleScreen.bind(this);
         this.showScreen = this.showScreen.bind(this);
