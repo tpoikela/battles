@@ -213,17 +213,32 @@ RG.System.BaseAction = function(compTypes) {
     /* Handles command to open door and execute possible triggers like traps. */
     this._handleOpenDoor = ent => {
         const door = ent.get('OpenDoor').getDoor();
+        const [x, y] = door.getXY();
+        const level = ent.getLevel();
+        const cell = level.getCell(x, y);
+        let msg = '';
+        const entName = ent.getName();
+
         if (door.canToggle()) {
-            if (door.isOpen()) {
+            if (cell.hasItems()) {
+                msg = 'Door is blocked by an item';
+            }
+            else if (cell.hasActors()) {
+                msg = 'Door is blocked by someone';
+            }
+            else if (door.isOpen()) {
                 door.closeDoor();
+                msg = `${entName} closes a door.`;
             }
             else {
                 door.openDoor();
+                msg = `${entName} opens a door.`;
             }
         }
         else {
-            const [name, cell] = [ent.getName(), ent.getCell()];
-            const msg = `${name} cannot open the door.`;
+            msg = `${entName} cannot toggle the door.`;
+        }
+        if (msg !== '') {
             RG.gameMsg({cell, msg});
         }
     };
