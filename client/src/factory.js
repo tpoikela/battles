@@ -1034,7 +1034,7 @@ RG.Factory.Zone = function() {
     };
 
     this.addActorsToBbox = (level, bbox, conf) => {
-        const nActors = 4;
+        const nActors = conf.nActors || 4;
         const {maxDanger, func} = conf;
         const actors = this.generateNActors(nActors, func, maxDanger);
         const freeCells = level.getMap().getFreeInBbox(bbox);
