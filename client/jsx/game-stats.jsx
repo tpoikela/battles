@@ -7,6 +7,18 @@ const RG = require('../src/rg.js');
 export const VIEW_MAP = 0;
 export const VIEW_PLAYER = 1;
 
+// Different player status can be defined here
+const statusComps = [
+    // Comp name, style   , text  , react-key
+    ['Coldness', 'primary', 'Cold', 'stat-coldness'],
+    ['Ethereal', 'info', 'Ethereal', 'stat-ethereal'],
+    ['Flying', 'primary', 'Cold', 'stat-flying'],
+    ['Paralysis', 'danger', 'Paralysed', 'stat-paralysis'],
+    ['Poison', 'danger', 'Poisoned', 'stat-poison'],
+    ['PowerDrain', 'success', 'Power drain', 'stat-power-drain'],
+    ['Stun', 'danger', 'Stunned', 'stat-stun']
+];
+
 /** Component for displaying character stats.*/
 export default class GameStats extends Component {
 
@@ -117,25 +129,12 @@ export default class GameStats extends Component {
 
   getPlayerStatus(player) {
     const stat = [];
-    if (player.has('Poison')) {
-      stat.push(<p className='text-danger' key='stat-poison'>Poisoned</p>);
-    }
-    if (player.has('Stun')) {
-      stat.push(<p className='text-danger' key='stat-stun'>Stunned</p>);
-    }
-    if (player.has('Ethereal')) {
-      stat.push(<p className='text-info' key='stat-ethereal'>Ethereal</p>);
-    }
-    if (player.has('PowerDrain')) {
-      stat.push(
-        <p className='text-success' key='stat-power-drain'>Power drain</p>);
-    }
-    if (player.has('Coldness')) {
-      stat.push(<p className='text-primary' key='stat-coldness'>Cold</p>);
-    }
-    if (player.has('Flying')) {
-      stat.push(<p className='text-primary' key='stat-flying'>Cold</p>);
-    }
+    statusComps.forEach(array => {
+        const [compName, style, text, key] = array;
+      if (player.has(compName)) {
+        stat.push(<p className={'text-' + style} key={key}>{text}</p>);
+      }
+    });
     return stat;
   }
 
