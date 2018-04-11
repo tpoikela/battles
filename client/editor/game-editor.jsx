@@ -234,7 +234,7 @@ export default class GameEditor extends Component {
   }
 
   componentWillUnMount() {
-    document.removeEventListener('keypress', this.handleKeyDown);
+    document.removeEventListener('keypress', this.handleKeyDown, true);
   }
 
   setStateWithLevel(level, obj = {}) {
@@ -254,6 +254,7 @@ export default class GameEditor extends Component {
 
   /* Handles some quick keys for faster placement. */
   handleKeyDown(evt) {
+    console.log('<Editor> handleKeyDown');
     const keyCode = this.nextCode = evt.keyCode;
     if (keyCode === ROT.VK_PERIOD) {
       this.setState({elementType: 'floor'});
