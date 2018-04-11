@@ -708,8 +708,10 @@ DungeonGenerator.prototype.restorePath = function(level, path) {
 DungeonGenerator.prototype.populateLevel = function(level, conf) {
     const extras = level.getExtras();
     const maxDanger = conf.maxDanger || 5;
-    const fact = new RG.Factory.Zone();
+    const factZone = new RG.Factory.Zone();
     const roomsDone = {};
+    const mainLootAdded = false;
+    const parser = RG.ObjectShell.getParser();
 
     if (extras.bigRooms) {
         extras.bigRooms.forEach(bigRoom => {
@@ -722,17 +724,18 @@ DungeonGenerator.prototype.populateLevel = function(level, conf) {
             };
             if (/cross/.test(type)) {
                 actorConf.nActors = Math.floor(areaSize / 6);
-                fact.addActorsToBbox(level, bbox, actorConf);
+                factZone.addActorsToBbox(level, bbox, actorConf);
                 // Cross has lower density
             }
             else {
                 actorConf.nActors = Math.floor(areaSize / 3);
-                fact.addActorsToBbox(level, bbox, actorConf);
+                factZone.addActorsToBbox(level, bbox, actorConf);
             }
             roomsDone[room.getID()] = true;
         });
     }
 
+    const maxValue = conf.maxValue || 50;
     // Add something nasty into terminal room
     // Some possible design patterns:
     //   1. Stairs + guardian
@@ -744,6 +747,31 @@ DungeonGenerator.prototype.populateLevel = function(level, conf) {
             // Don't populate stairs Up room
             if (!room.hasStairsUp()) {
                 const bbox = room.getBbox();
+                const [cx, cy] = room.getCenter();
+
+                if (!mainLootAdded) {
+                    // Add main loot
+                    // 1. Scale is from 2-4 normal value, this scales the
+                    // guardian danger as well
+                    const scaleLoot = RG.RAND.getUniformInt(2, 4);
+                    const maxPrizeValue = scaleLoot * maxValue;
+                    const minPrizeValue = (scaleLoot - 1) * maxValue;
+                    const lootPrize = parser.createItem(
+                        {func: item => item.value >= minPrizeValue
+                            && item.value <= maxPrizeValue}
+                    );
+                    level.addItem(lootPrize, cx, cy);
+                    mainLootAdded = true;
+                }
+
+                // Add optional, less potent loot stuff
+                const areaSize = room.getAreaSize();
+                const nItems = Math.ceil(areaSize / 10);
+                const itemConf = {maxValue, itemsPerLevel: nItems,
+                    func: item => item.value <= maxValue
+                };
+                factZone.addItemsToBbox(level, bbox, itemConf);
+
                 const coord = Geometry.getCoordBbox(bbox);
                 coord.forEach(xy => {
                     const orc = new RG.Element.Marker('o');
@@ -760,6 +788,8 @@ DungeonGenerator.prototype.populateLevel = function(level, conf) {
         extras.rooms.forEach(room => {
             const bbox = room.getBbox();
             const areaSize = room.getAreaSize();
+
+            // Add actors into the room
             const actorConf = {
                 maxDanger,
                 func: actor => actor.danger <= maxDanger
@@ -768,7 +798,15 @@ DungeonGenerator.prototype.populateLevel = function(level, conf) {
             if (actorConf.nActors < MIN_ACTORS_ROOM) {
                 actorConf.nActors = MIN_ACTORS_ROOM;
             }
-            fact.addActorsToBbox(level, bbox, actorConf);
+            factZone.addActorsToBbox(level, bbox, actorConf);
+
+            // Add items into the room
+            const nItems = Math.ceil(areaSize / 20);
+            const itemConf = {maxValue, itemsPerLevel: nItems,
+                func: item => item.value <= maxValue
+            };
+            factZone.addItemsToBbox(level, bbox, itemConf);
+
             roomsDone[room.getID()] = true;
         });
     }
@@ -804,10 +842,12 @@ DungeonGenerator.prototype.verifyLevel = function(mapGen, level, conf) {
 
 /* Removes unneeded markers from the level. */
 DungeonGenerator.prototype.removeMarkers = function(level) {
+    const preserveMarkers = ['start point'];
     if (this.shouldRemoveMarkers) {
         level.removeElements(e => {
             if (e.getTag) {
-                if (e.getTag() !== 'start point') {
+                const tag = e.getTag();
+                if (preserveMarkers.indexOf(tag) < 0) {
                     return true;
                 }
             }
