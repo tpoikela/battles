@@ -76,7 +76,8 @@ $success-color-on-gray: #066;
 
 body {
     @include fonts;
-    background-color: darken($white, 7%);
+    // background-color: darken($white, 7%);
+    background-color: lighten($black, 5%);
 };
 
 .container {
