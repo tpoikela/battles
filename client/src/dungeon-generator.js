@@ -95,7 +95,8 @@ DungeonGenerator.getOptions = function(type = 'digger') {
     const levelOpts = {
         levelType: type, nBigRooms: 1,
         bigRoomX: ['cen'], bigRoomY: ['cen'],
-        bigRoomWidth: [10], bigRoomHeight: [10]
+        bigRoomWidth: [10], bigRoomHeight: [10],
+        maxDanger: 5, maxValue: 100
     };
     const mapOpts = {options: OPTIONS[type]};
     return Object.assign(levelOpts, mapOpts);
@@ -108,6 +109,12 @@ const getRandMapType = () => {
 
 /* Creates the actual Map.Level. */
 DungeonGenerator.prototype.create = function(cols, rows, conf) {
+    if (!cols) {
+        cols = RG.RAND.getUniformInt(80, 120);
+    }
+    if (!rows) {
+        rows = RG.RAND.getUniformInt(28, 56);
+    }
     const minNumRooms = 3;
     let mapGen = null;
     let map = null;
@@ -710,8 +717,7 @@ DungeonGenerator.prototype.populateLevel = function(level, conf) {
     const maxDanger = conf.maxDanger || 5;
     const factZone = new RG.Factory.Zone();
     const roomsDone = {};
-    const mainLootAdded = false;
-    const parser = RG.ObjectShell.getParser();
+    let mainLootAdded = false;
 
     if (extras.bigRooms) {
         extras.bigRooms.forEach(bigRoom => {
@@ -723,14 +729,20 @@ DungeonGenerator.prototype.populateLevel = function(level, conf) {
                 func: actor => actor.danger <= maxDanger + 2
             };
             if (/cross/.test(type)) {
+                // Cross has lower density as its huge
                 actorConf.nActors = Math.floor(areaSize / 6);
                 factZone.addActorsToBbox(level, bbox, actorConf);
-                // Cross has lower density
             }
             else {
                 actorConf.nActors = Math.floor(areaSize / 3);
                 factZone.addActorsToBbox(level, bbox, actorConf);
             }
+
+            // Add main loot
+            if (!mainLootAdded) {
+                mainLootAdded = this.addMainLoot(level, room, maxValue);
+            }
+
             roomsDone[room.getID()] = true;
         });
     }
@@ -747,21 +759,9 @@ DungeonGenerator.prototype.populateLevel = function(level, conf) {
             // Don't populate stairs Up room
             if (!room.hasStairsUp()) {
                 const bbox = room.getBbox();
-                const [cx, cy] = room.getCenter();
 
                 if (!mainLootAdded) {
-                    // Add main loot
-                    // 1. Scale is from 2-4 normal value, this scales the
-                    // guardian danger as well
-                    const scaleLoot = RG.RAND.getUniformInt(2, 4);
-                    const maxPrizeValue = scaleLoot * maxValue;
-                    const minPrizeValue = (scaleLoot - 1) * maxValue;
-                    const lootPrize = parser.createItem(
-                        {func: item => item.value >= minPrizeValue
-                            && item.value <= maxPrizeValue}
-                    );
-                    level.addItem(lootPrize, cx, cy);
-                    mainLootAdded = true;
+                    mainLootAdded = this.addMainLoot(level, room, maxValue);
                 }
 
                 // Add optional, less potent loot stuff
@@ -811,6 +811,26 @@ DungeonGenerator.prototype.populateLevel = function(level, conf) {
         });
     }
 
+};
+
+DungeonGenerator.prototype.addMainLoot = function(level, room, maxValue) {
+    const parser = RG.ObjectShell.getParser();
+    const [cx, cy] = room.getCenter();
+    // Add main loot
+    // 1. Scale is from 2-4 normal value, this scales the
+    // guardian danger as well
+    const scaleLoot = RG.RAND.getUniformInt(2, 4);
+    const maxPrizeValue = scaleLoot * maxValue;
+    const minPrizeValue = (scaleLoot - 1) * maxValue;
+    const lootPrize = parser.createRandomItem(
+        {func: item => item.value >= minPrizeValue
+            && item.value <= maxPrizeValue}
+    );
+    if (lootPrize) {
+        level.addItem(lootPrize, cx, cy);
+        return true;
+    }
+    return false;
 };
 
 /* Right now, use a floodfill to check the connectivity. */
