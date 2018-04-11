@@ -543,6 +543,14 @@ Level.prototype.debugPrintInASCII = function() {
 	this.getMap().debugPrintInASCII();
 };
 
+/* Removes all elements matching the given function. */
+Level.prototype.removeElements = function(filter) {
+    const toRemove = this._p.elements.filter(filter);
+    toRemove.forEach(elem => {
+      this.removeElement(elem, elem.getX(), elem.getY());
+    });
+};
+
 /* Serializes the level object. */
 Level.prototype.toJSON = function() {
     const obj = {
