@@ -689,7 +689,6 @@ DungeonGenerator.prototype.restorePath = function(level, path) {
     console.log('RESTORED THE PREV PATH');
 };
 
-
 /* Populates the level with actors and items. Some potential features to use
 * here in extras:
 *   1. startPoint: No monsters spawn in vicinity
@@ -703,11 +702,18 @@ DungeonGenerator.prototype.populateLevel = function(level, conf) {
     const maxDanger = conf.maxDanger || 5;
     console.log('maxDanger is ' + maxDanger);
 
+    const roomsDone = {};
+    //
+    if (extras.bigRooms) {
+        // TODO
+    }
+
     // Add something nasty into terminal room
     // Some possible design patterns:
     //   1. Stairs + guardian
     //   2. Guardian + strong item
     //   3. Special feature
+    //   4. Pack or group of actors
     if (extras.terms) {
         extras.terms.forEach(room => {
             // Don't populate stairs Up room
@@ -720,8 +726,15 @@ DungeonGenerator.prototype.populateLevel = function(level, conf) {
                     level.addElement(orc, xy[0], xy[1]);
                 });
             }
+            roomsDone[room.getID()] = true;
         });
     }
+
+    // Process rest of the rooms
+    if (extras.rooms) {
+        // TODO
+    }
+
 };
 
 /* Right now, use a floodfill to check the connectivity. */
