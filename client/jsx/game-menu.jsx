@@ -29,6 +29,15 @@ function getPaddingLines(width, lineCount) {
  * the actual selection list and post-selection text. */
 export default class GameMenu extends Component {
 
+  constructor(props) {
+    super(props);
+  }
+
+  menuItemClicked(item) {
+    console.log('Clicked menu item ' + item);
+    this.props.menuItemClicked(item);
+  }
+
   render() {
     const {menuObj, width, height} = this.props;
 
@@ -44,8 +53,9 @@ export default class GameMenu extends Component {
         const text = padToWidth(width, `[${item}] - ${menuObj[item]} `, 3);
         return (
           <div className='cell-row-div-player-view' key={item}>
-            <span className='game-menu-text-span'
+            <span className='game-menu-text-span game-menu-item-select'
               dangerouslySetInnerHTML={{__html: text}}
+              onClick={this.menuItemClicked.bind(this, item)}
             />
           </div>
         );
@@ -107,6 +117,7 @@ export default class GameMenu extends Component {
 
 GameMenu.propTypes = {
   height: PropTypes.number,
+  menuItemClicked: PropTypes.func.isRequired,
   menuObj: PropTypes.object.isRequired,
   width: PropTypes.number
 };
