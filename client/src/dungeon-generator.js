@@ -35,6 +35,7 @@ const SPLASH_THEMES = {
     }
 };
 
+const MIN_ACTORS_ROOM = 2;
 const DUG_MAX = 0.75;
 const PROB = {
     BIG_ROOM: 0.2,
@@ -70,6 +71,7 @@ const BigRoom = function(type, room) {
 /* This class is used to generate different dungeon levels. */
 const DungeonGenerator = function() {
     this.addDoors = true;
+    this.shouldRemoveMarkers = true;
 };
 
 /* Contain the default options for various level types. */
@@ -159,6 +161,8 @@ DungeonGenerator.prototype.create = function(cols, rows, conf) {
             this.create(cols, rows, conf);
         }
     }
+
+    this.removeMarkers(level);
     return level;
 };
 
@@ -496,10 +500,11 @@ DungeonGenerator.prototype.addSpecialFeatures = function(level, conf) {
         });
 
         extras.terms = terms;
-        // We know the terminal rooms know
     }
 };
 
+/* Adds a special feature to a big room. This can be obstructions or some
+ * structures like temples etc. */
 DungeonGenerator.prototype.addBigRoomSpecialFeat = function(
     level, randSpecial, bigRooms) {
     bigRooms.forEach(bigRoom => {
@@ -515,9 +520,9 @@ DungeonGenerator.prototype.addBigRoomSpecialFeat = function(
             default: break;
         }
     });
-
 };
 
+/* Adds door elements for the given room. */
 DungeonGenerator.prototype.addDoorsForRoom = function(level, room) {
     if (this.addDoors) {
         room.getDoors((x, y) => {
@@ -540,6 +545,7 @@ DungeonGenerator.prototype.addElemSplashes = function(level, room) {
     const themeName = RG.RAND.arrayGetRand(Object.keys(SPLASH_THEMES));
     const theme = SPLASH_THEMES[themeName];
     const elem = theme.elem;
+    level.getExtras().theme = theme;
 
     const x0 = room.getLeft() + 1;
     const y0 = room.getTop() + 1;
@@ -550,6 +556,7 @@ DungeonGenerator.prototype.addElemSplashes = function(level, room) {
     Geometry.mergeMapBaseElems(level.getMap(), map, x0, y0);
 };
 
+/* Decorates the room corners with fire. */
 DungeonGenerator.prototype.addFireToRoom = function(level, room) {
     const parser = RG.ObjectShell.getParser();
     const corners = Object.values(room.getCorners());
@@ -581,6 +588,7 @@ DungeonGenerator.prototype.addStairsLocations = function(level) {
 
         const goalPoint = new RG.Element.Marker('>');
         const startPoint = new RG.Element.Marker('<');
+        startPoint.setTag('start point');
         level.addElement(goalPoint, cx1, cy1);
         level.addElement(startPoint, cx2, cy2);
         room1.addStairs(cx1, cy1, true);
@@ -595,7 +603,8 @@ DungeonGenerator.prototype.addStairsLocations = function(level) {
     }
 };
 
-
+/* Adds a critical path to the level. The path is denoted with markers 'critical
+ * path' to retrieve it later. */
 DungeonGenerator.prototype.addCriticalPath = function(level) {
     const extras = level.getExtras();
     const [cx2, cy2] = extras.startPoint;
@@ -698,14 +707,30 @@ DungeonGenerator.prototype.restorePath = function(level, path) {
 */
 DungeonGenerator.prototype.populateLevel = function(level, conf) {
     const extras = level.getExtras();
-    console.log('EXTRAS ARE: ' + JSON.stringify(extras));
     const maxDanger = conf.maxDanger || 5;
-    console.log('maxDanger is ' + maxDanger);
-
+    const fact = new RG.Factory.Zone();
     const roomsDone = {};
-    //
+
     if (extras.bigRooms) {
-        // TODO
+        extras.bigRooms.forEach(bigRoom => {
+            const {room, type} = bigRoom;
+            const bbox = room.getBbox();
+            const areaSize = room.getAreaSize();
+            const actorConf = {
+                maxDanger,
+                func: actor => actor.danger <= maxDanger + 2
+            };
+            if (/cross/.test(type)) {
+                actorConf.nActors = Math.floor(areaSize / 6);
+                fact.addActorsToBbox(level, bbox, actorConf);
+                // Cross has lower density
+            }
+            else {
+                actorConf.nActors = Math.floor(areaSize / 3);
+                fact.addActorsToBbox(level, bbox, actorConf);
+            }
+            roomsDone[room.getID()] = true;
+        });
     }
 
     // Add something nasty into terminal room
@@ -732,7 +757,20 @@ DungeonGenerator.prototype.populateLevel = function(level, conf) {
 
     // Process rest of the rooms
     if (extras.rooms) {
-        // TODO
+        extras.rooms.forEach(room => {
+            const bbox = room.getBbox();
+            const areaSize = room.getAreaSize();
+            const actorConf = {
+                maxDanger,
+                func: actor => actor.danger <= maxDanger
+            };
+            actorConf.nActors = Math.floor(areaSize / 6);
+            if (actorConf.nActors < MIN_ACTORS_ROOM) {
+                actorConf.nActors = MIN_ACTORS_ROOM;
+            }
+            fact.addActorsToBbox(level, bbox, actorConf);
+            roomsDone[room.getID()] = true;
+        });
     }
 
 };
@@ -762,6 +800,20 @@ DungeonGenerator.prototype.verifyLevel = function(mapGen, level, conf) {
     }
 
     return true;
+};
+
+/* Removes unneeded markers from the level. */
+DungeonGenerator.prototype.removeMarkers = function(level) {
+    if (this.shouldRemoveMarkers) {
+        level.removeElements(e => {
+            if (e.getTag) {
+                if (e.getTag() !== 'start point') {
+                    return true;
+                }
+            }
+            return false;
+        });
+    }
 };
 
 module.exports = DungeonGenerator;
