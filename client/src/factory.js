@@ -32,6 +32,19 @@ RG.Factory.addPropsToFreeCells = function(level, props, type) {
     RG.Factory.addPropsToCells(level, freeCells, props, type);
 };
 
+const ItemConf = function(conf) {
+    const req = ['itemsPerLevel', 'maxValue', 'func'];
+    req.forEach(prop => {
+        if ((prop in conf)) {
+            this[prop] = conf[prop];
+        }
+        else {
+            const msg = `${prop} must be given`;
+            RG.err('ItemConf', 'new', msg);
+        }
+    });
+};
+
 /* Adds to the given level, and its cells, all props given in the list. Assumes
  * that all props are of given type (placement function is different for
  * different types. */
@@ -271,6 +284,8 @@ RG.Factory.Item = function() {
         _itemRandomizer.adjustItem(item, val);
     };
 
+    /* Adds N random items to the given level. Uses parser to generate the
+     * items. */
     this.addNRandItems = (level, parser, conf) => {
         const items = this.generateItems(parser, conf);
 
@@ -1043,6 +1058,17 @@ RG.Factory.Zone = function() {
                 'Not enough free cells');
         }
         RG.Factory.addPropsToCells(level, freeCells, actors, RG.TYPE_ACTOR);
+    };
+
+    /* Adds N items to the given level in bounding box coordinates. */
+    this.addItemsToBbox = (level, bbox, conf) => {
+        const nItems = conf.nItems || 4;
+        let itemConf = Object.assign({itemsPerLevel: nItems}, conf);
+        itemConf = new ItemConf(itemConf);
+        const freeCells = level.getMap().getFreeInBbox(bbox);
+        const itemFact = new RG.Factory.Item();
+        const items = itemFact.generateItems(this._parser, itemConf);
+        RG.Factory.addPropsToCells(level, freeCells, items, RG.TYPE_ITEM);
     };
 
 };
