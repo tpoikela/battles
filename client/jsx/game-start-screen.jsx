@@ -77,6 +77,11 @@ export default class GameStartScreen extends Component {
             <p className='text-info'>{this.props.progress}</p>
         </div>);
     }
+    if (this.props.loadFromEditor) {
+      progressElem = (<div>
+        <p className='text-warning'>Using Editor data for the Game</p>
+      </div>);
+    }
     return (
       <div id='game-start-screen'>
 
@@ -305,6 +310,7 @@ export default class GameStartScreen extends Component {
 
 GameStartScreen.propTypes = {
   deleteGame: PropTypes.func.isRequired,
+  loadFromEditor: PropTypes.bool,
   loadGame: PropTypes.func.isRequired,
   newGame: PropTypes.func.isRequired,
   playerName: PropTypes.string,
