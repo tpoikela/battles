@@ -15,7 +15,7 @@ describe('DungeonGenerator', function() {
             rerunOnFailure: true
             // errorOnFailure: true
         };
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < 5; i++) {
             const cols = RG.RAND.getUniformInt(80, 120);
             const rows = RG.RAND.getUniformInt(28, 56);
             const level = gen.create(cols, rows, conf);
@@ -25,4 +25,22 @@ describe('DungeonGenerator', function() {
         }
 
     });
+
+
+    it('generates dungeon levels with actors/items', () => {
+        RG.RAND.setSeed(new Date().getTime());
+        const gen = new RG.DungeonGenerator();
+        const cols = RG.RAND.getUniformInt(80, 120);
+        const rows = RG.RAND.getUniformInt(28, 56);
+        const conf = {};
+        const level = gen.create(cols, rows, conf);
+
+        const actors = level.getActors();
+        const items = level.getItems();
+
+        expect(actors.length).to.be.above(5);
+        expect(items.length).to.be.above(5);
+
+    });
+
 });
