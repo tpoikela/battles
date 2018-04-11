@@ -467,6 +467,10 @@ RG.Game.FromJSON = function() {
         else if (type === 'lever') {
             createdElem = new RG.Element.Lever();
         }
+        else if (type === 'marker') {
+            createdElem = new RG.Element.Marker(elemJSON.char);
+            createdElem.setTag(elemJSON.tag);
+        }
         else if (type === 'exploration') {
             const expElem = new RG.Element.Exploration();
             expElem.setExp(elemJSON.setExp);
