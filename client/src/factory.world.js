@@ -7,6 +7,7 @@ const debug = require('debug')('bitn:Factory.World');
 const RG = require('./rg');
 const ConfStack = require('./conf-stack');
 RG.Factory = require('./factory');
+const DungeonGenerator = require('./dungeon-generator');
 
 const Stairs = RG.Element.Stairs;
 const ZONE_TYPES = ['City', 'Mountain', 'Dungeon', 'BattleZone'];
@@ -529,7 +530,10 @@ RG.Factory.World = function() {
                     level = this.id2level[conf.levels[i]];
                 }
                 else {
-                    level = this.factZone.createDungeonLevel(levelConf);
+                    // level = this.factZone.createDungeonLevel(levelConf);
+                    const dungGen = new DungeonGenerator();
+                    const [cols, rows] = [levelConf.x, levelConf.y];
+                    level = dungGen.create(cols, rows, levelConf);
                     // For creating 'fixed' items and actors
                     this.addFixedFeatures(i, level, branch);
                     const dungFeat = new DungeonFeatures('dungeon');
