@@ -245,9 +245,15 @@ RG.Game.Main = function() {
             const srcParent = src.getParent();
             if (srcParent) {
                 // Check that player has explored the parent
-                const id = srcParent.getID();
-                if (actor.get('GameInfo').hasZone(id)) {
-                    emitEvent = this.isTileLevel(target);
+                if (srcParent.getID) {
+                    const id = srcParent.getID();
+                    if (actor.get('GameInfo').hasZone(id)) {
+                        emitEvent = this.isTileLevel(target);
+                    }
+                }
+                else {
+                    RG.warn('Game.Main', 'checkIfExploredZoneLeft',
+                        'No getID: ' + JSON.stringify(srcParent));
                 }
             }
         }
