@@ -96,6 +96,56 @@ class ActorClassBase {
     }
 }
 
+
+//-------------------------------------------------------------------------
+/* Alpinist actor class and its experience level-specific features. */
+//-------------------------------------------------------------------------
+class Alpinist extends ActorClassBase {
+    constructor(actor) {
+        super(actor, 'Alpinist');
+        // const name = actor.getName();
+        this._messages = {
+        };
+        this._advances = {
+            1: () => {
+            },
+            4: () => {
+            }
+        };
+
+    }
+
+    /* Called at the creation of the actor. Gives certain set of starting items.
+     */
+    getStartingItems() {
+        const parser = RG.ObjectShell.getParser();
+        const mineral = parser.createRandomItem(
+            item => item.type === 'mineral');
+        return [
+            {name: 'Ration', count: 1},
+            {name: 'rope', count: 1},
+            {name: mineral.getName(), count: 1}
+        ];
+    }
+
+    getStartingEquipment() {
+        return [
+            {name: 'Ice axe', count: 1},
+            {name: 'Spiked boots', count: 1}
+        ];
+    }
+
+    setStartingStats() {
+        // const stats = this._actor.get('Stats');
+    }
+
+    incrStats(newLevel) {
+        super.incrStats(newLevel);
+    }
+
+}
+ActorClass.Alpinist = Alpinist;
+
 //-------------------------------------------------------------------------
 /* Adventurer actor class and its experience level-specific features. */
 //-------------------------------------------------------------------------
@@ -633,7 +683,7 @@ class Spiritcrafter extends ActorClassBase {
 ActorClass.Spiritcrafter = Spiritcrafter;
 
 RG.ACTOR_CLASSES = ['Cryomancer', 'Blademaster', 'Marksman', 'Spiritcrafter',
-    'Adventurer', 'Spellsinger'];
+    'Adventurer', 'Alpinist', 'Spellsinger'];
 
 RG.ACTOR_CLASSES_NO_ADV = RG.ACTOR_CLASSES.filter(ac => ac !== 'Adventurer');
 
