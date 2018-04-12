@@ -24,18 +24,15 @@ $font-sizes: (
 // -----------------------------------
 
 .game-board-player-view-xl  {
-    // font-size: 24px;
     font-size: map-get($font-sizes, 'xl');
 };
 
 .game-board-player-view {
-    // @include cell-font(16px);
     font-size: map-get($font-sizes, 'm');
 };
 
 .game-board-map-view {
     font-size: map-get($font-sizes, 'map');
-    // @include cell-font-map;
 };
 
 .game-board-map-view-s {
@@ -47,18 +44,16 @@ $font-sizes: (
 };
 
 .game-board-map-view-xxxs {
-    // font-size: 3px;
     font-size: map-get($font-sizes, 'xxxs');
 };
 
 .game-board-map-view-xxxxs {
-    // font-size: 1px;
     font-size: map-get($font-sizes, 'xxxxs');
 };
 
 // Row styling for different board sizes
 
-
+/*
 .cell-row-div-player-view {
 };
 
@@ -67,6 +62,7 @@ $font-sizes: (
 
 .cell-row-div-map-view-xxxs {
 }
+*/
 
 .game-board {
     font-family: monospace;
