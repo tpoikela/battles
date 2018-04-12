@@ -42,6 +42,7 @@ const boardViews = [
   'game-board-map-view-xxxs',
   'game-board-map-view-xs',
   'game-board-map-view',
+  'game-board-map-view-s',
   'game-board-player-view',
   'game-board-player-view-xl'
 ];
@@ -86,9 +87,7 @@ export default class GameEditor extends Component {
 
     const state = {
       boardClassName: 'game-board-player-view',
-      boardIndex: 3, // Points to boardViews array
-      fontSize: 16,
-
+      boardIndex: boardViews.indexOf('game-board-player-view'),
       lastTouchedConf: null,
 
       zoneType: 'city',
@@ -145,7 +144,6 @@ export default class GameEditor extends Component {
     };
 
     this.screen = new Screen(state.levelX, state.levelY);
-
 
     // Create empty level and add to the editor
     const level = RG.FACT.createLevel(state.levelType,
