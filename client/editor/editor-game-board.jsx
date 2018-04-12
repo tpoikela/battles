@@ -14,7 +14,6 @@ export default class EditorGameBoard extends React.Component {
     render() {
         const {screen} = this.props;
         return (
-          <div>
             <GameBoard
               boardClassName={this.props.boardClassName}
               charRows={screen.getCharRows()}
@@ -27,7 +26,6 @@ export default class EditorGameBoard extends React.Component {
               startY={0}
               useRLE={this.props.useRLE}
             />
-          </div>
         );
     }
 }
