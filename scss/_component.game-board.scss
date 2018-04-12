@@ -1,0 +1,108 @@
+
+$font-sizes: (
+    xl: 24px,
+    m: 16px,
+    s: 12px,
+    map: 8px,
+    xs: 6px,
+    xxxs: 3px,
+    xxxxs: 1px,
+);
+
+@mixin cell-font($size) {
+    font-family: monospace;
+    font-size: $size;
+}
+
+@mixin cell-font-map {
+    font-family: monospace;
+    font-size: 8px;
+}
+
+// -----------------------------------
+// FONTSIZES for different board sizes
+// -----------------------------------
+
+.game-board-player-view-xl  {
+    // font-size: 24px;
+    font-size: map-get($font-sizes, 'xl');
+};
+
+.game-board-player-view {
+    // @include cell-font(16px);
+    font-size: map-get($font-sizes, 'm');
+};
+
+.game-board-map-view {
+    font-size: map-get($font-sizes, 'map');
+    // @include cell-font-map;
+};
+
+.game-board-map-view-s {
+    font-size: map-get($font-sizes, 's');
+};
+
+.game-board-map-view-xs {
+    font-size: map-get($font-sizes, 'xs');
+};
+
+.game-board-map-view-xxxs {
+    // font-size: 3px;
+    font-size: map-get($font-sizes, 'xxxs');
+};
+
+.game-board-map-view-xxxxs {
+    // font-size: 1px;
+    font-size: map-get($font-sizes, 'xxxxs');
+};
+
+// Row styling for different board sizes
+
+
+.cell-row-div-player-view {
+};
+
+.cell-row-div-map-view {
+}
+
+.cell-row-div-map-view-xxxs {
+}
+
+.game-board {
+    font-family: monospace;
+    line-height: 1.1;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-top: 20px;
+
+    span {
+        :hover {
+            background-color: $board-bg-color;
+            color: $black;
+        }
+    };
+}
+
+.game-board-div {
+    display: inline-block;
+
+    .game-board-row {
+        @media only screen and (max-width: 1090px) {
+            display: inline-block;
+        }
+        zoom: 1;
+    }
+
+}
+
+.game-editor-board-div {
+
+    .game-board {
+        cursor: pointer;
+    }
+
+    .game-board-row {
+        display: block;
+    }
+}
+
