@@ -5,15 +5,10 @@
 
 @import 'fonts';
 
-$cell-width: 17px;
-$cell-height: 17px;
-
 $padding-stats: 10px;
-
 $success-color-on-gray: #066;
 
 @import 'colors';
-
 @import '../node_modules/react-bootstrap-modal/lib/css/rbm-patch.css';
 
 //----------------------------
@@ -22,16 +17,6 @@ $success-color-on-gray: #066;
 
 @mixin fonts {
     font-family: 'Josefin Sans', sans-serif;
-}
-
-@mixin cell-font($size) {
-    font-family: monospace;
-    font-size: $size;
-}
-
-@mixin cell-font-map {
-    font-family: monospace;
-    font-size: 8px;
 }
 
 // Control panel theme
@@ -47,11 +32,6 @@ $success-color-on-gray: #066;
     border-radius: 5px;
     margin-bottom: 2px;
     padding: 2px;
-}
-
-// Defines the main gradient for the background
-@mixin gray-gradient {
-    background: $main-color;
 }
 
 // Changes vertical list into a horizontal one
@@ -76,7 +56,6 @@ $success-color-on-gray: #066;
 
 body {
     @include fonts;
-    // background-color: darken($white, 7%);
     background-color: lighten($black, 5%);
 };
 
@@ -121,9 +100,9 @@ body {
 // MENUS
 //---------------------------------------------------------------------
 
-.mount-point {
+/*.mount-point {
     margin-top: 10px;
-}
+}*/
 
 /* Game-play related messages. Naming is the same as in bootstrap. */
 .game-messages {
@@ -145,7 +124,6 @@ body {
 
 .btn-rg {
     margin-right: 5px;
-
 };
 
 .game-stats {
@@ -169,83 +147,6 @@ ul {
 .player-mode-list {
     @include ver-to-hor-list;
 };
-
-// -----------------------------------
-// FONTSIZES for different board sizes
-// -----------------------------------
-
-.game-board-player-view-xl  {
-    font-size: 24px;
-};
-
-.game-board-player-view {
-    @include cell-font(16px);
-};
-
-.game-board-map-view {
-    @include cell-font-map;
-};
-
-.game-board-map-view-xs {
-    font-size: 6px;
-};
-
-.game-board-map-view-xxxs {
-    font-size: 3px;
-};
-
-.game-board-map-view-xxxxs {
-    font-size: 1px;
-};
-
-// Row styling for different board sizes
-
-
-.cell-row-div-player-view {
-};
-
-.cell-row-div-map-view {
-}
-
-.cell-row-div-map-view-xxxs {
-}
-
-.game-board {
-    font-family: monospace;
-    line-height: 1.1;
-    margin-left: 10px;
-    margin-right: 10px;
-    margin-top: 20px;
-
-    span {
-        :hover {
-            background-color: $board-bg-color;
-            color: $black;
-        }
-    };
-}
-
-.game-board-div {
-    display: inline-block;
-
-    .game-board-row {
-        @media only screen and (max-width: 1090px) {
-            display: inline-block;
-        }
-        zoom: 1;
-    }
-
-}
-
-.game-editor-board-div {
-    .game-board {
-        cursor: pointer;
-    }
-
-    .game-board-row {
-        display: block;
-    }
-}
 
 .ctrl-bottom {
     @include ctrl-panel;
@@ -313,6 +214,7 @@ ul {
 // COMPONENT STYLING
 //------------------------------------------------------------------
 
+@import 'component.game-board';
 @import 'component.game-editor';
 @import 'component.context-menu';
 
