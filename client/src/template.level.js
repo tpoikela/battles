@@ -30,6 +30,8 @@ RG.Template.Level = function(tilesX, tilesY) {
     this._unusedExits = [];
     this.freeExits = {};
 
+    this.possibleDirections = ['N', 'S', 'E', 'W'];
+
     this.sortedByExit = {
         N: [], S: [], E: [], W: []
     };
@@ -93,19 +95,20 @@ RG.Template.Level = function(tilesX, tilesY) {
     /* Creates the level. Result is in this.map.
      * This is the Main function you want to call. */
     this.create = function() {
-
         if (this.templates.length === 0) {
             RG.err('Template.Level', 'create',
-                'No templates. Use setTemplates() before create()');
+                'No templates set. Use setTemplates() before create()');
         }
 
-        // Sort data into 4 lists with N, S, E, W exits
+        const dirRegex = this.possibleDirections.map(dir => new RegExp(dir));
+        // Sort data into lists based on different directions
         this.templates.forEach(templ => {
             const dir = templ.getProp('dir');
-            if (/N/.test(dir)) {this.sortedByExit.N.push(templ);}
-            if (/S/.test(dir)) {this.sortedByExit.S.push(templ);}
-            if (/E/.test(dir)) {this.sortedByExit.E.push(templ);}
-            if (/W/.test(dir)) {this.sortedByExit.W.push(templ);}
+            this.possibleDirections.forEach((direction, i) => {
+                if (dirRegex[i].test(dir)) {
+                    this.sortedByExit[direction].push(templ);
+                }
+            });
         });
 
         // Initialize a map with filler cells
@@ -148,6 +151,12 @@ RG.Template.Level = function(tilesX, tilesY) {
                 const exitReqd = this.getMatchingExit(chosen);
                 const newX = this._getNewX(x, exitReqd);
                 const newY = this._getNewY(y, exitReqd);
+
+                if (newX === x && newY === y) {
+                    let msg = `Illegal ${x},${y} -> ${newX},${newY}`;
+                    msg += ` Exits: Chosen ${chosen} -> ${exitReqd}`;
+                    RG.err('Template.Level', 'create', msg);
+                }
 
                 // Get a new room matching this exit
                 const templMatch = this._getNextTemplate(newX, newY, exitReqd);
@@ -235,7 +244,7 @@ RG.Template.Level = function(tilesX, tilesY) {
 
 
     /* Finds a template based on prop name and val, and returns a random
-     * template among the found templates. */
+     * template among the found templates. Returns null if none are found. */
     this.findTemplate = function(query) {
         const result = [];
         Object.keys(query).forEach(key => {
@@ -252,7 +261,7 @@ RG.Template.Level = function(tilesX, tilesY) {
     };
 
     /* Removes the templates matching the given query. This is useful, if for
-     * example after starting conditions you want to remove some cells. */
+     * example after starting conditions you want to remove some tiles. */
     this.removeTemplate = function(query) {
         const key = Object.keys(query)[0];
         const index = this.templates.findIndex(t => (
@@ -264,11 +273,12 @@ RG.Template.Level = function(tilesX, tilesY) {
     };
 
     /* Adds a room (template) to fixed position. This can be called from user
-     * callbacks. */
+     * callbacks. Can be used to place any amount of rooms prior to calling
+     * create(). */
     this.addRoom = function(templ, x, y) {
         const room = {x, y, room: templ};
         this._addRoomData(room);
-        this._checkAbuttingRooms(room);
+        this._removeExitsOfAbuttingRooms(room);
         this._removeBorderExits(room);
         this.templMap[x][y] = templ;
     };
@@ -401,7 +411,7 @@ RG.Template.Level = function(tilesX, tilesY) {
         this._removeChosenExit(newX, newY, exitReqd);
 
         // Check for abutting rooms on other edges and remove any exits
-        this._checkAbuttingRooms(room);
+        this._removeExitsOfAbuttingRooms(room);
 
         this._removeBorderExits(room);
 
@@ -421,7 +431,13 @@ RG.Template.Level = function(tilesX, tilesY) {
         }
     };
 
+    /* Returns the matching (opposite) exit for the chosen exit. */
     this.getMatchingExit = chosen => {
+        if (this.matchMap) {
+            if (this.matchMap.hasOwnProperty(chosen)) {
+                return this.matchMap[chosen];
+            }
+        }
         switch (chosen) {
             case 'N': return 'S';
             case 'S': return 'N';
@@ -431,19 +447,34 @@ RG.Template.Level = function(tilesX, tilesY) {
         }
     };
 
+    /* Returns new X value based on the direction. Remaps custom dir to NSEW
+    * first. */
     this._getNewX = (x, dir) => {
-        if (dir === 'E') {return x - 1;}
-        if (dir === 'W') {return x + 1;}
+        let remapped = dir;
+        if (this.dir2NSEWRemap) {
+            if (this.dir2NSEWRemap[dir]) {
+                remapped = this.dir2NSEWRemap[dir];
+            }
+        }
+        if (remapped === 'E') {return x - 1;}
+        if (remapped === 'W') {return x + 1;}
         return x;
 
     };
 
+    /* Returns new Y value based on the direction. Remaps custom dir to NSEW
+    * first. */
     this._getNewY = (y, dir) => {
-        if (dir === 'N') {return y + 1;}
-        if (dir === 'S') {return y - 1;}
+        let remapped = dir;
+        if (this.dir2NSEWRemap) {
+            if (this.dir2NSEWRemap[dir]) {
+                remapped = this.dir2NSEWRemap[dir];
+            }
+        }
+        if (remapped === 'N') {return y + 1;}
+        if (remapped === 'S') {return y - 1;}
         return y;
     };
-
 
     this.getRandomTemplate = function() {
         return RG.RAND.arrayGetRand(this.templates);
@@ -457,11 +488,17 @@ RG.Template.Level = function(tilesX, tilesY) {
             if (this._hasExit('W', x, y)) {
                 this._removeChosenExit(x, y, 'W');
             }
+            if (this.nsew2DirRemap) {
+                this._removeExitsRemapped(x, y, 'W');
+            }
         }
 
         if (x === this.tilesX - 1) {
             if (this._hasExit('E', x, y)) {
                 this._removeChosenExit(x, y, 'E');
+            }
+            if (this.nsew2DirRemap) {
+                this._removeExitsRemapped(x, y, 'E');
             }
         }
 
@@ -469,20 +506,34 @@ RG.Template.Level = function(tilesX, tilesY) {
             if (this._hasExit('N', x, y)) {
                 this._removeChosenExit(x, y, 'N');
             }
+            if (this.nsew2DirRemap) {
+                this._removeExitsRemapped(x, y, 'N');
+            }
         }
-
 
         if (y === this.tilesY - 1) {
             if (this._hasExit('S', x, y)) {
                 this._removeChosenExit(x, y, 'S');
             }
+            if (this.nsew2DirRemap) {
+                this._removeExitsRemapped(x, y, 'S');
+            }
         }
 
     };
 
+    /* Receives NSEW directions and uses nsew2DirRemap remapping to remove the
+     * custom exits. */
+    this._removeExitsRemapped = function(x, y, dir) {
+        const remapped = this.nsew2DirRemap[dir];
+        if (this._hasExit(remapped, x, y)) {
+            this._removeChosenExit(x, y, remapped);
+        }
+    };
+
     /* Checks for rooms already in place around the placed room, and removes all
-     * matching exists. */
-    this._checkAbuttingRooms = function(room) {
+     * matching exits. */
+    this._removeExitsOfAbuttingRooms = function(room) {
         const {x, y} = room;
 
         debug(`CheckAbut ${x},${y}`);
@@ -491,6 +542,10 @@ RG.Template.Level = function(tilesX, tilesY) {
             if (!this._isFiller(nx, y)) {
                 this._removeExitByXY('W', x, y);
                 this._removeExitByXY('E', nx, y);
+                if (this.nsew2DirRemap) {
+                    this._removeExitByXY(this.nsew2DirRemap.W, x, y);
+                    this._removeExitByXY(this.nsew2DirRemap.E, nx, y);
+                }
             }
         }
 
@@ -499,6 +554,10 @@ RG.Template.Level = function(tilesX, tilesY) {
             if (!this._isFiller(nx, y)) {
                 this._removeExitByXY('E', x, y);
                 this._removeExitByXY('W', nx, y);
+                if (this.nsew2DirRemap) {
+                    this._removeExitByXY(this.nsew2DirRemap.E, x, y);
+                    this._removeExitByXY(this.nsew2DirRemap.W, nx, y);
+                }
             }
         }
 
@@ -507,6 +566,10 @@ RG.Template.Level = function(tilesX, tilesY) {
             if (!this._isFiller(x, ny)) {
                 this._removeExitByXY('N', x, y);
                 this._removeExitByXY('S', x, ny);
+                if (this.nsew2DirRemap) {
+                    this._removeExitByXY(this.nsew2DirRemap.N, x, y);
+                    this._removeExitByXY(this.nsew2DirRemap.S, x, ny);
+                }
             }
         }
 
@@ -515,6 +578,10 @@ RG.Template.Level = function(tilesX, tilesY) {
             if (!this._isFiller(x, ny)) {
                 this._removeExitByXY('S', x, y);
                 this._removeExitByXY('N', x, ny);
+                if (this.nsew2DirRemap) {
+                    this._removeExitByXY(this.nsew2DirRemap.S, x, y);
+                    this._removeExitByXY(this.nsew2DirRemap.N, x, ny);
+                }
             }
         }
 
@@ -550,6 +617,30 @@ RG.Template.Level = function(tilesX, tilesY) {
         }
         this.freeExits = {};
         this._unusedExits = [];
+    };
+
+    /* Sets a new exit map instead of using the default 4-directional NSEW. You
+    * must also provide remapping tables. For example, we'd like to remap
+    * cardinal dirs NSEW to up/down/left/right UDLR:
+    * 1. matchMap = {U: 'D', D: 'U', L: 'R', R: 'R'}
+    * 2. nsew2DirRemap = {N: 'U', S: 'D', W: 'L', E: 'R'}
+    * */
+    this.setExitMap = function(matchMap, nsew2DirRemap) {
+        this.possibleDirections = Object.keys(matchMap);
+        this.sortedByExit = {};
+        this.possibleDirections.forEach(dir => {
+            this.sortedByExit[dir] = [];
+        });
+        this.matchMap = matchMap;
+        this.nsew2DirRemap = nsew2DirRemap;
+
+        const dir2NSEWRemap = {};
+        Object.keys(this.nsew2DirRemap).forEach(key => {
+            const val = this.nsew2DirRemap[key];
+            dir2NSEWRemap[val] = key;
+        });
+        this.dir2NSEWRemap = dir2NSEWRemap;
+        console.log(JSON.stringify(this.dir2NSEWRemap));
     };
 
 };
