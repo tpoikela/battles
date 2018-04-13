@@ -1286,7 +1286,7 @@ RG.printMap = map => {
     if (rowByRow) {
         const sizeY = rowByRow.length;
         for (let y = 0; y < sizeY; y++) {
-            RG.diag(rowByRow[y].join(''));
+            console.log(rowByRow[y].join(''));
         }
     }
 
