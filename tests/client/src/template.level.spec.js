@@ -6,6 +6,63 @@ const TemplLevel = require('../../../client/src/template.level');
 const Crypt = require('../../../client/data/tiles.crypt');
 const Castle = require('../../../client/data/tiles.castle');
 
+const tileDirTest = `
+dir:UDLR
+name:TEST
+X=.
+Y=.
+
+#X...X#
+Y......
+.......
+.......
+.......
+Y......
+#.....#`;
+
+const tileDirTestNSEW = `
+dir: NSEW
+name:TEST
+X=#
+Y=#
+
+#X#.#X#
+Y.....#
+#.....#
+.......
+#.....#
+Y.....#
+###.###`;
+
+const tileDirTestAdapter1 = `
+dir: NSLR
+name:TEST
+X=#
+Y=.
+
+#X#.#X#
+Y......
+.......
+.......
+.......
+Y......
+###.###`;
+
+const tileDirTestAdapter2 = `
+dir: UDEW
+name:TEST
+X=.
+Y=#
+
+#X...X#
+Y.....#
+#.....#
+.......
+#.....#
+Y.....#
+#.....#`;
+
+
 describe('Template.Level', () => {
     it('creates a 2-d map of the level', () => {
         const level = new TemplLevel(10, 7);
@@ -88,4 +145,48 @@ describe('Template.Level', () => {
         expect(templ).to.be.null;
 
     });
+
+    it('can have arbitrary directions specified', () => {
+        const level = new TemplLevel(11, 7);
+        const templates = [tileDirTest, tileDirTest, tileDirTest];
+        level.setFiller(Crypt.tiles.filler);
+        const exitMap = {
+            U: 'D', D: 'U', L: 'R', R: 'L'
+        };
+        const nsew2DirRemap = {
+            N: 'U', S: 'D', E: 'R', W: 'L'
+        };
+        level.setTemplates(templates);
+        level.setExitMap(exitMap, nsew2DirRemap);
+        level.create();
+
+        expect(level.map).to.have.length(7 * 11);
+        expect(level.map[0]).to.have.length(7 * 7);
+
+        RG.printMap(level.map);
+    });
+
+    it('can have mixed NSEW and arbitraty directions specified', () => {
+        const level = new TemplLevel(8, 9);
+        const templates = [tileDirTest, tileDirTestNSEW, tileDirTestAdapter1,
+            tileDirTestAdapter2];
+        level.setFiller(Crypt.tiles.filler);
+        const exitMap = {
+            N: 'S', S: 'N', E: 'W', W: 'E',
+            U: 'D', D: 'U', L: 'R', R: 'L'
+        };
+        const nsew2DirRemap = {
+            N: 'U', S: 'D', E: 'R', W: 'L'
+        };
+        level.setTemplates(templates);
+        level.setExitMap(exitMap, nsew2DirRemap);
+        level.create();
+
+        expect(level.map).to.have.length(7 * 8);
+        expect(level.map[0]).to.have.length(7 * 9);
+
+        RG.printMap(level.map);
+    });
+
+
 });
