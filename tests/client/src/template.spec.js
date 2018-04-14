@@ -21,6 +21,7 @@ N=#
 N.#`;
 
 const templStrMixed = `
+dir:SE
 X=#
 Y=.
 
@@ -123,6 +124,7 @@ describe('Template.ElemTemplate', () => {
         const ascii = templ.getChars([2, 3, 1]);
         expect(ascii).to.have.length(3 * 1 + 2 * 2 + 2 * 3 + 1);
         expect(ascii[0]).to.have.length(2);
+        console.log(JSON.stringify(ascii));
     });
 
     it('can expand templates in y-direction', () => {
@@ -213,6 +215,52 @@ describe('Template.ElemTemplate', () => {
         expect(asciiMessGot).to.deep.equal(asciiMessExp);
     });
     */
+
+    it('can be cloned', () => {
+        const templMixed = RG.Template.createTemplate(templStrMixed);
+        const templClone = templMixed.clone();
+        const ascii = templMixed.getChars([3, 5]);
+        const asciiClone = templClone.getChars([3, 5]);
+        expect(asciiClone).to.deep.equal(ascii);
+    });
+
+    it('can rotate templates 90 degress to right', () => {
+        const templMixed = RG.Template.createTemplate(templStrMixed);
+        let ascii = templMixed.getChars([1, 1]);
+        console.log(JSON.stringify(ascii));
+
+        const templR90 = RG.Template.rotateR90(templMixed);
+        expect(templR90.getProp('dir')).to.equal('WS');
+        ascii = templR90.getChars([1, 1]);
+        expect(ascii[0][0], 'Coord 0,0 OK').to.equal('.');
+        expect(ascii[1][1], 'Coord 1,1 OK').to.equal('#');
+        console.log(JSON.stringify(ascii));
+        console.log('R90 expanded 1,1: ' + JSON.stringify(ascii));
+
+        // Try the expansion on rotated
+        ascii = templR90.getChars([2, 2]);
+        expect(ascii[0], 'Col 0 OK').to.deep.equal(['.', '^', '^']);
+        console.log('R90 expanded 2,2: ' + JSON.stringify(ascii));
+        expect(ascii.length).to.equal(3);
+    });
+
+    it('can be flipped from y-axis', () => {
+        const templMixed = RG.Template.createTemplate(templStrMixed);
+        const templFlipped = RG.Template.flipVer(templMixed);
+        expect(templFlipped.getProp('dir')).to.equal('SW');
+
+        let ascii = templFlipped.getChars([1, 1]);
+        expect(ascii[0][0], 'Coord 0,0 OK').to.equal('#');
+        expect(ascii[1][0], 'Coord 1,0 OK').to.equal('~');
+        expect(ascii[0][1], 'Coord 0,1 OK').to.equal('^');
+        expect(ascii[1][1], 'Coord 1,1 OK').to.equal('.');
+
+        ascii = templFlipped.getChars([2, 3]);
+        expect(ascii[0]).to.deep.equal(['#', '^', '^', '^']);
+        for (let x = 1; x < 3; x++) {
+            expect(ascii[x]).to.deep.equal(['~', '.', '.', '.']);
+        }
+    });
 
 });
 

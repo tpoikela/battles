@@ -127,6 +127,7 @@ RG.Template.createTemplate = str => {
 
     const template = new ElemTemplate(conf);
     template.setProps(elemPropMap);
+    console.log('TEMPLATE: ' + JSON.stringify(template, null, 2));
     return template;
 };
 
@@ -178,21 +179,39 @@ function getWidthsAndGenPos(currLineArr) {
 }
 
 const ElemTemplate = function(conf) {
-    this.elemMap = conf.elemMap;
-    const nMaps = Object.keys(this.elemMap).length;
-    this.sizeX = conf.xWidths.length;
-    this.sizeY = conf.rows.length;
+    if (conf) {
+        this.elemMap = conf.elemMap;
+        this.nMaps = Object.keys(this.elemMap).length;
+        this.sizeX = conf.xWidths.length;
+        this.sizeY = conf.rows.length;
+
+        this.xWidths = conf.xWidths;
+        this.yWidths = conf.yWidths;
+
+        // Indicates which cells have generators
+        this.xGenPos = conf.xGenPos;
+        this.yGenPos = conf.yGenPos;
+    }
     this.elemPropMap = {};
-
-    this.xWidths = conf.xWidths;
-    this.yWidths = conf.yWidths;
-
     this.elemArr = [];
-
-    // Indicates which cells have generators
-    this.xGenPos = conf.xGenPos;
-    this.yGenPos = conf.yGenPos;
     this.hasGenRow = {};
+
+    if (conf) {
+        // Before Gen madness, place normal cells
+        for (let x = 0; x < this.sizeX; x++) {
+            this.elemArr[x] = [];
+            for (let y = 0; y < this.sizeY; y++) {
+                this.elemArr[x][y] = conf.rows[y][x].join('');
+            }
+        }
+
+        Object.keys(this.xGenPos).forEach(x => {
+            for (let y = 0; y < this.sizeY; y++) {
+                const str = this.elemArr[x][y];
+                this.elemArr[x][y] = new ElemGenX(str);
+            }
+        });
+    }
 
     this.setProps = function(props) {
         this.elemPropMap = props;
@@ -202,27 +221,16 @@ const ElemTemplate = function(conf) {
         return this.elemPropMap[name];
     };
 
-    // Before Gen madness, place normal cells
-    for (let x = 0; x < this.sizeX; x++) {
-        this.elemArr[x] = [];
-        for (let y = 0; y < this.sizeY; y++) {
-            this.elemArr[x][y] = conf.rows[y][x].join('');
-        }
-    }
-
-    Object.keys(this.xGenPos).forEach(x => {
-        for (let y = 0; y < this.sizeY; y++) {
-            const str = this.elemArr[x][y];
-            this.elemArr[x][y] = new ElemGenX(str);
-        }
-    });
+    this.setProp = function(key, val) {
+        this.elemPropMap[key] = val;
+    };
 
     // Find Y-generator
 
     this.getChars = function(arr) {
-        if (arr.length > 0 && arr.length < nMaps) {
+        if (arr.length > 0 && arr.length < this.nMaps) {
             RG.err('ElemTemplate', 'getChars',
-                `Input array length must be ${nMaps}.`);
+                `Input array length must be ${this.nMaps}.`);
         }
         else {
             let index = 0; // Points to the generator array value
@@ -384,6 +392,22 @@ const ElemTemplate = function(conf) {
         }
         return res;
     };
+
+    /* Clones the template into a new object and returns it. */
+    this.clone = () => {
+        const newElem = new ElemTemplate();
+        const newTempl = JSON.parse(JSON.stringify(this));
+        Object.keys(newTempl).forEach(key => {
+            newElem[key] = newTempl[key];
+        });
+        Object.keys(this.xGenPos).forEach(xPos => {
+            for (let y = 0; y < this.sizeY; y++) {
+                const char = newElem.elemArr[xPos][y].genX;
+                newElem.elemArr[xPos][y] = new ElemGenX(char);
+            }
+        });
+        return newElem;
+    };
 };
 RG.Template.ElemTemplate = ElemTemplate;
 
@@ -394,7 +418,113 @@ const ElemGenX = function(str) {
 
     this.getChars = (N = 1) => str.repeat(N);
 
+    this.toJSON = () => {
+        return {genX: str};
+    };
+
 };
 RG.Template.ElemGenX = ElemGenX;
+
+/* Two transformations are needed to achieve all possible orientations:
+ * 1. Rotation 90 degrees to right (clockwise): R90
+ * 2. Flipping (mirroring) over vertical (y-axis): flipY
+ */
+
+// Transforms don't change the generator locations, but the generator tiles must
+// be swapped of course. To transform:
+//   1. Replace generator vars with their tiles,
+//   2. Then do the transformation of x- and y-coordinates
+//   3. Add gen vars back to their original place, but change the gen var tiles
+
+const r90ExitMap = {N: 'E', E: 'S', S: 'W', W: 'S'};
+
+/* Rotates the template 90 degrees to the right.*/
+RG.Template.rotateR90 = function(templ, exitMap = r90ExitMap) {
+    const newTempl = templ.clone();
+    remapExits(newTempl, exitMap);
+    const genVars = [];
+    let nGenVars = Object.keys(newTempl.xGenPos).length;
+    nGenVars += Object.keys(newTempl.yGenPos).length;
+    for (let n = 0; n < nGenVars; n++) {
+        genVars.push(1);
+    }
+    const ascii = newTempl.getChars(genVars);
+    const sizeY = ascii[0].length;
+    const rotated = new Array(sizeY);
+    for (let y = 0; y < sizeY; y++) {
+        rotated[y] = [];
+    }
+
+    for (let x = 0; x < ascii.length; x++) {
+        for (let y = 0; y < sizeY; y++) {
+            rotated[sizeY - 1 - y].push(ascii[x][y]);
+        }
+    }
+
+    newTempl.elemArr = rotated;
+    // Replace string with X generators
+    Object.keys(newTempl.xGenPos).forEach(xPos => {
+        for (let y = 0; y < newTempl.sizeY; y++) {
+            newTempl.elemArr[xPos][y] = new ElemGenX(newTempl.elemArr[xPos][y]);
+        }
+    });
+
+    return newTempl;
+};
+
+const flipVerExitMap = {E: 'W', W: 'E'};
+
+/* Flips the template over vertical axis. */
+RG.Template.flipVer = function(templ, exitMap = flipVerExitMap) {
+    const newTempl = templ.clone();
+
+    // Only need to mirror E -> W or
+    remapExits(newTempl, exitMap);
+
+    const genVars = [];
+    let nGenVars = Object.keys(newTempl.xGenPos).length;
+    nGenVars += Object.keys(newTempl.yGenPos).length;
+    for (let n = 0; n < nGenVars; n++) {
+        genVars.push(1);
+    }
+
+    const sizeX = newTempl.sizeX;
+    const flipped = new Array(sizeX);
+    for (let x = 0; x < sizeX; x++) {
+        flipped[x] = [];
+    }
+
+    const sizeY = newTempl.sizeY;
+    const ascii = newTempl.getChars(genVars);
+    // Actual flipping of elems
+    for (let x = 0; x < sizeX; x++) {
+        for (let y = 0; y < sizeY; y++) {
+            flipped[sizeX - 1 - x][y] = ascii[x][y];
+        }
+    }
+
+    newTempl.elemArr = flipped;
+    // Replace string with X generators
+    Object.keys(newTempl.xGenPos).forEach(xPos => {
+        for (let y = 0; y < newTempl.sizeY; y++) {
+            newTempl.elemArr[xPos][y] = new ElemGenX(newTempl.elemArr[xPos][y]);
+        }
+    });
+
+    return newTempl;
+};
+
+function remapExits(templ, exitMap) {
+    const dirStr = templ.getProp('dir');
+    if (dirStr) {
+        const dir = dirStr.split('');
+        dir.forEach((val, i) => {
+            if (exitMap.hasOwnProperty(val)) {
+                dir[i] = exitMap[val];
+            }
+        });
+        templ.setProp('dir', dir.join(''));
+    }
+}
 
 module.exports = RG.Template;
