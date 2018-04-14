@@ -44,11 +44,21 @@ RG.Template.Level = function(tilesX, tilesY) {
     /* Sets the room templates that are used. */
     this.setTemplates = function(asciiTiles) {
         this.templates = [];
-        this.templates = asciiTiles.map(t => RG.Template.createTemplate(t));
+        if (typeof asciiTiles[0] === 'string') {
+            this.templates = asciiTiles.map(t => RG.Template.createTemplate(t));
+        }
+        else {
+            this.templates = asciiTiles;
+        }
     };
 
     this.addTemplate = function(asciiTile) {
-      this.templates.push(RG.Template.createTemplate(asciiTile));
+        if (typeof asciiTile === 'string') {
+              this.templates.push(RG.Template.createTemplate(asciiTile));
+        }
+        else if (asciiTile instanceof RG.Template.ElemTemplate) {
+            this.templates.push(asciiTile);
+        }
     };
 
     /* Sets the generator parameters for expansion. */
