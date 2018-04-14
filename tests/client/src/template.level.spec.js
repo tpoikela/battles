@@ -5,6 +5,7 @@ const TemplLevel = require('../../../client/src/template.level');
 
 const Crypt = require('../../../client/data/tiles.crypt');
 const Castle = require('../../../client/data/tiles.castle');
+const Basic = require('../../../client/data/tiles.basic');
 
 const tileDirTest = `
 dir:UDLR
@@ -185,6 +186,15 @@ describe('Template.Level', () => {
         expect(level.map).to.have.length(7 * 8);
         expect(level.map[0]).to.have.length(7 * 9);
 
+        RG.printMap(level.map);
+    });
+
+    it('can create levels from rotated/transformed tiles', () => {
+        const level = new TemplLevel(12, 7);
+        level.setFiller(Crypt.tiles.filler);
+        const templates = Basic.templates;
+        level.setTemplates(templates);
+        level.create();
         RG.printMap(level.map);
     });
 
