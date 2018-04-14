@@ -472,6 +472,17 @@ RG.Template.rotateR90 = function(templ, exitMap = r90ExitMap) {
     return newTempl;
 };
 
+
+RG.Template.rotateR180 = function(templ, exitMap = r90ExitMap) {
+    const newTempl = RG.Template.rotateR90(templ, exitMap);
+    return RG.Template.rotateR90(newTempl, exitMap);
+};
+
+RG.Template.rotateR270 = function(templ, exitMap = r90ExitMap) {
+    const newTempl = RG.Template.rotateR180(templ, exitMap);
+    return RG.Template.rotateR90(newTempl, exitMap);
+};
+
 const flipVerExitMap = {E: 'W', W: 'E'};
 
 /* Flips the template over vertical axis. */
