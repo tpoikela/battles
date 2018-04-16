@@ -6,7 +6,6 @@ const Vault = require('./tiles.vault');
 const Castle = {};
 
 Castle.corridorDoorThr = 0.2;
-
 Castle.tiles = {};
 
 // Corners

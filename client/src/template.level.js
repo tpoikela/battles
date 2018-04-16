@@ -138,6 +138,8 @@ RG.Template.Level = function(tilesX, tilesY) {
             }
         });
 
+        console.log(JSON.stringify(this.sortedWithAllExits));
+
         // Initialize a map with filler cells
         this.templMap = [];
         for (let x = 0; x < this.tilesX; x++) {
@@ -249,6 +251,8 @@ RG.Template.Level = function(tilesX, tilesY) {
                 this.mapExpanded[x][y] = this.templMap[x][y].getChars(params);
             }
         }
+
+        console.log(JSON.stringify(this.mapExpanded));
 
         // Now we have an unflattened map: 4-dimensional arrays, the last part
         // is to convert this into 2-d array.
@@ -719,8 +723,14 @@ RG.Template.Level = function(tilesX, tilesY) {
         const exits = [];
         const excluded = [];
 
+        let remapped = null;
+        let remapMatch = null;
         // N tile
         const nY = y - 1;
+        if (this.nsew2DirRemap) {
+            remapped = this.nsew2DirRemap.N;
+            remapMatch = this.matchMap[remapped];
+        }
         if (nY >= 0) {
             if (this._isFiller(x, nY)) {
                 any.push('N');
@@ -731,13 +741,27 @@ RG.Template.Level = function(tilesX, tilesY) {
             else {
                 excluded.push('N');
             }
+
+            if (this._hasExit(remapMatch, x, nY)) {
+                exits.push(remapped);
+            }
+            else {
+                excluded.push(remapped);
+            }
+
         }
         else {
             excluded.push('N');
+            if (remapped) {excluded.push(remapped);}
         }
 
         // S tile
         const sY = y + 1;
+        if (this.nsew2DirRemap) {
+            remapped = this.nsew2DirRemap.S;
+            remapMatch = this.matchMap[remapped];
+        }
+
         if (sY < this.tilesY) {
             if (this._isFiller(x, sY)) {
                 any.push('S');
@@ -748,13 +772,25 @@ RG.Template.Level = function(tilesX, tilesY) {
             else {
                 excluded.push('S');
             }
+
+            if (this._hasExit(remapMatch, x, sY)) {
+                exits.push(remapped);
+            }
+            else {
+                excluded.push(remapped);
+            }
         }
         else {
             excluded.push('S');
+            if (remapped) {excluded.push(remapped);}
         }
 
         // E tile
         const eX = x + 1;
+        if (this.nsew2DirRemap) {
+            remapped = this.nsew2DirRemap.E;
+            remapMatch = this.matchMap[remapped];
+        }
         if (eX < this.tilesX) {
             if (this._isFiller(eX, y)) {
                 any.push('E');
@@ -765,13 +801,25 @@ RG.Template.Level = function(tilesX, tilesY) {
             else {
                 excluded.push('E');
             }
+
+            if (this._hasExit(remapMatch, eX, y)) {
+                exits.push(remapped);
+            }
+            else {
+                excluded.push(remapped);
+            }
         }
         else {
             excluded.push('E');
+            if (remapped) {excluded.push(remapped);}
         }
 
         // W tile
         const wX = x - 1;
+        if (this.nsew2DirRemap) {
+            remapped = this.nsew2DirRemap.W;
+            remapMatch = this.matchMap[remapped];
+        }
         if (wX >= 0) {
             if (this._isFiller(wX, y)) {
                 any.push('W');
@@ -782,9 +830,17 @@ RG.Template.Level = function(tilesX, tilesY) {
             else {
                 excluded.push('W');
             }
+
+            if (this._hasExit(remapMatch, wX, y)) {
+                exits.push(remapped);
+            }
+            else {
+                excluded.push(remapped);
+            }
         }
         else {
             excluded.push('W');
+            if (remapped) {excluded.push(remapped);}
         }
 
         this.dbg('getAllRequired ' + exits);

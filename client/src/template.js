@@ -429,6 +429,7 @@ RG.Template.ElemGenX = ElemGenX;
  * 2. Flipping (mirroring) over vertical (y-axis): flipY
  */
 
+const exitMaps = {};
 // Transforms don't change the generator locations, but the generator tiles must
 // be swapped of course. To transform:
 //   1. Replace generator vars with their tiles,
@@ -436,6 +437,9 @@ RG.Template.ElemGenX = ElemGenX;
 //   3. Add gen vars back to their original place, but change the gen var tiles
 
 const r90ExitMap = {N: 'E', E: 'S', S: 'W', W: 'N'};
+exitMaps.rotate90 = r90ExitMap;
+exitMaps.rotate180 = r90ExitMap;
+exitMaps.rotate270 = r90ExitMap;
 
 /* Rotates the template 90 degrees to the right.*/
 RG.Template.rotateR90 = function(templ, exitMap = r90ExitMap) {
@@ -483,6 +487,7 @@ RG.Template.rotateR270 = function(templ, exitMap = r90ExitMap) {
 };
 
 const flipVerExitMap = {E: 'W', W: 'E'};
+exitMaps.flipVer = flipVerExitMap;
 
 /* Flips the template over vertical axis. */
 RG.Template.flipVer = function(templ, exitMap = flipVerExitMap) {
@@ -506,7 +511,8 @@ RG.Template.flipVer = function(templ, exitMap = flipVerExitMap) {
 
     const sizeY = newTempl.sizeY;
     const ascii = newTempl.getChars(genVars);
-    // Actual flipping of elems
+
+    // Flip x,y coords here. y is unchanged, x flips
     for (let x = 0; x < sizeX; x++) {
         for (let y = 0; y < sizeY; y++) {
             flipped[sizeX - 1 - x][y] = ascii[x][y];
@@ -514,7 +520,7 @@ RG.Template.flipVer = function(templ, exitMap = flipVerExitMap) {
     }
 
     newTempl.elemArr = flipped;
-    // Replace string with X generators
+    // Finally, replace string with X generators
     Object.keys(newTempl.xGenPos).forEach(xPos => {
         for (let y = 0; y < newTempl.sizeY; y++) {
             newTempl.elemArr[xPos][y] = new ElemGenX(newTempl.elemArr[xPos][y]);
@@ -538,7 +544,7 @@ function remapExits(templ, exitMap) {
 }
 
 /* Creates all specified transforms for the given list of templates. */
-function transformList(templates, transforms) {
+function transformList(templates, transforms, exitMap) {
     let result = [];
 
     // Default option is to transform all, usually unnecessary but does not
@@ -569,15 +575,16 @@ function transformList(templates, transforms) {
                 ));
 
                 if (templ) {
-                    const newTempl = RG.Template[func](templ);
+                    const map = exitMap ? exitMap[func] : exitMaps[func];
+                    const newTempl = RG.Template[func](templ, map);
                     setTransformName(func, newTempl);
                     created.push(newTempl);
                     if (func === 'flipVer') {
                         const rotations = getRotations(transforms, name);
                         rotations.forEach(rot => {
-                            const rotatedTempl = RG.Template[rot](newTempl);
+                            const map = exitMap ? exitMap[func] : exitMaps[func];
+                            const rotatedTempl = RG.Template[rot](newTempl, map);
                             setTransformName(func, rotatedTempl);
-
                             created.push(rotatedTempl);
                         });
                     }

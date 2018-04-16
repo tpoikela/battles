@@ -9,7 +9,7 @@ const Basic = require('../../../client/data/tiles.basic');
 
 const tileDirTest = `
 dir:UDLR
-name:TEST
+name:TEST_udlr
 X=.
 Y=.
 
@@ -23,7 +23,7 @@ Y......
 
 const tileDirTestNSEW = `
 dir: NSEW
-name:TEST
+name:TEST_nsew
 X=#
 Y=#
 
@@ -37,7 +37,7 @@ Y.....#
 
 const tileDirTestAdapter1 = `
 dir: NSLR
-name:TEST
+name:TEST_nslr
 X=#
 Y=.
 
@@ -51,7 +51,7 @@ Y......
 
 const tileDirTestAdapter2 = `
 dir: UDEW
-name:TEST
+name:TEST_udew
 X=.
 Y=#
 
@@ -187,7 +187,7 @@ describe('Template.Level', () => {
         expect(level.map).to.have.length(7 * 8);
         expect(level.map[0]).to.have.length(7 * 9);
 
-        // RG.printMap(level.map);
+        RG.printMap(level.map);
     });
 
     it('can create levels from rotated/transformed tiles', () => {
@@ -196,7 +196,7 @@ describe('Template.Level', () => {
         const templates = Basic.templates;
         level.setTemplates(templates);
         level.create();
-        // RG.printMap(level.map);
+        RG.printMap(level.map);
     });
 
     it('can create Crypts with rotated tiles', () => {
@@ -216,6 +216,16 @@ describe('Template.Level', () => {
         level.setTemplates(templates);
         level.use(Castle);
 
+        level.create();
+        RG.printMap(level.map);
+    });
+
+    it('can create levels with 5x5 tiles', () => {
+        const level = new TemplLevel(12, 7);
+        level.setFiller(Basic.tiles5x5.filler);
+        const templates = Basic.templates5x5;
+        level.setTemplates(templates);
+        level.setExitMap(Basic.remap.exits, Basic.remap.nsew2Dir);
         level.create();
         RG.printMap(level.map);
     });
