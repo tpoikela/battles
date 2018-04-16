@@ -640,4 +640,11 @@ Castle.Models.outerWall = []
     .concat(Castle.tiles.corridor)
     .concat(Castle.tiles.corridorWithExit);
 
+Castle.templates = {};
+Castle.templates.all = Castle.Models.full.map(tile => (
+    RG.Template.createTemplate(tile)
+));
+const transformed = RG.Template.transformList(Castle.templates.all);
+Castle.templates.all = Castle.templates.all.concat(transformed);
+
 module.exports = Castle;
