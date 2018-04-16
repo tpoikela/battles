@@ -122,18 +122,20 @@ RG.Template.Level = function(tilesX, tilesY) {
         // Sort data into lists based on different directions
         this.templates.forEach(templ => {
             const dir = templ.getProp('dir');
-            this.possibleDirections.forEach((direction, i) => {
-                if (dirRegex[i].test(dir)) {
-                    this.sortedByExit[direction].push(templ);
-                }
-            });
+            if (dir) {
+                this.possibleDirections.forEach((direction, i) => {
+                    if (dirRegex[i].test(dir)) {
+                        this.sortedByExit[direction].push(templ);
+                    }
+                });
 
-            // Add to map including all possible exits
-            const dirSorted = dir.split('').sort().join('');
-            if (!this.sortedWithAllExits[dirSorted]) {
-                this.sortedWithAllExits[dirSorted] = [];
+                // Add to map including all possible exits
+                const dirSorted = dir.split('').sort().join('');
+                if (!this.sortedWithAllExits[dirSorted]) {
+                    this.sortedWithAllExits[dirSorted] = [];
+                }
+                this.sortedWithAllExits[dirSorted].push(templ);
             }
-            this.sortedWithAllExits[dirSorted].push(templ);
         });
 
         // Initialize a map with filler cells
@@ -158,7 +160,6 @@ RG.Template.Level = function(tilesX, tilesY) {
             let hasExits = true;
 
             while (numTries < 1000 && hasExits) {
-                console.log(`Loop ${numTries} being executed`);
 
                 // Get a room with unused exits or terminate
                 const room = this._getRoomWithUnusedExits();
@@ -216,8 +217,6 @@ RG.Template.Level = function(tilesX, tilesY) {
                 break;
             }
             else {
-                console.log(`Placed ${roomCount}/${goalCount} rooms only`);
-                console.log('CLEAN UP AND TRY AGAIN');
                 this._cleanupAndTryAgain();
             }
             --this.ind;
