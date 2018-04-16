@@ -7,6 +7,8 @@ const Crypt = require('../data/tiles.crypt');
 
 const fillerTempl = Crypt.tiles.filler;
 
+const debugVerbosity = 10;
+
 /* This object can be used to create levels from ASCII-based templates. Each
  * template should be abuttable in a reasonable way, and connections between
  * tiles
@@ -20,6 +22,7 @@ RG.Template.Level = function(tilesX, tilesY) {
     this.tilesY = tilesY;
     this.genParams = [1, 1, 1, 1];
     this.roomCount = 40;
+    this.ind = 0;
 
     this.filler = RG.Template.createTemplate(fillerTempl);
     this.templates = [];
@@ -32,9 +35,14 @@ RG.Template.Level = function(tilesX, tilesY) {
 
     this.possibleDirections = ['N', 'S', 'E', 'W'];
 
+    this.allExitsMustMatch = true;
+
     this.sortedByExit = {
         N: [], S: [], E: [], W: []
     };
+
+    // For sorting by including all possible exits
+    this.sortedWithAllExits = {};
 
     /* Sets the filler tile used to fill the map first. */
     this.setFiller = function(fillerTempl) {
@@ -119,6 +127,13 @@ RG.Template.Level = function(tilesX, tilesY) {
                     this.sortedByExit[direction].push(templ);
                 }
             });
+
+            // Add to map including all possible exits
+            const dirSorted = dir.split('').sort().join('');
+            if (!this.sortedWithAllExits[dirSorted]) {
+                this.sortedWithAllExits[dirSorted] = [];
+            }
+            this.sortedWithAllExits[dirSorted].push(templ);
         });
 
         // Initialize a map with filler cells
@@ -131,7 +146,10 @@ RG.Template.Level = function(tilesX, tilesY) {
         }
 
         let dungeonInvalid = true;
+        let dungeonTries = 10;
         while (dungeonInvalid) {
+            ++this.ind;
+            this.dbg(`Dungeon not ready. Tries left  ${dungeonTries}/10`);
             this._placeStartRoom();
 
             let roomCount = 0;
@@ -140,8 +158,9 @@ RG.Template.Level = function(tilesX, tilesY) {
             let hasExits = true;
 
             while (numTries < 1000 && hasExits) {
+                console.log(`Loop ${numTries} being executed`);
 
-                // Get a room with unused exits
+                // Get a room with unused exits or terminate
                 const room = this._getRoomWithUnusedExits();
                 if (room === null) {
                     hasExits = false;
@@ -149,13 +168,13 @@ RG.Template.Level = function(tilesX, tilesY) {
                 }
 
                 const {x, y} = room;
-
-                debug(`Current room in ${x},${y}`);
-
+                this.dbg(`Current room in ${x},${y}`);
                 const exits = this._getFreeExits(room);
+                this.dbg(`It has free exits: ${exits}`);
 
                 // Pick one exit randomly
                 const chosen = RG.RAND.arrayGetRand(exits);
+                this.dbg(`Chose exit: ${chosen} for next room`);
 
                 // Get required matching exit
                 const exitReqd = this.getMatchingExit(chosen);
@@ -176,7 +195,7 @@ RG.Template.Level = function(tilesX, tilesY) {
                     this._placeRoom(
                         x, y, chosen, newX, newY, exitReqd, templMatch);
                     ++roomCount;
-                    debug('Room count incremented to ' + roomCount);
+                    this.dbg('Room count incremented to ' + roomCount);
                 }
 
                 // Place the new room and incr roomCount
@@ -191,12 +210,25 @@ RG.Template.Level = function(tilesX, tilesY) {
             if (roomCount >= goalCount || goalCount === -1) {
                 dungeonInvalid = false;
             }
+            else if (--dungeonTries === 0) {
+                RG.warn('Level.Template', 'create',
+                    'Max tries reached. No valid level created');
+                break;
+            }
             else {
+                console.log(`Placed ${roomCount}/${goalCount} rooms only`);
+                console.log('CLEAN UP AND TRY AGAIN');
                 this._cleanupAndTryAgain();
             }
-
+            --this.ind;
         }
 
+        this.expandTemplates();
+    };
+
+    /* Expands the templates with generator params and creates the final 2d-tile
+     * map from the 2d template map. */
+    this.expandTemplates = function() {
         // Create gen params for each tile
         this.genParamsX = [];
         this.genParamsY = [];
@@ -252,6 +284,14 @@ RG.Template.Level = function(tilesX, tilesY) {
         }
     };
 
+    /* Returns the generated map (found also in this.map). */
+    this.getMap = function() {
+        if (!this.map) {
+            RG.warn('Template.Level', 'getMap',
+                'Not not generated. Call create() first');
+        }
+        return this.map;
+    };
 
     /* Finds a template based on prop name and val, and returns a random
      * template among the found templates. Returns null if none are found. */
@@ -299,17 +339,31 @@ RG.Template.Level = function(tilesX, tilesY) {
     //----------------------------------------------------------------
 
     this._getNextTemplate = function(x, y, exitReqd) {
+        ++this.ind;
         let next = null;
         if (typeof this.constraintFunc === 'function') {
             next = this.constraintFunc(x, y, exitReqd);
         }
 
-        if (!next) {
-            const listMatching = this.sortedByExit[exitReqd];
-            const templMatch = RG.RAND.arrayGetRand(listMatching);
-            return templMatch;
+        // All exits are required to match
+        if (!next && this.allExitsMustMatch) {
+            this.dbg(`Compute required exits for ${x},${y}`);
+            const exitsReqd = this.getAllRequiredExits(x, y);
+            const listMatching = this._getMatchWithExits(exitsReqd);
+            if (listMatching.length > 0) {
+                return RG.RAND.arrayGetRand(listMatching);
+            }
+            const msg = `Required: ${exitsReqd}`;
+            RG.warn('Template.Level', '_getNextTemplate',
+                `No all exits match. ${msg}`);
         }
 
+        if (!next) {
+            const listMatching = this.sortedByExit[exitReqd];
+            return RG.RAND.arrayGetRand(listMatching);
+        }
+
+        --this.ind;
         return next;
     };
 
@@ -336,9 +390,9 @@ RG.Template.Level = function(tilesX, tilesY) {
     this._removeChosenExit = function(x, y, chosen) {
         const key = x + ',' + y;
         const exits = this.freeExits[key];
-        debug(JSON.stringify(this.freeExits));
-        debug(`${x},${y} removeChosenExit ${chosen}`);
-        debug(`\tnExits: ${exits.length}`);
+        this.dbg(JSON.stringify(this.freeExits));
+        this.dbg(`${x},${y} removeChosenExit ${chosen}`);
+        this.dbg(`nExits: ${exits.length}`);
         const index = exits.indexOf(chosen);
         if (index >= 0) {
             this.freeExits[key].splice(index, 1);
@@ -349,19 +403,20 @@ RG.Template.Level = function(tilesX, tilesY) {
                 if (unusedIndex >= 0) {
                     this._unusedExits.splice(unusedIndex, 1);
                     delete this.freeExits[key];
-                    debug(`\t${x},${y} has no unused exits anymore.`);
+                    this.dbg(`${x},${y} has no unused exits anymore.`);
                 }
                 else {
                     RG.err('Template.Level', '_removeChosenExit',
                         `Cannot find ${x},${y} in unusedExits to remove.`);
                 }
             }
-            debug('\tAfter remove: '
+            this.dbg('After remove: '
                 + JSON.stringify(this.freeExits[key]));
         }
         else {
+            const json = JSON.stringify(this.templMap[x][y]);
             RG.err('Template.Level', '_removeChosenExit',
-                `${x},${y} dir: ${chosen} not found.`);
+                `${x},${y} dir: ${chosen} not found. Templ: ${json}`);
         }
     };
 
@@ -375,6 +430,7 @@ RG.Template.Level = function(tilesX, tilesY) {
     /* Places 1st room using startRoomFunc, or randomly if no function is
      * specified. */
     this._placeStartRoom = function() {
+        ++this.ind;
         let room = null;
         if (typeof this.startRoomFunc === 'function') {
             room = this.startRoomFunc();
@@ -393,7 +449,7 @@ RG.Template.Level = function(tilesX, tilesY) {
             room = {x, y, room: this.getRandomTemplate()};
         }
 
-        debug('Start room: ' + JSON.stringify(room));
+        this.dbg('Start room: ' + JSON.stringify(room));
         this.templMap[room.x][room.y] = room.room;
 
         if (room !== null) {
@@ -404,6 +460,7 @@ RG.Template.Level = function(tilesX, tilesY) {
             RG.err('Template.Level', '_placeStartRoom',
                 'Starting room was null. Oh no!');
         }
+        --this.ind;
     };
 
     /* Places one room into the map. */
@@ -437,7 +494,7 @@ RG.Template.Level = function(tilesX, tilesY) {
             const exits = dirProp.split('');
             const key = room.x + ',' + room.y;
             this.freeExits[key] = exits;
-            debug('>>> Added room ' + JSON.stringify(room));
+            this.dbg('Added room ' + JSON.stringify(room), 20);
         }
     };
 
@@ -546,7 +603,7 @@ RG.Template.Level = function(tilesX, tilesY) {
     this._removeExitsOfAbuttingRooms = function(room) {
         const {x, y} = room;
 
-        debug(`CheckAbut ${x},${y}`);
+        this.dbg(`CheckAbut ${x},${y}`);
         if (x > 0) {
             const nx = x - 1;
             if (!this._isFiller(nx, y)) {
@@ -598,7 +655,7 @@ RG.Template.Level = function(tilesX, tilesY) {
     };
 
     this._isFiller = function(x, y) {
-        debug(`isFiller x,y ${x},${y}`);
+        this.dbg(`isFiller x,y ${x},${y}`);
         return this.templMap[x][y].getProp('name') === 'FILLER';
     };
 
@@ -651,6 +708,136 @@ RG.Template.Level = function(tilesX, tilesY) {
         });
         this.dir2NSEWRemap = dir2NSEWRemap;
         console.log(JSON.stringify(this.dir2NSEWRemap));
+    };
+
+    /* Returns all exits which are required to match. */
+    this.getAllRequiredExits = function(x, y) {
+        ++this.ind;
+        const any = [];
+        const exits = [];
+        const excluded = [];
+
+        // N tile
+        const nY = y - 1;
+        if (nY >= 0) {
+            if (this._isFiller(x, nY)) {
+                any.push('N');
+            }
+            else if (this._hasExit('S', x, nY)) {
+                exits.push('N');
+            }
+            else {
+                excluded.push('N');
+            }
+        }
+        else {
+            excluded.push('N');
+        }
+
+        // S tile
+        const sY = y + 1;
+        if (sY < this.tilesY) {
+            if (this._isFiller(x, sY)) {
+                any.push('S');
+            }
+            else if (this._hasExit('N', x, sY)) {
+                exits.push('S');
+            }
+            else {
+                excluded.push('S');
+            }
+        }
+        else {
+            excluded.push('S');
+        }
+
+        // E tile
+        const eX = x + 1;
+        if (eX < this.tilesX) {
+            if (this._isFiller(eX, y)) {
+                any.push('E');
+            }
+            else if (this._hasExit('W', eX, y)) {
+                exits.push('E');
+            }
+            else {
+                excluded.push('E');
+            }
+        }
+        else {
+            excluded.push('E');
+        }
+
+        // W tile
+        const wX = x - 1;
+        if (wX >= 0) {
+            if (this._isFiller(wX, y)) {
+                any.push('W');
+            }
+            else if (this._hasExit('E', wX, y)) {
+                exits.push('W');
+            }
+            else {
+                excluded.push('W');
+            }
+        }
+        else {
+            excluded.push('W');
+        }
+
+        this.dbg('getAllRequired ' + exits);
+
+        --this.ind;
+        return [any, exits, excluded];
+    };
+
+    this._getMatchWithExits = function(exitsReqd) {
+        const [any, exits, excluded] = exitsReqd;
+        console.log(`GOT: any:${any}, req:${exits}, excl:${excluded}`);
+        const keys = Object.keys(this.sortedWithAllExits);
+        let validKeys = keys;
+
+        console.log('Before exclude: ' + validKeys);
+        // Exclude exits
+        excluded.forEach(exit => {
+            validKeys = validKeys.filter(key => (
+                !new RegExp(exit).test(key)
+            ));
+        });
+
+        console.log('After exclude: ' + validKeys);
+
+        // Check if required exits are contained in the keys
+        let keysSplit = validKeys.map(key => key.split(''));
+        keysSplit = keysSplit.filter(elem => (
+            this._arrayContainsArray(elem, exits)
+        ));
+
+        validKeys = keysSplit.map(key => key.join(''));
+        console.log('Valid keys are: ' + validKeys);
+
+        let result = [];
+        validKeys.forEach(key => {
+            result = result.concat(this.sortedWithAllExits[key]);
+        });
+        return result;
+    };
+
+    this._arrayContainsArray = function(superSet, subSet) {
+        return subSet.every(value => {
+            return superSet.indexOf(value) >= 0;
+        });
+    };
+
+    /* Prints the debug msg when debug() is enabled. Adds some verbosity options
+     * for filtering some debug messages out. */
+    this.dbg = function(msg, verb = 10) {
+        if (debug.enabled) {
+            if (debugVerbosity >= verb) {
+                const ind = ' '.repeat(this.ind);
+                console.log(ind + msg);
+            }
+        }
     };
 
 };
