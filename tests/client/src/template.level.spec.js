@@ -80,7 +80,6 @@ describe('Template.Level', () => {
 
     it('can create 2-d castles', () => {
         const level = new TemplLevel(12, 6);
-        // level.allExitsMustMatch = false;
 
         RG.RAND.setSeed(new Date().getTime());
 
@@ -210,11 +209,12 @@ describe('Template.Level', () => {
     });
 
     it('can create Castles with rotated tiles', () => {
+        // RG.RAND.setSeed(new Date().getTime());
         const level = new TemplLevel(12, 7);
-        // level.use(Castle);
-        level.setFiller(Crypt.tiles.filler);
+        level.setFiller(Castle.tiles.fillerWall);
         const templates = Castle.templates.all;
         level.setTemplates(templates);
+        level.use(Castle);
 
         level.create();
         RG.printMap(level.map);
