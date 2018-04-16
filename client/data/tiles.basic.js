@@ -277,7 +277,16 @@ const exitMap = {
     rotate270: Basic.remap.transformRotate
 };
 
-const transformed5x5 = transformList(Basic.templates5x5, transforms, exitMap);
+const transforms5x5 = {
+    all: '*',
+    flipVer: [],
+    rotateR90: [],
+    rotateR180: [],
+    rotateR270: []
+};
+
+const transformed5x5 = transformList(Basic.templates5x5,
+    transforms5x5, exitMap);
 Basic.templates5x5 = Basic.templates5x5.concat(transformed5x5);
 
 module.exports = Basic;
