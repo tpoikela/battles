@@ -220,10 +220,12 @@ describe('Template.Level', () => {
         RG.printMap(level.map);
     });
 
-    it('can create levels with 5x5 tiles', () => {
+    it.only('can create levels with 5x5 tiles', () => {
         const level = new TemplLevel(12, 7);
+        level.roomCount = 55;
         level.setFiller(Basic.tiles5x5.filler);
         const templates = Basic.templates5x5;
+        console.log(JSON.stringify(Basic.templates5x5, null, 2));
         level.setTemplates(templates);
         level.setExitMap(Basic.remap.exits, Basic.remap.nsew2Dir);
         level.create();

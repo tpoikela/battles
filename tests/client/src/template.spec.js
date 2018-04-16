@@ -102,6 +102,19 @@ Y.#.^
 Y...^
 #####`;
 
+const templMixedDirs = `
+dir:UDEW
+name:MIXED
+X=.
+Y=.
+
+#.X.#
+#...#
+Y....
+#...#
+#...#`;
+
+
 // Not much to test here
 describe('Template.ElemGenX', () => {
     it('Generates sequences of chars from template', () => {
@@ -260,6 +273,40 @@ describe('Template.ElemTemplate', () => {
         for (let x = 1; x < 3; x++) {
             expect(ascii[x]).to.deep.equal(['~', '.', '.', '.']);
         }
+    });
+
+    it('can be flipped when using remapped exits', () => {
+        const templ = RG.Template.createTemplate(templMixedDirs);
+        const exitMap = {
+            D: 'L', U: 'R', E: 'S', W: 'N',
+            L: 'U', R: 'D', N: 'E', S: 'W'
+        };
+        const templR90 = RG.Template.rotateR90(templ, exitMap);
+        templR90.setProp('name', 'MIXED_R90');
+        const dir = templR90.getDir();
+        expect(dir).to.equal('LNRS');
+
+        const exitMaps = {
+            flipVer: {L: 'R', R: 'L', E: 'W', W: 'E'},
+            rotateR90: exitMap,
+            rotateR180: exitMap,
+            rotateR270: exitMap
+        };
+        const transformed = RG.Template.transformList([templR90, templ], null,
+            exitMaps);
+
+        const names = transformed.map(t => t.getProp('name'));
+        console.log(names);
+        expect(transformed.length).to.equal(3 + 3 + 1 + 1 + 3 + 3);
+
+        // const templR180 = RG.Template.rotateR90(templR90, exitMap);
+
+        const templR90R90 = transformed.find(t => (
+            t.getProp('name') === 'MIXED_R90_r90'
+        ));
+        const dirR180 = templR90R90.getDir();
+        expect(dirR180).to.equal(templ.getDir());
+
     });
 
 });
