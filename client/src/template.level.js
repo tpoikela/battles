@@ -7,7 +7,7 @@ const Crypt = require('../data/tiles.crypt');
 
 const fillerTempl = Crypt.tiles.filler;
 
-const debugVerbosity = 10;
+const debugVerbosity = 20;
 
 /* This object can be used to create levels from ASCII-based templates. Each
  * template should be abuttable in a reasonable way, and connections between
@@ -656,8 +656,9 @@ RG.Template.Level = function(tilesX, tilesY) {
     };
 
     this._isFiller = function(x, y) {
-        this.dbg(`isFiller x,y ${x},${y}`);
-        return this.templMap[x][y].getProp('name') === 'FILLER';
+        const filler = this.templMap[x][y].getProp('name') === 'FILLER';
+        this.dbg(`isFiller x,y ${x},${y}: ${filler}`);
+        return filler;
     };
 
     this._removeExitByXY = function(dir, x, y) {
