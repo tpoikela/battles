@@ -27,7 +27,7 @@ Y.....#
 
 `
 dir:NW
-name:corner_se
+name:corner_se1
 X=#
 Y=#
 
