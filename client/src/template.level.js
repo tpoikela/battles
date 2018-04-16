@@ -355,7 +355,7 @@ RG.Template.Level = function(tilesX, tilesY) {
             }
             const msg = `Required: ${exitsReqd}`;
             RG.warn('Template.Level', '_getNextTemplate',
-                `No all exits match. ${msg}`);
+                `Not all exits match. ${msg}`);
         }
 
         if (!next) {
@@ -410,8 +410,10 @@ RG.Template.Level = function(tilesX, tilesY) {
                         `Cannot find ${x},${y} in unusedExits to remove.`);
                 }
             }
-            this.dbg('After remove: '
-                + JSON.stringify(this.freeExits[key]));
+            if (this.freeExits[key]) {
+                this.dbg(`freeExits [${key}] After remove: `
+                    + JSON.stringify(this.freeExits[key]));
+            }
         }
         else {
             const json = JSON.stringify(this.templMap[x][y]);
