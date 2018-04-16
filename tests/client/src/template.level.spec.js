@@ -80,6 +80,8 @@ describe('Template.Level', () => {
 
     it('can create 2-d castles', () => {
         const level = new TemplLevel(12, 6);
+        // level.allExitsMustMatch = false;
+
         RG.RAND.setSeed(new Date().getTime());
 
         level.setFiller(Castle.tiles.fillerWall);
@@ -92,7 +94,7 @@ describe('Template.Level', () => {
         expect(level.map).to.have.length(7 * 12);
         expect(level.map[0]).to.have.length(7 * 6);
 
-        // RG.printMap(level.map);
+        RG.printMap(level.map);
     });
 
     it('can create 2-d castles with outer wall only', () => {
@@ -186,7 +188,7 @@ describe('Template.Level', () => {
         expect(level.map).to.have.length(7 * 8);
         expect(level.map[0]).to.have.length(7 * 9);
 
-        RG.printMap(level.map);
+        // RG.printMap(level.map);
     });
 
     it('can create levels from rotated/transformed tiles', () => {
@@ -195,8 +197,27 @@ describe('Template.Level', () => {
         const templates = Basic.templates;
         level.setTemplates(templates);
         level.create();
-        RG.printMap(level.map);
+        // RG.printMap(level.map);
     });
 
+    it('can create Crypts with rotated tiles', () => {
+        const level = new TemplLevel(12, 7);
+        level.setFiller(Crypt.tiles.filler);
+        const templates = Crypt.templates.all;
+        level.setTemplates(templates);
+        level.create();
+        // RG.printMap(level.map);
+    });
+
+    it('can create Castles with rotated tiles', () => {
+        const level = new TemplLevel(12, 7);
+        // level.use(Castle);
+        level.setFiller(Crypt.tiles.filler);
+        const templates = Castle.templates.all;
+        level.setTemplates(templates);
+
+        level.create();
+        RG.printMap(level.map);
+    });
 
 });
