@@ -127,7 +127,6 @@ RG.Template.createTemplate = str => {
 
     const template = new ElemTemplate(conf);
     template.setProps(elemPropMap);
-    console.log('TEMPLATE: ' + JSON.stringify(template, null, 2));
     return template;
 };
 
@@ -436,7 +435,7 @@ RG.Template.ElemGenX = ElemGenX;
 //   2. Then do the transformation of x- and y-coordinates
 //   3. Add gen vars back to their original place, but change the gen var tiles
 
-const r90ExitMap = {N: 'E', E: 'S', S: 'W', W: 'S'};
+const r90ExitMap = {N: 'E', E: 'S', S: 'W', W: 'N'};
 
 /* Rotates the template 90 degrees to the right.*/
 RG.Template.rotateR90 = function(templ, exitMap = r90ExitMap) {
