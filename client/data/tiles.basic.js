@@ -88,11 +88,11 @@ Y.....#
 
 // Contains names of the tiles to transform
 const transforms = {
-    all: ['corner', 'room'],
+    all: ['corner'],
     flipVer: [],
-    rotateR90: ['tcorner', 'corridor'],
-    rotateR180: ['tcorner'],
-    rotateR270: ['tcorner']
+    rotateR90: ['tcorner', 'corridor', 'room'],
+    rotateR180: ['tcorner', 'room'],
+    rotateR270: ['tcorner', 'room']
 };
 
 // All tiles concat together
@@ -116,9 +116,18 @@ Object.keys(transforms).forEach(func => {
             const templ = Basic.templates.find(t => (
                 t.getProp('name') === name
             ));
+
             if (templ) {
                 const newTempl = RG.Template[func](templ);
                 created.push(newTempl);
+                if (func === 'flipVer') {
+                    const rotations = getRotations(name);
+                    rotations.forEach(rot => {
+                        const rotatedTempl = RG.Template[rot](newTempl);
+
+                        created.push(rotatedTempl);
+                    });
+                }
             }
 
         });
@@ -137,5 +146,18 @@ Basic.templates.forEach(templ => {
     }
 });
 Basic.templates = Basic.templates.concat(weighted);
+
+/* Finds which rotations need to be applied to given template by name. This is
+ * mainly used when flipping vertical to find which rotations must be done. */
+function getRotations(name) {
+    const found = [];
+    const rotations = ['rotateR90', 'rotateR180', 'rotateR270'];
+    rotations.forEach(rot => {
+        if (transforms[rot].indexOf(name) >= 0) {
+            found.push(rot);
+        }
+    });
+    return found;
+}
 
 module.exports = Basic;
