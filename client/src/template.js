@@ -570,11 +570,13 @@ function transformList(templates, transforms) {
 
                 if (templ) {
                     const newTempl = RG.Template[func](templ);
+                    setTransformName(func, newTempl);
                     created.push(newTempl);
                     if (func === 'flipVer') {
                         const rotations = getRotations(transforms, name);
                         rotations.forEach(rot => {
                             const rotatedTempl = RG.Template[rot](newTempl);
+                            setTransformName(func, rotatedTempl);
 
                             created.push(rotatedTempl);
                         });
@@ -601,6 +603,18 @@ function getRotations(transforms, name) {
         }
     });
     return found;
+}
+
+function setTransformName(func, templ) {
+    let name = templ.getProp('name');
+    switch (func) {
+        case 'rotateR90': name += '_r90'; break;
+        case 'rotateR180': name += '_r180'; break;
+        case 'rotateR270': name += '_r270'; break;
+        case 'flipVer': name += '_flip'; break;
+        default: break;
+    }
+    templ.setProp('name', name);
 }
 
 module.exports = RG.Template;
