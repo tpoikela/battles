@@ -619,4 +619,10 @@ Crypt.Models.default = []
     .concat(Crypt.tiles.term)
     .concat(Crypt.tiles.misc);
 
+Crypt.templates = Crypt.Models.default.map(tile => (
+    RG.Template.createTemplate(tile)
+));
+const transformed = RG.Template.transformList(Crypt.templates);
+Crypt.templates = Crypt.templates.concat(transformed);
+
 module.exports = Crypt;
