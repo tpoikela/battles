@@ -106,34 +106,8 @@ Basic.templates = Basic.tiles.all.map(tile => (
     RG.Template.createTemplate(tile)
 ));
 
-// Transformation of each template added
-Object.keys(transforms).forEach(func => {
-    if (func !== 'all') {
-        const created = [];
-        let names = transforms[func];
-        names = names.concat(transforms.all);
-        names.forEach(name => {
-            const templ = Basic.templates.find(t => (
-                t.getProp('name') === name
-            ));
-
-            if (templ) {
-                const newTempl = RG.Template[func](templ);
-                created.push(newTempl);
-                if (func === 'flipVer') {
-                    const rotations = getRotations(name);
-                    rotations.forEach(rot => {
-                        const rotatedTempl = RG.Template[rot](newTempl);
-
-                        created.push(rotatedTempl);
-                    });
-                }
-            }
-
-        });
-        Basic.templates = Basic.templates.concat(created);
-    }
-});
+const transformed = RG.Template.transformList(Basic.templates, transforms);
+Basic.templates = Basic.templates.concat(transformed);
 
 const weighted = [];
 Basic.templates.forEach(templ => {
@@ -146,18 +120,5 @@ Basic.templates.forEach(templ => {
     }
 });
 Basic.templates = Basic.templates.concat(weighted);
-
-/* Finds which rotations need to be applied to given template by name. This is
- * mainly used when flipping vertical to find which rotations must be done. */
-function getRotations(name) {
-    const found = [];
-    const rotations = ['rotateR90', 'rotateR180', 'rotateR270'];
-    rotations.forEach(rot => {
-        if (transforms[rot].indexOf(name) >= 0) {
-            found.push(rot);
-        }
-    });
-    return found;
-}
 
 module.exports = Basic;

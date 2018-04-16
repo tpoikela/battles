@@ -537,4 +537,70 @@ function remapExits(templ, exitMap) {
     }
 }
 
+/* Creates all specified transforms for the given list of templates. */
+function transformList(templates, transforms) {
+    let result = [];
+
+    // Default option is to transform all, usually unnecessary but does not
+    // require any setup from the user
+    if (!transforms) {
+        transforms = {
+            all: '*', flipVer: [], rotateR90: [], rotateR180: [],
+            rotateR270: []
+        };
+    }
+
+    // Transformation of each template added
+    Object.keys(transforms).forEach(func => {
+        if (func !== 'all') {
+            const created = [];
+
+            let names = transforms[func];
+            if (transforms.all === '*') {
+                names = templates.map(t => t.getProp('name'));
+            }
+            else {
+                names = names.concat(transforms.all);
+            }
+
+            names.forEach(name => {
+                const templ = templates.find(t => (
+                    t.getProp('name') === name
+                ));
+
+                if (templ) {
+                    const newTempl = RG.Template[func](templ);
+                    created.push(newTempl);
+                    if (func === 'flipVer') {
+                        const rotations = getRotations(transforms, name);
+                        rotations.forEach(rot => {
+                            const rotatedTempl = RG.Template[rot](newTempl);
+
+                            created.push(rotatedTempl);
+                        });
+                    }
+                }
+
+            });
+            result = result.concat(created);
+        }
+    });
+    return result;
+}
+RG.Template.transformList = transformList;
+
+
+/* Finds which rotations need to be applied to given template by name. This is
+ * mainly used when flipping vertical to find which rotations must be done. */
+function getRotations(transforms, name) {
+    const found = [];
+    const rotations = ['rotateR90', 'rotateR180', 'rotateR270'];
+    rotations.forEach(rot => {
+        if (transforms[rot].indexOf(name) >= 0) {
+            found.push(rot);
+        }
+    });
+    return found;
+}
+
 module.exports = RG.Template;
