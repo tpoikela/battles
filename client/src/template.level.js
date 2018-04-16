@@ -138,8 +138,6 @@ RG.Template.Level = function(tilesX, tilesY) {
             }
         });
 
-        console.log(JSON.stringify(this.sortedWithAllExits));
-
         // Initialize a map with filler cells
         this.templMap = [];
         for (let x = 0; x < this.tilesX; x++) {
@@ -356,9 +354,14 @@ RG.Template.Level = function(tilesX, tilesY) {
             if (listMatching.length > 0) {
                 return RG.RAND.arrayGetRand(listMatching);
             }
-            const msg = `Required: ${exitsReqd}`;
+            const msg = `Required: ${exitsReqd[1]}, Excl: ${exitsReqd[2]}`;
             RG.warn('Template.Level', '_getNextTemplate',
                 `Not all exits match. ${msg}`);
+
+            this.expandTemplates();
+            RG.printMap(this.map);
+            const str = `${x},${y} exitReqd: ${JSON.stringify(exitsReqd)}`;
+            throw new Error(str);
         }
 
         if (!next) {
@@ -742,11 +745,16 @@ RG.Template.Level = function(tilesX, tilesY) {
                 excluded.push('N');
             }
 
-            if (this._hasExit(remapMatch, x, nY)) {
-                exits.push(remapped);
-            }
-            else {
-                excluded.push(remapped);
+            if (remapped) {
+                if (this._isFiller(x, nY)) {
+                    any.push(remapped);
+                }
+                else if (this._hasExit(remapMatch, x, nY)) {
+                    exits.push(remapped);
+                }
+                else {
+                    excluded.push(remapped);
+                }
             }
 
         }
@@ -773,11 +781,16 @@ RG.Template.Level = function(tilesX, tilesY) {
                 excluded.push('S');
             }
 
-            if (this._hasExit(remapMatch, x, sY)) {
-                exits.push(remapped);
-            }
-            else {
-                excluded.push(remapped);
+            if (remapped) {
+                if (this._isFiller(x, sY)) {
+                    any.push(remapped);
+                }
+                else if (this._hasExit(remapMatch, x, sY)) {
+                    exits.push(remapped);
+                }
+                else {
+                    excluded.push(remapped);
+                }
             }
         }
         else {
@@ -802,11 +815,16 @@ RG.Template.Level = function(tilesX, tilesY) {
                 excluded.push('E');
             }
 
-            if (this._hasExit(remapMatch, eX, y)) {
-                exits.push(remapped);
-            }
-            else {
-                excluded.push(remapped);
+            if (remapped) {
+                if (this._isFiller(eX, y)) {
+                    any.push(remapped);
+                }
+                else if (this._hasExit(remapMatch, eX, y)) {
+                    exits.push(remapped);
+                }
+                else {
+                    excluded.push(remapped);
+                }
             }
         }
         else {
@@ -831,11 +849,16 @@ RG.Template.Level = function(tilesX, tilesY) {
                 excluded.push('W');
             }
 
-            if (this._hasExit(remapMatch, wX, y)) {
-                exits.push(remapped);
-            }
-            else {
-                excluded.push(remapped);
+            if (remapped) {
+                if (this._isFiller(wX, y)) {
+                    any.push(remapped);
+                }
+                else if (this._hasExit(remapMatch, wX, y)) {
+                    exits.push(remapped);
+                }
+                else {
+                    excluded.push(remapped);
+                }
             }
         }
         else {
