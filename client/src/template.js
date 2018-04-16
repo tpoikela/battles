@@ -220,6 +220,15 @@ const ElemTemplate = function(conf) {
         return this.elemPropMap[name];
     };
 
+    /* Returns direction (dir property) as sorted string. */
+    this.getDir = function() {
+        const dir = this.getProp('dir');
+        if (dir) {
+            return dir.split('').sort().join('');
+        }
+        return '';
+    };
+
     this.setProp = function(key, val) {
         this.elemPropMap[key] = val;
     };
@@ -582,10 +591,10 @@ function transformList(templates, transforms, exitMap) {
                     if (func === 'flipVer') {
                         const rotations = getRotations(transforms, name);
                         rotations.forEach(rot => {
-                            const map = exitMap ? exitMap[func] : exitMaps[func];
-                            const rotatedTempl = RG.Template[rot](newTempl, map);
-                            setTransformName(func, rotatedTempl);
-                            created.push(rotatedTempl);
+                            const map = exitMap ? exitMap[rot] : exitMaps[rot];
+                            const rotTempl = RG.Template[rot](newTempl, map);
+                            setTransformName(rot, rotTempl);
+                            created.push(rotTempl);
                         });
                     }
                 }
@@ -598,14 +607,13 @@ function transformList(templates, transforms, exitMap) {
 }
 RG.Template.transformList = transformList;
 
-
 /* Finds which rotations need to be applied to given template by name. This is
  * mainly used when flipping vertical to find which rotations must be done. */
 function getRotations(transforms, name) {
     const found = [];
     const rotations = ['rotateR90', 'rotateR180', 'rotateR270'];
     rotations.forEach(rot => {
-        if (transforms[rot].indexOf(name) >= 0) {
+        if (transforms[rot].indexOf(name) >= 0 || transforms.all === '*') {
             found.push(rot);
         }
     });
