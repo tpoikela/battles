@@ -719,7 +719,8 @@ RG.Template.Level = function(tilesX, tilesY) {
         console.log(JSON.stringify(this.dir2NSEWRemap));
     };
 
-    /* Returns all exits which are required to match. */
+    /* Returns all exits which are required @x,y to match all surrounding
+    * tiles. */
     this.getAllRequiredExits = function(x, y) {
         ++this.ind;
         const any = [];
@@ -750,6 +751,8 @@ RG.Template.Level = function(tilesX, tilesY) {
                     any.push(remapped);
                 }
                 else if (this._hasExit(remapMatch, x, nY)) {
+                    console.log(`North ${x},${nY} has ${remapMatch}, added ${remapped}`);
+                    this.printTile(x, nY);
                     exits.push(remapped);
                 }
                 else {
@@ -918,6 +921,15 @@ RG.Template.Level = function(tilesX, tilesY) {
                 const ind = ' '.repeat(this.ind);
                 console.log(ind + msg);
             }
+        }
+    };
+
+    this.printTile = function(x, y) {
+        if (x === 4 && y === 3) {
+            const tile = this.templMap[x][y];
+            console.log(`Tile @{x},${y}`);
+            console.log(`Has exits: ${tile.getDir()}`);
+            console.log(JSON.stringify(tile, null, 2));
         }
     };
 
