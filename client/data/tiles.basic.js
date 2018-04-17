@@ -125,16 +125,18 @@ Basic.templates.forEach(templ => {
 Basic.templates = Basic.templates.concat(weighted);
 */
 
+const Basic5x5 = {};
 // 5x5 tiles with room matching
-Basic.tiles5x5 = {};
-Basic.tiles5x5.corner = [
+Basic5x5.tiles = {};
+Basic5x5.tiles.corner = [
 `
 dir:NE
 name:corner
 X=#
+W=.
 Y=#
 
-#X.X#
+#XWX#
 Y?.?#
 #?...
 Y???#
@@ -144,9 +146,10 @@ Y???#
 dir:NEW
 name:tcorner
 X=#
+W=.
 Y=#
 
-#X.X#
+#XWX#
 Y?.?#
 .....
 Y???#
@@ -156,23 +159,25 @@ Y???#
 dir:NSEW
 name:cross
 X=#
+W=.
 Y=#
 
-#X.X#
+#XWX#
 Y?.?#
 .....
 Y?.?#
 ##.##`
 ];
 
-Basic.tiles5x5.corridor = [
+Basic5x5.tiles.corridor = [
 `
 dir:NS
 name:corridor
 X=#
+W=.
 Y=#
 
-#X.X#
+#XWX#
 Y?.?#
 #?.?#
 Y?.?#
@@ -181,14 +186,15 @@ Y?.?#
 ];
 
 
-Basic.tiles5x5.room = [
+Basic5x5.tiles.room = [
 `
 dir:N
 name:room_term1
 X=#
+W=.
 Y=#
 
-#X.X#
+#XWX#
 Y...#
 #...#
 Y...#
@@ -198,9 +204,10 @@ Y...#
 dir:U
 name:room_term2
 X=.
+W=.
 Y=#
 
-#X.X#
+#XWX#
 Y...#
 #...#
 Y####
@@ -210,9 +217,10 @@ Y####
 dir:ND
 name:room_adapt
 X=#
+W=.
 Y=#
 
-#X.X#
+#XWX#
 Y...#
 #...#
 Y...#
@@ -222,9 +230,10 @@ Y...#
 dir:NR
 name:room_adapt_corner
 X=#
+W=.
 Y=#
 
-#X.X#
+#XWX#
 Y....
 #....
 Y....
@@ -234,9 +243,10 @@ Y....
 dir:LNR
 name:room_adapt_tcorner
 X=#
+W=.
 Y=.
 
-#X.X#
+#XWX#
 Y....
 .....
 Y....
@@ -246,9 +256,10 @@ Y....
 dir:NRW
 name:room_adapt_tcorner2
 X=#
+W=.
 Y=#
 
-#X.X#
+#XWX#
 Y....
 .....
 Y....
@@ -258,9 +269,10 @@ Y....
 dir:RUW
 name:room_adapt_tcorner3
 X=.
+W=.
 Y=#
 
-#X.X#
+#XWX#
 Y....
 .....
 Y....
@@ -270,22 +282,51 @@ Y....
 dir:RU
 name:room_corner
 X=.
+W=.
 Y=#
 
-#X.X#
+#XWX#
 Y....
 #....
 Y....
 #####`,
+
+`
+dir:RU
+name:room_corner2
+X=.
+W=.
+Y=#
+
+#XWX.
+Y....
+#....
+Y....
+#####`,
+
 `
 dir:UD
 name:room_ext
 X=.
+W=.
 Y=#
 
-#X.X#
+#XWX#
 Y...#
 #...#
+Y...#
+#...#`,
+
+`
+dir:DEW
+name:room_end
+X=#
+W=#
+Y=#
+
+#XWX#
+Y...#
+.....
 Y...#
 #...#`,
 
@@ -293,9 +334,10 @@ Y...#
 dir:D
 name:room_end
 X=#
+W=#
 Y=#
 
-#X#X#
+#XWX#
 Y...#
 #...#
 Y...#
@@ -305,17 +347,85 @@ Y...#
 dir:UDLR
 name:room_center
 X=.
+W=.
 Y=.
 
-#X.X#
+#XWX#
 Y....
 .....
 Y....
-#...#`
+#...#`,
+
+`
+dir:DEUW
+name:room_center2
+X=.
+W=.
+Y=#
+
+#XWX#
+Y...#
+.....
+Y...#
+#...#`,
+
+`
+dir:DLR
+name:room_center3
+X=#
+W=#
+Y=.
+
+#XWX#
+Y....
+.....
+Y....
+#...#`,
+
+`
+dir:NDRW
+name:room_center3
+X=#
+W=.
+Y=#
+
+#XWX#
+Y....
+.....
+Y....
+#...#`,
+
+`
+dir:NSEL
+name:room_center4
+X=#
+W=.
+Y=.
+
+#XWX#
+Y...#
+.....
+Y...#
+##.##`
 
 ];
 
-Basic.tiles5x5.filler =
+Basic5x5.tiles.start =
+`
+dir:NSRW
+name:start
+X=#
+W=+
+Y=.
+
+#XWX#
+Y...+
++...+
+Y...+
+##+##`
+;
+
+Basic5x5.tiles.filler =
 `
 name:FILLER
 X=#
@@ -327,40 +437,40 @@ Y####
 Y####
 #####`;
 
-Basic.tiles5x5.all = []
-    .concat(Basic.tiles5x5.corner)
-    .concat(Basic.tiles5x5.corridor)
-    .concat(Basic.tiles5x5.room);
+Basic5x5.tiles.all = []
+    .concat(Basic5x5.tiles.corner)
+    .concat(Basic5x5.tiles.corridor)
+    .concat(Basic5x5.tiles.room);
 
 // Templates created from tiles strings
-Basic.templates5x5 = Basic.tiles5x5.all.map(tile => (
+Basic5x5.templates = Basic5x5.tiles.all.map(tile => (
     RG.Template.createTemplate(tile)
 ));
 
-Basic.remap = {};
-Basic.remap.exits = {
+Basic5x5.remap = {};
+Basic5x5.remap.exits = {
     N: 'S', S: 'N', E: 'W', W: 'E',
     U: 'D', D: 'U', L: 'R', R: 'L'
 };
-Basic.remap.nsew2Dir = {
+Basic5x5.remap.nsew2Dir = {
     N: 'U', S: 'D', E: 'R', W: 'L'
 };
-Basic.remap.transformRotate = {
+Basic5x5.remap.transformRotate = {
     U: 'R', D: 'L', L: 'U', R: 'D',
     N: 'E', E: 'S', S: 'W', W: 'N'
 };
-Basic.remap.transformFlip = {L: 'R', R: 'L', W: 'E', E: 'W'};
+Basic5x5.remap.transformFlip = {L: 'R', R: 'L', W: 'E', E: 'W'};
 
 // Due to custom directions UDLR, need to define how transformations are applied
 // to different exits.
-const exitMap = {
-    flipVer: Basic.remap.transformFlip,
-    rotateR90: Basic.remap.transformRotate,
-    rotateR180: Basic.remap.transformRotate,
-    rotateR270: Basic.remap.transformRotate
+Basic5x5.exitMap = {
+    flipVer: Basic5x5.remap.transformFlip,
+    rotateR90: Basic5x5.remap.transformRotate,
+    rotateR180: Basic5x5.remap.transformRotate,
+    rotateR270: Basic5x5.remap.transformRotate
 };
 
-const transforms5x5 = {
+Basic5x5.transforms = {
     all: '*',
     flipVer: [],
     rotateR90: [],
@@ -368,8 +478,21 @@ const transforms5x5 = {
     rotateR270: []
 };
 
-const transformed5x5 = transformList(Basic.templates5x5,
-    transforms5x5, exitMap);
-Basic.templates5x5 = Basic.templates5x5.concat(transformed5x5);
+const transformed5x5 = transformList(Basic5x5.templates,
+    Basic5x5.transforms, Basic5x5.exitMap);
+Basic5x5.templates = Basic5x5.templates.concat(transformed5x5);
+Basic5x5.roomCount = -1;
 
-module.exports = Basic;
+Basic5x5.startRoomFunc = function() {
+    const tile = RG.Template.createTemplate(Basic5x5.tiles.start);
+    const x = Math.floor(this.tilesX / 2);
+    const y = Math.floor(this.tilesY / 2);
+    return {
+        x, y, room: tile
+    };
+};
+
+Basic5x5.Models = {};
+Basic5x5.Models.default = Basic5x5.templates;
+
+module.exports = {Basic, Basic5x5};
