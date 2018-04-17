@@ -114,6 +114,17 @@ Y....
 #...#
 #...#`;
 
+const templAdapter = `
+dir:ND
+name:adapter
+X=.
+Y=#
+
+##X##
+#...#
+Y...#
+#...#
+#...#`;
 
 // Not much to test here
 describe('Template.ElemGenX', () => {
@@ -292,7 +303,7 @@ describe('Template.ElemTemplate', () => {
             rotateR180: exitMap,
             rotateR270: exitMap
         };
-        const transformed = RG.Template.transformList([templR90, templ], null,
+        let transformed = RG.Template.transformList([templR90, templ], null,
             exitMaps);
 
         const names = transformed.map(t => t.getProp('name'));
@@ -306,6 +317,18 @@ describe('Template.ElemTemplate', () => {
         ));
         const dirR180 = templR90R90.getDir();
         expect(dirR180).to.equal(templ.getDir());
+
+        const adapter = RG.Template.createTemplate(templAdapter);
+        transformed = RG.Template.transformList([adapter], null,
+            exitMaps);
+        const adapterR270 = transformed.find(
+            t => t.getProp('name') === 'adapter_r270');
+        expect(adapterR270).to.exist;
+        expect(adapterR270.getDir()).to.equal('RW');
+
+    });
+
+    it('can transform a list of times', () => {
 
     });
 
