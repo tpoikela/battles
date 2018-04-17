@@ -184,7 +184,7 @@ Y?.?#
 Basic.tiles5x5.room = [
 `
 dir:N
-name:room_term
+name:room_term1
 X=#
 Y=#
 
@@ -195,9 +195,92 @@ Y...#
 #####`,
 
 `
+dir:U
+name:room_term2
+X=.
+Y=#
+
+#X.X#
+Y...#
+#...#
+Y####
+#####`,
+
+`
 dir:ND
 name:room_adapt
 X=#
+Y=#
+
+#X.X#
+Y...#
+#...#
+Y...#
+#...#`,
+
+`
+dir:NR
+name:room_adapt_corner
+X=#
+Y=#
+
+#X.X#
+Y....
+#....
+Y....
+#####`,
+
+`
+dir:LNR
+name:room_adapt_tcorner
+X=#
+Y=.
+
+#X.X#
+Y....
+.....
+Y....
+#####`,
+
+`
+dir:NRW
+name:room_adapt_tcorner2
+X=#
+Y=#
+
+#X.X#
+Y....
+.....
+Y....
+#####`,
+
+`
+dir:RUW
+name:room_adapt_tcorner3
+X=.
+Y=#
+
+#X.X#
+Y....
+.....
+Y....
+#####`,
+
+`
+dir:RU
+name:room_corner
+X=.
+Y=#
+
+#X.X#
+Y....
+#....
+Y....
+#####`,
+`
+dir:UD
+name:room_ext
+X=.
 Y=#
 
 #X.X#
@@ -272,9 +355,9 @@ Basic.remap.transformFlip = {L: 'R', R: 'L', W: 'E', E: 'W'};
 // to different exits.
 const exitMap = {
     flipVer: Basic.remap.transformFlip,
-    rotate90: Basic.remap.transformRotate,
-    rotate180: Basic.remap.transformRotate,
-    rotate270: Basic.remap.transformRotate
+    rotateR90: Basic.remap.transformRotate,
+    rotateR180: Basic.remap.transformRotate,
+    rotateR270: Basic.remap.transformRotate
 };
 
 const transforms5x5 = {
