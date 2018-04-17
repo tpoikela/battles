@@ -221,8 +221,9 @@ describe('Template.Level', () => {
     });
 
     it.only('can create levels with 5x5 tiles', () => {
-        const level = new TemplLevel(12, 7);
-        level.roomCount = 55;
+        const level = new TemplLevel(20, 11);
+        level.setGenParams([2, 2, 2, 2]);
+        level.roomCount = -1;
         level.setFiller(Basic.tiles5x5.filler);
         const templates = Basic.templates5x5;
         console.log(JSON.stringify(Basic.templates5x5, null, 2));
