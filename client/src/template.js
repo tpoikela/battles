@@ -554,6 +554,10 @@ function remapExits(templ, exitMap) {
 
 /* Creates all specified transforms for the given list of templates. */
 function transformList(templates, transforms, exitMap) {
+    if (RG.isNullOrUndef([templates])) {
+        RG.err('Template', 'transformList',
+            'Input list templates is null');
+    }
     let result = [];
 
     // Default option is to transform all, usually unnecessary but does not
