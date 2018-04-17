@@ -1,11 +1,13 @@
 
+/* eslint quote-props: 0 */
 const RG = require('../../../client/src/battles');
 const expect = require('chai').expect;
 const TemplLevel = require('../../../client/src/template.level');
 
 const Crypt = require('../../../client/data/tiles.crypt');
 const Castle = require('../../../client/data/tiles.castle');
-const Basic = require('../../../client/data/tiles.basic');
+const Basic = require('../../../client/data/tiles.basic').Basic;
+const Basic5x5 = require('../../../client/data/tiles.basic').Basic5x5;
 
 const tileDirTest = `
 dir:UDLR
@@ -209,7 +211,6 @@ describe('Template.Level', () => {
     });
 
     it('can create Castles with rotated tiles', () => {
-        // RG.RAND.setSeed(new Date().getTime());
         const level = new TemplLevel(12, 7);
         level.setFiller(Castle.tiles.fillerWall);
         const templates = Castle.templates.all;
@@ -221,15 +222,25 @@ describe('Template.Level', () => {
     });
 
     it.only('can create levels with 5x5 tiles', () => {
-        const level = new TemplLevel(20, 11);
-        level.setGenParams([2, 2, 2, 2]);
+        RG.RAND.setSeed(new Date().getTime());
+        const level = new TemplLevel(25, 9);
+        level.tryToMatchAllExits = false;
+
+        level.use(Basic5x5);
+        level.weights = {
+            'room_term1': 10,
+            corridor: 10
+        };
+        level.setGenParams([1, 1, 1, 1]);
         level.roomCount = -1;
-        level.setFiller(Basic.tiles5x5.filler);
-        const templates = Basic.templates5x5;
-        console.log(JSON.stringify(Basic.templates5x5, null, 2));
+        level.setFiller(Basic5x5.tiles.filler);
+        const templates = Basic5x5.templates;
+        console.log(JSON.stringify(Basic5x5.templates, null, 2));
         level.setTemplates(templates);
-        level.setExitMap(Basic.remap.exits, Basic.remap.nsew2Dir);
+        level.setExitMap(Basic5x5.remap.exits, Basic5x5.remap.nsew2Dir);
         level.create();
+
+        expect(level.map).to.exist;
         RG.printMap(level.map);
     });
 
