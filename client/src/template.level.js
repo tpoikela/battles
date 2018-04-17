@@ -35,7 +35,12 @@ RG.Template.Level = function(tilesX, tilesY) {
 
     this.possibleDirections = ['N', 'S', 'E', 'W'];
 
-    this.allExitsMustMatch = true;
+    // Finds always best match for exits
+    this.tryToMatchAllExits = true;
+
+    // Works only when tryToMatchAllExits = true. Throws error is required exits
+    // are not found in tiles.
+    this.missingExitIsError = false;
 
     this.sortedByExit = {
         N: [], S: [], E: [], W: []
@@ -101,11 +106,11 @@ RG.Template.Level = function(tilesX, tilesY) {
             }
         });
 
-        if (obj.tiles.filler) {
+        if (obj.tiles && obj.tiles.filler) {
             this.setFiller(obj.tiles.filler);
         }
 
-        if (obj.Models.default) {
+        if (obj.Models && obj.Models.default) {
             this.setTemplates(obj.Models.default);
         }
     };
@@ -250,8 +255,6 @@ RG.Template.Level = function(tilesX, tilesY) {
             }
         }
 
-        console.log(JSON.stringify(this.mapExpanded));
-
         // Now we have an unflattened map: 4-dimensional arrays, the last part
         // is to convert this into 2-d array.
         this.map = [];
@@ -347,21 +350,23 @@ RG.Template.Level = function(tilesX, tilesY) {
         }
 
         // All exits are required to match
-        if (!next && this.allExitsMustMatch) {
+        if (!next && this.tryToMatchAllExits) {
             this.dbg(`Compute required exits for ${x},${y}`);
             const exitsReqd = this.getAllRequiredExits(x, y);
             const listMatching = this._getMatchWithExits(exitsReqd);
             if (listMatching.length > 0) {
-                return RG.RAND.arrayGetRand(listMatching);
+                return this._getRandTemplate(listMatching);
             }
             const msg = `Required: ${exitsReqd[1]}, Excl: ${exitsReqd[2]}`;
             RG.warn('Template.Level', '_getNextTemplate',
                 `Not all exits match. ${msg}`);
 
-            this.expandTemplates();
-            RG.printMap(this.map);
-            const str = `${x},${y} exitReqd: ${JSON.stringify(exitsReqd)}`;
-            throw new Error(str);
+            if (this.missingExitIsError) {
+                this.expandTemplates();
+                RG.printMap(this.map);
+                const str = `${x},${y} exitReqd: ${JSON.stringify(exitsReqd)}`;
+                throw new Error(str);
+            }
         }
 
         if (!next) {
@@ -371,6 +376,28 @@ RG.Template.Level = function(tilesX, tilesY) {
 
         --this.ind;
         return next;
+    };
+
+    /* Returns random template from the given list. Uses random weights if any
+     * are given. */
+    this._getRandTemplate = function(list) {
+        if (!this.weights) {
+            return RG.RAND.arrayGetRand(list);
+        }
+        const weights = {};
+        const names = list.map(t => t.getProp('name'));
+        const nameToIndex = {};
+        names.forEach((name, i) => {
+            nameToIndex[name] = i;
+            if (this.weights.hasOwnProperty(name)) {
+                weights[name] = this.weights[name];
+            }
+            else {
+                weights[name] = 1;
+            }
+        });
+        const chosenName = RG.RAND.getWeighted(weights);
+        return list[nameToIndex[chosenName]];
     };
 
     this._getRoomWithUnusedExits = function() {
@@ -716,7 +743,6 @@ RG.Template.Level = function(tilesX, tilesY) {
             dir2NSEWRemap[val] = key;
         });
         this.dir2NSEWRemap = dir2NSEWRemap;
-        console.log(JSON.stringify(this.dir2NSEWRemap));
     };
 
     /* Returns all exits which are required @x,y to match all surrounding
@@ -751,8 +777,6 @@ RG.Template.Level = function(tilesX, tilesY) {
                     any.push(remapped);
                 }
                 else if (this._hasExit(remapMatch, x, nY)) {
-                    console.log(`North ${x},${nY} has ${remapMatch}, added ${remapped}`);
-                    this.printTile(x, nY);
                     exits.push(remapped);
                 }
                 else {
