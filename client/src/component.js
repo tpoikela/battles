@@ -395,6 +395,10 @@ RG.Component.Communication = function() {
 };
 RG.extend2(RG.Component.Communication, RG.Component.Base);
 
+/* Added to entities which can cause damage without attack such as fire. Used
+ * for AI navigation purposes at the moment. */
+RG.Component.Damaging = UniqueTagComponent('Damaging');
+
 /* Added to entities which are destroyed after use. */
 RG.Component.OneShot = UniqueTagComponent('OneShot');
 
