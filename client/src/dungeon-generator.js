@@ -7,6 +7,7 @@ const Geometry = require('./geometry');
 const MapGen = require('./map.generator');
 const Path = require('./path');
 
+
 const WALL = 1;
 
 const shortestPath = Path.getShortestPath;
@@ -107,7 +108,8 @@ const getRandMapType = () => {
     return RG.RAND.arrayGetRand(['uniform', 'digger']);
 };
 
-/* Creates the actual Map.Level. */
+/* Creates the actual Map.Level. User should call this function with desired
+ * size (X * Y) and configuration. */
 DungeonGenerator.prototype.create = function(cols, rows, conf) {
     if (!cols) {
         cols = RG.RAND.getUniformInt(80, 120);
@@ -215,7 +217,7 @@ DungeonGenerator.prototype.addBigRooms = function(mapGen, conf) {
     const createBigRoom = RG.RAND.getUniform() <= PROB.BIG_ROOM;
     if (createBigRoom && conf.nBigRooms === 0) {
         const bigRoomType = this.getBigRoomType();
-        /* eslint no-constant-condition: 0 */
+
         if (/center/.test(bigRoomType)) {
             bigRoomsCreated = this.addBigCenterRoom(mapGen, conf);
         }
@@ -287,6 +289,7 @@ DungeonGenerator.prototype.addCustomBigRooms = function(mapGen, conf) {
     return bigRoomsCreated;
 };
 
+/* Adds a big room aligned to the center of the level. */
 DungeonGenerator.prototype.addBigCenterRoom = function(mapGen) {
     const [cols, rows] = [mapGen.getCols(), mapGen.getRows()];
     const [cx, cy] = mapGen.getCenterXY();
@@ -595,7 +598,7 @@ DungeonGenerator.prototype.addStairsLocations = function(level) {
 
         const goalPoint = new RG.Element.Marker('>');
         const startPoint = new RG.Element.Marker('<');
-        startPoint.setTag('start point');
+        startPoint.setTag('start_point');
         level.addElement(goalPoint, cx1, cy1);
         level.addElement(startPoint, cx2, cy2);
         room1.addStairs(cx1, cy1, true);
@@ -716,8 +719,10 @@ DungeonGenerator.prototype.populateLevel = function(level, conf) {
     const extras = level.getExtras();
     const maxDanger = conf.maxDanger || 5;
     const factZone = new RG.Factory.Zone();
-    const roomsDone = {};
+    const maxValue = conf.maxValue || 50;
+
     let mainLootAdded = false;
+    const roomsDone = {}; // Keep track of finished rooms
 
     if (extras.bigRooms) {
         extras.bigRooms.forEach(bigRoom => {
@@ -747,7 +752,6 @@ DungeonGenerator.prototype.populateLevel = function(level, conf) {
         });
     }
 
-    const maxValue = conf.maxValue || 50;
     // Add something nasty into terminal room
     // Some possible design patterns:
     //   1. Stairs + guardian
@@ -862,7 +866,7 @@ DungeonGenerator.prototype.verifyLevel = function(mapGen, level, conf) {
 
 /* Removes unneeded markers from the level. */
 DungeonGenerator.prototype.removeMarkers = function(level) {
-    const preserveMarkers = ['start point'];
+    const preserveMarkers = ['start_point'];
     if (this.shouldRemoveMarkers) {
         level.removeElements(e => {
             if (e.getTag) {
