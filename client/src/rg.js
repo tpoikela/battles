@@ -282,6 +282,8 @@ RG.cellStyles = {
         shop: 'cell-element-shop',
         snow: 'cell-element-snow',
         stone: 'cell-element-stone',
+        stairsDown: 'cell-element-stairs',
+        stairsUp: 'cell-element-stairs',
         town: 'cell-element-town',
         tree: 'cell-element-tree',
         wall: 'cell-element-wall',
