@@ -701,6 +701,17 @@ class GoalExplore extends GoalBase {
         return this.actor.getLevel().getMap().isPassable(newX, newY);
     }
 
+    shouldMoveTo(x, y) {
+        const map = this.actor.getLevel().getMap();
+        if (map.hasXY(x, y)) {
+            const cell = map.getCell(x, y);
+            if (cell.isPassable(x, y)) {
+                return !cell.isDangerous();
+            }
+        }
+        return false;
+    }
+
     process() {
         this.activateIfInactive();
         this.checkChangeDir();
@@ -708,7 +719,7 @@ class GoalExplore extends GoalBase {
         const newX = aX + this.dX;
         const newY = aY + this.dY;
         const level = this.actor.getLevel();
-        if (level.getMap().isPassable(newX, newY)) {
+        if (this.shouldMoveTo(newX, newY)) {
             const movComp = new RG.Component.Movement(newX, newY, level);
             this.actor.add('Movement', movComp);
         }
