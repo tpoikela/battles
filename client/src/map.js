@@ -39,6 +39,20 @@ RG.Map.Cell.prototype.getKeyXY = function() {
 RG.Map.Cell.prototype.setBaseElem = function(elem) { this._baseElem = elem; };
 RG.Map.Cell.prototype.getBaseElem = function() { return this._baseElem; };
 
+/* Returns true if the cell has props of given type.*/
+RG.Map.Cell.prototype.hasProp = function(prop) {
+    return this._p.hasOwnProperty(prop);
+};
+
+/* Returns the given type of props, or null if does not have any props of that
+ * type. */
+RG.Map.Cell.prototype.getProp = function(prop) {
+    if (this._p.hasOwnProperty(prop)) {
+        return this._p[prop];
+    }
+    return null;
+};
+
 /* Queries cell about possible elements. */
 RG.Map.Cell.prototype.hasElements = function() {
     return this.hasProp(TYPE_ELEM);
@@ -176,6 +190,16 @@ RG.Map.Cell.prototype.isPassableByAir = function() {
     return this._baseElem.isPassableByAir();
 };
 
+RG.Map.Cell.prototype.isDangerous = function() {
+    if (this._p[TYPE_ACTOR]) {
+        const actors = this.getProp(TYPE_ACTOR);
+        if (actors) {
+            return actors[0].has('Damaging');
+        }
+    }
+    return false;
+};
+
 RG.Map.Cell.prototype.hasObstacle = function() {
     this._baseElem.isObstacle();
 };
@@ -244,10 +268,6 @@ RG.Map.Cell.prototype.removeProp = function(prop, obj) {
     return false;
 };
 
-/* Returns true if the cell has props of given type.*/
-RG.Map.Cell.prototype.hasProp = function(prop) {
-    return this._p.hasOwnProperty(prop);
-};
 
 /* Returns string representation of the cell.*/
 RG.Map.Cell.prototype.toString = function() {
@@ -339,12 +359,6 @@ RG.Map.Cell.prototype.getPropType = function(propType) {
     return props;
 };
 
-RG.Map.Cell.prototype.getProp = function(prop) {
-    if (this._p.hasOwnProperty(prop)) {
-        return this._p[prop];
-    }
-    return null;
-};
 
 /* For debugging to find a given object. */
 RG.Map.Cell.prototype.findObj = function(filterFunc) {
