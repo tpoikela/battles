@@ -130,10 +130,6 @@
     color: $white;
 }
 
-.cell-element-stairs {
-    background-color: $wall-color;
-}
-
 .cell-element-road {
     background-color: $floor-bg-color;
     //background-color: $white;
@@ -158,6 +154,11 @@
 //----------------------
 // CONNECTIONS/STAIRS
 //----------------------
+
+.cell-element-stairs {
+    background-color: $floor-bg-color;
+    color: $white;
+}
 
 .cell-element-battle {
     background-color: $floor-bg-color;
