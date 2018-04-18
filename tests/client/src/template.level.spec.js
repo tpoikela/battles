@@ -221,7 +221,7 @@ describe('Template.Level', () => {
         RG.printMap(level.map);
     });
 
-    it.only('can create levels with 5x5 tiles', () => {
+    it('can create levels with 5x5 tiles', () => {
         RG.RAND.setSeed(new Date().getTime());
         const level = new TemplLevel(25, 9);
         level.tryToMatchAllExits = false;
