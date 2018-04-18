@@ -794,7 +794,8 @@ const Items = [
     // TOOLS
     // Note: Each tool should have useItem method.
     {
-        name: 'tool', type: 'tool', uses: 10
+        name: 'tool', type: 'tool', uses: 10, className: 'cell-item-tool',
+        char: ']'
     },
     {
         name: 'trapmaking kit', base: 'tool'
