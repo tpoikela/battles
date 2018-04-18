@@ -47,6 +47,11 @@
     color: $white;
 };
 
+.cell-item-steel {
+    background-color: $silver;
+    color: $steel;
+};
+
 .cell-item-ruby-glass {
     background-color: $ruby-white;
     color: $ruby-red;
@@ -80,4 +85,9 @@
 .cell-item-rune {
     background-color: darken($gray, 20%);
     color: $red;
+};
+
+.cell-item-tool {
+    background-color: $black;
+    color: $brown;
 };
