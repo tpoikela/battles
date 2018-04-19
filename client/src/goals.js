@@ -399,6 +399,25 @@ class GoalGotoActor extends GoalFollowPath {
 }
 Goal.GotoActor = GoalGotoActor;
 
+/* Goal to patrol a single x,y coordinate. */
+class GoalGuard extends GoalBase {
+
+    constructor(actor, xy, dist = 1) {
+        super(actor);
+        this.setType('GoalGuard');
+        this.dist = dist;
+        this.x = xy[0];
+        this.y = xy[1];
+    }
+
+    activate() {
+    }
+
+    process() {
+        this.activateIfInactive();
+    }
+}
+Goal.Guard = GoalGuard;
 //---------------------------------------------------------------------------
 /* Goal used for patrolling between a list of coordinates. */
 //---------------------------------------------------------------------------
