@@ -30,15 +30,8 @@ export default class GameInventory extends Component {
     };
   }
 
-  componentDidMount() {
-    document.addEventListener('keypress', this.handleKeyDown, true);
-  }
-
-  componentWillUnMount() {
-    document.removeEventListener('keypress', this.handleKeyDown, true);
-  }
-
   handleKeyDown(evt) {
+      console.log('handleKeyDown called');
       const keyCode = KeyCode.getKeyCode(evt);
       if (keyCode === Keys.GUI.Inv) {
           this.toggleScreen('Inventory');
@@ -207,6 +200,7 @@ export default class GameInventory extends Component {
           id='inventoryModal'
           large={true}
           onHide={this.toggleScreen.bind(this, 'Inventory')}
+          onKeyPress={this.handleKeyDown}
           show={this.props.showInventory}
       >
         <ModalHeader id='inventory-modal-label' text='Inventory'/>
