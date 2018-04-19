@@ -455,8 +455,8 @@ export default class GameEditor extends Component {
     const subHeight = this.state.subLevelY;
 
     if (this.state.selectedCell) {
-      const x0 = this.getFirstSelectedCell.getX();
-      const y0 = this.getFirstSelectedCell.getY();
+      const x0 = this.getFirstSelectedCell().getX();
+      const y0 = this.getFirstSelectedCell().getY();
 
       // Iterate through tiles in x-direction (tx) and tiles in
       // y-direction (ty). Compute upper left x,y for each sub-level.
