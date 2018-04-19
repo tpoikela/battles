@@ -14,6 +14,9 @@ const Evaluator = {};
 // Should be returned if evaluator is not applicable to current situation
 Evaluator.NOT_POSSIBLE = -1;
 
+// Should be returned if the case is always executed
+Evaluator.ALWAYS = 10.0;
+
 /* Base class for all evaluators. Provides only the basic constructor. */
 class EvaluatorBase {
 
@@ -165,6 +168,33 @@ class EvaluatorPatrol extends EvaluatorBase {
     }
 }
 Evaluator.Patrol = EvaluatorPatrol;
+
+/* Evaluator to check if actor should flee from a fight. */
+class EvaluatorGuard extends EvaluatorBase {
+
+    constructor(actorBias, xy) {
+        super(actorBias);
+        this.type = 'Guard';
+        this.x = xy[0];
+        this.y = xy[1];
+    }
+
+    setXY(xy) {
+        this.x = xy[0];
+        this.y = xy[1];
+    }
+
+    calculateDesirability() {
+        return this.actorBias;
+    }
+
+    setActorGoal(actor) {
+        const topGoal = actor.getBrain().getGoal();
+        const goal = new Goal.Guard(actor, [this.x, this.y]);
+        topGoal.addGoal(goal);
+    }
+}
+Evaluator.Guard = EvaluatorGuard;
 
 /* Evaluator to check if actor should flee from a fight. */
 class EvaluatorOrders extends EvaluatorBase {

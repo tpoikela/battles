@@ -136,4 +136,22 @@ describe('Actor Goal', () => {
 
     });
 
+    it('It can tell actor to guard x,y coordinate', () => {
+        const guardian = new RG.Actor.Rogue('guardian');
+        guardian.setBrain(new RG.Brain.GoalOriented(guardian));
+
+        RGTest.wrapIntoLevel([guardian]);
+        RGTest.moveEntityTo(guardian, 4, 4);
+
+        const topGoal = guardian.getBrain().getGoal();
+        // topGoal.removeEvaluators();
+
+        const guardEval = new Evaluator.Guard(3.0, [2, 2]);
+        topGoal.addEvaluator(guardEval);
+
+        RGTest.updateGame([guardian], systems, 11);
+
+        expect(guardian.getXY()).to.deep.equal([2, 2]);
+    });
+
 });

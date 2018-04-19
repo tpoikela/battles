@@ -399,7 +399,7 @@ class GoalGotoActor extends GoalFollowPath {
 }
 Goal.GotoActor = GoalGotoActor;
 
-/* Goal to patrol a single x,y coordinate. */
+/* Goal to patrol/guard a single x,y coordinate. */
 class GoalGuard extends GoalBase {
 
     constructor(actor, xy, dist = 1) {
@@ -408,13 +408,38 @@ class GoalGuard extends GoalBase {
         this.dist = dist;
         this.x = xy[0];
         this.y = xy[1];
+        this.subGoals = [];
     }
 
     activate() {
+        // Check if close enough to the target
+        this.checkDistToGuardPoint();
     }
 
     process() {
         this.activateIfInactive();
+        this.status = this.processSubGoals();
+        if (this.subGoals.length > 0) {
+            const firstGoal = this.subGoals[0];
+            if (firstGoal.hasFailed()) {
+                this.checkDistToGuardPoint();
+            }
+        }
+        else {
+            this.checkDistToGuardPoint();
+        }
+    }
+
+    checkDistToGuardPoint() {
+        const [aX, aY] = this.actor.getXY();
+        const map = this.actor.getLevel().getMap();
+        const path = RG.Path.getShortestActorPath(map, aX, aY, this.x, this.y);
+        if (path.length > this.dist) {
+            this.addSubGoal(new GoalFollowPath(this.actor, [this.x, this.y]));
+        }
+        else if (path.length < this.dist) {
+            // moveToRandomDir(this.actor);
+        }
     }
 }
 Goal.Guard = GoalGuard;
