@@ -55,3 +55,5 @@ vimproject
 # For some game specific custom files
 tmp
 save_dumps
+
+.tern-port
