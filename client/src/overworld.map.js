@@ -479,20 +479,23 @@ OW.Map.prototype.getOWMap = function(useExplored = false) {
     return map;
 };
 
-/* Should be used with Viewport only. */
-/*
-OW.Map.prototype.getCell = function(x, y) {
-    const keyXY = x + ',' + y;
-    if (this._featuresByXY[keyXY]) {
-        return this._featuresByXY[keyXY][0];
-    }
-    if (!this._explored[keyXY]) {
-        return '?';
+/* Returns the OW Map represented as Map.CellList. Marker elements are used to
+ * show the visible cells. */
+OW.Map.prototype.getCellList = function() {
+    const map = this.getOWMap();
+    const sizeY = map[0].length;
+    const sizeX = map.length;
+
+    const cellList = new RG.Map.CellList(sizeX, sizeY);
+    for (let x = 0; x < sizeX; x++) {
+        for (let y = 0; y < sizeY; y++) {
+            const marker = new RG.Element.Marker(map[x][y]);
+            cellList.setProp(x, y, RG.TYPE_ELEM, marker);
+        }
     }
 
-    return this._baseMap[x][y];
+    return cellList;
 };
-*/
 
 /* Converts the OW.Map into string. */
 OW.Map.prototype.mapToString = function(useExplored = false) {
