@@ -556,9 +556,12 @@ RG.Game.Main = function() {
         const player = this.getPlayer();
         const world = this.getCurrentWorld();
         const area = world.getAreas()[0];
-        const xy = area.findTileXYById(player.getLevel().getID());
+        let xy = area.findTileXYById(player.getLevel().getID());
 
-        if (!xy) {return null;}
+        if (!xy) {
+          xy = this.tryToGetTileXY();
+          if (!xy) {return null;}
+        }
 
         const {xMap, yMap} = overworld.coordMap;
 
@@ -568,6 +571,26 @@ RG.Game.Main = function() {
         const pX = Math.floor(coordX / xMap);
         const pY = Math.floor(coordY / yMap);
         return [pX, pY];
+    };
+
+    /* When player is inside a zone, tries to find the area tile location by
+     * traversing the world hierarchy. */
+    this.tryToGetTileXY = () => {
+      const level = this.getPlayer().getLevel();
+      let parent = level.getParent();
+      while (parent) {
+        if (parent.getParent) {
+          parent = parent.getParent();
+        }
+        else {
+          parent = null;
+        }
+
+        if (parent.getTileXY) {
+          return parent.getTileXY();
+        }
+      }
+      return null;
     };
 
     this.setOverWorldExplored = xy => {
