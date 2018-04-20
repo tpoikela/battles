@@ -605,7 +605,14 @@ class RGElementMarker extends Mixin.Locatable(RGElementBase) {
         super('marker');
         this.char = char;
         this.tag = '';
+        this.className = false; // Uses default cell-element-marker
     }
+
+    getClassName() {return this.className;}
+    setClassName(name) {this.className = name;}
+
+    getChar() {return this.char;}
+    setChar(char) {this.char = char;}
 
     setTag(tag) {this.tag = tag;}
     getTag() {return this.tag;}
