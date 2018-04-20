@@ -23,7 +23,6 @@ describe('DungeonGenerator', function() {
             level.debugPrintInASCII();
             expect(level).to.exist;
         }
-
     });
 
 
@@ -40,6 +39,7 @@ describe('DungeonGenerator', function() {
 
         expect(actors.length).to.be.above(5);
         expect(items.length).to.be.above(5);
+        level.debugPrintInASCII();
 
     });
 
