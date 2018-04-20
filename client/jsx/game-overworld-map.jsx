@@ -4,9 +4,16 @@ import PropTypes from 'prop-types';
 import ModalHeader from './modal-header';
 
 const Modal = require('react-bootstrap-modal');
+const KeyCode = require('../gui/keycode');
+const Keys = require('../src/keymap');
 
 /* This component shows the game overworld map in a modal. */
 export default class GameOverWorldMap extends Component {
+
+    constructor(props) {
+        super(props);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
+    }
 
   /* Don't update unless player's position has changed. */
   shouldComponentUpdate(nextProps) {
@@ -23,6 +30,13 @@ export default class GameOverWorldMap extends Component {
       }
     }
     return false;
+  }
+
+  handleKeyDown(evt) {
+    const keyCode = KeyCode.getKeyCode(evt);
+    if (keyCode === Keys.GUI.OwMap) {
+        this.toggleScreen('OWMap');
+    }
   }
 
   render() {
@@ -48,6 +62,7 @@ export default class GameOverWorldMap extends Component {
         id='gameOverWorldMapModal'
         large={true}
         onHide={this.toggleScreen.bind(this, 'OWMap')}
+        onKeyDown={this.handleKeyDown}
         show={this.props.showOWMap}
       >
         <ModalHeader
