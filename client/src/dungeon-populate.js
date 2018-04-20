@@ -1,6 +1,7 @@
 
 const RG = require('./rg.js');
 const Geometry = require('./geometry');
+const Evaluator = require('./evaluators');
 
 const MIN_ACTORS_ROOM = 2;
 
@@ -118,8 +119,34 @@ DungeonPopulate.prototype.populateLevel = function(level) {
         });
     }
 
+    // Add an endpoint guardian
+    if (extras.endPoint) {
+        const eXY = extras.endPoint;
+        const guardEval = new Evaluator.Guard(RG.BIAS.Guard, eXY);
+
+        const guardian = this.getEndPointGuardian(maxDanger);
+        if (guardian) {
+            if (guardian.getBrain().getGoal) {
+                guardian.getBrain().getGoal().addEvaluator(guardEval);
+            }
+            level.addActor(guardian, eXY[0], eXY[1]);
+        }
+    }
+
 };
 
+DungeonPopulate.prototype.getEndPointGuardian = function(maxDanger) {
+    const parser = RG.ObjectShell.getParser();
+    let currDanger = maxDanger + 1;
+    let guardian = null;
+    const actorFunc = actor => actor.danger <= currDanger;
+    while (!guardian && currDanger > 0) {
+        // TODO add some theming for the guardian
+        guardian = parser.createRandomActor({func: actorFunc});
+        --currDanger;
+    }
+    return guardian;
+};
 
 DungeonPopulate.prototype.addMainLoot = function(level, room, maxValue) {
     const parser = RG.ObjectShell.getParser();
