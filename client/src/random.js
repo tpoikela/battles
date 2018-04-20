@@ -33,6 +33,23 @@ RG.Random.prototype.arrayGetRand = function(arr) {
     return arr[randIndex];
 };
 
+/* Returns N unique items randomly from the array. */
+RG.Random.prototype.getUniqueItems = function(arr, n = 2) {
+    if (arr.length < n) {
+        return arr;
+    }
+    const seen = {};
+    const items = [];
+    while (items.length < n) {
+        const index = this.randIndex(arr);
+        if (!seen[index]) {
+            seen[index] = true;
+            items.push(arr[index]);
+        }
+    }
+    return items;
+};
+
 RG.Random.prototype.getUniformInt = function(min, max) {
     return this.rng.getUniformInt(min, max);
 };
