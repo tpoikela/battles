@@ -66,6 +66,27 @@ OW.biomeTypeMap = {
     grassland: 5
 };
 
+const elemStyles = RG.cellStyles.elements;
+// These styles will be used to render the OW map
+OW.classNames = {
+  [OW.TERM]: elemStyles.floor,
+  [OW.MOUNTAIN]: elemStyles.highrock,
+
+  [OW.LL_WE]: elemStyles.mountain,
+  [OW.LL_NS]: elemStyles.mountain,
+  [OW.CC_NW]: elemStyles.mountain,
+  [OW.CC_NE]: elemStyles.mountain,
+  [OW.CC_SW]: elemStyles.mountain,
+  [OW.CC_SE]: elemStyles.mountain,
+  [OW.XX]: elemStyles.mountain,
+  [OW.TT_W ]: elemStyles.mountain,
+  [OW.TT_E ]: elemStyles.mountain,
+  [OW.TT_N ]: elemStyles.mountain,
+  [OW.TT_S ]: elemStyles.mountain,
+  default: 'cell-element-ow'
+
+};
+
 OW.BIOME = {};
 OW.BIOME.ALPINE = 'alpine';
 OW.BIOME.ARCTIC = 'arctic';
@@ -439,6 +460,10 @@ OW.Map.prototype.setExplored = function(xy) {
     this._explored[xy[0] + ',' + xy[1]] = true;
 };
 
+OW.Map.prototype.isExplored = function(xy) {
+    return this._explored[xy[0] + ',' + xy[1]];
+};
+
 OW.Map.prototype.toJSON = function() {
     const json = {
         baseMap: this._baseMap,
@@ -491,6 +516,12 @@ OW.Map.prototype.getCellList = function() {
     for (let x = 0; x < sizeX; x++) {
         for (let y = 0; y < sizeY; y++) {
             const marker = new RG.Element.Marker(map[x][y]);
+            if (OW.classNames[map[x][y]]) {
+                marker.setClassName(OW.classNames[map[x][y]]);
+            }
+            else {
+                marker.setClassName(OW.classNames.default);
+            }
             cellList.setProp(x, y, RG.TYPE_ELEM, marker);
         }
     }
