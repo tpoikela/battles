@@ -467,6 +467,10 @@ class RGElementExploration extends Mixin.Locatable(RGElementBase) {
         this.data = data;
     }
 
+    addData(key, val) {
+        this.data[key] = val;
+    }
+
     getData() {return this.data;}
 
     hasData() {
