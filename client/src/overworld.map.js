@@ -454,9 +454,7 @@ OW.Map.prototype.toJSON = function() {
     return json;
 };
 
-
-/* Converts the OW.Map into string. */
-OW.Map.prototype.mapToString = function(useExplored = false) {
+OW.Map.prototype.getOWMap = function(useExplored = false) {
     const map = JSON.parse(JSON.stringify(this._baseMap));
     const sizeY = map[0].length;
     const sizeX = map.length;
@@ -478,6 +476,29 @@ OW.Map.prototype.mapToString = function(useExplored = false) {
         }
       }
     }
+    return map;
+};
+
+/* Should be used with Viewport only. */
+/*
+OW.Map.prototype.getCell = function(x, y) {
+    const keyXY = x + ',' + y;
+    if (this._featuresByXY[keyXY]) {
+        return this._featuresByXY[keyXY][0];
+    }
+    if (!this._explored[keyXY]) {
+        return '?';
+    }
+
+    return this._baseMap[x][y];
+};
+*/
+
+/* Converts the OW.Map into string. */
+OW.Map.prototype.mapToString = function(useExplored = false) {
+    const map = this.getOWMap(useExplored);
+    const sizeY = map[0].length;
+    const sizeX = map.length;
 
     const lines = [];
     for (let y = 0; y < sizeY; y++) {
