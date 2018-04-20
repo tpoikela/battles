@@ -465,6 +465,10 @@ RG.World.ZoneBase.prototype.setTileXY = function(x, y) {
     this.tileY = y;
 };
 
+RG.World.ZoneBase.prototype.getTileXY = function() {
+    return [this.tileX, this.tileY];
+};
+
 RG.World.ZoneBase.prototype.addSubZone = function(subZone) {
     if (!RG.isNullOrUndef([subZone])) {
         subZone.setParent(this);
