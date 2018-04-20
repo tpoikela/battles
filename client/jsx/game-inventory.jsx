@@ -31,7 +31,6 @@ export default class GameInventory extends Component {
   }
 
   handleKeyDown(evt) {
-      console.log('handleKeyDown called');
       const keyCode = KeyCode.getKeyCode(evt);
       if (keyCode === Keys.GUI.Inv) {
           this.toggleScreen('Inventory');
