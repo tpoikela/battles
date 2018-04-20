@@ -81,4 +81,12 @@ Viewport.prototype.getCellsInViewPort = function(x, y, map) {
 /* Returns the specified cell row in the viewport. */
 Viewport.prototype.getCellRow = function(y) {return this.coord[y];};
 
+Viewport.prototype.debugPrint = function() {
+    const [startY, endY] = [this.startY, this.endY];
+    for (let yy = startY; yy <= endY; yy++) {
+        const row = this.coord[yy];
+        console.log(row.join(''));
+    }
+};
+
 module.exports = Viewport;
