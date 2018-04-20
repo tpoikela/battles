@@ -281,7 +281,7 @@ RG.cellStyles = {
         grass: 'cell-element-grass',
         highrock: 'cell-element-highrock',
         marker: {
-            func: 'getClassName',
+            getClassName: '', // Use value from get
             default: 'cell-element-marker'
         },
         mountain: 'cell-element-mountain',
