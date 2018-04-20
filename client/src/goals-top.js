@@ -115,10 +115,10 @@ class GoalThinkBasic extends GoalTop {
 
         this.bias = {
             attack: RG.RAND.getUniformRange(lowRange, hiRange),
-            explore: 0.2,
-            flee: 0.2,
-            order: 0.7,
-            patrol: 1.0
+            explore: RG.BIAS.Explore,
+            flee: RG.BIAS.Flee,
+            order: RG.BIAS.Order,
+            patrol: RG.BIAS.Patrol
         };
 
         this.updateEvaluators();
