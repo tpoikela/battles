@@ -166,17 +166,27 @@ function connectLevelsLinear(levels) {
     const arrStairsDown = [];
     const arrStairsUp = [];
 
+
     for (let nl = 0; nl < nLevels; nl++) {
         const src = levels[nl];
+
+        let extrasSrc = null;
+        if (src.hasExtras()) {extrasSrc = src.getExtras();}
 
         // Create stairs down
         if (nl < nLevels - 1) {
             const targetDown = levels[nl + 1];
+
             const stairsDown = new Stairs('stairsDown', src, targetDown);
-
             const stairCell = getFreeCellWithoutConnection(src);
+            let [sX, sY] = [stairCell.getX(), stairCell.getY()];
+            if (extrasSrc) {
+                if (extrasSrc.endPoint) {
+                    [sX, sY] = extrasSrc.endPoint;
+                }
+            }
 
-            src.addStairs(stairsDown, stairCell.getX(), stairCell.getY());
+            src.addStairs(stairsDown, sX, sY);
             arrStairsDown.push(stairsDown);
         }
 
@@ -186,8 +196,14 @@ function connectLevelsLinear(levels) {
             const stairsUp = new Stairs('stairsUp', src, targetUp);
 
             const stairCell = getFreeCellWithoutConnection(src);
+            let [sX, sY] = [stairCell.getX(), stairCell.getY()];
+            if (extrasSrc) {
+                if (extrasSrc.startPoint) {
+                    [sX, sY] = extrasSrc.startPoint;
+                }
+            }
 
-            src.addStairs(stairsUp, stairCell.getX(), stairCell.getY());
+            src.addStairs(stairsUp, sX, sY);
             arrStairsUp.push(stairsUp);
         }
     }
@@ -590,7 +606,7 @@ RG.World.SubZoneBase.prototype.addLevel = function(level) {
         else {
             let msg = 'Trying to add existing level. ';
             msg += ' ID: ' + level.getID();
-            RG.err('World.Branch', 'addLevel', msg);
+            RG.err('World.SubZoneBase', 'addLevel', msg);
         }
     }
     else {
