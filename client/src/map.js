@@ -253,6 +253,10 @@ RG.Map.Cell.prototype.setProp = function(prop, obj) {
     }
 };
 
+RG.Map.Cell.prototype.removeProps = function(propType) {
+    delete this._p[propType];
+};
+
 /* Removes the given object from cell properties.*/
 RG.Map.Cell.prototype.removeProp = function(prop, obj) {
     if (this.hasProp(prop)) {
