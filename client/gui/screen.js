@@ -2,6 +2,7 @@
 const Viewport = require('./viewport');
 const RG = require('../src/battles');
 
+const ALL_VISIBLE = 'ALL';
 // TODO: Refactor out of this file
 /* Builds and returns two arrays. First contains all CSS classNames of
  * cells to be rendered, and the second one all characters to be rendered.*/
@@ -27,8 +28,15 @@ const getClassesAndChars = function(seen, cells, selCell) {
 
     for (let i = 0; i < cells.length; i++) {
         const cell = cells[i];
-        const cellIndex = seen.indexOf(cell);
-        const visibleToPlayer = cellIndex < 0 ? false : true;
+
+        let visibleToPlayer = false;
+        if (seen === ALL_VISIBLE) {
+            visibleToPlayer = true;
+        }
+        else {
+            const cellIndex = seen.indexOf(cell);
+            visibleToPlayer = cellIndex < 0 ? false : true;
+        }
 
         let cellClass = RG.getCssClassForCell(cell, visibleToPlayer);
         const cellChar = RG.getCharForCell(cell, visibleToPlayer);
@@ -93,8 +101,14 @@ const getClassesAndCharsWithRLE = function(
         const cellX = cell.getX();
         const cellY = cell.getY();
 
-        const cellIndex = seen.indexOf(cell);
-        const visibleToPlayer = cellIndex < 0 ? false : true;
+        let visibleToPlayer = false;
+        if (seen === ALL_VISIBLE) {
+            visibleToPlayer = true;
+        }
+        else {
+            const cellIndex = seen.indexOf(cell);
+            visibleToPlayer = cellIndex < 0 ? false : true;
+        }
 
         cellClass = RG.getCssClassForCell(cell, visibleToPlayer);
         cellChar = RG.getCharForCell(cell, visibleToPlayer);
@@ -332,7 +346,10 @@ Screen.prototype.render = function(playX, playY, map, visibleCells) {
         this._charRows[yCount] = classesChars[1];
         ++yCount;
     }
+};
 
+Screen.prototype.renderAllVisible = function(playX, playY, map) {
+    this.render(playX, playY, map, ALL_VISIBLE);
 };
 
 Screen.prototype.renderWithRLE = function(
@@ -402,5 +419,7 @@ Screen.prototype.printRenderedChars = function() {
     console.log(row.join(''));
   });
 };
+
+Screen.ALL_VISIBLE = ALL_VISIBLE;
 
 module.exports = Screen;
