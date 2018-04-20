@@ -111,8 +111,13 @@ RG.getPropClassOrChar = function(styles, propObj) {
             for (const p in styles[lookupKey]) {
                 if (p !== 'default') {
                     const funcToCall = p;
-                    if (propObj[funcToCall]()) {
+                    const res = propObj[funcToCall]();
+
+                    if (res === true) {
                         return styles[lookupKey][p];
+                    }
+                    else if (res !== false) {
+                        return res;
                     }
                 }
             }
@@ -212,6 +217,10 @@ RG.charStyles = {
             isClosed: '+', // if isClosed() returns true
             default: '/'
         },
+        marker: {
+            getChar: '', // use value from getChar()
+            default: 'X'
+        },
         mountain: '^',
         passage: '.',
         placeholder: '?',
@@ -271,6 +280,10 @@ RG.cellStyles = {
         fort: 'cell-element-fort',
         grass: 'cell-element-grass',
         highrock: 'cell-element-highrock',
+        marker: {
+            func: 'getClassName',
+            default: 'cell-element-marker'
+        },
         mountain: 'cell-element-mountain',
         lava: 'cell-element-lava',
         lever: 'cell-element-door',
