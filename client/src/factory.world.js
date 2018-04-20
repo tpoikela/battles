@@ -51,7 +51,20 @@ const DungeonFeatures = function(zoneType) {
         const expPoints = 10 * (nLevel + 1) * conf.maxDanger;
         exploreElem.setExp(expPoints);
         exploreElem.setData({zoneType: this._zoneType});
-        level.addElement(exploreElem);
+
+        const parent = level.getParent();
+        if (parent && parent.getName) {
+            exploreElem.addData({zoneName: parent.getName()});
+        }
+
+        const extras = level.getExtras();
+        if (extras && extras.endPoint) {
+            const [eX, eY] = extras.endPoint;
+            level.addElement(exploreElem, eX, eY);
+        }
+        else {
+            level.addElement(exploreElem);
+        }
 
         const bossActor = this.generateBoss(nLevel, level, conf);
 
