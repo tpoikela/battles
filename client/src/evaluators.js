@@ -12,10 +12,10 @@ const Goal = require('./goals');
 const Evaluator = {};
 
 // Should be returned if evaluator is not applicable to current situation
-Evaluator.NOT_POSSIBLE = -1;
+Evaluator.NOT_POSSIBLE = RG.BIAS.NOT_POSSIBLE;
 
 // Should be returned if the case is always executed
-Evaluator.ALWAYS = 10.0;
+Evaluator.ALWAYS = RG.BIAS.ALWAYS;
 
 /* Base class for all evaluators. Provides only the basic constructor. */
 class EvaluatorBase {
