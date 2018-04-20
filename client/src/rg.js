@@ -691,6 +691,17 @@ RG.energy = {
     RUN: 20
 };
 
+// Actor biases for different goals
+RG.BIAS = {
+    ALWAYS: 10.0,
+    NOT_POSSIBLE: -10.0,
+    Explore: 0.2,
+    Flee: 0.2,
+    Guard: 1.1,
+    Order: 0.7,
+    Patrol: 1.0
+};
+
 // Different fighting modes
 RG.FMODE_NORMAL = 0;
 RG.FMODE_FAST = 1;
