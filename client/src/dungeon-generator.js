@@ -576,18 +576,41 @@ DungeonGenerator.prototype.addFireToRoom = function(level, room) {
     });
 };
 
+function getRoomDist(level, r1, r2) {
+    const map = level.getMap();
+    const [cx1, cy1] = r1.getCenter();
+    const [cx2, cy2] = r2.getCenter();
+    const path = Path.getShortestPassablePathWithDoors(map, cx1, cy1, cx2, cy2);
+    return path.length;
+}
+
 DungeonGenerator.prototype.addStairsLocations = function(level) {
     // Default is to find rooms that are far away from each other
     const extras = level.getExtras();
     let watchdog = 100;
     if (extras.rooms) {
-        // 1. Find 2 different rooms
-        const room1 = RG.RAND.arrayGetRand(extras.rooms);
-        let room2 = RG.RAND.arrayGetRand(extras.rooms);
-        while (room1.getID() === room2.getID()) {
-            room2 = RG.RAND.arrayGetRand(extras.rooms);
+
+        // 1. Find 2 different rooms with maximum center distance
+        let [room1, room2] = RG.RAND.getUniqueItems(extras.rooms, 2);
+        let chosenRoom1 = null;
+        let chosenRoom2 = null;
+        let dist = 0;
+        let largestDist = 0;
+        const minRoomDistance = Math.floor(level.getMap().cols / 2)
+            + Math.floor(level.getMap().rows / 2);
+
+        while (dist < minRoomDistance) {
+            [room1, room2] = RG.RAND.getUniqueItems(extras.rooms, 2);
+            dist = getRoomDist(level, room1, room2);
+            if (dist > largestDist) {
+                largestDist = dist;
+                chosenRoom1 = room1;
+                chosenRoom2 = room2;
+            }
             if (--watchdog === 0) {break;}
         }
+        room1 = chosenRoom1;
+        room2 = chosenRoom2;
 
         const [cx1, cy1] = room1.getCenter();
         const [cx2, cy2] = room2.getCenter();
@@ -599,6 +622,7 @@ DungeonGenerator.prototype.addStairsLocations = function(level) {
         const goalPoint = new RG.Element.Marker('>');
         const startPoint = new RG.Element.Marker('<');
         startPoint.setTag('start_point');
+        goalPoint.setTag('end_point');
         level.addElement(goalPoint, cx1, cy1);
         level.addElement(startPoint, cx2, cy2);
         room1.addStairs(cx1, cy1, true);
@@ -659,8 +683,6 @@ DungeonGenerator.prototype.addCriticalPath = function(level) {
         }
     }
 
-    console.log('CRITICAL PATH LENGHT: ' + criticalPath.length);
-
     criticalPath.forEach(xy => {
         const critPathElem = new RG.Element.Marker('*');
         critPathElem.setTag('critical_path');
@@ -680,7 +702,6 @@ DungeonGenerator.prototype.breakPath = function(level, path) {
             const marker = new RG.Element.Marker('X');
             marker.setTag('path broken');
             level.addElement(marker, x, y);
-            console.log(`Path BROKEN at ${x},${y}`);
             return true;
         }
     }
@@ -705,17 +726,18 @@ DungeonGenerator.prototype.restorePath = function(level, path) {
             });
         }
     }
-    console.log('RESTORED THE PREV PATH');
 };
 
 
-/* Right now, use a floodfill to check the connectivity. */
+/* Right now, use a floodfill to check the connectivity. Returns true if the
+ * level is rejected. If conf.errorOnFailure is set, throws error immediately.
+ * */
 DungeonGenerator.prototype.verifyLevel = function(mapGen, level, conf) {
     const map = level.getMap();
-    const filter = c => c.isPassable() || c.hasDoor();
-    const floorCells = map.getCells(filter);
+    const fillFilter = cell => cell.isPassable() || cell.hasDoor();
+    const floorCells = map.getCells(fillFilter);
     const cell = floorCells[0];
-    const floorCellsFilled = Geometry.floodfill(map, cell, filter);
+    const floorCellsFilled = Geometry.floodfill(map, cell, fillFilter);
 
     const numTotal = floorCells.length;
     const numFilled = floorCellsFilled.length;
@@ -738,7 +760,7 @@ DungeonGenerator.prototype.verifyLevel = function(mapGen, level, conf) {
 
 /* Removes unneeded markers from the level. */
 DungeonGenerator.prototype.removeMarkers = function(level, conf) {
-    let preserveMarkers = ['start_point', 'critical_path'];
+    let preserveMarkers = ['start_point', 'end_point', 'critical_path'];
     if (conf.PresetLevels) {
         preserveMarkers = preserveMarkers.concat(conf.preserveMarkers);
     }
