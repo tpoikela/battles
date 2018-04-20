@@ -171,7 +171,7 @@ DungeonGenerator.prototype.create = function(cols, rows, conf) {
         }
     }
 
-    this.removeMarkers(level);
+    this.removeMarkers(level, conf);
     return level;
 };
 
@@ -663,7 +663,7 @@ DungeonGenerator.prototype.addCriticalPath = function(level) {
 
     criticalPath.forEach(xy => {
         const critPathElem = new RG.Element.Marker('*');
-        critPathElem.setTag('critical path');
+        critPathElem.setTag('critical_path');
         level.addElement(critPathElem, xy.x, xy.y);
     });
 
@@ -737,8 +737,15 @@ DungeonGenerator.prototype.verifyLevel = function(mapGen, level, conf) {
 };
 
 /* Removes unneeded markers from the level. */
-DungeonGenerator.prototype.removeMarkers = function(level) {
-    const preserveMarkers = ['start_point'];
+DungeonGenerator.prototype.removeMarkers = function(level, conf) {
+    let preserveMarkers = ['start_point', 'critical_path'];
+    if (conf.PresetLevels) {
+        preserveMarkers = preserveMarkers.concat(conf.preserveMarkers);
+    }
+    if (!RG.isNullOrUndef([conf.shouldRemoveMarkers])) {
+        this.shouldRemoveMarkers = conf.shouldRemoveMarkers;
+    }
+
     if (this.shouldRemoveMarkers) {
         level.removeElements(e => {
             if (e.getTag) {
