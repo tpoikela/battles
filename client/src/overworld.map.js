@@ -7,6 +7,7 @@
 
 const RG = require('./rg');
 RG.Random = require('./random');
+RG.Map = require('./map');
 
 const debug = require('debug')('bitn:OW');
 
