@@ -805,7 +805,22 @@ RG.DIR = {
     NE: [1, -1],
     SE: [1, 1],
     NW: [-1, -1],
-    SW: [1, -1]
+    SW: [-1, 1]
+};
+
+RG.dirTodXdY = function(dir) {
+    const ucDir = dir.toUpperCase();
+    return RG.DIR[ucDir];
+};
+
+RG.dxdYToDir = function(dXdY) {
+    const [dX, dY] = dXdY;
+    let result = '';
+    if (dY === 1) {result += 'S';}
+    else if (dY === -1) {result += 'N';}
+    if (dX === 1) {result += 'E';}
+    else if (dX === -1) {result += 'W';}
+    return result;
 };
 
 RG.DMG = {
