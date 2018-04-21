@@ -18,6 +18,27 @@ const getNumLevels = function(name) {
     }
 };
 
+const getDungeonSizeXY = function(name) {
+    const mediumSize = [RG.LEVEL_MEDIUM_X, RG.LEVEL_MEDIUM_Y];
+    switch (name) {
+        case 'Cave': return mediumSize;
+        case 'Cavern': return [RG.LEVEL_HUGE_X, RG.LEVEL_HUGE_Y];
+        case 'Grotto': return [100, 50];
+
+        case 'Cells': return [100, 50];
+        case 'Dungeon': return [100, 50];
+
+        case 'Labyrinth': return [100, 100];
+
+        case 'Crypt': return mediumSize;
+        case 'Tombs': return [100, 100];
+        case 'Catacombs': return [RG.LEVEL_HUGE_X, RG.LEVEL_HUGE_Y];
+
+        default: return mediumSize;
+    }
+
+};
+
 /* Returns generation constraints based on the level name. */
 const getConstraint = function(name) {
     switch (name) {
@@ -57,10 +78,12 @@ LevelGen.getDungeonConf = dungeonName => {
     const usedName = convertToImplemented(dungeonName);
     const nLevels = getNumLevels(usedName);
     const constraint = getConstraint(usedName);
+    const [dungeonX, dungeonY] = getDungeonSizeXY(dungeonName);
 
     const dungeonType = usedName.toLowerCase();
     const obj = {
         name: dungeonName,
+        dungeonX, dungeonY,
         dungeonType: dungeonType,
         nBranches: 1,
         branch: [
