@@ -522,6 +522,7 @@ export default class GameEditor extends Component {
       func: (actor) => (actor.danger < 100)
     };
 
+    RG.FACT.setParser(RG.ObjectShell.getParser());
     RG.FACT.addNRandActors(level, this.parser, conf);
     this.setStateWithLevel(level);
   }
