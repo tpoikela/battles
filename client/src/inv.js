@@ -535,6 +535,11 @@ RG.Inv.Inventory = function(actor) {
         return null;
     };
 
+    this.getMissile = () => {
+        const item = this._eq.getItem('missile');
+        return item;
+    };
+
     this.getEquipped = slotType => this._eq.getItem(slotType);
 
 
