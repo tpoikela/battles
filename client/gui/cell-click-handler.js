@@ -24,6 +24,10 @@ export default class CellClickHandler {
         return null;
     }
 
+    reset() {
+        this._keyBuffer = [];
+    }
+
     hasKeys() {
         return this._keyBuffer.length > 0;
     }
