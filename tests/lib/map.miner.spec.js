@@ -29,6 +29,23 @@ describe('Map.Miner', function() {
                 expect(val).to.equal(1);
             }
         });
+    });
 
+    it('has options to add unique miners', () => {
+        const minerSW = {x: 1, y: 1, dirWeights: {S: 1, W: 1, SW: 1}};
+        const minerSE = {x: 78, y: 1, dirWeights: {S: 1, E: 1, SE: 1}};
+        const opts = {
+            addMiners: [minerSW, minerSE]
+        };
+        const gen = new MapMiner(80, 40, opts);
+        gen.create(() => true);
+        gen.printMap();
+
+        /* gen.create((x, y, val) => {
+            if (x >= dontDig.ulx && x <= dontDig.lrx &&
+                y >= dontDig.uly && y <= dontDig.lry) {
+                expect(val).to.equal(1);
+            }
+        });*/
     });
 });
