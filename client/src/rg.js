@@ -524,16 +524,47 @@ RG.getMeleeAttack = function(att) {
     return attack;
 };
 
+RG.getMeleeDamage = function(att) {
 
-RG.getMissileDamage = function(att, miss) {
-    let dmg = miss.rollDamage();
-    dmg += Math.round(att.get('Stats').getAgility() / 3);
+};
+
+RG.getMeleeDamageAdded = function(att) {
+    let dmg = att.getCombatBonus('getDamage');
+    dmg += RG.strengthToDamage(att.getStrength());
+    return dmg;
+};
+
+RG.getMeleeAttackInfo = function(att) {
+    let result = 'Att: ' + RG.getMeleeAttack(att);
+    const weapon = att.getWeapon();
+    if (weapon) {
+        result += ' D: ' + weapon.getDamageDie().toString();
+    }
+    else {
+        result += ' D: ' + att.get('Combat').getDamageDie().toString();
+    }
+    result += ' + ' + RG.getMeleeDamageAdded(att);
+    return result;
+};
+
+RG.getMissileAgilityDmg = function(agi) {
+    return Math.round(agi / 3);
+};
+
+RG.getMissileDamageAdded = function(att, miss) {
+    let dmg = RG.getMissileAgilityDmg(att.get('Stats').getAgility());
     if (miss.has('Ammo')) {
         dmg += att.getMissileWeapon().rollDamage();
     }
     if (att.has('StrongShot')) {
         dmg += this.strengthToDamage(att.getStrength());
     }
+    return dmg;
+};
+
+RG.getMissileDamage = function(att, miss) {
+    let dmg = miss.rollDamage();
+    dmg += RG.getMissileDamageAdded(att, miss);
     return dmg;
 };
 
@@ -548,6 +579,27 @@ RG.getMissileAttack = function(att) {
     if (weapon) {attack -= weapon.getAttack();}
 
     return attack;
+};
+
+/* Returns the missile attack info in a string. */
+RG.getMissileAttackInfo = function(att) {
+    const missWeapon = att.getMissileWeapon();
+    const miss = att.getInvEq().getMissile();
+    if (!miss) {
+        return 'No missile equipped';
+    }
+
+    let result = 'Att: ' + RG.getMissileAttack(att);
+    result += ' D: ' + miss.getDamageDie().toString();
+    if (missWeapon) {
+        const dmgDie = missWeapon.getDamageDie();
+        result += ' + ' + dmgDie.toString() + ' (wpn)';
+    }
+
+    const dmg = RG.getMissileDamageAdded(att, miss);
+    result += ' + ' + dmg;
+    result += ' R: ' + RG.getMissileRange(att, miss);
+    return result;
 };
 
 RG.getMissileRange = function(att, miss) {
@@ -1420,9 +1472,10 @@ RG.Die.prototype.roll = function() {
 };
 
 RG.Die.prototype.toString = function() {
-    let sign = '+';
-    if (this._mod < 0) {sign = '-';}
-    return this._num + 'd' + this._dice + ' ' + sign + ' ' + this._mod;
+    let modStr = '+ ' + this._mod;
+    if (this._mod < 0) {modStr = '- ' + this._mod;}
+    else if (this._mod === 0) {modStr = '';}
+    return this._num + 'd' + this._dice + ' ' + modStr;
 };
 
 RG.Die.prototype.copy = function(rhs) {
