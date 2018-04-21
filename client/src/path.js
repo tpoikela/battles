@@ -117,9 +117,10 @@ Path.getPathWeight = (map, coord) => {
     return w;
 };
 
-/* Gets the minimum weight path between x0,y0 and x1,y1. This algorithm will
-* tunnel through any obstacles eventually. Optionally takes the path function
-* as last argument or uses the default getShortestPassablePath. */
+/* Gets the minimum weight path between x0,y0 and x1,y1 of two options.
+ * This algorithm will
+ * tunnel through any obstacles eventually. Optionally takes the path function
+ * as last argument or uses the default getShortestPassablePath. */
 Path.getMinWeightPath = function(map, x0, y0, x1, y1, pathFunc) {
     let coordPassable = [];
     if (pathFunc) {
