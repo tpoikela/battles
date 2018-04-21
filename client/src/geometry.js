@@ -36,6 +36,21 @@ RG.Geometry = {
 
     },
 
+    getDiagCross: function(x0, y0, d, incSelf = false) {
+        const res = [];
+        for (let x = x0 - d; x <= x0 + d; x++) {
+            for (let y = y0 - d; y <= y0 + d; y++) {
+                const dX = x - x0;
+                const dY = y - y0;
+                if (dX !== 0 && dY !== 0) {
+                    res.push([x, y]);
+                }
+            }
+        }
+        if (incSelf) {res.push([x0, y0]);}
+        return res;
+    },
+
     getCrossCaveConn: function(x0, y0, d, incSelf = false) {
         const res = [];
         for (let x = x0 - d; x <= x0 + d; x++) {
