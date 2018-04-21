@@ -901,11 +901,10 @@ RG.Template.Level = function(tilesX, tilesY) {
 
     this._getMatchWithExits = function(exitsReqd) {
         const [any, exits, excluded] = exitsReqd;
-        console.log(`GOT: any:${any}, req:${exits}, excl:${excluded}`);
+        this.dbg(`GOT: any:${any}, req:${exits}, excl:${excluded}`);
         const keys = Object.keys(this.sortedWithAllExits);
         let validKeys = keys;
 
-        console.log('Before exclude: ' + validKeys);
         // Exclude exits
         excluded.forEach(exit => {
             validKeys = validKeys.filter(key => (
@@ -913,7 +912,6 @@ RG.Template.Level = function(tilesX, tilesY) {
             ));
         });
 
-        console.log('After exclude: ' + validKeys);
 
         // Check if required exits are contained in the keys
         let keysSplit = validKeys.map(key => key.split(''));
@@ -922,7 +920,6 @@ RG.Template.Level = function(tilesX, tilesY) {
         ));
 
         validKeys = keysSplit.map(key => key.join(''));
-        console.log('Valid keys are: ' + validKeys);
 
         let result = [];
         validKeys.forEach(key => {
