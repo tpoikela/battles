@@ -821,6 +821,16 @@ export default class GameEditor extends Component {
       levelConf['Dungeon'] = DungeonGenerator.getOptions();
       levelConf.shown = 'Dungeon';
     }
+    else if (value === 'Cave') {
+      levelConf['Cave'] = DungeonGenerator.getOptions();
+      levelConf.shown = 'Cave';
+    }
+    else if (value === 'cave') {
+      const caveGen = new ROT.Map.Miner();
+      levelConf.cave = caveGen._options;
+      delete levelConf.cave.rng;
+      levelConf.shown = 'cave';
+    }
     else {
       levelConf[value] = {};
       levelConf.shown = value;
