@@ -15,8 +15,8 @@ const eventToPosition = (e, elem, props, elemID) => {
     const startY = props.startY;
 
     const rect = elem.getBoundingClientRect();
-
-    const rowElem = document.getElementsByClassName(elemID)[0];
+    // const rowElem = document.getElementsByClassName(elemID)[0];
+    const rowElem = elem.getElementsByClassName(elemID)[0];
     if (rowElem) {
         console.log(`h: ${rowElem.clientHeight} w: ${rowElem.clientWidth}`);
         const sizeX = rowElem.clientWidth / numCells;
