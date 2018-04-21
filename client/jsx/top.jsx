@@ -666,6 +666,15 @@ class BattlesTop extends Component {
             if (!this.clickHandler.hasKeys()) {
                 this.ctrlMode = 'MANUAL';
             }
+            else {
+                const enemies = RG.findEnemyCellForActor(this.game.getPlayer(),
+                    this.gameState.visibleCells);
+                if (enemies.length > 0) {
+                    RG.gameMsg('You spot an enemy');
+                    this.ctrlMode = 'MANUAL';
+                    this.clickHandler.reset();
+                }
+            }
         }
     }
 
@@ -872,6 +881,7 @@ class BattlesTop extends Component {
                     doInvCmd={this.doInvCmd}
                     eq={eq}
                     equipSelected={this.state.equipSelected}
+                    handleKeyDown={this.handleKeyDown}
                     inv={inv}
                     invMsg={this.state.invMsg}
                     maxWeight={maxWeight}
