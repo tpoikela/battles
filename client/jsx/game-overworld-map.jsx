@@ -23,7 +23,7 @@ export default class GameOverWorldMap extends Component {
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.toggleScreen = this.toggleScreen.bind(this);
         this.state = {
-          tabShown: 'World'
+          tabShown: 'Region'
         };
     }
 
