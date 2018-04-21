@@ -115,6 +115,10 @@ export default class GameCharInfo extends Component {
       const exploreInfo = this.getExploreInfo(actor);
       const reqExp = RG.getExpRequired(expLevel + 1);
       const expMissing = reqExp - expPoints;
+
+      const missileInfo = RG.getMissileAttackInfo(actor);
+      const meleeInfo = RG.getMeleeAttackInfo(actor);
+
       return (
         <div>
           <div className='modal-body row' id='char-info-general'>
@@ -136,8 +140,8 @@ export default class GameCharInfo extends Component {
           <div className='modal-body row'>
             <div className='col-md-6'>
               <h2>Combat info</h2>
-              <p>Melee:</p>
-              <p>Missile:</p>
+              <p>Melee: {meleeInfo}</p>
+              <p>Missile: {missileInfo}</p>
             </div>
 
             <div className='col-md-6' id='char-info-box'>
