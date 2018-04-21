@@ -7,7 +7,9 @@ const debug = require('debug')('bitn:Factory.World');
 const RG = require('./rg');
 const ConfStack = require('./conf-stack');
 RG.Factory = require('./factory');
+
 const DungeonGenerator = require('./dungeon-generator');
+const CaveGenerator = require('./cave-generator');
 
 const Stairs = RG.Element.Stairs;
 const ZONE_TYPES = ['City', 'Mountain', 'Dungeon', 'BattleZone'];
@@ -546,6 +548,13 @@ RG.Factory.World = function() {
                     if ((/(cave|crypt)/i).test(dungeonType)) {
                         // TODO implement Cave and Crypt generators
                         level = this.factZone.createDungeonLevel(levelConf);
+                    }
+                    else if ((/cave/).test(dungeonType)) {
+                        const caveGen = new CaveGenerator();
+                        const [cols, rows] = [levelConf.x, levelConf.y];
+                        level = caveGen.create(cols, rows, levelConf);
+                        this.factZone.addItemsAndActors(level, conf);
+                        this.factZone.addExtraDungeonFeatures(level, conf);
                     }
                     else {
                         const dungGen = new DungeonGenerator();
