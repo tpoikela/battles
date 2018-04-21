@@ -36,6 +36,21 @@ RG.Geometry = {
 
     },
 
+    getCrossCaveConn: function(x0, y0, d, incSelf = false) {
+        const res = [];
+        for (let x = x0 - d; x <= x0 + d; x++) {
+            for (let y = y0 - d; y <= y0 + d; y++) {
+                if (x === x0 || y === y0) {
+                    if (x !== x0 || y !== y0) {
+                        res.push([x, y]);
+                    }
+                }
+            }
+        }
+        if (incSelf) {res.push([x0, y0]);}
+        return res;
+    },
+
     /* Returns a box of coordinates given starting point and end points
      * (inclusive). */
     getBox: function(x0, y0, maxX, maxY) {
@@ -688,6 +703,81 @@ RG.Geometry.floodfill = function(map, cell, type, diag = false) {
         currCell = cellsLeft.shift();
     }
     return result;
+};
+
+/* Does a floodfill of map from point xy. Uses value as the filled value. BUT,
+ * does not modify the map, only returns x,y coordinates which would be filled.
+ * Optionally, creates a lookup table for fast lookup, and can fill diagonally,
+ * if the last arg is true.
+ */
+RG.Geometry.floodfill2D = function(map, xy, value, lut = false, diag = false) {
+    const [x, y] = xy;
+    if (map[x][y] !== value) {return [];}
+
+    let currXY = xy;
+    const xyLeft = [];
+    const result = [currXY];
+    const colored = {}; // Needed because we're not changing anything
+    colored[x + ',' + y] = true;
+
+    /* Private func which checks if the cell should be added to floodfill. */
+    const tryToAddXY = function(x, y) {
+        if (x < map.length && y < map[0].length) {
+            if (!colored[x + ',' + y]) {
+                const currValue = map[x][y];
+                if (currValue === value) {
+                    colored[x + ',' + y] = true;
+                    result.push([x, y]);
+                    if (lut) {lut[x + ',' + y] = true;}
+                    xyLeft.push([x, y]);
+                }
+            }
+        }
+    };
+
+    while (currXY) {
+        const [x, y] = currXY;
+        // 9. West
+        const xWest = x - 1;
+        tryToAddXY(xWest, y);
+
+        // 10. East
+        const xEast = x + 1;
+        tryToAddXY(xEast, y);
+
+        // 11. North
+        const yNorth = y - 1;
+        tryToAddXY(x, yNorth);
+
+        // 12. South
+        const ySouth = y + 1;
+        tryToAddXY(x, ySouth);
+
+        // Allow diagonals in fill if requested
+        if (diag) {
+            tryToAddXY(xWest, yNorth);
+            tryToAddXY(xEast, yNorth);
+            tryToAddXY(xWest, ySouth);
+            tryToAddXY(xEast, ySouth);
+        }
+
+        currXY = xyLeft.shift();
+    }
+    return result;
+
+};
+
+RG.Geometry.getMassCenter = function(arr) {
+    let x = 0;
+    let y = 0;
+    for (let i = 0; i < arr.length; i++) {
+        x += arr[i][0];
+        y += arr[i][1];
+    }
+    return [
+        Math.round(x / arr.length),
+        Math.round(y / arr.length)
+    ];
 };
 
 /* Square fill finds the largest square shaped region of a given cell type. */
