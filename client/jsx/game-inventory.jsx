@@ -35,6 +35,10 @@ export default class GameInventory extends Component {
       if (keyCode === Keys.GUI.Inv) {
           this.toggleScreen('Inventory');
       }
+      else if (Keys.KeyMap.isConfirmYes(keyCode)) {
+          // Delegate to parent
+          this.props.handleKeyDown(evt);
+      }
   }
 
   onChangeCount(evt) {
@@ -316,6 +320,7 @@ GameInventory.propTypes = {
   doInvCmd: PropTypes.func.isRequired,
   eq: PropTypes.object,
   equipSelected: PropTypes.object,
+  handleKeyDown: PropTypes.func.isRequired,
   inv: PropTypes.object,
   invMsg: PropTypes.string.isRequired,
   maxWeight: PropTypes.number,
