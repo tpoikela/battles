@@ -628,6 +628,7 @@ RG.Map.Generator = function() { // {{{2
             for (let y = 0; y < rows; y++) {
                 if (asciiMap[x][y] === '+') {
                     const door = new RG.Element.Door();
+                    door.setXY(x, y);
                     map.setBaseElemXY(x, y, asciiToElem['.']);
                     map.setElemXY(x, y, door);
                 }
