@@ -586,7 +586,7 @@ RG.Game.Main = function() {
           parent = null;
         }
 
-        if (parent.getTileXY) {
+        if (parent && parent.getTileXY) {
           return parent.getTileXY();
         }
       }
