@@ -829,6 +829,7 @@ RG.OverWorld.createWorldConf = function(
             `sub Y :${nSubLevelsY}, nTilesY: ${nTilesY}`);
     }
 
+
     // Map values are OK, this loops through smaller overworld sublevels, which
     // are aligned with the mountain wall creation
     for (let x = 0; x < nSubLevelsX; x++) {
@@ -848,6 +849,8 @@ RG.OverWorld.createWorldConf = function(
 
             const coordObj = {xMap, yMap, nSubLevelsX, nSubLevelsY,
                 x, y, slX, slY, aX, aY, subLevel, subX, subY};
+
+            const [pX, pY] = getPlayerPosition(coordObj);
             const features = subLevel.getFeatures();
 
             Object.keys(features).forEach(type => {
@@ -887,6 +890,8 @@ RG.OverWorld.createWorldConf = function(
                         Object.assign(dungeonConf,
                             {x: aX, y: aY, levelX: featX, levelY: featY});
                         areaConf.nDungeons += 1;
+                        addMaxDangerAndValue(pX, pY, dungeonConf);
+                        console.log(dungeonConf);
                         areaConf.dungeon.push(dungeonConf);
                     }
                     else if (feat.type === 'mountain') {
@@ -899,6 +904,7 @@ RG.OverWorld.createWorldConf = function(
                         const mountConf = RG.LevelGen.getMountainConf(mName);
                         Object.assign(mountConf,
                             {x: aX, y: aY, levelX: featX, levelY: featY});
+                        addMaxDangerAndValue(pX, pY, mountConf);
                         areaConf.nMountains += 1;
                         areaConf.mountain.push(mountConf);
                     }
@@ -914,6 +920,22 @@ RG.OverWorld.createWorldConf = function(
     addBiomeLocations(ow, areaConf);
     return worldConf;
 };
+
+/* Adds maxDanger and maxValue props into the configuration. At the moment, this
+ * is based on the distance from player (+ plus some randomisation). */
+function addMaxDangerAndValue(pX, pY, zoneConf) {
+    const {x, y} = zoneConf;
+    const dX = Math.abs(pX - x);
+    const dY = Math.abs(pY - y);
+    zoneConf.maxDanger = RG.getMaxDanger(dX, dY);
+    zoneConf.maxValue = RG.getMaxValue(dX, dY);
+
+    if (RG.RAND.getUniform() <= RG.EPIC_PROB) {
+        zoneConf.isEpic = true;
+        zoneConf.maxDanger *= 2;
+        zoneConf.maxValue *= 3;
+    }
+}
 
 /* Maps an x coord in a sub-level (Map.Level) into an x-y coordinate in
  * an AreaTile.
@@ -1163,12 +1185,16 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
 
 /* For debuging. Adds the feature close to player starting position. */
 function addToPlayerPosition(zoneConf, coordObj) {
-    const {xMap, yMap, nSubLevelsX, nSubLevelsY} = coordObj;
-    const midX = Math.floor(nSubLevelsX / xMap / 2);
-    const yPos = nSubLevelsY / yMap - 1;
+    const [xPos, yPos] = getPlayerPosition(coordObj);
     Object.assign(zoneConf,
-        {x: midX, y: yPos, levelX: playerTileX, levelY: playerTileY});
+        {x: xPos, y: yPos, levelX: playerTileX, levelY: playerTileY});
+}
 
+function getPlayerPosition(coordObj) {
+    const {xMap, yMap, nSubLevelsX, nSubLevelsY} = coordObj;
+    const xPos = Math.floor(nSubLevelsX / xMap / 2);
+    const yPos = nSubLevelsY / yMap - 1;
+    return [xPos, yPos];
 }
 
 /* Map biomes from overworld into nTilesX * nTilesY space. */
@@ -1213,8 +1239,7 @@ function legalizeXY(xy) {
 function addGlobalFeatures(ow, owLevel, conf, coordMap) {
 
     // Find player x,y on level
-    const playerX = Math.floor(ow.getSizeX() / 2 - 1) * TILE_SIZE_X;
-    const playerY = coordMap.worldRows - Math.floor(TILE_SIZE_Y / 2);
+    const [playerStartX, playerStartY] = getPlayerStartPos(ow, coordMap);
 
     // Find capital x,y on level
     const capSubTileXY = ow.getFeaturesByType(OW.WCAPITAL)[0];
@@ -1225,17 +1250,17 @@ function addGlobalFeatures(ow, owLevel, conf, coordMap) {
 
     /*
     console.log(`World size: ${coordMap.worldCols}, ${coordMap.worldRows}`);
-    console.log(`Player x,y: ${playerX}, ${playerY}`);
+    console.log(`Player x,y: ${playerStartX}, ${playerStartY}`);
     console.log(`Capital x,y: ${owLevelXY}`);
     */
     const nPathSeg = 5;
     if (addMainRoads) {
         // Connect with road
         /* const path = RG.Path.getMinWeightPath(owLevel.getMap(),
-            playerX, playerY, capX, capY);*/
+            playerStartX, playerStartY, capX, capY);*/
 
         const path = RG.Path.getWeightPathSegmented(owLevel.getMap(),
-            playerX, playerY, capX, capY, nPathSeg);
+            playerStartX, playerStartY, capX, capY, nPathSeg);
 
         if (path.length === 0) {
             RG.err('overworld.js', 'addGlobalFeatures',
@@ -1263,6 +1288,13 @@ function addGlobalFeatures(ow, owLevel, conf, coordMap) {
             wTowerLevelXY[0], wTowerLevelXY[1], nPathSeg);
         RG.Path.addPathToMap(owLevel.getMap(), pathCapWTower);
     }
+}
+
+/* Returns the player starting position as a global coordinate. */
+function getPlayerStartPos(ow, coordMap) {
+    const playerStartX = Math.floor(ow.getSizeX() / 2 - 1) * TILE_SIZE_X;
+    const playerStartY = coordMap.worldRows - Math.floor(TILE_SIZE_Y / 2);
+    return [playerStartX, playerStartY];
 }
 
 module.exports = RG.OverWorld;
