@@ -4,17 +4,18 @@ require('babel-register');
 
 const cmdLineArgs = require('command-line-args');
 const fs = require('fs');
-
 const RG = require('../client/src/battles');
 
 const optDefs = [
     {name: 'all', type: Boolean, descr: 'Loads each file in directory'},
     {name: 'delete', type: Boolean, descr: 'Deletes invalid save game'},
     {name: 'json', type: String, descr: 'JSON file to load'},
-    {name: 'pretty', type: Boolean, descr: 'Output a pretty version'}
+    {name: 'pretty', type: Boolean, descr: 'Output a pretty version'},
+    {name: 'help', type: Boolean, descr: 'Prints a help'}
 ];
 
 const opts = cmdLineArgs(optDefs);
+if (opts.help) {usage();}
 
 if (!opts.json) {
     throw new Error('--json missing.');
@@ -75,3 +76,16 @@ function tryToLoadFile(jsonFile) {
         game.update({code: RG.VK_PERIOD});
     }
 }
+
+function usage() {
+    console.log('Usage: load_json_savegame.js [opts]\n');
+    optDefs.forEach(opt => {
+        if (opt.alias) {
+            console.log(`\t--${opt.name},-${opt.alias}\t- ${opt.descr}`);
+        }
+        else {
+            console.log(`\t--${opt.name}\t\t- ${opt.descr}`);
+        }
+    });
+}
+
