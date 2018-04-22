@@ -545,7 +545,7 @@ RG.Factory.World = function() {
                     level = this.id2level[conf.levels[i]];
                 }
                 else {
-                    if ((/(cave|crypt)/i).test(dungeonType)) {
+                    if ((/(crypt)/i).test(dungeonType)) {
                         // TODO implement Cave and Crypt generators
                         level = this.factZone.createDungeonLevel(levelConf);
                     }
