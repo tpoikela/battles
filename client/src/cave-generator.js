@@ -1,46 +1,122 @@
 
 /* Contains code to generate various types of caverns in the game.
- *
  */
 
 const RG = require('./rg.js');
+RG.MapGenerator = require('./map.generator');
+RG.Map = require('./map.js');
+RG.Map.Level = require('./level');
+// const Random = require('./random');
+const DungeonPopulate = require('./dungeon-populate');
 
 const CaveGenerator = function() {
-
 };
 
 const Miners = {};
 
+CaveGenerator.getOptions = function() {
+    return {
+        dungeonType: 'Lair',
+        maxDanger: 5, maxValue: 100
+    };
+};
+
+/* Main function to call when a cave is created. */
 CaveGenerator.prototype.create = function(cols, rows, conf) {
     const level = this._createLevel(cols, rows, conf);
+
+    this.addStairsLocations(level);
+
+    this._addEncounters(level, conf);
+
     return level;
 };
 
 /* Creates the Map.Level object with walls/floor and cave-flavor. */
 CaveGenerator.prototype._createLevel = function(cols, rows, conf) {
-    const mapOpts = this._createMapOptions(conf);
-    const mapgen = new RG.Map.Generator();
+    const mapOpts = this._createMapOptions(cols, rows, conf);
+    const mapgen = new RG.MapGenerator();
     const level = new RG.Map.Level(cols, rows);
     mapgen.setGen('cave', cols, rows);
     const mapObj = mapgen.createCave(cols, rows, mapOpts);
     level.setMap(mapObj.map);
-    this.setLevelExtras(level, mapObj);
+    this.setLevelExtras(level, mapObj.mapGen);
     return level;
 };
 
-CaveGenerator.prototype._createMapOptions = function(conf) {
+CaveGenerator.prototype.setLevelExtras = function(level, mapGen) {
+    const extras = mapGen.getMapData();
+    level.setExtras(extras);
+};
+
+CaveGenerator.prototype._createMapOptions = function(cols, rows, conf) {
     const {dungeonType} = conf;
     let opts = {};
+
+    const miners = getMiners(cols, rows);
 
     switch (dungeonType) {
         case 'Cave': opts = Miners.getRandOpts(1, 3); break;
         case 'Grotto': opts = Miners.getRandOpts(2, 4); break;
-        case 'Lair': opts = Miners.getRandOpts(1, 1); break;
+        case 'Lair': {
+            const edgeMiners = Miners.getMinersAndExclude(cols, rows, ['C']);
+            const edgeMiner = RG.RAND.arrayGetRand(edgeMiners);
+            const lairMiners = [edgeMiner, miners.C];
+            opts = Miners.getOptsWithMiners(lairMiners);
+            break;
+        }
         case 'Cavern': opts = Miners.getRandOpts(3, 9); break;
         default: opts = Miners.getRandOpts();
     }
 
     return opts;
+};
+
+CaveGenerator.prototype.addStairsLocations = function(level) {
+    const extras = level.getExtras();
+    const {startPoints} = extras;
+    let startPoint = null;
+    let endPoint = null;
+
+    if (startPoints.length > 1) {
+        [startPoint, endPoint] = RG.RAND.getUniqueItems(startPoints, 2);
+    }
+    else {
+        startPoint = startPoints[0];
+    }
+
+    if (startPoint) {
+        const [sX, sY] = startPoint;
+        const startPointElem = new RG.Element.Marker('<');
+        startPointElem.setTag('start_point');
+        level.addElement(startPointElem, sX, sY);
+    }
+
+    if (endPoint) {
+        const [eX, eY] = endPoint;
+        const goalPoint = new RG.Element.Marker('>');
+        goalPoint.setTag('end_point');
+        level.addElement(goalPoint, eX, eY);
+    }
+    extras.startPoint = startPoint;
+    if (endPoint) {extras.endPoint = endPoint;}
+};
+
+CaveGenerator.prototype._addEncounters = function(level, conf) {
+    const {dungeonType} = conf;
+    if (dungeonType === 'Lair') {
+        this._addLairBoss(level, conf);
+    }
+};
+
+CaveGenerator.prototype._addLairBoss = function(level, conf) {
+    const {maxDanger, maxValue} = conf;
+    const endPoint = level.getExtras().endPoint;
+    if (endPoint) {
+        const populate = new DungeonPopulate({});
+        populate.addEndPointGuardian(level, maxDanger);
+        populate.addMainLoot(level, endPoint, maxValue);
+    }
 };
 
 /* Returns an object containing the base miners for different directions. */
@@ -52,9 +128,26 @@ function getMiners(cols, rows, border = 1) {
     const endX = cols - 1 - border;
     const endY = rows - 1 - border;
 
+    const cbTerminateSouth = (x, y, miner) => {
+        if (y === endY) {
+            console.log('MINER TERMINATE SOUTH');
+            miner.dirWeights = {};
+        }
+    };
+    const cbTerminateNorth = (x, y, miner) => {
+        if (y === 1) {
+            console.log('MINER TERMINATE NORTH');
+            miner.dirWeights = {};
+        }
+    };
+
     const miners = {
-        N: {x: midX, y: 1, dirWeights: {E: 1, W: 1, S: 5, SE: 5, SW: 5}},
-        S: {x: midX, y: endY, dirWeights: {E: 1, W: 1, N: 5, NE: 5, NW: 5}},
+        N: {x: midX, y: 1, dirWeights: {E: 1, W: 1, S: 5, SE: 5, SW: 5},
+            dugCallback: cbTerminateSouth
+        },
+        S: {x: midX, y: endY, dirWeights: {E: 1, W: 1, N: 5, NE: 5, NW: 5},
+            dugCallback: cbTerminateNorth
+        },
         E: {x: endX, y: midY, dirWeights: {N: 1, S: 1, NW: 5, W: 5, SW: 5}},
         W: {x: 1, y: midY, dirWeights: {N: 1, S: 1, NE: 5, E: 5, SE: 5}},
         NE: {x: endX, y: 1, dirWeights: {NW: 1, W: 10, SW: 5, S: 10}},
@@ -69,6 +162,13 @@ function getMiners(cols, rows, border = 1) {
     return miners;
 }
 Miners.getMiners = getMiners;
+
+function getMinersAndExclude(cols, rows, excluded) {
+    const miners = getMiners(cols, rows);
+    excluded.forEach(key => {delete miners[key];});
+    return Object.values(miners);
+}
+Miners.getMinersAndExclude = getMinersAndExclude;
 
 function getOptsWithMiners(miners) {
     const firstMiner = miners[0];
