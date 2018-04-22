@@ -48,6 +48,9 @@ class EvaluatorBase {
         };
     }
 
+    /* Called by FromJSON. */
+    setArgs() {}
+
 }
 Evaluator.Base = EvaluatorBase;
 
@@ -166,6 +169,18 @@ class EvaluatorPatrol extends EvaluatorBase {
         const goal = new Goal.Patrol(actor, coords);
         topGoal.addGoal(goal);
     }
+
+    setArgs(args) {
+        this.coords = args.coords;
+    }
+
+    toJSON() {
+        const json = super.toJSON();
+        json.args = {
+            coords: this.coords
+        };
+        return json;
+    }
 }
 Evaluator.Patrol = EvaluatorPatrol;
 
@@ -175,13 +190,17 @@ class EvaluatorGuard extends EvaluatorBase {
     constructor(actorBias, xy) {
         super(actorBias);
         this.type = 'Guard';
-        this.x = xy[0];
-        this.y = xy[1];
+        if (xy) {this.setXY(xy);}
     }
 
     setXY(xy) {
         this.x = xy[0];
         this.y = xy[1];
+    }
+
+    setArgs(args) {
+        const {xy} = args;
+        this.setXY(xy);
     }
 
     calculateDesirability() {
@@ -192,6 +211,12 @@ class EvaluatorGuard extends EvaluatorBase {
         const topGoal = actor.getBrain().getGoal();
         const goal = new Goal.Guard(actor, [this.x, this.y]);
         topGoal.addGoal(goal);
+    }
+
+    toJSON() {
+        const json = super.toJSON();
+        json.args = {xy: [this.x, this.y]};
+        return json;
     }
 }
 Evaluator.Guard = EvaluatorGuard;
