@@ -766,8 +766,10 @@ RG.DANGER_ADJ_FACTOR = 1.4;
 RG.DAMAGE_ADJ_FACTOR = 2;
 RG.PLAYER_HP_REGEN_PERIOD = 40;
 RG.PLAYER_PP_REGEN_PERIOD = 40;
+RG.MIN_VALUE = 30; // Min value for generated items.
 
 RG.TRAINER_PROB = 0.2;
+RG.EPIC_PROB = 0.05;
 
 RG.GOLD_COIN_WEIGHT = 0.03; // kg
 RG.GOLD_COIN_NAME = 'Gold coin';
@@ -910,6 +912,20 @@ RG.getDangerProb = (min, max) => {
     });
 
     return obj;
+};
+
+RG.getMaxDanger = (xDiff, yDiff) => {
+    let maxDanger = 2 * yDiff + xDiff;
+    if (maxDanger < 2) {maxDanger = 2;}
+    return maxDanger;
+};
+
+RG.getMaxValue = (xDiff, yDiff) => {
+    let maxValue = 20 * yDiff + 10 * xDiff;
+    if (maxValue <= RG.MIN_VALUE) {
+        maxValue = RG.MIN_VALUE;
+    }
+    return maxValue;
 };
 
 /* Returns the weight distribution for foods. This is something like
