@@ -12,10 +12,10 @@ import Capital from '../data/capital';
 import AbandonedFort, {abandonedFortConf} from '../data/abandoned-fort';
 import DwarvenCity, {dwarvenCityConf} from '../data/dwarven-city';
 
-
 const ROT = require('../../lib/rot');
 ROT.Map.Wall = require('../../lib/map.wall');
 const DungeonGenerator = require('../src/dungeon-generator');
+const {CaveGenerator} = require('../src/cave-generator');
 
 const Screen = require('../gui/screen');
 
@@ -28,13 +28,13 @@ RG.getOverWorld = require('../src//overworld');
 const WorldConf = require('../src/world.creator');
 
 const editorLevelTypes = [
+  'Cave', 'Dungeon',
   'abandoned_fort',
   'arena', 'castle', 'capital', 'cellular', 'cave', 'crypt',
   'digger', 'divided', 'dungeon', 'dwarven_city',
   'eller', 'empty', 'forest', 'icey', 'miner',
   'mountain', 'uniform', 'rogue',
-  'ruins', 'rooms', 'summit', 'town', 'townwithwall', 'wall',
-  'Dungeon'
+  'ruins', 'rooms', 'summit', 'town', 'townwithwall', 'wall'
 ];
 
 const boardViews = [
@@ -95,8 +95,8 @@ export default class GameEditor extends Component {
       zoneConf: {shown: ''},
 
       levelX: 80,
-      levelY: 28,
-      levelType: 'arena',
+      levelY: 50,
+      levelType: 'Cave',
 
       subLevelX: 20,
       subLevelY: 7,
@@ -146,15 +146,16 @@ export default class GameEditor extends Component {
     this.screen = new Screen(state.levelX, state.levelY);
 
     // Create empty level and add to the editor
-    const level = RG.FACT.createLevel(state.levelType,
-      state.levelX, state.levelY);
+    state.levelConf.shown = state.levelType;
+    state.levelConf[state.levelType] = this.getLevelConf(state.levelType);
+    this.state = state; // Need to assign here, before createLevel
+
+    const level = this.createLevel(state.levelType);
     level.getMap()._optimizeForRowAccess();
     level.editorID = state.idCount++;
     state.level = level;
     state.levelList.push(level);
     window.LEVEL = level;
-
-    this.state = state;
 
     this.parser = RG.ObjectShell.getParser();
 
@@ -163,6 +164,9 @@ export default class GameEditor extends Component {
 
     // Bind functions for callbacks
     this.setMsg = this.setMsg.bind(this);
+
+    this.getLevelConf = this.getLevelConf.bind(this);
+    this.createLevel = this.createLevel.bind(this);
 
     this.generateWorld = this.generateWorld.bind(this);
     this.generateZone = this.generateZone.bind(this);
@@ -384,6 +388,12 @@ export default class GameEditor extends Component {
   /* Generates a new level map and adds it to the editor.  */
   generateLevel() {
     const levelType = this.state.levelType;
+    const level = this.createLevel(levelType);
+    this.addLevelToEditor(level);
+  }
+
+  /* Creates the level of given type. */
+  createLevel(levelType) {
     let conf = {};
     if (this.state.levelConf.hasOwnProperty(levelType)) {
       conf = this.state.levelConf[levelType];
@@ -407,12 +417,15 @@ export default class GameEditor extends Component {
     else if (levelType === 'Dungeon') {
       level = new DungeonGenerator().create(cols, rows, conf);
     }
+    else if (levelType === 'Cave') {
+      level = new CaveGenerator().create(cols, rows, conf);
+    }
     else {
       level = RG.FACT.createLevel(
         levelType, this.state.levelX, this.state.levelY, conf);
     }
     delete conf.parser;
-    this.addLevelToEditor(level);
+    return level;
   }
 
   /* Adds one level to the editor and updates the state. */
@@ -758,28 +771,24 @@ export default class GameEditor extends Component {
   /* Modifes the given level configuration object based on the value
    * (level type) after level (sub) type is changed in the editor. */
   modifyLevelConf(value, levelConf) {
+    levelConf.shown = value;
+    if (!levelConf[value]) {
+      levelConf[value] = this.getLevelConf(value);
+    }
+  }
+
+  getLevelConf(value) {
     if (value === 'town') {
-      if (!levelConf.town) {
-        levelConf.town = RG.Factory.cityConfBase({});
-        levelConf.shown = 'town';
-      }
+      return RG.Factory.cityConfBase({});
     }
     else if (value === 'townwithwall') {
-      if (!levelConf.townwithwall) {
-        levelConf.townwithwall = RG.Factory.cityConfBase({});
-        levelConf.shown = 'townwithwall';
-      }
+      return RG.Factory.cityConfBase({});
     }
     else if (value === 'forest') {
-      if (!levelConf.forest) {
-        levelConf.forest = {nForests: 5, forestSize: 100, ratio: 0.5,
-          factor: 6};
-        levelConf.shown = 'forest';
-      }
+        return {nForests: 5, forestSize: 100, ratio: 0.5, factor: 6};
     }
     else if (value === 'mountain') {
-      if (!levelConf.mountain) {
-        levelConf.mountain = {
+        return {
           noiseMult: 1,
           noiseDivider: 20,
           highRockThr: 0.75,
@@ -787,53 +796,37 @@ export default class GameEditor extends Component {
           chasmThr: -0.4,
           nRoadTurns: 8
         };
-        levelConf.shown = 'mountain';
-      }
     }
     else if (value === 'crypt' || value === 'castle') {
-      const conf = {
+      return {
         tilesX: 12, tilesY: 7, roomCount: 30,
         genParams: [2, 2, 2, 2]
       };
-      if (value === 'crypt' && !levelConf.crypt) {
-        levelConf.crypt = conf;
-        levelConf.shown = 'crypt';
-      }
-      if (value === 'castle' && !levelConf.castle) {
-        levelConf.castle = conf;
-        levelConf.shown = 'castle';
-      }
     }
     else if (value === 'wall') {
       const wallGen = new ROT.Map.Wall();
-      levelConf.wall = wallGen._options;
-      levelConf.shown = 'wall';
+      return wallGen._options;
     }
     else if (value === 'abandoned_fort') {
-      levelConf['abandoned_fort'] = abandonedFortConf;
-      levelConf.shown = 'abandoned_fort';
+      return abandonedFortConf;
     }
     else if (value === 'dwarven_city') {
-      levelConf['dwarven_city'] = dwarvenCityConf;
-      levelConf.shown = 'dwarven_city';
+      return dwarvenCityConf;
     }
     else if (value === 'Dungeon') {
-      levelConf['Dungeon'] = DungeonGenerator.getOptions();
-      levelConf.shown = 'Dungeon';
+      return DungeonGenerator.getOptions();
     }
     else if (value === 'Cave') {
-      levelConf['Cave'] = DungeonGenerator.getOptions();
-      levelConf.shown = 'Cave';
+      return CaveGenerator.getOptions();
     }
     else if (value === 'cave') {
       const caveGen = new ROT.Map.Miner();
-      levelConf.cave = caveGen._options;
-      delete levelConf.cave.rng;
-      levelConf.shown = 'cave';
+      const conf = caveGen._options;
+      delete conf.cave.rng;
+      return conf;
     }
     else {
-      levelConf[value] = {};
-      levelConf.shown = value;
+      return {};
     }
   }
 
