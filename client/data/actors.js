@@ -206,7 +206,7 @@ const Actors = [
     {
         name: 'AvianFolkBase', char: 'A', className: 'cell-actor-avianfolk',
         type: 'avianfolk', dontCreate: true,
-        enemies: ['player', 'catfolk', 'dogfolk', 'wolfclan'],
+        enemies: ['player', 'human', 'catfolk', 'dogfolk', 'wolfclan'],
         brain: defaultBrain, addComp: 'Flying',
         attack: 2, defense: 2, damage: '1d6', range: 1,
         protection: 1, hp: 15, danger: 2
