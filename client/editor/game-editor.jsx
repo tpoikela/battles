@@ -209,6 +209,7 @@ export default class GameEditor extends Component {
 
     this.invertMap = this.invertMap.bind(this);
     this.simulateLevel = this.simulateLevel.bind(this);
+    this.stepSimulation = this.stepSimulation.bind(this);
     this.playSimulation = this.playSimulation.bind(this);
     this.playFastSimulation = this.playFastSimulation.bind(this);
     this.pauseSimulation = this.pauseSimulation.bind(this);
@@ -1111,6 +1112,16 @@ export default class GameEditor extends Component {
     }
   }
 
+  stepSimulation() {
+    if (this.state.simulationStarted) {
+      this.game.simulateGame();
+      this.setShownLevel({level: this.game.getLevels()[0]});
+    }
+    else {
+      console.error('Start simulation first using Simulate');
+    }
+  }
+
   playFastSimulation() {
     if (this.state.simulationStarted) {
       if (this.frameID) {
@@ -1495,7 +1506,11 @@ export default class GameEditor extends Component {
           onClick={this.simulateLevel}
         >Simulate
         </button>
-
+        <button
+          className='btn btn-xs'
+          onClick={this.stepSimulation}
+        >Step
+        </button>
         <button
           className={ctrlBtnClass}
           onClick={this.playSimulation}
