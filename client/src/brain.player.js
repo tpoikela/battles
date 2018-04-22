@@ -824,11 +824,8 @@ class BrainPlayer {
               return attackCallback;
             }
             else {
-              this._confirmEnergy = RG.energy.ATTACK;
-              this._wantConfirm = true;
-              this._confirmCallback = attackCallback;
               const msg = `Press 'y' to attack non-hostile ${target.getName()}`;
-              RG.gameMsg(msg);
+              this.setWantConfirm(RG.energy.ATTACK, attackCallback, msg);
               return this.noAction();
             }
           }
@@ -837,7 +834,7 @@ class BrainPlayer {
             this.energy = RG.energy.MOVE;
             return () => {
               const movComp = new RG.Component.Movement(x, y, level);
-              this._actor.add('Movement', movComp);
+              this._actor.add(movComp);
             };
           }
           else {
@@ -847,20 +844,25 @@ class BrainPlayer {
           }
         }
         else if (this._actor.getCell().hasPassage()) {
-            this._confirmEnergy = RG.energy.MOVE;
-            this._wantConfirm = true;
-            this._confirmCallback = () => {
+            const cb = () => {
                 const stairsComp = new RG.Component.UseStairs();
                 this._actor.add(stairsComp);
             };
             const msg = "Press 'y' to move to another area";
-            RG.gameMsg(msg);
+            this.setWantConfirm(RG.energy.MOVE, cb, msg);
             return this.noAction();
         }
         else {
             const msg = 'You cannot move there.';
             return this.cmdNotPossible(msg);
         }
+    }
+
+    setWantConfirm(energy, callback, msg) {
+        this._confirmEnergy = energy;
+        this._wantConfirm = true;
+        this._confirmCallback = callback;
+        if (msg) {RG.gameMsg(msg);}
     }
 
     issueOrderCmd() {
