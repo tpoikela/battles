@@ -1,5 +1,6 @@
 
 const RG = require('./rg.js');
+require('./eventpool');
 
 const {TYPE_ACTOR, TYPE_ELEM, TYPE_ITEM} = RG;
 
