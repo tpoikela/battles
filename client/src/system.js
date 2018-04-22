@@ -1025,50 +1025,39 @@ RG.System.Movement = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.MOVEMENT, compTypes);
 
     this.updateEntity = function(ent) {
-        const x = ent.get('Movement').getX();
-        const y = ent.get('Movement').getY();
+        const movComp = ent.get('Movement');
+        const [x, y] = movComp.getXY();
 
-        const level = ent.get('Movement').getLevel();
-        const map = level.getMap();
+        const map = movComp.getLevel().getMap();
         const cell = map.getCell(x, y);
         const prevCell = ent.getCell();
 
         if (cell.isFree(ent.has('Flying'))) {
-            const xOld = ent.getX();
-            const yOld = ent.getY();
-            RG.debug(this, 'Trying to move ent from ' + xOld + ', ' + yOld);
+            const xyOld = ent.getXY();
+            RG.debug(this, `Trying to move ent from ${xyOld}`);
 
             const propType = ent.getPropType();
-            if (map.removeProp(xOld, yOld, propType, ent)) {
-                map.setProp(x, y, propType, ent);
+            if (map.moveProp(xyOld, [x, y], propType, ent)) {
                 ent.setXY(x, y);
 
-                if (ent.isPlayer) {
-                    if (ent.isPlayer()) {
-                        if (cell.hasPropType('exploration')) {
-                            this._processExploreElem(ent, cell);
-                        }
-                        this.checkMessageEmits(prevCell, cell);
+                if (ent.isPlayer && ent.isPlayer()) {
+                    if (cell.hasPropType('exploration')) {
+                        this._processExploreElem(ent, cell);
                     }
+                    this.checkMessageEmits(prevCell, cell);
                 }
 
-                ent.remove('Movement');
+                ent.remove(movComp);
                 return true;
             }
             else {
-                const coord = xOld + ', ' + yOld;
-                RG.diag('\n\nSystem.Movement list of actors:');
-                RG.printObjList(level.getActors(),
-                    ['getID', 'getName', 'getX', 'getY']);
-                this._diagnoseRemovePropError(xOld, yOld, map, ent);
-                RG.err('MovementSystem', 'moveActorTo',
-                    "Couldn't remove ent |" + ent.getName() + '| @ ' + coord);
+                this._moveError(ent);
             }
         }
         else {
             RG.debug(this, "Cell wasn't free at " + x + ', ' + y);
         }
-        ent.remove('Movement');
+        ent.remove(movComp);
         return false;
     };
 
@@ -1191,6 +1180,20 @@ RG.System.Movement = function(compTypes) {
         if (baseMsg.length > 0) {
             RG.gameMsg(baseMsg);
         }
+    };
+
+    /* Reports an error if an entity could not be removed. */
+    this._moveError = function(ent) {
+        const [xOld, yOld] = ent.getXY();
+        const level = ent.getLevel();
+        const map = level.getMap();
+        const coord = xOld + ', ' + yOld;
+        RG.diag('\n\nSystem.Movement list of actors:');
+        RG.printObjList(level.getActors(),
+            ['getID', 'getName', 'getX', 'getY']);
+        this._diagnoseRemovePropError(xOld, yOld, map, ent);
+        RG.err('MovementSystem', 'moveActorTo',
+            "Couldn't remove ent |" + ent.getName() + '| @ ' + coord);
     };
 
 
