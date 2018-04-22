@@ -2,6 +2,7 @@
 const RG = require('./rg.js');
 const Geometry = require('./geometry');
 const Evaluator = require('./evaluators');
+RG.ObjectShell = require('./objectshellparser');
 
 const MIN_ACTORS_ROOM = 2;
 
@@ -49,7 +50,8 @@ DungeonPopulate.prototype.populateLevel = function(level) {
 
             // Add main loot
             if (!mainLootAdded) {
-                mainLootAdded = this.addMainLoot(level, room, maxValue);
+                const center = room.getCenter();
+                mainLootAdded = this.addMainLoot(level, center, maxValue);
             }
 
             roomsDone[room.getID()] = true;
@@ -69,7 +71,8 @@ DungeonPopulate.prototype.populateLevel = function(level) {
                 const bbox = room.getBbox();
 
                 if (!mainLootAdded) {
-                    mainLootAdded = this.addMainLoot(level, room, maxValue);
+                    const center = room.getCenter();
+                    mainLootAdded = this.addMainLoot(level, center, maxValue);
                 }
 
                 // Add optional, less potent loot stuff
@@ -120,6 +123,12 @@ DungeonPopulate.prototype.populateLevel = function(level) {
     }
 
     // Add an endpoint guardian
+    this.addEndPointGuardian(level, maxDanger);
+
+};
+
+DungeonPopulate.prototype.addEndPointGuardian = function(level, maxDanger) {
+    const extras = level.getExtras();
     if (extras.endPoint) {
         const eXY = extras.endPoint;
         const guardEval = new Evaluator.Guard(RG.BIAS.Guard, eXY);
@@ -132,7 +141,6 @@ DungeonPopulate.prototype.populateLevel = function(level) {
             level.addActor(guardian, eXY[0], eXY[1]);
         }
     }
-
 };
 
 DungeonPopulate.prototype.getEndPointGuardian = function(maxDanger) {
@@ -148,9 +156,9 @@ DungeonPopulate.prototype.getEndPointGuardian = function(maxDanger) {
     return guardian;
 };
 
-DungeonPopulate.prototype.addMainLoot = function(level, room, maxValue) {
+DungeonPopulate.prototype.addMainLoot = function(level, center, maxValue) {
     const parser = RG.ObjectShell.getParser();
-    const [cx, cy] = room.getCenter();
+    const [cx, cy] = center;
     // Add main loot
     // 1. Scale is from 2-4 normal value, this scales the
     // guardian danger as well
