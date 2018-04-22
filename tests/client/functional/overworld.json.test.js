@@ -3,7 +3,7 @@ const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 const ROT = require('../../../lib/rot.js');
 
-const fs = require('fs');
+// const fs = require('fs');
 
 describe('How Game is created from Overworld', function() {
 
@@ -20,8 +20,9 @@ describe('How Game is created from Overworld', function() {
             playerLevel: 'Medium',
             sqrPerItem: 100,
             sqrPerActor: 100,
-            xMult: 0.5,
-            yMult: 0.5,
+            xMult: 1,
+            yMult: 1,
+            playerName: 'Xug',
             playerClass: 'Blademaster',
             playerRace: 'human'
         };
@@ -37,7 +38,7 @@ describe('How Game is created from Overworld', function() {
         const cm = game.getChunkManager();
         cm.debugPrint();
 
-        game.movePlayer(0, 0);
+        game.movePlayer(0, 1);
         game.movePlayer(2, 3);
 
         const json = game.toJSON();
