@@ -96,8 +96,10 @@ DungeonGenerator.getOptions = function(type = 'digger') {
         levelType: type, nBigRooms: 1,
         bigRoomX: ['cen'], bigRoomY: ['cen'],
         bigRoomWidth: [10], bigRoomHeight: [10],
-        maxDanger: 5, maxValue: 100
+        maxDanger: 5, maxValue: 100,
+        minNumRooms: 3
     };
+    // Options specific to map gen (ie digger or uniform)
     const mapOpts = {options: OPTIONS[type]};
     return Object.assign(levelOpts, mapOpts);
 };
@@ -116,7 +118,7 @@ DungeonGenerator.prototype.create = function(cols, rows, conf) {
     if (!rows) {
         rows = RG.RAND.getUniformInt(28, 56);
     }
-    const minNumRooms = 3;
+    const minNumRooms = conf.minNumRooms || 3;
     let mapGen = null;
     let map = null;
     const createCb = (x, y, val) => {
@@ -125,6 +127,7 @@ DungeonGenerator.prototype.create = function(cols, rows, conf) {
         }
     };
 
+    // Generate new base map until we have enough rooms
     let watchdog = 10;
     while (!mapGen || mapGen.getRooms().length < minNumRooms) {
         mapGen = this.getMapGen(cols, rows, conf);
