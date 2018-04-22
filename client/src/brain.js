@@ -881,6 +881,12 @@ RG.Brain.GoalOriented = function(actor) {
     this.getGoal = () => this.goal;
     this.setGoal = goal => {this.goal = goal;};
 
+    this.toJSON = function() {
+        const json = RG.Brain.Rogue.prototype.toJSON.call(this);
+        json.goal = this.goal.toJSON();
+        return json;
+    };
+
 };
 RG.extend2(RG.Brain.GoalOriented, RG.Brain.Rogue);
 
