@@ -8,6 +8,8 @@ const OW = require('./overworld.map');
 const Battle = require('./game.battle').Battle;
 const Army = require('./game.battle').Army;
 const debug = require('debug')('bitn:Game.FromJSON');
+const GoalsTop = require('./goals-top');
+const Evaluator = require('./evaluators');
 
 /* Object for converting serialized JSON objects to game objects. Note that all
  * actor/level ID info is stored between uses. If you call restoreLevel() two
@@ -259,6 +261,11 @@ RG.Game.FromJSON = function() {
                         }
                     });
                 }
+
+                if (brainJSON.goal) {
+                    const goal = this.createTopGoal(brainJSON.goal, ent);
+                    brainObj.setGoal(goal);
+                }
             }
             else if (type === 'Rogue') {
                 brainObj.getMemory().addEnemyType('player');
@@ -268,6 +275,17 @@ RG.Game.FromJSON = function() {
             RG.err('FromJSON', 'createBrain',
                 `Cannot find RG.Brain.${type}, JSON: ${brainJSON}`);
         }
+    };
+
+    this.createTopGoal = (json, entity) => {
+        const goal = new GoalsTop[json.type](entity);
+        goal.removeEvaluators();
+        json.evaluators.forEach(ev => {
+            const evaluator = new Evaluator[ev.type](ev.bias);
+            if (ev.args) {evaluator.setArgs(ev.args);}
+            goal.addEvaluator(evaluator);
+        });
+        return goal;
     };
 
     this.createSpells = (json, entity) => {
