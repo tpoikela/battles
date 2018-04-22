@@ -560,7 +560,7 @@ class RGElementWater extends RGElementBase {
         super('water');
     }
 
-    isPassable() {return false;}
+    isPassable() {return true;}
 }
 RG.Element.Water = RGElementWater;
 
