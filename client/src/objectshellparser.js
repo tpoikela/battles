@@ -3,6 +3,7 @@ const RG = require('./rg.js');
 const Objects = require('../data/battles_objects');
 const Actors = require('../data/actors');
 RG.Effects = require('../data/effects');
+require('./factory');
 
 RG.ObjectShell = {};
 
