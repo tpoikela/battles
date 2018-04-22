@@ -75,7 +75,7 @@ const DungeonGenerator = function() {
 };
 
 /* Contain the default options for various level types. */
-DungeonGenerator.options = {
+DungeonGenerator.mapOptions = {
     digger: {
         roomWidth: [3, 9],
         roomHeight: [3, 5],
@@ -88,7 +88,7 @@ DungeonGenerator.options = {
         roomDugPercentage: 0.1
     }
 };
-const OPTIONS = DungeonGenerator.options;
+const mapOptions = DungeonGenerator.mapOptions;
 
 /* Returns the default options for dungeon level generation. */
 DungeonGenerator.getOptions = function(type = 'digger') {
@@ -100,7 +100,7 @@ DungeonGenerator.getOptions = function(type = 'digger') {
         minNumRooms: 3
     };
     // Options specific to map gen (ie digger or uniform)
-    const mapOpts = {options: OPTIONS[type]};
+    const mapOpts = {options: mapOptions[type]};
     return Object.assign(levelOpts, mapOpts);
 };
 
@@ -112,6 +112,37 @@ const getRandMapType = () => {
 /* Creates the actual Map.Level. User should call this function with desired
  * size (X * Y) and configuration. */
 DungeonGenerator.prototype.create = function(cols, rows, conf) {
+    // Creates the Map.Level with rooms, walls and floor
+    const level = this._createLevel(cols, rows, conf);
+
+    // Add things like water, chasms, bridges
+    this.addSpecialFeatures(level, conf);
+
+    // Determine stairs locations
+    this.addStairsLocations(level, conf);
+
+    // Add critical path (player must pass through this, usually), not entirely
+    // true as there are usually many paths from start to end
+    this.addCriticalPath(level);
+
+    const populate = new DungeonPopulate({theme: ''});
+    // Finally, we could populate the level with items/actors here
+    populate.populateLevel(level, conf);
+
+    // Optional verification of connectivity etc.
+    if (conf.rerunOnFailure || conf.errorOnFailure) {
+        const fillDiag = true;
+        if (!this.verifyLevel(level, conf, fillDiag)) {
+            this.create(cols, rows, conf);
+        }
+    }
+
+    this.removeMarkers(level, conf);
+    return level;
+};
+
+/* Creates the Map.Level with extras (such as rooms) added. */
+DungeonGenerator.prototype._createLevel = function(cols, rows, conf) {
     if (!cols) {
         cols = RG.RAND.getUniformInt(80, 120);
     }
@@ -149,32 +180,6 @@ DungeonGenerator.prototype.create = function(cols, rows, conf) {
         extras.bigRooms = mapGen.bigRooms;
     }
     level.setExtras(extras);
-
-    // At this point, we could add things like water, chasms, bridges
-    this.addSpecialFeatures(level, conf);
-
-    // Determine stairs locations
-    this.addStairsLocations(level, conf);
-
-    // Add critical path (player must pass through this, usually), not entirely
-    // true as there are usually many paths from start to end
-    this.addCriticalPath(level);
-
-    const populate = new DungeonPopulate({theme: ''});
-    // Finally, we could populate the level with items/actors here
-    populate.populateLevel(level, conf);
-
-    // For stairs, use placeholders to mark potential stairs locations
-
-    // Optional verification of connectivity etc.
-    if (conf.rerunOnFailure || conf.errorOnFailure) {
-        const fillDiag = true;
-        if (!this.verifyLevel(mapGen, level, conf, fillDiag)) {
-            this.create(cols, rows, conf);
-        }
-    }
-
-    this.removeMarkers(level, conf);
     return level;
 };
 
@@ -184,8 +189,8 @@ DungeonGenerator.prototype.getMapGen = function(cols, rows, conf) {
         levelType = conf.dungeonType;
     }
 
-    const opts = conf.options || OPTIONS[levelType];
-    const mapGen = new ROT.Map.Digger(cols, rows, opts);
+    const mapOpts = conf.options || mapOptions[levelType];
+    const mapGen = new ROT.Map.Digger(cols, rows, mapOpts);
     // Here we need to add special rooms etc
     const bigRooms = this.addBigRooms(mapGen, conf);
     if (bigRooms.length > 0) {
@@ -622,6 +627,7 @@ DungeonGenerator.prototype.addStairsLocations = function(level) {
         extras.startPoint = [cx2, cy2];
         extras.endPoint = [cx1, cy1];
 
+        // Place markers to later identify the points from the level
         const goalPoint = new RG.Element.Marker('>');
         const startPoint = new RG.Element.Marker('<');
         startPoint.setTag('start_point');
@@ -668,7 +674,7 @@ DungeonGenerator.prototype.addCriticalPath = function(level) {
     while (criticalPath.length < minPathLen) {
 
         // Break the existing path
-        const pathBroken = this.breakPath(level, criticalPath);
+        const pathBroken = this._breakPath(level, criticalPath);
         if (!pathBroken) {
             // Could not break, might be in a big room
             break;
@@ -686,6 +692,11 @@ DungeonGenerator.prototype.addCriticalPath = function(level) {
         }
     }
 
+    // For each path broken marker, we need to add walls to physicall break
+    // that path
+    this._addWallsToBrokenPath(level);
+
+
     criticalPath.forEach(xy => {
         const critPathElem = new RG.Element.Marker('*');
         critPathElem.setTag('critical_path');
@@ -697,7 +708,7 @@ DungeonGenerator.prototype.addCriticalPath = function(level) {
 
 /* This breaks the path with a wall and by placing a 'path broken' marker to
  * locate the element later. */
-DungeonGenerator.prototype.breakPath = function(level, path) {
+DungeonGenerator.prototype._breakPath = function(level, path) {
     for (let i = 0; i < path.length; i++) {
         const {x, y} = path[i];
         const cell = level.getMap().getCell(x, y);
@@ -709,6 +720,17 @@ DungeonGenerator.prototype.breakPath = function(level, path) {
         }
     }
     return false;
+};
+
+DungeonGenerator.prototype._addWallsToBrokenPath = function(level) {
+    const markers = level.getElements().filter(
+        e => e.getType() === 'marker' && e.getTag() === 'path broken'
+    );
+    markers.forEach(marker => {
+        const [x, y] = marker.getXY();
+        level.getMap().setBaseElemXY(x, y, RG.ELEM.WALL);
+        console.log(`Wall ADDED to ${x},${y}`);
+    });
 };
 
 /* Restores previous broken path in case no sufficiently long new path is found.
@@ -735,7 +757,7 @@ DungeonGenerator.prototype.restorePath = function(level, path) {
 /* Right now, use a floodfill to check the connectivity. Returns true if the
  * level is rejected. If conf.errorOnFailure is set, throws error immediately.
  * */
-DungeonGenerator.prototype.verifyLevel = function(mapGen, level, conf) {
+DungeonGenerator.prototype.verifyLevel = function(level, conf) {
     const map = level.getMap();
     const fillFilter = cell => cell.isPassable() || cell.hasDoor();
     const floorCells = map.getCells(fillFilter);
