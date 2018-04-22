@@ -420,6 +420,14 @@ RG.Map.CellList.prototype.removeProp = function(x, y, prop, obj) {
     return this._map[x][y].removeProp(prop, obj);
 };
 
+RG.Map.CellList.prototype.moveProp = function(fromXY, toXY, prop, obj) {
+    if (this.removeProp(fromXY[0], fromXY[1], prop, obj)) {
+        this.setProp(toXY[0], toXY[1], prop, obj);
+        return true;
+    }
+    return false;
+};
+
 RG.Map.CellList.prototype.setElemXY = function(x, y, obj) {
     this.setProp(x, y, RG.TYPE_ELEM, obj);
 };
