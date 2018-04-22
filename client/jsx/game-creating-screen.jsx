@@ -85,7 +85,7 @@ export default class GameCreatingScreen extends React.Component {
         id='embark-button'
         onClick={this.onHide}
         type='button'
-      >Embark!
+      >Continue
       </button>
     );
   }
