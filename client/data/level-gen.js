@@ -22,9 +22,9 @@ const getNumLevels = function(name) {
 const getDungeonSizeXY = function(name) {
     const mediumSize = [RG.LEVEL_MEDIUM_X, RG.LEVEL_MEDIUM_Y];
     switch (name) {
-        case 'Cave': return [80, 40];
+        case 'Cave': return [80, 50];
         case 'Cavern': return [200, 200];
-        case 'Grotto': return [100, 50];
+        case 'Grotto': return [120, 60];
         case 'Lair': return [200, 150];
 
         case 'Cells': return [100, 50];
