@@ -5,12 +5,11 @@ const ROT = require('../lib/rot');
 const RG = require('../client/src/battles');
 const MapMiner = require('../lib/map.miner');
 
-const cols = 100;
-const rows = 100;
+const cols = 200;
+const rows = 200;
 
 const midX = Math.round(cols / 2);
 const midY = Math.round(rows / 2);
-
 
 const miners = {
     N: {x: midX, y: 1, dirWeights: {E: 1, W: 1, S: 5, SE: 5, SW: 5}},
@@ -34,7 +33,7 @@ const minerValues = Object.values(miners);
 // ROT.RNG.setSeed(1524319401126);
 // const dontDig = {ulx: 1, uly: 1, lrx: 20, lry: 20};
 
-for (let i = 0; i < 10; i++) {
+for (let i = 0; i < 50; i++) {
 
     const opts = getRandOpts();
     const gen = new MapMiner(cols, rows, opts);
