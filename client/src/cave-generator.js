@@ -23,6 +23,10 @@ CaveGenerator.getOptions = function() {
 
 /* Main function to call when a cave is created. */
 CaveGenerator.prototype.create = function(cols, rows, conf) {
+    if (RG.isNullOrUndef([cols, rows])) {
+        RG.err('CaveGenerator', 'create',
+            `cols or rows not defined: cols: ${cols} / rows: ${rows}`);
+    }
     const level = this._createLevel(cols, rows, conf);
 
     this.addStairsLocations(level);
@@ -56,8 +60,8 @@ CaveGenerator.prototype._createMapOptions = function(cols, rows, conf) {
     const miners = getMiners(cols, rows);
 
     switch (dungeonType) {
-        case 'Cave': opts = Miners.getRandOpts(1, 3); break;
-        case 'Grotto': opts = Miners.getRandOpts(2, 4); break;
+        case 'Cave': opts = Miners.getRandOpts(cols, rows, 1, 3); break;
+        case 'Grotto': opts = Miners.getRandOpts(cols, rows, 2, 4); break;
         case 'Lair': {
             const edgeMiners = Miners.getMinersAndExclude(cols, rows, ['C']);
             const edgeMiner = RG.RAND.arrayGetRand(edgeMiners);
@@ -65,8 +69,8 @@ CaveGenerator.prototype._createMapOptions = function(cols, rows, conf) {
             opts = Miners.getOptsWithMiners(lairMiners);
             break;
         }
-        case 'Cavern': opts = Miners.getRandOpts(3, 9); break;
-        default: opts = Miners.getRandOpts();
+        case 'Cavern': opts = Miners.getRandOpts(cols, rows, 3, 9); break;
+        default: opts = Miners.getRandOpts(cols, rows);
     }
 
     return opts;
@@ -130,13 +134,11 @@ function getMiners(cols, rows, border = 1) {
 
     const cbTerminateSouth = (x, y, miner) => {
         if (y === endY) {
-            console.log('MINER TERMINATE SOUTH');
             miner.dirWeights = {};
         }
     };
     const cbTerminateNorth = (x, y, miner) => {
         if (y === 1) {
-            console.log('MINER TERMINATE NORTH');
             miner.dirWeights = {};
         }
     };
