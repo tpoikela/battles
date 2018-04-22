@@ -1,6 +1,7 @@
 
 /* This file contains code to generate the configuration for different types of
- * levels. */
+ * levels. Used in the overworld generation in overworld.js after the overworld
+ * Map.Level has been created. */
 
 const RG = require('../src/rg');
 RG.Names = require('./name-gen');
@@ -21,9 +22,10 @@ const getNumLevels = function(name) {
 const getDungeonSizeXY = function(name) {
     const mediumSize = [RG.LEVEL_MEDIUM_X, RG.LEVEL_MEDIUM_Y];
     switch (name) {
-        case 'Cave': return mediumSize;
-        case 'Cavern': return [RG.LEVEL_HUGE_X, RG.LEVEL_HUGE_Y];
+        case 'Cave': return [80, 40];
+        case 'Cavern': return [200, 200];
         case 'Grotto': return [100, 50];
+        case 'Lair': return [200, 150];
 
         case 'Cells': return [100, 50];
         case 'Dungeon': return [100, 50];
@@ -52,10 +54,11 @@ const getConstraint = function(name) {
     }
 };
 
-const convertToImplemented = function(name) {
+const getDungeonType = function(name) {
     switch (name) {
         case 'Grotto': return 'Cave';
         case 'Cavern': return 'Cave';
+        case 'Lair': return 'Cave';
         case 'Catacombs': return 'Crypt';
         case 'Tombs': return 'Crypt';
         case 'Cells': return 'Dungeon';
@@ -67,7 +70,6 @@ const getMountainSizeXY = function(name) {
     switch (name) {
         default: return [80, 240];
     }
-
 };
 
 //---------------------------------------------------------------------------
@@ -75,25 +77,20 @@ const getMountainSizeXY = function(name) {
 //---------------------------------------------------------------------------
 
 LevelGen.getDungeonConf = dungeonName => {
-    const usedName = convertToImplemented(dungeonName);
-    const nLevels = getNumLevels(usedName);
-    const constraint = getConstraint(usedName);
+    let dungeonType = getDungeonType(dungeonName);
+    const nLevels = getNumLevels(dungeonType);
+    const constraint = getConstraint(dungeonType);
     const [dungeonX, dungeonY] = getDungeonSizeXY(dungeonName);
 
-    const dungeonType = usedName.toLowerCase();
+    dungeonType = dungeonType.toLowerCase();
     const obj = {
         name: dungeonName,
-        dungeonX, dungeonY,
-        dungeonType: dungeonType,
-        nBranches: 1,
+        dungeonX, dungeonY, dungeonType,
+        nBranches: 1, // TODO multi-branch dungeons
         branch: [
             {name: dungeonName, nLevels, entranceLevel: 0}
         ]
     };
-
-    if (dungeonType === 'dungeon') {
-        obj.dungeonType = RG.RAND.arrayGetRand(['uniform', 'digger']);
-    }
 
     if (constraint) {
         obj.constraint = constraint;
