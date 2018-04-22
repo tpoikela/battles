@@ -639,6 +639,7 @@ RG.World.Branch = function(name) {
     this._entrance = null;
 
     this.addEntrance = function(levelNumber) {
+        console.log('Adding entrance to level ' + levelNumber);
         const entrStairs = new Stairs('stairsUp');
         this.setEntrance(entrStairs, levelNumber);
     };
@@ -649,9 +650,14 @@ RG.World.Branch = function(name) {
             const level = this._levels[levelNumber];
 
             const cell = getFreeCellWithoutConnection(level);
+            let [x, y] = cell.getXY();
+            if (level.hasExtras()) {
+                const extras = level.getExtras();
+                if (extras.startPoint) {
+                    [x, y] = extras.startPoint;
+                }
+            }
 
-            const x = cell.getX();
-            const y = cell.getY();
             level.addStairs(stairs, x, y);
             this._entrance = {levelNumber, x, y};
         }
