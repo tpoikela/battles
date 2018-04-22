@@ -32,20 +32,22 @@ describe('Map.Miner', function() {
     });
 
     it('has options to add unique miners', () => {
-        const minerSW = {x: 1, y: 1, dirWeights: {S: 1, W: 1, SW: 1}};
-        const minerSE = {x: 78, y: 1, dirWeights: {S: 1, E: 1, SE: 1}};
+        const minerSW = {x: 1, y: 1, dirWeights: {S: 1, E: 1, SE: 1}};
+        const minerSE = {x: 78, y: 1, dirWeights: {S: 1, W: 1, SW: 1}};
         const opts = {
-            addMiners: [minerSW, minerSE]
+            addMiners: [minerSW, minerSE],
+            maxMinersOp: {op: '*', value: 0.2} // Adjust num miners
         };
         const gen = new MapMiner(80, 40, opts);
         gen.create(() => true);
-        gen.printMap();
 
-        /* gen.create((x, y, val) => {
-            if (x >= dontDig.ulx && x <= dontDig.lrx &&
-                y >= dontDig.uly && y <= dontDig.lry) {
-                expect(val).to.equal(1);
-            }
-        });*/
+        const mapData = gen.getMapData();
+        const {startPoints, regions} = mapData;
+
+        expect(startPoints).to.have.length(3);
+        expect(regions).to.be.an.array;
+        // console.log('FINAL MAP:\n');
+        // gen.printMap();
+
     });
 });
