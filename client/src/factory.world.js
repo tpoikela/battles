@@ -9,7 +9,7 @@ const ConfStack = require('./conf-stack');
 RG.Factory = require('./factory');
 
 const DungeonGenerator = require('./dungeon-generator');
-const CaveGenerator = require('./cave-generator');
+const {CaveGenerator} = require('./cave-generator');
 
 const Stairs = RG.Element.Stairs;
 const ZONE_TYPES = ['City', 'Mountain', 'Dungeon', 'BattleZone'];
@@ -311,6 +311,7 @@ RG.Factory.World = function() {
         }
     };
 
+    /* Adds actors and items into AreaTile level. */
     this.populateAreaLevel = function(area, x, y) {
         const playerX = Math.floor(area.getSizeX() / 2);
         const playerY = area.getSizeY() - 1;
@@ -327,21 +328,20 @@ RG.Factory.World = function() {
         const fact = new RG.Factory.Base();
         fact.setParser(parser);
 
+        const maxValue = RG.getMaxValue(xDiff, yDiff);
         const itemConf = {
             itemsPerLevel,
             func: (item) => (
-                item.value <= 15 * yDiff + 5 * xDiff
+                item.value <= maxValue
                 && item.type !== 'food'
             ),
             gold: () => false,
             food: () => false,
-            maxValue: 15 * yDiff + 5 * xDiff
+            maxValue
         };
         fact.addNRandItems(level, parser, itemConf);
 
-        let maxDanger = yDiff + xDiff;
-        if (maxDanger < 2) {maxDanger = 2;}
-
+        const maxDanger = RG.getMaxDanger(xDiff, yDiff);
         const actorConf = {
             actorsPerLevel, maxDanger
         };
@@ -553,8 +553,8 @@ RG.Factory.World = function() {
                         const caveGen = new CaveGenerator();
                         const [cols, rows] = [levelConf.x, levelConf.y];
                         level = caveGen.create(cols, rows, levelConf);
-                        this.factZone.addItemsAndActors(level, conf);
-                        this.factZone.addExtraDungeonFeatures(level, conf);
+                        this.factZone.addItemsAndActors(level, levelConf);
+                        this.factZone.addExtraDungeonFeatures(level, levelConf);
                     }
                     else {
                         const dungGen = new DungeonGenerator();
@@ -1235,45 +1235,66 @@ RG.Factory.World = function() {
     this.createNewZoneConnects = (zone, zoneLevel) => {
         let zoneStairs = null;
         if (zone.getType() === 'dungeon') {
-            this.debug('Creating dungeon connection');
-            const freeCell = zoneLevel.getFreeRandCell();
-            const zoneX = freeCell.getX();
-            const zoneY = freeCell.getY();
-            zoneStairs = new Stairs('stairsUp', zoneLevel);
-            zoneLevel.addStairs(zoneStairs, zoneX, zoneY);
+            zoneStairs = this.createDungeonZoneConnect(zone, zoneLevel);
         }
         else if (zone.getType() === 'city') {
-            this.debug('Creating new city edge connection');
-            let allEdgeExits = [];
-            RG.CARDINAL_DIR.forEach(dir => {
-                if (!RG.World.edgeHasConnections(zoneLevel, dir)) {
-                    const exits = RG.World.addExitsToEdge(zoneLevel,
-                        'passage', dir);
-                    if (exits.length > 0) {
-                        allEdgeExits = allEdgeExits.concat(exits);
-                    }
-                }
-            });
-            zoneStairs = allEdgeExits;
-            // Connection failed, resort to single point connection
-            if (zoneStairs.length === 0) {
-                // zoneLevel.getMap().debugPrintInASCII();
-
-                // XXX this one is shaky
-                const freeCell = zoneLevel.getFreeRandCell();
-                const zoneX = freeCell.getX();
-                const zoneY = freeCell.getY();
-                zoneStairs = new Stairs('stairsUp', zoneLevel);
-                zoneLevel.addStairs(zoneStairs, zoneX, zoneY);
-                zoneStairs = [zoneStairs];
-
-                this.debug('City edge connection failed. Added stairs');
-            }
+            zoneStairs = this.createCityZoneConnect(zone, zoneLevel);
         }
         else if (zone.getType() === 'mountain') {
             this.debug('Creating new mountain south connection');
             zoneStairs = RG.World.addExitsToEdge(zoneLevel,
                 'passage', 'south', true);
+        }
+        return zoneStairs;
+    };
+
+    /* Creates the connection for dungeon zone and returns the connection. */
+    this.createDungeonZoneConnect = (zone, zoneLevel) => {
+        this.debug('Creating dungeon connection');
+        let sX = 0;
+        let sY = 0;
+        if (zoneLevel.hasExtras()) {
+            const extras = zoneLevel.getExtras();
+            if (extras.startPoint) {
+                [sX, sY] = extras.startPoint;
+            }
+        }
+        else {
+            const freeCell = zoneLevel.getFreeRandCell();
+            [sX, sY] = freeCell.getXY();
+        }
+        const zoneStairs = new Stairs('stairsUp', zoneLevel);
+        zoneLevel.addStairs(zoneStairs, sX, sY);
+        return zoneStairs;
+    };
+
+    this.createCityZoneConnect = (zone, zoneLevel) => {
+        let zoneStairs = null;
+        this.debug('Creating new city edge connection');
+        let allEdgeExits = [];
+        RG.CARDINAL_DIR.forEach(dir => {
+            if (!RG.World.edgeHasConnections(zoneLevel, dir)) {
+                const exits = RG.World.addExitsToEdge(zoneLevel,
+                    'passage', dir);
+                if (exits.length > 0) {
+                    allEdgeExits = allEdgeExits.concat(exits);
+                }
+            }
+        });
+        zoneStairs = allEdgeExits;
+        // Connection failed, resort to single point connection
+        if (zoneStairs.length === 0) {
+            // zoneLevel.getMap().debugPrintInASCII();
+
+            // TODO this one is shaky
+            const freeCell = zoneLevel.getFreeRandCell();
+            const zoneX = freeCell.getX();
+            const zoneY = freeCell.getY();
+            zoneStairs = new Stairs('stairsUp', zoneLevel);
+            zoneLevel.addStairs(zoneStairs, zoneX, zoneY);
+            zoneStairs = [zoneStairs];
+
+            this.debug('City edge connection failed. Added stairs');
         }
         return zoneStairs;
     };
@@ -1298,15 +1319,16 @@ RG.Factory.World = function() {
       this.worldElemByID[worldElem.getID()] = worldElem;
     };
 
-    /* Used for printing debug messages only. Can be enabled with
-     * DEBUG= env var. */
-    this.debug = msg => {
-        if (debug.enabled) {
-            let scope = this.getHierName();
-            if (!scope) {scope = 'EMPTY';}
-            debug(`|${scope}| ${msg}`);
-        }
-    };
+};
+
+/* Used for printing debug messages only. Can be enabled with
+ * DEBUG= env var. */
+RG.Factory.World.prototype.debug = function(msg) {
+    if (debug.enabled) {
+        let scope = this.getHierName();
+        if (!scope) {scope = 'EMPTY';}
+        debug(`|${scope}| ${msg}`);
+    }
 };
 
 function debugPrintConfAndTile(conf, tileLevel, tag) {
