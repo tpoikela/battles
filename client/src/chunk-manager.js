@@ -379,8 +379,9 @@ export default class ChunkManager {
             dx = px - oldX;
             dy = py - oldY;
             if (dx !== 0 && dy !== 0) {
+                const msg = `MOVE: ${oldX},${oldY} -> ${px},${py}`;
                 RG.err('ChunkManager', 'getMoveDir',
-                    'Diagonal move not supported');
+                    `Diagonal move not supported: ${msg}`);
             }
             if (dx > 0) {moveDir = 'EAST';}
             else if (dx < 0) {moveDir = 'WEST';}
