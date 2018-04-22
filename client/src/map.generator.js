@@ -489,7 +489,7 @@ RG.Map.Generator = function() { // {{{2
                 map.setBaseElemXY(x, y, RG.ELEM.FLOOR_CAVE);
             }
         });
-        return {map};
+        return {map, mapGen: _mapGen};
     };
 
     /* Creates a single crypt level. */
