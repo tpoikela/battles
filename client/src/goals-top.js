@@ -99,6 +99,22 @@ class GoalTop extends Goal.Base {
         });
     }
 
+    toJSON() {
+        const evals = [];
+        this.evaluators.forEach(ev => {
+            // Order difficult to serialize as it can contain reference to any
+            // arbitratry goal (can be top-level goal). That would require tons
+            // of object refs, and it's a lot of work
+            if (ev.getType() !== 'Order') {
+                evals.push(ev.toJSON());
+            }
+        });
+        return {
+            type: this.getType(),
+            evaluators: evals
+        };
+    }
+
 }
 GoalsTop.Top = GoalTop;
 
@@ -110,7 +126,7 @@ class GoalThinkBasic extends GoalTop {
 
     constructor(actor) {
         super(actor);
-        this.setType('GoalThinkBasic');
+        this.setType('ThinkBasic');
         const [lowRange, hiRange] = [0.5, 1.5];
 
         this.bias = {
@@ -174,7 +190,7 @@ class GoalThinkSpellcaster extends GoalThinkBasic {
 
     constructor(actor) {
         super(actor);
-        this.setType('GoalThinkSpellcaster');
+        this.setType('ThinkSpellcaster');
 
         this.bias.castSpell = 1.0;
         this.evaluators.push(new Evaluator.CastSpell(this.bias.castSpell));
@@ -188,7 +204,7 @@ class GoalThinkCommander extends GoalThinkBasic {
 
     constructor(actor) {
         super(actor);
-        this.setType('GoalThinkCommander');
+        this.setType('ThinkCommander');
 
         this.bias.attack = 0.1;
         this.bias.winBattle = 0.8;
