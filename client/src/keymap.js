@@ -279,4 +279,9 @@ Keys.isValidKey = keyCode => {
     return found;
 };
 
+/* Given keycode, returns the valid char for that key. */
+Keys.getChar = keyCode => {
+    return String.fromCharCode(keyCode);
+};
+
 module.exports = Keys;
