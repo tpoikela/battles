@@ -891,7 +891,6 @@ RG.OverWorld.createWorldConf = function(
                             {x: aX, y: aY, levelX: featX, levelY: featY});
                         areaConf.nDungeons += 1;
                         addMaxDangerAndValue(pX, pY, dungeonConf);
-                        console.log(dungeonConf);
                         areaConf.dungeon.push(dungeonConf);
                     }
                     else if (feat.type === 'mountain') {
