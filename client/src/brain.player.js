@@ -73,9 +73,9 @@ const MemoryPlayer = function(player) {
 };
 
 
-const S_IDLE = Symbol();
-const S_TARGETING = Symbol();
-const S_LOOKING = Symbol();
+const S_IDLE = 'S_IDLE';
+const S_TARGETING = 'S_TARGETING';
+const S_LOOKING = 'S_LOOKING';
 
 const FSM_NO_MATCH = 256;
 
@@ -86,6 +86,7 @@ class TargetingFSM {
         this._brain = brain;
         this._targetList = [];
         this.targetIndex = -1;
+        this._state = S_IDLE;
     }
 
     isTargeting() {
@@ -872,6 +873,7 @@ class BrainPlayer {
             ['Forget my orders', this.giveOrder.bind(this, 'Forget')]
         ];
         const orderMenuSelectOrder = new Menu.WithQuit(orderMenuArgs);
+        orderMenuSelectOrder.onQuit = this.cancelTargeting.bind(this);
         const cellMenuArgs = [
             {key: Keys.KEY.SELECT, menu: orderMenuSelectOrder}
         ];
@@ -949,7 +951,12 @@ class BrainPlayer {
     }
 
     setSelectedCells(cells) {
-        this._fsm.setSelectedCells(cells);
+        if (!cells) {
+            this.cancelTargeting();
+        }
+        else {
+            this._fsm.setSelectedCells(cells);
+        }
     }
 
     selectCell(code) {
