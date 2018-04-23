@@ -42,7 +42,7 @@ Table below shows keyboard controls:
 | < or >                    | Use stairs/passage.                               |
 | ${getChar(KEY.CHAT)}      | Chat with another actor.                          |
 | ${getChar(GUI.Help)}      | Show/hide help.                                   |
-| ${getChar(GUI.OWMap)}     | Show overworld map.                               |
+| ${getChar(GUI.OwMap)}     | Show overworld map.                               |
 | ${getChar(KEY.ORDER)}     | [Give an order to another actor.](#giving-orders) |
 | ${getChar(KEY.FIGHT)}     | Change fight mode.                                |
 | ${getChar(KEY.NEXT_ITEM)} | See next item in the cell.                        |
