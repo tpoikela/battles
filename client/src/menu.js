@@ -134,7 +134,8 @@ const MenuInfoOnly = function() {
 RG.extend2(MenuInfoOnly, MenuBase);
 Menu.InfoOnly = MenuInfoOnly;
 
-/* This menu can be used when quit option is required. */
+/* This menu can be used when quit option is required. You can add a callback by
+ * setting onQuit to a desired function. */
 const MenuWithQuit = function(args) {
     MenuBase.call(this, args);
     const quitIndex = Keys.codeToIndex(Keys.KEY.QUIT_MENU);
@@ -143,7 +144,11 @@ const MenuWithQuit = function(args) {
     this.select = code => {
         const selection = Keys.codeToIndex(code);
         if (this.table.hasOwnProperty(selection)) {
-            return this.table[selection][1];
+            const value = this.table[selection][1];
+            if (value === Menu.EXIT_MENU && this.onQuit) {
+                this.onQuit();
+            }
+            return value;
         }
         return this;
     };
