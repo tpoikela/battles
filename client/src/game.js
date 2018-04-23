@@ -42,6 +42,10 @@ RG.Game.Main = function() {
     this.setGUICallbacks = (isGUICmd, doGUICmd) => {
         this._engine.isGUICommand = isGUICmd;
         this._engine.doGUICommand = doGUICmd;
+        const player = this.getPlayer();
+        if (player) {
+            player.getBrain().addGUICallback('GOTO', doGUICmd);
+        }
     };
 
     this.playerCommandCallback = function(actor) {
