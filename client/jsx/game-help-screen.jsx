@@ -8,6 +8,7 @@ import ModalHeader from './modal-header';
 
 const RG = require('../src/rg.js');
 const Modal = require('react-bootstrap-modal');
+const Manual = require('../data/manual');
 
 /* Small helper component. */
 export const TextHelp = props => (
@@ -23,7 +24,7 @@ TextHelp.propTypes = {
 };
 
 const cmdDescr = [
-  <TextHelp char={'b'} descr={'Use stairs/passage.'} key={'b'}/>,
+    <TextHelp char={'> or <'} descr={'Use stairs/passage.'} key={'<>'}/>,
   <TextHelp char={'f'} descr={'Change fight mode.'} key={'f'} />,
   <TextHelp char={'h'} descr={'See next item in the cell.'} key={'h'} />,
   <TextHelp char={'H'} descr={'Show/hide help.'} key={'H'} />,
@@ -59,36 +60,23 @@ export default class GameHelpScreen extends Component {
           show={this.props.showHelpScreen}
       >
         <ModalHeader id='game-help-modal-label' text={RG.gameTitle + 'Help'}/>
-        <div className='modal-body row'>
+        <div className='modal-body'>
 
+        <div className='row'>
           <div className='col-md-6'>
-            <p>To move around, use:</p>
-            <table className='table table-large mov-buttons-table'>
-              <thead />
-              <tbody>
-                <tr>
-                  <td>{'\u2B09'} q</td>
-                  <td>{'\u2B06'} w</td>
-                  <td>{'\u2B08'} e</td>
-                </tr>
-                <tr>
-                  <td>{'\u2B05'} a</td>
-                  <td>Rest: s</td>
-                  <td>{'\u27A1'} d</td>
-                </tr>
-                <tr>
-                  <td>{'\u2B0B'} z</td>
-                  <td>{'\u2B07'} x</td>
-                  <td>{'\u2B0A'} c</td>
-                </tr>
-              </tbody>
-            </table>
           </div>
 
           <div className='col-md-6 help-info-buttons'>
             {cmdDescr}
           </div>
         </div>
+        </div>
+
+        <div className='row' id='manual-text'>
+          <div className='col-md-12'
+            dangerouslySetInnerHTML={{__html: Manual.fullText}}
+            />
+        <div/>
 
         <div className='modal-footer row'>
           <div className='col-md-6'>
