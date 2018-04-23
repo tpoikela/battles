@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { shallow, render } from 'enzyme';
+import { shallow, render, mount } from 'enzyme';
 import chaiEnzyme from 'chai-enzyme';
 import chai, { expect } from 'chai';
 
@@ -23,5 +23,10 @@ describe('Component <GameHelpScreen>', () => {
         const wrapper = shallow(<GameHelpScreen {...props} />);
         const textPrim = wrapper.find(TextHelp);
         expect(textPrim).to.have.length.above(10);
+    });
+
+    it('has the full manual as HTML', () => {
+        const wrapper = mount(<GameHelpScreen {...props} />);
+        expect(wrapper.find('#manual-text')).to.have.length(1);
     });
 });
