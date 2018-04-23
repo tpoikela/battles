@@ -34,10 +34,7 @@ const moveTable = `
 `;
 
 const keyControls = `
-Use  for chatting.
-Use ${getChar(KEY.DOOR)} for opening the door.
-
-Table below shows some controls:
+Table below shows keyboard controls:
 
 | key                       | Command description                               |
 | ------                    | ------------------------------------------        |
@@ -102,6 +99,8 @@ Key controls
 
 ${keyControls}
 
+Alternatively, you can use the numpad keys to move.
+
 Movement
 --------
 
@@ -145,9 +144,18 @@ or press ${getChar(KEY.SELECT_ALL)} to choose all valid targets.
 
 After the selection, you will get a list of possible commands. Choose one
 with the keyboard or using the mouse.
-`;
+
+Game settings
+-------------
+
+TODO
+
+Importing plugins
+-----------------
+
+TODO
+
+`; // END OF MANUAL //
 
 Manual.fullText = marked(fullManualMarkdown);
-// Manual.moveTable = moveTable;
-
 module.exports = Manual;
