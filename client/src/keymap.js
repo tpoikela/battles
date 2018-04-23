@@ -281,7 +281,7 @@ Keys.isValidKey = keyCode => {
 
 /* Given keycode, returns the valid char for that key. */
 Keys.getChar = keyCode => {
-    return String.fromCharCode(keyCode);
+    return '`' + String.fromCharCode(keyCode) + '`';
 };
 
 module.exports = Keys;
