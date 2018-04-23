@@ -1,7 +1,9 @@
 
+/* eslint max-len: 0 */
+
 const Keys = require('../src/keymap.js');
 
-const {KEY, getChar} = Keys;
+const {GUI, KEY, getChar} = Keys;
 
 const marked = require('marked');
 
@@ -32,29 +34,31 @@ const moveTable = `
 `;
 
 const keyControls = `
-Use ${getChar(KEY.CHAT)} for chatting.
+Use  for chatting.
 Use ${getChar(KEY.DOOR)} for opening the door.
 
 Table below shows some controls:
 
-| key    | Command description                        |
-| ------ | ------------------------------------------ |
-| ,      | Pick up an item.                           |
-| < or > | Use stairs/passage.                        |
-| H      | Show/hide help.                            |
-| M      | Show overworld map.                        |
-| f      | Change fight mode.                         |
-| h      | See next item in the cell.                 |
-| i      | Show inventory.                            |
-| l      | Look around.                               |
-| m      | Toggle the map or player view.             |
-| n      | Next target (target-look).                 |
-| o      | Open or close door.                        |
-| p      | Use your powers.                           |
-| r      | Toggle run mode (1.5 x speed).             |
-| s      | Rest (takes less energy than moving).      |
-| t      | Enter targeting mode. Press again to fire. |
-| u      | Use an item.                               |
+| key                       | Command description                               |
+| ------                    | ------------------------------------------        |
+| ,                         | Pick up an item.                                  |
+| < or >                    | Use stairs/passage.                               |
+| ${getChar(KEY.CHAT)}      | Chat with another actor.                          |
+| ${getChar(GUI.Help)}      | Show/hide help.                                   |
+| ${getChar(GUI.OWMap)}     | Show overworld map.                               |
+| ${getChar(KEY.ORDER)}     | [Give an order to another actor.](#giving-orders) |
+| ${getChar(KEY.FIGHT)}     | Change fight mode.                                |
+| ${getChar(KEY.NEXT_ITEM)} | See next item in the cell.                        |
+| ${getChar(GUI.Inv)}       | Show inventory.                                   |
+| ${getChar(GUI.Look)}      | Look around.                                      |
+| ${getChar(GUI.Map)}       | Toggle the map or player view.                    |
+| ${getChar(KEY.NEXT)}      | Next target (target-look).                        |
+| ${getChar(KEY.DOOR)}      | Open or close door.                               |
+| ${getChar(KEY.POWER)}     | [Use your powers.](#casting-spells)               |
+| ${getChar(KEY.RUN)}       | Toggle run mode (1.5 x speed).                    |
+| ${getChar(KEY.REST)}      | Rest (takes less energy than moving).             |
+| ${getChar(KEY.TARGET)}    | [Target/fire](#firing-missiles)                   |
+| ${getChar(GUI.Use)}       | [Use an item.](#using-items)                      |
 `;
 
 //------------------------------
@@ -66,7 +70,23 @@ const fullManualMarkdown = `
 Battles manual
 ==============
 
-This a test to check if the manual works.
+This a short manual accompanying Battles game. It should get you started with
+controls and basic commands of the game.
+
+At the moment, you need both mouse and keyboard to play the game. While all the
+ASCII-based menus are clickable by mouse, you need keyboard to open some of the
+menus. Also, the Inventory menu cannot be used with keyboard at the moment.
+These limitations will be addressed in the future development.
+
+About the Game
+--------------
+
+Battles is an RPG/roguelike-game in a northern setting. You control a single
+actor and interact with NPCs in the world. The game consists of an overworld
+and numerous smaller zones (dungeons, mountains, crypts, fortresses, caves),
+which are scattered around the overworld. There are also settlements such as
+villages and cities, which are less hostile than previously mentioned
+zones.
 
 Mouse controls
 --------------
@@ -114,6 +134,17 @@ There are 2 ways to use items:
     * Close inventory and press ${getChar(KEY.USE)}.
     * Select direction for using.
 
+Giving orders
+-------------
+
+In some situations, it is possible to give commands to other actors. Use
+${getChar(KEY.ORDER)} to give an order. The game will ask you to select a
+target. You can used the [Movement keys](#movement) to select a target by
+pressing ${getChar(KEY.SELECT)} over desired target,
+or press ${getChar(KEY.SELECT_ALL)} to choose all valid targets.
+
+After the selection, you will get a list of possible commands. Choose one
+with the keyboard or using the mouse.
 `;
 
 Manual.fullText = marked(fullManualMarkdown);
