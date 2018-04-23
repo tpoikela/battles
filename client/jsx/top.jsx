@@ -1035,6 +1035,7 @@ class BattlesTop extends Component {
         this.guiCommands[Keys.GUI.Look] = this.GUILook;
         this.guiCommands[Keys.GUI.Use] = this.GUIUseItem;
         this.guiCommands[Keys.GUI.CharInfo] = this.GUICharInfo.bind(this);
+        this.guiCommands.GOTO = this.GUIGoto.bind(this);
     }
 
     /* Returns true if given command is a GUI command. */
@@ -1061,13 +1062,21 @@ class BattlesTop extends Component {
       this.showScreen('CharInfo');
     }
 
+    GUIGoto(x, y) {
+        const player = this.game.getPlayer();
+        const cell = player.getCell();
+        this.useClickHandler(x, y, cell, 'move');
+    }
+
     /* GameInventory should add a callback which updates the GUI (via props) */
     doInvCmd(cmd) {
         this.game.update(cmd);
     }
 
     /* Calls a GUI command corresponding to the code.*/
-    doGUICommand(code) {
+    doGUICommand(code, ...args) {
+         console.log('doGUICommand with: ');
+         console.log(code, ...args);
          if (this.gameState.useModeEnabled) {
             this.gameState.useModeEnabled = false;
             const item = this.state.selectedItem;
@@ -1092,7 +1101,10 @@ class BattlesTop extends Component {
             }
         }
         else if (this.guiCommands.hasOwnProperty(code)) {
-            this.guiCommands[code]();
+            this.guiCommands[code](...args);
+        }
+        else if (Keys.KeyMap.isGoto(code)) {
+            this.GUIGoto(...args);
         }
         else {
             console.error('Unknown keycode for GUI command.');
