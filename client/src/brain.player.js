@@ -270,6 +270,85 @@ class TargetingFSM {
     }
 }
 
+/* Used for marking player positions. */
+class MarkList {
+
+    constructor(brain) {
+        this._brain = brain;
+        this._actor = brain._actor;
+        this._marks = {};
+    }
+
+    addMark(tag) {
+        const [x, y] = this._actor.getXY();
+        const level = this._actor.getLevel();
+        const id = level.getID();
+        const markObj = {id, x, y};
+        if (tag) {markObj.tag = tag;}
+        if (!this._marks[id]) {this._marks[id] = [];}
+        else if (!this.markExists(id, x, y)) {
+            this._marks[id].push(markObj);
+            RG.gameMsg('Added a mark to the current location.');
+        }
+    }
+
+    /* Should return a menu object with all possible marks shown. */
+    getMenu() {
+        const id = this._actor.getLevel().getID();
+        const markList = this._marks[id] || [];
+        const menuArgs = markList.map(mark => {
+            const {x, y} = mark;
+            const cbFunc = this._brain._guiCallbacks.GOTO;
+            // Bind to args, this is preserved in any case
+            const boundFunc = cbFunc.bind(null, Keys.KEY.GOTO, x, y);
+
+            const listMsg = this.getMarkListMsg(mark);
+            return [listMsg, boundFunc];
+        });
+        const menu = new Menu.WithQuit(menuArgs);
+        return menu;
+    }
+
+    getMark(selectCode) {
+        const index = Keys.codeToIndex(selectCode);
+        if (this._marks.length <= index) {
+            return this._marks[index];
+        }
+        return null;
+    }
+
+    getMarkListMsg(mark) {
+        const {x, y} = mark;
+        let listMsg = `${x}, ${y}`;
+        if (mark.tag) {listMsg += ` ${mark.tag}`;}
+        else {
+            // Determine tag from a cell
+            const cell = this._actor.getLevel().getMap().getCell(x, y);
+            if (cell.hasElements()) {
+                const elem = cell.getElements()[0];
+                listMsg += ' ' + elem.getName();
+            }
+            else if (cell.hasItems()) {
+                listMsg += ' ' + cell.getItems()[0].getName();
+            }
+        }
+        return listMsg;
+    }
+
+    markExists(id, x, y) {
+        const markList = this._marks[id];
+        const index = markList.findIndex(m => (
+            m.x === x && m.y === y
+        ));
+        return index >= 0;
+    }
+
+    toJSON() {
+        return this._marks;
+    }
+
+}
+
 /* This brain is used by the player actor. It simply handles the player input
  * but by having brain, player actor looks like other actors.  */
 class BrainPlayer {
@@ -292,6 +371,7 @@ class BrainPlayer {
         this._fightMode = RG.FMODE_NORMAL;
 
         this._fsm = new TargetingFSM(this);
+        this._markList = new MarkList(this);
 
         // Not used to store anything, used only to map setters to components
         this._statBoosts = {
@@ -341,6 +421,7 @@ class BrainPlayer {
         return ACTION_ZERO_ENERGY;
     }
 
+    /* Returns true if a menu should be shown by the GUI. */
     isMenuShown() {
         if (this._selectionObject) {
             return this._selectionObject.showMenu();
@@ -348,6 +429,7 @@ class BrainPlayer {
         return false;
     }
 
+    /* Returns the menu which should be shown. */
     getMenu() {
         if (this._selectionObject) {
             if (this._selectionObject.showMenu()) {
@@ -593,6 +675,15 @@ class BrainPlayer {
           return fsmValue;
       }
 
+      if (RG.KeyMap.isMark(code)) {
+          this._markList.addMark();
+          return this.noAction();
+      }
+      else if (RG.KeyMap.isGoto(code)) {
+          this.setSelectionObject(this._markList.getMenu());
+          return this.noAction();
+      }
+
       // Invoke GUI callback with given code
       if (this._guiCallbacks.hasOwnProperty(code)) {
         return this._guiCallbacks[code](code);
@@ -614,6 +705,7 @@ class BrainPlayer {
           this.issueOrderCmd();
           return this.noAction();
       }
+
 
       // Need existing position for move/attack commands
       const level = this._actor.getLevel();
@@ -961,6 +1053,10 @@ class BrainPlayer {
 
     selectCell(code) {
         this._fsm.selectCell(code);
+    }
+
+    addMark(tag) {
+        this._markList.addMark(tag);
     }
 
     toJSON() {
