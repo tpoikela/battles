@@ -181,6 +181,8 @@ RG.System.BaseAction = function(compTypes) {
         const actorsAround = RG.Brain.getActorsAround(ent);
 
         if (level.useStairs(ent)) {
+            if (ent.isPlayer()) {ent.getBrain().addMark();}
+
             if (actorsAround.length > 0) {
                 const newLevel = ent.getLevel();
                 const cells = RG.Brain.getBoxOfFreeCellsAround(ent, 1);
