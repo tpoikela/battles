@@ -78,20 +78,22 @@ Keys.KeyMap = {
         return code === Keys.KEY.USE_STAIRS_DOWN ||
             code === Keys.KEY.USE_STAIRS_UP;
     },
-    isRunMode: function(code) {return code === Keys.KEY.RUN;},
-    isFightMode: function(code) {return code === Keys.KEY.FIGHT;},
+    isChat: function(code) {return code === Keys.KEY.CHAT;},
     isConfirmYes: function(code) {return code === Keys.KEY.YES;},
-    isNextItem: function(code) {return code === Keys.KEY.NEXT_ITEM;},
-    isToggleDoor: function(code) {return code === Keys.KEY.DOOR;},
+    isFightMode: function(code) {return code === Keys.KEY.FIGHT;},
+    isGoto: function(code) {return code === Keys.KEY.GOTO;},
+    isIssueOrder: function(code) {return code === Keys.KEY.ORDER;},
     isLook: function(code) {return code === Keys.KEY.LOOK;},
-    isUsePower: function(code) {return code === Keys.KEY.POWER;},
-    isTargetMode: function(code) {return code === Keys.KEY.TARGET;},
+    isMark: function(code) {return code === Keys.KEY.MARK;},
+    isNextItem: function(code) {return code === Keys.KEY.NEXT_ITEM;},
     isNextTarget: function(code) {return code === Keys.KEY.NEXT;},
     isPrevTarget: function(code) {return code === Keys.KEY.PREV;},
-    isChat: function(code) {return code === Keys.KEY.CHAT;},
-    isIssueOrder: function(code) {return code === Keys.KEY.ORDER;},
+    isRunMode: function(code) {return code === Keys.KEY.RUN;},
     isSelect: function(code) {return code === Keys.KEY.SELECT;},
     isSelectAll: function(code) {return code === Keys.KEY.SELECT_ALL;},
+    isTargetMode: function(code) {return code === Keys.KEY.TARGET;},
+    isToggleDoor: function(code) {return code === Keys.KEY.DOOR;},
+    isUsePower: function(code) {return code === Keys.KEY.POWER;},
 
     /* Based on keycode, computes and returns a new x,y pair. If code is
      * invalid, returns null. */
@@ -240,7 +242,9 @@ Keys.KEY.MOVE_NW = ROT.VK_Q + 32;
 Keys.KEY.CHAT = ROT.VK_C;
 Keys.KEY.DOOR = ROT.VK_O + 32;
 Keys.KEY.FIGHT = ROT.VK_F + 32;
+Keys.KEY.GOTO = Keys.VK_g;
 Keys.KEY.LOOK = ROT.VK_L + 32;
+Keys.KEY.MARK = Keys.VK_b;
 Keys.KEY.NEXT = Keys.VK_n;
 Keys.KEY.NEXT_ITEM = ROT.VK_H + 32;
 Keys.KEY.ORDER = ROT.VK_O;
@@ -262,13 +266,14 @@ Keys.KEY.NO_ACTION = ROT.VK_CAPS_LOCK;
 
 // Used in the GUI only
 Keys.GUI = {};
-Keys.GUI.Inv = Keys.VK_i;
-Keys.GUI.Map = Keys.VK_m;
-Keys.GUI.Look = Keys.VK_l;
-Keys.GUI.Use = Keys.VK_u;
-Keys.GUI.OwMap = ROT.VK_M;
-Keys.GUI.Help = ROT.VK_H;
 Keys.GUI.CharInfo = ROT.VK_I;
+Keys.GUI.Goto = Keys.KEY.GOTO;
+Keys.GUI.Help = ROT.VK_H;
+Keys.GUI.Inv = Keys.VK_i;
+Keys.GUI.Look = Keys.VK_l;
+Keys.GUI.Map = Keys.VK_m;
+Keys.GUI.OwMap = ROT.VK_M;
+Keys.GUI.Use = Keys.VK_u;
 
 Keys.isValidKey = keyCode => {
     let found = false;
