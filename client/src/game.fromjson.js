@@ -70,6 +70,9 @@ RG.Game.FromJSON = function() {
         Object.keys(memJSON).forEach(setter => {
             memory[setter](memJSON[setter]);
         });
+        if (brainJSON.markList) {
+            brain._markList.fromJSON(brainJSON.markList);
+        }
     };
 
     this.addRestoredPlayerToGame = function(player, game, json) {
