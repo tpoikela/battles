@@ -290,7 +290,8 @@ RG.Element.Door = RGElementDoor;
 class RGElementLeverDoor extends RGElementDoor {
 
     constructor() {
-        super('leverdoor');
+        super(true);
+        this.setType('leverdoor');
     }
 
     canToggle() {return false;}
