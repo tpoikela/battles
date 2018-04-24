@@ -13,6 +13,9 @@ const {
 
 const selectTargetMsg =
     'Select a target (all with "A"), then press "s" to choose it';
+const lookCellMsg =
+    'Select a target with movement keys, then press "s" to choose it';
+
 
 const chatSelObject = player => {
     const msg = 'Select direction for chatting:';
@@ -107,6 +110,15 @@ class TargetingFSM {
         }
     }
 
+    startLooking() {
+        this._state = S_LOOKING;
+    }
+
+    stopLooking() {
+        this._state = S_IDLE;
+        this.selectedCells = null;
+    }
+
     startTargeting() {
         this._state = S_TARGETING;
         this._targetList = this.getTargetList();
@@ -156,7 +168,7 @@ class TargetingFSM {
     }
 
     getTarget() {
-        if (this.isTargeting()) {
+        if (this.isTargeting() || this.isLooking()) {
             if (this.selectedCells.length > 0) {
                 return this.selectedCells[0];
             }
@@ -180,11 +192,11 @@ class TargetingFSM {
 
     selectCell(code) {
         const actor = this._brain._actor;
+        const visibleCells = this._brain.getVisibleCells();
         if (RG.isNullOrUndef([code])) {
             this.setSelectedCells(actor.getCell());
         }
         else if (code === Keys.KEY.SELECT_ALL) {
-            const visibleCells = this._brain.getVisibleCells();
             const friends = RG.Brain.findCellsWithFriends(actor,
                 visibleCells);
             this.setSelectedCells(friends);
@@ -196,6 +208,18 @@ class TargetingFSM {
             const [newX, newY] = RG.KeyMap.getDiff(code, x, y);
             if (map.hasXY(newX, newY)) {
                 this.setSelectedCells(map.getCell(newX, newY));
+            }
+            if (this.isLooking()) {
+                const cell = this.getTarget();
+                const index = visibleCells.indexOf(cell);
+                let msg = 'You cannot see there.';
+                if (index >= 0) {
+                    const names = cell.getPropNames();
+                    names.forEach(name => {
+                        msg += `You see ${name} `;
+                    });
+                    RG.gameMsg(msg);
+                }
             }
         }
     }
@@ -675,6 +699,7 @@ class BrainPlayer {
           return fsmValue;
       }
 
+      // Create a mark or goto a mark
       if (RG.KeyMap.isMark(code)) {
           this._markList.addMark();
           return this.noAction();
@@ -706,6 +731,10 @@ class BrainPlayer {
           return this.noAction();
       }
 
+      if (RG.KeyMap.isLook(code)) {
+          this.lookCmd();
+          return this.noAction();
+      }
 
       // Need existing position for move/attack commands
       const level = this._actor.getLevel();
@@ -873,6 +902,10 @@ class BrainPlayer {
           } // object returns another selection
           else if (selection && typeof selection === 'object') {
             this._selectionObject = selection;
+            if (selection.funcToCall) {
+              this.selectionDone();
+              return selection.funcToCall();
+            }
             return this.noAction();
           }
         }
@@ -967,6 +1000,7 @@ class BrainPlayer {
         const orderMenuSelectOrder = new Menu.WithQuit(orderMenuArgs);
         orderMenuSelectOrder.onQuit = this.cancelTargeting.bind(this);
         const cellMenuArgs = [
+            // When key is pressed, show the next menu
             {key: Keys.KEY.SELECT, menu: orderMenuSelectOrder}
         ];
 
@@ -977,6 +1011,27 @@ class BrainPlayer {
         orderMenuSelectCell.setCallback(this.selectCell.bind(this));
         this.setSelectionObject(orderMenuSelectCell);
         this.selectCell();
+    }
+
+    lookCmd() {
+        const cellMenuArgs = [
+            // When key is pressed, calls func
+            {key: Keys.KEY.SELECT,
+                funcToCall: this.showSelectedCellInfo.bind(this)
+            }
+        ];
+        RG.gameMsg(lookCellMsg);
+        const orderMenuSelectCell = new Menu.SelectCell(cellMenuArgs);
+        orderMenuSelectCell.setCallback(this.selectCell.bind(this));
+        this.setSelectionObject(orderMenuSelectCell);
+        this._fsm.startLooking();
+        this.selectCell();
+    }
+
+    showSelectedCellInfo() {
+        // const cell = this.getTarget();
+        // TODO show more info about the cell
+        this._fsm.stopLooking();
     }
 
     giveOrder(orderType) {
