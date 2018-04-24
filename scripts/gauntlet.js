@@ -37,7 +37,7 @@ for (let n = 0; n < nRounds; n++) {
                 const a2 = shells[j];
                 if (validActorsForTest(a1, a2)) {
                     if (nMatches < matchLimit) {
-                        runBattleTest(a1, a2);
+                        runBattleTest(a1, a2, histogram);
                         ++nMatches;
                         // const msg = `${a1.name} VS ${a2.name}`;
                         // console.log(`Finished match ${nMatches}: ${msg}`);
@@ -74,7 +74,7 @@ function validActorsForTest(a1, a2) {
     return false;
 }
 
-function runBattleTest(a1, a2) {
+function runBattleTest(a1, a2, histogram) {
     initHistograms(a1, a2);
 
     let watchdog = 300;
