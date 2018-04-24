@@ -53,6 +53,8 @@ CaveGenerator.prototype.setLevelExtras = function(level, mapGen) {
     level.setExtras(extras);
 };
 
+/* Creates the options how to generate the level map. This depends on the type
+ * of cave that needs to be generated. */
 CaveGenerator.prototype._createMapOptions = function(cols, rows, conf) {
     const {dungeonType} = conf;
     let opts = {};
@@ -104,6 +106,19 @@ CaveGenerator.prototype.addStairsLocations = function(level) {
     }
     extras.startPoint = startPoint;
     if (endPoint) {extras.endPoint = endPoint;}
+
+    // Process other points of interest
+    const points = startPoints.slice();
+    extras.points = [];
+    points.splice(points.indexOf(startPoint), 1);
+    points.splice(points.indexOf(endPoint), 1);
+    points.forEach(point => {
+        const [eX, eY] = point;
+        const pointMarker = new RG.Element.Marker('>');
+        pointMarker.setTag('end_point');
+        level.addElement(pointMarker, eX, eY);
+        extras.points.push(point);
+    });
 };
 
 CaveGenerator.prototype._addEncounters = function(level, conf) {
@@ -111,6 +126,8 @@ CaveGenerator.prototype._addEncounters = function(level, conf) {
     if (dungeonType === 'Lair') {
         this._addLairBoss(level, conf);
     }
+
+    this.populatePoints(level, conf);
 };
 
 CaveGenerator.prototype._addLairBoss = function(level, conf) {
@@ -118,9 +135,19 @@ CaveGenerator.prototype._addLairBoss = function(level, conf) {
     const endPoint = level.getExtras().endPoint;
     if (endPoint) {
         const populate = new DungeonPopulate({});
-        populate.addEndPointGuardian(level, maxDanger);
+        populate.addPointGuardian(level, endPoint, maxDanger + 4);
         populate.addMainLoot(level, endPoint, maxValue);
     }
+};
+
+/* Processes points of interest other than start/end points. */
+CaveGenerator.prototype.populatePoints = function(level, conf) {
+    const extras = level.getExtras();
+    const {points} = extras;
+    const populate = new DungeonPopulate({});
+    points.forEach(point => {
+        populate.populatePoint(level, point, conf);
+    });
 };
 
 /* Returns an object containing the base miners for different directions. */
