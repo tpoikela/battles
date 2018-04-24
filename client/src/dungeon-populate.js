@@ -123,29 +123,28 @@ DungeonPopulate.prototype.populateLevel = function(level) {
     }
 
     // Add an endpoint guardian
-    this.addEndPointGuardian(level, maxDanger);
+    if (extras.endPoint) {
+        this.addPointGuardian(level, extras.endPoint, maxDanger);
+    }
 
 };
 
-DungeonPopulate.prototype.addEndPointGuardian = function(level, maxDanger) {
-    const extras = level.getExtras();
-    if (extras.endPoint) {
-        const eXY = extras.endPoint;
-        const guardEval = new Evaluator.Guard(RG.BIAS.Guard, eXY);
+DungeonPopulate.prototype.addPointGuardian = function(level, point, maxDanger) {
+    const eXY = point;
+    const guardEval = new Evaluator.Guard(RG.BIAS.Guard, eXY);
 
-        const guardian = this.getEndPointGuardian(maxDanger);
-        if (guardian) {
-            if (guardian.getBrain().getGoal) {
-                guardian.getBrain().getGoal().addEvaluator(guardEval);
-            }
-            level.addActor(guardian, eXY[0], eXY[1]);
+    const guardian = this.getEndPointGuardian(maxDanger);
+    if (guardian) {
+        if (guardian.getBrain().getGoal) {
+            guardian.getBrain().getGoal().addEvaluator(guardEval);
         }
+        level.addActor(guardian, eXY[0], eXY[1]);
     }
 };
 
 DungeonPopulate.prototype.getEndPointGuardian = function(maxDanger) {
     const parser = RG.ObjectShell.getParser();
-    let currDanger = maxDanger + 1;
+    let currDanger = maxDanger;
     let guardian = null;
     const actorFunc = actor => actor.danger <= currDanger;
     while (!guardian && currDanger > 0) {
@@ -174,6 +173,31 @@ DungeonPopulate.prototype.addMainLoot = function(level, center, maxValue) {
         return true;
     }
     return false;
+};
+
+const popOptions = ['NOTHING', 'LOOT', 'GOLD', 'GUARDIAN', 'ELEMENT', 'CORPSE',
+    'TIP'];
+
+/* Given level and x,y coordinate, tries to populate that point with content. */
+DungeonPopulate.prototype.populatePoint = function(level, point, conf) {
+    const {maxDanger} = conf;
+    const type = RG.RAND.arrayGetRand(popOptions);
+    // const [pX, pY] = point;
+    switch (type) {
+        case 'NOTHING': break;
+        case 'GUARDIAN':
+            this.addPointGuardian(level, point, maxDanger);
+            break;
+        case 'ELEMENT': this.addElementToPoint(level, point, conf); break;
+        case 'CORPSE': break;
+        default: break;
+    }
+};
+
+/* Adds an element into the given point. */
+DungeonPopulate.prototype.addElementToPoint = function(level, point, conf) {
+    console.log(level, conf, point);
+    // TODO
 };
 
 module.exports = DungeonPopulate;
