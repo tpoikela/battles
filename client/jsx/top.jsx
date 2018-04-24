@@ -1032,7 +1032,7 @@ class BattlesTop extends Component {
         this.guiCommands[Keys.GUI.Map] = this.GUIMap;
         this.guiCommands[Keys.GUI.OwMap] = this.GUIOverWorldMap.bind(this);
         // this.guiCommands[Keys.VK_n] = this.GUINextTarget;
-        this.guiCommands[Keys.GUI.Look] = this.GUILook;
+        // this.guiCommands[Keys.GUI.Look] = this.GUILook;
         this.guiCommands[Keys.GUI.Use] = this.GUIUseItem;
         this.guiCommands[Keys.GUI.CharInfo] = this.GUICharInfo.bind(this);
         this.guiCommands.GOTO = this.GUIGoto.bind(this);
