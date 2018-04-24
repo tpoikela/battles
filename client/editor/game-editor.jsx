@@ -823,7 +823,7 @@ export default class GameEditor extends Component {
     else if (value === 'cave') {
       const caveGen = new ROT.Map.Miner();
       const conf = caveGen._options;
-      delete conf.cave.rng;
+      delete conf.rng;
       return conf;
     }
     else {
