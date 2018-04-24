@@ -20,6 +20,7 @@
  *       Other values are invalid, and should not be returned
  *
  *   Each Menu must have getMenu(), unless showMenu() returns false.
+ *
  */
 
 const RG = require('./rg');
@@ -43,7 +44,15 @@ const MenuBase = function(args = []) {
         const index = Keys.menuIndices[i];
         if (item.key) {
             const index = Keys.codeToIndex(item.key);
-            this.table[index] = item.menu;
+            if (item.menu) {
+                this.table[index] = item.menu;
+            }
+            else if (item.func) {
+                this.table[index] = item.func;
+            }
+            else if (item.funcToCall) {
+                this.table[index] = {funcToCall: item.funcToCall};
+            }
         }
         else if (item.length === 2) {
             this.table[index] = item;
