@@ -328,6 +328,20 @@ RG.Map.Cell.prototype.toJSON = function() {
     return json;
 };
 
+/* Returns name (or type if unnamed) for each prop in this cell, including the
+ * base element type. */
+RG.Map.Cell.prototype.getPropNames = function() {
+    const result = [this._baseElem.getType()];
+    const keys = Object.keys(this._p);
+    keys.forEach(propType => {
+        const props = this.getProp(propType);
+        props.forEach(prop => {
+            result.push(prop.getName());
+        });
+    });
+    return result;
+};
+
 /* Returns true if any cell property has the given type. Ie.
  * myCell.hasPropType("wall"). Doesn't check for basic props like "actors",
  * RG.TYPE_ITEM etc.
