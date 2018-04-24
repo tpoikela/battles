@@ -169,7 +169,7 @@ class TargetingFSM {
 
     getTarget() {
         if (this.isTargeting() || this.isLooking()) {
-            if (this.selectedCells.length > 0) {
+            if (this.selectedCells && this.selectedCells.length > 0) {
                 return this.selectedCells[0];
             }
         }
@@ -369,6 +369,10 @@ class MarkList {
 
     toJSON() {
         return this._marks;
+    }
+
+    fromJSON(json) {
+        this._marks = json;
     }
 
 }
@@ -1117,7 +1121,8 @@ class BrainPlayer {
     toJSON() {
         return {
             type: this.getType(),
-            memory: this._memory.toJSON()
+            memory: this._memory.toJSON(),
+            markList: this._markList.toJSON()
         };
     }
 
