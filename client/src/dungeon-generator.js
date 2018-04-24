@@ -786,7 +786,7 @@ DungeonGenerator.prototype.verifyLevel = function(level, conf) {
 /* Removes unneeded markers from the level. */
 DungeonGenerator.prototype.removeMarkers = function(level, conf) {
     let preserveMarkers = ['start_point', 'end_point', 'critical_path'];
-    if (conf.PresetLevels) {
+    if (conf.preserveMarkers) {
         preserveMarkers = preserveMarkers.concat(conf.preserveMarkers);
     }
     if (!RG.isNullOrUndef([conf.shouldRemoveMarkers])) {
