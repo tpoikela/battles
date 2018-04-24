@@ -8,9 +8,13 @@ RG.Map = require('./map.js');
 RG.Map.Level = require('./level');
 // const Random = require('./random');
 const DungeonPopulate = require('./dungeon-populate');
+const LevelGenerator = require('./level-generator');
 
 const CaveGenerator = function() {
+    LevelGenerator.call(this);
+    this.shouldRemoveMarkers = true;
 };
+RG.extend2(CaveGenerator, LevelGenerator);
 
 const Miners = {};
 
@@ -33,6 +37,8 @@ CaveGenerator.prototype.create = function(cols, rows, conf) {
 
     this._addEncounters(level, conf);
 
+    conf.preserveMarkers = false;
+    this.removeMarkers(level, conf);
     return level;
 };
 
@@ -91,19 +97,8 @@ CaveGenerator.prototype.addStairsLocations = function(level) {
         startPoint = startPoints[0];
     }
 
-    if (startPoint) {
-        const [sX, sY] = startPoint;
-        const startPointElem = new RG.Element.Marker('<');
-        startPointElem.setTag('start_point');
-        level.addElement(startPointElem, sX, sY);
-    }
+    this.addStartAndEndPoint(level, startPoint, endPoint);
 
-    if (endPoint) {
-        const [eX, eY] = endPoint;
-        const goalPoint = new RG.Element.Marker('>');
-        goalPoint.setTag('end_point');
-        level.addElement(goalPoint, eX, eY);
-    }
     extras.startPoint = startPoint;
     if (endPoint) {extras.endPoint = endPoint;}
 
