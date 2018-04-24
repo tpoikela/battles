@@ -37,6 +37,8 @@ Menu.EXIT_MENU = null;
 const MenuBase = function(args = []) {
     this.table = {};
     this.msg = '';
+    this.pre = [];
+    this.post = [];
 
     this.parent = null; // Parent menu for this object
 
@@ -74,8 +76,6 @@ const MenuBase = function(args = []) {
         }
     };
 
-    this.pre = [];
-    this.post = [];
 
     this.showMenu = () => true;
 
@@ -181,7 +181,9 @@ const MenuSelectRequired = function(args) {
 RG.extend2(MenuSelectRequired, MenuBase);
 Menu.SelectRequired = MenuSelectRequired;
 
-/* This menu can be used when a cell needs to be selected. */
+/* This menu can be used when a cell needs to be selected. It does not shown a
+ * menu. You should communicate with RG.gameMsg() what player needs to do with
+ * this menu. */
 const MenuSelectCell = function(args) {
     MenuBase.call(this, args);
     this._enableSelectAll = false;
