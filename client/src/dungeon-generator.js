@@ -7,6 +7,7 @@ const Geometry = require('./geometry');
 const MapGen = require('./map.generator');
 const Path = require('./path');
 const DungeonPopulate = require('./dungeon-populate');
+const LevelGenerator = require('./level-generator');
 
 const WALL = 1;
 
@@ -70,9 +71,11 @@ const BigRoom = function(type, room) {
 
 /* This class is used to generate different dungeon levels. */
 const DungeonGenerator = function() {
+    LevelGenerator.call(this);
     this.addDoors = true;
     this.shouldRemoveMarkers = true;
 };
+RG.extend2(DungeonGenerator, LevelGenerator);
 
 /* Contain the default options for various level types. */
 DungeonGenerator.mapOptions = {
@@ -627,13 +630,10 @@ DungeonGenerator.prototype.addStairsLocations = function(level) {
         extras.startPoint = [cx2, cy2];
         extras.endPoint = [cx1, cy1];
 
+        const {startPoint, endPoint} = extras;
+        this.addStartAndEndPoint(level, startPoint, endPoint);
+
         // Place markers to later identify the points from the level
-        const goalPoint = new RG.Element.Marker('>');
-        const startPoint = new RG.Element.Marker('<');
-        startPoint.setTag('start_point');
-        goalPoint.setTag('end_point');
-        level.addElement(goalPoint, cx1, cy1);
-        level.addElement(startPoint, cx2, cy2);
         room1.addStairs(cx1, cy1, true);
         room2.addStairs(cx2, cy2, false);
 
@@ -695,7 +695,6 @@ DungeonGenerator.prototype.addCriticalPath = function(level) {
     // For each path broken marker, we need to add walls to physicall break
     // that path
     this._addWallsToBrokenPath(level);
-
 
     criticalPath.forEach(xy => {
         const critPathElem = new RG.Element.Marker('*');
@@ -784,7 +783,7 @@ DungeonGenerator.prototype.verifyLevel = function(level, conf) {
 };
 
 /* Removes unneeded markers from the level. */
-DungeonGenerator.prototype.removeMarkers = function(level, conf) {
+DungeonGenerator.removeMarkers = function(level, conf) {
     let preserveMarkers = ['start_point', 'end_point', 'critical_path'];
     if (conf.preserveMarkers) {
         preserveMarkers = preserveMarkers.concat(conf.preserveMarkers);
