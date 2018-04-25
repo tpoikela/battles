@@ -269,7 +269,7 @@ class Blademaster extends ActorClassBase {
                 this._actor.add(new RG.Component.CounterAttack());
             },
             32: () => {
-                actor.get('Combat').setRange(2);
+                this._actor.get('Combat').setAttackRange(2);
                 this._actor.add(new RG.Component.LongReach());
             }
         };
