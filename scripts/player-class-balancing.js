@@ -4,19 +4,24 @@
 require('babel-register');
 const RG = require('../client/src/battles');
 const Actors = require('../client/data/actors.js');
+const ActorBattles = require('../tests/actor-battles');
 
-const actorClass = 'Marksman';
+const className = 'Marksman';
 const playerLevel = 16;
+const actorClass = new RG.Component.ActorClass();
+actorClass.setClassName(className);
 
-const bestOf = '5';
-
-const parser = RG.ObjectShell.getParser();
+const playerActor = new RG.Actor.Rogue('hero');
+playerActor.add(actorClass);
+RG.levelUpActor(playerActor, playerLevel);
 
 const shells = Actors.filter(a => !((/spirit/i).test(a.name)));
+const matchLimit = 2000;
+const monitorActor = playerActor.getName();
+const ab = new ActorBattles({monitorActor, matchLimit, shells});
 
-for (let i = 0; i < shells.length; i++) {
-    const a1 = new Actor.Rogue();
-    const a2 = shells[i];
-    runBattleTest(a1, a2, histogram);
+ab.runWithActor(playerActor, 1);
+ab.printOutputs();
 
-}
+const durationMs = ab.getDuration();
+console.log('Total duration ' + (durationMs / 1000) + ' s');

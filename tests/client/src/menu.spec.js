@@ -21,3 +21,4 @@ describe('Menu.Base', () => {
         expect(menuKeys).to.have.length(nArgs + 2);
     });
 });
+
