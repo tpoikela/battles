@@ -654,7 +654,6 @@ class GoalHitActor extends GoalBase {
     activate() {
         const level = this.actor.getLevel();
         const [aX, aY] = this.targetActor.getXY();
-        // const brain = this.actor.getBrain();
         const cell = level.getMap().getCell(aX, aY);
         const target = cell.getProp('actors')[0];
         const attackComp = new RG.Component.Attack({target});
@@ -949,6 +948,29 @@ class GoalFollow extends GoalBase {
 }
 Goal.Follow = GoalFollow;
 
+/* Goal for picking up items. */
+class GoalGetItem extends GoalBase {
+
+    constructor(actor, targetItem) {
+        super(actor);
+        this.setType('GoalGetItem');
+        this.targetItem = targetItem;
+    }
+
+    activate() {
+        // Options for getting an item are:
+        //   1. Find it
+        //   2. Buy it from the shop
+        //   3. Kill enemies to get it
+
+    }
+
+    process() {
+        this.activateIfInactive();
+    }
+
+}
+Goal.GetItem = GoalGetItem;
 //---------------------------------------------------------------------------
 /* An actor goal to explore the given area. */
 //---------------------------------------------------------------------------
