@@ -704,15 +704,26 @@ RG.Spell.SummonBase = function(name, power) {
         else if (this.summonFunc) {
             minion = parser.createRandomActor({func: this.summonFunc});
         }
+        // At the moment is failing, when summoner becomes too high-level
 
-        level.addActor(minion, x, y);
-        minion.addFriend(caster);
-        caster.addFriend(minion);
+        if (minion) {
+            level.addActor(minion, x, y);
+            minion.addFriend(caster);
+            caster.addFriend(minion);
 
-        const name = caster.getName();
-        const summonName = minion.getName();
-        const msg = `${name} summons ${summonName}!`;
-        RG.gameMsg({cell, msg});
+            const name = caster.getName();
+            const summonName = minion.getName();
+            const msg = `${name} summons ${summonName}!`;
+            RG.gameMsg({cell, msg});
+        }
+        else {
+            let msg = `Failed to create summon type |${this.summonType}|`;
+            if (this.summonFunc) {
+                const funcStr = this.summonFunc.toString();
+                msg = `summonFunc ${funcStr} gave no actors`;
+            }
+            RG.warn('Spell.SummonBase', '_createAndActor', msg);
+        }
     };
 
 };
@@ -741,7 +752,9 @@ RG.Spell.SummonAnimal = function() {
 
     this.summonFunc = actor => {
         const casterLevel = this.getCaster().get('Experience').getExpLevel();
-        const minDanger = Math.round(casterLevel / 3) || 1;
+        let minDanger = Math.round(casterLevel / 3) || 1;
+        if (minDanger > 10) {minDanger = 10;}
+
         const maxDanger = Math.round(casterLevel / 2);
         return (actor.type === 'animal' &&
             (actor.danger >= minDanger && actor.danger <= maxDanger)
