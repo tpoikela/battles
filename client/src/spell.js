@@ -927,6 +927,10 @@ RG.Spell.MindControl = function() {
         return RG.Spell.getSelectionObjectDir(this, actor, msg);
     };
 
+    this.aiShouldCastSpell = (args, cb) => {
+        return aiSpellCellEnemy(args, cb);
+    };
+
 };
 RG.extend2(RG.Spell.MindControl, RG.Spell.Base);
 
@@ -951,6 +955,18 @@ RG.Spell.Blizzard = function() {
     this.getSelectionObject = function(actor) {
         return RG.Spell.getSelectionObjectSelf(this, actor);
     };
+
+    this.aiShouldCastSpell = (args, cb) => {
+        const {actor, enemy} = args;
+        const getDist = RG.Brain.distToActor(actor, enemy);
+        if (getDist <= this.getRange()) {
+            const spellArgs = {target: enemy, src: actor};
+            cb(actor, spellArgs);
+            return true;
+        }
+        return false;
+    };
+
 };
 RG.extend2(RG.Spell.Blizzard, RG.Spell.Ranged);
 
