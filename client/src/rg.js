@@ -840,6 +840,8 @@ RG.STATS = [
     'Accuracy', 'Agility', 'Magic', 'Perception', 'Strength', 'Willpower'
 ];
 
+RG.STATS_LC = RG.STATS.map(stat => stat.toLowerCase());
+
 // Load status when using chunk unloading
 RG.LEVEL_NOT_LOADED = 'LEVEL_NOT_LOADED';
 RG.TILE_NOT_LOADED = 'TILE_NOT_LOADED';
@@ -1113,6 +1115,8 @@ RG.levelUpActor = (actor, newLevel) => {
                     continue; // Skip other functions
                 }
 
+                RG.levelUpStats(actor, nextLevel);
+
                 // Level up the Combat component
                 RG.levelUpCombatStats(actor, nextLevel);
 
@@ -1135,6 +1139,12 @@ RG.levelUpActor = (actor, newLevel) => {
         RG.err('RG', 'levelUpActor', 'No exp. component found.');
 
     }
+};
+
+RG.levelUpStats = function(actor, nextLevel) {
+    const randStat = RG.RAND.arrayGetRand(RG.STATS_LC);
+    const stats = actor.get('Stats');
+    stats.incrStat(randStat, 1);
 };
 
 RG.levelUpCombatStats = function(actor, nextLevel) {
