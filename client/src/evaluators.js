@@ -350,9 +350,15 @@ class EvaluatorCastSpell extends EvaluatorBase {
         if (enemyCell) {
             const enemy = enemyCell.getActors()[0];
             const args = {enemy, actor, actorCellsAround};
-            return this.spell.aiShouldCastSpell(args, (actor, args) => {
-                this.spellArgs = args;
-            });
+            if (this.spell.aiShouldCastSpell) {
+                return this.spell.aiShouldCastSpell(args, (actor, args) => {
+                    this.spellArgs = args;
+                });
+            }
+            else {
+                RG.warn('Evaluator.CastSpell', 'shouldCastSpell',
+                    `Spell ${this.spell.getName()} cannot be casty by AI`);
+            }
         }
         return false;
     }
