@@ -83,6 +83,9 @@ ActorBattles.prototype.runBattleTest = function(a1, a2) {
     const a1Name = actor1.getName();
     const a2Name = actor2.getName();
 
+    const a1Level = actor1.get('Experience').getExpLevel();
+    RG.levelUpActor(actor2, a1Level);
+
     while (h1.isAlive() && h2.isAlive()) {
         game.simulate();
         if (--watchdog === 0) {break;}
@@ -190,6 +193,15 @@ ActorBattles.prototype.runWithActor = function(actor, nRounds = 1) {
             }
         }
     }
+
+    ['won', 'lost', 'tied'].forEach(prop => {
+        const values = Object.values(this.monitor[prop]);
+        const sum = values.reduce((acc, val) => {
+            return acc + val;
+        }, 0);
+        this.monitor[prop].sum = sum;
+    });
+
     this.finish();
     this.nMatches = nMatches;
     this.matchesLeftOut = matchesLeftOut;
