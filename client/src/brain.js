@@ -122,6 +122,13 @@ RG.Brain.getFriendCellsAround = actor => {
     return res;
 };
 
+RG.Brain.distToActor = (actor1, actor2) => {
+    const [eX, eY] = actor1.getXY();
+    const [aX, aY] = actor2.getXY();
+    const getDist = RG.Path.shortestDist(eX, eY, aX, aY);
+    return getDist;
+};
+
 /* Memory is used by the actor to hold information about enemies, items etc.
  * It's a separate object from decision-making brain.*/
 RG.Brain.Memory = function() {
@@ -945,5 +952,23 @@ RG.Brain.Fire = function(actor) {
     };
 };
 RG.extend2(RG.Brain.Fire, RG.Brain.Rogue);
+
+RG.Brain.MindControl = function(actor) {
+    RG.Brain.Rogue.call(this, actor);
+    this.setType('MindControl');
+    this.goal = new GoalsTop.ThinkBasic(actor);
+
+    this.decideNextAction = function() {
+        // At the moment does nothing, it could attack the
+        // enemies of the source of MindControl
+        return ACTION_ALREADY_DONE;
+    };
+
+    this.getGoal = () => this.goal;
+    this.setGoal = goal => {this.goal = goal;};
+
+};
+RG.extend2(RG.Brain.MindControl, RG.Brain.Rogue);
+
 
 module.exports = RG.Brain;
