@@ -38,21 +38,24 @@ const matchLimit = 2000;
 const shells = Actors.filter(a => !((/spirit/i).test(a.name)));
 
 // Classes to be tested
-const classes = ['Cryomancer', 'Marksman'];
+const classes = ['Adventurer', 'Blademaster', 'Cryomancer', 'Marksman'];
 // const classes = ['Cryomancer'];
 const levels = [4, 8, 12, 16, 20, 24, 28, 32];
+// const levels = [4];
 // const levels = [8, 16, 24, 32];
 
+let summary = '';
 classes.forEach(className => {
     levels.forEach(playerLevel => {
+        const tag = `${className}_L${playerLevel}`;
+        console.log(`#### STARTED: ${tag} {{{`);
         const conf = {
             actorClass: className, playerLevel
         };
         const ab = new ActorBattles({monitorActor, matchLimit, shells});
         ab.runWithActor(createPlayer.bind(null, conf), 3);
         // ab.printOutputs(className);
-        //
-        const tag = `${className}_L${playerLevel}`;
+
         ab.printMonitored(tag);
 
         const durationMs = ab.getDuration();
@@ -61,6 +64,13 @@ classes.forEach(className => {
         console.log('Player stats:');
         const player = createPlayer(conf);
         console.log(JSON.stringify(player, null, 1));
-        console.log(`#### FINISHED: ${tag} ####`);
+        console.log(`#### FINISHED: ${tag} }}}`);
+
+        const monitor = ab.monitor;
+        const {won, lost, tied} = monitor;
+        summary += `${tag},${won.sum},${tied.sum},${lost.sum}\n`;
     });
 });
+
+console.log('tag,won,tied,lost');
+console.log(summary);
