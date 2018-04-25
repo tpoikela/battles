@@ -271,12 +271,15 @@ class RGActorRogue extends BaseActor {
         }
     }
 
-
     /* Returns the cell where this actor is located at.*/
     getCell() {
         const x = this.getX();
         const y = this.getY();
-        return this.getLevel().getMap().getCell(x, y);
+        const level = this.getLevel();
+        if (level) {
+            return level.getMap().getCell(x, y);
+        }
+        return null;
     }
 
     isInLevel(level) {
