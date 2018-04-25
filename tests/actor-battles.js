@@ -33,31 +33,37 @@ ActorBattles.prototype.getDuration = function() {
 };
 
 ActorBattles.prototype.initHistograms = function(a1, a2) {
-    if (!this.histogram[a1.name]) {
-        this.histogram[a1.name] = {won: 0, lost: 0, tied: 0};
+    const a1Name = a1.getName();
+    const a2Name = a2.getName();
+    if (!this.histogram[a1Name]) {
+        this.histogram[a1Name] = {won: 0, lost: 0, tied: 0};
     }
-    if (!this.histogram[a2.name]) {
-        this.histogram[a2.name] = {won: 0, lost: 0, tied: 0};
+    if (!this.histogram[a2Name]) {
+        this.histogram[a2Name] = {won: 0, lost: 0, tied: 0};
     }
 };
 
 ActorBattles.prototype.getActorObj = function(a1) {
+    if (typeof a1 === 'function') {
+        return a1();
+    }
     if (a1.name) {
         return parser.createActor(a1.name);
     }
     else if (a1.getName && typeof a1.getName === 'function') {
-        a1.name = a1.getName();
+        return a1;
     }
     return a1;
 };
 
 ActorBattles.prototype.runBattleTest = function(a1, a2) {
-    this.initHistograms(a1, a2);
 
     let watchdog = 300;
     const arena = RG.FACT.createLevel('arena', 7, 7);
     const actor1 = this.getActorObj(a1);
     const actor2 = this.getActorObj(a2);
+
+    this.initHistograms(actor1, actor2);
     arena.addActor(actor1, 1, 1);
     arena.addActor(actor2, 6, 6);
 
@@ -71,61 +77,64 @@ ActorBattles.prototype.runBattleTest = function(a1, a2) {
     const h1 = actor1.get('Health');
     const h2 = actor2.get('Health');
 
+    const a1Name = actor1.getName();
+    const a2Name = actor2.getName();
+
     while (h1.isAlive() && h2.isAlive()) {
         game.simulate();
         if (--watchdog === 0) {break;}
     }
 
     if (watchdog === 0) {
-        this.histogram[a1.name].tied += 1;
-        this.histogram[a2.name].tied += 1;
-        if (a1.name === this.monitorActor) {
-            if (!this.monitor.tied[a2.name]) {this.monitor.tied[a2.name] = 1;}
-            else {this.monitor.tied[a2.name] += 1;}
+        this.histogram[a1Name].tied += 1;
+        this.histogram[a2Name].tied += 1;
+        if (a1Name === this.monitorActor) {
+            if (!this.monitor.tied[a2Name]) {this.monitor.tied[a2Name] = 1;}
+            else {this.monitor.tied[a2Name] += 1;}
         }
-        else if (a2.name === this.monitorActor) {
-            if (!this.monitor.tied[a1.name]) {this.monitor.tied[a1.name] = 1;}
-            else {this.monitor.tied[a1.name] += 1;}
+        else if (a2Name === this.monitorActor) {
+            if (!this.monitor.tied[a1Name]) {this.monitor.tied[a1Name] = 1;}
+            else {this.monitor.tied[a1Name] += 1;}
         }
     }
     else if (h1.isAlive()) {
-        this.histogram[a1.name].won += 1;
-        this.histogram[a2.name].lost += 1;
-        if (a1.name === this.monitorActor) {
-            if (!this.monitor.won[a2.name]) {this.monitor.won[a2.name] = 1;}
-            else {this.monitor.won[a2.name] += 1;}
+        this.histogram[a1Name].won += 1;
+        this.histogram[a2Name].lost += 1;
+        if (a1Name === this.monitorActor) {
+            if (!this.monitor.won[a2Name]) {this.monitor.won[a2Name] = 1;}
+            else {this.monitor.won[a2Name] += 1;}
         }
-        else if (a2.name === this.monitorActor) {
-            if (!this.monitor.lost[a1.name]) {this.monitor.lost[a1.name] = 1;}
-            else {this.monitor.lost[a1.name] += 1;}
+        else if (a2Name === this.monitorActor) {
+            if (!this.monitor.lost[a1Name]) {this.monitor.lost[a1Name] = 1;}
+            else {this.monitor.lost[a1Name] += 1;}
         }
     }
     else {
-        this.histogram[a1.name].lost += 1;
-        this.histogram[a2.name].won += 1;
-        if (a1.name === this.monitorActor) {
-            if (!this.monitor.lost[a2.name]) {this.monitor.lost[a2.name] = 1;}
-            else {this.monitor.lost[a2.name] += 1;}
+        this.histogram[a1Name].lost += 1;
+        this.histogram[a2Name].won += 1;
+        if (a1Name === this.monitorActor) {
+            if (!this.monitor.lost[a2Name]) {this.monitor.lost[a2Name] = 1;}
+            else {this.monitor.lost[a2Name] += 1;}
         }
-        else if (a2.name === this.monitorActor) {
-            if (!this.monitor.won[a1.name]) {this.monitor.won[a1.name] = 1;}
-            else {this.monitor.won[a1.name] += 1;}
+        else if (a2Name === this.monitorActor) {
+            if (!this.monitor.won[a1Name]) {this.monitor.won[a1Name] = 1;}
+            else {this.monitor.won[a1Name] += 1;}
         }
     }
 
 };
 
-ActorBattles.prototype.validActorsForTest = function(a1, a2) {
-    if (a1.name !== a2.name) {
-        if (!a1.dontCreate && !a2.dontCreate) {
-            if (a1.base !== 'SpecialBase' && a2.base !== 'SpecialBase') {
-                if (a1.type !== 'spirit' && a2.type !== 'spirit') {
-                    return true;
-                }
-            }
-        }
+ActorBattles.prototype.validActorsForTest = function(arr) {
+    for (let i = 0; i < arr.length; i++) {
+        const actor = arr[i];
+        if (actor.dontCreate) {return false;}
+        if (actor.base === 'SpecialBase') {return false;}
+        if (actor.type === 'spirit') {return false;}
     }
-    return false;
+    if (arr.length === 2) {
+        if (arr[0].name === arr[1].name) {return false;}
+    }
+    return true;
 };
 
 ActorBattles.prototype.runSweep = function(nRounds = 1) {
@@ -139,7 +148,7 @@ ActorBattles.prototype.runSweep = function(nRounds = 1) {
                 if (i !== j) {
                     const a1 = this.shells[i];
                     const a2 = this.shells[j];
-                    if (this.validActorsForTest(a1, a2)) {
+                    if (this.validActorsForTest([a1, a2])) {
                         if (nMatches < this.matchLimit) {
                             this.runBattleTest(a1, a2);
                             ++nMatches;
@@ -168,8 +177,10 @@ ActorBattles.prototype.runWithActor = function(actor, nRounds = 1) {
         for (let i = 0; i < this.shells.length; i++) {
             const a2 = this.shells[i];
             if (nMatches < this.matchLimit) {
-                this.runBattleTest(actor, a2);
-                ++nMatches;
+                if (this.validActorsForTest([a2])) {
+                    this.runBattleTest(actor, a2);
+                    ++nMatches;
+                }
             }
             else {
                 ++matchesLeftOut;
