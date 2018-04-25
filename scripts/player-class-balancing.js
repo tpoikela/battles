@@ -6,43 +6,61 @@ const RG = require('../client/src/battles');
 const Actors = require('../client/data/actors.js');
 const ActorBattles = require('../tests/actor-battles');
 
-const createPlayer = function() {
+const brainMap = {
+    Cryomancer: 'SpellCaster',
+    Marksman: 'GoalOriented'
+};
+
+const createPlayer = function(playerConf) {
+    const {actorClass, playerLevel} = playerConf;
     const fact = new RG.Factory.Game();
     const race = 'goblin';
-    const className = 'Marksman';
-    const playerLevel = 32;
-    /* const actorClass = new RG.Component.ActorClass();
-    actorClass.setClassName(className);
-
-    const playerActor = new RG.Actor.Rogue('hero');
-    */
     const conf = {
         playerName: 'hero',
-        playerClass: className,
+        playerClass: actorClass,
         playerRace: race,
         playerLevel: 'Medium'
     };
     const playerActor = fact.createPlayerUnlessLoaded(conf);
     playerActor.remove('Player');
-    // playerActor.add(actorClass);
     RG.levelUpActor(playerActor, playerLevel);
 
-    const brain = new RG.Brain.GoalOriented(playerActor);
+    let brainType = brainMap[actorClass];
+    if (!brainType) {brainType = 'GoalOriented';}
+
+    const brain = new RG.Brain[brainType](playerActor);
     playerActor.setBrain(brain);
     return playerActor;
 };
 
-const shells = Actors.filter(a => !((/spirit/i).test(a.name)));
-const matchLimit = 2000;
 const monitorActor = 'hero';
-const ab = new ActorBattles({monitorActor, matchLimit, shells});
+const matchLimit = 2000;
+const shells = Actors.filter(a => !((/spirit/i).test(a.name)));
 
-ab.runWithActor(createPlayer, 10);
-ab.printOutputs();
+// Classes to be tested
+const classes = ['Cryomancer', 'Marksman'];
+// const classes = ['Cryomancer'];
+const levels = [4, 8, 12, 16, 20, 24, 28, 32];
+// const levels = [8, 16, 24, 32];
 
-const durationMs = ab.getDuration();
-console.log('Total duration ' + (durationMs / 1000) + ' s');
+classes.forEach(className => {
+    levels.forEach(playerLevel => {
+        const conf = {
+            actorClass: className, playerLevel
+        };
+        const ab = new ActorBattles({monitorActor, matchLimit, shells});
+        ab.runWithActor(createPlayer.bind(null, conf), 3);
+        // ab.printOutputs(className);
+        //
+        const tag = `${className}_L${playerLevel}`;
+        ab.printMonitored(tag);
 
-console.log('Player stats:');
-const player = createPlayer();
-console.log(JSON.stringify(player, null, 1));
+        const durationMs = ab.getDuration();
+        console.log('Total duration ' + (durationMs / 1000) + ' s');
+
+        console.log('Player stats:');
+        const player = createPlayer(conf);
+        console.log(JSON.stringify(player, null, 1));
+        console.log(`#### FINISHED: ${tag} ####`);
+    });
+});
