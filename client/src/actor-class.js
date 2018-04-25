@@ -63,7 +63,9 @@ class ActorClassBase {
         const newLevel = this._actor.get('Experience').getExpLevel();
         if (this._messages.hasOwnProperty(newLevel)) {
             const cell = this._actor.getCell();
-            RG.gameMsg({cell, msg: this._messages[newLevel]});
+            if (cell) {
+                RG.gameMsg({cell, msg: this._messages[newLevel]});
+            }
         }
         if (this._advances.hasOwnProperty(newLevel)) {
             this._advances[newLevel]();
