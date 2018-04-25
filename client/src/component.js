@@ -457,12 +457,20 @@ RG.Component.MindControl = function() {
     this.setSource = src => {_src = src;};
 
     const _addCb = () => {
-        _brainTarget = this.getEntity().getBrain();
-        this.getEntity().setPlayerCtrl(true);
+        const ent = this.getEntity();
+        _brainTarget = ent.getBrain();
+        if (this.getSource().isPlayer()) {
+            ent.setPlayerCtrl(true);
+        }
+        else {
+            ent.setBrain(new RG.Brain.MindControl(ent));
+        }
     };
 
     const _removeCb = () => {
-        this.getEntity().setPlayerCtrl(false);
+        if (this.getSource().isPlayer()) {
+            this.getEntity().setPlayerCtrl(false);
+        }
         this.getEntity().setBrain(_brainTarget);
     };
 
