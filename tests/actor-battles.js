@@ -11,6 +11,9 @@ const ActorBattles = function(args) {
     this.matchLimit = args.matchLimit || UNLIMITED;
     this.shells = args.shells;
 
+    this.fname = 'actor_fight_results';
+    this.dir = 'results';
+
     this.histogram = {};
     this.monitor = {
         name: this.monitorActor,
@@ -193,7 +196,7 @@ ActorBattles.prototype.runWithActor = function(actor, nRounds = 1) {
 };
 
 
-ActorBattles.prototype.printOutputs = function() {
+ActorBattles.prototype.printOutputs = function(tag = '') {
     const histogram = this.histogram;
     console.log('======= RESULTS =======');
     console.log(JSON.stringify(histogram, null, 1));
@@ -201,8 +204,24 @@ ActorBattles.prototype.printOutputs = function() {
 
     console.log(JSON.stringify(this.monitor, null, 1));
 
-    const outputFile = 'actor_fight_results.csv';
-    fs.writeFileSync(outputFile, 'Actor,Won,Tied,Lost\n');
+    this.printCSV(tag);
+};
+
+ActorBattles.prototype.printMonitored = function(tag = '') {
+    console.log(JSON.stringify(this.monitor, null, 1));
+    this.printCSV(tag);
+};
+
+ActorBattles.prototype.printCSV = function(tag) {
+    const histogram = this.histogram;
+    const outputFile = `${this.dir}/${this.fname}_${tag}.csv`;
+    if (!fs.existsSync(this.dir)) {
+        fs.mkdirSync(this.dir);
+    }
+    if (tag.length > 0) {
+        fs.writeFileSync(outputFile, `tag: ${tag}`);
+    }
+    fs.appendFileSync(outputFile, 'Actor,Won,Tied,Lost\n');
     Object.keys(histogram).forEach(key => {
         const {won, lost, tied} = histogram[key];
         const newKey = key.replace(',', '');
