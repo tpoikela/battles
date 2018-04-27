@@ -10,6 +10,7 @@ RG.Map.Level = require('./level');
 const DungeonPopulate = require('./dungeon-populate');
 const LevelGenerator = require('./level-generator');
 const Path = require('./path');
+const Geometry = require('./geometry');
 
 const CaveGenerator = function() {
     LevelGenerator.call(this);
@@ -139,9 +140,57 @@ CaveGenerator.prototype._addSpecialFeatures = function(level, conf) {
 CaveGenerator.prototype._createCollapsedLevel = function(level) {
     const extras = level.getExtras();
     const map = level.getMap();
-    const {startPoint, endPoint} = extras;
-    const path = RG.Path(map, ...startPoint, ...endPoint);
+    let {endPoint} = extras;
+    const {startPoint} = extras;
+    const [sX, sY] = startPoint;
+    const wallCb = (x, y) => map.getBaseElemXY(x, y).getType() === 'chasm';
 
+    if (!endPoint) { // Define random endpoint
+        endPoint = this.getRandomEndPoint(map, startPoint);
+        console.log('Created endPoint at ' + endPoint);
+    }
+
+    if (startPoint && endPoint) {
+        const [eX, eY] = endPoint;
+        console.log(`Path ${sX},${sY} -> ${eX},${eY}`);
+        const path = Path.getShortestPath(sX, sY, eX, eY, wallCb);
+        console.log('Path length is ' + path.length);
+
+        path.forEach(xy => {
+            const {x, y} = xy;
+            const coord = Geometry.getCrossAround(x, y, 1, true);
+            coord.forEach(coordXY => {
+                const cell = map.getCell(x, y);
+                if (cell.getBaseElem().getType() === 'chasm') {
+                    const [x, y] = coordXY;
+                    map.setBaseElemXY(x, y, RG.ELEM.FLOOR_CAVE);
+                }
+            });
+        });
+    }
+};
+
+CaveGenerator.prototype.getRandomEndPoint = function(map, startPoint) {
+    const wallCb = (x, y) => !(/wall/).test(map.getBaseElemXY(x, y).getType());
+    const [sX, sY] = startPoint;
+    let endPoint = null;
+    const freeCells = map.getCells(c => (
+        !(/wall/).test(c.getBaseElem().getType())
+    ));
+
+    const minDist = map.cols > map.rows ? map.rows : map.cols;
+    let currDist = 0;
+    let watchdog = 10;
+    while (currDist < minDist) {
+        const endCell = RG.RAND.arrayGetRand(freeCells);
+        const [eX, eY] = endCell.getXY();
+        endPoint = [eX, eY];
+        const currPath = Path.getShortestPath(eX, eY, sX, sY, wallCb);
+        currDist = currPath.length;
+        if (watchdog === 0) {break;}
+        --watchdog;
+    }
+    return endPoint;
 };
 
 CaveGenerator.prototype._addEncounters = function(level, conf) {
