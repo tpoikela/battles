@@ -143,35 +143,50 @@ CaveGenerator.prototype._createCollapsedLevel = function(level) {
     let {endPoint} = extras;
     const {startPoint} = extras;
     const [sX, sY] = startPoint;
-    const wallCb = (x, y) => map.getBaseElemXY(x, y).getType() === 'chasm';
+    const wallCb = (x, y) => (
+        map.hasXY(x, y) && !map.getBaseElemXY(x, y).getType().match(/wall/)
+    );
 
     if (!endPoint) { // Define random endpoint
         endPoint = this.getRandomEndPoint(map, startPoint);
         console.log('Created endPoint at ' + endPoint);
     }
 
-    if (startPoint && endPoint) {
-        const [eX, eY] = endPoint;
-        console.log(`Path ${sX},${sY} -> ${eX},${eY}`);
-        const path = Path.getShortestPath(sX, sY, eX, eY, wallCb);
-        console.log('Path length is ' + path.length);
+    const numPoints = RG.RAND.getUniformInt(1, 3);
+    const points = [endPoint];
+    for (let i = 0; i < numPoints; i++) {
+        const newPoint = this.getRandomEndPoint(map, startPoint);
+        if (newPoint) {
+            points.push(newPoint);
+        }
+    }
 
-        path.forEach(xy => {
-            const {x, y} = xy;
-            const coord = Geometry.getCrossAround(x, y, 1, true);
-            coord.forEach(coordXY => {
-                const cell = map.getCell(x, y);
-                if (cell.getBaseElem().getType() === 'chasm') {
-                    const [x, y] = coordXY;
-                    map.setBaseElemXY(x, y, RG.ELEM.FLOOR_CAVE);
-                }
+    if (startPoint && endPoint) {
+        points.forEach(point => {
+            const [eX, eY] = point;
+            console.log(`Path ${sX},${sY} -> ${eX},${eY}`);
+            const path = Path.getShortestPath(sX, sY, eX, eY, wallCb);
+            console.log('Path length is ' + path.length);
+
+            path.forEach(xy => {
+                const {x, y} = xy;
+                const coord = Geometry.getCrossAround(x, y, 1, true);
+                coord.forEach(coordXY => {
+                    const cell = map.getCell(x, y);
+                    if (cell.getBaseElem().getType() === 'chasm') {
+                        const [x, y] = coordXY;
+                        map.setBaseElemXY(x, y, RG.ELEM.FLOOR_CAVE);
+                    }
+                });
             });
         });
     }
 };
 
 CaveGenerator.prototype.getRandomEndPoint = function(map, startPoint) {
-    const wallCb = (x, y) => !(/wall/).test(map.getBaseElemXY(x, y).getType());
+    const wallCb = (x, y) => (
+        map.hasXY(x, y) && !map.getBaseElemXY(x, y).getType().match(/wall/)
+    );
     const [sX, sY] = startPoint;
     let endPoint = null;
     const freeCells = map.getCells(c => (
