@@ -660,8 +660,23 @@ DungeonGenerator.prototype.addCriticalPath = function(level) {
 
     let criticalPath = Path.getShortestPath(cx2, cy2, cx1, cy1, pathFunc);
     if (criticalPath.length === 0) {
-        RG.err('DungeonGenerator', 'addStairsLocations',
-            'No path found between stairs');
+        const newPathFunc = (x, y) => {
+            return !(/wall/).test(map.getCell(x, y).getBaseElem().getType());
+        };
+        criticalPath = Path.getShortestPath(cx2, cy2, cx1, cy1, newPathFunc);
+        if (criticalPath === 0) {
+            RG.err('DungeonGenerator', 'addStairsLocations',
+                'No path found between stairs');
+        }
+        else {
+            // Need to traverse, and add bridges/passages on obstacles
+            criticalPath.forEach(xy => {
+                const {x, y} = xy;
+                if (!map.isPassable(x, y)) {
+                    map.setBaseElemXY(x, y, RG.ELEM.BRIDGE);
+                }
+            });
+        }
     }
 
     const pathBrokenFunc = (x, y) => {
