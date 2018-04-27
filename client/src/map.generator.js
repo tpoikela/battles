@@ -481,12 +481,14 @@ RG.Map.Generator = function() { // {{{2
     this.createCave = (cols, rows, conf) => {
         _mapGen = new ROT.Map.Miner(cols, rows, conf);
         const map = new RG.Map.CellList(cols, rows);
+        const wallElem = conf.wallElem || RG.ELEM.WALL_CAVE;
+        const floorElem = conf.floorElem || RG.ELEM.WALL_CAVE;
         _mapGen.create((x, y, val) => {
             if (val === 1) {
-                map.setBaseElemXY(x, y, RG.ELEM.WALL_CAVE);
+                map.setBaseElemXY(x, y, wallElem);
             }
             else {
-                map.setBaseElemXY(x, y, RG.ELEM.FLOOR_CAVE);
+                map.setBaseElemXY(x, y, floorElem);
             }
         });
         return {map, mapGen: _mapGen};
