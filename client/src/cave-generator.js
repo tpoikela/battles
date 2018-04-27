@@ -9,6 +9,7 @@ RG.Map.Level = require('./level');
 // const Random = require('./random');
 const DungeonPopulate = require('./dungeon-populate');
 const LevelGenerator = require('./level-generator');
+const Path = require('./path');
 
 const CaveGenerator = function() {
     LevelGenerator.call(this);
@@ -35,6 +36,8 @@ CaveGenerator.prototype.create = function(cols, rows, conf) {
 
     this.addStairsLocations(level);
 
+    this._addSpecialFeatures(level, conf);
+
     this._addEncounters(level, conf);
 
     conf.preserveMarkers = false;
@@ -51,6 +54,9 @@ CaveGenerator.prototype._createLevel = function(cols, rows, conf) {
     const mapObj = mapgen.createCave(cols, rows, mapOpts);
     level.setMap(mapObj.map);
     this.setLevelExtras(level, mapObj.mapGen);
+    if (mapOpts.isCollapsed) {
+        level.getExtras().isCollapsed = true;
+    }
     return level;
 };
 
@@ -79,6 +85,12 @@ CaveGenerator.prototype._createMapOptions = function(cols, rows, conf) {
         }
         case 'Cavern': opts = Miners.getRandOpts(cols, rows, 3, 9); break;
         default: opts = Miners.getRandOpts(cols, rows);
+    }
+
+    const isCollapsed = RG.RAND.getUniform() <= 0.1;
+    if (isCollapsed) {
+        opts.floorElem = RG.ELEM.CHASM;
+        opts.isCollapsed = true;
     }
 
     return opts;
@@ -114,6 +126,22 @@ CaveGenerator.prototype.addStairsLocations = function(level) {
         level.addElement(pointMarker, eX, eY);
         extras.points.push(point);
     });
+};
+
+/* Adds features like extra obstacles etc. */
+CaveGenerator.prototype._addSpecialFeatures = function(level, conf) {
+    console.log(conf);
+    if (level.getExtras().isCollapsed) {
+        this._createCollapsedLevel(level);
+    }
+};
+
+CaveGenerator.prototype._createCollapsedLevel = function(level) {
+    const extras = level.getExtras();
+    const map = level.getMap();
+    const {startPoint, endPoint} = extras;
+    const path = RG.Path(map, ...startPoint, ...endPoint);
+
 };
 
 CaveGenerator.prototype._addEncounters = function(level, conf) {
