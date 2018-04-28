@@ -12,6 +12,8 @@ RG.Map.Level = require('./level');
 RG.Verify = require('./verify');
 RG.World = require('./world');
 
+const MountainGenerator = require('./mountain-generator');
+
 /* Returns a basic configuration for a city level. */
 RG.Factory.cityConfBase = conf => {
     const userConf = conf || {};
@@ -837,8 +839,11 @@ RG.Factory.Zone = function() {
             nLevel: 4
         };
         debug(`Creating mountain level with ${conf}`);
-        const mountainLevel = this.createLevel('mountain',
-            conf.x, conf.y, mountConf);
+        const mountGen = new MountainGenerator();
+        const mountainLevel = mountGen.create(conf.x, conf.y,
+            mountConf);
+        /* const mountainLevel = this.createLevel('mountain',
+            conf.x, conf.y, mountConf);*/
         this.addItemsAndActors(mountainLevel, mountConf);
         return mountainLevel;
     };
