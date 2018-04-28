@@ -126,7 +126,10 @@ DungeonPopulate.prototype.populateLevel = function(level) {
     if (extras.endPoint) {
         this.addPointGuardian(level, extras.endPoint, maxDanger);
     }
+};
 
+DungeonPopulate.prototype.setActorFunc = function(func) {
+    this.actorFunc = func;
 };
 
 DungeonPopulate.prototype.addPointGuardian = function(level, point, maxDanger) {
@@ -146,7 +149,12 @@ DungeonPopulate.prototype.getEndPointGuardian = function(maxDanger) {
     const parser = RG.ObjectShell.getParser();
     let currDanger = maxDanger;
     let guardian = null;
-    const actorFunc = actor => actor.danger <= currDanger;
+    let actorFunc = actor => actor.danger <= currDanger;
+    if (this.actorFunc) {
+        actorFunc = actor => (
+            this.actorFunc(actor) && actor.danger <= currDanger
+        );
+    }
     while (!guardian && currDanger > 0) {
         // TODO add some theming for the guardian
         guardian = parser.createRandomActor({func: actorFunc});
