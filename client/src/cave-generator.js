@@ -23,7 +23,8 @@ const Miners = {};
 CaveGenerator.getOptions = function() {
     return {
         dungeonType: 'Lair',
-        maxDanger: 5, maxValue: 100
+        maxDanger: 5, maxValue: 100,
+        isCollapsed: false
     };
 };
 
@@ -89,7 +90,7 @@ CaveGenerator.prototype._createMapOptions = function(cols, rows, conf) {
     }
 
     const isCollapsed = RG.RAND.getUniform() <= 0.1;
-    if (isCollapsed) {
+    if (isCollapsed || conf.isCollapsed) {
         opts.floorElem = RG.ELEM.CHASM;
         opts.isCollapsed = true;
     }
@@ -245,6 +246,9 @@ CaveGenerator.prototype._addLairBoss = function(level, conf) {
     const endPoint = level.getExtras().endPoint;
     if (endPoint) {
         const populate = new DungeonPopulate({});
+        if (level.getExtras().isCollapsed) {
+            populate.setActorFunc(actor => actor.flying);
+        }
         populate.addPointGuardian(level, endPoint, maxDanger + 4);
         populate.addMainLoot(level, endPoint, maxValue);
     }
