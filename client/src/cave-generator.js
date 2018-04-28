@@ -147,19 +147,30 @@ CaveGenerator.prototype._createCollapsedLevel = function(level) {
         map.hasXY(x, y) && !map.getBaseElemXY(x, y).getType().match(/wall/)
     );
 
+    const freeCells = map.getCells(c => (
+        !(/wall/).test(c.getBaseElem().getType())
+    ));
+    const freeCellMap = {};
+    freeCells.forEach(cell => {
+        freeCellMap[cell.getKeyXY()] = cell;
+    });
+
     if (!endPoint) { // Define random endpoint
-        endPoint = this.getRandomEndPoint(map, startPoint);
+        endPoint = this.getRandomEndPoint(map, startPoint, freeCellMap);
         console.log('Created endPoint at ' + endPoint);
     }
 
     const numPoints = RG.RAND.getUniformInt(1, 3);
     const points = [endPoint];
     for (let i = 0; i < numPoints; i++) {
-        const newPoint = this.getRandomEndPoint(map, startPoint);
+        const newPoint = this.getRandomEndPoint(map, startPoint, freeCellMap);
         if (newPoint) {
             points.push(newPoint);
         }
     }
+
+    const nPoints = points.length;
+    console.log(`There are ${nPoints} points now: ${points}`);
 
     if (startPoint && endPoint) {
         points.forEach(point => {
@@ -172,10 +183,10 @@ CaveGenerator.prototype._createCollapsedLevel = function(level) {
                 const {x, y} = xy;
                 const coord = Geometry.getCrossAround(x, y, 1, true);
                 coord.forEach(coordXY => {
-                    const cell = map.getCell(x, y);
+                    const [cx, cy] = coordXY;
+                    const cell = map.getCell(cx, cy);
                     if (cell.getBaseElem().getType() === 'chasm') {
-                        const [x, y] = coordXY;
-                        map.setBaseElemXY(x, y, RG.ELEM.FLOOR_CAVE);
+                        map.setBaseElemXY(cx, cy, RG.ELEM.FLOOR_CAVE);
                     }
                 });
             });
@@ -183,28 +194,40 @@ CaveGenerator.prototype._createCollapsedLevel = function(level) {
     }
 };
 
-CaveGenerator.prototype.getRandomEndPoint = function(map, startPoint) {
+CaveGenerator.prototype.getRandomEndPoint = function(map, startPoint,
+    freeCellMap) {
     const wallCb = (x, y) => (
         map.hasXY(x, y) && !map.getBaseElemXY(x, y).getType().match(/wall/)
     );
     const [sX, sY] = startPoint;
     let endPoint = null;
-    const freeCells = map.getCells(c => (
-        !(/wall/).test(c.getBaseElem().getType())
-    ));
 
     const minDist = map.cols > map.rows ? map.rows : map.cols;
     let currDist = 0;
     let watchdog = 10;
+
+    const freeCells = Object.values(freeCellMap);
+    let currPath = null;
+
     while (currDist < minDist) {
         const endCell = RG.RAND.arrayGetRand(freeCells);
         const [eX, eY] = endCell.getXY();
         endPoint = [eX, eY];
-        const currPath = Path.getShortestPath(eX, eY, sX, sY, wallCb);
+        currPath = Path.getShortestPath(eX, eY, sX, sY, wallCb);
         currDist = currPath.length;
+        console.log(`Tried ${endPoint}. DIst: ${currDist}`);
         if (watchdog === 0) {break;}
         --watchdog;
     }
+
+    // Delete each path cell from list of free cells
+    if (endPoint && currPath) {
+        currPath.forEach(xy => {
+            const key = xy.x + ',' + xy.y;
+            delete freeCellMap[key];
+        });
+    }
+
     return endPoint;
 };
 
