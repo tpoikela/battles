@@ -11,11 +11,17 @@ describe('Map.Miner', function() {
             map.push([]);
         }
 
+        let numZeros = 0;
         gen.create((x, y, val) => {
             expect(val).to.exist;
             expect(val).to.be.number;
             map[x][y] = val;
+            if (val === 0) {
+                ++numZeros;
+            }
         });
+
+        expect(numZeros).to.be.at.least(100);
     });
 
     it('has options to prevent cells from being dug', () => {
