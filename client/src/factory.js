@@ -832,15 +832,16 @@ RG.Factory.Zone = function() {
 
 
     this.createMountainLevel = function(conf) {
-        const mountConf = {
+        let mountConf = {
             maxValue: 100,
             sqrPerActor: 50,
             sqrPerItem: 200,
             nLevel: 4
         };
+        mountConf = Object.assign(mountConf, conf);
         debug(`Creating mountain level with ${conf}`);
         const mountGen = new MountainGenerator();
-        const mountainLevel = mountGen.create(conf.x, conf.y,
+        const mountainLevel = mountGen.createFace(conf.x, conf.y,
             mountConf);
         /* const mountainLevel = this.createLevel('mountain',
             conf.x, conf.y, mountConf);*/
@@ -849,14 +850,19 @@ RG.Factory.Zone = function() {
     };
 
     this.createSummitLevel = function(conf) {
-        const summitConf = {
+        let summitConf = {
             maxValue: 100,
             sqrPerActor: 20,
             sqrPerItem: 200,
             nLevel: 4
         };
-        const summitLevel = this.createLevel('summit',
-            conf.cols, conf.rows, summitConf);
+        summitConf = Object.assign(summitConf, conf);
+
+        /* const summitLevel = this.createLevel('summit',
+            conf.cols, conf.rows, summitConf);*/
+        const mountGen = new MountainGenerator();
+        const summitLevel = mountGen.createSummit(conf.cols, conf.rows,
+            summitConf);
         debug(`Creating summit level with ${conf}`);
         this.addItemsAndActors(summitLevel, summitConf);
         return summitLevel;
