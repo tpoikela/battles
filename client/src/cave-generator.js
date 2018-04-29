@@ -143,10 +143,6 @@ CaveGenerator.prototype._createCollapsedLevel = function(level) {
     const map = level.getMap();
     let {endPoint} = extras;
     const {startPoint} = extras;
-    const [sX, sY] = startPoint;
-    const wallCb = (x, y) => (
-        map.hasXY(x, y) && !map.getBaseElemXY(x, y).getType().match(/wall/)
-    );
 
     const freeCells = map.getCells(c => (
         !(/wall/).test(c.getBaseElem().getType())
@@ -161,11 +157,24 @@ CaveGenerator.prototype._createCollapsedLevel = function(level) {
         console.log('Created endPoint at ' + endPoint);
     }
 
-    const numPoints = RG.RAND.getUniformInt(1, 3);
-    const points = [endPoint];
+    if (startPoint && endPoint) {
+        const path = this.createPath(map, startPoint, endPoint);
+        path.forEach(xy => {
+            delete freeCellMap[xy[0] + ',' + xy[1]];
+        });
+    }
+
+    const numPoints = RG.RAND.getUniformInt(3, 5);
+    const points = [startPoint, endPoint];
     for (let i = 0; i < numPoints; i++) {
-        const newPoint = this.getRandomEndPoint(map, startPoint, freeCellMap);
+        const newPoint = this.getRandomPoint(map, startPoint, freeCellMap);
+
         if (newPoint) {
+            const otherPoint = RG.RAND.arrayGetRand(points);
+            const path = this.createPath(map, newPoint, otherPoint);
+            path.forEach(xy => {
+                delete freeCellMap[xy[0] + ',' + xy[1]];
+            });
             points.push(newPoint);
         }
     }
@@ -173,26 +182,34 @@ CaveGenerator.prototype._createCollapsedLevel = function(level) {
     const nPoints = points.length;
     console.log(`There are ${nPoints} points now: ${points}`);
 
-    if (startPoint && endPoint) {
-        points.forEach(point => {
-            const [eX, eY] = point;
-            console.log(`Path ${sX},${sY} -> ${eX},${eY}`);
-            const path = Path.getShortestPath(sX, sY, eX, eY, wallCb);
-            console.log('Path length is ' + path.length);
+};
 
-            path.forEach(xy => {
-                const {x, y} = xy;
-                const coord = Geometry.getCrossAround(x, y, 1, true);
-                coord.forEach(coordXY => {
-                    const [cx, cy] = coordXY;
-                    const cell = map.getCell(cx, cy);
-                    if (cell.getBaseElem().getType() === 'chasm') {
-                        map.setBaseElemXY(cx, cy, RG.ELEM.FLOOR_CAVE);
-                    }
-                });
-            });
+CaveGenerator.prototype.createPath = function(map, startPoint, endPoint) {
+    const wallCb = (x, y) => (
+        map.hasXY(x, y) && !map.getBaseElemXY(x, y).getType().match(/wall/)
+    );
+    const [sX, sY] = startPoint;
+    const [eX, eY] = endPoint;
+    console.log(`Path ${sX},${sY} -> ${eX},${eY}`);
+    const path = Path.getShortestPath(sX, sY, eX, eY, wallCb);
+    console.log('Path length is ' + path.length);
+
+    const result = [];
+
+    path.forEach(xy => {
+        const {x, y} = xy;
+        const coord = Geometry.getCrossAround(x, y, 1, true);
+        coord.forEach(coordXY => {
+            const [cx, cy] = coordXY;
+            const cell = map.getCell(cx, cy);
+            if (cell.getBaseElem().getType() === 'chasm') {
+                map.setBaseElemXY(cx, cy, RG.ELEM.FLOOR_CAVE);
+                result.push([cx, cy]);
+            }
         });
-    }
+    });
+
+    return result;
 };
 
 CaveGenerator.prototype.getRandomEndPoint = function(map, startPoint,
@@ -230,6 +247,30 @@ CaveGenerator.prototype.getRandomEndPoint = function(map, startPoint,
     }
 
     return endPoint;
+};
+
+CaveGenerator.prototype.getRandomPoint = function(map, startPoint,
+    freeCellMap) {
+    const wallCb = (x, y) => (
+        map.hasXY(x, y) && !map.getBaseElemXY(x, y).getType().match(/wall/)
+    );
+    const [sX, sY] = startPoint;
+    const freeCells = Object.values(freeCellMap);
+
+    const endCell = RG.RAND.arrayGetRand(freeCells);
+    const [eX, eY] = endCell.getXY();
+    const point = [eX, eY];
+    const currPath = Path.getShortestPath(eX, eY, sX, sY, wallCb);
+
+    // Delete each path cell from list of free cells
+    if (point && currPath) {
+        currPath.forEach(xy => {
+            const key = xy.x + ',' + xy.y;
+            delete freeCellMap[key];
+        });
+    }
+
+    return point;
 };
 
 CaveGenerator.prototype._addEncounters = function(level, conf) {
