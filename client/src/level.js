@@ -198,6 +198,11 @@ Level.prototype.addElement = function(elem, x, y) {
         return this._addPropToLevelXY(RG.TYPE_ELEM, elem, x, y);
     }
     const [xCell, yCell] = this._getFreeCellXY();
+    if (RG.isNullOrUndef([xCell, yCell])) {
+        this.debugPrintInASCII();
+        RG.err('Level', 'addElement',
+            'Cannot add prop to null xy-coord');
+    }
     return this._addPropToLevelXY(RG.TYPE_ELEM, elem, xCell, yCell);
 };
 
