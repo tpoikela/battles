@@ -53,6 +53,7 @@ CaveGenerator.prototype._createLevel = function(cols, rows, conf) {
     const mapgen = new RG.MapGenerator();
     const level = new RG.Map.Level(cols, rows);
     mapgen.setGen('cave', cols, rows);
+
     const mapObj = mapgen.createCave(cols, rows, mapOpts);
     level.setMap(mapObj.map);
     this.setLevelExtras(level, mapObj.mapGen);
@@ -70,11 +71,12 @@ CaveGenerator.prototype.setLevelExtras = function(level, mapGen) {
 /* Creates the options how to generate the level map. This depends on the type
  * of cave that needs to be generated. */
 CaveGenerator.prototype._createMapOptions = function(cols, rows, conf) {
-    const {dungeonType} = conf;
+    let {dungeonType} = conf;
     let opts = {};
 
     const miners = getMiners(cols, rows);
 
+    dungeonType = dungeonType.toUpperCase();
     switch (dungeonType) {
         case 'Cave': opts = Miners.getRandOpts(cols, rows, 1, 3); break;
         case 'Grotto': opts = Miners.getRandOpts(cols, rows, 2, 4); break;
@@ -89,11 +91,16 @@ CaveGenerator.prototype._createMapOptions = function(cols, rows, conf) {
         default: opts = Miners.getRandOpts(cols, rows);
     }
 
-    const isCollapsed = RG.RAND.getUniform() <= 0.1;
+    let isCollapsed = RG.RAND.getUniform() <= 0.1;
+    if (conf.isCollapsed === false) {
+        isCollapsed = false;
+    }
     if (isCollapsed || conf.isCollapsed) {
         opts.floorElem = RG.ELEM.CHASM;
         opts.isCollapsed = true;
     }
+
+    console.log('mapOpts: ' + JSON.stringify(opts));
 
     return opts;
 };
@@ -164,23 +171,36 @@ CaveGenerator.prototype._createCollapsedLevel = function(level) {
         });
     }
 
-    const numPoints = RG.RAND.getUniformInt(3, 5);
-    const points = [startPoint, endPoint];
-    for (let i = 0; i < numPoints; i++) {
-        const newPoint = this.getRandomPoint(map, startPoint, freeCellMap);
-
-        if (newPoint) {
-            const otherPoint = RG.RAND.arrayGetRand(points);
+    // Add points used as digger start points
+    const pathPoints = [startPoint, endPoint];
+    if (extras.points) {
+        extras.points.forEach(newPoint => {
+            const otherPoint = RG.RAND.arrayGetRand(pathPoints);
             const path = this.createPath(map, newPoint, otherPoint);
             path.forEach(xy => {
                 delete freeCellMap[xy[0] + ',' + xy[1]];
             });
-            points.push(newPoint);
+            pathPoints.push(newPoint);
+        });
+    }
+
+    // Add other misc points into the level
+    const numPoints = RG.RAND.getUniformInt(1, 10);
+    for (let i = 0; i < numPoints; i++) {
+        const newPoint = this.getRandomPoint(map, startPoint, freeCellMap);
+
+        if (newPoint) {
+            const otherPoint = RG.RAND.arrayGetRand(pathPoints);
+            const path = this.createPath(map, newPoint, otherPoint);
+            path.forEach(xy => {
+                delete freeCellMap[xy[0] + ',' + xy[1]];
+            });
+            pathPoints.push(newPoint);
         }
     }
 
-    const nPoints = points.length;
-    console.log(`There are ${nPoints} points now: ${points}`);
+    const nPoints = pathPoints.length;
+    console.log(`There are ${nPoints} points now: ${pathPoints}`);
 
 };
 
