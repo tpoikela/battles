@@ -482,7 +482,7 @@ RG.Map.Generator = function() { // {{{2
         _mapGen = new ROT.Map.Miner(cols, rows, conf);
         const map = new RG.Map.CellList(cols, rows);
         const wallElem = conf.wallElem || RG.ELEM.WALL_CAVE;
-        const floorElem = conf.floorElem || RG.ELEM.WALL_CAVE;
+        const floorElem = conf.floorElem || RG.ELEM.FLOOR_CAVE;
         _mapGen.create((x, y, val) => {
             if (val === 1) {
                 map.setBaseElemXY(x, y, wallElem);
