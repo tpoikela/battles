@@ -26,7 +26,8 @@ describe('How Game is created from Overworld', function() {
             sqrPerActor: 100,
             yMult: 0.5,
             playerClass: 'Blademaster',
-            playerRace: 'human'
+            playerRace: 'human',
+            playerName: 'Xeth'
         };
         const gameFact = new RG.Factory.Game();
         game = gameFact.createNewGame(conf);
