@@ -12,7 +12,16 @@ const MountainGenerator = function() {
 
 };
 
-MountainGenerator.prototype.create = function(cols, rows, conf) {
+MountainGenerator.options = {};
+MountainGenerator.options.face = {
+
+};
+
+MountainGenerator.options.summit = {
+    ratio: 0.3
+};
+
+MountainGenerator.prototype.createFace = function(cols, rows, conf) {
     const mapgen = new MapGenerator();
     const level = new Level(cols, rows);
     mapgen.setGen('mountain', cols, rows);
@@ -20,6 +29,16 @@ MountainGenerator.prototype.create = function(cols, rows, conf) {
     const {paths} = mapObj;
     level.setMap(mapObj.map);
     level.setExtras({paths});
+    return level;
+};
+
+MountainGenerator.prototype.createSummit = function(cols, rows, conf) {
+    const mapgen = new MapGenerator();
+    const level = new Level(cols, rows);
+    mapgen.setGen('mountain', cols, rows);
+    const mapObj = mapgen.createSummit(cols, rows, conf);
+    level.setMap(mapObj.map);
+    level.setExtras({});
     return level;
 };
 
