@@ -136,8 +136,8 @@ CaveGenerator.prototype.addStairsLocations = function(level) {
 
 /* Adds features like extra obstacles etc. */
 CaveGenerator.prototype._addSpecialFeatures = function(level, conf) {
-    console.log(conf);
     if (level.getExtras().isCollapsed) {
+        console.log('isCollapsed true with conf: ', conf);
         this._createCollapsedLevel(level);
     }
 };
@@ -158,7 +158,6 @@ CaveGenerator.prototype._createCollapsedLevel = function(level) {
 
     if (!endPoint) { // Define random endpoint
         endPoint = this.getRandomEndPoint(map, startPoint, freeCellMap);
-        console.log('Created endPoint at ' + endPoint);
     }
 
     if (startPoint && endPoint) {
@@ -196,9 +195,7 @@ CaveGenerator.prototype._createCollapsedLevel = function(level) {
         }
     }
 
-    const nPoints = pathPoints.length;
-    console.log(`There are ${nPoints} points now: ${pathPoints}`);
-
+    // const nPoints = pathPoints.length;
 };
 
 CaveGenerator.prototype.createPath = function(map, startPoint, endPoint) {
@@ -207,9 +204,7 @@ CaveGenerator.prototype.createPath = function(map, startPoint, endPoint) {
     );
     const [sX, sY] = startPoint;
     const [eX, eY] = endPoint;
-    console.log(`Path ${sX},${sY} -> ${eX},${eY}`);
     const path = Path.getShortestPath(sX, sY, eX, eY, wallCb);
-    console.log('Path length is ' + path.length);
 
     const result = [];
 
@@ -250,7 +245,6 @@ CaveGenerator.prototype.getRandomEndPoint = function(map, startPoint,
         endPoint = [eX, eY];
         currPath = Path.getShortestPath(eX, eY, sX, sY, wallCb);
         currDist = currPath.length;
-        console.log(`Tried ${endPoint}. DIst: ${currDist}`);
         if (watchdog === 0) {break;}
         --watchdog;
     }
