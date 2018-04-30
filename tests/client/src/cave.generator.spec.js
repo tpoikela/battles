@@ -13,7 +13,21 @@ describe('CaveGenerator', () => {
     it('can create Lair-like levels', () => {
         for (let i = 0; i < 1; i++) {
             const caveGen = new CaveGenerator();
-            const level = caveGen.create(100, 50, {dungeonType: 'Lair'});
+            const level = caveGen.create(100, 50,
+                {dungeonType: 'Lair', isCollapsed: true});
+            expect(level).to.exist;
+
+            const extras = level.getExtras();
+            expect(extras).to.have.property('startPoint');
+            expect(extras).to.have.property('endPoint');
+        }
+    });
+
+    it('can create Cavern-like levels', () => {
+        for (let i = 0; i < 1; i++) {
+            const caveGen = new CaveGenerator();
+            const level = caveGen.create(150, 80,
+                {dungeonType: 'Cavern', isCollapsed: false});
             expect(level).to.exist;
 
             const extras = level.getExtras();
