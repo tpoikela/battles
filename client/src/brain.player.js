@@ -310,7 +310,7 @@ class MarkList {
         const markObj = {id, x, y};
         if (tag) {markObj.tag = tag;}
         if (!this._marks[id]) {this._marks[id] = [];}
-        else if (!this.markExists(id, x, y)) {
+        if (!this.markExists(id, x, y)) {
             this._marks[id].push(markObj);
             RG.gameMsg('Added a mark to the current location.');
         }
