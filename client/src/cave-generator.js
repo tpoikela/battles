@@ -73,10 +73,9 @@ CaveGenerator.prototype.setLevelExtras = function(level, mapGen) {
 CaveGenerator.prototype._createMapOptions = function(cols, rows, conf) {
     let {dungeonType} = conf;
     let opts = {};
-
     const miners = getMiners(cols, rows);
 
-    dungeonType = dungeonType.toUpperCase();
+    dungeonType = dungeonType.capitalize();
     switch (dungeonType) {
         case 'Cave': opts = Miners.getRandOpts(cols, rows, 1, 3); break;
         case 'Grotto': opts = Miners.getRandOpts(cols, rows, 2, 4); break;
@@ -99,8 +98,6 @@ CaveGenerator.prototype._createMapOptions = function(cols, rows, conf) {
         opts.floorElem = RG.ELEM.CHASM;
         opts.isCollapsed = true;
     }
-
-    console.log('mapOpts: ' + JSON.stringify(opts));
 
     return opts;
 };
@@ -312,6 +309,11 @@ CaveGenerator.prototype._addLairBoss = function(level, conf) {
         }
         populate.addPointGuardian(level, endPoint, maxDanger + 4);
         populate.addMainLoot(level, endPoint, maxValue);
+    }
+    else {
+        const json = JSON.stringify(level.getExtras());
+        RG.err('CaveGenerator', '_addLairBoss',
+            'No endPoint in extras: ' + json);
     }
 };
 
