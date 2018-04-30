@@ -1093,6 +1093,7 @@ RG.System.Movement = function(compTypes) {
                 msg = `${ent.getName()} has explored zone thoroughly.`;
             }
             RG.gameInfo({cell, msg});
+            if (ent.isPlayer()) {ent.getBrain().addMark();}
         }
     };
 
