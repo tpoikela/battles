@@ -72,6 +72,12 @@ const Actors = [
         poison: {duration: '1d6', damage: '1d10', prob: '0.1'}
     },
     {
+        name: 'cave spider', char: 'S', base: 'animal',
+        attack: 2, defense: 4, damage: '1d5',
+        hp: 15, danger: 4,
+        poison: {duration: '3d6', damage: '1d4 + 1', prob: '0.15'}
+    },
+    {
         name: 'wolverine', char: 'W', base: 'animal',
         attack: 4, defense: 4, damage: '1d7',
         hp: 20, danger: 4
@@ -126,7 +132,7 @@ const Actors = [
         name: 'manticore', char: 'M', base: 'animal',
         attack: 7, defense: 7, damage: '2d10',
         hp: 50, danger: 10, addComp: 'Flying',
-        onHit: [{addComp: 'Paralysis', duration: '1d4'}]
+        onHit: [{addComp: 'Paralysis', duration: '1d4 + 1'}]
     },
 
     // CONSTRUCTS ETC
