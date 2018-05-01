@@ -264,14 +264,12 @@ const MenuWithState = function(args) {
             const selection = Keys.codeToIndex(code);
             if (this.table.hasOwnProperty(selection)) {
                 const value = this.table[selection][1];
-                console.log('has index ', selection, value);
                 if (value === Menu.EXIT_MENU && this.onQuit) {
                     this.onQuit();
                 }
                 return value;
             }
             const menuTable = this.stateToTable[this.menuState];
-            console.log('menutable is ', menuTable);
             if (menuTable.hasOwnProperty(selection)) {
                 const value = menuTable[selection][1];
                 return value;
@@ -279,7 +277,6 @@ const MenuWithState = function(args) {
             return this;
         }
     };
-
 
     this.addState = (state, menuArgs) => {
         this.stateToTable[state] = createMenuTable(menuArgs);
@@ -306,7 +303,6 @@ MenuWithState.prototype.getMenu = function() {
     obj.post = this.post;
     obj = Object.assign(obj, quitObj);
     if (this.stateToPre[state]) {
-        console.log('Added to pre: ', this.stateToPre[state]);
         obj.pre.push(this.stateToPre[state]);
     }
     if (this.stateToPost[state]) {
@@ -316,7 +312,6 @@ MenuWithState.prototype.getMenu = function() {
 };
 
 MenuWithState.prototype.addPre = function(item, state) {
-    console.log('Adding now', item, state);
     if (state) {
         this.stateToPre[state] = item;
     }
