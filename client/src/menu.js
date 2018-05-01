@@ -31,40 +31,45 @@ const {KeyMap} = Keys;
 const Menu = {};
 Menu.EXIT_MENU = null;
 
-//------------------------------
-/* Base class for all menus. */
-//------------------------------
-const MenuBase = function(args = []) {
-    this.table = {};
-    this.msg = '';
-    this.pre = [];
-    this.post = [];
 
-    this.parent = null; // Parent menu for this object
-
+const createMenuTable = args => {
+    const table = {};
     args.forEach((item, i) => {
         const index = Keys.menuIndices[i];
         if (item.key) {
             const index = Keys.codeToIndex(item.key);
             if (item.menu) {
-                this.table[index] = item.menu;
+                table[index] = item.menu;
             }
             else if (item.func) {
-                this.table[index] = item.func;
+                table[index] = item.func;
             }
             else if (item.funcToCall) {
-                this.table[index] = {funcToCall: item.funcToCall};
+                table[index] = {funcToCall: item.funcToCall};
             }
         }
         else if (item.length === 2) {
-            this.table[index] = item;
+            table[index] = item;
         }
         else {
             let msg = 'Each item must have 2 values: menu msg and ret val';
             msg += '\nItem can also be {key: , menu: } for nested menus';
-            RG.err('MenuBase', 'constructor', msg);
+            RG.err('menu.js', 'createMenuTable', msg);
         }
     });
+    return table;
+};
+
+//------------------------------
+/* Base class for all menus. */
+//------------------------------
+const MenuBase = function(args = []) {
+    this.table = createMenuTable(args);
+    this.msg = '';
+    this.pre = [];
+    this.post = [];
+
+    this.parent = null; // Parent menu for this object
 
     this.setMsg = msg => {
         this.msg = msg;
@@ -220,5 +225,76 @@ const MenuSelectCell = function(args) {
 };
 RG.extend2(MenuSelectCell, MenuBase);
 Menu.SelectCell = MenuSelectCell;
+
+/* Menu which has multiple states. An example is a selection menu, which has C-D
+ * bound to delete item. Thus, normally menu is in selection state, but then
+ * user hits C-D, it goes to deletion state. In this case, selection callback
+ * is replaced by deletion callback. */
+const MenuWithState = function(args) {
+    MenuWithQuit.call(this, args);
+
+    // Maps key presses to transitions into new state
+    this.keyToState = {};
+
+    // Maps state to a table of options/functions
+    this.stateToTable = {};
+
+    this.showMenu = () => true;
+
+    // Current menu state
+    this.menuState = '';
+
+    this.select = code => {
+        if (this.keyToState.hasOwnProperty(code)) {
+            this.menuState = this.keyToState[code];
+            RG.gameMsg('Moved to state ' + this.menuState);
+            return this;
+        }
+        else {
+            const selection = Keys.codeToIndex(code);
+            if (this.table.hasOwnProperty(selection)) {
+                const value = this.table[selection][1];
+                console.log('has index ', selection, value);
+                if (value === Menu.EXIT_MENU && this.onQuit) {
+                    this.onQuit();
+                }
+                return value;
+            }
+            const menuTable = this.stateToTable[this.menuState];
+            console.log('menutable is ', menuTable);
+            if (menuTable.hasOwnProperty(selection)) {
+                const value = menuTable[selection][1];
+                return value;
+            }
+            return this;
+        }
+    };
+
+    this.getMenu = () => {
+        const obj = {};
+        let table = null;
+        const menuTable = this.stateToTable[this.menuState];
+        if (menuTable) {table = menuTable;}
+        else {table = this.table;}
+
+        Object.keys(table).forEach(index => {
+            const char = Keys.menuIndices[index];
+            obj[char] = table[index][0];
+        });
+        obj.pre = this.pre;
+        obj.post = this.post;
+        return obj;
+    };
+
+    this.addState = (state, menuArgs) => {
+        this.stateToTable[state] = createMenuTable(menuArgs);
+    };
+
+    this.addTransition = (state, code) => {
+        this.keyToState[code] = state;
+    };
+};
+RG.extend2(MenuWithState, MenuWithQuit);
+Menu.WithState = MenuWithState;
 
 module.exports = Menu;
