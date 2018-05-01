@@ -320,8 +320,10 @@ class MarkList {
     getMenu() {
         const id = this._actor.getLevel().getID();
         const markList = this._marks[id] || [];
-        const menuArgs = markList.map(mark => {
+        const selectMenuArgs = markList.map(mark => {
             const {x, y} = mark;
+
+            // GUI callback which moves the actor along path
             const cbFunc = this._brain._guiCallbacks.GOTO;
             // Bind to args, this is preserved in any case
             const boundFunc = cbFunc.bind(null, Keys.KEY.GOTO, x, y);
@@ -329,8 +331,32 @@ class MarkList {
             const listMsg = this.getMarkListMsg(mark);
             return [listMsg, boundFunc];
         });
-        const menu = new Menu.WithQuit(menuArgs);
+
+        const deleteMenuArgs = markList.map(mark => {
+            const {x, y, id} = mark;
+            const listMsg = this.getMarkListMsg(mark);
+            const boundFunc = this.deleteMark.bind(this, id, x, y);
+            return [listMsg, boundFunc];
+        });
+
+        const menu = new Menu.WithState();
+
+        menu.addState('', selectMenuArgs);
+        menu.addState('DELETE', deleteMenuArgs);
+        menu.addTransition('DELETE', Keys.KEY.DELETE);
         return menu;
+    }
+
+    /* Deletes a mark from the mark list. */
+    deleteMark(id, x, y) {
+        if (this._marks[id]) {
+            const index = this._marks[id].findIndex(obj => (
+                obj.id === id && obj.x === x && obj.y === y
+            ));
+            if (index >= 0) {
+                this._marks[id].splice(index, 1);
+            }
+        }
     }
 
     getMark(selectCode) {
