@@ -183,7 +183,9 @@ Keys.KeyMap = {
 
 Keys.menuIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'a', 'b', 'c', 'd', 'e', 'f',
     'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
-    'u', 'v', 'w', 'x', 'y', 'z'
+    'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
+    'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+    'Y', 'Z'
 ];
 
 /* Given key code, returns the corresponding character in menu indices. */
@@ -191,6 +193,9 @@ Keys.codeToMenuChar = code => {
     const index = Keys.codeToIndex(code);
     return Keys.menuIndices[index];
 };
+
+const reCharLC = /[a-z]/;
+const reCharUC = /[A-Z]/;
 
 /* Convert a selection index into a keycode. For example, if user presses 'a',
  * this function should return keycode for a, ie Keys.VK_a. */
@@ -200,9 +205,13 @@ Keys.selectIndexToCode = indexChar => {
         if (arrayIndex >= 0 && arrayIndex <= 9) {
             return ROT.VK_0 + arrayIndex;
         }
-        else {
-            const addToCode = arrayIndex - 10; // Offset in menuIndices
+        else if (reCharLC.test(indexChar)) {
+            const addToCode = arrayIndex - Keys.menuIndices.indexOf('a');
             return Keys.VK_a + addToCode;
+        }
+        else if (reCharUC.test(indexChar)) {
+            const addToCode = arrayIndex - Keys.menuIndices.indexOf('A');
+            return ROT.VK_A + addToCode;
         }
     }
     RG.err('RG', 'selectIndexToCode',
@@ -217,7 +226,10 @@ Keys.codeToIndex = code => {
         return code - ROT.VK_0;
     }
     else if (code >= Keys.VK_a && code <= Keys.VK_z) {
-        return code - Keys.VK_a + 10;
+        return code - Keys.VK_a + Keys.menuIndices.indexOf('a');
+    }
+    else if (code >= ROT.VK_A && code <= ROT.VK_Z) {
+        return code - ROT.VK_A + Keys.menuIndices.indexOf('A');
     }
     return -1;
 };
