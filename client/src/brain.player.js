@@ -340,10 +340,12 @@ class MarkList {
         });
 
         const menu = new Menu.WithState();
+        menu.addItem(Keys.KEY.DELETE, ['Delete mark', Menu.NEXT_STATE]);
 
         menu.addState('', selectMenuArgs);
         menu.addState('DELETE', deleteMenuArgs);
         menu.addTransition('DELETE', Keys.KEY.DELETE);
+        menu.addPre('Choose a mark to delete', 'DELETE');
         return menu;
     }
 
