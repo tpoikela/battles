@@ -30,7 +30,8 @@ const {KeyMap} = Keys;
 
 const Menu = {};
 Menu.EXIT_MENU = null;
-
+Menu.NO_ACTION = 'NO_ACTION';
+Menu.NEXT_STATE = 'NEXT_STATE';
 
 const createMenuTable = args => {
     const table = {};
@@ -81,7 +82,6 @@ const MenuBase = function(args = []) {
         }
     };
 
-
     this.showMenu = () => true;
 
     this.setParent = parent => {
@@ -90,37 +90,43 @@ const MenuBase = function(args = []) {
 
     this.getParent = () => this.parent;
 
-    this.getMenu = () => {
-        const obj = {};
-        Object.keys(this.table).forEach(index => {
-            const char = Keys.menuIndices[index];
-            obj[char] = this.table[index][0];
-        });
-        obj.pre = this.pre;
-        obj.post = this.post;
-        return obj;
-    };
 
-    this.addPost = item => {
-        if (Array.isArray(item)) {
-            this.post = this.post.concat(item);
-        }
-        else {
-            this.post.push(item);
-        }
-    };
-
-    this.addPre = item => {
-        if (Array.isArray(item)) {
-            this.pre = this.pre.concat(item);
-        }
-        else {
-            this.pre.push(item);
-        }
+    this.addItem = (code, item) => {
+        const index = Keys.codeToIndex(code);
+        this.table[index] = item;
     };
 
 };
 Menu.Base = MenuBase;
+
+MenuBase.prototype.getMenu = function() {
+    const obj = {};
+    Object.keys(this.table).forEach(index => {
+        const char = Keys.menuIndices[index];
+        obj[char] = this.table[index][0];
+    });
+    obj.pre = this.pre;
+    obj.post = this.post;
+    return obj;
+};
+
+MenuBase.prototype.addPost = function(item) {
+    if (Array.isArray(item)) {
+        this.post = this.post.concat(item);
+    }
+    else {
+        this.post.push(item);
+    }
+};
+
+MenuBase.prototype.addPre = function(item) {
+    if (Array.isArray(item)) {
+        this.pre = this.pre.concat(item);
+    }
+    else {
+        this.pre.push(item);
+    }
+};
 
 /* InfoOnly menu does not contain actual selection, but is intended to show
  * player crucial info they should not miss. Menu can be exited only by pressing
@@ -128,14 +134,6 @@ Menu.Base = MenuBase;
 const MenuInfoOnly = function() {
     MenuBase.call(this);
 
-    this.getMenu = () => {
-        const obj = {
-            0: 'Back to game.'
-        };
-        obj.pre = this.pre;
-        obj.post = this.post;
-        return obj;
-    };
 
     this.select = code => {
         const selection = Keys.codeToIndex(code);
@@ -147,6 +145,15 @@ const MenuInfoOnly = function() {
 };
 RG.extend2(MenuInfoOnly, MenuBase);
 Menu.InfoOnly = MenuInfoOnly;
+
+MenuInfoOnly.prototype.getMenu = function() {
+    const obj = {
+        0: 'Back to game.'
+    };
+    obj.pre = this.pre;
+    obj.post = this.post;
+    return obj;
+};
 
 /* This menu can be used when quit option is required. You can add a callback by
  * setting onQuit to a desired function. */
@@ -239,6 +246,10 @@ const MenuWithState = function(args) {
     // Maps state to a table of options/functions
     this.stateToTable = {};
 
+    // State-specific pre/post texts
+    this.stateToPost = {};
+    this.stateToPre = {};
+
     this.showMenu = () => true;
 
     // Current menu state
@@ -247,7 +258,6 @@ const MenuWithState = function(args) {
     this.select = code => {
         if (this.keyToState.hasOwnProperty(code)) {
             this.menuState = this.keyToState[code];
-            RG.gameMsg('Moved to state ' + this.menuState);
             return this;
         }
         else {
@@ -270,21 +280,6 @@ const MenuWithState = function(args) {
         }
     };
 
-    this.getMenu = () => {
-        const obj = {};
-        let table = null;
-        const menuTable = this.stateToTable[this.menuState];
-        if (menuTable) {table = menuTable;}
-        else {table = this.table;}
-
-        Object.keys(table).forEach(index => {
-            const char = Keys.menuIndices[index];
-            obj[char] = table[index][0];
-        });
-        obj.pre = this.pre;
-        obj.post = this.post;
-        return obj;
-    };
 
     this.addState = (state, menuArgs) => {
         this.stateToTable[state] = createMenuTable(menuArgs);
@@ -296,5 +291,47 @@ const MenuWithState = function(args) {
 };
 RG.extend2(MenuWithState, MenuWithQuit);
 Menu.WithState = MenuWithState;
+
+/* Returns the menu which should be shown. */
+MenuWithState.prototype.getMenu = function() {
+    const quitObj = MenuWithQuit.prototype.getMenu.call(this);
+    const state = this.menuState;
+    const table = this.stateToTable[state];
+    let obj = {};
+    Object.keys(table).forEach(index => {
+        const char = Keys.menuIndices[index];
+        obj[char] = table[index][0];
+    });
+    obj.pre = this.pre;
+    obj.post = this.post;
+    obj = Object.assign(obj, quitObj);
+    if (this.stateToPre[state]) {
+        console.log('Added to pre: ', this.stateToPre[state]);
+        obj.pre.push(this.stateToPre[state]);
+    }
+    if (this.stateToPost[state]) {
+        obj.post.push(this.stateToPost[state]);
+    }
+    return obj;
+};
+
+MenuWithState.prototype.addPre = function(item, state) {
+    console.log('Adding now', item, state);
+    if (state) {
+        this.stateToPre[state] = item;
+    }
+    else {
+        MenuWithQuit.prototype.addPre.call(this, item);
+    }
+};
+
+MenuWithState.prototype.addPost = function(item, state) {
+    if (state) {
+        this.stateToPost[state] = item;
+    }
+    else {
+        MenuWithQuit.prototype.addPost.call(this, item);
+    }
+};
 
 module.exports = Menu;
