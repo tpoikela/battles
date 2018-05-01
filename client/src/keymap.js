@@ -240,6 +240,7 @@ Keys.KEY.MOVE_W = ROT.VK_A + 32;
 Keys.KEY.MOVE_NW = ROT.VK_Q + 32;
 
 Keys.KEY.CHAT = ROT.VK_C;
+Keys.KEY.DELETE = ROT.VK_D;
 Keys.KEY.DOOR = ROT.VK_O + 32;
 Keys.KEY.FIGHT = ROT.VK_F + 32;
 Keys.KEY.GOTO = Keys.VK_g;
