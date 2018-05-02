@@ -715,8 +715,8 @@ RG.System.Damage = function(compTypes) {
     this.updateEntity = ent => {
         const dmgComps = ent.getList('Damage');
         dmgComps.forEach(dmgComp => {
-            if (ent.has('Health')) {
-                const health = ent.get('Health');
+            const health = ent.get('Health');
+            if (health) {
                 let totalDmg = _getDamageReduced(ent);
 
                 // Check if any damage was done at all
@@ -737,15 +737,15 @@ RG.System.Damage = function(compTypes) {
                     }
                 }
 
-                const damageSrc = ent.get('Damage').getSource();
-                if (health.isDead()) {
+                const damageSrc = dmgComp.getSource();
+                if (health.isDead() && !ent.has('Dead')) {
                     if (ent.has('Loot')) {
                         const entCell = ent.getCell();
                         ent.get('Loot').dropLoot(entCell);
                     }
                     _dropInvAndEq(ent);
 
-                    _killActor(damageSrc, ent);
+                    _killActor(damageSrc, ent, dmgComp);
                 }
 
                 // Emit ACTOR_DAMAGED
@@ -862,11 +862,17 @@ RG.System.Damage = function(compTypes) {
     };
 
     /* Removes actor from current level and emits Actor killed event.*/
-    const _killActor = (src, actor) => {
-        const dmgComp = actor.get('Damage');
+    const _killActor = (src, actor, dmgComp) => {
         const level = actor.getLevel();
         const cell = actor.getCell();
         const [x, y] = actor.getXY();
+
+        if (actor.has('Dead')) {
+            console.log('Actor has Dead already');
+        }
+
+        actor.add(new RG.Component.Dead());
+
         if (level.removeActor(actor)) {
             const nameKilled = actor.getName();
 
