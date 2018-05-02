@@ -760,6 +760,7 @@ RG.FMODE_FAST = 1;
 RG.FMODE_SLOW = 2;
 
 RG.PROT_BYPASS_CHANCE = 0.05;
+RG.MISSILE_CRITICAL_SHOT = 0.1;
 
 // 0.0 = uniform dist, higher number assigns more weight to median values
 RG.DANGER_ADJ_FACTOR = 1.4;
@@ -779,7 +780,7 @@ RG.HUNGER_DMG = 1; // Damage caused by starvation kicking in
 
 // This is a subset of ITEM_TYPES, excluding gold items
 RG.SHOP_TYPES = ['ammo', 'armour', 'food',
-    'missile', 'missileweapon', 'potion', 'spiritgem', 'weapon'
+    'missile', 'missileweapon', 'potion', 'rune', 'spiritgem', 'weapon'
 ];
 
 // Alignments (TODO make more diverse)
