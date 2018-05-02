@@ -140,13 +140,13 @@ class Alpinist extends ActorClassBase {
         return [
             {name: 'Ration', count: 1},
             {name: 'rope', count: 1},
-            {name: mineral.getName(), count: 1}
+            {name: mineral.getName(), count: 2}
         ];
     }
 
     getStartingEquipment() {
         return [
-            {name: 'Ice axe', count: 1},
+            {name: 'Piolet', count: 1},
             {name: 'Spiked boots', count: 1}
         ];
     }
