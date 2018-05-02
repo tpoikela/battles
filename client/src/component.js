@@ -70,6 +70,8 @@ RG.Component.Health = function(hp) {
 };
 RG.extend2(RG.Component.Health, RG.Component.Base);
 
+RG.Component.Dead = UniqueTagComponent('Dead');
+
 /* Component which is used to deal damage.*/
 RG.Component.Damage = function(dmg, type) {
     RG.Component.Base.call(this, 'Damage');
