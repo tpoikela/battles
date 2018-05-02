@@ -815,6 +815,9 @@ const Items = [
         name: 'firemaking kit', base: 'tool',
         use: {addEntity: {entityName: 'Fire', duration: 20}}
     },
+    {
+        name: 'rope', base: 'tool'
+    },
 
     // SPIRIT GEMS
     {
