@@ -91,6 +91,12 @@ const Items = [
         weight: 1.9, value: value(40)
     },
     {
+        name: 'Piolet', base: 'MeleeWeaponBase',
+        damage: '1d8', attack: 1, defense: 1,
+        weaponType: 'axe',
+        weight: 0.7, value: value(50)
+    },
+    {
         name: 'Pick-axe', base: 'MeleeWeaponBase',
         damage: '1d8', attack: 1, defense: 2,
         weaponType: 'axe',
@@ -298,6 +304,11 @@ const Items = [
     {
         name: 'Robe', base: 'ArmourBase', className: 'cell-item-cloth',
         weight: 1.0, defense: 1, armourType: 'chest', value: value(15)
+    },
+    {
+        name: 'Spiked boots', base: 'ArmourBase',
+        weight: 0.4, defense: 1, protection: 1, armourType: 'feet',
+        value: value(35)
     },
     {
         name: 'Robe of defense', base: 'ArmourBase',
