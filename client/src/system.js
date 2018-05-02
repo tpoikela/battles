@@ -473,6 +473,8 @@ RG.extend2(RG.System.Attack, RG.System.Base);
 RG.System.Missile = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.MISSILE, compTypes);
 
+    this.criticalShot = RG.MISSILE_CRITICAL_SHOT;
+
     this.updateEntity = function(ent) {
         const mComp = ent.get('Missile');
         const attacker = mComp.getSource();
@@ -514,14 +516,9 @@ RG.System.Missile = function(compTypes) {
                 // Check hit and miss
                 if (this.targetHit(ent, actor, mComp)) {
                     this.finishMissileFlight(ent, mComp, currCell);
-                    const dmg = mComp.getDamage();
-                    const damageComp = new RG.Component.Damage(dmg,
-                        RG.DMG.MISSILE);
-                    damageComp.setSource(mComp.getSource());
-                    damageComp.setDamage(mComp.getDamage());
-                    actor.add('Damage', damageComp);
+                    const hitVerb = this._addDamageToActor(actor, mComp);
                     RG.debug(this, 'Hit an actor');
-                    shownMsg = firedMsg + ' hits ' + actor.getName();
+                    shownMsg = `${firedMsg} ${hitVerb} ${actor.getName()}`;
 
                     if (ent.getType() === 'missile') {
                         addSkillsExp(attacker, 'Throwing', 1);
@@ -566,6 +563,29 @@ RG.System.Missile = function(compTypes) {
             }
         }
 
+    };
+
+    /* Adds damage to hit actor, and returns the verb for the message
+     * corresponding to the hit (ie critical or not). */
+    this._addDamageToActor = (ent, mComp) => {
+        let hitVerb = 'hits';
+        const dmg = mComp.getDamage();
+        const damageComp = new RG.Component.Damage(dmg,
+            RG.DMG.MISSILE);
+        const dmgSrc = mComp.getSource();
+        damageComp.setSource(dmgSrc);
+
+        let nDamage = mComp.getDamage();
+        if (dmgSrc.has('CriticalShot')) {
+            if (RG.RAND.getUniform() <= this.criticalShot) {
+                nDamage *= 2;
+                hitVerb = 'critically hits';
+            }
+        }
+
+        damageComp.setDamage(nDamage);
+        ent.add(damageComp);
+        return hitVerb;
     };
 
     this.finishMissileFlight = (ent, mComp, currCell) => {
