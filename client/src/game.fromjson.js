@@ -372,7 +372,12 @@ RG.Game.FromJSON = function() {
             for (let i = 0; i < equipObjs.length; i++) {
                 const newObj = this.createItem(equipObjs[i]);
                 player.getInvEq().addItem(newObj);
-                player.getInvEq().equipItem(newObj);
+                if (newObj.count > 1) {
+                    player.getInvEq().equipNItems(newObj, newObj.count);
+                }
+                else {
+                    player.getInvEq().equipItem(newObj);
+                }
             }
 
         }
