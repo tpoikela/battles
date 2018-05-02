@@ -48,7 +48,7 @@ class CmdMissile {
 
     execute(obj) {
         const invEq = this._actor.getInvEq();
-        let fireRate = 2;
+        let fireRate = 1;
         if (this._actor.has('DoubleShot')) {
             fireRate = 2;
         }
