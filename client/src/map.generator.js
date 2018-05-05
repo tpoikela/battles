@@ -382,13 +382,13 @@ RG.Map.Generator = function() { // {{{2
     this.createMountain = function(cols, rows, conf) {
         const map = new RG.Map.CellList(cols, rows);
         if (!conf) {
-            conf = {};
+            conf = RG.Map.Generator.getOptions('mountain');
         }
-        if (!conf.hasOwnProperty('highRockThr')) {conf.highRockThr = 0.75;}
+        /* if (!conf.hasOwnProperty('highRockThr')) {conf.highRockThr = 0.75;}
         if (!conf.hasOwnProperty('stoneThr')) {conf.stoneThr = 0.4;}
         if (!conf.hasOwnProperty('chasmThr')) {conf.chasmThr = -0.3;}
         if (!conf.hasOwnProperty('nRoadTurns')) {conf.nRoadTurns = 4;}
-        if (!conf.hasOwnProperty('snowRatio')) {conf.nSnowRatio = 0.0;}
+        if (!conf.hasOwnProperty('snowRatio')) {conf.nSnowRatio = 0.0;}*/
 
         _mapGen = new ROT.Map.Mountain(this.cols, this.rows, conf);
         _mapGen.create((x, y, val) => {
@@ -693,5 +693,28 @@ RG.Map.Generator.addRandomSnow = (map, ratio) => {
         }
     }
 };
+
+RG.Map.Generator.getOptions = function(value) {
+    if (RG.Map.Generator.options[value]) {
+        return RG.Map.Generator.options[value];
+    }
+    else {
+        RG.warn('RG.Map.Generator', 'getOptions',
+            `Unknown map type ${value}`);
+    }
+    return {};
+};
+
+RG.Map.Generator.options = {};
+RG.Map.Generator.options.mountain = {
+    noiseMult: 1,
+    noiseDivider: 20,
+    highRockThr: 0.75,
+    stoneThr: 0.5,
+    chasmThr: -0.4,
+    nRoadTurns: 8,
+    snowRatio: 0.0
+};
+
 
 module.exports = RG.Map.Generator;
