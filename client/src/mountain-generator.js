@@ -13,6 +13,19 @@ const MountainGenerator = function() {
 };
 
 MountainGenerator.options = {};
+
+MountainGenerator.getFaceOptions = function() {
+
+};
+MountainGenerator.getSummitOptions = function() {
+    return MountainGenerator.options.summit;
+};
+MountainGenerator.getFaceOptions = function() {
+    const mapOpts = MapGenerator.getOptions('mountain');
+    const opts = Object.assign({}, mapOpts, MountainGenerator.options.face);
+    return opts;
+};
+
 MountainGenerator.options.face = {
 
 };
