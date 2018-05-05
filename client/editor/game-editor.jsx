@@ -16,6 +16,7 @@ const ROT = require('../../lib/rot');
 ROT.Map.Wall = require('../../lib/map.wall');
 const DungeonGenerator = require('../src/dungeon-generator');
 const {CaveGenerator} = require('../src/cave-generator');
+const MountainGenerator = require('../src/mountain-generator');
 
 const Screen = require('../gui/screen');
 
@@ -28,7 +29,7 @@ RG.getOverWorld = require('../src//overworld');
 const WorldConf = require('../src/world.creator');
 
 const editorLevelTypes = [
-  'Cave', 'Dungeon',
+  'Cave', 'Dungeon', 'MountainFace', 'MountainSummit',
   'abandoned_fort',
   'arena', 'castle', 'capital', 'cellular', 'cave', 'crypt',
   'digger', 'divided', 'dungeon', 'dwarven_city',
@@ -421,6 +422,12 @@ export default class GameEditor extends Component {
     else if (levelType === 'Cave') {
       level = new CaveGenerator().create(cols, rows, conf);
     }
+    else if (levelType === 'MountainFace') {
+      level = new MountainGenerator().createFace(cols, rows, conf);
+    }
+    else if (levelType === 'MountainSummit') {
+      level = new MountainGenerator().createSummit(cols, rows, conf);
+    }
     else {
       level = RG.FACT.createLevel(
         levelType, this.state.levelX, this.state.levelY, conf);
@@ -779,6 +786,7 @@ export default class GameEditor extends Component {
   }
 
   getLevelConf(value) {
+    console.log('getLevelConf with', value);
     if (value === 'town') {
       return RG.Factory.cityConfBase({});
     }
@@ -786,17 +794,10 @@ export default class GameEditor extends Component {
       return RG.Factory.cityConfBase({});
     }
     else if (value === 'forest') {
-        return {nForests: 5, forestSize: 100, ratio: 0.5, factor: 6};
+      return {nForests: 5, forestSize: 100, ratio: 0.5, factor: 6};
     }
     else if (value === 'mountain') {
-        return {
-          noiseMult: 1,
-          noiseDivider: 20,
-          highRockThr: 0.75,
-          stoneThr: 0.5,
-          chasmThr: -0.4,
-          nRoadTurns: 8
-        };
+      return RG.Map.Generator.getOptions('mountain');
     }
     else if (value === 'crypt' || value === 'castle') {
       return {
@@ -825,6 +826,12 @@ export default class GameEditor extends Component {
       const conf = caveGen._options;
       delete conf.rng;
       return conf;
+    }
+    else if (value === 'MountainFace') {
+      return MountainGenerator.getFaceOptions();
+    }
+    else if (value === 'MountainSummit') {
+      return MountainGenerator.getSummitOptions();
     }
     else {
       return {};
@@ -1043,7 +1050,7 @@ export default class GameEditor extends Component {
     }
   }
 
-  /* Starts a simulation of the level. No player support yet. */
+  /* Starts a simulation of the level. */
   simulateLevel() {
     if (!this.state.level) {
       const msg = 'You must create a level before simulation!';
