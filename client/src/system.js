@@ -148,7 +148,8 @@ RG.System.BaseAction = function(compTypes) {
     this.compTypesAny = true;
 
     const handledComps = [
-        'Pickup', 'UseStairs', 'OpenDoor', 'UseItem', 'UseElement'
+        'Pickup', 'UseStairs', 'OpenDoor', 'UseItem', 'UseElement',
+        'Jump'
     ];
 
     this.updateEntity = function(ent) {
@@ -159,7 +160,6 @@ RG.System.BaseAction = function(compTypes) {
             }
         });
     };
-
 
     /* Handles pickup command. */
     this._handlePickup = ent => {
@@ -273,13 +273,49 @@ RG.System.BaseAction = function(compTypes) {
         this._checkUseElementMsgEmit(ent, useComp);
     };
 
+    this._handleJump = ent => {
+        const jump = ent.get('Jump');
+        const [dx, dy] = [jump.getX(), jump.getY()];
+        console.log('dx,dy is ', dx, dy);
+        let jumpRange = 2;
+        if (ent.has('Jumper')) {
+            jumpRange = ent.get('Jumper').getJumpRange();
+        }
+        const map = ent.getLevel().getMap();
+        const [x0, y0] = ent.getXY();
+        const x1 = x0 + dx * jumpRange;
+        const y1 = y0 + dy * jumpRange;
+        const jumpPathCb = (x, y) => {
+            console.log('x,y: ', x, y);
+            const cell = map.getCell(x, y);
+            if (cell.hasActors()) {
+                const actors = cell.getActors();
+                for (let i = 0; i < actors.length; i++) {
+                    const actor = actors[i];
+                    if (!actor.has('Ethereal')) {
+                        return false;
+                    }
+                }
+            }
+            return RG.Element.canJumpOver(cell.getBaseElem().getType());
+        };
+        const path = RG.Path.getShortestActorPath(map, x0, y0, x1, y1,
+            jumpPathCb);
+        // TODO Verify that path is direct path
+        if (path.length === jumpRange) {
+            const movComp = new RG.Component.Movement(x1, y1, ent.getLevel());
+            ent.add(movComp);
+        }
+    };
+
     // Initialisation of dispatch table for handler functions
     this._dtable = {
         Pickup: this._handlePickup,
         UseStairs: this._handleUseStairs,
         OpenDoor: this._handleOpenDoor,
         UseItem: this._handleUseItem,
-        UseElement: this._handleUseElement
+        UseElement: this._handleUseElement,
+        Jump: this._handleJump
     };
 
     /* Used to create events in response to specific actions. */
@@ -1052,6 +1088,8 @@ RG.extend2(RG.System.Chat, RG.System.Base);
 RG.System.Movement = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.MOVEMENT, compTypes);
 
+    this.climbRe = /highrock/;
+
     this.updateEntity = function(ent) {
         const movComp = ent.get('Movement');
         const [x, y] = movComp.getXY();
@@ -1059,8 +1097,12 @@ RG.System.Movement = function(compTypes) {
         const map = movComp.getLevel().getMap();
         const cell = map.getCell(x, y);
         const prevCell = ent.getCell();
+        let canMoveThere = cell.isFree(ent.has('Flying'));
+        if (!canMoveThere) {
+            canMoveThere = this._checkSpecialMovement(ent, cell);
+        }
 
-        if (cell.isFree(ent.has('Flying'))) {
+        if (canMoveThere) {
             const xyOld = ent.getXY();
             RG.debug(this, `Trying to move ent from ${xyOld}`);
 
@@ -1086,6 +1128,17 @@ RG.System.Movement = function(compTypes) {
             RG.debug(this, "Cell wasn't free at " + x + ', ' + y);
         }
         ent.remove(movComp);
+        return false;
+    };
+
+    /* Checks movements like climbing. */
+    this._checkSpecialMovement = function(ent, cell) {
+        const elemType = cell.getBaseElem().getType();
+        if (this.climbRe.test(elemType) && ent.has('Climber')) {
+            const msg = `${ent.getName()} climbs the rocky terrain`;
+            RG.gameMsg({cell, msg});
+            return true;
+        }
         return false;
     };
 
