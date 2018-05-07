@@ -105,15 +105,19 @@ class ActorClassBase {
 class Alpinist extends ActorClassBase {
     constructor(actor) {
         super(actor, 'Alpinist');
-        // const name = actor.getName();
+        const name = actor.getName();
         this._messages = {
+            4: `${name} can climb on difficult terrain now`,
+            8: `${name} can jump over obstacles such as chasms now`
         };
         this._advances = {
             1: () => {
             },
             4: () => {
+                this._actor.add(new RG.Component.Climber());
             },
             8: () => {
+                this._actor.add(new RG.Component.Jumper());
             },
             12: () => {
             },
