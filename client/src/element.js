@@ -13,6 +13,10 @@ RG.Element = {};
 const wallRegexp = /wall/;
 const obstacleRegexp = /(highrock|water|chasm|wall)/;
 
+RG.Element.canJumpOver = type => {
+    return !(wallRegexp.test(type) || (/highrock/).test(type));
+};
+
 /* Element is a wall or other obstacle or a feature in the map. It's not
  * necessarily blocking movement.  */
 class RGElementBase extends Mixin.Typed(Entity) {
