@@ -233,6 +233,26 @@ const MenuSelectCell = function(args) {
 RG.extend2(MenuSelectCell, MenuBase);
 Menu.SelectCell = MenuSelectCell;
 
+/* This menu can be used when direction selection is required. */
+const MenuSelectDir = function(args) {
+    MenuBase.call(this, args);
+
+    this.showMenu = () => false;
+
+    this.setCallback = cb => {
+        this.callback = cb;
+    };
+
+    this.select = code => {
+        if (KeyMap.inMoveCodeMap(code)) {
+            const dXdY = Keys.KeyMap.getDir(code);
+            return this.callback.bind(null, dXdY);
+        }
+        return Menu.EXIT_MENU;
+    };
+};
+Menu.SelectDir = MenuSelectDir;
+
 /* Menu which has multiple states. An example is a selection menu, which has C-D
  * bound to delete item. Thus, normally menu is in selection state, but then
  * user hits C-D, it goes to deletion state. In this case, selection callback
