@@ -685,6 +685,12 @@ RG.Component.BypassProtection = DataComponent('BypassProtection',
     {chance: 0.0});
 
 //--------------------------------------------
+// ALPINIST COMPONENTS
+//--------------------------------------------
+RG.Component.Climber = UniqueTagComponent('Climber');
+RG.Component.Jumper = UniqueDataComponent('Jumper', {jumpRange: 2});
+
+//--------------------------------------------
 // RANGED COMBAT COMPONENTS
 //--------------------------------------------
 
@@ -1016,6 +1022,9 @@ RG.Component.Pickup = TransientTagComponent('Pickup');
 
 /* Added to entity when it's using stairs to move to another level. */
 RG.Component.UseStairs = TransientTagComponent('UseStairs');
+
+/* Added to a jumping entity. */
+RG.Component.Jump = TransientDataComponent('Jump', {x: -1, y: -1});
 
 /* Added to entity when it's opening a door. */
 RG.Component.OpenDoor = TransientDataComponent('OpenDoor', {door: null});
