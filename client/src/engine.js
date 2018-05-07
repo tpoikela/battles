@@ -48,7 +48,7 @@ const Engine = function(eventPool) {
         ['Stun', 'Paralysis']);
     this.systems.SpiritBind = new RG.System.SpiritBind(['SpiritBind']);
     this.systems.BaseAction = new RG.System.BaseAction(['Pickup',
-        'UseStairs', 'OpenDoor', 'UseItem', 'UseElement']);
+        'UseStairs', 'OpenDoor', 'UseItem', 'UseElement', 'Jump']);
     this.systems.Chat = new RG.System.Chat(['Chat']);
     this.systems.Shop = new RG.System.Shop(['Transaction']);
     this.systems.Attack = new RG.System.Attack(['Attack']);
