@@ -43,10 +43,13 @@ Path.getActorToActorPath = function(map, x0, y0, x1, y1) {
 
 /* Returns shortest path for actor in x0,y0, excluding the source point. If
  * destination point is impassable, returns an empty array. */
-Path.getShortestActorPath = function(map, x0, y0, x1, y1) {
+Path.getShortestActorPath = function(map, x0, y0, x1, y1, cb) {
     const coords = [];
     const passableCb = (x, y) => {
         if (map.hasXY(x, y)) {
+            if (cb) {
+                return cb(x, y) || (x === x0 && y === y0);
+            }
             return (
                 map.isPassable(x, y) || (x === x0 && y === y0)
             );
