@@ -768,6 +768,11 @@ class BrainPlayer {
           return this.noAction();
       }
 
+      if (RG.KeyMap.isJump(code)) {
+          this.jumpCmd();
+          return this.noAction();
+      }
+
       // Need existing position for move/attack commands
       const level = this._actor.getLevel();
       let x = this._actor.getX();
@@ -959,7 +964,7 @@ class BrainPlayer {
 
             return () => {
               const movComp = new RG.Component.Movement(x, y, level);
-              this._actor.add('Movement', movComp);
+              this._actor.add(movComp);
             };
           }
           else if (currMap.getCell(x, y).hasProp('actors')) {
@@ -974,7 +979,7 @@ class BrainPlayer {
             const attackCallback = () => {
               this._setAttackStats();
               const attackComp = new RG.Component.Attack({target});
-              this._actor.add('Attack', attackComp);
+              this._actor.add(attackComp);
             };
 
             if (target.isEnemy(this._actor)) {
@@ -1058,6 +1063,21 @@ class BrainPlayer {
         this.setSelectionObject(orderMenuSelectCell);
         this._fsm.startLooking();
         this.selectCell();
+    }
+
+    jumpCmd() {
+        const menu = new Menu.SelectDir();
+        menu.setCallback(this.jumpCallback.bind(this));
+        this.setSelectionObject(menu);
+        RG.gameMsg('Please select direction to jump');
+    }
+
+    jumpCallback(dXdY) {
+        const [x, y] = dXdY;
+        const jumpCmp = new RG.Component.Jump();
+        jumpCmp.setX(x);
+        jumpCmp.setY(y);
+        this._actor.add(jumpCmp);
     }
 
     showSelectedCellInfo() {
