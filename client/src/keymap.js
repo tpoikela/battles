@@ -82,6 +82,7 @@ Keys.KeyMap = {
     isConfirmYes: function(code) {return code === Keys.KEY.YES;},
     isFightMode: function(code) {return code === Keys.KEY.FIGHT;},
     isGoto: function(code) {return code === Keys.KEY.GOTO;},
+    isJump: function(code) {return code === Keys.KEY.JUMP;},
     isIssueOrder: function(code) {return code === Keys.KEY.ORDER;},
     isLook: function(code) {return code === Keys.KEY.LOOK;},
     isMark: function(code) {return code === Keys.KEY.MARK;},
@@ -256,6 +257,7 @@ Keys.KEY.DELETE = ROT.VK_D;
 Keys.KEY.DOOR = ROT.VK_O + 32;
 Keys.KEY.FIGHT = ROT.VK_F + 32;
 Keys.KEY.GOTO = Keys.VK_g;
+Keys.KEY.JUMP = Keys.VK_j;
 Keys.KEY.LOOK = ROT.VK_L + 32;
 Keys.KEY.MARK = Keys.VK_b;
 Keys.KEY.NEXT = Keys.VK_n;
