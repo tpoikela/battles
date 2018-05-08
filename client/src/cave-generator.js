@@ -135,9 +135,8 @@ CaveGenerator.prototype.addStairsLocations = function(level) {
 };
 
 /* Adds features like extra obstacles etc. */
-CaveGenerator.prototype._addSpecialFeatures = function(level, conf) {
+CaveGenerator.prototype._addSpecialFeatures = function(level) {
     if (level.getExtras().isCollapsed) {
-        console.log('isCollapsed true with conf: ', conf);
         this._createCollapsedLevel(level);
     }
 };

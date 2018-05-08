@@ -15,13 +15,6 @@ const shortestPath = Path.getShortestPath;
 // Number of cells allowed to be unreachable
 const maxUnreachable = 10;
 
-/*
-const ROOM_CONF = {
-    BIG_CENTER_ROOM: 'BIG_CENTER_ROOM'
-    CROSS: 'CROSS'
-};
-*/
-
 const SPLASH_THEMES = {
     chasm: {
         elem: RG.ELEM.CHASM
@@ -445,8 +438,7 @@ DungeonGenerator.prototype.getRandCorner = function(w, h, cols, rows, corners) {
 };
 
 /* Function adds features like chasms, bridges, rivers etc. */
-DungeonGenerator.prototype.addSpecialFeatures = function(level, conf) {
-    console.log(conf);
+DungeonGenerator.prototype.addSpecialFeatures = function(level) {
     const extras = level.getExtras();
     const map = level.getMap();
 
@@ -743,7 +735,6 @@ DungeonGenerator.prototype._addWallsToBrokenPath = function(level) {
     markers.forEach(marker => {
         const [x, y] = marker.getXY();
         level.getMap().setBaseElemXY(x, y, RG.ELEM.WALL);
-        console.log(`Wall ADDED to ${x},${y}`);
     });
 };
 
