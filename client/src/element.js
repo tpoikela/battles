@@ -41,6 +41,10 @@ class RGElementBase extends Mixin.Typed(Entity) {
     getName() {return this._name;}
     setName(name) {this._name = name;}
 
+    isWall() {
+        return wallRegexp.test(this.getType());
+    }
+
     isObstacle() {
         return obstacleRegexp.test(this.getType());
     }
