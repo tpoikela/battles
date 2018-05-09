@@ -40,11 +40,15 @@ else {
     $test_cmd = "npm run test";
 }
 
+my $logfile = 'pre-push-run.log';
+
 print "Running tests as pre-push to hook.\n";
-my $error = system("$test_cmd >& /dev/null");
+my $error = system("$test_cmd >& $logfile");
 if ($error == 0) {
     print "Tests OK. Proceeding to push.\n";
+    system("rm $logfile");
 }
 else {
+    system("tail -n20 $logfile");
     die("Tests FAILED. Aborting push. Run $test_cmd and fix errors.\n");
 }
