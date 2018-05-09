@@ -148,6 +148,32 @@ Path.getMinWeightPath = function(map, x0, y0, x1, y1, pathFunc) {
     return coord;
 };
 
+/* Given map and two x,y points, calculates min paths between these points using
+ * the list of path functions. */
+Path.getMinWeightOrShortest = function(map, x0, y0, x1, y1, passableFuncs) {
+    const coordShortest = Path.getShortestPath(x0, y0, x1, y1);
+    const paths = [];
+    passableFuncs.forEach(passableCb => {
+        const path = Path.getShortestPath(x0, y0, x1, y1, passableCb);
+        if (path.length > 0) {
+            paths.push(path);
+        }
+    });
+    paths.push(coordShortest);
+
+    let minPath = null;
+    let minWeight = -1;
+    console.log('Found paths for calc', paths.length);
+    paths.forEach(path => {
+        const pathWeight = Path.getPathWeight(map, path);
+        if (minWeight === -1 || pathWeight < minWeight) {
+            minWeight = pathWeight;
+            minPath = path;
+        }
+    });
+    return minPath;
+};
+
 /* This algorithm divides the path into nSegments, then computes minimum
  * weighted path for each of those segments. This makes the
  * path look more realistic, but of course less optimal.
