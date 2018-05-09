@@ -1,6 +1,7 @@
 
 const RG = require('../src/rg');
 RG.Component = require('../src/component');
+const Ability = require('../src/abilities');
 
 const DebugGame = function(fact, parser) {
     const _fact = fact;
@@ -162,6 +163,13 @@ const DebugGame = function(fact, parser) {
             lever.addTarget(leverDoor);
             level.addElement(leverDoor, 3 + i, 1);
         }
+
+        // For testing actor abilities and camouflage
+        const abilities = player.get('Abilities');
+        const camouflage = new Ability.Camouflage();
+        abilities.addAbility(camouflage);
+        const sharpener = new Ability.Sharpener();
+        abilities.addAbility(sharpener);
 
         return game;
     };
