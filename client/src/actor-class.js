@@ -5,6 +5,10 @@ const Menu = require('./menu');
 RG.Component = require('./component');
 RG.Spell = require('./spell');
 
+const Ability = require('./abilities');
+
+const {Abilities} = Ability;
+
 /* Factory function for actor classes. */
 ActorClass.create = function(name, entity) {
     if (ActorClass.hasOwnProperty(name)) {
@@ -27,9 +31,30 @@ ActorClass.getLevelUpObject = function(level, actorClass) {
     const actor = actorClass.getActor();
     const className = actorClass.getClassName();
     const levelMsg = actorClass.getLevelUpMsg(level);
-    selObj.addPre([`${actor.getName()} is now level ${level} ${className}`]);
+    const msg = `${actor.getName()} is now level ${level} ${className}`;
+    selObj.addPre([`Congratulations! ${msg}`]);
     selObj.addPre(levelMsg);
     return selObj;
+};
+
+/* Adds a given ability for the actor. Creates also the component to store all
+ * the abilities if it's not found. */
+ActorClass.addAbility = function(abilName, actor) {
+    let abilities = null;
+    if (!actor.has('Abilities')) {
+        abilities = new Abilities();
+    }
+    else {
+        abilities = actor.get('Abilities').abilities;
+    }
+    if (Ability.hasOwnProperty(abilName)) {
+        const abil = new Ability[abilName]();
+        abilities.addAbility(abil);
+    }
+    else {
+        RG.err('ActorClass', 'addAbility',
+            `Cannot find Ability.${abilName} for new`);
+    }
 };
 
 /* Used by different in-game classes for actors. Provides basic getters and
@@ -108,7 +133,8 @@ class Alpinist extends ActorClassBase {
         const name = actor.getName();
         this._messages = {
             4: `${name} can climb on difficult terrain now`,
-            8: `${name} can jump over obstacles such as chasms now`
+            8: `${name} can jump over obstacles such as chasms now`,
+            12: `${name} can now hide from enemies using terrain`
         };
         this._advances = {
             1: () => {
@@ -120,6 +146,7 @@ class Alpinist extends ActorClassBase {
                 this._actor.add(new RG.Component.Jumper());
             },
             12: () => {
+                ActorClass.addAbility('Camouflage', this._actor);
             },
             16: () => {
             },
@@ -156,12 +183,25 @@ class Alpinist extends ActorClassBase {
     }
 
     setStartingStats() {
-        // const stats = this._actor.get('Stats');
+        const stats = this._actor.get('Stats');
+        stats.incrStat('perception', 3);
+        stats.incrStat('agility', 3);
+        stats.incrStat('magic', -2);
     }
 
     incrStats(newLevel) {
+        const stats = this._actor.get('Stats');
         super.incrStats(newLevel);
+        if (newLevel % 3 !== 0) {
+            stats.incrStat('perception', 1);
+            this._lastStateIncr += '\nPerception was increased.';
+        }
+        if (newLevel % 3 !== 1) {
+            stats.incrStat('agility', 1);
+            this._lastStateIncr += '\nAgility was increased.';
+        }
     }
+
 
 }
 ActorClass.Alpinist = Alpinist;
@@ -279,6 +319,7 @@ class Blademaster extends ActorClassBase {
             },
             20: () => {
                 this._actor.add(new RG.Component.Sharpener());
+                ActorClass.addAbility('Sharpener', this._actor);
             },
             24: () => {
                 this._actor.add(new RG.Component.Ambidexterity());
