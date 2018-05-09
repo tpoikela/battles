@@ -148,7 +148,6 @@ describe('Template.ElemTemplate', () => {
         const ascii = templ.getChars([2, 3, 1]);
         expect(ascii).to.have.length(3 * 1 + 2 * 2 + 2 * 3 + 1);
         expect(ascii[0]).to.have.length(2);
-        console.log(JSON.stringify(ascii));
     });
 
     it('can expand templates in y-direction', () => {
@@ -251,20 +250,16 @@ describe('Template.ElemTemplate', () => {
     it('can rotate templates 90 degress to right', () => {
         const templMixed = RG.Template.createTemplate(templStrMixed);
         let ascii = templMixed.getChars([1, 1]);
-        console.log(JSON.stringify(ascii));
 
         const templR90 = RG.Template.rotateR90(templMixed);
         expect(templR90.getProp('dir')).to.equal('WS');
         ascii = templR90.getChars([1, 1]);
         expect(ascii[0][0], 'Coord 0,0 OK').to.equal('.');
         expect(ascii[1][1], 'Coord 1,1 OK').to.equal('#');
-        console.log(JSON.stringify(ascii));
-        console.log('R90 expanded 1,1: ' + JSON.stringify(ascii));
 
         // Try the expansion on rotated
         ascii = templR90.getChars([2, 2]);
         expect(ascii[0], 'Col 0 OK').to.deep.equal(['.', '^', '^']);
-        console.log('R90 expanded 2,2: ' + JSON.stringify(ascii));
         expect(ascii.length).to.equal(3);
     });
 
@@ -306,8 +301,7 @@ describe('Template.ElemTemplate', () => {
         let transformed = RG.Template.transformList([templR90, templ], null,
             exitMaps);
 
-        const names = transformed.map(t => t.getProp('name'));
-        console.log(names);
+        // const names = transformed.map(t => t.getProp('name'));
         expect(transformed.length).to.equal(3 + 3 + 1 + 1 + 3 + 3);
 
         // const templR180 = RG.Template.rotateR90(templR90, exitMap);
@@ -325,10 +319,6 @@ describe('Template.ElemTemplate', () => {
             t => t.getProp('name') === 'adapter_r270');
         expect(adapterR270).to.exist;
         expect(adapterR270.getDir()).to.equal('RW');
-
-    });
-
-    it('can transform a list of times', () => {
 
     });
 
