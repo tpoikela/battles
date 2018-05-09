@@ -6,7 +6,7 @@ RG.Random = require('../../../client/src/random');
 RG.DungeonGenerator = require('../../../client/src/dungeon-generator');
 
 describe('DungeonGenerator', function() {
-    this.timeout(10000);
+    // this.timeout(10000);
     it('generates dungeon levels', () => {
         RG.RAND.setSeed(new Date().getTime());
         const gen = new RG.DungeonGenerator();
