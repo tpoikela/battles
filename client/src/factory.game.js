@@ -65,6 +65,8 @@ RG.Factory.Game = function() {
             player.add(new RG.Component.Skills());
             player.add(new RG.Component.GameInfo());
             player.add(new RG.Component.BodyTemp());
+            player.add(new RG.Component.Abilities());
+
         }
 
         if (!player.has('Hunger')) {
