@@ -95,7 +95,6 @@ describe('Template.Level', () => {
         expect(level.map).to.have.length(7 * 12);
         expect(level.map[0]).to.have.length(7 * 6);
 
-        RG.printMap(level.map);
     });
 
     it('can create 2-d castles with outer wall only', () => {
@@ -112,7 +111,6 @@ describe('Template.Level', () => {
         expect(level.map).to.have.length(7 * 12);
         expect(level.map[0]).to.have.length(7 * 6);
 
-        // RG.printMap(level.map);
     });
 
     it('can have custom starting room function specified', () => {
@@ -132,7 +130,6 @@ describe('Template.Level', () => {
         expect(level.map).to.have.length(9 * 12);
         expect(level.map[0]).to.have.length(9 * 6);
 
-        // RG.printMap(level.map);
     });
 
     it('can also remove templates after creation', () => {
@@ -167,7 +164,6 @@ describe('Template.Level', () => {
         expect(level.map).to.have.length(7 * 11);
         expect(level.map[0]).to.have.length(7 * 7);
 
-        RG.printMap(level.map);
     });
 
     it('can have mixed NSEW and arbitraty directions specified', () => {
@@ -189,7 +185,6 @@ describe('Template.Level', () => {
         expect(level.map).to.have.length(7 * 8);
         expect(level.map[0]).to.have.length(7 * 9);
 
-        RG.printMap(level.map);
     });
 
     it('can create levels from rotated/transformed tiles', () => {
@@ -198,7 +193,6 @@ describe('Template.Level', () => {
         const templates = Basic.templates;
         level.setTemplates(templates);
         level.create();
-        RG.printMap(level.map);
     });
 
     it('can create Crypts with rotated tiles', () => {
@@ -207,7 +201,6 @@ describe('Template.Level', () => {
         const templates = Crypt.templates.all;
         level.setTemplates(templates);
         level.create();
-        // RG.printMap(level.map);
     });
 
     it('can create Castles with rotated tiles', () => {
@@ -218,7 +211,6 @@ describe('Template.Level', () => {
         level.use(Castle);
 
         level.create();
-        RG.printMap(level.map);
     });
 
     it('can create levels with 5x5 tiles', () => {
@@ -235,13 +227,12 @@ describe('Template.Level', () => {
         level.roomCount = -1;
         level.setFiller(Basic5x5.tiles.filler);
         const templates = Basic5x5.templates;
-        console.log(JSON.stringify(Basic5x5.templates, null, 2));
+        // console.log(JSON.stringify(Basic5x5.templates, null, 2));
         level.setTemplates(templates);
         level.setExitMap(Basic5x5.remap.exits, Basic5x5.remap.nsew2Dir);
         level.create();
 
         expect(level.map).to.exist;
-        RG.printMap(level.map);
     });
 
 });
