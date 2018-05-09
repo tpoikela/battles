@@ -163,7 +163,6 @@ Path.getMinWeightOrShortest = function(map, x0, y0, x1, y1, passableFuncs) {
 
     let minPath = null;
     let minWeight = -1;
-    console.log('Found paths for calc', paths.length);
     paths.forEach(path => {
         const pathWeight = Path.getPathWeight(map, path);
         if (minWeight === -1 || pathWeight < minWeight) {
