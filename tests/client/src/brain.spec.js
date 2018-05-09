@@ -386,6 +386,7 @@ describe('Brain.Archer', () => {
 
         const archer = new RG.Actor.Rogue('archer');
         const arrow = new RG.Item.Ammo('arrow');
+        arrow.add(new RG.Component.Indestructible());
         arrow.count = 10;
         const bow = new RG.Item.MissileWeapon('bow');
         RGTest.equipItems(archer, [arrow, bow]);
