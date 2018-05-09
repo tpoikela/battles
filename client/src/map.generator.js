@@ -2,7 +2,7 @@
 const RG = require('./rg.js');
 const ROT = require('../../lib/rot.js');
 RG.Map = require('./map');
-RG.Path = require('./path');
+const Path = require('./path');
 
 const TemplateLevel = require('./template.level');
 const Crypt = require('../data/tiles.crypt');
@@ -370,10 +370,11 @@ RG.Map.Generator = function() { // {{{2
 
     this.createWall = function(cols, rows, conf) {
         const map = new RG.Map.CellList(this.cols, this.rows);
+        const wallElem = conf.wallElem || RG.ELEM.WALL;
         _mapGen = new ROT.Map.Wall(cols, rows, conf);
         _mapGen.create((x, y, val) => {
             if (val === 1 /* && createDeep */) {
-                map.setBaseElemXY(x, y, RG.ELEM.WALL);
+                map.setBaseElemXY(x, y, wallElem);
             }
         });
         return {map};
@@ -384,11 +385,6 @@ RG.Map.Generator = function() { // {{{2
         if (!conf) {
             conf = RG.Map.Generator.getOptions('mountain');
         }
-        /* if (!conf.hasOwnProperty('highRockThr')) {conf.highRockThr = 0.75;}
-        if (!conf.hasOwnProperty('stoneThr')) {conf.stoneThr = 0.4;}
-        if (!conf.hasOwnProperty('chasmThr')) {conf.chasmThr = -0.3;}
-        if (!conf.hasOwnProperty('nRoadTurns')) {conf.nRoadTurns = 4;}
-        if (!conf.hasOwnProperty('snowRatio')) {conf.nSnowRatio = 0.0;}*/
 
         _mapGen = new ROT.Map.Mountain(this.cols, this.rows, conf);
         _mapGen.create((x, y, val) => {
@@ -425,21 +421,44 @@ RG.Map.Generator = function() { // {{{2
         if (yPerTurn < 4) {yPerTurn = 4;} // Prevent too little path progression
         const xLeft = 2;
         const xRight = map.cols - 3;
+        const xCenter = Math.floor(map.cols / 2);
+        const xPoints = [xLeft, xRight, xCenter];
 
         let inBounds = true;
+        let prevX = -1;
+        let prevY = -1;
         for (let i = 0; inBounds && i < nTurns; i++) {
             inBounds = false;
-            const x0 = i % 2 === 0 ? xLeft : xRight;
-            const x1 = i % 2 === 1 ? xLeft : xRight;
-            const yLow = i * yPerTurn;
+
+            let x0 = prevX;
+            let y0 = prevY;
+            if (i === 0) {
+                x0 = RG.RAND.arrayGetRand(xPoints);
+                y0 = 0;
+            }
+            const x1 = RG.RAND.arrayGetRand(xPoints);
+            // const x1 = i % 2 === 1 ? xLeft : xRight;
             const yHigh = (i + 1) * yPerTurn;
 
             // Compute 2 paths: Shortest and shortest passable. Then calculate
             // weights. Choose one with lower weight.
-            const coord = RG.Path.getMinWeightPath(map, x0, yLow, x1, yHigh);
-            const chosenCoord = RG.Path.addPathToMap(map, coord);
-            if (chosenCoord.length > 0) {inBounds = true;}
-            paths.push(chosenCoord);
+            const passableFuncs = [
+                (x, y) => map.hasXY(x, y) && map.getCell(x, y).isFree(),
+                (x, y) => (
+                    map.hasXY(x, y) &&
+                    map.getCell(x, y).getBaseElem().getType() !== 'highrock'
+                )
+            ];
+            const coord = Path.getMinWeightOrShortest(map, x0, y0, x1, yHigh,
+                passableFuncs);
+            // const coord = Path.getMinWeightPath(map, x0, y0, x1, yHigh);
+            if (coord) {
+                const chosenCoord = Path.addPathToMap(map, coord);
+                if (chosenCoord.length > 0) {inBounds = true;}
+                paths.push(chosenCoord);
+                prevX = x1;
+                prevY = yHigh;
+            }
         }
 
     };
