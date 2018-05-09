@@ -147,11 +147,11 @@ CaveGenerator.prototype._createCollapsedLevel = function(level) {
     let {endPoint} = extras;
     const {startPoint} = extras;
 
-    const freeCells = map.getCells(c => (
-        !(/wall/).test(c.getBaseElem().getType())
+    const nonWallCells = map.getCells(c => (
+        !c.getBaseElem().isWall()
     ));
     const freeCellMap = {};
-    freeCells.forEach(cell => {
+    nonWallCells.forEach(cell => {
         freeCellMap[cell.getKeyXY()] = cell;
     });
 
