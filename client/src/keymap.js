@@ -95,6 +95,7 @@ Keys.KeyMap = {
     isTargetMode: function(code) {return code === Keys.KEY.TARGET;},
     isToggleDoor: function(code) {return code === Keys.KEY.DOOR;},
     isUsePower: function(code) {return code === Keys.KEY.POWER;},
+    isUseAbility: function(code) {return code === Keys.KEY.ABILITY;},
 
     /* Based on keycode, computes and returns a new x,y pair. If code is
      * invalid, returns null. */
@@ -252,6 +253,7 @@ Keys.KEY.MOVE_SW = ROT.VK_Z + 32;
 Keys.KEY.MOVE_W = ROT.VK_A + 32;
 Keys.KEY.MOVE_NW = ROT.VK_Q + 32;
 
+Keys.KEY.ABILITY = Keys.VK_k;
 Keys.KEY.CHAT = ROT.VK_C;
 Keys.KEY.DELETE = ROT.VK_D;
 Keys.KEY.DOOR = ROT.VK_O + 32;
@@ -272,6 +274,7 @@ Keys.KEY.RUN = ROT.VK_R + 32;
 Keys.KEY.SELECT = Keys.VK_s;
 Keys.KEY.SELECT_ALL = ROT.VK_A;
 Keys.KEY.TARGET = Keys.VK_t;
+Keys.KEY.USE_ABILITY = Keys.VK_k;
 Keys.KEY.USE_STAIRS_DOWN = Keys.VK_GT;
 Keys.KEY.USE_STAIRS_UP = Keys.VK_LT;
 Keys.KEY.YES = ROT.VK_Y + 32;
