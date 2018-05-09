@@ -56,6 +56,11 @@ const DataComponent = (type, members, compAttrib = {}) => {
             if (args && args.hasOwnProperty(key)) {
                 this[key] = args[key];
             }
+            else if (typeof members[key] === 'object') {
+                // Unless cloned, the object ref is same for all instances of
+                // this component.
+                this[key] = JSON.parse(JSON.stringify(members[key]));
+            }
             else {
                 this[key] = members[key];
             }
