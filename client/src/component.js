@@ -5,6 +5,9 @@ const Mixin = require('./mixin');
 RG.Chat = require('./chat');
 RG.ActorClass = require('./actor-class');
 RG.Component = require('./component.base');
+const Ability = require('./abilities');
+
+const Abilities = Ability.Abilities;
 
 const DataComponent = RG.Component.DataComponent;
 const UniqueDataComponent = RG.Component.UniqueDataComponent;
@@ -624,6 +627,7 @@ RG.Component.Undead = TagComponent('Undead');
 RG.Component.Summoned = TagComponent('Summoned');
 RG.Component.Fire = TagComponent('Fire');
 RG.Component.Sharpener = TagComponent('Sharpener');
+RG.Component.Sharpened = TagComponent('Sharpened');
 RG.Component.Possessed = TagComponent('Possessed');
 
 /* Used currently for magical arrows to distinguish them from shot/thrown
@@ -659,15 +663,6 @@ RG.extend2(RG.Component.ActorClass, RG.Component.Base);
 //---------------------------------------------------------------------------
 // MELEE COMBAT COMPONENTS
 //---------------------------------------------------------------------------
-/* const componentsMelee = {
-    Defender: 'Gives a defender bonus (+1 Def for each enemy).',
-    Attacker: 'Gives an attack bonus (+1 Att for each enemy).',
-    BiDirStrike: 'Gives bi-directional melee strike',
-    CounterAttack: 'Gives a counter attack ability',
-    Ambidexterity: 'Gives ability to wield two weapons',
-    LongReach: 'Gives +1 to range of melee attacks.',
-    FirstStrike: 'Gives a counter attack that hits first.'
-};*/
 RG.Component.Defender = UniqueTagComponent('Defender');
 RG.Component.Attacker = UniqueTagComponent('Attacker');
 RG.Component.BiDirStrike = UniqueTagComponent('BiDirStrike');
@@ -689,6 +684,7 @@ RG.Component.BypassProtection = DataComponent('BypassProtection',
 //--------------------------------------------
 RG.Component.Climber = UniqueTagComponent('Climber');
 RG.Component.Jumper = UniqueDataComponent('Jumper', {jumpRange: 2});
+RG.Component.Camouflage = UniqueTagComponent('Camouflage');
 
 //--------------------------------------------
 // RANGED COMBAT COMPONENTS
@@ -1066,6 +1062,48 @@ RG.Component.GameInfo.prototype.addZoneType = function(type) {
         data.zones[type] += 1;
     }
     this.data = data;
+};
+
+/* Abilities which stores the separate (non-spell) abilities of actor. */
+RG.Component.Abilities = UniqueDataComponent('Abilities', {});
+
+RG.Component.Abilities.prototype._init = function() {
+    const _addCb = () => {
+        console.log('Abilities._addCb called called');
+        const abilities = new Abilities(this.getEntity());
+        // This is mainly used if component is restored
+        if (Array.isArray(this.abilities)) {
+            this.abilities.forEach(name => {
+                console.log('\tFound abil:', name);
+                const abil = new Ability[name]();
+                abilities.addAbility(abil);
+            });
+        }
+        this.abilities = abilities;
+        this.removeCallbacks('onAdd');
+    };
+    this.addCallback('onAdd', _addCb);
+};
+
+RG.Component.Abilities.prototype.setAbilities = function(abils) {
+    console.log('setAbilities called');
+    this.abilities = abils;
+};
+
+RG.Component.Abilities.prototype.createMenu = function() {
+    return this.abilities.getMenu();
+};
+
+RG.Component.Abilities.prototype.addAbility = function(ability) {
+    this.abilities.addAbility(ability);
+};
+
+RG.Component.Abilities.prototype.toJSON = function() {
+    console.log('Abilities.toJSON called');
+    const json = RG.Component.Base.prototype.toJSON.call(this);
+    json.setAbilities = this.abilities.toJSON();
+    console.log(json);
+    return json;
 };
 
 /* Fading component is added to entities which disappear eventually */
