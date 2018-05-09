@@ -45,6 +45,7 @@ Table below shows keyboard controls:
 | ${getChar(GUI.OwMap)}     | Show overworld map.                               |
 | ${getChar(KEY.ORDER)}     | [Give an order to another actor.](#giving-orders) |
 | ${getChar(KEY.FIGHT)}     | Change fight mode.                                |
+| ${getChar(KEY.JUMP)}      | Jump to given a direction.                        |
 | ${getChar(KEY.NEXT_ITEM)} | See next item in the cell.                        |
 | ${getChar(GUI.Inv)}       | Show inventory.                                   |
 | ${getChar(GUI.Look)}      | Look around.                                      |
