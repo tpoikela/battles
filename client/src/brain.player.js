@@ -773,6 +773,11 @@ class BrainPlayer {
           return this.noAction();
       }
 
+      if (RG.KeyMap.isUseAbility(code)) {
+          this.useAbility();
+          return this.noAction();
+      }
+
       // Need existing position for move/attack commands
       const level = this._actor.getLevel();
       let x = this._actor.getX();
@@ -1142,6 +1147,17 @@ class BrainPlayer {
         }
         else {
             RG.gameMsg('There are no enemies around.');
+        }
+    }
+
+    useAbility() {
+        if (this._actor.has('Abilities')) {
+            const menu = this._actor.get('Abilities').createMenu();
+            menu.addPre('Select an ability to use:');
+            this.setSelectionObject(menu);
+        }
+        else {
+            RG.gameMsg('You have no abilities to use');
         }
     }
 
