@@ -1069,12 +1069,10 @@ RG.Component.Abilities = UniqueDataComponent('Abilities', {});
 
 RG.Component.Abilities.prototype._init = function() {
     const _addCb = () => {
-        console.log('Abilities._addCb called called');
         const abilities = new Abilities(this.getEntity());
         // This is mainly used if component is restored
         if (Array.isArray(this.abilities)) {
             this.abilities.forEach(name => {
-                console.log('\tFound abil:', name);
                 const abil = new Ability[name]();
                 abilities.addAbility(abil);
             });
@@ -1086,7 +1084,6 @@ RG.Component.Abilities.prototype._init = function() {
 };
 
 RG.Component.Abilities.prototype.setAbilities = function(abils) {
-    console.log('setAbilities called');
     this.abilities = abils;
 };
 
@@ -1099,10 +1096,8 @@ RG.Component.Abilities.prototype.addAbility = function(ability) {
 };
 
 RG.Component.Abilities.prototype.toJSON = function() {
-    console.log('Abilities.toJSON called');
     const json = RG.Component.Base.prototype.toJSON.call(this);
     json.setAbilities = this.abilities.toJSON();
-    console.log(json);
     return json;
 };
 
