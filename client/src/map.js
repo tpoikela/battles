@@ -268,6 +268,8 @@ RG.Map.CellList.prototype.debugPrintInASCII = function() {
             else if ((/wall/).test(baseType)) {row += '#';}
             else if ((/tree/).test(baseType)) {row += 'T';}
             else if ((/grass/).test(baseType)) {row += '"';}
+            else if ((/highrock/).test(baseType)) {row += '^';}
+            else if ((/road/).test(baseType)) {row += 'R';}
             else {row += '?';}
         }
         mapInASCII += row + '\n';
