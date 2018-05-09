@@ -415,6 +415,25 @@ RG.Geometry = {
         }
     },
 
+    mergeMaps: function(m1, m2, startX, startY, mergeCb = () => true) {
+        const endX = startX + m2.cols - 1;
+        const endY = startY + m2.rows - 1;
+        for (let x = startX; x <= endX; x++) {
+            for (let y = startY; y <= endY; y++) {
+                if (m1.hasXY(x, y)) {
+                    const cell2 = m2.getCell(x - startX, y - startY);
+                    const cell1 = m1._map[x][y];
+                    if (mergeCb(cell1, cell2)) {
+                        cell1.setBaseElem(cell2.getBaseElem());
+                    }
+                }
+            }
+        }
+
+    },
+
+    /* Calls the callback cb for each x,y coord in given bbox. Checks that x,y
+     * is within the bounds of given map. */
     iterateMapWithBBox: function(map, bbox, cb) {
         for (let x = bbox.ulx; x <= bbox.lrx; x++) {
             for (let y = bbox.uly; y <= bbox.lry; y++) {
