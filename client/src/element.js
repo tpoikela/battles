@@ -652,6 +652,7 @@ RG.ELEM.FLOOR_HOUSE = Object.freeze(new RGElementBase('floorhouse'));
 RG.ELEM.GRASS = Object.freeze(new RG.Element.Grass());
 RG.ELEM.HIGH_ROCK = Object.freeze(new RG.Element.HighRock());
 RG.ELEM.LAVA = Object.freeze(new RG.Element.Lava());
+RG.ELEM.PATH = Object.freeze(new RGElementBase('path'));
 RG.ELEM.ROAD = Object.freeze(new RGElementBase('road'));
 RG.ELEM.SKY = Object.freeze(new RG.Element.Sky());
 RG.ELEM.SNOW = Object.freeze(new RGElementBase('snow'));
