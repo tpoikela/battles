@@ -92,9 +92,12 @@ MountainGenerator.prototype.createCrux = function(level) {
     };
     Geometry.mergeMaps(map, wallMap, 0, wallStartY, mergeCb);
 
+    const bbox = {bbox: {
+        ulx: 0, uly: wallStartY, lrx: cols - 1, lry: wallStartY + wallRows - 1
+    }};
     const paths = [];
     const pathConf = {
-
+        exclude: bbox
     };
     mapgen.createMountainPath(map, paths, pathConf);
 
