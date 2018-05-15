@@ -222,6 +222,7 @@ RG.charStyles = {
             default: 'X'
         },
         mountain: '^',
+        path: '.',
         passage: '.',
         placeholder: '?',
         sky: '~',
@@ -289,6 +290,7 @@ RG.cellStyles = {
         lever: 'cell-element-door',
         leverdoor: 'cell-element-door',
         passage: 'cell-element-passage',
+        path: 'cell-element-path',
         placeholder: 'cell-element-placeholder',
         road: 'cell-element-road',
         sky: 'cell-element-sky',
