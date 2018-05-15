@@ -125,6 +125,11 @@
     color: $stone-color;
 };
 
+.cell-element-path {
+    background-color: $ground-color;
+    color: $stone-color;
+};
+
 .cell-element-highrock {
     background-color: $ground-color;
     color: $white;
