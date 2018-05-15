@@ -201,12 +201,12 @@ Path.addPathToMap = function(map, coord) {
         const c = coord[j];
         if (map.hasXY(c.x, c.y)) {
             const baseElem = map.getBaseElemXY(c.x, c.y);
-            if (baseElem.getType().match(/(chasm|water)/)) {
+            const type = baseElem.getType();
+            if (type.match(/(chasm|water)/)) {
                 map.setBaseElemXY(c.x, c.y, RG.ELEM.BRIDGE);
             }
-            else if (baseElem.getType() === 'stone') {
-                // TODO add mountain path
-                map.setBaseElemXY(c.x, c.y, RG.ELEM.ROAD);
+            else if ((/stone|highrock/).test(type)) {
+                map.setBaseElemXY(c.x, c.y, RG.ELEM.PATH);
             }
             else {
                 map.setBaseElemXY(c.x, c.y, RG.ELEM.ROAD);
