@@ -13,6 +13,29 @@ ROT.Map.Miner = require('../../lib/map.miner');
 ROT.Map.Mountain = require('../../lib/map.mountain');
 ROT.Map.Wall = require('../../lib/map.wall');
 
+const inRange = function(val, min, max) {
+    if (val >= min && val <= max) {
+        return true;
+    }
+    return false;
+};
+
+/* Returns true if given coordinates are in allowed area. */
+const inAllowedArea = function(x0, y0, x1, y1, conf) {
+    if (conf.exclude) {
+        if (conf.exclude.bbox) {
+            const {ulx, uly, lrx, lry} = conf.exclude.bbox;
+            if (inRange(x0, ulx, lrx) && inRange(y0, uly, lry)) {
+                return false;
+            }
+            if (inRange(x1, ulx, lrx) && inRange(y1, uly, lry)) {
+                return false;
+            }
+        }
+    }
+    return true;
+};
+
 /* Map generator for the roguelike game.  */
 RG.Map.Generator = function() { // {{{2
 
@@ -418,7 +441,9 @@ RG.Map.Generator = function() { // {{{2
     this.createMountainPath = function(map, paths, conf) {
         const nTurns = conf.nRoadTurns || 10;
         let yPerTurn = Math.floor(map.rows / nTurns);
-        if (yPerTurn < 4) {yPerTurn = 4;} // Prevent too little path progression
+        if (yPerTurn < 4) {
+            yPerTurn = 4; // Prevents too little path progression
+        }
         const xLeft = 2;
         const xRight = map.cols - 3;
         const xCenter = Math.floor(map.cols / 2);
@@ -427,6 +452,7 @@ RG.Map.Generator = function() { // {{{2
         let inBounds = true;
         let prevX = -1;
         let prevY = -1;
+
         for (let i = 0; inBounds && i < nTurns; i++) {
             inBounds = false;
 
@@ -437,7 +463,6 @@ RG.Map.Generator = function() { // {{{2
                 y0 = 0;
             }
             const x1 = RG.RAND.arrayGetRand(xPoints);
-            // const x1 = i % 2 === 1 ? xLeft : xRight;
             const yHigh = (i + 1) * yPerTurn;
 
             // Compute 2 paths: Shortest and shortest passable. Then calculate
@@ -449,15 +474,25 @@ RG.Map.Generator = function() { // {{{2
                     map.getCell(x, y).getBaseElem().getType() !== 'highrock'
                 )
             ];
-            const coord = Path.getMinWeightOrShortest(map, x0, y0, x1, yHigh,
-                passableFuncs);
-            // const coord = Path.getMinWeightPath(map, x0, y0, x1, yHigh);
-            if (coord) {
-                const chosenCoord = Path.addPathToMap(map, coord);
-                if (chosenCoord.length > 0) {inBounds = true;}
-                paths.push(chosenCoord);
-                prevX = x1;
-                prevY = yHigh;
+            if (inAllowedArea(x0, y0, x1, yHigh, conf)) {
+                console.log('Computing path', x0, y0, '->', x1, yHigh);
+                const coord = Path.getMinWeightOrShortest(map, x0, y0, x1,
+                    yHigh, passableFuncs);
+                // const coord = Path.getMinWeightPath(map, x0, y0, x1, yHigh);
+                if (coord) {
+                    const chosenCoord = Path.addPathToMap(map, coord);
+                    if (chosenCoord.length > 0) {inBounds = true;}
+                    paths.push(chosenCoord);
+                    prevX = x1;
+                    prevY = yHigh;
+                }
+                else {
+                    inBounds = true;
+                }
+            }
+            else {
+                inBounds = true;
+                console.log('Coord not in allowed area', x0, y0, x1, yHigh);
             }
         }
 
