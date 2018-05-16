@@ -498,6 +498,21 @@ RG.Map.Generator = function() { // {{{2
 
     };
 
+    /* Creates a path between given coordinates. */
+    this.createPathBetweenCoord = function(map, path) {
+        const coord = [];
+        let prevX = -1;
+        let prevY = -1;
+        path.forEach(xy => {
+            if (prevX >= 0 && prevY >= 0) {
+
+            }
+            prevX = xy[0];
+            prevY = xy[1];
+        });
+        return coord;
+    };
+
     /* Creates a mountain summit. */
     this.createSummit = function(cols, rows, conf) {
         const map = new RG.Map.CellList(cols, rows, RG.ELEM.SKY);
