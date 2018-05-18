@@ -352,13 +352,23 @@ const Actors = [
         addComp: 'Flying',
         onHit: [
             {addComp: 'StatsMods', func: [{setter: 'setMagic', value: -1}],
-                duration: '2d10'}
+                duration: '10d10'}
         ],
         hp: 25
     },
     {
+        name: 'vampire', char: 'V', base: 'UndeadBase',
+        attack: 6, defense: 6, damage: '3d5 + 2', danger: 9,
+        addComp: 'Flying',
+        onHit: [
+            {addComp: 'StatsMods', func: [{setter: 'setStrength', value: -2}],
+                duration: '5d10'}
+        ],
+        hp: 40
+    },
+    {
         name: 'lich', char: 'L', base: 'UndeadBase',
-        attack: 4, defense: 4, damage: '1d8', danger: 10,
+        attack: 4, defense: 8, damage: '1d8 + 6', danger: 12,
         hp: 50, brain: 'SpellCaster',
         spells: ['GraspOfWinter', 'SummonDead'], maxPP: 50, pp: 50
     },
