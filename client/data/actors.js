@@ -359,7 +359,7 @@ const Actors = [
     {
         name: 'vampire', char: 'V', base: 'UndeadBase',
         attack: 6, defense: 6, damage: '3d5 + 2', danger: 9,
-        addComp: 'Flying',
+        speed: 120,
         onHit: [
             {addComp: 'StatsMods', func: [{setter: 'setStrength', value: -2}],
                 duration: '5d10'}
