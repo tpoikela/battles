@@ -143,6 +143,9 @@ DungeonPopulate.prototype.addPointGuardian = function(level, point, maxDanger) {
         }
         level.addActor(guardian, eXY[0], eXY[1]);
     }
+    else {
+        console.warn('Could not get guardian for endpoint', point);
+    }
 };
 
 DungeonPopulate.prototype.getEndPointGuardian = function(maxDanger) {
