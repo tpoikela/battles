@@ -384,7 +384,12 @@ const Engine = function(eventPool) {
         else if (evtName === RG.EVT_ANIMATION) {
             if (this.canPlayerSeeAnimation(args.animation)) {
                 if (this.animationCallback) {
-                    this.animation = args.animation;
+                    if (this.animation) {
+                        this.animation.combine(args.animation);
+                    }
+                    else {
+                        this.animation = args.animation;
+                    }
                     this.animationCallback(this.animation);
                 }
             }
@@ -402,6 +407,10 @@ const Engine = function(eventPool) {
     this.hasAnimation = function() {
         return this.animation !== null &&
             this.animation.hasFrames();
+    };
+
+    this.finishAnimation = function() {
+        this.animation = null;
     };
 
     this.setVisibleArea = (level, cells) => {
@@ -426,7 +435,7 @@ const Engine = function(eventPool) {
     };
 
     this.enableAnimations = () => {
-        this.systems['Animation'].disableAnimations();
+        this.systems['Animation'].enableAnimations();
     };
 
     this.disableAnimations = () => {
