@@ -813,6 +813,9 @@ RG.DIR = {
     SW: [-1, 1]
 };
 
+RG.DIR_NSEW = [RG.DIR.N, RG.DIR.S, RG.DIR.E, RG.DIR.W];
+RG.DIR_DIAG = [RG.DIR.NE, RG.DIR.SE, RG.DIR.NW, RG.DIR.SW];
+
 RG.dirTodXdY = function(dir) {
     const ucDir = dir.toUpperCase();
     return RG.DIR[ucDir];
