@@ -47,6 +47,26 @@ RG.Animation.Animation = function() {
 
 };
 
+/* Combines the frames of two animations together. */
+RG.Animation.Animation.prototype.combine = function(animation) {
+    let frameIndex = 0;
+    console.log(JSON.stringify(this.frames));
+    while (animation.hasFrames()) {
+        const frame = animation.nextFrame();
+        if (frameIndex < this.frames.length) {
+            const frameKeys = Object.keys(frame);
+            for (let i = 0; i < frameKeys.length; i++) {
+                const xy = frameKeys[i];
+                this.frames[frameIndex][xy] = frame[xy];
+            }
+        }
+        else {
+            this.frames.push(frame);
+        }
+        ++frameIndex;
+    }
+};
+
 /* Returns true if any frame in the animation contains at least one coordinates
  * from the given list. */
 RG.Animation.Animation.prototype.hasCoord = function(coordMap) {
