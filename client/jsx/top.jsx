@@ -733,6 +733,7 @@ class BattlesTop extends Component {
         }
         else {
             // Animation is finished, go back to mainLoop
+            this.game.finishAnimation();
             this.setState({render: true, animation: null});
             // this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
         }
