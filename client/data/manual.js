@@ -1,12 +1,12 @@
 
 /* eslint max-len: 0 */
+/* This file contains the manual for Battles in the North. The manual is written
+* as markdown and translated (dynamically) using marked. */
 
 const Keys = require('../src/keymap.js');
-
-const {GUI, KEY, getChar} = Keys;
-
 const marked = require('marked');
 
+const {GUI, KEY, getChar} = Keys;
 const Manual = {};
 
 const moveTable = `
@@ -68,13 +68,13 @@ const fullManualMarkdown = `
 Battles manual
 ==============
 
-This a short manual accompanying Battles game. It should get you started with
+This is a short manual accompanying Battles game. It should get you started with
 controls and basic commands of the game.
 
 At the moment, you need both mouse and keyboard to play the game. While all the
 ASCII-based menus are clickable by mouse, you need keyboard to open some of the
 menus. Also, the Inventory menu cannot be used with keyboard at the moment.
-These limitations will be addressed in the future development.
+These limitations will be addressed in the future versions of the game.
 
 About the Game
 --------------
@@ -90,7 +90,7 @@ Mouse controls
 --------------
 
 You can move to an explored cell (not necessarily visible) by left-clicking that
-cell. If an enemy is seen before, the movement will stop.
+cell. If an enemy is seen before that cell is reached, the movement will stop.
 
 Right-clicking a cell will bring up a context menu, from which you can choose an
 available action.
@@ -107,6 +107,13 @@ Movement
 
 ${moveTable}
 
+Attacking
+---------
+
+Attacking other actors using melee attacks can be done by bumping into adjacent
+actors. If the actor is not hostile, the game will ask you to confirm the
+action.
+
 Firing missiles
 ---------------
 
@@ -120,8 +127,9 @@ again to fire.
 Casting spells
 ---------------
 
-Press ${getChar(KEY.POWER)} to view list of spells. Press corresponding key to
-cast that spell or any other key to quit.
+Press ${getChar(KEY.POWER)} to view a list of spells. Press corresponding key to
+cast that spell or any other key to quit. Some spells require giving a direction
+or choosing an adjacent cell.
 
 Using items
 -----------
