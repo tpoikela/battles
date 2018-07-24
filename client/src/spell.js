@@ -317,6 +317,7 @@ RG.Spell.AddComponent = function(name, power) {
 };
 RG.extend2(RG.Spell.AddComponent, RG.Spell.Base);
 
+/* Spell.Flying adds Component flying to the given entity. */
 RG.Spell.Flying = function() {
     RG.Spell.AddComponent.call(this, 'Flying', 5);
     this.setCompName('Flying');
@@ -517,6 +518,33 @@ RG.Spell.LightningBolt = function() {
     this.setDice([RG.FACT.createDie('6d3 + 3')]);
 };
 RG.extend2(RG.Spell.LightningBolt, RG.Spell.BoltBase);
+
+RG.Spell.CrossBolt = function() {
+    RG.Spell.BoltBase.call(this, 'Cross bolt', 20);
+    this.damageType = RG.DMG.LIGHTNING;
+    this.setRange(6);
+    this.setDice([RG.FACT.createDie('6d3 + 3')]);
+
+    this.cast = function(args) {
+        const chosenDir = args.dir;
+        let dirs = RG.DIR_NSEW;
+        if (chosenDir[0] !== 0 && chosenDir[1] !== 0) {
+            dirs = RG.DIR_DIAG;
+        }
+        dirs.forEach(dXdY => {
+            const newArgs = Object.assign({}, args);
+            newArgs.dir = dXdY;
+            const obj = getDirSpellArgs(this, newArgs);
+            obj.damageType = this.damageType;
+            obj.damage = this.getDice()[0].roll();
+            const rayComp = new RG.Component.SpellRay();
+            rayComp.setArgs(obj);
+            args.src.add('SpellRay', rayComp);
+        });
+    };
+
+};
+RG.extend2(RG.Spell.CrossBolt, RG.Spell.BoltBase);
 
 /* Ice shield increase the defense of the caster temporarily. */
 RG.Spell.IceShield = function() {
@@ -1050,6 +1078,7 @@ RG.extend2(RG.Spell.RingOfFire, RG.Spell.Base);
 /* Used for testing the spells. Adds all spells to given SpellBook. */
 RG.Spell.addAllSpells = book => {
     book.addSpell(new RG.Spell.Blizzard());
+    book.addSpell(new RG.Spell.CrossBolt());
     book.addSpell(new RG.Spell.DispelMagic());
     book.addSpell(new RG.Spell.EnergyArrow());
     book.addSpell(new RG.Spell.Flying());
