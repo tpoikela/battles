@@ -544,6 +544,7 @@ RG.Game.Main = function() {
 
     /* Returns true if engine has animation to play. */
     this.hasAnimation = () => this._engine.hasAnimation();
+    this.finishAnimation = () => this._engine.finishAnimation();
 
     /* Gets the next animation frame. */
     this.getAnimationFrame = () => this._engine.animation.nextFrame();
