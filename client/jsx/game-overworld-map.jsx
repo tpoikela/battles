@@ -105,7 +105,10 @@ export default class GameOverWorldMap extends Component {
 
   /* Returns the content to render for the tab shown inside the modal. */
   renderTabElement() {
-    if (this.state.tabShown === 'World') {
+    if (!this.props.ow) {
+      return null;
+    }
+    else if (this.state.tabShown === 'World') {
       return this.renderWorldMap();
     }
     else {
@@ -116,20 +119,17 @@ export default class GameOverWorldMap extends Component {
   /* Returns the element to render for the full world map. */
   renderWorldMap() {
     let mapStr = 'No map generated.';
+    const map = this.props.ow.mapToString(true).slice();
 
-    if (this.props.ow) {
-      const map = this.props.ow.mapToString(true).slice();
-
-      // Add player @ to the correct row, this could be done
-      // more easily directly inside overworld.Map mapToString
-      if (this.props.playerOwPos) {
-        const [x, y] = this.props.playerOwPos;
-        let line = map[y];
-        line = line.substr(0, x) + '@' + line.substr(x + 1);
-        map[y] = line;
-      }
-      mapStr = map.join('\n');
+    // Add player @ to the correct row, this could be done
+    // more easily directly inside overworld.Map mapToString
+    if (this.props.playerOwPos) {
+      const [x, y] = this.props.playerOwPos;
+      let line = map[y];
+      line = line.substr(0, x) + '@' + line.substr(x + 1);
+      map[y] = line;
     }
+    mapStr = map.join('\n');
     return (
       <div>
         <pre className='game-overworld-map-pre'>
