@@ -1766,7 +1766,7 @@ RG.System.SpellEffect = function(compTypes) {
 
     this.updateEntity = function(ent) {
         if (ent.has('SpellRay')) {
-            this.processSpellRay(ent);
+            this.processSpellRays(ent);
         }
         else if (ent.has('SpellCell')) {
             this.processSpellCell(ent);
@@ -1782,8 +1782,15 @@ RG.System.SpellEffect = function(compTypes) {
         }
     };
 
-    this.processSpellRay = ent => {
-        const ray = ent.get('SpellRay');
+    this.processSpellRays = ent => {
+        const rayList = ent.getList('SpellRay');
+        rayList.forEach((ray, i) => {
+            console.log('Processing spell ray ' + i);
+            this.processSpellRay(ent, ray);
+        });
+    };
+
+    this.processSpellRay = (ent, ray) => {
         const args = ray.getArgs();
         const map = ent.getLevel().getMap();
         const spell = args.spell;
@@ -1834,7 +1841,7 @@ RG.System.SpellEffect = function(compTypes) {
                 rangeLeft = 0;
             }
         }
-        ent.remove('SpellRay');
+        ent.remove(ray);
         const animArgs = {
             dir: args.dir,
             ray: true,
@@ -2065,19 +2072,21 @@ RG.System.Animation = function(compTypes) {
 
     this.updateEntity = function(ent) {
         if (this._enabled) {
-            const animComp = ent.get('Animation');
-            const args = animComp.getArgs();
-            if (args.dir) {
-                this.lineAnimation(ent, args);
-            }
-            else if (args.missile) {
-                this.missileAnimation(ent, args);
-            }
-            else if (args.cell) {
-                this.cellAnimation(ent, args);
-            }
+            const allAnimComps = ent.getList('Animation');
+            allAnimComps.forEach(animComp => {
+                const args = animComp.getArgs();
+                if (args.dir) {
+                    this.lineAnimation(ent, args);
+                }
+                else if (args.missile) {
+                    this.missileAnimation(ent, args);
+                }
+                else if (args.cell) {
+                    this.cellAnimation(ent, args);
+                }
+            });
         }
-        ent.remove('Animation');
+        ent.removeAll('Animation');
     };
 
     /* Construct a missile animation from Missile component. */
