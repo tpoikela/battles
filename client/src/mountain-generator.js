@@ -47,7 +47,6 @@ MountainGenerator.prototype.createFace = function(cols, rows, conf) {
     level.setMap(mapObj.map);
 
     this.createCrux(level, conf);
-
     level.setExtras({paths});
     return level;
 };
@@ -62,6 +61,7 @@ MountainGenerator.prototype.createSummit = function(cols, rows, conf) {
     return level;
 };
 
+/* Creates the most difficult part of the level. */
 MountainGenerator.prototype.createCrux = function(level, conf) {
     const map = level.getMap();
     const cols = map.cols;
@@ -101,8 +101,8 @@ MountainGenerator.prototype.createCrux = function(level, conf) {
     mapgen.createMountainPath(map, paths, pathConf);
 
     // Add some guardians to the crux points, offset Y-coord first
-    carvedXY.forEach(item => {
-        item[1] += wallStartY;
+    carvedXY.forEach(xyCoord => {
+        xyCoord[1] += wallStartY;
     });
 
     const nGuardians = 3;
