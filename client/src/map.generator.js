@@ -446,6 +446,7 @@ RG.Map.Generator = function() { // {{{2
         const paths = [];
         const nTurns = conf.nRoadTurns || 10;
         let yPerTurn = Math.floor(map.rows / nTurns);
+        if (conf.yPerTurn) {yPerTurn = conf.yPerTurn;}
         if (yPerTurn < 4) {
             yPerTurn = 4; // Prevents too little path progression
         }
@@ -458,6 +459,14 @@ RG.Map.Generator = function() { // {{{2
         let prevX = -1;
         let prevY = -1;
 
+        const passableFuncs = [
+            (x, y) => map.hasXY(x, y) && map.getCell(x, y).isFree(),
+            (x, y) => (
+                map.hasXY(x, y) &&
+                map.getCell(x, y).getBaseElem().getType() !== 'highrock'
+            )
+        ];
+
         for (let i = 0; inBounds && i < nTurns; i++) {
             inBounds = false;
 
@@ -469,26 +478,19 @@ RG.Map.Generator = function() { // {{{2
                 y0 = conf.startY ? conf.startY : 0;
             }
             const x1 = RG.RAND.arrayGetRand(xPoints);
-            const yHigh = (i + 1) * yPerTurn + y0;
+            const y1 = (i + 1) * yPerTurn + y0;
 
             // Compute 2 paths: Shortest and shortest passable. Then calculate
             // weights. Choose one with lower weight.
-            const passableFuncs = [
-                (x, y) => map.hasXY(x, y) && map.getCell(x, y).isFree(),
-                (x, y) => (
-                    map.hasXY(x, y) &&
-                    map.getCell(x, y).getBaseElem().getType() !== 'highrock'
-                )
-            ];
-            if (inAllowedArea(x0, y0, x1, yHigh, conf)) {
+            if (inAllowedArea(x0, y0, x1, y1, conf)) {
                 const coord = Path.getMinWeightOrShortest(map, x0, y0, x1,
-                    yHigh, passableFuncs);
+                    y1, passableFuncs);
                 if (coord) {
                     const chosenCoord = Path.addPathToMap(map, coord);
                     if (chosenCoord.length > 0) {inBounds = true;}
                     paths.push(chosenCoord);
                     prevX = x1;
-                    prevY = yHigh;
+                    prevY = y1;
                 }
                 else {
                     inBounds = true;
@@ -498,6 +500,32 @@ RG.Map.Generator = function() { // {{{2
                 inBounds = true;
             }
         }
+
+        // If last point is not at maxY, create last path
+        if (conf.maxY && paths.length > 0) {
+            const lastPath = paths[paths.length - 1];
+            if (lastPath.length > 0) {
+                console.log('lastPath is', lastPath);
+                const lastXY = lastPath[lastPath.length - 1];
+                console.log('lastXY is', lastXY);
+                const [x0, y0] = [lastXY.x, lastXY.y];
+                let x1 = RG.RAND.arrayGetRand(xPoints);
+                const y1 = conf.maxY;
+                if (conf.endX) {x1 = conf.endX;}
+                if (y1 > y0) {
+                    console.log('Final point is', x0, y0, x1, y1);
+                    if (inAllowedArea(x0, y0, x1, y1, conf)) {
+                        const coord = Path.getMinWeightOrShortest(map, x0, y0,
+                            x1, y1, passableFuncs);
+                        if (coord) {
+                            const chosenCoord = Path.addPathToMap(map, coord);
+                            paths.push(chosenCoord);
+                        }
+                    }
+                }
+            }
+        }
+
         return paths;
 
     };
