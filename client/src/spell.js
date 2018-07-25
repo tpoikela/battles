@@ -12,6 +12,7 @@
  */
 const RG = require('./rg');
 const Keys = require('./keymap');
+RG.Component = require('./component');
 
 const {KeyMap} = Keys;
 
@@ -30,6 +31,21 @@ RG.Spell = {};
     return 0;
 }
 */
+
+const poisonActor = (actor, src, dur, dmgDie, prob) => {
+    const poisonComp = new RG.Component.Poison();
+    poisonComp.setDamageDie(dmgDie);
+
+    const expiration = new RG.Component.Expiration();
+    expiration.addEffect(poisonComp, dur);
+
+    // Need owner to assign exp correctly
+    poisonComp.setSource(src);
+
+    poisonComp.setProb(prob);
+    actor.add(poisonComp);
+    actor.add(expiration);
+};
 
 /* Called at the end of AI querying if spell should be cast. */
 const aiSpellCellDone = (actor, target, cb) => {
@@ -518,6 +534,25 @@ RG.Spell.LightningBolt = function() {
     this.setDice([RG.FACT.createDie('6d3 + 3')]);
 };
 RG.extend2(RG.Spell.LightningBolt, RG.Spell.BoltBase);
+
+/* Class Frost bolt which shoots a ray to one direction from the caster. */
+RG.Spell.ScorpionsTail = function() {
+    RG.Spell.BoltBase.call(this, "Scorpion's Tail", 1);
+    this.damageType = RG.DMG.MELEE;
+    this.setRange(2);
+    this.setDice([RG.FACT.createDie('2d4 + 2')]);
+};
+RG.extend2(RG.Spell.ScorpionsTail, RG.Spell.BoltBase);
+
+/* Create a poison hit. */
+RG.Spell.ScorpionsTail.prototype.onHit = function(actor, src) {
+    const expLevel = src.get('Experience').getExpLevel();
+    const dmgDie = new RG.Die(1, expLevel, Math.ceil(expLevel / 3));
+    const prob = 0.05 * expLevel;
+    const durDie = new RG.Die(2, expLevel, Math.ceil(expLevel / 2));
+    const dur = durDie.roll();
+    poisonActor(actor, src, dur, dmgDie, prob);
+};
 
 RG.Spell.CrossBolt = function() {
     RG.Spell.BoltBase.call(this, 'Cross bolt', 20);
