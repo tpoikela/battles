@@ -98,6 +98,12 @@ const Actors = [
         hp: 25, danger: 5, addComp: 'Flying'
     },
     {
+        name: 'giant scorpion', char: 'S', base: 'animal',
+        attack: 5, defense: 5, damage: '1d6 + 1',
+        hp: 19, danger: 5, brain: 'SpellCaster',
+        spells: ['ScorpionsTail'], maxPP: 1, pp: 1
+    },
+    {
         name: 'bear', char: 'B', base: 'animal',
         attack: 5, defense: 5, damage: '1d9',
         hp: 30, danger: 5
