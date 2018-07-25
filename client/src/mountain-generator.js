@@ -91,15 +91,24 @@ MountainGenerator.prototype.createCrux = function(level, conf) {
     };
     Geometry.mergeMaps(map, wallMap, 0, wallStartY, mergeCb);
 
-    const bbox = {bbox: {
+    // Create a path which goes through the level
+    /* const bbox = {bbox: {
         ulx: 0, uly: wallStartY, lrx: cols - 1, lry: wallStartY + wallRows - 1
-    }};
-    const paths = [];
+    }};*/
     const pathConf = {
-        exclude: bbox
+        // exclude: bbox,
+        startY: 0, maxY: wallStartY
     };
-    mapgen.createMountainPath(map, paths, pathConf);
+    console.log('mGen first path');
+    let paths = mapgen.createMountainPath(map, pathConf);
 
+    pathConf.startY = wallStartY + wallRows;
+    pathConf.maxY = map.rows - 1;
+    pathConf.startX = xBottom;
+    console.log('mGen second path');
+    paths = paths.concat(mapgen.createMountainPath(map, pathConf));
+
+    level.addExtras('paths', paths);
     // Add some guardians to the crux points, offset Y-coord first
     carvedXY.forEach(xyCoord => {
         xyCoord[1] += wallStartY;
