@@ -455,6 +455,11 @@ Level.prototype.hasExtras = function() {
         Object.keys(this._extras).length > 0;
 };
 
+Level.prototype.addExtras = function(key, value) {
+    if (!this._extras) {this._extras = {};}
+    this._extras[key] = value;
+};
+
 /* Returns the bounding box of the level (upper-left and lower-right
  * coordinates). */
 Level.prototype.getBbox = function() {
