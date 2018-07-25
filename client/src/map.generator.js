@@ -22,18 +22,22 @@ const inRange = function(val, min, max) {
 
 /* Returns true if given coordinates are in allowed area. */
 const inAllowedArea = function(x0, y0, x1, y1, conf) {
+    let ok = true;
     if (conf.exclude) {
         if (conf.exclude.bbox) {
             const {ulx, uly, lrx, lry} = conf.exclude.bbox;
             if (inRange(x0, ulx, lrx) && inRange(y0, uly, lry)) {
-                return false;
+                ok = false;
             }
             if (inRange(x1, ulx, lrx) && inRange(y1, uly, lry)) {
-                return false;
+                ok = false;
             }
         }
     }
-    return true;
+    else if (conf.maxY) {
+        ok = y1 <= conf.maxY;
+    }
+    return ok;
 };
 
 /* Map generator for the roguelike game.  */
@@ -430,15 +434,16 @@ RG.Map.Generator = function() { // {{{2
                 }
             }
         });
-        const paths = [];
+        let paths = [];
         if (conf.nRoadTurns > 0) {
-            this.createMountainPath(map, paths, conf);
+            paths = this.createMountainPath(map, conf);
         }
         return {map, paths};
     };
 
     /* Creates a zig-zagging road across the level from south to north. */
-    this.createMountainPath = function(map, paths, conf) {
+    this.createMountainPath = function(map, conf) {
+        const paths = [];
         const nTurns = conf.nRoadTurns || 10;
         let yPerTurn = Math.floor(map.rows / nTurns);
         if (yPerTurn < 4) {
@@ -459,11 +464,12 @@ RG.Map.Generator = function() { // {{{2
             let x0 = prevX;
             let y0 = prevY;
             if (i === 0) {
-                x0 = RG.RAND.arrayGetRand(xPoints);
-                y0 = 0;
+                x0 = Number.isInteger(conf.startX) ? conf.startX :
+                    RG.RAND.arrayGetRand(xPoints);
+                y0 = conf.startY ? conf.startY : 0;
             }
             const x1 = RG.RAND.arrayGetRand(xPoints);
-            const yHigh = (i + 1) * yPerTurn;
+            const yHigh = (i + 1) * yPerTurn + y0;
 
             // Compute 2 paths: Shortest and shortest passable. Then calculate
             // weights. Choose one with lower weight.
@@ -475,10 +481,8 @@ RG.Map.Generator = function() { // {{{2
                 )
             ];
             if (inAllowedArea(x0, y0, x1, yHigh, conf)) {
-                console.log('Computing path', x0, y0, '->', x1, yHigh);
                 const coord = Path.getMinWeightOrShortest(map, x0, y0, x1,
                     yHigh, passableFuncs);
-                // const coord = Path.getMinWeightPath(map, x0, y0, x1, yHigh);
                 if (coord) {
                     const chosenCoord = Path.addPathToMap(map, coord);
                     if (chosenCoord.length > 0) {inBounds = true;}
@@ -492,14 +496,14 @@ RG.Map.Generator = function() { // {{{2
             }
             else {
                 inBounds = true;
-                console.log('Coord not in allowed area', x0, y0, x1, yHigh);
             }
         }
+        return paths;
 
     };
 
     /* Creates a path between given coordinates. */
-    this.createPathBetweenCoord = function(map, path) {
+    /* this.createPathBetweenCoord = function(map, path) {
         const coord = [];
         let prevX = -1;
         let prevY = -1;
@@ -511,7 +515,7 @@ RG.Map.Generator = function() { // {{{2
             prevY = xy[1];
         });
         return coord;
-    };
+    };*/
 
     /* Creates a mountain summit. */
     this.createSummit = function(cols, rows, conf) {
