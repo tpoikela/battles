@@ -97,7 +97,9 @@ MountainGenerator.prototype.createCrux = function(level, conf) {
     }};*/
     const pathConf = {
         // exclude: bbox,
-        startY: 0, maxY: wallStartY
+        startY: 0, maxY: wallStartY,
+        yPerTurn: Math.round(wallStartY / 4),
+        endX: xTop
     };
     console.log('mGen first path');
     let paths = mapgen.createMountainPath(map, pathConf);
@@ -105,7 +107,7 @@ MountainGenerator.prototype.createCrux = function(level, conf) {
     pathConf.startY = wallStartY + wallRows;
     pathConf.maxY = map.rows - 1;
     pathConf.startX = xBottom;
-    console.log('mGen second path');
+    pathConf.yPerTurn = 0;
     paths = paths.concat(mapgen.createMountainPath(map, pathConf));
 
     level.addExtras('paths', paths);
