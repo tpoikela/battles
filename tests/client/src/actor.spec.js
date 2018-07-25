@@ -81,12 +81,6 @@ describe('Rogue.Actor', () => {
 
         const dmgFood = actor.getDamage();
         expect(dmgFood).to.be.at.least(1);
-
-        meat.add(new RG.Component.CombatMods());
-        meat.get('CombatMods').setAttack(1);
-
-        const att = actor.getEquipAttack();
-        expect(att).to.be.at.least(1);
     });
 
     it('can have CombatMods added', () => {
