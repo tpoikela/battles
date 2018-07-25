@@ -73,6 +73,17 @@ describe('Rogue.Actor', () => {
         actor.getInvEq().equipItem(sword);
         const dmg = actor.getDamage();
         expect(dmg).to.be.at.least(13);
+
+        const meat = new RG.Item.Food('meat');
+        actor.getInvEq().addItem(meat);
+        expect(actor.getInvEq().unequipItem('hand', 1)).to.be.true;
+        expect(actor.getInvEq().equipItem(meat)).to.be.true;
+
+        const dmgFood = actor.getDamage();
+        expect(dmgFood).to.be.at.least(1);
+
+        const att = actor.getEquipAttack();
+        expect(att).to.be.at.least(1);
     });
 
     it('can have CombatMods added', () => {
