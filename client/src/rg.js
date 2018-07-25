@@ -517,6 +517,16 @@ RG.removeStackedItems = function(itemStack, n) {
 // COMBAT-RELATED FUNCTIONS
 //--------------------------------------------------------------
 
+RG.getItemDamage = function(item) {
+    if (item.rollDamage) {
+        return item.rollDamage();
+    }
+    else {
+        const weight = item.getWeight();
+        return Math.ceil(weight / 1.1);
+    }
+};
+
 RG.getMeleeAttack = function(att) {
     let attack = att.getAttack();
     const missile = att.getInvEq().getEquipment().getItem('missile');
