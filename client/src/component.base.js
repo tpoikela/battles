@@ -352,5 +352,14 @@ RG.Component.Action.prototype.entityRemoveCallback = function(entity) {
     RG.Component.Base.prototype.entityRemoveCallback.call(this, entity);
 };
 
+/* Factory function that should be used instead of new RG.Component[varName]. */
+RG.Component.create = function(compName, ...args) {
+    if (RG.Component[compName]) {
+        return new RG.Component[compName](...args);
+    }
+    RG.err('RG.Component', 'create',
+        `Comp type ${compName} does not exist.`);
+    return null;
+};
 
 module.exports = RG.Component;
