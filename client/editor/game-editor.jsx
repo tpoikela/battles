@@ -1051,7 +1051,7 @@ export default class GameEditor extends Component {
   }
 
   /* Starts a simulation of the level. */
-  simulateLevel() {
+  simulateLevel(step = false) {
     if (!this.state.level) {
       const msg = 'You must create a level before simulation!';
       this.setState({errorMsg: msg});
@@ -1059,7 +1059,7 @@ export default class GameEditor extends Component {
     else if (!this.state.simulationStarted) {
 
       this.game = new RG.Game.Main();
-      window.GAME = this.game;
+      window.GAME = this.game; // Handle for debugging
 
       const fromJSON = new RG.Game.FromJSON();
       const json = this.state.level.toJSON();
@@ -1077,7 +1077,9 @@ export default class GameEditor extends Component {
 
       const startTime = new Date().getTime();
       this.setState(startSimulation(startTime, levelClone));
-      this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
+      if (!step) {
+        this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
+      }
     }
     else {
       this.playSimulation();
@@ -1125,7 +1127,8 @@ export default class GameEditor extends Component {
       this.setShownLevel({level: this.game.getLevels()[0]});
     }
     else {
-      console.error('Start simulation first using Simulate');
+      this.simulateLevel(true);
+      // console.error('Start simulation first using Simulate');
     }
   }
 
