@@ -537,7 +537,7 @@ RG.extend2(RG.Spell.LightningBolt, RG.Spell.BoltBase);
 
 /* Class Frost bolt which shoots a ray to one direction from the caster. */
 RG.Spell.ScorpionsTail = function() {
-    RG.Spell.BoltBase.call(this, "Scorpion's Tail", 1);
+    RG.Spell.BoltBase.call(this, 'Scorpions tail', 1);
     this.damageType = RG.DMG.MELEE;
     this.setRange(2);
     this.setDice([RG.FACT.createDie('2d4 + 2')]);
