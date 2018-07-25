@@ -201,9 +201,15 @@ DungeonPopulate.prototype.populatePoint = function(level, point, conf) {
             break;
         case 'ELEMENT': this.addElementToPoint(level, point, conf); break;
         case 'CORPSE': break;
+        case 'GOLD': break;
+        case 'TIP': break;
         default: break;
     }
 };
+
+/* DungeonPopulate.prototype.addActorGroup = function(level, point, conf) {
+
+};*/
 
 /* Adds an element into the given point. */
 DungeonPopulate.prototype.addElementToPoint = function(level, point, conf) {
