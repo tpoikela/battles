@@ -1817,6 +1817,10 @@ RG.System.SpellEffect = function(compTypes) {
                         dmg.setDamageType(args.damageType);
                         dmg.setDamage(args.damage);
 
+                        if (spell.onHit) {
+                            spell.onHit(actor, ent);
+                        }
+
                         // TODO add some evasion checks
                         // TODO add onHit callback for spell because
                         // not all spells cause damage
