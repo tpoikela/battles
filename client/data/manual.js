@@ -50,6 +50,8 @@ Table below shows keyboard controls:
 | ${getChar(GUI.Inv)}       | Show inventory.                                   |
 | ${getChar(GUI.Look)}      | Look around.                                      |
 | ${getChar(GUI.Map)}       | Toggle the map or player view.                    |
+| ${getChar(KEY.MARK)}      | Add a location marker for quick travel.           |
+| ${getChar(KEY.GOTO)}      | Open a location list for quick travel.            |
 | ${getChar(KEY.NEXT)}      | Next target (target-look).                        |
 | ${getChar(KEY.DOOR)}      | Open or close door.                               |
 | ${getChar(KEY.POWER)}     | [Use your powers.](#casting-spells)               |
@@ -57,6 +59,7 @@ Table below shows keyboard controls:
 | ${getChar(KEY.REST)}      | Rest (takes less energy than moving).             |
 | ${getChar(KEY.TARGET)}    | [Target/fire](#firing-missiles)                   |
 | ${getChar(GUI.Use)}       | [Use an item.](#using-items)                      |
+| ${getChar(KEY.ABILITY)}   | [Use an ability.](#abilities)                     |
 `;
 
 //------------------------------
@@ -142,6 +145,16 @@ There are 2 ways to use items:
     * Close inventory and press ${getChar(KEY.USE)}.
     * Select direction for using.
 
+Abilities
+---------
+
+Abilities do not consume any power points.
+
+If the actor has any abilities, they can be activated using ${getChar(KEY.ABILITY)}.
+Pressing the key will open an ability menu from which an ability can be chosen.
+Depending on the ability, further input such as direction to use the ability, may
+be requested.
+
 Giving orders
 -------------
 
@@ -153,6 +166,18 @@ or press ${getChar(KEY.SELECT_ALL)} to choose all valid targets.
 
 After the selection, you will get a list of possible commands. Choose one
 with the keyboard or using the mouse.
+
+Using marks for movement
+------------------------
+
+To reduce the amount of backtracking in large levels, the game will automatically mark the 
+enter/exit locations for each level. To place a mark to any other location, you can press
+${getChar(KEY.MARK)}. This mark will be added to the mark list of the current level.
+
+By pressing ${getChar(KEY.GOTO)}, you can open a mark list for the current level you are in.
+By selecting one of the marks from the list, the actor tries to navigate to that location. If
+any hostile actors or dangers are encountered, the navigation is immediately stopped. At the
+moment you have to open the mark list again and choose a location.
 
 Game settings
 -------------
