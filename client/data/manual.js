@@ -117,6 +117,10 @@ Attacking other actors using melee attacks can be done by bumping into adjacent
 actors. If the actor is not hostile, the game will ask you to confirm the
 action.
 
+An exception is melee attack with range of 2 or more. Currently, these must be
+performed by right-clicking the target with mouse and choosing attack. For example,
+a whip can be used to attack enemies within range of two.
+
 Firing missiles
 ---------------
 
