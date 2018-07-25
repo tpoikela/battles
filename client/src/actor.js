@@ -358,7 +358,7 @@ class RGActorRogue extends BaseActor {
         let damage = this.get('Combat').rollDamage();
         const weapon = this.getWeapon();
         if (weapon) {
-            damage = weapon.rollDamage();
+            damage = RG.getItemDamage(weapon);
         }
         const strength = this.getStrength();
         damage += RG.strengthToDamage(strength);
