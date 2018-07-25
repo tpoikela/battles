@@ -298,7 +298,7 @@ RG.Spell.AddComponent = function(name, power) {
         const obj = getDirSpellArgs(this, args);
         const dur = this._duration.roll();
 
-        const compToAdd = new RG.Component[_compName]();
+        const compToAdd = RG.Component.create(_compName);
         if (compToAdd.setSource) {
             compToAdd.setSource(args.src);
         }
