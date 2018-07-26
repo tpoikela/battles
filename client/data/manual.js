@@ -146,7 +146,7 @@ There are 2 ways to use items:
   1. When you enter inventory, you can use the items on yourself only.
   2. If you want to use item on something else, you can do the following:
     * Open inventory and select an item.
-    * Close inventory and press ${getChar(KEY.USE)}.
+    * Close inventory and press ${getChar(Keys.GUI.Use)}.
     * Select direction for using.
 
 Abilities
