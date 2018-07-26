@@ -862,8 +862,6 @@ RG.Factory.Zone = function() {
         };
         summitConf = Object.assign(summitConf, conf);
 
-        /* const summitLevel = this.createLevel('summit',
-            conf.cols, conf.rows, summitConf);*/
         const mountGen = new MountainGenerator();
         const summitLevel = mountGen.createSummit(conf.cols, conf.rows,
             summitConf);
