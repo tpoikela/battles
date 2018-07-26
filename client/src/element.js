@@ -488,7 +488,13 @@ class RGElementExploration extends Mixin.Locatable(RGElementBase) {
     }
 
     setExp(exp) {
-        this.exp = exp;
+        if (Number.isInteger(exp)) {
+            this.exp = exp;
+        }
+        else {
+            RG.err('RGElementExploration', 'setExp',
+                `exp is not an integer: ${exp}`);
+        }
     }
 
     getExp() {
