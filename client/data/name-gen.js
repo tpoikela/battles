@@ -5,6 +5,8 @@
 const Names = {};
 const RG = require('../src/rg.js');
 
+const RNG = RG.Random.getRNG();
+
 // There are two kinds of names:
 // 1. Generic ones such as Dungeon, City, Town, Vault etc.
 // 2. Unique ones such as Everhold or Ebonfell.
@@ -107,14 +109,14 @@ Names.item = {
 };
 
 Names.getVillageType = () => {
-    return RG.RAND.arrayGetRand(['Village', 'Hamlet', 'Town', 'Township']);
+    return RNG.arrayGetRand(['Village', 'Hamlet', 'Town', 'Township']);
 };
 
 Names.getUniqueName = type => {
     const names = Names.place.unique[type];
     if (names) {
-        const first = RG.RAND.arrayGetRand(names.first);
-        const second = RG.RAND.arrayGetRand(names.second);
+        const first = RNG.arrayGetRand(names.first);
+        const second = RNG.arrayGetRand(names.second);
         return first + second;
     }
     else {
@@ -126,7 +128,7 @@ Names.getUniqueName = type => {
 
 Names.getGenericPlaceName = (type) => {
     const arr = Names.place.generic[type];
-    return RG.RAND.arrayGetRand(arr);
+    return RNG.arrayGetRand(arr);
 };
 
 module.exports = Names;

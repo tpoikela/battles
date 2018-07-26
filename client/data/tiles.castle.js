@@ -3,6 +3,8 @@ const RG = require('../src/rg');
 RG.Random = require('../src/random');
 const Vault = require('./tiles.vault');
 
+const RNG = RG.Random.getRNG();
+
 const Castle = {};
 
 Castle.corridorDoorThr = 0.2;
@@ -467,7 +469,7 @@ Y######
 /* Returns the starting room for castle generation. */
 Castle.startRoomFunc = function() {
     const midX = Math.floor(this.tilesX / 2);
-    const north = RG.RAND.getUniform() <= 0.5;
+    const north = RNG.getUniform() <= 0.5;
 
     let templ = null;
     let y = 0;
@@ -568,7 +570,7 @@ Castle.constraintFunc = function(x, y, exitReqd) {
             if (exitReqd === 'S') {
                 return sew;
             }
-            if (RG.RAND.getUniform() < Castle.corridorDoorThr) {
+            if (RNG.getUniform() < Castle.corridorDoorThr) {
                 return sew;
             }
         }
@@ -582,7 +584,7 @@ Castle.constraintFunc = function(x, y, exitReqd) {
             if (exitReqd === 'N') {
                 return corrNew;
             }
-            if (RG.RAND.getUniform() < Castle.corridorDoorThr) {
+            if (RNG.getUniform() < Castle.corridorDoorThr) {
                 return corrNew;
             }
         }
@@ -597,7 +599,7 @@ Castle.constraintFunc = function(x, y, exitReqd) {
             if (exitReqd === 'E') {
                 return corrNse;
             }
-            if (RG.RAND.getUniform() < Castle.corridorDoorThr) {
+            if (RNG.getUniform() < Castle.corridorDoorThr) {
                 return corrNse;
             }
         }
@@ -611,7 +613,7 @@ Castle.constraintFunc = function(x, y, exitReqd) {
             if (exitReqd === 'W') {
                 return corrNsw;
             }
-            if (RG.RAND.getUniform() < Castle.corridorDoorThr) {
+            if (RNG.getUniform() < Castle.corridorDoorThr) {
                 return corrNsw;
             }
         }

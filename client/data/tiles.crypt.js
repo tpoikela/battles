@@ -3,6 +3,8 @@
 const RG = require('../src/rg');
 RG.Random = require('../src/random');
 
+const RNG = RG.Random.getRNG();
+
 const Crypt = {};
 Crypt.tiles = {};
 
@@ -564,9 +566,9 @@ Crypt.templates.start = Crypt.tiles.start.map(tile => {
 /* Returns the starting room for the crypt generation. Note that 'this' should
  * be bound to RG.Template.Level object. */
 Crypt.startRoomFunc = function() {
-    const tile = RG.RAND.arrayGetRand(Crypt.templates.start);
-    let x = RG.RAND.getUniformInt(0, this.tilesX - 1);
-    let y = RG.RAND.getUniformInt(0, this.tilesY - 1);
+    const tile = RNG.arrayGetRand(Crypt.templates.start);
+    let x = RNG.getUniformInt(0, this.tilesX - 1);
+    let y = RNG.getUniformInt(0, this.tilesY - 1);
     switch (tile.getProp('name')) {
         case 'start_nsew': {
             x = Math.floor(this.tilesX / 2);
