@@ -1,6 +1,8 @@
 
 import Entity from '../../client/src/entity';
 
+const Level = require('../../client/src/level');
+
 module.exports = function(chai, utils) {
     const Assertion = chai.Assertion;
 
@@ -39,6 +41,19 @@ module.exports = function(chai, utils) {
 
     Assertion.addMethod('entity', assertIsEntity);
 
+    //------------
+    // LEVEL
+    //------------
+    //
+    Assertion.addProperty('level', function() {
+        this.assert(
+            new Assertion(this._obj).to.be.instanceof(Level)
+            , 'expected #{this} to be a level'
+            , 'expected #{this} to not be a level'
+        );
+
+    });
+
     //----------------
     // COMPONENT
     //----------------
@@ -70,6 +85,41 @@ module.exports = function(chai, utils) {
 
     Assertion.addChainableMethod('component', assertHasComp, chainHasComp);
     Assertion.addChainableMethod('comp', assertHasComp, chainHasComp);
+
+    //----------------
+    // MAP.LEVEL
+    //----------------
+
+    function assertHasCell(cellType) {
+        // Check if we're dealing with level or map
+        let thisObj = this._obj;
+        if (!thisObj.getCells) {
+            console.log('KKK: ' + JSON.stringify(thisObj));
+            new Assertion(thisObj).to.have.property('getMap');
+            thisObj = thisObj.getMap();
+        }
+
+        new Assertion(thisObj).to.have.property('getCells');
+        const cells = thisObj.getCells(c => (
+            c.getBaseElem().getType() === cellType
+        ));
+        const hasCell = cells.length > 0;
+        const name = 'level/map';
+
+        this.assert(
+            hasCell
+            , `expected ${name} to have a cell with elem type #{exp}`
+            , `expected ${name} not to have a cell with elem type #{exp}`,
+            cellType
+        );
+
+    }
+
+    function chainHasCell() {
+        utils.flag(this, 'level.cell', true);
+    }
+
+    Assertion.addChainableMethod('cell', assertHasCell, chainHasCell);
 
     //----------------------
     // VERIFYING STATS
