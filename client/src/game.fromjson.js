@@ -675,6 +675,7 @@ RG.Game.FromJSON = function() {
 
         if (gameJSON.rng) {
             RG.RAND = new RG.Random();
+            RG.RAND.setSeed(gameJSON.rng.seed);
             RG.RAND.setState(gameJSON.rng.state);
         }
         this.IND = 0;
