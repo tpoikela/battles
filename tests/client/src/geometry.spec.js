@@ -165,7 +165,7 @@ describe('RG.Geometry', () => {
 
         const startCell = dungFloorCells[0];
         const floorFill = RG.Geometry.floodfill(dungMap, startCell, 'floor');
-        dungeon.debugPrintInASCII();
+        // dungeon.debugPrintInASCII();
 
         expect(floorFill.length).to.equal(dungFloorCells.length);
 

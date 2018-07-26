@@ -12,7 +12,7 @@ describe('MountainGenerator', () => {
         const conf = MountainGenerator.getFaceOptions();
         const level = gen.createFace(cols, rows, conf);
         expect(level).to.exist;
-        level.debugPrintInASCII();
+        // level.debugPrintInASCII();
     });
 
 

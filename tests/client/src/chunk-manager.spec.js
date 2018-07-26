@@ -165,9 +165,6 @@ describe('ChunkManager', function() {
         world.getConf().createAllZones = false;
 
         let json = game.toJSON();
-
-        console.log(json.gameMaster.battles);
-
         let fromJSON = new RG.Game.FromJSON();
         fromJSON.setChunkMode(true);
 

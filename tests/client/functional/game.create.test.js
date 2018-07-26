@@ -1,11 +1,14 @@
 
 import Entity from '../../../client/src/entity';
 
-const expect = require('chai').expect;
+const chaiBattles = require('../../helpers/chai-battles.js');
+const chai = require('chai');
 const RG = require('../../../client/src/battles');
 const RGTest = require('../../roguetest');
-
 const worldConf = require('../../../client/data/conf.world');
+
+const expect = chai.expect;
+chai.use(chaiBattles);
 
 describe('Function: Creating game world from a file', function() {
     this.timeout(60000);
@@ -55,8 +58,11 @@ describe('Function: Creating game world from a file', function() {
         expect(world.getAreas()).to.have.length(2);
         expect(world.getAreas()[0].getZones('Dungeon')).to.have.length(1);
         expect(world.getZones('Dungeon'), 'Found 1 dungeon').to.have.length(1);
-        expect(world.getZones('Mountain'),
-            'Found 1 mountain').to.have.length(1);
+
+        const mountains = world.getZones('Mountain');
+        expect(mountains, 'Found 1 mountain').to.have.length(1);
+        const m1Level = mountains[0].getLevels()[0];
+        expect(m1Level).to.have.cell('xxx');
 
         expect(world.getZones('Dungeon')[0].getName(),
             'Dungeon name OK.').to.equal('d1.1');

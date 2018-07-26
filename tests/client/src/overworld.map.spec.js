@@ -41,7 +41,7 @@ describe('OW.Map', () => {
         };
         const ow = OW.createOverWorld(conf);
         const map = ow.getCellList();
-        map.debugPrintInASCII();
+        // map.debugPrintInASCII();
         map.getCells(c => {
             c._explored = true;
         });

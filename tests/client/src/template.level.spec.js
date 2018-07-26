@@ -9,6 +9,8 @@ const Castle = require('../../../client/data/tiles.castle');
 const Basic = require('../../../client/data/tiles.basic').Basic;
 const Basic5x5 = require('../../../client/data/tiles.basic').Basic5x5;
 
+const RNG = RG.Random.getRNG();
+
 const tileDirTest = `
 dir:UDLR
 name:TEST_udlr
@@ -70,7 +72,7 @@ describe('Template.Level', () => {
     it('creates a 2-d map of the level', () => {
         const level = new TemplLevel(10, 7);
 
-        RG.RAND.setSeed(new Date().getTime());
+        RNG.setSeed(new Date().getTime());
 
         level.setGenParams([1, 2, 1, 1]);
         level.setRoomCount(30);
@@ -83,7 +85,7 @@ describe('Template.Level', () => {
     it('can create 2-d castles', () => {
         const level = new TemplLevel(12, 6);
 
-        RG.RAND.setSeed(new Date().getTime());
+        RNG.setSeed(new Date().getTime());
 
         level.setFiller(Castle.tiles.fillerWall);
         level.setTemplates(Castle.Models.full);
@@ -99,7 +101,7 @@ describe('Template.Level', () => {
 
     it('can create 2-d castles with outer wall only', () => {
         const level = new TemplLevel(12, 6);
-        RG.RAND.setSeed(new Date().getTime());
+        RNG.setSeed(new Date().getTime());
 
         level.use(Castle);
         level.setFiller(Castle.tiles.fillerFloor);
@@ -115,7 +117,7 @@ describe('Template.Level', () => {
 
     it('can have custom starting room function specified', () => {
         const level = new TemplLevel(12, 6);
-        RG.RAND.setSeed(new Date().getTime());
+        RNG.setSeed(new Date().getTime());
 
         const Castle2Gates = Object.assign({}, Castle);
         Castle2Gates.startRoomFunc = Castle.startFuncTwoGates;
@@ -214,7 +216,7 @@ describe('Template.Level', () => {
     });
 
     it('can create levels with 5x5 tiles', () => {
-        RG.RAND.setSeed(new Date().getTime());
+        RNG.setSeed(new Date().getTime());
         const level = new TemplLevel(25, 9);
         level.tryToMatchAllExits = false;
 
