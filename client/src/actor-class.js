@@ -580,8 +580,8 @@ class Spellsinger extends ActorClassBase {
             12: `${_name} can fly like an eagle`,
             16: `${_name} can now paralyse enemies`,
             20: `${_name} can summon lightning on enemies`,
-            24: `${_name} gains new skill`,
-            28: `${_name} gains new skill`,
+            24: `${_name} controls powers of the sky`,
+            28: `${_name} can attack enemies in multiple directions`,
             32: `${_name} has become a Mighty Spellsinger`
         };
 
@@ -607,13 +607,14 @@ class Spellsinger extends ActorClassBase {
                 this._actor.getBook().addSpell(new RG.Spell.LightningArrow());
             },
             24: () => {
-
+                const spell = new RG.Spell.SummonAirElemental();
+                this._actor.getBook().addSpell(spell);
             },
             28: () => {
-
+                this._actor.getBook().addSpell(new RG.Spell.CrossBolt());
             },
             32: () => {
-
+                this._actor.getBook().addSpell(new RG.Spell.LightningBolt());
             }
         };
     }
