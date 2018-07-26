@@ -832,12 +832,14 @@ RG.Factory.Zone = function() {
 
 
     this.createMountainLevel = function(conf) {
-        let mountConf = {
-            maxValue: 100,
-            sqrPerActor: 50,
-            sqrPerItem: 200,
-            nLevel: 4
-        };
+        let mountConf = Object.assign(MountainGenerator.getFaceOptions(),
+            {
+                maxValue: 100,
+                sqrPerActor: 50,
+                sqrPerItem: 200,
+                nLevel: 4
+            }
+        );
         mountConf = Object.assign(mountConf, conf);
         debug(`Creating mountain level with ${conf}`);
         const mountGen = new MountainGenerator();
