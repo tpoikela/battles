@@ -11,6 +11,17 @@ const Geometry = require('./geometry');
 const Path = require('./path');
 const DungeonPopulate = require('./dungeon-populate');
 
+const RNG = RG.Random.getRNG();
+/*
+const PROB = {
+    actorGroup: 0.2
+};
+
+const preferredActorTypes = [
+    'avian', 'animal', 'goblin', 'dwarf', 'wildling'
+];
+*/
+
 const MountainGenerator = function() {
 
 };
@@ -43,11 +54,12 @@ MountainGenerator.prototype.createFace = function(cols, rows, conf) {
     mapgen.setGen('mountain', cols, rows);
     conf.nRoadTurns = 0;
     const mapObj = mapgen.createMountain(cols, rows, conf);
-    const {paths} = mapObj;
+    // const {paths} = mapObj;
     level.setMap(mapObj.map);
 
     this.createCrux(level, conf);
-    level.setExtras({paths});
+    // level.setExtras({paths});
+    // this.createExtraFeats(level, conf);
     return level;
 };
 
@@ -76,11 +88,10 @@ MountainGenerator.prototype.createCrux = function(level, conf) {
     const wallMapObj = mapgen.createWall(cols, wallRows, wallConf);
 
     const wallMap = wallMapObj.map;
-    wallMap.debugPrintInASCII();
 
     // Carve a path through the wall
-    const xTop = RG.RAND.getUniformInt(0, cols - 1);
-    const xBottom = RG.RAND.getUniformInt(0, cols - 1);
+    const xTop = RNG.getUniformInt(0, cols - 1);
+    const xBottom = RNG.getUniformInt(0, cols - 1);
     const carvedXY = this.carvePath(wallMap, xTop, 0, xBottom, wallRows - 1);
 
     const wallStartY = Math.round(map.rows / 5);
@@ -101,7 +112,6 @@ MountainGenerator.prototype.createCrux = function(level, conf) {
         yPerTurn: Math.round(wallStartY / 4),
         endX: xTop
     };
-    console.log('mGen first path');
     let paths = mapgen.createMountainPath(map, pathConf);
 
     pathConf.startY = wallStartY + wallRows;
@@ -119,10 +129,20 @@ MountainGenerator.prototype.createCrux = function(level, conf) {
     const nGuardians = 3;
     const dungPopul = new DungeonPopulate(conf);
     for (let i = 0; i < nGuardians; i++) {
-        const guardPoint = RG.RAND.arrayGetRand(carvedXY);
+        const guardPoint = RNG.arrayGetRand(carvedXY);
         dungPopul.addPointGuardian(level, guardPoint, conf.maxDanger);
     }
 };
+
+/* Adds extra features such as actor groups or buildings etc. into the
+ * level. */
+/* MountainGenerator.prototype.createExtraFeats = function(level, conf) {
+    const groupProb = RNG.getUniform();
+    if (groupProb <= PROB.actorGroup) {
+        const dungPopul = new DungeonPopulate(conf);
+
+    }
+};*/
 
 /* Carves a path between x0,y0 and x1,y1 using a shortest distance. */
 MountainGenerator.prototype.carvePath = function(map, x0, y0, x1, y1) {

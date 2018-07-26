@@ -9,6 +9,8 @@ const debug = require('debug')('bitn:world');
 
 RG.World = {};
 
+const RNG = RG.Random.getRNG();
+
 const oppositeEdge = {
     north: 'south', south: 'north', east: 'west', west: 'east'
 };
@@ -226,7 +228,7 @@ function connectLevelsConstrained(conf1, conf2) {
     const freeCells2 = level2.getMap().getCells(c => (
         c.getBaseElem().getType() !== 'sky'
     ));
-    const cell2 = RG.RAND.arrayGetRand(freeCells2);
+    const cell2 = RNG.arrayGetRand(freeCells2);
     const [x2, y2] = [cell2.getX(), cell2.getY()];
 
     const l1Stairs = new Stairs('stairsUp', level1, level2);
@@ -308,7 +310,7 @@ function connectSubZones(subZones, sz1Arg, sz2Arg, l1, l2) {
 
 /* Connects a random (unconnected) edge of two levels together. */
 function connectSubZoneEdges(subZones, sz1Arg, sz2Arg, l1, l2) {
-    const edge1 = RG.RAND.arrayGetRand(['north', 'south', 'east', 'west']);
+    const edge1 = RNG.arrayGetRand(['north', 'south', 'east', 'west']);
     const edge2 = oppositeEdge[edge1];
     const [sz1, sz2] = getSubZoneArgs(subZones, sz1Arg, sz2Arg);
 
@@ -639,7 +641,6 @@ RG.World.Branch = function(name) {
     this._entrance = null;
 
     this.addEntrance = function(levelNumber) {
-        console.log('Adding entrance to level ' + levelNumber);
         const entrStairs = new Stairs('stairsUp');
         this.setEntrance(entrStairs, levelNumber);
     };

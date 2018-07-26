@@ -6,6 +6,7 @@ RG.Template = require('./template');
 const Crypt = require('../data/tiles.crypt');
 
 const fillerTempl = Crypt.tiles.filler;
+const RNG = RG.Random.getRNG();
 
 const debugVerbosity = 20;
 
@@ -179,7 +180,7 @@ RG.Template.Level = function(tilesX, tilesY) {
                 this.dbg(`It has free exits: ${exits}`);
 
                 // Pick one exit randomly
-                const chosen = RG.RAND.arrayGetRand(exits);
+                const chosen = RNG.arrayGetRand(exits);
                 this.dbg(`Chose exit: ${chosen} for next room`);
 
                 // Get required matching exit
@@ -309,7 +310,7 @@ RG.Template.Level = function(tilesX, tilesY) {
             });
         });
         if (result.length > 0) {
-            return RG.RAND.arrayGetRand(result);
+            return RNG.arrayGetRand(result);
         }
         return null;
     };
@@ -371,7 +372,7 @@ RG.Template.Level = function(tilesX, tilesY) {
 
         if (!next) {
             const listMatching = this.sortedByExit[exitReqd];
-            return RG.RAND.arrayGetRand(listMatching);
+            return RNG.arrayGetRand(listMatching);
         }
 
         --this.ind;
@@ -382,7 +383,7 @@ RG.Template.Level = function(tilesX, tilesY) {
      * are given. */
     this._getRandTemplate = function(list) {
         if (!this.weights) {
-            return RG.RAND.arrayGetRand(list);
+            return RNG.arrayGetRand(list);
         }
         const weights = {};
         const names = list.map(t => t.getProp('name'));
@@ -396,13 +397,13 @@ RG.Template.Level = function(tilesX, tilesY) {
                 weights[name] = 1;
             }
         });
-        const chosenName = RG.RAND.getWeighted(weights);
+        const chosenName = RNG.getWeighted(weights);
         return list[nameToIndex[chosenName]];
     };
 
     this._getRoomWithUnusedExits = function() {
         if (this._unusedExits.length > 0) {
-            return RG.RAND.arrayGetRand(this._unusedExits);
+            return RNG.arrayGetRand(this._unusedExits);
         }
         return null;
     };
@@ -479,8 +480,8 @@ RG.Template.Level = function(tilesX, tilesY) {
             });
         }
         else {
-            const x = RG.RAND.getUniformInt(1, this.tilesX - 2);
-            const y = RG.RAND.getUniformInt(1, this.tilesY - 2);
+            const x = RNG.getUniformInt(1, this.tilesX - 2);
+            const y = RNG.getUniformInt(1, this.tilesY - 2);
             room = {x, y, room: this.getRandomTemplate()};
         }
 
@@ -579,7 +580,7 @@ RG.Template.Level = function(tilesX, tilesY) {
     };
 
     this.getRandomTemplate = function() {
-        return RG.RAND.arrayGetRand(this.templates);
+        return RNG.arrayGetRand(this.templates);
     };
 
     /* Removes exits from tiles which are placed in any borders of the map.

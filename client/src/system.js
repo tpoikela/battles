@@ -7,6 +7,8 @@ const ActorClass = require('./actor-class');
 
 const debug = require('debug')('bitn:System');
 
+const RNG = RG.Random.getRNG();
+
 RG.SYS = {};
 RG.SYS.ANIMATION = Symbol('ANIMATION');
 RG.SYS.AREA_EFFECTS = Symbol('AREA_EFFECTS');
@@ -421,7 +423,7 @@ RG.System.Attack = function(compTypes) {
         }
 
         const hitChance = totalAtt / (totalAtt + totalDef);
-        const hitThreshold = RG.RAND.getUniform();
+        const hitThreshold = RNG.getUniform();
         this.dbg(`hitChance is ${hitChance}, threshold ${hitThreshold}`);
 
         if (hitChance >= hitThreshold) {
@@ -613,7 +615,7 @@ RG.System.Missile = function(compTypes) {
 
         let nDamage = mComp.getDamage();
         if (dmgSrc.has('CriticalShot')) {
-            if (RG.RAND.getUniform() <= this.criticalShot) {
+            if (RG.isSuccess(this.criticalShot)) {
                 nDamage *= 2;
                 hitVerb = 'critically hits';
             }
@@ -672,7 +674,7 @@ RG.System.Missile = function(compTypes) {
     /* Returns true if the ammo/missile is destroyed. */
     this._isItemDestroyed = ent => {
         const name = ent.getName();
-        const prob = RG.RAND.getUniform();
+        const prob = RNG.getUniform();
         if (ent.has('Ammo')) {
             if ((/(magic|ruby|permaice)/i).test(name)) {
                 return prob > 0.95;
@@ -728,10 +730,9 @@ RG.System.Missile = function(compTypes) {
             defense += target.get('Skills').getLevel('Dodge');
         }
         const hitProp = attack / (attack + defense);
-        const hitRand = RG.RAND.getUniform();
-        if (hitProp > hitRand) {
+        if (RG.isSuccess(hitProp)) {
             if (target.has('RangedEvasion')) {
-                return RG.RAND.getUniform() < 0.5;
+                return RG.isSuccess(0.5);
             }
             return true;
         }
@@ -849,7 +850,7 @@ RG.System.Damage = function(compTypes) {
 
     /* Returns true if the hit bypasses defender's protection completely. */
     this.bypassProtection = (ent, src) => {
-        const bypassChance = RG.RAND.getUniform();
+        const bypassChance = RNG.getUniform();
         if (src && src.has('BypassProtection')) {
             return bypassChance <= src.get('BypassProtection').getChance();
         }
@@ -1483,9 +1484,8 @@ RG.System.Hunger = function(compTypes) {
         hungerComp.decrEnergy(actionComp.getEnergy());
         actionComp.resetEnergy();
         if (hungerComp.isStarving()) {
-            // Don't make hunger damage too obvious
-            const takeDmg = RG.RAND.getUniform();
-            if (ent.has('Health') && takeDmg < RG.HUNGER_PROB) {
+
+            if (ent.has('Health') && RG.isSuccess(RG.HUNGER_PROB)) {
                 const dmg = new RG.Component.Damage(RG.HUNGER_DMG,
                     RG.DMG.HUNGER);
                 ent.add('Damage', dmg);
@@ -1608,7 +1608,7 @@ RG.System.TimeEffects = function(compTypes) {
                 }
             }
         }
-        else if (RG.RAND.getUniform() < poison.getProb()) {
+        else if (RG.isSuccess(poison.getProb())) {
             const poisonDmg = poison.rollDamage();
             const dmg = new RG.Component.Damage(poisonDmg, RG.DMG.POISON);
             dmg.setSource(poison.getSource());
@@ -1784,8 +1784,7 @@ RG.System.SpellEffect = function(compTypes) {
 
     this.processSpellRays = ent => {
         const rayList = ent.getList('SpellRay');
-        rayList.forEach((ray, i) => {
-            console.log('Processing spell ray ' + i);
+        rayList.forEach((ray) => {
             this.processSpellRay(ent, ray);
         });
     };
@@ -1871,9 +1870,9 @@ RG.System.SpellEffect = function(compTypes) {
         if (evasion < 0) {evasion = 0;}
 
         const hitChance = (100 - evasion) / 100;
-        if (hitChance >= RG.RAND.getUniform()) {
+        if (RG.isSuccess(hitChance)) {
             if (actor.has('RangedEvasion')) {
-                return RG.RAND.getUniform() < 0.5;
+                return RG.isSuccess(0.5);
             }
             return true;
         }

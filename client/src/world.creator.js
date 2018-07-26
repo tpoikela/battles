@@ -5,6 +5,7 @@
 const RG = require('./rg');
 RG.Random = require('./random');
 
+const RNG = RG.Random.getRNG();
 const Names = require('../data/name-gen');
 
 // Default configuration for creation
@@ -74,7 +75,7 @@ const WorldConf = {};
 
 WorldConf.featCoeff = 0.3;
 
-const getUniformInt = (min, max) => RG.RAND.getUniformInt(min, max);
+const getUniformInt = (min, max) => RNG.getUniformInt(min, max);
 
 WorldConf.getBaseConf = type => {
     let feat = null;
@@ -116,7 +117,7 @@ WorldConf.createQuarterConnections = feats => {
         const q0 = feats[i - 1];
         const q1 = feats[i];
 
-        let l0 = RG.RAND.getWeightedLinear(q0.nLevels - 1);
+        let l0 = RNG.getWeightedLinear(q0.nLevels - 1);
         const l1 = 0; // TODO add some randomization
 
         if (RG.isNullOrUndef([l0])) {
@@ -136,7 +137,7 @@ WorldConf.createFaceConnections = (type, feats) => {
         const f0 = feats[i - 1];
         const f1 = feats[i];
 
-        let l0 = RG.RAND.getWeightedLinear(f0.nLevels - 1);
+        let l0 = RNG.getWeightedLinear(f0.nLevels - 1);
         const l1 = 0; // TODO add some randomization
 
         if (RG.isNullOrUndef([l0])) {
@@ -158,7 +159,7 @@ WorldConf.createBranchConnections = (type, feats) => {
         const br0 = feats[i - 1];
         const br1 = feats[i];
 
-        let l0 = RG.RAND.getWeightedLinear(br0.nLevels - 1);
+        let l0 = RNG.getWeightedLinear(br0.nLevels - 1);
         const l1 = 0; // TODO add some randomization
 
         if (RG.isNullOrUndef([l0])) {
@@ -271,7 +272,7 @@ WorldConf.getNumFeatures = (type, areaConf, conf) => {
     let nFeatures = (areaConf.maxX + 1) * (areaConf.maxY + 1);
     nFeatures = Math.ceil(nFeatures * WorldConf.scaleNumFeatures(type, conf));
     // TODO based on type/conf, adjust the number
-    nFeatures = RG.RAND.getNormal(nFeatures, WorldConf.featCoeff * nFeatures);
+    nFeatures = RNG.getNormal(nFeatures, WorldConf.featCoeff * nFeatures);
     return nFeatures;
 };
 

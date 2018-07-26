@@ -2,6 +2,8 @@
 const RG = require('./rg');
 const Menu = require('./menu');
 
+const RNG = RG.Random.getRNG();
+
 /* This file contains usable actor ability definitions. */
 const Ability = {};
 
@@ -110,7 +112,7 @@ Ability.Sharpener.prototype.activate = function(item) {
     if (!item.has('Sharpened')) {
         if (item.getDamageDie) {
             item.add(new RG.Component.Sharpened());
-            const dmgBonus = RG.RAND.getUniformInt(1, 3);
+            const dmgBonus = RNG.getUniformInt(1, 3);
             const dmgDie = item.getDamageDie();
             dmgDie.setMod(dmgDie.getMod() + dmgBonus);
             item.setValue(item.getValue() + dmgBonus * 10);

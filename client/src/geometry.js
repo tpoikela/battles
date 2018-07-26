@@ -1,6 +1,8 @@
 
 const RG = require('./rg');
 
+const RNG = RG.Random.getRNG();
+
 /* Contains generic 2D geometric functions for square/rectangle/triangle
  * generation and level manipulation. */
 RG.Geometry = {
@@ -497,7 +499,7 @@ RG.Geometry = {
         });
 
         while (!found && left.length > 0) {
-            const index = RG.RAND.getUniformInt(0, left.length - 1);
+            const index = RNG.getUniformInt(0, left.length - 1);
 
             // Starting point
             const x0 = left[index][0];

@@ -11,6 +11,8 @@ const LevelGenerator = require('./level-generator');
 
 const WALL = 1;
 
+const RNG = RG.Random.getRNG();
+
 const shortestPath = Path.getShortestPath;
 // Number of cells allowed to be unreachable
 const maxUnreachable = 10;
@@ -102,7 +104,7 @@ DungeonGenerator.getOptions = function(type = 'digger') {
 
 /* Returns random supported level type. */
 const getRandMapType = () => {
-    return RG.RAND.arrayGetRand(['uniform', 'digger']);
+    return RNG.arrayGetRand(['uniform', 'digger']);
 };
 
 /* Creates the actual Map.Level. User should call this function with desired
@@ -140,10 +142,10 @@ DungeonGenerator.prototype.create = function(cols, rows, conf) {
 /* Creates the Map.Level with extras (such as rooms) added. */
 DungeonGenerator.prototype._createLevel = function(cols, rows, conf) {
     if (!cols) {
-        cols = RG.RAND.getUniformInt(80, 120);
+        cols = RNG.getUniformInt(80, 120);
     }
     if (!rows) {
-        rows = RG.RAND.getUniformInt(28, 56);
+        rows = RNG.getUniformInt(28, 56);
     }
     const minNumRooms = conf.minNumRooms || 3;
     let mapGen = null;
@@ -218,7 +220,7 @@ DungeonGenerator.prototype.addBigRooms = function(mapGen, conf) {
         bigRoomsCreated = this.addCustomBigRooms(mapGen, conf);
     }
 
-    const createBigRoom = RG.RAND.getUniform() <= PROB.BIG_ROOM;
+    const createBigRoom = RNG.getUniform() <= PROB.BIG_ROOM;
     if (createBigRoom && conf.nBigRooms === 0) {
         const bigRoomType = this.getBigRoomType();
 
@@ -239,7 +241,7 @@ DungeonGenerator.prototype.addBigRooms = function(mapGen, conf) {
 };
 
 DungeonGenerator.prototype.getBigRoomType = function() {
-    return RG.RAND.arrayGetRand(Object.keys(bigRoomType2Feature));
+    return RNG.arrayGetRand(Object.keys(bigRoomType2Feature));
 };
 
 /* Adds manually specified custom rooms into the level. */
@@ -264,7 +266,7 @@ DungeonGenerator.prototype.addCustomBigRooms = function(mapGen, conf) {
         }
 
         const maxX = cols - 2 - width;
-        let x = RG.RAND.getUniformInt(1, maxX);
+        let x = RNG.getUniformInt(1, maxX);
         if (conf.bigRoomX) {
             x = conf.bigRoomX[i];
         }
@@ -274,7 +276,7 @@ DungeonGenerator.prototype.addCustomBigRooms = function(mapGen, conf) {
         }
 
         const maxY = rows - 2 - height;
-        let y = RG.RAND.getUniformInt(1, maxY);
+        let y = RNG.getUniformInt(1, maxY);
         if (conf.bigRoomY) {
             y = conf.bigRoomY[i];
         }
@@ -298,8 +300,8 @@ DungeonGenerator.prototype.addBigCenterRoom = function(mapGen) {
     const [cols, rows] = [mapGen.getCols(), mapGen.getRows()];
     const [cx, cy] = mapGen.getCenterXY();
 
-    const yDiv = RG.RAND.getUniformInt(2, 5);
-    const xDiv = RG.RAND.getUniformInt(2, 6);
+    const yDiv = RNG.getUniformInt(2, 5);
+    const xDiv = RNG.getUniformInt(2, 6);
     const roomWidth = [Math.floor(cols / (xDiv + 1 )),
         Math.floor(cols / xDiv)];
     const roomHeight = [Math.floor(rows / yDiv), Math.floor(rows / yDiv)];
@@ -314,20 +316,20 @@ DungeonGenerator.prototype.addBigCenterRoom = function(mapGen) {
 
 DungeonGenerator.prototype.addLargeCorridorRoom = function(mapGen) {
     const [cols, rows] = [mapGen.getCols(), mapGen.getRows()];
-    const cardinalDir = RG.RAND.getCardinalDirLetter();
+    const cardinalDir = RNG.getCardinalDirLetter();
     const roomName = 'large corridor ' + cardinalDir;
 
     // Large east side corridor
     let room = null;
     if (cardinalDir === 'E') {
-        const xDiv = RG.RAND.getUniformInt(2, 6);
+        const xDiv = RNG.getUniformInt(2, 6);
         const width = Math.floor(cols / xDiv);
         room = new ROT.Map.Feature.Room(1, 1, width, rows - 2);
     }
 
     // Large west side corridor
     if (cardinalDir === 'W') {
-        const xDiv = RG.RAND.getUniformInt(2, 6);
+        const xDiv = RNG.getUniformInt(2, 6);
         const width = Math.floor(cols / xDiv);
         const x0 = cols - 2 - width;
         room = new ROT.Map.Feature.Room(x0, 1, cols - 2, rows - 2);
@@ -335,14 +337,14 @@ DungeonGenerator.prototype.addLargeCorridorRoom = function(mapGen) {
 
     // Large north side corridor
     if (cardinalDir === 'N') {
-        const yDiv = RG.RAND.getUniformInt(2, 5);
+        const yDiv = RNG.getUniformInt(2, 5);
         const height = Math.floor(rows / yDiv);
         room = new ROT.Map.Feature.Room(1, 1, cols - 2, height);
     }
 
     // Large south side corridor
     if (cardinalDir === 'S') {
-        const yDiv = RG.RAND.getUniformInt(2, 5);
+        const yDiv = RNG.getUniformInt(2, 5);
         const height = Math.floor(rows / yDiv);
         const y0 = rows - 2 - height;
         room = new ROT.Map.Feature.Room(1, y0, cols - 2, rows - 2);
@@ -362,7 +364,7 @@ DungeonGenerator.prototype.addLargeCross = function(mapGen) {
     const [cols, rows] = [mapGen.getCols(), mapGen.getRows()];
     const [cx, cy] = mapGen.getCenterXY();
 
-    const div = RG.RAND.getUniformInt(3, 8);
+    const div = RNG.getUniformInt(3, 8);
     const width = Math.floor(cols / div);
     const height = Math.floor(rows / div);
     const horOpts = {
@@ -395,13 +397,13 @@ DungeonGenerator.prototype.addVault = function(mapGen) {
     // Small vault 1/4 of level
     // Big vault 1/2 of level
     const [cols, rows] = [mapGen.getCols(), mapGen.getRows()];
-    const big = RG.RAND.getUniform() <= PROB.BIG_VAULT;
+    const big = RNG.getUniform() <= PROB.BIG_VAULT;
     let width = Math.floor(cols / 2);
     let height = Math.floor(rows / 2);
     let corners = ['NE', 'NW', 'SW', 'SE'];
     let type = 'small vault';
     if (big) {
-        if (RG.RAND.getUniform() <= 0.5) {
+        if (RNG.getUniform() <= 0.5) {
             corners = ['NE', 'NW'];
             width = Math.floor(cols / 2);
             height = rows - 2;
@@ -425,7 +427,7 @@ DungeonGenerator.prototype.addVault = function(mapGen) {
 
 /* Returns a random corner for a feature. */
 DungeonGenerator.prototype.getRandCorner = function(w, h, cols, rows, corners) {
-    const corner = RG.RAND.arrayGetRand(corners);
+    const corner = RNG.arrayGetRand(corners);
     let [x, y] = [1, 1];
     switch (corner) {
         case 'NW': x = 1; y = 1; break;
@@ -453,7 +455,7 @@ DungeonGenerator.prototype.addSpecialFeatures = function(level) {
         });
 
         if (features.special) {
-            const randSpecial = RG.RAND.arrayGetRand(features.special);
+            const randSpecial = RNG.arrayGetRand(features.special);
             this.addBigRoomSpecialFeat(level, randSpecial, extras.bigRooms);
         }
     }
@@ -472,7 +474,7 @@ DungeonGenerator.prototype.addSpecialFeatures = function(level) {
     */
 
     if (extras.rooms) {
-        const room = RG.RAND.arrayGetRand(extras.rooms);
+        const room = RNG.arrayGetRand(extras.rooms);
         const terms = [];
         this.addFireToRoom(level, room);
 
@@ -555,7 +557,7 @@ DungeonGenerator.prototype.addDoorsForRoom = function(level, room) {
  * Make sure  this is same for all rooms.
  */
 DungeonGenerator.prototype.addElemSplashes = function(level, room) {
-    const themeName = RG.RAND.arrayGetRand(Object.keys(SPLASH_THEMES));
+    const themeName = RNG.arrayGetRand(Object.keys(SPLASH_THEMES));
     const theme = SPLASH_THEMES[themeName];
     const elem = theme.elem;
     level.getExtras().theme = theme;
@@ -594,7 +596,7 @@ DungeonGenerator.prototype.addStairsLocations = function(level) {
     if (extras.rooms) {
 
         // 1. Find 2 different rooms with maximum center distance
-        let [room1, room2] = RG.RAND.getUniqueItems(extras.rooms, 2);
+        let [room1, room2] = RNG.getUniqueItems(extras.rooms, 2);
         let chosenRoom1 = null;
         let chosenRoom2 = null;
         let dist = 0;
@@ -603,7 +605,7 @@ DungeonGenerator.prototype.addStairsLocations = function(level) {
             + Math.floor(level.getMap().rows / 2);
 
         while (dist < minRoomDistance) {
-            [room1, room2] = RG.RAND.getUniqueItems(extras.rooms, 2);
+            [room1, room2] = RNG.getUniqueItems(extras.rooms, 2);
             dist = getRoomDist(level, room1, room2);
             if (dist > largestDist) {
                 largestDist = dist;

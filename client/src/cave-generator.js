@@ -12,6 +12,8 @@ const LevelGenerator = require('./level-generator');
 const Path = require('./path');
 const Geometry = require('./geometry');
 
+const RNG = RG.Random.getRNG();
+
 const CaveGenerator = function() {
     LevelGenerator.call(this);
     this.shouldRemoveMarkers = true;
@@ -81,7 +83,7 @@ CaveGenerator.prototype._createMapOptions = function(cols, rows, conf) {
         case 'Grotto': opts = Miners.getRandOpts(cols, rows, 2, 4); break;
         case 'Lair': {
             const edgeMiners = Miners.getMinersAndExclude(cols, rows, ['C']);
-            const edgeMiner = RG.RAND.arrayGetRand(edgeMiners);
+            const edgeMiner = RNG.arrayGetRand(edgeMiners);
             const lairMiners = [edgeMiner, miners.C];
             opts = Miners.getOptsWithMiners(lairMiners);
             break;
@@ -90,7 +92,7 @@ CaveGenerator.prototype._createMapOptions = function(cols, rows, conf) {
         default: opts = Miners.getRandOpts(cols, rows);
     }
 
-    let isCollapsed = RG.RAND.getUniform() <= 0.1;
+    let isCollapsed = RNG.getUniform() <= 0.1;
     if (conf.isCollapsed === false) {
         isCollapsed = false;
     }
@@ -109,7 +111,7 @@ CaveGenerator.prototype.addStairsLocations = function(level) {
     let endPoint = null;
 
     if (startPoints.length > 1) {
-        [startPoint, endPoint] = RG.RAND.getUniqueItems(startPoints, 2);
+        [startPoint, endPoint] = RNG.getUniqueItems(startPoints, 2);
     }
     else {
         startPoint = startPoints[0];
@@ -170,7 +172,7 @@ CaveGenerator.prototype._createCollapsedLevel = function(level) {
     const pathPoints = [startPoint, endPoint];
     if (extras.points) {
         extras.points.forEach(newPoint => {
-            const otherPoint = RG.RAND.arrayGetRand(pathPoints);
+            const otherPoint = RNG.arrayGetRand(pathPoints);
             const path = this.createPath(map, newPoint, otherPoint);
             path.forEach(xy => {
                 delete freeCellMap[xy[0] + ',' + xy[1]];
@@ -180,12 +182,12 @@ CaveGenerator.prototype._createCollapsedLevel = function(level) {
     }
 
     // Add other misc points into the level
-    const numPoints = RG.RAND.getUniformInt(1, 10);
+    const numPoints = RNG.getUniformInt(1, 10);
     for (let i = 0; i < numPoints; i++) {
         const newPoint = this.getRandomPoint(map, startPoint, freeCellMap);
 
         if (newPoint) {
-            const otherPoint = RG.RAND.arrayGetRand(pathPoints);
+            const otherPoint = RNG.arrayGetRand(pathPoints);
             const path = this.createPath(map, newPoint, otherPoint);
             path.forEach(xy => {
                 delete freeCellMap[xy[0] + ',' + xy[1]];
@@ -239,7 +241,7 @@ CaveGenerator.prototype.getRandomEndPoint = function(map, startPoint,
     let currPath = null;
 
     while (currDist < minDist) {
-        const endCell = RG.RAND.arrayGetRand(freeCells);
+        const endCell = RNG.arrayGetRand(freeCells);
         const [eX, eY] = endCell.getXY();
         endPoint = [eX, eY];
         currPath = Path.getShortestPath(eX, eY, sX, sY, wallCb);
@@ -267,7 +269,7 @@ CaveGenerator.prototype.getRandomPoint = function(map, startPoint,
     const [sX, sY] = startPoint;
     const freeCells = Object.values(freeCellMap);
 
-    const endCell = RG.RAND.arrayGetRand(freeCells);
+    const endCell = RNG.arrayGetRand(freeCells);
     const [eX, eY] = endCell.getXY();
     const point = [eX, eY];
     const currPath = Path.getShortestPath(eX, eY, sX, sY, wallCb);
@@ -389,10 +391,10 @@ function getRandOpts(cols, rows, min = 1, max = 9) {
     const miners = getMiners(cols, rows);
     const minerValues = Object.values(miners);
 
-    const nMiners = RG.RAND.getUniformInt(min, max);
+    const nMiners = RNG.getUniformInt(min, max);
     const randMiners = [];
     for (let i = 0; i < nMiners; i++) {
-        const randMiner = RG.RAND.arrayGetRand(minerValues);
+        const randMiner = RNG.arrayGetRand(minerValues);
         randMiners.push(randMiner);
     }
     return getOptsWithMiners(randMiners);

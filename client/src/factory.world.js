@@ -11,6 +11,7 @@ RG.Factory = require('./factory');
 const DungeonGenerator = require('./dungeon-generator');
 const {CaveGenerator} = require('./cave-generator');
 
+const RNG = RG.Random.getRNG();
 const Stairs = RG.Element.Stairs;
 const ZONE_TYPES = ['City', 'Mountain', 'Dungeon', 'BattleZone'];
 
@@ -104,7 +105,7 @@ const DungeonFeatures = function(zoneType) {
     this.addMinions = (boss, nLevel, level, conf) => {
         const parser = RG.ObjectShell.getParser();
         const bossType = boss.getType();
-        const isSwarm = RG.RAND.getUniform() <= 0.5;
+        const isSwarm = RNG.getUniform() <= 0.5;
         let numMinions = nLevel + 1;
         let dangerMinion = conf.maxDanger;
         if (isSwarm) {
@@ -113,7 +114,7 @@ const DungeonFeatures = function(zoneType) {
         }
         const dist = Math.round(Math.sqrt(numMinions)) + 1;
         const cells = RG.Brain.getBoxOfFreeCellsAround(boss, dist);
-        RG.RAND.shuffle(cells);
+        RNG.shuffle(cells);
 
         const minionFunc = actor => (
             actor.danger <= dangerMinion && actor.type === bossType
@@ -915,7 +916,7 @@ RG.Factory.World = function() {
 
         const presetLevels = this.getPresetLevels(hierName);
 
-        // const randType = RG.RAND.arrayGetRand(RG.SHOP_TYPES);
+        // const randType = RNG.arrayGetRand(RG.SHOP_TYPES);
         const cityLevelConf = {
             x: conf.x || 80, y: conf.y || 40,
             nShops: conf.nShops || 1,

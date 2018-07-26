@@ -16,6 +16,8 @@ const MEM_NO_ACTORS = Object.freeze([]);
 
 const NO_MEMORY = null;
 
+const RNG = RG.Random.getRNG();
+
 //---------------------------------------------------------------------------
 // BRAINS
 //---------------------------------------------------------------------------
@@ -424,7 +426,7 @@ RG.Brain.Rogue.prototype.findEnemyCell = function(seenCells) {
     }
     // Return random enemy cell to make behav less predictable
     if (enemyCells.length > 0) {
-        const randEnemyCell = RG.RAND.arrayGetRand(enemyCells);
+        const randEnemyCell = RNG.arrayGetRand(enemyCells);
         this._memory.addEnemySeenCell(randEnemyCell);
         return randEnemyCell;
     }
@@ -579,7 +581,7 @@ RG.Brain.Rogue.prototype.exploreLevel = function(seenCells) {
     }
 
     if (index === -1) { // Everything explored, choose random cell
-        index = RG.RAND.randIndex(seenCells);
+        index = RNG.randIndex(seenCells);
     }
     return this.tryToMoveTowardsCell(seenCells[index]);
 
@@ -641,7 +643,7 @@ RG.Brain.Rogue.prototype.getFreeCellsAround = function() {
 RG.Brain.Rogue.prototype.getRandAdjacentFreeCell = function() {
     const cellsAround = this.getFreeCellsAround();
     if (cellsAround.length > 0) {
-        return RG.RAND.arrayGetRand(cellsAround);
+        return RNG.arrayGetRand(cellsAround);
     }
     return null;
 };
@@ -697,7 +699,7 @@ RG.Brain.Summoner = function(actor) {
     /* Returns true if the summoner will summon on this action. */
     this.willSummon = function() {
         if (this.numSummoned === this.maxSummons) {return false;}
-        const summon = RG.RAND.getUniform();
+        const summon = RNG.getUniform();
         if (summon > (1.0 - this.summonProbability)) {
             return true;
         }
@@ -739,7 +741,7 @@ RG.Brain.Human = function(actor) {
     this.getMemory().addEnemyType('demon');
 
     this.willCommunicate = function() {
-        const communicateOrAttack = RG.RAND.getUniform();
+        const communicateOrAttack = RNG.getUniform();
         const seenCells = this.getSeenCells();
         const friendCell = this.findFriendCell(seenCells);
         const memory = this.getMemory();

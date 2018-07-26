@@ -7,8 +7,9 @@ RG.Game = require('./game');
 RG.Game.Battle = require('./game.battle').Battle;
 RG.Game.Army = require('./game.battle').Army;
 RG.World = require('./world');
-
 const GoalsTop = require('./goals-top');
+
+const RNG = RG.Random.getRNG();
 
 const FACTIONS = ['human', 'dwarf', 'dogfolk', 'wolfclan', 'goblin',
     'catfolk', 'bearfolk', 'wildling', 'undead'];
@@ -51,8 +52,8 @@ RG.Factory.Battle.prototype.createBattle = function(parentLevel, conf = {}) {
         const army = this.createArmy(battle, facts[i], conf);
 
         // Assign random but legal coords to the army
-        let armyX = RG.RAND.getUniformInt(0, cols - 1);
-        let armyY = RG.RAND.getUniformInt(0, rows - 1);
+        let armyX = RNG.getUniformInt(0, cols - 1);
+        let armyY = RNG.getUniformInt(0, rows - 1);
         if ((armyX + armySizeX) > (cols - 1)) {
             armyX = cols - armySizeX;
         }
@@ -94,11 +95,11 @@ RG.Factory.Battle.prototype.createBattle = function(parentLevel, conf = {}) {
         // TODO randomize this position
         if (conf.bbox) {
             const {bbox} = conf;
-            let xy = RG.RAND.getRandInBbox(bbox);
+            let xy = RNG.getRandInBbox(bbox);
             let cell = map.getCell(xy[0], xy[1]);
             let watchdog = 100;
             while (cell.hasProps()) {
-                xy = RG.RAND.getRandInBbox(bbox);
+                xy = RNG.getRandInBbox(bbox);
                 cell = map.getCell(xy[0], xy[1]);
                 if (--watchdog === 0) {break;}
             }
@@ -128,10 +129,10 @@ RG.Factory.Battle.prototype.getFactions = function(conf) {
         [fact1, fact2] = conf.factions;
     }
     else {
-        fact1 = RG.RAND.arrayGetRand(FACTIONS);
-        fact2 = RG.RAND.arrayGetRand(FACTIONS);
+        fact1 = RNG.arrayGetRand(FACTIONS);
+        fact2 = RNG.arrayGetRand(FACTIONS);
         while (fact1 === fact2) {
-            fact2 = RG.RAND.arrayGetRand(FACTIONS);
+            fact2 = RNG.arrayGetRand(FACTIONS);
         }
     }
     return [fact1, fact2];

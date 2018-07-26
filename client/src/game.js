@@ -26,6 +26,7 @@ RG.Game.Main = function() {
     this._eventPool = new RG.EventPool();
     RG.POOL = this._eventPool;
 
+    this._rng = new RG.Random();
     this._engine = new Engine(this._eventPool);
     this._master = new GameMaster(this);
 
@@ -46,6 +47,11 @@ RG.Game.Main = function() {
         if (player) {
             player.getBrain().addGUICallback('GOTO', doGUICmd);
         }
+    };
+
+    this.setRNG = function(rng) {
+        this._rng = rng;
+        RG.Random.setRNG(this._rng);
     };
 
     this.playerCommandCallback = function(actor) {
@@ -475,7 +481,7 @@ RG.Game.Main = function() {
             lastEntityID: Entity.getIDCount(),
             lastComponentID: RG.Component.idCount,
             globalConf: this.globalConf,
-            rng: RG.RAND.toJSON(),
+            rng: this._rng.toJSON(),
             charStyles: RG.charStyles,
             cellStyles: RG.cellStyles
         };

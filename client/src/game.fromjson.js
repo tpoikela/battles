@@ -674,9 +674,9 @@ RG.Game.FromJSON = function() {
         }
 
         if (gameJSON.rng) {
-            RG.RAND = new RG.Random();
-            RG.RAND.setSeed(gameJSON.rng.seed);
-            RG.RAND.setState(gameJSON.rng.state);
+            const rng = new RG.Random(gameJSON.rng.seed);
+            rng.setState(gameJSON.rng.state);
+            game.setRNG(rng);
         }
         this.IND = 0;
         return game;

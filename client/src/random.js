@@ -6,13 +6,14 @@ const DIRS = [-1, 0, 1];
 const DIRS_NO_ZERO = [-1, 1];
 
 /* A OO wrapper around ROT.RNG. Adds method for serialisation. */
-RG.Random = function() {
-    this.seed = 0;
+RG.Random = function(seed = 0) {
+    this.seed = seed;
     this.rng = ROT.RNG.clone();
     this.rng.setSeed(this.seed);
 };
 
 RG.Random.prototype.setSeed = function(seed) {
+    this.seed = seed;
     this.rng.setSeed(seed);
 };
 
@@ -100,7 +101,7 @@ RG.Random.prototype.getRandDir = function() {
     const dX = this.arrayGetRand(DIRS);
     let dY = this.arrayGetRand(DIRS);
     if (dX === 0) {
-        dY = RG.RAND.arrayGetRand(DIRS_NO_ZERO);
+        dY = this.arrayGetRand(DIRS_NO_ZERO);
     }
     return [dX, dY];
 };
@@ -155,6 +156,20 @@ RG.Random.prototype.shuffle = function(array) {
 };
 
 // Global RNG
-RG.RAND = new RG.Random();
+// RG.RAND = new RG.Random();
+
+// RNG used for dynamic "micro" stuff like damage rolls etc level ups
+RG.DIE_RNG = new RG.Random(new Date().getTime());
+
+RG.Random.setRNG = function(rng) {
+    RG.Random.instance = rng;
+};
+
+RG.Random.getRNG = function() {
+    if (!RG.Random.instance) {
+        RG.Random.instance = new RG.Random(666);
+    }
+    return RG.Random.instance;
+};
 
 module.exports = RG.Random;

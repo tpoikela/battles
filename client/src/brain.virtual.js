@@ -6,6 +6,8 @@ import Constraints from './constraints';
 const RG = require('./rg');
 RG.Brain = require('./brain');
 
+const spawnProb = 0.10;
+
 /* Brains for virtual actors such as spawners. */
 RG.Brain.Virtual = function(actor) {
     RG.Brain.Base.call(this, actor);
@@ -28,8 +30,7 @@ RG.Brain.Spawner = function(actor) {
 
     /* Spawns an actor to the current level (if any). */
     this.decideNextAction = function() {
-        const spawnOK = RG.RAND.getUniform();
-        if (spawnOK < 0.10) {
+        if (RG.isSuccess(spawnProb)) {
             return () => {
                 const level = this.getActor().getLevel();
                 const freeCell = level.getFreeRandCell();

@@ -5,6 +5,8 @@ const Actors = require('../data/actors');
 RG.Effects = require('../data/effects');
 require('./factory');
 
+const RNG = RG.Random.getRNG();
+
 RG.ObjectShell = {};
 
 RG.ObjectShell.getParser = function() {
@@ -723,7 +725,7 @@ RG.ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
         }
         else if (obj.hasOwnProperty('func')) {
             const res = this.filterCategWithFunc( RG.TYPE_ACTOR, obj.func);
-            return RG.RAND.arrayGetRand(res);
+            return RNG.arrayGetRand(res);
         }
         return null;
     };
@@ -738,11 +740,11 @@ RG.ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
     this.getRandomItem = function(obj) {
         if (obj.hasOwnProperty('func')) {
             const res = this.filterCategWithFunc(RG.TYPE_ITEM, obj.func);
-            return RG.RAND.arrayGetRand(res);
+            return RNG.arrayGetRand(res);
         }
         else if (typeof obj === 'function') {
             const res = this.filterCategWithFunc(RG.TYPE_ITEM, obj);
-            return RG.RAND.arrayGetRand(res);
+            return RNG.arrayGetRand(res);
         }
         else {
             RG.err('ObjectShell.ProcGen', 'getRandomItem',
@@ -759,7 +761,7 @@ RG.ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
         if (!_cache.actorWeights.hasOwnProperty(key)) {
             _cache.actorWeights[key] = RG.getDangerProb(min, max);
         }
-        const danger = RG.RAND.getWeighted(_cache.actorWeights[key]);
+        const danger = RNG.getWeighted(_cache.actorWeights[key]);
         const actor = this.getRandomActor({danger});
         return actor;
     };
@@ -769,7 +771,7 @@ RG.ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
      * probability.*/
     this.getRandFromObj = obj => {
         const keys = Object.keys(obj);
-        const randIndex = RG.RAND.randIndex(keys);
+        const randIndex = RNG.randIndex(keys);
         return obj[keys[randIndex]];
     };
 };

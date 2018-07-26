@@ -5,6 +5,7 @@ const Keys = require('./keymap');
 const GoalsBattle = require('./goals-battle');
 const Cmd = require('./cmd-player');
 
+const RNG = RG.Random.getRNG();
 RG.KeyMap = Keys.KeyMap;
 
 const {
@@ -139,7 +140,6 @@ class TargetingFSM {
         const actor = this._brain._actor;
         const enemyCells = RG.findEnemyCellForActor(
             actor, visibleCells);
-        console.log('n enemyCells: ' + enemyCells.length);
         enemyCells.forEach(cell => {
             mapXY[cell.getX() + ',' + cell.getY()] = cell;
         });
@@ -627,7 +627,7 @@ class BrainPlayer {
         }
         else if (doorCells.length > 1) {
             // TODO implement direction choice
-            doorCell = RG.RAND.arrayGetRand(doorCells);
+            doorCell = RNG.arrayGetRand(doorCells);
         }
 
         if (doorCell) {
@@ -1078,6 +1078,7 @@ class BrainPlayer {
     }
 
     jumpCallback(dXdY) {
+        this.energy = RG.energy.JUMP;
         const [x, y] = dXdY;
         const jumpCmp = new RG.Component.Jump();
         jumpCmp.setX(x);

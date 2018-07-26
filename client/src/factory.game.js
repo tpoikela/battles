@@ -17,6 +17,8 @@ const Creator = require('./world.creator');
 const ActorClass = require('./actor-class');
 const ArenaDebugGame = require('../data/debug-game');
 
+const RNG = RG.Random.getRNG();
+
 const Stairs = RG.Element.Stairs;
 
 /* Player stats based on user selection.*/
@@ -231,6 +233,11 @@ RG.Factory.Game = function() {
             ['sqrPerItem', 'sqrPerActor', 'playMode']);
 
         const game = new RG.Game.Main();
+        if (Number.isInteger(obj.seed)) {
+            console.log('GOT obj.seed as ' + obj.seed);
+            const rng = new RG.Random(obj.seed);
+            game.setRNG(rng);
+        }
         const player = this.createPlayerUnlessLoaded(obj);
         this.createPlayerRegenEvents(game, player);
 
@@ -387,7 +394,7 @@ RG.Factory.Game = function() {
         const minFreeCells = ((2 * bSize + 1) ** 2 - 1);
 
         while (!found) {
-            cell = RG.RAND.arrayGetRand(freeCells);
+            cell = RNG.arrayGetRand(freeCells);
             const [x, y] = cell.getXY();
             const box = RG.Geometry.getBoxAround(x, y, bSize);
             if (box.length === minFreeCells) {
@@ -547,7 +554,7 @@ RG.Factory.Game = function() {
         // Generate all game levels
         for (let nl = 0; nl < nLevels; nl++) {
 
-            const nLevelType = RG.RAND.randIndex(levels);
+            const nLevelType = RNG.randIndex(levels);
             let levelType = levels[nLevelType];
             if (nl === 0) {levelType = 'ruins';}
             const level = this.createLevel(levelType, cols, rows);

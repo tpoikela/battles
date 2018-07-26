@@ -13,7 +13,9 @@
 const RG = require('./rg');
 const Keys = require('./keymap');
 RG.Component = require('./component');
+RG.Random = require('./random');
 
+const RNG = RG.Random.getRNG();
 const {KeyMap} = Keys;
 
 // const NO_SELECTION_NEEDED = () => {};
@@ -704,7 +706,7 @@ RG.Spell.SummonBase = function(name, power) {
                 let watchdog = 30;
 
                 while (nPlaced < this.nActors) {
-                    const [x, y] = RG.RAND.arrayGetRand(coord);
+                    const [x, y] = RNG.arrayGetRand(coord);
                     if (map.hasXY(x, y)) {
                         const cell = map.getCell(x, y);
                         if (cell.isFree()) {

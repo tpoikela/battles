@@ -14,6 +14,8 @@ RG.World = require('./world');
 
 const MountainGenerator = require('./mountain-generator');
 
+const RNG = RG.Random.getRNG();
+
 /* Returns a basic configuration for a city level. */
 RG.Factory.cityConfBase = conf => {
     const userConf = conf || {};
@@ -21,7 +23,7 @@ RG.Factory.cityConfBase = conf => {
         nHouses: 10, minHouseX: 5, maxHouseX: 10, minHouseY: 5,
         maxHouseY: 10, nShops: 1,
         shopFunc: [
-            item => item.type === RG.RAND.arrayGetRand(RG.SHOP_TYPES)
+            item => item.type === RNG.arrayGetRand(RG.SHOP_TYPES)
         ],
         shopType: '', levelType: 'arena'
     };
@@ -53,7 +55,7 @@ const ItemConf = function(conf) {
 RG.Factory.addPropsToCells = function(level, cells, props, type) {
     for (let i = 0; i < props.length; i++) {
         if (cells.length > 0) {
-            const index = RG.RAND.randIndex(cells);
+            const index = RNG.randIndex(cells);
             const cell = cells[index];
             if (type === RG.TYPE_ACTOR) {
                 level.addActor(props[i], cell.getX(), cell.getY());
@@ -91,14 +93,14 @@ RG.Factory.ItemRandomizer = function() {
     const _foodWeights = RG.getFoodWeightDistr();
 
     const _adjustFoodItem = food => {
-        const weight = RG.RAND.getWeighted(_foodWeights);
+        const weight = RNG.getWeighted(_foodWeights);
         food.setWeight(weight);
     };
 
     const _adjustGoldCoin = (gold, nLevel) => {
         if (!RG.isNullOrUndef([nLevel])) {
             const goldWeights = RG.getGoldCoinCountDistr(nLevel);
-            const count = RG.RAND.getWeighted(goldWeights);
+            const count = RNG.getWeighted(goldWeights);
             gold.setCount(parseInt(count, 10));
         }
         else {
@@ -108,21 +110,21 @@ RG.Factory.ItemRandomizer = function() {
     };
 
     const _adjustMissile = missile => {
-        const count = RG.RAND.getUniformInt(5, 15);
+        const count = RNG.getUniformInt(5, 15);
         missile.setCount(count);
     };
 
     const _isCombatMod = val => val >= 0.0 && val <= 0.02;
     const _isStatsMod = val => val >= 0.1 && val <= 0.12;
 
-    const _getRandStat = () => RG.RAND.arrayGetRand(RG.STATS);
+    const _getRandStat = () => RNG.arrayGetRand(RG.STATS);
 
     /* Adjust damage, attack, defense and value of a weapon. */
     const _adjustWeapon = weapon => {
-        const randVal = RG.RAND.getUniform();
+        const randVal = RNG.getUniform();
         if (_isCombatMod(randVal)) {
-            const bonus = RG.RAND.getUniformInt(1, 5);
-            const type = RG.RAND.getUniformInt(0, 4);
+            const bonus = RNG.getUniformInt(1, 5);
+            const type = RNG.getUniformInt(0, 4);
             switch (type) {
                 case 0: // Fall through
                 case 1: {
@@ -143,7 +145,7 @@ RG.Factory.ItemRandomizer = function() {
             RG.scaleItemValue('combat', bonus, weapon);
         }
         else if (_isStatsMod(randVal)) {
-            const bonus = RG.RAND.getUniformInt(1, 3);
+            const bonus = RNG.getUniformInt(1, 3);
             let stats = null;
             if (weapon.has('Stats')) {
                 stats = weapon.get('Stats');
@@ -167,7 +169,7 @@ RG.Factory.ItemRandomizer = function() {
 
     const _runeWeights = RG.getRuneChargeDistr();
     const _adjustRune = rune => {
-        const charges = RG.RAND.getWeighted(_runeWeights);
+        const charges = RNG.getWeighted(_runeWeights);
         rune.setCharges(charges);
     };
 
@@ -530,9 +532,9 @@ RG.Factory.Base = function() {
                 const shopObj = new RG.World.Shop();
 
                 // Find the next (unused) index for a house
-                let index = RG.RAND.randIndex(houses);
+                let index = RNG.randIndex(houses);
                 while (usedHouses.indexOf(index) >= 0) {
-                    index = RG.RAND.randIndex(houses);
+                    index = RNG.randIndex(houses);
                     ++watchDog;
                     if (watchDog === (2 * houses.length)) {
                         RG.err('Factory.Base', 'createShops',
@@ -555,7 +557,7 @@ RG.Factory.Base = function() {
                 }
 
                 const gold = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
-                gold.count = RG.RAND.getUniformInt(50, 200);
+                gold.count = RNG.getUniformInt(50, 200);
                 keeper.getInvEq().addItem(gold);
 
                 const shopCoord = [];
@@ -601,7 +603,7 @@ RG.Factory.Base = function() {
 
     /* Creates trainers for the given level. */
     this.createTrainers = function(level, conf) {
-        if (RG.RAND.getUniform() < RG.TRAINER_PROB) {
+        if (RNG.getUniform() < RG.TRAINER_PROB) {
             let trainer = null;
             if (conf.parser) {
                 trainer = conf.parser.createActor('trainer');
@@ -752,7 +754,7 @@ RG.Factory.Zone = function() {
 
     this.getRandLevelType = () => {
         const type = ['uniform', 'rooms', 'rogue', 'digger'];
-        const nLevelType = RG.RAND.randIndex(type);
+        const nLevelType = RNG.randIndex(type);
         return type[nLevelType];
     };
 
@@ -963,7 +965,7 @@ RG.Factory.Zone = function() {
     this.populateCityLevel = function(level, levelConf) {
         let alignment = levelConf.alignment;
         if (!alignment) {
-            alignment = RG.RAND.arrayGetRand(RG.ALIGNMENTS);
+            alignment = RNG.arrayGetRand(RG.ALIGNMENTS);
         }
 
         if (alignment === RG.ALIGN_GOOD) {
@@ -1012,7 +1014,7 @@ RG.Factory.Zone = function() {
     this.populateWithEvil = function(level, levelConf) {
         let allOK = false;
         while (!allOK) {
-            const raceType = RG.RAND.arrayGetRand(RG.EVIL_RACES);
+            const raceType = RNG.arrayGetRand(RG.EVIL_RACES);
             const actorConf = {
                 actorsPerLevel: levelConf.actorsPerLevel || 100,
                 maxDanger: levelConf.maxDanger || 10,
@@ -1026,7 +1028,7 @@ RG.Factory.Zone = function() {
     };
 
     this.populateWithNeutral = function(level, levelConf) {
-        const raceType = RG.RAND.arrayGetRand(RG.NEUTRAL_RACES);
+        const raceType = RNG.arrayGetRand(RG.NEUTRAL_RACES);
         const actorConf = {
             actorsPerLevel: levelConf.actorsPerLevel || 100,
             maxDanger: levelConf.maxDanger || 10,
@@ -1055,7 +1057,7 @@ RG.Factory.Zone = function() {
                 });
             });
 
-            const room = RG.RAND.arrayGetRand(extras.rooms);
+            const room = RNG.arrayGetRand(extras.rooms);
             const bbox = room.getBbox();
             this.addActorsToBbox(level, bbox, conf);
         }

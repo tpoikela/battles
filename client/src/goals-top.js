@@ -3,6 +3,7 @@
 
 const RG = require('./rg');
 const Goal = require('./goals');
+RG.Random = require('./random');
 
 // const GoalsBattle = require('./goals-battle');
 const Evaluator = require('./evaluators');
@@ -14,6 +15,8 @@ const {
     GOAL_INACTIVE,
     GOAL_FAILED
 } = Goal;
+
+const RNG = RG.Random.getRNG();
 
 const GoalsTop = {};
 //---------------------------------------------------------------------------
@@ -130,7 +133,7 @@ class GoalThinkBasic extends GoalTop {
         const [lowRange, hiRange] = [0.5, 1.5];
 
         this.bias = {
-            attack: RG.RAND.getUniformRange(lowRange, hiRange),
+            attack: RNG.getUniformRange(lowRange, hiRange),
             explore: RG.BIAS.Explore,
             flee: RG.BIAS.Flee,
             order: RG.BIAS.Order,

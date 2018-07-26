@@ -17,6 +17,8 @@ Evaluator.NOT_POSSIBLE = RG.BIAS.NOT_POSSIBLE;
 // Should be returned if the case is always executed
 Evaluator.ALWAYS = RG.BIAS.ALWAYS;
 
+const RNG = RG.Random.getRNG();
+
 /* Base class for all evaluators. Provides only the basic constructor. */
 class EvaluatorBase {
 
@@ -323,7 +325,7 @@ class EvaluatorCastSpell extends EvaluatorBase {
     getRandomSpell(actor) {
         const book = actor.getBook();
         if (book && book.getSpells().length > 0) {
-            const spell = RG.RAND.arrayGetRand(book.getSpells());
+            const spell = RNG.arrayGetRand(book.getSpells());
             return spell;
         }
         return null;
@@ -333,7 +335,7 @@ class EvaluatorCastSpell extends EvaluatorBase {
     canCastSpell(actor) {
         if (actor.has('SpellPower')) {
             if (actor.get('SpellPower').getPP() >= this.spell.getPower()) {
-                if (RG.RAND.getUniform() <= this._castingProb) {
+                if (RNG.getUniform() <= this._castingProb) {
                     return true;
                 }
             }

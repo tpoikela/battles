@@ -50,7 +50,7 @@ const playerTileY = 1;
 // very slow on large maps.
 let addMainRoads = false;
 
-const getRandIn = RG.RAND.arrayGetRand.bind(RG.RAND);
+const getRNG = RG.Random.getRNG;
 
 RG.OverWorld.TILE_SIZE_X = 100;
 RG.OverWorld.TILE_SIZE_Y = 100;
@@ -379,7 +379,7 @@ function addBiomeFeaturesSubLevel(biomeType, subLevel) {
         });
 
         // Add some water
-        const addLakes = RG.RAND.getUniform();
+        const addLakes = getRNG().getUniform();
         if (addLakes < 0.3) {
             const lakeConf = {ratio: 0.4};
             const lakes = RG.FACT.createLevel('lakes', cols, rows, lakeConf);
@@ -491,7 +491,7 @@ function addSubLevelWalls(type, owSubLevel, subLevel) {
 }
 
 function getWallWidth(mean, stddev, subSize) {
-    let width = Math.floor(RG.RAND.getNormal(mean, stddev));
+    let width = Math.floor(getRNG().getNormal(mean, stddev));
     // width = Math.floor(width + coeff * width);
 
     if (width > subSize / 2) {
@@ -595,7 +595,7 @@ function addMountainFortToSubLevel(feat, owSubLevel, subLevel) {
     const wall = owSubLevel.getWall();
     const start = wall.getWallStart();
     const end = wall.getWallEnd();
-    const randPos = RG.RAND.getUniformInt(start, end);
+    const randPos = getRNG().getUniformInt(start, end);
     const coord = wall.getCoordAt(randPos);
 
     let type = null;
@@ -678,7 +678,7 @@ function addDungeonToSubLevel(owSubLevel, subLevel) {
     let coord = [];
     let watchdog = 10 * WATCHDOG_MAX;
     while (!placed) {
-        const xy = getRandIn(freeXY);
+        const xy = getRNG().arrayGetRand(freeXY);
         let box = [];
         try {
             box = RG.Geometry.getBoxAround(xy[0], xy[1], 1);
@@ -731,7 +731,7 @@ function addMountainToSubLevel(owSubLevel, subLevel) {
     let coord = [];
     let watchdog = 10 * WATCHDOG_MAX;
     while (!placed) {
-        const xy = getRandIn(freeXY);
+        const xy = getRNG().arrayGetRand(freeXY);
         coord = [xy];
         placed = true;
         if (--watchdog <= 0) {
@@ -751,7 +751,7 @@ function addMountainToSubLevel(owSubLevel, subLevel) {
 function addVertTunnelToSubLevel(owSubLevel, subLevel) {
     const map = subLevel.getMap();
     const cols = map.cols;
-    const tunnelX = RG.RAND.getUniformInt(0, cols - 1);
+    const tunnelX = getRNG().getUniformInt(0, cols - 1);
     for (let y = 0; y < map.rows; y++) {
         map.setBaseElemXY(tunnelX, y, RG.ELEM.FLOOR);
     }
@@ -764,7 +764,7 @@ function addVillageToSubLevel(feat, owSubLevel, subLevel) {
     const freeCells = map.getFreeNotOnEdge();
     if (freeCells.length > 0) {
         const freeXY = freeCells.map(cell => [cell.getX(), cell.getY()]);
-        const coord = RG.RAND.arrayGetRand(freeXY);
+        const coord = getRNG().arrayGetRand(freeXY);
         const village = new RG.OverWorld.SubFeature('village', [coord]);
         village.aligntment = getAlignment(feat);
         owSubLevel.addFeature(village);
@@ -929,7 +929,7 @@ function addMaxDangerAndValue(pX, pY, zoneConf) {
     zoneConf.maxDanger = RG.getMaxDanger(dX, dY);
     zoneConf.maxValue = RG.getMaxValue(dX, dY);
 
-    if (RG.RAND.getUniform() <= RG.EPIC_PROB) {
+    if (getRNG().getUniform() <= RG.EPIC_PROB) {
         zoneConf.isEpic = true;
         zoneConf.maxDanger *= 2;
         zoneConf.maxValue *= 3;
@@ -1073,7 +1073,7 @@ function addCityConfToArea(feat, coordObj, areaConf) {
     cityConf.groupType = feat.type;
     addLocationToZoneConf(feat, coordObj, cityConf);
     cityConf.alignment = feat.alignment
-        || getRandIn(RG.ALIGNMENTS);
+        || getRNG().arrayGetRand(RG.ALIGNMENTS);
     areaConf.nCities += 1;
     areaConf.city.push(cityConf);
 

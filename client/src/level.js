@@ -4,6 +4,8 @@ require('./eventpool');
 
 const {TYPE_ACTOR, TYPE_ELEM, TYPE_ITEM} = RG;
 
+const RNG = RG.Random.getRNG();
+
 /* Possible callbacks:
  * showMsg: {msg: 'my msg'}
  */
@@ -524,7 +526,7 @@ Level.prototype.onFirstExit = function() {
 Level.prototype.getFreeRandCell = function() {
 	const freeCells = this.getMap().getFree();
 	if (freeCells.length > 0) {
-		const index = RG.RAND.randIndex(freeCells);
+		const index = RNG.randIndex(freeCells);
 		return freeCells[index];
 	}
 	return null;
@@ -534,7 +536,7 @@ Level.prototype.getFreeRandCell = function() {
 Level.prototype.getEmptyRandCell = function() {
 	const emptyCells = this.getMap().getEmptyCells();
 	if (emptyCells.length > 0) {
-		const index = RG.RAND.randIndex(emptyCells);
+		const index = RNG.randIndex(emptyCells);
 		return emptyCells[index];
 	}
 	return null;

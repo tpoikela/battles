@@ -6,6 +6,8 @@ RG.ObjectShell = require('./objectshellparser');
 
 const MIN_ACTORS_ROOM = 2;
 
+const RNG = RG.Random.getRNG();
+
 const DungeonPopulate = function(conf) {
     this.theme = conf.theme;
 
@@ -172,7 +174,7 @@ DungeonPopulate.prototype.addMainLoot = function(level, center, maxValue) {
     // Add main loot
     // 1. Scale is from 2-4 normal value, this scales the
     // guardian danger as well
-    const scaleLoot = RG.RAND.getUniformInt(2, 3);
+    const scaleLoot = RNG.getUniformInt(2, 3);
     const maxPrizeValue = scaleLoot * maxValue;
     const minPrizeValue = (scaleLoot - 1) * maxValue;
     const lootPrize = parser.createRandomItem(
@@ -192,7 +194,7 @@ const popOptions = ['NOTHING', 'LOOT', 'GOLD', 'GUARDIAN', 'ELEMENT', 'CORPSE',
 /* Given level and x,y coordinate, tries to populate that point with content. */
 DungeonPopulate.prototype.populatePoint = function(level, point, conf) {
     const {maxDanger} = conf;
-    const type = RG.RAND.arrayGetRand(popOptions);
+    const type = RNG.arrayGetRand(popOptions);
     // const [pX, pY] = point;
     switch (type) {
         case 'NOTHING': break;

@@ -4,10 +4,12 @@ const RG = require('./rg');
 const Menu = require('./menu');
 RG.Component = require('./component');
 RG.Spell = require('./spell');
-
+RG.Random = require('./random');
 const Ability = require('./abilities');
 
 const {Abilities} = Ability;
+
+const RNG = RG.Random.getRNG();
 
 /* Factory function for actor classes. */
 ActorClass.create = function(name, entity) {
@@ -115,7 +117,7 @@ class ActorClassBase {
         }
 
         // Random stat increase
-        const statName = RG.RAND.arrayGetRand(RG.STATS);
+        const statName = RNG.arrayGetRand(RG.STATS);
         this._lastStateIncr = `${statName} was increased`;
         actor.get('Stats').incrStat(statName, 1);
 
@@ -265,15 +267,15 @@ class Adventurer extends ActorClassBase {
     setStartingStats() {
         const stats = this._actor.get('Stats');
         for (let i = 0; i < 3; i++) {
-            let statName = RG.RAND.arrayGetRand(RG.STATS);
+            let statName = RNG.arrayGetRand(RG.STATS);
             statName = statName.toLowerCase();
-            stats.incrStat(statName, RG.RAND.getUniformInt(1, 3));
+            stats.incrStat(statName, RNG.getUniformInt(1, 3));
         }
     }
 
     incrStats(newLevel) {
         super.incrStats(newLevel);
-        const statName = RG.RAND.arrayGetRand(RG.STATS);
+        const statName = RNG.arrayGetRand(RG.STATS);
         this._lastStateIncr += `\n${statName} was increased.`;
         this._actor.get('Stats').incrStat(statName, 1);
     }
@@ -749,7 +751,7 @@ RG.ACTOR_CLASSES = ['Cryomancer', 'Blademaster', 'Marksman', 'Spiritcrafter',
 RG.ACTOR_CLASSES_NO_ADV = RG.ACTOR_CLASSES.filter(ac => ac !== 'Adventurer');
 
 function getRandExcludeAdventurer() {
-    return RG.RAND.arrayGetRand(RG.ACTOR_CLASSES_NO_ADV);
+    return RNG.arrayGetRand(RG.ACTOR_CLASSES_NO_ADV);
 }
 
 module.exports = ActorClass;

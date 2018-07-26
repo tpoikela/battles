@@ -745,14 +745,15 @@ RG.LEVEL_MOUNTAIN = 'mountain';
 
 // Energy per action
 RG.energy = {
+    ATTACK: 15,
     DEFAULT: 5,
-    REST: 5,
-    USE: 5,
-    PICKUP: 5,
+    JUMP: 50,
     MISSILE: 10,
     MOVE: 10,
-    ATTACK: 15,
-    RUN: 20
+    PICKUP: 5,
+    REST: 5,
+    RUN: 20,
+    USE: 5
 };
 
 // Actor biases for different goals
@@ -1158,7 +1159,7 @@ RG.levelUpActor = (actor, newLevel) => {
 };
 
 RG.levelUpStats = function(actor, nextLevel) {
-    const randStat = RG.RAND.arrayGetRand(RG.STATS_LC);
+    const randStat = RG.DIE_RNG.arrayGetRand(RG.STATS_LC);
     const stats = actor.get('Stats');
     stats.incrStat(randStat, 1);
 };
@@ -1523,7 +1524,7 @@ RG.Die.prototype.setMod = function(mod) {this._mod = mod;};
 RG.Die.prototype.roll = function() {
     let res = 0;
     for (let i = 0; i < this._num; i++) {
-        res += RG.RAND.getUniformInt(1, this._dice);
+        res += RG.DIE_RNG.getUniformInt(1, this._dice);
     }
     return res + this._mod;
 };
@@ -1555,6 +1556,11 @@ RG.Die.prototype.equals = function(rhs) {
 
 RG.Die.prototype.toJSON = function() {
     return [this._num, this._dice, this._mod];
+};
+
+/* Function to check if given action succeeds given it's probability. */
+RG.isSuccess = function(prob) {
+    return RG.DIE_RNG.getUniform() <= prob;
 };
 
 //---------------------------------------------------------------------------

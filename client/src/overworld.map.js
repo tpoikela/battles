@@ -13,7 +13,7 @@ const debug = require('debug')('bitn:OW');
 
 const OW = {};
 
-const getRandIn = RG.RAND.arrayGetRand.bind(RG.RAND);
+const getRNG = RG.Random.getRNG;
 
 //---------------------------
 // CONSTANT DEFINITIONS
@@ -604,22 +604,22 @@ function randomizeBorders(map) {
 
     // N border, y = 0, vary x
     for (let x = 1; x < sizeX - 1; x++) {
-        map[x][0] = getRandIn(OW.N_BORDER);
+        map[x][0] = getRNG().arrayGetRand(OW.N_BORDER);
     }
 
     // S border, y = max, vary x
     for (let x = 1; x < sizeX - 1; x++) {
-        map[x][sizeY - 1] = getRandIn(OW.S_BORDER);
+        map[x][sizeY - 1] = getRNG().arrayGetRand(OW.S_BORDER);
     }
 
     // E border, x = max, vary y
     for (let y = 1; y < sizeY - 1; y++) {
-        map[sizeX - 1][y] = getRandIn(OW.E_BORDER);
+        map[sizeX - 1][y] = getRNG().arrayGetRand(OW.E_BORDER);
     }
 
     // W border, x = 0, vary y
     for (let y = 1; y < sizeY - 1; y++) {
-        map[0][y] = getRandIn(OW.W_BORDER);
+        map[0][y] = getRNG().arrayGetRand(OW.W_BORDER);
     }
 
 }
@@ -640,7 +640,7 @@ function addWallsIfAny(ow, map, conf) {
     if (Number.isInteger(conf.nHWalls)) {
         nHWalls = [];
         for (let i = 0; i < conf.nHWalls; i++) {
-            const pos = RG.RAND.getUniformInt(1, 19);
+            const pos = getRNG().getUniformInt(1, 19);
             nHWalls.push(pos * 0.05);
         }
         nHWalls = nHWalls.sort();
@@ -648,7 +648,7 @@ function addWallsIfAny(ow, map, conf) {
     if (Number.isInteger(conf.nVWalls)) {
         nVWalls = [];
         for (let i = 0; i < conf.nVWalls; i++) {
-            const pos = RG.RAND.getUniformInt(1, 19);
+            const pos = getRNG().getUniformInt(1, 19);
             nVWalls.push(pos * 0.05);
         }
         nVWalls = nHWalls.sort();
@@ -658,7 +658,7 @@ function addWallsIfAny(ow, map, conf) {
     for (let i = 0; i < nHWalls.length; i++) {
         let stop = stopOnWall;
         if (stopOnWall === 'random') {
-            stop = RG.RAND.getUniform() >= 0.5;
+            stop = getRNG().getUniform() >= 0.5;
         }
         addHorizontalWallWestToEast(ow,
             Math.floor(sizeY * nHWalls[i]), map, stop);
@@ -666,7 +666,7 @@ function addWallsIfAny(ow, map, conf) {
     for (let i = 0; i < nVWalls.length; i++) {
         let stop = stopOnWall;
         if (stopOnWall === 'random') {
-            stop = RG.RAND.getUniform() >= 0.5;
+            stop = getRNG().getUniform() >= 0.5;
         }
         addVerticalWallNorthToSouth(ow,
             Math.floor(sizeX * nVWalls[i]), map, stop);
@@ -694,7 +694,7 @@ function addHorizontalWallWestToEast(ow, y, map, stopOnWall = false) {
                 }
             }
             else {
-                map[x][y] = RG.RAND.getWeighted(OW.LINE_WE_WEIGHT);
+                map[x][y] = getRNG().getWeighted(OW.LINE_WE_WEIGHT);
             }
         }
     }
@@ -727,7 +727,7 @@ function addVerticalWallNorthToSouth(ow, x, map, stopOnWall = false) {
                 }
             }
             else {
-                map[x][y] = RG.RAND.getWeighted(OW.LINE_NS_WEIGHT);
+                map[x][y] = getRNG().getWeighted(OW.LINE_NS_WEIGHT);
             }
         }
     }
@@ -748,10 +748,10 @@ function addRandomInnerWalls(overworld, map, conf) {
     const nTiles = Math.floor(sizeX * sizeY * ratio);
 
     for (let i = 0; i < nTiles; i++) {
-        const x = RG.RAND.getUniformInt(2, sizeX - 2);
-        const y = RG.RAND.getUniformInt(2, sizeY - 2);
+        const x = getRNG().getUniformInt(2, sizeX - 2);
+        const y = getRNG().getUniformInt(2, sizeY - 2);
         if (map[x][y] === OW.EMPTY) {
-            map[x][y] = RG.RAND.arrayGetRand(OW.ALL_WALLS);
+            map[x][y] = getRNG().arrayGetRand(OW.ALL_WALLS);
         }
     }
 }
@@ -810,7 +810,7 @@ function processCell(x, y, map) {
         );
         if (validNeighbours.length === 1) {
             if (validNeighbours[0][1].length > 0) {
-                map[x][y] = getRandIn(validNeighbours[0][1]);
+                map[x][y] = getRNG().arrayGetRand(validNeighbours[0][1]);
             }
             else {
                 map[x][y] = OW.TERM;
@@ -1016,7 +1016,7 @@ function addVillagesToOverWorld(ow, nDungeons, cmd) {
     const bbox = getBoundingBox(ow, cmd);
     for (let i = 0; i < nDungeons; i++) {
         const xy = findCellRandXYInBox(ow.getMap(), bbox, [OW.TERM]);
-        if (RG.RAND.getUniform() < OW.PROB_BVILLAGE) {
+        if (getRNG().getUniform() < OW.PROB_BVILLAGE) {
             ow.addFeature(xy, OW.BVILLAGE);
         }
         else {
@@ -1044,14 +1044,14 @@ function cellMatches(type, listOrStr) {
 function findCellRandXYInBox(map, bbox, listOrStr) {
     const {ulx, uly, lrx, lry} = bbox;
 
-    let x = ulx === lrx ? ulx : RG.RAND.getUniformInt(ulx, lrx);
-    let y = lry === uly ? lry : RG.RAND.getUniformInt(uly, lry);
+    let x = ulx === lrx ? ulx : getRNG().getUniformInt(ulx, lrx);
+    let y = lry === uly ? lry : getRNG().getUniformInt(uly, lry);
     let watchdog = 100 * (lrx - ulx + 1) * (lry - uly + 1);
 
     let match = cellMatches(map[x][y], listOrStr);
     while (!match) {
-        x = ulx === lrx ? ulx : RG.RAND.getUniformInt(ulx, lrx);
-        y = lry === uly ? lry : RG.RAND.getUniformInt(uly, lry);
+        x = ulx === lrx ? ulx : getRNG().getUniformInt(ulx, lrx);
+        y = lry === uly ? lry : getRNG().getUniformInt(uly, lry);
         match = cellMatches(map[x][y], listOrStr);
         if (watchdog === 0) {
             const box = `(${ulx},${lry}) -> (${lrx},${uly})`;
@@ -1094,8 +1094,8 @@ function getRandLoc(loc, shrink, sizeX, sizeY) {
     }
 
     return [
-        RG.RAND.getUniformInt(ulx, lrx),
-        RG.RAND.getUniformInt(uly, lry)
+        getRNG().getUniformInt(ulx, lrx),
+        getRNG().getUniformInt(uly, lry)
     ];
 }
 

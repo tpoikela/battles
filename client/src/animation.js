@@ -50,7 +50,6 @@ RG.Animation.Animation = function() {
 /* Combines the frames of two animations together. */
 RG.Animation.Animation.prototype.combine = function(animation) {
     let frameIndex = 0;
-    console.log(JSON.stringify(this.frames));
     while (animation.hasFrames()) {
         const frame = animation.nextFrame();
         if (frameIndex < this.frames.length) {

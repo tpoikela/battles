@@ -3,8 +3,10 @@ const debug = require('debug')('bitn:Goal');
 
 const Path = require('./path');
 const RG = require('./rg');
+RG.Random = require('./random');
 const Component = require('./component');
 
+const RNG = RG.Random.getRNG();
 const Goal = {};
 
 Goal.GOAL_ACTIVE = 'GOAL_ACTIVE';
@@ -726,9 +728,9 @@ class GoalExplore extends GoalBase {
 
     setNewPassableDir() {
         let maxTries = 5;
-        let [dX, dY] = RG.RAND.getRandDir();
+        let [dX, dY] = RNG.getRandDir();
         while (maxTries > 0 && !this.isDirPassable(dX, dY)) {
-            [dX, dY] = RG.RAND.getRandDir();
+            [dX, dY] = RNG.getRandDir();
             --maxTries;
         }
         this.dX = dX;
@@ -791,7 +793,7 @@ class GoalExplore extends GoalBase {
 
     /* Checks if the actor should change movement direction. */
     checkChangeDir() {
-        const changeDir = RG.RAND.getUniform();
+        const changeDir = RNG.getUniform();
         if (changeDir <= 0.07) {
             const newDx = this.changeDir(this.dX, this.dY);
             if (this.isDirPassable(newDx, this.dY)) {
@@ -812,7 +814,7 @@ class GoalExplore extends GoalBase {
 
     changeDir(dir) {
         switch (dir) {
-            case 0: return RG.RAND.arrayGetRand([-1, 1]);
+            case 0: return RNG.arrayGetRand([-1, 1]);
             case 1: return 0;
             case -1: return 0;
             default: return dir;

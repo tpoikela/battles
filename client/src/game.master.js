@@ -8,6 +8,7 @@ const Menu = require('./menu');
 
 const debug = require('debug')('bitn:GameMaster');
 
+const RNG = RG.Random.getRNG();
 /* GameMaster objects reacts to various events caused by player and other
  * actors, and shapes the game world based on them. For example,
  * GameMaster can:
@@ -326,7 +327,7 @@ const GameMaster = function(game) {
             let armyActors = army.getActors();
             const nActors = armyActors.length;
 
-            const pIndex = RG.RAND.getUniformInt(0, nActors - 1);
+            const pIndex = RNG.getUniformInt(0, nActors - 1);
             const replacedActor = armyActors[pIndex];
             const [pX, pY] = replacedActor.getXY();
 

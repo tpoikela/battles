@@ -13,6 +13,8 @@ ROT.Map.Miner = require('../../lib/map.miner');
 ROT.Map.Mountain = require('../../lib/map.mountain');
 ROT.Map.Wall = require('../../lib/map.wall');
 
+const RNG = RG.Random.getRNG();
+
 const inRange = function(val, min, max) {
     if (val >= min && val <= max) {
         return true;
@@ -54,7 +56,7 @@ RG.Map.Generator = function() { // {{{2
     let _wall = 1;
 
     this.getRandType = () => {
-        const index = RG.RAND.randIndex(_types);
+        const index = RNG.randIndex(_types);
         return _types[index];
     };
 
@@ -226,13 +228,13 @@ RG.Map.Generator = function() { // {{{2
 
             let houseCreated = false;
             let tries = 0;
-            const xSize = RG.RAND.getUniformInt(minX, maxX);
-            const ySize = RG.RAND.getUniformInt(minY, maxY);
+            const xSize = RNG.getUniformInt(minX, maxX);
+            const ySize = RNG.getUniformInt(minY, maxY);
 
             const currCoord = Object.values(coordObj);
             // Select random starting point, try to build house there
             while (!houseCreated && tries < maxTriesHouse) {
-                const xy = RG.RAND.arrayGetRand(currCoord);
+                const xy = RNG.arrayGetRand(currCoord);
                 const x0 = xy[0];
                 const y0 = xy[1];
                 houseCreated = this.createHouse(
@@ -326,12 +328,12 @@ RG.Map.Generator = function() { // {{{2
         }
 
         // Finally randomly insert the door for the house, excluding corners
-        let doorIndex = RG.RAND.randIndex(wallCoords);
+        let doorIndex = RNG.randIndex(wallCoords);
         let doorX = wallCoords[doorIndex][0];
         let doorY = wallCoords[doorIndex][1];
         let watchdog = 1000;
         while (RG.Geometry.isCorner(doorX, doorY, x0, y0, maxX, maxY)) {
-            doorIndex = RG.RAND.randIndex(wallCoords);
+            doorIndex = RNG.randIndex(wallCoords);
             doorX = wallCoords[doorIndex][0];
             doorY = wallCoords[doorIndex][1];
             --watchdog;
@@ -371,7 +373,7 @@ RG.Map.Generator = function() { // {{{2
         _mapGen = new ROT.Map.Forest(this.cols, this.rows, conf);
         _mapGen.create((x, y, val) => {
             map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
-            const createTree = RG.RAND.getUniform() <= ratio;
+            const createTree = RNG.getUniform() <= ratio;
             if (val === 1 && createTree) {
                 map.setBaseElemXY(x, y, RG.ELEM.TREE);
             }
@@ -425,7 +427,7 @@ RG.Map.Generator = function() { // {{{2
                 map.setBaseElemXY(x, y, RG.ELEM.CHASM);
             }
             else {
-                const addSnow = RG.RAND.getUniform();
+                const addSnow = RNG.getUniform();
                 if (addSnow < conf.snowRatio) {
                     map.setBaseElemXY(x, y, RG.ELEM.SNOW);
                 }
@@ -474,10 +476,10 @@ RG.Map.Generator = function() { // {{{2
             let y0 = prevY;
             if (i === 0) {
                 x0 = Number.isInteger(conf.startX) ? conf.startX :
-                    RG.RAND.arrayGetRand(xPoints);
+                    RNG.arrayGetRand(xPoints);
                 y0 = conf.startY ? conf.startY : 0;
             }
-            const x1 = RG.RAND.arrayGetRand(xPoints);
+            const x1 = RNG.arrayGetRand(xPoints);
             const y1 = (i + 1) * yPerTurn + y0;
 
             // Compute 2 paths: Shortest and shortest passable. Then calculate
@@ -505,15 +507,12 @@ RG.Map.Generator = function() { // {{{2
         if (conf.maxY && paths.length > 0) {
             const lastPath = paths[paths.length - 1];
             if (lastPath.length > 0) {
-                console.log('lastPath is', lastPath);
                 const lastXY = lastPath[lastPath.length - 1];
-                console.log('lastXY is', lastXY);
                 const [x0, y0] = [lastXY.x, lastXY.y];
-                let x1 = RG.RAND.arrayGetRand(xPoints);
+                let x1 = RNG.arrayGetRand(xPoints);
                 const y1 = conf.maxY;
                 if (conf.endX) {x1 = conf.endX;}
                 if (y1 > y0) {
-                    console.log('Final point is', x0, y0, x1, y1);
                     if (inAllowedArea(x0, y0, x1, y1, conf)) {
                         const coord = Path.getMinWeightOrShortest(map, x0, y0,
                             x1, y1, passableFuncs);
@@ -559,8 +558,8 @@ RG.Map.Generator = function() { // {{{2
 
         let watchdog = 10000;
         while (placedCells / totalCells < ratio) {
-            [cX, cY] = RG.RAND.arrayGetRand(placedCoord);
-            const [dX, dY] = RG.RAND.getRandDir();
+            [cX, cY] = RNG.arrayGetRand(placedCoord);
+            const [dX, dY] = RNG.getRandDir();
             cX += dX;
             cY += dY;
             if (map.hasXY(cX, cY)) {
@@ -788,7 +787,7 @@ RG.Map.Generator.createSplashes = function(cols, rows, conf) {
 RG.Map.Generator.addRandomSnow = (map, ratio) => {
     const freeCells = map.getFree();
     for (let i = 0; i < freeCells.length; i++) {
-        const addSnow = RG.RAND.getUniform();
+        const addSnow = RNG.getUniform();
         if (addSnow <= ratio) {
             freeCells[i].setBaseElem(RG.ELEM.SNOW);
         }
