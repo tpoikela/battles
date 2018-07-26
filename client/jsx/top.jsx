@@ -125,6 +125,8 @@ class BattlesTop extends Component {
             rows: 30,
             levels: 2,
 
+            seed: new Date().getTime(),
+
             playerLevel: 'Medium',
             gameLength: 'Medium',
             levelSize: 'Medium',
@@ -193,7 +195,6 @@ class BattlesTop extends Component {
         // Binding of callbacks
         this.bindCallbacks();
         this.initGUICommandTable();
-        RG.RAND.setSeed(1);
     }
 
     /* Toggles the game editor view. Need to terminate the existing
@@ -231,8 +232,11 @@ class BattlesTop extends Component {
             const hash = md5(name);
             seed = parseInt(hash, 16);
         }
-        RG.RAND.setSeed(seed);
+        // RG.RAND.setSeed(seed);
         ROT.RNG.setSeed(seed);
+        // RG.RAND.setSeed(new Date().getTime());
+        // ROT.RNG.setSeed(new Date().getTime());
+        this.gameConf.seed = seed;
         this.setState({seedName: name});
     }
 
@@ -294,7 +298,6 @@ class BattlesTop extends Component {
     /* Called when "Embark" button is clicked to create a new game.*/
     newGame() {
         this.enableKeys();
-        const startTime = new Date().getTime();
         this.hideScreen('StartScreen');
 
         if (this.state.loadFromEditor) {
@@ -303,8 +306,6 @@ class BattlesTop extends Component {
         }
         else {
             this.createNewGameAsync().then(() => {
-                const dur = new Date().getTime() - startTime;
-                console.log(`Creating game took ${dur} ms`);
                 this.setState({render: true});
             });
         }
@@ -440,6 +441,10 @@ class BattlesTop extends Component {
         if (this.game !== null) {
             delete this.game;
             RG.FACT = new RG.Factory.Base();
+        }
+
+        if (this.state.seedName === '') {
+            this.gameConf.seed = new Date().getTime();
         }
 
         if (typeof window.Worker !== 'undefined') {
@@ -1401,6 +1406,8 @@ class BattlesTop extends Component {
         this.menuItemClicked = this.menuItemClicked.bind(this);
     }
 
+    /* Can be used to call any class method from sub-component without
+     * explicitly passing all possible callback functions as props. */
     topMenuCallback(cmd, args) {
       if (typeof this[cmd] === 'function') {
           if (Array.isArray(args)) {
@@ -1427,6 +1434,4 @@ class BattlesTop extends Component {
 
 }
 
-
 module.exports = BattlesTop;
-
