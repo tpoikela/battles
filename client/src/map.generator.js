@@ -795,9 +795,10 @@ RG.Map.Generator.addRandomSnow = (map, ratio) => {
     }
 };
 
+/* Returns a clone of the requested level options. */
 RG.Map.Generator.getOptions = function(value) {
     if (RG.Map.Generator.options[value]) {
-        return RG.Map.Generator.options[value];
+        return Object.assign({}, RG.Map.Generator.options[value]);
     }
     else {
         RG.warn('RG.Map.Generator', 'getOptions',
@@ -807,7 +808,7 @@ RG.Map.Generator.getOptions = function(value) {
 };
 
 RG.Map.Generator.options = {};
-RG.Map.Generator.options.mountain = {
+RG.Map.Generator.options.mountain = Object.freeze({
     noiseMult: 1,
     noiseDivider: 20,
     highRockThr: 0.75,
@@ -815,7 +816,7 @@ RG.Map.Generator.options.mountain = {
     chasmThr: -0.4,
     nRoadTurns: 8,
     snowRatio: 0.0
-};
+});
 
 
 module.exports = RG.Map.Generator;
