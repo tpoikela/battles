@@ -52,6 +52,10 @@ const DungeonFeatures = function(zoneType) {
     this.addLastLevelFeatures = function(nLevel, level, conf) {
         const exploreElem = new RG.Element.Exploration();
         const expPoints = 10 * (nLevel + 1) * conf.maxDanger;
+        if (!Number.isInteger(expPoints)) {
+            RG.err('DungeonFeatures', 'addLastLevelFeatures',
+                `expPoints NaN. nLevel: ${nLevel}, dang: ${conf.maxDanger}`);
+        }
         exploreElem.setExp(expPoints);
         exploreElem.setData({zoneType: this._zoneType});
 
@@ -96,7 +100,14 @@ const DungeonFeatures = function(zoneType) {
             const prizeItem = parser.createRandomItem(
                 {func: item => item.value <= prizeValue}
             );
-            bossActor.getInvEq().addItem(prizeItem);
+            if (prizeItem) {
+                bossActor.getInvEq().addItem(prizeItem);
+            }
+            else {
+                const msg = `Value: ${prizeValue}`;
+                RG.err('DungeonFeatures', 'generateBoss',
+                    'Failed to create prize item: ' + msg);
+            }
 
         }
         return bossActor;
@@ -823,6 +834,7 @@ RG.Factory.World = function() {
 
         const summitLevelConf = Object.assign({}, conf);
         this.setLevelConstraints(summitLevelConf);
+        this.addMaxDangerIfMissing(summitLevelConf);
 
         for (let i = 0; i < conf.nLevels; i++) {
             let level = null;
@@ -843,6 +855,15 @@ RG.Factory.World = function() {
         this._addEntranceToSubZone(summit, conf);
         this.popScope(conf);
         return summit;
+    };
+
+    this.addMaxDangerIfMissing = function(conf) {
+        if (!Number.isInteger(conf.maxDanger)) {
+            conf.maxDanger = this.getConf('maxDanger');
+        }
+        if (!Number.isInteger(conf.maxValue)) {
+            conf.maxValue = this.getConf('maxValue');
+        }
     };
 
     this._addEntranceToSubZone = function(subZone, conf) {
