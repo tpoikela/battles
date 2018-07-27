@@ -982,6 +982,35 @@ RG.Spell.EnergyArrow = function() {
 };
 RG.extend2(RG.Spell.EnergyArrow, RG.Spell.Missile);
 
+/* Rock storm shoots a missile to all directions. */
+RG.Spell.RockStorm = function() {
+    RG.Spell.Missile.call(this, 'RockStorm', 35);
+    this.setRange(4);
+    this.setDice([RG.FACT.createDie('5d4 + 1')]);
+    this.damageType = RG.DMG.MELEE;
+    this.ammoName = 'Huge rock';
+
+    this.cast = function(args) {
+        const [x, y] = [args.src.getX(), args.src.getY()];
+        RG.DIR.forEach(dXdY => {
+            const tX = this.getRange() * dXdY[0];
+            const tY = this.getRange() * dXdY[1];
+            const obj = {
+                from: [x, y],
+                spell: this,
+                src: args.src,
+                to: [tX, tY]
+            };
+            obj.damageType = this.damageType;
+            obj.damage = this.getDice()[0].roll();
+            const missComp = new RG.Component.SpellMissile();
+            missComp.setArgs(obj);
+            args.src.add(missComp);
+        });
+    };
+};
+RG.extend2(RG.Spell.RockStorm, RG.Spell.Missile);
+
 /* MindControl spell takes over an enemy for a certain number of turns. */
 RG.Spell.MindControl = function() {
     RG.Spell.Base.call(this, 'MindControl', 25);
@@ -1131,6 +1160,7 @@ RG.Spell.addAllSpells = book => {
     book.addSpell(new RG.Spell.Paralysis());
     book.addSpell(new RG.Spell.PowerDrain());
     book.addSpell(new RG.Spell.RingOfFire());
+    book.addSpell(new RG.Spell.RockStorm());
     book.addSpell(new RG.Spell.SpiritForm());
     book.addSpell(new RG.Spell.SummonAnimal());
     book.addSpell(new RG.Spell.SummonAirElemental());
