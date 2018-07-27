@@ -46,10 +46,13 @@ const levelSizes = {
 /* Used to add details like bosses and distinct room features into dungeon
  * levels. */
 const DungeonFeatures = function(zoneType) {
+    this._verif = new RG.Verify.Conf('DungeonFeatures');
     this._zoneType = zoneType;
 
     /* Adds special features to the last level of the zone. */
     this.addLastLevelFeatures = function(nLevel, level, conf) {
+        this._verif.verifyConf('addLastLevelFeatures', conf,
+            ['maxDanger', 'maxValue']);
         const exploreElem = new RG.Element.Exploration();
         const expPoints = 10 * (nLevel + 1) * conf.maxDanger;
         if (!Number.isInteger(expPoints)) {
@@ -87,6 +90,8 @@ const DungeonFeatures = function(zoneType) {
     };
 
     this.generateBoss = (nLevel, level, conf) => {
+        this._verif.verifyConf('generateBoss', conf,
+            ['maxDanger', 'maxValue']);
         const parser = RG.ObjectShell.getParser();
         const bossDanger = conf.maxDanger + 2;
         const bossActor = parser.createRandomActor(
