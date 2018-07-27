@@ -126,6 +126,10 @@ RG.System.Base = function(type, compTypes) {
         RG.POOL.listenEvent(this.compTypes[i], this);
     }
 
+    this.hasEntities = function() {
+        return Object.keys(this.entities).length > 0;
+    };
+
     this.update = function() {
         for (const e in this.entities) {
             if (!e) {continue;}
@@ -524,8 +528,8 @@ RG.System.Missile = function(compTypes) {
         const targetCell = map.getCell(targetX, targetY);
         const firedMsg = this._formatFiredMsg(ent, attacker);
 
-        if (targetCell.hasProp('actors')) {
-            const targetActor = targetCell.getProp('actors')[0];
+        if (targetCell && targetCell.hasProp('actors')) {
+            const targetActor = targetCell.getSentientActors()[0];
             attacker.getBrain().getMemory().setLastAttacked(targetActor);
         }
 
@@ -1772,7 +1776,7 @@ RG.System.SpellEffect = function(compTypes) {
             this.processSpellCell(ent);
         }
         else if (ent.has('SpellMissile')) {
-            this.processSpellMissile(ent);
+            this.processSpellMissiles(ent);
         }
         else if (ent.has('SpellArea')) {
             this.processSpellArea(ent);
@@ -1982,8 +1986,14 @@ RG.System.SpellEffect = function(compTypes) {
         ent.remove('SpellCell');
     };
 
-    this.processSpellMissile = ent => {
-        const spellComp = ent.get('SpellMissile');
+    this.processSpellMissiles = ent => {
+        const missileList = ent.getList('SpellMissile');
+        missileList.forEach(missComp => {
+            this.processSpellMissile(ent, missComp);
+        });
+    };
+
+    this.processSpellMissile = (ent, spellComp) => {
         const args = spellComp.getArgs();
         const spell = args.spell;
         const parser = RG.ObjectShell.getParser();
@@ -1992,12 +2002,15 @@ RG.System.SpellEffect = function(compTypes) {
         const mComp = new RG.Component.Missile(args.src);
         mComp.setTargetXY(args.to[0], args.to[1]);
         mComp.destroyItem = true;
+        if (args.hasOwnProperty('destroyItem')) {
+            mComp.destroyItem = args.destroyItem;
+        }
         mComp.setDamage(args.damage);
         mComp.setAttack(60);
         mComp.setRange(spell.getRange());
 
         spellArrow.add(mComp);
-        ent.remove('SpellMissile');
+        ent.remove(spellComp);
     };
 
     /* Processes area-affecting spell effects. */
