@@ -867,6 +867,7 @@ RG.Factory.Zone = function() {
             summitConf);
         debug(`Creating summit level with ${conf}`);
         this.addItemsAndActors(summitLevel, summitConf);
+        if (!conf.maxValue) {conf.maxValue = summitConf.maxValue;}
         return summitLevel;
     };
 
