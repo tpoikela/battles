@@ -862,7 +862,10 @@ RG.Factory.World = function() {
             conf.maxDanger = this.getConf('maxDanger');
         }
         if (!Number.isInteger(conf.maxValue)) {
-            conf.maxValue = this.getConf('maxValue');
+            const maxValue = this.getConf('maxValue');
+            if (maxValue) {
+                conf.maxValue = maxValue;
+            }
         }
     };
 
