@@ -520,6 +520,14 @@ const Items = [
         char: '*', damage: '1d4', range: 5, value: value(10), weight: 0.2
     },
     {
+        name: 'Large rock', base: 'MissileBase', className: 'cell-item-rock',
+        char: '*', damage: '2d4 + 2', range: 2, value: value(20), weight: 1.0
+    },
+    {
+        name: 'Huge rock', base: 'MissileBase', className: 'cell-item-rock',
+        char: '*', damage: '5d4 + 2', range: 1, value: value(40), weight: 20.0
+    },
+    {
         name: 'Shuriken', base: 'MissileBase', className: 'cell-item-iron',
         char: '*', damage: '1d6', range: 3, value: value(20)
     },
