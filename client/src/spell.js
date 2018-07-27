@@ -992,9 +992,9 @@ RG.Spell.RockStorm = function() {
 
     this.cast = function(args) {
         const [x, y] = [args.src.getX(), args.src.getY()];
-        RG.DIR.forEach(dXdY => {
-            const tX = this.getRange() * dXdY[0];
-            const tY = this.getRange() * dXdY[1];
+        Object.values(RG.DIR).forEach(dXdY => {
+            const tX = x + this.getRange() * dXdY[0];
+            const tY = y + this.getRange() * dXdY[1];
             const obj = {
                 from: [x, y],
                 spell: this,
@@ -1003,10 +1003,15 @@ RG.Spell.RockStorm = function() {
             };
             obj.damageType = this.damageType;
             obj.damage = this.getDice()[0].roll();
+            obj.destroyItem = false; // Keep rocks after firing
             const missComp = new RG.Component.SpellMissile();
             missComp.setArgs(obj);
             args.src.add(missComp);
         });
+    };
+
+    this.getSelectionObject = function(actor) {
+        return RG.Spell.getSelectionObjectSelf(this, actor);
     };
 };
 RG.extend2(RG.Spell.RockStorm, RG.Spell.Missile);
