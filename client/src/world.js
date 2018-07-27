@@ -1275,6 +1275,7 @@ Not implemented yet.
                 return;
             }
         }
+        // face-face and summit-summit connections done here
         RG.World.ZoneBase.prototype.connectSubZones.call(
             this, s1Arg, s2Arg, l1, l2);
     };
@@ -1382,6 +1383,13 @@ RG.World.MountainSummit = function(name) {
     this.setType('summit');
 
     this.getEntrance = () => null;
+
+    this.connectLevelToStairs = (nLevel, stairs) => {
+        if (!connectLevelToStairs(this._levels, nLevel, stairs)) {
+            RG.err('World.MountainSummit', 'connectLevelToStairs',
+                'Stairs must be first connected to other level.');
+        }
+    };
 
     this.toJSON = function() {
         return RG.World.SubZoneBase.prototype.toJSON.call(this);
