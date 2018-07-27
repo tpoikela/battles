@@ -299,16 +299,19 @@ describe('Factory.World', function() {
         const mountainConf = {
             name: 'Stormy Tower',
             nFaces: 1,
-            nSummits: 1,
+            nSummits: 2,
             maxDanger: 10,
             face: [
                 {x: 50, y: 100, nLevels: 1, name: 'North face'}
             ],
             summit: [
-                {cols: 80, rows: 50, name: 'Summit', nLevels: 1}
+                {cols: 80, rows: 50, name: 'Summit', nLevels: 1},
+                {cols: 100, rows: 100, name: 'Summit2', nLevels: 2}
             ],
             connectLevels: [
-                ['North face', 'Summit', 0, 0]
+                ['North face', 'Summit', 0, 0],
+                ['Summit', 'Summit2', 0, 0],
+                ['Summit2', 'Summit2', 0, 1]
             ]
         };
         const fact = new RG.Factory.World();
@@ -320,13 +323,15 @@ describe('Factory.World', function() {
         expect(faces[0].getName()).to.equal('North face');
 
         const levels = mountain.getLevels();
-        expect(levels, 'Face and summit created').to.have.length(2);
+        expect(levels, 'Face and summit created').to.have.length(4);
 
         const summitLevel = mountain.findLevel('Summit', 0);
         const faceLevel = mountain.findLevel('North face', 0);
+        const summit2Level0 = mountain.findLevel('Summit2', 0);
 
-        expect(summitLevel.getConnections()).to.have.length(1);
+        expect(summitLevel.getConnections()).to.have.length(2);
         expect(faceLevel.getConnections()).to.have.length(1);
+        expect(summit2Level0.getConnections()).to.have.length(2);
 
     });
 
