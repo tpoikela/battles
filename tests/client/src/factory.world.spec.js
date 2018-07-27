@@ -300,6 +300,7 @@ describe('Factory.World', function() {
             name: 'Stormy Tower',
             nFaces: 1,
             nSummits: 1,
+            maxDanger: 10,
             face: [
                 {x: 50, y: 100, nLevels: 1, name: 'North face'}
             ],
