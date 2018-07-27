@@ -890,13 +890,18 @@ const Items = [
     {
         name: 'rune of tunneling', base: 'RuneBase',
         use: 'digger',
-        value: value('rune', 100)
+        value: value('rune', 150)
     },
     {
         name: 'rune of cold', base: 'RuneBase',
         use: {addComp: {
             name: 'Coldness', duration: '100d5 + 50'
         }},
+        value: value('rune', 100)
+    },
+    {
+        name: 'rune of fire', base: 'RuneBase',
+        use: {addEntity: {entityName: 'Fire', duration: 50}},
         value: value('rune', 100)
     },
     {
