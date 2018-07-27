@@ -2086,6 +2086,8 @@ RG.System.Animation = function(compTypes) {
     this.enableAnimations = () => {this._enabled = true;};
     this.disableAnimations = () => {this._enabled = false;};
 
+    this.currAnim = null;
+
     this.updateEntity = function(ent) {
         if (this._enabled) {
             const allAnimComps = ent.getList('Animation');
@@ -2103,6 +2105,10 @@ RG.System.Animation = function(compTypes) {
             });
         }
         ent.removeAll('Animation');
+        if (!this.hasEntities()) {
+            RG.POOL.emitEvent(RG.EVT_ANIMATION, {animation: this.currAnim});
+            this.currAnim = null;
+        }
     };
 
     /* Construct a missile animation from Missile component. */
@@ -2136,7 +2142,8 @@ RG.System.Animation = function(compTypes) {
                 break;
             }
         }
-        RG.POOL.emitEvent(RG.EVT_ANIMATION, {animation});
+        if (!this.currAnim) {this.currAnim = animation;}
+        else {this.currAnim.combine(animation);}
     };
 
     /* Constructs line animation (a bolt etc continuous thing). */
@@ -2163,8 +2170,8 @@ RG.System.Animation = function(compTypes) {
                 --rangeLeft;
             }
         }
-        // No ref to engine, thus emit an event, engine will catch it
-        RG.POOL.emitEvent(RG.EVT_ANIMATION, {animation});
+        if (!this.currAnim) {this.currAnim = animation;}
+        else {this.currAnim.combine(animation);}
     };
 
     this.cellAnimation = (ent, args) => {
@@ -2179,7 +2186,8 @@ RG.System.Animation = function(compTypes) {
         });
 
         animation.addFrame(frame);
-        RG.POOL.emitEvent(RG.EVT_ANIMATION, {animation});
+        if (!this.currAnim) {this.currAnim = animation;}
+        else {this.currAnim.combine(animation);}
     };
 
     this._createAnimation = args => {
