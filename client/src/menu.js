@@ -220,7 +220,11 @@ const MenuSelectCell = function(args) {
         }
         else if (KeyMap.isSelect(code)) {
             const keyIndex = Keys.codeToIndex(code);
-            return this.table[keyIndex];
+            const retVal = this.table[keyIndex];
+            if (retVal.funcToCall) {
+                return retVal.funcToCall;
+            }
+            return retVal;
         }
         else if (this._enableSelectAll && KeyMap.isSelectAll(code)) {
             this.callback(code);
