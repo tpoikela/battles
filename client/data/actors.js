@@ -156,6 +156,14 @@ const Actors = [
         brain: 'SpellCaster', spells: ['LightningBolt'],
         maxPP: 40, pp: 40
     },
+    {
+        name: 'earth elemental', base: 'ConstructBase',
+        char: 'E', className: 'cell-actor-earth',
+        attack: 6, defense: 3, protection: 12,
+        hp: 47, danger: 11, damage: '4d4',
+        brain: 'SpellCaster', spells: ['RockStorm'],
+        maxPP: 70, pp: 70
+    },
 
     // GOBLINS
     {
