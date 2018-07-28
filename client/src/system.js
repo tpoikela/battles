@@ -565,11 +565,13 @@ RG.System.Missile = function(compTypes) {
                     RG.debug(this, 'Hit an actor');
                     shownMsg = `${firedMsg} ${hitVerb} ${actor.getName()}`;
 
-                    if (ent.getType() === 'missile') {
-                        addSkillsExp(attacker, 'Throwing', 1);
-                    }
-                    else if (ent.getType() === 'ammo') {
-                        addSkillsExp(attacker, 'Archery', 1);
+                    if (actor.has('Experience')) {
+                        if (ent.getType() === 'missile') {
+                            addSkillsExp(attacker, 'Throwing', 1);
+                        }
+                        else if (ent.getType() === 'ammo') {
+                            addSkillsExp(attacker, 'Archery', 1);
+                        }
                     }
                     RG.gameWarn({cell: currCell, msg: shownMsg});
                     shownMsg = '';
@@ -947,10 +949,12 @@ RG.System.Damage = function(compTypes) {
             actor.add(evtComp);
 
             // Finally drop a corpse
-            const corpse = new RG.Item.Corpse(nameKilled + ' corpse');
-            const cssClass = RG.getCssClass(RG.TYPE_ACTOR, nameKilled);
-            RG.addCellStyle(RG.TYPE_ITEM, corpse.getName(), cssClass);
-            level.addItem(corpse, x, y);
+            if (actor.has('Corporeal')) {
+                const corpse = new RG.Item.Corpse(nameKilled + ' corpse');
+                const cssClass = RG.getCssClass(RG.TYPE_ACTOR, nameKilled);
+                RG.addCellStyle(RG.TYPE_ITEM, corpse.getName(), cssClass);
+                level.addItem(corpse, x, y);
+            }
             _cleanUpComponents(actor);
         }
         else {
