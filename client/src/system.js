@@ -434,7 +434,9 @@ RG.System.Attack = function(compTypes) {
             const totalDamage = att.getDamage();
             if (totalDamage > 0) {
                 this.doDamage(att, def, totalDamage);
-                addSkillsExp(att, 'Melee', 1);
+                if (def.has('Experience')) {
+                    addSkillsExp(att, 'Melee', 1);
+                }
             }
             else {
                 RG.gameMsg({cell: att.getCell,
@@ -446,6 +448,7 @@ RG.System.Attack = function(compTypes) {
             RG.gameMsg({cell: att.getCell(),
                 msg: aName + ' misses ' + dName});
         }
+
         def.addEnemy(att);
 
         // Emitted only for player for efficiency reasons
