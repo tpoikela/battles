@@ -1146,6 +1146,46 @@ RG.Spell.RingOfFire = function() {
 };
 RG.extend2(RG.Spell.RingOfFire, RG.Spell.Base);
 
+RG.Spell.ForceField = function() {
+    RG.Spell.Base.call(this, 'ForceField', 5);
+
+    this.cast = function(args) {
+        const obj = getDirSpellArgs(this, args);
+        obj.callback = this.castCallback.bind(this, args);
+
+        const spellComp = new RG.Component.SpellSelf();
+        spellComp.setArgs(obj);
+        args.src.add(spellComp);
+    };
+
+    this.getSelectionObject = function(actor) {
+        const msg = 'Select a direction for the forcefield:';
+        return RG.Spell.getSelectionObjectDir(this, actor, msg);
+    };
+
+    this.castCallback = (args) => {
+        const parser = RG.ObjectShell.getParser();
+        const caster = this._caster;
+        const level = caster.getLevel();
+        const {dir} = args;
+        const [pX, pY] = this._caster.getXY();
+        const [tX, tY] = [pX + dir[0], pY + dir[1]];
+
+        // const duration = this._durationDie.roll();
+        const cells = [level.getMap().getCell(tX, tY)];
+        cells.forEach(cell => {
+            if (cell.isPassable() || !cell.hasActors()) {
+                const forcefield = parser.createActor('Forcefield');
+                level.addActor(forcefield, cell.getX(), cell.getY());
+                // const fadingComp = new RG.Component.Fading();
+                // fadingComp.setDuration(duration);
+            }
+        });
+    };
+};
+RG.extend2(RG.Spell.ForceField, RG.Spell.Base);
+
+
 /* Used for testing the spells. Adds all spells to given SpellBook. */
 RG.Spell.addAllSpells = book => {
     book.addSpell(new RG.Spell.Blizzard());
@@ -1153,6 +1193,7 @@ RG.Spell.addAllSpells = book => {
     book.addSpell(new RG.Spell.DispelMagic());
     book.addSpell(new RG.Spell.EnergyArrow());
     book.addSpell(new RG.Spell.Flying());
+    book.addSpell(new RG.Spell.ForceField());
     book.addSpell(new RG.Spell.FrostBolt());
     book.addSpell(new RG.Spell.GraspOfWinter());
     book.addSpell(new RG.Spell.Heal());
