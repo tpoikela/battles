@@ -1,6 +1,8 @@
 /* Contains the in-game actors. */
 /* eslint comma-dangle: 0 */
 
+const RG = require('../src/rg');
+
 const defaultBrain = 'GoalOriented';
 const demonBrain = 'GoalOriented';
 const undeadBrain = 'GoalOriented';
@@ -826,7 +828,11 @@ const Actors = [
       base: 'SpecialBase',
       char: '*', type: 'forcefield', brain: 'NonSentient',
       speed: 1, hp: 25, defense: 0,
-      addComp: ['Health', 'NonSentient', 'Combat']
+      addComp: ['Health', 'NonSentient', 'Combat',
+        {comp: 'Weakness', func: {
+            setEffect: 'MAGIC', setLevel: RG.WEAKNESS.FATAL
+        }}
+      ]
     },
 
     // UNIQUES
