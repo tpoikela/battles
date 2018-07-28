@@ -197,51 +197,57 @@ const getDirSpellArgs = (spell, args) => {
 
 /* A list of spells known by a single actor. */
 RG.Spell.SpellBook = function(actor) {
-    const _actor = actor;
-    const _spells = [];
-    if (RG.isNullOrUndef([_actor])) {
+    this._actor = actor;
+    this._spells = [];
+    if (RG.isNullOrUndef([this._actor])) {
         RG.err('Spell.SpellBook', 'new',
             'actor must be given.');
     }
+};
 
-    this.getActor = () => _actor;
+RG.Spell.SpellBook.prototype.getActor = function() {
+    return this._actor;
+};
 
-    this.addSpell = spell => {
-        _spells.push(spell);
-        spell.setCaster(this.getActor());
-    };
+RG.Spell.SpellBook.prototype.addSpell = function(spell) {
+    this._spells.push(spell);
+    spell.setCaster(this.getActor());
+};
 
-    this.getSpells = () => _spells;
+RG.Spell.SpellBook.prototype.getSpells = function() {
+    return this._spells;
+};
 
     /* Returns the object which is used in Brain.Player to make the player
      * selection of spell casting. */
-    this.getSelectionObject = () => {
-        const powerSorted = _spells;
-        return {
-            select: function(code) {
-                const selection = Keys.codeToIndex(code);
-                if (selection < powerSorted.length) {
-                    return powerSorted[selection].getSelectionObject(actor);
-                }
-                return null;
-            },
-            getMenu: function() {
-                RG.gameMsg('Please select a spell to cast:');
-                const indices = Keys.menuIndices.slice(0, _spells.length);
-                const obj = {};
-                powerSorted.forEach((spell, index) => {
-                    obj[indices[index]] = spell.toString();
-                });
-                obj.pre = ['You know the following spells:'];
-                return obj;
-            },
-            showMenu: () => true
-        };
+RG.Spell.SpellBook.prototype.getSelectionObject = function() {
+    const powerSorted = this._spells;
+    return {
+        select: function(code) {
+            const selection = Keys.codeToIndex(code);
+            if (selection < powerSorted.length) {
+                return powerSorted[selection].getSelectionObject(this._actor);
+            }
+            return null;
+        },
+        getMenu: function() {
+            RG.gameMsg('Please select a spell to cast:');
+            const indices = Keys.menuIndices.slice(0, this._spells.length);
+            const obj = {};
+            powerSorted.forEach((spell, index) => {
+                obj[indices[index]] = spell.toString();
+            });
+            obj.pre = ['You know the following spells:'];
+            return obj;
+        },
+        showMenu: () => true
     };
+};
 
-    this.toJSON = () => ({
-        spells: _spells.map(spell => spell.toJSON())
-    });
+RG.Spell.SpellBook.prototype.toJSON = function() {
+    return {
+        spells: this._spells.map(spell => spell.toJSON())
+    };
 };
 
 /* Base object for all spells. */
@@ -1171,8 +1177,7 @@ RG.Spell.ForceField = function() {
         const [pX, pY] = this._caster.getXY();
         const [tX, tY] = [pX + dir[0], pY + dir[1]];
 
-        // const duration = this._durationDie.roll();
-        const cells = [level.getMap().getCell(tX, tY)];
+        const cells = this.getThreeCells(level.getMap(), dir, tX, tY);
         cells.forEach(cell => {
             if (cell.isPassable() || !cell.hasActors()) {
                 const forcefield = parser.createActor('Forcefield');
@@ -1181,6 +1186,37 @@ RG.Spell.ForceField = function() {
                 // fadingComp.setDuration(duration);
             }
         });
+    };
+
+    this.getThreeCells = function(map, dir, tX, tY) {
+        if (dir[0] === 0) { // up or down
+            return [
+                map.getCell(tX - 1, tY),
+                map.getCell(tX, tY),
+                map.getCell(tX + 1, tY)
+            ];
+        }
+        else if (dir[1] === 0) { // left or right
+            return [
+                map.getCell(tX, tY - 1),
+                map.getCell(tX, tY),
+                map.getCell(tX, tY + 1)
+            ];
+        }
+        else if (dir[0] === -1) {
+            return [
+                map.getCell(tX + 1, tY),
+                map.getCell(tX, tY),
+                map.getCell(tX, tY - dir[1])
+            ];
+        }
+        else {
+            return [
+                map.getCell(tX - 1, tY),
+                map.getCell(tX, tY),
+                map.getCell(tX, tY - dir[1])
+            ];
+        }
     };
 };
 RG.extend2(RG.Spell.ForceField, RG.Spell.Base);
