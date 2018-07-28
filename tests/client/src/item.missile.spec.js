@@ -30,14 +30,19 @@ const createMissile = obj => {
 };
 
 describe('How missile is fired and hits a wall', () => {
-    it('Starts from source and flies to target', () => {
-        const systems = createSystems();
 
-        const level = RG.FACT.createLevel('arena', 30, 30);
-        // Archer to fire the missiles
-        const srcEnt = new Actor('archer');
+    let systems = null;
+    let level = null;
+    let srcEnt = null;
 
+    beforeEach(() => {
+        systems = createSystems();
+        level = RG.FACT.createLevel('arena', 30, 30);
+        srcEnt = new Actor('archer');
         level.addActor(srcEnt, 1, 1);
+    });
+
+    it('Starts from source and flies to target', () => {
 
         const mEnt = new RG.Item.Missile('missile');
         const mComp = new RG.Component.Missile(srcEnt);
@@ -60,17 +65,10 @@ describe('How missile is fired and hits a wall', () => {
     });
 
     it('Stops and hits a wall', () => {
-        const systems = createSystems();
-
-        const level = RG.FACT.createLevel('arena', 30, 30);
-        // Archer to fire the missiles
-        const srcEnt = new Actor('archer');
-        level.addActor(srcEnt, 1, 1);
-
         const wall = new RG.Element.Base('wall');
         const map = level.getMap();
         const cell = map.getCell(1, 3);
-        cell.setProp('elements', wall);
+        cell.setBaseElem(wall);
 
         const mEnt = new RG.Item.Missile('missile');
         mEnt.add(new RG.Component.Indestructible());
@@ -91,12 +89,6 @@ describe('How missile is fired and hits a wall', () => {
     });
 
     it('Stops and hits an entity (actor)', () => {
-        const systems = createSystems();
-
-        const level = RG.FACT.createLevel('arena', 30, 30);
-        // Archer to fire the missiles
-        const srcEnt = new Actor('archer');
-        level.addActor(srcEnt, 1, 1);
         const targetEnt = new Actor('prey');
         const targetHP = targetEnt.get('Health').getHP();
 
@@ -124,12 +116,6 @@ describe('How missile is fired and hits a wall', () => {
     });
 
     it('Stops after reaching maximum range', () => {
-        const systems = createSystems();
-        const level = RG.FACT.createLevel('arena', 30, 30);
-        // Archer to fire the missiles
-        const srcEnt = new Actor('archer');
-        level.addActor(srcEnt, 1, 1);
-
         const mComp = createMissile({src: srcEnt, x: 1, y: 6, r: 4, d: 5});
 
         updateSystems(systems);
@@ -144,10 +130,6 @@ describe('How missile is fired and hits a wall', () => {
     });
 
     it('Missile passes through ethereal beings', () => {
-        const systems = createSystems();
-        const level = RG.FACT.createLevel('arena', 30, 30);
-        const srcEnt = new Actor('archer');
-        level.addActor(srcEnt, 1, 1);
         const etherBeing = new Actor('spirit');
         etherBeing.add(new RG.Component.Ethereal());
         level.addActor(etherBeing, 1, 2);
@@ -159,6 +141,7 @@ describe('How missile is fired and hits a wall', () => {
             const targetCell = level.getMap().getCell(1, 4);
             expect(targetCell.hasProp('items')).to.equal(true);
             expect(etherCell.hasProp('items')).to.equal(false);
+            expect(mComp.getY()).to.equal(4);
         }
 
     });
