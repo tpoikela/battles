@@ -607,14 +607,14 @@ class Spellsinger extends ActorClassBase {
                 this._actor.getBook().addSpell(new RG.Spell.LightningArrow());
             },
             24: () => {
-                const spell = new RG.Spell.SummonAirElemental();
-                this._actor.getBook().addSpell(spell);
+                const airSpell = new RG.Spell.SummonAirElemental();
+                this._actor.getBook().addSpell(airSpell);
             },
             28: () => {
                 this._actor.getBook().addSpell(new RG.Spell.CrossBolt());
             },
             32: () => {
-                this._actor.getBook().addSpell(new RG.Spell.LightningBolt());
+                this._actor.getBook().addSpell(new RG.Spell.RockStorm());
             }
         };
     }
