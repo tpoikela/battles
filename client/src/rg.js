@@ -1103,6 +1103,11 @@ RG.dXdY = (dest, src) => {
     return [xDest - xSrc, yDest - ySrc];
 };
 
+RG.dXdYAbs = (dest, src) => {
+    const [dX, dY] = RG.dXdY(dest, src);
+    return [Math.abs(dX), Math.abs(dY)];
+};
+
 /* Returns the unit vector for direction between two objects.
  * Examples:
  *   1. Given 2 objects at (0,0) and (2,3), returns [-1,-1].
