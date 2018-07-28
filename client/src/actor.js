@@ -121,11 +121,11 @@ class RGActorRogue extends BaseActor {
         this.add(new RG.Component.Combat());
         this.add(new RG.Component.Stats());
         this.add(new RG.Component.Health(50));
+        this.add(new RG.Component.Corporeal());
 
         const perception = new RG.Component.Perception();
         perception.setFOVRange(RG.NPC_FOV_RANGE);
         this.add(new RG.Component.Perception());
-
     }
 
     /* Returns true if actor is a player.*/
