@@ -630,6 +630,14 @@ describe('Data query functions for objects', function() {
 
         expect(avianEmperor).to.have.component('Flying');
     });
+
+    it('can create forcefield with HP', () => {
+        const forcefield = parser.createActor('Forcefield');
+        expect(forcefield).to.have.component('Health');
+
+        const hComp = forcefield.get('Health');
+        expect(hComp.getHP()).to.be.above(0);
+    });
 });
 
 describe('ObjectShell.Parser error handling', () => {
