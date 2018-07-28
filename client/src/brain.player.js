@@ -649,6 +649,10 @@ class BrainPlayer {
         return this._actor.getLevel().exploreCells(this._actor);
     }
 
+    startTargeting() {
+        this._fsm.startTargeting();
+    }
+
     /* Moves to the next target. */
     nextTarget() {
         this._fsm.nextTarget();
