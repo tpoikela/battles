@@ -21,6 +21,9 @@
  *
  *   Each Menu must have getMenu(), unless showMenu() returns false.
  *
+ *   Menu items for new() can be given as follows:
+ *   1.
+ *
  */
 
 const RG = require('./rg');
@@ -213,12 +216,56 @@ const MenuSelectCell = function(args) {
         this._enableSelectAll = true;
     };
 
-    this.select = code => {
-        if (KeyMap.inMoveCodeMap(code)) {
-            this.callback(code);
-            return this;
+
+};
+RG.extend2(MenuSelectCell, MenuBase);
+Menu.SelectCell = MenuSelectCell;
+
+MenuSelectCell.prototype.select = function(code) {
+    if (KeyMap.inMoveCodeMap(code)) {
+        this.callback(code);
+        return this;
+    }
+    else if (KeyMap.isSelect(code)) {
+        const keyIndex = Keys.codeToIndex(code);
+        const retVal = this.table[keyIndex];
+        if (retVal.funcToCall) {
+            return retVal.funcToCall;
         }
-        else if (KeyMap.isSelect(code)) {
+        return retVal;
+    }
+    else if (this._enableSelectAll && KeyMap.isSelectAll(code)) {
+        this.callback(code);
+        return this;
+    }
+    return Menu.EXIT_MENU;
+};
+
+//---------------------------------------------------------------------------
+
+const MenuSelectTarget = function(args) {
+    MenuSelectCell.call(this, args);
+    this.targetCallback = null;
+
+};
+RG.extend2(MenuSelectTarget, MenuSelectCell);
+
+MenuSelectCell.prototype.select = function(code) {
+    const val = MenuSelectCell.prototype.select.call(this, code);
+    if (val === Menu.EXIT_MENU) {
+        if (KeyMap.isNextTarget(code)) {
+            if (this.targetCallback) {
+                this.targetCallback(code);
+            }
+            return this; // Keep menu open
+        }
+        else if (KeyMap.isPrevTarget(code)) {
+            if (this.targetCallback) {
+                this.targetCallback(code);
+            }
+            return this; // Keep menu open
+        }
+        else if (code === KeyMap.KEY.TARGET) {
             const keyIndex = Keys.codeToIndex(code);
             const retVal = this.table[keyIndex];
             if (retVal.funcToCall) {
@@ -226,16 +273,10 @@ const MenuSelectCell = function(args) {
             }
             return retVal;
         }
-        else if (this._enableSelectAll && KeyMap.isSelectAll(code)) {
-            this.callback(code);
-            return this;
-        }
-        return null;
-    };
-
+        return Menu.EXIT_MENU;
+    }
+    return val;
 };
-RG.extend2(MenuSelectCell, MenuBase);
-Menu.SelectCell = MenuSelectCell;
 
 /* This menu can be used when direction selection is required. */
 const MenuSelectDir = function(args) {
@@ -257,10 +298,12 @@ const MenuSelectDir = function(args) {
 };
 Menu.SelectDir = MenuSelectDir;
 
+//---------------------------------------------------------------------------
 /* Menu which has multiple states. An example is a selection menu, which has C-D
  * bound to delete item. Thus, normally menu is in selection state, but then
  * user hits C-D, it goes to deletion state. In this case, selection callback
  * is replaced by deletion callback. */
+//---------------------------------------------------------------------------
 const MenuWithState = function(args) {
     MenuWithQuit.call(this, args);
 
