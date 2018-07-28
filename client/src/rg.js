@@ -844,6 +844,7 @@ RG.dxdYToDir = function(dXdY) {
 
 RG.DMG = {
     ENERGY: 'ENERGY',
+    MAGIC: 'MAGIC',
     MELEE: 'MELEE',
     MISSILE: 'MISSILE',
     POISON: 'POISON',
@@ -1402,6 +1403,21 @@ RG.LOOT_ABUNDANT_SQR = 50;
 RG.ACTOR_SPARSE_SQR = 200;
 RG.ACTOR_MEDIUM_SQR = 120;
 RG.ACTOR_ABUNDANT_SQR = 50;
+
+// Weakness levels of actors
+RG.WEAKNESS = {};
+RG.WEAKNESS.MINOR = 1;
+RG.WEAKNESS.MEDIUM = 3;
+RG.WEAKNESS.SEVERE = 7;
+RG.WEAKNESS.FATAL = 10;
+
+// Resistance levels of actor to different effects
+RG.RESISTANCE = {};
+RG.RESISTANCE.MINOR = 1;
+RG.RESISTANCE.MEDIUM = 3;
+RG.RESISTANCE.STRONG = 6;
+RG.RESISTANCE.IMMUNITY = 10;
+RG.RESISTANCE.ABSORB = 15;
 
 RG.getCardinalDirection = (level, cell) => {
     const cols = level.getMap().cols;
