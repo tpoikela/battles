@@ -904,7 +904,7 @@ RG.Spell.Missile = function(name, power) {
     this.getSelectionObject = function(actor) {
         const msg = 'Press [n/p] for next/prev target. [t] to fire.';
         RG.gameMsg(msg);
-        actor.getBrain().nextTarget();
+        actor.getBrain().startTargeting();
         const spell = this;
         return {
             // showMsg: () => RG.gameMsg(msg),
