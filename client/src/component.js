@@ -74,6 +74,7 @@ RG.Component.Health = function(hp) {
 RG.extend2(RG.Component.Health, RG.Component.Base);
 
 RG.Component.Dead = UniqueTagComponent('Dead');
+RG.Component.Corporeal = UniqueTagComponent('Corporeal');
 
 /* Component which is used to deal damage.*/
 RG.Component.Damage = function(dmg, type) {
@@ -629,6 +630,16 @@ RG.Component.Fire = TagComponent('Fire');
 RG.Component.Sharpener = TagComponent('Sharpener');
 RG.Component.Sharpened = TagComponent('Sharpened');
 RG.Component.Possessed = TagComponent('Possessed');
+
+RG.Component.Weakness = DataComponent('Weakness', {
+    effect: '',
+    level: RG.WEAKNESS.MINOR
+});
+
+RG.Component.Resistance = DataComponent('Resistance', {
+    effect: '',
+    level: RG.RESISTANCE.MINOR
+});
 
 /* Used currently for magical arrows to distinguish them from shot/thrown
  * projectiles. */
