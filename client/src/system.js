@@ -542,8 +542,8 @@ RG.System.Missile = function(compTypes) {
             const currCell = map.getCell(currX, currY);
 
             let shownMsg = '';
-            // Wall was hit, stop missile
-            if (currCell.hasPropType('wall')) {
+            // Non-actor obstacle was hit, stop missile
+            if (!currCell.hasActors() && !currCell.isPassableByAir()) {
                 mComp.prev();
                 const prevX = mComp.getX();
                 const prevY = mComp.getY();
