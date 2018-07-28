@@ -397,9 +397,10 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
                 }
                 else { // 2. Or create a new component
                     const comp = this.createComponent(compName);
+                    newObj.add(compName, comp);
                     if (typeof comp[fname] === 'function') {
                         comp[fname](val); // Then call comp setter
-                        newObj.add(compName, comp);
+                        // newObj.add(compName, comp);
                     }
                     else if (typeof fname === 'object') {
                         const funcNames = Object.keys(compData.func);
