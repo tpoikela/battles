@@ -146,6 +146,10 @@ class BattlesTop extends Component {
             yMult: 3
         };
 
+        // Params to control the auto-movement (when clicking a cell etc)
+        this.finishAutoOnSight = true;
+        this.finishAutoDist = 3;
+
         this.keysEnabled = false;
         this.keyPending = false;
         this.autoModeKeyBuffer = [];
@@ -672,12 +676,26 @@ class BattlesTop extends Component {
                 this.ctrlMode = 'MANUAL';
             }
             else {
+                const [pX, pY] = this.game.getPlayer().getXY();
                 const enemies = RG.findEnemyCellForActor(this.game.getPlayer(),
                     this.gameState.visibleCells);
                 if (enemies.length > 0) {
-                    RG.gameMsg('You spot an enemy');
-                    this.ctrlMode = 'MANUAL';
-                    this.clickHandler.reset();
+                    let enemyTooClose = false;
+                    enemies.forEach(enemy => {
+                        const [eX, eY] = enemy.getXY();
+                        const [dX, dY] = RG.dXdYAbs([pX, pY], [eX, eY]);
+                        if (this.finishAutoOnSight || dX < this.finishAutoDist
+                            || dY < this.finishAutoDist) {
+                            enemyTooClose = true;
+                        }
+
+                    });
+
+                    if (enemyTooClose) {
+                        RG.gameMsg('You spot an enemy');
+                        this.ctrlMode = 'MANUAL';
+                        this.clickHandler.reset();
+                    }
                 }
             }
         }
@@ -687,7 +705,6 @@ class BattlesTop extends Component {
         if (this.keyPending === true || this.ctrlMode === 'AUTOMATIC') {
             const code = this.getNextCode();
             if (code.cmd) {
-                console.log('updating game with ' + JSON.stringify(code));
                 this.game.update(code);
             }
             else {this.game.update({code});}
