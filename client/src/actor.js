@@ -25,6 +25,8 @@ class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
     }
 
     isPlayer() {return false;}
+    isEnemy() {return false;}
+    addEnemy() {/* No implementation here */}
 
     setName(name) {this._name = name;}
     getName() {return this._name;}
@@ -39,6 +41,8 @@ class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
     getSpeed() {
         return RG.BASE_SPEED;
     }
+
+    getEquipProtection() {return 0;}
 
     /* Returns the next action for this actor.*/
     nextAction(obj) {
