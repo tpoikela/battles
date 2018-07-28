@@ -143,6 +143,11 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
 
         const newObj = this.createNewObject(categ, shell);
 
+        // Example: {name: 'bat', addComp: 'Flying'}
+        if (shell.hasOwnProperty('addComp')) {
+            this.addComponent(shell, newObj);
+        }
+
         // If propToCall table has the same key as shell property, call
         // function in _propToCall using the newly created object.
         for (const p in shell) {
@@ -222,10 +227,6 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
             this.addLootComponents(shell, newObj);
         }
 
-        // Example: {name: 'bat', addComp: 'Flying'}
-        if (shell.hasOwnProperty('addComp')) {
-            this.addComponent(shell, newObj);
-        }
 
         if (shell.hasOwnProperty('poison')) {
             this.addPoison(shell, newObj);
