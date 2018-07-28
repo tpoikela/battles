@@ -884,9 +884,10 @@ RG.System.Damage = function(compTypes) {
     };
 
     const _dropInvAndEq = actor => {
-        const cell = actor.getCell();
-        const x = cell.getX();
-        const y = cell.getY();
+        const [x, y] = actor.getXY();
+        if (!actor.getInvEq) {
+            return;
+        }
         const invEq = actor.getInvEq();
         const items = invEq.getInventory().getItems();
         const actorLevel = actor.getLevel();
@@ -929,7 +930,12 @@ RG.System.Damage = function(compTypes) {
                     msg: nameKilled + ' dies horribly of poisoning!'});
             }
 
-            let killMsg = nameKilled + ' was killed';
+            let killVerb = 'killed';
+            if (actor.has('NonSentient')) {
+                killVerb = 'destroyed';
+            }
+
+            let killMsg = nameKilled + ' was ' + killVerb;
             if (src !== NO_DAMAGE_SRC) {killMsg += ' by ' + src.getName();}
 
             RG.gameDanger({cell, msg: killMsg});
