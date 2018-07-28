@@ -637,6 +637,11 @@ describe('Data query functions for objects', function() {
 
         const hComp = forcefield.get('Health');
         expect(hComp.getHP()).to.be.above(0);
+
+        expect(forcefield).to.have.component('Weakness');
+        const weakness = forcefield.get('Weakness');
+        expect(weakness.getEffect()).to.equal(RG.DMG.MAGIC);
+        expect(weakness.getLevel()).to.equal(RG.WEAKNESS.FATAL);
     });
 });
 
