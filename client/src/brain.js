@@ -301,11 +301,18 @@ RG.Brain.Base = function(actor) {
     };
 };
 
+RG.Brain.Base.prototype.toJSON = function() {
+    return {
+        type: this._type
+    };
+};
+
 RG.Brain.NonSentient = function(actor) {
     RG.Brain.Base.call(this, actor);
     this.setType('NonSentient');
     this.decideNextAction = () => NO_ACTION_TAKEN;
 };
+RG.extend2(RG.Brain.NonSentient, RG.Brain.Base);
 
 /* Brain is used by the AI to perform and decide on actions. Brain returns
  * actionable callbacks but doesn't know Action objects.  */
