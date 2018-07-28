@@ -63,6 +63,7 @@ const MemoryPlayer = function(player) {
         if (actor.isPlayer()) {
             return false; // Needed for MindControl
         }
+        if (actor.has('NonSentient')) {return false;}
         return actor.getBrain().getMemory().isEnemy(player);
     };
 
