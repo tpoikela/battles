@@ -113,6 +113,11 @@ describe('RG.DataComponent', () => {
 
         immunComp.setDmgType('Fire');
         expect(immunComp.getDmgType()).to.equal('Fire');
+
+        const immunComp2 = new Immunity({ratio: 2}, [], {}, {xxx: 'yyy'});
+        expect(immunComp2.getRatio()).to.equal(2);
+        const immunComp3 = new Immunity({dmgType: 'Ice'});
+        expect(immunComp3.getDmgType()).to.equal('Ice');
     });
 
     it('cannot overwrite Component.Base methods', () => {
@@ -121,6 +126,18 @@ describe('RG.DataComponent', () => {
             Immunity = DataComponent('Immunity', ['type']);
         };
         expect(createFunc).to.throw(Error);
+    });
+
+    it('can have a custom init function', () => {
+        const MonsterComp = DataComponent('Monster',
+            {monstType: '', monstSize: 0});
+        MonsterComp.prototype._init = function(type, size) {
+            this.monstType = type;
+            this.monstSize = size;
+        };
+        const monst = new MonsterComp('Dragon', 'BIG');
+        expect(monst.getMonstType()).to.equal('Dragon');
+        expect(monst.getMonstSize()).to.equal('BIG');
     });
 
 });
