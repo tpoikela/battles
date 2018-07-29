@@ -763,7 +763,7 @@ RG.System.Damage = function(compTypes) {
         dmgComps.forEach(dmgComp => {
             const health = ent.get('Health');
             if (health) {
-                let totalDmg = _getDamageReduced(ent);
+                let totalDmg = _getDamageReduced(ent, dmgComp);
 
                 // Check if any damage was done at all
                 if (totalDmg <= 0) {
@@ -815,8 +815,7 @@ RG.System.Damage = function(compTypes) {
 
     /* Checks if protection checks can be applied to the damage caused. For
      * damage like hunger and poison, no protection helps.*/
-    const _getDamageReduced = ent => {
-        const dmgComp = ent.get('Damage');
+    const _getDamageReduced = (ent, dmgComp) => {
         const dmg = dmgComp.getDamage();
         const dmgType = dmgComp.getDamageType();
         const src = dmgComp.getSource();
