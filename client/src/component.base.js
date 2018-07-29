@@ -47,18 +47,18 @@ const DataComponent = (type, members, compAttrib = {}) => {
     }
 
     // This is the constructor function to be returned
-    const CompDecl = function(args) {
+    const CompDecl = function(...argsList) {
         RG.Component.Base.call(this, type);
         Object.keys(compAttrib).forEach(key => {
             this[key] = compAttrib[key];
         });
         Object.keys(members).forEach(key => {
-            if (args && args.hasOwnProperty(key)) {
-                this[key] = args[key];
+            if (argsList && argsList[0] && argsList[0].hasOwnProperty(key)) {
+                this[key] = argsList[0][key];
             }
             else if (typeof members[key] === 'object') {
-                // Unless cloned, the object ref is same for all instances of
-                // this component.
+                // Unless cloned, the object ref is same for all
+                // instances of this component.
                 this[key] = JSON.parse(JSON.stringify(members[key]));
             }
             else {
@@ -68,7 +68,7 @@ const DataComponent = (type, members, compAttrib = {}) => {
         // User can define _init function if complex initialisation required
         // For example, onAdd/onRemove callbacks can be given here
         if (this._init && typeof this._init === 'function') {
-            this._init(args);
+            this._init(...argsList);
         }
     };
     RG.extend2(CompDecl, RG.Component.Base);
