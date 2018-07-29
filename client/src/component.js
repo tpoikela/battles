@@ -76,30 +76,14 @@ RG.extend2(RG.Component.Health, RG.Component.Base);
 RG.Component.Dead = UniqueTagComponent('Dead');
 RG.Component.Corporeal = UniqueTagComponent('Corporeal');
 
-/* Component which is used to deal damage.*/
-RG.Component.Damage = function(dmg, type) {
-    RG.Component.Base.call(this, 'Damage');
-    this.toJSON = RG.Component.NO_SERIALISATION;
+RG.Component.Damage = TransientDataComponent('Damage', {
+    damage: 0, source: null, weapon: null, damageType: '', damageCateg: ''
+});
 
-    let _dmg = dmg;
-    let _dmgType = type;
-    let _src = null;
-    let _weapon = null;
-
-    this.getDamage = () => _dmg;
-    this.setDamage = dmg => {_dmg = dmg;};
-
-    this.getDamageType = () => _dmgType;
-    this.setDamageType = type => {_dmgType = type;};
-
-    this.getSource = () => _src;
-    this.setSource = src => {_src = src;};
-
-    this.getWeapon = () => _weapon;
-    this.setWeapon = weapon => {_weapon = weapon;};
-
+RG.Component.Damage.prototype._init = function(dmg, type) {
+    this.damage = dmg;
+    this.damageType = type;
 };
-RG.extend2(RG.Component.Damage, RG.Component.Base);
 
 /* Component used in entities gaining experience.*/
 RG.Component.Experience = UniqueDataComponent('Experience',
