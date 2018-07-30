@@ -763,7 +763,7 @@ RG.System.Damage = function(compTypes) {
         dmgComps.forEach(dmgComp => {
             const health = ent.get('Health');
             if (health) {
-                let totalDmg = _getDamageReduced(ent, dmgComp);
+                let totalDmg = this._getDamageModified(ent, dmgComp);
 
                 // Check if any damage was done at all
                 if (totalDmg <= 0) {
@@ -773,7 +773,7 @@ RG.System.Damage = function(compTypes) {
                     RG.gameMsg({msg, cell: ent.getCell()});
                 }
                 else {
-                    _applyAddOnHitComp(ent);
+                    _applyAddOnHitComp(ent, dmgComp);
                     health.decrHP(totalDmg);
                     if (debug.enabled) {
                         const hpMax = health.getMaxHP();
@@ -815,12 +815,12 @@ RG.System.Damage = function(compTypes) {
 
     /* Checks if protection checks can be applied to the damage caused. For
      * damage like hunger and poison, no protection helps.*/
-    const _getDamageReduced = (ent, dmgComp) => {
-        const dmg = dmgComp.getDamage();
+    this._getDamageModified = (ent, dmgComp) => {
         const dmgType = dmgComp.getDamageType();
         const src = dmgComp.getSource();
 
         if (src !== null) {ent.addEnemy(src);}
+        const dmg = _getDmgAfterWeaknessAndResistance(ent, dmgComp);
 
         // Deal with "internal" damage bypassing protection here
         const cell = ent.getCell();
@@ -856,6 +856,66 @@ RG.System.Damage = function(compTypes) {
         return totalDmg;
     };
 
+    const _getDmgAfterWeaknessAndResistance = (ent, dmgComp) => {
+        let dmg = dmgComp.getDamage();
+        if (ent.has('Weakness')) {
+            const weakList = ent.getList('Weakness');
+            weakList.forEach(weakComp => {
+                if (this.effectMatches(dmgComp, weakComp)) {
+                    const effLevel = weakComp.getLevel();
+                    switch (effLevel) {
+                        case RG.WEAKNESS.MINOR: {
+                            dmg = Math.round(1.25 * dmg); break;
+                        }
+                        case RG.WEAKNESS.MEDIUM: {
+                            dmg = Math.round(1.5 * dmg); break;
+                        }
+                        case RG.WEAKNESS.SEVERE: dmg *= 2; break;
+                        case RG.WEAKNESS.FATAL: {
+                            dmg = ent.get('Health').getMaxHP(); break;
+                        }
+                        default: break;
+                    }
+                }
+            });
+        }
+        if (ent.has('Resistance')) {
+            const resistList = ent.getList('Resistance');
+            resistList.forEach(resistComp => {
+                if (this.effectMatches(dmgComp, resistComp)) {
+                    const effLevel = resistComp.getLevel();
+                    switch (effLevel) {
+                        case RG.RESISTANCE.MINOR: {
+                            dmg = Math.round(dmg / 1.25); break;
+                        }
+                        case RG.RESISTANCE.MEDIUM: {
+                            dmg = Math.round(dmg / 1.5); break;
+                        }
+                        case RG.RESISTANCE.STRONG: {
+                            dmg = Math.round(dmg / 2); break;
+                        }
+                        case RG.RESISTANCE.IMMUNITY: dmg = 0; break;
+                        case RG.RESISTANCE.ABSORB: {
+                            const health = ent.get('Health');
+                            health.addHP(dmg);
+                            break;
+                        }
+                        default: break;
+                    }
+
+                }
+            });
+        }
+        return dmg;
+    };
+
+    this.effectMatches = (dmgComp, effComp) => {
+        const effect = effComp.getEffect();
+        const dmgType = dmgComp.getDamageType();
+        const dmgCateg = dmgComp.getDamageCateg();
+        return effect === dmgType || effect === dmgCateg;
+    };
+
     /* Returns true if the hit bypasses defender's protection completely. */
     this.bypassProtection = (ent, src) => {
         const bypassChance = RNG.getUniform();
@@ -866,8 +926,7 @@ RG.System.Damage = function(compTypes) {
     };
 
     /* Applies add-on hit effects such as poison, frost or others. */
-    const _applyAddOnHitComp = ent => {
-        const dmgComp = ent.get('Damage');
+    const _applyAddOnHitComp = (ent, dmgComp) => {
         const weapon = dmgComp.getWeapon();
         if (weapon) { // Attack was done using weapon
             if (weapon.has('AddOnHit')) {
@@ -1826,14 +1885,18 @@ RG.System.SpellEffect = function(compTypes) {
                 if (cell.hasActors()) {
                     // Deal some damage etc
                     const actor = cell.getActors()[0];
-                    if (this.rayHitsActor(actor, rangeLeft)) {
-                        const dmg = new RG.Component.Damage();
-                        dmg.setSource(ent);
-                        dmg.setDamageType(args.damageType);
-                        dmg.setDamage(args.damage);
+                    const actorName = actor.getName();
+                    const stopSpell = actor.has('SpellStop');
+                    if (stopSpell || this.rayHitsActor(actor, rangeLeft)) {
+                        const dmg = this.createDmgComp(ent, args);
 
                         if (spell.onHit) {
                             spell.onHit(actor, ent);
+                        }
+                        if (stopSpell) {
+                            rangeLeft = 0;
+                            RG.gameMsg({cell: cell,
+                                msg: `${name} is stopped by ${actorName}`});
                         }
 
                         // TODO add some evasion checks
@@ -1841,11 +1904,11 @@ RG.System.SpellEffect = function(compTypes) {
                         // not all spells cause damage
                         actor.add('Damage', dmg);
                         RG.gameMsg({cell: cell,
-                            msg: `${name} hits ${actor.getName()}`});
+                            msg: `${name} hits ${actorName}`});
                     }
                     else {
                         RG.gameMsg({cell: cell,
-                            msg: `${name} misses ${actor.getName()}`});
+                            msg: `${name} misses ${actorName}`});
                     }
                 }
                 if (!cell.isSpellPassable()) {
@@ -1871,6 +1934,15 @@ RG.System.SpellEffect = function(compTypes) {
         };
         const animComp = new RG.Component.Animation(animArgs);
         ent.add('Animation', animComp);
+    };
+
+    this.createDmgComp = function(ent, args) {
+        const dmg = new RG.Component.Damage();
+        dmg.setSource(ent);
+        dmg.setDamageType(args.damageType);
+        dmg.setDamage(args.damage);
+        dmg.setDamageCateg(RG.DMG.MAGIC);
+        return dmg;
     };
 
     this.rayHitsActor = function(actor, rangeLeft) {
@@ -2084,6 +2156,7 @@ RG.System.SpellEffect = function(compTypes) {
         dmg.setSource(args.src);
         dmg.setDamageType(args.damageType);
         dmg.setDamage(args.damage);
+        dmg.setDamageCateg(RG.DMG.MAGIC);
         actor.add('Damage', dmg);
     };
 
