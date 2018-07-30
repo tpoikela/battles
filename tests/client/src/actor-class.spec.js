@@ -48,3 +48,19 @@ describe('ActorClass.Marksman', () => {
 
     });
 });
+
+
+describe('Advancing actor class', () => {
+    it('can advance the actor at each level', () => {
+        const classes = ['Adventurer', 'Blademaster', 'Marksman',
+            'Spiritcrafter', 'Spellsinger', 'Cryomancer', 'Alpinist'];
+        classes.forEach(actorClass => {
+            const advancer = new RG.Actor.Rogue('advancer');
+            const classObj = new ActorClass[actorClass](advancer);
+            for (let i = 1; i <= 32; i++) {
+                advancer.get('Experience').setExpLevel(i);
+                classObj.advanceLevel();
+            }
+        });
+    });
+});
