@@ -1055,23 +1055,8 @@ RG.Spell.MindControl = function() {
 };
 RG.extend2(RG.Spell.MindControl, RG.Spell.Base);
 
-/* Blizzard spell produce damaging effect over certain area. */
-RG.Spell.Blizzard = function() {
-    RG.Spell.Ranged.call(this, 'Blizzard', 35);
-
-    this.cast = function(args) {
-        const obj = {src: args.src, range: this.getRange()};
-        obj.damageType = RG.DMG.ICE;
-        obj.damage = this.getDice()[0].roll();
-        obj.spell = this;
-        const spellComp = new RG.Component.SpellArea();
-        spellComp.setArgs(obj);
-        args.src.add(spellComp);
-
-        const name = args.src.getName();
-        const msg = `Huge blizzard emanates from ${name}`;
-        RG.gameMsg({msg, cell: args.src.getCell()});
-    };
+RG.Spell.AreaBase = function(name, power) {
+    RG.Spell.Ranged.call(this, name, power);
 
     this.getSelectionObject = function(actor) {
         return RG.Spell.getSelectionObjectSelf(this, actor);
@@ -1081,8 +1066,36 @@ RG.Spell.Blizzard = function() {
         return aiEnemyWithinDist(args, cb, this);
     };
 
+    this.cast = function(args) {
+        const obj = {src: args.src, range: this.getRange()};
+        obj.damageType = this.damageType;
+        obj.damage = this.getDice()[0].roll();
+        obj.spell = this;
+        const spellComp = new RG.Component.SpellArea();
+        spellComp.setArgs(obj);
+        args.src.add(spellComp);
+
+        const name = args.src.getName();
+        const msg = `Huge ${this.getName()} emanates from ${name}`;
+        RG.gameMsg({msg, cell: args.src.getCell()});
+    };
+
 };
-RG.extend2(RG.Spell.Blizzard, RG.Spell.Ranged);
+
+/* Blizzard spell produce damaging effect over certain area. */
+RG.Spell.Blizzard = function() {
+    RG.Spell.AreaBase.call(this, 'Blizzard', 35);
+    this.setDice([RG.FACT.createDie('5d5 + 5')]);
+    this.damageType = RG.DMG.ICE;
+};
+RG.extend2(RG.Spell.Blizzard, RG.Spell.AreaBase);
+
+RG.Spell.EnergyStorm = function() {
+    RG.Spell.AreaBase.call(this, 'EnergyStorm', 20);
+    this.setDice([RG.FACT.createDie('3d4 + 3')]);
+    this.damageType = RG.DMG.ENERGY;
+};
+RG.extend2(RG.Spell.EnergyStorm, RG.Spell.AreaBase);
 
 function aiEnemyWithinDist(args, cb, spell) {
     const {actor, enemy} = args;
