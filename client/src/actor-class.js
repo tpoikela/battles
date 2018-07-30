@@ -667,7 +667,7 @@ class Spiritcrafter extends ActorClassBase {
         this._messages = {
             4: `${_name} can now equip 2 spirit gems`,
             8: `${_name} learns to project small amounts of energy`,
-            12: `${_name} gains new skill`,
+            12: `${_name} learns to create protective forcefields`,
             16: `${_name} can now equip 3 spirit gems`,
             20: `${_name} can now bind spirit gems to items`,
             24: `${_name} can take a spirit form now`,
@@ -688,7 +688,7 @@ class Spiritcrafter extends ActorClassBase {
                 this._actor.getBook().addSpell(new RG.Spell.EnergyArrow());
             },
             12: () => {
-
+                this._actor.getBook().addSpell(new RG.Spell.ForceField());
             },
             16: () => {
                 const eq = this.getActor().getInvEq().getEquipment();
@@ -701,7 +701,7 @@ class Spiritcrafter extends ActorClassBase {
                 this._actor.getBook().addSpell(new RG.Spell.SpiritForm());
             },
             28: () => {
-
+                this._actor.getBook().addSpell(new RG.Spell.EnergyStorm());
             },
             32: () => {
 
