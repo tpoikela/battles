@@ -843,15 +843,19 @@ RG.dxdYToDir = function(dXdY) {
 };
 
 RG.DMG = {
+    BLUNT: 'BLUNT',
+    COLD: 'COLD',
     ENERGY: 'ENERGY',
+    FIRE: 'FIRE',
+    HUNGER: 'HUNGER',
+    ICE: 'ICE',
+    LIGHTNING: 'LIGHTNING',
     MAGIC: 'MAGIC',
     MELEE: 'MELEE',
     MISSILE: 'MISSILE',
+    PIERCE: 'PIERCE',
     POISON: 'POISON',
-    COLD: 'COLD',
-    ICE: 'ICE',
-    FIRE: 'FIRE',
-    HUNGER: 'HUNGER'
+    SLASH: 'SLASH'
 };
 
 RG.STATS = [
