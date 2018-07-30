@@ -3,11 +3,84 @@ const chai = require('chai');
 const RG = require('../../../client/src/battles');
 const RGTest = require('../../roguetest');
 const chaiBattles = require('../../helpers/chai-battles.js');
+const Keys = require('../../../client/src/keymap');
 
 const expect = chai.expect;
 chai.use(chaiBattles);
 
 const spellComps = ['SpellRay', 'SpellCell', 'SpellMissile', 'SpellArea'];
+
+describe('Spell.SpellBook', () => {
+
+    let wizard = null;
+    let book = null;
+    let bookSpells = null;
+
+    beforeEach(() => {
+        wizard = new RG.Actor.Rogue('wizard');
+        book = new RG.Spell.SpellBook(wizard);
+        RG.Spell.addAllSpells(book);
+        bookSpells = book.getSpells();
+    });
+
+    it('it can contain a number of spells', () => {
+        const selObj = book.getSelectionObject();
+        expect(selObj).to.not.be.empty;
+
+        expect(bookSpells.length).to.be.above(15);
+        const selMenu = selObj.getMenu();
+        const menuValues = Object.values(selMenu);
+        expect(menuValues.length).to.be.above(15);
+
+        const selectObjSpell = selObj.select(Keys.VK_a);
+        expect(selectObjSpell).to.not.be.empty;
+
+        if (typeof selectObjSpell === 'function') {
+            selectObjSpell();
+        }
+        else {
+            expect(selectObjSpell).to.have.property('showMenu');
+        }
+    });
+
+    it('has functions for AI spellcasters', () => {
+        const enemy = new RG.Actor.Rogue('enemy');
+        const friend = new RG.Actor.Rogue('friend');
+        const level = RGTest.wrapIntoLevel([enemy, friend, wizard]);
+        RGTest.moveEntityTo(wizard, 1, 1);
+        RGTest.moveEntityTo(friend, 2, 1);
+        RGTest.moveEntityTo(enemy, 3, 3);
+
+        wizard.addEnemy(enemy);
+        wizard.addFriend(friend);
+
+        expect(level.getActors()).to.have.length(3);
+        const actorCellsAround = [level.getMap().getCell(2, 1)];
+        const args = {
+            actor: wizard,
+            enemy,
+            actorCellsAround
+        };
+        const shouldCastCb = () => true;
+        bookSpells.forEach(spell => {
+            if (spell.aiShouldCastSpell) {
+                if (spell.aiShouldCastSpell(args, shouldCastCb)) {
+                    const castArgs = {
+                        src: wizard,
+                        dir: [1, 1],
+                        target: enemy
+                    };
+                    const cast = () => {
+                        spell.cast(castArgs);
+                    };
+                    const msg = `Spell ${spell.getName()} OK`;
+                    expect(cast, msg).not.to.throw(Error);
+                }
+            }
+        });
+
+    });
+});
 
 describe('Spell.IcyPrison', () => {
 
