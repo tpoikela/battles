@@ -72,6 +72,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
             type: 'setType',
             value: 'setValue',
             weight: {comp: 'Physical', func: 'setWeight'},
+            damageType: 'setDamageType',
 
             armour: {
                 attack: 'setAttack',
