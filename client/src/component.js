@@ -783,6 +783,7 @@ RG.Component.SpellSelf = function() {
 };
 RG.extend2(RG.Component.SpellSelf, RG.Component.SpellBase);
 
+RG.Component.SpellStop = UniqueTagComponent('SpellStop');
 //--------------------------------------------
 // Adventurer components
 //--------------------------------------------
