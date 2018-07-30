@@ -223,14 +223,14 @@ RG.Spell.SpellBook.prototype.getSpells = function() {
 RG.Spell.SpellBook.prototype.getSelectionObject = function() {
     const powerSorted = this._spells;
     return {
-        select: function(code) {
+        select: code => {
             const selection = Keys.codeToIndex(code);
             if (selection < powerSorted.length) {
                 return powerSorted[selection].getSelectionObject(this._actor);
             }
             return null;
         },
-        getMenu: function() {
+        getMenu: () => {
             RG.gameMsg('Please select a spell to cast:');
             const indices = Keys.menuIndices.slice(0, this._spells.length);
             const obj = {};
@@ -266,7 +266,6 @@ RG.Spell.Base = function(name, power) {
             capNames.push(name.capitalize());
         });
         this._new = capNames.join('');
-
     };
     this.setName(name);
 
@@ -640,6 +639,10 @@ RG.Spell.MagicArmor = function() {
 
     this.getSelectionObject = function(actor) {
         return RG.Spell.getSelectionObjectSelf(this, actor);
+    };
+
+    this.aiShouldCastSpell = (args, cb) => {
+        return aiSpellCellFriend(args, cb);
     };
 
 };
@@ -1075,18 +1078,22 @@ RG.Spell.Blizzard = function() {
     };
 
     this.aiShouldCastSpell = (args, cb) => {
-        const {actor, enemy} = args;
-        const getDist = RG.Brain.distToActor(actor, enemy);
-        if (getDist <= this.getRange()) {
-            const spellArgs = {target: enemy, src: actor};
-            cb(actor, spellArgs);
-            return true;
-        }
-        return false;
+        return aiEnemyWithinDist(args, cb, this);
     };
 
 };
 RG.extend2(RG.Spell.Blizzard, RG.Spell.Ranged);
+
+function aiEnemyWithinDist(args, cb, spell) {
+    const {actor, enemy} = args;
+    const getDist = RG.Brain.distToActor(actor, enemy);
+    if (getDist <= spell.getRange()) {
+        const spellArgs = {target: enemy, src: actor};
+        cb(actor, spellArgs);
+        return true;
+    }
+    return false;
+}
 
 /* Healing spell, duh. */
 RG.Spell.Heal = function() {
@@ -1120,6 +1127,8 @@ RG.Spell.RingOfFire = function() {
     this._durationDie = RG.FACT.createDie('10d10');
     this._range = 2;
 
+    this.getRange = () => this._range;
+
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
         obj.callback = this.castCallback.bind(this);
@@ -1148,6 +1157,10 @@ RG.Spell.RingOfFire = function() {
                 fadingComp.setDuration(duration);
             }
         });
+    };
+
+    this.aiShouldCastSpell = (args, cb) => {
+        return aiEnemyWithinDist(args, cb, this);
     };
 };
 RG.extend2(RG.Spell.RingOfFire, RG.Spell.Base);
@@ -1238,6 +1251,7 @@ RG.Spell.addAllSpells = book => {
     book.addSpell(new RG.Spell.IcyPrison());
     book.addSpell(new RG.Spell.LightningArrow());
     book.addSpell(new RG.Spell.LightningBolt());
+    book.addSpell(new RG.Spell.MagicArmor());
     book.addSpell(new RG.Spell.MindControl());
     book.addSpell(new RG.Spell.Paralysis());
     book.addSpell(new RG.Spell.PowerDrain());
