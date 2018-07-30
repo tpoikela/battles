@@ -1,4 +1,6 @@
 
+const RG = require('../src/rg');
+
 const scaleAll = 1.0;
 
 /* Function to scale the item values. For fine-tuning the game balance. */
@@ -529,35 +531,39 @@ const Items = [
     },
     {
         name: 'Shuriken', base: 'MissileBase', className: 'cell-item-iron',
-        char: '*', damage: '1d6', range: 3, value: value(20)
+        char: '*', damage: '1d6', range: 3, value: value(20),
+        weaponType: 'shuriken'
     },
     {
         name: 'Iron dart', base: 'MissileBase', className: 'cell-item-iron',
-        damage: '1d6 + 1', range: 4, value: value(40)
+        damage: '1d6 + 1', range: 4, value: value(40), weaponType: 'dart'
     },
     {
         name: 'Steel dart', base: 'MissileBase', className: 'cell-item-steel',
-        damage: '1d6 + 3', range: 4, value: value(50)
+        damage: '1d6 + 3', range: 4, value: value(50), weaponType: 'dart'
     },
     {
         name: 'Throwing axe', base: 'MissileBase', className: 'cell-item-iron',
-        attack: 2, damage: '1d8 + 1', range: 3, value: value(60), weight: 0.3
+        attack: 2, damage: '1d8 + 1', range: 3, value: value(60), weight: 0.3,
+        weaponType: 'axe'
     },
     {
         name: 'Ruby glass throwing knife', base: 'MissileBase',
         className: 'cell-item-ruby-glass',
-        attack: 3, damage: '1d10', range: 5, value: value(80), weight: 0.1
+        attack: 3, damage: '1d10', range: 5, value: value(80), weight: 0.1,
+        weaponType: 'dagger'
     },
     {
         name: 'Magic Shuriken', base: 'MissileBase',
         attack: 3, className: 'cell-item-magic', char: '*', material: 'forium',
-        damage: '3d4 + 2', range: 5, value: value(100), weight: 0.1
+        damage: '3d4 + 2', range: 5, value: value(100), weight: 0.1,
+        weaponType: 'shuriken'
     },
     {
         name: 'Throwing axe of death', base: 'MissileBase',
         className: 'cell-item-magic',
         attack: 5, damage: '2d10 + 3', range: 3, value: value(200), weight: 0.5,
-        addComp: 'Indestructible'
+        addComp: 'Indestructible', weaponType: 'axe'
     },
 
     // MISSILE WEAPONS
@@ -956,5 +962,33 @@ const Items = [
 
     // ARTIFACT ITEMS
 ];
+
+const dmgTypes = {
+    sword: RG.DMG.SLASH,
+    spear: RG.DMG.PIERCE,
+    dagger: RG.DMG.SLASH,
+    axe: RG.DMG.PIERCE,
+
+    dart: RG.DMG.PIERCE,
+    shuriken: RG.DMG.PIERCE,
+
+    bow: RG.DMG.PIERCE,
+    crossbow: RG.DMG.PIERCE,
+    rifle: RG.DMG.PIERCE
+};
+
+/* Set damage types for weapons. */
+Items.forEach(item => {
+    if (item.weaponType) {
+        if (dmgTypes.hasOwnProperty(item.weaponType)) {
+            item.damageType = dmgTypes[item.weaponType];
+        }
+    }
+    else if (item.ammoType) {
+        if (dmgTypes.hasOwnProperty(item.ammoType)) {
+            item.damageType = dmgTypes[item.ammoType];
+        }
+    }
+});
 
 module.exports = Items;
