@@ -37,10 +37,10 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
         super({owner: null, type: RG.TYPE_ITEM, propType: RG.TYPE_ITEM});
         this._name = name;
         this._value = 1;
+        this._damageType = RG.DMG.BLUNT;
         this.count = 1; // Number of items
         this.add(new RG.Component.Physical());
     }
-
 
     setName(name) {this._name = name;}
     getName() {return this._name;}
@@ -55,6 +55,9 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
     getValue() {return this._value;}
 
     setCount(count) {this.count = count;}
+
+    setDamageType(type) {this._damageType = type;}
+    getDamageType() {return this._damageType;}
 
     /* Used when showing the item in inventory lists etc. */
     toString() {
@@ -117,7 +120,8 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
             setWeight: this.getWeight(),
             setPropType: RG.TYPE_ITEM,
             setType: this.getType(),
-            setCount: this.count
+            setCount: this.count,
+            setDamageType: this._damageType
         };
         json.components = RG.Component.compsToJSON(this);
         return json;
@@ -469,7 +473,7 @@ RG.Item.Rune = RGItemRune;
 //----------------------------------------------
 /* RGItemMissile Object for thrown missile. */
 //----------------------------------------------
-class RGItemMissile extends Mixin.Damage(ItemBase) {
+class RGItemMissile extends RGItemWeapon {
     constructor(name) {
         super(name);
         this.setType(RG.ITEM_MISSILE);
