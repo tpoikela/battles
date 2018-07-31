@@ -168,7 +168,7 @@ const Items = [
     },
     {
         name: 'Permaice dagger', base: 'IceWeaponBase',
-        damage: '1d4 + 9', defense: 3, weight: 0.6, value: value(100),
+        damage: '1d4 + 9', defense: 6, weight: 0.6, value: value(150),
         weaponType: 'dagger'
     },
     {
@@ -177,21 +177,29 @@ const Items = [
         weaponType: 'sword'
     },
     {
+        name: 'Permaice mace', base: 'IceWeaponBase',
+        damage: '2d7 + 6', weaponType: 'mace',
+        defense: 6, weight: 2.5, value: value(300)
+    },
+    {
         name: 'Permaice staff', base: 'IceWeaponBase',
         damage: '3d5', weaponType: 'staff',
-        defense: 7,
-        weight: 3.8, value: value(300)
+        defense: 7, weight: 3.8, value: value(300)
     },
     {
         name: 'Permaice axe', base: 'IceWeaponBase',
         damage: '3d6 + 6', defense: 7,
-        weaponType: 'axe',
-        weight: 4.5, value: value(400)
+        weaponType: 'axe', weight: 4.5, value: value(400)
     },
     {
         name: 'Permaice long sword', base: 'IceWeaponBase',
         damage: '4d5 + 6', defense: 8, weight: 3.0, value: value(500),
         weaponType: 'sword'
+    },
+    {
+        name: 'Permaice spear', base: 'IceWeaponBase',
+        damage: '4d5 + 6', defense: 12, weight: 3.5, value: value(550),
+        weaponType: 'spear'
     },
     {
         name: 'Permaice katana', base: 'IceWeaponBase',
@@ -208,7 +216,7 @@ const Items = [
     {
         name: 'Ruby glass dagger', base: 'RubyWeaponBase',
         damage: '2d5 + 2',
-        attack: 4, defense: 1, weight: 0.1, value: value(100),
+        attack: 4, defense: 1, weight: 0.1, value: value(110),
         weaponType: 'dagger'
     },
     {
@@ -216,6 +224,12 @@ const Items = [
         damage: '3d5 + 2',
         attack: 3, defense: 2, weight: 0.2, value: value(200),
         weaponType: 'sword'
+    },
+    {
+        name: 'Ruby glass mace', base: 'RubyWeaponBase',
+        damage: '3d6 + 2',
+        attack: 3, defense: 3, weight: 0.3, value: value(250),
+        weaponType: 'mace'
     },
     {
         name: 'Ruby glass staff', base: 'RubyWeaponBase',
@@ -259,6 +273,12 @@ const Items = [
         damage: '3d5 + 2',
         attack: 3, defense: 2, weight: 0.5, value: value(300),
         weaponType: 'sword'
+    },
+    {
+        name: 'Magic mace', base: 'MagicWeaponBase',
+        damage: '3d6 + 2',
+        attack: 3, defense: 2, weight: 1.0, value: value(340),
+        weaponType: 'mace'
     },
     {
         name: 'Magic axe', base: 'MagicWeaponBase',
