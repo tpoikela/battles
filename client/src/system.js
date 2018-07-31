@@ -928,10 +928,16 @@ RG.System.Damage = function(compTypes) {
     /* Applies add-on hit effects such as poison, frost or others. */
     const _applyAddOnHitComp = (ent, dmgComp) => {
         const weapon = dmgComp.getWeapon();
-        if (weapon) { // Attack was done using weapon
+        if (weapon && weapon.has) { // Attack was done using weapon
             if (weapon.has('AddOnHit')) {
                 const comp = weapon.get('AddOnHit').getComp();
                 addCompToEntAfterHit(comp, ent);
+            }
+        }
+        else if (weapon && weapon.onHit) {
+            const src = dmgComp.getSource();
+            if (weapon.onHit) {
+                weapon.onHit(ent, src);
             }
         }
         else { // No weapon was used
@@ -1888,11 +1894,8 @@ RG.System.SpellEffect = function(compTypes) {
                     const actorName = actor.getName();
                     const stopSpell = actor.has('SpellStop');
                     if (stopSpell || this.rayHitsActor(actor, rangeLeft)) {
-                        const dmg = this.createDmgComp(ent, args);
+                        this._addDamageToActor(actor, args);
 
-                        if (spell.onHit) {
-                            spell.onHit(actor, ent);
-                        }
                         if (stopSpell) {
                             rangeLeft = 0;
                             RG.gameMsg({cell: cell,
@@ -1902,7 +1905,6 @@ RG.System.SpellEffect = function(compTypes) {
                         // TODO add some evasion checks
                         // TODO add onHit callback for spell because
                         // not all spells cause damage
-                        actor.add('Damage', dmg);
                         RG.gameMsg({cell: cell,
                             msg: `${name} hits ${actorName}`});
                     }
@@ -1936,14 +1938,6 @@ RG.System.SpellEffect = function(compTypes) {
         ent.add('Animation', animComp);
     };
 
-    this.createDmgComp = function(ent, args) {
-        const dmg = new RG.Component.Damage();
-        dmg.setSource(ent);
-        dmg.setDamageType(args.damageType);
-        dmg.setDamage(args.damage);
-        dmg.setDamageCateg(RG.DMG.MAGIC);
-        return dmg;
-    };
 
     this.rayHitsActor = function(actor, rangeLeft) {
         if (!actor.has('Health')) {
@@ -2157,7 +2151,8 @@ RG.System.SpellEffect = function(compTypes) {
         dmg.setDamageType(args.damageType);
         dmg.setDamage(args.damage);
         dmg.setDamageCateg(RG.DMG.MAGIC);
-        actor.add('Damage', dmg);
+        dmg.setWeapon(args.spell);
+        actor.add(dmg);
     };
 
 };
