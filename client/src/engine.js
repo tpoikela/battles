@@ -68,7 +68,7 @@ const Engine = function(eventPool) {
     this.systems.Communication = new RG.System.Communication(
         ['Communication']);
     this.systems.Events = new RG.System.Events(['Event']);
-    this.systems.AreaEffects = new RG.System.AreaEffects(['Fire']);
+    this.systems.AreaEffects = new RG.System.AreaEffects(['Flame']);
 
     // Systems updated once each game loop (once for each player action)
     this.loopSystemOrder = ['Hunger'];
