@@ -251,7 +251,7 @@ RG.Factory.Actor = function() {
             case 'Animal': return new RG.Brain.Animal(actor);
             case 'Archer': return new RG.Brain.Archer(actor);
             case 'Demon': return new RG.Brain.Demon(actor);
-            case 'Fire': return new RG.Brain.Fire(actor);
+            case 'Flame': return new RG.Brain.Flame(actor);
             case 'GoalOriented': return new RG.Brain.GoalOriented(actor);
             case 'Human': return new RG.Brain.Human(actor);
             case 'NonSentient': return new RG.Brain.NonSentient(actor);
