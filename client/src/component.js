@@ -610,10 +610,12 @@ RG.Component.Ammo = TagComponent('Ammo');
 RG.Component.Flying = TagComponent('Flying');
 RG.Component.Undead = TagComponent('Undead');
 RG.Component.Summoned = TagComponent('Summoned');
-RG.Component.Fire = TagComponent('Fire');
 RG.Component.Sharpener = TagComponent('Sharpener');
 RG.Component.Sharpened = TagComponent('Sharpened');
 RG.Component.Possessed = TagComponent('Possessed');
+
+RG.Component.Flame = DataComponent('Flame',
+    {damageType: '', damage: 1});
 
 RG.Component.Weakness = DataComponent('Weakness', {
     effect: '',
