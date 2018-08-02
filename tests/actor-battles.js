@@ -84,7 +84,9 @@ ActorBattles.prototype.runBattleTest = function(a1, a2) {
     const a2Name = actor2.getName();
 
     const a1Level = actor1.get('Experience').getExpLevel();
-    RG.levelUpActor(actor2, a1Level);
+    if (a1Level > actor2.get('Experience').getExpLevel()) {
+        RG.levelUpActor(actor2, a1Level);
+    }
 
     while (h1.isAlive() && h2.isAlive()) {
         game.simulate();
