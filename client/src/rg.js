@@ -588,7 +588,11 @@ RG.getMissileAttack = function(att) {
 
     // Subtract melee weapon
     const weapon = att.getWeapon();
-    if (weapon) {attack -= weapon.getAttack();}
+    if (weapon) {
+        if (weapon.getAttack) {
+            attack -= weapon.getAttack();
+        }
+    }
 
     return attack;
 };
@@ -1051,6 +1055,14 @@ RG.removeNCoins = (actor, ncoins) => {
     return ncoinsRemoved;
 };
 
+/* Trades the given gold weight from given to another actor. */
+RG.tradeGoldWeightFromTo = (gw, actorFrom, actorTo) => {
+    const nCoins = RG.getGoldInCoins(gw);
+    const coins = new RG.Item.GoldCoin();
+    coins.count = RG.removeNCoins(actorFrom, nCoins);
+    actorTo.getInvEq().addItem(coins);
+};
+
 /* Returns the total stat value of the given stat. Note that stat must be given
  * in getter format ie 'getStrength', not Strength. */
 RG.getItemStat = (getFuncName, item) => {
@@ -1159,7 +1171,9 @@ RG.levelUpActor = (actor, newLevel) => {
             }
         }
         else {
-            RG.err('RG', 'levelUpActor', 'New level must be > current level.');
+            let msg = `Curr: ${currLevel}, New: ${newLevel}`;
+            msg += ' New level must be > current level.';
+            RG.err('RG', 'levelUpActor', msg);
         }
     }
     else {
