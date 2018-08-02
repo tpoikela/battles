@@ -628,7 +628,7 @@ describe('System.Event', () => {
 
 describe('System.AreaEffects', () => {
     it('handles Fire components in cells', () => {
-        const areaSys = new RG.System.AreaEffects(['Fire']);
+        const areaSys = new RG.System.AreaEffects(['Flame']);
         const damageSystem = new RG.System.Damage(['Damage']);
         const systems = [areaSys, damageSystem];
 
@@ -638,15 +638,16 @@ describe('System.AreaEffects', () => {
         const health = burntActor.get('Health');
 
         while (!health.isDead()) {
-            const fireComp = new RG.Component.Fire();
+            const fireComp = new RG.Component.Flame();
+            fireComp.setDamageType(RG.DMG.FIRE);
             burntActor.add(fireComp);
 
-            expect(burntActor).to.have.component('Fire');
+            expect(burntActor).to.have.component('Flame');
             const hpBefore = burntActor.get('Health').getHP();
             updateSystems(systems);
             const hpAfter = burntActor.get('Health').getHP();
             expect(hpAfter).to.be.below(hpBefore);
-            expect(burntActor).not.to.have.component('Fire');
+            expect(burntActor).not.to.have.component('Flame');
         }
     });
 });
