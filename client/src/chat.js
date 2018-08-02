@@ -52,7 +52,7 @@ class ChatTrainer {
     setTarget(target) {
         this.target = target;
         this.costs = [];
-        stats.forEach((stat) => {
+        stats.forEach(stat => {
             const getFunc = 'get' + stat;
             this.costs.push(100 * target.get('Stats')[getFunc]());
         });
@@ -73,10 +73,7 @@ class ChatTrainer {
                 return;
             }
             else {
-                const nCoins = RG.getGoldInCoins(gw);
-                const coins = new RG.Item.GoldCoin();
-                coins.count = RG.removeNCoins(this.target, nCoins);
-                this.trainer.getInvEq().addItem(coins);
+                RG.tradeGoldWeightFromTo(gw, this.target, this.trainer);
             }
 
             const targetStats = this.target.get('Stats');
@@ -104,5 +101,77 @@ class ChatTrainer {
 }
 Chat.Trainer = ChatTrainer;
 
+/* Object attached to wizards selling magical services. */
+class ChatWizard {
+
+    constructor() {
+        this.selectionObject = {
+            showMenu: () => true,
+
+            getMenu: () => {
+                RG.gameMsg('Please select a magical service to buy:');
+                const spellPower = this.wizard.get('SpellPower');
+                const ppLeft = spellPower.getPP();
+                const menuObj = {};
+                if (ppLeft >= 10) {
+                    menuObj[0] = 'Restore 10pp - 10 gold coins';
+                }
+                if (ppLeft >= 50) {
+                    menuObj[1] = 'Restore 50pp - 45 gold coins';
+                }
+                if (ppLeft >= 25) {
+                    menuObj[2] = 'Add one charge to rune - 50 gold coins';
+                }
+            },
+            select: code => {
+                const selection = Keys.codeToIndex(code);
+                console.log(selection);
+                return this.wizardCallback();
+            }
+        };
+        this.wizardCallback = this.wizardCallback.bind(this);
+    }
+
+    /* Sets the target to train. */
+    setWizard(wizard) {
+        this.wizard = wizard;
+    }
+
+    getSelectionObject() {
+        return this.selectionObject;
+    }
+
+    wizardCallback(index, cost) {
+        const cb = () => {
+            if (!RG.hasEnoughGold(this.target, cost)) {
+                return;
+            }
+            switch (index) {
+                case 0: this.restorePP(10); break;
+                case 1: this.restorePP(50); break;
+                case 2: this.setRuneSelectionObject(); break;
+                default: break;
+            }
+
+        };
+        return cb;
+    }
+
+    restorePP(numPP) {
+        const spellPower = this.wizard.get('SpellPower');
+        spellPower.decrPP(numPP);
+        const spTarget = this.target.get('SpellPower');
+        spTarget.addPP(numPP);
+    }
+
+    setRuneSelectionObject() {
+        // Create a list of possible runes to charge up
+        const selObj = {};
+
+        this.target.setSelectionObject(selObj);
+    }
+
+}
+Chat.Wizard = ChatWizard;
 
 module.exports = Chat;
