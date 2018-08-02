@@ -563,6 +563,12 @@ const Items = [
         damage: '1d6 + 3', range: 4, value: value(50), weaponType: 'dart'
     },
     {
+        name: 'Throwing spear', base: 'MissileBase',
+        className: 'cell-item-iron',
+        attack: 2, damage: '1d7 + 1', range: 3, value: value(55), weight: 0.4,
+        weaponType: 'spear'
+    },
+    {
         name: 'Throwing axe', base: 'MissileBase', className: 'cell-item-iron',
         attack: 2, damage: '1d8 + 1', range: 3, value: value(60), weight: 0.3,
         weaponType: 'axe'
@@ -571,7 +577,7 @@ const Items = [
         name: 'Ruby glass throwing knife', base: 'MissileBase',
         className: 'cell-item-ruby-glass',
         attack: 3, damage: '1d10', range: 5, value: value(80), weight: 0.1,
-        weaponType: 'dagger'
+        weaponType: 'dagger', material: 'ruby glass'
     },
     {
         name: 'Magic Shuriken', base: 'MissileBase',
@@ -742,7 +748,7 @@ const Items = [
     },
     {
         name: 'Potion of eagle', base: 'PotionBase',
-        use: {addComp: {name: 'Flying', duration: '5d10'}},
+        use: {addComp: {name: 'Flying', duration: '10d10 + 10'}},
         value: value(80)
     },
     {
@@ -914,11 +920,6 @@ const Items = [
         value: value('rune', 100)
     },
     {
-        name: 'rune of tunneling', base: 'RuneBase',
-        use: 'digger',
-        value: value('rune', 150)
-    },
-    {
         name: 'rune of cold', base: 'RuneBase',
         use: {addComp: {
             name: 'Coldness', duration: '100d5 + 50'
@@ -934,6 +935,16 @@ const Items = [
         name: 'rune of force', base: 'RuneBase',
         use: {addEntity: {entityName: 'Forcefield'}},
         value: value('rune', 100)
+    },
+    {
+        name: 'rune of skies', base: 'RuneBase',
+        use: {addComp: {name: 'Flying', duration: '5d10 + 5'}},
+        value: value('rune', 100)
+    },
+    {
+        name: 'rune of tunneling', base: 'RuneBase',
+        use: 'digger',
+        value: value('rune', 150)
     },
 
     // MINERALS
@@ -983,14 +994,16 @@ const Items = [
     // ARTIFACT ITEMS
 ];
 
+// Maps the weapon type to damage type. Default is RG.DMG.BLUNT, unless
+// specified otherwise here
 const dmgTypes = {
     sword: RG.DMG.SLASH,
     spear: RG.DMG.PIERCE,
     dagger: RG.DMG.SLASH,
-    axe: RG.DMG.PIERCE,
+    axe: RG.DMG.SLASH,
 
     dart: RG.DMG.PIERCE,
-    shuriken: RG.DMG.PIERCE,
+    shuriken: RG.DMG.SLASH,
 
     bow: RG.DMG.PIERCE,
     crossbow: RG.DMG.PIERCE,
