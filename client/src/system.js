@@ -2644,20 +2644,26 @@ RG.System.AreaEffects = function(compTypes) {
     this.heatRange = 1;
 
     this.updateEntity = function(ent) {
-        const fireComps = ent.getList('Fire');
+        const flameComps = ent.getList('Flame');
+        let isFire = false;
         if (ent.has('Health')) {
-            fireComps.forEach(fireComp => {
-                const dmgComp = new RG.Component.Damage(1, RG.DMG.FIRE);
+            flameComps.forEach(flameComp => {
+                const dmgType = flameComp.getDamageType();
+                const dmgComp = new RG.Component.Damage(flameComp.getDamage(),
+                    dmgType);
                 dmgComp.setSource(NO_DAMAGE_SRC);
                 ent.add(dmgComp);
-                ent.remove(fireComp);
+                ent.remove(flameComp);
+                if (dmgType === RG.DMG.FIRE) {isFire = true;}
             });
         }
         else {
             // TODO add damages to doors etc
-            ent.removeAll('Fire');
+            ent.removeAll('Flame');
         }
-        this._createHeatComps(ent);
+        if (isFire) {
+            this._createHeatComps(ent);
+        }
     };
 
     this._createHeatComps = function(ent) {
