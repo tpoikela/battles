@@ -888,8 +888,8 @@ const Actors = [
 //---------------------------------------------------------------------------
 
 // Multiplies each given value in all actors
-Actors.scaleValue = function(actors, valName, multiply) {
-    actors.forEach(actor => {
+Actors.scaleValue = function(actorsData, valName, multiply) {
+    actorsData.forEach(actor => {
         if (Number.isInteger(actor[valName])) {
             actor[valName] = Math.round(multiply * actor[valName]);
         }
@@ -897,8 +897,8 @@ Actors.scaleValue = function(actors, valName, multiply) {
 };
 
 // Adds to the given value in all actors (subtract by giving negative number)
-Actors.addValue = function(actors, valName, addedVal) {
-    actors.forEach(actor => {
+Actors.addValue = function(actorsData, valName, addedVal) {
+    actorsData.forEach(actor => {
         if (Number.isInteger(actor[valName])) {
             actor[valName] += addedVal;
         }
@@ -906,25 +906,32 @@ Actors.addValue = function(actors, valName, addedVal) {
 };
 
 Actors.scale = {
+    attack: 2,
     danger: 1,
     hp: 2
 };
 
-// Adds the given value for
+// Adds the given value for each actor
 Actors.add = {
     attack: 4
 };
 
+Actors.modToFunc = {
+    scale: 'scaleValue',
+    add: 'addValue'
+};
+
+Actors.modOrder = ['scale', 'add'];
 /* Should be called to apply the adjusted values. It's not called by default, as
  * changing the values breaks unit tests fairly easily. If
  * RG.ObjectShell.getParser()
  * is used (recommended), the adjustment is applied automatically. */
-Actors.adjustActorValues = actors => {
-    Object.keys(Actors.scale).forEach(item => {
-        Actors.scaleValue(actors, item, Actors.scale[item]);
-    });
-    Object.keys(Actors.add).forEach(item => {
-        Actors.addValue(actors, item, Actors.add[item]);
+Actors.adjustActorValues = (actorsData, order = Actors.modOrder) => {
+    order.forEach(mod => {
+        const funcName = Actors.modToFunc[mod];
+        Object.keys(Actors[mod]).forEach(item => {
+            Actors[funcName](actorsData, item, Actors[mod][item]);
+        });
     });
 };
 
