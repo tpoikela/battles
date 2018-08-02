@@ -166,6 +166,19 @@ const Actors = [
         brain: 'SpellCaster', spells: ['RockStorm'],
         maxPP: 70, pp: 70
     },
+    {
+        name: 'void elemental', base: 'ConstructBase',
+        char: 'E', className: 'cell-actor-void',
+        attack: 7, defense: 7, protection: 7,
+        hp: 60, danger: 13, damage: '5d4',
+        brain: 'SpellCaster', spells: ['PowerDrain'],
+        addComp: ['SpellStop',
+            {comp: 'Resistance', func: {
+            setEffect: RG.DMG.MAGIC, setLevel: RG.RESISTANCE.ABSORB
+            }}
+        ],
+        maxPP: 70, pp: 70
+    },
 
     // GOBLINS
     {
@@ -894,7 +907,7 @@ Actors.addValue = function(actors, valName, addedVal) {
 
 Actors.scale = {
     danger: 1,
-    hp: 1
+    hp: 2
 };
 
 // Adds the given value for
