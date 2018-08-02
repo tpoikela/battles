@@ -198,13 +198,14 @@ DungeonPopulate.prototype.populatePoint = function(level, point, conf) {
     // const [pX, pY] = point;
     switch (type) {
         case 'NOTHING': break;
+        case 'LOOT': this.addLootToPoint(level, point); break;
         case 'GUARDIAN':
             this.addPointGuardian(level, point, maxDanger);
             break;
         case 'ELEMENT': this.addElementToPoint(level, point, conf); break;
-        case 'CORPSE': break;
-        case 'GOLD': break;
-        case 'TIP': break;
+        case 'CORPSE': this.addCorpseToPoint(level, point, conf); break;
+        case 'GOLD': this.addGoldToPoint(level, point, conf); break;
+        case 'TIP': this.addTipToPoint(level, point, conf); break;
         default: break;
     }
 };
@@ -215,6 +216,46 @@ DungeonPopulate.prototype.populatePoint = function(level, point, conf) {
 
 /* Adds an element into the given point. */
 DungeonPopulate.prototype.addElementToPoint = function(level, point, conf) {
+    console.log(level, conf, point);
+    // TODO
+};
+
+/* Creates a corpse to the given point, and adds some related loot there. */
+DungeonPopulate.prototype.addCorpseToPoint = function(level, point, conf) {
+    console.log(level, conf, point);
+    // TODO
+};
+
+DungeonPopulate.prototype.addLootToPoint = function(level, point) {
+    const maxValue = this.maxValue;
+    const lootTypes = [RG.ITEM_POTION, RG.ITEM_SPIRITGEM, RG.ITEM_AMMUNITION,
+        RG.ITEM_POTION, RG.ITEM_RUNE];
+    const generatedType = RNG.arrayGetRand(lootTypes);
+
+    const parser = RG.ObjectShell.getParser();
+    const lootPrize = parser.createRandomItem(
+        {func: item => item.type >= generatedType
+            && item.value <= maxValue}
+    );
+    if (lootPrize) {
+        const [cx, cy] = point;
+        level.addItem(lootPrize, cx, cy);
+        return true;
+    }
+    return false;
+};
+
+DungeonPopulate.prototype.addGoldToPoint = function(level, point) {
+    const numCoins = this.maxValue;
+    const gold = new RG.Item.GoldCoin();
+    gold.setCount(numCoins);
+    const [cx, cy] = point;
+    level.addItem(gold, cx, cy);
+};
+
+/* Adds a tip/hint to the given point. These hints can reveal information
+ * about world map etc. */
+DungeonPopulate.prototype.addTipToPoint = function(level, point, conf) {
     console.log(level, conf, point);
     // TODO
 };
