@@ -108,7 +108,7 @@ const Engine = function(eventPool) {
             if (this.nextActor !== null) {
                 if (obj.hasOwnProperty('code')) {
                     const code = obj.code;
-                    if (this.isGUICommand(code)) {
+                    if (!this.isMenuShown() && this.isGUICommand(code)) {
                         this.doGUICommand(code);
                         this.playerCommandCallback(this.nextActor);
                     }
@@ -127,6 +127,14 @@ const Engine = function(eventPool) {
             this._eventPool.emitEvent(RG.EVT_MSG, {msg: 'GAME OVER!'});
             this.simulateGame(100);
         }
+    };
+
+    /* Returns true if the menu is shown instead of the level. */
+    this.isMenuShown = function() {
+        if (this.nextActor.isPlayer()) {
+            return this.nextActor.getBrain().isMenuShown();
+        }
+        return false;
     };
 
     /* Updates the loop by executing one player command, then looping until
