@@ -837,6 +837,11 @@ RG.System.Damage = function(compTypes) {
             RG.gameDanger({cell, msg});
             return dmg;
         }
+        else if (dmgType === RG.DMG.ICE) {
+            const msg = `Ice is freezing ${ent.getName()}.`;
+            RG.gameDanger({cell, msg});
+            return dmg;
+        }
         else if (dmgType === RG.DMG.COLD) {
             const msg = `${ent.getName()} is extremely hypothermic`;
             RG.gameInfo({cell, msg});
@@ -2641,20 +2646,23 @@ RG.extend2(RG.System.Events, RG.System.Base);
 RG.System.AreaEffects = function(compTypes) {
     RG.System.Base.call(this, RG.SYS.AREA_EFFECTS, compTypes);
 
-    this.heatRange = 1;
+    this.radRange = 1;
 
     this.updateEntity = function(ent) {
         const flameComps = ent.getList('Flame');
         let isFire = false;
+        let isIce = false;
         if (ent.has('Health')) {
             flameComps.forEach(flameComp => {
                 const dmgType = flameComp.getDamageType();
+                console.log('AreaEffects Damage type will be ' + dmgType);
                 const dmgComp = new RG.Component.Damage(flameComp.getDamage(),
                     dmgType);
                 dmgComp.setSource(NO_DAMAGE_SRC);
                 ent.add(dmgComp);
                 ent.remove(flameComp);
                 if (dmgType === RG.DMG.FIRE) {isFire = true;}
+                else if (dmgType === RG.DMG.ICE) {isIce = true;}
             });
         }
         else {
@@ -2662,16 +2670,19 @@ RG.System.AreaEffects = function(compTypes) {
             ent.removeAll('Flame');
         }
         if (isFire) {
-            this._createHeatComps(ent);
+            this._createRadiationComps(ent, 'Heat', 'Fire');
+        }
+        else if (isIce) {
+            this._createRadiationComps(ent, 'Coldness', 'Ice flame');
         }
     };
 
-    this._createHeatComps = function(ent) {
+    this._createRadiationComps = function(ent, compName, srcName) {
         const map = ent.getLevel().getMap();
         const cell = ent.getCell();
         const [x, y] = cell.getXY();
-        const heatBox = RG.Geometry.getBoxAround(x, y, this.heatRange);
-        heatBox.forEach(xy => {
+        const radiationBox = RG.Geometry.getBoxAround(x, y, this.radRange);
+        radiationBox.forEach(xy => {
             if (map.hasXY(xy[0], xy[1])) {
                 const cell = map.getCell(xy[0], xy[1]);
                 if (cell.hasActors()) {
@@ -2679,8 +2690,8 @@ RG.System.AreaEffects = function(compTypes) {
                     actors.forEach(actor => {
                         // Name check prevents slow down when lots of fire
                         // actors are present
-                        if (actor.getName() !== 'Fire') {
-                            actor.add(new RG.Component.Heat());
+                        if (actor.getName() !== srcName) {
+                            actor.add(new RG.Component[compName]());
                         }
                     });
                 }
