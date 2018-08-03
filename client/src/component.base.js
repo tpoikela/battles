@@ -4,6 +4,8 @@ const debug = require('debug')('bitn:Component');
 
 RG.Component = {};
 
+RG.Component.createdCompDecls = {};
+
 // Used by components which cannot be serialized
 // In your component, add the following:
 //   this.toJSON = NO_SERIALISATION;
@@ -16,6 +18,7 @@ RG.Component.NO_SERIALISATION = NO_SERIALISATION;
  *   const compInst = new MyComponent();
  */
 const TagComponent = function(type, obj = {}) {
+    errorIfCompDeclExists(type);
     const CompDecl = function() {
         RG.Component.Base.call(this, type);
         Object.keys(obj).forEach(key => {
@@ -23,6 +26,7 @@ const TagComponent = function(type, obj = {}) {
         });
     };
     RG.extend2(CompDecl, RG.Component.Base);
+    RG.Component.createdCompDecls[type] = CompDecl;
     return CompDecl;
 };
 RG.Component.TagComponent = TagComponent;
@@ -41,6 +45,7 @@ RG.Component.TagComponent = TagComponent;
  */
 
 const DataComponent = (type, members, compAttrib = {}) => {
+    errorIfCompDeclExists(type);
     if (typeof members !== 'object' || Array.isArray(members)) {
         RG.err('component.js', `DataComponent: ${type}`,
             'Members must be given as key/value pairs.');
@@ -101,6 +106,8 @@ const DataComponent = (type, members, compAttrib = {}) => {
             return this[propName];
         };
     });
+
+    RG.Component.createdCompDecls[type] = CompDecl;
     return CompDecl;
 };
 RG.Component.DataComponent = DataComponent;
@@ -128,6 +135,13 @@ const TransientDataComponent = (type, members) => {
 };
 RG.Component.TransientDataComponent = TransientDataComponent;
 
+/* Raises an error if two comp declarations with same type are created. */
+function errorIfCompDeclExists(type) {
+    if (RG.Component.createdCompDecls[type]) {
+        RG.err('RG.Component', 'Tag/DataComponent',
+            `Duplicate decl: ${type}`);
+    }
+}
 //---------------------------------------------------------------------------
 // ECS COMPONENTS
 //---------------------------------------------------------------------------
