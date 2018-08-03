@@ -372,7 +372,7 @@ RG.Component.create = function(compName, ...args) {
         return new RG.Component[compName](...args);
     }
     RG.err('RG.Component', 'create',
-        `Comp type ${compName} does not exist.`);
+        `Comp type |${compName}| does not exist.`);
     return null;
 };
 
