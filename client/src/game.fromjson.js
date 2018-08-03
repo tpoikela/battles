@@ -526,11 +526,21 @@ RG.Game.FromJSON = function() {
         }
 
         let entity = null;
-        switch (obj.type) {
-            case 'spirit': entity = new RG.Actor.Spirit(obj.name); break;
-            case 'fire': entity = new RG.Actor.Base(obj.name); break;
-            default: entity = new RG.Actor.Rogue(obj.name);
+        if (obj.new && RG.Actor[obj.new]) {
+            entity = new RG.Actor[obj.new](obj.name);
         }
+        else {
+            let msg = '';
+            const json = JSON.stringify(obj);
+            if (!obj.new) {
+                msg = 'No obj.new given. JSON obj: ' + json;
+            }
+            else {
+                msg = `${obj.new} not in RG.Actor. JSON obj: ` + json;
+            }
+            RG.err('Game.FromJSON', 'createActor', msg);
+        }
+
         entity.setType(obj.type);
         entity.setID(obj.id);
         id2entity[entity.getID()] = entity;
