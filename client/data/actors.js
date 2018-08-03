@@ -834,14 +834,16 @@ const Actors = [
     {
       name: 'Fire', className: 'cell-actor-fire', base: 'SpecialBase',
       char: '*', type: 'flame', brain: 'Flame',
-      addComp: ['Ethereal', 'NonSentient'],
-      props: {damageType: RG.DMG.FIRE}
+      addComp: ['Ethereal', 'NonSentient',
+          {comp: 'Damaging', func: {setDamageType: RG.DMG.FIRE}}
+      ]
     },
     {
       name: 'Ice flame', className: 'cell-actor-winter', base: 'SpecialBase',
       char: '*', type: 'flame', brain: 'Flame',
-      addComp: ['Ethereal', 'NonSentient'],
-      props: {damageType: RG.DMG.ICE}
+      addComp: ['Ethereal', 'NonSentient',
+          {comp: 'Damaging', func: {setDamageType: RG.DMG.ICE}}
+      ]
     },
     {
       name: 'Forcefield', className: 'cell-actor-forcefield',
