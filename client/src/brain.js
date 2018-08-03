@@ -955,9 +955,12 @@ RG.Brain.Flame = function(actor) {
         const cell = this._actor.getCell();
         const actors = cell.getActors();
         actors.forEach(actor => {
-            const flameComp = new RG.Component.Flame();
-            flameComp.setDamageType(actor.damageType);
-            actor.add(flameComp);
+            const damaging = this.getActor().get('Damaging');
+            if (damaging) {
+                const flameComp = new RG.Component.Flame();
+                flameComp.setDamageType(damaging.getDamageType());
+                actor.add(flameComp);
+            }
         });
         return ACTION_ALREADY_DONE;
     };
