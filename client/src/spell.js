@@ -1261,6 +1261,7 @@ RG.extend2(RG.Spell.RingOfEnergy, RG.Spell.RingBase);
 
 RG.Spell.ForceField = function() {
     RG.Spell.Base.call(this, 'ForceField', 5);
+    this._durationDie = RG.FACT.createDie('10d10');
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
@@ -1289,8 +1290,10 @@ RG.Spell.ForceField = function() {
             if (cell.isPassable() || !cell.hasActors()) {
                 const forcefield = parser.createActor('Forcefield');
                 level.addActor(forcefield, cell.getX(), cell.getY());
-                // const fadingComp = new RG.Component.Fading();
-                // fadingComp.setDuration(duration);
+                const fadingComp = new RG.Component.Fading();
+                const duration = this._durationDie.roll();
+                fadingComp.setDuration(duration);
+                forcefield.add(fadingComp);
             }
         });
     };
