@@ -149,12 +149,6 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
             this.addComponent(shell, newObj);
         }
 
-        // Add any arbitraty props to object, must be given as
-        // props: {a: 1, b: 2, name: 'xxx' ...} inside the actor shell.
-        if (shell.hasOwnProperty('props')) {
-            this.addPropsToObj(shell.props, newObj);
-        }
-
         // If propToCall table has the same key as shell property, call
         // function in _propToCall using the newly created object.
         for (const p in shell) {
@@ -460,12 +454,6 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
             RG.err('ObjectShell.Creator', 'addComponent',
                 'Giving up. shell.addComp must be string, array or object.');
         }
-    };
-
-    this.addPropsToObj = (props, newObj) => {
-        Object.keys(props).forEach(key => {
-            newObj[key] = props[key];
-        });
     };
 
     const _addCompFromString = (compName, entity) => {
