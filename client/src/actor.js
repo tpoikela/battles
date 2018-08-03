@@ -76,7 +76,8 @@ class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
             name: this.getName(),
             type: this.getType(),
             levelID,
-            brain: this._brain.toJSON()
+            brain: this._brain.toJSON(),
+            new: 'Base'
         };
 
         obj.components = RG.Component.compsToJSON(this);
@@ -308,7 +309,8 @@ class RGActorRogue extends BaseActor {
             levelID,
             inventory: this.getInvEq().getInventory().toJSON(),
             equipment: this.getInvEq().getEquipment().toJSON(),
-            brain: this._brain.toJSON()
+            brain: this._brain.toJSON(),
+            new: 'Rogue'
         };
 
         obj.components = RG.Component.compsToJSON(this);
@@ -455,6 +457,12 @@ class RGActorSpirit extends RGActorRogue {
         this.setType('spirit');
         this.add(new RG.Component.Ethereal());
         this.setBrain(new RG.Brain.Spirit(this));
+    }
+
+    toJSON() {
+        const json = super.toJSON();
+        json.new = 'Spirit';
+        return json;
     }
 
 }
