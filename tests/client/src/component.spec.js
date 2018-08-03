@@ -80,9 +80,9 @@ describe('RG.TagComponent', () => {
 
     it('is used to create comp declarations with no data fields', () => {
         const conf = {_privateField: true, falseField: false};
-        const Undead = TagComponent('Undead', conf);
-        const undeadComp = new Undead();
-        expect(undeadComp.getType()).to.equal('Undead');
+        const UndeadNew = TagComponent('UndeadNew', conf);
+        const undeadComp = new UndeadNew();
+        expect(undeadComp.getType()).to.equal('UndeadNew');
         expect(undeadComp._privateField).to.exist;
         expect(undeadComp.falseField).to.be.false;
 
