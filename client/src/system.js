@@ -1151,6 +1151,7 @@ RG.System.Chat = function(compTypes) {
                     const entBrain = ent.getBrain();
                     entBrain.setSelectionObject(selObj);
                 }
+                // TODO spirits react differently
                 const msg = `You chat with ${actor.getName()} for a while.`;
                 RG.gameMsg({cell, msg});
             }
@@ -1197,6 +1198,7 @@ RG.System.Movement = function(compTypes) {
             if (map.moveProp(xyOld, [x, y], propType, ent)) {
                 ent.setXY(x, y);
 
+                this.checkForStatsMods(ent, prevCell, cell);
                 if (ent.isPlayer && ent.isPlayer()) {
                     if (cell.hasPropType('exploration')) {
                         this._processExploreElem(ent, cell);
@@ -1261,6 +1263,80 @@ RG.System.Movement = function(compTypes) {
             RG.gameInfo({cell, msg});
             if (ent.isPlayer()) {ent.getBrain().addMark();}
         }
+    };
+
+
+    /* Checks if cell type has changed, and if some penalties/bonuses must be
+     * applied to the moved entity. */
+    this.checkForStatsMods = (ent, prevCell, newCell) => {
+        const [prevType, newType] = [prevCell.getBaseElem().getType(),
+            newCell.getBaseElem().getType()
+        ];
+        if (prevType === newType) {return;}
+        // Add bonus/penalty upon entering a new cell type
+        if (this._bonuses.hasOwnProperty(newType)) {
+            const bonuses = this._bonuses[newType];
+
+            // Check here if we can ignore the bonus/penalty for this entity
+            let applyBonus = true;
+            if (bonuses.dontApplyTo) {
+                bonuses.dontApplyTo.forEach(dontApplyComp => {
+                    if (ent.has(dontApplyComp)) {
+                        applyBonus = false;
+                    }
+                });
+            }
+
+            if (applyBonus) {
+                bonuses.mods.forEach(mod => {
+                    if (Number.isInteger(mod.value)) {
+                        const targetComp = RG.Component.create(mod.targetComp);
+                        targetComp[mod.targetFunc](mod.value);
+                        targetComp.setTag(newType);
+                        ent.add(targetComp);
+                    }
+                    else {
+                        let bonus = ent.get(mod.srcComp)[mod.srcFunc]();
+                        bonus = Math.round(mod.value * bonus);
+                        const targetComp = RG.Component.create(mod.targetComp);
+                        targetComp[mod.targetFunc](bonus);
+                        targetComp.setTag(newType);
+                        ent.add(targetComp);
+                    }
+
+                });
+            }
+        }
+        // Remove the bonus/penalty here because cell type was left
+        else if (this._bonuses.hasOwnProperty(prevType)) {
+            const statsList = ent.getList('StatsMods');
+            const combatList = ent.getList('CombatMods');
+            // TODO add a list of comps to check to this._bonuses
+            statsList.forEach(mod => {
+                if (mod.getTag() === prevType) {
+                    ent.remove(mod);
+                }
+            });
+            combatList.forEach(mod => {
+                if (mod.getTag() === prevType) {
+                    ent.remove(mod);
+                }
+            });
+        }
+    };
+
+    this.speedPenalty = function(scale) {
+        return {
+            value: -scale, srcComp: 'Stats', srcFunc: 'getSpeed',
+            targetComp: 'StatsMods', targetFunc: 'setSpeed'
+        };
+    };
+
+    this.defensePenalty = function(scale) {
+        return {
+            value: -scale, srcComp: 'Combat', srcFunc: 'getDefense',
+            targetComp: 'CombatMods', targetFunc: 'setDefense'
+        };
     };
 
     /* If player moved to the square, checks if any messages must
@@ -1409,9 +1485,35 @@ RG.System.Movement = function(compTypes) {
 
     };
 
+    /* These are applied when an actor enters a cell with given type of base
+     * element.
+     * If the value is float, it is used to scale from base value in
+     * Stats/Combat, if it's integer it's added directly. */
+    this._bonuses = {
+        water: {
+            dontApplyTo: ['Flying'],
+            mods: [
+                this.speedPenalty(0.5),
+                this.defensePenalty(0.5),
+                {
+                    value: -5, srcComp: 'Combat', srcFunc: 'getAttack',
+                    targetComp: 'CombatMods', targetFunc: 'setAttack'
+                }
+            ]
+        },
+        bridge: {mods: [
+            this.defensePenalty(0.5)
+        ]},
+        stone: {mods: [
+            this.speedPenalty(0.25)
+        ]},
+        snow: {mods: [
+            this.speedPenalty(0.25)
+        ]}
+    };
+
 };
 RG.extend2(RG.System.Movement, RG.System.Base);
-
 
 /* Stun system removes Movement/Attack components from actors to prevent. */
 RG.System.Disability = function(compTypes) {
@@ -2653,9 +2755,9 @@ RG.System.AreaEffects = function(compTypes) {
         let isFire = false;
         let isIce = false;
         if (ent.has('Health')) {
+            console.log(`FlameComps seen in actor ${ent.getName()}`);
             flameComps.forEach(flameComp => {
                 const dmgType = flameComp.getDamageType();
-                console.log('AreaEffects Damage type will be ' + dmgType);
                 const dmgComp = new RG.Component.Damage(flameComp.getDamage(),
                     dmgType);
                 dmgComp.setSource(NO_DAMAGE_SRC);
