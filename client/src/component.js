@@ -85,6 +85,7 @@ RG.Component.Damage.prototype._init = function(dmg, type) {
     this.damageType = type;
 };
 
+
 /* Component used in entities gaining experience.*/
 RG.Component.Experience = UniqueDataComponent('Experience',
     {exp: 0, expLevel: 1, danger: 1});
@@ -387,7 +388,9 @@ RG.extend2(RG.Component.Communication, RG.Component.Base);
 
 /* Added to entities which can cause damage without attack such as fire. Used
  * for AI navigation purposes at the moment. */
-RG.Component.Damaging = UniqueTagComponent('Damaging');
+RG.Component.Damaging = DataComponent('Damaging', {
+    damage: 1, damageType: ''
+});
 
 /* Added to entities which are destroyed after use. */
 RG.Component.OneShot = UniqueTagComponent('OneShot');
