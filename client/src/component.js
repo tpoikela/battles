@@ -131,10 +131,14 @@ class CombatMods extends Mixin.CombatAttr(RG.Component.Base) {
     constructor() {
         super('CombatMods');
         this._damage = 0;
+        this._tag = '';
     }
 
     setDamage(dmg) {this._damage = dmg;}
     getDamage() {return this._damage;}
+
+    setTag(tag) {this._tag = tag;}
+    getTag() {return this._tag;}
 
 }
 RG.Component.CombatMods = CombatMods;
@@ -191,9 +195,18 @@ RG.Component.StatsMods = function() {
     RG.Component.Stats.call(this);
     this._isUnique = false;
     this.setType('StatsMods');
+    this._tag = '';
     this.clearValues();
 };
 RG.extend2(RG.Component.StatsMods, RG.Component.Stats);
+
+RG.Component.StatsMods.prototype.setTag = function(tag) {
+    this._tag = tag;
+};
+
+RG.Component.StatsMods.prototype.getTag = function() {
+    return this._tag;
+};
 
 RG.Component.Perception = UniqueDataComponent('Perception',
     {FOVRange: RG.NPC_FOV_RANGE});
@@ -608,6 +621,7 @@ RG.Component.Expiration.prototype.cleanup = function() {
     });
 };
 
+RG.Component.Breakable = UniqueTagComponent('Breakable');
 RG.Component.Indestructible = UniqueTagComponent('Indestructible');
 RG.Component.Ammo = TagComponent('Ammo');
 RG.Component.Flying = TagComponent('Flying');
@@ -632,7 +646,7 @@ RG.Component.Resistance = DataComponent('Resistance', {
 
 /* Used currently for magical arrows to distinguish them from shot/thrown
  * projectiles. */
-RG.Component.Magical = TagComponent('Magical');
+RG.Component.Magical = UniqueTagComponent('Magical');
 
 /* Used for non-sentient actors such as fire and moving doors. */
 RG.Component.NonSentient = UniqueTagComponent('NonSentient');
