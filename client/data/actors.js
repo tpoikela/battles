@@ -850,7 +850,7 @@ const Actors = [
       base: 'SpecialBase',
       char: '*', type: 'forcefield', brain: 'NonSentient',
       speed: 1, hp: 25, defense: 0,
-      addComp: ['Health', 'NonSentient', 'Combat', 'SpellStop',
+      addComp: ['Health', 'NonSentient', 'Combat', 'SpellStop', 'Breakable',
         {comp: 'Weakness', func: {
             setEffect: RG.DMG.MAGIC, setLevel: RG.WEAKNESS.FATAL
         }}
