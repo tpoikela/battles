@@ -34,7 +34,7 @@ describe('Game.Army', () => {
     });
 });
 
-describe('Game.Battle', () => {
+describe('Game.Battle', function() {
     it('It is fought until end condition', () => {
         const areaLevel = RG.FACT.createLevel('arena', 40, 40);
         const game = new Game.Main();
