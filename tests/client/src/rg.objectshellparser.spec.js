@@ -531,11 +531,15 @@ describe('Data query functions for objects', function() {
         expect(fireActor).not.to.have.component('Experience');
         expect(fireActor).to.have.component('Ethereal');
         expect(fireActor).to.have.component('NonSentient');
-        expect(fireActor.damageType).to.equal(RG.DMG.FIRE);
+        expect(fireActor).to.have.component('Damaging');
+        const damaging = fireActor.get('Damaging');
+        expect(damaging.getDamageType()).to.equal(RG.DMG.FIRE);
 
         const flameActor = parser.createActor('Ice flame');
-        expect(fireActor.getBrain().getType()).to.equal('Flame');
-        expect(flameActor.damageType).to.equal(RG.DMG.ICE);
+        expect(flameActor.getBrain().getType()).to.equal('Flame');
+        expect(flameActor).to.have.component('Damaging');
+        const damagingIce = flameActor.get('Damaging');
+        expect(damagingIce.getDamageType()).to.equal(RG.DMG.ICE);
     });
 
     it('can create actors with addOnHit capabilites for any component', () => {
