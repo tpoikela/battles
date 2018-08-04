@@ -707,6 +707,7 @@ class Spiritcrafter extends ActorClassBase {
             32: () => {
                 const eq = this.getActor().getInvEq().getEquipment();
                 eq.addSlot('spiritgem', new RG.Inv.EquipSlot(eq, 'spiritgem'));
+                this._actor.getBook().addSpell(new RG.Spell.RingOfEnergy());
                 // TODO turn gems into power/health
                 // Gems weight only 10% of their weight
             }
