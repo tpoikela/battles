@@ -84,8 +84,6 @@ RG.System.Base = function(type, compTypes) {
     };
 
     this.removeEntity = function(entity) {
-        /* console.log('System: removeEntity(): ' + this.type.toString()
-            + ' removing entity ' + entity.getID());*/
         delete this.entities[entity.getID()];
     };
 
@@ -270,7 +268,6 @@ RG.System.BaseAction = function(compTypes) {
     };
 
     this._handleUseElement = ent => {
-        console.log('Handling useELement in Systrem now');
         const useComp = ent.get('UseElement');
         const elem = useComp.getElement();
         if (elem.onUse) { // Just assume it's a function, what else can it be?
@@ -282,7 +279,6 @@ RG.System.BaseAction = function(compTypes) {
     this._handleJump = ent => {
         const jump = ent.get('Jump');
         const [dx, dy] = [jump.getX(), jump.getY()];
-        console.log('dx,dy is ', dx, dy);
         let jumpRange = 2;
         if (ent.has('Jumper')) {
             jumpRange = ent.get('Jumper').getJumpRange();
@@ -292,7 +288,6 @@ RG.System.BaseAction = function(compTypes) {
         const x1 = x0 + dx * jumpRange;
         const y1 = y0 + dy * jumpRange;
         const jumpPathCb = (x, y) => {
-            console.log('x,y: ', x, y);
             const cell = map.getCell(x, y);
             if (cell.hasActors()) {
                 const actors = cell.getActors();
@@ -982,10 +977,6 @@ RG.System.Damage = function(compTypes) {
         const level = actor.getLevel();
         const cell = actor.getCell();
         const [x, y] = actor.getXY();
-
-        if (actor.has('Dead')) {
-            console.log('Actor has Dead already');
-        }
 
         actor.add(new RG.Component.Dead());
 
@@ -2755,7 +2746,6 @@ RG.System.AreaEffects = function(compTypes) {
         let isFire = false;
         let isIce = false;
         if (ent.has('Health')) {
-            console.log(`FlameComps seen in actor ${ent.getName()}`);
             flameComps.forEach(flameComp => {
                 const dmgType = flameComp.getDamageType();
                 const dmgComp = new RG.Component.Damage(flameComp.getDamage(),
