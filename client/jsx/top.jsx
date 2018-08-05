@@ -21,6 +21,7 @@ import GameContextMenu from './context-menu';
 import {ContextMenuTrigger} from 'react-contextmenu';
 
 import GameStats, {VIEW_MAP, VIEW_PLAYER} from './game-stats';
+import PluginManager from '../gui/plugin-manager';
 
 const ROT = require('../../lib/rot');
 const RG = require('../src/rg');
@@ -104,6 +105,7 @@ class BattlesTop extends Component {
         this.logic = new TopLogic();
         this.game = null;
         this.gameSave = new RG.Game.Save();
+        this.pluginManager = new PluginManager();
 
         // Used for request animation frame
         this.frameID = null;
@@ -606,6 +608,7 @@ class BattlesTop extends Component {
     importJSON() {
         const fInput = document.querySelector('#level-file-input');
         fInput.click();
+        console.log(fInput);
     }
 
     componentDidMount() {
@@ -761,12 +764,22 @@ class BattlesTop extends Component {
         }
     }
 
-    onLoadCallback(data) {
-        const fromJSON = new RG.Game.FromJSON();
-        const restGame = fromJSON.createGame(data);
-        const player = restGame.getPlayer();
-        if (player !== null) {
-            this.initRestoredGame(restGame);
+    /* Called when a JSON file is imported. This can be a save game or a
+     * plugin */
+    onLoadCallback(jsonData) {
+        if (jsonData.plugin) {
+            const entry = this.pluginManager.readJSON(jsonData);
+            const parser = RG.ObjectShell.getParser();
+            parser.parseShellData(entry.getData());
+            window.parser = parser;
+        }
+        else {
+            const fromJSON = new RG.Game.FromJSON();
+            const restGame = fromJSON.createGame(jsonData);
+            const player = restGame.getPlayer();
+            if (player !== null) {
+                this.initRestoredGame(restGame);
+            }
         }
     }
 
