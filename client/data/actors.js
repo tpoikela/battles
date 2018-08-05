@@ -917,7 +917,7 @@ Actors.addValue = function(actorsData, valName, addedVal) {
 Actors.scale = {
     attack: 2,
     danger: 1,
-    hp: 2
+    hp: 1.5
 };
 
 // Adds the given value for each actor
@@ -931,6 +931,7 @@ Actors.modToFunc = {
 };
 
 Actors.modOrder = ['scale', 'add'];
+
 /* Should be called to apply the adjusted values. It's not called by default, as
  * changing the values breaks unit tests fairly easily. If
  * RG.ObjectShell.getParser()
