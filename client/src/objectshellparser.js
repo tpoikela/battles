@@ -25,8 +25,8 @@ RG.ObjectShell.getParser = function() {
 };
 
 RG.ObjectShell.Creator = function(db, dbNoRandom) {
-    const _db = db;
-    const _dbNoRandom = dbNoRandom;
+    this._db = db;
+    this._dbNoRandom = dbNoRandom;
 
     /* Maps obj props to function calls. Essentially this maps bunch of setters
      * to different names. Following formats supported:
@@ -106,10 +106,10 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
 
     /* Returns an object shell, given category and name.*/
     this.get = (categ, name) => {
-        if (_dbNoRandom[categ][name]) {
-            return _dbNoRandom[categ][name];
+        if (this._dbNoRandom[categ][name]) {
+            return this._dbNoRandom[categ][name];
         }
-        return _db[categ][name];
+        return this._db[categ][name];
     };
 
     /* Creates a component of specified type.*/
@@ -531,7 +531,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
     /* If shell has 'use', this adds specific use effect to the item.*/
     this.addUseEffects = (shell, newObj) => {
         newObj.useFuncs = [];
-        newObj.useItem = _db.effects.use.func.bind(newObj);
+        newObj.useItem = this._db.effects.use.func.bind(newObj);
         if (typeof shell.use === 'object'
             && shell.use.hasOwnProperty('length')) {
             for (let i = 0; i < shell.use.length; i++) {
@@ -552,8 +552,8 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
 
     const _addUseEffectToItem = (shell, item, useName) => {
         const useFuncName = useName;
-        if (_db.effects.hasOwnProperty(useFuncName)) {
-            const useEffectShell = _db.effects[useFuncName];
+        if (this._db.effects.hasOwnProperty(useFuncName)) {
+            const useEffectShell = this._db.effects[useFuncName];
             const useFuncVar = useEffectShell.func;
             item.useFuncs.push(useFuncVar);
 
@@ -621,9 +621,9 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
 /* Object handling the procedural generation. It has an object "database" and
  * objects can be pulled randomly from it. */
 RG.ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
-    const _db = db;
-    const _dbDanger = dbDanger;
-    const _dbByName = dbByName;
+    this._db = db;
+    this._dbDanger = dbDanger;
+    this._dbByName = dbByName;
 
     // Internal cache for proc generation
     const _cache = {
@@ -640,13 +640,15 @@ RG.ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
 
         // Specifying name returns an array
         if (!RG.isNullOrUndef([name])) {
-            if (_dbByName.hasOwnProperty(name)) {return _dbByName[name];}
+            if (this._dbByName.hasOwnProperty(name)) {
+                return this._dbByName[name];
+            }
             else {return [];}
         }
 
         if (!RG.isNullOrUndef([danger])) {
-            if (_dbDanger.hasOwnProperty(danger)) {
-                const entries = _dbDanger[danger];
+            if (this._dbDanger.hasOwnProperty(danger)) {
+                const entries = this._dbDanger[danger];
                 if (typeof categ !== 'undefined') {
                     if (entries.hasOwnProperty(categ)) {
                         return entries[categ];
@@ -654,7 +656,7 @@ RG.ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
                     else {return {};}
                 }
                 else {
-                    return _dbDanger[danger];
+                    return this._dbDanger[danger];
                 }
             }
             else {
@@ -663,8 +665,8 @@ RG.ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
         }
         // Fetch all entries of given category
         else if (!RG.isNullOrUndef([categ])) {
-            if (_db.hasOwnProperty(categ)) {
-                return _db[categ];
+            if (this._db.hasOwnProperty(categ)) {
+                return this._db[categ];
             }
         }
         return {};
@@ -708,8 +710,8 @@ RG.ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
         const categ = query.categ;
         if (typeof danger !== 'undefined') {
             if (typeof categ !== 'undefined') {
-                if (_dbDanger.hasOwnProperty(danger)) {
-                    const entries = _dbDanger[danger][categ];
+                if (this._dbDanger.hasOwnProperty(danger)) {
+                    const entries = this._dbDanger[danger][categ];
                     return this.getRandFromObj(entries);
                 }
             }
@@ -793,28 +795,29 @@ RG.ObjectShell.Parser = function() {
     // concise way. Game objects are created from shells by this object.
 
     // Stores the base shells
-    const _base = {
+    this._base = {
         actors: {},
         effects: {},
         items: {}
     };
 
-    const _db = {
+    this._db = {
         actors: {},
         effects: {},
         items: {}
     };
 
-    const _dbDanger = {}; // All entries indexed by danger
-    const _dbByName = {}; // All entries indexed by name
+    this._dbDanger = {}; // All entries indexed by danger
+    this._dbByName = {}; // All entries indexed by name
 
-    const _dbNoRandom = {
+    this._dbNoRandom = {
         actors: {},
         items: {}
     }; // All entries excluded from random generation
 
-    const _creator = new RG.ObjectShell.Creator(_db, _dbNoRandom);
-    const _procgen = new RG.ObjectShell.ProcGen(_db, _dbDanger, _dbByName);
+    this._creator = new RG.ObjectShell.Creator(this._db, this._dbNoRandom);
+    this._procgen = new RG.ObjectShell.ProcGen(this._db, this._dbDanger,
+        this._dbByName);
 
     //-----------------------------------------------------------------------
     // "PARSING" METHODS
@@ -822,6 +825,7 @@ RG.ObjectShell.Parser = function() {
 
     /* Parses all shell data, items, monsters, level etc.*/
     this.parseShellData = function(obj) {
+        console.log('Got Obj for parsing:', obj);
         const keys = Object.keys(obj);
         for (let i = 0; i < keys.length; i++) {
             this.parseShellCateg(keys[i], obj[keys[i]]);
@@ -872,7 +876,7 @@ RG.ObjectShell.Parser = function() {
     this.validShellGiven = obj => {
         if (!obj.hasOwnProperty('name')) {
             RG.err('ObjectShell.Parser', 'validShellGiven',
-                "shell doesn't have a name.");
+                `shell doesn't have a name. shell: ${JSON.stringify(obj)}`);
             return false;
         }
         return true;
@@ -886,45 +890,45 @@ RG.ObjectShell.Parser = function() {
     };
 
     /* Returns an object shell, given category and name.*/
-    this.get = (categ, name) => _db[categ][name];
+    this.get = (categ, name) => this._db[categ][name];
 
     /* Return specified base shell.*/
-    this.getBase = (categ, name) => _base[categ][name];
+    this.getBase = (categ, name) => this._base[categ][name];
 
     /* All shells can be used as base, not only ones with
      * 'dontCreate: true' */
     this.storeForUsingAsBase = (categ, obj) => {
-        _base[categ][obj.name] = obj;
+        this._base[categ][obj.name] = obj;
     };
 
     /* Stores the object into given category.*/
     this.storeIntoDb = function(categ, obj) {
-        if (_db.hasOwnProperty(categ)) {
+        if (this._db.hasOwnProperty(categ)) {
             this.storeForUsingAsBase(categ, obj);
 
             if (obj.hasOwnProperty('noRandom')) {
-                _dbNoRandom[categ][obj.name] = obj;
+                this._dbNoRandom[categ][obj.name] = obj;
             }
             else if (!obj.hasOwnProperty('dontCreate')) {
-                if (_dbByName.hasOwnProperty(obj.name)) {
-                    _dbByName[obj.name].push(obj);
+                if (this._dbByName.hasOwnProperty(obj.name)) {
+                    this._dbByName[obj.name].push(obj);
                 }
                 else {
                     const newArr = [];
                     newArr.push(obj);
-                    _dbByName[obj.name] = newArr;
+                    this._dbByName[obj.name] = newArr;
                 }
 
-                _db[categ][obj.name] = obj;
+                this._db[categ][obj.name] = obj;
                 if (obj.hasOwnProperty('danger')) {
                     const danger = obj.danger;
-                    if (!_dbDanger.hasOwnProperty(danger)) {
-                        _dbDanger[danger] = {};
+                    if (!this._dbDanger.hasOwnProperty(danger)) {
+                        this._dbDanger[danger] = {};
                     }
-                    if (!_dbDanger[danger].hasOwnProperty(categ)) {
-                        _dbDanger[danger][categ] = {};
+                    if (!this._dbDanger[danger].hasOwnProperty(categ)) {
+                        this._dbDanger[danger][categ] = {};
                     }
-                    _dbDanger[danger][categ][obj.name] = obj;
+                    this._dbDanger[danger][categ][obj.name] = obj;
                 }
 
             } // dontCreate: true shells are skipped (used as base)
@@ -964,8 +968,8 @@ RG.ObjectShell.Parser = function() {
 
     /* Returns true if shell base exists.*/
     this.baseExists = (categ, baseName) => {
-        if (_base.hasOwnProperty(categ)) {
-            return _base[categ].hasOwnProperty(baseName);
+        if (this._base.hasOwnProperty(categ)) {
+            return this._base[categ].hasOwnProperty(baseName);
         }
         return false;
     };
@@ -1025,23 +1029,25 @@ RG.ObjectShell.Parser = function() {
                 'Categ: ' + categ + ' Name: ' + name + " doesn't exist.");
             return null;
         }
-        return _creator.createActualObj(categ, name);
+        return this._creator.createActualObj(categ, name);
     };
 
     /* Creates actual game object from obj shell in given category.*/
-    this.createFromShell = (categ, obj) => _creator.createFromShell(categ, obj);
+    this.createFromShell = (categ, obj) => (
+        this._creator.createFromShell(categ, obj)
+    );
 
     //--------------------------------------------------------------------
     // Query methods for object shells
     //--------------------------------------------------------------------
 
     this.dbExists = (categ, name) => {
-        if (_db.hasOwnProperty(categ)) {
-            if (_db[categ].hasOwnProperty(name)) {
+        if (this._db.hasOwnProperty(categ)) {
+            if (this._db[categ].hasOwnProperty(name)) {
                 return true;
             }
         }
-        if (_dbNoRandom[categ][name]) {
+        if (this._dbNoRandom[categ][name]) {
             return true;
         }
         return false;
@@ -1049,9 +1055,9 @@ RG.ObjectShell.Parser = function() {
 
     /* Returns entries from db based on the query. Returns null if nothing
      * matches.*/
-    this.dbGet = query => _procgen.dbGet(query);
+    this.dbGet = query => this._procgen.dbGet(query);
 
-    this.dbGetRand = query => _procgen.dbGetRand(query);
+    this.dbGetRand = query => this._procgen.dbGetRand(query);
 
     //----------------------------------------------------------------------
     // RANDOMIZED METHODS for procedural generation
@@ -1059,9 +1065,9 @@ RG.ObjectShell.Parser = function() {
 
     /* Creates a random actor based on danger value or a filter function.*/
     this.createRandomActor = obj => {
-        const randShell = _procgen.getRandomActor(obj);
+        const randShell = this._procgen.getRandomActor(obj);
         if (randShell) {
-            return _creator.createFromShell(RG.TYPE_ACTOR, randShell);
+            return this._creator.createFromShell(RG.TYPE_ACTOR, randShell);
         }
         return null;
     };
@@ -1070,9 +1076,9 @@ RG.ObjectShell.Parser = function() {
     // Note that this method can return null, if no correct danger level is
     // found. You can supply {func: ...} as a fallback solution.
     this.createRandomActorWeighted = function(min, max, obj) {
-        const actorShell = _procgen.getRandomActorWeighted(min, max);
+        const actorShell = this._procgen.getRandomActorWeighted(min, max);
         if (actorShell) {
-            return _creator.createFromShell(RG.TYPE_ACTOR, actorShell);
+            return this._creator.createFromShell(RG.TYPE_ACTOR, actorShell);
         }
         else if (!RG.isNullOrUndef([obj])) {
             return this.createRandomActor(obj);
@@ -1088,9 +1094,9 @@ RG.ObjectShell.Parser = function() {
      *  // Above returns item with value > 100.
      *  */
     this.createRandomItem = obj => {
-        const randShell = _procgen.getRandomItem(obj);
+        const randShell = this._procgen.getRandomItem(obj);
         if (randShell) {
-            return _creator.createFromShell('items', randShell);
+            return this._creator.createFromShell('items', randShell);
         }
         return null;
     };
