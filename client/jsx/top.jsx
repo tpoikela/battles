@@ -40,6 +40,8 @@ const wwork = require('webworkify');
 
 const INV_SCREEN = 'Inventory';
 
+window.RG = RG;
+
 /* Contains logic that is not tightly coupled to the GUI.*/
 class TopLogic {
 
@@ -611,6 +613,32 @@ class BattlesTop extends Component {
         console.log(fInput);
     }
 
+    loadScript() {
+        console.log('loadScript triggered from menu');
+        const fInput = document.querySelector('#load-script-input');
+        fInput.click();
+    }
+
+    onLoadScript() {
+        const fileList = document.querySelector('#load-script-input').files;
+        const file = fileList[0];
+        console.log('onLoadScript got file', file);
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const text = reader.result;
+                try {
+                    /* eslint no-eval: 0 */
+                    eval(text);
+                }
+                catch (e) {
+                    console.error(e.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+    }
+
     componentDidMount() {
       // document.addEventListener('keypress', this.handleKeyDown, true);
     }
@@ -1022,6 +1050,11 @@ class BattlesTop extends Component {
                     handleRightClick={this.handleRightClick}
                     mouseOverCell={this.state.mouseOverCell}
                 />
+            <input
+              id='load-script-input'
+              onChange={this.onLoadScript}
+              type='file'
+            />
             </div>
         );
     }
@@ -1434,6 +1467,9 @@ class BattlesTop extends Component {
         this.topMenuCallback = this.topMenuCallback.bind(this);
         this.importJSON = this.importJSON.bind(this);
         this.menuItemClicked = this.menuItemClicked.bind(this);
+
+        this.onLoadScript = this.onLoadScript.bind(this);
+        this.loadScript = this.loadScript.bind(this);
     }
 
     /* Can be used to call any class method from sub-component without
