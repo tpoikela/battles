@@ -1058,7 +1058,7 @@ RG.System.Damage = function(compTypes) {
     };
 
     const _cleanUpComponents = actor => {
-        const compTypes = ['Coldness', 'Expiration'];
+        const compTypes = ['Coldness', 'Expiration', 'Fading'];
         compTypes.forEach(compType => {
             const compList = actor.getList(compType);
             compList.forEach(comp => {
@@ -1810,7 +1810,7 @@ RG.System.TimeEffects = function(compTypes) {
                     RG.gameMsg({cell, msg});
                 }
                 else {
-                    const json = ent.toJSON();
+                    const json = JSON.stringify(ent);
                     RG.err('System.TimeEffects', '_applyFading',
                         `Could not remove actor from level: ${json}`);
                 }
