@@ -1051,7 +1051,6 @@ class BattlesTop extends Component {
                     mouseOverCell={this.state.mouseOverCell}
                 />
                 <input
-                  className='hidden-file-input'
                   id='load-script-input'
                   onChange={this.onLoadScript}
                   style={{display: 'none'}}
