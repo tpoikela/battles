@@ -75,7 +75,7 @@ body {
 };
 
 //------------------------------------------------------------------
-// CELL StyleS
+// CELL Styles
 //------------------------------------------------------------------
 
 @import 'actors';
@@ -100,10 +100,6 @@ body {
 //---------------------------------------------------------------------
 // MENUS
 //---------------------------------------------------------------------
-
-/*.mount-point {
-    margin-top: 10px;
-}*/
 
 /* Game-play related messages. Naming is the same as in bootstrap. */
 .game-messages {
@@ -218,4 +214,3 @@ ul {
 @import 'component.game-board';
 @import 'component.game-editor';
 @import 'component.context-menu';
-
