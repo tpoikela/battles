@@ -4,6 +4,7 @@ const RG = require('../../../client/src/battles');
 const RGTest = require('../../roguetest');
 const chaiBattles = require('../../helpers/chai-battles.js');
 const Keys = require('../../../client/src/keymap');
+const FromJSON = require('../../../client/src/game.fromjson');
 
 const expect = chai.expect;
 chai.use(chaiBattles);
@@ -79,6 +80,14 @@ describe('Spell.SpellBook', () => {
             }
         });
 
+    });
+
+    it('has serialisation for all spells', () => {
+        const bookJSON = book.toJSON();
+        const wizard2 = new RG.Actor.Rogue('wizard2');
+        const fromJSON = new FromJSON();
+        const newBook = fromJSON.createSpells({spellbook: bookJSON}, wizard2);
+        expect(newBook.equals(book)).to.be.true;
     });
 });
 
