@@ -223,6 +223,21 @@ RG.Spell.SpellBook.prototype.getSpells = function() {
     return this._spells;
 };
 
+RG.Spell.SpellBook.prototype.equals = function(rhs) {
+    const rhsSpells = rhs.getSpells();
+    let equals = true;
+    this._spells.forEach((spell, i) => {
+        console.log(JSON.stringify(spell));
+        console.log(JSON.stringify(rhsSpells[i]));
+        equals = equals && spell.equals(rhsSpells[i]);
+        if (!equals) {
+            console.log('NOT EQUALS ANYMORE');
+
+        }
+    });
+    return equals;
+};
+
     /* Returns the object which is used in Brain.Player to make the player
      * selection of spell casting. */
 RG.Spell.SpellBook.prototype.getSelectionObject = function() {
@@ -263,6 +278,8 @@ RG.Spell.Base = function(name, power) {
     this._name = name;
     this._power = power || 5;
     this._caster = null;
+    this._dice = {};
+    this._range = 0;
     this.setName(name);
 };
 
@@ -291,6 +308,24 @@ RG.Spell.Base.prototype.getPower = function() {
     return this._power;
 };
 
+RG.Spell.Base.prototype.getRange = function() {
+    return this._range;
+};
+
+RG.Spell.Base.prototype.setRange = function(range) {
+    this._range = range;
+};
+
+RG.Spell.Base.prototype.getDamage = function(perLevel = 1) {
+    let damage = 0;
+    if (this._dice.damage) {
+        damage = this._dice.damage.roll();
+    }
+    const expLevel = this._caster.get('Experience').getExpLevel();
+    damage += Math.round(expLevel / perLevel);
+    return damage;
+};
+
 RG.Spell.Base.prototype.setPower = function(power) {this._power = power;};
 
 RG.Spell.Base.prototype.getCastFunc = function(actor, args) {
@@ -309,17 +344,38 @@ RG.Spell.Base.prototype.getCastFunc = function(actor, args) {
 
 RG.Spell.Base.prototype.toString = function() {
     let str = `${this.getName()} - ${this.getPower()}PP`;
-    if (this._duration) {
-        str += ` Dur: ${this._duration.toString()}`;
+    if (this._dice.duration) {
+        str += ` Dur: ${this._dice.duration.toString()}`;
     }
     return str;
 };
 
+RG.Spell.Base.prototype.equals = function(rhs) {
+    let equals = this.getName() === rhs.getName();
+    equals = equals && this.getPower() === rhs.getPower();
+    equals = equals && this.getRange() === rhs.getRange();
+    Object.keys(this._dice).forEach(key => {
+        if (rhs._dice[key]) {
+            equals = equals && this._dice[key].equals(rhs._dice[key]);
+        }
+        else {
+            equals = false;
+        }
+    });
+    return equals;
+};
+
 RG.Spell.Base.prototype.toJSON = function() {
+    const dice = {};
+    Object.keys(this._dice).forEach(key => {
+        dice[key] = this._dice[key].toJSON();
+    });
     return {
         name: this.getName(),
         new: this._new,
-        power: this.getPower()
+        power: this.getPower(),
+        dice,
+        range: this._range
     };
 };
 
@@ -330,13 +386,13 @@ RG.Spell.Base.prototype.toJSON = function() {
 RG.Spell.AddComponent = function(name, power) {
     RG.Spell.Base.call(this, name, power);
     this._compName = '';
-    this._duration = RG.FACT.createDie('1d6 + 3');
+    this._dice.duration = RG.FACT.createDie('1d6 + 3');
 
 };
 RG.extend2(RG.Spell.AddComponent, RG.Spell.Base);
 
 RG.Spell.AddComponent.prototype.setDuration = function(die) {
-    this._duration = die;
+    this._dice.duration = die;
 };
 
 RG.Spell.AddComponent.prototype.setCompName = function(name) {
@@ -349,7 +405,7 @@ RG.Spell.AddComponent.prototype.getCompName = function() {
 
 RG.Spell.AddComponent.prototype.cast = function(args) {
     const obj = getDirSpellArgs(this, args);
-    const dur = this._duration.roll();
+    const dur = this._dice.duration.roll();
 
     const compToAdd = RG.Component.create(this._compName);
     if (compToAdd.setSource) {
@@ -374,7 +430,7 @@ RG.Spell.AddComponent.prototype.getSelectionObject = function(actor) {
 RG.Spell.Flying = function() {
     RG.Spell.AddComponent.call(this, 'Flying', 5);
     this.setCompName('Flying');
-    this._duration = RG.FACT.createDie('10d5 + 5');
+    this._dice.duration = RG.FACT.createDie('10d5 + 5');
 
     this.aiShouldCastSpell = (args, cb) => {
         return aiSpellCellFriend(args, cb);
@@ -418,24 +474,23 @@ RG.extend2(RG.Spell.SpiritForm, RG.Spell.AddComponent);
 //------------------------------------------------------
 RG.Spell.RemoveComponent = function(name, power) {
     RG.Spell.Base.call(this, name, power);
-
-    let _compNames = [];
+    this._compNames = [];
 
     this.setCompNames = comps => {
         if (typeof comps === 'string') {
-            _compNames = [comps];
+            this._compNames = [comps];
         }
         else {
-            _compNames = comps;
+            this._compNames = comps;
         }
     };
-    this.getCompNames = () => _compNames;
+    this.getCompNames = () => this._compNames;
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
-        // const dur = this._duration.roll();
+        // const dur = this._dice.duration.roll();
 
-        obj.removeComp = _compNames;
+        obj.removeComp = this._compNames;
 
         const spellComp = new RG.Component.SpellCell();
         spellComp.setArgs(obj);
@@ -462,24 +517,18 @@ RG.extend2(RG.Spell.DispelMagic, RG.Spell.RemoveComponent);
 //------------------------------------------------------
 RG.Spell.Ranged = function(name, power) {
     RG.Spell.Base.call(this, name, power);
-    this._damageDie = RG.FACT.createDie('4d4 + 4');
+    this._dice.damage = RG.FACT.createDie('4d4 + 4');
     this._range = 5;
 
 };
 RG.extend2(RG.Spell.Ranged, RG.Spell.Base);
 
-RG.Spell.Ranged.prototype.getRange = function() {
-    return this._range;
-};
-
-RG.Spell.Ranged.prototype.setRange = function(range) {this._range = range;};
-
 RG.Spell.Ranged.prototype.setDice = function(dice) {
-    this._damageDie = dice[0];
+    this._dice.damage = dice[0];
 };
 
 RG.Spell.Ranged.prototype.getDice = function() {
-    return [this._damageDie];
+    return [this._dice.damage];
 };
 
 RG.Spell.Ranged.prototype.toString = function() {
@@ -488,22 +537,15 @@ RG.Spell.Ranged.prototype.toString = function() {
     return str;
 };
 
-RG.Spell.Ranged.prototype.toJSON = function() {
-    const json = RG.Spell.Base.prototype.toJSON.call(this);
-    json.range = this.getRange();
-    json.dice = [this.getDice()[0].toJSON()];
-    return json;
-};
-
 /* A spell for melee combat using grasp of winter. */
 RG.Spell.GraspOfWinter = function() {
     RG.Spell.Base.call(this, 'Grasp of winter');
-    this._damageDie = RG.FACT.createDie('4d4 + 4');
+    this._dice.damage = RG.FACT.createDie('4d4 + 4');
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
         obj.damageType = RG.DMG.ICE;
-        obj.damage = this._damageDie.roll();
+        obj.damage = this.getDamage();
         const spellComp = new RG.Component.SpellCell();
         spellComp.setArgs(obj);
         args.src.add('SpellCell', spellComp);
@@ -522,7 +564,7 @@ RG.extend2(RG.Spell.GraspOfWinter, RG.Spell.Base);
 
 RG.Spell.GraspOfWinter.prototype.toString = function() {
     let str = RG.Spell.Base.prototype.toString.call(this);
-    str += ` D: ${this._damageDie.toString()}`;
+    str += ` D: ${this._dice.damage.toString()}`;
     return str;
 };
 
@@ -638,12 +680,12 @@ RG.extend2(RG.Spell.CrossBolt, RG.Spell.BoltBase);
 RG.Spell.IceShield = function() {
     RG.Spell.Base.call(this, 'Ice shield', 7);
 
-    this._duration = RG.FACT.createDie('5d5 + 5');
+    this._dice.duration = RG.FACT.createDie('5d5 + 5');
     this._defenseDie = RG.FACT.createDie('1d6 + 1');
 
     this.cast = args => {
         const actor = args.src;
-        const dur = this._duration.roll();
+        const dur = this._dice.duration.roll();
         const combatMods = new RG.Component.CombatMods();
         combatMods.setDefense(this._defenseDie.roll());
         RG.Component.addToExpirationComp(actor, combatMods, dur);
@@ -671,12 +713,12 @@ RG.Spell.IceShield.prototype.toString = function() {
 RG.Spell.MagicArmor = function() {
     RG.Spell.Base.call(this, 'MagicArmor', 5);
 
-    this._duration = RG.FACT.createDie('5d5 + 5');
+    this._dice.duration = RG.FACT.createDie('5d5 + 5');
     this._protDie = RG.FACT.createDie('2d6 + 1');
 
     this.cast = args => {
         const actor = args.src;
-        const dur = this._duration.roll();
+        const dur = this._dice.duration.roll();
         const combatMods = new RG.Component.CombatMods();
         combatMods.setProtection(this._protDie.roll());
         RG.Component.addToExpirationComp(actor, combatMods, dur);
@@ -705,11 +747,11 @@ RG.Spell.MagicArmor.prototype.toString = function() {
 RG.Spell.IcyPrison = function() {
     RG.Spell.Base.call(this, 'Icy prison', 10);
 
-    this._duration = RG.FACT.createDie('1d8 + 1');
+    this._dice.duration = RG.FACT.createDie('1d8 + 1');
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
-        const dur = this._duration.roll();
+        const dur = this._dice.duration.roll();
 
         const paralysis = new RG.Component.Paralysis();
         paralysis.setSource(args.src);
@@ -899,11 +941,11 @@ RG.extend2(RG.Spell.SummonDead, RG.Spell.SummonBase);
 * this spell. */
 RG.Spell.PowerDrain = function() {
     RG.Spell.Base.call(this, 'PowerDrain', 15);
-    this._duration = RG.FACT.createDie('20d5 + 10');
+    this._dice.duration = RG.FACT.createDie('20d5 + 10');
 
     this.cast = args => {
         const actor = args.src;
-        const dur = this._duration.roll();
+        const dur = this._dice.duration.roll();
         const drainComp = new RG.Component.PowerDrain();
         RG.Component.addToExpirationComp(actor, drainComp, dur);
         RG.gameMsg('You feel protected against magic.');
@@ -1082,11 +1124,11 @@ RG.extend2(RG.Spell.RockStorm, RG.Spell.Missile);
 /* MindControl spell takes over an enemy for a certain number of turns. */
 RG.Spell.MindControl = function() {
     RG.Spell.Base.call(this, 'MindControl', 25);
-    this._duration = RG.FACT.createDie('1d6 + 3');
+    this._dice.duration = RG.FACT.createDie('1d6 + 3');
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
-        const dur = this._duration.roll();
+        const dur = this._dice.duration.roll();
 
         const mindControl = new RG.Component.MindControl();
         mindControl.setSource(args.src);
@@ -1195,8 +1237,6 @@ RG.Spell.RingBase = function(name, power) {
     this._durationDie = RG.FACT.createDie('10d10');
     this._range = 2;
     this._createdActor = 'Fire';
-
-    this.getRange = () => this._range;
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
