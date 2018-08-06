@@ -153,6 +153,7 @@ Entity.createEntityID = () => {
 
 Entity.getIDCount = () => Entity.idCount;
 
+/* For histogramming purposes, to see how many calls are done per function. */
 Entity.num = {};
 Entity.num.add = 0;
 Entity.num.get = 0;
