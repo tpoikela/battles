@@ -43,35 +43,30 @@ RG.Component.Hunger.prototype.isFull = function() {
 };
 
 /* Health component takes care of HP and such. */
-RG.Component.Health = function(hp) {
-    RG.Component.Base.call(this, 'Health');
-    this._isUnique = true;
+RG.Component.Health = UniqueDataComponent('Health',
+    {HP: 10, maxHP: 10});
 
-    let _hp = hp;
-    let _maxHP = hp;
-
-    /* Hit points getters and setters.*/
-    this.getHP = () => _hp;
-    this.setHP = hp => {_hp = hp;};
-    this.getMaxHP = () => _maxHP;
-    this.setMaxHP = hp => {_maxHP = hp;};
-
-    this.addHP = hp => {
-        _hp += hp;
-        if (_hp > _maxHP) {_hp = _maxHP;}
-    };
-
-    this.decrHP = hp => {_hp -= hp;};
-
-    this.isAlive = () => _hp > 0;
-    this.isDead = () => _hp <= 0;
-
-    this.hpLost = () => {
-        return _maxHP - _hp;
-    };
-
+RG.Component.Health.prototype.addHP = function(hp) {
+    this.HP += hp;
+    if (this.HP > this.maxHP) {this.HP = this.maxHP;}
 };
-RG.extend2(RG.Component.Health, RG.Component.Base);
+
+RG.Component.Health.prototype.decrHP = function(hp) {this.HP -= hp;};
+
+RG.Component.Health.prototype.isAlive = function() {
+    return this.HP > 0;
+};
+
+RG.Component.Health.prototype.isDead = function() {return this.HP <= 0;};
+
+RG.Component.Health.prototype.hpLost = function() {
+    return this.maxHP - this.HP;
+};
+
+RG.Component.Health.prototype._init = function(hp) {
+    this.HP = hp;
+    this.maxHP = hp;
+};
 
 RG.Component.Dead = UniqueTagComponent('Dead');
 RG.Component.Corporeal = UniqueTagComponent('Corporeal');
