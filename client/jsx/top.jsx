@@ -1050,11 +1050,13 @@ class BattlesTop extends Component {
                     handleRightClick={this.handleRightClick}
                     mouseOverCell={this.state.mouseOverCell}
                 />
-            <input
-              id='load-script-input'
-              onChange={this.onLoadScript}
-              type='file'
-            />
+                <input
+                  className='hidden-file-input'
+                  id='load-script-input'
+                  onChange={this.onLoadScript}
+                  style={{display: 'none'}}
+                  type='file'
+                />
             </div>
         );
     }
