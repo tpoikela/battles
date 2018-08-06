@@ -523,17 +523,17 @@ RG.Spell.Ranged = function(name, power) {
 };
 RG.extend2(RG.Spell.Ranged, RG.Spell.Base);
 
-RG.Spell.Ranged.prototype.setDice = function(dice) {
-    this._dice.damage = dice[0];
+RG.Spell.Ranged.prototype.setDice = function(name, dice) {
+    this._dice[name] = dice;
 };
 
-RG.Spell.Ranged.prototype.getDice = function() {
-    return [this._dice.damage];
+RG.Spell.Ranged.prototype.getDice = function(name) {
+    return this._dice[name];
 };
 
 RG.Spell.Ranged.prototype.toString = function() {
     let str = RG.Spell.Base.prototype.toString.call(this);
-    str += ` D: ${this.getDice()[0].toString()} R: ${this.getRange()}`;
+    str += ` D: ${this.getDice('damage').toString()} R: ${this.getRange()}`;
     return str;
 };
 
@@ -574,7 +574,7 @@ RG.Spell.BoltBase = function(name, power) {
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
         obj.damageType = this.damageType;
-        obj.damage = this.getDice()[0].roll();
+        obj.damage = this.getDice('damage').roll();
         const rayComp = new RG.Component.SpellRay();
         rayComp.setArgs(obj);
         args.src.add('SpellRay', rayComp);
@@ -617,6 +617,7 @@ RG.extend2(RG.Spell.BoltBase, RG.Spell.Ranged);
 /* Class Frost bolt which shoots a ray to one direction from the caster. */
 RG.Spell.FrostBolt = function() {
     RG.Spell.BoltBase.call(this, 'Frost bolt', 5);
+    this.setDice('damage', RG.FACT.createDie('4d4 + 4'));
     this.damageType = RG.DMG.ICE;
 };
 RG.extend2(RG.Spell.FrostBolt, RG.Spell.BoltBase);
@@ -626,7 +627,7 @@ RG.Spell.LightningBolt = function() {
     RG.Spell.BoltBase.call(this, 'Lightning bolt', 8);
     this.damageType = RG.DMG.LIGHTNING;
     this.setRange(6);
-    this.setDice([RG.FACT.createDie('6d3 + 3')]);
+    this.setDice('damage', RG.FACT.createDie('6d3 + 3'));
 };
 RG.extend2(RG.Spell.LightningBolt, RG.Spell.BoltBase);
 
@@ -635,7 +636,7 @@ RG.Spell.ScorpionsTail = function() {
     RG.Spell.BoltBase.call(this, 'Scorpions tail', 1);
     this.damageType = RG.DMG.MELEE;
     this.setRange(2);
-    this.setDice([RG.FACT.createDie('2d4 + 2')]);
+    this.setDice('damage', RG.FACT.createDie('2d4 + 2'));
 };
 RG.extend2(RG.Spell.ScorpionsTail, RG.Spell.BoltBase);
 
@@ -653,7 +654,7 @@ RG.Spell.CrossBolt = function() {
     RG.Spell.BoltBase.call(this, 'Cross bolt', 20);
     this.damageType = RG.DMG.LIGHTNING;
     this.setRange(6);
-    this.setDice([RG.FACT.createDie('6d3 + 3')]);
+    this.setDice('damage', RG.FACT.createDie('6d3 + 3'));
 
     this.cast = function(args) {
         const chosenDir = args.dir;
@@ -666,7 +667,7 @@ RG.Spell.CrossBolt = function() {
             newArgs.dir = dXdY;
             const obj = getDirSpellArgs(this, newArgs);
             obj.damageType = this.damageType;
-            obj.damage = this.getDice()[0].roll();
+            obj.damage = this._dice.damage.roll();
             const rayComp = new RG.Component.SpellRay();
             rayComp.setArgs(obj);
             args.src.add('SpellRay', rayComp);
@@ -992,7 +993,7 @@ RG.Spell.Missile = function(name, power) {
             to: [args.target.getX(), args.target.getY()]
         };
         obj.damageType = this.damageType;
-        obj.damage = this.getDice()[0].roll();
+        obj.damage = this._dice.damage.roll();
         const missComp = new RG.Component.SpellMissile();
         missComp.setArgs(obj);
         args.src.add(missComp);
@@ -1079,7 +1080,7 @@ RG.extend2(RG.Spell.LightningArrow, RG.Spell.Missile);
 RG.Spell.EnergyArrow = function() {
     RG.Spell.Missile.call(this, 'EnergyArrow', 2);
     this.setRange(5);
-    this.setDice([RG.FACT.createDie('1d4 + 1')]);
+    this.setDice('damage', RG.FACT.createDie('1d4 + 1'));
     this.damageType = RG.DMG.ENERGY;
     this.ammoName = 'Energy arrow';
 };
@@ -1091,7 +1092,7 @@ RG.extend2(RG.Spell.EnergyArrow, RG.Spell.Missile);
 RG.Spell.RockStorm = function() {
     RG.Spell.Missile.call(this, 'RockStorm', 35);
     this.setRange(4);
-    this.setDice([RG.FACT.createDie('5d4 + 1')]);
+    this.setDice('damage', RG.FACT.createDie('5d4 + 1'));
     this.damageType = RG.DMG.MELEE;
     this.ammoName = 'Huge rock';
 
@@ -1107,7 +1108,7 @@ RG.Spell.RockStorm = function() {
                 to: [tX, tY]
             };
             obj.damageType = this.damageType;
-            obj.damage = this.getDice()[0].roll();
+            obj.damage = this._dice.damage.roll();
             obj.destroyItem = false; // Keep rocks after firing
             const missComp = new RG.Component.SpellMissile();
             missComp.setArgs(obj);
@@ -1165,7 +1166,7 @@ RG.Spell.AreaBase = function(name, power) {
     this.cast = function(args) {
         const obj = {src: args.src, range: this.getRange()};
         obj.damageType = this.damageType;
-        obj.damage = this.getDice()[0].roll();
+        obj.damage = this._dice.damage.roll();
         obj.spell = this;
         const spellComp = new RG.Component.SpellArea();
         spellComp.setArgs(obj);
@@ -1182,14 +1183,14 @@ RG.extend2(RG.Spell.AreaBase, RG.Spell.Ranged);
 /* Blizzard spell produce damaging effect over certain area. */
 RG.Spell.Blizzard = function() {
     RG.Spell.AreaBase.call(this, 'Blizzard', 35);
-    this.setDice([RG.FACT.createDie('5d5 + 5')]);
+    this.setDice('damage', RG.FACT.createDie('5d5 + 5'));
     this.damageType = RG.DMG.ICE;
 };
 RG.extend2(RG.Spell.Blizzard, RG.Spell.AreaBase);
 
 RG.Spell.EnergyStorm = function() {
     RG.Spell.AreaBase.call(this, 'EnergyStorm', 20);
-    this.setDice([RG.FACT.createDie('3d4 + 3')]);
+    this.setDice('damage', RG.FACT.createDie('3d4 + 3'));
     this.damageType = RG.DMG.ENERGY;
 };
 RG.extend2(RG.Spell.EnergyStorm, RG.Spell.AreaBase);
