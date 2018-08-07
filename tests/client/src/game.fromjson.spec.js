@@ -214,7 +214,7 @@ describe('RG.Game.FromJSON', function() {
         expect(restSpell.getPower()).to.equal(11);
         expect(restSpell.getRange()).to.equal(7);
 
-        const damageDie = restSpell.getDice()[0];
+        const damageDie = restSpell.getDice('damage');
         expect(damageDie.toJSON()).to.deep.equal([1, 2, 3]);
         expect(restWizard.get('Health').getHP())
             .to.equal(wizard.get('Health').getHP());
