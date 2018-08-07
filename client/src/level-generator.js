@@ -3,7 +3,7 @@
 const RG = require('./rg.js');
 
 const LevelGenerator = function() {
-    this.shouldRemoveMarkers = false;
+    this.shouldRemoveMarkers = true;
 };
 
 LevelGenerator.prototype.addStartAndEndPoint = function(level, start, end) {
@@ -23,12 +23,12 @@ LevelGenerator.prototype.addStartAndEndPoint = function(level, start, end) {
 };
 
 LevelGenerator.prototype.removeMarkers = function(level, conf) {
-    let preserveMarkers = ['start_point', 'end_point', 'critical_path'];
-    if (conf.preserveMarkers) {
-        preserveMarkers = preserveMarkers.concat(conf.preserveMarkers);
+    let markersPreserved = ['start_point', 'end_point', 'critical_path'];
+    if (conf.markersPreserved) {
+        markersPreserved = markersPreserved.concat(conf.markersPreserved);
     }
-    else if (conf.preserveMarkers === false) {
-        preserveMarkers = [];
+    else if (conf.markersPreserved === false) {
+        markersPreserved = [];
     }
 
     if (!RG.isNullOrUndef([conf.shouldRemoveMarkers])) {
@@ -39,7 +39,7 @@ LevelGenerator.prototype.removeMarkers = function(level, conf) {
         level.removeElements(e => {
             if (e.getTag) {
                 const tag = e.getTag();
-                if (preserveMarkers.indexOf(tag) < 0) {
+                if (markersPreserved.indexOf(tag) < 0) {
                     return true;
                 }
             }
