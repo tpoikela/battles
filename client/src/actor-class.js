@@ -59,6 +59,81 @@ ActorClass.addAbility = function(abilName, actor) {
     }
 };
 
+ActorClass.startingItems = {
+    Alpinist: [
+        {name: 'Ration', count: 1},
+        {name: 'rope', count: 1},
+        {func: item => item.type === 'mineral', count: 2}
+    ],
+    Adventurer: [
+        {name: 'Ration', count: 2},
+        {name: 'firemaking kit', count: 1},
+        {func: item => item.type === 'potion', count: 1}
+    ],
+    Cryomancer: [
+        {name: 'Ration', count: 1},
+        {name: 'Potion of power', count: 1}
+    ],
+    Marksman: [
+        {name: 'Ration', count: 1}
+    ],
+    Blademaster: [
+        {name: 'Ration', count: 1}
+    ],
+    Spiritcrafter: [
+        {name: 'Ration', count: 1},
+        {name: 'Ordinary spirit gem'},
+        {name: 'Potion of spirit form'}
+    ],
+    Spellsinger: [
+        {name: 'Ration', count: 1},
+        {name: 'Potion of eagle', count: 1}
+    ]
+};
+
+ActorClass.equipment = {
+    Alpinist: [
+        {name: 'Piolet', count: 1},
+        {name: 'Spiked boots', count: 1}
+    ],
+    Adventurer: [
+        {name: 'Short sword', count: 1},
+        {name: 'Leather armour', count: 1}
+    ],
+    Cryomancer: [
+        {name: 'Robe', count: 1},
+        {name: 'Wooden staff', count: 1}
+    ],
+    Marksman: [
+        {name: 'Leather armour', count: 1},
+        {name: 'Wooden bow', count: 1},
+        {name: 'Wooden arrow', count: 15}
+    ],
+    Blademaster: [
+        {name: 'Ration', count: 1}
+    ],
+    Spiritcrafter: [
+        {name: 'Robe', count: 1},
+        {name: 'Mace', count: 1}
+    ],
+    Spellsinger: [
+        {name: 'Iron staff', count: 1},
+        {name: 'Leather armour', count: 1}
+    ]
+};
+
+ActorClass.getEquipment = function(name) {
+    const items = ActorClass.equipment[name];
+    const result = substituteConstraints(items);
+    return result;
+};
+
+ActorClass.getStartingItems = function(name) {
+    const items = ActorClass.startingItems[name];
+    const result = substituteConstraints(items);
+    return result;
+};
+
 /* Used by different in-game classes for actors. Provides basic getters and
  * progress functions to increase stats etc on level up. */
 class ActorClassBase {
@@ -164,26 +239,6 @@ class Alpinist extends ActorClassBase {
 
     }
 
-    /* Called at the creation of the actor. Gives certain set of starting items.
-     */
-    getStartingItems() {
-        const parser = RG.ObjectShell.getParser();
-        const mineral = parser.createRandomItem(
-            item => item.type === 'mineral');
-        return [
-            {name: 'Ration', count: 1},
-            {name: 'rope', count: 1},
-            {name: mineral.getName(), count: 2}
-        ];
-    }
-
-    getStartingEquipment() {
-        return [
-            {name: 'Piolet', count: 1},
-            {name: 'Spiked boots', count: 1}
-        ];
-    }
-
     setStartingStats() {
         const stats = this._actor.get('Stats');
         stats.incrStat('perception', 3);
@@ -242,26 +297,6 @@ class Adventurer extends ActorClassBase {
             // Copy also the level up message from other class
             this._messages[newLevel] = actorClass._messages[newLevel];
         }
-    }
-
-    /* Called at the creation of the actor. Gives certain set of starting items.
-     */
-    getStartingItems() {
-        const parser = RG.ObjectShell.getParser();
-        const potion = parser.createRandomItem(
-            item => item.type === 'potion');
-        return [
-            {name: 'Ration', count: 2},
-            {name: 'firemaking kit', count: 1},
-            {name: potion.getName(), count: 1}
-        ];
-    }
-
-    getStartingEquipment() {
-        return [
-            {name: 'Short sword', count: 1},
-            {name: 'Leather armour', count: 1}
-        ];
     }
 
     setStartingStats() {
@@ -334,22 +369,6 @@ class Blademaster extends ActorClassBase {
                 this._actor.add(new RG.Component.LongReach());
             }
         };
-    }
-
-
-    /* Called at the creation of the actor. Gives certain set of starting items.
-     */
-    getStartingItems() {
-        return [
-            {name: 'Ration', count: 1}
-        ];
-    }
-
-    getStartingEquipment() {
-        return [
-            {name: 'Longsword', count: 1},
-            {name: 'Chain armour', count: 1}
-        ];
     }
 
     setStartingStats() {
@@ -434,21 +453,6 @@ class Cryomancer extends ActorClassBase {
         };
     }
 
-    getStartingItems() {
-        return [
-            {name: 'Ration', count: 1},
-            {name: 'Potion of power', count: 1}
-        ];
-    }
-
-    getStartingEquipment() {
-        return [
-            {name: 'Robe', count: 1},
-            {name: 'Wooden staff', count: 1}
-        ];
-
-    }
-
     setStartingStats() {
         const stats = this._actor.get('Stats');
         stats.incrStat('strength', -2);
@@ -521,21 +525,6 @@ class Marksman extends ActorClassBase {
                 this._actor.add(new RG.Component.DoubleShot());
             }
         };
-    }
-
-    getStartingItems() {
-        return [
-            {name: 'Ration', count: 1}
-        ];
-    }
-
-    getStartingEquipment() {
-        return [
-            {name: 'Leather armour', count: 1},
-            {name: 'Wooden bow', count: 1},
-            {name: 'Wooden arrow', count: 15}
-        ];
-
     }
 
     setStartingStats() {
@@ -619,20 +608,6 @@ class Spellsinger extends ActorClassBase {
         };
     }
 
-    getStartingItems() {
-        return [
-            {name: 'Ration', count: 1},
-            {name: 'Potion of eagle', count: 1}
-        ];
-    }
-
-    getStartingEquipment() {
-        return [
-            {name: 'Iron staff', count: 1},
-            {name: 'Leather armour', count: 1}
-        ];
-    }
-
     setStartingStats() {
         const stats = this._actor.get('Stats');
         stats.incrStat('perception', 2);
@@ -714,21 +689,6 @@ class Spiritcrafter extends ActorClassBase {
         };
     }
 
-    getStartingItems() {
-        return [
-            {name: 'Ration', count: 1},
-            {name: 'Ordinary spirit gem'},
-            {name: 'Potion of spirit form'}
-        ];
-    }
-
-    getStartingEquipment() {
-        return [
-            {name: 'Robe', count: 1},
-            {name: 'Mace', count: 1}
-        ];
-    }
-
     setStartingStats() {
         const stats = this._actor.get('Stats');
         stats.incrStat('willpower', 4);
@@ -758,6 +718,30 @@ RG.ACTOR_CLASSES_NO_ADV = RG.ACTOR_CLASSES.filter(ac => ac !== 'Adventurer');
 
 function getRandExcludeAdventurer() {
     return RNG.arrayGetRand(RG.ACTOR_CLASSES_NO_ADV);
+}
+
+function substituteConstraints(items) {
+    const parser = RG.ObjectShell.getParser();
+    const result = [];
+    items.forEach(item => {
+        if (typeof item === 'function') {
+            const createdItem = parser.createRandomItem(item);
+            result.push({name: createdItem.getName(), count: 1});
+        }
+        else if (item.func) {
+            const createdItem = parser.createRandomItem(item.func);
+            if (item.count) {
+                result.push({name: createdItem.getName(), count: item.count});
+            }
+            else {
+                result.push({name: createdItem.getName(), count: 1});
+            }
+        }
+        else {
+            result.push(item);
+        }
+    });
+    return result;
 }
 
 module.exports = ActorClass;
