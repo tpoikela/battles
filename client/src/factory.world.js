@@ -576,6 +576,7 @@ RG.Factory.World = function() {
                     else {
                         const dungGen = new DungeonGenerator();
                         const [cols, rows] = [levelConf.x, levelConf.y];
+                        levelConf.markersPreserved = false;
                         level = dungGen.create(cols, rows, levelConf);
                     }
                     // For creating 'fixed' items and actors
