@@ -229,22 +229,32 @@ Cell.prototype.isFree = function(isFlying = false) {
 
 /* Add given obj with specified property type.*/
 Cell.prototype.setProp = function(prop, obj) {
-    if (!this._p.hasOwnProperty(prop)) {this._p[prop] = [];}
-    if (this._p.hasOwnProperty(prop)) {
-        if (this.hasConnection() && obj.getType() === 'connection') {
-            let msg = `${this._x},${this._y}`;
-            msg += `\nExisting: ${JSON.stringify(this.getConnection())}`;
-            msg += `\nTried to add: ${JSON.stringify(obj)}`;
-            RG.err('Cell', 'setProp',
-                `Tried to add 2nd connection: ${msg}`);
-        }
+    if (obj.getType() === 'connection' && this.hasConnection()) {
+        let msg = `${this._x},${this._y}`;
+        msg += `\nExisting: ${JSON.stringify(this.getConnection())}`;
+        msg += `\nTried to add: ${JSON.stringify(obj)}`;
+        RG.err('Cell', 'setProp',
+            `Tried to add 2nd connection: ${msg}`);
+    }
+    if (!this._p.hasOwnProperty(prop)) {
+        this._p[prop] = [];
         this._p[prop].push(obj);
-        if (obj.isOwnable) {
-            obj.setOwner(this);
+    }
+    // Reorders actors to show them in specific order with GUI
+    else if (prop === TYPE_ACTOR) {
+        if (!obj.has('NonSentient') && !obj.has('Ethereal')) {
+            this._p[prop].unshift(obj);
+        }
+        else {
+            this._p[prop].push(obj);
         }
     }
     else {
-        RG.err('Map.Cell', 'setProp', 'No property ' + prop);
+        this._p[prop].push(obj);
+    }
+
+    if (obj.isOwnable) {
+        obj.setOwner(this);
     }
 };
 
