@@ -790,27 +790,4 @@ DungeonGenerator.prototype.verifyLevel = function(level, conf) {
     return true;
 };
 
-/* Removes unneeded markers from the level. */
-DungeonGenerator.removeMarkers = function(level, conf) {
-    let preserveMarkers = ['start_point', 'end_point', 'critical_path'];
-    if (conf.preserveMarkers) {
-        preserveMarkers = preserveMarkers.concat(conf.preserveMarkers);
-    }
-    if (!RG.isNullOrUndef([conf.shouldRemoveMarkers])) {
-        this.shouldRemoveMarkers = conf.shouldRemoveMarkers;
-    }
-
-    if (this.shouldRemoveMarkers) {
-        level.removeElements(e => {
-            if (e.getTag) {
-                const tag = e.getTag();
-                if (preserveMarkers.indexOf(tag) < 0) {
-                    return true;
-                }
-            }
-            return false;
-        });
-    }
-};
-
 module.exports = DungeonGenerator;
