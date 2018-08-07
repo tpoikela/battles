@@ -303,7 +303,6 @@ RG.Game.FromJSON = function() {
                 // If spell has damage/duration etc dice, restore them
                 if (spell.dice) {
                     const dice = {};
-                    console.log(JSON.stringify(spell));
                     Object.keys(spell.dice).forEach(key => {
                         const die = spell.dice[key];
                         dice[key] = RG.FACT.createDie(die);
