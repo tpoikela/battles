@@ -16,12 +16,27 @@ describe('Spell.SpellBook', () => {
     let wizard = null;
     let book = null;
     let bookSpells = null;
+    let systems = null;
+    let spellPower = null;
 
     beforeEach(() => {
+        systems = [
+            new RG.System.SpellCast(['SpellCast']),
+            new RG.System.SpellEffect(
+            ['SpellRay', 'SpellCell', 'SpellMissile', 'SpellArea', 'SpellSelf']
+            ),
+            new RG.System.Missile(['Missile']),
+            new RG.System.Damage(['Damage'])
+        ];
         wizard = new RG.Actor.Rogue('wizard');
         book = new RG.Spell.SpellBook(wizard);
         RG.Spell.addAllSpells(book);
         bookSpells = book.getSpells();
+
+        spellPower = new RG.Component.SpellPower();
+        spellPower.setPP(10000);
+        spellPower.setMaxPP(10000);
+        wizard.add(spellPower);
     });
 
     it('it can contain a number of spells', () => {
@@ -88,6 +103,27 @@ describe('Spell.SpellBook', () => {
         const fromJSON = new FromJSON();
         const newBook = fromJSON.createSpells({spellbook: bookJSON}, wizard2);
         expect(newBook.equals(book)).to.be.true;
+    });
+
+    it('can cast all spells successfully', () => {
+        const enemy = new RG.Actor.Rogue('enemy');
+        const level = RGTest.wrapIntoLevel([enemy, wizard]);
+        let items = level.getItems();
+        expect(items).to.have.length(0);
+
+        RGTest.moveEntityTo(wizard, 1, 1);
+        RGTest.moveEntityTo(enemy, 3, 3);
+        const rockStorm = bookSpells.find(s => s.getName() === 'RockStorm');
+        const spellCast = new RG.Component.SpellCast();
+        spellCast.setSource(wizard);
+        spellCast.setSpell(rockStorm);
+        spellCast.setArgs({src: wizard});
+
+        wizard.add(spellCast);
+        RGTest.updateSystems(systems);
+
+        items = level.getItems();
+        expect(items).to.have.length(8);
     });
 });
 
