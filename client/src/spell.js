@@ -344,9 +344,13 @@ RG.Spell.Base.prototype.getCastFunc = function(actor, args) {
 
 RG.Spell.Base.prototype.toString = function() {
     let str = `${this.getName()} - ${this.getPower()}PP`;
+    if (this._dice.damage) {
+        str += ` Dmg: ${this._dice.damage.toString()}`;
+    }
     if (this._dice.duration) {
         str += ` Dur: ${this._dice.duration.toString()}`;
     }
+    if (this._range > 0) {str += ` R: ${this.getRange()}`;}
     return str;
 };
 
@@ -363,6 +367,19 @@ RG.Spell.Base.prototype.equals = function(rhs) {
         }
     });
     return equals;
+};
+
+RG.Spell.Base.prototype.setDice = function(name, dice) {
+    if (typeof dice === 'string') {
+        this._dice[name] = RG.FACT.createDie(dice);
+    }
+    else if (dice.roll) {
+        this._dice[name] = dice;
+    }
+};
+
+RG.Spell.Base.prototype.getDice = function(name) {
+    return this._dice[name];
 };
 
 RG.Spell.Base.prototype.toJSON = function() {
@@ -488,8 +505,6 @@ RG.Spell.RemoveComponent = function(name, power) {
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
-        // const dur = this._dice.duration.roll();
-
         obj.removeComp = this._compNames;
 
         const spellComp = new RG.Component.SpellCell();
@@ -523,20 +538,6 @@ RG.Spell.Ranged = function(name, power) {
 };
 RG.extend2(RG.Spell.Ranged, RG.Spell.Base);
 
-RG.Spell.Ranged.prototype.setDice = function(name, dice) {
-    this._dice[name] = dice;
-};
-
-RG.Spell.Ranged.prototype.getDice = function(name) {
-    return this._dice[name];
-};
-
-RG.Spell.Ranged.prototype.toString = function() {
-    let str = RG.Spell.Base.prototype.toString.call(this);
-    str += ` D: ${this.getDice('damage').toString()} R: ${this.getRange()}`;
-    return str;
-};
-
 /* A spell for melee combat using grasp of winter. */
 RG.Spell.GraspOfWinter = function() {
     RG.Spell.Base.call(this, 'Grasp of winter');
@@ -561,12 +562,6 @@ RG.Spell.GraspOfWinter = function() {
     };
 };
 RG.extend2(RG.Spell.GraspOfWinter, RG.Spell.Base);
-
-RG.Spell.GraspOfWinter.prototype.toString = function() {
-    let str = RG.Spell.Base.prototype.toString.call(this);
-    str += ` D: ${this._dice.damage.toString()}`;
-    return str;
-};
 
 RG.Spell.BoltBase = function(name, power) {
     RG.Spell.Ranged.call(this, name, power);
@@ -618,6 +613,7 @@ RG.extend2(RG.Spell.BoltBase, RG.Spell.Ranged);
 RG.Spell.FrostBolt = function() {
     RG.Spell.BoltBase.call(this, 'Frost bolt', 5);
     this.setDice('damage', RG.FACT.createDie('4d4 + 4'));
+    this.setRange(5);
     this.damageType = RG.DMG.ICE;
 };
 RG.extend2(RG.Spell.FrostBolt, RG.Spell.BoltBase);
@@ -682,13 +678,13 @@ RG.Spell.IceShield = function() {
     RG.Spell.Base.call(this, 'Ice shield', 7);
 
     this._dice.duration = RG.FACT.createDie('5d5 + 5');
-    this._defenseDie = RG.FACT.createDie('1d6 + 1');
+    this._dice.defense = RG.FACT.createDie('1d6 + 1');
 
     this.cast = args => {
         const actor = args.src;
         const dur = this._dice.duration.roll();
         const combatMods = new RG.Component.CombatMods();
-        combatMods.setDefense(this._defenseDie.roll());
+        combatMods.setDefense(this._dice.defense.roll());
         RG.Component.addToExpirationComp(actor, combatMods, dur);
         RG.gameMsg('You feel a boost to your defense.');
     };
@@ -706,7 +702,7 @@ RG.extend2(RG.Spell.IceShield, RG.Spell.Base);
 
 RG.Spell.IceShield.prototype.toString = function() {
     let str = RG.Spell.Base.prototype.toString.call(this);
-    str += ` Def: ${this._defenseDie.toString()}`;
+    str += ` Def: ${this._dice.defense.toString()}`;
     return str;
 };
 
@@ -715,13 +711,13 @@ RG.Spell.MagicArmor = function() {
     RG.Spell.Base.call(this, 'MagicArmor', 5);
 
     this._dice.duration = RG.FACT.createDie('5d5 + 5');
-    this._protDie = RG.FACT.createDie('2d6 + 1');
+    this._dice.protection = RG.FACT.createDie('2d6 + 1');
 
     this.cast = args => {
         const actor = args.src;
         const dur = this._dice.duration.roll();
         const combatMods = new RG.Component.CombatMods();
-        combatMods.setProtection(this._protDie.roll());
+        combatMods.setProtection(this._dice.protection.roll());
         RG.Component.addToExpirationComp(actor, combatMods, dur);
         RG.gameMsg('You feel a much more protected.');
     };
@@ -739,15 +735,13 @@ RG.extend2(RG.Spell.MagicArmor, RG.Spell.Base);
 
 RG.Spell.MagicArmor.prototype.toString = function() {
     let str = RG.Spell.Base.prototype.toString.call(this);
-    str += ` Pro: ${this._protDie.toString()}`;
+    str += ` Pro: ${this._dice.protection.toString()}`;
     return str;
 };
-
 
 /* IcyPrison spell which paralyses actors for a certain duration. */
 RG.Spell.IcyPrison = function() {
     RG.Spell.Base.call(this, 'Icy prison', 10);
-
     this._dice.duration = RG.FACT.createDie('1d8 + 1');
 
     this.cast = function(args) {
@@ -1209,13 +1203,13 @@ function aiEnemyWithinDist(args, cb, spell) {
 /* Healing spell, duh. */
 RG.Spell.Heal = function() {
     RG.Spell.Base.call(this, 'Heal', 6);
-    this._healingDie = RG.FACT.createDie('2d4');
+    this._dice.healing = RG.FACT.createDie('2d4');
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
         obj.targetComp = 'Health';
         obj.set = 'addHP';
-        obj.value = this._healingDie.roll();
+        obj.value = this._dice.healing.roll();
         const spellComp = new RG.Component.SpellCell();
         spellComp.setArgs(obj);
         args.src.add('SpellCell', spellComp);
@@ -1235,7 +1229,7 @@ RG.extend2(RG.Spell.Heal, RG.Spell.Base);
 
 RG.Spell.RingBase = function(name, power) {
     RG.Spell.Base.call(this, name, power);
-    this._durationDie = RG.FACT.createDie('10d10');
+    this._dice.duration = RG.FACT.createDie('10d10');
     this._range = 2;
     this._createdActor = 'Fire';
 
@@ -1263,7 +1257,7 @@ RG.Spell.RingBase = function(name, power) {
                 const fire = parser.createActor(this._createdActor);
                 level.addActor(fire, cell.getX(), cell.getY());
                 const fadingComp = new RG.Component.Fading();
-                const duration = this._durationDie.roll();
+                const duration = this._dice.duration.roll();
                 fadingComp.setDuration(duration);
                 fire.add(fadingComp);
             }
@@ -1278,7 +1272,7 @@ RG.extend2(RG.Spell.RingBase, RG.Spell.Base);
 
 RG.Spell.RingOfFire = function() {
     RG.Spell.RingBase.call(this, 'RingOfFire', 10);
-    this._durationDie = RG.FACT.createDie('10d10');
+    this._dice.duration = RG.FACT.createDie('10d10');
     this._range = 2;
     this._createdActor = 'Fire';
 };
@@ -1286,7 +1280,7 @@ RG.extend2(RG.Spell.RingOfFire, RG.Spell.RingBase);
 
 RG.Spell.RingOfFrost = function() {
     RG.Spell.RingBase.call(this, 'RingOfFrost', 10);
-    this._durationDie = RG.FACT.createDie('10d10');
+    this._dice.duration = RG.FACT.createDie('10d10');
     this._range = 2;
     this._createdActor = 'Ice flame';
 };
@@ -1294,7 +1288,7 @@ RG.extend2(RG.Spell.RingOfFrost, RG.Spell.RingBase);
 
 RG.Spell.RingOfEnergy = function() {
     RG.Spell.RingBase.call(this, 'RingOfEnergy', 10);
-    this._durationDie = RG.FACT.createDie('10d10');
+    this._dice.duration = RG.FACT.createDie('10d10');
     this._range = 3;
     this._createdActor = 'Forcefield';
 };
@@ -1302,7 +1296,7 @@ RG.extend2(RG.Spell.RingOfEnergy, RG.Spell.RingBase);
 
 RG.Spell.ForceField = function() {
     RG.Spell.Base.call(this, 'ForceField', 5);
-    this._durationDie = RG.FACT.createDie('10d10');
+    this._dice.duration = RG.FACT.createDie('10d10');
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
@@ -1332,7 +1326,7 @@ RG.Spell.ForceField = function() {
                 const forcefield = parser.createActor('Forcefield');
                 level.addActor(forcefield, cell.getX(), cell.getY());
                 const fadingComp = new RG.Component.Fading();
-                const duration = this._durationDie.roll();
+                const duration = this._dice.duration.roll();
                 fadingComp.setDuration(duration);
                 forcefield.add(fadingComp);
             }
