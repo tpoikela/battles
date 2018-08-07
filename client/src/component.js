@@ -797,6 +797,7 @@ RG.Component.SpellSelf = function() {
 };
 RG.extend2(RG.Component.SpellSelf, RG.Component.SpellBase);
 
+/* Added to actors which stop spells from passing through. */
 RG.Component.SpellStop = UniqueTagComponent('SpellStop');
 //--------------------------------------------
 // Adventurer components
