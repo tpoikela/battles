@@ -111,8 +111,9 @@ RG.Factory.Game = function() {
                 player.add(actorClassComp);
                 const actorClass = actorClassComp.getClass();
 
-                const items = actorClass.getStartingItems();
-                const eqs = actorClass.getStartingEquipment();
+                const name = obj.playerClass;
+                const items = ActorClass.getStartingItems(name);
+                const eqs = ActorClass.getEquipment(name);
 
                 // Create starting inventory
                 items.forEach(item => {
