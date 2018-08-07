@@ -66,7 +66,7 @@ RGTest.getMeAWizard = function(conf = {}) {
     const spell = RG.FACT.createSpell('FrostBolt');
     spell.setPower(conf.power || 11);
     spell.setRange(conf.range || 7);
-    spell.setDice([RG.FACT.createDie([1, 2, 3])]);
+    spell.setDice('damage', RG.FACT.createDie([1, 2, 3]));
     wizard._spellbook.addSpell(spell);
 
     // Adjust evaluators and casting probability
