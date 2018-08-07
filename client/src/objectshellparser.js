@@ -825,7 +825,6 @@ RG.ObjectShell.Parser = function() {
 
     /* Parses all shell data, items, monsters, level etc.*/
     this.parseShellData = function(obj) {
-        console.log('Got Obj for parsing:', obj);
         const keys = Object.keys(obj);
         for (let i = 0; i < keys.length; i++) {
             this.parseShellCateg(keys[i], obj[keys[i]]);
