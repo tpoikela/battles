@@ -523,7 +523,10 @@ RG.System.Missile = function(compTypes) {
 
         const targetX = mComp.getTargetX();
         const targetY = mComp.getTargetY();
-        const targetCell = map.getCell(targetX, targetY);
+        let targetCell = null;
+        if (map.hasXY(targetX, targetY)) {
+            targetCell = map.getCell(targetX, targetY);
+        }
         const firedMsg = this._formatFiredMsg(ent, attacker);
 
         if (targetCell && targetCell.hasProp('actors')) {
@@ -537,19 +540,31 @@ RG.System.Missile = function(compTypes) {
             mComp.next();
             const currX = mComp.getX();
             const currY = mComp.getY();
-            const currCell = map.getCell(currX, currY);
+            let currCell = null;
+            if (map.hasXY(currX, currY)) {
+                currCell = map.getCell(currX, currY);
+            }
 
             let shownMsg = '';
-            // Non-actor obstacle was hit, stop missile
-            if (!currCell.hasActors() && !currCell.isPassableByAir()) {
+            if (!currCell) { // Missile out of level
                 mComp.prev();
                 const prevX = mComp.getX();
                 const prevY = mComp.getY();
                 const prevCell = map.getCell(prevX, prevY);
-
                 this.finishMissileFlight(ent, mComp, prevCell);
+
+                shownMsg = firedMsg + ' disappears';
+            }
+            // Non-actor obstacle was hit, stop missile
+            else if (!currCell.hasActors() && !currCell.isPassableByAir()) {
+                mComp.prev();
+                const prevX = mComp.getX();
+                const prevY = mComp.getY();
+                const prevCell = map.getCell(prevX, prevY);
+                this.finishMissileFlight(ent, mComp, prevCell);
+
                 RG.debug(this, 'Stopped missile to wall');
-                shownMsg = firedMsg + ' thuds to the wall';
+                shownMsg = firedMsg + ' thuds to an obstacle';
             }
             else if (currCell.hasProp('actors')) {
                 const actor = currCell.getProp('actors')[0];
