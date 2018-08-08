@@ -45,7 +45,7 @@ window.RG = RG;
 /* Contains logic that is not tightly coupled to the GUI.*/
 class TopLogic {
 
-  describeCell(cell, seenCells) {
+  static describeCell(cell, seenCells) {
     var index = seenCells.indexOf(cell);
     if (index !== -1) {
       if (cell.hasActors()) {
@@ -76,7 +76,7 @@ class TopLogic {
     }
   }
 
-  getAdjacentCell(player, code) {
+  static getAdjacentCell(player, code) {
     if (RG.KeyMap.inMoveCodeMap(code) || RG.KeyMap.isRest(code)) {
       const x = player.getX();
       const y = player.getY();
@@ -104,7 +104,6 @@ class BattlesTop extends Component {
 
     constructor(props) {
         super(props);
-        this.logic = new TopLogic();
         this.game = null;
         this.gameSave = new RG.Game.Save();
         this.pluginManager = new PluginManager();
@@ -572,9 +571,14 @@ class BattlesTop extends Component {
             this.gameState.isTargeting = false;
         }
         else {
-            this.logic.describeCell(cell, this.gameState.visibleCells);
+            TopLogic.describeCell(cell, this.gameState.visibleCells);
             this.setState({selectedCell: cell});
-            this.useClickHandler(x, y, cell, 'move');
+            if (cell.hasItems()) {
+                this.useClickHandler(x, y, cell, 'pickup');
+            }
+            else {
+                this.useClickHandler(x, y, cell, 'move');
+            }
         }
         console.log(`Cell: ${JSON.stringify(cell)}`);
         if (cell.hasActors()) {
@@ -637,14 +641,6 @@ class BattlesTop extends Component {
             };
             reader.readAsText(file);
         }
-    }
-
-    componentDidMount() {
-      // document.addEventListener('keypress', this.handleKeyDown, true);
-    }
-
-    componentWillUnMount() {
-      // document.removeEventListener('keypress', this.handleKeyDown, true);
     }
 
     enableKeys() {
@@ -1153,7 +1149,7 @@ class BattlesTop extends Component {
             if (item !== null) {
 
                 const player = this.game.getPlayer();
-                const cell = this.logic.getAdjacentCell(player, code);
+                const cell = TopLogic.getAdjacentCell(player, code);
                 if (cell !== null) {
                     this.game.update({
                         cmd: 'use', target: cell, item
