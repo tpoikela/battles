@@ -36,15 +36,15 @@ export default class CellClickHandler {
         // Don't react to click if there are already keys
         if (this.hasKeys()) {return;}
 
-        console.log('Handling cmd ' + cmd);
-
         switch (cmd) {
             case 'attack': this.handleAttack(x, y, cell); break;
+            case 'chat': break; // TODO
             case 'move': this.handleMove(x, y, cell); break;
             case 'pickup': this.handlePickup(x, y, cell); break;
             case 'shoot': this.handleShoot(x, y, cell); break;
             case 'usestairs': this.handleUseStairs(x, y, cell); break;
             case 'use-element': this.handleUseElement(x, y, cell); break;
+            case 'use-item': break; // TODO
             default: break;
         }
 
