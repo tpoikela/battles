@@ -108,6 +108,10 @@ class BattlesTop extends Component {
         this.gameSave = new RG.Game.Save();
         this.pluginManager = new PluginManager();
 
+        // Some IDs needed for this component
+        this.loadScriptId = '#load-script-input';
+        this.levelInputId = '#level-file-input';
+
         // Used for request animation frame
         this.frameID = null;
 
@@ -131,10 +135,7 @@ class BattlesTop extends Component {
             seed: new Date().getTime(),
 
             playerLevel: 'Medium',
-            gameLength: 'Medium',
             levelSize: 'Medium',
-            monstType: 'Medium',
-            lootType: 'Medium',
             playerClass: RG.ACTOR_CLASSES[0],
             playerRace: RG.ACTOR_RACES[0],
 
@@ -169,14 +170,11 @@ class BattlesTop extends Component {
             boardClassName: 'game-board-player-view',
             playMode: 'OverWorld',
             equipSelected: null,
-            gameLength: 'Medium',
             invMsg: '',
             invMsgStyle: '',
             levelSize: 'Medium',
             loadFromEditor: false,
             loadInProgress: false,
-            lootType: 'Medium',
-            monstType: 'Medium',
             mouseOverCell: null,
             playerLevel: 'Medium',
             playerName: 'Player',
@@ -612,25 +610,23 @@ class BattlesTop extends Component {
     }
 
     importJSON() {
-        const fInput = document.querySelector('#level-file-input');
+        const fInput = document.querySelector(this.levelInputId);
         fInput.click();
-        console.log(fInput);
     }
 
     loadScript() {
-        console.log('loadScript triggered from menu');
-        const fInput = document.querySelector('#load-script-input');
+        const fInput = document.querySelector(this.loadScriptId);
         fInput.click();
     }
 
     onLoadScript() {
-        const fileList = document.querySelector('#load-script-input').files;
+        const fileList = document.querySelector(this.loadScriptId).files;
         const file = fileList[0];
-        console.log('onLoadScript got file', file);
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
                 const text = reader.result;
+                this.loadedScript = text;
                 try {
                     /* eslint no-eval: 0 */
                     eval(text);
@@ -866,12 +862,9 @@ class BattlesTop extends Component {
         const settings = {
             playerClass: this.state.playerClass,
             playerRace: this.state.playerRace,
+            playMode: this.state.playMode,
             playerLevel: this.state.playerLevel,
-            gameLength: this.state.gameLength,
-            levelSize: this.state.levelSize,
-            monstType: this.state.monstType,
-            lootType: this.state.lootType,
-            playMode: this.state.playMode
+            levelSize: this.state.levelSize
         };
 
         const oneSelectedCell = this.getOneSelectedCell();
@@ -892,10 +885,6 @@ class BattlesTop extends Component {
                     seedName={this.state.seedName}
                     selectedGame={this.state.selectedGame}
                     selectGame={this.selectSaveGame}
-                    setGameLength={this.setGameLength}
-                    setLevelSize={this.setLevelSize}
-                    setLoot={this.setLoot}
-                    setMonsters={this.setMonsters}
                     setPlayerClass={this.setPlayerClass}
                     setPlayerLevel={this.setPlayerLevel}
                     setPlayerName={this.setPlayerName}
@@ -1309,54 +1298,6 @@ class BattlesTop extends Component {
     //--------------------------------
     // GAME CONFIG RELATED FUNCTIONS
     //-------------------------------
-
-    setLoot(lootType) {
-        switch (lootType) {
-            case 'Sparse': this.gameConf.sqrPerItem = RG.LOOT_SPARSE_SQR; break;
-            case 'Medium': this.gameConf.sqrPerItem = RG.LOOT_MEDIUM_SQR; break;
-            case 'Abundant': {
-                this.gameConf.sqrPerItem = RG.LOOT_ABUNDANT_SQR; break;
-            }
-            default: console.error('setLoot illegal lootType ' + lootType);
-        }
-        this.gameConf.lootType = lootType;
-        this.setState({lootType});
-    }
-
-    setMonsters(monstType) {
-        switch (monstType) {
-            case 'Sparse': {
-                this.gameConf.sqrPerActor = RG.ACTOR_SPARSE_SQR; break;
-            }
-            case 'Medium': {
-                this.gameConf.sqrPerActor = RG.ACTOR_MEDIUM_SQR; break;
-            }
-            case 'Abundant': {
-                this.gameConf.sqrPerActor = RG.ACTOR_ABUNDANT_SQR; break;
-            }
-            default:
-                console.error('setMonsters illegal monstType ' + monstType);
-        }
-        this.gameConf.monstType = monstType;
-        this.setState({monstType});
-    }
-
-    setLevelSize(levelSize) {
-        switch (levelSize) {
-            case 'Small': this.gameConf.cols = RG.LEVEL_SMALL_X;
-                this.gameConf.rows = RG.LEVEL_SMALL_Y; break;
-            case 'Medium': this.gameConf.cols = RG.LEVEL_MEDIUM_X;
-                this.gameConf.rows = RG.LEVEL_MEDIUM_Y; break;
-            case 'Large': this.gameConf.cols = RG.LEVEL_LARGE_X;
-                this.gameConf.rows = RG.LEVEL_LARGE_Y; break;
-            case 'Huge': this.gameConf.cols = RG.LEVEL_HUGE_X;
-                this.gameConf.rows = RG.LEVEL_HUGE_Y; break;
-            default: console.error('setLeveSize illegal size ' + levelSize);
-        }
-        this.gameConf.levelSize = levelSize;
-        this.setState({levelSize});
-    }
-
     setPlayerLevel(level) {
         this.gameConf.playerLevel = level;
         this.setState({playerLevel: level});
@@ -1372,17 +1313,11 @@ class BattlesTop extends Component {
         this.setState({playerRace: raceName});
     }
 
-    setGameLength(length) {
-        switch (length) {
-            case 'Short': this.gameConf.levels = 5; break;
-            case 'Medium': this.gameConf.levels = 10; break;
-            case 'Long': this.gameConf.levels = 15; break;
-            case 'Epic': this.gameConf.levels = 30; break;
-            default: console.error('setGameLength illegal length ' + length);
-        }
-        this.gameConf.gameLength = length;
-        this.setState({gameLength: length});
+    setGameSetting(name, value) {
+        this.gameConf[name] = value;
+        this.setState({[name]: value});
     }
+
 
     setPlayMode(mode) {
         switch (mode) {
@@ -1405,10 +1340,6 @@ class BattlesTop extends Component {
         this.deleteGame = this.deleteGame.bind(this);
         this.loadGame = this.loadGame.bind(this);
         this.setPlayMode = this.setPlayMode.bind(this);
-        this.setGameLength = this.setGameLength.bind(this);
-        this.setLevelSize = this.setLevelSize.bind(this);
-        this.setLoot = this.setLoot.bind(this);
-        this.setMonsters = this.setMonsters.bind(this);
         this.setPlayerLevel = this.setPlayerLevel.bind(this);
         this.setPlayerName = this.setPlayerName.bind(this);
         this.setSeedName = this.setSeedName.bind(this);
@@ -1462,7 +1393,7 @@ class BattlesTop extends Component {
 
         this.onLoadCallback = this.onLoadCallback.bind(this);
         this.topMenuCallback = this.topMenuCallback.bind(this);
-        this.importJSON = this.importJSON.bind(this);
+        // this.importJSON = this.importJSON.bind(this);
         this.menuItemClicked = this.menuItemClicked.bind(this);
 
         this.onLoadScript = this.onLoadScript.bind(this);
@@ -1493,6 +1424,7 @@ class BattlesTop extends Component {
 
     showMsg(msg) {
         console.log('showMsg:', msg);
+        this.setState({msg});
     }
 
 }
