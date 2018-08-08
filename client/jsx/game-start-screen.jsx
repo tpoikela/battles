@@ -6,6 +6,7 @@ import DropdownSelect from './dropdown-select';
 
 const RG = require('../src/rg.js');
 const Modal = require('react-bootstrap-modal');
+const Texts = require('../data/texts');
 
 const config = require('../../public/config.js');
 
@@ -50,11 +51,7 @@ export default class GameStartScreen extends Component {
   }
 
   render() {
-    const setLoot = this.props.setLoot;
-    const setMonsters = this.props.setMonsters;
-    const setLevelSize = this.props.setLevelSize;
     const setPlayerLevel = this.props.setPlayerLevel;
-    const setGameLength = this.props.setGameLength;
     const setPlayMode = this.props.setPlayMode;
 
     const savedPlayerList = this.props.savedPlayerList;
@@ -141,34 +138,8 @@ export default class GameStartScreen extends Component {
         <div className='row'>
           <div className='col-md-6' id='prologue-box'>
 
-            <p>
-              Welcome to the wintry realms!
-              Winds are ever-blowing. Blowing off the
-              glaciers.
-              Are you ready to face the challenges of the
-              icy north? Hunger, coldness, ravenous
-              beasts, glacial chasms and forthcoming
-              eternal winter are waiting for you in the
-              darkness.
-            </p>
-
-            <p>
-              You have come a long way from your homelands
-              seeking
-              the thrill of the adventure. Now, you must
-              fight freezing battles in
-              the north against hordes of winter demons
-              and blizzard beasts. Will you bring back the
-              peace
-              to the grim and frostbitten kingdoms. Or
-              will you
-              bring the Winter of Ages upon its lands,
-              reigning
-              your kingdom cold for all eternity? Or will
-              you
-              perish
-              nameless and forgotten on the icy wastes?
-            </p>
+            <p> {Texts.intro.chapter1} </p>
+            <p> {Texts.intro.chapter2} </p>
 
             <label>You'll be forgotten as:
               <input
@@ -189,39 +160,6 @@ export default class GameStartScreen extends Component {
 
           <div className='col-md-6' id='game-options-box' >
             <p>Game settings</p>
-
-            <div className='dropdown-select-div'>
-              <DropdownSelect
-                callback={setGameLength}
-                currValue={this.props.settings.gameLength}
-                options={['Short', 'Medium', 'Long', 'Epic']}
-                titleName='Game length'
-              />
-            </div>
-
-            <div className='dropdown-select-div'>
-              <DropdownSelect
-                callback={setLoot}
-                currValue={this.props.settings.lootType}
-                options={['Sparse', 'Medium', 'Abundant']}
-                titleName='Loot'
-              />
-              <DropdownSelect
-                callback={setMonsters}
-                currValue={this.props.settings.monstType}
-                options={['Sparse', 'Medium', 'Abundant']}
-                titleName='Monsters'
-              />
-            </div>
-
-            <div className='dropdown-select-div'>
-              <DropdownSelect
-                callback={setLevelSize}
-                currValue={this.props.settings.levelSize}
-                options={['Small', 'Medium', 'Large', 'Huge']}
-                titleName='Levels'
-              />
-            </div>
 
             <div className='dropdown-select-div'>
               <DropdownSelect
@@ -299,13 +237,6 @@ export default class GameStartScreen extends Component {
     this.props.toggleScreen(type);
   }
 
-  getPlayerClassOptElems() {
-    return RG.ACTOR_CLASSES.map(ac => {
-      const key = 'key-actor-class-' + ac;
-      return <option key={key} value={ac}>{ac}</option>;
-    });
-  }
-
 }
 
 GameStartScreen.propTypes = {
@@ -319,10 +250,6 @@ GameStartScreen.propTypes = {
   seedName: PropTypes.string,
   selectGame: PropTypes.func.isRequired,
   selectedGame: PropTypes.string,
-  setGameLength: PropTypes.func.isRequired,
-  setLevelSize: PropTypes.func.isRequired,
-  setLoot: PropTypes.func.isRequired,
-  setMonsters: PropTypes.func.isRequired,
   setPlayMode: PropTypes.func.isRequired,
   setPlayerClass: PropTypes.func.isRequired,
   setPlayerLevel: PropTypes.func.isRequired,
