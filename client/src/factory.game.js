@@ -16,26 +16,17 @@ RG.getOverWorld = require('./overworld');
 const Creator = require('./world.creator');
 const ActorClass = require('./actor-class');
 const ArenaDebugGame = require('../data/debug-game');
+const Texts = require('../data/texts');
 
 const RNG = RG.Random.getRNG();
-
 const Stairs = RG.Element.Stairs;
 
 /* Player stats based on user selection.*/
 const confPlayerStats = {
-    Weak: {att: 1, def: 1, prot: 1, hp: 15, Weapon: 'Dagger'},
-    Medium: {att: 2, def: 4, prot: 2, hp: 25, Weapon: 'Short sword'},
-    Strong: {att: 5, def: 6, prot: 3, hp: 40, Weapon: 'Tomahawk'},
-    Inhuman: {att: 10, def: 10, prot: 4, hp: 80, Weapon: 'Magic sword'}
-};
-
-const MSG = {
-    EYE_OF_STORM:
-        'You see an eye of the storm approaching. Brace yourself now..',
-    BEASTS_SLAIN:
-        'All beasts have been slain. The blizzard seems to calm down',
-    ENEMIES_DEAD:
-        'All enemies are dead! You emerge victorious. Congratulations!'
+    Weak: {att: 1, def: 1, prot: 1, hp: 15},
+    Medium: {att: 2, def: 4, prot: 2, hp: 25},
+    Strong: {att: 5, def: 6, prot: 3, hp: 40},
+    Inhuman: {att: 10, def: 10, prot: 4, hp: 80}
 };
 
 /* Object for creating the top-level game object. GUI should only use this
@@ -68,7 +59,6 @@ RG.Factory.Game = function() {
             player.add(new RG.Component.GameInfo());
             player.add(new RG.Component.BodyTemp());
             player.add(new RG.Component.Abilities());
-
         }
 
         if (!player.has('Hunger')) {
@@ -84,7 +74,6 @@ RG.Factory.Game = function() {
 
         // Add to the CSS class table
         RG.addCellStyle(RG.TYPE_ACTOR, player.getName(), 'cell-actor-player');
-
         return player;
     };
 
@@ -206,7 +195,7 @@ RG.Factory.Game = function() {
             );
             _game.addEvent(windsEvent);
             const stormEvent = new RG.Time.OneShotEvent(
-                () => {}, 35 * 100, MSG.EYE_OF_STORM);
+                () => {}, 35 * 100, Texts.battle.eyeOfStorm);
             _game.addEvent(stormEvent);
             const beastEvent = new RG.Time.OneShotEvent(
                 that.createBeastArmy.bind(that, _level, this._parser), 50 * 100,
@@ -216,11 +205,11 @@ RG.Factory.Game = function() {
 
 
         this.allBeastsKilled = () => {
-            RG.gameMsg(MSG.BEASTS_SLAIN);
+            RG.gameMsg(Texts.battle.beastsSlain);
             // DO a final message of game over
             // Add random people to celebrate
             const msgEvent = new RG.Time.OneShotEvent(() => {}, 10 * 100,
-                MSG.ENEMIES_DEAD);
+                Texts.battle.enemiesDead);
             _game.addEvent(msgEvent);
             const msgEvent2 = new RG.Time.OneShotEvent(() => {}, 20 * 100,
                 'Battles in the North will continue soon in larger scale...');
