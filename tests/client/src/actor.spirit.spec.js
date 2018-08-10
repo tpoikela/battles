@@ -2,13 +2,14 @@
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 
-const Spirit = RG.Actor.Spirit;
+const Spirit = RG.Actor.Rogue;
 const Actor = RG.Actor.Rogue;
 
 describe('RG.Actor.Spirit', () => {
     it('Is an ethereal being, doesnt block passage', () => {
         const level = RG.FACT.createLevel('arena', 10, 10);
         const spirit = new Spirit('Wolf spirit');
+        spirit.add(new RG.Component.Ethereal());
         const actor = new Actor('Being');
 
         const spiritX = 2;

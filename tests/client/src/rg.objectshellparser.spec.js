@@ -118,7 +118,7 @@ describe('RG.ObjectShell.Parser', () => {
         const spiritShell = {
             name: 'Wolf spirit', type: 'spirit',
             strength: 0, accuracy: 0, agility: 1, willpower: 0, power: 1,
-            danger: 1
+            danger: 1, addComp: ['Ethereal']
         };
         const spiritNew = parser.parseObjShell('actors', spiritShell);
         expect(spiritNew.strength).to.equal(0);

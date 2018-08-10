@@ -321,7 +321,9 @@ describe('System.SpiritBind', () => {
         const spiritSys = new RG.System.SpiritBind(['SpiritBind']);
 
         const binder = new RG.Actor.Rogue('shaman');
-        const spirit = new RG.Actor.Spirit('Evil spirit');
+        const spirit = new RG.Actor.Rogue('Evil spirit');
+        spirit.setType('spirit');
+        spirit.add(new RG.Component.Ethereal());
         RGTest.wrapIntoLevel([binder, spirit]);
 
         const gem = new RG.Item.SpiritGem('Great gem');
@@ -339,10 +341,13 @@ describe('System.SpiritBind', () => {
 
     it('is used to bind gems into items', () => {
         const spiritSys = new RG.System.SpiritBind(['SpiritBind']);
-
         const binder = new RG.Actor.Rogue('shaman');
-        const spirit = new RG.Actor.Spirit('Evil spirit');
+
+        const spirit = new RG.Actor.Rogue('Evil spirit');
+        spirit.setType('spirit');
+        spirit.add(new RG.Component.Ethereal());
         spirit.get('Stats').setStrength(10);
+
         const gem = new RG.Item.SpiritGem('Great gem');
         gem.setSpirit(spirit);
         binder.getInvEq().addItem(gem);
@@ -383,7 +388,11 @@ describe('System.SpiritBind', () => {
 
         expect(newSword).to.have.component('GemBound');
         const restGem = newSword.get('GemBound').getGem();
+        const restSpirit = restGem.getSpirit();
+        expect(restSpirit.get('Stats').getStrength()).to.equal(10);
         expect(restGem.hasSpirit()).to.equal(true);
+
+        console.log(restGem.getSpirit());
         expect(restGem.getStrength()).to.equal(10);
 
     });

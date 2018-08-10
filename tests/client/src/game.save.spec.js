@@ -1,6 +1,7 @@
 
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
+const RGTest = require('../../roguetest');
 
 const LocalStorage = require('node-localstorage').LocalStorage;
 
@@ -142,7 +143,7 @@ describe('Game.Save how saving works', () => {
         invEq.addItem(emptygem);
 
         const gemWithSpirit = new RG.Item.SpiritGem('Used gem');
-        const spirit = new RG.Actor.Spirit('Wolf spirit');
+        const spirit = RGTest.createSpirit('Wolf spirit');
         spirit.get('Stats').setStrength(11);
         gemWithSpirit.setSpirit(spirit);
         invEq.addItem(gemWithSpirit);

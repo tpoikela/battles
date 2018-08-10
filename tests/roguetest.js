@@ -248,9 +248,16 @@ RGTest.MsgCatcher = function() {
     this.disable = () => {this.enabled = false;};
 };
 
+RGTest.createSpirit = function(name) {
+    const spirit = new RG.Actor.Rogue(name);
+    spirit.setType('spirit');
+    spirit.add(new RG.Component.Ethereal());
+    return spirit;
+};
+
 RGTest.createBoundGem = function() {
     const gem = new RG.Item.SpiritGem('Great gem');
-    const spirit = new RG.Actor.Spirit('Legend spirit');
+    const spirit = RGTest.createSpirit('Legendary spirit');
     spirit.get('Stats').setStrength(100);
     spirit.get('Stats').setAgility(100);
     gem.setSpirit(spirit);
