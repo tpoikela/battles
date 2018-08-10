@@ -17,8 +17,7 @@ const Evaluator = require('./evaluators');
 RG.Game.FromJSON = function() {
 
     let _dungeonLevel = 1;
-
-    const _parser = RG.ObjectShell.getParser();
+    this._parser = RG.ObjectShell.getParser();
 
     // Lookup table for mapping level ID to Map.Level object
     let id2level = {};
@@ -45,21 +44,21 @@ RG.Game.FromJSON = function() {
     this.getDungeonLevel = () => _dungeonLevel;
 
     /* Handles creation of restored player from JSON.*/
-    this.restorePlayer = function(obj) {
-        const player = new RG.Actor.Rogue(obj.name);
+    this.restorePlayer = function(json) {
+        const player = new RG.Actor.Rogue(json.name);
         player.setIsPlayer(true);
         // TODO hack for now, these are restored later
         player.remove('StatsMods');
         player.remove('CombatMods');
 
-        player.setType(obj.type);
-        player.setID(obj.id);
-        id2entity[obj.id] = player;
-        _dungeonLevel = obj.dungeonLevel;
+        player.setType(json.type);
+        player.setID(json.id);
+        id2entity[json.id] = player;
+        _dungeonLevel = json.dungeonLevel;
 
-        RG.addCellStyle(RG.TYPE_ACTOR, obj.name, 'cell-actor-player');
-        this._addEntityFeatures(obj, player);
-        this.restorePlayerBrain(player, obj.brain);
+        RG.addCellStyle(RG.TYPE_ACTOR, json.name, 'cell-actor-player');
+        this._addEntityFeatures(json, player);
+        this.restorePlayerBrain(player, json.brain);
         return player;
     };
 
@@ -325,8 +324,8 @@ RG.Game.FromJSON = function() {
         // Try to create object using ObjectShell.Parser, if it fails, fallback
         // to default constructor in RG.Item
         let newObj = null;
-        if (_parser.hasItem(obj.setName)) {
-            newObj = _parser.createItem(obj.setName);
+        if (this._parser.hasItem(obj.setName)) {
+            newObj = this._parser.createItem(obj.setName);
         }
         else {
             const typeCapitalized = this.getItemObjectType(item);
