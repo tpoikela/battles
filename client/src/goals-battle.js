@@ -59,6 +59,18 @@ const giveAttackOrder = (target, args) => {
 };
 GoalsBattle.giveAttackOrder = giveAttackOrder;
 
+/* Clears the given orders from non-enemy actor. */
+const giveClearOrders = (target, args) => {
+    if (target && target.getBrain().getGoal) {
+        const {src} = args;
+        if (!target.isEnemy(src)) {
+            const goal = target.getBrain().getGoal();
+            goal.clearOrders();
+        }
+    }
+};
+GoalsBattle.giveClearOrders = giveClearOrders;
+
 //---------------------------------------------------------------------------
 // COMPOSITE GOALS
 //---------------------------------------------------------------------------
@@ -109,6 +121,7 @@ class GoalFollowArmy extends Goal.Base {
     }
 
     activate() {
+        console.log('GoalFollowArmy ' + this.actor.getName());
         // 1. Calculate center of mass of army
         // 2. Check distance to the army
         // 3. Move into army's direction if not too close
