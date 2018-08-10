@@ -75,6 +75,9 @@ RG.Inv.EquipSlot = function(eq, type, stacked) {
 
 };
 
+const _equipMods = ['getDefense', 'getAttack', 'getProtection',
+    'getSpeed'].concat(RG.GET_STATS);
+
 /* Models equipment on an actor.*/
 RG.Inv.Equipment = function(actor) {
 
@@ -340,22 +343,15 @@ RG.Inv.Equipment = function(actor) {
         return json;
     };
 
-    // Dynamically generate accessors for different stats
-    const _mods = ['getDefense', 'getAttack', 'getProtection',
-        'getSpeed', 'getWillpower', 'getPerception',
-        'getAccuracy', 'getAgility', 'getStrength', 'getMagic'];
 
-    const that = this;
-    for (let i = 0; i < _mods.length; i++) {
-
+    /* Creates getters for stats and combat attributes. */
+    for (let i = 0; i < _equipMods.length; i++) {
         /* eslint no-loop-func: 0 */
         // Use closure to fix the function name
         const getFunc = () => {
-            const privVar = _mods[i];
-            return () => that.propertySum(privVar);
+            return () => this.propertySum(_equipMods[i]);
         };
-
-        this[_mods[i]] = getFunc();
+        this[_equipMods[i]] = getFunc();
     }
 
 };
