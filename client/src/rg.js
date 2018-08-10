@@ -536,8 +536,14 @@ RG.getMeleeAttack = function(att) {
     return attack;
 };
 
-RG.getMeleeDamage = function(att) {
-
+RG.getMeleeAttackRange = function(att) {
+    const attackRange = att.get('Combat').getAttackRange();
+    const weapon = att.getWeapon();
+    if (weapon) {
+        const weaponRange = weapon.getAttackRange();
+        return weaponRange > attackRange ? weaponRange : attackRange;
+    }
+    return attackRange;
 };
 
 RG.getMeleeDamageAdded = function(att) {
