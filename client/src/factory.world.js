@@ -569,6 +569,7 @@ RG.Factory.World = function() {
                     else if ((/cave/).test(dungeonType)) {
                         const caveGen = new CaveGenerator();
                         const [cols, rows] = [levelConf.x, levelConf.y];
+                        levelConf.markersPreserved = false;
                         level = caveGen.create(cols, rows, levelConf);
                         this.factZone.addItemsAndActors(level, levelConf);
                         this.factZone.addExtraDungeonFeatures(level, levelConf);
