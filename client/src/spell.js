@@ -718,8 +718,13 @@ RG.Spell.MagicArmor = function() {
         const dur = this._dice.duration.roll();
         const combatMods = new RG.Component.CombatMods();
         combatMods.setProtection(this._dice.protection.roll());
-        RG.Component.addToExpirationComp(actor, combatMods, dur);
-        RG.gameMsg('You feel a much more protected.');
+
+        const name = actor.getName();
+        const expirMsg = `Protective aura disappears from ${name}`;
+        RG.Component.addToExpirationComp(actor, combatMods, dur, expirMsg);
+
+        const msg = `${name} is surrounded by a protective aura`;
+        RG.gameMsg({msg, cell: actor.getCell()});
     };
 
     this.getSelectionObject = function(actor) {
