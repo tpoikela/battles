@@ -412,6 +412,9 @@ describe('System.TimeEffects', () => {
         expect(entity).to.have.component('StatsMods');
         entity.add(expComp);
 
+        entity.getName = () => 'an entity';
+        entity.getCell = () => null;
+
         const statsMods2 = new RG.Component.StatsMods();
         expComp.addEffect(statsMods2, 20);
         entity.add(statsMods2);
