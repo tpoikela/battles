@@ -23,13 +23,24 @@ RG.Item = require('./item.js');
 RG.Spell = require('./spell.js');
 RG.System = require('./system.js');
 RG.BTree = require('./aisequence.js');
+
+RG.Goals = require('./goals');
+RG.GoalsBattle = require('./goals-battle');
+RG.GoalsTop = require('./goals-top');
+
 RG.Brain = require('./brain.js');
 RG.Inv = require('./inv.js');
 RG.Actor = require('./actor.js');
 RG.Element = require('./element.js');
 
+RG.Cell = require('./map.cell.js');
 RG.Map = require('./map.js');
 RG.Map.Level = require('./level.js');
+RG.LevelGenerator = require('./level-generator');
+RG.MountainGenerator = require('./mountain-generator');
+RG.DungeonGenerator = require('./dungeon-generator');
+RG.CaveGenerator = require('./cave-generator');
+
 RG.World = require('./world.js');
 
 RG.Effects = require('../data/effects.js');
