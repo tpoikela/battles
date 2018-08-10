@@ -760,7 +760,8 @@ const Actors = [
     // SPIRITS
     {
         name: 'SpiritBase', char: 'Q', className: 'cell-actor-spirit',
-        type: 'spirit', dontCreate: true
+        type: 'spirit', dontCreate: true,
+        addComp: ['Ethereal'], brain: 'Spirit'
     },
     {
         name: 'Rat spirit', base: 'SpiritBase',
