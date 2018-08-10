@@ -27,7 +27,7 @@ class CmdAttack {
         const [pX, pY] = this._actor.getXY();
         const [tX, tY] = actor.getXY();
         const dist = Path.shortestDist(pX, pY, tX, tY);
-        const attackRange = this._actor.get('Combat').getAttackRange();
+        const attackRange = RG.getMeleeAttackRange(this._actor);
         console.log('CmdAttack dist is ' + dist + ' range: ' + attackRange);
         if (dist <= attackRange) {
             const attackComp = new RG.Component.Attack({target: actor});
