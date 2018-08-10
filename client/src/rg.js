@@ -818,6 +818,7 @@ RG.NEUTRAL_RACES = ['dwarf', 'bearfolk', 'animal'];
 
 RG.ACTOR_RACES = ['catfolk', 'dogfolk', 'wolfclan', 'wildling', 'goblin',
     'bearfolk', 'dwarf', 'human', 'hyrkhian'];
+RG.ACTOR_RACES = RG.ACTOR_RACES.sort(); // Too lazy to manually sort them
 
 // Constants for movement directions
 RG.CARDINAL_DIR = Object.freeze(['north', 'south', 'east', 'west']);
@@ -878,7 +879,6 @@ RG.STATS_LC = RG.STATS.map(stat => stat.toLowerCase());
 RG.LEVEL_NOT_LOADED = 'LEVEL_NOT_LOADED';
 RG.TILE_NOT_LOADED = 'TILE_NOT_LOADED';
 
-RG.ACTOR_RACES = RG.ACTOR_RACES.sort(); // Too lazy to manually order them
 
 RG.STATS_ABBR = RG.STATS.map(stat => stat.substr(0, 3));
 RG.GET_STATS = RG.STATS.map(stat => 'get' + stat);
