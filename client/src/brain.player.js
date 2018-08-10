@@ -216,9 +216,13 @@ class TargetingFSM {
                 let msg = 'You cannot see there.';
                 if (index >= 0) {
                     const names = cell.getPropNames();
+                    msg = '';
                     names.forEach(name => {
                         msg += `You see ${name} `;
                     });
+                    RG.gameMsg(msg);
+                }
+                else {
                     RG.gameMsg(msg);
                 }
             }
@@ -608,15 +612,6 @@ class BrainPlayer {
         }
     }
 
-    /* Returns possible target for attack, or null if none are found.*/
-    _getAttackTarget(map, x, y) {
-        const targets = map.getCell(x, y).getProp('actors');
-        for (let i = 0; i < targets.length; i++) {
-            if (!targets[i].has('Ethereal')) {return targets[i];}
-        }
-        return null;
-    }
-
     /* Tries to open/close a door nearby the player. TODO: Handle multiple
      * doors. */
     tryToToggleDoor() {
@@ -792,7 +787,7 @@ class BrainPlayer {
 
       // For digging through item stack on curr cell
       if (RG.KeyMap.isNextItem(code)) {
-        this.getNextItemOnTop(currCell);
+        getNextItemOnTop(currCell);
         return this.noAction();
       }
 
@@ -904,25 +899,6 @@ class BrainPlayer {
         if (msg !== '') {RG.gameMsg(msg);}
     }
 
-    /* If there are multiple items per cell, digs next item to the top.*/
-    getNextItemOnTop(cell) {
-        if (cell.hasProp('items')) {
-            const items = cell.getProp('items');
-            let name = items[0].getName();
-            if (items.length > 1) {
-                const firstItem = items.shift();
-                items.push(firstItem);
-                name = items[0].getName();
-                RG.gameMsg('You see now ' + name + ' on top of the heap.');
-            }
-            else {
-                RG.gameMsg('You see only ' + name + ' here');
-            }
-        }
-        else {
-            RG.gameMsg('There are no items here to look through');
-        }
-    }
 
     /* Called when Y/N choice required from player. */
     processConfirm(code) {
@@ -979,7 +955,7 @@ class BrainPlayer {
           }
           else if (currMap.getCell(x, y).hasProp('actors')) {
             this._restoreBaseSpeed();
-            const target = this._getAttackTarget(currMap, x, y);
+            const target = getAttackTarget(currMap, x, y);
 
             if (target === null) {
               RG.err('Brain.Player', 'decideNextAction',
@@ -1120,14 +1096,14 @@ class BrainPlayer {
 
     giveFollowOrder(target) {
         const name = target.getName();
-        const args = {bias: this.getOrderBias(), src: this._actor};
+        const args = {bias: 0.7, src: this._actor};
         GoalsBattle.giveFollowOrder(target, args);
         RG.gameMsg(`You tell ${name} to follow you`);
     }
 
     forgetOrders(target) {
-        const topGoal = target.getBrain().getGoal();
-        topGoal.clearOrders();
+        const args = {bias: 0.7, src: this._actor};
+        GoalsBattle.giveClearOrders(target, args);
         RG.gameMsg(`You tell ${name} to forget your orders`);
     }
 
@@ -1167,10 +1143,6 @@ class BrainPlayer {
         }
     }
 
-    getOrderBias() {
-        return 0.7;
-    }
-
     setSelectedCells(cells) {
         if (!cells) {
             this.cancelTargeting();
@@ -1197,5 +1169,35 @@ class BrainPlayer {
     }
 
 } // Brain.Player
+
+
+/* Returns possible target for attack, or null if none are found.*/
+function getAttackTarget(map, x, y) {
+    const targets = map.getCell(x, y).getProp('actors');
+    for (let i = 0; i < targets.length; i++) {
+        if (!targets[i].has('Ethereal')) {return targets[i];}
+    }
+    return null;
+}
+
+/* If there are multiple items per cell, digs next item to the top.*/
+function getNextItemOnTop(cell) {
+    if (cell.hasProp('items')) {
+        const items = cell.getProp('items');
+        let name = items[0].getName();
+        if (items.length > 1) {
+            const firstItem = items.shift();
+            items.push(firstItem);
+            name = items[0].getName();
+            RG.gameMsg('You see now ' + name + ' on top of the heap.');
+        }
+        else {
+            RG.gameMsg('You see only ' + name + ' here');
+        }
+    }
+    else {
+        RG.gameMsg('There are no items here to look through');
+    }
+}
 
 module.exports = BrainPlayer;
