@@ -110,7 +110,9 @@ ActorClass.equipment = {
         {name: 'Wooden arrow', count: 15}
     ],
     Blademaster: [
-        {name: 'Ration', count: 1}
+        {name: 'Longsword', count: 1},
+        {name: 'Chain helmet', count: 1},
+        {name: 'Chain armour', count: 1}
     ],
     Spiritcrafter: [
         {name: 'Robe', count: 1},
