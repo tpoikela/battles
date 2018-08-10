@@ -448,25 +448,4 @@ class RGActorRogue extends BaseActor {
 
 RG.Actor.Rogue = RGActorRogue;
 
-/* Spirit actors. They have Ethereal component and cannot be attacked, but they
- * can be captured by SpiritGem-objects.*/
-class RGActorSpirit extends RGActorRogue {
-
-    constructor(name) {
-        super(name);
-        this.setType('spirit');
-        this.add(new RG.Component.Ethereal());
-        this.setBrain(new RG.Brain.Spirit(this));
-    }
-
-    toJSON() {
-        const json = super.toJSON();
-        json.new = 'Spirit';
-        return json;
-    }
-
-}
-
-RG.Actor.Spirit = RGActorSpirit;
-
 module.exports = RG.Actor;
