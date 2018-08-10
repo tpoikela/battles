@@ -335,7 +335,11 @@ RG.Game.FromJSON = function() {
 
         for (const func in item) {
             if (func === 'setSpirit') {
-                newObj[func](this.createSpirit(item[func]));
+                // Calls gem.setSpirit() with created spirit
+                const spiritJSON = item[func];
+                const spiritObj = this.createActor(spiritJSON);
+                this._addEntityFeatures(spiritJSON, spiritObj);
+                newObj[func](spiritObj);
             }
             else if (func === 'components') {
                 this.addCompsToEntity(newObj, obj.components);
@@ -349,12 +353,6 @@ RG.Game.FromJSON = function() {
                   `${func} not func in ${json}`);
             }
         }
-        return newObj;
-    };
-
-    this.createSpirit = function(obj) {
-        const newObj = new RG.Actor.Spirit(obj.name);
-        this.addCompsToEntity(newObj, obj.components);
         return newObj;
     };
 
