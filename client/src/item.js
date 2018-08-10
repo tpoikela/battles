@@ -6,7 +6,6 @@ RG.Component = require('./component.js');
 
 const Mixin = require('./mixin');
 
-
 // Constants for different item types
 RG.ITEM_ITEM = 'item';
 RG.ITEM_FOOD = 'food';
@@ -739,27 +738,21 @@ class RGItemSpiritGem extends ItemBase {
         this._spirit = null;
         this._hasSpirit = false;
 
-        // Generate getters which access spirit's Stats component
-        const _getters = [
-            'getStrength', 'getWillpower', 'getAccuracy', 'getAgility',
-            'getMagic', 'getPerception'
-        ];
-
         const createGetFunc = i => {
-            const funcName = _getters[i];
+            const funcName = RG.GET_STATS[i];
             return () => {
                 if (!this._hasSpirit) {return 0;}
                 return this._spirit.get('Stats')[funcName]();
             };
         };
 
-        for (let i = 0; i < _getters.length; i++) {
-            this[_getters[i]] = createGetFunc(i);
+        for (let i = 0; i < RG.GET_STATS.length; i++) {
+            this[RG.GET_STATS[i]] = createGetFunc(i);
         }
 
     }
 
-    getArmourType() {return 'spiritgem';}
+    getArmourType() {return this.getType();}
 
     hasSpirit() {return this._hasSpirit;}
     getSpirit() {return this._spirit;}
@@ -770,7 +763,7 @@ class RGItemSpiritGem extends ItemBase {
             this._spirit = spirit;
         }
         else {
-            RG.err('Item.Spirit', 'setSpirit', 'Tried to overwrite spirit');
+            RG.err('Item.SpiritGem', 'setSpirit', 'Tried to overwrite spirit');
         }
     }
 
