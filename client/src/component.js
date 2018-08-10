@@ -557,10 +557,11 @@ RG.Component.Unpaid = TagComponent('Unpaid');
 /* Expiration component handles expiration of time-based effects. Any component
  * can be made transient by using this Expiration component. For example, to
  * have transient, non-persistent Ethereal, you can use this component. */
-RG.Component.Expiration = DataComponent('Expiration', {duration: null});
+RG.Component.Expiration = DataComponent('Expiration',
+    {duration: null, expireMsg: null});
 
 /* Adds one effect to time-based components.*/
-RG.Component.Expiration.prototype.addEffect = function(comp, dur) {
+RG.Component.Expiration.prototype.addEffect = function(comp, dur, msg) {
     if (!this.duration) {this.duration = {};}
     const compID = comp.getID();
     if (!this.duration.hasOwnProperty(compID)) {
@@ -573,6 +574,10 @@ RG.Component.Expiration.prototype.addEffect = function(comp, dur) {
     else { // increase existing duration
         this.duration[compID] += dur;
     }
+    if (msg) {
+        if (!this.expireMsg) {this.expireMsg = {};}
+        this.expireMsg[compID] = msg;
+    }
 };
 
 /* Decreases duration of all time-based effects.*/
@@ -583,6 +588,14 @@ RG.Component.Expiration.prototype.decrDuration = function() {
             if (this.duration[compID] === 0) {
                 const ent = this.getEntity();
                 const compIDInt = parseInt(compID, 10);
+                if (this.expireMsg && this.expireMsg[compIDInt]) {
+                    const msg = this.expireMsg[compIDInt];
+                    RG.gameMsg({cell: ent.getCell(), msg});
+                }
+                else {
+                    const msg = 'An effect wears of from ' + ent.getName();
+                    RG.gameMsg({cell: ent.getCell(), msg});
+                }
                 ent.remove(compIDInt);
                 delete this.duration[compID];
             }
@@ -606,6 +619,9 @@ RG.Component.Expiration.prototype.removeEffect = function(comp) {
     const compID = comp.getID();
     if (this.duration.hasOwnProperty(compID)) {
         delete this.duration[compID];
+    }
+    if (this.expireMsg && this.expireMsg.hasOwnProperty(compID)) {
+        delete this.expireMsg[compID];
     }
 };
 
@@ -1008,13 +1024,13 @@ RG.Component.Animation = function(args) {
 RG.extend2(RG.Component.Animation, RG.Component.Base);
 
 /* Adds a component into expiration component for given entity. */
-RG.Component.addToExpirationComp = (entity, comp, dur) => {
+RG.Component.addToExpirationComp = (entity, comp, dur, msg) => {
     if (entity.has('Expiration')) {
-        entity.get('Expiration').addEffect(comp, dur);
+        entity.get('Expiration').addEffect(comp, dur, msg);
     }
     else {
         const expComp = new RG.Component.Expiration();
-        expComp.addEffect(comp, dur);
+        expComp.addEffect(comp, dur, msg);
         entity.add(expComp);
     }
     entity.add(comp);
