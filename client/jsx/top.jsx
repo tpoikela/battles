@@ -46,7 +46,7 @@ window.RG = RG;
 class TopLogic {
 
   static describeCell(cell, seenCells) {
-    var index = seenCells.indexOf(cell);
+    const index = seenCells.indexOf(cell);
     if (index !== -1) {
       if (cell.hasActors()) {
         const actor = cell.getProp('actors')[0];
