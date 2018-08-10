@@ -24,7 +24,11 @@ class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
         this.add(new RG.Component.Action());
     }
 
-    isPlayer() {return false;}
+    /* Returns true if actor is a player.*/
+    isPlayer() {
+        return this.has('Player') || this.has('PlayerControlled');
+    }
+
     isEnemy() {return false;}
     addEnemy() {/* No implementation here */}
 
@@ -126,13 +130,9 @@ class RGActorRogue extends BaseActor {
 
         const perception = new RG.Component.Perception();
         perception.setFOVRange(RG.NPC_FOV_RANGE);
-        this.add(new RG.Component.Perception());
+        this.add(perception);
     }
 
-    /* Returns true if actor is a player.*/
-    isPlayer() {
-        return this.has('Player') || this.has('PlayerControlled');
-    }
 
     getFOVRange() {
         let range = this.get('Perception').getFOVRange();
