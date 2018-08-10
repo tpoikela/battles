@@ -332,7 +332,6 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
             case RG.TYPE_ACTOR:
                 const type = obj.type;
                 switch (type) {
-                    case 'spirit': return new RG.Actor.Spirit(obj.name);
                     default: {
                         switch (obj.actorType) {
                             case 'BaseActor':
