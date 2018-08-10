@@ -250,7 +250,7 @@ const MenuSelectTarget = function(args) {
 };
 RG.extend2(MenuSelectTarget, MenuSelectCell);
 
-MenuSelectCell.prototype.select = function(code) {
+MenuSelectTarget.prototype.select = function(code) {
     const val = MenuSelectCell.prototype.select.call(this, code);
     if (val === Menu.EXIT_MENU) {
         if (KeyMap.isNextTarget(code)) {
