@@ -136,17 +136,18 @@ DungeonPopulate.prototype.setActorFunc = function(func) {
 
 DungeonPopulate.prototype.addPointGuardian = function(level, point, maxDanger) {
     const eXY = point;
-    const guardEval = new Evaluator.Guard(RG.BIAS.Guard, eXY);
 
     const guardian = this.getEndPointGuardian(maxDanger);
     if (guardian) {
         if (guardian.getBrain().getGoal) {
+            const guardEval = new Evaluator.Guard(RG.BIAS.Guard, eXY);
             guardian.getBrain().getGoal().addEvaluator(guardEval);
         }
         level.addActor(guardian, eXY[0], eXY[1]);
     }
     else {
-        console.warn('Could not get guardian for endpoint', point);
+        const msg = `Could not get guardian for endpoint: ${point}`;
+        RG.warn('DungeonPopulate', 'addPointGuardian', msg);
     }
 };
 
