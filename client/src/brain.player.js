@@ -617,21 +617,27 @@ class BrainPlayer {
     tryToToggleDoor() {
         const cellsAround = RG.Brain.getCellsAroundActor(this._actor);
         const doorCells = cellsAround.filter(c => c.hasDoor());
-        let doorCell = null;
         if (doorCells.length === 1) {
-            doorCell = doorCells[0];
+            this.openDoorFromCell(doorCells[0]);
         }
         else if (doorCells.length > 1) {
             // TODO implement direction choice
-            doorCell = RNG.arrayGetRand(doorCells);
+            const doorCell = RNG.arrayGetRand(doorCells);
+            this.openDoorFromCell(doorCell);
         }
 
+        return this.cmdNotPossible('There are no doors to open or close');
+    }
+
+    openDoorFromCell(doorCell) {
         if (doorCell) {
-            const door = doorCells[0].getPropType('door')[0];
-            const comp = new RG.Component.OpenDoor();
-            comp.setDoor(door);
-            this._actor.add(comp);
-            return ACTION_ALREADY_DONE;
+            const door = doorCell.getPropType('door')[0];
+            if (door) {
+                const comp = new RG.Component.OpenDoor();
+                comp.setDoor(door);
+                this._actor.add(comp);
+                return ACTION_ALREADY_DONE;
+            }
         }
         return this.cmdNotPossible('There are no doors to open or close');
     }
@@ -684,10 +690,6 @@ class BrainPlayer {
     getCellIndexToTarget(cells) {
         return this._fsm.getCellIndexToTarget(cells);
     }
-
-    /* Required for various functions. Does nothing for the player.*/
-    addEnemy() {}
-    addFriend() {}
 
     /* Sets the selection object (for chats/trainers/etc) */
     setSelectionObject(obj) {
@@ -1167,6 +1169,12 @@ class BrainPlayer {
             markList: this._markList.toJSON()
         };
     }
+
+    /* Required for various functions. Does nothing for the player.*/
+    /* eslint-disable class-methods-use-this */
+    addEnemy() {}
+    addFriend() {}
+    /* eslint-enable class-methods-use-this */
 
 } // Brain.Player
 
