@@ -196,20 +196,24 @@ describe('ChunkManager', function() {
         fromJSON.setChunkMode(true);
         newGame = fromJSON.createGame(json);
 
+        // Simulate player moving around overworld levels
         game.movePlayer(2, 1);
         game.movePlayer(3, 1);
         game.movePlayer(3, 2);
         game.movePlayer(3, 1);
 
+        // Store number of connections in all levels
         levels = newGame.getLevels();
         const conns = levels.map(l => l.getConnections());
         const nConns = conns.reduce((acc, val) => {acc += val.length;}, 0);
 
+        // Serialize game, restore using chunkMode
         json = newGame.toJSON();
         fromJSON = new RG.Game.FromJSON();
         fromJSON.setChunkMode(true);
         newGame = fromJSON.createGame(json);
 
+        // Get num of connections now, compare to prev number
         levels = newGame.getLevels();
         const newConns = levels.map(l => l.getConnections());
         const nConnsAfter = newConns.reduce(
