@@ -45,6 +45,13 @@ const valueToNumber = function(value) {
     }
 };
 
+const getDuration = function(durStr) {
+    const arr = RG.parseDieSpec(durStr);
+    const durDie = new RG.Die(arr[0], arr[1], arr[2]);
+    const duration = durDie.roll();
+    return duration;
+};
+
 RG.Effects = {
 
     // Effects can be used in items freely.
@@ -128,10 +135,7 @@ RG.Effects = {
                             });
                         }
 
-                        const arr = RG.parseDieSpec(this.useArgs.duration);
-                        const durDie = new RG.Die(arr[0], arr[1], arr[2]);
-                        const dur = durDie.roll();
-
+                        const dur = getDuration(this.useArgs.duration);
                         const expiration = new RG.Component.Expiration();
                         expiration.addEffect(compToAdd, dur);
 
@@ -257,11 +261,9 @@ RG.Effects = {
             func: function(obj) {
                 const actor = getTargetActor(obj);
                 if (actor) {
-                    let arr = RG.parseDieSpec(this.useArgs.duration);
-                    const durDie = new RG.Die(arr[0], arr[1], arr[2]);
-                    const poisonDur = durDie.roll();
+                    const poisonDur = getDuration(this.useArgs.duration);
 
-                    arr = RG.parseDieSpec(this.useArgs.damage);
+                    const arr = RG.parseDieSpec(this.useArgs.damage);
                     const dmgDie = new RG.Die(arr[0], arr[1], arr[2]);
 
                     const poisonComp = new RG.Component.Poison();
@@ -275,8 +277,8 @@ RG.Effects = {
                     poisonComp.setSource(itemOwner);
 
                     poisonComp.setProb(this.useArgs.prob);
-                    actor.add('Poison', poisonComp);
-                    actor.add('Expiration', expiration);
+                    actor.add(poisonComp);
+                    actor.add(expiration);
                     createUseItemComp(this, actor);
                     return true;
                 }
@@ -291,9 +293,7 @@ RG.Effects = {
             func: function(obj) {
                 const actor = getTargetActor(obj);
                 if (actor) {
-                    const arr = RG.parseDieSpec(this.useArgs.duration);
-                    const durDie = new RG.Die(arr[0], arr[1], arr[2]);
-                    const stunDur = durDie.roll();
+                    const stunDur = getDuration(this.useArgs.duration);
                     const stunComp = new RG.Component.Stun();
                     const expiration = new RG.Component.Expiration();
                     expiration.addEffect(stunComp, stunDur);
@@ -301,8 +301,8 @@ RG.Effects = {
                     const itemOwner = this.getTopOwner();
                     stunComp.setSource(itemOwner);
 
-                    actor.add('Stun', stunComp);
-                    actor.add('Expiration', expiration);
+                    actor.add(stunComp);
+                    actor.add(expiration);
                     createUseItemComp(this, actor);
                     RG.gameMsg(actor.getName() +
                         ' is stunned by ' + this.getName());
