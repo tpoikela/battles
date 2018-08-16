@@ -273,7 +273,10 @@ const Engine = function(eventPool) {
                 if (removedLevel) {
                     const rmvActors = removedLevel.getActors();
                     for (let i = 0; i < rmvActors.length; i++) {
-                        rmvActors[i].get('Action').disable();
+                        const actionComp = rmvActors[i].get('Action');
+                        if (actionComp) {
+                            actionComp.disable();
+                        }
                     }
                     RG.debug(this, 'Removed active level to make space...');
                 }
@@ -296,7 +299,10 @@ const Engine = function(eventPool) {
             this._activeLevels.unshift(levelID);
             const actActors = level.getActors();
             for (let j = 0; j < actActors.length; j++) {
-                actActors[j].get('Action').enable();
+                const actionComp = actActors[j].get('Action');
+                if (actionComp) {
+                    actionComp.enable();
+                }
             }
         }
     };
