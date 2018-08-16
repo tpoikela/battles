@@ -284,6 +284,8 @@ const MenuSelectDir = function(args) {
 
     this.showMenu = () => false;
 
+    /* Called once a valid direction is selected. Callback will receive
+     * the direction as [dx, dy]. */
     this.setCallback = cb => {
         this.callback = cb;
     };
@@ -300,8 +302,8 @@ Menu.SelectDir = MenuSelectDir;
 
 //---------------------------------------------------------------------------
 /* Menu which has multiple states. An example is a selection menu, which has C-D
- * bound to delete item. Thus, normally menu is in selection state, but then
- * user hits C-D, it goes to deletion state. In this case, selection callback
+ * bound to delete item. Thus, normally a menu is in a selection state, but then
+ * user hits C-D, it goes to a deletion state. In this case, selection callback
  * is replaced by deletion callback. */
 //---------------------------------------------------------------------------
 const MenuWithState = function(args) {
