@@ -304,8 +304,8 @@ RG.Component.Base.prototype.toString = function() {
 };
 
 /* Creates a simple JSON representation of the component. NOTE: This relies on
- * getters and setters being named identically! Don't rely on this function if
- * you need something more sophisticated. */
+ * getters and setters being named similarly, ie getABC/setABC! Don't rely on
+ * this function if you need something more sophisticated. */
 RG.Component.Base.prototype.toJSON = function() {
     const obj = {};
     for (const p in this) {
@@ -316,7 +316,7 @@ RG.Component.Base.prototype.toJSON = function() {
                     const setter = getter.replace('get', 'set');
                     if (typeof this[setter] === 'function') {
                         // To de-serialize, we can then do
-                        //   obj[setter](obj[setter])
+                        //   obj[setter](json[setter])
                         obj[setter] = this[getter]();
                     }
                 }
