@@ -560,6 +560,10 @@ RG.Component.Unpaid = TagComponent('Unpaid');
 RG.Component.Expiration = DataComponent('Expiration',
     {duration: null, expireMsg: null});
 
+RG.Component.Expiration.prototype._init = function() {
+    this.expireMsg = {};
+};
+
 /* Adds one effect to time-based components.*/
 RG.Component.Expiration.prototype.addEffect = function(comp, dur, msg) {
     if (!this.duration) {this.duration = {};}
