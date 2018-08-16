@@ -541,8 +541,8 @@ RG.Factory.World = function() {
                 y: this.getConf('dungeonY'),
                 sqrPerActor: this.getConf('sqrPerActor'),
                 sqrPerItem: this.getConf('sqrPerItem'),
-                maxValue: maxValue || 20 * (i + 1),
-                maxDanger: maxDanger || 2,
+                maxValue: maxValue ? (maxValue + i * 20) : 20 * (i + 1),
+                maxDanger: maxDanger ? (maxDanger + i) : (2 + i),
                 nLevel: i
             };
 
