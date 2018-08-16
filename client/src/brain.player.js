@@ -384,6 +384,16 @@ class MarkList {
             if (cell.hasElements()) {
                 const elem = cell.getElements()[0];
                 listMsg += ' ' + elem.getName();
+                if (cell.hasConnection()) {
+                    const conn = cell.getConnection();
+                    const targetLevel = conn.getTargetLevel();
+                    if (targetLevel) {
+                        const parent = targetLevel.getParent();
+                        if (parent) {
+                            listMsg += ' - ' + parent.getName();
+                        }
+                    }
+                }
             }
             else if (cell.hasItems()) {
                 listMsg += ' ' + cell.getItems()[0].getName();
@@ -618,12 +628,12 @@ class BrainPlayer {
         const cellsAround = RG.Brain.getCellsAroundActor(this._actor);
         const doorCells = cellsAround.filter(c => c.hasDoor());
         if (doorCells.length === 1) {
-            this.openDoorFromCell(doorCells[0]);
+            return this.openDoorFromCell(doorCells[0]);
         }
         else if (doorCells.length > 1) {
             // TODO implement direction choice
             const doorCell = RNG.arrayGetRand(doorCells);
-            this.openDoorFromCell(doorCell);
+            return this.openDoorFromCell(doorCell);
         }
 
         return this.cmdNotPossible('There are no doors to open or close');
