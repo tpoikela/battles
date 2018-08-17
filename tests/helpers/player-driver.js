@@ -7,6 +7,9 @@
 const RG = require('../../client/src/rg');
 const Path = require('../../client/src/path');
 const Screen = require('../../client/gui/screen');
+const Keys = require('../../client/src/keymap');
+
+const {KEY} = Keys;
 
 const shortestPath = Path.getShortestPath;
 
@@ -93,7 +96,7 @@ const PlayerDriver = function(player) {
         // Command post-processing, get command for Brain.Player
         //-------------------------------------------------------
         let keycodeOrCmd = this.getPlayerCmd();
-        if (!keycodeOrCmd) {keycodeOrCmd = {code: RG.KEY.REST};}
+        if (!keycodeOrCmd) {keycodeOrCmd = {code: KEY.REST};}
 
         const cmdJson = JSON.stringify(keycodeOrCmd);
         const msg = `action: |${this.action}|, cmd: ${cmdJson}`;
@@ -446,12 +449,12 @@ const PlayerDriver = function(player) {
             keycodeOrCmd = {code};
         }
         else if (this.action === 'pickup') {
-            keycodeOrCmd = {code: RG.KEY.PICKUP};
+            keycodeOrCmd = {code: KEY.PICKUP};
         }
         else if (this.action === 'flee') {
             const pCell = _player.getCell();
             if (pCell.hasPassage()) {
-                keycodeOrCmd = {code: RG.KEY.USE_STAIRS_DOWN};
+                keycodeOrCmd = {code: KEY.USE_STAIRS_DOWN};
             }
             else {
                 const [eX, eY] = [enemy.getX(), enemy.getY()];
@@ -497,10 +500,10 @@ const PlayerDriver = function(player) {
             }
         }
         else if (this.action === 'move north') {
-            keycodeOrCmd = {code: RG.KEY.MOVE_N};
+            keycodeOrCmd = {code: KEY.MOVE_N};
         }
         else if (this.action === 'stairs') {
-            keycodeOrCmd = {code: RG.KEY.USE_STAIRS_DOWN};
+            keycodeOrCmd = {code: KEY.USE_STAIRS_DOWN};
         }
         else if (this.action === 'path') {
             let {x, y} = this.state.path.shift();
@@ -516,11 +519,11 @@ const PlayerDriver = function(player) {
             }
         }
         else if (this.action === 'run') {
-            keycodeOrCmd = {code: RG.KEY.RUN};
+            keycodeOrCmd = {code: KEY.RUN};
         }
         else if (this.action === 'selection') {
             // Always choose the first option
-            keycodeOrCmd = {code: RG.selectIndexToCode(0)};
+            keycodeOrCmd = {code: Keys.selectIndexToCode(0)};
         }
 
         return keycodeOrCmd;
