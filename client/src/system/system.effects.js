@@ -51,7 +51,7 @@ System.Effects.prototype.handleAddComp = function(srcEnt, effComp) {
         Object.keys(setters).forEach(setFunc => {
             if (typeof compToAdd[setFunc] === 'function') {
                 const valueToSet = setters[setFunc];
-                const numValue = valueToNumber(valueToSet);
+                const numValue = convertValueIfNeeded(valueToSet);
                 compToAdd[setFunc](numValue);
             }
             else {
@@ -62,7 +62,7 @@ System.Effects.prototype.handleAddComp = function(srcEnt, effComp) {
         });
     }
 
-    const dur = getDuration(useArgs.duration);
+    const dur = getDieValue(useArgs.duration);
     const expirMsg = useArgs.endMsg;
     console.log('Comp ' + name + ' will be added to', targetEnt);
     RG.Component.addToExpirationComp(targetEnt, compToAdd, dur, expirMsg);
@@ -94,11 +94,7 @@ System.Effects.addEffect = function(effName, func) {
 // HELPER FUNCTIONS
 //-------------------
 
-const getDuration = function(durStr) {
-    return valueToNumber(durStr);
-};
-
-const valueToNumber = function(intStrOrDie) {
+const getDieValue = function(intStrOrDie) {
     if (Number.isInteger(intStrOrDie)) {
         return intStrOrDie;
     }
@@ -108,12 +104,25 @@ const valueToNumber = function(intStrOrDie) {
         const duration = durDie.roll();
         return duration;
     }
-    else if (typeof intStrOrDie.roll === 'function') {
-        return intStrOrDie.rol();
+    else if (intStrOrDie.roll) {
+        return intStrOrDie.roll();
     }
-    RG.err('system.effects.js', 'valueToNumber',
-        'Arg must be int/string/RG.Die object');
+    RG.err('system.effects.js', 'getDieValue',
+        'Could not extract value from ' + intStrOrDie);
     return 0;
+};
+
+const convertValueIfNeeded = function(intStrOrDie) {
+    if (Number.isInteger(intStrOrDie)) {
+        return intStrOrDie;
+    }
+    else if (typeof intStrOrDie === 'string') {
+        const float = Number.parseFloat(intStrOrDie);
+        if (!Number.isNaN(float)) {
+            return float;
+        }
+    }
+    return intStrOrDie;
 };
 
 module.exports = System.Effects;
