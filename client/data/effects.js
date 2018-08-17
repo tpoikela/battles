@@ -25,13 +25,17 @@ const getTargetCell = obj => {
     return null;
 };
 
-const createUseItemComp = (item, target) => {
+const createUseItemComp = (item, target, effArgs) => {
     const useItem = new RG.Component.UseItem();
     useItem.setTarget(target);
     useItem.setItem(item);
+    if (effArgs) {
+        useItem.setEffect(effArgs);
+    }
     const useType = RG.getItemUseType(item, target);
     useItem.setUseType(useType);
-    item.getOwner().add(useItem);
+    console.log('Adding useItem now to ' + item.getTopOwner().getName());
+    item.getTopOwner().add(useItem);
 };
 
 const valueToNumber = function(value) {
@@ -114,41 +118,17 @@ RG.Effects = {
             func: function(obj) {
                 const actor = getTargetActor(obj);
                 if (actor) {
-                const name = this.useArgs.name.capitalize();
-                    if (RG.Component.hasOwnProperty(name)) {
-                        const compToAdd = new RG.Component[name]();
-
-                        // Process optional setters for component values
-                        if (this.useArgs.setters) {
-                            const setters = this.useArgs.setters;
-                            Object.keys(setters).forEach(setFunc => {
-                                if (typeof compToAdd[setFunc] === 'function') {
-                                    const valueToSet = setters[setFunc];
-                                    const numValue = valueToNumber(valueToSet);
-                                    compToAdd[setFunc](numValue);
-                                }
-                                else {
-                                    const json = JSON.stringify(compToAdd);
-                                    RG.err('useEffect', 'addComp',
-                                        `No ${setFunc} in comp ${json}`);
-                                }
-                            });
-                        }
-
-                        const dur = getDuration(this.useArgs.duration);
-                        const expiration = new RG.Component.Expiration();
-                        expiration.addEffect(compToAdd, dur);
-
-                        actor.add(compToAdd);
-                        actor.add(expiration);
-
-                        createUseItemComp(this, actor);
-                        return true;
+                    const effArgs = {
+                        target: actor,
+                        name: this.useArgs.name,
+                        duration: this.useArgs.duration,
+                        effectType: 'AddComp'
+                    };
+                    if (this.useArgs.setters) {
+                        effArgs.setters = this.useArgs.setters;
                     }
-                    else {
-                        RG.err('useEffect', 'addComp', 'Item: ' +
-                            this.getName() + ' invalid comp type ' + name);
-                    }
+                    createUseItemComp(this, actor, effArgs);
+                    return true;
                 }
                 return false;
 
@@ -261,10 +241,25 @@ RG.Effects = {
             func: function(obj) {
                 const actor = getTargetActor(obj);
                 if (actor) {
-                    const poisonDur = getDuration(this.useArgs.duration);
-
                     const arr = RG.parseDieSpec(this.useArgs.damage);
                     const dmgDie = new RG.Die(arr[0], arr[1], arr[2]);
+                    const effArgs = {
+                        target: actor,
+                        name: 'Poison',
+                        duration: this.useArgs.duration,
+                        effectType: 'AddComp',
+                        setters: {
+                            setDamageDie: dmgDie,
+                            setProb: this.useArgs.prob,
+                            setSource: this.getTopOwner()
+                        }
+                    };
+                    createUseItemComp(this, actor, effArgs);
+                    return true;
+
+                    /*
+                    const poisonDur = getDuration(this.useArgs.duration);
+
 
                     const poisonComp = new RG.Component.Poison();
                     poisonComp.setDamageDie(dmgDie);
@@ -281,6 +276,7 @@ RG.Effects = {
                     actor.add(expiration);
                     createUseItemComp(this, actor);
                     return true;
+                    */
                 }
                 return false;
             },
