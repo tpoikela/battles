@@ -19,6 +19,8 @@ const undeadBrain = 'GoalOriented';
  * noRandom: true  excludes the actor from random generation. This is useful for
  * bosses etc fixed actors.
  *
+ * color: {fg: <css-color>, bg: <css-color>} can be used for custom coloring
+ * of actors without adding any styles to CSS file.
  */
 
 const Actors = [
@@ -36,6 +38,7 @@ const Actors = [
     },
     {
         name: 'cloud of insects', char: 'i', base: 'animal',
+        color: color('Green', 'black'),
         damage: '1d1',
         defense: 2, addComp: 'Flying',
         onHit: [{addComp: 'Paralysis', duration: '1'}]
@@ -186,11 +189,7 @@ const Actors = [
         attack: 7, defense: 7, protection: 7,
         hp: 60, danger: 13, damage: '5d4',
         brain: 'SpellCaster', spells: ['PowerDrain'],
-        addComp: ['SpellStop',
-            {comp: 'Resistance', func: {
-            setEffect: RG.DMG.MAGIC, setLevel: RG.RESISTANCE.ABSORB
-            }}
-        ],
+        addComp: ['SpellStop', resistance('MAGIC', 'ABSORB')],
         maxPP: 70, pp: 70
     },
 
@@ -420,11 +419,7 @@ const Actors = [
     {
         name: 'WinterBeingBase', className: 'cell-actor-winter',
         dontCreate: true, enemies: ['player', 'human'],
-        addComp: [{
-            comp: 'Resistance', func: {
-                setEffect: RG.DMG.ICE, setLevel: RG.RESISTANCE.MEDIUM
-            }
-        }]
+        addComp: [resistance('ICE', 'MEDIUM')]
     },
     {
         name: 'Crevasse worm', char: 'w', base: 'WinterBeingBase',
@@ -434,7 +429,8 @@ const Actors = [
     {
         name: 'Ice bat', char: 'b', base: 'WinterBeingBase',
         attack: 1, defense: 1, damage: '1d6', speed: 110,
-        danger: 2, hp: 8, brain: 'Animal', addComp: 'Flying',
+        danger: 2, hp: 8, brain: 'Animal',
+        addComp: ['Flying', resistance('ICE', 'MEDIUM')],
         type: 'animal'
     },
     {
@@ -477,7 +473,8 @@ const Actors = [
     {
         name: 'Mighty raven', base: 'WinterBeingBase', char: 'R',
         attack: 4, defense: 10, damage: '2d4 + 2', range: 1, hp: 20,
-        danger: 5, brain: 'Animal', addComp: 'Flying'
+        danger: 5, brain: 'Animal',
+        addComp: ['Flying', resistance('ICE', 'MEDIUM')],
     },
     {
         name: 'Snow leopard', base: 'WinterBeingBase', char: 'f',
@@ -969,6 +966,19 @@ Actors.adjustActorValues = (actorsData, order = Actors.modOrder) => {
         });
     });
 };
+
+function resistance(type, level) {
+    return {
+        comp: 'Resistance', func: {
+            setEffect: RG.DMG[type.toUpperCase()],
+            setLevel: RG.RESISTANCE[level.toUpperCase()]
+        }
+    };
+}
+
+function color(fg, bg) {
+    return {fg, bg};
+}
 
 module.exports = Actors;
 
