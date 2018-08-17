@@ -941,10 +941,15 @@ RG.ObjectShell.Parser = function() {
     /* Stores char/CSS className for the object for rendering purposes.*/
     this.storeRenderingInfo = (categ, obj) => {
         if (obj.hasOwnProperty('color')) {
-            const {fg, bg} = obj.color;
+            let {fg, bg} = obj.color;
+            if (obj.hasOwnProperty('color-fg')) {
+                fg = obj['color-fg'];
+            }
+            if (obj.hasOwnProperty('color-bg')) {
+                bg = obj['color-bg'];
+            }
             obj.className = 'cell-fg-' + fg.toLowerCase() + '-bg-'
                 + bg.toLowerCase();
-            console.log('Created custom className ' + obj.className);
         }
         if (obj.hasOwnProperty('char')) {
             if (obj.hasOwnProperty('name')) {
