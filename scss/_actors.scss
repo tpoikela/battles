@@ -120,3 +120,12 @@
     color: $brown;
 }
 
+/* Classnames for custom actors defined using custom color and bg. */
+@each $color-fg in $css-color-names {
+    @each $color-bg in $css-color-names {
+        .cell-actor-fg-#{$color-fg}-bg-#{$color-bg} {
+            background-color: $color-bg;
+            color: $color-fg;
+        }
+    }
+}
