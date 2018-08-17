@@ -35,6 +35,12 @@ const Actors = [
         name: 'rat', char: 'r', base: 'animal'
     },
     {
+        name: 'cloud of insects', char: 'i', base: 'animal',
+        damage: '1d1',
+        defense: 2, addComp: 'Flying',
+        onHit: [{addComp: 'Paralysis', duration: '1'}]
+    },
+    {
         name: 'bat', char: 'b', base: 'animal',
         defense: 2, addComp: 'Flying'
     },
@@ -80,6 +86,13 @@ const Actors = [
         poison: {duration: '3d6', damage: '1d4 + 1', prob: '0.15'}
     },
     {
+        name: 'woolly spider', char: 'S', base: 'animal',
+        attack: 4, defense: 4, damage: '1d6 + 2',
+        hp: 20, danger: 4,
+        poison: {duration: '3d6', damage: '1d4 + 1', prob: '0.15'},
+        onHit: [{addComp: 'Paralysis', duration: '1'}]
+    },
+    {
         name: 'wolverine', char: 'W', base: 'animal',
         attack: 4, defense: 4, damage: '1d7',
         hp: 20, danger: 4
@@ -103,7 +116,8 @@ const Actors = [
         name: 'giant scorpion', char: 'S', base: 'animal',
         attack: 5, defense: 5, damage: '1d6 + 1',
         hp: 19, danger: 5, brain: 'SpellCaster',
-        spells: ['ScorpionsTail'], maxPP: 1, pp: 1
+        spells: ['ScorpionsTail'], maxPP: 1, pp: 1,
+        poison: {duration: '4d6', damage: '1d4 + 2', prob: '0.20'},
     },
     {
         name: 'bear', char: 'B', base: 'animal',
@@ -123,7 +137,7 @@ const Actors = [
     {
         name: 'griffin', char: 'G', base: 'animal',
         attack: 7, defense: 4, damage: '3d3',
-        hp: 35, danger: 6, addComp: 'Flying'
+        hp: 35, danger: 6, addComp: 'Flying', speed: 130
     },
     {
         name: 'mammoth', char: 'M', base: 'animal',
@@ -405,7 +419,12 @@ const Actors = [
     // DEMONS AND WINTRY BEINGS
     {
         name: 'WinterBeingBase', className: 'cell-actor-winter',
-        dontCreate: true, enemies: ['player', 'human']
+        dontCreate: true, enemies: ['player', 'human'],
+        addComp: [{
+            comp: 'Resistance', func: {
+                setEffect: RG.DMG.ICE, setLevel: RG.RESISTANCE.MEDIUM
+            }
+        }]
     },
     {
         name: 'Crevasse worm', char: 'w', base: 'WinterBeingBase',
@@ -417,6 +436,11 @@ const Actors = [
         attack: 1, defense: 1, damage: '1d6', speed: 110,
         danger: 2, hp: 8, brain: 'Animal', addComp: 'Flying',
         type: 'animal'
+    },
+    {
+        name: 'Arctic fox', char: 'f', base: 'WinterBeingBase',
+        attack: 4, defense: 1, damage: '1d7 + 3', speed: 105,
+        danger: 3, hp: 12, brain: 'Animal', type: 'animal'
     },
     {
         name: 'Frost goblin', char: 'g', base: 'WinterBeingBase',
