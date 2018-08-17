@@ -38,8 +38,8 @@ const Engine = function(eventPool) {
     // animations should be seen before actors are killed
     this.systemOrder = ['AreaEffects', 'Disability', 'SpiritBind', 'BaseAction',
         'Attack', 'Chat', 'Shop', 'SpellCast', 'SpellEffect', 'Missile',
-        'Movement', 'Animation', 'Damage', 'Battle', 'Skills', 'ExpPoints',
-        'Communication', 'Events'];
+        'Movement', 'Effects', 'Animation', 'Damage', 'Battle', 'Skills',
+        'ExpPoints', 'Communication', 'Events'];
 
     this.systems = {};
     this.systems.Disability = new RG.System.Disability(
@@ -56,6 +56,7 @@ const Engine = function(eventPool) {
         'PowerDrain']);
     this.systems.SpellEffect = new RG.System.SpellEffect(
         ['SpellRay', 'SpellCell', 'SpellMissile', 'SpellArea', 'SpellSelf']);
+    this.systems.Effects = new RG.System.Effects(['Effects']);
     this.systems.Animation = new RG.System.Animation(
         ['Animation']);
     this.systems.Damage = new RG.System.Damage(['Damage', 'Health']);
