@@ -989,6 +989,13 @@ RG.Component.Event = function(args) {
 };
 RG.extend2(RG.Component.Event, RG.Component.Base);
 
+RG.Component.Effects = TransientDataComponent('Effects',
+    {args: null, effectType: ''}
+);
+RG.Component.Effects.prototype._init = function(args) {
+    this.args = args || {};
+};
+
 /* Can be added to actors when they're under player control. */
 RG.Component.PlayerControlled = UniqueTagComponent('PlayerControlled');
 
@@ -1057,7 +1064,7 @@ RG.Component.Jump = TransientDataComponent('Jump', {x: -1, y: -1});
 RG.Component.OpenDoor = TransientDataComponent('OpenDoor', {door: null});
 
 RG.Component.UseItem = TransientDataComponent('UseItem',
-    {item: null, useType: '', target: null});
+    {item: null, useType: '', target: null, effect: null});
 
 RG.Component.UseElement = TransientDataComponent('UseElement',
     {element: null, useType: ''});
