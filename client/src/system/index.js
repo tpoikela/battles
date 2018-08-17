@@ -15,6 +15,7 @@ System.Chat = require('./system.chat');
 System.Communication = require('./system.communication');
 System.Damage = require('./system.damage');
 System.Disability = require('./system.disability');
+System.Effects = require('./system.effects');
 System.Events = require('./system.events');
 System.ExpPoints = require('./system.exp-points');
 System.Hunger = require('./system.hunger');
