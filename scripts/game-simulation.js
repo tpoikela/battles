@@ -14,7 +14,6 @@ const PlayerDriver = require('../tests/helpers/player-driver');
 const fs = require('fs');
 const cmdLineArgs = require('command-line-args');
 
-
 function main() {
 
 // Parse command line args
@@ -49,6 +48,10 @@ let loadGame = false;
 const pName = opts.name;
 const loadTurn = opts.loadturn ? opts.loadturn : 0;
 
+if (!pName) {
+    throw new Error('Player name must be given with -name.');
+}
+
 // Create new game only if not loading
 if (!opts.load && !opts.file) {
 
@@ -59,7 +62,8 @@ if (!opts.load && !opts.file) {
         sqrPerActor: 100,
         yMult: 0.5,
         playerClass: 'Blademaster',
-        playerRace: 'human'
+        playerRace: 'human',
+        playerName: pName
     };
 
     const gameFact = new RG.Factory.Game();
@@ -97,7 +101,7 @@ if (!opts.nomsg) {
     catcher = new RGTest.MsgCatcher();
 }
 
-const maxTurns = driver.nTurns + opts.maxturns;
+const maxTurns = driver.nTurns + parseInt(opts.maxturns, 10);
 const savePeriod = opts.save_period ? opts.save_period : 2000;
 
 // Execute game in try-catch so we can dump save data on failure
