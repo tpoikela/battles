@@ -1,8 +1,13 @@
 
-const expect = require('chai').expect;
+const chai = require('chai');
 
 const RG = require('../../../client/src/battles');
 const Effects = require('../../../client/data/effects');
+RG.System = require('../../../client/src/system');
+const chaiBattles = require('../../helpers/chai-battles.js');
+
+chai.use(chaiBattles);
+const expect = chai.expect;
 
 const getEffectByName = (obj, name) => {
     const index = obj.effects.findIndex(item => item.name === name);
@@ -72,6 +77,10 @@ describe('RG.Effects', () => {
     });
 
     it('has effect to add any component for specific duration', () => {
+        const useSystem = new RG.System.BaseAction(['UseItem']);
+        const effSystem = new RG.System.Effects(['Effects']);
+        // const systems = [useSystem, effSystem];
+
         const addCompEffect = getEffectByName(Effects, 'addComp');
         const useEffect = getEffectByName(Effects, 'use');
 
@@ -94,12 +103,19 @@ describe('RG.Effects', () => {
         expect(actor.has('Ethereal')).to.equal(false);
         expect(actor.has('Expiration')).to.equal(false);
         sword.use({target: cell});
-        expect(actor.has('Ethereal')).to.equal(true);
-        expect(actor.has('Expiration')).to.equal(true);
+        // console.log(actor.getComponents());
+        expect(actor).to.have.component('UseItem');
+        useSystem.update();
+        expect(actor).not.to.have.component('UseItem');
+        expect(actor).to.have.component('Effects');
+        effSystem.update();
+        expect(actor).not.to.have.component('Effects');
+        expect(actor).to.have.component('Ethereal');
+        expect(actor).to.have.component('Expiration');
     });
 
     it('has a firemaking effect', () => {
-        const fireEffect = getEffectByName(Effects, 'addEntity');
+        // const fireEffect = getEffectByName(Effects, 'addEntity');
 
     });
 });

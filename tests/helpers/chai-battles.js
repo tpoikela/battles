@@ -73,7 +73,7 @@ module.exports = function(chai, utils) {
         // do our comparison
         this.assert(
             hasComp
-            , `expected ${name} to have comp #{exp}`
+            , `expected ${name} to have comp #{exp}.`
             , `expected ${name} to not have comp #{exp}`
             , type
         );
