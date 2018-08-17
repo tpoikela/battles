@@ -139,8 +139,8 @@
     @each $color-bg in $css-color-names {
 
         // Can't use custom color names, get them from the map
-        $hex-value-fg: map-get($custom-color-names, $color-fg);
-        $hex-value-bg: map-get($custom-color-names, $color-bg);
+        $hex-value-fg: map-get($color-names-to-hex, $color-fg);
+        $hex-value-bg: map-get($color-names-to-hex, $color-bg);
 
         .cell-fg-#{to-lower-case($color-fg)}-bg-#{to-lower-case($color-bg)} {
             background-color: $hex-value-bg;
