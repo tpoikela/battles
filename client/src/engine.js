@@ -1,8 +1,8 @@
 
-const RG = require('./rg.js');
-RG.System = require('./system.js');
-RG.Map = require('./map.js');
-RG.Time = require('./time.js');
+const RG = require('./rg');
+RG.System = require('./system');
+RG.Map = require('./map');
+RG.Time = require('./time');
 
 /* Game engine which handles turn scheduling, systems updates and in-game
  * messaging between objects. */
@@ -37,11 +37,9 @@ const Engine = function(eventPool) {
     // These systems updated after each action. Order is important, for example,
     // animations should be seen before actors are killed
     this.systemOrder = ['AreaEffects', 'Disability', 'SpiritBind', 'BaseAction',
-        'Attack', 'Chat',
-        'Shop', 'SpellCast',
-        'SpellEffect', 'Missile', 'Movement', 'Animation', 'Damage',
-        'Battle', 'Skills', 'ExpPoints', 'Communication',
-        'Events'];
+        'Attack', 'Chat', 'Shop', 'SpellCast', 'SpellEffect', 'Missile',
+        'Movement', 'Animation', 'Damage', 'Battle', 'Skills', 'ExpPoints',
+        'Communication', 'Events'];
 
     this.systems = {};
     this.systems.Disability = new RG.System.Disability(
