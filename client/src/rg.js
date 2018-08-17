@@ -1443,6 +1443,34 @@ RG.RESISTANCE.STRONG = 6;
 RG.RESISTANCE.IMMUNITY = 10;
 RG.RESISTANCE.ABSORB = 15;
 
+//-----------------------------
+// Systems used in the engine
+//-----------------------------
+RG.SYS = {};
+RG.SYS.ANIMATION = Symbol('ANIMATION');
+RG.SYS.AREA_EFFECTS = Symbol('AREA_EFFECTS');
+RG.SYS.ATTACK = Symbol('ATTACK');
+RG.SYS.BATTLE = Symbol('BATTLE');
+RG.SYS.BASE_ACTION = Symbol('BASE_ACTION');
+RG.SYS.CHAT = Symbol('CHAT');
+RG.SYS.COMMUNICATION = Symbol('COMMUNICATION');
+RG.SYS.DAMAGE = Symbol('DAMAGE');
+RG.SYS.DISABILITY = Symbol('DISABILITY');
+RG.SYS.EVENTS = Symbol('EVENTS');
+RG.SYS.EXP_POINTS = Symbol('EXP_POINTS');
+RG.SYS.HUNGER = Symbol('HUNGER');
+RG.SYS.MISSILE = Symbol('MISSILE');
+RG.SYS.MOVEMENT = Symbol('MOVEMENT');
+RG.SYS.SHOP = Symbol('SHOP');
+RG.SYS.SKILLS = Symbol('SKILLS');
+RG.SYS.SPELL_CAST = Symbol('SPELL_CAST');
+RG.SYS.SPELL_EFFECT = Symbol('SPELL_EFFECT');
+RG.SYS.SPIRIT = Symbol('SPIRIT');
+RG.SYS.TIME_EFFECTS = Symbol('TIME_EFFECTS');
+
+RG.NO_DAMAGE_SRC = null;
+
+
 RG.getCardinalDirection = (level, cell) => {
     const cols = level.getMap().cols;
     const rows = level.getMap().rows;
