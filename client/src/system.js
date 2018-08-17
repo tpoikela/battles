@@ -1,5 +1,4 @@
 
-
 const RG = require('./rg.js');
 RG.Path = require('./path');
 RG.Geometry = require('./geometry');
@@ -61,10 +60,15 @@ function addCompToEntAfterHit(comp, ent) {
     ent.add(compClone.getType(), compClone);
 }
 
-
 RG.System = {};
 
-/* Base class for all systems in ECS framework.*/
+//---------------------------------------------------
+/** Base class for all systems in ECS framework.
+ * @constructor RG.System.Base
+ * @param {string} type - System type
+ * @param {array}  compTypes - Types of comps to listen to
+ */
+//---------------------------------------------------
 RG.System.Base = function(type, compTypes) {
     if (!Array.isArray(compTypes)) {
         RG.err('System.Base', 'new',
@@ -79,71 +83,74 @@ RG.System.Base = function(type, compTypes) {
     // components in compTypes must be present
     this.compTypesAny = false;
 
-    this.addEntity = function(entity) {
-        this.entities[entity.getID()] = entity;
-    };
-
-    this.removeEntity = function(entity) {
-        delete this.entities[entity.getID()];
-    };
-
     /* Listens to add/removes for each component type in compTypes.*/
     this.hasNotify = true;
-    this.notify = function(evtName, obj) {
-        if (obj.hasOwnProperty('add')) {
-            if (this.hasCompTypes(obj.entity)) {this.addEntity(obj.entity);}
-        }
-        else if (obj.hasOwnProperty('remove')) {
-            // Must check if any needed comps are still present, before removing
-            // the entity
-            if (!this.hasCompTypes(obj.entity)) {
-                this.removeEntity(obj.entity);
-            }
-        }
-    };
-
-    /* Returns true if entity has all required component types, or if
-     * compTypesAny if set, if entity has any required component. */
-    this.hasCompTypes = function(entity) {
-        if (this.compTypesAny === false) { // All types must be present
-            for (let i = 0; i < compTypes.length; i++) {
-                if (!entity.has(compTypes[i])) {return false;}
-            }
-            return true;
-        }
-        else { // Only one compType has to be present
-            for (let j = 0; j < compTypes.length; j++) {
-                if (entity.has(compTypes[j])) {return true;}
-            }
-            return false;
-        }
-    };
 
     // Add a listener for each specified component type
     for (let i = 0; i < this.compTypes.length; i++) {
         RG.POOL.listenEvent(this.compTypes[i], this);
     }
+};
 
-    this.hasEntities = function() {
-        return Object.keys(this.entities).length > 0;
-    };
+RG.System.Base.prototype.addEntity = function(entity) {
+    this.entities[entity.getID()] = entity;
+};
 
-    this.update = function() {
-        for (const e in this.entities) {
-            if (!e) {continue;}
-            this.updateEntity(this.entities[e]);
+RG.System.Base.prototype.removeEntity = function(entity) {
+    delete this.entities[entity.getID()];
+};
+
+RG.System.Base.prototype.notify = function(evtName, obj) {
+    if (obj.hasOwnProperty('add')) {
+        if (this.hasCompTypes(obj.entity)) {this.addEntity(obj.entity);}
+    }
+    else if (obj.hasOwnProperty('remove')) {
+        // Must check if any needed comps are still present, before removing
+        // the entity
+        if (!this.hasCompTypes(obj.entity)) {
+            this.removeEntity(obj.entity);
         }
-    };
+    }
+};
 
-    /* For printing out debug information. */
-    this.dbg = msg => {
-        if (debug.enabled) {
-            const nEnt = Object.keys(this.entities).length;
-            let descr = `[System ${this.type.toString()}]`;
-            descr += ` nEntities: ${nEnt}`;
-            debug(`${descr} ${msg}`);
+/* Returns true if entity has all required component types, or if
+ * compTypesAny if set, if entity has any required component. */
+RG.System.Base.prototype.hasCompTypes = function(entity) {
+    const compTypes = this.compTypes;
+    if (this.compTypesAny === false) { // All types must be present
+        for (let i = 0; i < compTypes.length; i++) {
+            if (!entity.has(compTypes[i])) {return false;}
         }
-    };
+        return true;
+    }
+    else { // Only one compType has to be present
+        for (let j = 0; j < compTypes.length; j++) {
+            if (entity.has(compTypes[j])) {return true;}
+        }
+        return false;
+    }
+};
+
+/* Returns true if there is at least 1 entity to process. */
+RG.System.Base.prototype.hasEntities = function() {
+    return Object.keys(this.entities).length > 0;
+};
+
+RG.System.Base.prototype.update = function() {
+    for (const e in this.entities) {
+        if (!e) {continue;}
+        this.updateEntity(this.entities[e]);
+    }
+};
+
+/* For printing out debug information. */
+RG.System.Base.prototype.dbg = function(msg) {
+    if (debug.enabled) {
+        const nEnt = Object.keys(this.entities).length;
+        let descr = `[System ${this.type.toString()}]`;
+        descr += ` nEntities: ${nEnt}`;
+        debug(`${descr} ${msg}`);
+    }
 };
 
 /* Processes entities with attack-related components.*/
@@ -872,6 +879,7 @@ RG.System.Damage = function(compTypes) {
     };
 
     const _getDmgAfterWeaknessAndResistance = (ent, dmgComp) => {
+        const entName = ent.getName();
         let dmg = dmgComp.getDamage();
         if (ent.has('Weakness')) {
             const weakList = ent.getList('Weakness');
@@ -895,24 +903,36 @@ RG.System.Damage = function(compTypes) {
             });
         }
         if (ent.has('Resistance')) {
+            let msg = entName;
             const resistList = ent.getList('Resistance');
             resistList.forEach(resistComp => {
                 if (this.effectMatches(dmgComp, resistComp)) {
                     const effLevel = resistComp.getLevel();
                     switch (effLevel) {
                         case RG.RESISTANCE.MINOR: {
-                            dmg = Math.round(dmg / 1.25); break;
+                            dmg = Math.round(dmg / 1.25);
+                            msg += ' resists the attack slighty';
+                            break;
                         }
                         case RG.RESISTANCE.MEDIUM: {
-                            dmg = Math.round(dmg / 1.5); break;
+                            dmg = Math.round(dmg / 1.5);
+                            msg += ' resists the attack';
+                            break;
                         }
                         case RG.RESISTANCE.STRONG: {
-                            dmg = Math.round(dmg / 2); break;
+                            dmg = Math.round(dmg / 2);
+                            msg += ' resists the attack strongly';
+                            break;
                         }
-                        case RG.RESISTANCE.IMMUNITY: dmg = 0; break;
+                        case RG.RESISTANCE.IMMUNITY: {
+                            dmg = 0;
+                            msg += ' is immune against the attack';
+                            break;
+                        }
                         case RG.RESISTANCE.ABSORB: {
                             const health = ent.get('Health');
                             health.addHP(dmg);
+                            msg += ' absorbs the power of the attack';
                             break;
                         }
                         default: break;
@@ -920,6 +940,7 @@ RG.System.Damage = function(compTypes) {
 
                 }
             });
+            RG.gameMsg({msg, cell: ent.getCell()});
         }
         return dmg;
     };
@@ -1132,7 +1153,6 @@ RG.System.ExpPoints = function(compTypes) {
     };
 
 };
-
 RG.extend2(RG.System.ExpPoints, RG.System.Base);
 
 /* This system handles all entity movement.*/
@@ -1875,7 +1895,7 @@ RG.System.TimeEffects = function(compTypes) {
     };
 
 };
-RG.extend2(RG.System.Communication, RG.System.Base);
+RG.extend2(RG.System.TimeEffects, RG.System.Base);
 
 /* System which processes the spell casting components. This system checks if
  * the spell casting succeeds and then handles PP reduction, but it does not
