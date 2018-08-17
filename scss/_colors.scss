@@ -57,6 +57,18 @@ $door-bg-color: $floor-bg-color;
 
 $sky-blue: #7ec0ee;
 
+$colors-name-to-hex: (
+    DarkStone: $dark-stone-color,
+    Floor: $floor-bg-color,
+    FloorHouse: $floor-house-bg-color,
+    Ruby: $ruby-red,
+    Shop: $shop-bg-color,
+    Steel: $steel,
+    Stone: $stone-color,
+    Wall: $wall-color,
+    Wooden: $wooden-color,
+);
+
 // sass-lint:disable no-color-keywords
 $css-color-names: AliceBlue, AntiqueWhite, Aqua, Aquamarine, Azure,
 Beige, Bisque, Black, BlanchedAlmond, Blue, BlueViolet, Brown,
@@ -83,3 +95,4 @@ SandyBrown, SeaGreen, SeaShell, Sienna, Silver, SkyBlue, SlateBlue,
 SlateGray, SlateGrey, Snow, SpringGreen, SteelBlue, Tan, Teal, Thistle,
 Tomato, Turquoise, Violet, Wheat, White, WhiteSmoke, Yellow, YellowGreen;
 
+$custom-color-names: 'Wooden', 'Stone', 'Ruby', 'Steel';
