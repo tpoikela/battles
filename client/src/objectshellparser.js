@@ -940,6 +940,11 @@ RG.ObjectShell.Parser = function() {
 
     /* Stores char/CSS className for the object for rendering purposes.*/
     this.storeRenderingInfo = (categ, obj) => {
+        if (obj.hasOwnProperty('color')) {
+            const {fg, bg} = obj.color;
+            obj.className = 'cell-actor-fg-' + fg + '-bg-' + bg;
+            console.log('Created custom className ' + obj.className);
+        }
         if (obj.hasOwnProperty('char')) {
             if (obj.hasOwnProperty('name')) {
                 RG.addCharStyle(categ, obj.name, obj.char);
