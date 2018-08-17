@@ -120,12 +120,32 @@
     color: $brown;
 }
 
-/* Classnames for custom actors defined using custom color and bg. */
+/* Generates using standard CSS color names for custom elements defined using
+ * custom color and bg. Should be
+ * used in JSON files when defining colors for custom items, actors and
+ * elements.
+ */
 @each $color-fg in $css-color-names {
     @each $color-bg in $css-color-names {
-        .cell-actor-fg-#{$color-fg}-bg-#{$color-bg} {
-            background-color: $color-bg;
-            color: $color-fg;
+        .cell-fg-#{to-lower-case($color-fg)}-bg-#{to-lower-case($color-bg)} {
+            background-color: to-lower-case($color-bg);
+            color: to-lower-case($color-fg);
         }
     }
 }
+
+/* Generates classNames for custom colors in the game. */
+@each $color-fg in $css-color-names {
+    @each $color-bg in $css-color-names {
+
+        // Can't use custom color names, get them from the map
+        $hex-value-fg: map-get($custom-color-names, $color-fg);
+        $hex-value-bg: map-get($custom-color-names, $color-bg);
+
+        .cell-fg-#{to-lower-case($color-fg)}-bg-#{to-lower-case($color-bg)} {
+            background-color: $hex-value-bg;
+            color: $hex-value-fg;
+        }
+    }
+}
+
