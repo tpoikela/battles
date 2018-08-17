@@ -715,16 +715,20 @@ RG.Spell.MagicArmor = function() {
 
     this.cast = args => {
         const actor = args.src;
-        const dur = this._dice.duration.roll();
-        const combatMods = new RG.Component.CombatMods();
-        combatMods.setProtection(this._dice.protection.roll());
-
         const name = actor.getName();
-        const expirMsg = `Protective aura disappears from ${name}`;
-        RG.Component.addToExpirationComp(actor, combatMods, dur, expirMsg);
-
-        const msg = `${name} is surrounded by a protective aura`;
-        RG.gameMsg({msg, cell: actor.getCell()});
+        const effArgs = {
+            target: actor,
+            name: 'CombatMods',
+            setters: {
+                setProtection: this._dice.protection.roll()
+            },
+            duration: this._dice.duration,
+            startMsg: `${name} is surrounded by a protective aura`,
+            endMsg: `Protective aura disappears from ${name}`
+        };
+        const effComp = new RG.Component.Effects(effArgs);
+        effComp.setEffectType('AddComp');
+        actor.add(effComp);
     };
 
     this.getSelectionObject = function(actor) {
@@ -759,7 +763,7 @@ RG.Spell.IcyPrison = function() {
 
         const spellComp = new RG.Component.SpellCell();
         spellComp.setArgs(obj);
-        args.src.add('SpellCell', spellComp);
+        args.src.add(spellComp);
     };
 
     this.getSelectionObject = function(actor) {
