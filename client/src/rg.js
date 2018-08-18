@@ -1389,7 +1389,9 @@ RG.getItemUseType = (item, targetOrObj) => {
     if (targetOrObj.target) {
         target = targetOrObj.target;
         if (target.getActors) {
-            target = target.getActors()[0];
+            if (target.hasActors()) {
+                target = target.getActors()[0];
+            }
         }
     }
     const itemType = item.getType();
