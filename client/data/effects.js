@@ -3,6 +3,8 @@
 const RG = require('../src/rg');
 RG.Component = require('../src/component.js');
 
+const entities = ['actors', 'items', 'elements'];
+
 const getTargetActor = (obj) => {
     if (!obj) {
         const msg = 'Possibly missing args for useItem().';
@@ -18,12 +20,14 @@ const getTargetActor = (obj) => {
     return null;
 };
 
+/*
 const getTargetCell = obj => {
     if (obj.hasOwnProperty('target')) {
         return obj.target;
     }
     return null;
 };
+*/
 
 const createUseItemComp = (item, target, effArgs) => {
     const useItem = new RG.Component.UseItem();
@@ -36,17 +40,6 @@ const createUseItemComp = (item, target, effArgs) => {
     useItem.setUseType(useType);
     console.log('Adding useItem now to ' + item.getTopOwner().getName());
     item.getTopOwner().add(useItem);
-};
-
-const valueToNumber = function(value) {
-    if (Number.isInteger(value)) {
-        return value;
-    }
-    else { // Assume a die spec
-        const arr = RG.parseDieSpec(value);
-        const valueDie = new RG.Die(arr[0], arr[1], arr[2]);
-        return valueDie.roll();
-    }
 };
 
 const getDuration = function(durStr) {
@@ -138,21 +131,17 @@ RG.Effects = {
             name: 'addToCompValue',
             requires: ['name', 'set', 'get', 'value'],
             func: function(obj) {
-                const actor = getTargetActor(obj);
-                const compName = this.useArgs.name;
-                if (actor) {
-                    if (actor.has(compName)) {
-                        const comp = actor.get(compName);
-                        const currValue = comp[this.useArgs.get]();
-                        const value = this.useArgs.value;
-                        const numValue = valueToNumber(value);
-                        comp[this.useArgs.set](currValue + numValue);
-                        createUseItemComp(this, actor);
-                    }
-                }
-                return false;
-
-            }
+                const effArgs = {
+                    target: obj,
+                    targetType: entities,
+                    name: this.useArgs.name,
+                    set: this.useArgs.set, get: this.useArgs.get,
+                    value: this.useArgs.value,
+                    effectType: 'AddToCompValue'
+                };
+                createUseItemComp(this, obj, effArgs);
+                return true;
+            },
 
         },
 
@@ -307,29 +296,15 @@ RG.Effects = {
             requires: ['entityName'],
             optional: ['duration'],
             func: function(obj) {
-                const cell = getTargetCell(obj);
-                const parser = RG.ObjectShell.getParser();
-                const entity = parser.createEntity(this.useArgs.entityName);
-                if (entity) {
-                    const [x, y] = [cell.getX(), cell.getY()];
-                    const owner = this.getOwner();
-                    const level = owner.getLevel();
-                    if (level.addEntity(entity, x, y)) {
-                        if (this.useArgs.duration) {
-                            const fadingComp = new RG.Component.Fading();
-                            const {duration} = this.useArgs;
-                            fadingComp.setDuration(duration);
-                            entity.add(fadingComp);
-                        }
-                        createUseItemComp(this, cell);
-                        return true;
-                    }
-                }
-                else {
-                    RG.err('effects.js', 'effect: addEntity',
-                      'Created entity was null');
-                }
-                return false;
+                const effArgs = {
+                    target: obj,
+                    targetType: ['cell'],
+                    entityName: this.useArgs.entityName,
+                    effectType: 'AddEntity',
+                    duration: this.useArgs.duration
+                };
+                createUseItemComp(this, obj, effArgs);
+                return true;
             }
         },
 
