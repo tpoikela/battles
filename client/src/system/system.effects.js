@@ -39,7 +39,7 @@ System.Effects.prototype.handleAddComp = function(srcEnt, effComp) {
     console.log('handleAddComp: ' + srcEnt);
     console.log('handleAddComp: ' + effComp);
     const useArgs = effComp.getArgs();
-    const targetEnt = useArgs.target;
+    const targetEnt = getEffectTarget(useArgs);
     const name = useArgs.name.capitalize();
     let compToAdd = null;
     if (RG.Component.hasOwnProperty(name)) {
@@ -124,5 +124,41 @@ const convertValueIfNeeded = function(intStrOrDie) {
     }
     return intStrOrDie;
 };
+
+/* Returns the target for the effect. Priority of targets is:
+ * 1. actors 2. items 3. elements 4. base element
+ */
+const getEffectTarget = (useArgs) => {
+    const objTarget = useArgs.target;
+    if (!objTarget) {
+        const msg = 'Possibly missing args for useItem().';
+        RG.err('system.effects.js', 'getEffectTarget',
+            `Given object was null/undefined. ${msg}`);
+    }
+    return getTargetFromObj(objTarget, useArgs.targetType);
+};
+System.Effects.getEffectTarget = getEffectTarget;
+
+function getTargetFromObj(objTarget, targetTypes) {
+    if (objTarget.hasOwnProperty('target')) {
+        const cell = objTarget.target;
+        let targetType = targetTypes;
+        if (!targetType) {
+            targetType = ['actors', 'items', 'elements', 'baseElem'];
+        }
+        if (!Array.isArray(targetType)) {targetType = [targetType];}
+
+        for (let i = 0; i < targetType.length; i++) {
+            if (cell.hasProp(targetType[i])) {
+                return cell.getProp(targetType[i])[0];
+            }
+            else if (/base/.test(targetType[i])) {
+                return cell.getBaseElem();
+            }
+        }
+    }
+    return null;
+}
+System.Effects.getTargetFromObj = getTargetFromObj;
 
 module.exports = System.Effects;
