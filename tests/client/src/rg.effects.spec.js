@@ -43,6 +43,27 @@ describe('RG.Effects', () => {
 
     });
 
+    it('has digger effect', () => {
+        const diggerEffect = getEffectByName(Effects, 'digger');
+
+        sword.useArgs.fromType = 'wall';
+
+        // Setup use function
+        const useFunc = diggerEffect.func.bind(sword);
+        sword.useFuncs = [useFunc];
+
+        expect(cell.setBaseElem(RG.ELEM.WALL));
+        expect(cell.getBaseElem().getType()).to.equal('wall');
+        sword.use({target: cell});
+
+        expect(userActor).to.have.component('UseItem');
+        useSystem.update();
+        expect(userActor).to.have.component('Effects');
+        effSystem.update();
+
+        expect(cell.getBaseElem().getType()).to.equal('floor');
+    });
+
     it('has heal effect', () => {
         const healEffect = getEffectByName(Effects, 'heal');
 
@@ -52,8 +73,7 @@ describe('RG.Effects', () => {
 
         potion.use = useEffect.func.bind(potion);
         const healFunc = healEffect.func.bind(potion);
-        potion.useFuncs = [];
-        potion.useFuncs.push(healFunc);
+        potion.useFuncs = [healFunc];
 
         const actor = new RG.Actor.Rogue('Healed one');
         actor.getInvEq().addItem(potion);
@@ -81,8 +101,7 @@ describe('RG.Effects', () => {
 
         potion.use = useEffect.func.bind(potion);
         const stunFunc = stunEffect.func.bind(potion);
-        potion.useFuncs = [];
-        potion.useFuncs.push(stunFunc);
+        potion.useFuncs = [stunFunc];
 
         const actor = new RG.Actor.Rogue('Healed one');
         actor.getInvEq().addItem(potion);
@@ -105,9 +124,8 @@ describe('RG.Effects', () => {
         sword.useArgs.name = 'Ethereal';
 
         // Setup use function
-        const stunFunc = addCompEffect.func.bind(sword);
-        sword.useFuncs = [];
-        sword.useFuncs.push(stunFunc);
+        const addCompFunc = addCompEffect.func.bind(sword);
+        sword.useFuncs = [addCompFunc];
 
         expect(userActor.has('Ethereal')).to.equal(false);
         expect(userActor.has('Expiration')).to.equal(false);
