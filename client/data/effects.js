@@ -116,22 +116,18 @@ RG.Effects = {
             requires: ['name', 'duration'],
             optional: ['setters'],
             func: function(obj) {
-                const actor = getTargetActor(obj);
-                if (actor) {
-                    const effArgs = {
-                        target: actor,
-                        name: this.useArgs.name,
-                        duration: this.useArgs.duration,
-                        effectType: 'AddComp'
-                    };
-                    if (this.useArgs.setters) {
-                        effArgs.setters = this.useArgs.setters;
-                    }
-                    createUseItemComp(this, actor, effArgs);
-                    return true;
+                const effArgs = {
+                    target: obj,
+                    targetType: ['actors', 'items'],
+                    name: this.useArgs.name,
+                    duration: this.useArgs.duration,
+                    effectType: 'AddComp'
+                };
+                if (this.useArgs.setters) {
+                    effArgs.setters = this.useArgs.setters;
                 }
-                return false;
-
+                createUseItemComp(this, obj, effArgs);
+                return true;
             },
         },
         // Adds a value to specified component value.
@@ -239,46 +235,22 @@ RG.Effects = {
             name: 'poison',
             requires: ['duration', 'damage', 'prob'],
             func: function(obj) {
-                const actor = getTargetActor(obj);
-                if (actor) {
-                    const arr = RG.parseDieSpec(this.useArgs.damage);
-                    const dmgDie = new RG.Die(arr[0], arr[1], arr[2]);
-                    const effArgs = {
-                        target: actor,
-                        name: 'Poison',
-                        duration: this.useArgs.duration,
-                        effectType: 'AddComp',
-                        setters: {
-                            setDamageDie: dmgDie,
-                            setProb: this.useArgs.prob,
-                            setSource: this.getTopOwner()
-                        }
-                    };
-                    createUseItemComp(this, actor, effArgs);
-                    return true;
-
-                    /*
-                    const poisonDur = getDuration(this.useArgs.duration);
-
-
-                    const poisonComp = new RG.Component.Poison();
-                    poisonComp.setDamageDie(dmgDie);
-
-                    const expiration = new RG.Component.Expiration();
-                    expiration.addEffect(poisonComp, poisonDur);
-
-                    // Need owner to assign exp correctly
-                    const itemOwner = this.getTopOwner();
-                    poisonComp.setSource(itemOwner);
-
-                    poisonComp.setProb(this.useArgs.prob);
-                    actor.add(poisonComp);
-                    actor.add(expiration);
-                    createUseItemComp(this, actor);
-                    return true;
-                    */
-                }
-                return false;
+                const arr = RG.parseDieSpec(this.useArgs.damage);
+                const dmgDie = new RG.Die(arr[0], arr[1], arr[2]);
+                const effArgs = {
+                    target: obj,
+                    targetType: ['actors', 'items'],
+                    name: 'Poison',
+                    duration: this.useArgs.duration,
+                    effectType: 'AddComp',
+                    setters: {
+                        setDamageDie: dmgDie,
+                        setProb: this.useArgs.prob,
+                        setSource: this.getTopOwner()
+                    }
+                };
+                createUseItemComp(this, obj, effArgs);
+                return true;
             },
         }, // poison
 
