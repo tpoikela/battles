@@ -260,19 +260,17 @@ RG.Effects = {
             name: 'modifyStat',
             requires: ['statName', 'value'],
             func: function(obj) {
-                const actor = getTargetActor(obj);
-                if (actor) {
-                    const value = this.useArgs.value;
-                    const statName = this.useArgs.statName.capitalize();
-                    const setFunc = 'set' + statName;
-                    const getFunc = 'get' + statName;
-                    const stats = actor.get('Stats');
-                    const currVal = stats[getFunc]();
-                    stats[setFunc](currVal + value);
-                    createUseItemComp(this, actor);
-                    return true;
-                }
-                return false;
+                const effArgs = {
+                    target: obj,
+                    targetType: ['actors'],
+                    name: 'Stats',
+                    set: 'set' + this.useArgs.statName,
+                    get: 'get' + this.useArgs.statName,
+                    value: this.useArgs.value,
+                    effectType: 'AddToCompValue'
+                };
+                createUseItemComp(this, obj, effArgs);
+                return true;
             }
         },
 
