@@ -20,15 +20,6 @@ const getTargetActor = (obj) => {
     return null;
 };
 
-/*
-const getTargetCell = obj => {
-    if (obj.hasOwnProperty('target')) {
-        return obj.target;
-    }
-    return null;
-};
-*/
-
 const createUseItemComp = (item, target, effArgs) => {
     const useItem = new RG.Component.UseItem();
     useItem.setTarget(target);
@@ -174,21 +165,16 @@ RG.Effects = {
         {
             name: 'digger',
             func: function(obj) {
-                if (obj.hasOwnProperty('target')) {
-                    const cell = obj.target;
-                    if (cell.getBaseElem().getType() === 'wall') {
-                        const owner = this.getTopOwner();
-                        cell.setBaseElem(RG.ELEM.FLOOR);
-                        RG.gameMsg(owner.getName() +
-                            ' digs through stone with ' + this.getName());
-                        return true;
-                    }
-                }
-                else {
-                    RG.err(this.getName(), 'useItem.digger',
-                        'No property |target| given in obj.');
-                }
-                return false;
+                const name = this.getTopOwner().getName();
+                const msg = `${name} digs through stone with ${this.getName()}`;
+                const effArgs = {
+                    effectType: 'ChangeElement',
+                    fromType: 'wall',
+                    target: obj,
+                    startMsg: msg
+                };
+                createUseItemComp(this, obj, effArgs);
+                return true;
             },
         },
 
