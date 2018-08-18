@@ -9,7 +9,7 @@ const handlerTable = {
     AddToCompValue: true,
     AddEntity: true,
     ChangeElement: true,
-    RemoveComp: false
+    RemoveComp: true
 };
 
 System.Effects = function(compTypes) {
@@ -140,6 +140,25 @@ System.Effects.prototype.handleChangeElement = function(srcEnt, effComp) {
         cell.setBaseElem(toType);
     }
 };
+
+System.Effects.prototype.handleRemoveComp = function(srcEnt, effComp) {
+    const useArgs = effComp.getArgs();
+    const targetEnt = getEffectTarget(useArgs);
+    const compName = getCompName(useArgs, targetEnt);
+
+    if (targetEnt.has(compName)) {
+        if (useArgs.all) {
+            targetEnt.removeAll(compName);
+        }
+        else {
+            targetEnt.remove(compName);
+        }
+    }
+};
+
+//---------------
+// HANDLERS END
+//---------------
 
 /** Adds an effect into the effect system.
  * @param {string} effName - Name of the effect.
