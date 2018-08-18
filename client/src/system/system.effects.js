@@ -7,18 +7,23 @@ System.Base = require('./system.base');
 const handlerTable = {
     AddComp: true,
     AddToCompValue: true,
-    AddEntity: true
+    AddEntity: true,
+    ChangeElement: true,
+    RemoveComp: false
 };
 
 System.Effects = function(compTypes) {
     System.Base.call(this, RG.SYS.Effects, compTypes);
     this._dtable = {};
     Object.keys(handlerTable).forEach(effName => {
-        const handlerName = 'handle' + effName.capitalize();
-        this._dtable[effName] = this[handlerName].bind(this);
+        if (handlerTable[effName]) {
+            const handlerName = 'handle' + effName.capitalize();
+            this._dtable[effName] = this[handlerName].bind(this);
+        }
     });
 };
 RG.extend2(System.Effects, System.Base);
+System.Effects.handlerTable = handlerTable;
 
 System.Effects.prototype.updateEntity = function(ent) {
     const comps = ent.getList('Effects');
@@ -26,6 +31,7 @@ System.Effects.prototype.updateEntity = function(ent) {
         const effType = effComp.getEffectType();
         if (effType !== '') {
             if (this._dtable.hasOwnProperty(effType)) {
+                this._checkMsgEmits(ent, effComp);
                 this._dtable[effType](ent, effComp);
             }
         }
@@ -37,7 +43,19 @@ System.Effects.prototype.updateEntity = function(ent) {
     });
 };
 
-/* Handler for effect 'AddComp' */
+System.Effects.prototype._checkMsgEmits = function(ent, effComp) {
+    const useArgs = effComp.getArgs();
+    if (useArgs.startMsg) {
+        RG.gameMsg({cell: ent.getCell(), msg: useArgs.startMsg});
+    }
+};
+
+//--------------------
+// HANDLER FUNCTIONS
+//--------------------
+
+/* Handler for effect 'AddComp'. Adds a component to target entity
+ * for a given duration. */
 System.Effects.prototype.handleAddComp = function(srcEnt, effComp) {
     const useArgs = effComp.getArgs();
     const targetEnt = getEffectTarget(useArgs);
@@ -48,6 +66,7 @@ System.Effects.prototype.handleAddComp = function(srcEnt, effComp) {
         compToAdd = new RG.Component[compName]();
     }
 
+    // If setters are given, alter the values of added component
     if (useArgs.setters) {
         const setters = useArgs.setters;
         Object.keys(setters).forEach(setFunc => {
@@ -68,11 +87,12 @@ System.Effects.prototype.handleAddComp = function(srcEnt, effComp) {
     const expirMsg = useArgs.endMsg;
 
     RG.Component.addToExpirationComp(targetEnt, compToAdd, dur, expirMsg);
-    if (useArgs.startMsg) {
+    /* if (useArgs.startMsg) {
         RG.gameMsg({msg: useArgs.startMsg, cell: targetEnt.getCell()});
-    }
+    }*/
 };
 
+/* Adds a value to an existing component value. */
 System.Effects.prototype.handleAddToCompValue = function(srcEnt, effComp) {
     const useArgs = effComp.getArgs();
     const targetEnt = getEffectTarget(useArgs);
@@ -89,10 +109,10 @@ System.Effects.prototype.handleAddToCompValue = function(srcEnt, effComp) {
     }
 };
 
+/* Adds an entity to target cell. */
 System.Effects.prototype.handleAddEntity = function(srcEnt, effComp) {
     const useArgs = effComp.getArgs();
-    const {target} = useArgs.target;
-    const cell = target;
+    const cell = getTargetCellOrFail(useArgs);
 
     const parser = RG.ObjectShell.getParser();
     const entity = parser.createEntity(useArgs.entityName);
@@ -109,7 +129,16 @@ System.Effects.prototype.handleAddEntity = function(srcEnt, effComp) {
             }
         }
     }
+};
 
+System.Effects.prototype.handleChangeElement = function(srcEnt, effComp) {
+    const useArgs = effComp.getArgs();
+    const cell = getTargetCellOrFail(useArgs);
+    const fromType = useArgs.fromType;
+    const toType = useArgs.toType || RG.ELEM.FLOOR;
+    if (cell.getBaseElem().getType() === fromType) {
+        cell.setBaseElem(toType);
+    }
 };
 
 /** Adds an effect into the effect system.
@@ -181,6 +210,19 @@ const convertValueIfNeeded = function(intStrOrDie) {
     }
     return intStrOrDie;
 };
+
+function getTargetCellOrFail(useArgs) {
+    if (useArgs.target) {
+        const targetObj = useArgs.target;
+        if (targetObj.target) {
+            return targetObj.target;
+        }
+    }
+    const json = JSON.stringify(useArgs);
+    RG.err('system.effects.js', 'getTargetCellOrFail',
+        'Prop target must exist in useArgs ' + json);
+    return null;
+}
 
 /* Returns the target for the effect. Priority of targets is:
  * 1. actors 2. items 3. elements 4. base element
