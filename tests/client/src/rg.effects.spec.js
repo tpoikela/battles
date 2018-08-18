@@ -4,7 +4,9 @@ const chai = require('chai');
 const RG = require('../../../client/src/battles');
 const Effects = require('../../../client/data/effects');
 RG.System = require('../../../client/src/system');
-const chaiBattles = require('../../helpers/chai-battles.js');
+const chaiBattles = require('../../helpers/chai-battles');
+
+const RGTest = require('../../roguetest');
 
 chai.use(chaiBattles);
 const expect = chai.expect;
@@ -16,8 +18,25 @@ const getEffectByName = (obj, name) => {
 
 describe('RG.Effects', () => {
 
-    beforeEach(() => {
+    let useEffect = null;
+    let useSystem = null;
+    let effSystem = null;
+    let sword = null;
+    let userActor = null;
+    let cell = null;
 
+    beforeEach(() => {
+        useEffect = getEffectByName(Effects, 'use');
+        useSystem = new RG.System.BaseAction(['UseItem']);
+        effSystem = new RG.System.Effects(['Effects']);
+        sword = new RG.Item.Weapon('Add comp');
+        sword.useArgs = { };
+        sword.use = useEffect.func.bind(sword);
+        userActor = new RG.Actor.Rogue('User One');
+        userActor.getInvEq().addItem(sword);
+
+        cell = new RG.Map.Cell(0, 0, RG.ELEM.FLOOR);
+        cell.setProp('actors', userActor);
     });
 
     afterEach(() => {
@@ -26,7 +45,6 @@ describe('RG.Effects', () => {
 
     it('has heal effect', () => {
         const healEffect = getEffectByName(Effects, 'heal');
-        const useEffect = getEffectByName(Effects, 'use');
 
         const potion = new RG.Item.Potion('Healing potion');
         potion.useArgs = { };
@@ -46,13 +64,16 @@ describe('RG.Effects', () => {
         cell.setProp('actors', actor);
 
         potion.use({target: cell});
+
+        expect(actor).to.have.component('UseItem');
+        useSystem.update();
+
         const hpAfter = actor.get('Health').getHP();
         expect(hpAfter).to.be.above(hpBefore);
     });
 
     it('has stun effect', () => {
         const stunEffect = getEffectByName(Effects, 'stun');
-        const useEffect = getEffectByName(Effects, 'use');
 
         const potion = new RG.Item.Potion('Stunning potion');
         potion.useArgs = { };
@@ -77,45 +98,84 @@ describe('RG.Effects', () => {
     });
 
     it('has effect to add any component for specific duration', () => {
-        const useSystem = new RG.System.BaseAction(['UseItem']);
-        const effSystem = new RG.System.Effects(['Effects']);
-        // const systems = [useSystem, effSystem];
-
         const addCompEffect = getEffectByName(Effects, 'addComp');
-        const useEffect = getEffectByName(Effects, 'use');
 
-        const sword = new RG.Item.Weapon('Add comp');
-        sword.useArgs = { };
+        // Setup useArgs
         sword.useArgs.duration = '12d1';
         sword.useArgs.name = 'Ethereal';
 
-        sword.use = useEffect.func.bind(sword);
+        // Setup use function
         const stunFunc = addCompEffect.func.bind(sword);
         sword.useFuncs = [];
         sword.useFuncs.push(stunFunc);
 
-        const actor = new RG.Actor.Rogue('Ethereal one');
-        actor.getInvEq().addItem(sword);
-
-        const cell = new RG.Map.Cell(0, 0, RG.ELEM.FLOOR);
-        cell.setProp('actors', actor);
-
-        expect(actor.has('Ethereal')).to.equal(false);
-        expect(actor.has('Expiration')).to.equal(false);
+        expect(userActor.has('Ethereal')).to.equal(false);
+        expect(userActor.has('Expiration')).to.equal(false);
         sword.use({target: cell});
-        // console.log(actor.getComponents());
-        expect(actor).to.have.component('UseItem');
+
+        expect(userActor).to.have.component('UseItem');
         useSystem.update();
-        expect(actor).not.to.have.component('UseItem');
-        expect(actor).to.have.component('Effects');
+        expect(userActor).not.to.have.component('UseItem');
+        expect(userActor).to.have.component('Effects');
+
         effSystem.update();
-        expect(actor).not.to.have.component('Effects');
-        expect(actor).to.have.component('Ethereal');
-        expect(actor).to.have.component('Expiration');
+        expect(userActor).not.to.have.component('Effects');
+        expect(userActor).to.have.component('Ethereal');
+        expect(userActor).to.have.component('Expiration');
     });
 
-    it('has a firemaking effect', () => {
-        // const fireEffect = getEffectByName(Effects, 'addEntity');
+    it('has effect to add value to comp', () => {
+        const addCompValue = getEffectByName(Effects, 'addToCompValue');
 
+        // Setup useArgs
+        sword.useArgs.name = 'Stats';
+        sword.useArgs.set = 'setStrength';
+        sword.useArgs.get = 'getStrength';
+        sword.useArgs.value = 10;
+
+        // Setup use function
+        const useFunc = addCompValue.func.bind(sword);
+        sword.useFuncs = [];
+        sword.useFuncs.push(useFunc);
+
+        const statsComp = userActor.get('Stats');
+        const str = statsComp.getStrength();
+        sword.use({target: cell});
+
+        expect(userActor).to.have.component('UseItem');
+        useSystem.update();
+        expect(userActor).to.have.component('Effects');
+        effSystem.update();
+
+        const strNew = statsComp.getStrength();
+        expect(strNew).to.equal(str + 10);
+    });
+
+    it('has an effect to add entities to cells', () => {
+        const addEntEffect = getEffectByName(Effects, 'addEntity');
+
+        const level = RGTest.wrapIntoLevel([userActor]);
+        cell = level.getCell(1, 1);
+        RGTest.moveEntityTo(userActor, 1, 1);
+
+        sword.useArgs.entityName = 'Fire';
+
+        // Setup use function
+        const useFunc = addEntEffect.func.bind(sword);
+        sword.useFuncs = [];
+        sword.useFuncs.push(useFunc);
+
+        let actors = cell.getActors();
+        expect(actors).to.have.length(1);
+
+        sword.use({target: cell});
+
+        expect(userActor).to.have.component('UseItem');
+        useSystem.update();
+        expect(userActor).to.have.component('Effects');
+        effSystem.update();
+
+        actors = cell.getActors();
+        expect(actors).to.have.length(2);
     });
 });
