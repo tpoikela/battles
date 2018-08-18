@@ -3,6 +3,7 @@ const RG = require('../rg');
 
 const System = {};
 System.Base = require('./system.base');
+const {getTargetFromObj} = require('./system.effects');
 
 /* Processes entities with attack-related components.*/
 System.BaseAction = function(compTypes) {
@@ -195,7 +196,9 @@ System.BaseAction = function(compTypes) {
     this._checkUseItemMsgEmit = (ent, comp) => {
         if (comp.getUseType() === RG.USE.DRINK) {
             const item = comp.getItem();
-            const target = comp.getTarget();
+            const targetObj = comp.getTarget();
+            const targetType = comp.getTargetType();
+            const target = getUseTarget(targetObj, targetType);
             const cell = target.getCell();
             const msg = target.getName() + ' drinks '
                 + item.getName();
@@ -213,5 +216,15 @@ System.BaseAction = function(compTypes) {
     };
 };
 RG.extend2(System.BaseAction, System.Base);
+
+function getUseTarget(targetObj, targetType) {
+    if (targetObj.target) {
+        return getTargetFromObj(targetObj, targetType);
+    }
+    else if (targetObj.getCell) {
+        return targetObj;
+    }
+    return null;
+}
 
 module.exports = System.BaseAction;
