@@ -45,6 +45,7 @@ describe('How missile is fired and hits a wall', () => {
     it('Starts from source and flies to target', () => {
 
         const mEnt = new RG.Item.Missile('missile');
+        mEnt.add(new RG.Component.Indestructible());
         const mComp = new RG.Component.Missile(srcEnt);
         mEnt.add('Missile', mComp);
 
