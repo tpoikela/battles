@@ -101,11 +101,11 @@ RG.Effects = {
             optional: ['setters'],
             func: function(obj) {
                 const effArgs = {
-                    target: obj,
-                    targetType: ['actors', 'items'],
-                    name: this.useArgs.name,
                     duration: this.useArgs.duration,
-                    effectType: 'AddComp'
+                    effectType: 'AddComp',
+                    name: this.useArgs.name,
+                    target: obj,
+                    targetType: ['actors', 'items']
                 };
                 if (this.useArgs.setters) {
                     effArgs.setters = this.useArgs.setters;
@@ -114,6 +114,26 @@ RG.Effects = {
                 return true;
             },
         },
+
+        // Removes a component from an entity.
+        // Optionally all: true can be given to remove all comps
+        {
+            name: 'removeComp',
+            requires: ['name'],
+            optional: ['all'],
+            func: function(obj) {
+                const effArgs = {
+                    all: this.useArgs.all,
+                    effectType: 'RemoveComp',
+                    name: this.useArgs.name,
+                    target: obj,
+                    targetType: entities
+                };
+                createUseItemComp(this, obj, effArgs);
+                return true;
+            },
+        },
+
         // Adds a value to specified component value.
         // Given use: {addToCompValue: {name: 'Health', set: 'setHP', get:
         // 'getHP', value: -1}},
