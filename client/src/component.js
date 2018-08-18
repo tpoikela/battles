@@ -1064,7 +1064,7 @@ RG.Component.Jump = TransientDataComponent('Jump', {x: -1, y: -1});
 RG.Component.OpenDoor = TransientDataComponent('OpenDoor', {door: null});
 
 RG.Component.UseItem = TransientDataComponent('UseItem',
-    {item: null, useType: '', target: null, effect: null});
+    {item: null, useType: '', target: null, targetType: null, effect: null});
 
 RG.Component.UseElement = TransientDataComponent('UseElement',
     {element: null, useType: ''});
