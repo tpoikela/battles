@@ -5,7 +5,9 @@ const System = {};
 System.Base = require('./system.base');
 
 const handlerTable = {
-    AddComp: true
+    AddComp: true,
+    AddToCompValue: true,
+    AddEntity: true
 };
 
 System.Effects = function(compTypes) {
@@ -35,15 +37,15 @@ System.Effects.prototype.updateEntity = function(ent) {
     });
 };
 
+/* Handler for effect 'AddComp' */
 System.Effects.prototype.handleAddComp = function(srcEnt, effComp) {
-    console.log('handleAddComp: ' + srcEnt);
-    console.log('handleAddComp: ' + effComp);
     const useArgs = effComp.getArgs();
     const targetEnt = getEffectTarget(useArgs);
-    const name = useArgs.name.capitalize();
+    const compName = getCompName(useArgs, targetEnt);
+
     let compToAdd = null;
-    if (RG.Component.hasOwnProperty(name)) {
-        compToAdd = new RG.Component[name]();
+    if (RG.Component.hasOwnProperty(compName)) {
+        compToAdd = new RG.Component[compName]();
     }
 
     if (useArgs.setters) {
@@ -64,11 +66,50 @@ System.Effects.prototype.handleAddComp = function(srcEnt, effComp) {
 
     const dur = getDieValue(useArgs.duration);
     const expirMsg = useArgs.endMsg;
-    console.log('Comp ' + name + ' will be added to', targetEnt);
+
     RG.Component.addToExpirationComp(targetEnt, compToAdd, dur, expirMsg);
     if (useArgs.startMsg) {
         RG.gameMsg({msg: useArgs.startMsg, cell: targetEnt.getCell()});
     }
+};
+
+System.Effects.prototype.handleAddToCompValue = function(srcEnt, effComp) {
+    const useArgs = effComp.getArgs();
+    const targetEnt = getEffectTarget(useArgs);
+    const compName = getCompName(useArgs, targetEnt);
+
+    if (targetEnt) {
+        if (targetEnt.has(compName)) {
+            const comp = targetEnt.get(compName);
+            const currValue = comp[useArgs.get]();
+            const value = useArgs.value;
+            const numValue = convertValueIfNeeded(value);
+            comp[useArgs.set](currValue + numValue);
+        }
+    }
+};
+
+System.Effects.prototype.handleAddEntity = function(srcEnt, effComp) {
+    const useArgs = effComp.getArgs();
+    const {target} = useArgs.target;
+    const cell = target;
+
+    const parser = RG.ObjectShell.getParser();
+    const entity = parser.createEntity(useArgs.entityName);
+
+    if (entity) {
+        const [x, y] = [cell.getX(), cell.getY()];
+        const level = srcEnt.getLevel();
+        if (level.addEntity(entity, x, y)) {
+            if (useArgs.duration) {
+                const fadingComp = new RG.Component.Fading();
+                const {duration} = this.useArgs;
+                fadingComp.setDuration(duration);
+                entity.add(fadingComp);
+            }
+        }
+    }
+
 };
 
 /** Adds an effect into the effect system.
@@ -94,6 +135,22 @@ System.Effects.addEffect = function(effName, func) {
 // HELPER FUNCTIONS
 //-------------------
 
+function getCompName(useArgs, targetEnt) {
+    const compName = useArgs.name;
+    if (!compName) {
+        const json = JSON.stringify(useArgs);
+        let errorMsg = 'Unknown comp value. useArgs: ' + json;
+        if (targetEnt) {errorMsg += ' targetEnt ' + JSON.stringify(targetEnt);}
+        RG.err('System.Effects', 'handleAddToCompValue',
+            errorMsg);
+    }
+    return compName.capitalize();
+}
+
+/**
+ * @param {int|string|RG.Die} intStrOrDie - Value for the die roll
+ * @return {int} - Return of the die roll
+ */
 const getDieValue = function(intStrOrDie) {
     if (Number.isInteger(intStrOrDie)) {
         return intStrOrDie;
