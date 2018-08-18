@@ -153,8 +153,7 @@ describe('RG.Effects', () => {
 
         // Setup use function
         const useFunc = addCompValue.func.bind(sword);
-        sword.useFuncs = [];
-        sword.useFuncs.push(useFunc);
+        sword.useFuncs = [useFunc];
 
         const statsComp = userActor.get('Stats');
         const str = statsComp.getStrength();
@@ -168,6 +167,30 @@ describe('RG.Effects', () => {
         const strNew = statsComp.getStrength();
         expect(strNew).to.equal(str + 10);
     });
+
+    it('has effect for modifying stats', () => {
+        const modifyStatEffect = getEffectByName(Effects, 'modifyStat');
+
+        const useFunc = modifyStatEffect.func.bind(sword);
+        sword.useFuncs = [useFunc];
+
+        sword.useArgs.statName = 'Agility';
+        sword.useArgs.value = 15;
+
+        const statsComp = userActor.get('Stats');
+        const agi = statsComp.getAgility();
+        sword.use({target: cell});
+
+        expect(userActor).to.have.component('UseItem');
+        useSystem.update();
+        expect(userActor).to.have.component('Effects');
+        effSystem.update();
+
+        const agiNew = statsComp.getAgility();
+        expect(agiNew).to.equal(agi + 15);
+
+    });
+
 
     it('has an effect to add entities to cells', () => {
         const addEntEffect = getEffectByName(Effects, 'addEntity');
