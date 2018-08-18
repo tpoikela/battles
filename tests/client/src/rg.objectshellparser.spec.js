@@ -384,6 +384,7 @@ describe('It contains all game content info', () => {
         digger.getInvEq().addItem(pickaxe);
         expect(cell.getBaseElem().getType()).to.equal('wall');
         pickaxe.useItem({target: cell});
+        expect(digger).to.have.component('UseItem');
         expect(cell.getBaseElem().getType()).to.equal('floor');
     });
 
@@ -616,7 +617,7 @@ describe('Data query functions for objects', function() {
 
         firekit.useItem({target: cell});
 
-        expect(cell.hasActors()).to.equal(true);
+        expect(fireStarter).to.have.component('UseItem');
 
         const clonedKit = firekit.clone();
         expect(clonedKit.useArgs).to.exist;
