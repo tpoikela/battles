@@ -1384,7 +1384,14 @@ RG.isItem = obj => {
 };
 
 /* Returns the use type (ie drink or dig or hit...) for a item/target pair. */
-RG.getItemUseType = (item, target) => {
+RG.getItemUseType = (item, targetOrObj) => {
+    let target = targetOrObj;
+    if (targetOrObj.target) {
+        target = targetOrObj.target;
+        if (target.getActors) {
+            target = target.getActors()[0];
+        }
+    }
     const itemType = item.getType();
     switch (itemType) {
         case 'potion': {
