@@ -119,17 +119,30 @@ class EvaluatorFlee extends EvaluatorBase {
     }
 
     calculateDesirability(actor) {
-        const enemyCells = RG.Brain.getEnemyCellsAround(actor);
-        const health = actor.get('Health');
-        const maxHP = health.getMaxHP();
-        const HP = health.getHP();
-        const propHP = HP / maxHP;
-        if (enemyCells.length > 0) {
+        // const enemyCells = RG.Brain.getEnemyCellsAround(actor);
+        const enemies = actor.getBrain().getSeenEnemies();
+        if (enemies.length > 0) {
+            const health = actor.get('Health');
+            const maxHP = health.getMaxHP();
+            const HP = health.getHP();
+            const propHP = HP / maxHP;
             if (propHP < this.actorBias) {
-                this.enemyActor = enemyCells[0].getActors()[0];
-                return this.actorBias * (1.0 - propHP) / Math.pow(propHP, 2);
+                let index = -1;
+                if (this.enemyActor) {
+                    index = enemies.findIndex(e =>
+                        e.getID() === this.enemyActor.getID()
+                    );
+                }
+                if (index === -1) {
+                    this.enemyActor = enemies[0];
+                }
+
+                const div = Math.pow(propHP, 2);
+                console.log('Flee eval returning, div', div, 'propHP', propHP);
+                return this.actorBias * (1.0 - propHP) / div;
             }
         }
+        this.enemyActor = null;
         return Evaluator.NOT_POSSIBLE;
     }
 
