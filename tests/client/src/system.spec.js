@@ -103,7 +103,9 @@ describe('System.Attack', () => {
         human.getInvEq().addItem(sword);
         human.getInvEq().equipItem(sword);
         expect(human.getEquipAttack()).to.equal(100);
+
         beast.get('Combat').setDefense(0);
+        beast.get('Stats').setAgility(0);
 
         const attackComp = new RG.Component.Attack({target: beast});
         human.add('Attack', attackComp);
