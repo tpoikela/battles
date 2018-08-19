@@ -653,6 +653,14 @@ RG.strengthToDamage = function(str) {
     return Math.round(str / 4);
 };
 
+RG.accuracyToAttack = function(acc) {
+    return Math.floor(acc / 2);
+};
+
+RG.agilityToDefense = function(agi) {
+    return Math.floor(agi / 2);
+};
+
 /* Given actor and cells it sees, returns first enemy cell found.*/
 RG.findEnemyCellForActor = function(actor, seenCells) {
     const res = [];
