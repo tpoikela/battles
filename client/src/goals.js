@@ -20,6 +20,8 @@ Goal.Types = {
     Find: Symbol()
 };
 
+const NO_SUB_GOALS = null;
+
 const {
     GOAL_ACTIVE,
     GOAL_COMPLETED,
@@ -35,11 +37,13 @@ let IND = 0;
 class GoalBase {
 
     constructor(actor) {
-        this.subGoals = null;
+        this.subGoals = NO_SUB_GOALS;
         this.actor = actor;
         this.status = GOAL_INACTIVE;
         this.type = '';
         this.category = '';
+
+        this.planBGoal = null; // Can be set for a failed goal
     }
 
     dbg(msg) {
@@ -66,6 +70,12 @@ class GoalBase {
     getType() {
         return this.type;
     }
+
+    hasPlanB() {
+        return this.planBGoal !== null;
+    }
+
+    getPlanB() {return this.planBGoal;}
 
     activate() {
         // This should usually initialize subgoals for composite goal.
@@ -116,9 +126,18 @@ class GoalBase {
             // Clean up any failed/completed goals
             this.removeFinishedOrFailed();
             if (this.subGoals.length > 0) {
-                status = this.subGoals[0].process();
+                const subGoal = this.subGoals[0];
+                status = subGoal.process();
 
                 if (status === GOAL_COMPLETED && this.subGoals.length > 1) {
+                    // This goal has still sub-goals, so keep active
+                    status = GOAL_ACTIVE;
+                }
+                else if (status === GOAL_FAILED && subGoal.hasPlanB()) {
+                    this.subGoals[0] = subGoal.getPlanB();
+                    // Need to change the type to prevent evaluation changing
+                    this.subGoals[0].setType(subGoal.getType());
+                    console.log('Set plan B goal type to ' + subGoal.getType());
                     status = GOAL_ACTIVE;
                 }
                 // Else keep the sub-process status
@@ -142,12 +161,6 @@ class GoalBase {
     }
 
     removeFinishedOrFailed() {
-        /* while (this.subGoals.length > 0 && (this.subGoals[0].isCompleted()
-            || this.subGoals[0].hasFailed())) {
-            this.dbg(`Removing subGoal ${this.subGoals[0].getType()}`);
-            this.subGoals[0].terminate();
-            this.subGoals.shift();
-        }*/
         this.subGoals = this.subGoals.filter(goal => (
             !goal.isCompleted() && !goal.hasFailed()
         ));
@@ -174,7 +187,22 @@ class GoalBase {
             }
         }
         return nRemoved;
+    }
 
+    getSubGoals() {return this.subGoals;}
+
+    /* Returns true if this goal has any subgoals in it. */
+    hasSubGoals(type) {
+        if (Array.isArray(this.subGoals)) {
+            if (type) {
+                const index = this.subGoals.findIndex(g => g.type === type);
+                return index >= 0;
+            }
+            else {
+                return this.subGoals.length > 0;
+            }
+        }
+        return false;
     }
 
     addSubGoal(goal) {
@@ -855,22 +883,32 @@ class GoalFleeFromActor extends GoalBase {
             }
         });
         if (foundCell) {
-            const [x, y] = [foundCell.getX(), foundCell.getY()];
+            // const [x, y] = [foundCell.getX(), foundCell.getY()];
             const thisX = this.actor.getX();
             const thisY = this.actor.getY();
-            const dX = x - thisX;
-            const dY = y - thisY;
-            const newX = thisX - dX;
-            const newY = thisY - dY;
+            const dXdY = RG.dXdYUnit(this.actor, this.targetActor);
+            const newX = thisX + dXdY[0];
+            const newY = thisY + dXdY[1];
             const level = this.actor.getLevel();
-            if (level.getMap().isPassable(newX, newY)) {
-                const movComp = new Component.Movement(newX, newY, level);
-                this.dbg(`${this.getType()} movComp to ${newX},${newY}`);
-                this.actor.add(movComp);
-                this.status = GOAL_COMPLETED;
+
+            const fleeOptions = [[newX, newY], [thisX, newY], [newX, thisY]];
+            for (let i = 0; i < 3; i++) {
+                const [x, y] = fleeOptions[i];
+                if (level.getMap().isPassable(x, y)) {
+                    console.log('Trying to flee to cell', x, y);
+                    const movComp = new Component.Movement(x, y, level);
+                    this.dbg(`${this.getType()} movComp to ${x},${y}`);
+                    this.actor.add(movComp);
+                    this.status = GOAL_COMPLETED;
+                    break;
+                }
             }
-            else {
+
+            if (this.status !== GOAL_COMPLETED) {
                 this.status = GOAL_FAILED;
+                console.log(`${this.actor.getName()} attacks in desperation`);
+                this.planBGoal = new Goal.AttackActor(this.actor,
+                    this.targetActor);
             }
         }
         else {
