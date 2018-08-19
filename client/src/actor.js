@@ -341,7 +341,7 @@ class RGActorRogue extends BaseActor {
         let attack = this.get('Combat').getAttack();
         attack += this.getEquipAttack();
         attack += this._addFromCompList('CombatMods', 'getAttack');
-        attack += Math.floor(this.getAccuracy() / 2);
+        attack += RG.accuracyToAttack(this.getAccuracy());
         return attack;
     }
 
@@ -349,7 +349,7 @@ class RGActorRogue extends BaseActor {
         let defense = this.get('Combat').getDefense();
         defense += this.getEquipDefense();
         defense += this._addFromCompList('CombatMods', 'getDefense');
-        defense += Math.floor(this.getAgility() / 2);
+        defense += RG.agilityToDefense(this.getAgility());
         return defense;
     }
 
