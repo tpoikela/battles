@@ -72,14 +72,7 @@ System.Attack = function(compTypes) {
             totalAtt += this.addAttackerBonus(att);
         }
 
-        let totalDef = 0;
-        if (def.getDefense) {
-            totalDef = def.getDefense();
-            if (def.has('Defender')) {
-                totalDef += this.addDefenderBonus(def);
-            }
-        }
-
+        const totalDef = this.getEntityDefense(def);
         const hitChance = totalAtt / (totalAtt + totalDef);
         const hitThreshold = RNG.getUniform();
         this.dbg(`hitChance is ${hitChance}, threshold ${hitThreshold}`);
@@ -112,6 +105,22 @@ System.Attack = function(compTypes) {
                 cause: att});
             def.add(evtComp);
         }
+    };
+
+    /* Returns the defense value for given entity. */
+    this.getEntityDefense = def => {
+        if (def.has('Paralysis')) {
+            return 0;
+        }
+
+        let totalDef = 0;
+        if (def.getDefense) {
+            totalDef = def.getDefense();
+            if (def.has('Defender')) {
+                totalDef += this.addDefenderBonus(def);
+            }
+        }
+        return totalDef;
     };
 
     this.doDamage = (att, def, dmg) => {
