@@ -1,11 +1,14 @@
 
-import { expect } from 'chai';
-
+const chai = require('chai');
 const RGTest = require('../../roguetest');
 const RG = require('../../../client/src/battles');
 
 const Goal = require('../../../client/src/goals');
 const Evaluator = require('../../../client/src/evaluators');
+const chaiBattles = require('../../helpers/chai-battles');
+
+chai.use(chaiBattles);
+const expect = chai.expect;
 
 describe('Actor Goal', () => {
 
@@ -152,6 +155,47 @@ describe('Actor Goal', () => {
         RGTest.updateGame([guardian], systems, 11);
 
         expect(guardian.getXY()).to.deep.equal([2, 2]);
+    });
+
+    it('has a Goal.Flee for fleeing from enemies', () => {
+        const injured = new RG.Actor.Rogue('injured');
+        injured.get('Health').setMaxHP(100);
+        injured.get('Health').setHP(100);
+        injured.get('Health').decrHP(95);
+        injured.setBrain(new RG.Brain.GoalOriented(injured));
+        const enemy = new RG.Actor.Rogue('enemy');
+        injured.addEnemy(enemy);
+
+        const level = RGTest.wrapIntoLevel([enemy, injured]);
+        RGTest.moveEntityTo(injured, 6, 6);
+        RGTest.moveEntityTo(enemy, 4, 4);
+
+        const topGoal = injured.getBrain().getGoal();
+
+        let funcDone = injured.nextAction();
+        expect(funcDone).to.be.function;
+
+        let subGoals = topGoal.getSubGoals();
+        expect(subGoals).to.have.length(1);
+        expect(subGoals[0].type).to.equal('GoalFleeFromActor');
+
+        expect(injured).to.have.component('Movement');
+
+        const movComp = injured.get('Movement');
+        expect(movComp.getX()).to.equal(7);
+        expect(movComp.getY()).to.equal(7);
+
+        RGTest.moveEntityTo(injured, 7, 7);
+        RGTest.moveEntityTo(enemy, 5, 5);
+
+        const map = level.getMap();
+        map.setBaseElemXY(8, 8, RG.ELEM.WALL);
+        funcDone = injured.nextAction();
+
+        subGoals = topGoal.getSubGoals();
+        expect(subGoals).to.have.length(1);
+        expect(subGoals[0].type).to.equal('GoalFleeFromActor');
+
     });
 
 });
