@@ -62,6 +62,18 @@ export default class GameContextMenu extends React.Component {
       this.props.handleRightClick(e, data, this.props.mouseOverCell);
   }
 
+  shouldComponentUpdate(nextProps) {
+      if (this.props.mouseOverCell) {
+          if (!nextProps.mouseOverCell) {return true;}
+          const [x, y] = this.props.mouseOverCell.getXY();
+          const [nX, nY] = nextProps.mouseOverCell.getXY();
+          if (nX === x && nY === y) {
+              return false;
+          }
+      }
+      return true;
+  }
+
   render() {
     const menuItemElem = this.renderMenuItems();
     return (
