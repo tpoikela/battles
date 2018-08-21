@@ -178,6 +178,7 @@ class CmdDropItem {
       let msg = `Failed to drop ${obj.item.getName()}`;
       const dropCount = obj.count <= obj.item.count ? obj.count
         : obj.item.count;
+
       if (actorCell.hasShop()) {
           const shopElem = actorCell.getPropType('shop')[0];
           const price = shopElem.getItemPriceForSelling(obj.item);
@@ -188,7 +189,7 @@ class CmdDropItem {
               const trans = new RG.Component.Transaction();
               trans.setArgs({item: obj.item, seller: this._actor,
                   shop: shopElem, callback: obj.callback,
-                  buyer: shopElem.getShopkeeper()});
+                  buyer: shopElem.getShopkeeper(), count: dropCount});
               this._actor.add(trans);
           };
 
