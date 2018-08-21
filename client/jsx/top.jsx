@@ -16,6 +16,7 @@ import LevelSaveLoad from '../editor/level-save-load';
 import CellClickHandler from '../gui/cell-click-handler';
 import GameTopMenu from './game-top-menu';
 import GameCreatingScreen from './game-creating-screen';
+import HiddenFileInput from './hidden-file-input';
 
 import GameContextMenu from './context-menu';
 import {ContextMenuTrigger} from 'react-contextmenu';
@@ -1035,11 +1036,9 @@ class BattlesTop extends Component {
                     handleRightClick={this.handleRightClick}
                     mouseOverCell={this.state.mouseOverCell}
                 />
-                <input
-                  id='load-script-input'
-                  onChange={this.onLoadScript}
-                  style={{display: 'none'}}
-                  type='file'
+                <HiddenFileInput
+                    inputId='load-script-input'
+                    onLoadScript={this.onLoadScript}
                 />
             </div>
         );
