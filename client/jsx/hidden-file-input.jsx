@@ -23,5 +23,5 @@ export default class HiddenFileInput extends React.Component {
 
 HiddenFileInput.propTypes = {
     inputId: PropTypes.string,
-    onLoadScript: PropTypes.func.required
+    onLoadScript: PropTypes.func
 };
