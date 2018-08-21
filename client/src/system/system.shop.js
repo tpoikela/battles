@@ -59,19 +59,24 @@ System.Shop = function(compTypes) {
                 'Seller is null or undefined.');
         }
 
+        const count = args.count || 1;
         const sellerCell = seller.getCell();
-        const value = item.getValue() * shop.getCostFactorBuy();
+        const value = count * item.getValue() * shop.getCostFactorBuy();
         const goldWeight = RG.valueToGoldWeight(value);
         const nCoins = RG.getGoldInCoins(goldWeight);
 
         if (RG.hasEnoughGold(buyer, goldWeight)) {
-            if (seller.getInvEq().dropItem(item)) {
+            if (seller.getInvEq().dropNItems(item, count)) {
                 const coins = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
                 coins.count = RG.removeNCoins(buyer, nCoins);
                 seller.getInvEq().addItem(coins);
-                item.add('Unpaid', new RG.Component.Unpaid());
+
+                const topItem = seller.getCell().getItems()[0];
+                topItem.add('Unpaid', new RG.Component.Unpaid());
+                const itemName = topItem.getName();
+
                 RG.gameMsg({cell: sellerCell, msg: seller.getName() +
-                    ' sold ' + item.getName() + ' for ' + nCoins + ' coins.'});
+                    ' sold ' + itemName + ' for ' + nCoins + ' coins.'});
                 if (args.callback) {
                     const msg = `${item.getName()} was sold.`;
                     args.callback({msg: msg, result: true});
