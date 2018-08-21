@@ -604,8 +604,40 @@ describe('System.Shop', () => {
         seller.add(trans);
 
         updateSystems([shopSys]);
-        expect(item).to.have.component('Unpaid');
+
+        const cell = seller.getCell();
+        expect(cell.getItems()[0]).to.have.component('Unpaid');
     });
+
+    it('works with item count > 1', () => {
+        const arrows = new RG.Item.Ammo('arrow');
+        arrows.count = 15;
+        arrows.setValue(20);
+
+        const coins = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
+        coins.count = 100;
+        shopkeeper.getInvEq().addItem(coins);
+
+        const seller = actor;
+        seller.getInvEq().addItem(arrows);
+
+        const trans = new RG.Component.Transaction();
+        trans.setArgs({
+            item: arrows, buyer: shopkeeper, seller, shop: shopElem, count: 10
+        });
+        seller.add(trans);
+
+        updateSystems([shopSys]);
+        expect(arrows.count).to.equal(5);
+
+        const soldCell = seller.getCell();
+        const items = soldCell.getItems();
+        expect(items.length).to.equal(1);
+        expect(items[0].count).to.equal(10);
+        expect(arrows).not.to.have.component('Unpaid');
+        expect(items[0]).to.have.component('Unpaid');
+    });
+
 });
 
 describe('System.Event', () => {
