@@ -1298,18 +1298,19 @@ class BattlesTop extends Component {
     // GAME CONFIG RELATED FUNCTIONS
     //-------------------------------
     setPlayerLevel(level) {
-        this.gameConf.playerLevel = level;
-        this.setState({playerLevel: level});
+        this.setGameSetting('playerLevel', level);
     }
 
     setPlayerClass(className) {
-        this.gameConf.playerClass = className;
-        this.setState({playerClass: className});
+        this.setGameSetting('playerClass', className);
     }
 
     setPlayerRace(raceName) {
-        this.gameConf.playerRace = raceName;
-        this.setState({playerRace: raceName});
+        this.setGameSetting('playerRace', raceName);
+    }
+
+    setPlayMode(mode) {
+        this.setGameSetting('playMode', mode);
     }
 
     setGameSetting(name, value) {
@@ -1317,21 +1318,34 @@ class BattlesTop extends Component {
         this.setState({[name]: value});
     }
 
-
-    setPlayMode(mode) {
-        switch (mode) {
-            case 'Arena': this.gameConf.playMode = 'Arena'; break;
-            case 'Battle': this.gameConf.playMode = 'Battle'; break;
-            case 'Creator': this.gameConf.playMode = 'Creator'; break;
-            case 'Dungeon': this.gameConf.playMode = 'Dungeon'; break;
-            case 'OverWorld': this.gameConf.playMode = 'OverWorld'; break;
-            case 'World': this.gameConf.playMode = 'World'; break;
-            case 'Editor': this.gameConf.playMode = 'Editor'; break;
-            default: console.error('setPlayMode illegal mode ' + mode);
-        }
-        this.setState({playMode: mode});
+    /* Can be used to call any class method from sub-component without
+     * explicitly passing all possible callback functions as props. */
+    topMenuCallback(cmd, args) {
+      if (typeof this[cmd] === 'function') {
+          if (Array.isArray(args)) {
+              if (args.length === 1) {
+                  this[cmd](args);
+              }
+              else {
+                  this[cmd](...args);
+              }
+          }
+          else {
+              this[cmd](args);
+          }
+      }
+      else {
+        console.error(`${cmd} not a function in Top`);
+        console.error(`Called with args ${args}`);
+      }
     }
 
+    showMsg(msg) {
+        console.log('showMsg:', msg);
+        this.setState({msg});
+    }
+
+    /* Binds the callbacks. */
     bindCallbacks() {
         this.newGame = this.newGame.bind(this);
 
@@ -1397,33 +1411,6 @@ class BattlesTop extends Component {
 
         this.onLoadScript = this.onLoadScript.bind(this);
         this.loadScript = this.loadScript.bind(this);
-    }
-
-    /* Can be used to call any class method from sub-component without
-     * explicitly passing all possible callback functions as props. */
-    topMenuCallback(cmd, args) {
-      if (typeof this[cmd] === 'function') {
-          if (Array.isArray(args)) {
-              if (args.length === 1) {
-                  this[cmd](args);
-              }
-              else {
-                  this[cmd](...args);
-              }
-          }
-          else {
-              this[cmd](args);
-          }
-      }
-      else {
-        console.error(`${cmd} not a function in Top`);
-        console.error(`Called with args ${args}`);
-      }
-    }
-
-    showMsg(msg) {
-        console.log('showMsg:', msg);
-        this.setState({msg});
     }
 
 }
