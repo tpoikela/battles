@@ -639,9 +639,29 @@ RG.Map.Generator = function() { // {{{2
         level.setRoomCount(roomCount);
         level.create();
 
+        const createLeverMarker = (map, x, y) => {
+            map.setBaseElemXY(x, y, this.getFloorElem(conf.floorType));
+            if (conf.preserveMarkers) {
+                const marker = new RG.Element.Marker('&');
+                marker.setTag('lever');
+                map.getCell(x, y).setProp(RG.TYPE_ELEM, marker);
+            }
+        };
+
+        const createLeverDoorMarker = (map, x, y) => {
+            map.setBaseElemXY(x, y, this.getFloorElem(conf.floorType));
+            if (conf.preserveMarkers) {
+                const marker = new RG.Element.Marker('|');
+                marker.setTag('leverdoor');
+                map.getCell(x, y).setProp(RG.TYPE_ELEM, marker);
+            }
+        };
+
         const asciiToElem = {
             '#': this.getWallElem(conf.wallType),
-            '.': this.getFloorElem(conf.floorType)
+            '.': this.getFloorElem(conf.floorType),
+            '&': createLeverMarker,
+            '|': createLeverDoorMarker
         };
         const mapObj = this.createMapFromAsciiMap(level.map, asciiToElem);
         mapObj.tiles = level.xyToBbox;
@@ -655,11 +675,16 @@ RG.Map.Generator = function() { // {{{2
         level.use(Castle);
         level.setTemplates(Castle.Models.outerWall);
         level.setFiller(Castle.tiles.fillerFloor);
+
         if (conf.nGates === 2) {
           level.setStartRoomFunc(Castle.startFuncTwoGates);
         }
         else if (conf.startRoomFunc) {
           level.setStartRoomFunc(conf.startRoomFunc);
+        }
+
+        if (conf.constraintFunc) {
+            level.setConstraintFunc(conf.constraintFunc);
         }
         level.create();
 
@@ -728,15 +753,22 @@ RG.Map.Generator = function() { // {{{2
         const map = new RG.Map.CellList(cols, rows);
         for (let x = 0; x < cols; x++) {
             for (let y = 0; y < rows; y++) {
-                if (asciiMap[x][y] === '+') {
-                    const door = new RG.Element.Door();
-                    door.setXY(x, y);
+                const char = asciiMap[x][y];
+                if (char === '+') {
+                    const marker = new RG.Element.Marker('+');
+                    marker.setTag('door');
+                    // door.setXY(x, y);
                     map.setBaseElemXY(x, y, asciiToElem['.']);
-                    map.setElemXY(x, y, door);
+                    map.setElemXY(x, y, marker);
                 }
-                else {
-                    const baseElem = asciiToElem[asciiMap[x][y]];
-                    map.setBaseElemXY(x, y, baseElem);
+                else if (asciiToElem.hasOwnProperty(char)) {
+                    const value = asciiToElem[char];
+                    if (typeof value !== 'function') {
+                        map.setBaseElemXY(x, y, value);
+                    }
+                    else {
+                        value(map, x, y);
+                    }
                 }
             }
         }
