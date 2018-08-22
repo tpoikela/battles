@@ -160,6 +160,13 @@ const Actors = [
         onHit: [{addComp: 'Paralysis', duration: '1d4 + 1'}]
     },
 
+    // BEASTS TODO
+    {
+        name: 'BeastBase', type: 'beast',
+        dontCreate: true,
+        enemies: ['human', 'player', 'dwarf']
+    },
+
     // CONSTRUCTS ETC
     {
         name: 'ConstructBase', type: 'construct',
@@ -328,6 +335,7 @@ const Actors = [
     // UNDEAD
     {
         name: 'UndeadBase', className: 'cell-actor-undead',
+        color: {fg: 'White', bg: 'Black'},
         dontCreate: true, addComp: 'Undead', brain: undeadBrain,
         range: 1, enemies: ['player', 'human', 'dwarf'], type: 'undead'
     },
@@ -344,7 +352,7 @@ const Actors = [
         poison: {duration: '2d10', damage: '1d2', prob: '0.2'}
     },
     {
-        name: 'necrowyrm', char: 'w', base: 'UndeadBase',
+        name: 'necrocentipede', char: 'w', base: 'UndeadBase',
         attack: 1, defense: 1, damage: '1d7', danger: 2,
         brain: 'Animal', speed: 125, hp: 6
     },
@@ -355,6 +363,7 @@ const Actors = [
     },
     {
         name: 'zombie', char: 'z', base: 'UndeadBase',
+        'color-fg': 'Brown',
         attack: 2, defense: 2, damage: '1d6', danger: 2,
         hp: 12
     },
@@ -370,6 +379,11 @@ const Actors = [
         hp: 20
     },
     {
+        name: 'necrowyrm', char: 'W', base: 'UndeadBase',
+        attack: 4, defense: 4, damage: '1d9', danger: 5,
+        brain: 'Animal', speed: 115, hp: 21
+    },
+    {
         name: 'skeleton berserker', char: 'z', base: 'UndeadBase',
         attack: 6, defense: 1, damage: '1d10 + 4', danger: 5,
         hp: 15
@@ -381,6 +395,7 @@ const Actors = [
     },
     {
         name: 'wraith', char: 'Z', base: 'UndeadBase',
+        'color-fg': 'Cyan',
         attack: 5, defense: 5, damage: '2d5 + 2', danger: 6,
         onHit: [
             {addComp: 'StatsMods', func: [{setter: 'setStrength', value: -1}],
@@ -390,6 +405,7 @@ const Actors = [
     },
     {
         name: 'specter', char: 'Z', base: 'UndeadBase',
+        'color-fg': 'Blue',
         attack: 6, defense: 6, damage: '2d5 + 2', danger: 7,
         addComp: 'Flying',
         onHit: [
@@ -400,6 +416,7 @@ const Actors = [
     },
     {
         name: 'vampire', char: 'V', base: 'UndeadBase',
+        'color-fg': 'Purple',
         attack: 6, defense: 6, damage: '3d5 + 2', danger: 9,
         speed: 120,
         onHit: [
@@ -407,6 +424,12 @@ const Actors = [
                 duration: '5d10'}
         ],
         hp: 40
+    },
+    {
+        name: 'necrowyrm', char: 'W', base: 'UndeadBase',
+        'color-fg': 'GhostWhite',
+        attack: 7, defense: 7, protection: 7, damage: '2d5', danger: 10,
+        brain: 'Animal', speed: 107, hp: 50
     },
     {
         name: 'lich', char: 'L', base: 'UndeadBase',
@@ -417,8 +440,9 @@ const Actors = [
 
     // DEMONS AND WINTRY BEINGS
     {
-        name: 'WinterBeingBase', className: 'cell-actor-winter',
+        name: 'WinterBeingBase', // className: 'cell-actor-winter',
         dontCreate: true, enemies: ['player', 'human'],
+        color: {fg: 'Blue', bg: 'White'},
         addComp: [resistance('ICE', 'MEDIUM')]
     },
     {
@@ -456,6 +480,7 @@ const Actors = [
     },
     {
         name: 'Glacial shaman', char: '@', base: 'WinterBeingBase',
+        'color-fg': 'CadetBlue',
         attack: 4, defense: 4, protection: 3, damage: '1d7 + 2',
         type: 'icebeing',
         danger: 5, hp: 25, spells: ['IcyPrison'], maxPP: 22, pp: 21,
@@ -492,17 +517,20 @@ const Actors = [
     },
     {
         name: 'Winter demon', type: 'demon', char: '&',
+        'color-fg': 'CadetBlue',
         attack: 5, defense: 5, protection: 2, damage: '3d3', range: 1,
         hp: 30, danger: 10, brain: demonBrain, base: 'WinterBeingBase'
     },
     {
         name: 'Harbinger of winter', type: 'demon', char: '@',
+        'color-fg': 'DarkBlue',
         attack: 5, defense: 5, protection: 2, damage: '3d3', range: 1,
         hp: 35, danger: 10, brain: 'SpellCaster', base: 'WinterBeingBase',
         spells: ['GraspOfWinter'], maxPP: 30, pp: 30
     },
     {
         name: 'Stormrider', type: 'demon', char: '&',
+        'color-fg': 'DarkBlue',
         attack: 6, defense: 6, protection: 3, damage: '4d3', range: 1,
         hp: 40, danger: 12, brain: demonBrain, base: 'WinterBeingBase',
         equip: ['Permaice short sword']
@@ -514,8 +542,16 @@ const Actors = [
     },
     {
         name: 'Blizzard beast', type: 'demon', char: 'B',
+        'color-fg': 'CadetBlue',
         attack: 7, defense: 6, protection: 8, damage: '3d5+5', range: 1,
         hp: 50, danger: 16, brain: demonBrain, base: 'WinterBeingBase'
+    },
+    {
+        name: 'Ice behemoth', type: 'demon', char: 'B',
+        'color-fg': 'DarkBlue',
+        attack: 10, defense: 3, protection: 8, damage: '4d5+5', range: 2,
+        hp: 65, danger: 16, brain: demonBrain, base: 'WinterBeingBase',
+        onHit: [{addComp: 'Coldness'}]
     },
     {
         name: 'Frost Titan', type: 'giant', char: 'H',
@@ -820,7 +856,6 @@ const Actors = [
         name: 'Monarch spirit', base: 'SpiritBase',
         strength: 6, accuracy: 0, agility: 1, willpower: 6, power: 10,
         danger: 12
-
     },
 
     // HYRKHIANS
