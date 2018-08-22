@@ -38,3 +38,18 @@ describe('Element.Shop', () => {
         expect(priceTenHalved).to.equal(0.5 * priceTen);
     });
 });
+
+describe('LeverDoor', () => {
+
+    let door = null;
+
+    beforeEach(() => {
+        door = new RG.Element.LeverDoor();
+    });
+
+    it('is not passable when closed', () => {
+        expect(door.isPassable()).to.equal(false);
+        expect(door.isPassableByAir()).to.equal(false);
+    });
+
+});
