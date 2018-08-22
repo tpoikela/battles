@@ -456,7 +456,8 @@ const Actors = [
     },
     {
         name: 'Glacial shaman', char: '@', base: 'WinterBeingBase',
-        attack: 4, defense: 4, protection: 3, damage: '1d7 + 2', type: 'human',
+        attack: 4, defense: 4, protection: 3, damage: '1d7 + 2',
+        type: 'icebeing',
         danger: 5, hp: 25, spells: ['IcyPrison'], maxPP: 22, pp: 21,
         brain: 'SpellCaster'
     },
@@ -468,7 +469,8 @@ const Actors = [
     {
         name: 'Ice minion', base: 'WinterBeingBase', char: 'm',
         attack: 4, defense: 4, protection: 2, damage: '2d4',
-        hp: 20, danger: 5, type: 'demon'
+        hp: 20, danger: 5, type: 'demon',
+        onHit: [{addComp: 'Coldness', duration: '10d10'}]
     },
     {
         name: 'Mighty raven', base: 'WinterBeingBase', char: 'R',
@@ -483,7 +485,7 @@ const Actors = [
     },
     {
         name: 'Cryomancer', base: 'WinterBeingBase', char: '@',
-        type: 'human', enemies: ['player', 'human'],
+        type: 'icebeing', enemies: ['player', 'human'],
         attack: 4, defense: 4, damage: '1d6', range: 1, hp: 30,
         danger: 5, spells: ['FrostBolt'], maxPP: 22, pp: 21,
         brain: 'SpellCaster'
