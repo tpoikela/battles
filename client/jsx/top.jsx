@@ -79,8 +79,7 @@ class TopLogic {
 
   static getAdjacentCell(player, code) {
     if (RG.KeyMap.inMoveCodeMap(code) || RG.KeyMap.isRest(code)) {
-      const x = player.getX();
-      const y = player.getY();
+      const [x, y] = player.getXY();
       const diffXY = RG.KeyMap.getDiff(code, x, y);
       if (diffXY !== null) {
         return player.getLevel().getMap().getCell(diffXY[0], diffXY[1]);
