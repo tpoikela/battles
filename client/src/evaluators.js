@@ -138,7 +138,6 @@ class EvaluatorFlee extends EvaluatorBase {
                 }
 
                 const div = Math.pow(propHP, 2);
-                console.log('Flee eval returning, div', div, 'propHP', propHP);
                 return this.actorBias * (1.0 - propHP) / div;
             }
         }
