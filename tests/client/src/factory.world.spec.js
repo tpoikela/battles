@@ -363,12 +363,26 @@ describe('Factory.World', function() {
         expect(l0.getMap().cols).to.equal(180);
         expect(l0.getMap().rows).to.equal(90);
 
+        l0.debugPrintInASCII();
+
         // levels.map(ll => ll.getMap().debugPrintInASCII());
         const l4 = levels[4];
         const actors = l4.getActors();
         const boss = actors.find(actor => actor.getName().match(/Thabba/));
         expect(boss, 'Boss actor was created/found').to.not.be.empty;
         expect(boss.getName()).to.match(/Son of Ice/i);
+
+        const elements0 = l0.getElements();
+        expect(elements0.length).to.be.above(0);
+
+        const lever = elements0.find(e => e.getType() === 'lever');
+        const leverDoor = elements0.find(e => e.getType() === 'leverdoor');
+        const door = elements0.find(e => e.getType() === 'door');
+        // console.log(elements0);
+
+        expect(lever).to.not.be.empty;
+        expect(leverDoor).to.not.be.empty;
+        expect(door).to.not.be.empty;
     });
 
 
