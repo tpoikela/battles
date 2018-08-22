@@ -10,6 +10,7 @@ RG.Factory = require('./factory');
 
 const DungeonGenerator = require('./dungeon-generator');
 const {CaveGenerator} = require('./cave-generator');
+const CastleGenerator = require('./castle-generator');
 
 const RNG = RG.Random.getRNG();
 const Stairs = RG.Element.Stairs;
@@ -271,7 +272,7 @@ RG.Factory.World = function() {
             areaLevels = this.getAreaLevels(conf);
         }
         else {
-            areaLevels = this.getPresetLevels(hierName);
+            areaLevels = this.getPresetLevels(hierName, conf);
             if (!areaLevels || areaLevels.length === 0) {
                 areaLevels = null;
             }
@@ -530,7 +531,7 @@ RG.Factory.World = function() {
         const hierName = this.getHierName();
         branch.setHierName(hierName);
 
-        const presetLevels = this.getPresetLevels(hierName);
+        const presetLevels = this.getPresetLevels(hierName, conf);
 
         for (let i = 0; i < conf.nLevels; i++) {
             const maxDanger = this.getConf('maxDanger');
@@ -574,6 +575,12 @@ RG.Factory.World = function() {
                         this.factZone.addItemsAndActors(level, levelConf);
                         this.factZone.addExtraDungeonFeatures(level, levelConf);
                     }
+                    else if (/(fort|castle)/.test(dungeonType)) {
+                        const castleGen = new CastleGenerator();
+                        const [cols, rows] = [levelConf.x, levelConf.y];
+                        levelConf.markersPreserved = false;
+                        level = castleGen.create(cols, rows, levelConf);
+                    }
                     else {
                         const dungGen = new DungeonGenerator();
                         const [cols, rows] = [levelConf.x, levelConf.y];
@@ -587,6 +594,9 @@ RG.Factory.World = function() {
                         dungFeat.addLastLevelFeatures(i, level, levelConf);
                     }
                 }
+            }
+            else if (conf.createPresetLevels && conf.create) {
+                this.addFixedFeatures(i, level, branch);
             }
 
             branch.addLevel(level);
@@ -610,20 +620,20 @@ RG.Factory.World = function() {
     /* Returns a level from presetLevels if any exist for the current level
      * number. */
     this.getFromPresetLevels = function(i, presetLevels) {
-        let level = null;
+        let foundLevel = null;
         if (presetLevels.length > 0) {
             const levelObj = presetLevels.find(lv => lv.nLevel === i);
             if (levelObj) {
-                level = levelObj.level;
+                foundLevel = levelObj.level;
             }
         }
-        return level;
+        return foundLevel;
     };
 
     const _errorOnFunc = val => {
         if (typeof val === 'function') {
             RG.err('Factory', '_errorOnFunc',
-                `Function constraint not supported anymore: ${val.toString}`);
+                `Function constraint not supported anymore: ${val.toString()}`);
         }
     };
 
@@ -719,7 +729,7 @@ RG.Factory.World = function() {
     };
 
     /* Returns preset levels (if any) for the current zone. */
-    this.getPresetLevels = function(hierName) {
+    this.getPresetLevels = function(hierName, subZoneConf) {
 
         // First check the configuration
         const presetLevels = this.getConf('presetLevels');
@@ -738,6 +748,20 @@ RG.Factory.World = function() {
         let foundKey = keys.find(item => new RegExp(item + '$').test(hierName));
         if (foundKey) {
             return this.presetLevels[foundKey];
+        }
+
+        // Finally, check subZoneConf.createPresetLevels: ...
+        if (subZoneConf && subZoneConf.createPresetLevels) {
+            const {createPresetLevels} = subZoneConf;
+            const levelFact = new LevelFactory(this);
+            const levels = levelFact.create(createPresetLevels.new,
+                createPresetLevels.args);
+            if (!levels) {
+                let msg = 'Found createPresetLevels but no levels created';
+                msg += ' conf: ' + JSON.stringify(subZoneConf);
+                RG.err('Factory', 'getPresetLevels', msg);
+            }
+            return levels;
         }
 
         return [];
@@ -945,7 +969,7 @@ RG.Factory.World = function() {
         const hierName = this.getHierName();
         quarter.setHierName(hierName);
 
-        const presetLevels = this.getPresetLevels(hierName);
+        const presetLevels = this.getPresetLevels(hierName, conf);
 
         // const randType = RNG.arrayGetRand(RG.SHOP_TYPES);
         const cityLevelConf = {
@@ -985,6 +1009,9 @@ RG.Factory.World = function() {
                     this.debug('Creating level from stub ' +
                         JSON.stringify(level.stub));
                 }
+            }
+            else if (conf.createPresetLevels && conf.create) {
+                this.addFixedFeatures(i, level, quarter);
             }
             else {
                 this.debug(`cityQuarter ${hierName} ${i} from preset level`);
