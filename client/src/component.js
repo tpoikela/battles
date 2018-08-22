@@ -80,6 +80,7 @@ RG.Component.Damage.prototype._init = function(dmg, type) {
     this.damageType = type;
 };
 
+RG.Component.Opaque = UniqueTagComponent('Opaque');
 
 /* Component used in entities gaining experience.*/
 RG.Component.Experience = UniqueDataComponent('Experience',
