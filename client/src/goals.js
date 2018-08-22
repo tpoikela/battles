@@ -895,7 +895,6 @@ class GoalFleeFromActor extends GoalBase {
             for (let i = 0; i < 3; i++) {
                 const [x, y] = fleeOptions[i];
                 if (level.getMap().isPassable(x, y)) {
-                    console.log('Trying to flee to cell', x, y);
                     const movComp = new Component.Movement(x, y, level);
                     this.dbg(`${this.getType()} movComp to ${x},${y}`);
                     this.actor.add(movComp);
@@ -906,7 +905,6 @@ class GoalFleeFromActor extends GoalBase {
 
             if (this.status !== GOAL_COMPLETED) {
                 this.status = GOAL_FAILED;
-                console.log(`${this.actor.getName()} attacks in desperation`);
                 this.planBGoal = new Goal.AttackActor(this.actor,
                     this.targetActor);
             }
