@@ -438,6 +438,64 @@ Y......
 ###+###`
 ];
 
+Castle.tiles.specials = [
+`
+dir:S
+name:storeroom_s
+X=#
+Y=#
+
+#X###X#
+#.....#
+Y.....#
+#.....#
+Y.....#
+###|###
+##..&##`,
+
+`
+dir:N
+name:storeroom_n
+X=#
+Y=#
+
+#X&..X#
+###|###
+Y.....#
+#.....#
+Y.....#
+#######
+#######`,
+
+`
+dir:W
+name:storeroom_w
+X=#
+Y=#
+
+##X#X##
+Y#.#.##
+.#....#
+.|...##
+&#....#
+Y#.#.##
+#######`,
+
+`
+dir:E
+name:storeroom_e
+X=#
+Y=#
+
+##X#X##
+Y#.#.##
+#....#&
+#....|.
+#....#.
+Y..#.##
+#######`
+];
+
 // Filler cell
 Castle.tiles.fillerFloor = `
 name:FILLER
@@ -632,6 +690,7 @@ Castle.Models.full = []
     .concat(Castle.tiles.term)
     .concat(Castle.tiles.entrance)
     .concat(Castle.tiles.corridor)
+    .concat(Castle.tiles.specials)
     .concat(Vault.tiles.vault)
     .concat(Vault.tiles.corner);
 
