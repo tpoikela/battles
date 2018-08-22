@@ -778,7 +778,7 @@ DungeonGenerator.prototype.verifyLevel = function(level, conf) {
         const diff = numTotal - numFilled;
         if (diff > maxUnreachable) {
             if (conf.errorOnFailure) {
-                level.debugPrintInASCII();
+                level.debugPrintInASCII(); // DON'T REMOVE
                 const msg = `Max: ${maxUnreachable}, got: ${diff}`;
                 RG.err('DungeonGenerator', 'verifyLevel',
                     'floodfill cannot reach all cells! ' + msg);
