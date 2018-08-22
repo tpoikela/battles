@@ -40,18 +40,36 @@ export default class BlackTower {
         return levels.map((level, i) => ({nLevel: i, level}));
     }
 
+    /* Adds properties like actors and items into levels. */
     addProps(levels) {
         const factZone = new RG.Factory.Zone();
         levels.forEach((level, i) => {
+            const maxDanger = 7 + 3 * i;
             const conf = {
                 nLevel: i,
-                maxValue: 65 + 20 * i,
-                sqrPerItem: 100,
+                minValue: 50 + 10 * i,
+                maxValue: 65 + 20 * (i + 1),
+                sqrPerItem: 200,
                 sqrPerActor: 40 - 2 * i,
-                maxDanger: 7 + 3 * i,
+                maxDanger,
                 actor: actor => actor.base === 'WinterBeingBase'
             };
             factZone.addItemsAndActors(level, conf);
+
+            // Level up each actor to at least maxDanger level
+            const actors = level.getActors();
+            actors.forEach(actor => {
+                const exp = actor.get('Experience');
+                if (exp) {
+                    const danger = exp.getDanger();
+                    const levelGap = maxDanger - danger;
+                    const currLevel = exp.getExpLevel();
+                    const newLevel = currLevel + levelGap;
+                    if (newLevel > currLevel) {
+                        RG.levelUpActor(actor, newLevel);
+                    }
+                }
+            });
         });
     }
 
