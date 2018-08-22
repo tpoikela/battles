@@ -202,7 +202,6 @@ describe('Factory.World', function() {
         const area = world.getAreas()[0];
         expect(area.getParent().getName()).to.equal('ww');
         const areaLevel = area.getTileXY(0, 0).getLevel();
-        // areaLevel.debugPrintInASCII();
 
         const areaConns = areaLevel.getConnections();
         expect(areaConns.length).to.be.above(20);
@@ -333,6 +332,43 @@ describe('Factory.World', function() {
         expect(faceLevel.getConnections()).to.have.length(1);
         expect(summit2Level0.getConnections()).to.have.length(2);
 
+    });
+
+    it('has createPresetLevels for creating all levels using factory', () => {
+        const fact = new RG.Factory.World();
+        const towerConf = {
+            name: 'Black tower',
+            nBranches: 1,
+            branch: [{
+                name: 'Main branch',
+                nLevels: 5,
+                createPresetLevels: {
+                    new: 'BlackTower',
+                    args: [180, 90]
+                },
+                create: {
+                    actor: [
+                        {name: 'goblin', nLevel: 2},
+                        {name: 'Thabba, Son of Ice', nLevel: 4}
+                    ]
+                }
+            }]
+        };
+
+        const tower = fact.createDungeon(towerConf);
+        const levels = tower.getLevels();
+        expect(levels).to.have.length(5);
+
+        const l0 = levels[0];
+        expect(l0.getMap().cols).to.equal(180);
+        expect(l0.getMap().rows).to.equal(90);
+
+        // levels.map(ll => ll.getMap().debugPrintInASCII());
+        const l4 = levels[4];
+        const actors = l4.getActors();
+        const boss = actors.find(actor => actor.getName().match(/Thabba/));
+        expect(boss, 'Boss actor was created/found').to.not.be.empty;
+        expect(boss.getName()).to.match(/Son of Ice/i);
     });
 
 
