@@ -174,8 +174,13 @@ Cell.prototype.getPassage = function() {
 /* Returns true if light passes through this map cell.*/
 Cell.prototype.lightPasses = function() {
     if (!this._baseElem.lightPasses()) {return false;}
-    if (this.hasPropType('door')) {
-        return this.getPropType('door')[0].isOpen();
+    if (this.hasProp(TYPE_ELEM)) {
+        const elems = this.getProp(TYPE_ELEM);
+        for (let i = 0; i < elems.length; i++) {
+            if (elems[i].has('Opaque')) {
+                return false;
+            }
+        }
     }
     return true;
 };
@@ -215,8 +220,13 @@ Cell.prototype.isFree = function(isFlying = false) {
         }
         return true;
     }
-    else if (this.hasPropType('door')) {
-        return this.getPropType('door')[0].isOpen();
+    else if (this.hasProp(TYPE_ELEM)) {
+        if (this.hasPropType('door')) {
+            return this.getPropType('door')[0].isOpen();
+        }
+        else if (this.hasPropType('leverdoor')) {
+            return this.getPropType('leverdoor')[0].isOpen();
+        }
     }
     // Handle flying/non-flying here
     if (!isFlying) {
