@@ -635,8 +635,9 @@ DungeonGenerator.prototype.addStairsLocations = function(level) {
     else {
         // Resort to random placement, no worthwhile rooms, although this
         // raises the question if the whole level should be discarded
+        const msg = 'rooms must be set as level extras';
         RG.err('DungeonGenerator', 'addStairsLocations',
-            'Not enough rooms to add stairs');
+            'Not enough rooms to add stairs. ' + msg);
     }
 };
 
@@ -659,7 +660,7 @@ DungeonGenerator.prototype.addCriticalPath = function(level) {
         };
         criticalPath = Path.getShortestPath(cx2, cy2, cx1, cy1, newPathFunc);
         if (criticalPath === 0) {
-            RG.err('DungeonGenerator', 'addStairsLocations',
+            RG.err('DungeonGenerator', 'addCriticalPath',
                 'No path found between stairs');
         }
         else {
