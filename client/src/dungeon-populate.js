@@ -8,9 +8,8 @@ const MIN_ACTORS_ROOM = 2;
 
 const RNG = RG.Random.getRNG();
 
-const DungeonPopulate = function(conf) {
+const DungeonPopulate = function(conf = {}) {
     this.theme = conf.theme;
-
     this.maxDanger = conf.maxDanger || 5;
     this.maxValue = conf.maxValue || 50;
 };
@@ -131,7 +130,13 @@ DungeonPopulate.prototype.populateLevel = function(level) {
 };
 
 DungeonPopulate.prototype.setActorFunc = function(func) {
-    this.actorFunc = func;
+    if (typeof func === 'function') {
+        this.actorFunc = func;
+    }
+    else {
+        RG.err('DungeonPopulate', 'setActorFunc',
+            `Tried to set non-function ${func} as actorFunc`);
+    }
 };
 
 DungeonPopulate.prototype.addPointGuardian = function(level, point, maxDanger) {
