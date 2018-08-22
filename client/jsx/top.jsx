@@ -582,6 +582,7 @@ class BattlesTop extends Component {
         if (cell.hasActors()) {
             const actors = cell.getActors();
             console.log(`Actors: ${JSON.stringify(actors)}`);
+            RG.CLICKED_ACTOR = actors[0];
         }
         if (cell.hasConnection()) {
             const conns = cell.getPropType('connection');
