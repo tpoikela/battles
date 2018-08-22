@@ -279,7 +279,7 @@ RG.Template.Level = function(tilesX, tilesY) {
                     this.xyToBbox[tileX + ',' + tileY] = {
                         name: this.templMap[tileX][tileY].getProp('name'),
                         type: this.templMap[tileX][tileY].getProp('type'),
-                        llx, urx, ury, lly
+                        llx, urx, ury, lly, tileX, tileY
                     };
                     ury += tileColLen;
                 }
