@@ -25,26 +25,44 @@ export default class BlackTower {
             tilesY: 10
         };
         let levels = [
-            castleGen.create(this.cols, this.rows, castleConf)
+            castleGen.createLevel(this.cols, this.rows, castleConf)
         ];
         delete castleConf.nGates;
         levels = levels.concat([
-            castleGen.create(this.cols, this.rows, castleConf),
-            castleGen.create(this.cols, this.rows, castleConf),
-            castleGen.create(this.cols, this.rows, castleConf),
-            castleGen.create(this.cols, this.rows, castleConf)
+            castleGen.createLevel(this.cols, this.rows, castleConf),
+            castleGen.createLevel(this.cols, this.rows, castleConf),
+            castleGen.createLevel(this.cols, this.rows, castleConf),
+            castleGen.createLevel(this.cols, this.rows, castleConf)
         ]);
 
         this.addProps(levels);
 
+        levels.forEach((level, i) => {
+            castleGen.removeMarkers(level, {
+                markersPreserved: false,
+                shouldRemoveMarkers: true
+            });
+
+            const maxDanger = this.getDanger(i) + 5;
+            const populConf = {
+                maxDanger,
+                actorFunc: actor => actor.base === 'WinterBeingBase'
+            };
+            castleGen.populateStoreRooms(level, populConf);
+        });
+
         return levels.map((level, i) => ({nLevel: i, level}));
+    }
+
+    getDanger(nLevel) {
+        return 7 + 3 * nLevel; // arbitraty, to tune
     }
 
     /* Adds properties like actors and items into levels. */
     addProps(levels) {
         const factZone = new RG.Factory.Zone();
         levels.forEach((level, i) => {
-            const maxDanger = 7 + 3 * i;
+            const maxDanger = this.getDanger(i);
             const conf = {
                 nLevel: i,
                 minValue: 50 + 10 * i,
