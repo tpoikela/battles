@@ -45,6 +45,7 @@ const WATCHDOG_MAX = 111;
 // Used for debugging only
 const playerTileX = 1;
 const playerTileY = 1;
+const debugBlackTower = true;
 
 // When set to 1, builds roads between main features. Currently this feature is
 // very slow on large maps.
@@ -831,7 +832,7 @@ RG.OverWorld.createWorldConf = function(
 
 
     // Map values are OK, this loops through smaller overworld sublevels, which
-    // are aligned with the mountain wall creation
+    // are aligned with the large mountain wall creation
     for (let x = 0; x < nSubLevelsX; x++) {
         for (let y = 0; y < nSubLevelsY; y++) {
 
@@ -1128,8 +1129,9 @@ function addLocationToZoneConf(feat, coordObj, zoneConf, vert = true) {
 
 /* Adds the black tower configuration to area. */
 function addBlackTowerConfToArea(feat, coordObj, areaConf) {
-    const {xMap, yMap, nSubLevelsX, nSubLevelsY,
-        x, y, slX, slY, aX, aY, subX, subY} = coordObj;
+    /* const {xMap, yMap, nSubLevelsX, nSubLevelsY,
+        x, y, slX, slY, aX, aY, subX, subY} = coordObj;*/
+    const {slX, slY, aX, aY, subX, subY} = coordObj;
     const coord = feat.coord;
 
     const xy = coord[7];
@@ -1142,30 +1144,22 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
     const tName = 'Elder raventhrone';
 
     const dungeonConf = RG.LevelGen.getDungeonConf(tName);
-    // addToPlayerPosition(dungeonConf, coordObj);
-    Object.assign(dungeonConf,
-        {x: aX, y: aY, levelX: featX, levelY: featY});
+    if (debugBlackTower) {
+        addToPlayerPosition(dungeonConf, coordObj);
+    }
+    else {
+        Object.assign(dungeonConf,
+            {x: aX, y: aY, levelX: featX, levelY: featY});
+    }
     debug(`BlackTower: ${aX},${aY}, x,y ${featX},${featY}`);
-    dungeonConf.dungeonType = 'castle';
-    dungeonConf.wallType = 'wallice';
-    dungeonConf.tilesX = 20;
-    dungeonConf.tilesY = 20;
-    dungeonConf.maxDanger = 50;
-    dungeonConf.constraint = {};
-    dungeonConf.constraint.actor = [
-        {op: 'neq', prop: 'type', value: 'human'},
-        {op: 'eq', prop: 'base', value: 'WinterBeingBase'},
-        {op: 'gte', prop: 'danger', value: 6}
-    ];
 
-    dungeonConf.constraint.item = [
-        {op: 'gte', prop: 'value', value: 65},
-        {op: 'match', prop: 'name', value: 'Gold'}
-    ];
-    dungeonConf.constraint.food = false;
-    dungeonConf.constraint.gold = false;
-
+    dungeonConf.branch[0].nLevels = 5;
     const nLastLevel = dungeonConf.branch[0].nLevels - 1;
+    dungeonConf.branch[0].createPresetLevels = {
+        new: 'BlackTower',
+        args: [180, 90]
+    };
+
     dungeonConf.branch[0].create = {
         actor: [
             {
@@ -1182,13 +1176,17 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
     areaConf.dungeon.push(dungeonConf);
 }
 
-/* For debuging. Adds the feature close to player starting position. */
+/* For debugging. Adds the feature close to player starting position. */
 function addToPlayerPosition(zoneConf, coordObj) {
     const [xPos, yPos] = getPlayerPosition(coordObj);
     Object.assign(zoneConf,
         {x: xPos, y: yPos, levelX: playerTileX, levelY: playerTileY});
+    console.log('BlackTower was added to tile', xPos, yPos);
+    console.log('BlackTower was added to level X,Y', playerTileX, playerTileY);
 }
 
+/* Returns the player position (tile X,Y), given the coordinate
+ * object. */
 function getPlayerPosition(coordObj) {
     const {xMap, yMap, nSubLevelsX, nSubLevelsY} = coordObj;
     const xPos = Math.floor(nSubLevelsX / xMap / 2);
