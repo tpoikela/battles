@@ -45,26 +45,61 @@ RG.Verify.verifyStairsConnections = function(game, msg) {
 };
 
 RG.Verify.Conf = function(objName) {
-    const _name = objName;
+    this._name = objName;
 
     /* Verifies that configuration contains all required keys.*/
     this.verifyConf = (funcName, conf, required) => {
         let ok = true;
         let errorMsg = '';
         required.forEach(req => {
-            if (!conf.hasOwnProperty(req)) {
+            if (!this.verifyReq(conf, req)) {
                 ok = false;
                 errorMsg += ` Missing: ${req}`;
             }
-            else if (RG.isNullOrUndef([conf[req]])) {
+            else if (this.reqHasNullValue(conf, req)) {
                 ok = false;
                 errorMsg += ` Undef/null value in: ${req}`;
             }
         });
         if (!ok) {
-            RG.err(_name, 'verifyConf', `${funcName} ${errorMsg}`);
+            RG.err(this._name, 'verifyConf', `${funcName} ${errorMsg}`);
         }
         return ok;
+    };
+
+    /* Verifies that a requirement is met, ie it exists. */
+    this.verifyReq = (conf, req) => {
+        const allReqs = req.split('|');
+        let ok = false;
+        allReqs.forEach(givenReq => {
+            if (conf.hasOwnProperty(givenReq)) {
+                if (!ok) {
+                    ok = true;
+                }
+                else {
+                    const confJSON = JSON.stringify(conf);
+                    const msg = `Req ${req} is mutex. Conf: ${confJSON}`;
+                    RG.err(this._name, 'verifyReq', msg);
+                }
+            }
+        });
+        return ok;
+    };
+
+    /* Returns true if a requirement has a null value. */
+    this.reqHasNullValue = (conf, req) => {
+        const allReqs = req.split('|');
+        const ok = allReqs.length > 0;
+        let hasNull = false;
+        for (let i = 0; i < allReqs.length; i++) {
+            const givenReq = allReqs[i];
+            if (conf.hasOwnProperty(givenReq)) {
+                if (RG.isNullOrUndef([conf[givenReq]])) {
+                    hasNull = true;
+                }
+            }
+        }
+        return !ok && hasNull;
     };
 
 };
