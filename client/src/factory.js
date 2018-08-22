@@ -771,12 +771,17 @@ RG.Factory.Zone = function() {
         debug(`Adding ${actorsPerLevel} monsters and items ` +
             `${itemsPerLevel} to the level`);
 
-        const itemConstraint = maxValue => item => item.value <= maxValue;
+        const getItemConstraintFunc = (min, max) => (
+            item => (
+                item.value >= min &&
+                item.value <= max
+            )
+        );
 
         const itemConf = {
             nLevel: conf.nLevel,
             itemsPerLevel,
-            func: itemConstraint(conf.maxValue),
+            func: getItemConstraintFunc(0, conf.maxValue),
             maxValue: conf.maxValue,
             food: true,
             gold: true
@@ -790,6 +795,9 @@ RG.Factory.Zone = function() {
         if (conf.item) {
             itemConf.func = conf.item;
             debug(`Set itemConf.func to ${conf.item.toString()}`);
+        }
+        else if (conf.minValue) {
+            itemConf.func = getItemConstraintFunc(conf.minValue, conf.maxValue);
         }
         this.addNRandItems(level, this._parser, itemConf);
 
