@@ -259,6 +259,7 @@ class RGElementDoor extends Mixin.Locatable(RGElementBase) {
         super('door');
         this._closed = (typeof closed === 'undefined')
             ? true : closed;
+        if (this._closed) {this.closeDoor();}
     }
 
     /* Checks if door can be manually opened. */
@@ -274,14 +275,20 @@ class RGElementDoor extends Mixin.Locatable(RGElementBase) {
 
     openDoor() {
         this._closed = false;
+        this.remove('Opaque');
     }
 
     closeDoor() {
         this._closed = true;
+        this.add(new RG.Component.Opaque());
     }
 
     isPassable() {
         return !this._closed;
+    }
+
+    isPassableByAir() {
+        return this.isPassable();
     }
 
     toJSON() {
