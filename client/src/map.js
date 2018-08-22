@@ -10,7 +10,7 @@ RG.Map.Cell = require('./map.cell');
  * rendering
  * while the level contains actual information about game elements such as
  * monsters and items.  */
-RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) { // {{{2
+RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) {
     this._map = [];
     this.cols = cols;
     this.rows = rows;
@@ -239,7 +239,12 @@ RG.Map.CellList.prototype.debugPrintInASCII = function() {
         let row = '';
         for (let x = 0; x < this.cols; x++) {
             const cell = this._map[x][y];
-            const baseType = cell.getBaseElem().getType();
+            const baseElem = cell.getBaseElem();
+            if (!baseElem) {
+                row += 'X';
+                continue;
+            }
+            const baseType = baseElem.getType();
             if (cell.hasActors()) {
                 if (cell.getFirstActor().isPlayer()) {
                     row += '@';
