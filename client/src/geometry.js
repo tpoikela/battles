@@ -80,6 +80,21 @@ RG.Geometry = {
         return res;
     },
 
+    /* Converts old (SoCE) style bbox to BitN bbox. */
+    convertBbox: function(bbox) {
+        if (bbox.hasOwnProperty('llx')) {
+            return {
+                ulx: bbox.llx,
+                uly: bbox.ury,
+                lrx: bbox.urx,
+                lry: bbox.lly
+            };
+        }
+        else {
+            return bbox;
+        }
+    },
+
     getCoordBbox: function(bbox) {
         const {ulx, uly, lrx, lry} = bbox;
         return this.getBox(ulx, uly, lrx, lry);
