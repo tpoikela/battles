@@ -51,8 +51,8 @@ const poisonActor = (actor, src, dur, dmgDie, prob) => {
 
 /* Called at the end of AI querying if spell should be cast. */
 const aiSpellCellDone = (actor, target, cb) => {
-    const dir = [actor.getX() - target.getX(),
-        actor.getY() - target.getY()
+    const dir = [target.getX() - actor.getX(),
+        target.getY() - actor.getY()
     ];
     const newArgs = {dir, src: actor};
     cb(actor, newArgs);
