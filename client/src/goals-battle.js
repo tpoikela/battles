@@ -35,29 +35,37 @@ const orderWithGoal = (actor, obj) => {
 };
 GoalsBattle.orderWithGoal = orderWithGoal;
 
+const injectOrderEval = (target, goal, args) => {
+    const orderEval = new Evaluator.Orders(args.bias);
+    orderEval.setArgs({srcActor: args.src, goal});
+    const topGoal = target.getBrain().getGoal();
+    topGoal.clearOrders();
+    topGoal.giveOrders(orderEval);
+};
+
 const giveFollowOrder = (target, args) => {
     if (target && target.getBrain().getGoal) {
-        const followGoal = new Goal.Follow(target, args.src);
-        const orderEval = new Evaluator.Orders(args.bias);
-        orderEval.setArgs({srcActor: args.src, goal: followGoal});
-        const goal = target.getBrain().getGoal();
-        goal.clearOrders();
-        goal.giveOrders(orderEval);
+        const goal = new Goal.Follow(target, args.src);
+        injectOrderEval(target, goal, args);
     }
 };
 GoalsBattle.giveFollowOrder = giveFollowOrder;
 
 const giveAttackOrder = (target, args) => {
     if (target && target.getBrain().getGoal) {
-        const attackGoal = new Goal.AttackActor(target, args.enemy);
-        const orderEval = new Evaluator.Orders(args.bias);
-        orderEval.setArgs({srcActor: args.src, goal: attackGoal});
-        const goal = target.getBrain().getGoal();
-        goal.clearOrders();
-        goal.giveOrders(orderEval);
+        const goal = new Goal.AttackActor(target, args.enemy);
+        injectOrderEval(target, goal, args);
     }
 };
 GoalsBattle.giveAttackOrder = giveAttackOrder;
+
+const givePickupOrder = (target, args) => {
+    if (target && target.getBrain().getGoal) {
+        const goal = new Goal.GetItem(target, args.item);
+        injectOrderEval(target, goal, args);
+    }
+};
+GoalsBattle.givePickupOrder = givePickupOrder;
 
 /* Clears the given orders from non-enemy actor. */
 const giveClearOrders = (target, args) => {
