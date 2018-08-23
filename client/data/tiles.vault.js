@@ -4,6 +4,7 @@
  * ordinary room placement.
  * When creating a vault, one tile with exit
  * directions must be connected to the exit of the vault. */
+const RG = require('../src/rg');
 
 const Vault = {};
 Vault.tiles = {};
@@ -274,6 +275,12 @@ Vault.func.createHugeVault = (x, y, templLevel, centerName, connTile) => {
   const vaultSW = templLevel.findTemplate({name: 'vault_sw_corner'});
   const vaultSE = templLevel.findTemplate({name: 'vault_se_corner'});
 
+  if (RG.isNullOrUndef([vaultNW, vaultNE, vaultSW, vaultSE])) {
+      RG.err('Vault.func', 'createHugeVault',
+          'Corner templates cannot be null. Check they are loaded');
+  }
+  console.log(x, y, vaultNW);
+
   templLevel.addRoom(vaultNW, x, y);
   templLevel.addRoom(vaultNE, x + 2, y);
   templLevel.addRoom(vaultSW, x, y + 2);
@@ -295,10 +302,29 @@ Vault.func.createHugeVault = (x, y, templLevel, centerName, connTile) => {
   templLevel.addRoom(vaultWallS, x + 1, y + 2);
 
   if (connTile) {
-    templLevel.addRoom(connTile, x + 1, y + 3);
+    let tile = connTile;
+    if (typeof connTile === 'string') {
+        tile = templLevel.findTemplate({name: connTile});
+    }
+    templLevel.addRoom(tile, x + 1, y + 3);
   }
 
 };
+
+Vault.Models = {};
+
+Vault.Models.default = []
+    .concat(Vault.tiles.center)
+    .concat(Vault.tiles.corner)
+    .concat(Vault.tiles.wall)
+    .concat(Vault.tiles.vault);
+
+Vault.templates = {};
+Vault.templates.all = Vault.Models.default.map(tile => (
+    RG.Template.createTemplate(tile)
+));
+const transformed = RG.Template.transformList(Vault.templates.all);
+Vault.templates.all = Vault.templates.all.concat(transformed);
 
 module.exports = Vault;
 
