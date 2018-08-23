@@ -4,12 +4,19 @@
 const RG = require('../src/rg');
 const CastleGenerator = require('../src/castle-generator');
 RG.Factory = require('../src/factory');
+const Vault = require('./tiles.vault');
+
+const tileSize = 9;
 
 export default class BlackTower {
 
     constructor(cols, rows, conf) {
         this.cols = cols || 100;
         this.rows = rows || 50;
+        this.tilesX = Math.round(this.cols / tileSize);
+        this.tilesY = Math.round(this.rows / tileSize);
+        /* if (this.tilesX % 2 === 0) {++this.tilesX;}
+        if (this.tilesY % 2 === 0) {++this.tilesY;}*/
         this.conf = conf;
     }
 
@@ -21,8 +28,8 @@ export default class BlackTower {
             genParams: [2, 2, 2, 2],
             nGates: 2,
             roomCount: -1,
-            tilesX: 20,
-            tilesY: 10
+            tilesX: this.tilesX,
+            tilesY: this.tilesY
         };
         let levels = [
             castleGen.createLevel(this.cols, this.rows, castleConf)
@@ -31,9 +38,24 @@ export default class BlackTower {
         levels = levels.concat([
             castleGen.createLevel(this.cols, this.rows, castleConf),
             castleGen.createLevel(this.cols, this.rows, castleConf),
-            castleGen.createLevel(this.cols, this.rows, castleConf),
             castleGen.createLevel(this.cols, this.rows, castleConf)
         ]);
+
+        // Last level has a huge vault in the center point
+        const [midXTile, midYTile] = [
+            Math.round(this.tilesX / 2),
+            Math.round(this.tilesY / 2)
+        ];
+        castleConf.callbacks = {};
+        const afterInitCb = level => {
+            Vault.templates.all.forEach(templ => {level.addTemplate(templ);});
+            Vault.func.createHugeVault(midXTile - 1, midYTile - 2, level,
+                'vault_center1', 'entrance_n');
+        };
+        castleConf.callbacks.afterInit = afterInitCb;
+        const lastLevel = castleGen.createLevel(this.cols, this.rows,
+            castleConf);
+        levels.push(lastLevel);
 
         this.addProps(levels);
 
