@@ -8,6 +8,7 @@ const Crypt = require('../data/tiles.crypt');
 const fillerTempl = Crypt.tiles.filler;
 const RNG = RG.Random.getRNG();
 
+const DEFAULT_CALLBACK = () => {};
 const debugVerbosity = 20;
 
 /* This object can be used to create levels from ASCII-based templates. Each
@@ -24,6 +25,10 @@ RG.Template.Level = function(tilesX, tilesY) {
     this.genParams = [1, 1, 1, 1];
     this.roomCount = 40;
     this.ind = 0;
+
+    this.callbacks = {
+        afterInit: DEFAULT_CALLBACK
+    };
 
     this.filler = RG.Template.createTemplate(fillerTempl);
     this.templates = [];
@@ -97,6 +102,23 @@ RG.Template.Level = function(tilesX, tilesY) {
         this.startRoomFunc = func.bind(this);
     };
 
+    /* Adds a callback to the generator. */
+    this.addCallback = function(name, cb) {
+        if (this.callbacks.hasOwnProperty(name)) {
+            if (typeof cb === 'function') {
+                this.callbacks[name] = cb;
+            }
+            else {
+                RG.err('Template.Level', 'setCallback',
+                    `Tried setting non-function as cb: ${cb}`);
+            }
+        }
+        else {
+            RG.err('Template.Level', 'setCallback',
+                `No callback for ${name}`);
+        }
+    };
+
     /* Calls as many setters above as possible from given object. */
     this.use = function(obj) {
         const setterList = ['constraintFunc', 'startRoomFunc', 'roomCount'];
@@ -124,35 +146,17 @@ RG.Template.Level = function(tilesX, tilesY) {
                 'No templates set. Use setTemplates() before create()');
         }
 
-        const dirRegex = this.possibleDirections.map(dir => new RegExp(dir));
-        // Sort data into lists based on different directions
-        this.templates.forEach(templ => {
-            const dir = templ.getProp('dir');
-            if (dir) {
-                this.possibleDirections.forEach((direction, i) => {
-                    if (dirRegex[i].test(dir)) {
-                        this.sortedByExit[direction].push(templ);
-                    }
-                });
-
-                // Add to map including all possible exits
-                const dirSorted = dir.split('').sort().join('');
-                if (!this.sortedWithAllExits[dirSorted]) {
-                    this.sortedWithAllExits[dirSorted] = [];
-                }
-                this.sortedWithAllExits[dirSorted].push(templ);
-            }
-        });
+        this._sortDataIntoListsByLocation();
 
         // Initialize a map with filler cells
-        this.templMap = [];
+        this._initMapWithFillerCells();
+        /* this.templMap = [];
         for (let x = 0; x < this.tilesX; x++) {
             this.templMap[x] = [];
             for (let y = 0; y < this.tilesY; y++) {
                 this.templMap[x][y] = this.filler;
             }
-        }
-
+        }*/
         let dungeonInvalid = true;
         let dungeonTries = 10;
         while (dungeonInvalid) {
@@ -229,6 +233,29 @@ RG.Template.Level = function(tilesX, tilesY) {
         }
 
         this.expandTemplates();
+    };
+
+    /* Sort data into lists based on different directions */
+    this._sortDataIntoListsByLocation = function() {
+        const dirRegex = this.possibleDirections.map(dir => new RegExp(dir));
+        this.templates.forEach(templ => {
+            const dir = templ.getProp('dir');
+            if (dir) {
+                this.possibleDirections.forEach((direction, i) => {
+                    if (dirRegex[i].test(dir)) {
+                        this.sortedByExit[direction].push(templ);
+                    }
+                });
+
+                // Add to map including all possible exits
+                const dirSorted = dir.split('').sort().join('');
+                if (!this.sortedWithAllExits[dirSorted]) {
+                    this.sortedWithAllExits[dirSorted] = [];
+                }
+                this.sortedWithAllExits[dirSorted].push(templ);
+            }
+        });
+
     };
 
     /* Expands the templates with generator params and creates the final 2d-tile
@@ -712,6 +739,12 @@ RG.Template.Level = function(tilesX, tilesY) {
 
     this._cleanupAndTryAgain = function() {
         // Initialize a map with filler cells
+        this._initMapWithFillerCells();
+        this.freeExits = {};
+        this._unusedExits = [];
+    };
+
+    this._initMapWithFillerCells = function() {
         this.templMap = [];
         for (let x = 0; x < this.tilesX; x++) {
             this.templMap[x] = [];
@@ -719,8 +752,10 @@ RG.Template.Level = function(tilesX, tilesY) {
                 this.templMap[x][y] = this.filler;
             }
         }
-        this.freeExits = {};
-        this._unusedExits = [];
+        if (this.callbacks.afterInit) {
+            this.callbacks.afterInit(this);
+        }
+
     };
 
     /* Sets a new exit map instead of using the default 4-directional NSEW. You
