@@ -192,6 +192,7 @@ const Actors = [
     },
     {
         name: 'void elemental', base: 'ConstructBase',
+        color: {fg: 'Purple', bg: 'Black'},
         char: 'E', className: 'cell-actor-void',
         attack: 7, defense: 7, protection: 7,
         hp: 60, danger: 13, damage: '5d4',
