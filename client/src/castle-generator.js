@@ -46,11 +46,13 @@ CastleGenerator.prototype.createLevel = function(cols, rows, conf) {
 CastleGenerator.prototype.markNonCorridors = function(level, tiles) {
     const extras = {
         storeRooms: [],
-        rooms: []
+        rooms: [],
+        vaults: []
     };
     level.setExtras(extras);
 
     const reStoreRoom = /storeroom/;
+    const reVault = /vault/;
     const reNonRoom = /(corridor|corner)/;
     Object.values(tiles).forEach(tile => {
         if (reStoreRoom.test(tile.name)) {
@@ -64,6 +66,18 @@ CastleGenerator.prototype.markNonCorridors = function(level, tiles) {
             });
             const room = new Room(bbox.ulx, bbox.uly, bbox.lrx, bbox.lry);
             extras.storeRooms.push(room);
+        }
+        else if (reVault.test(tile.name)) {
+            const bbox = RG.Geometry.convertBbox(tile);
+            const cells = level.getMap().getFreeInBbox(bbox);
+            cells.forEach(cell => {
+                const [x, y] = cell.getXY();
+                const marker = new RG.Element.Marker('V');
+                marker.setTag('vault');
+                level.addElement(marker, x, y);
+            });
+            const room = new Room(bbox.ulx, bbox.uly, bbox.lrx, bbox.lry);
+            extras.vaults.push(room);
         }
         else if (!reNonRoom.test(tile.name)) {
             const bbox = RG.Geometry.convertBbox(tile);
