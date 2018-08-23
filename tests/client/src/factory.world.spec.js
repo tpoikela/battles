@@ -336,12 +336,13 @@ describe('Factory.World', function() {
 
     it('has createPresetLevels for creating all levels using factory', () => {
         const fact = new RG.Factory.World();
+        const nLevels = 5;
         const towerConf = {
             name: 'Black tower',
             nBranches: 1,
             branch: [{
                 name: 'Main branch',
-                nLevels: 5,
+                nLevels: nLevels,
                 createPresetLevels: {
                     new: 'BlackTower',
                     args: [180, 90]
@@ -357,16 +358,18 @@ describe('Factory.World', function() {
 
         const tower = fact.createDungeon(towerConf);
         const levels = tower.getLevels();
-        expect(levels).to.have.length(5);
+        expect(levels).to.have.length(nLevels);
 
         const l0 = levels[0];
-        expect(l0.getMap().cols).to.equal(180);
-        expect(l0.getMap().rows).to.equal(90);
+        expect(l0.getMap().cols, 'Cols correct').to.equal(180);
+        expect(l0.getMap().rows, 'Rows correct').to.equal(90);
 
-        l0.debugPrintInASCII();
+        // l0.debugPrintInASCII();
+
+        const l4 = levels[nLevels - 1];
+        // l4.debugPrintInASCII();
 
         // levels.map(ll => ll.getMap().debugPrintInASCII());
-        const l4 = levels[4];
         const actors = l4.getActors();
         const boss = actors.find(actor => actor.getName().match(/Thabba/));
         expect(boss, 'Boss actor was created/found').to.not.be.empty;
