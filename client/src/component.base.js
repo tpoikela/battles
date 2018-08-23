@@ -112,11 +112,15 @@ const DataComponent = (type, members, compAttrib = {}) => {
 };
 RG.Component.DataComponent = DataComponent;
 
+/* Same TagComponent, except only one per entity is preserved. Adding another
+ * will remove the existing one. */
 const UniqueTagComponent = type => {
     return TagComponent(type, {_isUnique: true});
 };
 RG.Component.UniqueTagComponent = UniqueTagComponent;
 
+/* Same DataComponent, except only one per entity is preserved. Adding another
+ * will remove the existing one. */
 const UniqueDataComponent = (type, members) => {
     return DataComponent(type, members, {_isUnique: true});
 };
@@ -134,6 +138,9 @@ const TransientDataComponent = (type, members) => {
     return DataComponent(type, members, {toJSON: NO_SERIALISATION});
 };
 RG.Component.TransientDataComponent = TransientDataComponent;
+
+// TODO UniqueTransientDataComponent
+// TODO UniqueTransientTagComponent
 
 /* Raises an error if two comp declarations with same type are created. */
 function errorIfCompDeclExists(type) {
