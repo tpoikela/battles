@@ -275,6 +275,9 @@ function getTargetFromObj(objTarget, targetTypes) {
             }
         }
     }
+    else {
+        return objTarget;
+    }
     return null;
 }
 System.Effects.getTargetFromObj = getTargetFromObj;
