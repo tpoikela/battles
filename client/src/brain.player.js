@@ -1030,6 +1030,7 @@ class BrainPlayer {
         const orderMenuArgs = [
             ['Follow me', this.giveOrder.bind(this, 'Follow')],
             ['Attack enemy', this.giveOrder.bind(this, 'Attack')],
+            ['Pickup an item', this.giveOrder.bind(this, 'Pickup')],
             ['Forget my orders', this.giveOrder.bind(this, 'Forget')]
         ];
         const orderMenuSelectOrder = new Menu.WithQuit(orderMenuArgs);
@@ -1095,6 +1096,7 @@ class BrainPlayer {
                         case 'Follow': this.giveFollowOrder(target); break;
                         case 'Forget': this.forgetOrders(target); break;
                         case 'Attack': this.giveOrderAttack(target); break;
+                        case 'Pickup': this.giveOrderPickup(target); break;
                         default: break;
                     }
                 }
@@ -1144,6 +1146,26 @@ class BrainPlayer {
         }
     }
 
+    giveOrderPickup(target) {
+        const item = this.getItemInSight();
+        const name = target.getName();
+        if (item) {
+            const itemName = item.getName();
+            const args = {bias: this.getOrderBias(), item, src: this._actor};
+            GoalsBattle.givePickupOrder(target, args);
+            RG.gameMsg(`You tell ${name} to pickup ${itemName}`);
+        }
+        else {
+            RG.gameMsg(`There are no items for ${name} to pickup`);
+        }
+    }
+
+    getOrderBias() {
+        if (this._actor.has('Leader')) {return 1.0;}
+        if (this._actor.has('Commander')) {return 1.5;}
+        return 0.7;
+    }
+
     useAbility() {
         if (this._actor.has('Abilities')) {
             const menu = this._actor.get('Abilities').createMenu();
@@ -1170,6 +1192,17 @@ class BrainPlayer {
 
     addMark(tag) {
         this._markList.addMark(tag);
+    }
+
+    /* Returns one item in sight, or null if no items are seen. */
+    getItemInSight() {
+        const seenCells = this.getVisibleCells();
+        const itemCells = seenCells.filter(cell => cell.hasItems());
+        if (itemCells.length > 0) {
+            const chosenCell = RNG.arrayGetRand(itemCells);
+            return chosenCell.getItems()[0];
+        }
+        return null;
     }
 
     toJSON() {
