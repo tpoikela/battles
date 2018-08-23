@@ -637,6 +637,13 @@ RG.Map.Generator = function() { // {{{2
         const roomCount = conf.roomCount || 40;
         level.setGenParams(genParams);
         level.setRoomCount(roomCount);
+
+        if (conf.callbacks) {
+            Object.keys(conf.callbacks).forEach(name => {
+                level.addCallback(name, conf.callbacks[name]);
+            });
+        }
+
         level.create();
 
         const createLeverMarker = (map, x, y) => {
