@@ -42,7 +42,9 @@ RG.Component.Hunger.prototype.isFull = function() {
     return this.energy === this.maxEnergy;
 };
 
-/* Health component takes care of HP and such. */
+/** @component Health
+ * Health component takes care of HP and such. */
+
 RG.Component.Health = UniqueDataComponent('Health',
     {HP: 10, maxHP: 10});
 
@@ -380,20 +382,16 @@ RG.extend2(RG.Component.Loot, RG.Component.Base);
 
 /* This component is added to entities receiving communication. Communication
  * is used to point out enemies and locations of items, for example.*/
-RG.Component.Communication = function() {
-    RG.Component.Base.call(this, 'Communication');
+RG.Component.Communication = TransientDataComponent('Communication',
+    {msg: null});
 
-    const _messages = [];
-
-    this.getMsg = () => _messages;
-
-    /* Adds one message to the communication.*/
-    this.addMsg = obj => {
-        _messages.push(obj);
-    };
-
+RG.Component.Communication.prototype._init = function() {
+    this.msg = [];
 };
-RG.extend2(RG.Component.Communication, RG.Component.Base);
+
+RG.Component.Communication.prototype.addMsg = function(obj) {
+    this.msg.push(obj);
+};
 
 /* Added to entities which can cause damage without attack such as fire. Used
  * for AI navigation purposes at the moment. */
