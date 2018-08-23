@@ -966,15 +966,41 @@ class GoalFollow extends GoalBase {
     process() {
         this.activateIfInactive();
         const brain = this.actor.getBrain();
+        const [x, y] = this.actor.getXY();
+
         if (brain.canSeeActor(this.targetActor)) {
-            const [dx, dy] = RG.dXdYUnit(this.targetActor, this.actor);
-            const newX = this.actor.getX() + dx;
-            const newY = this.actor.getY() + dy;
+            const [dxU, dyU] = RG.dXdYUnit(this.targetActor, this.actor);
+            const [dx, dy] = RG.dXdY(this.targetActor, this.actor);
+            let newX = x + dxU;
+            let newY = y + dyU;
             const level = this.targetActor.getLevel();
             const map = level.getMap();
-            if (map.isPassable(newX, newY)) {
+
+            if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1) {
+                // Goal OK, already very close
+                this.status = GOAL_ACTIVE;
+            } // Simple dXdY movement
+            else if (map.isPassable(newX, newY)) {
                 const movComp = new Component.Movement(newX, newY, level);
                 this.actor.add(movComp);
+            }
+            else { // Apply proper path finding
+                const [tX, tY] = this.targetActor.getXY();
+                const path = Path.getActorToActorPath(map, x, y, tX, tY);
+                if (path.length > 0) {
+                    [newX, newY] = [path[0].x, path[0].y];
+                    if (map.isPassable(newX, newY)) {
+                        const movComp = new Component.Movement(
+                            newX, newY, level);
+                        this.actor.add(movComp);
+                    }
+                    else {
+                        this.status = GOAL_FAILED;
+                    }
+                }
+                else { // No path to follow the actor
+                    this.status = GOAL_FAILED;
+                }
             }
         }
         else {
@@ -998,13 +1024,49 @@ class GoalGetItem extends GoalBase {
     activate() {
         // Options for getting an item are:
         //   1. Find it
-        //   2. Buy it from the shop
-        //   3. Kill enemies to get it
+        const itemId = this.targetItem.getID();
+        const brain = this.actor.getBrain();
+        const seenCells = brain.getSeenCells();
 
+        // Check if we can see the item here
+        let foundCell = null;
+        seenCells.forEach(cell => {
+            if (cell.hasItems()) {
+                const items = cell.getItems();
+                const item = items.find(i => i.getID() === itemId);
+                if (item) {
+                    foundCell = cell;
+                }
+            }
+        });
+
+        if (foundCell) {
+            const [x, y] = this.actor.getXY();
+            const [iX, iY] = foundCell.getXY();
+            // If on top of it, pick it up
+            if (x === iX && y === iY) {
+                const pickup = new RG.Component.Pickup();
+                this.actor.add(pickup);
+                this.status = GOAL_COMPLETED;
+            }
+            else { // otherwise try to move closer
+                const goal = new GoalFollowPath(this.actor, [iX, iY]);
+                this.removeAllSubGoals();
+                this.addSubGoal(goal);
+                this.status = this.processSubGoals();
+            }
+        }
+        else {
+            this.status = GOAL_FAILED;
+        }
     }
 
     process() {
         this.activateIfInactive();
+        if (this.hasSubGoals()) {
+            this.status = this.processSubGoals();
+        }
+        return this.status;
     }
 
 }
