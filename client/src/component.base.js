@@ -42,6 +42,11 @@ RG.Component.TagComponent = TagComponent;
  * (only one comp per entity of that type). There are convenience functions
  * below to define unique and non-serialisable (Transient) components. See
  * TransientTagComponent and TransientDataComponent below.
+ *
+ * Legal values for compAttrib:
+ *  - isUnique: true|false (see UniqueXXXComponent)
+ *  - toJSON: NO_SERIALISATION (see TransientXXXComponent)
+ *  - objRefs: {memberName: 'type'}, type must be 'entity'|'level'
  */
 
 const DataComponent = (type, members, compAttrib = {}) => {
@@ -78,7 +83,7 @@ const DataComponent = (type, members, compAttrib = {}) => {
     };
     RG.extend2(CompDecl, RG.Component.Base);
 
-    // Create the member functions for prototype
+    // Create the member functions (getters/setters) for prototype
     Object.keys(members).forEach(propName => {
         // Check that we are not overwriting anything in base class
         if (RG.Component.Base.prototype.hasOwnProperty(propName)) {
@@ -86,7 +91,7 @@ const DataComponent = (type, members, compAttrib = {}) => {
                 `${propName} is reserved in Component.Base`);
         }
 
-        // Create the getter method unless it exists in Base
+        // Create the setter method unless it exists in Base
         const setter = 'set' + propName.capitalize();
         if (RG.Component.Base.prototype.hasOwnProperty(setter)) {
             RG.err('component.js', `DataComponent: ${type}`,
@@ -106,6 +111,13 @@ const DataComponent = (type, members, compAttrib = {}) => {
             return this[propName];
         };
     });
+
+    // Record down the objects refs here (for serialisation)
+    if (compAttrib.objRefs) {
+        CompDecl.prototype.objRefs = Object.freeze(compAttrib.objRefs);
+    }
+
+    CompDecl.prototype.members = Object.freeze(members);
 
     RG.Component.createdCompDecls[type] = CompDecl;
     return CompDecl;
@@ -271,9 +283,7 @@ RG.Component.Base.prototype.clone = function() {
     const compType = this.getType();
     if (RG.Component.hasOwnProperty(compType)) {
         const comp = new RG.Component[compType]();
-        // const newID = comp.getID();
         comp.copy(this);
-        // comp.setID(newID);
         return comp;
     }
     else {
