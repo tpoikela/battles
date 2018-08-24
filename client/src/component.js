@@ -250,99 +250,87 @@ RG.Component.Trainer.prototype._init = function() {
     this.addCallback('onAdd', _addCb);
 };
 
+/* Missile component is added to entities such as arrows and rocks
+ * when they have been launched. */
+RG.Component.Missile = TransientDataComponent('Missile', {
+    x: null, y: null, source: null, level: null,
+    flying: true,
+    targetX: null, targetY: null,
+    range: 0, attack: 0, damage: 0, path: null
+});
 
-/* Added to entities which must act as missiles flying through cells.*/
-RG.Component.Missile = function(source) {
-    RG.Component.Base.call(this, 'Missile');
-    if (!source) {
-        RG.err('Component.Missile', 'constructor',
-            'Source must not be falsy (ie null/undef..)');
-    }
-
-    let _x = source.getX();
-    let _y = source.getY();
-    const _source = source;
-    const _level = source.getLevel();
-    let _isFlying = true;
-
-    let _targetX = null;
-    let _targetY = null;
-
-    let _range = 0;
-    let _attack = 0;
-    let _dmg = 0;
-
-    let _path = []; // Flying path for the missile
-    let _pathIter = -1;
-
-    this.getX = () => _x;
-    this.getY = () => _y;
-    this.getSource = () => _source;
-    this.getLevel = () => _level;
-
-    this.setRange = range => {_range = range;};
-    this.hasRange = () => _range > 0;
-    this.isFlying = () => _isFlying;
-    this.stopMissile = () => {_isFlying = false;};
-
-    this.getAttack = () => _attack;
-    this.setAttack = att => {_attack = att;};
-    this.getDamage = () => _dmg;
-    this.setDamage = dmg => {_dmg = dmg;};
-
-    this.setTargetXY = (x, y) => {
-        _path = RG.Geometry.getMissilePath(_x, _y, x, y);
-        _targetX = x;
-        _targetY = y;
-        if (_path.length > 0) {_pathIter = 0;}
-    };
-
-    this.getTargetX = () => _targetX;
-    this.getTargetY = () => _targetY;
-
-    /* Returns true if missile has reached its target map cell.*/
-    this.inTarget = () => _x === _targetX && _y === _targetY;
-
-    const iteratorValid = () => _pathIter >= 0 && _pathIter < _path.length;
-
-    const setValuesFromIterator = () => {
-        const coord = _path[_pathIter];
-        _x = coord[0];
-        _y = coord[1];
-    };
-
-    /* Resets the path iterator to the first x,y. */
-    this.first = () => {
-        _pathIter = 0;
-        setValuesFromIterator();
-        return [_x, _y];
-    };
-
-    /* Moves to next cell in missile's path. Returns null if path is finished.
-     * */
-    this.next = () => {
-        if (iteratorValid()) {
-            --_range;
-            ++_pathIter;
-            setValuesFromIterator();
-            return true;
-        }
-        return null;
-    };
-
-    /* Returns the prev cell in missile's path. Moves iterator backward. */
-    this.prev = () => {
-        if (iteratorValid()) {
-            ++_range;
-            --_pathIter;
-            setValuesFromIterator();
-            return true;
-        }
-        return null;
-    };
-
+RG.Component.Missile.prototype._init = function(source) {
+    this.source = source;
+    this.x = source.getX();
+    this.y = source.getY();
+    this.level = source.getLevel();
+    this.path = [];
+    this.pathIter = -1;
 };
-RG.extend2(RG.Component.Missile, RG.Component.Base);
+
+RG.Component.Missile.prototype.hasRange = function() {
+    return this.range > 0;
+};
+
+RG.Component.Missile.prototype.isFlying = function() {
+    return this.flying;
+};
+
+RG.Component.Missile.prototype.stopMissile = function() {
+    this.flying = false;
+};
+
+RG.Component.Missile.prototype.setTargetXY = function(x, y) {
+    this.path = RG.Geometry.getMissilePath(this.x, this.y, x, y);
+    this.targetX = x;
+    this.targetY = y;
+    if (this.path.length > 0) {this.pathIter = 0;}
+};
+
+/* Returns true if missile has reached its target map cell.*/
+RG.Component.Missile.prototype.inTarget = function() {
+    return this.x === this.targetX && this.y === this.targetY;
+};
+
+RG.Component.Missile.prototype.iteratorValid = function() {
+    return this.pathIter >= 0 && this.pathIter < this.path.length;
+};
+
+RG.Component.Missile.prototype.setValuesFromIterator = function() {
+    const coord = this.path[this.pathIter];
+    this.x = coord[0];
+    this.y = coord[1];
+};
+
+/* Resets the path iterator to the first x,y. */
+RG.Component.Missile.prototype.first = function() {
+    this.pathIter = 0;
+    this.setValuesFromIterator();
+    return [this.x, this.y];
+};
+
+/* Moves to next cell in missile's path. Returns null if path is finished.
+ * */
+RG.Component.Missile.prototype.next = function() {
+    if (this.iteratorValid()) {
+        --this.range;
+        ++this.pathIter;
+        this.setValuesFromIterator();
+        return true;
+    }
+    return null;
+};
+
+/* Returns the prev cell in missile's path. Moves iterator backward. */
+RG.Component.Missile.prototype.prev = function() {
+    if (this.iteratorValid()) {
+        ++this.range;
+        --this.pathIter;
+        this.setValuesFromIterator();
+        return true;
+    }
+    return null;
+};
 
 /* This component holds loot that is dropped when given entity is destroyed.*/
 RG.Component.Loot = function(lootEntity) {
