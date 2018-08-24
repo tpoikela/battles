@@ -135,7 +135,9 @@ RG.Game.FromJSON = function() {
                 const compJSON = comps[id];
                 const name = compJSON.setType;
                 if (!name) {
-                    RG.err('XXX', 'YYY', JSON.stringify(compJSON));
+                    const msg = 'No "name" in component: ';
+                    RG.err('Game.FromJSON', 'addCompsToEntity',
+                        msg + ': ' + JSON.stringify(compJSON));
 
                 }
                 const newCompObj = this.createComponent(name, compJSON);
