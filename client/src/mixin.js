@@ -160,49 +160,6 @@ RG.Mixin.Locatable = (superclass) => class extends superclass {
 
 };
 
-RG.Mixin.CombatAttr = (superclass) => class extends superclass {
-
-    constructor(args) {
-        super(args);
-        this._attack = 0;
-        this._range = 0;
-        this._defense = 0;
-        this._protection = 0;
-    }
-
-    getAttack() {return this._attack;}
-    setAttack(attack) { this._attack = attack; }
-
-    /* Defense related methods.*/
-    getDefense() { return this._defense; }
-    setDefense(defense) { this._defense = defense; }
-
-    getProtection() {return this._protection;}
-    setProtection(prot) {this._protection = prot;}
-
-    /* Attack methods. */
-    setAttackRange(range) {this._range = range;}
-    getAttackRange() {return this._range; }
-
-    copy(rhs) {
-        super.copy(rhs);
-        this._attack = rhs._attack;
-        this._range = rhs._range;
-        this._defense = rhs._defense;
-        this._protection = rhs._protection;
-    }
-
-    toJSON() {
-        const obj = super.toJSON();
-        obj.setAttack = this._attack;
-        obj.setAttackRange = this._range;
-        obj.setDefense = this._defense;
-        obj.setProtection = this._protection;
-        return obj;
-    }
-
-};
-
 /* Mixin for objects requiring a damage roll. */
 RG.Mixin.DamageRoll = (superclass) => class extends superclass {
 
