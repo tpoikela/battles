@@ -123,12 +123,6 @@ RG.Mixin.Locatable = (superclass) => class extends superclass {
         return this._level.getMap().getCell(this._x, this._y);
     }
 
-    removePosition() {
-        this._x = null;
-        this._y = null;
-        this._level = null;
-    }
-
     /* Sets the level of this locatable object.*/
     setLevel(level) {
         this._level = level;
