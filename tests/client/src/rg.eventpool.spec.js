@@ -44,6 +44,10 @@ describe('How events bubble in the system', () => {
 
     });
 
+    it('can indicate number of listeners', () => {
+        expect(pool.getNumListeners()).to.equal(1);
+    });
+
     it('Sends notification to listener', () => {
         const empty = {};
 
@@ -86,7 +90,10 @@ describe('How events bubble in the system', () => {
             pool.listenEvent(listener.eventName, listener);
         }
 
+        const numListeners = pool.getNumListeners();
         pool.removeListener(listener);
+        expect(pool.getNumListeners()).to.equal(numListeners - 1);
+
         expect(listener.notified).to.equal(false);
         emitter.emit('ActualEvent', {data: 'abcd'});
         expect(listener.notified).to.equal(false);
@@ -97,6 +104,8 @@ describe('How events bubble in the system', () => {
             pool.removeListener(listener);
             listener.clearNotify();
         });
+
+        expect(pool.getNumListeners()).to.equal(0);
 
         emitter.emit('ActualEvent', {data: 'abcd'});
         listeners.forEach(listener => {
