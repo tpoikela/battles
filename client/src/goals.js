@@ -137,7 +137,6 @@ class GoalBase {
                     this.subGoals[0] = subGoal.getPlanB();
                     // Need to change the type to prevent evaluation changing
                     this.subGoals[0].setType(subGoal.getType());
-                    console.log('Set plan B goal type to ' + subGoal.getType());
                     status = GOAL_ACTIVE;
                 }
                 // Else keep the sub-process status
