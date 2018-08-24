@@ -99,7 +99,6 @@ RG.Component.Experience = UniqueDataComponent('Experience',
 RG.Component.ExpPoints = TransientDataComponent('ExpPoints',
     {expPoints: null, skillPoints: null}
 );
-RG.extend2(RG.Component.ExpPoints, RG.Component.Base);
 
 RG.Component.ExpPoints.prototype._init = function(expPoints) {
     this.expPoints = expPoints;
@@ -149,7 +148,7 @@ RG.Component.Combat.prototype.toJSON = function() {
 
 /* Modifiers for the Combat component.*/
 RG.Component.CombatMods = DataComponent('CombatMods', {
-    attack: 0, defense: 0, protection: 0, attackRange: 1, damage: 0,
+    attack: 0, defense: 0, protection: 0, attackRange: 0, damage: 0,
     tag: ''
 });
 
@@ -201,22 +200,11 @@ RG.Component.Stats.prototype.equals = function(rhs) {
 };
 
 /* Stats modifier component. */
-RG.Component.StatsMods = function() {
-    RG.Component.Stats.call(this);
-    this._isUnique = false;
-    this.setType('StatsMods');
-    this._tag = '';
-    this.clearValues();
-};
-RG.extend2(RG.Component.StatsMods, RG.Component.Stats);
-
-RG.Component.StatsMods.prototype.setTag = function(tag) {
-    this._tag = tag;
-};
-
-RG.Component.StatsMods.prototype.getTag = function() {
-    return this._tag;
-};
+RG.Component.StatsMods = DataComponent('StatsMods', {
+    accuracy: 0, agility: 0, strength: 0,
+    willpower: 0, perception: 0, magic: 0, speed: 0,
+    tag: ''
+});
 
 RG.Component.Perception = UniqueDataComponent('Perception',
     {FOVRange: RG.NPC_FOV_RANGE});
@@ -226,33 +214,42 @@ RG.Component.Perception = UniqueDataComponent('Perception',
 RG.Component.Attack = TransientDataComponent('Attack', {target: null});
 
 /* Transient component added to a moving entity.*/
-class RGComponentMovement extends Mixin.Locatable(RG.Component.Base) {
-    constructor(x, y, level) {
-        super('Movement');
-        this.setXY(x, y);
-        this.setLevel(level);
-    }
-}
-RG.extend2(RGComponentMovement, RG.Component.Base);
-RG.Component.Movement = RGComponentMovement;
+RG.Component.Movement = TransientDataComponent('Movement', {
+    x: 0, y: 0, level: null
+});
+
+RG.Component.Movement.prototype.setXY = function(x, y) {
+    this.x = x;
+    this.y = y;
+};
+
+RG.Component.Movement.prototype.getXY = function() {
+    return [this.x, this.y];
+};
+
+RG.Component.Movement.prototype._init = function(x, y, level) {
+    this.x = x;
+    this.y = y;
+    this.level = level;
+};
 
 /* Transient component representing a chat action between actors. */
 RG.Component.Chat = TransientDataComponent('Chat', {args: null});
 
-/* Transient component representing a chat action between actors. */
-RG.Component.Trainer = function() {
-    RG.Component.Base.call(this, 'Trainer');
+/* Data component added to trainer actors. */
+RG.Component.Trainer = UniqueDataComponent('Trainer', {
+    chatObj: null
+});
 
-    const _chatObj = new RG.Chat.Trainer();
-    this.getChatObj = () => _chatObj;
+RG.Component.Trainer.prototype._init = function() {
+    this.chatObj = new RG.Chat.Trainer();
 
     const _addCb = () => {
-      _chatObj.setTrainer(this.getEntity());
+      this.chatObj.setTrainer(this.getEntity());
     };
-
     this.addCallback('onAdd', _addCb);
 };
-RG.extend2(RG.Component.Trainer, RG.Component.Base);
+
 
 /* Added to entities which must act as missiles flying through cells.*/
 RG.Component.Missile = function(source) {
