@@ -470,6 +470,22 @@ describe('It contains all game content info', () => {
             }
         });
     });
+
+    it('can create all possible items', () => {
+        const {items} = RGObjects;
+        Object.values(items).forEach(shell => {
+            if (!shell.dontCreate && shell.name) {
+                try {
+                    const itemObj = parser.createItem(shell.name);
+                    expect(itemObj).to.not.be.empty;
+                }
+                catch (e) {
+                    const msg = e.message + ' ' + JSON.stringify(shell);
+                    throw new Error(msg);
+                }
+            }
+        });
+    });
 });
 
 // Nested describe
