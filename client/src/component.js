@@ -148,22 +148,10 @@ RG.Component.Combat.prototype.toJSON = function() {
 };
 
 /* Modifiers for the Combat component.*/
-class CombatMods extends Mixin.CombatAttr(RG.Component.Base) {
-
-    constructor() {
-        super('CombatMods');
-        this._damage = 0;
-        this._tag = '';
-    }
-
-    setDamage(dmg) {this._damage = dmg;}
-    getDamage() {return this._damage;}
-
-    setTag(tag) {this._tag = tag;}
-    getTag() {return this._tag;}
-
-}
-RG.Component.CombatMods = CombatMods;
+RG.Component.CombatMods = DataComponent('CombatMods', {
+    attack: 0, defense: 0, protection: 0, attackRange: 1, damage: 0,
+    tag: ''
+});
 
 /* This component stores entity stats like speed, agility etc.*/
 RG.Component.Stats = UniqueDataComponent('Stats', {
