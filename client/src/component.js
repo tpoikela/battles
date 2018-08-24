@@ -42,9 +42,8 @@ RG.Component.Hunger.prototype.isFull = function() {
     return this.energy === this.maxEnergy;
 };
 
-/** @component Health
+/**
  * Health component takes care of HP and such. */
-
 RG.Component.Health = UniqueDataComponent('Health',
     {HP: 10, maxHP: 10});
 
@@ -70,9 +69,13 @@ RG.Component.Health.prototype._init = function(hp) {
     this.maxHP = hp;
 };
 
+/* Tag component to mark Dead actors (different from Undead) */
 RG.Component.Dead = UniqueTagComponent('Dead');
+
+/* Tag component for entities with physical body. */
 RG.Component.Corporeal = UniqueTagComponent('Corporeal');
 
+/* Component used to pass damage information between systems. */
 RG.Component.Damage = TransientDataComponent('Damage', {
     damage: 0, source: null, weapon: null, damageType: '', damageCateg: ''
 });
@@ -82,6 +85,7 @@ RG.Component.Damage.prototype._init = function(dmg, type) {
     this.damageType = type;
 };
 
+/* Component to tag entities that block light from passing through. */
 RG.Component.Opaque = UniqueTagComponent('Opaque');
 
 /* Component used in entities gaining experience.*/
@@ -90,23 +94,23 @@ RG.Component.Experience = UniqueDataComponent('Experience',
 
 /* This component is added when entity gains experience. It is removed after
 * system evaluation and added to Experience component. */
-RG.Component.ExpPoints = function(expPoints) {
-    RG.Component.Base.call(this, 'ExpPoints');
-
-    let _expPoints = expPoints;
-    const _skills = {};
-
-    this.setSkillPoints = (skill, pts) => {
-        _skills[skill] = pts;
-    };
-    this.getSkillPoints = () => _skills;
-
-    this.setExpPoints = exp => {_expPoints = exp;};
-    this.getExpPoints = () => _expPoints;
-    this.addExpPoints = exp => { _expPoints += exp;};
-
-};
+RG.Component.ExpPoints = TransientDataComponent('ExpPoints',
+    {expPoints: null, skillPoints: null}
+);
 RG.extend2(RG.Component.ExpPoints, RG.Component.Base);
+
+RG.Component.ExpPoints.prototype._init = function(expPoints) {
+    this.expPoints = expPoints;
+    this.skills = {};
+};
+
+RG.Component.ExpPoints.prototype.addSkillPoints = function(skill, pts) {
+    this.skills[skill] = pts;
+};
+
+RG.Component.ExpPoints.prototype.addExpPoints = function(exp) {
+    this.expPoints += exp;
+};
 
 /* This component is used with entities performing any kind of combat.*/
 class Combat extends Mixin.CombatAttr(Mixin.DamageRoll(RG.Component.Base)) {
