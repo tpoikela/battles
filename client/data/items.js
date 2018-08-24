@@ -1,5 +1,6 @@
 
 const RG = require('../src/rg');
+const Colors = require('./colors');
 
 const scaleAll = 1.0;
 
@@ -150,6 +151,13 @@ const Items = [
         damage: '2d6 + 2', attack: 2, defense: 1,
         weaponType: 'axe',
         weight: 2.5, value: value(85)
+    },
+    {
+        name: 'Dwarven pick-axe', base: 'MeleeWeaponBase',
+        damage: '1d12', attack: 2, defense: 2,
+        color: Colors.dwarven,
+        weaponType: 'axe',
+        weight: 3.5, value: value(120), use: 'digger'
     },
     {
         name: 'Great battle axe', base: 'MeleeWeaponBase',
