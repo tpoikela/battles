@@ -16,6 +16,8 @@ const TransientTagComponent = RG.Component.TransientTagComponent;
 const TagComponent = RG.Component.TagComponent;
 const UniqueTagComponent = RG.Component.UniqueTagComponent;
 
+const BaseProto = RG.Component.Base.prototype;
+
 /* Component which takes care of hunger and satiation. */
 RG.Component.Hunger = UniqueDataComponent('Hunger',
     {energy: 20000, maxEnergy: 20000, minEnergy: -5000});
@@ -112,20 +114,38 @@ RG.Component.ExpPoints.prototype.addExpPoints = function(exp) {
     this.expPoints += exp;
 };
 
-/* This component is used with entities performing any kind of combat.*/
-class Combat extends Mixin.CombatAttr(Mixin.DamageRoll(RG.Component.Base)) {
+/* Combat component holds all combat-related information for actors. */
+RG.Component.Combat = UniqueDataComponent('Combat', {
+    attack: 1, defense: 1, protection: 0, attackRange: 1, damageDie: null
+});
 
-    constructor() {
-        super('Combat');
-        this._isUnique = true;
-        this._attack = 1;
-        this._defense = 1;
-        this._protection = 0;
-        this._range = 1;
+RG.Component.Combat.prototype._init = function() {
+    this.damageDie = RG.FACT.createDie('1d4');
+};
+
+RG.Component.Combat.prototype.rollDamage = function() {
+    return this.damageDie.roll();
+};
+
+RG.Component.Combat.prototype.setDamageDie = function(strOrDie) {
+    if (typeof strOrDie === 'string') {
+        this.damageDie = RG.FACT.createDie(strOrDie);
     }
+    else {
+        this.damageDie = strOrDie;
+    }
+};
 
-}
-RG.Component.Combat = Combat;
+RG.Component.Combat.prototype.copy = function(rhs) {
+    BaseProto.copy.call(this, rhs);
+    this.damageDie = rhs.getDamageDie().clone();
+};
+
+RG.Component.Combat.prototype.toJSON = function() {
+    const obj = BaseProto.toJSON.call(this);
+    obj.setDamageDie = this.damageDie.toString();
+    return obj;
+};
 
 /* Modifiers for the Combat component.*/
 class CombatMods extends Mixin.CombatAttr(RG.Component.Base) {
