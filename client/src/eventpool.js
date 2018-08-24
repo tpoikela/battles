@@ -26,12 +26,9 @@ EventPool.prototype.emitEvent = function(evtName, args) {
     if (!RG.isNullOrUndef([evtName])) {
         if (this._listeners.hasOwnProperty(evtName)) {
             const called = this._listeners[evtName];
-            for (let i = 0; i < called.length; i++) {
+            for (let i = 0, len = called.length; i < len; i++) {
                 called[i].notify(evtName, args);
             }
-        }
-        else {
-            ++this._nListeners;
         }
     }
     else {
@@ -54,6 +51,7 @@ EventPool.prototype.listenEvent = function(evtName, obj) {
                 this._listeners[evtName] = [];
                 this._listeners[evtName].push(obj);
             }
+            ++this._nListeners;
             if (!obj.hasOwnProperty('listenerID')) {
                 obj.listenerID = this._listenerID++;
             }
@@ -81,6 +79,7 @@ EventPool.prototype.removeListener = function(obj) {
             if (index >= 0) {
                 this._listeners[evt].splice(index, 1);
                 ++nRemoved;
+                --this._nListeners;
             }
         });
         if (nRemoved === 0) {
