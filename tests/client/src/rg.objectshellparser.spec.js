@@ -454,8 +454,25 @@ describe('It contains all game content info', () => {
         const bossObj = parser.createActor('Unique boss');
         expect(bossObj.getName()).to.equal('Unique boss');
     });
+
+    it('can create all possible actors', () => {
+        const {actors} = RGObjects;
+        Object.values(actors).forEach(shell => {
+            if (!shell.dontCreate && shell.name) {
+                try {
+                    const actorObj = parser.createActor(shell.name);
+                    expect(actorObj).to.not.be.empty;
+                }
+                catch (e) {
+                    const msg = e.message + ' ' + JSON.stringify(shell);
+                    throw new Error(msg);
+                }
+            }
+        });
+    });
 });
 
+// Nested describe
 describe('Data query functions for objects', function() {
 
     let parser = null;
@@ -653,7 +670,6 @@ describe('Data query functions for objects', function() {
     });
 });
 
-describe('ObjectShell.Parser error handling', () => {
     it('It should detect invalid object shells', () => {
         const parser = new Parser();
         RG.suppressErrorMessages = true;
@@ -664,6 +680,5 @@ describe('ObjectShell.Parser error handling', () => {
         const invalidShell = {xxx: 'xxx', noname: 'noname'};
         expect(parser.validShellGiven(invalidShell)).to.be.false;
     });
-});
 
 }); // describe ObjectShell.Parser
