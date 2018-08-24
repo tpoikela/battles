@@ -17,6 +17,18 @@ describe('Rogue.Actor', () => {
 
     });
 
+    it('Acts like Locatable', () => {
+        const actor = new Actor.Rogue(true);
+        actor.setXY(2, 10);
+        expect(actor.getX()).to.equal(2);
+        expect(actor.getY()).to.equal(10);
+
+        expect(actor.getXY()).to.deep.equal([2, 10]);
+
+        expect(actor.isAtXY(2, 10)).to.equal(true);
+        expect(actor.isAtXY(5, 11)).to.equal(false);
+    });
+
     it('can be a player actor', () => {
         const actor = new Actor.Rogue('player hero');
         actor.setIsPlayer(true);
