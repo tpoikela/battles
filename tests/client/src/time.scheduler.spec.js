@@ -8,17 +8,9 @@ const RG = require('../../../client/src/battles');
 const Actor = RG.Actor.Rogue;
 const Action = RG.Time.Action;
 
-describe('Basic functions for actors', () => {
-    it('Acts like Locatable', () => {
-        const actor = new Actor(true);
-        actor.setXY(2, 10);
-        expect(actor.getX()).to.equal(2);
-        expect(actor.getY()).to.equal(10);
-    });
-});
+describe('Time.Scheduler', () => {
 
-describe('Scheduling one action', () => {
-    it('Repeats the same actor indefinetely', () => {
+    it('Repeats the same actor indefinitely', () => {
         const sch = new RG.Time.Scheduler();
         const actor = new Actor('actor');
         let actorID = actor.id;
@@ -74,22 +66,11 @@ describe('Scheduling one action', () => {
         expect(sch.remove(falseActor)).to.equal(false);
 
     });
-});
-
-const emptyTestCB = () => {};
-
-const MockAction = function(dur) {
-    let _dur = dur;
-
-    this.setDuration = dur => {_dur = dur;};
-    this.getDuration = () => _dur;
-};
-
-describe('Canceling events and actor actions', () => {
-    const sch = new RG.Time.Scheduler();
-    const act = new MockAction(100);
 
     it('Removes the event like it never happened', () => {
+        const sch = new RG.Time.Scheduler();
+        const act = new MockAction(100);
+
         const testActor = new RG.Actor.Rogue('actor');
         // const notZero = 555;
         const changeEvent = new RG.Time.OneShotEvent(emptyTestCB, 200,
@@ -122,3 +103,13 @@ describe('Canceling events and actor actions', () => {
         sch.setAction(act);
     });
 });
+
+const emptyTestCB = () => {};
+
+const MockAction = function(dur) {
+    let _dur = dur;
+
+    this.setDuration = dur => {_dur = dur;};
+    this.getDuration = () => _dur;
+};
+
