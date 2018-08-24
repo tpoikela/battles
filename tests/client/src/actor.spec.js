@@ -101,7 +101,7 @@ describe('Rogue.Actor', () => {
 
         const attack = mob.getAttack();
         combatMods.setAttack(5);
-        mob.add('CombatMods', combatMods);
+        mob.add(combatMods);
         const newAttack = mob.getAttack();
         expect(newAttack).to.equal(attack + 5);
 
