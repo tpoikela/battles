@@ -537,6 +537,12 @@ const Actors = [
         equip: ['Permaice short sword']
     },
     {
+        name: 'Ice archon', type: 'demon', char: 'A',
+        attack: 6, defense: 6, protection: 3, damage: '4d3', range: 1,
+        hp: 40, danger: 12, base: 'WinterBeingBase', brain: 'SpellCaster',
+        pp: 30, maxPP: 30, spells: ['RingOfFrost']
+    },
+    {
         name: 'Ice djinn', type: 'demon', char: '&',
         attack: 7, defense: 6, protection: 6, damage: '3d5+5', range: 1,
         hp: 45, danger: 14, brain: demonBrain, base: 'WinterBeingBase'
@@ -588,21 +594,33 @@ const Actors = [
         equip: ['Battle axe', 'Chain armour']
     },
     {
+        name: 'dwarven hammerer', base: 'dwarf',
+        attack: 4, defense: 6, damage: '1d10',
+        range: 1, hp: 45, danger: 6,
+        equip: ['Dwarven pick-axe', 'Leather armour']
+    },
+    {
+        name: 'dwarven bolter', base: 'dwarf',
+        attack: 7, defense: 3, damage: '1d8',
+        range: 1, hp: 40, danger: 7, fovrange: 7,
+        equip: ['Steel crossbow', {name: 'Steel bolt', count: 7}]
+    },
+    {
         name: 'dwarven rifleman', base: 'dwarf',
         attack: 4, defense: 4, damage: '1d8',
-        range: 1, hp: 40, danger: 7,
+        range: 1, hp: 40, danger: 8, fovrange: 7,
         equip: ['Rifle', {name: 'Steel bullet', count: 10}]
     },
     {
         name: 'dwarven elite', base: 'dwarf',
         attack: 5, defense: 6, damage: '2d5',
-        range: 1, hp: 50, danger: 8,
+        range: 1, hp: 50, danger: 9,
         equip: ['Battle axe', 'Steel armour']
     },
     {
         name: 'dwarven commander', base: 'dwarf',
         attack: 8, defense: 8, damage: '2d5',
-        range: 1, hp: 60, danger: 9,
+        range: 1, hp: 60, danger: 10,
         equip: ['Great battle axe', 'Steel armour']
     },
     // HUMANS
