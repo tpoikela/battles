@@ -32,33 +32,34 @@ describe('Actor Goal', () => {
         actor.addEnemy(enemy);
         enemy.addEnemy(actor);
         const startHP = enemy.get('Health').getHP();
-        /* const level = */ RGTest.wrapIntoLevel([actor, enemy]);
+        /* const level =*/ RGTest.wrapIntoLevel([actor, enemy]);
         RGTest.moveEntityTo(actor, 5, 5);
-        RGTest.moveEntityTo(actor, 17, 17);
+        RGTest.moveEntityTo(enemy, 17, 17);
 
         enemy.get('Combat').setDefense(0);
         enemy.get('Stats').setAgility(1);
 
         let [x, y] = actor.getXY();
-        const [oX, oY] = [x, y];
+        const [origX, origY] = [x, y];
         let action;
         for (let i = 0; i < 5; i++) {
-            [x, y] = actor.getXY();
+            // [x, y] = actor.getXY();
             action = actor.nextAction();
             action.doAction();
             systems.forEach(sys => {sys.update();});
         }
 
-        const [nX, nY] = actor.getXY();
-
-        const coordSame = oX === nX && oY === nY;
-        expect(coordSame).not.to.equal(true);
+        const [newX, newY] = actor.getXY();
+        const coordSame = origX === newX && origY === newY;
+        expect(coordSame, 'Not same coord').to.equal(false);
 
         RGTest.moveEntityTo(actor, 2, 2);
         RGTest.moveEntityTo(enemy, 5, 5);
 
         // const catcher = new RGTest.MsgCatcher();
-        RGTest.updateGame(actor, systems, 10);
+        RGTest.updateGame(actor, systems, 10, () => {
+            // level.debugPrintInASCII();
+        });
         // RGTest.printScreen(actor);
         // RGTest.printLevel(level);
         const endHP = enemy.get('Health').getHP();
