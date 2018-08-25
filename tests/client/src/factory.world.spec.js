@@ -360,11 +360,23 @@ describe('Factory.World', function() {
         const levels = tower.getLevels();
         expect(levels).to.have.length(nLevels);
 
-        const l0 = levels[0];
-        expect(l0.getMap().cols, 'Cols correct').to.equal(180);
-        expect(l0.getMap().rows, 'Rows correct').to.equal(90);
+        levels.forEach((zoneLevel, i) => {
+            console.log(zoneLevel);
+            const conn = fact.createDungeonZoneConnect(tower, zoneLevel);
+            if (i === 0) {
+                expect(conn).to.have.property('length');
+            }
+        });
 
-        // l0.debugPrintInASCII();
+
+        const l0 = levels[0];
+        const l1 = levels[1];
+        expect(l0.getMap().cols, 'L0 Cols correct').to.be.above(180);
+        expect(l0.getMap().rows, 'L0 Rows correct').to.be.above(90);
+        expect(l1.getMap().cols, 'L1 Cols correct').to.be.equal(180);
+        expect(l1.getMap().rows, 'L1 Rows correct').to.be.equal(90);
+
+        l0.debugPrintInASCII();
 
         const l4 = levels[nLevels - 1];
         // l4.debugPrintInASCII();
