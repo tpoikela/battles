@@ -1089,9 +1089,14 @@ RG.Factory.World = function() {
         return battleZone;
     };
 
-    /* Creates a connection between an area and a zone such as city, mountain
+    /** Creates a connection between an area and a zone such as city, mountain
      * or dungeon. Unless configured, connects the zone entrance to a random
-     * location in the area. */
+     * location in the area.
+     * @param {World.Area} area - Area where zone is located in
+     * @param {World.Zone} zone - Zone which is connected to area
+     * @param {object} conf - Config for the zone
+     * @return {void}
+     * */
     this.createAreaZoneConnection = (area, zone, conf) => {
         _verif.verifyConf('createAreaZoneConnection', conf, ['x', 'y']);
         this.debug('Creating area-zone connections');
@@ -1313,9 +1318,13 @@ RG.Factory.World = function() {
         let sX = 0;
         let sY = 0;
         if (zoneLevel.hasExtras()) {
+            console.log('Level has extras: ' + JSON.stringify(extras));
             const extras = zoneLevel.getExtras();
             if (extras.startPoint) {
                 [sX, sY] = extras.startPoint;
+            }
+            else if (extras.connectEdges) {
+                return this.createCityZoneConnect(zone, zoneLevel);
             }
         }
         else {
