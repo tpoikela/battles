@@ -443,12 +443,14 @@ Level.prototype.getExploredCells = function() {
 };
 
 /* Can be used to add additional data to the level. Currently, this is used in
- * level generation only. */
+ * level generation only, and extras are not serialized/stored persistently.
+ * */
 Level.prototype.setExtras = function(extras) {
     this._extras = extras;
 };
 
 Level.prototype.getExtras = function() {
+    if (!this._extras) {this._extras = {};}
     return this._extras;
 };
 
