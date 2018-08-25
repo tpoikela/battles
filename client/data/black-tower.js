@@ -5,6 +5,7 @@ const RG = require('../src/rg');
 const CastleGenerator = require('../src/castle-generator');
 RG.Factory = require('../src/factory');
 const Vault = require('./tiles.vault');
+const Geometry = require('../src/geometry');
 
 const tileSize = 9;
 
@@ -73,6 +74,8 @@ export default class BlackTower {
             castleGen.populateStoreRooms(level, populConf);
         });
 
+        this.generateYard(levels);
+
         return levels.map((level, i) => ({nLevel: i, level}));
     }
 
@@ -111,6 +114,24 @@ export default class BlackTower {
                 }
             });
         });
+    }
+
+    /* Generate the outside yard for the first level. */
+    generateYard(levels) {
+        const level0 = levels[0];
+        const scaleYard = 1.4;
+
+        const [cols, rows] = level0.getColsRows();
+        const yardRows = Math.round(rows * scaleYard);
+        const yardCols = Math.round(cols * scaleYard);
+        const yardLevel = RG.FACT.createLevel('arctic', yardCols, yardRows);
+
+        const startX = Math.round((yardCols - cols) / 2);
+        const startY = Math.round((yardRows - rows) / 2);
+        Geometry.mergeLevels(yardLevel, level0, startX, startY);
+        yardLevel.getExtras().connectEdges = true;
+
+        levels[0] = yardLevel;
     }
 
 }
