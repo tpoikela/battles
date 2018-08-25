@@ -355,7 +355,8 @@ RG.Geometry = {
         this.mergeLevels(l1, l2, startX, startY);
     },
 
-    /* Does a full Map.Level merge. Actors, items and elements included. */
+    /* Does a full Map.Level merge from l2 to l1.
+    * Actors, items and elements included. l1 will be the merged level. */
     mergeLevels: function(l1, l2, startX, startY) {
         const m1 = l1.getMap();
         const m2 = l2.getMap();
