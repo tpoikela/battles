@@ -337,17 +337,17 @@ RG.Component.Loot = function(lootEntity) {
     RG.Component.Base.call(this, 'Loot');
 
     // This will be dropped as loot
-    let _lootEntity = lootEntity;
+    this._lootEntity = lootEntity;
 
     /* Drops the loot to the given cell.*/
     this.dropLoot = function(cell) {
-        if (_lootEntity.hasOwnProperty('_propType')) {
-            const propType = _lootEntity.getPropType();
+        if (this._lootEntity.hasOwnProperty('_propType')) {
+            const propType = this._lootEntity.getPropType();
             if (propType === 'elements') {
                 this.setElemToCell(cell);
             }
             else {
-                cell.setProp(propType, _lootEntity);
+                cell.setProp(propType, this._lootEntity);
             }
         }
         else {
@@ -357,20 +357,20 @@ RG.Component.Loot = function(lootEntity) {
 
     this.setElemToCell = function(cell) {
         const entLevel = this.getEntity().getLevel();
-        if (_lootEntity.hasOwnProperty('useStairs')) {
+        if (this._lootEntity.hasOwnProperty('useStairs')) {
             RG.debug(this, 'Added stairs to ' + cell.getX()
                 + ', ' + cell.getY());
-            entLevel.addStairs(_lootEntity, cell.getX(), cell.getY());
+            entLevel.addStairs(this._lootEntity, cell.getX(), cell.getY());
         }
     };
 
     this.setLootEntity = function(lootEntity) {
-        _lootEntity = lootEntity;
+        this._lootEntity = lootEntity;
     };
 
     this.toJSON = function() {
         const json = RG.Component.Base.toJSON.call(this);
-        json.setLootEntity = _lootEntity.toJSON();
+        json.setLootEntity = this._lootEntity.toJSON();
         return json;
     };
 
@@ -815,6 +815,7 @@ RG.extend2(RG.Component.SpellSelf, RG.Component.SpellBase);
 
 /* Added to actors which stop spells from passing through. */
 RG.Component.SpellStop = UniqueTagComponent('SpellStop');
+
 //--------------------------------------------
 // Adventurer components
 //--------------------------------------------
