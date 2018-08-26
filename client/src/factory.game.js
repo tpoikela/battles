@@ -37,6 +37,7 @@ RG.Factory.Game = function() {
     this._verif = new RG.Verify.Conf('Factory.Game');
     this._parser = RG.ObjectShell.getParser();
     this.presetLevels = {};
+    this.callbacks = {};
 
     /* Creates a player actor and starting inventory unless a game has been
      * restored. */
@@ -218,39 +219,39 @@ RG.Factory.Game = function() {
     }; // const DemonKillListener
 
     /* Creates the game based on the selection. */
-    this.createNewGame = function(obj) {
-        this._verif.verifyConf('createNewGame', obj,
+    this.createNewGame = function(conf) {
+        this._verif.verifyConf('createNewGame', conf,
             ['sqrPerItem', 'sqrPerActor', 'playMode']);
 
         const game = new RG.Game.Main();
-        if (Number.isInteger(obj.seed)) {
-            console.log('GOT obj.seed as ' + obj.seed);
-            const rng = new RG.Random(obj.seed);
+        if (Number.isInteger(conf.seed)) {
+            console.log('GOT conf.seed as ' + conf.seed);
+            const rng = new RG.Random(conf.seed);
             game.setRNG(rng);
         }
-        const player = this.createPlayerUnlessLoaded(obj);
+        const player = this.createPlayerUnlessLoaded(conf);
         this.createPlayerRegenEvents(game, player);
 
-        if (obj.playMode === 'Arena') {
-            return this.createArenaDebugGame(obj, game, player);
+        if (conf.playMode === 'Arena') {
+            return this.createArenaDebugGame(conf, game, player);
         }
-        else if (obj.playMode === 'Battle') {
-            return this.createDebugBattle(obj, game, player);
+        else if (conf.playMode === 'Battle') {
+            return this.createDebugBattle(conf, game, player);
         }
-        else if (obj.playMode === 'Creator') {
-            return this.createWorldWithCreator(obj, game, player);
+        else if (conf.playMode === 'Creator') {
+            return this.createWorldWithCreator(conf, game, player);
         }
-        else if (obj.playMode === 'World') {
-            return this.createFullWorld(obj, game, player);
+        else if (conf.playMode === 'World') {
+            return this.createFullWorld(conf, game, player);
         }
-        else if (obj.playMode === 'OverWorld') {
-            return this.createOverWorld(obj, game, player);
+        else if (conf.playMode === 'OverWorld') {
+            return this.createOverWorld(conf, game, player);
         }
-        else if (obj.playMode === 'Dungeon') {
-            return this.createOneDungeonAndBoss(obj, game, player);
+        else if (conf.playMode === 'Dungeon') {
+            return this.createOneDungeonAndBoss(conf, game, player);
         }
         else { // Empty game for doing whatever
-            return this.createEmptyGame(obj, game, player);
+            return this.createEmptyGame(conf, game, player);
         }
     };
 
@@ -274,6 +275,10 @@ RG.Factory.Game = function() {
         return game;
     };
 
+    this.setCallback = function(name, cb) {
+        this.callbacks[name] = cb;
+    };
+
     this.createOverWorld = function(obj, game, player) {
         const mult = 1;
         const xMult = obj.xMult || 1;
@@ -295,32 +300,32 @@ RG.Factory.Game = function() {
             nTilesY: yMult * mult * 4
         };
 
-        this.progress(obj, 'Creating Overworld Tile Map...');
+        this.progress('Creating Overworld Tile Map...');
         const overworld = OW.createOverWorld(owConf);
-        this.progress(obj, 'DONE');
+        this.progress('DONE');
 
-        this.progress(obj, 'Creating Overworld Level Map...');
+        this.progress('Creating Overworld Level Map...');
         const worldAndConf = RG.OverWorld.createOverWorldLevel(
           overworld, owConf);
         const worldLevel = worldAndConf[0];
-        this.progress(obj, 'DONE');
+        this.progress('DONE');
 
-        this.progress(obj, 'Splitting Overworld Level Map into AreaTiles...');
+        this.progress('Splitting Overworld Level Map into AreaTiles...');
         RG.Map.Level.idCount = 0;
         const splitLevels = RG.Geometry.splitLevel(worldLevel, owConf);
         const midX = Math.floor(owConf.nLevelsX / 2);
-        this.progress(obj, 'DONE');
+        this.progress('DONE');
 
         const playerX = midX;
         const playerY = owConf.nLevelsY - 1;
 
 
-        this.progress(obj, 'Creating and connectting World.Area tiles...');
+        this.progress('Creating and connectting World.Area tiles...');
         RG.Map.Level.idCount = 1000;
         const worldArea = new RG.World.Area('Ravendark', owConf.nLevelsX,
             owConf.nLevelsY, 100, 100, splitLevels);
         worldArea.connectTiles();
-        this.progress(obj, 'DONE');
+        this.progress('DONE');
 
         const fact = new RG.Factory.World();
         fact.setGlobalConf(obj);
@@ -329,15 +334,15 @@ RG.Factory.Game = function() {
 
         const worldConf = worldAndConf[1];
         worldConf.createAllZones = false;
-        this.progress(obj, 'Creating places and local zones...');
+        this.progress('Creating places and local zones...');
         const world = fact.createWorld(worldConf);
         game.addPlace(world);
         overworld.clearSubLevels();
         game.setOverWorld(overworld);
         game.setEnableChunkUnload(true);
-        this.progress(obj, 'DONE');
+        this.progress('DONE');
 
-        this.progress(obj, 'Adding player to the game...');
+        this.progress('Adding player to the game...');
         const playerLevel = splitLevels[playerX][playerY];
         // playerLevel.addActorToFreeCell(player);
         this.placePlayer(player, playerLevel);
@@ -346,21 +351,21 @@ RG.Factory.Game = function() {
 
         player.setFOVRange(RG.PLAYER_FOV_RANGE);
         game.addPlayer(player); // Player already placed to level
-        this.progress(obj, 'DONE');
+        this.progress('DONE');
         // RG.Verify.verifyStairsConnections(game, 'Factory.Game');
-        // this.progress(obj, 'Stairs connections verified');
+        // this.progress('Stairs connections verified');
         return game;
     };
 
-    this.progress = function(obj, msg) {
+    this.progress = function(msg) {
         const timeNow = new Date().getTime();
         let durSec = 0;
         if (this.timePrev) {
             durSec = (timeNow - this.timePrev) / 1000;
         }
         this.timePrev = timeNow;
-        if (obj.progressCallback) {
-            obj.progressCallback(msg);
+        if (this.callbacks.progress) {
+            this.callbacks.progress(msg);
         }
         if (msg === 'DONE') {
             console.log(`${this.prevMsg} - Time: ${durSec} sec`);
