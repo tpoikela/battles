@@ -279,7 +279,6 @@ Vault.func.createHugeVault = (x, y, templLevel, centerName, connTile) => {
       RG.err('Vault.func', 'createHugeVault',
           'Corner templates cannot be null. Check they are loaded');
   }
-  console.log(x, y, vaultNW);
 
   templLevel.addRoom(vaultNW, x, y);
   templLevel.addRoom(vaultNE, x + 2, y);
