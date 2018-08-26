@@ -126,11 +126,9 @@ System.BaseAction = function(compTypes) {
         this._checkUseItemMsgEmit(ent, useItemComp);
 
         const effArgs = useItemComp.getEffect();
-        console.log('effArgs is', effArgs);
         if (effArgs) {
             const effComp = new RG.Component.Effects(effArgs);
             ent.add(effComp);
-            console.log('Added comp Effects now');
         }
     };
 

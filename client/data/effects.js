@@ -29,7 +29,6 @@ const createUseItemComp = (item, target, effArgs) => {
     }
     const useType = RG.getItemUseType(item, target);
     useItem.setUseType(useType);
-    console.log('Adding useItem now to ' + item.getTopOwner().getName());
     item.getTopOwner().add(useItem);
 };
 

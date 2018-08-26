@@ -28,7 +28,6 @@ class CmdAttack {
         const [tX, tY] = actor.getXY();
         const dist = Path.shortestDist(pX, pY, tX, tY);
         const attackRange = RG.getMeleeAttackRange(this._actor);
-        console.log('CmdAttack dist is ' + dist + ' range: ' + attackRange);
         if (dist <= attackRange) {
             const attackComp = new RG.Component.Attack({target: actor});
             this._actor.add('Attack', attackComp);
@@ -159,7 +158,6 @@ class CmdUseElement {
         const useComp = new RG.Component.UseElement();
         elems.forEach(elem => {
             if (elem.onUse) {
-                console.log('Setting use element to ' + JSON.stringify(elem));
                 useComp.setElement(elem);
             }
         });
