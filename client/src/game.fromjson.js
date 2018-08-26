@@ -994,7 +994,7 @@ RG.Game.FromJSON = function() {
                 this.dbg(`Added level ${id} to id2level ${msg}`);
             }
             else {
-                console.log(level);
+                RG.log(level); // For error reporting
                 RG.err('Game.FromJSON', `addLevels - ${msg}`,
                 `Duplicate level ID detected ${id}`);
             }
