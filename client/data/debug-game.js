@@ -178,6 +178,8 @@ DebugGame.prototype.create = function(obj, game, player) {
     const sharpener = new Ability.Sharpener();
     abilities.addAbility(sharpener);
 
+    this.addGoblinWithLoot(level);
+
     return game;
 };
 
@@ -188,6 +190,23 @@ DebugGame.prototype.createTrainer = function() {
     trainComp.getChatObj().setTrainer(human);
     human.add(trainComp);
     return human;
+};
+
+DebugGame.prototype.addGoblinWithLoot = function(level) {
+    const goblin = this._parser.createActor('goblin');
+    goblin.setName('goblin with loot');
+    const loot = new RG.Component.Loot(new RG.Item.Weapon('sword'));
+    goblin.add(loot);
+
+    /* Should fix this TODO
+    const ssCorner = new RG.Element.Stairs('stairs', level, level);
+    level.addStairs(ssCorner, level.getMap().cols - 2, level.getMap().rows - 2);
+    const ssLoot = new RG.Element.Stairs('stairs', level, level);
+    const lootCompStairs = new RG.Component.Loot(ssLoot);
+    goblin.add(lootCompStairs );
+    ssLoot.connect(ssCorner);
+    */
+    level.addActor(goblin, 2, 10);
 };
 
 module.exports = DebugGame;
