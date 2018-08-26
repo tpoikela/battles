@@ -12,6 +12,7 @@ const tileSize = 9;
 export default class BlackTower {
 
     constructor(cols, rows, conf) {
+        this.nLevels = conf.nLevels || 5;
         this.cols = cols || 100;
         this.rows = rows || 50;
         this.tilesX = Math.round(this.cols / tileSize);
@@ -32,15 +33,16 @@ export default class BlackTower {
             tilesX: this.tilesX,
             tilesY: this.tilesY
         };
-        let levels = [
+        const levels = [
             castleGen.createLevel(this.cols, this.rows, castleConf)
         ];
         delete castleConf.nGates;
-        levels = levels.concat([
-            castleGen.createLevel(this.cols, this.rows, castleConf),
-            castleGen.createLevel(this.cols, this.rows, castleConf),
-            castleGen.createLevel(this.cols, this.rows, castleConf)
-        ]);
+
+        for (let i = 0; i < this.nLevels - 2; i++) {
+            levels.push(
+                castleGen.createLevel(this.cols, this.rows, castleConf)
+            );
+        }
 
         // Last level has a huge vault in the center point
         const [midXTile, midYTile] = [
