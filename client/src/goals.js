@@ -460,15 +460,16 @@ class GoalGuard extends GoalBase {
     }
 
     checkDistToGuardPoint() {
-        const [aX, aY] = this.actor.getXY();
-        const map = this.actor.getLevel().getMap();
-        const path = RG.Path.getShortestActorPath(map, aX, aY, this.x, this.y);
-        if (path.length > this.dist) {
+        // const [aX, aY] = this.actor.getXY();
+        // const map = this.actor.getLevel().getMap();
+        const [dX, dY] = RG.dXdYAbs([this.x, this.y], this.actor.getXY());
+        // if (path.length > this.dist) {
+        if (dX > this.dist || dY > this.dist) {
             this.addSubGoal(new GoalFollowPath(this.actor, [this.x, this.y]));
         }
-        else if (path.length < this.dist) {
+        // else if (path.length < this.dist) {
             // moveToRandomDir(this.actor);
-        }
+        // }
     }
 }
 Goal.Guard = GoalGuard;
