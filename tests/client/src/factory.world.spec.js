@@ -337,7 +337,7 @@ describe('Factory.World', function() {
     const towerName = 'Black tower';
     it('has createPresetLevels for creating all levels using factory', () => {
         const fact = new RG.Factory.World();
-        const nLevels = 5;
+        const nLevels = 3;
         const towerConf = {
             name: towerName,
             x: 0, y: 0,
@@ -349,12 +349,12 @@ describe('Factory.World', function() {
                 nLevels: nLevels,
                 createPresetLevels: {
                     new: 'BlackTower',
-                    args: [180, 90]
+                    args: [180, 90, {nLevels}]
                 },
                 create: {
                     actor: [
                         {name: 'goblin', nLevel: 2},
-                        {name: 'Thabba, Son of Ice', nLevel: 4}
+                        {name: 'Thabba, Son of Ice', nLevel: nLevels - 1}
                     ]
                 }
             }]
@@ -364,7 +364,7 @@ describe('Factory.World', function() {
             nAreas: 1,
             createAllZones: true,
             area: [
-                {name: 'area for black tower', maxX: 2, maxY: 2, nCities: 1,
+                {name: 'area for black tower', maxX: 2, maxY: 2, nDungeons: 1,
                     dungeon: [
                         towerConf
                     ]
@@ -372,20 +372,17 @@ describe('Factory.World', function() {
             ]
         };
 
-        /*
         const tower = fact.createDungeon(towerConf);
 
         const levels = tower.getLevels();
         expect(levels).to.have.length(nLevels);
 
         levels.forEach((zoneLevel, i) => {
-            console.log(zoneLevel);
             const conn = fact.createDungeonZoneConnect(tower, zoneLevel);
             if (i === 0) {
                 expect(conn).to.have.property('length');
             }
         });
-
 
         const l0 = levels[0];
         const l1 = levels[1];
@@ -396,15 +393,15 @@ describe('Factory.World', function() {
 
         const stairs = l0.getElements().filter(elem => (
             elem.getName().match(/stairs/)));
-        expect(stairs).to.have.length(1);
+        expect(stairs).to.have.length(2);
 
         // l0.debugPrintInASCII();
 
-        const l4 = levels[nLevels - 1];
-        // l4.debugPrintInASCII();
+        const lastLevel = levels[nLevels - 1];
+        // lastLevel.debugPrintInASCII();
 
         // levels.map(ll => ll.getMap().debugPrintInASCII());
-        const actors = l4.getActors();
+        const actors = lastLevel.getActors();
         const boss = actors.find(actor => actor.getName().match(/Thabba/));
         expect(boss, 'Boss actor was created/found').to.not.be.empty;
         expect(boss.getName()).to.match(/Son of Ice/i);
@@ -415,12 +412,10 @@ describe('Factory.World', function() {
         const lever = elements0.find(e => e.getType() === 'lever');
         const leverDoor = elements0.find(e => e.getType() === 'leverdoor');
         const door = elements0.find(e => e.getType() === 'door');
-        // console.log(elements0);
 
         expect(lever).to.not.be.empty;
         expect(leverDoor).to.not.be.empty;
         expect(door).to.not.be.empty;
-        */
 
         const world = fact.createWorld(worldConf);
         const towerZone = world.getZones()[0];
