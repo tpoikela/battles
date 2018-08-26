@@ -416,7 +416,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
                         });
                     }
                     else {
-                        console.log(JSON.stringify(fname));
+                        RG.log(JSON.stringify(fname));
                         RG.err('ObjectShellParser', 'addCompToObj',
                             `No function ${fname} in ${compName}`);
                     }
@@ -1010,9 +1010,7 @@ RG.ObjectShell.Parser = function() {
         else if (this.hasObj(RG.TYPE_ACTOR, name)) {
             return this.createActualObj(RG.TYPE_ACTOR, name);
         }
-        console.log('XXX here');
         return null;
-
     };
 
     this.createActor = function(name) {
