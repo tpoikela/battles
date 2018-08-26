@@ -10,11 +10,13 @@ module.exports = function(self) {
 
     self.addEventListener('message', function(e) {
         const gameConf = e.data[0];
-        gameConf.progressCallback = progress;
+        // gameConf.progressCallback = progress;
         const gameFactory = new RG.Factory.Game();
+        gameFactory.setCallback('progress', progress);
         const game = gameFactory.createNewGame(gameConf);
 
         const json = game.toJSON();
+        RG.Verify.verifySaveData(json);
         self.postMessage(JSON.stringify(json));
     });
 };
