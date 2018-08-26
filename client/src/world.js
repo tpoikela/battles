@@ -714,7 +714,7 @@ RG.extend2(RG.World.Branch, RG.World.SubZoneBase);
 RG.World.Dungeon = function(name) {
     RG.World.ZoneBase.call(this, name);
     this.setType('dungeon');
-    let _entranceNames = [];
+    this._entranceNames = [];
 
     /* Returns true if the dungeon has given branch.*/
     this.hasBranch = function(branch) {
@@ -728,10 +728,10 @@ RG.World.Dungeon = function(name) {
     /* Sets the entry branch(es) for the dungeon. */
     this.setEntrance = branchName => {
         if (typeof branchName === 'string') {
-            _entranceNames = [branchName];
+            this._entranceNames = [branchName];
         }
         else {
-            _entranceNames = branchName;
+            this._entranceNames = branchName;
         }
     };
 
@@ -757,8 +757,11 @@ RG.World.Dungeon = function(name) {
         const nSubFeats = this._subZones.length;
         for (let i = 0; i < nSubFeats; i++) {
             const branch = this._subZones[i];
-            if (_entranceNames.indexOf(branch.getName()) >= 0) {
-                res.push(branch.getEntrance());
+            if (this._entranceNames.indexOf(branch.getName()) >= 0) {
+                const entr = branch.getEntrance();
+                if (!RG.isNullOrUndef([entr])) {
+                    res.push(entr);
+                }
             }
         }
         return res;
