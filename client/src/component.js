@@ -241,6 +241,9 @@ RG.Component.Trainer = UniqueDataComponent('Trainer', {
     chatObj: null
 });
 
+// Hack to prevent serialisation
+delete RG.Component.Trainer.prototype.setChatObj;
+
 RG.Component.Trainer.prototype._init = function() {
     this.chatObj = new RG.Chat.Trainer();
 
@@ -338,44 +341,59 @@ RG.Component.Loot = function(lootEntity) {
 
     // This will be dropped as loot
     this._lootEntity = lootEntity;
-
-    /* Drops the loot to the given cell.*/
-    this.dropLoot = function(cell) {
-        if (this._lootEntity.hasOwnProperty('_propType')) {
-            const propType = this._lootEntity.getPropType();
-            if (propType === 'elements') {
-                this.setElemToCell(cell);
-            }
-            else {
-                cell.setProp(propType, this._lootEntity);
-            }
-        }
-        else {
-            RG.err('Component.Loot', 'dropLoot', 'Loot has no propType!');
-        }
-    };
-
-    this.setElemToCell = function(cell) {
-        const entLevel = this.getEntity().getLevel();
-        if (this._lootEntity.hasOwnProperty('useStairs')) {
-            RG.debug(this, 'Added stairs to ' + cell.getX()
-                + ', ' + cell.getY());
-            entLevel.addStairs(this._lootEntity, cell.getX(), cell.getY());
-        }
-    };
-
-    this.setLootEntity = function(lootEntity) {
-        this._lootEntity = lootEntity;
-    };
-
-    this.toJSON = function() {
-        const json = RG.Component.Base.toJSON.call(this);
-        json.setLootEntity = this._lootEntity.toJSON();
-        return json;
-    };
-
 };
 RG.extend2(RG.Component.Loot, RG.Component.Base);
+
+/* Drops the loot to the given cell.*/
+RG.Component.Loot.prototype.dropLoot = function(cell) {
+    if (this._lootEntity.getPropType) {
+        const propType = this._lootEntity.getPropType();
+        if (propType === 'elements') {
+            this.setElemToCell(cell);
+        }
+        else {
+            cell.setProp(propType, this._lootEntity);
+        }
+    }
+    else {
+        RG.err('Component.Loot', 'dropLoot', 'Loot has no propType!');
+    }
+};
+
+RG.Component.Loot.prototype.setElemToCell = function(cell) {
+    const entLevel = this.getEntity().getLevel();
+    if (this._lootEntity.hasOwnProperty('useStairs')) {
+        RG.debug(this, 'Added stairs to ' + cell.getX()
+            + ', ' + cell.getY());
+        entLevel.addStairs(this._lootEntity, cell.getX(), cell.getY());
+    }
+};
+
+RG.Component.Loot.prototype.setLootEntity = function(lootEntity) {
+    this._lootEntity = lootEntity;
+};
+
+RG.Component.Loot.prototype.toJSON = function() {
+    const json = RG.Component.Base.prototype.toJSON.call(this);
+    const lootJSON = this._lootEntity.toJSON();
+    if (this._lootEntity.getPropType() === RG.TYPE_ITEM) {
+        json.setLootEntity = {
+            createFunc: 'createItem',
+            value: lootJSON
+        };
+    }
+    else if (this._lootEntity.getPropType() === RG.TYPE_ACTOR) {
+        json.setLootEntity = {
+            createFunc: 'createActor',
+            value: lootJSON
+        };
+    }
+    else {
+        RG.err('Component.Loot', 'toJSON',
+            'Only items/actors loot types are supported');
+    }
+    return json;
+};
 
 /* This component is added to entities receiving communication. Communication
  * is used to point out enemies and locations of items, for example.*/
