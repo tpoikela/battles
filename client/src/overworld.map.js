@@ -273,7 +273,8 @@ OW.createOverWorld = (conf = {}) => {
     }
 
     if (conf.printResult) {
-        printMap(owMap);
+        const mapStr = mapToString(owMap);
+        RG.log('overworld.map.js\n', mapStr);
     }
     overworld.setMap(owMap);
     addOverWorldFeatures(overworld, conf);
@@ -281,7 +282,7 @@ OW.createOverWorld = (conf = {}) => {
     // High-level overworld generation ends here
 
     if (printResult) {
-        console.log(overworld.mapToString().join('\n'));
+        RG.log('\n', overworld.mapToString().join('\n')); // Print result
     }
     return overworld;
 };
@@ -547,7 +548,7 @@ OW.Map.prototype.mapToString = function(useExplored = false) {
 };
 
 /* Prints the map of biomes and a legend explaining the numbers. */
-OW.Map.prototype.printBiomeMap = function() {
+OW.Map.prototype.biomeMapToString = function() {
     const sizeX = this.getSizeX() - 1;
     const sizeY = this.getSizeY() - 1;
 
@@ -570,7 +571,7 @@ OW.Map.prototype.printBiomeMap = function() {
         result += rowStr;
     }
     result += '\n' + legend.join('\n');
-    console.log(result);
+    return result;
 };
 
 //---------------------------------------------------------------------------
@@ -851,7 +852,7 @@ function getValidNeighbours(x, y, map) {
 }
 
 /* Prints the given map. */
-function printMap(map) {
+function mapToString(map) {
     const sizeY = map[0].length;
     const sizeX = map.length;
     for (let y = 0; y < sizeY; y++) {
@@ -859,7 +860,7 @@ function printMap(map) {
         for (let x = 0; x < sizeX; x++) {
             line.push(map[x][y]);
         }
-        console.log(line.join(''));
+        console.log(line.join('')); // Print result
     }
 }
 /* Adds features like water, cities etc into the world. This feature only
