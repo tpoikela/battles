@@ -222,14 +222,12 @@ DungeonPopulate.prototype.populatePoint = function(level, point, conf) {
 
 /* Adds an element into the given point. */
 DungeonPopulate.prototype.addElementToPoint = function(level, point, conf) {
-    console.log(level, conf, point);
-    // TODO
+    console.log('DungeonPopulate', level, conf, point); // TODO
 };
 
 /* Creates a corpse to the given point, and adds some related loot there. */
 DungeonPopulate.prototype.addCorpseToPoint = function(level, point, conf) {
-    console.log(level, conf, point);
-    // TODO
+    console.log('DungeonPopulate', level, conf, point); // TODO
 };
 
 DungeonPopulate.prototype.addLootToPoint = function(level, point) {
@@ -262,8 +260,7 @@ DungeonPopulate.prototype.addGoldToPoint = function(level, point) {
 /* Adds a tip/hint to the given point. These hints can reveal information
  * about world map etc. */
 DungeonPopulate.prototype.addTipToPoint = function(level, point, conf) {
-    console.log(level, conf, point);
-    // TODO
+    console.log('DungeonPopulate', level, conf, point); // TODO
 };
 
 module.exports = DungeonPopulate;
