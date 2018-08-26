@@ -20,6 +20,21 @@ const CastleGenerator = function() {
 };
 RG.extend2(CastleGenerator, LevelGenerator);
 
+const re = {
+    corridor: /(corridor|corner)/,
+    entrance: /entrance/,
+    storeroom: /storeroom/,
+    vault: /vault/
+};
+
+const markers = {
+    corridor: 'C',
+    room: 'R',
+    entrance: 'E',
+    storeroom: 'S',
+    vault: 'V'
+};
+
 /* Returns a fully populated castle-level. */
 CastleGenerator.prototype.create = function(cols, rows, conf) {
     const level = this.createLevel(cols, rows, conf);
@@ -37,59 +52,55 @@ CastleGenerator.prototype.createLevel = function(cols, rows, conf) {
 
     const level = new Level(cols, rows);
     level.setMap(mapObj.map);
-    this.markNonCorridors(level, mapObj.tiles);
+    this.addMarkersFromTiles(level, mapObj.tiles);
 
     this.createDoorsAndLevers(level);
     return level;
 };
 
-CastleGenerator.prototype.markNonCorridors = function(level, tiles) {
+
+CastleGenerator.prototype.addMarkersFromTiles = function(level, tiles) {
     const extras = {
-        storeRooms: [],
-        rooms: [],
-        vaults: []
+        corridor: [],
+        entrance: [],
+        room: [],
+        storeroom: [],
+        vault: []
     };
     level.setExtras(extras);
 
-    const reStoreRoom = /storeroom/;
-    const reVault = /vault/;
-    const reNonRoom = /(corridor|corner)/;
     Object.values(tiles).forEach(tile => {
-        if (reStoreRoom.test(tile.name)) {
-            const bbox = RG.Geometry.convertBbox(tile);
-            const cells = level.getMap().getFreeInBbox(bbox);
-            cells.forEach(cell => {
-                const [x, y] = cell.getXY();
-                const marker = new RG.Element.Marker('S');
-                marker.setTag('storeroom');
-                level.addElement(marker, x, y);
-            });
-            const room = new Room(bbox.ulx, bbox.uly, bbox.lrx, bbox.lry);
-            extras.storeRooms.push(room);
+        if (re.storeroom.test(tile.name)) {
+            this.addToExtras(level, tile, 'storeroom');
         }
-        else if (reVault.test(tile.name)) {
-            const bbox = RG.Geometry.convertBbox(tile);
-            const cells = level.getMap().getFreeInBbox(bbox);
-            cells.forEach(cell => {
-                const [x, y] = cell.getXY();
-                const marker = new RG.Element.Marker('V');
-                marker.setTag('vault');
-                level.addElement(marker, x, y);
-            });
-            const room = new Room(bbox.ulx, bbox.uly, bbox.lrx, bbox.lry);
-            extras.vaults.push(room);
+        else if (re.vault.test(tile.name)) {
+            this.addToExtras(level, tile, 'vault');
         }
-        else if (!reNonRoom.test(tile.name)) {
-            const bbox = RG.Geometry.convertBbox(tile);
-            const cells = level.getMap().getFreeInBbox(bbox);
-            cells.forEach(cell => {
-                const [x, y] = cell.getXY();
-                const marker = new RG.Element.Marker('R');
-                marker.setTag('room');
-                level.addElement(marker, x, y);
-            });
+        else if (re.entrance.test(tile.name)) {
+            this.addToExtras(level, tile, 'entrance');
+        }
+        else if (re.corridor.test(tile.name)) {
+            this.addToExtras(level, tile, 'corridor');
+        }
+        else {
+            this.addToExtras(level, tile, 'room');
         }
     });
+};
+
+
+CastleGenerator.prototype.addToExtras = function(level, tile, name) {
+    const bbox = RG.Geometry.convertBbox(tile);
+    const cells = level.getMap().getFreeInBbox(bbox);
+    cells.forEach(cell => {
+        const [x, y] = cell.getXY();
+        const marker = new RG.Element.Marker(markers[name]);
+        marker.setTag(name);
+        level.addElement(marker, x, y);
+    });
+    const room = new Room(bbox.ulx, bbox.uly, bbox.lrx, bbox.lry);
+    const extras = level.getExtras();
+    extras[name].push(room);
 };
 
 /* Links (and first creates) levers and lever doors based on markers. */
@@ -151,7 +162,7 @@ CastleGenerator.prototype.populateStoreRooms = function(level, conf) {
     }
     const maxDanger = conf.maxDanger;
     const extras = level.getExtras();
-    extras.storeRooms.forEach(room => {
+    extras.storeroom.forEach(room => {
         const cPoint = room.getCenter();
         dungPopul.addPointGuardian(level, cPoint, maxDanger);
     });
