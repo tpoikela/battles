@@ -54,10 +54,10 @@ describe('How items/loot is dropped by monsters', () => {
         const invItem = new RG.Item.Weapon('Sword');
 
         monster.getInvEq().addItem(invItem);
-        monster.add('Loot', loot);
+        monster.add(loot);
         const dmgComp = new RG.Component.Damage(6, RG.DMG.FIRE);
         dmgComp.setSource(human);
-        monster.add('Damage', dmgComp);
+        monster.add(dmgComp);
         expect(dSystem.entities.hasOwnProperty(monster.getID())).to.equal(true);
 
         const lootCell = level.getMap().getCell(3, 6);
@@ -69,10 +69,10 @@ describe('How items/loot is dropped by monsters', () => {
         hList = monster.getList('Health');
         expect(hList).to.have.length(1);
 
-        // expect(monster.get('Health').isDead()).to.be.true;
-        expect(monster).to.be.dead;
+        expect(monster.get('Health').isDead()).to.be.true;
+        // expect(monster).to.be.dead;
         expect(lootItem.getOwner()).to.equal(lootCell);
-        expect(lootCell.hasProp('items')).to.equal(true);
+        expect(lootCell.hasItems()).to.equal(true);
 
         // Check for the dropped inventory item
         const items = lootCell.getProp(RG.TYPE_ITEM);
