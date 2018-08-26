@@ -334,14 +334,18 @@ describe('Factory.World', function() {
 
     });
 
+    const towerName = 'Black tower';
     it('has createPresetLevels for creating all levels using factory', () => {
         const fact = new RG.Factory.World();
         const nLevels = 5;
         const towerConf = {
-            name: 'Black tower',
+            name: towerName,
+            x: 0, y: 0,
             nBranches: 1,
+            connectEdges: true,
             branch: [{
                 name: 'Main branch',
+                entranceLevel: 0,
                 nLevels: nLevels,
                 createPresetLevels: {
                     new: 'BlackTower',
@@ -355,8 +359,22 @@ describe('Factory.World', function() {
                 }
             }]
         };
+        const worldConf = {
+            name: 'world for black tower',
+            nAreas: 1,
+            createAllZones: true,
+            area: [
+                {name: 'area for black tower', maxX: 2, maxY: 2, nCities: 1,
+                    dungeon: [
+                        towerConf
+                    ]
+                }
+            ]
+        };
 
+        /*
         const tower = fact.createDungeon(towerConf);
+
         const levels = tower.getLevels();
         expect(levels).to.have.length(nLevels);
 
@@ -376,7 +394,11 @@ describe('Factory.World', function() {
         expect(l1.getMap().cols, 'L1 Cols correct').to.be.equal(180);
         expect(l1.getMap().rows, 'L1 Rows correct').to.be.equal(90);
 
-        l0.debugPrintInASCII();
+        const stairs = l0.getElements().filter(elem => (
+            elem.getName().match(/stairs/)));
+        expect(stairs).to.have.length(1);
+
+        // l0.debugPrintInASCII();
 
         const l4 = levels[nLevels - 1];
         // l4.debugPrintInASCII();
@@ -398,6 +420,11 @@ describe('Factory.World', function() {
         expect(lever).to.not.be.empty;
         expect(leverDoor).to.not.be.empty;
         expect(door).to.not.be.empty;
+        */
+
+        const world = fact.createWorld(worldConf);
+        const towerZone = world.getZones()[0];
+        expect(towerZone.getName()).to.equal(towerName);
     });
 
 
