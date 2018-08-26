@@ -398,6 +398,7 @@ RG.Factory.World = function() {
                 // If tx,ty given, create only zones for tile tx,ty
                 // Otherwise, create zones for all tiles
                 if ((tx === -1 || tx === x) && (ty === -1 || ty === y)) {
+                    // calls createDungeon, createCity, createMountain...
                     const zone = this[createFunc](zoneConf);
                     zone.setTileXY(x, y);
                     area.addZone(type, zone);
@@ -1119,7 +1120,7 @@ RG.Factory.World = function() {
                 this.debug('Connecting area-zone by entrance');
 
                 let conns = null;
-                if (zoneType === 'city' || zoneType === 'mountain') {
+                if (zoneType.match(/(city|mountain)/) || conf.connectEdges) {
 
                     if (debug.enabled) {
                         conns = entryLevel.getConnections();
@@ -1135,6 +1136,10 @@ RG.Factory.World = function() {
                 let name = '';
                 if (zoneType === 'city') {name = 'town';}
                 else if (zoneType === 'mountain') {name = 'mountain';}
+                else if (Array.isArray(entryStairs)) {
+                    const isDown = !entryStairs[0].isDown();
+                    name = isDown ? 'stairsDown' : 'stairsUp';
+                }
                 else {
                     const isDown = !entryStairs.isDown();
                     name = isDown ? 'stairsDown' : 'stairsUp';
@@ -1147,7 +1152,7 @@ RG.Factory.World = function() {
                     tileStairs.connect(entryStairs);
                 }
                 catch (e) {
-                    console.log('Given conf: ' + JSON.stringify(conf));
+                    RG.log('Given conf: ' + JSON.stringify(conf));
                     throw e;
                 }
 
@@ -1213,7 +1218,7 @@ RG.Factory.World = function() {
             // Stairs could've been removed by zone edge connection
             if (entryLevel.getElements().indexOf(entryStairs) >= 0) {
                 if (!entryLevel.removeElement(entryStairs, sX, sY)) {
-                    RG.err('Factory.World', 'createAreaZoneConnection',
+                    RG.err('Factory.World', 'getEntryStairs',
                         'Cannot remove entryStairs');
                 }
             }
@@ -1318,7 +1323,6 @@ RG.Factory.World = function() {
         let sX = 0;
         let sY = 0;
         if (zoneLevel.hasExtras()) {
-            console.log('Level has extras: ' + JSON.stringify(extras));
             const extras = zoneLevel.getExtras();
             if (extras.startPoint) {
                 [sX, sY] = extras.startPoint;
