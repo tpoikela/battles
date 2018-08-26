@@ -225,7 +225,6 @@ RG.Factory.Game = function() {
 
         const game = new RG.Game.Main();
         if (Number.isInteger(conf.seed)) {
-            console.log('GOT conf.seed as ' + conf.seed);
             const rng = new RG.Random(conf.seed);
             game.setRNG(rng);
         }
@@ -368,7 +367,7 @@ RG.Factory.Game = function() {
             this.callbacks.progress(msg);
         }
         if (msg === 'DONE') {
-            console.log(`${this.prevMsg} - Time: ${durSec} sec`);
+            RG.log(`${this.prevMsg} - Time: ${durSec} sec`);
         }
         this.prevMsg = msg;
     };
@@ -376,7 +375,6 @@ RG.Factory.Game = function() {
     /* Places player into a free cell surrounded by other free cells. */
     this.placePlayer = function(player, level) {
         const freeCells = level.getMap().getFree();
-        console.log('map has ' + freeCells.length + ' free cells');
         const freeLUT = {};
         freeCells.forEach(cell => {
             freeLUT[cell.getKeyXY()] = true;
@@ -401,7 +399,7 @@ RG.Factory.Game = function() {
             }
 
             if (--watchdog <= 0) {
-                console.log('Timeout reached');
+                RG.log('Timeout reached');
                 break;
             }
         }
