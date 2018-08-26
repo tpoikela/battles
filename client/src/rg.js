@@ -363,6 +363,12 @@ RG.diag = function(obj) {
     }
 };
 
+RG.log = function(...args) {
+    if (!this.suppressLogs) {
+        console.log('[INFO]:', ...args);
+    }
+};
+
 
 /* Used to inherit from a prototype. Supports multiple inheritance but
  * sacrifices instanceof.*/
