@@ -1153,6 +1153,8 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
     }
     debug(`BlackTower: ${aX},${aY}, x,y ${featX},${featY}`);
 
+    dungeonConf.connectEdges = true;
+    dungeonConf.branch[0].entranceLevel = 0;
     dungeonConf.branch[0].nLevels = 5;
     const nLastLevel = dungeonConf.branch[0].nLevels - 1;
     dungeonConf.branch[0].createPresetLevels = {
