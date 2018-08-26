@@ -179,7 +179,7 @@ class GoalThinkBasic extends GoalTop {
             this.removeSubGoalsOfType(type);
             this.addSubGoal(goal);
             if (debug.enabled) {
-                console.log('Actor subgoals are now: '
+                RG.log('Actor subgoals are now: '
                     + this.subGoals.map(g => g.getType()));
             }
         }

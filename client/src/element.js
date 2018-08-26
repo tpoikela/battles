@@ -312,7 +312,6 @@ class RGElementLeverDoor extends RGElementDoor {
     canToggle() {return false;}
 
     onUse() {
-        console.log('LeverDoor onUse now');
         if (this.isOpen()) {this.closeDoor();}
         else {this.openDoor();}
     }

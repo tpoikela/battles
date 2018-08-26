@@ -129,7 +129,7 @@ class GoalFollowArmy extends Goal.Base {
     }
 
     activate() {
-        console.log('GoalFollowArmy ' + this.actor.getName());
+        // TODO
         // 1. Calculate center of mass of army
         // 2. Check distance to the army
         // 3. Move into army's direction if not too close
