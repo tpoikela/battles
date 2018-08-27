@@ -535,6 +535,8 @@ class RGElementTree extends RGElementBase {
     constructor() {
         super('tree');
     }
+
+    lightPasses() {return false;}
 }
 RG.Element.Tree = RGElementTree;
 
