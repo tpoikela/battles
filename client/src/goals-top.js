@@ -106,7 +106,7 @@ class GoalTop extends Goal.Base {
         const evals = [];
         this.evaluators.forEach(ev => {
             // Order difficult to serialize as it can contain reference to any
-            // arbitratry goal (can be top-level goal). That would require tons
+            // arbitrary goal (can be top-level goal). That would require tons
             // of object refs, and it's a lot of work
             if (ev.getType() !== 'Order') {
                 evals.push(ev.toJSON());
@@ -141,7 +141,6 @@ class GoalThinkBasic extends GoalTop {
         };
 
         this.updateEvaluators();
-        // this.evaluators.push(new Evaluator.Patrol(this.bias.patrol));
     }
 
     updateEvaluators() {
