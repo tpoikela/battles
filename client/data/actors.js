@@ -444,7 +444,7 @@ const Actors = [
         name: 'WinterBeingBase', // className: 'cell-actor-winter',
         dontCreate: true, enemies: ['player', 'human'],
         color: {fg: 'Blue', bg: 'White'},
-        addComp: [resistance('ICE', 'MEDIUM')]
+        addComp: ['SnowWalk', resistance('ICE', 'MEDIUM')]
     },
     {
         name: 'Crevasse worm', char: 'w', base: 'WinterBeingBase',
@@ -563,7 +563,8 @@ const Actors = [
     {
         name: 'Frost Titan', type: 'giant', char: 'H',
         attack: 8, defense: 7, protection: 12, damage: '5d5', range: 1,
-        hp: 80, danger: 18, brain: demonBrain, base: 'WinterBeingBase'
+        hp: 80, danger: 18, brain: demonBrain, base: 'WinterBeingBase',
+        onHit: [{addComp: 'Stun', duration: '1d8'}]
     },
     {
         name: 'Frostburn monarch', type: 'demon', char: 'M',
