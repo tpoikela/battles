@@ -36,7 +36,9 @@ System.SpellCast = function(compTypes) {
                     addSkillsExp(ent, 'SpellCasting', 1);
                 }
                 else if (this._checkPowerDrain(spell, args, drainers)) {
-                    const msg = 'Spell was canceled by power drain.';
+                    const sName = spell.getName();
+                    let msg = `Spell ${sName} was canceled by power drain of`;
+                    msg += ` ${this._drainerName}`; // set in checkPowerDrain()
                     RG.gameMsg({cell: cell, msg: msg});
                 }
                 else {
@@ -58,23 +60,26 @@ System.SpellCast = function(compTypes) {
         let isDrained = false;
         const srcX = args.src.getX();
         const srcY = args.src.getY();
+        this._drainerName = '';
         drainers.forEach(ent => {
             if (ent.getLevel().getID() === args.src.getLevel().getID()) {
                 const drainX = ent.getX();
                 const drainY = ent.getY();
                 const dist = RG.Path.shortestDist(srcX, srcY, drainX, drainY);
-                if (dist <= ent.get('PowerDrain').drainDist) {
-                    ent.remove('PowerDrain');
-                    isDrained = true;
-                    if (ent.has('SpellPower')) {
-                        ent.get('SpellPower').addPP(spell.getPower());
+                if (ent.getID() !== args.src.getID()) {
+                    if (dist <= ent.get('PowerDrain').drainDist) {
+                        ent.remove('PowerDrain');
+                        isDrained = true;
+                        this._drainerName = ent.getName();
+                        if (ent.has('SpellPower')) {
+                            ent.get('SpellPower').addPP(spell.getPower());
+                        }
+                        return; // from forEach loop
                     }
-                    return;
                 }
             }
         });
         return isDrained;
-
     };
 
 };
