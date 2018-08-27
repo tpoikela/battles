@@ -336,15 +336,23 @@ System.Movement = function(compTypes) {
                 }
             ]
         },
+        grass: {
+            mods: [
+                this.speedPenalty(0.10)
+            ]
+        },
         bridge: {mods: [
             this.defensePenalty(0.5)
         ]},
         stone: {mods: [
             this.speedPenalty(0.25)
         ]},
-        snow: {mods: [
-            this.speedPenalty(0.25)
-        ]}
+        snow: {
+            dontApplyTo: ['Flying', 'SnowWalk'],
+            mods: [
+                this.speedPenalty(0.25)
+            ]
+        }
     };
 
 };
