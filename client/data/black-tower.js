@@ -11,7 +11,7 @@ const tileSize = 9;
 
 export default class BlackTower {
 
-    constructor(cols, rows, conf) {
+    constructor(cols, rows, conf = {}) {
         this.nLevels = conf.nLevels || 5;
         this.cols = cols || 100;
         this.rows = rows || 50;
@@ -60,6 +60,7 @@ export default class BlackTower {
             castleConf);
         levels.push(lastLevel);
 
+        this.generateYard(levels);
         this.addProps(levels);
 
         levels.forEach((level, i) => {
@@ -75,8 +76,6 @@ export default class BlackTower {
             };
             castleGen.populateStoreRooms(level, populConf);
         });
-
-        this.generateYard(levels);
 
         return levels.map((level, i) => ({nLevel: i, level}));
     }
