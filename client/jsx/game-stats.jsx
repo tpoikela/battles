@@ -16,7 +16,8 @@ const statusComps = [
     ['Paralysis', 'danger', 'Paralysed', 'stat-paralysis'],
     ['Poison', 'danger', 'Poisoned', 'stat-poison'],
     ['PowerDrain', 'success', 'Power drain', 'stat-power-drain'],
-    ['Stun', 'danger', 'Stunned', 'stat-stun']
+    ['Stun', 'danger', 'Stunned', 'stat-stun'],
+    ['MindControl', 'danger', 'Mind controlled', 'stat-mind-ctrl']
 ];
 
 /** Component for displaying character stats.*/
@@ -38,6 +39,7 @@ export default class GameStats extends Component {
 
   render() {
     const player = this.props.player;
+    const playerName = player.getName();
     const selectedItem = this.props.selectedItem;
     const selectedCell = this.props.selectedCell;
 
@@ -81,6 +83,7 @@ export default class GameStats extends Component {
 
     return (
       <div className='game-stats'>
+        <p>{playerName}</p>
         <PlayerStats player={player} />
         <ul className='player-mode-list'>
           <li className={moveClassName}>{moveStatus}</li>
