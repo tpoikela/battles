@@ -728,6 +728,7 @@ RG.Component.BypassProtection = DataComponent('BypassProtection',
 RG.Component.Climber = UniqueTagComponent('Climber');
 RG.Component.Jumper = UniqueDataComponent('Jumper', {jumpRange: 2});
 RG.Component.Camouflage = UniqueTagComponent('Camouflage');
+RG.Component.SnowWalk = UniqueTagComponent('SnowWalk');
 
 //--------------------------------------------
 // RANGED COMBAT COMPONENTS
