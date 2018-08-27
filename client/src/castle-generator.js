@@ -162,10 +162,12 @@ CastleGenerator.prototype.populateStoreRooms = function(level, conf) {
     }
     const maxDanger = conf.maxDanger;
     const extras = level.getExtras();
-    extras.storeroom.forEach(room => {
-        const cPoint = room.getCenter();
-        dungPopul.addPointGuardian(level, cPoint, maxDanger);
-    });
+    if (extras.storeroom) {
+        extras.storeroom.forEach(room => {
+            const cPoint = room.getCenter();
+            dungPopul.addPointGuardian(level, cPoint, maxDanger);
+        });
+    }
 };
 
 module.exports = CastleGenerator;
