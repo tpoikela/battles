@@ -613,7 +613,7 @@ RG.Map.Generator = function() { // {{{2
             '.': RG.ELEM.FLOOR_CRYPT
         };
         const mapObj = this.createMapFromAsciiMap(level.map, asciiToElem);
-        mapObj.tiles = level.xyToBbox;
+        mapObj.tiles = level.getPlacedData();
         return mapObj;
 
     };
@@ -671,7 +671,7 @@ RG.Map.Generator = function() { // {{{2
             '|': createLeverDoorMarker
         };
         const mapObj = this.createMapFromAsciiMap(level.map, asciiToElem);
-        mapObj.tiles = level.xyToBbox;
+        mapObj.tiles = level.getPlacedData();
         return mapObj;
     };
 
@@ -700,7 +700,7 @@ RG.Map.Generator = function() { // {{{2
             '.': RG.ELEM.FLOOR
         };
         const castleMapObj = this.createMapFromAsciiMap(level.map, asciiToElem);
-        castleMapObj.tiles = level.xyToBbox;
+        castleMapObj.tiles = level.getPlacedData();
         return castleMapObj;
     };
 
