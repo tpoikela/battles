@@ -214,6 +214,8 @@ Cell.prototype.isExplored = function() {return this._explored;};
 
 /* Returns true if it's possible to move to this cell.*/
 Cell.prototype.isFree = function(isFlying = false) {
+    if (!isFlying && !this._baseElem.isPassable()) {return false;}
+
     if (this.hasProp(TYPE_ACTOR)) {
         for (let i = 0; i < this._p.actors.length; i++) {
             if (!this._p.actors[i].has('Ethereal')) {return false;}
@@ -229,11 +231,17 @@ Cell.prototype.isFree = function(isFlying = false) {
         }
     }
     // Handle flying/non-flying here
-    if (!isFlying) {
+    /* if (!isFlying) {
         return this._baseElem.isPassable();
     }
     else {
         return this._baseElem.isPassableByAir();
+    }*/
+    if (isFlying) {
+        return this._baseElem.isPassableByAir();
+    }
+    else {
+        return true;
     }
 };
 
