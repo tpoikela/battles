@@ -145,8 +145,8 @@ RG.Template.Level.prototype.use = function(obj) {
     }
 };
 
-    /* Creates the level. Result is in this.map.
-     * This is the Main function you want to call. */
+/* Creates the level. Result is in this.map.
+ * This is the Main function you want to call. */
 RG.Template.Level.prototype.create = function() {
     if (this.templates.length === 0) {
         RG.err('Template.Level', 'create',
@@ -157,18 +157,13 @@ RG.Template.Level.prototype.create = function() {
 
     // Initialize a map with filler cells
     this._initMapWithFillerCells();
-    /* this.templMap = [];
-    for (let x = 0; x < this.tilesX; x++) {
-        this.templMap[x] = [];
-        for (let y = 0; y < this.tilesY; y++) {
-            this.templMap[x][y] = this.filler;
-        }
-    }*/
-    let dungeonInvalid = true;
-    let dungeonTries = 10;
-    while (dungeonInvalid) {
+
+    let levelInvalid = true;
+    let maxLevelTries = 10;
+
+    while (levelInvalid) {
         ++this._ind;
-        this.dbg(`Dungeon not ready. Tries left  ${dungeonTries}/10`);
+        this.dbg(`Dungeon not ready. Tries left  ${maxLevelTries}/10`);
         this._placeStartRoom();
 
         let roomCount = 0;
@@ -220,15 +215,15 @@ RG.Template.Level.prototype.create = function() {
             ++numTries;
 
             if (goalCount !== -1 && roomCount >= goalCount) {
-                dungeonInvalid = false;
+                levelInvalid = false;
                 break;
             }
         }
 
         if (roomCount >= goalCount || goalCount === -1) {
-            dungeonInvalid = false;
+            levelInvalid = false;
         }
-        else if (--dungeonTries === 0) {
+        else if (--maxLevelTries === 0) {
             RG.warn('Level.Template', 'create',
                 'Max tries reached. No valid level created');
             break;
@@ -293,7 +288,7 @@ RG.Template.Level.prototype.expandTemplates = function() {
     // Now we have an unflattened map: 4-dimensional arrays, the last part
     // is to convert this into 2-d array.
     this.map = [];
-    this.xyToBbox = {};
+    this.placedTileData = {};
     let llx = 0;
     let urx = 0;
     for (let tileX = 0; tileX < this.tilesX; tileX++) {
@@ -310,7 +305,7 @@ RG.Template.Level.prototype.expandTemplates = function() {
                 lly = ury + tileColLen - 1;
                 finalCol = finalCol.concat(tileCol);
 
-                this.xyToBbox[tileX + ',' + tileY] = {
+                this.placedTileData[tileX + ',' + tileY] = {
                     name: this.templMap[tileX][tileY].getProp('name'),
                     type: this.templMap[tileX][tileY].getProp('type'),
                     llx, urx, ury, lly, tileX, tileY
@@ -321,6 +316,10 @@ RG.Template.Level.prototype.expandTemplates = function() {
         }
         llx += numCols;
     }
+};
+
+RG.Template.Level.prototype.getPlacedData = function() {
+    return this.placedTileData;
 };
 
 /* Returns the generated map (found also in this.map). */
