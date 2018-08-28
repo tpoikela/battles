@@ -41,22 +41,22 @@ const chatSelObject = player => {
 
 /* Memory object for the player .*/
 const MemoryPlayer = function(player) {
-    let _lastAttackedID = null;
+    this._lastAttackedID = null;
 
     /* Sets the last attacked actor. */
     this.setLastAttacked = actor => {
         if (Number.isInteger(actor)) {
-            _lastAttackedID = actor;
+            this._lastAttackedID = actor;
         }
         else if (actor) {
-            _lastAttackedID = actor.getID();
+            this._lastAttackedID = actor.getID();
         }
     };
 
-    this.getLastAttacked = () => _lastAttackedID;
+    this.getLastAttacked = () => this._lastAttackedID;
 
     /* Returns true if the actor was the last attacked one. */
-    this.wasLastAttacked = actor => _lastAttackedID === actor.getID();
+    this.wasLastAttacked = actor => this._lastAttackedID === actor.getID();
 
     /* Returns true if the given actor is enemy of player. */
     this.isEnemy = actor => {
@@ -69,8 +69,8 @@ const MemoryPlayer = function(player) {
 
     this.toJSON = () => {
         const json = {};
-        if (!RG.isNullOrUndef([_lastAttackedID])) {
-            json.setLastAttacked = _lastAttackedID;
+        if (!RG.isNullOrUndef([this._lastAttackedID])) {
+            json.setLastAttacked = this._lastAttackedID;
         }
         return json;
     };
