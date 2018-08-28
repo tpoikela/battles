@@ -180,6 +180,18 @@ DebugGame.prototype.create = function(obj, game, player) {
 
     this.addGoblinWithLoot(level);
 
+    const runeOfCtrl = parser.createItem('rune of control');
+    itemRand.adjustItem(runeOfCtrl, 250);
+    player.getInvEq().addItem(runeOfCtrl);
+
+    const runeOfVenom = parser.createItem('rune of venom');
+    itemRand.adjustItem(runeOfVenom, 150);
+    player.getInvEq().addItem(runeOfVenom);
+
+    const runeOfPoisonClouds = parser.createItem('rune of poison clouds');
+    itemRand.adjustItem(runeOfPoisonClouds, 150);
+    player.getInvEq().addItem(runeOfPoisonClouds);
+
     return game;
 };
 
