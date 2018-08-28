@@ -222,6 +222,27 @@ const Engine = function(eventPool) {
         return Object.values(this._levelMap);
     };
 
+    this.getEntities = function() {
+        const levels = this.getLevels();
+        let entities = [];
+        levels.forEach(level => {
+            entities = entities.concat(level.getActors());
+            entities = entities.concat(level.getItems());
+            entities = entities.concat(level.getElements());
+        });
+        return entities;
+    };
+
+    this.getComponents = function() {
+        const entities = this.getEntities();
+        let components = [];
+        entities.forEach(ent => {
+            const ids = Object.keys(ent.getComponents());
+            components = components.concat(ids.map(id => parseInt(id, 10)));
+        });
+        return components;
+    };
+
     /* Adds one level to the game database.*/
     this.addLevel = function(level) {
         const id = level.getID();
