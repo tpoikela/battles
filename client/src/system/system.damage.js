@@ -37,7 +37,11 @@ System.Damage = function(compTypes) {
                     }
                 }
 
-                const damageSrc = dmgComp.getSource();
+                const damageSrc = this._getUltimateDmgSource(dmgComp);
+                if (damageSrc && (ent.getID() !== damageSrc.getID())) {
+                    ent.addEnemy(damageSrc);
+                }
+
                 if (health.isDead() && !ent.has('Dead')) {
                     if (ent.has('Loot')) {
                         const entCell = ent.getCell();
@@ -45,7 +49,7 @@ System.Damage = function(compTypes) {
                     }
                     _dropInvAndEq(ent);
 
-                    _killActor(damageSrc, ent, dmgComp);
+                    this._killActor(damageSrc, ent, dmgComp);
                 }
 
                 // Emit ACTOR_DAMAGED
@@ -67,13 +71,25 @@ System.Damage = function(compTypes) {
         });
     };
 
+    this._getUltimateDmgSource = function(dmgComp) {
+        let damageSrc = dmgComp.getSourceActor();
+        if (!damageSrc) {
+            damageSrc = dmgComp.getSource();
+        }
+        if (damageSrc && damageSrc.has('Created')) {
+            damageSrc = damageSrc.get('Created').getCreator();
+        }
+        return damageSrc;
+    };
+
     /* Checks if protection checks can be applied to the damage caused. For
      * damage like hunger and poison, no protection helps.*/
     this._getDamageModified = (ent, dmgComp) => {
         const dmgType = dmgComp.getDamageType();
-        const src = dmgComp.getSource();
-
-        if (src !== null) {ent.addEnemy(src);}
+        let src = dmgComp.getSourceActor();
+        if (!src) {
+            src = dmgComp.getSource();
+        }
         const dmg = _getDmgAfterWeaknessAndResistance(ent, dmgComp);
 
         // Deal with "internal" damage bypassing protection here
@@ -246,7 +262,7 @@ System.Damage = function(compTypes) {
     };
 
     /* Removes actor from current level and emits Actor killed event.*/
-    const _killActor = (src, actor, dmgComp) => {
+    this._killActor = (src, actor, dmgComp) => {
         const level = actor.getLevel();
         const cell = actor.getCell();
         const [x, y] = actor.getXY();
