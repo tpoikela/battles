@@ -143,7 +143,7 @@ describe('RG.Effects', () => {
     });
 
     it('has effect to add value to comp', () => {
-        const addCompValue = getEffectByName(Effects, 'addToCompValue');
+        const addCompValue = getEffectByName(Effects, 'modifyCompValue');
 
         // Setup useArgs
         sword.useArgs.name = 'Stats';

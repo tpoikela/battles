@@ -681,11 +681,13 @@ describe('System.AreaEffects', () => {
         const burntActor = new RG.Actor.Rogue('victim');
         RGTest.wrapIntoLevel([burntActor]);
 
+        const flameEnt = new RG.Actor.Rogue('flame');
         const health = burntActor.get('Health');
 
         while (!health.isDead()) {
             const fireComp = new RG.Component.Flame();
             fireComp.setDamageType(RG.DMG.FIRE);
+            fireComp.setSource(flameEnt);
             burntActor.add(fireComp);
 
             expect(burntActor).to.have.component('Flame');
