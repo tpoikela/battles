@@ -12,8 +12,16 @@ System.Attack = function(compTypes) {
     System.Base.call(this, RG.SYS.ATTACK, compTypes);
 
     this.updateEntity = function(ent) {
+        const compList = ent.getList('Attack');
+        compList.forEach(attComp => {
+            this.processAttackComp(ent, attComp);
+            ent.remove(attComp);
+        });
+    };
+
+    this.processAttackComp = function(ent, attComp) {
         const att = ent;
-        const def = ent.get('Attack').getTarget();
+        const def = attComp.getTarget();
         const aName = att.getName();
         const dName = def.getName();
 
@@ -53,7 +61,6 @@ System.Attack = function(compTypes) {
 
             att.getBrain().getMemory().setLastAttacked(def);
         }
-        ent.remove('Attack');
     };
 
     this.addAttackerBonus = att => {
