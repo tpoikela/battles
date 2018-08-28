@@ -79,7 +79,9 @@ RG.Component.Corporeal = UniqueTagComponent('Corporeal');
 
 /* Component used to pass damage information between systems. */
 RG.Component.Damage = TransientDataComponent('Damage', {
-    damage: 0, source: null, weapon: null, damageType: '', damageCateg: ''
+    damage: 0, weapon: null, damageType: '', damageCateg: '',
+    source: null, // Source of the damage (ie weapon)
+    sourceActor: null // Actor who did the action to cause damage
 });
 
 RG.Component.Damage.prototype._init = function(dmg, type) {
@@ -461,6 +463,15 @@ RG.Component.Paralysis = function() {
 };
 RG.extend2(RG.Component.Paralysis, RG.Component.Base);
 
+/* Component added to summoned/created actors. */
+RG.Component.Created = UniqueDataComponent('Created', {creator: null});
+
+RG.Component.Created.prototype.toJSON = function() {
+    const obj = RG.Component.Base.prototype.toJSON.call(this);
+    obj.setCreator = RG.getObjRef('entity', this.creator);
+    return obj;
+};
+
 /* MindControl component allows another actor to control the mind-controlled
  * actor. */
 RG.Component.MindControl = function() {
@@ -660,8 +671,8 @@ RG.Component.Sharpener = TagComponent('Sharpener');
 RG.Component.Sharpened = TagComponent('Sharpened');
 RG.Component.Possessed = TagComponent('Possessed');
 
-RG.Component.Flame = DataComponent('Flame',
-    {damageType: '', damage: 1});
+RG.Component.Flame = TransientDataComponent('Flame',
+    {damageType: '', damage: 1, source: null});
 
 RG.Component.Weakness = DataComponent('Weakness', {
     effect: '',
