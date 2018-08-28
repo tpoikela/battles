@@ -6,11 +6,14 @@ System.Base = require('./system.base');
 
 const handlerTable = {
     AddComp: true,
-    AddToCompValue: true,
+    ModifyCompValue: true,
     AddEntity: true,
     ChangeElement: true,
     RemoveComp: true
 };
+
+// Can be updated when addEffect() if called
+let handlerNames = Object.keys(handlerTable);
 
 System.Effects = function(compTypes) {
     System.Base.call(this, RG.SYS.Effects, compTypes);
@@ -29,10 +32,14 @@ System.Effects.prototype.updateEntity = function(ent) {
     const comps = ent.getList('Effects');
     comps.forEach(effComp => {
         const effType = effComp.getEffectType();
-        if (effType !== '') {
+        if (effType && effType !== '') {
             if (this._dtable.hasOwnProperty(effType)) {
                 this._checkMsgEmits(ent, effComp);
                 this._dtable[effType](ent, effComp);
+            }
+            else {
+                RG.err('System.Effects', 'updateEntity',
+                `Effect |${effType}| not in handler list: ${handlerNames}`);
             }
         }
         else {
@@ -83,6 +90,10 @@ System.Effects.prototype.handleAddComp = function(srcEnt, effComp) {
         });
     }
 
+    if (compToAdd && compToAdd.setSource) {
+        compToAdd.setSource(srcEnt);
+    }
+
     const dur = getDieValue(useArgs.duration);
     const expirMsg = useArgs.endMsg;
 
@@ -93,7 +104,7 @@ System.Effects.prototype.handleAddComp = function(srcEnt, effComp) {
 };
 
 /* Adds a value to an existing component value. */
-System.Effects.prototype.handleAddToCompValue = function(srcEnt, effComp) {
+System.Effects.prototype.handleModifyCompValue = function(srcEnt, effComp) {
     const useArgs = effComp.getArgs();
     const targetEnt = getEffectTarget(useArgs);
     const compName = getCompName(useArgs, targetEnt);
@@ -123,10 +134,16 @@ System.Effects.prototype.handleAddEntity = function(srcEnt, effComp) {
         if (level.addEntity(entity, x, y)) {
             if (useArgs.duration) {
                 const fadingComp = new RG.Component.Fading();
-                const {duration} = this.useArgs;
+                const {duration} = useArgs;
                 fadingComp.setDuration(duration);
                 entity.add(fadingComp);
+
             }
+            // Add the srcEnt to created entity to track its damage etc
+            // for experience and action monitoring
+            const createdComp = new RG.Component.Created();
+            createdComp.setCreator(srcEnt);
+            entity.add(createdComp);
         }
     }
 };
@@ -170,6 +187,8 @@ System.Effects.addEffect = function(effName, func) {
     if (!handlerTable.hasOwnProperty(effName)) {
         const handlerName = 'handle' + effName.capitalize();
         System.Effects.prototype[handlerName] = func;
+        handlerTable[effName] = true;
+        handlerNames = Object.keys(handlerTable);
         return true;
     }
     else {
@@ -189,7 +208,7 @@ function getCompName(useArgs, targetEnt) {
         const json = JSON.stringify(useArgs);
         let errorMsg = 'Unknown comp value. useArgs: ' + json;
         if (targetEnt) {errorMsg += ' targetEnt ' + JSON.stringify(targetEnt);}
-        RG.err('System.Effects', 'handleAddToCompValue',
+        RG.err('System.Effects', 'handleModifyCompValue',
             errorMsg);
     }
     return compName.capitalize();
