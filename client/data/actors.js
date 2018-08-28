@@ -166,6 +166,15 @@ const Actors = [
         dontCreate: true,
         enemies: ['human', 'player', 'dwarf']
     },
+    {
+        name: 'hezrou', base: 'BeastBase',
+        char: 'B', className: 'cell-actor-poison',
+        attack: 5, defense: 5, protection: 3,
+        hp: 50, danger: 11, damage: '4d4',
+        addComp: [resistance('POISON', 'IMMUNITY')],
+        brain: 'SpellCaster', spells: ['PoisonCloud'],
+        maxPP: 40, pp: 40
+    },
 
     // CONSTRUCTS ETC
     {
@@ -192,7 +201,7 @@ const Actors = [
     },
     {
         name: 'void elemental', base: 'ConstructBase',
-        color: {fg: 'Purple', bg: 'Black'},
+        color: color('Purple', 'Black'),
         char: 'E', className: 'cell-actor-void',
         attack: 7, defense: 7, protection: 7,
         hp: 60, danger: 13, damage: '5d4',
@@ -336,7 +345,7 @@ const Actors = [
     // UNDEAD
     {
         name: 'UndeadBase', className: 'cell-actor-undead',
-        color: {fg: 'White', bg: 'Black'},
+        color: color('White', 'Black'),
         dontCreate: true, addComp: 'Undead', brain: undeadBrain,
         range: 1, enemies: ['player', 'human', 'dwarf'], type: 'undead'
     },
@@ -443,7 +452,7 @@ const Actors = [
     {
         name: 'WinterBeingBase', // className: 'cell-actor-winter',
         dontCreate: true, enemies: ['player', 'human'],
-        color: {fg: 'Blue', bg: 'White'},
+        color: color('Blue', 'White'),
         addComp: ['SnowWalk', resistance('ICE', 'MEDIUM')]
     },
     {
@@ -922,7 +931,17 @@ const Actors = [
       char: '*', type: 'flame', brain: 'Flame',
       addComp: ['Ethereal', 'NonSentient',
           {comp: 'Damaging', func: {setDamageType: RG.DMG.ICE}}
-      ]
+      ],
+      onHit: [{addComp: 'Coldness', duration: '10d10'}]
+    },
+    {
+      name: 'Poison gas', className: 'cell-actor-poison', base: 'SpecialBase',
+      char: '*', type: 'flame', brain: 'Cloud',
+      color: color('Green', 'Gray'),
+      addComp: ['Ethereal', 'NonSentient',
+          {comp: 'Damaging', func: {setDamageType: RG.DMG.POISON}}
+      ],
+      poison: {duration: '1d10', damage: '1d10', prob: '0.1'}
     },
     {
       name: 'Forcefield', className: 'cell-actor-forcefield',
