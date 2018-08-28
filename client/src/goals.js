@@ -654,7 +654,16 @@ class GoalAttackActor extends GoalBase {
     }
 
     checkTargetStatus() {
-        if (this.targetActor.get('Health').isDead()) {
+        const healthComp = this.targetActor.get('Health');
+        if (!healthComp) {
+            const json = JSON.stringify(this.targetActor);
+            const attacker = JSON.stringify(this.actor);
+            console.log('Attacker: ' + attacker);
+            RG.err('GoalAttackActor', 'checkTargetStatus',
+                'target has no health: ' + json);
+        }
+
+        if (healthComp.isDead()) {
             this.removeAllSubGoals();
             this.status = GOAL_COMPLETED;
         }
