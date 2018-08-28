@@ -261,7 +261,10 @@ RG.Factory.Actor = function() {
             case 'Undead': return new RG.Brain.Undead(actor);
             case 'Zombie': return new RG.Brain.Zombie(actor);
             default: {
-                if (brainName && brainName !== '') {
+                if (RG.Brain[brainName]) {
+                    return new RG.Brain[brainName](actor);
+                }
+                else if (brainName && brainName !== '') {
                     let msg = `Warning. No brain type ${brainName} found`;
                     msg += 'Using the default Brain.Rogue instead.';
                     console.warn(msg);
