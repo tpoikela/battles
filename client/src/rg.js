@@ -777,7 +777,8 @@ RG.energy = {
     PICKUP: 5,
     REST: 5,
     RUN: 20,
-    USE: 5
+    USE: 5,
+    SPELL: 10
 };
 
 // Actor biases for different goals
@@ -1114,6 +1115,18 @@ RG.getExpRequired = (newLevel) => {
         reqExp += (i - 1) * 10;
     }
     return reqExp;
+};
+
+/* Given direction vector and source, returns a new x,y coordinate. */
+RG.newXYFromDir = (dir, src) => {
+    let [xSrc, ySrc] = [0, 0];
+    if (Array.isArray(src)) {
+        [xSrc, ySrc] = src;
+    }
+    else if (src.getX) {
+        [xSrc, ySrc] = src.getXY();
+    }
+    return [xSrc + dir[0], ySrc + dir[1]];
 };
 
 /* Returns the dX,dY of two coordinates or objects. */
