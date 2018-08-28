@@ -1269,6 +1269,10 @@ RG.Spell.RingBase = function(name, power) {
                 const duration = this._dice.duration.roll();
                 fadingComp.setDuration(duration);
                 fire.add(fadingComp);
+
+                const created = new RG.Component.Created();
+                created.setCreator(this._caster);
+                fire.add(created);
             }
         });
     };
