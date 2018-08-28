@@ -286,19 +286,20 @@ RG.Brain.Base = function(actor) {
     this._actor = actor;
     this._type = null;
 
-    this.setActor = actor => {this._actor = actor;};
+    this.setActor = (actor) => {this._actor = actor;};
     this.getActor = () => this._actor;
     this.getType = () => this._type;
-    this.setType = type => {this._type = type;};
+    this.setType = (type) => {this._type = type;};
 
     this.getMemory = () => NO_MEMORY;
 
     /* Main function for retrieving the actionable callback. Acting actor must
      * be passed in. */
-    this.decideNextAction = function() {
-      RG.err('Brain.Base', 'decideNextAction',
-          'Not implemented. Do in derived class');
-    };
+};
+
+RG.Brain.Base.prototype.decideNextAction = function() {
+    RG.err('Brain.Base', 'decideNextAction',
+        'Not implemented. Do in derived class');
 };
 
 RG.Brain.Base.prototype.toJSON = function() {
@@ -310,9 +311,12 @@ RG.Brain.Base.prototype.toJSON = function() {
 RG.Brain.NonSentient = function(actor) {
     RG.Brain.Base.call(this, actor);
     this.setType('NonSentient');
-    this.decideNextAction = () => NO_ACTION_TAKEN;
 };
 RG.extend2(RG.Brain.NonSentient, RG.Brain.Base);
+
+RG.Brain.NonSentient.prototype.decideNextAction = function() {
+    return NO_ACTION_TAKEN;
+};
 
 /* Brain is used by the AI to perform and decide on actions. Brain returns
  * actionable callbacks but doesn't know Action objects.  */
@@ -364,14 +368,14 @@ RG.Brain.Rogue = function(actor) {
         return false;
     };
 
-    /* Main function for retrieving the actionable callback. Acting actor must
-     * be passed in. */
-    this.decideNextAction = function() {
-        this._seenCached = null;
-        return BTree.startBehavTree(Models.Rogue.tree, this._actor)[0];
-    };
 
 }; // RogueBrain
+
+/* Main function for retrieving the actionable callback. */
+RG.Brain.Rogue.prototype.decideNextAction = function() {
+    this._seenCached = null;
+    return BTree.startBehavTree(Models.Rogue.tree, this._actor)[0];
+};
 
 // Returns cells seen by this actor
 RG.Brain.Rogue.prototype.getSeenCells = function() {
@@ -698,11 +702,6 @@ RG.Brain.Summoner = function(actor) {
 
     this._memory.addEnemyType('player');
 
-    this.decideNextAction = function() {
-        this._seenCached = null;
-        return BTree.startBehavTree(Models.Summoner.tree, this._actor)[0];
-    };
-
     /* Returns true if the summoner will summon on this action. */
     this.willSummon = function() {
         if (this.numSummoned === this.maxSummons) {return false;}
@@ -737,6 +736,12 @@ RG.Brain.Summoner = function(actor) {
 
 };
 RG.extend2(RG.Brain.Summoner, RG.Brain.Rogue);
+
+RG.Brain.Summoner.prototype.decideNextAction = function() {
+    this._seenCached = null;
+    return BTree.startBehavTree(Models.Summoner.tree, this._actor)[0];
+};
+
 
 /* This brain is used by humans who are not hostile to the player.*/
 RG.Brain.Human = function(actor) {
@@ -774,11 +779,6 @@ RG.Brain.Human = function(actor) {
 
     };
 
-    this.decideNextAction = function() {
-        this._seenCached = null;
-        return BTree.startBehavTree(Models.Human.tree, actor)[0];
-    };
-
     this.communicateEnemies = function() {
         const memory = this.getMemory();
         const enemies = memory.getEnemies();
@@ -798,19 +798,25 @@ RG.Brain.Human = function(actor) {
 };
 RG.extend2(RG.Brain.Human, RG.Brain.Rogue);
 
+RG.Brain.Human.prototype.decideNextAction = function() {
+    this._seenCached = null;
+    return BTree.startBehavTree(Models.Human.tree, this._actor)[0];
+};
+
 /* Brain object used by Spirit objects.*/
 RG.Brain.Spirit = function(actor) {
     RG.Brain.Rogue.call(this, actor);
     this.setType('Spirit');
 
-    /* Returns the next action for the spirit.*/
-    this.decideNextAction = function() {
-        this._seenCached = null;
-        const seenCells = this.getSeenCells();
-        return this.exploreLevel(seenCells);
-    };
 };
 RG.extend2(RG.Brain.Spirit, RG.Brain.Rogue);
+
+/* Returns the next action for the spirit.*/
+RG.Brain.Spirit.prototype.decideNextAction = function() {
+    this._seenCached = null;
+    const seenCells = this.getSeenCells();
+    return this.exploreLevel(seenCells);
+};
 
 /* Brain object used by archers. */
 RG.Brain.Archer = function(actor) {
@@ -869,17 +875,17 @@ RG.Brain.SpellCaster = function(actor) {
     this.goal.setBias({CastSpell: 2.0, AttackActor: 0.7});
     this.goal.getEvaluator('CastSpell').setCastingProbability(0.8);
 
-    this.decideNextAction = function() {
-        this._seenCached = null;
-        this.goal.process();
-        return ACTION_ALREADY_DONE;
-    };
-
     this.getGoal = () => this.goal;
     this.setGoal = goal => {this.goal = goal;};
 
 };
 RG.extend2(RG.Brain.SpellCaster, RG.Brain.Rogue);
+
+RG.Brain.SpellCaster.prototype.decideNextAction = function() {
+    this._seenCached = null;
+    this.goal.process();
+    return ACTION_ALREADY_DONE;
+};
 
 /* Brain object for testing goal-based actors. */
 RG.Brain.GoalOriented = function(actor) {
@@ -887,24 +893,24 @@ RG.Brain.GoalOriented = function(actor) {
     this.setType('GoalOriented');
     this.goal = new GoalsTop.ThinkBasic(actor);
 
-    /* Must return function. */
-    this.decideNextAction = function() {
-        this._seenCached = null;
-        this.goal.process();
-        return ACTION_ALREADY_DONE;
-    };
-
     this.getGoal = () => this.goal;
     this.setGoal = goal => {this.goal = goal;};
 
-    this.toJSON = function() {
-        const json = RG.Brain.Rogue.prototype.toJSON.call(this);
-        json.goal = this.goal.toJSON();
-        return json;
-    };
-
 };
 RG.extend2(RG.Brain.GoalOriented, RG.Brain.Rogue);
+
+/* Must return function. */
+RG.Brain.GoalOriented.prototype.decideNextAction = function() {
+    this._seenCached = null;
+    this.goal.process();
+    return ACTION_ALREADY_DONE;
+};
+
+RG.Brain.GoalOriented.prototype.toJSON = function() {
+    const json = RG.Brain.Rogue.prototype.toJSON.call(this);
+    json.goal = this.goal.toJSON();
+    return json;
+};
 
 /* Brain-object for animals. */
 RG.Brain.Animal = function(actor) {
@@ -914,18 +920,19 @@ RG.Brain.Animal = function(actor) {
     this._memory.addEnemyType('player');
     this._memory.addEnemyType('human');
 
-    /* Must return function. */
-    this.decideNextAction = function() {
-        this._seenCached = null;
-        this.goal.process();
-        return ACTION_ALREADY_DONE;
-    };
-
     this.getGoal = () => this.goal;
     this.setGoal = goal => {this.goal = goal;};
 
 };
 RG.extend2(RG.Brain.Animal, RG.Brain.Rogue);
+
+/* Must return function. */
+RG.Brain.Animal.prototype.decideNextAction = function() {
+    this._seenCached = null;
+    this.goal.process();
+    return ACTION_ALREADY_DONE;
+};
+
 
 /* Brain object for testing goal-based actors. */
 RG.Brain.Commander = function(actor) {
@@ -933,51 +940,69 @@ RG.Brain.Commander = function(actor) {
     this.setType('Commander');
     this.goal = new GoalsTop.ThinkCommander(actor);
 
-    /* Must return function. */
-    this.decideNextAction = function() {
-        this._seenCached = null;
-        this.goal.process();
-        return ACTION_ALREADY_DONE;
-    };
-
     this.getGoal = () => this.goal;
     this.setGoal = goal => {this.goal = goal;};
 
 };
 RG.extend2(RG.Brain.Commander, RG.Brain.Rogue);
 
-/* Simple brain used by the non-moving flame elements. */
+/* Must return function. */
+RG.Brain.Commander.prototype.decideNextAction = function() {
+    this._seenCached = null;
+    this.goal.process();
+    return ACTION_ALREADY_DONE;
+};
+
+/* Simple brain used by the non-moving flame elements. They emit damage
+ * components in the cells they are located in. */
 RG.Brain.Flame = function(actor) {
     RG.Brain.Rogue.call(this, actor);
     this.setType('Flame');
 
-    this.decideNextAction = function() {
-        const cell = this._actor.getCell();
-        const actors = cell.getActors();
-        actors.forEach(actor => {
-            const damaging = this.getActor().get('Damaging');
-            if (damaging) {
-                const flameComp = new RG.Component.Flame();
-                flameComp.setDamageType(damaging.getDamageType());
-                actor.add(flameComp);
-            }
-        });
-        return ACTION_ALREADY_DONE;
-    };
 };
 RG.extend2(RG.Brain.Flame, RG.Brain.Rogue);
 
+RG.Brain.Flame.prototype.decideNextAction = function() {
+    const cell = this._actor.getCell();
+    const actors = cell.getActors();
+    actors.forEach(actor => {
+        const damaging = this.getActor().get('Damaging');
+        if (damaging) {
+            const flameComp = new RG.Component.Flame();
+            flameComp.setSource(this._actor);
+            flameComp.setDamageType(damaging.getDamageType());
+            actor.add(flameComp);
+        }
+    });
+    return ACTION_ALREADY_DONE;
+};
 
+/* Brain for non-sentient clouds. Same as Flame, except moves first
+ * randomly and then emits the damage. */
+RG.Brain.Cloud = function(actor) {
+    RG.Brain.Flame.call(this, actor);
+    this.setType('Cloud');
+    this.chanceToMove = 0.2;
+};
+RG.extend2(RG.Brain.Cloud, RG.Brain.Flame);
+
+RG.Brain.Cloud.prototype.decideNextAction = function() {
+    if (RNG.getUniform() <= this.chanceToMove) {
+        const dir = RNG.getRandDir();
+        const [newX, newY] = RG.newXYFromDir(dir, this._actor);
+        const level = this._actor.getLevel();
+        const movComp = new RG.Component.Movement(newX, newY, level);
+        this._actor.add(movComp);
+    }
+    return RG.Brain.Flame.prototype.decideNextAction.call(this);
+};
+
+/* This brain switched for player-controlled actors when MindControl
+ * is cast on them. It acts as "paralysis" at the moment. */
 RG.Brain.MindControl = function(actor) {
     RG.Brain.Rogue.call(this, actor);
     this.setType('MindControl');
     this.goal = new GoalsTop.ThinkBasic(actor);
-
-    this.decideNextAction = function() {
-        // At the moment does nothing, it could attack the
-        // enemies of the source of MindControl
-        return ACTION_ALREADY_DONE;
-    };
 
     this.getGoal = () => this.goal;
     this.setGoal = goal => {this.goal = goal;};
@@ -985,5 +1010,10 @@ RG.Brain.MindControl = function(actor) {
 };
 RG.extend2(RG.Brain.MindControl, RG.Brain.Rogue);
 
+RG.Brain.MindControl.prototype.decideNextAction = function() {
+    // At the moment does nothing, it could attack the
+    // enemies of the source of MindControl
+    return ACTION_ALREADY_DONE;
+};
 
 module.exports = RG.Brain;
