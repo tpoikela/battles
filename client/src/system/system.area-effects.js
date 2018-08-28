@@ -6,7 +6,6 @@ System.Base = require('./system.base');
 
 System.AreaEffects = function(compTypes) {
     System.Base.call(this, RG.SYS.AREA_EFFECTS, compTypes);
-
     this.radRange = 1;
 
     this.updateEntity = function(ent) {
@@ -18,7 +17,13 @@ System.AreaEffects = function(compTypes) {
                 const dmgType = flameComp.getDamageType();
                 const dmgComp = new RG.Component.Damage(flameComp.getDamage(),
                     dmgType);
-                dmgComp.setSource(RG.NO_DAMAGE_SRC);
+
+                const flameSrc = flameComp.getSource();
+                dmgComp.setSource(flameSrc);
+                if (flameSrc.has('Created')) {
+                    const srcActor = flameSrc.get('Created').getCreator();
+                    dmgComp.setSourceActor(srcActor);
+                }
                 ent.add(dmgComp);
                 ent.remove(flameComp);
                 if (dmgType === RG.DMG.FIRE) {isFire = true;}
