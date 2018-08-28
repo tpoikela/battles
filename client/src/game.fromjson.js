@@ -626,8 +626,9 @@ RG.Game.FromJSON = function() {
             this.setChunkMode(true);
         }
 
-        const allLevels = [];
+        RG.Component.idCount = gameJSON.lastComponentID;
 
+        const allLevels = [];
         const levelsToRestore = this.getLevelsToRestore(gameJSON);
 
         // Levels must be created before the actual world, because the World
@@ -677,7 +678,6 @@ RG.Game.FromJSON = function() {
         // IDs will appear when new levels/entities are created
         RG.Map.Level.idCount = gameJSON.lastLevelID;
         Entity.idCount = gameJSON.lastEntityID;
-        RG.Component.idCount = gameJSON.lastComponentID;
 
         if (debug.enabled) {
             this.dbg(`Restored level ID count to ${RG.Map.Level.idCount}`);
