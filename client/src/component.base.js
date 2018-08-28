@@ -51,8 +51,13 @@ RG.Component.TagComponent = TagComponent;
 
 const DataComponent = (type, members, compAttrib = {}) => {
     errorIfCompDeclExists(type);
+    if (typeof type !== 'string') {
+        const json = JSON.stringify(type);
+        RG.err('component.base.js', 'DataComponent: NO TYPE GIVEN',
+            'First arg must be string! Got: |' + json + '|');
+    }
     if (typeof members !== 'object' || Array.isArray(members)) {
-        RG.err('component.js', `DataComponent: ${type}`,
+        RG.err('component.base.js', `DataComponent: ${type}`,
             'Members must be given as key/value pairs.');
     }
 
