@@ -133,13 +133,14 @@ RG.Effects = {
             },
         },
 
-        // Adds a value to specified component value.
-        // Given use: {addToCompValue: {name: 'Health', set: 'setHP', get:
+        // Modifies specified component value.
+        // Given use: {modifyCompValue: {name: 'Health', set: 'setHP', get:
         // 'getHP', value: -1}},
         // one can be subtracted from hp of Health component.
         {
-            name: 'addToCompValue',
+            name: 'modifyCompValue',
             requires: ['name', 'set', 'get', 'value'],
+            optional: ['op'],
             func: function(obj) {
                 const effArgs = {
                     target: obj,
@@ -147,7 +148,7 @@ RG.Effects = {
                     name: this.useArgs.name,
                     set: this.useArgs.set, get: this.useArgs.get,
                     value: this.useArgs.value,
-                    effectType: 'AddToCompValue'
+                    effectType: 'ModifyCompValue'
                 };
                 createUseItemComp(this, obj, effArgs);
                 return true;
@@ -286,7 +287,7 @@ RG.Effects = {
                     set: 'set' + this.useArgs.statName,
                     get: 'get' + this.useArgs.statName,
                     value: this.useArgs.value,
-                    effectType: 'AddToCompValue'
+                    effectType: 'ModifyCompValue'
                 };
                 createUseItemComp(this, obj, effArgs);
                 return true;
