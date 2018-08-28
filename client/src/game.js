@@ -64,6 +64,7 @@ RG.Game.Main = function() {
     this._engine.isGameOver = this.isGameOver;
 
     this.getLevels = () => this._engine.getLevels();
+    this.getComponents = () => this._engine.getComponents();
     this.getPlaces = () => this._places;
 
     this.setEnableChunkUnload = (enable = true) => {
