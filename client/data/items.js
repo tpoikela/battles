@@ -740,13 +740,13 @@ const Items = [
     },
     {
         name: 'Potion of power', base: 'PotionBase',
-        use: {addToCompValue: {name: 'SpellPower', set: 'setPP',
+        use: {modifyCompValue: {name: 'SpellPower', set: 'setPP',
             get: 'getPP', value: '1d10 + 2'}
         }, value: value(50)
     },
     {
         name: 'Potion of nourishment', base: 'PotionBase',
-        use: {addToCompValue: {name: 'Hunger', set: 'setEnergy',
+        use: {modifyCompValue: {name: 'Hunger', set: 'setEnergy',
             get: 'getEnergy', value: '10000'}
         }, value: value(50)
     },
@@ -780,7 +780,7 @@ const Items = [
     },
     {
         name: 'Potion of mana', base: 'PotionBase',
-        use: {addToCompValue: {name: 'SpellPower', set: 'setPP',
+        use: {modifyCompValue: {name: 'SpellPower', set: 'setPP',
             get: 'getPP', value: '6d5 + 5'}
         }, value: value(150)
     },
@@ -950,9 +950,29 @@ const Items = [
         value: value('rune', 100)
     },
     {
+        name: 'rune of ice flames', base: 'RuneBase',
+        use: {addEntity: {entityName: 'Ice flame', duration: 100}},
+        value: value('rune', 150)
+    },
+    {
         name: 'rune of tunneling', base: 'RuneBase',
         use: 'digger',
         value: value('rune', 150)
+    },
+    {
+        name: 'rune of poison clouds', base: 'RuneBase',
+        use: {addEntity: {entityName: 'Poison gas', duration: 30}},
+        value: value('rune', 150)
+    },
+    {
+        name: 'rune of venom', base: 'RuneBase',
+        use: {poison: {duration: '4d6 + 5', damage: '1d8 + 2', prob: '0.2'}},
+        value: value('rune', 150)
+    },
+    {
+        name: 'rune of control', base: 'RuneBase',
+        use: {addComp: {name: 'MindControl', duration: '1d4 + 2'}},
+        value: value('rune', 250)
     },
 
     // MINERALS
