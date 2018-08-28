@@ -1303,6 +1303,14 @@ RG.Spell.RingOfEnergy = function() {
 };
 RG.extend2(RG.Spell.RingOfEnergy, RG.Spell.RingBase);
 
+RG.Spell.PoisonCloud = function() {
+    RG.Spell.RingBase.call(this, 'PoisonCloud', 15);
+    this._dice.duration = RG.FACT.createDie('10d10');
+    this._range = 1;
+    this._createdActor = 'Poison gas';
+};
+RG.extend2(RG.Spell.PoisonCloud, RG.Spell.RingBase);
+
 RG.Spell.ForceField = function() {
     RG.Spell.Base.call(this, 'ForceField', 5);
     this._dice.duration = RG.FACT.createDie('10d10');
@@ -1395,6 +1403,7 @@ RG.Spell.addAllSpells = book => {
     book.addSpell(new RG.Spell.MagicArmor());
     book.addSpell(new RG.Spell.MindControl());
     book.addSpell(new RG.Spell.Paralysis());
+    book.addSpell(new RG.Spell.PoisonCloud());
     book.addSpell(new RG.Spell.PowerDrain());
     book.addSpell(new RG.Spell.RingOfEnergy());
     book.addSpell(new RG.Spell.RingOfFire());
