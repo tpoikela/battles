@@ -121,10 +121,12 @@ describe('RG.DataComponent', () => {
     });
 
     it('cannot overwrite Component.Base methods', () => {
+        /* eslint-disable */
         let Immunity = null;
         const createFunc = () => {
             Immunity = DataComponent('Immunity', ['type']);
         };
+        /* eslint-enable */
         expect(createFunc).to.throw(Error);
     });
 
@@ -206,5 +208,20 @@ describe('Component.Expiration', () => {
         expect(Object.values(duration)).to.have.length(1);
         expect(Object.values(duration2)).to.have.length(1);
 
+    });
+});
+
+describe('Component.AddOnHit', () => {
+    it('can be used to add other comps to actors', () => {
+        const compHit = new RG.Component.AddOnHit();
+        const poisonComp = new RG.Component.Poison();
+        poisonComp.setDurationDie('1d8');
+        poisonComp.setDamageDie('1d6 + 5');
+        compHit.setComp(poisonComp);
+
+        const poisonJSON = poisonComp.toJSON();
+        const json = compHit.toJSON();
+        const expJSON = {createComp: poisonJSON};
+        expect(json.setComp).to.deep.equal(expJSON);
     });
 });
