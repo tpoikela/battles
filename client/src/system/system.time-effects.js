@@ -72,9 +72,9 @@ System.TimeEffects = function(compTypes) {
         }
         else if (RG.isSuccess(poison.getProb())) {
             const poisonDmg = poison.rollDamage();
-            const dmg = new RG.Component.Damage(poisonDmg, RG.DMG.POISON);
-            dmg.setSource(poison.getSource());
-            ent.add('Damage', dmg);
+            const dmgComp = new RG.Component.Damage(poisonDmg, RG.DMG.POISON);
+            dmgComp.setSource(poison.getSource());
+            ent.add(dmgComp);
         }
     };
 
