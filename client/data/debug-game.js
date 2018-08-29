@@ -192,6 +192,12 @@ DebugGame.prototype.create = function(obj, game, player) {
     itemRand.adjustItem(runeOfPoisonClouds, 150);
     player.getInvEq().addItem(runeOfPoisonClouds);
 
+    const voidDagger = parser.createItem('Void dagger');
+    player.getInvEq().addItem(voidDagger);
+
+    player.getInvEq().unequipItem('hand', 1, 0);
+    player.getInvEq().equipItem(voidDagger);
+
     return game;
 };
 
