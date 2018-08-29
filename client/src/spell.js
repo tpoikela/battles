@@ -49,7 +49,8 @@ const poisonActor = (actor, src, dur, dmgDie, prob) => {
     actor.add(expiration);
 };
 
-/* Called at the end of AI querying if spell should be cast. */
+/* Called at the end of AI querying if spell targeting a cell next to
+ * it should be cast. */
 const aiSpellCellDone = (actor, target, cb) => {
     const dir = [target.getX() - actor.getX(),
         target.getY() - actor.getY()
@@ -58,6 +59,11 @@ const aiSpellCellDone = (actor, target, cb) => {
     cb(actor, newArgs);
 };
 
+/* Used to determine if AI should attack enemy adjacent to it with a spell.
+ * By default, picks strongest enemy based on HP, but args.compFunc can be
+ * given to use custom function. Callback cb will be called eventually with
+ * cb(actor, {dir: [x, y], src: actor}).
+ */
 const aiSpellCellEnemy = (args, cb) => {
     const {actor, actorCellsAround} = args;
     let strongest = null;
