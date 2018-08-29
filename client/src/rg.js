@@ -869,6 +869,7 @@ RG.dxdYToDir = function(dXdY) {
 };
 
 RG.DMG = {
+    ACID: 'ACID',
     BLUNT: 'BLUNT',
     COLD: 'COLD',
     ENERGY: 'ENERGY',
@@ -879,9 +880,11 @@ RG.DMG = {
     MAGIC: 'MAGIC',
     MELEE: 'MELEE',
     MISSILE: 'MISSILE',
+    NECRO: 'NECRO',
     PIERCE: 'PIERCE',
     POISON: 'POISON',
-    SLASH: 'SLASH'
+    SLASH: 'SLASH',
+    VOID: 'VOID'
 };
 
 RG.STATS = [
