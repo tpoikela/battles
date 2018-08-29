@@ -6,6 +6,7 @@ System.Base = require('./system.base');
 
 const NO_DAMAGE_SRC = RG.NO_DAMAGE_SRC;
 const RNG = RG.Random.getRNG();
+
 const {addCompToEntAfterHit} = System.Base;
 
 /* Processes entities with damage component.*/
@@ -15,60 +16,64 @@ System.Damage = function(compTypes) {
     this.updateEntity = ent => {
         const dmgComps = ent.getList('Damage');
         dmgComps.forEach(dmgComp => {
-            const health = ent.get('Health');
-            if (health) {
-                let totalDmg = this._getDamageModified(ent, dmgComp);
-
-                // Check if any damage was done at all
-                if (totalDmg <= 0) {
-                    totalDmg = 0;
-                    const msg = "Attack doesn't penetrate protection of "
-                        + ent.getName();
-                    RG.gameMsg({msg, cell: ent.getCell()});
-                }
-                else {
-                    _applyAddOnHitComp(ent, dmgComp);
-                    health.decrHP(totalDmg);
-                    if (this.debugEnabled) {
-                        const hpMax = health.getMaxHP();
-                        const hp = health.getHP();
-                        const msg = `(${totalDmg}),(${hp}/${hpMax})`;
-                        RG.gameDanger({msg, cell: ent.getCell()});
-                    }
-                }
-
-                const damageSrc = this._getUltimateDmgSource(dmgComp);
-                if (damageSrc && (ent.getID() !== damageSrc.getID())) {
-                    ent.addEnemy(damageSrc);
-                }
-
-                if (health.isDead() && !ent.has('Dead')) {
-                    if (ent.has('Loot')) {
-                        const entCell = ent.getCell();
-                        ent.get('Loot').dropLoot(entCell);
-                    }
-                    _dropInvAndEq(ent);
-
-                    this._killActor(damageSrc, ent, dmgComp);
-                }
-
-                // Emit ACTOR_DAMAGED
-                // Emitted only for player for efficiency reasons
-
-                if (damageSrc) {
-                    if (damageSrc.isPlayer() || ent.isPlayer()) {
-                        if (!RG.isNullOrUndef([damageSrc, ent])) {
-                            const evtComp = new RG.Component.Event();
-                            evtComp.setArgs({type: RG.EVT_ACTOR_DAMAGED,
-                                cause: damageSrc});
-                            ent.add(evtComp);
-                        }
-                    }
-                }
-
-                ent.remove(dmgComp); // After dealing damage, remove comp
-            }
+            this.processDamageComp(ent, dmgComp);
+            ent.remove(dmgComp); // After dealing damage, remove comp
         });
+    };
+
+    this.processDamageComp = function(ent, dmgComp) {
+        const health = ent.get('Health');
+        if (health) {
+            let totalDmg = this._getDamageModified(ent, dmgComp);
+
+            // Check if any damage was done at all
+            if (totalDmg <= 0) {
+                totalDmg = 0;
+                const msg = "Attack doesn't penetrate protection of "
+                    + ent.getName();
+                RG.gameMsg({msg, cell: ent.getCell()});
+            }
+            else {
+                _applyAddOnHitComp(ent, dmgComp);
+                health.decrHP(totalDmg);
+                if (this.debugEnabled) {
+                    const hpMax = health.getMaxHP();
+                    const hp = health.getHP();
+                    const msg = `(${totalDmg}),(${hp}/${hpMax})`;
+                    RG.gameDanger({msg, cell: ent.getCell()});
+                }
+            }
+
+            const damageSrc = this._getUltimateDmgSource(dmgComp);
+            if (damageSrc && (ent.getID() !== damageSrc.getID())) {
+                ent.addEnemy(damageSrc);
+            }
+
+            if (health.isDead() && !ent.has('Dead')) {
+                if (ent.has('Loot')) {
+                    const entCell = ent.getCell();
+                    ent.get('Loot').dropLoot(entCell);
+                }
+                _dropInvAndEq(ent);
+
+                this._killActor(damageSrc, ent, dmgComp);
+            }
+
+            // Emit ACTOR_DAMAGED
+            // Emitted only for player for efficiency reasons
+
+            if (damageSrc) {
+                if (damageSrc.isPlayer() || ent.isPlayer()) {
+                    if (!RG.isNullOrUndef([damageSrc, ent])) {
+                        const evtComp = new RG.Component.Event();
+                        evtComp.setArgs({type: RG.EVT_ACTOR_DAMAGED,
+                            cause: damageSrc});
+                        ent.add(evtComp);
+                    }
+                }
+            }
+        }
+
     };
 
     this._getUltimateDmgSource = function(dmgComp) {
@@ -254,7 +259,6 @@ System.Damage = function(compTypes) {
             }
         });
 
-        // TODO remove equipped items and drop to ground.
         const eqItems = invEq.getEquipment().getItems();
         eqItems.forEach(item => {
             actorLevel.addItem(item, x, y);
@@ -361,5 +365,6 @@ System.Damage = function(compTypes) {
 
 };
 RG.extend2(System.Damage, System.Base);
+
 
 module.exports = System.Damage;
