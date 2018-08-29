@@ -5,6 +5,7 @@ const System = {};
 System.Base = require('./system.base');
 
 const {addSkillsExp} = System.Base;
+const {addCompToEntAfterHit} = System.Base;
 const RNG = RG.Random.getRNG();
 
 /* Processes entities with attack-related components.*/
@@ -96,6 +97,7 @@ System.Attack = function(compTypes) {
                 RG.gameMsg({cell: att.getCell,
                     msg: aName + ' fails to hurt ' + dName});
             }
+            this._applyAddOnHitComp(att, def);
         }
         else {
             this.checkForShieldSkill(hitThreshold, totalAtt, totalDef, def);
@@ -175,6 +177,34 @@ System.Attack = function(compTypes) {
                 addSkillsExp(def, 'Shields', 1);
             }
         }
+    };
+
+    this._applyAddOnHitComp = (att, def) => {
+        const weapon = att.getWeapon();
+        if (weapon && weapon.has) { // Attack was done using weapon
+            if (weapon.has('AddOnHit')) {
+                const addOnHit = weapon.get('AddOnHit');
+                if (addOnHit.getOnAttackHit()) {
+                    const comp = addOnHit.getComp();
+                    addCompToEntAfterHit(comp, def);
+                }
+            }
+        }
+        else if (weapon && weapon.onAttackHit) {
+            const src = att;
+            weapon.onAttackHit(def, src);
+        }
+        else { // No weapon was used
+            const src = att;
+            if (src && src.has('AddOnHit')) {
+                const addOnHit = src.get('AddOnHit');
+                if (addOnHit.getOnAttackHit()) {
+                    const comp = addOnHit.getComp();
+                    addCompToEntAfterHit(comp, def);
+                }
+            }
+        }
+
     };
 
 };
