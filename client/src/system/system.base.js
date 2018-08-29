@@ -120,7 +120,8 @@ SystemBase.addCompToEntAfterHit = function addCompToEntAfterHit(comp, ent) {
         ent.add('Expiration', expiration);
     }
 
-    ent.add(compClone.getType(), compClone);
+    ent.add(compClone);
 };
+
 
 module.exports = SystemBase;
