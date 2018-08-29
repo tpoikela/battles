@@ -660,7 +660,6 @@ describe('Data query functions for objects', function() {
         const runeProt = parser.createEntity('rune of protection');
         expect(runeProt).to.have.property('useItem');
         expect(runeProt).to.have.property('useArgs');
-        console.log(runeProt.useArgs);
         expect(runeProt.useArgs).to.have.property('setters');
     });
 
@@ -684,6 +683,18 @@ describe('Data query functions for objects', function() {
         expect(weakness.getEffect()).to.equal(RG.DMG.MAGIC);
         expect(weakness.getLevel()).to.equal(RG.WEAKNESS.FATAL);
     });
+
+    it('can create boneclaw wit addOnHit', function() {
+        const boneclaw = parser.createActor('boneclaw');
+        const addOnHit = boneclaw.get('AddOnHit');
+        expect(addOnHit.getOnDamage()).to.equal(false);
+        expect(addOnHit.getOnAttackHit()).to.equal(true);
+
+        const ddComp = addOnHit.getComp();
+        expect(ddComp.getType()).to.equal('DirectDamage');
+        expect(ddComp.getDamageType()).to.equal(RG.DMG.NECRO);
+    });
+
 });
 
     it('It should detect invalid object shells', () => {
