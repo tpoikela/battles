@@ -6,10 +6,9 @@ RG.Element = require('./element.js');
 RG.Map = {};
 RG.Map.Cell = require('./map.cell');
 
-/* Map cell list object which contains a number of cells. A map is used for
- * rendering
- * while the level contains actual information about game elements such as
- * monsters and items.  */
+/* Map cell list object which contains a number of cells. Map.CellList is used
+ * for rendering while the Map.Level contains high-level information about
+ * game objects such as actors, items and elements (stairs/traps). */
 RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) {
     this._map = [];
     this.cols = cols;
