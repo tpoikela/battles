@@ -247,6 +247,10 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
             this.addOnHitProperties(shell, newObj);
         }
 
+        if (shell.hasOwnProperty('onAttackHit')) {
+            this.addOnAttackHitProperties(shell, newObj);
+        }
+
         // TODO map different props to function calls
         return newObj;
     };
@@ -269,44 +273,59 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
     /* Adds any component as AddOnHit property. */
     this.addOnHitProperties = (shell, obj) => {
         shell.onHit.forEach(onHit => {
-            if (onHit.addComp) {
-                const comp = this.createComponent(onHit.addComp);
-                if (comp.setSource) {comp.setSource(obj);}
-
-                // Set the values of added component using functions provided in
-                // func array
-                if (Array.isArray(onHit.func)) {
-                    onHit.func.forEach(func => {
-                        if (typeof comp[func.setter] === 'function') {
-                            comp[func.setter](func.value);
-                        }
-                        else {
-                            const str = comp.toJSON();
-                            RG.err('ObjectShellParser', 'addOnHitProperties',
-                                `Not a func: ${func.setter} in comp ${str}`);
-                        }
-                    });
-                }
-
-                // Then create the AddOnHit component and wrap the original
-                // component into Duration to make it transient
-                const addedComp = comp;
-                const addOnHit = new RG.Component.AddOnHit();
-                if (onHit.duration) {
-                    const arr = RG.parseDieSpec(onHit.duration);
-                    const durDie = new RG.Die(arr[0], arr[1], arr[2]);
-                    const durComponent = new RG.Component.Duration();
-                    durComponent.setDurationDie(durDie);
-                    durComponent.setComp(addedComp);
-                    addOnHit.setComp(durComponent);
-                }
-                else {
-                    addOnHit.setComp(addedComp);
-                }
-                obj.add('AddOnHit', addOnHit);
-            }
+            this.processAddComp(onHit, obj);
         });
     };
+
+    this.addOnAttackHitProperties = (shell, obj) => {
+        shell.onAttackHit.forEach(onHit => {
+            const addOnHitComp = this.processAddComp(onHit, obj);
+            addOnHitComp.setOnDamage(false);
+            addOnHitComp.setOnAttackHit(true);
+        });
+    };
+
+    this.processAddComp = (onHit, obj) => {
+        if (onHit.addComp) {
+            const comp = this.createComponent(onHit.addComp);
+            if (comp.setSource) {comp.setSource(obj);}
+
+            // Set the values of added component using functions provided in
+            // func array
+            if (Array.isArray(onHit.func)) {
+                onHit.func.forEach(func => {
+                    if (typeof comp[func.setter] === 'function') {
+                        comp[func.setter](func.value);
+                    }
+                    else {
+                        const str = comp.toJSON();
+                        RG.err('ObjectShellParser', 'addOnHitProperties',
+                            `Not a func: ${func.setter} in comp ${str}`);
+                    }
+                });
+            }
+
+            // Then create the AddOnHit component and wrap the original
+            // component into Duration to make it transient
+            const addedComp = comp;
+            const addOnHit = new RG.Component.AddOnHit();
+            if (onHit.duration) {
+                const arr = RG.parseDieSpec(onHit.duration);
+                const durDie = new RG.Die(arr[0], arr[1], arr[2]);
+                const durComponent = new RG.Component.Duration();
+                durComponent.setDurationDie(durDie);
+                durComponent.setComp(addedComp);
+                addOnHit.setComp(durComponent);
+            }
+            else {
+                addOnHit.setComp(addedComp);
+            }
+            obj.add(addOnHit);
+            return addOnHit;
+        }
+        return null;
+    };
+
 
     this.addEnemies = (shell, obj) => {
         shell.enemies.forEach(enemyType => {
