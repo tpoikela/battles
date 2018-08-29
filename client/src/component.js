@@ -89,6 +89,21 @@ RG.Component.Damage.prototype._init = function(dmg, type) {
     this.damageType = type;
 };
 
+/* In contrast to Damage (which is transient), DirectDamage can be
+ * combined with Comp.AddOnHit to inflict additional damage
+ * to an actor. */
+RG.Component.DirectDamage = DataComponent('DirectDamage', {
+    damage: 0, damageType: '', damageCateg: '', prob: 1.0,
+    source: null
+});
+
+
+RG.Component.DirectDamage.prototype.toJSON = function() {
+    const obj = RG.Component.Base.prototype.toJSON.call(this);
+    obj.setSource = RG.getObjRef('entity', this.source);
+    return obj;
+};
+
 /* Component to tag entities that block light from passing through. */
 RG.Component.Opaque = UniqueTagComponent('Opaque');
 
@@ -1006,15 +1021,12 @@ RG.Component.Reputation = function() {
 };
 RG.extend2(RG.Component.Reputation, RG.Component.Base);
 
-RG.Component.Event = function(args) {
-    RG.Component.Base.call(this, 'Event');
-    let _args = args;
+/* Component used to pass data between systems. */
+RG.Component.Event = TransientDataComponent('Event', {args: null});
 
-    this.getArgs = () => _args;
-    this.setArgs = args => {_args = args;};
-
+RG.Component.Event.prototype._init = function(args) {
+    this.args = args;
 };
-RG.extend2(RG.Component.Event, RG.Component.Base);
 
 RG.Component.Effects = TransientDataComponent('Effects',
     {args: null, effectType: ''}
@@ -1033,33 +1045,32 @@ RG.Component.Player = UniqueTagComponent('Player');
 // Comps that add or remove other components
 //--------------------------------------------
 
-RG.Component.AddOnHit = function() {
-    RG.Component.Base.call(this, 'AddOnHit');
-    let _comp = null;
+RG.Component.AddOnHit = DataComponent('AddOnHit', {
+    comp: null,
+    onDamage: true, // Apply when damage is dealt
+    onAttackHit: false // Apply on successful hit (damage irrelevant)
+});
 
-    this.setComp = comp => {_comp = comp;};
-    this.getComp = () => _comp;
-
-    this.toJSON = () => {
-        const jsonComp = _comp.toJSON();
-        return {
-            setID: this.getID(),
-            setType: this.getType(),
-            setComp: {createComp: jsonComp}
-        };
+RG.Component.AddOnHit.prototype.toJSON = function() {
+    const jsonComp = this.comp.toJSON();
+    return {
+        setID: this.getID(),
+        setType: this.getType(),
+        setComp: {createComp: jsonComp},
+        setOnDamage: this.onDamage,
+        setOnAttackHit: this.onAttackHit
     };
 };
-RG.extend2(RG.Component.AddOnHit, RG.Component.Base);
 
-RG.Component.Animation = function(args) {
-    RG.Component.Base.call(this, 'Animation');
-    let _args = args;
+/* Animation comp is used to pass data from other systems to Animation
+ * System. */
+RG.Component.Animation = TransientDataComponent('Animation',
+    {args: null}
+);
 
-    this.getArgs = () => _args;
-    this.setArgs = args => {_args = args;};
-
+RG.Component.Animation.prototype._init = function(args) {
+    this.args = args;
 };
-RG.extend2(RG.Component.Animation, RG.Component.Base);
 
 /* Adds a component into expiration component for given entity. */
 RG.Component.addToExpirationComp = (entity, comp, dur, msg) => {
