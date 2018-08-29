@@ -15,6 +15,7 @@ function value(type, val) {
             case 'permaice': value = 1.5 * val; break;
             case 'ruby': value = 1.5 * val; break;
             case 'magic': value = 1.5 * val; break;
+            case 'void': value = 1.75 * val; break;
             case 'gem': value = 1.0 * val; break;
             default: value = val;
         }
@@ -322,6 +323,32 @@ const Items = [
         name: 'Wintersbane', base: 'MagicWeaponBase',
         damage: '3d8 + 4',
         attack: 6, defense: 3, weight: 1.0, value: value(1000),
+        weaponType: 'sword'
+    },
+
+    // VOID WEAPONS
+    {
+        name: 'VoidWeaponBase', base: 'MeleeWeaponBase',
+        className: 'cell-item-void',
+        material: 'obsidian', dontCreate: true
+    },
+    {
+        name: 'Void dagger', base: 'VoidWeaponBase',
+        damage: '2d5 + 2',
+        attack: 2, defense: 1, weight: 0.2, value: value(200),
+        onAttackHit: [
+            {addComp: 'DirectDamage', func: [
+                {setter: 'setDamage', value: 8},
+                {setter: 'setDamageType', value: RG.DMG.VOID},
+                {setter: 'setDamageCateg', value: RG.DMG.MELEE}
+            ]}
+        ],
+        weaponType: 'dagger'
+    },
+    {
+        name: 'Void short sword', base: 'VoidWeaponBase',
+        damage: '3d5 + 2',
+        attack: 3, defense: 2, weight: 0.5, value: value(300),
         weaponType: 'sword'
     },
 
