@@ -78,7 +78,8 @@ const Engine = function(eventPool) {
     this.timeSystems = {};
 
     const effects = new RG.System.TimeEffects(
-        ['Expiration', 'Poison', 'Fading', 'Heat', 'Coldness']);
+        ['Expiration', 'Poison', 'Fading', 'Heat', 'Coldness', 'DirectDamage']
+    );
 
     this.updateSystems = function() {
         for (let i = 0; i < this.systemOrder.length; i++) {
