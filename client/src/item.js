@@ -451,8 +451,11 @@ class RGItemRune extends ItemBase {
 
     equals(rhs) {
         let res = super.equals(rhs);
-        res = res && this.getCharges() === rhs.getCharges();
-        return res;
+        if (rhs.getCharges) {
+            res = res && this.getCharges() === rhs.getCharges();
+            return res;
+        }
+        return false;
     }
 
     toString() {
