@@ -59,23 +59,51 @@ System.TimeEffects = function(compTypes) {
 
     /* Applies the poison effect to the entity.*/
     const _applyPoison = ent => {
-        const poison = ent.get('Poison');
+        const poisonList = ent.getList('Poison');
+        poisonList.forEach(poison => {
 
-        if (ent.get('Health').isDead()) {
-            _expiredEffects.push([poison.getID(), ent]);
-            if (ent.has('Expiration')) {
-                const te = ent.get('Expiration');
-                if (te.hasEffect(poison)) {
-                    te.removeEffect(poison);
+            if (ent.get('Health').isDead()) {
+                _expiredEffects.push([poison.getID(), ent]);
+                if (ent.has('Expiration')) {
+                    const te = ent.get('Expiration');
+                    if (te.hasEffect(poison)) {
+                        te.removeEffect(poison);
+                    }
                 }
             }
-        }
-        else if (RG.isSuccess(poison.getProb())) {
-            const poisonDmg = poison.rollDamage();
-            const dmgComp = new RG.Component.Damage(poisonDmg, RG.DMG.POISON);
-            dmgComp.setSource(poison.getSource());
-            ent.add(dmgComp);
-        }
+            else if (RG.isSuccess(poison.getProb())) {
+                const poisonDmg = poison.rollDamage();
+                const dmgComp = new RG.Component.Damage(poisonDmg,
+                    RG.DMG.POISON);
+                dmgComp.setSource(poison.getSource());
+                ent.add(dmgComp);
+            }
+        });
+    };
+
+    /* Applies direct damage effect to given entity. */
+    const _applyDirectDamage = ent => {
+        const ddList = ent.getList('DirectDamage');
+        ddList.forEach(ddComp => {
+
+            if (ent.get('Health').isDead()) {
+                _expiredEffects.push([ddComp.getID(), ent]);
+                if (ent.has('Expiration')) {
+                    const te = ent.get('Expiration');
+                    if (te.hasEffect(ddComp)) {
+                        te.removeEffect(ddComp);
+                    }
+                }
+            }
+            else if (RG.isSuccess(ddComp.getProb())) {
+                const ddCompDmg = ddComp.getDamage();
+                const dmgComp = new RG.Component.Damage(ddCompDmg,
+                    ddCompDmg.getDamageType());
+                dmgComp.setDamageCateg(ddComp.getDamageCateg());
+                dmgComp.setSource(ddComp.getSource());
+                ent.add(dmgComp);
+            }
+        });
     };
 
     /* Decreases duration in Fading comp, then remove the entity if duration is
@@ -132,6 +160,7 @@ System.TimeEffects = function(compTypes) {
     _dtable.Fading = _applyFading;
     _dtable.Heat = _applyHeat;
     _dtable.Coldness = _applyColdness;
+    _dtable.DirectDamage = _applyDirectDamage;
 
     /* Used for debug printing.*/
     this.printMatchedType = function(ent) {
