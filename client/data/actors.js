@@ -425,6 +425,19 @@ const Actors = [
         hp: 25
     },
     {
+        name: 'boneclaw', char: 'B', base: 'UndeadBase',
+        attack: 12, defense: 4, damage: '2d7 + 2', danger: 9,
+        speed: 100,
+        onAttackHit: [
+            {addComp: 'DirectDamage', func: [
+                {setter: 'setDamage', value: 8},
+                {setter: 'setDamageType', value: RG.DMG.NECRO},
+                {setter: 'setDamageCateg', value: RG.DMG.MELEE}
+            ]}
+        ],
+        hp: 35
+    },
+    {
         name: 'vampire', char: 'V', base: 'UndeadBase',
         'color-fg': 'Purple',
         attack: 6, defense: 6, damage: '3d5 + 2', danger: 9,
@@ -981,7 +994,7 @@ const Actors = [
         name: 'Hag of North', type: 'wolfclan', base: 'UniqueBase',
         char: '@', danger: 100,
         damage: '4d4+5', hp: 75, pp: 50, brain: 'SpellCaster',
-        spells: ['FrostBolt'],
+        spells: ['IcyPrison', 'FrostBolt'],
         strength: 15, accuracy: 15, agility: 15, willpower: 30, perception: 25,
         magic: 25, attack: 15, defense: 15, protection: 5,
         equip: ['Ruby glass armour', 'Ruby glass collar']
