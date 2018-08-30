@@ -799,7 +799,7 @@ RG.Factory.World = function() {
 
         if (!this.id2levelSet) {
             if (conf.nFaces > 1 || conf.nFaces === 1 && conf.nSummits > 0) {
-                if (conf.connectLevels) {
+                if (conf.connectLevels && conf.connectLevels.length > 0) {
                     conf.connectLevels.forEach(conn => {
                         if (conn.length === 4) {
                             // conn has len 4, spread it out
