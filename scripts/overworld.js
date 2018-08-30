@@ -6,12 +6,13 @@ require('babel-register');
 
 const RG = require('../client/src/battles');
 
-RG.RAND.setSeed(new Date().getTime());
+const RNG = RG.Random.getRNG();
+RNG.setSeed(new Date().getTime());
 
 const OverWorld = RG.OverWorld;
 const createOverWorld = OverWorld.createOverWorld;
 
-let mult = 1;
+let mult = 2;
 
 let conf = {
     yFirst: false,
@@ -26,7 +27,7 @@ let conf = {
     worldY: mult * 400
 };
 
-mult = 2;
+mult = 4;
 conf = {
     yFirst: false,
     topToBottom: false,
