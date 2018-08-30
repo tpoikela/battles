@@ -237,12 +237,7 @@ class RGActorRogue extends BaseActor {
     setIsPlayer(isPlayer) {
         if (isPlayer) {
             this._brain = new RG.Brain.Player(this);
-            if (!this.has('StatsMods')) {
-                this.add(new RG.Component.StatsMods());
-            }
-            if (!this.has('CombatMods')) {
-                this.add(new RG.Component.CombatMods());
-            }
+            addPlayerBrainComps(this);
             this.add(new RG.Component.Player());
             this.add(new RG.Component.SpellPower());
         }
@@ -258,19 +253,13 @@ class RGActorRogue extends BaseActor {
             this.add(new RG.Component.PlayerControlled());
             this._actualBrain = this._brain;
             this._brain = new RG.Brain.Player(this);
-            if (!this.has('StatsMods')) {
-                this.add(new RG.Component.StatsMods());
-            }
-            if (!this.has('CombatMods')) {
-                this.add(new RG.Component.CombatMods());
-            }
+            addPlayerBrainComps(this);
             this.add(new RG.Component.Possessed());
         }
         else {
             this.remove('PlayerControlled');
-            this.remove('StatsMods');
-            this.remove('CombatMods');
             this.remove('Possessed');
+            removePlayerBrainComps(this);
             this._brain = this._actualBrain;
             delete this._actualBrain;
         }
@@ -445,6 +434,46 @@ class RGActorRogue extends BaseActor {
         return this._addFromCompList('StatsMods', funcName);
     }
 }
+
+const playerBrainComps = ['StatsMods', 'CombatMods'];
+
+function addPlayerBrainComps(actor) {
+    playerBrainComps.forEach(compName => {
+        let hasTag = false;
+        if (actor.has(compName)) {
+            const list = actor.getList(compName);
+            list.forEach(comp => {
+                if (comp.getTag() === 'brain-player') {
+                    hasTag = true;
+                }
+            });
+        }
+
+        if (!hasTag) {
+            const statsMods = new RG.Component[compName]();
+            statsMods.setTag('brain-player');
+            actor.add(statsMods);
+        }
+    });
+}
+
+function removePlayerBrainComps(actor) {
+    playerBrainComps.forEach(compName => {
+        let compID = -1;
+        if (actor.has(compName)) {
+            const list = actor.getList(compName);
+            list.forEach(comp => {
+                if (comp.getTag() === 'brain-player') {
+                    compID = comp.getID();
+                }
+            });
+        }
+        if (compID !== -1) {
+            actor.remove(compID);
+        }
+    });
+}
+
 
 RG.Actor.Rogue = RGActorRogue;
 
