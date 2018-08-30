@@ -186,7 +186,7 @@ System.Attack = function(compTypes) {
                 const addOnHit = weapon.get('AddOnHit');
                 if (addOnHit.getOnAttackHit()) {
                     const comp = addOnHit.getComp();
-                    addCompToEntAfterHit(comp, def);
+                    addCompToEntAfterHit(comp, def, att);
                 }
             }
         }
@@ -200,7 +200,7 @@ System.Attack = function(compTypes) {
                 const addOnHit = src.get('AddOnHit');
                 if (addOnHit.getOnAttackHit()) {
                     const comp = addOnHit.getComp();
-                    addCompToEntAfterHit(comp, def);
+                    addCompToEntAfterHit(comp, def, src);
                 }
             }
         }
