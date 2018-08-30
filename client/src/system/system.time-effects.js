@@ -156,11 +156,54 @@ System.TimeEffects = function(compTypes) {
         }
     };
 
+    const _applyRegenEffect = ent => {
+        const regenEffects = ent.getList('RegenEffect');
+        regenEffects.forEach(effComp => {
+            let shouldRemove = true;
+            if (effComp.getHP() > 0) {
+                const waitHP = effComp.getWaitHP();
+                if (waitHP === 0) {
+                    const health = ent.get('Health');
+                    if (health) {
+                        health.addHP(effComp.getHP());
+                        if (health.getHP() < health.getMaxHP()) {
+                            shouldRemove = false;
+                        }
+                    }
+                    effComp.setWaitHP(effComp.getMaxWaitHP());
+                }
+                else {
+                    effComp.setWaitHP(waitHP - 1);
+                }
+            }
+            if (effComp.getPP() > 0) {
+                const waitPP = effComp.getWaitPP();
+                if (waitPP === 0) {
+                    const power = ent.get('SpellPower');
+                    if (power) {
+                        power.addPP(effComp.getPP());
+                        if (power.getPP() < power.getMaxPP()) {
+                            shouldRemove = false;
+                        }
+                    }
+                    effComp.setWaitPP(effComp.getMaxWaitPP());
+                }
+                else {
+                    effComp.setWaitPP(waitPP - 1);
+                }
+            }
+            if (shouldRemove) {
+                ent.remove(effComp);
+            }
+        });
+    };
+
     _dtable.Poison = _applyPoison;
     _dtable.Fading = _applyFading;
     _dtable.Heat = _applyHeat;
     _dtable.Coldness = _applyColdness;
     _dtable.DirectDamage = _applyDirectDamage;
+    _dtable.RegenEffect = _applyRegenEffect;
 
     /* Used for debug printing.*/
     this.printMatchedType = function(ent) {
