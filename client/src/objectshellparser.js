@@ -288,7 +288,11 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
     this.processAddComp = (onHit, obj) => {
         if (onHit.addComp) {
             const comp = this.createComponent(onHit.addComp);
-            if (comp.setSource) {comp.setSource(obj);}
+            if (comp.setSource) {
+                if (RG.isActor(obj)) {
+                    comp.setSource(obj);
+                }
+            }
 
             // Set the values of added component using functions provided in
             // func array
