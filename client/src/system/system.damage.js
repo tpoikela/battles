@@ -161,7 +161,7 @@ System.Damage = function(compTypes) {
             });
         }
         if (ent.has('Resistance')) {
-            let msg = entName;
+            let msg = '';
             const resistList = ent.getList('Resistance');
             resistList.forEach(resistComp => {
                 if (this.effectMatches(dmgComp, resistComp)) {
@@ -198,7 +198,10 @@ System.Damage = function(compTypes) {
 
                 }
             });
-            RG.gameMsg({msg, cell: ent.getCell()});
+            if (msg !== '') {
+                msg = entName + ' ' + msg;
+                RG.gameMsg({msg, cell: ent.getCell()});
+            }
         }
         return dmg;
     };
