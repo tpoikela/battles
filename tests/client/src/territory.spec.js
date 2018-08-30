@@ -18,7 +18,7 @@ describe('Territory', () => {
         expect(map[0][0]).to.match(/(c|w)/);
         expect(map[25][25]).to.match(/(c|w)/);
 
-        // console.log(terrMap.mapToString());
+        console.log(terrMap.mapToString());
     });
 
     it('it accepts a pre-occupied map', () => {
@@ -62,7 +62,9 @@ describe('Territory', () => {
     it('works for large maps as well', () => {
         const rng = new RG.Random();
         rng.setSeed(new Date().getTime());
-        const ow = OW.createOverWorld({owTilesX: 160, owTilesY: 80});
+        const owTilesX = 160;
+        const owTilesY = 80;
+        const ow = OW.createOverWorld({owTilesX, owTilesY});
 
         const capXY = ow.getFeaturesByType(OW.WCAPITAL)[0];
         const dwarves = ow.getFeaturesByType(OW.WTOWER)[0];
@@ -98,7 +100,7 @@ describe('Territory', () => {
         terrMap.addContestant({name: 'wolfclan', char: 'w'});
         terrMap.addContestant({name: 'catfolk', char: 'c'});
         terrMap.addContestant({name: 'dogfolk', char: 'd'});
-        terrMap.addContestant({name: 'humans', char: '@'});
+        terrMap.addContestant({name: 'human', char: '@'});
         terrMap.addContestant({name: 'goblin', char: 'g', numPos: 8});
         terrMap.addContestant({name: 'dwarves', char: 'D',
             startX: dwarves[0], startY: dwarves[1]});
@@ -107,6 +109,20 @@ describe('Territory', () => {
         terrMap.addContestant({name: 'winterbeings', char: 'W',
             startX: btower[0], startY: btower[1]});
 
+        const coordMap = new RG.Overworld.CoordMap();
+        coordMap.xMap = 10;
+        coordMap.yMap = 10;
+
+        const playerX = 8;
+        const playerY = 7;
+
+        const bbox = coordMap.getOWTileBboxFromAreaTileXY(playerX, playerY);
+        console.log('bbox is now', bbox);
+
+        const pData = terrMap.getData('human');
+        pData.maxNumPos += 1;
+        pData.startX.push(rng.getUniformInt(bbox.ulx, bbox.lrx));
+        pData.startY.push(rng.getUniformInt(bbox.uly, bbox.lry));
         terrMap.generate();
 
         console.log(ow.mapToString());
