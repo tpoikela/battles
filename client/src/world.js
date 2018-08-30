@@ -154,6 +154,8 @@ function findSubZone(name, subZones) {
     return subZone;
 }
 
+/* Returns a random free cell with any existing connections to avoid
+ * piling up two connections. */
 function getFreeCellWithoutConnection(level) {
     let stairCell = level.getFreeRandCell();
     while (stairCell.hasConnection()) {
@@ -219,16 +221,15 @@ function connectLevelsLinear(levels) {
 }
 RG.World.connectLevelsLinear = connectLevelsLinear;
 
+/* Can be used to connect two levels and constraining the placement of the
+ * connections with the level. */
 function connectLevelsConstrained(conf1, conf2) {
     const level1 = conf1.level;
     const level2 = conf2.level;
     const x1 = Math.floor(level1.getMap().cols / 2);
     const y1 = conf1.y();
 
-    const freeCells2 = level2.getMap().getCells(c => (
-        c.getBaseElem().getType() !== 'sky'
-    ));
-    const cell2 = RNG.arrayGetRand(freeCells2);
+    const cell2 = getFreeCellWithoutConnection(level2);
     const [x2, y2] = [cell2.getX(), cell2.getY()];
 
     const l1Stairs = new Stairs('stairsUp', level1, level2);
