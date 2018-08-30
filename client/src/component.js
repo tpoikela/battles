@@ -1196,8 +1196,17 @@ class Duration extends Mixin.DurationRoll(RG.Component.Base) {
     constructor() {
         super('Duration');
         this._comp = null;
+        this._source = null;
         // Behaves differently when on actor
         this._addedOnActor = false;
+    }
+
+    setSource(source ) {
+        this._source = source;
+    }
+
+    getSource() {
+        return this._source;
     }
 
     setComp(comp) {
@@ -1205,6 +1214,9 @@ class Duration extends Mixin.DurationRoll(RG.Component.Base) {
         if (!this._addedOnActor) {
             const _addCb = () => {
                 this.getEntity().add(this._comp);
+                if (this._comp.setSource && this._source) {
+                    this._comp.setSource(this._source);
+                }
                 this._comp = this._comp.getID();
                 this._addedOnActor = true;
                 this.removeCallbacks('onAdd');
@@ -1244,13 +1256,17 @@ class Duration extends Mixin.DurationRoll(RG.Component.Base) {
 
     toJSON() {
         const json = super.toJSON();
+        if (this._source) {
+            json.setSource = RG.getObjRef('entity', this._source);
+        }
         if (!this._addedOnActor) {
             const jsonComp = this._comp.toJSON();
             return Object.assign(json, {setComp: {createComp: jsonComp}});
         }
         else {
             return Object.assign(json, {setAddedOnActor: true,
-                setComp: this._comp});
+                setComp: this._comp // Contains an ID only
+            });
         }
     }
 
