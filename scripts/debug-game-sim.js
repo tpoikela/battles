@@ -60,20 +60,22 @@ const simulSpellOn1stTurn = () => {
 // expect(simulSpellOn1stTurn).not.to.throw(Error);
 
 const timeStart = new Date().getTime();
-const numTurns = 1000;
-for (let i = 0; i < numTurns; i++) {
+const numTurns = 10000;
+for (let i = 1; i <= numTurns; i++) {
     // expect(updateFunc).not.to.throw(Error);
     updateFunc();
 
     if (i === 10) {
         expect(simulSpellOn1stTurn).not.to.throw(Error);
     }
-    if (i % 5000 === 0 && i > 0) {
+    if (i % 1000 === 0) {
         console.log(`Saving game after ${i}/${numTurns} turns`);
         expect(saveFunc).not.to.throw(Error);
         // saveFunc();
     }
-    console.log('Finished turn ' + i);
+    if (i % 10 === 0) {
+        console.log('Finished turn ' + i);
+    }
 }
 const timeEnd = new Date().getTime();
 const dur = timeEnd - timeStart;
