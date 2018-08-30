@@ -904,6 +904,11 @@ RG.SET_STATS = RG.STATS.map(stat => 'set' + stat);
 
 RG.getObjRef = (type, obj) => {
     if (type === 'entity') {
+        // Refs to items are dangerous as cloning changes the entity ref
+        if (RG.isItem(obj)) {
+            const msg = ' Got: |' + obj.getName() + '|';
+            RG.err('RG', 'getObjRef', 'objRefs to items not supported.' + msg);
+        }
         return {objRef: {type, id: obj.getID()}};
     }
     const json = obj.toJSON();
