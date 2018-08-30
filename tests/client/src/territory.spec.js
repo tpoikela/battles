@@ -60,20 +60,19 @@ describe('Territory', () => {
 
 
     it('works for large maps as well', () => {
-        const ow = OW.createOverWorld({owTilesX: 80, owTilesY: 40});
+        const rng = new RG.Random();
+        rng.setSeed(new Date().getTime());
+        const ow = OW.createOverWorld({owTilesX: 160, owTilesY: 80});
 
         const capXY = ow.getFeaturesByType(OW.WCAPITAL)[0];
-        console.log(capXY);
         const dwarves = ow.getFeaturesByType(OW.WTOWER)[0];
-        console.log(dwarves);
         const btower = ow.getFeaturesByType(OW.BTOWER)[0];
-        console.log(btower);
-        const bcapital = ow.getFeaturesByType(OW.BCAPITAL)[0];
-        console.log(bcapital);
+        // const bcapital = ow.getFeaturesByType(OW.BCAPITAL)[0];
         RG.diag('', '', 'Test');
 
         const owMap = ow.getOWMap();
         const terrMap = new Territory(ow.getSizeX(), ow.getSizeY());
+        terrMap.setRNG(rng);
 
         // console.log(ow.mapToString());
         terrMap.setAsEmpty(owMap, {
@@ -87,14 +86,20 @@ describe('Territory', () => {
             [OW.BTOWER]: true
         });
 
-        terrMap.addContestant({name: 'undead', char: 'u'});
+        const bears = {name: 'bearfolk',
+            char: 'B', numPos: 2, startX: 2, startY: 2};
+        const undeads = {name: 'undead', char: 'u', numPos: 3,
+            startX: [80], startY: [75]};
+
+        terrMap.addContestant({name: 'avian', char: 'A'});
+        terrMap.addContestant(undeads);
         terrMap.addContestant({name: 'wildling', char: 'I'});
-        terrMap.addContestant({name: 'bearfolk', char: 'B'});
+        terrMap.addContestant(bears);
         terrMap.addContestant({name: 'wolfclan', char: 'w'});
         terrMap.addContestant({name: 'catfolk', char: 'c'});
         terrMap.addContestant({name: 'dogfolk', char: 'd'});
         terrMap.addContestant({name: 'humans', char: '@'});
-        terrMap.addContestant({name: 'goblin', char: 'g'});
+        terrMap.addContestant({name: 'goblin', char: 'g', numPos: 8});
         terrMap.addContestant({name: 'dwarves', char: 'D',
             startX: dwarves[0], startY: dwarves[1]});
         terrMap.addContestant({name: 'hyrkhians', char: 'y',
@@ -107,5 +112,8 @@ describe('Territory', () => {
         console.log(ow.mapToString());
         console.log(terrMap.mapToString());
 
+        const undeadData = terrMap.getData('undead');
+        expect(undeadData.startX).to.have.length(3);
+        expect(undeadData.startY).to.have.length(3);
     });
 });
