@@ -136,6 +136,38 @@ describe('System.Attack', () => {
         const hpAfter = human.get('Health').getHP();
         expect(hpAfter).to.be.below(hpBefore);
     });
+
+    it('can apply AddOnHit components', function() {
+        const damageSystem = new RG.System.Damage(['Damage']);
+        systems.push(damageSystem);
+        const timeSys = new RG.System.TimeEffects(['DirectDamage']);
+        systems.push(timeSys);
+
+        const parser = RG.ObjectShell.getParser();
+        const voidDagger = parser.createItem('Void dagger');
+        beast.getInvEq().addItem(voidDagger);
+        beast.getInvEq().equipItem(voidDagger);
+
+        const attComp = new RG.Component.Attack();
+        attComp.setTarget(human);
+        beast.add(attComp);
+
+        updateSystems(systems);
+        expect(human).to.have.component('DirectDamage');
+        const ddComp = human.get('DirectDamage');
+        expect(ddComp.getSource().getID()).to.equal(beast.getID());
+
+        const hpComp = human.get('Health');
+
+        let count = 100;
+        while (!hpComp.isDead()) {
+            updateSystems(systems);
+            if (--count === 0) {break;}
+        }
+        expect(count, 'Human dies in 100 turns').to.be.above(0);
+        expect(beast).to.have.component('ExpPoints');
+    });
+
 });
 
 describe('System.Damage', () => {
