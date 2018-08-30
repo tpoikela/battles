@@ -9,6 +9,7 @@ RG.Game.FromJSON = require('./game.fromjson');
 RG.Verify = require('./verify');
 RG.ObjectShell = require('./objectshellparser');
 RG.Factory.World = require('./factory.world');
+const Territory = require('./territory');
 
 const OW = require('./overworld.map');
 RG.getOverWorld = require('./overworld');
@@ -303,6 +304,13 @@ RG.Factory.Game = function() {
         const overworld = OW.createOverWorld(owConf);
         this.progress('DONE');
 
+        this.progress('Generating territory for clans/races...');
+        const midX = Math.floor(owConf.nLevelsX / 2);
+        const playerX = midX;
+        const playerY = owConf.nLevelsY - 1;
+        this.addTerritories(overworld, obj, owConf, playerX, playerY);
+        this.progress('DONE');
+
         this.progress('Creating Overworld Level Map...');
         const worldAndConf = RG.OverWorld.createOverWorldLevel(
           overworld, owConf);
@@ -312,11 +320,7 @@ RG.Factory.Game = function() {
         this.progress('Splitting Overworld Level Map into AreaTiles...');
         RG.Map.Level.idCount = 0;
         const splitLevels = RG.Geometry.splitLevel(worldLevel, owConf);
-        const midX = Math.floor(owConf.nLevelsX / 2);
         this.progress('DONE');
-
-        const playerX = midX;
-        const playerY = owConf.nLevelsY - 1;
 
 
         this.progress('Creating and connectting World.Area tiles...');
@@ -411,6 +415,61 @@ RG.Factory.Game = function() {
             level.addActorToFreeCell(player);
         }
     };
+
+	this.addTerritories = function(ow, conf, playerX, playerY) {
+        const {playerRace} = conf;
+		const capXY = ow.getFeaturesByType(OW.WCAPITAL)[0];
+		const dwarves = ow.getFeaturesByType(OW.WTOWER)[0];
+		const btower = ow.getFeaturesByType(OW.BTOWER)[0];
+		// const bcapital = ow.getFeaturesByType(OW.BCAPITAL)[0];
+
+		const owMap = ow.getOWMap();
+		const terrMap = new Territory(ow.getSizeX(), ow.getSizeY());
+
+		// console.log(ow.mapToString());
+		terrMap.setAsEmpty(owMap, {
+			[OW.TERM]: true,
+			[OW.MOUNTAIN]: true,
+			[OW.BVILLAGE]: true,
+			[OW.WVILLAGE]: true,
+			[OW.WCAPITAL]: true,
+			[OW.BCAPITAL]: true,
+			[OW.WTOWER]: true,
+			[OW.BTOWER]: true
+		});
+
+		const bears = {name: 'bearfolk',
+			char: 'B', numPos: 2};
+		const undeads = {name: 'undead', char: 'u', numPos: 3,
+			startX: [ow.getCenterX()], startY: [ow.getSizeY() - 5]};
+
+		terrMap.addContestant({name: 'avian', char: 'A'});
+		terrMap.addContestant(undeads);
+		terrMap.addContestant({name: 'wildling', char: 'I'});
+		terrMap.addContestant(bears);
+		terrMap.addContestant({name: 'wolfclan', char: 'w'});
+		terrMap.addContestant({name: 'catfolk', char: 'c'});
+		terrMap.addContestant({name: 'dogfolk', char: 'd'});
+		terrMap.addContestant({name: 'human', char: '@'});
+		terrMap.addContestant({name: 'goblin', char: 'g', numPos: 8});
+		terrMap.addContestant({name: 'dwarf', char: 'D',
+			startX: dwarves[0], startY: dwarves[1]});
+		terrMap.addContestant({name: 'hyrkhian', char: 'y',
+			startX: capXY[0], startY: capXY[1]});
+		terrMap.addContestant({name: 'winterbeing', char: 'W',
+			startX: btower[0], startY: btower[1]});
+
+        const coordMap = ow.coorMap;
+        const bbox = coordMap.getOWTileBboxFromAreaTileXY(playerX, playerY);
+
+        const pData = terrMap.getData(playerRace);
+        pData.numPos += 1;
+        pData.startX.push(RNG.getUniformInt(bbox.ulx, bbox.lrx));
+        pData.startY.push(RNG.getUniformInt(bbox.uly, bbox.lry));
+
+		terrMap.generate();
+        ow.terrMap = terrMap;
+	};
 
 
     this.createWorldWithCreator = function(obj, game, player) {
