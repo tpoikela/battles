@@ -100,7 +100,12 @@ RG.Component.DirectDamage = DataComponent('DirectDamage', {
 
 RG.Component.DirectDamage.prototype.toJSON = function() {
     const obj = RG.Component.Base.prototype.toJSON.call(this);
-    obj.setSource = RG.getObjRef('entity', this.source);
+    if (this.source) {
+        obj.setSource = RG.getObjRef('entity', this.source);
+    }
+    else {
+        delete obj.setSource;
+    }
     return obj;
 };
 
