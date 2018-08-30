@@ -767,21 +767,21 @@ RG.Geometry.floodfill2D = function(map, xy, value, lut = false, diag = false) {
     if (map[x][y] !== value) {return [];}
 
     let currXY = xy;
-    const xyLeft = [];
+    const xyTodo = [];
     const result = [currXY];
     const colored = {}; // Needed because we're not changing anything
     colored[x + ',' + y] = true;
 
     /* Private func which checks if the cell should be added to floodfill. */
     const tryToAddXY = function(x, y) {
-        if (x < map.length && y < map[0].length) {
+        if (x >= 0 && x < map.length && y >= 0 && y < map[0].length) {
             if (!colored[x + ',' + y]) {
                 const currValue = map[x][y];
                 if (currValue === value) {
                     colored[x + ',' + y] = true;
                     result.push([x, y]);
                     if (lut) {lut[x + ',' + y] = true;}
-                    xyLeft.push([x, y]);
+                    xyTodo.push([x, y]);
                 }
             }
         }
@@ -813,11 +813,12 @@ RG.Geometry.floodfill2D = function(map, xy, value, lut = false, diag = false) {
             tryToAddXY(xEast, ySouth);
         }
 
-        currXY = xyLeft.shift();
+        currXY = xyTodo.shift();
     }
     return result;
 
 };
+
 
 RG.Geometry.getMassCenter = function(arr) {
     let x = 0;
