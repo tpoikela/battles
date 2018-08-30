@@ -12,7 +12,7 @@ const statusComps = [
     // Comp name, style   , text  , react-key
     ['Coldness', 'primary', 'Cold', 'stat-coldness'],
     ['Ethereal', 'info', 'Ethereal', 'stat-ethereal'],
-    ['Flying', 'primary', 'Cold', 'stat-flying'],
+    ['Flying', 'primary', 'Flying', 'stat-flying'],
     ['Paralysis', 'danger', 'Paralysed', 'stat-paralysis'],
     ['Poison', 'danger', 'Poisoned', 'stat-poison'],
     ['PowerDrain', 'success', 'Power drain', 'stat-power-drain'],
