@@ -206,7 +206,10 @@ const Actors = [
         attack: 7, defense: 7, protection: 7,
         hp: 60, danger: 13, damage: '5d4',
         brain: 'SpellCaster', spells: ['PowerDrain'],
-        addComp: ['SpellStop', resistance('MAGIC', 'ABSORB')],
+        addComp: ['SpellStop',
+            resistance('MAGIC', 'ABSORB'),
+            resistance('VOID', 'IMMUNITY')
+        ],
         maxPP: 70, pp: 70
     },
 
@@ -430,10 +433,12 @@ const Actors = [
         speed: 100,
         onAttackHit: [
             {addComp: 'DirectDamage', func: [
-                {setter: 'setDamage', value: 8},
+                {setter: 'setDamage', value: 2},
                 {setter: 'setDamageType', value: RG.DMG.NECRO},
                 {setter: 'setDamageCateg', value: RG.DMG.MELEE}
-            ]}
+            ],
+                duration: '1d8 + 2'
+            }
         ],
         hp: 35
     },
