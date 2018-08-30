@@ -207,8 +207,13 @@ describe('RG.ObjectShell.Parser', () => {
             const shell = parser.parseObjShell(RG.TYPE_ACTOR, bat);
             const batActor = new RG.Actor.Rogue('bat');
 
-            creator.addComponent(shell, batActor);
-            expect(batActor.has('Flying')).to.equal(true);
+            creator.addComponents(shell, batActor);
+            expect(batActor).to.have.component('Flying');
+
+            creator.addComponents({addComp: ['Flying', 'FirstStrike']},
+                batActor);
+            expect(batActor).to.have.component('FirstStrike');
+            expect(batActor).to.have.component('Flying');
         });
 
     });
@@ -690,12 +695,22 @@ describe('Data query functions for objects', function() {
         expect(addOnHit.getOnDamage()).to.equal(false);
         expect(addOnHit.getOnAttackHit()).to.equal(true);
 
-        const ddComp = addOnHit.getComp();
+        const durComp = addOnHit.getComp();
+        const ddComp = durComp.getComp();
         expect(ddComp.getType()).to.equal('DirectDamage');
         expect(ddComp.getDamageType()).to.equal(RG.DMG.NECRO);
     });
 
-});
+    it('can create void elemental', function() {
+        const voidElem = parser.createActor('void elemental');
+        expect(voidElem).to.have.component('Resistance');
+
+        const resistComps = voidElem.getList('Resistance');
+        expect(resistComps).to.have.length(2);
+
+    });
+
+}); // nested describe ends
 
     it('It should detect invalid object shells', () => {
         const parser = new Parser();
