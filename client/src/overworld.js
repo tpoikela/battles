@@ -1,5 +1,6 @@
 /*
- * Code to generate the game 2-D overworld.
+ * Code to generate the game 2-D overworld. Contains 2nd layer of overworld
+ * generation, and uses overworld.map for generating high-level map.
  */
 
 /* bb = bounding box = (ulx uly lrx lry)
@@ -250,6 +251,15 @@ const CoordMap = function() {
         return [x, y];
     };
 
+    this.getOWTileBboxFromAreaTileXY = function(aX, aY) {
+        return {
+            ulx: (aX * TILE_SIZE_X) / this.xMap,
+            uly: (aY * TILE_SIZE_Y) / this.yMap,
+            lrx: ((aX + 1) * TILE_SIZE_X) / this.xMap,
+            lry: ((aY + 1) * TILE_SIZE_Y) / this.yMap
+        };
+    };
+
     this.toJSON = function() {
         return {
             worldCols: this.worldCols,
@@ -273,12 +283,16 @@ RG.OverWorld.CoordMap = CoordMap;
  * @return RG.Map.Level.
  */
 RG.OverWorld.createOverWorld = (conf = {}) => {
+    // 1st generate the high-level map
     const overworld = OW.createOverWorld(conf);
+    // Then use this to generate placement details
     return RG.OverWorld.createOverWorldLevel(overworld, conf);
 };
 
 /* Creates/returns Map.Level object of overworld, and a configuration to
- * build the features using Factory.World. */
+ * build the features using Factory.World.
+ * @return [Map.Level, conf] - Generated level and Factory config
+ * */
 RG.OverWorld.createOverWorldLevel = (overworld, conf) => {
     const coordMap = new CoordMap();
     coordMap.worldCols = conf.worldX || 400;
@@ -312,6 +326,7 @@ function buildMapLevel(ow, coordMap) {
 
     // Build the overworld level in smaller pieces, and then insert the
     // small levels into the large level.
+    // Each overworld tile is mapped to map sub Map.Level
     for (let x = 0; x < sizeX; x++) {
         for (let y = 0; y < sizeY; y++) {
             const subLevel = createSubLevel(ow, x, y, xMap, yMap);
@@ -780,16 +795,19 @@ function addVillageToSubLevel(feat, owSubLevel, subLevel) {
 /* Creates a world configuration which can be given to Factory.World to build
  * the final game overworld with features, actors and items.
  *
- * Maps an MxN array of sub-levels (each |subX| X |subY|) into
- * |nTilesX| X |nTilesY| array of World.AreaTile levels.
+ * Maps an MxN array of sub-levels (each |subX| X |subY| Map.Cells) into
+ * |nTilesX| X |nTilesY| array of World.AreaTile levels (Map.Level).
  * Both levels are RG.Map.Level objects.
  */
 RG.OverWorld.createWorldConf = function(
-    ow, nSubLevelsX, nSubLevelsY, nTilesX, nTilesY) {
+    ow, nSubLevelsX, nSubLevelsY, nTilesX, nTilesY
+) {
     const worldConf = {
         name: 'The North',
         nAreas: 1,
-        area: [{name: 'The Northern Realm', maxX: nTilesX, maxY: nTilesY,
+        area: [{
+            name: 'The Northern Realm',
+            maxX: nTilesX, maxY: nTilesY,
             biome: {},
             dungeon: [],
             mountain: [],
