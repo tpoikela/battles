@@ -148,7 +148,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
 
         // Example: {name: 'bat', addComp: 'Flying'}
         if (shell.hasOwnProperty('addComp')) {
-            this.addComponent(shell, newObj);
+            this.addComponents(shell, newObj);
         }
 
         // If propToCall table has the same key as shell property, call
@@ -399,6 +399,8 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
      * component if it exists already.*/
     this.addCompToObj = function(newObj, compData, val) {
         if (compData.hasOwnProperty('func')) {
+
+            // This 1st branch is used by Health only (needed?)
             if (Array.isArray(compData.func)) {
                 compData.func.forEach(fname => {
                     const compName = compData.comp;
@@ -416,7 +418,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
             else {
                 const fname = compData.func;
                 const compName = compData.comp;
-                if (newObj.has(compName)) {
+                if (newObj.has(compName) && typeof fname === 'string') {
                     // 1. Call existing comp with setter (fname)
                     newObj.get(compName)[fname](val);
                 }
@@ -457,7 +459,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
     };
 
     /* This function makes a pile of mess if used on non-entities. */
-    this.addComponent = (shell, entity) => {
+    this.addComponents = (shell, entity) => {
         if (typeof shell.addComp === 'string') {
             _addCompFromString(shell.addComp, entity);
         }
@@ -475,7 +477,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
             _addCompFromObj(entity, shell.addComp);
         }
         else {
-            RG.err('ObjectShell.Creator', 'addComponent',
+            RG.err('ObjectShell.Creator', 'addComponents',
                 'Giving up. shell.addComp must be string, array or object.');
         }
     };
@@ -488,7 +490,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
         catch (e) {
             let msg = `shell.addComp |${compName}|`;
             msg += 'Component names are capitalized.';
-            RG.err('ObjectShell.Creator', 'addComponent',
+            RG.err('ObjectShell.Creator', '_addCompFromString',
                 `${e.message} - ${msg}`);
         }
     };
