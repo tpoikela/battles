@@ -210,6 +210,9 @@ DebugGame.prototype.create = function(obj, game, player) {
     regen.setWaitPP(0);
     regen.setMaxWaitPP(0);
     player.add(regen);
+
+    level.getMap().setBaseElemXY(pX - 1, pY - 1, RG.ELEM.WATER);
+
     return game;
 };
 
