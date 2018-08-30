@@ -106,8 +106,8 @@ RG.Game.FromJSON = function() {
 
     this._addEntityFeatures = function(obj, entity) {
         this.addCompsToEntity(entity, obj.components);
-        this.createInventory(obj, entity);
-        this.createEquipment(obj, entity);
+        this.createInventoryItems(obj, entity);
+        this.createEquippedItems(obj, entity);
         if (obj.fovRange) {
             entity.setFOVRange(obj.fovRange);
         }
@@ -325,13 +325,13 @@ RG.Game.FromJSON = function() {
 
         // Try to create object using ObjectShell.Parser, if it fails, fallback
         // to default constructor in RG.Item
-        let newObj = null;
+        let itemObj = null;
         if (this._parser.hasItem(obj.setName)) {
-            newObj = this._parser.createItem(obj.setName);
+            itemObj = this._parser.createItem(obj.setName);
         }
         else {
             const typeCapitalized = this.getItemObjectType(item);
-            newObj = new RG.Item[typeCapitalized]();
+            itemObj = new RG.Item[typeCapitalized]();
         }
 
         for (const func in item) {
@@ -340,44 +340,45 @@ RG.Game.FromJSON = function() {
                 const spiritJSON = item[func];
                 const spiritObj = this.createActor(spiritJSON);
                 this._addEntityFeatures(spiritJSON, spiritObj);
-                newObj[func](spiritObj);
+                itemObj[func](spiritObj);
             }
-            else if (func === 'components') {
-                this.addCompsToEntity(newObj, obj.components);
+            else if (typeof itemObj[func] === 'function') {
+                itemObj[func](item[func]); // Use setter
             }
-            else if (typeof newObj[func] === 'function') {
-                newObj[func](item[func]); // Use setter
-            }
-            else {
-                const json = JSON.stringify(newObj);
+            else if (func !== 'components') {
+                const json = JSON.stringify(itemObj);
                 RG.err('Game.FromJSON', 'createItem',
                   `${func} not func in ${json}`);
             }
         }
-        return newObj;
+        this.addEntityInfo(itemObj, obj);
+        if (item.components) {
+            this.addCompsToEntity(itemObj, obj.components);
+        }
+        return itemObj;
     };
 
-    this.createInventory = function(obj, player) {
+    this.createInventoryItems = function(obj, player) {
         if (obj.hasOwnProperty('inventory')) {
             const itemObjs = obj.inventory;
             for (let i = 0; i < itemObjs.length; i++) {
-                const newObj = this.createItem(itemObjs[i]);
-                player.getInvEq().addItem(newObj);
+                const itemObj = this.createItem(itemObjs[i]);
+                player.getInvEq().addItem(itemObj);
             }
         }
     };
 
-    this.createEquipment = function(obj, player) {
+    this.createEquippedItems = function(obj, player) {
         if (obj.hasOwnProperty('equipment')) {
             const equipObjs = obj.equipment;
             for (let i = 0; i < equipObjs.length; i++) {
-                const newObj = this.createItem(equipObjs[i]);
-                player.getInvEq().addItem(newObj);
-                if (newObj.count > 1) {
-                    player.getInvEq().equipNItems(newObj, newObj.count);
+                const itemObj = this.createItem(equipObjs[i]);
+                player.getInvEq().addItem(itemObj);
+                if (itemObj.count > 1) {
+                    player.getInvEq().equipNItems(itemObj, itemObj.count);
                 }
                 else {
-                    player.getInvEq().equipItem(newObj);
+                    player.getInvEq().equipItem(itemObj);
                 }
             }
 
@@ -520,33 +521,37 @@ RG.Game.FromJSON = function() {
 
     /* Creates the actor and sets entity ID refs, but does not restore all
      * entity data. */
-    this.createActor = obj => {
-        if (obj.type === null) {
+    this.createActor = json => {
+        if (json.type === null) {
             RG.err('FromJSON', 'createActor',
-                `obj.type null, obj: ${JSON.stringify(obj)}`);
+                `json.type null, json: ${JSON.stringify(json)}`);
         }
 
         let entity = null;
-        if (obj.new && RG.Actor[obj.new]) {
-            entity = new RG.Actor[obj.new](obj.name);
+        if (json.new && RG.Actor[json.new]) {
+            entity = new RG.Actor[json.new](json.name);
         }
         else {
             let msg = '';
-            const json = JSON.stringify(obj);
-            if (!obj.new) {
-                msg = 'No obj.new given. JSON obj: ' + json;
+            const jsonStr = JSON.stringify(json);
+            if (!json.new) {
+                msg = 'No json.new given. JSON obj: ' + jsonStr;
             }
             else {
-                msg = `${obj.new} not in RG.Actor. JSON obj: ` + json;
+                msg = `${json.new} not in RG.Actor. JSON obj: ` + jsonStr;
             }
             RG.err('Game.FromJSON', 'createActor', msg);
         }
 
-        entity.setType(obj.type);
-        entity.setID(obj.id);
-        id2entity[entity.getID()] = entity;
-        id2EntityJson[obj.id] = obj;
+        entity.setType(json.type);
+        entity.setID(json.id);
+        this.addEntityInfo(entity, json);
         return entity;
+    };
+
+    this.addEntityInfo = (entity, json) => {
+        id2entity[entity.getID()] = entity;
+        id2EntityJson[json.id] = json;
     };
 
     /* Tricky one. The target level should exist before connections. The object
