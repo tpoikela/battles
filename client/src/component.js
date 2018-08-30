@@ -1067,6 +1067,39 @@ RG.Component.AddOnHit.prototype.toJSON = function() {
     };
 };
 
+/* Used to equip/unequip items. */
+RG.Component.Equip = TransientDataComponent('Equip', {
+    args: null, item: null, isRemove: false
+});
+
+/* Adds a component to given entity on equip (or removes it on unequip. */
+RG.Component.AddOnEquip = DataComponent('AddOnEquip', {
+    comp: null, addedToActor: false
+});
+
+RG.Component.AddOnEquip.prototype.toJSON = function() {
+    const json = {
+        setID: this.getID(),
+        setType: this.getType(),
+        setAddedToActor: this.addedToActor
+    };
+    if (!this.addedToActor) {
+        const jsonComp = this.comp.toJSON();
+        json.setComp = {createComp: jsonComp};
+    }
+    else {
+        json.setComp = {createComp: this.comp}; // Store ID only
+    }
+    return json;
+};
+
+/* Can be used to modify a value of another component at certain
+ * intervals. Placed on entity when regeneration is needed, and removed
+ * once all values have regenerated. */
+RG.Component.RegenEffect = DataComponent('RegenEffect', {
+    PP: 1, HP: 1, waitPP: 30, waitHP: 30, maxWaitPP: 60, maxWaitHP: 60
+});
+
 /* Animation comp is used to pass data from other systems to Animation
  * System. */
 RG.Component.Animation = TransientDataComponent('Animation',
