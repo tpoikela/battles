@@ -98,7 +98,7 @@ System.TimeEffects = function(compTypes) {
             else if (RG.isSuccess(ddComp.getProb())) {
                 const ddCompDmg = ddComp.getDamage();
                 const dmgComp = new RG.Component.Damage(ddCompDmg,
-                    ddCompDmg.getDamageType());
+                    ddComp.getDamageType());
                 dmgComp.setDamageCateg(ddComp.getDamageCateg());
                 dmgComp.setSource(ddComp.getSource());
                 ent.add(dmgComp);
