@@ -145,6 +145,8 @@ describe('System.Attack', () => {
 
         const parser = RG.ObjectShell.getParser();
         const voidDagger = parser.createItem('Void dagger');
+        human.get('Combat').setDefense(0);
+        human.get('Stats').setAgility(0);
         beast.getInvEq().addItem(voidDagger);
         beast.getInvEq().equipItem(voidDagger);
 
@@ -161,6 +163,7 @@ describe('System.Attack', () => {
 
         let count = 100;
         while (!hpComp.isDead()) {
+            beast.add(attComp);
             updateSystems(systems);
             if (--count === 0) {break;}
         }
