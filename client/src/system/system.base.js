@@ -110,7 +110,9 @@ SystemBase.addSkillsExp = function addSkillsExp(att, skill, pts = 1) {
 };
 
 /* After succesful hit, adds the given comp to specified entity ent. */
-SystemBase.addCompToEntAfterHit = function addCompToEntAfterHit(comp, ent) {
+SystemBase.addCompToEntAfterHit = function addCompToEntAfterHit(
+    comp, ent, src
+) {
     const compClone = comp.clone();
 
     if (compClone.hasOwnProperty('duration')) {
@@ -118,6 +120,15 @@ SystemBase.addCompToEntAfterHit = function addCompToEntAfterHit(comp, ent) {
         const expiration = new RG.Component.Expiration();
         expiration.addEffect(compClone, compDur);
         ent.add('Expiration', expiration);
+    }
+
+    // Source not present in negative buffs like StatsMods/CombatMods,
+    // but needed for Poison etc damage
+    if (compClone.getSource) {
+        const compSrc = compClone.getSource();
+        if (RG.isNullOrUndef([compSrc])) {
+            compClone.setSource(src);
+        }
     }
 
     ent.add(compClone);
