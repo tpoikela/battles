@@ -212,24 +212,11 @@ Cmd.DropItem = CmdDropItem;
 class CmdEquipItem {
 
     execute(obj) {
-        const invEq = this._actor.getInvEq();
-        const item = obj.item;
-        let result = false;
-        let msg = `Failed to equip ${item.getName()}`;
-        if (item.getType().match(/^(missile|ammo)$/)) {
-            if (invEq.equipNItems(item, obj.count)) {
-                result = true;
-            }
-        }
-        else if (invEq.equipItem(item)) {
-            result = true;
-        }
-        if (obj.hasOwnProperty('callback')) {
-            if (result) {
-                msg = `Equipping ${item.getName()} succeeded!`;
-            }
-            obj.callback({msg: msg, result});
-        }
+        const eqComp = new RG.Component.Equip();
+        // eqComp.setItem(obj.item);
+        eqComp.setArgs(obj);
+        eqComp.setIsRemove(false);
+        this._actor.add(eqComp);
         return ACTION_ALREADY_DONE;
     }
 
@@ -240,31 +227,10 @@ Cmd.EquipItem = CmdEquipItem;
 class CmdUnequipItem {
 
     execute(obj) {
-        const name = obj.slot;
-        const slotNumber = obj.slotNumber;
-        const invEq = this._actor.getInvEq();
-        let result = false;
-        let msg = `Failed to remove item from slot ${name}.`;
-
-        if (name === 'missile') {
-            const eqItem = invEq.getEquipment().getItem('missile');
-
-            if (eqItem !== null) {
-                if (invEq.unequipItem(name, obj.count)) {
-                    result = true;
-                }
-            }
-        }
-        else if (invEq.unequipItem(name, 1, slotNumber)) {
-            result = true;
-        }
-
-        if (obj.hasOwnProperty('callback')) {
-            if (result) {
-                msg = `Unequipping from ${name} succeeded!`;
-            }
-            obj.callback({msg: msg, result});
-        }
+        const eqComp = new RG.Component.Equip();
+        eqComp.setArgs(obj);
+        eqComp.setIsRemove(true);
+        this._actor.add(eqComp);
         return ACTION_ALREADY_DONE;
     }
 
