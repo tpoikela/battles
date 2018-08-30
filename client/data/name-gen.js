@@ -81,12 +81,13 @@ Names.place.unique = {
             'Stag', 'Small', 'Mud', 'Ebon', 'Silk', 'Spirit', 'Basin',
             'Shadow', 'Gold', 'Snow', 'Frost', 'Ice', 'Hound', 'Moon',
             'Dire', 'Ever', 'Iron', 'Ruby', 'Star', 'Crystal', 'Glimmer',
-            'Winters', 'Raven', 'Pine', 'Ever', 'Never'
+            'Winters', 'Raven', 'Pine', 'Ever', 'Never', 'Rune',
+            'Glace', 'Lumen', 'Confer'
         ],
         second: [
             'guard', 'point', 'fell', 'mire', 'shield', 'crest', 'yard',
             'minster', 'swallow', 'grasp', 'cliff', 'cross', 'host', 'barrow',
-            'vein', 'view', 'home'
+            'vein', 'view', 'home', 'gard', 'wall'
         ]
     }
 };
