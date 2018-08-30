@@ -1,4 +1,5 @@
 
+/* eslint comma-dangle: 0 */
 const RG = require('../src/rg');
 const Colors = require('./colors');
 
@@ -330,25 +331,27 @@ const Items = [
     {
         name: 'VoidWeaponBase', base: 'MeleeWeaponBase',
         className: 'cell-item-void',
-        material: 'obsidian', dontCreate: true
+        material: 'obsidian', dontCreate: true,
+        onAttackHit: [
+            {addComp: 'DirectDamage', func: [
+                {setter: 'setDamage', value: 2},
+                {setter: 'setDamageType', value: RG.DMG.VOID},
+                {setter: 'setDamageCateg', value: RG.DMG.MELEE}
+            ],
+            duration: '1d8'
+            }
+        ],
     },
     {
         name: 'Void dagger', base: 'VoidWeaponBase',
         damage: '2d5 + 2',
-        attack: 2, defense: 1, weight: 0.2, value: value(200),
-        onAttackHit: [
-            {addComp: 'DirectDamage', func: [
-                {setter: 'setDamage', value: 8},
-                {setter: 'setDamageType', value: RG.DMG.VOID},
-                {setter: 'setDamageCateg', value: RG.DMG.MELEE}
-            ]}
-        ],
+        attack: 2, defense: 1, weight: 0.3, value: value(200),
         weaponType: 'dagger'
     },
     {
         name: 'Void short sword', base: 'VoidWeaponBase',
         damage: '3d5 + 2',
-        attack: 3, defense: 2, weight: 0.5, value: value(300),
+        attack: 3, defense: 2, weight: 0.7, value: value(300),
         weaponType: 'sword'
     },
 
