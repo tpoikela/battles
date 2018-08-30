@@ -4,6 +4,7 @@
  */
 
 const RG = require('./rg');
+const Geometry = require('./geometry');
 
 const RNG = RG.Random.getRNG();
 const EMPTY = 'e';
@@ -20,6 +21,8 @@ const Territory = function(cols, rows) {
     this.numEmpty = 0;
 
     this._rng = RNG;
+
+    this.doPostProcess = true;
 
     // By default, use only 4 directions
     this.dirs = RG.DIR_NSEW.concat(RG.DIR_DIAG);
@@ -105,6 +108,9 @@ Territory.prototype.generate = function() {
             }
         }
     }
+    if (this.doPostProcess) {
+        this.postProcessData();
+    }
 };
 
 /* Returns the starting position for given contestant name. */
@@ -124,6 +130,11 @@ Territory.prototype.getStartPosition = function(name) {
     }
     else {
         contData.startY.push(xy[1]);
+    }
+
+    // TODO this can override starting points of other contestants
+    if (name === 'human') {
+        console.log('POS', contData.currPos, 'Humans will start from', xy);
     }
 
     contData.currPos += 1;
@@ -243,6 +254,24 @@ Territory.prototype.getAreaProportions = function() {
         hist[name] = this.occupiedBy[name].length;
     });
     return hist;
+};
+
+
+Territory.prototype.postProcessData = function() {
+    const diag = this.dirs.length > 4 ? true : false;
+    const names = Object.keys(this.data);
+    names.forEach(name => {
+        const contData = this.data[name];
+        const {startX, startY, char} = contData;
+
+        startX.forEach((x, i) => {
+            const xy = [x, startY[i]];
+            const lut = {};
+            const coordXY = Geometry.floodfill2D(this.map, xy, char, lut, diag);
+            console.log(name, ' floodfilled', coordXY.length, 'cells');
+        });
+
+    });
 };
 
 /* To serialize the territory. */
