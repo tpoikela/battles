@@ -251,6 +251,10 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
             this.addOnAttackHitProperties(shell, newObj);
         }
 
+        if (shell.hasOwnProperty('onEquip')) {
+            this.addOnEquipProperties(shell, newObj);
+        }
+
         // TODO map different props to function calls
         return newObj;
     };
@@ -285,7 +289,14 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
         });
     };
 
-    this.processAddComp = (onHit, obj) => {
+    this.addOnEquipProperties = (shell, newObj) => {
+        shell.onEquip.forEach(onEquip => {
+            const isEquip = true;
+            this.processAddComp(onEquip, newObj, isEquip);
+        });
+    };
+
+    this.processAddComp = (onHit, obj, isEquip = false) => {
         if (onHit.addComp) {
             const comp = this.createComponent(onHit.addComp);
             if (comp.setSource) {
@@ -312,7 +323,15 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
             // Then create the AddOnHit component and wrap the original
             // component into Duration to make it transient
             const addedComp = comp;
-            const addOnHit = new RG.Component.AddOnHit();
+
+            let addOnHit = null;
+            if (isEquip) {
+                addOnHit = new RG.Component.AddOnEquip();
+            }
+            else {
+                addOnHit = new RG.Component.AddOnHit();
+            }
+
             if (onHit.duration) {
                 const arr = RG.parseDieSpec(onHit.duration);
                 const durDie = new RG.Die(arr[0], arr[1], arr[2]);
