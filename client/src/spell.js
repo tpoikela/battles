@@ -692,7 +692,8 @@ RG.Spell.IceShield = function() {
         const combatMods = new RG.Component.CombatMods();
         combatMods.setDefense(this._dice.defense.roll());
         RG.Component.addToExpirationComp(actor, combatMods, dur);
-        RG.gameMsg('You feel a boost to your defense.');
+        RG.gameMsg({cell: actor.getCell(),
+            msg: `${actor.getName()} is surrounded by defensive aura`});
     };
 
     this.getSelectionObject = function(actor) {
@@ -958,7 +959,8 @@ RG.Spell.PowerDrain = function() {
         const dur = this._dice.duration.roll();
         const drainComp = new RG.Component.PowerDrain();
         RG.Component.addToExpirationComp(actor, drainComp, dur);
-        RG.gameMsg('You feel protected against magic.');
+        RG.gameMsg({cell: actor.getCell(),
+          msg: `${actor.getName()} is surrounded by purple aura`});
     };
 
     this.getSelectionObject = function(actor) {
