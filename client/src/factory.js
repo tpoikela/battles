@@ -866,6 +866,7 @@ RG.Factory.Zone = function() {
     };
 
     this.createSummitLevel = function(conf) {
+        this._verif.verifyConf('createSummitLevel', conf, ['cols', 'rows']);
         let summitConf = {
             maxValue: 100,
             sqrPerActor: 20,
