@@ -225,7 +225,7 @@ System.Damage = function(compTypes) {
         if (weapon && weapon.has) { // Attack was done using weapon
             if (weapon.has('AddOnHit')) {
                 const comp = weapon.get('AddOnHit').getComp();
-                addCompToEntAfterHit(comp, ent);
+                addCompToEntAfterHit(comp, ent, dmgComp.getSource());
             }
         }
         else if (weapon && weapon.onHit) {
@@ -238,7 +238,7 @@ System.Damage = function(compTypes) {
             const src = dmgComp.getSource();
             if (src && src.has('AddOnHit')) {
                 const comp = src.get('AddOnHit').getComp();
-                addCompToEntAfterHit(comp, ent);
+                addCompToEntAfterHit(comp, ent, src);
             }
         }
     };
