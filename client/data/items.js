@@ -344,15 +344,45 @@ const Items = [
     },
     {
         name: 'Void dagger', base: 'VoidWeaponBase',
-        damage: '2d5 + 2',
+        damage: '2d5 + 1',
         attack: 2, defense: 1, weight: 0.3, value: value(200),
         weaponType: 'dagger'
     },
     {
         name: 'Void short sword', base: 'VoidWeaponBase',
-        damage: '3d5 + 2',
+        damage: '3d5 + 1',
         attack: 3, defense: 2, weight: 0.7, value: value(300),
         weaponType: 'sword'
+    },
+    {
+        name: 'Void mace', base: 'VoidWeaponBase',
+        damage: '3d6 + 1',
+        attack: 3, defense: 2, weight: 1.4, value: value(390),
+        weaponType: 'mace'
+    },
+    {
+        name: 'Void axe', base: 'VoidWeaponBase',
+        damage: '4d5 + 1',
+        attack: 4, defense: 2, weight: 1.9, value: value(450),
+        weaponType: 'axe'
+    },
+    {
+        name: 'Void staff', base: 'VoidWeaponBase',
+        damage: '3d6', weaponType: 'staff',
+        attack: 2, defense: 9,
+        weight: 2.0, value: value(450)
+    },
+    {
+        name: 'Void longsword', base: 'VoidWeaponBase',
+        damage: '5d5 + 1',
+        attack: 5, defense: 2, weight: 1.4, value: value(550),
+        weaponType: 'sword'
+    },
+    {
+        name: 'Void spear', base: 'VoidWeaponBase',
+        damage: '4d5 + 2',
+        attack: 4, defense: 8, weight: 1.8, value: value(650),
+        weaponType: 'spear'
     },
 
     // ARMOUR
@@ -385,6 +415,12 @@ const Items = [
         className: 'cell-item-cloth',
         weight: 0.7, defense: 4, protection: 4, armourType: 'chest',
         value: value(350)
+    },
+    {
+        name: 'Boots of flying', base: 'ArmourBase',
+        weight: 0.4, defense: 1, protection: 1, armourType: 'feet',
+        value: value(35),
+        onEquip: [{addComp: 'Flying'}]
     },
 
     // ARMOUR LEATHER

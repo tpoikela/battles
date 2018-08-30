@@ -203,6 +203,13 @@ DebugGame.prototype.create = function(obj, game, player) {
     const voidElem = parser.createActor('void elemental');
     level.addActor(voidElem, pX + 1, pY + 1);
 
+    player.getInvEq().addItem(parser.createItem('Boots of flying'));
+
+    const regen = new RG.Component.RegenEffect();
+    regen.setPP(2);
+    regen.setWaitPP(0);
+    regen.setMaxWaitPP(0);
+    player.add(regen);
     return game;
 };
 
