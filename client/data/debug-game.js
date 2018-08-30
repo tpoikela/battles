@@ -17,7 +17,9 @@ DebugGame.prototype.create = function(obj, game, player) {
     const sqrPerItem = obj.sqrPerItem;
     obj.cols = 100;
     obj.rows = 100;
+    const [pX, pY] = [50, 50];
     const level = this._fact.createLastBattle(game, obj);
+    level.addActor(player, pX, pY);
 
     const spirit = this._parser.createActor('Wolf spirit');
     spirit.get('Stats').setStrength(500);
@@ -197,6 +199,9 @@ DebugGame.prototype.create = function(obj, game, player) {
 
     player.getInvEq().unequipItem('hand', 1, 0);
     player.getInvEq().equipItem(voidDagger);
+
+    const voidElem = parser.createActor('void elemental');
+    level.addActor(voidElem, pX + 1, pY + 1);
 
     return game;
 };
