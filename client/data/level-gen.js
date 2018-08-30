@@ -45,7 +45,10 @@ const getDungeonSizeXY = function(name) {
 const getConstraint = function(name) {
     switch (name) {
         case 'Cave': return {
-            actor: {op: 'eq', prop: 'type', value: ['animal', 'goblin']}
+            actor: {
+              op: 'eq', prop: 'type',
+              value: ['animal', 'goblin', 'beast']
+            }
         };
         case 'Crypt': return {
             actor: {op: 'eq', prop: 'type', value: 'undead'}
@@ -129,11 +132,11 @@ LevelGen.getMountainConf = mountainName => {
 
 const getNumQuarters = (cityType) => {
     switch (cityType) {
-        case 'Hamlet': return 2;
+        case 'Hamlet': return 1;
         case 'Village': return 1;
         case 'Town': return 2;
         case 'Fort': return 2;
-        case 'Stronhold': return RG.RAND.getUniformInt(2, 4);
+        case 'Stronghold': return RG.RAND.getUniformInt(2, 4);
         case 'Capital': return RG.RAND.getUniformInt(3, 5);
         default: return 1;
     }
