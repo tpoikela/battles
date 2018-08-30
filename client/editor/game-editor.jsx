@@ -374,17 +374,22 @@ export default class GameEditor extends Component {
     const fact = new RG.Factory.World();
     const featConf = this.state.zoneConf[zoneType];
 
-    let feat = null;
-    switch (zoneType) {
-      case 'branch': feat = fact.createBranch(featConf); break;
-      case 'city': feat = fact.createCity(featConf); break;
-      case 'dungeon': feat = fact.createDungeon(featConf); break;
-      case 'face': feat = fact.createMountainFace(featConf); break;
-      case 'mountain': feat = fact.createDungeon(featConf); break;
-      case 'quarter': feat = fact.createCityQuarter(featConf); break;
-      default: console.log('No legal zoneType given');
+    try {
+      let feat = null;
+      switch (zoneType) {
+        case 'branch': feat = fact.createBranch(featConf); break;
+        case 'city': feat = fact.createCity(featConf); break;
+        case 'dungeon': feat = fact.createDungeon(featConf); break;
+        case 'face': feat = fact.createMountainFace(featConf); break;
+        case 'mountain': feat = fact.createMountain(featConf); break;
+        case 'quarter': feat = fact.createCityQuarter(featConf); break;
+        default: console.log('No legal zoneType given');
+      }
+      this.addZoneToEditor(zoneType, feat);
     }
-    this.addZoneToEditor(zoneType, feat);
+    catch (e) {
+      this.setState({errorMsg: e.message});
+    }
   }
 
   /* Generates a new level map and adds it to the editor.  */
