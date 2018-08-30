@@ -102,11 +102,14 @@ describe('Brain.Player', () => {
         const equipCmd = { cmd: 'equip', item: dagger };
         player.getInvEq().addItem(dagger);
         brain.decideNextAction(equipCmd);
-        expect(player.getWeapon().getName()).to.equal(dagger.getName());
+        // expect(player.getWeapon().getName()).to.equal(dagger.getName());
+        expect(player).to.have.component('Equip');
+        player.remove('Equip');
 
         const unequipCmd = {cmd: 'unequip', slot: 'hand'};
         brain.decideNextAction(unequipCmd);
-        expect(player.getWeapon()).to.equal(null);
+        // expect(player.getWeapon()).to.equal(null);
+        expect(player).to.have.component('Equip');
     });
 
     it('Has different fighting modes', () => {

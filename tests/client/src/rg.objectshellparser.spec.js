@@ -710,6 +710,14 @@ describe('Data query functions for objects', function() {
 
     });
 
+    it('can create boots of flying', function() {
+        const boots = parser.createItem('Boots of flying');
+        expect(boots).to.have.component('AddOnEquip');
+        const addOnEquip = boots.get('AddOnEquip');
+        const addComp = addOnEquip.getComp();
+        expect(addComp.getType()).to.equal('Flying');
+    });
+
 }); // nested describe ends
 
     it('It should detect invalid object shells', () => {
