@@ -8,6 +8,7 @@
 const RG = require('./rg');
 RG.Random = require('./random');
 RG.Map = require('./map');
+// const Territory = require('./territory');
 
 const debug = require('debug')('bitn:OW');
 
@@ -304,6 +305,7 @@ OW.Map = function() {
 
     this._biomeMap = {};
 
+    this._terrMap = null;
 };
 
 OW.Map.prototype.getSizeXY = function() {
@@ -477,6 +479,9 @@ OW.Map.prototype.toJSON = function() {
     };
     if (this.coordMap) {
         json.coordMap = this.coordMap.toJSON();
+    }
+    if (this.terrMap) {
+        json.terrMap = this.terrMap.toJSON();
     }
     return json;
 };
