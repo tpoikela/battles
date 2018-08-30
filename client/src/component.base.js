@@ -268,7 +268,7 @@ RG.Component.Base.prototype.addCallback = function(name, cb) {
     else if (name === 'onRemove') {this._onRemoveCallbacks.push(cb);}
     else {
         RG.err('Component.Base',
-            'addCallback', 'CB name ' + name + ' invalid.');
+            'addCallback', 'CB name ' + name + ' must be onAdd/onRemove');
     }
 };
 
@@ -278,6 +278,10 @@ RG.Component.Base.prototype.removeCallbacks = function(name) {
         this._onAddCallbacks = [];
     }
     else if (name === 'onRemove') {
+        this._onRemoveCallbacks = [];
+    }
+    else {
+        this._onAddCallbacks = [];
         this._onRemoveCallbacks = [];
     }
 };
