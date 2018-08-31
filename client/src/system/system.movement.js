@@ -143,7 +143,7 @@ System.Movement = function(compTypes) {
             }
         }
         // Remove the bonus/penalty here because cell type was left
-        else if (this._bonuses.hasOwnProperty(prevType)) {
+        if (this._bonuses.hasOwnProperty(prevType)) {
             const statsList = ent.getList('StatsMods');
             const combatList = ent.getList('CombatMods');
             // TODO add a list of comps to check to this._bonuses
