@@ -252,12 +252,17 @@ const CoordMap = function() {
     };
 
     this.getOWTileBboxFromAreaTileXY = function(aX, aY) {
-        return {
-            ulx: (aX * TILE_SIZE_X) / this.xMap,
-            uly: (aY * TILE_SIZE_Y) / this.yMap,
-            lrx: ((aX + 1) * TILE_SIZE_X) / this.xMap,
-            lry: ((aY + 1) * TILE_SIZE_Y) / this.yMap
-        };
+        if (Number.isInteger(aX) && Number.isInteger(aY)) {
+            return {
+                ulx: (aX * TILE_SIZE_X) / this.xMap,
+                uly: (aY * TILE_SIZE_Y) / this.yMap,
+                lrx: ((aX + 1) * TILE_SIZE_X) / this.xMap,
+                lry: ((aY + 1) * TILE_SIZE_Y) / this.yMap
+            };
+        }
+        RG.err('OverWorld.CoordMap', 'getOWTileBboxFromAreaTileXY',
+            `Args (x,y) must be ints. Got ${aX}, ${aY}`);
+        return null;
     };
 
     this.toJSON = function() {
