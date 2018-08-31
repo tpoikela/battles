@@ -2,14 +2,16 @@
 import WorldFromJSON from './world.fromjson';
 import Entity from './entity';
 
+const debug = require('debug')('bitn:Game.FromJSON');
+
 const RG = require('./rg');
 RG.Game = require('./game');
 const OW = require('./overworld.map');
 const Battle = require('./game.battle').Battle;
 const Army = require('./game.battle').Army;
-const debug = require('debug')('bitn:Game.FromJSON');
 const GoalsTop = require('./goals-top');
 const Evaluator = require('./evaluators');
+const Territory = require('./territory');
 
 /* Object for converting serialized JSON objects to game objects. Note that all
  * actor/level ID info is stored between uses. If you call restoreLevel() two
@@ -856,6 +858,9 @@ RG.Game.FromJSON = function() {
             }
         }
         ow.coordMap = coordMap;
+        if (json.terrMap) {
+            ow._terrMap = Territory.fromJSON(json.terrMap);
+        }
         return ow;
     };
 
