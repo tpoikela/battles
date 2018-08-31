@@ -23,9 +23,8 @@ System.Equip = function(compTypes) {
 
     this.unequipItem = (ent, obj) => {
         const slotName = obj.slot;
-        const item = obj.item;
         const slotNumber = obj.slotNumber;
-        const invEq = this._actor.getInvEq();
+        const invEq = ent.getInvEq();
         let result = false;
         let msg = `Failed to remove item from slot ${slotName}.`;
 
@@ -49,12 +48,13 @@ System.Equip = function(compTypes) {
             obj.callback({msg: msg, result});
         }
 
+        const item = invEq.getEquipment().getUnequipped(slotName, slotNumber);
         // If unequip was success, handle unequip effects
         if (result && item.has('AddOnEquip')) {
             const addComps = item.getList('AddOnEquip');
             addComps.forEach(addComp => {
-                const isUnequip = true;
-                this.handleAddOnEquip(ent, addComp, isUnequip);
+                const isEquip = false;
+                this.handleAddOnEquip(ent, addComp, isEquip);
             });
         }
     };
