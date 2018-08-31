@@ -18,6 +18,7 @@ const Territory = function(cols, rows, conf = {}) {
 
     // Internal state of the generator
     this.rivals = [];
+    this.currRivals = [];
     this.empty = {};
     this.occupied = {};
     this.occupiedBy = {};
@@ -96,10 +97,11 @@ Territory.prototype.addRival = function(data) {
 };
 
 Territory.prototype.generate = function(maxTurns = FILL_ALL) {
-    this.rng.shuffle(this.rivals);
+    this.currRivals = this.rivals.slice();
+    this.rng.shuffle(this.currRivals);
     let numTurnsTaken = 0;
-    while (this.hasTurnsLeftToProcess(numTurnsTaken, maxTurns)) {
-        const next = this.rivals.shift();
+    while (this._hasTurnsLeftToProcess(numTurnsTaken, maxTurns)) {
+        const next = this.currRivals.shift();
         // TODO Check if there is weight on the size
 
         const {name} = next;
@@ -108,21 +110,21 @@ Territory.prototype.generate = function(maxTurns = FILL_ALL) {
 
         // If no cells occupied, pick one randomly
         if (currPos < maxNumPos) {
-            const xy = this.getStartPosition(name);
-            this.addStartPosition(name, xy);
-            this.rivals.push(next);
+            const xy = this._getStartPosition(name);
+            this._addStartPosition(name, xy);
+            this.currRivals.push(next);
         }
         else if (Object.keys(open).length > 0) {
-            const xy = this.getOpenXY(name);
+            const xy = this.getRandOpenXY(name);
             const emptyXY = this.getEmptyAdjacentXY(xy);
             if (emptyXY) {
-                this.addOccupied(name, emptyXY);
-                this.rivals.push(next);
+                this._addOccupied(name, emptyXY);
+                this.currRivals.push(next);
             }
             else {
                 this._closeCell(name, xy);
                 if (Object.keys(open).length > 0) {
-                    this.rivals.push(next);
+                    this.currRivals.push(next);
                 }
             }
         }
@@ -133,23 +135,32 @@ Territory.prototype.generate = function(maxTurns = FILL_ALL) {
     }
 };
 
-Territory.prototype.hasTurnsLeftToProcess = function(numTurns, maxTurns) {
-    return (this.hasEmpty()
-        && (this.rivals.length > 0)
-        && (numTurns !== maxTurns)
-        && (this.getFillRatio() < this.maxFillRatio)
-    );
+/* Given char representing a rival name on the map, returns name for that
+ * rival. */
+Territory.prototype.getName = function(char) {
+    const found = this.rivals.find(rival => rival.char === char);
+    if (found) {return found.name;}
+    return null;
 };
 
 Territory.prototype.getFillRatio = function() {
     return (this.numCells - this.numEmpty) / this.numCells;
 };
 
+Territory.prototype._hasTurnsLeftToProcess = function(numTurns, maxTurns) {
+    return (this.hasEmpty()
+        && (this.currRivals.length > 0)
+        && (numTurns !== maxTurns)
+        && (this.getFillRatio() < this.maxFillRatio)
+    );
+};
+
+
 /* Returns the starting position for given rival name. */
-Territory.prototype.getStartPosition = function(name) {
+Territory.prototype._getStartPosition = function(name) {
     const contData = this.terrData[name];
     const {currPos} = contData;
-    const xy = this.getEmptyXY();
+    const xy = this.getRandEmptyXY();
     if (contData.startX.length > currPos) {
         xy[0] = contData.startX[currPos];
     }
@@ -166,21 +177,20 @@ Territory.prototype.getStartPosition = function(name) {
 
     const key = _key(xy);
     if (!this.empty.hasOwnProperty(key)) {
-        RG.warn('Territory', 'getStartPosition',
-            `${name} overriding another position @ ${xy}`);
+        if (this.map[xy[0]][xy[1]] !== FULL) {
+            RG.warn('Territory', '_getStartPosition',
+                `${name} overriding another position @ ${xy}`);
+        }
     }
 
-    // TODO this can override starting points of other rivals
-    if (name === 'human') {
-        console.log('POS', contData.currPos, 'Humans will start from', xy);
-    }
+    // TODO this can override starting points of other currRivals
 
     contData.currPos += 1;
     return xy;
 };
 
 
-Territory.prototype.addOccupied = function(name, xy) {
+Territory.prototype._addOccupied = function(name, xy) {
     const key = _key(xy);
     this.occupied[key] = xy;
     this.occupiedBy[name].push(xy);
@@ -196,18 +206,18 @@ Territory.prototype.addOccupied = function(name, xy) {
     }
 };
 
-Territory.prototype.addStartPosition = function(name, xy) {
+Territory.prototype._addStartPosition = function(name, xy) {
     const contData = this.getData(name);
     const dSize = contData.startSize - 1;
     const startCoord = Geometry.getBoxAround(xy[0], xy[1], dSize, true);
     startCoord.forEach(xyStart => {
         if (this.isEmpty(xyStart)) {
-            this.addOccupied(name, xyStart);
+            this._addOccupied(name, xyStart);
         }
     });
 };
 
-Territory.prototype.getEmptyXY = function() {
+Territory.prototype.getRandEmptyXY = function() {
     return this.rng.arrayGetRand(Object.values(this.empty));
 };
 
@@ -216,7 +226,7 @@ Territory.prototype.isEmpty = function(xy) {
     return this.empty.hasOwnProperty(key);
 };
 
-Territory.prototype.getOpenXY = function(name) {
+Territory.prototype.getRandOpenXY = function(name) {
     const {open} = this.terrData[name];
     return this.rng.arrayGetRand(Object.values(open));
 };
@@ -320,7 +330,7 @@ Territory.prototype._initRival = function(data) {
 };
 
 /* Does processing like floodfilling the regions to find continuous areas for
- * different rivals.
+ * different currRivals.
  */
 Territory.prototype.postProcessData = function() {
     const diag = this.dirs.length > 4 ? true : false;
@@ -349,7 +359,7 @@ Territory.prototype.toJSON = function() {
         map: this.map,
         cols: this.cols,
         rows: this.rows,
-        rivals: this.rivals,
+        currRivals: this.currRivals,
         empty: this.empty,
         occupied: this.occupied,
         occupiedBy: this.occupiedBy,
