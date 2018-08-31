@@ -2,6 +2,7 @@
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 const RGTest = require('../../roguetest');
+const ConfStack = require('../../../client/src/conf-stack');
 
 const expectConnected = RGTest.expectConnected;
 
@@ -16,6 +17,31 @@ describe('Factory.World', function() {
     afterEach(() => {
         fact = null;
     });
+
+    it('uses ConfStack for hierarchical config management', function() {
+        const confStack = new ConfStack();
+        const hierConf = {
+            name: 'top',
+            constraint: {actor: {op: 'eq', prop: 'type', value: 'human'}},
+            subConf: {
+                name: 'subConf',
+                subSubConf: {
+                    name: 'subsubConf'
+                }
+            }
+        };
+        confStack.pushScope(hierConf);
+        confStack.pushScope(hierConf.subConf);
+
+        const constr = confStack.getConf('constraint');
+        expect(constr).to.have.property('actor');
+
+        confStack.pushScope(hierConf.subConf.subSubConf);
+        const constr2 = confStack.getConf('constraint');
+        expect(constr2).to.deep.equals(constr);
+
+    });
+
 
     it('has scope, conf and hier name management', () => {
         const fact = new RG.Factory.World();
