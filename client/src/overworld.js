@@ -237,6 +237,11 @@ const CoordMap = function() {
     this.xMap = 0;
     this.yMap = 0;
 
+    this.setXYMap = function(xMap, yMap) {
+        this.xMap = xMap;
+        this.yMap = yMap;
+    };
+
     this.getAreaLevelCols = function() {
         return this.worldCols / this.nTilesX;
     };
@@ -251,13 +256,26 @@ const CoordMap = function() {
         return [x, y];
     };
 
+    /**
+     * @param {array[]} areaXY - x,y coord for AreaTile
+     * @param {array[]} areaLevelXY - local x,y coord with AreaTile Map.Level
+     * @return {array[]} - x,y coordinates for overworld tile
+     */
+    this.toOWTileXY = function(areaXY, areaLevelXY) {
+        const bbox = this.getOWTileBboxFromAreaTileXY(areaXY[0], areaXY[1]);
+        return [
+            bbox.ulx + Math.floor(areaLevelXY[0] / this.xMap),
+            bbox.uly + Math.floor(areaLevelXY[1] / this.yMap)
+        ];
+    };
+
     this.getOWTileBboxFromAreaTileXY = function(aX, aY) {
         if (Number.isInteger(aX) && Number.isInteger(aY)) {
             return {
                 ulx: (aX * TILE_SIZE_X) / this.xMap,
                 uly: (aY * TILE_SIZE_Y) / this.yMap,
-                lrx: ((aX + 1) * TILE_SIZE_X) / this.xMap,
-                lry: ((aY + 1) * TILE_SIZE_Y) / this.yMap
+                lrx: ((aX + 1) * TILE_SIZE_X) / this.xMap - 1,
+                lry: ((aY + 1) * TILE_SIZE_Y) / this.yMap - 1
             };
         }
         RG.err('OverWorld.CoordMap', 'getOWTileBboxFromAreaTileXY',
@@ -863,7 +881,7 @@ RG.OverWorld.createWorldConf = function(
             const slX = x % xMap;
             const slY = y % yMap;
 
-            // Tile coordinate pointing tile in the M by N AreaTiles
+            // AreaTile x,y pointing tile in the M by N AreaTiles
             const aX = Math.floor(x / xMap);
             const aY = Math.floor(y / yMap);
 
@@ -912,7 +930,8 @@ RG.OverWorld.createWorldConf = function(
 
                         const dungeonConf = RG.LevelGen.getDungeonConf(dName);
                         Object.assign(dungeonConf,
-                            {x: aX, y: aY, levelX: featX, levelY: featY});
+                            {x: aX, y: aY, levelX: featX, levelY: featY,
+                                owX: x, owY: y});
                         areaConf.nDungeons += 1;
                         addMaxDangerAndValue(pX, pY, dungeonConf);
                         areaConf.dungeon.push(dungeonConf);
@@ -926,7 +945,9 @@ RG.OverWorld.createWorldConf = function(
 
                         const mountConf = RG.LevelGen.getMountainConf(mName);
                         Object.assign(mountConf,
-                            {x: aX, y: aY, levelX: featX, levelY: featY});
+                            {x: aX, y: aY, levelX: featX, levelY: featY,
+                                owX: x, owY: y
+                            });
                         addMaxDangerAndValue(pX, pY, mountConf);
                         areaConf.nMountains += 1;
                         areaConf.mountain.push(mountConf);
@@ -1002,7 +1023,9 @@ function addCapitalConfToArea(feat, coordObj, areaConf) {
     const cityConf = {
         name: 'Blashyrkh',
         nQuarters: 1,
-        quarter: [{name: 'Capital cave', nLevels: 1}]
+        quarter: [{name: 'Capital cave', nLevels: 1}],
+        owX: coordObj.x,
+        owY: coordObj.y
     };
 
     cityConf.presetLevels = {
@@ -1032,7 +1055,9 @@ function addDwarvenCityConfToArea(feat, coordObj, areaConf) {
     const cityConf = {
         name: 'Dwarven City',
         nQuarters: 1,
-        quarter: [{name: 'Fort main level', nLevels: 1}]
+        quarter: [{name: 'Fort main level', nLevels: 1}],
+        owX: coordObj.x,
+        owY: coordObj.y
     };
     cityConf.presetLevels = {
         'Dwarven City.Fort main level': [{nLevel: 0, level: dwarvenCity}]
@@ -1060,7 +1085,9 @@ function addAbandonedFortToArea(feat, coordObj, areaConf) {
     const cityConf = {
         name: 'Abandoned fort',
         nQuarters: 1,
-        quarter: [{name: 'Fort ground level', nLevels: 1}]
+        quarter: [{name: 'Fort ground level', nLevels: 1}],
+        owX: coordObj.x,
+        owY: coordObj.y
     };
 
     cityConf.presetLevels = {
@@ -1093,6 +1120,8 @@ function addCityConfToArea(feat, coordObj, areaConf) {
 
     const cName = RG.Names.getUniqueName('city');
     const cityConf = RG.LevelGen.getCityConf(cName, feat);
+    cityConf.owX = coordObj.x;
+    cityConf.owY = coordObj.y;
 
     cityConf.groupType = feat.type;
     addLocationToZoneConf(feat, coordObj, cityConf);
