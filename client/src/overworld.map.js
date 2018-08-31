@@ -312,6 +312,15 @@ OW.Map.prototype.getSizeXY = function() {
     return [this.getSizeX(), this.getSizeY()];
 };
 
+
+OW.Map.prototype.getCenterX = function() {
+    return Math.round(this.getSizeX() / 2);
+};
+
+OW.Map.prototype.getCenterY = function() {
+    return Math.round(this.getSizeY() / 2);
+};
+
 OW.Map.prototype.isWallTile = function(x, y) {
     const tile = this._baseMap[x][y];
     return OW.ALL_WALLS_LUT.hasOwnProperty(tile);
