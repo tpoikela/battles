@@ -9,7 +9,6 @@ RG.Game.FromJSON = require('./game.fromjson');
 RG.Verify = require('./verify');
 RG.ObjectShell = require('./objectshellparser');
 RG.Factory.World = require('./factory.world');
-const Territory = require('./territory');
 
 const OW = require('./overworld.map');
 RG.getOverWorld = require('./overworld');
@@ -18,6 +17,7 @@ const Creator = require('./world.creator');
 const ActorClass = require('./actor-class');
 const ArenaDebugGame = require('../data/debug-game');
 const Texts = require('../data/texts');
+const TerritoryMap = require('../data/territory-map');
 
 const RNG = RG.Random.getRNG();
 const Stairs = RG.Element.Stairs;
@@ -280,25 +280,7 @@ RG.Factory.Game = function() {
     };
 
     this.createOverWorld = function(obj, game, player) {
-        const mult = 1;
-        const xMult = obj.xMult || 1;
-        const yMult = obj.yMult || 1;
-        const owConf = {
-            yFirst: false,
-            topToBottom: false,
-            // stopOnWall: 'random',
-            stopOnWall: true,
-            // nHWalls: 3,
-            nVWalls: [0.8],
-            owTilesX: xMult * mult * 40,
-            owTilesY: yMult * mult * 40,
-            worldX: xMult * mult * 400,
-            worldY: yMult * mult * 400,
-            nLevelsX: xMult * mult * 4,
-            nLevelsY: yMult * mult * 4,
-            nTilesX: xMult * mult * 4,
-            nTilesY: yMult * mult * 4
-        };
+        const owConf = RG.Factory.Game.getOwConf(1, obj);
 
         const startTime = new Date().getTime();
 
@@ -310,20 +292,24 @@ RG.Factory.Game = function() {
         const midX = Math.floor(owConf.nLevelsX / 2);
         const playerX = midX;
         const playerY = owConf.nLevelsY - 1;
-        this.addTerritories(overworld, obj, owConf, playerX, playerY);
+        overworld.terrMap = this.createTerritoryMap(overworld, obj.playerRace,
+            playerX, playerY);
         this.progress('DONE');
 
         this.progress('Creating Overworld Level Map...');
         const worldAndConf = RG.OverWorld.createOverWorldLevel(
           overworld, owConf);
-        const worldLevel = worldAndConf[0];
+        const [worldLevel, worldConf] = worldAndConf;
+        this.progress('DONE');
+
+        this.progress('Mapping settlements into territory areas..');
+        this.mapZonesToTerritoryMap(overworld.terrMap, worldConf);
         this.progress('DONE');
 
         this.progress('Splitting Overworld Level Map into AreaTiles...');
         RG.Map.Level.idCount = 0;
         const splitLevels = RG.Geometry.splitLevel(worldLevel, owConf);
         this.progress('DONE');
-
 
         this.progress('Creating and connectting World.Area tiles...');
         RG.Map.Level.idCount = 1000;
@@ -337,9 +323,10 @@ RG.Factory.Game = function() {
         game.setGlobalConf(obj);
         fact.setPresetLevels({Realm: splitLevels});
 
-        const worldConf = worldAndConf[1];
         worldConf.createAllZones = false;
         this.progress('Creating places and local zones...');
+        const playerLevel = splitLevels[playerX][playerY];
+        this.createPlayerHome(worldConf, player, playerLevel, playerX, playerY);
         const world = fact.createWorld(worldConf);
         game.addPlace(world);
         overworld.clearSubLevels();
@@ -348,8 +335,7 @@ RG.Factory.Game = function() {
         this.progress('DONE');
 
         this.progress('Adding player to the game...');
-        const playerLevel = splitLevels[playerX][playerY];
-        // playerLevel.addActorToFreeCell(player);
+
         this.placePlayer(player, playerLevel);
         RG.POOL.emitEvent(RG.EVT_TILE_CHANGED, {actor: player,
             target: playerLevel});
@@ -422,69 +408,64 @@ RG.Factory.Game = function() {
         }
     };
 
-	this.addTerritories = function(ow, conf, owConf, playerX, playerY) {
-        const {playerRace} = conf;
-		const capXY = ow.getFeaturesByType(OW.WCAPITAL)[0];
-		const dwarves = ow.getFeaturesByType(OW.WTOWER)[0];
-		const btower = ow.getFeaturesByType(OW.BTOWER)[0];
-		const bcapital = ow.getFeaturesByType(OW.BCAPITAL)[0];
-
-		const owMap = ow.getOWMap();
-        const terrConf = {startSize: 2, maxNumPos: 2, maxFillRatio: 0.7};
-		const terrMap = new Territory(ow.getSizeX(), ow.getSizeY(), terrConf);
-
-		// console.log(ow.mapToString());
-		terrMap.useMap(owMap, {
-			[OW.TERM]: true,
-			[OW.MOUNTAIN]: true,
-			[OW.BVILLAGE]: true,
-			[OW.WVILLAGE]: true,
-			[OW.WCAPITAL]: true,
-			[OW.BCAPITAL]: true,
-			[OW.WTOWER]: true,
-			[OW.BTOWER]: true
-		});
-
-		const bears = {name: 'bearfolk', char: 'B'};
-		const undeads = {name: 'undead', char: 'u', numPos: 3,
-			startX: [ow.getCenterX()], startY: [ow.getSizeY() - 5]};
-
-		terrMap.addRival({name: 'avian', char: 'A'});
-		terrMap.addRival(undeads);
-		terrMap.addRival({name: 'wildling', char: 'I'});
-		terrMap.addRival(bears);
-		terrMap.addRival({name: 'wolfclan', char: 'w'});
-		terrMap.addRival({name: 'catfolk', char: 'c'});
-		terrMap.addRival({name: 'dogfolk', char: 'd'});
-		terrMap.addRival({name: 'human', char: '@'});
-		terrMap.addRival({name: 'goblin', char: 'g', numPos: 8});
-		terrMap.addRival({name: 'dwarf', char: 'D',
-			startX: dwarves[0], startY: dwarves[1]});
-		terrMap.addRival({name: 'hyrkhian', char: 'y',
-			startX: capXY[0], startY: capXY[1]});
-
-        const winterConf = {name: 'winterbeing', char: 'W',
-            startX: [btower[0], bcapital[0]],
-            startY: [btower[1], bcapital[1]]
-        };
-		terrMap.addRival(winterConf);
-
-        const coordMap = new RG.OverWorld.CoordMap();
-        coordMap.xMap = 10;
-        coordMap.yMap = 10;
-        const bbox = coordMap.getOWTileBboxFromAreaTileXY(playerX, playerY);
-        console.log('Player bbox will be', bbox);
-
-        const pData = terrMap.getData(playerRace);
-        pData.numPos += 1;
-        pData.startX.push(RNG.getUniformInt(bbox.ulx, bbox.lrx));
-        pData.startY.push(RNG.getUniformInt(bbox.uly, bbox.lry));
-
-		terrMap.generate();
-        console.log(terrMap.mapToString());
-        ow.terrMap = terrMap;
+	this.createTerritoryMap = function(ow, playerRace, playerX, playerY) {
+        return TerritoryMap.create(ow, playerRace, [playerX, playerY]);
 	};
 
+    /* Matches each zone with territory map, and adds some generation
+     * constraints.
+     */
+    this.mapZonesToTerritoryMap = function(terrMap, worldConf) {
+        const terrMapXY = terrMap.getMap();
+        const citiesConf = worldConf.area[0].city;
+        console.log('AA There is conf for', citiesConf.length, 'cities');
+        citiesConf.forEach(cityConf => {
+            const {owX, owY} = cityConf;
+            const char = terrMapXY[owX][owY];
+            const name = terrMap.getName(char);
+            const constrActor = {
+                op: 'eq', prop: 'type', value: [name]
+            };
+            console.log('cityConf: ', cityConf);
+            if (name) {
+                if (!cityConf.constraint) {cityConf.constraint = {};}
+                cityConf.constraint.actor = constrActor;
+            }
+            cityConf.quarter.forEach(qConf => {
+                if (!qConf.constraint) {qConf.constraint = {};}
+                qConf.constraint.actor = constrActor;
+            });
+        });
+    };
+
+    this.createPlayerHome = function(
+        worldConf, player, level, playerX, playerY
+    ) {
+        let cell = level.getFreeRandCell();
+        while (cell.hasConnection()) {
+            cell = level.getFreeRandCell();
+        }
+
+        const homeConf = {
+            name: 'Home town of ' + player.getName(),
+            x: playerX, y: playerY,
+            levelX: cell.getX(), levelY: cell.getY(),
+            nQuarters: 1,
+            groupType: 'village',
+            constraint: {
+                actor: {op: 'eq', prop: 'type', value: [player.getType()]}
+            },
+            quarter: [{
+                name: 'Square',
+                nLevels: 1,
+                entranceLevel: 0,
+                nShops: 1
+            }]
+        };
+
+        console.log('Hometown located @ ', cell.getX(), cell.getY());
+        worldConf.area[0].city.push(homeConf);
+    };
 
     this.createWorldWithCreator = function(obj, game, player) {
         const creator = new Creator();
@@ -745,6 +726,28 @@ RG.Factory.Game = function() {
 
 };
 RG.extend2(RG.Factory.Game, RG.Factory.Base);
+
+RG.Factory.Game.getOwConf = function(mult = 1, obj = {}) {
+    const xMult = obj.xMult || 1;
+    const yMult = obj.yMult || 1;
+    const owConf = {
+        yFirst: false,
+        topToBottom: false,
+        // stopOnWall: 'random',
+        stopOnWall: true,
+        // nHWalls: 3,
+        nVWalls: [0.8],
+        owTilesX: xMult * mult * 40,
+        owTilesY: yMult * mult * 40,
+        worldX: xMult * mult * 400,
+        worldY: yMult * mult * 400,
+        nLevelsX: xMult * mult * 4,
+        nLevelsY: yMult * mult * 4,
+        nTilesX: xMult * mult * 4,
+        nTilesY: yMult * mult * 4
+    };
+    return owConf;
+};
 
 module.exports = RG.Factory.Game;
 
