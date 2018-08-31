@@ -3,17 +3,12 @@
 
 require('babel-register');
 
-
 const RG = require('../client/src/battles');
-// const worldConf = require('../client/data/conf.world');
 
 const factory = new RG.Factory.Game();
-
 const startTime = new Date();
 
 const gameConf = {
-    cols: 80,
-    rows: 28,
     playerLevel: 'Medium',
     sqrPerActor: 100,
     sqrPerItem: 100,
@@ -21,8 +16,8 @@ const gameConf = {
     loadedPlayer: null,
     loadedLevel: null,
     playerName: 'Player1',
-    // world: worldConf,
     playerRace: 'goblin',
+    playerClass: 'Adventurer',
     xMult: 2,
     yMult: 2
 };
@@ -50,5 +45,14 @@ console.log('The game has ' + nActors + ' actors.');
 console.log('The game has ' + nItems + ' items.');
 console.log('Elements created: ' + RG.elementsCreated);
 
-// console.log(JSON.stringify(game.toJSON()));
+const area = game.getArea(0);
+const cities = area.getZones('City');
+
+console.log('There are', cities.length, 'cities in the world');
+
+const overworld = game.getOverWorld();
+const terrMap = overworld.terrMap;
+
+console.log(overworld.mapToString());
+console.log(terrMap.mapToString());
 
