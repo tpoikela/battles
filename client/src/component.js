@@ -945,6 +945,15 @@ RG.extend2(RG.Component.Skills, RG.Component.Base);
 RG.Component.SkillsExp = TransientDataComponent('SkillsExp',
     {skill: '', points: 0});
 
+/* Component added to shopkeeper. */
+RG.Component.Shopkeeper = UniqueDataComponent('Shopkeeper',
+    {levelID: -1, cells: null, doorXY: null}
+);
+
+RG.Component.Shopkeeper._init = function() {
+    this.cells = [];
+};
+
 /* Component which models a shop transaction. */
 RG.Component.Transaction = TransientDataComponent('Transaction', {args: null});
 
