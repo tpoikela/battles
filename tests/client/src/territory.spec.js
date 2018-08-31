@@ -10,13 +10,44 @@ describe('Territory', () => {
         const cols = 50;
         const rows = 50;
         const terrMap = new Territory(cols, rows);
-        terrMap.addContestant({name: 'wolfclan', char: 'w'});
-        terrMap.addContestant({name: 'catfolk', char: 'c'});
+        terrMap.addRival({name: 'wolfclan', char: 'w'});
+        terrMap.addRival({name: 'catfolk', char: 'c'});
         terrMap.generate();
 
         const map = terrMap.getMap();
         expect(map[0][0]).to.match(/(c|w)/);
         expect(map[25][25]).to.match(/(c|w)/);
+
+        // console.log(terrMap.mapToString());
+    });
+
+    it('has option to specify start area size and number of turns', () => {
+        const terrMap = new Territory(10, 10);
+        terrMap.addRival({name: 'wolfclan', char: 'w', startSize: 3});
+        terrMap.addRival({name: 'catfolk', char: 'c'});
+        terrMap.generate(2);
+
+        const catData = terrMap.getData('catfolk');
+        expect(catData.numOccupied).to.equal(1);
+
+        const wolfData = terrMap.getData('wolfclan');
+        expect(wolfData.numOccupied).to.be.above(2);
+
+        // console.log(terrMap.mapToString());
+    });
+
+
+    it('has option to specify ratio of filled cells to all cells', () => {
+        const terrMap = new Territory(10, 10, {maxFillRatio: 0.5});
+        terrMap.addRival({name: 'wolfclan', char: 'w'});
+        terrMap.addRival({name: 'catfolk', char: 'c'});
+        terrMap.generate();
+
+        const catData = terrMap.getData('catfolk');
+        expect(catData.numOccupied).to.be.below(50);
+
+        const wolfData = terrMap.getData('wolfclan');
+        expect(wolfData.numOccupied).to.be.below(50);
 
         console.log(terrMap.mapToString());
     });
@@ -27,16 +58,16 @@ describe('Territory', () => {
         const terrMap = new Territory(ow.getSizeX(), ow.getSizeY());
 
         // console.log(ow.mapToString());
-        terrMap.setAsEmpty(owMap, {
+        terrMap.useMap(owMap, {
             [OW.TERM]: true,
             [OW.MOUNTAIN]: true,
             [OW.BVILLAGE]: true,
             [OW.WVILLAGE]: true
         });
 
-        terrMap.addContestant({name: 'wolfclan', char: 'w'});
-        terrMap.addContestant({name: 'catfolk', char: 'c'});
-        terrMap.addContestant({name: 'goblin', char: 'g'});
+        terrMap.addRival({name: 'wolfclan', char: 'w'});
+        terrMap.addRival({name: 'catfolk', char: 'c'});
+        terrMap.addRival({name: 'goblin', char: 'g'});
 
         terrMap.generate();
         // console.log(terrMap.mapToString());
@@ -47,8 +78,8 @@ describe('Territory', () => {
         const terrMap = new Territory(20, 20);
         const goblins = {name: 'goblin', char: 'g', startX: 0, startY: 0};
         const elves = {name: 'elves', char: '@', startX: 19, startY: 19};
-        terrMap.addContestant(goblins);
-        terrMap.addContestant(elves);
+        terrMap.addRival(goblins);
+        terrMap.addRival(elves);
         terrMap.generate();
 
         const map = terrMap.getMap();
@@ -73,11 +104,12 @@ describe('Territory', () => {
         RG.diag('', '', 'Test');
 
         const owMap = ow.getOWMap();
-        const terrMap = new Territory(ow.getSizeX(), ow.getSizeY());
+        const terrConf = {startSize: 2, maxNumPos: 2, maxFillRatio: 0.6};
+        const terrMap = new Territory(ow.getSizeX(), ow.getSizeY(), terrConf);
         terrMap.setRNG(rng);
 
         // console.log(ow.mapToString());
-        terrMap.setAsEmpty(owMap, {
+        terrMap.useMap(owMap, {
             [OW.TERM]: true,
             [OW.MOUNTAIN]: true,
             [OW.BVILLAGE]: true,
@@ -89,25 +121,25 @@ describe('Territory', () => {
         });
 
         const bears = {name: 'bearfolk',
-            char: 'B', numPos: 2, startX: 2, startY: 2};
+            char: 'B', numPos: 2};
         const undeads = {name: 'undead', char: 'u', numPos: 3,
             startX: [80], startY: [75]};
 
-        terrMap.addContestant({name: 'avian', char: 'A'});
-        terrMap.addContestant(undeads);
-        terrMap.addContestant({name: 'wildling', char: 'I'});
-        terrMap.addContestant(bears);
-        terrMap.addContestant({name: 'wolfclan', char: 'w'});
-        terrMap.addContestant({name: 'catfolk', char: 'c'});
-        terrMap.addContestant({name: 'dogfolk', char: 'd'});
-        terrMap.addContestant({name: 'human', char: '@'});
-        terrMap.addContestant({name: 'goblin', char: 'g', numPos: 8});
-        terrMap.addContestant({name: 'dwarves', char: 'D',
+        terrMap.addRival({name: 'avian', char: 'A'});
+        terrMap.addRival(undeads);
+        terrMap.addRival({name: 'wildling', char: 'I'});
+        terrMap.addRival(bears);
+        terrMap.addRival({name: 'wolfclan', char: 'w'});
+        terrMap.addRival({name: 'catfolk', char: 'c'});
+        terrMap.addRival({name: 'dogfolk', char: 'd'});
+        terrMap.addRival({name: 'human', char: '@'});
+        terrMap.addRival({name: 'goblin', char: 'g', numPos: 8});
+        terrMap.addRival({name: 'dwarves', char: 'D',
             startX: dwarves[0], startY: dwarves[1]});
-        terrMap.addContestant({name: 'hyrkhians', char: 'y',
+        terrMap.addRival({name: 'hyrkhians', char: 'y',
             startX: capXY[0], startY: capXY[1]});
-        terrMap.addContestant({name: 'winterbeings', char: 'W',
-            startX: btower[0], startY: btower[1]});
+        terrMap.addRival({name: 'winterbeings', char: 'W',
+            startX: btower[0], startY: btower[1], numPos: 1});
 
         const coordMap = new RG.Overworld.CoordMap();
         coordMap.xMap = 10;
@@ -131,5 +163,22 @@ describe('Territory', () => {
         const undeadData = terrMap.getData('undead');
         expect(undeadData.startX).to.have.length(3);
         expect(undeadData.startY).to.have.length(3);
+    });
+
+    it('has functions for serialisation/de-serialisation', () => {
+        const terrMap = new Territory(10, 10);
+        terrMap.addRival({name: 'wolfclan', char: 'w', startSize: 3});
+        terrMap.addRival({name: 'catfolk', char: 'c'});
+
+        terrMap.generate();
+
+        const oldData = terrMap.getData();
+
+        const json = terrMap.toJSON();
+        const clonedTerrMap = Territory.fromJSON(json);
+        const newData = clonedTerrMap.getData();
+
+        expect(newData).to.deep.equal(oldData);
+        expect(clonedTerrMap.getMap()).to.deep.equal(terrMap.getMap());
     });
 });
