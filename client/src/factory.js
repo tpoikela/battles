@@ -552,17 +552,7 @@ RG.Factory.Base = function() {
                 const door = new RG.Element.Door(true);
                 level.addElement(door, doorXY[0], doorXY[1]);
 
-                let keeper = null;
-                if (conf.parser) {
-                    keeper = conf.parser.createActor('shopkeeper');
-                }
-                else {
-                    keeper = this.createActor('shopkeeper', {brain: 'Human'});
-                }
-
-                const gold = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
-                gold.count = RNG.getUniformInt(50, 200);
-                keeper.getInvEq().addItem(gold);
+                const keeper = this.createShopkeeper(conf);
 
                 const shopCoord = [];
                 for (let i = 0; i < floor.length; i++) {
@@ -593,6 +583,15 @@ RG.Factory.Base = function() {
                     }
                 }
 
+                if (keeper.has('Shopkeeper')) {
+                    const shopKeep = keeper.get('Shopkeeper');
+                    shopKeep.setCells(shopCoord);
+                    shopKeep.setLevelID(level.getID());
+                    shopKeep.setDoorXY(door.getXY());
+                    const name = keeper.getType() + ' shopkeeper';
+                    keeper.setName(name);
+                }
+
                 shopObj.setShopkeeper(keeper);
                 shopObj.setLevel(level);
                 shopObj.setCoord(shopCoord);
@@ -603,6 +602,36 @@ RG.Factory.Base = function() {
             RG.err('Factory.Base', 'createShops', 'No houses in mapObj.');
         }
 
+    };
+
+    /* Creates a shopkeeper actor. */
+    this.createShopkeeper = function(conf) {
+        let keeper = null;
+        if (conf.parser) {
+            if (conf.actor) {
+                keeper = conf.parser.createRandomActor({
+                    func: conf.actor});
+                keeper.add(new RG.Component.Shopkeeper());
+            }
+            else {
+                keeper = conf.parser.createActor('shopkeeper');
+            }
+        }
+        else {
+            keeper = this.createActor('shopkeeper', {brain: 'Human'});
+        }
+
+        const gold = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
+        gold.count = RNG.getUniformInt(50, 200);
+        keeper.getInvEq().addItem(gold);
+
+        let keeperLevel = 10;
+        if (conf.maxDanger >= 6) {
+            keeperLevel = 2 * conf.maxDanger;
+        }
+        RG.levelUpActor(keeper, keeperLevel);
+
+        return keeper;
     };
 
     /* Creates trainers for the given level. */
@@ -980,14 +1009,19 @@ RG.Factory.Zone = function() {
             alignment = RNG.arrayGetRand(RG.ALIGNMENTS);
         }
 
-        if (alignment === RG.ALIGN_GOOD) {
-            this.populateWithHumans(level, levelConf);
-        }
-        else if (alignment === RG.ALIGN_EVIL) {
-            this.populateWithEvil(level, levelConf);
+        if (!levelConf.actor) {
+            if (alignment === RG.ALIGN_GOOD) {
+                this.populateWithHumans(level, levelConf);
+            }
+            else if (alignment === RG.ALIGN_EVIL) {
+                this.populateWithEvil(level, levelConf);
+            }
+            else {
+                this.populateWithNeutral(level, levelConf);
+            }
         }
         else {
-            this.populateWithNeutral(level, levelConf);
+            this.populateWithActors(level, levelConf);
         }
     };
 
@@ -1008,6 +1042,15 @@ RG.Factory.Zone = function() {
         }
 
         factItem.addItemsToCells(level, parser, floorCells, itemConf);
+    };
+
+    this.populateWithActors = function(level, levelConf) {
+        const actorConf = {
+            actorsPerLevel: levelConf.actorsPerLevel || 100,
+            maxDanger: levelConf.maxDanger || 10,
+            func: levelConf.actor
+        };
+        this.addNRandActors(level, this._parser, actorConf);
     };
 
     this.populateWithHumans = function(level, levelConf) {
