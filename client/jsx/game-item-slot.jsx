@@ -2,6 +2,8 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 
+const RG = require('../src/rg');
+
 /** Component stores one item, renders its description and selects it if
  * clicked.*/
 export default class GameItemSlot extends Component {
@@ -18,12 +20,18 @@ export default class GameItemSlot extends Component {
   render() {
     const item = this.props.item;
     const itemString = item.toString();
+    const name = item.getName();
+    const className = 'inv-item-slot ' + RG.getCssClass(RG.TYPE_ITEM, name);
     return (
-      <div className='inv-item-slot' onClick={this.setSelectedItem}>{itemString}</div>
+        <div
+            className={className}
+            onClick={this.setSelectedItem}
+        >{itemString}
+        </div>
     );
   }
 
-};
+}
 
 GameItemSlot.propTypes = {
   setSelectedItem: PropTypes.func,

@@ -2,6 +2,8 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 
+const RG = require('../src/rg');
+
 /** Component for one equipment slot.*/
 export default class GameEquipSlot extends Component {
 
@@ -25,10 +27,14 @@ export default class GameEquipSlot extends Component {
     const slotName = this.props.slotName;
     const item = this.props.item;
     let msg = 'Empty';
-    if (item !== null) {msg = item.toString();}
+    let className = 'inv-equip-slot';
+    if (item !== null) {
+      msg = item.toString();
+      className += RG.getCssClass(item.getName());
+    }
     return (
       <div
-        className='inv-equip-slot'
+        className={className}
         onClick={this.setEquipSelected}
       >{slotName} {msg}</div>
     );
