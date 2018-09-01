@@ -26,6 +26,7 @@ const ConfStack = function() {
     this.pushScope = function(conf) {
         this.scope.push(conf.name);
         this.confStack.push(conf);
+        this.debug('Pushed scope: ' + conf.name);
     };
 
     /* Removes given config and the name it contains from stacks. Reports an
@@ -47,6 +48,7 @@ const ConfStack = function() {
     this.getConf = function(keys) {
         // First travel the config stack from the top
         for (let i = this.confStack.length - 1; i >= 0; i--) {
+            this.debug(i + ' looking for ' + keys);
             if (this.confStack[i].hasOwnProperty(keys)) {
                 return this.confStack[i][keys];
             }
