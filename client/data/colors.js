@@ -4,6 +4,6 @@
 
 const Colors = {};
 
-Colors.dwarven = {fg: 'Red', bg: 'Black'};
+Colors.dwarven = {fg: 'Black', bg: 'Brown'};
 
 module.exports = Colors;
