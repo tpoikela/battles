@@ -590,6 +590,8 @@ RG.Factory.Base = function() {
                     shopKeep.setDoorXY(door.getXY());
                     const name = keeper.getType() + ' shopkeeper';
                     keeper.setName(name);
+                    RG.addCellStyle(RG.TYPE_ACTOR, name,
+                        'cell-actor-shopkeeper');
                 }
 
                 shopObj.setShopkeeper(keeper);
@@ -954,6 +956,16 @@ RG.Factory.Zone = function() {
         if (cityLevel === null) {
             cityLevel = this.createLevel('town', x, y, levelConf);
         }
+
+        if (conf.friendly) {
+            const actors = cityLevel.getActors();
+            actors.forEach(actor => {
+                if (!actor.has('NonSentient')) {
+                    actor.getBrain().getMemory().removeEnemyType('player');
+                }
+            });
+        }
+
         return cityLevel;
     };
 
