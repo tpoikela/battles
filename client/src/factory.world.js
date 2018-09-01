@@ -228,6 +228,10 @@ RG.Factory.World = function() {
         return this._conf.getConf(keys);
     };
 
+    this.setOverWorld = function(overworld) {
+        this.overworld = overworld;
+    };
+
     /* Returns the full hierarchical name of the zone. */
     this.getHierName = () => this._conf.getScope().join('.');
 
@@ -310,12 +314,13 @@ RG.Factory.World = function() {
     this.createZonesForTile = function(world, area, x, y) {
         // Setup the scope & conf stacks
         if (!area.tileHasZonesCreated(x, y)) {
-            this.populateAreaLevel(area, x, y);
             this.debug(`Creating Area ${x},${y} zones`);
             const worldConf = world.getConf();
             this.pushScope(worldConf);
             const areaConf = area.getConf();
             this.pushScope(areaConf);
+
+            this.populateAreaLevel(area, x, y);
 
             this._createAllZones(area, areaConf, x, y);
             area.markTileZonesCreated(x, y);
@@ -329,7 +334,8 @@ RG.Factory.World = function() {
         }
     };
 
-    /* Adds actors and items into AreaTile level. */
+    /* Adds actors and items into AreaTile level. Config for world/area should
+     * already exists in the stack, so calling this.getConf() gets it. */
     this.populateAreaLevel = function(area, x, y) {
         const playerX = Math.floor(area.getSizeX() / 2);
         const playerY = area.getSizeY() - 1;
@@ -341,13 +347,15 @@ RG.Factory.World = function() {
         const yDiff = playerY - y;
 
         const itemsPerLevel = 7 + xDiff + 2 * yDiff;
-        const actorsPerLevel = (yDiff + 1) * 10 + 2 * xDiff;
+        const actorsPerLevel = (yDiff + 1) * 10 + 2 * xDiff + 10;
 
         const fact = new RG.Factory.Base();
         fact.setParser(parser);
 
         const maxValue = RG.getMaxValue(xDiff, yDiff);
-        const itemConf = {
+        const maxDanger = RG.getMaxDanger(xDiff, yDiff);
+
+        const levelConf = {
             itemsPerLevel,
             func: (item) => (
                 item.value <= maxValue
@@ -355,15 +363,13 @@ RG.Factory.World = function() {
             ),
             gold: () => false,
             food: () => false,
-            maxValue
-        };
-        fact.addNRandItems(level, parser, itemConf);
-
-        const maxDanger = RG.getMaxDanger(xDiff, yDiff);
-        const actorConf = {
+            maxValue,
             actorsPerLevel, maxDanger
         };
-        fact.addNRandActors(level, parser, actorConf);
+        this.setAreaLevelConstraints(levelConf, x, y);
+
+        fact.addNRandItems(level, parser, levelConf);
+        fact.addNRandActors(level, parser, levelConf);
     };
 
     this._createAllZones = function(area, conf, tx = -1, ty = -1) {
@@ -694,6 +700,20 @@ RG.Factory.World = function() {
         if (wallType) {levelConf.wallType = wallType;}
         if (floorType) {levelConf.floorType = floorType;}
         if (isFriendly) {levelConf.friendly = true;}
+    };
+
+    this.setAreaLevelConstraints = function(levelConf, aX, aY) {
+        const key = aX + ',' + aY;
+        const constraints = this.getConf('constraint');
+        if (constraints && constraints.hasOwnProperty(key)) {
+            const conf = {
+                name: 'AreaLevel[' + key + ']',
+                constraint: constraints[key]
+            };
+            this.pushScope(conf);
+            this.setLevelConstraints(levelConf);
+            this.popScope(conf);
+        }
     };
 
     /* Adds fixed features such as stairs, actors and items into the level. */
