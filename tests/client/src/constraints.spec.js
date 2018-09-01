@@ -53,4 +53,18 @@ describe('Constraints', () => {
         expect(funcIsDangerousHumanOrAnimal(animalDangr)).to.equal(true);
         expect(funcIsDangerousHumanOrAnimal(orcDangr)).to.equal(false);
     });
+
+    it('has not equal (neq) operator', () => {
+        const cc = [
+            {op: 'eq', prop: 'type', value: ['Goblin', 'Animal']},
+            {op: 'neq', prop: 'tag', value: 'winterbeing'}
+        ];
+
+        const funcIsNotWinterBeing = fact.getConstraints(cc);
+        const goblin = {type: 'Goblin'};
+        const wildling = {type: 'Wildling'};
+
+        expect(funcIsNotWinterBeing(wildling)).to.equal(false);
+        expect(funcIsNotWinterBeing(goblin)).to.equal(true);
+    });
 });
