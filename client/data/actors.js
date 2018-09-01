@@ -353,7 +353,7 @@ const Actors = [
         range: 1, enemies: ['player', 'human', 'dwarf'], type: 'undead'
     },
     {
-        name: 'skeletal dog', char: 'z', base: 'UndeadBase',
+        name: 'skeletal dog', char: 'd', base: 'UndeadBase',
         attack: 1, defense: 1, damage: '1d6', danger: 1,
         brain: 'Animal',
         hp: 6
@@ -382,6 +382,7 @@ const Actors = [
     },
     {
         name: 'skeleton archer', char: 'z', base: 'UndeadBase',
+        'color-fg': 'Yellow',
         attack: 4, defense: 2, damage: '1d8', danger: 4,
         hp: 15,
         equip: ['Wooden bow', {name: 'Wooden arrow', count: 5}]
@@ -398,11 +399,13 @@ const Actors = [
     },
     {
         name: 'skeleton berserker', char: 'z', base: 'UndeadBase',
+        'color-fg': 'Red',
         attack: 6, defense: 1, damage: '1d10 + 4', danger: 5,
         hp: 15
     },
     {
         name: 'ghoul', char: 'z', base: 'UndeadBase',
+        'color-fg': 'LightGray',
         attack: 3, defense: 3, damage: '1d7 + 2', danger: 5,
         hp: 15, onHit: [{addComp: 'Paralysis', duration: '1d4'}]
     },
