@@ -418,15 +418,19 @@ RG.Factory.Game = function() {
     this.mapZonesToTerritoryMap = function(terrMap, worldConf) {
         const terrMapXY = terrMap.getMap();
         const citiesConf = worldConf.area[0].city;
-        console.log('AA There is conf for', citiesConf.length, 'cities');
         citiesConf.forEach(cityConf => {
             const {owX, owY} = cityConf;
             const char = terrMapXY[owX][owY];
             const name = terrMap.getName(char);
-            const constrActor = {
-                op: 'eq', prop: 'type', value: [name]
-            };
-            console.log('cityConf: ', cityConf);
+            let constrActor = [
+                {op: 'eq', prop: 'type', value: [name]},
+                {op: 'neq', prop: 'base', value: ['WinterBeingBase']}
+            ];
+            if (name === 'winterbeings') {
+                constrActor = {
+                    op: 'eq', prop: 'base', value: ['WinterBeingBase']
+                };
+            }
             if (name) {
                 if (!cityConf.constraint) {cityConf.constraint = {};}
                 cityConf.constraint.actor = constrActor;
@@ -438,6 +442,7 @@ RG.Factory.Game = function() {
         });
     };
 
+    /* Creates the starting home village for the player. */
     this.createPlayerHome = function(
         worldConf, player, level, playerX, playerY
     ) {
@@ -452,8 +457,15 @@ RG.Factory.Game = function() {
             levelX: cell.getX(), levelY: cell.getY(),
             nQuarters: 1,
             groupType: 'village',
+            friendly: true,
             constraint: {
-                actor: {op: 'eq', prop: 'type', value: [player.getType()]}
+                actor: [
+                    {op: 'eq', prop: 'type', value: [player.getType()]},
+                    {op: 'neq', prop: 'base', value: ['WinterBeingBase']}
+                ],
+                shop: [
+                    {op: '<=', prop: 'value', value: 50}
+                ]
             },
             quarter: [{
                 name: 'Square',
