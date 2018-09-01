@@ -26,7 +26,58 @@ ConfGen.Zone = {
             shop: [],
             food: [],
             gold: []
+        },
+
+        friendly: false // Is it friendly city/village?
+
+        // Some of these based of zone type
+        // nQuarters: , quarter: []
+        // nBranches: , branch: []
+        // nSummits: , summit: []
+        // nFaces: , face: []
+    })
+};
+
+ConfGen.AreaConstraint = {
+    create: () => ({
+        constraint: {
+            // for each area tile, separate constraints can be passed using
+            // [x + ',' + y] of the tile as first key:
+            ['1' + ',' + '-1']: {
+                actor: [],
+                item: []
+            }
+
         }
+    })
+};
+
+ConfGen.SubZone = {
+    create: () => ({
+        name: '',
+        nLevels: -1,
+        constraint: { /* See ConfGen.Zone */}
+    })
+};
+
+ConfGen.Area = {
+    create: () => ({
+        name: '',
+        maxX: -1, maxY: -1,
+        nCities: -1,
+        nDungeons: -1,
+        nMountains: -1,
+        city: [], // ConfGen.Zone*
+        mountain: [], // ConfGen.Zone*
+        dungeon: [] // ConfGen.Zone*
+    })
+};
+
+ConfGen.World = {
+    create: () => ({
+        name: '',
+        nAreas: -1,
+        area: [] // ConfGen.Area*
     })
 };
 
