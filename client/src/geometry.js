@@ -105,6 +105,15 @@ RG.Geometry = {
         return this.getHollowBox(ulx, uly, lrx, lry);
     },
 
+    getCellsInBbox: function(map2D, bbox) {
+        const coord = this.getCoordBbox(bbox);
+        const result = [];
+        coord.forEach(xy => {
+            result.push(map2D[xy[0]][xy[1]]);
+        });
+        return result;
+    },
+
     /* Given two cells, returns bounding box defined by upper-left
      * and lower-right corners.
      */
@@ -895,6 +904,15 @@ RG.Geometry.squareFill = function(map, cell, type, dXdY) {
 
     }
     return result;
+};
+
+RG.Geometry.histArrayVals = function(array) {
+    const hist = {};
+    array.forEach(value => {
+        if (hist[value]) {hist[value] += 1;}
+        else {hist[value] = 1;}
+    });
+    return hist;
 };
 
 module.exports = RG.Geometry;
