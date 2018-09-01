@@ -47,11 +47,19 @@ export default class Constraints {
         }
         else {
             switch (op) {
+                case '==': // fall
+                case '===': // fall
                 case 'eq': return obj => obj[prop] === value;
+                case '!=':
+                case '!==':
                 case 'neq': return obj => obj[prop] !== value;
+                case '>=':
                 case 'gte': return obj => obj[prop] >= value;
+                case '<=':
                 case 'lte': return obj => obj[prop] <= value;
+                case '>':
                 case 'gt': return obj => obj[prop] > value;
+                case '<':
                 case 'lt': return obj => obj[prop] < value;
                 case 'match': return obj => new RegExp(value).test(obj[prop]);
                 default: RG.err('Constraints', 'getFunc',
