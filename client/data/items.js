@@ -422,7 +422,12 @@ const Items = [
         value: value(35),
         onEquip: [{addComp: 'Flying'}]
     },
-
+    {
+        name: 'Snow shoes', base: 'ArmourBase',
+        weight: 0.4, defense: -1, protection: 0, armourType: 'feet',
+        value: value(75),
+        onEquip: [{addComp: 'SnowWalk'}], noRandom: true
+    },
     // ARMOUR LEATHER
     {
         name: 'LeatherArmourBase', base: 'ArmourBase', dontCreate: true,
