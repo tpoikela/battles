@@ -318,16 +318,18 @@ RG.Factory.Game = function() {
         worldArea.connectTiles();
         this.progress('DONE');
 
-        const fact = new RG.Factory.World();
-        fact.setGlobalConf(obj);
+        const factWorld = new RG.Factory.World();
+        factWorld.setOverWorld(overworld);
+        factWorld.setGlobalConf(obj);
         game.setGlobalConf(obj);
-        fact.setPresetLevels({Realm: splitLevels});
+        factWorld.setPresetLevels({Realm: splitLevels});
 
         worldConf.createAllZones = false;
         this.progress('Creating places and local zones...');
         const playerLevel = splitLevels[playerX][playerY];
         this.createPlayerHome(worldConf, player, playerLevel, playerX, playerY);
-        const world = fact.createWorld(worldConf);
+        this.createAreaLevelConstraints(worldConf, overworld.terrMap);
+        const world = factWorld.createWorld(worldConf);
         game.addPlace(world);
         overworld.clearSubLevels();
         game.setOverWorld(overworld);
@@ -426,7 +428,7 @@ RG.Factory.Game = function() {
                 {op: 'eq', prop: 'type', value: [name]},
                 {op: 'neq', prop: 'base', value: ['WinterBeingBase']}
             ];
-            if (name === 'winterbeings') {
+            if (name === 'winterbeing') {
                 constrActor = {
                     op: 'eq', prop: 'base', value: ['WinterBeingBase']
                 };
@@ -477,6 +479,37 @@ RG.Factory.Game = function() {
 
         console.log('Hometown located @ ', cell.getX(), cell.getY());
         worldConf.area[0].city.push(homeConf);
+    };
+
+    this.createAreaLevelConstraints = function(worldConf, terrMap) {
+        const coordMap = new RG.OverWorld.CoordMap();
+        const terrMapXY = terrMap.getMap();
+        coordMap.xMap = 10;
+        coordMap.yMap = 10;
+        const areaConf = worldConf.area[0];
+        const constraints = {};
+        for (let x = 0; x < areaConf.maxX; x++) {
+            for (let y = 0; y < areaConf.maxY; y++) {
+                const bbox = coordMap.getOWTileBboxFromAreaTileXY(x, y);
+                const cells = RG.Geometry.getCellsInBbox(terrMapXY, bbox);
+                const hist = RG.Geometry.histArrayVals(cells);
+                let types = Object.keys(hist);
+                types = types.filter(type => (type !== '#' && type !== '.'));
+                types = types.map(typeChar => terrMap.getName(typeChar));
+                console.log(x, y, 'Actor types are', types);
+                constraints[x + ',' + y] = {
+                    actor: {op: 'eq', prop: 'type', value: types}
+                };
+
+                const index = types.indexOf('winterbeing');
+                if (index >= 0) {
+                    constraints[x + ',' + y].actor =
+                        {op: 'eq', prop: 'base', value: 'WinterBeingBase'};
+                }
+                console.log(x, y, 'constraint is', constraints[x + ',' + y]);
+            }
+        }
+        areaConf.constraint = constraints;
     };
 
     this.createWorldWithCreator = function(obj, game, player) {
