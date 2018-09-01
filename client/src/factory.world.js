@@ -686,12 +686,14 @@ RG.Factory.World = function() {
         const alignment = this.getConf('alignment');
         const wallType = this.getConf('wallType');
         const floorType = this.getConf('floorType');
+        const isFriendly = this.getConf('friendly');
         if (groupType) {levelConf.groupType = groupType;}
         if (cityType) {levelConf.cityType = cityType;}
         if (quarterType) {levelConf.cityType = quarterType;}
         if (alignment) {levelConf.alignment = alignment;}
         if (wallType) {levelConf.wallType = wallType;}
         if (floorType) {levelConf.floorType = floorType;}
+        if (isFriendly) {levelConf.friendly = true;}
     };
 
     /* Adds fixed features such as stairs, actors and items into the level. */
