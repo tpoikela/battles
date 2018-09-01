@@ -1129,8 +1129,6 @@ class BattlesTop extends Component {
 
     /* Calls a GUI command corresponding to the code.*/
     doGUICommand(code, ...args) {
-         console.log('doGUICommand with: ');
-         console.log(code, ...args);
          if (this.gameState.useModeEnabled) {
             this.gameState.useModeEnabled = false;
             const item = this.state.selectedItem;
@@ -1341,7 +1339,7 @@ class BattlesTop extends Component {
     }
 
     showMsg(msg) {
-        console.log('showMsg:', msg);
+        RG.diag('showMsg:', msg);
         this.setState({msg});
     }
 
