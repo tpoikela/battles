@@ -41,17 +41,25 @@ describe('Factory.Game', () => {
             if (char !== '.' && char !== '#') {
                 const {constraint} = cityConf;
                 const {actor} = constraint;
+                expect(actor).to.not.be.empty;
+
                 const name = terrMap.getName(char);
-                expect(actor.value).to.contains(name);
-            }
-            else {
-                console.log('MIXED CITY!!');
-                console.log(cityConf);
+                if (Array.isArray(actor)) {
+                    const cc0 = actor[0];
+                    expect(cc0.value).to.contains(name);
+                    // expect(actor).to.have.deep.property('[0].value', name);
+                }
+                else if (Array.isArray(actor.value)) {
+                    expect(actor.value).to.contains(name);
+                }
+                else {
+                    expect(actor.value).to.equal(name);
+                }
             }
         });
 
-        console.log(overworld.mapToString());
-        console.log(terrMap.mapToString());
+        // console.log(overworld.mapToString());
+        // console.log(terrMap.mapToString());
 
     });
 });
