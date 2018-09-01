@@ -4,9 +4,13 @@
 require('babel-register');
 
 const RG = require('../client/src/battles');
+const FromJSON = require('../client/src/game.fromjson');
+const fs = require('fs');
 
 const factory = new RG.Factory.Game();
 const startTime = new Date();
+
+const jsonTest = true;
 
 const gameConf = {
     playerLevel: 'Medium',
@@ -19,7 +23,7 @@ const gameConf = {
     playerRace: 'goblin',
     playerClass: 'Adventurer',
     xMult: 2,
-    yMult: 2
+    yMult: 3
 };
 
 const game = factory.createNewGame(gameConf);
@@ -55,4 +59,18 @@ const terrMap = overworld.terrMap;
 
 console.log(overworld.mapToString());
 console.log(terrMap.mapToString());
+
+if (jsonTest) {
+    const json = game.toJSON();
+    const jsonStr = JSON.stringify(json);
+    console.log('JSON length of game is ' + jsonStr.length);
+
+    const fromJSON = new FromJSON();
+    const newGame = fromJSON.createGame(json);
+    const newJSON = newGame.toJSON();
+    const newJSONStr = JSON.stringify(newJSON);
+    console.log('JSON length of NEW game is ' + newJSONStr.length);
+
+    fs.writeFileSync('results/perf-create-game.json', newJSONStr);
+}
 
