@@ -126,6 +126,35 @@ Y...#
 #...#
 #...#`;
 
+const toBeRotated90 = `
+name:living_corner
+dir:NE
+X=#
+Y=#
+
+#X#.#X#
+#:#...#
+Y:###.#
+#:::+..
+Y:::###
+#:::+:#
+#######`;
+
+const living3Dir = `
+name:living_3dir
+dir:NSE
+X=#
+Y=#
+
+#X#.X##
+Y:#.#:#
+#:#.#+#
+#:#....
+Y:#.###
+#:+.###
+###.###`;
+
+
 // Not much to test here
 describe('Template.ElemGenX', () => {
     it('Generates sequences of chars from template', () => {
@@ -261,6 +290,46 @@ describe('Template.ElemTemplate', () => {
         ascii = templR90.getChars([2, 2]);
         expect(ascii[0], 'Col 0 OK').to.deep.equal(['.', '^', '^']);
         expect(ascii.length).to.equal(3);
+    });
+
+    it('rotates genparams correctly as well', () => {
+        const templ = RG.Template.createTemplate(toBeRotated90);
+        const templR90 = RG.Template.rotateR90(templ);
+
+        expect(templ.xGenPos).to.deep.equal({1: 1, 5: 1});
+        expect(templ.yGenPos).to.deep.equal({2: 1, 4: 1});
+
+        expect(templR90.xGenPos).to.deep.equal({2: 1, 4: 1});
+        expect(templR90.yGenPos).to.deep.equal({1: 1, 5: 1});
+
+        const ascii1 = templ.getChars([2, 2, 2, 2]);
+        const ascii2 = templR90.getChars([2, 2, 2, 2]);
+
+        expect(ascii1[1][1], 'Coord 1,1 OK').to.equal(':');
+        expect(ascii2[1][5], 'R90 Coord 1,5 OK').to.equal('+');
+        expect(ascii2[1][6], 'Coord 1,6 OK').to.equal(':');
+
+		const templ2 = RG.Template.createTemplate(living3Dir);
+		const templ2R90 = RG.Template.rotateR90(templ2);
+
+        expect(templ2.xGenPos).to.deep.equal({1: 1, 4: 1});
+        expect(templ2.yGenPos).to.deep.equal({1: 1, 4: 1});
+
+        expect(templ2R90.xGenPos, 'xGenPos OK').to.deep.equal({2: 1, 5: 1});
+        expect(templ2R90.yGenPos, 'yGenPos OK').to.deep.equal({1: 1, 4: 1});
+
+        const ascii21 = templ2.getChars([2, 2, 2, 2]);
+        const ascii2R90 = templ2R90.getChars([2, 2, 2, 2]);
+        RG.printMap(ascii21);
+        RG.printMap(ascii2R90);
+
+        const templ2Flipped = RG.Template.flipVer(templ2);
+        expect(templ2Flipped.xGenPos).deep.to.equal({2: 1, 5: 1});
+        expect(templ2Flipped.yGenPos).deep.to.equal(templ2.yGenPos);
+
+        const ascii2Flipped = templ2Flipped.getChars([2, 2, 2, 2]);
+        RG.printMap(ascii2Flipped);
+
     });
 
     it('can be flipped from y-axis', () => {
