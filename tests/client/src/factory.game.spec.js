@@ -50,7 +50,12 @@ describe('Factory.Game', () => {
                     // expect(actor).to.have.deep.property('[0].value', name);
                 }
                 else if (Array.isArray(actor.value)) {
-                    expect(actor.value).to.contains(name);
+                    if (name !== 'winterbeing') {
+                        expect(actor.value).to.contains(name);
+                    }
+                    else {
+                        expect(actor.value).to.contains('WinterBeingBase');
+                    }
                 }
                 else {
                     expect(actor.value).to.equal(name);
