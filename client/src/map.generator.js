@@ -551,13 +551,29 @@ MapGenerator.prototype.createCastle = function(cols, rows, conf = {}) {
 
     const level = new TemplateLevel(tilesX, tilesY);
     level.use(Castle);
-    level.setTemplates(Castle.Models.full);
+    if (!conf.models && !conf.templates) {
+        level.setTemplates(Castle.Models.full);
+    }
+    else if (typeof conf.models === 'string') {
+        level.setTemplates(Castle.Models[conf.models]);
+    }
+    else if (typeof conf.templates === 'string') {
+        console.log('using templates ' + conf.templates);
+        level.setTemplates(Castle.templates[conf.templates]);
+    }
+    else {
+        level.setTemplates(conf.models);
+    }
 
     if (conf.nGates === 2) {
       level.setStartRoomFunc(Castle.startFuncTwoGates);
     }
     else if (conf.startRoomFunc) {
       level.setStartRoomFunc(conf.startRoomFunc);
+    }
+
+    if (conf.constraintFunc) {
+        level.setConstraintFunc(conf.constraintFunc);
     }
 
     const genParams = conf.genParams || [1, 1, 1, 1];
@@ -572,41 +588,16 @@ MapGenerator.prototype.createCastle = function(cols, rows, conf = {}) {
     }
 
     level.create();
-
-    const createLeverMarker = (map, x, y) => {
-        map.setBaseElemXY(x, y, MapGenerator.getFloorElem(conf.floorType));
-        if (conf.preserveMarkers) {
-            const marker = new RG.Element.Marker('&');
-            marker.setTag('lever');
-            map.getCell(x, y).setProp(RG.TYPE_ELEM, marker);
-        }
-    };
-
-    const createLeverDoorMarker = (map, x, y) => {
-        map.setBaseElemXY(x, y, MapGenerator.getFloorElem(conf.floorType));
-        if (conf.preserveMarkers) {
-            const marker = new RG.Element.Marker('|');
-            marker.setTag('leverdoor');
-            map.getCell(x, y).setProp(RG.TYPE_ELEM, marker);
-        }
-    };
-
-    const asciiToElem = {
-        '#': MapGenerator.getWallElem(conf.wallType),
-        '.': MapGenerator.getFloorElem(conf.floorType),
-        '&': createLeverMarker,
-        '|': createLeverDoorMarker
-    };
-    const mapObj = MapGenerator.fromAsciiMap(level.map, asciiToElem);
-    mapObj.tiles = level.getPlacedData();
+    const mapObj = this.createCastleMapObj(level, conf);
     return mapObj;
 };
 
 /* Constructs only outer castle wall. Can be used for fortified cities etc.
  * */
 MapGenerator.prototype.createCastleWall = function(cols, rows, conf = {}) {
-    const tilesX = Math.ceil(cols / 7);
-    const tilesY = Math.ceil(rows / 7);
+    const tilesX = conf.tilesX || Math.ceil(cols / 7);
+    const tilesY = conf.tilesY || Math.ceil(rows / 7);
+
     const level = new TemplateLevel(tilesX, tilesY);
     level.use(Castle);
     level.setTemplates(Castle.Models.outerWall);
@@ -631,6 +622,48 @@ MapGenerator.prototype.createCastleWall = function(cols, rows, conf = {}) {
     const castleMapObj = MapGenerator.fromAsciiMap(level.map, asciiToElem);
     castleMapObj.tiles = level.getPlacedData();
     return castleMapObj;
+};
+
+/* Creates the actual castle Map.CellList after ascii has been generated from
+ * the template. */
+MapGenerator.prototype.createCastleMapObj = function(level, conf) {
+    const createLeverMarker = (map, x, y) => {
+        map.setBaseElemXY(x, y, MapGenerator.getFloorElem(conf.floorType));
+        if (conf.preserveMarkers) {
+            const marker = new RG.Element.Marker('&');
+            marker.setTag('lever');
+            map.getCell(x, y).setProp(RG.TYPE_ELEM, marker);
+        }
+    };
+
+    const createLeverDoorMarker = (map, x, y) => {
+        map.setBaseElemXY(x, y, MapGenerator.getFloorElem(conf.floorType));
+        if (conf.preserveMarkers) {
+            const marker = new RG.Element.Marker('|');
+            marker.setTag('leverdoor');
+            map.getCell(x, y).setProp(RG.TYPE_ELEM, marker);
+        }
+    };
+
+    const createLivingQuarterMarker = (map, x, y) => {
+        map.setBaseElemXY(x, y, RG.ELEM.FLOOR_HOUSE);
+        if (conf.preserveMarkers) {
+            const marker = new RG.Element.Marker(':');
+            marker.setTag('living_quarter');
+            map.getCell(x, y).setProp(RG.TYPE_ELEM, marker);
+        }
+    };
+
+    const asciiToElem = {
+        '#': MapGenerator.getWallElem(conf.wallType),
+        '.': MapGenerator.getFloorElem(conf.floorType),
+        '&': createLeverMarker,
+        '|': createLeverDoorMarker,
+        ':': createLivingQuarterMarker
+    };
+    const mapObj = MapGenerator.fromAsciiMap(level.map, asciiToElem);
+    mapObj.tiles = level.getPlacedData();
+    return mapObj;
 };
 
 MapGenerator.prototype.createTownWithWall = function(cols, rows, conf = {}) {
