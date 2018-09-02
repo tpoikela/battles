@@ -1546,6 +1546,24 @@ RG.printMap = map => {
 
 };
 
+/* Iterates through 2D-array and calls the callback with (i, j, [i][j]) .*/
+RG.forEach2D = (arr, func) => {
+    for (let i = 0; i < arr.length; i++) {
+        for (let j = 0; j < arr[0].length; j++) {
+            func(i, j, arr[i][j]);
+        }
+    }
+};
+
+/* Similar to Array.map, but maps a 2D array to an array of values. */
+RG.map2D = (arr, func) => {
+    const res = [];
+    RG.forEach2D(arr, (i, j, val) => {
+        res.push(func(i, j, val));
+    });
+    return res;
+};
+
 RG.colsToRows = arr => {
     const res = [];
     const sizeY = arr[0].length;
