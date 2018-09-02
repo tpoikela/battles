@@ -473,6 +473,16 @@ RG.Template.rotateR90 = function(templ, exitMap = r90ExitMap) {
         }
     }
 
+    // Switch x/y gen position
+    newTempl.yGenPos = Object.assign({}, templ.xGenPos);
+    const rotSizeX = rotated.length;
+
+    newTempl.xGenPos = {};
+    Object.keys(templ.yGenPos).forEach(yPos => {
+        const newYPos = rotSizeX - 1 - yPos;
+        newTempl.xGenPos[newYPos] = templ.yGenPos[yPos];
+    });
+
     newTempl.elemArr = rotated;
     // Replace string with X generators
     Object.keys(newTempl.xGenPos).forEach(xPos => {
@@ -527,6 +537,14 @@ RG.Template.flipVer = function(templ, exitMap = flipVerExitMap) {
             flipped[sizeX - 1 - x][y] = ascii[x][y];
         }
     }
+
+    const flippedSizeX = flipped.length;
+    // x-gen positions must also be flipped
+    newTempl.xGenPos = {};
+    Object.keys(templ.xGenPos).forEach(xPos => {
+        const newXPos = flippedSizeX - 1 - xPos;
+        newTempl.xGenPos[newXPos] = templ.xGenPos[xPos];
+    });
 
     newTempl.elemArr = flipped;
     // Finally, replace string with X generators
