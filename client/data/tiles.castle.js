@@ -189,10 +189,10 @@ Y.##..#
 `
 dir:NSE
 name:entrance_e
-X=#
+X=.
 Y=#
 
-#.X..X#
+#.#XX##
 Y.##.##
 #..#.#.
 #....+.
@@ -251,7 +251,7 @@ name:entrance_e
 X=.
 Y=#
 
-#.X..X#
+#.#XX##
 Y.##.##
 ...#.#.
 .....+.
@@ -438,7 +438,7 @@ Y......
 ###+###`
 ];
 
-Castle.tiles.specials = [
+Castle.tiles.storerooms = [
 `
 dir:S
 name:storeroom_s
@@ -494,6 +494,121 @@ Y#.#.##
 #....#.
 Y..#.##
 #######`
+];
+
+/* Living spaces in the castle. */
+Castle.tiles.residential = [
+`
+name:living2x2
+X=#
+Y=#
+
+#X+#+X#
+#::#::#
+Y::#::#
+#######
+Y::#::#
+#::#::#
+##+#+##`,
+
+`
+name:living2x2
+dir:NS
+X=#
+Y=#
+
+#X#.#X#
+#:+.+:#
+Y:#.#:#
+###.###
+Y:#.#:#
+#:+.+:#
+###.###`,
+
+`
+name:living2x2
+dir:NS
+X=#
+Y=#
+
+#X#.#X#
+Y:#.#:#
+#:+.+:#
+###.###
+#:+.+:#
+Y:#.#:#
+###.###`,
+
+`
+name:livingL2S
+dir:S
+X=#
+Y=#
+
+#X###X#
+#:::::#
+Y:::::#
+###+###
+Y:#.#:#
+#:+.+:#
+###.###`,
+
+`
+name:livingL_corner
+dir:NE
+X=#
+Y=#
+
+#X#..X#
+#:#+#..
+Y:::##.
+#::::#.
+Y::::##
+#:::::#
+#######`,
+
+`
+name:living_3dir
+dir:NSE
+X=#
+Y=#
+
+#X#.X##
+Y:#.#:#
+#:#.#+#
+#:#....
+Y:#.###
+#:+.###
+###.###`,
+
+`
+name:living_corner
+dir:NE
+X=#
+Y=#
+
+#X#.#X#
+#:#...#
+Y:###.#
+#:::+..
+Y:::###
+#:::+:#
+#######`,
+
+`
+name:living_corner2
+dir:NE
+X=#
+Y=#
+
+#X#.#X#
+#:#...#
+Y:###..
+#:::+#.
+Y::::##
+#:::::#
+#######`
+
 ];
 
 // Filler cell
@@ -690,9 +805,11 @@ Castle.Models.full = []
     .concat(Castle.tiles.term)
     .concat(Castle.tiles.entrance)
     .concat(Castle.tiles.corridor)
-    .concat(Castle.tiles.specials)
+    .concat(Castle.tiles.storerooms)
     .concat(Vault.tiles.vault)
     .concat(Vault.tiles.corner);
+
+Castle.Models.residential = Castle.tiles.residential.concat(Castle.Models.full);
 
 Castle.Models.outerWall = []
     .concat(Castle.tiles.entranceWall)
@@ -704,7 +821,15 @@ Castle.templates = {};
 Castle.templates.all = Castle.Models.full.map(tile => (
     RG.Template.createTemplate(tile)
 ));
-const transformed = RG.Template.transformList(Castle.templates.all);
+let transformed = RG.Template.transformList(Castle.templates.all);
 Castle.templates.all = Castle.templates.all.concat(transformed);
+
+Castle.templates.livingOnly = Castle.tiles.residential.map(tile => (
+    RG.Template.createTemplate(tile)
+));
+transformed = RG.Template.transformList(Castle.templates.livingOnly);
+Castle.templates.livingOnly = Castle.templates.livingOnly.concat(transformed);
+Castle.templates.residential = Castle.templates.livingOnly.concat(
+    Castle.templates.all);
 
 module.exports = Castle;
