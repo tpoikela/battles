@@ -497,6 +497,7 @@ RG.Factory.Game = function() {
                 types = types.filter(type => (type !== '#' && type !== '.'));
                 types = types.map(typeChar => terrMap.getName(typeChar));
                 console.log(x, y, 'Actor types are', types);
+                types.push('animal');
                 constraints[x + ',' + y] = {
                     actor: {op: 'eq', prop: 'type', value: types}
                 };
