@@ -77,6 +77,7 @@ RG.Template.Level.prototype.setTemplates = function(asciiTiles) {
     }
 };
 
+/* Adds one ASCII/room template to the list of usable templates. */
 RG.Template.Level.prototype.addTemplate = function(asciiTile) {
     if (typeof asciiTile === 'string') {
           this.templates.push(RG.Template.createTemplate(asciiTile));
@@ -104,6 +105,8 @@ RG.Template.Level.prototype.setConstraintFunc = function(func) {
     this.constraintFunc = func.bind(this);
 };
 
+/* Can be used to set a start room function, which picks the first room
+ * to use. This function must return the room, and not place it. */
 RG.Template.Level.prototype.setStartRoomFunc = function(func) {
     this.startRoomFunc = func.bind(this);
 };
