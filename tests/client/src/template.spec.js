@@ -154,6 +154,21 @@ Y:#.###
 #:+.###
 ###.###`;
 
+const house5x5 = `
+name:house_core
+dir:NE
+A=:
+B=:
+C=:
+D=#
+E=#
+F=#
+
+#ABC#
+D:::#
+E::::
+F:::#
+##+##`;
 
 // Not much to test here
 describe('Template.ElemGenX', () => {
@@ -389,6 +404,24 @@ describe('Template.ElemTemplate', () => {
         expect(adapterR270).to.exist;
         expect(adapterR270.getDir()).to.equal('RW');
 
+    });
+
+    it('can expand house template with 6 genparams', () => {
+        const templ = RG.Template.createTemplate(house5x5);
+
+        const ascii = templ.getChars();
+        expect(ascii.length).to.equal(5);
+        expect(ascii[0].length).to.equal(5);
+
+        const ascii2 = templ.getChars(2);
+        const len2 = ascii2.length;
+        expect(len2).to.equal(2 + 2 + 2 + 2);
+        expect(ascii2[0].length).to.equal(2 + 2 + 2 + 2);
+        expect(ascii2[4][len2 - 1]).to.equal('+');
+
+        const ascii3 = templ.getChars([1, 2, 3, 4, 5, 6]);
+        expect(ascii3.length).to.equal(2 + 1 + 2 + 3);
+        expect(ascii3[0].length).to.equal(2 + 4 + 5 + 6);
     });
 
 });
