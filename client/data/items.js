@@ -332,15 +332,7 @@ const Items = [
         name: 'VoidWeaponBase', base: 'MeleeWeaponBase',
         className: 'cell-item-void',
         material: 'obsidian', dontCreate: true,
-        onAttackHit: [
-            {addComp: 'DirectDamage', func: [
-                {setter: 'setDamage', value: 2},
-                {setter: 'setDamageType', value: RG.DMG.VOID},
-                {setter: 'setDamageCateg', value: RG.DMG.MELEE}
-            ],
-            duration: '1d8'
-            }
-        ],
+        onAttackHit: [meleeHitDamage(2, '1d8 + 1', 'VOID')],
     },
     {
         name: 'Void dagger', base: 'VoidWeaponBase',
@@ -383,6 +375,13 @@ const Items = [
         damage: '4d5 + 2',
         attack: 4, defense: 8, weight: 1.8, value: value(650),
         weaponType: 'spear'
+    },
+    {
+        name: 'Hammer of Void', base: 'VoidWeaponBase',
+        damage: '5d5 + 4',
+        attack: 8, defense: 8, weight: 3.7, value: value(850),
+        weaponType: 'hammer',
+        onAttackHit: [meleeHitDamage(2, '2d8 + 4', 'VOID')],
     },
 
     // ARMOUR
@@ -1122,5 +1121,16 @@ Items.forEach(item => {
         }
     }
 });
+
+function meleeHitDamage(dmg, dur, dmgType) {
+    return {
+        addComp: 'DirectDamage', func: [
+            {setter: 'setDamage', value: dmg},
+            {setter: 'setDamageType', value: RG.DMG[dmgType]},
+            {setter: 'setDamageCateg', value: RG.DMG.MELEE}
+        ],
+        duration: dur
+    };
+}
 
 module.exports = Items;
