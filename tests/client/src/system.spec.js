@@ -429,9 +429,7 @@ describe('System.SpiritBind', () => {
         expect(restSpirit.get('Stats').getStrength()).to.equal(10);
         expect(restGem.hasSpirit()).to.equal(true);
 
-        console.log(restGem.getSpirit());
         expect(restGem.getStrength()).to.equal(10);
-
     });
 
 });
