@@ -8,6 +8,7 @@ const Crypt = require('../../../client/data/tiles.crypt');
 const Castle = require('../../../client/data/tiles.castle');
 const Basic = require('../../../client/data/tiles.basic').Basic;
 const Basic5x5 = require('../../../client/data/tiles.basic').Basic5x5;
+const {Houses5x5} = require('../../../client/data/tiles.houses');
 
 const RNG = RG.Random.getRNG();
 
@@ -237,4 +238,66 @@ describe('Template.Level', () => {
         expect(level.map).to.exist;
     });
 
+    it('can creates houses from tiles of 5x5 and 6 genParams', () => {
+        RNG.setSeed(new Date().getTime());
+        const maxX = 10;
+        const maxY = 10;
+        const filtered = Houses5x5.templates.start2xN.filter(templ => (
+            /2xN_A/.test(templ.getProp('name'))
+        ));
+        console.log(filtered);
+
+        for (let x = 1; x <= maxX; x++) {
+            for (let y = 1; y <= maxY; y++) {
+                console.log(`TILE ${x} X ${y}:`);
+                // const level = new TemplLevel(x, y);
+                const level = new TemplLevel(2, 2);
+                level.setFiller(Houses5x5.tiles.filler);
+                level.setTemplates(Houses5x5.templates.all);
+
+                const x0 = RNG.getUniformInt(1, 2);
+                const x2 = RNG.getUniformInt(1, 2);
+                const y0 = RNG.getUniformInt(1, 2);
+                const y2 = RNG.getUniformInt(1, 2);
+
+                level.setGenParams({x: [x0, 1, x2], y: [y0, 1, y2]});
+                level.roomCount = -1;
+                level.setStartRoomFunc(Houses5x5.startRoomFunc);
+                level.create();
+
+                expect(level.map).to.not.be.empty;
+                RG.printMap(level.map);
+
+                console.log(' '.repeat(5));
+                const placedData = level.getPlacedData();
+                Object.keys(placedData).forEach(key => {
+                    const name = placedData[key].name;
+                    if (name !== 'FILLER' && name !== 'BLOCKER') {
+                        console.log(`\t${key}: ${name}`);
+                    }
+                });
+
+                verifyCorners(level.map);
+                console.log('='.repeat(50));
+            }
+        }
+    });
+
 });
+
+function verifyCorners(map) {
+    RG.forEach2D(map, (i, j, val) => {
+        if (i === 0) {
+            expect(val, `${i},${j} OK`).to.not.equal(':');
+        }
+        else if (i === map.length - 1) {
+            expect(val, `${i},${j} OK`).to.not.equal(':');
+        }
+        if (j === 0) {
+            expect(val, `${i},${j} OK`).to.not.equal(':');
+        }
+        else if (j === map[0].length) {
+            expect(val, `${i},${j} OK`).to.not.equal(':');
+        }
+    });
+}
