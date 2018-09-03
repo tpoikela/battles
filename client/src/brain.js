@@ -331,60 +331,80 @@ RG.Brain.Rogue = function(actor) {
     this._type = 'Rogue';
     this._memory = new RG.Brain.Memory(this);
 
-    this.getType = () => this._type;
-    this.setType = type => {this._type = type;};
-
-    this.getMemory = () => this._memory;
-
-    this.setActor = actor => {this._actor = actor;};
-    this.getActor = () => this._actor;
-
-    this.addEnemy = actor => {this._memory.addEnemy(actor);};
-    this.addFriend = actor => {this._memory.addFriend(actor);};
-    this.addEnemyType = type => {this._memory.addEnemyType(type);};
-
-    this._seenCached = null;
-
-    /* Callback used for actor's path finding. */
-    this._passableCallback = (x, y) => {
-        const map = this._actor.getLevel().getMap();
-        const hasFlying = this._actor.has('Flying');
-        if (!RG.isNullOrUndef([map])) {
-            let res = false;
-            if (hasFlying) {
-                res = map.isPassableByAir(x, y);
-            }
-            else {
-                res = map.isPassable(x, y);
-            }
-            if (!res) {
-                res = (x === this._actor.getX()) && (y === this._actor.getY());
-            }
-            return res;
-        }
-        else {
-            RG.err('Brain.Rogue', '_passableCallback', 'map not well defined.');
-        }
-        return false;
+    this._cache = {
+        seen: null
     };
 
+    this._passableCallback = this._passableCallback.bind(this);
+};
 
-}; // RogueBrain
+RG.Brain.Rogue.prototype.getType = function() {
+    return this._type;
+};
+
+RG.Brain.Rogue.prototype.setType = function(type) {
+    this._type = type;
+};
+
+RG.Brain.Rogue.prototype.getMemory = function() {
+    return this._memory;
+};
+
+RG.Brain.Rogue.prototype.setActor = function(actor) {
+    this._actor = actor;
+};
+
+RG.Brain.Rogue.prototype.getActor = function() {
+    return this._actor;
+};
+
+RG.Brain.Rogue.prototype.addEnemy = function(actor) {
+    this._memory.addEnemy(actor);
+};
+RG.Brain.Rogue.prototype.addFriend = function(actor) {
+    this._memory.addFriend(actor);
+};
+RG.Brain.Rogue.prototype.addEnemyType = function(type) {
+    this._memory.addEnemyType(type);
+};
+
+/* Callback used for actor's path finding. */
+RG.Brain.Rogue.prototype._passableCallback = function(x, y) {
+    const map = this._actor.getLevel().getMap();
+    const hasFlying = this._actor.has('Flying');
+    if (!RG.isNullOrUndef([map])) {
+        let res = false;
+        if (hasFlying) {
+            res = map.isPassableByAir(x, y);
+        }
+        else {
+            res = map.isPassable(x, y);
+        }
+        if (!res) {
+            res = (x === this._actor.getX()) && (y === this._actor.getY());
+        }
+        return res;
+    }
+    else {
+        RG.err('Brain.Rogue', '_passableCallback', 'map not well defined.');
+    }
+    return false;
+};
 
 /* Main function for retrieving the actionable callback. */
 RG.Brain.Rogue.prototype.decideNextAction = function() {
-    this._seenCached = null;
+    this._cache.seen = null;
     return BTree.startBehavTree(Models.Rogue.tree, this._actor)[0];
 };
 
 // Returns cells seen by this actor
 RG.Brain.Rogue.prototype.getSeenCells = function() {
-    if (this._seenCached) {
-        return this._seenCached;
+    if (this._cache.seen) {
+        return this._cache.seen;
     }
     const map = this._actor.getLevel().getMap();
-    this._seenCached = map.getVisibleCells(this._actor);
-    return this._seenCached;
+    this._cache.seen = map.getVisibleCells(this._actor);
+    return this._cache.seen;
 };
 
 
@@ -424,14 +444,16 @@ RG.Brain.Rogue.prototype.findEnemyCell = function(seenCells) {
     const enemyCells = [];
     const cells = RG.Brain.findCellsWithActors(this._actor, seenCells);
     for (let i = 0; i < cells.length; i++) {
-        const actors = cells[i].getActors();
-        if (this._memory.isEnemy(actors[0])) {
-            if (this._memory.wasLastAttacked(actors[0])) {
-                this._memory.addEnemySeenCell(cells[i]);
-                return cells[i];
-            }
-            else {
-                enemyCells.push(cells[i]);
+        const actors = cells[i].getSentientActors();
+        for (let j = 0; j < actors.length; j++) {
+            if (this._memory.isEnemy(actors[j])) {
+                if (this._memory.wasLastAttacked(actors[j])) {
+                    this._memory.addEnemySeenCell(cells[i]);
+                    return cells[i];
+                }
+                else {
+                    enemyCells.push(cells[i]);
+                }
             }
         }
     }
@@ -738,7 +760,7 @@ RG.Brain.Summoner = function(actor) {
 RG.extend2(RG.Brain.Summoner, RG.Brain.Rogue);
 
 RG.Brain.Summoner.prototype.decideNextAction = function() {
-    this._seenCached = null;
+    this._cache.seen = null;
     return BTree.startBehavTree(Models.Summoner.tree, this._actor)[0];
 };
 
@@ -799,7 +821,7 @@ RG.Brain.Human = function(actor) {
 RG.extend2(RG.Brain.Human, RG.Brain.Rogue);
 
 RG.Brain.Human.prototype.decideNextAction = function() {
-    this._seenCached = null;
+    this._cache.seen = null;
     return BTree.startBehavTree(Models.Human.tree, this._actor)[0];
 };
 
@@ -813,7 +835,7 @@ RG.extend2(RG.Brain.Spirit, RG.Brain.Rogue);
 
 /* Returns the next action for the spirit.*/
 RG.Brain.Spirit.prototype.decideNextAction = function() {
-    this._seenCached = null;
+    this._cache.seen = null;
     const seenCells = this.getSeenCells();
     return this.exploreLevel(seenCells);
 };
@@ -824,7 +846,7 @@ RG.Brain.Archer = function(actor) {
     this.setType('Archer');
 
     this.decideNextAction = function() {
-        this._seenCached = null;
+        this._cache.seen = null;
         return BTree.startBehavTree(Models.Archer.tree, this._actor)[0];
     };
 
@@ -882,7 +904,7 @@ RG.Brain.SpellCaster = function(actor) {
 RG.extend2(RG.Brain.SpellCaster, RG.Brain.Rogue);
 
 RG.Brain.SpellCaster.prototype.decideNextAction = function() {
-    this._seenCached = null;
+    this._cache.seen = null;
     this.goal.process();
     return ACTION_ALREADY_DONE;
 };
@@ -901,7 +923,7 @@ RG.extend2(RG.Brain.GoalOriented, RG.Brain.Rogue);
 
 /* Must return function. */
 RG.Brain.GoalOriented.prototype.decideNextAction = function() {
-    this._seenCached = null;
+    this._cache.seen = null;
     this.goal.process();
     return ACTION_ALREADY_DONE;
 };
@@ -928,7 +950,7 @@ RG.extend2(RG.Brain.Animal, RG.Brain.Rogue);
 
 /* Must return function. */
 RG.Brain.Animal.prototype.decideNextAction = function() {
-    this._seenCached = null;
+    this._cache.seen = null;
     this.goal.process();
     return ACTION_ALREADY_DONE;
 };
@@ -948,7 +970,7 @@ RG.extend2(RG.Brain.Commander, RG.Brain.Rogue);
 
 /* Must return function. */
 RG.Brain.Commander.prototype.decideNextAction = function() {
-    this._seenCached = null;
+    this._cache.seen = null;
     this.goal.process();
     return ACTION_ALREADY_DONE;
 };
