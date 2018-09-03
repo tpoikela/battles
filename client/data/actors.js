@@ -986,7 +986,7 @@ const Actors = [
         char: '@', danger: 200, enemies: ['human'], type: 'finalboss',
         spells: ['FrostBolt'], hp: 100, pp: 100, brain: 'SpellCaster',
         strength: 30, accuracy: 15, agility: 20, willpower: 20, perception: 15,
-        magic: 30, attack: 20, defense: 20, protection: 10,
+        magic: 30, attack: 30, defense: 30, protection: 10,
         equip: ['Permaice katana', 'Permaice armour']
     },
     {
@@ -994,19 +994,53 @@ const Actors = [
         char: '@', danger: 200, enemies: ['human'], type: 'finalboss',
         hp: 150, pp: 100, brain: defaultBrain,
         strength: 20, accuracy: 25, agility: 35, willpower: 15, perception: 25,
-        magic: 10, attack: 20, defense: 20, protection: 10,
+        magic: 10, attack: 30, defense: 30, protection: 10,
         equip: ['Permaice axe', 'Permaice armour', 'Bow of Defense',
             {name: 'Runed arrow', count: 100}]
     },
     {
         name: 'Hag of North', type: 'wolfclan', base: 'UniqueBase',
-        char: '@', danger: 100,
+        char: 'w', danger: 100,
         damage: '4d4+5', hp: 75, pp: 50, brain: 'SpellCaster',
         spells: ['IcyPrison', 'FrostBolt'],
         strength: 15, accuracy: 15, agility: 15, willpower: 30, perception: 25,
         magic: 25, attack: 15, defense: 15, protection: 5,
         equip: ['Ruby glass armour', 'Ruby glass collar']
+    },
+    {
+        name: 'Aime aeon en Nev, Mighty spellsinger', type: 'dogfolk',
+        base: 'UniqueBase', char: 'd', danger: 100,
+        damage: '5d5 + 5', hp: 100, pp: 75, brain: 'SpellCaster',
+        spells: ['Paralysis', 'Flying', 'Heal', 'LightningArrow'],
+        strength: 18, accuracy: 19, agility: 18, willpower: 28, perception: 15,
+        magic: 25, attack: 20, defense: 15, protection: 5,
+        equip: ['Magic armour', 'Magic collar'],
+        onHit: [
+            {addComp: 'Stun', duration: '1d4 + 1'}
+        ]
+    },
+    {
+        name: 'Elene Immolate Kinin, Queen of cats', type: 'catfolk',
+        base: 'UniqueBase', char: 'f', danger: 100,
+        damage: '10d3 + 3', hp: 100, pp: 50, brain: 'SpellCaster',
+        spells: ['ScorpionsTail', 'EnergyArrow', 'SummonKin'],
+        strength: 15, accuracy: 25, agility: 25, willpower: 17, perception: 25,
+        magic: 17, attack: 25, defense: 15, protection: 5,
+        equip: ['Steel armour', 'Magic collar'],
+        addComp: ['FirstStrike']
+    },
+    {
+        name: 'Aspelin Primoen, the Blacksmith', type: 'dogfolk',
+        base: 'UniqueBase', char: 'd', danger: 75,
+        damage: '3d7 + 3', hp: 134, brain: defaultBrain,
+        strength: 25, accuracy: 20, agility: 19, willpower: 15, perception: 19,
+        magic: 13, attack: 25, defense: 15, protection: 10,
+        equip: ['Hammer of Void'],
+        onHit: [
+            {addComp: 'Stun', duration: '2d4 + 2'}
+        ]
     }
+
 ];
 
 //---------------------------------------------------------------------------
