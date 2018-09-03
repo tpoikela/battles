@@ -1549,7 +1549,7 @@ RG.printMap = map => {
 /* Iterates through 2D-array and calls the callback with (i, j, [i][j]) .*/
 RG.forEach2D = (arr, func) => {
     for (let i = 0; i < arr.length; i++) {
-        for (let j = 0; j < arr[0].length; j++) {
+        for (let j = 0; j < arr[i].length; j++) {
             func(i, j, arr[i][j]);
         }
     }
