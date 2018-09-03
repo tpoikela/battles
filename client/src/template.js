@@ -236,6 +236,20 @@ const ElemTemplate = function(conf) {
     // Find Y-generator
 
     this.getChars = function(arr) {
+        if (!arr) {
+            arr = [];
+            for (let i = 0; i < this.nMaps; i++) {
+                arr.push(1);
+            }
+        }
+        else if (Number.isInteger(arr)) {
+            const val = arr;
+            arr = [];
+            for (let i = 0; i < this.nMaps; i++) {
+                arr.push(val);
+            }
+        }
+
         if (arr.length > 0 && arr.length < this.nMaps) {
             RG.err('ElemTemplate', 'getChars',
                 `Input array length must be ${this.nMaps}.`);
@@ -438,7 +452,7 @@ RG.Template.ElemGenX = ElemGenX;
  * 2. Flipping (mirroring) over vertical (y-axis): flipY
  */
 
-const exitMaps = {};
+const EXIT_MAPS = {};
 // Transforms don't change the generator locations, but the generator tiles must
 // be swapped of course. To transform:
 //   1. Replace generator vars with their tiles,
@@ -446,9 +460,9 @@ const exitMaps = {};
 //   3. Add gen vars back to their original place, but change the gen var tiles
 
 const r90ExitMap = {N: 'E', E: 'S', S: 'W', W: 'N'};
-exitMaps.rotate90 = r90ExitMap;
-exitMaps.rotate180 = r90ExitMap;
-exitMaps.rotate270 = r90ExitMap;
+EXIT_MAPS.rotate90 = r90ExitMap;
+EXIT_MAPS.rotate180 = r90ExitMap;
+EXIT_MAPS.rotate270 = r90ExitMap;
 
 /* Rotates the template 90 degrees to the right.*/
 RG.Template.rotateR90 = function(templ, exitMap = r90ExitMap) {
@@ -514,7 +528,7 @@ RG.Template.rotateR270 = function(templ, exitMap = r90ExitMap) {
 };
 
 const flipVerExitMap = {E: 'W', W: 'E'};
-exitMaps.flipVer = flipVerExitMap;
+EXIT_MAPS.flipVer = flipVerExitMap;
 
 /* Flips the template over vertical axis. */
 RG.Template.flipVer = function(templ, exitMap = flipVerExitMap) {
@@ -592,8 +606,8 @@ function transformList(templates, transforms, exitMap) {
     }
     let result = [];
 
-    // Default option is to transform all, usually unnecessary but does not
-    // require any setup from the user
+    // Default option is to transform all, usually unnecessary due to symmetry
+    // in many tiles, but does not require any setup from the user
     if (!transforms) {
         transforms = {
             all: '*', flipVer: [], rotateR90: [], rotateR180: [],
@@ -620,14 +634,14 @@ function transformList(templates, transforms, exitMap) {
                 ));
 
                 if (templ) {
-                    const map = exitMap ? exitMap[func] : exitMaps[func];
+                    const map = exitMap ? exitMap[func] : EXIT_MAPS[func];
                     const newTempl = RG.Template[func](templ, map);
                     setTransformName(func, newTempl);
                     created.push(newTempl);
                     if (func === 'flipVer') {
                         const rotations = getRotations(transforms, name);
                         rotations.forEach(rot => {
-                            const map = exitMap ? exitMap[rot] : exitMaps[rot];
+                            const map = exitMap ? exitMap[rot] : EXIT_MAPS[rot];
                             const rotTempl = RG.Template[rot](newTempl, map);
                             setTransformName(rot, rotTempl);
                             created.push(rotTempl);
