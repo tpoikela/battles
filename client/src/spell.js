@@ -948,6 +948,22 @@ RG.Spell.SummonDead = function() {
 };
 RG.extend2(RG.Spell.SummonDead, RG.Spell.SummonBase);
 
+/* Based on caster's type, summons actors for help. */
+RG.Spell.SummonKin = function() {
+    RG.Spell.SummonBase.call(this, 'SummonKin', 10);
+
+    this.summonFunc = actor => {
+        const casterType = this.getCaster().getType();
+        const expComp = this.getCaster().get('Experience');
+        const danger = expComp.getDanger();
+        const expLevel = expComp.getExpLevel();
+        const totalDanger = danger + Math.round(expLevel / 2);
+        return (actor.type === casterType &&
+            actor.danger <= totalDanger);
+    };
+};
+RG.extend2(RG.Spell.SummonKin, RG.Spell.SummonBase);
+
 /* PowerDrain spell which cancels enemy spell and gives power to the caster of
 * this spell. */
 RG.Spell.PowerDrain = function() {
@@ -1425,6 +1441,7 @@ RG.Spell.addAllSpells = book => {
     book.addSpell(new RG.Spell.SummonAnimal());
     book.addSpell(new RG.Spell.SummonAirElemental());
     book.addSpell(new RG.Spell.SummonIceMinion());
+    book.addSpell(new RG.Spell.SummonKin());
     book.addSpell(new RG.Spell.SummonDead());
 };
 
