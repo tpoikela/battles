@@ -320,7 +320,7 @@ System.Damage = function(compTypes) {
 
     /* When an actor is killed, gives experience to damage's source.*/
     const _giveExpToSource = (att, def) => {
-        if (att !== NO_DAMAGE_SRC) {
+        if (att !== NO_DAMAGE_SRC && !att.has('Dead')) {
             const defLevel = def.get('Experience').getExpLevel();
             const defDanger = def.get('Experience').getDanger();
             const expPoints = new RG.Component.ExpPoints(defLevel + defDanger);
