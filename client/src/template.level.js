@@ -63,7 +63,14 @@ RG.Template.Level = function(tilesX, tilesY) {
 
 /* Sets the filler tile used to fill the map first. */
 RG.Template.Level.prototype.setFiller = function(fillerTempl) {
-    this.filler = RG.Template.createTemplate(fillerTempl);
+    if (typeof fillerTempl === 'string') {
+        this.filler = RG.Template.createTemplate(fillerTempl);
+        this.filler.setProp('name', 'FILLER');
+    }
+    else {
+        this.filler = fillerTempl.clone();
+        this.filler.setProp('name', 'FILLER');
+    }
 };
 
 /* Sets the room templates that are used. */
@@ -270,12 +277,22 @@ RG.Template.Level.prototype.expandTemplates = function() {
     this.genParamsX = [];
     this.genParamsY = [];
     for (let x = 0; x < this.tilesX; x++) {
-        const paramsX = [this.genParams[0], this.genParams[1]];
-        this.genParamsX.push(paramsX);
+        if (this.genParams.x) {
+            this.genParamsX.push(this.genParams.x);
+        }
+        else {
+            const paramsX = [this.genParams[0], this.genParams[1]];
+            this.genParamsX.push(paramsX);
+        }
     }
     for (let y = 0; y < this.tilesY; y++) {
-        const paramsY = [this.genParams[2], this.genParams[3]];
-        this.genParamsY.push(paramsY);
+        if (this.genParams.y) {
+            this.genParamsY.push(this.genParams.y);
+        }
+        else {
+            const paramsY = [this.genParams[2], this.genParams[3]];
+            this.genParamsY.push(paramsY);
+        }
     }
 
     // Expand the tiles with parameters
@@ -394,7 +411,8 @@ RG.Template.Level.prototype._getNextTemplate = function(x, y, exitReqd) {
         if (listMatching.length > 0) {
             return this._getRandTemplate(listMatching);
         }
-        const msg = `Required: ${exitsReqd[1]}, Excl: ${exitsReqd[2]}`;
+        let msg = `x,y: ${x},${y}`;
+        msg += `Required: ${exitsReqd[1]}, Excl: ${exitsReqd[2]}`;
         RG.warn('Template.Level', '_getNextTemplate',
             `Not all exits match. ${msg}`);
 
@@ -792,8 +810,8 @@ RG.Template.Level.prototype.setExitMap = function(matchMap, nsew2DirRemap) {
     this.dir2NSEWRemap = dir2NSEWRemap;
 };
 
-    /* Returns all exits which are required @x,y to match all surrounding
-    * tiles. */
+/* Returns all exits which are required @x,y to match all surrounding
+ * tiles. */
 RG.Template.Level.prototype.getAllRequiredExits = function(x, y) {
     ++this._ind;
     const any = [];
