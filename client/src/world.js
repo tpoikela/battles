@@ -226,8 +226,21 @@ RG.World.connectLevelsLinear = connectLevelsLinear;
 function connectLevelsConstrained(conf1, conf2) {
     const level1 = conf1.level;
     const level2 = conf2.level;
-    const x1 = Math.floor(level1.getMap().cols / 2);
-    const y1 = conf1.y();
+    let x1 = Math.floor(level1.getMap().cols / 2);
+    let y1 = conf1.y();
+
+    // Iterate until we find cell without connection close to top of the
+    // level
+    const map1 = level1.getMap();
+    let cell1 = map1.getCell(x1, y1);
+    while (cell1.hasConnection()) {
+        x1 += 1;
+        if (x1 === map1.cols) {
+            x1 = 0;
+            if (y1 > 0) {--y1;}
+        }
+        cell1 = map1.getCell(x1, y1);
+    }
 
     const cell2 = getFreeCellWithoutConnection(level2);
     const [x2, y2] = [cell2.getX(), cell2.getY()];
