@@ -3,10 +3,12 @@ const RG = require('./rg.js');
 const ROT = require('../../lib/rot.js');
 RG.Map = require('./map');
 const Path = require('./path');
+const BSP = require('../../lib/bsp');
 
 const TemplateLevel = require('./template.level');
 const Crypt = require('../data/tiles.crypt');
 const Castle = require('../data/tiles.castle');
+const {HouseGenerator} = require('./houses');
 
 ROT.Map.Forest = require('../../lib/map.forest');
 ROT.Map.Miner = require('../../lib/map.miner');
@@ -201,6 +203,68 @@ MapGenerator.prototype.createTown = function(cols, rows, conf) {
 
     }
     return {map, houses};
+};
+
+MapGenerator.prototype.createTownBSP = function(cols, rows, conf) {
+	const iter = 5;
+	const bspGen = new BSP.BSPGen();
+	const mainContainer = new BSP.Container(0, 0, cols, rows);
+	const containerTree = bspGen.splitContainer(mainContainer, iter);
+	const leafs = containerTree.getLeafs();
+    RNG.shuffle(leafs);
+
+    console.log('createTownBSP:', conf);
+    const map = new RG.Map.CellList(cols, rows);
+
+    // Now each leaf can be safely used for placing a house in
+    // non-colliding manner
+    const houses = [];
+    const houseGen = new HouseGenerator();
+    leafs.forEach(leaf => {
+        const {w, h} = leaf;
+        const colsHouse = w - 2;
+        const rowsHouse = h - 2;
+        console.log('LEAF is:', leaf);
+        if (colsHouse >= 5 && rowsHouse >= 5) {
+            if (colsHouse > 10 && colsHouse % 2 !== 0) {
+                colsHouse -= 1;
+            }
+            if (rowsHouse > 10 && rowsHouse % 2 !== 0) {
+                rowsHouse -= 1;
+            }
+            const houseConf = {cols: colsHouse, rows: rowsHouse};
+            const house = houseGen.createHouse(houseConf);
+            this.placeHouse(house, map, leaf.x, leaf.y);
+            houses.push(house);
+        }
+    });
+    return {map, houses};
+};
+
+MapGenerator.prototype.placeHouse = function(house, map, x, y) {
+    const coord = house.coord;
+    const keys = Object.keys(coord);
+    house.floor = [];
+    keys.forEach(elemChar => {
+        if (elemChar === '#') {
+            coord[elemChar].forEach(xy => {
+                const x0 = xy[0] + x;
+                const y0 = xy[1] + y;
+                map.setBaseElemXY(x0, y0, RG.ELEM.WALL);
+            });
+        }
+        else if (elemChar === '+') {
+            const doorXY = coord[elemChar][0];
+            house.door = [doorXY[0] + x, doorXY[1] + y];
+        }
+        else if (elemChar === ':') {
+            coord[elemChar].forEach(xy => {
+                const x0 = xy[0] + x;
+                const y0 = xy[1] + y;
+                house.floor.push([x0, y0]);
+            });
+        }
+    });
 };
 
 /* Creates a house into a given map to a location x0,y0 with given
@@ -675,7 +739,7 @@ MapGenerator.prototype.createTownWithWall = function(cols, rows, conf = {}) {
     conf.levelType = 'empty' || conf.levelType;
     const colsTown = (tilesX - 2) * tileSize;
     const rowsTown = (tilesY - 2) * tileSize;
-    const townMapObj = this.createTown(colsTown, rowsTown, conf);
+    const townMapObj = this.createTownBSP(colsTown, rowsTown, conf);
 
     const finalMap = castleMapObj.map;
     RG.Geometry.mergeMapBaseElems(finalMap, townMapObj.map,
