@@ -1564,6 +1564,17 @@ RG.map2D = (arr, func) => {
     return res;
 };
 
+RG.copy2D = arr => {
+    const copy = new Array(arr.length);
+    for (let i = 0; i < arr.length; i++) {
+        copy[i] = new Array(arr[i].length);
+        for (let j = 0; j < arr[i].length; j++) {
+            copy[i][j] = arr[i][j];
+        }
+    }
+    return copy;
+};
+
 RG.colsToRows = arr => {
     const res = [];
     const sizeY = arr[0].length;
