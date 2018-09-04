@@ -408,13 +408,11 @@ RG.Brain.Rogue.prototype.getSeenCells = function() {
 };
 
 
-/* Checks if the actor can attack given x,y coordinate.*/
+/* Checks if the actor can melee attack given x,y coordinate.*/
 RG.Brain.Rogue.prototype.canMeleeAttack = function(x, y) {
-    const actorX = this._actor.getX();
-    const actorY = this._actor.getY();
     const attackRange = this._actor.get('Combat').getAttackRange();
-    const getDist = RG.Path.shortestDist(x, y, actorX, actorY);
-    if (getDist <= attackRange) {return true;}
+    const [dX, dY] = RG.dXdYAbs([x, y], this._actor);
+    if (dX <= attackRange && dY <= attackRange) {return true;}
     return false;
 };
 
