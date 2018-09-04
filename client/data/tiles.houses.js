@@ -549,22 +549,12 @@ function rotatePropsR90(templ) {
 function flipPropsVer(templ) {
     const startX = templ.getProp('startX');
     if (startX === 'max') {
-        console.log('Flipped X -> 0 for', templ.getProp('name'));
         templ.setProp('startX', 'first');
-        console.log(templ);
     }
     else if (startX === 'first') {
-        console.log('Flipped X -> max for', templ.getProp('name'));
         templ.setProp('startX', 'max');
-        console.log(templ);
     }
 }
 
-Houses5x5.templates.start2xN.forEach(templ => {
-    console.log(JSON.stringify(templ));
-});
-
-
 module.exports = {Houses5x5};
-
 
