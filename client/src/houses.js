@@ -47,7 +47,17 @@ HouseGenerator.prototype.createHouse = function(conf) {
     const {cols, rows} = conf;
     const {fullHouse} = conf;
     const params = this.getGenParams(cols, rows);
-	const {genParamsX, genParamsY, tilesX, tilesY} = params;
+	const {genParamsX, genParamsY} = params;
+    let {tilesX, tilesY} = params;
+
+    if (!Number.isInteger(tilesX) || !Number.isInteger(tilesY)) {
+        // Could not solve good value for tile sizes
+        if (tilesX > 1) {tilesX = Math.floor(tilesX);}
+        else {return null;}
+
+        if (tilesY > 1) {tilesY = Math.floor(tilesY);}
+        else {return null;}
+    }
 
     console.log('Got params:', params);
 
