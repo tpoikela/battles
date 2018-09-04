@@ -160,13 +160,13 @@ class EvaluatorFlee extends EvaluatorBase {
 }
 Evaluator.Flee = EvaluatorFlee;
 
-/* Evaluator to check if actor should flee from a fight. */
+/* Evaluator to check if actor should guard between given points. */
 class EvaluatorPatrol extends EvaluatorBase {
 
-    constructor(actorBias) {
+    constructor(actorBias, coord = []) {
         super(actorBias);
         this.type = 'Patrol';
-        this.coords = [[2, 2], [40, 10], [20, 20]];
+        this.coords = coord;
     }
 
     setCoords(coords) {
@@ -180,8 +180,14 @@ class EvaluatorPatrol extends EvaluatorBase {
     setActorGoal(actor) {
         const topGoal = actor.getBrain().getGoal();
         const coords = this.coords;
-        const goal = new Goal.Patrol(actor, coords);
-        topGoal.addGoal(goal);
+        if (coords.length > 0) {
+            const goal = new Goal.Patrol(actor, coords);
+            topGoal.addGoal(goal);
+        }
+        else {
+            RG.err('EvaluatorPatrol', 'setActorGoal',
+                'No guard points set with setCoords()');
+        }
     }
 
     setArgs(args) {
@@ -198,7 +204,7 @@ class EvaluatorPatrol extends EvaluatorBase {
 }
 Evaluator.Patrol = EvaluatorPatrol;
 
-/* Evaluator to check if actor should flee from a fight. */
+/* Evaluator to check if actor should guard the given point. */
 class EvaluatorGuard extends EvaluatorBase {
 
     constructor(actorBias, xy) {
@@ -379,5 +385,33 @@ class EvaluatorCastSpell extends EvaluatorBase {
 
 }
 Evaluator.CastSpell = EvaluatorCastSpell;
+
+/* Evaluator used by shopkeeper actors to check if they should carry on
+ * with shopkeeping duties. */
+class EvaluatorShopkeeper extends EvaluatorBase {
+
+    constructor(actorBias) {
+        super(actorBias);
+        this.type = 'Shopkeeper';
+    }
+
+    calculateDesirability(actor) {
+        // TODO calculate dist from shop etc
+        if (actor.has('Shopkeeper')) {
+            return this.actorBias;
+        }
+        RG.err('EvaluatorShopkeeper', 'calculateDesirability',
+            `An actor is not shopkeeper: ${actor}`);
+        return 0;
+    }
+
+    setActorGoal(actor) {
+        const topGoal = actor.getBrain().getGoal();
+        const goal = new Goal.Shopkeeper(actor);
+        topGoal.addGoal(goal);
+    }
+
+}
+Evaluator.Shopkeeper = EvaluatorShopkeeper;
 
 module.exports = Evaluator;
