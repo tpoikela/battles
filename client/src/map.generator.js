@@ -222,8 +222,8 @@ MapGenerator.prototype.createTownBSP = function(cols, rows, conf) {
     const houseGen = new HouseGenerator();
     leafs.forEach(leaf => {
         const {w, h} = leaf;
-        const colsHouse = w - 2;
-        const rowsHouse = h - 2;
+        let colsHouse = w - 2;
+        let rowsHouse = h - 2;
         console.log('LEAF is:', leaf);
         if (colsHouse >= 5 && rowsHouse >= 5) {
             if (colsHouse > 10 && colsHouse % 2 !== 0) {
@@ -234,8 +234,10 @@ MapGenerator.prototype.createTownBSP = function(cols, rows, conf) {
             }
             const houseConf = {cols: colsHouse, rows: rowsHouse};
             const house = houseGen.createHouse(houseConf);
-            this.placeHouse(house, map, leaf.x, leaf.y);
-            houses.push(house);
+            if (house) {
+                this.placeHouse(house, map, leaf.x, leaf.y);
+                houses.push(house);
+            }
         }
     });
     return {map, houses};
