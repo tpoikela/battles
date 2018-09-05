@@ -14,7 +14,6 @@ RG.Animation = {};
  * over normal map cells.
  * */
 RG.Animation.Animation = function() {
-
     this.levelID = -1;
     this.numFrames = 0;
     this.currFrame = 0;
@@ -23,28 +22,27 @@ RG.Animation.Animation = function() {
     this.slowDown = 2;
 
     this.frames = [];
+};
 
-    this.setLevel = function(level) {
-        this.levelID = level.getID();
-    };
+RG.Animation.Animation.prototype.setLevel = function(level) {
+    this.levelID = level.getID();
+};
 
-    this.addFrame = function(frame) {
-        for (let i = 0; i < this.slowDown; i++) {
-            ++this.numFrames;
-            this.frames.push(frame);
-        }
-    };
+RG.Animation.Animation.prototype.addFrame = function(frame) {
+    for (let i = 0; i < this.slowDown; i++) {
+        ++this.numFrames;
+        this.frames.push(frame);
+    }
+};
 
-    /* Advances animation to the next frame, and returns the frame */
-    this.nextFrame = function() {
-        const frame = this.frames[this.currFrame++];
-        return frame;
-    };
+/* Advances animation to the next frame, and returns the frame */
+RG.Animation.Animation.prototype.nextFrame = function() {
+    const frame = this.frames[this.currFrame++];
+    return frame;
+};
 
-    this.hasFrames = function() {
-        return this.currFrame < this.frames.length;
-    };
-
+RG.Animation.Animation.prototype.hasFrames = function() {
+    return this.currFrame < this.frames.length;
 };
 
 /* Combines the frames of two animations together. */
