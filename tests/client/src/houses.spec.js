@@ -24,10 +24,8 @@ describe('HouseGenerator', () => {
     it('can be used in town maps', () => {
         const mapGen = new MapGen();
         const conf = {};
-        const townMap = mapGen.createTownBSP(80, 40, conf);
+        const townMap = mapGen.createTownBSP(160, 100, conf);
         expect(townMap).to.not.be.empty;
-
         townMap.map.debugPrintInASCII();
-
     });
 });
