@@ -242,15 +242,9 @@ describe('Template.Level', () => {
         RNG.setSeed(new Date().getTime());
         const maxX = 10;
         const maxY = 10;
-        const filtered = Houses5x5.templates.start2xN.filter(templ => (
-            /2xN_A/.test(templ.getProp('name'))
-        ));
-        console.log(filtered);
 
         for (let x = 1; x <= maxX; x++) {
             for (let y = 1; y <= maxY; y++) {
-                console.log(`TILE ${x} X ${y}:`);
-                // const level = new TemplLevel(x, y);
                 const level = new TemplLevel(2, 2);
                 level.setFiller(Houses5x5.tiles.filler);
                 level.setTemplates(Houses5x5.templates.all);
@@ -266,19 +260,20 @@ describe('Template.Level', () => {
                 level.create();
 
                 expect(level.map).to.not.be.empty;
-                RG.printMap(level.map);
 
-                console.log(' '.repeat(5));
                 const placedData = level.getPlacedData();
                 Object.keys(placedData).forEach(key => {
                     const name = placedData[key].name;
                     if (name !== 'FILLER' && name !== 'BLOCKER') {
-                        console.log(`\t${key}: ${name}`);
+                        const {llx, lly, urx, ury} = placedData[key];
+                        const dimX = urx - llx + 1;
+                        const dimY = lly - ury + 1;
+                        expect(dimX).to.equal(2 + 1 + x0 + x2);
+                        expect(dimY).to.equal(2 + 1 + y0 + y2);
                     }
                 });
 
                 verifyCorners(level.map);
-                console.log('='.repeat(50));
             }
         }
     });
