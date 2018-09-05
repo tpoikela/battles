@@ -443,7 +443,7 @@ RG.Factory.Base = function() {
             mapObj = mapgen.createEmptyMap();
         }
         else if (levelType === 'town') {
-            mapObj = mapgen.createTown(cols, rows, conf);
+            mapObj = mapgen.createTownBSP(cols, rows, conf);
             level.setMap(mapObj.map);
             this.createHouseElements(level, mapObj, conf);
             this.createShops(level, mapObj, conf);
@@ -555,6 +555,7 @@ RG.Factory.Base = function() {
                 const keeper = this.createShopkeeper(conf);
 
                 const shopCoord = [];
+                let keeperAdded = false;
                 for (let i = 0; i < floor.length; i++) {
                     const xy = floor[i];
 
@@ -563,6 +564,7 @@ RG.Factory.Base = function() {
                     level.addElement(shopElem, xy[0], xy[1]);
 
                     if (i === 0) {
+                        keeperAdded = true;
                         level.addActor(keeper, xy[0], xy[1]);
                     }
 
@@ -581,6 +583,12 @@ RG.Factory.Base = function() {
                             shopCoord.push(xy);
                         }
                     }
+                }
+
+                if (!keeperAdded) {
+                    const json = JSON.stringify(house);
+                    RG.err('RG.Factory', 'createShops',
+                        'Could not add keeper to ' + json);
                 }
 
                 if (keeper.has('Shopkeeper')) {
