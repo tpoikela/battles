@@ -11,6 +11,7 @@ RG.Map.Generator = require('./map.generator');
 RG.Map.Level = require('./level');
 RG.Verify = require('./verify');
 RG.World = require('./world');
+const Evaluator = require('./evaluators');
 
 const MountainGenerator = require('./mountain-generator');
 
@@ -600,6 +601,11 @@ RG.Factory.Base = function() {
                     keeper.setName(name);
                     RG.addCellStyle(RG.TYPE_ACTOR, name,
                         'cell-actor-shopkeeper');
+                    const randXY = RNG.arrayGetRand(shopCoord);
+                    const evalShop = new Evaluator.Shopkeeper(1.5);
+                    evalShop.setArgs({xy: randXY});
+                    console.log('Shop is located @', randXY);
+                    keeper.getBrain().getGoal().addEvaluator(evalShop);
                 }
 
                 shopObj.setShopkeeper(keeper);
@@ -621,7 +627,6 @@ RG.Factory.Base = function() {
             if (conf.actor) {
                 keeper = conf.parser.createRandomActor({
                     func: conf.actor});
-                keeper.add(new RG.Component.Shopkeeper());
             }
             else {
                 keeper = conf.parser.createActor('shopkeeper');
@@ -631,6 +636,7 @@ RG.Factory.Base = function() {
             keeper = this.createActor('shopkeeper', {brain: 'Human'});
         }
 
+        keeper.add(new RG.Component.Shopkeeper());
         const gold = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
         gold.count = RNG.getUniformInt(50, 200);
         keeper.getInvEq().addItem(gold);
