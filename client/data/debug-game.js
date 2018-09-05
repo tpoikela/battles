@@ -22,7 +22,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     obj.cols = 100;
     obj.rows = 100;
     const [pX, pY] = [50, 50];
-    const level = this._fact.createLastBattle(game, obj);
+    const level = this.createLastBattle(game, obj);
     level.addActor(player, pX, pY);
 
     const spirit = this._parser.createActor('Wolf spirit');
@@ -55,6 +55,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     gold.count = 50;
     keeper.getInvEq().addItem(gold);
     level.addActor(keeper, 2, 2);
+
     const shopElem = new RG.Element.Shop();
     const shopCell = level.getMap().getCell(3, 3);
     shopCell.setProp('elements', shopElem);
