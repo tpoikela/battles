@@ -246,7 +246,8 @@ describe('World.BattleZone', () => {
 describe('World.Shop', () => {
     it('can be set abandoned', () => {
         const parser = RG.ObjectShell.getParser();
-        const shopLevel = RG.FACT.createLevel('town', 80, 40, {nShops: 1});
+        const conf = {nShops: 1, parser};
+        const shopLevel = RG.FACT.createLevel('town', 80, 40, conf);
         const shop = new RG.World.Shop();
         const keeper = parser.createActor('shopkeeper');
         shop.setLevel(shopLevel);
