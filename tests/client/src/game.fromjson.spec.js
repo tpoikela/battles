@@ -235,7 +235,7 @@ describe('RG.Game.FromJSON', function() {
         const capitalLevel = new Capital(200, 400).getLevel();
         const allActors = capitalLevel.getActors();
         const shopKeepers = allActors.filter(ent =>
-            ent.getName() === 'shopkeeper');
+            (/shopkeeper/).test(ent.getName()));
 
         expect(shopKeepers.length).to.equal(9);
 
