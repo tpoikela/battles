@@ -1103,4 +1103,59 @@ class GoalOrders extends GoalBase {
 }
 Goal.Orders = GoalOrders;
 
+/* Goal for shopkeeper. */
+class GoalShopkeeper extends GoalBase {
+
+    constructor(actor, x, y) {
+        super(actor);
+        this.setType('GoalShopkeeper');
+        this.x = x;
+        this.y = y;
+        this.hasShouted = false;
+        this.subGoals = [];
+    }
+
+    activate() {
+        this.status = GOAL_ACTIVE;
+        // If on a shop element, do something
+        const cell = this.actor.getCell();
+        if (cell.hasShop()) {
+            // TODO verify we're in correct shop
+            // Rearrange items
+            // Persuade actors to sell their stuff
+            if (RG.isSuccess(0.6)) {
+                const dir = RNG.getRandDir();
+                const xy = RG.newXYFromDir(dir, this.actor);
+                const level = this.actor.getLevel();
+                const movComp = new RG.Component.Movement(xy[0], xy[1], level);
+                this.actor.add(movComp);
+            }
+            else if (!this.hasShouted) {
+                const comm = new RG.Component.Communication();
+                comm.addMsg({src: this.actor,
+                    type: 'Shout', shout: 'Hello traveller!'});
+                this.actor.add(comm);
+            }
+            else if (!cell.hasItems()) {
+                // Spawn items
+            }
+        }
+        else {
+            // Else find a path back to shop
+            const goal = new GoalFollowPath(this.actor, [this.x, this.y]);
+            // this.removeAllSubGoals();
+            this.addSubGoal(goal);
+            this.status = this.processSubGoals();
+        }
+    }
+
+    process() {
+        this.activateIfInactive();
+        this.status = this.processSubGoals();
+        return this.status;
+    }
+
+}
+Goal.Shopkeeper = GoalShopkeeper;
+
 module.exports = Goal;
