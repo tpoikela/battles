@@ -78,6 +78,9 @@ describe('Factory.Zone', () => {
 
         const items = townLevel.getItems();
         expect(items.length).to.be.at.least(townConf.itemsPerLevel);
+
+        const elems = townLevel.getElements();
+        expect(elems.length).to.be.above(5);
     });
 
     it('can create dungeon levels with special features', () => {
