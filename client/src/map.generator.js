@@ -206,25 +206,71 @@ MapGenerator.prototype.createTown = function(cols, rows, conf) {
 };
 
 MapGenerator.prototype.createTownBSP = function(cols, rows, conf) {
-	const iter = 5;
-	const bspGen = new BSP.BSPGen();
-	const mainContainer = new BSP.Container(0, 0, cols, rows);
-	const containerTree = bspGen.splitContainer(mainContainer, iter);
-	const leafs = containerTree.getLeafs();
-    RNG.shuffle(leafs);
+    const maxHouseX = conf.maxHouseX || 100;
+    const maxHouseY = conf.maxHouseY || 100;
 
-    console.log('createTownBSP:', conf);
+    // Controls how big the slots for houses are, for bigger levels it
+    // should be higher to generate small houses
+	const bspIter = 7;
+
+    const haloAround = 2; // Prevents house placement on edges
+
+	const bspGen = new BSP.BSPGen();
+    const bspX0 = haloAround - 1;
+    const bspY0 = haloAround - 1;
+    const bspCols = cols - 2 * bspX0;
+    const bspRows = rows - 2 * bspY0;
+
+	const mainContainer = new BSP.Container(0, 0, bspCols, bspRows);
+	const containerTree = bspGen.splitContainer(mainContainer, bspIter);
+	const leaves = containerTree.getLeafs();
+
+    // Adjust leaves x,y based on bspX0,Y
+    leaves.forEach(leaf => {
+        leaf.x += bspX0;
+        leaf.y += bspY0;
+        console.log('LEAF: ', leaf);
+    });
+
+    RNG.shuffle(leaves); // Introduce some randomness
+
     const map = new RG.Map.CellList(cols, rows);
+    let numLeavesDiscarded = 0;
+    const freeLeaves = [];
 
     // Now each leaf can be safely used for placing a house in
     // non-colliding manner
     const houses = [];
     const houseGen = new HouseGenerator();
-    leafs.forEach(leaf => {
+    leaves.forEach(leaf => {
         const {w, h} = leaf;
-        let colsHouse = w - 2;
-        let rowsHouse = h - 2;
-        console.log('LEAF is:', leaf);
+        let colsHouse = w - 1;
+        let rowsHouse = h - 1;
+        if (colsHouse > maxHouseX) {
+            colsHouse = Math.round(colsHouse / 2);
+        }
+        if (rowsHouse > maxHouseY) {
+            rowsHouse = Math.round(rowsHouse / 2);
+        }
+        if (leaf.x === bspX0) {
+            leaf.x += 1;
+            colsHouse -= 1;
+        }
+        else if (leaf.x === cols - 1) {
+            leaf.x -= 1;
+            colsHouse -= 1;
+        }
+
+        if (leaf.y === bspY0) {
+            leaf.y += 1;
+            rowsHouse -= 1;
+        }
+        else if (leaf.y === rows - 1) {
+            leaf.y -= 1;
+            rowsHouse -= 1;
+        }
+            // TODO place row/col of houses
+
         if (colsHouse >= 5 && rowsHouse >= 5) {
             if (colsHouse > 10 && colsHouse % 2 !== 0) {
                 colsHouse -= 1;
@@ -239,14 +285,19 @@ MapGenerator.prototype.createTownBSP = function(cols, rows, conf) {
                 houses.push(house);
             }
         }
+        else {
+            freeLeaves.push(leaf);
+            console.log('MapGen leaf discarded', leaf);
+            ++numLeavesDiscarded;
+        }
     });
+    console.log('MapGen discarded leaves:', numLeavesDiscarded);
     return {map, houses};
 };
 
 MapGenerator.prototype.placeHouse = function(house, map, x, y) {
     const coord = house.coord;
     const keys = Object.keys(coord);
-    house.floor = [];
     keys.forEach(elemChar => {
         if (elemChar === '#') {
             coord[elemChar].forEach(xy => {
@@ -263,7 +314,7 @@ MapGenerator.prototype.placeHouse = function(house, map, x, y) {
             coord[elemChar].forEach(xy => {
                 const x0 = xy[0] + x;
                 const y0 = xy[1] + y;
-                house.floor.push([x0, y0]);
+                map.setBaseElemXY(x0, y0, RG.ELEM.FLOOR_HOUSE);
             });
         }
     });
@@ -611,9 +662,12 @@ MapGenerator.prototype.createCryptNew = function(cols, rows, conf = {}) {
     return mapObj;
 };
 
+/* Creates a castle map using Template.Level and castle tiles. */
 MapGenerator.prototype.createCastle = function(cols, rows, conf = {}) {
-    const tilesX = conf.tilesX || Math.ceil(cols / 7);
-    const tilesY = conf.tilesY || Math.ceil(rows / 7);
+    const genParams = conf.genParams || [1, 1, 1, 1];
+    const tileSize = genParams.reduce((acc, val) => acc + val, 0);
+    const tilesX = conf.tilesX || Math.ceil(cols / tileSize);
+    const tilesY = conf.tilesY || Math.ceil(rows / tileSize);
 
     const level = new TemplateLevel(tilesX, tilesY);
     level.use(Castle);
@@ -624,7 +678,6 @@ MapGenerator.prototype.createCastle = function(cols, rows, conf = {}) {
         level.setTemplates(Castle.Models[conf.models]);
     }
     else if (typeof conf.templates === 'string') {
-        console.log('using templates ' + conf.templates);
         level.setTemplates(Castle.templates[conf.templates]);
     }
     else {
@@ -642,7 +695,6 @@ MapGenerator.prototype.createCastle = function(cols, rows, conf = {}) {
         level.setConstraintFunc(conf.constraintFunc);
     }
 
-    const genParams = conf.genParams || [1, 1, 1, 1];
     const roomCount = conf.roomCount || 40;
     level.setGenParams(genParams);
     level.setRoomCount(roomCount);
