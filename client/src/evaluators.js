@@ -23,10 +23,10 @@ const RNG = RG.Random.getRNG();
 class EvaluatorBase {
 
     constructor(actorBias) {
-        if (!Number.isFinite(actorBias)) {
+        /* if (!Number.isFinite(actorBias)) {
             RG.err('EvaluatorBase', 'constructor',
                 `bias must number. Got: ${actorBias}`);
-        }
+        }*/
         this.actorBias = actorBias;
         this.type = 'Base';
     }
