@@ -79,12 +79,18 @@ Ability.Area = function() {
 
 };
 
-/* Base class for abilities targeting items. */
+/* Base class for abilities targeting items. Each derived class must provide
+ * activate(item) function for the actual ability functionality. */
 Ability.Item = function(name) {
     Ability.Base.call(this, name);
-
 };
 RG.extend2(Ability.Item, Ability.Base);
+
+Ability.Item.prototype.activate = function(item) {
+    const json = JSON.stringify(item);
+    RG.err('Ability.Item', 'activate',
+        'Not impl. in base class. Called with: ' + json);
+};
 
 Ability.Item.prototype.getMenuItem = function() {
     const items = this.actor.getInvEq().getInventory().getItems();
@@ -102,6 +108,7 @@ Ability.Item.prototype.getMenuItem = function() {
     ];
 };
 
+/* This ability can be used to sharpen weapons. */
 Ability.Sharpener = function() {
     Ability.Item.call(this, 'Sharpener');
 };
