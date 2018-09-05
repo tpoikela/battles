@@ -62,7 +62,7 @@ describe('RG.Factory.Game', () => {
         conf = {
             cols: 40,
             rows: 30,
-            levels: 2,
+            nLevels: 2,
             playerLevel: 'Medium',
             sqrPerActor: 40,
             sqrPerItem: 100,
