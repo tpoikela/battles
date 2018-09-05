@@ -213,11 +213,12 @@ MapGenerator.prototype.createTownBSP = function(cols, rows, conf) {
     // should be higher to generate small houses
 	const bspIter = 7;
 
-    const haloAround = 2; // Prevents house placement on edges
+    const haloAroundX = 2; // Prevents house placement on edges
+    const haloAroundY = 2; // Prevents house placement on edges
 
 	const bspGen = new BSP.BSPGen();
-    const bspX0 = haloAround - 1;
-    const bspY0 = haloAround - 1;
+    const bspX0 = haloAroundX - 1;
+    const bspY0 = haloAroundY - 1;
     const bspCols = cols - 2 * bspX0;
     const bspRows = rows - 2 * bspY0;
 
@@ -267,7 +268,7 @@ MapGenerator.prototype.createTownBSP = function(cols, rows, conf) {
             leaf.y -= 1;
             rowsHouse -= 1;
         }
-            // TODO place row/col of houses
+        // TODO place row/col of houses
 
         if (colsHouse >= 5 && rowsHouse >= 5) {
             if (colsHouse > 10 && colsHouse % 2 !== 0) {
@@ -302,8 +303,8 @@ MapGenerator.prototype.placeHouse = function(house, map, x, y) {
             });
         }
         else if (elemChar === '+') {
-            const doorXY = coord[elemChar][0];
-            house.door = [doorXY[0] + x, doorXY[1] + y];
+            /* const doorXY = coord[elemChar][0];
+            house.door = [doorXY[0] + x, doorXY[1] + y];*/
         }
         else if (elemChar === ':') {
             coord[elemChar].forEach(xy => {
@@ -313,6 +314,7 @@ MapGenerator.prototype.placeHouse = function(house, map, x, y) {
             });
         }
     });
+    house.adjustCoord(x, y);
 };
 
 /* Creates a house into a given map to a location x0,y0 with given
