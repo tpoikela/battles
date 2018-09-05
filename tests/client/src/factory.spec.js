@@ -51,6 +51,17 @@ describe('RG.Factory.Base', () => {
         if (actors.length > 2) {
             expect(actors[2].getName()).to.equal('trainer');
         }
+
+        const shopElems = townLevel.getElements().filter(elem => (
+            elem.getType() === 'shop'
+        ));
+
+        expect(shopElems.length).to.be.above(2);
+        shopElems.forEach(elem => {
+            const [x, y] = elem.getXY();
+            const baseElem = townLevel.getMap().getBaseElemXY(x, y);
+            expect(baseElem.getType()).not.to.equal('wall');
+        });
     });
 });
 
