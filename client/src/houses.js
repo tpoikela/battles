@@ -56,7 +56,7 @@ House.prototype.adjustCoord = function(x, y) {
     });
     this.cX += x;
     this.cY += y;
-    this.door = [this.door[0] + x, this.door[1].y];
+    this.door = [this.door[0] + x, this.door[1] + y];
 };
 
 const HouseGenerator = function() {
