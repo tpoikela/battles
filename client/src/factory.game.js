@@ -15,12 +15,10 @@ RG.getOverWorld = require('./overworld');
 
 const Creator = require('./world.creator');
 const ActorClass = require('./actor-class');
-const ArenaDebugGame = require('../data/debug-game');
-const Texts = require('../data/texts');
+const DebugGame = require('../data/debug-game');
 const TerritoryMap = require('../data/territory-map');
 
 const RNG = RG.Random.getRNG();
-const Stairs = RG.Element.Stairs;
 
 /* Player stats based on user selection.*/
 const confPlayerStats = {
@@ -33,747 +31,512 @@ const confPlayerStats = {
 /* Object for creating the top-level game object. GUI should only use this
  * factory when creating a new game. For restoring a game, see RG.Game.Save.
  */
-RG.Factory.Game = function() {
+const FactoryGame = function() {
     RG.Factory.Base.call(this);
     this._verif = new RG.Verify.Conf('Factory.Game');
     this._parser = RG.ObjectShell.getParser();
     this.presetLevels = {};
     this.callbacks = {};
+};
+RG.extend2(FactoryGame, RG.Factory.Base);
 
-    /* Creates a player actor and starting inventory unless a game has been
-     * restored. */
-    this.createPlayerUnlessLoaded = function(obj) {
-        let player = obj.loadedPlayer;
-        if (RG.isNullOrUndef([player])) {
-            this._verif.verifyConf('createPlayerUnlessLoaded', obj,
-                ['playerLevel', 'playerRace', 'playerName']);
-            const expLevel = obj.playerLevel;
-            const pConf = confPlayerStats[expLevel];
+/* Creates a player actor and starting inventory unless a game has been
+ * restored. */
+FactoryGame.prototype.createPlayerUnlessLoaded = function(obj) {
+    let player = obj.loadedPlayer;
+    if (RG.isNullOrUndef([player])) {
+        this._verif.verifyConf('createPlayerUnlessLoaded', obj,
+            ['playerLevel', 'playerRace', 'playerName']);
+        const expLevel = obj.playerLevel;
+        const pConf = confPlayerStats[expLevel];
 
-            player = this.createPlayer(obj.playerName, {
-                att: pConf.att, def: pConf.def, prot: pConf.prot
-            });
+        player = this.createPlayer(obj.playerName, {
+            att: pConf.att, def: pConf.def, prot: pConf.prot
+        });
 
-            player.setType(obj.playerRace);
-            player.add(new RG.Component.Health(pConf.hp));
-            this.addActorClass(obj, player);
-            player.add(new RG.Component.Skills());
-            player.add(new RG.Component.GameInfo());
-            player.add(new RG.Component.BodyTemp());
-            player.add(new RG.Component.Abilities());
-        }
+        player.setType(obj.playerRace);
+        player.add(new RG.Component.Health(pConf.hp));
+        this.addActorClass(obj, player);
+        player.add(new RG.Component.Skills());
+        player.add(new RG.Component.GameInfo());
+        player.add(new RG.Component.BodyTemp());
+        player.add(new RG.Component.Abilities());
+    }
 
-        if (!player.has('Hunger')) {
-            const hunger = new RG.Component.Hunger(20000);
-            player.add(hunger);
-        }
-        else {
-            // Notify Hunger system only
-            const hunger = player.get('Hunger');
-            player.remove('Hunger');
-            player.add(hunger);
-        }
+    if (!player.has('Hunger')) {
+        const hunger = new RG.Component.Hunger(20000);
+        player.add(hunger);
+    }
+    else {
+        // Notify Hunger system only
+        const hunger = player.get('Hunger');
+        player.remove('Hunger');
+        player.add(hunger);
+    }
 
-        // Add to the CSS class table
-        RG.addCellStyle(RG.TYPE_ACTOR, player.getName(), 'cell-actor-player');
-        return player;
-    };
+    // Add to the CSS class table
+    RG.addCellStyle(RG.TYPE_ACTOR, player.getName(), 'cell-actor-player');
+    return player;
+};
 
-    this.createPlayerRegenEvents = function(game, player) {
-        // Add HP regeneration
-        const regenPlayer = new RG.Time.RegenEvent(player,
-            RG.PLAYER_HP_REGEN_PERIOD * RG.ACTION_DUR);
-        game.addEvent(regenPlayer);
+FactoryGame.prototype.createPlayerRegenEvents = function(game, player) {
+    // Add HP regeneration
+    const regenPlayer = new RG.Time.RegenEvent(player,
+        RG.PLAYER_HP_REGEN_PERIOD * RG.ACTION_DUR);
+    game.addEvent(regenPlayer);
 
-        // Add PP regeneration (if needed)
-        if (player.has('SpellPower')) {
-            const regenPlayerPP = new RG.Time.RegenPPEvent(player,
-                RG.PLAYER_PP_REGEN_PERIOD * RG.ACTION_DUR);
-            game.addEvent(regenPlayerPP);
-        }
-    };
+    // Add PP regeneration (if needed)
+    if (player.has('SpellPower')) {
+        const regenPlayerPP = new RG.Time.RegenPPEvent(player,
+            RG.PLAYER_PP_REGEN_PERIOD * RG.ACTION_DUR);
+        game.addEvent(regenPlayerPP);
+    }
+};
 
     /* Adds the actor class to player, and creates starting equipment. */
-    this.addActorClass = function(obj, player) {
-        if (obj.playerClass) {
-            if (ActorClass.hasOwnProperty(obj.playerClass)) {
-                const actorClassComp = new RG.Component.ActorClass();
-                actorClassComp.setClassName(obj.playerClass);
-                player.add(actorClassComp);
-                const actorClass = actorClassComp.getClass();
+FactoryGame.prototype.addActorClass = function(obj, player) {
+    if (obj.playerClass) {
+        if (ActorClass.hasOwnProperty(obj.playerClass)) {
+            const actorClassComp = new RG.Component.ActorClass();
+            actorClassComp.setClassName(obj.playerClass);
+            player.add(actorClassComp);
+            const actorClass = actorClassComp.getClass();
 
-                const name = obj.playerClass;
-                const items = ActorClass.getStartingItems(name);
-                const eqs = ActorClass.getEquipment(name);
+            const name = obj.playerClass;
+            const items = ActorClass.getStartingItems(name);
+            const eqs = ActorClass.getEquipment(name);
 
-                // Create starting inventory
-                items.forEach(item => {
-                    const itemObj = this._parser.createItem(item.name);
-                    itemObj.count = item.count || 1;
-                    player.getInvEq().addItem(itemObj);
+            // Create starting inventory
+            items.forEach(item => {
+                const itemObj = this._parser.createItem(item.name);
+                itemObj.count = item.count || 1;
+                player.getInvEq().addItem(itemObj);
 
-                });
-
-                // Create starting equipment
-                eqs.forEach(item => {
-                    const itemObj = this._parser.createItem(item.name);
-                    itemObj.count = item.count || 1;
-                    player.getInvEq().addItem(itemObj);
-                    player.getInvEq().equipNItems(itemObj, item.count);
-                });
-
-                actorClass.setStartingStats();
-                actorClass.advanceLevel(); // Advance to level 1
-            }
-            else {
-                RG.err('Factory.Game', 'addActorClass',
-                    `${obj.playerClass} not found in ActorClass.`);
-            }
-        }
-
-    };
-
-    const that = this; // For private objects/functions
-
-    // Private object for checking when battle is done
-    const DemonKillListener = function(game, level) {
-
-        // Needed for adding monsters and events
-        const _game = game;
-        const _level = level;
-
-        let _maxBeasts = 0;
-        let _maxDemons = 0;
-        let _beastsKilled = 0;
-        let _demonsKilled = 0;
-
-        this.hasNotify = true;
-        this.notify = function(evtName, obj) {
-            if (evtName === RG.EVT_ACTOR_CREATED) {
-                if (obj.hasOwnProperty('msg') && obj.msg === 'DemonSpawn') {
-                    const actorCreated = obj.actor;
-                    if (actorCreated.getName() === 'Winter demon') {
-                        ++_maxDemons;
-                    }
-                    if (actorCreated.getName() === 'Blizzard beast') {
-                        ++_maxBeasts;
-                    }
-                }
-            }
-            else if (evtName === RG.EVT_ACTOR_KILLED) {
-                const actor = obj.actor;
-                if (actor.getName() === 'Winter demon') {
-                    ++_demonsKilled;
-                    if (_demonsKilled === _maxDemons) {
-                        this.allDemonsKilled();
-                    }
-                    RG.debug(this,
-                        'A winter demon was slain! Count:' + _demonsKilled);
-                    RG.debug(this, 'Max demons: ' + _maxDemons);
-                }
-                else if (actor.getName() === 'Blizzard beast') {
-                    ++_beastsKilled;
-                    if (_beastsKilled === _maxBeasts) {
-                        this.allBeastsKilled();
-                    }
-                }
-            }
-        };
-        RG.POOL.listenEvent(RG.EVT_ACTOR_CREATED, this);
-        RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
-
-        this.addSnow = (level, ratio) => {
-            const map = level.getMap();
-            RG.Map.Generator.addRandomSnow(map, ratio);
-        };
-
-        /* Called after all winter demons have been slain.*/
-        this.allDemonsKilled = function() {
-            RG.gameMsg(
-                "Humans have vanquished all demons! But it's not over..");
-            const windsEvent = new RG.Time.OneShotEvent(
-                this.addSnow.bind(this, _level, 0.2), 20 * 100,
-                "Winds are blowing stronger. You feel it's getting colder"
-            );
-            _game.addEvent(windsEvent);
-            const stormEvent = new RG.Time.OneShotEvent(
-                () => {}, 35 * 100, Texts.battle.eyeOfStorm);
-            _game.addEvent(stormEvent);
-            const beastEvent = new RG.Time.OneShotEvent(
-                that.createBeastArmy.bind(that, _level, this._parser), 50 * 100,
-                'Winter spread by Blizzard Beasts! Hell seems to freeze.');
-            _game.addEvent(beastEvent);
-        };
-
-
-        this.allBeastsKilled = () => {
-            RG.gameMsg(Texts.battle.beastsSlain);
-            // DO a final message of game over
-            // Add random people to celebrate
-            const msgEvent = new RG.Time.OneShotEvent(() => {}, 10 * 100,
-                Texts.battle.enemiesDead);
-            _game.addEvent(msgEvent);
-            const msgEvent2 = new RG.Time.OneShotEvent(() => {}, 20 * 100,
-                'Battles in the North will continue soon in larger scale...');
-            _game.addEvent(msgEvent2);
-        };
-    }; // const DemonKillListener
-
-    /* Creates the game based on the selection. */
-    this.createNewGame = function(conf) {
-        this._verif.verifyConf('createNewGame', conf,
-            ['sqrPerItem', 'sqrPerActor', 'playMode']);
-
-        const game = new RG.Game.Main();
-        if (Number.isInteger(conf.seed)) {
-            const rng = new RG.Random(conf.seed);
-            game.setRNG(rng);
-        }
-        const player = this.createPlayerUnlessLoaded(conf);
-        this.createPlayerRegenEvents(game, player);
-
-        if (conf.playMode === 'Arena') {
-            return this.createArenaDebugGame(conf, game, player);
-        }
-        else if (conf.playMode === 'Battle') {
-            return this.createDebugBattle(conf, game, player);
-        }
-        else if (conf.playMode === 'Creator') {
-            return this.createWorldWithCreator(conf, game, player);
-        }
-        else if (conf.playMode === 'World') {
-            return this.createFullWorld(conf, game, player);
-        }
-        else if (conf.playMode === 'OverWorld') {
-            return this.createOverWorld(conf, game, player);
-        }
-        else if (conf.playMode === 'Dungeon') {
-            return this.createOneDungeonAndBoss(conf, game, player);
-        }
-        else { // Empty game for doing whatever
-            return this.createEmptyGame(conf, game, player);
-        }
-    };
-
-    let _playerFOV = RG.PLAYER_FOV_RANGE;
-
-    this.createEmptyGame = function(obj, game, player) {
-        // Add given levels to the game
-        if (obj.levels) {
-            obj.levels.forEach(level => {
-                const extras = level.getExtras();
-                game.addLevel(level);
-
-                // If startpoint given, use it
-                if (extras.startPoint) {
-                    const [sx, sy] = extras.startPoint;
-                    level.addActor(player, sx, sy);
-                }
             });
-            game.addPlayer(player);
-        }
-        return game;
-    };
 
-    this.setCallback = function(name, cb) {
-        this.callbacks[name] = cb;
-    };
+            // Create starting equipment
+            eqs.forEach(item => {
+                const itemObj = this._parser.createItem(item.name);
+                itemObj.count = item.count || 1;
+                player.getInvEq().addItem(itemObj);
+                player.getInvEq().equipNItems(itemObj, item.count);
+            });
 
-    this.createOverWorld = function(obj, game, player) {
-        const owConf = RG.Factory.Game.getOwConf(1, obj);
-
-        const startTime = new Date().getTime();
-
-        this.progress('Creating Overworld Tile Map...');
-        const overworld = OW.createOverWorld(owConf);
-        this.progress('DONE');
-
-        this.progress('Generating territory for clans/races...');
-        const midX = Math.floor(owConf.nLevelsX / 2);
-        const playerX = midX;
-        const playerY = owConf.nLevelsY - 1;
-        overworld.terrMap = this.createTerritoryMap(overworld, obj.playerRace,
-            playerX, playerY);
-        this.progress('DONE');
-
-        this.progress('Creating Overworld Level Map...');
-        const worldAndConf = RG.OverWorld.createOverWorldLevel(
-          overworld, owConf);
-        const [worldLevel, worldConf] = worldAndConf;
-        this.progress('DONE');
-
-        this.progress('Mapping settlements into territory areas..');
-        this.mapZonesToTerritoryMap(overworld.terrMap, worldConf);
-        this.progress('DONE');
-
-        this.progress('Splitting Overworld Level Map into AreaTiles...');
-        RG.Map.Level.idCount = 0;
-        const splitLevels = RG.Geometry.splitLevel(worldLevel, owConf);
-        this.progress('DONE');
-
-        this.progress('Creating and connectting World.Area tiles...');
-        RG.Map.Level.idCount = 1000;
-        const worldArea = new RG.World.Area('Ravendark', owConf.nLevelsX,
-            owConf.nLevelsY, 100, 100, splitLevels);
-        worldArea.connectTiles();
-        this.progress('DONE');
-
-        const factWorld = new RG.Factory.World();
-        factWorld.setOverWorld(overworld);
-        factWorld.setGlobalConf(obj);
-        game.setGlobalConf(obj);
-        factWorld.setPresetLevels({Realm: splitLevels});
-
-        worldConf.createAllZones = false;
-        this.progress('Creating places and local zones...');
-        const playerLevel = splitLevels[playerX][playerY];
-        this.createPlayerHome(worldConf, player, playerLevel, playerX, playerY);
-        this.createAreaLevelConstraints(worldConf, overworld.terrMap);
-        const world = factWorld.createWorld(worldConf);
-        game.addPlace(world);
-        overworld.clearSubLevels();
-        game.setOverWorld(overworld);
-        game.setEnableChunkUnload(true);
-        this.progress('DONE');
-
-        this.progress('Adding player to the game...');
-
-        this.placePlayer(player, playerLevel);
-        RG.POOL.emitEvent(RG.EVT_TILE_CHANGED, {actor: player,
-            target: playerLevel});
-
-        player.setFOVRange(RG.PLAYER_FOV_RANGE);
-        game.addPlayer(player); // Player already placed to level
-        this.progress('DONE');
-
-        const endTime = new Date().getTime();
-        const totalDur = endTime - startTime;
-        this.progress('World generation took ' + totalDur + ' ms.');
-        // RG.Verify.verifyStairsConnections(game, 'Factory.Game');
-        // this.progress('Stairs connections verified');
-        return game;
-    };
-
-    this.progress = function(msg) {
-        const timeNow = new Date().getTime();
-        let durSec = 0;
-        if (this.timePrev) {
-            durSec = (timeNow - this.timePrev) / 1000;
-        }
-        this.timePrev = timeNow;
-        if (this.callbacks.progress) {
-            this.callbacks.progress(msg);
-        }
-        if (msg === 'DONE') {
-            RG.log(`${this.prevMsg} - Time: ${durSec} sec`);
-        }
-        this.prevMsg = msg;
-    };
-
-    /* Places player into a free cell surrounded by other free cells. */
-    this.placePlayer = function(player, level) {
-        const freeCells = level.getMap().getFree();
-        const freeLUT = {};
-        freeCells.forEach(cell => {
-            freeLUT[cell.getKeyXY()] = true;
-        });
-
-        let cell = null;
-        let found = false;
-        let watchdog = 1000;
-        const bSize = 2;
-        const minFreeCells = ((2 * bSize + 1) ** 2 - 1);
-
-        while (!found) {
-            cell = RNG.arrayGetRand(freeCells);
-            const [x, y] = cell.getXY();
-            const box = RG.Geometry.getBoxAround(x, y, bSize);
-            if (box.length === minFreeCells) {
-                found = true;
-            }
-            for (let i = 0; i < box.length; i++) {
-                const [cx, cy] = box[i];
-                found = found && freeLUT[cx + ',' + cy];
-            }
-
-            if (--watchdog <= 0) {
-                RG.log('Timeout reached');
-                break;
-            }
-        }
-
-        if (found) {
-            level.addActor(player, cell.getX(), cell.getY());
+            actorClass.setStartingStats();
+            actorClass.advanceLevel(); // Advance to level 1
         }
         else {
-            level.addActorToFreeCell(player);
+            RG.err('Factory.Game', 'addActorClass',
+                `${obj.playerClass} not found in ActorClass.`);
         }
-    };
-
-	this.createTerritoryMap = function(ow, playerRace, playerX, playerY) {
-        return TerritoryMap.create(ow, playerRace, [playerX, playerY]);
-	};
-
-    /* Matches each zone with territory map, and adds some generation
-     * constraints.
-     */
-    this.mapZonesToTerritoryMap = function(terrMap, worldConf) {
-        const terrMapXY = terrMap.getMap();
-        const citiesConf = worldConf.area[0].city;
-        citiesConf.forEach(cityConf => {
-            const {owX, owY} = cityConf;
-            const char = terrMapXY[owX][owY];
-            const name = terrMap.getName(char);
-            let constrActor = [
-                {op: 'eq', prop: 'type', value: [name]},
-                {op: 'neq', prop: 'base', value: ['WinterBeingBase']}
-            ];
-            if (name === 'winterbeing') {
-                constrActor = {
-                    op: 'eq', prop: 'base', value: ['WinterBeingBase']
-                };
-            }
-            if (name) {
-                if (!cityConf.constraint) {cityConf.constraint = {};}
-                cityConf.constraint.actor = constrActor;
-            }
-            cityConf.quarter.forEach(qConf => {
-                if (!qConf.constraint) {qConf.constraint = {};}
-                qConf.constraint.actor = constrActor;
-            });
-        });
-    };
-
-    /* Creates the starting home village for the player. */
-    this.createPlayerHome = function(
-        worldConf, player, level, playerX, playerY
-    ) {
-        let cell = level.getFreeRandCell();
-        while (cell.hasConnection()) {
-            cell = level.getFreeRandCell();
-        }
-
-        const homeConf = {
-            name: 'Home town of ' + player.getName(),
-            x: playerX, y: playerY,
-            levelX: cell.getX(), levelY: cell.getY(),
-            nQuarters: 1,
-            groupType: 'village',
-            friendly: true,
-            constraint: {
-                actor: [
-                    {op: 'eq', prop: 'type', value: [player.getType()]},
-                    {op: 'neq', prop: 'base', value: ['WinterBeingBase']}
-                ],
-                shop: [
-                    {op: '<=', prop: 'value', value: 50}
-                ]
-            },
-            quarter: [{
-                name: 'Square',
-                nLevels: 1,
-                entranceLevel: 0,
-                nShops: 1
-            }]
-        };
-
-        console.log('Hometown located @ ', cell.getX(), cell.getY());
-        worldConf.area[0].city.push(homeConf);
-    };
-
-    this.createAreaLevelConstraints = function(worldConf, terrMap) {
-        const coordMap = new RG.OverWorld.CoordMap();
-        const terrMapXY = terrMap.getMap();
-        coordMap.xMap = 10;
-        coordMap.yMap = 10;
-        const areaConf = worldConf.area[0];
-        const constraints = {};
-        for (let x = 0; x < areaConf.maxX; x++) {
-            for (let y = 0; y < areaConf.maxY; y++) {
-                const bbox = coordMap.getOWTileBboxFromAreaTileXY(x, y);
-                const cells = RG.Geometry.getCellsInBbox(terrMapXY, bbox);
-                const hist = RG.Geometry.histArrayVals(cells);
-                let types = Object.keys(hist);
-                types = types.filter(type => (type !== '#' && type !== '.'));
-                types = types.map(typeChar => terrMap.getName(typeChar));
-                console.log(x, y, 'Actor types are', types);
-                types.push('animal');
-                constraints[x + ',' + y] = {
-                    actor: {op: 'eq', prop: 'type', value: types}
-                };
-
-                const index = types.indexOf('winterbeing');
-                if (index >= 0) {
-                    constraints[x + ',' + y].actor =
-                        {op: 'eq', prop: 'base', value: 'WinterBeingBase'};
-                }
-                console.log(x, y, 'constraint is', constraints[x + ',' + y]);
-            }
-        }
-        areaConf.constraint = constraints;
-    };
-
-    this.createWorldWithCreator = function(obj, game, player) {
-        const creator = new Creator();
-
-        const conf = {name: 'World', worldSize: 'Small',
-            areaSize: 'Small'
-        };
-
-        obj.world = creator.createWorldConf(conf);
-        return this.createFullWorld(obj, game, player);
-    };
-
-    this.createFullWorld = function(obj, game, player) {
-        const worldConf = obj.world;
-        this.processPresetLevels(worldConf);
-        if (!worldConf) {
-            RG.err('Factory', 'createFullWorld',
-                'obj.world must exist!');
-            return null;
-        }
-        worldConf.levelSize = obj.levelSize;
-        const fact = new RG.Factory.World();
-        fact.setGlobalConf(obj);
-        fact.setPresetLevels(this.presetLevels);
-
-        const world = fact.createWorld(worldConf);
-        const levels = world.getLevels();
-
-        let playerStart = {place: worldConf.name, x: 0, y: 0};
-        if (worldConf.playerStart) {
-            playerStart = worldConf.playerStart;
-        }
-
-        if (levels.length > 0) {
-            game.addPlace(world);
-            game.addPlayer(player, playerStart);
-            return game;
-        }
-        else {
-            RG.err('Factory', 'createFullWorld',
-                'There are no levels in the world!');
-            return null;
-        }
-    };
-
-    /* Creates all preset levels specified in the world configuration. */
-    this.processPresetLevels = function(conf) {
-        this.presetLevels = {};
-        if (conf.hasOwnProperty('presetLevels')) {
-            const keys = Object.keys(conf.presetLevels);
-            keys.forEach(name => {
-                this.presetLevels[name] =
-                    this.createPresetLevels(conf.presetLevels[name]);
-                // Replace json with Map.Level
-                conf.presetLevels[name] = this.presetLevels[name];
-            });
-        }
-    };
-
-    this.createPresetLevels = arr => {
-        const fromJSON = new RG.Game.FromJSON();
-        return arr.map(item => {
-            // Return the item itself if it's already Map.Level
-            if (typeof item.level.getID === 'function') {
-                return item;
-            }
-
-            const level = fromJSON.restoreLevel(item.level);
-            // Need to reset level + actors IDs for this game
-            if (level.getID() < RG.LEVEL_ID_ADD) {
-                level.setID(RG.Map.Level.createLevelID());
-            }
-            level.getActors().forEach(actor => {
-                if (actor.getID() < RG.ENTITY_ID_ADD) {
-                    actor.setID(Entity.createEntityID());
-                }
-            });
-            level.getItems().forEach(item => {
-                if (item.getID() < RG.ENTITY_ID_ADD) {
-                    item.setID(Entity.createEntityID());
-                }
-            });
-
-            // Reset cell explored status, because game-editor sets all cells as
-            // explored for viewing purposes
-            RG.setAllExplored(level, false);
-            return {
-                nLevel: item.nLevel,
-                level
-            };
-        });
-    };
-
-    /* Can be used to create a short debugging game for testing.*/
-    this.createArenaDebugGame = function(obj, game, player) {
-        return new ArenaDebugGame(this, this._parser).create(obj, game, player);
-    };
-
-    this.createDebugBattle = function(obj, game, player) {
-        const battle = new RG.Game.Battle('Battle of ice kingdoms');
-        const army1 = new RG.Game.Army('Blue army');
-        const army2 = new RG.Game.Army('Red army');
-        this.addActorsToArmy(army1, 10, 'warlord');
-        this.addActorsToArmy(army2, 10, 'Winter demon');
-
-        const battleLevel = RG.FACT.createLevel('arena', 60, 30);
-        battle.setLevel(battleLevel);
-        battle.addArmy(army1, 1, 1);
-        battle.addArmy(army2, 1, 2);
-        game.addBattle(battle);
-
-        game.addPlayer(player);
-        return game;
-    };
-
-    this.createOneDungeonAndBoss = function(obj, game, player) {
-        const cols = obj.cols;
-        const rows = obj.rows;
-        const nLevels = obj.levels;
-        const sqrPerActor = obj.sqrPerActor;
-        const sqrPerItem = obj.sqrPerItem;
-
-        let levelCount = 1;
-        const levels = ['rooms', 'rogue', 'digger'];
-
-        // For storing stairs and levels
-        const allStairsDown = [];
-        const allLevels = [];
-
-        const branch = new RG.World.Branch('StartBranch');
-
-        const itemConstraint = maxValue => item => item.value <= maxValue;
-        // Generate all game levels
-        for (let nl = 0; nl < nLevels; nl++) {
-
-            const nLevelType = RNG.randIndex(levels);
-            let levelType = levels[nLevelType];
-            if (nl === 0) {levelType = 'ruins';}
-            const level = this.createLevel(levelType, cols, rows);
-            branch.addLevel(level);
-
-            const numFree = level.getMap().getFree().length;
-            const actorsPerLevel = Math.round(numFree / sqrPerActor);
-            const itemsPerLevel = Math.round(numFree / sqrPerItem);
-
-            const potion = new RG.Item.Potion('Healing potion');
-            level.addItem(potion);
-            const missile = this._parser.createActualObj('items', 'Shuriken');
-            missile.count = 20;
-            level.addItem(missile);
-
-            const maxValue = 20 * (nl + 1);
-            const itemConf = {
-                itemsPerLevel, func: itemConstraint(maxValue),
-                maxValue,
-                food: () => true
-            };
-            this.addNRandItems(level, this._parser, itemConf);
-
-            const actorConf = {
-                actorsPerLevel,
-                maxDanger: nl + 1
-            };
-            this.addNRandActors(level, this._parser, actorConf);
-
-            allLevels.push(level);
-        }
-
-        // Create the final boss
-        const lastLevel = allLevels.slice(-1)[0];
-        const bossCell = lastLevel.getFreeRandCell();
-        const summoner = this.createActor('Summoner',
-            {hp: 100, att: 10, def: 10});
-        summoner.setType('summoner');
-        summoner.get('Experience').setExpLevel(10);
-        summoner.setBrain(new RG.Brain.Summoner(summoner));
-        lastLevel.addActor(summoner, bossCell.getX(), bossCell.getY());
-
-        const townLevel = this.createLastBattle(game, {cols: 80, rows: 60});
-        townLevel.setLevelNumber(levelCount++);
-
-        branch.connectLevels();
-        game.addPlace(branch);
-
-        const finalStairs = new Stairs(true, allLevels[nLevels - 1], townLevel);
-        const stairsLoot = new RG.Component.Loot(finalStairs);
-        summoner.add('Loot', stairsLoot);
-        allStairsDown.push(finalStairs);
-
-        const lastStairsDown = allStairsDown.slice(-1)[0];
-        const townStairsUp = new Stairs(false, townLevel, lastLevel);
-        const rStairCell = townLevel.getFreeRandCell();
-        townLevel.addStairs(townStairsUp, rStairCell.getX(), rStairCell.getY());
-        townStairsUp.setTargetStairs(lastStairsDown);
-        lastStairsDown.setTargetStairs(townStairsUp);
-
-        // Create townsfolk for the extra level
-        for (let i = 0; i < 10; i++) {
-            const name = 'Townsman';
-            const human = this.createActor(name, {brain: 'Human'});
-            human.setType('human');
-            const cell = townLevel.getFreeRandCell();
-            townLevel.addActor(human, cell.getX(), cell.getY());
-        }
-
-        // Restore player position or start from beginning
-        if (obj.loadedLevel !== null) {
-            const loadLevel = obj.loadedLevel;
-            if (loadLevel <= nLevels) {
-                allLevels[loadLevel - 1].addActorToFreeCell(player);
-            }
-            else {
-                allLevels[0].addActorToFreeCell(player);
-            }
-        }
-        game.addPlayer(player, {place: 'StartBranch'});
-        return game;
-    };
-
-    this.addActorsToArmy = (army, num, name) => {
-        for (let i = 0; i < num; i++) {
-            const actor = this._parser.createActualObj('actors', name);
-            actor.setFOVRange(10);
-            army.addActor(actor);
-        }
-    };
-
-    /* eslint-disable */
-    let _listener = null;
-    /* eslint-enable */
-
-    this.createLastBattle = function(game, obj) {
-        const levelConf = RG.Factory.cityConfBase({});
-        levelConf.parser = this._parser;
-        const level = this.createLevel('town', obj.cols, obj.rows, levelConf);
-        _listener = new DemonKillListener(game, level);
-
-        this.createHumanArmy(level, this._parser);
-
-        level.setOnFirstEnter(() => {
-            const demonEvent = new RG.Time.OneShotEvent(
-                that.createDemonArmy.bind(that, level, this._parser), 100 * 20,
-                'Demon hordes are unleashed from the unsilent abyss!');
-            game.addEvent(demonEvent);
-        });
-
-        level.setOnEnter( () => {
-            _playerFOV = game.getPlayer().getFOVRange();
-            game.getPlayer().setFOVRange(20);
-        });
-        level.setOnExit( () => {
-            game.getPlayer().setFOVRange(_playerFOV);
-        });
-
-        game.addLevel(level);
-        return level;
-    };
+    }
 
 };
-RG.extend2(RG.Factory.Game, RG.Factory.Base);
 
-RG.Factory.Game.getOwConf = function(mult = 1, obj = {}) {
+/* Creates the game based on the selection. */
+FactoryGame.prototype.createNewGame = function(conf) {
+    this._verif.verifyConf('createNewGame', conf,
+        ['sqrPerItem', 'sqrPerActor', 'playMode']);
+
+    const game = new RG.Game.Main();
+    if (Number.isInteger(conf.seed)) {
+        const rng = new RG.Random(conf.seed);
+        game.setRNG(rng);
+    }
+    const player = this.createPlayerUnlessLoaded(conf);
+    this.createPlayerRegenEvents(game, player);
+
+    if (conf.playMode === 'Arena') {
+        return this.createArenaDebugGame(conf, game, player);
+    }
+    else if (conf.playMode === 'Battle') {
+        return this.createDebugBattle(conf, game, player);
+    }
+    else if (conf.playMode === 'Creator') {
+        return this.createWorldWithCreator(conf, game, player);
+    }
+    else if (conf.playMode === 'World') {
+        return this.createFullWorld(conf, game, player);
+    }
+    else if (conf.playMode === 'OverWorld') {
+        return this.createOverWorld(conf, game, player);
+    }
+    else if (conf.playMode === 'Dungeon') {
+        return this.createOneDungeonAndBoss(conf, game, player);
+    }
+    else { // Empty game for doing whatever
+        return this.createEmptyGame(conf, game, player);
+    }
+};
+
+FactoryGame.prototype.createEmptyGame = function(obj, game, player) {
+    // Add given levels to the game
+    if (obj.levels) {
+        obj.levels.forEach(level => {
+            const extras = level.getExtras();
+            game.addLevel(level);
+
+            // If startpoint given, use it
+            if (extras.startPoint) {
+                const [sx, sy] = extras.startPoint;
+                level.addActor(player, sx, sy);
+            }
+        });
+        game.addPlayer(player);
+    }
+    return game;
+};
+
+FactoryGame.prototype.setCallback = function(name, cb) {
+    this.callbacks[name] = cb;
+};
+
+FactoryGame.prototype.createOverWorld = function(obj, game, player) {
+    const owConf = FactoryGame.getOwConf(1, obj);
+
+    const startTime = new Date().getTime();
+
+    this.progress('Creating Overworld Tile Map...');
+    const overworld = OW.createOverWorld(owConf);
+    this.progress('DONE');
+
+    this.progress('Generating territory for clans/races...');
+    const midX = Math.floor(owConf.nLevelsX / 2);
+    const playerX = midX;
+    const playerY = owConf.nLevelsY - 1;
+    overworld.terrMap = this.createTerritoryMap(overworld, obj.playerRace,
+        playerX, playerY);
+    this.progress('DONE');
+
+    this.progress('Creating Overworld Level Map...');
+    const worldAndConf = RG.OverWorld.createOverWorldLevel(
+      overworld, owConf);
+    const [worldLevel, worldConf] = worldAndConf;
+    this.progress('DONE');
+
+    this.progress('Mapping settlements into territory areas..');
+    this.mapZonesToTerritoryMap(overworld.terrMap, worldConf);
+    this.progress('DONE');
+
+    this.progress('Splitting Overworld Level Map into AreaTiles...');
+    RG.Map.Level.idCount = 0;
+    const splitLevels = RG.Geometry.splitLevel(worldLevel, owConf);
+    this.progress('DONE');
+
+    this.progress('Creating and connectting World.Area tiles...');
+    RG.Map.Level.idCount = 1000;
+    const worldArea = new RG.World.Area('Ravendark', owConf.nLevelsX,
+        owConf.nLevelsY, 100, 100, splitLevels);
+    worldArea.connectTiles();
+    this.progress('DONE');
+
+    const factWorld = new RG.Factory.World();
+    factWorld.setOverWorld(overworld);
+    factWorld.setGlobalConf(obj);
+    game.setGlobalConf(obj);
+    factWorld.setPresetLevels({Realm: splitLevels});
+
+    worldConf.createAllZones = false;
+    this.progress('Creating places and local zones...');
+    const playerLevel = splitLevels[playerX][playerY];
+    this.createPlayerHome(worldConf, player, playerLevel, playerX, playerY);
+    this.createAreaLevelConstraints(worldConf, overworld.terrMap);
+    const world = factWorld.createWorld(worldConf);
+    game.addPlace(world);
+    overworld.clearSubLevels();
+    game.setOverWorld(overworld);
+    game.setEnableChunkUnload(true);
+    this.progress('DONE');
+
+    this.progress('Adding player to the game...');
+
+    this.placePlayer(player, playerLevel);
+    RG.POOL.emitEvent(RG.EVT_TILE_CHANGED, {actor: player,
+        target: playerLevel});
+
+    player.setFOVRange(RG.PLAYER_FOV_RANGE);
+    game.addPlayer(player); // Player already placed to level
+    this.progress('DONE');
+
+    const endTime = new Date().getTime();
+    const totalDur = endTime - startTime;
+    this.progress('World generation took ' + totalDur + ' ms.');
+    // RG.Verify.verifyStairsConnections(game, 'Factory.Game');
+    // this.progress('Stairs connections verified');
+    return game;
+};
+
+FactoryGame.prototype.progress = function(msg) {
+    const timeNow = new Date().getTime();
+    let durSec = 0;
+    if (this.timePrev) {
+        durSec = (timeNow - this.timePrev) / 1000;
+    }
+    this.timePrev = timeNow;
+    if (this.callbacks.progress) {
+        this.callbacks.progress(msg);
+    }
+    if (msg === 'DONE') {
+        RG.log(`${this.prevMsg} - Time: ${durSec} sec`);
+    }
+    this.prevMsg = msg;
+};
+
+/* Places player into a free cell surrounded by other free cells. */
+FactoryGame.prototype.placePlayer = function(player, level) {
+    const freeCells = level.getMap().getFree();
+    const freeLUT = {};
+    freeCells.forEach(cell => {
+        freeLUT[cell.getKeyXY()] = true;
+    });
+
+    let cell = null;
+    let found = false;
+    let watchdog = 1000;
+    const bSize = 2;
+    const minFreeCells = ((2 * bSize + 1) ** 2 - 1);
+
+    while (!found) {
+        cell = RNG.arrayGetRand(freeCells);
+        const [x, y] = cell.getXY();
+        const box = RG.Geometry.getBoxAround(x, y, bSize);
+        if (box.length === minFreeCells) {
+            found = true;
+        }
+        for (let i = 0; i < box.length; i++) {
+            const [cx, cy] = box[i];
+            found = found && freeLUT[cx + ',' + cy];
+        }
+
+        if (--watchdog <= 0) {
+            RG.log('Timeout reached');
+            break;
+        }
+    }
+
+    if (found) {
+        level.addActor(player, cell.getX(), cell.getY());
+    }
+    else {
+        level.addActorToFreeCell(player);
+    }
+};
+
+FactoryGame.prototype.createTerritoryMap = function(
+    ow, playerRace, playerX, playerY) {
+    return TerritoryMap.create(ow, playerRace, [playerX, playerY]);
+};
+
+/* Matches each zone with territory map, and adds some generation
+ * constraints.
+ */
+FactoryGame.prototype.mapZonesToTerritoryMap = function(terrMap, worldConf) {
+    const terrMapXY = terrMap.getMap();
+    const citiesConf = worldConf.area[0].city;
+    citiesConf.forEach(cityConf => {
+        const {owX, owY} = cityConf;
+        const char = terrMapXY[owX][owY];
+        const name = terrMap.getName(char);
+        let constrActor = [
+            {op: 'eq', prop: 'type', value: [name]},
+            {op: 'neq', prop: 'base', value: ['WinterBeingBase']}
+        ];
+        if (name === 'winterbeing') {
+            constrActor = {
+                op: 'eq', prop: 'base', value: ['WinterBeingBase']
+            };
+        }
+        if (name) {
+            if (!cityConf.constraint) {cityConf.constraint = {};}
+            cityConf.constraint.actor = constrActor;
+        }
+        cityConf.quarter.forEach(qConf => {
+            if (!qConf.constraint) {qConf.constraint = {};}
+            qConf.constraint.actor = constrActor;
+        });
+    });
+};
+
+/* Creates the starting home village for the player. */
+FactoryGame.prototype.createPlayerHome = function(
+    worldConf, player, level, playerX, playerY
+) {
+    let cell = level.getFreeRandCell();
+    while (cell.hasConnection()) {
+        cell = level.getFreeRandCell();
+    }
+
+    const homeConf = {
+        name: 'Home town of ' + player.getName(),
+        x: playerX, y: playerY,
+        levelX: cell.getX(), levelY: cell.getY(),
+        nQuarters: 1,
+        groupType: 'village',
+        friendly: true,
+        constraint: {
+            actor: [
+                {op: 'eq', prop: 'type', value: [player.getType()]},
+                {op: 'neq', prop: 'base', value: ['WinterBeingBase']}
+            ],
+            shop: [
+                {op: '<=', prop: 'value', value: 50}
+            ]
+        },
+        quarter: [{
+            name: 'Square',
+            nLevels: 1,
+            entranceLevel: 0,
+            nShops: 1
+        }]
+    };
+
+    console.log('Hometown located @ ', cell.getX(), cell.getY());
+    worldConf.area[0].city.push(homeConf);
+};
+
+FactoryGame.prototype.createAreaLevelConstraints = function(
+    worldConf, terrMap
+) {
+    const coordMap = new RG.OverWorld.CoordMap();
+    const terrMapXY = terrMap.getMap();
+    coordMap.xMap = 10;
+    coordMap.yMap = 10;
+    const areaConf = worldConf.area[0];
+    const constraints = {};
+    for (let x = 0; x < areaConf.maxX; x++) {
+        for (let y = 0; y < areaConf.maxY; y++) {
+            const bbox = coordMap.getOWTileBboxFromAreaTileXY(x, y);
+            const cells = RG.Geometry.getCellsInBbox(terrMapXY, bbox);
+            const hist = RG.Geometry.histArrayVals(cells);
+            let types = Object.keys(hist);
+            types = types.filter(type => (type !== '#' && type !== '.'));
+            types = types.map(typeChar => terrMap.getName(typeChar));
+            console.log(x, y, 'Actor types are', types);
+            types.push('animal');
+            constraints[x + ',' + y] = {
+                actor: {op: 'eq', prop: 'type', value: types}
+            };
+
+            const index = types.indexOf('winterbeing');
+            if (index >= 0) {
+                constraints[x + ',' + y].actor =
+                    {op: 'eq', prop: 'base', value: 'WinterBeingBase'};
+            }
+            console.log(x, y, 'constraint is', constraints[x + ',' + y]);
+        }
+    }
+    areaConf.constraint = constraints;
+};
+
+FactoryGame.prototype.createWorldWithCreator = function(obj, game, player) {
+    const creator = new Creator();
+
+    const conf = {name: 'World', worldSize: 'Small',
+        areaSize: 'Small'
+    };
+
+    obj.world = creator.createWorldConf(conf);
+    return this.createFullWorld(obj, game, player);
+};
+
+FactoryGame.prototype.createFullWorld = function(obj, game, player) {
+    const worldConf = obj.world;
+    this.processPresetLevels(worldConf);
+    if (!worldConf) {
+        RG.err('Factory', 'createFullWorld',
+            'obj.world must exist!');
+        return null;
+    }
+    worldConf.levelSize = obj.levelSize;
+    const fact = new RG.Factory.World();
+    fact.setGlobalConf(obj);
+    fact.setPresetLevels(this.presetLevels);
+
+    const world = fact.createWorld(worldConf);
+    const levels = world.getLevels();
+
+    let playerStart = {place: worldConf.name, x: 0, y: 0};
+    if (worldConf.playerStart) {
+        playerStart = worldConf.playerStart;
+    }
+
+    if (levels.length > 0) {
+        game.addPlace(world);
+        game.addPlayer(player, playerStart);
+        return game;
+    }
+    else {
+        RG.err('Factory', 'createFullWorld',
+            'There are no levels in the world!');
+        return null;
+    }
+};
+
+/* Creates all preset levels specified in the world configuration. */
+FactoryGame.prototype.processPresetLevels = function(conf) {
+    this.presetLevels = {};
+    if (conf.hasOwnProperty('presetLevels')) {
+        const keys = Object.keys(conf.presetLevels);
+        keys.forEach(name => {
+            this.presetLevels[name] =
+                this.createPresetLevels(conf.presetLevels[name]);
+            // Replace json with Map.Level
+            conf.presetLevels[name] = this.presetLevels[name];
+        });
+    }
+};
+
+FactoryGame.prototype.createPresetLevels = function(arr) {
+    const fromJSON = new RG.Game.FromJSON();
+    return arr.map(item => {
+        // Return the item itself if it's already Map.Level
+        if (typeof item.level.getID === 'function') {
+            return item;
+        }
+
+        const level = fromJSON.restoreLevel(item.level);
+        // Need to reset level + actors IDs for this game
+        if (level.getID() < RG.LEVEL_ID_ADD) {
+            level.setID(RG.Map.Level.createLevelID());
+        }
+        level.getActors().forEach(actor => {
+            if (actor.getID() < RG.ENTITY_ID_ADD) {
+                actor.setID(Entity.createEntityID());
+            }
+        });
+        level.getItems().forEach(item => {
+            if (item.getID() < RG.ENTITY_ID_ADD) {
+                item.setID(Entity.createEntityID());
+            }
+        });
+
+        // Reset cell explored status, because game-editor sets all cells as
+        // explored for viewing purposes
+        RG.setAllExplored(level, false);
+        return {
+            nLevel: item.nLevel,
+            level
+        };
+    });
+};
+
+/* Can be used to create a short debugging game for testing.*/
+FactoryGame.prototype.createArenaDebugGame = function(obj, game, player) {
+    return new DebugGame(this, this._parser).createArena(obj, game, player);
+};
+
+FactoryGame.prototype.createDebugBattle = function(obj, game, player) {
+    const arenaGame = new DebugGame(this, this._parser);
+    return arenaGame.createDebugBattle(obj, game, player);
+};
+
+FactoryGame.prototype.createOneDungeonAndBoss = function(obj, game, player) {
+    const arenaGame = new DebugGame(this, this._parser);
+    return arenaGame.createOneDungeonAndBoss(obj, game, player);
+};
+
+
+FactoryGame.getOwConf = function(mult = 1, obj = {}) {
     const xMult = obj.xMult || 1;
     const yMult = obj.yMult || 1;
     const owConf = {
@@ -795,5 +558,7 @@ RG.Factory.Game.getOwConf = function(mult = 1, obj = {}) {
     return owConf;
 };
 
-module.exports = RG.Factory.Game;
+RG.Factory.Game = FactoryGame;
+
+module.exports = FactoryGame;
 

@@ -6,13 +6,17 @@
 const RG = require('../src/rg');
 RG.Component = require('../src/component');
 const Ability = require('../src/abilities');
+const Texts = require('../data/texts');
+
+const RNG = RG.Random.getRNG();
+const Stairs = RG.Element.Stairs;
 
 const DebugGame = function(fact, parser) {
     this._fact = fact;
     this._parser = parser;
 };
 
-DebugGame.prototype.create = function(obj, game, player) {
+DebugGame.prototype.createArena = function(obj, game, player) {
     const parser = this._parser;
     const sqrPerItem = obj.sqrPerItem;
     obj.cols = 100;
@@ -241,5 +245,243 @@ DebugGame.prototype.addGoblinWithLoot = function(level) {
     */
     level.addActor(goblin, 2, 10);
 };
+
+
+DebugGame.prototype.createDebugBattle = function(obj, game, player) {
+    const battle = new RG.Game.Battle('Battle of ice kingdoms');
+    const army1 = new RG.Game.Army('Blue army');
+    const army2 = new RG.Game.Army('Red army');
+    this.addActorsToArmy(army1, 10, 'warlord');
+    this.addActorsToArmy(army2, 10, 'Winter demon');
+
+    const battleLevel = RG.FACT.createLevel('arena', 60, 30);
+    battle.setLevel(battleLevel);
+    battle.addArmy(army1, 1, 1);
+    battle.addArmy(army2, 1, 2);
+    game.addBattle(battle);
+
+    game.addPlayer(player);
+    return game;
+};
+
+DebugGame.prototype.addActorsToArmy = (army, num, name) => {
+    for (let i = 0; i < num; i++) {
+        const actor = this._parser.createActualObj('actors', name);
+        actor.setFOVRange(10);
+        army.addActor(actor);
+    }
+};
+
+DebugGame.prototype.createOneDungeonAndBoss = function(obj, game, player) {
+    const {cols, rows, nLevels, sqrPerActor, sqrPerItem} = obj;
+    let levelCount = 1;
+    const levels = ['rooms', 'rogue', 'digger'];
+
+    // For storing stairs and levels
+    const allStairsDown = [];
+    const allLevels = [];
+
+    const branch = new RG.World.Branch('StartBranch');
+
+    const itemConstraint = maxValue => item => item.value <= maxValue;
+    // Generate all game levels
+    for (let nl = 0; nl < nLevels; nl++) {
+
+        const nLevelType = RNG.randIndex(levels);
+        let levelType = levels[nLevelType];
+        if (nl === 0) {levelType = 'ruins';}
+        const level = this._fact.createLevel(levelType, cols, rows);
+        branch.addLevel(level);
+
+        const numFree = level.getMap().getFree().length;
+        const actorsPerLevel = Math.round(numFree / sqrPerActor);
+        const itemsPerLevel = Math.round(numFree / sqrPerItem);
+
+        const potion = new RG.Item.Potion('Healing potion');
+        level.addItem(potion);
+        const missile = this._parser.createActualObj('items', 'Shuriken');
+        missile.count = 20;
+        level.addItem(missile);
+
+        const maxValue = 20 * (nl + 1);
+        const itemConf = {
+            itemsPerLevel, func: itemConstraint(maxValue),
+            maxValue,
+            food: () => true
+        };
+        this._fact.addNRandItems(level, this._parser, itemConf);
+
+        const actorConf = {
+            actorsPerLevel,
+            maxDanger: nl + 1
+        };
+        this._fact.addNRandActors(level, this._parser, actorConf);
+
+        allLevels.push(level);
+    }
+
+    // Create the final boss
+    const lastLevel = allLevels.slice(-1)[0];
+    const bossCell = lastLevel.getFreeRandCell();
+    const summoner = this._fact.createActor('Summoner',
+        {hp: 100, att: 10, def: 10});
+    summoner.setType('summoner');
+    summoner.get('Experience').setExpLevel(10);
+    summoner.setBrain(new RG.Brain.Summoner(summoner));
+    lastLevel.addActor(summoner, bossCell.getX(), bossCell.getY());
+
+    const townLevel = this.createLastBattle(game, {cols: 80, rows: 60});
+    townLevel.setLevelNumber(levelCount++);
+
+    branch.connectLevels();
+    game.addPlace(branch);
+
+    const finalStairs = new Stairs(true, allLevels[nLevels - 1], townLevel);
+    const stairsLoot = new RG.Component.Loot(finalStairs);
+    summoner.add('Loot', stairsLoot);
+    allStairsDown.push(finalStairs);
+
+    const lastStairsDown = allStairsDown.slice(-1)[0];
+    const townStairsUp = new Stairs(false, townLevel, lastLevel);
+    const rStairCell = townLevel.getFreeRandCell();
+    townLevel.addStairs(townStairsUp, rStairCell.getX(), rStairCell.getY());
+    townStairsUp.setTargetStairs(lastStairsDown);
+    lastStairsDown.setTargetStairs(townStairsUp);
+
+    // Create townsfolk for the extra level
+    for (let i = 0; i < 10; i++) {
+        const name = 'Townsman';
+        const human = this._fact.createActor(name, {brain: 'Human'});
+        human.setType('human');
+        const cell = townLevel.getFreeRandCell();
+        townLevel.addActor(human, cell.getX(), cell.getY());
+    }
+
+    // Restore player position or start from beginning
+    if (obj.loadedLevel !== null) {
+        const loadLevel = obj.loadedLevel;
+        if (loadLevel <= nLevels) {
+            allLevels[loadLevel - 1].addActorToFreeCell(player);
+        }
+        else {
+            allLevels[0].addActorToFreeCell(player);
+        }
+    }
+    game.addPlayer(player, {place: 'StartBranch'});
+    return game;
+};
+
+
+DebugGame.prototype.createLastBattle = function(game, obj) {
+    const levelConf = RG.Factory.cityConfBase({});
+    levelConf.parser = this._parser;
+    const level = this._fact.createLevel('town', obj.cols, obj.rows, levelConf);
+    this._listener = new ActorKillListener(this, game, level);
+
+    this._fact.createHumanArmy(level, this._parser);
+
+    level.setOnFirstEnter(() => {
+        const demonEvent = new RG.Time.OneShotEvent(
+            this._fact.createDemonArmy.bind(this._fact, level, this._parser),
+            100 * 20,
+            'Demon hordes are unleashed from the unsilent abyss!');
+        game.addEvent(demonEvent);
+    });
+
+    level.setOnEnter( () => {
+        this._savedPlayerFOV = game.getPlayer().getFOVRange();
+        game.getPlayer().setFOVRange(20);
+    });
+    level.setOnExit( () => {
+        game.getPlayer().setFOVRange(this._savedPlayerFOV);
+    });
+
+    game.addLevel(level);
+    return level;
+};
+
+const ActorKillListener = function(parent, game, level) {
+
+    // Needed for adding monsters and events
+    this._game = game;
+    this._level = level;
+
+    this._maxBeasts = 0;
+    this._maxDemons = 0;
+    this._beastsKilled = 0;
+    this._demonsKilled = 0;
+
+    this.hasNotify = true;
+    this.notify = function(evtName, obj) {
+        if (evtName === RG.EVT_ACTOR_CREATED) {
+            if (obj.hasOwnProperty('msg') && obj.msg === 'DemonSpawn') {
+                const actorCreated = obj.actor;
+                if (actorCreated.getName() === 'Winter demon') {
+                    ++this._maxDemons;
+                }
+                if (actorCreated.getName() === 'Blizzard beast') {
+                    ++this._maxBeasts;
+                }
+            }
+        }
+        else if (evtName === RG.EVT_ACTOR_KILLED) {
+            const actor = obj.actor;
+            if (actor.getName() === 'Winter demon') {
+                ++this._demonsKilled;
+                if (this._demonsKilled === this._maxDemons) {
+                    this.allDemonsKilled();
+                }
+                RG.debug(this,
+                    'A winter demon was slain! #' + this._demonsKilled);
+                RG.debug(this, 'Max demons: ' + this._maxDemons);
+            }
+            else if (actor.getName() === 'Blizzard beast') {
+                ++this._beastsKilled;
+                if (this._beastsKilled === this._maxBeasts) {
+                    this.allBeastsKilled();
+                }
+            }
+        }
+    };
+    RG.POOL.listenEvent(RG.EVT_ACTOR_CREATED, this);
+    RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
+
+    this.addSnow = (level, ratio) => {
+        const map = level.getMap();
+        RG.Map.Generator.addRandomSnow(map, ratio);
+    };
+
+    /* Called after all winter demons have been slain.*/
+    this.allDemonsKilled = () => {
+        RG.gameMsg(
+            "Humans have vanquished all demons! But it's not over..");
+        const windsEvent = new RG.Time.OneShotEvent(
+            this.addSnow.bind(this, this._level, 0.2), 20 * 100,
+            "Winds are blowing stronger. You feel it's getting colder"
+        );
+        this._game.addEvent(windsEvent);
+        const stormEvent = new RG.Time.OneShotEvent(
+            () => {}, 35 * 100, Texts.battle.eyeOfStorm);
+        this._game.addEvent(stormEvent);
+        const beastEvent = new RG.Time.OneShotEvent(
+            parent.createBeastArmy.bind(parent, this._level, this._parser),
+            50 * 100,
+            'Winter spread by Blizzard Beasts! Hell seems to freeze.');
+        this._game.addEvent(beastEvent);
+    };
+
+    this.allBeastsKilled = () => {
+        RG.gameMsg(Texts.battle.beastsSlain);
+        // DO a final message of game over
+        // Add random people to celebrate
+        const msgEvent = new RG.Time.OneShotEvent(() => {}, 10 * 100,
+            Texts.battle.enemiesDead);
+        this._game.addEvent(msgEvent);
+        const msgEvent2 = new RG.Time.OneShotEvent(() => {}, 20 * 100,
+            'Battles in the North will continue soon in larger scale...');
+        this._game.addEvent(msgEvent2);
+    };
+}; // const ActorKillListener
+
 
 module.exports = DebugGame;
