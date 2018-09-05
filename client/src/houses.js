@@ -8,6 +8,10 @@ const {Houses5x5} = require('../data/tiles.houses');
 
 const RNG = RG.Random.getRNG();
 
+const WALL = '#';
+const FLOOR = ':';
+const DOOR = '+';
+
 const House = function(map) {
     this.coord = {};
     this.map = RG.copy2D(map);
@@ -18,22 +22,41 @@ const House = function(map) {
     RG.forEach2D(map, (x, y, val) => {
         if (!this.coord[val]) {this.coord[val] = [];}
         this.coord[val].push([x, y]);
-        if (val === ':') {
+        if (val === FLOOR) {
             totalX += x;
             totalY += y;
         }
+        else if (val === DOOR) {
+            this.door = [x, y];
+        }
     });
 
-    const numFloor = Object.values(this.coord['#']).length;
+    this.floor = this.coord[FLOOR];
+    this.walls = this.coord[WALL];
+
+    const numFloor = Object.values(this.coord[WALL]).length;
     this.cX = Math.round(totalX / numFloor);
     this.cY = Math.round(totalY / numFloor);
-
-    console.log('House center is:', this.cX, this.cY);
+    this.numFloor = numFloor;
 };
 
 /* Remove empty rows from the house map. */
 House.prototype.trimEmpty = function() {
 
+};
+
+/* Adjusts the house coordinates. */
+House.prototype.adjustCoord = function(x, y) {
+    Object.keys(this.coord).forEach(key => {
+        const coord = this.coord[key];
+        coord.forEach(xy => {
+            xy[0] += x;
+            xy[1] += y;
+        });
+    });
+    this.cX += x;
+    this.cY += y;
+    this.door = [this.door[0] + x, this.door[1].y];
 };
 
 const HouseGenerator = function() {
@@ -59,8 +82,6 @@ HouseGenerator.prototype.createHouse = function(conf) {
         else {return null;}
     }
 
-    console.log('Got params:', params);
-
     const templ = new TemplateLevel(tilesX, tilesY);
 
 	templ.setFiller(Houses5x5.tiles.filler);
@@ -76,7 +97,7 @@ HouseGenerator.prototype.createHouse = function(conf) {
 	templ.setStartRoomFunc(Houses5x5.startRoomFunc);
 	templ.create();
 
-    RG.printMap(templ.map);
+    // RG.printMap(templ.map);
     return new House(templ.map);
 };
 
