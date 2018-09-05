@@ -23,6 +23,10 @@ const RNG = RG.Random.getRNG();
 class EvaluatorBase {
 
     constructor(actorBias) {
+        if (!Number.isFinite(actorBias)) {
+            RG.err('EvaluatorBase', 'constructor',
+                `bias must number. Got: ${actorBias}`);
+        }
         this.actorBias = actorBias;
         this.type = 'Base';
     }
@@ -407,8 +411,20 @@ class EvaluatorShopkeeper extends EvaluatorBase {
 
     setActorGoal(actor) {
         const topGoal = actor.getBrain().getGoal();
-        const goal = new Goal.Shopkeeper(actor);
+        const goal = new Goal.Shopkeeper(actor, this.x, this.y);
         topGoal.addGoal(goal);
+    }
+
+    setArgs(args) {
+        const {xy} = args;
+        this.x = xy[0];
+        this.y = xy[1];
+    }
+
+    toJSON() {
+        const json = super.toJSON();
+        json.args = {xy: [this.x, this.y]};
+        return json;
     }
 
 }
