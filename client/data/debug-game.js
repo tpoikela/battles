@@ -376,6 +376,12 @@ DebugGame.prototype.createOneDungeonAndBoss = function(obj, game, player) {
 DebugGame.prototype.createLastBattle = function(game, obj) {
     const levelConf = RG.Factory.cityConfBase({});
     levelConf.parser = this._parser;
+
+    levelConf.nShops = 3;
+    const shopFunc = item => item.type === RNG.arrayGetRand(RG.SHOP_TYPES);
+    levelConf.shopFunc.push(shopFunc);
+    levelConf.shopFunc.push(shopFunc);
+
     const level = this._fact.createLevel('town', obj.cols, obj.rows, levelConf);
     this._listener = new ActorKillListener(this, game, level);
 
