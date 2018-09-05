@@ -44,9 +44,9 @@ describe('RG.Factory.Base', () => {
         const townLevel = factory.createLevel('town', 80, 40, conf);
         const actors = townLevel.getActors();
         const keeper = actors[0];
-        expect(keeper.getName()).to.equal('shopkeeper');
+        expect(keeper.getName()).to.match(/shopkeeper/);
 
-        const keepers = actors.filter(a => a.getName() === 'shopkeeper');
+        const keepers = actors.filter(a => (/shopkeeper/).test(a.getName()));
         expect(keepers).to.have.length(2);
         if (actors.length > 2) {
             expect(actors[2].getName()).to.equal('trainer');
