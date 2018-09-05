@@ -41,9 +41,18 @@ System.Communication = function(compTypes) {
         RG.gameInfo(msgObj);
     };
 
+    this.processShout = (ent, msg) => {
+        const shoutMsg = msg.shout;
+        const srcName = msg.src.getName();
+        const msgObj = {cell: msg.src.getCell(),
+            msg: `${srcName} shouts ${shoutMsg}`};
+        RG.gameInfo(msgObj);
+    };
+
     // Dispatch table for different messages
     const _msgFunc = {
-        Enemies: this.processEnemies
+        Enemies: this.processEnemies,
+        Shout: this.processShout
     };
 
 };
