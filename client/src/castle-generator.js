@@ -40,6 +40,8 @@ CastleGenerator.prototype.create = function(cols, rows, conf) {
     const level = this.createLevel(cols, rows, conf);
     conf.preserveMarkers = false;
     this.removeMarkers(level, conf);
+
+    // TODO populate level with actors based on conf
     return level;
 };
 
