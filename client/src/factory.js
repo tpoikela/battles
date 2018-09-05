@@ -602,10 +602,12 @@ RG.Factory.Base = function() {
                     RG.addCellStyle(RG.TYPE_ACTOR, name,
                         'cell-actor-shopkeeper');
                     const randXY = RNG.arrayGetRand(shopCoord);
-                    const evalShop = new Evaluator.Shopkeeper(1.5);
-                    evalShop.setArgs({xy: randXY});
-                    console.log('Shop is located @', randXY);
-                    keeper.getBrain().getGoal().addEvaluator(evalShop);
+                    if (keeper.getBrain().getGoal) {
+                        const evalShop = new Evaluator.Shopkeeper(1.5);
+                        evalShop.setArgs({xy: randXY});
+                        console.log('Shop is located @', randXY);
+                        keeper.getBrain().getGoal().addEvaluator(evalShop);
+                    }
                 }
 
                 shopObj.setShopkeeper(keeper);
