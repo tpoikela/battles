@@ -524,7 +524,7 @@ describe('Data query functions for objects', function() {
             const actor = parser.createRandomActorWeighted(1, maxLimit);
             if (actor !== null) {
                 expect(actor.get('Experience').getDanger())
-                    .to.be.below(maxLimit + 2);
+                    .to.at.most(maxLimit + 2);
             }
         }
     });
