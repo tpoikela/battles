@@ -229,13 +229,11 @@ MapGenerator.prototype.createTownBSP = function(cols, rows, conf) {
     leaves.forEach(leaf => {
         leaf.x += bspX0;
         leaf.y += bspY0;
-        console.log('LEAF: ', leaf);
     });
 
     RNG.shuffle(leaves); // Introduce some randomness
 
     const map = new RG.Map.CellList(cols, rows);
-    let numLeavesDiscarded = 0;
     const freeLeaves = [];
 
     // Now each leaf can be safely used for placing a house in
@@ -287,11 +285,8 @@ MapGenerator.prototype.createTownBSP = function(cols, rows, conf) {
         }
         else {
             freeLeaves.push(leaf);
-            console.log('MapGen leaf discarded', leaf);
-            ++numLeavesDiscarded;
         }
     });
-    console.log('MapGen discarded leaves:', numLeavesDiscarded);
     return {map, houses};
 };
 
