@@ -89,7 +89,6 @@ describe('Territory', () => {
         // console.log(terrMap.mapToString());
     });
 
-
     it('works for large maps as well', () => {
         const rng = new RG.Random();
         rng.setSeed(new Date().getTime());
@@ -149,7 +148,6 @@ describe('Territory', () => {
         const playerY = 7;
 
         const bbox = coordMap.getOWTileBboxFromAreaTileXY(playerX, playerY);
-        console.log('bbox is now', bbox);
 
         const pData = terrMap.getData('human');
         pData.maxNumPos += 1;
