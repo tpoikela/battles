@@ -13,6 +13,8 @@ const EventPool = function() { // {{{2
     // const _poolID = RG.EventPool.id;
     this._listenerID = 0;
 
+    this._lastEmitted = null;
+    this._lastRemoved = null;
 };
 RG.POOL = new EventPool(); // Dangerous, global objects
 
@@ -20,10 +22,18 @@ EventPool.prototype.getNumListeners = function() {
     return this._nListeners;
 };
 
+EventPool.prototype.getNumEventsListened = function() {
+    return Object.keys(this._listeners).length;
+};
+
 /* Emits an event with given name. args must be in object-notation ie.
  * {data: "abcd"} */
 EventPool.prototype.emitEvent = function(evtName, args) {
     if (!RG.isNullOrUndef([evtName])) {
+        if (process.env.NODE_ENV !== 'production') {
+            this._lastEmitted = evtName;
+            this._lastArgs = args;
+        }
         if (this._listeners.hasOwnProperty(evtName)) {
             const called = this._listeners[evtName];
             for (let i = 0, len = called.length; i < len; i++) {
@@ -73,13 +83,21 @@ EventPool.prototype.removeListener = function(obj) {
     if (obj.hasOwnProperty('listenerID')) {
         let nRemoved = 0;
         const id = obj.listenerID;
-        Reflect.ownKeys(this._listeners).forEach(evt => {
+
+        const evtKeys = Reflect.ownKeys(this._listeners);
+        evtKeys.forEach(evt => {
             const index = this._listeners[evt].findIndex(obj =>
                 obj.listenerID === id);
             if (index >= 0) {
+                if (process.env.NODE_ENV !== 'production') {
+                    this._lastRemoved = this._listeners[evt][index];
+                }
                 this._listeners[evt].splice(index, 1);
                 ++nRemoved;
                 --this._nListeners;
+                if (this._listeners[evt].length === 0) {
+                    delete this._listeners[evt];
+                }
             }
         });
         if (nRemoved === 0) {
