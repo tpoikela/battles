@@ -169,6 +169,55 @@ const Items = [
         weight: 4.5, value: value(130)
     },
 
+    // MITHRIL WEAPONS
+    {
+        name: 'MithrilWeaponBase', base: 'MeleeWeaponBase',
+        className: 'cell-item-mithril',
+        material: 'mithril', dontCreate: true,
+        attack: 1
+    },
+    {
+        name: 'Mithril dagger', base: 'MithrilWeaponBase',
+        attack: 2,
+        damage: '1d7 + 3', weaponType: 'dagger',
+        weight: 0.15, value: value(50)
+    },
+    {
+        name: 'Mithril short sword', base: 'MithrilWeaponBase',
+        attack: 3,
+        damage: '1d9 + 4', defense: 2, weight: 0.35, value: value(100),
+        weaponType: 'sword'
+    },
+    {
+        name: 'Mithril mace', base: 'MithrilWeaponBase',
+        damage: '1d11 + 5', weaponType: 'mace',
+        attack: 3,
+        defense: 2, weight: 2.5, value: value(150)
+    },
+    {
+        name: 'Mithril staff', base: 'MithrilWeaponBase',
+        damage: '1d12 + 2', weaponType: 'staff',
+        defense: 6, weight: 1.5, value: value(170)
+    },
+    {
+        name: 'Mithril axe', base: 'MithrilWeaponBase',
+        attack: 4,
+        damage: '1d15 + 2', defense: 3,
+        weaponType: 'axe', weight: 1.2, value: value(200)
+    },
+    {
+        name: 'Mithril long sword', base: 'MithrilWeaponBase',
+        attack: 5,
+        damage: '1d15 + 4', defense: 4, weight: 0.6, value: value(300),
+        weaponType: 'sword'
+    },
+    {
+        name: 'Mithril spear', base: 'MithrilWeaponBase',
+        attack: 5,
+        damage: '1d12 + 4', defense: 8, weight: 0.9, value: value(350),
+        weaponType: 'spear'
+    },
+
     // ICE WEAPONS (not easy to hit with, do lots of damage)
     {
         name: 'IceWeaponBase', base: 'MeleeWeaponBase',
@@ -268,60 +317,60 @@ const Items = [
 
     // MAGIC WEAPONS
     {
-        name: 'MagicWeaponBase', base: 'MeleeWeaponBase',
+        name: 'RunedWeaponBase', base: 'MeleeWeaponBase',
         className: 'cell-item-magic',
         material: 'forium', dontCreate: true
     },
     {
-        name: 'Magic dagger', base: 'MagicWeaponBase',
+        name: 'Runed dagger', base: 'RunedWeaponBase',
         damage: '2d5 + 2',
         attack: 2, defense: 1, weight: 0.2, value: value(100),
         weaponType: 'dagger'
     },
     {
-        name: 'Magic short sword', base: 'MagicWeaponBase',
+        name: 'Runed short sword', base: 'RunedWeaponBase',
         damage: '3d5 + 2',
         attack: 3, defense: 2, weight: 0.5, value: value(300),
         weaponType: 'sword'
     },
     {
-        name: 'Magic mace', base: 'MagicWeaponBase',
+        name: 'Runed mace', base: 'RunedWeaponBase',
         damage: '3d6 + 2',
         attack: 3, defense: 2, weight: 1.0, value: value(340),
         weaponType: 'mace'
     },
     {
-        name: 'Magic axe', base: 'MagicWeaponBase',
+        name: 'Runed axe', base: 'RunedWeaponBase',
         damage: '4d5 + 2',
         attack: 4, defense: 2, weight: 1.5, value: value(400),
         weaponType: 'axe'
     },
     {
-        name: 'Magic staff', base: 'MagicWeaponBase',
+        name: 'Runed staff', base: 'RunedWeaponBase',
         damage: '4d5', weaponType: 'staff',
         attack: 2, defense: 9,
         weight: 2.0, value: value(400)
     },
     {
-        name: 'Magic sword', base: 'MagicWeaponBase',
+        name: 'Runed sword', base: 'RunedWeaponBase',
         damage: '5d5 + 2',
         attack: 5, defense: 2, weight: 1.0, value: value(500),
         weaponType: 'sword'
     },
     {
-        name: 'Magic spear', base: 'MagicWeaponBase',
+        name: 'Runed spear', base: 'RunedWeaponBase',
         damage: '4d5 + 4',
         attack: 4, defense: 8, weight: 1.4, value: value(600),
         weaponType: 'spear'
     },
     {
-        name: 'Magic runesword', base: 'MagicWeaponBase',
+        name: 'Runed runesword', base: 'RunedWeaponBase',
         damage: '3d10 + 2',
         attack: 5, defense: 5, weight: 0.8, value: value(750),
         weaponType: 'sword'
     },
     {
-        name: 'Wintersbane', base: 'MagicWeaponBase',
+        name: 'Wintersbane', base: 'RunedWeaponBase',
         damage: '3d8 + 4',
         attack: 6, defense: 3, weight: 1.0, value: value(1000),
         weaponType: 'sword'
@@ -507,13 +556,44 @@ const Items = [
     },
     {
         name: 'Steel armour', base: 'SteelArmourBase',
-        weight: 8.0, defense: 1, protection: 5,
+        weight: 8.0, defense: 0, protection: 5,
         armourType: 'chest', value: value(150)
     },
     {
         name: 'Steel shield', base: 'SteelArmourBase',
         weight: 3.0, defense: 4, attack: -2,
         armourType: 'shield', value: value(80)
+    },
+
+    // ARMOUR MITHRIL
+    {
+        name: 'MithrilArmourBase', base: 'ArmourBase', dontCreate: true,
+        material: 'mithril', className: 'cell-item-mithril'
+    },
+    {
+        name: 'Mithril helmet', base: 'MithrilArmourBase',
+        weight: 0.8, defense: 1, protection: 2,
+        armourType: 'head', value: value(120)
+    },
+    {
+        name: 'Mithril collar', base: 'MithrilArmourBase',
+        weight: 0.6, protection: 3,
+        armourType: 'neck', value: value(110)
+    },
+    {
+        name: 'Mithril boots', base: 'MithrilArmourBase',
+        weight: 1.6, defense: 1, protection: 2,
+        armourType: 'feet', value: value(120)
+    },
+    {
+        name: 'Mithril armour', base: 'MithrilArmourBase',
+        weight: 6.0, defense: 0, protection: 7,
+        armourType: 'chest', value: value(200)
+    },
+    {
+        name: 'Mithril shield', base: 'MithrilArmourBase',
+        weight: 2.2, defense: 5, attack: -1,
+        armourType: 'shield', value: value(120)
     },
 
     // ARMOUR ICE (protective but heavy)
@@ -538,7 +618,7 @@ const Items = [
     },
     {
         name: 'Permaice armour', base: 'IceArmourBase',
-        weight: 12.0, defense: 0, protection: 8,
+        weight: 12.0, defense: 0, protection: 12,
         armourType: 'chest', value: value(400)
     },
     {
@@ -580,31 +660,31 @@ const Items = [
 
     // ARMOUR MAGIC (excellent D/P, very well rounded)
     {
-        name: 'MagicArmourBase', base: 'ArmourBase', dontCreate: true,
+        name: 'RunedArmourBase', base: 'ArmourBase', dontCreate: true,
         material: 'forium', className: 'cell-item-magic'
     },
     {
-        name: 'Magic helmet', base: 'MagicArmourBase',
+        name: 'Runed helmet', base: 'RunedArmourBase',
         weight: 0.6, defense: 3, protection: 4,
         armourType: 'head', value: value('magic', 200)
     },
     {
-        name: 'Magic collar', base: 'MagicArmourBase',
+        name: 'Runed collar', base: 'RunedArmourBase',
         weight: 0.4, defense: 3, protection: 2,
         armourType: 'neck', value: value('magic', 200)
     },
     {
-        name: 'Magic boots', base: 'MagicArmourBase',
+        name: 'Runed boots', base: 'RunedArmourBase',
         weight: 1.2, defense: 3, protection: 2,
         armourType: 'feet', value: value('magic', 200)
     },
     {
-        name: 'Magic armour', base: 'MagicArmourBase',
-        weight: 4.0, defense: 10, protection: 10,
+        name: 'Runed armour', base: 'RunedArmourBase',
+        weight: 4.0, defense: 10, protection: 7,
         armourType: 'chest', value: value('magic', 500)
     },
     {
-        name: 'Magic shield', base: 'MagicArmourBase',
+        name: 'Runed shield', base: 'RunedArmourBase',
         weight: 2.0, defense: 5, attack: -2,
         armourType: 'shield', value: value('magic', 200)
     },
@@ -658,7 +738,7 @@ const Items = [
         weaponType: 'dagger', material: 'ruby glass'
     },
     {
-        name: 'Magic Shuriken', base: 'MissileBase',
+        name: 'Runed Shuriken', base: 'MissileBase',
         attack: 3, className: 'cell-item-magic', char: '*', material: 'forium',
         damage: '3d4 + 2', range: 5, value: value(100), weight: 0.1,
         weaponType: 'shuriken'
@@ -1061,15 +1141,36 @@ const Items = [
         className: 'cell-item-ruby-glass'
     },
     {
+        name: 'emerald', base: 'MineralBase',
+        weight: 0.15, value: value('mineral', 150),
+        char: '*', color: {fg: 'Green', bg: 'Black'}
+    },
+    {
         name: 'permaice ore', base: 'MineralBase',
         weight: 0.4, value: value('mineral', 150),
         className: 'cell-item-ice'
+    },
+    {
+        name: 'sapphire', base: 'MineralBase',
+        weight: 0.15, value: value('mineral', 150),
+        char: '*', color: {fg: 'Blue', bg: 'White'}
     },
     {
         name: 'forium ore', base: 'MineralBase',
         weight: 0.2, value: value('mineral', 200),
         className: 'cell-item-magic'
     },
+    {
+        name: 'ruby', base: 'MineralBase',
+        weight: 0.2, value: value('mineral', 250),
+        char: '*', className: 'cell-item-ruby-glass'
+    },
+    {
+        name: 'ice diamond', base: 'MineralBase',
+        weight: 0.3, value: value('mineral', 400),
+        char: '*', className: 'cell-item-ice'
+    },
+
 
     // SPECIAL ITEMS (not generated procedurally)
     {
