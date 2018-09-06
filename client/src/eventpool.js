@@ -15,6 +15,8 @@ const EventPool = function() { // {{{2
 
     this._lastEmitted = null;
     this._lastRemoved = null;
+
+    this.pendingRemoves = [];
 };
 RG.POOL = new EventPool(); // Dangerous, global objects
 
@@ -30,11 +32,14 @@ EventPool.prototype.getNumEventsListened = function() {
  * {data: "abcd"} */
 EventPool.prototype.emitEvent = function(evtName, args) {
     if (!RG.isNullOrUndef([evtName])) {
+
         if (process.env.NODE_ENV !== 'production') {
             this._lastEmitted = evtName;
             this._lastArgs = args;
         }
+
         if (this._listeners.hasOwnProperty(evtName)) {
+            this.cannotRemove = true; // Lock removals
             const called = this._listeners[evtName];
             for (let i = 0, len = called.length; i < len; i++) {
                 called[i].notify(evtName, args);
@@ -44,6 +49,14 @@ EventPool.prototype.emitEvent = function(evtName, args) {
     else {
         RG.nullOrUndefError('EventPool: emitEvent',
             'Event name must be given.', evtName);
+    }
+    this.cannotRemove = false; // Unlock removals
+    // And process pending removals
+    if (this.pendingRemoves.length > 0) {
+        this.pendingRemoves.forEach(obj => {
+            this.removeListener(obj);
+        });
+        this.pendingRemoves = [];
     }
 };
 
@@ -78,9 +91,15 @@ EventPool.prototype.listenEvent = function(evtName, obj) {
     }
 };
 
-/* Removes the object from a list of event listeners. */
+/* Removes the object from a list of event listeners. Note that if remove is
+ * is triggered within notify() function of an object, the removal is made
+ * pending and processed once notify() finishes (see this.dontRemove). */
 EventPool.prototype.removeListener = function(obj) {
     if (obj.hasOwnProperty('listenerID')) {
+        if (this.cannotRemove) {
+            this.pendingRemoves.push(obj);
+            return;
+        }
         let nRemoved = 0;
         const id = obj.listenerID;
 
