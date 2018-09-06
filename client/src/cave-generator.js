@@ -115,6 +115,8 @@ CaveGenerator.prototype.addStairsLocations = function(level) {
     }
     else {
         startPoint = startPoints[0];
+        // End point must be determined from the map itself
+        endPoint = this.getEndPointFromMap(level, startPoint);
     }
 
     this.addStartAndEndPoint(level, startPoint, endPoint);
@@ -143,12 +145,14 @@ CaveGenerator.prototype._addSpecialFeatures = function(level) {
     }
 };
 
-CaveGenerator.prototype._createCollapsedLevel = function(level) {
-    const extras = level.getExtras();
+CaveGenerator.prototype.getEndPointFromMap = function(level, startPoint) {
     const map = level.getMap();
-    let {endPoint} = extras;
-    const {startPoint} = extras;
+    const freeCellMap = this.getMapOfFreeCells(level);
+    return this.getRandomEndPoint(map, startPoint, freeCellMap);
+};
 
+CaveGenerator.prototype.getMapOfFreeCells = function(level) {
+    const map = level.getMap();
     const nonWallCells = map.getCells(c => (
         !c.getBaseElem().isWall()
     ));
@@ -156,6 +160,16 @@ CaveGenerator.prototype._createCollapsedLevel = function(level) {
     nonWallCells.forEach(cell => {
         freeCellMap[cell.getKeyXY()] = cell;
     });
+    return freeCellMap;
+};
+
+CaveGenerator.prototype._createCollapsedLevel = function(level) {
+    const extras = level.getExtras();
+    const map = level.getMap();
+    let {endPoint} = extras;
+    const {startPoint} = extras;
+
+    const freeCellMap = this.getMapOfFreeCells(level);
 
     if (!endPoint) { // Define random endpoint
         endPoint = this.getRandomEndPoint(map, startPoint, freeCellMap);
