@@ -343,24 +343,56 @@ FactoryGame.prototype.mapZonesToTerritoryMap = function(terrMap, worldConf) {
         const {owX, owY} = cityConf;
         const char = terrMapXY[owX][owY];
         const name = terrMap.getName(char);
-        let constrActor = [
-            {op: 'eq', prop: 'type', value: [name]},
-            {op: 'neq', prop: 'base', value: ['WinterBeingBase']}
-        ];
-        if (name === 'winterbeing') {
-            constrActor = {
-                op: 'eq', prop: 'base', value: ['WinterBeingBase']
-            };
-        }
+        let constrActor = null;
         if (name) {
-            if (!cityConf.constraint) {cityConf.constraint = {};}
-            cityConf.constraint.actor = constrActor;
+            constrActor = [
+                {op: 'eq', prop: 'type', value: [name]},
+                {op: 'neq', prop: 'base', value: ['WinterBeingBase']}
+            ];
+            if (name === 'winterbeing') {
+                constrActor = {
+                    op: 'eq', prop: 'base', value: ['WinterBeingBase']
+                };
+            }
+
         }
+        else {
+            // Mixed city, obtain values from area tile influence
+            const [aX, aY] = this.getAreaXYFromOWTileXY(owX, owY);
+            const values = this.getConstrValuesForAreaXY(aX, aY, terrMap);
+            const hasWinterBeings = values.indexOf('winterbeing') >= 0;
+            if (hasWinterBeings) {
+                constrActor = {
+                    op: 'eq', prop: 'base', value: ['WinterBeingBase']
+                };
+            }
+            else if (values.length > 0) {
+                constrActor = [
+                    {op: 'eq', prop: 'type', value: [name]},
+                    {op: 'neq', prop: 'base', value: ['WinterBeingBase']}
+                ];
+            }
+            else if (values.length === 0) {
+                RG.log('factory.game.js', terrMap.mapToString());
+                const owStr = `owX: ${owX}, owY: ${owY}`;
+                RG.err('FactoryGame', 'mapZonesToTerritoryMap',
+                    `No values for AreaTile ${aX},${aY}, ${owStr} found`);
+            }
+        }
+
+        if (!cityConf.constraint) {cityConf.constraint = {};}
+        cityConf.constraint.actor = constrActor;
+
         cityConf.quarter.forEach(qConf => {
             if (!qConf.constraint) {qConf.constraint = {};}
             qConf.constraint.actor = constrActor;
         });
     });
+};
+
+FactoryGame.prototype.getAreaXYFromOWTileXY = function(owX, owY) {
+    const coordMap = new RG.OverWorld.CoordMap({xMap: 10, yMap: 10});
+    return coordMap.getAreaXYFromOWTileXY(owX, owY);
 };
 
 /* Creates the starting home village for the player. */
@@ -403,21 +435,19 @@ FactoryGame.prototype.createPlayerHome = function(
 FactoryGame.prototype.createAreaLevelConstraints = function(
     worldConf, terrMap
 ) {
-    const coordMap = new RG.OverWorld.CoordMap();
-    const terrMapXY = terrMap.getMap();
-    coordMap.xMap = 10;
-    coordMap.yMap = 10;
     const areaConf = worldConf.area[0];
     const constraints = {};
     for (let x = 0; x < areaConf.maxX; x++) {
         for (let y = 0; y < areaConf.maxY; y++) {
+            /*
             const bbox = coordMap.getOWTileBboxFromAreaTileXY(x, y);
             const cells = RG.Geometry.getCellsInBbox(terrMapXY, bbox);
             const hist = RG.Geometry.histArrayVals(cells);
             let types = Object.keys(hist);
             types = types.filter(type => (type !== '#' && type !== '.'));
             types = types.map(typeChar => terrMap.getName(typeChar));
-            console.log(x, y, 'Actor types are', types);
+            */
+            const types = this.getConstrValuesForAreaXY(x, y, terrMap);
             types.push('animal');
             constraints[x + ',' + y] = {
                 actor: {op: 'eq', prop: 'type', value: types}
@@ -428,10 +458,24 @@ FactoryGame.prototype.createAreaLevelConstraints = function(
                 constraints[x + ',' + y].actor =
                     {op: 'eq', prop: 'base', value: 'WinterBeingBase'};
             }
-            console.log(x, y, 'constraint is', constraints[x + ',' + y]);
         }
     }
     areaConf.constraint = constraints;
+};
+
+/* Given x,y for AreaTile, finds all rivals occupying at least one ow tile
+ * tile that AreaTile, and returns them as array. */
+FactoryGame.prototype.getConstrValuesForAreaXY = function(aX, aY, terrMap) {
+    const terrMapXY = terrMap.getMap();
+    const coordMap = new RG.OverWorld.CoordMap({xMap: 10, yMap: 10});
+
+    const bbox = coordMap.getOWTileBboxFromAreaTileXY(aX, aY);
+    const cells = RG.Geometry.getCellsInBbox(terrMapXY, bbox);
+    const hist = RG.Geometry.histArrayVals(cells);
+    let types = Object.keys(hist);
+    types = types.filter(type => (type !== '#' && type !== '.'));
+    types = types.map(typeChar => terrMap.getName(typeChar));
+    return types;
 };
 
 FactoryGame.prototype.createWorldWithCreator = function(obj, game, player) {
