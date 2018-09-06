@@ -63,7 +63,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
 
             fovrange: {comp: 'Perception', func: 'setFOVRange'},
 
-            pp: {comp: 'SpellPower', func: 'setPP'},
+            pp: {comp: 'SpellPower', func: ['setPP', 'setMaxPP']},
             maxPP: {comp: 'SpellPower', func: 'setMaxPP'},
             hp: {comp: 'Health', func: ['setHP', 'setMaxHP']},
             danger: {comp: 'Experience', func: 'setDanger'},
