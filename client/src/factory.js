@@ -629,6 +629,16 @@ RG.Factory.Base = function() {
             if (conf.actor) {
                 keeper = conf.parser.createRandomActor({
                     func: conf.actor});
+                if (!keeper) {
+                    let msg = 'conf.actor given but no actor found';
+                    if (typeof conf.actor === 'function') {
+                        msg += ' conf.actor' + conf.actor.toString();
+                    }
+                    else {
+                        msg += ' conf.actor must be function';
+                    }
+                    RG.err('Factory', 'createShopkeeper', msg);
+                }
             }
             else {
                 keeper = conf.parser.createActor('shopkeeper');
