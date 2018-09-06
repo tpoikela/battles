@@ -2,6 +2,9 @@
 /* eslint comma-dangle: 0 */
 const RG = require('../src/rg');
 const Colors = require('./colors');
+const ShellUtils = require('./shell-utils');
+
+const {meleeHitDamage} = ShellUtils;
 
 const scaleAll = 1.0;
 
@@ -1223,15 +1226,5 @@ Items.forEach(item => {
     }
 });
 
-function meleeHitDamage(dmg, dur, dmgType) {
-    return {
-        addComp: 'DirectDamage', func: [
-            {setter: 'setDamage', value: dmg},
-            {setter: 'setDamageType', value: RG.DMG[dmgType]},
-            {setter: 'setDamageCateg', value: RG.DMG.MELEE}
-        ],
-        duration: dur
-    };
-}
 
 module.exports = Items;
