@@ -141,6 +141,10 @@ DungeonPopulate.prototype.setActorFunc = function(func) {
 
 DungeonPopulate.prototype.addPointGuardian = function(level, point, maxDanger) {
     const eXY = point;
+    if (RG.isNullOrUndef([maxDanger]) || maxDanger < 1) {
+        RG.err('DungeonPopulate', 'addPointGuardian',
+            `maxDanger must be > 0. Got: |${maxDanger}|`);
+    }
 
     const guardian = this.getEndPointGuardian(maxDanger);
     if (guardian) {
@@ -223,14 +227,14 @@ DungeonPopulate.prototype.populatePoint = function(level, point, conf) {
 /* Adds an element into the given point. */
 DungeonPopulate.prototype.addElementToPoint = function(level, point, conf) {
     if (conf.true) {
-        console.log('DungeonPopulate', level, conf, point); // TODO
+        // console.log('DungeonPopulate', level, conf, point); // TODO
     }
 };
 
 /* Creates a corpse to the given point, and adds some related loot there. */
 DungeonPopulate.prototype.addCorpseToPoint = function(level, point, conf) {
     if (conf.true) {
-        console.log('DungeonPopulate', level, conf, point); // TODO
+        // console.log('DungeonPopulate', level, conf, point); // TODO
     }
 };
 
@@ -264,7 +268,9 @@ DungeonPopulate.prototype.addGoldToPoint = function(level, point) {
 /* Adds a tip/hint to the given point. These hints can reveal information
  * about world map etc. */
 DungeonPopulate.prototype.addTipToPoint = function(level, point, conf) {
-    console.log('DungeonPopulate', level, conf, point); // TODO
+    if (conf.true) {
+        // console.log('DungeonPopulate', level, conf, point); // TODO
+    }
 };
 
 module.exports = DungeonPopulate;
