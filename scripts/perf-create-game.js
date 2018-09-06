@@ -31,11 +31,11 @@ const game = factory.createNewGame(gameConf);
 const endTime = new Date();
 
 const durationMs = endTime.getTime() - startTime.getTime();
-console.log('Creation took ' + durationMs + ' ms');
+log('Creation took ' + durationMs + ' ms');
 
 const levels = game.getLevels();
 const nLevels = levels.length;
-console.log('The game has ' + nLevels + ' distinct levels');
+log('The game has ' + nLevels + ' distinct levels');
 
 let nItems = 0;
 let nActors = 0;
@@ -45,20 +45,23 @@ levels.forEach(level => {
     nActors += level.getActors().length;
 });
 
-console.log('The game has ' + nActors + ' actors.');
-console.log('The game has ' + nItems + ' items.');
-console.log('Elements created: ' + RG.elementsCreated);
+log('The game has ' + nActors + ' actors.');
+log('The game has ' + nItems + ' items.');
+log('Elements created: ' + RG.elementsCreated);
 
 const area = game.getArea(0);
 const cities = area.getZones('City');
 
-console.log('There are', cities.length, 'cities in the world');
+log('There are', cities.length, 'cities created in the world');
+
+const areaConf = area.getConf();
+log('In total, found ' + areaConf.nCities + ' cities');
 
 const overworld = game.getOverWorld();
 const terrMap = overworld.terrMap;
 
-console.log(overworld.mapToString());
-console.log(terrMap.mapToString());
+RG.log('Map printed from perf-create-game.js:\n', overworld.mapToString());
+RG.log('perf-create-game.js:\n', terrMap.mapToString());
 
 if (jsonTest) {
     const json = game.toJSON();
@@ -74,3 +77,6 @@ if (jsonTest) {
     fs.writeFileSync('results/perf-create-game.json', newJSONStr);
 }
 
+function log(...args) {
+    console.log('[perf-create-game.js]', ...args);
+}
