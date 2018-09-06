@@ -1528,6 +1528,10 @@ RG.getCardinalDirection = (level, cell) => {
     return 'somewhere';
 };
 
+//-------------------------------------------------------------
+// RG ARRAY METHODS
+//-------------------------------------------------------------
+
 /* Debugging function for printing 2D map row-by-row. */
 RG.printMap = map => {
     let rowByRow = null;
@@ -1545,6 +1549,7 @@ RG.printMap = map => {
     }
 
 };
+
 
 /* Iterates through 2D-array and calls the callback with (i, j, [i][j]) .*/
 RG.forEach2D = (arr, func) => {
@@ -1612,6 +1617,23 @@ RG.flattenTo2D = arr => {
 	}
 	return res;
 };
+
+/* Removes all x,y duplicates from the given array. */
+RG.uniquifyCoord = arr => {
+    const seen = {};
+    const res = [];
+    for (let i = 0; i < arr.length; i++) {
+        const [x, y] = arr[i];
+        const key = x + ',' + y;
+        if (!seen[key]) {
+            seen[key] = true;
+            res.push(arr[i]);
+        }
+    }
+    return res;
+};
+
+// ARRAY Funcs end
 
 RG.setAllExplored = (level, isExplored) => {
     const map = level.getMap();
