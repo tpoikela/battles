@@ -34,10 +34,11 @@ RG.Random.prototype.arrayGetRand = function(arr) {
     return arr[randIndex];
 };
 
-/* Returns N unique items randomly from the array. */
+/* Returns N unique items randomly from the array. This assumes that
+ * all items are already unique in the array. */
 RG.Random.prototype.getUniqueItems = function(arr, n = 2) {
-    if (arr.length < n) {
-        return arr;
+    if (arr.length <= n) {
+        return arr.slice(); // Just return a copy
     }
     const seen = {};
     const items = [];
