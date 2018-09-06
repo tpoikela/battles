@@ -73,6 +73,18 @@ Territory.prototype._markEmpty = function(x, y) {
     ++this.numEmpty;
 };
 
+Territory.prototype.hasRival = function(xy) {
+    return !this.isEmpty(xy) &&
+        !this.isFull(xy);
+};
+
+/* Gets the rival name of x,y cell. */
+Territory.prototype.getRival = function(xy) {
+    const [x, y] = xy;
+    const char = this.map[x][y];
+    return this.getName(char);
+};
+
 /* Given a 2d map, and cell info such as {'.': true, '#': false},
  * marks all cells in this.map as empty which have '.' in map,
  * and all cells full, which have '#' in given map.
@@ -221,6 +233,11 @@ Territory.prototype.getRandEmptyXY = function() {
     return this.rng.arrayGetRand(Object.values(this.empty));
 };
 
+Territory.prototype.isFull = function(xy) {
+    const [x, y] = xy;
+    return this.map[x][y] === FULL;
+};
+
 Territory.prototype.isEmpty = function(xy) {
     const key = _key(xy);
     return this.empty.hasOwnProperty(key);
@@ -230,7 +247,6 @@ Territory.prototype.getRandOpenXY = function(name) {
     const {open} = this.terrData[name];
     return this.rng.arrayGetRand(Object.values(open));
 };
-
 
 Territory.prototype.getEmptyAdjacentXY = function(xy) {
     const dirs = this.dirs.slice();
