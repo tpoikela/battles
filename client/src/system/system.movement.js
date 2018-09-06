@@ -13,47 +13,6 @@ System.Movement = function(compTypes) {
 
     this.climbRe = /highrock/;
 
-    this.updateEntity = function(ent) {
-        const movComp = ent.get('Movement');
-        const [x, y] = movComp.getXY();
-
-        const map = movComp.getLevel().getMap();
-        const cell = map.getCell(x, y);
-        const prevCell = ent.getCell();
-        let canMoveThere = cell.isFree(ent.has('Flying'));
-        if (!canMoveThere) {
-            canMoveThere = this._checkSpecialMovement(ent, cell);
-        }
-
-        if (canMoveThere) {
-            const xyOld = ent.getXY();
-            RG.debug(this, `Trying to move ent from ${xyOld}`);
-
-            const propType = ent.getPropType();
-            if (map.moveProp(xyOld, [x, y], propType, ent)) {
-                ent.setXY(x, y);
-
-                this.checkForStatsMods(ent, prevCell, cell);
-                if (ent.isPlayer && ent.isPlayer()) {
-                    if (cell.hasPropType('exploration')) {
-                        this._processExploreElem(ent, cell);
-                    }
-                    this.checkMessageEmits(prevCell, cell);
-                }
-
-                ent.remove(movComp);
-                return true;
-            }
-            else {
-                this._moveError(ent);
-            }
-        }
-        else {
-            RG.debug(this, "Cell wasn't free at " + x + ', ' + y);
-        }
-        ent.remove(movComp);
-        return false;
-    };
 
     /* Checks movements like climbing. */
     this._checkSpecialMovement = function(ent, cell) {
@@ -97,66 +56,6 @@ System.Movement = function(compTypes) {
             }
             RG.gameInfo({cell, msg});
             if (ent.isPlayer()) {ent.getBrain().addMark();}
-        }
-    };
-
-
-    /* Checks if cell type has changed, and if some penalties/bonuses must be
-     * applied to the moved entity. */
-    this.checkForStatsMods = (ent, prevCell, newCell) => {
-        const [prevType, newType] = [prevCell.getBaseElem().getType(),
-            newCell.getBaseElem().getType()
-        ];
-        if (prevType === newType) {return;}
-        // Add bonus/penalty upon entering a new cell type
-        if (this._bonuses.hasOwnProperty(newType)) {
-            const bonuses = this._bonuses[newType];
-
-            // Check here if we can ignore the bonus/penalty for this entity
-            let applyBonus = true;
-            if (bonuses.dontApplyTo) {
-                bonuses.dontApplyTo.forEach(dontApplyComp => {
-                    if (ent.has(dontApplyComp)) {
-                        applyBonus = false;
-                    }
-                });
-            }
-
-            if (applyBonus) {
-                bonuses.mods.forEach(mod => {
-                    if (Number.isInteger(mod.value)) {
-                        const targetComp = RG.Component.create(mod.targetComp);
-                        targetComp[mod.targetFunc](mod.value);
-                        targetComp.setTag(newType);
-                        ent.add(targetComp);
-                    }
-                    else {
-                        let bonus = ent.get(mod.srcComp)[mod.srcFunc]();
-                        bonus = Math.round(mod.value * bonus);
-                        const targetComp = RG.Component.create(mod.targetComp);
-                        targetComp[mod.targetFunc](bonus);
-                        targetComp.setTag(newType);
-                        ent.add(targetComp);
-                    }
-
-                });
-            }
-        }
-        // Remove the bonus/penalty here because cell type was left
-        if (this._bonuses.hasOwnProperty(prevType)) {
-            const statsList = ent.getList('StatsMods');
-            const combatList = ent.getList('CombatMods');
-            // TODO add a list of comps to check to this._bonuses
-            statsList.forEach(mod => {
-                if (mod.getTag() === prevType) {
-                    ent.remove(mod);
-                }
-            });
-            combatList.forEach(mod => {
-                if (mod.getTag() === prevType) {
-                    ent.remove(mod);
-                }
-            });
         }
     };
 
@@ -357,5 +256,118 @@ System.Movement = function(compTypes) {
 
 };
 RG.extend2(System.Movement, System.Base);
+
+System.Movement.prototype.updateEntity = function(ent) {
+    const movComp = ent.get('Movement');
+    const [x, y] = movComp.getXY();
+
+    const map = movComp.getLevel().getMap();
+
+    if (!map.hasXY(x, y)) {
+        let msg = `Tried to move to ${x},${y}.`;
+        msg += ' Entity: ' + ent.getName();
+        RG.warn('System.Movement', 'updateEntity', msg);
+    }
+
+    const cell = map.getCell(x, y);
+    const prevCell = ent.getCell();
+    let canMoveThere = cell.isFree(ent.has('Flying'));
+    if (!canMoveThere) {
+        canMoveThere = this._checkSpecialMovement(ent, cell);
+    }
+
+    if (canMoveThere) {
+        const xyOld = ent.getXY();
+        RG.debug(this, `Trying to move ent from ${xyOld}`);
+
+        const propType = ent.getPropType();
+        if (map.moveProp(xyOld, [x, y], propType, ent)) {
+            ent.setXY(x, y);
+
+            this.checkForStatsMods(ent, prevCell, cell);
+            if (ent.isPlayer && ent.isPlayer()) {
+                if (cell.hasPropType('exploration')) {
+                    this._processExploreElem(ent, cell);
+                }
+                this.checkMessageEmits(prevCell, cell);
+            }
+        }
+        else {
+            this._moveError(ent);
+        }
+    }
+    else {
+        RG.debug(this, "Cell wasn't free at " + x + ', ' + y);
+    }
+    ent.remove(movComp);
+};
+
+/* Checks if cell type has changed, and if some penalties/bonuses must be
+ * applied to the moved entity. */
+System.Movement.prototype.checkForStatsMods = function(
+    ent, prevCell, newCell
+) {
+    const [prevType, newType] = [prevCell.getBaseElem().getType(),
+        newCell.getBaseElem().getType()
+    ];
+
+    // No cell type change, no need to check the modifiers
+    if (prevType === newType) {return;}
+
+    // Add bonus/penalty upon entering a new cell type
+    if (this._bonuses.hasOwnProperty(newType)) {
+        const bonuses = this._bonuses[newType];
+
+        // Check here if we can ignore the bonus/penalty for this entity
+        let applyBonus = true;
+        if (bonuses.dontApplyTo) {
+            bonuses.dontApplyTo.forEach(dontApplyComp => {
+                if (ent.has(dontApplyComp)) {
+                    applyBonus = false;
+                }
+            });
+        }
+
+        if (applyBonus) {
+            bonuses.mods.forEach(mod => {
+                if (Number.isInteger(mod.value)) {
+                    const targetComp = RG.Component.create(mod.targetComp);
+                    targetComp[mod.targetFunc](mod.value);
+                    targetComp.setTag(newType);
+                    ent.add(targetComp);
+                }
+                else {
+                    const srcComp = ent.get(mod.srcComp);
+                    if (srcComp) {
+                        let bonus = srcComp[mod.srcFunc]();
+                        bonus = Math.round(mod.value * bonus);
+                        const targetComp = RG.Component.create(mod.targetComp);
+                        targetComp[mod.targetFunc](bonus);
+                        targetComp.setTag(newType);
+                        ent.add(targetComp);
+                    }
+                }
+
+            });
+        }
+    }
+
+    // Remove the bonus/penalty here because cell type was left
+    if (this._bonuses.hasOwnProperty(prevType)) {
+        const statsList = ent.getList('StatsMods');
+        const combatList = ent.getList('CombatMods');
+        // TODO add a list of comps to check to this._bonuses
+        statsList.forEach(mod => {
+            if (mod.getTag() === prevType) {
+                ent.remove(mod);
+            }
+        });
+        combatList.forEach(mod => {
+            if (mod.getTag() === prevType) {
+                ent.remove(mod);
+            }
+        });
+    }
+};
 
 module.exports = System.Movement;
