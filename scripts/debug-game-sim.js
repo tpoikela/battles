@@ -68,10 +68,10 @@ for (let i = 1; i <= numTurns; i++) {
     if (i === 10) {
         expect(simulSpellOn1stTurn).not.to.throw(Error);
     }
-    if (i % 1000 === 0) {
+    if (i % 100 === 0) {
         console.log(`Saving game after ${i}/${numTurns} turns`);
-        expect(saveFunc).not.to.throw(Error);
-        // saveFunc();
+        // expect(saveFunc).not.to.throw(Error);
+        saveFunc();
     }
     if (i % 10 === 0) {
         console.log('Finished turn ' + i);
