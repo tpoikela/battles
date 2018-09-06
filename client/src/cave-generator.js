@@ -67,6 +67,8 @@ CaveGenerator.prototype._createLevel = function(cols, rows, conf) {
 
 CaveGenerator.prototype.setLevelExtras = function(level, mapGen) {
     const extras = mapGen.getMapData();
+    // Need to uniquify start points
+    extras.startPoints = RG.uniquifyCoord(extras.startPoints);
     level.setExtras(extras);
 };
 
