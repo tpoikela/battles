@@ -193,6 +193,13 @@ FactoryGame.prototype.setCallback = function(name, cb) {
 
 FactoryGame.prototype.createOverWorld = function(obj, game, player) {
     const owConf = FactoryGame.getOwConf(1, obj);
+    const midX = Math.floor(owConf.nLevelsX / 2);
+    const playerX = midX;
+    const playerY = owConf.nLevelsY - 1;
+    owConf.playerX = playerX;
+    owConf.playerY = playerY;
+    owConf.playerRace = obj.playerRace;
+    owConf.createTerritory = true;
 
     const startTime = new Date().getTime();
 
@@ -200,12 +207,11 @@ FactoryGame.prototype.createOverWorld = function(obj, game, player) {
     const overworld = OW.createOverWorld(owConf);
     this.progress('DONE');
 
-    this.progress('Generating territory for clans/races...');
-    const midX = Math.floor(owConf.nLevelsX / 2);
-    const playerX = midX;
-    const playerY = owConf.nLevelsY - 1;
-    overworld.terrMap = this.createTerritoryMap(overworld, obj.playerRace,
-        playerX, playerY);
+    if (!overworld.terrMap) {
+        this.progress('Generating territory for clans/races...');
+        overworld.terrMap = this.createTerritoryMap(overworld, obj.playerRace,
+            playerX, playerY);
+    }
     this.progress('DONE');
 
     this.progress('Creating Overworld Level Map...');
