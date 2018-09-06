@@ -12,15 +12,19 @@ describe('CaveGenerator', () => {
     });
 
     it('can generate simple cave levels', () => {
-        const caveGen = new CaveGenerator();
-        const conf = {dungeonType: 'Cave', isCollapsed: false};
-        const level = caveGen.create(100, 50, conf);
-        expect(level).to.exist;
+        for (let i = 0; i < 10; i++) {
+            const caveGen = new CaveGenerator();
+            const conf = {dungeonType: 'Cave', isCollapsed: false,
+                maxDanger: 5};
+            const level = caveGen.create(100, 50, conf);
+            expect(level).to.exist;
 
-        const cells = level.getMap().getCells(c => (
-            (/floor/).test(c.getBaseElem().getType())
-        ));
-        expect(cells.length).to.be.at.least(50);
+            const extras = level.getExtras();
+            const {startPoint, endPoint} = extras;
+            expect(startPoint).to.be.an.array;
+            expect(endPoint).to.be.an.array;
+            expect(startPoint).not.to.deep.equal(endPoint);
+        }
     });
 
     it('can create Lair-like levels', () => {
@@ -40,7 +44,7 @@ describe('CaveGenerator', () => {
         for (let i = 0; i < 1; i++) {
             const caveGen = new CaveGenerator();
             const level = caveGen.create(150, 80,
-                {dungeonType: 'Cavern', isCollapsed: false});
+                {dungeonType: 'Cavern', isCollapsed: false, maxDanger: 2});
             expect(level).to.exist;
 
             const extras = level.getExtras();
@@ -53,7 +57,7 @@ describe('CaveGenerator', () => {
     it('it can generate collapsed cave level', () => {
         const caveGen = new CaveGenerator();
         const conf = {
-            dungeonType: 'Lair', isCollapsed: true
+            dungeonType: 'Lair', isCollapsed: true, maxDanger: 3
         };
         const level = caveGen.create(100, 50, conf);
         expect(level).to.exist;
