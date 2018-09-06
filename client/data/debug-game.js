@@ -231,6 +231,9 @@ DebugGame.prototype.createArena = function(obj, game, player) {
 
     level.getMap().setBaseElemXY(pX - 1, pY - 1, RG.ELEM.WATER);
 
+    const lich = parser.createActor('Tajun Eon en Lotus, lich lord');
+    level.addActor(lich, pX + 1, pY + 1);
+
     return game;
 };
 
