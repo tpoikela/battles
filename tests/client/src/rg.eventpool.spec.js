@@ -29,7 +29,7 @@ const EventEmitter = function() {
     };
 };
 
-describe('How events bubble in the system', () => {
+describe('EventPool', () => {
 
     let pool = null;
     let listener = null;
@@ -113,5 +113,16 @@ describe('How events bubble in the system', () => {
         });
 
     });
+
+    it('deletes listeners internally', () => {
+        expect(pool.getNumEventsListened()).to.equal(1);
+        let listeners = pool.getListeners(listener.eventName);
+        expect(listeners.length).to.equal(1);
+        pool.removeListener(listener);
+        listeners = pool.getListeners(listener.eventName);
+        expect(listeners.length).to.equal(0);
+        expect(pool.getNumEventsListened()).to.equal(0);
+    });
+
 });
 
