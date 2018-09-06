@@ -16,6 +16,11 @@ const House = function(map) {
     this.coord = {};
     this.map = RG.copy2D(map);
     this.trimEmpty();
+    this.x = 0;
+    this.y = 0;
+    // Note that w,h take into account also empty space
+    this.w = map.length;
+    this.h = map[0].length;
 
     let totalX = 0;
     let totalY = 0;
@@ -40,23 +45,40 @@ const House = function(map) {
     this.numFloor = numFloor;
 };
 
+House.prototype.getCenter = function() {
+    return [this.cX, this.cY];
+};
+
+/* Returns the bounding box taken by this house. */
+House.prototype.getBbox = function() {
+    return {
+        ulx: this.x, uly: this.y,
+        lrx: this.x + this.w - 1,
+        lry: this.y + this.h - 1
+    };
+};
+
 /* Remove empty rows from the house map. */
 House.prototype.trimEmpty = function() {
 
 };
 
-/* Adjusts the house coordinates. */
+/* Adjusts the house coordinates based on new x,y of the house. */
 House.prototype.adjustCoord = function(x, y) {
+    const dX = x - this.x;
+    const dY = y - this.y;
+    this.x = x;
+    this.y = y;
     Object.keys(this.coord).forEach(key => {
         const coord = this.coord[key];
         coord.forEach(xy => {
-            xy[0] += x;
-            xy[1] += y;
+            xy[0] += dX;
+            xy[1] += dY;
         });
     });
-    this.cX += x;
-    this.cY += y;
-    this.door = [this.door[0] + x, this.door[1] + y];
+    this.cX += dX;
+    this.cY += dY;
+    this.door = [this.door[0] + dX, this.door[1] + dY];
 };
 
 const HouseGenerator = function() {
