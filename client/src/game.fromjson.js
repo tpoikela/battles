@@ -161,13 +161,13 @@ RG.Game.FromJSON = function() {
                 const valueToSet = compJSON[setFunc];
 
                 // valueToSet can be any of following:
-                //   1. Contains create function of this object (FromJSON)
+                //   1. Create function of defined in Game.FromJSON
                 //     - Call function then sets the result of func call
                 //     - Function is called with valueToSet.value
                 //   2. Sub-component given with createComp
                 //     - Need to call createComponent recursively
                 //   3. Can be an objRef
-                //   4. Can be scalar/object literal which is set is setFunc
+                //   4. Can be scalar/object literal which is set with setFunc
                 if (!RG.isNullOrUndef([valueToSet])) {
                     if (valueToSet.createFunc) {
                         const createdObj =
@@ -188,7 +188,8 @@ RG.Game.FromJSON = function() {
                         }
                         else {
                             const refJson = JSON.stringify(valueToSet.objRef);
-                            const msg = `Null obj for objRef ${refJson}`;
+                            let msg = `Null obj for objRef ${refJson}`;
+                            msg += ` compJSON: ${JSON.stringify(compJSON)}`;
                             RG.err('FromJSON', 'createComponent', msg);
                         }
                     }
