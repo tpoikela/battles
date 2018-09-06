@@ -7,6 +7,8 @@ const RG = require('../src/rg');
 RG.Component = require('../src/component');
 const Ability = require('../src/abilities');
 const Texts = require('../data/texts');
+const CityGenerator = require('../src/city-generator');
+const {ItemRandomizer} = require('../src/factory.items');
 
 const RNG = RG.Random.getRNG();
 const Stairs = RG.Element.Stairs;
@@ -153,11 +155,10 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     const firekit = parser.createEntity('firemaking kit');
     player.getInvEq().addItem(firekit);
 
-    player.add(new RG.Component.Coldness());
     player.get('SpellPower').setPP(100);
     player.get('SpellPower').setMaxPP(100);
 
-    const itemRand = new RG.Factory.ItemRandomizer();
+    const itemRand = new ItemRandomizer();
     const runeProt = parser.createItem('rune of protection');
     itemRand.adjustItem(runeProt, 100);
     player.getInvEq().addItem(runeProt);
@@ -205,8 +206,8 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     player.getInvEq().unequipItem('hand', 1, 0);
     player.getInvEq().equipItem(voidDagger);
 
-    const voidElem = parser.createActor('void elemental');
-    level.addActor(voidElem, pX + 1, pY + 1);
+    /* const voidElem = parser.createActor('void elemental');
+    level.addActor(voidElem, pX + 1, pY + 1);*/
 
     player.getInvEq().addItem(parser.createItem('Boots of flying'));
 
@@ -372,7 +373,6 @@ DebugGame.prototype.createOneDungeonAndBoss = function(obj, game, player) {
     return game;
 };
 
-
 DebugGame.prototype.createLastBattle = function(game, obj) {
     const levelConf = RG.Factory.cityConfBase({});
     levelConf.parser = this._parser;
@@ -382,7 +382,14 @@ DebugGame.prototype.createLastBattle = function(game, obj) {
     levelConf.shopFunc.push(shopFunc);
     levelConf.shopFunc.push(shopFunc);
 
-    const level = this._fact.createLevel('town', obj.cols, obj.rows, levelConf);
+    levelConf.actorFunc = actor => actor.type === 'bearfolk';
+    levelConf.hasWall = false;
+
+    const cityGen = new CityGenerator();
+    const level = cityGen.create(obj.cols, obj.rows, levelConf);
+
+    // const level = this._fact.createLevel('town',
+    // obj.cols, obj.rows, levelConf);
     this._listener = new ActorKillListener(this, game, level);
 
     this._fact.createHumanArmy(level, this._parser);
