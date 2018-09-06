@@ -26,6 +26,15 @@ export default class WorldFromJSON {
         this._IND = 0; // Used for indenting debug messages
     }
 
+    createPlace(placeJSON) {
+        switch (placeJSON.type) {
+            case 'world': return this.createWorld(placeJSON);
+            default: RG.err('WorldFromJSON', 'createPlace',
+                `No place ${placeJSON.type} implemented yet`);
+        }
+        return null;
+    }
+
     /* Main function to call with a serialized JSON of World.Top. */
     createWorld(placeJSON) {
         let world = null;
