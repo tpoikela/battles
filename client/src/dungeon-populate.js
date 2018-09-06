@@ -4,6 +4,9 @@ const Geometry = require('./geometry');
 const Evaluator = require('./evaluators');
 RG.ObjectShell = require('./objectshellparser');
 
+const {FactoryItem} = require('./factory.items');
+const {FactoryActor} = require('./factory.actors');
+
 const MIN_ACTORS_ROOM = 2;
 
 const RNG = RG.Random.getRNG();
@@ -12,6 +15,9 @@ const DungeonPopulate = function(conf = {}) {
     this.theme = conf.theme;
     this.maxDanger = conf.maxDanger || 5;
     this.maxValue = conf.maxValue || 50;
+
+    this._itemFact = new FactoryItem();
+    this._actorFact = new FactoryActor();
 };
 
 /* Populates the level with actors and items. Some potential features to use
@@ -271,6 +277,214 @@ DungeonPopulate.prototype.addTipToPoint = function(level, point, conf) {
     if (conf.true) {
         // console.log('DungeonPopulate', level, conf, point); // TODO
     }
+};
+
+DungeonPopulate.prototype.createShops = function(level, conf) {
+    const extras = level.getExtras();
+    const shopHouses = [];
+    if (extras.hasOwnProperty('houses')) {
+        const houses = extras.houses;
+
+        const usedHouses = [];
+        let watchDog = 0;
+        level.shops = [];
+        for (let n = 0; n < conf.nShops; n++) {
+            const shopObj = new RG.World.Shop();
+
+            // Find the next (unused) index for a house
+            let index = RNG.randIndex(houses);
+            while (usedHouses.indexOf(index) >= 0) {
+                index = RNG.randIndex(houses);
+                ++watchDog;
+                if (watchDog === (2 * houses.length)) {
+                    RG.err('DungeonPopulate', 'createShops',
+                        'WatchDog reached max houses');
+                }
+            }
+            usedHouses.push(index);
+
+            const house = extras.houses[index];
+            shopHouses.push(house);
+            const floor = house.floor;
+            const doorXY = house.door;
+            const door = new RG.Element.Door(true);
+            level.addElement(door, doorXY[0], doorXY[1]);
+
+            const keeper = this.createShopkeeper(conf);
+
+            const shopCoord = [];
+            let keeperAdded = false;
+            for (let i = 0; i < floor.length; i++) {
+                const xy = floor[i];
+
+                const shopElem = new RG.Element.Shop();
+                shopElem.setShopkeeper(keeper);
+                level.addElement(shopElem, xy[0], xy[1]);
+
+                if (i === 0) {
+                    keeperAdded = true;
+                    level.addActor(keeper, xy[0], xy[1]);
+                }
+
+                const item = this._itemFact.getShopItem(n, conf);
+                if (!item) {
+                    const msg = 'item null. ' +
+                        `conf: ${JSON.stringify(conf)}`;
+                    RG.err('DungeonPopulate', 'createShop',
+                        `${msg} shopFunc/type${n} not well defined.`);
+                }
+                else {
+                    item.add('Unpaid', new RG.Component.Unpaid());
+                    level.addItem(item, xy[0], xy[1]);
+                    shopCoord.push(xy);
+                }
+            }
+
+            if (!keeperAdded) {
+                const json = JSON.stringify(house);
+                RG.err('DungeonPopulate', 'createShops',
+                    'Could not add keeper to ' + json);
+            }
+
+            if (keeper.has('Shopkeeper')) {
+                const shopKeep = keeper.get('Shopkeeper');
+                shopKeep.setCells(shopCoord);
+                shopKeep.setLevelID(level.getID());
+                shopKeep.setDoorXY(door.getXY());
+                const name = keeper.getType() + ' shopkeeper';
+                keeper.setName(name);
+                RG.addCellStyle(RG.TYPE_ACTOR, name,
+                    'cell-actor-shopkeeper');
+                const randXY = RNG.arrayGetRand(shopCoord);
+                if (keeper.getBrain().getGoal) {
+                    const evalShop = new Evaluator.Shopkeeper(1.5);
+                    evalShop.setArgs({xy: randXY});
+                    keeper.getBrain().getGoal().addEvaluator(evalShop);
+                }
+            }
+
+            shopObj.setShopkeeper(keeper);
+            shopObj.setLevel(level);
+            shopObj.setCoord(shopCoord);
+            level.shops.push(shopObj);
+        }
+    }
+    else {
+        RG.err('DungeonPopulate', 'createShops', 'No houses in extras.');
+    }
+    return shopHouses;
+};
+
+
+/* Creates a shopkeeper actor. */
+DungeonPopulate.prototype.createShopkeeper = function(conf) {
+    let keeper = null;
+    if (conf.parser) {
+        if (conf.actor) {
+            keeper = conf.parser.createRandomActor({
+                func: conf.actor});
+            if (!keeper) {
+                let msg = 'conf.actor given but no actor found';
+                if (typeof conf.actor === 'function') {
+                    msg += ' conf.actor |' + conf.actor.toString() + '|';
+                }
+                else {
+                    msg += ' conf.actor must be function';
+                }
+                RG.err('Factory', 'createShopkeeper', msg);
+            }
+        }
+        else {
+            keeper = conf.parser.createActor('shopkeeper');
+        }
+    }
+    else {
+        keeper = this._actorFact.createActor('shopkeeper', {brain: 'Human'});
+    }
+
+    keeper.add(new RG.Component.Shopkeeper());
+    const gold = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
+    gold.count = RNG.getUniformInt(50, 200);
+    keeper.getInvEq().addItem(gold);
+
+    let keeperLevel = 10;
+    if (conf.maxDanger >= 6) {
+        keeperLevel = 2 * conf.maxDanger;
+    }
+    RG.levelUpActor(keeper, keeperLevel);
+
+    return keeper;
+};
+
+DungeonPopulate.prototype.createTrainers = function(level, conf) {
+    const houses = level.getExtras().houses;
+    if (RG.isSuccess(RG.TRAINER_PROB)) {
+        let trainer = null;
+        if (conf.parser) {
+            trainer = conf.parser.createActor('trainer');
+        }
+        else {
+            trainer = this.createActor('trainer', {brain: 'Human'});
+            const trainComp = new RG.Component.Trainer();
+            trainer.add(trainComp);
+        }
+        const cell = level.getFreeRandCell();
+        level.addActor(trainer, cell.getX(), cell.getY());
+        if (houses) {
+            const house = RNG.arrayGetRand(houses);
+            if (trainer.getBrain().getGoal) {
+                const evalHome = new Evaluator.GoHome(1.5);
+                const xy = house.getCenter();
+                evalHome.setArgs({xy});
+                trainer.getBrain().getGoal().addEvaluator(evalHome);
+                return [house];
+            }
+        }
+    }
+    return [];
+};
+
+DungeonPopulate.prototype.populateHouse = function(level, house, conf) {
+    const floorPerActor = 9;
+    const numFloor = house.numFloor;
+    let numActors = Math.round(numFloor / floorPerActor);
+    if (numActors === 0) {numActors = 1;}
+    for (let i = 0; i < numActors; i++) {
+        const actor = this.createActor(conf);
+        if (actor.getBrain().getGoal) {
+            const evalHome = new Evaluator.GoHome(1.5);
+            const xy = house.getCenter();
+            evalHome.setArgs({xy});
+            actor.getBrain().getGoal().addEvaluator(evalHome);
+        }
+        const floorXY = RNG.arrayGetRand(house.floor);
+        level.addActor(actor, floorXY[0], floorXY[1]);
+    }
+};
+
+DungeonPopulate.prototype.createActor = function(conf) {
+    const parser = RG.ObjectShell.getParser();
+    const maxDanger = conf.maxDanger || this.maxDanger;
+    let actor = null;
+    if (maxDanger > 0) {
+        let actorFunc = actor => actor.danger <= maxDanger;
+        if (this.actorFunc) {
+            actorFunc = actor => (
+                this.actorFunc(actor) && actor.danger <= maxDanger
+            );
+        }
+        else if (conf.actorFunc) {
+            actorFunc = actor => (
+                conf.actorFunc(actor) && actor.danger <= maxDanger
+            );
+        }
+        actor = parser.createRandomActor({func: actorFunc});
+    }
+    else {
+        RG.err('DungeonPopulate', 'createActor',
+            'maxDanger must be > 0');
+    }
+    return actor;
 };
 
 module.exports = DungeonPopulate;
