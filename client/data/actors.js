@@ -2,6 +2,9 @@
 /* eslint comma-dangle: 0 */
 
 const RG = require('../src/rg');
+const ShellUtils = require('./shell-utils');
+
+const {meleeHitDamage} = ShellUtils;
 
 const defaultBrain = 'GoalOriented';
 const demonBrain = 'GoalOriented';
@@ -1039,6 +1042,19 @@ const Actors = [
         onHit: [
             {addComp: 'Stun', duration: '2d4 + 2'}
         ]
+    },
+    {
+        name: 'Tajun Eon en Lotus, lich lord', type: 'undead',
+        base: 'UniqueBase', char: 'L', danger: 85,
+        color: {fg: 'Red', bg: 'Black'}, enemies: RG.ACTOR_RACES,
+        damage: '2d9 + 4', hp: 90, pp: 100, maxPP: 100, brain: 'SpellCaster',
+        strength: 14, accuracy: 15, agility: 14, willpower: 25, perception: 19,
+        magic: 30, attack: 25, defense: 15, protection: 10,
+        equip: [],
+        onHit: [
+            meleeHitDamage(4, '2d8 + 2', 'NECRO')
+        ],
+        spells: ['SummonDead', 'FrostBolt', 'GraspOfWinter'],
     }
 
 ];
