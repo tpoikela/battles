@@ -1180,6 +1180,11 @@ RG.dXdYUnit = (dest, src) => {
     return [dXUnit, dYUnit];
 };
 
+RG.withinRange = (r, dest, src) => {
+    const [dX, dY] = RG.dXdYAbs(dest, src);
+    return dX <= r && dY <= r;
+};
+
 /* Given an actor, scales its attributes based on new experience level.*/
 RG.levelUpActor = (actor, newLevel) => {
     if (actor.has('Experience')) {
