@@ -43,8 +43,7 @@ OW.createOverWorld = (conf = {}) => {
     }
 
     if (conf.printResult) {
-        const mapStr = mapToString(owMap);
-        RG.log('overworld.map.js\n', mapStr);
+        RG.printMap(owMap); // For debugging, keep
     }
     overworld.setMap(owMap);
 
@@ -71,6 +70,7 @@ OW.Map = function() {
     this._vWalls = [];
 
     this._features = {};
+    this._featureData = {};
     this._featuresByXY = {};
 
     this._biomeMap = {};
@@ -198,9 +198,16 @@ OW.Map.prototype.addFeature = function(xy, type) {
     this._featuresByXY[keyXY].push(type);
 };
 
+OW.Map.prototype.addFeatureData = function(xy, data) {
+    const keyXY = xy[0] + ',' + xy[1];
+    if (!this._featureData.hasOwnProperty(keyXY)) {
+        this._featureData[keyXY] = [];
+    }
+    this._featureData[keyXY].push(data);
+};
+
 OW.Map.prototype.getFeaturesByType = function(type) {
     if (!this._features.hasOwnProperty(type)) {
-        console.log('No feature', type, 'found from', this._features);
         return [];
     }
     return this._features[type];
@@ -644,19 +651,6 @@ function getValidNeighbours(x, y, map) {
     return tiles;
 }
 
-/* Prints the given map. */
-function mapToString(map) {
-    const sizeY = map[0].length;
-    const sizeX = map.length;
-    for (let y = 0; y < sizeY; y++) {
-        const line = [];
-        for (let x = 0; x < sizeX; x++) {
-            line.push(map[x][y]);
-        }
-        console.log(line.join('')); // Print result
-    }
-}
-
 /* Creates the territories for settlements like cities. */
 function createOverWorldTerritories(ow, conf) {
     const {playerRace, playerX, playerY} = conf;
@@ -743,7 +737,6 @@ function addOverWorldFeatures(ow, conf) {
         addVillagesToOverWorld(ow, nCityNorth, cmdAboveNorthWall);
     }
     else {
-        console.log('OW.createOverWorld creating territories now');
         createOverWorldTerritories(ow, conf);
         addCitiesBasedOnTerritories(ow);
     }
@@ -845,7 +838,7 @@ function addCitiesBasedOnTerritories(ow) {
                 placeCityFeature(ow, xy);
                 const name = terrObj.getRival(xy);
                 const featName = name + '_city';
-                ow.addFeature(xy, featName);
+                ow.addFeatureData(xy, {type: featName});
             }
         }
     });
