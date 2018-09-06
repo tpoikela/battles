@@ -586,10 +586,12 @@ class GoalAttackActor extends GoalBase {
                 this.targetActor = actor;
                 brain.getMemory().setLastAttacked(actor);
                 this.selectSubGoal();
+                console.log('selected a subgoal');
             }
         }
         else {
             this.checkTargetStatus();
+            console.log('Checked target status');
         }
         if (!this.isCompleted() && !this.hasFailed()) {
             this.status = this.processSubGoals();
@@ -1124,11 +1126,7 @@ class GoalShopkeeper extends GoalBase {
             // Rearrange items
             // Persuade actors to sell their stuff
             if (RG.isSuccess(0.6)) {
-                const dir = RNG.getRandDir();
-                const xy = RG.newXYFromDir(dir, this.actor);
-                const level = this.actor.getLevel();
-                const movComp = new RG.Component.Movement(xy[0], xy[1], level);
-                this.actor.add(movComp);
+                moveToRandomDir(this.actor);
             }
             else if (!this.hasShouted) {
                 const comm = new RG.Component.Communication();
@@ -1157,5 +1155,69 @@ class GoalShopkeeper extends GoalBase {
 
 }
 Goal.Shopkeeper = GoalShopkeeper;
+
+
+class GoalGoHome extends GoalBase {
+
+    constructor(actor, x, y, dist) {
+        super(actor);
+        this.setType('GoalGoHome');
+        this.x = x;
+        this.y = y;
+        this.maxDist = dist;
+        this.subGoals = [];
+    }
+
+    activate() {
+        this.status = GOAL_ACTIVE;
+        const cell = this.actor.getCell();
+        if (cell.getBaseElem().getType() === 'floorhouse') {
+            if (RG.isSuccess(0.03)) {
+                const comm = new RG.Component.Communication();
+                comm.addMsg({src: this.actor,
+                    type: 'Shout', shout: 'Home sweet home!'});
+                this.actor.add(comm);
+            }
+            else {
+                moveToRandomDir(this.actor);
+            }
+        }
+        else if (RG.withinRange(this.maxDist, [this.x, this.y], this.actor)) {
+            moveToRandomDir(this.actor);
+        }
+        else {
+            const goal = new GoalFollowPath(this.actor, [this.x, this.y]);
+            this.addSubGoal(goal);
+            this.status = this.processSubGoals();
+        }
+    }
+
+    process() {
+        this.activateIfInactive();
+        this.status = this.processSubGoals();
+        return this.status;
+    }
+
+}
+Goal.GoHome = GoalGoHome;
+
+function moveToRandomDir(actor) {
+    const level = actor.getLevel();
+    const map = level.getMap();
+
+    let dir = RNG.getRandDir();
+    let xy = RG.newXYFromDir(dir, actor);
+    let tries = 10;
+    while (!map.hasXY(xy[0], xy[1])) {
+        dir = RNG.getRandDir();
+        xy = RG.newXYFromDir(dir, actor);
+        if (--tries === 0) {break;}
+    }
+    if (tries > 0) {
+        const movComp = new RG.Component.Movement(xy[0], xy[1], level);
+        actor.add(movComp);
+    }
+    // Tried to move outside map
+}
 
 module.exports = Goal;
