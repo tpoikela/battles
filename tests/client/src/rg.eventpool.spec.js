@@ -29,6 +29,22 @@ const EventEmitter = function() {
     };
 };
 
+const SelfRemovingListener = function(evtName, pool) {
+    this.evtName = evtName;
+    this.hasNotify = true;
+    this.notified = false;
+
+    this.notify = function(name) {
+        console.log('SelfRemovingListener notify got ' + name);
+        if (name === this.evtName) {
+            this.notified = true;
+            console.log('Now removing the listener for ' + name);
+            pool.removeListener(this);
+        }
+    };
+    pool.listenEvent(this.evtName, this);
+};
+
 describe('EventPool', () => {
 
     let pool = null;
@@ -122,6 +138,19 @@ describe('EventPool', () => {
         listeners = pool.getListeners(listener.eventName);
         expect(listeners.length).to.equal(0);
         expect(pool.getNumEventsListened()).to.equal(0);
+    });
+
+    it('handles cases where listener removes itself during notify', () => {
+        pool.removeListener(listener);
+        expect(pool.getNumListeners()).to.equal(0);
+        const listeners = [];
+        for (let i = 0; i < 10; i++) {
+            const remList = new SelfRemovingListener('REMOVE', pool);
+            listeners.push(remList);
+        }
+        expect(pool.getNumListeners()).to.equal(10);
+        emitter.emit('REMOVE', {data: 'just some data'});
+        expect(pool.getNumListeners()).to.equal(0);
     });
 
 });
