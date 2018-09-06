@@ -1008,13 +1008,13 @@ const Actors = [
         equip: ['Ruby glass armour', 'Ruby glass collar']
     },
     {
-        name: 'Aime aeon en Nev, Mighty spellsinger', type: 'dogfolk',
+        name: 'Aime Aeon en Nev, Mighty spellsinger', type: 'dogfolk',
         base: 'UniqueBase', char: 'd', danger: 100,
         damage: '5d5 + 5', hp: 100, pp: 75, brain: 'SpellCaster',
         spells: ['Paralysis', 'Flying', 'Heal', 'LightningArrow'],
         strength: 18, accuracy: 19, agility: 18, willpower: 28, perception: 15,
         magic: 25, attack: 20, defense: 15, protection: 5,
-        equip: ['Magic armour', 'Magic collar'],
+        equip: ['Runed armour', 'Runed collar'],
         onHit: [
             {addComp: 'Stun', duration: '1d4 + 1'}
         ]
@@ -1026,7 +1026,7 @@ const Actors = [
         spells: ['ScorpionsTail', 'EnergyArrow', 'SummonKin'],
         strength: 15, accuracy: 25, agility: 25, willpower: 17, perception: 25,
         magic: 17, attack: 25, defense: 15, protection: 5,
-        equip: ['Steel armour', 'Magic collar'],
+        equip: ['Steel armour', 'Runed collar'],
         addComp: ['FirstStrike']
     },
     {
@@ -1035,7 +1035,7 @@ const Actors = [
         damage: '3d7 + 3', hp: 134, brain: defaultBrain,
         strength: 25, accuracy: 20, agility: 19, willpower: 15, perception: 19,
         magic: 13, attack: 25, defense: 15, protection: 10,
-        equip: ['Hammer of Void'],
+        equip: ['Hammer of Void', 'Mithril armour'],
         onHit: [
             {addComp: 'Stun', duration: '2d4 + 2'}
         ]
