@@ -13,15 +13,6 @@ const TerritoryMap = function() {
 
 };
 
-function prettyArray(key, val) {
-    if (Array.isArray(this)) {
-        if (Array.isArray(val)) {
-            return val.join('');
-        }
-    }
-    return val;
-}
-
 /**
  * @param {OW.Map} ow - map of the overworld
  * @param {string} playerRace - Race of the player character
@@ -29,11 +20,9 @@ function prettyArray(key, val) {
  * @return {Territory} - Generated territory map
  */
 TerritoryMap.create = function(ow, playerRace, playerXY) {
-    console.log('TerritoryMap got ow', JSON.stringify(ow, prettyArray, 1));
     const [playerX, playerY] = playerXY;
     const capXY = ow.getFeaturesByType(OW.WCAPITAL)[0];
     const dwarves = ow.getFeaturesByType(OW.WTOWER)[0];
-    console.log('dwarves is', dwarves);
     const btower = ow.getFeaturesByType(OW.BTOWER)[0];
     const bcapital = ow.getFeaturesByType(OW.BCAPITAL)[0];
 
