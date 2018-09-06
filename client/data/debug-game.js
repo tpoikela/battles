@@ -25,7 +25,17 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     obj.rows = 100;
     const [pX, pY] = [50, 50];
     const level = this.createLastBattle(game, obj);
+    game.addLevel(level);
     level.addActor(player, pX, pY);
+
+    /*
+    const cityQuarter = new RG.World.CityQuarter('Debug quarter');
+    cityQuarter.addLevel(level);
+    level.shops.forEach(shop => {
+        cityQuarter.addShop(shop);
+    });
+    game.addPlace(cityQuarter);
+    */
 
     const spirit = this._parser.createActor('Wolf spirit');
     spirit.get('Stats').setStrength(500);
@@ -58,6 +68,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     keeper.getInvEq().addItem(gold);
     level.addActor(keeper, 2, 2);
 
+    /*
     const shopElem = new RG.Element.Shop();
     const shopCell = level.getMap().getCell(3, 3);
     shopCell.setProp('elements', shopElem);
@@ -66,6 +77,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     soldItem.add('Unpaid', new RG.Component.Unpaid());
     shopCell.setProp('items', soldItem);
     shopElem.setShopkeeper(keeper);
+    */
 
     const numFree = level.getMap().getFree().length;
     const itemsPerLevel = Math.round(numFree / sqrPerItem);
@@ -333,6 +345,7 @@ DebugGame.prototype.createOneDungeonAndBoss = function(obj, game, player) {
     lastLevel.addActor(summoner, bossCell.getX(), bossCell.getY());
 
     const townLevel = this.createLastBattle(game, {cols: 80, rows: 60});
+    game.addLevel(townLevel);
     townLevel.setLevelNumber(levelCount++);
 
     branch.connectLevels();
@@ -410,7 +423,6 @@ DebugGame.prototype.createLastBattle = function(game, obj) {
         game.getPlayer().setFOVRange(this._savedPlayerFOV);
     });
 
-    game.addLevel(level);
     return level;
 };
 
