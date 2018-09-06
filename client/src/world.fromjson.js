@@ -29,6 +29,11 @@ export default class WorldFromJSON {
     createPlace(placeJSON) {
         switch (placeJSON.type) {
             case 'world': return this.createWorld(placeJSON);
+            case 'quarter': {
+                const fact = new RG.Factory.World();
+                fact.setId2Level(this.id2level);
+                return fact.createCityQuarter(placeJSON);
+            }
             default: RG.err('WorldFromJSON', 'createPlace',
                 `No place ${placeJSON.type} implemented yet`);
         }
