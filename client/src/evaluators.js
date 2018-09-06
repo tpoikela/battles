@@ -430,4 +430,65 @@ class EvaluatorShopkeeper extends EvaluatorBase {
 }
 Evaluator.Shopkeeper = EvaluatorShopkeeper;
 
+/* Evaluator added to actors having home and wanting to spend time there
+ * now and then. */
+class EvaluatorGoHome extends EvaluatorBase {
+
+    constructor(actorBias) {
+        super(actorBias);
+        this.type = 'GoHome';
+        this.timeToHomeSick = RNG.getUniformInt(20, 40);
+        this.timeToStay = 0;
+        this.maxDistHome = 5;
+    }
+
+    calculateDesirability(actor) {
+        if (this.timeToHomeSick > 0) {
+            this.timeToHomeSick -= 1;
+            return 0.0;
+        }
+        else if (this.timeToHomeSick === 0) {
+            this.timeToHomeSick = -1;
+            this.timeToStay = RNG.getUniformInt(20, 40);
+        }
+
+        if (this.timeToStay > 0) {
+            const xy = [this.x, this.y];
+            if (RG.withinRange(this.maxDistHome, xy, actor)) {
+                this.timeToStay -= 1;
+            }
+            return this.actorBias;
+        }
+        else if (this.timeToStay === 0) {
+            this.timeToStay = -1;
+            this.timeToHomeSick = RNG.getUniformInt(20, 40);
+        }
+        return 0.0;
+    }
+
+    setActorGoal(actor) {
+        const topGoal = actor.getBrain().getGoal();
+        const goal = new Goal.GoHome(actor, this.x, this.y, this.maxDistHome);
+        topGoal.addGoal(goal);
+    }
+
+    setArgs(args) {
+        const {xy} = args;
+        this.x = xy[0];
+        this.y = xy[1];
+        this.timeToHomeSick = args.timeToHomeSick;
+    }
+
+    toJSON() {
+        const json = super.toJSON();
+        json.args = {
+            xy: [this.x, this.y],
+            timeToHomeSick: this.timeToHomeSick
+        };
+        return json;
+    }
+
+}
+Evaluator.GoHome = EvaluatorGoHome;
+
 module.exports = Evaluator;
