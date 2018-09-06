@@ -47,14 +47,14 @@ TerritoryMap.create = function(ow, playerRace, playerXY) {
         [OW.BTOWER]: true
     });
 
-    const bears = {name: 'bearfolk', char: 'B'};
+    const bearfolk = {name: 'bearfolk', char: 'B'};
     const undeads = {name: 'undead', char: 'z', numPos: 3,
         startX: [ow.getCenterX()], startY: [ow.getSizeY() - 5]};
 
     terrMap.addRival({name: 'avian', char: 'A'});
     terrMap.addRival(undeads);
     terrMap.addRival({name: 'wildling', char: 'I'});
-    terrMap.addRival(bears);
+    terrMap.addRival(bearfolk);
     terrMap.addRival({name: 'wolfclan', char: 'w'});
     terrMap.addRival({name: 'catfolk', char: 'f'});
     terrMap.addRival({name: 'dogfolk', char: 'd'});
@@ -75,21 +75,17 @@ TerritoryMap.create = function(ow, playerRace, playerXY) {
     coordMap.xMap = 10;
     coordMap.yMap = 10;
     const bbox = coordMap.getOWTileBboxFromAreaTileXY(playerX, playerY);
-    console.log('Player bbox will be', bbox, 'race', playerRace);
 
     const pData = terrMap.getData(playerRace);
     pData.numPos += 1;
 
     const playerOwX = RNG.getUniformInt(bbox.ulx, bbox.lrx);
     const playerOwY = RNG.getUniformInt(bbox.uly, bbox.lry);
-    console.log('player OW x,y', playerOwX, playerOwY);
     pData.startX.push(playerOwX);
     pData.startY.push(playerOwY);
 
     terrMap.generate();
-    // console.log(terrMap.mapToString());
     return terrMap;
-
 };
 
 module.exports = TerritoryMap;
