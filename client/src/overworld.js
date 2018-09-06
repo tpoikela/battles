@@ -224,18 +224,18 @@ RG.OverWorld.SubLevel.prototype.getFeaturesByType = function(type) {
 /* Object to translate coordinates between different maps and levels.
  */
 //---------------------------------------------------------------------------
-const CoordMap = function() {
+const CoordMap = function(args = {}) {
     // Size of the large overworld Map.Level
-    this.worldCols = 0;
-    this.worldRows = 0;
+    this.worldCols = args.worldCols || 0;
+    this.worldRows = args.worldRows || 0;
 
     // Number of area tiles per x/y
-    this.nTilesX = 0;
-    this.nTilesY = 0;
+    this.nTilesX = args.nTilesX || 0;
+    this.nTilesY = args.nTilesY || 0;
 
     // How many cols/rows one overworld square is in overworld Map.Level
-    this.xMap = 0;
-    this.yMap = 0;
+    this.xMap = args.xMap || 0;
+    this.yMap = args.yMap || 0;
 
     this.setXYMap = function(xMap, yMap) {
         this.xMap = xMap;
@@ -266,6 +266,15 @@ const CoordMap = function() {
         return [
             bbox.ulx + Math.floor(areaLevelXY[0] / this.xMap),
             bbox.uly + Math.floor(areaLevelXY[1] / this.yMap)
+        ];
+    };
+
+    /* Given ow tile x,y, returns AreaTile x,y in which this ow tile x,y
+     * is located in. */
+    this.getAreaXYFromOWTileXY = function(owX, owY) {
+        return [
+            Math.floor(owX / this.xMap),
+            Math.floor(owY / this.yMap)
         ];
     };
 
