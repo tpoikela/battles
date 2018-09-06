@@ -5,13 +5,22 @@
 
 const RG = require('../src/rg');
 const Territory = require('../src/territory');
-const OW = require('../src/overworld.map');
+const OW = require('../src/ow-constants');
 
 const RNG = RG.Random.getRNG();
 
 const TerritoryMap = function() {
 
 };
+
+function prettyArray(key, val) {
+    if (Array.isArray(this)) {
+        if (Array.isArray(val)) {
+            return val.join('');
+        }
+    }
+    return val;
+}
 
 /**
  * @param {OW.Map} ow - map of the overworld
@@ -20,9 +29,11 @@ const TerritoryMap = function() {
  * @return {Territory} - Generated territory map
  */
 TerritoryMap.create = function(ow, playerRace, playerXY) {
+    console.log('TerritoryMap got ow', JSON.stringify(ow, prettyArray, 1));
     const [playerX, playerY] = playerXY;
     const capXY = ow.getFeaturesByType(OW.WCAPITAL)[0];
     const dwarves = ow.getFeaturesByType(OW.WTOWER)[0];
+    console.log('dwarves is', dwarves);
     const btower = ow.getFeaturesByType(OW.BTOWER)[0];
     const bcapital = ow.getFeaturesByType(OW.BCAPITAL)[0];
 
