@@ -313,6 +313,7 @@ RG.Factory.Item = function() {
             }
         }
         RG.Factory.addPropsToFreeCells(level, items, RG.TYPE_ITEM);
+        return items.length;
     };
 
     this.generateItems = function(parser, conf) {
@@ -632,7 +633,7 @@ RG.Factory.Base = function() {
                 if (!keeper) {
                     let msg = 'conf.actor given but no actor found';
                     if (typeof conf.actor === 'function') {
-                        msg += ' conf.actor' + conf.actor.toString();
+                        msg += ' conf.actor |' + conf.actor.toString() + '|';
                     }
                     else {
                         msg += ' conf.actor must be function';
@@ -691,11 +692,11 @@ RG.Factory.Base = function() {
     this.addNRandItems = (level, parser, conf) => {
         this._verif.verifyConf('addNRandItems', conf, ['func', 'maxValue']);
         // Generate the items randomly for this level
-        this._itemFact.addNRandItems(level, parser, conf);
-
+        return this._itemFact.addNRandItems(level, parser, conf);
     };
 
-    /* Adds N random monsters to the level based on given danger level.*/
+    /* Adds N random monsters to the level based on given danger level.
+     * Returns the number of actors added. */
     this.addNRandActors = (level, parser, conf) => {
         this._verif.verifyConf('addNRandActors', conf,
             ['maxDanger', 'actorsPerLevel']);
@@ -704,8 +705,11 @@ RG.Factory.Base = function() {
 
         const actors = this.generateNActors(conf.actorsPerLevel, conf.func,
             maxDanger);
+        if (!actors) {
+            return 0;
+        }
         RG.Factory.addPropsToFreeCells(level, actors, RG.TYPE_ACTOR);
-        return true;
+        return actors.length;
     };
 
     this.setParser = parser => {
@@ -1083,12 +1087,21 @@ RG.Factory.Zone = function() {
     };
 
     this.populateWithActors = function(level, levelConf) {
+        console.log('Factory populateWithActors now');
         const actorConf = {
             actorsPerLevel: levelConf.actorsPerLevel || 100,
             maxDanger: levelConf.maxDanger || 10,
             func: levelConf.actor
         };
-        this.addNRandActors(level, this._parser, actorConf);
+        const nAdded = this.addNRandActors(level, this._parser, actorConf);
+        if (nAdded === 0) {
+            const parent = level.getParent();
+            let msg = 'No actors added to level.';
+            if (parent) {
+                msg += ' Level parent: ' + parent.getName();
+            }
+            RG.err('Factory', 'populateWithActors', msg);
+        }
     };
 
     this.populateWithHumans = function(level, levelConf) {
