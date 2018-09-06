@@ -654,25 +654,25 @@ RG.Factory.World = function() {
             if (constraint.actor) {
                 _errorOnFunc(constraint.actor);
                 levelConf.actor = constrFact.getConstraints(constraint.actor);
-                const str = constraint.actor.toString();
+                const str = JSON.stringify(constraint.actor);
                 this.debug(`Found actor constraint for ${hierName}: ${str}`);
             }
             if (constraint.item) {
                 _errorOnFunc(constraint.item);
                 levelConf.item = constrFact.getConstraints(constraint.item);
-                const str = constraint.item.toString();
+                const str = JSON.stringify(constraint.item);
                 this.debug(`Found item constraint for ${hierName}: ${str}`);
             }
             if (constraint.food) {
                 _errorOnFunc(constraint.food);
                 levelConf.food = constrFact.getConstraints(constraint.food);
-                const str = constraint.food.toString();
+                const str = JSON.stringify(constraint.food);
                 this.debug(`Found food constraint for ${hierName}: ${str}`);
             }
             if (constraint.gold) {
                 _errorOnFunc(constraint.gold);
                 levelConf.gold = constrFact.getConstraints(constraint.gold);
-                const str = constraint.gold.toString();
+                const str = JSON.stringify(constraint.gold);
                 this.debug(`Found gold constraint for ${hierName}: ${str}`);
             }
             if (constraint.shop) {
