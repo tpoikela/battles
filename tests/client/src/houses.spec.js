@@ -19,6 +19,12 @@ describe('HouseGenerator', () => {
         expect(house).to.not.be.empty;
         expect(house).to.be.instanceOf(House);
         // console.log('House is:', JSON.stringify(house, null, 1));
+        let expBbox = {ulx: 0, uly: 0, lrx: 9, lry: 11};
+        expect(house.getBbox()).to.deep.equal(expBbox);
+
+        house.adjustCoord(10, 20);
+        expBbox = {ulx: 0 + 10, uly: 0 + 20, lrx: 9 + 10, lry: 11 + 20};
+        expect(house.getBbox()).to.deep.equal(expBbox);
     });
 
     it('can be used in town maps', () => {

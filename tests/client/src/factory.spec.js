@@ -2,7 +2,7 @@
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 
-const ItemRand = RG.Factory.ItemRandomizer;
+const ItemRand = require('../../../client/src/factory.items').ItemRandomizer;
 // const temple = require('../../../client/data/temple.json');
 
 const temple = RG.FACT.createLevel('arena', 40, 40).toJSON();
