@@ -67,7 +67,6 @@ CityGenerator.prototype.createHouseElements = function(level) {
         const doorXY = houses[i].door;
         const door = new RG.Element.Door(true);
         level.addElement(door, doorXY[0], doorXY[1]);
-        console.log('Adding door to', doorXY);
     }
 };
 
@@ -91,15 +90,15 @@ CityGenerator.prototype.fillUnusedAreas = function(level, areas) {
 CityGenerator.prototype.populateCityLevel = function(level, conf) {
     let houses = level.getExtras().houses;
     const dungPopul = new DungeonPopulate(conf);
+
     const shopHouses = dungPopul.createShops(level, conf);
     houses = houses.filter(house => shopHouses.indexOf(house) < 0);
+
     const trainerHouses = dungPopul.createTrainers(level, conf);
     houses = houses.filter(house => trainerHouses.indexOf(house) < 0);
+
     level.addExtras('houses', houses);
-    console.log('Creating townsfolk now');
     this.createTownsfolk(level, conf);
-    console.log('shopHouses are', shopHouses);
-    console.log('trainerHouses are', trainerHouses);
 };
 
 CityGenerator.prototype.createTownsfolk = function(level, conf) {
