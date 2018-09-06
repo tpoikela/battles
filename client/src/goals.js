@@ -563,7 +563,9 @@ class GoalAttackActor extends GoalBase {
 
         // targetActor.isDead() -> completed
         this.selectSubGoal();
-        this.status = GOAL_ACTIVE;
+        if (!this.isCompleted()) {
+            this.status = GOAL_ACTIVE;
+        }
     }
 
     process() {
@@ -581,17 +583,15 @@ class GoalAttackActor extends GoalBase {
                     const name = this.actor.getName();
                     const old = this.targetActor.getName();
                     const newName = actor.getName();
-                    console.log(`${name}:: Recomp target ${old} -> ${newName}`);
+                    RG.log(`${name}:: Recomp target ${old} -> ${newName}`);
                 }
                 this.targetActor = actor;
                 brain.getMemory().setLastAttacked(actor);
                 this.selectSubGoal();
-                console.log('selected a subgoal');
             }
         }
         else {
             this.checkTargetStatus();
-            console.log('Checked target status');
         }
         if (!this.isCompleted() && !this.hasFailed()) {
             this.status = this.processSubGoals();
@@ -660,7 +660,7 @@ class GoalAttackActor extends GoalBase {
         if (!healthComp) {
             const json = JSON.stringify(this.targetActor);
             const attacker = JSON.stringify(this.actor);
-            console.log('Attacker: ' + attacker);
+            RG.log('Attacker: ' + attacker);
             RG.err('GoalAttackActor', 'checkTargetStatus',
                 'target has no health: ' + json);
         }
@@ -668,10 +668,12 @@ class GoalAttackActor extends GoalBase {
         if (healthComp.isDead()) {
             this.removeAllSubGoals();
             this.status = GOAL_COMPLETED;
+            this.dbg('Enemy is dead. Goal completed');
         }
         else if (!RG.inSameLevel(this.actor, this.targetActor)) {
             this.removeAllSubGoals();
             this.status = GOAL_COMPLETED;
+            this.dbg('Enemy not in this level. Goal completed');
         }
     }
 
