@@ -253,19 +253,23 @@ MapGenerator.prototype.createTownBSP = function(cols, rows, conf) {
         }
         if (leaf.x === bspX0) {
             leaf.x += 1;
+            leaf.w -= 1;
             colsHouse -= 1;
         }
         else if (leaf.x === cols - 1) {
             leaf.x -= 1;
+            leaf.w -= 1;
             colsHouse -= 1;
         }
 
         if (leaf.y === bspY0) {
             leaf.y += 1;
+            leaf.h -= 1;
             rowsHouse -= 1;
         }
         else if (leaf.y === rows - 1) {
             leaf.y -= 1;
+            leaf.h -= 1;
             rowsHouse -= 1;
         }
         // TODO place row/col of houses
@@ -288,7 +292,7 @@ MapGenerator.prototype.createTownBSP = function(cols, rows, conf) {
             freeLeaves.push(leaf);
         }
     });
-    return {map, houses};
+    return {map, houses, unused: freeLeaves};
 };
 
 MapGenerator.prototype.placeHouse = function(house, map, x, y) {
@@ -799,24 +803,38 @@ MapGenerator.prototype.createTownWithWall = function(cols, rows, conf = {}) {
     // Adjust house coordinates due to map merging
     const houses = townMapObj.houses;
     houses.forEach(house => {
-        house.ulx += tileSize;
-        house.uly += tileSize;
-        house.lrx += tileSize;
-        house.lry += tileSize;
-        house.walls = house.walls.map(w => {
-            w[0] += tileSize; w[1] += tileSize;
-            return w;
-        });
-        house.floor = house.floor.map(f => {
-            f[0] += tileSize; f[1] += tileSize;
-            return f;
-        });
-        house.door[0] += tileSize; house.door[1] += tileSize;
+        if (house.adjustCoord) {
+            house.adjustCoord(tileSize, tileSize);
+        }
+        else {
+            house.ulx += tileSize;
+            house.uly += tileSize;
+            house.lrx += tileSize;
+            house.lry += tileSize;
+            house.walls = house.walls.map(w => {
+                w[0] += tileSize; w[1] += tileSize;
+                return w;
+            });
+            house.floor = house.floor.map(f => {
+                f[0] += tileSize; f[1] += tileSize;
+                return f;
+            });
+            house.door[0] += tileSize; house.door[1] += tileSize;
+        }
     });
+
+    const unused = townMapObj.unused;
+    if (unused) {
+        unused.forEach(leaf => {
+            leaf.x += tileSize;
+            leaf.y += tileSize;
+        });
+    }
 
     return {
         map: finalMap,
         houses,
+        unused,
         tiles: castleMapObj.tiles
     };
 };
