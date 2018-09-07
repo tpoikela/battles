@@ -177,7 +177,13 @@ class CmdDropItem {
       const dropCount = obj.count <= obj.item.count ? obj.count
         : obj.item.count;
 
+      let hasActiveShop = false;
       if (actorCell.hasShop()) {
+          const shop = actorCell.getShop();
+          hasActiveShop = !shop.isAbandoned();
+      }
+
+      if (hasActiveShop) {
           const shopElem = actorCell.getPropType('shop')[0];
           const price = shopElem.getItemPriceForSelling(obj.item);
 
