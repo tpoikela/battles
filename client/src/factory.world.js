@@ -7,6 +7,7 @@ const debug = require('debug')('bitn:Factory.World');
 const RG = require('./rg');
 const ConfStack = require('./conf-stack');
 RG.Factory = require('./factory');
+RG.Factory.Zone = require('./factory.zone');
 
 const DungeonGenerator = require('./dungeon-generator');
 const {CaveGenerator} = require('./cave-generator');
