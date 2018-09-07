@@ -279,4 +279,24 @@ describe('RG.Inv.Inventory', () => {
         invEq.equipItem(swordOfStrength);
         expect(eq.getStrength()).to.equal(10);
     });
+
+    it('preserves entity ID between equips', () => {
+        const sword = new RG.Item.Weapon('sword');
+        const id = sword.getID();
+        invEq.addItem(sword);
+        invEq.equipItem(sword, 0);
+        const unequippedSword = invEq.unequipAndGetItem('hand', 1);
+        expect(unequippedSword.getID()).to.equal(id);
+
+        const arrows = new RG.Item.Ammo();
+        const arrowID = arrows.getID();
+        arrows.count = 10;
+        console.log('Adding items now');
+        invEq.addItem(arrows);
+        console.log('Equipping items now');
+        invEq.equipNItems(arrows, arrows.count);
+
+        const newArrows = invEq.getMissile();
+        expect(newArrows.getID()).to.equal(arrowID);
+    });
 });
