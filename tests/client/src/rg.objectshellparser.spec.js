@@ -554,7 +554,7 @@ describe('Data query functions for objects', function() {
         const cryomancer = parser.createActor('Cryomancer');
         expect(cryomancer.has('SpellPower')).to.equal(true);
         expect(cryomancer.get('SpellPower').getPP()).to.equal(21);
-        expect(cryomancer.get('SpellPower').getMaxPP()).to.equal(22);
+        expect(cryomancer.get('SpellPower').getMaxPP()).to.equal(21);
 
         const spellbook = cryomancer.getBook();
         expect(spellbook.getSpells()).to.have.length(1);
