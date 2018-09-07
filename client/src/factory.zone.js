@@ -3,6 +3,7 @@ const RG = require('./rg.js');
 const debug = require('debug')('bitn:Factory.Zone');
 const MountainGenerator = require('./mountain-generator');
 const {FactoryItem} = require('./factory.items');
+const CityGenerator = require('./city-generator');
 
 const RNG = RG.Random.getRNG();
 
@@ -209,7 +210,7 @@ RG.Factory.Zone = function() {
     this.createVillageLevel = function(cols, rows, levelConf) {
         levelConf.levelType = 'empty';
         levelConf.wallType = 'wooden';
-        const level = this.createLevel('town', cols, rows, levelConf);
+        // const level = this.createLevel('town', cols, rows, levelConf);
         if (!levelConf.actorsPerLevel) {
             levelConf.actorsPerLevel = 30;
         }
@@ -219,6 +220,8 @@ RG.Factory.Zone = function() {
         if (!levelConf.itemsPerLevel) {
             levelConf.itemsPerLevel = levelConf.maxDanger * 2;
         }
+        const cityGen = new CityGenerator();
+        const level = cityGen.create(cols, rows, levelConf);
         this.populateCityLevel(level, levelConf);
         this.addItemsToCityLevel(level, levelConf);
         return level;
