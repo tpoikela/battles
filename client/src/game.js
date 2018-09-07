@@ -122,6 +122,7 @@ RG.Game.Main = function() {
         if (Number.isInteger(actorOrID)) {
             actor = RG.ent(actorOrID);
         }
+        if (!actor) {actor = RG.CLICKED_ACTOR;}
         actor.setIsPlayer(true);
         actor.add(new RG.Component.Player());
         this.addPlayer(actor);
