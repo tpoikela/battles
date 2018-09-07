@@ -32,17 +32,42 @@ const EventEmitter = function() {
 const SelfRemovingListener = function(evtName, pool) {
     this.evtName = evtName;
     this.hasNotify = true;
-    this.notified = false;
+    this.emitAlso = false; // When true, emit inside notify
 
     this.notify = function(name) {
         console.log('SelfRemovingListener notify got ' + name);
         if (name === this.evtName) {
-            this.notified = true;
-            console.log('Now removing the listener for ' + name);
+            if (this.emitAlso) {
+                pool.emitEvent('SELF_REM_EMIT', {msg: 'Just emit it'});
+            }
+            console.log('Now call removeListener() for evt ' + name);
             pool.removeListener(this);
         }
     };
     pool.listenEvent(this.evtName, this);
+};
+
+const NestedNotify = function(evtName, pool) {
+    this.evtName = evtName;
+    this.hasNotify = true;
+    this.notified = false;
+
+    this.selfRem = [];
+
+    for (let i = 0; i < 10; i++) {
+        const selfRemList = new SelfRemovingListener('NESTED', pool);
+        if (i === 0) {selfRemList.emitAlso = true;}
+        this.selfRem.push(selfRemList);
+    }
+
+    this.notify = function(name) {
+        if (name === this.evtName) {
+            this.notified = true;
+            pool.emitEvent('NESTED', {msg: 'Remove nested'});
+        }
+    };
+    pool.listenEvent(this.evtName, this);
+
 };
 
 describe('EventPool', () => {
@@ -151,6 +176,16 @@ describe('EventPool', () => {
         expect(pool.getNumListeners()).to.equal(10);
         emitter.emit('REMOVE', {data: 'just some data'});
         expect(pool.getNumListeners()).to.equal(0);
+    });
+
+    it('handles nested notifys and removals without errors', () => {
+        const numListStart = pool.getNumListeners();
+        const nested = new NestedNotify('NESTED_EVENTS', pool);
+        const numListAfter = pool.getNumListeners();
+        expect(numListAfter).to.equal(numListStart + 10 + 1);
+        emitter.emit('NESTED_EVENTS', {msg: 'Triggers chain'});
+        expect(pool.getNumListeners()).to.equal(2);
+        expect(nested.notified).to.equal(true);
     });
 
 });
