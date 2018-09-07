@@ -262,19 +262,23 @@ RG.Factory.Base = function() {
         }
         const parser = this._parser;
         const actors = [];
+        const defaultFunc = { // Used if no func given
+            func: actor => actor.danger <= maxDanger
+        };
         for (let i = 0; i < nActors; i++) {
 
             // Generic randomization with danger level
             let actor = null;
             if (!func) {
                 actor = parser.createRandomActorWeighted(1, maxDanger,
-                    {func: function(actor) {return actor.danger <= maxDanger;}}
-                );
+                    defaultFunc);
             }
             else {
                 actor = parser.createRandomActor({
-                    func: actor => (func(actor) &&
-                        actor.danger <= maxDanger)
+                    func: actor => (
+                        func(actor) &&
+                        actor.danger <= maxDanger
+                    )
                 });
             }
 
@@ -289,7 +293,7 @@ RG.Factory.Base = function() {
             }
             else {
                 RG.diag('RG.Factory Could not meet constraints for actor gen');
-                return false;
+                // return false;
             }
 
         }
