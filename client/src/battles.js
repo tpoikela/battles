@@ -3,7 +3,9 @@
 
 const RG = require('./rg');
 
+/* eslint-disable */
 import ChunkManager from './chunk-manager';
+/* eslint-enable */
 
 RG.Verify = require('./verify');
 
