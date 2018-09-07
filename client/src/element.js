@@ -374,6 +374,11 @@ class RGElementShop extends Mixin.Locatable(RGElementBase) {
         return this._isAbandoned;
     }
 
+    reclaim(actor) {
+        this._shopkeeper = actor;
+        this._isAbandoned = false;
+    }
+
     /* Returns the price in gold coins for item in the cell.*/
     getItemPriceForBuying(item) {
         if (item.has('Unpaid')) {
@@ -404,12 +409,9 @@ class RGElementShop extends Mixin.Locatable(RGElementBase) {
         return ncoins;
     }
 
-    abandonShop(item) {
+    abandonShop() {
         this._shopkeeper = null;
         this._isAbandoned = true;
-        if (item.has('Unpaid')) {
-            item.remove('Unpaid');
-        }
     }
 
     /* Sets the shopkeeper.*/
