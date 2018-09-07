@@ -1,6 +1,8 @@
 /* This file contains factory objects for generating actors. */
 
 const RG = require('./rg');
+RG.Actor = require('./actor');
+RG.Brain = require('./brain');
 
 const initCombatant = (comb, obj) => {
     const {hp, att, def, prot} = obj;
