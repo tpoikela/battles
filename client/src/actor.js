@@ -239,7 +239,9 @@ class RGActorRogue extends BaseActor {
             this._brain = new RG.Brain.Player(this);
             addPlayerBrainComps(this);
             this.add(new RG.Component.Player());
-            this.add(new RG.Component.SpellPower());
+            if (!this.has('SpellPower')) {
+                this.add(new RG.Component.SpellPower());
+            }
         }
         else {
             RG.err('Actor.Rogue', 'setIsPlayer',
