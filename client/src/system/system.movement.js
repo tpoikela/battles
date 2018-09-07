@@ -140,10 +140,19 @@ System.Movement = function(compTypes) {
         }
 
         if (!prevCell.hasShop() && newCell.hasShop()) {
-            RG.gameMsg('You have entered a shop.');
+            const shop = newCell.getShop();
+            if (shop.isAbandoned()) {
+                RG.gameMsg('This shop seems to be abandoned');
+            }
+            else {
+                RG.gameMsg('You have entered a shop.');
+            }
         }
         else if (newCell.hasShop()) {
-            RG.gameMsg('You can drop items to sell here.');
+            const shop = newCell.getShop();
+            if (!shop.isAbandoned()) {
+                RG.gameMsg('You can drop items to sell them here.');
+            }
         }
 
         const baseType = newCell.getBaseElem().getType();
