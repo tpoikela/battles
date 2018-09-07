@@ -1525,7 +1525,10 @@ RG.extend2(RG.World.CityQuarter, RG.World.SubZoneBase);
 
 RG.World.CityQuarter.prototype.removeListeners = function() {
     this._shops.forEach(shop => {
-        RG.POOL.removeListener(shop);
+        if (!shop.isAbandoned()) {
+            // Must clean up these to avoid memory leaks
+            RG.POOL.removeListener(shop);
+        }
     });
 };
 
@@ -1670,6 +1673,11 @@ RG.World.Shop = function() {
     this.hasNotify = true;
 };
 
+RG.World.Shop.prototype.isAbandoned = function() {
+    return this._isAbandoned;
+};
+
+/* Listens to shopkeeper killed event. */
 RG.World.Shop.prototype.notify = function(evtName, args) {
     if (this._shopkeeper) {
         if (args.actor.getID() === this._shopkeeper.getID()) {
@@ -1696,17 +1704,42 @@ RG.World.Shop.prototype.setShopAbandoned = function() {
     this._isAbandoned = true;
     this._shopkeeper = null;
     this._coord.forEach(xy => {
-        const cell = this._level.getMap().getCell(xy[0], xy[1]);
+        const cell = this.getCell(xy);
+        const shopElem = cell.getShop();
+        shopElem.abandonShop();
         const items = cell.getItems();
-        const shop = cell.getShop();
-        items.forEach(item => {
-            shop.abandonShop(item);
-        });
+        if (items) {
+            items.forEach(item => {
+                if (item.has('Unpaid')) {
+                    item.remove('Unpaid');
+                }
+            });
+        }
     });
 };
 
-RG.World.Shop.prototype.reclaimShop = () => {
-    // TODO
+RG.World.Shop.prototype.getCell = function(xy) {
+    return this._level.getMap().getCell(xy[0], xy[1]);
+};
+
+RG.World.Shop.prototype.reclaimShop = function(actor) {
+    if (this._isAbandoned) {
+        this._isAbandoned = false;
+        this.setShopkeeper(actor);
+        this._coord.forEach(xy => {
+            const cell = this.getCell(xy);
+            const shopElem = cell.getShop();
+            shopElem.reclaim(actor);
+            const items = cell.getItems();
+            if (items) {
+                items.forEach(item => {
+                    if (!item.has('Unpaid')) {
+                        item.add(new RG.Component.Unpaid());
+                    }
+                });
+            }
+        });
+    }
 };
 
 /* Get empty cells of the shop (no items in cells). */
