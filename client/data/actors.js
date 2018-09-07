@@ -353,7 +353,7 @@ const Actors = [
         name: 'UndeadBase', className: 'cell-actor-undead',
         color: color('White', 'Black'),
         dontCreate: true, addComp: 'Undead', brain: undeadBrain,
-        range: 1, enemies: ['player', 'human', 'dwarf'], type: 'undead'
+        range: 1, enemies: RG.ACTOR_RACES, type: 'undead'
     },
     {
         name: 'skeletal dog', char: 'd', base: 'UndeadBase',
@@ -475,7 +475,7 @@ const Actors = [
     // DEMONS AND WINTRY BEINGS
     {
         name: 'WinterBeingBase', // className: 'cell-actor-winter',
-        dontCreate: true, enemies: ['player', 'human'],
+        dontCreate: true, enemies: RG.ACTOR_RACES,
         color: color('Blue', 'White'),
         addComp: ['SnowWalk', resistance('ICE', 'MEDIUM')]
     },
@@ -499,7 +499,7 @@ const Actors = [
     {
         name: 'Frost goblin', char: 'g', base: 'WinterBeingBase',
         attack: 3, defense: 3, protection: 1, damage: '1d7', hp: 12,
-        danger: 3, type: 'goblin', brain: defaultBrain
+        danger: 3, type: 'icebeing', brain: defaultBrain
     },
     {
         name: 'Frost viper', char: 's', base: 'WinterBeingBase',
@@ -523,7 +523,7 @@ const Actors = [
     {
         name: 'Glacial golem', char: 'G', base: 'WinterBeingBase',
         attack: 4, defense: 4, protection: 3, damage: '2d4', speed: 90,
-        danger: 5, hp: 30
+        danger: 5, hp: 30, type: 'construct'
     },
     {
         name: 'Ice minion', base: 'WinterBeingBase', char: 'm',
@@ -544,7 +544,7 @@ const Actors = [
     },
     {
         name: 'Cryomancer', base: 'WinterBeingBase', char: '@',
-        type: 'icebeing', enemies: ['player', 'human'],
+        type: 'icebeing',
         attack: 4, defense: 4, damage: '1d6', range: 1, hp: 30,
         danger: 5, spells: ['FrostBolt'], maxPP: 22, pp: 21,
         brain: 'SpellCaster'
@@ -673,7 +673,7 @@ const Actors = [
     {
         name: 'robber', base: 'human',
         attack: 2, defense: 4, danger: 3,
-        enemies: ['player', 'human']
+        enemies: ['player']
     },
     {
         name: 'miner', base: 'human',
@@ -711,37 +711,40 @@ const Actors = [
 
     // WILDLINGS
     {
-        name: 'wildling', char: 'F', className: 'cell-actor-wildling',
+        name: 'wildling', char: 'I', className: 'cell-actor-wildling',
         type: 'wildling', brain: defaultBrain,
         attack: 2, defense: 1, damage: '1d6', range: 1,
         hp: 15, danger: 3, enemies: ['player', 'human']
     },
     {
-        name: 'wildling hunter', base: 'wildling', char: 'F',
+        name: 'wildling hunter', base: 'wildling', char: 'I',
         attack: 3, defense: 3, damage: '1d6', hp: 20, danger: 3,
         equip: ['Tomahawk']
     },
     {
-        name: 'wildling archer', base: 'wildling', char: 'F',
+        name: 'wildling archer', base: 'wildling', char: 'I',
         attack: 3, defense: 3, damage: '1d6', hp: 20, danger: 4,
         equip: ['Wooden bow', {name: 'Wooden arrow', count: 10}],
+        'color-fg': 'Yellow',
         brain: defaultBrain
     },
     {
-        name: 'wildling fighter', base: 'wildling', char: 'F',
+        name: 'wildling fighter', base: 'wildling', char: 'I',
         attack: 4, defense: 3, damage: '1d9', hp: 25, danger: 5
     },
     {
-        name: 'wildling elite', base: 'wildling', char: 'F',
+        name: 'wildling elite', base: 'wildling', char: 'I',
         attack: 5, defense: 3, damage: '1d10', hp: 32, danger: 6
     },
     {
-        name: 'wildling warlord', base: 'wildling', char: 'W',
-        attack: 6, defense: 3, damage: '1d12', hp: 40, danger: 7
+        name: 'wildling warlord', base: 'wildling', char: 'I',
+        attack: 6, defense: 3, damage: '1d12', hp: 40, danger: 7,
+        'color-fg': 'YellowGreen'
     },
     {
-        name: 'wildling king', base: 'wildling', char: 'W',
-        attack: 8, defense: 5, damage: '1d15', hp: 50, danger: 10
+        name: 'wildling king', base: 'wildling', char: 'I',
+        attack: 8, defense: 5, damage: '1d15', hp: 50, danger: 10,
+        'color-fg': 'Red'
     },
 
     // CATFOLK
@@ -782,7 +785,8 @@ const Actors = [
     },
     {
         name: 'catfolk king', base: 'CatfolkBase',
-        attack: 6, defense: 12, damage: '7d3', hp: 40, danger: 10
+        attack: 6, defense: 12, damage: '7d3', hp: 40, danger: 10,
+        'color-fg': 'Red'
     },
 
     // WOLFCLAN
@@ -990,7 +994,8 @@ const Actors = [
         spells: ['FrostBolt'], hp: 100, pp: 100, brain: 'SpellCaster',
         strength: 30, accuracy: 15, agility: 20, willpower: 20, perception: 15,
         magic: 30, attack: 30, defense: 30, protection: 10,
-        equip: ['Permaice katana', 'Permaice armour']
+        equip: ['Permaice katana', 'Permaice armour'],
+        addComp: ['SnowWalk', resistance('ICE', 'HIGH')]
     },
     {
         name: 'Zamoned, Son of Frost', base: 'UniqueBase',
@@ -999,8 +1004,10 @@ const Actors = [
         strength: 20, accuracy: 25, agility: 35, willpower: 15, perception: 25,
         magic: 10, attack: 30, defense: 30, protection: 10,
         equip: ['Permaice axe', 'Permaice armour', 'Bow of Defense',
-            {name: 'Runed arrow', count: 100}]
+            {name: 'Runed arrow', count: 100}],
+        addComp: ['SnowWalk', resistance('ICE', 'HIGH')]
     },
+
     {
         name: 'Hag of North', type: 'wolfclan', base: 'UniqueBase',
         char: 'w', danger: 100,
@@ -1010,6 +1017,7 @@ const Actors = [
         magic: 25, attack: 15, defense: 15, protection: 5,
         equip: ['Ruby glass armour', 'Ruby glass collar']
     },
+
     {
         name: 'Aime Aeon en Nev, Mighty spellsinger', type: 'dogfolk',
         base: 'UniqueBase', char: 'd', danger: 100,
@@ -1023,16 +1031,6 @@ const Actors = [
         ]
     },
     {
-        name: 'Elene Immolate Kinin, Queen of cats', type: 'catfolk',
-        base: 'UniqueBase', char: 'f', danger: 100,
-        damage: '10d3 + 3', hp: 100, pp: 50, brain: 'SpellCaster',
-        spells: ['ScorpionsTail', 'EnergyArrow', 'SummonKin'],
-        strength: 15, accuracy: 25, agility: 25, willpower: 17, perception: 25,
-        magic: 17, attack: 25, defense: 15, protection: 5,
-        equip: ['Steel armour', 'Runed collar'],
-        addComp: ['FirstStrike']
-    },
-    {
         name: 'Aspelin Primoen, the Blacksmith', type: 'dogfolk',
         base: 'UniqueBase', char: 'd', danger: 75,
         damage: '3d7 + 3', hp: 134, brain: defaultBrain,
@@ -1042,6 +1040,17 @@ const Actors = [
         onHit: [
             {addComp: 'Stun', duration: '2d4 + 2'}
         ]
+    },
+
+    {
+        name: 'Elene Immolate Kinin, Queen of cats', type: 'catfolk',
+        base: 'UniqueBase', char: 'f', danger: 100,
+        damage: '10d3 + 3', hp: 100, pp: 50, brain: 'SpellCaster',
+        spells: ['ScorpionsTail', 'EnergyArrow', 'SummonKin'],
+        strength: 15, accuracy: 25, agility: 25, willpower: 17, perception: 25,
+        magic: 17, attack: 25, defense: 15, protection: 5,
+        equip: ['Steel armour', 'Runed collar'],
+        addComp: ['FirstStrike']
     },
     {
         name: 'Tajun Eon en Lotus, lich lord', type: 'undead',
