@@ -458,7 +458,9 @@ RG.Component.Stun = function() {
 
     this.toJSON = () => {
         const obj = RG.Component.Base.prototype.toJSON.call(this);
-        obj.setSource = RG.getObjRef('entity', _src);
+        if (_src && !_src.has('Dead')) {
+            obj.setSource = RG.getObjRef('entity', _src);
+        }
         return obj;
     };
 
@@ -476,7 +478,9 @@ RG.Component.Paralysis = function() {
 
     this.toJSON = () => {
         const obj = RG.Component.Base.prototype.toJSON.call(this);
-        obj.setSource = RG.getObjRef('entity', _src);
+        if (_src && !_src.has('Dead')) {
+            obj.setSource = RG.getObjRef('entity', _src);
+        }
         return obj;
     };
 
@@ -525,7 +529,9 @@ RG.Component.MindControl = function() {
 
     this.toJSON = () => {
         const obj = RG.Component.Base.prototype.toJSON.call(this);
-        obj.setSource = RG.getObjRef('entity', _src);
+        if (_src && !_src.has('Dead')) {
+            obj.setSource = RG.getObjRef('entity', _src);
+        }
         return obj;
     };
 };
@@ -556,7 +562,8 @@ class Poison extends Mixin.DurationRoll(Mixin.DamageRoll(RG.Component.Base)) {
         const obj = super.toJSON();
         obj.setType = this.getType();
         obj.setProb = this._prob;
-        if (this._src) { // May not be present in items etc
+        // May not be present in items etc
+        if (this._src && !this._src.has('Dead')) {
             obj.setSource = RG.getObjRef('entity', this._src);
         }
         return obj;
@@ -1254,6 +1261,9 @@ class Duration extends Mixin.DurationRoll(RG.Component.Base) {
     setComp(comp) {
         this._comp = comp;
         if (!this._addedOnActor) {
+
+            // Moves the comp to actor, and stores only comp ID
+            // inside this object
             const _addCb = () => {
                 this.getEntity().add(this._comp);
                 if (this._comp.setSource && this._source) {
@@ -1298,7 +1308,7 @@ class Duration extends Mixin.DurationRoll(RG.Component.Base) {
 
     toJSON() {
         const json = super.toJSON();
-        if (this._source) {
+        if (this._source && !this._source.has('Dead')) {
             json.setSource = RG.getObjRef('entity', this._source);
         }
         if (!this._addedOnActor) {
