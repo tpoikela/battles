@@ -17,6 +17,10 @@ const EventPool = function() { // {{{2
     this._lastRemoved = null;
 
     this.pendingRemoves = [];
+
+    // Tracks that notify() call stack is fully unwound before
+    // listeners can be removed
+    this.notifyStackSize = 0;
 };
 RG.POOL = new EventPool(); // Dangerous, global objects
 
@@ -32,7 +36,7 @@ EventPool.prototype.getNumEventsListened = function() {
  * {data: "abcd"} */
 EventPool.prototype.emitEvent = function(evtName, args) {
     if (!RG.isNullOrUndef([evtName])) {
-
+        ++this.notifyStackSize;
         if (process.env.NODE_ENV !== 'production') {
             this._lastEmitted = evtName;
             this._lastArgs = args;
@@ -50,14 +54,17 @@ EventPool.prototype.emitEvent = function(evtName, args) {
         RG.nullOrUndefError('EventPool: emitEvent',
             'Event name must be given.', evtName);
     }
-    this.cannotRemove = false; // Unlock removals
-    // And process pending removals
-    if (this.pendingRemoves.length > 0) {
-        this.pendingRemoves.forEach(obj => {
-            this.removeListener(obj);
-        });
-        this.pendingRemoves = [];
+    if (this.notifyStackSize === 1) {
+        this.cannotRemove = false; // Unlock removals
+        // And process pending removals
+        if (this.pendingRemoves.length > 0) {
+            this.pendingRemoves.forEach(obj => {
+                this.removeListener(obj);
+            });
+            this.pendingRemoves = [];
+        }
     }
+    --this.notifyStackSize;
 };
 
 /* Register an event listener. */
