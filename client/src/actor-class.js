@@ -6,6 +6,7 @@ RG.Component = require('./component');
 RG.Spell = require('./spell');
 RG.Random = require('./random');
 const Ability = require('./abilities');
+const EquipSlot = require('./equipment').EquipSlot;
 
 const {Abilities} = Ability;
 
@@ -659,7 +660,7 @@ class Spiritcrafter extends ActorClassBase {
             },
             4: () => {
                 const eq = this.getActor().getInvEq().getEquipment();
-                eq.addSlot('spiritgem', new RG.Inv.EquipSlot(eq, 'spiritgem'));
+                eq.addSlot('spiritgem', new EquipSlot(eq, 'spiritgem'));
             },
             8: () => {
                 this._actor.getBook().addSpell(new RG.Spell.EnergyArrow());
@@ -669,7 +670,7 @@ class Spiritcrafter extends ActorClassBase {
             },
             16: () => {
                 const eq = this.getActor().getInvEq().getEquipment();
-                eq.addSlot('spiritgem', new RG.Inv.EquipSlot(eq, 'spiritgem'));
+                eq.addSlot('spiritgem', new EquipSlot(eq, 'spiritgem'));
                 // Gems weight only 50% of their weight
             },
             20: () => {
@@ -683,7 +684,7 @@ class Spiritcrafter extends ActorClassBase {
             },
             32: () => {
                 const eq = this.getActor().getInvEq().getEquipment();
-                eq.addSlot('spiritgem', new RG.Inv.EquipSlot(eq, 'spiritgem'));
+                eq.addSlot('spiritgem', new EquipSlot(eq, 'spiritgem'));
                 this._actor.getBook().addSpell(new RG.Spell.RingOfEnergy());
                 // TODO turn gems into power/health
                 // Gems weight only 10% of their weight
