@@ -136,7 +136,7 @@ RG.Brain.distToActor = (actor1, actor2) => {
 RG.Brain.Memory = function() {
 
     this._actors = {};
-    this._enemyTypes = []; // List of enemy types for this actor
+    this._enemyTypes = {}; // List of enemy types for this actor
     this._communications = [];
     this._lastAttackedID = null;
 
@@ -144,14 +144,13 @@ RG.Brain.Memory = function() {
 
     /* Adds a generic enemy type. */
     this.addEnemyType = type => {
-        this._enemyTypes.push(type);
+        this._enemyTypes[type] = true;
     };
 
     /* Removes a generic enemy type. */
     this.removeEnemyType = type => {
-        const index = this._enemyTypes.indexOf(type);
-        if (index >= 0) {
-            this._enemyTypes.splice(index, 1);
+        if (this._enemyTypes[type]) {
+            delete this._enemyTypes[type];
         }
     };
 
@@ -162,11 +161,16 @@ RG.Brain.Memory = function() {
             if (index !== -1) {return true;}
         }
         if (!this.isFriend(actor)) {
-            const type = actor.getType();
-            const index = this._enemyTypes.indexOf(type);
-            if (index !== -1) {return true;}
+            if (this._enemyTypes[actor.getType()]) {
+                return true;
+            }
+            if (!actor.isPlayer) {
+                const json = JSON.stringify(actor);
+                RG.err('Memory', 'isEnemy',
+                    'Actor has not isPlayer() ' + json);
+            }
             if (actor.isPlayer()) {
-                return this._enemyTypes.indexOf('player') >= 0;
+                return this._enemyTypes.player;
             }
         }
         return false;
@@ -200,6 +204,11 @@ RG.Brain.Memory = function() {
 
     /* Adds given actor as (personal) enemy. */
     this.addEnemy = actor => {
+        if (!RG.isActor(actor)) {
+            const json = JSON.stringify(actor);
+            RG.err('Memory', 'addEnemy',
+                'Only actors can be added. Got: ' + json);
+        }
         if (!this.isEnemy(actor)) {
             if (this.isFriend(actor)) {
                 this.removeFriend(actor);
@@ -265,7 +274,7 @@ RG.Brain.Memory = function() {
 
     this.toJSON = () => {
         const obj = {
-            enemyTypes: this._enemyTypes
+            enemyTypes: Object.keys(this._enemyTypes)
         };
         if (this._actors.hasOwnProperty('enemies')) {
             obj.enemies = this._actors.enemies.map(enemy => enemy.getID());
