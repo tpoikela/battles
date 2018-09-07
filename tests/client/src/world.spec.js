@@ -250,6 +250,15 @@ describe('World.Shop', () => {
         const shopLevel = RG.FACT.createLevel('town', 80, 40, conf);
         const shop = new RG.World.Shop();
         const keeper = parser.createActor('shopkeeper');
+        const coord = [];
+        for (let i = 0; i < 10; i++) {
+            const [x, y] = [i + 1, 1];
+            const shopElem = new RG.Element.Shop();
+            shopElem.setShopkeeper(keeper);
+            shopLevel.addElement(shopElem, x, y);
+            coord.push([x, y]);
+        }
+        shop.setCoord(coord);
         shop.setLevel(shopLevel);
         shop.setShopkeeper(keeper);
         shop.setShopAbandoned();
@@ -258,6 +267,10 @@ describe('World.Shop', () => {
 
         const json = shop.toJSON();
         expect(json.level).to.equal(shopLevel.getID());
+
+        const keeper2 = parser.createActor('shopkeeper');
+        shop.reclaimShop(keeper2);
+        expect(shop.getShopkeeper()).to.not.be.empty;
     });
 });
 
