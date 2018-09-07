@@ -46,7 +46,10 @@ System.Damage = function(compTypes) {
 
             const damageSrc = this._getUltimateDmgSource(dmgComp);
             if (damageSrc && (ent.getID() !== damageSrc.getID())) {
-                ent.addEnemy(damageSrc);
+                if (RG.isActor(damageSrc)) {
+                    // At the moment, allow only actors as enemies
+                    ent.addEnemy(damageSrc);
+                }
             }
 
             if (health.isDead() && !ent.has('Dead')) {
@@ -368,6 +371,5 @@ System.Damage = function(compTypes) {
 
 };
 RG.extend2(System.Damage, System.Base);
-
 
 module.exports = System.Damage;
