@@ -32,7 +32,8 @@ const gameConf = {
     playMode: 'Arena',
     loadedPlayer: null,
     loadedLevel: null,
-    playerName: 'Player'
+    playerName: 'Player',
+    seed: 0
 };
 const gameFact = new RG.Factory.Game();
 let game = gameFact.createNewGame(gameConf);
@@ -47,6 +48,7 @@ const saveFunc = () => {
     fromJSON = new RG.Game.FromJSON();
     gameJSON = game.toJSON();
     game = fromJSON.createGame(gameJSON);
+    console.log(`saveFunc RG.POOL listeners: ${RG.POOL.getNumListeners()}`);
 };
 
 const updateFunc = () => {
@@ -60,7 +62,14 @@ const simulSpellOn1stTurn = () => {
 // expect(simulSpellOn1stTurn).not.to.throw(Error);
 
 const timeStart = new Date().getTime();
-const numTurns = 10000;
+const numTurns = 500;
+const saveInterval = 200;
+
+let turnOfLastSave = 0;
+let timeSaveFinished = Date.now();
+
+console.log(`Start RG.POOL listeners: ${RG.POOL.getNumListeners()}`);
+
 for (let i = 1; i <= numTurns; i++) {
     // expect(updateFunc).not.to.throw(Error);
     updateFunc();
@@ -68,10 +77,15 @@ for (let i = 1; i <= numTurns; i++) {
     if (i === 10) {
         expect(simulSpellOn1stTurn).not.to.throw(Error);
     }
-    if (i % 100 === 0) {
-        console.log(`Saving game after ${i}/${numTurns} turns`);
+    if (i % saveInterval === 0) {
+        const timeNow = Date.now();
+        const dur = timeNow - timeSaveFinished;
+        const fps = (i - turnOfLastSave) / (dur / 1000);
+        console.log(`FPS: ${fps} Saving game after ${i}/${numTurns} turns`);
         // expect(saveFunc).not.to.throw(Error);
         saveFunc();
+        turnOfLastSave = i;
+        timeSaveFinished = Date.now();
     }
     if (i % 10 === 0) {
         console.log('Finished turn ' + i);
