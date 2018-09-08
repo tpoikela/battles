@@ -4,6 +4,8 @@ const RG = require('../rg');
 const System = {};
 System.Base = require('./system.base');
 
+const RNG = RG.Random.getRNG();
+
 /* Stun system removes Movement/Attack components from actors to prevent. */
 System.Disability = function(compTypes) {
     System.Base.call(this, RG.SYS.DISABILITY, compTypes);
@@ -18,7 +20,7 @@ System.Disability = function(compTypes) {
         },
         Stun: {
             Attack: 'is too stunned to attack',
-            Movement: 'is too stunned to move',
+            Movement: 'is stunned, and stumbles',
             SpellCast: 'is too stunned to cast spells'
         }
     };
@@ -37,6 +39,10 @@ System.Disability = function(compTypes) {
             SpellCast: ent => {
                 ent.remove('SpellCast');
                 _emitMsg('Paralysis', 'SpellCast', ent);
+            },
+            UseStairs: ent => {
+                ent.remove('UseStairs');
+                _emitMsg('Paralysis', 'Movement', ent);
             }
         },
         Stun: {
@@ -44,13 +50,29 @@ System.Disability = function(compTypes) {
                 ent.remove('Attack');
                 _emitMsg('Stun', 'Attack', ent);
             },
+            // Stun moves actor to random direction if they try to attack
             Movement: ent => {
+                const dir = RNG.getRandDir();
+                const [x, y] = RG.newXYFromDir(dir, ent);
                 ent.remove('Movement');
+                const map = ent.getLevel().getMap();
+                if (map.hasXY(x, y)) {
+                    const movComp = new RG.Component.Movement(x, y,
+                        ent.getLevel());
+                    ent.add(movComp);
+                }
                 _emitMsg('Stun', 'Movement', ent);
             },
             SpellCast: ent => {
                 ent.remove('SpellCast');
                 _emitMsg('Stun', 'SpellCast', ent);
+            },
+            UseStairs: ent => {
+                if (RG.isSuccess(0.5)) {
+                    ent.remove('UseStairs');
+                    _emitMsg('Stun', 'Movement', ent);
+
+                }
             }
         }
     };
