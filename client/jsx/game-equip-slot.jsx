@@ -30,7 +30,7 @@ export default class GameEquipSlot extends Component {
     let className = 'inv-equip-slot';
     if (item !== null) {
       msg = item.toString();
-      className += RG.getCssClass(item.getName());
+      className += ' ' + RG.getCssClass(RG.TYPE_ITEM, item.getName());
     }
     return (
       <div
