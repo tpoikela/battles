@@ -333,9 +333,7 @@ const Actors = [
     {
         name: 'avian emperor', base: 'AvianFolkBase', danger: 16,
         attack: 8, defense: 14, damage: '5d5', hp: 85,
-        addComp: ['Flying',
-            {comp: 'BypassProtection', func: {setChance: 0.15}}
-        ]
+        addComp: ['Flying', bypass(0.15)]
     },
 
     // BEARFOLK
@@ -491,9 +489,16 @@ const Actors = [
         hp: 40
     },
     {
+        name: 'undead unicorn', char: 'U', base: 'UndeadBase',
+        'color-fg': 'GhostWhite',
+        attack: 7, defense: 7, protection: 7, damage: '2d5 + 5', danger: 9,
+        speed: 102, hp: 50,
+        addComp: [bypass(0.25)]
+    },
+    {
         name: 'necrowyrm', char: 'W', base: 'UndeadBase',
         'color-fg': 'GhostWhite',
-        attack: 7, defense: 7, protection: 7, damage: '2d5', danger: 10,
+        attack: 7, defense: 7, protection: 7, damage: '3d5', danger: 10,
         brain: 'Animal', speed: 107, hp: 50
     },
     {
@@ -1133,6 +1138,19 @@ const Actors = [
     // {type: 'human'}
     // {type: 'hyrkhian'}
     // {type: 'wildling'}
+    {
+        name: 'Zargoth, undead sorcerer', type: 'undead',
+        base: 'UniqueBase', char: 'Z', danger: 75,
+        color: {fg: 'DarkSalmon', bg: 'Black'}, enemies: RG.ACTOR_RACES,
+        damage: '2d9 + 4', hp: 100, pp: 75, maxPP: 75, brain: 'SpellCaster',
+        strength: 17, accuracy: 20, agility: 17, willpower: 21, perception: 19,
+        magic: 25, attack: 25, defense: 15, protection: 10, fovrange: 7,
+        onHit: [
+            meleeHitDamage(2, '1d8 + 2', 'NECRO')
+        ],
+        spells: ['SummonUndeadUnicorns', 'ShadowRay'],
+
+    }
 
 
 ];
@@ -1199,6 +1217,10 @@ function resistance(type, level) {
             setLevel: RG.RESISTANCE[level.toUpperCase()]
         }
     };
+}
+
+function bypass(value) {
+    return {comp: 'BypassProtection', func: {setChance: value}};
 }
 
 function color(fg, bg) {
