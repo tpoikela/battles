@@ -486,6 +486,10 @@ RG.World.ZoneBase.prototype.getTileXY = function() {
 };
 
 RG.World.ZoneBase.prototype.addSubZone = function(subZone) {
+    if (subZone.getID() === this.getID()) {
+        RG.err('ZoneBase', 'addSubZone',
+            'Tried to add itself as sub zone: ' + this.getName());
+    }
     if (!RG.isNullOrUndef([subZone])) {
         subZone.setParent(this);
         this._subZones.push(subZone);
