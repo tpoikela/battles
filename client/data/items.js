@@ -986,6 +986,9 @@ const Items = [
         name: 'Berries', base: 'FoodBase', energy: 1700, value: value(30)
     },
     {
+        name: 'Potatoes', base: 'FoodBase', energy: 1200, value: value(20)
+    },
+    {
         name: 'Dried meat', base: 'FoodBase', energy: 1300, value: value(20)
     },
     {
