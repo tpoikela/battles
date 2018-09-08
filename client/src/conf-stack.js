@@ -26,7 +26,7 @@ const ConfStack = function() {
     this.pushScope = function(conf) {
         this.scope.push(conf.name);
         this.confStack.push(conf);
-        this.debug('Pushed scope: ' + conf.name);
+        this.dbg('Pushed scope: ' + conf.name);
     };
 
     /* Removes given config and the name it contains from stacks. Reports an
@@ -40,7 +40,7 @@ const ConfStack = function() {
         }
         else {
             const currConf = this.confStack.pop();
-            this.debug('Popped scope: ' + currConf.name);
+            this.dbg('Popped scope: ' + currConf.name);
         }
     };
 
@@ -48,8 +48,9 @@ const ConfStack = function() {
     this.getConf = function(keys) {
         // First travel the config stack from the top
         for (let i = this.confStack.length - 1; i >= 0; i--) {
-            this.debug(i + ' looking for ' + keys);
+            this.dbg(`[${i}] looking for |${keys}|`);
             if (this.confStack[i].hasOwnProperty(keys)) {
+                this.dbg(`  >> [${i}] Found key |${keys}|`);
                 return this.confStack[i][keys];
             }
         }
@@ -62,7 +63,7 @@ const ConfStack = function() {
         return null;
     };
 
-    this.debug = function(msg) {
+    this.dbg = function(msg) {
         if (debug.enabled) {
             RG.diag(msg);
         }
