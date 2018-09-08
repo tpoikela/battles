@@ -9,8 +9,6 @@ const RG = require('./rg');
 const EventPool = function() { // {{{2
     this._listeners = {};
     this._nListeners = 0;
-
-    // const _poolID = RG.EventPool.id;
     this._listenerID = 0;
 
     this._lastEmitted = null;
