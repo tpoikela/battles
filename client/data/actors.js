@@ -34,7 +34,7 @@ const Actors = [
         className: 'cell-actor-animal',
         attack: 1, defense: 1, hp: 5,
         range: 1, danger: 1, speed: 100, brain: 'Animal',
-        enemies: ['player', 'human', 'dwarf']
+        enemies: RG.ACTOR_RACES
     },
     {
         name: 'rat', char: 'r', base: 'animal'
@@ -61,11 +61,13 @@ const Actors = [
     },
     {
         name: 'coyote', char: 'c', base: 'animal',
+        'color-f': 'Yellow',
         attack: 3, defense: 3, damage: '1d4',
         hp: 12, danger: 2
     },
     {
         name: 'lynx', char: 'f', base: 'animal',
+        'color-f': 'Orange',
         attack: 5, defense: 1, damage: '1d6',
         hp: 12, danger: 3
     },
@@ -114,6 +116,12 @@ const Actors = [
         hp: 20, danger: 4, addComp: 'Flying'
     },
     {
+        name: 'dire wolf', char: 'w', base: 'animal',
+        'color-fg': 'Gray',
+        attack: 6, defense: 2, damage: '1d8 + 2',
+        hp: 23, danger: 5
+    },
+    {
         name: 'black vulture', char: 'V', base: 'animal',
         attack: 5, defense: 5, damage: '1d7',
         hp: 25, danger: 5, addComp: 'Flying'
@@ -138,7 +146,14 @@ const Actors = [
     {
         name: 'sabretooth tiger', char: 'f', base: 'animal',
         attack: 8, defense: 3, damage: '3d3',
-        hp: 25, danger: 5
+        'color-fg': 'Red',
+        hp: 25, danger: 5, speed: 110
+    },
+    {
+        name: 'dire bear', char: 'B', base: 'animal',
+        'color-fg': 'Gray',
+        attack: 8, defense: 5, damage: '4d4',
+        hp: 40, danger: 6
     },
     {
         name: 'griffin', char: 'G', base: 'animal',
@@ -148,7 +163,15 @@ const Actors = [
     {
         name: 'mammoth', char: 'M', base: 'animal',
         attack: 4, defense: 4, protection: 7, damage: '1d9',
-        strength: 30, hp: 40, danger: 8
+        strength: 30, hp: 40, danger: 8,
+        addComp: [resistance('ICE', 'MEDIUM')]
+    },
+    {
+        name: 'dire mammoth', char: 'M', base: 'animal',
+        attack: 4, defense: 4, protection: 10, damage: '1d15',
+        strength: 35, hp: 50, danger: 9,
+        'color-fg': 'Gray',
+        addComp: [resistance('ICE', 'MEDIUM')]
     },
     {
         name: 'thunderbird', char: 'G', base: 'animal',
@@ -167,7 +190,7 @@ const Actors = [
     {
         name: 'BeastBase', type: 'beast',
         dontCreate: true,
-        enemies: ['human', 'player', 'dwarf']
+        enemies: RG.ACTOR_RACES
     },
     {
         name: 'hezrou', base: 'BeastBase',
@@ -183,7 +206,7 @@ const Actors = [
     {
         name: 'ConstructBase', type: 'construct',
         dontCreate: true,
-        enemies: ['human', 'player']
+        enemies: RG.ACTOR_RACES
     },
     {
         name: 'air elemental', base: 'ConstructBase',
@@ -333,6 +356,14 @@ const Actors = [
       damage: '1d6',
       attack: 2, defense: 2, danger: 3, hp: 13,
       equip: ['Wooden bow', {name: 'Wooden arrow', count: 10}]
+    },
+    {
+      name: 'bearfolk mage', base: 'BearfolkBase',
+      damage: '1d6',
+      attack: 2, defense: 2, danger: 4, hp: 15,
+      equip: ['Robe', 'Wooden staff'],
+      brain: 'SpellCaster', spells: ['SummonKin'],
+      pp: 20, maxPP: 20
     },
     {
         name: 'bearfolk elite', base: 'BearfolkBase',
@@ -918,7 +949,7 @@ const Actors = [
     // HYRKHIANS
     {
       name: 'HyrkhianBase', dontCreate: true, className: 'cell-actor-hyrkh',
-      noRandom: true, char: 'H', enemies: ['undead', 'demon', 'animal'],
+      char: 'y', enemies: ['undead', 'demon', 'animal'],
       type: 'hyrkhian', brain: defaultBrain
     },
     {
@@ -930,6 +961,12 @@ const Actors = [
       name: 'Hyrkhian archer', base: 'HyrkhianBase',
       attack: 4, defense: 4, protection: 2, hp: 20,
       equip: ['Steel bow', {name: 'Steel arrow', count: 15}], danger: 6
+    },
+    {
+      name: 'Hyrkhian wizard', base: 'HyrkhianBase',
+      attack: 4, defense: 4, protection: 2, hp: 25,
+      danger: 7, pp: 30, brain: 'SpellCaster',
+      spells: ['Heal', 'MagicArmor']
     },
     {
       name: 'Hyrkhian elite', base: 'HyrkhianBase',
