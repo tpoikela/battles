@@ -1087,7 +1087,7 @@ const Actors = [
         strength: 15, accuracy: 25, agility: 25, willpower: 17, perception: 25,
         magic: 17, attack: 25, defense: 15, protection: 5,
         equip: ['Steel armour', 'Runed collar'],
-        addComp: ['FirstStrike']
+        addComp: ['FirstStrike', 'RangedEvasion']
     },
     {
         name: 'Tajun Eon en Lotus, lich lord', type: 'undead',
@@ -1101,7 +1101,39 @@ const Actors = [
             meleeHitDamage(4, '2d8 + 2', 'NECRO')
         ],
         spells: ['SummonDead', 'FrostBolt', 'GraspOfWinter'],
-    }
+    },
+
+    {
+        name: 'Emption Agana Sunkist, Emperor bear', type: 'bearfolk',
+        base: 'UniqueBase', char: 'B', danger: 75,
+        damage: '4d7 + 3', hp: 123, brain: defaultBrain,
+        strength: 35, accuracy: 17, agility: 17, willpower: 17, perception: 17,
+        magic: 10, attack: 35, defense: 35, protection: 15,
+        equip: ['Mithril armour', 'Mithril shield'],
+        onHit: [
+            meleeHitDamage(8, '1d2', 'LIGHTNING'),
+            {addComp: 'Stun', duration: '1d4 + 1'}
+        ]
+    },
+
+    {
+        name: 'Dvaling, sharpshooter', type: 'dwarf',
+        base: 'UniqueBase', char: 'h', danger: 70,
+        damage: '4d7 + 3', hp: 123, brain: defaultBrain,
+        strength: 35, accuracy: 17, agility: 17, willpower: 17, perception: 30,
+        magic: 10, attack: 35, defense: 35, protection: 5,
+        fovrange: 9,
+        equip: ['Chain armour', 'Chain helmet', 'Chain boots',
+            'Double crossbow', {name: 'Void bolt', count: 30}],
+        addComp: ['EagleEye', 'RangedEvasion', 'StrongShot']
+    },
+
+    // UNIQUES TODO
+    // {type: 'goblin'}
+    // {type: 'human'}
+    // {type: 'hyrkhian'}
+    // {type: 'wildling'}
+
 
 ];
 
