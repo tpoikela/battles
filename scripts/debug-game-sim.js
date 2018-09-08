@@ -2,17 +2,21 @@
 require('babel-register');
 
 const expect = require('chai').expect;
+const fs = require('fs');
+
 const RG = require('../client/src/battles');
 const Keys = require('../client/src/keymap');
-const fs = require('fs');
+const ROT = require('../lib/rot');
+const UtilsSim = require('./utils-sim');
 
 const restKey = {code: Keys.KEY.REST};
 
 const RNG = RG.Random.getRNG();
-const ROT = require('../lib/rot');
 
-RNG.setSeed(0);
-ROT.RNG.setSeed(0);
+const opts = UtilsSim.getOpts();
+
+RNG.setSeed(opts.seed);
+ROT.RNG.setSeed(opts.seed);
 
 console.log('RNG uniform: ' + RNG.getUniform());
 console.log('ROT.RNG uniform: ' + ROT.RNG.getUniform());
@@ -24,15 +28,15 @@ const gameConf = {
 
     playerLevel: 'Medium',
     levelSize: 'Medium',
-    playerClass: RG.ACTOR_CLASSES[0],
-    playerRace: RG.ACTOR_RACES[0],
+    playerClass: opts.class || RG.ACTOR_CLASSES[0],
+    playerRace: opts.race || RG.ACTOR_RACES[0],
 
     sqrPerActor: 120,
     sqrPerItem: 120,
     playMode: 'Arena',
     loadedPlayer: null,
     loadedLevel: null,
-    playerName: 'Player',
+    playerName: opts.name,
     seed: 0
 };
 const gameFact = new RG.Factory.Game();
@@ -43,15 +47,22 @@ let gameJSON = game.toJSON();
 let fromJSON = new RG.Game.FromJSON();
 game = fromJSON.createGame(gameJSON);
 
+const timeId = new Date().getTime();
+const fpsArray = [];
+
 // Used with expect() later
 const saveFunc = (numTurns) => {
     fromJSON = new RG.Game.FromJSON();
     gameJSON = game.toJSON();
     game = fromJSON.createGame(gameJSON);
+
+    const level = game.getLevels()[0];
     console.log(`saveFunc RG.POOL listeners: ${RG.POOL.getNumListeners()}`);
+    const numActors = level.getActors().length;
+    console.log(`Actors in level: ${numActors}`);
 
     const {playerName} = gameConf;
-    const fName = `results/debug-game-${playerName}-${numTurns}.json`;
+    const fName = `results/debug-game-${playerName}-${numTurns}-${timeId}.json`;
     fs.writeFileSync(fName, JSON.stringify(gameJSON));
 };
 
@@ -66,8 +77,8 @@ const simulSpellOn1stTurn = () => {
 // expect(simulSpellOn1stTurn).not.to.throw(Error);
 
 const timeStart = new Date().getTime();
-const numTurns = 10000;
-const saveInterval = 400;
+const numTurns = opts.maxturns || 10000;
+const saveInterval = opts.save_period || 400;
 
 let turnOfLastSave = 0;
 let timeSaveFinished = Date.now();
@@ -85,6 +96,7 @@ for (let i = 1; i <= numTurns; i++) {
         const timeNow = Date.now();
         const dur = timeNow - timeSaveFinished;
         const fps = (i - turnOfLastSave) / (dur / 1000);
+        fpsArray.push(fps);
         console.log(`FPS: ${fps} Saving game after ${i}/${numTurns} turns`);
         // expect(saveFunc).not.to.throw(Error);
         saveFunc(i);
@@ -99,8 +111,11 @@ const timeEnd = new Date().getTime();
 const dur = timeEnd - timeStart;
 console.log('Execution took ' + dur + ' ms');
 
+const fpsAvg = fpsArray.reduce((acc, val) => acc + val) / fpsArray.length;
+
 const fps = numTurns / (dur / 1000);
-console.log('FPS: ' + fps);
+console.log('Overall avg FPS: ' + fps);
+console.log('\tOverall avg FPS: ' + fpsAvg + ' (from array)');
 
 fromJSON = new RG.Game.FromJSON();
 gameJSON = game.toJSON();
