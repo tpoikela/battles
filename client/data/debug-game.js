@@ -10,6 +10,7 @@ const Texts = require('../data/texts');
 const CityGenerator = require('../src/city-generator');
 const {ItemRandomizer} = require('../src/factory.items');
 const {EquipSlot} = require('../src/equipment');
+const Actors = require('./actors');
 
 const RNG = RG.Random.getRNG();
 const Stairs = RG.Element.Stairs;
@@ -238,8 +239,20 @@ DebugGame.prototype.createArena = function(obj, game, player) {
 
     level.getMap().setBaseElemXY(pX - 1, pY - 1, RG.ELEM.WATER);
 
-    const lich = parser.createActor('Tajun Eon en Lotus, lich lord');
-    level.addActor(lich, pX + 1, pY + 1);
+    const uniques = Actors.filter(item => (
+        item.base === 'UniqueBase'
+    ));
+    uniques.forEach(uniqShell => {
+        const {name} = uniqShell;
+        const uniqueActor = parser.createActor(name);
+        if (uniqueActor) {
+            level.addActorToFreeCell(uniqueActor);
+        }
+        else {
+            RG.warn('DebugGame', 'creating uniques',
+                'Failed to create unique actor: ' + name);
+        }
+    });
 
     return game;
 };
