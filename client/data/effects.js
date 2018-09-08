@@ -284,8 +284,8 @@ RG.Effects = {
                     target: obj,
                     targetType: ['actors'],
                     name: 'Stats',
-                    set: 'set' + this.useArgs.statName,
-                    get: 'get' + this.useArgs.statName,
+                    set: 'set' + this.useArgs.statName.capitalize(),
+                    get: 'get' + this.useArgs.statName.capitalize(),
                     value: this.useArgs.value,
                     effectType: 'ModifyCompValue'
                 };
