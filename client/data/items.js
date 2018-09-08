@@ -870,6 +870,13 @@ const Items = [
         type: 'ammo', range: 1, weight: 0.05, ammoType: 'rifle',
         attack: 1, damage: '3d4', value: value(50)
     },
+    {
+        name: 'Void bolt', base: 'MissileBase',
+        className: 'cell-item-void',
+        type: 'ammo', range: 1, weight: 0.1, ammoType: 'crossbow',
+        attack: 5, damage: '4d4 + 4', value: value(100),
+
+    },
 
     // POTIONS
     // Note: Each potion should define useItem method. See examples below.
