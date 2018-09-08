@@ -1020,8 +1020,11 @@ RG.Brain.Cloud.prototype.decideNextAction = function() {
         const dir = RNG.getRandDir();
         const [newX, newY] = RG.newXYFromDir(dir, this._actor);
         const level = this._actor.getLevel();
-        const movComp = new RG.Component.Movement(newX, newY, level);
-        this._actor.add(movComp);
+        const map = level.getMap();
+        if (map.hasXY(newX, newY)) {
+            const movComp = new RG.Component.Movement(newX, newY, level);
+            this._actor.add(movComp);
+        }
     }
     return RG.Brain.Flame.prototype.decideNextAction.call(this);
 };
