@@ -131,6 +131,11 @@ System.Damage = function(compTypes) {
             return dmg;
         }
 
+        const dmgCateg = dmgComp.getDamageCateg();
+        if (dmgCateg === RG.DMG.MAGIC) {
+            return dmg;
+        }
+
         // Take defs protection value into account
         const protEquip = ent.getEquipProtection();
         const protStats = ent.get('Combat').getProtection();
