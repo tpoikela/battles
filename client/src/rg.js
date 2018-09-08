@@ -667,6 +667,19 @@ RG.agilityToDefense = function(agi) {
     return Math.floor(agi / 2);
 };
 
+RG.getDieValue = function(strOrNumOrDie) {
+    if (Number.isFinite(strOrNumOrDie)) {
+        return strOrNumOrDie;
+    }
+    else if (typeof strOrNumOrDie === 'string') {
+        const arr = RG.parseDieSpec(strOrNumOrDie);
+        return new RG.Die(...arr).roll();
+    }
+    else {
+        return strOrNumOrDie.roll();
+    }
+};
+
 /* Given actor and cells it sees, returns first enemy cell found.*/
 RG.findEnemyCellForActor = function(actor, seenCells) {
     const res = [];
@@ -858,7 +871,7 @@ RG.dirTodXdY = function(dir) {
     return RG.DIR[ucDir];
 };
 
-RG.dxdYToDir = function(dXdY) {
+RG.dXdYToDir = function(dXdY) {
     const [dX, dY] = dXdY;
     let result = '';
     if (dY === 1) {result += 'S';}
