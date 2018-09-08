@@ -13,6 +13,7 @@ RG.Factory.World = require('./factory.world');
 const OW = require('./overworld.map');
 RG.getOverWorld = require('./overworld');
 
+const Actors = require('../data/actors');
 const Creator = require('./world.creator');
 const ActorClass = require('./actor-class');
 const DebugGame = require('../data/debug-game');
@@ -40,8 +41,65 @@ const FactoryGame = function() {
 };
 RG.extend2(FactoryGame, RG.Factory.Base);
 
+/* Creates the game based on the selection. Main method that you want to
+ * call. */
+FactoryGame.prototype.createNewGame = function(conf) {
+    this._verif.verifyConf('createNewGame', conf,
+        ['sqrPerItem', 'sqrPerActor', 'playMode']);
+
+    const game = new RG.Game.Main();
+    if (Number.isInteger(conf.seed)) {
+        const rng = new RG.Random(conf.seed);
+        game.setRNG(rng);
+    }
+    const player = this.createPlayerUnlessLoaded(conf);
+    this.createPlayerRegenEvents(game, player);
+
+    if (conf.playMode === 'Arena') {
+        return this.createArenaDebugGame(conf, game, player);
+    }
+    else if (conf.playMode === 'Battle') {
+        return this.createDebugBattle(conf, game, player);
+    }
+    else if (conf.playMode === 'Creator') {
+        return this.createWorldWithCreator(conf, game, player);
+    }
+    else if (conf.playMode === 'World') {
+        return this.createFullWorld(conf, game, player);
+    }
+    else if (conf.playMode === 'OverWorld') {
+        return this.createOverWorldGame(conf, game, player);
+    }
+    else if (conf.playMode === 'Dungeon') {
+        return this.createOneDungeonAndBoss(conf, game, player);
+    }
+    else { // Empty game for doing whatever
+        return this.createEmptyGame(conf, game, player);
+    }
+};
+
+/* This is used mainly with the level Editor, to play test the created
+ * levels with a player. */
+FactoryGame.prototype.createEmptyGame = function(obj, game, player) {
+    // Add given levels to the game
+    if (obj.levels) {
+        obj.levels.forEach(level => {
+            const extras = level.getExtras();
+            game.addLevel(level);
+
+            // If startpoint given, use it
+            if (extras.startPoint) {
+                const [sx, sy] = extras.startPoint;
+                level.addActor(player, sx, sy);
+            }
+        });
+        game.addPlayer(player);
+    }
+    return game;
+};
+
 /* Creates a player actor and starting inventory unless a game has been
- * restored. */
+ * restored, and obj contains obj.loadedPlayer. */
 FactoryGame.prototype.createPlayerUnlessLoaded = function(obj) {
     let player = obj.loadedPlayer;
     if (RG.isNullOrUndef([player])) {
@@ -79,6 +137,8 @@ FactoryGame.prototype.createPlayerUnlessLoaded = function(obj) {
     return player;
 };
 
+/* Can be used to add player HP/PP regeneration events into the
+ * scheduler of the game engine. */
 FactoryGame.prototype.createPlayerRegenEvents = function(game, player) {
     // Add HP regeneration
     const regenPlayer = new RG.Time.RegenEvent(player,
@@ -93,105 +153,49 @@ FactoryGame.prototype.createPlayerRegenEvents = function(game, player) {
     }
 };
 
-    /* Adds the actor class to player, and creates starting equipment. */
+/* Adds the actor class to player, and creates starting equipment. */
 FactoryGame.prototype.addActorClass = function(obj, player) {
-    if (obj.playerClass) {
-        if (ActorClass.hasOwnProperty(obj.playerClass)) {
-            const actorClassComp = new RG.Component.ActorClass();
-            actorClassComp.setClassName(obj.playerClass);
-            player.add(actorClassComp);
-            const actorClass = actorClassComp.getClass();
+    if (!obj.playerClass) {return;}
+    if (ActorClass.hasOwnProperty(obj.playerClass)) {
+        const actorClassComp = new RG.Component.ActorClass();
+        actorClassComp.setClassName(obj.playerClass);
+        player.add(actorClassComp);
+        const actorClass = actorClassComp.getClass();
 
-            const name = obj.playerClass;
-            const items = ActorClass.getStartingItems(name);
-            const eqs = ActorClass.getEquipment(name);
+        const name = obj.playerClass;
+        const items = ActorClass.getStartingItems(name);
+        const eqs = ActorClass.getEquipment(name);
 
-            // Create starting inventory
-            items.forEach(item => {
-                const itemObj = this._parser.createItem(item.name);
-                itemObj.count = item.count || 1;
-                player.getInvEq().addItem(itemObj);
+        // Create starting inventory
+        items.forEach(item => {
+            const itemObj = this._parser.createItem(item.name);
+            itemObj.count = item.count || 1;
+            player.getInvEq().addItem(itemObj);
 
-            });
-
-            // Create starting equipment
-            eqs.forEach(item => {
-                const itemObj = this._parser.createItem(item.name);
-                itemObj.count = item.count || 1;
-                player.getInvEq().addItem(itemObj);
-                player.getInvEq().equipNItems(itemObj, item.count);
-            });
-
-            actorClass.setStartingStats();
-            actorClass.advanceLevel(); // Advance to level 1
-        }
-        else {
-            RG.err('Factory.Game', 'addActorClass',
-                `${obj.playerClass} not found in ActorClass.`);
-        }
-    }
-
-};
-
-/* Creates the game based on the selection. */
-FactoryGame.prototype.createNewGame = function(conf) {
-    this._verif.verifyConf('createNewGame', conf,
-        ['sqrPerItem', 'sqrPerActor', 'playMode']);
-
-    const game = new RG.Game.Main();
-    if (Number.isInteger(conf.seed)) {
-        const rng = new RG.Random(conf.seed);
-        game.setRNG(rng);
-    }
-    const player = this.createPlayerUnlessLoaded(conf);
-    this.createPlayerRegenEvents(game, player);
-
-    if (conf.playMode === 'Arena') {
-        return this.createArenaDebugGame(conf, game, player);
-    }
-    else if (conf.playMode === 'Battle') {
-        return this.createDebugBattle(conf, game, player);
-    }
-    else if (conf.playMode === 'Creator') {
-        return this.createWorldWithCreator(conf, game, player);
-    }
-    else if (conf.playMode === 'World') {
-        return this.createFullWorld(conf, game, player);
-    }
-    else if (conf.playMode === 'OverWorld') {
-        return this.createOverWorld(conf, game, player);
-    }
-    else if (conf.playMode === 'Dungeon') {
-        return this.createOneDungeonAndBoss(conf, game, player);
-    }
-    else { // Empty game for doing whatever
-        return this.createEmptyGame(conf, game, player);
-    }
-};
-
-FactoryGame.prototype.createEmptyGame = function(obj, game, player) {
-    // Add given levels to the game
-    if (obj.levels) {
-        obj.levels.forEach(level => {
-            const extras = level.getExtras();
-            game.addLevel(level);
-
-            // If startpoint given, use it
-            if (extras.startPoint) {
-                const [sx, sy] = extras.startPoint;
-                level.addActor(player, sx, sy);
-            }
         });
-        game.addPlayer(player);
+
+        // Create starting equipment
+        eqs.forEach(item => {
+            const itemObj = this._parser.createItem(item.name);
+            itemObj.count = item.count || 1;
+            player.getInvEq().addItem(itemObj);
+            player.getInvEq().equipNItems(itemObj, item.count);
+        });
+
+        actorClass.setStartingStats();
+        actorClass.advanceLevel(); // Advance to level 1
     }
-    return game;
+    else {
+        RG.err('Factory.Game', 'addActorClass',
+            `${obj.playerClass} not found in ActorClass.`);
+    }
 };
 
 FactoryGame.prototype.setCallback = function(name, cb) {
     this.callbacks[name] = cb;
 };
 
-FactoryGame.prototype.createOverWorld = function(obj, game, player) {
+FactoryGame.prototype.createOverWorldGame = function(obj, game, player) {
     const owConf = FactoryGame.getOwConf(1, obj);
     const midX = Math.floor(owConf.nLevelsX / 2);
     const playerX = midX;
@@ -337,6 +341,10 @@ FactoryGame.prototype.createTerritoryMap = function(
  * constraints.
  */
 FactoryGame.prototype.mapZonesToTerritoryMap = function(terrMap, worldConf) {
+    const uniqueActors = Actors.filter(shell => shell.base === 'UniqueBase');
+    const uniqueCreated = {};
+    let uniquesAdded = 0;
+
     const terrMapXY = terrMap.getMap();
     const citiesConf = worldConf.area[0].city;
     citiesConf.forEach(cityConf => {
@@ -353,6 +361,28 @@ FactoryGame.prototype.mapZonesToTerritoryMap = function(terrMap, worldConf) {
                 constrActor = {
                     op: 'eq', prop: 'base', value: ['WinterBeingBase']
                 };
+            }
+
+            // Possibly create the unique actor
+            if (RG.isSuccess(0.07)) {
+                const uniquesThisType = uniqueActors.filter(obj => (
+                    obj.type === name
+                ));
+                if (uniquesThisType.length > 0) {
+                    const randUnique = RNG.arrayGetRand(uniquesThisType);
+                    if (!uniqueCreated.hasOwnProperty(randUnique.name)) {
+                        const actorCreate = {name: randUnique.name, nLevel: 0};
+                        let createConf = cityConf.quarter[0].create;
+                        if (!createConf) {createConf = {};}
+                        if (!createConf.actor) {createConf.actor = [];}
+                        createConf.actor.push(actorCreate);
+                        uniqueCreated[randUnique.name] = randUnique;
+                        cityConf.quarter[0].create = createConf;
+                        console.log('Added UNIQ', randUnique.name, 'to',
+                            cityConf);
+                        ++uniquesAdded;
+                    }
+                }
             }
 
         }
@@ -388,6 +418,8 @@ FactoryGame.prototype.mapZonesToTerritoryMap = function(terrMap, worldConf) {
             qConf.constraint.actor = constrActor;
         });
     });
+
+    console.log('Factory.Game uniques added', uniquesAdded);
 };
 
 FactoryGame.prototype.getAreaXYFromOWTileXY = function(owX, owY) {
