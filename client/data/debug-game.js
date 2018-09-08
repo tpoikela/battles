@@ -9,6 +9,7 @@ const Ability = require('../src/abilities');
 const Texts = require('../data/texts');
 const CityGenerator = require('../src/city-generator');
 const {ItemRandomizer} = require('../src/factory.items');
+const {EquipSlot} = require('../src/equipment');
 
 const RNG = RG.Random.getRNG();
 const Stairs = RG.Element.Stairs;
@@ -25,17 +26,23 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     obj.rows = 100;
     const [pX, pY] = [50, 50];
     const level = this.createLastBattle(game, obj);
-    game.addLevel(level);
+    // game.addLevel(level);
     level.addActor(player, pX, pY);
 
-    /*
     const cityQuarter = new RG.World.CityQuarter('Debug quarter');
     cityQuarter.addLevel(level);
     level.shops.forEach(shop => {
         cityQuarter.addShop(shop);
     });
-    game.addPlace(cityQuarter);
-    */
+    const city = new RG.World.City('Wrapper city for Debug quarter');
+    city.addQuarter(cityQuarter);
+    city.tileX = 0;
+    city.tileY = 0;
+    const area = new RG.World.Area('Wrapper area', 2, 2, 10, 10);
+    area.addZone('City', city);
+    const world = new RG.World.Top('Wrapper world');
+    world.addArea(area);
+    game.addPlace(world);
 
     const spirit = this._parser.createActor('Wolf spirit');
     spirit.get('Stats').setStrength(500);
@@ -123,7 +130,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     game.addPlayer(player);
 
     const eq = player.getInvEq().getEquipment();
-    eq.addSlot('spiritgem', new RG.Inv.EquipSlot(eq, 'spiritgem'));
+    eq.addSlot('spiritgem', new EquipSlot(eq, 'spiritgem'));
     const gem1 = this._parser.createItem('Lesser spirit gem');
     const gem2 = this._parser.createItem('Greater spirit gem');
     player.getInvEq().addItem(gem1);
