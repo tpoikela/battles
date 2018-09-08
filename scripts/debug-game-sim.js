@@ -44,11 +44,15 @@ let fromJSON = new RG.Game.FromJSON();
 game = fromJSON.createGame(gameJSON);
 
 // Used with expect() later
-const saveFunc = () => {
+const saveFunc = (numTurns) => {
     fromJSON = new RG.Game.FromJSON();
     gameJSON = game.toJSON();
     game = fromJSON.createGame(gameJSON);
     console.log(`saveFunc RG.POOL listeners: ${RG.POOL.getNumListeners()}`);
+
+    const {playerName} = gameConf;
+    const fName = `results/debug-game-${playerName}-${numTurns}.json`;
+    fs.writeFileSync(fName, JSON.stringify(gameJSON));
 };
 
 const updateFunc = () => {
@@ -62,8 +66,8 @@ const simulSpellOn1stTurn = () => {
 // expect(simulSpellOn1stTurn).not.to.throw(Error);
 
 const timeStart = new Date().getTime();
-const numTurns = 500;
-const saveInterval = 200;
+const numTurns = 10000;
+const saveInterval = 400;
 
 let turnOfLastSave = 0;
 let timeSaveFinished = Date.now();
@@ -83,7 +87,7 @@ for (let i = 1; i <= numTurns; i++) {
         const fps = (i - turnOfLastSave) / (dur / 1000);
         console.log(`FPS: ${fps} Saving game after ${i}/${numTurns} turns`);
         // expect(saveFunc).not.to.throw(Error);
-        saveFunc();
+        saveFunc(i);
         turnOfLastSave = i;
         timeSaveFinished = Date.now();
     }
