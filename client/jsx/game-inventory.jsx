@@ -157,6 +157,7 @@ export default class GameInventory extends Component {
     }
   }
 
+  /* When an item is clicked, selects it and adds count to the <input> */
   setSelectedItem(item) {
     const msg = 'Inventory Selected: ' + item.toString();
     this.props.selectItemTop(item);
