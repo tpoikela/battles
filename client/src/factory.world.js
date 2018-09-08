@@ -159,7 +159,7 @@ const DungeonFeatures = function(zoneType) {
  * building the world. Separation of concerns, you know.
  */
 RG.Factory.World = function() {
-    const _verif = new RG.Verify.Conf('Factory.World');
+    this._verif = new RG.Verify.Conf('Factory.World');
     this.factZone = new RG.Factory.Zone();
 
     // Creates all zones when the area is created if true. Setting it to true
@@ -183,14 +183,20 @@ RG.Factory.World = function() {
 
     this.setPresetLevels = function(levels) {
         this.presetLevels = levels;
+        this.debug('PresetLevels were set.');
     };
 
     /* If id2level is set, factory does not construct any levels. It uses
      * id2level as a lookup table instead. This is mainly used when restoring a
      * saved game. */
     this.setId2Level = function(id2level) {
+        if (Object.keys(id2level).length === 0) {
+            RG.warn('Factory.World', 'setId2Level',
+                'There are no levels/keys present in id2level map. Bug?');
+        }
         this.id2level = id2level;
         this.id2levelSet = true;
+        this.debug('Id2Level was set OK.');
     };
 
     /* Pushes the hier name and configuration on the stack. Config can be
@@ -238,7 +244,7 @@ RG.Factory.World = function() {
 
     /* Creates a world using given configuration. */
     this.createWorld = function(conf) {
-        _verif.verifyConf('createWorld', conf, ['name', 'nAreas']);
+        this._verif.verifyConf('createWorld', conf, ['name', 'nAreas']);
         if (!this.getGlobalConf().set) {
             this.setGlobalConf({});
         }
@@ -266,7 +272,7 @@ RG.Factory.World = function() {
 
     /* Creates an area which can be added to a world. */
     this.createArea = function(conf) {
-        _verif.verifyConf('createArea', conf,
+        this._verif.verifyConf('createArea', conf,
             ['name', 'maxX', 'maxY']);
         this.pushScope(conf);
 
@@ -358,9 +364,12 @@ RG.Factory.World = function() {
 
         const levelConf = {
             itemsPerLevel,
-            func: (item) => (
+            item: item => (
                 item.value <= maxValue
                 && item.type !== 'food'
+            ),
+            actor: actor => (
+                actor.danger <= maxDanger
             ),
             gold: () => false,
             food: () => false,
@@ -369,20 +378,24 @@ RG.Factory.World = function() {
         };
         this.setAreaLevelConstraints(levelConf, x, y);
 
+        levelConf.func = levelConf.item;
         fact.addNRandItems(level, parser, levelConf);
+        levelConf.func = levelConf.actor;
         fact.addNRandActors(level, parser, levelConf);
     };
 
     this._createAllZones = function(area, conf, tx = -1, ty = -1) {
         this.debug(`_createAllZones ${tx}, ${ty}`);
         if (!conf.tiles) {
+            // Is this ever entered? Can be removed?
+            this.createZonesFromArea(area, conf, tx, ty);
+        }
+        else if (tx < 0 || ty < 0) {
+            // RG.err('Factory', 'createAllZones',
+                // 'Cannot use -1 to create all tiles here');
             this.createZonesFromArea(area, conf, tx, ty);
         }
         else {
-            if (tx < 0 || ty < 0) {
-                RG.err('Factory', 'createAllZones',
-                    'Cannot use -1 to create all tiles here');
-            }
             const areaTileConf = conf.tiles[tx][ty];
             this.createZonesFromTile(area, areaTileConf, tx, ty);
         }
@@ -479,7 +492,7 @@ RG.Factory.World = function() {
     };
 
     this.createDungeon = function(conf) {
-        _verif.verifyConf('createDungeon', conf,
+        this._verif.verifyConf('createDungeon', conf,
             ['name', 'nBranches']);
         this.pushScope(conf);
 
@@ -531,7 +544,7 @@ RG.Factory.World = function() {
 
     /* Creates one dungeon branch and all levels inside it. */
     this.createBranch = function(conf) {
-        _verif.verifyConf('createBranch', conf,
+        this._verif.verifyConf('createBranch', conf,
             ['name', 'nLevels']);
         this.pushScope(conf);
 
@@ -792,7 +805,8 @@ RG.Factory.World = function() {
     };
 
     this.createMountain = function(conf) {
-        _verif.verifyConf('createMountain', conf, ['name', 'nFaces', 'face']);
+        this._verif.verifyConf('createMountain', conf,
+            ['name', 'nFaces', 'face']);
         this.pushScope(conf);
 
         const mountain = new RG.World.Mountain(conf.name);
@@ -849,10 +863,11 @@ RG.Factory.World = function() {
 
     this.createMountainFace = function(conf) {
         if (this.id2levelSet) {
-            _verif.verifyConf('createMountainFace', conf, ['name', 'nLevels']);
+            this._verif.verifyConf('createMountainFace', conf,
+                ['name', 'nLevels']);
         }
         else {
-            _verif.verifyConf('createMountainFace',
+            this._verif.verifyConf('createMountainFace',
                 conf, ['name', 'nLevels', 'x', 'y']);
         }
 
@@ -883,7 +898,7 @@ RG.Factory.World = function() {
     /* Creates a subzone for mountain summit. Creates the levels contained in
      * that subzone. */
     this.createSummit = function(conf) {
-        _verif.verifyConf('createSummit', conf, ['name', 'nLevels']);
+        this._verif.verifyConf('createSummit', conf, ['name', 'nLevels']);
         this.pushScope(conf);
         const summit = new RG.World.MountainSummit(conf.name);
 
@@ -935,7 +950,7 @@ RG.Factory.World = function() {
 
     /* Creates a City and all its sub-zones. */
     this.createCity = function(conf) {
-        _verif.verifyConf('createCity',
+        this._verif.verifyConf('createCity',
             conf, ['name', 'nQuarters']);
         this.pushScope(conf);
 
@@ -985,7 +1000,7 @@ RG.Factory.World = function() {
 
     /* Createa CityQuarter which can be added to a city. */
     this.createCityQuarter = function(conf) {
-        _verif.verifyConf('createCityQuarter',
+        this._verif.verifyConf('createCityQuarter',
             conf, ['name', 'nLevels']);
         this.pushScope(conf);
 
@@ -1010,6 +1025,7 @@ RG.Factory.World = function() {
 
         for (let i = 0; i < conf.nLevels; i++) {
             let level = this.getFromPresetLevels(i, presetLevels);
+
 
             if (!level) {
 
@@ -1122,7 +1138,7 @@ RG.Factory.World = function() {
      * @return {void}
      * */
     this.createAreaZoneConnection = (area, zone, conf) => {
-        _verif.verifyConf('createAreaZoneConnection', conf, ['x', 'y']);
+        this._verif.verifyConf('createAreaZoneConnection', conf, ['x', 'y']);
         this.debug('Creating area-zone connections');
 
         const x = conf.x;
