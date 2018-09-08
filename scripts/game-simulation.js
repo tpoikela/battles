@@ -13,155 +13,143 @@ const ROT = require('../lib/rot.js');
 const PlayerDriver = require('../tests/helpers/player-driver');
 const fs = require('fs');
 const cmdLineArgs = require('command-line-args');
+const UtilsSim = require('./utils-sim');
 
 function main() {
 
-// Parse command line args
-const optDefs = [
-  {name: 'debug', alias: 'd', type: Boolean, descr: 'Run in debug mode' },
-  {name: 'file', type: String, descr: 'File to load' },
-  {name: 'frame_period', type: Number, descr: 'Print every Nth frame' },
-  {name: 'help', alias: 'h', type: Boolean, descr: 'Prints help message'},
-  {name: 'load', type: Boolean, descr: 'Load game from the file'},
-  {name: 'loadturn', type: Number, descr: 'Num of turns to load (optional)'},
-  {name: 'maxturns', type: Number, descr: 'Turns to simulate'},
-  {name: 'name', type: String, descr: 'Name of the character' },
-  {name: 'nomsg', type: Boolean, descr: 'Disables game messages'},
-  {name: 'nosave', type: Boolean, descr: 'Disables save during simulation'},
-  {name: 'save_period', type: Number, descr: 'Number of turns between saves'},
-  {name: 'seed', type: Number, descr: 'Seed for the RNGs'}
-];
-let opts = cmdLineArgs(optDefs);
-opts = getDefaults(opts);
-if (opts.help) {
-    usage(optDefs);
-}
-
-ROT.RNG.setSeed(opts.seed);
-RG.RAND = new RG.Random();
-RG.RAND.setSeed(opts.seed);
-
-let newGame = null;
-let driver = null;
-let loadGame = false;
-
-const pName = opts.name;
-const loadTurn = opts.loadturn ? opts.loadturn : 0;
-
-if (!pName) {
-    throw new Error('Player name must be given with -name.');
-}
-
-// Create new game only if not loading
-if (!opts.load && !opts.file) {
-
-    const conf = {
-        playMode: 'OverWorld',
-        playerLevel: 'Medium',
-        sqrPerItem: 100,
-        sqrPerActor: 100,
-        yMult: 0.5,
-        playerClass: 'Blademaster',
-        playerRace: 'human',
-        playerName: pName
-    };
-
-    const gameFact = new RG.Factory.Game();
-    newGame = gameFact.createNewGame(conf);
-    driver = new PlayerDriver();
-    const player = newGame.getPlayer();
-    player.setName(pName);
-    player.remove('Hunger'); // AI not smart enough yet to deal with this
-    driver.setPlayer(player);
-}
-else { // Otherwise just restore
-    let fname = getFilename(pName, loadTurn);
-    if (opts.file) {
-        fname = opts.file;
+    // Parse command line args
+    const optDefs = UtilsSim.optDefs;
+    let opts = cmdLineArgs(optDefs);
+    opts = getDefaults(opts);
+    if (opts.help) {
+        usage(optDefs);
     }
-    if (fs.existsSync(fname)) {
-        [newGame, driver] = restoreGameFromFile(fname);
-        console.log(`===== Game Loaded from turn ${driver.nTurns}`);
+
+    ROT.RNG.setSeed(opts.seed);
+    RG.RAND = new RG.Random();
+    RG.RAND.setSeed(opts.seed);
+
+    let newGame = null;
+    let driver = null;
+    let loadGame = false;
+
+    const pName = opts.name;
+    const loadTurn = opts.loadturn ? opts.loadturn : 0;
+
+    if (!pName) {
+        throw new Error('Player name must be given with -name.');
     }
-    else {
-        const err = new Error(`${fname} does not exist.`);
-        throw err;
+
+    // Create new game only if not loading
+    if (!opts.load && !opts.file) {
+
+        const conf = {
+            playMode: 'OverWorld',
+            playerLevel: 'Medium',
+            sqrPerItem: 100,
+            sqrPerActor: 100,
+            yMult: 0.5,
+            playerClass: 'Blademaster',
+            playerRace: 'human',
+            playerName: pName
+        };
+
+        const gameFact = new RG.Factory.Game();
+        newGame = gameFact.createNewGame(conf);
+        driver = new PlayerDriver();
+        const player = newGame.getPlayer();
+        player.setName(pName);
+        player.remove('Hunger'); // AI not smart enough yet to deal with this
+        driver.setPlayer(player);
     }
-    loadGame = true;
-}
-
-// To load previous stage quickly
-const saveGameEnabled = !opts.nosave;
-// Does not depend on save game
-driver.screenPeriod = opts.framePeriod;
-
-console.log('===== Begin Game simulation =====');
-let catcher = null;
-if (!opts.nomsg) {
-    catcher = new RGTest.MsgCatcher();
-}
-
-const maxTurns = driver.nTurns + parseInt(opts.maxturns, 10);
-const savePeriod = opts.save_period ? opts.save_period : 2000;
-
-// Execute game in try-catch so we can dump save data on failure
-try {
-    const startI = loadGame ? driver.nTurns : 0;
-    for (let nTurn = startI; nTurn < maxTurns; nTurn++) {
-        if (nTurn % 50 === 0) {
-            newGame.getPlayerOwPos();
-            const compl = `${nTurn / maxTurns * 100}% completed`;
-            console.log(`[TURN ${nTurn}, ${compl}`);
+    else { // Otherwise just restore
+        let fname = getFilename(pName, loadTurn);
+        if (opts.file) {
+            fname = opts.file;
         }
+        if (fs.existsSync(fname)) {
+            [newGame, driver] = restoreGameFromFile(fname);
+            console.log(`===== Game Loaded from turn ${driver.nTurns}`);
+        }
+        else {
+            const err = new Error(`${fname} does not exist.`);
+            throw err;
+        }
+        loadGame = true;
+    }
 
-        // Save the game between certain intervals
-        if (saveGameEnabled) {
-            if (nTurn > startI && (nTurn % (savePeriod) === 0)) {
-                if (maxTurns >= 1000) { // Don't save for short games
-                    const fname = getFilename(pName, nTurn);
-                    saveGameToFile(fname, nTurn, newGame, driver);
-                    [newGame, driver] = restoreGameFromFile(fname);
-                    driver.screenPeriod = opts.framePeriod;
+    // To load previous stage quickly
+    const saveGameEnabled = !opts.nosave;
+    // Does not depend on save game
+    driver.screenPeriod = opts.framePeriod;
+
+    console.log('===== Begin Game simulation =====');
+    let catcher = null;
+    if (!opts.nomsg) {
+        catcher = new RGTest.MsgCatcher();
+    }
+
+    const maxTurns = driver.nTurns + parseInt(opts.maxturns, 10);
+    const savePeriod = opts.save_period ? opts.save_period : 2000;
+
+    // Execute game in try-catch so we can dump save data on failure
+    try {
+        const startI = loadGame ? driver.nTurns : 0;
+        for (let nTurn = startI; nTurn < maxTurns; nTurn++) {
+            if (nTurn % 50 === 0) {
+                newGame.getPlayerOwPos();
+                const compl = `${nTurn / maxTurns * 100}% completed`;
+                console.log(`[TURN ${nTurn}, ${compl}`);
+            }
+
+            // Save the game between certain intervals
+            if (saveGameEnabled) {
+                if (nTurn > startI && (nTurn % (savePeriod) === 0)) {
+                    if (maxTurns >= 1000) { // Don't save for short games
+                        const fname = getFilename(pName, nTurn);
+                        saveGameToFile(fname, nTurn, newGame, driver);
+                        [newGame, driver] = restoreGameFromFile(fname);
+                        driver.screenPeriod = opts.framePeriod;
+                    }
                 }
             }
+
+            newGame.update(driver.nextCmd());
+            if (newGame.isGameOver()) {
+                console.log('>>> GAME OVER <<<');
+                break;
+            }
         }
-
-        newGame.update(driver.nextCmd());
-        if (newGame.isGameOver()) {
-            console.log('>>> GAME OVER <<<');
-            break;
+    }
+    catch (e) {
+        console.log(e);
+        let jsonStr = '';
+        try {
+            const json = newGame.toJSON();
+            jsonStr = JSON.stringify(json);
         }
+        catch (e2) {
+            console.log(e2);
+            jsonStr = JSON.stringify(driver);
+        }
+        const fname = 'save_dumps/battles_game_error_dump.json';
+        fs.writeFileSync(fname, jsonStr);
     }
-}
-catch (e) {
-    console.log(e);
-    let jsonStr = '';
-    try {
-        const json = newGame.toJSON();
-        jsonStr = JSON.stringify(json);
+
+    const nTiles = Object.keys(driver.state.tilesVisited).length;
+    console.log(`Player visited ${nTiles} different tiles`);
+
+    console.log('Simulation OK. Saving final state');
+
+    const nTurns = driver.nTurns;
+    const finalFname = `save_dumps/${pName}_game_final_${nTurns}.json`;
+    saveGameToFile(finalFname, nTurns, newGame, driver);
+    console.log('Final state saved to file ' + finalFname);
+
+    if (catcher) {
+        catcher.hasNotify = false;
     }
-    catch (e2) {
-        console.log(e2);
-        jsonStr = JSON.stringify(driver);
-    }
-    const fname = 'save_dumps/battles_game_error_dump.json';
-    fs.writeFileSync(fname, jsonStr);
-}
-
-const nTiles = Object.keys(driver.state.tilesVisited).length;
-console.log(`Player visited ${nTiles} different tiles`);
-
-console.log('Simulation OK. Saving final state');
-
-const nTurns = driver.nTurns;
-const finalFname = `save_dumps/${pName}_game_final_${nTurns}.json`;
-saveGameToFile(finalFname, nTurns, newGame, driver);
-console.log('Final state saved to file ' + finalFname);
-
-if (catcher) {
-    catcher.hasNotify = false;
-}
-console.log('===== End Game simulation =====');
+    console.log('===== End Game simulation =====');
 }
 
 main();
@@ -222,13 +210,6 @@ function restoreGameFromFile(fname) {
 }
 
 function usage(optDefs) {
-    optDefs.forEach(opt => {
-        let type = opt.type.toString();
-        type = (/(\w+)\(\)/).exec(type)[1];
-
-        const ind = opt.name.length >= 6 ? '\t' : '\t\t';
-        const str = `--${opt.name}:${ind}<${type}>\t${opt.descr}`;
-        console.log(str);
-    });
+    UtilsSim.usage(optDefs);
     process.exit(0);
 }
