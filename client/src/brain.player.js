@@ -658,7 +658,14 @@ class BrainPlayer {
     }
 
     getVisibleCells() {
-        return this._actor.getLevel().exploreCells(this._actor);
+        let cells = this._actor.getLevel().exploreCells(this._actor);
+        if (this._actor.has('Telepathy')) {
+            const target = this._actor.get('Telepathy').getTarget();
+            const newCells = target.getBrain().getSeenCells();
+            console.log('Added', newCells.length, ' from telepath');
+            cells = cells.concat(newCells);
+        }
+        return cells;
     }
 
     startTargeting() {
