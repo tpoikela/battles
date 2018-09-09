@@ -438,7 +438,7 @@ Spell.AddComponent.prototype.cast = function(args) {
 
     const spellComp = new RG.Component.SpellCell();
     spellComp.setArgs(obj);
-    args.src.add('SpellCell', spellComp);
+    args.src.add(spellComp);
 };
 
 Spell.AddComponent.prototype.getSelectionObject = function(actor) {
@@ -460,6 +460,52 @@ Spell.Flying = function() {
     };
 };
 RG.extend2(Spell.Flying, Spell.AddComponent);
+
+//------------------------------------------------------
+/* @class Spell.Telepathy
+ * Adds Component Telepathy to the given entity. */
+//------------------------------------------------------
+Spell.Telepathy = function() {
+    Spell.AddComponent.call(this, 'Telepathy', 5);
+    this.setCompName('Telepathy');
+    this._dice.duration = RG.FACT.createDie('10d10 + 10');
+
+    this.aiShouldCastSpell = (args, cb) => {
+        let res = aiSpellCellFriend(args, cb);
+        if (!res) {
+            res = aiSpellCellEnemy(args, cb);
+        }
+        return res;
+    };
+};
+RG.extend2(Spell.Telepathy, Spell.AddComponent);
+
+Spell.Telepathy.prototype.cast = function(args) {
+    Spell.AddComponent.prototype.cast.call(this, args);
+    const {src} = args;
+    if (src) {
+        const spellCell = src.get('SpellCell');
+        const spellArgs = spellCell.getArgs();
+        console.log('Telepath spellArgs is', spellArgs);
+        const {addComp} = spellArgs;
+        const telepCompTarget = addComp.comp;
+        if (telepCompTarget.getType() === 'Telepathy') {
+            const {dur} = addComp;
+            const telepCompSrc = telepCompTarget.clone();
+            let newArgs = {dir: [0, 0], src: this._caster};
+            newArgs = getDirSpellArgs(this, newArgs);
+            newArgs.addComp = {comp: telepCompSrc, duration: dur};
+            const spellComp = new RG.Component.SpellCell();
+            spellComp.setArgs(newArgs);
+            args.src.add(spellComp);
+        }
+    }
+    else {
+        const json = JSON.stringify(args);
+        RG.err('Spell.Telepath', 'cast',
+            'No src found in args: ' + json);
+    }
+};
 
 //------------------------------------------------------
 /* @class Spell.Paralysis
@@ -1462,6 +1508,7 @@ Spell.addAllSpells = book => {
     book.addSpell(new Spell.SummonIceMinion());
     book.addSpell(new Spell.SummonKin());
     book.addSpell(new Spell.SummonUndeadUnicorns());
+    book.addSpell(new Spell.Telepathy());
 };
 
 RG.Spell = Spell;
