@@ -913,6 +913,7 @@ RG.extend2(RG.Brain.SpellCaster, RG.Brain.Rogue);
 RG.Brain.SpellCaster.prototype.decideNextAction = function() {
     this._cache.seen = null;
     this.goal.process();
+    this._cache.seen = null;
     return ACTION_ALREADY_DONE;
 };
 
@@ -932,6 +933,7 @@ RG.extend2(RG.Brain.GoalOriented, RG.Brain.Rogue);
 RG.Brain.GoalOriented.prototype.decideNextAction = function() {
     this._cache.seen = null;
     this.goal.process();
+    this._cache.seen = null;
     return ACTION_ALREADY_DONE;
 };
 
@@ -959,6 +961,7 @@ RG.extend2(RG.Brain.Animal, RG.Brain.Rogue);
 RG.Brain.Animal.prototype.decideNextAction = function() {
     this._cache.seen = null;
     this.goal.process();
+    this._cache.seen = null;
     return ACTION_ALREADY_DONE;
 };
 
@@ -979,6 +982,7 @@ RG.extend2(RG.Brain.Commander, RG.Brain.Rogue);
 RG.Brain.Commander.prototype.decideNextAction = function() {
     this._cache.seen = null;
     this.goal.process();
+    this._cache.seen = null;
     return ACTION_ALREADY_DONE;
 };
 
