@@ -38,6 +38,7 @@ System.SpellEffect.prototype.updateEntity = function(ent) {
             effCompList.forEach(effComp => {
                 // Call function in dtable matching the effect name
                 this._dtable[effName](ent, effComp);
+                ent.remove(effComp); // Don't call in processXXX functions
             });
         }
     });
@@ -96,7 +97,6 @@ System.SpellEffect.prototype.processSpellRay = function(ent, ray) {
             rangeLeft = 0;
         }
     }
-    ent.remove(ray);
     const animArgs = {
         dir: args.dir,
         ray: true,
@@ -148,6 +148,10 @@ System.SpellEffect.prototype.processSpellCell = function(ent, spellComp) {
 
     if (map.hasXY(x, y)) {
         const targetCell = map.getCell(x, y);
+
+        if (args.preCallback) {
+            args.preCallback(targetCell);
+        }
 
         // Callback given for the spell
         if (args.callback) {
@@ -221,6 +225,10 @@ System.SpellEffect.prototype.processSpellCell = function(ent, spellComp) {
             }
         }
 
+        if (args.postCallback) {
+            args.postCallback(targetCell);
+        }
+
         const animArgs = {
             cell: true,
             coord: [[x, y]],
@@ -230,18 +238,7 @@ System.SpellEffect.prototype.processSpellCell = function(ent, spellComp) {
         const animComp = new RG.Component.Animation(animArgs);
         ent.add('Animation', animComp);
     }
-
-    ent.remove('SpellCell');
 };
-
-    /*
-    this.processSpellMissiles = ent => {
-        const missileList = ent.getList('SpellMissile');
-        missileList.forEach(missComp => {
-            this.processSpellMissile(ent, missComp);
-        });
-    };
-    */
 
 System.SpellEffect.prototype.processSpellMissile = function(ent, spellComp) {
     const args = spellComp.getArgs();
@@ -260,7 +257,6 @@ System.SpellEffect.prototype.processSpellMissile = function(ent, spellComp) {
     mComp.setRange(spell.getRange());
 
     spellArrow.add(mComp);
-    ent.remove(spellComp);
 };
 
 /* Processes area-affecting spell effects. */
@@ -289,7 +285,7 @@ System.SpellEffect.prototype.processSpellArea = function(ent, spellComp) {
         }
     });
 
-    // Create animation and remove Spell component
+    // Create animation
     const animArgs = {
         cell: true,
         coord: coord,
@@ -297,9 +293,7 @@ System.SpellEffect.prototype.processSpellArea = function(ent, spellComp) {
         level: ent.getLevel()
     };
     const animComp = new RG.Component.Animation(animArgs);
-    ent.add('Animation', animComp);
-    ent.remove('SpellArea');
-
+    ent.add(animComp);
 };
 
     /* Used for spell cast on self (or spells not requiring any targets). */
@@ -313,7 +307,6 @@ System.SpellEffect.prototype.processSpellSelf = function(ent, spellComp) {
         msg += 'Got args: ' + JSON.stringify(args);
         RG.err('System.SpellEffect', 'processSpellSelf', msg);
     }
-    ent.remove(spellComp);
 };
 
 System.SpellEffect.prototype._addDamageToActor = (actor, args) => {
