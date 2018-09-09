@@ -426,13 +426,12 @@ Level.prototype.removeActor = function(actor) {
 };
 
 /* Explores the level from given actor's viewpoint. Sets new cells as
- * explored. There's no exploration tracking per actor.*/
+ * explored. There's no exploration tracking per actor. This is mainly called
+ * from Brain.Player, as it marks cells as explored. */
 Level.prototype.exploreCells = function(actor) {
     const visibleCells = this._map.getVisibleCells(actor);
-    if (actor.isPlayer()) {
-        for (let i = 0; i < visibleCells.length; i++) {
-            visibleCells[i].setExplored();
-        }
+    for (let i = 0; i < visibleCells.length; i++) {
+        visibleCells[i].setExplored();
     }
     return visibleCells;
 };
