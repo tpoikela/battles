@@ -1028,7 +1028,7 @@ const Actors = [
     // UNIQUES
     {
         name: 'UniqueBase', dontCreate: true, className: 'cell-actor-unique',
-        noRandom: true, unique: true
+        noRandom: true, unique: true, addComp: ['RegenEffect']
     },
     {
         name: 'Thabba, Son of Ice', base: 'UniqueBase',
@@ -1037,7 +1037,7 @@ const Actors = [
         strength: 30, accuracy: 15, agility: 20, willpower: 20, perception: 15,
         magic: 30, attack: 30, defense: 30, protection: 10,
         equip: ['Permaice katana', 'Permaice armour'],
-        addComp: ['SnowWalk', resistance('ICE', 'HIGH')]
+        addComp: ['SnowWalk', resistance('ICE', 'HIGH'), 'RegenEffect']
     },
     {
         name: 'Zamoned, Son of Frost', base: 'UniqueBase',
@@ -1047,7 +1047,7 @@ const Actors = [
         magic: 10, attack: 30, defense: 30, protection: 10,
         equip: ['Permaice axe', 'Permaice armour', 'Bow of Defense',
             {name: 'Runed arrow', count: 100}],
-        addComp: ['SnowWalk', resistance('ICE', 'HIGH')]
+        addComp: ['SnowWalk', resistance('ICE', 'HIGH'), 'RegenEffect']
     },
 
     {
@@ -1092,7 +1092,7 @@ const Actors = [
         strength: 15, accuracy: 25, agility: 25, willpower: 17, perception: 25,
         magic: 17, attack: 25, defense: 15, protection: 5,
         equip: ['Steel armour', 'Runed collar'],
-        addComp: ['FirstStrike', 'RangedEvasion']
+        addComp: ['FirstStrike', 'RangedEvasion', 'RegenEffect']
     },
     {
         name: 'Tajun Eon en Lotus, lich lord', type: 'undead',
@@ -1130,7 +1130,7 @@ const Actors = [
         fovrange: 9,
         equip: ['Chain armour', 'Chain helmet', 'Chain boots',
             'Double crossbow', {name: 'Void bolt', count: 30}],
-        addComp: ['EagleEye', 'RangedEvasion', 'StrongShot']
+        addComp: ['EagleEye', 'RangedEvasion', 'StrongShot', 'RegenEffect']
     },
 
     // UNIQUES TODO
@@ -1149,7 +1149,6 @@ const Actors = [
             meleeHitDamage(2, '1d8 + 2', 'NECRO')
         ],
         spells: ['SummonUndeadUnicorns', 'ShadowRay'],
-
     }
 
 
