@@ -220,6 +220,7 @@ RG.Map.CellList.prototype.getExploredCells = function() {
             }
         }
     }
+    return cells;
 };
 
 /* Returns true if x,y is located at this._map border cells.*/
