@@ -254,6 +254,9 @@ DebugGame.prototype.createArena = function(obj, game, player) {
         }
     });
 
+    const assassin = parser.createActor('dark assassin');
+    level.addActor(assassin, pX + 10, pY + 10);
+
     return game;
 };
 
