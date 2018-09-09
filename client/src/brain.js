@@ -3,6 +3,7 @@ const ROT = require('../../lib/rot.js');
 const RG = require('./rg.js');
 const BTree = require('./aisequence');
 RG.Path = require('./path');
+const Evaluator = require('./evaluators');
 
 const GoalsTop = require('./goals-top');
 
@@ -836,7 +837,6 @@ RG.Brain.Human.prototype.decideNextAction = function() {
 RG.Brain.Spirit = function(actor) {
     RG.Brain.Rogue.call(this, actor);
     this.setType('Spirit');
-
 };
 RG.extend2(RG.Brain.Spirit, RG.Brain.Rogue);
 
@@ -844,7 +844,9 @@ RG.extend2(RG.Brain.Spirit, RG.Brain.Rogue);
 RG.Brain.Spirit.prototype.decideNextAction = function() {
     this._cache.seen = null;
     const seenCells = this.getSeenCells();
-    return this.exploreLevel(seenCells);
+    const res = this.exploreLevel(seenCells);
+    this._cache.seen = null;
+    return res;
 };
 
 /* Brain object used by archers. */
@@ -943,6 +945,14 @@ RG.Brain.GoalOriented.prototype.toJSON = function() {
     return json;
 };
 
+RG.Brain.Explorer = function(actor) {
+    RG.Brain.GoalOriented.call(this, actor);
+    this.setType('Explorer');
+    this.goal.removeEvaluators();
+    this.goal.addEvaluator(new Evaluator.Explore());
+};
+RG.extend2(RG.Brain.Explorer, RG.Brain.GoalOriented);
+
 /* Brain-object for animals. */
 RG.Brain.Animal = function(actor) {
     RG.Brain.Rogue.call(this, actor);
@@ -991,7 +1001,6 @@ RG.Brain.Commander.prototype.decideNextAction = function() {
 RG.Brain.Flame = function(actor) {
     RG.Brain.Rogue.call(this, actor);
     this.setType('Flame');
-
 };
 RG.extend2(RG.Brain.Flame, RG.Brain.Rogue);
 
