@@ -319,6 +319,18 @@ Spell.Base.prototype.setRange = function(range) {
     this._range = range;
 };
 
+Spell.Base.prototype.getDuration = function(perLevel = 1) {
+    let dur = 0;
+    if (this._dice.duration) {
+        dur = this._dice.duration.roll();
+    }
+    if (perLevel > 0) {
+        const expLevel = this._caster.get('Experience').getExpLevel();
+        dur += Math.round(expLevel / perLevel);
+    }
+    return dur;
+};
+
 Spell.Base.prototype.getDamage = function(perLevel = 1) {
     let damage = 0;
     if (this._dice.damage) {
@@ -477,6 +489,9 @@ Spell.Telepathy = function() {
 };
 RG.extend2(Spell.Telepathy, Spell.AddComponent);
 
+/* Cast-function for Telepathy. Creates 2nd comp for addComp because it needs
+ * to be added to src (caster). Uses postCallback() and is overly complicated.
+ */
 Spell.Telepathy.prototype.cast = function(args) {
     Spell.AddComponent.prototype.cast.call(this, args);
     const {src} = args;
@@ -846,11 +861,14 @@ Spell.IcyPrison = function() {
 };
 RG.extend2(Spell.IcyPrison, Spell.Base);
 
-/* Base spell for summoning other actors for help. */
+/* Base spell for summoning other actors for help. Derived classes can define
+ * postSummonCallback(cell, args, summonedActor) if post-processing is needed
+ * for the summoned actor. */
 Spell.SummonBase = function(name, power) {
     Spell.Base.call(this, name, power);
-    this.summonType = '';
+    this.summonType = ''; // Type of summoned actor
     this.nActors = 1;
+    this.summonFunc = null; // A constraint for summoned actor
 
     this.setSummonType = type => {
         this.summonType = type;
@@ -950,6 +968,9 @@ Spell.SummonBase = function(name, power) {
             const summonName = minion.getName();
             const msg = `${name} summons ${summonName}!`;
             RG.gameMsg({cell, msg});
+            if (typeof this.postSummonCallback === 'function') {
+                this.postSummonCallback(cell, args, minion);
+            }
         }
         else {
             let msg = `Failed to create summon type |${this.summonType}|`;
@@ -1034,6 +1055,32 @@ Spell.SummonKin = function() {
     };
 };
 RG.extend2(Spell.SummonKin, Spell.SummonBase);
+
+
+Spell.SummonFlyingEyes = function() {
+    Spell.SummonBase.call(this, 'SummonFlyingEyes', 4);
+    this.summonType = 'flying eye';
+    this.nActors = '1d6 + 1';
+    this._dice.duration = RG.FACT.createDie('10d5 + 10');
+
+    this.postSummonCallback = (cell, args, minion) => {
+        // Each minion fades out after a period
+        const fadingComp = new RG.Component.Fading();
+        const duration = this.getDuration();
+        fadingComp.setDuration(duration);
+        minion.add(fadingComp);
+
+        // Link caster and minion with telepathy
+        const teleCompTarget = new RG.Component.Telepathy();
+        teleCompTarget.setTarget(minion);
+        teleCompTarget.setSource(this._caster);
+        const teleCompSrc = teleCompTarget.clone();
+        RG.Component.addToExpirationComp(minion, teleCompTarget, duration);
+        RG.Component.addToExpirationComp(this._caster, teleCompSrc, duration);
+    };
+
+};
+RG.extend2(Spell.SummonFlyingEyes, Spell.SummonBase);
 
 /* PowerDrain spell which cancels enemy spell and gives power to the caster of
 * this spell. */
@@ -1512,6 +1559,7 @@ Spell.addAllSpells = book => {
     book.addSpell(new Spell.SummonAirElemental());
     book.addSpell(new Spell.SummonAnimal());
     book.addSpell(new Spell.SummonDead());
+    book.addSpell(new Spell.SummonFlyingEyes());
     book.addSpell(new Spell.SummonIceMinion());
     book.addSpell(new Spell.SummonKin());
     book.addSpell(new Spell.SummonUndeadUnicorns());
