@@ -1436,6 +1436,12 @@ RG.isItem = obj => {
     return false;
 };
 
+/* Can be queried if actor is still valid for serialisation or effects
+ * like telepath or order giving. */
+RG.isActorActive = target => {
+    return target && !target.has('Dead');
+};
+
 /* Returns the use type (ie drink or dig or hit...) for a item/target pair. */
 RG.getItemUseType = (item, targetOrObj) => {
     let target = targetOrObj;
