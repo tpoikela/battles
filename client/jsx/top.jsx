@@ -409,7 +409,7 @@ class BattlesTop extends Component {
         this.setDebugRefsToWindow();
 
         const player = this.game.getPlayer();
-        this.gameState.visibleCells = player.getLevel().exploreCells(player);
+        this.gameState.visibleCells = player.getBrain().getSeenCells();
         RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this.listener);
         RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this.listener);
         this.enableKeys();
@@ -492,8 +492,7 @@ class BattlesTop extends Component {
         this.setDebugRefsToWindow();
 
         const player = this.game.getPlayer();
-        const visibleCells = player.getLevel().exploreCells(player);
-        this.gameState.visibleCells = visibleCells;
+        this.gameState.visibleCells = player.getBrain().getSeenCells();
         RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this.listener);
         RG.POOL.listenEvent(RG.EVT_DESTROY_ITEM, this.listener);
         this.frameID = requestAnimationFrame(this.mainLoop.bind(this));
