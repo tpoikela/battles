@@ -1024,6 +1024,12 @@ const Actors = [
         }}
       ]
     },
+    {
+        name: 'flying eye', className: 'cell-actor-void',
+        base: 'SpecialBase', char: 'e', type: 'eye',
+        addComp: ['Ethereal'], brain: 'Explorer', hp: 1,
+        speed: 130, fovrange: 3, actorType: 'Rogue'
+    },
 
     // UNIQUES
     {
