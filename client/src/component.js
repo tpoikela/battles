@@ -1116,6 +1116,25 @@ RG.Component.RegenEffect = DataComponent('RegenEffect', {
     PP: 1, HP: 1, waitPP: 30, waitHP: 30, maxWaitPP: 60, maxWaitHP: 60
 });
 
+RG.Component.Telepathy = DataComponent('Telepathy', {
+    target: null, source: null
+});
+
+RG.Component.Telepathy.prototype.toJSON = function() {
+    const json = {
+        setID: this.getID(),
+        setType: this.getType()
+    };
+    if (this.target && !this.target.has('Dead')) {
+        json.setTarget = RG.getObjRef('entity', this.target);
+
+    }
+    if (this.source && !this.source.has('Dead')) {
+        json.setSource = RG.getObjRef('entity', this.source);
+    }
+    return json;
+};
+
 /* Animation comp is used to pass data from other systems to Animation
  * System. */
 RG.Component.Animation = TransientDataComponent('Animation',
