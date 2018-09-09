@@ -295,6 +295,15 @@ const Actors = [
         danger: 2, brain: defaultBrain,
         enemies: ['human', 'player']
     },
+    {
+        name: 'dark assassin', char: 'h', type: 'humanoid',
+        className: 'cell-actor-void',
+        attack: 10, defense: 5, damage: '3d5 + 3', range: 1, hp: 50,
+        enemies: RG.ACTOR_RACES, brain: 'SpellCaster',
+        spells: ['SummonFlyingEyes'], pp: 40, danger: 10,
+        addComp: [resistance('POISON', 'IMMUNITY')],
+        poison: {duration: '4d6', damage: '1d4 + 2', prob: '0.20'},
+    },
 
     // AVIAN
     {
