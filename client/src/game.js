@@ -55,7 +55,7 @@ RG.Game.Main = function() {
     };
 
     this.playerCommandCallback = function(actor) {
-        this.visibleCells = this.shownLevel().exploreCells(actor);
+        this.visibleCells = actor.getBrain().getSeenCells();
         this._engine.setVisibleArea(this.shownLevel(), this.visibleCells);
     };
     this._engine.playerCommandCallback = this.playerCommandCallback.bind(this);
