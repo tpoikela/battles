@@ -132,6 +132,23 @@ RG.Brain.distToActor = (actor1, actor2) => {
     return getDist;
 };
 
+RG.Brain.getTelepathyCells = function(actor) {
+    const actorLevelID = actor.getLevel().getID();
+    const tepathyComps = actor.getList('Telepathy');
+    let cells = [];
+    tepathyComps.forEach(teleComp => {
+        const target = teleComp.getTarget();
+        const targetLevel = target.getLevel();
+        if (RG.isActorActive(target)) {
+            if (targetLevel.getID() === actorLevelID) {
+                const newCells = targetLevel.getMap().getVisibleCells(target);
+                cells = cells.concat(newCells);
+            }
+        }
+    });
+    return cells;
+};
+
 /* Memory is used by the actor to hold information about enemies, items etc.
  * It's a separate object from decision-making brain.*/
 RG.Brain.Memory = function() {
@@ -414,6 +431,10 @@ RG.Brain.Rogue.prototype.getSeenCells = function() {
     }
     const map = this._actor.getLevel().getMap();
     this._cache.seen = map.getVisibleCells(this._actor);
+    if (this._actor.has('Telepathy')) {
+        const otherSeen = RG.Brain.getTelepathyCells(this._actor);
+        this._cache.seen = this._cache.seen.concat(otherSeen);
+    }
     return this._cache.seen;
 };
 
