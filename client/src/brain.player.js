@@ -137,7 +137,7 @@ class TargetingFSM {
 
     getTargetList() {
         const mapXY = {};
-        const visibleCells = this._brain.getVisibleCells();
+        const visibleCells = this._brain.getSeenCells();
         const actor = this._brain._actor;
         const enemyCells = RG.findEnemyCellForActor(
             actor, visibleCells);
@@ -193,7 +193,7 @@ class TargetingFSM {
 
     selectCell(code) {
         const actor = this._brain._actor;
-        const visibleCells = this._brain.getVisibleCells();
+        const visibleCells = this._brain.getSeenCells();
         if (RG.isNullOrUndef([code])) {
             this.setSelectedCells(actor.getCell());
         }
@@ -420,6 +420,8 @@ class MarkList {
 
 }
 
+const CACHE_INVALID = null;
+
 /* This brain is used by the player actor. It simply handles the player input
  * but by having brain, player actor looks like other actors.  */
 class BrainPlayer {
@@ -443,6 +445,8 @@ class BrainPlayer {
 
         this._fsm = new TargetingFSM(this);
         this._markList = new MarkList(this);
+
+        this._cache = {seen: CACHE_INVALID};
 
         // Not used to store anything, used only to map setters to components
         this._statBoosts = {
@@ -657,15 +661,26 @@ class BrainPlayer {
         return this._fsm.hasTargetSelected();
     }
 
-    getVisibleCells() {
-        let cells = this._actor.getLevel().exploreCells(this._actor);
-        if (this._actor.has('Telepathy')) {
-            const target = this._actor.get('Telepathy').getTarget();
-            const newCells = target.getBrain().getSeenCells();
-            console.log('Added', newCells.length, ' from telepath');
-            cells = cells.concat(newCells);
+    getSeenCells() {
+        if (this._cache.seen === CACHE_INVALID) {
+            let cells = this._actor.getLevel().exploreCells(this._actor);
+            if (this._actor.has('Telepathy')) {
+                const actorLevelID = this._actor.getLevel().getID();
+                const tepathyComps = this._actor.getList('Telepathy');
+                tepathyComps.forEach(teleComp => {
+                    const target = teleComp.getTarget();
+                    const targetLevel = target.getLevel();
+                    if (RG.isActorActive(target)) {
+                        if (targetLevel.getID() === actorLevelID) {
+                            const newCells = targetLevel.exploreCells(target);
+                            cells = cells.concat(newCells);
+                        }
+                    }
+                });
+            }
+            this._cache.seen = cells;
         }
-        return cells;
+        return this._cache.seen;
     }
 
     startTargeting() {
@@ -720,8 +735,9 @@ class BrainPlayer {
     }
 
     /* Main function which returns next action as function. TODO: Refactor into
-    * something bearable. It's 150 lines now! */
+     * something bearable. It's 150 lines now! */
     decideNextAction(obj) {
+      this._cache.seen = CACHE_INVALID;
 
       // Workaround at the moment, because some commands are GUI-driven
       if (obj.hasOwnProperty('cmd')) {
@@ -1129,7 +1145,7 @@ class BrainPlayer {
     }
 
     giveOrderAttack(target) {
-        const visibleCells = this.getVisibleCells();
+        const visibleCells = this.getSeenCells();
         const cells = RG.findEnemyCellForActor(
             this._actor, visibleCells);
         if (cells.length === 0) {
@@ -1203,7 +1219,7 @@ class BrainPlayer {
 
     /* Returns one item in sight, or null if no items are seen. */
     getItemInSight() {
-        const seenCells = this.getVisibleCells();
+        const seenCells = this.getSeenCells();
         const itemCells = seenCells.filter(cell => cell.hasItems());
         if (itemCells.length > 0) {
             const chosenCell = RNG.arrayGetRand(itemCells);
