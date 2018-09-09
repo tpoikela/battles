@@ -134,6 +134,12 @@ FactoryGame.prototype.createPlayerUnlessLoaded = function(obj) {
 
     // Add to the CSS class table
     RG.addCellStyle(RG.TYPE_ACTOR, player.getName(), 'cell-actor-player');
+    if (obj.playerName === 'Emilia') {
+        RG.addCharStyle(RG.TYPE_ACTOR, player.getName(), 'E');
+    }
+    else if (obj.playerName === 'Oliver') {
+        RG.addCharStyle(RG.TYPE_ACTOR, player.getName(), 'O');
+    }
     return player;
 };
 
