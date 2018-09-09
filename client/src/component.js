@@ -1155,7 +1155,9 @@ RG.Component.addToExpirationComp = (entity, comp, dur, msg) => {
         expComp.addEffect(comp, dur, msg);
         entity.add(expComp);
     }
-    entity.add(comp);
+    if (!entity.has(comp)) {
+        entity.add(comp);
+    }
 };
 
 //---------------------------------------------------------------------------
