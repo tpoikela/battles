@@ -191,12 +191,9 @@ Spell.getSelectionObjectDir = (spell, actor, msg) => {
 /* Returns args object for directional spell. */
 const getDirSpellArgs = (spell, args) => {
     const src = args.src;
-    const dir = args.dir;
-    const x = src.getX();
-    const y = src.getY();
     const obj = {
-        from: [x, y],
-        dir,
+        from: src.getXY(),
+        dir: args.dir,
         spell: spell,
         src: args.src
     };
@@ -486,15 +483,25 @@ Spell.Telepathy.prototype.cast = function(args) {
     if (src) {
         const spellCell = src.get('SpellCell');
         const spellArgs = spellCell.getArgs();
-        console.log('Telepath spellArgs is', spellArgs);
         const {addComp} = spellArgs;
         const telepCompTarget = addComp.comp;
+
         if (telepCompTarget.getType() === 'Telepathy') {
-            const {dur} = addComp;
+            const {duration} = addComp;
             const telepCompSrc = telepCompTarget.clone();
+
             let newArgs = {dir: [0, 0], src: this._caster};
             newArgs = getDirSpellArgs(this, newArgs);
-            newArgs.addComp = {comp: telepCompSrc, duration: dur};
+            newArgs.addComp = {comp: telepCompSrc, duration};
+            spellArgs.postCallback = cell => {
+                telepCompTarget.setSource(src);
+                telepCompTarget.setTarget(cell.getSentientActors()[0]);
+            };
+            newArgs.postCallback = () => {
+                telepCompSrc.setSource(telepCompTarget.getSource());
+                telepCompSrc.setTarget(telepCompTarget.getTarget());
+            };
+
             const spellComp = new RG.Component.SpellCell();
             spellComp.setArgs(newArgs);
             args.src.add(spellComp);
@@ -502,7 +509,7 @@ Spell.Telepathy.prototype.cast = function(args) {
     }
     else {
         const json = JSON.stringify(args);
-        RG.err('Spell.Telepath', 'cast',
+        RG.err('Spell.Telepathy', 'cast',
             'No src found in args: ' + json);
     }
 };
