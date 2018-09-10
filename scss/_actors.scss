@@ -127,9 +127,9 @@
  */
 @each $color-fg in $css-color-names {
     @each $color-bg in $css-color-names {
-        .cell-fg-#{to-lower-case($color-fg)}-bg-#{to-lower-case($color-bg)} {
-            background-color: to-lower-case($color-bg);
-            color: to-lower-case($color-fg);
+        .cell-fg-#{to-lower-case('#{$color-fg}')}-bg-#{to-lower-case('#{$color-bg}')} {
+            background-color: unquote(to-lower-case('#{$color-bg}'));
+            color: unquote(to-lower-case('#{$color-fg}'));
         }
     }
 }
@@ -142,7 +142,7 @@
         $hex-value-fg: map-get($color-names-to-hex, $color-fg);
         $hex-value-bg: map-get($color-names-to-hex, $color-bg);
 
-        .cell-fg-#{to-lower-case($color-fg)}-bg-#{to-lower-case($color-bg)} {
+        .cell-fg-#{to-lower-case('#{$color-fg}')}-bg-#{to-lower-case('#{$color-bg}')} {
             background-color: $hex-value-bg;
             color: $hex-value-fg;
         }
