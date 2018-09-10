@@ -17,17 +17,23 @@ const updateSystems = RGTest.updateSystems;
 describe('System.Hunger', () => {
     it('Subtracts energy from actors with hunger', () => {
         const system = new RG.System.Hunger(['Hunger', 'Action']);
+
         const hunger = new RG.Component.Hunger();
         hunger.setEnergy(2000);
         hunger.setMaxEnergy(2000);
-        const action = new RG.Component.Action();
+
         const player = RG.FACT.createPlayer('Player', {});
-        player.add('Hunger', hunger);
-        player.add('Action', action);
+        const action = new RG.Component.Action();
+        player.add(hunger);
+        player.add(action);
         action.addEnergy(100);
         expect(player).to.have.component('Hunger');
         expect(system.entities[player.getID()]).to.equal(player);
-        expect(player.get('Action').getEnergy()).to.equal(100);
+
+        const actComp = player.get('Action');
+        const actList = player.getList('Action');
+        expect(actList.length).to.equal(1);
+        expect(actComp.getEnergy()).to.equal(100);
         system.update();
         expect(player.get('Hunger').getEnergy()).to.equal(2000 - 100);
     });
