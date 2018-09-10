@@ -82,7 +82,7 @@
     "build": "npm run build:sass && npm run build:production",
     "build:production": "bin/build_production.sh",
     "build:production:debug": "npm run create-config-prod && NODE_ENV=production ./browserify --debug ./client/jsx/app.jsx --extension .jsx -t babelify > ./build/bundle.js",
-    "build:sass": "sass scss/style.scss -t compressed > build/style.css",
+    "build:sass": "sass scss/style.scss --style compressed > build/style.css",
     "clean": "bin/clean.sh",
     "create-config-prod": "cp -n client/config/production.js public/config.js",
     "create-config-devel": "cp -n client/config/devel.js public/config.js",
