@@ -157,35 +157,30 @@ RG.Map.CellList.prototype.getEmptyCells = function() {
     return emptyCells;
 };
 
-/* Returns true if the this._map has a cell in given x,y location.*/
-RG.Map.CellList.prototype._hasXY = function(x, y) {
-    return (x >= 0) && (x < this.cols) && (y >= 0) && (y < this.rows);
-};
-
 /* Returns true if light passes through this cell.*/
 RG.Map.CellList.prototype.lightPasses = function(x, y) {
-    if (this._hasXY(x, y)) {
+    if (this.hasXY(x, y)) {
         return this._map[x][y].lightPasses(); // delegate to cell
     }
     return false;
 };
 
 RG.Map.CellList.prototype.hasObstacle = function(x, y) {
-    if (this._hasXY(x, y)) {
+    if (this.hasXY(x, y)) {
         return this._map[x][y].hasObstacle();
     }
     return false;
 };
 
 RG.Map.CellList.prototype.isPassable = function(x, y) {
-    if (this._hasXY(x, y)) {
+    if (this.hasXY(x, y)) {
         return this._map[x][y].isPassable();
     }
     return false;
 };
 
 RG.Map.CellList.prototype.isPassableByAir = function(x, y) {
-    if (this._hasXY(x, y)) {
+    if (this.hasXY(x, y)) {
         return this._map[x][y].isPassableByAir();
     }
     return false;
@@ -200,7 +195,7 @@ RG.Map.CellList.prototype.getVisibleCells = function(actor) {
             const range = actor.getFOVRange();
             this.fov.compute(xA, yA, range, (x, y, r, visibility) => {
                 if (visibility) {
-                    if (this._hasXY(x, y)) {
+                    if (this.hasXY(x, y)) {
                         cells.push(this._map[x][y]);
                     }
                 }
@@ -322,7 +317,7 @@ RG.Map.CellList.prototype.getCells = function(filter = () => true) {
 RG.Map.CellList.prototype.getCellsWithCoord = function(coord) {
     const result = [];
     coord.forEach(xy => {
-        if (this._hasXY(xy[0], xy[1])) {
+        if (this.hasXY(xy[0], xy[1])) {
             result.push(this._map[xy[0]][xy[1]]);
         }
     });
@@ -337,7 +332,7 @@ RG.Map.CellList.prototype.setBaseElems = function(coord, elem) {
 
 RG.Map.CellList.prototype.has = function(xy, query) {
     const [x, y] = xy;
-    if (this._hasXY(x, y)) {
+    if (this.hasXY(x, y)) {
         const cell = this.getCell(x, y);
         if (typeof query === 'string') {
             const baseElem = cell.getBaseElem();
