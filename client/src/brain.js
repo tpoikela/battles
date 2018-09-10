@@ -59,14 +59,51 @@ RG.Brain.getBoxOfFreeCellsAround = (actor, d) => {
 };
 
 /* Returns all cells with actors in them from list of seen cells. */
-RG.Brain.findCellsWithActors = (actor, seenCells) => {
+RG.Brain.findCellsWithActors = (actor, seenCells, filterFunc) => {
     const cells = [];
     for (let i = 0, iMax = seenCells.length; i < iMax; i++) {
         if (seenCells[i].hasProp('actors')) {
             const actors = seenCells[i].getProp('actors');
             // Exclude itself from list
             if (actors[0].getID() !== actor.getID()) {
-                cells.push(seenCells[i]);
+                if (filterFunc && filterFunc(actors)) {
+                    cells.push(seenCells[i]);
+                }
+                else {
+                    cells.push(seenCells[i]);
+                }
+            }
+        }
+    }
+    return cells;
+};
+
+RG.Brain.getActorsInCells = (seenCells, filterFunc) => {
+    const cells = [];
+    for (let i = 0, iMax = seenCells.length; i < iMax; i++) {
+        if (seenCells[i].hasProp('actors')) {
+            const actors = seenCells[i].getProp('actors');
+            if (actors.length === 1) {
+                if (filterFunc) {
+                    if (filterFunc(actors[0])) {
+                        cells.push(actors[0]);
+                    }
+                }
+                else {
+                    cells.push(actors[0]);
+                }
+            }
+            else {
+                actors.forEach(foundActor => {
+                    if (filterFunc) {
+                        if (filterFunc(foundActor)) {
+                            cells.push(foundActor);
+                        }
+                    }
+                    else {
+                        cells.push(foundActor);
+                    }
+                });
             }
         }
     }
@@ -176,7 +213,7 @@ RG.Brain.Memory = function() {
     this.isEnemy = actor => {
         if (this._actors.hasOwnProperty('enemies')) {
             const index = this._actors.enemies.indexOf(actor);
-            if (index !== -1) {return true;}
+            if (index >= 0) {return true;}
         }
         if (!this.isFriend(actor)) {
             if (this._enemyTypes[actor.getType()]) {
@@ -598,16 +635,10 @@ RG.Brain.Rogue.prototype.getSeenFriends = function() {
 
 /* Returns all enemies that are visible to the brain's actor. */
 RG.Brain.Rogue.prototype.getSeenEnemies = function() {
-    const enemies = [];
     const memory = this.getMemory();
     const seenCells = this.getSeenCells();
-    const cells = RG.Brain.findCellsWithActors(this._actor, seenCells);
-    for (let i = 0; i < cells.length; i++) {
-        const actors = cells[i].getActors();
-        if (memory.isEnemy(actors[0])) {
-            enemies.push(actors[0]);
-        }
-    }
+    const filterFunc = actor => memory.isEnemy(actor);
+    const enemies = RG.Brain.getActorsInCells(seenCells, filterFunc);
     return enemies;
 };
 
