@@ -4,6 +4,21 @@ const RG = require('./rg');
 
 const Path = {};
 
+const NO_PATH = Object.freeze([]);
+
+/* Returns shortest path (array of x,y pairs) between two points. Does not
+* check if any of the cells are passable, unless a callback is given, which
+* is called with (x, y). */
+Path.getShortestPath = function(x0, y0, x1, y1, cb = () => true) {
+    const coords = [];
+    const passableCallback = cb;
+    const finder = new ROT.Path.AStar(x1, y1, passableCallback);
+    finder.compute(x0, y0, (x, y) => {
+        coords.push({x, y});
+    });
+    return coords;
+};
+
 /* NOTE: This has problem that if x0,y0 or x1,y1 have actors, returns no path at
  * all. */
 Path.getShortestPassablePath = function(map, x0, y0, x1, y1) {
@@ -29,6 +44,16 @@ Path.getActorToActorPath = function(map, x0, y0, x1, y1) {
         }
         return false;
     };
+
+    // Terminate search immediately if source is completely blocked
+    for (let x = x0 - 1; x <= x0 + 1; x++) {
+        for (let y = y0 - 1; y <= y0 + 1; y++) {
+            if (map.hasXY(x, y)) {
+                if (!passableCb(x, y)) {return NO_PATH;}
+            }
+        }
+    }
+
     const finder = new ROT.Path.AStar(x1, y1, passableCb);
     finder.compute(x0, y0, (x, y) => {
         coords.push({x, y});
@@ -82,17 +107,6 @@ Path.getShortestPassablePathWithDoors = function(map, x0, y0, x1, y1) {
     return coords;
 };
 
-/* Returns shortest path (array of x,y pairs) between two points. Does not
-* check if any of the cells are passable. */
-Path.getShortestPath = function(x0, y0, x1, y1, cb = () => true) {
-    const coords = [];
-    const passableCallback = cb;
-    const finder = new ROT.Path.AStar(x1, y1, passableCallback);
-    finder.compute(x0, y0, (x, y) => {
-        coords.push({x, y});
-    });
-    return coords;
-};
 
 /* Returns shortest distance (in cells) between two points.*/
 Path.shortestDist = function(x0, y0, x1, y1) {
@@ -100,6 +114,7 @@ Path.shortestDist = function(x0, y0, x1, y1) {
     return coords.length - 1; // Subtract one because starting cell included
 };
 
+/* Returns a weight for given path. */
 Path.getPathWeight = (map, coord) => {
     let w = 0;
     coord.forEach(c => {
