@@ -67,7 +67,12 @@ const saveFunc = (numTurns) => {
 };
 
 const updateFunc = () => {
-    game.update(restKey);
+    if (game.isGameOver()) {
+        game.simulate();
+    }
+    else {
+        game.update(restKey);
+    }
 };
 
 const simulSpellOn1stTurn = () => {
