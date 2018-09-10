@@ -156,7 +156,15 @@ const TransientDataComponent = (type, members) => {
 };
 RG.Component.TransientDataComponent = TransientDataComponent;
 
-// TODO UniqueTransientDataComponent
+const UniqueTransientDataComponent = (type, members) => {
+    return DataComponent(type, members,
+        {
+            toJSON: NO_SERIALISATION,
+            _isUnique: true
+        }
+    );
+};
+RG.Component.UniqueTransientDataComponent = UniqueTransientDataComponent;
 // TODO UniqueTransientTagComponent
 
 /* Raises an error if two comp declarations with same type are created. */
@@ -353,7 +361,7 @@ RG.Component.Base.prototype.toJSON = function() {
 };
 
 /* Action component is added to all schedulable acting entities.*/
-RG.Component.Action = TransientDataComponent('Action',
+RG.Component.Action = UniqueTransientDataComponent('Action',
     {energy: 0, active: false});
 
 RG.Component.Action.prototype.addEnergy = function(energy) {
