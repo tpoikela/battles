@@ -209,8 +209,11 @@ class GoalBase {
             this.subGoals = [];
         }
         this.subGoals.unshift(goal);
-        this.dbg(`Added subGoal ${goal.getType()}`);
-        this.dbg(`   Subgoals are now: ${this.subGoals.map(g => g.getType())}`);
+        if (debug.enabled) {
+            this.dbg(`Added subGoal ${goal.getType()}`);
+            const subStr = this.subGoals.map(g => g.getType());
+            this.dbg(`   Subgoals are now: ${subStr}`);
+        }
     }
 
     isInactive() {
@@ -235,8 +238,10 @@ class GoalBase {
         if (Array.isArray(this.subGoals)) {
             const goal = this.subGoals.find(g => g.getType() === goalType);
             if (goal && (!goal.hasFailed() && !goal.isCompleted())) {
-                this.dbg(`subGoal ${goalType} already present.`);
-                this.dbg(`  SubGoal status: ${goal.status}`);
+                if (debug.enabled) {
+                    this.dbg(`subGoal ${goalType} already present.`);
+                    this.dbg(`  SubGoal status: ${goal.status}`);
+                }
                 return true;
             }
         }
@@ -354,16 +359,18 @@ class GoalMoveUntilEnemy extends GoalBase {
 
         if (enemyCell) {
             const [eX, eY] = [enemyCell.getX(), enemyCell.getY()];
-            this.dbg(`Has moved enough. Enemy found @${eX},${eY}`);
+            if (debug.enabled) {
+                this.dbg(`Has moved enough. Enemy found @${eX},${eY}`);
+            }
             this.status = GOAL_COMPLETED;
         }
         else if (map.hasObstacle(nextX, nextY)) {
             this.status = GOAL_FAILED;
-            this.dbg('OBSTACLE ENCOUNTERED');
+            if (debug.enabled) {this.dbg('OBSTACLE ENCOUNTERED');}
         }
         else if (this.timeout === 0) {
             this.status = GOAL_FAILED;
-            this.dbg('TIMEOUT REACHED');
+            if (debug.enabled) {this.dbg('TIMEOUT REACHED');}
         }
         else if (map.isPassable(nextX, nextY)) {
             const level = this.actor.getLevel();
@@ -371,7 +378,9 @@ class GoalMoveUntilEnemy extends GoalBase {
             this.actor.add('Movement', movComp);
 
             const name = this.actor.getName();
-            this.dbg(`Moving ${name} to ${nextX},${nextY}`);
+            if (debug.enabled) {
+                this.dbg(`Moving ${name} to ${nextX},${nextY}`);
+            }
         }
         // else IDLE here until cell is passable
         --this.timeout;
