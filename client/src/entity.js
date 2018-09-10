@@ -6,10 +6,31 @@
 
 const RG = require('./rg');
 
+// Helper function for faster splice
+const spliceOne = function(arr, index) {
+    const len = arr.length;
+    if (!len) {return;}
+    while (index < len) {
+        arr[index] = arr[index + 1];
+        index++;
+    }
+    arr.length--;
+};
+
+/* Entity is used to represent actors, items and elements. It can have any
+ * arbitrary properties by attaching components to it. See the basic
+ * methods add(), get(), has() and remove() particularly.
+ */
 export default class Entity {
+
     constructor() {
         this._id = Entity.idCount++;
+
+        // Stores the comps by ID, used for serialisation
         this._comps = {};
+
+        // Cache for faster access, NOT serialised
+        this._compsByType = {};
     }
 
     getID() {return this._id;}
@@ -17,18 +38,15 @@ export default class Entity {
 
     /* Gets component with given name. If entity has multiple of them, returns
      * the first found. */
-    get(name) {
+    get(typeName) {
         ++Entity.num.get;
-        const keys = Object.keys(this._comps);
-        for (let i = 0, len = keys.length; i < len; i++) {
-            if (this._comps[keys[i]]._type === name) {
-                return this._comps[keys[i]];
-            }
+        if (this._compsByType[typeName]) {
+            return this._compsByType[typeName][0];
         }
         return null;
     }
 
-    /* Fast lookup by ID only. Called must check the result. */
+    /* Fast lookup by ID only. Caller must check the result for validity. */
     getByID(compID) {
         return this._comps[compID];
     }
@@ -36,8 +54,10 @@ export default class Entity {
     /* SLOW method to get comps of given type. Don't use in internal methods. */
     getList(typeName) {
         ++Entity.num.getList;
-        const comps = Object.values(this._comps);
-        return comps.filter(comp => comp.getType() === typeName);
+        if (this._compsByType[typeName]) {
+            return this._compsByType[typeName].slice();
+        }
+        return [];
     }
 
     /* Adds a new component into the entity. */
@@ -52,7 +72,14 @@ export default class Entity {
         if (compObj.isUnique() && this.has(compName)) {
             this.removeAll(compName);
         }
+
         this._comps[compObj.getID()] = compObj;
+        if (!this._compsByType.hasOwnProperty(compName)) {
+            this._compsByType[compName] = [compObj];
+        }
+        else {
+            this._compsByType[compName].push(compObj);
+        }
         compObj.entityAddCallback(this);
         RG.POOL.emitEvent(compName, {entity: this, add: true});
     }
@@ -61,16 +88,10 @@ export default class Entity {
      * than with name. */
     has(nameOrId) {
         ++Entity.num.has;
-        if (this._comps.hasOwnProperty(nameOrId)) {
+        if (this._compsByType.hasOwnProperty(nameOrId)) {
             return true;
         }
-        const keys = Object.keys(this._comps);
-        for (let i = 0, len = keys.length; i < len; i++) {
-            if (this._comps[keys[i]]._type === nameOrId) {
-                return true;
-            }
-        }
-        return false;
+        return this._comps.hasOwnProperty(nameOrId);
     }
 
     /* Removes given component type or component.
@@ -89,6 +110,12 @@ export default class Entity {
                 const compName = comp.getType();
                 comp.entityRemoveCallback(this);
                 delete this._comps[id];
+
+                const index = this._compsByType[compName].indexOf(comp);
+                spliceOne(this._compsByType[compName], index);
+                if (this._compsByType[compName].length === 0) {
+                    delete this._compsByType[compName];
+                }
                 RG.POOL.emitEvent(compName, {entity: this, remove: true});
             }
         }
@@ -124,11 +151,13 @@ export default class Entity {
         if (typeof nameOrComp === 'object') {
             compName = nameOrComp.getType();
         }
-        const list = this.getList(compName);
-        list.forEach(comp => {this.remove(comp);});
+        if (this.has(compName)) {
+            const list = this._compsByType[compName];
+            list.forEach(comp => {this.remove(comp);});
+        }
     }
 
-    /* Replaces ALL components of given type. */
+    /* Replaces ALL components of the given type. */
     replace(nameOrComp, comp) {
         this.removeAll(nameOrComp);
         if (comp) {
