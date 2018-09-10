@@ -1,6 +1,7 @@
 
 
 const RG = require('../rg');
+const debug = require('debug')('bitn:System.Movement');
 
 const System = {};
 System.Base = require('./system.base');
@@ -12,7 +13,6 @@ System.Movement = function(compTypes) {
     System.Base.call(this, RG.SYS.MOVEMENT, compTypes);
 
     this.climbRe = /highrock/;
-
 
     /* Checks movements like climbing. */
     this._checkSpecialMovement = function(ent, cell) {
@@ -76,47 +76,65 @@ System.Movement = function(compTypes) {
     /* If player moved to the square, checks if any messages must
      * be emitted. */
     this.checkMessageEmits = (prevCell, newCell) => {
-        if (newCell.hasStairs()) {
-            const stairs = newCell.getStairs();
-            const level = stairs.getTargetLevel();
-            let msg = 'You see stairs here';
+        if (newCell.hasProp(RG.TYPE_ELEM)) {
+            if (newCell.hasStairs()) {
+                const stairs = newCell.getStairs();
+                const level = stairs.getTargetLevel();
+                let msg = 'You see stairs here';
 
-            const parent = level.getParent();
-            if (parent) {
-                const name = RG.formatLocationName(level);
-                msg += `. They seem to be leading to ${name}`;
+                const parent = level.getParent();
+                if (parent) {
+                    const name = RG.formatLocationName(level);
+                    msg += `. They seem to be leading to ${name}`;
+                }
+                RG.gameMsg(msg);
             }
-            RG.gameMsg(msg);
-        }
-        else if (newCell.hasPassage()) {
-            const passage = newCell.getPassage();
-            const level = passage.getTargetLevel();
-            const dir = RG.getCardinalDirection(level, newCell);
-            let msg = `You see a passage to ${dir} here.`;
-            const parent = level.getParent();
-            if (parent) {
-                const name = RG.formatLocationName(level);
-                msg += `. It seems to be leading to ${name}`;
+            else if (newCell.hasPassage()) {
+                const passage = newCell.getPassage();
+                const level = passage.getTargetLevel();
+                const dir = RG.getCardinalDirection(level, newCell);
+                let msg = `You see a passage to ${dir} here.`;
+                const parent = level.getParent();
+                if (parent) {
+                    const name = RG.formatLocationName(level);
+                    msg += `. It seems to be leading to ${name}`;
+                }
+                RG.gameMsg(msg);
             }
-            RG.gameMsg(msg);
-        }
-        else if (newCell.hasConnection()) {
-            const connection = newCell.getConnection();
-            const level = connection.getTargetLevel();
-            let msg = 'You see an entrance here';
+            else if (newCell.hasConnection()) {
+                const connection = newCell.getConnection();
+                const level = connection.getTargetLevel();
+                let msg = 'You see an entrance here';
 
-            const parent = level.getParent();
-            if (parent) {
-                const name = RG.formatLocationName(level);
-                msg += `. It seems to be leading to ${name}`;
+                const parent = level.getParent();
+                if (parent) {
+                    const name = RG.formatLocationName(level);
+                    msg += `. It seems to be leading to ${name}`;
+                }
+                RG.gameMsg(msg);
+
             }
-            RG.gameMsg(msg);
+            if (newCell.hasPropType('lever')) {
+                RG.gameMsg('There is a lever on the floor');
+            }
 
+            if (!prevCell.hasShop() && newCell.hasShop()) {
+                const shop = newCell.getShop();
+                if (shop.isAbandoned()) {
+                    RG.gameMsg('This shop seems to be abandoned');
+                }
+                else {
+                    RG.gameMsg('You have entered a shop.');
+                }
+            }
+            else if (newCell.hasShop()) {
+                const shop = newCell.getShop();
+                if (!shop.isAbandoned()) {
+                    RG.gameMsg('You can drop items to sell them here.');
+                }
+            }
         }
 
-        if (newCell.hasPropType('lever')) {
-            RG.gameMsg('There is a lever on the floor');
-        }
 
         if (newCell.hasItems()) {
             const items = newCell.getProp('items');
@@ -136,22 +154,6 @@ System.Movement = function(compTypes) {
             if (topItem.has('Unpaid')) {
                 if (topItem.count > 1) {RG.gameMsg('They are for sale');}
                 else {RG.gameMsg('It is for sale');}
-            }
-        }
-
-        if (!prevCell.hasShop() && newCell.hasShop()) {
-            const shop = newCell.getShop();
-            if (shop.isAbandoned()) {
-                RG.gameMsg('This shop seems to be abandoned');
-            }
-            else {
-                RG.gameMsg('You have entered a shop.');
-            }
-        }
-        else if (newCell.hasShop()) {
-            const shop = newCell.getShop();
-            if (!shop.isAbandoned()) {
-                RG.gameMsg('You can drop items to sell them here.');
             }
         }
 
@@ -287,7 +289,9 @@ System.Movement.prototype.updateEntity = function(ent) {
 
     if (canMoveThere) {
         const xyOld = ent.getXY();
-        RG.debug(this, `Trying to move ent from ${xyOld}`);
+        if (debug.enabled) {
+            RG.debug(this, `Trying to move ent from ${xyOld}`);
+        }
 
         const propType = ent.getPropType();
         if (map.moveProp(xyOld, [x, y], propType, ent)) {
