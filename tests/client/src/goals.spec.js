@@ -32,7 +32,8 @@ describe('Actor Goal', () => {
         actor.addEnemy(enemy);
         enemy.addEnemy(actor);
         const startHP = enemy.get('Health').getHP();
-        /* const level =*/ RGTest.wrapIntoLevel([actor, enemy]);
+        const level = RGTest.wrapIntoLevel([actor, enemy]);
+        expect(level.getActors().length).to.equal(2);
         RGTest.moveEntityTo(actor, 5, 5);
         RGTest.moveEntityTo(enemy, 17, 17);
 
@@ -43,7 +44,6 @@ describe('Actor Goal', () => {
         const [origX, origY] = [x, y];
         let action;
         for (let i = 0; i < 5; i++) {
-            // [x, y] = actor.getXY();
             action = actor.nextAction();
             action.doAction();
             systems.forEach(sys => {sys.update();});
