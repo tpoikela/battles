@@ -885,22 +885,6 @@ RG.Brain.Human.prototype.decideNextAction = function() {
     return BTree.startBehavTree(Models.Human.tree, this._actor)[0];
 };
 
-/* Brain object used by Spirit objects.*/
-RG.Brain.Spirit = function(actor) {
-    RG.Brain.Rogue.call(this, actor);
-    this.setType('Spirit');
-};
-RG.extend2(RG.Brain.Spirit, RG.Brain.Rogue);
-
-/* Returns the next action for the spirit.*/
-RG.Brain.Spirit.prototype.decideNextAction = function() {
-    this._cache.seen = null;
-    const seenCells = this.getSeenCells();
-    const res = this.exploreLevel(seenCells);
-    this._cache.seen = null;
-    return res;
-};
-
 /* Brain object used by archers. */
 RG.Brain.Archer = function(actor) {
     RG.Brain.Rogue.call(this, actor);
@@ -1004,6 +988,14 @@ RG.Brain.Explorer = function(actor) {
     this.goal.addEvaluator(new Evaluator.Explore());
 };
 RG.extend2(RG.Brain.Explorer, RG.Brain.GoalOriented);
+
+RG.Brain.Spirit = function(actor) {
+    RG.Brain.GoalOriented.call(this, actor);
+    this.setType('Spirit');
+    this.goal.removeEvaluators();
+    this.goal.addEvaluator(new Evaluator.Explore());
+};
+RG.extend2(RG.Brain.Spirit, RG.Brain.GoalOriented);
 
 /* Brain-object for animals. */
 RG.Brain.Animal = function(actor) {
