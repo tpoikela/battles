@@ -18,9 +18,11 @@ UtilsSim.optDefs = [
     {name: 'name', type: String, descr: 'Name of the character' },
     {name: 'nomsg', type: Boolean, descr: 'Disables game messages'},
     {name: 'nosave', type: Boolean, descr: 'Disables save during simulation'},
+    {name: 'quiet', alias: 'q', type: Boolean, descr: 'No output to STDOUT'},
     {name: 'race', alias: 'r', type: String, descr: 'Race of actor'},
     {name: 'save_period', type: Number, descr: 'Save internal in turns'},
-    {name: 'seed', type: Number, descr: 'Seed for the RNGs'}
+    {name: 'seed', type: Number, descr: 'Seed for the RNGs'},
+    {name: 'verbosity', alias: 'v', type: String, descr: 'Verbosity level' }
 ];
 
 /* Lazy method for getting options. Call this directly if you want to parse the
@@ -54,5 +56,36 @@ UtilsSim.getDefaults = function(opt) {
     obj.seed = obj.seed || 0;
     return obj;
 };
+
+UtilsSim.Log = function(opts) {
+    const verb = opts.verbosity;
+    this.verb = UtilsSim.VMEDIUM;
+    if (UtilsSim[verb]) {
+        this.verb = UtilsSim[verb];
+    }
+    else if (opts.verbosity) {
+        console.warn(`No verbosity ${verb} found in UtilsSim`);
+    }
+
+    this.log = (...args) => {
+        if (!opts.quiet) {
+            console.log(...args);
+        }
+    };
+
+    this.info = (verb, ...args) => {
+        if (verb <= this.verb) {
+            console.log(...args);
+        }
+    };
+};
+
+// Verbosity levels
+UtilsSim.VNONE = 10;
+UtilsSim.VLOW = 20;
+UtilsSim.VMEDIUM = 50;
+UtilsSim.VHIGH = 50;
+UtilsSim.VALL = 100;
+UtilsSim.VDEBUG = 150;
 
 module.exports = UtilsSim;
