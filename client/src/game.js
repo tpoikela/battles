@@ -61,6 +61,7 @@ RG.Game.Main = function() {
     this._engine.playerCommandCallback = this.playerCommandCallback.bind(this);
 
     this.isGameOver = () => this._gameOver;
+    // Re-assign the default Engine '() => false' function
     this._engine.isGameOver = this.isGameOver;
 
     this.getLevels = () => this._engine.getLevels();
@@ -356,8 +357,13 @@ RG.Game.Main = function() {
         return map;
     };
 
-    this.simulate = () => {this._engine.simulateGame();};
-    this.simulateGame = () => {this._engine.simulateGame();};
+    this.simulate = (nTurns = 1) => {
+        this._engine.simulateGame(nTurns);
+    };
+
+    this.simulateGame = (nTurns = 1) => {
+        this._engine.simulateGame(nTurns);
+    };
 
     /* Must be called to advance the game by one player action. Non-player
      * actions are executed after the player action.*/
@@ -382,6 +388,7 @@ RG.Game.Main = function() {
                 if (index >= 0) {
                     if (this._players.length === 1) {
                         this._gameOver = true;
+                        console.log('PLAYER DIED!!');
                         RG.gameMsg('GAME OVER!');
                     }
                     this._players.splice(index, 1);
