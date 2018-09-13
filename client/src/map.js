@@ -31,6 +31,13 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) {
 
     this.fov = new ROT.FOV.RecursiveShadowcasting(
         this.lightPasses.bind(this));
+
+    this.useCache = false;
+    if (this.useCache) {
+        this._cache = {
+            fov: {}
+        };
+    }
 };
 
 /* Returns true if x,y are in the this._map.*/
@@ -190,9 +197,18 @@ RG.Map.CellList.prototype.isPassableByAir = function(x, y) {
 RG.Map.CellList.prototype.getVisibleCells = function(actor) {
     const cells = [];
     const [xA, yA] = actor.getXY();
+    const range = actor.getFOVRange();
+    const key = xA + ',' + yA + ',r' + range;
+
     if (actor.isLocated()) {
         if (actor.getLevel().getMap() === this) {
-            const range = actor.getFOVRange();
+
+            if (this.useCache) {
+                if (this._cache.fov[key]) {
+                    return this._cache.fov[key];
+                }
+            }
+
             this.fov.compute(xA, yA, range, (x, y, r, visibility) => {
                 if (visibility) {
                     if (this.hasXY(x, y)) {
@@ -201,6 +217,9 @@ RG.Map.CellList.prototype.getVisibleCells = function(actor) {
                 }
             });
         }
+    }
+    if (this.useCache) {
+        this._cache.fov[key] = cells;
     }
     return cells;
 };
