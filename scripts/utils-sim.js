@@ -57,9 +57,18 @@ UtilsSim.getDefaults = function(opt) {
     return obj;
 };
 
+UtilsSim.useBrowser = function() {
+    return typeof window !== 'undefined';
+};
+
 UtilsSim.Log = function(opts) {
     const verb = opts.verbosity;
     this.verb = UtilsSim.VMEDIUM;
+
+    if (UtilsSim.useBrowser()) {
+        this.mountElem = document.querySelector('#mount-point');
+    }
+
     if (UtilsSim[verb]) {
         this.verb = UtilsSim[verb];
     }
@@ -69,13 +78,24 @@ UtilsSim.Log = function(opts) {
 
     this.log = (...args) => {
         if (!opts.quiet) {
-            console.log(...args);
+            if (this.mountElem) {
+                this.mountElem.textContent = [...args];
+            }
+            else {
+                console.log(...args);
+            }
+
         }
     };
 
     this.info = (verb, ...args) => {
         if (verb <= this.verb) {
-            console.log(...args);
+            if (this.mountElem) {
+                this.mountElem.textContent = [...args];
+            }
+            else {
+                console.log(...args);
+            }
         }
     };
 };
