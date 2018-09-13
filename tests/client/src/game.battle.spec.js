@@ -42,7 +42,8 @@ describe('Game.Battle', function() {
 
         const conf = {
             cols: 20, rows: 10,
-            armySize: 10, centerX: true, centerY: true
+            armySize: 10, centerX: true, centerY: true,
+            factions: ['undead', 'dwarf']
         };
         const battle = new BattleFact().createBattle(areaLevel, conf);
         battle.getLevel().setParent(areaLevel);
@@ -56,6 +57,7 @@ describe('Game.Battle', function() {
         expect(areaLevel.getActors().length).to.equal(0);
         expect(battle.isOver()).to.equal(false);
 
+        // battle.getLevel().debugPrintInASCII();
         let count = 0;
         const turnLimit = 10000;
         while (!battle.isOver() && count < turnLimit) {
@@ -67,15 +69,13 @@ describe('Game.Battle', function() {
             game.simulateGame();
         }
 
-        expect(battle.isOver()).to.equal(true);
         const battleActors = battle.getLevel().getActors();
         if (battleActors.length > 0) {
-            console.log(JSON.stringify(battleActors));
             battle.getLevel().debugPrintInASCII();
-            console.log('TILE LEVEL: ');
             areaLevel.debugPrintInASCII();
         }
         expect(battleActors.length, 'battleLevel empty').to.equal(0);
+        expect(battle.isOver()).to.equal(true);
 
         const survivors = areaLevel.getActors();
         expect(survivors.length).to.be.at.least(4);
