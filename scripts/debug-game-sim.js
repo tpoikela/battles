@@ -13,8 +13,12 @@ const restKey = {code: Keys.KEY.REST};
 const {VMEDIUM} = UtilsSim;
 
 const RNG = RG.Random.getRNG();
-
 const opts = UtilsSim.getOpts();
+
+if (UtilsSim.useBrowser()) {
+    opts.nosave = true;
+    opts.maxturns = 10000;
+}
 
 RNG.setSeed(opts.seed);
 ROT.RNG.setSeed(opts.seed);
@@ -26,10 +30,6 @@ log('RNG uniform: ' + RNG.getUniform());
 log('ROT.RNG uniform: ' + ROT.RNG.getUniform());
 
 const gameConf = {
-    cols: 60,
-    rows: 30,
-    levels: 2,
-
     playerLevel: 'Medium',
     levelSize: 'Medium',
     playerClass: opts.class || RG.ACTOR_CLASSES[0],
@@ -40,7 +40,7 @@ const gameConf = {
     playMode: 'Arena',
     loadedPlayer: null,
     loadedLevel: null,
-    playerName: opts.name,
+    playerName: opts.name || 'Player',
     seed: 0
 };
 const gameFact = new RG.Factory.Game();
@@ -62,7 +62,9 @@ const saveFunc = (numTurns) => {
 
     const {playerName} = gameConf;
     const fName = `results/debug-game-${playerName}-${numTurns}-${timeId}.json`;
-    fs.writeFileSync(fName, JSON.stringify(gameJSON));
+    if (fs && fs.writeFileSync) {
+        fs.writeFileSync(fName, JSON.stringify(gameJSON));
+    }
 };
 
 const reportFunc = game => {
@@ -74,7 +76,9 @@ const reportFunc = game => {
 
 const updateFunc = () => {
     if (game.isGameOver()) {
-        game.simulate();
+        const level = game.getLevels()[0];
+        const nActors = level.getActors().length;
+        game.simulate(nActors);
     }
     else {
         game.update(restKey);
@@ -133,10 +137,14 @@ info(VMEDIUM, '\tOverall avg FPS: ' + fpsAvg + ' (from array)');
 
 fromJSON = new RG.Game.FromJSON();
 gameJSON = game.toJSON();
-fs.writeFileSync('results/debug-game.json',
-    JSON.stringify(gameJSON));
+if (fs && fs.writeFileSync) {
+    fs.writeFileSync('results/debug-game.json',
+        JSON.stringify(gameJSON));
+}
 
 const level = game.getLevels()[0];
-const cacheStr = JSON.stringify(level.getMap()._cache);
-log('Map cache length is ' + cacheStr.length);
+if (level.getMap().useCache) {
+    const cacheStr = JSON.stringify(level.getMap()._cache);
+    log('Map cache length is ' + cacheStr.length);
+}
 
