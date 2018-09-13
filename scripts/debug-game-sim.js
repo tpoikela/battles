@@ -10,6 +10,7 @@ const ROT = require('../lib/rot');
 const UtilsSim = require('./utils-sim');
 
 const restKey = {code: Keys.KEY.REST};
+const {VMEDIUM} = UtilsSim;
 
 const RNG = RG.Random.getRNG();
 
@@ -18,8 +19,11 @@ const opts = UtilsSim.getOpts();
 RNG.setSeed(opts.seed);
 ROT.RNG.setSeed(opts.seed);
 
-console.log('RNG uniform: ' + RNG.getUniform());
-console.log('ROT.RNG uniform: ' + ROT.RNG.getUniform());
+const logger = new UtilsSim.Log(opts);
+const {info, log} = logger;
+
+log('RNG uniform: ' + RNG.getUniform());
+log('ROT.RNG uniform: ' + ROT.RNG.getUniform());
 
 const gameConf = {
     cols: 60,
@@ -56,14 +60,16 @@ const saveFunc = (numTurns) => {
     gameJSON = game.toJSON();
     game = fromJSON.createGame(gameJSON);
 
-    const level = game.getLevels()[0];
-    console.log(`saveFunc RG.POOL listeners: ${RG.POOL.getNumListeners()}`);
-    const numActors = level.getActors().length;
-    console.log(`Actors in level: ${numActors}`);
-
     const {playerName} = gameConf;
     const fName = `results/debug-game-${playerName}-${numTurns}-${timeId}.json`;
     fs.writeFileSync(fName, JSON.stringify(gameJSON));
+};
+
+const reportFunc = game => {
+    const level = game.getLevels()[0];
+    log(`saveFunc RG.POOL listeners: ${RG.POOL.getNumListeners()}`);
+    const numActors = level.getActors().length;
+    log(`Actors in level: ${numActors}`);
 };
 
 const updateFunc = () => {
@@ -88,7 +94,7 @@ const saveInterval = opts.save_period || 400;
 let turnOfLastSave = 0;
 let timeSaveFinished = Date.now();
 
-console.log(`Start RG.POOL listeners: ${RG.POOL.getNumListeners()}`);
+log(`Start RG.POOL listeners: ${RG.POOL.getNumListeners()}`);
 
 for (let i = 1; i <= numTurns; i++) {
     // expect(updateFunc).not.to.throw(Error);
@@ -102,29 +108,35 @@ for (let i = 1; i <= numTurns; i++) {
         const dur = timeNow - timeSaveFinished;
         const fps = (i - turnOfLastSave) / (dur / 1000);
         fpsArray.push(fps);
-        console.log(`FPS: ${fps} Saving game after ${i}/${numTurns} turns`);
+        log(`FPS: ${fps} Saving game after ${i}/${numTurns} turns`);
+        reportFunc(game);
         // expect(saveFunc).not.to.throw(Error);
-        saveFunc(i);
+        if (!opts.nosave) {
+            saveFunc(i);
+        }
         turnOfLastSave = i;
         timeSaveFinished = Date.now();
     }
-    if (i % 10 === 0) {
-        console.log('Finished turn ' + i);
+    if (i % 100 === 0) {
+        log('Finished turn ' + i);
     }
 }
 const timeEnd = new Date().getTime();
 const dur = timeEnd - timeStart;
-console.log('Execution took ' + dur + ' ms');
+log('Execution took ' + dur + ' ms');
 
-const fpsAvg = fpsArray.reduce((acc, val) => acc + val) / fpsArray.length;
+const fpsAvg = fpsArray.reduce((acc, val) => acc + val, 0) / fpsArray.length;
 
 const fps = numTurns / (dur / 1000);
-console.log('Overall avg FPS: ' + fps);
-console.log('\tOverall avg FPS: ' + fpsAvg + ' (from array)');
+info(VMEDIUM, 'Overall avg FPS: ' + fps);
+info(VMEDIUM, '\tOverall avg FPS: ' + fpsAvg + ' (from array)');
 
 fromJSON = new RG.Game.FromJSON();
 gameJSON = game.toJSON();
 fs.writeFileSync('results/debug-game.json',
     JSON.stringify(gameJSON));
 
+const level = game.getLevels()[0];
+const cacheStr = JSON.stringify(level.getMap()._cache);
+log('Map cache length is ' + cacheStr.length);
 
