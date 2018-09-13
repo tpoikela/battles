@@ -290,6 +290,9 @@ class GoalFollowPath extends GoalBase {
         const [aX, aY] = this.actor.getXY();
         const {x, y} = this.path[0];
         const [nextX, nextY] = [x, y];
+        const n = this.path.length;
+
+        this.dbg(`followPath() test move ${aX},${aY} -> ${x},${y}, path ${n} `);
         if (level.getMap().isPassable(nextX, nextY)) {
             const dX = Math.abs(aX - x);
             const dY = Math.abs(aY - y);
@@ -298,24 +301,24 @@ class GoalFollowPath extends GoalBase {
                 const movComp = new Component.Movement(nextX, nextY, level);
                 this.actor.add(movComp);
                 this.path.shift();
-                const n = this.path.length;
                 if (this.path.length === 0) {
-                    this.dbg(`process() ret GOAL_COMPL, path ${n}`);
+                    this.dbg(`followPath() ret GOAL_COMPL, path ${n}`);
                     this.status = GOAL_COMPLETED;
                     return GOAL_COMPLETED;
                 }
-                this.dbg(`process() ret GOAL_ACTIVE, path ${n}`);
+                this.dbg(`followPath() ret GOAL_ACTIVE, path ${n}`);
                 this.status = GOAL_ACTIVE;
                 return GOAL_ACTIVE;
             }
             else {
+                this.dbg(`followPath() strayed, ret GOAL_FAILED, path ${n}`);
                 // Strayed from the path, mark as failed
                 this.status = GOAL_FAILED;
                 return GOAL_FAILED;
             }
         }
         else {
-            this.dbg('process() ret GOAL_FAILED');
+            this.dbg('followPathl() next NOT passable ret GOAL_FAILED');
             this.status = GOAL_FAILED;
             return GOAL_FAILED;
         }
@@ -400,28 +403,35 @@ class GoalGotoActor extends GoalFollowPath {
         this.setType('GoalGotoActor');
         this.xy = targetActor.getXY();
         this.targetActor = targetActor;
+        this.pathFunc = Path.getActorToActorPath;
     }
 
     /* If activated, will compute actor's path from current location to x,y */
     activate() {
-        const [x, y] = this.xy;
-        const [aX, aY] = [this.actor.getX(), this.actor.getY()];
-        this.dbg(`${this.getType()} ${aX},${aY} -> ${x},${y}`);
-        const map = this.actor.getLevel().getMap();
-        const path = Path.getActorToActorPath(map, aX, aY, x, y);
+        const path = this.getPath();
         this.dbg(`activate() path length: ${path.length}`);
         this.path = path;
         this.status = GOAL_ACTIVE;
         this.dbg(`activate() path length: ${this.path.length}`);
     }
 
+    getPath() {
+        const map = this.actor.getLevel().getMap();
+        const [x, y] = this.xy;
+        const [aX, aY] = [this.actor.getX(), this.actor.getY()];
+        this.dbg(`${this.getType()} ${aX},${aY} -> ${x},${y}`);
+        return Path.getActorToActorPath(map, aX, aY, x, y);
+    }
+
     process() {
         this.activateIfInactive();
-        const [tX, tY] = [this.targetActor.getX(), this.targetActor.getY()];
-        const [x, y] = this.xy;
-        const dX = Math.abs(tX - x);
-        const dY = Math.abs(tY - y);
-        if (dX > 1 || dY > 1) {
+         const [tX, tY] = [this.targetActor.getX(), this.targetActor.getY()];
+         const [x, y] = this.xy;
+         const dX = Math.abs(tX - x);
+         const dY = Math.abs(tY - y);
+
+        // Why this branch??
+        if (dX > 2 || dY > 2) {
             this.followPath();
             this.status = GOAL_FAILED;
             return GOAL_FAILED;
@@ -436,6 +446,24 @@ class GoalGotoActor extends GoalFollowPath {
 
 }
 Goal.GotoActor = GoalGotoActor;
+
+/* Variation of GotoActor, in which only seen cells are taken into account to
+ * make path finding faster. */
+class GoalGotoSeenActor extends GoalGotoActor {
+
+    constructor(actor, targetActor) {
+        super(actor, targetActor);
+        this.setType('GoalGotoSeenActor');
+    }
+
+    getPath() {
+        const map = this.actor.getLevel().getMap();
+        const [x, y] = this.xy;
+        return Path.getShortestSeenPath(this.actor, map, x, y);
+    }
+
+}
+Goal.GotoSeenActor = GoalGotoSeenActor;
 
 /* Goal to patrol/guard a single x,y coordinate. */
 class GoalGuard extends GoalBase {
@@ -650,7 +678,9 @@ class GoalAttackActor extends GoalBase {
             else if (brain.canSeeActor(this.targetActor)) {
                 this.removeAllSubGoals();
                 this.dbg('canSeeActor subGoal GoalGotoActor');
-                const goal = new GoalGotoActor(this.actor, this.targetActor);
+                // const goal = new GoalGotoActor(this.actor, this.targetActor);
+                const goal = new GoalGotoSeenActor(this.actor,
+                    this.targetActor);
                 this.addSubGoal(goal);
             }
             // If not visible, try to hunt the target
