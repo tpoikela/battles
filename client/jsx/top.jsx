@@ -24,6 +24,7 @@ import {ContextMenuTrigger} from 'react-contextmenu';
 import GameStats, {VIEW_MAP, VIEW_PLAYER} from './game-stats';
 import PluginManager from '../gui/plugin-manager';
 
+const debug = require('debug')('bitn:top');
 const ROT = require('../../lib/rot');
 const RG = require('../src/rg');
 const Keys = require('../src/keymap');
@@ -36,12 +37,9 @@ const md5 = require('js-md5');
 const Screen = require('../gui/screen');
 const Persist = require('../src/persist');
 const worldConf = require('../data/conf.world');
-
 const wwork = require('webworkify');
 
 const INV_SCREEN = 'Inventory';
-
-window.RG = RG;
 
 /* Contains logic that is not tightly coupled to the GUI.*/
 class TopLogic {
@@ -506,10 +504,12 @@ class BattlesTop extends Component {
     /* Sets some global variables which ease up the debugging with console.
      */
     setDebugRefsToWindow() {
-        window.RG = RG;
-        window.GAME = this.game; // For debugging
-        const player = this.game.getPlayer();
-        window.PLAYER = player; // For debugging
+        if (debug.enabled) {
+            window.RG = RG;
+            window.GAME = this.game; // For debugging
+            const player = this.game.getPlayer();
+            window.PLAYER = player; // For debugging
+        }
     }
 
     selectItemTop(item) {
@@ -581,7 +581,9 @@ class BattlesTop extends Component {
         if (cell.hasActors()) {
             const actors = cell.getActors();
             console.log(`Actors: ${JSON.stringify(actors)}`);
-            RG.CLICKED_ACTOR = actors[0];
+            /* if (debug.enabled) {
+                RG.CLICKED_ACTOR = actors[0];
+            }*/
         }
         if (cell.hasConnection()) {
             const conns = cell.getPropType('connection');
