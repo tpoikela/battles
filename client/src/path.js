@@ -19,6 +19,40 @@ Path.getShortestPath = function(x0, y0, x1, y1, cb = () => true) {
     return coords;
 };
 
+Path.getShortestSeenPath = function(actor, map, x1, y1) {
+    const seenCells = actor.getBrain().getSeenCells();
+    const lut = {};
+
+    // Create LUT for better lookup in passable callback
+    seenCells.forEach(cell => {
+        lut[cell.getKeyXY()] = cell;
+    });
+
+    const passableCb = (x, y) => {
+        // Assume that each seen cell is within map boundaries
+        if (lut.hasOwnProperty(x + ',' + y)) {
+            return (
+                map.isPassable(x, y) || (x === x0 && y === y0)
+                || (x === x1 && y === y1)
+            );
+        }
+        return false;
+    };
+
+    const [x0, y0] = actor.getXY();
+    if (isSourceBlocked(x0, y0, map, passableCb)) {return NO_PATH;}
+
+    const coords = [];
+    const finder = new ROT.Path.AStar(x1, y1, passableCb);
+    finder.compute(x0, y0, (x, y) => {
+        coords.push({x, y});
+    });
+
+    removeSourceAndTarget(coords);
+    return coords;
+};
+
+
 /* NOTE: This has problem that if x0,y0 or x1,y1 have actors, returns no path at
  * all. */
 Path.getShortestPassablePath = function(map, x0, y0, x1, y1) {
@@ -46,23 +80,14 @@ Path.getActorToActorPath = function(map, x0, y0, x1, y1) {
     };
 
     // Terminate search immediately if source is completely blocked
-    for (let x = x0 - 1; x <= x0 + 1; x++) {
-        for (let y = y0 - 1; y <= y0 + 1; y++) {
-            if (map.hasXY(x, y)) {
-                if (!passableCb(x, y)) {return NO_PATH;}
-            }
-        }
-    }
+    if (isSourceBlocked(x0, y0, map, passableCb)) {return NO_PATH;}
 
     const finder = new ROT.Path.AStar(x1, y1, passableCb);
     finder.compute(x0, y0, (x, y) => {
         coords.push({x, y});
     });
 
-    if (coords.length > 1) {
-        coords.shift(); // Remove source x,y
-        coords.pop(); // Remove target x,y
-    }
+    removeSourceAndTarget(coords);
     return coords;
 };
 
@@ -81,14 +106,14 @@ Path.getShortestActorPath = function(map, x0, y0, x1, y1, cb) {
         }
         return false;
     };
+    if (isSourceBlocked(x0, y0, map, passableCb)) {return NO_PATH;}
+
     const finder = new ROT.Path.AStar(x1, y1, passableCb);
     finder.compute(x0, y0, (x, y) => {
         coords.push({x, y});
     });
 
-    if (coords.length > 0) {
-        coords.shift(); // Remove source x,y
-    }
+    removeSource(coords);
     return coords;
 };
 
@@ -245,5 +270,31 @@ Path.getPathSeg = function(dist, nSeg) {
     result.push(remain);
     return result;
 };
+
+/* HELPER FUNCTIONS. */
+
+function isSourceBlocked(x0, y0, map, passableCb) {
+    for (let x = x0 - 1; x <= x0 + 1; x++) {
+        for (let y = y0 - 1; y <= y0 + 1; y++) {
+            if (map.hasXY(x, y)) {
+                if (passableCb(x, y)) {return false;}
+            }
+        }
+    }
+    return true;
+}
+
+function removeSource(coords) {
+    if (coords.length > 0) {
+        coords.shift();
+    }
+}
+
+function removeSourceAndTarget(coords) {
+    if (coords.length > 1) {
+        coords.shift(); // Remove source x,y
+        coords.pop(); // Remove target x,y
+    }
+}
 
 module.exports = Path;
