@@ -331,6 +331,8 @@ const Engine = function(eventPool) {
         }
     };
 
+    // Not a useless function, re-assigned in Game.Main, but needed
+    // here for testing Engine without Game.Main
     this.isGameOver = () => false;
 
     this.isActiveLevel = level => {
