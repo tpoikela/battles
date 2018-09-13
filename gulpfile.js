@@ -88,6 +88,20 @@ gulp.task('build-sass', function() {
 
 });
 
+gulp.task('build-sim', ['create-config'], function() {
+    const bOpts = Object.assign({}, browserifyOpts);
+    // bOpts.entries = 'scripts/debug-game-sim.js';
+    bOpts.entries = paths.jsxDir + '/app-test.jsx';
+    const bundler = browserify(bOpts).transform(babelify);
+
+    bundler
+        .bundle()
+        .on('error', handleErrors)
+        .pipe(source('./bundle2.js'))
+        .on('error', handleErrors)
+        .pipe(gulp.dest('build'));
+});
+
 const buildTasks = ['build-js', 'build-sass'];
 
 gulp.task('build', buildTasks, function() {
