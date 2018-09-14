@@ -354,6 +354,13 @@ const Actors = [
         brain: defaultBrain
     },
     {
+      name: 'bearfolk thief', base: 'BearfolkBase',
+      noRandom: true,
+      color: color('Yellow', 'Black'),
+      damage: '1d7', brain: 'Thief',
+      attack: 1, defense: 1, danger: 2, hp: 12
+    },
+    {
       name: 'bearfolk fighter', base: 'BearfolkBase',
       damage: '1d8',
       attack: 2, defense: 2, danger: 2, hp: 15
