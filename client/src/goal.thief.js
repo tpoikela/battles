@@ -219,12 +219,23 @@ class GoalThief extends Goal.Base {
                 // Need to find a house, so skulk around
                 // Goal.moveToRandomDir(this.actor);
                 nextGoal = new Goal.Explore(this.actor, 30);
+                nextGoal.setCallback(this.exploreCallback.bind(this));
             }
 
         }
 
         if (nextGoal) {
             this.addSubGoal(nextGoal);
+        }
+    }
+
+    exploreCallback(x, y) {
+        const map = this.actor.getLevel().getMap();
+        if (map.hasXY(x, y)) {
+            const cell = map.getCell(x, y);
+            if (cell.hasShop()) {
+                this.shops[cell.getKeyXY()] = cell;
+            }
         }
     }
 
