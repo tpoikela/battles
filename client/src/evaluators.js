@@ -10,6 +10,7 @@ const Goal = require('./goals');
 // const GoalsBattle = require('./goals-battle');
 
 const Evaluator = {};
+Evaluator.hist = {};
 
 // Should be returned if evaluator is not applicable to current situation
 Evaluator.NOT_POSSIBLE = RG.BIAS.NOT_POSSIBLE;
@@ -84,10 +85,12 @@ class EvaluatorAttackActor extends EvaluatorBase {
         const topGoal = actor.getBrain().getGoal();
         const goal = new Goal.AttackActor(actor, this.enemyActor);
         topGoal.addGoal(goal);
+        ++Evaluator.hist[this.type];
     }
 
 }
 Evaluator.AttackActor = EvaluatorAttackActor;
+Evaluator.hist.AttackActor = 0;
 
 /* Evaluator to check if an actor should resort to exploring the area. */
 class EvaluatorExplore extends EvaluatorBase {
@@ -109,10 +112,12 @@ class EvaluatorExplore extends EvaluatorBase {
         const topGoal = actor.getBrain().getGoal();
         const goal = new Goal.Explore(actor);
         topGoal.addGoal(goal);
+        ++Evaluator.hist[this.type];
     }
 
 }
 Evaluator.Explore = EvaluatorExplore;
+Evaluator.hist.Explore = 0;
 
 /* Evaluator to check if actor should flee from a fight. */
 class EvaluatorFlee extends EvaluatorBase {
@@ -154,6 +159,7 @@ class EvaluatorFlee extends EvaluatorBase {
             const topGoal = actor.getBrain().getGoal();
             const goal = new Goal.Flee(actor, this.enemyActor);
             topGoal.addGoal(goal);
+            ++Evaluator.hist[this.type];
         }
         else {
             RG.err('EvaluatorFlee', 'setActorGoal',
@@ -163,6 +169,7 @@ class EvaluatorFlee extends EvaluatorBase {
 
 }
 Evaluator.Flee = EvaluatorFlee;
+Evaluator.hist.Flee = 0;
 
 /* Evaluator to check if actor should guard between given points. */
 class EvaluatorPatrol extends EvaluatorBase {
@@ -187,6 +194,7 @@ class EvaluatorPatrol extends EvaluatorBase {
         if (coords.length > 0) {
             const goal = new Goal.Patrol(actor, coords);
             topGoal.addGoal(goal);
+            ++Evaluator.hist[this.type];
         }
         else {
             RG.err('EvaluatorPatrol', 'setActorGoal',
@@ -207,6 +215,7 @@ class EvaluatorPatrol extends EvaluatorBase {
     }
 }
 Evaluator.Patrol = EvaluatorPatrol;
+Evaluator.hist.Patrol = 0;
 
 /* Evaluator to check if actor should guard the given point. */
 class EvaluatorGuard extends EvaluatorBase {
@@ -235,6 +244,7 @@ class EvaluatorGuard extends EvaluatorBase {
         const topGoal = actor.getBrain().getGoal();
         const goal = new Goal.Guard(actor, [this.x, this.y]);
         topGoal.addGoal(goal);
+        ++Evaluator.hist[this.type];
     }
 
     toJSON() {
@@ -244,6 +254,7 @@ class EvaluatorGuard extends EvaluatorBase {
     }
 }
 Evaluator.Guard = EvaluatorGuard;
+Evaluator.hist.Guard = 0;
 
 /* Evaluator to check if actor should flee from a fight. */
 class EvaluatorOrders extends EvaluatorBase {
@@ -287,6 +298,7 @@ class EvaluatorOrders extends EvaluatorBase {
         if (this.goal) {
             const topGoal = actor.getBrain().getGoal();
             topGoal.addGoal(this.goal);
+            ++Evaluator.hist[this.type];
         }
         else {
             RG.err('EvaluatorOrder', 'setActorGoal',
@@ -302,6 +314,7 @@ class EvaluatorOrders extends EvaluatorBase {
 
 }
 Evaluator.Orders = EvaluatorOrders;
+Evaluator.hist.Orders = 0;
 
 /* Calculates the desirability to cast a certain spell. */
 class EvaluatorCastSpell extends EvaluatorBase {
@@ -337,6 +350,7 @@ class EvaluatorCastSpell extends EvaluatorBase {
             const topGoal = actor.getBrain().getGoal();
             const goal = new Goal.CastSpell(actor, this.spell, this.spellArgs);
             topGoal.addGoal(goal);
+            ++Evaluator.hist[this.type];
         }
         else {
             RG.err('EvaluatorFlee', 'setActorGoal',
@@ -389,6 +403,7 @@ class EvaluatorCastSpell extends EvaluatorBase {
 
 }
 Evaluator.CastSpell = EvaluatorCastSpell;
+Evaluator.hist.CastSpell = 0;
 
 /* Evaluator used by shopkeeper actors to check if they should carry on
  * with shopkeeping duties. */
@@ -413,6 +428,7 @@ class EvaluatorShopkeeper extends EvaluatorBase {
         const topGoal = actor.getBrain().getGoal();
         const goal = new Goal.Shopkeeper(actor, this.x, this.y);
         topGoal.addGoal(goal);
+        ++Evaluator.hist[this.type];
     }
 
     setArgs(args) {
@@ -429,6 +445,7 @@ class EvaluatorShopkeeper extends EvaluatorBase {
 
 }
 Evaluator.Shopkeeper = EvaluatorShopkeeper;
+Evaluator.hist.Shopkeeper = 0;
 
 /* Evaluator added to actors having home and wanting to spend time there
  * now and then. */
@@ -470,6 +487,7 @@ class EvaluatorGoHome extends EvaluatorBase {
         const topGoal = actor.getBrain().getGoal();
         const goal = new Goal.GoHome(actor, this.x, this.y, this.maxDistHome);
         topGoal.addGoal(goal);
+        ++Evaluator.hist[this.type];
     }
 
     setArgs(args) {
@@ -490,5 +508,6 @@ class EvaluatorGoHome extends EvaluatorBase {
 
 }
 Evaluator.GoHome = EvaluatorGoHome;
+Evaluator.hist.GoHome = 0;
 
 module.exports = Evaluator;
