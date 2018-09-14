@@ -11,8 +11,8 @@ const Models = BTree.Models;
 
 // Dummy callback to return, if the actor's action provides a state
 // changing action without callback.
-const ACTION_ALREADY_DONE = () => {};
-const NO_ACTION_TAKEN = () => {};
+const ACTION_ALREADY_DONE = Object.freeze(() => {});
+const NO_ACTION_TAKEN = Object.freeze(() => {});
 const MEM_NO_ACTORS = Object.freeze([]);
 
 const NO_MEMORY = null;
