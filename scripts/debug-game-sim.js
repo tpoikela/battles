@@ -6,6 +6,7 @@ const fs = require('fs');
 
 const RG = require('../client/src/battles');
 const Keys = require('../client/src/keymap');
+const Evaluator = require('../client/src/evaluators');
 const ROT = require('../lib/rot');
 const UtilsSim = require('./utils-sim');
 
@@ -59,7 +60,6 @@ const saveFunc = (numTurns) => {
     fromJSON = new RG.Game.FromJSON();
     gameJSON = game.toJSON();
     game = fromJSON.createGame(gameJSON);
-
     const {playerName} = gameConf;
     const fName = `results/debug-game-${playerName}-${numTurns}-${timeId}.json`;
     if (fs && fs.writeFileSync) {
@@ -133,7 +133,9 @@ const fpsAvg = fpsArray.reduce((acc, val) => acc + val, 0) / fpsArray.length;
 
 const fps = numTurns / (dur / 1000);
 info(VMEDIUM, 'Overall avg FPS: ' + fps);
-info(VMEDIUM, '\tOverall avg FPS: ' + fpsAvg + ' (from array)');
+if (!Number.isNaN(fpsAvg)) {
+    info(VMEDIUM, '\tOverall avg FPS: ' + fpsAvg + ' (from array)');
+}
 
 fromJSON = new RG.Game.FromJSON();
 gameJSON = game.toJSON();
@@ -148,3 +150,4 @@ if (level.getMap().useCache) {
     log('Map cache length is ' + cacheStr.length);
 }
 
+log(Evaluator.hist);
