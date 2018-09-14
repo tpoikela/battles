@@ -15,6 +15,8 @@ const Cell = function(x, y, elem) { // {{{2
 
     this._p = {}; // Cell properties are assigned here
 
+    this._lightPasses = elem ? elem.lightPasses() : true;
+    this._isPassable = elem ? elem.isPassable() : true;
 }; // }}} Map.Cell
 
 Cell.prototype.getX = function() {return this._x;};
@@ -31,7 +33,11 @@ Cell.prototype.getKeyXY = function() {
 };
 
 /* Sets/gets the base element for this cell. There can be only one element.*/
-Cell.prototype.setBaseElem = function(elem) { this._baseElem = elem; };
+Cell.prototype.setBaseElem = function(elem) {
+    this._baseElem = elem;
+    this._lightPasses = elem.lightPasses();
+    this._isPassable = elem.isPassable();
+};
 Cell.prototype.getBaseElem = function() { return this._baseElem; };
 
 /* Returns true if the cell has props of given type.*/
@@ -173,12 +179,19 @@ Cell.prototype.getPassage = function() {
 
 /* Returns true if light passes through this map cell.*/
 Cell.prototype.lightPasses = function() {
-    if (!this._baseElem.lightPasses()) {return false;}
-    if (this.hasProp(TYPE_ELEM)) {
-        const elems = this.getProp(TYPE_ELEM);
-        for (let i = 0; i < elems.length; i++) {
-            if (elems[i].has('Opaque')) {
-                return false;
+    // if (!this._baseElem.lightPasses()) {return false;}
+    if (!this._lightPasses) {return false;}
+    // if (this.hasProp(TYPE_ELEM)) {
+    const elems = this._p[TYPE_ELEM];
+    if (elems) {
+        if (elems.length === 1) {
+            if (elems[0].has('Opaque')) {return false;}
+        }
+        else {
+            for (let i = 0; i < elems.length; i++) {
+                if (elems[i].has('Opaque')) {
+                    return false;
+                }
             }
         }
     }
@@ -214,7 +227,8 @@ Cell.prototype.isExplored = function() {return this._explored;};
 
 /* Returns true if it's possible to move to this cell.*/
 Cell.prototype.isFree = function(isFlying = false) {
-    if (!isFlying && !this._baseElem.isPassable()) {return false;}
+    // if (!isFlying && !this._baseElem.isPassable()) {return false;}
+    if (!isFlying && !this._isPassable) {return false;}
 
     if (this.hasProp(TYPE_ACTOR)) {
         for (let i = 0; i < this._p.actors.length; i++) {
