@@ -809,6 +809,11 @@ class GoalExplore extends GoalBase {
         this.status = GOAL_ACTIVE;
     }
 
+    /* Can be used to set the Explore callback called after each turn. */
+    setCallback(cb) {
+        this.exploreCb = cb;
+    }
+
     setNewPassableDir() {
         let maxTries = 5;
         let [dX, dY] = RNG.getRandDir();
@@ -855,8 +860,11 @@ class GoalExplore extends GoalBase {
                 this.setNewPassableDir();
             }
         }
-        if (this.dur <= 0) {
+        if (this.dur === 0) {
             this.status = GOAL_COMPLETED;
+        }
+        if (this.exploreCb) {
+            this.exploreCb(newX, newY);
         }
         return this.status;
     }
