@@ -5,12 +5,11 @@ const RG = require('./rg.js');
 RG.Time = {};
 
 /* Models an action. Each action has a duration and a callback.  */
-RG.Time.Action = function(dur, cb, obj) {
+RG.Time.Action = function(dur, cb) {
 
     this._duration = dur;
     this._cb = cb; // Action callback
     this._energy = 0;
-    this._obj = obj;
 
 };
 
@@ -18,7 +17,7 @@ RG.Time.Action.prototype.setEnergy = function(en) {this._energy = en;};
 RG.Time.Action.prototype.getEnergy = function() {return this._energy;};
 RG.Time.Action.prototype.getDuration = function() {return this._duration;};
 RG.Time.Action.prototype.doAction = function() {
-    this._cb(this._obj);
+    this._cb();
 };
 
 //---------------------------------------------------------------------------
