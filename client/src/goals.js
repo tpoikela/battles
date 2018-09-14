@@ -34,6 +34,7 @@ let IND = 0;
 //---------------------------------------------------------------------------
 /* Base class for all actor goals. */
 //---------------------------------------------------------------------------
+
 class GoalBase {
 
     constructor(actor) {
@@ -826,13 +827,10 @@ class GoalExplore extends GoalBase {
         return this.actor.getLevel().getMap().isPassable(newX, newY);
     }
 
-    shouldMoveTo(x, y) {
-        const map = this.actor.getLevel().getMap();
-        if (map.hasXY(x, y)) {
-            const cell = map.getCell(x, y);
-            if (cell.isPassable(x, y)) {
-                return !cell.isDangerous();
-            }
+    shouldMoveTo(map, x, y) {
+        const cell = map.getCell(x, y);
+        if (cell.isPassable()) {
+            return !cell.isDangerous();
         }
         return false;
     }
@@ -844,28 +842,28 @@ class GoalExplore extends GoalBase {
         const newX = aX + this.dX;
         const newY = aY + this.dY;
         const level = this.actor.getLevel();
-        if (this.shouldMoveTo(newX, newY)) {
-            const movComp = new RG.Component.Movement(newX, newY, level);
-            this.actor.add('Movement', movComp);
-        }
-        else if (!this.canOpenDoorAt(newX, newY)) {
-            this.setNewPassableDir();
+        const map = level.getMap();
+        if (map.hasXY(newX, newY)) {
+            if (this.shouldMoveTo(map, newX, newY)) {
+                const movComp = new RG.Component.Movement(newX, newY, level);
+                this.actor.add(movComp);
+            }
+            else if (!this.canOpenDoorAt(map, newX, newY)) {
+                this.setNewPassableDir();
+            }
         }
         return this.status;
     }
 
-    canOpenDoorAt(x, y) {
-        const map = this.actor.getLevel().getMap();
-        if (map.hasXY(x, y)) {
-            const cell = map.getCell(x, y);
-            if (cell && cell.hasDoor()) {
-                const door = cell.getPropType('door')[0];
-                if (door.canToggle()) {
-                    const comp = new RG.Component.OpenDoor();
-                    comp.setDoor(door);
-                    this.actor.add(comp);
-                    return true;
-                }
+    canOpenDoorAt(map, x, y) {
+        const cell = map.getCell(x, y);
+        if (cell.hasDoor()) {
+            const door = cell.getPropType('door')[0];
+            if (door.canToggle()) {
+                const comp = new RG.Component.OpenDoor();
+                comp.setDoor(door);
+                this.actor.add(comp);
+                return true;
             }
         }
         return false;
@@ -875,7 +873,7 @@ class GoalExplore extends GoalBase {
     checkChangeDir() {
         const changeDir = RNG.getUniform();
         if (changeDir <= 0.07) {
-            const newDx = this.changeDir(this.dX, this.dY);
+            const newDx = this.changeDir(this.dX);
             if (this.isDirPassable(newDx, this.dY)) {
                 if (newDx !== 0 || this.dY !== 0) {
                     this.dX = newDx;
@@ -883,7 +881,7 @@ class GoalExplore extends GoalBase {
             }
         }
         else if (changeDir <= 0.14) {
-            const newDy = this.changeDir(this.dY, this.dX);
+            const newDy = this.changeDir(this.dY);
             if (this.isDirPassable(this.dX, newDy)) {
                 if (newDy !== 0 || this.dX !== 0) {
                     this.dY = newDy;
