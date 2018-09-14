@@ -11,7 +11,7 @@ const Mixin = require('./mixin');
 RG.Element = {};
 
 const wallRegexp = /wall/;
-const obstacleRegexp = /(highrock|water|chasm|wall)/;
+const obstacleRegexp = /(?:highrock|water|chasm|wall)/;
 
 RG.Element.canJumpOver = type => {
     return !(wallRegexp.test(type) || (/highrock/).test(type));
