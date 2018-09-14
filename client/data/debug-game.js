@@ -229,6 +229,9 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     /* const voidElem = parser.createActor('void elemental');
     level.addActor(voidElem, pX + 1, pY + 1);*/
 
+    const thief = parser.createActor('bearfolk thief');
+    level.addActor(thief, pX + 1, pY + 1);
+
     player.getInvEq().addItem(parser.createItem('Boots of flying'));
 
     const regen = new RG.Component.RegenEffect();
@@ -254,8 +257,9 @@ DebugGame.prototype.createArena = function(obj, game, player) {
         }
     });
 
-    const assassin = parser.createActor('dark assassin');
+    /* const assassin = parser.createActor('dark assassin');
     level.addActor(assassin, pX + 10, pY + 10);
+    */
 
     return game;
 };
@@ -416,10 +420,11 @@ DebugGame.prototype.createLastBattle = function(game, obj) {
     const levelConf = RG.Factory.cityConfBase({});
     levelConf.parser = this._parser;
 
-    levelConf.nShops = 3;
+    levelConf.nShops = 5;
     const shopFunc = item => item.type === RNG.arrayGetRand(RG.SHOP_TYPES);
-    levelConf.shopFunc.push(shopFunc);
-    levelConf.shopFunc.push(shopFunc);
+    for (let i = 0; i < levelConf.nShops - 1; i++) {
+        levelConf.shopFunc.push(shopFunc);
+    }
 
     levelConf.actorFunc = actor => actor.type === 'bearfolk';
     levelConf.hasWall = false;
