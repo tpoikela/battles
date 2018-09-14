@@ -997,6 +997,14 @@ RG.Brain.Spirit = function(actor) {
 };
 RG.extend2(RG.Brain.Spirit, RG.Brain.GoalOriented);
 
+RG.Brain.Thief = function(actor) {
+    RG.Brain.GoalOriented.call(this, actor);
+    this.setType('Thief');
+    this.goal.addEvaluator(new Evaluator.Thief(1.2));
+    this.goal.setBias({Thief: 1.2, AttackActor: 0.7});
+};
+RG.extend2(RG.Brain.Thief, RG.Brain.GoalOriented);
+
 /* Brain-object for animals. */
 RG.Brain.Animal = function(actor) {
     RG.Brain.Rogue.call(this, actor);
