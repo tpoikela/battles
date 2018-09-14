@@ -31,6 +31,7 @@ const {
 
 let IND = 0;
 
+
 //---------------------------------------------------------------------------
 /* Base class for all actor goals. */
 //---------------------------------------------------------------------------
@@ -796,9 +797,10 @@ class GoalShootActor extends GoalBase {
 //---------------------------------------------------------------------------
 class GoalExplore extends GoalBase {
 
-    constructor(actor) {
+    constructor(actor, dur = -1) {
         super(actor);
         this.setType('GoalExplore');
+        this.dur = dur;
     }
 
     activate() {
@@ -838,6 +840,7 @@ class GoalExplore extends GoalBase {
     process() {
         this.activateIfInactive();
         this.checkChangeDir();
+        --this.dur;
         const [aX, aY] = this.actor.getXY();
         const newX = aX + this.dX;
         const newY = aY + this.dY;
@@ -851,6 +854,9 @@ class GoalExplore extends GoalBase {
             else if (!this.canOpenDoorAt(map, newX, newY)) {
                 this.setNewPassableDir();
             }
+        }
+        if (this.dur <= 0) {
+            this.status = GOAL_COMPLETED;
         }
         return this.status;
     }
@@ -1258,5 +1264,27 @@ function moveToRandomDir(actor) {
     }
     // Tried to move outside map
 }
+Goal.moveToRandomDir = moveToRandomDir;
+
+function moveActorTo(actor, cell) {
+    const xy = cell.getXY();
+    const level = actor.getLevel();
+    if (level.getMap().isPassable(xy[0], xy[1])) {
+        const movComp = new RG.Component.Movement(xy[0], xy[1], level);
+        actor.add(movComp);
+    }
+}
+Goal.moveActorTo = moveActorTo;
+
+
+/* Class used for monitoring the Goal transitions etc. */
+class GoalMonitor {
+
+    constructor(goal) {
+        this.goal = goal;
+    }
+
+}
+Goal.Monitor = GoalMonitor;
 
 module.exports = Goal;
