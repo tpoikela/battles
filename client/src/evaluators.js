@@ -8,6 +8,7 @@
 const RG = require('./rg');
 const Goal = require('./goals');
 // const GoalsBattle = require('./goals-battle');
+const GoalThief = require('./goal.thief');
 
 const Evaluator = {};
 Evaluator.hist = {};
@@ -509,5 +510,27 @@ class EvaluatorGoHome extends EvaluatorBase {
 }
 Evaluator.GoHome = EvaluatorGoHome;
 Evaluator.hist.GoHome = 0;
+
+class EvaluatorThief extends EvaluatorBase {
+
+    constructor(actorBias) {
+        super(actorBias);
+        this.type = 'Thief';
+    }
+
+    calculateDesirability(/* actor */) {
+        return this.actorBias;
+    }
+
+    setActorGoal(actor) {
+        const topGoal = actor.getBrain().getGoal();
+        const goal = new GoalThief(actor);
+        topGoal.addGoal(goal);
+        ++Evaluator.hist[this.type];
+    }
+}
+
+Evaluator.Thief = EvaluatorThief;
+Evaluator.hist.Thief = 0;
 
 module.exports = Evaluator;
