@@ -860,6 +860,9 @@ class GoalExplore extends GoalBase {
                 this.setNewPassableDir();
             }
         }
+        else {
+            this.setNewPassableDir();
+        }
         if (this.dur === 0) {
             this.status = GOAL_COMPLETED;
         }
