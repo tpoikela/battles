@@ -306,12 +306,14 @@ DungeonPopulate.prototype.createShops = function(level, conf) {
             const house = extras.houses[index];
             shopHouses.push(house);
             const floor = house.floor;
-            const doorXY = house.door;
-            const door = new RG.Element.Door(true);
-            level.addElement(door, doorXY[0], doorXY[1]);
+            const [doorX, doorY] = house.door;
+            const doorCell = level.getMap().getCell(doorX, doorY);
+            if (!doorCell.hasDoor()) {
+                const door = new RG.Element.Door(true);
+                level.addElement(door, doorX, doorY);
+            }
 
             const keeper = this.createShopkeeper(conf);
-
             const shopCoord = [];
             let keeperAdded = false;
             for (let i = 0; i < floor.length; i++) {
@@ -350,7 +352,7 @@ DungeonPopulate.prototype.createShops = function(level, conf) {
                 const shopKeep = keeper.get('Shopkeeper');
                 shopKeep.setCells(shopCoord);
                 shopKeep.setLevelID(level.getID());
-                shopKeep.setDoorXY(door.getXY());
+                shopKeep.setDoorXY(doorCell.getXY());
                 const name = keeper.getType() + ' shopkeeper';
                 keeper.setName(name);
                 RG.addCellStyle(RG.TYPE_ACTOR, name,
