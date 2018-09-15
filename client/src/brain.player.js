@@ -974,72 +974,74 @@ class BrainPlayer {
 
     /* Executes the move command/attack command for the player. */
     moveCmd(level, currMap, x, y) {
-        if (currMap.hasXY(x, y)) {
-          if (currMap.isPassable(x, y)) {
-
-            if (this._runModeEnabled) {this.energy = RG.energy.RUN;}
-            else {
-              this.resetBoosts();
-              this.energy = RG.energy.MOVE;
-            }
-
-            return () => {
-              const movComp = new RG.Component.Movement(x, y, level);
-              this._actor.add(movComp);
-            };
-          }
-          else if (currMap.getCell(x, y).hasProp('actors')) {
-            this._restoreBaseSpeed();
-            const target = getAttackTarget(currMap, x, y);
-
-            if (target === null) {
-              RG.err('Brain.Player', 'decideNextAction',
-                'Null target for attack x,y: ' + x + ',' + y);
-            }
-
-            const attackCallback = () => {
-              this._setAttackStats();
-              const attackComp = new RG.Component.Attack({target});
-              this._actor.add(attackComp);
-            };
-
-            if (target.isEnemy(this._actor)) {
-              this.energy = RG.energy.ATTACK;
-              return attackCallback;
-            }
-            else {
-              const msg = `Press 'y' to attack non-hostile ${target.getName()}`;
-              this.setWantConfirm(RG.energy.ATTACK, attackCallback, msg);
+        if (!currMap.hasXY(x, y)) {
+          if (this._actor.getCell().hasPassage()) {
+              const cb = () => {
+                  const stairsComp = new RG.Component.UseStairs();
+                  this._actor.add(stairsComp);
+              };
+              const msg = "Press 'y' to move to another area";
+              this.setWantConfirm(RG.energy.MOVE, cb, msg);
               return this.noAction();
-            }
-          }
-          else if (this._actor.has('Flying') && currMap.isPassableByAir(x, y)) {
-            this.resetBoosts();
-            this.energy = RG.energy.MOVE;
-            return () => {
-              const movComp = new RG.Component.Movement(x, y, level);
-              this._actor.add(movComp);
-            };
           }
           else {
-            const msg = RG.getImpassableMsg(this._actor,
-              currMap.getCell(x, y), 'You');
-            return this.cmdNotPossible(msg);
+              const msg = 'You cannot move there.';
+              return this.cmdNotPossible(msg);
           }
         }
-        else if (this._actor.getCell().hasPassage()) {
-            const cb = () => {
-                const stairsComp = new RG.Component.UseStairs();
-                this._actor.add(stairsComp);
-            };
-            const msg = "Press 'y' to move to another area";
-            this.setWantConfirm(RG.energy.MOVE, cb, msg);
+
+        // Cell exists in map, check if we can enter it, or if there's
+        // something blocking the way
+        if (currMap.isPassable(x, y)) {
+          return this.moveToCell(x, y, level);
+        }
+        else if (currMap.getCell(x, y).hasActors()) {
+          this._restoreBaseSpeed();
+          const target = getAttackTarget(currMap, x, y);
+
+          if (target === null) {
+            RG.err('Brain.Player', 'decideNextAction',
+              'Null target for attack x,y: ' + x + ',' + y);
+          }
+
+          const attackCallback = () => {
+            this._setAttackStats();
+            const attackComp = new RG.Component.Attack({target});
+            this._actor.add(attackComp);
+          };
+
+          if (target.isEnemy(this._actor)) {
+            this.energy = RG.energy.ATTACK;
+            return attackCallback;
+          }
+          else {
+            const msg = `Press 'y' to attack non-hostile ${target.getName()}`;
+            this.setWantConfirm(RG.energy.ATTACK, attackCallback, msg);
             return this.noAction();
+          }
+        }
+        else if (this._actor.has('Flying') && currMap.isPassableByAir(x, y)) {
+          this._restoreBaseSpeed();
+          return this.moveToCell(x, y, level);
         }
         else {
-            const msg = 'You cannot move there.';
-            return this.cmdNotPossible(msg);
+          const msg = RG.getImpassableMsg(this._actor,
+            currMap.getCell(x, y), 'You');
+          return this.cmdNotPossible(msg);
         }
+    }
+
+    moveToCell(x, y, level) {
+        if (this._runModeEnabled) {this.energy = RG.energy.RUN;}
+        else {
+          this.resetBoosts();
+          this.energy = RG.energy.MOVE;
+        }
+
+        return () => {
+          const movComp = new RG.Component.Movement(x, y, level);
+          this._actor.add(movComp);
+        };
     }
 
     setWantConfirm(energy, callback, msg) {
