@@ -315,6 +315,10 @@ const Actors = [
         protection: 1, hp: 15, danger: 2
     },
     {
+        name: 'avian townsfolk', base: 'AvianFolkBase', danger: 1,
+        attack: 1, defense: 1, damage: '1d4', hp: 10
+    },
+    {
         name: 'avian fighter', base: 'AvianFolkBase', danger: 4,
         attack: 6, defense: 7, damage: '3d4', hp: 30
     },
@@ -355,7 +359,6 @@ const Actors = [
     },
     {
       name: 'bearfolk thief', base: 'BearfolkBase',
-      noRandom: true,
       color: color('Yellow', 'Black'),
       damage: '1d7', brain: 'Thief',
       attack: 1, defense: 1, danger: 2, hp: 12
@@ -1153,6 +1156,17 @@ const Actors = [
         equip: ['Chain armour', 'Chain helmet', 'Chain boots',
             'Double crossbow', {name: 'Void bolt', count: 30}],
         addComp: ['EagleEye', 'RangedEvasion', 'StrongShot', 'RegenEffect']
+    },
+
+    {
+        name: 'Sierra Lilith Hupoith Zoic, the archangel', type: 'avianfolk',
+        base: 'UniqueBase', char: 'A', danger: 77,
+        damage: '4d7 + 3', hp: 123, brain: defaultBrain,
+        strength: 20, accuracy: 21, agility: 21, willpower: 17, perception: 23,
+        magic: 22, attack: 25, defense: 25, protection: 7,
+        fovrange: 7,
+        equip: ['Ruby glass armour', 'Mithril helmet', 'Mithril shield'],
+        addComp: ['Flying', 'RegenEffect', 'RangedEvasion']
     },
 
     // UNIQUES TODO
