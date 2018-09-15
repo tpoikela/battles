@@ -111,10 +111,8 @@ class GoalThief extends Goal.Base {
     process() {
         this.activateIfInactive();
         --this.shopCooldown;
-        console.log('Thief process() shopCooldown is', this.shopCooldown);
         --this.doorCooldown;
         if (this.hasSubGoals()) {
-            console.log('Goal.Thief process() processSubGoals()');
             this.status = this.processSubGoals();
         }
         else {
@@ -171,8 +169,6 @@ class GoalThief extends Goal.Base {
     }
 
     chooseThiefTask() {
-        console.log('Goal.Thief chooseThiefTask() shopCooldown',
-            this.shopCooldown);
         const inventory = this.actor.getInvEq().getInventory();
         const hasItems = !inventory.isEmpty();
         let nextGoal = null;
@@ -199,6 +195,7 @@ class GoalThief extends Goal.Base {
                         const keyXY = cell.getKeyXY();
                         if (!this.visitedDoors.hasOwnProperty(keyXY)) {
                             this.doorCooldown = 25;
+                            console.log('KKK Thief follow path to', xy);
                             nextGoal = new Goal.FollowPath(this.actor, xy);
                             return;
                         }
@@ -207,17 +204,14 @@ class GoalThief extends Goal.Base {
             }
             else if (actorCell.hasDoor()) {
                 this.visitedDoors[actorCell.getKeyXY()] = actorCell.getXY();
+                console.log('KKK Thief searching house now');
                 nextGoal = new GoalSearchHouse(this.actor);
-            }
-
-            if (!nextGoal) {
-                // Else if a wall is seen, follow it until door found
-                // TODO
             }
 
             if (!nextGoal) {
                 // Need to find a house, so skulk around
                 // Goal.moveToRandomDir(this.actor);
+                console.log('Thief added new Goal.Explore');
                 nextGoal = new Goal.Explore(this.actor, 30);
                 nextGoal.setCallback(this.exploreCallback.bind(this));
             }
@@ -229,6 +223,7 @@ class GoalThief extends Goal.Base {
         }
     }
 
+    /* Callback given to Goal.Explore for each x,y explored. */
     exploreCallback(x, y) {
         const map = this.actor.getLevel().getMap();
         if (map.hasXY(x, y)) {
