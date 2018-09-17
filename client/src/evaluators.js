@@ -8,7 +8,7 @@
 const RG = require('./rg');
 const Goal = require('./goals');
 // const GoalsBattle = require('./goals-battle');
-const GoalThief = require('./goal.thief');
+Goal.Thief = require('./goal.thief');
 
 const Evaluator = {};
 Evaluator.hist = {};
@@ -37,8 +37,17 @@ class EvaluatorBase {
         throw new Error('Pure virtual function');
     }
 
-    setActorGoal() {
-        throw new Error('Pure virtual function');
+    setActorGoal(actor, ...args) {
+        const topGoal = actor.getBrain().getGoal();
+        if (Goal[this.type]) {
+            const goal = new Goal[this.type](actor, ...args);
+            topGoal.addGoal(goal);
+            ++Evaluator.hist[this.type];
+        }
+        else {
+            RG.err('EvaluatorBase', 'setActorGoal',
+                `No Goal.${this.type} found!`);
+        }
     }
 
     isOrder() {return false;}
@@ -83,10 +92,11 @@ class EvaluatorAttackActor extends EvaluatorBase {
     }
 
     setActorGoal(actor) {
-        const topGoal = actor.getBrain().getGoal();
+        super.setActorGoal(actor, this.enemyActor);
+        /* const topGoal = actor.getBrain().getGoal();
         const goal = new Goal.AttackActor(actor, this.enemyActor);
         topGoal.addGoal(goal);
-        ++Evaluator.hist[this.type];
+        ++Evaluator.hist[this.type];*/
     }
 
 }
@@ -101,19 +111,12 @@ class EvaluatorExplore extends EvaluatorBase {
         this.type = 'Explore';
     }
 
-    calculateDesirability(actor) {
-        const enemyCells = RG.Brain.getEnemyCellsAround(actor);
+    calculateDesirability(/* actor */) {
+        /* const enemyCells = RG.Brain.getEnemyCellsAround(actor);
         if (enemyCells.length > 0) {
             return 0.01;
-        }
+        }*/
         return this.actorBias;
-    }
-
-    setActorGoal(actor) {
-        const topGoal = actor.getBrain().getGoal();
-        const goal = new Goal.Explore(actor);
-        topGoal.addGoal(goal);
-        ++Evaluator.hist[this.type];
     }
 
 }
@@ -522,12 +525,6 @@ class EvaluatorThief extends EvaluatorBase {
         return this.actorBias;
     }
 
-    setActorGoal(actor) {
-        const topGoal = actor.getBrain().getGoal();
-        const goal = new GoalThief(actor);
-        topGoal.addGoal(goal);
-        ++Evaluator.hist[this.type];
-    }
 }
 
 Evaluator.Thief = EvaluatorThief;
