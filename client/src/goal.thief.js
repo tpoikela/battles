@@ -35,7 +35,7 @@ class GoalSearchHouse extends Goal.Base {
         let nextGoal = findItem(this.actor, seenCells);
         if (!nextGoal) {
             const cell = RNG.arrayGetRand(this.floorCells);
-            nextGoal = Goal.FollowPath(this.actor, cell.getXY());
+            nextGoal = new Goal.FollowPath(this.actor, cell.getXY());
         }
 
         if (this.searchTime <= 0) {
