@@ -1159,7 +1159,7 @@ const Actors = [
     },
 
     {
-        name: 'Sierra Lilith Hupoith Zoic, the archangel', type: 'avianfolk',
+        name: 'Sierra Lilith Hupoith Zoic, the arcavian', type: 'avianfolk',
         base: 'UniqueBase', char: 'A', danger: 77,
         damage: '4d7 + 3', hp: 123, brain: defaultBrain,
         strength: 20, accuracy: 21, agility: 21, willpower: 17, perception: 23,
