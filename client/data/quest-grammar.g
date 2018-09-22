@@ -20,7 +20,7 @@
  <Capture_Criminal2> |
  <Check_on_NPC1> |
  <Check_on_NPC2> |
- <Recover_lost_stolen_item> |
+ <Recover_lost_or_stolen_item> |
  <Rescue_captured_NPC>;
 
 <Protection> ::= <Attack_threatening_entities> |
@@ -70,7 +70,7 @@
 <Capture_Criminal2> ::= <get> <goto> "use" "capture" <goto> "give";
 <Check_on_NPC1> ::= <goto> "listen" <goto> "report";
 <Check_on_NPC2> ::= <goto> "take" <goto> "give";
-<Recover_lost_stolen_item> ::= <get> <goto> "give";
+<Recover_lost_or_stolen_item> ::= <get> <goto> "give";
 <Rescue_captured_NPC> ::= <goto> "damage" "escort" <goto> "report";
 
 <Attack_threatening_entities> ::=<goto> "damage" <goto> "report";
@@ -106,24 +106,24 @@
 
 <EMPTY> ::= "";
 <subquest> ::= <goto> |
-    <goto> <QUEST> "goto";
+    <goto> <QUEST> "<subquest>goto";
 
-<goto> ::= "already_there->" | "explore" | <learn> "goto";
+<goto> ::= "<goto>already_there" | "<goto>explore" | <learn> "<goto>goto";
 
-<learn> ::= "already_know_it->" |
-    <goto> <subquest> "listen" |
-    <goto> <get> "read" |
-    <get> <subquest> "give" "listen";
+<learn> ::= "<learn>already_know_it" |
+    <goto> <subquest> "<learn>listen" |
+    <goto> <get> "<learn>read" |
+    <get> <subquest> "<learn>give" "<learn>listen";
 
-<get> ::= "already_have_it->" | <steal> | <goto> "gather" |
-    <goto> <get> <goto> <subquest> "exchange";
+<get> ::= "<get>already_have_it" | <steal> | <goto> "<get>gather" |
+    <goto> <get> <goto> <subquest> "<get>exchange";
 
-<steal> ::= <goto> "stealth" "take" |
-    <goto> <kill> "take";
+<steal> ::= <goto> "<steal>stealth" "<steal>take" |
+    <goto> <kill> "<steal>take";
 
-<spy> ::= <goto> "spy" <goto> "report";
-<capture> ::= <get> <goto> "capture";
-<kill> ::= <goto> "kill";
+<spy> ::= <goto> "<spy>spy" <goto> "<spy>report";
+<capture> ::= <get> <goto> "<capture>capture";
+<kill> ::= <goto> "<kill>kill";
 
 /*
 Terminals:
