@@ -67,9 +67,9 @@ $font-sizes: (
 .game-board {
     font-family: monospace;
     line-height: 1.15;
-    margin-left: 10px;
+    margin-left: 0;
     margin-right: 10px;
-    margin-top: 20px;
+    margin-top: 10px;
     will-change: transform;
 
     span {
