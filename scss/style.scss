@@ -43,7 +43,7 @@ $success-color-on-gray: #066;
             margin-right: 5px;
         }
     }
-    @media (min-width: 1000px) {
+    @media (min-width: 992px) {
         li {
             display: block;
         }
@@ -63,6 +63,11 @@ body {
 .container {
     margin: 0;
 };
+
+.main-div {
+    margin: 0;
+    padding: 0;
+}
 
 .mov-buttons-table {
     border: 1px solid $black;
