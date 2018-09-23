@@ -11,6 +11,12 @@ const questGram2 =
 <goto> ::= <subquest> "goto" | "goto";
 <subquest> ::= "goto" | "goto" <QUEST>;`;
 
+const questGram3 =
+`<QUEST> ::= <goto> <get> <learn>;
+<goto> ::= <learn> "goto_there";
+<get> ::= <goto> "get_it";
+<learn> ::= "learn_it";`;
+
 describe('QuestGen', () => {
     let questGen = null;
 
@@ -31,9 +37,17 @@ describe('QuestGen', () => {
 
     it('can create quests with sub-quests', () => {
         const rules = QuestGen.parse(questGram2);
-        const conf = {debug: true, rules, minQuests: 2};
+        const conf = {rules, minQuests: 2};
         const quest = questGen.genQuestWithConf(conf);
         console.log(JSON.stringify(quest));
         expect(quest.numQuests()).to.be.above(1);
+    });
+
+    it('creates a single task from each term', () => {
+        const rules = QuestGen.parse(questGram3);
+        const conf = {debug: true, rules};
+        const quest = questGen.genQuestWithConf(conf);
+        console.log(JSON.stringify(quest));
+        expect(quest.numTasks()).to.equal(6);
     });
 });
