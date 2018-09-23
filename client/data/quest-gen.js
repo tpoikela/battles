@@ -95,13 +95,25 @@ QuestGen.prototype._init = function() {
 
 QuestGen.rules = QuestGen.parse(questGrammar);
 
+/* Default config for quest generation. */
+QuestGen.defaultConfig = {
+    rules: QuestGen.rules,
+    startRule: 'QUEST',
+    maxTries: 20,
+    debug: false,
+    minQuests: 1,
+    maxQuests: -1,
+    minLength: 1,
+    maxLength: -1
+};
+
 QuestGen.prototype.genQuestWithConf = function(conf = {}) {
     if (conf.debug) {debug.enabled = true;}
     const questRules = conf.rules || QuestGen.rules;
     const startRule = conf.startRule || 'QUEST';
     this.startRule = startRule;
     let ok = false;
-    let watchdog = 20;
+    let watchdog = conf.maxTries || 20;
     let quest = [];
     while (!ok) {
         this._init();
@@ -140,7 +152,9 @@ QuestGen.prototype._questMeetsReqs = function(quest, conf) {
 
     if (conf.minQuests) {
         ok = ok && this.currQuest.numQuests() >= conf.minQuests;
-        console.log('AFTER MIN QUEST CHECK ok:', ok);
+    }
+    if (conf.maxQuests) {
+        ok = ok && this.currQuest.numQuests() <= conf.maxQuests;
     }
     return ok;
 };
@@ -157,8 +171,8 @@ QuestGen.prototype.generateQuest = function(rules, rule) {
     const randRule = chooseRandomRule(rules[rule]);
     if (Array.isArray(randRule)) {
         const steps = randRule.map(this.generateTerm.bind(this, rules));
-        const tasks = steps.map(step => new Task(step));
-        this.currQuest.add(tasks);
+        // const tasks = steps.map(step => new Task(step));
+        // this.currQuest.add(tasks);
         this._checkIfQuestOver(rule);
         return steps.join('|');
     }
@@ -172,7 +186,10 @@ QuestGen.prototype.generateTerm = function(rules, term) {
         const json = JSON.stringify(rules);
         throw new Error('Null/undef term.text with rules|', json, '|');
     }
-    if (term.type === 'terminal') {return term.text;}
+    if (term.type === 'terminal') {
+        this.currQuest.add(new Task(term.text));
+        return term.text;
+    }
     debug(`calling generate() with term.text |${term.text}|`);
     return this.generateQuest(rules, term.text);
 };
