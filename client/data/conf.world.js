@@ -1,9 +1,7 @@
 /* eslint comma-dangle: 0 */
-/* eslint max-len: 85 */
+/* eslint max-len: 0 */
 
 const RG = require('../src/rg');
-
-const temple = require('./temple.json');
 
 // Note:
 // An object with key 'constraint' can be passed at any level. This contains
