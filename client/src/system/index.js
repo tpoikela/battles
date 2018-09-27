@@ -22,6 +22,7 @@ System.ExpPoints = require('./system.exp-points');
 System.Hunger = require('./system.hunger');
 System.Missile = require('./system.missile');
 System.Movement = require('./system.movement');
+System.Quest = require('./system.quest');
 System.Shop = require('./system.shop');
 System.Skills = require('./system.skills');
 System.SpellCast = require('./system.spell-cast');
