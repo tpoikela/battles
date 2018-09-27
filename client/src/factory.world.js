@@ -12,6 +12,7 @@ RG.Factory.Zone = require('./factory.zone');
 const DungeonGenerator = require('./dungeon-generator');
 const {CaveGenerator} = require('./cave-generator');
 const CastleGenerator = require('./castle-generator');
+const QuestPopulate = require('../data/quest-gen').QuestPopulate;
 
 const RNG = RG.Random.getRNG();
 const Stairs = RG.Element.Stairs;
@@ -331,6 +332,9 @@ RG.Factory.World = function() {
 
             this._createAllZones(area, areaConf, x, y);
             area.markTileZonesCreated(x, y);
+
+            // Create quests for this tile x,y
+            this.createQuests(world, area, x, y);
 
             // Cleanup the scope & conf stacks
             this.popScope(areaConf);
@@ -1430,7 +1434,13 @@ RG.Factory.World = function() {
       this.worldElemByID[worldElem.getID()] = worldElem;
     };
 
-};
+    /* Creates quests for AreaTile[x][y] of the given area. */
+    this.createQuests = function(world, area, x, y) {
+        const questPopul = new QuestPopulate();
+        questPopul.createQuests(world, area, x, y);
+    };
+
+}; // RG.Factory.World
 
 /* Used for printing debug messages only. Can be enabled with
  * DEBUG= env var. */
