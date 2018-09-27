@@ -5,8 +5,103 @@ const RG = require('./rg');
 const Keys = require('./keymap');
 
 const Chat = {};
-
 const stats = RG.STATS;
+
+/* Chat object added to actors which have any interesting things to chat about.
+ */
+class ChatBase {
+
+    constructor() {
+        this.options = [];
+        this.parent = null;
+    }
+
+    /* Adds a chat object or an option into this object. */
+    add({name, option}) {
+        this.options.push({name, option});
+        if (option && option.setParent) {
+            option.setParent(this);
+        }
+    }
+
+    setParent(parent) {
+        this.parent = parent;
+    }
+
+    getParent() {
+        return this.parent;
+    }
+
+    getSelectionObject() {
+        const selObj = {
+            showMenu: () => true,
+            getMenu: () => {
+                const menuObj = {};
+                this.options.forEach((opt, i) => {
+                    menuObj[Keys.menuIndices[i]] = opt.name;
+                });
+                return menuObj;
+            },
+            select: code => {
+                const selection = Keys.codeToIndex(code);
+                if (selection < this.options.length) {
+                    const value = this.options[selection].option;
+                    if (value.getSelectionObject) {
+                        return value.getSelectionObject();
+                    }
+                    return value;
+                }
+                return null;
+            }
+        };
+        return selObj;
+    }
+
+}
+Chat.ChatBase = ChatBase;
+
+/* Object used in actors which can give quests. */
+class ChatQuest extends ChatBase {
+
+    constructor() {
+        super();
+        const acceptOpt = {
+            name: 'Accept the quest',
+            option: this.questCallback.bind(this)
+        };
+        const refuseOpt = {
+            name: 'Refuse the quest',
+            option: null
+        };
+        this.add(acceptOpt);
+        this.add(refuseOpt);
+    }
+
+    getSelectionObject() {
+        return this.selectionObject;
+    }
+
+    setQuestGiver(giver) {
+        this.questGiver = giver;
+    }
+
+    setTarget(target) {
+        this.target = target;
+    }
+
+    questCallback() {
+        if (RG.isNullOrUndef([this.target, this.questGiver])) {
+            RG.err('ChatQuest', 'questCallback',
+                'target and questGiver must be defined');
+        }
+        // Create quest comp
+        const giveQuestComp = new RG.Component.GiveQuest();
+        giveQuestComp.setTarget(this.target);
+        giveQuestComp.setGiver(this.questGiver);
+        this.target.add(giveQuestComp);
+    }
+}
+Chat.Quest = ChatQuest;
 
 /* Chat Object for trainers in the game. */
 class ChatTrainer {
@@ -14,8 +109,9 @@ class ChatTrainer {
     constructor() {
         this.selectionObject = {
             showMenu: () => true,
+            pre: 'Please select a stat to train:',
             getMenu: () => {
-                RG.gameMsg('Please select a stat to train:');
+                // RG.gameMsg('');
                 const indices = Keys.menuIndices.slice(0, 6);
                 const menuObj = {};
                 stats.forEach((stat, index) => {
@@ -36,10 +132,6 @@ class ChatTrainer {
             }
         };
         this.trainCallback = this.trainCallback.bind(this);
-    }
-
-    getSelectionObject() {
-        return this.selectionObject;
     }
 
     /* Sets the target to train. */
