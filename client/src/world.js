@@ -812,130 +812,16 @@ RG.World.AreaTile = function(x, y, area) {
 
     this._level = null;
 
-    /* Sets the level for this tile.*/
-    this.setLevel = function(level) {
-        this._level = level;
-        this.cols = this._level.getMap().cols;
-        this.rows = this._level.getMap().rows;
-    };
 
     this.getLevel = () => this._level;
     this.getTileX = () => this._tileX;
     this.getTileY = () => this._tileY;
 
-    /* Returns true for edge tiles.*/
-    this.isEdge = function() {
-        if (this.isNorthEdge()) {return true;}
-        if (this.isSouthEdge()) {return true;}
-        if (this.isWestEdge()) {return true;}
-        if (this.isEastEdge()) {return true;}
-        return false;
-    };
 
     this.isNorthEdge = () => this._tileY === 0;
     this.isSouthEdge = () => this._tileY === (this._area.getSizeY() - 1);
     this.isWestEdge = () => this._tileX === 0;
     this.isEastEdge = () => this._tileX === (this._area.getSizeX() - 1);
-
-    /* Connect this tile to east and south tiles */
-    this.connect = function(eastTile, southTile) {
-        const lastX = this.cols - 1;
-        const lastY = this.rows - 1;
-
-        // Connect to east tile, in y-direction
-        if (!RG.isNullOrUndef([eastTile])) {
-            const levelEast = eastTile.getLevel();
-            const map = this._level.getMap();
-            const mapEast = levelEast.getMap();
-
-            for (let y = 1; y <= lastY - 1; y++) {
-                const cell = map.getCell(lastX, y);
-                const cellEast = mapEast.getCell(0, y);
-
-                if (cell.isFree() && cellEast.isFree()) {
-                    const stairs = new Stairs('passage',
-                        this._level, levelEast);
-                    const stairsEast = new Stairs('passage',
-                        levelEast, this._level);
-                    stairs.setTargetStairs(stairsEast);
-                    stairsEast.setTargetStairs(stairs);
-
-                    this._level.addStairs(stairs, lastX, y);
-                    levelEast.addStairs(stairsEast, 0, y);
-                }
-            }
-        }
-
-        // Connect to south tile, in x-direction
-        if (!RG.isNullOrUndef([southTile])) {
-            const levelSouth = southTile.getLevel();
-            const map = this._level.getMap();
-            const mapSouth = levelSouth.getMap();
-
-            for (let x = 1; x <= lastX - 1; x++) {
-                const cell = map.getCell(x, lastY);
-                const cellSouth = mapSouth.getCell(x, 0);
-
-                if (cell.isFree() && cellSouth.isFree()) {
-                    const stairs = new Stairs('passage',
-                        this._level, levelSouth);
-                    const connSouth = new Stairs('passage',
-                        levelSouth, this._level);
-                    stairs.setTargetStairs(connSouth);
-                    connSouth.setTargetStairs(stairs);
-
-                    this._level.addStairs(stairs, x, lastY);
-                    levelSouth.addStairs(connSouth, x, 0);
-                }
-            }
-        }
-    };
-
-    this.addZone = function(type, zone) {
-        if (RG.isNullOrUndef([zone.tileX, zone.tileY])) {
-            RG.err('World.AreaTile', 'addZone',
-                'No tileX/tileY given!');
-        }
-        if (!this.zones[type]) {
-            this.zones[type] = [];
-        }
-        this.zones[type].push(zone);
-    };
-
-    this.getZones = function(type) {
-        if (type) {
-            return this.zones[type];
-        }
-        let zones = [];
-        Object.keys(this.zones).forEach(type => {
-            zones = zones.concat(this.zones[type]);
-        });
-        return zones;
-    };
-
-    this.getLevels = () => {
-        let res = [this._level];
-        Object.keys(this.zones).forEach(type => {
-            this.zones[type].forEach(z => {res = res.concat(z.getLevels());});
-        });
-
-        if (debug.enabled) {
-            let msg = this.toString();
-            msg = ` Tile ${msg} has ${res.length} levels from toJSON()`;
-            if (this._level.getID() === 1344) {
-                msg += `\tLevels: ${res.map(l => l.getID())}`;
-            }
-            console.error(msg);
-        }
-
-        return res;
-    };
-
-    this.toString = () => {
-        let msg = `${this._tileX},${this._tileY}, ID: ${this._level.getID()}`;
-        msg += ` nZones: ${this.getZones().length}`;
-        return msg;
-    };
 
     // All zones inside this tile
     this.zones = {
@@ -945,7 +831,126 @@ RG.World.AreaTile = function(x, y, area) {
         BattleZone: []
     };
 
-    this.toJSON = () => ({
+};
+
+/* Returns true for edge tiles.*/
+RG.World.AreaTile.prototype.isEdge = function() {
+    if (this.isNorthEdge()) {return true;}
+    if (this.isSouthEdge()) {return true;}
+    if (this.isWestEdge()) {return true;}
+    if (this.isEastEdge()) {return true;}
+    return false;
+};
+
+/* Sets the level for this tile.*/
+RG.World.AreaTile.prototype.setLevel = function(level) {
+    this._level = level;
+    this.cols = this._level.getMap().cols;
+    this.rows = this._level.getMap().rows;
+};
+
+/* Connect this tile to east and south tiles */
+RG.World.AreaTile.prototype.connect = function(eastTile, southTile) {
+    const lastX = this.cols - 1;
+    const lastY = this.rows - 1;
+
+    // Connect to east tile, in y-direction
+    if (!RG.isNullOrUndef([eastTile])) {
+        const levelEast = eastTile.getLevel();
+        const map = this._level.getMap();
+        const mapEast = levelEast.getMap();
+
+        for (let y = 1; y <= lastY - 1; y++) {
+            const cell = map.getCell(lastX, y);
+            const cellEast = mapEast.getCell(0, y);
+
+            if (cell.isFree() && cellEast.isFree()) {
+                const stairs = new Stairs('passage',
+                    this._level, levelEast);
+                const stairsEast = new Stairs('passage',
+                    levelEast, this._level);
+                stairs.setTargetStairs(stairsEast);
+                stairsEast.setTargetStairs(stairs);
+
+                this._level.addStairs(stairs, lastX, y);
+                levelEast.addStairs(stairsEast, 0, y);
+            }
+        }
+    }
+
+    // Connect to south tile, in x-direction
+    if (!RG.isNullOrUndef([southTile])) {
+        const levelSouth = southTile.getLevel();
+        const map = this._level.getMap();
+        const mapSouth = levelSouth.getMap();
+
+        for (let x = 1; x <= lastX - 1; x++) {
+            const cell = map.getCell(x, lastY);
+            const cellSouth = mapSouth.getCell(x, 0);
+
+            if (cell.isFree() && cellSouth.isFree()) {
+                const stairs = new Stairs('passage',
+                    this._level, levelSouth);
+                const connSouth = new Stairs('passage',
+                    levelSouth, this._level);
+                stairs.setTargetStairs(connSouth);
+                connSouth.setTargetStairs(stairs);
+
+                this._level.addStairs(stairs, x, lastY);
+                levelSouth.addStairs(connSouth, x, 0);
+            }
+        }
+    }
+};
+
+RG.World.AreaTile.prototype.addZone = function(type, zone) {
+    if (RG.isNullOrUndef([zone.tileX, zone.tileY])) {
+        RG.err('World.AreaTile', 'addZone',
+            'No tileX/tileY given!');
+    }
+    if (!this.zones[type]) {
+        this.zones[type] = [];
+    }
+    this.zones[type].push(zone);
+};
+
+RG.World.AreaTile.prototype.getZones = function(type) {
+    if (type) {
+        return this.zones[type];
+    }
+    let zones = [];
+    Object.keys(this.zones).forEach(type => {
+        zones = zones.concat(this.zones[type]);
+    });
+    return zones;
+};
+
+RG.World.AreaTile.prototype.getLevels = function() {
+    let res = [this._level];
+    Object.keys(this.zones).forEach(type => {
+        this.zones[type].forEach(z => {res = res.concat(z.getLevels());});
+    });
+
+    if (debug.enabled) {
+        let msg = this.toString();
+        msg = ` Tile ${msg} has ${res.length} levels from toJSON()`;
+        if (this._level.getID() === 1344) {
+            msg += `\tLevels: ${res.map(l => l.getID())}`;
+        }
+        console.error(msg);
+    }
+
+    return res;
+};
+
+RG.World.AreaTile.prototype.toString = function() {
+    let msg = `${this._tileX},${this._tileY}, ID: ${this._level.getID()}`;
+    msg += ` nZones: ${this.getZones().length}`;
+    return msg;
+};
+
+RG.World.AreaTile.prototype.toJSON = function() {
+    return {
         x: this._tileX,
         y: this._tileY,
         level: this._level.getID(),
@@ -959,7 +964,7 @@ RG.World.AreaTile = function(x, y, area) {
         city: this.getZones('City').map(city => city.toJSON()),
         nBattleZones: this.zones.BattleZone.length,
         battlezone: this.getZones('BattleZone').map(bz => bz.toJSON())
-    });
+    };
 };
 
 RG.World.AreaTile.prototype.removeListeners = function() {
