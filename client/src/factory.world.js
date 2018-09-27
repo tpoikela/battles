@@ -12,7 +12,7 @@ RG.Factory.Zone = require('./factory.zone');
 const DungeonGenerator = require('./dungeon-generator');
 const {CaveGenerator} = require('./cave-generator');
 const CastleGenerator = require('./castle-generator');
-const QuestPopulate = require('../data/quest-gen').QuestPopulate;
+const QuestPopulate = require('./quest-gen').QuestPopulate;
 
 const RNG = RG.Random.getRNG();
 const Stairs = RG.Element.Stairs;
