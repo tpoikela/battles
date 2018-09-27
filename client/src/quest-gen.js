@@ -6,7 +6,7 @@ const debug = require('debug')('bitn:quest-gen');
 const RG = require('../src/rg');
 RG.Random = require('../src/random');
 
-const questGrammar = require('./quest-grammar');
+const questGrammar = require('../data/quest-grammar');
 
 const RNG = RG.Random.getRNG();
 
@@ -16,9 +16,11 @@ RNG.setSeed(Date.now());
 const Task = function(taskType) {
     this.stepType = 'Task';
     this.name = '';
-    this.isQuest = () => false;
     this.taskType = taskType;
 };
+
+Task.prototype.isTask = function() {return true;};
+Task.prototype.isQuest = function() {return false;};
 
 Task.prototype.getName = function() {
     return this.name;
@@ -29,44 +31,56 @@ Task.prototype.getTaskType = function() {
 };
 
 /* A quest object which can be used to model quests. */
-const Quest = function(name) {
+const Quest = function(name, tasks) {
     this.name = name;
     this.steps = []; // Atomics/sub-quests
     this.testType = 'Quest';
 
-    this.isQuest = () => true;
-
-    this.add = function(step) {
-        if (Array.isArray(step)) {
-            this.steps = this.steps.concat(step);
-        }
-        else {
-            this.steps.push(step);
-        }
-    };
-
-    this.numQuests = function() {
-        let sum = 1;
-        this.steps.forEach(step => {
-            if (step.isQuest && step.isQuest()) {
-                sum += 1;
-            }
+    if (Array.isArray(tasks)) {
+        tasks.forEach(taskType => {
+            const task = new Task(taskType);
+            this.add(task);
         });
-        return sum;
-    };
-
-    /* Returns the number of immediate tasks. */
-    this.numTasks = function() {
-        const numSubquests = this.numQuests() - 1;
-        return this.steps.length - numSubquests;
-    };
-
-    this.getSteps = function() {
-        return this.steps.slice();
-    };
+    }
 };
 
-/* Code adapted from erratic by Daniel Connelly. */
+Quest.prototype.isTask = function() {return false;};
+Quest.prototype.isQuest = function() {return true;};
+
+Quest.prototype.getTasks = function() {
+    return this.steps.filter(step => step.isTask());
+};
+
+Quest.prototype.add = function(step) {
+    if (Array.isArray(step)) {
+        this.steps = this.steps.concat(step);
+    }
+    else {
+        this.steps.push(step);
+    }
+};
+
+Quest.prototype.numQuests = function() {
+    let sum = 1;
+    this.steps.forEach(step => {
+        if (step.isQuest && step.isQuest()) {
+            sum += 1;
+        }
+    });
+    return sum;
+};
+
+/* Returns the number of immediate tasks. */
+Quest.prototype.numTasks = function() {
+    const numSubquests = this.numQuests() - 1;
+    return this.steps.length - numSubquests;
+};
+
+Quest.prototype.getSteps = function() {
+    return this.steps.slice();
+};
+
+/* Code adapted from erratic.js by Daniel Connelly. */
 function extract(prop, o) {
     return o[prop];
 }
@@ -85,7 +99,9 @@ function chooseRandomRule(arrOfRules) {
 }
 
 
-/* QuestGen object. */
+//---------------------------------------------------------------------------
+// QUESTGEN for generating quest sequences procedurally
+//---------------------------------------------------------------------------
 const QuestGen = function() {
     this._init();
 };
@@ -191,14 +207,14 @@ QuestGen.prototype.generateQuest = function(rules, rule) {
         this.currQuest = new Quest();
         this.stack.push(this.currQuest);
     }
+
     const randRule = chooseRandomRule(rules[rule]);
     if (Array.isArray(randRule)) {
         const steps = randRule.map(this.generateTerm.bind(this, rules));
-        // const tasks = steps.map(step => new Task(step));
-        // this.currQuest.add(tasks);
         this._checkIfQuestOver(rule);
         return steps.join('|');
     }
+
     debug(`generateQuest end reached, return |${randRule}|`);
     this._checkIfQuestOver(rule);
     return randRule;
@@ -209,10 +225,12 @@ QuestGen.prototype.generateTerm = function(rules, term) {
         const json = JSON.stringify(rules);
         throw new Error('Null/undef term.text with rules|', json, '|');
     }
+
     if (term.type === 'terminal') {
         this.currQuest.add(new Task(term.text));
         return term.text;
     }
+
     debug(`calling generate() with term.text |${term.text}|`);
     return this.generateQuest(rules, term.text);
 };
@@ -229,10 +247,20 @@ QuestGen.prototype._checkIfQuestOver = function(rule) {
     }
 };
 
+//---------------------------------------------------------------------------
+// QUESTDATA for storing quest mapping information
+//---------------------------------------------------------------------------
+
 const QuestData = function() {
     this.stacks = {};
     this.path = [];
     this._ptr = {}; // Pointers for iteration
+};
+
+QuestData.prototype.keys = function() {
+    const keys = Object.keys(this.stacks);
+    console.log('QuestData keys returning', keys);
+    return keys;
 };
 
 QuestData.prototype.pop = function(targetType) {
@@ -240,6 +268,13 @@ QuestData.prototype.pop = function(targetType) {
         return this.stacks[targetType].pop();
     }
     return null;
+};
+
+/* Reset iterators of the quest data. */
+QuestData.prototype.resetIter = function() {
+    this.keys().forEach(targetType => {
+        this._ptr[targetType] = 0;
+    });
 };
 
 QuestData.prototype.next = function(targetType) {
@@ -266,7 +301,7 @@ QuestData.prototype.getCurrent = function(targetType) {
 
 QuestData.prototype.add = function(targetType, obj) {
     if (!this.stacks[targetType]) {
-        this.stacks[targetType] = obj;
+        this.stacks[targetType] = [];
     }
     this.stacks[targetType].push(obj);
     this.path.push(targetType);
@@ -289,6 +324,7 @@ const QuestPopulate = function() {
     this.questData = {
         quests: [] // Stack of quests, current is the last
     };
+    this.questList = [];
 };
 
 QuestPopulate.prototype.createQuests = function(world, area, x, y) {
@@ -307,6 +343,7 @@ QuestPopulate.prototype.createQuestsForZone = function(zone, areaTile) {
         const quest = questGen.genQuestWithConf({maxLength: 10, minLength: 1});
         this.questData = {quests: []};
         this.mapQuestToResources(quest, zone, areaTile);
+        this.addQuestComponents(zone);
     }
 };
 
@@ -317,7 +354,7 @@ QuestPopulate.prototype.mapQuestToResources = function(quest, zone, areaTile) {
     quest.getSteps().forEach(step => {
         const currLoc = this.currQuest.getCurrent('location');
         if (step.isQuest()) {
-            // Recursive call for sub-quests, check which is the current
+            // Recursive call for sub-quests, check the current
             // location for the quest
             this.mapQuestToResources(step, currLoc, areaTile);
         }
@@ -325,8 +362,14 @@ QuestPopulate.prototype.mapQuestToResources = function(quest, zone, areaTile) {
             this.mapTask(quest, step, currLoc, areaTile);
         }
     });
-    if (this.questData.quests.length > 1) {
-        this.currQuest = this.questData.quests.pop();
+
+    const nQuests = this.questData.quests.length;
+    if (nQuests > 1) {
+        this.questList.unshift(this.questData.quests.pop());
+        this.currQuest = this.questData.quests[nQuests - 2];
+    }
+    else {
+        this.questList.unshift(this.currQuest);
     }
     // Finally, add a quest to quest giver
     console.log('Created quest: ' + this.currQuest.toString());
@@ -335,16 +378,19 @@ QuestPopulate.prototype.mapQuestToResources = function(quest, zone, areaTile) {
 /* Maps a single task to resources. Prev. or next step may also affect mapping.
  * */
 QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
+    console.log('mapTask taskType is now', task.getTaskType());
     switch (task.getTaskType()) {
         case '<kill>kill': {
             const location = this.currQuest.getCurrent('location');
-            const level = location.getLevels()[0];
+            const level = location.getLevels()[0]; // TODO make random
             const actorToKill = RNG.arrayGetRand(level.getActors());
             this.currQuest.add('kill', actorToKill);
+            console.log('mapTask added an actor to kill');
             break;
         }
         case '<goto>already_there': {
-            this.currQuest.add('location', zone);
+            // Don't add current location because it's already in the stack
+            // this.currQuest.add('location', zone);
             break;
         }
         case '<goto>goto': {
@@ -356,6 +402,40 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
             console.log(`Task type ${task.taskType} not supported yet`);
         }
     }
+};
+
+
+QuestPopulate.prototype.addQuestComponents = function(zone) {
+    console.log('Adding quest components now');
+    console.log('QuestList', JSON.stringify(this.questList));
+    this.questList.forEach(questData => {
+        questData.resetIter();
+        questData.keys().forEach(key => {
+            if (key === 'kill') {
+                console.log('addQuestComponents Key was ' + key);
+                let killTarget = questData.next(key);
+                while (killTarget) {
+                    const killComp = new RG.Component.QuestTarget();
+                    killComp.setTargetType(key);
+                    killComp.setTarget(killTarget);
+                    killTarget.add(killComp);
+                    killTarget = questData.next(key);
+                }
+            }
+            else {
+                console.log('addQuestComponents Key was ' + key);
+            }
+        });
+
+        // Grab random actor and make it the quest giver
+        const level = RNG.arrayGetRand(zone.getLevels());
+        const questGiver = RNG.arrayGetRand(level.getActors());
+        const giverComp = new RG.Component.QuestGiver(questData);
+        giverComp.setQuestData(questData);
+        questGiver.add(giverComp);
+        console.log('QuestGiver will be ' + questGiver.getName());
+    });
+
 };
 
 const runningAsScript = !module.parent;
