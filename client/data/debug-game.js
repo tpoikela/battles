@@ -12,6 +12,9 @@ const {ItemRandomizer} = require('../src/factory.items');
 const {EquipSlot} = require('../src/equipment');
 const Actors = require('./actors');
 
+const {Quest, QuestPopulate}
+    = require('../src/quest-gen');
+
 const RNG = RG.Random.getRNG();
 const Stairs = RG.Element.Stairs;
 
@@ -260,6 +263,13 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     /* const assassin = parser.createActor('dark assassin');
     level.addActor(assassin, pX + 10, pY + 10);
     */
+
+    // Add some quests into the city
+    const questPopul = new QuestPopulate();
+    const taskList = ['<goto>already_there', '<kill>kill'];
+    const quest = new Quest('Kill an actor', taskList);
+    questPopul.mapQuestToResources(quest, city, null);
+    questPopul.addQuestComponents(city);
 
     return game;
 };
