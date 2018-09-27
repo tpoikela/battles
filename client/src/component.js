@@ -1347,5 +1347,30 @@ class Duration extends Mixin.DurationRoll(RG.Component.Base) {
 }
 RG.Component.Duration = Duration;
 
+//--------------------------------------------
+// Quest-related components
+//--------------------------------------------
+
+RG.Component.QuestGiver = DataComponent('QuestGiver',
+    {questData: null}
+);
+
+RG.Component.QuestGiver.prototype._init = function(questData) {
+    this.questData = questData;
+};
+
+/* Comp added to quest targets (items, actors etc). */
+RG.Component.QuestTarget = DataComponent('QuestTarget',
+    {targetType: '', target: null}
+);
+
+RG.Component.Quest = DataComponent('Quest', {
+    giverComp: null, questTargets: null
+});
+
+RG.Component.Quest.prototype._init = function() {
+    this.questTargets = [];
+};
+
 module.exports = RG.Component;
 
