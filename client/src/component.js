@@ -263,7 +263,7 @@ RG.Component.Trainer = UniqueDataComponent('Trainer', {
     chatObj: null
 });
 
-// Hack to prevent serialisation
+// Hack to prevent serialisation of chatObj
 delete RG.Component.Trainer.prototype.setChatObj;
 
 RG.Component.Trainer.prototype._init = function() {
@@ -1351,12 +1351,26 @@ RG.Component.Duration = Duration;
 // Quest-related components
 //--------------------------------------------
 
+RG.Component.GiveQuest = TransientDataComponent('GiveQuest',
+    {target: null, giver: null}
+);
+
 RG.Component.QuestGiver = DataComponent('QuestGiver',
     {questData: null}
 );
 
 RG.Component.QuestGiver.prototype._init = function(questData) {
     this.questData = questData;
+    this.chatObj = new RG.Chat.Quest();
+
+    const _addCb = () => {
+      this.chatObj.setQuestGiver(this.getEntity());
+    };
+    this.addCallback('onAdd', _addCb);
+};
+
+RG.Component.QuestGiver.getChatObj = function() {
+    return this.chatObj;
 };
 
 /* Comp added to quest targets (items, actors etc). */
