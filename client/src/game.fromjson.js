@@ -16,1025 +16,750 @@ const Territory = require('./territory');
 /* Object for converting serialized JSON objects to game objects. Note that all
  * actor/level ID info is stored between uses. If you call restoreLevel() two
  * times, all data from 1st is preserved. Call reset() to clear data. */
-RG.Game.FromJSON = function() {
+const FromJSON = function() {
 
-    let _dungeonLevel = 1;
+    this._dungeonLevel = 1;
     this._parser = RG.ObjectShell.getParser();
 
     // Lookup table for mapping level ID to Map.Level object
-    let id2level = {};
-    let id2entity = {};
-    let id2EntityJson = {};
+    this.id2level = {};
+    this.id2entity = {};
+    this.id2EntityJson = {};
 
     // Stores connection information for stairs
-    let stairsInfo = {};
+    this.stairsInfo = {};
 
     this.IND = 0; // For debug msg indenting
 
-    /* Resets internal data of this object. */
-    this.reset = () => {
-        id2level = {};
-        id2entity = {};
-        id2EntityJson = {};
-        stairsInfo = {};
-    };
+}; // FromJSON
 
-    this.setChunkMode = (enable) => {
-        this.chunkMode = enable;
-    };
+//--------------------------
+// SMALL UTILITY FUNCTIONS
+//--------------------------
 
-    this.getDungeonLevel = () => _dungeonLevel;
+/* Resets internal data of this object. */
+FromJSON.prototype.reset = function() {
+    this.id2level = {};
+    this.id2entity = {};
+    this.id2EntityJson = {};
+    this.stairsInfo = {};
+};
 
-    /* Handles creation of restored player from JSON.*/
-    this.restorePlayer = function(json) {
-        const player = new RG.Actor.Rogue(json.name);
-        player.setIsPlayer(true);
-        // TODO hack for now, these are restored later
-        player.remove('StatsMods');
-        player.remove('CombatMods');
+FromJSON.prototype.setChunkMode = function(enable) {
+    this.chunkMode = enable;
+};
 
-        player.setType(json.type);
-        player.setID(json.id);
-        id2entity[json.id] = player;
-        _dungeonLevel = json.dungeonLevel;
+FromJSON.prototype.getDungeonLevel = function() {
+    return this._dungeonLevel;
+};
 
-        RG.addCellStyle(RG.TYPE_ACTOR, json.name, 'cell-actor-player');
-        this._addEntityFeatures(json, player);
-        this.restorePlayerBrain(player, json.brain);
-        return player;
-    };
+/* Returns an object of requested type. */
+FromJSON.prototype.getObjRef = function(requestObj) {
+    if (requestObj.type === 'entity') {
+        return this.id2entity[requestObj.id];
+    }
+    else if (requestObj.type === 'level') {
+        return this.id2level[requestObj.id];
+    }
+    return null;
+};
 
-    this.restorePlayerBrain = function(player, brainJSON) {
-        const brain = player.getBrain();
-        const memory = brain.getMemory();
-        const memJSON = brainJSON.memory;
-        Object.keys(memJSON).forEach(setter => {
-            memory[setter](memJSON[setter]);
+//--------------------------
+// MAIN API
+//--------------------------
+
+/* Main function to call when restoring a game. When given Game.Main in
+ * serialized JSON, returns the restored Game.Main object. */
+FromJSON.prototype.createGame = function(gameJSON) {
+    if (typeof gameJSON === 'string') {
+        RG.err('Game.FromJSON', 'createGame',
+            'An object must be given instead of string');
+    }
+    this.dbg('createGame: Restoring now full game');
+    this.IND = 1;
+
+    const game = new RG.Game.Main();
+    this.setGlobalConfAndObjects(game, gameJSON);
+    if (gameJSON.chunkManager) {
+        this.setChunkMode(true);
+    }
+
+    RG.Component.idCount = gameJSON.lastComponentID;
+
+    const allLevels = [];
+    const levelsToRestore = this.getLevelsToRestore(gameJSON);
+
+    // Levels must be created before the actual world, because the World
+    // object contains only level IDs
+    levelsToRestore.forEach(levelJson => {
+        const level = this.restoreLevel(levelJson);
+        allLevels.push(level);
+        if (!levelJson.parent) {
+            this.dbg('>> No parent. Adding directly ' + level.getID());
+            game.addLevel(level);
+        }
+    });
+
+    if (gameJSON.places) {
+        Object.keys(gameJSON.places).forEach(name => {
+            const place = gameJSON.places[name];
+            const placeObj = this.restorePlace(place);
+            game.addPlace(placeObj);
         });
-        if (brainJSON.markList) {
-            brain._markList.fromJSON(brainJSON.markList);
-        }
-    };
+    }
 
-    this.addRestoredPlayerToGame = function(player, game, json) {
-        this._addRegenEvents(game, player);
-        const id = json.player.levelID;
-        const level = game.getLevels().find(item => item.getID() === id);
-        if (level) {
-            const x = json.player.x;
-            const y = json.player.y;
-            level.addActor(player, x, y);
-            game.addPlayer(player);
-        }
-        else {
-            const levelIDs = game.getLevels().map(l => l.getID());
-            const msg = `IDs available: ${levelIDs}`;
-            RG.err('Game.FromJSON', 'addRestoredPlayerToGame',
-                `Cannot find player level object with level ID ${id}. ${msg}`);
-        }
-    };
+    if (gameJSON.overworld) {
+        const overworld = this.restoreOverWorld(gameJSON.overworld);
+        game.setOverWorld(overworld);
+    }
 
-    /* Restores all data for already created entity. */
-    this.restoreEntity = function(json, entity) {
-        if (RG.isActor(entity)) {
-            this.createBrain(json.brain, entity);
-            this._addEntityFeatures(json, entity);
-        }
-        else if (RG.isElement(entity)) {
-            this.restoreElementEntity(json, entity);
-        }
-        return entity;
-    };
+    // Connect levels using this.id2level + this.stairsInfo
+    this.connectGameLevels(allLevels);
 
-    this._addEntityFeatures = function(obj, entity) {
-        this.addCompsToEntity(entity, obj.components);
-        this.createInventoryItems(obj, entity);
-        this.createEquippedItems(obj, entity);
-        if (obj.fovRange) {
-            entity.setFOVRange(obj.fovRange);
-        }
-        if (obj.spellbook) {
-            this.createSpells(obj, entity);
-        }
-    };
+    // Player created separately from other actors for now
+    if (gameJSON.player) {
+        const player = this.restorePlayer(gameJSON.player);
+        this.addRestoredPlayerToGame(player, game, gameJSON);
+    }
 
-    this.restoreElementEntity = function(json, entity) {
-        if (entity.getType() === 'lever') {
-            json.addTarget.forEach(objRef => {
-                const entRef = objRef.objRef;
-                const doorEntity = id2entity[entRef.id];
-                if (doorEntity) {
-                    entity.addTarget(doorEntity);
-                }
-            });
-        }
-    };
+    // Entity data cannot be restored earlier because not all object refs
+    // exist when entities are created
+    this.restoreEntityData();
 
-    /* Adds given components into Entity object. */
-    this.addCompsToEntity = (ent, comps) => {
-        for (const id in comps) {
-            if (id) {
-                const compJSON = comps[id];
-                const name = compJSON.setType;
-                if (!name) {
-                    const msg = 'No "name" in component: ';
-                    RG.err('Game.FromJSON', 'addCompsToEntity',
-                        msg + ': ' + JSON.stringify(compJSON));
+    const gameMaster = this.restoreGameMaster(game, gameJSON.gameMaster);
+    game.setGameMaster(gameMaster);
+    this.restoreChunkManager(game, gameJSON);
 
-                }
-                const newCompObj = this.createComponent(name, compJSON);
-                ent.add(name, newCompObj);
+    this.checkNumOfLevels(game, gameJSON);
+
+    // Restore the ID counters for levels and entities, otherwise duplicate
+    // IDs will appear when new levels/entities are created
+    RG.Map.Level.idCount = gameJSON.lastLevelID;
+    Entity.idCount = gameJSON.lastEntityID;
+
+    if (debug.enabled) {
+        this.dbg(`Restored level ID count to ${RG.Map.Level.idCount}`);
+        this.dbg(`Restored entity ID count to ${Entity.idCount}`);
+    }
+
+    if (gameJSON.rng) {
+        const rng = new RG.Random(gameJSON.rng.seed);
+        rng.setState(gameJSON.rng.state);
+        game.setRNG(rng);
+    }
+    this.IND = 0;
+    return game;
+};
+
+/* Handles creation of restored player from JSON.*/
+FromJSON.prototype.restorePlayer = function(json) {
+    const player = new RG.Actor.Rogue(json.name);
+    player.setIsPlayer(true);
+    // TODO hack for now, these are restored later
+    player.remove('StatsMods');
+    player.remove('CombatMods');
+
+    player.setType(json.type);
+    player.setID(json.id);
+    this.id2entity[json.id] = player;
+    this._dungeonLevel = json.dungeonLevel;
+
+    RG.addCellStyle(RG.TYPE_ACTOR, json.name, 'cell-actor-player');
+    this._addEntityFeatures(json, player);
+    this.restorePlayerBrain(player, json.brain);
+    return player;
+};
+
+
+FromJSON.prototype.restorePlayerBrain = function(player, brainJSON) {
+    const brain = player.getBrain();
+    const memory = brain.getMemory();
+    const memJSON = brainJSON.memory;
+    Object.keys(memJSON).forEach(setter => {
+        memory[setter](memJSON[setter]);
+    });
+    if (brainJSON.markList) {
+        brain._markList.fromJSON(brainJSON.markList);
+    }
+};
+
+
+FromJSON.prototype.addRestoredPlayerToGame = function(player, game, json) {
+    this._addRegenEvents(game, player);
+    const id = json.player.levelID;
+    const level = game.getLevels().find(item => item.getID() === id);
+    if (level) {
+        const x = json.player.x;
+        const y = json.player.y;
+        level.addActor(player, x, y);
+        game.addPlayer(player);
+    }
+    else {
+        const levelIDs = game.getLevels().map(l => l.getID());
+        const msg = `IDs available: ${levelIDs}`;
+        RG.err('Game.FromJSON', 'addRestoredPlayerToGame',
+            `Cannot find player level object with level ID ${id}. ${msg}`);
+    }
+};
+
+
+/* Restores all data for already created entity. */
+FromJSON.prototype.restoreEntity = function(json, entity) {
+    if (RG.isActor(entity)) {
+        this.createBrain(json.brain, entity);
+        this._addEntityFeatures(json, entity);
+    }
+    else if (RG.isElement(entity)) {
+        this.restoreElementEntity(json, entity);
+    }
+    return entity;
+};
+
+
+FromJSON.prototype._addEntityFeatures = function(obj, entity) {
+    this.addCompsToEntity(entity, obj.components);
+    this.createInventoryItems(obj, entity);
+    this.createEquippedItems(obj, entity);
+    if (obj.fovRange) {
+        entity.setFOVRange(obj.fovRange);
+    }
+    if (obj.spellbook) {
+        this.createSpells(obj, entity);
+    }
+};
+
+
+FromJSON.prototype.restoreElementEntity = function(json, entity) {
+    if (entity.getType() === 'lever') {
+        json.addTarget.forEach(objRef => {
+            const entRef = objRef.objRef;
+            const doorEntity = this.id2entity[entRef.id];
+            if (doorEntity) {
+                entity.addTarget(doorEntity);
             }
-        }
-    };
+        });
+    }
+};
 
-    /* Creates the component with given name. */
-    this.createComponent = (name, compJSON) => {
-        if (!RG.Component.hasOwnProperty(name)) {
-            let msg = `No ${name} in RG.Component.`;
-            msg += ` compJSON: ${JSON.stringify(compJSON)}`;
-            RG.err('Game.FromJSON', 'createComponent', msg);
-        }
-        const newCompObj = new RG.Component[name]();
-        for (const setFunc in compJSON) {
-            if (typeof newCompObj[setFunc] === 'function') {
-                const valueToSet = compJSON[setFunc];
 
-                // valueToSet can be any of following:
-                //   1. Create function of defined in Game.FromJSON
-                //     - Call function then sets the result of func call
-                //     - Function is called with valueToSet.value
-                //   2. Sub-component given with createComp
-                //     - Need to call createComponent recursively
-                //   3. Can be an objRef
-                //   4. Can be scalar/object literal which is set with setFunc
-                if (!RG.isNullOrUndef([valueToSet])) {
-                    if (valueToSet.createFunc) {
-                        const createdObj =
-                            this[valueToSet.createFunc](valueToSet.value);
-                        newCompObj[setFunc](createdObj);
-                    }
-                    else if (valueToSet.createComp) {
-                        const compType = valueToSet.createComp.setType;
-                        // Danger of infinite recursion
-                        const newSubComp = this.createComponent(compType,
-                            valueToSet.createComp);
-                        newCompObj[setFunc](newSubComp);
-                    }
-                    else if (valueToSet.objRef) {
-                        const objToSet = this.getObjRef(valueToSet.objRef);
-                        if (objToSet) {
-                            newCompObj[setFunc](objToSet);
-                        }
-                        else {
-                            const refJson = JSON.stringify(valueToSet.objRef);
-                            let msg = `Null obj for objRef ${refJson}`;
-                            msg += ` compJSON: ${JSON.stringify(compJSON)}`;
-                            RG.err('FromJSON', 'createComponent', msg);
-                        }
+/* Adds given components into Entity object. */
+FromJSON.prototype.addCompsToEntity = function(ent, comps) {
+    for (const id in comps) {
+        if (id) {
+            const compJSON = comps[id];
+            const name = compJSON.setType;
+            if (!name) {
+                const msg = 'No "name" in component: ';
+                RG.err('Game.FromJSON', 'addCompsToEntity',
+                    msg + ': ' + JSON.stringify(compJSON));
+
+            }
+            const newCompObj = this.createComponent(name, compJSON);
+            ent.add(name, newCompObj);
+        }
+    }
+};
+
+/* Creates the component with given name. */
+FromJSON.prototype.createComponent = function(name, compJSON) {
+    if (!RG.Component.hasOwnProperty(name)) {
+        let msg = `No ${name} in RG.Component.`;
+        msg += ` compJSON: ${JSON.stringify(compJSON)}`;
+        RG.err('Game.FromJSON', 'createComponent', msg);
+    }
+    const newCompObj = new RG.Component[name]();
+    for (const setFunc in compJSON) {
+        if (typeof newCompObj[setFunc] === 'function') {
+            const valueToSet = compJSON[setFunc];
+
+            // valueToSet can be any of following:
+            //   1. Create function of defined in Game.FromJSON
+            //     - Call function then sets the result of func call
+            //     - Function is called with valueToSet.value
+            //   2. Sub-component given with createComp
+            //     - Need to call createComponent recursively
+            //   3. Can be an objRef
+            //   4. Can be scalar/object literal which is set with setFunc
+            if (!RG.isNullOrUndef([valueToSet])) {
+                if (valueToSet.createFunc) {
+                    const createdObj =
+                        this[valueToSet.createFunc](valueToSet.value);
+                    newCompObj[setFunc](createdObj);
+                }
+                else if (valueToSet.createComp) {
+                    const compType = valueToSet.createComp.setType;
+                    // Danger of infinite recursion
+                    const newSubComp = this.createComponent(compType,
+                        valueToSet.createComp);
+                    newCompObj[setFunc](newSubComp);
+                }
+                else if (valueToSet.objRef) {
+                    const objToSet = this.getObjRef(valueToSet.objRef);
+                    if (objToSet) {
+                        newCompObj[setFunc](objToSet);
                     }
                     else {
-                        newCompObj[setFunc](valueToSet);
+                        const refJson = JSON.stringify(valueToSet.objRef);
+                        let msg = `Null obj for objRef ${refJson}`;
+                        msg += ` compJSON: ${JSON.stringify(compJSON)}`;
+                        RG.err('FromJSON', 'createComponent', msg);
                     }
                 }
                 else {
-                    const jsonStr = JSON.stringify(compJSON);
-                    let msg = `valueToSet ${valueToSet}. setFunc ${setFunc} `;
-                    msg += `Comp ${name}, json: ${jsonStr}`;
-                    RG.err('FromJSON', 'addCompsToEntity', msg);
+                    newCompObj[setFunc](valueToSet);
                 }
             }
             else {
-                const json = JSON.stringify(compJSON);
-                RG.err('FromJSON', 'addCompsToEntity',
-                    `${setFunc} not function in ${name}. Comp: ${json}`);
-
+                const jsonStr = JSON.stringify(compJSON);
+                let msg = `valueToSet ${valueToSet}. setFunc ${setFunc} `;
+                msg += `Comp ${name}, json: ${jsonStr}`;
+                RG.err('FromJSON', 'addCompsToEntity', msg);
             }
         }
-        return newCompObj;
-    };
+        else {
+            const json = JSON.stringify(compJSON);
+            RG.err('FromJSON', 'addCompsToEntity',
+                `${setFunc} not function in ${name}. Comp: ${json}`);
 
-    /* Returns an object of requested type. */
-    this.getObjRef = requestObj => {
-        if (requestObj.type === 'entity') {
-            return id2entity[requestObj.id];
         }
-        else if (requestObj.type === 'level') {
-            return id2level[requestObj.id];
-        }
-        return null;
-    };
+    }
+    return newCompObj;
+};
 
-    this.createBrain = (brainJSON, ent) => {
-        const type = brainJSON.type;
-        if (RG.Brain[type]) {
-            const brainObj = new RG.Brain[type](ent);
-            ent.setBrain(brainObj);
-            if (type === 'Player') {
-                this.restorePlayerBrain(ent, brainJSON);
+FromJSON.prototype.createBrain = function(brainJSON, ent) {
+    const type = brainJSON.type;
+    if (RG.Brain[type]) {
+        const brainObj = new RG.Brain[type](ent);
+        ent.setBrain(brainObj);
+        if (type === 'Player') {
+            this.restorePlayerBrain(ent, brainJSON);
+            return;
+        }
+
+        if (brainJSON.constraint) {
+            brainObj.setConstraint(brainJSON.constraint);
+        }
+
+        // Create the memory (if any)
+        const memObj = brainObj.getMemory();
+        const memJSON = brainJSON.memory;
+        if (memJSON) {
+            memJSON.enemyTypes.forEach(type => {
+                brainObj.addEnemyType(type);
+            });
+
+            if (memJSON.lastAttackedID) {
+                const entity = this.id2entity[memJSON.lastAttackedID];
+                memObj.setLastAttacked(entity);
+            }
+
+            if (memJSON.enemies) {
+                memJSON.enemies.forEach(enemyID => {
+                    const enemy = this.id2entity[enemyID];
+                    if (enemy) {
+                        memObj.addEnemy(enemy);
+                    }
+                });
+            }
+            if (memJSON.friends) {
+                memJSON.friends.forEach(friendID => {
+                    const friend = this.id2entity[friendID];
+                    if (friend) {
+                        memObj.addFriend(friend);
+                    }
+                });
+            }
+
+            if (brainJSON.goal) {
+                const goal = this.createTopGoal(brainJSON.goal, ent);
+                brainObj.setGoal(goal);
+            }
+        }
+        else if (type === 'Rogue') {
+            brainObj.getMemory().addEnemyType('player');
+        }
+    }
+    else {
+        RG.err('FromJSON', 'createBrain',
+            `Cannot find RG.Brain.${type}, JSON: ${brainJSON}`);
+    }
+};
+
+
+FromJSON.prototype.createTopGoal = function(json, entity) {
+    const goal = new GoalsTop[json.type](entity);
+    goal.removeEvaluators();
+    json.evaluators.forEach(ev => {
+        const evaluator = new Evaluator[ev.type](ev.bias);
+        if (ev.args) {evaluator.setArgs(ev.args);}
+        goal.addEvaluator(evaluator);
+    });
+    return goal;
+};
+
+FromJSON.prototype.createSpells = (json, entity) => {
+    entity._spellbook = new RG.Spell.SpellBook(entity);
+    json.spellbook.spells.forEach(spell => {
+        if (RG.Spell.hasOwnProperty(spell.new)) {
+            const spellObj = new RG.Spell[spell.new]();
+            spellObj.setPower(spell.power);
+            if (spell.range) {
+                spellObj.setRange(spell.range);
+            }
+            // If spell has damage/duration etc dice, restore them
+            if (spell.dice) {
+                const dice = {};
+                Object.keys(spell.dice).forEach(key => {
+                    const die = spell.dice[key];
+                    dice[key] = RG.FACT.createDie(die);
+                });
+                spellObj._dice = dice;
+            }
+            entity._spellbook.addSpell(spellObj);
+        }
+        else {
+            RG.err('FromJSON', 'createSpells',
+                `No spell ${spell.new} found in RG.Spell`);
+        }
+    });
+    return entity._spellbook;
+};
+
+
+FromJSON.prototype.createItem = function(obj) {
+    const item = obj;
+
+    // Try to create object using ObjectShell.Parser, if it fails, fallback
+    // to default constructor in RG.Item
+    let itemObj = null;
+    if (this._parser.hasItem(obj.setName)) {
+        itemObj = this._parser.createItem(obj.setName);
+    }
+    else {
+        const typeCapitalized = this.getItemObjectType(item);
+        itemObj = new RG.Item[typeCapitalized]();
+    }
+
+    for (const func in item) {
+        if (func === 'setSpirit') {
+            // Calls gem.setSpirit() with created spirit
+            const spiritJSON = item[func];
+            const spiritObj = this.createActor(spiritJSON);
+            this._addEntityFeatures(spiritJSON, spiritObj);
+            itemObj[func](spiritObj);
+        }
+        else if (typeof itemObj[func] === 'function') {
+            itemObj[func](item[func]); // Use setter
+        }
+        else if (func !== 'components') {
+            const json = JSON.stringify(itemObj);
+            RG.err('Game.FromJSON', 'createItem',
+              `${func} not func in ${json}`);
+        }
+    }
+    this.addEntityInfo(itemObj, obj);
+    if (item.components) {
+        this.addCompsToEntity(itemObj, obj.components);
+    }
+    return itemObj;
+};
+
+
+FromJSON.prototype.createInventoryItems = function(obj, player) {
+    if (obj.hasOwnProperty('inventory')) {
+        const itemObjs = obj.inventory;
+        for (let i = 0; i < itemObjs.length; i++) {
+            const itemObj = this.createItem(itemObjs[i]);
+            player.getInvEq().addItem(itemObj);
+        }
+    }
+};
+
+FromJSON.prototype.createEquippedItems = function(obj, player) {
+    if (obj.hasOwnProperty('equipment')) {
+        const equipObjs = obj.equipment;
+        for (let i = 0; i < equipObjs.length; i++) {
+            const itemObj = this.createItem(equipObjs[i]);
+            player.getInvEq().restoreEquipped(itemObj);
+        }
+    }
+};
+
+
+// TODO move to appropriate place
+FromJSON.prototype.getItemObjectType = function(item) {
+    if (item.setType === 'spiritgem') {return 'SpiritGem';}
+    if (item.setType === 'goldcoin') {return 'GoldCoin';}
+    if (item.setType === 'missileweapon') {return 'MissileWeapon';}
+    if (!RG.isNullOrUndef([item])) {
+        if (!RG.isNullOrUndef([item.setType])) {
+            return item.setType.capitalize();
+        }
+        else {
+            const itemJSON = JSON.stringify(item);
+            RG.err('Game.Save', 'getItemObjectType',
+                'item.setType is undefined. item: ' + itemJSON);
+        }
+    }
+    else {
+        RG.err('Game.Save', 'getItemObjectType',
+            'item is undefined');
+    }
+    return null;
+};
+
+/* Creates a Map.Level object from a json object. NOTE: This method cannot
+* connect stairs to other levels, but only create the stairs elements. */
+FromJSON.prototype.restoreLevel = function(json) {
+    const level = new RG.Map.Level();
+    level.setID(json.id);
+    level.setLevelNumber(json.levelNumber);
+
+    const mapObj = this.createCellList(json.map);
+    level.setMap(mapObj);
+
+    // Create actors
+    json.actors.forEach(actor => {
+        const actorObj = this.createActor(actor.obj);
+        if (actorObj !== null) {
+            if (!RG.isNullOrUndef([actor.x, actor.y])) {
+                level.addActor(actorObj, actor.x, actor.y);
+            }
+            else {
+                level.addVirtualProp(RG.TYPE_ACTOR, actorObj);
+            }
+        }
+        else {
+            RG.err('FromJSON', 'restoreLevel',
+                `Actor ${JSON.stringify(actor)} returned null`);
+        }
+    });
+
+    // Create elements such as stairs
+    json.elements.forEach(elem => {
+        const elemObj = this.createElement(elem);
+        if (elemObj !== null) {
+            level.addElement(elemObj, elem.x, elem.y);
+        }
+        else {
+            RG.err('FromJSON', 'restoreLevel',
+                `createElement ${JSON.stringify(elem)} returned null`);
+        }
+    });
+
+    // Create items
+    json.items.forEach(item => {
+        const itemObj = this.createItem(item.obj);
+        if (itemObj !== null) {
+            level.addItem(itemObj, item.x, item.y);
+        }
+        else {
+            RG.err('FromJSON', 'restoreLevel',
+                `Actor ${JSON.stringify(item)} returned null`);
+        }
+    });
+
+    this.addLevels([level], 'restoreLevel');
+    return level;
+};
+
+/* Creates elements such as stairs, doors and shop. */
+FromJSON.prototype.createElement = function(elem) {
+    const elemJSON = elem.obj;
+    const type = elemJSON.type;
+    let createdElem = null;
+    if (type === 'connection') {
+        createdElem = this.createUnconnectedStairs(elem);
+    }
+    else if (type === 'shop') {
+        const shopElem = new RG.Element.Shop();
+        let shopkeeper = null;
+        if (!RG.isNullOrUndef([elemJSON.shopkeeper])) {
+            shopkeeper = this.id2entity[elemJSON.shopkeeper];
+            if (shopkeeper) {
+                shopElem.setShopkeeper(shopkeeper);
+            }
+            else {
+                RG.err('Game.FromJSON', 'createElement',
+                    `Shopkeeper with ID ${elemJSON.shopkeeper} not found`);
+            }
+        }
+        shopElem.setCostFactor(elemJSON.costFactorBuy,
+            elemJSON.costFactorSell);
+        createdElem = shopElem;
+    }
+    else if (type === 'door') {
+        createdElem = new RG.Element.Door(elemJSON.closed);
+    }
+    else if (type === 'leverdoor') {
+        createdElem = new RG.Element.LeverDoor(elemJSON.closed);
+    }
+    else if (type === 'lever') {
+        createdElem = new RG.Element.Lever();
+    }
+    else if (type === 'marker') {
+        createdElem = new RG.Element.Marker(elemJSON.char);
+        createdElem.setTag(elemJSON.tag);
+    }
+    else if (type === 'exploration') {
+        const expElem = new RG.Element.Exploration();
+        expElem.setExp(elemJSON.setExp);
+        expElem.setMsg(elemJSON.setMsg);
+        if (elemJSON.data) {expElem.setData(elemJSON.data);}
+        createdElem = expElem;
+    }
+
+    if (createdElem) {
+        const id = elemJSON.id;
+        if (Number.isInteger(id)) {
+            createdElem.setID(id);
+            this.id2entity[createdElem.getID()] = createdElem;
+            this.id2EntityJson[createdElem.getID()] = elemJSON;
+        }
+    }
+
+    return createdElem;
+};
+
+/* Creates the actor and sets entity ID refs, but does not restore all
+ * entity data. */
+FromJSON.prototype.createActor = function(json) {
+    if (json.type === null) {
+        RG.err('FromJSON', 'createActor',
+            `json.type null, json: ${JSON.stringify(json)}`);
+    }
+
+    let entity = null;
+    if (json.new && RG.Actor[json.new]) {
+        entity = new RG.Actor[json.new](json.name);
+    }
+    else {
+        let msg = '';
+        const jsonStr = JSON.stringify(json);
+        if (!json.new) {
+            msg = 'No json.new given. JSON obj: ' + jsonStr;
+        }
+        else {
+            msg = `${json.new} not in RG.Actor. JSON obj: ` + jsonStr;
+        }
+        RG.err('Game.FromJSON', 'createActor', msg);
+    }
+
+    entity.setType(json.type);
+    entity.setID(json.id);
+    this.addEntityInfo(entity, json);
+    return entity;
+};
+
+
+/* Adds entity info to restore the entity references back to objects. */
+FromJSON.prototype.addEntityInfo = function(entity, json) {
+    this.id2entity[entity.getID()] = entity;
+    this.id2EntityJson[json.id] = json;
+};
+
+/* Creates unconnected stairs. The object
+ * returned by this method is not complete stairs, but has placeholders for
+ * targetLevel (level ID) and targetStairs (x, y coordinates).
+ */
+FromJSON.prototype.createUnconnectedStairs = function(elem) {
+    const {x, y} = elem;
+    const id = elem.obj.srcLevel;
+    const stairsId = `${id},${x},${y}`;
+    const elemObj = elem.obj;
+    const sObj = new RG.Element.Stairs(elemObj.name);
+    this.stairsInfo[stairsId] = {targetLevel: elemObj.targetLevel,
+        targetStairs: elemObj.targetStairs};
+    return sObj;
+};
+
+
+FromJSON.prototype.createCellList = function(map) {
+    const mapObj = new RG.Map.CellList(map.cols, map.rows);
+    map.cells.forEach((col, x) => {
+        col.forEach((cell, y) => {
+            const baseElem = this.createBaseElem(cell);
+            mapObj.setBaseElemXY(x, y, baseElem);
+        });
+    });
+    map.explored.forEach(explXY => {
+        mapObj.getCell(explXY[0], explXY[1]).setExplored(true);
+    });
+    Object.keys(map.elements).forEach(key => {
+        const [x, y] = key.split(',');
+        mapObj.setElemXY(x, y, this.createBaseElem(map.elements[key]));
+    });
+    return mapObj;
+};
+
+
+FromJSON.prototype.createBaseElem = function(cell) {
+    const type = RG.elemIndexToType[cell];
+    switch (type) {
+        case '#': // wall
+        case 'wall': return RG.ELEM.WALL;
+        case '.': // floor
+        case 'floor': return RG.ELEM.FLOOR;
+        case 'tree': return RG.ELEM.TREE;
+        case 'grass': return RG.ELEM.GRASS;
+        case 'stone': return RG.ELEM.STONE;
+        case 'water': return RG.ELEM.WATER;
+        case 'chasm': return RG.ELEM.CHASM;
+        case 'road': return RG.ELEM.ROAD;
+        case 'highrock': return RG.ELEM.HIGH_ROCK;
+        case 'bridge': return RG.ELEM.BRIDGE;
+        default: {
+            if (RG.elemTypeToObj[type]) {
+                return RG.elemTypeToObj[type];
+            }
+            else {
+                RG.err('Game.fromJSON', 'createBaseElem',
+                    `Unknown type ${type}`);
+            }
+        }
+    }
+    return null;
+};
+
+FromJSON.prototype.setGlobalConfAndObjects = function(game, gameJSON) {
+    if (gameJSON.globalConf) {
+        this.dbg('Setting globalConf for game: '
+            + JSON.stringify(gameJSON.globalConf, null, 1));
+        game.setGlobalConf(gameJSON.globalConf);
+    }
+    if (gameJSON.cellStyles) {
+        RG.cellStyles = gameJSON.cellStyles;
+    }
+    if (gameJSON.charStyles) {
+        RG.charStyles = gameJSON.charStyles;
+    }
+};
+
+
+/* Makes all connections in given levels after they've been created as
+ * Map.Level objects. */
+FromJSON.prototype.connectGameLevels = function(levels) {
+    levels.forEach(level => {
+        const stairsList = level.getConnections();
+
+        stairsList.forEach(s => {
+            const connObj = this.stairsInfo[s.getID()];
+            const targetLevel = this.id2level[connObj.targetLevel];
+            if (!targetLevel && this.chunkMode) {
+                s.setConnObj(connObj);
                 return;
             }
 
-            if (brainJSON.constraint) {
-                brainObj.setConstraint(brainJSON.constraint);
-            }
-
-            // Create the memory (if any)
-            const memObj = brainObj.getMemory();
-            const memJSON = brainJSON.memory;
-            if (memJSON) {
-                memJSON.enemyTypes.forEach(type => {
-                    brainObj.addEnemyType(type);
-                });
-
-                if (memJSON.lastAttackedID) {
-                    const entity = id2entity[memJSON.lastAttackedID];
-                    memObj.setLastAttacked(entity);
-                }
-
-                if (memJSON.enemies) {
-                    memJSON.enemies.forEach(enemyID => {
-                        const enemy = id2entity[enemyID];
-                        if (enemy) {
-                            memObj.addEnemy(enemy);
-                        }
-                    });
-                }
-                if (memJSON.friends) {
-                    memJSON.friends.forEach(friendID => {
-                        const friend = id2entity[friendID];
-                        if (friend) {
-                            memObj.addFriend(friend);
-                        }
-                    });
-                }
-
-                if (brainJSON.goal) {
-                    const goal = this.createTopGoal(brainJSON.goal, ent);
-                    brainObj.setGoal(goal);
-                }
-            }
-            else if (type === 'Rogue') {
-                brainObj.getMemory().addEnemyType('player');
-            }
-        }
-        else {
-            RG.err('FromJSON', 'createBrain',
-                `Cannot find RG.Brain.${type}, JSON: ${brainJSON}`);
-        }
-    };
-
-    this.createTopGoal = (json, entity) => {
-        const goal = new GoalsTop[json.type](entity);
-        goal.removeEvaluators();
-        json.evaluators.forEach(ev => {
-            const evaluator = new Evaluator[ev.type](ev.bias);
-            if (ev.args) {evaluator.setArgs(ev.args);}
-            goal.addEvaluator(evaluator);
-        });
-        return goal;
-    };
-
-    this.createSpells = (json, entity) => {
-        entity._spellbook = new RG.Spell.SpellBook(entity);
-        json.spellbook.spells.forEach(spell => {
-            if (RG.Spell.hasOwnProperty(spell.new)) {
-                const spellObj = new RG.Spell[spell.new]();
-                spellObj.setPower(spell.power);
-                if (spell.range) {
-                    spellObj.setRange(spell.range);
-                }
-                // If spell has damage/duration etc dice, restore them
-                if (spell.dice) {
-                    const dice = {};
-                    Object.keys(spell.dice).forEach(key => {
-                        const die = spell.dice[key];
-                        dice[key] = RG.FACT.createDie(die);
-                    });
-                    spellObj._dice = dice;
-                }
-                entity._spellbook.addSpell(spellObj);
-            }
-            else {
-                RG.err('FromJSON', 'createSpells',
-                    `No spell ${spell.new} found in RG.Spell`);
-            }
-        });
-        return entity._spellbook;
-    };
-
-    this.createItem = function(obj) {
-        const item = obj;
-
-        // Try to create object using ObjectShell.Parser, if it fails, fallback
-        // to default constructor in RG.Item
-        let itemObj = null;
-        if (this._parser.hasItem(obj.setName)) {
-            itemObj = this._parser.createItem(obj.setName);
-        }
-        else {
-            const typeCapitalized = this.getItemObjectType(item);
-            itemObj = new RG.Item[typeCapitalized]();
-        }
-
-        for (const func in item) {
-            if (func === 'setSpirit') {
-                // Calls gem.setSpirit() with created spirit
-                const spiritJSON = item[func];
-                const spiritObj = this.createActor(spiritJSON);
-                this._addEntityFeatures(spiritJSON, spiritObj);
-                itemObj[func](spiritObj);
-            }
-            else if (typeof itemObj[func] === 'function') {
-                itemObj[func](item[func]); // Use setter
-            }
-            else if (func !== 'components') {
-                const json = JSON.stringify(itemObj);
-                RG.err('Game.FromJSON', 'createItem',
-                  `${func} not func in ${json}`);
-            }
-        }
-        this.addEntityInfo(itemObj, obj);
-        if (item.components) {
-            this.addCompsToEntity(itemObj, obj.components);
-        }
-        return itemObj;
-    };
-
-    this.createInventoryItems = function(obj, player) {
-        if (obj.hasOwnProperty('inventory')) {
-            const itemObjs = obj.inventory;
-            for (let i = 0; i < itemObjs.length; i++) {
-                const itemObj = this.createItem(itemObjs[i]);
-                player.getInvEq().addItem(itemObj);
-            }
-        }
-    };
-
-    this.createEquippedItems = function(obj, player) {
-        if (obj.hasOwnProperty('equipment')) {
-            const equipObjs = obj.equipment;
-            for (let i = 0; i < equipObjs.length; i++) {
-                const itemObj = this.createItem(equipObjs[i]);
-                player.getInvEq().restoreEquipped(itemObj);
-                /*
-                player.getInvEq().addItem(itemObj);
-                if (itemObj.count > 1) {
-                    player.getInvEq().equipNItems(itemObj, itemObj.count);
-                }
-                else {
-                    player.getInvEq().equipItem(itemObj);
-                }
-                */
-            }
-
-        }
-    };
-
-    this.getItemObjectType = item => {
-        if (item.setType === 'spiritgem') {return 'SpiritGem';}
-        if (item.setType === 'goldcoin') {return 'GoldCoin';}
-        if (item.setType === 'missileweapon') {return 'MissileWeapon';}
-        if (!RG.isNullOrUndef([item])) {
-            if (!RG.isNullOrUndef([item.setType])) {
-                return item.setType.capitalize();
-            }
-            else {
-                const itemJSON = JSON.stringify(item);
-                RG.err('Game.Save', 'getItemObjectType',
-                    'item.setType is undefined. item: ' + itemJSON);
-            }
-        }
-        else {
-            RG.err('Game.Save', 'getItemObjectType',
-                'item is undefined');
-        }
-        return null;
-    };
-
-    /* Creates a Map.Level object from a json object. NOTE: This method cannot
-    * connect stairs to other levels, but only create the stairs elements. */
-    this.restoreLevel = function(json) {
-        const level = new RG.Map.Level();
-        level.setID(json.id);
-        level.setLevelNumber(json.levelNumber);
-
-        const mapObj = this.createCellList(json.map);
-        level.setMap(mapObj);
-
-        // Create actors
-        json.actors.forEach(actor => {
-            const actorObj = this.createActor(actor.obj);
-            if (actorObj !== null) {
-                if (!RG.isNullOrUndef([actor.x, actor.y])) {
-                    level.addActor(actorObj, actor.x, actor.y);
-                }
-                else {
-                    level.addVirtualProp(RG.TYPE_ACTOR, actorObj);
-                }
-            }
-            else {
-                RG.err('FromJSON', 'restoreLevel',
-                    `Actor ${JSON.stringify(actor)} returned null`);
-            }
-        });
-
-        // Create elements such as stairs
-        json.elements.forEach(elem => {
-            const elemObj = this.createElement(elem);
-            if (elemObj !== null) {
-                level.addElement(elemObj, elem.x, elem.y);
-            }
-            else {
-                RG.err('FromJSON', 'restoreLevel',
-                    `createElement ${JSON.stringify(elem)} returned null`);
-            }
-        });
-
-        // Create items
-        json.items.forEach(item => {
-            const itemObj = this.createItem(item.obj);
-            if (itemObj !== null) {
-                level.addItem(itemObj, item.x, item.y);
-            }
-            else {
-                RG.err('FromJSON', 'restoreLevel',
-                    `Actor ${JSON.stringify(item)} returned null`);
-            }
-        });
-
-        this.addLevels([level], 'restoreLevel');
-        return level;
-    };
-
-    /* Creates elements such as stairs, doors and shop. */
-    this.createElement = function(elem) {
-        const elemJSON = elem.obj;
-        const type = elemJSON.type;
-        let createdElem = null;
-        if (type === 'connection') {
-            createdElem = this.createUnconnectedStairs(elem);
-        }
-        else if (type === 'shop') {
-            const shopElem = new RG.Element.Shop();
-            let shopkeeper = null;
-            if (!RG.isNullOrUndef([elemJSON.shopkeeper])) {
-                shopkeeper = id2entity[elemJSON.shopkeeper];
-                if (shopkeeper) {
-                    shopElem.setShopkeeper(shopkeeper);
-                }
-                else {
-                    RG.err('Game.FromJSON', 'createElement',
-                        `Shopkeeper with ID ${elemJSON.shopkeeper} not found`);
-                }
-            }
-            shopElem.setCostFactor(elemJSON.costFactorBuy,
-                elemJSON.costFactorSell);
-            createdElem = shopElem;
-        }
-        else if (type === 'door') {
-            createdElem = new RG.Element.Door(elemJSON.closed);
-        }
-        else if (type === 'leverdoor') {
-            createdElem = new RG.Element.LeverDoor(elemJSON.closed);
-        }
-        else if (type === 'lever') {
-            createdElem = new RG.Element.Lever();
-        }
-        else if (type === 'marker') {
-            createdElem = new RG.Element.Marker(elemJSON.char);
-            createdElem.setTag(elemJSON.tag);
-        }
-        else if (type === 'exploration') {
-            const expElem = new RG.Element.Exploration();
-            expElem.setExp(elemJSON.setExp);
-            expElem.setMsg(elemJSON.setMsg);
-            if (elemJSON.data) {expElem.setData(elemJSON.data);}
-            createdElem = expElem;
-        }
-
-        if (createdElem) {
-            const id = elemJSON.id;
-            if (Number.isInteger(id)) {
-                createdElem.setID(id);
-                id2entity[createdElem.getID()] = createdElem;
-                id2EntityJson[createdElem.getID()] = elemJSON;
-            }
-        }
-
-        return createdElem;
-    };
-
-    /* Creates the actor and sets entity ID refs, but does not restore all
-     * entity data. */
-    this.createActor = json => {
-        if (json.type === null) {
-            RG.err('FromJSON', 'createActor',
-                `json.type null, json: ${JSON.stringify(json)}`);
-        }
-
-        let entity = null;
-        if (json.new && RG.Actor[json.new]) {
-            entity = new RG.Actor[json.new](json.name);
-        }
-        else {
-            let msg = '';
-            const jsonStr = JSON.stringify(json);
-            if (!json.new) {
-                msg = 'No json.new given. JSON obj: ' + jsonStr;
-            }
-            else {
-                msg = `${json.new} not in RG.Actor. JSON obj: ` + jsonStr;
-            }
-            RG.err('Game.FromJSON', 'createActor', msg);
-        }
-
-        entity.setType(json.type);
-        entity.setID(json.id);
-        this.addEntityInfo(entity, json);
-        return entity;
-    };
-
-    this.addEntityInfo = (entity, json) => {
-        id2entity[entity.getID()] = entity;
-        id2EntityJson[json.id] = json;
-    };
-
-    /* Tricky one. The target level should exist before connections. The object
-     * returned by this method is not complete stairs, but has placeholders for
-     * targetLevel (level ID) and targetStairs (x, y coordinates).
-     */
-    this.createUnconnectedStairs = elem => {
-        const {x, y} = elem;
-        const id = elem.obj.srcLevel;
-        const stairsId = `${id},${x},${y}`;
-        const elemObj = elem.obj;
-        const sObj = new RG.Element.Stairs(elemObj.name);
-        stairsInfo[stairsId] = {targetLevel: elemObj.targetLevel,
-            targetStairs: elemObj.targetStairs};
-        return sObj;
-    };
-
-    this.createCellList = function(map) {
-        const mapObj = new RG.Map.CellList(map.cols, map.rows);
-        map.cells.forEach((col, x) => {
-            col.forEach((cell, y) => {
-                const baseElem = this.createBaseElem(cell);
-                mapObj.setBaseElemXY(x, y, baseElem);
-            });
-        });
-        map.explored.forEach(explXY => {
-            mapObj.getCell(explXY[0], explXY[1]).setExplored(true);
-        });
-        Object.keys(map.elements).forEach(key => {
-            const [x, y] = key.split(',');
-            mapObj.setElemXY(x, y, this.createBaseElem(map.elements[key]));
-        });
-        return mapObj;
-    };
-
-    this.createBaseElem = cell => {
-        const type = RG.elemIndexToType[cell];
-        switch (type) {
-            case '#': // wall
-            case 'wall': return RG.ELEM.WALL;
-            case '.': // floor
-            case 'floor': return RG.ELEM.FLOOR;
-            case 'tree': return RG.ELEM.TREE;
-            case 'grass': return RG.ELEM.GRASS;
-            case 'stone': return RG.ELEM.STONE;
-            case 'water': return RG.ELEM.WATER;
-            case 'chasm': return RG.ELEM.CHASM;
-            case 'road': return RG.ELEM.ROAD;
-            case 'highrock': return RG.ELEM.HIGH_ROCK;
-            case 'bridge': return RG.ELEM.BRIDGE;
-            default: {
-                if (RG.elemTypeToObj[type]) {
-                    return RG.elemTypeToObj[type];
-                }
-                else {
-                    RG.err('Game.fromJSON', 'createBaseElem',
-                        `Unknown type ${type}`);
-                }
-            }
-        }
-        return null;
-    };
-
-    /* Main function to call when restoring a game. When given Game.Main in
-     * serialized JSON, returns the restored Game.Main object. */
-    this.createGame = function(gameJSON) {
-        if (typeof gameJSON === 'string') {
-            RG.err('Game.FromJSON', 'createGame',
-                'An object must be given instead of string');
-        }
-        this.dbg('createGame: Restoring now full game');
-        this.IND = 1;
-
-        const game = new RG.Game.Main();
-        this.setGlobalConfAndObjects(game, gameJSON);
-        if (gameJSON.chunkManager) {
-            this.setChunkMode(true);
-        }
-
-        RG.Component.idCount = gameJSON.lastComponentID;
-
-        const allLevels = [];
-        const levelsToRestore = this.getLevelsToRestore(gameJSON);
-
-        // Levels must be created before the actual world, because the World
-        // object contains only level IDs
-        levelsToRestore.forEach(levelJson => {
-            const level = this.restoreLevel(levelJson);
-            allLevels.push(level);
-            if (!levelJson.parent) {
-                this.dbg('>> No parent. Adding directly ' + level.getID());
-                game.addLevel(level);
-            }
-        });
-
-        if (gameJSON.places) {
-            Object.keys(gameJSON.places).forEach(name => {
-                const place = gameJSON.places[name];
-                const placeObj = this.restorePlace(place);
-                game.addPlace(placeObj);
-            });
-        }
-
-        if (gameJSON.overworld) {
-            const overworld = this.restoreOverWorld(gameJSON.overworld);
-            game.setOverWorld(overworld);
-        }
-
-        // Connect levels using id2level + stairsInfo
-        this.connectGameLevels(allLevels);
-
-        // Player created separately from other actors for now
-        if (gameJSON.player) {
-            const player = this.restorePlayer(gameJSON.player);
-            this.addRestoredPlayerToGame(player, game, gameJSON);
-        }
-
-        // Entity data cannot be restored earlier because not all object refs
-        // exist when entities are created
-        this.restoreEntityData();
-
-        const gameMaster = this.restoreGameMaster(game, gameJSON.gameMaster);
-        game.setGameMaster(gameMaster);
-        this.restoreChunkManager(game, gameJSON);
-
-        this.checkNumOfLevels(game, gameJSON);
-
-        // Restore the ID counters for levels and entities, otherwise duplicate
-        // IDs will appear when new levels/entities are created
-        RG.Map.Level.idCount = gameJSON.lastLevelID;
-        Entity.idCount = gameJSON.lastEntityID;
-
-        if (debug.enabled) {
-            this.dbg(`Restored level ID count to ${RG.Map.Level.idCount}`);
-            this.dbg(`Restored entity ID count to ${Entity.idCount}`);
-        }
-
-        if (gameJSON.rng) {
-            const rng = new RG.Random(gameJSON.rng.seed);
-            rng.setState(gameJSON.rng.state);
-            game.setRNG(rng);
-        }
-        this.IND = 0;
-        return game;
-    };
-
-    this.setGlobalConfAndObjects = (game, gameJSON) => {
-        if (gameJSON.globalConf) {
-            this.dbg('Setting globalConf for game: '
-                + JSON.stringify(gameJSON.globalConf, null, 1));
-            game.setGlobalConf(gameJSON.globalConf);
-        }
-        if (gameJSON.cellStyles) {
-            RG.cellStyles = gameJSON.cellStyles;
-        }
-        if (gameJSON.charStyles) {
-            RG.charStyles = gameJSON.charStyles;
-        }
-    };
-
-    /* Makes all connections in given levels after they've been created as
-     * Map.Level objects. */
-    this.connectGameLevels = levels => {
-        levels.forEach(level => {
-            const stairsList = level.getConnections();
-
-            stairsList.forEach(s => {
-                const connObj = stairsInfo[s.getID()];
-                const targetLevel = id2level[connObj.targetLevel];
-                if (!targetLevel && this.chunkMode) {
-                    s.setConnObj(connObj);
-                    return;
-                }
-
-                const targetStairsXY = connObj.targetStairs;
-                if (!targetStairsXY) {
-                    RG.diag(JSON.stringify(level, null, 1));
-                    RG.diag(connObj);
-                    RG.diag('Parent: ' + level.getParent().getName());
-                    RG.diag(JSON.stringify(s));
-                }
-
-                const x = targetStairsXY.x;
-                const y = targetStairsXY.y;
-                if (targetLevel) {
-                    s.setTargetLevel(targetLevel);
-                    const targetStairs = targetLevel
-                        .getMap().getCell(x, y).getConnection();
-                    if (targetStairs) {
-                        s.connect(targetStairs);
-                    }
-                    else {
-                        RG.err('Game.FromJSON', 'connectGameLevels',
-                            'Target stairs was null. Cannot connect.');
-                    }
-                }
-                else {
-                    // this.reportMissingLevel(connObj);
-                    const id = connObj.targetLevel;
-                    RG.err('Game.FromJSON', 'connectGameLevels',
-                        `Target level ${id} null. Cannot connect.`);
-                }
-            });
-        });
-    };
-
-    this.restoreGameMaster = function(game, json) {
-        ++this.IND;
-        const gameMaster = game.getGameMaster();
-        const battles = {};
-        Object.keys(json.battles).forEach(id => {
-            json.battles[id].forEach(battleJSON => {
-                battles[id] = [];
-                if (id2level[id]) { // Tile level exists
-                    this.dbg(`FromJSON Restoring Battle ${id}`);
-                    const battle = this.restoreBattle(battleJSON);
-                    battles[id].push(battle);
-                    // battles[id] = battle;
-                    /* if (!battle.isJSON) {
-                        game.addLevel(battle.getLevel());
-                    }*/
-                }
-                else {
-                    this.dbg(`FromJSON Battle ${id} not created`);
-                    this.dbg(JSON.stringify(battleJSON));
-                    // battles[id] = json.battles[id];
-                    // gameMaster.addBattle(id, json.battles[id]);
-                    battles[id].push(battleJSON);
-                }
-            });
-        });
-        gameMaster.setBattles(battles);
-        if (json.battlesDone) {
-            gameMaster.battlesDone = json.battlesDone;
-        }
-        --this.IND;
-        return gameMaster;
-    };
-
-    this.restoreBattle = function(json) {
-        const battleLevel = this.getLevelOrFatal(json.level, 'restoreBattle');
-        if (battleLevel) {
-            ++this.IND;
-            this.dbg(`\trestoreBattle found level ID ${json.level}`);
-            const battle = new Battle(json.name);
-            battle.setLevel(battleLevel);
-            battle.setStats(json.stats);
-            battle.finished = json.finished;
-            const armies = [];
-            json.armies.forEach(armyJSON => {
-                armies.push(this.restoreArmy(armyJSON));
-            });
-            battle.setArmies(armies);
-
-            // Need to remove the event listeners if battle over
-            if (battle.finished) {
-                debug(`${json.name} finished. rm listeners`);
-                RG.POOL.removeListener(battle);
-                armies.forEach(army => {
-                    RG.POOL.removeListener(army);
-                });
-            }
-            --this.IND;
-            return battle;
-        }
-        RG.err('Game.FromJSON', 'restoreBattle',
-            `No level for battle ID's ${json.level}`);
-        return null;
-    };
-
-    this.restoreArmy = function(json) {
-        const army = new Army(json.name);
-        json.actors.forEach(id => {
-            if (id2entity[id]) {
-                army.addActor(id2entity[id]);
-            }
-        });
-        army.setDefeatThreshold(json.defeatThreshold);
-
-        return army;
-    };
-
-    /* Assume the place is World object for now. */
-    this.restorePlace = place => {
-        const worldJSON = new WorldFromJSON(id2level, id2entity);
-        return worldJSON.createPlace(place);
-    };
-
-    this.restoreOverWorld = json => {
-        const ow = new OW.Map();
-        ow.setMap(json.baseMap);
-        ow._features = json.features;
-        ow._featuresByXY = json.featuresByXY;
-        ow._vWalls = json.vWalls;
-        ow._hWalls = json.hWalls;
-        ow._biomeMap = json.biomeMap;
-        ow._explored = json.explored;
-        const coordMap = new RG.OverWorld.CoordMap();
-        for (const p in json.coordMap) {
-            if (json.coordMap.hasOwnProperty(p)) {
-                coordMap[p] = json.coordMap[p];
-            }
-        }
-        ow.coordMap = coordMap;
-        if (json.terrMap) {
-            ow._terrMap = Territory.fromJSON(json.terrMap);
-        }
-        return ow;
-    };
-
-    this.restoreEntityData = function() {
-        Object.keys(id2EntityJson).forEach(id => {
-            const obj = id2EntityJson[id];
-            const entity = id2entity[id];
-            this.restoreEntity(obj, entity);
-        });
-    };
-
-    this.reportMissingLevel = function(connObj) {
-        let msg = `connObj: ${JSON.stringify(connObj)}`;
-        Object.keys(id2level).forEach(id => {
-            msg += `\n\t${id}`;
-        });
-        console.log(msg + '\n');
-    };
-
-    /* Re-schedules the HP/PP regeneration for an actor */
-    this._addRegenEvents = (game, actor) => {
-        // Add HP regeneration
-        const regenPlayer = new RG.Time.RegenEvent(actor,
-            20 * RG.ACTION_DUR);
-        game.addEvent(regenPlayer);
-
-        // Add PP regeneration (if needed)
-        if (actor.has('SpellPower')) {
-            const regenPlayerPP = new RG.Time.RegenPPEvent(actor,
-                30 * RG.ACTION_DUR);
-            game.addEvent(regenPlayerPP);
-        }
-
-    };
-
-    this.dbg = msg => {
-        if (debug.enabled) {
-          const indStr = '>'.repeat(this.IND);
-          debug(`${indStr} ${msg}`);
-        }
-    };
-
-    this.getLevelsToRestore = gameJSON => {
-        let levels = [];
-        let numLevels = 0;
-        if (gameJSON.levels) {return gameJSON.levels;}
-        if (!gameJSON.places) {
-            return levels;
-        }
-
-        Object.keys(gameJSON.places).forEach(name => {
-            const place = gameJSON.places[name];
-            if (place.area) {
-                place.area.forEach(area => {
-                    area.tiles.forEach((tileCol, x) => {
-                        tileCol.forEach((tile, y) => {
-                            if (area.tilesLoaded[x][y]) {
-                                numLevels += tile.levels.length;
-                                levels = levels.concat(tile.levels);
-                            }
-                        });
-                    });
-                });
-            }
-        });
-        this.dbg(`Restoring ${levels.length} out of ${numLevels}`);
-        return levels;
-    };
-
-    /* Given a list of JSON World.AreaTiles, creates the objects and level
-     * connections, and attaches them to area in current game. */
-    this.createTiles = function(game, jsonTiles) {
-        const allLevels = game.getLevels();
-        this.addLevels(allLevels, 'createTiles');
-
-        // Levels must be created before the actual world, because the World
-        // object contains only level IDs
-        let levelsJson = [];
-        jsonTiles.forEach(json => {
-            levelsJson = levelsJson.concat(json.levels);
-        });
-        const restoredLevels = [];
-
-        levelsJson.forEach(json => {
-            const level = this.restoreLevel(json);
-            restoredLevels.push(level);
-            allLevels.push(level);
-        });
-
-        // Connect levels using id2level + stairsInfo
-        this.connectGameLevels(restoredLevels);
-
-        // Entity data cannot be restored earlier because not all object refs
-        // exist when entities are created
-        this.restoreEntityData();
-
-        const area = game.getCurrentWorld().getCurrentArea();
-        const fact = new RG.Factory.World();
-        fact.setId2Level(id2level);
-        fact.id2entity = id2entity;
-
-        jsonTiles.forEach(json => {
-            const [tx, ty] = [json.x, json.y];
-            const tile = new RG.World.AreaTile(tx, ty, area);
-
-            const tileLevel = id2level[json.level];
-            tile.setLevel(tileLevel);
-            game.addLevel(tileLevel);
-
-            const jsonCopy = JSON.parse(JSON.stringify(json));
-            area.getTiles()[tx][ty] = tile;
-            tileLevel.setParent(area);
-            fact.createZonesFromTile(area, jsonCopy, tx, ty);
-            this.restoreSerializedBattles(game, tile);
-        });
-
-        // Need to check for battles that should be restored
-
-    };
-
-    this.restoreSerializedBattles = (game, tile) => {
-        const tileId = tile.getLevel().getID();
-        const master = game.getGameMaster();
-        if (master.battles[tileId]) {
-            const battles = master.battles[tileId];
-            master.battles[tileId] = [];
-            battles.forEach(battleJSON => {
-                const battle = this.restoreBattle(battleJSON);
-                master.battles[tileId].push(battle);
-                // master.battles[tileId] = battle;
-            });
-        }
-    };
-
-    /* Adds the array of levels into the internal storage. */
-    this.addLevels = (levels, msg = '') => {
-        levels.forEach(level => {
-            const id = level.getID();
-            if (!id2level.hasOwnProperty(id)) {
-                id2level[id] = level;
-                this.dbg(`Added level ${id} to id2level ${msg}`);
-            }
-            else {
-                RG.log(level); // For error reporting
-                RG.err('Game.FromJSON', `addLevels - ${msg}`,
-                `Duplicate level ID detected ${id}`);
-            }
-        });
-    };
-
-    this.connectTileLevels = (levels, conns) => {
-        conns.forEach(conn => {
-            const stairsId = conn.getID();
-            const targetLevel = conn.getTargetLevel();
-            stairsInfo[stairsId] = {
-                targetLevel,
-                targetStairs: conn.getTargetStairs()
-            };
-        });
-        this.addLevels(levels, 'connectTileLevels');
-        this.connectConnections(conns);
-    };
-
-    this.connectConnections = conns => {
-        conns.forEach(s => {
-            const connObj = stairsInfo[s.getID()];
-            const targetLevel = id2level[connObj.targetLevel];
-
             const targetStairsXY = connObj.targetStairs;
-            const {x, y} = targetStairsXY;
+            if (!targetStairsXY) {
+                RG.diag(JSON.stringify(level, null, 1));
+                RG.diag(connObj);
+                RG.diag('Parent: ' + level.getParent().getName());
+                RG.diag(JSON.stringify(s));
+            }
+
+            const x = targetStairsXY.x;
+            const y = targetStairsXY.y;
             if (targetLevel) {
                 s.setTargetLevel(targetLevel);
                 const targetStairs = targetLevel
@@ -1043,54 +768,347 @@ RG.Game.FromJSON = function() {
                     s.connect(targetStairs);
                 }
                 else {
-                    RG.err('Game.FromJSON', 'connectConnections',
+                    RG.err('Game.FromJSON', 'connectGameLevels',
                         'Target stairs was null. Cannot connect.');
                 }
             }
             else {
+                // this.reportMissingLevel(connObj);
                 const id = connObj.targetLevel;
-                RG.err('Game.FromJSON', 'connectConnections',
+                RG.err('Game.FromJSON', 'connectGameLevels',
                     `Target level ${id} null. Cannot connect.`);
             }
         });
-    };
+    });
+};
 
-
-    this.restoreChunkManager = (game, gameJSON) => {
-        if (gameJSON.chunkManager) {
-            game.setEnableChunkUnload(true);
-        }
-    };
-
-    // 'Integrity' check that correct number of levels restored
-    // TODO does not work/check anything with the new world architecture
-    this.checkNumOfLevels = (game, gameJSON) => {
-        const nLevels = game.getLevels().length;
-        if (gameJSON.levels) {
-            if (nLevels !== gameJSON.levels.length) {
-                const exp = gameJSON.levels.length;
-                RG.err('Game.FromJSON', 'checkNumOfLevels',
-                    `Exp. ${exp} levels, after restore ${nLevels}`);
+FromJSON.prototype.restoreGameMaster = function(game, json) {
+    ++this.IND;
+    const gameMaster = game.getGameMaster();
+    const battles = {};
+    Object.keys(json.battles).forEach(id => {
+        json.battles[id].forEach(battleJSON => {
+            battles[id] = [];
+            if (this.id2level[id]) { // Tile level exists
+                this.dbg(`FromJSON Restoring Battle ${id}`);
+                const battle = this.restoreBattle(battleJSON);
+                battles[id].push(battle);
+                // battles[id] = battle;
+                /* if (!battle.isJSON) {
+                    game.addLevel(battle.getLevel());
+                }*/
             }
-        }
-    };
+            else {
+                this.dbg(`FromJSON Battle ${id} not created`);
+                this.dbg(JSON.stringify(battleJSON));
+                // battles[id] = json.battles[id];
+                // gameMaster.addBattle(id, json.battles[id]);
+                battles[id].push(battleJSON);
+            }
+        });
+    });
+    gameMaster.setBattles(battles);
+    if (json.battlesDone) {
+        gameMaster.battlesDone = json.battlesDone;
+    }
+    --this.IND;
+    return gameMaster;
+};
 
-    /* Returns the level with given ID. Or throws an error if the level is not
-     * found. */
-    this.getLevelOrFatal = (id, funcName) => {
-        if (!Number.isInteger(id)) {
-            const msg = `ID must be number. Got ${id}`;
-            RG.err('Game.FromJSON', funcName, msg);
+FromJSON.prototype.restoreBattle = function(json) {
+    const battleLevel = this.getLevelOrFatal(json.level, 'restoreBattle');
+    if (battleLevel) {
+        ++this.IND;
+        this.dbg(`\trestoreBattle found level ID ${json.level}`);
+        const battle = new Battle(json.name);
+        battle.setLevel(battleLevel);
+        battle.setStats(json.stats);
+        battle.finished = json.finished;
+        const armies = [];
+        json.armies.forEach(armyJSON => {
+            armies.push(this.restoreArmy(armyJSON));
+        });
+        battle.setArmies(armies);
+
+        // Need to remove the event listeners if battle over
+        if (battle.finished) {
+            debug(`${json.name} finished. rm listeners`);
+            RG.POOL.removeListener(battle);
+            armies.forEach(army => {
+                RG.POOL.removeListener(army);
+            });
         }
-        if (id2level.hasOwnProperty(id)) {
-            return id2level[id];
+        --this.IND;
+        return battle;
+    }
+    RG.err('Game.FromJSON', 'restoreBattle',
+        `No level for battle ID's ${json.level}`);
+    return null;
+};
+
+FromJSON.prototype.restoreArmy = function(json) {
+    const army = new Army(json.name);
+    json.actors.forEach(id => {
+        if (this.id2entity[id]) {
+            army.addActor(this.id2entity[id]);
         }
-        let msg = `No level with ID ${id}.`;
-        msg += ` Available: ${Object.keys(id2level)}`;
-        RG.err('Game.FromJSON', funcName, msg);
-        return null;
-    };
+    });
+    army.setDefeatThreshold(json.defeatThreshold);
+
+    return army;
+};
+
+/* Assume the place is World object for now. */
+FromJSON.prototype.restorePlace = function(place) {
+    const worldJSON = new WorldFromJSON(this.id2level, this.id2entity);
+    return worldJSON.createPlace(place);
+};
+
+FromJSON.prototype.restoreOverWorld = function(json) {
+    const ow = new OW.Map();
+    ow.setMap(json.baseMap);
+    ow._features = json.features;
+    ow._featuresByXY = json.featuresByXY;
+    ow._vWalls = json.vWalls;
+    ow._hWalls = json.hWalls;
+    ow._biomeMap = json.biomeMap;
+    ow._explored = json.explored;
+    const coordMap = new RG.OverWorld.CoordMap();
+    for (const p in json.coordMap) {
+        if (json.coordMap.hasOwnProperty(p)) {
+            coordMap[p] = json.coordMap[p];
+        }
+    }
+    ow.coordMap = coordMap;
+    if (json.terrMap) {
+        ow._terrMap = Territory.fromJSON(json.terrMap);
+    }
+    return ow;
+};
+
+FromJSON.prototype.restoreEntityData = function() {
+    Object.keys(this.id2EntityJson).forEach(id => {
+        const obj = this.id2EntityJson[id];
+        const entity = this.id2entity[id];
+        this.restoreEntity(obj, entity);
+    });
+};
+
+FromJSON.prototype.reportMissingLevel = function(connObj) {
+    let msg = `connObj: ${JSON.stringify(connObj)}`;
+    Object.keys(this.id2level).forEach(id => {
+        msg += `\n\t${id}`;
+    });
+    console.log(msg + '\n');
+};
+
+/* Re-schedules the HP/PP regeneration for an actor */
+FromJSON.prototype._addRegenEvents = function(game, actor) {
+    // Add HP regeneration
+    const regenPlayer = new RG.Time.RegenEvent(actor,
+        20 * RG.ACTION_DUR);
+    game.addEvent(regenPlayer);
+
+    // Add PP regeneration (if needed)
+    if (actor.has('SpellPower')) {
+        const regenPlayerPP = new RG.Time.RegenPPEvent(actor,
+            30 * RG.ACTION_DUR);
+        game.addEvent(regenPlayerPP);
+    }
 
 };
+
+FromJSON.prototype.dbg = function(msg) {
+    if (debug.enabled) {
+      const indStr = '>'.repeat(this.IND);
+      debug(`${indStr} ${msg}`);
+    }
+};
+
+FromJSON.prototype.getLevelsToRestore = function(gameJSON) {
+    let levels = [];
+    let numLevels = 0;
+    if (gameJSON.levels) {return gameJSON.levels;}
+    if (!gameJSON.places) {
+        return levels;
+    }
+
+    Object.keys(gameJSON.places).forEach(name => {
+        const place = gameJSON.places[name];
+        if (place.area) {
+            place.area.forEach(area => {
+                area.tiles.forEach((tileCol, x) => {
+                    tileCol.forEach((tile, y) => {
+                        if (area.tilesLoaded[x][y]) {
+                            numLevels += tile.levels.length;
+                            levels = levels.concat(tile.levels);
+                        }
+                    });
+                });
+            });
+        }
+    });
+    this.dbg(`Restoring ${levels.length} out of ${numLevels}`);
+    return levels;
+};
+
+
+/* Given a list of JSON World.AreaTiles, creates the objects and level
+ * connections, and attaches them to area in current game. */
+FromJSON.prototype.createTiles = function(game, jsonTiles) {
+    const allLevels = game.getLevels();
+    this.addLevels(allLevels, 'createTiles');
+
+    // Levels must be created before the actual world, because the World
+    // object contains only level IDs
+    let levelsJson = [];
+    jsonTiles.forEach(json => {
+        levelsJson = levelsJson.concat(json.levels);
+    });
+    const restoredLevels = [];
+
+    levelsJson.forEach(json => {
+        const level = this.restoreLevel(json);
+        restoredLevels.push(level);
+        allLevels.push(level);
+    });
+
+    // Connect levels using this.id2level + this.stairsInfo
+    this.connectGameLevels(restoredLevels);
+
+    // Entity data cannot be restored earlier because not all object refs
+    // exist when entities are created
+    this.restoreEntityData();
+
+    const area = game.getCurrentWorld().getCurrentArea();
+    const fact = new RG.Factory.World();
+    fact.setId2Level(this.id2level);
+    fact.id2entity = this.id2entity;
+
+    jsonTiles.forEach(json => {
+        const [tx, ty] = [json.x, json.y];
+        const tile = new RG.World.AreaTile(tx, ty, area);
+
+        const tileLevel = this.id2level[json.level];
+        tile.setLevel(tileLevel);
+        game.addLevel(tileLevel);
+
+        const jsonCopy = JSON.parse(JSON.stringify(json));
+        area.getTiles()[tx][ty] = tile;
+        tileLevel.setParent(area);
+        fact.createZonesFromTile(area, jsonCopy, tx, ty);
+        this.restoreSerializedBattles(game, tile);
+    });
+
+    // Need to check for battles that should be restored
+
+};
+
+FromJSON.prototype.restoreSerializedBattles = function(game, tile) {
+    const tileId = tile.getLevel().getID();
+    const master = game.getGameMaster();
+    if (master.battles[tileId]) {
+        const battles = master.battles[tileId];
+        master.battles[tileId] = [];
+        battles.forEach(battleJSON => {
+            const battle = this.restoreBattle(battleJSON);
+            master.battles[tileId].push(battle);
+            // master.battles[tileId] = battle;
+        });
+    }
+};
+
+/* Adds the array of levels into the internal storage. */
+FromJSON.prototype.addLevels = function(levels, msg = '') {
+    levels.forEach(level => {
+        const id = level.getID();
+        if (!this.id2level.hasOwnProperty(id)) {
+            this.id2level[id] = level;
+            this.dbg(`Added level ${id} to this.id2level ${msg}`);
+        }
+        else {
+            RG.log(level); // For error reporting
+            RG.err('Game.FromJSON', `addLevels - ${msg}`,
+            `Duplicate level ID detected ${id}`);
+        }
+    });
+};
+
+FromJSON.prototype.connectTileLevels = function(levels, conns) {
+    conns.forEach(conn => {
+        const stairsId = conn.getID();
+        const targetLevel = conn.getTargetLevel();
+        this.stairsInfo[stairsId] = {
+            targetLevel,
+            targetStairs: conn.getTargetStairs()
+        };
+    });
+    this.addLevels(levels, 'connectTileLevels');
+    this.connectConnections(conns);
+};
+
+FromJSON.prototype.connectConnections = function(conns) {
+    conns.forEach(s => {
+        const connObj = this.stairsInfo[s.getID()];
+        const targetLevel = this.id2level[connObj.targetLevel];
+
+        const targetStairsXY = connObj.targetStairs;
+        const {x, y} = targetStairsXY;
+        if (targetLevel) {
+            s.setTargetLevel(targetLevel);
+            const targetStairs = targetLevel
+                .getMap().getCell(x, y).getConnection();
+            if (targetStairs) {
+                s.connect(targetStairs);
+            }
+            else {
+                RG.err('Game.FromJSON', 'connectConnections',
+                    'Target stairs was null. Cannot connect.');
+            }
+        }
+        else {
+            const id = connObj.targetLevel;
+            RG.err('Game.FromJSON', 'connectConnections',
+                `Target level ${id} null. Cannot connect.`);
+        }
+    });
+};
+
+FromJSON.prototype.restoreChunkManager = function(game, gameJSON) {
+    if (gameJSON.chunkManager) {
+        game.setEnableChunkUnload(true);
+    }
+};
+
+// 'Integrity' check that correct number of levels restored
+// TODO does not work/check anything with the new world architecture
+FromJSON.prototype.checkNumOfLevels = function(game, gameJSON) {
+    const nLevels = game.getLevels().length;
+    if (gameJSON.levels) {
+        if (nLevels !== gameJSON.levels.length) {
+            const exp = gameJSON.levels.length;
+            RG.err('Game.FromJSON', 'checkNumOfLevels',
+                `Exp. ${exp} levels, after restore ${nLevels}`);
+        }
+    }
+};
+
+/* Returns the level with given ID. Or throws an error if the level is not
+ * found. */
+FromJSON.prototype.getLevelOrFatal = function(id, funcName) {
+    if (!Number.isInteger(id)) {
+        const msg = `ID must be number. Got ${id}`;
+        RG.err('Game.FromJSON', funcName, msg);
+    }
+    if (this.id2level.hasOwnProperty(id)) {
+        return this.id2level[id];
+    }
+    let msg = `No level with ID ${id}.`;
+    msg += ` Available: ${Object.keys(this.id2level)}`;
+    RG.err('Game.FromJSON', funcName, msg);
+    return null;
+};
+
+RG.Game.FromJSON = FromJSON;
 
 module.exports = RG.Game.FromJSON;
