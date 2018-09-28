@@ -1,6 +1,5 @@
 
 import WorldFromJSON from './world.fromjson';
-import Entity from './entity';
 
 const debug = require('debug')('bitn:Game.FromJSON');
 
@@ -12,6 +11,7 @@ const Army = require('./game.battle').Army;
 const GoalsTop = require('./goals-top');
 const Evaluator = require('./evaluators');
 const Territory = require('./territory');
+const GameObject = require('./game-object');
 
 /* Object for converting serialized JSON objects to game objects. Note that all
  * actor/level ID info is stored between uses. If you call restoreLevel() two
@@ -25,6 +25,7 @@ const FromJSON = function() {
     this.id2level = {};
     this.id2entity = {};
     this.id2EntityJson = {};
+    this.id2Object = {};
 
     // Stores connection information for stairs
     this.stairsInfo = {};
@@ -42,6 +43,7 @@ FromJSON.prototype.reset = function() {
     this.id2level = {};
     this.id2entity = {};
     this.id2EntityJson = {};
+    this.id2Object = {};
     this.stairsInfo = {};
 };
 
@@ -53,6 +55,19 @@ FromJSON.prototype.getDungeonLevel = function() {
     return this._dungeonLevel;
 };
 
+
+FromJSON.prototype.addObjRef = function(type, obj) {
+    if (type === 'level') {
+        const id = obj.getID();
+        this.id2level[id] = obj;
+        this.id2Object[id] = obj;
+    }
+    else {
+        RG.err('FromJSON', 'addObjRef',
+            `Unsupported type ${type} give`);
+    }
+};
+
 /* Returns an object of requested type. */
 FromJSON.prototype.getObjRef = function(requestObj) {
     if (requestObj.type === 'entity') {
@@ -60,6 +75,9 @@ FromJSON.prototype.getObjRef = function(requestObj) {
     }
     else if (requestObj.type === 'level') {
         return this.id2level[requestObj.id];
+    }
+    else if (requestObj.type === 'object') {
+        return this.id2Object[requestObj.id];
     }
     return null;
 };
@@ -134,12 +152,10 @@ FromJSON.prototype.createGame = function(gameJSON) {
 
     // Restore the ID counters for levels and entities, otherwise duplicate
     // IDs will appear when new levels/entities are created
-    RG.Map.Level.idCount = gameJSON.lastLevelID;
-    Entity.idCount = gameJSON.lastEntityID;
+    GameObject.ID = gameJSON.gameObjectID;
 
     if (debug.enabled) {
         this.dbg(`Restored level ID count to ${RG.Map.Level.idCount}`);
-        this.dbg(`Restored entity ID count to ${Entity.idCount}`);
     }
 
     if (gameJSON.rng) {
@@ -162,6 +178,7 @@ FromJSON.prototype.restorePlayer = function(json) {
     player.setType(json.type);
     player.setID(json.id);
     this.id2entity[json.id] = player;
+    // this.addEntityInfo(player, json);
     this._dungeonLevel = json.dungeonLevel;
 
     RG.addCellStyle(RG.TYPE_ACTOR, json.name, 'cell-actor-player');
@@ -202,7 +219,6 @@ FromJSON.prototype.addRestoredPlayerToGame = function(player, game, json) {
     }
 };
 
-
 /* Restores all data for already created entity. */
 FromJSON.prototype.restoreEntity = function(json, entity) {
     if (RG.isActor(entity)) {
@@ -214,7 +230,6 @@ FromJSON.prototype.restoreEntity = function(json, entity) {
     }
     return entity;
 };
-
 
 FromJSON.prototype._addEntityFeatures = function(obj, entity) {
     this.addCompsToEntity(entity, obj.components);
@@ -613,7 +628,8 @@ FromJSON.prototype.createElement = function(elem) {
         const id = elemJSON.id;
         if (Number.isInteger(id)) {
             createdElem.setID(id);
-            this.id2entity[createdElem.getID()] = createdElem;
+            this.id2entity[id] = createdElem;
+            this.id2Object[id] = createdElem;
             this.id2EntityJson[createdElem.getID()] = elemJSON;
         }
     }
@@ -654,8 +670,10 @@ FromJSON.prototype.createActor = function(json) {
 
 /* Adds entity info to restore the entity references back to objects. */
 FromJSON.prototype.addEntityInfo = function(entity, json) {
-    this.id2entity[entity.getID()] = entity;
+    const id = entity.getID();
+    this.id2entity[id] = entity;
     this.id2EntityJson[json.id] = json;
+    this.id2Object[id] = entity;
 };
 
 /* Creates unconnected stairs. The object
@@ -1023,7 +1041,7 @@ FromJSON.prototype.addLevels = function(levels, msg = '') {
     levels.forEach(level => {
         const id = level.getID();
         if (!this.id2level.hasOwnProperty(id)) {
-            this.id2level[id] = level;
+            this.addObjRef('level', level);
             this.dbg(`Added level ${id} to this.id2level ${msg}`);
         }
         else {
