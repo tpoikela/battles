@@ -494,7 +494,7 @@ export default class GameEditor extends Component {
             const ySub = y0 + ty * subHeight;
             const subLevel = RG.FACT.createLevel(
               levelType, subWidth, this.state.subLevelY, conf);
-            RG.Geometry.insertSubLevel(level, subLevel, xSub, ySub);
+            RG.Geometry.mergeLevels(level, subLevel, xSub, ySub);
           }
         }
       }
