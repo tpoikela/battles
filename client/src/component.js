@@ -1378,6 +1378,13 @@ RG.Component.QuestTarget = DataComponent('QuestTarget',
     {targetType: '', target: null}
 );
 
+RG.Component.QuestTarget.prototype.toJSON = function() {
+    const json = BaseProto.toJSON.call(this);
+    json.targetType = this.targetType;
+    json.target = RG.getObjRef('entity', this.target);
+    return json;
+};
+
 RG.Component.Quest = DataComponent('Quest', {
     giverComp: null, questTargets: null
 });
