@@ -5,6 +5,7 @@
  * saving/restoring the game). */
 
 const RG = require('./rg');
+const GameObject = require('./game-object');
 
 // Helper function for faster splice
 const spliceOne = function(arr, index) {
@@ -24,7 +25,7 @@ const spliceOne = function(arr, index) {
 export default class Entity {
 
     constructor() {
-        this._id = Entity.idCount++;
+        GameObject.call(this);
 
         // Stores the comps by ID, used for serialisation
         this._comps = {};
@@ -32,9 +33,6 @@ export default class Entity {
         // Cache for faster access, NOT serialised
         this._compsByType = {};
     }
-
-    getID() {return this._id;}
-    setID(id) {this._id = id;}
 
     /* Gets component with given name. If entity has multiple of them, returns
      * the first found. */
@@ -171,16 +169,13 @@ export default class Entity {
     getComponents() {return this._comps;}
 
 }
-
-Entity.idCount = 0;
+RG.extend2(Entity, GameObject);
 
 Entity.createEntityID = () => {
-    const id = Entity.prototype.idCount;
-    Entity.prototype.idCount += 1;
-    return id;
+    return GameObject.createObjectID();
 };
 
-Entity.getIDCount = () => Entity.idCount;
+Entity.getIDCount = () => GameObject.ID;
 
 /* For histogramming purposes, to see how many calls are done per function. */
 Entity.num = {};
