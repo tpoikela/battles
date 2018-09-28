@@ -27,6 +27,13 @@ const FromJSON = function() {
     this.id2EntityJson = {};
     this.id2Object = {};
 
+    // For restoring component refs
+    this.id2Component = {};
+    this.id2CompJSON = {};
+
+    // Stores comps which needs reference restoring
+    this.compsWithMissingRefs = {};
+
     // Stores connection information for stairs
     this.stairsInfo = {};
 
@@ -44,7 +51,10 @@ FromJSON.prototype.reset = function() {
     this.id2entity = {};
     this.id2EntityJson = {};
     this.id2Object = {};
+    this.id2Component = {};
+    this.id2CompJSON = {};
     this.stairsInfo = {};
+    this.compsWithMissingRefs = {};
 };
 
 FromJSON.prototype.setChunkMode = function(enable) {
@@ -69,7 +79,7 @@ FromJSON.prototype.addObjRef = function(type, obj) {
 };
 
 /* Returns an object of requested type. */
-FromJSON.prototype.getObjRef = function(requestObj) {
+FromJSON.prototype.getObjByRef = function(requestObj) {
     if (requestObj.type === 'entity') {
         return this.id2entity[requestObj.id];
     }
@@ -78,6 +88,9 @@ FromJSON.prototype.getObjRef = function(requestObj) {
     }
     else if (requestObj.type === 'object') {
         return this.id2Object[requestObj.id];
+    }
+    else if (requestObj.type === 'component') {
+        return this.id2Component[requestObj.id];
     }
     return null;
 };
@@ -143,6 +156,10 @@ FromJSON.prototype.createGame = function(gameJSON) {
     // Entity data cannot be restored earlier because not all object refs
     // exist when entities are created
     this.restoreEntityData();
+
+    // Must be called after all entity components are created, this will mainly
+    // fill missing component refs in other components
+    this.restoreComponentData();
 
     const gameMaster = this.restoreGameMaster(game, gameJSON.gameMaster);
     game.setGameMaster(gameMaster);
@@ -243,11 +260,10 @@ FromJSON.prototype._addEntityFeatures = function(obj, entity) {
     }
 };
 
-
 FromJSON.prototype.restoreElementEntity = function(json, entity) {
     if (entity.getType() === 'lever') {
         json.addTarget.forEach(objRef => {
-            const entRef = objRef.objRef;
+            const entRef = objRef.$objRef;
             const doorEntity = this.id2entity[entRef.id];
             if (doorEntity) {
                 entity.addTarget(doorEntity);
@@ -255,7 +271,6 @@ FromJSON.prototype.restoreElementEntity = function(json, entity) {
         });
     }
 };
-
 
 /* Adds given components into Entity object. */
 FromJSON.prototype.addCompsToEntity = function(ent, comps) {
@@ -278,58 +293,18 @@ FromJSON.prototype.addCompsToEntity = function(ent, comps) {
 /* Creates the component with given name. */
 FromJSON.prototype.createComponent = function(name, compJSON) {
     if (!RG.Component.hasOwnProperty(name)) {
-        let msg = `No ${name} in RG.Component.`;
+        let msg = `No |${name}| in RG.Component.`;
         msg += ` compJSON: ${JSON.stringify(compJSON)}`;
         RG.err('Game.FromJSON', 'createComponent', msg);
     }
+    // TODO remove error check, change to RG.Component.create(name)
     const newCompObj = new RG.Component[name]();
     for (const setFunc in compJSON) {
         if (typeof newCompObj[setFunc] === 'function') {
             const valueToSet = compJSON[setFunc];
-
-            // valueToSet can be any of following:
-            //   1. Create function of defined in Game.FromJSON
-            //     - Call function then sets the result of func call
-            //     - Function is called with valueToSet.value
-            //   2. Sub-component given with createComp
-            //     - Need to call createComponent recursively
-            //   3. Can be an objRef
-            //   4. Can be scalar/object literal which is set with setFunc
-            if (!RG.isNullOrUndef([valueToSet])) {
-                if (valueToSet.createFunc) {
-                    const createdObj =
-                        this[valueToSet.createFunc](valueToSet.value);
-                    newCompObj[setFunc](createdObj);
-                }
-                else if (valueToSet.createComp) {
-                    const compType = valueToSet.createComp.setType;
-                    // Danger of infinite recursion
-                    const newSubComp = this.createComponent(compType,
-                        valueToSet.createComp);
-                    newCompObj[setFunc](newSubComp);
-                }
-                else if (valueToSet.objRef) {
-                    const objToSet = this.getObjRef(valueToSet.objRef);
-                    if (objToSet) {
-                        newCompObj[setFunc](objToSet);
-                    }
-                    else {
-                        const refJson = JSON.stringify(valueToSet.objRef);
-                        let msg = `Null obj for objRef ${refJson}`;
-                        msg += ` compJSON: ${JSON.stringify(compJSON)}`;
-                        RG.err('FromJSON', 'createComponent', msg);
-                    }
-                }
-                else {
-                    newCompObj[setFunc](valueToSet);
-                }
-            }
-            else {
-                const jsonStr = JSON.stringify(compJSON);
-                let msg = `valueToSet ${valueToSet}. setFunc ${setFunc} `;
-                msg += `Comp ${name}, json: ${jsonStr}`;
-                RG.err('FromJSON', 'addCompsToEntity', msg);
-            }
+            const value = this.getCompValue(newCompObj,
+                compJSON, setFunc, valueToSet);
+            newCompObj[setFunc](value);
         }
         else {
             const json = JSON.stringify(compJSON);
@@ -338,7 +313,78 @@ FromJSON.prototype.createComponent = function(name, compJSON) {
 
         }
     }
+    const id = newCompObj.getID();
+    this.id2Component[id] = newCompObj;
+    this.id2CompJSON[id] = compJSON;
     return newCompObj;
+};
+
+// valueToSet can be any of following:
+//   1. Create function of defined in Game.FromJSON
+//     - Call function then sets the result of func call
+//     - Function is called with valueToSet.value
+//   2. Sub-component given with createComp
+//     - Need to call createComponent recursively
+//   3. Can be an objRef
+//   4. Can be scalar/object literal which is set with setFunc
+FromJSON.prototype.getCompValue = function(
+    comp, compJSON, setFunc, valueToSet
+) {
+    if (!RG.isNullOrUndef([valueToSet])) {
+        if (Array.isArray(valueToSet)) {
+            // For array, call this function recursively
+            if (valueToSet.$objRefArray) {
+                this.compsWithMissingRefs[compJSON.setID] = comp;
+                return valueToSet;
+            }
+            const newArray = [];
+            valueToSet.forEach(value => {
+                const val = this.getCompValue(comp, compJSON, setFunc, value);
+                newArray.push(val);
+            });
+            return newArray;
+        }
+        else if (valueToSet.createFunc) {
+            const createdObj =
+                this[valueToSet.createFunc](valueToSet.value);
+            return createdObj;
+        }
+        else if (valueToSet.createComp) {
+            const compType = valueToSet.createComp.setType;
+            // Danger of infinite recursion
+            const newSubComp = this.createComponent(compType,
+                valueToSet.createComp);
+            return newSubComp;
+        }
+        else if (valueToSet.$objRef) {
+            if (valueToSet.$objRef.type !== 'component') {
+                const objToSet = this.getObjByRef(valueToSet.$objRef);
+                if (objToSet) {
+                    return objToSet;
+                }
+                else {
+                    const refJson = JSON.stringify(valueToSet.$objRef);
+                    let msg = `Null obj for objRef ${refJson}`;
+                    msg += ` compJSON: ${JSON.stringify(compJSON)}`;
+                    RG.err('FromJSON', 'createComponent', msg);
+                }
+            }
+            else {
+                this.compsWithMissingRefs[compJSON.setID] = comp;
+                return valueToSet;
+            }
+        }
+        else {
+            return valueToSet;
+        }
+    }
+    else {
+        const jsonStr = JSON.stringify(compJSON);
+        let msg = `valueToSet ${valueToSet}. setFunc ${setFunc} `;
+        msg += `Comp ${name}, json: ${jsonStr}`;
+        RG.err('FromJSON', 'addCompsToEntity', msg);
+    }
+    return null; // Getting here means serious error
 };
 
 FromJSON.prototype.createBrain = function(brainJSON, ent) {
@@ -909,6 +955,43 @@ FromJSON.prototype.restoreEntityData = function() {
         const obj = this.id2EntityJson[id];
         const entity = this.id2entity[id];
         this.restoreEntity(obj, entity);
+    });
+};
+
+FromJSON.prototype.restoreComponentData = function() {
+    Object.keys(this.compsWithMissingRefs).forEach(id => {
+        const comp = this.compsWithMissingRefs[id];
+        const json = this.id2CompJSON[id];
+        this.restoreComponent(json, comp);
+    });
+};
+
+
+FromJSON.prototype.restoreComponent = function(json, comp) {
+    Object.keys(json).forEach(setFunc => {
+        const valueToSet = json[setFunc];
+        if (Array.isArray(valueToSet)) {
+            if (valueToSet.$objRefArray) {
+                const arr = [];
+                valueToSet.forEach(objRef => {
+                    if (objRef.$objRef) {
+                        arr.push(this.getObjByRef(objRef.$objRef));
+                    }
+                    else {
+                        const msg = JSON.stringify(valueToSet);
+                        RG.err('FromJSON', 'restoreComponent',
+                            `$objRefArray found but no $objRefs inside: ${msg}`
+                        );
+                    }
+                });
+                comp[setFunc](arr);
+            }
+        }
+        else if (valueToSet.$objRef) {
+            if (valueToSet.$objRef.type === 'component') {
+                comp[setFunc](this.getObjByRef(valueToSet.$objRef));
+            }
+        }
     });
 };
 
