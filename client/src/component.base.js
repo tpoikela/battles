@@ -250,6 +250,20 @@ RG.Component.Base.prototype.setEntity = function(entity) {
     }
 };
 
+/* Used when entity (item) with component is cloned. The component is
+ * also cloned, but entity ref must be changed. */
+RG.Component.Base.prototype.changeEntity = function(newEntity) {
+    // Check done for error detection purposes, so that changeEntity() is not
+    // called on new comps withot existing entity
+    if (!RG.isNullOrUndef([this._entity])) {
+        this._entity = newEntity;
+    }
+    else {
+        RG.err('Component.Base', 'changeEntity',
+            'No entity set. Use setEntity() instead of changeEntity()');
+    }
+};
+
 RG.Component.Base.prototype.isUnique = function() {return this._isUnique;};
 
 RG.Component.Base.prototype.getType = function() {return this._type;};
