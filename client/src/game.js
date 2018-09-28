@@ -13,6 +13,7 @@ RG.Game = {};
 
 const Engine = require('./engine');
 const GameMaster = require('./game.master');
+const GameObject = require('./game-object');
 
 /* Top-level main object for the game.  */
 RG.Game.Main = function() {
@@ -486,8 +487,7 @@ RG.Game.Main = function() {
         const obj = {
             engine: {},
             gameMaster: this._master.toJSON(),
-            lastLevelID: RG.Map.Level.idCount,
-            lastEntityID: Entity.getIDCount(),
+            gameObjectID: GameObject.ID,
             lastComponentID: RG.Component.idCount,
             globalConf: this.globalConf,
             rng: this._rng.toJSON(),
