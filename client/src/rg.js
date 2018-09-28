@@ -943,9 +943,14 @@ RG.getObjRef = (type, obj) => {
     else if (type === 'component') {
         return {$objRef: {type: 'component', id: obj.getID()}};
     }
-    const json = obj.toJSON();
+    else if (type === 'place') {
+        return {$objRef: {type: 'place', id: obj.getID()}};
+    }
+    else if (type === 'item') {
+        return {$objRef: {type: 'item', id: obj.getID()}};
+    }
     RG.err('RG', 'getObjRef',
-        `Type ${type} not supported. Obj: ${json}`);
+        `Type ${type} not supported. Obj: ${obj}`);
     return null;
 };
 
