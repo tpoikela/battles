@@ -910,10 +910,17 @@ RG.STATS_LC = RG.STATS.map(stat => stat.toLowerCase());
 RG.LEVEL_NOT_LOADED = 'LEVEL_NOT_LOADED';
 RG.TILE_NOT_LOADED = 'TILE_NOT_LOADED';
 
-
 RG.STATS_ABBR = RG.STATS.map(stat => stat.substr(0, 3));
 RG.GET_STATS = RG.STATS.map(stat => 'get' + stat);
 RG.SET_STATS = RG.STATS.map(stat => 'set' + stat);
+
+RG.getObjRefArray = (type, arr) => {
+    const result = arr.map(targetObj => (
+        RG.getObjRef(type, targetObj)
+    ));
+    result.$objRefArray = true;
+    return result;
+};
 
 RG.getObjRef = (type, obj) => {
     if (type === 'entity') {
@@ -923,7 +930,18 @@ RG.getObjRef = (type, obj) => {
             const msg = ' Got: |' + obj.getName() + '|';
             RG.err('RG', 'getObjRef', 'objRefs to items not supported.' + msg);
         }
-        return {objRef: {type, id: obj.getID()}};
+        return {$objRef: {type, id: obj.getID()}};
+    }
+    else if (type === 'object') {
+        if (obj.$objID) {
+            return obj.getObjRef();
+        }
+        else if (obj.$objRef) {
+            return {$objRef: {type: 'object', id: obj.$objRef}};
+        }
+    }
+    else if (type === 'component') {
+        return {$objRef: {type: 'component', id: obj.getID()}};
     }
     const json = obj.toJSON();
     RG.err('RG', 'getObjRef',

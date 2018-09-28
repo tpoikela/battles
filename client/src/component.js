@@ -1410,10 +1410,8 @@ RG.Component.Quest.prototype.addTarget = function(target) {
 
 RG.Component.Quest.prototype.toJSON = function() {
     const json = BaseProto.toJSON.call(this);
-    const targets = this.questTargets.map(targetObj => (
-        RG.getObjRef('component', targetObj)
-    ));
-    targets.$objRefArray = true;
+    const targets = RG.getObjRefArray('component',
+        this.questTargets);
     json.setQuestTargets = targets;
     json.setGiver = RG.getObjRef('entity', this.giver);
     return json;
