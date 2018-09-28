@@ -5,6 +5,7 @@
 
 const RG = require('./rg.js');
 RG.Factory = require('./factory');
+const GameObject = require('./game-object');
 const debug = require('debug')('bitn:world');
 
 RG.World = {};
@@ -400,13 +401,12 @@ RG.World.edgeHasConnections = edgeHasConnections;
 // RG.World.Base
 //----------------
 
-
 /* Base class for world places. Each place has name and type + full hierarchical
 * name to trace where the place is in hierarchy. */
 RG.World.Base = function(name) {
+    GameObject.call(this);
     this.name = name;
     this.type = 'base';
-    this.worldID = RG.World.Base.id++;
     this.parent = null;
 };
 
@@ -430,14 +430,6 @@ RG.World.Base.prototype.setType = function(type) {
     this.type = type;
 };
 
-RG.World.Base.prototype.getID = function() {
-    return this.worldID;
-};
-
-RG.World.Base.prototype.setID = function(id) {
-    this.worldID = id;
-};
-
 RG.World.Base.prototype.getParent = function() {
     return this.parent;
 };
@@ -451,16 +443,14 @@ RG.World.Base.prototype.toJSON = function() {
         name: this.name,
         hierName: this.hierName,
         type: this.type,
-        id: this.worldID
+        id: this.getID()
     };
     if (this.parent) {
         obj.parent = this.parent.getID();
     }
     return obj;
 };
-
-// ID counter for world elements
-RG.World.Base.id = 0;
+RG.extend2(RG.World.Base, GameObject);
 
 //---------------------
 // RG.World.ZoneBase
@@ -549,6 +539,14 @@ RG.World.ZoneBase.prototype.toJSON = function() {
     json.x = this.tileX;
     json.y = this.tileY;
     return json;
+};
+
+RG.World.ZoneBase.prototype.getID2Place = function() {
+    const res = {[this.getID()]: this};
+    this._subZones.forEach(sz => {
+        res[sz.getID()] = sz;
+    });
+    return res;
 };
 
 //--------------------------
@@ -1213,6 +1211,15 @@ RG.World.Area.prototype.toJSON = function() {
     return Object.assign(obj, json);
 };
 
+RG.World.Area.prototype.forEachTile = function(cb) {
+    for (let x = 0; x < this._tiles.length; x++) {
+        for (let y = 0; y < this._tiles[x].length; y++) {
+            if (this.tilesLoaded[x][y]) {
+                cb(x, y, this._tiles[x][y]);
+            }
+        }
+    }
+};
 
 //------------------
 // RG.World.Mountain
@@ -1658,6 +1665,20 @@ RG.World.Top.prototype.createAreaConfig = function() {
         areaConf.push(area.createAreaConfig());
     });
     return areaConf;
+};
+
+RG.World.Top.prototype.getID2Place = function() {
+    let res = {[this.getID()]: this};
+    this._areas.forEach(area => {
+        res[area.getID()] = area;
+    });
+    const zones = this.getZones();
+    zones.forEach(zone => {
+        res[zone.getID()] = zone;
+        const id2Place = zone.getID2Place();
+        res = Object.assign(res, id2Place);
+    });
+    return res;
 };
 
 //---------------------------------------------------------------------------
