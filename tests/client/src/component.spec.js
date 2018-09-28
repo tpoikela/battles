@@ -225,3 +225,15 @@ describe('Component.AddOnHit', () => {
         expect(json.setComp).to.deep.equal(expJSON);
     });
 });
+
+
+describe('Component.Quest', () => {
+    it('stores info about quests', () => {
+        const questGiver = new RG.Actor.Rogue('giver');
+        const questComp = new RG.Component.Quest();
+        questComp.setGiver(questGiver);
+
+        const json = questComp.toJSON();
+        expect(json).to.not.be.empty;
+    });
+});
