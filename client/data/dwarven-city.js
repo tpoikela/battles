@@ -52,8 +52,9 @@ export default class DwarvenCity {
         centerY: false, centerX: true,
         y: fortStartY, x: 0
       };
-      RG.Geometry.tileLevels(mainLevel,
-        [mainFortLevel, entrFortLevel, passageLevel], tileConf);
+
+      const tiledLevels = [mainFortLevel, entrFortLevel, passageLevel];
+      RG.Geometry.tileLevels(mainLevel, tiledLevels, tileConf);
 
       // Bounding box for fort levels
       const bbox = {
@@ -71,7 +72,9 @@ export default class DwarvenCity {
       while (number % TILE_SIZE !== 0) {
         ++number;
       }
-      if (number % 2 * TILE_SIZE === 0) {number += TILE_SIZE;}
+      if (number % (2 * TILE_SIZE) === 0) {
+        number += TILE_SIZE;
+      }
       return number;
     }
 
@@ -91,8 +94,8 @@ export default class DwarvenCity {
         {roomCount: -1, nGates: 2});
       const castleLevel = new RG.Map.Level(10, 10);
       castleLevel.setMap(innerCastle.map);
-      RG.Geometry.mergeMapBaseElems(mainFort.map,
-        innerCastle.map, 3 * 7, 2 * 7);
+      RG.Geometry.mergeMapBaseElems(innerCastle.map,
+          mainFort.map, 3 * 7, 2 * 7);
 
       const mainFortLevel = new RG.Map.Level(10, 10);
       mainFortLevel.setMap(mainFort.map);
@@ -134,8 +137,8 @@ export default class DwarvenCity {
         {nGates: 2, roomCount: -1});
       const castleLevel = new RG.Map.Level(10, 10);
       castleLevel.setMap(innerCastle.map);
-      RG.Geometry.mergeMapBaseElems(outerFort.map,
-        innerCastle.map, 3 * 7, 3 * 7);
+      RG.Geometry.mergeMapBaseElems(innerCastle.map, outerFort.map,
+          3 * 7, 3 * 7);
 
       const smallFortWest = mapGen.createCastleWall(3 * 7, 3 * 7,
         {startRoomFunc: Castle.startRoomFuncEast}
