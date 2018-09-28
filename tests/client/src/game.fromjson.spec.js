@@ -1,7 +1,7 @@
 
 import Capital from '../../../client/data/capital';
 
-const expect = require('chai').expect;
+const chai = require('chai');
 
 const RG = require('../../../client/src/battles');
 const Game = require('../../../client/src/game');
@@ -9,8 +9,12 @@ const RGTest = require('../../roguetest');
 
 const FromJSON = Game.FromJSON;
 
+const chaiBattles = require('../../helpers/chai-battles.js');
 RG.Factory = require('../../../client/src/factory');
 RG.Factory.Battle = require('../../../client/src/factory.battle');
+
+const expect = chai.expect;
+chai.use(chaiBattles);
 
 describe('RG.Game.FromJSON', function() {
     this.timeout(4000);
@@ -455,4 +459,42 @@ describe('RG.Game.FromJSON', function() {
 
     });
 
+
+    it('can convert Quest components to JSON and back', () => {
+        const quester = new RG.Actor.Rogue('quester');
+        const giver = new RG.Actor.Rogue('giver');
+        const killTarget = new RG.Actor.Rogue('killTarget');
+        const level = RGTest.wrapIntoLevel([quester, giver, killTarget]);
+
+        const targetComp = new RG.Component.QuestTarget();
+        targetComp.setTarget(killTarget);
+        targetComp.setTargetType('kill');
+        killTarget.add(targetComp);
+
+        const questComp = new RG.Component.Quest();
+        questComp.setGiver(giver);
+        questComp.addTarget(targetComp);
+        quester.add(questComp);
+
+        const game = new RG.Game.Main();
+        game.addLevel(level);
+        const json = game.toJSON();
+
+        const newGame = fromJSON.createGame(json);
+
+        const restLevel = newGame.getLevels()[0];
+        const actors = restLevel.getActors();
+
+        const newQuester = actors.find(act => (
+            act.getID() === quester.getID()));
+        expect(newQuester).to.have.component('Quest');
+
+        const newQuestComp = newQuester.get('Quest');
+        const targets = newQuestComp.getQuestTargets();
+        const newTargetComp = targets[0];
+        expect(newTargetComp.getID()).to.equal(targetComp.getID());
+
+        const newKillTarget = newTargetComp.getTarget();
+        expect(newKillTarget.getID()).to.equal(killTarget.getID());
+    });
 });
