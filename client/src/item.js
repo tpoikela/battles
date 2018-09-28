@@ -573,7 +573,8 @@ class RGItemContainer extends ItemBase {
         return false;
     }
 
-    /* Used for stacking/equip purposes only.*/
+    /* Used for stacking/equip purposes only. Uses item.equals(), much slower
+     * than hasItemRef(). */
     hasItem(item) {
         if (this.hasItemRef(item)) {return true;}
         const index = this._getMatchingItemIndex(item);
