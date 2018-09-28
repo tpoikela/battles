@@ -12,6 +12,7 @@ const GoalsTop = require('./goals-top');
 const Evaluator = require('./evaluators');
 const Territory = require('./territory');
 const GameObject = require('./game-object');
+const {QuestData} = require('./quest-gen');
 
 /* Object for converting serialized JSON objects to game objects. Note that all
  * actor/level ID info is stored between uses. If you call restoreLevel() two
@@ -26,6 +27,7 @@ const FromJSON = function() {
     this.id2entity = {};
     this.id2EntityJson = {};
     this.id2Object = {};
+    this.id2Place = {};
 
     // For restoring component refs
     this.id2Component = {};
@@ -53,6 +55,8 @@ FromJSON.prototype.reset = function() {
     this.id2Object = {};
     this.id2Component = {};
     this.id2CompJSON = {};
+    this.id2Place = {};
+
     this.stairsInfo = {};
     this.compsWithMissingRefs = {};
 };
@@ -65,12 +69,12 @@ FromJSON.prototype.getDungeonLevel = function() {
     return this._dungeonLevel;
 };
 
-
 FromJSON.prototype.addObjRef = function(type, obj) {
     if (type === 'level') {
         const id = obj.getID();
         this.id2level[id] = obj;
         this.id2Object[id] = obj;
+        this.id2Place[id] = obj;
     }
     else {
         RG.err('FromJSON', 'addObjRef',
@@ -91,6 +95,9 @@ FromJSON.prototype.getObjByRef = function(requestObj) {
     }
     else if (requestObj.type === 'component') {
         return this.id2Component[requestObj.id];
+    }
+    else if (requestObj.type === 'place') {
+        return this.id2Place[requestObj.id];
     }
     return null;
 };
@@ -385,6 +392,18 @@ FromJSON.prototype.getCompValue = function(
         RG.err('FromJSON', 'addCompsToEntity', msg);
     }
     return null; // Getting here means serious error
+};
+
+FromJSON.prototype.createQuestData = function(json) {
+    console.log('createQuestData now');
+    const questData = new QuestData();
+    const path = [];
+    json.path.forEach(objRef => {
+        path.push(this.getObjByRef(objRef.$objRef));
+    });
+    questData.path = path;
+    console.log('createQuestData finished');
+    return questData;
 };
 
 FromJSON.prototype.createBrain = function(brainJSON, ent) {
@@ -925,7 +944,9 @@ FromJSON.prototype.restoreArmy = function(json) {
 /* Assume the place is World object for now. */
 FromJSON.prototype.restorePlace = function(place) {
     const worldJSON = new WorldFromJSON(this.id2level, this.id2entity);
-    return worldJSON.createPlace(place);
+    const world = worldJSON.createPlace(place);
+    this.id2Place = Object.assign(this.id2Place, world.getID2Place());
+    return world;
 };
 
 FromJSON.prototype.restoreOverWorld = function(json) {
