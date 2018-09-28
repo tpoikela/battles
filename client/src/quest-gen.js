@@ -438,8 +438,9 @@ QuestPopulate.prototype.addQuestComponents = function(zone) {
 
 };
 
-const runningAsScript = !module.parent;
-if (runningAsScript) {
+/*
+const runningAsNodeScript = !module.parent && typeof window === 'undefined';
+if (runningAsNodeScript) {
     // The grammar is stored in the string g
     // console.log(JSON.stringify(rules));
     // console.log(generateQuest(rules, 'QUEST'));
@@ -448,6 +449,7 @@ if (runningAsScript) {
     console.log(JSON.stringify(questGen.stack));
     console.log(JSON.stringify(questGen.ruleHist));
 }
+*/
 
 module.exports = {
     Quest, Task, QuestGen, QuestPopulate
