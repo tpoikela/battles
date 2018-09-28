@@ -139,13 +139,19 @@ class GoalThief extends Goal.Base {
         const actorCell = this.actor.getCell();
         console.log('Thief trying to sell at', actorCell.getXY());
 
-        const shopElem = actorCell.getPropType('shop')[0];
-        // const price = shopElem.getItemPriceForSelling(itemToSell);
-        const trans = new RG.Component.Transaction();
-        trans.setArgs({item: itemToSell, seller: this._actor,
-            shop: shopElem, buyer: shopElem.getShopkeeper(),
-            count: itemToSell.count});
-        this._actor.add(trans);
+        if (itemToSell) {
+            const shopElem = actorCell.getPropType('shop')[0];
+            // const price = shopElem.getItemPriceForSelling(itemToSell);
+            const trans = new RG.Component.Transaction();
+            trans.setArgs({item: itemToSell, seller: this._actor,
+                shop: shopElem, buyer: shopElem.getShopkeeper(),
+                count: itemToSell.count});
+            this._actor.add(trans);
+        }
+        else {
+            RG.err('Goal.Thief', 'tryToSellItem',
+                `Null item for sale. Inv: ${JSON.stringify(inventory)}`);
+        }
     }
 
     tryToGoToShopCell() {
