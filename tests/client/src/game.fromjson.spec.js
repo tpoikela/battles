@@ -5,6 +5,7 @@ const chai = require('chai');
 
 const RG = require('../../../client/src/battles');
 const Game = require('../../../client/src/game');
+const {QuestData} = require('../../../client/src/quest-gen');
 const RGTest = require('../../roguetest');
 
 const FromJSON = Game.FromJSON;
@@ -466,6 +467,13 @@ describe('RG.Game.FromJSON', function() {
         const killTarget = new RG.Actor.Rogue('killTarget');
         const level = RGTest.wrapIntoLevel([quester, giver, killTarget]);
 
+        const questData = new QuestData();
+        questData.add('location', level);
+        questData.add('kill', killTarget);
+
+        const giverComp = new RG.Component.QuestGiver(questData);
+        giver.add(giverComp);
+
         const targetComp = new RG.Component.QuestTarget();
         targetComp.setTarget(killTarget);
         targetComp.setTargetType('kill');
@@ -480,7 +488,9 @@ describe('RG.Game.FromJSON', function() {
         game.addLevel(level);
         const json = game.toJSON();
 
+        console.log('Creating game now');
         const newGame = fromJSON.createGame(json);
+        console.log('Finished creating game now');
 
         const restLevel = newGame.getLevels()[0];
         const actors = restLevel.getActors();
@@ -496,5 +506,13 @@ describe('RG.Game.FromJSON', function() {
 
         const newKillTarget = newTargetComp.getTarget();
         expect(newKillTarget.getID()).to.equal(killTarget.getID());
+
+        const newGiver = actors.find(act => (
+            act.getID() === giver.getID()));
+        expect(newGiver).to.have.component('QuestGiver');
+
+        const newGiverComp = newGiver.get('QuestGiver');
+        const newQuestData = newGiverComp.getQuestData();
+        expect(newQuestData.path).to.have.length(2);
     });
 });
