@@ -334,7 +334,8 @@ RG.Factory.World = function() {
             area.markTileZonesCreated(x, y);
 
             // Create quests for this tile x,y
-            this.createQuests(world, area, x, y);
+            // Unsupported for now, need to change serialisation scheme
+            // this.createQuests(world, area, x, y);
 
             // Cleanup the scope & conf stacks
             this.popScope(areaConf);
