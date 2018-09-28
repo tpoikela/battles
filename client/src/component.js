@@ -1369,6 +1369,12 @@ RG.Component.QuestGiver.prototype._init = function(questData) {
     this.addCallback('onAdd', _addCb);
 };
 
+RG.Component.QuestGiver.prototype.toJSON = function() {
+    const json = BaseProto.toJSON.call(this);
+    json.setQuestData = this.questData.toJSON();
+    return json;
+};
+
 RG.Component.QuestGiver.getChatObj = function() {
     return this.chatObj;
 };
@@ -1380,8 +1386,13 @@ RG.Component.QuestTarget = DataComponent('QuestTarget',
 
 RG.Component.QuestTarget.prototype.toJSON = function() {
     const json = BaseProto.toJSON.call(this);
-    json.targetType = this.targetType;
-    json.target = RG.getObjRef('entity', this.target);
+    json.setTargetType = this.targetType;
+    if (this.target.$objID) {
+        json.setTarget = RG.getObjRef('object', this.target);
+    }
+    else {
+        json.setTarget = RG.getObjRef('entity', this.target);
+    }
     return json;
 };
 
@@ -1393,11 +1404,16 @@ RG.Component.Quest.prototype._init = function() {
     this.questTargets = [];
 };
 
+RG.Component.Quest.prototype.addTarget = function(target) {
+    this.questTargets.push(target);
+};
+
 RG.Component.Quest.prototype.toJSON = function() {
     const json = BaseProto.toJSON.call(this);
-    const targets = this.questTargets.map(target => (
-        RG.getObjRef('object', target)
+    const targets = this.questTargets.map(targetObj => (
+        RG.getObjRef('component', targetObj)
     ));
+    targets.$objRefArray = true;
     json.setQuestTargets = targets;
     json.setGiver = RG.getObjRef('entity', this.giver);
     return json;
