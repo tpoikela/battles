@@ -1,6 +1,7 @@
 
 const RG = require('./rg.js');
 require('./eventpool');
+const GameObject = require('./game-object');
 
 const {TYPE_ACTOR, TYPE_ELEM, TYPE_ITEM} = RG;
 
@@ -28,8 +29,8 @@ LevelCallback.prototype.toJSON = function() {
 
 /* Object for the game levels. Contains map, actors and items.  */
 const Level = function() {
+    GameObject.call(this);
     this._map = null;
-    this._id = Level.idCount++;
     this._parent = null; // Reference to dungeon,city,mountain...
 
     // Level properties
@@ -52,18 +53,12 @@ const Level = function() {
     };
 
 };
-Level.idCount = 0;
+RG.extend2(Level, GameObject);
 
 Level.prototype.setLevelNumber = function(no) {this._levelNo = no;};
 Level.prototype.getLevelNumber = function() {
     return this._levelNo;
 };
-
-Level.prototype.getID = function() {
-    return this._id;
-};
-
-Level.prototype.setID = function(id) {this._id = id;};
 
 Level.prototype.getParent = function() {
     return this._parent;
@@ -612,11 +607,8 @@ Level.prototype.toJSON = function() {
     return obj;
 };
 
-
 Level.createLevelID = () => {
-    const id = Level.idCount;
-    Level.idCount += 1;
-    return id;
+    return GameObject.createObjectID();
 };
 
 module.exports = Level;
