@@ -364,7 +364,7 @@ function buildMapLevel(ow, coordMap) {
             const subLevel = createSubLevel(ow, x, y, xMap, yMap);
             const x0 = x * xMap;
             const y0 = y * yMap;
-            RG.Geometry.insertSubLevel(owLevel, subLevel, x0, y0);
+            RG.Geometry.mergeLevels(owLevel, subLevel, x0, y0);
         }
     }
 

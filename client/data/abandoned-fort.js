@@ -64,12 +64,12 @@ export default class AbandonedFort {
     const wallX = cols - mountWall.getMap().cols;
     const wallY = 0;
     RG.Map.Generator.addRandomSnow(mountWall.getMap(), 0.3);
-    RG.Geometry.insertSubLevel(mainLevel, mountWall, wallX, wallY);
+    RG.Geometry.mergeLevels(mainLevel, mountWall, wallX, wallY);
 
     const castle = this.getCastleLevel(rows, cols, conf);
     const castleX = cols - castle.getMap().cols;
     const castleY = Math.round((rows - castle.getMap().rows) / 2);
-    RG.Geometry.insertSubLevel(mainLevel, castle, castleX, castleY);
+    RG.Geometry.mergeLevels(mainLevel, castle, castleX, castleY);
 
     // Add stairs for entrance and exit
     const midY = Math.floor(rows / 2);

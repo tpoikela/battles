@@ -309,7 +309,7 @@ RG.Geometry = {
       let currY = y;
       if (conf.alignLeft) {
         levels.forEach(level => {
-          this.insertSubLevel(l1, level, currX, currY);
+          this.mergeLevels(l1, level, currX, currY);
           currY += level.getMap().rows;
         });
       }
@@ -317,7 +317,7 @@ RG.Geometry = {
         const midX = Math.round(l1.getMap().cols / 2);
         levels.forEach(level => {
           currX = midX - Math.round(level.getMap().cols / 2);
-          this.insertSubLevel(l1, level, currX, currY);
+          this.mergeLevels(l1, level, currX, currY);
           currY += level.getMap().rows;
         });
       }
@@ -325,7 +325,7 @@ RG.Geometry = {
         const midY = Math.round(l1.getMap().rows / 2);
         levels.forEach(level => {
           currY = midY - Math.round(level.getMap().rows / 2);
-          this.insertSubLevel(l1, level, currX, currY);
+          this.mergeLevels(l1, level, currX, currY);
           currX += level.getMap().cols;
         });
 
@@ -356,12 +356,6 @@ RG.Geometry = {
         this.tileLevels(level, levels, {centerX: true, x: 0, y: 0});
       }
       return level;
-    },
-
-    /* Inserts a level inside another one. Function works only for elements, and
-     * sets map cells only. */
-    insertSubLevel: function(l1, l2, startX, startY) {
-        this.mergeLevels(l1, l2, startX, startY);
     },
 
     /* Does a full Map.Level merge from l2 to l1.
