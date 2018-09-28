@@ -1386,11 +1386,21 @@ RG.Component.QuestTarget.prototype.toJSON = function() {
 };
 
 RG.Component.Quest = DataComponent('Quest', {
-    giverComp: null, questTargets: null
+    giver: null, questTargets: null
 });
 
 RG.Component.Quest.prototype._init = function() {
     this.questTargets = [];
+};
+
+RG.Component.Quest.prototype.toJSON = function() {
+    const json = BaseProto.toJSON.call(this);
+    const targets = this.questTargets.map(target => (
+        RG.getObjRef('object', target)
+    ));
+    json.setQuestTargets = targets;
+    json.setGiver = RG.getObjRef('entity', this.giver);
+    return json;
 };
 
 module.exports = RG.Component;
