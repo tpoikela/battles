@@ -252,20 +252,46 @@ QuestGen.prototype._checkIfQuestOver = function(rule) {
 //---------------------------------------------------------------------------
 
 const QuestData = function() {
-    this.stacks = {};
+    this._stacks = {};
     this.path = [];
     this._ptr = {}; // Pointers for iteration
 };
 
+QuestData.mapStepToType = {
+    location: 'place',
+    get: 'item',
+    kill: 'entity',
+    listen: 'entity',
+    read: 'item',
+    rescue: 'entity',
+    capture: 'entity'
+};
+
+/* Adds one target for the quest. */
+QuestData.prototype.add = function(targetType, obj) {
+    if (QuestData.mapStepToType[targetType]) {
+        if (!this._stacks[targetType]) {
+            this._stacks[targetType] = [];
+        }
+        this._stacks[targetType].push(obj);
+        this.path.push({type: targetType, target: obj});
+    }
+    else {
+        const steps = JSON.stringify(QuestData.mapStepToType);
+        RG.err('QuestData', 'add',
+            `Step type ${targetType} not supported. See:\n${steps}`);
+    }
+};
+
 QuestData.prototype.keys = function() {
-    const keys = Object.keys(this.stacks);
+    const keys = Object.keys(this._stacks);
     console.log('QuestData keys returning', keys);
     return keys;
 };
 
 QuestData.prototype.pop = function(targetType) {
-    if (this.stacks[targetType]) {
-        return this.stacks[targetType].pop();
+    if (this._stacks[targetType]) {
+        return this._stacks[targetType].pop();
     }
     return null;
 };
@@ -278,42 +304,56 @@ QuestData.prototype.resetIter = function() {
 };
 
 QuestData.prototype.next = function(targetType) {
-    if (this.stacks[targetType]) {
+    if (this._stacks[targetType]) {
         if (!this._ptr.hasOwnProperty(targetType)) {
             this._ptr[targetType] = 0;
         }
         const ptrVal = this._ptr[targetType];
-        if (ptrVal < this.stacks[targetType].length) {
+        if (ptrVal < this._stacks[targetType].length) {
             ++this._ptr[targetType];
-            return this.stacks[targetType][ptrVal];
+            return this._stacks[targetType][ptrVal];
         }
     }
     return null;
 };
 
 QuestData.prototype.getCurrent = function(targetType) {
-    if (this.stacks[targetType]) {
-        const stack = this.stacks[targetType];
+    if (this._stacks[targetType]) {
+        const stack = this._stacks[targetType];
         return stack[stack.length - 1];
     }
     return null;
 };
 
-QuestData.prototype.add = function(targetType, obj) {
-    if (!this.stacks[targetType]) {
-        this.stacks[targetType] = [];
-    }
-    this.stacks[targetType].push(obj);
-    this.path.push(targetType);
-};
-
 /* Returns human-readable description of the quest. */
 QuestData.prototype.toString = function() {
     let res = '';
-    this.path.forEach(step => {
+    this.path.forEach(pair => {
+        const step = pair.type;
         res += step + ' ' + this.next(step).getName() + '. ';
     });
     return res;
+};
+
+QuestData.prototype.toJSON = function() {
+    const path = [];
+    this.path.forEach(step => {
+        const refType = QuestData.mapStepToType[step.type];
+        if (refType) {
+            path.push(RG.getObjRef(refType, step.target));
+        }
+        else {
+            RG.err('QuestData', 'toJSON',
+                `No refType for step type ${step.type}`);
+        }
+    });
+    path.$objRefArray = true;
+    return {
+        createFunc: 'createQuestData',
+        value: {
+            path
+        }
+    };
 };
 
 //---------------------------------------------------------------------------
@@ -452,5 +492,5 @@ if (runningAsNodeScript) {
 */
 
 module.exports = {
-    Quest, Task, QuestGen, QuestPopulate
+    Quest, Task, QuestData, QuestGen, QuestPopulate
 };
