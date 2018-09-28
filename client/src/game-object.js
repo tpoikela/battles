@@ -19,17 +19,19 @@ const GameObject = function() {
 GameObject.prototype.getID = function() {return this.$objID;};
 GameObject.prototype.setID = function(id) {this.$objID = id;};
 
-GameObject.prototype.getRef = function() {
-    return {'#objRef': this.$objID};
+GameObject.prototype.getObjRef = function() {
+    return {$objRef: {type: 'object', id: this.$objID}};
 };
 
 GameObject.prototype.getRefAndVal = function() {
-    return {'#objRef': this.$objID, value: this};
+    const refObj = this.getObjRef();
+    refObj.value = this;
+    return refObj;
 };
 
 GameObject.prototype.serialize = function() {
     const json = {
-        '#proto': GameObject.getProtoName(this)
+        $proto: GameObject.getProtoName(this)
     };
     for (const key in this) {
         if (this.hasOwnProperty(key)) {
@@ -76,18 +78,18 @@ GameObject.serialize = function(obj) {
     else if (obj.toJSON) {
         return obj.toJSON(); // Legacy support
     }
-    else if (obj['#objRef']) {
-        return {'#objRef': obj.obj.getID()};
+    else if (obj.$objRef) {
+        return {$objRef: obj.value.getID()};
     }
     else {
         return obj;
     }
 };
 
-GameObject.deserialize = function(input, namespace, seenObjs = {}) {
-    const obj = new namespace[input['#proto']]();
+function deserialize(input, namespace, seenObjs = {}) {
+    const obj = new namespace[input.$proto]();
     for (const key in input) {
-        if (input.hasOwnProperty(input)) {
+        if (input.hasOwnProperty(key)) {
             const value = input[key];
             if (GameObject.isPrimitive(value)) {
                 obj[key] = value;
@@ -95,13 +97,13 @@ GameObject.deserialize = function(input, namespace, seenObjs = {}) {
             else if (Array.isArray(value)) {
                 const arr = [];
                 obj.forEach(val => {
-                    arr.push(GameObject.deserialize(val, namespace, seenObjs));
+                    arr.push(deserialize(val, namespace, seenObjs));
                 });
                 obj[key] = arr;
             }
             else if (value.$objID) {
                 if (!seenObjs.hasOwnProperty(value.$objID)) {
-                    obj[key] = GameObject.deserialize(value, seenObjs);
+                    obj[key] = deserialize(value, namespace, seenObjs);
                 }
                 else {
                     obj[key] = seenObjs[value.$objID];
@@ -112,9 +114,10 @@ GameObject.deserialize = function(input, namespace, seenObjs = {}) {
             }
         }
     }
-    delete obj['#proto'];
+    delete obj.$proto;
     /* eslint: enable */
     return obj;
-};
+}
+GameObject.deserialize = deserialize;
 
 module.exports = GameObject;
