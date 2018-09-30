@@ -1,8 +1,7 @@
 
-import Entity from '../../../client/src/entity';
-
 const chai = require('chai');
 const RG = require('../../../client/src/battles');
+const Entity = require('../../../client/src/entity');
 
 const RGTest = require('../../roguetest');
 const ROT = require('../../../lib/rot');

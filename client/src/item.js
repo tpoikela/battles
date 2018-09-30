@@ -1,8 +1,7 @@
 
-import Entity from './entity';
-
 const RG = require('./rg.js');
 RG.Component = require('./component.js');
+const Entity = require('./entity');
 
 const Mixin = require('./mixin');
 

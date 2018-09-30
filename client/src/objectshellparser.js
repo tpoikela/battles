@@ -3,7 +3,7 @@ const RG = require('./rg.js');
 const Objects = require('../data/battles_objects');
 const Actors = require('../data/actors');
 RG.Effects = require('../data/effects');
-require('./factory');
+RG.Brain = require('./brain');
 
 const RNG = RG.Random.getRNG();
 
@@ -27,7 +27,6 @@ RG.ObjectShell.getParser = function() {
 RG.ObjectShell.Creator = function(db, dbNoRandom) {
     this._db = db;
     this._dbNoRandom = dbNoRandom;
-
     /* Maps obj props to function calls. Essentially this maps bunch of setters
      * to different names. Following formats supported:
      *
@@ -67,7 +66,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
             maxPP: {comp: 'SpellPower', func: 'setMaxPP'},
             hp: {comp: 'Health', func: ['setHP', 'setMaxHP']},
             danger: {comp: 'Experience', func: 'setDanger'},
-            brain: {func: 'setBrain', factory: RG.FACT.createBrain}
+            brain: {func: 'setBrain', factory: this.createBrain}
         },
         items: {
             // Generic item functions
@@ -265,9 +264,9 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
         const poisonComp = new RG.Component.Poison();
         poisonComp.setProb(poison.prob);
         poisonComp.setSource(obj);
-        poisonComp.setDamageDie(RG.FACT.createDie(poison.damage));
+        poisonComp.setDamageDie(RG.createDie(poison.damage));
 
-        const dieDuration = RG.FACT.createDie(poison.duration);
+        const dieDuration = RG.createDie(poison.duration);
         poisonComp.setDurationDie(dieDuration);
         const addOnHit = new RG.Component.AddOnHit();
         addOnHit.setComp(poisonComp);
@@ -662,6 +661,17 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
     };
 
 };
+
+RG.ObjectShell.Creator.prototype.createBrain = function(actor, brainName) {
+    if (RG.Brain[brainName]) {
+        return new RG.Brain[brainName](actor);
+    }
+    let msg = `Warning. No brain type |${brainName}| found`;
+    msg += 'Using the default Brain.Rogue instead.';
+    console.warn(msg);
+    return new RG.Brain.Rogue(actor);
+};
+
 
 /* Object handling the procedural generation. It has an object "database" and
  * objects can be pulled randomly from it. */

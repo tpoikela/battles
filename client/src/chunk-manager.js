@@ -3,13 +3,13 @@ const RG = require('./rg');
 const FromJSON = require('./game.fromjson');
 const debug = require('debug')('bitn:ChunkManager');
 
-export const LOAD = Object.freeze(
+const LOAD = Object.freeze(
     {EMPTY: 'EMPTY', LOADED: 'LOADED', JSON: 'JSON', ON_DISK: 'ON_DISK',
         LOADED2JSON: 'LOADED2JSON'});
-export const CREATE = Object.freeze(
+const CREATE = Object.freeze(
     {EMPTY: 'EMPTY', CREATED: 'CREATED', POPULATED: 'POPULATED'});
 
-export function printTileConnections(msg, tileToConnect, id = -1) {
+function printTileConnections(msg, tileToConnect, id = -1) {
     RG.diag(msg);
     if (typeof tileToConnect.getLevel === 'function') {
         if (tileToConnect.getLevel().getID() === id || id === -1) {
@@ -27,14 +27,13 @@ export function printTileConnections(msg, tileToConnect, id = -1) {
     }
     else {
         console.log('Skipping printTileConnections due to json input');
-
     }
 }
 
 /* Chunk manager handles loading/saving of world chunks (World.AreaTiles)
  * from/to memory/disk. It also keeps track of the state of each chunk.
  * */
-export default class ChunkManager {
+class ChunkManager {
 
     constructor(game, area) {
         const [sizeX, sizeY] = [area.getSizeX(), area.getSizeY()];
@@ -429,4 +428,10 @@ export default class ChunkManager {
     }
 }
 
+const Chunk = {};
+Chunk.printTileConnections = printTileConnections;
+Chunk.LOAD = LOAD;
+Chunk.CREATE = CREATE;
+Chunk.ChunkManager = ChunkManager;
 
+module.exports = Chunk;

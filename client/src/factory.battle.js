@@ -2,12 +2,11 @@
 import Constraints from './constraints';
 
 const RG = require('./rg');
-RG.Factory = require('./factory');
-RG.Game = require('./game');
-RG.Game.Battle = require('./game.battle').Battle;
-RG.Game.Army = require('./game.battle').Army;
-RG.World = require('./world');
+const Factory = require('./factory');
+const World = require('./world');
 const GoalsTop = require('./goals-top');
+const Battle = require('./game.battle').Battle;
+const Army = require('./game.battle').Army;
 
 const RNG = RG.Random.getRNG();
 
@@ -15,20 +14,20 @@ const FACTIONS = ['human', 'dwarf', 'dogfolk', 'wolfclan', 'goblin',
     'catfolk', 'bearfolk', 'wildling', 'undead'];
 
 /* Factory used for creating battles. */
-RG.Factory.Battle = function() {
+Factory.Battle = function() {
     this.minCommDanger = 5;
 };
 
 /* Creates one battle into the level. TODO: Decide how to modify difficulty
  * etc. */
-RG.Factory.Battle.prototype.createBattle = function(parentLevel, conf = {}) {
+Factory.Battle.prototype.createBattle = function(parentLevel, conf = {}) {
     const cols = conf.cols || 80;
     const rows = conf.rows || 40;
 
     const id = parentLevel ? parentLevel.getID() : 0;
     const name = conf.name || 'Battle of level ' + id;
 
-    const battle = new RG.Game.Battle(name);
+    const battle = new Battle(name);
     const battleLevel = this.createBattleLevel(cols, rows, conf);
     battle.setLevel(battleLevel);
 
@@ -109,7 +108,7 @@ RG.Factory.Battle.prototype.createBattle = function(parentLevel, conf = {}) {
             parentLevel.addStairs(stairsArea, 4, 4);
         }
 
-        RG.World.addExitsToEdge(battleLevel);
+        World.addExitsToEdge(battleLevel);
 
         const battleExits = battleLevel.getConnections();
         stairsArea.connect(battleExits[0]);
@@ -122,7 +121,7 @@ RG.Factory.Battle.prototype.createBattle = function(parentLevel, conf = {}) {
     return battle;
 };
 
-RG.Factory.Battle.prototype.getFactions = function(conf) {
+Factory.Battle.prototype.getFactions = function(conf) {
     let fact1 = null;
     let fact2 = null;
     if (conf.factions) {
@@ -139,12 +138,12 @@ RG.Factory.Battle.prototype.getFactions = function(conf) {
 };
 
 /* Creates an army of specified faction. */
-RG.Factory.Battle.prototype.createArmy = function(battle, faction, conf) {
+Factory.Battle.prototype.createArmy = function(battle, faction, conf) {
     const parser = RG.ObjectShell.getParser();
     const armySize = conf.armySize || 20;
     const maxDanger = conf.danger || 5;
 
-    const army = new RG.Game.Army(faction);
+    const army = new Army(faction);
     const constr = [
         {op: 'eq', prop: 'type', value: faction},
         {op: 'lte', prop: 'danger', value: maxDanger}
@@ -186,7 +185,7 @@ RG.Factory.Battle.prototype.createArmy = function(battle, faction, conf) {
     return army;
 };
 
-RG.Factory.Battle.prototype.makeArmiesAsEnemies = function(armies) {
+Factory.Battle.prototype.makeArmiesAsEnemies = function(armies) {
     // Make army actors into each others enemies
     armies.forEach(army1 => {
         armies.forEach(army2 => {
@@ -212,7 +211,7 @@ RG.Factory.Battle.prototype.makeArmiesAsEnemies = function(armies) {
     });
 };
 
-RG.Factory.Battle.prototype.createBattleLevel = function(cols, rows, conf) {
+Factory.Battle.prototype.createBattleLevel = function(cols, rows, conf) {
     const levelType = conf.levelType || 'forest';
     const forestConf = RG.getForestConf(cols, rows);
     const battleLevel = RG.FACT.createLevel(levelType, cols, rows,
@@ -220,7 +219,7 @@ RG.Factory.Battle.prototype.createBattleLevel = function(cols, rows, conf) {
     return battleLevel;
 };
 
-RG.Factory.Battle.prototype.addCommanderAbilities = function(actor) {
+Factory.Battle.prototype.addCommanderAbilities = function(actor) {
     const brain = new RG.Brain.GoalOriented(actor);
     const topGoal = new GoalsTop.ThinkCommander(actor);
     actor.setBrain(brain);
@@ -230,5 +229,4 @@ RG.Factory.Battle.prototype.addCommanderAbilities = function(actor) {
     return actor;
 };
 
-module.exports = RG.Factory.Battle;
-
+module.exports = Factory.Battle;

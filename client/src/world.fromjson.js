@@ -14,7 +14,7 @@ RG.Factory = require('./factory');
  * restoring an existing game, which have been added. Do NOT try to refactor
  * these into single class!
  */
-export default class WorldFromJSON {
+class WorldFromJSON {
 
     constructor(id2level, id2entity) {
         this.id2level = id2level;
@@ -268,3 +268,5 @@ export default class WorldFromJSON {
     }
 
 }
+
+module.exports = WorldFromJSON;

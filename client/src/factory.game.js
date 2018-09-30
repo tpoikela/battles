@@ -1,7 +1,6 @@
 
-import Entity from './entity';
-
 const RG = require('./rg');
+const Entity = require('./entity');
 RG.Factory = require('./factory');
 RG.Game = require('./game');
 RG.Element = require('./element');
@@ -164,9 +163,10 @@ FactoryGame.prototype.addActorClass = function(obj, player) {
     if (!obj.playerClass) {return;}
     if (ActorClass.hasOwnProperty(obj.playerClass)) {
         const actorClassComp = new RG.Component.ActorClass();
+        const actorClass = ActorClass.create(obj.playerClass, player);
         actorClassComp.setClassName(obj.playerClass);
+        actorClassComp.setActorClass(actorClass);
         player.add(actorClassComp);
-        const actorClass = actorClassComp.getClass();
 
         const name = obj.playerClass;
         const items = ActorClass.getStartingItems(name);

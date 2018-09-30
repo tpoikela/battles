@@ -3,9 +3,6 @@
 
 const RG = require('./rg');
 
-/* eslint-disable */
-import ChunkManager from './chunk-manager';
-/* eslint-enable */
 
 RG.Verify = require('./verify');
 
@@ -58,11 +55,10 @@ RG.LevelGen = require('../data/level-gen');
 RG.OW = require('./overworld.map');
 RG.Overworld = require('./overworld');
 
-RG.Game.FromJSON = require('./game.fromjson');
+RG.FromJSON = require('./game.fromjson');
+RG.Chunk = require('./chunk-manager');
 
 RG.Factory.Game = require('./factory.game');
-
-RG.ChunkManager = ChunkManager;
 
 module.exports = RG;
 

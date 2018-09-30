@@ -22,7 +22,7 @@ const spliceOne = function(arr, index) {
  * arbitrary properties by attaching components to it. See the basic
  * methods add(), get(), has() and remove() particularly.
  */
-export default class Entity {
+class Entity {
 
     constructor() {
         GameObject.call(this);
@@ -186,3 +186,4 @@ Entity.num.has = 0;
 Entity.num.remove = 0;
 Entity.num.removeAll = 0;
 
+module.exports = Entity;

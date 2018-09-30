@@ -289,6 +289,14 @@ QuestData.prototype.keys = function() {
     return keys;
 };
 
+QuestData.prototype.getPathTypes = function() {
+    return this.path.map(pair => pair.type);
+};
+
+QuestData.prototype.getPathTargets = function() {
+    return this.path.map(pair => pair.target);
+};
+
 QuestData.prototype.pop = function(targetType) {
     if (this._stacks[targetType]) {
         return this._stacks[targetType].pop();
@@ -340,9 +348,14 @@ QuestData.prototype.toJSON = function() {
     this.path.forEach(step => {
         const refType = QuestData.mapStepToType[step.type];
         if (refType) {
-            path.push(RG.getObjRef(refType, step.target));
+            const pathData = {
+                type: step.type,
+                target: RG.getObjRef(refType, step.target)
+            };
+            path.push(pathData);
         }
         else {
+            console.error('Used step is', step);
             RG.err('QuestData', 'toJSON',
                 `No refType for step type ${step.type}`);
         }

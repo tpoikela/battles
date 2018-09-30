@@ -4,6 +4,7 @@
 const RG = require('./rg');
 
 const RNG = RG.Random.getRNG();
+const ObjectShell = require('./objectshellparser');
 
 /* This object is used to randomize item properties during procedural
  * generation.*/
@@ -127,6 +128,11 @@ const FactoryItem = function() {
     /* Called for random items. Adjusts some of their attributes randomly.*/
     const _doItemSpecificAdjustments = (item, val) => {
         this._itemRandomizer.adjustItem(item, val);
+    };
+
+    this.createItem = function(query) {
+        const parser = ObjectShell.getParser();
+        return parser.createRandomItem(query);
     };
 
     /* Adds N random items to the given level. Uses parser to generate the

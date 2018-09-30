@@ -1,8 +1,7 @@
 
-import Entity from '../../../client/src/entity';
-
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles.js');
+const Entity = require('../../../client/src/entity');
 
 RG.Component = require('../../../client/src/component');
 

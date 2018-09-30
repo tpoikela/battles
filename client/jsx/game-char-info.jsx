@@ -75,6 +75,9 @@ export default class GameCharInfo extends Component {
     else if (this.state.tabShown === 'Battles') {
       return this.renderBattlesTab(actor);
     }
+    else if (this.state.tabShown === 'Quests') {
+      return this.renderQuestsTab(actor);
+    }
     return null;
   }
 
@@ -94,6 +97,9 @@ export default class GameCharInfo extends Component {
         <button className='tab-select-button'
           onClick={this.selectTab.bind(this, 'Battles')}
         >Battles</button>
+        <button className='tab-select-button'
+          onClick={this.selectTab.bind(this, 'Quests')}
+        >Quests</button>
       </ul>
       );
 
@@ -210,6 +216,27 @@ export default class GameCharInfo extends Component {
         <div className='col-md-6' id='char-info-box'>
           <h2>Battles fought</h2>
           <ul>{battlesElem}</ul>
+        </div>
+      </div>
+    );
+  }
+
+  renderQuestsTab(actor) {
+    const quests = actor.getList('Quest');
+    const questsElem = quests.map(quest => (
+      <li key={quest.getID()}>
+        <p>
+          {quest.toString()}
+        </p>
+      </li>
+
+    ));
+
+    return (
+      <div className='modal-body row' id='char-info-quests'>
+        <div className='col-md-6' id='char-info-box'>
+          <h2>Quests received:</h2>
+          <ul>{questsElem}</ul>
         </div>
       </div>
     );

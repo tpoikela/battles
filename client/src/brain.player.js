@@ -948,17 +948,19 @@ class BrainPlayer {
     }
 
     processMenuSelection(code) {
-        if (this._selectionObject !== null) {
+        // if (this._selectionObject) {
+        if (Menu.isMenuItem(this._selectionObject)) {
           if (this._selectionObject.showMsg) {
               this._selectionObject.showMsg();
           }
           const selection = this._selectionObject.select(code);
           // function terminates the selection
-          if (typeof selection === 'function') {
+          if (Menu.isSelectionDone(selection)) {
+            console.log('Brain.Player processMenuSel got FUNC');
             this.selectionDone();
             return selection;
           } // object returns another selection
-          else if (selection && typeof selection === 'object') {
+          else if (Menu.isMenuItem(selection)) {
             this._selectionObject = selection;
             if (selection.funcToCall) {
               this.selectionDone();

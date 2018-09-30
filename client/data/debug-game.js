@@ -271,6 +271,9 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     questPopul.mapQuestToResources(quest, city, null);
     questPopul.addQuestComponents(city);
 
+    const giver = level.getActors().find(actor => actor.has('QuestGiver'));
+    level.moveActorTo(giver, pX + 1, pY);
+
     return game;
 };
 

@@ -3,6 +3,7 @@
 
 const RG = require('./rg');
 const Keys = require('./keymap');
+const Menu = require('./menu');
 
 const Chat = {};
 const stats = RG.STATS;
@@ -45,15 +46,20 @@ class ChatBase {
             select: code => {
                 const selection = Keys.codeToIndex(code);
                 if (selection < this.options.length) {
+                    console.log('ChatBase got sel', selection);
                     const value = this.options[selection].option;
                     if (value.getSelectionObject) {
                         return value.getSelectionObject();
                     }
+                    console.log('ChatBase ret value', value);
                     return value;
                 }
-                return null;
+                return Menu.EXIT_MENU;
             }
         };
+        if (this.pre) {
+            selObj.pre = this.pre;
+        }
         return selObj;
     }
 
@@ -71,18 +77,23 @@ class ChatQuest extends ChatBase {
         };
         const refuseOpt = {
             name: 'Refuse the quest',
-            option: null
+            option: Menu.EXIT_MENU
         };
         this.add(acceptOpt);
         this.add(refuseOpt);
     }
 
-    getSelectionObject() {
+    /* getSelectionObject() {
         return this.selectionObject;
-    }
+    }*/
 
     setQuestGiver(giver) {
         this.questGiver = giver;
+        const qLen = 'lengthy';
+        this.pre = [
+            `${giver.getName} wants to offer a ${qLen} quest.`,
+            'What do you want to do?'
+        ];
     }
 
     setTarget(target) {

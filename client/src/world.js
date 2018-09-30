@@ -4,7 +4,6 @@
  */
 
 const RG = require('./rg.js');
-RG.Factory = require('./factory');
 const GameObject = require('./game-object');
 const debug = require('debug')('bitn:world');
 

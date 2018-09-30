@@ -3,7 +3,6 @@ const RG = require('./rg.js');
 const Mixin = require('./mixin');
 
 RG.Chat = require('./chat');
-RG.ActorClass = require('./actor-class');
 RG.Component = require('./component.base');
 const Ability = require('./abilities');
 
@@ -732,12 +731,17 @@ RG.Component.ActorClass = function() {
     this.getClassName = () => _className;
 
     this.getClass = () => _class;
+    this.setActorClass = actorClass => {
+        _class = actorClass;
+    };
 
+    /*
     const _addCb = () => {
         _class = RG.ActorClass.create(_className, this.getEntity());
     };
 
     this.addCallback('onAdd', _addCb);
+    */
 };
 RG.extend2(RG.Component.ActorClass, RG.Component.Base);
 
@@ -1375,7 +1379,7 @@ RG.Component.QuestGiver.prototype.toJSON = function() {
     return json;
 };
 
-RG.Component.QuestGiver.getChatObj = function() {
+RG.Component.QuestGiver.prototype.getChatObj = function() {
     return this.chatObj;
 };
 
@@ -1383,6 +1387,14 @@ RG.Component.QuestGiver.getChatObj = function() {
 RG.Component.QuestTarget = DataComponent('QuestTarget',
     {targetType: '', target: null}
 );
+
+RG.Component.QuestTarget.prototype.toString = function() {
+    let name = '';
+    if (this.target.getName) {
+        name = this.target.getName();
+    }
+    return `${this.targetType} ${name}`;
+};
 
 RG.Component.QuestTarget.prototype.toJSON = function() {
     const json = BaseProto.toJSON.call(this);
@@ -1406,6 +1418,14 @@ RG.Component.Quest.prototype._init = function() {
 
 RG.Component.Quest.prototype.addTarget = function(target) {
     this.questTargets.push(target);
+};
+
+RG.Component.Quest.prototype.toString = function() {
+    let res = '';
+    this.questTargets.forEach(target => {
+        res += target.toString();
+    });
+    return res;
 };
 
 RG.Component.Quest.prototype.toJSON = function() {

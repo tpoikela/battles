@@ -40,7 +40,9 @@ describe('Game.Save how saving works', () => {
 
         const json = game.toJSON();
         const fromJSON = new RG.Game.FromJSON();
-        const restGame = fromJSON.createGame(json);
+
+        let restGame = new RG.Game.Main();
+        restGame = fromJSON.createGame(restGame, json);
         const restPlayer = restGame.getPlayer();
         expect(restPlayer, 'Player restored OK').to.exist;
         expect(restPlayer.getName()).to.equal(player.getName());
@@ -77,7 +79,9 @@ describe('Game.Save how saving works', () => {
         let json = game.toJSON();
         let fromJSON = new RG.Game.FromJSON();
         gameSave.savePlayer(game);
-        let restGame = fromJSON.createGame(json);
+        let restGame = null;
+        restGame = new RG.Game.Main();
+        restGame = fromJSON.createGame(restGame, json);
 
         let restPlayer = restGame.getPlayer();
         let invItems = restPlayer.getInvEq().getInventory().getItems();
@@ -99,7 +103,9 @@ describe('Game.Save how saving works', () => {
         json = game.toJSON();
         fromJSON = new RG.Game.FromJSON();
         gameSave.savePlayer(game);
-        restGame = fromJSON.createGame(json);
+
+        restGame = new RG.Game.Main();
+        restGame = fromJSON.createGame(restGame, json);
         restPlayer = restGame.getPlayer();
         invItems = restPlayer.getInvEq().getInventory().getItems();
         expect(invItems.length).to.equal(2);

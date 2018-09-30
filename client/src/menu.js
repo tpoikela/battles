@@ -64,6 +64,14 @@ const createMenuTable = args => {
     return table;
 };
 
+Menu.isSelectionDone = function(selection) {
+    return typeof selection === 'function';
+};
+
+Menu.isMenuItem = function(selection) {
+    return selection && typeof selection === 'object';
+};
+
 //------------------------------
 /* Base class for all menus. */
 //------------------------------

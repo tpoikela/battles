@@ -3,9 +3,8 @@
  * elements like stairs.
  */
 
-import Entity from './entity';
-
 const RG = require('./rg.js');
+const Entity = require('./entity');
 const Mixin = require('./mixin');
 
 RG.Element = {};

@@ -1,11 +1,13 @@
 
 const RG = require('./rg.js');
 require('./eventpool');
-const GameObject = require('./game-object');
+// const GameObject = require('./game-object');
+const Entity = require('./game-object');
+const Random = require('./random');
 
 const {TYPE_ACTOR, TYPE_ELEM, TYPE_ITEM} = RG;
 
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 
 /* Possible callbacks:
  * showMsg: {msg: 'my msg'}
@@ -28,32 +30,35 @@ LevelCallback.prototype.toJSON = function() {
 };
 
 /* Object for the game levels. Contains map, actors and items.  */
-const Level = function() {
-    GameObject.call(this);
-    this._map = null;
-    this._parent = null; // Reference to dungeon,city,mountain...
+// const Level = function() {
+class Level extends Entity {
+    constructor() {
+        super();
+        // GameObject.call(this);
+        this._map = null;
+        this._parent = null; // Reference to dungeon,city,mountain...
 
-    // Level properties
-    this._p = {
-        actors: [],
-        items: [],
-        elements: []
-    };
+        // Level properties
+        this._p = {
+            actors: [],
+            items: [],
+            elements: []
+        };
 
-    this._levelNo = 0;
+        this._levelNo = 0;
 
-    //-----------------------------------------------------------------
-    // CALLBACKS
-    //----------------------------------------------------------------
-    this._callbacks = {};
+        //-----------------------------------------------------------------
+        // CALLBACKS
+        //----------------------------------------------------------------
+        this._callbacks = {};
 
-    this._cbState = {
-        onFirstEnterDone: false,
-        onFirstExitDone: false
-    };
-
-};
-RG.extend2(Level, GameObject);
+        this._cbState = {
+            onFirstEnterDone: false,
+            onFirstExitDone: false
+        };
+    }
+}
+RG.extend2(Level, Entity);
 
 Level.prototype.setLevelNumber = function(no) {this._levelNo = no;};
 Level.prototype.getLevelNumber = function() {
@@ -268,6 +273,7 @@ Level.prototype.pickupItem = function(actor, x, y) {
 
 /* Moves the given object to x,y. */
 Level.prototype.moveActorTo = function(obj, x, y) {
+    // Note that source level may be different than this level
     const level = obj.getLevel();
     const [oX, oY] = [obj.getX(), obj.getY()];
     const propType = obj.getPropType();
@@ -608,7 +614,8 @@ Level.prototype.toJSON = function() {
 };
 
 Level.createLevelID = () => {
-    return GameObject.createObjectID();
+    return Entity.createEntityID();
+    // return GameObject.createObjectID();
 };
 
 module.exports = Level;

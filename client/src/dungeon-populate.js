@@ -1,8 +1,7 @@
 
-const RG = require('./rg.js');
+const RG = require('./rg');
 const Geometry = require('./geometry');
 const Evaluator = require('./evaluators');
-RG.ObjectShell = require('./objectshellparser');
 
 const {FactoryItem} = require('./factory.items');
 const {FactoryActor} = require('./factory.actors');
@@ -167,7 +166,6 @@ DungeonPopulate.prototype.addPointGuardian = function(level, point, maxDanger) {
 };
 
 DungeonPopulate.prototype.getEndPointGuardian = function(maxDanger) {
-    const parser = RG.ObjectShell.getParser();
     let currDanger = maxDanger;
     let guardian = null;
     let actorFunc = actor => actor.danger <= currDanger;
@@ -178,14 +176,13 @@ DungeonPopulate.prototype.getEndPointGuardian = function(maxDanger) {
     }
     while (!guardian && currDanger > 0) {
         // TODO add some theming for the guardian
-        guardian = parser.createRandomActor({func: actorFunc});
+        guardian = this._actorFact.createRandomActor({func: actorFunc});
         --currDanger;
     }
     return guardian;
 };
 
 DungeonPopulate.prototype.addMainLoot = function(level, center, maxValue) {
-    const parser = RG.ObjectShell.getParser();
     const [cx, cy] = center;
     // Add main loot
     // 1. Scale is from 2-4 normal value, this scales the
@@ -193,7 +190,7 @@ DungeonPopulate.prototype.addMainLoot = function(level, center, maxValue) {
     const scaleLoot = RNG.getUniformInt(2, 3);
     const maxPrizeValue = scaleLoot * maxValue;
     const minPrizeValue = (scaleLoot - 1) * maxValue;
-    const lootPrize = parser.createRandomItem(
+    const lootPrize = this._itemFact.createItem(
         {func: item => item.value >= minPrizeValue
             && item.value <= maxPrizeValue}
     );

@@ -2,11 +2,10 @@
 const RG = require('./rg.js');
 // const debug = require('debug')('bitn:Factory.Base');
 
-RG.Map = require('./map.js');
-RG.Map.Generator = require('./map.generator');
-RG.Map.Level = require('./level');
+const Cell = require('./map.cell');
+const Level = require('./level');
+const MapGenerator = require('./map.generator');
 RG.Verify = require('./verify');
-RG.World = require('./world');
 
 const {FactoryActor} = require('./factory.actors');
 const {FactoryItem} = require('./factory.items');
@@ -14,8 +13,10 @@ const DungeonPopulate = require('./dungeon-populate');
 
 const RNG = RG.Random.getRNG();
 
+const Factory = {};
+
 /* Returns a basic configuration for a city level. */
-RG.Factory.cityConfBase = conf => {
+Factory.cityConfBase = conf => {
     const userConf = conf || {};
     const obj = {
         nHouses: 10, minHouseX: 5, maxHouseX: 10, minHouseY: 5,
@@ -29,15 +30,15 @@ RG.Factory.cityConfBase = conf => {
     return result;
 };
 
-RG.Factory.addPropsToFreeCells = function(level, props, type) {
+Factory.addPropsToFreeCells = function(level, props, type) {
     const freeCells = level.getMap().getFree();
-    RG.Factory.addPropsToCells(level, freeCells, props, type);
+    Factory.addPropsToCells(level, freeCells, props, type);
 };
 
 /* Adds to the given level, and its cells, all props given in the list. Assumes
  * that all props are of given type (placement function is different for
  * different types. */
-RG.Factory.addPropsToCells = function(level, cells, props, type) {
+Factory.addPropsToCells = function(level, cells, props, type) {
     for (let i = 0; i < props.length; i++) {
         if (cells.length > 0) {
             const index = RNG.randIndex(cells);
@@ -49,7 +50,7 @@ RG.Factory.addPropsToCells = function(level, cells, props, type) {
                 level.addItem(props[i], cell.getX(), cell.getY());
             }
             else {
-                RG.err('RG.Factory', 'addPropsToCells',
+                RG.err('Factory', 'addPropsToCells',
                     `Type ${type} not supported`);
             }
             cells.splice(index, 1); // remove used cell
@@ -65,18 +66,14 @@ RG.Factory.addPropsToCells = function(level, cells, props, type) {
 
 /* Factory object for creating some commonly used objects. Because this is a
 * global object RG.FACT, no state should be used. */
-RG.Factory.Base = function() {
+Factory.Base = function() {
     this._verif = new RG.Verify.Conf('Factory.Base');
     this._actorFact = new FactoryActor();
     this._itemFact = new FactoryItem();
 
     /* Creates a new die object from array or die expression '2d4 + 3' etc.*/
     this.createDie = strOrArray => {
-        const numDiceMod = RG.parseDieSpec(strOrArray);
-        if (numDiceMod.length === 3) {
-            return new RG.Die(numDiceMod[0], numDiceMod[1], numDiceMod[2]);
-        }
-        return null;
+        return RG.createDie(strOrArray);
     };
 
     /* Factory method for players.*/
@@ -106,19 +103,19 @@ RG.Factory.Base = function() {
     };
 
     this.createFloorCell = (x, y) =>
-        new RG.Map.Cell(x, y, new RG.Element.Base('floor'));
+        new Cell(x, y, new RG.Element.Base('floor'));
 
     this.createWallCell = (x, y) =>
-        new RG.Map.Cell(x, y, new RG.Element.Base('wall'));
+        new Cell(x, y, new RG.Element.Base('wall'));
 
     this.createSnowCell = (x, y) =>
-        new RG.Map.Cell(x, y, new RG.Element.Base('snow'));
+        new Cell(x, y, new RG.Element.Base('snow'));
 
     /* Factory method for creating levels.*/
     this.createLevel = function(levelType, cols, rows, conf) {
-        const mapgen = new RG.Map.Generator();
+        const mapgen = new MapGenerator();
         let mapObj = null;
-        const level = new RG.Map.Level(cols, rows);
+        const level = new Level(cols, rows);
         mapgen.setGen(levelType, cols, rows);
 
         if (levelType === 'empty') {
@@ -222,7 +219,7 @@ RG.Factory.Base = function() {
     /* Creates a randomized level for the game. Danger level controls how the
      * randomization is done. */
     this.createRandLevel = function(cols, rows) {
-        const levelType = RG.Map.Generator.getRandType();
+        const levelType = MapGenerator.getRandType();
         const level = this.createLevel(levelType, cols, rows);
         return level;
     };
@@ -247,7 +244,7 @@ RG.Factory.Base = function() {
         if (!actors) {
             return 0;
         }
-        RG.Factory.addPropsToFreeCells(level, actors, RG.TYPE_ACTOR);
+        Factory.addPropsToFreeCells(level, actors, RG.TYPE_ACTOR);
         return actors.length;
     };
 
@@ -292,7 +289,7 @@ RG.Factory.Base = function() {
                 actors.push(actor);
             }
             else {
-                RG.diag('RG.Factory Could not meet constraints for actor gen');
+                RG.diag('Factory Could not meet constraints for actor gen');
                 // return false;
             }
 
@@ -353,7 +350,7 @@ RG.Factory.Base = function() {
 
 };
 
-RG.FACT = new RG.Factory.Base();
+RG.FACT = new Factory.Base();
 
 
-module.exports = RG.Factory;
+module.exports = Factory;

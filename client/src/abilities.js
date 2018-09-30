@@ -1,8 +1,9 @@
 
 const RG = require('./rg');
 const Menu = require('./menu');
+const Random = require('./random');
 
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 
 /* This file contains usable actor ability definitions. */
 const Ability = {};

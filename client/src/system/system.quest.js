@@ -14,13 +14,12 @@ System.Quest.prototype.updateEntity = function(ent) {
     if (ent.has('GiveQuest')) {
         const giveComp = ent.get('GiveQuest');
         this.processGiveComp(ent, giveComp);
-        ent.remove(giveComp); // After dealing damage, remove comp
+        ent.remove(giveComp);
     }
     if (ent.has('QuestCompleted')) {
         const complComp = ent.get('QuestCompleted');
         this.processCompleteComp(ent, complComp);
-        ent.remove(complComp); // After dealing damage, remove comp
-
+        ent.remove(complComp);
     }
 };
 
@@ -30,6 +29,11 @@ System.Quest.prototype.processGiveComp = function(ent, comp) {
     const questData = giverComp.getQuestData();
     const questKeys = questData.keys();
     const questComp = new RG.Component.Quest();
+
+    if (questKeys.length === 0) {
+        RG.err('System.Quest', 'processGiveComp',
+            `No keys in questData, giver: ${giver.getName}`);
+    }
 
     questData.resetIter();
     questKeys.forEach(key => {
@@ -42,8 +46,10 @@ System.Quest.prototype.processGiveComp = function(ent, comp) {
             questTarget = questData.next(key);
         }
     });
-    questComp.setQuestData(questData);
+    // questComp.setQuestData(questData);
+    questComp.setGiver(giver);
     ent.add(questComp);
+    console.log('SystemQuest added Quest to', ent.getName());
 };
 
 /*

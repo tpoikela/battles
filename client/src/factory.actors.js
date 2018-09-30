@@ -3,6 +3,7 @@
 const RG = require('./rg');
 RG.Actor = require('./actor');
 RG.Brain = require('./brain');
+const ObjectShell = require('./objectshellparser');
 
 const initCombatant = (comb, obj) => {
     const {hp, att, def, prot} = obj;
@@ -42,6 +43,12 @@ const FactoryActor = function() {
         player.setIsPlayer(true);
         initCombatant(player, obj);
         return player;
+
+    };
+
+    this.createRandomActor = function(query) {
+        const parser = ObjectShell.getParser();
+        return parser.createRandomActor(query);
     };
 
     /* Factory method for non-player actors. */

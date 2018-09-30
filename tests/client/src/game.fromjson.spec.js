@@ -131,7 +131,9 @@ describe('RG.Game.FromJSON', function() {
         game.addLevel(level2);
 
         const json = game.toJSON();
-        const newGame = fromJSON.createGame(json);
+
+        let newGame = new Game.Main();
+        newGame = fromJSON.createGame(newGame, json);
         const newLevels = newGame.getLevels();
         expect(newLevels).to.have.length(2);
 
@@ -157,7 +159,8 @@ describe('RG.Game.FromJSON', function() {
         game.addLevel(level);
         game.addPlayer(player);
         const json = game.toJSON();
-        const newGame = fromJSON.createGame(json);
+        let newGame = new Game.Main();
+        newGame = fromJSON.createGame(newGame, json);
         const newPlayer = newGame.getPlayer();
         expect(newPlayer.getName()).to.equal('MyPlayer');
     });
@@ -292,7 +295,8 @@ describe('RG.Game.FromJSON', function() {
         }
 
         const json = game.toJSON();
-        const newGame = fromJSON.createGame(json);
+        let newGame = new Game.Main();
+        newGame = fromJSON.createGame(newGame, json);
 
         for (let i = 0; i < 500; i++) {
             newGame.simulateGame();
@@ -331,7 +335,8 @@ describe('RG.Game.FromJSON', function() {
         expect(player.getBook()).to.not.be.empty;
 
         const json = game.toJSON();
-        const newGame = fromJSON.createGame(json);
+        let newGame = new Game.Main();
+        newGame = fromJSON.createGame(newGame, json);
         const newPlayer = newGame.getPlayer();
         expect(newPlayer.getName()).to.equal('MyPlayer');
 
@@ -470,6 +475,7 @@ describe('RG.Game.FromJSON', function() {
         const questData = new QuestData();
         questData.add('location', level);
         questData.add('kill', killTarget);
+        expect(questData.getPathTypes()).to.deep.equal(['location', 'kill']);
 
         const giverComp = new RG.Component.QuestGiver(questData);
         giver.add(giverComp);
@@ -489,7 +495,8 @@ describe('RG.Game.FromJSON', function() {
         const json = game.toJSON();
 
         console.log('Creating game now');
-        const newGame = fromJSON.createGame(json);
+        let newGame = new Game.Main();
+        newGame = fromJSON.createGame(newGame, json);
         console.log('Finished creating game now');
 
         const restLevel = newGame.getLevels()[0];
@@ -514,5 +521,12 @@ describe('RG.Game.FromJSON', function() {
         const newGiverComp = newGiver.get('QuestGiver');
         const newQuestData = newGiverComp.getQuestData();
         expect(newQuestData.path).to.have.length(2);
+
+        expect(newQuestData.path).to.have.length(2);
+        const pathTypes = newQuestData.getPathTypes();
+        expect(pathTypes).to.deep.equal(['location', 'kill']);
+
+        const pathTargets = newQuestData.getPathTargets();
+        expect(pathTargets).to.deep.equal([restLevel, newKillTarget]);
     });
 });

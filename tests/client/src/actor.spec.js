@@ -1,7 +1,8 @@
 
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
-const Actor = require('../../../client/src/actor.js');
+const Actor = require('../../../client/src/actor');
+const ActorClass = require('../../../client/src/actor-class');
 
 describe('Rogue.Actor', () => {
 
@@ -143,9 +144,14 @@ describe('Rogue.Actor', () => {
 
     it('can have an actor class', () => {
         const archer = new RG.Actor.Rogue('archer');
-        const actorClass = new RG.Component.ActorClass();
-        actorClass.setClassName('Marksman');
-        archer.add(actorClass);
+        const actorClassComp = new RG.Component.ActorClass();
+        const actorClass = ActorClass.create('Marksman', archer);
+        actorClassComp.setClassName('Marksman');
+        actorClassComp.setActorClass(actorClass);
+        archer.add(actorClassComp);
         RG.levelUpActor(archer, 2);
+
+        const compJSON = actorClassComp.toJSON();
+        expect(compJSON.setClassName).to.equal('Marksman');
     });
 });

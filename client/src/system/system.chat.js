@@ -28,9 +28,11 @@ System.Chat.prototype.updateEntity = function(ent) {
                 else if (actor.has('QuestGiver')) {
                     this.setChatObject(ent, actor, 'QuestGiver');
                 }
-                // TODO spirits react differently
-                const msg = `You chat with ${actor.getName()} for a while.`;
-                RG.gameMsg({cell, msg});
+                else {
+                    // TODO spirits react differently
+                    const msg = `You chat with ${actor.getName()} for a while.`;
+                    RG.gameMsg({cell, msg});
+                }
             });
         }
         else {
@@ -50,8 +52,15 @@ System.Chat.prototype.setChatObject = function(ent, srcActor, compType) {
     const chatObj = srcActor.get(compType).getChatObj();
     chatObj.setTarget(ent);
     const selObj = chatObj.getSelectionObject();
-    const entBrain = ent.getBrain();
-    entBrain.setSelectionObject(selObj);
+    if (selObj) {
+        const entBrain = ent.getBrain();
+        entBrain.setSelectionObject(selObj);
+    }
+    else {
+        const srcName = srcActor.getName();
+        RG.err('System.Chat', 'setChatObject',
+            `Null/undef selectObj with type ${compType}, src: ${srcName}`);
+    }
 };
 
 module.exports = System.Chat;

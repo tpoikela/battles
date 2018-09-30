@@ -376,7 +376,8 @@ class BattlesTop extends Component {
 
                 // Pick JSON matching the selected player name
                 const json = result;
-                const restGame = fromJSON.createGame(json);
+                const game = new RG.Game.Main();
+                const restGame = fromJSON.createGame(game, json);
                 const player = restGame.getPlayer();
                 if (player !== null) {
                     this.gameConf.loadedPlayer = player;
@@ -473,7 +474,8 @@ class BattlesTop extends Component {
             else {
                 const gameJSON = JSON.parse(e.data);
                 const fromJSON = new RG.Game.FromJSON();
-                const game = fromJSON.createGame(gameJSON);
+                let game = new RG.Game.Main();
+                game = fromJSON.createGame(game, gameJSON);
 
                 this.game = game;
                 this.initBeforeNewGame();
@@ -797,7 +799,8 @@ class BattlesTop extends Component {
         }
         else {
             const fromJSON = new RG.Game.FromJSON();
-            const restGame = fromJSON.createGame(jsonData);
+            const game = new RG.Game.Main();
+            const restGame = fromJSON.createGame(game, jsonData);
             const player = restGame.getPlayer();
             if (player !== null) {
                 this.initRestoredGame(restGame);

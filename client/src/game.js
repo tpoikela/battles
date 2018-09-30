@@ -1,19 +1,16 @@
 
-import Entity from './entity';
-import ChunkManager from './chunk-manager';
-
 const RG = require('./rg');
 RG.System = require('./system');
 RG.Map = require('./map');
 RG.Time = require('./time');
-
+const Entity = require('./entity');
+const {ChunkManager} = require('./chunk-manager');
 RG.EventPool = require('./eventpool');
-
-RG.Game = {};
-
 const Engine = require('./engine');
 const GameMaster = require('./game.master');
 const GameObject = require('./game-object');
+
+RG.Game = {};
 
 /* Top-level main object for the game.  */
 RG.Game.Main = function() {

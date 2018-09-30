@@ -1,7 +1,6 @@
 
-import Entity from '../../client/src/entity';
-
 const Level = require('../../client/src/level');
+const Entity = require('../../client/src/entity');
 
 module.exports = function(chai, utils) {
     const Assertion = chai.Assertion;

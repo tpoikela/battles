@@ -1,11 +1,10 @@
 
-import Entity from '../../../client/src/entity';
-
 const chaiBattles = require('../../helpers/chai-battles.js');
 const chai = require('chai');
 const RG = require('../../../client/src/battles');
 const RGTest = require('../../roguetest');
 const worldConf = require('../../../client/data/conf.world');
+const Entity = require('../../client/src/entity');
 
 const expect = chai.expect;
 chai.use(chaiBattles);

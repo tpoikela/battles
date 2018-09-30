@@ -1,14 +1,14 @@
 
-import Entity from './entity';
-
 const RG = require('./rg');
+const Entity = require('./entity');
+const Mixin = require('./mixin');
+
 RG.Component = require('./component');
 RG.Brain = require('./brain.virtual');
 RG.Brain.Player = require('./brain.player');
 RG.Inv = require('./inv');
 RG.Spell = require('./spell');
 RG.Time = require('./time');
-const Mixin = require('./mixin');
 
 RG.Actor = {};
 

@@ -4,13 +4,13 @@ const RG = require('./rg');
 const Menu = require('./menu');
 RG.Component = require('./component');
 RG.Spell = require('./spell');
-RG.Random = require('./random');
+const Random = require('./random');
 const Ability = require('./abilities');
 const EquipSlot = require('./equipment').EquipSlot;
 
 const {Abilities} = Ability;
 
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 
 /* Factory function for actor classes. */
 ActorClass.create = function(name, entity) {

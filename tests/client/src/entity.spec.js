@@ -1,9 +1,9 @@
 
 import { expect } from 'chai';
-import Entity from '../../../client/src/entity';
 
 const RG = require('../../../client/src/rg');
 RG.Component = require('../../../client/src/component');
+const Entity = require('../../../client/src/entity');
 
 describe('Entity', () => {
 

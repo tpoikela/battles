@@ -1,12 +1,13 @@
 
 import { expect } from 'chai';
 
-import ChunkManager, {LOAD} from '../../../client/src/chunk-manager';
-
 const RG = require('../../../client/src/battles');
 RG.World = require('../../../client/src/world');
-
 const RGTest = require('../../roguetest');
+const Chunk = require('../../../client/src/chunk-manager');
+
+console.log('Chunk is', Chunk);
+const {ChunkManager, LOAD} = Chunk;
 
 describe('ChunkManager', function() {
     this.timeout(60000);
@@ -168,7 +169,8 @@ describe('ChunkManager', function() {
         let fromJSON = new RG.Game.FromJSON();
         fromJSON.setChunkMode(true);
 
-        let newGame = fromJSON.createGame(json);
+        let newGame = new RG.Game.Main();
+        newGame = fromJSON.createGame(newGame, json);
         expect(newGame).to.exist;
 
         const newManager = newGame.getChunkManager();
@@ -194,7 +196,8 @@ describe('ChunkManager', function() {
 
         fromJSON = new RG.Game.FromJSON();
         fromJSON.setChunkMode(true);
-        newGame = fromJSON.createGame(json);
+        newGame = new RG.Game.Main();
+        newGame = fromJSON.createGame(newGame, json);
 
         // Simulate player moving around overworld levels
         game.movePlayer(2, 1);
@@ -211,7 +214,8 @@ describe('ChunkManager', function() {
         json = newGame.toJSON();
         fromJSON = new RG.Game.FromJSON();
         fromJSON.setChunkMode(true);
-        newGame = fromJSON.createGame(json);
+        newGame = new RG.Game.Main();
+        newGame = fromJSON.createGame(newGame, json);
 
         // Get num of connections now, compare to prev number
         levels = newGame.getLevels();

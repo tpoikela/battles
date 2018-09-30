@@ -1776,6 +1776,15 @@ RG.Die.prototype.toJSON = function() {
     return [this._num, this._dice, this._mod];
 };
 
+/* Creates a new die object from array or die expression '2d4 + 3' etc.*/
+RG.createDie = strOrArray => {
+    const numDiceMod = RG.parseDieSpec(strOrArray);
+    if (numDiceMod.length === 3) {
+        return new RG.Die(numDiceMod[0], numDiceMod[1], numDiceMod[2]);
+    }
+    return null;
+};
+
 /* Function to check if given action succeeds given it's probability. */
 RG.isSuccess = function(prob) {
     return RG.DIE_RNG.getUniform() <= prob;

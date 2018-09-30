@@ -1,10 +1,8 @@
 
-import WorldFromJSON from './world.fromjson';
 
 const debug = require('debug')('bitn:Game.FromJSON');
 
 const RG = require('./rg');
-RG.Game = require('./game');
 const OW = require('./overworld.map');
 const Battle = require('./game.battle').Battle;
 const Army = require('./game.battle').Army;
@@ -13,6 +11,7 @@ const Evaluator = require('./evaluators');
 const Territory = require('./territory');
 const GameObject = require('./game-object');
 const {QuestData} = require('./quest-gen');
+const WorldFromJSON = require('./world.fromjson');
 
 /* Object for converting serialized JSON objects to game objects. Note that all
  * actor/level ID info is stored between uses. If you call restoreLevel() two
@@ -84,20 +83,24 @@ FromJSON.prototype.addObjRef = function(type, obj) {
 
 /* Returns an object of requested type. */
 FromJSON.prototype.getObjByRef = function(requestObj) {
-    if (requestObj.type === 'entity') {
-        return this.id2entity[requestObj.id];
+    let objRef = null;
+    if (requestObj.$objRef) {objRef = requestObj.$objRef;}
+    else {objRef = requestObj;}
+
+    if (objRef.type === 'entity') {
+        return this.id2entity[objRef.id];
     }
-    else if (requestObj.type === 'level') {
-        return this.id2level[requestObj.id];
+    else if (objRef.type === 'level') {
+        return this.id2level[objRef.id];
     }
-    else if (requestObj.type === 'object') {
-        return this.id2Object[requestObj.id];
+    else if (objRef.type === 'object') {
+        return this.id2Object[objRef.id];
     }
-    else if (requestObj.type === 'component') {
-        return this.id2Component[requestObj.id];
+    else if (objRef.type === 'component') {
+        return this.id2Component[objRef.id];
     }
-    else if (requestObj.type === 'place') {
-        return this.id2Place[requestObj.id];
+    else if (objRef.type === 'place') {
+        return this.id2Place[objRef.id];
     }
     return null;
 };
@@ -108,7 +111,7 @@ FromJSON.prototype.getObjByRef = function(requestObj) {
 
 /* Main function to call when restoring a game. When given Game.Main in
  * serialized JSON, returns the restored Game.Main object. */
-FromJSON.prototype.createGame = function(gameJSON) {
+FromJSON.prototype.createGame = function(game, gameJSON) {
     if (typeof gameJSON === 'string') {
         RG.err('Game.FromJSON', 'createGame',
             'An object must be given instead of string');
@@ -116,7 +119,7 @@ FromJSON.prototype.createGame = function(gameJSON) {
     this.dbg('createGame: Restoring now full game');
     this.IND = 1;
 
-    const game = new RG.Game.Main();
+    // const game = new RG.Game.Main();
     this.setGlobalConfAndObjects(game, gameJSON);
     if (gameJSON.chunkManager) {
         this.setChunkMode(true);
@@ -395,13 +398,12 @@ FromJSON.prototype.getCompValue = function(
 };
 
 FromJSON.prototype.createQuestData = function(json) {
-    console.log('createQuestData now');
+    console.log('createQuestData now with', JSON.stringify(json));
     const questData = new QuestData();
-    const path = [];
-    json.path.forEach(objRef => {
-        path.push(this.getObjByRef(objRef.$objRef));
+    json.path.forEach(pathData => {
+        const target = this.getObjByRef(pathData.target.$objRef);
+        questData.add(pathData.type, target);
     });
-    questData.path = path;
     console.log('createQuestData finished');
     return questData;
 };
@@ -1231,6 +1233,4 @@ FromJSON.prototype.getLevelOrFatal = function(id, funcName) {
     return null;
 };
 
-RG.Game.FromJSON = FromJSON;
-
-module.exports = RG.Game.FromJSON;
+module.exports = FromJSON;
