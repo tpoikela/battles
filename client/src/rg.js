@@ -1460,6 +1460,15 @@ RG.isItem = obj => {
     return false;
 };
 
+/* Returns true if given object is an entity. Can return false results
+ * sometimes. */
+RG.isEntity = obj => {
+    if (obj._comps && obj._compsByType && obj.add && obj.get) {
+        return true;
+    }
+    return false;
+};
+
 /* Can be queried if actor is still valid for serialisation or effects
  * like telepath or order giving. */
 RG.isActorActive = target => {
