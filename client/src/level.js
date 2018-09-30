@@ -2,7 +2,8 @@
 const RG = require('./rg.js');
 require('./eventpool');
 // const GameObject = require('./game-object');
-const Entity = require('./game-object');
+const Entity = require('./entity');
+RG.Component = require('./component.js');
 const Random = require('./random');
 
 const {TYPE_ACTOR, TYPE_ELEM, TYPE_ITEM} = RG;
@@ -33,6 +34,7 @@ LevelCallback.prototype.toJSON = function() {
 // const Level = function() {
 class Level extends Entity {
     constructor() {
+        // Entity.call(this);
         super();
         // GameObject.call(this);
         this._map = null;
@@ -58,7 +60,7 @@ class Level extends Entity {
         };
     }
 }
-RG.extend2(Level, Entity);
+// RG.extend2(Level, Entity);
 
 Level.prototype.setLevelNumber = function(no) {this._levelNo = no;};
 Level.prototype.getLevelNumber = function() {
@@ -591,6 +593,7 @@ Level.prototype.toJSON = function() {
         }
     }
 
+    obj.components = RG.Component.compsToJSON(this);
     // Must store x, y for each prop as well
     const props = [TYPE_ACTOR, TYPE_ITEM, TYPE_ELEM];
     props.forEach(propType => {
