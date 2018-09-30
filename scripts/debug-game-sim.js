@@ -50,7 +50,9 @@ let game = gameFact.createNewGame(gameConf);
 // Simulate 1st serialisation in worker thread
 let gameJSON = game.toJSON();
 let fromJSON = new RG.Game.FromJSON();
-game = fromJSON.createGame(gameJSON);
+
+game = new RG.Game.Main();
+game = fromJSON.createGame(game, gameJSON);
 
 const timeId = new Date().getTime();
 const fpsArray = [];
@@ -59,7 +61,8 @@ const fpsArray = [];
 const saveFunc = (numTurns) => {
     fromJSON = new RG.Game.FromJSON();
     gameJSON = game.toJSON();
-    game = fromJSON.createGame(gameJSON);
+    game = new RG.Game.Main();
+    game = fromJSON.createGame(game, gameJSON);
     const {playerName} = gameConf;
     const fName = `results/debug-game-${playerName}-${numTurns}-${timeId}.json`;
     if (fs && fs.writeFileSync) {
