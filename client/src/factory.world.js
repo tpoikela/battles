@@ -6,16 +6,20 @@ const debug = require('debug')('bitn:Factory.World');
 
 const RG = require('./rg');
 const ConfStack = require('./conf-stack');
-RG.Factory = require('./factory');
-RG.Factory.Zone = require('./factory.zone');
+const World = require('./world');
+const Factory = require('./factory');
+const FactoryZone = require('./factory.zone');
 
 const DungeonGenerator = require('./dungeon-generator');
 const {CaveGenerator} = require('./cave-generator');
 const CastleGenerator = require('./castle-generator');
 const QuestPopulate = require('./quest-gen').QuestPopulate;
 
-const RNG = RG.Random.getRNG();
-const Stairs = RG.Element.Stairs;
+const Element = require('./element');
+const Random = require('./random');
+
+const RNG = Random.getRNG();
+const Stairs = Element.Stairs;
 const ZONE_TYPES = ['City', 'Mountain', 'Dungeon', 'BattleZone'];
 
 /* Determines the x-y sizes for different types of levels. */
@@ -159,9 +163,9 @@ const DungeonFeatures = function(zoneType) {
  * generated procedurally, and the factory will then use the configuration for
  * building the world. Separation of concerns, you know.
  */
-RG.Factory.World = function() {
+const FactoryWorld = function() {
     this._verif = new RG.Verify.Conf('Factory.World');
-    this.factZone = new RG.Factory.Zone();
+    this.factZone = new FactoryZone();
 
     // Creates all zones when the area is created if true. Setting it to true
     // makes creation of game very slow, as the full game is built in one go
@@ -254,7 +258,7 @@ RG.Factory.World = function() {
             this.debug('createAllZones set to ' + this.createAllZones);
         }
         this.pushScope(conf);
-        const world = new RG.World.Top(conf.name);
+        const world = new World.Top(conf.name);
         world.setConf(conf);
         for (let i = 0; i < conf.nAreas; i++) {
             const areaConf = conf.area[i];
@@ -290,7 +294,7 @@ RG.Factory.World = function() {
             }
         }
 
-        const area = new RG.World.Area(conf.name, conf.maxX, conf.maxY,
+        const area = new World.Area(conf.name, conf.maxX, conf.maxY,
             conf.cols, conf.rows, areaLevels);
         area.setConf(conf);
         area.setHierName(this.getHierName());
@@ -361,7 +365,7 @@ RG.Factory.World = function() {
         const itemsPerLevel = 7 + xDiff + 2 * yDiff;
         const actorsPerLevel = (yDiff + 1) * 10 + 2 * xDiff + 10;
 
-        const fact = new RG.Factory.Base();
+        const fact = new Factory.Base();
         fact.setParser(parser);
 
         const maxValue = RG.getMaxValue(xDiff, yDiff);
@@ -501,7 +505,7 @@ RG.Factory.World = function() {
             ['name', 'nBranches']);
         this.pushScope(conf);
 
-        const dungeon = new RG.World.Dungeon(conf.name);
+        const dungeon = new World.Dungeon(conf.name);
         dungeon.setHierName(this.getHierName());
 
         if (conf.nBranches !== conf.branch.length) {
@@ -553,7 +557,7 @@ RG.Factory.World = function() {
             ['name', 'nLevels']);
         this.pushScope(conf);
 
-        const branch = new RG.World.Branch(conf.name);
+        const branch = new World.Branch(conf.name);
         const hierName = this.getHierName();
         branch.setHierName(hierName);
 
@@ -814,7 +818,7 @@ RG.Factory.World = function() {
             ['name', 'nFaces', 'face']);
         this.pushScope(conf);
 
-        const mountain = new RG.World.Mountain(conf.name);
+        const mountain = new World.Mountain(conf.name);
         mountain.setHierName(this.getHierName());
 
         if (conf.nFaces !== conf.face.length) {
@@ -878,7 +882,7 @@ RG.Factory.World = function() {
 
         const faceName = conf.name;
         this.pushScope(conf);
-        const face = new RG.World.MountainFace(faceName);
+        const face = new World.MountainFace(faceName);
         const mLevelConf = { x: conf.x, y: conf.y};
 
         this.setLevelConstraints(mLevelConf);
@@ -905,7 +909,7 @@ RG.Factory.World = function() {
     this.createSummit = function(conf) {
         this._verif.verifyConf('createSummit', conf, ['name', 'nLevels']);
         this.pushScope(conf);
-        const summit = new RG.World.MountainSummit(conf.name);
+        const summit = new World.MountainSummit(conf.name);
 
         const summitLevelConf = Object.assign({}, conf);
         this.setLevelConstraints(summitLevelConf);
@@ -959,7 +963,7 @@ RG.Factory.World = function() {
             conf, ['name', 'nQuarters']);
         this.pushScope(conf);
 
-        const city = new RG.World.City(conf.name);
+        const city = new World.City(conf.name);
         city.setHierName(this.getHierName());
 
         if (conf.nQuarters !== conf.quarter.length) {
@@ -1009,7 +1013,7 @@ RG.Factory.World = function() {
             conf, ['name', 'nLevels']);
         this.pushScope(conf);
 
-        const quarter = new RG.World.CityQuarter(conf.name);
+        const quarter = new World.CityQuarter(conf.name);
         const hierName = this.getHierName();
         quarter.setHierName(hierName);
 
@@ -1087,7 +1091,7 @@ RG.Factory.World = function() {
         // Only during restore game
         if (conf.hasOwnProperty('shops')) {
             conf.shops.forEach(shop => {
-                const shopObj = new RG.World.Shop();
+                const shopObj = new World.Shop();
                 shopObj.setLevel(this.id2level[shop.level]);
                 shopObj.setCoord(shop.coord);
                 shopObj._isAbandoned = shop.isAbandoned;
@@ -1114,7 +1118,7 @@ RG.Factory.World = function() {
 
     this.createBattleZone = conf => {
         this.pushScope(conf);
-        const battleZone = new RG.World.BattleZone(conf.name);
+        const battleZone = new World.BattleZone(conf.name);
         if (!this.id2levelSet) {
             RG.err('Factory', 'createBattleZone',
                 'Can create BattleZones only during restore');
@@ -1355,7 +1359,7 @@ RG.Factory.World = function() {
         }
         else if (zone.getType() === 'mountain') {
             this.debug('Creating new mountain south connection');
-            zoneStairs = RG.World.addExitsToEdge(zoneLevel,
+            zoneStairs = World.addExitsToEdge(zoneLevel,
                 'passage', 'south', true);
         }
         return zoneStairs;
@@ -1389,8 +1393,8 @@ RG.Factory.World = function() {
         this.debug('Creating new city edge connection');
         let allEdgeExits = [];
         RG.CARDINAL_DIR.forEach(dir => {
-            if (!RG.World.edgeHasConnections(zoneLevel, dir)) {
-                const exits = RG.World.addExitsToEdge(zoneLevel,
+            if (!World.edgeHasConnections(zoneLevel, dir)) {
+                const exits = World.addExitsToEdge(zoneLevel,
                     'passage', dir);
                 if (exits.length > 0) {
                     allEdgeExits = allEdgeExits.concat(exits);
@@ -1441,11 +1445,11 @@ RG.Factory.World = function() {
         questPopul.createQuests(world, area, x, y);
     };
 
-}; // RG.Factory.World
+}; // FactoryWorld
 
 /* Used for printing debug messages only. Can be enabled with
  * DEBUG= env var. */
-RG.Factory.World.prototype.debug = function(msg) {
+FactoryWorld.prototype.debug = function(msg) {
     if (debug.enabled) {
         let scope = this.getHierName();
         if (!scope) {scope = 'EMPTY';}
@@ -1466,4 +1470,4 @@ function debugPrintConfAndTile(conf, tileLevel, tag) {
     }
 }
 
-module.exports = RG.Factory.World;
+module.exports = FactoryWorld;
