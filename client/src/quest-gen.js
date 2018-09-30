@@ -269,6 +269,11 @@ QuestData.mapStepToType = {
 
 /* Adds one target for the quest. */
 QuestData.prototype.add = function(targetType, obj) {
+    if (!RG.isEntity(obj)) {
+        const json = JSON.stringify(obj);
+        RG.err('QuestData', 'add',
+            `Only entities can be added. Got: ${json}`);
+    }
     if (QuestData.mapStepToType[targetType]) {
         if (!this._stacks[targetType]) {
             this._stacks[targetType] = [];
@@ -338,7 +343,17 @@ QuestData.prototype.toString = function() {
     let res = '';
     this.path.forEach(pair => {
         const step = pair.type;
-        res += step + ' ' + this.next(step).getName() + '. ';
+        const value = this.next(step);
+        if (value.getName) {
+            res += step + ' ' + value.getName() + '. ';
+        }
+        else if (value.getParent) {
+            const parent = value.getParent();
+            if (parent) {
+                res += step + ' ' + parent.getName() + '. ';
+            }
+        }
+
     });
     return res;
 };
@@ -403,7 +418,8 @@ QuestPopulate.prototype.createQuestsForZone = function(zone, areaTile) {
 QuestPopulate.prototype.mapQuestToResources = function(quest, zone, areaTile) {
     this.currQuest = new QuestData();
     this.questData.quests.push(this.currQuest);
-    this.currQuest.add('location', zone);
+    const level = RNG.arrayGetRand(zone.getLevels());
+    this.currQuest.add('location', level);
     quest.getSteps().forEach(step => {
         const currLoc = this.currQuest.getCurrent('location');
         if (step.isQuest()) {
@@ -435,7 +451,7 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
     switch (task.getTaskType()) {
         case '<kill>kill': {
             const location = this.currQuest.getCurrent('location');
-            const level = location.getLevels()[0]; // TODO make random
+            const level = location;
             const actorToKill = RNG.arrayGetRand(level.getActors());
             this.currQuest.add('kill', actorToKill);
             console.log('mapTask added an actor to kill');
@@ -457,6 +473,17 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
     }
 };
 
+/* Returns a level from a new zone (which is not 'zone' arg). */
+QuestPopulate.prototype.getNewLocation = function(zone, areaTile) {
+    const zones = areaTile.getZones();
+    let newZone = RNG.arrayGetRand(zones);
+    if (zones.length > 1) {
+        while (newZone.getID() === zone.getID()) {
+            newZone = RNG.arrayGetRand(zones);
+        }
+    }
+    return RNG.arrayGetRand(newZone.getLevels());
+};
 
 QuestPopulate.prototype.addQuestComponents = function(zone) {
     console.log('Adding quest components now');
