@@ -1,11 +1,11 @@
 
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
+const Memory = require('../../../client/src/brain.memory');
 
-const Memory = RG.Brain.Memory;
 const Brain = RG.Brain.Rogue;
 
-RG.Game = require('../../../client/src/game.js');
+RG.Game = require('../../../client/src/game');
 
 /* Updates given systems in given order.*/
 const updateSystems = systems => {
