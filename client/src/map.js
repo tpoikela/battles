@@ -1,10 +1,9 @@
 
 const ROT = require('../../lib/rot.js');
 const RG = require('./rg.js');
-RG.Element = require('./element.js');
+const Cell = require('./map.cell');
 
 RG.Map = {};
-RG.Map.Cell = require('./map.cell');
 
 /* Map cell list object which contains a number of cells. Map.CellList is used
  * for rendering while the Map.Level contains high-level information about
@@ -25,12 +24,15 @@ RG.Map.CellList = function(cols, rows, baseElem = RG.ELEM.FLOOR) {
         // this._map.push([]);
         this._map[x] = new Array(this.rows);
         for (let y = 0; y < this.rows; y++) {
-            this._map[x][y] = new RG.Map.Cell(x, y, baseElem);
+            this._map[x][y] = new Cell(x, y, baseElem);
         }
     }
 
     this.fov = new ROT.FOV.RecursiveShadowcasting(
         this.lightPasses.bind(this));
+
+    this.passableCallback = this.passableCallback.bind(this);
+    this.passableCallbackFlying = this.passableCallbackFlying.bind(this);
 };
 
 /* Returns true if x,y are in the this._map.*/
@@ -393,6 +395,40 @@ RG.Map.CellList.prototype.toJSON = function() {
         explored,
         elements
     };
+};
+
+RG.Map.CellList.prototype.getShortestPathTo = function(actor, toX, toY) {
+    const [sX, sY] = actor.getXY();
+    let passCb = this.passableCallback.bind(null, sX, sY);
+    if (actor.has('Flying')) {
+        passCb = this.passableCallbackFlying.bind(null, sX, sY);
+    }
+    const pathFinder = new ROT.Path.AStar(toX, toY, passCb);
+
+    const path = [];
+    pathFinder.compute(sX, sY, (x, y) => {
+        if (this.hasXY(x, y)) {
+            path.push(this._map[x][y]);
+        }
+    });
+    return path;
+};
+
+RG.Map.CellList.prototype.passableCallback = function(sX, sY, x, y) {
+    let res = this.isPassable(x, y);
+    if (!res) {
+        res = (x === sX) && (y === sY);
+    }
+    return res;
+};
+
+RG.Map.CellList.prototype.passableCallbackFlying = function(sX, sY, x, y) {
+    let res = this.isPassableByAir(x, y);
+    if (!res) {
+        res = (x === sX) && (y === sY);
+    }
+    return res;
+
 };
 
 module.exports = RG.Map;
