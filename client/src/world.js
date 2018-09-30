@@ -6,7 +6,9 @@
 const RG = require('./rg.js');
 const GameObject = require('./game-object');
 const debug = require('debug')('bitn:world');
+const Element = require('./element');
 
+const Stairs = Element.Stairs;
 RG.World = {};
 
 const RNG = RG.Random.getRNG();
@@ -391,7 +393,6 @@ function connectTiles(tiles, sizeX, sizeY) {
     }
 }
 
-const Stairs = RG.Element.Stairs;
 
 RG.World.addExitsToEdge = addExitsToEdge;
 RG.World.edgeHasConnections = edgeHasConnections;
