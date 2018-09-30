@@ -5,11 +5,11 @@
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 const RGTest = require('../../roguetest.js');
+const Cell = require('../../../client/src/map.cell');
 
 const Actor = RG.Actor.Rogue;
 const Level = RG.Map.Level;
 const Element = RG.Element.Base;
-const Cell = RG.Map.Cell;
 const Item = RG.Item.Base;
 const Container = RG.Item.Container;
 const Factory = RG.FACT;
@@ -182,7 +182,7 @@ describe('Items in map cells', () => {
     it('Can contain open/closed doors', () => {
         const openDoor = new RG.Element.Door(true);
         openDoor.openDoor();
-        const doorCell = new RG.Map.Cell(0, 1, new RG.Element.Base('floor'));
+        const doorCell = new Cell(0, 1, new RG.Element.Base('floor'));
         doorCell.setProp('elements', openDoor);
         expect(doorCell.hasDoor()).to.equal(true);
         RGTest.checkChar(openDoor, '/');
