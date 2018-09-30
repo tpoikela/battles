@@ -3,13 +3,13 @@
 
 const RG = require('./rg');
 
-
 RG.Verify = require('./verify');
 
 RG.EventPool = require('./eventpool');
 
 // No deps to RG.SubElems
 RG.Random = require('./random');
+RG.GameObject = require('./game-object');
 RG.Mixin = require('./mixin');
 RG.Geometry = require('./geometry');
 RG.Time = require('./time');
@@ -28,6 +28,7 @@ RG.GoalsBattle = require('./goals-battle');
 RG.GoalsTop = require('./goals-top');
 
 RG.Brain = require('./brain');
+RG.Brain.Memory = require('./brain.memory');
 RG.Inv = require('./inv');
 RG.Actor = require('./actor');
 RG.Element = require('./element');
