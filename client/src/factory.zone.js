@@ -2,8 +2,10 @@
 const RG = require('./rg.js');
 const debug = require('debug')('bitn:Factory.Zone');
 const MountainGenerator = require('./mountain-generator');
+const Factory = require('./factory');
 const {FactoryItem} = require('./factory.items');
 const CityGenerator = require('./city-generator');
+
 
 const RNG = RG.Random.getRNG();
 
@@ -20,8 +22,8 @@ const ItemConf = function(conf) {
     });
 };
 
-RG.Factory.Zone = function() {
-    RG.Factory.Base.call(this);
+const FactoryZone = function() {
+    Factory.Base.call(this);
     this._verif = new RG.Verify.Conf('Factory.Zone');
     this._parser = RG.ObjectShell.getParser();
 
@@ -160,7 +162,7 @@ RG.Factory.Zone = function() {
     /* Called for each nLevels of city quarter. Delegates the task to other
     * functions based on the type of city and quarter. */
     this.createCityLevel = function(nLevel, conf) {
-        const levelConf = RG.Factory.cityConfBase(conf);
+        const levelConf = Factory.cityConfBase(conf);
         levelConf.parser = this._parser;
         let cityLevel = null;
 
@@ -388,7 +390,7 @@ RG.Factory.Zone = function() {
             RG.warn('Factory.Zone', 'addActorsToBbox',
                 'Not enough free cells');
         }
-        RG.Factory.addPropsToCells(level, freeCells, actors, RG.TYPE_ACTOR);
+        Factory.addPropsToCells(level, freeCells, actors, RG.TYPE_ACTOR);
     };
 
     /* Adds N items to the given level in bounding box coordinates. */
@@ -399,10 +401,10 @@ RG.Factory.Zone = function() {
         const freeCells = level.getMap().getFreeInBbox(bbox);
         const itemFact = new FactoryItem();
         const items = itemFact.generateItems(this._parser, itemConf);
-        RG.Factory.addPropsToCells(level, freeCells, items, RG.TYPE_ITEM);
+        Factory.addPropsToCells(level, freeCells, items, RG.TYPE_ITEM);
     };
 
 };
-RG.extend2(RG.Factory.Zone, RG.Factory.Base);
+RG.extend2(FactoryZone, Factory.Base);
 
-module.exports = RG.Factory.Zone;
+module.exports = FactoryZone;
