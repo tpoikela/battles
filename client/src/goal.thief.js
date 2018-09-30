@@ -137,7 +137,6 @@ class GoalThief extends Goal.Base {
         const inventory = this.actor.getInvEq().getInventory();
         const itemToSell = RNG.arrayGetRand(inventory.getItems());
         const actorCell = this.actor.getCell();
-        console.log('Thief trying to sell at', actorCell.getXY());
 
         if (itemToSell) {
             const shopElem = actorCell.getPropType('shop')[0];
@@ -184,7 +183,6 @@ class GoalThief extends Goal.Base {
             this.tryToSellItem();
         }
         else if (hasItems && this.shopCooldown <= 0) {
-            console.log('KKK Thief has items. Should find a shop');
             nextGoal = this.tryToGoToShopCell();
         }
         else {
@@ -201,7 +199,6 @@ class GoalThief extends Goal.Base {
                         const keyXY = cell.getKeyXY();
                         if (!this.visitedDoors.hasOwnProperty(keyXY)) {
                             this.doorCooldown = 25;
-                            console.log('KKK Thief follow path to', xy);
                             nextGoal = new Goal.FollowPath(this.actor, xy);
                             return;
                         }
@@ -210,14 +207,12 @@ class GoalThief extends Goal.Base {
             }
             else if (actorCell.hasDoor()) {
                 this.visitedDoors[actorCell.getKeyXY()] = actorCell.getXY();
-                console.log('KKK Thief searching house now');
                 nextGoal = new GoalSearchHouse(this.actor);
             }
 
             if (!nextGoal) {
                 // Need to find a house, so skulk around
                 // Goal.moveToRandomDir(this.actor);
-                console.log('Thief added new Goal.Explore');
                 nextGoal = new Goal.Explore(this.actor, 30);
                 nextGoal.setCallback(this.exploreCallback.bind(this));
             }
@@ -250,7 +245,6 @@ function findItem(actor, seenCells, cache, cacheAcceptFunc) {
         if (cell.hasItems()) {
             const item = cell.getItems()[0];
             nextGoal = new Goal.GetItem(actor, item);
-            console.log('GoalThief found an item', item.getName());
             break;
         }
 
