@@ -12,6 +12,7 @@ const Territory = require('./territory');
 const GameObject = require('./game-object');
 const {QuestData} = require('./quest-gen');
 const WorldFromJSON = require('./world.fromjson');
+const Level = require('./level');
 
 /* Object for converting serialized JSON objects to game objects. Note that all
  * actor/level ID info is stored between uses. If you call restoreLevel() two
@@ -68,12 +69,27 @@ FromJSON.prototype.getDungeonLevel = function() {
     return this._dungeonLevel;
 };
 
-FromJSON.prototype.addObjRef = function(type, obj) {
+FromJSON.prototype.addObjRef = function(type, obj, json) {
+    const id = obj.getID();
+    if (!Number.isInteger(id)) {
+        RG.err('FromJSON', 'addObjRef',
+            `ID must be integer. Got: |${id}|`);
+    }
+    this.id2entity[id] = obj;
+    this.id2Object[id] = obj;
+    if (json) {
+        this.id2EntityJson[id] = json;
+    }
+
     if (type === 'level') {
-        const id = obj.getID();
         this.id2level[id] = obj;
-        this.id2Object[id] = obj;
         this.id2Place[id] = obj;
+    }
+    else if (type === 'element') {
+        // Nothing to do
+    }
+    else if (type === 'entity') {
+        // Nothing to do
     }
     else {
         RG.err('FromJSON', 'addObjRef',
@@ -255,6 +271,9 @@ FromJSON.prototype.restoreEntity = function(json, entity) {
     else if (RG.isElement(entity)) {
         this.restoreElementEntity(json, entity);
     }
+    else {
+        this.restoreLevelEntity(json, entity);
+    }
     return entity;
 };
 
@@ -280,6 +299,10 @@ FromJSON.prototype.restoreElementEntity = function(json, entity) {
             }
         });
     }
+};
+
+FromJSON.prototype.restoreLevelEntity = function(json, entity) {
+    this.addCompsToEntity(entity, json.components);
 };
 
 /* Adds given components into Entity object. */
@@ -398,13 +421,11 @@ FromJSON.prototype.getCompValue = function(
 };
 
 FromJSON.prototype.createQuestData = function(json) {
-    console.log('createQuestData now with', JSON.stringify(json));
     const questData = new QuestData();
     json.path.forEach(pathData => {
         const target = this.getObjByRef(pathData.target.$objRef);
         questData.add(pathData.type, target);
     });
-    console.log('createQuestData finished');
     return questData;
 };
 
@@ -641,7 +662,7 @@ FromJSON.prototype.restoreLevel = function(json) {
         }
     });
 
-    this.addLevels([level], 'restoreLevel');
+    this.addLevels([level], 'restoreLevel', [json]);
     return level;
 };
 
@@ -695,9 +716,7 @@ FromJSON.prototype.createElement = function(elem) {
         const id = elemJSON.id;
         if (Number.isInteger(id)) {
             createdElem.setID(id);
-            this.id2entity[id] = createdElem;
-            this.id2Object[id] = createdElem;
-            this.id2EntityJson[createdElem.getID()] = elemJSON;
+            this.addObjRef('element', createdElem, elemJSON);
         }
     }
 
@@ -737,10 +756,11 @@ FromJSON.prototype.createActor = function(json) {
 
 /* Adds entity info to restore the entity references back to objects. */
 FromJSON.prototype.addEntityInfo = function(entity, json) {
-    const id = entity.getID();
+    /* const id = entity.getID();
     this.id2entity[id] = entity;
     this.id2EntityJson[json.id] = json;
-    this.id2Object[id] = entity;
+    this.id2Object[id] = entity;*/
+    this.addObjRef('entity', entity, json);
 };
 
 /* Creates unconnected stairs. The object
@@ -975,9 +995,17 @@ FromJSON.prototype.restoreOverWorld = function(json) {
 
 FromJSON.prototype.restoreEntityData = function() {
     Object.keys(this.id2EntityJson).forEach(id => {
-        const obj = this.id2EntityJson[id];
+        const json = this.id2EntityJson[id];
         const entity = this.id2entity[id];
-        this.restoreEntity(obj, entity);
+        if (json && entity) {
+            this.restoreEntity(json, entity);
+        }
+        else {
+            let msg = json ? '' : '|JSON is null/undef|';
+            msg += entity ? '' : '|entity is null/undef|';
+            RG.err('FromJSON', 'restoreEntityData',
+                `ID: ${id} ${msg}`);
+        }
     });
 };
 
@@ -1143,11 +1171,19 @@ FromJSON.prototype.restoreSerializedBattles = function(game, tile) {
 };
 
 /* Adds the array of levels into the internal storage. */
-FromJSON.prototype.addLevels = function(levels, msg = '') {
-    levels.forEach(level => {
+FromJSON.prototype.addLevels = function(levels, msg = '', jsonArr = []) {
+    levels.forEach((level, i) => {
+        if (!level instanceof Level) {
+            RG.err('FromJSON', 'addLevels',
+                'level must be an instance of Level');
+        }
         const id = level.getID();
         if (!this.id2level.hasOwnProperty(id)) {
-            this.addObjRef('level', level);
+            let levelJSON = null;
+            if (i < jsonArr.length) {
+                levelJSON = jsonArr[i];
+            }
+            this.addObjRef('level', level, levelJSON);
             this.dbg(`Added level ${id} to this.id2level ${msg}`);
         }
         else {
