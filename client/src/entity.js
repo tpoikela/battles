@@ -22,154 +22,152 @@ const spliceOne = function(arr, index) {
  * arbitrary properties by attaching components to it. See the basic
  * methods add(), get(), has() and remove() particularly.
  */
-class Entity {
+const Entity = function() {
+    GameObject.call(this);
+    // Stores the comps by ID, used for serialisation
+    this._comps = {};
 
-    constructor() {
-        GameObject.call(this);
+    // Cache for faster access, NOT serialised
+    this._compsByType = {};
 
-        // Stores the comps by ID, used for serialisation
-        this._comps = {};
+};
+RG.extend2(Entity, GameObject);
 
-        // Cache for faster access, NOT serialised
-        this._compsByType = {};
+/* Gets component with given name. If entity has multiple of them, returns
+ * the first found. */
+Entity.prototype.get = function(typeName) {
+    ++Entity.num.get;
+    if (this._compsByType[typeName]) {
+        return this._compsByType[typeName][0];
+    }
+    return null;
+};
+
+/* Fast lookup by ID only. Caller must check the result for validity. */
+Entity.prototype.getByID = function(compID) {
+    return this._comps[compID];
+};
+
+/* SLOW method to get comps of given type. Don't use in internal methods. */
+Entity.prototype.getList = function(typeName) {
+    ++Entity.num.getList;
+    if (this._compsByType[typeName]) {
+        return this._compsByType[typeName].slice();
+    }
+    return [];
+};
+
+/* Adds a new component into the entity. */
+Entity.prototype.add = function(nameOrComp, comp) {
+    ++Entity.num.add;
+    let compName = nameOrComp;
+    let compObj = comp;
+    if (typeof nameOrComp === 'object') {
+        compObj = nameOrComp;
+        compName = nameOrComp.getType();
+    }
+    if (compObj.isUnique() && this.has(compName)) {
+        this.removeAll(compName);
     }
 
-    /* Gets component with given name. If entity has multiple of them, returns
-     * the first found. */
-    get(typeName) {
-        ++Entity.num.get;
-        if (this._compsByType[typeName]) {
-            return this._compsByType[typeName][0];
-        }
-        return null;
+    this._comps[compObj.getID()] = compObj;
+    if (!this._compsByType.hasOwnProperty(compName)) {
+        this._compsByType[compName] = [compObj];
     }
-
-    /* Fast lookup by ID only. Caller must check the result for validity. */
-    getByID(compID) {
-        return this._comps[compID];
+    else {
+        this._compsByType[compName].push(compObj);
     }
+    compObj.entityAddCallback(this);
+    RG.POOL.emitEvent(compName, {entity: this, add: true});
+};
 
-    /* SLOW method to get comps of given type. Don't use in internal methods. */
-    getList(typeName) {
-        ++Entity.num.getList;
-        if (this._compsByType[typeName]) {
-            return this._compsByType[typeName].slice();
-        }
-        return [];
+/* Returns true if entity has given component. Lookup by ID is much faster
+ * than with name. */
+Entity.prototype.has = function(nameOrId) {
+    ++Entity.num.has;
+    if (this._compsByType.hasOwnProperty(nameOrId)) {
+        return true;
     }
+    return this._comps.hasOwnProperty(nameOrId);
+};
 
-    /* Adds a new component into the entity. */
-    add(nameOrComp, comp) {
-        ++Entity.num.add;
-        let compName = nameOrComp;
-        let compObj = comp;
-        if (typeof nameOrComp === 'object') {
-            compObj = nameOrComp;
-            compName = nameOrComp.getType();
-        }
-        if (compObj.isUnique() && this.has(compName)) {
-            this.removeAll(compName);
-        }
+/* Removes given component type or component.
+ * 1. If object is given, retrieves its id using getID().
+ * 2. If integer given, uses it as ID to remove the component.
+ * 3. If string is given, either
+ *    a) removes first comp of matching type.
+ *    b) Uses parseInt() to convert it to ID, then uses this ID.
+ */
+Entity.prototype.remove = function(nameOrCompOrId) {
+    ++Entity.num.remove;
+    if (typeof nameOrCompOrId === 'object') {
+        const id = nameOrCompOrId.getID();
+        if (this._comps.hasOwnProperty(id)) {
+            const comp = this._comps[id];
+            const compName = comp.getType();
+            comp.entityRemoveCallback(this);
+            delete this._comps[id];
 
-        this._comps[compObj.getID()] = compObj;
-        if (!this._compsByType.hasOwnProperty(compName)) {
-            this._compsByType[compName] = [compObj];
+            const index = this._compsByType[compName].indexOf(comp);
+            spliceOne(this._compsByType[compName], index);
+            if (this._compsByType[compName].length === 0) {
+                delete this._compsByType[compName];
+            }
+            RG.POOL.emitEvent(compName, {entity: this, remove: true});
+        }
+    }
+    else if (Number.isInteger(nameOrCompOrId)) {
+        const compID = nameOrCompOrId;
+        if (this._comps[compID]) {
+            this.remove(this._comps[compID]);
+        }
+    }
+    else {
+        const compObj = this.get(nameOrCompOrId);
+        if (compObj) {
+            this.remove(compObj);
         }
         else {
-            this._compsByType[compName].push(compObj);
-        }
-        compObj.entityAddCallback(this);
-        RG.POOL.emitEvent(compName, {entity: this, add: true});
-    }
-
-    /* Returns true if entity has given component. Lookup by ID is much faster
-     * than with name. */
-    has(nameOrId) {
-        ++Entity.num.has;
-        if (this._compsByType.hasOwnProperty(nameOrId)) {
-            return true;
-        }
-        return this._comps.hasOwnProperty(nameOrId);
-    }
-
-    /* Removes given component type or component.
-     * 1. If object is given, retrieves its id using getID().
-     * 2. If integer given, uses it as ID to remove the component.
-     * 3. If string is given, either
-     *    a) removes first comp of matching type.
-     *    b) Uses parseInt() to convert it to ID, then uses this ID.
-     */
-    remove(nameOrCompOrId) {
-        ++Entity.num.remove;
-        if (typeof nameOrCompOrId === 'object') {
-            const id = nameOrCompOrId.getID();
-            if (this._comps.hasOwnProperty(id)) {
-                const comp = this._comps[id];
-                const compName = comp.getType();
-                comp.entityRemoveCallback(this);
-                delete this._comps[id];
-
-                const index = this._compsByType[compName].indexOf(comp);
-                spliceOne(this._compsByType[compName], index);
-                if (this._compsByType[compName].length === 0) {
-                    delete this._compsByType[compName];
-                }
-                RG.POOL.emitEvent(compName, {entity: this, remove: true});
-            }
-        }
-        else if (Number.isInteger(nameOrCompOrId)) {
-            const compID = nameOrCompOrId;
-            if (this._comps[compID]) {
-                this.remove(this._comps[compID]);
-            }
-        }
-        else {
-            const compObj = this.get(nameOrCompOrId);
-            if (compObj) {
-                this.remove(compObj);
+            const compID = parseInt(nameOrCompOrId, 10);
+            if (compID) {
+                this.remove(compID);
             }
             else {
-                const compID = parseInt(nameOrCompOrId, 10);
-                if (compID) {
-                    this.remove(compID);
-                }
-                else {
-                    const type = typeof nameOrCompOrId;
-                    RG.warn('Entity', 'remove',
-                        `No comp found ->  |${nameOrCompOrId}|, type: ${type}`);
-                }
+                const type = typeof nameOrCompOrId;
+                RG.warn('Entity', 'remove',
+                    `No comp found ->  |${nameOrCompOrId}|, type: ${type}`);
             }
         }
     }
+};
 
-    /* Removes all components of the given type. */
-    removeAll(nameOrComp) {
-        ++Entity.num.removeAll;
-        let compName = nameOrComp;
-        if (typeof nameOrComp === 'object') {
-            compName = nameOrComp.getType();
-        }
-        if (this.has(compName)) {
-            const list = this._compsByType[compName];
-            list.forEach(comp => {this.remove(comp);});
-        }
+/* Removes all components of the given type. */
+Entity.prototype.removeAll = function(nameOrComp) {
+    ++Entity.num.removeAll;
+    let compName = nameOrComp;
+    if (typeof nameOrComp === 'object') {
+        compName = nameOrComp.getType();
     }
-
-    /* Replaces ALL components of the given type. */
-    replace(nameOrComp, comp) {
-        this.removeAll(nameOrComp);
-        if (comp) {
-            this.add(nameOrComp, comp);
-        }
-        else {
-            this.add(nameOrComp);
-        }
+    if (this.has(compName)) {
+        const list = this._compsByType[compName];
+        list.forEach(comp => {this.remove(comp);});
     }
+};
 
-    getComponents() {return this._comps;}
+/* Replaces ALL components of the given type. */
+Entity.prototype.replace = function(nameOrComp, comp) {
+    this.removeAll(nameOrComp);
+    if (comp) {
+        this.add(nameOrComp, comp);
+    }
+    else {
+        this.add(nameOrComp);
+    }
+};
 
-}
-RG.extend2(Entity, GameObject);
+Entity.prototype.getComponents = function() {
+    return this._comps;
+};
 
 Entity.createEntityID = () => {
     return GameObject.createObjectID();
