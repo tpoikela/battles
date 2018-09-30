@@ -4,9 +4,8 @@
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
 const RGTest = require('../../roguetest.js');
+const FromJSON = require('../../../client/src/game.fromjson');
 
-const FromJSON = RG.Game.FromJSON;
-const fromJSON = new FromJSON();
 
 const Actor = RG.Actor.Rogue;
 const Level = RG.Map.Level;
@@ -130,6 +129,7 @@ describe('Map.Level', () => {
         stairs.connect(stairs2);
 
         const json = level1.toJSON();
+        const fromJSON = new FromJSON();
         const newLevel = fromJSON.restoreLevel(json);
 
         expect(newLevel.getID()).to.equal(level1.getID());
