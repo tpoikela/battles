@@ -1,13 +1,12 @@
 
 const RG = require('./rg');
 const Entity = require('./entity');
-RG.Factory = require('./factory');
+const Factory = require('./factory');
 RG.Game = require('./game');
-RG.Element = require('./element');
-RG.Game.FromJSON = require('./game.fromjson');
+const FromJSON = require('./game.fromjson');
 RG.Verify = require('./verify');
 RG.ObjectShell = require('./objectshellparser');
-RG.Factory.World = require('./factory.world');
+Factory.World = require('./factory.world');
 
 const OW = require('./overworld.map');
 RG.getOverWorld = require('./overworld');
@@ -32,13 +31,20 @@ const confPlayerStats = {
  * factory when creating a new game. For restoring a game, see RG.Game.Save.
  */
 const FactoryGame = function() {
-    RG.Factory.Base.call(this);
+    Factory.Base.call(this);
     this._verif = new RG.Verify.Conf('Factory.Game');
     this._parser = RG.ObjectShell.getParser();
     this.presetLevels = {};
     this.callbacks = {};
 };
-RG.extend2(FactoryGame, RG.Factory.Base);
+RG.extend2(FactoryGame, Factory.Base);
+
+/* Restores a game from JSON representation. */
+FactoryGame.prototype.restoreGame = function(json) {
+    const fromJSON = new FromJSON();
+    const game = new RG.Game.Main();
+    return fromJSON.createGame(game, json);
+};
 
 /* Creates the game based on the selection. Main method that you want to
  * call. */
@@ -246,7 +252,7 @@ FactoryGame.prototype.createOverWorldGame = function(obj, game, player) {
     worldArea.connectTiles();
     this.progress('DONE');
 
-    const factWorld = new RG.Factory.World();
+    const factWorld = new Factory.World();
     factWorld.setOverWorld(overworld);
     factWorld.setGlobalConf(obj);
     game.setGlobalConf(obj);
@@ -536,7 +542,7 @@ FactoryGame.prototype.createFullWorld = function(obj, game, player) {
         return null;
     }
     worldConf.levelSize = obj.levelSize;
-    const fact = new RG.Factory.World();
+    const fact = new Factory.World();
     fact.setGlobalConf(obj);
     fact.setPresetLevels(this.presetLevels);
 
@@ -575,7 +581,7 @@ FactoryGame.prototype.processPresetLevels = function(conf) {
 };
 
 FactoryGame.prototype.createPresetLevels = function(arr) {
-    const fromJSON = new RG.Game.FromJSON();
+    const fromJSON = new FromJSON();
     return arr.map(item => {
         // Return the item itself if it's already Map.Level
         if (typeof item.level.getID === 'function') {
@@ -646,7 +652,4 @@ FactoryGame.getOwConf = function(mult = 1, obj = {}) {
     return owConf;
 };
 
-RG.Factory.Game = FactoryGame;
-
 module.exports = FactoryGame;
-
