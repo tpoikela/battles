@@ -2,10 +2,11 @@
 import { expect } from 'chai';
 
 const RG = require('../../../client/src/battles');
+const Memory = require('../../../client/src/brain.memory');
 
 describe('Brain.Memory', () => {
     it('contains friends and enemies', () => {
-        const mem = new RG.Brain.Memory();
+        const mem = new Memory();
 
         const enemy0 = new RG.Actor.Rogue('enemy0');
         mem.addEnemy(enemy0);
@@ -24,7 +25,7 @@ describe('Brain.Memory', () => {
     });
 
     it('cannot have same actor has friend/enemy', () => {
-        const mem = new RG.Brain.Memory();
+        const mem = new Memory();
         const enemy0 = new RG.Actor.Rogue('enemy0');
         mem.addEnemy(enemy0);
 
@@ -36,7 +37,7 @@ describe('Brain.Memory', () => {
     });
 
     it('has priority order to determine enemies', () => {
-        const mem = new RG.Brain.Memory();
+        const mem = new Memory();
         const enemy0 = new RG.Actor.Rogue('enemy0');
         enemy0.setType('demon');
 
