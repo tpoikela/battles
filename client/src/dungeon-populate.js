@@ -385,7 +385,7 @@ DungeonPopulate.prototype.createShopkeeper = function(conf) {
             if (!keeper) {
                 let msg = 'conf.actor given but no actor found';
                 if (typeof conf.actor === 'function') {
-                    msg += ' conf.actor |' + conf.actor.toString() + '|';
+                    msg += ' conf.actor |\n' + conf.actor.toString() + '|';
                 }
                 else {
                     msg += ' conf.actor must be function';
