@@ -2,6 +2,7 @@
 const chai = require('chai');
 const RG = require('../../../client/src/battles');
 const Entity = require('../../../client/src/entity');
+const Cell = require('../../../client/src/map.cell');
 
 const RGTest = require('../../roguetest');
 const ROT = require('../../../lib/rot');
@@ -597,7 +598,7 @@ describe('System.Shop', () => {
         shopkeeper = new RG.Actor.Rogue('shopkeeper');
         actor = new RG.Actor.Rogue('buyer');
 
-        shopCell = new RG.Map.Cell();
+        shopCell = new Cell();
         shopCell.setBaseElem(RG.ELEM.FLOOR);
         shopElem = new RG.Element.Shop();
         shopCell.setProp(RG.TYPE_ELEM, shopElem);
