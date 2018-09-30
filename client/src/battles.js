@@ -49,6 +49,7 @@ RG.ObjectShell = require('./objectshellparser');
 RG.Game = require('./game');
 RG.Factory = require('./factory');
 RG.Factory.World = require('./factory.world');
+RG.Factory.Zone = require('./factory.zone');
 
 RG.Names = require('../data/name-gen');
 RG.LevelGen = require('../data/level-gen');
@@ -56,7 +57,7 @@ RG.LevelGen = require('../data/level-gen');
 RG.OW = require('./overworld.map');
 RG.Overworld = require('./overworld');
 
-RG.FromJSON = require('./game.fromjson');
+RG.Game.FromJSON = require('./game.fromjson');
 RG.Chunk = require('./chunk-manager');
 
 RG.Factory.Game = require('./factory.game');
