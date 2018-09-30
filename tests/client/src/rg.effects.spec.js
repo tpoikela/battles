@@ -3,6 +3,7 @@ const chai = require('chai');
 
 const RG = require('../../../client/src/battles');
 const Effects = require('../../../client/data/effects');
+const Cell = require('../../../client/src/map.cell');
 RG.System = require('../../../client/src/system');
 const chaiBattles = require('../../helpers/chai-battles');
 
@@ -35,7 +36,7 @@ describe('RG.Effects', () => {
         userActor = new RG.Actor.Rogue('User One');
         userActor.getInvEq().addItem(sword);
 
-        cell = new RG.Map.Cell(0, 0, RG.ELEM.FLOOR);
+        cell = new Cell(0, 0, RG.ELEM.FLOOR);
         cell.setProp('actors', userActor);
     });
 
@@ -80,7 +81,7 @@ describe('RG.Effects', () => {
         actor.get('Health').setHP(10);
         const hpBefore = actor.get('Health').getHP();
 
-        const cell = new RG.Map.Cell(0, 0, RG.ELEM.FLOOR);
+        const cell = new Cell(0, 0, RG.ELEM.FLOOR);
         cell.setProp('actors', actor);
 
         potion.use({target: cell});
@@ -106,7 +107,7 @@ describe('RG.Effects', () => {
         const actor = new RG.Actor.Rogue('Healed one');
         actor.getInvEq().addItem(potion);
 
-        const cell = new RG.Map.Cell(0, 0, RG.ELEM.FLOOR);
+        const cell = new Cell(0, 0, RG.ELEM.FLOOR);
         cell.setProp('actors', actor);
 
         expect(actor.has('Stun')).to.equal(false);
