@@ -1,10 +1,13 @@
 
-import { expect } from 'chai';
-
+const chai = require('chai');
 const RG = require('../../../client/src/battles');
 RG.World = require('../../../client/src/world');
 const RGTest = require('../../roguetest');
 const Chunk = require('../../../client/src/chunk-manager');
+const chaiBattles = require('../../helpers/chai-battles.js');
+
+const expect = chai.expect;
+chai.use(chaiBattles);
 
 console.log('Chunk is', Chunk);
 const {ChunkManager, LOAD} = Chunk;
@@ -54,6 +57,13 @@ describe('ChunkManager', function() {
         const manager = new ChunkManager(game, area);
         expect(game.getLevels().length).to.equal(sizeX * sizeY);
 
+        game.getLevels().forEach(level => {
+            const qTarget = new RG.Component.QuestTarget();
+            qTarget.setTargetType('location');
+            qTarget.setTarget(level);
+            level.add(qTarget);
+        });
+
         const tiles = area.getTiles();
         let level0 = tiles[0][0].getLevel();
         const conns = level0.getConnections();
@@ -99,6 +109,12 @@ describe('ChunkManager', function() {
 
         manager.setPlayerTile(2, 1, 2, 0);
         expect(game.getLevels().length).to.equal(9);
+        game.getLevels().forEach(level => {
+            expect(level).to.have.component('QuestTarget');
+            const qTarget = level.get('QuestTarget');
+            expect(qTarget.getTarget()).to.equal(level);
+            expect(qTarget.getTargetType()).to.equal('location');
+        });
 
         let [prevX, prevY] = [null, null];
 

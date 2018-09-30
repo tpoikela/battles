@@ -261,6 +261,23 @@ describe('RG.Game.FromJSON', function() {
         }
     });
 
+    it('can serialize/de-serialize a level with comps attached', () => {
+        const game = new RG.Game.Main();
+        const level = RG.FACT.createLevel('arena', 80, 40);
+        const qTarget = new RG.Component.QuestTarget();
+        qTarget.setTargetType('location');
+        qTarget.setTarget(level);
+        level.add(qTarget);
+        game.addLevel(level);
+
+        const json = game.toJSON();
+        let newGame = new RG.Game.Main();
+        newGame = fromJSON.createGame(newGame, json);
+
+        const newLevel = newGame.getLevels()[0];
+        expect(newLevel).to.have.component('QuestTarget');
+    });
+
     it('can serialize/de-serialize game after fighting', () => {
         const game = new RG.Game.Main();
         const level = RG.FACT.createLevel('arena', 80, 40);
