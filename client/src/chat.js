@@ -25,6 +25,10 @@ class ChatBase {
         }
     }
 
+    clearOptions() {
+        this.options = [];
+    }
+
     setParent(parent) {
         this.parent = parent;
     }
@@ -41,25 +45,28 @@ class ChatBase {
                 this.options.forEach((opt, i) => {
                     menuObj[Keys.menuIndices[i]] = opt.name;
                 });
+                if (this.pre) {
+                    menuObj.pre = this.pre;
+                }
+                if (this.post) {
+                    menuObj.post = this.post;
+                }
                 return menuObj;
             },
             select: code => {
                 const selection = Keys.codeToIndex(code);
                 if (selection < this.options.length) {
-                    console.log('ChatBase got sel', selection);
                     const value = this.options[selection].option;
-                    if (value.getSelectionObject) {
-                        return value.getSelectionObject();
+                    if (value !== Menu.EXIT_MENU) {
+                        if (value.getSelectionObject) {
+                            return value.getSelectionObject();
+                        }
                     }
-                    console.log('ChatBase ret value', value);
                     return value;
                 }
                 return Menu.EXIT_MENU;
             }
         };
-        if (this.pre) {
-            selObj.pre = this.pre;
-        }
         return selObj;
     }
 
@@ -83,21 +90,35 @@ class ChatQuest extends ChatBase {
         this.add(refuseOpt);
     }
 
-    /* getSelectionObject() {
-        return this.selectionObject;
-    }*/
-
     setQuestGiver(giver) {
         this.questGiver = giver;
-        const qLen = 'lengthy';
-        this.pre = [
-            `${giver.getName} wants to offer a ${qLen} quest.`,
-            'What do you want to do?'
-        ];
     }
 
     setTarget(target) {
+        const giver = this.questGiver;
         this.target = target;
+        const qLen = 'lengthy';
+        const questData = this.questGiver.get('QuestGiver').getQuestData();
+        if (!this.questGiver.get('QuestGiver').getHasGivenQuest()) {
+            this.pre = [
+                `${giver.getName()} wants to offer a ${qLen} quest:`,
+                `${questData.toString()}`,
+                'What do you want to do?'
+            ];
+        }
+        else {
+            this.pre = [
+                `${giver.getName()} has already given this quest:`,
+                `${questData.toString()}`,
+                'What do you want to do?'
+            ];
+            this.clearOptions();
+            const rewardOpt = {
+                name: 'Claim the reward',
+                option: this.rewardCallback.bind(this)
+            };
+            this.add(rewardOpt);
+        }
     }
 
     questCallback() {
@@ -105,12 +126,18 @@ class ChatQuest extends ChatBase {
             RG.err('ChatQuest', 'questCallback',
                 'target and questGiver must be defined');
         }
-        // Create quest comp
         const giveQuestComp = new RG.Component.GiveQuest();
         giveQuestComp.setTarget(this.target);
         giveQuestComp.setGiver(this.questGiver);
         this.target.add(giveQuestComp);
     }
+
+    rewardCallback() {
+        const questCompl = new RG.Component.QuestCompleted();
+        questCompl.setGiver(this.questGiver);
+        this.target.add(questCompl);
+    }
+
 }
 Chat.Quest = ChatQuest;
 
