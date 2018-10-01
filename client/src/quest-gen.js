@@ -288,6 +288,11 @@ QuestData.prototype.add = function(targetType, obj) {
     }
 };
 
+QuestData.prototype.numSteps = function() {
+    const num = this.path.length;
+    return num;
+};
+
 QuestData.prototype.keys = function() {
     const keys = Object.keys(this._stacks);
     console.log('QuestData keys returning', keys);
@@ -340,6 +345,7 @@ QuestData.prototype.getCurrent = function(targetType) {
 
 /* Returns human-readable description of the quest. */
 QuestData.prototype.toString = function() {
+    this.resetIter();
     let res = '';
     this.path.forEach(pair => {
         const step = pair.type;
@@ -495,11 +501,15 @@ QuestPopulate.prototype.addQuestComponents = function(zone) {
                 console.log('addQuestComponents Key was ' + key);
                 let killTarget = questData.next(key);
                 while (killTarget) {
-                    const killComp = new RG.Component.QuestTarget();
-                    killComp.setTargetType(key);
-                    killComp.setTarget(killTarget);
-                    killTarget.add(killComp);
+                    this.setQuestTarget(key, killTarget);
                     killTarget = questData.next(key);
+                }
+            }
+            else if (key === 'location') {
+                let location = questData.next(key);
+                while (location) {
+                    this.setQuestTarget(key, location);
+                    location = questData.next(key);
                 }
             }
             else {
@@ -516,6 +526,13 @@ QuestPopulate.prototype.addQuestComponents = function(zone) {
         console.log('QuestGiver will be ' + questGiver.getName());
     });
 
+};
+
+QuestPopulate.prototype.setQuestTarget = function(key, target) {
+    const qTarget = new RG.Component.QuestTarget();
+    qTarget.setTargetType(key);
+    qTarget.setTarget(target);
+    target.add(qTarget);
 };
 
 /*
