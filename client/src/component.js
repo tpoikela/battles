@@ -735,13 +735,6 @@ RG.Component.ActorClass = function() {
         _class = actorClass;
     };
 
-    /*
-    const _addCb = () => {
-        _class = RG.ActorClass.create(_className, this.getEntity());
-    };
-
-    this.addCallback('onAdd', _addCb);
-    */
 };
 RG.extend2(RG.Component.ActorClass, RG.Component.Base);
 
@@ -1359,8 +1352,9 @@ RG.Component.GiveQuest = TransientDataComponent('GiveQuest',
     {target: null, giver: null}
 );
 
-RG.Component.QuestGiver = DataComponent('QuestGiver',
-    {questData: null}
+RG.Component.QuestGiver = UniqueDataComponent('QuestGiver',
+    {questData: null, hasGivenQuest: false,
+    questID: -1, danger: 1}
 );
 
 RG.Component.QuestGiver.prototype._init = function(questData) {
@@ -1373,9 +1367,17 @@ RG.Component.QuestGiver.prototype._init = function(questData) {
     this.addCallback('onAdd', _addCb);
 };
 
+RG.Component.QuestGiver.prototype.giveQuest = function(target) {
+    this.questGivenTo = target;
+    this.hasGivenQuest = true;
+};
+
 RG.Component.QuestGiver.prototype.toJSON = function() {
     const json = BaseProto.toJSON.call(this);
     json.setQuestData = this.questData.toJSON();
+    if (this.questGivenTo) {
+        json.giveQuest = RG.getObjRef('entity', this.questGivenTo);
+    }
     return json;
 };
 
@@ -1385,13 +1387,23 @@ RG.Component.QuestGiver.prototype.getChatObj = function() {
 
 /* Comp added to quest targets (items, actors etc). */
 RG.Component.QuestTarget = DataComponent('QuestTarget',
-    {targetType: '', target: null}
+    {targetType: '', target: null, isCompleted: false}
 );
 
 RG.Component.QuestTarget.prototype.toString = function() {
     let name = '';
     if (this.target.getName) {
         name = this.target.getName();
+    }
+    else if (this.target.getParent) {
+        const parent = this.target.getParent();
+        if (parent) {
+            name = parent.getName();
+        }
+        if (parent.getParent) {
+            const topParent = parent.getParent();
+            name += ' of ' + topParent.getName();
+        }
     }
     return `${this.targetType} ${name}`;
 };
@@ -1408,6 +1420,7 @@ RG.Component.QuestTarget.prototype.toJSON = function() {
     return json;
 };
 
+/* Quest component contains all info related to a single quest. */
 RG.Component.Quest = DataComponent('Quest', {
     giver: null, questTargets: null
 });
@@ -1418,6 +1431,20 @@ RG.Component.Quest.prototype._init = function() {
 
 RG.Component.Quest.prototype.addTarget = function(target) {
     this.questTargets.push(target);
+};
+
+RG.Component.Quest.prototype.first = function(targetType) {
+    const targetComp = this.questTargets.find(targetComp => (
+        targetComp.getTargetType() === targetType
+    ));
+    if (targetComp) {return targetComp.getTarget();}
+    return null;
+};
+
+/* Returns true if all QuestTarget comps have been completed. */
+RG.Component.Quest.prototype.isCompleted = function() {
+    this.questTargets.reduce((acc, qTarget) => acc && qTarget.isCompleted,
+        true);
 };
 
 RG.Component.Quest.prototype.toString = function() {
@@ -1436,6 +1463,10 @@ RG.Component.Quest.prototype.toJSON = function() {
     json.setGiver = RG.getObjRef('entity', this.giver);
     return json;
 };
+
+RG.Component.QuestCompleted = TransientDataComponent('QuestCompleted',
+    {giver: null}
+);
 
 module.exports = RG.Component;
 
