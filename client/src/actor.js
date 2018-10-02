@@ -20,7 +20,9 @@ class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
 
     constructor(name) { // {{{2
         super({propType: RG.TYPE_ACTOR, type: null});
-        this._name = name;
+        const named = new RG.Component.Named();
+        named.setName(name);
+        this.add(named);
         this.add(new RG.Component.Action());
     }
 
@@ -32,8 +34,10 @@ class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
     isEnemy() {return false;}
     addEnemy() {/* No implementation here */}
 
-    setName(name) {this._name = name;}
-    getName() {return this._name;}
+    setName(name) {this.get('Named').setName(name);}
+    getName() {
+        return this.get('Named').getFullName();
+    }
 
     getBrain() {return this._brain;}
 
@@ -77,7 +81,7 @@ class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
         }
         const obj = {
             id: this.getID(),
-            name: this.getName(),
+            // name: this.getName(),
             type: this.getType(),
             levelID,
             brain: this._brain.toJSON(),
