@@ -358,8 +358,8 @@ Brain.Rogue.prototype.findEnemyCell = function(seenCells) {
         const actors = cells[i].getSentientActors();
         for (let j = 0; j < actors.length; j++) {
             if (this._memory.isEnemy(actors[j])) {
+                this._memory.addEnemySeenCell(actors[j]);
                 if (this._memory.wasLastAttacked(actors[j])) {
-                    this._memory.addEnemySeenCell(cells[i]);
                     return cells[i];
                 }
                 else {
@@ -370,9 +370,7 @@ Brain.Rogue.prototype.findEnemyCell = function(seenCells) {
     }
     // Return random enemy cell to make behav less predictable
     if (enemyCells.length > 0) {
-        const randEnemyCell = RNG.arrayGetRand(enemyCells);
-        this._memory.addEnemySeenCell(randEnemyCell);
-        return randEnemyCell;
+        return RNG.arrayGetRand(enemyCells);
     }
     return null;
 };
