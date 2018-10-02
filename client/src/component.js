@@ -227,6 +227,7 @@ RG.Component.StatsMods = DataComponent('StatsMods', {
     tag: ''
 });
 
+/* Perception component holds data related to actor perception. */
 RG.Component.Perception = UniqueDataComponent('Perception',
     {FOVRange: RG.NPC_FOV_RANGE});
 
@@ -493,6 +494,21 @@ RG.Component.Created.prototype.toJSON = function() {
     const obj = RG.Component.Base.prototype.toJSON.call(this);
     obj.setCreator = RG.getObjRef('entity', this.creator);
     return obj;
+};
+
+RG.Component.Named = UniqueDataComponent('Named',
+    {name: '', uniqueName: ''}
+);
+
+RG.Component.Named.prototype.getFullName = function() {
+    if (this.uniqueName !== '') {
+        return `${this.uniqueName}, ${this.name}`;
+    }
+    return this.name;
+};
+
+RG.Component.Named.prototype.setUniqueName = function(name) {
+    this.uniqueName = name;
 };
 
 /* MindControl component allows another actor to control the mind-controlled
