@@ -10,6 +10,9 @@ describe('Rogue.Actor', () => {
         const actor = new Actor.Rogue('testRogue');
         expect(actor.getName()).to.equal('testRogue');
 
+        const named = actor.get('Named');
+        named.setUniqueName('Lester');
+        expect(actor.getName()).to.equal('Lester, testRogue');
         const wp = actor.getWillpower();
         expect(wp).to.equal(5);
 
