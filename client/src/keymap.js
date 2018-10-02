@@ -189,6 +189,7 @@ Keys.menuIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'a', 'b', 'c', 'd', 'e', 'f',
     'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
     'Y', 'Z'
 ];
+Keys.EXIT_INDEX = Keys.menuIndices.indexOf('Q');
 
 /* Given key code, returns the corresponding character in menu indices. */
 Keys.codeToMenuChar = code => {
