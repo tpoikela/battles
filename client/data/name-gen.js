@@ -3,9 +3,10 @@
 // Thanks to www.fantasynamegenerators.com for some tips
 
 const Names = {};
-const RG = require('../src/rg.js');
+const RG = require('../src/rg');
+const Random = require('../src/random');
 
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 
 // There are two kinds of names:
 // 1. Generic ones such as Dungeon, City, Town, Vault etc.
@@ -130,6 +131,11 @@ Names.getUniqueName = type => {
 Names.getGenericPlaceName = (type) => {
     const arr = Names.place.generic[type];
     return RNG.arrayGetRand(arr);
+};
+
+Names.actorCount = 0;
+Names.getActorName = () => {
+    return 'RandActor' + Names.actorCount++;
 };
 
 module.exports = Names;
