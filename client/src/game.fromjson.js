@@ -472,6 +472,9 @@ FromJSON.prototype.createBrain = function(brainJSON, ent) {
                     }
                 });
             }
+            if (memJSON.seen) {
+                memObj._actors.seen = memJSON.seen;
+            }
 
             if (brainJSON.goal) {
                 const goal = this.createTopGoal(brainJSON.goal, ent);
