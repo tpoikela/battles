@@ -3,6 +3,7 @@ import { expect } from 'chai';
 
 const RG = require('../../../client/src/battles');
 const Memory = require('../../../client/src/brain.memory');
+const RGTest = require('../../roguetest');
 
 describe('Brain.Memory', () => {
     it('contains friends and enemies', () => {
@@ -46,5 +47,14 @@ describe('Brain.Memory', () => {
         expect(mem.isEnemy(enemy0)).to.equal(true);
         mem.addFriend(enemy0);
         expect(mem.isEnemy(enemy0)).to.equal(false);
+    });
+
+    it('stores seen enemy positions', () => {
+        const mem = new Memory();
+        const enemy = new RG.Actor.Rogue('enemy');
+        RGTest.wrapIntoLevel([enemy]);
+        mem.addEnemySeenCell(enemy);
+        expect(mem.hasSeen(enemy)).to.equal(true);
+
     });
 });
