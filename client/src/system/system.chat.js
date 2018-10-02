@@ -1,5 +1,6 @@
 
 const RG = require('../rg');
+const Chat = require('../chat');
 
 const System = {};
 System.Base = require('./system.base');
@@ -30,6 +31,7 @@ System.Chat.prototype.updateEntity = function(ent) {
                 }
                 else {
                     // TODO spirits react differently
+                    this.createGenericChatObject(ent, actor);
                     const msg = `You chat with ${actor.getName()} for a while.`;
                     RG.gameMsg({cell, msg});
                 }
@@ -60,6 +62,62 @@ System.Chat.prototype.setChatObject = function(ent, srcActor, compType) {
         const srcName = srcActor.getName();
         RG.err('System.Chat', 'setChatObject',
             `Null/undef selectObj with type ${compType}, src: ${srcName}`);
+    }
+};
+
+
+System.Chat.prototype.createGenericChatObject = function(ent, actor) {
+    if (ent.has('Quest')) {
+        const chatObj = new Chat.ChatBase();
+        const aName = actor.getName();
+
+        chatObj.pre = `${aName} greets you. What do you say?`;
+        const qTargets = ent.get('Quest').getQuestTargets();
+
+        qTargets.forEach(comp => {
+            const target = comp.getTarget();
+            this.processQuestTarget(target, actor, chatObj);
+        });
+
+        const selObj = chatObj.getSelectionObject();
+        ent.getBrain().setSelectionObject(selObj);
+    }
+};
+
+
+System.Chat.prototype.processQuestTarget = function(target, actor, chatObj) {
+    const aName = actor.getName();
+    let tName = '';
+    if (target.getName) {
+        tName = target.getName();
+    }
+    let resp = null;
+
+    // If actor, add query regarding actor's whereabouts
+    if (RG.isActor(target)) {
+        const id = target.getID();
+        const memory = actor.getBrain().getMemory();
+        if (memory.hasSeen(id)) {
+            resp = chatObj.getSelectionObject();
+            const {x, y} = memory.getLastSeen(id);
+            const dir = RG.getTextualDxDy(actor, [x, y]);
+            let msg = `${aName} says: I know where ${tName} is.`;
+            msg += ` I saw ${tName} ${dir} from here.`;
+            RG.gameInfo(msg);
+        }
+    }
+
+    if (tName !== '') {
+        if (!resp) {
+            resp = () => {
+                const msg = `${aName} says: I know not where ${tName} is`;
+                RG.gameInfo(msg);
+            };
+        }
+        chatObj.add({
+            name: `Do you know where is ${tName}`,
+            option: resp
+        });
     }
 };
 
