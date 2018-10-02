@@ -1586,6 +1586,22 @@ RG.getCardinalDirection = (level, cell) => {
     return 'somewhere';
 };
 
+/* Returns a textual (human-readable) interpretation of x,y difference between
+ * to targets. */
+RG.getTextualDir = (dest, src, tol = 10) => {
+    let res = '';
+    const [dX, dY] = RG.dXdY(dest, src);
+    const dXNew = dX / 10;
+    const dYNew = dY / 10;
+    if (dYNew > 0) {res += 'south';}
+    else if (dYNew < 0) {res += 'north';}
+    if (dXNew > 0) {res += ' east';}
+    else if (dXNew < 0) {res += 'west';}
+
+    if (res === '') {res = 'nearby from here';}
+    return res;
+};
+
 //-------------------------------------------------------------
 // RG ARRAY METHODS
 //-------------------------------------------------------------
