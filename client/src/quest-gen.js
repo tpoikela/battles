@@ -4,13 +4,13 @@ const prettybnf = require('prettybnf');
 const debug = require('debug')('bitn:quest-gen');
 // const fs = require('fs');
 const RG = require('../src/rg');
-RG.Random = require('../src/random');
+const Random = require('../src/random');
 
 const questGrammar = require('../data/quest-grammar');
+const Names = require('../data/name-gen');
 
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 
-RNG.setSeed(Date.now());
 
 /* A task represents a part of a quest. */
 const Task = function(taskType) {
@@ -460,6 +460,7 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
             const level = location;
             const actorToKill = RNG.arrayGetRand(level.getActors());
             this.currQuest.add('kill', actorToKill);
+            this.addName(actorToKill);
             console.log('mapTask added an actor to kill');
             break;
         }
@@ -535,9 +536,18 @@ QuestPopulate.prototype.setQuestTarget = function(key, target) {
     target.add(qTarget);
 };
 
+
+QuestPopulate.prototype.addName = function(target) {
+    const named = target.get('Named');
+    if (RG.isActor(target)) {
+        named.setUniqueName(Names.getActorName());
+    }
+};
+
 /*
 const runningAsNodeScript = !module.parent && typeof window === 'undefined';
 if (runningAsNodeScript) {
+    RNG.setSeed(Date.now());
     // The grammar is stored in the string g
     // console.log(JSON.stringify(rules));
     // console.log(generateQuest(rules, 'QUEST'));
