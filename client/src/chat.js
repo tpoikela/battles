@@ -8,6 +8,11 @@ const Menu = require('./menu');
 const Chat = {};
 const stats = RG.STATS;
 
+const OPTION_GOODBYE = {
+    name: 'Say goodbye',
+    option: Menu.EXIT_MENU
+};
+
 /* Chat object added to actors which have any interesting things to chat about.
  */
 class ChatBase {
@@ -51,6 +56,7 @@ class ChatBase {
                 if (this.post) {
                     menuObj.post = this.post;
                 }
+                menuObj.Q = OPTION_GOODBYE.name;
                 return menuObj;
             },
             select: code => {
