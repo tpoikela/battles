@@ -70,8 +70,24 @@ Memory.prototype.addFriend = function(actor) {
     }
 };
 
-Memory.prototype.addEnemySeenCell = function(cell) {
-    this._actors.enemySeen = [cell.getX(), cell.getY()];
+Memory.prototype.addEnemySeenCell = function(actor) {
+    if (!this._actors.seen) {this._actors.seen = {};}
+    this._actors.seen[actor.getID()] = {x: actor.getX(), y: actor.getY(),
+        level: actor.getLevel().getID()};
+};
+
+Memory.prototype.hasSeen = function(actor) {
+    if (this._actors.seen && this._actors.seen[actor.getID()]) {
+        return true;
+    }
+    return false;
+};
+
+Memory.prototype.getLastSeen = function(actor) {
+    if (this._actors.seen[actor.getID()]) {
+        return this._actors.seen[actor.getID()];
+    }
+    return null;
 };
 
 /* Adds given actor as (personal) enemy. */
@@ -164,6 +180,9 @@ Memory.prototype.toJSON = function() {
     }
     if (this._lastAttackedID) {
         obj.lastAttackedID = this._lastAttackedID;
+    }
+    if (this._actors.hasOwnProperty('seen')) {
+        obj.seen = this._actors.seen;
     }
     return obj;
 };
