@@ -2,11 +2,12 @@
 
 const RG = require('./rg');
 const Goal = require('./goals');
+const Random = require('./random');
 
 const {
     GOAL_ACTIVE,
     GOAL_COMPLETED} = Goal;
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 
 /* With this Goal, an actor can search a house for interesting features,
  * such as items to pick up. */
@@ -32,7 +33,7 @@ class GoalSearchHouse extends Goal.Base {
             ));
         }
 
-        let nextGoal = findItem(this.actor, seenCells);
+        let nextGoal = ifItemFoundCreateGoal(this.actor, seenCells);
         if (!nextGoal) {
             const cell = RNG.arrayGetRand(this.floorCells);
             nextGoal = new Goal.FollowPath(this.actor, cell.getXY());
@@ -85,6 +86,7 @@ class GoalSearchHouse extends Goal.Base {
                 this.status = this.processSubGoals();
             }
         }
+        return this.status;
     }
 
 }
@@ -112,13 +114,22 @@ class GoalThief extends Goal.Base {
         this.activateIfInactive();
         --this.shopCooldown;
         --this.doorCooldown;
+        if (this.isCompleted()) {
+            return GOAL_COMPLETED;
+        }
         if (this.hasSubGoals()) {
             this.status = this.processSubGoals();
         }
         else {
             this.chooseThiefTask();
-            this.status = this.processSubGoals();
+            if (this.hasSubGoals()) {
+                this.status = this.processSubGoals();
+            }
+            else { // If we only sold item, go here
+                this.status = GOAL_COMPLETED;
+            }
         }
+        return this.status;
     }
 
     isInActiveShop() {
@@ -137,6 +148,8 @@ class GoalThief extends Goal.Base {
         const inventory = this.actor.getInvEq().getInventory();
         const itemToSell = RNG.arrayGetRand(inventory.getItems());
         const actorCell = this.actor.getCell();
+
+        console.log('Thief tryToSellItem', JSON.stringify(itemToSell));
 
         if (itemToSell) {
             const shopElem = actorCell.getPropType('shop')[0];
@@ -179,8 +192,9 @@ class GoalThief extends Goal.Base {
         let nextGoal = null;
         const actorCell = this.actor.getCell();
 
-        if (this.isInActiveShop()) {
+        if (hasItems && this.isInActiveShop()) {
             this.tryToSellItem();
+            this.status = GOAL_COMPLETED;
         }
         else if (hasItems && this.shopCooldown <= 0) {
             nextGoal = this.tryToGoToShopCell();
@@ -188,7 +202,7 @@ class GoalThief extends Goal.Base {
         else {
             const seenCells = this.actor.getBrain().getSeenCells();
             const elemsCache = {};
-            nextGoal = findItem(this.actor, seenCells, elemsCache,
+            nextGoal = ifItemFoundCreateGoal(this.actor, seenCells, elemsCache,
                 cell => cell.hasElements());
 
             if (!nextGoal && !actorCell.hasDoor() && this.doorCooldown <= 0) {
@@ -238,14 +252,16 @@ class GoalThief extends Goal.Base {
 }
 Goal.Thief = GoalThief;
 
-function findItem(actor, seenCells, cache, cacheAcceptFunc) {
+function ifItemFoundCreateGoal(actor, seenCells, cache, cacheAcceptFunc) {
     let nextGoal = null;
     for (let i = 0; i < seenCells.length; i++) {
         const cell = seenCells[i];
         if (cell.hasItems()) {
             const item = cell.getItems()[0];
-            nextGoal = new Goal.GetItem(actor, item);
-            break;
+            if (!item.has('Unpaid')) {
+                nextGoal = new Goal.GetItem(actor, item);
+                break;
+            }
         }
 
         // If cache given, try cache cells using cacheAcceptFunc as criteria
