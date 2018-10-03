@@ -1,26 +1,13 @@
 
 const RG = require('./rg.js');
 const debug = require('debug')('bitn:Factory.Zone');
-const MountainGenerator = require('./mountain-generator');
 const Factory = require('./factory');
 const {FactoryItem} = require('./factory.items');
+const MountainGenerator = require('./mountain-generator');
 const CityGenerator = require('./city-generator');
-
 
 const RNG = RG.Random.getRNG();
 
-const ItemConf = function(conf) {
-    const req = ['itemsPerLevel', 'maxValue', 'func'];
-    req.forEach(prop => {
-        if ((prop in conf)) {
-            this[prop] = conf[prop];
-        }
-        else {
-            const msg = `${prop} must be given`;
-            RG.err('ItemConf', 'new', msg);
-        }
-    });
-};
 
 const FactoryZone = function() {
     Factory.Base.call(this);
@@ -299,7 +286,6 @@ const FactoryZone = function() {
     };
 
     this.populateWithActors = function(level, levelConf) {
-        console.log('Factory populateWithActors now');
         const actorConf = {
             actorsPerLevel: levelConf.actorsPerLevel || 100,
             maxDanger: levelConf.maxDanger || 10,
@@ -381,28 +367,6 @@ const FactoryZone = function() {
         }
     };
 
-    this.addActorsToBbox = (level, bbox, conf) => {
-        const nActors = conf.nActors || 4;
-        const {maxDanger, func} = conf;
-        const actors = this.generateNActors(nActors, func, maxDanger);
-        const freeCells = level.getMap().getFreeInBbox(bbox);
-        if (freeCells.length < nActors) {
-            RG.warn('Factory.Zone', 'addActorsToBbox',
-                'Not enough free cells');
-        }
-        Factory.addPropsToCells(level, freeCells, actors, RG.TYPE_ACTOR);
-    };
-
-    /* Adds N items to the given level in bounding box coordinates. */
-    this.addItemsToBbox = (level, bbox, conf) => {
-        const nItems = conf.nItems || 4;
-        let itemConf = Object.assign({itemsPerLevel: nItems}, conf);
-        itemConf = new ItemConf(itemConf);
-        const freeCells = level.getMap().getFreeInBbox(bbox);
-        const itemFact = new FactoryItem();
-        const items = itemFact.generateItems(this._parser, itemConf);
-        Factory.addPropsToCells(level, freeCells, items, RG.TYPE_ITEM);
-    };
 
 };
 RG.extend2(FactoryZone, Factory.Base);
