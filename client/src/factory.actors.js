@@ -1,8 +1,8 @@
 /* This file contains factory objects for generating actors. */
 
 const RG = require('./rg');
-RG.Actor = require('./actor');
-RG.Brain = require('./brain');
+const Actor = require('./actor');
+const Brain = require('./brain');
 const ObjectShell = require('./objectshellparser');
 
 const initCombatant = (comb, obj) => {
@@ -39,7 +39,7 @@ const FactoryActor = function() {
 
     /* Creates a player actor. */
     this.createPlayer = (name, obj) => {
-        const player = new RG.Actor.Rogue(name);
+        const player = new Actor.Rogue(name);
         player.setIsPlayer(true);
         initCombatant(player, obj);
         return player;
@@ -53,7 +53,7 @@ const FactoryActor = function() {
 
     /* Factory method for non-player actors. */
     this.createActor = function(name, obj = {}) {
-        const actor = new RG.Actor.Rogue(name);
+        const actor = new Actor.Rogue(name);
         actor.setType(name);
 
         const brain = obj.brain;
@@ -73,28 +73,28 @@ const FactoryActor = function() {
     /* Factory method for AI brain creation.*/
     this.createBrain = (actor, brainName) => {
         switch (brainName) {
-            case 'Animal': return new RG.Brain.Animal(actor);
-            case 'Archer': return new RG.Brain.Archer(actor);
-            case 'Demon': return new RG.Brain.Demon(actor);
-            case 'Flame': return new RG.Brain.Flame(actor);
-            case 'GoalOriented': return new RG.Brain.GoalOriented(actor);
-            case 'Human': return new RG.Brain.Human(actor);
-            case 'NonSentient': return new RG.Brain.NonSentient(actor);
-            case 'SpellCaster': return new RG.Brain.SpellCaster(actor);
-            case 'Spirit': return new RG.Brain.Spirit(actor);
-            case 'Summoner': return new RG.Brain.Summoner(actor);
-            case 'Undead': return new RG.Brain.Undead(actor);
-            case 'Zombie': return new RG.Brain.Zombie(actor);
+            case 'Animal': return new Brain.Animal(actor);
+            case 'Archer': return new Brain.Archer(actor);
+            case 'Demon': return new Brain.Demon(actor);
+            case 'Flame': return new Brain.Flame(actor);
+            case 'GoalOriented': return new Brain.GoalOriented(actor);
+            case 'Human': return new Brain.Human(actor);
+            case 'NonSentient': return new Brain.NonSentient(actor);
+            case 'SpellCaster': return new Brain.SpellCaster(actor);
+            case 'Spirit': return new Brain.Spirit(actor);
+            case 'Summoner': return new Brain.Summoner(actor);
+            case 'Undead': return new Brain.Undead(actor);
+            case 'Zombie': return new Brain.Zombie(actor);
             default: {
-                if (RG.Brain[brainName]) {
-                    return new RG.Brain[brainName](actor);
+                if (Brain[brainName]) {
+                    return new Brain[brainName](actor);
                 }
                 else if (brainName && brainName !== '') {
                     let msg = `Warning. No brain type ${brainName} found`;
                     msg += 'Using the default Brain.Rogue instead.';
                     console.warn(msg);
                 }
-                return new RG.Brain.Rogue(actor);
+                return new Brain.Rogue(actor);
             }
         }
     };
@@ -104,6 +104,52 @@ const FactoryActor = function() {
             return new RG.Spell[spellName]();
         }
         return null;
+    };
+
+
+    this.generateNActors = function(nActors, func, maxDanger) {
+        if (!Number.isInteger(maxDanger) || maxDanger <= 0) {
+            RG.err('Factory.Actor', 'generateNActors',
+                'maxDanger (> 0) must be given. Got: ' + maxDanger);
+        }
+        const parser = ObjectShell.getParser();
+        const actors = [];
+        const defaultFunc = { // Used if no func given
+            func: actor => actor.danger <= maxDanger
+        };
+        for (let i = 0; i < nActors; i++) {
+
+            // Generic randomization with danger level
+            let actor = null;
+            if (!func) {
+                actor = parser.createRandomActorWeighted(1, maxDanger,
+                    defaultFunc);
+            }
+            else {
+                actor = parser.createRandomActor({
+                    func: actor => (
+                        func(actor) &&
+                        actor.danger <= maxDanger
+                    )
+                });
+            }
+
+            if (actor) {
+                // This levels up the actor to match current danger level
+                const objShell = parser.dbGet('actors', actor.getName());
+                const expLevel = maxDanger - objShell.danger;
+                if (expLevel > 1) {
+                    RG.levelUpActor(actor, expLevel);
+                }
+                actors.push(actor);
+            }
+            else {
+                RG.diag('Factory Could not meet constraints for actor gen');
+                // return false;
+            }
+
+        }
+        return actors;
     };
 
 };
