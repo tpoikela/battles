@@ -2,9 +2,11 @@
  * of items. */
 
 const RG = require('./rg');
-
-const RNG = RG.Random.getRNG();
+const Random = require('./random');
+const Placer = require('./placer');
 const ObjectShell = require('./objectshellparser');
+
+const RNG = Random.getRNG();
 
 /* This object is used to randomize item properties during procedural
  * generation.*/
@@ -137,8 +139,9 @@ const FactoryItem = function() {
 
     /* Adds N random items to the given level. Uses parser to generate the
      * items. */
-    this.addNRandItems = (level, parser, conf) => {
-        const items = this.generateItems(parser, conf);
+    this.addNRandItems = (level, conf) => {
+        const items = this.generateItems(conf);
+        const parser = ObjectShell.getParser();
 
         if (conf.food) {
             const food = parser.createRandomItem({
@@ -154,12 +157,13 @@ const FactoryItem = function() {
                     'Item.Food was not created properly.');
             }
         }
-        RG.Factory.addPropsToFreeCells(level, items, RG.TYPE_ITEM);
+        Placer.addPropsToFreeCells(level, items, RG.TYPE_ITEM);
         return items.length;
     };
 
-    this.generateItems = function(parser, conf) {
+    this.generateItems = function(conf) {
         const items = [];
+        const parser = ObjectShell.getParser();
         for (let j = 0; j < conf.itemsPerLevel; j++) {
             const item = parser.createRandomItem({func: conf.func});
             if (item) {
@@ -179,7 +183,7 @@ const FactoryItem = function() {
             _doItemSpecificAdjustments(gold, conf.nLevel);
             goldItems.push(gold);
         }
-        RG.Factory.addPropsToFreeCells(level, goldItems, RG.TYPE_ITEM);
+        Placer.addPropsToFreeCells(level, goldItems, RG.TYPE_ITEM);
     };
 
     /* Returns a shop item based on the configuration. */
@@ -220,8 +224,8 @@ const FactoryItem = function() {
             RG.err('FactoryItem', 'addItemsToCells',
                 'conf is missing maxValue');
         }
-        const items = this.generateItems(parser, conf);
-        RG.Factory.addPropsToCells(level, cells, items, RG.TYPE_ITEM);
+        const items = this.generateItems(conf);
+        Placer.addPropsToCells(level, cells, items, RG.TYPE_ITEM);
     };
 };
 
