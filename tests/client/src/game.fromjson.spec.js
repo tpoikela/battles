@@ -4,6 +4,7 @@ import Capital from '../../../client/data/capital';
 const chai = require('chai');
 
 const RG = require('../../../client/src/battles');
+const Placer = require('../../../client/src/placer');
 const Game = require('../../../client/src/game');
 const {QuestData} = require('../../../client/src/quest-gen');
 const RGTest = require('../../roguetest');
@@ -304,7 +305,7 @@ describe('RG.Game.FromJSON', function() {
         hero.getInvEq().equipItem(gem);
         actors.push(hero);
 
-        RG.Factory.addPropsToFreeCells(level, actors, RG.TYPE_ACTOR);
+        Placer.addPropsToFreeCells(level, actors, RG.TYPE_ACTOR);
         game.addActiveLevel(level);
         game.addLevel(level);
         for (let i = 0; i < 500; i++) {
