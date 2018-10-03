@@ -1,11 +1,13 @@
 /* Contains the code to generate the capital city. */
 
 const RG = require('../src/rg');
-RG.Factory = require('../src/factory');
+const Placer = require('../src/placer');
 RG.Path = require('../src/path');
 
 RG.ObjectShell = require('../src/objectshellparser');
 RG.Element = require('../src/element');
+
+const {Stairs} = RG.Element;
 
 /* Class to create the capital city of the game. */
 export default class Capital {
@@ -82,9 +84,9 @@ export default class Capital {
     // Add entrance stairs and create path through the level
     if (conf.transpose) {
       const midY = Math.floor(rows / 2);
-      const stairsWest = new RG.Element.Stairs('stairsUp', mainLevel);
+      const stairsWest = new Stairs('stairsUp', mainLevel);
       mainLevel.addStairs(stairsWest, 0, midY);
-      const stairsEast = new RG.Element.Stairs('stairsUp', mainLevel);
+      const stairsEast = new Stairs('stairsUp', mainLevel);
       mainLevel.addStairs(stairsEast, cols - 1, midY);
 
       const path = RG.Path.getMinWeightPath(mainMap, 0, midY, cols - 1, midY);
@@ -92,9 +94,9 @@ export default class Capital {
     }
     else {
       const midX = Math.floor(cols / 2);
-      const stairsNorth = new RG.Element.Stairs('stairsUp', mainLevel);
+      const stairsNorth = new Stairs('stairsUp', mainLevel);
       mainLevel.addStairs(stairsNorth, midX, 0);
-      const stairsSouth = new RG.Element.Stairs('stairsUp', mainLevel);
+      const stairsSouth = new Stairs('stairsUp', mainLevel);
       mainLevel.addStairs(stairsSouth, midX, rows - 1);
 
       const path = RG.Path.getMinWeightPath(mainMap, midX, 0, midX, rows - 1,
@@ -125,10 +127,10 @@ export default class Capital {
       actors.push(trainer);
     }
 
-    RG.Factory.addPropsToFreeCells(mainLevel, actors, RG.TYPE_ACTOR);
+    Placer.addPropsToFreeCells(mainLevel, actors, RG.TYPE_ACTOR);
 
     const items = [parser.createItem('Longsword')];
-    RG.Factory.addPropsToFreeCells(mainLevel, items, RG.TYPE_ITEM);
+    Placer.addPropsToFreeCells(mainLevel, items, RG.TYPE_ITEM);
 
     this.level = mainLevel;
   }
