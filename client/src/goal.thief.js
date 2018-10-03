@@ -142,10 +142,10 @@ class GoalThief extends Goal.Base {
             const shopElem = actorCell.getPropType('shop')[0];
             // const price = shopElem.getItemPriceForSelling(itemToSell);
             const trans = new RG.Component.Transaction();
-            trans.setArgs({item: itemToSell, seller: this._actor,
+            trans.setArgs({item: itemToSell, seller: this.actor,
                 shop: shopElem, buyer: shopElem.getShopkeeper(),
                 count: itemToSell.count});
-            this._actor.add(trans);
+            this.actor.add(trans);
         }
         else {
             RG.err('Goal.Thief', 'tryToSellItem',
