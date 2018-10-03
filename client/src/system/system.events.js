@@ -92,12 +92,14 @@ System.Events = function(compTypes) {
     };
 
     this._handleItemPickedUp = (ent, evt, actor) => {
-        if (!actor.isEnemy(ent)) {
-            const cell = ent.getCell();
-            const perceiver = actor.getName();
-            const acting = ent.getName();
-            const msg = `${perceiver} saw ${acting} picking up an item.`;
-            RG.gameMsg({msg, cell});
+        if (actor.getID() !== ent.getID()) {
+            if (!actor.isEnemy(ent)) {
+                const cell = ent.getCell();
+                const perceiver = actor.getName();
+                const acting = ent.getName();
+                const msg = `${perceiver} saw ${acting} picking up an item.`;
+                RG.gameMsg({msg, cell});
+            }
         }
     };
 
