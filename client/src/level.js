@@ -265,10 +265,18 @@ Level.prototype.pickupItem = function(actor, x, y) {
             if (item.count > 1) {
                 itemStr += ' x' + item.count;
             }
-            RG.gameMsg(actor.getName() + ' picked up ' + itemStr);
+            const msgObj = {
+                msg: actor.getName() + ' picked up ' + itemStr,
+                cell
+            };
+            RG.gameMsg(msgObj);
         }
         else {
-            RG.gameMsg(actor.getName() + ' cannot carry more weight');
+            const msgObj = {
+                msg: actor.getName() + ' cannot carry more weight',
+                cell
+            };
+            RG.gameMsg(msgObj);
         }
     }
 };
