@@ -1,14 +1,15 @@
 
 const RG = require('./rg');
+const Random = require('./random');
 const Geometry = require('./geometry');
 const Evaluator = require('./evaluators');
 
+const Placer = require('./placer');
 const {FactoryItem} = require('./factory.items');
 const {FactoryActor} = require('./factory.actors');
 
 const MIN_ACTORS_ROOM = 2;
-
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 
 const DungeonPopulate = function(conf = {}) {
     this.theme = conf.theme;
@@ -29,7 +30,6 @@ const DungeonPopulate = function(conf = {}) {
 DungeonPopulate.prototype.populateLevel = function(level) {
     const extras = level.getExtras();
     const maxDanger = this.maxDanger;
-    const factZone = new RG.Factory.Zone();
     const maxValue = this.maxValue;
 
     let mainLootAdded = false;
@@ -47,11 +47,11 @@ DungeonPopulate.prototype.populateLevel = function(level) {
             if (/cross/.test(type)) {
                 // Cross has lower density as its huge
                 actorConf.nActors = Math.floor(areaSize / 6);
-                factZone.addActorsToBbox(level, bbox, actorConf);
+                this.addActorsToBbox(level, bbox, actorConf);
             }
             else {
                 actorConf.nActors = Math.floor(areaSize / 3);
-                factZone.addActorsToBbox(level, bbox, actorConf);
+                this.addActorsToBbox(level, bbox, actorConf);
             }
 
             // Add main loot
@@ -87,7 +87,7 @@ DungeonPopulate.prototype.populateLevel = function(level) {
                 const itemConf = {maxValue, itemsPerLevel: nItems,
                     func: item => item.value <= maxValue
                 };
-                factZone.addItemsToBbox(level, bbox, itemConf);
+                this.addItemsToBbox(level, bbox, itemConf);
 
                 const coord = Geometry.getCoordBbox(bbox);
                 coord.forEach(xy => {
@@ -115,14 +115,14 @@ DungeonPopulate.prototype.populateLevel = function(level) {
             if (actorConf.nActors < MIN_ACTORS_ROOM) {
                 actorConf.nActors = MIN_ACTORS_ROOM;
             }
-            factZone.addActorsToBbox(level, bbox, actorConf);
+            this.addActorsToBbox(level, bbox, actorConf);
 
             // Add items into the room
             const nItems = Math.ceil(areaSize / 20);
             const itemConf = {maxValue, itemsPerLevel: nItems,
                 func: item => item.value <= maxValue
             };
-            factZone.addItemsToBbox(level, bbox, itemConf);
+            this.addItemsToBbox(level, bbox, itemConf);
 
             roomsDone[room.getID()] = true;
         });
@@ -484,6 +484,21 @@ DungeonPopulate.prototype.createActor = function(conf) {
             'maxDanger must be > 0');
     }
     return actor;
+};
+
+DungeonPopulate.prototype.addActorsToBbox = function(level, bbox, conf) {
+    const nActors = conf.nActors || 4;
+    const {maxDanger, func} = conf;
+    const actors = this._actorFact.generateNActors(nActors, func, maxDanger);
+    Placer.addActorsToBbox(level, bbox, actors);
+};
+
+    /* Adds N items to the given level in bounding box coordinates. */
+DungeonPopulate.prototype.addItemsToBbox = function(level, bbox, conf) {
+    const nItems = conf.nItems || 4;
+    const itemConf = Object.assign({itemsPerLevel: nItems}, conf);
+    const items = this._itemFact.generateItems(itemConf);
+    Placer.addItemsToBbox(level, bbox, items);
 };
 
 module.exports = DungeonPopulate;
