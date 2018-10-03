@@ -7,11 +7,11 @@ const RGTest = require('../../roguetest');
 describe('Goal.Thief', () => {
     it('manages the thief behaviour', () => {
 
-        const thief = new RG.Actor.Rogue();
+        const thief = new RG.Actor.Rogue('thief');
         const thiefBrain = new RG.Brain.Thief(thief);
         thief.setBrain(thiefBrain);
 
-        const shopkeeper = new RG.Actor.Rogue();
+        const shopkeeper = new RG.Actor.Rogue('keeper');
         shopkeeper.add(new RG.Component.Shopkeeper());
         const coins = new RG.Item.GoldCoin();
         coins.count = 100;
@@ -30,23 +30,28 @@ describe('Goal.Thief', () => {
         level.addItem(sword, 1, 1);
 
         const game = new RG.Game.Main();
-        game.addLevel(level);
+        game.addActiveLevel(level);
         const catcher = new RGTest.MsgCatcher();
         catcher.enabled = true;
+        catcher.printMsg = false;
 
         let maxTries = 100;
         while (level.getItems().length === 2) {
-            console.log('GOT HERE');
             game.simulate();
             if (--maxTries === 0) {
                 break;
             }
         }
 
-        expect(catcher.numCaught).to.be.above(0);
-
         const thiefInv = thief.getInvEq().getInventory();
         expect(thiefInv.getItems()).to.deep.equal([sword]);
+
+        for (let i = 0; i < 100; i++) {
+            game.simulate();
+        }
+
+        expect(catcher.numCaught).to.be.above(0);
+
 
     });
 });
