@@ -9,10 +9,17 @@ const Component = require('./component');
 const RNG = Random.getRNG();
 const Goal = {};
 
-Goal.GOAL_ACTIVE = 'GOAL_ACTIVE';
-Goal.GOAL_COMPLETED = 'GOAL_COMPLETED';
-Goal.GOAL_INACTIVE = 'GOAL_INACTIVE';
-Goal.GOAL_FAILED = 'GOAL_FAILED';
+Goal.GOAL_ACTIVE = 1;
+Goal.GOAL_COMPLETED = 2;
+Goal.GOAL_INACTIVE = 3;
+Goal.GOAL_FAILED = 4;
+
+Goal.Status = {
+    1: 'GOAL_ACTIVE',
+    2: 'GOAL_COMPLETED',
+    3: 'GOAL_INACTIVE',
+    4: 'GOAL_FAILED'
+};
 
 Goal.Types = {
     Move: Symbol(),
@@ -52,7 +59,8 @@ class GoalBase {
         if (debug.enabled) {
             const ind = '  '.repeat(IND);
             const name = this.actor.getName();
-            const typeAndStat = `[${this.getType()}] ${this.status}`;
+            const status = statusToString(this.status);
+            const typeAndStat = `[${this.getType()}] ${status}`;
             console.log(`${ind}${typeAndStat} ${name} ${msg}`);
         }
     }
@@ -1297,5 +1305,9 @@ class GoalMonitor {
 
 }
 Goal.Monitor = GoalMonitor;
+
+function statusToString(status) {
+    return Goal.Status[status];
+}
 
 module.exports = Goal;
