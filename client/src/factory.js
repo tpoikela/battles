@@ -5,13 +5,27 @@ const RG = require('./rg.js');
 const Cell = require('./map.cell');
 const Level = require('./level');
 const MapGenerator = require('./map.generator');
-RG.Verify = require('./verify');
+const Verify = require('./verify');
+const Placer = require('./placer');
 
 const {FactoryActor} = require('./factory.actors');
 const {FactoryItem} = require('./factory.items');
 const DungeonPopulate = require('./dungeon-populate');
 
 const RNG = RG.Random.getRNG();
+
+const ItemConf = function(conf) {
+    const req = ['itemsPerLevel', 'maxValue', 'func'];
+    req.forEach(prop => {
+        if ((prop in conf)) {
+            this[prop] = conf[prop];
+        }
+        else {
+            const msg = `${prop} must be given`;
+            RG.err('ItemConf', 'new', msg);
+        }
+    });
+};
 
 const Factory = {};
 
@@ -30,33 +44,6 @@ Factory.cityConfBase = conf => {
     return result;
 };
 
-Factory.addPropsToFreeCells = function(level, props, type) {
-    const freeCells = level.getMap().getFree();
-    Factory.addPropsToCells(level, freeCells, props, type);
-};
-
-/* Adds to the given level, and its cells, all props given in the list. Assumes
- * that all props are of given type (placement function is different for
- * different types. */
-Factory.addPropsToCells = function(level, cells, props, type) {
-    for (let i = 0; i < props.length; i++) {
-        if (cells.length > 0) {
-            const index = RNG.randIndex(cells);
-            const cell = cells[index];
-            if (type === RG.TYPE_ACTOR) {
-                level.addActor(props[i], cell.getX(), cell.getY());
-            }
-            else if (type === RG.TYPE_ITEM) {
-                level.addItem(props[i], cell.getX(), cell.getY());
-            }
-            else {
-                RG.err('Factory', 'addPropsToCells',
-                    `Type ${type} not supported`);
-            }
-            cells.splice(index, 1); // remove used cell
-        }
-    }
-};
 
 //---------------------------------------------------------------------------
 // FACTORY OBJECTS
@@ -67,7 +54,7 @@ Factory.addPropsToCells = function(level, cells, props, type) {
 /* Factory object for creating some commonly used objects. Because this is a
 * global object RG.FACT, no state should be used. */
 Factory.Base = function() {
-    this._verif = new RG.Verify.Conf('Factory.Base');
+    this._verif = new Verify.Conf('Factory.Base');
     this._actorFact = new FactoryActor();
     this._itemFact = new FactoryItem();
 
@@ -107,9 +94,6 @@ Factory.Base = function() {
 
     this.createWallCell = (x, y) =>
         new Cell(x, y, new RG.Element.Base('wall'));
-
-    this.createSnowCell = (x, y) =>
-        new Cell(x, y, new RG.Element.Base('snow'));
 
     /* Factory method for creating levels.*/
     this.createLevel = function(levelType, cols, rows, conf) {
@@ -216,14 +200,6 @@ Factory.Base = function() {
         dungPopul.createTrainers(level, conf);
     };
 
-    /* Creates a randomized level for the game. Danger level controls how the
-     * randomization is done. */
-    this.createRandLevel = function(cols, rows) {
-        const levelType = MapGenerator.getRandType();
-        const level = this.createLevel(levelType, cols, rows);
-        return level;
-    };
-
     /* Adds N random items to the level based on maximum value.*/
     this.addNRandItems = (level, parser, conf) => {
         this._verif.verifyConf('addNRandItems', conf, ['func', 'maxValue']);
@@ -244,7 +220,7 @@ Factory.Base = function() {
         if (!actors) {
             return 0;
         }
-        Factory.addPropsToFreeCells(level, actors, RG.TYPE_ACTOR);
+        Placer.addPropsToFreeCells(level, actors, RG.TYPE_ACTOR);
         return actors.length;
     };
 
@@ -253,49 +229,9 @@ Factory.Base = function() {
     };
 
     this.generateNActors = (nActors, func, maxDanger) => {
-        if (!Number.isInteger(maxDanger) || maxDanger <= 0) {
-            RG.err('Factory.Zone', 'generateNActors',
-                'maxDanger (> 0) must be given. Got: ' + maxDanger);
-        }
-        const parser = this._parser;
-        const actors = [];
-        const defaultFunc = { // Used if no func given
-            func: actor => actor.danger <= maxDanger
-        };
-        for (let i = 0; i < nActors; i++) {
-
-            // Generic randomization with danger level
-            let actor = null;
-            if (!func) {
-                actor = parser.createRandomActorWeighted(1, maxDanger,
-                    defaultFunc);
-            }
-            else {
-                actor = parser.createRandomActor({
-                    func: actor => (
-                        func(actor) &&
-                        actor.danger <= maxDanger
-                    )
-                });
-            }
-
-            if (actor) {
-                // This levels up the actor to match current danger level
-                const objShell = parser.dbGet('actors', actor.getName());
-                const expLevel = maxDanger - objShell.danger;
-                if (expLevel > 1) {
-                    RG.levelUpActor(actor, expLevel);
-                }
-                actors.push(actor);
-            }
-            else {
-                RG.diag('Factory Could not meet constraints for actor gen');
-                // return false;
-            }
-
-        }
-        return actors;
+        return this._actorFact.generateNActors(nActors, func, maxDanger);
     };
+
 
     /* Adds a random number of gold coins to the level. */
     this.addRandomGold = (level, parser, conf) => {
@@ -348,9 +284,26 @@ Factory.Base = function() {
         RG.debug(this, 'Blizzard beasts should now appear.');
     };
 
+    this.addActorsToBbox = (level, bbox, conf) => {
+        const nActors = conf.nActors || 4;
+        const {maxDanger, func} = conf;
+        const actors = this.generateNActors(nActors, func, maxDanger);
+        Placer.addActorsToBbox(level, bbox, actors);
+    };
+
+    /* Adds N items to the given level in bounding box coordinates. */
+    this.addItemsToBbox = (level, bbox, conf) => {
+        const nItems = conf.nItems || 4;
+        let itemConf = Object.assign({itemsPerLevel: nItems}, conf);
+        itemConf = new ItemConf(itemConf);
+        const itemFact = new FactoryItem();
+        const items = itemFact.generateItems(itemConf);
+        const freeCells = level.getMap().getFreeInBbox(bbox);
+        Placer.addPropsToCells(level, freeCells, items, RG.TYPE_ITEM);
+    };
+
 };
 
 RG.FACT = new Factory.Base();
-
 
 module.exports = Factory;
