@@ -354,6 +354,11 @@ describe('Moving actors around in the game', () => {
         expect(player.getLevel()).to.equal(level3);
         expect(player.getX()).to.equal(6);
         expect(player.getY()).to.equal(7);
+
+        for (let i = 0; i < 10; i++) {
+            level3.useStairs(player);
+            level2.useStairs(player);
+        }
     });
 });
 
