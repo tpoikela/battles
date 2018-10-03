@@ -165,16 +165,19 @@ RGTest.expectConnected = function(b1, b2, nConns) {
 };
 
 /* Adds each entity into the level into a random location. */
-RGTest.wrapIntoLevel = function(arr) {
-    const level = RG.FACT.createLevel('empty', 20, 20);
+RGTest.wrapIntoLevel = function(arr, cols = 20, rows = 20) {
+    const level = RG.FACT.createLevel('empty', cols, rows);
     arr.forEach(ent => {
-        const x = RGTest.rng.getUniformInt(0, 19);
-        const y = RGTest.rng.getUniformInt(0, 19);
+        const x = RGTest.rng.getUniformInt(0, cols - 1);
+        const y = RGTest.rng.getUniformInt(0, rows - 1);
         if (ent.getPropType() === RG.TYPE_ACTOR) {
-            level.addActor(ent, x, y);
+            expect(level.addActor(ent, x, y)).to.equal(true);
         }
-        if (ent.getPropType() === RG.TYPE_ITEM) {
+        else if (ent.getPropType() === RG.TYPE_ITEM) {
             level.addItem(ent, x, y);
+        }
+        else if (ent.getPropType() === RG.TYPE_ELEM) {
+            level.addElement(ent, x, y);
         }
     });
     return level;
@@ -204,7 +207,10 @@ RGTest.equipItems = function(ent, items) {
 /* Can be used to catch the emitted game messages. */
 RGTest.MsgCatcher = function() {
     this.filters = [];
+    this.caught = {};
+    this.numCaught = 0;
 
+    this.printMsg = true;
     this.hasNotify = true;
     this.enabled = true;
     this.notify = (evtName, msgObj) => {
@@ -225,10 +231,16 @@ RGTest.MsgCatcher = function() {
         }
 
         if (hasMatch) {
-            console.log('\tMsg: |' + msg + '|');
-        }
-        if (cell) {
-            console.log('\tFrom cell: |' + JSON.stringify(cell) + '|');
+            if (this.printMsg) {console.log('\tMsg: |' + msg + '|');}
+            if (cell) {
+                if (this.printMsg) {
+                    console.log('\tFrom cell: |' + JSON.stringify(cell) + '|');
+                }
+                const key = cell.getKeyXY();
+                if (!this.caught[key]) {this.caught[key] = [];}
+                this.caught[key].push(msg);
+                ++this.numCaught;
+            }
         }
     };
 
@@ -377,6 +389,7 @@ RGTest.elemString = function(elem, depth = 5) {
     return objToStr.getMsg();
 };
 
+/* Adds object toAdd on top (to same cell) as locObj. */
 RGTest.addOnTop = function(toAdd, locObj) {
     const [x, y] = [locObj.getX(), locObj.getY()];
     if (toAdd.getLevel().getID() === locObj.getLevel().getID()) {
