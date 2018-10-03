@@ -458,7 +458,7 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
         case '<kill>kill': {
             const location = this.currQuest.getCurrent('location');
             const level = location;
-            const actorToKill = RNG.arrayGetRand(level.getActors());
+            const actorToKill = this.getActorForQuests(level.getActors());
             this.currQuest.add('kill', actorToKill);
             this.addName(actorToKill);
             console.log('mapTask added an actor to kill');
@@ -479,6 +479,34 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
         }
     }
 };
+
+/* Returns an actor from the given array, who is suitable as quest target
+ * or quest giver. */
+QuestPopulate.prototype.getActorForQuests = function(actors) {
+    let actor = RNG.arrayGetRand(actors);
+    let numTries = 20;
+    let createNew = false;
+    while (!isOkForQuest(actor)) {
+
+        actor = RNG.arrayGetRand(actors);
+        if (--numTries === 0) {
+            createNew = true;
+            break;
+        }
+    }
+    if (createNew) {
+        // TODO
+    }
+    return actor;
+};
+
+/* Returns true if given actor can be used as quest target/giver. */
+function isOkForQuest(actor) {
+    return !(
+        actor.isPlayer() && actor.has('QuestTarget')
+        && actor.has('QuestGiver')
+    );
+}
 
 /* Returns a level from a new zone (which is not 'zone' arg). */
 QuestPopulate.prototype.getNewLocation = function(zone, areaTile) {
@@ -520,7 +548,7 @@ QuestPopulate.prototype.addQuestComponents = function(zone) {
 
         // Grab random actor and make it the quest giver
         const level = RNG.arrayGetRand(zone.getLevels());
-        const questGiver = RNG.arrayGetRand(level.getActors());
+        const questGiver = this.getActorForQuests(level.getActors());
         const giverComp = new RG.Component.QuestGiver(questData);
         giverComp.setQuestData(questData);
         questGiver.add(giverComp);
