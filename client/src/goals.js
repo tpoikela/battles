@@ -3,10 +3,10 @@ const debug = require('debug')('bitn:Goal');
 
 const Path = require('./path');
 const RG = require('./rg');
-RG.Random = require('./random');
+const Random = require('./random');
 const Component = require('./component');
 
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 const Goal = {};
 
 Goal.GOAL_ACTIVE = 'GOAL_ACTIVE';
