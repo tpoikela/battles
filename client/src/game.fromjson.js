@@ -14,6 +14,9 @@ const {QuestData} = require('./quest-gen');
 const WorldFromJSON = require('./world.fromjson');
 const Level = require('./level');
 
+const OBJ_REF_REMOVED = Symbol();
+const OBJ_REF_NOT_FOUND = null;
+
 /* Object for converting serialized JSON objects to game objects. Note that all
  * actor/level ID info is stored between uses. If you call restoreLevel() two
  * times, all data from 1st is preserved. Call reset() to clear data. */
@@ -99,7 +102,9 @@ FromJSON.prototype.addObjRef = function(type, obj, json) {
     }
 };
 
-/* Returns an object of requested type. */
+/* Returns an object of requested type. Called should check if OBJ_REF_REMOVED
+ * is returned. Then it's up to called to decide what to do, but the object
+ * cannot be retrieved. */
 FromJSON.prototype.getObjByRef = function(requestObj) {
     let objRef = null;
     if (requestObj.$objRef) {objRef = requestObj.$objRef;}
@@ -111,6 +116,9 @@ FromJSON.prototype.getObjByRef = function(requestObj) {
             if (!this.actorsKilled[objRef.id]) {
                 RG.err('FromJSON', 'getObjRef',
                     `No ID ${objRef.id} found`);
+            }
+            else {
+                return OBJ_REF_REMOVED;
             }
         }
         return ent;
@@ -127,7 +135,7 @@ FromJSON.prototype.getObjByRef = function(requestObj) {
     else if (objRef.type === 'place') {
         return this.id2Place[objRef.id];
     }
-    return null;
+    return OBJ_REF_NOT_FOUND;
 };
 
 //--------------------------
@@ -432,7 +440,21 @@ FromJSON.prototype.getCompValue = function(
 FromJSON.prototype.createQuestData = function(json) {
     const questData = new QuestData();
     json.path.forEach(pathData => {
-        const target = this.getObjByRef(pathData.target.$objRef);
+        let target = null;
+        if (pathData.target.$objRef) {
+            target = this.getObjByRef(pathData.target.$objRef);
+        }
+        else {
+            target = pathData.target;
+        }
+        if (target === OBJ_REF_REMOVED) {
+            target = {msg: 'Quest target missing/killed'};
+            // quest is nullified
+        }
+        else if (!target) {
+            const msg = `Missing objRef: ${JSON.stringify(pathData.target)}`;
+            RG.err('FromJSON', 'createQuest', msg);
+        }
         questData.add(pathData.type, target);
     });
     return questData;
@@ -701,6 +723,9 @@ FromJSON.prototype.createElement = function(elem) {
         }
         shopElem.setCostFactor(elemJSON.costFactorBuy,
             elemJSON.costFactorSell);
+        if (elemJSON.isAbandoned) {
+            shopElem.abandonShop();
+        }
         createdElem = shopElem;
     }
     else if (type === 'door') {
