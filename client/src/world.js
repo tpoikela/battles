@@ -1726,8 +1726,14 @@ RG.World.Shop.prototype.getShopkeeper = function() {
 };
 
 RG.World.Shop.prototype.setShopkeeper = function(keeper) {
-    this._shopkeeper = keeper;
-    RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
+    if (keeper) {
+        this._shopkeeper = keeper;
+        RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
+    }
+    else {
+        RG.err('World.Shop', 'setShopkeeper',
+            'Tried to set null shopkeeper');
+    }
 };
 
 RG.World.Shop.prototype.setShopAbandoned = function() {
