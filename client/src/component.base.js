@@ -256,7 +256,8 @@ RG.Component.Base.prototype.changeEntity = function(newEntity) {
     // Check done for error detection purposes, so that changeEntity() is not
     // called on new comps withot existing entity
     if (!RG.isNullOrUndef([this._entity])) {
-        this._entity = newEntity;
+        this._entity.remove(this.getID());
+        newEntity.add(this);
     }
     else {
         RG.err('Component.Base', 'changeEntity',
