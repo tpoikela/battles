@@ -46,8 +46,13 @@ System.BaseAction = function(compTypes) {
         if (level.useStairs(ent)) {
             if (ent.isPlayer()) {ent.getBrain().addMark();}
 
+            const newLevel = ent.getLevel();
+            RG.POOL.emitEvent(RG.EVT_LEVEL_CHANGED,
+                {target: newLevel, src: level, actor: ent});
+            RG.POOL.emitEvent(RG.EVT_LEVEL_ENTERED,
+                {actor: ent, target: newLevel});
+
             if (actorsAround.length > 0) {
-                const newLevel = ent.getLevel();
                 const cells = RG.Brain.getBoxOfFreeCellsAround(ent, 1);
 
                 while (actorsAround.length > 0 && cells.length > 0) {
