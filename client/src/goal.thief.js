@@ -149,8 +149,6 @@ class GoalThief extends Goal.Base {
         const itemToSell = RNG.arrayGetRand(inventory.getItems());
         const actorCell = this.actor.getCell();
 
-        console.log('Thief tryToSellItem', JSON.stringify(itemToSell));
-
         if (itemToSell) {
             const shopElem = actorCell.getPropType('shop')[0];
             // const price = shopElem.getItemPriceForSelling(itemToSell);
