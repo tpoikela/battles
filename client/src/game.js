@@ -1,11 +1,8 @@
 
 const RG = require('./rg');
-RG.System = require('./system');
-RG.Map = require('./map');
-RG.Time = require('./time');
 const Entity = require('./entity');
 const {ChunkManager} = require('./chunk-manager');
-RG.EventPool = require('./eventpool');
+const EventPool = require('./eventpool');
 const Engine = require('./engine');
 const GameMaster = require('./game.master');
 const GameObject = require('./game-object');
@@ -18,10 +15,11 @@ RG.Game.Main = function() {
     this._places = {}; // List of all places
     this._shownLevel = null; // One per game only
     this._gameOver = false;
+    this.actorsKilled = {};
 
     this._enableChunkUnload = false;
     this._chunkManager = null;
-    this._eventPool = new RG.EventPool();
+    this._eventPool = new EventPool();
     RG.POOL = this._eventPool;
 
     this._rng = new RG.Random();
@@ -380,6 +378,7 @@ RG.Game.Main = function() {
     this.hasNotify = true;
     this.notify = (evtName, args) => {
         if (evtName === RG.EVT_ACTOR_KILLED) {
+            this.actorsKilled[args.actor.getID()] = true;
             if (args.actor.isPlayer()) {
                 const {actor} = args;
                 const index = this._players.indexOf(actor);
@@ -489,7 +488,8 @@ RG.Game.Main = function() {
             globalConf: this.globalConf,
             rng: this._rng.toJSON(),
             charStyles: RG.charStyles,
-            cellStyles: RG.cellStyles
+            cellStyles: RG.cellStyles,
+            actorsKilled: this.actorsKilled
         };
 
         if (!this.hasPlaces()) {
