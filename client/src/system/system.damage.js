@@ -318,6 +318,9 @@ System.Damage = function(compTypes) {
                 const cssClass = RG.getCssClass(RG.TYPE_ACTOR, nameKilled);
                 RG.addCellStyle(RG.TYPE_ITEM, corpse.getName(), cssClass);
                 level.addItem(corpse, x, y);
+                if (actor.has('QuestTarget')) {
+                    this.moveQuestTarget(actor, corpse);
+                }
             }
             _cleanUpComponents(actor);
         }
@@ -376,5 +379,14 @@ System.Damage = function(compTypes) {
 
 };
 RG.extend2(System.Damage, System.Base);
+
+System.Damage.prototype.moveQuestTarget = function(actor, corpse) {
+    const qTarget = actor.get('QuestTarget');
+    if (qTarget.isKill()) {
+        qTarget.changeEntity(corpse);
+        qTarget.setIsCompleted(true);
+        qTarget.setTarget(corpse);
+    }
+};
 
 module.exports = System.Damage;
