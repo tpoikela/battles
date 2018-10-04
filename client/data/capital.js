@@ -2,12 +2,12 @@
 
 const RG = require('../src/rg');
 const Placer = require('../src/placer');
-RG.Path = require('../src/path');
+const Path = require('../src/path');
 
-RG.ObjectShell = require('../src/objectshellparser');
-RG.Element = require('../src/element');
+const ObjectShell = require('../src/objectshellparser');
+const Element = require('../src/element');
 
-const {Stairs} = RG.Element;
+const {Stairs} = Element;
 
 /* Class to create the capital city of the game. */
 export default class Capital {
@@ -38,7 +38,7 @@ export default class Capital {
     const subLevelPos = [0.03, 0.20, 0.75, 0.95];
     const widths = [0.5, 0.80, 0.6];
 
-    const parser = RG.ObjectShell.getParser();
+    const parser = ObjectShell.getParser();
     const levelConf = [
       {nShops: 2, parser, nGates: 2},
       {nShops: 5, parser, nGates: 2},
@@ -89,8 +89,8 @@ export default class Capital {
       const stairsEast = new Stairs('stairsUp', mainLevel);
       mainLevel.addStairs(stairsEast, cols - 1, midY);
 
-      const path = RG.Path.getMinWeightPath(mainMap, 0, midY, cols - 1, midY);
-      RG.Path.addPathToMap(mainMap, path);
+      const path = Path.getMinWeightPath(mainMap, 0, midY, cols - 1, midY);
+      Path.addPathToMap(mainMap, path);
     }
     else {
       const midX = Math.floor(cols / 2);
@@ -99,9 +99,9 @@ export default class Capital {
       const stairsSouth = new Stairs('stairsUp', mainLevel);
       mainLevel.addStairs(stairsSouth, midX, rows - 1);
 
-      const path = RG.Path.getMinWeightPath(mainMap, midX, 0, midX, rows - 1,
-          RG.Path.getShortestPassablePathWithDoors);
-      RG.Path.addPathToMap(mainMap, path);
+      const path = Path.getMinWeightPath(mainMap, midX, 0, midX, rows - 1,
+          Path.getShortestPassablePathWithDoors);
+      Path.addPathToMap(mainMap, path);
     }
 
     // Create the actors and items for this level
