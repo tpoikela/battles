@@ -1,11 +1,10 @@
 /* Contains code to generate the abandoned fort. */
 
 const RG = require('../src/rg');
-RG.Factory = require('../src/factory');
-RG.Path = require('../src/path');
-
-RG.ObjectShell = require('../src/objectshellparser');
-RG.Element = require('../src/element');
+const {FactoryItem} = require('../src/factory.items');
+const ObjectShell = require('../src/objectshellparser');
+const Path = require('../src/path');
+const Element = require('../src/element');
 const Castle = require('../data/tiles.castle');
 
 const TILE_SIZE = 7;
@@ -73,7 +72,7 @@ export default class AbandonedFort {
 
     // Add stairs for entrance and exit
     const midY = Math.floor(rows / 2);
-    const stairsWest = new RG.Element.Stairs('stairsUp', mainLevel);
+    const stairsWest = new Element.Stairs('stairsUp', mainLevel);
     mainLevel.addStairs(stairsWest, 0, midY);
 
     // Exit stairs are added to right-most coordinates
@@ -88,15 +87,15 @@ export default class AbandonedFort {
 
     const eastCell = mainMap.getFirstFreeFromRight(y0, y1);
     const [sX, sY] = [eastCell.getX(), eastCell.getY()];
-    const stairsEast = new RG.Element.Stairs('stairsDown', mainLevel);
+    const stairsEast = new Element.Stairs('stairsDown', mainLevel);
     mainLevel.addStairs(stairsEast, sX, sY);
 
     const castleBbox = {ulx: castleX, uly: castleY,
         lrx: castleX + castleCols - 1, lry: castleY + castleRows - 1
     };
 
-    const parser = RG.ObjectShell.getParser();
-    const itemFact = new RG.Factory.Item();
+    const parser = ObjectShell.getParser();
+    const itemFact = new FactoryItem();
 
     // Add items to free cells inside the castle
     const castleFreeCells = mainMap.getFreeInBbox(castleBbox);
@@ -146,8 +145,8 @@ export default class AbandonedFort {
     const x1 = castleX + 1;
     const y0 = Math.floor(map.rows / 2);
     const y1 = Math.floor(map.rows / 2);
-    /* const coord = RG.Path.getMinWeightPath(map, x0, y0, x1, y1);
-    const chosenCoord = RG.Path.addPathToMap(map, coord); */
+    /* const coord = Path.getMinWeightPath(map, x0, y0, x1, y1);
+    const chosenCoord = Path.addPathToMap(map, coord); */
     this.createVariedPath(map, {x0, x1, y0, y1});
   }
 
@@ -158,10 +157,10 @@ export default class AbandonedFort {
       for (let x = x0; x < x1; x += dx) {
         let xEnd = x + dx;
         if (xEnd > x1) {xEnd = x1;}
-        const segCoord = RG.Path.getMinWeightPath(map, x, y0, xEnd, y1);
+        const segCoord = Path.getMinWeightPath(map, x, y0, xEnd, y1);
         coord = coord.concat(segCoord);
       }
-      RG.Path.addPathToMap(map, coord);
+      Path.addPathToMap(map, coord);
   }
 
   getLevel() {
