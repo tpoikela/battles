@@ -2,9 +2,9 @@
 /* Contains the code for final Black tower. */
 
 const RG = require('../src/rg');
-const CastleGenerator = require('../src/castle-generator');
-RG.Factory = require('../src/factory');
 const Vault = require('./tiles.vault');
+const CastleGenerator = require('../src/castle-generator');
+const FactoryZone = require('../src/factory.zone');
 const Geometry = require('../src/geometry');
 
 const tileSize = 9;
@@ -86,7 +86,7 @@ export default class BlackTower {
 
     /* Adds properties like actors and items into levels. */
     addProps(levels) {
-        const factZone = new RG.Factory.Zone();
+        const factZone = new FactoryZone();
         levels.forEach((level, i) => {
             const maxDanger = this.getDanger(i);
             const conf = {
