@@ -537,6 +537,8 @@ describe('RG.Game.FromJSON', function() {
         expect(newGiver).to.have.component('QuestGiver');
 
         const newGiverComp = newGiver.get('QuestGiver');
+        expect(newGiverComp.getQuestID()).to.equal(giverComp.getQuestID());
+        /*
         const newQuestData = newGiverComp.getQuestData();
         expect(newQuestData.path).to.have.length(2);
 
@@ -546,5 +548,6 @@ describe('RG.Game.FromJSON', function() {
 
         const pathTargets = newQuestData.getPathTargets();
         expect(pathTargets).to.deep.equal([restLevel, newKillTarget]);
+        */
     });
 });
