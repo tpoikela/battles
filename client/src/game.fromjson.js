@@ -29,6 +29,8 @@ const FromJSON = function() {
     this.id2Object = {};
     this.id2Place = {};
 
+    this.actorsKilled = {};
+
     // For restoring component refs
     this.id2Component = {};
     this.id2CompJSON = {};
@@ -104,7 +106,14 @@ FromJSON.prototype.getObjByRef = function(requestObj) {
     else {objRef = requestObj;}
 
     if (objRef.type === 'entity') {
-        return this.id2entity[objRef.id];
+        const ent = this.id2entity[objRef.id];
+        if (!ent) {
+            if (!this.actorsKilled[objRef.id]) {
+                RG.err('FromJSON', 'getObjRef',
+                    `No ID ${objRef.id} found`);
+            }
+        }
+        return ent;
     }
     else if (objRef.type === 'level') {
         return this.id2level[objRef.id];
@@ -341,7 +350,7 @@ FromJSON.prototype.createComponent = function(name, compJSON) {
         }
         else {
             const json = JSON.stringify(compJSON);
-            RG.err('FromJSON', 'addCompsToEntity',
+            RG.err('FromJSON', 'createComponent',
                 `${setFunc} not function in ${name}. Comp: ${json}`);
 
         }
@@ -399,7 +408,7 @@ FromJSON.prototype.getCompValue = function(
                     const refJson = JSON.stringify(valueToSet.$objRef);
                     let msg = `Null obj for objRef ${refJson}`;
                     msg += ` compJSON: ${JSON.stringify(compJSON)}`;
-                    RG.err('FromJSON', 'createComponent', msg);
+                    RG.err('FromJSON', 'getCompValue', msg);
                 }
             }
             else {
@@ -840,6 +849,10 @@ FromJSON.prototype.setGlobalConfAndObjects = function(game, gameJSON) {
     }
     if (gameJSON.charStyles) {
         RG.charStyles = gameJSON.charStyles;
+    }
+    if (gameJSON.actorsKilled) {
+        this.actorsKilled = gameJSON.actorsKilled;
+        game.actorsKilled = gameJSON.actorsKilled;
     }
 };
 
