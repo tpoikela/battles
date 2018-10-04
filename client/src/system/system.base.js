@@ -9,7 +9,7 @@ const debug = require('debug')('bitn:System');
  * @param {array}  compTypes - Types of comps to listen to
  */
 //---------------------------------------------------
-const SystemBase = function(type, compTypes) {
+const SystemBase = function(type, compTypes, pool) {
     if (!Array.isArray(compTypes)) {
         RG.err('System.Base', 'new',
             '2nd arg must be an array of component types');
@@ -28,7 +28,12 @@ const SystemBase = function(type, compTypes) {
 
     // Add a listener for each specified component type
     for (let i = 0; i < this.compTypes.length; i++) {
-        RG.POOL.listenEvent(this.compTypes[i], this);
+        if (pool) {
+            pool.listenEvent(this.compTypes[i], this);
+        }
+        else {
+            RG.POOL.listenEvent(this.compTypes[i], this);
+        }
     }
 
     this.debugEnabled = debug.enabled;
