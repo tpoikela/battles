@@ -82,7 +82,7 @@ describe('Game.Engine', () => {
 
     // This a bit too thorough test for Engine
     it('Uses Systems to manage entity behaviour', () => {
-        const timeSystem = engine.timeSystems.TimeEffects;
+        const timeSystem = engine.sysMan.timeSystems.TimeEffects;
 
         const poison = new RG.Component.Poison();
         const expiration = new RG.Component.Expiration();
