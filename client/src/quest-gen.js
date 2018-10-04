@@ -344,7 +344,7 @@ QuestData.prototype.getCurrent = function(targetType) {
 };
 
 /* Returns human-readable description of the quest. */
-QuestData.prototype.toString = function() {
+QuestData.prototype.getDescr = function() {
     this.resetIter();
     let res = '';
     this.path.forEach(pair => {
@@ -369,11 +369,18 @@ QuestData.prototype.toJSON = function() {
     this.path.forEach(step => {
         const refType = QuestData.mapStepToType[step.type];
         if (refType) {
-            const pathData = {
-                type: step.type,
-                target: RG.getObjRef(refType, step.target)
-            };
-            path.push(pathData);
+            if (step.target.getID) {
+                const pathData = {
+                    type: step.type,
+                    target: RG.getObjRef(refType, step.target)
+                };
+                path.push(pathData);
+            }
+            else {
+                const pathData = {
+                    type: step.type, target: step.target};
+                path.push(pathData);
+            }
         }
         else {
             console.error('Used step is', step);
@@ -447,7 +454,7 @@ QuestPopulate.prototype.mapQuestToResources = function(quest, zone, areaTile) {
         this.questList.unshift(this.currQuest);
     }
     // Finally, add a quest to quest giver
-    console.log('Created quest: ' + this.currQuest.toString());
+    console.log('Created quest: ' + this.currQuest.getDescr());
 };
 
 /* Maps a single task to resources. Prev. or next step may also affect mapping.
@@ -530,14 +537,14 @@ QuestPopulate.prototype.addQuestComponents = function(zone) {
                 console.log('addQuestComponents Key was ' + key);
                 let killTarget = questData.next(key);
                 while (killTarget) {
-                    this.setQuestTarget(key, killTarget);
+                    this.setAsQuestTarget(key, killTarget);
                     killTarget = questData.next(key);
                 }
             }
             else if (key === 'location') {
                 let location = questData.next(key);
                 while (location) {
-                    this.setQuestTarget(key, location);
+                    this.setAsQuestTarget(key, location);
                     location = questData.next(key);
                 }
             }
@@ -549,21 +556,19 @@ QuestPopulate.prototype.addQuestComponents = function(zone) {
         // Grab random actor and make it the quest giver
         const level = RNG.arrayGetRand(zone.getLevels());
         const questGiver = this.getActorForQuests(level.getActors());
-        const giverComp = new RG.Component.QuestGiver(questData);
-        giverComp.setQuestData(questData);
+        const giverComp = new RG.Component.QuestGiver(questData.getDescr());
         questGiver.add(giverComp);
         console.log('QuestGiver will be ' + questGiver.getName());
     });
 
 };
 
-QuestPopulate.prototype.setQuestTarget = function(key, target) {
+QuestPopulate.prototype.setAsQuestTarget = function(key, target) {
     const qTarget = new RG.Component.QuestTarget();
     qTarget.setTargetType(key);
     qTarget.setTarget(target);
     target.add(qTarget);
 };
-
 
 QuestPopulate.prototype.addName = function(target) {
     const named = target.get('Named');
