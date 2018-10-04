@@ -360,7 +360,7 @@ class RGElementShop extends Mixin.Locatable(RGElementBase) {
         this._shopkeeper = null;
         this._costFactorShopSells = 1.0;
         this._costFactorShopBuys = 0.5;
-        this._isAbandoned = false;
+        this._isAbandoned = true;
     }
 
     isAbandoned() {
@@ -411,6 +411,7 @@ class RGElementShop extends Mixin.Locatable(RGElementBase) {
     setShopkeeper(keeper) {
         if (!RG.isNullOrUndef([keeper])) {
             this._shopkeeper = keeper;
+            this._isAbandoned = false;
         }
         else {
             RG.err('Element.Shop', 'setShopkeeper',
