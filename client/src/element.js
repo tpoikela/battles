@@ -186,12 +186,6 @@ class RGElementStairs extends Mixin.Locatable(RGElementBase) {
             const newY = this._targetStairs.getY();
             if (this._srcLevel.removeActor(actor)) {
                 if (this._targetLevel.addActor(actor, newX, newY)) {
-                    RG.POOL.emitEvent(RG.EVT_LEVEL_CHANGED,
-                        {target: this._targetLevel,
-                        src: this._srcLevel, actor});
-                    RG.POOL.emitEvent(RG.EVT_LEVEL_ENTERED,
-                        {actor, target: this._targetLevel});
-
                     return true;
                 }
             }
