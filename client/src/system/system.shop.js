@@ -13,13 +13,36 @@ System.Shop = function(compTypes) {
     this.updateEntity = function(ent) {
         const trans = ent.get('Transaction');
         const args = trans.getArgs();
-        if (args.buyer.getID() === ent.getID()) {
+        const {buyer} = args;
+        this._checkArgsOK(ent, args);
+        if (buyer.getID() === ent.getID()) {
             this.buyItem(args);
         }
         else {
             this.sellItem(args);
         }
         ent.remove(trans);
+    };
+
+    this._checkArgsOK = function(ent, args) {
+        const {item, buyer, shop, seller} = args;
+        let msg = '';
+        if (!item) {
+            msg += 'Item is null/undef. ';
+        }
+        if (!buyer) {
+            msg += 'Buyer is null/undef. ';
+        }
+        if (!seller) {
+            msg += 'Seller is null/undef. ';
+        }
+        if (!shop) {
+            msg += 'Shop (element) is null/undef. ';
+        }
+        if (msg !== '') {
+            msg += 'Entity: ' + ent.getName();
+            RG.err('System.Shop', '_checkArgsOK', msg);
+        }
     };
 
 
