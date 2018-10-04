@@ -1369,28 +1369,34 @@ RG.Component.GiveQuest = TransientDataComponent('GiveQuest',
 );
 
 RG.Component.QuestGiver = UniqueDataComponent('QuestGiver',
-    {questData: null, hasGivenQuest: false,
+    {hasGivenQuest: false, descr: '',
     questID: -1, danger: 1}
 );
 
-RG.Component.QuestGiver.prototype._init = function(questData) {
-    this.questData = questData;
+RG.Component.QuestGiver.prototype._init = function(descr) {
     this.chatObj = new RG.Chat.Quest();
+    this.descr = descr;
 
     const _addCb = () => {
       this.chatObj.setQuestGiver(this.getEntity());
     };
     this.addCallback('onAdd', _addCb);
+    this.questID = this.getID();
 };
 
 RG.Component.QuestGiver.prototype.giveQuest = function(target) {
-    this.questGivenTo = target;
-    this.hasGivenQuest = true;
+    if (target) {
+        this.questGivenTo = target;
+        this.hasGivenQuest = true;
+    }
+    else {
+        this.hasGivenQuest = false;
+    }
 };
 
 RG.Component.QuestGiver.prototype.toJSON = function() {
     const json = BaseProto.toJSON.call(this);
-    json.setQuestData = this.questData.toJSON();
+    // json.setQuestData = this.questData.toJSON();
     if (this.questGivenTo) {
         json.giveQuest = RG.getObjRef('entity', this.questGivenTo);
     }
@@ -1405,6 +1411,10 @@ RG.Component.QuestGiver.prototype.getChatObj = function() {
 RG.Component.QuestTarget = DataComponent('QuestTarget',
     {targetType: '', target: null, isCompleted: false}
 );
+
+RG.Component.QuestTarget.prototype.isKill = function() {
+    return this.targetType === 'kill';
+};
 
 RG.Component.QuestTarget.prototype.toString = function() {
     let name = '';
@@ -1438,7 +1448,7 @@ RG.Component.QuestTarget.prototype.toJSON = function() {
 
 /* Quest component contains all info related to a single quest. */
 RG.Component.Quest = DataComponent('Quest', {
-    giver: null, questTargets: null
+    giver: -1, questTargets: null
 });
 
 RG.Component.Quest.prototype._init = function() {
@@ -1476,7 +1486,7 @@ RG.Component.Quest.prototype.toJSON = function() {
     const targets = RG.getObjRefArray('component',
         this.questTargets);
     json.setQuestTargets = targets;
-    json.setGiver = RG.getObjRef('entity', this.giver);
+    json.setGiver = this.giver;
     return json;
 };
 
