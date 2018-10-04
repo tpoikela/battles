@@ -44,30 +44,58 @@ const gameConf = {
     playerName: opts.name || 'Player',
     seed: 0
 };
-const gameFact = new RG.Factory.Game();
-let game = gameFact.createNewGame(gameConf);
 
-// Simulate 1st serialisation in worker thread
-let gameJSON = game.toJSON();
+const gameFact = new RG.Factory.Game();
+let game = null;
 let fromJSON = new RG.Game.FromJSON();
 
-game = new RG.Game.Main();
-game = fromJSON.createGame(game, gameJSON);
+if (opts.load && opts.file) {
+    const buf = fs.readFileSync(opts.file);
+    const json = JSON.parse(buf.toString());
+    game = new RG.Game.Main();
+    game = fromJSON.createGame(game, json);
+}
+else {
+    game = gameFact.createNewGame(gameConf);
+}
 
-const timeId = new Date().getTime();
+let gameJSON = {};
+if (!opts.load) {
+    // Simulate 1st serialisation in worker thread
+    gameJSON = game.toJSON();
+
+    game = new RG.Game.Main();
+    game = fromJSON.createGame(game, gameJSON);
+}
+
+const durTimes = {
+    save: 0, write: 0, rest: 0, total: 0
+};
+const timeId = UtilsSim.getTimeStamp();
 const fpsArray = [];
 
 // Used with expect() later
 const saveFunc = (numTurns) => {
-    fromJSON = new RG.Game.FromJSON();
-    gameJSON = game.toJSON();
-    game = new RG.Game.Main();
-    game = fromJSON.createGame(game, gameJSON);
-    const {playerName} = gameConf;
-    const fName = `results/debug-game-${playerName}-${numTurns}-${timeId}.json`;
-    if (fs && fs.writeFileSync) {
-        fs.writeFileSync(fName, JSON.stringify(gameJSON));
-    }
+    const saveDur = UtilsSim.time(() => {
+        fromJSON = new RG.Game.FromJSON();
+        gameJSON = game.toJSON();
+    });
+    const restDur = UtilsSim.time(() => {
+        game = new RG.Game.Main();
+        game = fromJSON.createGame(game, gameJSON);
+    });
+    const writeDur = UtilsSim.time(() => {
+        const {playerName} = gameConf;
+        const tag = `${playerName}-${numTurns}-${timeId}`;
+        const fName = `results/debug-game-${tag}.json`;
+        if (fs && fs.writeFileSync) {
+            fs.writeFileSync(fName, JSON.stringify(gameJSON));
+        }
+    });
+    durTimes.save += saveDur;
+    durTimes.rest += restDur;
+    durTimes.write += writeDur;
+    durTimes.total += saveDur + restDur + writeDur;
 };
 
 const reportFunc = game => {
@@ -129,12 +157,12 @@ for (let i = 1; i <= numTurns; i++) {
     }
 }
 const timeEnd = new Date().getTime();
-const dur = timeEnd - timeStart;
-log('Execution took ' + dur + ' ms');
+const durGame = timeEnd - timeStart - durTimes.total;
+log('Execution took ' + durGame + ' ms');
 
 const fpsAvg = fpsArray.reduce((acc, val) => acc + val, 0) / fpsArray.length;
 
-const fps = numTurns / (dur / 1000);
+const fps = numTurns / (durGame / 1000);
 info(VMEDIUM, 'Overall avg FPS: ' + fps);
 if (!Number.isNaN(fpsAvg)) {
     info(VMEDIUM, '\tOverall avg FPS: ' + fpsAvg + ' (from array)');
