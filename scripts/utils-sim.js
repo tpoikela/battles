@@ -27,12 +27,15 @@ UtilsSim.optDefs = [
 
 /* Lazy method for getting options. Call this directly if you want to parse the
  * standard args for simulation. */
-UtilsSim.getOpts = function() {
+UtilsSim.getOpts = function(exitOnHelp = true) {
     const optDefs = UtilsSim.optDefs;
     let opts = cmdLineArgs(optDefs);
     opts = UtilsSim.getDefaults(opts);
     if (opts.help) {
         UtilsSim.usage(optDefs);
+        if (exitOnHelp) {
+            process.exit(0);
+        }
     }
     return opts;
 };
@@ -46,6 +49,13 @@ UtilsSim.usage = function(optDefs) {
         const str = `--${opt.name}:${ind}<${type}>\t${opt.descr}`;
         console.log(str);
     });
+};
+
+UtilsSim.time = function(cb) {
+    const start = Date.now();
+    cb();
+    const end = Date.now();
+    return end - start;
 };
 
 UtilsSim.getDefaults = function(opt) {
@@ -98,6 +108,22 @@ UtilsSim.Log = function(opts) {
             }
         }
     };
+};
+
+UtilsSim.getTimeStamp = function() {
+    const date = new Date();
+    const yyyy = date.getFullYear();
+    let mm = date.getMonth();
+    if (mm < 10) {mm = '0' + mm;}
+    let dd = date.getDay();
+    if (dd < 10) {dd = '0' + dd;}
+    let hh = date.getHours();
+    if (hh < 10) {hh = '0' + hh;}
+    let MM = date.getMinutes();
+    if (MM < 10) {MM = '0' + MM;}
+    let ss = date.getSeconds();
+    if (ss < 10) {ss = '0' + ss;}
+    return `${yyyy}-${mm}-${dd}-${hh}-${MM}-${ss}`;
 };
 
 // Verbosity levels
