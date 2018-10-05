@@ -736,23 +736,34 @@ RG.Component.NonSentient = UniqueTagComponent('NonSentient');
 /* Component which stores the actor class object. */
 RG.Component.ActorClass = function() {
     RG.Component.Base.call(this, 'ActorClass');
-
-    let _class = null;
-    let _className = null;
+    this._class = null;
+    this._className = null;
 
     this.setClassName = name => {
-        _className = name;
+        this._className = name;
     };
 
-    this.getClassName = () => _className;
+    this.getClassName = () => this._className;
 
-    this.getClass = () => _class;
+    this.getClass = () => this._class;
     this.setActorClass = actorClass => {
-        _class = actorClass;
+        this._class = actorClass;
     };
 
 };
 RG.extend2(RG.Component.ActorClass, RG.Component.Base);
+
+RG.Component.ActorClass.prototype.toJSON = function() {
+    const json = BaseProto.toJSON.call(this);
+    json.setActorClass = {
+        createFunc: 'createActorClass',
+        value: {
+            className: this._className,
+            actorRef: RG.getObjRef('entity', this.getEntity())
+        }
+    };
+    return json;
+};
 
 //---------------------------------------------------------------------------
 // MELEE COMBAT COMPONENTS
