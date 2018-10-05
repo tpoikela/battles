@@ -12,6 +12,7 @@ const {addSkillsExp} = System.Base;
 System.Movement = function(compTypes) {
     System.Base.call(this, RG.SYS.MOVEMENT, compTypes);
 
+    this.somethingSpecial = ['QuestTarget', 'Named'];
     this.climbRe = /highrock/;
 
     /* Checks movements like climbing. */
@@ -135,9 +136,8 @@ System.Movement = function(compTypes) {
             }
         }
 
-
         if (newCell.hasItems()) {
-            const items = newCell.getProp('items');
+            const items = newCell.getItems();
             const topItem = items[0];
             let topItemName = topItem.getName();
             if (topItem.count > 1) {
@@ -151,9 +151,19 @@ System.Movement = function(compTypes) {
             else {
                 RG.gameMsg(`You see ${topItemName}` + ' on the floor');
             }
+
+            // Check for items in a shop
             if (topItem.has('Unpaid')) {
                 if (topItem.count > 1) {RG.gameMsg('They are for sale');}
                 else {RG.gameMsg('It is for sale');}
+            }
+
+            // CHeck for Named or QuestTargets etc
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].hasAny(this.somethingSpecial)) {
+                    const name = items[i].getName();
+                    RG.gameMsg(`There is something special about ${name}`);
+                }
             }
         }
 
