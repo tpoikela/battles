@@ -65,16 +65,10 @@ SystemBase.prototype.notify = function(evtName, obj) {
 SystemBase.prototype.hasCompTypes = function(entity) {
     const compTypes = this.compTypes;
     if (this.compTypesAny === false) { // All types must be present
-        for (let i = 0; i < compTypes.length; i++) {
-            if (!entity.has(compTypes[i])) {return false;}
-        }
-        return true;
+        return entity.hasAll(compTypes);
     }
     else { // Only one compType has to be present
-        for (let j = 0; j < compTypes.length; j++) {
-            if (entity.has(compTypes[j])) {return true;}
-        }
-        return false;
+        return entity.hasAny(compTypes);
     }
 };
 
