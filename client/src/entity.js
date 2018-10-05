@@ -89,6 +89,17 @@ Entity.prototype.has = function(nameOrId) {
     return this._comps.hasOwnProperty(nameOrId);
 };
 
+/* Returns true if entity has any of the components. */
+Entity.prototype.hasAny = function(compNames) {
+    ++Entity.num.hasAny;
+    for (let i = 0; i < compNames.length; i++) {
+        if (this._compsByType.hasOwnProperty(compNames[i])) {
+            return true;
+        }
+    }
+    return false;
+};
+
 /* Removes given component type or component.
  * 1. If object is given, retrieves its id using getID().
  * 2. If integer given, uses it as ID to remove the component.
@@ -147,7 +158,7 @@ Entity.prototype.removeAll = function(nameOrComp) {
         compName = nameOrComp.getType();
     }
     if (this.has(compName)) {
-        const list = this._compsByType[compName];
+        const list = this._compsByType[compName].slice();
         list.forEach(comp => {this.remove(comp);});
     }
 };
@@ -179,6 +190,7 @@ Entity.num.add = 0;
 Entity.num.get = 0;
 Entity.num.getList = 0;
 Entity.num.has = 0;
+Entity.num.hasAny = 0;
 Entity.num.remove = 0;
 Entity.num.removeAll = 0;
 
