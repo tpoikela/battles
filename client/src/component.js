@@ -1420,7 +1420,8 @@ RG.Component.QuestGiver.prototype.getChatObj = function() {
 
 /* Comp added to quest targets (items, actors etc). */
 RG.Component.QuestTarget = DataComponent('QuestTarget',
-    {targetType: '', target: null, isCompleted: false}
+    {targetType: '', target: null, isCompleted: false,
+     targetID: -1}
 );
 
 RG.Component.QuestTarget.prototype.isKill = function() {
