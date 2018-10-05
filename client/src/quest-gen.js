@@ -559,6 +559,7 @@ QuestPopulate.prototype.setAsQuestTarget = function(key, target) {
     const qTarget = new RG.Component.QuestTarget();
     qTarget.setTargetType(key);
     qTarget.setTarget(target);
+    qTarget.setTargetID(target.getID());
     target.add(qTarget);
 };
 
