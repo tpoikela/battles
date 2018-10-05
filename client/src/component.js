@@ -1,5 +1,5 @@
 
-const RG = require('./rg.js');
+const RG = require('./rg');
 const Mixin = require('./mixin');
 
 RG.Chat = require('./chat');
