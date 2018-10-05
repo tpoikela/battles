@@ -914,6 +914,31 @@ RG.STATS_ABBR = RG.STATS.map(stat => stat.substr(0, 3));
 RG.GET_STATS = RG.STATS.map(stat => 'get' + stat);
 RG.SET_STATS = RG.STATS.map(stat => 'set' + stat);
 
+RG.isEmpty = (value) => {
+    if (RG.isNullOrUndef([value])) {
+        return true;
+    }
+    else if (typeof value === 'string') {
+        return value === '';
+    }
+    else if (Array.isArray(value)) {
+        return value.length === 0;
+    }
+    return false;
+};
+
+/* Returns name of object, or its parent's if object has no name. */
+RG.getName = (obj) => {
+    if (obj.getName) {
+        return obj.getName();
+    }
+    else if (obj.getParent) {
+        const parent = obj.getParent();
+        return parent.getName();
+    }
+    return '';
+};
+
 RG.getObjRefArray = (type, arr) => {
     const result = arr.map(targetObj => (
         RG.getObjRef(type, targetObj)

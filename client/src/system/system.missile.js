@@ -189,7 +189,7 @@ System.Missile = function(compTypes) {
             level
         };
         const animComp = new RG.Component.Animation(args);
-        ent.add('Animation', animComp);
+        ent.add(animComp);
     };
 
     /* Returns true if the ammo/missile is destroyed. */

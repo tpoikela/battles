@@ -114,7 +114,7 @@ describe('System.Attack', () => {
         beast.get('Stats').setAgility(0);
 
         const attackComp = new RG.Component.Attack({target: beast});
-        human.add('Attack', attackComp);
+        human.add(attackComp);
         updateSystems(systems);
 
         expect(beast).to.be.an.entity;
@@ -129,7 +129,7 @@ describe('System.Attack', () => {
         bypassComp.setChance(1.0);
         beast.add(bypassComp);
         const attackComp = new RG.Component.Attack({target: human});
-        beast.add('Attack', attackComp);
+        beast.add(attackComp);
         beast.get('Combat').setAttack(100);
 
         human.get('Combat').setDefense(0);
@@ -190,7 +190,7 @@ describe('System.Damage', () => {
         addOnHit.setComp(poisonComp);
         const dieDur = RG.FACT.createDie('1d6 + 5');
         poisonComp.setDurationDie(dieDur);
-        poisonSword.add('AddOnHit', addOnHit);
+        poisonSword.add(addOnHit);
         const human = new RG.Actor.Rogue('Human');
         human.getInvEq().addItem(poisonSword);
         human.getInvEq().equipItem(poisonSword);
@@ -199,7 +199,7 @@ describe('System.Damage', () => {
         const dmgComp = new RG.Component.Damage(10, 'slash');
         dmgComp.setSource(human);
         dmgComp.setWeapon(poisonSword);
-        beast.add('Damage', dmgComp);
+        beast.add(dmgComp);
 
         RGTest.wrapIntoLevel([human, beast]);
 
@@ -209,10 +209,10 @@ describe('System.Damage', () => {
         beastPoisonComp.setDamageDie('1d4');
         beastPoisonComp.setDurationDie('1d4');
         beastAddOnHit.setComp(beastPoisonComp);
-        beast.add('AddOnHit', beastAddOnHit);
+        beast.add(beastAddOnHit);
 
         beastDmgComp.setSource(beast);
-        human.add('Damage', beastDmgComp);
+        human.add(beastDmgComp);
 
         updateSystems(systems);
         expect(beast).to.have.component('Poison');
@@ -220,7 +220,7 @@ describe('System.Damage', () => {
 
         const dmg2 = new RG.Component.Damage(5, 'slash');
         dmg2.setSource(beast);
-        human.add('Damage', dmg2);
+        human.add(dmg2);
         updateSystems(systems);
         expect(beast).to.have.component('Poison');
         expect(human).to.have.component('Poison');
@@ -244,7 +244,7 @@ describe('System.SpellCast', () => {
         const startHP = orc.get('Health').getHP();
 
         const spellPower = new RG.Component.SpellPower(20);
-        mage.add('SpellPower', spellPower);
+        mage.add(spellPower);
 
         const frostBolt = new RG.Spell.FrostBolt();
 
@@ -252,7 +252,7 @@ describe('System.SpellCast', () => {
         spellCast.setSource(mage);
         spellCast.setSpell(frostBolt);
         spellCast.setArgs({dir: [1, 0], src: mage});
-        mage.add('SpellCast', spellCast);
+        mage.add(spellCast);
 
         updateSystems(systems);
 

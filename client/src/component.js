@@ -1466,39 +1466,46 @@ RG.Component.Quest.prototype._init = function() {
     this.questTargets = [];
 };
 
-RG.Component.Quest.prototype.addTarget = function(target) {
-    this.questTargets.push(target);
+RG.Component.Quest.prototype.addTarget = function(targetType, target) {
+    if (!target) {
+        RG.err('Component.Quest', 'addTarget',
+            `No target given. Type ${targetType}`);
+    }
+    const name = RG.getName(target);
+    if (!RG.isEmpty(name)) {
+        const targetData = {
+            id: target.getID(), name, targetType,
+            isCompleted: false
+        };
+        this.questTargets.push(targetData);
+    }
+    else {
+        RG.err('Component.Quest', 'addTarget',
+            `Empty name got for target ${JSON.stringify(target)}`);
+    }
 };
 
+/* Returns first quest target matching the given targetType. */
 RG.Component.Quest.prototype.first = function(targetType) {
-    const targetComp = this.questTargets.find(targetComp => (
-        targetComp.getTargetType() === targetType
+    const targetObj = this.questTargets.find(obj => (
+        obj.targetType === targetType
     ));
-    if (targetComp) {return targetComp.getTarget();}
+    if (targetObj) {return targetObj;}
     return null;
 };
 
 /* Returns true if all QuestTarget comps have been completed. */
 RG.Component.Quest.prototype.isCompleted = function() {
-    this.questTargets.reduce((acc, qTarget) => acc && qTarget.isCompleted,
+    this.questTargets.reduce((acc, obj) => acc && obj.isCompleted,
         true);
 };
 
 RG.Component.Quest.prototype.toString = function() {
     let res = '';
-    this.questTargets.forEach(target => {
-        res += target.toString();
+    this.questTargets.forEach(obj => {
+        res += obj.targetType + ' ' + obj.name;
     });
     return res;
-};
-
-RG.Component.Quest.prototype.toJSON = function() {
-    const json = BaseProto.toJSON.call(this);
-    const targets = RG.getObjRefArray('component',
-        this.questTargets);
-    json.setQuestTargets = targets;
-    json.setGiver = this.giver;
-    return json;
 };
 
 RG.Component.QuestCompleted = TransientDataComponent('QuestCompleted',

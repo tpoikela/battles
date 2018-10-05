@@ -1797,7 +1797,7 @@ RG.World.Shop.prototype.refreshShopItems = function(newItems) {
         const cell = this._level.getMap().getCell(xy[0], xy[1]);
         if (!cell.hasItems()) {
             if (nItem < newItems.length) {
-                newItems[nItem].add('Unpaid', new RG.Component.Unpaid());
+                newItems[nItem].add(new RG.Component.Unpaid());
                 this._level.addItem(newItems[nItem], xy[0], xy[1]);
                 ++nItem;
             }

@@ -335,7 +335,7 @@ System.Damage = function(compTypes) {
             const defLevel = def.get('Experience').getExpLevel();
             const defDanger = def.get('Experience').getDanger();
             const expPoints = new RG.Component.ExpPoints(defLevel + defDanger);
-            att.add('ExpPoints', expPoints);
+            att.add(expPoints);
 
             // Give additional battle experience
             if (att.has('InBattle')) {

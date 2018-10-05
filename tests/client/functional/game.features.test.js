@@ -121,7 +121,7 @@ describe('A full game', function() {
         p1Inv.addItem(magicSword);
 
         const dagger = parser.createActualObj(RG.TYPE_ITEM, 'Magic dagger');
-        dagger.add('Unpaid', new RG.Component.Unpaid());
+        dagger.add(new RG.Component.Unpaid());
         l1.addItem(dagger, p1X, p1Y);
 
         expect(p1Inv.getItems()).to.have.length(2);

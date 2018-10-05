@@ -333,7 +333,7 @@ DungeonPopulate.prototype.createShops = function(level, conf) {
                         `${msg} shopFunc/type${n} not well defined.`);
                 }
                 else {
-                    item.add('Unpaid', new RG.Component.Unpaid());
+                    item.add(new RG.Component.Unpaid());
                     level.addItem(item, xy[0], xy[1]);
                     shopCoord.push(xy);
                 }

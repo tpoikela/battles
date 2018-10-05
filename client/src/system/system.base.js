@@ -124,7 +124,7 @@ SystemBase.addCompToEntAfterHit = function addCompToEntAfterHit(
         const compDur = compClone.rollDuration();
         const expiration = new RG.Component.Expiration();
         expiration.addEffect(compClone, compDur);
-        ent.add('Expiration', expiration);
+        ent.add(expiration);
     }
 
     // Source not present in negative buffs like StatsMods/CombatMods,

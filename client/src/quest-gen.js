@@ -39,7 +39,7 @@ const Quest = function(name, tasks) {
     if (Array.isArray(tasks)) {
         tasks.forEach(taskType => {
             const task = new Task(taskType);
-            this.add(task);
+            this.addStep(task);
         });
     }
 };
@@ -51,7 +51,7 @@ Quest.prototype.getTasks = function() {
     return this.steps.filter(step => step.isTask());
 };
 
-Quest.prototype.add = function(step) {
+Quest.prototype.addStep = function(step) {
     if (Array.isArray(step)) {
         this.steps = this.steps.concat(step);
     }
@@ -168,9 +168,9 @@ QuestGen.prototype.genQuestWithConf = function(conf = {}) {
 QuestGen.prototype.genQuestWithName = function(name) {
     const quest = new Quest(name);
     const taskGoto = new Task('<goto>already_there');
-    quest.add(taskGoto);
+    quest.addStep(taskGoto);
     const taskKill = new Task('<kill>kill');
-    quest.add(taskKill);
+    quest.addStep(taskKill);
     return quest;
 };
 
@@ -227,7 +227,7 @@ QuestGen.prototype.generateTerm = function(rules, term) {
     }
 
     if (term.type === 'terminal') {
-        this.currQuest.add(new Task(term.text));
+        this.currQuest.addStep(new Task(term.text));
         return term.text;
     }
 
@@ -242,7 +242,7 @@ QuestGen.prototype._checkIfQuestOver = function(rule) {
         if (qLen > 1) {
             const subQuest = this.stack.pop();
             this.currQuest = this.stack[this.stack.length - 1];
-            this.currQuest.add(subQuest);
+            this.currQuest.addStep(subQuest);
         }
     }
 };
@@ -268,7 +268,7 @@ QuestData.mapStepToType = {
 };
 
 /* Adds one target for the quest. */
-QuestData.prototype.add = function(targetType, obj) {
+QuestData.prototype.addTarget = function(targetType, obj) {
     if (!RG.isEntity(obj)) {
         const json = JSON.stringify(obj);
         RG.err('QuestData', 'add',
@@ -350,16 +350,8 @@ QuestData.prototype.getDescr = function() {
     this.path.forEach(pair => {
         const step = pair.type;
         const value = this.next(step);
-        if (value.getName) {
-            res += step + ' ' + value.getName() + '. ';
-        }
-        else if (value.getParent) {
-            const parent = value.getParent();
-            if (parent) {
-                res += step + ' ' + parent.getName() + '. ';
-            }
-        }
-
+        const name = RG.getName(value);
+        res += step + ' ' + name + '. ';
     });
     return res;
 };
@@ -432,7 +424,7 @@ QuestPopulate.prototype.mapQuestToResources = function(quest, zone, areaTile) {
     this.currQuest = new QuestData();
     this.questData.quests.push(this.currQuest);
     const level = RNG.arrayGetRand(zone.getLevels());
-    this.currQuest.add('location', level);
+    this.currQuest.addTarget('location', level);
     quest.getSteps().forEach(step => {
         const currLoc = this.currQuest.getCurrent('location');
         if (step.isQuest()) {
@@ -466,19 +458,19 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
             const location = this.currQuest.getCurrent('location');
             const level = location;
             const actorToKill = this.getActorForQuests(level.getActors());
-            this.currQuest.add('kill', actorToKill);
+            this.currQuest.addTarget('kill', actorToKill);
             this.addName(actorToKill);
             console.log('mapTask added an actor to kill');
             break;
         }
         case '<goto>already_there': {
             // Don't add current location because it's already in the stack
-            // this.currQuest.add('location', zone);
+            // this.currQuest.addTarget('location', zone);
             break;
         }
         case '<goto>goto': {
             const newLocation = this.getNewLocation(zone, areaTile);
-            this.currQuest.add('location', newLocation);
+            this.currQuest.addTarget('location', newLocation);
             break;
         }
         default: {

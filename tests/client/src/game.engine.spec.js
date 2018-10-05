@@ -68,7 +68,7 @@ describe('Game.Engine', () => {
         expect(engine.nextActor).to.not.be.null;
 
         const hunger = new RG.Component.Hunger(1000);
-        actor.add('Hunger', hunger);
+        actor.add(hunger);
         actor.getBrain().energy = 10; // Add energy artificially
         const energyBefore = hunger.getEnergy();
         for (let i = 0; i < 10; i++) {
@@ -96,8 +96,8 @@ describe('Game.Engine', () => {
 
         const currHP = eng.actor.get('Health').getHP();
 
-        eng.actor.add('Expiration', expiration);
-        eng.actor.add('Poison', poison);
+        eng.actor.add(expiration);
+        eng.actor.add(poison);
         expect(timeSystem.entities).to.have.property(eng.actor.getID());
 
         engine.simulateGame();

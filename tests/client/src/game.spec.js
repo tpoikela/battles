@@ -58,7 +58,7 @@ describe('Game.Main', () => {
         checkMap(newMap, cols, rows);
 
         const movComp = new RG.Component.Movement(12, 13, level);
-        actor.add('Movement', movComp);
+        actor.add(movComp);
         movSystem.update();
         expect(actor.getX()).to.equal(12);
         expect(actor.getY()).to.equal(13);
@@ -132,7 +132,7 @@ describe('How combat should evolve', () => {
         level.addActor(defender, 2, 2);
 
         const attackComp = new RG.Component.Attack({target: defender});
-        attacker.add('Attack', attackComp);
+        attacker.add(attackComp);
         comSystem.update();
         expect(defender.has('Damage')).to.equal(true);
         dmgSystem.update();
@@ -145,7 +145,7 @@ describe('How combat should evolve', () => {
         level.addActor(def2, 2, 2);
 
         const attComp2 = new RG.Component.Attack({target: def2});
-        attacker.add('Attack', attComp2);
+        attacker.add(attComp2);
 
         def2.get('Health').setHP(20);
         def2.get('Combat').setDefense(0);
@@ -161,7 +161,7 @@ describe('How combat should evolve', () => {
 
         expect(def2.get('Health').isAlive()).to.equal(true);
 
-        attacker.add('Attack', attComp2);
+        attacker.add(attComp2);
         comSystem.update();
         dmgSystem.update();
 
@@ -169,7 +169,7 @@ describe('How combat should evolve', () => {
 
         const killListen = new KillListener(def2);
         while (killListen.isAlive) {
-            attacker.add('Attack', attComp2);
+            attacker.add(attComp2);
             comSystem.update();
             dmgSystem.update();
         }

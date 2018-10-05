@@ -53,7 +53,7 @@ describe('Rogue.Actor', () => {
         actor.setIsPlayer(true);
 
         const hunger = new RG.Component.Hunger();
-        actor.add('Hunger', hunger);
+        actor.add(hunger);
 
         const actorJSON = actor.toJSON();
         expect(actorJSON.name).to.equal('player hero');
@@ -122,7 +122,7 @@ describe('Rogue.Actor', () => {
     it('can have StatsMods added', () => {
         const mob = new Actor.Rogue('mob');
         const statMods = new RG.Component.StatsMods();
-        mob.add('StatsMods', statMods);
+        mob.add(statMods);
 
         const oldWp = mob.getWillpower();
         statMods.setWillpower(5);

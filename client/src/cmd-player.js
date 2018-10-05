@@ -30,7 +30,7 @@ class CmdAttack {
         const attackRange = RG.getMeleeAttackRange(this._actor);
         if (dist <= attackRange) {
             const attackComp = new RG.Component.Attack({target: actor});
-            this._actor.add('Attack', attackComp);
+            this._actor.add(attackComp);
             return ACTION_ALREADY_DONE;
         }
         else {
@@ -94,7 +94,7 @@ class CmdMissile {
                     mComp.setDamage(RG.getMissileDamage(this._actor, missile));
                     mComp.setAttack(RG.getMissileAttack(this._actor, missile));
                     mComp.setRange(RG.getMissileRange(this._actor, missile));
-                    missile.add('Missile', mComp);
+                    missile.add(mComp);
                     this.energy = RG.energy.MISSILE;
                 }
                 else {

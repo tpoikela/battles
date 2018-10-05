@@ -302,7 +302,7 @@ class RGItemAmmo extends RGItemWeapon {
     constructor(name) {
         super(name);
         this.setType(RG.ITEM_AMMUNITION);
-        this.add('Ammo', new RG.Component.Ammo());
+        this.add(new RG.Component.Ammo());
         this._ammoType = '';
     }
 

@@ -179,7 +179,7 @@ Spell.getSelectionObjectDir = (spell, actor, msg) => {
                     spellCast.setSource(actor);
                     spellCast.setSpell(spell);
                     spellCast.setArgs(args);
-                    actor.add('SpellCast', spellCast);
+                    actor.add(spellCast);
                 };
             }
             return null;
@@ -351,7 +351,7 @@ Spell.Base.prototype.getCastFunc = function(actor, args) {
             spellCast.setSource(actor);
             spellCast.setSpell(this);
             spellCast.setArgs(args);
-            actor.add('SpellCast', spellCast);
+            actor.add(spellCast);
         };
     }
     return null;
@@ -583,7 +583,7 @@ Spell.RemoveComponent = function(name, power) {
 
         const spellComp = new RG.Component.SpellCell();
         spellComp.setArgs(obj);
-        args.src.add('SpellCell', spellComp);
+        args.src.add(spellComp);
     };
 
     this.getSelectionObject = function(actor) {
@@ -623,7 +623,7 @@ Spell.GraspOfWinter = function() {
         obj.damage = this.getDamage();
         const spellComp = new RG.Component.SpellCell();
         spellComp.setArgs(obj);
-        args.src.add('SpellCell', spellComp);
+        args.src.add(spellComp);
     };
 
     this.getSelectionObject = function(actor) {
@@ -646,7 +646,7 @@ Spell.BoltBase = function(name, power) {
         obj.damage = this.getDice('damage').roll();
         const rayComp = new RG.Component.SpellRay();
         rayComp.setArgs(obj);
-        args.src.add('SpellRay', rayComp);
+        args.src.add(rayComp);
     };
 
     this.getSelectionObject = function(actor) {
@@ -748,7 +748,7 @@ Spell.CrossBolt = function() {
             obj.damage = this._dice.damage.roll();
             const rayComp = new RG.Component.SpellRay();
             rayComp.setArgs(obj);
-            args.src.add('SpellRay', rayComp);
+            args.src.add(rayComp);
         });
     };
 
@@ -914,7 +914,7 @@ Spell.SummonBase = function(name, power) {
 
         const spellComp = new RG.Component.SpellCell();
         spellComp.setArgs(obj);
-        args.src.add('SpellCell', spellComp);
+        args.src.add(spellComp);
     };
 
     this.getSelectionObject = function(actor) {
@@ -1282,7 +1282,7 @@ Spell.MindControl = function() {
 
         const spellComp = new RG.Component.SpellCell();
         spellComp.setArgs(obj);
-        args.src.add('SpellCell', spellComp);
+        args.src.add(spellComp);
     };
 
     this.getSelectionObject = function(actor) {
@@ -1363,7 +1363,7 @@ Spell.Heal = function() {
         obj.value = this._dice.healing.roll();
         const spellComp = new RG.Component.SpellCell();
         spellComp.setArgs(obj);
-        args.src.add('SpellCell', spellComp);
+        args.src.add(spellComp);
     };
 
     this.getSelectionObject = function(actor) {

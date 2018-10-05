@@ -58,14 +58,12 @@ Entity.prototype.getList = function(typeName) {
 };
 
 /* Adds a new component into the entity. */
-Entity.prototype.add = function(nameOrComp, comp) {
-    ++Entity.num.add;
-    let compName = nameOrComp;
-    let compObj = comp;
-    if (typeof nameOrComp === 'object') {
-        compObj = nameOrComp;
-        compName = nameOrComp.getType();
+Entity.prototype.add = function(compObj) {
+    if (typeof compObj === 'string') {
+        RG.err('Entity', 'add', 'No string support anymore');
     }
+    ++Entity.num.add;
+    const compName = compObj.getType();
     if (compObj.isUnique() && this.has(compName)) {
         this.removeAll(compName);
     }
@@ -158,7 +156,7 @@ Entity.prototype.removeAll = function(nameOrComp) {
 Entity.prototype.replace = function(nameOrComp, comp) {
     this.removeAll(nameOrComp);
     if (comp) {
-        this.add(nameOrComp, comp);
+        this.add(comp);
     }
     else {
         this.add(nameOrComp);

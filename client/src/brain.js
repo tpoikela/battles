@@ -420,7 +420,7 @@ Brain.Rogue.prototype.actionTowardsEnemy = function(enemyCell) {
             const cell = level.getMap().getCell(playX, playY);
             const target = cell.getProp('actors')[0];
             const attackComp = new RG.Component.Attack({target});
-            this._actor.add('Attack', attackComp);
+            this._actor.add(attackComp);
         };
     }
     else { // Move closer
@@ -442,7 +442,7 @@ Brain.Rogue.prototype.tryToMoveTowardsCell = function(cell) {
     if (newCell.isPassable()) {
         return () => {
             const movComp = new RG.Component.Movement(newX, newY, level);
-            this._actor.add('Movement', movComp);
+            this._actor.add(movComp);
         };
     }
 
@@ -453,7 +453,7 @@ Brain.Rogue.prototype.tryToMoveTowardsCell = function(cell) {
         const y = pathCells[1].getY();
         return () => {
             const movComp = new RG.Component.Movement(x, y, level);
-            this._actor.add('Movement', movComp);
+            this._actor.add(movComp);
         };
     }
     else {
@@ -700,7 +700,7 @@ Brain.Human = function(actor) {
         const msg = {type: 'Enemies', enemies, src: this.getActor()};
         comComp.addMsg(msg);
 
-        friendActor.add('Communication', comComp);
+        friendActor.add(comComp);
         memory.addCommunicationWith(friendActor);
         return ACTION_ALREADY_DONE;
     };
@@ -755,7 +755,7 @@ Brain.Archer = function(actor) {
         mComp.setDamage(RG.getMissileDamage(this._actor, missile));
         mComp.setAttack(RG.getMissileAttack(this._actor, missile));
         mComp.setRange(RG.getMissileRange(this._actor, missile));
-        missile.add('Missile', mComp);
+        missile.add(mComp);
         return ACTION_ALREADY_DONE;
     };
 };

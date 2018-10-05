@@ -72,7 +72,7 @@ describe('How actors communicate with each other', () => {
         comComp.addMsg({src: hunter1, type: 'Enemies',
             enemies: mem1.getEnemies()});
         expect(comSys.entities.hasOwnProperty(hunter2.getID())).to.equal(false);
-        hunter2.add('Communication', comComp);
+        hunter2.add(comComp);
         expect(comSys.entities.hasOwnProperty(hunter2.getID())).to.equal(true);
 
         const mem2 = brain2.getMemory();

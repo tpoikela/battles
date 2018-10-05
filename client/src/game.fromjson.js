@@ -13,6 +13,7 @@ const GameObject = require('./game-object');
 const {QuestData} = require('./quest-gen');
 const WorldFromJSON = require('./world.fromjson');
 const Level = require('./level');
+const ActorClass = require('./actor-class');
 
 const OBJ_REF_REMOVED = Symbol();
 const OBJ_REF_NOT_FOUND = null;
@@ -237,13 +238,14 @@ FromJSON.prototype.restorePlayer = function(json) {
 
     player.setType(json.type);
     player.setID(json.id);
-    this.id2entity[json.id] = player;
+    // this.id2entity[json.id] = player;
     // this.addEntityInfo(player, json);
     this._dungeonLevel = json.dungeonLevel;
+    this.addObjRef('entity', player, json);
 
     RG.addCellStyle(RG.TYPE_ACTOR, json.name, 'cell-actor-player');
-    this._addEntityFeatures(json, player);
-    this.restorePlayerBrain(player, json.brain);
+    // this._addEntityFeatures(json, player);
+    // this.restorePlayerBrain(player, json.brain);
     return player;
 };
 
@@ -335,7 +337,7 @@ FromJSON.prototype.addCompsToEntity = function(ent, comps) {
 
             }
             const newCompObj = this.createComponent(name, compJSON);
-            ent.add(name, newCompObj);
+            ent.add(newCompObj);
         }
     }
 };
@@ -437,6 +439,17 @@ FromJSON.prototype.getCompValue = function(
     return null; // Getting here means serious error
 };
 
+FromJSON.prototype.createActorClass = function(args) {
+    const {className, actorRef} = args;
+    const actor = this.getObjByRef(actorRef);
+    if (actor) {
+        return ActorClass.create(className, actor);
+    }
+    RG.err('FromJSON', 'createActorClass',
+        `No actor for class ${className} found`);
+    return null;
+};
+
 FromJSON.prototype.createQuestData = function(json) {
     const questData = new QuestData();
     json.path.forEach(pathData => {
@@ -455,7 +468,7 @@ FromJSON.prototype.createQuestData = function(json) {
             const msg = `Missing objRef: ${JSON.stringify(pathData.target)}`;
             RG.err('FromJSON', 'createQuest', msg);
         }
-        questData.add(pathData.type, target);
+        questData.push(pathData.type, target);
     });
     return questData;
 };
@@ -1092,7 +1105,7 @@ FromJSON.prototype.reportMissingLevel = function(connObj) {
     Object.keys(this.id2level).forEach(id => {
         msg += `\n\t${id}`;
     });
-    console.log(msg + '\n');
+    console.warn(msg + '\n');
 };
 
 /* Re-schedules the HP/PP regeneration for an actor */

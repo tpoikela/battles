@@ -85,7 +85,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     shopCell.setProp('elements', shopElem);
     const soldItem = this._parser.createActualObj('items',
         'Ruby glass sword');
-    soldItem.add('Unpaid', new RG.Component.Unpaid());
+    soldItem.add(new RG.Component.Unpaid());
     shopCell.setProp('items', soldItem);
     shopElem.setShopkeeper(keeper);
     */
@@ -119,11 +119,11 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     player.getInvEq().addItem(potStr);
 
     // BladeMaster components
-    player.add('Attacker', new RG.Component.Attacker());
-    player.add('Defender', new RG.Component.Defender());
-    player.add('MasterEquipper', new RG.Component.MasterEquipper());
-    player.add('BiDirStrike', new RG.Component.BiDirStrike());
-    player.add('CounterAttack', new RG.Component.BiDirStrike());
+    player.add(new RG.Component.Attacker());
+    player.add(new RG.Component.Defender());
+    player.add(new RG.Component.MasterEquipper());
+    player.add(new RG.Component.BiDirStrike());
+    player.add(new RG.Component.BiDirStrike());
 
     // Marksman components
     player.add(new RG.Component.ThroughShot());
@@ -396,7 +396,7 @@ DebugGame.prototype.createOneDungeonAndBoss = function(obj, game, player) {
 
     const finalStairs = new Stairs(true, allLevels[nLevels - 1], townLevel);
     const stairsLoot = new RG.Component.Loot(finalStairs);
-    summoner.add('Loot', stairsLoot);
+    summoner.add(stairsLoot);
     allStairsDown.push(finalStairs);
 
     const lastStairsDown = allStairsDown.slice(-1)[0];

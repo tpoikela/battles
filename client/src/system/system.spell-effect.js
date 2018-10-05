@@ -106,7 +106,7 @@ System.SpellEffect.prototype.processSpellRay = function(ent, ray) {
         level: ent.getLevel()
     };
     const animComp = new RG.Component.Animation(animArgs);
-    ent.add('Animation', animComp);
+    ent.add(animComp);
 };
 
 
@@ -189,7 +189,7 @@ System.SpellEffect.prototype.processSpellCell = function(ent, spellComp) {
                         else {
                             const expComp = new RG.Component.Expiration();
                             expComp.addEffect(comp, dur);
-                            actor.add('Expiration', expComp);
+                            actor.add(expComp);
                         }
                         actor.add(comp);
                     }
@@ -236,7 +236,7 @@ System.SpellEffect.prototype.processSpellCell = function(ent, spellComp) {
             level: ent.getLevel()
         };
         const animComp = new RG.Component.Animation(animArgs);
-        ent.add('Animation', animComp);
+        ent.add(animComp);
     }
 };
 

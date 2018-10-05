@@ -274,7 +274,7 @@ describe('Moving actors around in the game', () => {
 
         // Actors x,y changes due to move
         const movComp = new RG.Component.Movement(2, 3, level);
-        actor.add('Movement', movComp);
+        actor.add(movComp);
         movSystem.update();
         expect(actor.getX()).to.equal(2);
         expect(actor.getY()).to.equal(3);
@@ -348,7 +348,7 @@ describe('Moving actors around in the game', () => {
         stairsUp32.setTargetStairs(stairsDown23);
 
         const movComp = new RG.Component.Movement(12, 13, level2);
-        player.add('Movement', movComp);
+        player.add(movComp);
         movSystem.update();
         level2.useStairs(player);
         expect(player.getLevel()).to.equal(level3);
@@ -394,7 +394,7 @@ describe('Element.Shop', () => {
 
         const soldItem = new RG.Item.Weapon('Fancy Sword');
         soldItem.setValue(300);
-        soldItem.add('Unpaid', new RG.Component.Unpaid());
+        soldItem.add(new RG.Component.Unpaid());
         level.addItem(soldItem, 1, 1);
 
         expect(shopCell.hasProp('items')).to.equal(true);

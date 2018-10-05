@@ -75,7 +75,7 @@ RGTest.getMeAWizard = function(conf = {}) {
     const spellPower = new RG.Component.SpellPower();
     spellPower.setPP(30);
     spellPower.setMaxPP(40);
-    wizard.add('SpellPower', spellPower);
+    wizard.add(spellPower);
     return wizard;
 
 };

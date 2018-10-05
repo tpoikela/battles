@@ -92,7 +92,7 @@ describe('RG.Game.FromJSON', function() {
 
         const shopElem = new RG.Element.Shop();
         const shopItem = new RG.Item.Weapon('Sword for sale');
-        shopItem.add('Unpaid', new RG.Component.Unpaid());
+        shopItem.add(new RG.Component.Unpaid());
         level.addElement(shopElem, 4, 4);
         level.addItem(shopItem, 4, 4);
 
@@ -491,8 +491,8 @@ describe('RG.Game.FromJSON', function() {
         const level = RGTest.wrapIntoLevel([quester, giver, killTarget]);
 
         const questData = new QuestData();
-        questData.add('location', level);
-        questData.add('kill', killTarget);
+        questData.addTarget('location', level);
+        questData.addTarget('kill', killTarget);
         expect(questData.getPathTypes()).to.deep.equal(['location', 'kill']);
 
         const giverComp = new RG.Component.QuestGiver(questData);
@@ -505,7 +505,7 @@ describe('RG.Game.FromJSON', function() {
 
         const questComp = new RG.Component.Quest();
         questComp.setGiver(giver);
-        questComp.addTarget(targetComp);
+        questComp.addTarget('kill', killTarget);
         quester.add(questComp);
 
         const game = new RG.Game.Main();
@@ -526,11 +526,9 @@ describe('RG.Game.FromJSON', function() {
 
         const newQuestComp = newQuester.get('Quest');
         const targets = newQuestComp.getQuestTargets();
-        const newTargetComp = targets[0];
-        expect(newTargetComp.getID()).to.equal(targetComp.getID());
-
-        const newKillTarget = newTargetComp.getTarget();
-        expect(newKillTarget.getID()).to.equal(killTarget.getID());
+        const newFirstTarget = targets[0];
+        expect(newFirstTarget.id).to.equal(killTarget.getID());
+        expect(newFirstTarget.name).to.equal(killTarget.getName());
 
         const newGiver = actors.find(act => (
             act.getID() === giver.getID()));
@@ -538,6 +536,13 @@ describe('RG.Game.FromJSON', function() {
 
         const newGiverComp = newGiver.get('QuestGiver');
         expect(newGiverComp.getQuestID()).to.equal(giverComp.getQuestID());
+
+        const firstKill = newQuestComp.first('kill');
+        const refData = {
+            id: killTarget.getID(), name: killTarget.getName(),
+            targetType: 'kill', isCompleted: false
+        };
+        expect(firstKill).to.deep.equal(refData);
         /*
         const newQuestData = newGiverComp.getQuestData();
         expect(newQuestData.path).to.have.length(2);

@@ -95,7 +95,7 @@ System.Shop = function(compTypes) {
                 seller.getInvEq().addItem(coins);
 
                 const topItem = seller.getCell().getItems()[0];
-                topItem.add('Unpaid', new RG.Component.Unpaid());
+                topItem.add(new RG.Component.Unpaid());
                 const itemName = topItem.getName();
 
                 RG.gameMsg({cell: sellerCell, msg: seller.getName() +

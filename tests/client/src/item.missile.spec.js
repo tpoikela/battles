@@ -23,7 +23,7 @@ const createMissile = obj => {
     mEnt.add(new RG.Component.Indestructible());
     const mComp = new RG.Component.Missile(obj.src);
     mComp.setDamage(obj.d);
-    mEnt.add('Missile', mComp);
+    mEnt.add(mComp);
     mComp.setTargetXY(obj.x, obj.y);
     mComp.setRange(obj.r);
     return mComp;
@@ -47,7 +47,7 @@ describe('How missile is fired and hits a wall', () => {
         const mEnt = new RG.Item.Missile('missile');
         mEnt.add(new RG.Component.Indestructible());
         const mComp = new RG.Component.Missile(srcEnt);
-        mEnt.add('Missile', mComp);
+        mEnt.add(mComp);
 
         expect(mComp.getX()).to.equal(1);
         expect(mComp.getY()).to.equal(1);
@@ -74,7 +74,7 @@ describe('How missile is fired and hits a wall', () => {
         const mEnt = new RG.Item.Missile('missile');
         mEnt.add(new RG.Component.Indestructible());
         const mComp = new RG.Component.Missile(srcEnt);
-        mEnt.add('Missile', mComp);
+        mEnt.add(mComp);
         mComp.setTargetXY(1, 4);
         mComp.setRange(3);
 

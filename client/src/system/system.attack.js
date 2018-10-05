@@ -135,7 +135,7 @@ System.Attack = function(compTypes) {
     this.doDamage = (att, def, dmg) => {
         const dmgComp = new RG.Component.Damage(dmg, RG.DMG.MELEE);
         dmgComp.setSource(att);
-        def.add('Damage', dmgComp);
+        def.add(dmgComp);
         RG.gameWarn({cell: att.getCell(),
             msg: att.getName() + ' hits ' + def.getName()});
     };

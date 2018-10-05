@@ -388,7 +388,7 @@ class GoalMoveUntilEnemy extends GoalBase {
         else if (map.isPassable(nextX, nextY)) {
             const level = this.actor.getLevel();
             const movComp = new RG.Component.Movement(nextX, nextY, level);
-            this.actor.add('Movement', movComp);
+            this.actor.add(movComp);
 
             const name = this.actor.getName();
             if (debug.enabled) {
@@ -749,7 +749,7 @@ class GoalHitActor extends GoalBase {
         const cell = level.getMap().getCell(aX, aY);
         const target = cell.getProp('actors')[0];
         const attackComp = new RG.Component.Attack({target});
-        this.actor.add('Attack', attackComp);
+        this.actor.add(attackComp);
         this.dbg(`${this.getType()} added Attack comp`);
         this.status = GOAL_ACTIVE;
     }
@@ -787,7 +787,7 @@ class GoalShootActor extends GoalBase {
         mComp.setDamage(RG.getMissileDamage(this.actor, shotItem));
         mComp.setAttack(RG.getMissileAttack(this.actor, shotItem));
         mComp.setRange(RG.getMissileRange(this.actor, shotItem));
-        shotItem.add('Missile', mComp);
+        shotItem.add(mComp);
         this.dbg(`${this.getType()} added Missile comp`);
         this.status = GOAL_ACTIVE;
     }

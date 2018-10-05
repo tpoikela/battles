@@ -17,7 +17,7 @@ const initCombatant = (comb, obj) => {
     let combatComp = null;
     if (!comb.has('Combat')) {
         combatComp = new RG.Component.Combat();
-        comb.add('Combat', combatComp);
+        comb.add(combatComp);
     }
     else {
         combatComp = comb.get('Combat');

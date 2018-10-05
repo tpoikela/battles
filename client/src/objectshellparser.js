@@ -36,11 +36,11 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
      * 2. {comp: "CompName", func: "setter"}
      *  Create component comp of type "CompName".
      *  Call comp["setter"]( shell.field)
-     *  Call obj.add("CompName", comp)
+     *  Call obj.add(comp)
      *
      * 3. {comp: "CompName"}
      *  Create component comp of type "CompName" with new CompName(shell.field)
-     *  Call obj.add("CompName", comp)
+     *  Call obj.add(comp)
      *
      * 4. "setter"
      *   Call setter obj["setter"](shell.field)
@@ -270,7 +270,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
         poisonComp.setDurationDie(dieDuration);
         const addOnHit = new RG.Component.AddOnHit();
         addOnHit.setComp(poisonComp);
-        obj.add('AddOnHit', addOnHit);
+        obj.add(addOnHit);
     };
 
     /* Adds any component as AddOnHit property. */
@@ -429,7 +429,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
                     else { // 2. Or create a new component
                         const comp = this.createComponent(compName);
                         comp[fname](val); // Then call comp setter
-                        newObj.add(compName, comp);
+                        newObj.add(comp);
                     }
                 });
             }
@@ -442,10 +442,9 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
                 }
                 else { // 2. Or create a new component
                     const comp = this.createComponent(compName);
-                    newObj.add(compName, comp);
+                    newObj.add(comp);
                     if (typeof comp[fname] === 'function') {
                         comp[fname](val); // Then call comp setter
-                        // newObj.add(compName, comp);
                     }
                     else if (typeof fname === 'object') {
                         const funcNames = Object.keys(compData.func);
@@ -471,8 +470,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
                 'Not implemented');
         }
         else {
-            newObj.add(compData.comp,
-                this.createComponent(compData.comp, val));
+            newObj.add(this.createComponent(compData.comp, val));
         }
     };
 
@@ -503,7 +501,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
     const _addCompFromString = (compName, entity) => {
         try {
             const comp = new RG.Component[compName]();
-            entity.add(compName, comp);
+            entity.add(comp);
         }
         catch (e) {
             let msg = `shell.addComp |${compName}|`;
@@ -540,7 +538,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
         const loot = shell.loot;
         const lootItem = this.createActualObj(RG.TYPE_ITEM, loot);
         const lootComp = new RG.Component.Loot(lootItem);
-        actor.add('Loot', lootComp);
+        actor.add(lootComp);
     };
 
     /* Adds equipped items given with shell.equip into the actor. */

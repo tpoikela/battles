@@ -65,9 +65,12 @@ describe('Component.Base', () => {
         expect(calledIllegal).to.be.false;
 
         expect(calledAdd).to.be.false;
-        entity.add('Base', comp);
+        entity.add(comp);
         expect(calledAdd).to.be.true;
+        expect(entity.has('Base')).to.equal(true);
 
+        const baseComp = entity.get('Base');
+        expect(baseComp.getType()).to.equal('Base');
         expect(calledRemove).to.be.false;
         entity.remove('Base');
         expect(calledRemove).to.be.true;
@@ -174,7 +177,7 @@ describe('Component.Combat', () => {
     it('contains damage dies for damage dealing', () => {
         const player = RG.FACT.createPlayer('Player', {});
         const combatComp = new RG.Component.Combat();
-        player.add('Combat', combatComp);
+        player.add(combatComp);
         expect(player.get('Combat').rollDamage() >= 1).to.equal(true);
         expect(player.get('Combat').rollDamage() <= 4).to.equal(true);
     });
