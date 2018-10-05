@@ -100,6 +100,16 @@ Entity.prototype.hasAny = function(compNames) {
     return false;
 };
 
+/* Returns true if entity has all of given comps. */
+Entity.prototype.hasAll = function(compNames) {
+    for (let i = 0; i < compNames.length; i++) {
+        if (!this._compsByType.hasOwnProperty(compNames[i])) {
+            return false;
+        }
+    }
+    return true;
+};
+
 /* Removes given component type or component.
  * 1. If object is given, retrieves its id using getID().
  * 2. If integer given, uses it as ID to remove the component.
@@ -191,6 +201,7 @@ Entity.num.get = 0;
 Entity.num.getList = 0;
 Entity.num.has = 0;
 Entity.num.hasAny = 0;
+Entity.num.hasAll = 0;
 Entity.num.remove = 0;
 Entity.num.removeAll = 0;
 
