@@ -74,8 +74,8 @@ System.Chat.prototype.createGenericChatObject = function(ent, actor) {
         chatObj.pre = `${aName} greets you. What do you say?`;
         const qTargets = ent.get('Quest').getQuestTargets();
 
-        qTargets.forEach(comp => {
-            const target = comp.getTarget();
+        qTargets.forEach(target => {
+            // const target = comp.getTarget();
             this.processQuestTarget(target, actor, chatObj);
         });
 
@@ -87,24 +87,18 @@ System.Chat.prototype.createGenericChatObject = function(ent, actor) {
 
 System.Chat.prototype.processQuestTarget = function(target, actor, chatObj) {
     const aName = actor.getName();
-    let tName = '';
-    if (target.getName) {
-        tName = target.getName();
-    }
+    const tName = target.name;
     let resp = null;
 
-    // If actor, add query regarding actor's whereabouts
-    if (RG.isActor(target)) {
-        const id = target.getID();
-        const memory = actor.getBrain().getMemory();
-        if (memory.hasSeen(id)) {
-            resp = chatObj.getSelectionObject();
-            const {x, y} = memory.getLastSeen(id);
-            const dir = RG.getTextualDxDy(actor, [x, y]);
-            let msg = `${aName} says: I know where ${tName} is.`;
-            msg += ` I saw ${tName} ${dir} from here.`;
-            RG.gameInfo(msg);
-        }
+    const id = target.id;
+    const memory = actor.getBrain().getMemory();
+    if (memory.hasSeen(id)) {
+        resp = chatObj.getSelectionObject();
+        const {x, y} = memory.getLastSeen(id);
+        const dir = RG.getTextualDxDy(actor, [x, y]);
+        let msg = `${aName} says: I know where ${tName} is.`;
+        msg += ` I saw ${tName} ${dir} from here.`;
+        RG.gameInfo(msg);
     }
 
     if (tName !== '') {
