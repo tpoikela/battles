@@ -272,7 +272,12 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     questPopul.addQuestComponents(city);
 
     const giver = level.getActors().find(actor => actor.has('QuestGiver'));
+    const giverComp = giver.get('QuestGiver');
+    giverComp.setReward({type: 'item', name: 'Ruby glass mace'});
     level.moveActorTo(giver, pX + 1, pY);
+
+    const qTarget = level.getActors().find(actor => actor.has('QuestTarget'));
+    level.moveActorTo(qTarget, pX, pY + 1);
 
     return game;
 };
