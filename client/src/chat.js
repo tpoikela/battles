@@ -104,18 +104,18 @@ class ChatQuest extends ChatBase {
         const giver = this.questGiver;
         this.target = target;
         const qLen = 'lengthy';
-        const questData = this.questGiver.get('QuestGiver').getQuestData();
-        if (!this.questGiver.get('QuestGiver').getHasGivenQuest()) {
+        const giverComp = this.questGiver.get('QuestGiver');
+        if (!giverComp.getHasGivenQuest()) {
             this.pre = [
                 `${giver.getName()} wants to offer a ${qLen} quest:`,
-                `${questData.toString()}`,
+                `${giverComp.getDescr()}`,
                 'What do you want to do?'
             ];
         }
         else {
             this.pre = [
                 `${giver.getName()} has already given this quest:`,
-                `${questData.toString()}`,
+                `${giverComp.getDescr()}`,
                 'What do you want to do?'
             ];
             this.clearOptions();
