@@ -56,9 +56,12 @@ $success-color-on-gray: #066;
 
 body {
     @include fonts;
-    // background-color: lighten($black, 5%);
-    background-color: $ice-blue;
+    background-color: darken($ice-blue, 55%);
 };
+
+.bg-dark {
+    background-color: lighten($black, 15%);
+}
 
 .container {
     margin: 0;
@@ -219,3 +222,4 @@ ul {
 @import 'component.game-board';
 @import 'component.game-editor';
 @import 'component.context-menu';
+@import 'component.game-top-menu';
