@@ -497,25 +497,25 @@ describe('RG.Game.FromJSON', function() {
 
         const giverComp = new RG.Component.QuestGiver(questData);
         giver.add(giverComp);
+        giverComp.addTarget('kill', killTarget);
 
         const targetComp = new RG.Component.QuestTarget();
         targetComp.setTarget(killTarget);
         targetComp.setTargetType('kill');
         killTarget.add(targetComp);
 
+        const questTargets = giverComp.getQuestTargets();
         const questComp = new RG.Component.Quest();
         questComp.setGiver(giver);
-        questComp.addTarget('kill', killTarget);
+        questComp.addTarget(questTargets[0]);
         quester.add(questComp);
 
         const game = new RG.Game.Main();
         game.addLevel(level);
         const json = game.toJSON();
 
-        console.log('Creating game now');
         let newGame = new Game.Main();
         newGame = fromJSON.createGame(newGame, json);
-        console.log('Finished creating game now');
 
         const restLevel = newGame.getLevels()[0];
         const actors = restLevel.getActors();
@@ -540,7 +540,7 @@ describe('RG.Game.FromJSON', function() {
         const firstKill = newQuestComp.first('kill');
         const refData = {
             id: killTarget.getID(), name: killTarget.getName(),
-            targetType: 'kill', isCompleted: false
+            targetType: 'kill'
         };
         expect(firstKill).to.deep.equal(refData);
         /*
