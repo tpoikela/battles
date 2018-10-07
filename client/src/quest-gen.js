@@ -549,10 +549,30 @@ QuestPopulate.prototype.addQuestComponents = function(zone) {
         const level = RNG.arrayGetRand(zone.getLevels());
         const questGiver = this.getActorForQuests(level.getActors());
         const giverComp = new RG.Component.QuestGiver(questData.getDescr());
+        this.addTargetsToGiver(giverComp, questData);
+
         questGiver.add(giverComp);
         console.log('QuestGiver will be ' + questGiver.getName());
     });
 
+};
+
+QuestPopulate.prototype.addTargetsToGiver = function(giverComp, questData) {
+    const questKeys = questData.keys();
+	questData.resetIter();
+	questKeys.forEach(key => {
+		let questTarget = questData.next(key);
+		while (questTarget) {
+			const targetComp = questTarget.get('QuestTarget');
+			if (targetComp) {
+				const [target, targetType] = [targetComp.getTarget(),
+					targetComp.getTargetType()];
+				giverComp.addTarget(targetType, target);
+			}
+			questTarget = questData.next(key);
+		}
+	});
+	questData.resetIter();
 };
 
 QuestPopulate.prototype.setAsQuestTarget = function(key, target) {
