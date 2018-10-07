@@ -1104,9 +1104,6 @@ const Actors = [
         strength: 25, accuracy: 20, agility: 19, willpower: 15, perception: 19,
         magic: 13, attack: 25, defense: 15, protection: 10,
         equip: ['Hammer of Void', 'Mithril armour'],
-        onHit: [
-            {addComp: 'Stun', duration: '2d4 + 2'}
-        ]
     },
 
     {
@@ -1119,6 +1116,8 @@ const Actors = [
         equip: ['Steel armour', 'Runed collar'],
         addComp: ['FirstStrike', 'RangedEvasion', 'RegenEffect']
     },
+
+    // Undead uniques
     {
         name: 'Tajun Eon en Lotus, lich lord', type: 'undead',
         base: 'UniqueBase', char: 'L', danger: 85,
@@ -1126,11 +1125,23 @@ const Actors = [
         damage: '2d9 + 4', hp: 90, pp: 100, maxPP: 100, brain: 'SpellCaster',
         strength: 14, accuracy: 15, agility: 14, willpower: 25, perception: 19,
         magic: 30, attack: 25, defense: 15, protection: 10,
-        equip: [],
+        equip: ['Runed robe'],
         onHit: [
             meleeHitDamage(4, '2d8 + 2', 'NECRO')
         ],
         spells: ['SummonDead', 'FrostBolt', 'GraspOfWinter'],
+    },
+    {
+        name: 'Zargoth, undead sorcerer', type: 'undead',
+        base: 'UniqueBase', char: 'Z', danger: 75,
+        color: {fg: 'DarkSalmon', bg: 'Black'}, enemies: RG.ACTOR_RACES,
+        damage: '2d9 + 4', hp: 100, pp: 75, maxPP: 75, brain: 'SpellCaster',
+        strength: 17, accuracy: 20, agility: 17, willpower: 21, perception: 19,
+        magic: 25, attack: 25, defense: 15, protection: 10, fovrange: 7,
+        onHit: [
+            meleeHitDamage(2, '1d8 + 2', 'NECRO')
+        ],
+        spells: ['SummonUndeadUnicorns', 'ShadowRay'],
     },
 
     {
@@ -1174,18 +1185,6 @@ const Actors = [
     // {type: 'human'}
     // {type: 'hyrkhian'}
     // {type: 'wildling'}
-    {
-        name: 'Zargoth, undead sorcerer', type: 'undead',
-        base: 'UniqueBase', char: 'Z', danger: 75,
-        color: {fg: 'DarkSalmon', bg: 'Black'}, enemies: RG.ACTOR_RACES,
-        damage: '2d9 + 4', hp: 100, pp: 75, maxPP: 75, brain: 'SpellCaster',
-        strength: 17, accuracy: 20, agility: 17, willpower: 21, perception: 19,
-        magic: 25, attack: 25, defense: 15, protection: 10, fovrange: 7,
-        onHit: [
-            meleeHitDamage(2, '1d8 + 2', 'NECRO')
-        ],
-        spells: ['SummonUndeadUnicorns', 'ShadowRay'],
-    }
 
 
 ];
