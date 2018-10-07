@@ -1375,24 +1375,28 @@ RG.Component.Duration = Duration;
 // Quest-related components
 //--------------------------------------------
 
-RG.Component.GiveQuest = TransientDataComponent('GiveQuest',
-    {target: null, giver: null}
-);
+const NO_QUEST_REWARD = -1;
 
 RG.Component.QuestGiver = UniqueDataComponent('QuestGiver',
     {hasGivenQuest: false, descr: '',
-    questID: -1, danger: 1}
+        questID: -1, danger: 1, reward: NO_QUEST_REWARD,
+    questTargets: null}
 );
 
 RG.Component.QuestGiver.prototype._init = function(descr) {
     this.chatObj = new RG.Chat.Quest();
     this.descr = descr;
+    this.questID = this.getID();
+    this.questTargets = [];
 
     const _addCb = () => {
       this.chatObj.setQuestGiver(this.getEntity());
     };
     this.addCallback('onAdd', _addCb);
-    this.questID = this.getID();
+};
+
+RG.Component.QuestGiver.prototype.hasReward = function() {
+    return this.reward && (this.reward !== NO_QUEST_REWARD);
 };
 
 RG.Component.QuestGiver.prototype.giveQuest = function(target) {
@@ -1402,6 +1406,24 @@ RG.Component.QuestGiver.prototype.giveQuest = function(target) {
     }
     else {
         this.hasGivenQuest = false;
+    }
+};
+
+RG.Component.QuestGiver.prototype.addTarget = function(targetType, target) {
+    if (!target) {
+        RG.err('Component.QuestGiver', 'addTarget',
+            `No target given. Type ${targetType}`);
+    }
+    const name = RG.getName(target);
+    if (!RG.isEmpty(name)) {
+        const targetData = {
+            id: target.getID(), name, targetType
+        };
+        this.questTargets.push(targetData);
+    }
+    else {
+        RG.err('Component.QuestGiver', 'addTarget',
+            `Empty name got for target ${JSON.stringify(target)}`);
     }
 };
 
@@ -1460,30 +1482,15 @@ RG.Component.QuestTarget.prototype.toJSON = function() {
 
 /* Quest component contains all info related to a single quest. */
 RG.Component.Quest = DataComponent('Quest', {
-    giver: -1, questTargets: null
+    giver: null, questTargets: null, questID: -1, descr: ''
 });
 
 RG.Component.Quest.prototype._init = function() {
     this.questTargets = [];
 };
 
-RG.Component.Quest.prototype.addTarget = function(targetType, target) {
-    if (!target) {
-        RG.err('Component.Quest', 'addTarget',
-            `No target given. Type ${targetType}`);
-    }
-    const name = RG.getName(target);
-    if (!RG.isEmpty(name)) {
-        const targetData = {
-            id: target.getID(), name, targetType,
-            isCompleted: false
-        };
-        this.questTargets.push(targetData);
-    }
-    else {
-        RG.err('Component.Quest', 'addTarget',
-            `Empty name got for target ${JSON.stringify(target)}`);
-    }
+RG.Component.Quest.prototype.addTarget = function(targetData) {
+    this.questTargets.push(targetData);
 };
 
 /* Returns first quest target matching the given targetType. */
@@ -1497,7 +1504,7 @@ RG.Component.Quest.prototype.first = function(targetType) {
 
 /* Returns true if all QuestTarget comps have been completed. */
 RG.Component.Quest.prototype.isCompleted = function() {
-    this.questTargets.reduce((acc, obj) => acc && obj.isCompleted,
+    return this.questTargets.reduce((acc, obj) => acc && obj.isCompleted,
         true);
 };
 
@@ -1511,6 +1518,14 @@ RG.Component.Quest.prototype.toString = function() {
 
 RG.Component.QuestCompleted = TransientDataComponent('QuestCompleted',
     {giver: null}
+);
+
+RG.Component.GiveQuest = TransientDataComponent('GiveQuest',
+    {target: null, giver: null}
+);
+
+RG.Component.QuestTargetEvent = TransientDataComponent('QuestTargetEvent',
+    {target: null, args: null}
 );
 
 module.exports = RG.Component;
