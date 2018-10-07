@@ -1,5 +1,6 @@
 
 const RG = require('../rg');
+const Component = require('../component');
 const debug = require('debug')('bitn:System');
 
 //---------------------------------------------------
@@ -28,6 +29,11 @@ const SystemBase = function(type, compTypes, pool) {
 
     // Add a listener for each specified component type
     for (let i = 0; i < this.compTypes.length; i++) {
+        if (!Component.hasOwnProperty(this.compTypes[i])) {
+            RG.err('System.Base', 'new',
+                `Comp type ${this.compTypes[i]} not in Component`);
+        }
+
         if (pool) {
             pool.listenEvent(this.compTypes[i], this);
         }
