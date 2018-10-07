@@ -24,7 +24,7 @@ export default class GameTopMenu extends React.Component {
 
     render() {
       return (
-      <div>
+      <div className='game-top-menu'>
         <Nav activeKey='1' bsStyle='tabs' onSelect={this.handleSelect}>
           <NavDropdown eventKey='game' id='dropdown-game' title='Game' >
             <MenuItem eventKey='showScreen#StartScreen'>New</MenuItem>
