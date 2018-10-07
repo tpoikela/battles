@@ -1,0 +1,13 @@
+/* Stylesheet for game top dropdown menu. */
+
+$menu-text-color: #B0B0B0;
+
+.game-top-menu {
+
+    .dropdown {
+        a {
+            color: $menu-text-color;
+        }
+    }
+
+}
