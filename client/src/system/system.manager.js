@@ -5,8 +5,12 @@ const System = require('./index');
 const SystemManager = function(engine, pool) {
     this._engine = engine;
 
-    // These systems updated after each action. Order is important, for example,
-    // animations should be seen before actors are killed
+    // These systems updated after each actor action. The Order is important,
+    // for example:
+    // - Disability must block most of other actions taking place
+    // - Damage must be processed after all damaging effects (attacks/spells..)
+    // - Exp points granted after exp giving actions are processed
+    // - Animations should be seen before actors are killed.
     this.systemOrder = [
         'AreaEffects', 'Disability', 'SpiritBind', 'BaseAction',
         'Equip', 'Attack', 'Chat', 'Shop', 'SpellCast', 'SpellEffect',
@@ -43,7 +47,8 @@ const SystemManager = function(engine, pool) {
     allSys.Events = new System.Events(['Event'], pool);
     allSys.AreaEffects = new System.AreaEffects(['Flame'], pool);
     allSys.Equip = new System.Equip(['Equip'], pool);
-    allSys.Quest = new System.Quest(['GiveQuest', 'QuestCompleted'], pool);
+    allSys.Quest = new System.Quest(['GiveQuest', 'QuestCompleted',
+        'QuestTargetEvent'], pool);
     this.systems = allSys;
 
     // Systems updated once each game loop (once for each player action)
