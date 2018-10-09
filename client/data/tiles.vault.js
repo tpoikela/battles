@@ -5,6 +5,7 @@
  * When creating a vault, one tile with exit
  * directions must be connected to the exit of the vault. */
 const RG = require('../src/rg');
+const Template = require('../src/template');
 
 const Vault = {};
 Vault.tiles = {};
@@ -320,9 +321,9 @@ Vault.Models.default = []
 
 Vault.templates = {};
 Vault.templates.all = Vault.Models.default.map(tile => (
-    RG.Template.createTemplate(tile)
+    Template.createTemplate(tile)
 ));
-const transformed = RG.Template.transformList(Vault.templates.all);
+const transformed = Template.transformList(Vault.templates.all);
 Vault.templates.all = Vault.templates.all.concat(transformed);
 
 module.exports = Vault;
