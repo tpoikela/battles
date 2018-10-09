@@ -3,8 +3,9 @@
 const prettybnf = require('prettybnf');
 const debug = require('debug')('bitn:quest-gen');
 // const fs = require('fs');
-const RG = require('../src/rg');
-const Random = require('../src/random');
+const RG = require('./rg');
+const Random = require('./random');
+const Placer = require('./placer');
 
 const questGrammar = require('../data/quest-grammar');
 const Names = require('../data/name-gen');
@@ -137,6 +138,9 @@ QuestGen.defaultConfig = {
     maxLength: -1
 };
 
+/* Main function you want to call. Generates a random quest based on given conf
+ * or default conf.
+ */
 QuestGen.prototype.genQuestWithConf = function(conf = {}) {
     if (conf.debug) {debug.enabled = true;}
     const questRules = conf.rules || QuestGen.rules;
@@ -258,13 +262,15 @@ const QuestData = function() {
 };
 
 QuestData.mapStepToType = {
-    location: 'place',
+    capture: 'entity',
     get: 'item',
+    give: 'entity',
     kill: 'entity',
     listen: 'entity',
+    location: 'place',
     read: 'item',
     rescue: 'entity',
-    capture: 'entity'
+    steal: 'item'
 };
 
 /* Adds one target for the quest. */
@@ -398,44 +404,83 @@ const QuestPopulate = function() {
         quests: [] // Stack of quests, current is the last
     };
     this.questList = [];
+    this._cleanup = [];
+    this._flags = {
+        alreadyKnowIt: false
+    };
+    this.conf = {
+        maxLength: 10,
+        minLength: 1,
+        minQuests: 1,
+        maxQuests: 2,
+        numQuestsPerZone: 1
+    };
 };
 
+QuestPopulate.prototype.resetData = function() {
+    this.questData = {quests: []};
+    this._cleanup = [];
+    this.flags = {
+        alreadyKnowIt: false
+    };
+};
+
+/* Creates quests for given tile x,y in area in world. Returns the number
+ * of quests successfully created. */
 QuestPopulate.prototype.createQuests = function(world, area, x, y) {
     const areaTile = area.getTileXY(x, y);
     const cities = areaTile.getZones('City');
+    let numCreated = 0;
     cities.forEach(city => {
-        this.createQuestsForZone(city, areaTile);
+        numCreated += this.createQuestsForZone(city, areaTile);
     });
+    return numCreated;
 };
 
-
+/* Creates quests for given zone located in the areaTile. Returns the number
+ * of quests correctly created.
+ */
 QuestPopulate.prototype.createQuestsForZone = function(zone, areaTile) {
-    const numQuests = 1;
+    const numQuests = this.conf.numQuestsPerZone || 1;
+    let numCreated = 0;
     for (let i = 0; i < numQuests; i++) {
         const questGen = new QuestGen();
-        const quest = questGen.genQuestWithConf({maxLength: 10, minLength: 1});
-        this.questData = {quests: []};
-        this.mapQuestToResources(quest, zone, areaTile);
-        this.addQuestComponents(zone);
+        const quest = questGen.genQuestWithConf(this.conf);
+        this.resetData();
+        if (this.mapQuestToResources(quest, zone, areaTile)) {
+            this.addQuestComponents(zone);
+            ++numCreated;
+        }
     }
+    return numCreated;
 };
 
+/* Tries to map a quest to world resources. Returns false if does not succeed.
+ * Can happen due to missing actors, levels or items etc. */
 QuestPopulate.prototype.mapQuestToResources = function(quest, zone, areaTile) {
     this.currQuest = new QuestData();
     this.questData.quests.push(this.currQuest);
     const level = RNG.arrayGetRand(zone.getLevels());
     this.currQuest.addTarget('location', level);
+
+    let ok = true;
+
     quest.getSteps().forEach(step => {
         const currLoc = this.currQuest.getCurrent('location');
         if (step.isQuest()) {
             // Recursive call for sub-quests, check the current
             // location for the quest
-            this.mapQuestToResources(step, currLoc, areaTile);
+            ok = ok && this.mapQuestToResources(step, currLoc, areaTile);
         }
         else {
-            this.mapTask(quest, step, currLoc, areaTile);
+            ok = ok && this.mapTask(quest, step, currLoc, areaTile);
         }
     });
+
+    if (!ok) {
+        this.cleanUpFailedQuest(quest, zone);
+        return false;
+    }
 
     const nQuests = this.questData.quests.length;
     if (nQuests > 1) {
@@ -447,36 +492,158 @@ QuestPopulate.prototype.mapQuestToResources = function(quest, zone, areaTile) {
     }
     // Finally, add a quest to quest giver
     console.log('Created quest: ' + this.currQuest.getDescr());
+    return true;
 };
 
 /* Maps a single task to resources. Prev. or next step may also affect mapping.
  * */
 QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
     console.log('mapTask taskType is now', task.getTaskType());
+    let ok = false;
     switch (task.getTaskType()) {
-        case '<kill>kill': {
+        case 'capture': {
+            break;
+        }
+        case 'damage': {
+            // Deal some damage to something
+            break;
+        }
+        case 'defend': {
+            // Defend city/place from an assault
+            break;
+        }
+        case 'escort': {
+            // Get a rescued NPC to follow you to a place
+            break;
+        }
+        case 'experiment': {
+            // TODO decide what this should do
+            break;
+        }
+        case '<get>already_have_it': {
+            // Find a item from player inventory and use it
+            break;
+        }
+        case '<get>gather': {
+            // Create a random item (not to be stolen) to gather TODO
+            const newItem = this.getItemToSteal();
+            if (newItem) {
+                this.currQuest.addTarget('get', newItem);
+                ok = true;
+            }
+            break;
+        }
+        case '<get>exchange': {
+            // Find a shop in the town, and add an item there
+            break;
+        }
+        case 'give': {
+            // FInd previous item in the quest data, and assign task
             const location = this.currQuest.getCurrent('location');
             const level = location;
-            const actorToKill = this.getActorForQuests(level.getActors());
-            this.currQuest.addTarget('kill', actorToKill);
-            this.addName(actorToKill);
-            console.log('mapTask added an actor to kill');
+            const actorToGive = this.getActorForQuests(level.getActors());
+            this.currQuest.addTarget('give', actorToGive);
+            ok = true;
+            // to give it to someone
             break;
         }
         case '<goto>already_there': {
             // Don't add current location because it's already in the stack
             // this.currQuest.addTarget('location', zone);
+            ok = true;
+            break;
+        }
+        case '<goto>explore': {
+            // Same as <goto>goto at the moment
+            const newLocation = this.getNewLocation(zone, areaTile);
+            this.currQuest.addTarget('location', newLocation);
+            ok = true;
             break;
         }
         case '<goto>goto': {
             const newLocation = this.getNewLocation(zone, areaTile);
             this.currQuest.addTarget('location', newLocation);
+            ok = true;
+            break;
+        }
+        case '<kill>kill': {
+            const location = this.currQuest.getCurrent('location');
+            const level = location;
+            const actorToKill = this.getActorForQuests(level.getActors());
+            this.currQuest.addTarget('kill', actorToKill);
+            ok = true;
+            console.log('mapTask added an actor to kill');
+            break;
+        }
+        case '<learn>already_know_it': {
+            // Set the flag, next quest step must use this
+            this._flags.alreadyKnowIt = true;
+            ok = true;
+            break;
+        }
+        case 'listen': {
+            const actorToListen = this.getActorToListen();
+            this.currQuest.addTarget('listen', actorToListen);
+            ok = true;
+            break;
+        }
+        case '<learn>read': {
+            break;
+        }
+        case 'repair': {
+            break;
+        }
+        case 'report': {
+            break;
+        }
+        case '<spy>spy': {
+            break;
+        }
+        case '<spy>report': {
+            break;
+        }
+        case '<steal>stealth': {
+            // So far, nothing to do
+            ok = true;
+            break;
+        }
+        case '<subquest>goto': {
+            const newLocation = this.getNewLocation(zone, areaTile);
+            this.currQuest.addTarget('location', newLocation);
+            ok = true;
+            break;
+        }
+        case '<steal>take': {
+            const newItem = this.getItemToSteal();
+            this.currQuest.addTarget('steal', newItem);
+            ok = true;
+            break;
+        }
+        case 'take': {
+            const newItem = this.getItemToSteal();
+            this.currQuest.addTarget('take', newItem);
+            ok = true;
+            break;
+        }
+        case 'use': {
+            // Do something like lit a fire or build bridge etc
+            break;
+        }
+        case 'win_battle': {
+            // Find a battle outside town/create new one
             break;
         }
         default: {
-            console.log(`Task type ${task.taskType} not supported yet`);
+            RG.err('QuestPopulate', 'mapTask',
+                `Task type ${task.taskType} not supported yet`);
         }
     }
+
+    if (!ok) {
+        console.warn('QuestPopulate', 'mapTask',
+            `Failed to map ${task.getTaskType()}, ${JSON.stringify(task)}`);
+    }
+    return ok;
 };
 
 /* Returns an actor from the given array, who is suitable as quest target
@@ -499,6 +666,14 @@ QuestPopulate.prototype.getActorForQuests = function(actors) {
     return actor;
 };
 
+
+/* Extracts an actor from current location. */
+QuestPopulate.prototype.getActorToListen = function() {
+    const level = this.currQuest.getCurrent('location');
+    const actorToListen = this.getActorForQuests(level.getActors());
+    return actorToListen;
+};
+
 /* Returns true if given actor can be used as quest target/giver. */
 function isOkForQuest(actor) {
     return !(
@@ -506,6 +681,16 @@ function isOkForQuest(actor) {
         && actor.has('QuestGiver')
     );
 }
+
+QuestPopulate.prototype.getItemToSteal = function() {
+    // TODO this cannot create the item directly because if further
+    // resource mapping fails, we need to delete the created item
+    const location = this.currQuest.getCurrent('location');
+    const item = new RG.Item.Base('Quest trophy');
+    Placer.addEntityToCellType(item, location, c => c.hasHouse());
+    this._cleanup.push({location, item});
+    return item;
+};
 
 /* Returns a level from a new zone (which is not 'zone' arg). */
 QuestPopulate.prototype.getNewLocation = function(zone, areaTile) {
@@ -519,6 +704,11 @@ QuestPopulate.prototype.getNewLocation = function(zone, areaTile) {
     return RNG.arrayGetRand(newZone.getLevels());
 };
 
+//---------------------------------------------------------------------------
+// ADDING QUEST-RELATED COMPONENTS (last stage)
+// - should be done only if mapping of quest to resources succeeds
+//---------------------------------------------------------------------------
+
 QuestPopulate.prototype.addQuestComponents = function(zone) {
     console.log('Adding quest components now');
     console.log('QuestList', JSON.stringify(this.questList));
@@ -526,7 +716,6 @@ QuestPopulate.prototype.addQuestComponents = function(zone) {
         questData.resetIter();
         questData.keys().forEach(key => {
             if (key === 'kill') {
-                console.log('addQuestComponents Key was ' + key);
                 let killTarget = questData.next(key);
                 while (killTarget) {
                     this.setAsQuestTarget(key, killTarget);
@@ -540,8 +729,23 @@ QuestPopulate.prototype.addQuestComponents = function(zone) {
                     location = questData.next(key);
                 }
             }
+            else if (key === 'listen' || key === 'give') {
+                let listenTarget = questData.next(key);
+                while (listenTarget) {
+                    this.setAsQuestTarget(key, listenTarget);
+                    listenTarget = questData.next(key);
+                }
+            }
+            else if (key === 'get' || key === 'steal') {
+                let getTarget = questData.next(key);
+                while (getTarget) {
+                    this.setAsQuestTarget(key, getTarget);
+                    getTarget = questData.next(key);
+                }
+            }
             else {
-                console.log('addQuestComponents Key was ' + key);
+                RG.err('QuestPopulate', 'addQuestComponents',
+                    `Unsupported key |${key}| found`);
             }
         });
 
@@ -552,6 +756,7 @@ QuestPopulate.prototype.addQuestComponents = function(zone) {
         this.addTargetsToGiver(giverComp, questData);
 
         questGiver.add(giverComp);
+        this.addUniqueName(questGiver);
         console.log('QuestGiver will be ' + questGiver.getName());
     });
 
@@ -559,6 +764,7 @@ QuestPopulate.prototype.addQuestComponents = function(zone) {
 
 QuestPopulate.prototype.addTargetsToGiver = function(giverComp, questData) {
     const questKeys = questData.keys();
+    console.log('questData is', JSON.stringify(questData));
 	questData.resetIter();
 	questKeys.forEach(key => {
 		let questTarget = questData.next(key);
@@ -569,6 +775,11 @@ QuestPopulate.prototype.addTargetsToGiver = function(giverComp, questData) {
 					targetComp.getTargetType()];
 				giverComp.addTarget(targetType, target);
 			}
+            else {
+                const json = JSON.stringify(questTarget);
+                RG.err('QuestPopulate', 'addTargetsToGiver',
+                    `No QuestTarget found from target ${json}`);
+            }
 			questTarget = questData.next(key);
 		}
 	});
@@ -581,13 +792,41 @@ QuestPopulate.prototype.setAsQuestTarget = function(key, target) {
     qTarget.setTarget(target);
     qTarget.setTargetID(target.getID());
     target.add(qTarget);
+    if (RG.isActor(target) || RG.isItem(target)) {
+        this.addUniqueName(target);
+    }
 };
 
-QuestPopulate.prototype.addName = function(target) {
+QuestPopulate.prototype.addUniqueName = function(target) {
+    if (!target.has('Named')) {
+        target.add(new RG.Component.Named());
+    }
     const named = target.get('Named');
     if (RG.isActor(target)) {
         named.setUniqueName(Names.getActorName());
     }
+    else if (RG.isItem(target)) {
+        named.setUniqueName('Quest item ' + RNG.getUniformInt(0, 1000000));
+
+    }
+};
+
+QuestPopulate.prototype.cleanUpFailedQuest = function() {
+    this._cleanup.forEach(cleanupObj => {
+        const {location} = cleanupObj;
+        if (cleanupObj.item) {
+            const [x, y] = cleanupObj.item.getXY();
+            location.removeItem(cleanupObj.item, x, y);
+        }
+        else if (cleanupObj.actor) {
+            const [x, y] = cleanupObj.actor.getXY();
+            location.removeActor(cleanupObj.actor, x, y);
+        }
+        else if (cleanupObj.element) {
+            const [x, y] = cleanupObj.element.getXY();
+            location.removeActor(cleanupObj.element, x, y);
+        }
+    });
 };
 
 /*
