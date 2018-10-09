@@ -799,7 +799,8 @@ RG.extend2(RG.World.Dungeon, RG.World.ZoneBase);
 //------------------
 // RG.World.AreaTile
 //------------------
-/* Area-tile is a level which has entry/exit points on a number of edges.*/
+/* Area-tile is a level which has entry/exit points on a number of edges.
+ * It is also used as container for zones such as cities and dungeons. */
 RG.World.AreaTile = function(x, y, area) {
     this._tileX = x;
     this._tileY = y;
