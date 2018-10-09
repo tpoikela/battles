@@ -3,8 +3,8 @@ import { expect } from 'chai';
 
 const {Quest, QuestGen, QuestPopulate}
     = require('../../../client/src/quest-gen');
-
 const FactoryWorld = require('../../../client/src/factory.world');
+const RGTest = require('../../roguetest');
 
 const questGram1 = '<QUEST> ::= "goto" "kill";';
 
@@ -56,9 +56,13 @@ describe('QuestGen', () => {
 
 
 describe('QuestPopulate', () => {
+    let questPopul = null;
+
+    beforeEach(() => {
+        questPopul = new QuestPopulate();
+    });
 
     it('is used to map quests to resources', () => {
-        const questPopul = new QuestPopulate();
         const factWorld = new FactoryWorld();
         const city = factWorld.createCity({
             name: 'QuestCity', nQuarters: 1,
@@ -84,5 +88,43 @@ describe('QuestPopulate', () => {
 
         expect(hasGiver).to.equal(true);
         expect(hasTarget).to.equal(true);
+    });
+
+    it('can map learn/goto/get/give task', () => {
+        const area = RGTest.createTestArea();
+        const taskList = [
+            '<goto>already_there',
+            'listen',
+            '<goto>goto',
+            '<get>gather',
+            '<goto>goto',
+            'give'
+        ];
+        const quest = new Quest('Learn item loc and give it', taskList);
+        const areaTile = area.getTileXY(0, 0);
+        const city = areaTile.getZones('City')[0];
+        const ok = questPopul.mapQuestToResources(quest, city, areaTile);
+        expect(ok, 'Quest mapped OK').to.equal(true);
+        questPopul.addQuestComponents(city);
+
+        const level = city.getLevels()[0]; // Only one
+        const giver = level.getActors().find(a => a.has('QuestGiver'));
+        expect(giver).to.not.be.empty;
+        const giverComp = giver.get('QuestGiver');
+        const questTargets = giverComp.getQuestTargets();
+        expect(questTargets.length).to.equal(6);
+
+    });
+
+    it('can map any arbitrary quest without sub-quests to resources', () => {
+        for (let i = 0; i < 5; i++) {
+            const area = RGTest.createTestArea();
+            const numCreated = questPopul.createQuests({}, area, 0, 0);
+            expect(numCreated).to.equal(1);
+        }
+    });
+
+    it('can map any arbitrary quest to resources/tasks/subquests', () => {
+        // const area = RGTest.createTestArea();
     });
 });
