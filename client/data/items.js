@@ -1017,7 +1017,7 @@ const Items = [
     // Note: Each tool should have useItem method.
     {
         name: 'tool', type: 'tool', uses: 10, className: 'cell-item-tool',
-        char: ']'
+        char: ']', dontCreate: true
     },
     {
         name: 'trapmaking kit', base: 'tool'
@@ -1025,6 +1025,10 @@ const Items = [
     {
         name: 'firemaking kit', base: 'tool',
         use: {addEntity: {entityName: 'Fire', duration: 20}}
+    },
+    {
+        name: 'repair tool kit', base: 'tool',
+        use: {removeComp: {name: 'Broken'}}, noRandom: true
     },
     {
         name: 'rope', base: 'tool'
