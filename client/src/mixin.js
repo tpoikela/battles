@@ -82,6 +82,11 @@ RG.Mixin.Ownable = (superclass) => class extends superclass {
         return null;
     }
 
+    getXY() {
+        if (this._owner !== null) {return this._owner.getXY();}
+        return null;
+    }
+
     getLevel() {
         if (this._owner !== null) {return this._owner.getLevel();}
         return null;
