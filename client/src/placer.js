@@ -51,4 +51,24 @@ Placer.addItemsToBbox = function(level, bbox, items) {
     Placer.addPropsToCells(level, freeCells, items, RG.TYPE_ITEM);
 };
 
+/* Adds entity to a random cell of matching filterFunc. Returns true if success,
+ * otherwise returns false (for example if no cells found). */
+Placer.addEntityToCellType = function(entity, level, filterFunc) {
+    let ok = false;
+    const cells = level.getMap().getCells(filterFunc);
+    if (cells.length === 0) {return false;}
+    const randCell = RNG.arrayGetRand(cells);
+    const [x, y] = randCell.getXY();
+    if (RG.isActor(entity)) {
+        ok = level.addActor(entity, x, y);
+    }
+    else if (RG.isItem(entity)) {
+        ok = level.addItem(entity, x, y);
+    }
+    else if (RG.isElement(entity)) {
+        ok = level.addElement(entity, x, y);
+    }
+    return ok;
+};
+
 module.exports = Placer;
