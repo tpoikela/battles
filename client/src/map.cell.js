@@ -134,6 +134,10 @@ Cell.prototype.hasConnection = function() {
     return this.hasPropType('connection');
 };
 
+Cell.prototype.hasHouse = function() {
+    return this._baseElem.getType() === 'floorhouse';
+};
+
 Cell.prototype.hasConnectionType = function(type) {
     if (this.hasConnection()) {
         const connection = this.getConnection();
