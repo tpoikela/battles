@@ -7,6 +7,7 @@
 const RG = require('../client/src/battles');
 const expect = require('chai').expect;
 const Screen = require('../client/gui/screen');
+const FactoryWorld = require('../client/src/factory.world');
 
 const RGTest = {};
 
@@ -399,6 +400,33 @@ RGTest.addOnTop = function(toAdd, locObj) {
         RG.err('RGTest', 'addOnTop',
             'Does not work on objects on different levels yet');
     }
+};
+
+RGTest.createTestArea = function(conf = {}) {
+    const defConf = {
+        name: 'TestArea', maxX: 2, maxY: 2,
+        nCities: 1, nDungeons: 1,
+        city: [
+            {x: 0, y: 0, name: 'testCity', nQuarters: 1,
+                constraint: {
+                    shop: [{op: 'gt', prop: 'value', value: 50}]
+                },
+                quarter: [{
+                    name: 'TestQuarter', nLevels: 1, entranceLevel: 0,
+                    nShops: 1
+                }]
+            }
+        ],
+        dungeon: [
+            {x: 0, y: 0, name: 'testDungeon', nBranches: 1,
+                branch: [{name: 'B1', nLevels: 1, entranceLevel: 0}]
+            }
+        ]
+    };
+    const usedConf = Object.assign(conf, defConf);
+
+    const factWorld = new FactoryWorld();
+    return factWorld.createArea(usedConf);
 };
 
 module.exports = RGTest;
