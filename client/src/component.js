@@ -108,6 +108,14 @@ RG.Component.DirectDamage.prototype.toJSON = function() {
     return obj;
 };
 
+/* Component to entities which can be damaged (but have no health. */
+RG.Component.Damaged = UniqueDataComponent('Damaged',
+    {damageLevel: 0}
+);
+
+/* Added to broken items/elements. Prevents their use. */
+RG.Component.Broken = UniqueTagComponent('Broken');
+
 /* Component to tag entities that block light from passing through. */
 RG.Component.Opaque = UniqueTagComponent('Opaque');
 
@@ -1196,6 +1204,9 @@ RG.Component.UseStairs = TransientTagComponent('UseStairs');
 
 /* Added to a jumping entity. */
 RG.Component.Jump = TransientDataComponent('Jump', {x: -1, y: -1});
+
+/* Added to an entity reading something. */
+RG.Component.Read = TransientDataComponent('Read', {readTarget: null});
 
 /* Added to entity when it's opening a door. */
 RG.Component.OpenDoor = TransientDataComponent('OpenDoor', {door: null});
