@@ -1,5 +1,6 @@
 
 const RG = require('../rg');
+const Menu = require('../menu');
 
 const System = {};
 System.Base = require('./system.base');
@@ -12,7 +13,7 @@ System.BaseAction = function(compTypes) {
 
     const handledComps = [
         'Pickup', 'UseStairs', 'OpenDoor', 'UseItem', 'UseElement',
-        'Jump'
+        'Jump', 'Read'
     ];
 
     this.updateEntity = function(ent) {
@@ -179,6 +180,35 @@ System.BaseAction = function(compTypes) {
         }
     };
 
+    this._handleRead = ent => {
+        const read = ent.get('Read');
+        let readTarget = read.getReadTarget();
+        if (!readTarget) {
+            const cell = ent.getCell();
+            if (cell.hasItems()) {
+                const items = cell.getItems();
+                const book = items.find(item => item.getType() === 'book');
+                if (book) {
+                    readTarget = book;
+                }
+            }
+        }
+        if (readTarget) {
+            const text = readTarget.getText();
+            const bookMenu = new Menu.InfoOnly();
+            bookMenu.addPre(text);
+            const bookName = readTarget.getName();
+            RG.gameInfo(`The book "${bookName}" reads:`);
+            if (ent.getBrain().setSelectionObject) {
+                ent.getBrain().setSelectionObject(bookMenu);
+            }
+        }
+        else {
+            const msg = `${ent.getName()} finds nothing interesting to read.`;
+            RG.gameMsg({cell: ent.getCell(), msg});
+        }
+    };
+
     // Initialisation of dispatch table for handler functions
     this._dtable = {
         Pickup: this._handlePickup,
@@ -186,7 +216,8 @@ System.BaseAction = function(compTypes) {
         OpenDoor: this._handleOpenDoor,
         UseItem: this._handleUseItem,
         UseElement: this._handleUseElement,
-        Jump: this._handleJump
+        Jump: this._handleJump,
+        Read: this._handleRead
     };
 
     /* Used to create events in response to specific actions. */
