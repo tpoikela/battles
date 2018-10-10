@@ -1,6 +1,6 @@
 
 const RG = require('./rg.js');
-RG.Component = require('./component.js');
+RG.Component = require('./component');
 const Entity = require('./entity');
 
 const Mixin = require('./mixin');
@@ -8,6 +8,7 @@ const Mixin = require('./mixin');
 // Constants for different item types
 RG.ITEM_ITEM = 'item';
 RG.ITEM_FOOD = 'food';
+RG.ITEM_BOOK = 'book';
 RG.ITEM_CORPSE = 'corpse';
 RG.ITEM_WEAPON = 'weapon';
 RG.ITEM_ARMOUR = 'armour';
@@ -835,5 +836,61 @@ class RGItemMineral extends ItemBase {
     }
 }
 RG.Item.Mineral = RGItemMineral;
+
+
+class RGItemBook extends ItemBase {
+
+    constructor(name) {
+        super(name);
+        this.setType(RG.ITEM_BOOK);
+        this.text = [];
+    }
+
+    useItem() {
+        const owner = this.getTopOwner();
+        if (owner) {
+            const compRead = new RG.Component.Read();
+            compRead.setReadTarget(this);
+            owner.add(compRead);
+        }
+    }
+
+    getText() {
+        return this.text;
+    }
+
+    addText(textLine) {
+        this.text.push(textLine);
+    }
+
+    setText(text) {
+        this.text = text;
+    }
+
+    clone() {
+        const book = new RGItemBook(this.getName());
+        book.copy(this);
+        return book;
+    }
+
+    copy(rhs) {
+        super.copy(rhs);
+        const text = rhs.getText().slice();
+        this.setText(text);
+    }
+
+    equals(rhs) {
+        let res = super.equals(rhs);
+        res = res && (this.getText().join('') === rhs.getText().join(''));
+        return res;
+    }
+
+    toJSON() {
+        const json = super.toJSON();
+        json.setText = this.text;
+        return json;
+    }
+}
+RG.Item.Book = RGItemBook;
 
 module.exports = RG.Item;
