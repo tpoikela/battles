@@ -279,6 +279,10 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     const qTarget = level.getActors().find(actor => actor.has('QuestTarget'));
     level.moveActorTo(qTarget, pX, pY + 1);
 
+    const newBook = new RG.Item.Book('Book of shadows');
+    newBook.addText('In the land of mordor where shadows lie...');
+    player.getInvEq().addItem(newBook);
+
     return game;
 };
 
