@@ -1,14 +1,14 @@
 
 const RG = require('./rg');
 
-RG.Factory = require('./factory');
-RG.Factory.Battle = require('./factory.battle');
+const FactoryBattle = require('./factory.battle');
 const OW = require('./overworld.map');
 const Menu = require('./menu');
+const Random = require('./random');
 
 const debug = require('debug')('bitn:GameMaster');
 
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 /* GameMaster objects reacts to various events caused by player and other
  * actors, and shapes the game world based on them. For example,
  * GameMaster can:
@@ -16,19 +16,20 @@ const RNG = RG.Random.getRNG();
  *   - spawn special events and actors
  *   - spawn special items etc.
  */
-const GameMaster = function(game) {
+const GameMaster = function(game, pool = RG.POOL) {
     this.player = null;
     this.game = game;
-    this.fact = new RG.Factory.Battle(game);
+    this.fact = new FactoryBattle(game);
+    this.pool = pool;
 
     // Lookup table for battles by level ID
     this.battles = {};
+    this.battlesDone = {};
 
     this.setBattles = battles => {
         this.battles = battles;
     };
 
-    this.battlesDone = {};
 
     this.setPool = pool => {this.pool = pool;};
     this.setGame = game => {this.game = game;};
@@ -133,9 +134,9 @@ const GameMaster = function(game) {
             // TODO delete the battle (but keep the level)
         }
     };
-    RG.POOL.listenEvent(RG.EVT_LEVEL_CHANGED, this);
-    RG.POOL.listenEvent(RG.EVT_TILE_CHANGED, this);
-    RG.POOL.listenEvent(RG.EVT_BATTLE_OVER, this);
+    this.pool.listenEvent(RG.EVT_LEVEL_CHANGED, this);
+    this.pool.listenEvent(RG.EVT_TILE_CHANGED, this);
+    this.pool.listenEvent(RG.EVT_BATTLE_OVER, this);
 
     /* Returns the bbox for the battle. This is coordinates for the battle
      * inside the tile level. It corresponds to player's current owPos. */
