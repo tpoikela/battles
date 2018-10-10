@@ -2,11 +2,13 @@
 const RG = require('./rg');
 const Entity = require('./entity');
 const Factory = require('./factory');
-RG.Game = require('./game');
+const Game = require('./game');
 const FromJSON = require('./game.fromjson');
-RG.Verify = require('./verify');
-RG.ObjectShell = require('./objectshellparser');
-Factory.World = require('./factory.world');
+const Verify = require('./verify');
+const ObjectShell = require('./objectshellparser');
+const FactoryWorld = require('./factory.world');
+const {FactoryItem} = require('./factory.items');
+const Random = require('./random');
 
 const OW = require('./overworld.map');
 RG.getOverWorld = require('./overworld');
@@ -17,7 +19,7 @@ const ActorClass = require('./actor-class');
 const DebugGame = require('../data/debug-game');
 const TerritoryMap = require('../data/territory-map');
 
-const RNG = RG.Random.getRNG();
+const RNG = Random.getRNG();
 
 /* Player stats based on user selection.*/
 const confPlayerStats = {
@@ -32,8 +34,8 @@ const confPlayerStats = {
  */
 const FactoryGame = function() {
     Factory.Base.call(this);
-    this._verif = new RG.Verify.Conf('Factory.Game');
-    this._parser = RG.ObjectShell.getParser();
+    this._verif = new Verify.Conf('Factory.Game');
+    this._parser = ObjectShell.getParser();
     this.presetLevels = {};
     this.callbacks = {};
 };
@@ -42,7 +44,7 @@ RG.extend2(FactoryGame, Factory.Base);
 /* Restores a game from JSON representation. */
 FactoryGame.prototype.restoreGame = function(json) {
     const fromJSON = new FromJSON();
-    const game = new RG.Game.Main();
+    const game = new Game.Main();
     return fromJSON.createGame(game, json);
 };
 
@@ -52,7 +54,7 @@ FactoryGame.prototype.createNewGame = function(conf) {
     this._verif.verifyConf('createNewGame', conf,
         ['sqrPerItem', 'sqrPerActor', 'playMode']);
 
-    const game = new RG.Game.Main();
+    const game = new Game.Main();
     if (Number.isInteger(conf.seed)) {
         const rng = new RG.Random(conf.seed);
         game.setRNG(rng);
@@ -179,20 +181,8 @@ FactoryGame.prototype.addActorClass = function(obj, player) {
         const eqs = ActorClass.getEquipment(name);
 
         // Create starting inventory
-        items.forEach(item => {
-            const itemObj = this._parser.createItem(item.name);
-            itemObj.count = item.count || 1;
-            player.getInvEq().addItem(itemObj);
-
-        });
-
-        // Create starting equipment
-        eqs.forEach(item => {
-            const itemObj = this._parser.createItem(item.name);
-            itemObj.count = item.count || 1;
-            player.getInvEq().addItem(itemObj);
-            player.getInvEq().equipNItems(itemObj, item.count);
-        });
+        FactoryItem.addItemsToActor(player, items);
+        FactoryItem.equipItemsToActor(player, eqs);
 
         actorClass.setStartingStats();
         actorClass.advanceLevel(); // Advance to level 1
@@ -252,7 +242,7 @@ FactoryGame.prototype.createOverWorldGame = function(obj, game, player) {
     worldArea.connectTiles();
     this.progress('DONE');
 
-    const factWorld = new Factory.World();
+    const factWorld = new FactoryWorld();
     factWorld.setOverWorld(overworld);
     factWorld.setGlobalConf(obj);
     game.setGlobalConf(obj);
@@ -542,7 +532,7 @@ FactoryGame.prototype.createFullWorld = function(obj, game, player) {
         return null;
     }
     worldConf.levelSize = obj.levelSize;
-    const fact = new Factory.World();
+    const fact = new FactoryWorld();
     fact.setGlobalConf(obj);
     fact.setPresetLevels(this.presetLevels);
 
