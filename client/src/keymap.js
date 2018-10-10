@@ -89,6 +89,7 @@ Keys.KeyMap = {
     isNextItem: function(code) {return code === Keys.KEY.NEXT_ITEM;},
     isNextTarget: function(code) {return code === Keys.KEY.NEXT;},
     isPrevTarget: function(code) {return code === Keys.KEY.PREV;},
+    isRead: function(code) {return code === Keys.KEY.READ;},
     isRunMode: function(code) {return code === Keys.KEY.RUN;},
     isSelect: function(code) {return code === Keys.KEY.SELECT;},
     isSelectAll: function(code) {return code === Keys.KEY.SELECT_ALL;},
@@ -270,6 +271,7 @@ Keys.KEY.PICKUP = Keys.VK_COMMA;
 Keys.KEY.POWER = ROT.VK_P + 32;
 Keys.KEY.PREV = ROT.VK_P + 32;
 Keys.KEY.QUIT_MENU = Keys.VK_q;
+Keys.KEY.READ = ROT.VK_R;
 Keys.KEY.REST = ROT.VK_S + 32;
 Keys.KEY.RUN = ROT.VK_R + 32;
 Keys.KEY.SELECT = Keys.VK_s;
