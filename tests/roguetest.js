@@ -8,6 +8,7 @@ const RG = require('../client/src/battles');
 const expect = require('chai').expect;
 const Screen = require('../client/gui/screen');
 const FactoryWorld = require('../client/src/factory.world');
+const {FactoryItem} = require('../client/src/factory.items');
 
 const RGTest = {};
 
@@ -427,6 +428,14 @@ RGTest.createTestArea = function(conf = {}) {
 
     const factWorld = new FactoryWorld();
     return factWorld.createArea(usedConf);
+};
+
+RGTest.createPlayer = function(items = [], equip = []) {
+    const player = new RG.Actor.Rogue('player');
+    player.setIsPlayer(true);
+	FactoryItem.addItemsToActor(player, items);
+	FactoryItem.equipItemsToActor(player, equip);
+    return player;
 };
 
 module.exports = RGTest;
