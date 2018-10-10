@@ -112,8 +112,8 @@ const grammar =
 <Steal_supplies> ::= <steal>;
 <Trade_for_supplies> ::= <goto> "<get>exchange";
 
-<Win_a_battle> ::= <goto> "win_battle";
-<Survive_a_battle> ::= <goto> "lose_battle";
+<Win_a_battle> ::= <goto> "winbattle";
+<Survive_a_battle> ::= <goto> "losebattle";
 
 <subquest> ::= <goto> |
     <goto> <QUEST> "<subquest>goto";
@@ -123,7 +123,7 @@ const grammar =
 <learn> ::= "<learn>already_know_it" |
     <goto> <subquest> "listen" |
     <goto> <get> "<learn>read" |
-    <get> <subquest> "<learn>give" "listen";
+    <get> <subquest> "give" "listen";
 
 <get> ::= "<get>already_have_it" | <steal> | <goto> "<get>gather" |
     <goto> <get> <goto> <subquest> "<get>exchange";
