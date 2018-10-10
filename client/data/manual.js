@@ -55,6 +55,7 @@ Table below shows keyboard controls:
 | ${getChar(KEY.NEXT)}      | Next target (target-look).                        |
 | ${getChar(KEY.DOOR)}      | Open or close door.                               |
 | ${getChar(KEY.POWER)}     | [Use your powers.](#casting-spells)               |
+| ${getChar(KEY.READ)}      | Read something from the current cell.             |
 | ${getChar(KEY.RUN)}       | Toggle run mode (1.5 x speed).                    |
 | ${getChar(KEY.REST)}      | Rest (takes less energy than moving).             |
 | ${getChar(KEY.TARGET)}    | [Target/fire](#firing-missiles)                   |
@@ -182,6 +183,13 @@ By pressing ${getChar(KEY.GOTO)}, you can open a mark list for the current level
 By selecting one of the marks from the list, the actor tries to navigate to that location. If
 any hostile actors or dangers are encountered, the navigation is immediately stopped. At the
 moment you have to open the mark list again and choose a location.
+
+Reading books
+-------------
+
+Books can be read by pressing ${getChar(KEY.READ)} while there is something to read in
+the same cell as the player. If they are in inventory, they can be read by using the
+books.
 
 Game settings
 -------------
