@@ -229,6 +229,44 @@ const FactoryItem = function() {
     };
 };
 
+FactoryItem.addItemsToActor = function(actor, items) {
+    const parser = ObjectShell.getParser();
+    let createdItem = null;
+    items.forEach(item => {
+        if (typeof item === 'string') {
+            createdItem = parser.createItem(item);
+        }
+        else if (typeof item === 'object') {
+            createdItem = parser.createItem(item.name);
+        }
+        if (createdItem) {
+            actor.getInvEq().addItem(createdItem);
+        }
+    });
+};
+
+FactoryItem.equipItemsToActor = function(actor, items) {
+    const parser = ObjectShell.getParser();
+    let createdItem = null;
+    let ok = true;
+    items.forEach(item => {
+        if (typeof item === 'string') {
+            createdItem = parser.createItem(item);
+        }
+        else if (typeof item === 'object') {
+            createdItem = parser.createItem(item.name);
+            createdItem.count = item.count || 1;
+        }
+        if (createdItem) {
+            const count = createdItem.count;
+            actor.getInvEq().addItem(createdItem);
+            ok = ok && actor.getInvEq().equipNItems(createdItem, count);
+        }
+    });
+    return ok;
+};
+
+
 module.exports = {
     FactoryItem,
     ItemRandomizer
