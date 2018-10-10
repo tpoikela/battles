@@ -909,6 +909,12 @@ class BrainPlayer {
           this._wantSelection = true;
           this._selectionObject = chatSelObject(this._actor);
         }
+
+        if (RG.KeyMap.isRead(code)) {
+            const readComp = new RG.Component.Read();
+            this._actor.add(readComp);
+            return ACTION_ALREADY_DONE;
+        }
       }
 
       if (cmdType === 'MOVE') {
@@ -916,7 +922,7 @@ class BrainPlayer {
       }
       else if (cmdType === 'REST') {
         this.energy = RG.energy.REST;
-        return () => {};
+        return ACTION_ALREADY_DONE;
       }
 
       return this.noAction();
