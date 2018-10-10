@@ -974,6 +974,9 @@ RG.getObjRef = (type, obj) => {
     else if (type === 'item') {
         return {$objRef: {type: 'item', id: obj.getID()}};
     }
+    else if (type === 'element') {
+        return {$objRef: {type: 'element', id: obj.getID()}};
+    }
     RG.err('RG', 'getObjRef',
         `Type ${type} not supported. Obj: ${obj}`);
     return null;
