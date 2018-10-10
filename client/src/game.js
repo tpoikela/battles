@@ -24,7 +24,7 @@ RG.Game.Main = function() {
 
     this._rng = new RG.Random();
     this._engine = new Engine(this._eventPool);
-    this._master = new GameMaster(this);
+    this._master = new GameMaster(this, this._eventPool);
 
     this.globalConf = {};
     this.setGlobalConf = conf => {this.globalConf = conf;};
