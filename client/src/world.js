@@ -811,11 +811,9 @@ RG.World.AreaTile = function(x, y, area) {
 
     this._level = null;
 
-
     this.getLevel = () => this._level;
     this.getTileX = () => this._tileX;
     this.getTileY = () => this._tileY;
-
 
     this.isNorthEdge = () => this._tileY === 0;
     this.isSouthEdge = () => this._tileY === (this._area.getSizeY() - 1);
@@ -1588,10 +1586,9 @@ RG.World.Top = function(name) {
     RG.World.Base.call(this, name);
     this.setType('world');
 
-    // const _allLevels = {}; // Lookup table for all levels
     this._areas = [];
 
-    this.currAreaIndex = 0;
+    this.currAreaIndex = 0; // Points to current area
     this._conf = {};
     this.getConf = () => this._conf;
     this.setConf = conf => {this._conf = conf;};
