@@ -40,6 +40,7 @@ const GameMaster = function(game, pool = RG.POOL) {
     this.setWorld = world => {this.world = world;};
 
     this.hasNotify = true;
+
     this.notify = (evtName, args) => {
         if (evtName === RG.EVT_LEVEL_CHANGED) {
             debug('EVT_LEVEL_CHANGED');
@@ -53,6 +54,19 @@ const GameMaster = function(game, pool = RG.POOL) {
                 }
             }
         }
+        else if (evtName === RG.EVT_CREATE_BATTLE) {
+            debug('EVT_CREATE_BATTLE');
+            const {areaTile} = args;
+            if (args.response) {
+                RG.err('GameMaster', 'notify<EVT_CREATE_BATTLE>',
+                    `Args has response already: ${JSON.stringify(args)}`);
+            }
+            const parentLevel = areaTile.getLevel();
+            const battle = this.createBattleIntoAreaTileLevel(parentLevel);
+            if (battle) {
+                args.response = {battle};
+            }
+        }
         else if (evtName === RG.EVT_TILE_CHANGED) {
             debug('EVT_TILE_CHANGED');
             // Should spawn battle etc event
@@ -62,49 +76,7 @@ const GameMaster = function(game, pool = RG.POOL) {
             }
             debug('\tPlayer not null. Creating battle');
             const parentLevel = this.player.getLevel();
-            const parentId = parentLevel.getID();
-
-            const ow = this.game.getOverWorld();
-            let maxDanger = 4;
-            let armySize = 20;
-            const battleConf = {};
-            let levelType = 'forest';
-
-            let bbox = parentLevel.getBbox();
-
-            if (ow) {
-                const world = this.game.getCurrentWorld();
-                const area = world.getAreas()[0];
-                const xy = area.findTileXYById(parentId);
-
-                // TODO use actual starting position
-                const startX = 2;
-                const startY = area.getSizeY() - 1;
-                const dX = Math.abs(startX - xy[0]);
-                const dY = Math.abs(startY - xy[1]);
-                maxDanger += dX + dY;
-                armySize += 20 * dY + 10 * dX;
-
-                const msg = `dx,dy: ${dX},${dY} armySize ${armySize}`;
-                debug(`${msg} , danger: ${maxDanger}`);
-
-                const owPos = this.game.getPlayerOwPos();
-                const biome = ow.getBiome(owPos[0], owPos[1]);
-                levelType = this.biomeToLevelType(biome);
-                debug('Creating battle on tile ' + xy);
-                bbox = this.getLevelBbox(ow, area, xy, owPos, parentLevel);
-            }
-            battleConf.maxDanger = maxDanger;
-            battleConf.armySize = armySize;
-            battleConf.levelType = levelType;
-            battleConf.bbox = bbox;
-
-            if (!this.battles.hasOwnProperty(parentId)) {
-                this.battles[parentId] = [];
-                const battle = this.fact.createBattle(parentLevel, battleConf);
-                this.addBattle(parentId, battle);
-                this.game.addBattle(this.getBattle(parentId), parentId);
-            }
+            this.createBattleIntoAreaTileLevel(parentLevel);
         }
         else if (evtName === RG.EVT_EXPLORED_ZONE_LEFT) {
             // TODO check for creating a new battle on the map
@@ -137,6 +109,7 @@ const GameMaster = function(game, pool = RG.POOL) {
     this.pool.listenEvent(RG.EVT_LEVEL_CHANGED, this);
     this.pool.listenEvent(RG.EVT_TILE_CHANGED, this);
     this.pool.listenEvent(RG.EVT_BATTLE_OVER, this);
+    this.pool.listenEvent(RG.EVT_CREATE_BATTLE, this);
 
     /* Returns the bbox for the battle. This is coordinates for the battle
      * inside the tile level. It corresponds to player's current owPos. */
@@ -464,6 +437,54 @@ const GameMaster = function(game, pool = RG.POOL) {
         return levels;
 
     };
+};
+
+GameMaster.prototype.createBattleIntoAreaTileLevel = function(parentLevel) {
+    const parentId = parentLevel.getID();
+
+    const ow = this.game.getOverWorld();
+    let maxDanger = 4;
+    let armySize = 20;
+    const battleConf = {};
+    let levelType = 'forest';
+
+    let bbox = parentLevel.getBbox();
+
+    if (ow) {
+        const world = this.game.getCurrentWorld();
+        const area = world.getAreas()[0];
+        const xy = area.findTileXYById(parentId);
+
+        // TODO use actual starting position
+        const startX = 2;
+        const startY = area.getSizeY() - 1;
+        const dX = Math.abs(startX - xy[0]);
+        const dY = Math.abs(startY - xy[1]);
+        maxDanger += dX + dY;
+        armySize += 20 * dY + 10 * dX;
+
+        const msg = `dx,dy: ${dX},${dY} armySize ${armySize}`;
+        debug(`${msg} , danger: ${maxDanger}`);
+
+        const owPos = this.game.getPlayerOwPos();
+        const biome = ow.getBiome(owPos[0], owPos[1]);
+        levelType = this.biomeToLevelType(biome);
+        debug('Creating battle on tile ' + xy);
+        bbox = this.getLevelBbox(ow, area, xy, owPos, parentLevel);
+    }
+    battleConf.maxDanger = maxDanger;
+    battleConf.armySize = armySize;
+    battleConf.levelType = levelType;
+    battleConf.bbox = bbox;
+
+    if (!this.battles.hasOwnProperty(parentId)) {
+        this.battles[parentId] = [];
+        const battle = this.fact.createBattle(parentLevel, battleConf);
+        this.addBattle(parentId, battle);
+        this.game.addBattle(this.getBattle(parentId), parentId);
+        return battle;
+    }
+    return null;
 };
 
 module.exports = GameMaster;
