@@ -8,13 +8,14 @@
 
 /* Usage: require in another file. parse with BNF parser such as prettybnf. */
 
-const grammar =
+const topRule =
 `<QUEST> ::= <Knowledge> | <Comfort> |
  <Reputation> | <Serenity> |
  <Protection> | <Conquest> |
- <Wealth> | <Ability> | <Equipment> | <Strategy>;
+ <Wealth> | <Ability> | <Equipment> | <Strategy>;`;
 
-<Knowledge> ::= <Deliver_item_for_study> |
+const actorMotivations =
+`<Knowledge> ::= <Deliver_item_for_study> |
  <Spy> |
  <Interview_NPC> |
  <Use_an_item_in_the_field> ;
@@ -62,7 +63,12 @@ const grammar =
     <Steal_supplies> |
     <Trade_for_supplies>;
 
-<Strategy> ::= <Win_a_battle>;
+<Strategy> ::= <Win_a_battle>;`;
+
+const grammar =
+`${topRule}
+
+${actorMotivations}
 
 <Deliver_item_for_study> ::= <get> <goto> "give";
 <Spy> ::= <spy>;
