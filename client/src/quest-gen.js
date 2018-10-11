@@ -266,7 +266,7 @@ QuestData.mapStepToType = {
     capture: 'entity',
     escort: 'entity',
     exchange: 'item',
-    damage: 'element',
+    damage: 'entity',
     get: 'item',
     give: 'entity',
     kill: 'entity',
@@ -441,7 +441,8 @@ QuestPopulate.prototype.resetData = function() {
         item: [],
         place: [],
         actor: [],
-        element: []
+        element: [],
+        read: []
     };
 
     // Stores the refs between tasks like get-give
@@ -536,12 +537,17 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
     let ok = false;
     switch (task.getTaskType()) {
         case 'capture': {
+            const actorToCapture = this.getActorToCapture();
+            if (actorToCapture) {
+                this.currQuest.addTarget('capture', actorToCapture);
+                ok = true;
+            }
             break;
         }
         case 'damage': {
-            const elemToDamage = this.getElemToDamage();
-            if (elemToDamage) {
-                this.currQuest.addTarget('damage', elemToDamage);
+            const entToDamage = this.getEntityToDamage();
+            if (entToDamage) {
+                this.currQuest.addTarget('damage', entToDamage);
                 ok = true;
             }
             break;
@@ -621,6 +627,11 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
             const newLocation = this.getNewLocation(zone, areaTile);
             this.currQuest.addTarget('location', newLocation);
             ok = true;
+            if (this.flags.read) {
+                this.flags.read = false;
+                // Read about this location from previous read target
+                this._questCrossRefs.set(this.getPrevType('read'), newLocation);
+            }
             break;
         }
         case '<kill>kill': {
@@ -652,7 +663,12 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
             break;
         }
         case '<learn>read': {
-            this.flags.read = true;
+            const readTarget = this.getReadTarget();
+            if (readTarget) {
+                this._data.read.push(readTarget);
+                this.flags.read = true;
+                this.currQuest.addTarget('read', readTarget);
+            }
             // this._data.read =
             break;
         }
@@ -816,6 +832,13 @@ QuestPopulate.prototype.getItemToSteal = function() {
     return item;
 };
 
+QuestPopulate.prototype.getReadTarget = function(zone, areaTile) {
+    const location = this.currQuest.getCurrent('location');
+    return {
+        createTarget: 'createBook', args: [location, zone, areaTile]
+    };
+};
+
 QuestPopulate.prototype.getItemToUse = function() {
     // TODO this cannot create the item directly because if further
     // resource mapping fails, we need to delete the created item
@@ -826,7 +849,7 @@ QuestPopulate.prototype.getItemToUse = function() {
         return RNG.arrayGetRand(useItems);
     }
 
-    const parser = ObjectShell.getInstance();
+    const parser = ObjectShell.getParser();
     const useItem = parser.createRandomItem(item => item.use);
     if (useItem) {
         return useItem;
@@ -847,12 +870,17 @@ QuestPopulate.prototype.getRepairTarget = function() {
     return null;
 };
 
-QuestPopulate.prototype.getElemToDamage = function() {
+QuestPopulate.prototype.getEntityToDamage = function() {
     const location = this.currQuest.getCurrent('location');
     const elems = location.getElements();
     const doors = elems.filter(elem => elem.getType() === 'door');
     if (doors) {
         return RNG.arrayGetRand(doors);
+    }
+
+    const actors = location.getActors();
+    if (actors.length > 0) {
+        return RNG.arrayGetRand(actors);
     }
     return null;
 };
@@ -895,57 +923,30 @@ QuestPopulate.prototype.getNewLocation = function(zone, areaTile) {
 // - should be done only if mapping of quest to resources succeeds
 //---------------------------------------------------------------------------
 
+QuestPopulate.supportedKeys = new Set([
+    'kill', 'location', 'listen', 'give', 'report', 'get', 'steal', 'use',
+    'repair', 'damage', 'winbattle', 'losebattle', 'escort', 'spy', 'exchange'
+]);
+
 QuestPopulate.prototype.addQuestComponents = function(zone) {
     console.log('Adding quest components now');
     console.log('QuestList', JSON.stringify(this.questList));
     this.questList.forEach(questData => {
         questData.resetIter();
         questData.keys().forEach(key => {
-            if (key === 'kill') {
-                let killTarget = questData.next(key);
-                while (killTarget) {
-                    this.setAsQuestTarget(key, killTarget);
-                    killTarget = questData.next(key);
-                }
-            }
-            else if (key === 'location') {
-                let location = questData.next(key);
-                while (location) {
-                    this.setAsQuestTarget(key, location);
-                    location = questData.next(key);
-                }
-            }
-            else if (key === 'listen' || key === 'give' || key === 'report') {
-                let listenTarget = questData.next(key);
-                while (listenTarget) {
-                    this.setAsQuestTarget(key, listenTarget);
-                    listenTarget = questData.next(key);
-                }
-            }
-            else if (key === 'get' || key === 'steal' || key === 'use') {
-                let getTarget = questData.next(key);
-                while (getTarget) {
-                    this.setAsQuestTarget(key, getTarget);
-                    getTarget = questData.next(key);
-                }
-            }
-            else if (key === 'repair' || key === 'damage') {
-                let elemTarget = questData.next(key);
-                while (elemTarget) {
-                    this.setAsQuestTarget(key, elemTarget);
-                    elemTarget = questData.next(key);
-                }
-            }
-            else if (key === 'winbattle' || key === 'losebattle') {
-                let battleTarget = questData.next(key);
-                let battleObj = null;
-                while (battleTarget) {
-                    if (battleTarget.createTarget) {
-                        const {createTarget, args} = battleTarget;
-                        battleObj = this[createTarget](battleTarget, ...args);
-                        this.setAsQuestTarget(key, battleObj);
+
+            if (QuestPopulate.supportedKeys.has(key)) {
+                let target = questData.next(key);
+                while (target) {
+                    if (target.createTarget) {
+                        const {createTarget, args} = target;
+                        const targetObj = this[createTarget](target, ...args);
+                        this.setAsQuestTarget(key, targetObj);
                     }
-                    battleTarget = questData.next(key);
+                    else {
+                        this.setAsQuestTarget(key, target);
+                    }
+                    target = questData.next(key);
                 }
             }
             else {
@@ -969,11 +970,12 @@ QuestPopulate.prototype.addQuestComponents = function(zone) {
 
 QuestPopulate.prototype.addTargetsToGiver = function(giverComp, questData) {
     const questKeys = questData.keys();
-    console.log('questData is', JSON.stringify(questData));
 	questData.resetIter();
+
 	questKeys.forEach(key => {
 		let questTarget = questData.next(key);
 		while (questTarget) {
+            this._checkTargetValidity(questTarget);
 			const targetComp = questTarget.get('QuestTarget');
 			if (targetComp) {
 				const [target, targetType] = [targetComp.getTarget(),
@@ -991,7 +993,25 @@ QuestPopulate.prototype.addTargetsToGiver = function(giverComp, questData) {
 	questData.resetIter();
 };
 
+QuestPopulate.prototype._checkTargetValidity = function(target) {
+    if (!RG.isEntity(target)) {
+        const msg = 'Non-Entity given: ' + JSON.stringify(target);
+        RG.err('QuestPopulate', '_checkTargetValidity', msg);
+    }
+};
+
 QuestPopulate.prototype.setAsQuestTarget = function(key, target) {
+    if (!target) {
+        const msg = `Null/undef target with key |${key}|`;
+        RG.err('QuestPopulate', 'setAsQuestTarget', msg);
+    }
+
+    if (typeof target.getID !== 'function') {
+        let msg = `questTarget without getID() given with key ${key}:`;
+        msg += ` ${JSON.stringify(target)}`;
+        RG.err('QuestPopulate', 'setAsQuestTarget', msg);
+    }
+
     const qTarget = new RG.Component.QuestTarget();
     qTarget.setTargetType(key);
     qTarget.setTarget(target);
@@ -1020,12 +1040,41 @@ QuestPopulate.prototype.addUniqueName = function(target) {
     }
     else if (RG.isItem(target)) {
         named.setUniqueName('Quest item ' + RNG.getUniformInt(0, 1000000));
-
     }
 };
 
 QuestPopulate.prototype.createBattle = function(target, zone, areaTile) {
+    const battleZones = areaTile.getZones('BattleZone');
+    if (battleZones.length > 0) {
+        const zone = RNG.arrayGetRand(battleZones);
+        const level = zone.getLevels()[0];
+        return level;
+    }
+    else {
+        const eventArgs = {
+            areaTile, zone
+        };
+        RG.POOL.emitEvent(RG.EVT_CREATE_BATTLE, eventArgs);
+        if (eventArgs.response) {
+            return eventArgs.response.level;
+        }
+    }
     console.log(target, zone, areaTile);
+    return null;
+};
+
+QuestPopulate.prototype.createBook = function(target, level, zone, areaTile) {
+    const book = new RG.Item.Book();
+    if (this._questCrossRefs.has(target)) {
+        level.addItem(book);
+        const location = this._questCrossRefs.get(target);
+        // TODO setText() some info about the location etc
+    }
+    else {
+        const crossRefs = JSON.stringify(this._questCrossRefs);
+        RG.err('QuestPopulate', 'createBook',
+            `No cross-refs set for book. refs: ${crossRefs}`);
+    }
 
 };
 
