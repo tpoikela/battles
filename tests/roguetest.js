@@ -9,6 +9,7 @@ const expect = require('chai').expect;
 const Screen = require('../client/gui/screen');
 const FactoryWorld = require('../client/src/factory.world');
 const {FactoryItem} = require('../client/src/factory.items');
+const Game = require('../client/src/game');
 
 const RGTest = {};
 
@@ -404,30 +405,15 @@ RGTest.addOnTop = function(toAdd, locObj) {
 };
 
 RGTest.createTestArea = function(conf = {}) {
-    const defConf = {
-        name: 'TestArea', maxX: 2, maxY: 2,
-        nCities: 1, nDungeons: 1,
-        city: [
-            {x: 0, y: 0, name: 'testCity', nQuarters: 1,
-                constraint: {
-                    shop: [{op: 'gt', prop: 'value', value: 50}]
-                },
-                quarter: [{
-                    name: 'TestQuarter', nLevels: 1, entranceLevel: 0,
-                    nShops: 1
-                }]
-            }
-        ],
-        dungeon: [
-            {x: 0, y: 0, name: 'testDungeon', nBranches: 1,
-                branch: [{name: 'B1', nLevels: 1, entranceLevel: 0}]
-            }
-        ]
-    };
-    const usedConf = Object.assign(conf, defConf);
-
+    const usedConf = Object.assign(conf, RGTest.AreaConf);
     const factWorld = new FactoryWorld();
     return factWorld.createArea(usedConf);
+};
+
+RGTest.createTestWorld = function(conf = {}) {
+    const usedConf = Object.assign(conf, RGTest.WorldConf);
+    const factWorld = new FactoryWorld();
+    return factWorld.createWorld(usedConf);
 };
 
 RGTest.createPlayer = function(items = [], equip = []) {
@@ -436,6 +422,46 @@ RGTest.createPlayer = function(items = [], equip = []) {
 	FactoryItem.addItemsToActor(player, items);
 	FactoryItem.equipItemsToActor(player, equip);
     return player;
+};
+
+/* Can be used to create new game with some args. */
+RGTest.createGame = function(args) {
+    const game = new Game.Main();
+    if (args.place) {
+        game.addPlace(args.place);
+    }
+    if (args.player) {
+        game.addPlayer(args.player);
+    }
+    return game;
+};
+
+
+RGTest.AreaConf = {
+    name: 'TestArea', maxX: 2, maxY: 2,
+    nCities: 1, nDungeons: 1,
+    city: [
+        {x: 0, y: 0, name: 'testCity', nQuarters: 1,
+            constraint: {
+                shop: [{op: 'gt', prop: 'value', value: 50}]
+            },
+            quarter: [{
+                name: 'TestQuarter', nLevels: 1, entranceLevel: 0,
+                nShops: 1
+            }]
+        }
+    ],
+    dungeon: [
+        {x: 0, y: 0, name: 'testDungeon', nBranches: 1,
+            branch: [{name: 'B1', nLevels: 1, entranceLevel: 0}]
+        }
+    ]
+};
+
+RGTest.WorldConf = {
+    name: 'TestWorld',
+    nAreas: 1,
+    area: [RGTest.AreaConf]
 };
 
 module.exports = RGTest;
