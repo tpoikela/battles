@@ -119,7 +119,10 @@ describe('QuestPopulate', () => {
     it('can map any arbitrary quest without sub-quests to resources', () => {
         for (let i = 0; i < 5; i++) {
             const player = RGTest.createPlayer(['Potion of power']);
-            const area = RGTest.createTestArea();
+            const world = RGTest.createTestWorld();
+            const area = world.getCurrentArea();
+            const game = RGTest.createGame({place: world, player});
+            expect(game).to.not.be.empty;
             const city = area.getTileXY(0, 0).getZones('City')[0];
             const level0 = city.getLevels()[0];
             level0.addActor(player, 10, 10);
