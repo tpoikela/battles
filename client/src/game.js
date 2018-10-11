@@ -22,6 +22,8 @@ RG.Game.Main = function() {
     this._eventPool = new EventPool();
     RG.POOL = this._eventPool;
 
+    this.currPlaceIndex = 0; // Add support for more worlds
+
     this._rng = new RG.Random();
     this._engine = new Engine(this._eventPool);
     this._master = new GameMaster(this, this._eventPool);
@@ -619,10 +621,9 @@ RG.Game.Main = function() {
 
     /* Returns the current world where the player is .*/
     this.getCurrentWorld = () => {
-        const currPlaceIndex = 0; // Add support for more worlds
         const places = Object.values(this.getPlaces());
-        if (places.length > currPlaceIndex) {
-            return places[currPlaceIndex];
+        if (places.length > this.currPlaceIndex) {
+            return places[this.currPlaceIndex];
         }
         return null;
     };
