@@ -1949,6 +1949,17 @@ RG.comp = function(compID, entID = -1) {
     return null;
 };
 
+RG.while = function(testFunc, loopBody, timeout = -1) {
+    let numTries = timeout;
+    while (testFunc()) {
+        loopBody();
+        if (--numTries === 0) {
+            return false;
+        }
+    }
+    return true;
+};
+
 /* eslint no-unused-vars: 0 */
 const ROT = require('../../lib/rot.js');
 
