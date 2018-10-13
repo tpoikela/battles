@@ -313,7 +313,6 @@ QuestData.prototype.numSteps = function() {
 
 QuestData.prototype.keys = function() {
     const keys = Object.keys(this._stacks);
-    console.log('QuestData keys returning', keys);
     return keys;
 };
 
@@ -494,7 +493,6 @@ QuestPopulate.prototype.createQuestsForZone = function(zone, areaTile) {
 QuestPopulate.prototype.mapQuestToResources = function(quest, zone, areaTile) {
     this.currQuest = new QuestData();
     this.questData.quests.push(this.currQuest);
-    console.log('zone is ', zone);
     const level = RNG.arrayGetRand(zone.getLevels());
     this.currQuest.addTarget('location', level);
 
@@ -885,23 +883,28 @@ QuestPopulate.prototype.getEntityToDamage = function() {
     return null;
 };
 
+QuestPopulate.prototype.getActorToCapture = function() {
+    const location = this.currQuest.getCurrent('location');
+    const actors = location.getActors();
+    return this.getActorForQuests(actors);
+};
+
 QuestPopulate.prototype.getItemToExchange = function() {
     const location = this.currQuest.getCurrent('location');
     const elems = location.getElements();
     const shops = elems.filter(elem => elem.getType() === 'shop');
     RNG.shuffle(shops);
-    if (shops.length > 0) {
-        while (shops.length > 0) {
-            const cell = shops[0].getCell();
-            if (cell.hasItems()) {
-                const items = cell.getItems();
-                const unpaidItems = items.filter(item => item.has('Unpaid'));
-                if (unpaidItems.length > 0) {
-                    return unpaidItems[0];
-                }
+
+    while (shops.length > 0) {
+        const cell = shops[0].getCell();
+        if (cell.hasItems()) {
+            const items = cell.getItems();
+            const unpaidItems = items.filter(item => item.has('Unpaid'));
+            if (unpaidItems.length > 0) {
+                return unpaidItems[0];
             }
-            shops.shift();
         }
+        shops.shift();
     }
     return null;
 };
@@ -911,9 +914,9 @@ QuestPopulate.prototype.getNewLocation = function(zone, areaTile) {
     const zones = areaTile.getZones();
     let newZone = RNG.arrayGetRand(zones);
     if (zones.length > 1) {
-        while (newZone.getID() === zone.getID()) {
+        RG.while(() => newZone.getID() === zone.getID(), () => {
             newZone = RNG.arrayGetRand(zones);
-        }
+        }, 20);
     }
     return RNG.arrayGetRand(newZone.getLevels());
 };
@@ -933,13 +936,21 @@ QuestPopulate.prototype.addQuestComponents = function(zone) {
     console.log('QuestList', JSON.stringify(this.questList));
     this.questList.forEach(questData => {
         questData.resetIter();
-        questData.keys().forEach(key => {
 
+        questData.keys().forEach(key => {
             if (QuestPopulate.supportedKeys.has(key)) {
                 let target = questData.next(key);
                 while (target) {
+                    // Custom create function can be given such as createBattle
+                    // or createBook, which is used to create the target item
+                    // first
                     if (target.createTarget) {
                         const {createTarget, args} = target;
+                        if (typeof this[createTarget] !== 'function') {
+                            RG.err('QuestPopulate', 'addQuestComponents',
+                                `${createTarget} not a func in QuestPopulate`);
+                        }
+
                         const targetObj = this[createTarget](target, ...args);
                         this.setAsQuestTarget(key, targetObj);
                     }
@@ -1063,12 +1074,20 @@ QuestPopulate.prototype.createBattle = function(target, zone, areaTile) {
     return null;
 };
 
-QuestPopulate.prototype.createBook = function(target, level, zone, areaTile) {
+QuestPopulate.prototype.createBook = function(target, level) {
     const book = new RG.Item.Book();
     if (this._questCrossRefs.has(target)) {
         level.addItem(book);
         const location = this._questCrossRefs.get(target);
+        if (!location) {
+            RG.err('QuestPopulate', 'createBook',
+                'No location found for book');
+        }
         // TODO setText() some info about the location etc
+        const placeName = location.getParent().getName();
+        const bookText = ['Quest hint where to go:'];
+        bookText.push('You should go to place called ' + placeName);
+        book.setText(bookText);
     }
     else {
         const crossRefs = JSON.stringify(this._questCrossRefs);
