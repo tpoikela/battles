@@ -602,7 +602,7 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
         }
         case '<get>gather': {
             // Create a random item (not to be stolen) to gather TODO
-            const newItem = this.getItemToSteal();
+            const newItem = this.getItemToGather();
             if (newItem) {
                 this.currQuest.addTarget('get', newItem);
                 ok = true;
@@ -859,6 +859,18 @@ QuestPopulate.prototype.getItemToSteal = function() {
     return item;
 };
 
+QuestPopulate.prototype.getItemToGather = function() {
+    const location = this.currQuest.getCurrent('location');
+    const item = new RG.Item.Base('Quest item to gather');
+
+    if (!Placer.addEntityToCellType(item, location, c => c.isPassable())) {
+        return null;
+    }
+
+    this._cleanup.push({location, item});
+    return item;
+};
+
 QuestPopulate.prototype.getReadTarget = function(zone, areaTile) {
     const location = this.currQuest.getCurrent('location');
     return {
@@ -966,9 +978,10 @@ QuestPopulate.prototype.getNewLocation = function(zone, areaTile) {
 //---------------------------------------------------------------------------
 
 QuestPopulate.supportedKeys = new Set([
+    'defend',
     'kill', 'location', 'listen', 'give', 'report', 'get', 'steal', 'use',
     'repair', 'damage', 'winbattle', 'losebattle', 'escort', 'spy', 'exchange',
-    'read'
+    'read', 'experiment'
 ]);
 
 QuestPopulate.prototype.addQuestComponents = function(zone) {
@@ -1090,7 +1103,11 @@ QuestPopulate.prototype.handleRepair = function(target) {
 
 QuestPopulate.prototype.addUniqueName = function(target) {
     if (!target.has('Named')) {
-        target.add(new RG.Component.Named());
+        const namedComp = new RG.Component.Named();
+        if (target.getName) {
+            namedComp.setName(target.getName());
+        }
+        target.add(namedComp);
     }
     const named = target.get('Named');
     if (RG.isActor(target)) {
