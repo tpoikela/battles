@@ -71,6 +71,14 @@ Level.prototype.getParent = function() {
     return this._parent;
 };
 
+Level.prototype.getParentZone = function() {
+    const subZoneParent = this.getParent();
+    if (subZoneParent) {
+        return subZoneParent.getParent();
+    }
+    return null;
+};
+
 Level.prototype.setParent = function(parent) {
     if (!RG.isNullOrUndef([parent])) {
         this._parent = parent;
