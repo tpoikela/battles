@@ -266,7 +266,9 @@ QuestData.mapStepToType = {
     capture: 'entity',
     escort: 'entity',
     exchange: 'item',
+    experiment: 'item',
     damage: 'entity',
+    defend: 'entity',
     get: 'item',
     give: 'entity',
     kill: 'entity',
@@ -304,6 +306,16 @@ QuestData.prototype.addTarget = function(targetType, obj) {
         RG.err('QuestData', 'add',
             `Step type ${targetType} not supported. See:\n${steps}`);
     }
+};
+
+QuestData.prototype.replaceTarget = function(key, oldTarget, newTarget) {
+    const objList = this._stacks[key];
+    const index = objList.indexOf(oldTarget);
+    if (index >= 0) {
+        objList.splice(index, 1, newTarget);
+        return true;
+    }
+    return false;
 };
 
 QuestData.prototype.numSteps = function() {
@@ -503,7 +515,8 @@ QuestPopulate.prototype.mapQuestToResources = function(quest, zone, areaTile) {
         if (step.isQuest()) {
             // Recursive call for sub-quests, check the current
             // location for the quest
-            ok = ok && this.mapQuestToResources(step, currLoc, areaTile);
+            const newZone = currLoc.getParentZone();
+            ok = ok && this.mapQuestToResources(step, newZone, areaTile);
         }
         else {
             ok = ok && this.mapTask(quest, step, currLoc, areaTile);
@@ -551,7 +564,12 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
             break;
         }
         case 'defend': {
-            // Defend city/place from an assault
+            // Defend city/place/entity from an assault
+            const entToDefend = this.getEntityToDefend();
+            if (entToDefend) {
+                this.currQuest.addTarget('defend', entToDefend);
+                ok = true;
+            }
             break;
         }
         case 'escort': {
@@ -564,6 +582,11 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
             break;
         }
         case 'experiment': {
+            const item = this.getPrevType('item');
+            if (item) {
+                this.currQuest.addTarget('experiment', item);
+                ok = true;
+            }
             // TODO decide what this should do
             break;
         }
@@ -666,8 +689,8 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
                 this._data.read.push(readTarget);
                 this.flags.read = true;
                 this.currQuest.addTarget('read', readTarget);
+                ok = true;
             }
-            // this._data.read =
             break;
         }
         case 'repair': {
@@ -715,16 +738,20 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
         }
         case '<steal>take': {
             const newItem = this.getItemToSteal();
-            this.currQuest.addTarget('steal', newItem);
-            ok = true;
-            this._data.item.push(newItem);
+            if (newItem) {
+                this.currQuest.addTarget('steal', newItem);
+                this._data.item.push(newItem);
+                ok = true;
+            }
             break;
         }
         case 'take': {
             const newItem = this.getItemToSteal();
-            this.currQuest.addTarget('take', newItem);
-            ok = true;
-            this._data.item.push(newItem);
+            if (newItem) {
+                this.currQuest.addTarget('take', newItem);
+                this._data.item.push(newItem);
+                ok = true;
+            }
             break;
         }
         case 'use': {
@@ -821,11 +848,13 @@ QuestPopulate.prototype.getAlreadyOwnedItem = function() {
 };
 
 QuestPopulate.prototype.getItemToSteal = function() {
-    // TODO this cannot create the item directly because if further
-    // resource mapping fails, we need to delete the created item
     const location = this.currQuest.getCurrent('location');
     const item = new RG.Item.Base('Quest trophy');
-    Placer.addEntityToCellType(item, location, c => c.hasHouse());
+
+    if (!Placer.addEntityToCellType(item, location, c => c.hasHouse())) {
+        return null;
+    }
+
     this._cleanup.push({location, item});
     return item;
 };
@@ -850,6 +879,7 @@ QuestPopulate.prototype.getItemToUse = function() {
     const parser = ObjectShell.getParser();
     const useItem = parser.createRandomItem(item => item.use);
     if (useItem) {
+        this._cleanup.push({location, useItem});
         return useItem;
     }
     return null;
@@ -876,6 +906,15 @@ QuestPopulate.prototype.getEntityToDamage = function() {
         return RNG.arrayGetRand(doors);
     }
 
+    const actors = location.getActors();
+    if (actors.length > 0) {
+        return RNG.arrayGetRand(actors);
+    }
+    return null;
+};
+
+QuestPopulate.prototype.getEntityToDefend = function() {
+    const location = this.currQuest.getCurrent('location');
     const actors = location.getActors();
     if (actors.length > 0) {
         return RNG.arrayGetRand(actors);
@@ -928,12 +967,13 @@ QuestPopulate.prototype.getNewLocation = function(zone, areaTile) {
 
 QuestPopulate.supportedKeys = new Set([
     'kill', 'location', 'listen', 'give', 'report', 'get', 'steal', 'use',
-    'repair', 'damage', 'winbattle', 'losebattle', 'escort', 'spy', 'exchange'
+    'repair', 'damage', 'winbattle', 'losebattle', 'escort', 'spy', 'exchange',
+    'read'
 ]);
 
 QuestPopulate.prototype.addQuestComponents = function(zone) {
-    console.log('Adding quest components now');
-    console.log('QuestList', JSON.stringify(this.questList));
+    console.log('addQuestComponents: Adding quest components now');
+    // console.log('QuestList', JSON.stringify(this.questList));
     this.questList.forEach(questData => {
         questData.resetIter();
 
@@ -951,8 +991,14 @@ QuestPopulate.prototype.addQuestComponents = function(zone) {
                                 `${createTarget} not a func in QuestPopulate`);
                         }
 
+                        console.log('Creating targetObj with', createTarget);
                         const targetObj = this[createTarget](target, ...args);
                         this.setAsQuestTarget(key, targetObj);
+                        // Replace target with newly create object
+                        if (!questData.replaceTarget(key, target, targetObj)) {
+                            RG.err('QuestPopulate', 'addQuestComponents',
+                                'Failed to repl obj for ' + createTarget);
+                        }
                     }
                     else {
                         this.setAsQuestTarget(key, target);
@@ -980,6 +1026,7 @@ QuestPopulate.prototype.addQuestComponents = function(zone) {
 };
 
 QuestPopulate.prototype.addTargetsToGiver = function(giverComp, questData) {
+    console.log('addTargetsToGiver now');
     const questKeys = questData.keys();
 	questData.resetIter();
 
@@ -1067,10 +1114,14 @@ QuestPopulate.prototype.createBattle = function(target, zone, areaTile) {
         };
         RG.POOL.emitEvent(RG.EVT_CREATE_BATTLE, eventArgs);
         if (eventArgs.response) {
+            console.log('createBattle return eventArgs.response.level');
             return eventArgs.response.level;
         }
+        else {
+            RG.err('QuestPopulate', 'createBattle',
+                'No response in eventArgs for EVT_CREATE_BATTLE');
+        }
     }
-    console.log(target, zone, areaTile);
     return null;
 };
 
@@ -1088,13 +1139,14 @@ QuestPopulate.prototype.createBook = function(target, level) {
         const bookText = ['Quest hint where to go:'];
         bookText.push('You should go to place called ' + placeName);
         book.setText(bookText);
+        return book;
     }
     else {
         const crossRefs = JSON.stringify(this._questCrossRefs);
         RG.err('QuestPopulate', 'createBook',
             `No cross-refs set for book. refs: ${crossRefs}`);
     }
-
+    return null;
 };
 
 QuestPopulate.prototype.cleanUpFailedQuest = function() {
