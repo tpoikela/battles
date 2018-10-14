@@ -453,7 +453,7 @@ RGTest.AreaConf = {
     ],
     dungeon: [
         {x: 0, y: 0, name: 'testDungeon', nBranches: 1,
-            dungeonType: 'cave',
+            dungeonType: 'dungeon', dungeonX: 100, dungeonY: 50,
             branch: [{name: 'B1', nLevels: 1, entranceLevel: 0}]
         }
     ]
