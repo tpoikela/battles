@@ -5,6 +5,8 @@ const Chat = require('../chat');
 const System = {};
 System.Base = require('./system.base');
 
+const NO_ACTORS_FOUND = Object.freeze([]);
+
 /* This system handles all entity movement.*/
 System.Chat = function(compTypes) {
     System.Base.call(this, RG.SYS.CHAT, compTypes);
@@ -14,77 +16,134 @@ RG.extend2(System.Chat, System.Base);
 System.Chat.prototype.updateEntity = function(ent) {
     const args = ent.get('Chat').getArgs();
     const dir = args.dir;
+
+    const actors = this.getActorsInDirection(ent, dir);
+    let chatObj = null;
+    actors.forEach(actor => {
+        if (actor.has('Trainer')) {
+            chatObj = this.getChatObject(ent, actor, 'Trainer');
+        }
+        else if (actor.has('QuestGiver')) {
+            chatObj = this.getChatObject(ent, actor, 'QuestGiver');
+        }
+        else {
+            // TODO spirits react differently
+            chatObj = this.getGenericChatObject(ent, actor);
+            const msg = `You chat with ${actor.getName()} for a while.`;
+            RG.gameMsg({cell: ent.getCell(), msg});
+        }
+        this.addQuestSpecificItems(ent, actor, chatObj);
+    });
+
+    if (chatObj) {
+        const entBrain = ent.getBrain();
+        const selObj = chatObj.getSelectionObject();
+        entBrain.setSelectionObject(selObj);
+    }
+
+    ent.remove('Chat');
+};
+
+/* Returns all actors in the given direction. */
+System.Chat.prototype.getActorsInDirection = function(ent, dir) {
     const [dX, dY] = [dir[0], dir[1]];
     const x = ent.getX() + dX;
     const y = ent.getY() + dY;
     const map = ent.getLevel().getMap();
+
     if (map.hasXY(x, y)) {
         const cell = map.getCell(x, y);
         if (cell.hasActors()) {
-            const actors = cell.getActors();
-            actors.forEach(actor => {
-                if (actor.has('Trainer')) {
-                    this.setChatObject(ent, actor, 'Trainer');
-                }
-                else if (actor.has('QuestGiver')) {
-                    this.setChatObject(ent, actor, 'QuestGiver');
-                }
-                else {
-                    // TODO spirits react differently
-                    this.createGenericChatObject(ent, actor);
-                    const msg = `You chat with ${actor.getName()} for a while.`;
-                    RG.gameMsg({cell, msg});
-                }
-            });
+            return cell.getActors();
         }
         else {
             const msg = 'There is no one to talk to.';
             RG.gameMsg({cell, msg});
         }
-
     }
     else {
         const msg = 'There is no one to talk to.';
         RG.gameMsg({cell: ent.getCell(), msg});
     }
-    ent.remove('Chat');
+    return NO_ACTORS_FOUND;
 };
 
-System.Chat.prototype.setChatObject = function(ent, srcActor, compType) {
+System.Chat.prototype.getChatObject = function(ent, srcActor, compType) {
     const chatObj = srcActor.get(compType).getChatObj();
     chatObj.setTarget(ent);
     const selObj = chatObj.getSelectionObject();
     if (selObj) {
-        const entBrain = ent.getBrain();
-        entBrain.setSelectionObject(selObj);
+        return chatObj;
     }
     else {
         const srcName = srcActor.getName();
         RG.err('System.Chat', 'setChatObject',
             `Null/undef selectObj with type ${compType}, src: ${srcName}`);
     }
+    return null;
 };
 
-
-System.Chat.prototype.createGenericChatObject = function(ent, actor) {
+System.Chat.prototype.getGenericChatObject = function(ent, actor) {
     if (ent.has('Quest')) {
         const chatObj = new Chat.ChatBase();
         const aName = actor.getName();
-
         chatObj.pre = `${aName} greets you. What do you say?`;
+        return chatObj;
+    }
+    return null;
+};
+
+System.Chat.prototype.addQuestSpecificItems = function(ent, actor, chatObj) {
+    if (ent.has('Quest')) {
         const qTargets = ent.get('Quest').getQuestTargets();
 
+        // Adds generic options to ask about a quest
         qTargets.forEach(target => {
-            // const target = comp.getTarget();
             this.processQuestTarget(target, actor, chatObj);
         });
 
-        const selObj = chatObj.getSelectionObject();
-        ent.getBrain().setSelectionObject(selObj);
+        // If target of chat has any info, add an option to ask about it
+        if (actor.has('QuestInfo')) {
+            const questInfo = actor.get('QuestInfo');
+            chatObj.add({
+                name: questInfo.getQuestion(),
+                option: () => {
+                    // TODO possibly add some condition to get the info
+                    // ent.add(questInfo.clone());
+                    const qEvent = new RG.Component.QuestTargetEvent();
+                    qEvent.setArgs({info: questInfo, src: actor});
+                    qEvent.setEventType('listen');
+                    qEvent.setTargetComp(actor.get('QuestTarget'));
+                    ent.add(qEvent);
+                }
+            });
+        }
+
+        // Add additional options if the chat initiator has some quest info
+        if (ent.has('QuestInfo') && actor.has('QuestTarget')) {
+            const qTarget = actor.get('QuestTarget');
+            const qInfoList = ent.getList('QuestInfo');
+            const createQuestEvent = questInfo => {
+                const qEvent = new RG.Component.QuestTargetEvent();
+                qEvent.setArgs({info: questInfo});
+                qEvent.setEventType('report');
+                qEvent.setTargetComp(qTarget);
+                ent.add(qEvent);
+            };
+
+            qInfoList.forEach(questInfo => {
+                chatObj.add({
+                    name: 'Tell about ' + questInfo.getInfo(),
+                    option: createQuestEvent.bind(null, questInfo)
+                });
+            });
+        }
+
     }
 };
 
-
+/* Checks if initiator of chat is on quest and needs to query for any
+ * information. */
 System.Chat.prototype.processQuestTarget = function(target, actor, chatObj) {
     const aName = actor.getName();
     const tName = target.name;
@@ -92,6 +151,7 @@ System.Chat.prototype.processQuestTarget = function(target, actor, chatObj) {
 
     const id = target.id;
     const memory = actor.getBrain().getMemory();
+
     if (memory.hasSeen(id)) {
         resp = chatObj.getSelectionObject();
         const {x, y} = memory.getLastSeen(id);
