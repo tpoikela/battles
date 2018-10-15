@@ -266,22 +266,34 @@ DebugGame.prototype.createArena = function(obj, game, player) {
 
     // Add some quests into the city
     const questPopul = new QuestPopulate();
-    const taskList = ['<goto>already_there', '<kill>kill'];
+    /* const taskList = ['<goto>already_there', '<kill>kill'];
     const quest = new Quest('Kill an actor', taskList);
     questPopul.mapQuestToResources(quest, city, null);
     questPopul.addQuestComponents(city);
-
-    const giver = level.getActors().find(actor => actor.has('QuestGiver'));
-    const giverComp = giver.get('QuestGiver');
-    giverComp.setReward({type: 'item', name: 'Ruby glass mace'});
-    level.moveActorTo(giver, pX + 1, pY);
-
-    const qTarget = level.getActors().find(actor => actor.has('QuestTarget'));
-    level.moveActorTo(qTarget, pX, pY + 1);
+    */
 
     const newBook = new RG.Item.Book('Book of shadows');
     newBook.addText('In the land of mordor where shadows lie...');
     player.getInvEq().addItem(newBook);
+
+    const reportQuestTasks = ['<goto>already_there', 'listen',
+        '<goto>already_there', 'report'];
+    const reportQuest = new Quest('Report info to actor', reportQuestTasks);
+    questPopul.mapQuestToResources(reportQuest, city, null);
+    questPopul.addQuestComponents(city);
+
+    const actors = level.getActors();
+
+    const giver = actors.find(actor => actor.has('QuestGiver'));
+    const giverComp = giver.get('QuestGiver');
+    giverComp.setReward({type: 'item', name: 'Ruby glass mace'});
+    level.moveActorTo(giver, pX + 1, pY);
+
+    const qTargets = actors.filter(actor => actor.has('QuestTarget'));
+    qTargets.forEach((target, i) => {
+        level.moveActorTo(target, pX, pY + 1 + i);
+        target.get('Stats').setSpeed(10);
+    });
 
     return game;
 };
