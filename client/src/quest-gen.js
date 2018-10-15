@@ -281,6 +281,7 @@ QuestData.mapStepToType = {
     rescue: 'entity',
     spy: 'entity',
     steal: 'item',
+    take: 'item',
     use: 'item',
     winbattle: 'place'
 };
@@ -434,7 +435,9 @@ const QuestPopulate = function() {
     };
 
     this.questTargetCallback = {
-        repair: this.handleRepair = this.handleRepair.bind(this)
+        repair: this.handleRepair = this.handleRepair.bind(this),
+        listen: this.handleListen = this.handleListen.bind(this),
+        report: this.handleReport = this.handleReport.bind(this)
     };
 };
 
@@ -453,7 +456,8 @@ QuestPopulate.prototype.resetData = function() {
         place: [],
         actor: [],
         element: [],
-        read: []
+        read: [],
+        listen: []
     };
 
     // Stores the refs between tasks like get-give
@@ -541,12 +545,40 @@ QuestPopulate.prototype.mapQuestToResources = function(quest, zone, areaTile) {
     return true;
 };
 
+const tasksImplemented = new Set([
+    '<kill>kill',
+    '<goto>already_there', '<goto>explore', '<goto>goto',
+    '<learn>read',
+    'listen', 'report'
+]);
+
+QuestPopulate.prototype.pushQuestCrossRef = function(key, data) {
+    if (!this._questCrossRefs.has(key)) {
+        this._questCrossRefs.set(key, []);
+    }
+    this._questCrossRefs.get(key).push(data);
+};
+
+QuestPopulate.prototype.popQuestCrossRef = function(key) {
+    if (this._questCrossRefs.has(key)) {
+        return this._questCrossRefs.get(key).pop();
+    }
+    return null;
+};
+
 /* Maps a single task to resources. Prev. or next step may also affect mapping.
  * */
 QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
-    console.log('mapTask taskType is now', task.getTaskType());
+    const taskType = task.getTaskType();
+    console.log('mapTask taskType is now', taskType);
     let ok = false;
-    switch (task.getTaskType()) {
+
+    if (!tasksImplemented.has(taskType)) {
+        console.log(`TaskType ${taskType} not implemented. Bailing out...`);
+        return false;
+    }
+
+    switch (taskType) {
         case 'capture': {
             const actorToCapture = this.getActorToCapture();
             if (actorToCapture) {
@@ -632,7 +664,6 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
         }
         case '<goto>already_there': {
             // Don't add current location because it's already in the stack
-            // this.currQuest.addTarget('location', zone);
             ok = true;
             break;
         }
@@ -651,7 +682,7 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
             if (this.flags.read) {
                 this.flags.read = false;
                 // Read about this location from previous read target
-                this._questCrossRefs.set(this.getPrevType('read'), newLocation);
+                this.pushQuestCrossRef(this.getPrevType('read'), newLocation);
             }
             break;
         }
@@ -671,10 +702,12 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
         }
         case 'listen': {
             const actorToListen = this.getActorToListen();
-            this.currQuest.addTarget('listen', actorToListen);
-            this.flags.listen = true;
-            this._data.listen = actorToListen;
-            ok = true;
+            if (actorToListen) {
+                this.currQuest.addTarget('listen', actorToListen);
+                this.flags.listen = true;
+                this._data.listen.push(actorToListen);
+                ok = true;
+            }
             break;
         }
         case 'losebattle': {
@@ -706,6 +739,8 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
             if (actor) {
                 this.currQuest.addTarget('report', actor);
                 ok = true;
+                const listenTarget = this.getPrevType('listen');
+                this.pushQuestCrossRef(actor, listenTarget);
             }
             break;
         }
@@ -830,7 +865,8 @@ QuestPopulate.prototype.getActorToEscort = function() {
 
 /* Returns true if given actor can be used as quest target/giver. */
 function isOkForQuest(actor) {
-    return !(
+    return actor.has('Corporeal') &&
+    !(
         actor.isPlayer() && actor.has('QuestTarget')
         && actor.has('QuestGiver')
     );
@@ -978,7 +1014,7 @@ QuestPopulate.prototype.getNewLocation = function(zone, areaTile) {
 //---------------------------------------------------------------------------
 
 QuestPopulate.supportedKeys = new Set([
-    'defend',
+    'defend', 'capture',
     'kill', 'location', 'listen', 'give', 'report', 'get', 'steal', 'use',
     'repair', 'damage', 'winbattle', 'losebattle', 'escort', 'spy', 'exchange',
     'read', 'experiment'
@@ -1101,6 +1137,29 @@ QuestPopulate.prototype.handleRepair = function(target) {
     target.add(new RG.Component.Broken());
 };
 
+/* Adds some info to listen to for the target actor. */
+QuestPopulate.prototype.handleListen = function(target) {
+    const questInfo = RG.Component.create('QuestInfo');
+    questInfo.setQuestion('Can you tell me something to report?');
+    questInfo.setInfo('Generate something to report');
+    // TODO add some quest-specific info
+    questInfo.setGivenBy(target.getID());
+    target.add(questInfo);
+};
+
+QuestPopulate.prototype.handleReport = function(target) {
+    const questReport = RG.Component.create('QuestReport');
+    const listenTarget = this.popQuestCrossRef(target);
+    if (!listenTarget) {
+        const json = JSON.stringify(this._questCrossRefs);
+        RG.err('QuestPopulate', 'handleReport',
+            `Could not get prev listeTarget from crossrefs:\n${json}`);
+    }
+    questReport.setExpectInfoFrom(listenTarget.getID());
+    target.add(questReport);
+};
+
+/* Adds a unique name to the given target entity (uses Named comp). */
 QuestPopulate.prototype.addUniqueName = function(target) {
     if (!target.has('Named')) {
         const namedComp = new RG.Component.Named();
@@ -1143,14 +1202,10 @@ QuestPopulate.prototype.createBattle = function(target, zone, areaTile) {
 };
 
 QuestPopulate.prototype.createBook = function(target, level) {
-    const book = new RG.Item.Book();
-    if (this._questCrossRefs.has(target)) {
+    const book = new RG.Item.Book(Names.getBookName());
+    const location = this.popQuestCrossRef(target);
+    if (location) {
         level.addItem(book);
-        const location = this._questCrossRefs.get(target);
-        if (!location) {
-            RG.err('QuestPopulate', 'createBook',
-                'No location found for book');
-        }
         // TODO setText() some info about the location etc
         const placeName = location.getParent().getName();
         const bookText = ['Quest hint where to go:'];
