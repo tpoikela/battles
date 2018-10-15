@@ -320,8 +320,9 @@ System.Damage = function(compTypes) {
                 level.addItem(corpse, x, y);
                 if (actor.has('QuestTarget')) {
                     const qEvent = new RG.Component.QuestTargetEvent();
+                    qEvent.setEventType('kill');
                     qEvent.setArgs({corpse});
-                    qEvent.setTarget(actor.get('QuestTarget'));
+                    qEvent.setTargetComp(actor.get('QuestTarget'));
                     src.add(qEvent);
                 }
             }
