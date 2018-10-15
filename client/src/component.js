@@ -1527,6 +1527,15 @@ RG.Component.Quest.prototype.toString = function() {
     return res;
 };
 
+RG.Component.QuestInfo = DataComponent('QuestInfo', {
+    question: '', info: '',
+    givenBy: -1 // ID of the info source
+});
+
+RG.Component.QuestReport = DataComponent('QuestReport', {
+    expectInfoFrom: -2
+});
+
 RG.Component.QuestCompleted = TransientDataComponent('QuestCompleted',
     {giver: null}
 );
@@ -1536,8 +1545,13 @@ RG.Component.GiveQuest = TransientDataComponent('GiveQuest',
 );
 
 RG.Component.QuestTargetEvent = TransientDataComponent('QuestTargetEvent',
-    {target: null, args: null}
+    {targetComp: null, args: null, eventType: ''}
 );
+
+RG.Component.QuestTargetEvent.prototype.setTargetComp = function(target) {
+    RG.assertType(target, 'QuestTarget');
+    this.targetComp = target;
+};
 
 module.exports = RG.Component;
 
