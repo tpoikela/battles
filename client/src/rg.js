@@ -369,6 +369,19 @@ RG.log = function(...args) {
     }
 };
 
+/* Checks that object has given type using getType() function. Throws error if
+ * type does not match. */
+RG.assertType = function(obj, typeStr) {
+    if (obj.getType) {
+        if (obj.getType() !== typeStr) {
+            RG.err('RG', 'assertType',
+                `Exp: ${typeStr}, Got: ${obj.getType()}`);
+        }
+    }
+    else {
+        RG.err('RG', 'assertType', `object ${obj} has no getType()`);
+    }
+};
 
 /* Used to inherit from a prototype. Supports multiple inheritance but
  * sacrifices instanceof.*/
