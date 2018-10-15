@@ -207,6 +207,13 @@ System.BaseAction = function(compTypes) {
             const msg = `${ent.getName()} finds nothing interesting to read.`;
             RG.gameMsg({cell: ent.getCell(), msg});
         }
+
+        if (readTarget.has('QuestTarget')) {
+            const qEvent = new RG.Component.QuestTargetEvent();
+            qEvent.setEventType('read');
+            qEvent.setTargetComp(readTarget.get('QuestTarget'));
+            ent.add(qEvent);
+        }
     };
 
     // Initialisation of dispatch table for handler functions
