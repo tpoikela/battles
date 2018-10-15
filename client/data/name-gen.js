@@ -138,5 +138,24 @@ Names.getActorName = () => {
     return 'RandActor' + Names.actorCount++;
 };
 
+const bookNameGen = {
+    prefix: ['old', 'ancient', 'dusty', 'worn', 'well-preserved', 'heavy',
+        'light'],
+    prefix2: ['rune-covered', 'worm-ridden', 'leather', 'hard-cover',
+        'metal-plated', 'decorated', 'exquisite'],
+    substantive: ['tome', 'book', 'tract', 'codex', 'opus', 'handbook',
+        'volume', 'treatise']
+};
+
+Names.bookCount = 0;
+Names.getBookName = () => {
+    let prefix = RNG.arrayGetRand(bookNameGen.prefix);
+    prefix = prefix.capitalize();
+    const prefix2 = RNG.arrayGetRand(bookNameGen.prefix2);
+    const subst = RNG.arrayGetRand(bookNameGen.substantive);
+    return `${prefix} ${prefix2} ${subst}`;
+    // return 'Book ' + Names.bookCount++;
+};
+
 module.exports = Names;
 
