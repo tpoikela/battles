@@ -105,30 +105,25 @@ System.Chat.prototype.addQuestSpecificItems = function(ent, actor, chatObj) {
         // If target of chat has any info, add an option to ask about it
         if (actor.has('QuestInfo')) {
             const questInfo = actor.get('QuestInfo');
+            const qTarget = actor.get('QuestTarget');
             chatObj.add({
                 name: questInfo.getQuestion(),
                 option: () => {
                     // TODO possibly add some condition to get the info
                     // ent.add(questInfo.clone());
-                    const qEvent = new RG.Component.QuestTargetEvent();
-                    qEvent.setArgs({info: questInfo, src: actor});
-                    qEvent.setEventType('listen');
-                    qEvent.setTargetComp(actor.get('QuestTarget'));
-                    ent.add(qEvent);
+                    const args = {info: questInfo, src: actor};
+                    addQuestEvent(ent, qTarget, 'listen', args);
                 }
             });
         }
+
 
         // Add additional options if the chat initiator has some quest info
         if (ent.has('QuestInfo') && actor.has('QuestTarget')) {
             const qTarget = actor.get('QuestTarget');
             const qInfoList = ent.getList('QuestInfo');
             const createQuestEvent = questInfo => {
-                const qEvent = new RG.Component.QuestTargetEvent();
-                qEvent.setArgs({info: questInfo});
-                qEvent.setEventType('report');
-                qEvent.setTargetComp(qTarget);
-                ent.add(qEvent);
+                addQuestEvent(ent, qTarget, 'report', {info: questInfo});
             };
 
             qInfoList.forEach(questInfo => {
@@ -136,6 +131,16 @@ System.Chat.prototype.addQuestSpecificItems = function(ent, actor, chatObj) {
                     name: 'Tell about ' + questInfo.getInfo(),
                     option: createQuestEvent.bind(null, questInfo)
                 });
+            });
+        }
+
+        // If target is expecting a report about the quest, create another info
+        if (actor.has('QuestReport')) {
+            chatObj.add({
+                name: 'Tell about quest being completed',
+                option: () => {
+                    addQuestEvent(ent, actor.get('QuestTarget'), 'report');
+                }
             });
         }
 
@@ -174,5 +179,15 @@ System.Chat.prototype.processQuestTarget = function(target, actor, chatObj) {
         });
     }
 };
+
+/* Helper function to add QuestTargetEvent for entity. */
+function addQuestEvent(ent, qTarget, eventType, args = {}) {
+    const qEvent = new RG.Component.QuestTargetEvent();
+    qEvent.setArgs(args);
+    qEvent.setEventType(eventType);
+    qEvent.setTargetComp(qTarget);
+    ent.add(qEvent);
+}
+System.Chat.addQuestEvent = addQuestEvent;
 
 module.exports = System.Chat;
