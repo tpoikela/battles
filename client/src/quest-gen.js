@@ -14,7 +14,7 @@ const Names = require('../data/name-gen');
 
 const RNG = Random.getRNG();
 
-debug.enabled = true;
+// debug.enabled = true;
 
 /* A task represents a part of a quest. */
 const Task = function(taskType) {
@@ -480,6 +480,8 @@ QuestPopulate.prototype.resetData = function() {
         listen: false,
         read: false
     };
+
+    this.currQuest = null;
 
     // Data which must be stored between different quest items
     this._data = {
