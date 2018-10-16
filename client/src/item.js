@@ -837,7 +837,6 @@ class RGItemMineral extends ItemBase {
 }
 RG.Item.Mineral = RGItemMineral;
 
-
 class RGItemBook extends ItemBase {
 
     constructor(name) {
@@ -880,9 +879,9 @@ class RGItemBook extends ItemBase {
     }
 
     equals(rhs) {
-        let res = super.equals(rhs);
-        res = res && (this.getText().join('') === rhs.getText().join(''));
-        return res;
+        // Never stack any books
+        if (this.getID() === rhs.getID()) {return true;}
+        return false;
     }
 
     toJSON() {
