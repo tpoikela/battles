@@ -74,7 +74,11 @@ Level.prototype.getParent = function() {
 Level.prototype.getParentZone = function() {
     const subZoneParent = this.getParent();
     if (subZoneParent) {
-        return subZoneParent.getParent();
+        if (subZoneParent.getParent) {
+            return subZoneParent.getParent();
+        }
+        RG.err('Level', 'getParentZone',
+            `No getParent() in ${JSON.stringify(subZoneParent)}`);
     }
     return null;
 };
