@@ -131,7 +131,9 @@ ${actorMotivations}
     <goto> <get> "<learn>read" |
     <get> <subquest> "give" "listen";
 
-<get> ::= "<get>already_have_it" | <steal> | <goto> "<get>gather" |
+<get> ::= "<get>already_have_it" |
+    <steal> |
+    <goto> "<get>gather" |
     <goto> <get> <goto> <subquest> "<get>exchange";
 
 <steal> ::= <goto> "<steal>stealth" "<steal>take" |
