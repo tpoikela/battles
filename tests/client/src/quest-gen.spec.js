@@ -60,6 +60,7 @@ describe('QuestPopulate', () => {
 
     beforeEach(() => {
         questPopul = new QuestPopulate();
+        questPopul.checkImplemented = false;
     });
 
     it('is used to map quests to resources', () => {
@@ -117,7 +118,7 @@ describe('QuestPopulate', () => {
     });
 
     it('can map any arbitrary quest without sub-quests to resources', () => {
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 5; i++) {
             const player = RGTest.createPlayer(['Potion of power']);
             const world = RGTest.createTestWorld();
             const area = world.getCurrentArea();
