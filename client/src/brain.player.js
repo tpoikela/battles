@@ -905,7 +905,6 @@ class BrainPlayer {
         }
 
         if (RG.KeyMap.isChat(code)) {
-          // RG.gameMsg('You try chatting around.');
           this._wantSelection = true;
           this._selectionObject = chatSelObject(this._actor);
         }
