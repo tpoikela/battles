@@ -127,6 +127,10 @@ describe('QuestPopulate', () => {
             const city = area.getTileXY(0, 0).getZones('City')[0];
             const level0 = city.getLevels()[0];
             level0.addActor(player, 10, 10);
+
+            questPopul = new QuestPopulate();
+            questPopul.checkImplemented = false;
+
             const questFunc = questPopul.createQuests.bind(
                 questPopul, world, area, 0, 0);
             const numCreated = questFunc();
