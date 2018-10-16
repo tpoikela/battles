@@ -137,7 +137,7 @@ ${actorMotivations}
 <steal> ::= <goto> "<steal>stealth" "<steal>take" |
     <goto> <kill> "<steal>take";
 
-<spy> ::= <goto> "<spy>spy" <goto> "<spy>report";
+<spy> ::= <goto> "<spy>spy" <goto> "report";
 <capture> ::= <get> <goto> "capture";
 <kill> ::= <goto> "<kill>kill";`;
 
