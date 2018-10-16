@@ -48,11 +48,19 @@ System.BaseAction = function(compTypes) {
             if (ent.isPlayer()) {ent.getBrain().addMark();}
 
             const newLevel = ent.getLevel();
+            if (newLevel.has('QuestTarget')) {
+                const qEvent = new RG.Component.QuestTargetEvent();
+                qEvent.setEventType('goto');
+                qEvent.setTargetComp(newLevel.get('QuestTarget'));
+                ent.add(qEvent);
+            }
+
             RG.POOL.emitEvent(RG.EVT_LEVEL_CHANGED,
                 {target: newLevel, src: level, actor: ent});
             RG.POOL.emitEvent(RG.EVT_LEVEL_ENTERED,
                 {actor: ent, target: newLevel});
 
+            // Moves the surrounding actors to new location as well
             if (actorsAround.length > 0) {
                 const cells = RG.Brain.getBoxOfFreeCellsAround(ent, 1);
 
