@@ -495,14 +495,14 @@ describe('RG.Game.FromJSON', function() {
         questData.addTarget('kill', killTarget);
         expect(questData.getPathTypes()).to.deep.equal(['location', 'kill']);
 
-        const giverComp = new RG.Component.QuestGiver(questData);
-        giver.add(giverComp);
-        giverComp.addTarget('kill', killTarget);
-
         const targetComp = new RG.Component.QuestTarget();
         targetComp.setTarget(killTarget);
         targetComp.setTargetType('kill');
         killTarget.add(targetComp);
+
+        const giverComp = new RG.Component.QuestGiver(questData);
+        giver.add(giverComp);
+        giverComp.addTarget('kill', killTarget);
 
         const questTargets = giverComp.getQuestTargets();
         const questComp = new RG.Component.Quest();
