@@ -515,10 +515,6 @@ RG.Component.Named.prototype.getFullName = function() {
     return this.name;
 };
 
-RG.Component.Named.prototype.setUniqueName = function(name) {
-    this.uniqueName = name;
-};
-
 /* MindControl component allows another actor to control the mind-controlled
  * actor. */
 RG.Component.MindControl = function() {
@@ -1391,6 +1387,7 @@ const NO_QUEST_REWARD = -1;
 RG.Component.QuestGiver = UniqueDataComponent('QuestGiver',
     {hasGivenQuest: false, descr: '',
         questID: -1, danger: 1, reward: NO_QUEST_REWARD,
+        hasGivenReward: false,
     questTargets: null}
 );
 
@@ -1454,7 +1451,7 @@ RG.Component.QuestGiver.prototype.getChatObj = function() {
 /* Comp added to quest targets (items, actors etc). */
 RG.Component.QuestTarget = DataComponent('QuestTarget',
     {targetType: '', target: null, isCompleted: false,
-     targetID: -1}
+        targetID: -1, questID: -1}
 );
 
 RG.Component.QuestTarget.prototype.isKill = function() {
@@ -1504,6 +1501,10 @@ RG.Component.Quest.prototype.addTarget = function(targetData) {
     this.questTargets.push(targetData);
 };
 
+RG.Component.Quest.prototype.isInThisQuest = function(targetComp) {
+    return this.getQuestID() === targetComp.getQuestID();
+};
+
 /* Returns first quest target matching the given targetType. */
 RG.Component.Quest.prototype.first = function(targetType) {
     const targetObj = this.questTargets.find(obj => (
@@ -1517,6 +1518,17 @@ RG.Component.Quest.prototype.first = function(targetType) {
 RG.Component.Quest.prototype.isCompleted = function() {
     return this.questTargets.reduce((acc, obj) => acc && obj.isCompleted,
         true);
+};
+
+RG.Component.Quest.prototype.isTargetInQuest = function(targetComp) {
+    const target = targetComp.getTarget();
+    for (let i = 0; i < this.questTargets.length; i++) {
+        const curr = this.questTargets[i];
+        if (curr.id === target.getID()) {
+            return true;
+        }
+    }
+    return false;
 };
 
 RG.Component.Quest.prototype.toString = function() {
