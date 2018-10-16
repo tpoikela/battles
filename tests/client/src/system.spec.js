@@ -39,53 +39,6 @@ describe('System.Hunger', () => {
     });
 });
 
-describe('How items/loot is dropped by monsters', () => {
-    it('Drops loot when lethal damage is dealt', () => {
-        const level = RG.FACT.createLevel('arena', 20, 20);
-
-        const monsterStats = {hp: 5, att: 1, def: 1, prot: 1};
-        const monster = RG.FACT.createActor('TestMonster', monsterStats);
-        let hList = monster.getList('Health');
-        expect(hList).to.have.length(1);
-
-        const humanStats = {hp: 5, att: 1, def: 1, prot: 1};
-        const human = RG.FACT.createActor('Human', humanStats);
-
-        const dSystem = new RG.System.Damage(['Damage']);
-        const systems = [dSystem];
-
-        const lootItem = new RG.Item.Base('Loot item');
-        const loot = new RG.Component.Loot(lootItem);
-
-        const invItem = new RG.Item.Weapon('Sword');
-
-        monster.getInvEq().addItem(invItem);
-        monster.add(loot);
-        const dmgComp = new RG.Component.Damage(6, RG.DMG.FIRE);
-        dmgComp.setSource(human);
-        monster.add(dmgComp);
-        expect(dSystem.entities.hasOwnProperty(monster.getID())).to.equal(true);
-
-        const lootCell = level.getMap().getCell(3, 6);
-        level.addActor(monster, 3, 6);
-        expect(lootItem.getOwner()).to.equal(null);
-        expect(lootCell.hasProp('items')).to.equal(false);
-        updateSystems(systems);
-
-        hList = monster.getList('Health');
-        expect(hList).to.have.length(1);
-
-        expect(monster.get('Health').isDead()).to.be.true;
-        // expect(monster).to.be.dead;
-        expect(lootItem.getOwner()).to.equal(lootCell);
-        expect(lootCell.hasItems()).to.equal(true);
-
-        // Check for the dropped inventory item
-        const items = lootCell.getProp(RG.TYPE_ITEM);
-        expect(items).to.have.length(3);
-    });
-});
-
 describe('System.Attack', () => {
 
     let attackSystem = null;
@@ -224,6 +177,51 @@ describe('System.Damage', () => {
         updateSystems(systems);
         expect(beast).to.have.component('Poison');
         expect(human).to.have.component('Poison');
+    });
+
+    it('Drops loot when lethal damage is dealt', () => {
+        const level = RG.FACT.createLevel('arena', 20, 20);
+
+        const monsterStats = {hp: 5, att: 1, def: 1, prot: 1};
+        const monster = RG.FACT.createActor('TestMonster', monsterStats);
+        let hList = monster.getList('Health');
+        expect(hList).to.have.length(1);
+
+        const humanStats = {hp: 5, att: 1, def: 1, prot: 1};
+        const human = RG.FACT.createActor('Human', humanStats);
+
+        const dSystem = new RG.System.Damage(['Damage']);
+        const systems = [dSystem];
+
+        const lootItem = new RG.Item.Base('Loot item');
+        const loot = new RG.Component.Loot(lootItem);
+
+        const invItem = new RG.Item.Weapon('Sword');
+
+        monster.getInvEq().addItem(invItem);
+        monster.add(loot);
+        const dmgComp = new RG.Component.Damage(6, RG.DMG.FIRE);
+        dmgComp.setSource(human);
+        monster.add(dmgComp);
+        expect(dSystem.entities.hasOwnProperty(monster.getID())).to.equal(true);
+
+        const lootCell = level.getMap().getCell(3, 6);
+        level.addActor(monster, 3, 6);
+        expect(lootItem.getOwner()).to.equal(null);
+        expect(lootCell.hasProp('items')).to.equal(false);
+        updateSystems(systems);
+
+        hList = monster.getList('Health');
+        expect(hList).to.have.length(1);
+
+        expect(monster.get('Health').isDead()).to.be.true;
+        // expect(monster).to.be.dead;
+        expect(lootItem.getOwner()).to.equal(lootCell);
+        expect(lootCell.hasItems()).to.equal(true);
+
+        // Check for the dropped inventory item
+        const items = lootCell.getProp(RG.TYPE_ITEM);
+        expect(items).to.have.length(3);
     });
 });
 
