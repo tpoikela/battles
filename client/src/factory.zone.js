@@ -182,6 +182,7 @@ const FactoryZone = function() {
         // Fall back to the default method
         if (cityLevel === null) {
             cityLevel = this.createLevel('town', x, y, levelConf);
+            this.populateCityLevel(cityLevel, levelConf);
         }
 
         if (conf.friendly) {
