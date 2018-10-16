@@ -14,6 +14,8 @@ const Names = require('../data/name-gen');
 
 const RNG = Random.getRNG();
 
+debug.enabled = true;
+
 /* A task represents a part of a quest. */
 const Task = function(taskType) {
     this.stepType = 'Task';
@@ -40,8 +42,16 @@ const Quest = function(name, tasks) {
 
     if (Array.isArray(tasks)) {
         tasks.forEach(taskType => {
-            const task = new Task(taskType);
-            this.addStep(task);
+            if (taskType.isQuest) {
+                this.addStep(taskType);
+            }
+            else if (taskType.isTask) {
+                this.addStep(taskType);
+            }
+            else {
+                const task = new Task(taskType);
+                this.addStep(task);
+            }
         });
     }
 };
@@ -283,6 +293,7 @@ QuestData.mapStepToType = {
     spy: 'entity',
     steal: 'item',
     take: 'item',
+    subquest: 'entity',
     use: 'item',
     winbattle: 'place'
 };
@@ -312,9 +323,20 @@ QuestData.prototype.addTarget = function(targetType, obj) {
 
 QuestData.prototype.replaceTarget = function(key, oldTarget, newTarget) {
     const objList = this._stacks[key];
-    const index = objList.indexOf(oldTarget);
+    let index = objList.indexOf(oldTarget);
     if (index >= 0) {
         objList.splice(index, 1, newTarget);
+        index = this.path.findIndex(obj => obj.target === oldTarget);
+        if (index >= 0) {
+            const oldTargetObj = this.path[index];
+            const newTargetObj = {
+                target: newTarget, targetType: oldTargetObj.type};
+            this.path.splice(index, 1, newTargetObj);
+        }
+        else {
+            RG.err('QuestData', 'replaceTarget',
+                'Could not replace target on path');
+        }
         return true;
     }
     return false;
@@ -376,11 +398,12 @@ QuestData.prototype.getCurrent = function(targetType) {
 
 /* Returns human-readable description of the quest. */
 QuestData.prototype.getDescr = function() {
-    this.resetIter();
+    // this.resetIter();
     let res = '';
     this.path.forEach(pair => {
         const step = pair.type;
-        const value = this.next(step);
+        // const value = this.next(step);
+        const value = pair.target;
         const name = RG.getName(value);
         res += step + ' ' + name + '. ';
     });
@@ -438,13 +461,15 @@ const QuestPopulate = function() {
     this.questTargetCallback = {
         repair: this.handleRepair = this.handleRepair.bind(this),
         listen: this.handleListen = this.handleListen.bind(this),
-        report: this.handleReport = this.handleReport.bind(this)
+        report: this.handleReport = this.handleReport.bind(this),
+        subquest: this.handleSubQuest = this.handleSubQuest.bind(this)
     };
 
     // Can be turned off for testing. Some quest features must be implemented
     // outside QuestPopulate, but are not done yet. Thus only the implemented
     // quests should be generated in the actual game.
     this.checkImplemented = true;
+    this.IND = 0;
 };
 
 QuestPopulate.prototype.resetData = function() {
@@ -469,6 +494,7 @@ QuestPopulate.prototype.resetData = function() {
 
     // Stores the refs between tasks like get-give
     this._questCrossRefs = new Map();
+    this.questGivers = new Map();
 };
 
 /* Returns previous item of given type. Type refers to actor/item/place/element.
@@ -512,15 +538,25 @@ QuestPopulate.prototype.createQuestsForZone = function(zone, areaTile) {
 };
 
 /* Tries to map a quest to world resources. Returns false if does not succeed.
- * Can happen due to missing actors, levels or items etc. */
+ * Can happen due to missing actors, levels or items etc. Mapping failure
+ * should not be an error. */
 QuestPopulate.prototype.mapQuestToResources = function(quest, zone, areaTile) {
-    this.currQuest = new QuestData();
+    ++this.IND;
+    const newQuest = new QuestData();
+    this.dbg('*** New quest started ****');
+    if (this.currQuest) {
+        const target = {createTarget: 'createSubQuestTarget',
+            subQuest: newQuest, args: []};
+        this.dbg('Adding |subquest| target for sub-quest');
+        this.currQuest.addTarget('subquest', target);
+    }
+
+    this.currQuest = newQuest;
     this.questData.quests.push(this.currQuest);
     const level = RNG.arrayGetRand(zone.getLevels());
     this.currQuest.addTarget('location', level);
 
     let ok = true;
-
     quest.getSteps().forEach(step => {
         const currLoc = this.currQuest.getCurrent('location');
         if (step.isQuest()) {
@@ -530,25 +566,29 @@ QuestPopulate.prototype.mapQuestToResources = function(quest, zone, areaTile) {
             ok = ok && this.mapQuestToResources(step, newZone, areaTile);
         }
         else {
-            ok = ok && this.mapTask(quest, step, currLoc, areaTile);
+            const currZone = currLoc.getParentZone();
+            ok = ok && this.mapTask(quest, step, currZone, areaTile);
         }
     });
 
     if (!ok) {
         this.cleanUpFailedQuest(quest, zone);
+        --this.IND;
         return false;
     }
 
     const nQuests = this.questData.quests.length;
     if (nQuests > 1) {
         this.questList.unshift(this.questData.quests.pop());
-        this.currQuest = this.questData.quests[nQuests - 2];
+        const nLast = this.questData.quests.length - 1;
+        this.currQuest = this.questData.quests[nLast];
     }
     else {
         this.questList.unshift(this.currQuest);
     }
     // Finally, add a quest to quest giver
-    console.log('Created quest: ' + this.currQuest.getDescr());
+    this.dbg('Created quest: ' + this.currQuest.getDescr());
+    --this.IND;
     return true;
 };
 
@@ -583,14 +623,16 @@ QuestPopulate.prototype.popQuestCrossRef = function(key) {
 /* Maps a single task to resources. Prev. or next step may also affect mapping.
  * */
 QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
+    ++this.IND;
     const taskType = task.getTaskType();
-    console.log('mapTask taskType is now', taskType);
     let ok = false;
 
     if (this.checkImplemented && !tasksImplemented.has(taskType)) {
         console.log(`TaskType ${taskType} not implemented. Bailing out...`);
         return false;
     }
+
+    this.dbg('Processing taskType |' + taskType + '|');
 
     switch (taskType) {
         case 'capture': {
@@ -827,6 +869,7 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
         console.warn('QuestPopulate', 'mapTask',
             `Failed to map ${task.getTaskType()}, ${JSON.stringify(task)}`);
     }
+    --this.IND;
     return ok;
 };
 
@@ -873,6 +916,13 @@ QuestPopulate.prototype.getActorToEscort = function() {
     const level = this.currQuest.getCurrent('location');
     const actorToEscort = this.getActorForQuests(level.getActors());
     return actorToEscort;
+};
+
+QuestPopulate.prototype.dbg = function(msg) {
+    if (debug.enabled) {
+        const ind = '=='.repeat(this.IND);
+        debug(ind + msg);
+    }
 };
 
 /* Returns true if given actor can be used as quest target/giver. */
@@ -1011,14 +1061,14 @@ QuestPopulate.prototype.getItemToExchange = function() {
 /* Returns a level from a new zone (which is not 'zone' arg). */
 QuestPopulate.prototype.getNewLocation = function(zone, areaTile) {
     const zones = areaTile.getZones();
-    const randCycle = new RandomCyclic(zones);
-    let newZone = randCycle.next();
+    let newZone = RNG.arrayGetRand(zones);
     if (zones.length > 1) {
-        RG.while(
-            () => newZone.getID() === zone.getID(), () => {
-            newZone = randCycle.next();
-        }, randCycle.length);
+        while (newZone.getID() === zone.getID()) {
+            newZone = RNG.arrayGetRand(zones);
+        }
     }
+    console.log('old zone was', zone.getName());
+    console.log('NEW zone is', newZone.getName());
     this._data.zone.push(newZone);
     return RNG.arrayGetRand(newZone.getLevels());
 };
@@ -1030,10 +1080,14 @@ QuestPopulate.prototype.getNewExploreLocation = function(zone, areaTile) {
     const randCycle = new RandomCyclic(allZones);
     if (allZones.length > 0) {
         let newZone = randCycle.next();
-        RG.while(
-            () => newZone.getID() === zone.getID(), () => {
+        let watchdog = 20;
+        while (newZone.getID() === zone.getID()) {
             newZone = randCycle.next();
-        }, randCycle.length);
+
+            if (--watchdog === 0) {
+                break;
+            }
+        }
         this._data.zone.push(newZone);
         return newZone.getLevels()[0];
     }
@@ -1063,23 +1117,23 @@ QuestPopulate.supportedKeys = new Set([
     'defend', 'capture', 'explore',
     'kill', 'location', 'listen', 'give', 'report', 'get', 'steal', 'use',
     'repair', 'damage', 'winbattle', 'losebattle', 'escort', 'spy', 'exchange',
-    'read', 'experiment'
+    'read', 'experiment', 'subquest'
 ]);
 
 QuestPopulate.prototype.addQuestComponents = function(zone) {
     console.log('addQuestComponents: Adding quest components now');
-    // console.log('QuestList', JSON.stringify(this.questList));
-    this.questList.forEach(questData => {
+    // Sub-quests must be mapped first, so that quest givers can be obtained
+    // for parent quetsts
+    for (let i = this.questList.length - 1; i >= 0; i--) {
+        const questData = this.questList[i];
         questData.resetIter();
-
 
         questData.keys().forEach(key => {
             if (QuestPopulate.supportedKeys.has(key)) {
                 let target = questData.next(key);
                 while (target) {
                     // Custom create function can be given such as createBattle
-                    // or createBook, which is used to create the target item
-                    // first
+                    // or createBook, which must return the target
                     if (target.createTarget) {
                         const {createTarget, args} = target;
                         if (typeof this[createTarget] !== 'function') {
@@ -1116,17 +1170,36 @@ QuestPopulate.prototype.addQuestComponents = function(zone) {
 
         questGiver.add(giverComp);
         this.addUniqueName(questGiver);
+        this.questGivers.set(questData, questGiver);
         console.log('QuestGiver will be ' + questGiver.getName());
-    });
+    }
 
 };
 
 QuestPopulate.prototype.addTargetsToGiver = function(giverComp, questData) {
     const questID = giverComp.getQuestID();
-    console.log('addTargetsToGiver now, ID', questID);
-    const questKeys = questData.keys();
-	questData.resetIter();
+    this.dbg('addTargetsToGiver now, ID', questID);
+    /* const questKeys = questData.keys();
+	questData.resetIter();*/
 
+    ++this.IND;
+    const pathTargets = questData.getPathTargets();
+    pathTargets.forEach(questTarget => {
+        this._checkTargetValidity(questTarget);
+        const targetComp = questTarget.get('QuestTarget');
+        if (targetComp) {
+            const [target, targetType] = [targetComp.getTarget(),
+                targetComp.getTargetType()];
+            giverComp.addTarget(targetType, target);
+            targetComp.setQuestID(questID);
+        }
+        else {
+            const json = JSON.stringify(questTarget);
+            RG.err('QuestPopulate', 'addTargetsToGiver',
+                `No QuestTarget found from target ${json}`);
+        }
+    });
+    /*
 	questKeys.forEach(key => {
 		let questTarget = questData.next(key);
 		while (questTarget) {
@@ -1147,6 +1220,8 @@ QuestPopulate.prototype.addTargetsToGiver = function(giverComp, questData) {
 		}
 	});
 	questData.resetIter();
+    */
+    --this.IND;
 };
 
 QuestPopulate.prototype._checkTargetValidity = function(target) {
@@ -1205,6 +1280,19 @@ QuestPopulate.prototype.handleReport = function(target) {
     target.add(questReport);
 };
 
+QuestPopulate.prototype.handleSubQuest = function(target) {
+    const qTarget = target.get('QuestTarget');
+    const giverComp = target.get('QuestGiver');
+    if (qTarget && giverComp) {
+        qTarget.setSubQuestID(giverComp.getQuestID());
+    }
+    else {
+        const json = JSON.stringify(target);
+        RG.err('QuestPopulate', 'handleSubQuest',
+            'Target must have QuestTarget + Giver comps: ' + json);
+    }
+};
+
 /* Adds a unique name to the given target entity (uses Named comp). */
 QuestPopulate.prototype.addUniqueName = function(target) {
     if (!target.has('Named')) {
@@ -1257,6 +1345,7 @@ QuestPopulate.prototype.createBook = function(target, level) {
         const bookText = ['Quest hint where to go:'];
         bookText.push('You should go to place called ' + placeName);
         book.setText(bookText);
+        book.addMetaData('place', {levelID: location.getID(), name: placeName});
         return book;
     }
     else {
@@ -1265,6 +1354,12 @@ QuestPopulate.prototype.createBook = function(target, level) {
             `No cross-refs set for book. refs: ${crossRefs}`);
     }
     return null;
+};
+
+QuestPopulate.prototype.createSubQuestTarget = function(target) {
+    const {subQuest} = target;
+    const giver = this.questGivers.get(subQuest);
+    return giver;
 };
 
 QuestPopulate.prototype.cleanUpFailedQuest = function() {
