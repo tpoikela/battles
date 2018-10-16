@@ -1379,17 +1379,20 @@ class Duration extends Mixin.DurationRoll(RG.Component.Base) {
 RG.Component.Duration = Duration;
 
 //--------------------------------------------
-// Quest-related components
+// QUEST COMPONENTS
 //--------------------------------------------
 
 const NO_QUEST_REWARD = -1;
+const NO_SUB_QUEST = -1;
 
-RG.Component.QuestGiver = UniqueDataComponent('QuestGiver',
-    {hasGivenQuest: false, descr: '',
-        questID: -1, danger: 1, reward: NO_QUEST_REWARD,
-        hasGivenReward: false,
-    questTargets: null}
-);
+/* QuestGiver is added to actors who can give quests. Only one comp
+ * supported per actor. */
+RG.Component.QuestGiver = UniqueDataComponent('QuestGiver', {
+    hasGivenQuest: false, descr: '',
+    questID: -1, danger: 1, reward: NO_QUEST_REWARD,
+    hasGivenReward: false,
+    questTargets: null
+});
 
 RG.Component.QuestGiver.prototype._init = function(descr) {
     this.chatObj = new RG.Chat.Quest();
@@ -1427,6 +1430,10 @@ RG.Component.QuestGiver.prototype.addTarget = function(targetType, target) {
         const targetData = {
             id: target.getID(), name, targetType
         };
+        const qTarget = target.get('QuestTarget');
+        if (qTarget.getSubQuestID() !== NO_SUB_QUEST) {
+            targetData.subQuestID = qTarget.getSubQuestID();
+        }
         this.questTargets.push(targetData);
     }
     else {
@@ -1448,11 +1455,11 @@ RG.Component.QuestGiver.prototype.getChatObj = function() {
     return this.chatObj;
 };
 
-/* Comp added to quest targets (items, actors etc). */
-RG.Component.QuestTarget = DataComponent('QuestTarget',
-    {targetType: '', target: null, isCompleted: false,
-        targetID: -1, questID: -1}
-);
+/* QuestTarget Comp is added to quest targets (items, actors etc). */
+RG.Component.QuestTarget = DataComponent('QuestTarget', {
+    targetType: '', target: null, isCompleted: false,
+    targetID: -1, questID: -1, subQuestID: NO_SUB_QUEST
+});
 
 RG.Component.QuestTarget.prototype.isKill = function() {
     return this.targetType === 'kill';
@@ -1505,6 +1512,12 @@ RG.Component.Quest.prototype.isInThisQuest = function(targetComp) {
     return this.getQuestID() === targetComp.getQuestID();
 };
 
+RG.Component.Quest.prototype.getTargetsByType = function(targetType) {
+    return this.questTargets.filter(obj => (
+        obj.targetType === targetType
+    ));
+};
+
 /* Returns first quest target matching the given targetType. */
 RG.Component.Quest.prototype.first = function(targetType) {
     const targetObj = this.questTargets.find(obj => (
@@ -1533,8 +1546,14 @@ RG.Component.Quest.prototype.isTargetInQuest = function(targetComp) {
 
 RG.Component.Quest.prototype.toString = function() {
     let res = '';
-    this.questTargets.forEach(obj => {
-        res += obj.targetType + ' ' + obj.name;
+    this.questTargets.forEach((obj, i) => {
+        if (i > 0) {res += '. ';}
+        if (obj.targetType === 'subquest') {
+            res += 'Talk to ' + obj.name;
+        }
+        else {
+            res += obj.targetType + ' ' + obj.name;
+        }
     });
     return res;
 };
