@@ -12,6 +12,7 @@ System.Quest = function(compTypes) {
     this.compTypesAny = true; // Triggered on at least one component
 
     this._eventTable = {
+        goto: this.onGotoEvent = this.onGotoEvent.bind(this),
         kill: this.onKillEvent = this.onKillEvent.bind(this),
         listen: this.onListenEvent = this.onListenEvent.bind(this),
         read: this.onReadEvent = this.onReadEvent.bind(this),
@@ -83,7 +84,7 @@ System.Quest.prototype.checkQuestMsgEmits = function(ent, questComp) {
             msg += ' You should try to get to the first quest location';
         }
     }
-    RG.gameMsg({cell: ent.getCell(), msg});
+    questMsg({cell: ent.getCell(), msg});
 };
 
 System.Quest.prototype.processComplComp = function(ent, comp) {
@@ -126,14 +127,14 @@ System.Quest.prototype.giveQuestReward = function(ent, comp) {
                 if (item) {
                     let msg = `${ent.getName()} receives ${item.getName()} as`;
                     msg += ' a reward for completing the quest';
-                    RG.gameMsg({cell: ent.getCell(), msg});
+                    questMsg({cell: ent.getCell(), msg});
                     ent.getInvEq().getInventory().addItem(item);
                 }
             }
         }
         else {
             const msg = 'Reward has already been given!';
-            RG.gameMsg({cell: ent.getCell(), msg});
+            questMsg({cell: ent.getCell(), msg});
         }
     }
 };
@@ -155,6 +156,17 @@ System.Quest.prototype.processQuestEvent = function(ent, qEvent) {
     }
 };
 
+System.Quest.prototype.onGotoEvent = function(ent, qEvent, questComp) {
+    const targetComp = qEvent.getTargetComp();
+    const level = targetComp.getTarget();
+    const questTargets = questComp.getQuestTargets();
+    const targetObj = questTargets.find(obj => obj.id === level.getID());
+    this.setTargetCompleted(targetObj, questComp);
+
+    const msg = `${ent.getName()} has arrived to a quest target location!`;
+    RG.gameInfo({cell: ent.getCell(), msg});
+};
+
 /* Called when quest event where an actor is killed happens. */
 System.Quest.prototype.onKillEvent = function(ent, qEvent, questComp) {
     const args = qEvent.getArgs();
@@ -170,7 +182,7 @@ System.Quest.prototype.onKillEvent = function(ent, qEvent, questComp) {
 
         let msg = `${ent.getName()} has reached quest target of killing`;
         msg += ` ${actor.getName()}.`;
-        RG.gameMsg({cell: ent.getCell(), msg});
+        questMsg({cell: ent.getCell(), msg});
     }
     else {
         RG.err('System.Quest', 'onKillEvent',
@@ -184,7 +196,7 @@ System.Quest.prototype.onListenEvent = function(ent, qEvent, questComp) {
         const info = args.info.getInfo();
         const actor = args.src;
         const msg = `${actor.getName()} tells about ${info}`;
-        RG.gameMsg({msg, cell: ent.getCell()});
+        questMsg({msg, cell: ent.getCell()});
         ent.add(args.info.clone());
 
         const listenID = actor.getID();
@@ -205,6 +217,20 @@ System.Quest.prototype.onReadEvent = function(ent, qEvent, questComp) {
     const targetObj = questTargets.find(obj => (
         obj.id === readEntity.getID()));
     this.setTargetCompleted(targetObj, questComp);
+
+    const placeData = readEntity.getMetaData('place');
+    if (placeData) {
+        console.log('Found placeData');
+        const placeObj = placeData[0];
+        if (placeObj.levelID === ent.getLevel().getID()) {
+            console.log('PlaceData ID matches');
+            // Mark target as completed
+            const targetLoc = questTargets.find(obj => (
+                obj.id === placeObj.levelID && !obj.isCompleted
+            ));
+            this.setTargetCompleted(targetLoc, questComp);
+        }
+    }
 };
 
 System.Quest.prototype.onReportEvent = function(ent, qEvent, questComp) {
@@ -224,7 +250,7 @@ System.Quest.prototype.onReportEvent = function(ent, qEvent, questComp) {
             }
             else {
                 const msg = `${tName} is not interested in this info`;
-                RG.gameMsg({cell: ent.getCell(), msg});
+                questMsg({cell: ent.getCell(), msg});
             }
         } // Handle other reporting like kill/spy/goto etc
         else if (questComp.isTargetInQuest(targetComp)) {
@@ -243,7 +269,7 @@ System.Quest.prototype.onReportEvent = function(ent, qEvent, questComp) {
             obj.id === reportTarget.getID()
         ));
         const msg = `${ent.getName()} reports info to ${tName}`;
-        RG.gameMsg({cell: ent.getCell(), msg});
+        questMsg({cell: ent.getCell(), msg});
         this.setTargetCompleted(targetReportObj, questComp);
     }
 };
@@ -278,13 +304,33 @@ System.Quest.prototype.setTargetCompleted = function(targetObj, questComp) {
     if (questComp.isCompleted()) {
         let msg = `${ent.getName()} has completed a quest!`;
         msg += ' now it is time to go collect the reward.';
-        RG.gameMsg({cell: ent.getCell(), msg});
+        questMsg({cell: ent.getCell(), msg});
+        this.checkSubQuestCompletion(ent, questComp);
     }
+};
+
+/* WHen a quest becomes completed, check if any other quest has that one
+ * as a subquest, then mark the subquest item completed. */
+System.Quest.prototype.checkSubQuestCompletion = function(ent, questComp) {
+    const questID = questComp.getQuestID();
+    const questList = ent.getList('Quest');
+    questList.forEach(quest => {
+        const subQuests = quest.getTargetsByType('subquest');
+        subQuests.forEach(sqObj => {
+            if (sqObj.subQuestID === questID) {
+                sqObj.isCompleted = true;
+            }
+        });
+    });
 };
 
 function isEventValidForThisQuest(qEvent, questComp) {
     const qTarget = qEvent.getTargetComp();
     return questComp.isInThisQuest(qTarget);
+}
+
+function questMsg(obj) {
+    RG.gameInfo(obj);
 }
 
 module.exports = System.Quest;
