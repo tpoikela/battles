@@ -5,6 +5,7 @@ const debug = require('debug')('bitn:quest-gen');
 // const fs = require('fs');
 const RG = require('./rg');
 const Random = require('./random');
+const RandomCyclic = require('./random-cyclic');
 const Placer = require('./placer');
 const ObjectShell = require('./objectshellparser');
 
@@ -12,7 +13,6 @@ const questGrammar = require('../data/quest-grammar');
 const Names = require('../data/name-gen');
 
 const RNG = Random.getRNG();
-
 
 /* A task represents a part of a quest. */
 const Task = function(taskType) {
@@ -267,6 +267,7 @@ QuestData.mapStepToType = {
     escort: 'entity',
     exchange: 'item',
     experiment: 'item',
+    explore: 'element',
     damage: 'entity',
     defend: 'entity',
     get: 'item',
@@ -439,6 +440,11 @@ const QuestPopulate = function() {
         listen: this.handleListen = this.handleListen.bind(this),
         report: this.handleReport = this.handleReport.bind(this)
     };
+
+    // Can be turned off for testing. Some quest features must be implemented
+    // outside QuestPopulate, but are not done yet. Thus only the implemented
+    // quests should be generated in the actual game.
+    this.checkImplemented = true;
 };
 
 QuestPopulate.prototype.resetData = function() {
@@ -457,7 +463,8 @@ QuestPopulate.prototype.resetData = function() {
         actor: [],
         element: [],
         read: [],
-        listen: []
+        listen: [],
+        zone: []
     };
 
     // Stores the refs between tasks like get-give
@@ -561,7 +568,14 @@ QuestPopulate.prototype.pushQuestCrossRef = function(key, data) {
 
 QuestPopulate.prototype.popQuestCrossRef = function(key) {
     if (this._questCrossRefs.has(key)) {
-        return this._questCrossRefs.get(key).pop();
+        const arr = this._questCrossRefs.get(key);
+        if (arr.length > 0) {
+            const item = this._questCrossRefs.get(key).pop();
+            if (arr.length === 0) {
+                this._questCrossRefs.delete(key);
+            }
+            return item;
+        }
     }
     return null;
 };
@@ -573,7 +587,7 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
     console.log('mapTask taskType is now', taskType);
     let ok = false;
 
-    if (!tasksImplemented.has(taskType)) {
+    if (this.checkImplemented && !tasksImplemented.has(taskType)) {
         console.log(`TaskType ${taskType} not implemented. Bailing out...`);
         return false;
     }
@@ -668,10 +682,16 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
             break;
         }
         case '<goto>explore': {
-            // Same as <goto>goto at the moment
-            const newLocation = this.getNewLocation(zone, areaTile);
+            // Changes the current quest location but also creates
+            // an explore target
+            const newLocation = this.getNewExploreLocation(zone, areaTile);
             this.currQuest.addTarget('location', newLocation);
-            ok = true;
+            const exploreTarget = this.getExploreTarget();
+
+            if (exploreTarget) {
+                this.currQuest.addTarget('explore', exploreTarget);
+                ok = true;
+            }
             break;
         }
         case '<goto>goto': {
@@ -748,14 +768,6 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
             const actor = this.getActorToSpy();
             if (actor) {
                 this.currQuest.addTarget('spy', actor);
-                ok = true;
-            }
-            break;
-        }
-        case '<spy>report': {
-            const actor = this.getActorForReport();
-            if (actor) {
-                this.currQuest.addTarget('report', actor);
                 ok = true;
             }
             break;
@@ -999,13 +1011,47 @@ QuestPopulate.prototype.getItemToExchange = function() {
 /* Returns a level from a new zone (which is not 'zone' arg). */
 QuestPopulate.prototype.getNewLocation = function(zone, areaTile) {
     const zones = areaTile.getZones();
-    let newZone = RNG.arrayGetRand(zones);
+    const randCycle = new RandomCyclic(zones);
+    let newZone = randCycle.next();
     if (zones.length > 1) {
-        RG.while(() => newZone.getID() === zone.getID(), () => {
-            newZone = RNG.arrayGetRand(zones);
-        }, 20);
+        RG.while(
+            () => newZone.getID() === zone.getID(), () => {
+            newZone = randCycle.next();
+        }, randCycle.length);
     }
+    this._data.zone.push(newZone);
     return RNG.arrayGetRand(newZone.getLevels());
+};
+
+QuestPopulate.prototype.getNewExploreLocation = function(zone, areaTile) {
+    const dungeons = areaTile.getZones('Dungeon');
+    const mountains = areaTile.getZones('Mountain');
+    const allZones = dungeons.concat(mountains);
+    const randCycle = new RandomCyclic(allZones);
+    if (allZones.length > 0) {
+        let newZone = randCycle.next();
+        RG.while(
+            () => newZone.getID() === zone.getID(), () => {
+            newZone = randCycle.next();
+        }, randCycle.length);
+        this._data.zone.push(newZone);
+        return newZone.getLevels()[0];
+    }
+    return null;
+};
+
+
+QuestPopulate.prototype.getExploreTarget = function() {
+    const zone = this.getPrevType('zone');
+    const levels = zone.getLevels();
+    let exploreElem = null;
+    levels.forEach(level => {
+        if (!exploreElem) {
+            const elems = level.getElements();
+            exploreElem = elems.find(e => e.getType() === 'exploration');
+        }
+    });
+    return exploreElem;
 };
 
 //---------------------------------------------------------------------------
@@ -1014,7 +1060,7 @@ QuestPopulate.prototype.getNewLocation = function(zone, areaTile) {
 //---------------------------------------------------------------------------
 
 QuestPopulate.supportedKeys = new Set([
-    'defend', 'capture',
+    'defend', 'capture', 'explore',
     'kill', 'location', 'listen', 'give', 'report', 'get', 'steal', 'use',
     'repair', 'damage', 'winbattle', 'losebattle', 'escort', 'spy', 'exchange',
     'read', 'experiment'
@@ -1025,6 +1071,7 @@ QuestPopulate.prototype.addQuestComponents = function(zone) {
     // console.log('QuestList', JSON.stringify(this.questList));
     this.questList.forEach(questData => {
         questData.resetIter();
+
 
         questData.keys().forEach(key => {
             if (QuestPopulate.supportedKeys.has(key)) {
@@ -1075,7 +1122,8 @@ QuestPopulate.prototype.addQuestComponents = function(zone) {
 };
 
 QuestPopulate.prototype.addTargetsToGiver = function(giverComp, questData) {
-    console.log('addTargetsToGiver now');
+    const questID = giverComp.getQuestID();
+    console.log('addTargetsToGiver now, ID', questID);
     const questKeys = questData.keys();
 	questData.resetIter();
 
@@ -1088,6 +1136,7 @@ QuestPopulate.prototype.addTargetsToGiver = function(giverComp, questData) {
 				const [target, targetType] = [targetComp.getTarget(),
 					targetComp.getTargetType()];
 				giverComp.addTarget(targetType, target);
+                targetComp.setQuestID(questID);
 			}
             else {
                 const json = JSON.stringify(questTarget);
@@ -1150,12 +1199,9 @@ QuestPopulate.prototype.handleListen = function(target) {
 QuestPopulate.prototype.handleReport = function(target) {
     const questReport = RG.Component.create('QuestReport');
     const listenTarget = this.popQuestCrossRef(target);
-    if (!listenTarget) {
-        const json = JSON.stringify(this._questCrossRefs);
-        RG.err('QuestPopulate', 'handleReport',
-            `Could not get prev listeTarget from crossrefs:\n${json}`);
+    if (listenTarget) {
+        questReport.setExpectInfoFrom(listenTarget.getID());
     }
-    questReport.setExpectInfoFrom(listenTarget.getID());
     target.add(questReport);
 };
 
