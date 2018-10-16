@@ -842,7 +842,23 @@ class RGItemBook extends ItemBase {
     constructor(name) {
         super(name);
         this.setType(RG.ITEM_BOOK);
-        this.text = [];
+        this.text = []; // Shown to player
+        this.metaData = {}; // Used in quests etc
+    }
+
+    addMetaData(key, obj) {
+        if (!this.metaData.hasOwnProperty[key]) {
+            this.metaData[key] = [];
+        }
+        this.metaData[key].push(obj);
+    }
+
+    setMetaData(data) {
+        this.metaData = data;
+    }
+
+    getMetaData(key) {
+        return this.metaData[key];
     }
 
     useItem() {
@@ -876,6 +892,7 @@ class RGItemBook extends ItemBase {
         super.copy(rhs);
         const text = rhs.getText().slice();
         this.setText(text);
+        this.metaData = JSON.parse(JSON.stringify(rhs.metaData));
     }
 
     equals(rhs) {
@@ -887,6 +904,7 @@ class RGItemBook extends ItemBase {
     toJSON() {
         const json = super.toJSON();
         json.setText = this.text;
+        json.setMetaData = this.metaData;
         return json;
     }
 }
