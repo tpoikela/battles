@@ -14,7 +14,7 @@ const chaiBattles = require('../../helpers/chai-battles.js');
 
 const expect = chai.expect;
 chai.use(chaiBattles);
-const {addQuestEvent} = System.Chat;
+const {addQuestEvent} = System.Quest;
 
 describe('System.Quest', () => {
 
