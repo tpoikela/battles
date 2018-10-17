@@ -4,6 +4,7 @@ const Chat = require('../chat');
 
 const System = {};
 System.Base = require('./system.base');
+const {addQuestEvent} = require('./system.quest');
 
 const NO_ACTORS_FOUND = Object.freeze([]);
 
@@ -117,7 +118,6 @@ System.Chat.prototype.addQuestSpecificItems = function(ent, actor, chatObj) {
             });
         }
 
-
         // Add additional options if the chat initiator has some quest info
         if (ent.has('QuestInfo') && actor.has('QuestTarget')) {
             const qTarget = actor.get('QuestTarget');
@@ -179,15 +179,5 @@ System.Chat.prototype.processQuestTarget = function(target, actor, chatObj) {
         });
     }
 };
-
-/* Helper function to add QuestTargetEvent for entity. */
-function addQuestEvent(ent, qTarget, eventType, args = {}) {
-    const qEvent = new RG.Component.QuestTargetEvent();
-    qEvent.setArgs(args);
-    qEvent.setEventType(eventType);
-    qEvent.setTargetComp(qTarget);
-    ent.add(qEvent);
-}
-System.Chat.addQuestEvent = addQuestEvent;
 
 module.exports = System.Chat;
