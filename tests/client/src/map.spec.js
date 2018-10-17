@@ -4,8 +4,9 @@
 
 const expect = require('chai').expect;
 const RG = require('../../../client/src/battles');
-const RGTest = require('../../roguetest.js');
+const RGTest = require('../../roguetest');
 const Cell = require('../../../client/src/map.cell');
+const System = require('../../../client/src/system');
 
 const Actor = RG.Actor.Rogue;
 const Level = RG.Map.Level;
@@ -155,28 +156,6 @@ describe('Items in map cells', () => {
         expect(cont2.getX()).to.equal(1);
         expect(cont2.getY()).to.equal(2);
 
-    });
-
-    it('Picking up items from floor by actor', () => {
-        const level = Factory.createLevel('arena', 20, 20);
-        const actor = Factory.createPlayer('Player', {});
-        const inv = actor.getInvEq().getInventory();
-        const weapon = new Item('weapon');
-        weapon.setType('weapon');
-
-        expect(level.addItem(weapon, 2, 4)).to.equal(true);
-        expect(level.addActor(actor, 2, 4)).to.equal(true);
-
-        // After picking up, cell must not have item anymore
-        const cell = level.getMap().getCell(2, 4);
-        expect(cell.hasProp('items')).to.equal(true);
-        level.pickupItem(actor, 2, 4);
-        expect(cell.hasProp('items')).to.equal(false);
-
-        const invItems = inv.getItems();
-        expect(invItems[0]).to.equal(weapon);
-        expect(actor.getInvEq().equipItem(weapon)).to.equal(true);
-        expect(inv.isEmpty()).to.equal(true);
     });
 
     it('Can contain open/closed doors', () => {

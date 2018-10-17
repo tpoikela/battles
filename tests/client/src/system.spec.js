@@ -10,6 +10,7 @@ const chaiBattles = require('../../helpers/chai-battles.js');
 
 const expect = chai.expect;
 chai.use(chaiBattles);
+const Factory = RG.FACT;
 
 /* Updates given systems in given order.*/
 const updateSystems = RGTest.updateSystems;
@@ -738,3 +739,30 @@ describe('System.AreaEffects', () => {
         }
     });
 });
+
+
+describe('System.BaseAction', () => {
+    it('handles logic to pickup items', () => {
+        const sysBaseAction = new RG.System.BaseAction(['Pickup']);
+        const level = Factory.createLevel('arena', 20, 20);
+        const actor = Factory.createPlayer('Player', {});
+        const inv = actor.getInvEq().getInventory();
+        const weapon = new RG.Item.Weapon('weapon');
+
+        expect(level.addItem(weapon, 2, 4)).to.equal(true);
+        expect(level.addActor(actor, 2, 4)).to.equal(true);
+
+        // After picking up, cell must not have item anymore
+        const cell = level.getMap().getCell(2, 4);
+        expect(cell.hasProp('items')).to.equal(true);
+        level.pickupItem(actor);
+        sysBaseAction.update();
+        expect(cell.hasProp('items')).to.equal(false);
+
+        const invItems = inv.getItems();
+        expect(invItems[0]).to.equal(weapon);
+        expect(actor.getInvEq().equipItem(weapon)).to.equal(true);
+        expect(inv.isEmpty()).to.equal(true);
+    });
+});
+
