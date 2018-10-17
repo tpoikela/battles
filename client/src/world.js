@@ -1815,4 +1815,12 @@ RG.World.Shop.prototype.toJSON = function() {
     return obj;
 };
 
+RG.World.isZone = function(feature) {
+    if (feature.getType) {
+        const type = feature.getType();
+        return (/(city|battlezone|mountain|dungeon)/).test(type);
+    }
+    return false;
+};
+
 module.exports = RG.World;
