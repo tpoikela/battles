@@ -33,14 +33,14 @@ LevelCallback.prototype.toJSON = function() {
 /* Object for the game levels. Contains map, actors and items.  */
 // const Level = function() {
 class Level extends Entity {
+
     constructor() {
-        // Entity.call(this);
         super();
-        // GameObject.call(this);
         this._map = null;
         this._parent = null; // Reference to dungeon,city,mountain...
 
-        // Level properties
+        // Level property cache (iteration through 100x100 cells is very
+        // slow. This fails if cells are manipulated directly
         this._p = {
             actors: [],
             items: [],
@@ -60,7 +60,6 @@ class Level extends Entity {
         };
     }
 }
-// RG.extend2(Level, Entity);
 
 Level.prototype.setLevelNumber = function(no) {this._levelNo = no;};
 Level.prototype.getLevelNumber = function() {
