@@ -1062,7 +1062,9 @@ QuestPopulate.prototype.getItemToExchange = function() {
 
 /* Returns a level from a new zone (which is not 'zone' arg). */
 QuestPopulate.prototype.getNewLocation = function(zone, areaTile) {
-    const zones = areaTile.getZones();
+    let zones = areaTile.getZones();
+    zones = zones.filter(zone => zone.getType() !== 'battlezone');
+
     let newZone = RNG.arrayGetRand(zones);
     if (zones.length > 1) {
         while (newZone.getID() === zone.getID()) {
