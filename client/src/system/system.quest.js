@@ -12,6 +12,8 @@ System.Quest = function(compTypes) {
     this.compTypesAny = true; // Triggered on at least one component
 
     this._eventTable = {
+        get: this.onGetEvent = this.onGetEvent.bind(this),
+        give: this.onGiveEvent = this.onGiveEvent.bind(this),
         goto: this.onGotoEvent = this.onGotoEvent.bind(this),
         kill: this.onKillEvent = this.onKillEvent.bind(this),
         listen: this.onListenEvent = this.onListenEvent.bind(this),
@@ -142,6 +144,9 @@ System.Quest.prototype.giveQuestReward = function(ent, comp) {
 System.Quest.prototype.processQuestEvent = function(ent, qEvent) {
     const targetType = qEvent.getEventType();
     const quests = ent.getList('Quest');
+
+    // Need to check each Quest on actor to find which one matches
+    // the current event
     if (typeof this._eventTable[targetType] === 'function') {
         quests.forEach(questComp => {
             if (isEventValidForThisQuest(qEvent, questComp)) {
@@ -156,6 +161,31 @@ System.Quest.prototype.processQuestEvent = function(ent, qEvent) {
     }
 };
 
+System.Quest.prototype.onGetEvent = function(ent, qEvent, questComp) {
+    const qTarget = qEvent.getTargetComp();
+    const item = qTarget.getTarget();
+    const questTargets = questComp.getQuestTargets();
+    const targetObj = questTargets.find(obj => obj.id === item.getID());
+    this.setTargetCompleted(targetObj, questComp);
+
+    let msg = `${ent.getName()} has found ${item.getName()} `;
+    msg += 'as a quest objective!';
+    questMsg({cell: ent.getCell(), msg});
+};
+
+System.Quest.prototype.onGiveEvent = function(ent, qEvent, questComp) {
+    console.log('processing onGiveEvent');
+    const args = qEvent.getArgs();
+    const {actor, item} = args;
+    const questTargets = questComp.getQuestTargets();
+    const targetObj = questTargets.find(obj => obj.id === actor.getID());
+
+    this.setTargetCompleted(targetObj, questComp);
+    let msg = `${ent.getName()} has given ${item.getName()} `;
+    msg += `to ${actor.getName()} as quest objective!`;
+    questMsg({cell: ent.getCell(), msg});
+};
+
 System.Quest.prototype.onGotoEvent = function(ent, qEvent, questComp) {
     const targetComp = qEvent.getTargetComp();
     const level = targetComp.getTarget();
@@ -164,7 +194,7 @@ System.Quest.prototype.onGotoEvent = function(ent, qEvent, questComp) {
     this.setTargetCompleted(targetObj, questComp);
 
     const msg = `${ent.getName()} has arrived to a quest target location!`;
-    RG.gameInfo({cell: ent.getCell(), msg});
+    questMsg({cell: ent.getCell(), msg});
 };
 
 /* Called when quest event where an actor is killed happens. */
@@ -195,14 +225,15 @@ System.Quest.prototype.onListenEvent = function(ent, qEvent, questComp) {
     if (args && args.info) {
         const info = args.info.getInfo();
         const actor = args.src;
-        const msg = `${actor.getName()} tells about ${info}`;
-        questMsg({msg, cell: ent.getCell()});
         ent.add(args.info.clone());
 
         const listenID = actor.getID();
         const questTargets = questComp.getQuestTargets();
         const targetObj = questTargets.find(obj => obj.id === listenID);
         this.setTargetCompleted(targetObj, questComp);
+
+        const msg = `${actor.getName()} tells about ${info}`;
+        questMsg({msg, cell: ent.getCell()});
     }
     else {
         RG.err('System.Quest', 'onListenEvent',
@@ -220,15 +251,18 @@ System.Quest.prototype.onReadEvent = function(ent, qEvent, questComp) {
 
     const placeData = readEntity.getMetaData('place');
     if (placeData) {
-        console.log('Found placeData');
         const placeObj = placeData[0];
         if (placeObj.levelID === ent.getLevel().getID()) {
-            console.log('PlaceData ID matches');
             // Mark target as completed
             const targetLoc = questTargets.find(obj => (
                 obj.id === placeObj.levelID && !obj.isCompleted
             ));
             this.setTargetCompleted(targetLoc, questComp);
+        }
+        else {
+            let msg = `${ent.getName()} learns to travel to `;
+            msg += `${placeObj.placeName} as part of the quest.`;
+            questMsg({cell: ent.getCell(), msg});
         }
     }
 };
