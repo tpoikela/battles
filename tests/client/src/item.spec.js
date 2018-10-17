@@ -133,9 +133,8 @@ describe('How stackes are broken into multiple items', () => {
         two.count = 5;
         const rmvTwo = RG.removeStackedItems(two, 5);
         expect(rmvTwo.count).to.equal(5);
-        expect(two.count).to.equal(0);
-
-
+        expect(two).to.equal(rmvTwo);
+        expect(two.count).to.equal(5);
     });
 
     it('Manages missile items correctly', () => {

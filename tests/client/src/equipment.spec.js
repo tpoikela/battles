@@ -10,10 +10,7 @@ const {
 describe('EquipSlot', () => {
 
     it('Holds items or stacks of items', () => {
-        const rogue = new RG.Actor.Rogue('rogue');
-        const invEq = new RG.Inv.Inventory(rogue);
-        const eq = invEq.getEquipment();
-        const missSlot = new EquipSlot(eq, 'missile', true);
+        const missSlot = new EquipSlot('missile', true);
 
         const arrow = new RG.Item.Missile('arrow');
         arrow.count = 10;
@@ -48,7 +45,7 @@ describe('Equipment', () => {
     });
 
     it('can have items equipped', () => {
-        eq.addSlot('spiritgem', new EquipSlot(eq, 'spiritgem'));
+        eq.addSlot('spiritgem', new EquipSlot('spiritgem'));
         const items = eq.getItem('spiritgem');
         expect(items).to.have.length(2);
         expect(eq.getNumSlots('hand')).to.equal(1);
