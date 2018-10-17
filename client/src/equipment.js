@@ -1,6 +1,6 @@
 const RG = require('./rg.js');
 
-const EquipSlot = function(eq, type, stacked) {
+const EquipSlot = function(type, stacked) {
 
     this._type = type;
     this._item = null;
@@ -10,70 +10,77 @@ const EquipSlot = function(eq, type, stacked) {
 
     if (!RG.isNullOrUndef([stacked])) {this._stacked = stacked;}
 
-    this.isStacked = () => this._stacked;
+};
 
-    this.getUnequipped = () => this._unequipped;
 
-    /* Returns the equipped item for this slot.*/
-    this.getItem = () => {
-        if (this._hasItem) {return this._item;}
-        return null;
-    };
+EquipSlot.prototype.isStacked = function() {
+    return this._stacked;
+};
 
-    this.hasItem = function() {
+EquipSlot.prototype.getUnequipped = function() {return this._unequipped;};
+
+/* Returns the equipped item for this slot.*/
+EquipSlot.prototype.getItem = function() {
+    if (this._hasItem) {return this._item;}
+    return null;
+};
+
+EquipSlot.prototype.hasItem = function() {
+    return this._hasItem;
+};
+
+/* Equips given item to first available place in slot.*/
+EquipSlot.prototype.equipItem = function(item) {
+    if (this.canEquip(item)) {
+        if (!this._stacked || !this._hasItem) {
+            item.setOwner(this);
+            this._item = item;
+            this._hasItem = true;
+        }
+        else if (RG.addStackedItems(this._item, item)) {
+            this._hasItem = true;
+        }
         return this._hasItem;
-    };
+    }
+    return false;
+};
 
-    /* Equips given item to first available place in slot.*/
-    this.equipItem = function(item) {
-        if (this.canEquip(item)) {
-            if (!this._stacked || !this._hasItem) {
-                item.setOwner(this);
-                this._item = item;
-                this._hasItem = true;
-            }
-            else if (RG.addStackedItems(this._item, item)) {
-                this._hasItem = true;
-            }
-            return this._hasItem;
-        }
-        return false;
-    };
-
-    /* Unequips N items from the slot. */
-    this.unequipItem = n => {
-        if (this._hasItem) {
-            if (!this._stacked) {
-                this._hasItem = false;
-                this._unequipped = this._item;
-                return true;
-            }
-            else if (n > 0) {
-                if (n === 1 && this._item.count === 1) {
-                    this._hasItem = false;
-                    this._unequipped = this._item;
-                }
-                else {
-                    this._unequipped = RG.removeStackedItems(this._item, n);
-                    if (this._item.count === 0) {this._hasItem = false;}
-                }
-                return true;
-            }
-        }
-        return false;
-    };
-
-    this.canEquip = item => {
-        if (!this._hasItem) {
+/* Unequips N items from the slot. */
+EquipSlot.prototype.unequipItem = function(n) {
+    if (this._hasItem) {
+        if (!this._stacked) {
+            this._hasItem = false;
+            this._unequipped = this._item;
             return true;
         }
-        else if (this._stacked) {
-            // Can only equip same items to the stack
-            return item.equals(this._item);
+        else if (n > 0) {
+            if (n === 1 && this._item.count === 1) {
+                this._hasItem = false;
+                this._unequipped = this._item;
+            }
+            else if (n === this._item.count) {
+                this._hasItem = false;
+                this._unequipped = this._item;
+            }
+            else {
+                this._unequipped = RG.removeStackedItems(this._item, n);
+                // if (this._item.count === 0) {this._hasItem = false;}
+            }
+            return true;
         }
-        return false;
-    };
+    }
+    return false;
+};
 
+EquipSlot.prototype.canEquip = function(item) {
+    if (!this._hasItem) {
+        return true;
+    }
+    else if (this._stacked) {
+        // Can only equip same items to the stack
+        return item.equals(this._item);
+    }
+    return false;
 };
 
 const _equipMods = ['getDefense', 'getAttack', 'getProtection',
@@ -83,15 +90,15 @@ const _equipMods = ['getDefense', 'getAttack', 'getProtection',
 const Equipment = function(actor) {
 
     this._slots = {
-        hand: new EquipSlot(this, 'hand'),
-        shield: new EquipSlot(this, 'shield'),
-        head: new EquipSlot(this, 'head'),
-        chest: new EquipSlot(this, 'chest'),
-        neck: new EquipSlot(this, 'neck'),
-        feet: new EquipSlot(this, 'feet'),
-        missile: new EquipSlot(this, 'missile', true),
-        missileweapon: new EquipSlot(this, 'missileweapon'),
-        spiritgem: new EquipSlot(this, 'spiritgem')
+        hand: new EquipSlot('hand'),
+        shield: new EquipSlot('shield'),
+        head: new EquipSlot('head'),
+        chest: new EquipSlot('chest'),
+        neck: new EquipSlot('neck'),
+        feet: new EquipSlot('feet'),
+        missile: new EquipSlot('missile', true),
+        missileweapon: new EquipSlot('missileweapon'),
+        spiritgem: new EquipSlot('spiritgem')
     };
 
     this.addSlot = function(slotType, slotObj) {
