@@ -96,20 +96,22 @@ describe('Equipment', () => {
         const actor = new RG.Actor.Rogue('equipper');
         const invEq = actor.getInvEq();
         const eq = invEq.getEquipment();
-        const eqItems = eq.getItems();
+        let eqItems = eq.getItems();
         invEq.addItem(shield);
         invEq.equipItem(shield);
         invEq.unequipItem('shield');
         expect(eqItems).to.have.length(0);
 
         expect(invEq.equipItem(shield)).to.be.true;
-        expect(eqItems).to.have.length(1);
+        eqItems = eq.getItems();
+
+        expect(eq.getItems()).to.have.length(1);
         invEq.unequipItem('shield', 1);
-        expect(eqItems).to.have.length(0);
+        expect(eq.getItems()).to.have.length(0);
         invEq.equipItem(shield);
-        expect(eqItems).to.have.length(1);
+        expect(eq.getItems()).to.have.length(1);
         invEq.unequipItem('shield', 1, 0);
-        expect(eqItems).to.have.length(0);
+        expect(eq.getItems()).to.have.length(0);
 
         const arrows = new RG.Item.Ammo('arrow');
         arrows.count = 10;
@@ -121,7 +123,7 @@ describe('Equipment', () => {
         invEq.unequipItem('missile', 4, 0);
         expect(eqItems).to.have.length(1);
         invEq.unequipItem('missile', 1, 0);
-        expect(eqItems).to.have.length(0);
+        expect(eq.getItems()).to.have.length(0);
     });
 
 });
