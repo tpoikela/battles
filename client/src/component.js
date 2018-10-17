@@ -625,87 +625,6 @@ RG.Component.Stolen = TagComponent('Stolen');
 /* Added to unpaid items in shops. Removed once the purchase is done.*/
 RG.Component.Unpaid = TagComponent('Unpaid');
 
-/* Expiration component handles expiration of time-based effects. Any component
- * can be made transient by using this Expiration component. For example, to
- * have transient, non-persistent Ethereal, you can use this component. */
-RG.Component.Expiration = DataComponent('Expiration',
-    {duration: null, expireMsg: null});
-
-RG.Component.Expiration.prototype._init = function() {
-    this.expireMsg = {};
-};
-
-/* Adds one effect to time-based components.*/
-RG.Component.Expiration.prototype.addEffect = function(comp, dur, msg) {
-    if (!this.duration) {this.duration = {};}
-    const compID = comp.getID();
-    if (!this.duration.hasOwnProperty(compID)) {
-        this.duration[compID] = dur;
-
-        comp.addCallback('onRemove', () => {
-            this.removeEffect(comp);
-        });
-    }
-    else { // increase existing duration
-        this.duration[compID] += dur;
-    }
-    if (msg) {
-        if (!this.expireMsg) {this.expireMsg = {};}
-        this.expireMsg[compID] = msg;
-    }
-};
-
-/* Decreases duration of all time-based effects.*/
-RG.Component.Expiration.prototype.decrDuration = function() {
-    for (const compID in this.duration) {
-        if (compID >= 0) {
-            this.duration[compID] -= 1;
-            if (this.duration[compID] === 0) {
-                const ent = this.getEntity();
-                const compIDInt = parseInt(compID, 10);
-                if (this.expireMsg && this.expireMsg[compIDInt]) {
-                    const msg = this.expireMsg[compIDInt];
-                    RG.gameMsg({cell: ent.getCell(), msg});
-                }
-                else {
-                    const msg = 'An effect wears of from ' + ent.getName();
-                    RG.gameMsg({cell: ent.getCell(), msg});
-                }
-                ent.remove(compIDInt);
-                delete this.duration[compID];
-            }
-        }
-    }
-};
-
-/* Returns true if component has any time-effects with non-zero duration.*/
-RG.Component.Expiration.prototype.hasEffects = function() {
-    return Object.keys(this.duration).length > 0;
-};
-
-RG.Component.Expiration.prototype.hasEffect = function(comp) {
-    const compID = comp.getID();
-    return this.duration.hasOwnProperty(compID);
-};
-
-/* Should be called to remove a specific effect, for example upon death of
- * an actor. */
-RG.Component.Expiration.prototype.removeEffect = function(comp) {
-    const compID = comp.getID();
-    if (this.duration.hasOwnProperty(compID)) {
-        delete this.duration[compID];
-    }
-    if (this.expireMsg && this.expireMsg.hasOwnProperty(compID)) {
-        delete this.expireMsg[compID];
-    }
-};
-
-RG.Component.Expiration.prototype.cleanup = function() {
-    const entity = this.getEntity();
-    Object.keys(this.duration).forEach(compID => {
-        entity.remove(parseInt(compID, 10));
-    });
-};
 
 RG.Component.Breakable = UniqueTagComponent('Breakable');
 RG.Component.Indestructible = UniqueTagComponent('Indestructible');
@@ -1192,26 +1111,34 @@ RG.Component.addToExpirationComp = (entity, comp, dur, msg) => {
 // BASE ACTIONS (transient components, not serialized, stored ever)
 //---------------------------------------------------------------------------
 
-/* Added to entity when it's picking up something. */
-RG.Component.Pickup = TransientTagComponent('Pickup');
-
-/* Added to entity when it's using stairs to move to another level. */
-RG.Component.UseStairs = TransientTagComponent('UseStairs');
+/* Added to a entity giving an item. */
+RG.Component.Give = TransientDataComponent('Give',
+    {giveTarget: null, item: null});
 
 /* Added to a jumping entity. */
 RG.Component.Jump = TransientDataComponent('Jump', {x: -1, y: -1});
 
+/* Added to entity when it's opening a door. */
+RG.Component.OpenDoor = TransientDataComponent('OpenDoor', {door: null});
+
+/* Added to entity when it's picking up something. */
+RG.Component.Pickup = TransientTagComponent('Pickup');
+
 /* Added to an entity reading something. */
 RG.Component.Read = TransientDataComponent('Read', {readTarget: null});
 
-/* Added to entity when it's opening a door. */
-RG.Component.OpenDoor = TransientDataComponent('OpenDoor', {door: null});
+RG.Component.UseElement = TransientDataComponent('UseElement',
+    {element: null, useType: ''});
 
 RG.Component.UseItem = TransientDataComponent('UseItem',
     {item: null, useType: '', target: null, targetType: null, effect: null});
 
-RG.Component.UseElement = TransientDataComponent('UseElement',
-    {element: null, useType: ''});
+/* Added to entity when it's using stairs to move to another level. */
+RG.Component.UseStairs = TransientTagComponent('UseStairs');
+
+//---------------------------------------------------------------------------
+// PLAYER-related data components
+//---------------------------------------------------------------------------
 
 /* Added to player to record various event in the game. */
 RG.Component.GameInfo = UniqueDataComponent('GameInfo', {
@@ -1283,11 +1210,97 @@ RG.Component.Abilities.prototype.toJSON = function() {
     return json;
 };
 
+//---------------------------------------------------------------------------
+// TIME-related components
+//---------------------------------------------------------------------------
+
 /* Fading component is added to entities which disappear eventually */
 RG.Component.Fading = DataComponent('Fading', {duration: 0});
 
 RG.Component.Fading.prototype.decrDuration = function() {
     this.duration -= 1;
+};
+
+/* Expiration component handles expiration of time-based effects. Any component
+ * can be made transient by using this Expiration component. For example, to
+ * have transient, non-persistent Ethereal, you can use this component. */
+RG.Component.Expiration = DataComponent('Expiration',
+    {duration: null, expireMsg: null});
+
+RG.Component.Expiration.prototype._init = function() {
+    this.expireMsg = {};
+};
+
+/* Adds one effect to time-based components.*/
+RG.Component.Expiration.prototype.addEffect = function(comp, dur, msg) {
+    if (!this.duration) {this.duration = {};}
+    const compID = comp.getID();
+    if (!this.duration.hasOwnProperty(compID)) {
+        this.duration[compID] = dur;
+
+        comp.addCallback('onRemove', () => {
+            this.removeEffect(comp);
+        });
+    }
+    else { // increase existing duration
+        this.duration[compID] += dur;
+    }
+    if (msg) {
+        if (!this.expireMsg) {this.expireMsg = {};}
+        this.expireMsg[compID] = msg;
+    }
+};
+
+/* Decreases duration of all time-based effects.*/
+RG.Component.Expiration.prototype.decrDuration = function() {
+    for (const compID in this.duration) {
+        if (compID >= 0) {
+            this.duration[compID] -= 1;
+            if (this.duration[compID] === 0) {
+                const ent = this.getEntity();
+                const compIDInt = parseInt(compID, 10);
+                if (this.expireMsg && this.expireMsg[compIDInt]) {
+                    const msg = this.expireMsg[compIDInt];
+                    RG.gameMsg({cell: ent.getCell(), msg});
+                }
+                else {
+                    const msg = 'An effect wears of from ' + ent.getName();
+                    RG.gameMsg({cell: ent.getCell(), msg});
+                }
+                ent.remove(compIDInt);
+                delete this.duration[compID];
+            }
+        }
+    }
+};
+
+/* Returns true if component has any time-effects with non-zero duration.*/
+RG.Component.Expiration.prototype.hasEffects = function() {
+    return Object.keys(this.duration).length > 0;
+};
+
+RG.Component.Expiration.prototype.hasEffect = function(comp) {
+    const compID = comp.getID();
+    return this.duration.hasOwnProperty(compID);
+};
+
+/* Should be called to remove a specific effect, for example upon death of
+ * an actor. */
+RG.Component.Expiration.prototype.removeEffect = function(comp) {
+    const compID = comp.getID();
+    if (this.duration.hasOwnProperty(compID)) {
+        delete this.duration[compID];
+    }
+    if (this.expireMsg && this.expireMsg.hasOwnProperty(compID)) {
+        delete this.expireMsg[compID];
+    }
+};
+
+RG.Component.Expiration.prototype.cleanup = function() {
+    const entity = this.getEntity();
+    Object.keys(this.duration).forEach(compID => {
+        entity.remove(parseInt(compID, 10));
+    });
 };
 
 /* This component can be added to any other component to make that component
