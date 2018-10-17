@@ -813,6 +813,11 @@ class BrainPlayer {
           return this.noAction();
       }
 
+      if (RG.KeyMap.isGive(code)) {
+          this.giveCmd();
+          return this.noAction();
+      }
+
       // Need existing position for move/attack commands
       const level = this._actor.getLevel();
       let x = this._actor.getX();
@@ -1094,6 +1099,41 @@ class BrainPlayer {
         this.setSelectionObject(orderMenuSelectCell);
         this._fsm.startLooking();
         this.selectCell();
+    }
+
+    giveCmd() {
+        const menu = new Menu.SelectDir();
+        menu.setCallback(this.giveCallback.bind(this));
+        this.setSelectionObject(menu);
+        RG.gameMsg('Please select direction to giving an item:');
+    }
+
+    giveCallback(dXdY) {
+        const [tX, tY] = RG.newXYFromDir(dXdY, this._actor);
+        const cell = this._actor.getLevel().getMap().getCell(tX, tY);
+        if (cell.hasActors()) {
+            const actor = cell.getFirstActor();
+            const items = this._actor.getInvEq().getInventory().getItems();
+            const itemMenuItems = items.map(item => (
+                [
+                    item.toString(),
+                    this.giveItemToActor.bind(this, item, actor)
+                ]
+            ));
+            const itemMenu = new Menu.WithQuit(itemMenuItems);
+            itemMenu.addPre('Select an item to give:');
+            this.setSelectionObject(itemMenu);
+        }
+        else {
+            RG.gameDanger('There is no one there');
+        }
+    }
+
+    giveItemToActor(item, actor) {
+        const giveComp = new RG.Component.Give();
+        giveComp.setGiveTarget(actor);
+        giveComp.setItem(item);
+        this._actor.add(giveComp);
     }
 
     jumpCmd() {
