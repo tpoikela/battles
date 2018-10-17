@@ -10,10 +10,29 @@ describe('RG.Inv.Inventory', () => {
 
     let actor = null;
     let invEq = null;
+    let inventory = null;
 
     beforeEach(() => {
         actor = new Actor('actor');
         invEq = actor.getInvEq();
+        inventory = invEq.getInventory();
+    });
+
+    it('can have items added and removed', () => {
+        const sword = new Item('Sword');
+        invEq.addItem(sword);
+        expect(invEq.hasItem(sword)).to.equal(true);
+        expect(invEq.removeItem(sword)).to.equal(true);
+        expect(invEq.hasItem(sword)).to.equal(false);
+        const removedItem = invEq.getRemovedItem();
+        expect(removedItem).to.equal(sword);
+
+        for (let i = 0; i < 4; i++) {
+            const dagger = new Item('Dagger');
+            invEq.addItem(dagger);
+        }
+        const numItems = inventory.getItems().length;
+        expect(numItems).to.equal(1);
     });
 
     it('can contain and equip items', () => {
@@ -23,7 +42,7 @@ describe('RG.Inv.Inventory', () => {
         sword.setType('weapon');
 
         invEq.addItem(food);
-        expect(invEq.getInventory().getItems().length).to.equal(1);
+        expect(inventory.getItems().length).to.equal(1);
         invEq.addItem(sword);
         expect(invEq.getInventory().getItems().length).to.equal(2);
         expect(invEq.equipItem(sword)).to.equal(true);
@@ -121,7 +140,7 @@ describe('RG.Inv.Inventory', () => {
         expect(items[0].count).to.equal(1);
 
         invEq.unequipItem('missile', 1);
-        expect(items).to.have.length(2);
+        expect(inv.getItems()).to.have.length(2);
         expect(invEq.equipNItems(dart, 1)).to.equal(true);
         expect(invEq.equipNItems(arrow, 1)).to.equal(false);
 
