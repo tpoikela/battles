@@ -20,6 +20,10 @@ const EquipSlot = function(eq, type, stacked) {
         return null;
     };
 
+    this.hasItem = function() {
+        return this._hasItem;
+    };
+
     /* Equips given item to first available place in slot.*/
     this.equipItem = function(item) {
         if (this.canEquip(item)) {
@@ -45,8 +49,14 @@ const EquipSlot = function(eq, type, stacked) {
                 return true;
             }
             else if (n > 0) {
-                this._unequipped = RG.removeStackedItems(this._item, n);
-                if (this._item.count === 0) {this._hasItem = false;}
+                if (n === 1 && this._item.count === 1) {
+                    this._hasItem = false;
+                    this._unequipped = this._item;
+                }
+                else {
+                    this._unequipped = RG.removeStackedItems(this._item, n);
+                    if (this._item.count === 0) {this._hasItem = false;}
+                }
                 return true;
             }
         }
@@ -71,8 +81,6 @@ const _equipMods = ['getDefense', 'getAttack', 'getProtection',
 
 /* Models equipment on an actor.*/
 const Equipment = function(actor) {
-
-    this._equipped = [];
 
     this._slots = {
         hand: new EquipSlot(this, 'hand'),
@@ -107,8 +115,9 @@ const Equipment = function(actor) {
     /* Returns the total weight of the equipment. */
     this.getWeight = () => {
         let total = 0;
-        for (let i = 0; i < this._equipped.length; i++) {
-            total += this._equipped[i].getWeight() * this._equipped[i].count;
+        const equipped = this.getItems();
+        for (let i = 0; i < equipped.length; i++) {
+            total += equipped[i].getWeight() * equipped[i].count;
         }
         if (actor.has('MasterEquipper')) {
             total *= actor.get('MasterEquipper').getFactor();
@@ -136,7 +145,7 @@ const Equipment = function(actor) {
             }
             return [this._slots[slotType]];
         }
-        return this._equipped;
+        return this.getEquippedItems();
     };
 
     /* Returns last unequipped item for the slot.*/
@@ -178,7 +187,6 @@ const Equipment = function(actor) {
         // No equip property, can only equip to hand
         else if (/^(missile|ammo)$/.test(item.getType())) {
             if (this._slots.missile.equipItem(item)) {
-                _addStackedItem(item);
                 return true;
             }
         }
@@ -196,65 +204,42 @@ const Equipment = function(actor) {
         if (Array.isArray(slot)) {
             for (let i = 0; i < slot.length; i++) {
                 if (slot[i].equipItem(item)) {
-                    this._equipped.push(item);
                     return true;
                 }
             }
         }
         else if (slot.equipItem(item)) {
-            this._equipped.push(item);
             return true;
-        }
-        return false;
-    };
-
-    const _addStackedItem = item => {
-        let matchFound = false;
-        for (let i = 0; i < this._equipped.length; i++) {
-            if (this._equipped[i].equals(item)) {
-                matchFound = true;
-                break;
-            }
-        }
-        if (!matchFound) {this._equipped.push(item);}
-    };
-
-    /* Removes an item, or n items if specified. The item object count has
-     * already been changed, so this method only removes the item from internal
-     * array. */
-    const _removeItem = (item, n) => {
-        const index = this._equipped.indexOf(item);
-        if (index >= 0) {
-            if (n > 0) {
-                if (this._equipped[index].hasOwnProperty('count')) {
-                    if (this._equipped[index].count === 0) {
-                        this._equipped.splice(index, 1);
-                    }
-                    /* else if (n === 1 && this._equipped[index].count === 1) {
-                        this._equipped.splice(index, 1);
-                    }*/
-                }
-                return true;
-            } // n not given, just remove from the found index
-            else {
-                this._equipped.splice(index, 1);
-                return true;
-            }
-        }
-        else {
-            RG.err('Equipment', '_removeItem', 'Index < 0. Horribly wrong.');
         }
         return false;
     };
 
     /* Returns true if given item is equipped.*/
     this.isEquipped = item => {
-        const index = this._equipped.indexOf(item);
+        const equipped = this.getItems();
+        const index = equipped.indexOf(item);
         return index !== -1;
     };
 
     this.getEquipped = function(slotType) {
         return this.getItem(slotType);
+    };
+
+    this.getEquippedItems = function() {
+        const items = [];
+        Object.values(this._slots).forEach(slot => {
+            if (Array.isArray(slot)) {
+                slot.forEach(subSlot => {
+                    if (subSlot.hasItem()) {
+                        items.push(subSlot.getItem());
+                    }
+                });
+            }
+            else if (slot.hasItem()) {
+                items.push(slot.getItem());
+            }
+        });
+        return items;
     };
 
     /* Unequips given slotType and index. */
@@ -263,40 +248,20 @@ const Equipment = function(actor) {
             const slot = this._slots[slotType];
             if (Array.isArray(slot)) {
                 if (index >= 0) {
-                    const item = slot[index].getItem();
                     if (slot[index].unequipItem(n)) {
-                        if (slot[index].isStacked()) {
-                            return _removeItem(item, n);
-                        }
-                        else {
-                            return _removeItem(item);
-                        }
+                        return true;
                     }
                 }
                 else {
                     for (let i = 0; i < slot.length; i++) {
-                        const item = slot[i].getItem();
                         if (slot[i].unequipItem(n)) {
-                            if (slot[i].isStacked()) {
-                                return _removeItem(item, n);
-                            }
-                            else {
-                                return _removeItem(item);
-                            }
+                            return true;
                         }
                     }
                 }
             }
             else {
-                const item = this._slots[slotType].getItem();
-                if (this._slots[slotType].unequipItem(n)) {
-                    if (this._slots[slotType].isStacked()) {
-                        return _removeItem(item, n);
-                    }
-                    else {
-                        return _removeItem(item);
-                    }
-                }
+                return this._slots[slotType].unequipItem(n);
             }
         }
         else {
@@ -328,12 +293,12 @@ const Equipment = function(actor) {
 
     this.toJSON = () => {
         const json = [];
-        for (let i = 0; i < this._equipped.length; i++) {
-            json.push(this._equipped[i].toJSON());
+        const equipped = this.getItems();
+        for (let i = 0; i < equipped.length; i++) {
+            json.push(equipped[i].toJSON());
         }
         return json;
     };
-
 
     /* Creates getters for stats and combat attributes. */
     for (let i = 0; i < _equipMods.length; i++) {
