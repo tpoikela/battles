@@ -333,4 +333,14 @@ function questMsg(obj) {
     RG.gameInfo(obj);
 }
 
+/* Helper function to add QuestTargetEvent for entity. */
+function addQuestEvent(ent, qTarget, eventType, args = {}) {
+    const qEvent = new RG.Component.QuestTargetEvent();
+    qEvent.setArgs(args);
+    qEvent.setEventType(eventType);
+    qEvent.setTargetComp(qTarget);
+    ent.add(qEvent);
+}
+System.Quest.addQuestEvent = addQuestEvent;
+
 module.exports = System.Quest;
