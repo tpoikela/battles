@@ -512,28 +512,19 @@ RG.removeStackedItems = function(itemStack, n) {
             if (n === 1 && itemStack.count === 1) {
                 return itemStack;
             }
-            else if (n <= itemStack.count) {
+            else if (n < itemStack.count) {
                 itemStack.count -= n;
                 rmvItem = itemStack.clone();
                 rmvItem.count = n;
                 return rmvItem;
             }
-            else {
-                rmvItem = itemStack.clone();
-                rmvItem.count = itemStack.count;
-                itemStack.count = 0;
-                return rmvItem;
+            else { // Remove all items
+                return itemStack;
             }
         }
         else { // Remove all
             RG.err('RG', 'removeStackedItems',
                 'Should never be entered');
-            /*
-            itemStack.count = 0;
-            rmvItem = itemStack.clone();
-            rmvItem.count = 1;
-            return rmvItem;
-            */
         }
     }
     return null;
