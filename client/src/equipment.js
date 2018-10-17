@@ -1,4 +1,5 @@
-const RG = require('./rg.js');
+/* Contains code for handling actor equipment. */
+const RG = require('./rg');
 
 const EquipSlot = function(type, stacked) {
 
@@ -88,6 +89,7 @@ const _equipMods = ['getDefense', 'getAttack', 'getProtection',
 
 /* Models equipment on an actor.*/
 const Equipment = function(actor) {
+    this._actor = actor;
 
     this._slots = {
         hand: new EquipSlot('hand'),
@@ -101,211 +103,6 @@ const Equipment = function(actor) {
         spiritgem: new EquipSlot('spiritgem')
     };
 
-    this.addSlot = function(slotType, slotObj) {
-        if (this._hasSlot(slotType)) {
-            if (Array.isArray(this._slots[slotType])) {
-                this._slots[slotType].push(slotObj);
-            }
-            else {
-                const slotArr = [this._slots[slotType]];
-                slotArr.push(slotObj);
-                this._slots[slotType] = slotArr;
-            }
-        }
-        else {
-            this._slots[slotType] = slotObj;
-        }
-    };
-
-    this._hasSlot = slotType => this._slots.hasOwnProperty(slotType);
-
-    /* Returns the total weight of the equipment. */
-    this.getWeight = () => {
-        let total = 0;
-        const equipped = this.getItems();
-        for (let i = 0; i < equipped.length; i++) {
-            total += equipped[i].getWeight() * equipped[i].count;
-        }
-        if (actor.has('MasterEquipper')) {
-            total *= actor.get('MasterEquipper').getFactor();
-        }
-        return total;
-    };
-
-    /* Returns the number of slots for given type. */
-    this.getNumSlots = function(slotType) {
-        if (this._hasSlot(slotType)) {
-            if (Array.isArray(this._slots[slotType])) {
-                return this._slots[slotType].length;
-            }
-            return 1;
-        }
-        return 0;
-    };
-
-    this.getSlotTypes = () => Object.keys(this._slots);
-
-    this.getItems = (slotType) => {
-        if (this._hasSlot(slotType)) {
-            if (Array.isArray(this._slots[slotType])) {
-                return this._slots[slotType];
-            }
-            return [this._slots[slotType]];
-        }
-        return this.getEquippedItems();
-    };
-
-    /* Returns last unequipped item for the slot.*/
-    this.getUnequipped = (slotType, index) => {
-        if (this._hasSlot(slotType)) {
-            const slot = this._slots[slotType];
-            if (Array.isArray(slot)) {
-                return slot[index].getUnequipped();
-            }
-            else {
-                return this._slots[slotType].getUnequipped();
-            }
-        }
-        else {
-            RG.err('Equipment', 'getUnequipped',
-                'No slot type: ' + slotType);
-        }
-        return null;
-    };
-
-    /* Returns an item in the given slot.*/
-    this.getItem = slotType => {
-        if (this._hasSlot(slotType)) {
-            const slot = this._slots[slotType];
-            if (Array.isArray(slot)) {
-                return slot.map(itemSlot => itemSlot.getItem());
-            }
-            return this._slots[slotType].getItem();
-        }
-        return null;
-    };
-
-    /* Equips given item. Slot is chosen automatically from suitable available
-     * ones.*/
-    this.equipItem = item => {
-        if (item.getArmourType) {
-            return this._equipToSlotType(item.getArmourType(), item);
-        }
-        // No equip property, can only equip to hand
-        else if (/^(missile|ammo)$/.test(item.getType())) {
-            if (this._slots.missile.equipItem(item)) {
-                return true;
-            }
-        }
-        else if (item.getType() === 'missileweapon') {
-            return this._equipToSlotType('missileweapon', item);
-        }
-        else {
-            return this._equipToSlotType('hand', item);
-        }
-        return false;
-    };
-
-    this._equipToSlotType = function(slotType, item) {
-        const slot = this._slots[slotType];
-        if (Array.isArray(slot)) {
-            for (let i = 0; i < slot.length; i++) {
-                if (slot[i].equipItem(item)) {
-                    return true;
-                }
-            }
-        }
-        else if (slot.equipItem(item)) {
-            return true;
-        }
-        return false;
-    };
-
-    /* Returns true if given item is equipped.*/
-    this.isEquipped = item => {
-        const equipped = this.getItems();
-        const index = equipped.indexOf(item);
-        return index !== -1;
-    };
-
-    this.getEquipped = function(slotType) {
-        return this.getItem(slotType);
-    };
-
-    this.getEquippedItems = function() {
-        const items = [];
-        Object.values(this._slots).forEach(slot => {
-            if (Array.isArray(slot)) {
-                slot.forEach(subSlot => {
-                    if (subSlot.hasItem()) {
-                        items.push(subSlot.getItem());
-                    }
-                });
-            }
-            else if (slot.hasItem()) {
-                items.push(slot.getItem());
-            }
-        });
-        return items;
-    };
-
-    /* Unequips given slotType and index. */
-    this.unequipItem = (slotType, n, index) => {
-        if (this._hasSlot(slotType)) {
-            const slot = this._slots[slotType];
-            if (Array.isArray(slot)) {
-                if (index >= 0) {
-                    if (slot[index].unequipItem(n)) {
-                        return true;
-                    }
-                }
-                else {
-                    for (let i = 0; i < slot.length; i++) {
-                        if (slot[i].unequipItem(n)) {
-                            return true;
-                        }
-                    }
-                }
-            }
-            else {
-                return this._slots[slotType].unequipItem(n);
-            }
-        }
-        else {
-            const msg = 'Non-existing slot type ' + slotType;
-            RG.err('Equipment', 'unequipItem', msg);
-        }
-        return false;
-    };
-
-    /* Calls given funcname for each item in slot, and sums the results
-     * of the function together. */
-    this.propertySum = function(funcname) {
-        let result = 0;
-        const slotKeys = Object.keys(this._slots);
-        slotKeys.forEach(slotName => {
-            const slotObj = this._slots[slotName];
-            let slots = slotObj;
-            if (!Array.isArray(slots)) {
-                slots = [slots];
-            }
-
-            slots.forEach(slot => {
-                const item = slot.getItem();
-                result += RG.getItemStat(funcname, item);
-            });
-        });
-        return result;
-    };
-
-    this.toJSON = () => {
-        const json = [];
-        const equipped = this.getItems();
-        for (let i = 0; i < equipped.length; i++) {
-            json.push(equipped[i].toJSON());
-        }
-        return json;
-    };
 
     /* Creates getters for stats and combat attributes. */
     for (let i = 0; i < _equipMods.length; i++) {
@@ -318,6 +115,217 @@ const Equipment = function(actor) {
     }
 
 };
+
+Equipment.prototype.addSlot = function(slotType, slotObj) {
+    if (this._hasSlot(slotType)) {
+        if (Array.isArray(this._slots[slotType])) {
+            this._slots[slotType].push(slotObj);
+        }
+        else {
+            const slotArr = [this._slots[slotType]];
+            slotArr.push(slotObj);
+            this._slots[slotType] = slotArr;
+        }
+    }
+    else {
+        this._slots[slotType] = slotObj;
+    }
+};
+
+Equipment.prototype._hasSlot = function(slotType) {
+    return this._slots.hasOwnProperty(slotType);
+};
+
+/* Returns the total weight of the equipment. */
+Equipment.prototype.getWeight = function() {
+    let total = 0;
+    const equipped = this.getItems();
+    for (let i = 0; i < equipped.length; i++) {
+        total += equipped[i].getWeight() * equipped[i].count;
+    }
+    if (this._actor.has('MasterEquipper')) {
+        total *= this._actor.get('MasterEquipper').getFactor();
+    }
+    return total;
+};
+
+/* Returns the number of slots for given type. */
+Equipment.prototype.getNumSlots = function(slotType) {
+    if (this._hasSlot(slotType)) {
+        if (Array.isArray(this._slots[slotType])) {
+            return this._slots[slotType].length;
+        }
+        return 1;
+    }
+    return 0;
+};
+
+Equipment.prototype.getSlotTypes = function() {
+    return Object.keys(this._slots);
+};
+
+Equipment.prototype.getItems = function(slotType) {
+    if (this._hasSlot(slotType)) {
+        if (Array.isArray(this._slots[slotType])) {
+            return this._slots[slotType];
+        }
+        return [this._slots[slotType]];
+    }
+    return this.getEquippedItems();
+};
+
+/* Returns last unequipped item for the slot.*/
+Equipment.prototype.getUnequipped = function(slotType, index) {
+    if (this._hasSlot(slotType)) {
+        const slot = this._slots[slotType];
+        if (Array.isArray(slot)) {
+            return slot[index].getUnequipped();
+        }
+        else {
+            return this._slots[slotType].getUnequipped();
+        }
+    }
+    else {
+        RG.err('Equipment', 'getUnequipped',
+            'No slot type: ' + slotType);
+    }
+    return null;
+};
+
+/* Returns an item in the given slot.*/
+Equipment.prototype.getItem = function(slotType) {
+    if (this._hasSlot(slotType)) {
+        const slot = this._slots[slotType];
+        if (Array.isArray(slot)) {
+            return slot.map(itemSlot => itemSlot.getItem());
+        }
+        return this._slots[slotType].getItem();
+    }
+    return null;
+};
+
+/* Equips given item. Slot is chosen automatically from suitable available
+ * ones.*/
+Equipment.prototype.equipItem = function(item) {
+    if (item.getArmourType) {
+        return this._equipToSlotType(item.getArmourType(), item);
+    }
+    // No equip property, can only equip to hand
+    else if (/^(missile|ammo)$/.test(item.getType())) {
+        if (this._slots.missile.equipItem(item)) {
+            return true;
+        }
+    }
+    else if (item.getType() === 'missileweapon') {
+        return this._equipToSlotType('missileweapon', item);
+    }
+    else {
+        return this._equipToSlotType('hand', item);
+    }
+    return false;
+};
+
+Equipment.prototype._equipToSlotType = function(slotType, item) {
+    const slot = this._slots[slotType];
+    if (Array.isArray(slot)) {
+        for (let i = 0; i < slot.length; i++) {
+            if (slot[i].equipItem(item)) {
+                return true;
+            }
+        }
+    }
+    else if (slot.equipItem(item)) {
+        return true;
+    }
+    return false;
+};
+
+/* Returns true if given item is equipped.*/
+Equipment.prototype.isEquipped = function(item) {
+    const equipped = this.getItems();
+    const index = equipped.indexOf(item);
+    return index !== -1;
+};
+
+Equipment.prototype.getEquipped = function(slotType) {
+    return this.getItem(slotType);
+};
+
+Equipment.prototype.getEquippedItems = function() {
+    const items = [];
+    Object.values(this._slots).forEach(slot => {
+        if (Array.isArray(slot)) {
+            slot.forEach(subSlot => {
+                if (subSlot.hasItem()) {
+                    items.push(subSlot.getItem());
+                }
+            });
+        }
+        else if (slot.hasItem()) {
+            items.push(slot.getItem());
+        }
+    });
+    return items;
+};
+
+/* Unequips given slotType and index. */
+Equipment.prototype.unequipItem = function(slotType, n, index) {
+    if (this._hasSlot(slotType)) {
+        const slot = this._slots[slotType];
+        if (Array.isArray(slot)) {
+            if (index >= 0) {
+                if (slot[index].unequipItem(n)) {
+                    return true;
+                }
+            }
+            else {
+                for (let i = 0; i < slot.length; i++) {
+                    if (slot[i].unequipItem(n)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        else {
+            return this._slots[slotType].unequipItem(n);
+        }
+    }
+    else {
+        const msg = 'Non-existing slot type ' + slotType;
+        RG.err('Equipment', 'unequipItem', msg);
+    }
+    return false;
+};
+
+/* Calls given funcname for each item in slot, and sums the results
+ * of the function together. */
+Equipment.prototype.propertySum = function(funcname) {
+    let result = 0;
+    const slotKeys = Object.keys(this._slots);
+    slotKeys.forEach(slotName => {
+        const slotObj = this._slots[slotName];
+        let slots = slotObj;
+        if (!Array.isArray(slots)) {
+            slots = [slots];
+        }
+
+        slots.forEach(slot => {
+            const item = slot.getItem();
+            result += RG.getItemStat(funcname, item);
+        });
+    });
+    return result;
+};
+
+Equipment.prototype.toJSON = function() {
+    const json = [];
+    const equipped = this.getItems();
+    for (let i = 0; i < equipped.length; i++) {
+        json.push(equipped[i].toJSON());
+    }
+    return json;
+};
+
 
 module.exports = {
     Equipment,
