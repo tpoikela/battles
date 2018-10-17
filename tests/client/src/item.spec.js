@@ -124,7 +124,8 @@ describe('How stackes are broken into multiple items', () => {
         const testStack = new RG.Item.Base('test item');
         testStack.setType('test');
         const stack = RG.removeStackedItems(testStack, 1);
-        expect(testStack.count).to.equal(0);
+        expect(stack).to.equal(testStack);
+        expect(testStack.count).to.equal(1);
         expect(stack.count).to.equal(1);
 
         const two = new RG.Item.Base('test item');
@@ -253,7 +254,8 @@ describe('How item stacks work with equipped missiles', () => {
         expect(invEq.removeNItems(testArrow, 12)).to.equal(true);
         const removedArrows = invEq.getRemovedItem();
         expect(removedArrows.count).to.equal(12);
-        expect(testArrow.count).to.equal(0);
+        expect(removedArrows).to.equal(testArrow);
+        // expect(testArrow.count).to.equal(0);
         expect(invEq.hasItem(testArrow)).to.equal(false);
 
         // Add all arrows and equip one of them. Check that stack is decremented
@@ -357,7 +359,7 @@ describe('Usable one-shot items', () => {
 
         const newPotion = invEq.getRemovedItem();
         invEq.addItem(newPotion);
-        expect(invEq.getInventory().hasItemRef(potion)).to.equal(false);
+        expect(invEq.getInventory().hasItemRef(potion)).to.equal(true);
         expect(invEq.getInventory().hasItemRef(newPotion)).to.equal(true);
 
         expect(player.getInvEq().useItem(newPotion,
