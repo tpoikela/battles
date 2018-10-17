@@ -404,9 +404,8 @@ Brain.Rogue.prototype.canPickupItem = function() {
 
 Brain.Rogue.prototype.pickupItem = function() {
     return () => {
-        const [x, y] = this._actor.getXY();
-        const level = this._actor.getLevel();
-        level.pickupItem(this._actor, x, y);
+        const pickup = new RG.Component.Pickup();
+        this._actor.add(pickup);
     };
 };
 
