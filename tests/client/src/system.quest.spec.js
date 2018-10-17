@@ -6,8 +6,9 @@ const Actor = require('../../../client/src/actor');
 const Component = require('../../../client/src/component');
 const EventPool = require('../../../client/src/eventpool');
 const System = require('../../../client/src/system');
-const {Quest, QuestPopulate}
-    = require('../../../client/src/quest-gen');
+const Quests = require('../../../client/src/quest-gen');
+
+const {Quest, QuestPopulate} = Quests;
 
 const RGTest = require('../../roguetest');
 const chaiBattles = require('../../helpers/chai-battles.js');
@@ -31,7 +32,7 @@ describe('System.Quest', () => {
         sysQuest = new System.Quest(['GiveQuest', 'QuestCompleted',
             'QuestTargetEvent'], pool);
 
-        sysBaseAction = new System.BaseAction(['Read'], pool);
+        sysBaseAction = new System.BaseAction(['Pickup', 'Read', 'Give'], pool);
         sysDamage = new System.Damage(['Damage'], pool);
         systems = [];
         systems.push(sysBaseAction);
@@ -153,8 +154,9 @@ describe('System.Quest', () => {
 
         const areaTile = area.getTileXY(0, 0);
         questPopul = new QuestPopulate();
-		questPopul.mapQuestToResources(mainQuest, city, areaTile);
-        console.log('QuestList is now', questPopul.questList);
+		let ok = questPopul.mapQuestToResources(mainQuest, city, areaTile);
+        expect(ok, 'Quest mapped OK').to.equal(true);
+
 		questPopul.addQuestComponents(city);
 
         const bookToRead = getQuestTarget('read', level.getItems());
@@ -209,12 +211,51 @@ describe('System.Quest', () => {
         console.log('main targets', JSON.stringify(mainTargets));
         expect(mainQuestComp.isCompleted()).to.equal(true);
 
-        cleanupQuests(giver, quester);
+        cleanupQuests(mainGiver, quester);
+        cleanupQuests(subGiver);
 
         //---------------------------
-        // MISC generated quest
+        // GET-GATHER quest
         //---------------------------
+        const getGiveTasks = ['<get>gather', 'give'];
+        const getGiveQuest = new Quest('Get stuff and give', getGiveTasks);
+        console.log(getGiveQuest.getSteps());
+        questPopul = new QuestPopulate();
+        questPopul.setDebug(true);
+		ok = questPopul.mapQuestToResources(getGiveQuest, city, null);
+        expect(ok, 'Get-Give Quest mapped OK').to.equal(true);
+		questPopul.addQuestComponents(city);
 
+        const questGiver = actors.find(a => (
+            a.has('QuestGiver')));
+        expect(questGiver).to.not.be.empty;
+
+        const actorToGive = getQuestTarget('give', actors);
+        expect(actorToGive).to.not.be.empty;
+        expect(quester).to.not.have.component('Quest');
+        giveQuest(questGiver, quester);
+        sysQuest.update();
+        expect(quester).to.have.component('Quest');
+
+        const questItem = getQuestTarget('get', level.getItems());
+        expect(questItem).to.not.be.empty;
+
+        const [x, y] = questItem.getXY();
+        level.moveActorTo(quester, x, y);
+        const pickupItem = new Component.Pickup();
+        quester.add(pickupItem);
+        RGTest.updateSystems(systems);
+
+        const giveComp = new Component.Give();
+        giveComp.setItem(questItem);
+        giveComp.setGiveTarget(actorToGive);
+        quester.add(giveComp);
+        RGTest.updateSystems(systems);
+
+        const currQuest = quester.get('Quest');
+        console.log('Get-Give:', JSON.stringify(currQuest.getQuestTargets()));
+        console.log('currQuest:', JSON.stringify(currQuest));
+        expect(currQuest.isCompleted()).to.equal(true);
 
     });
 });
