@@ -1,6 +1,6 @@
 
-const RG = require('./rg.js');
-RG.Item = require('./item.js');
+const RG = require('./rg');
+RG.Item = require('./item');
 const Equipment = require('./equipment').Equipment;
 
 RG.Inv = {};
