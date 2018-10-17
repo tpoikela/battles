@@ -23,7 +23,7 @@ const SystemManager = function(engine, pool) {
         ['Stun', 'Paralysis'], pool);
     allSys.SpiritBind = new System.SpiritBind(['SpiritBind'], pool);
     allSys.BaseAction = new System.BaseAction(['Pickup', 'UseStairs',
-        'OpenDoor', 'UseItem', 'UseElement', 'Jump', 'Read'], pool);
+        'OpenDoor', 'UseItem', 'UseElement', 'Jump', 'Read', 'Give'], pool);
     allSys.Chat = new System.Chat(['Chat'], pool);
     allSys.Shop = new System.Shop(['Transaction'], pool);
     allSys.Attack = new System.Attack(['Attack'], pool);
