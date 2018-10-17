@@ -2,7 +2,7 @@
 
 const prettybnf = require('prettybnf');
 const debug = require('debug')('bitn:quest-gen');
-// const fs = require('fs');
+
 const RG = require('./rg');
 const Random = require('./random');
 const RandomCyclic = require('./random-cyclic');
@@ -13,8 +13,6 @@ const questGrammar = require('../data/quest-grammar');
 const Names = require('../data/name-gen');
 
 const RNG = Random.getRNG();
-
-// debug.enabled = true;
 
 /* A task represents a part of a quest. */
 const Task = function(taskType) {
@@ -36,6 +34,9 @@ Task.prototype.getTaskType = function() {
 
 /* A quest object which can be used to model quests. */
 const Quest = function(name, tasks) {
+    if (name && typeof name !== 'string') {
+        RG.err('Quest', 'new', 'Quest must have a name!');
+    }
     this.name = name;
     this.steps = []; // Atomics/sub-quests
     this.testType = 'Quest';
@@ -470,6 +471,7 @@ const QuestPopulate = function() {
     // quests should be generated in the actual game.
     this.checkImplemented = true;
     this.IND = 0;
+    this.debug = debug.enabled;
 };
 
 QuestPopulate.prototype.resetData = function() {
@@ -497,6 +499,11 @@ QuestPopulate.prototype.resetData = function() {
     // Stores the refs between tasks like get-give
     this._questCrossRefs = new Map();
     this.questGivers = new Map();
+};
+
+QuestPopulate.prototype.setDebug = function(val) {
+    this.debug = val;
+    debug.enabled = val;
 };
 
 /* Returns previous item of given type. Type refers to actor/item/place/element.
@@ -545,7 +552,11 @@ QuestPopulate.prototype.createQuestsForZone = function(zone, areaTile) {
 QuestPopulate.prototype.mapQuestToResources = function(quest, zone, areaTile) {
     ++this.IND;
     const newQuest = new QuestData();
+
     this.dbg('*** New quest started ****');
+    this.dbg('  Quest has ' + quest.numTasks() + ' tasks');
+    this.dbg('  Quest has ' + quest.numQuests() + ' sub-quests');
+
     if (this.currQuest) {
         const target = {createTarget: 'createSubQuestTarget',
             subQuest: newQuest, args: []};
@@ -595,6 +606,7 @@ QuestPopulate.prototype.mapQuestToResources = function(quest, zone, areaTile) {
 };
 
 const tasksImplemented = new Set([
+    '<get>gather', 'give',
     '<kill>kill',
     '<goto>already_there', '<goto>explore', '<goto>goto',
     '<learn>read',
@@ -712,11 +724,12 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
         }
         case 'give': {
             // FInd previous item in the quest data, and assign task
-            const location = this.currQuest.getCurrent('location');
-            const level = location;
+            const level = this.currQuest.getCurrent('location');
             const actorToGive = this.getActorForQuests(level.getActors());
-            this.currQuest.addTarget('give', actorToGive);
-            ok = true;
+            if (actorToGive) {
+                this.currQuest.addTarget('give', actorToGive);
+                ok = true;
+            }
             // to give it to someone
             break;
         }
@@ -921,7 +934,7 @@ QuestPopulate.prototype.getActorToEscort = function() {
 };
 
 QuestPopulate.prototype.dbg = function(msg) {
-    if (debug.enabled) {
+    if (this.debug) {
         const ind = '=='.repeat(this.IND);
         debug(ind + msg);
     }
@@ -1345,7 +1358,7 @@ QuestPopulate.prototype.createBook = function(target, level) {
     if (location) {
         level.addItem(book);
         // TODO setText() some info about the location etc
-        const placeName = location.getParent().getName();
+        const placeName = RG.formatLocationName(location);
         const bookText = ['Quest hint where to go:'];
         bookText.push('You should go to place called ' + placeName);
         book.setText(bookText);
