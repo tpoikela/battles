@@ -134,7 +134,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     game.addPlayer(player);
 
     const eq = player.getInvEq().getEquipment();
-    eq.addSlot('spiritgem', new EquipSlot(eq, 'spiritgem'));
+    eq.addSlot('spiritgem', new EquipSlot('spiritgem'));
     const gem1 = this._parser.createItem('Lesser spirit gem');
     const gem2 = this._parser.createItem('Greater spirit gem');
     player.getInvEq().addItem(gem1);
