@@ -5,6 +5,7 @@ const Menu = require('../menu');
 const System = {};
 System.Base = require('./system.base');
 const {getTargetFromObj} = require('./system.effects');
+const {addQuestEvent} = require('./system.quest');
 
 /* Processes entities with attack-related components.*/
 System.BaseAction = function(compTypes) {
@@ -13,7 +14,7 @@ System.BaseAction = function(compTypes) {
 
     const handledComps = [
         'Pickup', 'UseStairs', 'OpenDoor', 'UseItem', 'UseElement',
-        'Jump', 'Read'
+        'Jump', 'Read', 'Give'
     ];
 
     this.updateEntity = function(ent) {
@@ -23,6 +24,33 @@ System.BaseAction = function(compTypes) {
                 ent.remove(compType);
             }
         });
+    };
+
+    /* Handles give command. */
+    this._handleGive = ent => {
+        const giveComp = ent.get('Give');
+        const giveTarget = giveComp.getGiveTarget();
+        const giveItem = giveComp.getItem();
+        if (!giveTarget.isEnemy(ent)) {
+            if (ent.getInvEq().removeItem(giveItem)) {
+                const removedItem = ent.getInvEq().getRemovedItem();
+                giveTarget.getInvEq().addItem(removedItem);
+                const isQuestItem = removedItem.has('QuestTarget');
+                if (isQuestItem && giveTarget.has('QuestTarget')) {
+                    const giveArgs = {actor: giveTarget, item: removedItem};
+                    const qTarget = removedItem.get('QuestTarget');
+                    addQuestEvent(ent, qTarget, 'give', giveArgs);
+                }
+                let msg = `${ent.getName()} gives `;
+                msg += `${giveItem.getName()} to ${giveTarget.getName()}`;
+                RG.gameMsg({cell: ent.getCell(), msg});
+            }
+        }
+        else {
+            let msg = `${giveTarget.getName()} refuses to take `;
+            msg += `${giveItem.getName()} from ${ent.getName()}`;
+            RG.gameMsg({cell: ent.getCell(), msg});
+        }
     };
 
     /* Handles pickup command. */
@@ -226,13 +254,14 @@ System.BaseAction = function(compTypes) {
 
     // Initialisation of dispatch table for handler functions
     this._dtable = {
-        Pickup: this._handlePickup,
-        UseStairs: this._handleUseStairs,
-        OpenDoor: this._handleOpenDoor,
-        UseItem: this._handleUseItem,
-        UseElement: this._handleUseElement,
+        Give: this._handleGive,
         Jump: this._handleJump,
-        Read: this._handleRead
+        OpenDoor: this._handleOpenDoor,
+        Pickup: this._handlePickup,
+        Read: this._handleRead,
+        UseElement: this._handleUseElement,
+        UseItem: this._handleUseItem,
+        UseStairs: this._handleUseStairs
     };
 
     /* Used to create events in response to specific actions. */
