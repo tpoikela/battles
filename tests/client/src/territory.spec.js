@@ -49,7 +49,6 @@ describe('Territory', () => {
         const wolfData = terrMap.getData('wolfclan');
         expect(wolfData.numOccupied).to.be.below(50);
 
-        console.log(terrMap.mapToString());
     });
 
     it('it accepts a pre-occupied map', () => {
@@ -155,8 +154,8 @@ describe('Territory', () => {
         pData.startY.push(rng.getUniformInt(bbox.uly, bbox.lry));
         terrMap.generate();
 
-        console.log(ow.mapToString());
-        console.log(terrMap.mapToString());
+        // console.log(ow.mapToString());
+        // console.log(terrMap.mapToString());
 
         const undeadData = terrMap.getData('undead');
         expect(undeadData.startX).to.have.length(3);
