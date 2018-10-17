@@ -505,6 +505,7 @@ class RGItemContainer extends ItemBase {
         this._removedItem = null; // Last removed item
     }
 
+    /* Adds one item to container. Always succeeds. */
     _addItem(item) {
         let matchFound = false;
         for (let i = 0; i < this._items.length; i++) {
@@ -543,7 +544,7 @@ class RGItemContainer extends ItemBase {
         return sum;
     }
 
-        /* Adds an item. Container becomes item's owner.*/
+    /* Adds an item. Container becomes item's owner.*/
     addItem(item) {
         if (item.count <= 0) {
             const str = JSON.stringify(item);
@@ -564,7 +565,7 @@ class RGItemContainer extends ItemBase {
         }
     }
 
-    getItems() {return this._items;}
+    getItems() {return this._items.slice();}
 
     /* Check by pure obj ref. Returns true if contains item ref.*/
     hasItemRef(item) {
@@ -581,7 +582,7 @@ class RGItemContainer extends ItemBase {
         return index >= 0;
     }
 
-        /* Tries to remove an item. Returns true on success, false otherwise.*/
+    /* Tries to remove an item. Returns true on success, false otherwise.*/
     removeItem(item) {
         if (this.hasItem(item)) {
             return this._removeItem(item);
@@ -607,12 +608,14 @@ class RGItemContainer extends ItemBase {
         }
 
         if (this._items[i].hasOwnProperty('count')) {
-            this._removedItem = RG.removeStackedItems(this._items[i], 1);
-            if (this._items[i].count === 0) {this._items.splice(i, 1);}
-        }
-        else {
-            this._removedItem = item;
-            this._items.splice(i, 1);
+            if (this._items[i].count === 1) {
+                this._removedItem = item;
+                this._items.splice(i, 1);
+            }
+            else {
+                this._removedItem = RG.removeStackedItems(this._items[i], 1);
+                if (this._items[i].count === 0) {this._items.splice(i, 1);}
+            }
         }
         return true;
     }
