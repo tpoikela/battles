@@ -28,14 +28,17 @@ System.BaseAction = function(compTypes) {
 
     /* Handles give command. */
     this._handleGive = ent => {
+        console.log('handling give action');
         const giveComp = ent.get('Give');
         const giveTarget = giveComp.getGiveTarget();
         const giveItem = giveComp.getItem();
+
         if (!giveTarget.isEnemy(ent)) {
             if (ent.getInvEq().removeItem(giveItem)) {
                 const removedItem = ent.getInvEq().getRemovedItem();
                 giveTarget.getInvEq().addItem(removedItem);
                 const isQuestItem = removedItem.has('QuestTarget');
+
                 if (isQuestItem && giveTarget.has('QuestTarget')) {
                     const giveArgs = {actor: giveTarget, item: removedItem};
                     const qTarget = removedItem.get('QuestTarget');
@@ -57,8 +60,37 @@ System.BaseAction = function(compTypes) {
     this._handlePickup = ent => {
         const [x, y] = [ent.getX(), ent.getY()];
         const level = ent.getLevel();
-        // TODO move logic from level to here, need access to the picked up item
-        level.pickupItem(ent, x, y);
+        const cell = level.getMap().getCell(x, y);
+
+        if (cell.hasProp(RG.TYPE_ITEM)) {
+            const item = cell.getProp(RG.TYPE_ITEM)[0];
+            if (ent.getInvEq().canCarryItem(item)) {
+                ent.getInvEq().addItem(item);
+                level.removeItem(item, x, y);
+
+                let itemStr = item.getName();
+                if (item.count > 1) {
+                    itemStr += ' x' + item.count;
+                }
+                const msgObj = {
+                    msg: ent.getName() + ' picked up ' + itemStr,
+                    cell
+                };
+                RG.gameMsg(msgObj);
+
+                if (item.has('QuestTarget')) {
+                    const qTarget = item.get('QuestTarget');
+                    addQuestEvent(ent, qTarget, 'get');
+                }
+            }
+            else {
+                const msgObj = {
+                    msg: ent.getName() + ' cannot carry more weight',
+                    cell
+                };
+                RG.gameMsg(msgObj);
+            }
+        }
         const evtArgs = {
             type: RG.EVT_ITEM_PICKED_UP
         };

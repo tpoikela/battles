@@ -264,32 +264,9 @@ Level.prototype.removeItem = function(item, x, y) {
     return this._removePropFromLevelXY(RG.TYPE_ITEM, item, x, y);
 };
 
-Level.prototype.pickupItem = function(actor, x, y) {
-    const cell = this._map.getCell(x, y);
-    if (cell.hasProp(RG.TYPE_ITEM)) {
-        const item = cell.getProp(RG.TYPE_ITEM)[0];
-        if (actor.getInvEq().canCarryItem(item)) {
-            actor.getInvEq().addItem(item);
-            this.removeItem(item, x, y);
-
-            let itemStr = item.getName();
-            if (item.count > 1) {
-                itemStr += ' x' + item.count;
-            }
-            const msgObj = {
-                msg: actor.getName() + ' picked up ' + itemStr,
-                cell
-            };
-            RG.gameMsg(msgObj);
-        }
-        else {
-            const msgObj = {
-                msg: actor.getName() + ' cannot carry more weight',
-                cell
-            };
-            RG.gameMsg(msgObj);
-        }
-    }
+Level.prototype.pickupItem = function(actor) {
+    const pickup = new RG.Component.Pickup();
+    actor.add(pickup);
 };
 
 /* Moves the given object to x,y. */
