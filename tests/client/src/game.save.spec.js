@@ -92,7 +92,7 @@ describe('Game.Save how saving works', () => {
         const weapon = new RG.Item.Weapon('Sword');
         weapon.setAttack(10);
         weapon.setDamageDie('3d3+5');
-        weapon.count = 2;
+        weapon.setCount(2);
 
         // Add it, save player and then restore
         gameSave = new RG.Game.Save();
@@ -112,7 +112,7 @@ describe('Game.Save how saving works', () => {
 
         const sword = invItems[1];
         expect(sword.equals(weapon)).to.equal(true);
-        expect(sword.count).to.equal(2);
+        expect(sword.getCount()).to.equal(2);
 
         const armour = new RG.Item.Armour('Plate mail');
         armour.setDefense(11);

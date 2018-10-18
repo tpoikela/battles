@@ -63,7 +63,7 @@ describe('RG.Inv.Inventory', () => {
         invEq.unequipItem('hand', 1);
         const items = invEq.getInventory().getItems();
         expect(items).to.have.length(1);
-        expect(items[0].count).to.equal(1);
+        expect(items[0].getCount()).to.equal(1);
 
     });
 
@@ -109,7 +109,7 @@ describe('RG.Inv.Inventory', () => {
 
         const lightSword = new RG.Item.Weapon('Light lightSword');
         lightSword.setWeight(5.0);
-        lightSword.count = 2;
+        lightSword.setCount(2);
         expect(invEq.canCarryItem(lightSword)).to.equal(true);
         invEq.addItem(lightSword);
         invEq.equipItem(lightSword);
@@ -117,7 +117,7 @@ describe('RG.Inv.Inventory', () => {
         expect(inv.getWeight()).to.equal(5.0);
 
         const shuriken = new RG.Item.Missile('Shuriken');
-        shuriken.count = 20;
+        shuriken.setCount(20);
         shuriken.setWeight(0.1);
         invEq.addItem(shuriken);
         expect(inv.getWeight()).to.equal(7.0);
@@ -127,9 +127,9 @@ describe('RG.Inv.Inventory', () => {
         const inv = invEq.getInventory();
 
         const dart = new RG.Item.Missile('Dart');
-        dart.count = 1;
+        dart.setCount(1);
         const arrow = new RG.Item.Missile('Arrow');
-        arrow.count = 1;
+        arrow.setCount(1);
 
         invEq.addItem(dart);
         invEq.addItem(arrow);
@@ -137,7 +137,7 @@ describe('RG.Inv.Inventory', () => {
         expect(invEq.equipItem(arrow)).to.equal(false);
 
         let items = inv.getItems();
-        expect(items[0].count).to.equal(1);
+        expect(items[0].getCount()).to.equal(1);
 
         invEq.unequipItem('missile', 1);
         expect(inv.getItems()).to.have.length(2);
@@ -145,7 +145,7 @@ describe('RG.Inv.Inventory', () => {
         expect(invEq.equipNItems(arrow, 1)).to.equal(false);
 
         items = inv.getItems();
-        expect(items[0].count).to.equal(1);
+        expect(items[0].getCount()).to.equal(1);
     });
 
     it('should work with multiple slots of same type', () => {
@@ -192,7 +192,7 @@ describe('RG.Inv.Inventory', () => {
 
         const arrows = new RG.Item.Ammo();
         // const arrowID = arrows.getID();
-        arrows.count = 10;
+        arrows.setCount(10);
         invEq.addItem(arrows);
         invEq.equipNItems(arrows, arrows.count);
 

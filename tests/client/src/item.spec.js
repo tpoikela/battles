@@ -66,7 +66,7 @@ describe('How items are typed, physical entities', () => {
     it('has a value depending on count', () => {
         const arrow = new RG.Item.Ammo('arrow');
         arrow.setValue(100);
-        arrow.count = 10;
+        arrow.setCount(10);
         expect(arrow.getValue()).to.equal(100);
     });
 });
@@ -78,7 +78,7 @@ describe('How items are stacked', () => {
         const item2 = new RG.Item.Base('Test item');
         item2.setType('test');
         expect(RG.addStackedItems(item1, item2)).to.equal(true);
-        expect(item1.count).to.equal(2);
+        expect(item1.getCount()).to.equal(2);
     });
 
     it('Stacks weapons correctly', () => {
@@ -99,42 +99,42 @@ describe('How stackes are broken into multiple items', () => {
     it('Splits item stack into two items', () => {
         const itemStack = new RG.Item.Base('Arrow');
         itemStack.setType('missile');
-        itemStack.count = 2;
+        itemStack.setCount(2);
         const arrow = RG.removeStackedItems(itemStack, 1);
         itemStack.setType('missile');
         expect(arrow.getName()).to.equal('Arrow');
 
         const hugeStack = new RG.Item.Base('Gold coin');
         hugeStack.setType('gold');
-        hugeStack.count = 10000;
+        hugeStack.setCount(10000);
         const newStack = new RG.Item.Base('Gold coin');
         newStack.setType('gold');
-        newStack.count = 100;
+        newStack.setCount(100);
 
         let rmOk = true;
-        while (hugeStack.count > 9000 && rmOk) {
+        while (hugeStack.getCount() > 9000 && rmOk) {
             const coin = RG.removeStackedItems(hugeStack, 100);
             rmOk = RG.addStackedItems(newStack, coin);
             expect(rmOk).to.equal(true);
-            expect(coin.count).to.equal(100);
+            expect(coin.getCount()).to.equal(100);
         }
-        expect(newStack.count).to.equal(1100);
-        expect(hugeStack.count).to.equal(9000);
+        expect(newStack.getCount()).to.equal(1100);
+        expect(hugeStack.getCount()).to.equal(9000);
 
         const testStack = new RG.Item.Base('test item');
         testStack.setType('test');
         const stack = RG.removeStackedItems(testStack, 1);
         expect(stack).to.equal(testStack);
-        expect(testStack.count).to.equal(1);
-        expect(stack.count).to.equal(1);
+        expect(testStack.getCount()).to.equal(1);
+        expect(stack.getCount()).to.equal(1);
 
         const two = new RG.Item.Base('test item');
         two.setType('test');
-        two.count = 5;
+        two.setCount(5);
         const rmvTwo = RG.removeStackedItems(two, 5);
-        expect(rmvTwo.count).to.equal(5);
+        expect(rmvTwo.getCount()).to.equal(5);
         expect(two).to.equal(rmvTwo);
-        expect(two.count).to.equal(5);
+        expect(two.getCount()).to.equal(5);
     });
 
     it('Manages missile items correctly', () => {
@@ -143,16 +143,16 @@ describe('How stackes are broken into multiple items', () => {
         const arrow2 = new RG.Item.Missile('arrow');
         arrow2.setAttack(3);
         expect(RG.addStackedItems(arrow, arrow2)).to.equal(true);
-        expect(arrow.count).to.equal(2);
+        expect(arrow.getCount()).to.equal(2);
 
         const arrow3 = new RG.Item.Missile('arrow');
         arrow3.setAttack(10);
         expect(RG.addStackedItems(arrow, arrow3)).to.equal(false);
-        expect(arrow.count).to.equal(2);
+        expect(arrow.getCount()).to.equal(2);
 
         const rmvArrow = RG.removeStackedItems(arrow, 1);
-        expect(arrow.count).to.equal(1);
-        expect(rmvArrow.count).to.equal(1);
+        expect(arrow.getCount()).to.equal(1);
+        expect(rmvArrow.getCount()).to.equal(1);
     });
 });
 
@@ -172,43 +172,43 @@ describe('How inventory container works', () => {
 
         // 1. Add two non-count items
         inv.addItem(arrow2);
-        expect(inv.first().count).to.equal(2);
+        expect(inv.first().getCount()).to.equal(2);
 
         // 2. Add count and non-count items
         const steelArrow4 = new RG.Item.Missile('Steel arrow');
         const steelArrow1 = new RG.Item.Missile('Steel arrow');
-        steelArrow4.count = 4;
+        steelArrow4.setCount(4);
         inv.addItem(steelArrow4);
         inv.addItem(steelArrow1);
-        expect(inv.last().count).to.equal(5);
+        expect(inv.last().getCount()).to.equal(5);
 
         // 3. Add non-count and count item
         const rubyArrow1 = new RG.Item.Missile('Ruby arrow');
         const rubyArrow6 = new RG.Item.Missile('Ruby arrow');
-        rubyArrow6.count = 6;
+        rubyArrow6.setCount(6);
         inv.addItem(rubyArrow1);
         inv.addItem(rubyArrow6);
-        expect(inv.last().count).to.equal(7);
+        expect(inv.last().getCount()).to.equal(7);
 
         // 4. Add two count items
         const ebonyArrow3 = new RG.Item.Missile('Ebony arrow');
         const ebonyArrow5 = new RG.Item.Missile('Ebony arrow');
-        ebonyArrow3.count = 3;
-        ebonyArrow5.count = 5;
+        ebonyArrow3.setCount(3);
+        ebonyArrow5.setCount(5);
         inv.addItem(ebonyArrow3);
         inv.addItem(ebonyArrow5);
-        expect(inv.last().count).to.equal(8);
+        expect(inv.last().getCount()).to.equal(8);
 
-        arrow.count = 10;
+        arrow.setCount(10);
         expect(inv.removeNItems(arrow, 2)).to.equal(true);
-        expect(arrow.count).to.equal(8);
+        expect(arrow.getCount()).to.equal(8);
         const removed = inv.getRemovedItem();
-        expect(removed.count).to.equal(2);
+        expect(removed.getCount()).to.equal(2);
 
         expect(inv.removeNItems(arrow, 3)).to.equal(true);
-        expect(arrow.count).to.equal(5);
+        expect(arrow.getCount()).to.equal(5);
         const removed2 = inv.getRemovedItem();
-        expect(removed2.count).to.equal(3);
+        expect(removed2.getCount()).to.equal(3);
 
     });
 });
@@ -232,7 +232,7 @@ describe('How item stacks work with equipped missiles', () => {
             invEq.addItem(arrow);
         }
         const newArrow = inv.first();
-        expect(newArrow.count).to.equal(10);
+        expect(newArrow.getCount()).to.equal(10);
 
         const sword = new RG.Item.Weapon('sword');
         invEq.addItem(sword);
@@ -240,60 +240,60 @@ describe('How item stacks work with equipped missiles', () => {
 
         // Add some arrows and test they're seen in inv
         const testArrow = new RG.Item.Missile('Steel arrow');
-        testArrow.count = 12;
+        testArrow.setCount(12);
         invEq.addItem(testArrow);
         expect(invEq.hasItem(testArrow)).to.equal(true);
-        expect(testArrow.count).to.equal(12);
+        expect(testArrow.getCount()).to.equal(12);
 
         // Check that iterator last() works
         const arrowStack = inv.last();
-        expect(arrowStack.count).to.equal(12);
+        expect(arrowStack.getCount()).to.equal(12);
 
         // Remove all arrows from inv
         expect(invEq.removeNItems(testArrow, 12)).to.equal(true);
         const removedArrows = invEq.getRemovedItem();
-        expect(removedArrows.count).to.equal(12);
+        expect(removedArrows.getCount()).to.equal(12);
         expect(removedArrows).to.equal(testArrow);
-        // expect(testArrow.count).to.equal(0);
+        // expect(testArrow.getCount()).to.equal(0);
         expect(invEq.hasItem(testArrow)).to.equal(false);
 
         // Add all arrows and equip one of them. Check that stack is decremented
         // by one
-        testArrow.count = 12; // Add count back to 12
+        testArrow.setCount(12); // Add count back to 12
         invEq.addItem(testArrow); // Add arrows all at once
-        expect(testArrow.count).to.equal(12);
+        expect(testArrow.getCount()).to.equal(12);
         expect(invEq.hasItem(testArrow)).to.equal(true);
-        expect(testArrow.count).to.equal(12);
+        expect(testArrow.getCount()).to.equal(12);
         expect(invEq.equipItem(testArrow)).to.equal(true);
-        expect(testArrow.count).to.equal(11);
+        expect(testArrow.getCount()).to.equal(11);
         const oneArrow = invEq.getEquipped('missile');
-        expect(oneArrow.count).to.equal(1);
+        expect(oneArrow.getCount()).to.equal(1);
 
         // Try to equip non-inv items
         const sixArrows = new RG.Item.Missile('Steel arrow');
-        sixArrows.count = 6;
+        sixArrows.setCount(6);
         expect(invEq.equipNItems(sixArrows, 6)).to.equal(true);
-        expect(sixArrows.count).to.equal(6);
+        expect(sixArrows.getCount()).to.equal(6);
         // invEq.addItem(sixArrows);
         // expect(invEq.hasItem(sixArrows)).to.equal(true);
         const sevenArrows = invEq.getEquipped('missile');
-        expect(sevenArrows.count).to.equal(7);
+        expect(sevenArrows.getCount()).to.equal(7);
 
         const anotherSix = new RG.Item.Missile('Steel arrow');
-        anotherSix.count = 6;
+        anotherSix.setCount(6);
         invEq.addItem(anotherSix);
         expect(invEq.equipNItems(anotherSix, 6)).to.equal(true);
         const arrows13 = invEq.getEquipped('missile');
-        expect(arrows13.count).to.equal(13);
+        expect(arrows13.getCount()).to.equal(13);
 
         const shotArrow = invEq.unequipAndGetItem('missile', 3);
-        expect(shotArrow.count).to.equal(3);
+        expect(shotArrow.getCount()).to.equal(3);
         const tenArrows = eq.getItem('missile');
-        expect(tenArrows.count).to.equal(10);
+        expect(tenArrows.getCount()).to.equal(10);
 
         expect(invEq.unequipItem('missile', 1)).to.equal(true);
         const nineArrows = eq.getItem('missile');
-        expect(nineArrows.count).to.equal(9);
+        expect(nineArrows.getCount()).to.equal(9);
 
     });
 
@@ -338,7 +338,7 @@ describe('Usable one-shot items', () => {
 
     it('Player uses a potion and it is destroyed after this.', () => {
         const potion = new RG.Item.Potion('potion');
-        potion.count = 1;
+        potion.setCount(1);
         const player = new Actor('Player');
         const cell = RG.FACT.createFloorCell();
         cell.setProp('actors', player);
@@ -368,11 +368,11 @@ describe('Usable one-shot items', () => {
         expect(player).to.have.component('UseItem');
         const useItemComp = player.get('UseItem');
         const usedItem = useItemComp.getItem();
-        if (usedItem.count === 1) {
+        if (usedItem.getCount() === 1) {
             pool.emitEvent(RG.EVT_DESTROY_ITEM, {item: usedItem});
         }
         else {
-            usedItem.count -= 1;
+            usedItem.decrCount(1);
         }
 
         expect(invEq.hasItem(potion)).to.equal(false);
@@ -385,7 +385,7 @@ describe('Usable one-shot items', () => {
 describe('Gold coins and other valuables', () => {
     it('Has weight and stacks normally', () => {
         const gold = new RG.Item.Gold('Gold nugget');
-        gold.count = 3;
+        gold.setCount(3);
         gold.setWeight(0.1);
 
         const coin = new RG.Item.GoldCoin();

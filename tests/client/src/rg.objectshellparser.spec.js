@@ -196,7 +196,7 @@ describe('RG.ObjectShell.Parser', () => {
         const keeperObj = parser.createActualObj(RG.TYPE_ACTOR, 'shopkeeper');
 
         const gold = keeperObj.getInvEq().getInventory().getItems()[0];
-        expect(gold.count, 'Keeper has 100 gold coins').to.equal(100);
+        expect(gold.getCount(), 'Keeper has 100 gold coins').to.equal(100);
     });
 
     describe('addComponent(shell, newObj)', () => {
@@ -435,7 +435,7 @@ describe('It contains all game content info', () => {
         const goblinSlinger = parser.createActor('goblin slinger');
         const inv = goblinSlinger.getInvEq();
         const rocks = inv.getEquipped('missile');
-        expect(rocks.count).to.equal(10);
+        expect(rocks.getCount()).to.equal(10);
     });
 
     it('can add enemies for actors', () => {

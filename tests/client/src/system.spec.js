@@ -324,7 +324,7 @@ describe('System.Chat', () => {
         const chatter = new RG.Actor.Rogue('chatter');
         chatter.setIsPlayer(true);
         const coins = new RG.Item.GoldCoin();
-        coins.count = 1000;
+        coins.setCount(1000);
         chatter.getInvEq().addItem(coins);
 
         const trainer = new RG.Actor.Rogue('trainer');
@@ -611,7 +611,7 @@ describe('System.Shop', () => {
         item.add(new RG.Component.Unpaid());
         shopCell.setProp(RG.TYPE_ITEM, item);
         const coins = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
-        coins.count = 100;
+        coins.setCount(100);
 
         const buyer = actor;
         buyer.getInvEq().addItem(coins);
@@ -631,7 +631,7 @@ describe('System.Shop', () => {
         item.setValue(100);
 
         const coins = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
-        coins.count = 100;
+        coins.setCount(100);
         shopkeeper.getInvEq().addItem(coins);
 
         const seller = actor;
@@ -651,11 +651,11 @@ describe('System.Shop', () => {
 
     it('works with item count > 1', () => {
         const arrows = new RG.Item.Ammo('arrow');
-        arrows.count = 15;
+        arrows.setCount(15);
         arrows.setValue(20);
 
         const coins = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
-        coins.count = 100;
+        coins.setCount(100);
         shopkeeper.getInvEq().addItem(coins);
 
         const seller = actor;
@@ -668,12 +668,12 @@ describe('System.Shop', () => {
         seller.add(trans);
 
         updateSystems([shopSys]);
-        expect(arrows.count).to.equal(5);
+        expect(arrows.getCount()).to.equal(5);
 
         const soldCell = seller.getCell();
         const items = soldCell.getItems();
         expect(items.length).to.equal(1);
-        expect(items[0].count).to.equal(10);
+        expect(items[0].getCount()).to.equal(10);
         expect(arrows).not.to.have.component('Unpaid');
         expect(items[0]).to.have.component('Unpaid');
     });

@@ -27,7 +27,7 @@ describe('Element.Shop', () => {
 
         const priceOne = elemShop.getItemPriceForBuying(arrow);
 
-        arrow.count = 10;
+        arrow.setCount(10);
         const priceTen = elemShop.getItemPriceForBuying(arrow);
 
         expect(priceTen).to.equal(10 * priceOne);

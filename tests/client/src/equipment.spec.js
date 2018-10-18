@@ -13,12 +13,12 @@ describe('EquipSlot', () => {
         const missSlot = new EquipSlot('missile', true);
 
         const arrow = new RG.Item.Missile('arrow');
-        arrow.count = 10;
+        arrow.setCount(10);
         expect(missSlot.equipItem(arrow)).to.equal(true);
         expect(missSlot.unequipItem(5)).to.equal(true);
 
         const arrowStack = missSlot.getItem();
-        expect(arrowStack.count).to.equal(5);
+        expect(arrowStack.getCount()).to.equal(5);
         expect(missSlot.unequipItem(5)).to.equal(true);
         const nullArrowStack = missSlot.getItem();
         expect(nullArrowStack === null).to.equal(true);
@@ -111,7 +111,7 @@ describe('Equipment', () => {
         expect(eq.getItems()).to.have.length(0);
 
         const arrows = new RG.Item.Ammo('arrow');
-        arrows.count = 10;
+        arrows.setCount(10);
         invEq.addItem(arrows);
         invEq.equipNItems(arrows, 10);
         expect(eqItems).to.have.length(1);
