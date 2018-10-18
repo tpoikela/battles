@@ -197,7 +197,6 @@ RG.getCssClass = function(prop, name, state = null) {
 // These are used to select rendered characters for map cells.
 RG.charStyles = {
     elements: {
-        battle: 'X',
         default: '.',
         exit: '.',
         exploration: '?',
@@ -214,14 +213,11 @@ RG.charStyles = {
             getChar: '', // use value from getChar()
             default: 'X'
         },
-        mountain: '^',
-        path: '.',
         passage: '.',
         placeholder: '?',
         shop: ':',
         stairsDown: '>',
         stairsUp: '<',
-        town: 'o',
         wall: '#',
         wallcave: '#',
         wallcrypt: '#',
@@ -236,7 +232,6 @@ RG.charStyles = {
     },
     actors: {
         default: 'X',
-        monster: '@',
         player: '@',
         spirit: 'Q',
         summoner: 'Z',
@@ -253,7 +248,6 @@ RG.charStyles = {
 // These are used to select the CSS class for map cells.
 RG.cellStyles = {
     elements: {
-        battle: 'cell-element-battle',
         default: 'cell-element-default',
         door: 'cell-element-door',
         exit: 'cell-element-exit',
@@ -266,16 +260,13 @@ RG.cellStyles = {
             getClassName: '', // Use value from get
             default: 'cell-element-marker'
         },
-        mountain: 'cell-element-mountain',
         lever: 'cell-element-door',
         leverdoor: 'cell-element-door',
         passage: 'cell-element-passage',
-        path: 'cell-element-path',
         placeholder: 'cell-element-placeholder',
         shop: 'cell-element-shop',
         stairsDown: 'cell-element-stairs',
         stairsUp: 'cell-element-stairs',
-        town: 'cell-element-town',
         wall: 'cell-element-wall',
         wallcave: 'cell-element-wall-cave',
         wallcrypt: 'cell-element-wall-crypt',
