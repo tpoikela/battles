@@ -459,6 +459,8 @@ const QuestPopulate = function() {
         numQuestsPerZone: 1
     };
 
+    this.maxTriesPerZone = 5;
+
     this.questTargetCallback = {
         repair: this.handleRepair = this.handleRepair.bind(this),
         listen: this.handleListen = this.handleListen.bind(this),
@@ -535,12 +537,15 @@ QuestPopulate.prototype.createQuestsForZone = function(zone, areaTile) {
     const numQuests = this.conf.numQuestsPerZone || 1;
     let numCreated = 0;
     for (let i = 0; i < numQuests; i++) {
-        const questGen = new QuestGen();
-        const quest = questGen.genQuestWithConf(this.conf);
-        this.resetData();
-        if (this.mapQuestToResources(quest, zone, areaTile)) {
-            this.addQuestComponents(zone);
-            ++numCreated;
+        for (let n = 0; n < this.maxTriesPerZone; n++) {
+            const questGen = new QuestGen();
+            const quest = questGen.genQuestWithConf(this.conf);
+            this.resetData();
+            if (this.mapQuestToResources(quest, zone, areaTile)) {
+                this.addQuestComponents(zone);
+                ++numCreated;
+                break;
+            }
         }
     }
     return numCreated;
@@ -610,7 +615,8 @@ const tasksImplemented = new Set([
     '<kill>kill',
     '<goto>already_there', '<goto>explore', '<goto>goto',
     '<learn>read',
-    'listen', 'report'
+    'listen', 'report',
+    '<steal>stealth', '<steal>take', 'take'
 ]);
 
 QuestPopulate.prototype.pushQuestCrossRef = function(key, data) {
@@ -764,11 +770,11 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
             break;
         }
         case '<kill>kill': {
-            const location = this.currQuest.getCurrent('location');
-            const level = location;
-            const actorToKill = this.getActorForQuests(level.getActors());
-            this.currQuest.addTarget('kill', actorToKill);
-            ok = true;
+            const actorToKill = this.getActorToKill();
+            if (actorToKill) {
+                this.currQuest.addTarget('kill', actorToKill);
+                ok = true;
+            }
             break;
         }
         case '<learn>already_know_it': {
@@ -843,7 +849,8 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
         case '<steal>take': {
             const newItem = this.getItemToSteal();
             if (newItem) {
-                this.currQuest.addTarget('steal', newItem);
+                // this.currQuest.addTarget('steal', newItem);
+                this.currQuest.addTarget('get', newItem);
                 this._data.item.push(newItem);
                 ok = true;
             }
@@ -852,7 +859,8 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
         case 'take': {
             const newItem = this.getItemToSteal();
             if (newItem) {
-                this.currQuest.addTarget('take', newItem);
+                // this.currQuest.addTarget('take', newItem);
+                this.currQuest.addTarget('get', newItem);
                 this._data.item.push(newItem);
                 ok = true;
             }
@@ -908,6 +916,16 @@ QuestPopulate.prototype.getActorForQuests = function(actors) {
     return actor;
 };
 
+QuestPopulate.prototype.getActorToKill = function() {
+    const location = this.currQuest.getCurrent('location');
+    let actors = location.getActors();
+    actors = actors.filter(a => !a.isPlayer() &&
+        a.hasNone(['QuestGiver', 'QuestTarget'])
+    );
+    // TODO make sure to return something meaningful like boss
+    return RNG.arrayGetRand(actors);
+};
+
 QuestPopulate.prototype.getActorForReport = function() {
     const location = this.currQuest.getCurrent('location');
     const actors = location.getActors();
@@ -943,9 +961,10 @@ QuestPopulate.prototype.dbg = function(msg) {
 /* Returns true if given actor can be used as quest target/giver. */
 function isOkForQuest(actor) {
     return actor.has('Corporeal') &&
+        (RG.ALL_RACES.indexOf(actor.getType()) >= 0) &&
     !(
-        actor.isPlayer() && actor.has('QuestTarget')
-        && actor.has('QuestGiver')
+        actor.isPlayer() || actor.has('QuestTarget')
+        || actor.has('QuestGiver')
     );
 }
 
@@ -1002,10 +1021,13 @@ QuestPopulate.prototype.getItemToUse = function() {
     }
 
     const parser = ObjectShell.getParser();
-    const useItem = parser.createRandomItem(item => item.use);
-    if (useItem) {
-        this._cleanup.push({location, useItem});
-        return useItem;
+    const item = parser.createRandomItem(item => item.use);
+    if (!Placer.addEntityToCellType(item, location, c => c.isPassable())) {
+        return null;
+    }
+    if (item) {
+        this._cleanup.push({location, item});
+        return item;
     }
     return null;
 };
@@ -1392,7 +1414,7 @@ QuestPopulate.prototype.cleanUpFailedQuest = function() {
         }
         else if (cleanupObj.element) {
             const [x, y] = cleanupObj.element.getXY();
-            location.removeActor(cleanupObj.element, x, y);
+            location.removeElement(cleanupObj.element, x, y);
         }
     });
 };
