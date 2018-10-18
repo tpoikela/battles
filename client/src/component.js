@@ -142,6 +142,16 @@ RG.Component.Damaged = UniqueDataComponent('Damaged',
 RG.Component.Broken = UniqueTagComponent('Broken');
 
 /* Component to tag entities that block light from passing through. */
+RG.Component.Impassable = UniqueDataComponent('Impassable', {
+    canFlyOver: true, spellPasses: true
+});
+
+RG.Component.Impassable.prototype.setAllImpassable = function() {
+    this.canFlyOver = false;
+    this.spellPasses = false;
+};
+
+/* Component to tag entities that block light from passing through. */
 RG.Component.Opaque = UniqueTagComponent('Opaque');
 
 /* Component used in entities gaining experience.*/
