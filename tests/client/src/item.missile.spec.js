@@ -66,7 +66,7 @@ describe('How missile is fired and hits a wall', () => {
     });
 
     it('Stops and hits a wall', () => {
-        const wall = new RG.Element.Base('wall');
+        const wall = new RG.Element.Wall('wall');
         const map = level.getMap();
         const cell = map.getCell(1, 3);
         cell.setBaseElem(wall);
