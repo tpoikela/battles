@@ -390,6 +390,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
                 const subtype = obj.type;
                 switch (subtype) {
                     case 'armour': return new RG.Item.Armour(obj.name);
+                    case 'book': return new RG.Item.Book(obj.name);
                     case 'food': return new RG.Item.Food(obj.name);
                     case 'gold': return new RG.Item.Gold(obj.name);
                     case 'goldcoin' : return new RG.Item.GoldCoin(obj.name);
@@ -410,7 +411,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
                         RG.err('', 'createNewObject', msg);
                     }
                 }
-                return new RG.Item.Base(obj.name); // generic, useless
+                return new RG.Item.Base(obj.name);
             case RG.TYPE_ELEM: {
                 const type = obj.type || obj.name;
                 return new RG.Element.Base(obj.name, type);
