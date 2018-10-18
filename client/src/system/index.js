@@ -30,4 +30,31 @@ System.SpellEffect = require('./system.spell-effect');
 System.SpiritBind = require('./system.spirit-bind');
 System.TimeEffects = require('./system.time-effects');
 
+/* Defines a new system declaration. Can be used in plugins to define new
+ * systems easily without boilerplate code. */
+System.DefineSystem = function(sysName) {
+    const nameCaps = sysName.toUpperCase();
+    RG.SYS[nameCaps] = Symbol();
+
+    const SystemDecl = function(compTypes, ...argsList) {
+        System.Base.call(this, RG.SYS[nameCaps], compTypes);
+
+        // User can define _init function if complex initialisation required
+        if (this._init && typeof this._init === 'function') {
+            this._init(compTypes, ...argsList);
+        }
+    };
+    RG.extend2(SystemDecl, System.Base);
+
+    System[sysName] = SystemDecl;
+    return SystemDecl;
+};
+
+/* Undefines a system declaration. Can be used as cleanup for DefineSystem. */
+System.UndefineSystem = function(sysName) {
+    const nameCaps = sysName.toUpperCase();
+    delete RG.SYS[nameCaps];
+    delete System[sysName];
+};
+
 module.exports = System;
