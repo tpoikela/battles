@@ -35,9 +35,7 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
     constructor(name) {
         super({owner: null, type: 'base', propType: RG.TYPE_ITEM});
         this._name = name;
-        this._value = 1;
-        this._damageType = RG.DMG.BLUNT;
-        this._count = 1; // Number of items
+        this.add(new RG.Component.Item());
         this.add(new RG.Component.Physical());
     }
 
@@ -50,16 +48,16 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
 
     getWeight() {return this.get('Physical').getWeight();}
 
-    setValue(value) {this._value = value;}
-    getValue() {return this._value;}
+    setValue(value) {this.get('Item').setValue(value);}
+    getValue() {return this.get('Item').getValue();}
 
-    incrCount(count) {this._count += count;}
-    decrCount(count) {this._count -= count;}
-    getCount() {return this._count;}
-    setCount(count) {this._count = count;}
+    incrCount(count) {this.get('Item').incrCount(count);}
+    decrCount(count) {this.get('Item').decrCount(count);}
+    getCount() {return this.get('Item').getCount();}
+    setCount(count) {this.get('Item').setCount(count);}
 
-    setDamageType(type) {this._damageType = type;}
-    getDamageType() {return this._damageType;}
+    setDamageType(type) {this.get('Item').setDamageType(type);}
+    getDamageType() {return this.get('Item').getDamageType();}
 
     /* Used when showing the item in inventory lists etc. */
     toString() {
@@ -118,12 +116,9 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
         const json = {
             setID: this.getID(),
             setName: this.getName(),
-            setValue: this.getValue(),
             setWeight: this.getWeight(),
             setPropType: RG.TYPE_ITEM,
-            setType: this.getType(),
-            setCount: this._count,
-            setDamageType: this._damageType
+            setType: this.getType()
         };
         json.components = RG.Component.compsToJSON(this);
         return json;
