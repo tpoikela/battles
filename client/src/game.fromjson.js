@@ -813,10 +813,6 @@ FromJSON.prototype.createActor = function(json) {
 
 /* Adds entity info to restore the entity references back to objects. */
 FromJSON.prototype.addEntityInfo = function(entity, json) {
-    /* const id = entity.getID();
-    this.id2entity[id] = entity;
-    this.id2EntityJson[json.id] = json;
-    this.id2Object[id] = entity;*/
     this.addObjRef('entity', entity, json);
 };
 
