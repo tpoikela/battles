@@ -199,28 +199,24 @@ describe('RG.ObjectShell.Parser', () => {
         expect(gold.getCount(), 'Keeper has 100 gold coins').to.equal(100);
     });
 
-    describe('addComponent(shell, newObj)', () => {
-        it('can add component with a string attribute', () => {
-            const creator = new Creator();
-            const parser = new Parser();
-            const bat = {name: 'bat', addComp: 'Flying'};
-            const shell = parser.parseObjShell(RG.TYPE_ACTOR, bat);
-            const batActor = new RG.Actor.Rogue('bat');
+    it('can add component with a string attribute', () => {
+        const creator = new Creator();
+        const parser = new Parser();
+        const bat = {name: 'bat', addComp: 'Flying'};
+        const shell = parser.parseObjShell(RG.TYPE_ACTOR, bat);
+        const batActor = new RG.Actor.Rogue('bat');
 
-            creator.addComponents(shell, batActor);
-            expect(batActor).to.have.component('Flying');
+        creator.addComponents(shell, batActor);
+        expect(batActor).to.have.component('Flying');
 
-            creator.addComponents({addComp: ['Flying', 'FirstStrike']},
-                batActor);
-            expect(batActor).to.have.component('FirstStrike');
-            expect(batActor).to.have.component('Flying');
-        });
-
+        creator.addComponents({addComp: ['Flying', 'FirstStrike']},
+            batActor);
+        expect(batActor).to.have.component('FirstStrike');
+        expect(batActor).to.have.component('Flying');
     });
 
-describe('How food items are created from objects', () => {
-   const parser = new Parser();
     it('Creates food objects items from shells', () => {
+        const parser = new Parser();
         const foodBase = parser.parseObjShell('items',
             {type: 'food', name: 'foodBase',
             weight: 0.1, misc: 'XXX', dontCreate: true, char: '%',
@@ -267,13 +263,14 @@ describe('How food items are created from objects', () => {
         RGTest.checkChar(geleeFood, '%');
 
     });
+
 });
 
 //---------------------------------------------------------------------------
 // PARSING THE FULL OBJECTS FILE
 //---------------------------------------------------------------------------
 
-describe('It contains all game content info', () => {
+describe('ObjectShellParser.parseShellData()', () => {
 
     let parser = null;
     before(() => {
@@ -491,9 +488,21 @@ describe('It contains all game content info', () => {
             }
         });
     });
-});
 
-// Nested describe
+    it('It should detect invalid object shells', () => {
+        const parser = new Parser();
+        RG.suppressErrorMessages = true;
+        const noObj = parser.createActualObj('items', 'Void Item');
+        expect(noObj).to.be.null;
+        RG.suppressErrorMessages = true;
+
+        const invalidShell = {xxx: 'xxx', noname: 'noname'};
+        expect(parser.validShellGiven(invalidShell)).to.be.false;
+    });
+
+}); // describe ObjectShell.Parser
+
+
 describe('Data query functions for objects', function() {
 
     let parser = null;
@@ -718,17 +727,5 @@ describe('Data query functions for objects', function() {
         expect(addComp.getType()).to.equal('Flying');
     });
 
-}); // nested describe ends
+});
 
-    it('It should detect invalid object shells', () => {
-        const parser = new Parser();
-        RG.suppressErrorMessages = true;
-        const noObj = parser.createActualObj('items', 'Void Item');
-        expect(noObj).to.be.null;
-        RG.suppressErrorMessages = true;
-
-        const invalidShell = {xxx: 'xxx', noname: 'noname'};
-        expect(parser.validShellGiven(invalidShell)).to.be.false;
-    });
-
-}); // describe ObjectShell.Parser
