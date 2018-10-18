@@ -162,14 +162,14 @@ export default class GameInventory extends Component {
     const msg = 'Inventory Selected: ' + item.toString();
     this.props.selectItemTop(item);
     this.props.setInventoryMsg({invMsg: msg, msgStyle: 'text-info'});
-    this.setState({count: item.count});
+    this.setState({count: item.getCount()});
   }
 
   setEquipSelected(selection) {
     const msg = 'Equipment Selected: ' + selection.item.toString();
     this.props.selectEquipTop(selection);
     this.props.setInventoryMsg({invMsg: msg, msgStyle: 'text-info'});
-    this.setState({count: selection.item.count});
+    this.setState({count: selection.item.getCount()});
   }
 
   render() {
