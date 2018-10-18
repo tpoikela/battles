@@ -1,3 +1,4 @@
+/* File contains elements used in the game. */
 
 /* eslint comma-dangle: 0 */
 // const RG = require('../src/rg');
@@ -28,6 +29,10 @@ const Elements = [
         char: '~', addComp: ['Impassable']
     },
     {
+        name: 'path', className: 'cell-element-path',
+        char: '.',
+    },
+    {
         name: 'road', className: 'cell-element-road',
         char: '.',
     },
@@ -52,6 +57,22 @@ const Elements = [
         char: '~',
         // addComp: {name: 'Terrain', setters: {setDifficulty: 5}}
     },
+
+    //---------------------------------------------------------
+    // Presentational-only elements, only rendering info stored
+    //---------------------------------------------------------
+    {
+        dontCreate: true, name: 'mountain',
+        char: '^', className: 'cell-element-mountain'
+    },
+    {
+        dontCreate: true, name: 'town',
+        char: 'o', className: 'cell-element-town'
+    },
+    {
+        dontCreate: true, name: 'battle',
+        char: 'X', className: 'cell-element-battle'
+    }
 
 ];
 
