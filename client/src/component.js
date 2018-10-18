@@ -143,7 +143,7 @@ RG.Component.Broken = UniqueTagComponent('Broken');
 
 /* Component to tag entities that block light from passing through. */
 RG.Component.Impassable = UniqueDataComponent('Impassable', {
-    canFlyOver: true, spellPasses: true
+    canFlyOver: true, canJumpOver: true, spellPasses: true
 });
 
 RG.Component.Impassable.prototype.setAllImpassable = function() {
