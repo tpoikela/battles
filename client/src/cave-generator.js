@@ -149,11 +149,11 @@ CaveGenerator.prototype._addSpecialFeatures = function(level) {
 
 CaveGenerator.prototype.getEndPointFromMap = function(level, startPoint) {
     const map = level.getMap();
-    const freeCellMap = this.getMapOfFreeCells(level);
+    const freeCellMap = this.getMapOfNonWallCells(level);
     return this.getRandomEndPoint(map, startPoint, freeCellMap);
 };
 
-CaveGenerator.prototype.getMapOfFreeCells = function(level) {
+CaveGenerator.prototype.getMapOfNonWallCells = function(level) {
     const map = level.getMap();
     const nonWallCells = map.getCells(c => (
         !c.getBaseElem().isWall()
@@ -171,7 +171,7 @@ CaveGenerator.prototype._createCollapsedLevel = function(level) {
     let {endPoint} = extras;
     const {startPoint} = extras;
 
-    const freeCellMap = this.getMapOfFreeCells(level);
+    const freeCellMap = this.getMapOfNonWallCells(level);
 
     if (!endPoint) { // Define random endpoint
         endPoint = this.getRandomEndPoint(map, startPoint, freeCellMap);
