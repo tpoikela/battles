@@ -17,6 +17,7 @@ import CellClickHandler from '../gui/cell-click-handler';
 import GameTopMenu from './game-top-menu';
 import GameCreatingScreen from './game-creating-screen';
 import HiddenFileInput from './hidden-file-input';
+import GamePlugins from './game-plugins';
 
 import GameContextMenu from './context-menu';
 import {ContextMenuTrigger} from 'react-contextmenu';
@@ -40,6 +41,7 @@ const worldConf = require('../data/conf.world');
 const wwork = require('webworkify');
 
 const INV_SCREEN = 'Inventory';
+window.RG = RG;
 
 /* Contains logic that is not tightly coupled to the GUI.*/
 class TopLogic {
@@ -182,6 +184,7 @@ class BattlesTop extends Component {
             selectedCell: null,
             selectedGame: null,
             selectedItem: null,
+            showPlugins: false,
             showEditor: false,
             showMap: false,
             showGameMenu: false,
@@ -192,12 +195,17 @@ class BattlesTop extends Component {
             showInventory: false,
             showCharInfo: false,
             showCreateScreen: false,
-            editorData: {} // Data given to editor
+            editorData: {}, // Data given to editor
+            plugins: []
         };
 
         // Binding of callbacks
         this.bindCallbacks();
         this.initGUICommandTable();
+    }
+
+    showPluginManager() {
+        this.setState({showPlugins: !this.state.showPlugins});
     }
 
     /* Toggles the game editor view. Need to terminate the existing
@@ -451,7 +459,7 @@ class BattlesTop extends Component {
             this.gameConf.seed = new Date().getTime();
         }
 
-        if (typeof window.Worker !== 'undefined') {
+        if (this.canUseWorker()) {
             this.showScreen('CreateScreen');
             this.createGameWorker();
         }
@@ -460,6 +468,11 @@ class BattlesTop extends Component {
             this.game = gameFactory.createNewGame(this.gameConf);
             this.initBeforeNewGame();
         }
+    }
+
+    canUseWorker() {
+        return (typeof window.Worker !== 'undefined') &&
+            !this.pluginManager.anyPluginsEnabled();
     }
 
     /* Creates the new game using a worker to not block the main thread and
@@ -507,7 +520,6 @@ class BattlesTop extends Component {
      */
     setDebugRefsToWindow() {
         if (debug.enabled) {
-            window.RG = RG;
             window.GAME = this.game; // For debugging
             const player = this.game.getPlayer();
             window.PLAYER = player; // For debugging
@@ -632,15 +644,36 @@ class BattlesTop extends Component {
                 const text = reader.result;
                 this.loadedScript = text;
                 try {
-                    /* eslint no-eval: 0 */
+                    // RG.pluginData = null;
+                    /* eslint-disable */
+                    let pluginData = null;
                     eval(text);
+                    if (pluginData) {
+                        this.showMsg(`Script ${file} loaded OK`);
+                        console.log('Now loading plugin', pluginData.name);
+                        pluginData.onLoad();
+                        pluginData.data = text;
+                        this.pluginManager.addPlugin(pluginData);
+                        this.updatePluginList();
+                    }
+                    else {
+                        this.showMsg('No "pluginData = {...} in the script');
+                    }
+                    /* eslint-enable */
                 }
                 catch (e) {
+                    console.error('Script evaluation failed:');
                     console.error(e.message);
                 }
             };
             reader.readAsText(file);
         }
+    }
+
+    updatePluginList() {
+        this.setState({showPlugins: true,
+            plugins: this.pluginManager.getPlugins()
+        });
     }
 
     enableKeys() {
@@ -955,6 +988,14 @@ class BattlesTop extends Component {
                       player={player}
                       showCharInfo={this.state.showCharInfo}
                       toggleScreen={this.toggleScreen}
+                    />
+                }
+
+                {this.state.showPlugins &&
+                    <GamePlugins
+                        pluginManager={this.pluginManager}
+                        plugins={this.state.plugins}
+                        updatePluginList={this.updatePluginList}
                     />
                 }
 
@@ -1413,6 +1454,7 @@ class BattlesTop extends Component {
 
         this.onLoadScript = this.onLoadScript.bind(this);
         this.loadScript = this.loadScript.bind(this);
+        this.updatePluginList = this.updatePluginList.bind(this);
     }
 
 }
