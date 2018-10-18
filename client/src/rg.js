@@ -754,10 +754,34 @@ RG.EVT_ACTOR_USED_STAIRS = Symbol('EVT_ACTOR_USED_STAIRS');
 RG.TYPE_ACTOR = 'actors';
 RG.TYPE_ELEM = 'elements';
 RG.TYPE_ITEM = 'items';
-RG.TYPE_TRAP = 'traps';
 
+// Constants for different item types
+RG.ITEM = {};
+RG.ITEM.BASE = 'base';
+RG.ITEM.FOOD = 'food';
+RG.ITEM.BOOK = 'book';
+RG.ITEM.CORPSE = 'corpse';
+RG.ITEM.WEAPON = 'weapon';
+RG.ITEM.ARMOUR = 'armour';
+RG.ITEM.SPIRITGEM = 'spiritgem';
+RG.ITEM.GOLD = 'gold';
+RG.ITEM.MINERAL = 'mineral';
+RG.ITEM.MISSILE = 'missile';
+RG.ITEM.MISSILE_WEAPON = 'missileweapon';
+RG.ITEM.AMMUNITION = 'ammo';
+RG.ITEM.POTION = 'potion';
+RG.ITEM.RUNE = 'rune';
+RG.ITEM.GOLD_COIN = 'goldcoin';
+
+/*
 RG.ITEM_TYPES = ['ammo', 'armour', 'food', 'gold', 'goldcoin',
     'missile', 'missileweapon', 'potion', 'spiritgem', 'weapon'];
+*/
+
+// This is a subset of ITEM_TYPES, excluding gold items
+RG.SHOP_TYPES = ['ammo', 'armour', 'food', 'mineral',
+    'missile', 'missileweapon', 'potion', 'rune', 'spiritgem', 'weapon'
+];
 
 RG.USE = {
     DRINK: 'DRINK',
@@ -825,10 +849,6 @@ RG.GOLD_COIN_NAME = 'Gold coin';
 RG.HUNGER_PROB = 0.10; // Prob. of starvation to cause damage every turn
 RG.HUNGER_DMG = 1; // Damage caused by starvation kicking in
 
-// This is a subset of ITEM_TYPES, excluding gold items
-RG.SHOP_TYPES = ['ammo', 'armour', 'food',
-    'missile', 'missileweapon', 'potion', 'rune', 'spiritgem', 'weapon'
-];
 
 // Alignments (TODO make more diverse)
 RG.ALIGN_GOOD = 'ALIGN_GOOD';
@@ -996,7 +1016,7 @@ RG.getForestConf = function(cols, rows) {
 
 RG.cellRenderArray = RG.cellRenderVisible;
 
-RG.PROP_TYPES = [RG.TYPE_ACTOR, RG.TYPE_ELEM, RG.TYPE_ITEM, RG.TYPE_TRAP];
+RG.PROP_TYPES = [RG.TYPE_ACTOR, RG.TYPE_ELEM, RG.TYPE_ITEM];
 // Fighting modes
 RG.FMODES = [RG.FMODE_NORMAL, RG.FMODE_FAST, RG.FMODE_SLOW];
 
