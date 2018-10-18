@@ -2,6 +2,7 @@
   "name": "battles",
   "version": "0.0.1",
   "description": "Roguelike game situated in cold north",
+  "main": "main.electron.js",
   "dependencies": {
     "babel-preset-es2015": "^6.22.0",
     "babel-preset-react": "^6.22.0",
@@ -43,6 +44,7 @@
     "chai": "~3.5.0",
     "chai-enzyme": "^0.8.0",
     "coveralls": "^2.12.0",
+    "electron": "^3.0.4",
     "enzyme": "^3.0.0",
     "eslint-plugin-import": "^2.14.0",
     "eslint-plugin-prefer-object-spread": "^1.1.0",
@@ -89,6 +91,7 @@
     "create-config-devel": "cp -n client/config/devel.js public/config.js",
     "coverage": "perl bin/cov_test.pl",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
+    "electron": "electron .",
     "hooks": "perl bin/deploy_hooks",
     "start": "python -m SimpleHTTPServer",
     "test": "mocha --compilers js:babel-core/register --recursive tests/client/src",
