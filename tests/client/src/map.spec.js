@@ -7,14 +7,15 @@ const RG = require('../../../client/src/battles');
 const RGTest = require('../../roguetest');
 const Cell = require('../../../client/src/map.cell');
 const System = require('../../../client/src/system');
+const Element = require('../../../client/src/element');
 
 const Actor = RG.Actor.Rogue;
 const Level = RG.Map.Level;
-const Element = RG.Element.Base;
+const ElementBase = Element.Base;
 const Item = RG.Item.Base;
 const Container = RG.Item.Container;
 const Factory = RG.FACT;
-const Stairs = RG.Element.Stairs;
+const Stairs = Element.Stairs;
 
 RG.cellRenderArray = RG.cellRenderVisible;
 
@@ -25,14 +26,14 @@ RG.cellRenderArray = RG.cellRenderVisible;
 describe('Map.Cell', () => {
     it('Holds elements and actors', () => {
         const actor = Factory.createPlayer('Player', 50);
-        const cell = new Cell(0, 0, new Element('wall'));
+        const cell = new Cell(0, 0, new Element.Wall('wall'));
         expect(cell.isFree()).to.equal(false);
         expect(cell.hasPropType('wall')).to.equal(true);
         expect(cell.hasPropType('actors')).to.equal(false);
         expect(cell.lightPasses()).to.equal(false);
 
         // Setting an element property of the cell
-        const floorElem = new Element('floor');
+        const floorElem = new ElementBase('floor');
         cell.setProp('elements', floorElem);
         expect(cell.hasPropType('floor')).to.equal(true);
         expect(cell.hasProp('elements')).to.equal(true);
@@ -57,8 +58,8 @@ describe('Map.Cell', () => {
     });
 
     it('can have doors', () => {
-        const cell = new Cell(0, 0, new Element('floor'));
-        const door = new RG.Element.Door();
+        const cell = new Cell(0, 0, new ElementBase('floor'));
+        const door = new Element.Door();
         cell.setProp(RG.TYPE_ELEM, door);
         expect(cell.hasDoor(), 'Cell should have a door').to.be.true;
     });
@@ -66,11 +67,11 @@ describe('Map.Cell', () => {
 
 describe('RG.getStyleClassForCell()', () => {
     it('Returns correct CSS class and char', () => {
-        const cell = new Cell(0, 0, new Element('wall'));
+        const cell = new Cell(0, 0, new Element.Wall('wall'));
         cell.setExplored();
         expect(RG.getStyleClassForCell(cell)).to.equal('cell-element-wall');
 
-        const wallCell = new Cell(0, 0, new Element('wall'));
+        const wallCell = new Cell(0, 0, new Element.Wall('wall'));
         wallCell.setExplored();
         expect(wallCell.hasProp('elements')).to.equal(false);
         expect(RG.getStyleClassForCell(wallCell)).to.equal('cell-element-wall');
@@ -79,7 +80,7 @@ describe('RG.getStyleClassForCell()', () => {
         const stylesCopy = JSON.parse(JSON.stringify(RG.cellStyles));
         stylesCopy[RG.TYPE_ACTOR]['Player'] = 'cell-actor-player';
 
-        const floorCell = new Cell(0, 0, new Element('floor'));
+        const floorCell = new Cell(0, 0, new ElementBase('floor'));
         const actor = Factory.createPlayer('Player', 50);
         floorCell.setExplored();
         expect(RG.getStyleClassForCell(floorCell))
@@ -98,7 +99,7 @@ describe('RG.getStyleClassForCell()', () => {
 
 describe('Items in map cells', () => {
     it('Is placed in a cell and needs an owner', () => {
-        const cell = new Cell(0, 1, new Element('floor'));
+        const cell = new Cell(0, 1, new ElementBase('floor'));
         cell.setExplored();
         const item = new Item('MyFood');
         item.setType('fooditem');
@@ -118,7 +119,7 @@ describe('Items in map cells', () => {
     });
 
     it('Container can also be placed into the cell', () => {
-        const cell = new Cell(1, 2, new Element('floor'));
+        const cell = new Cell(1, 2, new ElementBase('floor'));
         cell.setExplored();
         const container = new Container(cell);
         expect(container.getX()).to.equal(1);
@@ -159,9 +160,9 @@ describe('Items in map cells', () => {
     });
 
     it('Can contain open/closed doors', () => {
-        const openDoor = new RG.Element.Door(true);
+        const openDoor = new Element.Door(true);
         openDoor.openDoor();
-        const doorCell = new Cell(0, 1, new RG.Element.Base('floor'));
+        const doorCell = new Cell(0, 1, new Element.Base('floor'));
         doorCell.setProp('elements', openDoor);
         expect(doorCell.hasDoor()).to.equal(true);
         RGTest.checkChar(openDoor, '/');
@@ -259,7 +260,7 @@ describe('Moving actors around in the game', () => {
         expect(actor.getY()).to.equal(3);
 
         // Create a wall to block the passage
-        const wall = new Element('wall');
+        const wall = new Element.Wall('wall');
         level.getMap().setBaseElemXY(4, 4, wall);
         movSystem.update();
         expect(actor.getX(), "X didn't change due to wall").to.equal(2);
@@ -345,7 +346,7 @@ describe('Moving actors around in the game', () => {
 // SHOPS
 //--------------------------------------------------------------------------
 
-describe('Element.Shop', () => {
+describe('ElementBase.Shop', () => {
     it('Has special Shop elements', () => {
         const level = RG.FACT.createLevel('arena', 30, 30);
         const map = level.getMap();
@@ -365,7 +366,7 @@ describe('Element.Shop', () => {
         hundredCoins.count = 300;
         adventurer.getInvEq().addItem(hundredCoins);
 
-        const shopElem = new RG.Element.Shop();
+        const shopElem = new Element.Shop();
         const shopCell = map.getCell(1, 1);
         shopElem.setShopkeeper(shopkeeper);
         shopCell.setProp('elements', shopElem);
