@@ -174,8 +174,8 @@ class CmdDropItem {
       const actorCell = this._actor.getCell();
       let result = false;
       let msg = `Failed to drop ${obj.item.getName()}`;
-      const dropCount = obj.count <= obj.item.count ? obj.count
-        : obj.item.count;
+      const dropCount = obj.count <= obj.item.getCount() ? obj.count
+        : obj.item.getCount();
 
       let hasActiveShop = false;
       if (actorCell.hasShop()) {
