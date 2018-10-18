@@ -6,6 +6,7 @@
 const RG = require('./rg');
 const Entity = require('./entity');
 const Mixin = require('./mixin');
+const ObjectShell = require('./objectshellparser');
 
 RG.Element = {};
 
@@ -93,7 +94,7 @@ RG.elementsCreated = 0;
 class RGElementWall extends RGElementBase {
 
     constructor(name) {
-        super(name, 'wall');
+        super(name);
         this.add(new RG.Component.Opaque());
         const impassable = new RG.Component.Impassable();
         impassable.setAllImpassable();
@@ -543,85 +544,6 @@ class RGElementExploration extends Mixin.Locatable(RGElementBase) {
 }
 RG.Element.Exploration = RGElementExploration;
 
-/* A tree element. */
-class RGElementTree extends RGElementBase {
-    constructor() {
-        super('tree');
-        this.add(new RG.Component.Opaque());
-    }
-}
-RG.Element.Tree = RGElementTree;
-
-/* A grass element. */
-class RGElementGrass extends RGElementBase {
-    constructor() {
-        super('grass');
-    }
-}
-RG.Element.Grass = RGElementGrass;
-
-/* A stone element. */
-class RGElementStone extends RGElementBase {
-    constructor() {
-        super('stone');
-    }
-}
-RG.Element.Stone = RGElementStone;
-
-/* High rock which is difficult to pass through. */
-class RGElementHighRock extends RGElementBase {
-    constructor() {
-        super('highrock');
-        this.add(new RG.Component.Opaque());
-        this.add(new RG.Component.Impassable());
-    }
-}
-RG.Element.HighRock = RGElementHighRock;
-
-/* A chasm element. */
-class RGElementChasm extends RGElementBase {
-    constructor() {
-        super('chasm');
-        this.add(new RG.Component.Impassable());
-    }
-}
-RG.Element.Chasm = RGElementChasm;
-
-/* A water element. */
-class RGElementWater extends RGElementBase {
-    constructor() {
-        super('water');
-    }
-}
-RG.Element.Water = RGElementWater;
-
-/* A sky element. */
-class RGElementSky extends RGElementBase {
-    constructor() {
-        super('sky');
-        this.add(new RG.Component.Impassable());
-    }
-}
-RG.Element.Sky = RGElementSky;
-
-/* A sky element. */
-class RGElementLava extends RGElementBase {
-    constructor() {
-        super('lava');
-        this.add(new RG.Component.Impassable());
-    }
-}
-RG.Element.Lava = RGElementLava;
-
-/* A fort element. */
-class RGElementFort extends RGElementBase {
-    constructor() {
-        super('fort');
-        this.add(new RG.Component.Impassable());
-    }
-}
-RG.Element.Fort = RGElementFort;
-
 /* Used in proc gen to denote places for actors, items and other elements. For
 * example, different places for stairs can be set, and then one chosen. */
 class RGElementPlaceholder extends Mixin.Locatable(RGElementBase) {
@@ -660,25 +582,27 @@ class RGElementMarker extends Mixin.Locatable(RGElementBase) {
 RG.Element.Marker = RGElementMarker;
 
 RG.ELEM = {};
+const parser = ObjectShell.getParser();
 // Constant elements which can be used by all levels. freeze()
 // used to prevent any mutations. Note that elements with any state
 // in them should not be shared (unless state is common for all)
-RG.ELEM.BRIDGE = Object.freeze(new RGElementBase('bridge'));
-RG.ELEM.CHASM = Object.freeze(new RG.Element.Chasm());
+RG.ELEM.BRIDGE = Object.freeze(parser.createElement('bridge'));
+RG.ELEM.CHASM = Object.freeze(parser.createElement('chasm'));
+
 RG.ELEM.FLOOR = Object.freeze(new RGElementBase('floor'));
 RG.ELEM.FLOOR_CAVE = Object.freeze(new RGElementBase('floorcave'));
 RG.ELEM.FLOOR_CRYPT = Object.freeze(new RGElementBase('floorcrypt'));
 RG.ELEM.FLOOR_HOUSE = Object.freeze(new RGElementBase('floorhouse'));
 
-RG.ELEM.GRASS = Object.freeze(new RG.Element.Grass());
-RG.ELEM.HIGH_ROCK = Object.freeze(new RG.Element.HighRock());
-RG.ELEM.LAVA = Object.freeze(new RG.Element.Lava());
+RG.ELEM.GRASS = Object.freeze(parser.createElement('grass'));
+RG.ELEM.HIGH_ROCK = Object.freeze(parser.createElement('highrock'));
+RG.ELEM.LAVA = Object.freeze(parser.createElement('lava'));
 RG.ELEM.PATH = Object.freeze(new RGElementBase('path'));
-RG.ELEM.ROAD = Object.freeze(new RGElementBase('road'));
-RG.ELEM.SKY = Object.freeze(new RG.Element.Sky());
-RG.ELEM.SNOW = Object.freeze(new RGElementBase('snow'));
-RG.ELEM.STONE = Object.freeze(new RG.Element.Stone());
-RG.ELEM.TREE = Object.freeze(new RG.Element.Tree());
+RG.ELEM.ROAD = Object.freeze(parser.createElement('road'));
+RG.ELEM.SKY = Object.freeze(parser.createElement('sky'));
+RG.ELEM.SNOW = Object.freeze(parser.createElement('snow'));
+RG.ELEM.STONE = Object.freeze(parser.createElement('stone'));
+RG.ELEM.TREE = Object.freeze(parser.createElement('tree'));
 
 RG.ELEM.WALL = Object.freeze(new RGElementWall('wall'));
 RG.ELEM.WALL_CAVE = Object.freeze(new RGElementWall('wallcave'));
@@ -687,8 +611,9 @@ RG.ELEM.WALL_ICE = Object.freeze(new RGElementWall('wallice'));
 RG.ELEM.WALL_WOODEN = Object.freeze(new RGElementWall('wallwooden'));
 RG.ELEM.WALL_MOUNT = Object.freeze(new RGElementWall('wallmount'));
 
-RG.ELEM.WATER = Object.freeze(new RG.Element.Water());
-RG.ELEM.FORT = Object.freeze(new RG.Element.Fort());
+// RG.ELEM.WATER = Object.freeze(new RG.Element.Water());
+RG.ELEM.WATER = Object.freeze(parser.createElement('water'));
+RG.ELEM.FORT = Object.freeze(parser.createElement('fort'));
 
 RG.elemTypeToObj = {};
 RG.elemTypeToIndex = {};
