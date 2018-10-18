@@ -21,6 +21,7 @@ RG.Component = require('./component');
 RG.Item = require('./item');
 RG.Spell = require('./spell');
 RG.System = require('./system');
+RG.System.Manager = require('./system/system.manager');
 RG.BTree = require('./aisequence');
 
 RG.Goals = require('./goals');
