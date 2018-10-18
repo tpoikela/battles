@@ -97,6 +97,9 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
             food: {
                 energy: 'setEnergy'
             }
+        },
+        elements: {
+            type: 'setType'
         }
     };
 
@@ -408,6 +411,10 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
                     }
                 }
                 return new RG.Item.Base(obj.name); // generic, useless
+            case RG.TYPE_ELEM: {
+                const type = obj.type || obj.name;
+                return new RG.Element.Base(obj.name, type);
+            }
             default: break;
         }
         return null;
@@ -851,13 +858,15 @@ RG.ObjectShell.Parser = function() {
     this._base = {
         actors: {},
         effects: {},
-        items: {}
+        items: {},
+        elements: {}
     };
 
     this._db = {
         actors: {},
         effects: {},
-        items: {}
+        items: {},
+        elements: {}
     };
 
     this._dbDanger = {}; // All entries indexed by danger
@@ -865,7 +874,8 @@ RG.ObjectShell.Parser = function() {
 
     this._dbNoRandom = {
         actors: {},
-        items: {}
+        items: {},
+        elements: {}
     }; // All entries excluded from random generation
 
     this._creator = new RG.ObjectShell.Creator(this._db, this._dbNoRandom);
@@ -1071,6 +1081,10 @@ RG.ObjectShell.Parser = function() {
 
     this.createItem = function(name) {
         return this.createActualObj(RG.TYPE_ITEM, name);
+    };
+
+    this.createElement = function(name) {
+        return this.createActualObj(RG.TYPE_ELEM, name);
     };
 
     this.hasItem = function(name) {
