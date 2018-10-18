@@ -860,6 +860,8 @@ RG.ACTOR_RACES = ['catfolk', 'dogfolk', 'wolfclan', 'wildling', 'goblin',
     'bearfolk', 'dwarf', 'human', 'hyrkhian'];
 RG.ACTOR_RACES = RG.ACTOR_RACES.sort(); // Too lazy to manually sort them
 
+RG.ALL_RACES = ['birdfolk'].concat(RG.ACTOR_RACES);
+
 // Constants for movement directions
 RG.CARDINAL_DIR = Object.freeze(['north', 'south', 'east', 'west']);
 RG.CARDINAL_DIR_ABBR = Object.freeze(['N', 'S', 'E', 'W']);
