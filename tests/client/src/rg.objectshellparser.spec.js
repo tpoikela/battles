@@ -264,6 +264,20 @@ describe('RG.ObjectShell.Parser', () => {
 
     });
 
+    it('can create elements from object shells', function() {
+        const parser = new Parser();
+        const waterShell = parser.parseObjShell(RG.TYPE_ELEM, {
+            name: 'water', char: '~', className: 'cell-element-water'
+        });
+        expect(waterShell).to.not.be.empty;
+
+        const waterElem = parser.createElement('water');
+        expect(waterElem).to.not.be.empty;
+        expect(waterElem.getName()).to.equal('water');
+        RGTest.checkChar(waterElem, '~');
+        RGTest.checkCSSClassName(waterElem, 'cell-element-water');
+    });
+
 });
 
 //---------------------------------------------------------------------------
