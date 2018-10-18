@@ -1,7 +1,6 @@
 
 const $DEBUG = 0;
 
-
 /* Main object of the package for encapsulating all other objects. */
 const RG = {};
 
@@ -10,8 +9,8 @@ RG.gameTitle = 'Battles in the North (BitN)';
 // Can be set to true for testing, when error conditions are checked
 RG.suppressErrorMessages = false;
 
-RG.cellRenderVisible = ['actors', 'items', 'traps', 'elements'];
-RG.cellRenderAlways = ['items', 'traps', 'elements'];
+RG.cellRenderVisible = ['actors', 'items', 'elements'];
+RG.cellRenderAlways = ['items', 'elements'];
 
 /* Given Map.Cell, returns CSS classname used for styling that cell. */
 RG.getCssClassForCell = function(cell, isVisible) {
@@ -31,7 +30,7 @@ RG.getCssClassFullMap = function(cell) {
         return this.cellStyles.elements[baseType];
     }
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 3; i++) {
         const propType = this.cellRenderVisible[i];
         if (cell.hasProp(propType)) {
             const props = cell.getProp(propType);
@@ -60,7 +59,7 @@ RG.getCharFullMap = function(cell) {
         return this.charStyles.elements[baseType];
     }
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 3; i++) {
         if (cell.hasProp(this.cellRenderVisible[i])) {
             const props = cell.getProp(this.cellRenderVisible[i]);
             const styles = this.charStyles[this.cellRenderVisible[i]];
@@ -199,8 +198,6 @@ RG.getCssClass = function(prop, name, state = null) {
 RG.charStyles = {
     elements: {
         battle: 'X',
-        bridge: '=',
-        chasm: '~',
         default: '.',
         exit: '.',
         exploration: '?',
@@ -208,10 +205,6 @@ RG.charStyles = {
         floorcave: '.',
         floorcrypt: '.',
         floorhouse: '.',
-        fort: '#',
-        grass: '"',
-        highrock: '^',
-        lava: '~',
         lever: '&',
         leverdoor: {
             isClosed: '+', // if isClosed() returns true
@@ -225,22 +218,16 @@ RG.charStyles = {
         path: '.',
         passage: '.',
         placeholder: '?',
-        sky: '~',
-        road: '.',
         shop: ':',
-        snow: '.',
         stairsDown: '>',
         stairsUp: '<',
-        stone: '^',
         town: 'o',
-        tree: 'T',
         wall: '#',
         wallcave: '#',
         wallcrypt: '#',
         wallice: '#',
         wallwooden: '#',
         wallmount: '^',
-        water: '~',
         // Elements with different states
         door: {
             isClosed: '+', // if isClosed() returns true
@@ -260,16 +247,13 @@ RG.charStyles = {
         corpse: '§',
         potion: '!',
         spiritgem: '*'
-    },
-    traps: {}
+    }
 };
 
 // These are used to select the CSS class for map cells.
 RG.cellStyles = {
     elements: {
         battle: 'cell-element-battle',
-        bridge: 'cell-element-bridge',
-        chasm: 'cell-element-chasm',
         default: 'cell-element-default',
         door: 'cell-element-door',
         exit: 'cell-element-exit',
@@ -278,36 +262,26 @@ RG.cellStyles = {
         floorcave: 'cell-element-floor-cave',
         floorcrypt: 'cell-element-floor-crypt',
         floorhouse: 'cell-element-floor-house',
-        fort: 'cell-element-fort',
-        grass: 'cell-element-grass',
-        highrock: 'cell-element-highrock',
         marker: {
             getClassName: '', // Use value from get
             default: 'cell-element-marker'
         },
         mountain: 'cell-element-mountain',
-        lava: 'cell-element-lava',
         lever: 'cell-element-door',
         leverdoor: 'cell-element-door',
         passage: 'cell-element-passage',
         path: 'cell-element-path',
         placeholder: 'cell-element-placeholder',
-        road: 'cell-element-road',
-        sky: 'cell-element-sky',
         shop: 'cell-element-shop',
-        snow: 'cell-element-snow',
-        stone: 'cell-element-stone',
         stairsDown: 'cell-element-stairs',
         stairsUp: 'cell-element-stairs',
         town: 'cell-element-town',
-        tree: 'cell-element-tree',
         wall: 'cell-element-wall',
         wallcave: 'cell-element-wall-cave',
         wallcrypt: 'cell-element-wall-crypt',
         wallice: 'cell-element-wall-ice',
         wallwooden: 'cell-element-wall-wooden',
-        wallmount: 'cell-element-wall-mount',
-        water: 'cell-element-water'
+        wallmount: 'cell-element-wall-mount'
     },
     actors: {
         default: 'cell-actor-default',
@@ -321,9 +295,6 @@ RG.cellStyles = {
         potion: 'cell-item-potion',
         spiritgem: 'cell-item-spiritgem',
         default: 'cell-item-default'
-    },
-    traps: {
-        default: 'cell-traps'
     }
 };
 
