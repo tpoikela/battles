@@ -1138,99 +1138,20 @@ const FactoryWorld = function() {
         return battleZone;
     };
 
-    /** Creates a connection between an area and a zone such as city, mountain
-     * or dungeon. Unless configured, connects the zone entrance to a random
-     * location in the area.
-     * @param {World.Area} area - Area where zone is located in
-     * @param {World.Zone} zone - Zone which is connected to area
-     * @param {object} conf - Config for the zone
-     * @return {void}
-     * */
-    this.createAreaZoneConnection = (area, zone, conf) => {
-        this._verif.verifyConf('createAreaZoneConnection', conf, ['x', 'y']);
-        this.debug('Creating area-zone connections');
 
-        const x = conf.x;
-        const y = conf.y;
-        const tile = area.getTileXY(x, y);
-        const tileLevel = tile.getLevel();
-        debugPrintConfAndTile(conf, tileLevel, ' CALL 1');
-
-        const [tileSX, tileSY] = this.getTileStairsXY(tileLevel, conf);
-
-        if (typeof zone.getEntrances === 'function') {
-            const entrances = zone.getEntrances();
-            if (entrances.length > 0) {
-                let entryStairs = entrances[0];
-                const entryLevel = entryStairs.getSrcLevel();
-                const zoneType = zone.getType();
-
-                this.debug('Connecting area-zone by entrance');
-
-                let conns = null;
-                if (zoneType.match(/(city|mountain)/) || conf.connectEdges) {
-
-                    if (debug.enabled) {
-                        conns = entryLevel.getConnections();
-                        this.debug(`conn length before: ${conns.length}`);
-                    }
-
-                    const zoneStairs = this.createNewZoneConnects(zone,
-                        entryLevel);
-                    entryStairs = this.getEntryStairs(entryLevel, entryStairs,
-                        zoneStairs);
-                }
-
-                let name = '';
-                if (zoneType === 'city') {name = 'town';}
-                else if (zoneType === 'mountain') {name = 'mountain';}
-                else if (Array.isArray(entryStairs)) {
-                    const isDown = !entryStairs[0].isDown();
-                    name = isDown ? 'stairsDown' : 'stairsUp';
-                }
-                else {
-                    const isDown = !entryStairs.isDown();
-                    name = isDown ? 'stairsDown' : 'stairsUp';
-                }
-
-                debugPrintConfAndTile(conf, tileLevel, ' CALL 2');
-                const tileStairs = new Stairs(name, tileLevel, entryLevel);
-                try {
-                    tileLevel.addStairs(tileStairs, tileSX, tileSY);
-                    tileStairs.connect(entryStairs);
-                }
-                catch (e) {
-                    RG.log('Given conf: ' + JSON.stringify(conf));
-                    throw e;
-                }
-
-                this.debugPrintCityConns(zoneType, entryLevel);
-            }
-            else if (!conf.hasOwnProperty('connectToAreaXY')) {
-                const msg = `No entrances in ${zone.getHierName()}.`;
-                RG.err('Factory.World', 'createAreaZoneConnection',
-                    `${msg}. Cannot connect to tile.`);
-            }
+    this.getConnectionName = function(zoneType, stairs) {
+        let name = '';
+        if (zoneType === 'city') {name = 'town';}
+        else if (zoneType === 'mountain') {name = 'mountain';}
+        else if (Array.isArray(stairs)) {
+            const isDown = !stairs[0].isDown();
+            name = isDown ? 'stairsDown' : 'stairsUp';
         }
-        else { // No entrance for zone, error out
-            RG.err('Factory.World', 'createAreaZoneConnection',
-                'No getEntrances method for zone.');
+        else {
+            const isDown = !stairs.isDown();
+            name = isDown ? 'stairsDown' : 'stairsUp';
         }
-
-        // Make extra connections between the area and zone. This is useful
-        // if city/dungeon needs to have 2 or more entrances
-        if (conf.hasOwnProperty('connectToXY')) {
-            // Obsolete feature
-            RG.err('Factory.World', 'createAreaZoneConnection',
-              'Deprecated! connectToXY not supported. Use connectToAreaXY');
-        }
-        else if (conf.hasOwnProperty('connectToAreaXY')) {
-            const connectionsXY = conf.connectToAreaXY;
-            connectionsXY.forEach(conn => {
-                this.processConnObject(conn, zone, tileLevel);
-            });
-        }
-
+        return name;
     };
 
     /* Returns x,y coord for stairs placed on the tile level. */
@@ -1446,6 +1367,85 @@ const FactoryWorld = function() {
     };
 
 }; // FactoryWorld
+
+
+/** Creates a connection between an area and a zone such as city, mountain
+ * or dungeon. Unless configured, connects the zone entrance to a random
+ * location in the area.
+ * @param {World.Area} area - Area where zone is located in
+ * @param {World.Zone} zone - Zone which is connected to area
+ * @param {object} conf - Config for the zone
+ * @return {void}
+ * */
+FactoryWorld.prototype.createAreaZoneConnection = function(area, zone, conf) {
+    this._verif.verifyConf('createAreaZoneConnection', conf, ['x', 'y']);
+    this.debug('Creating area-zone connections');
+
+    const {x, y} = conf;
+    const tile = area.getTileXY(x, y);
+    const tileLevel = tile.getLevel();
+    debugPrintConfAndTile(conf, tileLevel, ' CALL 1');
+
+    if (typeof zone.getEntrances !== 'function') {
+        // No entrance for zone, error out
+        RG.err('Factory.World', 'createAreaZoneConnection',
+            'No getEntrances method for zone.');
+    }
+
+    const entrances = zone.getEntrances();
+    if (entrances.length > 0) {
+        let entryStairs = entrances[0];
+        const entryLevel = entryStairs.getSrcLevel();
+        const zoneType = zone.getType();
+
+        this.debug('Connecting area-zone by entrance');
+
+        let conns = null;
+        if (zoneType.match(/(city|mountain)/) || conf.connectEdges) {
+
+            if (debug.enabled) {
+                conns = entryLevel.getConnections();
+                this.debug(`conn length before: ${conns.length}`);
+            }
+
+            const zoneStairs = this.createNewZoneConnects(zone,
+                entryLevel);
+            entryStairs = this.getEntryStairs(entryLevel, entryStairs,
+                zoneStairs);
+        }
+
+        const connName = this.getConnectionName(zoneType, entryStairs);
+
+        debugPrintConfAndTile(conf, tileLevel, ' CALL 2');
+        const tileStairs = new Stairs(connName, tileLevel, entryLevel);
+        const [tileSX, tileSY] = this.getTileStairsXY(tileLevel, conf);
+        try {
+            tileLevel.addStairs(tileStairs, tileSX, tileSY);
+            tileStairs.connect(entryStairs);
+        }
+        catch (e) {
+            RG.log('Given conf: ' + JSON.stringify(conf));
+            throw e;
+        }
+
+        this.debugPrintCityConns(zoneType, entryLevel);
+    }
+    else if (!conf.hasOwnProperty('connectToAreaXY')) {
+        const msg = `No entrances in ${zone.getHierName()}.`;
+        RG.err('Factory.World', 'createAreaZoneConnection',
+            `${msg}. Cannot connect to tile.`);
+    }
+
+    // Make extra connections between the area and zone. This is useful
+    // if city/dungeon needs to have 2 or more entrances in different places
+    if (conf.hasOwnProperty('connectToAreaXY')) {
+        const connectionsXY = conf.connectToAreaXY;
+        connectionsXY.forEach(conn => {
+            this.processConnObject(conn, zone, tileLevel);
+        });
+    }
+
+};
 
 /* Used for printing debug messages only. Can be enabled with
  * DEBUG= env var. */
