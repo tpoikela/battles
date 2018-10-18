@@ -1,5 +1,6 @@
 /* Handles system creation and updates. */
 
+const RG = require('../rg');
 const System = require('./index');
 
 const SystemManager = function(engine, pool) {
@@ -11,44 +12,24 @@ const SystemManager = function(engine, pool) {
     // - Damage must be processed after all damaging effects (attacks/spells..)
     // - Exp points granted after exp giving actions are processed
     // - Animations should be seen before actors are killed.
-    this.systemOrder = [
-        'AreaEffects', 'Disability', 'SpiritBind', 'BaseAction',
-        'Equip', 'Attack', 'Chat', 'Shop', 'SpellCast', 'SpellEffect',
-        'Missile', 'Movement', 'Effects', 'Animation', 'Damage', 'Battle',
-        'Skills', 'Quest', 'ExpPoints', 'Communication', 'Events'
-    ];
+    this.systemOrder = SystemManager.systemOrder;
 
     const allSys = {};
-    allSys.Disability = new System.Disability(
-        ['Stun', 'Paralysis'], pool);
-    allSys.SpiritBind = new System.SpiritBind(['SpiritBind'], pool);
-    allSys.BaseAction = new System.BaseAction(['Pickup', 'UseStairs',
-        'OpenDoor', 'UseItem', 'UseElement', 'Jump', 'Read', 'Give'], pool);
-    allSys.Chat = new System.Chat(['Chat'], pool);
-    allSys.Shop = new System.Shop(['Transaction'], pool);
-    allSys.Attack = new System.Attack(['Attack'], pool);
-    allSys.Missile = new System.Missile(['Missile'], pool);
-    allSys.Movement = new System.Movement(['Movement'], pool);
-    allSys.SpellCast = new System.SpellCast(['SpellCast',
-        'PowerDrain'], pool);
-    allSys.SpellEffect = new System.SpellEffect(
-        ['SpellRay', 'SpellCell', 'SpellMissile', 'SpellArea', 'SpellSelf'],
-        pool);
-    allSys.Effects = new System.Effects(['Effects'], pool);
-    allSys.Animation = new System.Animation(
-        ['Animation'], pool);
-    allSys.Damage = new System.Damage(['Damage', 'Health'], pool);
-    allSys.Battle = new System.Battle(['BattleOver', 'BattleOrder'], pool);
-    allSys.Skills = new System.Skills(['SkillsExp'], pool);
-    allSys.ExpPoints = new System.ExpPoints(
-        ['ExpPoints', 'Experience'], pool);
-    allSys.Communication = new System.Communication(
-        ['Communication'], pool);
-    allSys.Events = new System.Events(['Event'], pool);
-    allSys.AreaEffects = new System.AreaEffects(['Flame'], pool);
-    allSys.Equip = new System.Equip(['Equip'], pool);
-    allSys.Quest = new System.Quest(['GiveQuest', 'QuestCompleted',
-        'QuestTargetEvent'], pool);
+    Object.keys(SystemManager.systems).forEach(name => {
+        const comps = SystemManager.systems[name];
+        if (comps.create) {
+            allSys[name] = comps.create(comps.comps, pool);
+        }
+        else if (Array.isArray(comps)) {
+            if (System[name]) {
+                allSys[name] = new System[name](comps, pool);
+            }
+            else {
+                RG.err('SystemManager', 'new',
+                    `System[${name}] not found for new`);
+            }
+        }
+    });
     this.systems = allSys;
 
     // Systems updated once each game loop (once for each player action)
@@ -82,5 +63,83 @@ SystemManager.prototype.updateLoopSystems = function() {
     }
 };
 
+SystemManager.systemOrder = [
+    'AreaEffects', 'Disability', 'SpiritBind', 'BaseAction',
+    'Equip', 'Attack', 'Chat', 'Shop', 'SpellCast', 'SpellEffect',
+    'Missile', 'Movement', 'Effects', 'Animation', 'Damage', 'Battle',
+    'Skills', 'Quest', 'ExpPoints', 'Communication', 'Events'
+];
+
+SystemManager.addSystemBefore = function(system, before) {
+    const index = SystemManager.systemOrder.indexOf(before);
+    if (index >= 0) {
+        SystemManager.insertSystemAt(index, system);
+    }
+};
+
+SystemManager.addSystemAfter = function(system, after) {
+    const index = SystemManager.systemOrder.indexOf(after);
+    if (index >= 0) {
+        SystemManager.insertSystemAt(index + 1, system);
+    }
+};
+
+SystemManager.removeSystem = function(system) {
+    delete SystemManager.systems[system];
+    const index = SystemManager.systemOrder.indexOf(system);
+    if (index >= 0) {
+        SystemManager.systemOrder.splice(index, 1);
+    }
+};
+
+SystemManager.insertSystemAt = function(index, system) {
+    SystemManager.systemOrder.splice(index, 0, system.name);
+    if (typeof system.create === 'function') {
+        if (system.name) {
+            SystemManager.systems[system.name] = system;
+        }
+        else {
+            RG.err('SystemManager', 'insertSystemAt',
+                'No system.name given');
+        }
+    }
+    else {
+        RG.err('SystemManager', 'insertSystemAt',
+            'Object must specify system.create');
+    }
+};
+
+
+/* Defines which systems are created by the SystemManager. There are two ways
+ * to add an entry:
+ * 1) System object name in System, ie SystemDamage + list of components
+ * 2) System name: {create: <factory func>, comps: ['Comp1'], ['Comp2']}
+ *    in which factory func must return a System object.
+ */
+SystemManager.systems = {
+    Disability: ['Stun', 'Paralysis'],
+    SpiritBind: ['SpiritBind'],
+    BaseAction: ['Pickup', 'UseStairs', 'OpenDoor', 'UseItem', 'UseElement',
+        'Jump', 'Read', 'Give'],
+    Chat: ['Chat'],
+    Shop: ['Transaction'],
+    Attack: ['Attack'],
+    Missile: ['Missile'],
+    Movement: ['Movement'],
+    Damage: ['Damage', 'Health'],
+    Battle: ['BattleOver', 'BattleOrder'],
+    Skills: ['SkillsExp'],
+    Events: ['Event'],
+    AreaEffects: ['Flame'],
+    Equip: ['Equip'],
+    SpellCast: ['SpellCast', 'PowerDrain'],
+    SpellEffect: ['SpellRay', 'SpellCell', 'SpellMissile', 'SpellArea',
+        'SpellSelf'],
+    Effects: ['Effects'],
+    Animation: ['Animation'],
+    ExpPoints: ['ExpPoints', 'Experience'],
+    Communication: ['Communication'],
+    Quest: ['GiveQuest', 'QuestCompleted', 'QuestTargetEvent']
+};
 
 module.exports = SystemManager;
