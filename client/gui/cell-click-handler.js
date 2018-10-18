@@ -38,7 +38,8 @@ export default class CellClickHandler {
 
         switch (cmd) {
             case 'attack': this.handleAttack(x, y, cell); break;
-            case 'chat': break; // TODO
+            case 'chat': this.handleChat(x, y, cell); break;
+            case 'door': this.handleDoor(x, y, cell); break;
             case 'move': this.handleMove(x, y, cell); break;
             case 'pickup': this.handlePickup(x, y, cell); break;
             case 'shoot': this.handleShoot(x, y, cell); break;
@@ -52,6 +53,26 @@ export default class CellClickHandler {
 
     handleAttack(x, y, cell) {
         this._keyBuffer.push({cmd: 'attack', target: cell});
+    }
+
+    handleChat(x, y, cell) {
+        const player = this._game.getPlayer();
+        if (cell.hasActors()) {
+            if (RG.withinRange(1, [x, y], player)) {
+                const dXdY = RG.dXdY([x, y], player);
+                const dirKey = dirToKeyCode(dXdY);
+                this._keyBuffer.push(Keys.KEY.CHAT);
+                this._keyBuffer.push(dirKey);
+            }
+        }
+    }
+
+    handleDoor(x, y, cell) {
+        const player = this._game.getPlayer();
+        if (cell.hasDoor()) {
+            this.moveTo(player, x, y);
+            this._keyBuffer.push(Keys.KEY.DOOR);
+        }
     }
 
     handleMove(x, y, cell) {
