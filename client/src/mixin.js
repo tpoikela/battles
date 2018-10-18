@@ -48,8 +48,6 @@ RG.Mixin.Ownable = (superclass) => class extends superclass {
 
     isSamePos(obj) {return this._owner.isSamePos(obj);}
 
-    getLevel() {return this._owner.getLevel();}
-
     setOwner(owner) {
         if (RG.isNullOrUndef([owner])) {
             RG.err('Object.Ownable', 'setOwner', 'Owner cannot be null.');
@@ -69,7 +67,7 @@ RG.Mixin.Ownable = (superclass) => class extends superclass {
         return owner;
     }
 
-    /* Returns the owner of this object.*/
+    /* Returns the direct owner of this object.*/
     getOwner() {return this._owner;}
 
     getX() {
