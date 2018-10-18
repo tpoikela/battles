@@ -60,7 +60,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
 
     const poison = this._parser.createActualObj('items',
         'Potion of frost poison');
-    poison.count = 5;
+    poison.setCount(5);
     level.addItem(poison, 2, 2);
     const curePoison = this._parser.createActualObj('items',
         'Potion of cure poison');
@@ -75,7 +75,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     // Test for shops
     const keeper = this._parser.createActualObj('actors', 'shopkeeper');
     const gold = new RG.Item.GoldCoin();
-    gold.count = 50;
+    gold.setCount(50);
     keeper.getInvEq().addItem(gold);
     level.addActor(keeper, 2, 2);
 
@@ -149,7 +149,7 @@ DebugGame.prototype.createArena = function(obj, game, player) {
     level.addActor(trainer, 1, 2);
 
     const coins = new RG.Item.GoldCoin();
-    coins.count = 600;
+    coins.setCount(600);
     player.getInvEq().addItem(coins);
 
     // if (!player.getBook()) {
@@ -378,7 +378,7 @@ DebugGame.prototype.createOneDungeonAndBoss = function(obj, game, player) {
         const potion = new RG.Item.Potion('Healing potion');
         level.addItem(potion);
         const missile = this._parser.createActualObj('items', 'Shuriken');
-        missile.count = 20;
+        missile.setCount(20);
         level.addItem(missile);
 
         const maxValue = 20 * (nl + 1);
