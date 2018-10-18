@@ -240,7 +240,7 @@ describe('Map.CellList', () => {
 
 describe('Moving actors around in the game', () => {
     it('Moves but is blocked by walls.', () => {
-        const movSystem = new RG.System.Movement(['Movement']);
+        const movSystem = new System.Movement(['Movement']);
         const actor = new Actor('TestActor');
         const level = new Level(10, 10);
         const mapgen = new RG.Map.Generator();
@@ -268,7 +268,7 @@ describe('Moving actors around in the game', () => {
     });
 
     it('Moves actors between levels using stairs', () => {
-        const movSystem = new RG.System.Movement(['Movement']);
+        const movSystem = new System.Movement(['Movement']);
         const level1 = Factory.createLevel('arena', 20, 20);
         const level2 = Factory.createLevel('arena', 20, 20);
         const player = Factory.createPlayer('Player', {});
