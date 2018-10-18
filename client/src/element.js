@@ -3,7 +3,7 @@
  * elements like stairs.
  */
 
-const RG = require('./rg.js');
+const RG = require('./rg');
 const Entity = require('./entity');
 const Mixin = require('./mixin');
 
@@ -49,19 +49,25 @@ class RGElementBase extends Mixin.Typed(Entity) {
     }
 
     isPassable() {
-        return !wallRegexp.test(this.getType());
+        return !this.has('Impassable');
     }
 
     isPassableByAir() {
-        return !wallRegexp.test(this.getType());
+        if (this.has('Impassable')) {
+            return this.get('Impassable').canFlyOver;
+        }
+        return true;
     }
 
     isSpellPassable() {
-        return !wallRegexp.test(this.getType());
+        if (this.has('Impassable')) {
+            return this.get('Impassable').spellPasses;
+        }
+        return true;
     }
 
     lightPasses() {
-        return !wallRegexp.test(this.getType());
+        return !this.has('Opaque');
     }
 
     /* Should be enough for stateless elements.
@@ -81,9 +87,21 @@ class RGElementBase extends Mixin.Typed(Entity) {
 
     }
 }
-
 RG.Element.Base = RGElementBase;
 RG.elementsCreated = 0;
+
+class RGElementWall extends RGElementBase {
+
+    constructor(name) {
+        super(name, 'wall');
+        this.add(new RG.Component.Opaque());
+        const impassable = new RG.Component.Impassable();
+        impassable.setAllImpassable();
+        this.add(impassable);
+    }
+
+}
+RG.Element.Wall = RGElementWall;
 
 /* Object models stairs connecting two levels. Stairs are one-way, thus
  * connecting 2 levels requires two stair objects. */
@@ -252,6 +270,11 @@ class RGElementDoor extends Mixin.Locatable(RGElementBase) {
         super('door');
         this._closed = (typeof closed === 'undefined')
             ? true : closed;
+
+        this._opaque = new RG.Component.Opaque();
+        const impassable = new RG.Component.Impassable();
+        impassable.setAllImpassable();
+        this._impassable = impassable;
         if (this._closed) {this.closeDoor();}
     }
 
@@ -269,19 +292,13 @@ class RGElementDoor extends Mixin.Locatable(RGElementBase) {
     openDoor() {
         this._closed = false;
         this.remove('Opaque');
+        this.remove('Impassable');
     }
 
     closeDoor() {
         this._closed = true;
-        this.add(new RG.Component.Opaque());
-    }
-
-    isPassable() {
-        return !this._closed;
-    }
-
-    isPassableByAir() {
-        return this.isPassable();
+        this.add(this._opaque);
+        this.add(this._impassable);
     }
 
     toJSON() {
@@ -530,9 +547,8 @@ RG.Element.Exploration = RGElementExploration;
 class RGElementTree extends RGElementBase {
     constructor() {
         super('tree');
+        this.add(new RG.Component.Opaque());
     }
-
-    lightPasses() {return false;}
 }
 RG.Element.Tree = RGElementTree;
 
@@ -551,15 +567,14 @@ class RGElementStone extends RGElementBase {
     }
 }
 RG.Element.Stone = RGElementStone;
+
 /* High rock which is difficult to pass through. */
 class RGElementHighRock extends RGElementBase {
     constructor() {
         super('highrock');
+        this.add(new RG.Component.Opaque());
+        this.add(new RG.Component.Impassable());
     }
-
-    isPassable() {return false;}
-
-    lightPasses() {return false;}
 }
 RG.Element.HighRock = RGElementHighRock;
 
@@ -567,9 +582,8 @@ RG.Element.HighRock = RGElementHighRock;
 class RGElementChasm extends RGElementBase {
     constructor() {
         super('chasm');
+        this.add(new RG.Component.Impassable());
     }
-
-    isPassable() {return false;}
 }
 RG.Element.Chasm = RGElementChasm;
 
@@ -578,8 +592,6 @@ class RGElementWater extends RGElementBase {
     constructor() {
         super('water');
     }
-
-    isPassable() {return true;}
 }
 RG.Element.Water = RGElementWater;
 
@@ -587,9 +599,8 @@ RG.Element.Water = RGElementWater;
 class RGElementSky extends RGElementBase {
     constructor() {
         super('sky');
+        this.add(new RG.Component.Impassable());
     }
-
-    isPassable() {return false;}
 }
 RG.Element.Sky = RGElementSky;
 
@@ -597,9 +608,8 @@ RG.Element.Sky = RGElementSky;
 class RGElementLava extends RGElementBase {
     constructor() {
         super('lava');
+        this.add(new RG.Component.Impassable());
     }
-
-    isPassable() {return false;}
 }
 RG.Element.Lava = RGElementLava;
 
@@ -607,8 +617,8 @@ RG.Element.Lava = RGElementLava;
 class RGElementFort extends RGElementBase {
     constructor() {
         super('fort');
+        this.add(new RG.Component.Impassable());
     }
-    isPassable() {return false;}
 }
 RG.Element.Fort = RGElementFort;
 
@@ -659,6 +669,7 @@ RG.ELEM.FLOOR = Object.freeze(new RGElementBase('floor'));
 RG.ELEM.FLOOR_CAVE = Object.freeze(new RGElementBase('floorcave'));
 RG.ELEM.FLOOR_CRYPT = Object.freeze(new RGElementBase('floorcrypt'));
 RG.ELEM.FLOOR_HOUSE = Object.freeze(new RGElementBase('floorhouse'));
+
 RG.ELEM.GRASS = Object.freeze(new RG.Element.Grass());
 RG.ELEM.HIGH_ROCK = Object.freeze(new RG.Element.HighRock());
 RG.ELEM.LAVA = Object.freeze(new RG.Element.Lava());
@@ -668,12 +679,14 @@ RG.ELEM.SKY = Object.freeze(new RG.Element.Sky());
 RG.ELEM.SNOW = Object.freeze(new RGElementBase('snow'));
 RG.ELEM.STONE = Object.freeze(new RG.Element.Stone());
 RG.ELEM.TREE = Object.freeze(new RG.Element.Tree());
-RG.ELEM.WALL = Object.freeze(new RGElementBase('wall'));
-RG.ELEM.WALL_CAVE = Object.freeze(new RGElementBase('wallcave'));
-RG.ELEM.WALL_CRYPT = Object.freeze(new RGElementBase('wallcrypt'));
-RG.ELEM.WALL_ICE = Object.freeze(new RGElementBase('wallice'));
-RG.ELEM.WALL_WOODEN = Object.freeze(new RGElementBase('wallwooden'));
-RG.ELEM.WALL_MOUNT = Object.freeze(new RGElementBase('wallmount'));
+
+RG.ELEM.WALL = Object.freeze(new RGElementWall('wall'));
+RG.ELEM.WALL_CAVE = Object.freeze(new RGElementWall('wallcave'));
+RG.ELEM.WALL_CRYPT = Object.freeze(new RGElementWall('wallcrypt'));
+RG.ELEM.WALL_ICE = Object.freeze(new RGElementWall('wallice'));
+RG.ELEM.WALL_WOODEN = Object.freeze(new RGElementWall('wallwooden'));
+RG.ELEM.WALL_MOUNT = Object.freeze(new RGElementWall('wallmount'));
+
 RG.ELEM.WATER = Object.freeze(new RG.Element.Water());
 RG.ELEM.FORT = Object.freeze(new RG.Element.Fort());
 
