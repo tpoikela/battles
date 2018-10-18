@@ -17,6 +17,20 @@ const UniqueTagComponent = RG.Component.UniqueTagComponent;
 
 const BaseProto = RG.Component.Base.prototype;
 
+/* Component is added to all items. To check if an entity is item, has('Item')
+ * is enough. */
+RG.Component.Item = UniqueDataComponent('Item', {
+    value: 1, damageType: RG.DMG.BLUNT, count: 1
+});
+
+RG.Component.Item.prototype.incrCount = function(count) {
+    this.count += count;
+};
+
+RG.Component.Item.prototype.decrCount = function(count) {
+    this.count -= count;
+};
+
 /* Component which takes care of hunger and satiation. */
 RG.Component.Hunger = UniqueDataComponent('Hunger',
     {energy: 20000, maxEnergy: 20000, minEnergy: -5000});
