@@ -1189,7 +1189,7 @@ RG.dXdY = (dest, src) => {
         xDest = dest[0];
         yDest = dest[1];
     }
-    else if (src.getX) {
+    else if (dest.getX) {
         xDest = dest.getX();
         yDest = dest.getY();
     }
