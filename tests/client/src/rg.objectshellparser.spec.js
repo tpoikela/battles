@@ -528,12 +528,12 @@ describe('Data query functions for objects', function() {
         for (let i = 1; i < 20; i++) {
             let maxLimit = i % 10;
             if (maxLimit <= 1) {
-                ++maxLimit;
+                maxLimit = 2;
             }
             const actor = parser.createRandomActorWeighted(1, maxLimit);
             if (actor !== null) {
                 expect(actor.get('Experience').getDanger())
-                    .to.at.most(maxLimit + 2);
+                    .to.be.at.most(maxLimit + 2);
             }
         }
     });
