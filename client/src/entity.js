@@ -100,6 +100,10 @@ Entity.prototype.hasAny = function(compNames) {
     return false;
 };
 
+Entity.prototype.hasNone = function(compNames) {
+    return !this.hasAny(compNames);
+};
+
 /* Returns true if entity has all of given comps. */
 Entity.prototype.hasAll = function(compNames) {
     for (let i = 0; i < compNames.length; i++) {
