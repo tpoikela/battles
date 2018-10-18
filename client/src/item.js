@@ -37,7 +37,7 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
         this._name = name;
         this._value = 1;
         this._damageType = RG.DMG.BLUNT;
-        this.count = 1; // Number of items
+        this._count = 1; // Number of items
         this.add(new RG.Component.Physical());
     }
 
@@ -53,7 +53,10 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
     setValue(value) {this._value = value;}
     getValue() {return this._value;}
 
-    setCount(count) {this.count = count;}
+    incrCount(count) {this._count += count;}
+    decrCount(count) {this._count -= count;}
+    getCount() {return this._count;}
+    setCount(count) {this._count = count;}
 
     setDamageType(type) {this._damageType = type;}
     getDamageType() {return this._damageType;}
@@ -61,10 +64,10 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
     /* Used when showing the item in inventory lists etc. */
     toString() {
         let txt = this.getName() + ', ' + this.getType() + ', ';
-        const totalWeight = this.getWeight() * this.count;
+        const totalWeight = this.getWeight() * this._count;
         txt += totalWeight.toFixed(2) + 'kg';
         if (this.hasOwnProperty('count')) {
-            txt = this.count + ' x ' + txt;
+            txt = this._count + ' x ' + txt;
         }
         if (this.has('GemBound')) {
             txt += ' (Bound)';
@@ -119,7 +122,7 @@ class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
             setWeight: this.getWeight(),
             setPropType: RG.TYPE_ITEM,
             setType: this.getType(),
-            setCount: this.count,
+            setCount: this._count,
             setDamageType: this._damageType
         };
         json.components = RG.Component.compsToJSON(this);
@@ -155,14 +158,14 @@ class RGItemFood extends ItemBase {
                         totalEnergy *= 3;
                     }
                     target.get('Hunger').addEnergy(totalEnergy);
-                    if (this.count === 1) {
+                    if (this._count === 1) {
                         const msg = {item: this};
                         RG.POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
                         RG.gameMsg(target.getName() + ' consumes ' +
                             this.getName());
                     }
                     else {
-                        this.count -= 1;
+                        this._count -= 1;
                     }
                 }
                 else {
@@ -510,20 +513,7 @@ class RGItemContainer extends ItemBase {
         let matchFound = false;
         for (let i = 0; i < this._items.length; i++) {
             if (this._items[i].equals(item)) {
-                if (this._items[i].hasOwnProperty('count')) {
-                    if (item.hasOwnProperty('count')) {
-                        this._items[i].count += item.count;
-                    }
-                    else {
-                        this._items[i].count += 1;
-                    }
-                }
-                else if (item.hasOwnProperty('count')) {
-                        this._items[i].count = 1 + item.count;
-                    }
-                    else {
-                        this._items[i].count = 2;
-                    }
+                this._items[i].incrCount(item.getCount());
                 matchFound = true;
                 break;
             }
@@ -539,14 +529,14 @@ class RGItemContainer extends ItemBase {
     getWeight() {
         let sum = 0;
         for (let i = 0; i < this._items.length; i++) {
-            sum += this._items[i].getWeight() * this._items[i].count;
+            sum += this._items[i].getWeight() * this._items[i].getCount();
         }
         return sum;
     }
 
     /* Adds an item. Container becomes item's owner.*/
     addItem(item) {
-        if (item.count <= 0) {
+        if (item.getCount() <= 0) {
             const str = JSON.stringify(item);
             RG.warn('RGItemContainer', 'addItem',
                 `Possible bug. Tried to add item with count 0: ${str}`);
@@ -607,15 +597,13 @@ class RGItemContainer extends ItemBase {
             return false;
         }
 
-        if (this._items[i].hasOwnProperty('count')) {
-            if (this._items[i].count === 1) {
-                this._removedItem = item;
-                this._items.splice(i, 1);
-            }
-            else {
-                this._removedItem = RG.removeStackedItems(this._items[i], 1);
-                if (this._items[i].count === 0) {this._items.splice(i, 1);}
-            }
+        if (this._items[i].getCount() === 1) {
+            this._removedItem = item;
+            this._items.splice(i, 1);
+        }
+        else {
+            this._removedItem = RG.removeStackedItems(this._items[i], 1);
+            if (this._items[i].getCount() === 0) {this._items.splice(i, 1);}
         }
         return true;
     }
@@ -631,7 +619,7 @@ class RGItemContainer extends ItemBase {
         }
 
         if (this._removedItem !== null) {
-            this._removedItem.count = count;
+            this._removedItem.setCount(count);
         }
         else {
             RG.err('ItemContainer', 'removeNItems',
