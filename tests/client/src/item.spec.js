@@ -34,6 +34,15 @@ describe('How items are typed, physical entities', () => {
 
     });
 
+    it('can be converted to human-readable string', () => {
+        const arrows = new RG.Item.Ammo('arrow');
+        arrows.setCount(15);
+        const arrStr = arrows.toString();
+        expect(arrStr).to.not.match(/NaN/);
+        expect(arrStr).to.not.match(/undefined/);
+        expect(arrStr).to.match(/15 x arrow/);
+    });
+
     it('can be compared', () => {
         Object.keys(RG.Item).forEach(item => {
             if (!(/Container/).test(item)) {
