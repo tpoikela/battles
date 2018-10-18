@@ -33,7 +33,7 @@ RG.Item = {};
 class ItemBase extends Mixin.Typed(Mixin.Ownable(Entity)) {
 
     constructor(name) {
-        super({owner: null, type: RG.TYPE_ITEM, propType: RG.TYPE_ITEM});
+        super({owner: null, type: 'base', propType: RG.TYPE_ITEM});
         this._name = name;
         this._value = 1;
         this._damageType = RG.DMG.BLUNT;
