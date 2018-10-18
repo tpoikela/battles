@@ -587,7 +587,14 @@ FromJSON.prototype.createItem = function(obj) {
     }
     else {
         const typeCapitalized = this.getItemObjectType(item);
-        itemObj = new RG.Item[typeCapitalized]();
+        if (RG.Item[typeCapitalized]) {
+            itemObj = new RG.Item[typeCapitalized]();
+        }
+        else {
+            let msg = `No RG.Item[${typeCapitalized}] found for new()`;
+            msg += ` JSON: ${JSON.stringify(obj)}`;
+            RG.err('FromJSON', 'createItem', msg);
+        }
     }
 
     for (const func in item) {
