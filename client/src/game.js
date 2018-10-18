@@ -6,6 +6,8 @@ const EventPool = require('./eventpool');
 const Engine = require('./engine');
 const GameMaster = require('./game.master');
 const GameObject = require('./game-object');
+const FactoryWorld = require('./factory.world');
+const World = require('./world');
 
 RG.Game = {};
 
@@ -411,7 +413,7 @@ RG.Game.Main = function() {
                 if (world && world.getAreas) {
                     const area = world.getAreas()[0];
                     const [x, y] = area.findTileXYById(levelID);
-                    const fact = new RG.Factory.World();
+                    const fact = new FactoryWorld();
                     fact.setGlobalConf(this.getGlobalConf());
 
                     let oldX = null;
@@ -454,7 +456,7 @@ RG.Game.Main = function() {
     this._addBattleZoneToArea = (parentID, battle) => {
         const level = battle.getLevel();
         const zoneName = 'Zone of ' + battle.getName();
-        const battleZone = new RG.World.BattleZone(zoneName);
+        const battleZone = new World.BattleZone(zoneName);
         battleZone.addLevel(level);
 
         const world = this.getCurrentWorld();
