@@ -2,6 +2,11 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 
+const linewrap = require('linewrap');
+
+const textLeftMargin = 3;
+const wrap = linewrap(80 - textLeftMargin);
+
 function padToWidth(w, text, marginLeft, padChar = '&nbsp;') {
   const textLen = text.length;
   let marginRight = w - textLen - marginLeft;
@@ -68,7 +73,8 @@ export default class GameMenu extends Component {
     if (menuObj.hasOwnProperty('pre')) {
       if (Array.isArray(menuObj.pre)) {
         preMenu = menuObj.pre.map(item => {
-          return this.renderMenuLines(item);
+          const wrapped = wrap(item);
+          return this.renderMenuLines(wrapped);
         });
       }
     }
@@ -78,7 +84,8 @@ export default class GameMenu extends Component {
     if (menuObj.hasOwnProperty('post')) {
       if (Array.isArray(menuObj.post)) {
         postMenu = menuObj.post.map(item => {
-          return this.renderMenuLines(item);
+          const wrapped = wrap(item);
+          return this.renderMenuLines(wrapped);
         });
       }
     }
