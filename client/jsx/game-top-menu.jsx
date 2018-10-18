@@ -17,8 +17,8 @@ export default class GameTopMenu extends React.Component {
     handleSelect(eventKey) {
       const split = eventKey.split('#');
       const cmd = split.shift();
-      console.log('eventKey: ' + eventKey);
-      console.log('cmd-type: ', cmd, split);
+      // console.log('eventKey: ' + eventKey);
+      // console.log('cmd-type: ', cmd, split);
       this.props.menuCallback(cmd, split);
     }
 
@@ -32,7 +32,6 @@ export default class GameTopMenu extends React.Component {
             <MenuItem eventKey='saveGame#saveGame'>Save</MenuItem>
             <MenuItem eventKey='importJSON'>Import JSON</MenuItem>
             <MenuItem eventKey='game-export'>Export JSON</MenuItem>
-            <MenuItem eventKey='loadScript'>Load script</MenuItem>
           </NavDropdown>
           <NavDropdown eventKey='view' id='dropdown-view' title='View' >
             <MenuItem eventKey='setViewSize#+#X'>Viewport +X</MenuItem>
@@ -44,6 +43,10 @@ export default class GameTopMenu extends React.Component {
             <MenuItem eventKey='showScreen#HelpScreen'>Help</MenuItem>
             <MenuItem eventKey='showScreen#ManualScreen'>Manual</MenuItem>
             <MenuItem eventKey='showScreen#AboutScreen'>About</MenuItem>
+          </NavDropdown>
+          <NavDropdown eventKey='plugins' id='dropdown-plugins' title='Plugin'>
+            <MenuItem eventKey='loadScript'>Load script</MenuItem>
+            <MenuItem eventKey='showPluginManager'>Plugin Manager</MenuItem>
           </NavDropdown>
         </Nav>
       </div>
