@@ -132,6 +132,10 @@ Keys.KeyMap = {
         // Normalize first to unit vector (-1,0 or 1)
         let dX = dXArg;
         let dY = dYArg;
+        if (Array.isArray(dXArg)) {
+            dX = dXArg[0];
+            dY = dXArg[1];
+        }
         if (dX !== 0) {dX = dX / Math.abs(dX);}
         if (dY !== 0) {dY = dY / Math.abs(dY);}
         switch (dX) {
