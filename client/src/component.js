@@ -17,6 +17,17 @@ const UniqueTagComponent = RG.Component.UniqueTagComponent;
 
 const BaseProto = RG.Component.Base.prototype;
 
+const NO_TYPE = Object.freeze('');
+
+RG.Component.Typed = UniqueDataComponent('Typed', {
+    objType: NO_TYPE, propType: NO_TYPE
+});
+
+RG.Component.Typed.prototype._init = function(type, propType) {
+    this.objType = type;
+    this.propType = propType;
+};
+
 /* Component is added to all items. To check if an entity is item, has('Item')
  * is enough. */
 RG.Component.Item = UniqueDataComponent('Item', {
