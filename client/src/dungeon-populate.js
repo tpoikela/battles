@@ -403,7 +403,7 @@ DungeonPopulate.prototype.createShopkeeper = function(conf) {
 
     keeper.add(new RG.Component.Shopkeeper());
     const gold = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
-    gold.count = RNG.getUniformInt(50, 200);
+    gold.setCount(RNG.getUniformInt(50, 200));
     keeper.getInvEq().addItem(gold);
 
     let keeperLevel = 10;

@@ -155,7 +155,7 @@ class GoalThief extends Goal.Base {
             const trans = new RG.Component.Transaction();
             trans.setArgs({item: itemToSell, seller: this.actor,
                 shop: shopElem, buyer: shopElem.getShopkeeper(),
-                count: itemToSell.count});
+                count: itemToSell.getCount()});
             this.actor.add(trans);
         }
         else {

@@ -378,7 +378,7 @@ class RGElementShop extends Mixin.Locatable(RGElementBase) {
             const value = item.getValue();
             const goldWeight = RG.valueToGoldWeight(value);
             let ncoins = RG.getGoldInCoins(goldWeight);
-            ncoins *= item.count;
+            ncoins *= item.getCount();
             ncoins = Math.ceil(this._costFactorShopSells * ncoins);
             if (ncoins === 0) {
                 return 1;
@@ -397,7 +397,7 @@ class RGElementShop extends Mixin.Locatable(RGElementBase) {
         const value = item.getValue();
         const goldWeight = RG.valueToGoldWeight(value);
         let ncoins = RG.getGoldInCoins(goldWeight);
-        ncoins *= item.count;
+        ncoins *= item.getCount();
         ncoins = Math.floor(this._costFactorShopBuys * ncoins);
         return ncoins;
     }

@@ -140,8 +140,8 @@ System.Movement = function(compTypes) {
             const items = newCell.getItems();
             const topItem = items[0];
             let topItemName = topItem.getName();
-            if (topItem.count > 1) {
-                topItemName = `${topItemName} (x${topItem.count})`;
+            if (topItem.getCount() > 1) {
+                topItemName = `${topItemName} (x${topItem.getCount()})`;
             }
 
             if (items.length > 1) {
@@ -154,7 +154,7 @@ System.Movement = function(compTypes) {
 
             // Check for items in a shop
             if (topItem.has('Unpaid')) {
-                if (topItem.count > 1) {RG.gameMsg('They are for sale');}
+                if (topItem.getCount() > 1) {RG.gameMsg('They are for sale');}
                 else {RG.gameMsg('It is for sale');}
             }
 

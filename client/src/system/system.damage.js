@@ -264,7 +264,7 @@ System.Damage = function(compTypes) {
         const actorLevel = actor.getLevel();
 
         items.forEach(item => {
-            if (invEq.removeNItems(item, item.count)) {
+            if (invEq.removeNItems(item, item.getCount())) {
                 const rmvItem = invEq.getRemovedItem();
                 actorLevel.addItem(rmvItem, x, y);
             }

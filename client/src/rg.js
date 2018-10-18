@@ -486,18 +486,8 @@ RG.emitMsgEvent = function(style, msg) {
 /* Tries to add item2 to item1 stack. Returns true on success.*/
 RG.addStackedItems = function(item1, item2) {
     if (item1.equals(item2)) {
-        let countToAdd = 1;
-        if (item2.count) {
-            countToAdd = item2.count;
-        }
-
-        // Check if item1 already stacked
-        if (item1.count) {
-            item1.count += countToAdd;
-        }
-        else {
-            item1.count = 1 + countToAdd;
-        }
+        const countToAdd = item2.getCount();
+        item1.incrCount(countToAdd);
         return true;
     }
     return false;
@@ -507,24 +497,18 @@ RG.addStackedItems = function(item1, item2) {
  * stack is not changed.*/
 RG.removeStackedItems = function(itemStack, n) {
     if (n > 0) {
-        let rmvItem = null;
-        if (itemStack.count) {
-            if (n === 1 && itemStack.count === 1) {
-                return itemStack;
-            }
-            else if (n < itemStack.count) {
-                itemStack.count -= n;
-                rmvItem = itemStack.clone();
-                rmvItem.count = n;
-                return rmvItem;
-            }
-            else { // Remove all items
-                return itemStack;
-            }
+    let rmvItem = null;
+        if (n === 1 && itemStack.getCount() === 1) {
+            return itemStack;
         }
-        else { // Remove all
-            RG.err('RG', 'removeStackedItems',
-                'Should never be entered');
+        else if (n < itemStack.getCount()) {
+            itemStack.decrCount(n);
+            rmvItem = itemStack.clone();
+            rmvItem.setCount(n);
+            return rmvItem;
+        }
+        else { // Remove all items
+            return itemStack;
         }
     }
     return null;
@@ -1128,8 +1112,7 @@ RG.hasEnoughGold = (actor, goldWeight) => {
     const items = actor.getInvEq().getInventory().getItems();
     for (let i = 0; i < items.length; i++) {
         if (items[i].getType() === 'goldcoin') {
-            if (items[i].count >= ncoins) {
-                // items[i].count -= ncoins;
+            if (items[i].getCount() >= ncoins) {
                 return true;
             }
         }
@@ -1145,14 +1128,14 @@ RG.removeNCoins = (actor, ncoins) => {
     let coinsFound = null;
     for (let i = 0; i < items.length; i++) {
         if (items[i].getType() === 'goldcoin') {
-            if (items[i].count > ncoins) {
+            if (items[i].getCount() > ncoins) {
                 ncoinsRemoved = ncoins;
-                items[i].count -= ncoins;
+                items[i].decrCount(ncoins);
             }
             else {
                 coinsFound = items[i];
-                ncoinsRemoved = coinsFound.count;
-                coinsFound.count = 0;
+                ncoinsRemoved = coinsFound.getCount();
+                coinsFound.setCount(0);
             }
         }
     }
@@ -1167,7 +1150,8 @@ RG.removeNCoins = (actor, ncoins) => {
 RG.tradeGoldWeightFromTo = (gw, actorFrom, actorTo) => {
     const nCoins = RG.getGoldInCoins(gw);
     const coins = new RG.Item.GoldCoin();
-    coins.count = RG.removeNCoins(actorFrom, nCoins);
+    const nCoinsRemoved = RG.removeNCoins(actorFrom, nCoins);
+    coins.setCount(nCoinsRemoved);
     actorTo.getInvEq().addItem(coins);
 };
 
@@ -1471,12 +1455,12 @@ RG.isOneShotItem = item => {
 /* Destroys item (typically after use). */
 RG.destroyItemIfNeeded = item => {
     if (RG.isOneShotItem(item)) {
-        if (item.count === 1) {
+        if (item.getCount() === 1) {
             const msg = {item: item};
             RG.POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
         }
         else {
-            item.count -= 1;
+            item.decrCount(1);
         }
     }
 };

@@ -55,17 +55,16 @@ EquipSlot.prototype.unequipItem = function(n) {
             return true;
         }
         else if (n > 0) {
-            if (n === 1 && this._item.count === 1) {
+            if (n === 1 && this._item.getCount() === 1) {
                 this._hasItem = false;
                 this._unequipped = this._item;
             }
-            else if (n === this._item.count) {
+            else if (n === this._item.getCount()) {
                 this._hasItem = false;
                 this._unequipped = this._item;
             }
             else {
                 this._unequipped = RG.removeStackedItems(this._item, n);
-                // if (this._item.count === 0) {this._hasItem = false;}
             }
             return true;
         }
@@ -141,7 +140,7 @@ Equipment.prototype.getWeight = function() {
     let total = 0;
     const equipped = this.getItems();
     for (let i = 0; i < equipped.length; i++) {
-        total += equipped[i].getWeight() * equipped[i].count;
+        total += equipped[i].getWeight() * equipped[i].getCount();
     }
     if (this._actor.has('MasterEquipper')) {
         total *= this._actor.get('MasterEquipper').getFactor();

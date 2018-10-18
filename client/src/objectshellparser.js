@@ -523,7 +523,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
             const count = item.count || 1;
             const itemObj = this.createActualObj(RG.TYPE_ITEM, name);
             if (itemObj) {
-                itemObj.count = count;
+                itemObj.setCount(count);
                 actor.getInvEq().addItem(itemObj);
             }
             else {
@@ -549,7 +549,7 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
             const count = item.count || 1;
             const itemObj = this.createActualObj(RG.TYPE_ITEM, itemName);
             if (itemObj) {
-                itemObj.count = count;
+                itemObj.setCount(count);
                 actor.getInvEq().addItem(itemObj);
                 if (count > 1) {
                     if (!actor.getInvEq().equipNItems(itemObj, count)) {

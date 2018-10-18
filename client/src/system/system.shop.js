@@ -59,7 +59,9 @@ System.Shop = function(compTypes) {
 
         if (RG.hasEnoughGold(buyer, goldWeight)) {
             const coins = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
-            coins.count = RG.removeNCoins(buyer, nCoins);
+            const nCoinsRemoved = RG.removeNCoins(buyer, nCoins);
+            coins.setCount(nCoinsRemoved);
+
             seller.getInvEq().addItem(coins);
             item.getOwner().removeProp('items', item);
             buyer.getInvEq().addItem(item);
@@ -91,7 +93,8 @@ System.Shop = function(compTypes) {
         if (RG.hasEnoughGold(buyer, goldWeight)) {
             if (seller.getInvEq().dropNItems(item, count)) {
                 const coins = new RG.Item.GoldCoin(RG.GOLD_COIN_NAME);
-                coins.count = RG.removeNCoins(buyer, nCoins);
+                const nCoinsRemoved = RG.removeNCoins(buyer, nCoins);
+                coins.setCount(nCoinsRemoved);
                 seller.getInvEq().addItem(coins);
 
                 const topItem = seller.getCell().getItems()[0];

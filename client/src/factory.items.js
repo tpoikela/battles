@@ -255,10 +255,11 @@ FactoryItem.equipItemsToActor = function(actor, items) {
         }
         else if (typeof item === 'object') {
             createdItem = parser.createItem(item.name);
-            createdItem.count = item.count || 1;
+            const itemCount = item.count || 1;
+            createdItem.setCount(itemCount);
         }
         if (createdItem) {
-            const count = createdItem.count;
+            const count = createdItem.getCount();
             actor.getInvEq().addItem(createdItem);
             ok = ok && actor.getInvEq().equipNItems(createdItem, count);
         }

@@ -339,7 +339,7 @@ const FactoryWorld = function() {
 
             // Create quests for this tile x,y
             // Unsupported for now, need to change serialisation scheme
-            // this.createQuests(world, area, x, y);
+            this.createQuests(world, area, x, y);
 
             // Cleanup the scope & conf stacks
             this.popScope(areaConf);

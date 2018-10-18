@@ -69,8 +69,8 @@ System.BaseAction = function(compTypes) {
                 level.removeItem(item, x, y);
 
                 let itemStr = item.getName();
-                if (item.count > 1) {
-                    itemStr += ' x' + item.count;
+                if (item.getCount() > 1) {
+                    itemStr += ' x' + item.getCount();
                 }
                 const msgObj = {
                     msg: ent.getName() + ' picked up ' + itemStr,
@@ -186,12 +186,12 @@ System.BaseAction = function(compTypes) {
         const useItemComp = ent.get('UseItem');
         const item = useItemComp.getItem();
         if (item.has('OneShot')) {
-            if (item.count === 1) {
+            if (item.getCount() === 1) {
                 const msg = {item};
                 RG.POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
             }
             else {
-                item.count -= 1;
+                item.decrCount(1);
             }
         }
         else if (item.getCharges && item.getCharges() > 0) {
