@@ -1,5 +1,8 @@
 /* SCSS for GameEditor component. */
 
+$dark-color: $black;
+$light-color: $snow-white;
+
 .game-editor-level-conf {
     size: 8px;
 }
@@ -9,7 +12,14 @@
 }
 
 .game-editor-panel {
+    color: $light-color;
     input {
+        color: $dark-color;
         width: 40px;
     }
+
+    button, select {
+        color: $dark-color;
+    }
+
 }
