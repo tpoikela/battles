@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import TopMenuLogic from './top-menu-logic';
 
 import {
-  Nav, NavDropdown, MenuItem
+  Nav, NavItem, NavDropdown, MenuItem
 } from 'react-bootstrap';
 
 // const RG = require('../src/rg');
@@ -26,7 +26,7 @@ export default class EditorTopMenu extends Component {
 
   render() {
     return (
-    <div>
+    <div className='editor-top-menu'>
       <Nav activeKey='1' bsStyle='tabs' onSelect={this.handleSelect}>
 
         <NavDropdown eventKey='file' id='dropdown-file' title='File' >
@@ -71,12 +71,22 @@ export default class EditorTopMenu extends Component {
           <MenuItem eventKey='insert-5'>Shape</MenuItem>
         </NavDropdown>
 
-        <NavDropdown eventKey='level' id='dropdown-level' title='Level' >
+        <NavDropdown eventKey='generate' id='dropdown-generate'
+            title='Generate'
+        >
           <MenuItem eventKey='level-new-level'>New level</MenuItem>
           <MenuItem eventKey='level-new-zone'>New zone</MenuItem>
           <MenuItem eventKey='level-new-world'>New world</MenuItem>
           <MenuItem eventKey='level-new-battle'>New battle</MenuItem>
         </NavDropdown>
+
+        <NavItem
+            className='text-danger'
+            eventKey='close' id='dropdown-close'
+            onClick={this.props.toggleEditor}
+        >
+            Close
+        </NavItem>
       </Nav>
 
       <TopMenuLogic
@@ -93,5 +103,6 @@ export default class EditorTopMenu extends Component {
 EditorTopMenu.propTypes = {
     addLevel: PropTypes.func.isRequired,
     level: PropTypes.objectOf(Level),
-    menuCallback: PropTypes.func.isRequired
+    menuCallback: PropTypes.func.isRequired,
+    toggleEditor: PropTypes.func.isRequired
 };
