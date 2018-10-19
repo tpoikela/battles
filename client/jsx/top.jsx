@@ -642,29 +642,8 @@ class BattlesTop extends Component {
             const reader = new FileReader();
             reader.onloadend = () => {
                 const text = reader.result;
-                this.loadedScript = text;
-                try {
-                    // RG.pluginData = null;
-                    /* eslint-disable */
-                    let pluginData = null;
-                    eval(text);
-                    if (pluginData) {
-                        this.showMsg(`Script ${file} loaded OK`);
-                        console.log('Now loading plugin', pluginData.name);
-                        pluginData.onLoad();
-                        pluginData.data = text;
-                        this.pluginManager.addPlugin(pluginData);
-                        this.updatePluginList();
-                    }
-                    else {
-                        this.showMsg('No "pluginData = {...} in the script');
-                    }
-                    /* eslint-enable */
-                }
-                catch (e) {
-                    console.error('Script evaluation failed:');
-                    console.error(e.message);
-                }
+                this.pluginManager.loadScript(text);
+                this.updatePluginList();
             };
             reader.readAsText(file);
         }
