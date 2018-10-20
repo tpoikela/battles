@@ -211,6 +211,11 @@ export default class GameEditor extends Component {
     this.addLevelToEditor = this.addLevelToEditor.bind(this);
 
     this.setEditorData = this.setEditorData.bind(this);
+
+
+    this.onMouseDown = this.onMouseDown.bind(this);
+    this.onMouseOver = this.onMouseOver.bind(this);
+    this.onMouseUp = this.onMouseUp.bind(this);
   }
 
   componentDidMount() {
@@ -220,6 +225,54 @@ export default class GameEditor extends Component {
         if (allLevels && allLevels.length > 0) {
             this.state.levelList = allLevels;
         }
+    }
+  }
+
+  onMouseDown(x, y) {
+    if (!this.state.selectMode) {
+      const cell = this.getCellCurrMap(x, y);
+      this.setState({selectMode: true, selectBegin: cell, selectEnd: cell});
+    }
+  }
+
+  getCellCurrMap(x, y) {
+    const map = this.state.level.getMap();
+    if (map.hasXY(x, y)) {
+      return map.getCell(x, y);
+    }
+    return null;
+  }
+
+  getCurrMap() {
+    return this.state.level.getMap();
+  }
+
+  onMouseUp(x, y) {
+    if (this.state.selectMode) {
+      const cell = this.getCellCurrMap(x, y);
+      const stateUpdates = {
+        selectMode: false, selectEnd: cell,
+        cellSelectX: cell.getX(), cellSelectY: cell.getY()
+      };
+      if (this.state.selectBegin === this.state.selectEnd) {
+        stateUpdates.selectedCell = [cell];
+      }
+      this.setState(stateUpdates);
+    }
+  }
+
+  onMouseOver(x, y) {
+    if (this.state.selectMode) {
+      const cell = this.getCellCurrMap(x, y);
+      if (cell) {
+        const map = this.getCurrMap();
+        const selectedCells = getSelection(this.state.selectBegin,
+          cell, map);
+        const dX = cell.getX() - this.state.selectBegin.getX();
+        const dY = cell.getY() - this.state.selectBegin.getY();
+        this.setState({selectedCell: selectedCells, selectEnd: cell,
+            selectDiffX: dX, selectDiffY: dY});
+      }
     }
   }
 
@@ -269,7 +322,8 @@ export default class GameEditor extends Component {
         const dir = RG.KeyMap.getDir(keyCode);
         const newX = x0 + dir[0] * mult;
         const newY = y0 + dir[1] * mult;
-        const map = this.state.level.getMap();
+        const map = this.getCurrMap();
+
         if (map.hasXY(newX, newY)) {
           const newCell = map.getCell(newX, newY);
           if (this.state.selectMode) {
@@ -313,21 +367,15 @@ export default class GameEditor extends Component {
   }
 
   onCellClick(x, y) {
-    const map = this.state.level.getMap();
+    const map = this.getCurrMap();
     if (map.hasXY(x, y)) {
       const cell = map.getCell(x, y);
       console.log(`Clicked ${x},${y} ${JSON.stringify(cell)}`);
-      console.log(cell.toString());
 
       if (cell.hasActors()) {
         console.log(cell.getActors()[0]);
         console.log(JSON.stringify(cell.getActors()[0]));
       }
-
-      this.setState({
-        selectedCell: [cell], cellSelectX: cell.getX(),
-        cellSelectY: cell.getY(), selectMode: false
-      });
     }
   }
 
@@ -545,22 +593,9 @@ export default class GameEditor extends Component {
   }
 
   getBBoxForInsertion() {
-    if (this.state.selectMode) {
-      const c0 = this.state.selectBegin;
-      const c1 = this.state.selectEnd;
-      return RG.Geometry.getBoxCornersForCells(c0, c1);
-    }
-    else {
-      const selCell = this.getFirstSelectedCell();
-      if (selCell) {
-        const ulx = selCell.getX();
-        const uly = selCell.getY();
-        const lrx = this.state.insertXWidth + ulx - 1;
-        const lry = this.state.insertYWidth + uly - 1;
-        return {ulx, uly, lrx, lry};
-      }
-    }
-    return {ulx: 0, uly: 0, lrx: 0, lry: 0};
+    const c0 = this.state.selectBegin;
+    const c1 = this.state.selectEnd;
+    return RG.Geometry.getBoxCornersForCells(c0, c1);
   }
 
   insertElement() {
@@ -704,6 +739,9 @@ export default class GameEditor extends Component {
               <EditorGameBoard
                 boardClassName={this.state.boardClassName}
                 onCellClick={this.onCellClick}
+                onMouseDown={this.onMouseDown}
+                onMouseOver={this.onMouseOver}
+                onMouseUp={this.onMouseUp}
                 rowClass={rowClass}
                 screen={this.screen}
                 sizeX={mapSizeX}
