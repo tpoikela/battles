@@ -8,6 +8,7 @@ const Battle = require('./game.battle').Battle;
 const Army = require('./game.battle').Army;
 const GoalsTop = require('./goals-top');
 const Evaluator = require('./evaluators');
+const EvaluatorsBattle = require('./evaluators-battle');
 const Territory = require('./territory');
 const GameObject = require('./game-object');
 const {QuestData} = require('./quest-gen');
@@ -540,7 +541,18 @@ FromJSON.prototype.createTopGoal = function(json, entity) {
     const goal = new GoalsTop[json.type](entity);
     goal.removeEvaluators();
     json.evaluators.forEach(ev => {
-        const evaluator = new Evaluator[ev.type](ev.bias);
+        let evaluator = null;
+        if (Evaluator[ev.type]) {
+            evaluator = new Evaluator[ev.type](ev.bias);
+        }
+        else if (EvaluatorsBattle[ev.type]) {
+            evaluator = new EvaluatorsBattle[ev.type](ev.bias);
+        }
+        else {
+            const msg = `Entity: ${JSON.stringify(entity)}`;
+            RG.err('FromJSON', 'createTopGoal',
+                `Evaluator ${ev.type} not found. ${msg}`);
+        }
         if (ev.args) {evaluator.setArgs(ev.args);}
         goal.addEvaluator(evaluator);
     });
