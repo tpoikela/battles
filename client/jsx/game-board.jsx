@@ -40,6 +40,35 @@ export default class GameBoard extends Component {
         super(props);
         this.onCellClick = this.onCellClick.bind(this);
         this.onMouseOverCell = this.onMouseOverCell.bind(this);
+        this.onMouseDown = this.onMouseDown.bind(this);
+        this.onMouseOver = this.onMouseOver.bind(this);
+        this.onMouseUp = this.onMouseUp.bind(this);
+    }
+
+    componentDidMount() {
+      this.board.addEventListener('contextmenu', this.onMouseOverCell, true);
+      if (this.props.onMouseDown) {
+        this.board.addEventListener('mousedown', this.onMouseDown, true);
+      }
+      if (this.props.onMouseUp) {
+        this.board.addEventListener('mouseup', this.onMouseUp, true);
+      }
+      if (this.props.onMouseOver) {
+        this.board.addEventListener('mouseover', this.onMouseOver, true);
+      }
+    }
+
+    componentWillUnmount() {
+      this.board.removeEventListener('contextmenu', this.onMouseOverCell);
+      if (this.props.onMouseDown) {
+        this.board.removeEventListener('mousedown', this.onMouseDown, true);
+      }
+      if (this.props.onMouseUp) {
+        this.board.removeEventListener('mouseup', this.onMouseUp, true);
+      }
+      if (this.props.onMouseOver) {
+        this.board.removeEventListener('mouseover', this.onMouseOver, true);
+      }
     }
 
     onCellClick(evt) {
@@ -52,16 +81,36 @@ export default class GameBoard extends Component {
         }
     }
 
+    onMouseOver(evt) {
+      if (this.props.onMouseOver) {
+        evt.preventDefault();
+        const xy = eventToPosition(evt, this.board, this.props,
+            'game-board-row');
+        this.props.onMouseOver(xy[0], xy[1]);
+      }
+
+    }
+
+    onMouseUp(evt) {
+      if (this.props.onMouseUp) {
+        evt.preventDefault();
+        const xy = eventToPosition(evt, this.board, this.props,
+            'game-board-row');
+        this.props.onMouseUp(xy[0], xy[1]);
+      }
+    }
+
+    onMouseDown(evt) {
+      if (this.props.onMouseDown) {
+        evt.preventDefault();
+        const xy = eventToPosition(evt, this.board, this.props,
+            'game-board-row');
+        this.props.onMouseDown(xy[0], xy[1]);
+      }
+    }
+
     getCellXY(evt) {
       return eventToPosition(evt, this.board, this.boards, 'game-board-row');
-    }
-
-    componentDidMount() {
-      this.board.addEventListener('contextmenu', this.onMouseOverCell, true);
-    }
-
-    componentWillUnmount() {
-      this.board.removeEventListener('contextmenu', this.onMouseOverCell);
     }
 
     render() {
@@ -114,7 +163,10 @@ GameBoard.propTypes = {
     classRows: PropTypes.arrayOf(String),
     endY: PropTypes.number,
     onCellClick: PropTypes.func,
+    onMouseDown: PropTypes.func,
+    onMouseOver: PropTypes.func,
     onMouseOverCell: PropTypes.func,
+    onMouseUp: PropTypes.func,
     rowClass: PropTypes.string,
     useRLE: PropTypes.bool,
     sizeX: PropTypes.number,
