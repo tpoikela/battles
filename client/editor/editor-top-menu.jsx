@@ -8,9 +8,6 @@ import {
   Nav, NavItem, NavDropdown, MenuItem
 } from 'react-bootstrap';
 
-// const RG = require('../src/rg');
-const Level = require('../src/level');
-
 export default class EditorTopMenu extends Component {
 
   constructor(props) {
@@ -20,7 +17,6 @@ export default class EditorTopMenu extends Component {
 
   handleSelect(eventKey) {
     this.props.menuCallback(eventKey);
-    console.log('eventKey: ' + eventKey);
     this.menuLogic.menuCallback(eventKey);
   }
 
@@ -102,7 +98,7 @@ export default class EditorTopMenu extends Component {
 
 EditorTopMenu.propTypes = {
     addLevel: PropTypes.func.isRequired,
-    level: PropTypes.objectOf(Level),
+    level: PropTypes.object,
     menuCallback: PropTypes.func.isRequired,
     toggleEditor: PropTypes.func.isRequired
 };
