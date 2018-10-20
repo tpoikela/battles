@@ -465,6 +465,22 @@ RG.Geometry = {
         }
     },
 
+    insertEntity: function(l1, type, bbox, parser) {
+        switch (type) {
+            case RG.TYPE_ACTOR:
+                this.insertActors(l1, type, bbox, parser);
+                break;
+            case RG.TYPE_ITEM:
+                this.insertItems(l1, type, bbox, parser);
+                break;
+            case RG.TYPE_ELEM:
+                this.insertElements(l1, type, bbox);
+                break;
+            default: RG.err('Geometry', 'insertEntity',
+                `No type ${type} supported`);
+        }
+    },
+
     /* Inserts elements into the given level as rectangle bounded by the
      * coordinates given. */
     insertElements: function(l1, elemType, bbox) {
