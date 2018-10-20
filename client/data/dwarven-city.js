@@ -1,11 +1,13 @@
 
 const RG = require('../src/rg');
 const Castle = require('../data/tiles.castle');
+const Placer = require('../src/placer');
 
 const dwarvenCityConf = {
   outerColsRatio: 0.45,
   outerRowsRatio: 0.4,
-  outerStartXRatio: 0.3
+  outerStartXRatio: 0.3,
+  cols: 300, rows: 250
 };
 export {dwarvenCityConf};
 
@@ -54,6 +56,7 @@ export default class DwarvenCity {
       };
 
       const tiledLevels = [mainFortLevel, entrFortLevel, passageLevel];
+
       RG.Geometry.tileLevels(mainLevel, tiledLevels, tileConf);
 
       // Bounding box for fort levels
@@ -94,19 +97,19 @@ export default class DwarvenCity {
         {roomCount: -1, nGates: 2});
       const castleLevel = new RG.Map.Level(10, 10);
       castleLevel.setMap(innerCastle.map);
-      RG.Geometry.mergeMapBaseElems(innerCastle.map,
-          mainFort.map, 3 * 7, 2 * 7);
+      RG.Geometry.mergeMapBaseElems(mainFort.map,
+          innerCastle.map, 3 * 7, 2 * 7);
 
       const mainFortLevel = new RG.Map.Level(10, 10);
       mainFortLevel.setMap(mainFort.map);
 
       const mainFortWest = mapGen.createCastle(7 * 7, 5 * 7,
           {startRoomFunc: Castle.startRoomFuncEast,
-              roomCount: -1}
+            roomCount: -1, genParams: [1, 1, 1, 1]}
       );
       const mainFortEast = mapGen.createCastle(7 * 7, 5 * 7,
           {startRoomFunc: Castle.startRoomFuncWest,
-              roomCount: -1}
+            roomCount: -1, genParams: [1, 1, 1, 1]}
       );
 
       const mainFortWestLevel = new RG.Map.Level(10, 10);
@@ -137,7 +140,7 @@ export default class DwarvenCity {
         {nGates: 2, roomCount: -1});
       const castleLevel = new RG.Map.Level(10, 10);
       castleLevel.setMap(innerCastle.map);
-      RG.Geometry.mergeMapBaseElems(innerCastle.map, outerFort.map,
+      RG.Geometry.mergeMapBaseElems(outerFort.map, innerCastle.map,
           3 * 7, 3 * 7);
 
       const smallFortWest = mapGen.createCastleWall(3 * 7, 3 * 7,
@@ -181,7 +184,7 @@ export default class DwarvenCity {
             actors.push(actor);
         }
       });
-      RG.Factory.addPropsToCells(level, freeCells, actors, RG.TYPE_ACTOR);
+      Placer.addPropsToCells(level, freeCells, actors, RG.TYPE_ACTOR);
 
       // Add items, avoid placing anything to "hallways" of castles
     }
