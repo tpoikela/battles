@@ -83,6 +83,6 @@ export default class EditorLevelList extends React.Component {
 EditorLevelList.propTypes = {
   levelList: PropTypes.array,
   levelIndex: PropTypes.number,
-  setShownLevel: PropTypes.func.required
+  setShownLevel: PropTypes.func.isRequired
 };
 
