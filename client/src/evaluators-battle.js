@@ -15,6 +15,7 @@ class EvaluatorWinBattle extends Evaluator.Base {
 
     constructor(actorBias) {
         super(actorBias);
+        this.type = 'WinBattle';
     }
 
     calculateDesirability(actor) {
@@ -40,6 +41,7 @@ class EvaluatorRetreat extends Evaluator.Base {
     constructor(actorBias) {
         super(actorBias);
         this.cooldown = 5;
+        this.type = 'Retreat';
     }
 
     calculateDesirability() {
