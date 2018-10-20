@@ -666,9 +666,10 @@ MapGenerator.prototype.createCryptNew = function(cols, rows, conf = {}) {
 /* Creates a castle map using Template.Level and castle tiles. */
 MapGenerator.prototype.createCastle = function(cols, rows, conf = {}) {
     const genParams = conf.genParams || [1, 1, 1, 1];
-    const tileSize = genParams.reduce((acc, val) => acc + val, 0);
-    const tilesX = conf.tilesX || Math.ceil(cols / tileSize);
-    const tilesY = conf.tilesY || Math.ceil(rows / tileSize);
+    const tileSizeX = 5 + genParams[0] + genParams[1];
+    const tileSizeY = 5 + genParams[2] + genParams[3];
+    const tilesX = conf.tilesX || Math.ceil(cols / tileSizeX);
+    const tilesY = conf.tilesY || Math.ceil(rows / tileSizeY);
 
     const level = new TemplateLevel(tilesX, tilesY);
     level.use(Castle);
