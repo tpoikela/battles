@@ -20,6 +20,10 @@ export default class EditorGameBoard extends React.Component {
               classRows={screen.getClassRows()}
               endY={screen.endY}
               onCellClick={this.props.onCellClick}
+              onMouseDown={this.props.onMouseDown}
+              onMouseOver={this.props.onMouseOver}
+              onMouseOverCell={this.props.onMouseOverCell}
+              onMouseUp={this.props.onMouseUp}
               rowClass={this.props.rowClass}
               sizeX={this.props.sizeX}
               startX={0}
@@ -31,11 +35,15 @@ export default class EditorGameBoard extends React.Component {
 }
 
 EditorGameBoard.propTypes = {
-    updateMap: PropTypes.bool,
     boardClassName: PropTypes.string,
-    screen: PropTypes.object,
     onCellClick: PropTypes.func,
+    onMouseDown: PropTypes.func,
+    onMouseOver: PropTypes.func,
+    onMouseOverCell: PropTypes.func,
+    onMouseUp: PropTypes.func,
     rowClass: PropTypes.string,
-    useRLE: PropTypes.bool,
-    sizeX: PropTypes.number
+    screen: PropTypes.object,
+    sizeX: PropTypes.number,
+    updateMap: PropTypes.bool,
+    useRLE: PropTypes.bool
 };
