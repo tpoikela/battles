@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import EditorTopMenu from './editor-top-menu';
 import EditorGameBoard from './editor-game-board';
 import EditorLevelList from './editor-level-list';
+import SimulationButtons from './simulation-buttons';
 
 import GameMessages from '../jsx/game-messages';
 import LevelSaveLoad from './level-save-load';
@@ -85,6 +86,7 @@ export default class GameEditor extends Component {
 
   constructor(props) {
     super(props);
+    this.handleKeyDown = this.handleKeyDown.bind(this);
 
     const state = {
       boardClassName: 'game-board-player-view',
@@ -175,38 +177,25 @@ export default class GameEditor extends Component {
 
     this.generateLevel = this.generateLevel.bind(this);
     this.onChangeMapType = this.onChangeMapType.bind(this);
-    this.onChangeX = this.onChangeX.bind(this);
-    this.onChangeY = this.onChangeY.bind(this);
 
     this.subGenerateMap = this.subGenerateMap.bind(this);
     this.onChangeSubType = this.onChangeSubType.bind(this);
-    this.onChangeSubX = this.onChangeSubX.bind(this);
-    this.onChangeSubY = this.onChangeSubY.bind(this);
-    this.onChangeSubTileX = this.onChangeSubTileX.bind(this);
-    this.onChangeSubTileY = this.onChangeSubTileY.bind(this);
 
     this.generateActors = this.generateActors.bind(this);
     this.generateItems = this.generateItems.bind(this);
-    this.onChangeNumEntities = this.onChangeNumEntities.bind(this);
     this.setShownLevel = this.setShownLevel.bind(this);
     this.onCellClick = this.onCellClick.bind(this);
     this.onChangeCellSelectX = this.onChangeCellSelectX.bind(this);
     this.onChangeCellSelectY = this.onChangeCellSelectY.bind(this);
-    this.onChangeUpdateMap = this.onChangeUpdateMap.bind(this);
 
+    this.onChangeInputInt = this.onChangeInputInt.bind(this);
+    this.onInputChange = this.onInputChange.bind(this);
     this.insertElement = this.insertElement.bind(this);
-    this.onChangeElement = this.onChangeElement.bind(this);
     this.insertActor = this.insertActor.bind(this);
-    this.onChangeActor = this.onChangeActor.bind(this);
     this.insertItem = this.insertItem.bind(this);
-    this.onChangeItem = this.onChangeItem.bind(this);
-
-    this.onChangeInsertXWidth = this.onChangeInsertXWidth.bind(this);
-    this.onChangeInsertYWidth = this.onChangeInsertYWidth.bind(this);
 
     this.importConfig = this.importConfig.bind(this);
     this.exportConfig = this.exportConfig.bind(this);
-    this.onChangeConfTemplText = this.onChangeConfTemplText.bind(this);
 
     this.invertMap = this.invertMap.bind(this);
     this.simulateLevel = this.simulateLevel.bind(this);
@@ -215,9 +204,6 @@ export default class GameEditor extends Component {
     this.playFastSimulation = this.playFastSimulation.bind(this);
     this.pauseSimulation = this.pauseSimulation.bind(this);
     this.stopSimulation = this.stopSimulation.bind(this);
-    this.onChangeTurnsPerFrame = this.onChangeTurnsPerFrame.bind(this);
-
-    this.handleKeyDown = this.handleKeyDown.bind(this);
 
     this.onLoadCallback = this.onLoadCallback.bind(this);
 
@@ -237,7 +223,7 @@ export default class GameEditor extends Component {
     }
   }
 
-  componentWillUnMount() {
+  componentWillUnmount() {
     document.removeEventListener('keypress', this.handleKeyDown, true);
   }
 
@@ -258,7 +244,6 @@ export default class GameEditor extends Component {
 
   /* Handles some quick keys for faster placement. */
   handleKeyDown(evt) {
-    console.log('<Editor> handleKeyDown');
     const keyCode = this.nextCode = evt.keyCode;
     if (keyCode === ROT.VK_PERIOD) {
       this.setState({elementType: 'floor'});
@@ -646,8 +631,6 @@ export default class GameEditor extends Component {
     }
 
     if (this.state.selectedCell) {
-      /* console.log('Selected cell:');
-      console.log(this.state.selectedCell); */
       this.screen.setSelectedCell(this.state.selectedCell);
     }
 
@@ -665,7 +648,6 @@ export default class GameEditor extends Component {
     }
 
     const errorMsg = this.getEditorMsg();
-    const editorPanelElem = this.getEditorPanelElement();
     const simulationButtons = this.getSimulationButtons();
 
     let message = [];
@@ -675,8 +657,13 @@ export default class GameEditor extends Component {
       }
     }
 
-    const renderPanel = !this.state.simulationStarted ||
+    const isPanelRendered = !this.state.simulationStarted ||
       (this.state.simulationStarted && this.state.simulationPaused);
+    let editorPanelElem = null;
+    if (isPanelRendered) {
+      editorPanelElem = this.getEditorPanelElement();
+    }
+
     return (
       <div className='game-editor-main-div'>
         <p className='text-primary'>
@@ -687,9 +674,10 @@ export default class GameEditor extends Component {
             addLevel={this.addLevelToEditor}
             level={this.state.level}
             menuCallback={this.menuCallback}
+            toggleEditor={this.props.toggleEditor}
         />
 
-        {renderPanel && editorPanelElem}
+        {isPanelRendered && editorPanelElem}
 
         {this.state.simulationStarted &&
           <div className='game-editor-game-messages'>
@@ -866,8 +854,25 @@ export default class GameEditor extends Component {
   // onChangeXXX callbacks for <input> fields
   //----------------------------------------------------------------
 
-  onChangeUpdateMap() {
-      this.setState({updateMap: !this.state.updateMap});
+  onInputChange(evt) {
+      const {name} = evt.target;
+      let {value} = evt.target;
+      const [tag, stateVar] = name.split('-');
+      if (tag === 'checkbox') {
+          value = evt.target.checked;
+      }
+      console.log('name', name);
+      console.log('value', value);
+      console.log('checked', evt.target.checked);
+      console.log('stateVar', stateVar);
+      if (stateVar) {
+          if (this.state.hasOwnProperty(stateVar)) {
+              this.setState({[stateVar]: value});
+          }
+          else {
+              console.warn(`onInputChange: <${tag}> No ${stateVar} in state`);
+          }
+      }
   }
 
   onChangeLevelConf(confType, key, idHead) {
@@ -927,16 +932,6 @@ export default class GameEditor extends Component {
     return '';
   }
 
-  onChangeX(evt) {
-    const value = this.getInt(evt.target.value, 10);
-    this.setState({levelX: value});
-  }
-
-  onChangeY(evt) {
-    const value = this.getInt(evt.target.value, 10);
-    this.setState({levelY: value});
-  }
-
   onChangeSubType(evt) {
     const value = evt.target.value;
     const subLevelConf = this.state.subLevelConf;
@@ -945,68 +940,16 @@ export default class GameEditor extends Component {
       lastTouchedConf: subLevelConf});
   }
 
-  onChangeSubX(evt) {
-    const value = this.getInt(evt.target.value, 10);
-    this.setState({subLevelX: value});
-  }
-
-  onChangeSubY(evt) {
-    const value = this.getInt(evt.target.value, 10);
-    this.setState({subLevelY: value});
-  }
-
-  onChangeSubTileX(evt) {
-    const value = this.getInt(evt.target.value, 10);
-    this.setState({subLevelTileX: value});
-  }
-
-  onChangeSubTileY(evt) {
-    const value = this.getInt(evt.target.value, 10);
-    this.setState({subLevelTileY: value});
-  }
-
-  onChangeElement(evt) {
-    const value = evt.target.value;
-    this.setState({elementType: value});
-  }
-
-  onChangeActor(evt) {
-    const value = evt.target.value;
-    this.setState({actorName: value});
-  }
-
-  onChangeItem(evt) {
-    const value = evt.target.value;
-    this.setState({itemName: value});
-  }
-
-  onChangeInsertXWidth(evt) {
-    const value = this.getInt(evt.target.value, 10);
-    this.setState({insertXWidth: value});
-  }
-
-  onChangeInsertYWidth(evt) {
-    const value = this.getInt(evt.target.value, 10);
-    this.setState({insertYWidth: value});
-  }
-
-  onChangeConfTemplText(evt) {
-    this.setState({confTemplText: evt.target.value});
-  }
-
-  onChangeNumEntities(evt) {
-    const value = this.getInt(evt.target.value, 10);
-    this.setState({numEntities: value});
-  }
-
-  onChangeTurnsPerFrame(evt) {
-    const value = this.getInt(evt.target.value, 10);
-    this.setState({turnsPerFrame: value});
+  onChangeInputInt(evt) {
+      const [tag, stateVar] = evt.target.name.split('-');
+      if (tag === 'input') {
+          const value = this.getInt(evt.target.value, 10);
+          this.setState({[stateVar]: value});
+      }
   }
 
   onChangeCellSelectX(evt) {
     const newX = this.getInt(evt.target.value, 10);
-    console.log(newX);
     const cell = this.getFirstSelectedCell();
     const update = {cellSelectX: newX};
     const map = this.state.level.getMap();
@@ -1307,9 +1250,9 @@ export default class GameEditor extends Component {
                 <label>
                 <input
                     checked={this.state.updateMap}
-                    onChange={this.onChangeUpdateMap}
+                    name='checkbox-updateMap'
+                    onChange={this.onInputChange}
                     type='checkbox'
-                    value='update-map-checkbox'
                 />
                 Update map
                 </label>
@@ -1344,13 +1287,13 @@ export default class GameEditor extends Component {
               </select>
               <label>Size:
                 <input
-                  name='level-x'
-                  onChange={this.onChangeX}
+                  name='input-levelX'
+                  onChange={this.onChangeInputInt}
                   value={this.state.levelX}
                 />
                 <input
-                  name='level-y'
-                  onChange={this.onChangeY}
+                  name='input-levelY'
+                  onChange={this.onChangeInputInt}
                   value={this.state.levelY}
                 />
               </label>
@@ -1369,25 +1312,25 @@ export default class GameEditor extends Component {
               </select>
               <label>Size:
                 <input
-                  name='sublevel-x'
-                  onChange={this.onChangeSubX}
+                  name='input-subLevelX'
+                  onChange={this.onChangeInputInt}
                   value={this.state.subLevelX}
                 />
                 <input
-                  name='sublevel-y'
-                  onChange={this.onChangeSubY}
+                  name='input-subLevelY'
+                  onChange={this.onChangeInputInt}
                   value={this.state.subLevelY}
                 />
               </label>
               <label>Tiles:
                 <input
-                  name='sublevel-tile-x'
-                  onChange={this.onChangeSubTileX}
+                  name='input-subLevelTileX'
+                  onChange={this.onChangeInputInt}
                   value={this.state.subLevelTileX}
                 />
                 <input
-                  name='sublevel-tile-y'
-                  onChange={this.onChangeSubTileY}
+                  name='input-subLevelTileY'
+                  onChange={this.onChangeInputInt}
                   value={this.state.subLevelTileY}
                 />
               </label>
@@ -1405,8 +1348,8 @@ export default class GameEditor extends Component {
                 onClick={this.generateItems}
               >Items!</button>
               <input
-                name='gen-num-entities'
-                onChange={this.onChangeNumEntities}
+                name='input-numEntities'
+                onChange={this.onChangeInputInt}
                 value={this.state.numEntities}
               />
             </div>
@@ -1417,8 +1360,8 @@ export default class GameEditor extends Component {
                 onClick={this.insertElement}
               >Insert element</button>
               <select
-                name='insert-element'
-                onChange={this.onChangeElement}
+                name='input-elementType'
+                onChange={this.onInputChange}
                 value={this.state.elementType}
               >{elementSelectElem}
               </select>
@@ -1427,8 +1370,8 @@ export default class GameEditor extends Component {
                 onClick={this.insertActor}
               >Insert actor</button>
               <select
-                name='insert-actor'
-                onChange={this.onChangeActor}
+                name='input-actorName'
+                onChange={this.onInputChange}
                 value={this.state.actorName}
               >{actorSelectElem}
               </select>
@@ -1440,20 +1383,20 @@ export default class GameEditor extends Component {
                 onClick={this.insertItem}
               >Insert item</button>
               <select
-                name='insert-item'
-                onChange={this.onChangeItem}
+                name='input-itemName'
+                onChange={this.onInputChange}
                 value={this.state.itemName}
               >{itemSelectElem}
               </select>
               <span>| X by Y</span>
               <input
-                name='insert-x-width'
-                onChange={this.onChangeInsertXWidth}
+                name='input-insertXWidth'
+                onChange={this.onChangeInputInt}
                 value={this.state.insertXWidth}
               />
               <input
-                name='insert-y-width'
-                onChange={this.onChangeInsertYWidth}
+                name='input-insertYWidth'
+                onChange={this.onChangeInputInt}
                 value={this.state.insertYWidth}
               />
             </div>
@@ -1463,8 +1406,8 @@ export default class GameEditor extends Component {
             <div>
               <p>Template/Config here</p>
               <textarea
-                name='conf-template-input'
-                onChange={this.onChangeConfTemplText}
+                name='input-confTemplText'
+                onChange={this.onInputChange}
                 rows={5}
                 value={this.state.confTemplText}
               />
@@ -1509,51 +1452,19 @@ export default class GameEditor extends Component {
   }
 
   getSimulationButtons() {
-    let ctrlBtnClass = 'btn btn-xs';
-    if (!this.state.simulationStarted) {
-      ctrlBtnClass = 'btn btn-xs disabled';
-    }
     return (
       <div className='btn-div'>
 
-        <button
-          className='btn btn-xs'
-          onClick={this.simulateLevel}
-        >Simulate
-        </button>
-        <button
-          className='btn btn-xs'
-          onClick={this.stepSimulation}
-        >Step
-        </button>
-        <button
-          className={ctrlBtnClass}
-          onClick={this.playSimulation}
-        >Play
-        </button>
-
-        <button
-          className={ctrlBtnClass}
-          onClick={this.playFastSimulation}
-        >>>>
-        </button>
-
-        <button
-          className={ctrlBtnClass}
-          onClick={this.pauseSimulation}
-        >Pause
-        </button>
-        <button
-          className={ctrlBtnClass}
-          onClick={this.stopSimulation}
-        >Stop
-        </button>
+        <SimulationButtons
+          menuCallback={this.menuCallback}
+          simulationStarted={this.state.simulationStarted}
+        />
 
         <div>
           <label>Turns per frame:
             <input
-              name='input-turns-per-frame'
-              onChange={this.onChangeTurnsPerFrame}
+              name='input-turnsPerFrame'
+              onChange={this.onChangeInputInt}
               value={this.state.turnsPerFrame}
             />
           </label>
