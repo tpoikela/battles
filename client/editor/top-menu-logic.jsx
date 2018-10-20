@@ -4,8 +4,6 @@ import PropTypes from 'prop-types';
 import Modal from 'react-modal';
 
 const debug = require('debug')('bitn:TopMenuLogic');
-
-const RG = require('../src/rg');
 const FactoryBattle = require('../src/factory.battle');
 
 /* This component handles any menu access and shows the required modal for
@@ -146,6 +144,6 @@ export default class TopMenuLogic extends Component {
 
 TopMenuLogic.propTypes = {
   addLevel: PropTypes.func.isRequired,
-  level: PropTypes.objectOf(RG.Map.Level),
+  level: PropTypes.object,
   onRef: PropTypes.func
 };
