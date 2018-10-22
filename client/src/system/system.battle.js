@@ -5,6 +5,7 @@ const System = {};
 System.Base = require('./system.base');
 
 const {addSkillsExp} = System.Base;
+const {addQuestEvent} = require('./system.quest');
 
 /* Battle system handles battle-related components such as badges from battle
  * survivors etc. */
@@ -14,7 +15,7 @@ System.Battle = function(compTypes) {
 
     this.updateEntity = function(ent) {
         if (ent.has('BattleOver')) {
-            const comp = ent.get('BattleOver');
+            const overComp = ent.get('BattleOver');
             if (ent.has('BattleExp')) {
                 const data = ent.get('BattleExp').getData();
                 const bName = data.name;
@@ -45,8 +46,17 @@ System.Battle = function(compTypes) {
                 }
 
                 ent.remove('BattleExp');
+
+                // Check if this battle (level) belonged to a quest
+                const level = ent.getLevel();
+                if (ent.has('Quest') && level.has('QuestTarget')) {
+                    const qTarget = ent.get('QuestTarget');
+                    const args = {isWon: badge.isWon()};
+                    addQuestEvent(ent, qTarget, 'battle', args);
+                }
             }
-            ent.remove(comp);
+
+            ent.remove(overComp);
         }
         else if (ent.has('BattleOrder')) {
             const orderComp = ent.get('BattleOrder');
