@@ -21,6 +21,22 @@ const Elements = [
         char: '^', addComp: ['Impassable', 'Opaque']
     },
     {
+        name: 'floor', className: 'cell-element-floor',
+        char: '.'
+    },
+    {
+        name: 'floorcave', className: 'cell-element-floor-cave',
+        char: '.'
+    },
+    {
+        name: 'floorcrypt', className: 'cell-element-floor-crypt',
+        char: '.'
+    },
+    {
+        name: 'floorhouse', className: 'cell-element-floor-house',
+        char: '.'
+    },
+    {
         name: 'fort', className: 'cell-element-fort',
         char: '#', addComp: ['Impassable']
     },
