@@ -112,11 +112,15 @@ RG.getPropClassOrChar = function(styles, propObj) {
                     const funcToCall = p;
                     const res = propObj[funcToCall]();
 
+                    // If func returned true, use value ie
+                    // isClosed: '+' returns '+' if isClosed() === true
                     if (res === true) {
                         return styles[lookupKey][p];
                     }
+                    // Else if func returned non-false value, use the
+                    // returned value, ie getChar() returned 'A'
                     else if (res !== false) {
-                        return res;
+                        return res; // If res not single char, messes things
                     }
                 }
             }
@@ -200,10 +204,6 @@ RG.charStyles = {
         default: '.',
         exit: '.',
         exploration: '?',
-        floor: '.',
-        floorcave: '.',
-        floorcrypt: '.',
-        floorhouse: '.',
         lever: '&',
         leverdoor: {
             isClosed: '+', // if isClosed() returns true
@@ -252,10 +252,6 @@ RG.cellStyles = {
         door: 'cell-element-door',
         exit: 'cell-element-exit',
         exploration: 'cell-element-exploration',
-        floor: 'cell-element-floor',
-        floorcave: 'cell-element-floor-cave',
-        floorcrypt: 'cell-element-floor-crypt',
-        floorhouse: 'cell-element-floor-house',
         marker: {
             getClassName: '', // Use value from get
             default: 'cell-element-marker'
