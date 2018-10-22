@@ -12,6 +12,7 @@ System.Quest = function(compTypes) {
     this.compTypesAny = true; // Triggered on at least one component
 
     this._eventTable = {
+        battle: this.onBattleEvent = this.onBattleEvent.bind(this),
         get: this.onGetEvent = this.onGetEvent.bind(this),
         give: this.onGiveEvent = this.onGiveEvent.bind(this),
         goto: this.onGotoEvent = this.onGotoEvent.bind(this),
@@ -160,6 +161,37 @@ System.Quest.prototype.processQuestEvent = function(ent, qEvent) {
             `No function for ${targetType} in eventTable. Found: ${keys}`);
     }
 };
+
+/* Checks a battle quest event after battle is over. */
+System.Quest.prototype.onBattleEvent = function(ent, qEvent, questComp) {
+    const args = qEvent.getArgs();
+    const qTarget = qEvent.getTargetComp();
+    const level = qTarget.getTarget();
+    const targetType = qTarget.getTargetType();
+    const targetObj = getMatchObj(questComp, level);
+
+    if (targetType === 'winbattle') {
+        if (args.isWon) {
+            this.setTargetCompleted(targetObj, questComp);
+            let msg = `${ent.getName()} has won a battle as `;
+            msg += 'as a quest objective!';
+            questMsg({cell: ent.getCell(), msg});
+        }
+    }
+    else if (targetType === 'finishbattle') {
+        // Don't care if battle was won or lost
+        this.setTargetCompleted(targetObj, questComp);
+        let msg = `${ent.getName()} has finished a battle as `;
+        msg += 'as a quest objective!';
+        questMsg({cell: ent.getCell(), msg});
+    }
+};
+
+function getMatchObj(questComp, targetObj) {
+    const questTargets = questComp.getQuestTargets();
+    const foundObj = questTargets.find(obj => obj.id === targetObj.getID());
+    return foundObj;
+}
 
 System.Quest.prototype.onGetEvent = function(ent, qEvent, questComp) {
     const qTarget = qEvent.getTargetComp();
