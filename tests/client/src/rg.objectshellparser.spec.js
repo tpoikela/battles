@@ -1,9 +1,9 @@
 
 const RG = require('../../../client/src/battles');
-const RGObjects = require('../../../client/data/battles_objects.js');
+const RGObjects = require('../../../client/data/battles_objects');
 const RGTest = require('../../roguetest.js');
 
-const Effects = require('../../../client/data/effects.js');
+const Effects = require('../../../client/data/effects');
 
 const chai = require('chai');
 const chaiBattles = require('../../helpers/chai-battles.js');
@@ -276,6 +276,17 @@ describe('RG.ObjectShell.Parser', () => {
         expect(waterElem.getName()).to.equal('water');
         RGTest.checkChar(waterElem, '~');
         RGTest.checkCSSClassName(waterElem, 'cell-element-water');
+
+        parser.parseShellCateg(RG.TYPE_ELEM, RGObjects.elements);
+        RGObjects.elements.forEach(shell => {
+            if (shell.dontCreate !== true) {
+                const elem = parser.createElement(shell.name);
+                expect(elem).to.not.be.empty;
+                RGTest.checkChar(elem, shell.char);
+                RGTest.checkCSSClassName(elem, shell.className);
+            }
+
+        });
     });
 
 });
