@@ -9,10 +9,12 @@ const RandomCyclic = require('./random-cyclic');
 const Placer = require('./placer');
 const ObjectShell = require('./objectshellparser');
 
-const questGrammar = require('../data/quest-grammar');
+const QuestGrammar = require('../data/quest-grammar');
 const Names = require('../data/name-gen');
 
 const RNG = Random.getRNG();
+
+const questGrammar = QuestGrammar.grammar;
 
 /* A task represents a part of a quest. */
 const Task = function(taskType) {
@@ -39,7 +41,7 @@ const Quest = function(name, tasks) {
     }
     this.name = name;
     this.steps = []; // Atomics/sub-quests
-    this.testType = 'Quest';
+    this.stepType = 'Quest';
 
     if (Array.isArray(tasks)) {
         tasks.forEach(taskType => {
@@ -93,6 +95,10 @@ Quest.prototype.getSteps = function() {
     return this.steps.slice();
 };
 
+Quest.prototype.numSteps = function() {
+    return this.steps.length;
+};
+
 /* Code adapted from erratic.js by Daniel Connelly. */
 function extract(prop, o) {
     return o[prop];
@@ -102,7 +108,7 @@ function extract(prop, o) {
 function chooseRandomRule(arrOfRules) {
     if (Array.isArray(arrOfRules)) {
         const result = RNG.arrayGetRand(arrOfRules);
-        debug('choose RANDOM', result);
+        debug('chose next rule at RANDOM:', result);
         return result;
     }
     else {
@@ -111,6 +117,7 @@ function chooseRandomRule(arrOfRules) {
     return null;
 }
 
+debug.enabled = true;
 
 //---------------------------------------------------------------------------
 // QUESTGEN for generating quest sequences procedurally
@@ -157,12 +164,14 @@ QuestGen.prototype.genQuestWithConf = function(conf = {}) {
     if (conf.debug) {debug.enabled = true;}
     const questRules = conf.rules || QuestGen.rules;
     const startRule = conf.startRule || 'QUEST';
-    this.startRule = startRule;
+
     let ok = false;
     let watchdog = conf.maxTries || 20;
     let quest = [];
+
     while (!ok) {
         this._init();
+        this.startRule = startRule;
 
         debug('=== Generating new quest now ===');
         quest = this.generateQuest(questRules, startRule).split('|');
@@ -177,7 +186,6 @@ QuestGen.prototype.genQuestWithConf = function(conf = {}) {
         }
     }
 
-    // return quest;
     return this.currQuest;
 };
 
@@ -217,13 +225,15 @@ QuestGen.prototype._questMeetsReqs = function(quest, conf) {
 QuestGen.prototype.generateQuest = function(rules, rule) {
     if (!this.ruleHist[rule]) {this.ruleHist[rule] = 1;}
     else {this.ruleHist[rule] += 1;}
+    debug(`generateQuest with rule |${rule}|`);
 
-    if (rule === this.startRule) {
+    if ((rule === this.startRule) || (rule === 'QUEST')) {
         debug('New (sub)-quest will be generated');
         this.currQuest = new Quest();
         this.stack.push(this.currQuest);
     }
 
+    debug(`Choosing randRule ${rule} from ${JSON.stringify(rules[rule])}`);
     const randRule = chooseRandomRule(rules[rule]);
     if (Array.isArray(randRule)) {
         const steps = randRule.map(this.generateTerm.bind(this, rules));
@@ -246,13 +256,16 @@ QuestGen.prototype.generateTerm = function(rules, term) {
         this.currQuest.addStep(new Task(term.text));
         return term.text;
     }
+    else {
+        debug(`genTerm: term.type ${term.type} text: ${term.text}`);
+    }
 
     debug(`calling generate() with term.text |${term.text}|`);
     return this.generateQuest(rules, term.text);
 };
 
 QuestGen.prototype._checkIfQuestOver = function(rule) {
-    if (rule === this.startRule) {
+    if (rule === this.startRule || rule === 'QUEST') {
         debug('Finishing current quest');
         const qLen = this.stack.length;
         if (qLen > 1) {
@@ -286,7 +299,7 @@ QuestData.mapStepToType = {
     kill: 'entity',
     listen: 'entity',
     location: 'place',
-    losebattle: 'place',
+    finishbattle: 'place',
     read: 'item',
     repair: 'element',
     report: 'entity',
@@ -616,7 +629,8 @@ const tasksImplemented = new Set([
     '<goto>already_there', '<goto>explore', '<goto>goto',
     '<learn>read',
     'listen', 'report',
-    '<steal>stealth', '<steal>take', 'take'
+    '<steal>stealth', '<steal>take', 'take',
+    'finishbattle', 'winbattle'
 ]);
 
 QuestPopulate.prototype.pushQuestCrossRef = function(key, data) {
@@ -793,8 +807,8 @@ QuestPopulate.prototype.mapTask = function(quest, task, zone, areaTile) {
             }
             break;
         }
-        case 'losebattle': {
-            this.currQuest.addTarget('losebattle',
+        case 'finishbattle': {
+            this.currQuest.addTarget('finishbattle',
                 {createTarget: 'createBattle', args: [zone, areaTile]});
             ok = true;
             break;
@@ -1106,8 +1120,7 @@ QuestPopulate.prototype.getNewLocation = function(zone, areaTile) {
             newZone = RNG.arrayGetRand(zones);
         }
     }
-    console.log('old zone was', zone.getName());
-    console.log('NEW zone is', newZone.getName());
+
     this._data.zone.push(newZone);
     return RNG.arrayGetRand(newZone.getLevels());
 };
@@ -1155,12 +1168,11 @@ QuestPopulate.prototype.getExploreTarget = function() {
 QuestPopulate.supportedKeys = new Set([
     'defend', 'capture', 'explore',
     'kill', 'location', 'listen', 'give', 'report', 'get', 'steal', 'use',
-    'repair', 'damage', 'winbattle', 'losebattle', 'escort', 'spy', 'exchange',
-    'read', 'experiment', 'subquest'
+    'repair', 'damage', 'winbattle', 'finishbattle', 'escort', 'spy',
+    'exchange', 'read', 'experiment', 'subquest'
 ]);
 
 QuestPopulate.prototype.addQuestComponents = function(zone) {
-    console.log('addQuestComponents: Adding quest components now');
     // Sub-quests must be mapped first, so that quest givers can be obtained
     // for parent quetsts
     for (let i = this.questList.length - 1; i >= 0; i--) {
@@ -1180,7 +1192,6 @@ QuestPopulate.prototype.addQuestComponents = function(zone) {
                                 `${createTarget} not a func in QuestPopulate`);
                         }
 
-                        console.log('Creating targetObj with', createTarget);
                         const targetObj = this[createTarget](target, ...args);
                         this.setAsQuestTarget(key, targetObj);
                         // Replace target with newly create object
@@ -1218,8 +1229,6 @@ QuestPopulate.prototype.addQuestComponents = function(zone) {
 QuestPopulate.prototype.addTargetsToGiver = function(giverComp, questData) {
     const questID = giverComp.getQuestID();
     this.dbg('addTargetsToGiver now, ID', questID);
-    /* const questKeys = questData.keys();
-	questData.resetIter();*/
 
     ++this.IND;
     const pathTargets = questData.getPathTargets();
@@ -1238,28 +1247,6 @@ QuestPopulate.prototype.addTargetsToGiver = function(giverComp, questData) {
                 `No QuestTarget found from target ${json}`);
         }
     });
-    /*
-	questKeys.forEach(key => {
-		let questTarget = questData.next(key);
-		while (questTarget) {
-            this._checkTargetValidity(questTarget);
-			const targetComp = questTarget.get('QuestTarget');
-			if (targetComp) {
-				const [target, targetType] = [targetComp.getTarget(),
-					targetComp.getTargetType()];
-				giverComp.addTarget(targetType, target);
-                targetComp.setQuestID(questID);
-			}
-            else {
-                const json = JSON.stringify(questTarget);
-                RG.err('QuestPopulate', 'addTargetsToGiver',
-                    `No QuestTarget found from target ${json}`);
-            }
-			questTarget = questData.next(key);
-		}
-	});
-	questData.resetIter();
-    */
     --this.IND;
 };
 
