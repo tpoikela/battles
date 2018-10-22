@@ -1,9 +1,11 @@
 
 import { expect } from 'chai';
 
+const RG = require('../../../client/src/battles');
 const {Quest, QuestGen, QuestPopulate}
     = require('../../../client/src/quest-gen');
 const FactoryWorld = require('../../../client/src/factory.world');
+const QuestGrammar = require('../../../client/data/quest-grammar');
 const RGTest = require('../../roguetest');
 
 const questGram1 = '<QUEST> ::= "goto" "kill";';
@@ -34,14 +36,12 @@ describe('QuestGen', () => {
         expect(quest).to.be.instanceof(Quest);
         expect(quest.numQuests()).to.equal(1);
         expect(quest.numTasks()).to.equal(2);
-        console.log(JSON.stringify(quest));
     });
 
     it('can create quests with sub-quests', () => {
         const rules = QuestGen.parse(questGram2);
         const conf = {rules, minQuests: 2};
         const quest = questGen.genQuestWithConf(conf);
-        console.log(JSON.stringify(quest));
         expect(quest.numQuests()).to.be.above(1);
     });
 
@@ -49,8 +49,22 @@ describe('QuestGen', () => {
         const rules = QuestGen.parse(questGram3);
         const conf = {debug: true, rules};
         const quest = questGen.genQuestWithConf(conf);
-        console.log(JSON.stringify(quest));
         expect(quest.numTasks()).to.equal(6);
+    });
+
+    it('can generate quests from pre-made grammar', () => {
+        const motive = 'Reputation';
+        let conf = {startRule: motive, maxQuests: 1};
+        let quest = questGen.genQuestWithConf(conf);
+        expect(quest.numSteps()).to.be.at.least(3);
+
+        const {actorMotivations} = QuestGrammar;
+        actorMotivations.forEach(motive => {
+            console.log('Motive:', motive);
+            conf = {startRule: motive, maxQuests: 1};
+            quest = questGen.genQuestWithConf(conf);
+            expect(quest.numSteps()).to.be.at.least(2);
+        });
     });
 });
 
