@@ -1,14 +1,14 @@
 
 const RG = require('./rg');
 
-RG.Mixin = {};
+const Mixin = {};
 
 // Dummy Base class to be used with mixins.
 class Base {}
-RG.Mixin.Base = Base;
+Mixin.Base = Base;
 
 /* A mixin used for typed objects. */
-RG.Mixin.Typed = (superclass) => class extends superclass {
+Mixin.Typed = (superclass) => class extends superclass {
 
     constructor(args) {
         if (superclass) {super(args);}
@@ -20,7 +20,7 @@ RG.Mixin.Typed = (superclass) => class extends superclass {
     getType() {return this.type;}
 
     setPropType(propType) {
-        var index = RG.PROP_TYPES.indexOf(propType);
+        const index = RG.PROP_TYPES.indexOf(propType);
         if (index >= 0) {
             this._propType = propType;
         }
@@ -38,7 +38,7 @@ RG.Mixin.Typed = (superclass) => class extends superclass {
 };
 
 /* A mixin for ownable objects. */
-RG.Mixin.Ownable = (superclass) => class extends superclass {
+Mixin.Ownable = (superclass) => class extends superclass {
 
     constructor(args) {
 		super(args);
@@ -71,29 +71,29 @@ RG.Mixin.Ownable = (superclass) => class extends superclass {
     getOwner() {return this._owner;}
 
     getX() {
-        if (this._owner !== null) {return this._owner.getX();}
+        if (this._owner) {return this._owner.getX();}
         return null;
     }
 
     getY() {
-        if (this._owner !== null) {return this._owner.getY();}
+        if (this._owner) {return this._owner.getY();}
         return null;
     }
 
     getXY() {
-        if (this._owner !== null) {return this._owner.getXY();}
+        if (this._owner) {return this._owner.getXY();}
         return null;
     }
 
     getLevel() {
-        if (this._owner !== null) {return this._owner.getLevel();}
+        if (this._owner) {return this._owner.getLevel();}
         return null;
     }
 
 };
 
 /* Mixin used in Locatable objects with x,y coordinates. */
-RG.Mixin.Locatable = (superclass) => class extends superclass {
+Mixin.Locatable = (superclass) => class extends superclass {
 
     constructor(args) {
         super(args);
@@ -164,7 +164,7 @@ RG.Mixin.Locatable = (superclass) => class extends superclass {
 };
 
 /* Mixin for objects requiring a damage roll. */
-RG.Mixin.DamageRoll = (superclass) => class extends superclass {
+Mixin.DamageRoll = (superclass) => class extends superclass {
 
     constructor(args) {
         super(args);
@@ -206,7 +206,7 @@ RG.Mixin.DamageRoll = (superclass) => class extends superclass {
 };
 
 /* Adds a duration and accessor functions to given component. */
-RG.Mixin.DurationRoll = (superclass) => class extends superclass {
+Mixin.DurationRoll = (superclass) => class extends superclass {
 
     constructor(args) {
         super(args);
@@ -242,7 +242,7 @@ RG.Mixin.DurationRoll = (superclass) => class extends superclass {
 
 };
 
-RG.Mixin.Defense = (superclass) => class extends superclass {
+Mixin.Defense = (superclass) => class extends superclass {
 
     constructor(args) {
         super(args);
@@ -307,7 +307,7 @@ RG.Mixin.Defense = (superclass) => class extends superclass {
 };
 
 /* Mixin for damage objects. */
-RG.Mixin.Damage = (superclass) => class extends RG.Mixin.Defense(superclass) {
+Mixin.Damage = (superclass) => class extends Mixin.Defense(superclass) {
 
     constructor(args) {
         super(args);
@@ -371,5 +371,4 @@ RG.Mixin.Damage = (superclass) => class extends RG.Mixin.Defense(superclass) {
 
 };
 
-
-module.exports = RG.Mixin;
+module.exports = Mixin;
