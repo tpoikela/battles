@@ -147,6 +147,10 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
         }
 
         const newObj = this.createNewObject(categ, shell);
+        if (!newObj) {
+            RG.err('ObjectShell.creator', 'createActualObj',
+                `Failed to create obj with ${JSON.stringify(shell)}`);
+        }
 
         // Example: {name: 'bat', addComp: 'Flying'}
         if (shell.hasOwnProperty('addComp')) {
