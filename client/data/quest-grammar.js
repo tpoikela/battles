@@ -7,6 +7,10 @@
 */
 
 /* Usage: require in another file. parse with BNF parser such as prettybnf. */
+const Random = require('../src/random');
+
+const RNG = Random.getRNG();
+const QuestGrammar = {};
 
 const topRule =
 `<QUEST> ::= <Knowledge> | <Comfort> |
@@ -14,7 +18,7 @@ const topRule =
  <Protection> | <Conquest> |
  <Wealth> | <Ability> | <Equipment> | <Strategy>;`;
 
-const actorMotivations =
+const actorMotivationsGrammar =
 `<Knowledge> ::= <Deliver_item_for_study> |
  <Spy> |
  <Interview_NPC> |
@@ -68,17 +72,17 @@ const actorMotivations =
 const grammar =
 `${topRule}
 
-${actorMotivations}
+${actorMotivationsGrammar}
 
 <Deliver_item_for_study> ::= <get> <goto> "give";
 <Spy> ::= <spy>;
 <Interview_NPC> ::= <goto> "listen" <goto> "report";
-<Use_an_item_in_the_field> ::= <get> <goto> "use" <goto> <give>;
+<Use_an_item_in_the_field> ::= <get> <goto> "use" <goto> "give";
 
-<Obtain_luxuries> ::= <get> <goto> <give>;
+<Obtain_luxuries> ::= <get> <goto> "give";
 <Kill_pests> ::= <goto> "damage" <goto> "report";
 
-<Obtain_rare_items> ::= <get> <goto> <give>;
+<Obtain_rare_items> ::= <get> <goto> "give";
 <Kill_enemies> ::= <goto> <kill> <goto> "report";
 <Visit_a_dangerous_place> ::= <goto> <goto> "report";
 
@@ -93,8 +97,8 @@ ${actorMotivations}
 <Attack_threatening_entities> ::=<goto> "damage" <goto> "report";
 <Treat_or_repair_1> ::= <get> <goto> "use";
 <Treat_or_repair_2> ::= <goto> "repair";
-<Create_Diversion> ::= <get> <goto> "use";
-<Create_Diversion> ::= <goto> "damage";
+<Create_Diversion_1> ::= <get> <goto> "use";
+<Create_Diversion_2> ::= <goto> "damage";
 <Assemble_fortification> ::= <goto> "repair";
 <Guard_Entity> ::= <goto> "defend";
 
@@ -119,7 +123,7 @@ ${actorMotivations}
 <Trade_for_supplies> ::= <goto> "<get>exchange";
 
 <Win_a_battle> ::= <goto> "winbattle";
-<Survive_a_battle> ::= <goto> "losebattle";
+<Survive_a_battle> ::= <goto> "finishbattle";
 
 <subquest> ::= <goto> |
     <goto> <QUEST> "<subquest>goto";
@@ -146,7 +150,7 @@ ${actorMotivations}
 /*
 Terminals:
 <EMPTY>
-capture
+"capture"
 "damage"
 "defend"
 "escort"
@@ -167,4 +171,53 @@ capture
 "use"
 */
 
-module.exports = grammar;
+const motiveRe = /<(\w+)>\s*::=/;
+
+function getMotivations(text) {
+    const res = [];
+    const lines = text.split('\n');
+    lines.forEach(line => {
+        const matches = line.match(motiveRe);
+        if (matches && matches.length > 1) {
+            res.push(matches[1]);
+        }
+    });
+    return res;
+}
+
+/* Used to generate randomly different weights. */
+const motiveWeights = {
+    Knowledge: 180,
+    Comfort: 20,
+    Reputation: 70,
+    Serenity: 140,
+    Protection: 180,
+    Conquest: 200,
+    Wealth: 20,
+    Ability: 10,
+    Equipment: 180,
+    Strateg: 40
+};
+QuestGrammar.motiveWeights = motiveWeights;
+
+const actorMotivations = getMotivations(actorMotivationsGrammar);
+
+QuestGrammar.setWeight = function(motive, weight, clearOthers = false) {
+    if (clearOthers) {
+        // Can be used for debugging if only one type of motive is
+        // being tested
+        Object.keys(motiveWeights).forEach(motive => {
+            motiveWeights[motive] = 0;
+        });
+    }
+    motiveWeights[motive] = weight;
+};
+
+QuestGrammar.getRandMotive = function() {
+    RNG.getWeighted(motiveWeights);
+};
+
+QuestGrammar.grammar = grammar;
+QuestGrammar.actorMotivations = actorMotivations;
+
+module.exports = QuestGrammar;
