@@ -589,10 +589,10 @@ const parser = ObjectShell.getParser();
 RG.ELEM.BRIDGE = Object.freeze(parser.createElement('bridge'));
 RG.ELEM.CHASM = Object.freeze(parser.createElement('chasm'));
 
-RG.ELEM.FLOOR = Object.freeze(new RGElementBase('floor'));
-RG.ELEM.FLOOR_CAVE = Object.freeze(new RGElementBase('floorcave'));
-RG.ELEM.FLOOR_CRYPT = Object.freeze(new RGElementBase('floorcrypt'));
-RG.ELEM.FLOOR_HOUSE = Object.freeze(new RGElementBase('floorhouse'));
+RG.ELEM.FLOOR = Object.freeze(parser.createElement('floor'));
+RG.ELEM.FLOOR_CAVE = Object.freeze(parser.createElement('floorcave'));
+RG.ELEM.FLOOR_CRYPT = Object.freeze(parser.createElement('floorcrypt'));
+RG.ELEM.FLOOR_HOUSE = Object.freeze(parser.createElement('floorhouse'));
 
 RG.ELEM.GRASS = Object.freeze(parser.createElement('grass'));
 RG.ELEM.HIGH_ROCK = Object.freeze(parser.createElement('highrock'));
