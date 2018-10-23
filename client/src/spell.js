@@ -544,6 +544,17 @@ Spell.Paralysis = function() {
 };
 RG.extend2(Spell.Paralysis, Spell.AddComponent);
 
+Spell.StunningTouch = function() {
+    Spell.AddComponent.call(this, 'StunningTouch', 7);
+    this.setCompName('StunningTouch');
+    this.setDuration(RG.FACT.createDie('1d6 + 2'));
+
+    this.aiShouldCastSpell = (args, cb) => {
+        return aiSpellCellEnemy(args, cb);
+    };
+};
+RG.extend2(Spell.StunningTouch, Spell.AddComponent);
+
 //------------------------------------------------------
 /* @class Spell.SpiritForm
  * Adds Component Ethereal to the given entity. */
@@ -1077,6 +1088,12 @@ Spell.SummonFlyingEyes = function() {
         const teleCompSrc = teleCompTarget.clone();
         RG.Component.addToExpirationComp(minion, teleCompTarget, duration);
         RG.Component.addToExpirationComp(this._caster, teleCompSrc, duration);
+    };
+
+    /* Cast only when no telepathic connections. */
+    this.aiShouldCastSpell = (args) => {
+        const {actor} = args;
+        return !actor.has('Telepathy');
     };
 
 };
