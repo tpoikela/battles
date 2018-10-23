@@ -42,6 +42,7 @@ const Quest = function(name, tasks) {
     this.name = name;
     this.steps = []; // Atomics/sub-quests
     this.stepType = 'Quest';
+    this.motive = '';
 
     if (Array.isArray(tasks)) {
         tasks.forEach(taskType => {
@@ -58,6 +59,12 @@ const Quest = function(name, tasks) {
         });
     }
 };
+
+Quest.prototype.setName = function(name) {this.name = name;};
+Quest.prototype.getName = function() {return this.name;};
+
+Quest.prototype.setMotive = function(motive) {this.motive = motive;};
+Quest.prototype.getMotive = function() {return this.motive;};
 
 Quest.prototype.isTask = function() {return false;};
 Quest.prototype.isQuest = function() {return true;};
@@ -155,6 +162,24 @@ QuestGen.defaultConfig = {
     maxQuests: -1,
     minLength: 1,
     maxLength: -1
+};
+
+
+QuestGen.prototype.genQuestWithMotive = function(conf = {}) {
+    const {motive} = conf;
+    const questRules = conf.rules || QuestGen.rules;
+    const [nameRule] = chooseRandomRule(questRules[motive]);
+    const questType = nameRule.text;
+    console.log('questType is', questType);
+    const newConf = Object.assign({}, conf);
+    newConf.rules = questRules;
+    newConf.startRule = questType;
+    const quest = this.genQuestWithConf({startRule: questType,
+        rules: questRules});
+
+    quest.setName(questType);
+    quest.setMotive(motive);
+    return quest;
 };
 
 /* Main function you want to call. Generates a random quest based on given conf
