@@ -288,12 +288,45 @@ const Actors = [
         danger: 10
     },
 
+    {
+        name: 'HyrmBase', char: 'y', type: 'hyrm',
+        color: color('Black', 'Purple'), dontCreate: true,
+        attack: 1, defense: 1, damage: '1d4', range: 1, hp: 10,
+        danger: 2, brain: defaultBrain,
+        enemies: ['player']
+    },
+    {
+        name: 'hyrm warrior', base: 'HyrmBase',
+        attack: 3, defense: 3, damage: '1d8', hp: 15,
+        danger: 2,
+    },
+    {
+        name: 'hyrm catapulter', base: 'HyrmBase',
+        attack: 3, defense: 3, damage: '1d8', hp: 25,
+        danger: 4,
+        equip: [{name: 'Large rock', count: 4}]
+    },
+    {
+        name: 'hyrm runemage', base: 'HyrmBase',
+        attack: 3, defense: 3, damage: '1d8', hp: 25,
+        danger: 5, brain: 'SpellCaster',
+        spells: ['SummonKin', 'StunningTouch'],
+        maxPP: 20, pp: 20
+    },
+
     // HUMANOIDS
     {
         name: 'humanoid', char: 'h', type: 'humanoid',
         attack: 1, defense: 1, damage: '1d4', range: 1, hp: 10,
         danger: 2, brain: defaultBrain,
         enemies: ['human', 'player']
+    },
+    {
+        name: 'dark warrior', char: 'h', type: 'humanoid',
+        className: 'cell-actor-void',
+        attack: 6, defense: 4, damage: '2d5 + 3', range: 1, hp: 25,
+        enemies: RG.ACTOR_RACES, brain: 'SpellCaster',
+        spells: ['SummonFlyingEyes'], pp: 16, danger: 5
     },
     {
         name: 'dark assassin', char: 'h', type: 'humanoid',
