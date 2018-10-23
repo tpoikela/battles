@@ -54,6 +54,7 @@ describe('QuestGen', () => {
 
     it('can generate quests from pre-made grammar', () => {
         const motive = 'Reputation';
+        RG.diag(motive);
         let conf = {startRule: motive, maxQuests: 1};
         let quest = questGen.genQuestWithConf(conf);
         expect(quest.numSteps()).to.be.at.least(3);
@@ -61,11 +62,28 @@ describe('QuestGen', () => {
         const {actorMotivations} = QuestGrammar;
         actorMotivations.forEach(motive => {
             console.log('Motive:', motive);
-            conf = {startRule: motive, maxQuests: 1};
-            quest = questGen.genQuestWithConf(conf);
-            expect(quest.numSteps()).to.be.at.least(2);
+            conf = {motive, maxQuests: 1};
+            quest = questGen.genQuestWithMotive(conf);
+
+            const msg = `Motive ${motive} OK`;
+            if (motive === 'Ability' || motive === 'Wealth') {
+                expect(quest.numSteps(), msg).to.be.at.least(1);
+            }
+            else {
+                expect(quest.numSteps(), msg).to.be.at.least(2);
+            }
+            expect(quest.getMotive()).to.equal(motive);
         });
     });
+
+    it('can generate quests based on name', () => {
+        const questName = 'Kill_pests';
+        const conf = {startRule: questName, maxQuests: 1};
+        const quest = questGen.genQuestWithConf(conf);
+        expect(quest).to.not.be.empty;
+        expect(quest.numSteps()).to.be.at.least(4);
+    });
+
 });
 
 
