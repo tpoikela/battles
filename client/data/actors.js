@@ -383,16 +383,23 @@ const Actors = [
       pp: 20, maxPP: 20
     },
     {
+      name: 'bearfolk magistrate', base: 'BearfolkBase',
+      damage: '1d10 + 2',
+      'color-fg': 'Purple',
+      attack: 4, defense: 4, danger: 5, hp: 30,
+      equip: ['Leather armour']
+    },
+    {
         name: 'bearfolk elite', base: 'BearfolkBase',
         damage: '2d6',
-        attack: 5, defense: 5, hp: 37, danger: 5,
+        attack: 5, defense: 5, hp: 37, danger: 6,
         onHit: [
             {addComp: 'Stun', duration: '1d4 + 1'}
         ]
     },
     {
       name: 'bearfolk king', base: 'BearfolkBase',
-      damage: '3d6', strength: 15,
+      damage: '3d6', strength: 16,
       attack: 7, defense: 7, protection: 5, danger: 8, hp: 75
     },
 
@@ -1053,7 +1060,8 @@ const Actors = [
     // UNIQUES
     {
         name: 'UniqueBase', dontCreate: true, className: 'cell-actor-unique',
-        noRandom: true, unique: true, addComp: ['RegenEffect']
+        noRandom: true, unique: true, addComp: ['RegenEffect'],
+        color: color('DarkViolet', 'Beige'),
     },
     {
         name: 'Thabba, Son of Ice', base: 'UniqueBase',
