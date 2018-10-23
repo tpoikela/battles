@@ -42,8 +42,8 @@ const actorMotivationsGrammar =
 <Protection> ::= <Attack_threatening_entities> |
  <Treat_or_repair_1> |
  <Treat_or_repair_2> |
- <Create_Diversion> |
- <Create_Diversion> |
+ <Create_Diversion_1> |
+ <Create_Diversion_2> |
  <Assemble_fortification> |
  <Guard_Entity>;
 
@@ -67,7 +67,8 @@ const actorMotivationsGrammar =
     <Steal_supplies> |
     <Trade_for_supplies>;
 
-<Strategy> ::= <Win_a_battle>;`;
+<Strategy> ::= <Win_a_battle> |
+    <Survive_a_battle>;`;
 
 const grammar =
 `${topRule}
@@ -196,7 +197,7 @@ const motiveWeights = {
     Wealth: 20,
     Ability: 10,
     Equipment: 180,
-    Strateg: 40
+    Strategy: 40
 };
 QuestGrammar.motiveWeights = motiveWeights;
 
