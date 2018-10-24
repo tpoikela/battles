@@ -23,13 +23,13 @@ System.SpellCast = function(compTypes) {
             const spellcast = ent.get('SpellCast');
             const ppComp = ent.get('SpellPower');
             const spell = spellcast.getSpell();
-            if (spell.getPower() <= ppComp.getPP()) {
+            if (spell.getCastingPower() <= ppComp.getPP()) {
                 const drainers = Object.values(this.entities).filter(ent => (
                     ent.has('PowerDrain')
                 ));
 
                 const args = spellcast.getArgs();
-                ppComp.decrPP(spell.getPower());
+                ppComp.decrPP(spell.getCastingPower());
 
                 if (drainers.length === 0) {
                     spell.cast(args);
@@ -71,8 +71,10 @@ System.SpellCast = function(compTypes) {
                         ent.remove('PowerDrain');
                         isDrained = true;
                         this._drainerName = ent.getName();
+
                         if (ent.has('SpellPower')) {
-                            ent.get('SpellPower').addPP(spell.getPower());
+                            const castPower = spell.getCastingPower();
+                            ent.get('SpellPower').addPP(castPower);
                         }
                         return; // from forEach loop
                     }
