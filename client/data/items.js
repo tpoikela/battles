@@ -838,7 +838,7 @@ const Items = [
         name: 'Steel arrow', base: 'MissileBase',
         className: 'cell-item-steel',
         type: 'ammo', range: 1, weight: 0.1, ammoType: 'bow',
-        attack: 0, damage: '1d6', value: value('steel', 20)
+        attack: 0, damage: '1d6 + 2', value: value('steel', 20)
     },
     {
         name: 'Steel bolt', base: 'MissileBase',
@@ -851,6 +851,12 @@ const Items = [
         className: 'cell-item-rock',
         type: 'ammo', range: 1, weight: 0.10, ammoType: 'rifle',
         attack: -1, damage: '2d4', value: value(30)
+    },
+    {
+        name: 'Arrow of targeting', base: 'MissileBase',
+        className: 'cell-item-steel',
+        type: 'ammo', range: 1, weight: 0.1, ammoType: 'bow',
+        attack: 10, damage: '1d6 + 3', value: value('steel', 40)
     },
     {
         name: 'Runed arrow', base: 'MissileBase',
@@ -1191,20 +1197,24 @@ const Items = [
 
     // SPECIAL ITEMS (not generated procedurally)
     {
-        name: 'MagicalAmmoBase', noRandom: true,
+        name: 'MagicalArrowBase', noRandom: true,
         type: 'ammo', char: '/', addComp: 'Magical'
     },
     {
-        name: 'Ice arrow', base: 'MagicalAmmoBase',
+        name: 'Ice arrow', base: 'MagicalArrowBase',
         className: 'cell-item-ice'
     },
     {
-        name: 'Lightning arrow', base: 'MagicalAmmoBase',
+        name: 'Lightning arrow', base: 'MagicalArrowBase',
         className: 'cell-item-lightning'
     },
     {
-        name: 'Energy arrow', base: 'MagicalAmmoBase',
+        name: 'Energy arrow', base: 'MagicalArrowBase',
         className: 'cell-item-energy'
+    },
+    {
+        name: 'Poison arrow', base: 'MagicalArrowBase',
+        className: 'cell-item-poison'
     }
 
     // ARTIFACT ITEMS
