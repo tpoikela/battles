@@ -246,6 +246,7 @@ describe('System.SpellCast', () => {
         mage.add(spellPower);
 
         const frostBolt = new RG.Spell.FrostBolt();
+        frostBolt.setCaster(mage);
 
         const spellCast = new RG.Component.SpellCast();
         spellCast.setSource(mage);
