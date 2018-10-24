@@ -80,6 +80,11 @@ System.Animation = function(compTypes) {
         const dY = args.dir[1];
         let rangeLeft = args.range;
 
+        let lineChar = RG.dirToChar(args.dir);
+        if (args.lineChar) {
+            lineChar = {args};
+        }
+
         const animation = this._createAnimation(args);
         const frame = {};
         if (args.ray) {
@@ -87,8 +92,8 @@ System.Animation = function(compTypes) {
                 x += dX;
                 y += dY;
                 frame[x + ',' + y] = {
-                    char: args.lineChar || '*',
-                    className: 'cell-ray'
+                    char: lineChar || '*',
+                    className: args.className || 'cell-ray'
                 };
 
                 const frameCopy = Object.assign({}, frame);
@@ -107,7 +112,7 @@ System.Animation = function(compTypes) {
         args.coord.forEach(xy => {
             frame[xy[0] + ',' + xy[1]] = {
                 char: args.cellChar || '*',
-                className: 'cell-animation'
+                className: args.className || 'cell-animation'
             };
         });
 
