@@ -73,6 +73,9 @@ System.Missile = function(compTypes) {
                 // Check hit and miss
                 if (this.targetHit(ent, actor, mComp)) {
                     this.finishMissileFlight(ent, mComp, currCell);
+                    if (typeof mComp.onHit === 'function') {
+                        mComp.onHit(actor);
+                    }
                     const hitVerb = this._addDamageToActor(actor, mComp);
                     RG.debug(this, 'Hit an actor');
                     shownMsg = `${firedMsg} ${hitVerb} ${actor.getName()}`;
