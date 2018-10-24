@@ -7,7 +7,6 @@
 
 const RG = require('./rg');
 const Goal = require('./goals');
-// const GoalsBattle = require('./goals-battle');
 Goal.Thief = require('./goal.thief');
 
 const Evaluator = {};
@@ -374,7 +373,8 @@ class EvaluatorCastSpell extends EvaluatorBase {
     /* Returns true if spellcaster can cast a spell. */
     canCastSpell(actor) {
         if (actor.has('SpellPower')) {
-            if (actor.get('SpellPower').getPP() >= this.spell.getPower()) {
+            const spellPower = actor.get('SpellPower');
+            if (spellPower.getPP() >= this.spell.getCastingPower()) {
                 if (RNG.getUniform() <= this._castingProb) {
                     return true;
                 }
@@ -389,18 +389,19 @@ class EvaluatorCastSpell extends EvaluatorBase {
         const seenCells = brain.getSeenCells();
         const enemyCell = brain.findEnemyCell(seenCells);
         const actorCellsAround = RG.Brain.getActorCellsAround(actor);
+        const args = {actor, actorCellsAround};
         if (enemyCell) {
-            const enemy = enemyCell.getActors()[0];
-            const args = {enemy, actor, actorCellsAround};
-            if (this.spell.aiShouldCastSpell) {
-                return this.spell.aiShouldCastSpell(args, (actor, args) => {
-                    this.spellArgs = args;
-                });
-            }
-            else {
-                RG.warn('Evaluator.CastSpell', 'shouldCastSpell',
-                    `Spell ${this.spell.getName()} cannot be casty by AI`);
-            }
+            args.enemy = enemyCell.getActors()[0];
+        }
+        if (this.spell.aiShouldCastSpell) {
+            return this.spell.aiShouldCastSpell(args, (actor, args) => {
+                this.spellArgs = args;
+            });
+        }
+        else {
+            let msg = `Spell ${this.spell.getName()} cannot be cast by AI`;
+            msg += ' no aiShouldCastSpell() defined for the spell';
+            RG.warn('Evaluator.CastSpell', 'shouldCastSpell', msg);
         }
         return false;
     }
