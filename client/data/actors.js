@@ -326,16 +326,34 @@ const Actors = [
         className: 'cell-actor-void',
         attack: 6, defense: 4, damage: '2d5 + 3', range: 1, hp: 25,
         enemies: RG.ACTOR_RACES, brain: 'SpellCaster',
-        spells: ['SummonFlyingEyes'], pp: 16, danger: 5
+        spells: ['SummonFlyingEyes'], maxPP: 16, pp: 16, danger: 5
+    },
+    {
+        name: 'dark archer', char: 'h', type: 'humanoid',
+        className: 'cell-actor-void',
+        attack: 8, defense: 3, damage: '2d5', range: 1, hp: 30,
+        enemies: RG.ACTOR_RACES, brain: 'SpellCaster',
+        spells: ['SummonFlyingEyes'], maxPP: 16, pp: 16, danger: 5,
+        equip: ['Iron bow', {name: 'Steel arrow', count: 8}],
+        addComp: ['LongRangeShot']
     },
     {
         name: 'dark assassin', char: 'h', type: 'humanoid',
         className: 'cell-actor-void',
         attack: 10, defense: 5, damage: '3d5 + 3', range: 1, hp: 50,
         enemies: RG.ACTOR_RACES, brain: 'SpellCaster',
-        spells: ['SummonFlyingEyes'], pp: 40, danger: 10,
+        spells: ['SummonFlyingEyes'], maxPP: 40, pp: 40, danger: 10,
         addComp: [resistance('POISON', 'IMMUNITY')],
         poison: {duration: '4d6', damage: '1d4 + 2', prob: '0.20'},
+    },
+    {
+        name: 'dark lord', char: 'h', type: 'humanoid',
+        color: color('Yellow', 'Purple'),
+        attack: 12, defense: 10, damage: '4d5 + 5', range: 1, hp: 75,
+        enemies: RG.ACTOR_RACES, brain: 'SpellCaster',
+        spells: ['SummonFlyingEyes'], maxPP: 60, pp: 60,
+        danger: 15, addComp: [resistance('POISON', 'IMMUNITY')],
+        poison: {duration: '4d6', damage: '2d4 + 2', prob: '0.25'},
     },
 
     // AVIAN
