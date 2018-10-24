@@ -857,6 +857,30 @@ RG.dXdYToDir = function(dXdY) {
     return result;
 };
 
+
+RG.dirToChar = function(dir) {
+    const [dX, dY] = dir;
+    if (dX !== 0) {
+        if (dY === 0) {return '-';}
+        else if (dX === 1 && dY === 1) {
+            return '\\';
+        }
+        else if (dX === -1 && dY === 1) {
+            return '/';
+        }
+        else if (dX === -1 && dY === -1) {
+            return '\\';
+        }
+        else {
+            return '/';
+        }
+    }
+    else {
+        return '|';
+    }
+
+};
+
 RG.DMG = {
     ACID: 'ACID',
     BLUNT: 'BLUNT',
@@ -876,6 +900,25 @@ RG.DMG = {
     VOID: 'VOID'
 };
 
+RG.classNameDMG = {
+    ACID: 'cell-damage-ACID',
+    BLUNT: 'cell-damage-BLUNT',
+    COLD: 'cell-damage-COLD',
+    ENERGY: 'cell-damage-ENERGY',
+    FIRE: 'cell-damage-FIRE',
+    HUNGER: 'cell-damage-HUNGER',
+    ICE: 'cell-damage-ICE',
+    LIGHTNING: 'cell-damage-LIGHTNING',
+    MAGIC: 'cell-damage-MAGIC',
+    MELEE: 'cell-damage-MELEE',
+    MISSILE: 'cell-damage-MISSILE',
+    NECRO: 'cell-damage-NECRO',
+    PIERCE: 'cell-damage-PIERCE',
+    POISON: 'cell-damage-POISON',
+    SLASH: 'cell-damage-SLASH',
+    VOID: 'cell-damage-VOID'
+};
+
 RG.STATS = [
     'Accuracy', 'Agility', 'Magic', 'Perception', 'Strength', 'Willpower'
 ];
@@ -889,6 +932,10 @@ RG.TILE_NOT_LOADED = 'TILE_NOT_LOADED';
 RG.STATS_ABBR = RG.STATS.map(stat => stat.substr(0, 3));
 RG.GET_STATS = RG.STATS.map(stat => 'get' + stat);
 RG.SET_STATS = RG.STATS.map(stat => 'set' + stat);
+
+RG.getDmgClassName = function(dmgType) {
+    return RG.classNameDMG[dmgType];
+};
 
 RG.isEmpty = (value) => {
     if (RG.isNullOrUndef([value])) {
