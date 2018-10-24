@@ -8,6 +8,7 @@ const Component = require('./component');
 
 const RNG = Random.getRNG();
 const Goal = {};
+Goal.ACTOR_FILTER = '';
 
 Goal.GOAL_ACTIVE = 1;
 Goal.GOAL_COMPLETED = 2;
@@ -57,11 +58,20 @@ class GoalBase {
 
     dbg(msg) {
         if (debug.enabled) {
-            const ind = '  '.repeat(IND);
-            const name = this.actor.getName();
-            const status = statusToString(this.status);
-            const typeAndStat = `[${this.getType()}] ${status}`;
-            console.log(`${ind}${typeAndStat} ${name} ${msg}`);
+            let nameMatch = false;
+            if (!Goal.ACTOR_FILTER) {nameMatch = true;}
+            if (!nameMatch) {
+                const matchRe = new RegExp(Goal.ACTOR_FILTER);
+                nameMatch = matchRe.test(this.actor.getName());
+            }
+
+            if (nameMatch) {
+                const ind = '  '.repeat(IND);
+                const name = this.actor.getName();
+                const status = statusToString(this.status);
+                const typeAndStat = `[${this.getType()}] ${status}`;
+                console.log(`${ind}${typeAndStat} ${name} ${msg}`);
+            }
         }
     }
 
