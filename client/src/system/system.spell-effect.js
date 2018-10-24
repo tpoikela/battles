@@ -73,6 +73,9 @@ System.SpellEffect.prototype.processSpellRay = function(ent, ray) {
                         RG.gameMsg({cell: cell,
                             msg: `${name} is stopped by ${actorName}`});
                     }
+                    else if (spell.stopOnHit) {
+                        rangeLeft = 0;
+                    }
 
                     // TODO add some evasion checks
                     // TODO add onHit callback for spell because
@@ -102,7 +105,7 @@ System.SpellEffect.prototype.processSpellRay = function(ent, ray) {
         ray: true,
         from: args.from,
         range: rangeCrossed,
-        style: args.damageType,
+        className: RG.getDmgClassName(args.damageType),
         level: ent.getLevel()
     };
     const animComp = new RG.Component.Animation(animArgs);
@@ -229,10 +232,13 @@ System.SpellEffect.prototype.processSpellCell = function(ent, spellComp) {
             args.postCallback(targetCell);
         }
 
+        let className = RG.getDmgClassName(args.damageType);
+        if (!className) {className = RG.getDmgClassName(RG.DMG.MAGIC);}
+
         const animArgs = {
             cell: true,
             coord: [[x, y]],
-            style: args.damageType || '',
+            className,
             level: ent.getLevel()
         };
         const animComp = new RG.Component.Animation(animArgs);
@@ -253,8 +259,20 @@ System.SpellEffect.prototype.processSpellMissile = function(ent, spellComp) {
         mComp.destroyItem = args.destroyItem;
     }
     mComp.setDamage(args.damage);
-    mComp.setAttack(60);
+    mComp.setAttack(100);
     mComp.setRange(spell.getRange());
+
+    // Check if onHit callback given, and pass it to Missile
+    if (args.onHit && !spellComp.onHit) {
+        mComp.onHit = args.onHit;
+    }
+    else if (spellComp.onHit && !args.onHit) {
+        mComp.onHit = spellComp.onHit;
+    }
+    else if (spellComp.onHit && args.onHit) {
+        RG.err('System.SpellEffect', 'processSpellMissile',
+            'onHit given in both SpellMissile and its args');
+    }
 
     spellArrow.add(mComp);
 };
@@ -289,7 +307,7 @@ System.SpellEffect.prototype.processSpellArea = function(ent, spellComp) {
     const animArgs = {
         cell: true,
         coord: coord,
-        style: args.damageType || '',
+        className: RG.getDmgClassName(args.damageType),
         level: ent.getLevel()
     };
     const animComp = new RG.Component.Animation(animArgs);
