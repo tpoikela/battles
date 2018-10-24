@@ -66,12 +66,7 @@ describe('QuestGen', () => {
             quest = questGen.genQuestWithMotive(conf);
 
             const msg = `Motive ${motive} OK`;
-            if (motive === 'Ability' || motive === 'Wealth') {
-                expect(quest.numSteps(), msg).to.be.at.least(1);
-            }
-            else {
-                expect(quest.numSteps(), msg).to.be.at.least(2);
-            }
+            expect(quest.numSteps(), msg).to.be.at.least(1);
             expect(quest.getMotive()).to.equal(motive);
         });
     });
