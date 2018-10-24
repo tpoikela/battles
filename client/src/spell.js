@@ -34,6 +34,16 @@ const Spell = {};
 }
 */
 
+const addPoisonEffect = (actor, src) => {
+    const expLevel = src.get('Experience').getExpLevel();
+    const dmgDie = new RG.Die(1, expLevel, Math.ceil(expLevel / 2));
+    let prob = 0.07 * expLevel;
+    if (prob >= 0.5) {prob = 0.5;}
+    const durDie = new RG.Die(2, expLevel + 5, Math.ceil(expLevel / 2));
+    const dur = durDie.roll();
+    poisonActor(actor, src, dur, dmgDie, prob);
+};
+
 const poisonActor = (actor, src, dur, dmgDie, prob) => {
     const poisonComp = new RG.Component.Poison();
     poisonComp.setDamageDie(dmgDie);
@@ -47,6 +57,21 @@ const poisonActor = (actor, src, dur, dmgDie, prob) => {
     poisonComp.setProb(prob);
     actor.add(poisonComp);
     actor.add(expiration);
+};
+
+const addFadingActorToCell = (actor, cell, spell) => {
+    const caster = spell.getCaster();
+    const level = caster.getLevel();
+    level.addActor(actor, cell.getX(), cell.getY());
+
+    const fadingComp = new RG.Component.Fading();
+    const duration = spell.getDuration();
+    fadingComp.setDuration(duration);
+    actor.add(fadingComp);
+
+    const created = new RG.Component.Created();
+    created.setCreator(caster);
+    actor.add(created);
 };
 
 /* Called at the end of AI querying if spell targeting a cell next to
@@ -311,6 +336,24 @@ Spell.Base.prototype.getPower = function() {
     return this._power;
 };
 
+/* Returns power required to cast this spell. The value is affected by
+ * caster spell casting affinity. */
+Spell.Base.prototype.getCastingPower = function() {
+    let castPower = this._power;
+    const expLevel = this._caster.get('Experience').getExpLevel();
+    castPower -= Math.ceil(expLevel / 3);
+    if (this._caster.has('Skills')) {
+        const skills = this._caster.get('Skills');
+        const castLevel = skills.getLevel('SpellCasting');
+        castPower -= Math.ceil(castLevel / 2);
+    }
+
+    // Cannot reduce power below 50% of original
+    const halfPower = Math.round(0.50 * this._power);
+    if (castPower < halfPower) {return halfPower;}
+    return castPower;
+};
+
 Spell.Base.prototype.getRange = function() {
     return this._range;
 };
@@ -358,7 +401,8 @@ Spell.Base.prototype.getCastFunc = function(actor, args) {
 };
 
 Spell.Base.prototype.toString = function() {
-    let str = `${this.getName()} - ${this.getPower()}PP`;
+    const castPower = this.getCastingPower();
+    let str = `${this.getName()} - ${castPower}PP`;
     if (this._dice.damage) {
         str += ` Dmg: ${this._dice.damage.toString()}`;
     }
@@ -605,6 +649,8 @@ Spell.RemoveComponent = function(name, power) {
 };
 RG.extend2(Spell.RemoveComponent, Spell.Base);
 
+/* Removes all duration components (which removes all attached
+ * effects with duration. */
 Spell.DispelMagic = function() {
     Spell.RemoveComponent.call(this, 'DispelMagic', 8);
     this.setCompNames('Duration');
@@ -612,16 +658,6 @@ Spell.DispelMagic = function() {
 };
 RG.extend2(Spell.DispelMagic, Spell.RemoveComponent);
 
-//------------------------------------------------------
-/* Base class for ranged spells. */
-//------------------------------------------------------
-Spell.Ranged = function(name, power) {
-    Spell.Base.call(this, name, power);
-    this._dice.damage = RG.FACT.createDie('4d4 + 4');
-    this._range = 5;
-
-};
-RG.extend2(Spell.Ranged, Spell.Base);
 
 /* A spell for melee combat using grasp of winter. */
 Spell.GraspOfWinter = function() {
@@ -648,8 +684,20 @@ Spell.GraspOfWinter = function() {
 };
 RG.extend2(Spell.GraspOfWinter, Spell.Base);
 
+//------------------------------------------------------
+/* Base class for ranged spells. */
+//------------------------------------------------------
+Spell.Ranged = function(name, power) {
+    Spell.Base.call(this, name, power);
+    this._dice.damage = RG.FACT.createDie('4d4 + 4');
+    this._range = 5;
+
+};
+RG.extend2(Spell.Ranged, Spell.Base);
+
 Spell.BoltBase = function(name, power) {
     Spell.Ranged.call(this, name, power);
+    this.stopOnHit = false; // If true, ray does not pass through actors
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
@@ -673,6 +721,8 @@ Spell.BoltBase = function(name, power) {
 
     this.aiShouldCastSpell = (args, cb) => {
         const {actor, enemy} = args;
+        if (!enemy) {return false;}
+
         const [x0, y0] = [actor.getX(), actor.getY()];
         const [x1, y1] = [enemy.getX(), enemy.getY()];
         const lineXY = RG.Geometry.getStraightLine(x0, y0, x1, y1);
@@ -723,12 +773,7 @@ RG.extend2(Spell.ScorpionsTail, Spell.BoltBase);
 
 /* Create a poison hit. */
 Spell.ScorpionsTail.prototype.onHit = function(actor, src) {
-    const expLevel = src.get('Experience').getExpLevel();
-    const dmgDie = new RG.Die(1, expLevel, Math.ceil(expLevel / 3));
-    const prob = 0.05 * expLevel;
-    const durDie = new RG.Die(2, expLevel, Math.ceil(expLevel / 2));
-    const dur = durDie.roll();
-    poisonActor(actor, src, dur, dmgDie, prob);
+    addPoisonEffect(actor, src);
 };
 
 Spell.ShadowRay = function() {
@@ -765,6 +810,35 @@ Spell.CrossBolt = function() {
 
 };
 RG.extend2(Spell.CrossBolt, Spell.BoltBase);
+
+
+Spell.PoisonBreath = function() {
+    Spell.BoltBase.call(this, 'PoisonBreath', 8);
+    this.setDice('damage', RG.FACT.createDie('6d4 + 4'));
+    this.setRange(8);
+    this.damageType = RG.DMG.POISON;
+    this.nActors = 2;
+    this.stopOnHit = true;
+    this._createdActor = 'Poison gas';
+    this._dice.duration = RG.FACT.createDie('5d5 + 5');
+};
+RG.extend2(Spell.PoisonBreath, Spell.BoltBase);
+
+Spell.PoisonBreath.prototype.onHit = function(actor, src) {
+    addPoisonEffect(actor, src);
+    const parser = RG.ObjectShell.getParser();
+    const cells = RG.Brain.getCellsAroundActor(actor, 1);
+
+    for (let i = 0; i < this.nActors; i++) {
+        const cell = RNG.arrayGetRand(cells);
+        if (cell.isPassable() || cell.hasActors()) {
+            const cloud = parser.createActor(this._createdActor);
+            addFadingActorToCell(cloud, cell, this);
+        }
+    }
+    const msg = `Poison clouds spread from poison breath of ${src.getName()}`;
+    RG.gameSuccess({cell: actor.getCell(), msg});
+};
 
 /* Ice shield increase the defense of the caster temporarily. */
 Spell.IceShield = function() {
@@ -1091,9 +1165,16 @@ Spell.SummonFlyingEyes = function() {
     };
 
     /* Cast only when no telepathic connections. */
-    this.aiShouldCastSpell = (args) => {
+    this.aiShouldCastSpell = (args, cb) => {
         const {actor} = args;
-        return !actor.has('Telepathy');
+        if (!actor.has('Telepathy')) {
+            args.dir = [0, 0];
+            cb(actor, args);
+            console.log('SummonFlyingEyes return true');
+            return true;
+        }
+        console.log('SummonFlyingEyes return false');
+        return false;
     };
 
 };
@@ -1126,6 +1207,8 @@ Spell.PowerDrain = function() {
 
     this.aiCompFunc = actor => {
         const {enemy} = this.compFuncArgs;
+        if (!enemy) {return false;}
+
         if (!actor.has('PowerDrain')) {
             if (enemy.has('SpellPower')) {
                 return true;
@@ -1143,63 +1226,70 @@ Spell.Missile = function(name, power) {
     Spell.Ranged.call(this, name, power);
     this.ammoName = '';
 
-    this.getAmmoName = () => this.ammoName;
 
-    this.cast = function(args) {
-        const [x, y] = [args.src.getX(), args.src.getY()];
-        const obj = {
-            from: [x, y],
-            target: args.target,
-            spell: this,
-            src: args.src,
-            to: [args.target.getX(), args.target.getY()]
-        };
-        obj.damageType = this.damageType;
-        obj.damage = this._dice.damage.roll();
-        const missComp = new RG.Component.SpellMissile();
-        missComp.setArgs(obj);
-        args.src.add(missComp);
+};
+RG.extend2(Spell.Missile, Spell.Ranged);
+
+Spell.Missile.prototype.getAmmoName = function() {
+    return this.ammoName;
+};
+
+Spell.Missile.prototype.cast = function(args) {
+    const [x, y] = [args.src.getX(), args.src.getY()];
+    const obj = {
+        from: [x, y],
+        target: args.target,
+        spell: this,
+        src: args.src,
+        to: [args.target.getX(), args.target.getY()]
     };
+    obj.damageType = this.damageType;
+    obj.damage = this._dice.damage.roll();
+    const missComp = new RG.Component.SpellMissile();
+    missComp.setArgs(obj);
+    args.src.add(missComp);
+};
 
-    this.getSelectionObject = function(actor) {
-        const msg = 'Press [n/p] for next/prev target. [t] to fire.';
-        RG.gameMsg(msg);
-        actor.getBrain().startTargeting();
-        const spell = this;
-        return {
-            // showMsg: () => RG.gameMsg(msg),
-            select: function(code) {
-                switch (code) {
-                    case Keys.KEY.NEXT: {
-                        actor.getBrain().nextTarget();
-                        return this;
-                    }
-                    case Keys.KEY.PREV: {
-                        actor.getBrain().prevTarget();
-                        return this;
-                    }
-                    case Keys.KEY.TARGET: return () => {
-                        const target = actor.getBrain().getTarget();
-                        if (target) {
-                            const spellCast = new RG.Component.SpellCast();
-                            spellCast.setSource(actor);
-                            spellCast.setSpell(spell);
-                            spellCast.setArgs({src: actor, target});
-                            actor.add(spellCast);
-                            actor.getBrain().cancelTargeting();
-                        }
-                    };
-                    default: {
-                        return null;
-                    }
+Spell.Missile.prototype.getSelectionObject = function(actor) {
+    const msg = 'Press [n/p] for next/prev target. [t] to fire.';
+    RG.gameMsg(msg);
+    actor.getBrain().startTargeting();
+    const spell = this;
+    return {
+        // showMsg: () => RG.gameMsg(msg),
+        select: function(code) {
+            switch (code) {
+                case Keys.KEY.NEXT: {
+                    actor.getBrain().nextTarget();
+                    return this;
                 }
-            },
-            showMenu: () => false
-        };
+                case Keys.KEY.PREV: {
+                    actor.getBrain().prevTarget();
+                    return this;
+                }
+                case Keys.KEY.TARGET: return () => {
+                    const target = actor.getBrain().getTarget();
+                    if (target) {
+                        const spellCast = new RG.Component.SpellCast();
+                        spellCast.setSource(actor);
+                        spellCast.setSpell(spell);
+                        spellCast.setArgs({src: actor, target});
+                        actor.add(spellCast);
+                        actor.getBrain().cancelTargeting();
+                    }
+                };
+                default: {
+                    return null;
+                }
+            }
+        },
+        showMenu: () => false
     };
+};
 
-    this.aiShouldCastSpell = (args, cb) => {
-        const {actor, enemy} = args;
+Spell.Missile.prototype.aiShouldCastSpell = function(args, cb) {
+    const {actor, enemy} = args;
+    if (enemy) {
         const [eX, eY] = enemy.getXY();
         const [aX, aY] = actor.getXY();
         const getDist = RG.Path.shortestDist(eX, eY, aX, aY);
@@ -1208,17 +1298,15 @@ Spell.Missile = function(name, power) {
             cb(actor, spellArgs);
             return true;
         }
-        return false;
-    };
-
+    }
+    return false;
 };
-RG.extend2(Spell.Missile, Spell.Ranged);
 
 //------------------------------------------------------
 /* IceArrow spell fires a missile to specified square. */
 //------------------------------------------------------
 Spell.IceArrow = function() {
-    Spell.Missile.call(this, 'IceArrow', 20);
+    Spell.Missile.call(this, 'IceArrow', 16);
     this.setRange(9);
     this.damageType = RG.DMG.ICE;
     this.ammoName = 'Lightning arrow';
@@ -1229,7 +1317,7 @@ RG.extend2(Spell.IceArrow, Spell.Missile);
 /* Lighting arrow spell fires a missile to specified cell. */
 //------------------------------------------------------
 Spell.LightningArrow = function() {
-    Spell.Missile.call(this, 'LightningArrow', 17);
+    Spell.Missile.call(this, 'LightningArrow', 14);
     this.setRange(8);
     this.damageType = RG.DMG.LIGHTNING;
     this.ammoName = 'Lightning arrow';
@@ -1247,6 +1335,30 @@ Spell.EnergyArrow = function() {
     this.ammoName = 'Energy arrow';
 };
 RG.extend2(Spell.EnergyArrow, Spell.Missile);
+
+//------------------------------------------------------
+/* Poison arrow fires a missile to specified cell. Adds
+ * poison to target on hit. */
+//------------------------------------------------------
+Spell.PoisonArrow = function() {
+    Spell.Missile.call(this, 'PoisonArrow', 20);
+    this.setRange(10);
+    this.setDice('damage', RG.FACT.createDie('1d6 + 2'));
+    this.damageType = RG.DMG.POISON;
+    this.ammoName = 'Poison arrow';
+};
+RG.extend2(Spell.PoisonArrow, Spell.Missile);
+
+Spell.PoisonArrow.prototype.cast = function(args) {
+    Spell.Missile.prototype.cast.call(this, args);
+    const missComp = args.src.get('SpellMissile');
+    missComp.onHit = this.onHit.bind(this);
+};
+
+Spell.PoisonArrow.prototype.onHit = function(actor) {
+    const src = this._caster;
+    addPoisonEffect(actor, src);
+};
 
 //------------------------------------------------------
 /* Rock storm shoots a missile to all directions. */
@@ -1359,6 +1471,7 @@ RG.extend2(Spell.EnergyStorm, Spell.AreaBase);
 
 function aiEnemyWithinDist(args, cb, spell) {
     const {actor, enemy} = args;
+    if (!enemy) {return false;}
     const getDist = RG.Brain.distToActor(actor, enemy);
     if (getDist <= spell.getRange()) {
         const spellArgs = {target: enemy, src: actor};
@@ -1417,21 +1530,12 @@ Spell.RingBase = function(name, power) {
     this.castCallback = () => {
         const parser = RG.ObjectShell.getParser();
         const caster = this._caster;
-        const level = caster.getLevel();
 
         const cells = RG.Brain.getCellsAroundActor(caster, this._range);
         cells.forEach(cell => {
             if (cell.isPassable() || cell.hasActors()) {
                 const fire = parser.createActor(this._createdActor);
-                level.addActor(fire, cell.getX(), cell.getY());
-                const fadingComp = new RG.Component.Fading();
-                const duration = this._dice.duration.roll();
-                fadingComp.setDuration(duration);
-                fire.add(fadingComp);
-
-                const created = new RG.Component.Created();
-                created.setCreator(this._caster);
-                fire.add(created);
+                addFadingActorToCell(fire, cell, this);
             }
         });
     };
@@ -1441,6 +1545,7 @@ Spell.RingBase = function(name, power) {
     };
 };
 RG.extend2(Spell.RingBase, Spell.Base);
+
 
 Spell.RingOfFire = function() {
     Spell.RingBase.call(this, 'RingOfFire', 10);
@@ -1566,6 +1671,8 @@ Spell.addAllSpells = book => {
     book.addSpell(new Spell.MagicArmor());
     book.addSpell(new Spell.MindControl());
     book.addSpell(new Spell.Paralysis());
+    book.addSpell(new Spell.PoisonArrow());
+    book.addSpell(new Spell.PoisonBreath());
     book.addSpell(new Spell.PoisonCloud());
     book.addSpell(new Spell.PowerDrain());
     book.addSpell(new Spell.RingOfEnergy());
