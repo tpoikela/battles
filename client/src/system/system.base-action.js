@@ -66,7 +66,15 @@ System.BaseAction = function(compTypes) {
             const item = cell.getProp(RG.TYPE_ITEM)[0];
             if (ent.getInvEq().canCarryItem(item)) {
                 ent.getInvEq().addItem(item);
-                level.removeItem(item, x, y);
+
+                try {
+                    level.removeItem(item, x, y);
+                }
+                catch (e) {
+                    let msg = `Unable to remove item ${JSON.stringify(item)}\n`;
+                    msg = `Actor for pickup: ${ent.getName()}`;
+                    RG.err('System.BaseAction', 'handlePickup', msg);
+                }
 
                 let itemStr = item.getName();
                 if (item.getCount() > 1) {
