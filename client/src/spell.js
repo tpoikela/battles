@@ -9,6 +9,19 @@
  *
  * where 3 is used with spellcaster AI. Without this, the spell cannot be
  * used by the AI.
+ *
+ * Some optional functions which can be defined:
+ *  For any spell inflicting damage:
+ *    onHit(actor, src): Called when spell deals damage to actor.
+ *
+ *  For spells affecting single cells:
+ *    preCallback(cell): Called when spell will affect cell
+ *    callback(cell): Called when spell has affected cell
+ *    postCallback(cell): Called when spell has affected cell
+ *
+ *  For area-affecting/ray spells:
+ *    onCellCallback(cell): Called for each affected cell
+ *    NOTE: For damage effects, you can use onHit()
  */
 const RG = require('./rg');
 const Keys = require('./keymap');
@@ -1468,7 +1481,7 @@ Spell.Blizzard = function() {
     Spell.AreaBase.call(this, 'Blizzard', 35);
     this.setDice('damage', RG.FACT.createDie('5d5 + 5'));
     this.damageType = RG.DMG.ICE;
-    this.setRange(15);
+    this.setRange(6);
 };
 RG.extend2(Spell.Blizzard, Spell.AreaBase);
 
