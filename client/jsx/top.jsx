@@ -1048,6 +1048,12 @@ class BattlesTop extends Component {
                     setMsg={this.showMsg}
                   />
                 }
+                {!this.state.showEditor &&
+                <GameContextMenu
+                    handleRightClick={this.handleRightClick}
+                    mouseOverCell={this.state.mouseOverCell}
+                />
+                }
 
                 {this.state.showEditor &&
                   <GameEditor
@@ -1056,10 +1062,6 @@ class BattlesTop extends Component {
                       toggleEditor={this.toggleEditor}
                   />
                 }
-                <GameContextMenu
-                    handleRightClick={this.handleRightClick}
-                    mouseOverCell={this.state.mouseOverCell}
-                />
                 <HiddenFileInput
                     inputId='load-script-input'
                     onLoadScript={this.onLoadScript}
