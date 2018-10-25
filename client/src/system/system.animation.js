@@ -3,6 +3,7 @@ const RG = require('../rg');
 
 const System = {};
 System.Base = require('./system.base');
+const Geometry = require('../geometry');
 
 /* System which constructs the animations to play. */
 System.Animation = function(compTypes) {
@@ -28,9 +29,15 @@ System.Animation = function(compTypes) {
                 else if (args.cell) {
                     this.cellAnimation(ent, args);
                 }
+                else if (!RG.isNullOrUndef([args.range, args.cX, args.cY])) {
+                    this.areaAnimation(ent, args);
+                }
             });
         }
         ent.removeAll('Animation');
+
+        // After processing all animation for all entitities, emit an event
+        // to notify the Game Engine about animation
         if (!this.hasEntities()) {
             RG.POOL.emitEvent(RG.EVT_ANIMATION, {animation: this.currAnim});
             this.currAnim = null;
@@ -68,8 +75,7 @@ System.Animation = function(compTypes) {
                 break;
             }
         }
-        if (!this.currAnim) {this.currAnim = animation;}
-        else {this.currAnim.combine(animation);}
+        this._setCurrAnim(animation);
     };
 
     /* Constructs line animation (a bolt etc continuous thing). */
@@ -101,8 +107,7 @@ System.Animation = function(compTypes) {
                 --rangeLeft;
             }
         }
-        if (!this.currAnim) {this.currAnim = animation;}
-        else {this.currAnim.combine(animation);}
+        this._setCurrAnim(animation);
     };
 
     this.cellAnimation = (ent, args) => {
@@ -117,6 +122,29 @@ System.Animation = function(compTypes) {
         });
 
         animation.addFrame(frame);
+        this._setCurrAnim(animation);
+    };
+
+    this.areaAnimation = (ent, args) => {
+        const animation = this._createAnimation(args);
+        const maxRange = args.range;
+        const [cX, cY] = [args.cX, args.cY];
+
+        for (let r = 1; r <= maxRange; r++) {
+            const frame = {};
+            const coord = Geometry.getBoxAround(cX, cY, r);
+            coord.forEach(xy => {
+                frame[xy[0] + ',' + xy[1]] = {
+                    char: args.cellChar || '*',
+                    className: args.className || 'cell-animation'
+                };
+            });
+            animation.addFrame(frame);
+        }
+        this._setCurrAnim(animation);
+    };
+
+    this._setCurrAnim = function(animation) {
         if (!this.currAnim) {this.currAnim = animation;}
         else {this.currAnim.combine(animation);}
     };
