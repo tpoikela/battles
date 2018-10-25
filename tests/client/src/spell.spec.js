@@ -132,8 +132,9 @@ describe('Spell.IcyPrison', () => {
     it('adds paralysis for an actor', () => {
         const effSystem = new RG.System.SpellEffect(['SpellCell']);
 
-        const icyPrison = new RG.Spell.IcyPrison();
         const caster = new RG.Actor.Rogue('caster');
+        const icyPrison = new RG.Spell.IcyPrison();
+        icyPrison.setCaster(caster);
         const paralyzed = new RG.Actor.Rogue('paralyzed');
         RGTest.wrapIntoLevel([caster, paralyzed]);
 
@@ -193,5 +194,41 @@ describe('Spell.SummonIceMinion', () => {
         expect(monarch).to.have.component('SpellCast');
         RGTest.updateSystems(systems);
 
+    });
+});
+
+describe('Spell.Blizzard', () => {
+    it('affects an area around caster', () => {
+        const castSystem = new RG.System.SpellCast(['SpellCast']);
+        const effSystem = new RG.System.SpellEffect(spellComps);
+        const dmgSystem = new RG.System.Damage(['Damage']);
+        const animSystem = new RG.System.Animation(['Animation']);
+        const systems = [castSystem, effSystem];
+
+        const caster = new RG.Actor.Rogue('caster');
+        const victim = new RG.Actor.Rogue('victim');
+        const blizzard = new RG.Spell.Blizzard();
+        blizzard.setCaster(caster);
+        RGTest.wrapIntoLevel([caster, victim]);
+        RGTest.moveEntityTo(caster, 3, 2);
+        RGTest.moveEntityTo(victim, 5, 5);
+
+        const spellPower = new RG.Component.SpellPower();
+        spellPower.setPP(100);
+        spellPower.setMaxPP(100);
+        caster.add(spellPower);
+
+        const spellArgs = {
+            src: caster
+        };
+        const castFunc = blizzard.getCastFunc(caster, spellArgs);
+        expect(castFunc).to.not.throw(Error);
+        expect(caster).to.have.component('SpellCast');
+        RGTest.updateSystems(systems);
+        expect(victim).to.have.component('Damage');
+        dmgSystem.update();
+        expect(victim).to.have.component('Coldness');
+        expect(caster).to.have.component('Animation');
+        animSystem.update();
     });
 });
