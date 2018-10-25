@@ -2,7 +2,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import {ContextMenu, MenuItem} from 'react-contextmenu';
+import ContextMenuItems from './context-menu-items';
 
 /* Menu items are defined as follows:
  *   The first key defines a getter/query function for a cell. If that function
@@ -26,16 +26,16 @@ const allMenuItems = {
   hasUsable: [
     {text: 'Use element', type: 'use-element'},
   ],
+  hasShop: [
+    {text: 'Buy item', type: 'buyitem'},
+    {text: 'Sell item', type: 'sellitem'},
+  ],
   hasConnection: {
     hasPassage: [
       {text: 'Travel', type: 'usestairs'},
     ],
-    hasShop: [
-      {text: 'Buy item', type: 'buyitem'},
-      {text: 'Sell item', type: 'sellitem'},
-    ],
     hasStairs: [
-      {text: 'Stairs', type: 'usestairs'},
+      {text: 'Use stairs', type: 'usestairs'},
     ],
     hasTown: [
       {text: 'Goto town', type: 'usestairs'},
@@ -51,95 +51,14 @@ const allMenuItems = {
 
 export default class GameContextMenu extends React.Component {
 
-  constructor(props) {
-      super(props);
-      this.handleClick = this.handleClick.bind(this);
-  }
-
-  handleClick(e, data) {
-      console.log(e);
-      console.log(data);
-      this.props.handleRightClick(e, data, this.props.mouseOverCell);
-  }
-
-  shouldComponentUpdate(nextProps) {
-      if (this.props.mouseOverCell) {
-          if (!nextProps.mouseOverCell) {return true;}
-          const [x, y] = this.props.mouseOverCell.getXY();
-          const [nX, nY] = nextProps.mouseOverCell.getXY();
-          if (nX === x && nY === y) {
-              return false;
-          }
-      }
-      return true;
-  }
-
   render() {
-    const menuItemElem = this.renderMenuItems();
     return (
-      <div>
-        <ContextMenu className='context-menu' id='right-click-context-menu'>
-          {menuItemElem}
-        </ContextMenu>
-      </div>
+      <ContextMenuItems
+        handleRightClick={this.props.handleRightClick}
+        menuItems={allMenuItems}
+        mouseOverCell={this.props.mouseOverCell}
+      />
     );
-  }
-
-  /* Calls different query functions and renders possible commands based on
-   * the cell contents. */
-  renderMenuItems() {
-    const items = [];
-    Object.keys(allMenuItems).forEach(queryFunc => {
-      if (this.isCorrectContext(queryFunc)) {
-        const menuItems = this.getMenuItems(allMenuItems[queryFunc]);
-        menuItems.forEach((item, index) => {
-          items.push(
-            <MenuItem
-              data={{type: item.type}}
-              key={index + '-' + item.text}
-              onClick={this.handleClick}
-            >
-              {item.text}
-            </MenuItem>
-          );
-        });
-
-        items.push(
-          <MenuItem
-            className='context-menu-divider'
-            divider={true}
-            key={'divider-' + queryFunc}
-          />
-        );
-      }
-    });
-    return items;
-  }
-
-  getMenuItems(items) {
-    let result = [];
-    if (Array.isArray(items)) {
-      return items;
-    }
-    Object.keys(items).forEach(queryFunc => {
-      if (this.isCorrectContext(queryFunc)) {
-        result = result.concat(this.getMenuItems(items[queryFunc]));
-      }
-    });
-    return result;
-  }
-
-  isCorrectContext(queryFunc) {
-    const cell = this.props.mouseOverCell;
-    if (cell) {
-      if (typeof cell[queryFunc] === 'function') {
-        return cell[queryFunc]();
-      }
-      else if (typeof this[queryFunc] === 'function') {
-        return this[queryFunc]();
-      }
-    }
-    return false;
   }
 
 }
