@@ -387,7 +387,7 @@ Spell.Base.prototype.getDamage = function(perLevel = 1) {
 Spell.Base.prototype.setPower = function(power) {this._power = power;};
 
 Spell.Base.prototype.getCastFunc = function(actor, args) {
-    if (args.dir || args.target) {
+    if (args.dir || args.target || args.src) {
         args.src = actor;
         return () => {
             const spellCast = new RG.Component.SpellCast();
@@ -441,6 +441,15 @@ Spell.Base.prototype.getDice = function(name) {
     return this._dice[name];
 };
 
+Spell.Base.prototype.rollDice = function(name) {
+    if (this._dice[name]) {
+        return this._dice[name].roll();
+    }
+    RG.err('Spell.Base', 'rollDice',
+        `No dice with name ${name} found`);
+    return 0;
+};
+
 Spell.Base.prototype.toJSON = function() {
     const dice = {};
     Object.keys(this._dice).forEach(key => {
@@ -481,7 +490,7 @@ Spell.AddComponent.prototype.getCompName = function() {
 
 Spell.AddComponent.prototype.cast = function(args) {
     const obj = getDirSpellArgs(this, args);
-    const dur = this._dice.duration.roll();
+    const dur = this.rollDice('duration');
 
     const compToAdd = RG.Component.create(this._compName);
     if (compToAdd.setSource) {
@@ -702,7 +711,7 @@ Spell.BoltBase = function(name, power) {
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
         obj.damageType = this.damageType;
-        obj.damage = this.getDice('damage').roll();
+        obj.damage = this.rollDice('damage');
         const rayComp = new RG.Component.SpellRay();
         rayComp.setArgs(obj);
         args.src.add(rayComp);
@@ -801,7 +810,7 @@ Spell.CrossBolt = function() {
             newArgs.dir = dXdY;
             const obj = getDirSpellArgs(this, newArgs);
             obj.damageType = this.damageType;
-            obj.damage = this._dice.damage.roll();
+            obj.damage = this.rollDice('damage');
             const rayComp = new RG.Component.SpellRay();
             rayComp.setArgs(obj);
             args.src.add(rayComp);
@@ -849,9 +858,9 @@ Spell.IceShield = function() {
 
     this.cast = args => {
         const actor = args.src;
-        const dur = this._dice.duration.roll();
+        const dur = this.getDuration();
         const combatMods = new RG.Component.CombatMods();
-        combatMods.setDefense(this._dice.defense.roll());
+        combatMods.setDefense(this.rollDice('defense'));
         RG.Component.addToExpirationComp(actor, combatMods, dur);
         RG.gameMsg({cell: actor.getCell(),
             msg: `${actor.getName()} is surrounded by defensive aura`});
@@ -888,7 +897,7 @@ Spell.MagicArmor = function() {
             target: actor,
             name: 'CombatMods',
             setters: {
-                setProtection: this._dice.protection.roll()
+                setProtection: this.rollDice('protection')
             },
             duration: this._dice.duration,
             startMsg: `${name} is surrounded by a protective aura`,
@@ -923,7 +932,7 @@ Spell.IcyPrison = function() {
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
-        const dur = this._dice.duration.roll();
+        const dur = this.getDuration();
 
         const paralysis = new RG.Component.Paralysis();
         paralysis.setSource(args.src);
@@ -1188,7 +1197,7 @@ Spell.PowerDrain = function() {
 
     this.cast = args => {
         const actor = args.src;
-        const dur = this._dice.duration.roll();
+        const dur = this.getDuration();
         const drainComp = new RG.Component.PowerDrain();
         RG.Component.addToExpirationComp(actor, drainComp, dur);
         RG.gameMsg({cell: actor.getCell(),
@@ -1244,7 +1253,7 @@ Spell.Missile.prototype.cast = function(args) {
         to: [args.target.getX(), args.target.getY()]
     };
     obj.damageType = this.damageType;
-    obj.damage = this._dice.damage.roll();
+    obj.damage = this.getDamage();
     const missComp = new RG.Component.SpellMissile();
     missComp.setArgs(obj);
     args.src.add(missComp);
@@ -1382,7 +1391,7 @@ Spell.RockStorm = function() {
                 to: [tX, tY]
             };
             obj.damageType = this.damageType;
-            obj.damage = this._dice.damage.roll();
+            obj.damage = this.getDamage();
             obj.destroyItem = false; // Keep rocks after firing
             const missComp = new RG.Component.SpellMissile();
             missComp.setArgs(obj);
@@ -1403,7 +1412,7 @@ Spell.MindControl = function() {
 
     this.cast = function(args) {
         const obj = getDirSpellArgs(this, args);
-        const dur = this._dice.duration.roll();
+        const dur = this.getDuration();
 
         const mindControl = new RG.Component.MindControl();
         mindControl.setSource(args.src);
@@ -1440,7 +1449,7 @@ Spell.AreaBase = function(name, power) {
     this.cast = function(args) {
         const obj = {src: args.src, range: this.getRange()};
         obj.damageType = this.damageType;
-        obj.damage = this._dice.damage.roll();
+        obj.damage = this.getDamage();
         obj.spell = this;
         const spellComp = new RG.Component.SpellArea();
         spellComp.setArgs(obj);
@@ -1459,8 +1468,13 @@ Spell.Blizzard = function() {
     Spell.AreaBase.call(this, 'Blizzard', 35);
     this.setDice('damage', RG.FACT.createDie('5d5 + 5'));
     this.damageType = RG.DMG.ICE;
+    this.setRange(15);
 };
 RG.extend2(Spell.Blizzard, Spell.AreaBase);
+
+Spell.Blizzard.prototype.onHit = function(actor /* , src*/) {
+    actor.add(new RG.Component.Coldness());
+};
 
 Spell.EnergyStorm = function() {
     Spell.AreaBase.call(this, 'EnergyStorm', 20);
@@ -1611,7 +1625,7 @@ Spell.ForceField = function() {
                 const forcefield = parser.createActor('Forcefield');
                 level.addActor(forcefield, cell.getX(), cell.getY());
                 const fadingComp = new RG.Component.Fading();
-                const duration = this._dice.duration.roll();
+                const duration = this.getDuration();
                 fadingComp.setDuration(duration);
                 forcefield.add(fadingComp);
             }
