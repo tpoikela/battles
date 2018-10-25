@@ -13,6 +13,9 @@ import Capital from '../data/capital';
 import AbandonedFort, {abandonedFortConf} from '../data/abandoned-fort';
 import DwarvenCity, {dwarvenCityConf} from '../data/dwarven-city';
 
+import EditorContextMenu from './editor-context-menu';
+import EditorClickHandler from './editor-click-handler';
+
 const ROT = require('../../lib/rot');
 ROT.Map.Wall = require('../../lib/map.wall');
 const DungeonGenerator = require('../src/dungeon-generator');
@@ -212,10 +215,11 @@ export default class GameEditor extends Component {
 
     this.setEditorData = this.setEditorData.bind(this);
 
-
     this.onMouseDown = this.onMouseDown.bind(this);
     this.onMouseOver = this.onMouseOver.bind(this);
     this.onMouseUp = this.onMouseUp.bind(this);
+    this.onMouseOverCell = this.onMouseOverCell.bind(this);
+    this.handleRightClick = this.handleRightClick.bind(this);
   }
 
   componentDidMount() {
@@ -228,23 +232,43 @@ export default class GameEditor extends Component {
     }
   }
 
-  onMouseDown(x, y) {
-    if (!this.state.selectMode) {
-      const cell = this.getCellCurrMap(x, y);
-      this.setState({selectMode: true, selectBegin: cell, selectEnd: cell});
-    }
+  getCurrMap() {
+    return this.state.level.getMap();
   }
 
   getCellCurrMap(x, y) {
-    const map = this.state.level.getMap();
+    const map = this.getCurrMap();
     if (map.hasXY(x, y)) {
       return map.getCell(x, y);
     }
     return null;
   }
 
-  getCurrMap() {
-    return this.state.level.getMap();
+  /* Handles right clicks of the context menu. */
+  handleRightClick(evt, data, cell) {
+      const [x, y] = cell.getXY();
+      this.useClickHandler(x, y, cell, data.type);
+  }
+
+  useClickHandler(x, y, cell, cmd) {
+    const clickHandler = new EditorClickHandler(this.state.level);
+    if (clickHandler.handleClick(x, y, cell, cmd)) {
+      this.setState({level: this.state.level});
+    }
+  }
+
+  onMouseOverCell(x, y) {
+    const cell = this.getCellCurrMap(x, y);
+    if (cell) {
+      this.setState({mouseOverCell: cell});
+    }
+  }
+
+  onMouseDown(x, y) {
+    if (!this.state.selectMode) {
+      const cell = this.getCellCurrMap(x, y);
+      this.setState({selectMode: true, selectBegin: cell, selectEnd: cell});
+    }
   }
 
   onMouseUp(x, y) {
@@ -741,6 +765,7 @@ export default class GameEditor extends Component {
                 onCellClick={this.onCellClick}
                 onMouseDown={this.onMouseDown}
                 onMouseOver={this.onMouseOver}
+                onMouseOverCell={this.onMouseOverCell}
                 onMouseUp={this.onMouseUp}
                 rowClass={rowClass}
                 screen={this.screen}
@@ -780,6 +805,10 @@ export default class GameEditor extends Component {
           </div>
 
         </div>
+        <EditorContextMenu
+          handleRightClick={this.handleRightClick}
+          mouseOverCell={this.state.mouseOverCell}
+        />
       </div>
     );
   }

@@ -2,6 +2,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import GameBoard from '../jsx/game-board';
+import {ContextMenuTrigger} from 'react-contextmenu';
 
 /* Wrapper for the GameBoard to disable map updates for big maps. */
 export default class EditorGameBoard extends React.Component {
@@ -14,6 +15,7 @@ export default class EditorGameBoard extends React.Component {
     render() {
         const {screen} = this.props;
         return (
+            <ContextMenuTrigger id='right-click-context-menu'>
             <GameBoard
               boardClassName={this.props.boardClassName}
               charRows={screen.getCharRows()}
@@ -30,6 +32,7 @@ export default class EditorGameBoard extends React.Component {
               startY={0}
               useRLE={this.props.useRLE}
             />
+            </ContextMenuTrigger>
         );
     }
 }
