@@ -15,14 +15,10 @@ const eventToPosition = (e, elem, props, elemID) => {
     const startY = props.startY;
 
     const rect = elem.getBoundingClientRect();
-    // const rowElem = document.getElementsByClassName(elemID)[0];
     const rowElem = elem.getElementsByClassName(elemID)[0];
     if (rowElem) {
-        console.log(`h: ${rowElem.clientHeight} w: ${rowElem.clientWidth}`);
         const sizeX = rowElem.clientWidth / numCells;
         const sizeY = rowElem.clientHeight;
-
-        console.log('eventToPosition sizeX ' + sizeX);
 
         const relX = x - rect.left;
         const relY = y - rect.top;
@@ -46,7 +42,9 @@ export default class GameBoard extends Component {
     }
 
     componentDidMount() {
-      this.board.addEventListener('contextmenu', this.onMouseOverCell, true);
+      if (this.props.onMouseOverCell) {
+        this.board.addEventListener('contextmenu', this.onMouseOverCell, true);
+      }
       if (this.props.onMouseDown) {
         this.board.addEventListener('mousedown', this.onMouseDown, true);
       }
@@ -59,7 +57,9 @@ export default class GameBoard extends Component {
     }
 
     componentWillUnmount() {
-      this.board.removeEventListener('contextmenu', this.onMouseOverCell);
+      if (this.props.onMouseOverCell) {
+        this.board.removeEventListener('contextmenu', this.onMouseOverCell);
+      }
       if (this.props.onMouseDown) {
         this.board.removeEventListener('mousedown', this.onMouseDown, true);
       }
@@ -72,10 +72,8 @@ export default class GameBoard extends Component {
     }
 
     onCellClick(evt) {
-        // this.board specified using react ref=
         const xy = eventToPosition(evt, this.board, this.props,
             'game-board-row');
-        console.log(`eventToPosition returned ${xy}`);
         if (xy) {
             this.props.onCellClick(xy[0], xy[1]);
         }
@@ -88,7 +86,6 @@ export default class GameBoard extends Component {
             'game-board-row');
         this.props.onMouseOver(xy[0], xy[1]);
       }
-
     }
 
     onMouseUp(evt) {
@@ -145,14 +142,17 @@ export default class GameBoard extends Component {
     }
 
     onMouseOverCell(evt) {
-      evt.preventDefault();
-      console.log('<GameBoard> onMouseOverCell');
-      console.log(evt);
-      const xy = eventToPosition(evt, this.board, this.props,
-          'game-board-row');
-      console.log('<GameBoard> xy is ' + xy);
-      this.props.onMouseOverCell(xy[0], xy[1]);
-      return false; // Prevents standard context menu
+      if (this.props.onMouseOverCell) {
+        evt.preventDefault();
+        console.log('<GameBoard> onMouseOverCell');
+        console.log(evt);
+        const xy = eventToPosition(evt, this.board, this.props,
+            'game-board-row');
+        console.log('<GameBoard> xy is ' + xy);
+        this.props.onMouseOverCell(xy[0], xy[1]);
+        return false; // Prevents standard context menu
+      }
+      return true;
     }
 
 }
