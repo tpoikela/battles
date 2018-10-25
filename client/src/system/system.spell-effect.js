@@ -60,6 +60,10 @@ System.SpellEffect.prototype.processSpellRay = function(ent, ray) {
         y += dY;
         if (map.hasXY(x, y)) {
             const cell = map.getCell(x, y);
+            if (spell.onCellCallback) {
+                spell.onCellCallback(cell);
+            }
+
             if (cell.hasActors()) {
                 // Deal some damage etc
                 const actor = cell.getActors()[0];
@@ -232,17 +236,7 @@ System.SpellEffect.prototype.processSpellCell = function(ent, spellComp) {
             args.postCallback(targetCell);
         }
 
-        let className = RG.getDmgClassName(args.damageType);
-        if (!className) {className = RG.getDmgClassName(RG.DMG.MAGIC);}
-
-        const animArgs = {
-            cell: true,
-            coord: [[x, y]],
-            className,
-            level: ent.getLevel()
-        };
-        const animComp = new RG.Component.Animation(animArgs);
-        ent.add(animComp);
+        addSingleCellAnim(ent, args, [x, y]);
     }
 };
 
@@ -294,6 +288,9 @@ System.SpellEffect.prototype.processSpellArea = function(ent, spellComp) {
                 const actors = cell.getActors();
                 for (let i = 0; i < actors.length; i++) {
                     this._addDamageToActor(actors[i], args);
+                    if (spell.onCellCallback) {
+                        spell.onCellCallback(cell);
+                    }
                     const name = actors[i].getName();
                     RG.gameMsg({cell: actors[i].getCell(),
                         msg: `${name} is hit by ${spell.getName()}`});
@@ -305,8 +302,7 @@ System.SpellEffect.prototype.processSpellArea = function(ent, spellComp) {
 
     // Create animation
     const animArgs = {
-        cell: true,
-        coord: coord,
+        range, cX: x0, cY: y0,
         className: RG.getDmgClassName(args.damageType),
         level: ent.getLevel()
     };
@@ -314,7 +310,7 @@ System.SpellEffect.prototype.processSpellArea = function(ent, spellComp) {
     ent.add(animComp);
 };
 
-    /* Used for spell cast on self (or spells not requiring any targets). */
+/* Used for spell cast on self (or spells not requiring any targets). */
 System.SpellEffect.prototype.processSpellSelf = function(ent, spellComp) {
     const args = spellComp.getArgs();
     if (typeof args.callback === 'function') {
@@ -325,6 +321,7 @@ System.SpellEffect.prototype.processSpellSelf = function(ent, spellComp) {
         msg += 'Got args: ' + JSON.stringify(args);
         RG.err('System.SpellEffect', 'processSpellSelf', msg);
     }
+    addSingleCellAnim(ent, args, ent.getXY());
 };
 
 System.SpellEffect.prototype._addDamageToActor = (actor, args) => {
@@ -336,6 +333,20 @@ System.SpellEffect.prototype._addDamageToActor = (actor, args) => {
     dmg.setWeapon(args.spell);
     actor.add(dmg);
 };
+
+function addSingleCellAnim(ent, args, xy) {
+    let className = RG.getDmgClassName(args.damageType);
+    if (!className) {className = RG.getDmgClassName(RG.DMG.MAGIC);}
+
+    const animArgs = {
+        cell: true,
+        coord: [xy],
+        className,
+        level: ent.getLevel()
+    };
+    const animComp = new RG.Component.Animation(animArgs);
+    ent.add(animComp);
+}
 
 
 module.exports = System.SpellEffect;
