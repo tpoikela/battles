@@ -8,9 +8,12 @@ import 'babel-polyfill';
 
 import { JSDOM } from 'jsdom';
 import indexedDB from 'fake-indexeddb';
-import now from 'performance-now';
-import MockStorage from './mockstorage';
 import requestAnimFrame from './requestAnimFrame';
+
+import Enzyme from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
+
+Enzyme.configure({ adapter: new Adapter() });
 
 const dom = new JSDOM(`
 <!DOCTYPE html>
@@ -19,7 +22,9 @@ const dom = new JSDOM(`
   <body>
   </body>
 </html>
-`);
+`, {
+    url: 'http://localhost'
+});
 
 global.window = dom.window;
 global.document = dom.window.document;
@@ -32,17 +37,7 @@ Object.keys(global.window).forEach(property => {
 });
 
 if (!global.requestAnimationFrame) {
-    console.log('xxx polyfill');
   requestAnimFrame(global); // polyfill
 }
-/*
-global.navigator = {
-  userAgent: 'node.js'
-};
-*/
 
 global.window.indexedDB = indexedDB;
-global.performance = { now };
-global.MathJax = { Hub: { Config: () => {}, Queue: () => {} } };
-global.localStorage = new MockStorage();
-
