@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { shallow, render } from 'enzyme';
+import { shallow } from 'enzyme';
 import chaiEnzyme from 'chai-enzyme';
 import chai, { expect } from 'chai';
 
@@ -25,7 +25,8 @@ inv.addItem(item1);
 // Props with non-default values passes to the component
 const props = {
     inv,
-    setSelectedItem: item => true
+    setSelectedItem: () => true,
+    filter: 'All'
 };
 
 describe('Component <GameItems>', () => {
