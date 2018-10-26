@@ -20,9 +20,13 @@ describe('Component <GameCharInfo>', () => {
     beforeEach(() => {
         const gameFact = new RG.Factory.Game();
         const conf = {playerClass: 'Marksman', playerLevel: 'Medium',
-        playerRace: 'goblin'};
+            playerRace: 'goblin', playerName: 'Urkh'
+        };
         player = gameFact.createPlayerUnlessLoaded(conf);
-        props = {player};
+        props = {
+            player,
+            toggleScreen: () => true
+        };
     });
 
     it('should render without errors', () => {
