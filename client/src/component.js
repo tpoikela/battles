@@ -349,7 +349,7 @@ RG.Component.Missile.prototype.stopMissile = function() {
 };
 
 RG.Component.Missile.prototype.setTargetXY = function(x, y) {
-    this.path = RG.Geometry.getMissilePath(this.x, this.y, x, y);
+    this.path = RG.Geometry.getBresenham(this.x, this.y, x, y);
     this.targetX = x;
     this.targetY = y;
     if (this.path.length > 0) {this.pathIter = 0;}
