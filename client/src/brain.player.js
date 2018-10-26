@@ -94,6 +94,10 @@ class TargetingFSM {
         this._state = S_IDLE;
     }
 
+    getActor() {
+        return this._brain._actor;
+    }
+
     isTargeting() {
         return this._state === S_TARGETING;
     }
@@ -160,7 +164,19 @@ class TargetingFSM {
     setSelectedCells(cells) {
         if (cells) {
             if (!Array.isArray(cells)) {
-                this.selectedCells = [cells];
+                const cell = cells;
+                this.selectedCells = [cell];
+                if (this.isTargeting()) {
+                    const actor = this.getActor();
+                    const [tx, ty] = [cell.getX(), cell.getY()];
+                    const [ax, ay] = [actor.getX(), actor.getY()];
+                    // const path = RG.Geometry.getMissilePath(ax, ay, tx, ty);
+                    const path = RG.Geometry.getBresenham(ax, ay, tx, ty);
+                    const pathCells = path.map(xy => (
+                        actor.getLevel().getMap().getCell(xy[0], xy[1])
+                    ));
+                    this.selectedCells = this.selectedCells.concat(pathCells);
+                }
             }
             else {
                 this.selectedCells = cells;
@@ -169,7 +185,7 @@ class TargetingFSM {
     }
 
     getTarget() {
-        if (this.isTargeting() || this.isLooking()) {
+        if (this.isLooking()) {
             if (this.selectedCells && this.selectedCells.length > 0) {
                 return this.selectedCells[0];
             }
