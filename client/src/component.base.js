@@ -12,24 +12,40 @@ RG.Component.createdCompDecls = {};
 const NO_SERIALISATION = () => null;
 RG.Component.NO_SERIALISATION = NO_SERIALISATION;
 
+// These attributes are never assigned to component instances
+const staticAttr = new Set([
+  'description'
+]);
+
 /* Can be used to create simple Component object constructors with no other data
  * fields. Usage:
  *   const MyComponent = TagComponent('MyComponent');
  *   const compInst = new MyComponent();
  */
-const TagComponent = function(type, obj = {}) {
+const TagComponent = function(type, compAttrib = {}) {
     errorIfCompDeclExists(type);
     const CompDecl = function() {
         RG.Component.Base.call(this, type);
-        Object.keys(obj).forEach(key => {
-            this[key] = obj[key];
+        Object.keys(compAttrib).forEach(key => {
+            if (!staticAttr.has(key)) {
+                this[key] = compAttrib[key];
+            }
         });
     };
     RG.extend2(CompDecl, RG.Component.Base);
     RG.Component.createdCompDecls[type] = CompDecl;
+    handleCompAttrib(CompDecl, compAttrib);
     return CompDecl;
 };
 RG.Component.TagComponent = TagComponent;
+
+function handleCompAttrib(CompDecl, compAttrib) {
+    staticAttr.forEach(attr => {
+        if (compAttrib.hasOwnProperty(attr)) {
+            CompDecl[attr] = compAttrib[attr];
+        }
+    });
+}
 
 /* Can be used to create simple data components with setters/getters.
  * Usage:
@@ -97,7 +113,7 @@ const DataComponent = (type, members, compAttrib = {}) => {
         }
 
         // Create the setter method unless it exists in Base
-        const setter = 'set' + propName.capitalize();
+        const setter = formatSetterName(propName);
         if (RG.Component.Base.prototype.hasOwnProperty(setter)) {
             RG.err('component.js', `DataComponent: ${type}`,
                 `${setter} is reserved in Component.Base`);
@@ -107,7 +123,7 @@ const DataComponent = (type, members, compAttrib = {}) => {
         };
 
         // Create the getter method unless it exists in Base
-        const getter = 'get' + propName.capitalize();
+        const getter = formatGetterName(propName);
         if (RG.Component.Base.prototype.hasOwnProperty(setter)) {
             RG.err('component.js', `DataComponent: ${type}`,
                 `${getter} is reserved in Component.Base`);
@@ -123,45 +139,55 @@ const DataComponent = (type, members, compAttrib = {}) => {
     }
 
     CompDecl.prototype.members = Object.freeze(members);
-
+    handleCompAttrib(CompDecl, compAttrib);
     RG.Component.createdCompDecls[type] = CompDecl;
     return CompDecl;
 };
 RG.Component.DataComponent = DataComponent;
 
+function formatGetterName(propName) {
+    return 'get' + propName.capitalize();
+}
+function formatSetterName(propName) {
+    return 'set' + propName.capitalize();
+}
+
 /* Same TagComponent, except only one per entity is preserved. Adding another
  * will remove the existing one. */
-const UniqueTagComponent = type => {
-    return TagComponent(type, {_isUnique: true});
+const UniqueTagComponent = (type, compAttrib = {}) => {
+    return TagComponent(type, Object.assign({_isUnique: true}, compAttrib));
 };
 RG.Component.UniqueTagComponent = UniqueTagComponent;
 
 /* Same DataComponent, except only one per entity is preserved. Adding another
  * will remove the existing one. */
-const UniqueDataComponent = (type, members) => {
-    return DataComponent(type, members, {_isUnique: true});
+const UniqueDataComponent = (type, members, compAttrib = {}) => {
+    return DataComponent(type, members,
+        Object.assign({_isUnique: true}, compAttrib));
 };
 RG.Component.UniqueDataComponent = UniqueDataComponent;
 
 /* Same as TagComponent but removes serialisation. This component is used by
 * systems for transient stuff like Attacks, Move and SpellCasting. */
-const TransientTagComponent = type => {
-    return TagComponent(type, {toJSON: NO_SERIALISATION});
+const TransientTagComponent = (type, compAttrib = {}) => {
+    return TagComponent(type,
+        Object.assign({toJSON: NO_SERIALISATION}, compAttrib));
 };
 RG.Component.TransientTagComponent = TransientTagComponent;
 
 /* Same as TransientTagComponent, but allows specifying data fields. */
-const TransientDataComponent = (type, members) => {
-    return DataComponent(type, members, {toJSON: NO_SERIALISATION});
+const TransientDataComponent = (type, members, compAttrib = {}) => {
+    return DataComponent(type, members,
+        Object.assign({toJSON: NO_SERIALISATION}, compAttrib));
 };
 RG.Component.TransientDataComponent = TransientDataComponent;
 
-const UniqueTransientDataComponent = (type, members) => {
+const UniqueTransientDataComponent = (type, members, compAttrib = {}) => {
     return DataComponent(type, members,
-        {
+        Object.assign({
             toJSON: NO_SERIALISATION,
             _isUnique: true
-        }
+        }, compAttrib)
     );
 };
 RG.Component.UniqueTransientDataComponent = UniqueTransientDataComponent;
