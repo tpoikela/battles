@@ -869,6 +869,10 @@ const Actors = [
         brain: defaultBrain
     },
     {
+        name: 'catfolk townsfolk', base: 'CatfolkBase',
+        attack: 1, defense: 1, hp: 10, danger: 1
+    },
+    {
         name: 'catfolk hunter', base: 'CatfolkBase',
         attack: 1, defense: 4, damage: '3d2', hp: 15, danger: 2
     },
@@ -904,12 +908,16 @@ const Actors = [
 
     // WOLFCLAN
     {
-        name: 'WolfclanBase', dontCreate: true, danger: 3,
-        attack: 3, defense: 3, damage: '1d8', range: 1,
+        name: 'WolfclanBase', dontCreate: true, danger: 1,
+        attack: 1, defense: 1, damage: '1d4', range: 1,
         className: 'cell-actor-wolfclan', char: 'w',
         type: 'wolfclan',
         enemies: ['player', 'human', 'catfolk', 'dogfolk', 'bearfolk'],
         brain: defaultBrain
+    },
+    {
+        name: 'wolfclan folk', danger: 1, base: 'WolfclanBase',
+        attack: 2, defense: 1, damage: '1d6', range: 1
     },
     {
         name: 'wolfclan brave', base: 'WolfclanBase', danger: 4,
@@ -954,6 +962,10 @@ const Actors = [
         className: 'cell-actor-dogfolk', char: 'd', type: 'dogfolk',
         enemies: ['player', 'catfolk', 'wolfclan'],
         brain: defaultBrain
+    },
+    {
+        name: 'dogfolk gatherer', base: 'DogfolkBase',
+        attack: 1, defense: 3, damage: '1d4 + 1', hp: 10, danger: 1
     },
     {
         name: 'dogfolk hunter', base: 'DogfolkBase',
