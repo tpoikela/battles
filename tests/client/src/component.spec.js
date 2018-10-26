@@ -43,6 +43,18 @@ describe('Component.Base', () => {
         expect(comp.toString()).to.match(/Base/);
     });
 
+    it('can add a description for component', () => {
+        const descr = 'You are extremely fiery';
+        const FieryComp = DataComponent('FieryComp',
+            {level: 0}, // Data members
+            {description: descr} // Static members
+        );
+
+        const comp = new FieryComp();
+        expect(comp.getLevel()).to.equal(0);
+        expect(FieryComp.description).to.equal(descr);
+    });
+
     it('has onAdd/Remove callback mechanism', () => {
         const comp = new RG.Component.Base('Base');
         const entity = new Entity();
@@ -81,8 +93,10 @@ describe('Component.Base', () => {
 describe('RG.TagComponent', () => {
 
     it('is used to create comp declarations with no data fields', () => {
-        const conf = {_privateField: true, falseField: false};
+        const conf = {_privateField: true, falseField: false,
+            description: 'Test'};
         const UndeadNew = TagComponent('UndeadNew', conf);
+        expect(UndeadNew.description).to.equal('Test');
         const undeadComp = new UndeadNew();
         expect(undeadComp.getType()).to.equal('UndeadNew');
         expect(undeadComp._privateField).to.exist;
