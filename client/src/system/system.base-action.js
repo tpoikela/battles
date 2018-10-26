@@ -28,7 +28,6 @@ System.BaseAction = function(compTypes) {
 
     /* Handles give command. */
     this._handleGive = ent => {
-        console.log('handling give action');
         const giveComp = ent.get('Give');
         const giveTarget = giveComp.getGiveTarget();
         const giveItem = giveComp.getItem();
@@ -166,7 +165,10 @@ System.BaseAction = function(compTypes) {
         let msg = '';
         const entName = ent.getName();
 
-        if (door.canToggle()) {
+        if (door.has('Broken')) {
+            msg = 'Door is broken and does not move at all!';
+        }
+        else if (door.canToggle()) {
             if (cell.hasItems()) {
                 msg = 'Door is blocked by an item';
             }
@@ -193,6 +195,13 @@ System.BaseAction = function(compTypes) {
     this._handleUseItem = ent => {
         const useItemComp = ent.get('UseItem');
         const item = useItemComp.getItem();
+
+        if (item.has('Broken')) {
+          const msg = `${item.getName()} cannot be used because it is broken`;
+          RG.gameMsg({cell: ent.getCell(), msg});
+          return;
+        }
+
         if (item.has('OneShot')) {
             if (item.getCount() === 1) {
                 const msg = {item};
@@ -217,8 +226,11 @@ System.BaseAction = function(compTypes) {
     this._handleUseElement = ent => {
         const useComp = ent.get('UseElement');
         const elem = useComp.getElement();
-        if (elem.onUse) { // Just assume it's a function, what else can it be?
-            elem.onUse(ent);
+        if (!elem.has('Broken')) {
+            if (elem.onUse) {
+                // Just assume it's a function, what could go wrong?
+                elem.onUse(ent);
+            }
         }
         this._checkUseElementMsgEmit(ent, useComp);
     };
@@ -325,12 +337,19 @@ System.BaseAction = function(compTypes) {
     };
 
     this._checkUseElementMsgEmit = (ent, comp) => {
-        if (comp.getUseType() === RG.USE.LEVER) {
-            const cell = ent.getCell();
-            const name = ent.getName();
-            const msg = `${name} toggles the lever`;
-            RG.gameMsg({cell, msg});
+        const elem = comp.getElement();
+        const elemName = elem.getName();
+        const cell = ent.getCell();
+
+        let msg = '';
+        if (elem.has('Broken')) {
+            msg = `${elemName} is broken, and cannot be used.`;
         }
+        else if (comp.getUseType() === RG.USE.LEVER) {
+            const name = ent.getName();
+            msg = `${name} toggles the lever`;
+        }
+        RG.gameMsg({cell, msg});
     };
 };
 RG.extend2(System.BaseAction, System.Base);
