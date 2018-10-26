@@ -488,7 +488,9 @@ RG.Component.Physical = UniqueDataComponent('Physical',
 
 /* Ethereal entities are visible but don't have normal interaction with
  * matter. */
-RG.Component.Ethereal = TagComponent('Ethereal');
+RG.Component.Ethereal = TagComponent('Ethereal',
+    {description: 'Ethereal beings cannot interact physically with others'}
+);
 
 /* Stun component prevents actor from taking many actions like moving and
  * attacking. */
@@ -508,11 +510,12 @@ RG.Component.Stun = function() {
     };
 
 };
+RG.Component.Stun.description = 'Stunning prevents some actions to be done';
 RG.extend2(RG.Component.Stun, RG.Component.Base);
 
 /* Paralysis component prevents actor from taking many actions like moving and
  * attacking. */
-RG.Component.Paralysis = function() {
+const Paralysis = function() {
     RG.Component.Base.call(this, 'Paralysis');
 
     let _src = null;
@@ -528,6 +531,8 @@ RG.Component.Paralysis = function() {
     };
 
 };
+Paralysis.description = 'Paralysed actors cannot perform any actions';
+RG.Component.Paralysis = Paralysis;
 RG.extend2(RG.Component.Paralysis, RG.Component.Base);
 
 /* Component added to summoned/created actors. */
@@ -623,9 +628,11 @@ class Poison extends Mixin.DurationRoll(Mixin.DamageRoll(RG.Component.Base)) {
         return obj;
     }
 }
+Poison.description = 'Poison causes damage periodically until it stop';
 RG.Component.Poison = Poison;
 
-RG.Component.Coldness = TagComponent('Coldness');
+RG.Component.Coldness = TagComponent('Coldness',
+  {description: 'Coldness will gradually freeze a non-resistant beings'});
 RG.Component.Heat = TagComponent('Heat');
 
 RG.Component.BodyTemp = UniqueDataComponent('BodyTemp',
@@ -660,14 +667,15 @@ RG.Component.Stolen = TagComponent('Stolen');
 /* Added to unpaid items in shops. Removed once the purchase is done.*/
 RG.Component.Unpaid = TagComponent('Unpaid');
 
-
 RG.Component.Breakable = UniqueTagComponent('Breakable');
 RG.Component.Indestructible = UniqueTagComponent('Indestructible');
 RG.Component.Ammo = TagComponent('Ammo');
-RG.Component.Flying = TagComponent('Flying');
+RG.Component.Flying = TagComponent('Flying',
+  {description: 'Flying beings can avoid difficult terrain and obstacles'});
 RG.Component.Undead = TagComponent('Undead');
 RG.Component.Summoned = TagComponent('Summoned');
-RG.Component.Sharpener = TagComponent('Sharpener');
+RG.Component.Sharpener = TagComponent('Sharpener',
+  {description: 'You can sharpen weapons (once per weapoon'});
 RG.Component.Sharpened = TagComponent('Sharpened');
 RG.Component.Possessed = TagComponent('Possessed');
 
@@ -677,12 +685,16 @@ RG.Component.Flame = TransientDataComponent('Flame',
 RG.Component.Weakness = DataComponent('Weakness', {
     effect: '',
     level: RG.WEAKNESS.MINOR
-});
+},
+    {description: 'Weakness increases damage from attacks of that type'}
+);
 
 RG.Component.Resistance = DataComponent('Resistance', {
     effect: '',
     level: RG.RESISTANCE.MINOR
-});
+},
+    {description: 'Resistance reduces damage from attacks of that type'}
+);
 
 /* Used currently for magical arrows to distinguish them from shot/thrown
  * projectiles. */
@@ -726,13 +738,20 @@ RG.Component.ActorClass.prototype.toJSON = function() {
 //---------------------------------------------------------------------------
 // MELEE COMBAT COMPONENTS
 //---------------------------------------------------------------------------
-RG.Component.Defender = UniqueTagComponent('Defender');
-RG.Component.Attacker = UniqueTagComponent('Attacker');
-RG.Component.BiDirStrike = UniqueTagComponent('BiDirStrike');
-RG.Component.CounterAttack = UniqueTagComponent('CounterAttack');
+RG.Component.Defender = UniqueTagComponent('Defender',
+    {description: 'Grants a minor defense (Def) bonus'});
+RG.Component.Attacker = UniqueTagComponent('Attacker',
+    {description: 'Grants a minor attack (Att) bonus'});
+RG.Component.BiDirStrike = UniqueTagComponent('BiDirStrike',
+    {description: 'You can attack to 2 opposite directions'});
+RG.Component.CounterAttack = UniqueTagComponent('CounterAttack',
+    {desciption: 'You perform a counterattack when attacked by enemies'});
 RG.Component.Ambidexterity = UniqueTagComponent('Ambidexterity');
 RG.Component.LongReach = UniqueTagComponent('LongReach');
-RG.Component.FirstStrike = UniqueTagComponent('FirstStrike');
+
+RG.Component.FirstStrike = UniqueTagComponent('FirstStrike', {
+    description: 'You can hit enemies first before they attack you'
+});
 
 /* Component which gives reduces equipment weight by 50%. */
 RG.Component.MasterEquipper = DataComponent('MasterEquipper',
@@ -754,12 +773,24 @@ RG.Component.SnowWalk = UniqueTagComponent('SnowWalk');
 // RANGED COMBAT COMPONENTS
 //--------------------------------------------
 
-RG.Component.EagleEye = TagComponent('EagleEye');
-RG.Component.StrongShot = TagComponent('StrongShot');
-RG.Component.ThroughShot = TagComponent('ThroughShot');
-RG.Component.MixedShot = TagComponent('MixedShot');
-RG.Component.LongRangeShot = TagComponent('LongRangeShot');
-RG.Component.RangedEvasion = TagComponent('RangedEvasion');
+RG.Component.EagleEye = TagComponent('EagleEye', {
+    description: 'Grants bonus to missile range and visibility'
+});
+RG.Component.StrongShot = TagComponent('StrongShot', {
+    description: 'Strength (Str) adds extra damage to missile attacks'
+});
+RG.Component.ThroughShot = TagComponent('ThroughShot', {
+    description: 'You can shoot through enemies to hit another target'
+});
+RG.Component.MixedShot = TagComponent('MixedShot', {
+    description: 'Allows mixing of ammo from different type of weapons'
+});
+RG.Component.LongRangeShot = TagComponent('LongRangeShot', {
+    description: 'Doubles missile attack range'
+});
+RG.Component.RangedEvasion = TagComponent('RangedEvasion', {
+    description: 'Grants 50% chance to evade missile/ranged spell attacks'
+});
 RG.Component.CriticalShot = TagComponent('CriticalShot');
 RG.Component.DoubleShot = TagComponent('DoubleShot');
 
@@ -801,6 +832,8 @@ RG.Component.PowerDrain = function() {
     this.drainDist = 5;
 };
 RG.extend2(RG.Component.PowerDrain, RG.Component.Base);
+RG.Component.PowerDrain.description =
+    'Counters any spell cast near you, gives you power and then disappears';
 
 RG.Component.SpellBase = function(type) {
     RG.Component.Base.call(this, type);
@@ -860,7 +893,9 @@ RG.Component.SpellStop = UniqueTagComponent('SpellStop');
 //--------------------------------------------
 
 /* Triples the energy gained from eating foods. */
-RG.Component.NourishedOne = UniqueTagComponent('NourishedOne');
+RG.Component.NourishedOne = UniqueTagComponent('NourishedOne', {
+    description: 'You gain triple amount of energy from food'
+});
 
 //--------------------------------------------
 // Spirit-related components
@@ -884,7 +919,9 @@ RG.Component.GemBound.prototype.toJSON = function() {
 };
 
 /* This component enables entity to bind gems into items. */
-RG.Component.SpiritItemCrafter = UniqueTagComponent('SpiritItemCrafter');
+RG.Component.SpiritItemCrafter = UniqueTagComponent('SpiritItemCrafter', {
+    description: 'Grants ability to bind gems to items such as weapons/armour'
+});
 
 //--------------------------------------------
 // Comps related to the skill system
@@ -1100,6 +1137,8 @@ RG.Component.RegenEffect = DataComponent('RegenEffect', {
 
 RG.Component.Telepathy = DataComponent('Telepathy', {
     target: null, source: null
+}, {
+    description: "Grants ability to see through another being's eyes"
 });
 
 RG.Component.Telepathy.prototype.toJSON = function() {
