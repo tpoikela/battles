@@ -7,9 +7,14 @@ const RG = require('../client/src/battles');
 const FromJSON = require('../client/src/game.fromjson');
 const fs = require('fs');
 
+const RNG = RG.Random.getRNG();
+
+const seed = process.argv[2] || Date.now();
+RNG.setSeed(seed);
+console.log('Seed used is', seed);
+
 const factory = new RG.Factory.Game();
 const startTime = new Date();
-
 const jsonTest = true;
 
 const gameConf = {
@@ -27,7 +32,6 @@ const gameConf = {
 };
 
 const game = factory.createNewGame(gameConf);
-
 const endTime = new Date();
 
 const durationMs = endTime.getTime() - startTime.getTime();
