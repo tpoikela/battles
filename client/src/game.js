@@ -570,11 +570,12 @@ RG.Game.Main = function() {
 
     /* Returns the player tile position in overworld map. */
     this.getPlayerOwPos = () => {
-        if (!this._overworld) {
+        const player = this.getPlayer();
+        if (!this._overworld || !player) {
             return [];
         }
+
         const overworld = this._overworld;
-        const player = this.getPlayer();
         const world = this.getCurrentWorld();
         const area = world.getAreas()[0];
         let xy = area.findTileXYById(player.getLevel().getID());
