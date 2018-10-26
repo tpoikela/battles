@@ -98,18 +98,24 @@ const Engine = function(eventPool) {
         this.visibleLevelID = level.getID();
         this.visibleCells = cells;
         this._cache.visibleCoord = {};
+        this._cache.visibleValid = false;
     };
 
     /* Returns true if player can see the given animation. In general, true
      * whenever animation contains at least one cell visible to the player. */
     this.canPlayerSeeAnimation = animation => {
         if (animation.levelID === this.visibleLevelID) {
-            if (Object.keys(this._cache.visibleCoord).length === 0) {
+
+            // Build the cache if not valid
+            if (!this._cache.visibleValid) {
                 this.visibleCells.forEach(cell => {
                     const [x, y] = [cell.getX(), cell.getY()];
                     this._cache.visibleCoord[x + ',' + y] = true;
                 });
+                this._cache.visibleValid = true;
             }
+
+            // Check overlap between cached coord and coord in animation
             return animation.hasCoord(this._cache.visibleCoord);
         }
         return false;
