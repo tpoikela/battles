@@ -8,7 +8,7 @@ const RG = require('./rg');
  *  value: VALUE TO COMPARE AGAINTS USING op
  * }
  * For example: {op: 'eq', prop: 'name', value: 'Giant rat'} checks that
- * entity's name is equal to 'Giant rat'.
+ * name is equal to 'Giant rat'.
  */
 export default class Constraints {
 
@@ -17,11 +17,13 @@ export default class Constraints {
             const funcs = objOrArray.map(constr => (
                 this.getFunc(constr.op, constr.prop, constr.value)
             ));
-            return function(obj) {
+            const aggrFunc = function(obj) {
                 let res = true;
                 funcs.forEach(f => {res = res && f(obj);});
                 return res;
             };
+            aggrFunc.constraint = objOrArray;
+            return aggrFunc;
         }
         else if (typeof objOrArray === 'object') {
             const {op, prop, value} = objOrArray;
@@ -39,34 +41,39 @@ export default class Constraints {
             const funcs = value.map(val => (
                 this.getFunc(op, prop, val)
             ));
-            return function(obj) {
+            const aggrFunc = function(obj) {
                 let res = false;
                 funcs.forEach(f => {res = res || f(obj);});
                 return res;
             };
+            aggrFunc.constraint = {op, prop, value};
+            return aggrFunc;
         }
         else {
+            let func = () => false;
             switch (op) {
                 case '==': // fall
                 case '===': // fall
-                case 'eq': return obj => obj[prop] === value;
+                case 'eq': func = obj => obj[prop] === value; break;
                 case '!=':
                 case '!==':
-                case 'neq': return obj => obj[prop] !== value;
+                case 'neq': func = obj => obj[prop] !== value; break;
                 case '>=':
-                case 'gte': return obj => obj[prop] >= value;
+                case 'gte': func = obj => obj[prop] >= value; break;
                 case '<=':
-                case 'lte': return obj => obj[prop] <= value;
+                case 'lte': func = obj => obj[prop] <= value; break;
                 case '>':
-                case 'gt': return obj => obj[prop] > value;
+                case 'gt': func = obj => obj[prop] > value; break;
                 case '<':
-                case 'lt': return obj => obj[prop] < value;
-                case 'match': return obj => new RegExp(value).test(obj[prop]);
+                case 'lt': func = obj => obj[prop] < value; break;
+                case 'match':
+                    func = obj => new RegExp(value).test(obj[prop]); break;
                 default: RG.err('Constraints', 'getFunc',
                     `Unsupported op ${op} given`);
             }
+            func.constraint = {op, prop, value};
+            return func;
         }
-        return null;
     }
 
 }
