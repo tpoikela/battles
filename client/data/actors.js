@@ -397,7 +397,7 @@ const Actors = [
     {
         name: 'avian emperor', base: 'AvianFolkBase', danger: 16,
         attack: 8, defense: 14, damage: '5d5', hp: 85,
-        addComp: ['Flying', bypass(0.15)]
+        addComp: ['Flying', BypassComp(0.15)]
     },
 
     // BEARFOLK
@@ -570,7 +570,7 @@ const Actors = [
         'color-fg': 'GhostWhite',
         attack: 7, defense: 7, protection: 7, damage: '2d5 + 5', danger: 9,
         speed: 102, hp: 50,
-        addComp: [bypass(0.25)]
+        addComp: [BypassComp(0.25)]
     },
     {
         name: 'necrowyrm', char: 'W', base: 'UndeadBase',
@@ -916,7 +916,8 @@ const Actors = [
         brain: defaultBrain
     },
     {
-        name: 'wolfclan folk', danger: 1, base: 'WolfclanBase',
+        name: 'wolfclan folk', base: 'WolfclanBase', danger: 1,
+        hp: 12,
         attack: 2, defense: 1, damage: '1d6', range: 1
     },
     {
@@ -1324,7 +1325,7 @@ function resistance(type, level) {
     };
 }
 
-function bypass(value) {
+function BypassComp(value) {
     return {comp: 'BypassProtection', func: {setChance: value}};
 }
 
