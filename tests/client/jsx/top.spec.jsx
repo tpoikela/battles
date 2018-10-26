@@ -4,11 +4,8 @@ import { shallow, mount } from 'enzyme';
 import chaiEnzyme from 'chai-enzyme';
 import chai, { expect } from 'chai';
 
+import GameBoard from '../../../client/jsx/game-board';
 import BattlesTop from '../../../client/jsx/top';
-
-import Storage from '../../helpers/mockstorage';
-
-window.localStorage = window.localStorage || new Storage();
 
 chai.use(chaiEnzyme());
 
@@ -23,20 +20,24 @@ describe('Component <BattlesTop>', function() {
     it('should render with mount', () => {
         const wrapper = mount(<BattlesTop />);
         expect(wrapper, 'Component must render with mount').to.have.length(1);
+        wrapper.unmount();
     });
 
     it('should create game and be able to save it', () => {
         const wrapper = mount(<BattlesTop />);
         expect(wrapper, 'Component must render with mount').to.have.length(1);
-        wrapper.setState({playMode: 'OverWorld'});
+        wrapper.setState({playMode: 'Arena'});
 
         const selPlayMode = wrapper.find('#dropdown-select-playmode');
-        selPlayMode.simulate('change', {target: {value: 'OverWorld'}});
+        expect(selPlayMode.length).to.equal(1);
+        selPlayMode.simulate('change', {target: {value: 'Arena'}});
 
         const startButton = wrapper.find('#embark-button');
         startButton.simulate('click');
         // const saveButton = wrapper.find('#save-button');
         // saveButton.simulate('click');
+        expect(wrapper.find(GameBoard)).to.have.length(1);
+        wrapper.unmount();
     });
 });
 
