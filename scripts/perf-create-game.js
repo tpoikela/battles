@@ -69,7 +69,8 @@ if (jsonTest) {
     console.log('JSON length of game is ' + jsonStr.length);
 
     const fromJSON = new FromJSON();
-    const newGame = fromJSON.createGame(json);
+    let newGame = new RG.Game.Main();
+    newGame = fromJSON.createGame(newGame, json);
     const newJSON = newGame.toJSON();
     const newJSONStr = JSON.stringify(newJSON);
     console.log('JSON length of NEW game is ' + newJSONStr.length);
