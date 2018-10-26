@@ -594,6 +594,62 @@ RG.Geometry = {
         return [];
     },
 
+   /* Returns an array of xy-pairs belonging to Bresenham line from
+    *  x1,y1 -> x2,y2
+    * Original C-source:
+    * https://www.cs.unm.edu/~angel/BOOK/INTERACTIVE_COMPUTER_GRAPHICS
+    *   /FOURTH_EDITION/PROGRAMS/bresenham.c
+    */
+    getBresenham: function(x1, y1, x2, y2) {
+        let dx, dy, i, e;
+        let incx, incy, inc1, inc2;
+        let x, y;
+        dx = x2 - x1;
+        dy = y2 - y1;
+        const bresLine = [];
+
+        if (dx < 0) {dx = -dx;}
+        if (dy < 0) {dy = -dy;}
+        incx = 1;
+        if (x2 < x1) {incx = -1;}
+        incy = 1;
+        if (y2 < y1) {incy = -1;}
+        x = x1;
+        y = y1;
+
+        if (dx > dy) {
+            bresLine.push([x, y]);
+            e = 2 * dy - dx;
+            inc1 = 2 * (dy - dx);
+            inc2 = 2 * dy;
+            for (i = 0; i < dx; i++) {
+                if (e >= 0) {
+                    y += incy;
+                    e += inc1;
+                }
+                else {e += inc2;}
+                x += incx;
+                bresLine.push([x, y]);
+            }
+        }
+        else {
+            bresLine.push([x, y]);
+            e = 2 * dx - dy;
+            inc1 = 2 * ( dx - dy);
+            inc2 = 2 * dx;
+            for (i = 0; i < dy; i++) {
+                if (e >= 0) {
+                    x += incx;
+                    e += inc1;
+                }
+                else {e += inc2;}
+                y += incy;
+                bresLine.push([x, y]);
+            }
+        }
+        return bresLine;
+    },
+
     /* Returns a path from x0,y0 to x1,y1 which resembles "straight" line. */
     getMissilePath: function(x0, y0, x1, y1, incEnds = true) {
         let res = [];
