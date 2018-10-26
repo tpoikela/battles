@@ -4,7 +4,9 @@ import ModalHeader from './modal-header';
 import PropTypes from 'prop-types';
 
 const RG = require('../src/rg');
+RG.Component = require('../src/component');
 const Modal = require('react-bootstrap-modal');
+
 
 export default class GameCharInfo extends Component {
 
@@ -25,7 +27,7 @@ export default class GameCharInfo extends Component {
 
   render() {
     const shownMessage = 'Placeholder';
-    const shownTabElement = this.renderTabElement();
+    const shownTabElement = this.renderTabElement(this.state.tabShown);
     const tabButtons = this.renderTabButtons();
 
     return (
@@ -59,23 +61,24 @@ export default class GameCharInfo extends Component {
     );
   }
 
+
   /* Returns the markup for shown tab element. */
-  renderTabElement() {
+  renderTabElement(tabName) {
     const actor = this.props.player;
 
-    if (this.state.tabShown === 'CharInfo') {
+    if (tabName === 'CharInfo') {
       return this.renderCharInfoGeneral(actor);
     }
-    else if (this.state.tabShown === 'Components') {
-      return this.renderComponentsTab(actor);
+    else if (tabName === 'Effects') {
+      return this.renderEffectsTab(actor);
     }
-    else if (this.state.tabShown === 'Skills') {
+    else if (tabName === 'Skills') {
       return this.renderSkillsTab(actor);
     }
-    else if (this.state.tabShown === 'Battles') {
+    else if (tabName === 'Battles') {
       return this.renderBattlesTab(actor);
     }
-    else if (this.state.tabShown === 'Quests') {
+    else if (tabName === 'Quests') {
       return this.renderQuestsTab(actor);
     }
     return null;
@@ -83,29 +86,17 @@ export default class GameCharInfo extends Component {
 
   /* Returns buttons for selecting the different tabs. */
   renderTabButtons() {
-      const buttonElems = (
-      <ul className='modal-tab-list'>
+      const buttonElems = GameCharInfo.menuTabs.map(name => (
         <button className='tab-select-button'
-          onClick={this.selectTab.bind(this, 'CharInfo')}
-        >CharInfo</button>
-        <button className='tab-select-button'
-          onClick={this.selectTab.bind(this, 'Components')}
-        >Components</button>
-        <button className='tab-select-button'
-          onClick={this.selectTab.bind(this, 'Skills')}
-        >Skills</button>
-        <button className='tab-select-button'
-          onClick={this.selectTab.bind(this, 'Battles')}
-        >Battles</button>
-        <button className='tab-select-button'
-          onClick={this.selectTab.bind(this, 'Quests')}
-        >Quests</button>
-      </ul>
-      );
-
+          key={name}
+          onClick={this.selectTab.bind(this, name)}
+        >{name}</button>
+      ));
       return (
         <ul>
-          {buttonElems}
+          <ul className='modal-tab-list'>
+            {buttonElems}
+          </ul>
         </ul>
       );
   }
@@ -161,13 +152,25 @@ export default class GameCharInfo extends Component {
 
   /* Returns the components tab containing info about all relevant components.
    * */
-  renderComponentsTab(actor) {
+  renderEffectsTab(actor) {
     const comps = Object.values(actor.getComponents());
-    const compNames = comps.map((c, index) => <p key={index}>{c.getType()}</p>);
+
+    const compNames = comps.map((c, index) => {
+      const description = RG.Component[c.getType()].description;
+      if (description) {
+        return (
+          <p key={index}>
+            <span className='text-info'>{c.getType()}</span> - {description}
+          </p>
+        );
+      }
+      return null;
+    });
+
     return (
         <div className='modal-body row' id='char-info-components'>
           <div className='col-md-6' id='char-info-box'>
-            <h2>List of components</h2>
+            <h2>List of effects on player</h2>
             {compNames}
           </div>
         </div>
@@ -199,6 +202,7 @@ export default class GameCharInfo extends Component {
       );
   }
 
+  /* Renders information about battles fought by the player. */
   renderBattlesTab(actor) {
     const badges = actor.getList('BattleBadge');
     const battlesElem = badges.map(badge => (
@@ -221,6 +225,7 @@ export default class GameCharInfo extends Component {
     );
   }
 
+  /* Renders information about quests taken/completed by the player. */
   renderQuestsTab(actor) {
     const quests = actor.getList('Quest');
     const questsElem = quests.map(quest => (
@@ -242,7 +247,7 @@ export default class GameCharInfo extends Component {
     );
   }
 
-  /* Returns the exploration info in formatted list. */
+  /* Returns the exploration info in a formatted list. */
   getExploreInfo(actor) {
     if (actor.has('GameInfo')) {
       const gameInfo = actor.get('GameInfo');
@@ -263,10 +268,13 @@ export default class GameCharInfo extends Component {
 
       return infoList;
     }
-    return <p>No info available</p>;
+    return <p>No exploration info available</p>;
   }
 
 }
+
+GameCharInfo.menuTabs = [
+  'CharInfo', 'Effects', 'Skills', 'Battles', 'Quests'];
 
 GameCharInfo.propTypes = {
   player: PropTypes.object,
