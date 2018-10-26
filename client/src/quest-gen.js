@@ -124,7 +124,7 @@ function chooseRandomRule(arrOfRules) {
     return null;
 }
 
-debug.enabled = true;
+// debug.enabled = true;
 
 //---------------------------------------------------------------------------
 // QUESTGEN for generating quest sequences procedurally
@@ -1376,7 +1376,10 @@ QuestPopulate.prototype.createBattle = function(target, zone, areaTile) {
         RG.POOL.emitEvent(RG.EVT_CREATE_BATTLE, eventArgs);
         if (eventArgs.response) {
             console.log('createBattle return eventArgs.response.level');
-            return eventArgs.response.level;
+            const {battle} = eventArgs.response;
+            if (battle) {
+                return battle.getLevel();
+            }
         }
         else {
             RG.err('QuestPopulate', 'createBattle',
