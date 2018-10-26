@@ -5,6 +5,8 @@ const Actor = require('./actor');
 const Brain = require('./brain');
 const ObjectShell = require('./objectshellparser');
 
+const debug = require('debug')('bitn:FactoryActor');
+
 const initCombatant = (comb, obj) => {
     const {hp, att, def, prot} = obj;
 
@@ -36,6 +38,12 @@ const ActorRandomizer = function() {
 
 /* Factory object for creating the actors. */
 const FactoryActor = function() {
+
+    this.dbg = function(...args) {
+        if (debug.enabled) {
+            debug(...args);
+        }
+    };
 
     /* Creates a player actor. */
     this.createPlayer = (name, obj) => {
@@ -99,59 +107,75 @@ const FactoryActor = function() {
         }
     };
 
-    this.createSpell = spellName => {
-        if (RG.Spell.hasOwnProperty(spellName)) {
-            return new RG.Spell[spellName]();
-        }
-        return null;
+
+};
+
+FactoryActor.prototype.createSpell = function(spellName) {
+    if (RG.Spell.hasOwnProperty(spellName)) {
+        return new RG.Spell[spellName]();
+    }
+    else {
+        const keys = Object.keys(RG.Spell).join('\n\t');
+        RG.err('FactoryActor', 'createSpell',
+            `No spell ${spellName} found in RG.Spell: \n\t${keys}`);
+    }
+    return null;
+};
+
+/* Generates N actors based on constraints and returns a list of actors. */
+FactoryActor.prototype.generateNActors = function(nActors, func, maxDanger) {
+    if (!Number.isInteger(maxDanger) || maxDanger <= 0) {
+        RG.err('Factory.Actor', 'generateNActors',
+            'maxDanger (> 0) must be given. Got: ' + maxDanger);
+    }
+    if (maxDanger < 3) {maxDanger = 3;} // maxDanger 1/2 not very interesting
+
+    const parser = ObjectShell.getParser();
+    const actors = [];
+    const defaultFunc = { // Used if no func given
+        func: actor => actor.danger <= maxDanger
     };
+    for (let i = 0; i < nActors; i++) {
 
-
-    this.generateNActors = function(nActors, func, maxDanger) {
-        if (!Number.isInteger(maxDanger) || maxDanger <= 0) {
-            RG.err('Factory.Actor', 'generateNActors',
-                'maxDanger (> 0) must be given. Got: ' + maxDanger);
+        // Generic randomization with danger level
+        let actor = null;
+        if (!func) {
+            actor = parser.createRandomActorWeighted(1, maxDanger,
+                defaultFunc);
         }
-        const parser = ObjectShell.getParser();
-        const actors = [];
-        const defaultFunc = { // Used if no func given
-            func: actor => actor.danger <= maxDanger
-        };
-        for (let i = 0; i < nActors; i++) {
-
-            // Generic randomization with danger level
-            let actor = null;
-            if (!func) {
-                actor = parser.createRandomActorWeighted(1, maxDanger,
-                    defaultFunc);
-            }
-            else {
-                actor = parser.createRandomActor({
-                    func: actor => (
-                        func(actor) &&
-                        actor.danger <= maxDanger
-                    )
-                });
-            }
-
-            if (actor) {
-                // This levels up the actor to match current danger level
-                const objShell = parser.dbGet('actors', actor.getName());
-                const expLevel = maxDanger - objShell.danger;
-                if (expLevel > 1) {
-                    RG.levelUpActor(actor, expLevel);
-                }
-                actors.push(actor);
-            }
-            else {
-                RG.diag('Factory Could not meet constraints for actor gen');
-                // return false;
-            }
-
+        else {
+            actor = parser.createRandomActor({
+                func: actor => (
+                    func(actor) &&
+                    actor.danger <= maxDanger
+                )
+            });
         }
-        return actors;
-    };
 
+        if (actor) {
+            // This levels up the actor to match current danger level
+            const objShell = parser.dbGet(RG.TYPE_ACTOR, actor.getName());
+            const expLevel = maxDanger - objShell.danger;
+            if (expLevel > 1) {
+                RG.levelUpActor(actor, expLevel);
+            }
+            actors.push(actor);
+        }
+        else {
+            let msg = 'Factory Could not meet constraints for actor.';
+            msg += ' maxDanger: ' + maxDanger;
+            RG.diag(msg);
+            if (func.constraint) {
+                const json = JSON.stringify(func.constraint);
+                RG.diag('Used constraints were: ' + json);
+            }
+            else if (!func) {
+                RG.diag('No func was given, so used randomWeighted');
+            }
+        }
+
+    }
+    return actors;
 };
 
 module.exports = {
