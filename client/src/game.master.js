@@ -467,10 +467,12 @@ GameMaster.prototype.createBattleIntoAreaTileLevel = function(parentLevel) {
         debug(`${msg} , danger: ${maxDanger}`);
 
         const owPos = this.game.getPlayerOwPos();
-        const biome = ow.getBiome(owPos[0], owPos[1]);
-        levelType = this.biomeToLevelType(biome);
-        debug('Creating battle on tile ' + xy);
-        bbox = this.getLevelBbox(ow, area, xy, owPos, parentLevel);
+        if (owPos && owPos.length > 1) {
+            const biome = ow.getBiome(owPos[0], owPos[1]);
+            levelType = this.biomeToLevelType(biome);
+            debug('Creating battle on tile ' + xy);
+            bbox = this.getLevelBbox(ow, area, xy, owPos, parentLevel);
+        }
     }
     battleConf.maxDanger = maxDanger;
     battleConf.armySize = armySize;
