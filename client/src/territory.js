@@ -30,9 +30,9 @@ const Territory = function(cols, rows, conf = {}) {
 
     // Config variables (can be set via conf)
     this.rng = RNG;
-    this.doPostProcess = true;
-    this.maxNumPos = 1;
-    this.startSize = 1;
+    this.doPostProcess = true; // Determine cont. regions using floodfill etc
+    this.maxNumPos = 1; // How many start positions each rival has
+    this.startSize = 1; // How many squares each rival gets on 1st move
     this.maxFillRatio = 1.0;
     // By default, use only 4 directions
     this.dirs = RG.DIR_NSEW.concat(RG.DIR_DIAG);
@@ -385,6 +385,7 @@ Territory.prototype.toJSON = function() {
     return json;
 };
 
+/* To-deserialize the territory. */
 Territory.fromJSON = function(json) {
     const terrMap = new Territory();
     Object.keys(json).forEach(key => {
