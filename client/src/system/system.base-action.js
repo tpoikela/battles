@@ -71,7 +71,7 @@ System.BaseAction = function(compTypes) {
                 }
                 catch (e) {
                     let msg = `Unable to remove item ${JSON.stringify(item)}\n`;
-                    msg = `Actor for pickup: ${ent.getName()}`;
+                    msg += `Actor for pickup: ${ent.getName()}`;
                     RG.err('System.BaseAction', 'handlePickup', msg);
                 }
 
