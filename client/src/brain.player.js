@@ -721,6 +721,14 @@ class BrainPlayer {
         return this._fsm.getTarget();
     }
 
+    getTargetActor() {
+        const targetCells = this.getTarget();
+        if (targetCells && targetCells.length > 0) {
+            return targetCells[0].getFirstActor();
+        }
+        return null;
+    }
+
     /* Returns true if chosen target is within attack range. */
     isTargetInRange() {
         return this._fsm.isTargetInRange();
