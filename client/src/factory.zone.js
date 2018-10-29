@@ -194,6 +194,16 @@ const FactoryZone = function() {
             });
         }
 
+        if (conf.disposition) {
+            const {enemy} = conf.disposition;
+            const actors = cityLevel.getActors();
+            actors.forEach(actor => {
+                enemy.forEach(enemyName => {
+                    actor.getBrain().getMemory().addEnemyType(enemyName);
+                });
+            });
+        }
+
         return cityLevel;
     };
 
