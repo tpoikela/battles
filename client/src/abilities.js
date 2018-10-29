@@ -72,13 +72,20 @@ Ability.Camouflage.prototype.activate = function() {
     actor.add(new RG.Component.Camouflage());
 };
 
+/* Abilities affecting specific direction, where player must choose
+ * a direction for using the ability. */
 Ability.Direction = function() {
-
+    Ability.Base.call(this, name);
 };
+RG.extend2(Ability.Direction, Ability.Base);
 
+/* Abilities affecting specific area, where the area must be chosen by
+ * the player. */
 Ability.Area = function() {
+    Ability.Base.call(this, name);
 
 };
+RG.extend2(Ability.Area, Ability.Base);
 
 /* Base class for abilities targeting items. Each derived class must provide
  * activate(item) function for the actual ability functionality. */
