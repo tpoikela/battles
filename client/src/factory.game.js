@@ -9,6 +9,7 @@ const ObjectShell = require('./objectshellparser');
 const FactoryWorld = require('./factory.world');
 const {FactoryItem} = require('./factory.items');
 const Random = require('./random');
+const Disposition = require('./disposition');
 
 const OW = require('./overworld.map');
 RG.getOverWorld = require('./overworld');
@@ -347,13 +348,16 @@ FactoryGame.prototype.mapZonesToTerritoryMap = function(terrMap, worldConf) {
     const uniqueCreated = {};
     let uniquesAdded = 0;
 
+    const disposition = this.getDisposition();
+
     const terrMapXY = terrMap.getMap();
     const citiesConf = worldConf.area[0].city;
     citiesConf.forEach(cityConf => {
         const {owX, owY} = cityConf;
         const char = terrMapXY[owX][owY];
-        const name = terrMap.getName(char);
+        let name = terrMap.getName(char);
         let constrActor = null;
+
         if (name) {
             constrActor = [
                 {op: 'eq', prop: 'type', value: [name]},
@@ -374,10 +378,12 @@ FactoryGame.prototype.mapZonesToTerritoryMap = function(terrMap, worldConf) {
                     const randUnique = RNG.arrayGetRand(uniquesThisType);
                     if (!uniqueCreated.hasOwnProperty(randUnique.name)) {
                         const actorCreate = {name: randUnique.name, nLevel: 0};
+
                         let createConf = cityConf.quarter[0].create;
                         if (!createConf) {createConf = {};}
                         if (!createConf.actor) {createConf.actor = [];}
                         createConf.actor.push(actorCreate);
+
                         uniqueCreated[randUnique.name] = randUnique;
                         cityConf.quarter[0].create = createConf;
                         console.log('Added UNIQ', randUnique.name, 'to',
@@ -391,20 +397,23 @@ FactoryGame.prototype.mapZonesToTerritoryMap = function(terrMap, worldConf) {
         else {
             // Mixed city, obtain values from area tile influence
             const [aX, aY] = this.getAreaXYFromOWTileXY(owX, owY);
-            const values = this.getConstrValuesForAreaXY(aX, aY, terrMap);
-            const hasWinterBeings = values.indexOf('winterbeing') >= 0;
+            const weights = this.getConstrWeightsForAreaXY(aX, aY, terrMap);
+            const types = Object.keys(weights);
+            const hasWinterBeings = weights.hasOwnProperty('winterbeing');
+
             if (hasWinterBeings) {
                 constrActor = {
                     op: 'eq', prop: 'base', value: ['WinterBeingBase']
                 };
             }
-            else if (values.length > 0) {
+            else if (types.length > 0) {
+                name = RNG.getWeighted(weights);
                 constrActor = [
                     {op: 'eq', prop: 'type', value: [name]},
                     {op: 'neq', prop: 'base', value: ['WinterBeingBase']}
                 ];
             }
-            else if (values.length === 0) {
+            else if (types.length === 0) {
                 RG.log('factory.game.js', terrMap.mapToString());
                 const owStr = `owX: ${owX}, owY: ${owY}`;
                 RG.err('FactoryGame', 'mapZonesToTerritoryMap',
@@ -414,14 +423,22 @@ FactoryGame.prototype.mapZonesToTerritoryMap = function(terrMap, worldConf) {
 
         if (!cityConf.constraint) {cityConf.constraint = {};}
         cityConf.constraint.actor = constrActor;
+        cityConf.constraint.disposition = disposition[name];
 
         cityConf.quarter.forEach(qConf => {
             if (!qConf.constraint) {qConf.constraint = {};}
             qConf.constraint.actor = constrActor;
+            qConf.constraint.disposition = disposition[name];
         });
     });
 
     console.log('Factory.Game uniques added', uniquesAdded);
+};
+
+FactoryGame.prototype.getDisposition = function() {
+    const dispos = new Disposition(RG.ALL_RACES);
+    dispos.randomize();
+    return dispos.getTable();
 };
 
 FactoryGame.prototype.getAreaXYFromOWTileXY = function(owX, owY) {
@@ -473,22 +490,14 @@ FactoryGame.prototype.createAreaLevelConstraints = function(
     const constraints = {};
     for (let x = 0; x < areaConf.maxX; x++) {
         for (let y = 0; y < areaConf.maxY; y++) {
-            /*
-            const bbox = coordMap.getOWTileBboxFromAreaTileXY(x, y);
-            const cells = RG.Geometry.getCellsInBbox(terrMapXY, bbox);
-            const hist = RG.Geometry.histArrayVals(cells);
-            let types = Object.keys(hist);
-            types = types.filter(type => (type !== '#' && type !== '.'));
-            types = types.map(typeChar => terrMap.getName(typeChar));
-            */
-            const types = this.getConstrValuesForAreaXY(x, y, terrMap);
+            const weights = this.getConstrWeightsForAreaXY(x, y, terrMap);
+            const types = Object.keys(weights);
             types.push('animal');
             constraints[x + ',' + y] = {
                 actor: {op: 'eq', prop: 'type', value: types}
             };
 
-            const index = types.indexOf('winterbeing');
-            if (index >= 0) {
+            if (weights.hasOwnProperty('winterbeing')) {
                 constraints[x + ',' + y].actor =
                     {op: 'eq', prop: 'base', value: 'WinterBeingBase'};
             }
@@ -499,7 +508,7 @@ FactoryGame.prototype.createAreaLevelConstraints = function(
 
 /* Given x,y for AreaTile, finds all rivals occupying at least one ow tile
  * tile that AreaTile, and returns them as array. */
-FactoryGame.prototype.getConstrValuesForAreaXY = function(aX, aY, terrMap) {
+FactoryGame.prototype.getConstrWeightsForAreaXY = function(aX, aY, terrMap) {
     const terrMapXY = terrMap.getMap();
     const coordMap = new RG.OverWorld.CoordMap({xMap: 10, yMap: 10});
 
@@ -508,8 +517,14 @@ FactoryGame.prototype.getConstrValuesForAreaXY = function(aX, aY, terrMap) {
     const hist = RG.Geometry.histArrayVals(cells);
     let types = Object.keys(hist);
     types = types.filter(type => (type !== '#' && type !== '.'));
-    types = types.map(typeChar => terrMap.getName(typeChar));
-    return types;
+
+    const weights = {};
+    types.forEach(typeChar => {
+        const actualType = terrMap.getName(typeChar);
+        weights[actualType] = hist[typeChar];
+    });
+    // types = types.map(typeChar => terrMap.getName(typeChar));
+    return weights;
 };
 
 FactoryGame.prototype.createWorldWithCreator = function(obj, game, player) {
