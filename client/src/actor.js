@@ -33,6 +33,7 @@ class BaseActor extends Mixin.Locatable(Mixin.Typed(Entity)) {
 
     isEnemy() {return false;}
     addEnemy() {/* No implementation here */}
+    addEnemyType() {/* No implementation here */}
 
     setName(name) {this.get('Named').setName(name);}
     getName() {
@@ -152,6 +153,7 @@ class RGActorRogue extends BaseActor {
     // Brain-related methods
     //---------------------------------
 
+    addEnemyType(type) {this._brain.getMemory().addEnemyType(type);}
     addEnemy(actor) {this._brain.addEnemy(actor);}
     addFriend(actor) {this._brain.addFriend(actor);}
 
