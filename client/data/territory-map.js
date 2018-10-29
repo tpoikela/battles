@@ -51,7 +51,7 @@ TerritoryMap.create = function(ow, playerRace, playerXY) {
     const undeads = {name: 'undead', char: 'z', numPos: 3,
         startX: [ow.getCenterX()], startY: [ow.getSizeY() - 5]};
 
-    terrMap.addRival({name: 'avian', char: 'A'});
+    terrMap.addRival({name: 'avianfolk', char: 'A'});
     terrMap.addRival(undeads);
     terrMap.addRival({name: 'wildling', char: 'I'});
     terrMap.addRival(bearfolk);
