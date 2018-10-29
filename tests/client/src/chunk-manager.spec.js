@@ -9,7 +9,6 @@ const chaiBattles = require('../../helpers/chai-battles.js');
 const expect = chai.expect;
 chai.use(chaiBattles);
 
-console.log('Chunk is', Chunk);
 const {ChunkManager, LOAD} = Chunk;
 
 describe('ChunkManager', function() {
