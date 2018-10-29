@@ -4,6 +4,7 @@ const RG = require('./rg');
 const Actor = require('./actor');
 const Brain = require('./brain');
 const ObjectShell = require('./objectshellparser');
+const ActorMods = require('../data/actor-mods');
 
 const debug = require('debug')('bitn:FactoryActor');
 
@@ -36,8 +37,23 @@ const ActorRandomizer = function() {
 
 };
 
+ActorRandomizer.prototype.adjustActor = function(actor) {
+    const type = actor.getType();
+    if (ActorMods.hasOwnProperty(type)) {
+        const {stats} = ActorMods[type];
+        Object.values(stats).forEach(statName => {
+            const setter = RG.formatSetterName(statName);
+            const getter = RG.formatSetterName(statName);
+            const statVal = actor.get('Stats')[getter];
+            const newValue = statVal + stats[statName];
+            actor.get('Stats')[setter](newValue);
+        });
+    }
+};
+
 /* Factory object for creating the actors. */
 const FactoryActor = function() {
+    this._randomizer = new ActorRandomizer();
 
     this.dbg = function(...args) {
         if (debug.enabled) {
@@ -50,8 +66,8 @@ const FactoryActor = function() {
         const player = new Actor.Rogue(name);
         player.setIsPlayer(true);
         initCombatant(player, obj);
+        this._randomizer.adjustActor(player);
         return player;
-
     };
 
     this.createRandomActor = function(query) {
@@ -66,6 +82,7 @@ const FactoryActor = function() {
 
         const brain = obj.brain;
         initCombatant(actor, obj);
+        this._randomizer.adjustActor(actor);
         if (!RG.isNullOrUndef([brain])) {
             if (typeof brain === 'object') {
                 actor.setBrain(brain);
