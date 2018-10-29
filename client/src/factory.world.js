@@ -674,6 +674,7 @@ const FactoryWorld = function() {
         const constrFact = new Constraints();
         if (constraint) {
             const hierName = this.getHierName();
+            // this._verifyConstraintKeys(constraint);
             if (constraint.actor) {
                 _errorOnFunc(constraint.actor);
                 levelConf.actor = constrFact.getConstraints(constraint.actor);
@@ -707,6 +708,11 @@ const FactoryWorld = function() {
                 const str = JSON.stringify(constraint.shop);
                 this.debug(`Found shop constraint for ${hierName}: ${str}`);
             }
+            if (constraint.disposition) {
+                const disp = constraint.disposition;
+                console.log('Found disp', JSON.stringify(disp));
+                levelConf.disposition = constraint.disposition;
+            }
         }
 
         const groupType = this.getConf('groupType');
@@ -723,6 +729,19 @@ const FactoryWorld = function() {
         if (wallType) {levelConf.wallType = wallType;}
         if (floorType) {levelConf.floorType = floorType;}
         if (isFriendly) {levelConf.friendly = true;}
+    };
+
+    this._verifyConstraintKeys = function(constraint) {
+        const keys = new Set(['actor', 'item', 'food', 'gold', 'shop',
+            'disposition'
+        ]);
+        Object.keys(constraint).forEach(key => {
+            if (!keys.has(key)) {
+                const json = JSON.stringify(constraint);
+                RG.err('Factory.World', '_verifyConstraintKeys',
+                    `Unsupported key ${key} in ${json}`);
+            }
+        });
     };
 
     this.setAreaLevelConstraints = function(levelConf, aX, aY) {
