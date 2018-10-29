@@ -215,7 +215,7 @@ RG.charStyles = {
         },
         passage: '.',
         placeholder: '?',
-        shop: ':',
+        shop: '.',
         stairsDown: '>',
         stairsUp: '<',
         wall: '#',
@@ -224,24 +224,17 @@ RG.charStyles = {
         wallice: '#',
         wallwooden: '#',
         wallmount: '^',
-        // Elements with different states
         door: {
             isClosed: '+', // if isClosed() returns true
             default: '/'
         }
     },
     actors: {
-        default: 'X',
-        player: '@',
-        spirit: 'Q',
-        summoner: 'Z',
-        wolf: 'w'
+        default: 'X'
     },
     items: {
         default: '?',
-        corpse: '§',
-        potion: '!',
-        spiritgem: '*'
+        corpse: '§'
     }
 };
 
@@ -813,7 +806,6 @@ RG.ALIGN_GOOD = 'ALIGN_GOOD';
 RG.ALIGN_EVIL = 'ALIGN_EVIL';
 RG.ALIGN_NEUTRAL = 'ALIGN_NEUTRAL';
 
-RG.GOOD_RACES = ['human', 'spirit'];
 RG.EVIL_RACES = ['catfolk', 'dogfolk', 'wolfclan', 'wildling', 'undead',
     'goblin'];
 RG.NEUTRAL_RACES = ['dwarf', 'bearfolk', 'animal'];
@@ -822,7 +814,7 @@ RG.ACTOR_RACES = ['catfolk', 'dogfolk', 'wolfclan', 'wildling', 'goblin',
     'bearfolk', 'dwarf', 'human', 'hyrkhian'];
 RG.ACTOR_RACES = RG.ACTOR_RACES.sort(); // Too lazy to manually sort them
 
-RG.ALL_RACES = ['birdfolk'].concat(RG.ACTOR_RACES);
+RG.ALL_RACES = ['avianfolk'].concat(RG.ACTOR_RACES);
 
 // Constants for movement directions
 RG.CARDINAL_DIR = Object.freeze(['north', 'south', 'east', 'west']);
