@@ -757,7 +757,7 @@ class BattlesTop extends Component {
                 const brain = player.getBrain();
                 const updates = {render: true, showGameMenu: false};
                 if (brain.hasTargetSelected()) {
-                    updates.selectedCell = brain.getTarget();
+                    updates.selectedCell = brain.getSelectedCells();
                     this.screen.setSelectedCell(updates.selectedCell);
                     if (brain.isTargeting()) {
                         if (!brain.isTargetInRange()) {
