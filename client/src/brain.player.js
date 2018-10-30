@@ -184,13 +184,24 @@ class TargetingFSM {
         }
     }
 
+    getSelectedCells() {
+        return this.selectedCells;
+    }
+
     getTarget() {
-        if (this.isLooking()) {
+        if (this.isLooking() || this.isTargeting()) {
             if (this.selectedCells && this.selectedCells.length > 0) {
                 return this.selectedCells[0];
             }
         }
         return this.selectedCells;
+    }
+
+    getTargetCell() {
+        if (this.selectedCells.length > 0) {
+            return this.selectedCells[0];
+        }
+        return null;
     }
 
     getCellIndexToTarget(cells) {
@@ -299,13 +310,12 @@ class TargetingFSM {
         if (cell && cell.getX) {
             const [tx, ty] = [cell.getX(), cell.getY()];
             const [ax, ay] = [actor.getX(), actor.getY()];
-            const path = RG.Geometry.getMissilePath(ax, ay, tx, ty);
+            const path = RG.Geometry.getBresenham(ax, ay, tx, ty);
 
             const invEq = actor.getInvEq();
             const missile = invEq.getEquipped('missile');
             if (missile) {
                 const missRange = RG.getMissileRange(actor, missile);
-
                 if ((path.length - 1) <= missRange) {
                     return true;
                 }
@@ -712,6 +722,10 @@ class BrainPlayer {
         return this._fsm.getTargetList();
     }
 
+    getSelectedCells() {
+        return this._fsm.getSelectedCells();
+    }
+
     prevTarget() {
         this._fsm.prevTarget();
     }
@@ -725,6 +739,9 @@ class BrainPlayer {
         const targetCells = this.getTarget();
         if (targetCells && targetCells.length > 0) {
             return targetCells[0].getFirstActor();
+        }
+        else if (targetCells.getFirstActor) {
+            return targetCells.getFirstActor();
         }
         return null;
     }
