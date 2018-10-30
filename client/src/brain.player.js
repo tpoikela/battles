@@ -170,7 +170,6 @@ class TargetingFSM {
                     const actor = this.getActor();
                     const [tx, ty] = [cell.getX(), cell.getY()];
                     const [ax, ay] = [actor.getX(), actor.getY()];
-                    // const path = RG.Geometry.getMissilePath(ax, ay, tx, ty);
                     const path = RG.Geometry.getBresenham(ax, ay, tx, ty);
                     const pathCells = path.map(xy => (
                         actor.getLevel().getMap().getCell(xy[0], xy[1])
@@ -334,6 +333,8 @@ class MarkList {
         this._marks = {};
     }
 
+    /* Adds a mark to current actor's location, and adds a tag, which
+     * can be shown in the mark list. */
     addMark(tag) {
         const [x, y] = this._actor.getXY();
         const level = this._actor.getLevel();
@@ -1282,7 +1283,6 @@ class BrainPlayer {
     useAbility() {
         if (this._actor.has('Abilities')) {
             const menu = this._actor.get('Abilities').createMenu();
-            menu.addPre('Select an ability to use:');
             this.setSelectionObject(menu);
         }
         else {
@@ -1334,7 +1334,6 @@ class BrainPlayer {
 
 } // Brain.Player
 
-
 /* Returns possible target for attack, or null if none are found.*/
 function getAttackTarget(map, x, y) {
     const targets = map.getCell(x, y).getProp('actors');
@@ -1346,8 +1345,8 @@ function getAttackTarget(map, x, y) {
 
 /* If there are multiple items per cell, digs next item to the top.*/
 function getNextItemOnTop(cell) {
-    if (cell.hasProp('items')) {
-        const items = cell.getProp('items');
+    if (cell.hasItems()) {
+        const items = cell.getItems();
         let name = items[0].getName();
         if (items.length > 1) {
             const firstItem = items.shift();

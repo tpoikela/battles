@@ -19,6 +19,7 @@ Abilities.prototype.getMenu = function() {
         abil.getMenuItem()
     ));
     const menu = new Menu.WithQuit(menuArgs);
+    menu.addPre('Select an ability to use:');
     return menu;
 };
 
