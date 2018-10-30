@@ -227,16 +227,16 @@ describe('Brain.Player', () => {
         brain.decideNextAction({code: KEY.TARGET});
         expect(brain.hasTargetSelected()).to.be.true;
 
-        const targetCell = brain.getTarget()[0];
+        const targetCell = brain.getTarget();
         const firstID = targetCell.getFirstActor().getID();
         brain.decideNextAction({code: KEY.NEXT});
 
-        const selectedCell = brain.getTarget()[0];
+        const selectedCell = brain.getTarget();
         const nextID = selectedCell.getFirstActor().getID();
         expect(firstID).to.not.equal(nextID);
 
         brain.decideNextAction({code: KEY.NEXT});
-        const thirdID = brain.getTarget()[0].getFirstActor().getID();
+        const thirdID = brain.getTarget().getFirstActor().getID();
         expect(firstID).to.equal(thirdID);
 
         for (let i = 0; i < 20; i++) {
