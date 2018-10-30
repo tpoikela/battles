@@ -616,9 +616,9 @@ RG.Geometry = {
         if (y2 < y1) {incy = -1;}
         x = x1;
         y = y1;
+        bresLine.push([x, y]);
 
         if (dx > dy) {
-            bresLine.push([x, y]);
             e = 2 * dy - dx;
             inc1 = 2 * (dy - dx);
             inc2 = 2 * dy;
@@ -633,7 +633,6 @@ RG.Geometry = {
             }
         }
         else {
-            bresLine.push([x, y]);
             e = 2 * dx - dy;
             inc1 = 2 * ( dx - dy);
             inc2 = 2 * dx;
