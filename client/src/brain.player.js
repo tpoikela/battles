@@ -683,10 +683,6 @@ class BrainPlayer {
         return this.cmdNotPossible('There are no doors to open or close');
     }
 
-    /* Returns true if a player has target selected. */
-    hasTargetSelected() {
-        return this._fsm.hasTargetSelected();
-    }
 
     getSeenCells() {
         if (this._cache.seen === CACHE_INVALID) {
@@ -710,31 +706,6 @@ class BrainPlayer {
         return this._cache.seen;
     }
 
-    startTargeting() {
-        this._fsm.startTargeting();
-    }
-
-    /* Moves to the next target. */
-    nextTarget() {
-        this._fsm.nextTarget();
-    }
-
-    getTargetList() {
-        return this._fsm.getTargetList();
-    }
-
-    getSelectedCells() {
-        return this._fsm.getSelectedCells();
-    }
-
-    prevTarget() {
-        this._fsm.prevTarget();
-    }
-
-    /* Returns the current selected cell for targeting. */
-    getTarget() {
-        return this._fsm.getTarget();
-    }
 
     getTargetActor() {
         const targetCells = this.getTarget();
@@ -747,23 +718,6 @@ class BrainPlayer {
         return null;
     }
 
-    /* Returns true if chosen target is within attack range. */
-    isTargetInRange() {
-        return this._fsm.isTargetInRange();
-    }
-
-    cancelTargeting() {
-        this._fsm.cancelTargeting();
-    }
-
-    isTargeting() {
-        return this._fsm.isTargeting();
-    }
-
-    /* Picks either last attacked actor, or the first found. */
-    getCellIndexToTarget(cells) {
-        return this._fsm.getCellIndexToTarget(cells);
-    }
 
     /* Sets the selection object (for chats/trainers/etc) */
     setSelectionObject(obj) {
@@ -1194,12 +1148,6 @@ class BrainPlayer {
         this._actor.add(jumpCmp);
     }
 
-    showSelectedCellInfo() {
-        // const cell = this.getTarget();
-        // TODO show more info about the cell
-        this._fsm.stopLooking();
-    }
-
     giveOrder(orderType) {
         const cells = this.getTarget();
         cells.forEach(cell => {
@@ -1290,18 +1238,6 @@ class BrainPlayer {
         }
     }
 
-    setSelectedCells(cells) {
-        if (!cells) {
-            this.cancelTargeting();
-        }
-        else {
-            this._fsm.setSelectedCells(cells);
-        }
-    }
-
-    selectCell(code) {
-        this._fsm.selectCell(code);
-    }
 
     addMark(tag) {
         this._markList.addMark(tag);
@@ -1331,6 +1267,78 @@ class BrainPlayer {
     addEnemy() {}
     addFriend() {}
     /* eslint-enable class-methods-use-this */
+
+    //--------------------------------------
+    // TARGETING FSM DELEGATED METHODS
+    //--------------------------------------
+
+    /* Returns true if a player has target selected. */
+    hasTargetSelected() {
+        return this._fsm.hasTargetSelected();
+    }
+
+    startTargeting() {
+        this._fsm.startTargeting();
+    }
+
+    /* Moves to the next target. */
+    nextTarget() {
+        this._fsm.nextTarget();
+    }
+
+    getTargetList() {
+        return this._fsm.getTargetList();
+    }
+
+    getSelectedCells() {
+        return this._fsm.getSelectedCells();
+    }
+
+    prevTarget() {
+        this._fsm.prevTarget();
+    }
+
+    /* Returns the current selected cell for targeting. */
+    getTarget() {
+        return this._fsm.getTarget();
+    }
+
+    /* Returns true if chosen target is within attack range. */
+    isTargetInRange() {
+        return this._fsm.isTargetInRange();
+    }
+
+    cancelTargeting() {
+        this._fsm.cancelTargeting();
+    }
+
+    isTargeting() {
+        return this._fsm.isTargeting();
+    }
+
+    /* Picks either last attacked actor, or the first found. */
+    getCellIndexToTarget(cells) {
+        return this._fsm.getCellIndexToTarget(cells);
+    }
+
+    setSelectedCells(cells) {
+        if (!cells) {
+            this.cancelTargeting();
+        }
+        else {
+            this._fsm.setSelectedCells(cells);
+        }
+    }
+
+    selectCell(code) {
+        this._fsm.selectCell(code);
+    }
+
+    showSelectedCellInfo() {
+        // const cell = this.getTarget();
+        // TODO show more info about the cell
+        this._fsm.stopLooking();
+    }
 
 } // Brain.Player
 
