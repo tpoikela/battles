@@ -195,11 +195,13 @@ const FactoryZone = function() {
         }
 
         if (conf.disposition) {
-            const {enemy} = conf.disposition;
+            const {disposition} = conf;
             const actors = cityLevel.getActors();
             actors.forEach(actor => {
-                enemy.forEach(enemyName => {
-                    actor.getBrain().getMemory().addEnemyType(enemyName);
+                Object.keys(disposition).forEach(name => {
+                    if (disposition[name] === 'enemy') {
+                        actor.getBrain().getMemory().addEnemyType(name);
+                    }
                 });
             });
         }
