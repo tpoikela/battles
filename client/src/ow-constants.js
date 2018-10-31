@@ -42,6 +42,7 @@ OW.WVILLAGE = '\u25B3';
 // const CITY = '\u1CC1';
 OW.VTUNNEL = '|'; // Tunnel between two walls
 OW.HTUNNEL = '-'; // Tunnel between two walls
+OW.MFORT = '\u27CE';
 
 OW.PROB_BVILLAGE = 0.25;
 
