@@ -9,6 +9,7 @@ RG.Element = require('./element');
 const LevelGenerator = require('./level-generator');
 const Level = require('./level');
 const DungeonPopulate = require('./dungeon-populate');
+const Geometry = require('./geometry');
 
 const Room = ROT.Map.Feature.Room;
 
@@ -37,12 +38,16 @@ const markers = {
 
 /* Returns a fully populated castle-level. */
 CastleGenerator.prototype.create = function(cols, rows, conf) {
-    const level = this.createLevel(cols, rows, conf);
+    let castleLevel = this.createLevel(cols, rows, conf);
     conf.preserveMarkers = false;
-    this.removeMarkers(level, conf);
+    this.removeMarkers(castleLevel, conf);
+
+    if (conf.cellsAround) {
+        castleLevel = this.createCastleSurroundings(castleLevel, conf);
+    }
 
     // TODO populate level with actors based on conf
-    return level;
+    return castleLevel;
 };
 
 /* Returns a castle level without populating it. */
@@ -170,6 +175,24 @@ CastleGenerator.prototype.populateStoreRooms = function(level, conf) {
             dungPopul.addPointGuardian(level, cPoint, maxDanger);
         });
     }
+};
+
+CastleGenerator.prototype.createCastleSurroundings = function(level, conf) {
+    const {cols, rows} = level.getMap();
+    const colsArea = cols + 20;
+    const rowsArea = rows + 20;
+    const {cellsAround} = conf;
+
+    console.log('CastleGen cellsAround:', JSON.stringify(cellsAround));
+
+    const mapgen = new RG.Map.Generator();
+    mapgen.setGen('empty', colsArea, rowsArea);
+    const mapObj = mapgen.createEmptyMap(conf);
+    const emptyLevel = new Level(cols, rows);
+    emptyLevel.setMap(mapObj.map);
+    Geometry.mergeLevels(emptyLevel, level, 10, 10);
+    console.log('Added castle surroundings');
+    return emptyLevel;
 };
 
 module.exports = CastleGenerator;
