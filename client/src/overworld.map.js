@@ -11,6 +11,7 @@ RG.Map = require('./map');
 const TerritoryMap = require('../data/territory-map');
 const debug = require('debug')('bitn:OW');
 const OW = require('./ow-constants');
+const Geometry = require('./geometry');
 
 const getRNG = RG.Random.getRNG;
 
@@ -829,16 +830,33 @@ function addVillagesToOverWorld(ow, nVillages, cmd) {
  * of directly specifying the number of cities etc. */
 function addCitiesBasedOnTerritories(ow) {
     const cityProb = 0.13;
+    const fortProb = 0.09;
     const terrObj = ow.getTerrMap();
     const map = terrObj.getMap();
+
     RG.forEach2D(map, (x, y) => {
         const xy = [x, y];
+        const name = terrObj.getRival(xy);
+
         if (terrObj.hasRival(xy)) {
             if (RG.isSuccess(cityProb)) {
                 placeCityFeature(ow, xy);
-                const name = terrObj.getRival(xy);
                 const featName = name + '_city';
                 ow.addFeatureData(xy, {type: featName});
+            }
+            else {
+                const box = Geometry.getBoxAround(x, y, 1);
+                let placed = false;
+                box.forEach(xy => {
+                    if (!placed && ow.isWallTile(xy[0], xy[1])) {
+                        if (RG.isSuccess(fortProb)) {
+                            ow.addFeature(xy, OW.MFORT);
+                            const featName = name + '_fort';
+                            ow.addFeatureData(xy, {type: featName});
+                            placed = true;
+                        }
+                    }
+                });
             }
         }
     });
