@@ -24,7 +24,7 @@
 
 const RG = require('./rg');
 RG.Names = require('../data/name-gen');
-RG.LevelGen = require('../data/level-gen');
+const LevelGen = require('../data/level-gen');
 RG.Path = require('./path');
 const OW = require('./overworld.map');
 const debug = require('debug')('bitn:overworld');
@@ -121,6 +121,7 @@ Wall.prototype.toString = function() {
 RG.OverWorld.SubFeature = function(type, coord) {
     this.type = type;
     this.coord = coord;
+    this.cellsAround = null;
 
     if (Array.isArray(coord)) {
         if (coord.length === 0) {
@@ -620,6 +621,9 @@ function addSubLevelFeatures(ow, owX, owY, subLevel) {
         else if (feat === OW.VTUNNEL) {
             addVertTunnelToSubLevel(owSubLevel, subLevel);
         }
+        else if (feat === OW.MFORT) {
+            addFortToSubLevel(owSubLevel, subLevel);
+        }
         else {
             const msg = `Base: ${base}, ${feat}`;
             debug('addSubLevelFeat Skipped: ' + msg);
@@ -713,14 +717,58 @@ function getAlignment(feat) {
 /* Adds a dungeon to given sub-level. Each dungeon must be adjacent to a
  * mountain.*/
 function addDungeonToSubLevel(owSubLevel, subLevel) {
+    const coord = getAccessibleMountainCoord(subLevel);
+    if (coord && coord.length > 0) {
+        const dungeon = new RG.OverWorld.SubFeature('dungeon', coord);
+        owSubLevel.addFeature(dungeon);
+    }
+}
+
+function addFortToSubLevel(owSubLevel, subLevel) {
+    const coord = getAccessibleMountainCoord(subLevel, false);
+    if (coord && coord.length > 0) {
+        const [x, y] = coord[0];
+        const coordAround = RG.Geometry.getBoxAround(x, y, 1);
+        const map = subLevel.getMap();
+        const cellsAround = map.getCellsWithCoord(coordAround);
+
+        if (cellsAround.length < 8) {
+            console.log('< 8 cells around for', x, y);
+        }
+        else {
+            console.log('=== 8 cells around for', x, y);
+        }
+
+        const fort = new RG.OverWorld.SubFeature('fort', coord);
+        const cellMap = {};
+        cellsAround.forEach(c => {
+            const dXdY = RG.dXdYUnit(c, coord[0]);
+            const dir = RG.dXdYToDir(dXdY);
+            cellMap[dir] = c.getBaseElem().getType();
+        });
+        fort.cellsAround = cellMap;
+        owSubLevel.addFeature(fort);
+    }
+}
+
+function getAccessibleMountainCoord(subLevel, edges = true) {
     let placed = false;
     const map = subLevel.getMap();
     const freeCells = map.getFree();
-    const freeXY = freeCells.map(cell => [cell.getX(), cell.getY()]);
+    let freeXY = freeCells.map(cell => cell.getXY());
+
+    if (!edges) {
+        const {cols, rows} = map;
+        freeXY = freeXY.filter(xy => (
+            (xy[0] !== 0 && xy[0] !== (cols - 1)) &&
+            (xy[1] !== 0 && xy[1] !== (rows - 1))
+        ));
+        console.log('freeXY after filter', freeXY);
+    }
 
     // Sometimes no free cells are found, just skip this
     if (freeXY.length === 0) {
-        return;
+        return null;
     }
 
     let coord = [];
@@ -756,11 +804,7 @@ function addDungeonToSubLevel(owSubLevel, subLevel) {
             break;
         }
     }
-
-    if (placed) {
-        const dungeon = new RG.OverWorld.SubFeature('dungeon', coord);
-        owSubLevel.addFeature(dungeon);
-    }
+    return coord;
 }
 
 /* Adds a mountain to the given sub-level. Each mountain is placed on free map
@@ -937,7 +981,7 @@ RG.OverWorld.createWorldConf = function(
                         [featX, featY] = legalizeXY([featX, featY]);
                         const dName = RG.Names.getGenericPlaceName('dungeon');
 
-                        const dungeonConf = RG.LevelGen.getDungeonConf(dName);
+                        const dungeonConf = LevelGen.getDungeonConf(dName);
                         Object.assign(dungeonConf,
                             {x: aX, y: aY, levelX: featX, levelY: featY,
                                 owX: x, owY: y});
@@ -952,7 +996,7 @@ RG.OverWorld.createWorldConf = function(
                         const featY = mapY(coord[0][1], slY, subY);
                         const mName = RG.Names.getUniqueName('mountain');
 
-                        const mountConf = RG.LevelGen.getMountainConf(mName);
+                        const mountConf = LevelGen.getMountainConf(mName);
                         Object.assign(mountConf,
                             {x: aX, y: aY, levelX: featX, levelY: featY,
                                 owX: x, owY: y
@@ -1028,7 +1072,6 @@ function mapY(y, slY, subSizeY) {
 
 function addCapitalConfToArea(feat, coordObj, areaConf) {
     const capitalLevel = {stub: true, new: 'Capital', args: [200, 500, {}]};
-
     const cityConf = {
         name: 'Blashyrkh',
         nQuarters: 1,
@@ -1042,7 +1085,6 @@ function addCapitalConfToArea(feat, coordObj, areaConf) {
     };
     addLocationToZoneConf(feat, coordObj, cityConf);
 
-    // const {x, y} = cityConf;
     const mainConn = {
         name: 'Capital cave',
         levelX: cityConf.levelX,
@@ -1109,10 +1151,8 @@ function addAbandonedFortToArea(feat, coordObj, areaConf) {
         levelY: cityConf.levelY,
         nLevel: 0,
         stairs: {getStairs: 0}
-        // stairs: fortLevel.getStairs()[0]
     };
 
-    // cityConf.connectToAreaXY[0].stairs = fortLevel.getStairs()[1];
     cityConf.connectToAreaXY[0].stairs = {getStairs: 1};
     cityConf.connectToAreaXY.push(mainConn);
     areaConf.nCities += 1;
@@ -1122,13 +1162,12 @@ function addAbandonedFortToArea(feat, coordObj, areaConf) {
 
 /* Adds a (normal) city configuration to the area. */
 function addCityConfToArea(feat, coordObj, areaConf) {
-    // const {slX, slY, subX, subY} = coordObj;
     const coord = feat.coord;
     const nLevels = coord.length;
     feat.nLevels = nLevels;
 
     const cName = RG.Names.getUniqueName('city');
-    const cityConf = RG.LevelGen.getCityConf(cName, feat);
+    const cityConf = LevelGen.getCityConf(cName, feat);
     cityConf.owX = coordObj.x;
     cityConf.owY = coordObj.y;
 
@@ -1136,6 +1175,12 @@ function addCityConfToArea(feat, coordObj, areaConf) {
     addLocationToZoneConf(feat, coordObj, cityConf);
     cityConf.alignment = feat.alignment
         || getRNG().arrayGetRand(RG.ALIGNMENTS);
+
+    if (feat.cellsAround) {
+        if (!cityConf.constraint) {cityConf.constraint = {};}
+        cityConf.constraint.cellsAround = feat.cellsAround;
+    }
+
     areaConf.nCities += 1;
     areaConf.city.push(cityConf);
 
@@ -1190,8 +1235,6 @@ function addLocationToZoneConf(feat, coordObj, zoneConf, vert = true) {
 
 /* Adds the black tower configuration to area. */
 function addBlackTowerConfToArea(feat, coordObj, areaConf) {
-    /* const {xMap, yMap, nSubLevelsX, nSubLevelsY,
-        x, y, slX, slY, aX, aY, subX, subY} = coordObj;*/
     const {slX, slY, aX, aY, subX, subY} = coordObj;
     const coord = feat.coord;
 
@@ -1204,7 +1247,7 @@ function addBlackTowerConfToArea(feat, coordObj, areaConf) {
     const featY = mapY(xy[1], slY, subY);
     const tName = 'Elder raventhrone';
 
-    const dungeonConf = RG.LevelGen.getDungeonConf(tName);
+    const dungeonConf = LevelGen.getDungeonConf(tName);
     if (debugBlackTower) {
         addToPlayerPosition(dungeonConf, coordObj);
     }
