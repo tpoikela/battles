@@ -42,6 +42,7 @@ tags
 
 style.css*
 
+br-cache-prod.json
 browserify-cache.json
 battles_local_storage/
 results/
