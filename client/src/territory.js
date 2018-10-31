@@ -112,6 +112,7 @@ Territory.prototype.generate = function(maxTurns = FILL_ALL) {
     this.currRivals = this.rivals.slice();
     this.rng.shuffle(this.currRivals);
     let numTurnsTaken = 0;
+
     while (this._hasTurnsLeftToProcess(numTurnsTaken, maxTurns)) {
         const next = this.currRivals.shift();
         // TODO Check if there is weight on the size
@@ -227,6 +228,11 @@ Territory.prototype._addStartPosition = function(name, xy) {
             this._addOccupied(name, xyStart);
         }
     });
+
+    if (startCoord.length === 0) {
+        RG.err('Territory', '_addStartPosition',
+            'No startCoord found!');
+    }
 };
 
 Territory.prototype.getRandEmptyXY = function() {
@@ -318,18 +324,18 @@ Territory.prototype._initRival = function(data) {
         startSize: this.startSize // How big is the starting region
     };
 
-    if (data.startX >= 0) {
-        this.terrData[name].startX = [data.startX];
-    }
-    else if (Array.isArray(data.startX)) {
+    if (Array.isArray(data.startX)) {
         this.terrData[name].startX = data.startX;
     }
-
-    if (data.startY >= 0) {
-        this.terrData[name].startY = [data.startY];
+    else if (data.startX >= 0) {
+        this.terrData[name].startX = [data.startX];
     }
-    else if (Array.isArray(data.startY)) {
+
+    if (Array.isArray(data.startY)) {
         this.terrData[name].startY = data.startY;
+    }
+    else if (data.startY >= 0) {
+        this.terrData[name].startY = [data.startY];
     }
 
     if (data.numPos) {
