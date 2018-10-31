@@ -67,17 +67,24 @@ gulp.task('build-js', ['create-config'], function() {
 
 // Incrementally building the js
 gulp.task('build-js-inc', ['create-config'], function() {
+    const startTime = Date.now();
     const b = browserify(Object.assign({}, browserifyInc.args,
         browserifyOpts
     ));
 
     browserifyInc(b, {cacheFile: './browserify-cache.json'});
+    // browserifyInc(b);
 
     b.transform(babelify)
         .bundle()
         .on('error', handleErrors)
         .pipe(source('./bundle.js'))
-        .pipe(gulp.dest('build'));
+        .pipe(gulp.dest('build'))
+        .on('end', () => {
+            const endTime = Date.now();
+            console.log('Incr-build took ' + (endTime - startTime));
+        }
+        );
 
 });
 
