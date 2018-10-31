@@ -7,10 +7,11 @@ const RG = require('../client/src/battles');
 const FromJSON = require('../client/src/game.fromjson');
 const fs = require('fs');
 
-const RNG = RG.Random.getRNG();
+// const RNG = RG.Random.getRNG();
 
 const seed = process.argv[2] || Date.now();
-RNG.setSeed(seed);
+RG.Random.reseed(seed);
+// RNG.setSeed(seed);
 console.log('Seed used is', seed);
 
 const factory = new RG.Factory.Game();
