@@ -222,6 +222,14 @@ RG.Map.CellList.prototype.getExploredCells = function() {
     return cells;
 };
 
+RG.Map.CellList.prototype.exploreAll = function(isExplored = true) {
+    for (let x = 0; x < this.cols; x++) {
+        for (let y = 0; y < this.rows; y++) {
+            this._map[x][y]._explored = isExplored;
+        }
+    }
+};
+
 /* Returns true if x,y is located at this._map border cells.*/
 RG.Map.CellList.prototype.isBorderXY = function(x, y) {
     if (x === 0) {return true;}
