@@ -429,6 +429,9 @@ FactoryGame.prototype.mapZonesToTerritoryMap = function(terrMap, worldConf) {
             if (!qConf.constraint) {qConf.constraint = {};}
             qConf.constraint.actor = constrActor;
             qConf.constraint.disposition = disposition[name];
+            if (cityConf.constraint.cellsAround) {
+                qConf.constraint.cellsAround = cityConf.constraint.cellsAround;
+            }
         });
     });
 
