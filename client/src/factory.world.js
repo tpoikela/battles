@@ -713,6 +713,10 @@ const FactoryWorld = function() {
                 console.log('Found disp', JSON.stringify(disp));
                 levelConf.disposition = constraint.disposition;
             }
+            if (constraint.cellsAround) {
+                const {cellsAround} = constraint;
+                levelConf.cellsAround = cellsAround;
+            }
         }
 
         const groupType = this.getConf('groupType');
