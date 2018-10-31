@@ -5,6 +5,7 @@ const Factory = require('./factory');
 const {FactoryItem} = require('./factory.items');
 const MountainGenerator = require('./mountain-generator');
 const CityGenerator = require('./city-generator');
+const CastleGenerator = require('./castle-generator');
 
 const RNG = RG.Random.getRNG();
 
@@ -212,7 +213,7 @@ const FactoryZone = function() {
     this.createVillageLevel = function(cols, rows, levelConf) {
         levelConf.levelType = 'empty';
         levelConf.wallType = 'wooden';
-        // const level = this.createLevel('town', cols, rows, levelConf);
+
         if (!levelConf.actorsPerLevel) {
             levelConf.actorsPerLevel = 30;
         }
@@ -230,8 +231,10 @@ const FactoryZone = function() {
     };
 
     this.createFortLevel = function(cols, rows, levelConf) {
-        levelConf.levelType = 'miner';
-        const level = this.createLevel('town', 100, 84, levelConf);
+        const castleGen = new CastleGenerator();
+        // levelConf.levelType = 'miner';
+        // const level = this.createLevel('town', 100, 84, levelConf);
+        const level = castleGen.create(100, 84, levelConf);
         this.populateCityLevel(level, levelConf);
         return level;
     };
@@ -308,10 +311,11 @@ const FactoryZone = function() {
         if (nAdded === 0) {
             const parent = level.getParent();
             let msg = 'No actors added to level.';
+            msg += '\nUsed conf was ' + JSON.stringify(actorConf);
             if (parent) {
-                msg += ' Level parent: ' + parent.getName();
+                msg += '\nLevel parent: ' + parent.getName();
             }
-            RG.err('Factory', 'populateWithActors', msg);
+            RG.err('Factory.Zone', 'populateWithActors', msg);
         }
     };
 
