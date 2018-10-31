@@ -10,6 +10,7 @@ RG.Geometry = {
     /* Returns all coord in a box around x0,y0 within distance d. Last arg can
      * be used to include the coordinate itself in the result. */
     getBoxAround: function(x0, y0, d, incSelf = false) {
+        verifyInt([x0, y0]);
         const res = [];
         for (let x = x0 - d; x <= x0 + d; x++) {
             for (let y = y0 - d; y <= y0 + d; y++) {
@@ -23,6 +24,7 @@ RG.Geometry = {
     },
 
     getCrossAround: function(x0, y0, d, incSelf = false) {
+        verifyInt([x0, y0, d]);
         const res = [];
         for (let x = x0 - d; x <= x0 + d; x++) {
             for (let y = y0 - d; y <= y0 + d; y++) {
@@ -39,6 +41,7 @@ RG.Geometry = {
     },
 
     getDiagCross: function(x0, y0, d, incSelf = false) {
+        verifyInt([x0, y0, d]);
         const res = [];
         for (let x = x0 - d; x <= x0 + d; x++) {
             for (let y = y0 - d; y <= y0 + d; y++) {
@@ -54,6 +57,7 @@ RG.Geometry = {
     },
 
     getCrossCaveConn: function(x0, y0, d, incSelf = false) {
+        verifyInt([x0, y0, d]);
         const res = [];
         for (let x = x0 - d; x <= x0 + d; x++) {
             for (let y = y0 - d; y <= y0 + d; y++) {
@@ -71,6 +75,7 @@ RG.Geometry = {
     /* Returns a box of coordinates given starting point and end points
      * (inclusive). */
     getBox: function(x0, y0, maxX, maxY) {
+        verifyInt([x0, y0, maxX, maxY]);
         const res = [];
         for (let x = x0; x <= maxX; x++) {
             for (let y = y0; y <= maxY; y++) {
@@ -130,6 +135,7 @@ RG.Geometry = {
     /* Given start x,y and end x,y coordinates, returns all x,y coordinates in
      * the border of the rectangle.*/
     getHollowBox: function(x0, y0, maxX, maxY) {
+        verifyInt([x0, y0, maxX, maxY]);
         const res = [];
         for (let x = x0; x <= maxX; x++) {
             for (let y = y0; y <= maxY; y++) {
@@ -142,6 +148,7 @@ RG.Geometry = {
     },
 
     getHollowDiamond: function(x0, y0, size) {
+        verifyInt([x0, y0, size]);
         const RightX = x0 + 2 * size;
         const midX = x0 + size;
         const highY = y0 + size;
@@ -979,5 +986,16 @@ RG.Geometry.histArrayVals = function(array) {
     });
     return hist;
 };
+
+/* Checks that all given args are ints. */
+function verifyInt(arr) {
+    arr.forEach(val => {
+        if (!Number.isInteger(val)) {
+            const json = JSON.stringify(arr);
+            RG.err('Geometry', 'verifyInt',
+                'Value not an Int. Arr: ' + json);
+        }
+    });
+}
 
 module.exports = RG.Geometry;
