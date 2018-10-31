@@ -13,6 +13,7 @@ RG.Random = function(seed = 0) {
 };
 
 RG.Random.prototype.setSeed = function(seed) {
+    console.log('Setting RNG seed to ' + seed);
     this.seed = seed;
     this.rng.setSeed(seed);
 };
@@ -171,6 +172,12 @@ RG.Random.getRNG = function() {
         RG.Random.instance = new RG.Random(666);
     }
     return RG.Random.instance;
+};
+
+RG.Random.reseed = function(seed) {
+    ROT.RNG.setSeed(seed);
+    const RNG = RG.Random.getRNG();
+    RNG.setSeed(seed);
 };
 
 module.exports = RG.Random;
