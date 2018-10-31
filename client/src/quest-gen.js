@@ -1421,7 +1421,15 @@ QuestPopulate.prototype.cleanUpFailedQuest = function() {
         const {location} = cleanupObj;
         if (cleanupObj.item) {
             const [x, y] = cleanupObj.item.getXY();
-            location.removeItem(cleanupObj.item, x, y);
+            try {
+                location.removeItem(cleanupObj.item, x, y);
+            }
+            catch (e) {
+                let msg = `Failed to cleanup item @ ${x},${y}`;
+                msg += 'Items at loc: ' + JSON.stringify(location.getItems());
+                msg += e.message;
+                RG.err('QuestPopulate', 'cleanUpFailedQuest', msg);
+            }
         }
         else if (cleanupObj.actor) {
             const [x, y] = cleanupObj.actor.getXY();
