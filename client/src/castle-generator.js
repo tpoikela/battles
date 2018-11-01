@@ -9,7 +9,8 @@ RG.Element = require('./element');
 const LevelGenerator = require('./level-generator');
 const Level = require('./level');
 const DungeonPopulate = require('./dungeon-populate');
-const Geometry = require('./geometry');
+const Castle = require('../data/tiles.castle');
+const LevelSurroundings = require('./level-surroundings');
 
 const Room = ROT.Map.Feature.Room;
 
@@ -36,6 +37,22 @@ const markers = {
     vault: 'V'
 };
 
+CastleGenerator.getOptions = function() {
+    return {
+        roomCount: -1,
+        cellsAround: {
+            N: 'wallmount',
+            S: 'tree',
+            E: 'grass',
+            W: 'snow',
+            NW: 'water',
+            SE: 'water'
+        },
+        surroundX: 10,
+        surroundY: 10
+    };
+};
+
 /* Returns a fully populated castle-level. */
 CastleGenerator.prototype.create = function(cols, rows, conf) {
     let castleLevel = this.createLevel(cols, rows, conf);
@@ -55,6 +72,13 @@ CastleGenerator.prototype.createLevel = function(cols, rows, conf) {
     const levelConf = Object.assign({
         dungeonType: 'castle', preserveMarkers: true}, conf);
     const mapgen = new RG.Map.Generator();
+
+    // Determine direction of castle exit
+    const gateFunc = getGateDirFunction(conf);
+    if (gateFunc) {
+        levelConf.startRoomFunc = gateFunc;
+    }
+
     const mapObj = mapgen.createCastle(cols, rows, levelConf);
 
     const level = new Level(cols, rows);
@@ -178,21 +202,37 @@ CastleGenerator.prototype.populateStoreRooms = function(level, conf) {
 };
 
 CastleGenerator.prototype.createCastleSurroundings = function(level, conf) {
-    const {cols, rows} = level.getMap();
-    const colsArea = cols + 20;
-    const rowsArea = rows + 20;
-    const {cellsAround} = conf;
-
-    console.log('CastleGen cellsAround:', JSON.stringify(cellsAround));
-
-    const mapgen = new RG.Map.Generator();
-    mapgen.setGen('empty', colsArea, rowsArea);
-    const mapObj = mapgen.createEmptyMap(conf);
-    const emptyLevel = new Level(cols, rows);
-    emptyLevel.setMap(mapObj.map);
-    Geometry.mergeLevels(emptyLevel, level, 10, 10);
-    console.log('Added castle surroundings');
-    return emptyLevel;
+    const levelSurround = new LevelSurroundings();
+    return levelSurround.surround(level, conf);
 };
+
+/* Returns the function to generate castle cased based on surrounding
+ * cells. */
+function getGateDirFunction(conf) {
+    if (conf.cellsAround) {
+        const {cellsAround} = conf;
+        if (!cellBlocked(cellsAround.N)) {
+            return Castle.startRoomFuncNorth;
+        }
+        else if (!cellBlocked(cellsAround.S)) {
+            return Castle.startRoomFuncSouth;
+        }
+        else if (!cellBlocked(cellsAround.E)) {
+            return Castle.startRoomFuncEast;
+        }
+        else if (!cellBlocked(cellsAround.W)) {
+            return Castle.startRoomFuncWest;
+        }
+    }
+    return null;
+}
+
+function cellBlocked(type) {
+    switch (type) {
+        case 'wallmount': return true;
+        case 'water': return true;
+        default: return false;
+    }
+}
 
 module.exports = CastleGenerator;
