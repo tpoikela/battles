@@ -1162,9 +1162,18 @@ const FactoryWorld = function() {
     };
 
 
-    this.getConnectionName = function(zoneType, stairs) {
+    /* Returns the name for connection elem based on zoneType and
+     * zone configuration. */
+    this.getConnectionName = function(conf, zoneType, stairs) {
         let name = '';
-        if (zoneType === 'city') {name = 'town';}
+        if (zoneType === 'city') {
+            name = 'town';
+            if (conf.groupType) {
+                if (conf.groupType === 'fort') {
+                    name = 'cityfort';
+                }
+            }
+        }
         else if (zoneType === 'mountain') {name = 'mountain';}
         else if (Array.isArray(stairs)) {
             const isDown = !stairs[0].isDown();
@@ -1437,7 +1446,7 @@ FactoryWorld.prototype.createAreaZoneConnection = function(area, zone, conf) {
                 zoneStairs);
         }
 
-        const connName = this.getConnectionName(zoneType, entryStairs);
+        const connName = this.getConnectionName(conf, zoneType, entryStairs);
 
         debugPrintConfAndTile(conf, tileLevel, ' CALL 2');
         const tileStairs = new Stairs(connName, tileLevel, entryLevel);
