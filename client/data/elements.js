@@ -88,6 +88,10 @@ const Elements = [
     {
         dontCreate: true, name: 'battle',
         char: 'X', className: 'cell-element-battle'
+    },
+    {
+        dontCreate: true, name: 'cityfort',
+        char: 'o', className: 'cell-element-fort'
     }
 
 ];
