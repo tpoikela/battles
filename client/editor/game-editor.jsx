@@ -21,6 +21,7 @@ ROT.Map.Wall = require('../../lib/map.wall');
 const DungeonGenerator = require('../src/dungeon-generator');
 const {CaveGenerator} = require('../src/cave-generator');
 const MountainGenerator = require('../src/mountain-generator');
+const CastleGenerator = require('../src/castle-generator');
 
 const Screen = require('../gui/screen');
 
@@ -33,7 +34,7 @@ RG.getOverWorld = require('../src//overworld');
 const WorldConf = require('../src/world.creator');
 
 const editorLevelTypes = [
-  'Cave', 'Dungeon', 'MountainFace', 'MountainSummit',
+  'Castle', 'Cave', 'Dungeon', 'MountainFace', 'MountainSummit',
   'abandoned_fort',
   'arena', 'castle', 'capital', 'cellular', 'cave', 'crypt',
   'digger', 'divided', 'dungeon', 'dwarven_city',
@@ -484,6 +485,9 @@ export default class GameEditor extends Component {
     else if (levelType === 'Cave') {
       level = new CaveGenerator().create(cols, rows, conf);
     }
+    else if (levelType === 'Castle') {
+      level = new CastleGenerator().create(cols, rows, conf);
+    }
     else if (levelType === 'MountainFace') {
       level = new MountainGenerator().createFace(cols, rows, conf);
     }
@@ -880,6 +884,9 @@ export default class GameEditor extends Component {
     }
     else if (value === 'Cave') {
       return CaveGenerator.getOptions();
+    }
+    else if (value === 'Castle') {
+      return CastleGenerator.getOptions();
     }
     else if (value === 'cave') {
       const caveGen = new ROT.Map.Miner();
