@@ -9,6 +9,7 @@ const TemplateLevel = require('./template.level');
 const Crypt = require('../data/tiles.crypt');
 const Castle = require('../data/tiles.castle');
 const {HouseGenerator} = require('./houses');
+const Geometry = require('./geometry');
 
 ROT.Map.Forest = require('../../lib/map.forest');
 ROT.Map.Miner = require('../../lib/map.miner');
@@ -154,7 +155,7 @@ MapGenerator.prototype.createTown = function(cols, rows, conf) {
     const freeCells = map.getFree();
     const freeCoord = freeCells.map(cell => [cell.getX(), cell.getY()]);
 
-    const getHollowBox = RG.Geometry.getHollowBox;
+    const getHollowBox = Geometry.getHollowBox;
     let border = getHollowBox(0, 0, cols - 1, rows - 1);
     border = border.concat(getHollowBox(1, 1, cols - 2, rows - 2));
 
@@ -168,7 +169,7 @@ MapGenerator.prototype.createTown = function(cols, rows, conf) {
         return acc;
     }, {});
 
-    RG.Geometry.removeMatching(coordObj, border);
+    Geometry.removeMatching(coordObj, border);
 
     for (let i = 0; i < nHouses; i++) {
 
@@ -192,8 +193,8 @@ MapGenerator.prototype.createTown = function(cols, rows, conf) {
         if (houseCreated) {
             houses.push(houseCreated);
             const {ulx, lrx, uly, lry} = houseCreated;
-            const wallCoord = RG.Geometry.getBox(ulx, uly, lrx, lry);
-            const nFound = RG.Geometry.removeMatching(coordObj, wallCoord);
+            const wallCoord = Geometry.getBox(ulx, uly, lrx, lry);
+            const nFound = Geometry.removeMatching(coordObj, wallCoord);
             if (!nFound) {
                 const msg = `in box ${ulx},${uly},${lrx},${lry}`;
                 RG.warn('Map.Generator', 'createTown',
@@ -342,7 +343,7 @@ MapGenerator.prototype.createHouse = function(
     if (maxY >= map.rows) {return false;}
 
     const possibleRoom = [];
-    const wallXY = RG.Geometry.getHollowBox(x0, y0, maxX, maxY);
+    const wallXY = Geometry.getHollowBox(x0, y0, maxX, maxY);
 
     // Store x,y for house until failed
     for (let i = 0; i < wallXY.length; i++) {
@@ -381,7 +382,7 @@ MapGenerator.prototype.createHouse = function(
     const haloY0 = y0 - 1;
     const haloMaxX = maxX + 1;
     const haloMaxY = maxY + 1;
-    const haloBox = RG.Geometry.getHollowBox(
+    const haloBox = Geometry.getHollowBox(
         haloX0, haloY0, haloMaxX, haloMaxY);
     for (let i = 0; i < haloBox.length; i++) {
         const haloX = haloBox[i][0];
@@ -394,7 +395,7 @@ MapGenerator.prototype.createHouse = function(
     let doorX = wallCoords[doorIndex][0];
     let doorY = wallCoords[doorIndex][1];
     let watchdog = 1000;
-    while (RG.Geometry.isCorner(doorX, doorY, x0, y0, maxX, maxY)) {
+    while (Geometry.isCorner(doorX, doorY, x0, y0, maxX, maxY)) {
         doorIndex = RNG.randIndex(wallCoords);
         doorX = wallCoords[doorIndex][0];
         doorY = wallCoords[doorIndex][1];
@@ -458,9 +459,37 @@ MapGenerator.prototype.createLakes = function(conf) {
     return {map};
 };
 
+MapGenerator.prototype.addLakes = function(map, conf, bbox = {}) {
+    const cols = bbox.lrx - bbox.ulx;
+    const rows = bbox.lry - bbox.uly;
+    this.setGen('lakes', cols, rows);
+    const lakeMap = this.createLakes(conf).map;
+
+    console.log('addLakes bbox to add is ', bbox);
+
+    RG.forEach2D(lakeMap._map, (x, y) => {
+        const nX = x + bbox.ulx;
+        const nY = y + bbox.uly;
+        if (Geometry.isInBbox(nX, nY, bbox) && map.hasXY(nX, nY)) {
+            const baseElem = lakeMap.getBaseElemXY(x, y);
+            if (baseElem.getType() === 'water') {
+                if (conf.skipTypes) {
+                    const elemType = map.getBaseElemXY(nX, nY).getType();
+                    if (!conf.skipTypes.hasOwnProperty(elemType)) {
+                        map.setBaseElemXY(nX, nY, baseElem);
+                    }
+                }
+                else {
+                    map.setBaseElemXY(nX, nY, baseElem);
+                }
+            }
+        }
+    });
+};
+
 
 MapGenerator.prototype.createWall = function(cols, rows, conf) {
-    const map = new RG.Map.CellList(this.cols, this.rows);
+    const map = new RG.Map.CellList(cols, rows);
     const wallElem = conf.wallElem || RG.ELEM.WALL;
     this._mapGen = new ROT.Map.Wall(cols, rows, conf);
     this._mapGen.create((x, y, val) => {
@@ -798,7 +827,7 @@ MapGenerator.prototype.createTownWithWall = function(cols, rows, conf = {}) {
     const townMapObj = this.createTownBSP(colsTown, rowsTown, conf);
 
     const finalMap = castleMapObj.map;
-    RG.Geometry.mergeMapBaseElems(finalMap, townMapObj.map,
+    Geometry.mergeMapBaseElems(finalMap, townMapObj.map,
         tileSize, tileSize);
 
     // Adjust house coordinates due to map merging
