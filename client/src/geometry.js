@@ -119,6 +119,38 @@ RG.Geometry = {
         return result;
     },
 
+    isInBbox: function(x, y, bbox) {
+        const {ulx, uly, lrx, lry} = bbox;
+        return x >= ulx && x <= lrx && y >= uly && y <= lry;
+    },
+
+    isValidBbox: function(bbox) {
+        if (!bbox) {return false;}
+        const {ulx, uly, lrx, lry} = bbox;
+        return !RG.isNullOrUndef([ulx, uly, lrx, lry]);
+    },
+
+    /* Converts a direction into bbox based on cols, rows. */
+    dirToBbox: function(cols, rows, dir) {
+        const colsDiv = Math.round(cols / 3);
+        const rowsDiv = Math.round(rows / 3);
+        const cBbox = {ulx: colsDiv, uly: rowsDiv,
+            lrx: 2 * colsDiv - 1, lry: 2 * rowsDiv - 1};
+        const dXdY = RG.dirTodXdY(dir);
+        if (dXdY) {
+            return {
+                ulx: cBbox.ulx + dXdY[0] * colsDiv,
+                uly: cBbox.uly + dXdY[1] * rowsDiv,
+                lrx: cBbox.lrx + dXdY[0] * colsDiv,
+                lry: cBbox.lry + dXdY[1] * rowsDiv
+            };
+        }
+        else {
+            RG.err('Geometry', 'dirToBbox', `Invalid dir ${dir} given.`);
+        }
+        return null;
+    },
+
     /* Given two cells, returns bounding box defined by upper-left
      * and lower-right corners.
      */
