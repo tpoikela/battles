@@ -349,7 +349,9 @@ System.BaseAction = function(compTypes) {
             const name = ent.getName();
             msg = `${name} toggles the lever`;
         }
-        RG.gameMsg({cell, msg});
+        if (msg) {
+            RG.gameMsg({cell, msg});
+        }
     };
 };
 RG.extend2(System.BaseAction, System.Base);
