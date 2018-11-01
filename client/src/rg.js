@@ -834,9 +834,19 @@ RG.DIR = {
 RG.DIR_NSEW = [RG.DIR.N, RG.DIR.S, RG.DIR.E, RG.DIR.W];
 RG.DIR_DIAG = [RG.DIR.NE, RG.DIR.SE, RG.DIR.NW, RG.DIR.SW];
 
+/* Converts a direction (N, S, ...) to 2-d vector. If already,
+ * a vector, returns it. */
 RG.dirTodXdY = function(dir) {
-    const ucDir = dir.toUpperCase();
-    return RG.DIR[ucDir];
+    if (Array.isArray(dir)) {
+        return dir;
+    }
+    else if (RG.DIR.hasOwnProperty(dir)) {
+        const ucDir = dir.toUpperCase();
+        return RG.DIR[ucDir];
+    }
+    RG.err('RG', 'dirTodXdY',
+        `Arg must be array/string (N,S,E,W..). Got: ${dir}`);
+    return null;
 };
 
 RG.dXdYToDir = function(dXdY) {
