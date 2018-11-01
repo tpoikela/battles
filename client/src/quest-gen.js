@@ -1425,7 +1425,8 @@ QuestPopulate.prototype.cleanUpFailedQuest = function() {
                 location.removeItem(cleanupObj.item, x, y);
             }
             catch (e) {
-                let msg = `Failed to cleanup item @ ${x},${y}`;
+                const name = cleanupObj.item.getName();
+                let msg = `Failed to cleanup item ${name} @ ${x},${y}`;
                 msg += 'Items at loc: ' + JSON.stringify(location.getItems());
                 msg += e.message;
                 RG.err('QuestPopulate', 'cleanUpFailedQuest', msg);
