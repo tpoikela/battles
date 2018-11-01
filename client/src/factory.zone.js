@@ -232,8 +232,7 @@ const FactoryZone = function() {
 
     this.createFortLevel = function(cols, rows, levelConf) {
         const castleGen = new CastleGenerator();
-        // levelConf.levelType = 'miner';
-        // const level = this.createLevel('town', 100, 84, levelConf);
+        levelConf.roomCount = -1; // Fill all castle tiles
         const level = castleGen.create(100, 84, levelConf);
         this.populateCityLevel(level, levelConf);
         return level;
