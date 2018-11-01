@@ -732,13 +732,6 @@ function addFortToSubLevel(owSubLevel, subLevel) {
         const map = subLevel.getMap();
         const cellsAround = map.getCellsWithCoord(coordAround);
 
-        if (cellsAround.length < 8) {
-            console.log('< 8 cells around for', x, y);
-        }
-        else {
-            console.log('=== 8 cells around for', x, y);
-        }
-
         const fort = new RG.OverWorld.SubFeature('fort', coord);
         const cellMap = {};
         cellsAround.forEach(c => {
@@ -763,7 +756,6 @@ function getAccessibleMountainCoord(subLevel, edges = true) {
             (xy[0] !== 0 && xy[0] !== (cols - 1)) &&
             (xy[1] !== 0 && xy[1] !== (rows - 1))
         ));
-        console.log('freeXY after filter', freeXY);
     }
 
     // Sometimes no free cells are found, just skip this
@@ -774,15 +766,23 @@ function getAccessibleMountainCoord(subLevel, edges = true) {
     let coord = [];
     let watchdog = 10 * WATCHDOG_MAX;
     while (!placed) {
-        const xy = getRNG().arrayGetRand(freeXY);
+        const xyRand = getRNG().arrayGetRand(freeXY);
         let box = [];
         try {
-            box = RG.Geometry.getBoxAround(xy[0], xy[1], 1);
+            box = RG.Geometry.getBoxAround(xyRand[0], xyRand[1], 1);
         }
         catch (e) {
             RG.diag(e);
             RG.diag(freeXY);
             map.debugPrintInASCII();
+        }
+
+        if (!edges) {
+            const {cols, rows} = map;
+            box = box.filter(xy => (
+                (xy[0] !== 0 && xy[0] !== (cols - 1)) &&
+                (xy[1] !== 0 && xy[1] !== (rows - 1))
+            ));
         }
 
         /* eslint-disable */
