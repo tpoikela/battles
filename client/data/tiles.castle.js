@@ -659,6 +659,15 @@ Castle.startRoomFunc = function() {
     };
 };
 
+Castle.startRoomFuncNorth = function() {
+  const y = 0;
+  const x = Math.floor(this.tilesX / 2);
+  const templ = this.findTemplate({name: 'entrance_n'});
+  return {
+      x, y, room: templ
+  };
+};
+
 Castle.startRoomFuncSouth = function() {
   const y = this.tilesY - 1;
   const x = Math.floor(this.tilesX / 2);
