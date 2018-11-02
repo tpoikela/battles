@@ -36,6 +36,7 @@ RG.Element = require('./element');
 
 RG.Cell = require('./map.cell');
 RG.Map = require('./map');
+RG.Map.Generator = require('./map.generator');
 RG.Map.Level = require('./level');
 RG.LevelGenerator = require('./level-generator');
 RG.MountainGenerator = require('./mountain-generator');
