@@ -407,15 +407,19 @@ RG.ObjectShell.Creator = function(db, dbNoRandom) {
                     case 'rune': return new RG.Item.Rune(obj.name);
                     case 'spiritgem': return new RG.Item.SpiritGem(obj.name);
                     case 'weapon': return new RG.Item.Weapon(obj.name);
-                    case 'tool': break;
                     default: {
+                        if (subtype) {
+                            const item = new RG.Item.Base(obj.name);
+                            item.setType(obj.type);
+                            return item;
+                        }
                         const json = JSON.stringify(obj);
                         const msg =
-                            `Unknown subtype: ${subtype}, obj: ${json}`;
+                            `Null/undef type: ${subtype}, obj: ${json}`;
                         RG.err('', 'createNewObject', msg);
                     }
                 }
-                return new RG.Item.Base(obj.name);
+                break; // Unreachable
             case RG.TYPE_ELEM: {
                 const type = obj.type || obj.name;
                 return new RG.Element.Base(obj.name, type);
@@ -887,6 +891,9 @@ RG.ObjectShell.Parser = function() {
     this._procgen = new RG.ObjectShell.ProcGen(this._db, this._dbDanger,
         this._dbByName);
 
+    this.getCreator = function() {
+        return this._creator;
+    };
     //-----------------------------------------------------------------------
     // "PARSING" METHODS
     //-----------------------------------------------------------------------
@@ -1194,6 +1201,18 @@ RG.ObjectShell.Parser = function() {
     };
 
 
+};
+
+RG.createItem = function(nameOrShell) {
+    const parser = RG.ObjectShell.getParser();
+    const creator = parser.getCreator();
+    if (typeof nameOrShell === 'string') {
+        return creator.createActualObj(RG.TYPE_ITEM, nameOrShell);
+    }
+    else {
+        parser.parseObjShell(RG.TYPE_ITEM, nameOrShell);
+        return creator.createFromShell(RG.TYPE_ITEM, nameOrShell);
+    }
 };
 
 module.exports = RG.ObjectShell;
