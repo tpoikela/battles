@@ -5,13 +5,17 @@
 
 const RG = require('./rg');
 const ROT = require('../../lib/rot');
-RG.Element = require('./element');
+const Element = require('./element');
 const LevelGenerator = require('./level-generator');
 const Level = require('./level');
 const DungeonPopulate = require('./dungeon-populate');
 const Castle = require('../data/tiles.castle');
 const LevelSurroundings = require('./level-surroundings');
+const {FactoryItem} = require('./factory.items');
+const Placer = require('./placer');
+const Random = require('./random');
 
+const RNG = Random.getRNG();
 const Room = ROT.Map.Feature.Room;
 
 /* This class is used to generate different dungeon levels. */
@@ -21,6 +25,8 @@ const CastleGenerator = function() {
     this.shouldRemoveMarkers = true;
 };
 RG.extend2(CastleGenerator, LevelGenerator);
+
+const GOLD_VAULT_CHANCE = 0.10;
 
 const re = {
     corridor: /(corridor|corner)/,
@@ -39,6 +45,7 @@ const markers = {
 
 CastleGenerator.getOptions = function() {
     return {
+        addItems: true,
         roomCount: -1,
         cellsAround: {
             N: 'wallmount',
@@ -49,7 +56,8 @@ CastleGenerator.getOptions = function() {
             SE: 'water'
         },
         surroundX: 10,
-        surroundY: 10
+        surroundY: 10,
+        maxValue: 100
     };
 };
 
@@ -58,6 +66,10 @@ CastleGenerator.prototype.create = function(cols, rows, conf) {
     let castleLevel = this.createLevel(cols, rows, conf);
     conf.preserveMarkers = false;
     this.removeMarkers(castleLevel, conf);
+
+    if (conf.addItems) {
+        this.addItemsToCastle(castleLevel, conf);
+    }
 
     if (conf.cellsAround) {
         castleLevel = this.createCastleSurroundings(castleLevel, conf);
@@ -70,7 +82,11 @@ CastleGenerator.prototype.create = function(cols, rows, conf) {
 /* Returns a castle level without populating it. */
 CastleGenerator.prototype.createLevel = function(cols, rows, conf) {
     const levelConf = Object.assign({
-        dungeonType: 'castle', preserveMarkers: true}, conf);
+        dungeonType: 'castle',
+        preserveMarkers: true,
+        wallType: 'wallcastle'
+        }, conf
+    );
     const mapgen = new RG.Map.Generator();
 
     // Determine direction of castle exit
@@ -89,6 +105,39 @@ CastleGenerator.prototype.createLevel = function(cols, rows, conf) {
     return level;
 };
 
+CastleGenerator.prototype.addItemsToCastle = function(level, conf) {
+    // Storerooms contain better loot
+    const extras = level.getExtras();
+    const storerooms = extras.storeroom;
+    const {maxValue} = conf;
+    const itemFunc = item => ((
+        (item.value <= (2 * maxValue)) && (item.value >= maxValue)
+    ));
+    const itemConf = {
+        func: itemFunc, maxValue, nItems: 1
+    };
+    const factItem = new FactoryItem();
+    storerooms.forEach(room => {
+        const items = factItem.generateItems(itemConf);
+        Placer.addPropsToRoom(level, room, items);
+    });
+
+    // One of the storerooms can contain gold as well
+    if (RG.isSuccess(GOLD_VAULT_CHANCE)) {
+        const goldRoom = RNG.arrayGetRand(storerooms);
+        const wealth = RNG.getUniformInt(1, 6);
+        const goldItems = factItem.generateGold({nGold: 5, nLevel: wealth});
+        Placer.addPropsToRoom(level, goldRoom, goldItems);
+    }
+
+    const normalRooms = extras.room;
+    itemConf.nItems = normalRooms.length;
+    const items = factItem.generateItems(itemConf);
+    items.forEach(item => {
+        const room = RNG.arrayGetRand(normalRooms);
+        Placer.addPropsToRoom(level, room, [item]);
+    });
+};
 
 CastleGenerator.prototype.addMarkersFromTiles = function(level, tiles) {
     const extras = {
@@ -125,7 +174,7 @@ CastleGenerator.prototype.addToExtras = function(level, tile, name) {
     const cells = level.getMap().getFreeInBbox(bbox);
     cells.forEach(cell => {
         const [x, y] = cell.getXY();
-        const marker = new RG.Element.Marker(markers[name]);
+        const marker = new Element.Marker(markers[name]);
         marker.setTag(name);
         level.addElement(marker, x, y);
     });
@@ -146,19 +195,19 @@ CastleGenerator.prototype.createDoorsAndLevers = function(level) {
 
             const [x, y] = cell.getXY();
             if (cell.hasMarker('leverdoor')) {
-                const door = new RG.Element.LeverDoor();
+                const door = new Element.LeverDoor();
                 map.getCell(x, y).removeProps(RG.TYPE_ELEM);
                 level.addElement(door, x, y);
                 doorPos[cell.getKeyXY()] = door;
             }
             else if (cell.hasMarker('lever')) {
-                const lever = new RG.Element.Lever();
+                const lever = new Element.Lever();
                 map.getCell(x, y).removeProps(RG.TYPE_ELEM);
                 level.addElement(lever, x, y);
                 levers.push(lever);
             }
             else if (cell.hasMarker('door')) {
-                const door = new RG.Element.Door();
+                const door = new Element.Door();
                 map.getCell(x, y).removeProps(RG.TYPE_ELEM);
                 level.addElement(door, x, y);
             }
