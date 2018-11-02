@@ -124,8 +124,6 @@ function chooseRandomRule(arrOfRules) {
     return null;
 }
 
-// debug.enabled = true;
-
 //---------------------------------------------------------------------------
 // QUESTGEN for generating quest sequences procedurally
 //---------------------------------------------------------------------------
