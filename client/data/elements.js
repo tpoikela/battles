@@ -25,6 +25,10 @@ const Elements = [
         char: '.'
     },
     {
+        name: 'floorcastle', className: 'cell-element-floor-castle',
+        char: '.'
+    },
+    {
         name: 'floorcave', className: 'cell-element-floor-cave',
         char: '.'
     },
@@ -34,6 +38,10 @@ const Elements = [
     },
     {
         name: 'floorhouse', className: 'cell-element-floor-house',
+        char: '.'
+    },
+    {
+        name: 'floorwooden', className: 'cell-element-floor-wooden',
         char: '.'
     },
     {
@@ -92,6 +100,10 @@ const Elements = [
     {
         dontCreate: true, name: 'cityfort',
         char: 'o', className: 'cell-element-fort'
+    },
+    {
+        dontCreate: true, name: 'wallcastle',
+        char: '#', className: 'cell-element-castle'
     }
 
 ];
