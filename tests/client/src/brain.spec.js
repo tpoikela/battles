@@ -77,7 +77,7 @@ describe('Brain.Player', () => {
 
         const sword = new RG.Item.Weapon('sword');
         brain.decideNextAction({cmd: 'use', item: sword});
-        expect(brain.energy).to.equal(0);
+        expect(brain.energy).to.equal(1);
 
         const potion = new RG.Item.Potion('healing potion');
         player.get('Health').decrHP(5);
