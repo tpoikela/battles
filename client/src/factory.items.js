@@ -162,9 +162,10 @@ const FactoryItem = function() {
     };
 
     this.generateItems = function(conf) {
+        const nItems = conf.itemsPerLevel || conf.nItems;
         const items = [];
         const parser = ObjectShell.getParser();
-        for (let j = 0; j < conf.itemsPerLevel; j++) {
+        for (let j = 0; j < nItems; j++) {
             const item = parser.createRandomItem({func: conf.func});
             if (item) {
                 _doItemSpecificAdjustments(item, conf.maxValue);
@@ -174,15 +175,22 @@ const FactoryItem = function() {
         return items;
     };
 
-    /* Adds a random number of gold coins to the level. */
-    this.addRandomGold = (level, parser, conf) => {
+    this.generateGold = function(conf) {
+        const nGold = conf.goldPerLevel || conf.nGold;
+        const parser = ObjectShell.getParser();
         const goldItems = [];
-        for (let i = 0; i < conf.goldPerLevel; i++) {
+        for (let i = 0; i < nGold; i++) {
             const gold = parser.createActualObj(RG.TYPE_ITEM,
                 RG.GOLD_COIN_NAME);
             _doItemSpecificAdjustments(gold, conf.nLevel);
             goldItems.push(gold);
         }
+        return goldItems;
+    };
+
+    /* Adds a random number of gold coins to the level. */
+    this.addRandomGold = (level, parser, conf) => {
+        const goldItems = this.generateGold(conf);
         Placer.addPropsToFreeCells(level, goldItems, RG.TYPE_ITEM);
     };
 
