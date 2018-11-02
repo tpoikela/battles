@@ -443,4 +443,19 @@ RG.Component.create = function(compName, ...args) {
     return null;
 };
 
+RG.Component.defineComponent = function(name, args) {
+    if (!RG.Component.hasOwnProperty(name)) {
+        const CompDecl = DataComponent(name, args);
+        RG.Component[name] = CompDecl;
+        return CompDecl;
+    }
+    RG.err('RG.Component', 'defineComponent',
+        `Component ${name} already defined`);
+    return null;
+};
+
+RG.Component.undefineComponent = function(name) {
+    delete RG.Component[name];
+};
+
 module.exports = RG.Component;
