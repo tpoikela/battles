@@ -26,6 +26,7 @@ const RG = require('./rg');
 RG.Names = require('../data/name-gen');
 const LevelGen = require('../data/level-gen');
 RG.Path = require('./path');
+const MapGenerator = require('./map.generator');
 const OW = require('./overworld.map');
 const debug = require('debug')('bitn:overworld');
 
@@ -408,13 +409,13 @@ function addBiomeFeaturesSubLevel(biomeType, subLevel) {
     const rows = subLevel.getMap().rows;
 
     if (biomeType === 'arctic') {
-        RG.Map.Generator.addRandomSnow(subLevel.getMap(), 1.0);
+        MapGenerator.addRandomSnow(subLevel.getMap(), 1.0);
     }
     else if (biomeType === 'alpine') {
-        RG.Map.Generator.addRandomSnow(subLevel.getMap(), 0.5);
+        MapGenerator.addRandomSnow(subLevel.getMap(), 0.5);
     }
     else if (biomeType === 'tundra') {
-        RG.Map.Generator.addRandomSnow(subLevel.getMap(), 0.1);
+        MapGenerator.addRandomSnow(subLevel.getMap(), 0.1);
     }
     else if (biomeType === 'taiga' || biomeType === 'forest') {
         const freeCells = subLevel.getMap().getFree();
