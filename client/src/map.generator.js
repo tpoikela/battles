@@ -1,3 +1,6 @@
+/* Contains code for low-level map generation. This generates the base
+ * elements and some other elements like doors. Items and actors are
+ * not generated here. */
 
 const RG = require('./rg.js');
 const ROT = require('../../lib/rot.js');
@@ -47,23 +50,11 @@ const inAllowedArea = function(x0, y0, x1, y1, conf) {
 
 /* Map generator for the roguelike game.  */
 const MapGenerator = function() { // {{{2
-
     this.cols = RG.LEVEL_MEDIUM_X;
     this.rows = RG.LEVEL_MEDIUM_Y;
     this._mapGen = new ROT.Map.Arena(this.cols, this.rows);
     this._mapType = null;
-
-    this._types = ['arena', 'cellular', 'digger', 'divided', 'dungeon',
-        'eller', 'icey', 'uniform', 'rogue', 'ruins', 'rooms'];
-
     this._wall = 1;
-
-};
-RG.Map.Generator = MapGenerator;
-
-MapGenerator.prototype.getRandType = function() {
-    const index = RNG.randIndex(this._types);
-    return this._types[index];
 };
 
 MapGenerator.prototype.createEmptyMap = function() {
@@ -74,19 +65,21 @@ MapGenerator.prototype.createEmptyMap = function() {
 
 /* Returns an object containing randomized map + all special features
  * based on initialized generator settings. */
-MapGenerator.prototype.getMap = function() {
+MapGenerator.prototype.getMap = function(conf = {}) {
     const obj = {};
     if (typeof this._mapGen === 'function') {
         obj.map = this._mapGen();
     }
     else {
+        const wallElem = MapGenerator.getWallElem(conf.wallType);
+        const floorElem = MapGenerator.getFloorElem(conf.floorType);
         const map = new RG.Map.CellList(this.cols, this.rows);
         this._mapGen.create((x, y, val) => {
             if (val === this._wall) {
-                map.setBaseElemXY(x, y, RG.ELEM.WALL);
+                map.setBaseElemXY(x, y, wallElem);
             }
             else {
-                map.setBaseElemXY(x, y, RG.ELEM.FLOOR);
+                map.setBaseElemXY(x, y, floorElem);
             }
         });
         obj.map = map;
@@ -100,10 +93,11 @@ MapGenerator.prototype.getMap = function() {
 
 /* Creates "ruins" type level with open outer edges and inner
  * "fortress" with some tunnels. */
-RG.Map.Generator.prototype.createRuins = function(cols, rows) {
-    const conf = {born: [4, 5, 6, 7, 8],
+MapGenerator.prototype.createRuins = function(cols, rows, conf = {}) {
+    let ruinsConf = {born: [4, 5, 6, 7, 8],
         survive: [2, 3, 4, 5], connected: true};
-    const map = new ROT.Map.Cellular(cols, rows, conf);
+    ruinsConf = Object.assign(ruinsConf, conf);
+    const map = new ROT.Map.Cellular(cols, rows, ruinsConf);
     map.randomize(0.9);
     for (let i = 0; i < 5; i++) {map.create();}
     map.connect(null, 1);
@@ -128,7 +122,7 @@ MapGenerator.prototype.createRooms = function(cols, rows) {
     return map;
 };
 
-    /* Creates a town level of size cols X rows. */
+/* Creates a town level of size cols X rows. */
 MapGenerator.prototype.createTown = function(cols, rows, conf) {
     const maxTriesHouse = 100;
     const doors = {};
@@ -653,7 +647,7 @@ MapGenerator.prototype.createSummit = function(cols, rows, conf) {
 };
 
 /* Creates a single cave level. */
-RG.Map.Generator.prototype.createCave = function(cols, rows, conf) {
+MapGenerator.prototype.createCave = function(cols, rows, conf) {
     this._mapGen = new ROT.Map.Miner(cols, rows, conf);
     const map = new RG.Map.CellList(cols, rows);
     const wallElem = conf.wallElem || RG.ELEM.WALL_CAVE;
@@ -951,6 +945,7 @@ MapGenerator.fromAsciiMap = function(asciiMap, asciiToElem) {
 MapGenerator.getWallElem = function(wallType) {
     switch (wallType) {
         case 'wallcave': return RG.ELEM.WALL_CAVE;
+        case 'wallcastle': return RG.ELEM.WALL_CASTLE;
         case 'wallcrypt': return RG.ELEM.WALL_CRYPT;
         case 'wallice': return RG.ELEM.WALL_ICE;
         case 'wallwooden': return RG.ELEM.WALL_WOODEN;
@@ -961,6 +956,7 @@ MapGenerator.getWallElem = function(wallType) {
 MapGenerator.getFloorElem = function(floorType) {
     switch (floorType) {
         case 'floorcave': return RG.ELEM.FLOOR_CAVE;
+        case 'floorcastle': return RG.ELEM.FLOOR_CASTLE;
         case 'floorcrypt': return RG.ELEM.FLOOR_CRYPT;
         case 'floorice': return RG.ELEM.FLOOR_ICE;
         case 'floorwooden': return RG.ELEM.FLOOR_WOODEN;
