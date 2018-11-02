@@ -1010,15 +1010,27 @@ RG.ObjectShell.Parser = function() {
     /* Stores char/CSS className for the object for rendering purposes.*/
     this.storeRenderingInfo = (categ, obj) => {
         if (obj.hasOwnProperty('color')) {
+            if (RG.isNullOrUndef([obj.color])) {
+                const json = JSON.stringify(obj);
+                RG.err('ObjectShell.Parser', 'storeRenderingInfo',
+                    `obj.color null/undef! obj: ${json}`);
+            }
             let {fg, bg} = obj.color;
+
             if (obj.hasOwnProperty('color-fg')) {
                 fg = obj['color-fg'];
             }
             if (obj.hasOwnProperty('color-bg')) {
                 bg = obj['color-bg'];
             }
-            obj.className = 'cell-fg-' + fg.toLowerCase() + '-bg-'
-                + bg.toLowerCase();
+            if (!fg || !bg) {
+                const json = JSON.stringify(obj.color);
+                RG.err('ObjectShell.Parser', 'storeRenderingInfo',
+                    `fg and bg must be given. ${obj.name} Got: ${json}`);
+            }
+            if (!obj.className) {obj.className = '';}
+            obj.className += ' cell-fg-' + fg.toLowerCase() +
+                ' cell-bg-' + bg.toLowerCase();
         }
         if (obj.hasOwnProperty('char')) {
             if (obj.hasOwnProperty('name')) {
