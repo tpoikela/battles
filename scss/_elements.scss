@@ -161,6 +161,21 @@
     color: $red;
 }
 
+.cell-element-castle {
+    background-color: $black;
+    color: $floor-bg-color;
+}
+
+.cell-element-floor-castle {
+    background-color: lighten($floor-bg-color, 10%);
+    color: $black;
+}
+
+.cell-element-floor-wooden {
+    background-color: 'beige';
+    color: 'white';
+}
+
 //----------------------
 // CONNECTIONS/STAIRS
 //----------------------
@@ -194,4 +209,5 @@
     background-color: $floor-bg-color;
     color: $brown;
 }
+
 
