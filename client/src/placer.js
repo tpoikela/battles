@@ -35,6 +35,25 @@ Placer.addPropsToCells = function(level, cells, props, type) {
     }
 };
 
+Placer.addPropsToRoom = function(level, room, props) {
+    if (!Array.isArray(props)) {
+        RG.err('Placer', 'addPropsToRoom',
+            `props must be an array. Got: ${props}`);
+    }
+    const bbox = room.getBbox();
+    const prop = props[0];
+    if (RG.isActor(prop)) {
+        Placer.addActorsToBbox(level, bbox, props);
+    }
+    else if (RG.isItem(prop)) {
+        Placer.addItemsToBbox(level, bbox, props);
+    }
+    else {
+        RG.err('Placer', 'addPropsToRoom',
+            `Prop type not supported: ${prop}`);
+    }
+};
+
 Placer.addActorsToBbox = function(level, bbox, actors) {
     const nActors = actors.length;
     const freeCells = level.getMap().getFreeInBbox(bbox);
