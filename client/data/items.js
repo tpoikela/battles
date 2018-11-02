@@ -160,7 +160,7 @@ const Items = [
     {
         name: 'Dwarven pick-axe', base: 'MeleeWeaponBase',
         damage: '1d12', attack: 2, defense: 2,
-        color: Colors.dwarven,
+        color: Colors.race.dwarven,
         weaponType: 'axe',
         weight: 3.5, value: value(120), use: 'digger'
     },
