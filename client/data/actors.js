@@ -3,6 +3,7 @@
 
 const RG = require('../src/rg');
 const ShellUtils = require('./shell-utils');
+// const Colors = require('./colors');
 
 const {meleeHitDamage} = ShellUtils;
 
@@ -61,13 +62,13 @@ const Actors = [
     },
     {
         name: 'coyote', char: 'c', base: 'animal',
-        'color-f': 'Yellow',
+        'color-fg': 'Yellow',
         attack: 3, defense: 3, damage: '1d4',
         hp: 12, danger: 2
     },
     {
         name: 'lynx', char: 'f', base: 'animal',
-        'color-f': 'Orange',
+        'color-fg': 'Orange',
         attack: 5, defense: 1, damage: '1d6',
         hp: 12, danger: 3
     },
@@ -519,6 +520,15 @@ const Actors = [
         hp: 15, onHit: [{addComp: 'Paralysis', duration: '1d4'}]
     },
     {
+        name: 'ghost', char: 'G', base: 'UndeadBase',
+        attack: 4, defense: 4, damage: '2d5 + 2', danger: 6,
+        onHit: [
+            {addComp: 'StatsMods', func: [{setter: 'setSpeed', value: -5}],
+                duration: '3d10'}
+        ],
+        hp: 25
+    },
+    {
         name: 'wraith', char: 'Z', base: 'UndeadBase',
         'color-fg': 'Cyan',
         attack: 5, defense: 5, damage: '2d5 + 2', danger: 6,
@@ -555,6 +565,16 @@ const Actors = [
         hp: 35
     },
     {
+        name: 'ghost lord', char: 'G', base: 'UndeadBase',
+        'color-fg': 'LightGray',
+        attack: 7, defense: 7, damage: '2d5 + 2', danger: 8,
+        onHit: [
+            {addComp: 'StatsMods', func: [{setter: 'setSpeed', value: -10}],
+                duration: '3d10'}
+        ],
+        hp: 35
+    },
+    {
         name: 'vampire', char: 'V', base: 'UndeadBase',
         'color-fg': 'Purple',
         attack: 6, defense: 6, damage: '3d5 + 2', danger: 9,
@@ -579,10 +599,37 @@ const Actors = [
         brain: 'Animal', speed: 107, hp: 50
     },
     {
+        name: 'ghost king', char: 'G', base: 'UndeadBase',
+        'color-fg': 'Yellow',
+        attack: 7, defense: 7, damage: '3d5 + 2', danger: 12,
+        brain: 'SpellCaster',
+        onHit: [
+            {addComp: 'StatsMods', func: [{setter: 'setSpeed', value: -15}],
+                duration: '3d10'}
+        ],
+        hp: 50,
+        addComp: [BypassComp(0.20)]
+    },
+    {
         name: 'lich', char: 'L', base: 'UndeadBase',
         attack: 4, defense: 8, damage: '1d8 + 6', danger: 12,
         hp: 50, brain: 'SpellCaster',
         spells: ['GraspOfWinter', 'SummonDead'], maxPP: 50, pp: 50
+    },
+    {
+        name: 'lich king', char: 'L', base: 'UndeadBase',
+        'color-fg': 'Yellow',
+        attack: 8, defense: 8, damage: '2d8 + 2', danger: 17,
+        hp: 75, brain: 'SpellCaster',
+        spells: ['SummonDead'], maxPP: 75, pp: 75,
+        onHit: [
+            meleeHitDamage(4, '1d6', 'NECRO')
+        ],
+        addComp: [
+            resistance('ICE', 'MEDIUM'),
+            resistance('POISON', 'IMMUNITY'),
+            resistance('NECRO', 'IMMUNITY')
+        ]
     },
 
     // DEMONS AND WINTRY BEINGS
