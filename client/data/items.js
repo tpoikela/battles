@@ -158,6 +158,13 @@ const Items = [
         weight: 2.5, value: value(85)
     },
     {
+        name: 'Warhammer', base: 'MeleeWeaponBase',
+        material: 'iron',
+        damage: '2d6 + 5', attack: 3, defense: 1,
+        weaponType: 'hammer',
+        weight: 4.5, value: value(100)
+    },
+    {
         name: 'Dwarven pick-axe', base: 'MeleeWeaponBase',
         damage: '1d12', attack: 2, defense: 2,
         color: Colors.race.dwarven,
@@ -209,6 +216,12 @@ const Items = [
         weaponType: 'axe', weight: 1.2, value: value(200)
     },
     {
+        name: 'Mithril hammer', base: 'MithrilWeaponBase',
+        attack: 5,
+        damage: '1d15 + 6', defense: 1,
+        weaponType: 'axe', weight: 2.4, value: value(250)
+    },
+    {
         name: 'Mithril long sword', base: 'MithrilWeaponBase',
         attack: 5,
         damage: '1d15 + 4', defense: 4, weight: 0.6, value: value(300),
@@ -254,6 +267,11 @@ const Items = [
         weaponType: 'axe', weight: 4.5, value: value(400)
     },
     {
+        name: 'Permaice hammer', base: 'IceWeaponBase',
+        damage: '3d6 + 10', defense: 7,
+        weaponType: 'hammer', weight: 6.5, value: value(440)
+    },
+    {
         name: 'Permaice long sword', base: 'IceWeaponBase',
         damage: '4d5 + 6', defense: 8, weight: 3.0, value: value(500),
         weaponType: 'sword'
@@ -292,6 +310,12 @@ const Items = [
         damage: '3d6 + 2',
         attack: 3, defense: 3, weight: 0.3, value: value(250),
         weaponType: 'mace'
+    },
+    {
+        name: 'Ruby glass hammer', base: 'RubyWeaponBase',
+        damage: '3d6 + 4',
+        attack: 4, defense: 2, weight: 0.6, value: value(250),
+        weaponType: 'hammer'
     },
     {
         name: 'Ruby glass staff', base: 'RubyWeaponBase',
@@ -347,6 +371,12 @@ const Items = [
         damage: '4d5 + 2',
         attack: 4, defense: 2, weight: 1.5, value: value(400),
         weaponType: 'axe'
+    },
+    {
+        name: 'Runed hammer', base: 'RunedWeaponBase',
+        damage: '4d5 + 4',
+        attack: 5, defense: 1, weight: 2.7, value: value(400),
+        weaponType: 'hammer'
     },
     {
         name: 'Runed staff', base: 'RunedWeaponBase',
