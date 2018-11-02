@@ -134,7 +134,11 @@ class CmdUseItem {
                 obj.callback({msg: msg, result});
             }
             else if (!result) {
-                return this.cmdNotPossible('You cannot use that item.');
+                // return this.cmdNotPossible('You cannot use that item.');
+                const useComp = new RG.Component.UseItem();
+                useComp.setItem(item);
+                useComp.setTarget(obj.target);
+                this._actor.add(useComp);
             }
             else {
               RG.gameMsg(`You used ${item.getName()}!`);
