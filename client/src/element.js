@@ -590,9 +590,11 @@ RG.ELEM.BRIDGE = Object.freeze(parser.createElement('bridge'));
 RG.ELEM.CHASM = Object.freeze(parser.createElement('chasm'));
 
 RG.ELEM.FLOOR = Object.freeze(parser.createElement('floor'));
+RG.ELEM.FLOOR_CASTLE = Object.freeze(parser.createElement('floorcastle'));
 RG.ELEM.FLOOR_CAVE = Object.freeze(parser.createElement('floorcave'));
 RG.ELEM.FLOOR_CRYPT = Object.freeze(parser.createElement('floorcrypt'));
 RG.ELEM.FLOOR_HOUSE = Object.freeze(parser.createElement('floorhouse'));
+RG.ELEM.FLOOR_WOODEN = Object.freeze(parser.createElement('floorwooden'));
 
 RG.ELEM.GRASS = Object.freeze(parser.createElement('grass'));
 RG.ELEM.HIGH_ROCK = Object.freeze(parser.createElement('highrock'));
@@ -605,6 +607,7 @@ RG.ELEM.STONE = Object.freeze(parser.createElement('stone'));
 RG.ELEM.TREE = Object.freeze(parser.createElement('tree'));
 
 RG.ELEM.WALL = Object.freeze(new RGElementWall('wall'));
+RG.ELEM.WALL_CASTLE = Object.freeze(new RGElementWall('wallcastle'));
 RG.ELEM.WALL_CAVE = Object.freeze(new RGElementWall('wallcave'));
 RG.ELEM.WALL_CRYPT = Object.freeze(new RGElementWall('wallcrypt'));
 RG.ELEM.WALL_ICE = Object.freeze(new RGElementWall('wallice'));
