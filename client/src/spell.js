@@ -612,7 +612,7 @@ RG.extend2(Spell.Paralysis, Spell.AddComponent);
 
 Spell.StunningTouch = function() {
     Spell.AddComponent.call(this, 'StunningTouch', 7);
-    this.setCompName('StunningTouch');
+    this.setCompName('Stun');
     this.setDuration(RG.FACT.createDie('1d6 + 2'));
 
     this.aiShouldCastSpell = (args, cb) => {
@@ -862,6 +862,14 @@ Spell.PoisonBreath.prototype.onHit = function(actor, src) {
     RG.gameSuccess({cell: actor.getCell(), msg});
 };
 
+Spell.WaterBolt = function() {
+    Spell.BoltBase.call(this, 'WaterBolt', 10);
+    this.setDice('damage', RG.FACT.createDie('4d4 + 4'));
+    this.setRange(5);
+    this.damageType = RG.DMG.WATER;
+};
+RG.extend2(Spell.WaterBolt, Spell.BoltBase);
+
 /* Ice shield increase the defense of the caster temporarily. */
 Spell.IceShield = function() {
     Spell.Base.call(this, 'Ice shield', 7);
@@ -1068,6 +1076,7 @@ Spell.SummonBase = function(name, power) {
 
         if (minion) {
             level.addActor(minion, x, y);
+            minion.getBrain().getMemory().copyMemoryFrom(caster);
             minion.addFriend(caster);
             caster.addFriend(minion);
 
@@ -1192,10 +1201,8 @@ Spell.SummonFlyingEyes = function() {
         if (!actor.has('Telepathy')) {
             args.dir = [0, 0];
             cb(actor, args);
-            console.log('SummonFlyingEyes return true');
             return true;
         }
-        console.log('SummonFlyingEyes return false');
         return false;
     };
 
