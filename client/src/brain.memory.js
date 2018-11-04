@@ -138,6 +138,17 @@ Memory.prototype.getFriends = function() {
     return this._actors.friends || MEM_NO_ACTORS;
 };
 
+/* Copies memory (mainly friends/enemies) from one actor. Used when another
+ * actor is summoned to copy summoner's enemies. */
+Memory.prototype.copyMemoryFrom = function(actor) {
+    const memory = actor.getBrain().getMemory();
+    const enemies = memory.getEnemies().slice();
+    this._actors.enemies = enemies;
+    const friends = memory.getFriends().slice();
+    this._actors.friends = friends;
+    this._enemyTypes = Object.assign({}, memory._enemyTypes);
+};
+
 /* Adds a communication with given actor. */
 Memory.prototype.addCommunicationWith = function(actor) {
     if (!this.hasCommunicatedWith(actor)) {
