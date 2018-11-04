@@ -769,6 +769,7 @@ RG.Component.Jumper = UniqueDataComponent('Jumper', {jumpRange: 2});
 RG.Component.Camouflage = UniqueTagComponent('Camouflage');
 RG.Component.SnowWalk = UniqueTagComponent('SnowWalk');
 
+RG.Component.Amphibious = UniqueTagComponent('Amphibious');
 //--------------------------------------------
 // RANGED COMBAT COMPONENTS
 //--------------------------------------------
