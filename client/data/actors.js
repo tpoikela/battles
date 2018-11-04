@@ -186,6 +186,12 @@ const Actors = [
         hp: 50, danger: 10, addComp: 'Flying',
         onHit: [{addComp: 'Paralysis', duration: '1d4 + 1'}]
     },
+    {
+        name: 'forest wurm', char: 'W', base: 'animal',
+        color: color('Green', 'Brown'),
+        attack: 7, defense: 7, protection: 15, damage: '3d10',
+        hp: 70, danger: 10
+    },
 
     // BEASTS TODO
     {
@@ -208,6 +214,15 @@ const Actors = [
         name: 'ConstructBase', type: 'construct',
         dontCreate: true,
         enemies: RG.ACTOR_RACES
+    },
+    {
+        name: 'water elemental', base: 'ConstructBase',
+        char: 'E', className: 'cell-actor-water',
+        attack: 5, defense: 5, protection: 3,
+        hp: 38, danger: 9, damage: '4d4',
+        addComp: 'Amphibious',
+        brain: 'SpellCaster', spells: ['WaterBolt'],
+        maxPP: 40, pp: 40
     },
     {
         name: 'air elemental', base: 'ConstructBase',
@@ -244,13 +259,13 @@ const Actors = [
     {
         name: 'goblin', char: 'g', type: 'goblin',
         className: 'cell-actor-goblin',
-        attack: 1, defense: 1, damage: '1d4', range: 1, hp: 5,
-        danger: 2, enemies: ['human', 'player'],
+        attack: 1, defense: 1, damage: '1d6', range: 1, hp: 7,
+        danger: 2, enemies: ['human'],
         brain: defaultBrain
     },
     {
         name: 'goblin slinger', base: 'goblin',
-        attack: 2, defense: 1, hp: 8,
+        attack: 2, defense: 1, hp: 10,
         equip: [{name: 'Rock', count: 10}]
     },
     {
@@ -290,7 +305,7 @@ const Actors = [
     },
 
     {
-        name: 'HyrmBase', char: 'y', type: 'hyrm',
+        name: 'HyrmBase', char: 'Y', type: 'hyrm',
         color: color('Black', 'Purple'), dontCreate: true,
         attack: 1, defense: 1, damage: '1d4', range: 1, hp: 10,
         danger: 2, brain: defaultBrain,
@@ -313,6 +328,12 @@ const Actors = [
         danger: 5, brain: 'SpellCaster',
         spells: ['SummonKin', 'StunningTouch'],
         maxPP: 20, pp: 20
+    },
+    {
+        name: 'hyrm hulk', base: 'HyrmBase',
+        attack: 6, defense: 3, damage: '2d8', hp: 40,
+        strength: 15, speed: 90,
+        danger: 7,
     },
 
     // HUMANOIDS
@@ -369,6 +390,11 @@ const Actors = [
     {
         name: 'avian townsfolk', base: 'AvianFolkBase', danger: 1,
         attack: 1, defense: 1, damage: '1d4', hp: 10
+    },
+    {
+        name: 'avian scout', base: 'AvianFolkBase', danger: 2,
+        attack: 3, defense: 3, damage: '2d4', hp: 20,
+        speed: 110, fovrange: 6
     },
     {
         name: 'avian fighter', base: 'AvianFolkBase', danger: 4,
@@ -503,7 +529,7 @@ const Actors = [
         hp: 20
     },
     {
-        name: 'necrowyrm', char: 'W', base: 'UndeadBase',
+        name: 'necrowurm', char: 'W', base: 'UndeadBase',
         attack: 4, defense: 4, damage: '1d9', danger: 5,
         brain: 'Animal', speed: 115, hp: 21
     },
@@ -596,7 +622,8 @@ const Actors = [
         name: 'necrowyrm', char: 'W', base: 'UndeadBase',
         'color-fg': 'GhostWhite',
         attack: 7, defense: 7, protection: 7, damage: '3d5', danger: 10,
-        brain: 'Animal', speed: 107, hp: 50
+        brain: 'Animal', speed: 107, hp: 50,
+        addComp: ['Flying']
     },
     {
         name: 'ghost king', char: 'G', base: 'UndeadBase',
@@ -1177,7 +1204,8 @@ const Actors = [
     {
         name: 'Thabba, Son of Ice', base: 'UniqueBase',
         char: '@', danger: 200, enemies: ['human'], type: 'finalboss',
-        spells: ['FrostBolt'], hp: 100, pp: 100, brain: 'SpellCaster',
+        spells: ['FrostBolt', 'RingOfFrost'], hp: 100, pp: 100,
+        brain: 'SpellCaster',
         strength: 30, accuracy: 15, agility: 20, willpower: 20, perception: 15,
         magic: 30, attack: 30, defense: 30, protection: 10,
         equip: ['Permaice katana', 'Permaice armour'],
