@@ -705,7 +705,6 @@ RG.ObjectShell.ProcGen = function(db, dbDanger, dbByName) {
         const name = query.name;
         const categ = query.categ;
         const danger = query.danger;
-        // const type = query.type;
 
         // Specifying name returns an array
         if (!RG.isNullOrUndef([name])) {
@@ -893,6 +892,10 @@ RG.ObjectShell.Parser = function() {
 
     this.getCreator = function() {
         return this._creator;
+    };
+
+    this.getProcGen = function() {
+        return this._procgen;
     };
     //-----------------------------------------------------------------------
     // "PARSING" METHODS
@@ -1157,6 +1160,14 @@ RG.ObjectShell.Parser = function() {
     this.dbGet = query => this._procgen.dbGet(query);
 
     this.dbGetRand = query => this._procgen.dbGetRand(query);
+
+    this.filter = function(categ, func) {
+        return this._procgen.filterCategWithFunc(categ, func);
+    };
+
+    this.filterItems = function(func) {
+        return this._procgen.filterCategWithFunc(RG.TYPE_ITEM, func);
+    };
 
     //----------------------------------------------------------------------
     // RANDOMIZED METHODS for procedural generation
