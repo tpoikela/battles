@@ -246,7 +246,7 @@ System.Movement = function(compTypes) {
      * Stats/Combat, if it's integer it's added directly. */
     this._bonuses = {
         water: {
-            dontApplyTo: ['Flying'],
+            dontApplyTo: ['Flying', 'Amphibious'],
             mods: [
                 this.speedPenalty(0.5),
                 this.defensePenalty(0.5),
