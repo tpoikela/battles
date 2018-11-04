@@ -48,17 +48,18 @@ TerritoryMap.create = function(ow, playerRace, playerXY) {
     });
 
     const bearfolk = {name: 'bearfolk', char: 'B'};
-    const undeads = {name: 'undead', char: 'z', numPos: 3,
-        startX: [ow.getCenterX()], startY: [ow.getSizeY() - 5]};
-
     terrMap.addRival({name: 'avianfolk', char: 'A'});
-    terrMap.addRival(undeads);
     terrMap.addRival({name: 'wildling', char: 'I'});
     terrMap.addRival(bearfolk);
     terrMap.addRival({name: 'wolfclan', char: 'w'});
     terrMap.addRival({name: 'catfolk', char: 'f'});
     terrMap.addRival({name: 'dogfolk', char: 'd'});
     terrMap.addRival({name: 'human', char: '@'});
+
+    const undeads = {name: 'undead', char: 'z', numPos: 3,
+        startX: [ow.getCenterX()], startY: [ow.getSizeY() - 5]};
+    terrMap.addRival(undeads);
+
     terrMap.addRival({name: 'goblin', char: 'g', numPos: 8});
     terrMap.addRival({name: 'dwarf', char: 'h',
         startX: dwarves[0], startY: dwarves[1]});
