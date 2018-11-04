@@ -56,14 +56,19 @@
 };
 
 .cell-damage-POISON {
-    color: $green;
     background-color: $stone-color;
+    color: $green;
 };
 
 .cell-damage-SLASH {
 };
 
+.cell-damage-WATER {
+    background-color: $black;
+    color: $blue;
+};
+
 .cell-damage-VOID {
-    color: $black;
     background-color: $purple;
+    color: $black;
 };
