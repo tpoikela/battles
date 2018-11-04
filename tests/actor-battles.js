@@ -10,6 +10,7 @@ const ActorBattles = function(args) {
     this.monitorActor = args.monitorActor;
     this.matchLimit = args.matchLimit || UNLIMITED;
     this.shells = args.shells;
+    this.equalizeLevels = true;
 
     this.fname = 'actor_fight_results';
     this.dir = 'results';
@@ -46,6 +47,8 @@ ActorBattles.prototype.initHistograms = function(a1, a2) {
     }
 };
 
+/* Returns the actor object that will be used. If given arg is function,
+ * calls the function and returns the result. */
 ActorBattles.prototype.getActorObj = function(a1) {
     if (typeof a1 === 'function') {
         return a1();
@@ -53,7 +56,7 @@ ActorBattles.prototype.getActorObj = function(a1) {
     if (a1.name) {
         return parser.createActor(a1.name);
     }
-    else if (a1.getName && typeof a1.getName === 'function') {
+    else if (RG.isActor(a1)) {
         return a1;
     }
     return a1;
@@ -84,8 +87,10 @@ ActorBattles.prototype.runBattleTest = function(a1, a2) {
     const a2Name = actor2.getName();
 
     const a1Level = actor1.get('Experience').getExpLevel();
-    if (a1Level > actor2.get('Experience').getExpLevel()) {
-        RG.levelUpActor(actor2, a1Level);
+    if (this.equalizeLevels) {
+        if (a1Level > actor2.get('Experience').getExpLevel()) {
+            RG.levelUpActor(actor2, a1Level);
+        }
     }
 
     while (h1.isAlive() && h2.isAlive()) {
@@ -94,42 +99,26 @@ ActorBattles.prototype.runBattleTest = function(a1, a2) {
     }
 
     if (watchdog === 0) {
-        this.histogram[a1Name].tied += 1;
-        this.histogram[a2Name].tied += 1;
-        if (a1Name === this.monitorActor) {
-            if (!this.monitor.tied[a2Name]) {this.monitor.tied[a2Name] = 1;}
-            else {this.monitor.tied[a2Name] += 1;}
-        }
-        else if (a2Name === this.monitorActor) {
-            if (!this.monitor.tied[a1Name]) {this.monitor.tied[a1Name] = 1;}
-            else {this.monitor.tied[a1Name] += 1;}
-        }
+        this.recordResult('tied', a1Name);
+        this.recordResult('tied', a2Name);
     }
     else if (h1.isAlive()) {
-        this.histogram[a1Name].won += 1;
-        this.histogram[a2Name].lost += 1;
-        if (a1Name === this.monitorActor) {
-            if (!this.monitor.won[a2Name]) {this.monitor.won[a2Name] = 1;}
-            else {this.monitor.won[a2Name] += 1;}
-        }
-        else if (a2Name === this.monitorActor) {
-            if (!this.monitor.lost[a1Name]) {this.monitor.lost[a1Name] = 1;}
-            else {this.monitor.lost[a1Name] += 1;}
-        }
+        this.recordResult('won', a1Name);
+        this.recordResult('lost', a2Name);
     }
     else {
-        this.histogram[a1Name].lost += 1;
-        this.histogram[a2Name].won += 1;
-        if (a1Name === this.monitorActor) {
-            if (!this.monitor.lost[a2Name]) {this.monitor.lost[a2Name] = 1;}
-            else {this.monitor.lost[a2Name] += 1;}
-        }
-        else if (a2Name === this.monitorActor) {
-            if (!this.monitor.won[a1Name]) {this.monitor.won[a1Name] = 1;}
-            else {this.monitor.won[a1Name] += 1;}
-        }
+        this.recordResult('lost', a1Name);
+        this.recordResult('won', a2Name);
     }
 
+};
+
+ActorBattles.prototype.recordResult = function(resType, aName) {
+    this.histogram[aName][resType] += 1;
+    if (aName === this.monitorActor) {
+        if (!this.monitor[resType][aName]) {this.monitor[resType][aName] = 1;}
+        else {this.monitor[resType][aName] += 1;}
+    }
 };
 
 ActorBattles.prototype.validActorsForTest = function(arr) {
