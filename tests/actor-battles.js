@@ -235,13 +235,33 @@ ActorBattles.prototype.printCSV = function(tag) {
     if (tag.length > 0) {
         fs.writeFileSync(outputFile, `tag: ${tag}`);
     }
-    fs.appendFileSync(outputFile, 'Actor,Won,Tied,Lost\n');
-    Object.keys(histogram).forEach(key => {
-        const {won, lost, tied} = histogram[key];
+    fs.appendFileSync(outputFile, 'Actor,Won,Tied,Lost,Danger\n');
+    let actorData = Object.entries(histogram);
+    actorData = actorData.sort((a, b) => {
+        console.log('a', a, 'b', b);
+        if (a[1].won > b[1].won) {
+            return -1;
+        }
+        else if (a[1].won < b[1].won) {
+            return 1;
+        }
+        return 0;
+    });
+
+    actorData.forEach(entry => {
+        const key = entry[0];
+        const {won, lost, tied} = entry[1];
         const newKey = key.replace(',', '');
-        const csvData = `${newKey},${won},${tied},${lost}\n`;
+        const danger = Math.round((won / (won + lost)) * 100);
+        const csvData = `${newKey},${won},${tied},${lost},${danger}\n`;
         fs.appendFileSync(outputFile, csvData);
     });
+    const linkName = `${this.dir}/last_sim.csv`;
+    if (fs.existsSync(linkName)) {
+        fs.unlinkSync(linkName);
+    }
+    fs.linkSync(outputFile, linkName);
+    console.log('Results printed to file ' + outputFile);
 };
 
 module.exports = ActorBattles;
