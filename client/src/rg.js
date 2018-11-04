@@ -899,7 +899,8 @@ RG.DMG = {
     PIERCE: 'PIERCE',
     POISON: 'POISON',
     SLASH: 'SLASH',
-    VOID: 'VOID'
+    VOID: 'VOID',
+    WATER: 'WATER'
 };
 
 RG.classNameDMG = {
@@ -918,6 +919,7 @@ RG.classNameDMG = {
     PIERCE: 'cell-damage-PIERCE',
     POISON: 'cell-damage-POISON',
     SLASH: 'cell-damage-SLASH',
+    WATER: 'cell-damage-WATER',
     VOID: 'cell-damage-VOID'
 };
 
