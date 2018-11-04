@@ -253,6 +253,30 @@ FactoryItem.addItemsToActor = function(actor, items) {
     });
 };
 
+/* Given actor and gear type (mithril, ruby, permaice ...), tries to
+ * equip a full gear of items to the actor. */
+FactoryItem.equipFullGearType = function(actor, type) {
+    const parser = ObjectShell.getParser();
+    const nameRegexp = new RegExp(type);
+    const items = parser.filterItems(item => (
+        item.type === 'armour' && nameRegexp.test(item.name)
+    ));
+    return FactoryItem.equipItemsToActor(actor, items);
+};
+
+/* Equips one melee weapon of given type to the actor. */
+FactoryItem.equipWeaponOfType = function(actor, type) {
+    const parser = ObjectShell.getParser();
+    const nameRegexp = new RegExp(type);
+    const items = parser.filterItems(item => (
+        item.type === 'weapon' && nameRegexp.test(item.name)
+    ));
+    const oneWeapon = RNG.arrayGetRand(items);
+    return FactoryItem.equipItemsToActor(actor, [oneWeapon]);
+};
+
+/* Tries to equip the list of given items to actor. Each item can be a
+ * string or {name: 'xxx', count: 3} object. */
 FactoryItem.equipItemsToActor = function(actor, items) {
     const parser = ObjectShell.getParser();
     let createdItem = null;
