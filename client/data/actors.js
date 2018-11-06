@@ -1122,17 +1122,27 @@ const Actors = [
       type: 'hyrkhian', brain: defaultBrain
     },
     {
+      name: 'Hyrkhian townsfolk', base: 'HyrkhianBase',
+      damage: '1d6',
+      attack: 1, defense: 1, protection: 1, hp: 7, danger: 1
+    },
+    {
       name: 'Hyrkhian footman', base: 'HyrkhianBase',
-      attack: 4, defense: 4, protection: 2, hp: 20, danger: 5,
-      equip: ['Spear']
+      attack: 2, defense: 2, protection: 2, hp: 15, danger: 3,
+      equip: ['Longsword']
+    },
+    {
+      name: 'Hyrkhian phalanx', base: 'HyrkhianBase',
+      attack: 4, defense: 4, protection: 2, hp: 25, danger: 5,
+      equip: ['Chain armour', 'Spear']
     },
     {
       name: 'Hyrkhian archer', base: 'HyrkhianBase',
-      attack: 4, defense: 4, protection: 2, hp: 20,
+      attack: 4, defense: 4, protection: 2, damage: '1d8', hp: 20,
       equip: ['Steel bow', {name: 'Steel arrow', count: 15}], danger: 6
     },
     {
-      name: 'Hyrkhian wizard', base: 'HyrkhianBase',
+      name: 'Hyrkhian adept', base: 'HyrkhianBase',
       attack: 4, defense: 4, protection: 2, hp: 25,
       danger: 7, pp: 30, brain: 'SpellCaster',
       spells: ['Heal', 'MagicArmor']
@@ -1140,12 +1150,14 @@ const Actors = [
     {
       name: 'Hyrkhian elite', base: 'HyrkhianBase',
       attack: 6, defense: 6, protection: 3, hp: 35, brain: 'Human',
-      equip: ['Longsword', 'Chain armour', 'Chain helmet'], danger: 8
+      strength: 13,
+      equip: ['Mithril short sword', 'Chain armour', 'Chain helmet'], danger: 8
     },
     {
       name: 'Hyrkhian commander', base: 'HyrkhianBase',
       attack: 8, defense: 8, protection: 4, hp: 50, brain: 'Human',
-      equip: ['Battle axe', 'Steel armour', 'Steel helmet'], danger: 10
+      strength: 15,
+      equip: ['Great battle axe', 'Steel armour', 'Steel helmet'], danger: 10
     },
 
     // SPECIAL ACTORS
