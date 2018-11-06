@@ -81,7 +81,7 @@ classes.forEach(className => {
         const ab = new ActorBattles({monitorActor, matchLimit, shells});
         ab.equalizeLevels = false;
         ab.runWithActor(createPlayer.bind(null, conf), 3);
-        // ab.printOutputs(className);
+        // ab.printOutputs(tag);
 
         ab.printMonitored(tag);
 
