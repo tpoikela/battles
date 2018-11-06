@@ -70,34 +70,32 @@ Keys.KeyMap = {
         return this.moveKeyMap.hasOwnProperty(code);
     },
 
-    isRest: function(code) {
-        return code === Keys.VK_s || code === Keys.VK_PERIOD;
-    },
-    isPickup: function(code) {return code === Keys.KEY.PICKUP;},
-    isUseStairs: function(code) {
-        return code === Keys.KEY.USE_STAIRS_DOWN ||
-            code === Keys.KEY.USE_STAIRS_UP;
-    },
-    isChat: function(code) {return code === Keys.KEY.CHAT;},
-    isConfirmYes: function(code) {return code === Keys.KEY.YES;},
-    isFightMode: function(code) {return code === Keys.KEY.FIGHT;},
-    isGive: function(code) {return code === Keys.KEY.GIVE;},
-    isGoto: function(code) {return code === Keys.KEY.GOTO;},
-    isJump: function(code) {return code === Keys.KEY.JUMP;},
-    isIssueOrder: function(code) {return code === Keys.KEY.ORDER;},
-    isLook: function(code) {return code === Keys.KEY.LOOK;},
-    isMark: function(code) {return code === Keys.KEY.MARK;},
-    isNextItem: function(code) {return code === Keys.KEY.NEXT_ITEM;},
-    isNextTarget: function(code) {return code === Keys.KEY.NEXT;},
-    isPrevTarget: function(code) {return code === Keys.KEY.PREV;},
-    isRead: function(code) {return code === Keys.KEY.READ;},
-    isRunMode: function(code) {return code === Keys.KEY.RUN;},
-    isSelect: function(code) {return code === Keys.KEY.SELECT;},
-    isSelectAll: function(code) {return code === Keys.KEY.SELECT_ALL;},
-    isTargetMode: function(code) {return code === Keys.KEY.TARGET;},
-    isToggleDoor: function(code) {return code === Keys.KEY.DOOR;},
-    isUsePower: function(code) {return code === Keys.KEY.POWER;},
-    isUseAbility: function(code) {return code === Keys.KEY.ABILITY;},
+    isRest: code => (code === Keys.VK_s || code === Keys.VK_PERIOD),
+    isPickup: code => code === Keys.KEY.PICKUP,
+    isUseStairs: code => (
+        code === Keys.KEY.USE_STAIRS_DOWN || code === Keys.KEY.USE_STAIRS_UP
+    ),
+    isChat: code => code === Keys.KEY.CHAT,
+    isConfirmYes: code => code === Keys.KEY.YES,
+    isFightMode: code => code === Keys.KEY.FIGHT,
+    isGive: code => code === Keys.KEY.GIVE,
+    isGoto: code => code === Keys.KEY.GOTO,
+    isJump: code => code === Keys.KEY.JUMP,
+    isIssueOrder: code => code === Keys.KEY.ORDER,
+    isLook: code => code === Keys.KEY.LOOK,
+    isMark: code => code === Keys.KEY.MARK,
+    isNextItem: code => code === Keys.KEY.NEXT_ITEM,
+    isNextTarget: code => code === Keys.KEY.NEXT,
+    isPrevTarget: code => code === Keys.KEY.PREV,
+    isRead: code => code === Keys.KEY.READ,
+    isRunMode: code => code === Keys.KEY.RUN,
+    isSelect: code => code === Keys.KEY.SELECT,
+    isSelectAll: code => code === Keys.KEY.SELECT_ALL,
+    isTargetMode: code => code === Keys.KEY.TARGET,
+    isToggleDoor: code => code === Keys.KEY.DOOR,
+    isUsePower: code => code === Keys.KEY.POWER,
+    isUseAbility: code => code === Keys.KEY.ABILITY,
+    isMultiPurpose: code => code === Keys.KEY.MULTI,
 
     /* Based on keycode, computes and returns a new x,y pair. If code is
      * invalid, returns null. */
@@ -270,6 +268,7 @@ Keys.KEY.GOTO = Keys.VK_g;
 Keys.KEY.JUMP = Keys.VK_j;
 Keys.KEY.LOOK = ROT.VK_L + 32;
 Keys.KEY.MARK = Keys.VK_b;
+Keys.KEY.MULTI = ROT.VK_SPACE;
 Keys.KEY.NEXT = Keys.VK_n;
 Keys.KEY.NEXT_ITEM = ROT.VK_H + 32;
 Keys.KEY.ORDER = ROT.VK_O;
