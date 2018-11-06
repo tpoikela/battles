@@ -32,6 +32,7 @@ const Keys = require('../src/keymap');
 RG.Game = require('../src/game');
 RG.Verify = require('../src/verify');
 const KeyCode = require('../gui/keycode');
+const MultiKeyHandler = require('../gui/multikey-handler');
 
 const md5 = require('js-md5');
 
@@ -162,6 +163,7 @@ class BattlesTop extends Component {
         this.hasNotify = true;
         this.notify = this.notify.bind(this);
         this.listener = new ProxyListener(this.notify);
+        this.multiHandler = new MultiKeyHandler();
 
         this.gameSave.setStorage(window.localStorage);
         this.savedPlayerList = this.gameSave.getPlayersAsList();
@@ -677,15 +679,27 @@ class BattlesTop extends Component {
 
     /* Listens for player key presses and handles them.*/
     handleKeyDown(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
         const keyCode = KeyCode.getKeyCode(evt);
         if (this.keyPending === false) {
-            // if (this.isValidKey(keyCode)) {
-                this.keyPending = true;
-                this.nextCode = keyCode;
-                if (!this.isGUICommand(keyCode)) {
-                    this.gameState.isTargeting = false;
+            this.keyPending = true;
+            this.nextCode = keyCode;
+            if (!this.isGUICommand(keyCode)) {
+                this.gameState.isTargeting = false;
+            }
+
+            if (Keys.KeyMap.isMultiPurpose(keyCode)) {
+                const player = this.game.getPlayer();
+                const keySeq = this.multiHandler.getKeys(player);
+                if (keySeq && keySeq.length > 0) {
+                    this.clickHandler = new CellClickHandler(this.game);
+                    this.clickHandler.setKeys(keySeq);
+                    if (this.clickHandler.hasKeys()) {
+                        this.setAutoMode();
+                    }
                 }
-            // }
+            }
         }
     }
 
