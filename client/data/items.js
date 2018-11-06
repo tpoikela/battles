@@ -174,7 +174,7 @@ const Items = [
     {
         name: 'Great battle axe', base: 'MeleeWeaponBase',
         material: 'steel',
-        damage: '2d7 + 4', attack: 3, defense: 0,
+        damage: '2d8 + 4', attack: 3, defense: 0,
         weaponType: 'axe',
         weight: 4.5, value: value(130)
     },
@@ -636,7 +636,7 @@ const Items = [
     },
     {
         name: 'Permaice helmet', base: 'IceArmourBase',
-        weight: 1.8, defense: 0, protection: 3,
+        weight: 1.8, defense: 0, protection: 4,
         armourType: 'head', value: value(200)
     },
     {
