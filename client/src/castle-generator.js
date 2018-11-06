@@ -7,6 +7,7 @@ const RG = require('./rg');
 const ROT = require('../../lib/rot');
 const Element = require('./element');
 const LevelGenerator = require('./level-generator');
+const MapGenerator = require('./map.generator');
 const Level = require('./level');
 const DungeonPopulate = require('./dungeon-populate');
 const Castle = require('../data/tiles.castle');
@@ -87,7 +88,7 @@ CastleGenerator.prototype.createLevel = function(cols, rows, conf) {
         wallType: 'wallcastle'
         }, conf
     );
-    const mapgen = new RG.Map.Generator();
+    const mapgen = new MapGenerator();
 
     // Determine direction of castle exit
     const gateFunc = getGateDirFunction(conf);

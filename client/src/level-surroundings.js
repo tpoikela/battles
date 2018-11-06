@@ -5,6 +5,7 @@ const RG = require('./rg');
 const Geometry = require('./geometry');
 const Random = require('./random');
 const Level = require('./level');
+const MapGenerator = require('./map.generator');
 
 const RNG = Random.getRNG();
 
@@ -59,7 +60,7 @@ LevelSurroundings.prototype.surroundWithCellsAround = function(level, conf) {
     wallConf.meanWy = RNG.getUniformInt(5, ySize);
     wallConf.wallElem = RG.ELEM.WALL_MOUNT;
 
-    const mapgen = new RG.Map.Generator();
+    const mapgen = new MapGenerator();
     // mapgen.setGen('empty', colsArea, rowsArea);
     const mapObj = mapgen.createWall(colsArea, rowsArea, wallConf);
     const mountLevel = new Level(colsArea, rowsArea);
