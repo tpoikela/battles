@@ -32,6 +32,10 @@ export default class CellClickHandler {
         return this._keyBuffer.length > 0;
     }
 
+    setKeys(keys) {
+        this._keyBuffer = keys.slice();
+    }
+
     handleClick(x, y, cell, cmd) {
         // Don't react to click if there are already keys
         if (this.hasKeys()) {return;}
