@@ -47,7 +47,7 @@ const GameMaster = function(game, pool = RG.POOL) {
             const {actor} = args;
             if (actor.isPlayer()) {
                 if (!actor.has('InBattle')) {
-                    this.addPlayerToBattle(args);
+                    this.tryToAddPlayerToBattle(args);
                 }
                 else {
                     this.removePlayerFromBattle(args);
@@ -138,7 +138,7 @@ const GameMaster = function(game, pool = RG.POOL) {
     };
 
     /* Adds player to the battle level. */
-    this.addPlayerToBattle = function(args) {
+    this.tryToAddPlayerToBattle = function(args) {
         const {actor, target, src} = args;
         const srcID = src.getID();
         if (this.battles.hasOwnProperty(srcID)) {
@@ -147,6 +147,7 @@ const GameMaster = function(game, pool = RG.POOL) {
                 return; // Cannot join serialized battle anyway
             }
             const battleLevel = battle.getLevel();
+
             if (battleLevel.getID() === target.getID()) {
                 if (this.actorCanEnter(actor, battle)) {
                     // Entered a battle
@@ -213,6 +214,9 @@ const GameMaster = function(game, pool = RG.POOL) {
             actor.add(badge);
             actor.remove('InBattle');
             actor.add(new RG.Component.BattleOver());
+        }
+        else if (!battle.isOver() && !battleData.army) {
+            actor.remove('InBattle');
         }
     };
 
