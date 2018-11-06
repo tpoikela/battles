@@ -34,7 +34,7 @@ class GoalSearchHouse extends Goal.Base {
         }
 
         let nextGoal = ifItemFoundCreateGoal(this.actor, seenCells);
-        if (!nextGoal) {
+        if (!nextGoal && this.floorCells.length > 0) {
             const cell = RNG.arrayGetRand(this.floorCells);
             nextGoal = new Goal.FollowPath(this.actor, cell.getXY());
         }
@@ -219,7 +219,9 @@ class GoalThief extends Goal.Base {
             }
             else if (actorCell.hasDoor()) {
                 this.visitedDoors[actorCell.getKeyXY()] = actorCell.getXY();
-                nextGoal = new GoalSearchHouse(this.actor);
+                if (this.thiefSeesHouse()) {
+                    nextGoal = new GoalSearchHouse(this.actor);
+                }
             }
 
             if (!nextGoal) {
@@ -245,6 +247,15 @@ class GoalThief extends Goal.Base {
                 this.shops[cell.getKeyXY()] = cell;
             }
         }
+    }
+
+    thiefSeesHouse() {
+        const seenCells = this.actor.getBrain().getSeenCells();
+        const floorCells = seenCells.filter(c => (
+            c.getBaseElem().getType() === 'floorhouse'
+        ));
+        if (floorCells.length > 0) {return true;}
+        return false;
     }
 
 }
