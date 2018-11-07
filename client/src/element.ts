@@ -17,10 +17,15 @@ RG.Element.canJumpOver = type => {
     return !(wallRegexp.test(type) || (/highrock/).test(type));
 };
 
+interface NameArgs {
+    name: string;
+    type: string;
+}
+
 /* Element is a wall or other obstacle or a feature in the map. It's not
  * necessarily blocking movement.  */
 class RGElementBase extends Mixin.Typed(Entity) {
-    constructor(elemName, elemType) {
+    constructor(elemName: string | NameArgs, elemType?: string) {
         let name = null;
         let type = null;
         // To support args passing via Mixin
@@ -232,7 +237,7 @@ class RGElementStairs extends Mixin.Locatable(RGElementBase) {
 
     /* Serializes the Stairs object. */
     toJSON() {
-        const json = {
+        const json: any = {
             name: this.getName(),
             type: this.getType()
         };
@@ -469,7 +474,7 @@ class RGElementShop extends Mixin.Locatable(RGElementBase) {
         if (this._shopkeeper) {
             shopkeeperID = this._shopkeeper.getID();
         }
-        const obj = {
+        const obj: any = {
             type: 'shop',
             isAbandoned: this._isAbandoned,
             costFactorSell: this._costFactorShopSells,
@@ -530,7 +535,7 @@ class RGElementExploration extends Mixin.Locatable(RGElementBase) {
     }
 
     toJSON() {
-        const json = {
+        const json: any = {
             type: this.getType(),
             setMsg: this.getMsg(),
             setExp: this.getExp()
