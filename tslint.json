@@ -1,0 +1,36 @@
+{
+    "defaultSeverity": "error",
+    "extends": [
+        "tslint:recommended",
+        "tslint-consistent-codestyle"
+    ],
+    "jsRules": {},
+    "rules": {
+        "comment-format": [false, "check-space"],
+        "indent": [true, "spaces", 4],
+        "no-bitwise": false,
+        "no-conditional-assignment": true,
+        "no-consecutive-blank-lines": [true, 2],
+        "no-console": false,
+        "no-require-imports": false,
+        "no-var-requires": false,
+        "no-unused-expression": true,
+        "no-unused-variable": true,
+        "only-arrow-functions": false,
+        "prefer-const": true,
+        "prefer-function-over-method": true,
+        "quotemark": [true, "single"],
+        "one-line": false,
+        "ordered-imports": [
+          false,
+          {
+              "module-source-path": "basename"
+          }
+        ],
+        "arrow-parens": [true, "ban-single-arg-parens"],
+        "whitespace": [false, "check-separator"],
+        "trailing-comma": [true, {"multi-line": "never"}]
+    },
+    "rulesDirectory": [],
+    "exclude": ["node_modules"]
+}
