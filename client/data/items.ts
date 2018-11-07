@@ -1,15 +1,13 @@
 
 /* eslint comma-dangle: 0 */
-const RG = require('../src/rg');
-const Colors = require('./colors');
-const ShellUtils = require('./shell-utils');
-
-const {meleeHitDamage} = ShellUtils;
+import RG from '../src/rg';
+import Colors from './colors';
+import ShellUtils, {meleeHitDamage} from './shell-utils';
 
 const scaleAll = 1.0;
 
 /* Function to scale the item values. For fine-tuning the game balance. */
-function value(type, val) {
+function value(type: string | number, val?) {
     let value = 0;
     if (typeof type === 'string') {
         switch (type) {
@@ -31,11 +29,64 @@ function value(type, val) {
     return Math.floor(scaleAll * value);
 }
 
+interface AddCompSpec {
+    addComp: string;
+    func?: any[];
+    duration?: number | string;
+}
+
+interface ColorSpec {
+    fg?: string;
+    bg?: string;
+}
+
+interface UseSpec {
+    heal?: any;
+    cure?: any;
+    poison?: any;
+    stun?: any;
+    modifyCompValue?: any;
+    addEntity?: any;
+    removeComp?: any;
+    addComp?: any;
+    modifyStat?: any;
+}
+
+interface ObjectShell {
+    damageType?: string;
+    ammoType?: string;
+    onEquip?: AddCompSpec | AddCompSpec[];
+    onAttackHit?: AddCompSpec | AddCompSpec[];
+    noRandom?: boolean;
+    base?: string;
+    addComp?: any;
+    attack?: number;
+    color?: ColorSpec;
+    fireRate?: number;
+    char?: string;
+    className?: string;
+    defense?: number;
+    dontCreate?: boolean;
+    material?: string[] | string;
+    weaponType?: string;
+    armourType?: string;
+    damage?: string;
+    name: string;
+    range?: number;
+    protection?: number;
+    energy?: number;
+    use?: string | UseSpec | AddCompSpec;
+    uses?: number;
+    type?: string;
+    value?: number;
+    weight?: number;
+}
+
 //----------------------------
 // ITEM LIST
 //----------------------------
 
-const Items = [
+const Items: ObjectShell[] = [
     {
         name: 'Gold coin', className: 'cell-item-gold-coin',
         char: '$', material: 'gold',
@@ -1267,7 +1318,7 @@ const dmgTypes = {
 };
 
 /* Set damage types for weapons. */
-Items.forEach(item => {
+Items.forEach((item: ObjectShell) => {
     if (item.weaponType) {
         if (dmgTypes.hasOwnProperty(item.weaponType)) {
             item.damageType = dmgTypes[item.weaponType];
@@ -1281,4 +1332,4 @@ Items.forEach(item => {
 });
 
 
-module.exports = Items;
+export default Items;

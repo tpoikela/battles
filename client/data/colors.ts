@@ -2,7 +2,7 @@
  * actors, elements and items.
  */
 
-const Colors = {};
+const Colors: any = {};
 
 // Colors.race must be defined as objects {fg: <color1>, bg: <color2>}.
 // See scss/_colors.scss for list of allowed colors
@@ -35,4 +35,4 @@ Colors.role.king = 'Red';
 Colors.role.mage = 'Purple';
 Colors.role.slinger = 'Purple';
 
-module.exports = Colors;
+export default Colors;

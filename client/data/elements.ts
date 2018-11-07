@@ -108,4 +108,4 @@ const Elements = [
 
 ];
 
-module.exports = Elements;
+export default Elements;

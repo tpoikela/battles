@@ -1,7 +1,7 @@
 /* eslint comma-dangle: 0 */
 
-const RG = require('../src/rg');
-RG.Component = require('../src/component');
+import RG from '../src/rg';
+import Component from '../src/component';
 
 const entities = ['actors', 'items', 'elements'];
 
@@ -21,7 +21,7 @@ const getTargetActor = (obj) => {
 };
 
 const createUseItemComp = (item, target, effArgs) => {
-    const useItem = new RG.Component.UseItem();
+    const useItem = new Component.UseItem();
     useItem.setTarget(target);
     useItem.setItem(item);
     if (effArgs) {
@@ -257,8 +257,8 @@ RG.Effects = {
                 const actor = getTargetActor(obj);
                 if (actor) {
                     const stunDur = getDuration(this.useArgs.duration);
-                    const stunComp = new RG.Component.Stun();
-                    const expiration = new RG.Component.Expiration();
+                    const stunComp = new Component.Stun();
+                    const expiration = new Component.Expiration();
                     expiration.addEffect(stunComp, stunDur);
 
                     const itemOwner = this.getTopOwner();
@@ -316,4 +316,4 @@ RG.Effects = {
 
 };
 
-module.exports = RG.Effects;
+export default RG.Effects;

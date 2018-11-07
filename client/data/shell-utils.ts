@@ -5,7 +5,7 @@ import RG from '../src/rg';
 
 const ShellUtils = {};
 
-ShellUtils.meleeHitDamage = (dmg, dur, dmgType) => {
+export const meleeHitDamage = (dmg, dur, dmgType) => {
     return {
         addComp: 'DirectDamage', func: [
             {setter: 'setDamage', value: dmg},

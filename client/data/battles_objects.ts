@@ -1,8 +1,8 @@
 /* Include file for game objects like actors, items and elements. */
 
-const Items = require('./items');
-const Actors = require('./actors');
-const Elements = require('./elements');
+import Items from './items';
+import Actors from './actors';
+import Elements from './elements';
 
 const RGObjects = {
     actors: Actors,
@@ -10,4 +10,4 @@ const RGObjects = {
     elements: Elements
 };
 
-module.exports = RGObjects;
+export default RGObjects;

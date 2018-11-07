@@ -1,11 +1,9 @@
 /* Contains the in-game actors. */
 /* eslint comma-dangle: 0 */
 
-const RG = require('../src/rg');
-const ShellUtils = require('./shell-utils');
+import RG from '../src/rg';
+import ShellUtils, {meleeHitDamage} from './shell-utils';
 // const Colors = require('./colors');
-
-const {meleeHitDamage} = ShellUtils;
 
 const defaultBrain = 'GoalOriented';
 const demonBrain = 'GoalOriented';
@@ -1394,7 +1392,7 @@ Actors.modOrder = ['scale', 'add'];
  * changing the values breaks unit tests fairly easily. If
  * RG.ObjectShell.getParser()
  * is used (recommended), the adjustment is applied automatically. */
-Actors.adjustActorValues = (actorsData, order = Actors.modOrder) => {
+export const adjustActorValues = (actorsData, order = Actors.modOrder) => {
     order.forEach(mod => {
         const funcName = Actors.modToFunc[mod];
         Object.keys(Actors[mod]).forEach(item => {
@@ -1420,5 +1418,5 @@ function color(fg, bg) {
     return {fg, bg};
 }
 
-module.exports = Actors;
+export default Actors;
 
