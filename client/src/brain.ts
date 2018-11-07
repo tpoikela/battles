@@ -1,5 +1,5 @@
 
-const RG = require('./rg');
+import RG from './rg';
 const Path = require('./path');
 const Evaluator = require('./evaluators');
 const GoalsTop = require('./goals-top');
@@ -21,7 +21,7 @@ const RNG = RG.Random.getRNG();
 // BRAINS
 //---------------------------------------------------------------------------
 
-const Brain = {};
+const Brain: any = {};
 
 /* Returns a list of cells around the actor. The distance d can be specified.
 * For example, d=1 gives 3x3 region, d=2 5x5 region, d=3 7x7 ... */
@@ -940,4 +940,4 @@ Brain.MindControl.prototype.decideNextAction = function() {
     return ACTION_ALREADY_DONE;
 };
 
-module.exports = Brain;
+export default Brain;
