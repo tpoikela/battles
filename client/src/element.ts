@@ -3,10 +3,10 @@
  * elements like stairs.
  */
 
-const RG = require('./rg');
-const Entity = require('./entity');
-const Mixin = require('./mixin');
-const ObjectShell = require('./objectshellparser');
+import RG from './rg';
+import Entity from './entity';
+import Mixin from './mixin';
+import ObjectShell from './objectshellparser';
 
 RG.Element = {};
 
@@ -581,7 +581,9 @@ class RGElementMarker extends Mixin.Locatable(RGElementBase) {
 }
 RG.Element.Marker = RGElementMarker;
 
-RG.ELEM = {};
+export const ELEM: {[key: string]: RGElementBase} = {};
+RG.ELEM = ELEM;
+
 const parser = ObjectShell.getParser();
 // Constant elements which can be used by all levels. freeze()
 // used to prevent any mutations. Note that elements with any state
@@ -632,4 +634,5 @@ Object.keys(RG.ELEM).forEach(key => {
     ++elemIndex;
 });
 
-module.exports = RG.Element;
+
+export default RG.Element;

@@ -2,7 +2,7 @@
 const $DEBUG = 0;
 
 /* Main object of the package for encapsulating all other objects. */
-const RG = {};
+const RG: any = {};
 
 RG.gameTitle = 'Battles in the North (BitN)';
 
@@ -647,7 +647,8 @@ RG.findEnemyCellForActor = function(actor, seenCells) {
     return res;
 };
 
-POOL = null; // Global event pool
+import EventPool from './eventpool';
+const POOL: EventPool = EventPool.getPool();
 
 //--------------------------------------------------------------
 // CONSTANTS
@@ -1874,20 +1875,27 @@ RG.isSuccess = function(prob) {
 // MessageHandler
 //---------------------------------------------------------------------------
 
+interface Message {
+    msg: string;
+    style?: string;
+    count?: number;
+    cell?: any;
+}
+
 /* Handles the game message listening and storing of the messages. */
 RG.MessageHandler = function() { // {{{2
 
-    let _lastMsg = null;
+    let _lastMsg: Message = null;
 
-    let _messages = [];
-    let _prevMessages = [];
-    let _hasNew = false;
+    let _messages: Message[] = [];
+    let _prevMessages: Message[] = [];
+    let _hasNew: boolean = false;
 
     this.hasNotify = true;
     this.notify = (evtName, msg) => {
         if (evtName === RG.EVT_MSG) {
             if (msg.hasOwnProperty('msg')) {
-                const msgObj = {msg: msg.msg, style: 'prim', count: 1};
+                const msgObj: Message = {msg: msg.msg, style: 'prim', count: 1};
 
                 if (msg.hasOwnProperty('cell')) {
                     msgObj.cell = msg.cell;
@@ -1928,8 +1936,8 @@ RG.MessageHandler = function() { // {{{2
 
 /* A debug function which prints info about given entity. */
 RG.ent = function(whatever) {
-    if (window.PLAYER) {
-        const level = window.PLAYER.getLevel();
+    if ((window as any).PLAYER) {
+        const level = (window as any).PLAYER.getLevel();
         if (Number.isInteger(whatever)) {
             const actor = level.getActors().find(a => a.getID() === whatever);
             if (actor) {

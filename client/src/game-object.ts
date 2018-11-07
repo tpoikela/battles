@@ -3,82 +3,84 @@ const NULL_OBJECT = null;
 
 class GameObject {
 
+    public static ID: number;
     public $objID: number;
 
     constructor() {
         this.$objID = GameObject.ID++;
     }
-}
 
-GameObject.prototype.getID = function() {return this.$objID;};
-GameObject.prototype.setID = function(id) {this.$objID = id;};
+    getID() {return this.$objID;}
+    setID(id) {this.$objID = id;}
 
-GameObject.prototype.getObjRef = function() {
-    return {$objRef: {type: 'object', id: this.$objID}};
-};
+    getObjRef() {
+        return {$objRef: {type: 'object', id: this.$objID}};
+    }
 
-GameObject.prototype.getRefAndVal = function() {
-    const refObj = this.getObjRef();
-    refObj.value = this;
-    return refObj;
-};
+    getRefAndVal() {
+        const refObj = this.getObjRef();
+        refObj.value = this;
+        return refObj;
+    }
 
-GameObject.prototype.serialize = function() {
-    const json = {
-        $proto: GameObject.getProtoName(this)
-    };
-    for (const key in this) {
-        if (this.hasOwnProperty(key)) {
-            json[key] = GameObject.serialize(this[key]);
+    serialize() {
+        const json = {
+            $proto: GameObject.getProtoName(this)
+        };
+        for (const key in this) {
+            if (this.hasOwnProperty(key)) {
+                json[key] = GameObject.serialize(this[key]);
+            }
+        }
+        return json;
+    }
+
+    static deref(objRef) {
+        if (objRef) {
+            return objRef.value;
+        }
+        return NULL_OBJECT;
+    }
+
+    static createObjectID() {
+        return GameObject.ID++;
+    }
+
+    static getProtoName(obj) {
+        return Object.getPrototypeOf(obj).constructor.name;
+    }
+
+    static isPrimitive(obj) {
+        return typeof obj !== 'object';
+    }
+
+    static serialize(obj) {
+        if (GameObject.isPrimitive(obj)) {
+            return obj;
+        }
+        else if (Array.isArray(obj)) {
+            const arr = [];
+            obj.forEach(val => {
+                arr.push(GameObject.serialize(val));
+            });
+            return arr;
+        }
+        else if (obj.$objID) {
+            return obj.serialize();
+        }
+        else if (obj.toJSON) {
+            return obj.toJSON(); // Legacy support
+        }
+        else if (obj.$objRef) {
+            return {$objRef: obj.value.getID()};
+        }
+        else {
+            return obj;
         }
     }
-    return json;
-};
+}
+
 GameObject.ID = 1;
-
-GameObject.deref = function(objRef) {
-    if (objRef) {
-        return objRef.value;
-    }
-    return NULL_OBJECT;
-};
-
-GameObject.createObjectID = function() {
-    return GameObject.ID++;
-};
-
-GameObject.getProtoName = function(obj) {
-    return Object.getPrototypeOf(obj).constructor.name;
-};
-
-GameObject.isPrimitive = function(obj) {
-    return typeof obj !== 'object';
-};
-
-GameObject.serialize = function(obj) {
-    if (GameObject.isPrimitive(obj)) {
-        return obj;
-    }
-    else if (Array.isArray(obj)) {
-        const arr = [];
-        obj.forEach(val => {
-            arr.push(GameObject.serialize(val));
-        });
-        return arr;
-    }
-    else if (obj.$objID) {
-        return obj.serialize();
-    }
-    else if (obj.toJSON) {
-        return obj.toJSON(); // Legacy support
-    }
-    else if (obj.$objRef) {
-        return {$objRef: obj.value.getID()};
-    }
-    else {
-        return obj;
-    }
-};
 
 function deserialize(input, namespace, seenObjs = {}) {
     const obj = new namespace[input.$proto]();

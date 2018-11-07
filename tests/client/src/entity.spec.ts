@@ -3,18 +3,21 @@ import { expect } from 'chai';
 
 import RG = require('../../../client/src/rg');
 import Component from '../../../client/src/component.base';
+import {CombatMods} from '../../../client/src/component';
 import Entity from '../../../client/src/entity';
+
+const {Base} = Component;
 
 describe('Entity', () => {
 
     let entity: Entity = null;
-    let testComp: Component.Base = null;
-    let testComp1: Component.Base = null;
+    let testComp: Base = null;
+    let testComp1: Base = null;
 
     beforeEach(() => {
         entity = new Entity();
-        testComp = new Component.CombatMods();
-        testComp1 = new Component.CombatMods();
+        testComp = new CombatMods();
+        testComp1 = new CombatMods();
         entity.add(testComp);
         entity.add(testComp1);
     });

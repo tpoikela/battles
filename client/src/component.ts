@@ -1,114 +1,114 @@
 
-import RG = require('./rg');
-import Mixin = require('./mixin');
+import RG from './rg';
+import Ability from './abilities';
 
-import RG.Chat = require('./chat');
-import RG.Component = require('./component.base');
-import Ability = require('./abilities');
+import Mixin from './mixin';
+import Chat from './chat';
+import Component from './component.base';
 
 const Abilities = Ability.Abilities;
 
-const DataComponent = RG.Component.DataComponent;
-const UniqueDataComponent = RG.Component.UniqueDataComponent;
-const TransientDataComponent = RG.Component.TransientDataComponent;
-const TransientTagComponent = RG.Component.TransientTagComponent;
-const TagComponent = RG.Component.TagComponent;
-const UniqueTagComponent = RG.Component.UniqueTagComponent;
+const DataComponent = Component.DataComponent;
+const UniqueDataComponent = Component.UniqueDataComponent;
+const TransientDataComponent = Component.TransientDataComponent;
+const TransientTagComponent = Component.TransientTagComponent;
+const TagComponent = Component.TagComponent;
+const UniqueTagComponent = Component.UniqueTagComponent;
 
-const BaseProto = RG.Component.Base.prototype;
+const BaseProto = Component.Base.prototype;
 
 const NO_TYPE = Object.freeze('');
 
-RG.Component.Typed = UniqueDataComponent('Typed', {
+Component.Typed = UniqueDataComponent('Typed', {
     objType: NO_TYPE, propType: NO_TYPE
 });
 
-RG.Component.Typed.prototype._init = function(type, propType) {
+Component.Typed.prototype._init = function(type, propType) {
     this.objType = type;
     this.propType = propType;
 };
 
 /* Component is added to all items. To check if an entity is item, has('Item')
  * is enough. */
-RG.Component.Item = UniqueDataComponent('Item', {
+Component.Item = UniqueDataComponent('Item', {
     value: 1, damageType: RG.DMG.BLUNT, count: 1
 });
 
-RG.Component.Item.prototype.incrCount = function(count) {
+Component.Item.prototype.incrCount = function(count) {
     this.count += count;
 };
 
-RG.Component.Item.prototype.decrCount = function(count) {
+Component.Item.prototype.decrCount = function(count) {
     this.count -= count;
 };
 
 /* Component which takes care of hunger and satiation. */
-RG.Component.Hunger = UniqueDataComponent('Hunger',
+Component.Hunger = UniqueDataComponent('Hunger',
     {energy: 20000, maxEnergy: 20000, minEnergy: -5000});
 
-RG.Component.Hunger.prototype.addEnergy = function(energy) {
+Component.Hunger.prototype.addEnergy = function(energy) {
     this.energy += energy;
     if (this.energy > this.maxEnergy) {
         this.energy = this.maxEnergy;
     }
 };
 
-RG.Component.Hunger.prototype.decrEnergy = function(energy) {
+Component.Hunger.prototype.decrEnergy = function(energy) {
     this.energy -= energy;
     if (this.energy < this.minEnergy) {
         this.energy = this.minEnergy;
     }
 };
 
-RG.Component.Hunger.prototype.isStarving = function() {
+Component.Hunger.prototype.isStarving = function() {
     return this.energy <= 0;
 };
 
-RG.Component.Hunger.prototype.isFull = function() {
+Component.Hunger.prototype.isFull = function() {
     return this.energy === this.maxEnergy;
 };
 
 /**
  * Health component takes care of HP and such. */
-RG.Component.Health = UniqueDataComponent('Health',
+Component.Health = UniqueDataComponent('Health',
     {HP: 10, maxHP: 10});
 
-RG.Component.Health.prototype.addHP = function(hp) {
+Component.Health.prototype.addHP = function(hp) {
     this.HP += hp;
     if (this.HP > this.maxHP) {this.HP = this.maxHP;}
 };
 
-RG.Component.Health.prototype.decrHP = function(hp) {this.HP -= hp;};
+Component.Health.prototype.decrHP = function(hp) {this.HP -= hp;};
 
-RG.Component.Health.prototype.isAlive = function() {
+Component.Health.prototype.isAlive = function() {
     return this.HP > 0;
 };
 
-RG.Component.Health.prototype.isDead = function() {return this.HP <= 0;};
+Component.Health.prototype.isDead = function() {return this.HP <= 0;};
 
-RG.Component.Health.prototype.hpLost = function() {
+Component.Health.prototype.hpLost = function() {
     return this.maxHP - this.HP;
 };
 
-RG.Component.Health.prototype._init = function(hp) {
+Component.Health.prototype._init = function(hp) {
     this.HP = hp;
     this.maxHP = hp;
 };
 
 /* Tag component to mark Dead actors (different from Undead) */
-RG.Component.Dead = UniqueTagComponent('Dead');
+Component.Dead = UniqueTagComponent('Dead');
 
 /* Tag component for entities with physical body. */
-RG.Component.Corporeal = UniqueTagComponent('Corporeal');
+Component.Corporeal = UniqueTagComponent('Corporeal');
 
 /* Component used to pass damage information between systems. */
-RG.Component.Damage = TransientDataComponent('Damage', {
+Component.Damage = TransientDataComponent('Damage', {
     damage: 0, weapon: null, damageType: '', damageCateg: '',
     source: null, // Source of the damage (ie weapon)
     sourceActor: null // Actor who did the action to cause damage
 });
 
-RG.Component.Damage.prototype._init = function(dmg, type) {
+Component.Damage.prototype._init = function(dmg, type) {
     this.damage = dmg;
     this.damageType = type;
 };
@@ -116,14 +116,14 @@ RG.Component.Damage.prototype._init = function(dmg, type) {
 /* In contrast to Damage (which is transient), DirectDamage can be
  * combined with Comp.AddOnHit to inflict additional damage
  * to an actor. */
-RG.Component.DirectDamage = DataComponent('DirectDamage', {
+Component.DirectDamage = DataComponent('DirectDamage', {
     damage: 0, damageType: '', damageCateg: '', prob: 1.0,
     source: null
 });
 
 
-RG.Component.DirectDamage.prototype.toJSON = function() {
-    const obj = RG.Component.Base.prototype.toJSON.call(this);
+Component.DirectDamage.prototype.toJSON = function() {
+    const obj = Component.Base.prototype.toJSON.call(this);
     if (this.source) {
         obj.setSource = RG.getObjRef('entity', this.source);
     }
@@ -134,63 +134,63 @@ RG.Component.DirectDamage.prototype.toJSON = function() {
 };
 
 /* Component to entities which can be damaged (but have no health. */
-RG.Component.Damaged = UniqueDataComponent('Damaged',
+Component.Damaged = UniqueDataComponent('Damaged',
     {damageLevel: 0}
 );
 
 /* Added to broken items/elements. Prevents their use. */
-RG.Component.Broken = UniqueTagComponent('Broken');
+Component.Broken = UniqueTagComponent('Broken');
 
 /* Component to tag entities that block light from passing through. */
-RG.Component.Impassable = UniqueDataComponent('Impassable', {
+Component.Impassable = UniqueDataComponent('Impassable', {
     canFlyOver: true, canJumpOver: true, spellPasses: true
 });
 
-RG.Component.Impassable.prototype.setAllImpassable = function() {
+Component.Impassable.prototype.setAllImpassable = function() {
     this.canFlyOver = false;
     this.spellPasses = false;
 };
 
 /* Component to tag entities that block light from passing through. */
-RG.Component.Opaque = UniqueTagComponent('Opaque');
+Component.Opaque = UniqueTagComponent('Opaque');
 
 /* Component used in entities gaining experience.*/
-RG.Component.Experience = UniqueDataComponent('Experience',
+Component.Experience = UniqueDataComponent('Experience',
     {exp: 0, expLevel: 1, danger: 1});
 
 /* This component is added when entity gains experience. It is removed after
 * system evaluation and added to Experience component. */
-RG.Component.ExpPoints = TransientDataComponent('ExpPoints',
+Component.ExpPoints = TransientDataComponent('ExpPoints',
     {expPoints: null, skillPoints: null}
 );
 
-RG.Component.ExpPoints.prototype._init = function(expPoints) {
+Component.ExpPoints.prototype._init = function(expPoints) {
     this.expPoints = expPoints;
     this.skills = {};
 };
 
-RG.Component.ExpPoints.prototype.addSkillPoints = function(skill, pts) {
+Component.ExpPoints.prototype.addSkillPoints = function(skill, pts) {
     this.skills[skill] = pts;
 };
 
-RG.Component.ExpPoints.prototype.addExpPoints = function(exp) {
+Component.ExpPoints.prototype.addExpPoints = function(exp) {
     this.expPoints += exp;
 };
 
 /* Combat component holds all combat-related information for actors. */
-RG.Component.Combat = UniqueDataComponent('Combat', {
+Component.Combat = UniqueDataComponent('Combat', {
     attack: 1, defense: 1, protection: 0, attackRange: 1, damageDie: null
 });
 
-RG.Component.Combat.prototype._init = function() {
+Component.Combat.prototype._init = function() {
     this.damageDie = RG.FACT.createDie('1d4');
 };
 
-RG.Component.Combat.prototype.rollDamage = function() {
+Component.Combat.prototype.rollDamage = function() {
     return this.damageDie.roll();
 };
 
-RG.Component.Combat.prototype.setDamageDie = function(strOrDie) {
+Component.Combat.prototype.setDamageDie = function(strOrDie) {
     if (typeof strOrDie === 'string') {
         this.damageDie = RG.FACT.createDie(strOrDie);
     }
@@ -199,30 +199,32 @@ RG.Component.Combat.prototype.setDamageDie = function(strOrDie) {
     }
 };
 
-RG.Component.Combat.prototype.copy = function(rhs) {
+Component.Combat.prototype.copy = function(rhs) {
     BaseProto.copy.call(this, rhs);
     this.damageDie = rhs.getDamageDie().clone();
 };
 
-RG.Component.Combat.prototype.toJSON = function() {
+Component.Combat.prototype.toJSON = function() {
     const obj = BaseProto.toJSON.call(this);
     obj.setDamageDie = this.damageDie.toString();
     return obj;
 };
 
 /* Modifiers for the Combat component.*/
-RG.Component.CombatMods = DataComponent('CombatMods', {
+Component.CombatMods = DataComponent('CombatMods', {
     attack: 0, defense: 0, protection: 0, attackRange: 0, damage: 0,
     tag: ''
 });
 
+export const {CombatMods} = Component;
+
 /* This component stores entity stats like speed, agility etc.*/
-RG.Component.Stats = UniqueDataComponent('Stats', {
+Component.Stats = UniqueDataComponent('Stats', {
     accuracy: 5, agility: 5, strength: 5,
     willpower: 5, perception: 5, magic: 5, speed: 100
 });
 
-RG.Component.Stats.prototype.clearValues = function() {
+Component.Stats.prototype.clearValues = function() {
     this.setAccuracy(0);
     this.setAgility(0);
     this.setStrength(0);
@@ -233,14 +235,14 @@ RG.Component.Stats.prototype.clearValues = function() {
 };
 
 /* Convenience function for increase a stat. */
-RG.Component.Stats.prototype.incrStat = function(statName, addValue) {
+Component.Stats.prototype.incrStat = function(statName, addValue) {
     const setter = 'set' + statName.capitalize();
     const getter = 'get' + statName.capitalize();
     const currValue = this[getter]();
     this[setter](currValue + addValue);
 };
 
-RG.Component.Stats.prototype.toString = function() {
+Component.Stats.prototype.toString = function() {
     let result = '';
     RG.GET_STATS.forEach((getter, i) => {
         const value = this[getter]();
@@ -251,7 +253,7 @@ RG.Component.Stats.prototype.toString = function() {
     return result;
 };
 
-RG.Component.Stats.prototype.equals = function(rhs) {
+Component.Stats.prototype.equals = function(rhs) {
     let res = this.getType() === rhs.getType();
     res = res && this.getAccuracy() === rhs.getAccuracy();
     res = res && this.getAgility() === rhs.getAgility();
@@ -264,53 +266,53 @@ RG.Component.Stats.prototype.equals = function(rhs) {
 };
 
 /* Stats modifier component. */
-RG.Component.StatsMods = DataComponent('StatsMods', {
+Component.StatsMods = DataComponent('StatsMods', {
     accuracy: 0, agility: 0, strength: 0,
     willpower: 0, perception: 0, magic: 0, speed: 0,
     tag: ''
 });
 
 /* Perception component holds data related to actor perception. */
-RG.Component.Perception = UniqueDataComponent('Perception',
+Component.Perception = UniqueDataComponent('Perception',
     {FOVRange: RG.NPC_FOV_RANGE});
 
 /* Attack component is added to the actor when it attacks. Thus, source of the
  * attack is the entity having Attack component. */
-RG.Component.Attack = TransientDataComponent('Attack', {target: null});
+Component.Attack = TransientDataComponent('Attack', {target: null});
 
 /* Transient component added to a moving entity.*/
-RG.Component.Movement = TransientDataComponent('Movement', {
+Component.Movement = TransientDataComponent('Movement', {
     x: 0, y: 0, level: null
 });
 
-RG.Component.Movement.prototype.setXY = function(x, y) {
+Component.Movement.prototype.setXY = function(x, y) {
     this.x = x;
     this.y = y;
 };
 
-RG.Component.Movement.prototype.getXY = function() {
+Component.Movement.prototype.getXY = function() {
     return [this.x, this.y];
 };
 
-RG.Component.Movement.prototype._init = function(x, y, level) {
+Component.Movement.prototype._init = function(x, y, level) {
     this.x = x;
     this.y = y;
     this.level = level;
 };
 
 /* Transient component representing a chat action between actors. */
-RG.Component.Chat = TransientDataComponent('Chat', {args: null});
+Component.Chat = TransientDataComponent('Chat', {args: null});
 
 /* Data component added to trainer actors. */
-RG.Component.Trainer = UniqueDataComponent('Trainer', {
+Component.Trainer = UniqueDataComponent('Trainer', {
     chatObj: null
 });
 
 // Hack to prevent serialisation of chatObj
-delete RG.Component.Trainer.prototype.setChatObj;
+delete Component.Trainer.prototype.setChatObj;
 
-RG.Component.Trainer.prototype._init = function() {
-    this.chatObj = new RG.Chat.Trainer();
+Component.Trainer.prototype._init = function() {
+    this.chatObj = new Chat.Trainer();
 
     const _addCb = () => {
       this.chatObj.setTrainer(this.getEntity());
@@ -320,14 +322,14 @@ RG.Component.Trainer.prototype._init = function() {
 
 /* Missile component is added to entities such as arrows and rocks
  * when they have been launched. */
-RG.Component.Missile = TransientDataComponent('Missile', {
+Component.Missile = TransientDataComponent('Missile', {
     x: null, y: null, source: null, level: null,
     flying: true,
     targetX: null, targetY: null,
     range: 0, attack: 0, damage: 0, path: null
 });
 
-RG.Component.Missile.prototype._init = function(source) {
+Component.Missile.prototype._init = function(source) {
     this.source = source;
     this.x = source.getX();
     this.y = source.getY();
@@ -336,19 +338,19 @@ RG.Component.Missile.prototype._init = function(source) {
     this.pathIter = -1;
 };
 
-RG.Component.Missile.prototype.hasRange = function() {
+Component.Missile.prototype.hasRange = function() {
     return this.range > 0;
 };
 
-RG.Component.Missile.prototype.isFlying = function() {
+Component.Missile.prototype.isFlying = function() {
     return this.flying;
 };
 
-RG.Component.Missile.prototype.stopMissile = function() {
+Component.Missile.prototype.stopMissile = function() {
     this.flying = false;
 };
 
-RG.Component.Missile.prototype.setTargetXY = function(x, y) {
+Component.Missile.prototype.setTargetXY = function(x, y) {
     this.path = RG.Geometry.getBresenham(this.x, this.y, x, y);
     this.targetX = x;
     this.targetY = y;
@@ -356,22 +358,22 @@ RG.Component.Missile.prototype.setTargetXY = function(x, y) {
 };
 
 /* Returns true if missile has reached its target map cell.*/
-RG.Component.Missile.prototype.inTarget = function() {
+Component.Missile.prototype.inTarget = function() {
     return this.x === this.targetX && this.y === this.targetY;
 };
 
-RG.Component.Missile.prototype.iteratorValid = function() {
+Component.Missile.prototype.iteratorValid = function() {
     return this.pathIter >= 0 && this.pathIter < this.path.length;
 };
 
-RG.Component.Missile.prototype.setValuesFromIterator = function() {
+Component.Missile.prototype.setValuesFromIterator = function() {
     const coord = this.path[this.pathIter];
     this.x = coord[0];
     this.y = coord[1];
 };
 
 /* Resets the path iterator to the first x,y. */
-RG.Component.Missile.prototype.first = function() {
+Component.Missile.prototype.first = function() {
     this.pathIter = 0;
     this.setValuesFromIterator();
     return [this.x, this.y];
@@ -379,7 +381,7 @@ RG.Component.Missile.prototype.first = function() {
 
 /* Moves to next cell in missile's path. Returns null if path is finished.
  * */
-RG.Component.Missile.prototype.next = function() {
+Component.Missile.prototype.next = function() {
     if (this.iteratorValid()) {
         --this.range;
         ++this.pathIter;
@@ -390,7 +392,7 @@ RG.Component.Missile.prototype.next = function() {
 };
 
 /* Returns the prev cell in missile's path. Moves iterator backward. */
-RG.Component.Missile.prototype.prev = function() {
+Component.Missile.prototype.prev = function() {
     if (this.iteratorValid()) {
         ++this.range;
         --this.pathIter;
@@ -401,16 +403,16 @@ RG.Component.Missile.prototype.prev = function() {
 };
 
 /* This component holds loot that is dropped when given entity is destroyed.*/
-RG.Component.Loot = function(lootEntity) {
-    RG.Component.Base.call(this, 'Loot');
+Component.Loot = function(lootEntity) {
+    Component.Base.call(this, 'Loot');
 
     // This will be dropped as loot
     this._lootEntity = lootEntity;
 };
-RG.extend2(RG.Component.Loot, RG.Component.Base);
+RG.extend2(Component.Loot, Component.Base);
 
 /* Drops the loot to the given cell.*/
-RG.Component.Loot.prototype.dropLoot = function(cell) {
+Component.Loot.prototype.dropLoot = function(cell) {
     if (this._lootEntity.getPropType) {
         const propType = this._lootEntity.getPropType();
         if (propType === 'elements') {
@@ -425,7 +427,7 @@ RG.Component.Loot.prototype.dropLoot = function(cell) {
     }
 };
 
-RG.Component.Loot.prototype.setElemToCell = function(cell) {
+Component.Loot.prototype.setElemToCell = function(cell) {
     const entLevel = this.getEntity().getLevel();
     if (this._lootEntity.hasOwnProperty('useStairs')) {
         RG.debug(this, 'Added stairs to ' + cell.getX()
@@ -434,12 +436,12 @@ RG.Component.Loot.prototype.setElemToCell = function(cell) {
     }
 };
 
-RG.Component.Loot.prototype.setLootEntity = function(lootEntity) {
+Component.Loot.prototype.setLootEntity = function(lootEntity) {
     this._lootEntity = lootEntity;
 };
 
-RG.Component.Loot.prototype.toJSON = function() {
-    const json = RG.Component.Base.prototype.toJSON.call(this);
+Component.Loot.prototype.toJSON = function() {
+    const json = Component.Base.prototype.toJSON.call(this);
     const lootJSON = this._lootEntity.toJSON();
     if (this._lootEntity.getPropType() === RG.TYPE_ITEM) {
         json.setLootEntity = {
@@ -462,47 +464,47 @@ RG.Component.Loot.prototype.toJSON = function() {
 
 /* This component is added to entities receiving communication. Communication
  * is used to point out enemies and locations of items, for example.*/
-RG.Component.Communication = TransientDataComponent('Communication',
+Component.Communication = TransientDataComponent('Communication',
     {msg: null});
 
-RG.Component.Communication.prototype._init = function() {
+Component.Communication.prototype._init = function() {
     this.msg = [];
 };
 
-RG.Component.Communication.prototype.addMsg = function(obj) {
+Component.Communication.prototype.addMsg = function(obj) {
     this.msg.push(obj);
 };
 
 /* Added to entities which can cause damage without attack such as fire. Used
  * for AI navigation purposes at the moment. */
-RG.Component.Damaging = DataComponent('Damaging', {
+Component.Damaging = DataComponent('Damaging', {
     damage: 1, damageType: ''
 });
 
 /* Added to entities which are destroyed after use. */
-RG.Component.OneShot = UniqueTagComponent('OneShot');
+Component.OneShot = UniqueTagComponent('OneShot');
 
 /* Entities with physical components have weight and size.*/
-RG.Component.Physical = UniqueDataComponent('Physical',
+Component.Physical = UniqueDataComponent('Physical',
     {weight: 1, size: 1});
 
 /* Ethereal entities are visible but don't have normal interaction with
  * matter. */
-RG.Component.Ethereal = TagComponent('Ethereal',
+Component.Ethereal = TagComponent('Ethereal',
     {description: 'Ethereal beings cannot interact physically with others'}
 );
 
 /* Stun component prevents actor from taking many actions like moving and
  * attacking. */
-RG.Component.Stun = function() {
-    RG.Component.Base.call(this, 'Stun');
+Component.Stun = function() {
+    Component.Base.call(this, 'Stun');
 
     let _src = null;
     this.getSource = () => _src;
     this.setSource = src => {_src = src;};
 
     this.toJSON = () => {
-        const obj = RG.Component.Base.prototype.toJSON.call(this);
+        const obj = Component.Base.prototype.toJSON.call(this);
         if (RG.isActorActive(_src)) {
             obj.setSource = RG.getObjRef('entity', _src);
         }
@@ -510,20 +512,20 @@ RG.Component.Stun = function() {
     };
 
 };
-RG.Component.Stun.description = 'Stunning prevents some actions to be done';
-RG.extend2(RG.Component.Stun, RG.Component.Base);
+Component.Stun.description = 'Stunning prevents some actions to be done';
+RG.extend2(Component.Stun, Component.Base);
 
 /* Paralysis component prevents actor from taking many actions like moving and
  * attacking. */
 const Paralysis = function() {
-    RG.Component.Base.call(this, 'Paralysis');
+    Component.Base.call(this, 'Paralysis');
 
     let _src = null;
     this.getSource = () => _src;
     this.setSource = src => {_src = src;};
 
     this.toJSON = () => {
-        const obj = RG.Component.Base.prototype.toJSON.call(this);
+        const obj = Component.Base.prototype.toJSON.call(this);
         if (RG.isActorActive(_src)) {
             obj.setSource = RG.getObjRef('entity', _src);
         }
@@ -532,23 +534,23 @@ const Paralysis = function() {
 
 };
 Paralysis.description = 'Paralysed actors cannot perform any actions';
-RG.Component.Paralysis = Paralysis;
-RG.extend2(RG.Component.Paralysis, RG.Component.Base);
+Component.Paralysis = Paralysis;
+RG.extend2(Component.Paralysis, Component.Base);
 
 /* Component added to summoned/created actors. */
-RG.Component.Created = UniqueDataComponent('Created', {creator: null});
+Component.Created = UniqueDataComponent('Created', {creator: null});
 
-RG.Component.Created.prototype.toJSON = function() {
-    const obj = RG.Component.Base.prototype.toJSON.call(this);
+Component.Created.prototype.toJSON = function() {
+    const obj = Component.Base.prototype.toJSON.call(this);
     obj.setCreator = RG.getObjRef('entity', this.creator);
     return obj;
 };
 
-RG.Component.Named = UniqueDataComponent('Named',
+Component.Named = UniqueDataComponent('Named',
     {name: '', uniqueName: ''}
 );
 
-RG.Component.Named.prototype.getFullName = function() {
+Component.Named.prototype.getFullName = function() {
     if (this.uniqueName !== '') {
         return `${this.uniqueName}, ${this.name}`;
     }
@@ -557,8 +559,8 @@ RG.Component.Named.prototype.getFullName = function() {
 
 /* MindControl component allows another actor to control the mind-controlled
  * actor. */
-RG.Component.MindControl = function() {
-    RG.Component.Base.call(this, 'MindControl');
+Component.MindControl = function() {
+    Component.Base.call(this, 'MindControl');
 
     let _src = null;
     let _brainTarget = null;
@@ -587,17 +589,17 @@ RG.Component.MindControl = function() {
     this.addCallback('onRemove', _removeCb);
 
     this.toJSON = () => {
-        const obj = RG.Component.Base.prototype.toJSON.call(this);
+        const obj = Component.Base.prototype.toJSON.call(this);
         if (RG.isActorActive(_src)) {
             obj.setSource = RG.getObjRef('entity', _src);
         }
         return obj;
     };
 };
-RG.extend2(RG.Component.MindControl, RG.Component.Base);
+RG.extend2(Component.MindControl, Component.Base);
 
 /* Poison component which damages the entity.*/
-class Poison extends Mixin.DurationRoll(Mixin.DamageRoll(RG.Component.Base)) {
+class Poison extends Mixin.DurationRoll(Mixin.DamageRoll(Component.Base)) {
 
     constructor() {
         super('Poison');
@@ -629,67 +631,67 @@ class Poison extends Mixin.DurationRoll(Mixin.DamageRoll(RG.Component.Base)) {
     }
 }
 Poison.description = 'Poison causes damage periodically until it stop';
-RG.Component.Poison = Poison;
+Component.Poison = Poison;
 
-RG.Component.Coldness = TagComponent('Coldness',
+Component.Coldness = TagComponent('Coldness',
   {description: 'Coldness will gradually freeze a non-resistant beings'});
-RG.Component.Heat = TagComponent('Heat');
+Component.Heat = TagComponent('Heat');
 
-RG.Component.BodyTemp = UniqueDataComponent('BodyTemp',
+Component.BodyTemp = UniqueDataComponent('BodyTemp',
     {temp: 100, maxTemp: 100, minTemp: -100});
 
-RG.Component.BodyTemp.prototype.incr = function() {
+Component.BodyTemp.prototype.incr = function() {
     if (this.temp < this.maxTemp) {
         this.temp += 1;
     }
 };
 
-RG.Component.BodyTemp.prototype.decr = function() {
+Component.BodyTemp.prototype.decr = function() {
     if (this.temp > this.minTemp) {
         this.temp -= 1;
     }
 };
 
-RG.Component.BodyTemp.prototype.isFreezing = function() {
+Component.BodyTemp.prototype.isFreezing = function() {
     return this.temp <= 0;
 };
 
-RG.Component.BodyTemp.prototype.isFrozen = function() {
+Component.BodyTemp.prototype.isFrozen = function() {
     return this.temp === this.minTemp;
 };
 
 /* For branding entity belonging to certain other entity. */
-RG.Component.Owned = UniqueDataComponent('Owned', {owner: null});
+Component.Owned = UniqueDataComponent('Owned', {owner: null});
 
 /* For branding stolen goods.*/
-RG.Component.Stolen = TagComponent('Stolen');
+Component.Stolen = TagComponent('Stolen');
 
 /* Added to unpaid items in shops. Removed once the purchase is done.*/
-RG.Component.Unpaid = TagComponent('Unpaid');
+Component.Unpaid = TagComponent('Unpaid');
 
-RG.Component.Breakable = UniqueTagComponent('Breakable');
-RG.Component.Indestructible = UniqueTagComponent('Indestructible');
-RG.Component.Ammo = TagComponent('Ammo');
-RG.Component.Flying = TagComponent('Flying',
+Component.Breakable = UniqueTagComponent('Breakable');
+Component.Indestructible = UniqueTagComponent('Indestructible');
+Component.Ammo = TagComponent('Ammo');
+Component.Flying = TagComponent('Flying',
   {description: 'Flying beings can avoid difficult terrain and obstacles'});
-RG.Component.Undead = TagComponent('Undead');
-RG.Component.Summoned = TagComponent('Summoned');
-RG.Component.Sharpener = TagComponent('Sharpener',
+Component.Undead = TagComponent('Undead');
+Component.Summoned = TagComponent('Summoned');
+Component.Sharpener = TagComponent('Sharpener',
   {description: 'You can sharpen weapons (once per weapoon'});
-RG.Component.Sharpened = TagComponent('Sharpened');
-RG.Component.Possessed = TagComponent('Possessed');
+Component.Sharpened = TagComponent('Sharpened');
+Component.Possessed = TagComponent('Possessed');
 
-RG.Component.Flame = TransientDataComponent('Flame',
+Component.Flame = TransientDataComponent('Flame',
     {damageType: '', damage: 1, source: null});
 
-RG.Component.Weakness = DataComponent('Weakness', {
+Component.Weakness = DataComponent('Weakness', {
     effect: '',
     level: RG.WEAKNESS.MINOR
 },
     {description: 'Weakness increases damage from attacks of that type'}
 );
 
-RG.Component.Resistance = DataComponent('Resistance', {
+Component.Resistance = DataComponent('Resistance', {
     effect: '',
     level: RG.RESISTANCE.MINOR
 },
@@ -698,14 +700,14 @@ RG.Component.Resistance = DataComponent('Resistance', {
 
 /* Used currently for magical arrows to distinguish them from shot/thrown
  * projectiles. */
-RG.Component.Magical = UniqueTagComponent('Magical');
+Component.Magical = UniqueTagComponent('Magical');
 
 /* Used for non-sentient actors such as fire and moving doors. */
-RG.Component.NonSentient = UniqueTagComponent('NonSentient');
+Component.NonSentient = UniqueTagComponent('NonSentient');
 
 /* Component which stores the actor class object. */
-RG.Component.ActorClass = function() {
-    RG.Component.Base.call(this, 'ActorClass');
+Component.ActorClass = function() {
+    Component.Base.call(this, 'ActorClass');
     this._class = null;
     this._className = null;
 
@@ -721,9 +723,9 @@ RG.Component.ActorClass = function() {
     };
 
 };
-RG.extend2(RG.Component.ActorClass, RG.Component.Base);
+RG.extend2(Component.ActorClass, Component.Base);
 
-RG.Component.ActorClass.prototype.toJSON = function() {
+Component.ActorClass.prototype.toJSON = function() {
     const json = BaseProto.toJSON.call(this);
     json.setActorClass = {
         createFunc: 'createActorClass',
@@ -738,69 +740,69 @@ RG.Component.ActorClass.prototype.toJSON = function() {
 //---------------------------------------------------------------------------
 // MELEE COMBAT COMPONENTS
 //---------------------------------------------------------------------------
-RG.Component.Defender = UniqueTagComponent('Defender',
+Component.Defender = UniqueTagComponent('Defender',
     {description: 'Grants a minor defense (Def) bonus'});
-RG.Component.Attacker = UniqueTagComponent('Attacker',
+Component.Attacker = UniqueTagComponent('Attacker',
     {description: 'Grants a minor attack (Att) bonus'});
-RG.Component.BiDirStrike = UniqueTagComponent('BiDirStrike',
+Component.BiDirStrike = UniqueTagComponent('BiDirStrike',
     {description: 'You can attack to 2 opposite directions'});
-RG.Component.CounterAttack = UniqueTagComponent('CounterAttack',
+Component.CounterAttack = UniqueTagComponent('CounterAttack',
     {desciption: 'You perform a counterattack when attacked by enemies'});
-RG.Component.Ambidexterity = UniqueTagComponent('Ambidexterity');
-RG.Component.LongReach = UniqueTagComponent('LongReach');
+Component.Ambidexterity = UniqueTagComponent('Ambidexterity');
+Component.LongReach = UniqueTagComponent('LongReach');
 
-RG.Component.FirstStrike = UniqueTagComponent('FirstStrike', {
+Component.FirstStrike = UniqueTagComponent('FirstStrike', {
     description: 'You can hit enemies first before they attack you'
 });
 
 /* Component which gives reduces equipment weight by 50%. */
-RG.Component.MasterEquipper = DataComponent('MasterEquipper',
+Component.MasterEquipper = DataComponent('MasterEquipper',
     {factor: 0.5});
 
 /* Component which gives an actor chance to bypass armor. */
-RG.Component.BypassProtection = DataComponent('BypassProtection',
+Component.BypassProtection = DataComponent('BypassProtection',
     {chance: 0.0});
 
 //--------------------------------------------
 // ALPINIST COMPONENTS
 //--------------------------------------------
-RG.Component.Climber = UniqueTagComponent('Climber');
-RG.Component.Jumper = UniqueDataComponent('Jumper', {jumpRange: 2});
-RG.Component.Camouflage = UniqueTagComponent('Camouflage');
-RG.Component.SnowWalk = UniqueTagComponent('SnowWalk');
+Component.Climber = UniqueTagComponent('Climber');
+Component.Jumper = UniqueDataComponent('Jumper', {jumpRange: 2});
+Component.Camouflage = UniqueTagComponent('Camouflage');
+Component.SnowWalk = UniqueTagComponent('SnowWalk');
 
-RG.Component.Amphibious = UniqueTagComponent('Amphibious');
+Component.Amphibious = UniqueTagComponent('Amphibious');
 //--------------------------------------------
 // RANGED COMBAT COMPONENTS
 //--------------------------------------------
 
-RG.Component.EagleEye = TagComponent('EagleEye', {
+Component.EagleEye = TagComponent('EagleEye', {
     description: 'Grants bonus to missile range and visibility'
 });
-RG.Component.StrongShot = TagComponent('StrongShot', {
+Component.StrongShot = TagComponent('StrongShot', {
     description: 'Strength (Str) adds extra damage to missile attacks'
 });
-RG.Component.ThroughShot = TagComponent('ThroughShot', {
+Component.ThroughShot = TagComponent('ThroughShot', {
     description: 'You can shoot through enemies to hit another target'
 });
-RG.Component.MixedShot = TagComponent('MixedShot', {
+Component.MixedShot = TagComponent('MixedShot', {
     description: 'Allows mixing of ammo from different type of weapons'
 });
-RG.Component.LongRangeShot = TagComponent('LongRangeShot', {
+Component.LongRangeShot = TagComponent('LongRangeShot', {
     description: 'Doubles missile attack range'
 });
-RG.Component.RangedEvasion = TagComponent('RangedEvasion', {
+Component.RangedEvasion = TagComponent('RangedEvasion', {
     description: 'Grants 50% chance to evade missile/ranged spell attacks'
 });
-RG.Component.CriticalShot = TagComponent('CriticalShot');
-RG.Component.DoubleShot = TagComponent('DoubleShot');
+Component.CriticalShot = TagComponent('CriticalShot');
+Component.DoubleShot = TagComponent('DoubleShot');
 
 //--------------------------------------------
 // Spellcasting related components
 //--------------------------------------------
 
-RG.Component.SpellPower = function(maxPP) {
-    RG.Component.Base.call(this, 'SpellPower');
+Component.SpellPower = function(maxPP) {
+    Component.Base.call(this, 'SpellPower');
     this._isUnique = true;
 
     let _maxPP = maxPP || 10;
@@ -823,21 +825,21 @@ RG.Component.SpellPower = function(maxPP) {
     this.canCast = spellPP => _pp >= spellPP;
 
 };
-RG.extend2(RG.Component.SpellPower, RG.Component.Base);
+RG.extend2(Component.SpellPower, Component.Base);
 
 /* PowerDrain component which is cancels a SpellCast and adds spell power to
  * holder of PowerDrain. */
-RG.Component.PowerDrain = function() {
-    RG.Component.Base.call(this, 'PowerDrain');
+Component.PowerDrain = function() {
+    Component.Base.call(this, 'PowerDrain');
 
     this.drainDist = 5;
 };
-RG.extend2(RG.Component.PowerDrain, RG.Component.Base);
-RG.Component.PowerDrain.description =
+RG.extend2(Component.PowerDrain, Component.Base);
+Component.PowerDrain.description =
     'Counters any spell cast near you, gives you power and then disappears';
 
-RG.Component.SpellBase = function(type) {
-    RG.Component.Base.call(this, type);
+Component.SpellBase = function(type) {
+    Component.Base.call(this, type);
 
     let _spell = null;
     let _src = null;
@@ -853,48 +855,48 @@ RG.Component.SpellBase = function(type) {
     this.setArgs = args => {_args = args;};
 
 };
-RG.extend2(RG.Component.SpellBase, RG.Component.Base);
+RG.extend2(Component.SpellBase, Component.Base);
 
 /* SpellCasting component which is added to an actor when it casts a spell. */
-RG.Component.SpellCast = function() {
-    RG.Component.SpellBase.call(this, 'SpellCast');
+Component.SpellCast = function() {
+    Component.SpellBase.call(this, 'SpellCast');
 };
-RG.extend2(RG.Component.SpellCast, RG.Component.SpellBase);
+RG.extend2(Component.SpellCast, Component.SpellBase);
 
-RG.Component.SpellRay = function() {
-    RG.Component.SpellBase.call(this, 'SpellRay');
+Component.SpellRay = function() {
+    Component.SpellBase.call(this, 'SpellRay');
 };
-RG.extend2(RG.Component.SpellRay, RG.Component.SpellBase);
+RG.extend2(Component.SpellRay, Component.SpellBase);
 
-RG.Component.SpellMissile = function() {
-    RG.Component.SpellBase.call(this, 'SpellMissile');
+Component.SpellMissile = function() {
+    Component.SpellBase.call(this, 'SpellMissile');
 };
-RG.extend2(RG.Component.SpellMissile, RG.Component.SpellBase);
+RG.extend2(Component.SpellMissile, Component.SpellBase);
 
-RG.Component.SpellCell = function() {
-    RG.Component.SpellBase.call(this, 'SpellCell');
+Component.SpellCell = function() {
+    Component.SpellBase.call(this, 'SpellCell');
 };
-RG.extend2(RG.Component.SpellCell, RG.Component.SpellBase);
+RG.extend2(Component.SpellCell, Component.SpellBase);
 
-RG.Component.SpellArea = function() {
-    RG.Component.SpellBase.call(this, 'SpellArea');
+Component.SpellArea = function() {
+    Component.SpellBase.call(this, 'SpellArea');
 };
-RG.extend2(RG.Component.SpellArea, RG.Component.SpellBase);
+RG.extend2(Component.SpellArea, Component.SpellBase);
 
-RG.Component.SpellSelf = function() {
-    RG.Component.SpellBase.call(this, 'SpellSelf');
+Component.SpellSelf = function() {
+    Component.SpellBase.call(this, 'SpellSelf');
 };
-RG.extend2(RG.Component.SpellSelf, RG.Component.SpellBase);
+RG.extend2(Component.SpellSelf, Component.SpellBase);
 
 /* Added to actors which stop spells from passing through. */
-RG.Component.SpellStop = UniqueTagComponent('SpellStop');
+Component.SpellStop = UniqueTagComponent('SpellStop');
 
 //--------------------------------------------
 // Adventurer components
 //--------------------------------------------
 
 /* Triples the energy gained from eating foods. */
-RG.Component.NourishedOne = UniqueTagComponent('NourishedOne', {
+Component.NourishedOne = UniqueTagComponent('NourishedOne', {
     description: 'You gain triple amount of energy from food'
 });
 
@@ -903,12 +905,12 @@ RG.Component.NourishedOne = UniqueTagComponent('NourishedOne', {
 //--------------------------------------------
 
 /* Used when gem binding into item is attempted. */
-RG.Component.SpiritBind = TransientDataComponent('SpiritBind',
+Component.SpiritBind = TransientDataComponent('SpiritBind',
     {binder: null, target: null});
 
 /* This component enables entity to bind gems into items. */
-RG.Component.GemBound = UniqueDataComponent('GemBound', {gem: null});
-RG.Component.GemBound.prototype.toJSON = function() {
+Component.GemBound = UniqueDataComponent('GemBound', {gem: null});
+Component.GemBound.prototype.toJSON = function() {
     return {
         setID: this.getID(),
         setType: 'GemBound',
@@ -920,7 +922,7 @@ RG.Component.GemBound.prototype.toJSON = function() {
 };
 
 /* This component enables entity to bind gems into items. */
-RG.Component.SpiritItemCrafter = UniqueTagComponent('SpiritItemCrafter', {
+Component.SpiritItemCrafter = UniqueTagComponent('SpiritItemCrafter', {
     description: 'Grants ability to bind gems to items such as weapons/armour'
 });
 
@@ -928,8 +930,8 @@ RG.Component.SpiritItemCrafter = UniqueTagComponent('SpiritItemCrafter', {
 // Comps related to the skill system
 //--------------------------------------------
 
-RG.Component.Skills = function() {
-    RG.Component.Base.call(this, 'Skills');
+Component.Skills = function() {
+    Component.Base.call(this, 'Skills');
     this._isUnique = true;
 
     this._skills = {};
@@ -967,42 +969,42 @@ RG.Component.Skills = function() {
         };
     };
 };
-RG.extend2(RG.Component.Skills, RG.Component.Base);
+RG.extend2(Component.Skills, Component.Base);
 
-RG.Component.SkillsExp = TransientDataComponent('SkillsExp',
+Component.SkillsExp = TransientDataComponent('SkillsExp',
     {skill: '', points: 0});
 
 /* Component added to shopkeeper. */
-RG.Component.Shopkeeper = UniqueDataComponent('Shopkeeper',
+Component.Shopkeeper = UniqueDataComponent('Shopkeeper',
     {levelID: -1, cells: null, doorXY: null}
 );
 
-RG.Component.Shopkeeper._init = function() {
+Component.Shopkeeper._init = function() {
     this.cells = [];
 };
 
 /* Component which models a shop transaction. */
-RG.Component.Transaction = TransientDataComponent('Transaction', {args: null});
+Component.Transaction = TransientDataComponent('Transaction', {args: null});
 
 //--------------------------------------------
 // Battle-related components
 //--------------------------------------------
 
 // Added to all entities inside a battle
-RG.Component.InBattle = function() {
-    RG.Component.Base.call(this, 'InBattle');
+Component.InBattle = function() {
+    Component.Base.call(this, 'InBattle');
     this._isUnique = true;
     let _data = null;
     this.setData = data => {_data = data;};
     this.getData = () => _data;
     this.updateData = data => {_data = Object.assign(_data || {}, data);};
 };
-RG.extend2(RG.Component.InBattle, RG.Component.Base);
+RG.extend2(Component.InBattle, Component.Base);
 
 /* Added to entity once it uses a skill or destroys an opposing actor inside a
  * battle. */
-RG.Component.BattleExp = function() {
-    RG.Component.Base.call(this, 'BattleExp');
+Component.BattleExp = function() {
+    Component.Base.call(this, 'BattleExp');
 
     let _data = null;
 
@@ -1011,16 +1013,16 @@ RG.Component.BattleExp = function() {
     this.updateData = data => {_data = Object.assign(_data || {}, data);};
 
 };
-RG.extend2(RG.Component.BattleExp, RG.Component.Base);
+RG.extend2(Component.BattleExp, Component.Base);
 
 /* This component is placed on entities when the battle is over. It signals to
  * the Battle.System that experience should be processed now. After this, the
  * system processed and removed this and BattleExp components. */
-RG.Component.BattleOver = UniqueTagComponent('BattleOver');
+Component.BattleOver = UniqueTagComponent('BattleOver');
 
 /* Badges are placed on entities that survived a battle. */
-RG.Component.BattleBadge = function() {
-    RG.Component.Base.call(this, 'BattleBadge');
+Component.BattleBadge = function() {
+    Component.Base.call(this, 'BattleBadge');
 
     let _data = null;
 
@@ -1031,18 +1033,18 @@ RG.Component.BattleBadge = function() {
     this.isWon = () => _data.status === 'Won';
     this.isLost = () => _data.status === 'Lost';
 };
-RG.extend2(RG.Component.BattleBadge, RG.Component.Base);
+RG.extend2(Component.BattleBadge, Component.Base);
 
 /* An order given during battle. Used to give order to player at the moment. */
-RG.Component.BattleOrder = DataComponent('BattleOrder', {args: null});
+Component.BattleOrder = DataComponent('BattleOrder', {args: null});
 
 /* Used for battle commanders. */
-RG.Component.Commander = TagComponent('Commander');
+Component.Commander = TagComponent('Commander');
 
 /* This component is added to entity when it gains reputation in some event, and
  * it keeps track of the amount and type of reputation. */
-RG.Component.Reputation = function() {
-    RG.Component.Base.call(this, 'Reputation');
+Component.Reputation = function() {
+    Component.Base.call(this, 'Reputation');
 
     let _data = null;
 
@@ -1060,39 +1062,39 @@ RG.Component.Reputation = function() {
         }
     };
 };
-RG.extend2(RG.Component.Reputation, RG.Component.Base);
+RG.extend2(Component.Reputation, Component.Base);
 
 /* Component used to pass data between systems. */
-RG.Component.Event = TransientDataComponent('Event', {args: null});
+Component.Event = TransientDataComponent('Event', {args: null});
 
-RG.Component.Event.prototype._init = function(args) {
+Component.Event.prototype._init = function(args) {
     this.args = args;
 };
 
-RG.Component.Effects = TransientDataComponent('Effects',
+Component.Effects = TransientDataComponent('Effects',
     {args: null, effectType: ''}
 );
-RG.Component.Effects.prototype._init = function(args) {
+Component.Effects.prototype._init = function(args) {
     this.args = args || {};
 };
 
 /* Can be added to actors when they're under player control. */
-RG.Component.PlayerControlled = UniqueTagComponent('PlayerControlled');
+Component.PlayerControlled = UniqueTagComponent('PlayerControlled');
 
 /* Component added only to the actual player actor. */
-RG.Component.Player = UniqueTagComponent('Player');
+Component.Player = UniqueTagComponent('Player');
 
 //--------------------------------------------
 // Comps that add or remove other components
 //--------------------------------------------
 
-RG.Component.AddOnHit = DataComponent('AddOnHit', {
+Component.AddOnHit = DataComponent('AddOnHit', {
     comp: null,
     onDamage: true, // Apply when damage is dealt
     onAttackHit: false // Apply on successful hit (damage irrelevant)
 });
 
-RG.Component.AddOnHit.prototype.toJSON = function() {
+Component.AddOnHit.prototype.toJSON = function() {
     const jsonComp = this.comp.toJSON();
     return {
         setID: this.getID(),
@@ -1104,17 +1106,17 @@ RG.Component.AddOnHit.prototype.toJSON = function() {
 };
 
 /* Used to equip/unequip items. */
-RG.Component.Equip = TransientDataComponent('Equip', {
+Component.Equip = TransientDataComponent('Equip', {
     args: null, item: null, isRemove: false
 });
 
 /* Adds a component to given entity on equip (or removes it on unequip. */
-RG.Component.AddOnEquip = DataComponent('AddOnEquip', {
+Component.AddOnEquip = DataComponent('AddOnEquip', {
     comp: null, addedToActor: false
 });
 
-RG.Component.AddOnEquip.prototype.toJSON = function() {
-    const json = {
+Component.AddOnEquip.prototype.toJSON = function() {
+    const json: any = {
         setID: this.getID(),
         setType: this.getType(),
         setAddedToActor: this.addedToActor
@@ -1132,24 +1134,23 @@ RG.Component.AddOnEquip.prototype.toJSON = function() {
 /* Can be used to modify a value of another component at certain
  * intervals. Placed on entity when regeneration is needed, and removed
  * once all values have regenerated. */
-RG.Component.RegenEffect = DataComponent('RegenEffect', {
+Component.RegenEffect = DataComponent('RegenEffect', {
     PP: 1, HP: 1, waitPP: 30, waitHP: 30, maxWaitPP: 60, maxWaitHP: 60
 });
 
-RG.Component.Telepathy = DataComponent('Telepathy', {
+Component.Telepathy = DataComponent('Telepathy', {
     target: null, source: null
 }, {
     description: "Grants ability to see through another being's eyes"
 });
 
-RG.Component.Telepathy.prototype.toJSON = function() {
-    const json = {
+Component.Telepathy.prototype.toJSON = function() {
+    const json: any = {
         setID: this.getID(),
         setType: this.getType()
     };
     if (RG.isActorActive(this.target)) {
         json.setTarget = RG.getObjRef('entity', this.target);
-
     }
     if (RG.isActorActive(this.source)) {
         json.setSource = RG.getObjRef('entity', this.source);
@@ -1159,21 +1160,21 @@ RG.Component.Telepathy.prototype.toJSON = function() {
 
 /* Animation comp is used to pass data from other systems to Animation
  * System. */
-RG.Component.Animation = TransientDataComponent('Animation',
+Component.Animation = TransientDataComponent('Animation',
     {args: null}
 );
 
-RG.Component.Animation.prototype._init = function(args) {
+Component.Animation.prototype._init = function(args) {
     this.args = args;
 };
 
 /* Adds a component into expiration component for given entity. */
-RG.Component.addToExpirationComp = (entity, comp, dur, msg) => {
+Component.addToExpirationComp = (entity, comp, dur, msg) => {
     if (entity.has('Expiration')) {
         entity.get('Expiration').addEffect(comp, dur, msg);
     }
     else {
-        const expComp = new RG.Component.Expiration();
+        const expComp = new Component.Expiration();
         expComp.addEffect(comp, dur, msg);
         entity.add(expComp);
     }
@@ -1187,57 +1188,57 @@ RG.Component.addToExpirationComp = (entity, comp, dur, msg) => {
 //---------------------------------------------------------------------------
 
 /* Added to a entity giving an item. */
-RG.Component.Give = TransientDataComponent('Give',
+Component.Give = TransientDataComponent('Give',
     {giveTarget: null, item: null});
 
 /* Added to a jumping entity. */
-RG.Component.Jump = TransientDataComponent('Jump', {x: -1, y: -1});
+Component.Jump = TransientDataComponent('Jump', {x: -1, y: -1});
 
 /* Added to entity when it's opening a door. */
-RG.Component.OpenDoor = TransientDataComponent('OpenDoor', {door: null});
+Component.OpenDoor = TransientDataComponent('OpenDoor', {door: null});
 
 /* Added to entity when it's picking up something. */
-RG.Component.Pickup = TransientTagComponent('Pickup');
+Component.Pickup = TransientTagComponent('Pickup');
 
 /* Added to an entity reading something. */
-RG.Component.Read = TransientDataComponent('Read', {readTarget: null});
+Component.Read = TransientDataComponent('Read', {readTarget: null});
 
-RG.Component.UseElement = TransientDataComponent('UseElement',
+Component.UseElement = TransientDataComponent('UseElement',
     {element: null, useType: ''});
 
-RG.Component.UseItem = TransientDataComponent('UseItem',
+Component.UseItem = TransientDataComponent('UseItem',
     {item: null, useType: '', target: null, targetType: null, effect: null});
 
 /* Added to entity when it's using stairs to move to another level. */
-RG.Component.UseStairs = TransientTagComponent('UseStairs');
+Component.UseStairs = TransientTagComponent('UseStairs');
 
 //---------------------------------------------------------------------------
 // PLAYER-related data components
 //---------------------------------------------------------------------------
 
 /* Added to player to record various event in the game. */
-RG.Component.GameInfo = UniqueDataComponent('GameInfo', {
+Component.GameInfo = UniqueDataComponent('GameInfo', {
     data: null});
 
-RG.Component.GameInfo.prototype._init = function() {
+Component.GameInfo.prototype._init = function() {
     this.data = {zones: {}};
 };
 
 /* Updates the data with given object. */
-RG.Component.GameInfo.prototype.updateData = function(data) {
+Component.GameInfo.prototype.updateData = function(data) {
     const oldData = this.data;
     this.data = Object.assign(oldData, data);
 };
 
-RG.Component.GameInfo.prototype.addZone = function(id) {
+Component.GameInfo.prototype.addZone = function(id) {
     this.data.zones[id] = true;
 };
 
-RG.Component.GameInfo.prototype.hasZone = function(id) {
+Component.GameInfo.prototype.hasZone = function(id) {
     return this.data.zones[id];
 };
 
-RG.Component.GameInfo.prototype.addZoneType = function(type) {
+Component.GameInfo.prototype.addZoneType = function(type) {
     const data = this.data;
     if (!data.zones.hasOwnProperty(type)) {
         data.zones[type] = 1;
@@ -1249,9 +1250,9 @@ RG.Component.GameInfo.prototype.addZoneType = function(type) {
 };
 
 /* Abilities which stores the separate (non-spell) abilities of actor. */
-RG.Component.Abilities = UniqueDataComponent('Abilities', {});
+Component.Abilities = UniqueDataComponent('Abilities', {});
 
-RG.Component.Abilities.prototype._init = function() {
+Component.Abilities.prototype._init = function() {
     const _addCb = () => {
         const abilities = new Abilities(this.getEntity());
         // This is mainly used if component is restored
@@ -1267,20 +1268,20 @@ RG.Component.Abilities.prototype._init = function() {
     this.addCallback('onAdd', _addCb);
 };
 
-RG.Component.Abilities.prototype.setAbilities = function(abils) {
+Component.Abilities.prototype.setAbilities = function(abils) {
     this.abilities = abils;
 };
 
-RG.Component.Abilities.prototype.createMenu = function() {
+Component.Abilities.prototype.createMenu = function() {
     return this.abilities.getMenu();
 };
 
-RG.Component.Abilities.prototype.addAbility = function(ability) {
+Component.Abilities.prototype.addAbility = function(ability) {
     this.abilities.addAbility(ability);
 };
 
-RG.Component.Abilities.prototype.toJSON = function() {
-    const json = RG.Component.Base.prototype.toJSON.call(this);
+Component.Abilities.prototype.toJSON = function() {
+    const json = Component.Base.prototype.toJSON.call(this);
     json.setAbilities = this.abilities.toJSON();
     return json;
 };
@@ -1290,24 +1291,24 @@ RG.Component.Abilities.prototype.toJSON = function() {
 //---------------------------------------------------------------------------
 
 /* Fading component is added to entities which disappear eventually */
-RG.Component.Fading = DataComponent('Fading', {duration: 0});
+Component.Fading = DataComponent('Fading', {duration: 0});
 
-RG.Component.Fading.prototype.decrDuration = function() {
+Component.Fading.prototype.decrDuration = function() {
     this.duration -= 1;
 };
 
 /* Expiration component handles expiration of time-based effects. Any component
  * can be made transient by using this Expiration component. For example, to
  * have transient, non-persistent Ethereal, you can use this component. */
-RG.Component.Expiration = DataComponent('Expiration',
+Component.Expiration = DataComponent('Expiration',
     {duration: null, expireMsg: null});
 
-RG.Component.Expiration.prototype._init = function() {
+Component.Expiration.prototype._init = function() {
     this.expireMsg = {};
 };
 
 /* Adds one effect to time-based components.*/
-RG.Component.Expiration.prototype.addEffect = function(comp, dur, msg) {
+Component.Expiration.prototype.addEffect = function(comp, dur, msg) {
     if (!this.duration) {this.duration = {};}
     const compID = comp.getID();
     if (!this.duration.hasOwnProperty(compID)) {
@@ -1327,22 +1328,22 @@ RG.Component.Expiration.prototype.addEffect = function(comp, dur, msg) {
 };
 
 /* Decreases duration of all time-based effects.*/
-RG.Component.Expiration.prototype.decrDuration = function() {
-    for (const compID in this.duration) {
+Component.Expiration.prototype.decrDuration = function() {
+    for (const compIDStr in this.duration) {
+        const compID: number = parseInt(compIDStr, 10);
         if (compID >= 0) {
             this.duration[compID] -= 1;
             if (this.duration[compID] === 0) {
                 const ent = this.getEntity();
-                const compIDInt = parseInt(compID, 10);
-                if (this.expireMsg && this.expireMsg[compIDInt]) {
-                    const msg = this.expireMsg[compIDInt];
+                if (this.expireMsg && this.expireMsg[compID]) {
+                    const msg = this.expireMsg[compID];
                     RG.gameMsg({cell: ent.getCell(), msg});
                 }
                 else {
                     const msg = 'An effect wears of from ' + ent.getName();
                     RG.gameMsg({cell: ent.getCell(), msg});
                 }
-                ent.remove(compIDInt);
+                ent.remove(compID);
                 delete this.duration[compID];
             }
         }
@@ -1350,18 +1351,18 @@ RG.Component.Expiration.prototype.decrDuration = function() {
 };
 
 /* Returns true if component has any time-effects with non-zero duration.*/
-RG.Component.Expiration.prototype.hasEffects = function() {
+Component.Expiration.prototype.hasEffects = function() {
     return Object.keys(this.duration).length > 0;
 };
 
-RG.Component.Expiration.prototype.hasEffect = function(comp) {
+Component.Expiration.prototype.hasEffect = function(comp) {
     const compID = comp.getID();
     return this.duration.hasOwnProperty(compID);
 };
 
 /* Should be called to remove a specific effect, for example upon death of
  * an actor. */
-RG.Component.Expiration.prototype.removeEffect = function(comp) {
+Component.Expiration.prototype.removeEffect = function(comp) {
     const compID = comp.getID();
     if (this.duration.hasOwnProperty(compID)) {
         delete this.duration[compID];
@@ -1371,7 +1372,7 @@ RG.Component.Expiration.prototype.removeEffect = function(comp) {
     }
 };
 
-RG.Component.Expiration.prototype.cleanup = function() {
+Component.Expiration.prototype.cleanup = function() {
     const entity = this.getEntity();
     Object.keys(this.duration).forEach(compID => {
         entity.remove(parseInt(compID, 10));
@@ -1380,7 +1381,7 @@ RG.Component.Expiration.prototype.cleanup = function() {
 
 /* This component can be added to any other component to make that component
  * stay for a specific duration only. */
-class Duration extends Mixin.DurationRoll(RG.Component.Base) {
+class Duration extends Mixin.DurationRoll(Component.Base) {
 
     constructor() {
         super('Duration');
@@ -1464,7 +1465,7 @@ class Duration extends Mixin.DurationRoll(RG.Component.Base) {
 
 
 }
-RG.Component.Duration = Duration;
+Component.Duration = Duration;
 
 //--------------------------------------------
 // QUEST COMPONENTS
@@ -1475,15 +1476,15 @@ const NO_SUB_QUEST = -1;
 
 /* QuestGiver is added to actors who can give quests. Only one comp
  * supported per actor. */
-RG.Component.QuestGiver = UniqueDataComponent('QuestGiver', {
+Component.QuestGiver = UniqueDataComponent('QuestGiver', {
     hasGivenQuest: false, descr: '',
     questID: -1, danger: 1, reward: NO_QUEST_REWARD,
     hasGivenReward: false,
     questTargets: null
 });
 
-RG.Component.QuestGiver.prototype._init = function(descr) {
-    this.chatObj = new RG.Chat.Quest();
+Component.QuestGiver.prototype._init = function(descr) {
+    this.chatObj = new Chat.Quest();
     this.descr = descr;
     this.questID = this.getID();
     this.questTargets = [];
@@ -1494,11 +1495,11 @@ RG.Component.QuestGiver.prototype._init = function(descr) {
     this.addCallback('onAdd', _addCb);
 };
 
-RG.Component.QuestGiver.prototype.hasReward = function() {
+Component.QuestGiver.prototype.hasReward = function() {
     return this.reward && (this.reward !== NO_QUEST_REWARD);
 };
 
-RG.Component.QuestGiver.prototype.giveQuest = function(target) {
+Component.QuestGiver.prototype.giveQuest = function(target) {
     if (target) {
         this.questGivenTo = target;
         this.hasGivenQuest = true;
@@ -1508,7 +1509,7 @@ RG.Component.QuestGiver.prototype.giveQuest = function(target) {
     }
 };
 
-RG.Component.QuestGiver.prototype.addTarget = function(targetType, target) {
+Component.QuestGiver.prototype.addTarget = function(targetType, target) {
     if (!target) {
         RG.err('Component.QuestGiver', 'addTarget',
             `No target given. Type ${targetType}`);
@@ -1516,7 +1517,8 @@ RG.Component.QuestGiver.prototype.addTarget = function(targetType, target) {
     const name = RG.getName(target);
     if (!RG.isEmpty(name)) {
         const targetData = {
-            id: target.getID(), name, targetType
+            id: target.getID(), name, targetType,
+            subQuestID: -1
         };
         const qTarget = target.get('QuestTarget');
         if (qTarget.getSubQuestID() !== NO_SUB_QUEST) {
@@ -1530,7 +1532,7 @@ RG.Component.QuestGiver.prototype.addTarget = function(targetType, target) {
     }
 };
 
-RG.Component.QuestGiver.prototype.toJSON = function() {
+Component.QuestGiver.prototype.toJSON = function() {
     const json = BaseProto.toJSON.call(this);
     // json.setQuestData = this.questData.toJSON();
     if (this.questGivenTo) {
@@ -1539,21 +1541,21 @@ RG.Component.QuestGiver.prototype.toJSON = function() {
     return json;
 };
 
-RG.Component.QuestGiver.prototype.getChatObj = function() {
+Component.QuestGiver.prototype.getChatObj = function() {
     return this.chatObj;
 };
 
 /* QuestTarget Comp is added to quest targets (items, actors etc). */
-RG.Component.QuestTarget = DataComponent('QuestTarget', {
+Component.QuestTarget = DataComponent('QuestTarget', {
     targetType: '', target: null, isCompleted: false,
     targetID: -1, questID: -1, subQuestID: NO_SUB_QUEST
 });
 
-RG.Component.QuestTarget.prototype.isKill = function() {
+Component.QuestTarget.prototype.isKill = function() {
     return this.targetType === 'kill';
 };
 
-RG.Component.QuestTarget.prototype.toString = function() {
+Component.QuestTarget.prototype.toString = function() {
     let name = '';
     if (this.target.getName) {
         name = this.target.getName();
@@ -1571,7 +1573,7 @@ RG.Component.QuestTarget.prototype.toString = function() {
     return `${this.targetType} ${name}`;
 };
 
-RG.Component.QuestTarget.prototype.toJSON = function() {
+Component.QuestTarget.prototype.toJSON = function() {
     const json = BaseProto.toJSON.call(this);
     json.setTargetType = this.targetType;
     if (this.target.$objID) {
@@ -1584,30 +1586,30 @@ RG.Component.QuestTarget.prototype.toJSON = function() {
 };
 
 /* Quest component contains all info related to a single quest. */
-RG.Component.Quest = DataComponent('Quest', {
+Component.Quest = DataComponent('Quest', {
     giver: null, questTargets: null, questID: -1, descr: ''
 });
 
-RG.Component.Quest.prototype._init = function() {
+Component.Quest.prototype._init = function() {
     this.questTargets = [];
 };
 
-RG.Component.Quest.prototype.addTarget = function(targetData) {
+Component.Quest.prototype.addTarget = function(targetData) {
     this.questTargets.push(targetData);
 };
 
-RG.Component.Quest.prototype.isInThisQuest = function(targetComp) {
+Component.Quest.prototype.isInThisQuest = function(targetComp) {
     return this.getQuestID() === targetComp.getQuestID();
 };
 
-RG.Component.Quest.prototype.getTargetsByType = function(targetType) {
+Component.Quest.prototype.getTargetsByType = function(targetType) {
     return this.questTargets.filter(obj => (
         obj.targetType === targetType
     ));
 };
 
 /* Returns first quest target matching the given targetType. */
-RG.Component.Quest.prototype.first = function(targetType) {
+Component.Quest.prototype.first = function(targetType) {
     const targetObj = this.questTargets.find(obj => (
         obj.targetType === targetType
     ));
@@ -1616,12 +1618,12 @@ RG.Component.Quest.prototype.first = function(targetType) {
 };
 
 /* Returns true if all QuestTarget comps have been completed. */
-RG.Component.Quest.prototype.isCompleted = function() {
+Component.Quest.prototype.isCompleted = function() {
     return this.questTargets.reduce((acc, obj) => acc && obj.isCompleted,
         true);
 };
 
-RG.Component.Quest.prototype.isTargetInQuest = function(targetComp) {
+Component.Quest.prototype.isTargetInQuest = function(targetComp) {
     const target = targetComp.getTarget();
     for (let i = 0; i < this.questTargets.length; i++) {
         const curr = this.questTargets[i];
@@ -1632,7 +1634,7 @@ RG.Component.Quest.prototype.isTargetInQuest = function(targetComp) {
     return false;
 };
 
-RG.Component.Quest.prototype.toString = function() {
+Component.Quest.prototype.toString = function() {
     let res = '';
     this.questTargets.forEach((obj, i) => {
         if (i > 0) {res += '. ';}
@@ -1646,30 +1648,30 @@ RG.Component.Quest.prototype.toString = function() {
     return res;
 };
 
-RG.Component.QuestInfo = DataComponent('QuestInfo', {
+Component.QuestInfo = DataComponent('QuestInfo', {
     question: '', info: '',
     givenBy: -1 // ID of the info source
 });
 
-RG.Component.QuestReport = DataComponent('QuestReport', {
+Component.QuestReport = DataComponent('QuestReport', {
     expectInfoFrom: -2
 });
 
-RG.Component.QuestCompleted = TransientDataComponent('QuestCompleted',
+Component.QuestCompleted = TransientDataComponent('QuestCompleted',
     {giver: null}
 );
 
-RG.Component.GiveQuest = TransientDataComponent('GiveQuest',
+Component.GiveQuest = TransientDataComponent('GiveQuest',
     {target: null, giver: null}
 );
 
-RG.Component.QuestTargetEvent = TransientDataComponent('QuestTargetEvent',
+Component.QuestTargetEvent = TransientDataComponent('QuestTargetEvent',
     {targetComp: null, args: null, eventType: ''}
 );
 
-RG.Component.QuestTargetEvent.prototype.setTargetComp = function(target) {
+Component.QuestTargetEvent.prototype.setTargetComp = function(target) {
     RG.assertType(target, 'QuestTarget');
     this.targetComp = target;
 };
 
-export default RG.Component;
+export default Component;

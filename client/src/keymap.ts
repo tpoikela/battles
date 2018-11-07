@@ -1,10 +1,12 @@
 /* This file contains keyboard definitions and constants, plus some conversion
  * functions between dir-vectors and direction keys. */
 
-import ROT = require('../../lib/rot');
-import RG = require('./rg');
+import RG from './rg';
+import ROT from '../../lib/rot';
 
-const Keys = {};
+type Coord = [number, number];
+
+const Keys: any = {};
 
 /* eslint-disable */
 Keys.VK_a = ROT.VK_A + 32;
@@ -46,7 +48,7 @@ Keys.KeyMap = {
     moveKeyMap: { },
 
     // Start from W, go clock wise on keyboard
-    initMap: function() {
+    initMap() {
         this.moveKeyMap[Keys.KEY.MOVE_N] = 0;
         this.moveKeyMap[Keys.KEY.MOVE_NE] = 1;
         this.moveKeyMap[Keys.KEY.MOVE_E] = 2;
@@ -66,7 +68,7 @@ Keys.KeyMap = {
         this.moveKeyMap[ROT.VK_7] = 7;
     },
 
-    inMoveCodeMap: function(code) {
+    inMoveCodeMap(code) {
         return this.moveKeyMap.hasOwnProperty(code);
     },
 
@@ -99,7 +101,7 @@ Keys.KeyMap = {
 
     /* Based on keycode, computes and returns a new x,y pair. If code is
      * invalid, returns null. */
-    getDiff: function(code, x, y) {
+    getDiff(code: number, x: number, y: number): Coord | null {
         if (this.moveKeyMap.hasOwnProperty(code)) {
             const diff = ROT.DIRS[8][this.moveKeyMap[code]];
             const newX = x + diff[0];
@@ -115,7 +117,7 @@ Keys.KeyMap = {
     },
 
     /* Returns a direction vector for given keycode. */
-    getDir: function(code) {
+    getDir(code) {
         if (this.moveKeyMap.hasOwnProperty(code)) {
             return ROT.DIRS[8][this.moveKeyMap[code]];
         }
@@ -228,7 +230,7 @@ Keys.selectIndexToCode = indexChar => {
 };
 
 /* Converts the keycode into a selection index starting from 0. */
-Keys.codeToIndex = code => {
+Keys.codeToIndex = (code): number => {
     if (code >= ROT.VK_0 && code <= ROT.VK_9) {
         return code - ROT.VK_0;
     }

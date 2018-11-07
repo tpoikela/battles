@@ -1,7 +1,7 @@
 
 const RG = require('./rg');
 
-const Mixin = {};
+const Mixin: any = {};
 
 // Dummy Base class to be used with mixins.
 class Base {}
@@ -371,4 +371,4 @@ Mixin.Damage = (superclass) => class extends Mixin.Defense(superclass) {
 
 };
 
-module.exports = Mixin;
+export default Mixin;

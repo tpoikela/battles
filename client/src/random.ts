@@ -1,6 +1,6 @@
 
-import RG = require('./rg');
-import ROT = require('../../lib/rot');
+import RG from './rg';
+import ROT from '../../lib/rot';
 
 const DIRS = [-1, 0, 1];
 const DIRS_NO_ZERO = [-1, 1];

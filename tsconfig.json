@@ -4,7 +4,7 @@
     "allowJs": true,
     "jsx": "react",
     "module": "commonjs",
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "outDir": "build",
     "sourceMap": true,
     "target": "es6",

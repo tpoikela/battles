@@ -26,12 +26,12 @@
  *
  */
 
-import RG = require('./rg');
-import Keys = require('./keymap');
+import RG from './rg';
+import Keys from './keymap';
 
 const {KeyMap} = Keys;
 
-const Menu = {};
+const Menu: any = {};
 Menu.EXIT_MENU = null;
 Menu.NO_ACTION = 'NO_ACTION';
 Menu.NEXT_STATE = 'NEXT_STATE';
@@ -111,7 +111,7 @@ const MenuBase = function(args = []) {
 Menu.Base = MenuBase;
 
 MenuBase.prototype.getMenu = function() {
-    const obj = {};
+    const obj = {pre: [], post: []};
     Object.keys(this.table).forEach(index => {
         const char = Keys.menuIndices[index];
         obj[char] = this.table[index][0];
@@ -159,10 +159,10 @@ Menu.InfoOnly = MenuInfoOnly;
 
 MenuInfoOnly.prototype.getMenu = function() {
     const obj = {
-        0: 'Back to game.'
+        0: 'Back to game.',
+        pre: this.pre,
+        post: this.post
     };
-    obj.pre = this.pre;
-    obj.post = this.post;
     return obj;
 };
 
@@ -371,13 +371,11 @@ MenuWithState.prototype.getMenu = function() {
     const quitObj = MenuWithQuit.prototype.getMenu.call(this);
     const state = this.menuState;
     const table = this.stateToTable[state];
-    let obj = {};
+    let obj = {pre: this.pre, post: this.post};
     Object.keys(table).forEach(index => {
         const char = Keys.menuIndices[index];
         obj[char] = table[index][0];
     });
-    obj.pre = this.pre;
-    obj.post = this.post;
     obj = Object.assign(obj, quitObj);
     if (this.stateToPre[state]) {
         obj.pre.push(this.stateToPre[state]);

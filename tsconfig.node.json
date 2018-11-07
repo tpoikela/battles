@@ -3,7 +3,7 @@
     "allowJs": true,
     "jsx": "react",
     "module": "commonjs",
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "outDir": "tsDist",
     "sourceMap": true,
     "target": "es6",

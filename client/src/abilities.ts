@@ -1,51 +1,43 @@
 
-import RG = require('./rg');
-import Menu = require('./menu');
-import Random = require('./random');
+import RG from './rg';
+import Random from './random';
+import Menu from './menu';
+import Actor from './actor';
 
 const RNG = Random.getRNG();
 
 /* This file contains usable actor ability definitions. */
-const Ability = {};
+const Ability: any = {};
 
-const Abilities = function(actor) {
-    this.actor = actor;
-    this.abilities = {};
-};
-Ability.Abilities = Abilities;
+type MenuItem = [string, () => void];
 
-Abilities.prototype.getMenu = function() {
-    const menuArgs = Object.values(this.abilities).map(abil => (
-        abil.getMenuItem()
-    ));
-    const menu = new Menu.WithQuit(menuArgs);
-    menu.addPre('Select an ability to use:');
-    return menu;
-};
+class AbilityBase {
+    public name: string;
+    public actor: Actor.Rogue;
 
-Abilities.prototype.addAbility = function(ability) {
-    this.abilities[ability.getName()] = ability;
-    ability.actor = this.actor;
-};
+    constructor(name: string) {
+        this.name = name;
+    }
 
-Abilities.prototype.toJSON = function() {
-    return Object.keys(this.abilities);
-};
+    public getName(): string {
+        return this.name;
+    }
 
-Ability.Base = function(name) {
-    this.name = name;
-};
+    public getMenuItem(): MenuItem {
+        return [
+            this.getName(),
+            this.activate.bind(this)
+        ];
+    }
 
-Ability.Base.prototype.getName = function() {
-    return this.name;
-};
+    public activate(): void {
+        const name = this.getName();
+        RG.err('Ability.Base', 'activate',
+            `${name} should implement activate()`);
+    }
 
-Ability.Base.prototype.activate = function() {
-    const name = this.getName();
-    RG.err('Ability.Base', 'activate',
-        `${name} should implement activate()`);
-
-};
+}
+Ability.Base = AbilityBase;
 
 //---------------------------------------------------------------------------
 // Abilities usable on actor itself
@@ -142,5 +134,36 @@ Ability.Sharpener.prototype.activate = function(item) {
         RG.gameMsg(`${name} has already been sharpened`);
     }
 };
+
+class Abilities {
+
+    public abilities: {[key: string]: AbilityBase};
+    public actor: Actor.Rogue;
+
+    constructor(actor) {
+        this.actor = actor;
+        this.abilities = {};
+    }
+
+    public getMenu() {
+        const menuArgs = Object.values(this.abilities).map(abil => (
+            abil.getMenuItem()
+        ));
+        const menu = new Menu.WithQuit(menuArgs);
+        menu.addPre('Select an ability to use:');
+        return menu;
+    }
+
+    public addAbility(ability: AbilityBase) {
+        this.abilities[ability.getName()] = ability;
+        ability.actor = this.actor;
+    }
+
+    public toJSON() {
+        return Object.keys(this.abilities);
+    }
+
+}
+Ability.Abilities = Abilities;
 
 export default Ability;
