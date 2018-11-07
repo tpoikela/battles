@@ -3,6 +3,9 @@ const RG = require('../rg');
 
 const System = {};
 System.Base = require('./system.base');
+const EventPool = require('../eventpool');
+
+const POOL = EventPool.getPool();
 
 const NO_DAMAGE_SRC = RG.NO_DAMAGE_SRC;
 const RNG = RG.Random.getRNG();
@@ -305,7 +308,7 @@ System.Damage = function(compTypes) {
             if (src !== NO_DAMAGE_SRC) {killMsg += ' by ' + src.getName();}
 
             RG.gameDanger({cell, msg: killMsg});
-            RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor});
+            POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor});
 
             const evtComp = new RG.Component.Event();
             evtComp.setArgs({type: RG.EVT_ACTOR_KILLED,

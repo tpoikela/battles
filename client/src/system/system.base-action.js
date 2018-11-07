@@ -6,6 +6,9 @@ const System = {};
 System.Base = require('./system.base');
 const {getTargetFromObj} = require('./system.effects');
 const {addQuestEvent} = require('./system.quest');
+const EventPool = require('../eventpool');
+
+const POOL = EventPool.getPool();
 
 /* Processes entities with attack-related components.*/
 System.BaseAction = function(compTypes) {
@@ -122,9 +125,9 @@ System.BaseAction = function(compTypes) {
                 ent.add(qEvent);
             }
 
-            RG.POOL.emitEvent(RG.EVT_LEVEL_CHANGED,
+            POOL.emitEvent(RG.EVT_LEVEL_CHANGED,
                 {target: newLevel, src: level, actor: ent});
-            RG.POOL.emitEvent(RG.EVT_LEVEL_ENTERED,
+            POOL.emitEvent(RG.EVT_LEVEL_ENTERED,
                 {actor: ent, target: newLevel});
 
             // Moves the surrounding actors to new location as well
@@ -205,7 +208,7 @@ System.BaseAction = function(compTypes) {
         if (item.has('OneShot')) {
             if (item.getCount() === 1) {
                 const msg = {item};
-                RG.POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
+                POOL.emitEvent(RG.EVT_DESTROY_ITEM, msg);
             }
             else {
                 item.decrCount(1);

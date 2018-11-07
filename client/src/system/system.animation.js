@@ -4,6 +4,9 @@ const RG = require('../rg');
 const System = {};
 System.Base = require('./system.base');
 const Geometry = require('../geometry');
+const EventPool = require('../eventpool');
+
+const POOL = EventPool.getPool();
 
 /* System which constructs the animations to play. */
 System.Animation = function(compTypes) {
@@ -39,7 +42,7 @@ System.Animation = function(compTypes) {
         // After processing all animation for all entitities, emit an event
         // to notify the Game Engine about animation
         if (!this.hasEntities()) {
-            RG.POOL.emitEvent(RG.EVT_ANIMATION, {animation: this.currAnim});
+            POOL.emitEvent(RG.EVT_ANIMATION, {animation: this.currAnim});
             this.currAnim = null;
         }
     };

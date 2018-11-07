@@ -2,6 +2,9 @@
 const RG = require('../rg');
 const Component = require('../component');
 const debug = require('debug')('bitn:System');
+const EventPool = require('../eventpool');
+
+const POOL = EventPool.getPool();
 
 //---------------------------------------------------
 /** Base class for all systems in ECS framework.
@@ -38,7 +41,7 @@ const SystemBase = function(type, compTypes, pool) {
             pool.listenEvent(this.compTypes[i], this);
         }
         else {
-            RG.POOL.listenEvent(this.compTypes[i], this);
+            POOL.listenEvent(this.compTypes[i], this);
         }
     }
 

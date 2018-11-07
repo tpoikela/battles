@@ -15,6 +15,10 @@ const Actors = require('./actors');
 const {Quest, QuestPopulate}
     = require('../src/quest-gen');
 
+const EventPool = require('../src/eventpool');
+
+const POOL = EventPool.getPool();
+
 const RNG = RG.Random.getRNG();
 const Stairs = RG.Element.Stairs;
 
@@ -534,8 +538,8 @@ const ActorKillListener = function(parent, game, level) {
             }
         }
     };
-    RG.POOL.listenEvent(RG.EVT_ACTOR_CREATED, this);
-    RG.POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
+    POOL.listenEvent(RG.EVT_ACTOR_CREATED, this);
+    POOL.listenEvent(RG.EVT_ACTOR_KILLED, this);
 
     this.addSnow = (level, ratio) => {
         const map = level.getMap();

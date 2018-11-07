@@ -3,6 +3,9 @@ const RG = require('../rg');
 
 const System = {};
 System.Base = require('./system.base');
+const EventPool = require('../eventpool');
+
+const POOL = EventPool.getPool();
 
 /* System which handles time-based effects like poisoning etc. It also handles
  * expiration of effects. This is a special system because its updates are
@@ -116,7 +119,7 @@ System.TimeEffects = function(compTypes) {
                 const cell = ent.getCell();
                 const level = ent.getLevel();
                 if (level.removeActor(ent)) {
-                    RG.POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: ent});
+                    POOL.emitEvent(RG.EVT_ACTOR_KILLED, {actor: ent});
                     const msg = `${ent.getName()} disappears.`;
                     RG.gameMsg({cell, msg});
                 }

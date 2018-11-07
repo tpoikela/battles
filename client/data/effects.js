@@ -1,7 +1,7 @@
 /* eslint comma-dangle: 0 */
 
 const RG = require('../src/rg');
-RG.Component = require('../src/component.js');
+RG.Component = require('../src/component');
 
 const entities = ['actors', 'items', 'elements'];
 

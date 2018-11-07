@@ -3,7 +3,7 @@
 /* This file contains the manual for Battles in the North. The manual is written
 * as markdown and translated (dynamically) using marked. */
 
-const Keys = require('../src/keymap.js');
+const Keys = require('../src/keymap');
 const marked = require('marked');
 
 const {GUI, KEY, getChar} = Keys;
