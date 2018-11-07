@@ -1,7 +1,7 @@
 /* Contains some functions to shorten the definitions in actor/item
  * shells. */
 
-const RG = require('../src/rg');
+import RG from '../src/rg';
 
 const ShellUtils = {};
 
@@ -16,4 +16,4 @@ ShellUtils.meleeHitDamage = (dmg, dur, dmgType) => {
     };
 };
 
-module.exports = ShellUtils;
+export default ShellUtils;
