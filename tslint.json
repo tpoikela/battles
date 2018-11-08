@@ -15,7 +15,6 @@
         "no-require-imports": false,
         "no-var-requires": false,
         "no-unused-expression": true,
-        "no-unused-variable": true,
         "only-arrow-functions": false,
         "prefer-const": true,
         "prefer-function-over-method": true,
@@ -27,9 +26,11 @@
               "module-source-path": "basename"
           }
         ],
+        "object-literal-sort-keys": false,
         "arrow-parens": [true, "ban-single-arg-parens"],
         "whitespace": [false, "check-separator"],
-        "trailing-comma": [true, {"multi-line": "never"}]
+        "trailing-comma": [true, {"multi-line": "never"}],
+        "variable-name": [true, "allow-pascal-case", "allow-leading-underscore"]
     },
     "rulesDirectory": [],
     "exclude": ["node_modules"]
