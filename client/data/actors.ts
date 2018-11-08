@@ -25,7 +25,7 @@ const undeadBrain = 'GoalOriented';
  * of actors without adding any styles to CSS file.
  */
 
-const Actors = [
+const ActorsData = [
 
     // ANIMALS
     {
@@ -1352,6 +1352,8 @@ const Actors = [
 // fine-tuning the game balance.
 //---------------------------------------------------------------------------
 
+export const Actors: any = {};
+
 // Multiplies each given value in all actors
 Actors.scaleValue = function(actorsData, valName, multiply) {
     actorsData.forEach(actor => {
@@ -1418,5 +1420,4 @@ function color(fg, bg) {
     return {fg, bg};
 }
 
-export default Actors;
-
+export default ActorsData;
