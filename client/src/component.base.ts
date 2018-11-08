@@ -2,8 +2,7 @@
 import RG from './rg';
 import './utils';
 
-// export const Component: any  = {};
-const Component: any = {};
+export const Component: any = {};
 Component.createdCompDecls = {};
 
 // Used by components which cannot be serialized
@@ -251,7 +250,7 @@ Component.idCount = 0;
 
 /* Base class for all components. Provides callback hooks, copying and cloning.
  * */
-export function ComponentBase(type: string) {
+export const ComponentBase = function(type: string) {
     this._type = type;
     this._entity = null;
     this._id = Component.idCount++;
@@ -260,6 +259,7 @@ export function ComponentBase(type: string) {
     this._onAddCallbacks = [];
     this._onRemoveCallbacks = [];
 }
+Component.ComponentBase = ComponentBase;
 
 ComponentBase.prototype.getID = function(): number {return this._id;};
 ComponentBase.prototype.setID = function(id: number): void {this._id = id;};
@@ -402,6 +402,10 @@ ComponentBase.prototype.toJSON = function() {
     return obj;
 };
 Component.Base = ComponentBase;
+
+export interface ComponentBase {
+    getEntity(): any;
+}
 
 /* Factory function that should be used instead of new Component[varName]. */
 export const create = function(compName, ...args) {
