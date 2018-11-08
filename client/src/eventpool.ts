@@ -1,6 +1,5 @@
 
 import RG from './rg';
-import 'reflect-metadata';
 
 /* Event pool can be used to emit events and register callbacks for listeners.
  * This decouples the emitter and listener from each other.
@@ -48,11 +47,11 @@ export class EventPool  { // {{{2
 
     public getNumListeners() {
         return this._nListeners;
-    };
+    }
 
     public getNumEventsListened() {
         return Object.keys(this._listeners).length;
-    };
+    }
 
     /* Emits an event with given name. args must be in object-notation ie.
      * {data: "abcd"} */
@@ -87,7 +86,7 @@ export class EventPool  { // {{{2
             }
         }
         --this.notifyStackSize;
-    };
+    }
 
     /* Register an event listener. */
     public listenEvent(evtName, obj) {
