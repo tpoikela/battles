@@ -178,6 +178,3 @@ export class Random {
     }
 }
 
-// RNG used for dynamic "micro" stuff like damage rolls etc level ups
-RG.DIE_RNG = new Random(new Date().getTime());
-

@@ -1805,6 +1805,11 @@ RG.formatLocationName = level => {
     }
 };
 
+import {Random} from './random';
+
+// RNG used for dynamic "micro" stuff like damage rolls etc level ups
+RG.DIE_RNG = new Random(new Date().getTime());
+
 /* Each die has number of throws, type of dice (d6, d20, d200...) and modifier
  * which is +/- X. */
 RG.Die = function(num, dice, mod) {

@@ -1,9 +1,6 @@
 import RG from './rg';
-import * as Component from './component.base';
 
 export const Mixin: any = {};
-
-type ComponentBase = Component.ComponentBase;
 
 // Dummy Base class to be used with mixins.
 export class Base {}
@@ -119,7 +116,9 @@ export const Locatable = superclass => class extends superclass {
 };
 
 /* Mixin for objects requiring a damage roll. */
-export const DamageRoll = (superclass: ComponentBase) => class extends superclass {
+export const DamageRoll = (superclass) => class extends superclass {
+
+    public damageDie: any;
 
     constructor(args?: MixinArgs) {
         super(args);

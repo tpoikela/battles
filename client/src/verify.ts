@@ -1,12 +1,14 @@
 
-const RG = require('./rg');
+import RG from './rg';
+
+interface IConfData {
+    [key: string]: any;
+}
 
 /* This file contains verification functions for game logic. */
 
-RG.Verify = {};
-
 /* Verifies that all stairs are properly connected. */
-RG.Verify.verifyStairsConnections = function(game, msg) {
+export const verifyStairsConnections = function(game, msg) {
     const levels = game.getLevels();
     const stairsLists = levels.map(lv => lv.getStairs());
     stairsLists.forEach(sList => {
@@ -23,7 +25,6 @@ RG.Verify.verifyStairsConnections = function(game, msg) {
                     errMsg += ' srcLevel missing,';
                 }
                 else {
-                    const srcLevel = s.getSrcLevel();
                     errMsg += ' srcLevel parent ' + srcLevel.getParent() + ',';
                 }
 
@@ -44,11 +45,16 @@ RG.Verify.verifyStairsConnections = function(game, msg) {
     });
 };
 
-RG.Verify.Conf = function(objName) {
-    this._name = objName;
+export class Conf {
+
+    private _name: string;
+
+    constructor(objName: string) {
+        this._name = objName;
+    }
 
     /* Verifies that configuration contains all required keys.*/
-    this.verifyConf = (funcName, conf, required) => {
+    public verifyConf(funcName: string, conf: IConfData, required: string[]) {
         let ok = true;
         let errorMsg = '';
         required.forEach(req => {
@@ -56,7 +62,7 @@ RG.Verify.Conf = function(objName) {
                 ok = false;
                 errorMsg += ` Missing: ${req}`;
             }
-            else if (this.reqHasNullValue(conf, req)) {
+            else if (reqHasNullValue(conf, req)) {
                 ok = false;
                 errorMsg += ` Undef/null value in: ${req}`;
             }
@@ -65,10 +71,10 @@ RG.Verify.Conf = function(objName) {
             RG.err(this._name, 'verifyConf', `${funcName} ${errorMsg}`);
         }
         return ok;
-    };
+    }
 
     /* Verifies that a requirement is met, ie it exists. */
-    this.verifyReq = (conf, req) => {
+    public verifyReq(conf: IConfData, req: string) {
         const allReqs = req.split('|');
         let ok = false;
         allReqs.forEach(givenReq => {
@@ -84,35 +90,35 @@ RG.Verify.Conf = function(objName) {
             }
         });
         return ok;
-    };
+    }
 
-    /* Returns true if a requirement has a null value. */
-    this.reqHasNullValue = (conf, req) => {
-        const allReqs = req.split('|');
-        const ok = allReqs.length > 0;
-        let hasNull = false;
-        for (let i = 0; i < allReqs.length; i++) {
-            const givenReq = allReqs[i];
-            if (conf.hasOwnProperty(givenReq)) {
-                if (RG.isNullOrUndef([conf[givenReq]])) {
-                    hasNull = true;
-                }
+
+}
+
+/* Returns true if a requirement has a null value. */
+function reqHasNullValue(conf: IConfData, req: string): boolean {
+    const allReqs = req.split('|');
+    const ok = allReqs.length > 0;
+    let hasNull = false;
+    for (const givenReq of allReqs) {
+        if (conf.hasOwnProperty(givenReq)) {
+            if (RG.isNullOrUndef([conf[givenReq]])) {
+                hasNull = true;
             }
         }
-        return !ok && hasNull;
-    };
+    }
+    return !ok && hasNull;
+}
 
-};
-
-RG.Verify.verifySaveData = function(data, failFast = true) {
+export const verifySaveData = function(data, failFast = true) {
     traverseObj(data, failFast);
 };
 
 const stack = [];
-function traverseObj(obj, failFast, maxStack = 30) {
+export function traverseObj(obj: any, failFast?: boolean, maxStack = 30) {
     const allErrors = [];
-	for (const prop in obj) {
-		if (obj.hasOwnProperty(prop)) {
+    for (const prop in obj) {
+        if (obj.hasOwnProperty(prop)) {
             stack.push(prop);
             if (stack.length < maxStack) {
                 if (typeof obj[prop] === 'object') {
@@ -139,14 +145,11 @@ function traverseObj(obj, failFast, maxStack = 30) {
                 }
             }
             stack.pop();
-		}
-	}
+        }
+    }
     if (allErrors.length > 0) {
         const msg = allErrors.join('\n');
         throw new Error(msg);
     }
 }
 
-RG.Verify.traverseObj = traverseObj;
-
-module.exports = RG.Verify;
