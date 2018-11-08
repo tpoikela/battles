@@ -3,6 +3,25 @@
 import RG from '../src/rg';
 import Component from '../src/component';
 
+interface TargetObj {
+    target: any;
+};
+
+interface Setters {
+    [key: string]: any;
+}
+
+interface EffArgs {
+    all?: boolean;
+    duration?: number | string;
+    effectType: string;
+    name?: string;
+    entityName?: string;
+    target: TargetObj;
+    targetType: string[];
+    setters?: Setters;
+}
+
 const entities = ['actors', 'items', 'elements'];
 
 const getTargetActor = (obj) => {
@@ -20,7 +39,7 @@ const getTargetActor = (obj) => {
     return null;
 };
 
-const createUseItemComp = (item, target, effArgs) => {
+const createUseItemComp = (item, target, effArgs?: EffArgs) => {
     const useItem = new Component.UseItem();
     useItem.setTarget(target);
     useItem.setItem(item);
@@ -32,7 +51,7 @@ const createUseItemComp = (item, target, effArgs) => {
     item.getTopOwner().add(useItem);
 };
 
-const getDuration = function(durStr) {
+const getDuration = function(durStr: string): number {
     const arr = RG.parseDieSpec(durStr);
     const durDie = new RG.Die(arr[0], arr[1], arr[2]);
     const duration = durDie.roll();
@@ -99,7 +118,7 @@ RG.Effects = {
             requires: ['name', 'duration'],
             optional: ['setters'],
             func: function(obj) {
-                const effArgs = {
+                const effArgs: EffArgs = {
                     duration: this.useArgs.duration,
                     effectType: 'AddComp',
                     name: this.useArgs.name,
@@ -121,7 +140,7 @@ RG.Effects = {
             requires: ['name'],
             optional: ['all'],
             func: function(obj) {
-                const effArgs = {
+                const effArgs: EffArgs = {
                     all: this.useArgs.all,
                     effectType: 'RemoveComp',
                     name: this.useArgs.name,
@@ -188,10 +207,12 @@ RG.Effects = {
                 const name = this.getTopOwner().getName();
                 const msg = `${name} digs through stone with ${this.getName()}`;
                 const effArgs = {
+                    name: this.useArgs.name,
                     effectType: 'ChangeElement',
                     fromType: 'wall',
                     target: obj,
-                    startMsg: msg
+                    startMsg: msg,
+                    targetType: ['elements']
                 };
                 createUseItemComp(this, obj, effArgs);
                 return true;
