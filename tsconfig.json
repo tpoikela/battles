@@ -7,18 +7,17 @@
     "noImplicitAny": false,
     "outDir": "build",
     "sourceMap": true,
-    "target": "es6",
+    "target": "ES6",
     "moduleResolution": "node",
-    "lib": ["es2017", "dom"],
+    "lib": ["es2015", "es2017", "dom"],
     "typeRoots": [
-        "node_modules/@types",
-        "typings"
+        "./node_modules/@types",
+        "./typings"
     ]
   },
   "include": [
       "./client/**/*",
       "./typings/**/*",
-      "./tests/**/*.ts",
       "./public/*.json"
   ],
   "exclude": [
