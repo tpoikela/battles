@@ -1,18 +1,19 @@
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
+import {expect} from 'chai';
+import RG from '../../../client/src/rg';
+import Item from '../../../client/src/item';
 
-const {
+import {
     EquipSlot,
     Equipment
-} = require('../../../client/src/equipment');
+} from '../../../client/src/equipment';
 
 describe('EquipSlot', () => {
 
     it('Holds items or stacks of items', () => {
         const missSlot = new EquipSlot('missile', true);
 
-        const arrow = new RG.Item.Missile('arrow');
+        const arrow = new Item.Missile('arrow');
         arrow.setCount(10);
         expect(missSlot.equipItem(arrow)).to.equal(true);
         expect(missSlot.unequipItem(5)).to.equal(true);

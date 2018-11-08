@@ -1,8 +1,7 @@
 
-const expect = require('chai').expect;
-const RG = require('../../../client/src/battles');
-
-const EventPool = RG.EventPool;
+import { expect } from 'chai';
+import RG from '../../../client/src/rg';
+import {EventPool} from '../../../client/src/eventpool';
 
 const Listener = function(eventName) {
     this.notified = false;
@@ -119,16 +118,16 @@ describe('EventPool', () => {
     it('can have its listeners removed', () => {
         const listeners = [];
         for (let i = 0; i < 10; i++) {
-            const listener = new Listener('ActualEvent');
-            listeners.push(listener);
-            pool.listenEvent(listener.eventName, listener);
+            const listenerInst = new Listener('ActualEvent');
+            listeners.push(listenerInst);
+            pool.listenEvent(listenerInst.eventName, listenerInst);
         }
 
         const EVENT = Symbol();
         for (let i = 0; i < 10; i++) {
-            const listener = new Listener(EVENT);
-            listeners.push(listener);
-            pool.listenEvent(listener.eventName, listener);
+            const listenerInst = new Listener(EVENT);
+            listeners.push(listenerInst);
+            pool.listenEvent(listenerInst.eventName, listenerInst);
         }
 
         const numListeners = pool.getNumListeners();
@@ -140,10 +139,10 @@ describe('EventPool', () => {
         expect(listener.notified).to.equal(false);
         emitter.emit(EVENT, {data: 'abcd'});
 
-        listeners.forEach(listener => {
-            expect(listener.notified).to.equal(true);
-            pool.removeListener(listener);
-            listener.clearNotify();
+        listeners.forEach(listenerInst => {
+            expect(listenerInst.notified).to.equal(true);
+            pool.removeListener(listenerInst);
+            listenerInst.clearNotify();
         });
 
         expect(pool.getNumListeners()).to.equal(0);
