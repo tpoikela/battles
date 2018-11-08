@@ -33,6 +33,11 @@ describe('Mixin.DamageRoll', () => {
 
     it('can be used to add location info to class', () => {
         class Damaging extends Mixin.DamageRoll(Mixin.Base) {
+
+            getEntity() {
+                return {};
+            }
+
         }
 
         const dd = new Damaging();
